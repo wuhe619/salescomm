@@ -8,6 +8,7 @@ import javax.annotation.Resource;
 import org.apache.log4j.Logger;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.stereotype.Service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.auth.LoginUser;
@@ -19,8 +20,8 @@ import com.bdaim.customer.service.CustomerService;
 import com.bdaim.rbac.entity.UserDO;
 import com.bdaim.rbac.service.UserInfoService;
 
+@Service
 public class TokenServiceImpl implements TokenService{
-
 	private static Logger logger = Logger.getLogger(TokenServiceImpl.class);
 			
 	@Resource

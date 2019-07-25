@@ -8,6 +8,7 @@ import com.bdaim.batch.dao.BatchDao;
 import com.bdaim.batch.entity.BatchListEntity;
 import com.bdaim.common.CommonInfoCodeEnum;
 import com.bdaim.common.dto.PageParam;
+import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.util.CipherUtil;
 import com.bdaim.common.util.Constant;
 import com.bdaim.common.util.DateUtil;
@@ -32,7 +33,6 @@ import com.bdaim.resource.entity.ResourcePropertyEntity;
 import com.bdaim.slxf.dao.*;
 import com.bdaim.slxf.dto.*;
 import com.bdaim.slxf.entity.*;
-import com.bdaim.slxf.exception.TouchException;
 import com.bdaim.slxf.util.*;
 import com.bdaim.supplier.service.SupplierService;
 

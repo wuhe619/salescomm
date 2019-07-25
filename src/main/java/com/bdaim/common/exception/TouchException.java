@@ -1,4 +1,4 @@
-package com.bdaim.slxf.exception;
+package com.bdaim.common.exception;
 
 /**
  * Created by Mr.YinXin on 2017/2/21.

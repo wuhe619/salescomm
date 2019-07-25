@@ -1,8 +1,8 @@
 package com.bdaim.rbac.service;
 
+import com.bdaim.common.exception.TouchException;
 import com.bdaim.rbac.entity.UserDO;
 import com.bdaim.slxf.entity.UserQueryParam;
-import com.bdaim.slxf.exception.TouchException;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;

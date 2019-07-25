@@ -6,15 +6,13 @@ import com.bdaim.auth.LoginUser;
 import com.bdaim.common.annotation.CacheAnnotation;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.dto.PageParam;
+import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.util.CipherUtil;
 import com.bdaim.common.util.page.Page;
 import com.bdaim.customer.dto.CustomerRegistDTO;
 import com.bdaim.customer.entity.CustomerUserDO;
 import com.bdaim.customer.service.CustomerService;
 import com.bdaim.rbac.dto.UserDTO;
-//import com.bdaim.slxf.common.security.ResponseResult;
-//import com.bdaim.slxf.common.security.service.TokenManager;
-import com.bdaim.slxf.exception.TouchException;
 
 import org.apache.log4j.Logger;
 import org.springframework.security.core.GrantedAuthority;

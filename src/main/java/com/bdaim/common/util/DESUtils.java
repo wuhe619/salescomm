@@ -8,7 +8,8 @@ import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.DESKeySpec;
 
-import com.bdaim.slxf.exception.TouchException;
+import com.bdaim.common.exception.TouchException;
+
 import sun.misc.BASE64Decoder;
 import sun.misc.BASE64Encoder;
 

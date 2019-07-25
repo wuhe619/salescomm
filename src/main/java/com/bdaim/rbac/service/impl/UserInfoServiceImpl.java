@@ -1,5 +1,6 @@
 package com.bdaim.rbac.service.impl;
 
+import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.util.CipherUtil;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.dao.CustomerUserDao;
@@ -9,7 +10,6 @@ import com.bdaim.rbac.dao.UserInfoDao;
 import com.bdaim.rbac.entity.UserDO;
 import com.bdaim.rbac.service.UserInfoService;
 import com.bdaim.slxf.entity.UserQueryParam;
-import com.bdaim.slxf.exception.TouchException;
 
 import org.apache.commons.lang.StringEscapeUtils;
 import org.hibernate.transform.Transformers;
