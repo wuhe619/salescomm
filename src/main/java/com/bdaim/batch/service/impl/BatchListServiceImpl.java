@@ -1,5 +1,6 @@
 package com.bdaim.batch.service.impl;
 
+import com.bdaim.batch.ResourceEnum;
 import com.bdaim.batch.dao.BatchDao;
 import com.bdaim.batch.dao.BatchDetailDao;
 import com.bdaim.batch.dao.BatchLogDao;
@@ -26,7 +27,6 @@ import com.bdaim.price.dto.ResourcesPriceDto;
 import com.bdaim.resource.dao.SourceDao;
 import com.bdaim.resource.entity.MarketResourceEntity;
 import com.bdaim.slxf.dao.*;
-import com.bdaim.slxf.dto.ResourceEnum;
 import com.bdaim.slxf.entity.*;
 import com.bdaim.slxf.util.*;
 

@@ -2,6 +2,8 @@ package com.bdaim.callcenter.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.batch.ResourceEnum;
+import com.bdaim.batch.TransactionEnum;
 import com.bdaim.batch.dao.BatchDao;
 import com.bdaim.batch.entity.BatchListEntity;
 import com.bdaim.callcenter.dto.SeatsInfo;

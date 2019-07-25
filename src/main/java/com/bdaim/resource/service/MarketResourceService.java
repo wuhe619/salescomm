@@ -3,7 +3,7 @@ package com.bdaim.resource.service;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.util.page.Page;
-import com.bdaim.slxf.dto.MarketResourceLogDTO;
+import com.bdaim.resource.dto.MarketResourceLogDTO;
 import com.bdaim.slxf.entity.*;
 import com.bdaim.supplier.dto.SupplierListParam;
 import com.bdaim.template.dto.TemplateParam;

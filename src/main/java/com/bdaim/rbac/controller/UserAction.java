@@ -2,8 +2,8 @@ package com.bdaim.rbac.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.bdaim.account.service.UserVerificationCodeService;
 import com.bdaim.auth.entity.UserVerificationCode;
+import com.bdaim.auth.service.UserVerificationCodeService;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.util.CipherUtil;

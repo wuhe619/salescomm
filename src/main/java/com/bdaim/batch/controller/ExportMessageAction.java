@@ -4,7 +4,7 @@ import com.alibaba.druid.support.logging.Log;
 import com.alibaba.druid.support.logging.LogFactory;
 import com.bdaim.batch.service.ExportMessageService;
 import com.bdaim.common.controller.BasicAction;
-import com.bdaim.slxf.controller.SeatsMessageAction;
+import com.bdaim.smscenter.controller.SeatsMessageAction;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;

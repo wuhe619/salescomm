@@ -4,9 +4,9 @@ import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.dao.SimpleHibernateDao;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.price.dto.ResourcesPriceDto;
+import com.bdaim.resource.dto.MarketResourceLogDTO;
 import com.bdaim.resource.entity.MarketResourceEntity;
 import com.bdaim.resource.entity.ResourcePropertyEntity;
-import com.bdaim.slxf.dto.MarketResourceLogDTO;
 import com.bdaim.supplier.entity.SupplierEntity;
 
 import org.springframework.stereotype.Component;

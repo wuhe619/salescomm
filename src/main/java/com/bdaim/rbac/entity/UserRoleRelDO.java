@@ -2,7 +2,7 @@ package com.bdaim.rbac.entity;
 
 import javax.persistence.*;
 
-import com.bdaim.slxf.entity.UserRoleRelDOPK;
+import com.bdaim.resource.entity.UserRoleRelDOPK;
 
 import java.sql.Date;
 

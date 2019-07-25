@@ -2,6 +2,7 @@ package com.bdaim.batch.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.batch.ResourceEnum;
 import com.bdaim.batch.dto.ImportErr;
 import com.bdaim.batch.service.BatchService;
 import com.bdaim.batch.service.impl.BatchListServiceImpl;
@@ -11,7 +12,6 @@ import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.service.CustomerService;
 import com.bdaim.price.service.SalePriceService;
 import com.bdaim.resource.service.impl.MarketResourceServiceImpl;
-import com.bdaim.slxf.dto.ResourceEnum;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

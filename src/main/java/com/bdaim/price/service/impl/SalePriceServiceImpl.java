@@ -1,7 +1,7 @@
 package com.bdaim.price.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.bdaim.account.dto.CustomerBillQueryParam;
+import com.bdaim.bill.dto.CustomerBillQueryParam;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.util.ConstantsUtil;
 import com.bdaim.common.util.DateUtil;
