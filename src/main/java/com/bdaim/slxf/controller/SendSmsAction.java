@@ -1,0 +1,46 @@
+package com.bdaim.slxf.controller;
+
+import com.alibaba.fastjson.JSONObject;
+import com.bdaim.common.controller.BasicAction;
+import com.bdaim.slxf.annotation.CacheAnnotation;
+import com.bdaim.slxf.annotation.CacheAnnotation;
+import com.bdaim.slxf.service.SendSmsService;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import javax.annotation.Resource;
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * 发送短息Action请求
+ * 2017/2/21
+ *
+ * @author lich@bdcsdk.com
+ */
+@Controller
+@RequestMapping("/sms")
+public class SendSmsAction extends BasicAction {
+
+    @Resource
+    private SendSmsService sendSmsService;
+
+    /*
+     * 短信信息编辑发送验证码
+     */
+    @RequestMapping(value = "/sendSms", method = RequestMethod.POST)
+    @ResponseBody
+    @CacheAnnotation
+    public Object sendSmsVcode(@RequestBody JSONObject jsonObject) throws Exception{
+        Map<String, Object> resultMap = new HashMap<String, Object>();
+        String phone = jsonObject.getString("phone");
+        int type = Integer.parseInt(jsonObject.getString("state"));
+        String username = jsonObject.getString("username");
+        Object result = sendSmsService.sendSmsVcCodeByCommChinaAPI(phone,type,username);
+        return JSONObject.toJSON(result);
+
+    }
+}
