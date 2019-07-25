@@ -1,6 +1,5 @@
 package com.bdaim.common.util;
 
-import com.bdaim.slxf.controller.SendSmsAction;
 import com.drew.imaging.ImageMetadataReader;
 import com.drew.imaging.ImageProcessingException;
 import com.drew.metadata.Directory;

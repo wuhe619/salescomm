@@ -1,13 +1,13 @@
 package com.bdaim.batch.controller;
 
-import com.alibaba.druid.support.logging.Log;
-import com.alibaba.druid.support.logging.LogFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.batch.service.LostContactService;
+import com.bdaim.common.annotation.CacheAnnotation;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.util.StringUtil;
-import com.bdaim.slxf.annotation.CacheAnnotation;
 import com.bdaim.slxf.dto.TouchInfoDTO;
 
 import org.springframework.stereotype.Controller;

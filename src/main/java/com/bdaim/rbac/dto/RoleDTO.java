@@ -1,7 +1,6 @@
 package com.bdaim.rbac.dto;
 
-import com.bdaim.slxf.dto.ManagerType;
-import com.bfd.mrp.core.Manager;
+import com.bdaim.rbac.dto.Manager;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;

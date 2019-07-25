@@ -2,6 +2,8 @@ package com.bdaim.customer.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.auth.LoginUser;
+import com.bdaim.common.annotation.CacheAnnotation;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.util.CipherUtil;
@@ -10,10 +12,8 @@ import com.bdaim.customer.dto.CustomerRegistDTO;
 import com.bdaim.customer.entity.CustomerUserDO;
 import com.bdaim.customer.service.CustomerService;
 import com.bdaim.rbac.dto.UserDTO;
-import com.bdaim.slxf.annotation.CacheAnnotation;
-import com.bdaim.slxf.common.security.ResponseResult;
-import com.bdaim.slxf.common.security.service.TokenManager;
-import com.bdaim.slxf.dto.LoginUser;
+//import com.bdaim.slxf.common.security.ResponseResult;
+//import com.bdaim.slxf.common.security.service.TokenManager;
 import com.bdaim.slxf.exception.TouchException;
 
 import org.apache.log4j.Logger;
@@ -48,55 +48,55 @@ public class CustomerAction extends BasicAction {
     @Resource
     CustomerService customerService;
 
-    @ResponseBody
-    @RequestMapping(value = "/token", method = RequestMethod.POST)
-    @CacheAnnotation
-    public String token(String username, String password, String code) {
-    	ResponseResult responseResult = new ResponseResult();
-    	responseResult.setStateCode("401");  //login fail
-    	if(username==null || password==null || "".equals(username) || "".equals(password)) {
-    		responseResult.setMsg("username or password is null");
-    		return JSONObject.toJSONString(responseResult);
-    	}
-    	
-    	CustomerUserDO u = customerService.getUserByName(username);
-    	List<GrantedAuthority> auths = new ArrayList<GrantedAuthority>();
-    	LoginUser userdetail = null;
-    	
-    	
-        if (u != null && CipherUtil.generatePassword(password).equals(u.getPassword())) {
-            logger.info("登陆框，用户：" + u.getAccount() + " 状态：" + u.getStatus());
-            if (1 == u.getStatus()) {
-                auths.add(new SimpleGrantedAuthority("USER_FREEZE"));
-            } else if (3 == u.getStatus()) {
-                auths.add(new SimpleGrantedAuthority("USER_NOT_EXIST"));
-            } else if (0 == u.getStatus()) {
-                //user_type: 1=管理员 2=普通员工
-                auths.add(new SimpleGrantedAuthority("ROLE_CUSTOMER"));
-            }
-            userdetail = new LoginUser(u.getAccount(), u.getPassword(), auths);
-            userdetail.setCustId(u.getCust_id());
-            userdetail.setId(u.getId());
-            userdetail.setUserType(String.valueOf(u.getUserType()));
-            userdetail.setRole("ROLE_CUSTOMER");
-            TokenManager.createNewToken(userdetail);
-            
-            
-            responseResult.setStateCode("200");
-            responseResult.setMsg("SUCCESS");
-            responseResult.setAuth(userdetail.getAuthorities().toArray()[0].toString());
-            responseResult.setUserName(userdetail.getUsername());
-            responseResult.setCustId(userdetail.getCustId());
-            responseResult.setUserType(Integer.valueOf(userdetail.getUserType()));
-            responseResult.setUser_id(userdetail.getId().toString());
-            responseResult.setTokenid(userdetail.getTokenid());
-        }else {
-        	responseResult.setMsg("username or password is error");
-        }
-        
-        
-        return JSONObject.toJSONString(responseResult);
-    }
+//    @ResponseBody
+//    @RequestMapping(value = "/token", method = RequestMethod.POST)
+//    @CacheAnnotation
+//    public String token(String username, String password, String code) {
+//    	ResponseResult responseResult = new ResponseResult();
+//    	responseResult.setStateCode("401");  //login fail
+//    	if(username==null || password==null || "".equals(username) || "".equals(password)) {
+//    		responseResult.setMsg("username or password is null");
+//    		return JSONObject.toJSONString(responseResult);
+//    	}
+//    	
+//    	CustomerUserDO u = customerService.getUserByName(username);
+//    	List<GrantedAuthority> auths = new ArrayList<GrantedAuthority>();
+//    	LoginUser userdetail = null;
+//    	
+//    	
+//        if (u != null && CipherUtil.generatePassword(password).equals(u.getPassword())) {
+//            logger.info("登陆框，用户：" + u.getAccount() + " 状态：" + u.getStatus());
+//            if (1 == u.getStatus()) {
+//                auths.add(new SimpleGrantedAuthority("USER_FREEZE"));
+//            } else if (3 == u.getStatus()) {
+//                auths.add(new SimpleGrantedAuthority("USER_NOT_EXIST"));
+//            } else if (0 == u.getStatus()) {
+//                //user_type: 1=管理员 2=普通员工
+//                auths.add(new SimpleGrantedAuthority("ROLE_CUSTOMER"));
+//            }
+//            userdetail = new LoginUser(u.getAccount(), u.getPassword(), auths);
+//            userdetail.setCustId(u.getCust_id());
+//            userdetail.setId(u.getId());
+//            userdetail.setUserType(String.valueOf(u.getUserType()));
+//            userdetail.setRole("ROLE_CUSTOMER");
+//            TokenManager.createNewToken(userdetail);
+//            
+//            
+//            responseResult.setStateCode("200");
+//            responseResult.setMsg("SUCCESS");
+//            responseResult.setAuth(userdetail.getAuthorities().toArray()[0].toString());
+//            responseResult.setUserName(userdetail.getUsername());
+//            responseResult.setCustId(userdetail.getCustId());
+//            responseResult.setUserType(Integer.valueOf(userdetail.getUserType()));
+//            responseResult.setUser_id(userdetail.getId().toString());
+//            responseResult.setTokenid(userdetail.getTokenid());
+//        }else {
+//        	responseResult.setMsg("username or password is error");
+//        }
+//        
+//        
+//        return JSONObject.toJSONString(responseResult);
+//    }
     
     /**
      * 团队管理列表以及搜索

@@ -1,10 +1,12 @@
 package com.bdaim.bill.controller;
 
-import com.alibaba.druid.support.logging.Log;
-import com.alibaba.druid.support.logging.LogFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.auth.LoginUser;
 import com.bdaim.batch.service.BatchService;
+import com.bdaim.common.annotation.CacheAnnotation;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.util.AuthPassport;
@@ -15,8 +17,6 @@ import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerUserDao;
 import com.bdaim.customer.entity.CustomerUserDO;
 import com.bdaim.resource.service.impl.MarketResourceServiceImpl;
-import com.bdaim.slxf.annotation.CacheAnnotation;
-import com.bdaim.slxf.dto.LoginUser;
 import com.bdaim.slxf.entity.*;
 import com.bdaim.supplier.dto.SupplierListParam;
 import com.bdaim.template.dto.TemplateParam;

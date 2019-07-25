@@ -2,9 +2,9 @@ package com.bdaim.common.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.auth.LoginUser;
 import com.bdaim.rbac.dto.Page;
 import com.bdaim.rbac.service.UserService;
-import com.bdaim.slxf.dto.LoginUser;
 
 import org.springframework.beans.propertyeditors.CustomDateEditor;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -46,7 +46,7 @@ public class BasicAction {
     protected LoginUser opUser() {
         LoginUser u = (LoginUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (u == null) {
-            u = new LoginUser("guest", "", null);
+            u = new LoginUser(0L, "", "", 0L, null);
         }
         return u;
     }

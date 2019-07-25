@@ -1,7 +1,7 @@
 package com.bdaim.batch.service.impl;
 
-import com.alibaba.druid.support.logging.Log;
-import com.alibaba.druid.support.logging.LogFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.batch.dao.LostContactDao;
 import com.bdaim.batch.service.LostContactService;

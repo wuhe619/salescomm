@@ -1,0 +1,522 @@
+package com.bdaim.smscenter.service.impl;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.bdaim.auth.entity.UserVerificationCode;
+import com.bdaim.auth.service.UserVerificationCodeService;
+import com.bdaim.common.util.Constant;
+import com.bdaim.common.util.HttpUtil;
+import com.bdaim.common.util.StringUtil;
+import com.bdaim.slxf.util.hazelcast.PhoneTobe;
+import com.bdaim.slxf.util.hazelcast.ToBeRegisterDB;
+import com.bdaim.slxf.util.hazelcast.UserIDNotFoundException;
+import com.bdaim.smscenter.dto.SendSmsDTO;
+import com.bdaim.smscenter.service.SendSmsService;
+import com.sms.SmsAction;
+import com.bdaim.slxf.util.hazelcast.PhoneTobe;
+import com.bdaim.slxf.util.hazelcast.ToBeRegisterDB;
+import com.bdaim.slxf.util.hazelcast.UserIDNotFoundException;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.expression.ParseException;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.transaction.Transactional;
+import java.util.*;
+
+/**
+ * 营销资源service服务实现类
+ * 2017/2/21
+ *
+ * @author lich@bdcsdk.com
+ */
+@Service("sendSmsService")
+@Transactional
+public class SendSmsServiceImpl implements SendSmsService {
+    private static Log logger = LogFactory.getLog(SendSmsServiceImpl.class);
+    //获取短信话术URL
+    private final static String QUERY_MESSAGE_URL = "http://120.52.23.243:10080/jzyxpt";
+    //联通发送短信地址
+    private final static String SEND_SMS_URL = "http://120.52.23.243:10080/jzyxpt";
+    private static String url = "http://115.231.73.234:7602/sms.aspx";
+    private static String userid = "556";
+    private static String account = "bjztwjxxhy6";
+    private static String password = "qweasd";
+    /**
+     * 短信最大发送次数
+     */
+    private final static int SMS_MAX_NUMBER = 99;
+    @Resource
+    private JdbcTemplate jdbcTemplate;
+    @Resource
+    private RestTemplate restTemplate;
+    @Resource
+    private UserVerificationCodeService userVerificationCodeService;
+
+    @Override
+    public Object sendSmsVcode(String phone, String state, String username) {
+        //String vcode = getRandomString();
+        String code = "";
+        String message = "";
+        String vcode = getRandomString();
+        //判断username
+        try {
+            //判断验证码已发送次数
+            // 保存到缓存中
+            ToBeRegisterDB tobe = PhoneTobe.getInstance();
+            try {
+                //获取次数
+                int num = tobe.getNum(phone);
+                //获取创建时间
+                long creatDate = tobe.getTimeStampFromMap(phone);
+                logger.info("手机号上次申请时间:creatDate" + creatDate);
+                // 当前时间
+                logger.info("当前时间:creatDate" + System.currentTimeMillis());
+                //计算当前时间与最后一次插入时间相差值
+                if (getTime(creatDate)) {
+                    //二十四小时候已过重新计算
+                    tobe.setMap(phone, vcode, System.currentTimeMillis(), 1);
+                    send(vcode, phone, state, username);//发送短信
+                    code = "1";
+                    message = "发送完成";
+                } else {
+                    //已存在判断次数
+                    if (num <= SMS_MAX_NUMBER) {
+                        logger.info("当前手机" + phone + "已经发送次数：" + num);
+                        tobe.setMap(phone, vcode, System.currentTimeMillis(), (num + 1));
+                        send(vcode, phone, state, username);//发送短信
+                        code = "1";
+                        message = "发送完成";
+                    } else {
+                        logger.info("当前手机" + phone + "发送次数达到上限：" + num);
+                        code = "0";
+                        message = "当前手机发送次数达到上限";
+                    }
+                }
+            } catch (Exception e) {
+                logger.info("当前用户未发送过验证码插入验证码");
+                //不存在插入
+                try {
+                    tobe.setMap(phone, vcode, System.currentTimeMillis(), 1);
+                } catch (Exception e2) {
+                    code = "0";
+                    message = "执行插入缓存失败";
+                    logger.error("执行插入缓存失败：", e2);
+                }
+                send(vcode, phone, state, username);//发送短信
+                code = "1";
+                message = "发送完成";
+            }
+        } catch (Exception e) {
+            code = "0";
+            message = "发送验证码失败";
+            logger.error("发送验证码失败：", e);
+        }
+        Map<String, Object> resultMap = new HashMap<String, Object>();
+        resultMap.put("code", code);
+        resultMap.put("_message", message);
+        resultMap.put("data", "");
+        return JSONObject.toJSON(resultMap);
+    }
+
+    @Override
+    public String sendSmsVcCodeByRestAPI(String phone, String templateId, String templateValue) {
+        MultiValueMap<String, Object> urlVariables = new LinkedMultiValueMap<>();
+        urlVariables.add("interfaceID", "SaleSmsService");
+        urlVariables.add("type", String.valueOf(1));
+        urlVariables.add("phone", phone);
+        urlVariables.add("templateId", templateId);
+        urlVariables.add("templateValue", templateValue);
+
+        String result = restTemplate.postForObject(Constant.LABEL_API
+                + "/sales/rest.do", urlVariables, String.class);
+
+        return result;
+    }
+
+    /**
+     * 验证码验证功能
+     *
+     * @author:duanliying
+     * @description
+     * @method
+     * @date: 2018/8/13 15:48
+     */
+    @Override
+    public int verificationCode(String phone, int type, String code) {
+        UserVerificationCode userVerificationCode;
+        Map<String, Object> params = new HashMap<>();
+        params.put("phone", phone);
+        params.put("type", type);
+        //查询出一个userVerificationCode对象
+        userVerificationCode = userVerificationCodeService.getUserVerificationCodeByCondition(params);
+        //获取创建时间计算时间差和验证码验证
+        if (System.currentTimeMillis() - userVerificationCode.getSendTime() <= userVerificationCode.getEffectiveTimeLength() * 60 * 1000 && code.equals(userVerificationCode.getVcVode())) {
+            return 1;
+        }
+        return 0;
+    }
+
+    @Override
+    public Object sendSmsVcCodeByCommChinaAPI(String phone, int type, String username) {
+        String code;
+        String message;
+        String vcCode = getRandomString();
+        boolean isUpdate = false;
+        UserVerificationCode userVerificationCode = null;
+        try {
+            int num = 0;
+            //获取创建时间
+            long createDate = System.currentTimeMillis();
+            //获取次数
+            Map<String, Object> params = new HashMap<>();
+            params.put("phone", phone);
+            params.put("type", type);
+            userVerificationCode = userVerificationCodeService.getUserVerificationCodeByCondition(params);
+            if (userVerificationCode != null) {
+                isUpdate = true;
+                if (userVerificationCode.getSendNum() != null) {
+                    num = userVerificationCode.getSendNum();
+                }
+                if (userVerificationCode.getSendTime() != null) {
+                    createDate = userVerificationCode.getSendTime();
+                }
+            }
+            logger.info("手机号上次申请时间:" + createDate);
+            // 当前时间
+            logger.info("当前时间:" + System.currentTimeMillis());
+            //计算当前时间与最后一次插入时间相差值
+            if (getTime(createDate)) {
+                //二十四小时候已过重新计算
+                sendSms(vcCode, phone, type, username, 5);
+                code = "1";
+                message = "发送完成";
+            } else {
+                //已存在判断次数
+                if (num <= SMS_MAX_NUMBER) {
+                    logger.info("当前手机" + phone + "已经发送次数：" + num);
+                    sendSms(vcCode, phone, type, username, 5);
+                    code = "1";
+                    message = "发送完成";
+                } else {
+                    logger.info("当前手机" + phone + "发送次数达到上限：" + num);
+                    code = "0";
+                    message = "当前手机发送次数达到上限";
+                }
+            }
+        } catch (Exception e) {
+            code = "0";
+            message = "发送验证码失败";
+            logger.error("发送验证码失败：", e);
+        }
+        // 如果验证码发送成功则保存发送验证码的手机号和次数至数据库
+        if ("1".equals(code)) {
+            // 存在则执行更新
+            if (isUpdate) {
+                userVerificationCode.setSendNum(userVerificationCode.getSendNum() + 1);
+                userVerificationCode.setSendStatus(1);
+                userVerificationCode.setSendTime(System.currentTimeMillis());
+                userVerificationCode.setVcVode(vcCode);
+                userVerificationCode.setEffectiveTimeLength(5);
+                userVerificationCode.setType(type);
+                userVerificationCodeService.updateUserVerificationCode(userVerificationCode);
+            } else {
+                userVerificationCode = new UserVerificationCode();
+                userVerificationCode.setPhone(phone);
+                userVerificationCode.setSendNum(1);
+                userVerificationCode.setSendStatus(1);
+                userVerificationCode.setVcVode(vcCode);
+                userVerificationCode.setSendTime(System.currentTimeMillis());
+                userVerificationCode.setEffectiveTimeLength(5);
+                userVerificationCode.setCreateTime(System.currentTimeMillis());
+                userVerificationCode.setStatus(1);
+                userVerificationCode.setType(type);
+                userVerificationCodeService.addUserVerificationCode(userVerificationCode);
+            }
+        }
+        Map<String, Object> resultMap = new HashMap<>();
+        resultMap.put("code", code);
+        resultMap.put("_message", message);
+        resultMap.put("data", "");
+        return JSONObject.toJSON(resultMap);
+    }
+
+    /**
+     * @param vCode    验证码
+     * @param phone    手机号
+     * @param type     类型 1-注册验证码 2-登陆验证码 3-修改登录密码 4-修改手机时，（验证旧手机号）发送验证码 5-修改手机时，（验证新手机号）发送验证码 6-找回密码时，发送验证码 7-修改支付密码
+     * @param username 用户名称
+     * @param timeOut  超时时间(分钟)
+     * @return java.lang.String
+     * @author chengning@salescomm.net
+     * @date 2018/7/31 14:01
+     */
+    private String sendSms(String vCode, String phone, int type, String username, long timeOut) {
+        String name = "";
+        if (!"".equals(username)) {
+            if (username.getBytes().length <= 6) {
+                name = username.substring(0, 1) + "*";
+            } else {
+                name = username.substring(0, 1) + "**" + username.substring(username.length() - 1, username.length());
+            }
+        }
+        String result, templateId;
+        List<String> values = new ArrayList<>();
+        switch (type) {
+            // 注册验证码
+            case 1:
+                templateId = "1909";
+                values.add(vCode);
+                values.add(String.valueOf(timeOut));
+                break;
+            // 登陆验证码
+            case 2:
+                templateId = "1927";
+                values.add(vCode);
+                values.add(String.valueOf(timeOut));
+                break;
+            //修改登录密码时，发送验证码
+            case 3:
+                templateId = "1910";
+                values.add(vCode);
+                break;
+            //修改手机时，（验证旧手机号）发送验证码
+            case 4:
+                templateId = "1908";
+                values.add(vCode);
+                values.add(String.valueOf(timeOut));
+                break;
+            //修改手机时，（验证新手机号）发送验证码
+            case 5:
+                templateId = "1928";
+                values.add(name);
+                values.add(vCode);
+                values.add(String.valueOf(timeOut));
+                break;
+            //找回密码时，发送验证码
+            case 6:
+                templateId = "1929";
+                values.add(vCode);
+                values.add(String.valueOf(timeOut));
+                break;
+            //修改支付密码
+            case 7:
+                templateId = "1911";
+                values.add(vCode);
+                values.add("5");
+                break;
+            default:
+                throw new RuntimeException("type match value！");
+        }
+        logger.info("当前时间：" + System.currentTimeMillis());
+        result = sendSmsVcCodeByRestAPI(phone, templateId, StringUtils.join(values, ","));
+        logger.info("模板ID:" + templateId + "----手机号：" + phone);
+        logger.info("发送结果: " + result);
+        return result;
+    }
+
+    /**
+     * 送短信
+     *
+     * @param vcode
+     * @param phone
+     * @param state
+     * @param username
+     * @return void
+     * @date 2018/7/31 14:11
+     */
+    private void send(String vcode, String phone, String state, String username) {
+        String name = "";
+        if (!"".equals(username)) {
+            if (username.getBytes().length <= 6) {
+                name = username.substring(0, 1) + "*";
+            } else {
+                name = username.substring(0, 1) + "**" + username.substring(username.length() - 1, username.length());
+            }
+        }
+        String template_code = "10287";
+        String message = "";
+        logger.info("当前时间：" + System.currentTimeMillis());
+        logger.info("本次发送的模板号：" + template_code);
+        //String keyword = SmsClientSend.sendSms(url, userid, account, password, phone, content);
+        //logger.info("短信响应：" + keyword);
+        //注册短信验证
+        if ("1".equals(state)) {
+            message = "您正在注册账号，验证码：" + vcode + "，3分钟内输入有效，请确保是您本人在操作。";
+        }
+        //登录时，发验证码
+        if ("2".equals(state)) {
+            message = "登录验证码：" + vcode + "，3分钟内输入有效。如非本人操作，请及时修改登录密码。";
+        }
+        //修改登录密码时，发送验证码
+        if ("3".equals(state)) {
+            message = "您正在修改登录密码，验证码：" + vcode + "，3分钟内有效，请确保是您本人在操作！";
+        }
+
+
+        //修改手机时，（验证旧手机号）发送验证码
+        if ("4".equals(state)) {
+            message = "您正在修改手机，验证码：" + vcode + "，3分钟内输入有效，请确保是您本人在操作！";
+        }
+
+
+        //修改手机时，（验证新手机号）发送验证码
+        if ("5".equals(state)) {
+            message = "您的账号（" + name + "）正在申请绑定当前手机，验证码：" + vcode + "，3分钟内输入有效，请确保是您本人在操作！";
+        }
+        //找回密码时，发送验证码
+        if ("6".equals(state)) {
+            message = "您正在找回密码，验证码：" + vcode + "，3分钟内输入有效，请确保是您本人在操作！";
+        }
+
+        //设置/修改支付密码
+        if ("7".equals(state)) {
+            message = "您正在修改/设置支付密码，验证码：" + vcode + "，3分钟内有效，请确保是您本人在操作！";
+        }
+        SmsAction demo = new SmsAction();
+        demo.send(template_code, phone, message);
+    }
+
+    /**
+     * 生成4位随机验证码
+     */
+    private static String getRandomString() {
+        String base = "0123456789";
+        Random random = new Random();
+        StringBuffer sb = new StringBuffer();
+        for (int i = 0; i < 4; i++) {
+            int number = random.nextInt(base.length());
+            sb.append(base.charAt(number));
+        }
+        return sb.toString();
+    }
+
+    /**
+     * 判断当前日期与最后一次发送时间的差
+     *
+     * @param create
+     * @throws ParseException
+     */
+    private static boolean getTime(long create) throws ParseException {
+        Date dd = new Date(create);
+        Calendar c = Calendar.getInstance();
+        c.setTime(dd);
+        c.set(Calendar.HOUR_OF_DAY, 23);
+        c.set(Calendar.MINUTE, 59);
+        c.set(Calendar.SECOND, 59);
+        return System.currentTimeMillis() - c.getTimeInMillis() > 0;
+    }
+
+    /**
+     * 短信验证码验证
+     *
+     * @param phone
+     * @param code
+     * @return
+     * @throws Exception
+     * @throws Exception return -1：系统错误；0：验证码错误了；1：验证码正确；2：过期了
+     */
+    @Override
+    public int verificationCode(String phone, String code) {
+        int flag = 0;
+        String vCode = "";
+        //判断验证码是否正确
+        ToBeRegisterDB tobe = PhoneTobe.getInstance();
+        long createDate = 0L;
+        try {
+            //发送时间
+            createDate = tobe.getTimeStampFromMap(phone);
+            // 获取发送给手机的验证码
+            vCode = tobe.getVerCodeFromMap(phone);
+        } catch (UserIDNotFoundException e) {
+            flag = -1;//系统错误
+        }
+        // 当前时间
+        long nowDate = System.currentTimeMillis();
+        if (!vCode.equals(code)) {
+            flag = 0;//验证码错误了
+        } else {
+            if (((nowDate - createDate) / 1000 / 60) < 3) {//三分钟失效
+                flag = 1;//验证码正确
+            } else {
+                flag = 2;//过期了
+            }
+        }
+        return flag;
+    }
+
+    /**
+     * @description 短信话术查询
+     * @author:duanliying
+     * @method entId-----企业Id
+     * @date: 2018/10/15 10:08
+     */
+    public String queryMessageWord(String entId) {
+        Map<String, String> params = new HashMap<>();
+        params.put("entId", entId);
+        String result;
+        try {
+            result = HttpUtil.httpPost(QUERY_MESSAGE_URL + "/callout/queryMessageWord", params, null);
+            logger.info("获取短信话术码返回:" + result);
+            if (StringUtil.isNotEmpty(result)) {
+                return JSON.toJSONString(result);
+            }
+        } catch (Exception e) {
+            logger.error("获取短信话术码失败:", e);
+            throw new RuntimeException("获取短信话术码失败", e);
+        }
+        return null;
+    }
+
+    /**
+     * @description
+     * @author:duanliying
+     * @method
+     * @date: 2018/10/15 10:11
+     */
+    public String sendSmsService(SendSmsDTO sendSmsDTO, String id, String batchId) {
+        String result;
+        //根据id和batch_id查询活动id和省份id
+        try {
+            List<Map<String, Object>> batchDetail = jdbcTemplate.queryForList("SELECT * FROM nl_batch_detail WHERE batch_id = ? AND id = ?", batchId, id);
+            String activityId = null, provideId = null;
+            if (batchDetail.size() > 0) {
+                activityId = String.valueOf(batchDetail.get(0).get("activity_id"));
+                provideId = String.valueOf(batchDetail.get(0).get("provide_id"));
+            }
+            Map<String, String> params = new HashMap<>();
+            //企业ID
+
+            params.put("entId", sendSmsDTO.getEntId());
+
+            //活动ID
+            params.put("activityId", activityId);
+            //客户ID
+            params.put("customerId", id);
+            //省份ID
+            params.put("provideId", provideId);
+            //话术码  通过entId调用联通接口查询获取
+            params.put("messageCode", sendSmsDTO.getMessageWord());
+            //变量标识
+            params.put("variableOne", sendSmsDTO.getVariableOne());
+            params.put("variableTwo", sendSmsDTO.getVariableTwo());
+            params.put("variableThree", sendSmsDTO.getVariableThree());
+            params.put("variableFour", sendSmsDTO.getVariableFour());
+            params.put("variableFive", sendSmsDTO.getVariableFive());
+            logger.info("联通发送短信返回:" + params.toString());
+            result = HttpUtil.httpPost(SEND_SMS_URL + "/callout/sendMessageData", params, null);
+            logger.info("联通发送短信返回:" + result);
+        } catch (Exception e) {
+            logger.error("联通发送短信失败:", e);
+            throw new RuntimeException("联通发送短信失败", e);
+        }
+        return result;
+    }
+}

@@ -1,10 +1,10 @@
 package com.bdaim.rbac.controller;
 
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.auth.LoginUser;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.rbac.dto.DeptDto;
 import com.bdaim.rbac.service.DeptService;
-import com.bdaim.slxf.dto.LoginUser;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

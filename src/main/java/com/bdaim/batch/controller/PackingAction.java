@@ -1,13 +1,13 @@
 package com.bdaim.batch.controller;
 
-import com.alibaba.druid.support.logging.Log;
-import com.alibaba.druid.support.logging.LogFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.auth.LoginUser;
 import com.bdaim.batch.entity.BatchSendToFile;
 import com.bdaim.batch.service.impl.PackingService;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.util.StringUtil;
-import com.bdaim.slxf.dto.LoginUser;
 
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;

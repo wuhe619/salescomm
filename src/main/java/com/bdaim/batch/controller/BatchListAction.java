@@ -1,13 +1,13 @@
 package com.bdaim.batch.controller;
 
 import com.alibaba.fastjson.JSON;
+import com.bdaim.auth.LoginUser;
 import com.bdaim.batch.entity.BatchListParam;
 import com.bdaim.batch.service.BatchListService;
+import com.bdaim.common.annotation.CacheAnnotation;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.util.page.Page;
-import com.bdaim.slxf.annotation.CacheAnnotation;
-import com.bdaim.slxf.dto.LoginUser;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;

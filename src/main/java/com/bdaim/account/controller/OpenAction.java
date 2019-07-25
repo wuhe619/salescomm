@@ -1,9 +1,8 @@
 package com.bdaim.account.controller;
 
-import com.alibaba.druid.support.logging.Log;
-import com.alibaba.druid.support.logging.LogFactory;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.account.service.OpenService;
+import com.bdaim.common.annotation.CacheAnnotation;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.util.AuthPassport;
 import com.bdaim.common.util.ConfigUtil;
@@ -11,11 +10,12 @@ import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.entity.CustomerUserDO;
 import com.bdaim.rbac.dto.Page;
 import com.bdaim.resource.service.MarketResourceService;
-import com.bdaim.slxf.annotation.CacheAnnotation;
 import com.bdaim.slxf.entity.FixInfo;
 import com.bdaim.slxf.entity.RecordVoiceQueryParam;
 import com.bdaim.template.dto.TemplateParam;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -68,21 +68,21 @@ public class OpenAction extends BasicAction {
         return returnJsonData(map);
     }
 
-    /**
-     * 刷新token
-     *
-     * @author:duanliying
-     * @method
-     * @date: 2019/3/25 11:10
-     */
-    @RequestMapping(value = "/refreshToken", method = RequestMethod.POST)
-    @ResponseBody
-    public Object refreshToken(@RequestBody JSONObject param) {
-        String oldtoken = param.getString("oldtoken");
-        String username = param.getString("username");
-        String refreshToken = openService.refreshToken(oldtoken, username);
-        return refreshToken;
-    }
+//    /**
+//     * 刷新token
+//     *
+//     * @author:duanliying
+//     * @method
+//     * @date: 2019/3/25 11:10
+//     */
+//    @RequestMapping(value = "/refreshToken", method = RequestMethod.POST)
+//    @ResponseBody
+//    public Object refreshToken(@RequestBody JSONObject param) {
+//        String oldtoken = param.getString("oldtoken");
+//        String username = param.getString("username");
+//        String refreshToken = openService.refreshToken(oldtoken, username);
+//        return refreshToken;
+//    }
 
     /**
      * 根据坐席账号查询坐席详情
@@ -217,22 +217,22 @@ public class OpenAction extends BasicAction {
         return returnJsonData(map);
     }
 
-    /**
-     * 获取token
-     *
-     * @author:duanliying
-     * @method
-     * @date: 2019/3/27 16:04
-     */
-    @RequestMapping(value = "/tokenInfoGet", method = RequestMethod.POST)
-    @ResponseBody
-    public Object tokenInfoGet(@RequestBody JSONObject param) {
-        Map<String, Object> resultMap = new HashMap<>();
-        String username = param.getString("username");
-        String password = param.getString("password");
-        resultMap = openService.getTokenInfo(username, password);
-        return returnJsonData(resultMap);
-    }
+//    /**
+//     * 获取token
+//     *
+//     * @author:duanliying
+//     * @method
+//     * @date: 2019/3/27 16:04
+//     */
+//    @RequestMapping(value = "/tokenInfoGet", method = RequestMethod.POST)
+//    @ResponseBody
+//    public Object tokenInfoGet(@RequestBody JSONObject param) {
+//        Map<String, Object> resultMap = new HashMap<>();
+//        String username = param.getString("username");
+//        String password = param.getString("password");
+//        resultMap = openService.getTokenInfo(username, password);
+//        return returnJsonData(resultMap);
+//    }
 
     /**
      * 失联修复数据上传接口

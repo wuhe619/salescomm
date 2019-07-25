@@ -1,6 +1,5 @@
 package com.bdaim.common.util;
 
-import com.sms.HttpsSSLClient;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;

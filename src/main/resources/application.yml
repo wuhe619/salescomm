@@ -2,13 +2,18 @@ server:
   port: 8081
 spring:
   datasource:
-    #type: com.zaxxer.hikari.HikariDataSource
+    type: com.zaxxer.hikari.HikariDataSource
     driver-class-name: com.mysql.jdbc.Driver
     username: dev
     password: dev__807
-    url: jdbc:mysql://10.1.37.200/bp?characterEncoding=utf-8&useSSL=false
+    url: jdbc:mysql://10.1.37.200/label?characterEncoding=utf-8&useSSL=false
   jpa:
     show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        new_generator_mappings: false
+        format_sql: true
   jackson:
     default-property-inclusion: non_null
   redis:

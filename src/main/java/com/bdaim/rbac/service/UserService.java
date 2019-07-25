@@ -1,5 +1,6 @@
 package com.bdaim.rbac.service;
 
+import com.bdaim.auth.LoginUser;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.util.CipherUtil;
 import com.bdaim.common.util.IDHelper;
@@ -12,7 +13,6 @@ import com.bdaim.rbac.dto.UserDTO;
 import com.bdaim.rbac.entity.User;
 import com.bdaim.rbac.entity.UserDO;
 import com.bdaim.slxf.dto.DataFromEnum;
-import com.bdaim.slxf.dto.LoginUser;
 
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Service;

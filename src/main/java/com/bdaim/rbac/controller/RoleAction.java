@@ -1,13 +1,13 @@
 package com.bdaim.rbac.controller;
 
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.auth.LoginUser;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.rbac.dto.Page;
 import com.bdaim.rbac.dto.RoleDTO;
 import com.bdaim.rbac.dto.RolesResourceDto;
 import com.bdaim.rbac.service.RoleService;
-import com.bdaim.slxf.dto.LoginUser;
 
 import net.sf.json.JSONArray;
 import org.apache.commons.lang.StringUtils;

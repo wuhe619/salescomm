@@ -1,8 +1,9 @@
 package com.bdaim.bill.controller;
 
-import com.alibaba.druid.support.logging.Log;
-import com.alibaba.druid.support.logging.LogFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import com.alibaba.fastjson.JSON;
+import com.bdaim.auth.LoginUser;
 import com.bdaim.bill.dto.CustomerBillQueryParam;
 import com.bdaim.bill.dto.SupplierBillQueryParam;
 import com.bdaim.bill.service.BillService;
@@ -11,7 +12,6 @@ import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.common.util.page.Page;
-import com.bdaim.slxf.dto.LoginUser;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
