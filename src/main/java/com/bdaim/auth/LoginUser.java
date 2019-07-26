@@ -14,6 +14,14 @@ public class LoginUser extends Token{
 	public LoginUser(Long userid,String username,String tokenid, Collection<? extends GrantedAuthority> authorities){
 		super(username, tokenid, authorities);
 		this.id=userid;
+		
+		this.stateCode="200";
+		this.msg="SUCCESS";
+		this.auth=authorities.toArray()[0].toString();
+		this.user_id=String.valueOf(userid);
+		this.id=userid;
+		this.tokenid=tokenid;
+		this.tokentime=tokentime;
 	}
 	
 	
@@ -27,6 +35,16 @@ public class LoginUser extends Token{
 	private String mobileNum;
 	private String tokenid;
 	private long tokentime=0;
+	
+	private String refurl;
+    private String redirecturl;
+    private String msg = "ok";
+    private String stateCode = "0";
+    private Object resultData;
+    private String auth;
+    private String userName;
+    private String mobile_num;
+    private String user_id;
 
 	public User getUser() {
 		return user;
