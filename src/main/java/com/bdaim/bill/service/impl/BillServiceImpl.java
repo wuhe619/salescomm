@@ -16,7 +16,6 @@ import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.entity.CustomerDO;
 import com.bdaim.resource.dao.SourceDao;
 import com.bdaim.resource.entity.MarketResourceEntity;
-import com.bdaim.slxf.entity.*;
 import com.bdaim.supplier.dao.SupplierDao;
 import com.bdaim.supplier.dto.SupplierEnum;
 import com.bdaim.supplier.entity.SupplierEntity;

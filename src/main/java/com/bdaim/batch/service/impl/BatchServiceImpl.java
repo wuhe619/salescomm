@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.bdaim.batch.entity.BatchSendToFileResp;
 import com.bdaim.batch.service.BatchService;
 import com.bdaim.common.util.StringUtil;
-import com.bdaim.slxf.entity.*;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

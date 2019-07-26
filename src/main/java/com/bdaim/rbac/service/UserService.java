@@ -6,13 +6,13 @@ import com.bdaim.common.util.CipherUtil;
 import com.bdaim.common.util.IDHelper;
 import com.bdaim.common.util.NumberConvertUtil;
 import com.bdaim.common.util.StringUtil;
+import com.bdaim.rbac.DataFromEnum;
 import com.bdaim.rbac.dao.RoleDao;
 import com.bdaim.rbac.dao.UserDao;
 import com.bdaim.rbac.dto.Page;
 import com.bdaim.rbac.dto.UserDTO;
 import com.bdaim.rbac.entity.User;
 import com.bdaim.rbac.entity.UserDO;
-import com.bdaim.slxf.dto.DataFromEnum;
 
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Service;

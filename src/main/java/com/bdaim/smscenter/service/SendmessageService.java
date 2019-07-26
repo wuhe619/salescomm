@@ -1,9 +1,9 @@
 package com.bdaim.smscenter.service;
 
+import com.bdaim.batch.dto.ExpressLog;
+import com.bdaim.batch.entity.SenderInfo;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.util.page.Page;
-import com.bdaim.slxf.entity.ExpressLog;
-import com.bdaim.slxf.entity.SenderInfo;
 
 import javax.servlet.http.HttpServletResponse;
 import java.util.List;

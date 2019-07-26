@@ -31,7 +31,6 @@ import java.util.zip.ZipOutputStream;
 /**
  * 上传下载图片service服务 2017/2/21
  *
- * @author lich@bdcsdk.com
  */
 @Service("uploadDowloadImgService")
 @Transactional

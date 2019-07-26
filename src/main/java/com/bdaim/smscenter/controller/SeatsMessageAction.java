@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.auth.LoginUser;
 import com.bdaim.callcenter.dto.SeatsInfo;
+import com.bdaim.callcenter.dto.SeatsMessageParam;
 import com.bdaim.callcenter.service.SeatsService;
 import com.bdaim.callcenter.service.impl.SeatsServiceImpl;
 import com.bdaim.common.controller.BasicAction;
@@ -12,7 +13,6 @@ import com.bdaim.common.util.StringUtil;
 import com.bdaim.common.util.page.Page;
 import com.bdaim.customer.dto.CustomerRegistDTO;
 import com.bdaim.customer.entity.CustomerUserProperty;
-import com.bdaim.slxf.entity.SeatsMessageParam;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

@@ -1,9 +1,9 @@
 package com.bdaim.batch.service;
 
 import com.alibaba.fastjson.JSONArray;
+import com.bdaim.batch.dto.DetailQueryParam;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.util.page.Page;
-import com.bdaim.slxf.entity.DetailQueryParam;
 
 /**
  * @author duanliying

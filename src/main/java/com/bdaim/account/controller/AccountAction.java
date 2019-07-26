@@ -2,6 +2,7 @@ package com.bdaim.account.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.account.dto.TransactionQryParam;
 import com.bdaim.account.service.impl.AccountService;
 import com.bdaim.auth.LoginUser;
 import com.bdaim.bill.dto.CustomerBillQueryParam;
@@ -14,7 +15,6 @@ import com.bdaim.common.util.StringUtil;
 import com.bdaim.common.util.page.Page;
 import com.bdaim.customer.entity.CustomerUserDO;
 import com.bdaim.customer.service.CustomerService;
-import com.bdaim.slxf.entity.TransactionQryParam;
 import com.bdaim.supplier.dto.SupplierEnum;
 
 import org.apache.commons.logging.Log;

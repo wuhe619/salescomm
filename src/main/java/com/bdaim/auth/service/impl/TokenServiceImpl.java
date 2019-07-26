@@ -50,7 +50,7 @@ public class TokenServiceImpl implements TokenService{
 		List<GrantedAuthority> auths = new ArrayList<GrantedAuthority>();
 		
 		if(username.startsWith("backend.")) {
-			UserDO u = userInfoService.getUserByName(username);
+			UserDO u = userInfoService.getUserByName(username.substring(8));
 	        if (u != null && CipherUtil.generatePassword(password).equals(u.getPassword())) {
 	        	//寻找登录账号已有的token, 需重构
 	        	String tokenid = (String)name2token.get(username);
@@ -110,7 +110,8 @@ public class TokenServiceImpl implements TokenService{
 	        }
 		}
 		
-		name2token.put(username, userdetail.getTokenid());
+		if(userdetail!=null)
+			name2token.put(username, userdetail.getTokenid());
 		return userdetail;
 	}
 

@@ -8,6 +8,7 @@ import com.bdaim.batch.dao.BatchDao;
 import com.bdaim.batch.entity.BatchListEntity;
 import com.bdaim.bill.service.TransactionService;
 import com.bdaim.callcenter.dto.SeatsInfo;
+import com.bdaim.callcenter.dto.SeatsMessageParam;
 import com.bdaim.callcenter.service.SeatsService;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.util.CipherUtil;
@@ -29,10 +30,6 @@ import com.bdaim.price.dto.ResourcesPriceDto;
 import com.bdaim.resource.dao.SourceDao;
 import com.bdaim.resource.entity.MarketResourceEntity;
 import com.bdaim.resource.service.impl.MarketResourceServiceImpl;
-import com.bdaim.slxf.dao.*;
-import com.bdaim.slxf.dto.*;
-import com.bdaim.slxf.entity.*;
-import com.bdaim.slxf.util.*;
 import com.bdaim.supplier.dao.SupplierDao;
 import com.bdaim.supplier.dto.SupplierEnum;
 

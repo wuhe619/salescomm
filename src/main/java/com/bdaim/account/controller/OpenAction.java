@@ -2,6 +2,8 @@ package com.bdaim.account.controller;
 
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.account.service.OpenService;
+import com.bdaim.batch.dto.FixInfo;
+import com.bdaim.callcenter.dto.RecordVoiceQueryParam;
 import com.bdaim.common.annotation.CacheAnnotation;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.util.AuthPassport;
@@ -10,8 +12,6 @@ import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.entity.CustomerUserDO;
 import com.bdaim.rbac.dto.Page;
 import com.bdaim.resource.service.MarketResourceService;
-import com.bdaim.slxf.entity.FixInfo;
-import com.bdaim.slxf.entity.RecordVoiceQueryParam;
 import com.bdaim.template.dto.TemplateParam;
 
 import org.apache.commons.logging.Log;

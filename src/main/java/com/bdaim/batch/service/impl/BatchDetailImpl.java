@@ -2,12 +2,12 @@ package com.bdaim.batch.service.impl;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.batch.dto.DetailQueryParam;
 import com.bdaim.batch.service.BatchDetaiService;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.common.util.page.Page;
 import com.bdaim.common.util.page.Pagination;
-import com.bdaim.slxf.entity.DetailQueryParam;
 
 import org.apache.commons.lang.StringEscapeUtils;
 import org.springframework.jdbc.core.JdbcTemplate;

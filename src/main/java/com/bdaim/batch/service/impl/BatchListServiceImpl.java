@@ -26,9 +26,6 @@ import com.bdaim.customer.service.CustomerService;
 import com.bdaim.price.dto.ResourcesPriceDto;
 import com.bdaim.resource.dao.SourceDao;
 import com.bdaim.resource.entity.MarketResourceEntity;
-import com.bdaim.slxf.dao.*;
-import com.bdaim.slxf.entity.*;
-import com.bdaim.slxf.util.*;
 
 import org.apache.log4j.Logger;
 import org.apache.poi.hssf.usermodel.HSSFCell;

@@ -1,8 +1,8 @@
 package com.bdaim.callcenter.service;
 
-import com.bdaim.slxf.entity.UnicomSendSmsParam;
-
 import java.util.Map;
+
+import com.bdaim.callcenter.dto.UnicomSendSmsParam;
 
 /**
  * @author chengning@salescomm.net

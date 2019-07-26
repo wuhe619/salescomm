@@ -1,11 +1,11 @@
 package com.bdaim.callcenter.service;
 
 import com.bdaim.callcenter.dto.SeatsInfo;
+import com.bdaim.callcenter.dto.SeatsMessageParam;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.util.page.Page;
 import com.bdaim.customer.dto.CustomerRegistDTO;
 import com.bdaim.customer.entity.CustomerUserProperty;
-import com.bdaim.slxf.entity.SeatsMessageParam;
 
 import java.util.List;
 import java.util.Map;

@@ -1,7 +1,8 @@
 package com.bdaim.customer.dao;
 
 import com.bdaim.common.dao.SimpleHibernateDao;
-import com.bdaim.slxf.entity.EnterpriseDO;
+import com.bdaim.customer.entity.EnterpriseDO;
+
 import org.springframework.stereotype.Component;
 
 /**

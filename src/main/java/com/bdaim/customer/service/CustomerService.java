@@ -30,16 +30,10 @@ import com.bdaim.rbac.dto.UserDTO;
 import com.bdaim.resource.dao.SourceDao;
 import com.bdaim.resource.dto.MarketResourceDTO;
 import com.bdaim.resource.entity.ResourcePropertyEntity;
-import com.bdaim.slxf.dao.*;
-import com.bdaim.slxf.dto.*;
-import com.bdaim.slxf.entity.*;
-import com.bdaim.slxf.util.*;
 import com.bdaim.supplier.service.SupplierService;
-
 import org.apache.log4j.Logger;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
-
 import javax.annotation.Resource;
 import javax.transaction.Transactional;
 import java.sql.Timestamp;

@@ -2,12 +2,12 @@ package com.bdaim.smscenter.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.bdaim.batch.TransactionEnum;
+import com.bdaim.batch.dto.ExpressLog;
+import com.bdaim.batch.entity.SenderInfo;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.common.util.page.Page;
 import com.bdaim.common.util.page.Pagination;
-import com.bdaim.slxf.entity.ExpressLog;
-import com.bdaim.slxf.entity.SenderInfo;
 import com.bdaim.smscenter.dao.SendmessageImplDao;
 import com.bdaim.smscenter.service.SendmessageService;
 import com.github.crab2died.ExcelUtils;

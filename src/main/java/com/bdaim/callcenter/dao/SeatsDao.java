@@ -1,7 +1,8 @@
 package com.bdaim.callcenter.dao;
 
+import com.bdaim.callcenter.dto.SeatsMessageParam;
 import com.bdaim.common.dao.SimpleHibernateDao;
-import com.bdaim.slxf.entity.SeatsMessageParam;
+
 import org.springframework.stereotype.Component;
 
 /**

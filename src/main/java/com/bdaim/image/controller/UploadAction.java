@@ -3,6 +3,7 @@ package com.bdaim.image.controller;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.batch.service.BatchService;
+import com.bdaim.callcenter.dto.RecordVoiceQueryParam;
 import com.bdaim.common.annotation.CacheAnnotation;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.util.AuthPassport;
@@ -13,8 +14,6 @@ import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.dao.CustomerUserDao;
 import com.bdaim.image.service.impl.UploadDowloadImgServiceImpl;
 import com.bdaim.resource.service.MarketResourceService;
-import com.bdaim.slxf.entity.RecordVoiceQueryParam;
-import com.bdaim.slxf.util.*;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -23,7 +22,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
-
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -36,8 +34,6 @@ import java.util.zip.ZipOutputStream;
 /**
  * 上传下载action
  * 2017/2/21
- *
- * @author lich@bdcsdk.com
  */
 @Controller
 @RequestMapping("/upload")

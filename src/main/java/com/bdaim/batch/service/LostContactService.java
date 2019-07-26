@@ -1,9 +1,9 @@
 package com.bdaim.batch.service;
 
-import com.bdaim.slxf.dto.TouchInfoDTO;
-
 import java.util.List;
 import java.util.Map;
+
+import com.bdaim.batch.dto.TouchInfoDTO;
 
 /**
  * @author duanliying

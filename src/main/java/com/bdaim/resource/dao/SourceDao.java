@@ -11,7 +11,6 @@ import com.bdaim.customer.entity.CustomerProperty;
 import com.bdaim.resource.entity.MarketResourceEntity;
 import com.bdaim.resource.entity.ResourcePropertyEntity;
 import com.bdaim.resource.entity.SourcePropertyEntity;
-import com.bdaim.slxf.entity.*;
 import com.bdaim.supplier.entity.SupplierPropertyEntity;
 import com.bdaim.template.entity.MarketTemplate;
 

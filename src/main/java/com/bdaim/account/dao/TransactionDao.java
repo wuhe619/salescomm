@@ -1,8 +1,8 @@
 package com.bdaim.account.dao;
 
+import com.bdaim.account.entity.TransactionDO;
 import com.bdaim.common.dao.SimpleHibernateDao;
 import com.bdaim.common.util.StringUtil;
-import com.bdaim.slxf.entity.TransactionDO;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

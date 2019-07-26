@@ -7,9 +7,9 @@ import com.bdaim.customer.dao.CustomerUserDao;
 import com.bdaim.customer.entity.CustomerUserDO;
 import com.bdaim.customer.entity.CustomerUserProperty;
 import com.bdaim.rbac.dao.UserInfoDao;
+import com.bdaim.rbac.dto.UserQueryParam;
 import com.bdaim.rbac.entity.UserDO;
 import com.bdaim.rbac.service.UserInfoService;
-import com.bdaim.slxf.entity.UserQueryParam;
 
 import org.apache.commons.lang.StringEscapeUtils;
 import org.hibernate.transform.Transformers;

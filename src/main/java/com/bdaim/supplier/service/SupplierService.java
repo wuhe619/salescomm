@@ -17,8 +17,6 @@ import com.bdaim.resource.dto.MarketResourceDTO;
 import com.bdaim.resource.dto.MarketResourceLogDTO;
 import com.bdaim.resource.entity.MarketResourceEntity;
 import com.bdaim.resource.entity.ResourcePropertyEntity;
-import com.bdaim.slxf.dto.*;
-import com.bdaim.slxf.entity.*;
 import com.bdaim.supplier.dao.SupplierDao;
 import com.bdaim.supplier.dto.SupplierDTO;
 import com.bdaim.supplier.entity.SupplierEntity;

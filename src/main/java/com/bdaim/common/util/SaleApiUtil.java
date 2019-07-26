@@ -1,7 +1,8 @@
 package com.bdaim.common.util;
 
 import com.alibaba.fastjson.JSON;
-import com.bdaim.slxf.entity.SignAuthorizationResult;
+import com.bdaim.callcenter.dto.SignAuthorizationResult;
+
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;

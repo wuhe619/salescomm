@@ -4,12 +4,12 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.batch.dao.LostContactDao;
+import com.bdaim.batch.dto.DetailQueryParam;
+import com.bdaim.batch.dto.TouchInfoDTO;
 import com.bdaim.batch.service.LostContactService;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerUserDao;
 import com.bdaim.customer.service.CustomerPropertyService;
-import com.bdaim.slxf.dto.TouchInfoDTO;
-import com.bdaim.slxf.entity.DetailQueryParam;
 
 import org.hibernate.transform.Transformers;
 import org.springframework.jdbc.core.JdbcTemplate;

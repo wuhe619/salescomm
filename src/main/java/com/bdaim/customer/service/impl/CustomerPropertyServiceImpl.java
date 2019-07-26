@@ -12,8 +12,6 @@ import com.bdaim.customer.entity.CustomerProperty;
 import com.bdaim.customer.entity.CustomerPropertyEntity;
 import com.bdaim.customer.entity.CustomerPropertyParam;
 import com.bdaim.customer.service.CustomerPropertyService;
-import com.bdaim.resource.dao.SourceDao;
-import com.bdaim.slxf.entity.*;
 import com.bdaim.supplier.dao.SupplierDao;
 import com.bdaim.supplier.entity.SupplierEntity;
 

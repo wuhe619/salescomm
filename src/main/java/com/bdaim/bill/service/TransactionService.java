@@ -2,13 +2,13 @@ package com.bdaim.bill.service;
 
 import com.alibaba.fastjson.JSON;
 import com.bdaim.account.dao.TransactionDao;
+import com.bdaim.account.dto.TransactionQryParam;
 import com.bdaim.batch.TransactionEnum;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.util.IDHelper;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.common.util.page.Page;
 import com.bdaim.common.util.page.Pagination;
-import com.bdaim.slxf.entity.TransactionQryParam;
 import com.github.crab2died.ExcelUtils;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.log4j.Logger;
