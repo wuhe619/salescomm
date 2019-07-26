@@ -49,7 +49,7 @@ public class BasicAction {
         if(u instanceof LoginUser) 
         	return (LoginUser)u;
         else
-            return new LoginUser(0L, "", "", 0L, null);
+            return new LoginUser(0L, "", "", null);
     }
 //    
 //    public User getCurrentUser(HttpServletRequest request) {

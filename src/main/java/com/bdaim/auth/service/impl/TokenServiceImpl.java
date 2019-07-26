@@ -1,7 +1,9 @@
 package com.bdaim.auth.service.impl;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.Resource;
 
@@ -13,6 +15,7 @@ import org.springframework.stereotype.Service;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.auth.LoginUser;
 import com.bdaim.common.auth.Token;
+import com.bdaim.common.auth.service.TokenCacheService;
 import com.bdaim.common.auth.service.TokenService;
 import com.bdaim.common.util.CipherUtil;
 import com.bdaim.customer.entity.CustomerUserDO;
@@ -28,6 +31,10 @@ public class TokenServiceImpl implements TokenService{
     private CustomerService customerService;
 	@Resource
     private UserInfoService userInfoService;
+	@Resource
+	private TokenCacheService tokenCacheService;
+	
+	private static Map name2token = new HashMap();
 	
 	@Override
 	public Token createToken(String username, String password) {
@@ -45,6 +52,17 @@ public class TokenServiceImpl implements TokenService{
 		if(username.startsWith("backend.")) {
 			UserDO u = userInfoService.getUserByName(username);
 	        if (u != null && CipherUtil.generatePassword(password).equals(u.getPassword())) {
+	        	//寻找登录账号已有的token, 需重构
+	        	String tokenid = (String)name2token.get(username);
+	        	if(tokenid!=null && !"".equals(tokenid)) {
+	        		userdetail=(LoginUser)tokenCacheService.getToken(tokenid);
+	        		if(userdetail!=null)
+	        			return userdetail;
+	        		else
+	        			name2token.remove(username);
+	        	}
+	        	
+	        	
 	            auths.add(new SimpleGrantedAuthority("ROLE_USER"));
 	            String role = "ROLE_USER";
 
@@ -53,7 +71,7 @@ public class TokenServiceImpl implements TokenService{
 	                role = "admin";
 	            }
 
-	            userdetail = new LoginUser(u.getId(), u.getName(), CipherUtil.encodeByMD5(u.getId()+""+System.currentTimeMillis()), System.currentTimeMillis(), auths);
+	            userdetail = new LoginUser(u.getId(), u.getName(), CipherUtil.encodeByMD5(u.getId()+""+System.currentTimeMillis()), auths);
 	            userdetail.setCustId("0");
 	            userdetail.setId(u.getId());
 	            userdetail.setUserType(String.valueOf(u.getUserType()));
@@ -65,6 +83,17 @@ public class TokenServiceImpl implements TokenService{
 	    	
 	    	if (u != null && CipherUtil.generatePassword(password).equals(u.getPassword())) {
 	            logger.info("登陆框，用户：" + u.getAccount() + " 状态：" + u.getStatus());
+	            //寻找登录账号已有的token
+	        	String tokenid = (String)name2token.get(username);
+	        	if(tokenid!=null && !"".equals(tokenid)) {
+	        		userdetail=(LoginUser)tokenCacheService.getToken(tokenid);
+	        		if(userdetail!=null)
+	        			return userdetail;
+	        		else
+	        			name2token.remove(username);
+	        	}
+	        	
+	            userdetail = new LoginUser(u.getId(), u.getAccount(), CipherUtil.encodeByMD5(u.getId()+""+System.currentTimeMillis()), auths);
 	            if (1 == u.getStatus()) {
 	                auths.add(new SimpleGrantedAuthority("USER_FREEZE"));
 	            } else if (3 == u.getStatus()) {
@@ -73,15 +102,21 @@ public class TokenServiceImpl implements TokenService{
 	                //user_type: 1=管理员 2=普通员工
 	                auths.add(new SimpleGrantedAuthority("ROLE_CUSTOMER"));
 	            }
-	            userdetail = new LoginUser(u.getId(), u.getAccount(), CipherUtil.encodeByMD5(u.getId()+""+System.currentTimeMillis()), System.currentTimeMillis(), auths);
+	            
 	            userdetail.setCustId(u.getCust_id());
 	            userdetail.setId(u.getId());
 	            userdetail.setUserType(String.valueOf(u.getUserType()));
-	            userdetail.setRole("ROLE_CUSTOMER");
+	            userdetail.setRole(auths.size()>0?auths.toArray()[0].toString():"");
 	        }
 		}
+		
+		name2token.put(username, userdetail.getTokenid());
 		return userdetail;
 	}
 
-	
+	@Override
+	public Token removeToken(String username) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }
