@@ -3,6 +3,7 @@ package com.bdaim.common.controller;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.auth.LoginUser;
+import com.bdaim.common.auth.Token;
 import com.bdaim.rbac.dto.Page;
 import com.bdaim.rbac.service.UserService;
 
@@ -44,11 +45,11 @@ public class BasicAction {
      * 获取当前登录用户的USER
      */
     protected LoginUser opUser() {
-        LoginUser u = (LoginUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (u == null) {
-            u = new LoginUser(0L, "", "", 0L, null);
-        }
-        return u;
+        Token u = (LoginUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if(u instanceof LoginUser) 
+        	return (LoginUser)u;
+        else
+            return new LoginUser(0L, "", "", 0L, null);
     }
 //    
 //    public User getCurrentUser(HttpServletRequest request) {
