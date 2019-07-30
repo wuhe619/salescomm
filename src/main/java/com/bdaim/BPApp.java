@@ -17,7 +17,9 @@ import com.bdaim.common.security.SecurityConfig;
 import com.bdaim.common.security.TokenAuthenticationFilter;
 import com.bdaim.common.security.TokenAuthenticationProvider;
 
-
+/**
+ * 启动类
+ */
 @SpringBootApplication()
 @Import({SecurityConfig.class, TokenAuthenticationFilter.class, TokenAuthenticationProvider.class, AuthExceptionHandler.class, AuthController.class, TokenCacheService.class, ErrorController.class, HibernateConfig.class})
 public class BPApp {
