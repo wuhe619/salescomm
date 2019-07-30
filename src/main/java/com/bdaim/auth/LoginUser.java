@@ -23,8 +23,8 @@ public class LoginUser extends Token{
 		this.tokenid=tokenid;
 		this.tokentime=tokentime;
 	}
-	
-	
+
+
 	private User user;
 	private Long id;
 	private String name;
@@ -136,5 +136,5 @@ public class LoginUser extends Token{
 		this.tokentime = tokentime;
 	}
 
-	
+
 }

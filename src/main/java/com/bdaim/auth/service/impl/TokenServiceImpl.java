@@ -74,6 +74,9 @@ public class TokenServiceImpl implements TokenService {
                 userdetail.setUserType(String.valueOf(u.getUserType()));
                 userdetail.setRole(role);
                 userdetail.setName(u.getName());
+            } else {
+                logger.info("username or password is error");
+                return null;
             }
         } else {
             CustomerUserDO u = customerService.getUserByName(username);
@@ -105,6 +108,8 @@ public class TokenServiceImpl implements TokenService {
                 userdetail.setUserType(String.valueOf(u.getUserType()));
                 userdetail.setRole(auths.size() > 0 ? auths.toArray()[0].toString() : "");
             }
+            logger.info("username or password is error");
+            return null;
         }
 
         if (userdetail != null)
