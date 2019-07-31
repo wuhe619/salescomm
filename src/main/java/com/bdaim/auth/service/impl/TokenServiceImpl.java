@@ -107,9 +107,10 @@ public class TokenServiceImpl implements TokenService {
                 userdetail.setId(u.getId());
                 userdetail.setUserType(String.valueOf(u.getUserType()));
                 userdetail.setRole(auths.size() > 0 ? auths.toArray()[0].toString() : "");
+            } else {
+                logger.info("username or password is error");
+                return null;
             }
-            logger.info("username or password is error");
-            return null;
         }
 
         if (userdetail != null)

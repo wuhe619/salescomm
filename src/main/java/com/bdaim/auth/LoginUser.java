@@ -136,5 +136,11 @@ public class LoginUser extends Token{
 		this.tokentime = tokentime;
 	}
 
+	public String getStateCode(){
+		return stateCode;
+	}
 
+	public String getMsg() {
+		return msg;
+	}
 }
