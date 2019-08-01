@@ -18,6 +18,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -82,5 +83,10 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         System.out.println(time2 - time1);
         return new JsonResult();
 
+    }
+
+    @Override
+    public JsonResult batchList(Map<String, Object> map) {
+        return new JsonResult();
     }
 }

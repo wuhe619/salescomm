@@ -4,6 +4,7 @@ import com.bdaim.common.response.JsonResult;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.Map;
 
 /**
  * @description: 发件批次 信息管理 (失联修复_信函模块)
@@ -23,4 +24,14 @@ public interface ExpressBatchService {
      * @date 2019/7/31 14:54
      */
     JsonResult receiverInfoImport(MultipartFile multipartFile, String batchName, int batchType, String custId) throws IOException;
+
+    /**
+     * 分页查询批次列表
+     *
+     * @param map pageNum、pageSize、custId 包括分页参数和企业ID
+     * @return
+     * @auther Chacker
+     * @date 2019/8/1 16:34
+     */
+    JsonResult batchList(Map<String, Object> map);
 }

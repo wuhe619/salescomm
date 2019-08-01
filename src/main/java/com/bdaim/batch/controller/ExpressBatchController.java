@@ -7,6 +7,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -17,6 +18,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -96,8 +98,23 @@ public class ExpressBatchController {
      */
     @RequestMapping(value = "/receiverInfoImport")
     @ResponseBody
-    public JsonResult receiverInfoImport(@RequestParam(value = "file") MultipartFile multipartFile, String batchName, int batchType,String custId) throws IOException {
-        JsonResult jsonResult = expressBatchService.receiverInfoImport(multipartFile, batchName, batchType,custId);
+    public JsonResult receiverInfoImport(@RequestParam(value = "file") MultipartFile multipartFile, String batchName, int batchType, String custId) throws IOException {
+        JsonResult jsonResult = expressBatchService.receiverInfoImport(multipartFile, batchName, batchType, custId);
+        return jsonResult;
+    }
+
+    /**
+     * 分页查询批次列表
+     *
+     * @param map pageNum、pageSize、custId 包括分页参数和企业ID
+     * @return
+     * @auther Chacker
+     * @date 2019/8/1 16:33
+     */
+    @RequestMapping(value = "/batchList")
+    @ResponseBody
+    public JsonResult batchList(@RequestBody Map<String, Object> map) {
+        JsonResult jsonResult = expressBatchService.batchList(map);
         return jsonResult;
     }
 
