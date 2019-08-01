@@ -2,8 +2,10 @@ package com.bdaim.batch.service.impl;
 
 import com.bdaim.batch.dao.BatchInfoDao;
 import com.bdaim.batch.dao.BatchInfoDetailDao;
+import com.bdaim.batch.dao.BatchPropertyDao;
 import com.bdaim.batch.entity.BatchDetailInfo;
 import com.bdaim.batch.entity.BatchInfo;
+import com.bdaim.batch.entity.BatchProperty;
 import com.bdaim.batch.service.ExpressBatchService;
 import com.bdaim.common.response.JsonResult;
 import com.bdaim.common.util.Constant;
@@ -33,9 +35,11 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
     private BatchInfoDao batchInfoDao;
     @Autowired
     private BatchInfoDetailDao batchInfoDetailDao;
+    @Autowired
+    private BatchPropertyDao batchPropertyDao;
 
     @Override
-    public JsonResult receiverInfoImport(MultipartFile multipartFile, String batchName, int batchType,String custId) throws IOException {
+    public JsonResult receiverInfoImport(MultipartFile multipartFile, String batchName, int expressContent, String custId) throws IOException {
         long time1 = System.currentTimeMillis();
         //1. 把excel文件上传到服务器中
         String fileName = multipartFile.getOriginalFilename();
@@ -58,14 +62,24 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         BatchInfo batchInfo = new BatchInfo();
         batchInfo.setId(String.valueOf(System.currentTimeMillis()));
         batchInfo.setBatchName(batchName);
-        batchInfo.setBatchType(String.valueOf(batchType));
+//        batchInfo.setBatchType(String.valueOf(batchType));
         batchInfo.setUploadTime(DateUtil.fmtDateToStr(new Date(), DateUtil.YYYY_MM_DD_HH_mm_ss));
         batchInfo.setCustId(custId);
+        //对非空且跟快递业务无关的字段进行赋值
+        batchInfo.setCertifyType("-1");
+        batchInfo.setChannel("-1");
+        batchInfo.setStatus("-1");
         //把批次状态设置为校验中
         batchInfo.setStatus(Constant.CHECKING);
+        //把快递内容(1. 电子版 2. 打印版)存入批次属性表
+        BatchProperty batchProperty = new BatchProperty();
+        batchProperty.setBatchId(batchInfo.getId());
+        batchProperty.setPropertyName("express_content_type");
+        batchProperty.setPropertyValue(String.valueOf(expressContent));
         //contentList的数量减去1，即为上传数量 (因为excel的第一行为列的标题)
         batchInfo.setUploadNum(contentList.size() - 1);
         batchInfoDao.saveBatchInfo(batchInfo);
+        batchPropertyDao.saveBatchProperty(batchProperty);
         //3.2 获取并保存批次详情信息 (因为第一行为标题，所以从第二行开始遍历)
         for (int i = 1; i < contentList.size(); i++) {
             BatchDetailInfo batchDetailInfo = new BatchDetailInfo();

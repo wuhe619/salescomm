@@ -30,11 +30,6 @@ public class BatchInfo {
     @Column(name = "batch_name")
     private String batchName;
     /**
-     * 批次类型 1.电子版 2.打印版
-     */
-    @Column(name = "batch_type")
-    private String batchType;
-    /**
      * 状态 1.校验中 2.校验失败 3.待上传 4.待发件 5.待取件 6.已发件
      */
     @Column(name = "status")
@@ -54,6 +49,17 @@ public class BatchInfo {
      */
     @Column(name = "upload_time")
     private String uploadTime;
+
+    /**
+     * 证件类型: 0-身份证 1-imei 2-mac 3 -地址修复
+     */
+    @Column(name = "certify_type")
+    private String certifyType;
+    /**
+     * 运营渠道 1-讯众 2-联通  4-移动  3-电信
+     */
+    @Column(name = "channel")
+    private String channel;
 
     public String getCustId() {
         return custId;
@@ -77,14 +83,6 @@ public class BatchInfo {
 
     public void setBatchName(String batchName) {
         this.batchName = batchName;
-    }
-
-    public String getBatchType() {
-        return batchType;
-    }
-
-    public void setBatchType(String batchType) {
-        this.batchType = batchType;
     }
 
     public String getStatus() {
@@ -117,5 +115,21 @@ public class BatchInfo {
 
     public void setUploadTime(String uploadTime) {
         this.uploadTime = uploadTime;
+    }
+
+    public String getCertifyType() {
+        return certifyType;
+    }
+
+    public void setCertifyType(String certifyType) {
+        this.certifyType = certifyType;
+    }
+
+    public String getChannel() {
+        return channel;
+    }
+
+    public void setChannel(String channel) {
+        this.channel = channel;
     }
 }

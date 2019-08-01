@@ -15,14 +15,12 @@ import java.io.Serializable;
 public class BatchInfoDao extends SimpleHibernateDao<BatchInfo, Serializable> {
     public void saveBatchInfo(BatchInfo b) {
         StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("INSERT INTO nl_batch (id,batch_name,comp_id,batch_type,status,upload_num,success_num,upload_time) VALUES ('");
+        stringBuilder.append("INSERT INTO nl_batch (id,batch_name,comp_id,status,upload_num,success_num,upload_time) VALUES ('");
         stringBuilder.append(b.getId());
         stringBuilder.append("','");
         stringBuilder.append(b.getBatchName());
         stringBuilder.append("','");
         stringBuilder.append(b.getCustId());
-        stringBuilder.append("','");
-        stringBuilder.append(b.getBatchType());
         stringBuilder.append("','");
         stringBuilder.append(b.getStatus());
         stringBuilder.append("','");
