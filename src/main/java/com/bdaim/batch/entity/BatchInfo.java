@@ -20,6 +20,11 @@ public class BatchInfo {
     @Column(name = "id")
     private String id;
     /**
+     * 客户ID(失联修复模块表示企业ID)
+     */
+    @Column(name = "comp_id")
+    private String custId;
+    /**
      * 批次名称
      */
     @Column(name = "batch_name")
@@ -49,6 +54,14 @@ public class BatchInfo {
      */
     @Column(name = "upload_time")
     private String uploadTime;
+
+    public String getCustId() {
+        return custId;
+    }
+
+    public void setCustId(String custId) {
+        this.custId = custId;
+    }
 
     public String getId() {
         return id;

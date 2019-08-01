@@ -17,9 +17,10 @@ public interface ExpressBatchService {
      * @param multipartFile excel文件
      * @param batchName     批次名称
      * @param batchType     快递内容形式 1.电子版 2.打印版
+     * @param custId        企业ID
      * @return
      * @auther Chacker
      * @date 2019/7/31 14:54
      */
-    JsonResult receiverInfoImport(MultipartFile multipartFile, String batchName, int batchType) throws IOException;
+    JsonResult receiverInfoImport(MultipartFile multipartFile, String batchName, int batchType, String custId) throws IOException;
 }

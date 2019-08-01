@@ -96,8 +96,8 @@ public class ExpressBatchController {
      */
     @RequestMapping(value = "/receiverInfoImport")
     @ResponseBody
-    public JsonResult receiverInfoImport(@RequestParam(value = "file") MultipartFile multipartFile, String batchName, int batchType) throws IOException {
-        JsonResult jsonResult = expressBatchService.receiverInfoImport(multipartFile, batchName, batchType);
+    public JsonResult receiverInfoImport(@RequestParam(value = "file") MultipartFile multipartFile, String batchName, int batchType,String custId) throws IOException {
+        JsonResult jsonResult = expressBatchService.receiverInfoImport(multipartFile, batchName, batchType,custId);
         return jsonResult;
     }
 

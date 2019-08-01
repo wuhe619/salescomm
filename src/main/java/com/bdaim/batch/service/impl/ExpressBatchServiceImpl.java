@@ -34,7 +34,7 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
     private BatchInfoDetailDao batchInfoDetailDao;
 
     @Override
-    public JsonResult receiverInfoImport(MultipartFile multipartFile, String batchName, int batchType) throws IOException {
+    public JsonResult receiverInfoImport(MultipartFile multipartFile, String batchName, int batchType,String custId) throws IOException {
         long time1 = System.currentTimeMillis();
         //1. 把excel文件上传到服务器中
         String fileName = multipartFile.getOriginalFilename();
@@ -59,6 +59,7 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         batchInfo.setBatchName(batchName);
         batchInfo.setBatchType(String.valueOf(batchType));
         batchInfo.setUploadTime(DateUtil.fmtDateToStr(new Date(), DateUtil.YYYY_MM_DD_HH_mm_ss));
+        batchInfo.setCustId(custId);
         //把批次状态设置为校验中
         batchInfo.setStatus(Constant.CHECKING);
         //contentList的数量减去1，即为上传数量 (因为excel的第一行为列的标题)
