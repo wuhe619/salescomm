@@ -91,7 +91,6 @@ public class ExpressBatchController {
      *
      * @param multipartFile excel文件
      * @param batchName     批次名称
-     * @param batchType     快递内容形式 1.电子版 2.打印版
      * @return
      * @auther Chacker
      * @date 2019/7/31 14:54
