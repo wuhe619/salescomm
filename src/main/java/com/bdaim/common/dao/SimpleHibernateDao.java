@@ -583,8 +583,10 @@ public class SimpleHibernateDao<T, PK extends Serializable> {
      * @return
      */
     public int executeUpdateSQL(String sqlStr) {
-        int count = getSession().createSQLQuery(sqlStr).executeUpdate();
+        Session session = getSession();
+        int count = session.createSQLQuery(sqlStr).executeUpdate();
         flush();
+        session.close();
         return count;
     }
 

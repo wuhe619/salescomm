@@ -607,4 +607,37 @@ public class Constant {
      * 普通用户
      */
     public static final int STAFF_USER_TYPE = 0;
+
+    /**
+     * excel文件类型 2003
+     */
+    public static final String XLS = ".xls";
+    /**
+     * excel文件类型 2007
+     */
+    public static final String XLSX = ".xlsx";
+    /**
+     * 校验中
+     */
+    public static final String CHECKING = "1";
+    /**
+     * 校验失败
+     */
+    public static final String CHECKING_FAILED = "2";
+    /**
+     * 待上传
+     */
+    public static final String TO_UPLOAD_FILE = "3";
+    /**
+     * 待发件
+     */
+    public static final String TO_SEND_EXPRESS = "4";
+    /**
+     * 待取件
+     */
+    public static final String TO_GET_EXPRESS = "5";
+    /**
+     * 已发件
+     */
+    public static final String ALREADY_SEND_EXPRESS = "6";
 }
