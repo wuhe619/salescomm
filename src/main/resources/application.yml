@@ -18,5 +18,5 @@ spring:
   jackson:
     default-property-inclusion: non_null
   redis:
-    host: 10.1.37.200
+    host: 192.168.32.200
     port: 6379
