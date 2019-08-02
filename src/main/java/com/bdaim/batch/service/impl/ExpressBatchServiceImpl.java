@@ -8,16 +8,22 @@ import com.bdaim.batch.entity.BatchInfo;
 import com.bdaim.batch.entity.BatchProperty;
 import com.bdaim.batch.service.ExpressBatchService;
 import com.bdaim.common.response.JsonResult;
+import com.bdaim.common.response.ResponseBody;
+import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.common.util.Constant;
 import com.bdaim.common.util.DateUtil;
 import com.bdaim.common.util.ExcelReaderUtil;
+import com.bdaim.common.util.StringUtil;
+import com.bdaim.rbac.dto.Page;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.persistence.criteria.CriteriaBuilder;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -39,7 +45,7 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
     private BatchPropertyDao batchPropertyDao;
 
     @Override
-    public JsonResult receiverInfoImport(MultipartFile multipartFile, String batchName, int expressContent, String custId) throws IOException {
+    public void receiverInfoImport(MultipartFile multipartFile, String batchName, int expressContent, String custId) throws IOException {
         long time1 = System.currentTimeMillis();
         //1. 把excel文件上传到服务器中
         String fileName = multipartFile.getOriginalFilename();
@@ -68,7 +74,6 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         //对非空且跟快递业务无关的字段进行赋值
         batchInfo.setCertifyType("-1");
         batchInfo.setChannel("-1");
-        batchInfo.setStatus("-1");
         //把批次状态设置为校验中
         batchInfo.setStatus(Constant.CHECKING);
         //把快递内容(1. 电子版 2. 打印版)存入批次属性表
@@ -95,12 +100,54 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         }
         long time2 = System.currentTimeMillis();
         System.out.println(time2 - time1);
-        return new JsonResult();
-
     }
 
     @Override
-    public JsonResult batchList(Map<String, Object> map) {
-        return new JsonResult();
+    public List<BatchInfo> batchList(Map<String, Object> map) {
+        int pageNum = Integer.valueOf(String.valueOf(map.get("page_num")));
+        int pageSize = Integer.valueOf(String.valueOf(map.get("page_size")));
+        int start = (pageNum - 1) * pageSize;
+        StringBuffer hql = new StringBuffer("from nl_batch where 1=1");
+        List<String> values = new ArrayList();
+        //企业ID
+        String custId = String.valueOf(map.get("cust_id"));
+        String nullString = "null";
+        if (!nullString.equals(custId) && StringUtil.isNotEmpty(custId)) {
+            hql.append(" and comp_id = ?");
+            values.add(custId);
+        }
+        //批次编号
+        String batchId = String.valueOf(map.get("batch_id"));
+        if (!nullString.equals(batchId) && StringUtil.isNotEmpty(batchId)) {
+            hql.append(" and id = ?");
+            values.add(batchId);
+        }
+        //批次名称
+        String batchName = String.valueOf(map.get("batch_name"));
+        if (!nullString.equals(batchName) && StringUtil.isNotEmpty(batchName)) {
+            hql.append(" and batch_name = ?");
+            values.add(batchName);
+        }
+        //状态
+        String status = String.valueOf(map.get("status"));
+        if (!nullString.equals(status) && StringUtil.isNotEmpty(status)) {
+            hql.append(" and status = ?");
+            values.add(status);
+        }
+        //上传时间开始
+        String startTime = String.valueOf(map.get("start_time"));
+        if (!nullString.equals(startTime) && StringUtil.isNotEmpty(startTime)) {
+            hql.append(" and upload_time > ?");
+            values.add(startTime);
+        }
+        //上传时间截止
+        String endTime = String.valueOf(map.get("end_time"));
+        if (!nullString.equals(endTime) && StringUtil.isNotEmpty(endTime)) {
+            hql.append(" and upload_time < ?");
+            values.add(endTime);
+        }
+        hql.append(" ORDER BY upload_time DESC ");
+        Page page = batchInfoDao.page(hql.toString(), values, start, pageSize);
+        return page.getData();
     }
 }

@@ -1,16 +1,16 @@
 package com.bdaim.batch.controller;
 
+import com.bdaim.batch.entity.BatchInfo;
 import com.bdaim.batch.service.ExpressBatchService;
 import com.bdaim.common.response.JsonResult;
+import com.bdaim.common.response.ResponseBody;
+import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.common.response.ResultCode;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
@@ -18,6 +18,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -27,7 +28,7 @@ import java.util.Properties;
  * @date: 2019/7/31 10:09
  */
 @RequestMapping("/express")
-@Controller
+@RestController
 public class ExpressBatchController {
 
     private static Log logger = LogFactory.getLog(ExpressBatchController.class);
@@ -45,8 +46,7 @@ public class ExpressBatchController {
      * @date 2019/7/31 14:54
      */
     @RequestMapping("/receiverModel")
-    @ResponseBody
-    public JsonResult downloadReceiverModel(HttpServletResponse response) {
+    public ResponseBody downloadReceiverModel(HttpServletResponse response) {
         InputStream in = null;
         OutputStream bos = null;
         try {
@@ -58,7 +58,7 @@ public class ExpressBatchController {
 
             //下载的response属性设置
             response.setCharacterEncoding("utf-8");
-            //response.setContentType("application/vnd.ms-excel;charset=utf-8"); xls格式，注释掉
+            //application/vnd.ms-excel;charset=utf-8" xls格式，注释掉
             response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
             String returnName = response.encodeURL(new String(fileName.getBytes(), "iso8859-1"));   //保存的文件名,必须和页面编码一致,否则乱码
             response.addHeader("Content-Disposition", "attachment;filename=" + returnName);
@@ -72,10 +72,9 @@ public class ExpressBatchController {
                 bos.write(b, 0, length);
             }
             bos.flush();
-            return new JsonResult();
+            return new ResponseInfoAssemble().success(null);
         } catch (Exception e) {
-            logger.error("失联修复模板下载异常" + "\r\n" + e.getMessage());
-            return new JsonResult(ResultCode.FAIL);
+            return new ResponseInfoAssemble().failure(200, "500", "模板下载异常，请稍后重试或联系网站管理员");
         } finally {
             try {
                 in.close();
@@ -96,10 +95,9 @@ public class ExpressBatchController {
      * @date 2019/7/31 14:54
      */
     @RequestMapping(value = "/receiverInfoImport")
-    @ResponseBody
-    public JsonResult receiverInfoImport(@RequestParam(value = "file") MultipartFile multipartFile, String batchName, int expressContent, String custId) throws IOException {
-        JsonResult jsonResult = expressBatchService.receiverInfoImport(multipartFile, batchName, expressContent, custId);
-        return jsonResult;
+    public ResponseBody receiverInfoImport(@RequestParam(value = "file") MultipartFile multipartFile, String batchName, int expressContent, String custId) throws IOException {
+        expressBatchService.receiverInfoImport(multipartFile, batchName, expressContent, custId);
+        return new ResponseInfoAssemble().success("hello");
     }
 
     /**
@@ -110,11 +108,10 @@ public class ExpressBatchController {
      * @auther Chacker
      * @date 2019/8/1 16:33
      */
-    @RequestMapping(value = "/batchList")
-    @ResponseBody
-    public JsonResult batchList(@RequestBody Map<String, Object> map) {
-        JsonResult jsonResult = expressBatchService.batchList(map);
-        return jsonResult;
+    @RequestMapping(value = "/batchList",method = RequestMethod.GET)
+    public ResponseBody batchList(@RequestBody Map<String, Object> map) {
+        List<BatchInfo> resultList = expressBatchService.batchList(map);
+        return new ResponseInfoAssemble().success(resultList);
     }
 
 }

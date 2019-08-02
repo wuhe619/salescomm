@@ -1,9 +1,12 @@
 package com.bdaim.batch.service;
 
+import com.bdaim.batch.entity.BatchInfo;
 import com.bdaim.common.response.JsonResult;
+import com.bdaim.common.response.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -23,7 +26,7 @@ public interface ExpressBatchService {
      * @auther Chacker
      * @date 2019/7/31 14:54
      */
-    JsonResult receiverInfoImport(MultipartFile multipartFile, String batchName, int batchType, String custId) throws IOException;
+    void receiverInfoImport(MultipartFile multipartFile, String batchName, int batchType, String custId) throws IOException;
 
     /**
      * 分页查询批次列表
@@ -33,5 +36,5 @@ public interface ExpressBatchService {
      * @auther Chacker
      * @date 2019/8/1 16:34
      */
-    JsonResult batchList(Map<String, Object> map);
+    List<BatchInfo> batchList(Map<String, Object> map);
 }
