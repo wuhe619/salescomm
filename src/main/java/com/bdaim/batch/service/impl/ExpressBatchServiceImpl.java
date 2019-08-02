@@ -110,7 +110,7 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         int pageNum = Integer.valueOf(String.valueOf(map.get("page_num")));
         int pageSize = Integer.valueOf(String.valueOf(map.get("page_size")));
         int start = (pageNum - 1) * pageSize;
-        StringBuffer hql = new StringBuffer("from nl_batch t1,nl_batch_property t2 where 1=1");
+        StringBuffer hql = new StringBuffer("from nl_batch where 1=1");
         List<String> values = new ArrayList();
         //企业ID
         String custId = String.valueOf(map.get("cust_id"));
