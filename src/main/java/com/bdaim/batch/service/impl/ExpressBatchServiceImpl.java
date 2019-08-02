@@ -175,4 +175,59 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         }
         return list;
     }
+
+    @Override
+    public List<Map<String, Object>> batchDetail(Map<String, Object> map) throws IllegalAccessException {
+        int pageNum = Integer.valueOf(String.valueOf(map.get("page_num")));
+        int pageSize = Integer.valueOf(String.valueOf(map.get("page_size")));
+        int start = (pageNum - 1) * pageSize;
+        StringBuffer hql = new StringBuffer("from nl_batch_detail where 1=1");
+        List<String> values = new ArrayList();
+        //批次编号
+        String batchId = String.valueOf(map.get("batch_id"));
+        String nullString = "null";
+        if (!nullString.equals(batchId) && StringUtil.isNotEmpty(batchId)) {
+            hql.append(" and batch_id = ?");
+            values.add(batchId);
+        }
+        //收件人ID
+        String id = String.valueOf(map.get("id"));
+        if (!nullString.equals(id) && StringUtil.isNotEmpty(id)) {
+            hql.append(" and id = ?");
+            values.add(id);
+        }
+        //姓名
+        String name = String.valueOf(map.get("name"));
+        if (!nullString.equals(name) && StringUtil.isNotEmpty(name)) {
+            hql.append(" and label_one = ?");
+            values.add(name);
+        }
+        //文件编码
+        String fileCode = String.valueOf(map.get("file_code"));
+        if (!nullString.equals(fileCode) && StringUtil.isNotEmpty(fileCode)) {
+            hql.append(" and label_six = ?");
+            values.add(fileCode);
+        }
+        //校验结果
+        String checkingResult = String.valueOf(map.get("checking_result"));
+        if (!nullString.equals(checkingResult) && StringUtil.isNotEmpty(checkingResult)) {
+            hql.append(" and label_seven = ?");
+            values.add(checkingResult);
+        }
+        //快件状态
+        String status = String.valueOf(map.get("status"));
+        if (!nullString.equals(status) && StringUtil.isNotEmpty(status)) {
+            hql.append(" and status = ?");
+            values.add(status);
+        }
+        hql.append(" ORDER BY id DESC ");
+        Page page = batchInfoDao.page(hql.toString(), values, start, pageSize);
+        List<Map<String, Object>> list = DataConverter.objectListToMap(page.getData());
+//        if (list != null && list.size() != 0) {
+//            for (Map<String,Object> tempMap:list) {
+//                //tempMap.put("checkingResult",String.valueOf(tempMap.get("")))
+//            }
+//        }
+        return list;
+    }
 }

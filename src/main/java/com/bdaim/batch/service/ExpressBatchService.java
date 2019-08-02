@@ -36,5 +36,15 @@ public interface ExpressBatchService {
      * @auther Chacker
      * @date 2019/8/1 16:34
      */
-    List<Map<String,Object>> batchList(Map<String, Object> map) throws IllegalAccessException;
+    List<Map<String, Object>> batchList(Map<String, Object> map) throws IllegalAccessException;
+
+    /**
+     * 查询批次详情
+     *
+     * @param map batch_id
+     * @return
+     * @auther Chacker
+     * @date 2019/8/2 14:38
+     */
+    List<Map<String, Object>> batchDetail(Map<String, Object> map) throws IllegalAccessException;
 }
