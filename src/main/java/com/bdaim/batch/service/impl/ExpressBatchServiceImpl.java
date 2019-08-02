@@ -110,46 +110,46 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         int pageNum = Integer.valueOf(String.valueOf(map.get("page_num")));
         int pageSize = Integer.valueOf(String.valueOf(map.get("page_size")));
         int start = (pageNum - 1) * pageSize;
-        StringBuffer hql = new StringBuffer("from nl_batch t1,nl_batch_property t2 where t1.id=t2.batch_id");
+        StringBuffer hql = new StringBuffer("from nl_batch t1,nl_batch_property t2 where 1=1");
         List<String> values = new ArrayList();
         //企业ID
         String custId = String.valueOf(map.get("cust_id"));
         String nullString = "null";
         if (!nullString.equals(custId) && StringUtil.isNotEmpty(custId)) {
-            hql.append(" and t1.comp_id = ?");
+            hql.append(" and comp_id = ?");
             values.add(custId);
         }
         //批次编号
         String batchId = String.valueOf(map.get("batch_id"));
         if (!nullString.equals(batchId) && StringUtil.isNotEmpty(batchId)) {
-            hql.append(" and t1.id = ?");
+            hql.append(" and id = ?");
             values.add(batchId);
         }
         //批次名称
         String batchName = String.valueOf(map.get("batch_name"));
         if (!nullString.equals(batchName) && StringUtil.isNotEmpty(batchName)) {
-            hql.append(" and t1.batch_name = ?");
+            hql.append(" and batch_name = ?");
             values.add(batchName);
         }
         //状态
         String status = String.valueOf(map.get("status"));
         if (!nullString.equals(status) && StringUtil.isNotEmpty(status)) {
-            hql.append(" and t1.status = ?");
+            hql.append(" and status = ?");
             values.add(status);
         }
         //上传时间开始
         String startTime = String.valueOf(map.get("start_time"));
         if (!nullString.equals(startTime) && StringUtil.isNotEmpty(startTime)) {
-            hql.append(" and t1.upload_time > ?");
+            hql.append(" and upload_time > ?");
             values.add(startTime);
         }
         //上传时间截止
         String endTime = String.valueOf(map.get("end_time"));
         if (!nullString.equals(endTime) && StringUtil.isNotEmpty(endTime)) {
-            hql.append(" and t1.upload_time < ?");
+            hql.append(" and upload_time < ?");
             values.add(endTime);
         }
-        hql.append(" ORDER BY t1.upload_time DESC ");
+        hql.append(" ORDER BY upload_time DESC ");
         Page page = batchInfoDao.page(hql.toString(), values, start, pageSize);
         List<Map<String, Object>> list = DataConverter.objectListToMap(page.getData());
         if (list != null && list.size() != 0) {
