@@ -10,7 +10,7 @@ import javax.persistence.Table;
  * @auther: Chacker
  * @date: 2019/8/1 09:03
  */
-@Entity
+@Entity(name = "nl_batch")
 @Table(name = "nl_batch")
 public class BatchInfo {
     /**
@@ -110,7 +110,7 @@ public class BatchInfo {
     }
 
     public String getUploadTime() {
-        return uploadTime;
+        return uploadTime.substring(0,19);
     }
 
     public void setUploadTime(String uploadTime) {
