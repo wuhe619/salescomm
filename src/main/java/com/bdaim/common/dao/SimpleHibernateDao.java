@@ -81,6 +81,7 @@ public class SimpleHibernateDao<T, PK extends Serializable> {
         try {
             return sessionFactory.getCurrentSession();
         } catch (HibernateException ex) {
+            ex.printStackTrace();
             logger.warn("can not get current session,open new.");
             return sessionFactory.openSession();
         }

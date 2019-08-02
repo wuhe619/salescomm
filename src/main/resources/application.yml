@@ -10,10 +10,13 @@ spring:
     url: jdbc:mysql://127.0.0.1/label?characterEncoding=utf-8&useSSL=false
   jpa:
     show-sql: true
+    open-in-view: true
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
         new_generator_mappings: false
+        current_session_context_class: org.springframework.orm.hibernate5.SpringSessionContext
+        naming-strategy: org.hibernate.cfg.ImprovedNamingStrategy
         format_sql: true
   jackson:
     default-property-inclusion: non_null
