@@ -11,7 +11,7 @@ import java.io.Serializable;
  * @auther: Chacker
  * @date: 2019/8/1 09:59
  */
-@Entity
+@Entity(name = "nl_batch_detail")
 @Table(name = "nl_batch_detail")
 public class BatchDetailInfo implements Serializable {
     /**
