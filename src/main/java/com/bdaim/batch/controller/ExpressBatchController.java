@@ -109,8 +109,8 @@ public class ExpressBatchController {
      * @date 2019/8/1 16:33
      */
     @RequestMapping(value = "/batchList",method = RequestMethod.GET)
-    public ResponseBody batchList(@RequestBody Map<String, Object> map) {
-        List<BatchInfo> resultList = expressBatchService.batchList(map);
+    public ResponseBody batchList(@RequestBody Map<String, Object> map) throws IllegalAccessException {
+        List<Map<String,Object>> resultList = expressBatchService.batchList(map);
         return new ResponseInfoAssemble().success(resultList);
     }
 

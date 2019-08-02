@@ -14,6 +14,7 @@ import com.bdaim.common.util.Constant;
 import com.bdaim.common.util.DateUtil;
 import com.bdaim.common.util.ExcelReaderUtil;
 import com.bdaim.common.util.StringUtil;
+import com.bdaim.common.util.spring.DataConverter;
 import com.bdaim.rbac.dto.Page;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,6 +44,8 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
     private BatchInfoDetailDao batchInfoDetailDao;
     @Autowired
     private BatchPropertyDao batchPropertyDao;
+    @Autowired
+    private DataConverter dataConverter;
 
     @Override
     public void receiverInfoImport(MultipartFile multipartFile, String batchName, int expressContent, String custId) throws IOException {
@@ -103,51 +106,73 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
     }
 
     @Override
-    public List<BatchInfo> batchList(Map<String, Object> map) {
+    public List<Map<String, Object>> batchList(Map<String, Object> map) throws IllegalAccessException {
         int pageNum = Integer.valueOf(String.valueOf(map.get("page_num")));
         int pageSize = Integer.valueOf(String.valueOf(map.get("page_size")));
         int start = (pageNum - 1) * pageSize;
-        StringBuffer hql = new StringBuffer("from nl_batch where 1=1");
+        StringBuffer hql = new StringBuffer("from nl_batch t1,nl_batch_property t2 where t1.id=t2.batch_id");
         List<String> values = new ArrayList();
         //企业ID
         String custId = String.valueOf(map.get("cust_id"));
         String nullString = "null";
         if (!nullString.equals(custId) && StringUtil.isNotEmpty(custId)) {
-            hql.append(" and comp_id = ?");
+            hql.append(" and t1.comp_id = ?");
             values.add(custId);
         }
         //批次编号
         String batchId = String.valueOf(map.get("batch_id"));
         if (!nullString.equals(batchId) && StringUtil.isNotEmpty(batchId)) {
-            hql.append(" and id = ?");
+            hql.append(" and t1.id = ?");
             values.add(batchId);
         }
         //批次名称
         String batchName = String.valueOf(map.get("batch_name"));
         if (!nullString.equals(batchName) && StringUtil.isNotEmpty(batchName)) {
-            hql.append(" and batch_name = ?");
+            hql.append(" and t1.batch_name = ?");
             values.add(batchName);
         }
         //状态
         String status = String.valueOf(map.get("status"));
         if (!nullString.equals(status) && StringUtil.isNotEmpty(status)) {
-            hql.append(" and status = ?");
+            hql.append(" and t1.status = ?");
             values.add(status);
         }
         //上传时间开始
         String startTime = String.valueOf(map.get("start_time"));
         if (!nullString.equals(startTime) && StringUtil.isNotEmpty(startTime)) {
-            hql.append(" and upload_time > ?");
+            hql.append(" and t1.upload_time > ?");
             values.add(startTime);
         }
         //上传时间截止
         String endTime = String.valueOf(map.get("end_time"));
         if (!nullString.equals(endTime) && StringUtil.isNotEmpty(endTime)) {
-            hql.append(" and upload_time < ?");
+            hql.append(" and t1.upload_time < ?");
             values.add(endTime);
         }
-        hql.append(" ORDER BY upload_time DESC ");
+        hql.append(" ORDER BY t1.upload_time DESC ");
         Page page = batchInfoDao.page(hql.toString(), values, start, pageSize);
-        return page.getData();
+        List<Map<String, Object>> list = DataConverter.objectListToMap(page.getData());
+        if (list != null && list.size() != 0) {
+            for (Map<String,Object> tempMap:list) {
+                tempMap.put("uploadTime",String.valueOf(tempMap.get("uploadTime")).substring(0,19));
+                tempMap.put("expressContentType","电子版");
+                String statusValue = String.valueOf(tempMap.get("status"));
+                switch (statusValue) {
+                    case "1":
+                        tempMap.put("status", "校验中");
+                    case "2":
+                        tempMap.put("status", "校验失败");
+                    case "3":
+                        tempMap.put("status", "待上传");
+                    case "4":
+                        tempMap.put("status", "待发件");
+                    case "5":
+                        tempMap.put("status", "已取件");
+                    case "6":
+                        tempMap.put("status", "已发件");
+                }
+            }
+        }
+        return list;
     }
 }
