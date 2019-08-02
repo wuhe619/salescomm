@@ -6,8 +6,8 @@ spring:
     driver-class-name: com.mysql.jdbc.Driver
     username: dev
     password: dev__807
-    #url: jdbc:mysql://10.1.37.200/label?characterEncoding=utf-8&useSSL=false
-    url: jdbc:mysql://127.0.0.1/label?characterEncoding=utf-8&useSSL=false
+    url: jdbc:mysql://192.168.32.200/label?characterEncoding=utf-8&useSSL=false
+    #url: jdbc:mysql://127.0.0.1/label?characterEncoding=utf-8&useSSL=false
   jpa:
     show-sql: true
     properties:
