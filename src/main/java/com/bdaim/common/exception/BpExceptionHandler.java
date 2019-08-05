@@ -33,7 +33,7 @@ public class BpExceptionHandler {
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseInfo handleHttpMessageNotReadableException(HttpMessageNotReadableException e) {
         log.error("could_not_read_json", e);
-        return new ResponseInfoAssemble().failure(HttpStatus.BAD_REQUEST.value(), String.valueOf(HttpStatus.BAD_REQUEST.value()), "could_not_read_json");
+        return new ResponseInfoAssemble().failure(HttpStatus.BAD_REQUEST.value(), "could_not_read_json");
     }
 
     /**
@@ -48,7 +48,7 @@ public class BpExceptionHandler {
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ResponseInfo handleHttpRequestMethodNotSupportedException(HttpRequestMethodNotSupportedException e) {
         log.error("request_method_not_supported", e);
-        return new ResponseInfoAssemble().failure(HttpStatus.BAD_REQUEST.value(), String.valueOf(HttpStatus.BAD_REQUEST.value()), "request_method_not_supported");
+        return new ResponseInfoAssemble().failure(HttpStatus.BAD_REQUEST.value(), "request_method_not_supported");
     }
 
     /**
@@ -63,7 +63,7 @@ public class BpExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseInfo handleValidationException(MethodArgumentNotValidException e) {
         log.error("parameter_validation_exception...", e);
-        return new ResponseInfoAssemble().failure(HttpStatus.BAD_REQUEST.value(), String.valueOf(HttpStatus.BAD_REQUEST.value()), "parameter_validation_exception");
+        return new ResponseInfoAssemble().failure(HttpStatus.BAD_REQUEST.value(), "parameter_validation_exception");
     }
 
     /**
@@ -78,10 +78,10 @@ public class BpExceptionHandler {
     public ResponseInfo handleException(Exception e) {
         log.error("Internal Server Error...", e);
         if (e instanceof org.springframework.web.servlet.NoHandlerFoundException) {
-            return new ResponseInfoAssemble().failure(HttpStatus.NOT_FOUND.value(), String.valueOf(HttpStatus.NOT_FOUND.value()),
+            return new ResponseInfoAssemble().failure(HttpStatus.NOT_FOUND.value(),
                     "Not Found Exception");
         } else {
-            return new ResponseInfoAssemble().failure(HttpStatus.INTERNAL_SERVER_ERROR.value(), String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()),
+            return new ResponseInfoAssemble().failure(HttpStatus.INTERNAL_SERVER_ERROR.value(),
                     e.getMessage());
         }
     }

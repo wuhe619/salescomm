@@ -40,7 +40,7 @@ public class ExpressBatchController {
      * @auther Chacker
      * @date 2019/7/31 14:54
      */
-    @RequestMapping(value = "receiverModel",method = RequestMethod.GET,produces = "application/vnd.ms-excel;charset=UTF-8")
+    @RequestMapping(value = "receiverModel", method = RequestMethod.GET, produces = "application/vnd.ms-excel;charset=UTF-8")
     @ResponseBody
     public ResponseInfo downloadReceiverModel(HttpServletResponse response) {
         InputStream in = null;
@@ -48,7 +48,7 @@ public class ExpressBatchController {
         try {
             //获取resources下的模板文件路径
             String classPath = this.getClass().getResourceAsStream("").toString();
-            logger.error("hello classpath"+classPath);
+            logger.error("hello classpath" + classPath);
             String fileName = "收件人信息模板.xlsx";
             String pathF = PROPERTIES.getProperty("file.separator");
             String path = classPath + pathF + fileName;
@@ -60,7 +60,7 @@ public class ExpressBatchController {
             String returnName = response.encodeURL(new String(fileName.getBytes(), "iso8859-1"));   //保存的文件名,必须和页面编码一致,否则乱码
             response.addHeader("Content-Disposition", "attachment;filename=" + returnName);
             in = this.getClass().getResourceAsStream("/收件人信息模板.xlsx");
-            logger.error("hello chacker"+path);
+            logger.error("hello chacker" + path);
             bos = response.getOutputStream();
 
             //以字节方式读取，放入输出流
@@ -71,7 +71,7 @@ public class ExpressBatchController {
             }
             bos.flush();
         } catch (Exception e) {
-            return new ResponseInfoAssemble().failure(200, "500", "模板下载异常，请稍后重试或联系网站管理员");
+            return new ResponseInfoAssemble().failure(500, "模板下载异常，请稍后重试或联系网站管理员");
         } finally {
             try {
                 in.close();
@@ -110,9 +110,10 @@ public class ExpressBatchController {
     @RequestMapping(value = "/batchList", method = RequestMethod.GET)
     @ResponseBody
     public ResponseInfo batchList(@RequestParam Map<String, Object> map) throws IllegalAccessException {
-        Map<String,Object> resultMap = expressBatchService.batchList(map);
+        Map<String, Object> resultMap = expressBatchService.batchList(map);
         return new ResponseInfoAssemble().success(resultMap);
     }
+
     /**
      * 查询批次详情
      *

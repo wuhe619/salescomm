@@ -27,7 +27,7 @@ public class ResponseInfo<T> implements Serializable {
     /**
      * 消息内容
      */
-    private InfoMsg infoMsg;
+    private String message = "操作成功";
 
     public String getTimeStamp() {
         return timeStamp;
@@ -53,11 +53,11 @@ public class ResponseInfo<T> implements Serializable {
         this.data = data;
     }
 
-    public InfoMsg getInfoMsg() {
-        return infoMsg;
+    public String getMessage() {
+        return message;
     }
 
-    public void setInfoMsg(InfoMsg infoMsg) {
-        this.infoMsg = infoMsg;
+    public void setMessage(String message) {
+        this.message = message;
     }
 }
