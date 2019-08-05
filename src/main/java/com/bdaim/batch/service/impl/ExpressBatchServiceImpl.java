@@ -68,38 +68,21 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         List<List<String>> contentList = ExcelReaderUtil.readExcel(uploadPath);
         //3. 把批次信息和批次详情列表存入数据库
         //3.1 设置并新增保存批次信息
-        BatchInfo batchInfo = new BatchInfo();
-        batchInfo.setId(String.valueOf(System.currentTimeMillis()));
-        batchInfo.setBatchName(batchName);
-//        batchInfo.setBatchType(String.valueOf(batchType));
-        batchInfo.setUploadTime(DateUtil.fmtDateToStr(new Date(), DateUtil.YYYY_MM_DD_HH_mm_ss));
-        batchInfo.setCustId(custId);
-        //对非空且跟快递业务无关的字段进行赋值
-        batchInfo.setCertifyType("-1");
-        batchInfo.setChannel("-1");
-        //把批次状态设置为校验中
-        batchInfo.setStatus(Constant.CHECKING);
+        StringBuffer insertBatchSql = new StringBuffer("INSERT INTO nl_batch (id,batch_name,upload_time,comp_id,certify_type,channel,status," +
+                "upload_num) VALUES ('");
+        insertBatchSql.append(batchId + "','" + batchName + "',now(),'"
+                + custId + "','-1','-1','1','" + (contentList.size() - 1) + "')");
+        jdbcTemplate.update(insertBatchSql.toString());
         //把快递内容(1. 电子版 2. 打印版)存入批次属性表
-        BatchProperty batchProperty = new BatchProperty();
-        batchProperty.setBatchId(batchInfo.getId());
-        batchProperty.setPropertyName("express_content_type");
-        batchProperty.setPropertyValue(String.valueOf(expressContent));
-        //contentList的数量减去1，即为上传数量 (因为excel的第一行为列的标题)
-        batchInfo.setUploadNum(contentList.size() - 1);
-        batchInfoDao.saveBatchInfo(batchInfo);
-        batchPropertyDao.saveBatchProperty(batchProperty);
+        String insertBatchProperty = "INSERT INTO nl_batch_property (batch_id,property_name,property_value,create_time)" +
+                " VALUES ('" + batchId + "','expressContentType','" + String.valueOf(expressContent) + "',NOW())";
+        jdbcTemplate.update(insertBatchProperty);
         //3.2 获取并保存批次详情信息 (因为第一行为标题，所以从第二行开始遍历)
         for (int i = 1; i < contentList.size(); i++) {
-            BatchDetailInfo batchDetailInfo = new BatchDetailInfo();
-            batchDetailInfo.setId(String.valueOf(System.currentTimeMillis()));
-            batchDetailInfo.setName(contentList.get(i).get(0));
-            batchDetailInfo.setPhone(contentList.get(i).get(1));
-            //地址填充到扩展字段 label_four
-            batchDetailInfo.setLabelFour(contentList.get(i).get(2));
-            //校验结果设置为校验中
-            batchDetailInfo.setCheckingResult(Constant.CHECKING);
-            batchDetailInfo.setBatchId(batchInfo.getId());
-            batchInfoDetailDao.saveBatchInfoDetail(batchDetailInfo);
+            StringBuffer batchDetailSql = new StringBuffer("INSERT INTO nl_batch_detail (id,label_one,label_two,label_four,label_seven,batch_id) VALUES ('" +
+                    String.valueOf(System.currentTimeMillis()) + "','" + contentList.get(i).get(0) + "','" + contentList.get(i).get(1) + "','" +
+                    contentList.get(i).get(2) + "','1','" + batchId + "')");
+            jdbcTemplate.update(batchDetailSql.toString());
         }
         long time2 = System.currentTimeMillis();
         System.out.println(time2 - time1);
@@ -157,14 +140,15 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         if (list != null && list.size() != 0) {
             for (Map<String, Object> tempMap : list) {
                 String propertyValue = String.valueOf(tempMap.get("propertyValue"));
-                if("1".equals(propertyValue)){
-                    tempMap.put("expressContentType","电子版");
-                }else{
-                    tempMap.put("expressContentType","打印版");
+                if ("1".equals(propertyValue)) {
+                    tempMap.put("expressContentType", "电子版");
+                } else {
+                    tempMap.put("expressContentType", "打印版");
                 }
             }
         }
-        Map<String, Object> resultMap = new HashMap<>(10);resultMap.put("rows", list);
+        Map<String, Object> resultMap = new HashMap<>(10);
+        resultMap.put("rows", list);
         resultMap.put("total", list.size());
         return resultMap;
     }
