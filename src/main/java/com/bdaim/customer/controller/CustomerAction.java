@@ -6,7 +6,6 @@ import com.bdaim.auth.LoginUser;
 import com.bdaim.common.annotation.CacheAnnotation;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.dto.PageParam;
-import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.common.util.page.Page;
@@ -128,8 +127,8 @@ public class CustomerAction extends BasicAction {
             customerService.registerOrUpdateCustomer(customerRegistDTO);
             return new ResponseInfoAssemble().success(null);
         } catch (Exception e) {
-            logger.error("创建企业信息异常" ,e);
-            return new ResponseInfoAssemble().failure(-1,"创建企业失败");
+            logger.error("创建企业信息异常", e);
+            return new ResponseInfoAssemble().failure(-1, "创建企业失败");
         }
 
     }
@@ -163,14 +162,14 @@ public class CustomerAction extends BasicAction {
 
     @RequestMapping(value = "/update", method = RequestMethod.POST)
     @ResponseBody
-    public Object updateCustomer(@RequestBody CustomerRegistDTO customerRegistDTO) throws Exception {
-        Map<String, Object> resultMap = new HashMap<>();
+    public ResponseInfo updateCustomer(@RequestBody CustomerRegistDTO customerRegistDTO) {
         try {
             customerService.registerOrUpdateCustomer(customerRegistDTO);
+            return new ResponseInfoAssemble().success(null);
         } catch (Exception e) {
-            throw new TouchException("300", e.getMessage());
+            logger.error("修改企业信息异常", e);
+            return new ResponseInfoAssemble().failure(-1, "修改企业信息异常");
         }
-        return JSONObject.toJSON(resultMap);
     }
 
 

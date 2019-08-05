@@ -9,12 +9,7 @@ import com.bdaim.batch.entity.BatchListEntity;
 import com.bdaim.common.CommonInfoCodeEnum;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.exception.TouchException;
-import com.bdaim.common.util.CipherUtil;
-import com.bdaim.common.util.Constant;
-import com.bdaim.common.util.DateUtil;
-import com.bdaim.common.util.IDHelper;
-import com.bdaim.common.util.NumberConvertUtil;
-import com.bdaim.common.util.StringUtil;
+import com.bdaim.common.util.*;
 import com.bdaim.common.util.page.Page;
 import com.bdaim.common.util.page.Pagination;
 import com.bdaim.customer.dao.CustomerDao;
@@ -34,6 +29,7 @@ import com.bdaim.supplier.service.SupplierService;
 import org.apache.log4j.Logger;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+
 import javax.annotation.Resource;
 import javax.transaction.Transactional;
 import java.sql.Timestamp;
@@ -228,7 +224,7 @@ public class CustomerService {
         return customerUserDao.getName(userId);
     }
 
-    public synchronized void registerOrUpdateCustomer(CustomerRegistDTO vo) throws Exception{
+    public synchronized void registerOrUpdateCustomer(CustomerRegistDTO vo) throws Exception {
         if (StringUtil.isNotEmpty(vo.getDealType())) {
             //编辑或创建客户
             CustomerUserDO customerUserDO;
@@ -432,9 +428,15 @@ public class CustomerService {
                         }
                     }
                 }
+                //快递设置
+            } else if (vo.getDealType().equals("4")) {//快递设置
+                if (StringUtil.isNotEmpty(vo.getExpressConfig())) {
+                    if (StringUtil.isNotEmpty(vo.getCustId())) {
+                        customerDao.dealCustomerInfo(vo.getCustId(), "express_config", vo.getExpressConfig());
+                    }
+                }
             }
         }
-
     }
 
 
@@ -778,7 +780,7 @@ public class CustomerService {
             }
         }
         //查询出资源id看原配置是否存在，存在更新不存在删除
-        if (StringUtil.isEmpty(suppliers.toString())){
+        if (StringUtil.isEmpty(suppliers.toString())) {
             suppliers = getCustResourceStr(custConfigLists);
             logger.info("首次配置资源" + custId + "供应商是" + suppliers.toString());
         }
@@ -966,7 +968,7 @@ public class CustomerService {
      * @method
      * @date: 2019/3/19 14:48
      */
-    public List<Map<String, Object>> getSalePriceLog(PageParam page, String zid,String custId, String name, String startTime, String endTime) throws Exception {
+    public List<Map<String, Object>> getSalePriceLog(PageParam page, String zid, String custId, String name, String startTime, String endTime) throws Exception {
         StringBuffer sql = new StringBuffer("select g.*,commoninfo.create_time as createTime from (\n");
         sql.append("SELECT cast(a.zid as char) zid,");
         sql.append("GROUP_CONCAT(custId order by custId separator '')custId, ");
