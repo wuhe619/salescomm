@@ -578,9 +578,9 @@ public class SendmessageImpl implements SendmessageService {
 
         StringBuffer listSql = new StringBuffer("SELECT id,sender_name AS senderName,phone,CONCAT(province,city,district) AS province,address,postcodes," +
                 "DATE_FORMAT(create_time,'%Y-%m-%d %H:%i:%s') AS createTime FROM t_sender_info WHERE cust_id='");
-        String custId = String.valueOf(map.get("custId"));
+        String custId = String.valueOf(map.get("cust_id"));
         listSql.append(custId + "'");
-        String senderName = String.valueOf(map.get("senderName"));
+        String senderName = String.valueOf(map.get("sender_name"));
         if (StringUtil.isNotEmpty(senderName)) {
             listSql.append(" AND sender_name LIKE '%" + senderName + "%'");
         }
