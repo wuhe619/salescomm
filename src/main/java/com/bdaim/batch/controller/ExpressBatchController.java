@@ -1,11 +1,8 @@
 package com.bdaim.batch.controller;
 
-import com.bdaim.batch.entity.BatchInfo;
 import com.bdaim.batch.service.ExpressBatchService;
-import com.bdaim.common.response.JsonResult;
-import com.bdaim.common.response.ResponseBody;
+import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
-import com.bdaim.common.response.ResultCode;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,11 +11,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -28,7 +23,7 @@ import java.util.Properties;
  * @date: 2019/7/31 10:09
  */
 @RequestMapping("/express")
-@RestController
+@Controller
 public class ExpressBatchController {
 
     private static Log logger = LogFactory.getLog(ExpressBatchController.class);
@@ -46,12 +41,14 @@ public class ExpressBatchController {
      * @date 2019/7/31 14:54
      */
     @RequestMapping("/receiverModel")
-    public ResponseBody downloadReceiverModel(HttpServletResponse response) {
+    @ResponseBody
+    public ResponseInfo downloadReceiverModel(HttpServletResponse response) {
         InputStream in = null;
         OutputStream bos = null;
         try {
             //获取resources下的模板文件路径
-            String classPath = new ExpressBatchController().getClass().getResource("/").getPath();
+            String classPath = this.getClass().getResourceAsStream("").toString();
+            logger.error("hello classpath"+classPath);
             String fileName = "收件人信息模板.xlsx";
             String pathF = PROPERTIES.getProperty("file.separator");
             String path = classPath + pathF + fileName;
@@ -62,7 +59,8 @@ public class ExpressBatchController {
             response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
             String returnName = response.encodeURL(new String(fileName.getBytes(), "iso8859-1"));   //保存的文件名,必须和页面编码一致,否则乱码
             response.addHeader("Content-Disposition", "attachment;filename=" + returnName);
-            in = new FileInputStream(path);
+            in = this.getClass().getResourceAsStream("/收件人信息模板.xlsx");
+            logger.error("hello chacker"+path);
             bos = response.getOutputStream();
 
             //以字节方式读取，放入输出流
@@ -72,7 +70,6 @@ public class ExpressBatchController {
                 bos.write(b, 0, length);
             }
             bos.flush();
-            return new ResponseInfoAssemble().success(null);
         } catch (Exception e) {
             return new ResponseInfoAssemble().failure(200, "500", "模板下载异常，请稍后重试或联系网站管理员");
         } finally {
@@ -83,6 +80,7 @@ public class ExpressBatchController {
                 logger.error("receiverModel" + "\t" + "io资源释放异常" + "\r\n" + e.getMessage());
             }
         }
+        return new ResponseInfoAssemble().success(null);
     }
 
     /**
@@ -95,9 +93,10 @@ public class ExpressBatchController {
      * @date 2019/7/31 14:54
      */
     @RequestMapping(value = "/receiverInfoImport")
-    public ResponseBody receiverInfoImport(@RequestParam(value = "file") MultipartFile multipartFile, String batchName, int expressContent, String custId) throws IOException {
-        expressBatchService.receiverInfoImport(multipartFile, batchName, expressContent, custId);
-        return new ResponseInfoAssemble().success("hello");
+    @ResponseBody
+    public ResponseInfo receiverInfoImport(@RequestParam(value = "file") MultipartFile multipartFile, String batchName, int expressContent, String custId) throws IOException {
+        ResponseInfo result = expressBatchService.receiverInfoImport(multipartFile, batchName, expressContent, custId);
+        return result;
     }
 
     /**
@@ -109,9 +108,10 @@ public class ExpressBatchController {
      * @date 2019/8/1 16:33
      */
     @RequestMapping(value = "/batchList", method = RequestMethod.GET)
-    public ResponseBody batchList(@RequestBody Map<String, Object> map) throws IllegalAccessException {
-        List<Map<String, Object>> resultList = expressBatchService.batchList(map);
-        return new ResponseInfoAssemble().success(resultList);
+    @ResponseBody
+    public ResponseInfo batchList(@RequestParam Map<String, Object> map) throws IllegalAccessException {
+        Map<String,Object> resultMap = expressBatchService.batchList(map);
+        return new ResponseInfoAssemble().success(resultMap);
     }
     /**
      * 查询批次详情
@@ -122,9 +122,10 @@ public class ExpressBatchController {
      * @date 2019/8/2 14:38
      */
     @RequestMapping(value = "/batchDetail", method = RequestMethod.GET)
-    public ResponseBody batchDetail(@RequestBody Map<String, Object> map) throws IllegalAccessException {
-        List<Map<String, Object>> resultList = expressBatchService.batchDetail(map);
-        return new ResponseInfoAssemble().success(resultList);
+    @ResponseBody
+    public ResponseInfo batchDetail(@RequestParam Map<String, Object> map) throws IllegalAccessException {
+        Map<String, Object> resultMap = expressBatchService.batchDetail(map);
+        return new ResponseInfoAssemble().success(resultMap);
     }
 
 }

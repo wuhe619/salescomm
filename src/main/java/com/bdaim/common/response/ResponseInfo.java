@@ -1,6 +1,7 @@
 package com.bdaim.common.response;
 
 import java.io.Serializable;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
@@ -8,12 +9,12 @@ import java.util.Date;
  * @auther: Chacker
  * @date: 2019/8/2 08:49
  */
-public class ResponseBody<T> implements Serializable {
+public class ResponseInfo<T> implements Serializable {
     private static final long serialVersionUID = 1L;
     /**
      * 当前时间戳
      */
-    private Date timeStamp = new Date();
+    private String timeStamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
     /**
      * status的内容与Http状态码内容相同，这个字段自动包含了错误信息的状态码
      * 客户端只需要解析HTTP相应的body部分，就可以获取跟这次出错相关的信息
@@ -28,11 +29,11 @@ public class ResponseBody<T> implements Serializable {
      */
     private InfoMsg infoMsg;
 
-    public Date getTimeStamp() {
+    public String getTimeStamp() {
         return timeStamp;
     }
 
-    public void setTimeStamp(Date timeStamp) {
+    public void setTimeStamp(String timeStamp) {
         this.timeStamp = timeStamp;
     }
 

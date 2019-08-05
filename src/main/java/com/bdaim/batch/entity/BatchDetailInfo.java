@@ -37,7 +37,7 @@ public class BatchDetailInfo implements Serializable {
     @Column(name = "label_two")
     private String phone;
     /**
-     * 校验结果(信函模块中代指 校验结果)
+     * 校验结果(信函模块中代指 校验结果) 1.有效 2.无效
      */
     @Column(name = "label_seven")
     private String checkingResult;
@@ -47,7 +47,7 @@ public class BatchDetailInfo implements Serializable {
     @Column(name = "label_four")
     private String labelFour;
     /**
-     * 状态(信函模块中代指 快件状态)
+     * 状态(信函模块中代指 快件状态) 1.待上传内容 2.待发件 3.待取件 4.已发件
      */
     @Column(name = "status")
     private String status;

@@ -2,7 +2,7 @@ package com.bdaim.batch.service;
 
 import com.bdaim.batch.entity.BatchInfo;
 import com.bdaim.common.response.JsonResult;
-import com.bdaim.common.response.ResponseBody;
+import com.bdaim.common.response.ResponseInfo;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -26,7 +26,7 @@ public interface ExpressBatchService {
      * @auther Chacker
      * @date 2019/7/31 14:54
      */
-    void receiverInfoImport(MultipartFile multipartFile, String batchName, int batchType, String custId) throws IOException;
+    ResponseInfo receiverInfoImport(MultipartFile multipartFile, String batchName, int batchType, String custId) throws IOException;
 
     /**
      * 分页查询批次列表
@@ -36,7 +36,7 @@ public interface ExpressBatchService {
      * @auther Chacker
      * @date 2019/8/1 16:34
      */
-    List<Map<String, Object>> batchList(Map<String, Object> map) throws IllegalAccessException;
+    Map<String, Object> batchList(Map<String, Object> map) throws IllegalAccessException;
 
     /**
      * 查询批次详情
@@ -46,5 +46,5 @@ public interface ExpressBatchService {
      * @auther Chacker
      * @date 2019/8/2 14:38
      */
-    List<Map<String, Object>> batchDetail(Map<String, Object> map) throws IllegalAccessException;
+    Map<String, Object> batchDetail(Map<String, Object> map) throws IllegalAccessException;
 }

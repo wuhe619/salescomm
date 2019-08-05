@@ -16,8 +16,8 @@ public class ResponseInfoAssemble {
      * @param <T>
      * @return
      */
-    public <T> ResponseBody success(T obj) {
-        ResponseBody<T> rb = new ResponseBody<T>();
+    public <T> ResponseInfo success(T obj) {
+        ResponseInfo<T> rb = new ResponseInfo<T>();
         InfoMsg infoMsg = new InfoMsg();
         rb.setStatus(HttpStatus.OK.value());
         rb.setData(obj);
@@ -35,8 +35,8 @@ public class ResponseInfoAssemble {
      * @auther Chacker
      * @date 2019/8/2 9:07
      */
-    public <T> ResponseBody failure(int status, String errorCode, String message) {
-        ResponseBody<T> rb = new ResponseBody<T>();
+    public <T> ResponseInfo failure(int status, String errorCode, String message) {
+        ResponseInfo<T> rb = new ResponseInfo<T>();
         InfoMsg info = new InfoMsg();
         rb.setStatus(status);
 

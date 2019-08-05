@@ -8,7 +8,7 @@ import com.bdaim.batch.entity.BatchInfo;
 import com.bdaim.batch.entity.BatchProperty;
 import com.bdaim.batch.service.ExpressBatchService;
 import com.bdaim.common.response.JsonResult;
-import com.bdaim.common.response.ResponseBody;
+import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.common.util.Constant;
 import com.bdaim.common.util.DateUtil;
@@ -22,12 +22,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.persistence.criteria.CriteriaBuilder;
+import javax.transaction.Transactional;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 /**
@@ -48,7 +46,8 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
     private DataConverter dataConverter;
 
     @Override
-    public void receiverInfoImport(MultipartFile multipartFile, String batchName, int expressContent, String custId) throws IOException {
+    @Transactional
+    public ResponseInfo receiverInfoImport(MultipartFile multipartFile, String batchName, int expressContent, String custId) throws IOException {
         long time1 = System.currentTimeMillis();
         //1. 把excel文件上传到服务器中
         String fileName = multipartFile.getOriginalFilename();
@@ -103,10 +102,11 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         }
         long time2 = System.currentTimeMillis();
         System.out.println(time2 - time1);
+        return new ResponseInfoAssemble().success(null);
     }
 
     @Override
-    public List<Map<String, Object>> batchList(Map<String, Object> map) throws IllegalAccessException {
+    public Map<String, Object> batchList(Map<String, Object> map) throws IllegalAccessException {
         int pageNum = Integer.valueOf(String.valueOf(map.get("page_num")));
         int pageSize = Integer.valueOf(String.valueOf(map.get("page_size")));
         int start = (pageNum - 1) * pageSize;
@@ -153,9 +153,9 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         Page page = batchInfoDao.page(hql.toString(), values, start, pageSize);
         List<Map<String, Object>> list = DataConverter.objectListToMap(page.getData());
         if (list != null && list.size() != 0) {
-            for (Map<String,Object> tempMap:list) {
-                tempMap.put("uploadTime",String.valueOf(tempMap.get("uploadTime")).substring(0,19));
-                tempMap.put("expressContentType","电子版");
+            for (Map<String, Object> tempMap : list) {
+                tempMap.put("uploadTime", String.valueOf(tempMap.get("uploadTime")).substring(0, 19));
+                tempMap.put("expressContentType", "电子版");
                 String statusValue = String.valueOf(tempMap.get("status"));
                 switch (statusValue) {
                     case "1":
@@ -173,11 +173,14 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
                 }
             }
         }
-        return list;
+        Map<String, Object> resultMap = new HashMap<>(10);
+        resultMap.put("rows", list);
+        resultMap.put("total", list.size());
+        return resultMap;
     }
 
     @Override
-    public List<Map<String, Object>> batchDetail(Map<String, Object> map) throws IllegalAccessException {
+    public Map<String, Object> batchDetail(Map<String, Object> map) throws IllegalAccessException {
         int pageNum = Integer.valueOf(String.valueOf(map.get("page_num")));
         int pageSize = Integer.valueOf(String.valueOf(map.get("page_size")));
         int start = (pageNum - 1) * pageSize;
@@ -223,11 +226,34 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         hql.append(" ORDER BY id DESC ");
         Page page = batchInfoDao.page(hql.toString(), values, start, pageSize);
         List<Map<String, Object>> list = DataConverter.objectListToMap(page.getData());
-//        if (list != null && list.size() != 0) {
-//            for (Map<String,Object> tempMap:list) {
-//                //tempMap.put("checkingResult",String.valueOf(tempMap.get("")))
-//            }
-//        }
-        return list;
+        if (list != null && list.size() != 0) {
+            for (Map<String, Object> tempMap : list) {
+                //地址
+                tempMap.put("address", tempMap.get("labelFour"));
+                //文件编码
+                tempMap.put("fileCode", tempMap.get("labelSix"));
+                String checkingResultTemp = String.valueOf(tempMap.get("checkingResult"));
+                if ("1".equals(checkingResultTemp)) {
+                    tempMap.put("checkingResult", "有效");
+                } else if ("2".equals(checkingResultTemp)) {
+                    tempMap.put("checkingResult", "无效");
+                }
+                String expressStatus = String.valueOf(tempMap.get("status"));
+                switch (expressStatus) {
+                    case "1":
+                        tempMap.put("status", "待上传内容");
+                    case "2":
+                        tempMap.put("status", "待发件");
+                    case "3":
+                        tempMap.put("status", "待取件");
+                    case "4":
+                        tempMap.put("status", "已发件");
+                }
+            }
+        }
+        Map<String, Object> resultMap = new HashMap<>(10);
+        resultMap.put("total", list.size());
+        resultMap.put("rows", list);
+        return resultMap;
     }
 }
