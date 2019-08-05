@@ -5,6 +5,7 @@ import com.bdaim.batch.TransactionEnum;
 import com.bdaim.batch.dto.ExpressLog;
 import com.bdaim.batch.entity.SenderInfo;
 import com.bdaim.common.dto.PageParam;
+import com.bdaim.common.util.NumberConvertUtil;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.common.util.page.Page;
 import com.bdaim.common.util.page.Pagination;
@@ -565,6 +566,32 @@ public class SendmessageImpl implements SendmessageService {
         }
 
 
+        return resultMap;
+    }
+
+    @Override
+    public Map<String, Object> senderList(Map<String, Object> map) {
+        //分页参数处理
+        PageParam pageParam = new PageParam();
+        pageParam.setPageNum(NumberConvertUtil.parseInt(String.valueOf(map.get("page_num"))));
+        pageParam.setPageSize(NumberConvertUtil.parseInt(String.valueOf(map.get("page_size"))));
+
+        StringBuffer listSql = new StringBuffer("SELECT id,sender_name AS senderName,phone,CONCAT(province,city,district) AS province,address,postcodes," +
+                "DATE_FORMAT(create_time,'%Y-%m-%d %H:%i:%s') AS createTime FROM t_sender_info WHERE cust_id='");
+        String custId = String.valueOf(map.get("custId"));
+        listSql.append(custId + "'");
+        String senderName = String.valueOf(map.get("senderName"));
+        if (StringUtil.isNotEmpty(senderName)) {
+            listSql.append(" AND sender_name LIKE '%" + senderName + "%'");
+        }
+        String phone = String.valueOf(map.get("phone"));
+        if (StringUtil.isNotEmpty(phone)) {
+            listSql.append(" AND phone LIKE '%" + phone + "%'");
+        }
+        Page page = new Pagination().getPageData(listSql.toString(), null, pageParam, jdbcTemplate);
+        Map<String, Object> resultMap = new HashMap<>(10);
+        resultMap.put("total", page.getTotal());
+        resultMap.put("rows", page.getList());
         return resultMap;
     }
 

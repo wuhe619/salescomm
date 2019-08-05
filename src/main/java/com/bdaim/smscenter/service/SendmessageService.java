@@ -46,6 +46,8 @@ public interface SendmessageService {
 
     Map<String, Object> time(String batchid);
 
+    Map<String, Object> senderList(Map<String, Object> map);
+
 
 
 

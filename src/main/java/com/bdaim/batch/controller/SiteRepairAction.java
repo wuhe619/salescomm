@@ -1,6 +1,8 @@
 package com.bdaim.batch.controller;
 
 
+import com.bdaim.common.response.ResponseInfo;
+import com.bdaim.common.response.ResponseInfoAssemble;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import com.alibaba.fastjson.JSON;
@@ -71,25 +73,19 @@ public class SiteRepairAction extends BasicAction{
         return JSON.toJSONString(list);
     }
 
-
-   //发件信息查询
+    /**
+     * 发件人信息列表查询
+     *
+     * @param map page_num、page_size、custId、senderName、phone
+     * @return
+     * @auther Chacker
+     * @date 2019/8/5 14:28
+     */
     @ResponseBody
-    @RequestMapping(value = "/sendlist.do", method = RequestMethod.GET)
-    public Object sendlist(@Valid PageParam page, BindingResult error) {
-        if (error.hasFieldErrors()) {
-            page.setPageNum(1);
-            page.setPageSize(20);
-        }
-        if (page.getPageSize() > 100) {
-            page.setPageSize(100);
-        }
-
-        String compId = opUser().getCustId();
-        logger.info("当前企业id是:" + compId);
-        Page list = null;
-       list =sendmessageService.sendlist(page,compId);
-
-        return JSON.toJSONString(list);
+    @RequestMapping(value = "/senderList", method = RequestMethod.GET)
+    public ResponseInfo senderList(@RequestParam Map<String, Object> map) {
+        Map<String, Object> resultMap = sendmessageService.senderList(map);
+        return new ResponseInfoAssemble().success(resultMap);
     }
 
     //发件信息删除
