@@ -18,7 +18,7 @@ public class ResponseInfoAssemble {
      */
     public <T> ResponseInfo success(T obj) {
         ResponseInfo<T> rb = new ResponseInfo<T>();
-        rb.setStatus(HttpStatus.OK.value());
+        rb.setCode(HttpStatus.OK.value());
         rb.setData(obj);
         return rb;
     }
@@ -34,7 +34,7 @@ public class ResponseInfoAssemble {
      */
     public <T> ResponseInfo failure(int status, String message) {
         ResponseInfo<T> rb = new ResponseInfo<T>();
-        rb.setStatus(status);
+        rb.setCode(status);
         rb.setMessage(message);
         return rb;
     }

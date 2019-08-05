@@ -19,7 +19,7 @@ public class ResponseInfo<T> implements Serializable {
      * status的内容与Http状态码内容相同，这个字段自动包含了错误信息的状态码
      * 客户端只需要解析HTTP相应的body部分，就可以获取跟这次出错相关的信息
      */
-    private int status = 200;
+    private int code = 200;
     /**
      * 接口返回的数据对象
      */
@@ -37,12 +37,12 @@ public class ResponseInfo<T> implements Serializable {
         this.timeStamp = timeStamp;
     }
 
-    public int getStatus() {
-        return status;
+    public int getCode() {
+        return code;
     }
 
-    public void setStatus(int status) {
-        this.status = status;
+    public void setCode(int code) {
+        this.code = code;
     }
 
     public T getData() {
