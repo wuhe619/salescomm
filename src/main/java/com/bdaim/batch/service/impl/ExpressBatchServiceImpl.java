@@ -8,7 +8,6 @@ import com.bdaim.batch.entity.BatchInfo;
 import com.bdaim.batch.entity.BatchProperty;
 import com.bdaim.batch.service.ExpressBatchService;
 import com.bdaim.common.dto.PageParam;
-import com.bdaim.common.response.JsonResult;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.common.util.*;
@@ -117,7 +116,8 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
                 "t1.certify_type AS certifyType,t1.channel,t1.repair_strategy,CASE t1.status WHEN '1' THEN '校验中'" +
                 " WHEN '2' THEN '校验失败' WHEN '3' THEN '待上传' WHEN '4' THEN '待发件' WHEN '5' THEN '待发件'" +
                 " WHEN '6' THEN '已发件' END AS status,t1.upload_num AS uploadNum,t1.success_num AS" +
-                "successNum,t1.upload_time AS uploadTime,t2.property_name AS propertyName,t2.property_value AS propertyValue");
+                " successNum,DATE_FORMAT(t1.upload_time,'%Y-%m-%d %H:%i:%s') AS uploadTime,t2.property_name AS propertyName," +
+                "CASE t2.property_value WHEN '1' THEN '电子版' WHEN '2' THEN '打印版' END AS propertyValue");
         sql.append(" FROM nl_batch t1 LEFT JOIN nl_batch_property t2 ON t1.id=t2.batch_id WHERE ");
 
         //企业ID
@@ -156,7 +156,7 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         List<Map<String, Object>> list = page.getList();
         if (list != null && list.size() != 0) {
             for (Map<String, Object> tempMap : list) {
-                tempMap.put(String.valueOf(tempMap.get("property_name")), tempMap.get("property_value"));
+                tempMap.put(String.valueOf(tempMap.get("propertyName")), tempMap.get("propertyValue"));
             }
         }
         Map<String, Object> resultMap = new HashMap<>(10);
@@ -171,8 +171,8 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         pageParam.setPageNum(NumberConvertUtil.parseInt(String.valueOf(map.get("page_num"))));
         pageParam.setPageSize(NumberConvertUtil.parseInt(String.valueOf(map.get("page_size"))));
         StringBuffer hql = new StringBuffer("SELECT id,batch_id,label_one AS name,label_two AS phone,label_four AS address," +
-                "label_six AS fileCode,CASE checking_result WHEN '1' THEN '有效' WHEN '2' THEN '无效' END AS checkingResult," +
-                "CASE status WHEN '1' THEN '待上传内容' WHEN '2' THEN '待发件' WHEN '3' THEN '待取件' WHEN '4' THEN '已发件 END AS status'" +
+                "label_six AS fileCode,CASE label_seven WHEN '1' THEN '有效' WHEN '2' THEN '无效' END AS checkingResult," +
+                "CASE status WHEN '1' THEN '待上传内容' WHEN '2' THEN '待发件' WHEN '3' THEN '待取件' WHEN '4' THEN '已发件' END AS status" +
                 "  FROM  nl_batch_detail WHERE");
         List<String> values = new ArrayList();
         //批次编号

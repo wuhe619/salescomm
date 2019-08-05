@@ -1,7 +1,6 @@
 package com.bdaim.batch.service;
 
 import com.bdaim.batch.entity.BatchInfo;
-import com.bdaim.common.response.JsonResult;
 import com.bdaim.common.response.ResponseInfo;
 import org.springframework.web.multipart.MultipartFile;
 
