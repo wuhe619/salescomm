@@ -26,7 +26,7 @@ public class StringUtil {
     }
 
     public static boolean isNotEmpty(String str) {
-        if (str == null || str.equals("")) {
+        if (str == null || str.equals("") ||"null".equals(str)) {
             return false;
         } else {
             return true;
