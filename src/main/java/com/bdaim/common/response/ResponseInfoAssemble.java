@@ -26,15 +26,15 @@ public class ResponseInfoAssemble {
     /**
      * 失败，异常消息
      *
-     * @param status  自定义状态码(建议使用Http状态码常量)
+     * @param code  自定义状态码(建议使用Http状态码常量)
      * @param message 错误信息
      * @return
      * @auther Chacker
      * @date 2019/8/2 9:07
      */
-    public <T> ResponseInfo failure(int status, String message) {
+    public <T> ResponseInfo failure(int code, String message) {
         ResponseInfo<T> rb = new ResponseInfo<T>();
-        rb.setCode(status);
+        rb.setCode(code);
         rb.setMessage(message);
         return rb;
     }
