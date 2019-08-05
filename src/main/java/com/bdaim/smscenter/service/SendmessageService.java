@@ -32,7 +32,7 @@ public interface SendmessageService {
     Object exportExportRecords(ExpressLog expressLog, HttpServletResponse response);
 
 
-   Object repairDetailsderive(String batchid, String name, String phone, String touch_id, Integer status, Integer status1, HttpServletResponse response);
+    Object repairDetailsderive(String batchid, String name, String phone, String touch_id, Integer status, Integer status1, HttpServletResponse response);
 
 
     void add(String fileName, String batch_id, String id_card);
@@ -46,7 +46,25 @@ public interface SendmessageService {
 
     Map<String, Object> time(String batchid);
 
+    /**
+     * 发件人信息列表
+     *
+     * @param map
+     * @return
+     * @auther Chacker
+     * @date 2019/8/5 15:20
+     */
     Map<String, Object> senderList(Map<String, Object> map);
+
+    /**
+     * 添加发件人信息
+     *
+     * @param map
+     * @return
+     * @auther Chacker
+     * @date 2019/8/5 15:20
+     */
+    void senderAdd(Map<String, Object> map);
 
 
 

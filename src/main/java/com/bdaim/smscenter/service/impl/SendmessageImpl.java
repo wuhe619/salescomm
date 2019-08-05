@@ -595,6 +595,29 @@ public class SendmessageImpl implements SendmessageService {
         return resultMap;
     }
 
+    @Override
+    public void senderAdd(Map<String, Object> map) {
+        //TODO 如果此次添加的是默认发件地址，则要把其他的改为非默认发件地址
+        String id = String.valueOf(System.currentTimeMillis());
+        String custId = String.valueOf(map.get("cust_id"));
+        String senderName = String.valueOf(map.get("sender_name"));
+        String phone = String.valueOf(map.get("phone"));
+        String province = String.valueOf(map.get("province"));
+        String city = String.valueOf(map.get("city"));
+        String district = String.valueOf(map.get("district"));
+        String address = String.valueOf(map.get("address"));
+        String postCodes = String.valueOf(map.get("postcodes"));
+        String type = String.valueOf(map.get("type"));
+        StringBuffer stringBuffer = new StringBuffer("INSERT INTO t_sender_info (id,cust_id,sender_name,phone,province,city,district,address," +
+                "postcodes,type,create_time) VALUES ('");
+        stringBuffer.append(id + "','").append(custId + "','")
+                .append(senderName + "','").append(phone + "','")
+                .append(province + "','").append(city + "','")
+                .append(district + "','").append(address + "','")
+                .append(postCodes + "','" + type + "',NOW())");
+        jdbcTemplate.update(stringBuffer.toString());
+    }
+
 
 }
 
