@@ -577,7 +577,7 @@ public class SendmessageImpl implements SendmessageService {
         pageParam.setPageSize(NumberConvertUtil.parseInt(String.valueOf(map.get("page_size"))));
 
         StringBuffer listSql = new StringBuffer("SELECT id,sender_name AS senderName,phone,CONCAT(province,city,district) AS province,address,postcodes," +
-                "DATE_FORMAT(create_time,'%Y-%m-%d %H:%i:%s') AS createTime FROM t_sender_info WHERE cust_id='");
+                "DATE_FORMAT(create_time,'%Y-%m-%d %H:%i:%s') AS createTime,type FROM t_sender_info WHERE cust_id='");
         String custId = String.valueOf(map.get("cust_id"));
         listSql.append(custId + "'");
         String senderName = String.valueOf(map.get("sender_name"));
@@ -588,6 +588,7 @@ public class SendmessageImpl implements SendmessageService {
         if (StringUtil.isNotEmpty(phone)) {
             listSql.append(" AND phone LIKE '%" + phone + "%'");
         }
+
         Page page = new Pagination().getPageData(listSql.toString(), null, pageParam, jdbcTemplate);
         Map<String, Object> resultMap = new HashMap<>(10);
         resultMap.put("total", page.getTotal());
@@ -597,7 +598,6 @@ public class SendmessageImpl implements SendmessageService {
 
     @Override
     public void senderAdd(Map<String, Object> map) {
-        //TODO 如果此次添加的是默认发件地址，则要把其他的改为非默认发件地址
         String id = String.valueOf(System.currentTimeMillis());
         String custId = String.valueOf(map.get("cust_id"));
         String senderName = String.valueOf(map.get("sender_name"));
@@ -616,6 +616,67 @@ public class SendmessageImpl implements SendmessageService {
                 .append(district + "','").append(address + "','")
                 .append(postCodes + "','" + type + "',NOW())");
         jdbcTemplate.update(stringBuffer.toString());
+
+        //如果此次添加的为默认地址，则把该企业名下其他地址 设为 非默认
+        updateOthers(type, custId, id);
+    }
+
+    @Override
+    public void senderDelete(String id) {
+        String sql = "DELETE FROM t_sender_info WHERE id='" + id + "'";
+        jdbcTemplate.update(sql);
+    }
+
+    @Override
+    public void defaultUpdate(String id, String cust_id) {
+        //将所选ID设为默认发件地址
+        String defaultSql = "UPDATE t_sender_info SET type='1' WHERE id='" + id + "' AND cust_id='" + cust_id + "'";
+        jdbcTemplate.update(defaultSql);
+        //将该企业下的其他发件地址 设置为 非默认
+        String notDefaultSql = "UPDATE t_sender_info SET type='2' WHERE id!='" + id + "' AND cust_id='" + cust_id + "'";
+        jdbcTemplate.update(notDefaultSql);
+    }
+
+    @Override
+    public void senderUpdate(Map<String, Object> map) {
+        String id = String.valueOf(map.get("id"));
+        String custId = String.valueOf(map.get("cust_id"));
+        String senderName = String.valueOf(map.get("sender_name"));
+        String phone = String.valueOf(map.get("phone"));
+        String province = String.valueOf(map.get("province"));
+        String city = String.valueOf(map.get("city"));
+        String district = String.valueOf(map.get("district"));
+        String address = String.valueOf(map.get("address"));
+        String postCodes = String.valueOf(map.get("postcodes"));
+        String type = String.valueOf(map.get("type"));
+
+        StringBuffer stringBuffer = new StringBuffer("UPDATE t_sender_info SET sender_name='");
+        stringBuffer.append(senderName).append("',phone='").append(phone).append("',province='")
+                .append(province).append("',city='").append(city).append("',district='")
+                .append(district).append("',address='").append(address).append("',postcodes='")
+                .append(postCodes).append("',type='").append(type).append("',create_time=NOW() WHERE id='")
+                .append(id).append("' AND cust_id='").append(custId).append("'");
+        jdbcTemplate.update(stringBuffer.toString());
+
+        //如果此次添加的为默认地址，则把该企业名下其他地址 设为 非默认
+        updateOthers(type, custId, id);
+    }
+
+    /**
+     * 如果此次添加或修改的为默认地址，则把该企业名下其他地址 设为 非默认
+     *
+     * @param
+     * @return
+     * @auther Chacker
+     * @date 2019/8/5 17:38
+     */
+    public void updateOthers(String type, String custId, String id) {
+        if ("1".equals(type)) {
+            //则把该企业下的其他发件人信息 修改为 非默认地址
+            StringBuffer updateOthers = new StringBuffer("UPDATE t_sender_info SET type='2' WHERE cust_id='");
+            updateOthers.append(custId).append("' AND id!='").append(id).append("'");
+            jdbcTemplate.update(updateOthers.toString());
+        }
     }
 
 

@@ -66,6 +66,37 @@ public interface SendmessageService {
      */
     void senderAdd(Map<String, Object> map);
 
+    /**
+     * 删除发件人信息
+     *
+     * @param id
+     * @return
+     * @auther Chacker
+     * @date 2019/8/5 16:36
+     */
+    void senderDelete(String id);
+
+    /**
+     * 设为默认发件人/发件地址
+     *
+     * @param id
+     * @param cust_id 企业ID
+     * @return
+     * @auther Chacker
+     * @date 2019/8/5 16:58
+     */
+    void defaultUpdate(String id, String cust_id);
+
+    /**
+     * 修改发件人信息/发件地址
+     *
+     * @param
+     * @return
+     * @auther Chacker
+     * @date 2019/8/5 17:23
+     */
+    void senderUpdate(Map<String, Object> map);
+
 
 
 

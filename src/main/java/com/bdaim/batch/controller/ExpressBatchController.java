@@ -42,14 +42,19 @@ public class ExpressBatchController {
      */
     @RequestMapping(value = "receiverModel", method = RequestMethod.GET, produces = "application/vnd.ms-excel;charset=UTF-8")
     @ResponseBody
-    public ResponseInfo downloadReceiverModel(HttpServletResponse response) {
+    public ResponseInfo downloadReceiverModel(@RequestParam String file_type,HttpServletResponse response) {
         InputStream in = null;
         OutputStream bos = null;
         try {
             //获取resources下的模板文件路径
             String classPath = this.getClass().getResourceAsStream("").toString();
             logger.error("hello classpath" + classPath);
-            String fileName = "收件人信息模板.xlsx";
+            String fileName = null;
+            if("1".equals(file_type)){
+                fileName = "receiver_info.xlsx";
+            }else if("2".equals(file_type)){
+                fileName = "file_code_receipt_mapping.xlsx";
+            }
             String pathF = PROPERTIES.getProperty("file.separator");
             String path = classPath + pathF + fileName;
 
@@ -59,7 +64,7 @@ public class ExpressBatchController {
             response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
             String returnName = response.encodeURL(new String(fileName.getBytes(), "iso8859-1"));   //保存的文件名,必须和页面编码一致,否则乱码
             response.addHeader("Content-Disposition", "attachment;filename=" + returnName);
-            in = this.getClass().getResourceAsStream("/收件人信息模板.xlsx");
+            in = this.getClass().getResourceAsStream("/"+fileName);
             logger.error("hello chacker" + path);
             bos = response.getOutputStream();
 
