@@ -228,7 +228,7 @@ public class CustomerService {
         return customerUserDao.getName(userId);
     }
 
-    public synchronized void registerOrUpdateCustomer(CustomerRegistDTO vo) {
+    public synchronized void registerOrUpdateCustomer(CustomerRegistDTO vo) throws Exception{
         if (StringUtil.isNotEmpty(vo.getDealType())) {
             //编辑或创建客户
             CustomerUserDO customerUserDO;

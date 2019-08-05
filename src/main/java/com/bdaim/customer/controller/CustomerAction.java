@@ -123,12 +123,15 @@ public class CustomerAction extends BasicAction {
     @RequestMapping(value = "/regist", method = RequestMethod.POST)
     @ResponseBody
     @CacheAnnotation
-    public Object regist(@RequestBody CustomerRegistDTO customerRegistDTO) {
-        Map<String, Object> resultMap = new HashMap<String, Object>();
-        customerService.registerOrUpdateCustomer(customerRegistDTO);
-        resultMap.put("code", "0");
-        resultMap.put("_message", "客户创建成功");
-        return JSONObject.toJSON(resultMap);
+    public ResponseInfo regist(@RequestBody CustomerRegistDTO customerRegistDTO) {
+        try {
+            customerService.registerOrUpdateCustomer(customerRegistDTO);
+            return new ResponseInfoAssemble().success(null);
+        } catch (Exception e) {
+            logger.error("创建企业信息异常" ,e);
+            return new ResponseInfoAssemble().failure(-1,"创建企业失败");
+        }
+
     }
 
     /**
