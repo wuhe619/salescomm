@@ -7,16 +7,13 @@ import com.bdaim.common.annotation.CacheAnnotation;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.exception.TouchException;
-import com.bdaim.common.util.CipherUtil;
+import com.bdaim.common.response.ResponseInfo;
+import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.common.util.page.Page;
 import com.bdaim.customer.dto.CustomerRegistDTO;
-import com.bdaim.customer.entity.CustomerUserDO;
 import com.bdaim.customer.service.CustomerService;
 import com.bdaim.rbac.dto.UserDTO;
-
 import org.apache.log4j.Logger;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -26,8 +23,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
-
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,7 +40,7 @@ public class CustomerAction extends BasicAction {
     private static Logger logger = Logger.getLogger(CustomerAction.class);
     @Resource
     CustomerService customerService;
-    
+
     /**
      * 团队管理列表以及搜索
      *
@@ -142,23 +137,25 @@ public class CustomerAction extends BasicAction {
      */
     @RequestMapping(value = "/query/list", method = RequestMethod.GET)
     @ResponseBody
-    public Object queryCustomer(@Valid PageParam page, BindingResult error, CustomerRegistDTO customerRegistDTO) {
+    public ResponseInfo queryCustomer(@Valid PageParam page, BindingResult error, CustomerRegistDTO customerRegistDTO) {
         if (error.hasFieldErrors()) {
-            return getErrors(error);
+            //return getErrors(error);
+            return new ResponseInfoAssemble().failure(-1, "缺少必要参数");
         }
         LoginUser lu = opUser();
         Page list = null;
         Map<Object, Object> map = new HashMap<Object, Object>();
-        JSONObject json = new JSONObject();
+        //JSONObject json = new JSONObject();
         if ("ROLE_USER".equals(lu.getRole()) || "admin".equals(lu.getRole())) {
             list = customerService.getCustomerInfo(page, customerRegistDTO);
             map.put("list", list);
             //图片根路径
             String preUrl = "/pic";
             map.put("preUrl", preUrl);
-            json.put("data", map);
+            //json.put("data", map);
         }
-        return json.toJSONString();
+        return new ResponseInfoAssemble().success(map);
+        //return json.toJSONString();
     }
 
     @RequestMapping(value = "/update", method = RequestMethod.POST)
@@ -245,7 +242,7 @@ public class CustomerAction extends BasicAction {
      */
     @RequestMapping(value = "/salePriceLog", method = RequestMethod.GET)
     @ResponseBody
-    public String getSalePriceLog(@Valid PageParam page, String zid,BindingResult error, String custId, String name, String startTime, String endTime) {
+    public String getSalePriceLog(@Valid PageParam page, String zid, BindingResult error, String custId, String name, String startTime, String endTime) {
         if (error.hasErrors()) {
             return getErrors(error);
         }
@@ -253,7 +250,7 @@ public class CustomerAction extends BasicAction {
         try {
             LoginUser lu = opUser();
             if ("ROLE_USER".equals(lu.getRole()) || "admin".equals(lu.getRole())) {
-                List<Map<String, Object>> salePriceLog = customerService.getSalePriceLog(page,zid, custId, name, startTime, endTime);
+                List<Map<String, Object>> salePriceLog = customerService.getSalePriceLog(page, zid, custId, name, startTime, endTime);
                 data.put("code", 1);
                 data.put("list", salePriceLog);
                 data.put("message", "查询企业销售定价记录列表成功");
