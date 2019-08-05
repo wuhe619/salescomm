@@ -67,13 +67,29 @@ public class SiteRepairAction extends BasicAction {
 
     }
 
-    //设置默认
+    //    //设置默认
+//    @ResponseBody
+//    @RequestMapping(value = "/defaultupdate.do", method = RequestMethod.GET)
+//    public String defaultupdate(String id) {
+//        String compId = opUser().getCustId();
+//        Map<Object, Object> list = sendmessageService.defaultupdate(id, compId);
+//        return JSON.toJSONString(list);
+//    }
+
+    /**
+     * 设为默认发件人/发件地址
+     *
+     * @param id      发件人信息id
+     * @param cust_id 企业ID
+     * @return
+     * @auther Chacker
+     * @date 2019/8/5 16:57
+     */
     @ResponseBody
-    @RequestMapping(value = "/defaultupdate.do", method = RequestMethod.GET)
-    public String defaultupdate(String id) {
-        String compId = opUser().getCustId();
-        Map<Object, Object> list = sendmessageService.defaultupdate(id, compId);
-        return JSON.toJSONString(list);
+    @RequestMapping(value = "/defaultUpdate", method = RequestMethod.GET)
+    public ResponseInfo defaultUpdate(@RequestParam String id, String cust_id) {
+        sendmessageService.defaultUpdate(id, cust_id);
+        return new ResponseInfoAssemble().success(null);
     }
 
     /**
@@ -91,14 +107,19 @@ public class SiteRepairAction extends BasicAction {
         return new ResponseInfoAssemble().success(resultMap);
     }
 
-    //发件信息删除
+    /**
+     * 删除发件人信息
+     *
+     * @param id
+     * @return
+     * @auther Chacker
+     * @date 2019/8/5 16:34
+     */
     @ResponseBody
-    @RequestMapping(value = "/senddelete.do", method = RequestMethod.GET)
-    public String senddelete(String id) {
-        Map<Object, Object> list = sendmessageService.senddelete(id);
-
-        return JSON.toJSONString(list);
-
+    @RequestMapping(value = "/senderDelete", method = RequestMethod.GET)
+    public ResponseInfo senderDelete(@RequestParam String id) {
+        sendmessageService.senderDelete(id);
+        return new ResponseInfoAssemble().success(null);
     }
 
 
