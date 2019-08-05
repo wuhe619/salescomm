@@ -117,7 +117,7 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
                 " WHEN '2' THEN '校验失败' WHEN '3' THEN '待上传' WHEN '4' THEN '待发件' WHEN '5' THEN '待发件'" +
                 " WHEN '6' THEN '已发件' END AS status,t1.upload_num AS uploadNum,t1.success_num AS" +
                 " successNum,DATE_FORMAT(t1.upload_time,'%Y-%m-%d %H:%i:%s') AS uploadTime,t2.property_name AS propertyName," +
-                "CASE t2.property_value WHEN '1' THEN '电子版' WHEN '2' THEN '打印版' END AS propertyValue");
+                "t2.property_value AS propertyValue");
         sql.append(" FROM nl_batch t1 LEFT JOIN nl_batch_property t2 ON t1.id=t2.batch_id WHERE ");
 
         //企业ID
@@ -156,11 +156,15 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         List<Map<String, Object>> list = page.getList();
         if (list != null && list.size() != 0) {
             for (Map<String, Object> tempMap : list) {
-                tempMap.put(String.valueOf(tempMap.get("propertyName")), tempMap.get("propertyValue"));
+                String propertyValue = String.valueOf(tempMap.get("propertyValue"));
+                if("1".equals(propertyValue)){
+                    tempMap.put("expressContentType","电子版");
+                }else{
+                    tempMap.put("expressContentType","打印版");
+                }
             }
         }
-        Map<String, Object> resultMap = new HashMap<>(10);
-        resultMap.put("rows", list);
+        Map<String, Object> resultMap = new HashMap<>(10);resultMap.put("rows", list);
         resultMap.put("total", list.size());
         return resultMap;
     }
@@ -170,45 +174,46 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         PageParam pageParam = new PageParam();
         pageParam.setPageNum(NumberConvertUtil.parseInt(String.valueOf(map.get("page_num"))));
         pageParam.setPageSize(NumberConvertUtil.parseInt(String.valueOf(map.get("page_size"))));
-        StringBuffer hql = new StringBuffer("SELECT id,batch_id,label_one AS name,label_two AS phone,label_four AS address," +
-                "label_six AS fileCode,CASE label_seven WHEN '1' THEN '有效' WHEN '2' THEN '无效' END AS checkingResult," +
-                "CASE status WHEN '1' THEN '待上传内容' WHEN '2' THEN '待发件' WHEN '3' THEN '待取件' WHEN '4' THEN '已发件' END AS status" +
-                "  FROM  nl_batch_detail WHERE");
+        StringBuffer hql = new StringBuffer("SELECT t2.id,t2.batch_id,t2.label_one AS name,t2.label_two AS phone,t2.label_four AS address," +
+                "t2.label_six AS fileCode,t2.label_seven AS statusId,CASE t2.label_seven WHEN '1' THEN '有效' WHEN '2' THEN '无效' END AS checkingResult," +
+                "CASE t2.status WHEN '1' THEN '待上传内容' WHEN '2' THEN '待发件' WHEN '3' THEN '待取件' WHEN '4' THEN '已发件' END AS status," +
+                "t1.property_value AS expressContentType" +
+                "  FROM  nl_batch_detail t2 LEFT JOIN nl_batch_property t1 ON t2.batch_id=t1.batch_id WHERE");
         List<String> values = new ArrayList();
         //批次编号
         String batchId = String.valueOf(map.get("batch_id"));
         String nullString = "null";
         if (!nullString.equals(batchId) && StringUtil.isNotEmpty(batchId)) {
-            hql.append(" batch_id = '" + batchId + "' ");
+            hql.append(" t2.batch_id = '" + batchId + "' ");
         }
         //收件人ID
         String id = String.valueOf(map.get("id"));
         if (!nullString.equals(id) && StringUtil.isNotEmpty(id)) {
-            hql.append(" AND id = '" + id + "'");
+            hql.append(" AND t2.id = '" + id + "'");
         }
         //姓名
         String name = String.valueOf(map.get("name"));
         if (!nullString.equals(name) && StringUtil.isNotEmpty(name)) {
-            hql.append(" AND label_one = '" + name + "'");
+            hql.append(" AND t2.label_one = '" + name + "'");
             values.add(name);
         }
         //文件编码
         String fileCode = String.valueOf(map.get("file_code"));
         if (!nullString.equals(fileCode) && StringUtil.isNotEmpty(fileCode)) {
-            hql.append(" AND label_six = '" + fileCode + "'");
+            hql.append(" AND t2.label_six = '" + fileCode + "'");
         }
         //校验结果
         String checkingResult = String.valueOf(map.get("checking_result"));
         if (!nullString.equals(checkingResult) && StringUtil.isNotEmpty(checkingResult)) {
-            hql.append(" AND label_seven = '" + checkingResult + "'");
+            hql.append(" AND t2.label_seven = '" + checkingResult + "'");
         }
         //快件状态
         String status = String.valueOf(map.get("status"));
         if (!nullString.equals(status) && StringUtil.isNotEmpty(status)) {
-            hql.append(" AND status = '" + status + "'");
+            hql.append(" AND t2.status = '" + status + "'");
             values.add(status);
         }
-        hql.append(" ORDER BY id DESC ");
+        hql.append(" ORDER BY t2.id DESC ");
         Page page = new Pagination().getPageData(hql.toString(), null, pageParam, jdbcTemplate);
         List<Map<String, Object>> list = page.getList();
         Map<String, Object> resultMap = new HashMap<>(10);
