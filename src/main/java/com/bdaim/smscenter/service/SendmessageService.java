@@ -87,6 +87,16 @@ public interface SendmessageService {
      */
     void defaultUpdate(String id, String cust_id);
 
+    /**
+     * 修改发件人信息/发件地址
+     *
+     * @param
+     * @return
+     * @auther Chacker
+     * @date 2019/8/5 17:23
+     */
+    void senderUpdate(Map<String, Object> map);
+
 
 
 

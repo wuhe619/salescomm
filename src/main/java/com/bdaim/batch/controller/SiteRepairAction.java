@@ -58,13 +58,28 @@ public class SiteRepairAction extends BasicAction {
         return new ResponseInfoAssemble().success(null);
     }
 
-    //修改
-    @ResponseBody
-    @RequestMapping(value = "/sendupdate.do", method = RequestMethod.POST)
-    public String sendupdate(@RequestBody SenderInfo senderInfo) {
-        Map<Object, Object> list = sendmessageService.sendupdate(senderInfo);
-        return JSON.toJSONString(list);
+//    //修改
+//    @ResponseBody
+//    @RequestMapping(value = "/sendupdate.do", method = RequestMethod.POST)
+//    public String sendupdate(@RequestBody SenderInfo senderInfo) {
+//        Map<Object, Object> list = sendmessageService.sendupdate(senderInfo);
+//        return JSON.toJSONString(list);
+//
+//    }
 
+    /**
+     * 修改 发件人信息/发件地址
+     *
+     * @param
+     * @return
+     * @auther Chacker
+     * @date 2019/8/5 17:19
+     */
+    @ResponseBody
+    @RequestMapping(value = "/senderUpdate", method = RequestMethod.POST)
+    public ResponseInfo senderUpdate(@RequestParam Map<String, Object> map) {
+        sendmessageService.senderUpdate(map);
+        return new ResponseInfoAssemble().success(null);
     }
 
     //    //设置默认
