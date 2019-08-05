@@ -364,6 +364,39 @@ public class CustomerService {
                         customerDao.dealCustomerInfo(customerId, "mobile_num", vo.getMobile());
                     }
                 }
+                //身份证正面url
+                if (StringUtil.isNotEmpty(vo.getIdCardFront())) {
+                    if (StringUtil.isNotEmpty(vo.getCustId())) {
+                        customerDao.dealCustomerInfo(vo.getCustId(), "idCard_front_path", vo.getIdCardFront());
+                    } else {
+                        customerDao.dealCustomerInfo(customerId, "idCard_front_path", vo.getIdCardFront());
+                    }
+                }
+                //身份证背面url
+                if (StringUtil.isNotEmpty(vo.getIdCardBack())) {
+                    if (StringUtil.isNotEmpty(vo.getCustId())) {
+                        customerDao.dealCustomerInfo(vo.getCustId(), "idCard_back_path", vo.getIdCardBack());
+                    } else {
+                        customerDao.dealCustomerInfo(customerId, "idCard_back_path", vo.getIdCardBack());
+                    }
+                }
+                //打印员
+                if (StringUtil.isNotEmpty(vo.getPrinter())) {
+                    if (StringUtil.isNotEmpty(vo.getCustId())) {
+                        customerDao.dealCustomerInfo(vo.getCustId(), "printer", vo.getPrinter());
+                    } else {
+                        customerDao.dealCustomerInfo(customerId, "printer", vo.getPrinter());
+                    }
+                }
+                //封装员
+                if (StringUtil.isNotEmpty(vo.getPackager())) {
+                    if (StringUtil.isNotEmpty(vo.getCustId())) {
+                        customerDao.dealCustomerInfo(vo.getCustId(), "packager", vo.getPackager());
+                    } else {
+                        customerDao.dealCustomerInfo(customerId, "packager", vo.getPackager());
+                    }
+                }
+
 
             } else if (vo.getDealType().equals("2")) {//冻结以及解冻
                 if (StringUtil.isNotEmpty(vo.getCustId())) {

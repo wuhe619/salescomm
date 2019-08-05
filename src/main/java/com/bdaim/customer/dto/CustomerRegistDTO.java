@@ -39,6 +39,46 @@ public class CustomerRegistDTO implements Serializable{
     private String salePerson;
     //渠道
     private String channel;
+    //打印员
+    private String printer;
+    //封装员
+    private String packager;
+    //身份证正面
+    private String idCardFront;
+    //身份证反面
+    private String idCardBack;
+
+    public String getIdCardFront() {
+        return idCardFront;
+    }
+
+    public void setIdCardFront(String idCardFront) {
+        this.idCardFront = idCardFront;
+    }
+
+    public String getIdCardBack() {
+        return idCardBack;
+    }
+
+    public void setIdCardBack(String idCardBack) {
+        this.idCardBack = idCardBack;
+    }
+
+    public String getPrinter() {
+        return printer;
+    }
+
+    public void setPrinter(String printer) {
+        this.printer = printer;
+    }
+
+    public String getPackager() {
+        return packager;
+    }
+
+    public void setPackager(String packager) {
+        this.packager = packager;
+    }
 
     public String getChannel() {
         return channel;
