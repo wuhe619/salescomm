@@ -16,6 +16,7 @@ import com.bdaim.common.util.page.Pagination;
 import com.bdaim.common.util.spring.DataConverter;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -53,6 +54,10 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         //1. 把excel文件上传到服务器中
         String fileName = multipartFile.getOriginalFilename();
         String suffix = fileName.substring(fileName.lastIndexOf("."));
+        // (如果文件后缀名不对，则给与相应提示)
+        if (!Constant.XLSX.equals(suffix) && !Constant.XLS.equals(suffix)) {
+            return new ResponseInfoAssemble().failure(HttpStatus.BAD_REQUEST.value(), "请保证文件格式为\".xls\"或\".xlsx\"");
+        }
         String uploadPath = "/express/upload/";
         String batchId = String.valueOf(System.currentTimeMillis());
         // 文件路径的字符串拼接 目录 + 时间戳 + 毫秒
@@ -66,6 +71,9 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         FileUtils.copyInputStreamToFile(multipartFile.getInputStream(), file);
         //2. 读取 & 解析excel文件(根据文件的后缀名进行区分)
         List<List<String>> contentList = ExcelReaderUtil.readExcel(uploadPath);
+        if (contentList.size() > 1000) {
+            return new ResponseInfoAssemble().failure(HttpStatus.BAD_REQUEST.value(), "请保证一次上传数据不超过1000条记录");
+        }
         //3. 把批次信息和批次详情列表存入数据库
         //3.1 设置并新增保存批次信息
         StringBuffer insertBatchSql = new StringBuffer("INSERT INTO nl_batch (id,batch_name,upload_time,comp_id,certify_type,channel,status," +
