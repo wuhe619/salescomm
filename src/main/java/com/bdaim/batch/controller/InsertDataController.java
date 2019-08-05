@@ -1,7 +1,7 @@
 package com.bdaim.batch.controller;
 
 import com.bdaim.batch.dao.BatchInfoDao;
-import com.bdaim.common.response.ResponseBody;
+import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -21,7 +21,7 @@ public class InsertDataController {
     private JdbcTemplate jdbcTemplate;
 
     @RequestMapping(value = "/insertBatch")
-    public ResponseBody insertBatch(String cust_id){
+    public ResponseInfo insertBatch(String cust_id){
         String batchId = String.valueOf(System.currentTimeMillis());
         String insertHql = "INSERT INTO nl_batch (id,certify_type,channel,status,comp_id,batch_name,upload_num,success_num,upload_time) VALUES"
                 + "('" +batchId+"',-1,-1,1,'"+cust_id+"','批次名称','10','10',NOW())";
