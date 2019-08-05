@@ -80,8 +80,8 @@ public class TokenServiceImpl implements TokenService {
             }
         } else {
             CustomerUserDO u = customerService.getUserByName(username);
-
-            if (u != null && CipherUtil.generatePassword(password).equals(u.getPassword())) {
+            String md5Password = CipherUtil.generatePassword(password);
+            if (u != null && md5Password.equals(u.getPassword())) {
                 logger.info("登陆框，用户：" + u.getAccount() + " 状态：" + u.getStatus());
                 //寻找登录账号已有的token
                 String tokenid = (String) name2token.get(username);

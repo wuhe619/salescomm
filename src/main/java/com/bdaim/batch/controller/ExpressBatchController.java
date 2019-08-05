@@ -40,7 +40,7 @@ public class ExpressBatchController {
      * @auther Chacker
      * @date 2019/7/31 14:54
      */
-    @RequestMapping("/receiverModel")
+    @RequestMapping(value = "receiverModel",method = RequestMethod.GET,produces = "application/vnd.ms-excel;charset=UTF-8")
     @ResponseBody
     public ResponseInfo downloadReceiverModel(HttpServletResponse response) {
         InputStream in = null;
