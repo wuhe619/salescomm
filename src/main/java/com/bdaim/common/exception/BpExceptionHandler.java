@@ -1,6 +1,6 @@
 package com.bdaim.common.exception;
 
-import com.bdaim.common.response.ResponseBody;
+import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,7 +31,7 @@ public class BpExceptionHandler {
      */
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseBody handleHttpMessageNotReadableException(HttpMessageNotReadableException e) {
+    public ResponseInfo handleHttpMessageNotReadableException(HttpMessageNotReadableException e) {
         log.error("could_not_read_json", e);
         return new ResponseInfoAssemble().failure(HttpStatus.BAD_REQUEST.value(), String.valueOf(HttpStatus.BAD_REQUEST.value()), "could_not_read_json");
     }
@@ -46,7 +46,7 @@ public class BpExceptionHandler {
      */
     @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
-    public ResponseBody handleHttpRequestMethodNotSupportedException(HttpRequestMethodNotSupportedException e) {
+    public ResponseInfo handleHttpRequestMethodNotSupportedException(HttpRequestMethodNotSupportedException e) {
         log.error("request_method_not_supported", e);
         return new ResponseInfoAssemble().failure(HttpStatus.BAD_REQUEST.value(), String.valueOf(HttpStatus.BAD_REQUEST.value()), "request_method_not_supported");
     }
@@ -61,7 +61,7 @@ public class BpExceptionHandler {
      */
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseBody handleValidationException(MethodArgumentNotValidException e) {
+    public ResponseInfo handleValidationException(MethodArgumentNotValidException e) {
         log.error("parameter_validation_exception...", e);
         return new ResponseInfoAssemble().failure(HttpStatus.BAD_REQUEST.value(), String.valueOf(HttpStatus.BAD_REQUEST.value()), "parameter_validation_exception");
     }
@@ -75,7 +75,7 @@ public class BpExceptionHandler {
      * @date 2019/8/2 9:24
      */
     @ExceptionHandler(Exception.class)
-    public ResponseBody handleException(Exception e) {
+    public ResponseInfo handleException(Exception e) {
         log.error("Internal Server Error...", e);
         if (e instanceof org.springframework.web.servlet.NoHandlerFoundException) {
             return new ResponseInfoAssemble().failure(HttpStatus.NOT_FOUND.value(), String.valueOf(HttpStatus.NOT_FOUND.value()),
