@@ -1,7 +1,5 @@
 package com.bdaim.customer.controller;
 
-import com.bdaim.common.response.ResponseInfo;
-import com.bdaim.common.response.ResponseInfoAssemble;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import com.alibaba.fastjson.JSON;
@@ -70,9 +68,9 @@ public class CustomerPropertyAction extends BasicAction {
     @RequestMapping(value = "/list.do", method = RequestMethod.GET)
     @ResponseBody
     @CacheAnnotation
-    public ResponseInfo listPage(@Valid PageParam page, BindingResult error, CustomerPropertyParam customerPropertyParam) {
+    public String listPage(@Valid PageParam page, BindingResult error, CustomerPropertyParam customerPropertyParam) {
         if (error.hasFieldErrors()) {
-            return new ResponseInfoAssemble().failure(200, "-1", "请求参数异常");
+            return getErrors(error);
         }
         if ("admin".equals(opUser().getRole()) || "ROLE_USER".equals(opUser().getRole())) {
             customerPropertyParam.setCustomerId(null);
@@ -80,8 +78,7 @@ public class CustomerPropertyAction extends BasicAction {
             customerPropertyParam.setCustomerId(opUser().getCustId());
         }
         Page list = customerPropertyService.pageList(page, customerPropertyParam);
-        //return JSON.toJSONString(list);
-        return new ResponseInfoAssemble().success(list);
+        return JSON.toJSONString(list);
 
     }
 
