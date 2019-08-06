@@ -3,9 +3,6 @@ package com.bdaim.batch.service.impl;
 import com.bdaim.batch.dao.BatchInfoDao;
 import com.bdaim.batch.dao.BatchInfoDetailDao;
 import com.bdaim.batch.dao.BatchPropertyDao;
-import com.bdaim.batch.entity.BatchDetailInfo;
-import com.bdaim.batch.entity.BatchInfo;
-import com.bdaim.batch.entity.BatchProperty;
 import com.bdaim.batch.service.ExpressBatchService;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.response.ResponseInfo;
@@ -21,7 +18,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.persistence.criteria.CriteriaBuilder;
 import javax.transaction.Transactional;
 import java.io.File;
 import java.io.IOException;
@@ -212,5 +208,22 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         resultMap.put("total", list.size());
         resultMap.put("rows", list);
         return resultMap;
+    }
+
+    @Override
+    public List<Map<String, Object>> checkStatistics(String cust_id) {
+        String sql = "SELECT batch_name AS batchName,IFNULL(upload_num,0) AS uploadNum,IFNULL(success_num,0) AS successNum," +
+                "IFNULL(upload_num/success_num,0) AS effectiveRate FROM nl_batch WHERE comp_id='" + cust_id + "' ORDER BY " +
+                "upload_time DESC LIMIT 10";
+        List<Map<String, Object>> resultList = jdbcTemplate.queryForList(sql);
+        return resultList;
+    }
+
+    @Override
+    public List<Map<String, Object>> effectiveStatistics() {
+        String sql = "SELECT batch_name AS batchName,IFNULL(upload_num/success_num,0) AS effectiveRate FROM nl_batch ORDER BY " +
+                "upload_time DESC LIMIT 10";
+        List<Map<String, Object>> result = jdbcTemplate.queryForList(sql);
+        return result;
     }
 }
