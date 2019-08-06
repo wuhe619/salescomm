@@ -135,6 +135,19 @@ public class ExpressBatchController {
         return new ResponseInfoAssemble().success(resultMap);
     }
 
+    /**
+     * 上传/批量上传发件内容
+     *
+     * @param
+     * @return
+     * @auther Chacker
+     * @date 2019/8/6 11:46
+     */
+//    @RequestMapping(value = "/sendMessageUpload",method = RequestMethod.POST)
+//    @ResponseBody
+//    public ResponseInfo sendMessageUpload(MultipartFile expressContent,MultipartFile fileCodeMapping,String[] receiverId){
+//        ResponseInfo
+//    }
 
 }
 

@@ -1,6 +1,8 @@
 package com.bdaim.smscenter.service.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.bdaim.batch.TransactionEnum;
 import com.bdaim.batch.dto.ExpressLog;
 import com.bdaim.batch.entity.SenderInfo;
@@ -602,10 +604,11 @@ public class SendmessageImpl implements SendmessageService {
         String custId = String.valueOf(map.get("cust_id"));
         String senderName = String.valueOf(map.get("sender_name"));
         String phone = String.valueOf(map.get("phone"));
-        String[] provinceInfo = (String[])map.get("province");
-        String province = provinceInfo[0];
-        String city = provinceInfo[1];
-        String district = provinceInfo[2];
+        String provinceInfo = (String)map.get("province");
+        JSONArray jsonObject = JSON.parseArray(provinceInfo);
+        String province = jsonObject.getString(0);
+        String city = jsonObject.getString(1);
+        String district = jsonObject.getString(2);
         String address = String.valueOf(map.get("address"));
         String postCodes = String.valueOf(map.get("postcodes"));
         String type = String.valueOf(map.get("type"));
@@ -645,10 +648,11 @@ public class SendmessageImpl implements SendmessageService {
         String senderName = String.valueOf(map.get("sender_name"));
         String phone = String.valueOf(map.get("phone"));
 
-        String[] provinceInfo = (String[])map.get("province");
-        String province = provinceInfo[0];
-        String city = provinceInfo[1];
-        String district = provinceInfo[2];
+        String provinceInfo = (String)map.get("province");
+        JSONArray jsonObject = JSON.parseArray(provinceInfo);
+        String province = jsonObject.getString(0);
+        String city = jsonObject.getString(1);
+        String district = jsonObject.getString(2);
         String address = String.valueOf(map.get("address"));
         String postCodes = String.valueOf(map.get("postcodes"));
         String type = String.valueOf(map.get("type"));
