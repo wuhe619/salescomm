@@ -210,20 +210,5 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         return resultMap;
     }
 
-    @Override
-    public List<Map<String, Object>> checkStatistics(String cust_id) {
-        String sql = "SELECT batch_name AS batchName,IFNULL(upload_num,0) AS uploadNum,IFNULL(success_num,0) AS successNum," +
-                "IFNULL(upload_num/success_num,0) AS effectiveRate FROM nl_batch WHERE comp_id='" + cust_id + "' ORDER BY " +
-                "upload_time DESC LIMIT 10";
-        List<Map<String, Object>> resultList = jdbcTemplate.queryForList(sql);
-        return resultList;
-    }
 
-    @Override
-    public List<Map<String, Object>> effectiveStatistics() {
-        String sql = "SELECT batch_name AS batchName,IFNULL(upload_num/success_num,0) AS effectiveRate FROM nl_batch ORDER BY " +
-                "upload_time DESC LIMIT 10";
-        List<Map<String, Object>> result = jdbcTemplate.queryForList(sql);
-        return result;
-    }
 }
