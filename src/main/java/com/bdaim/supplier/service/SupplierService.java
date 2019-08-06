@@ -65,9 +65,9 @@ public class SupplierService {
 
     public Page listSupplierByPage(PageParam page, String supplierId, String supplierName, String person, String phone,
                                    String serviceType) {
-        StringBuffer sql = new StringBuffer("SELECT s.create_time createTime,s.supplier_id supplierId, NAME supplierName, contact_person person, contact_phone phone,contact_position position, s. STATUS status, GROUP_CONCAT(r.type_code) resourceType ");
+        StringBuffer sql = new StringBuffer("SELECT s.create_time createTime,s.supplier_id supplierId, NAME supplierName, contact_person person, contact_phone phone,contact_position position, s. STATUS status, GROUP_CONCAT(r.type_code) resourceType ,GROUP_CONCAT(DISTINCT r.resname) resname ");
         sql.append("FROM t_supplier s LEFT JOIN t_market_resource r ON s.supplier_id = r.supplier_id\n");
-        sql.append("WHERE 1=1");
+        sql.append("WHERE 1=1 and s.`status` = 1 AND r.`status` = 1");
         if (StringUtil.isNotEmpty(serviceType)) {
             sql.append(" and s.supplier_id IN (SELECT supplier_id FROM t_market_resource WHERE type_code = " + serviceType + " GROUP BY supplier_id)");
         }
