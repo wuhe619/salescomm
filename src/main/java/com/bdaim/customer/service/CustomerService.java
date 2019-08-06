@@ -1020,5 +1020,21 @@ public class CustomerService {
         return list;
     }
 
+    public void updateServicePrice(String custId, String price) throws Exception{
+        //查询企业属性表是否存在
+        logger.info("查询的企业id是：" + custId);
+        CustomerProperty customerProperty = customerDao.getProperty(custId, "price");
+        if (customerProperty != null) {
+            customerProperty.setPropertyValue(price);
+        } else {
+            customerProperty = new CustomerProperty();
+            customerProperty.setCustId(custId);
+            customerProperty.setPropertyName("price");
+            customerProperty.setPropertyValue(price);
+            customerProperty.setCreateTime(DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss));
+
+        }
+        customerDao.saveOrUpdate(customerProperty);
+    }
 }
 
