@@ -17,16 +17,7 @@ import com.bdaim.callcenter.dto.SeatsInfo;
 import com.bdaim.callcenter.service.CallCenterService;
 import com.bdaim.callcenter.service.impl.SeatsServiceImpl;
 import com.bdaim.common.dto.PageParam;
-import com.bdaim.common.util.ConfigUtil;
-import com.bdaim.common.util.ConstantsUtil;
-import com.bdaim.common.util.DateUtil;
-import com.bdaim.common.util.FileUtil;
-import com.bdaim.common.util.HttpUtil;
-import com.bdaim.common.util.IDHelper;
-import com.bdaim.common.util.NumberConvertUtil;
-import com.bdaim.common.util.PropertiesUtil;
-import com.bdaim.common.util.SaleApiUtil;
-import com.bdaim.common.util.StringUtil;
+import com.bdaim.common.util.*;
 import com.bdaim.common.util.page.Page;
 import com.bdaim.common.util.page.Pagination;
 import com.bdaim.customer.dao.CustomerDao;
@@ -1289,7 +1280,7 @@ public class MarketResourceServiceImpl implements MarketResourceService {
                     "upload_time DESC LIMIT 10";
             List<Map<String, Object>> checkStatistics = jdbcTemplate.queryForList(checkSql);
 
-            data.put("checkStatistics",checkStatistics);
+            data.put("checkStatistics", checkStatistics);
             data.put("siteList", siteList);
             data.put("sevenList", sevenList);
             data.put("qiyehujiao", qiyehujiaoall);
@@ -3044,5 +3035,21 @@ public class MarketResourceServiceImpl implements MarketResourceService {
             LOG.error("获取录音文件失败,", e);
         }
         return null;
+    }
+
+    /**
+     * 根据资源类型查询资源和供应商信息
+     *
+     * @param type
+     */
+    public List<Map<String, Object>> getResourceInfoByType(String type) throws Exception {
+        StringBuffer querySql = new StringBuffer("SELECT r.resname,r.resource_id,s.`name` supplierName,s.supplier_id,r.type_code ");
+        querySql.append("FROM t_market_resource r LEFT JOIN t_supplier s ON r.supplier_id = s.supplier_id ");
+        querySql.append("WHERE s.`status` = 1 AND r.`status` = 1 ");
+        if (StringUtil.isNotEmpty(type)) {
+            querySql.append("AND r.type_code =" + type);
+        }
+        List<Map<String, Object>> list = marketResourceDao.sqlQuery(querySql.toString());
+        return list;
     }
 }
