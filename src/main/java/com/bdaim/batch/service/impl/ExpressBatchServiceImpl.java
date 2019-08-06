@@ -46,7 +46,6 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
     @Override
     @Transactional
     public ResponseInfo receiverInfoImport(MultipartFile multipartFile, String batchName, int expressContent, String custId) throws IOException {
-        long time1 = System.currentTimeMillis();
         //1. 把excel文件上传到服务器中
         String fileName = multipartFile.getOriginalFilename();
         String suffix = fileName.substring(fileName.lastIndexOf("."));
@@ -54,10 +53,10 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         if (!Constant.XLSX.equals(suffix) && !Constant.XLS.equals(suffix)) {
             return new ResponseInfoAssemble().failure(HttpStatus.BAD_REQUEST.value(), "请保证文件格式为\".xls\"或\".xlsx\"");
         }
-        String uploadPath = "/express/upload/";
-        String batchId = String.valueOf(System.currentTimeMillis());
-        // 文件路径的字符串拼接 目录 + 时间戳 + 毫秒
-        uploadPath = uploadPath + batchId + suffix;
+        String generatedFileName = String.valueOf(System.currentTimeMillis()) + UUID.randomUUID().toString().substring(0, 5);
+        String uploadPath = "/express/upload/" + DateUtil.getToDay() + "/";
+        // 文件路径的字符串拼接 目录 + 文件名 + 后缀
+        uploadPath = uploadPath + generatedFileName + suffix;
         File file = new File(uploadPath);
         if (!file.exists()) {
             file.getParentFile().mkdirs();
@@ -71,9 +70,10 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
             return new ResponseInfoAssemble().failure(HttpStatus.BAD_REQUEST.value(), "请保证一次上传数据不超过1000条记录");
         }
         //3. 把批次信息和批次详情列表存入数据库
-        //3.1 设置并新增保存批次信息
+        //3.1 设置并新增保存批次信息 (status 为"1",表示 【校验中】)
         StringBuffer insertBatchSql = new StringBuffer("INSERT INTO nl_batch (id,batch_name,upload_time,comp_id,certify_type,channel,status," +
                 "upload_num) VALUES ('");
+        String batchId = String.valueOf(System.currentTimeMillis());
         insertBatchSql.append(batchId + "','" + batchName + "',now(),'"
                 + custId + "','-1','-1','1','" + (contentList.size() - 1) + "')");
         jdbcTemplate.update(insertBatchSql.toString());
@@ -82,14 +82,14 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
                 " VALUES ('" + batchId + "','expressContentType','" + String.valueOf(expressContent) + "',NOW())";
         jdbcTemplate.update(insertBatchProperty);
         //3.2 获取并保存批次详情信息 (因为第一行为标题，所以从第二行开始遍历)
+        // nl_batch_detail中的id表示收件人ID label_seven是校验结果 1有效 2 无效
         for (int i = 1; i < contentList.size(); i++) {
-            StringBuffer batchDetailSql = new StringBuffer("INSERT INTO nl_batch_detail (id,label_one,label_two,label_four,label_seven,batch_id) VALUES ('" +
-                    String.valueOf(System.currentTimeMillis()) + "','" + contentList.get(i).get(0) + "','" + contentList.get(i).get(1) + "','" +
-                    contentList.get(i).get(2) + "','1','" + batchId + "')");
+            StringBuffer batchDetailSql = new StringBuffer("INSERT INTO nl_batch_detail (id,label_one,label_two,label_three," +
+                    "label_four,batch_id) VALUES ('" +
+                    contentList.get(i).get(4) + "','" + contentList.get(i).get(0) + "','" + contentList.get(i).get(1) + "','" +
+                    contentList.get(i).get(3) + "','" + contentList.get(i).get(2) + "','" + batchId + "')");
             jdbcTemplate.update(batchDetailSql.toString());
         }
-        long time2 = System.currentTimeMillis();
-        System.out.println(time2 - time1);
         return new ResponseInfoAssemble().success(null);
     }
 
