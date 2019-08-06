@@ -46,4 +46,24 @@ public interface ExpressBatchService {
      * @date 2019/8/2 14:38
      */
     Map<String, Object> batchDetail(Map<String, Object> map) throws IllegalAccessException;
+
+    /**
+     * 校验统计表
+     *
+     * @param cust_id 企业客户ID
+     * @return
+     * @auther Chacker
+     * @date 2019/8/6 8:55
+     */
+    List<Map<String, Object>> checkStatistics(String cust_id);
+
+    /**
+     * 企业有效率(企业近10个批次)
+     *
+     * @param
+     * @return
+     * @auther Chacker
+     * @date 2019/8/6 9:28
+     */
+    List<Map<String, Object>> effectiveStatistics();
 }

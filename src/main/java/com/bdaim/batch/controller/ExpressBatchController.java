@@ -14,6 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -42,7 +43,7 @@ public class ExpressBatchController {
      */
     @RequestMapping(value = "receiverModel", method = RequestMethod.GET, produces = "application/vnd.ms-excel;charset=UTF-8")
     @ResponseBody
-    public ResponseInfo downloadReceiverModel(@RequestParam String file_type,HttpServletResponse response) {
+    public ResponseInfo downloadReceiverModel(@RequestParam String file_type, HttpServletResponse response) {
         InputStream in = null;
         OutputStream bos = null;
         try {
@@ -50,9 +51,9 @@ public class ExpressBatchController {
             String classPath = this.getClass().getResourceAsStream("").toString();
             logger.error("hello classpath" + classPath);
             String fileName = null;
-            if("1".equals(file_type)){
+            if ("1".equals(file_type)) {
                 fileName = "receiver_info.xlsx";
-            }else if("2".equals(file_type)){
+            } else if ("2".equals(file_type)) {
                 fileName = "file_code_receipt_mapping.xlsx";
             }
             String pathF = PROPERTIES.getProperty("file.separator");
@@ -64,7 +65,7 @@ public class ExpressBatchController {
             response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
             String returnName = response.encodeURL(new String(fileName.getBytes(), "iso8859-1"));   //保存的文件名,必须和页面编码一致,否则乱码
             response.addHeader("Content-Disposition", "attachment;filename=" + returnName);
-            in = this.getClass().getResourceAsStream("/"+fileName);
+            in = this.getClass().getResourceAsStream("/" + fileName);
             logger.error("hello chacker" + path);
             bos = response.getOutputStream();
 
@@ -134,5 +135,34 @@ public class ExpressBatchController {
         return new ResponseInfoAssemble().success(resultMap);
     }
 
+    /**
+     * 校验统计表
+     *
+     * @param cust_id 企业客户ID
+     * @return
+     * @auther Chacker
+     * @date 2019/8/6 8:55
+     */
+    @RequestMapping(value = "checkStatistics", method = RequestMethod.GET)
+    @ResponseBody
+    public ResponseInfo checkStatistics(@RequestParam String cust_id) {
+        List<Map<String, Object>> resultList = expressBatchService.checkStatistics(cust_id);
+        return new ResponseInfoAssemble().success(resultList);
+    }
+
+    /**
+     * 企业有效率(企业近10个批次)
+     *
+     * @param
+     * @return
+     * @auther Chacker
+     * @date 2019/8/6 9:28
+     */
+    @RequestMapping(value = "/effectiveStatistics", method = RequestMethod.GET)
+    @ResponseBody
+    public ResponseInfo effectiveStatistics() {
+        List<Map<String, Object>> resultList = expressBatchService.effectiveStatistics();
+        return new ResponseInfoAssemble().success(resultList);
+    }
 }
 
