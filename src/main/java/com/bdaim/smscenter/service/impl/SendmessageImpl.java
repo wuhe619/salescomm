@@ -602,9 +602,10 @@ public class SendmessageImpl implements SendmessageService {
         String custId = String.valueOf(map.get("cust_id"));
         String senderName = String.valueOf(map.get("sender_name"));
         String phone = String.valueOf(map.get("phone"));
-        String province = String.valueOf(map.get("province"));
-        String city = String.valueOf(map.get("city"));
-        String district = String.valueOf(map.get("district"));
+        String[] provinceInfo = (String[])map.get("province");
+        String province = provinceInfo[0];
+        String city = provinceInfo[1];
+        String district = provinceInfo[2];
         String address = String.valueOf(map.get("address"));
         String postCodes = String.valueOf(map.get("postcodes"));
         String type = String.valueOf(map.get("type"));
@@ -643,9 +644,11 @@ public class SendmessageImpl implements SendmessageService {
         String custId = String.valueOf(map.get("cust_id"));
         String senderName = String.valueOf(map.get("sender_name"));
         String phone = String.valueOf(map.get("phone"));
-        String province = String.valueOf(map.get("province"));
-        String city = String.valueOf(map.get("city"));
-        String district = String.valueOf(map.get("district"));
+
+        String[] provinceInfo = (String[])map.get("province");
+        String province = provinceInfo[0];
+        String city = provinceInfo[1];
+        String district = provinceInfo[2];
         String address = String.valueOf(map.get("address"));
         String postCodes = String.valueOf(map.get("postcodes"));
         String type = String.valueOf(map.get("type"));
