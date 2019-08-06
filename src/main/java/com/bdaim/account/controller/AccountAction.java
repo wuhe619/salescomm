@@ -106,9 +106,9 @@ public class AccountAction extends BasicAction {
      * */
     @RequestMapping(value = "/queryCustomer", method = RequestMethod.GET)
     @ResponseBody
-    public String queryAccountsByCondition(@Valid PageParam page, BindingResult error, CustomerBillQueryParam queryParam) {
+    public ResponseInfo queryAccountsByCondition(@Valid PageParam page, BindingResult error, CustomerBillQueryParam queryParam) {
         if (error.hasFieldErrors()) {
-            return getErrors(error);
+           return new ResponseInfoAssemble().failure(-1,"缺少必要參數");
         }
         LoginUser lu = opUser();
         Page list = null;
@@ -139,7 +139,7 @@ public class AccountAction extends BasicAction {
                 }
             }
         }
-        return JSON.toJSONString(list);
+        return new ResponseInfoAssemble().success(list);
     }
 
 
