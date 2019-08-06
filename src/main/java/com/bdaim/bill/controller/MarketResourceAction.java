@@ -1,5 +1,7 @@
 package com.bdaim.bill.controller;
 
+import com.bdaim.common.response.ResponseInfo;
+import com.bdaim.common.response.ResponseInfoAssemble;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import com.alibaba.fastjson.JSON;
@@ -468,16 +470,19 @@ public class MarketResourceAction extends BasicAction {
     }
 
     /**
-     * 首页信息
+     * 首页信息(前端、后台的首页统计图表信息)
      *
+     * @param customerId 企业客户ID，企业登录后获取，如果为空则说明是后端
      * @return
+     * @auther Chacker
+     * @date 2019/8/6 10:26
      */
     @RequestMapping(value = "/countMarketData", method = RequestMethod.GET)
     @ResponseBody
     @CacheAnnotation
-    public String countMarketData(String customerId) {
+    public ResponseInfo countMarketData(String customerId) {
         Map<String, Object> marketData = marketResourceService.countMarketData(customerId);
-        return JSON.toJSONString(marketData);
+        return new ResponseInfoAssemble().success(marketData);
     }
 
     /**
