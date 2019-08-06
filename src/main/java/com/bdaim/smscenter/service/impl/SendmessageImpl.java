@@ -1,6 +1,8 @@
 package com.bdaim.smscenter.service.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.bdaim.batch.TransactionEnum;
 import com.bdaim.batch.dto.ExpressLog;
 import com.bdaim.batch.entity.SenderInfo;
@@ -576,7 +578,7 @@ public class SendmessageImpl implements SendmessageService {
         pageParam.setPageNum(NumberConvertUtil.parseInt(String.valueOf(map.get("page_num"))));
         pageParam.setPageSize(NumberConvertUtil.parseInt(String.valueOf(map.get("page_size"))));
 
-        StringBuffer listSql = new StringBuffer("SELECT id,sender_name AS senderName,phone,CONCAT(province,city,district) AS province,address,postcodes," +
+        StringBuffer listSql = new StringBuffer("SELECT id,sender_name AS senderName,phone,province,city,district,address,postcodes," +
                 "DATE_FORMAT(create_time,'%Y-%m-%d %H:%i:%s') AS createTime,type FROM t_sender_info WHERE cust_id='");
         String custId = String.valueOf(map.get("cust_id"));
         listSql.append(custId + "'");
@@ -592,7 +594,15 @@ public class SendmessageImpl implements SendmessageService {
         Page page = new Pagination().getPageData(listSql.toString(), null, pageParam, jdbcTemplate);
         Map<String, Object> resultMap = new HashMap<>(10);
         resultMap.put("total", page.getTotal());
-        resultMap.put("rows", page.getList());
+        List<Map<String,Object>> resultList = page.getList();
+        for (Map<String, Object> tempMap : resultList) {
+            String province = String.valueOf(tempMap.get("province"));
+            String city = String.valueOf(tempMap.get("city"));
+            String district = String.valueOf(tempMap.get("district"));
+            String[] provinceInfo = new String[]{province, city, district};
+            tempMap.put("province", provinceInfo);
+        }
+        resultMap.put("rows", resultList);
         return resultMap;
     }
 
@@ -602,9 +612,11 @@ public class SendmessageImpl implements SendmessageService {
         String custId = String.valueOf(map.get("cust_id"));
         String senderName = String.valueOf(map.get("sender_name"));
         String phone = String.valueOf(map.get("phone"));
-        String province = String.valueOf(map.get("province"));
-        String city = String.valueOf(map.get("city"));
-        String district = String.valueOf(map.get("district"));
+        String provinceInfo = (String)map.get("province");
+        JSONArray jsonObject = JSON.parseArray(provinceInfo);
+        String province = jsonObject.getString(0);
+        String city = jsonObject.getString(1);
+        String district = jsonObject.getString(2);
         String address = String.valueOf(map.get("address"));
         String postCodes = String.valueOf(map.get("postcodes"));
         String type = String.valueOf(map.get("type"));
@@ -643,9 +655,12 @@ public class SendmessageImpl implements SendmessageService {
         String custId = String.valueOf(map.get("cust_id"));
         String senderName = String.valueOf(map.get("sender_name"));
         String phone = String.valueOf(map.get("phone"));
-        String province = String.valueOf(map.get("province"));
-        String city = String.valueOf(map.get("city"));
-        String district = String.valueOf(map.get("district"));
+
+        String provinceInfo = (String)map.get("province");
+        JSONArray jsonObject = JSON.parseArray(provinceInfo);
+        String province = jsonObject.getString(0);
+        String city = jsonObject.getString(1);
+        String district = jsonObject.getString(2);
         String address = String.valueOf(map.get("address"));
         String postCodes = String.valueOf(map.get("postcodes"));
         String type = String.valueOf(map.get("type"));

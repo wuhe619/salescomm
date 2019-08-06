@@ -136,33 +136,18 @@ public class ExpressBatchController {
     }
 
     /**
-     * 校验统计表
-     *
-     * @param cust_id 企业客户ID
-     * @return
-     * @auther Chacker
-     * @date 2019/8/6 8:55
-     */
-    @RequestMapping(value = "checkStatistics", method = RequestMethod.GET)
-    @ResponseBody
-    public ResponseInfo checkStatistics(@RequestParam String cust_id) {
-        List<Map<String, Object>> resultList = expressBatchService.checkStatistics(cust_id);
-        return new ResponseInfoAssemble().success(resultList);
-    }
-
-    /**
-     * 企业有效率(企业近10个批次)
+     * 上传/批量上传发件内容
      *
      * @param
      * @return
      * @auther Chacker
-     * @date 2019/8/6 9:28
+     * @date 2019/8/6 11:46
      */
-    @RequestMapping(value = "/effectiveStatistics", method = RequestMethod.GET)
-    @ResponseBody
-    public ResponseInfo effectiveStatistics() {
-        List<Map<String, Object>> resultList = expressBatchService.effectiveStatistics();
-        return new ResponseInfoAssemble().success(resultList);
-    }
+//    @RequestMapping(value = "/sendMessageUpload",method = RequestMethod.POST)
+//    @ResponseBody
+//    public ResponseInfo sendMessageUpload(MultipartFile expressContent,MultipartFile fileCodeMapping,String[] receiverId){
+//        ResponseInfo
+//    }
+
 }
 
