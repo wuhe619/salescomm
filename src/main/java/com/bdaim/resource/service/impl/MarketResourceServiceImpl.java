@@ -40,6 +40,7 @@ import com.bdaim.smscenter.dto.SmsqueryParam;
 import com.bdaim.supplier.dao.SupplierDao;
 import com.bdaim.supplier.dto.SupplierEnum;
 import com.bdaim.supplier.dto.SupplierListParam;
+import com.bdaim.supplier.entity.SupplierPropertyEntity;
 import com.bdaim.template.dto.TemplateParam;
 import com.bdaim.template.entity.MarketTemplate;
 import com.github.crab2died.ExcelUtils;
@@ -3042,7 +3043,7 @@ public class MarketResourceServiceImpl implements MarketResourceService {
      *
      * @param type
      */
-    public List<Map<String, Object>> getResourceInfoByType(String type) throws Exception {
+    public List<Map<String, Object>> getResourceInfoByType(String type ,  String supplierId) throws Exception {
         StringBuffer querySql = new StringBuffer("SELECT r.resname,r.resource_id,s.`name` supplierName,s.supplier_id,r.type_code ");
         querySql.append("FROM t_market_resource r LEFT JOIN t_supplier s ON r.supplier_id = s.supplier_id ");
         querySql.append("WHERE s.`status` = 1 AND r.`status` = 1 ");
@@ -3050,6 +3051,19 @@ public class MarketResourceServiceImpl implements MarketResourceService {
             querySql.append("AND r.type_code =" + type);
         }
         List<Map<String, Object>> list = marketResourceDao.sqlQuery(querySql.toString());
+        if (StringUtil.isNotEmpty(supplierId)){
+            //查询供应商关联的资源信息
+            SupplierPropertyEntity resourceInfo = supplierDao.getSupplierProperty(supplierId, "express_resource");
+            if (resourceInfo!=null){
+                String resourceId = resourceInfo.getPropertyValue();
+                LOG.info("供应商id是：" +supplierId +"资源类型是：" + type + "关联的资源id是：" +  resourceId);
+                for (int i= 0 ;i<list.size();i++){
+                    if (resourceId.equals(String.valueOf(list.get(i).get("resource_id")))){
+                        list.get(i).put("check",1);
+                    }
+                }
+            }
+        }
         return list;
     }
 }

@@ -31,9 +31,9 @@ public class ResourceAction extends BasicAction {
      */
     @RequestMapping(value = "/getResource", method = RequestMethod.GET)
     @ResponseBody
-    public ResponseInfo getResourceInfoByType(String type) {
+    public ResponseInfo getResourceInfoByType(String type,String supplierId) {
         try {
-            List<Map<String, Object>> list = marketResourceService.getResourceInfoByType(type);
+            List<Map<String, Object>> list = marketResourceService.getResourceInfoByType(type,supplierId);
             return new ResponseInfoAssemble().success(list);
         } catch (Exception e) {
             logger.error("查询资源信息异常", e);
