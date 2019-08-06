@@ -101,7 +101,7 @@ public class SupplierAction extends BasicAction {
      */
     @ResponseBody
     @RequestMapping(value = "/supplierChange", method = RequestMethod.POST)
-    public String supplierChange(@RequestBody SupplierDTO supplierDTO) {
+    public ResponseInfo supplierChange(@RequestBody SupplierDTO supplierDTO) {
         Map<String, Object> map = new HashMap<>();
         JSONObject json = new JSONObject();
         LoginUser lu = opUser();
@@ -112,43 +112,36 @@ public class SupplierAction extends BasicAction {
                     if (type.get(i).equals("1")) {
                         try {
                             supplierService.updatesupplier(supplierDTO);
-                            map.put("code", "0");
-                            map.put("_message", "编辑供应商成功");
+                            return new ResponseInfoAssemble().success(null);
                         } catch (Exception e) {
-                            LOG.error("配置供应商异常" + e);
-                            map.put("code", "1");
-                            map.put("_message", "编辑供应商失败");
+                            LOG.error("配置供应商异常" ,e);
+                            return new ResponseInfoAssemble().failure(-1,"配置供应商失败");
                         }
-                        json.put("data", map);
                     } else if (type.get(i).equals("2")) {
                         try {
                             supplierService.updatePrice(supplierDTO);
-                            map.put("code", "0");
-                            map.put("_message", "供应商定价成功");
+                            return new ResponseInfoAssemble().success(null);
                         } catch (Exception e) {
-                            LOG.error("供应商定价失败" + e);
-                            map.put("code", "1");
-                            map.put("_message", "供应商定价失败");
+                            LOG.error("供应商定价失败" ,e);
+                            return new ResponseInfoAssemble().failure(-1,"供应商定价失败");
                         }
-                        json.put("data", map);
                     } else if (type.get(i).equals("3")) {
                         try {
                             supplierService.supplierStatus(supplierDTO);
-                            map.put("code", "0");
-                            map.put("_message", "编辑供应商状态成功");
+                            return new ResponseInfoAssemble().success(null);
                         } catch (Exception e) {
-                            LOG.error("编辑供应商状态失败" + e);
+                            LOG.error("编辑供应商状态失败" ,e);
                             map.put("code", "1");
                             map.put("_message", "编辑供应商状态失败");
+                            return new ResponseInfoAssemble().failure(-1,"编辑供应商状态失败");
                         }
-                        json.put("data", map);
                     }
                 }
             }
         } else {
             LOG.info("后台登陆账号错误");
         }
-        return json.toJSONString();
+        return new ResponseInfoAssemble().success(null);
     }
 
     /**
