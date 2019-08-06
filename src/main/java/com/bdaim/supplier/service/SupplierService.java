@@ -20,7 +20,6 @@ import com.bdaim.resource.entity.ResourcePropertyEntity;
 import com.bdaim.supplier.dao.SupplierDao;
 import com.bdaim.supplier.dto.SupplierDTO;
 import com.bdaim.supplier.entity.SupplierEntity;
-
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Service;
 
@@ -208,6 +207,8 @@ public class SupplierService {
         JSONArray callArray = new JSONArray();
         JSONArray imeiArray = new JSONArray();
         JSONArray macArray = new JSONArray();
+        JSONArray addressArray = new JSONArray();
+        JSONArray expressArray = new JSONArray();
         for (Map<String, Object> resource : resourceList) {
             Integer type = Integer.valueOf(resource.get("type").toString());
             String resourceId = String.valueOf(resource.get("resourceId"));
@@ -218,7 +219,7 @@ public class SupplierService {
 
             JSONObject priceConfig = selectResourcePriceConfig(resourceId.toString());
             if (ResourceEnum.IDCARD.getType() == type) {
-                setIDcardPriceData(priceConfig, jsonObject,"idCardPrice");
+                setIDcardPriceData(priceConfig, jsonObject, "idCardPrice");
                 idcardArray.add(jsonObject);
             } else if (ResourceEnum.SMS.getType() == type) {
                 setSMSPriceConfig(priceConfig, jsonObject);
@@ -227,11 +228,17 @@ public class SupplierService {
                 setCallPriceData(priceConfig, jsonObject);
                 callArray.add(jsonObject);
             } else if (ResourceEnum.IMEI.getType() == type) {
-                setIDcardPriceData(priceConfig, jsonObject,"imeiPrice");
+                setIDcardPriceData(priceConfig, jsonObject, "imeiPrice");
                 imeiArray.add(jsonObject);
             } else if (ResourceEnum.MAC.getType() == type) {
-                setIDcardPriceData(priceConfig, jsonObject,"macPrice");
+                setIDcardPriceData(priceConfig, jsonObject, "macPrice");
                 macArray.add(jsonObject);
+            } else if (ResourceEnum.ADDRESS.getType() == type) {
+                setAddressPriceData(priceConfig, jsonObject);
+                addressArray.add(jsonObject);
+            } else if (ResourceEnum.EXPRESS.getType() == type) {
+                setExpressPriceData(priceConfig, jsonObject);
+                expressArray.add(jsonObject);
             }
         }
         data.put("sms", smsArray);
@@ -239,6 +246,8 @@ public class SupplierService {
         data.put("imei", imeiArray);
         data.put("call", callArray);
         data.put("mac", macArray);
+        data.put("address", addressArray);
+        data.put("express", expressArray);
         data.put("supplierId", supplierId);
         data.put("name", supplierEntity.getName());
         data.put("createTime", supplierEntity.getCreateTime());
@@ -255,7 +264,7 @@ public class SupplierService {
      * @param priceConfig
      * @param jsonObject
      */
-    private void setIDcardPriceData(JSONObject priceConfig, JSONObject jsonObject,String fixPrice) {
+    private void setIDcardPriceData(JSONObject priceConfig, JSONObject jsonObject, String fixPrice) {
         if (priceConfig != null) {
             if (priceConfig.containsKey("billingMode")) {
                 jsonObject.put("billingMode", priceConfig.getString("billingMode"));
@@ -336,11 +345,51 @@ public class SupplierService {
         }
     }
 
+    /**
+     * 设置地址修复价格
+     *
+     * @param priceConfig
+     * @param jsonObject
+     */
+    private void setAddressPriceData(JSONObject priceConfig, JSONObject jsonObject) {
+        if (priceConfig == null) return;
+        if (priceConfig.containsKey("billingMode")) {
+            jsonObject.put("billingMode", priceConfig.getString("billingMode"));
+        }
+        if (priceConfig.containsKey("addressPrice")) {
+            jsonObject.put("addressPrice", priceConfig.getString("addressPrice"));
+        }
+    }
+
+    /**
+     * 设置快递价格
+     *
+     * @param priceConfig
+     * @param jsonObject
+     */
+    private void setExpressPriceData(JSONObject priceConfig, JSONObject jsonObject) {
+        if (priceConfig == null) return;
+        //是否区分地域  1 区分  2 不区分
+        if (priceConfig.containsKey("districtMode")) {
+            jsonObject.put("districtMode", priceConfig.getString("districtMode"));
+        }
+        if (priceConfig.containsKey("districtNum")) {
+            jsonObject.put("districtNum", priceConfig.getString("districtNum"));
+        }
+        if (priceConfig.containsKey("express")) {
+            jsonObject.put("express", priceConfig.getString("express"));
+        }
+        if (priceConfig.containsKey("place")) {
+            jsonObject.put("place", priceConfig.getString("place"));
+        }
+    }
+
+
     private JSONObject selectResourcePriceConfig(String resourceId) {
 
         String rsql = " select * from t_market_resource_property where resource_id=" + resourceId + " and property_name='price_config' ";
         List<Map<String, Object>> list = supplierDao.sqlQuery(rsql);
-        if (list.size() > 0 && StringUtil.isNotEmpty(String.valueOf(list.get(0).get("priceConfig")))) {
+        if (list.size() > 0 && StringUtil.isNotEmpty(String.valueOf(list.get(0).get("property_value")))) {
             String priceConfig = (String) list.get(0).get("property_value");
             JSONObject json = JSON.parseObject(priceConfig);
             return json;
