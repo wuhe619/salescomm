@@ -5,11 +5,14 @@ import com.bdaim.auth.LoginUser;
 import com.bdaim.bill.dto.CustomerBillQueryParam;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.dto.PageParam;
+import com.bdaim.common.response.ResponseInfo;
+import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.rbac.dto.Page;
 import com.bdaim.supplier.dto.SupplierDTO;
 import com.bdaim.supplier.service.SupplierService;
 import org.apache.log4j.Logger;
+import org.springframework.data.redis.connection.ReactiveClusterSetCommands;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -68,9 +71,9 @@ public class SupplierAction extends BasicAction {
      */
     @RequestMapping(value = "/getSupplierList", method = RequestMethod.GET)
     @ResponseBody
-    public String listSupplierByPage(@Valid PageParam page, BindingResult error, String supplierId, String supplierName, String person, String phone, String serviceType) {
+        public ResponseInfo listSupplierByPage(@Valid PageParam page, BindingResult error, String supplierId, String supplierName, String person, String phone, String serviceType) {
         if (error.hasFieldErrors()) {
-            return getErrors(error);
+            return new ResponseInfoAssemble().failure(-1, "缺少分页参数");
         }
         Map<String, Object> resultMap = new HashMap<>();
         try {
@@ -79,12 +82,11 @@ public class SupplierAction extends BasicAction {
                 Page data = supplierService.listSupplierByPage(page, supplierId, supplierName, person, phone, serviceType);
                 resultMap.put("total", data.getTotal());
                 resultMap.put("list", data.getData());
-                return returnJsonData(resultMap);
             }
         } catch (Exception e) {
             LOG.error("查询供应商列表失败,", e);
         }
-        return returnJsonData("");
+        return new ResponseInfoAssemble().success(resultMap);
     }
 
 
