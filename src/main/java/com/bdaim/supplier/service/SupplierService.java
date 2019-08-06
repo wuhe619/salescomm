@@ -20,6 +20,7 @@ import com.bdaim.resource.entity.ResourcePropertyEntity;
 import com.bdaim.supplier.dao.SupplierDao;
 import com.bdaim.supplier.dto.SupplierDTO;
 import com.bdaim.supplier.entity.SupplierEntity;
+import com.bdaim.supplier.entity.SupplierPropertyEntity;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Service;
 
@@ -156,7 +157,22 @@ public class SupplierService {
             JSONArray resouArray = JSON.parseArray(supplierDTO.getConfig());
             handleResourceList(resouArray, resourceIdList);
         }
-
+        //关联资源信息保存
+        if (StringUtil.isNotEmpty(supplierDTO.getRelationResource())) {
+            log.info("供应商id是：" + supplierDTO.getSupplierId() + "关联的资源是：" + supplierDTO.getRelationResource());
+            //根据供应商信息查询关联信息
+            SupplierPropertyEntity SupplierProperty = supplierDao.getSupplierProperty(String.valueOf(supplierDTO.getSupplierId()), "express_resource");
+            if (SupplierProperty != null) {
+                SupplierProperty.setPropertyValue(supplierDTO.getRelationResource());
+            }else {
+                SupplierProperty = new SupplierPropertyEntity();
+                SupplierProperty.setSupplierId(String.valueOf(supplierDTO.getSupplierId()));
+                SupplierProperty.setPropertyName("express_resource");
+                SupplierProperty.setPropertyValue(supplierDTO.getRelationResource());
+                SupplierProperty.setCreateTime(DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss));
+            }
+            supplierDao.saveOrUpdate(SupplierProperty);
+        }
     }
 
 
