@@ -18,6 +18,7 @@ public class CustomerBillQueryParam {
     private String supplierId;
     private String date;
     private String batchId;
+    private String batchName;
 
     private String startTime;
     private String endTime;
@@ -33,6 +34,14 @@ public class CustomerBillQueryParam {
     private Integer payMode;
     private Long userId;
     private String dealType;
+
+    public String getBatchName() {
+        return batchName;
+    }
+
+    public void setBatchName(String batchName) {
+        this.batchName = batchName;
+    }
 
     public String getEndTime() {
         return endTime;

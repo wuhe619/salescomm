@@ -1,22 +1,21 @@
 package com.bdaim.bill.controller;
 
-import com.bdaim.common.response.ResponseInfo;
-import com.bdaim.common.response.ResponseInfoAssemble;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import com.alibaba.fastjson.JSON;
 import com.bdaim.auth.LoginUser;
 import com.bdaim.bill.dto.CustomerBillQueryParam;
 import com.bdaim.bill.dto.SupplierBillQueryParam;
-import com.bdaim.bill.service.BillService;
 import com.bdaim.bill.service.impl.BillServiceImpl;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.dto.PageParam;
+import com.bdaim.common.response.ResponseInfo;
+import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.common.util.page.Page;
-
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -39,11 +38,11 @@ import java.util.Map;
 @RequestMapping(value = "/bill")
 public class BillAction extends BasicAction {
     private static Log logger = LogFactory.getLog(BillAction.class);
-    @Resource
-    BillService billService;
+   /* @Resource
+    BillService billService;*/
 
     @Resource
-    BillServiceImpl billServiceImp;
+    BillServiceImpl billService;
 
     /*
      *
@@ -53,7 +52,7 @@ public class BillAction extends BasicAction {
     @ResponseBody
     public ResponseInfo customerBillQuery(@Valid PageParam page, BindingResult error, CustomerBillQueryParam param) {
         if (error.hasFieldErrors()) {
-           return  new ResponseInfoAssemble().failure(-1,"缺少必要参数");
+            return new ResponseInfoAssemble().failure(-1, "缺少必要参数");
         }
         LoginUser lu = opUser();
         Page list = null;
@@ -73,7 +72,7 @@ public class BillAction extends BasicAction {
                         String custId = map.get("cust_id");
                         if (StringUtil.isNotEmpty(custId)) {
                             Map<String, String> amountMap = billService.queryCustomerConsumeTotal(custId, billDate);
-                            String amountSum = null, profitAmount = null,supAmountSum=null;
+                            String amountSum = null, profitAmount = null, supAmountSum = null;
                             if (amountMap != null && amountMap.size() > 0) {
                                 amountSum = amountMap.get("amountSum");
                                 profitAmount = amountMap.get("profitAmount");
@@ -89,7 +88,7 @@ public class BillAction extends BasicAction {
             }
             //查询利润和总消费金额
             String profitSumTotal = null, custSumAmount = null;
-            Map<String, String> profitMap = billServiceImp.queryAllAmount(billDate);
+            Map<String, String> profitMap = billService.queryAllAmount(billDate);
             if (profitMap.size() > 0) {
                 profitSumTotal = df.format(new BigDecimal(profitMap.get("profitAmount")));
                 custSumAmount = df.format(new BigDecimal(profitMap.get("amountSum")));
@@ -261,6 +260,30 @@ public class BillAction extends BasicAction {
      */
     @RequestMapping(value = "/exportSettlement", method = RequestMethod.GET)
     public void exportSettlementBill(HttpServletResponse response, String custId, String billDate) {
-        billServiceImp.exportSettlementBill(response, custId, billDate);
+        billService.exportSettlementBill(response, custId, billDate);
+    }
+
+    /*
+     *
+     * 企业账单展示（根据批次进行展示）
+     * */
+    @RequestMapping(value = "/listCustomerBill", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseInfo getListCustomerBill(@RequestBody CustomerBillQueryParam param) {
+        LoginUser lu = opUser();
+        Page page = null;
+        try {
+            if ("ROLE_USER".equals(lu.getRole()) || "admin".equals(lu.getRole())) {
+                page = billService.getListCustomerBill(param);
+            } else {
+                String custId = opUser().getCustId();
+                param.setCustomerId(custId);
+                page = billService.getListCustomerBill(param);
+            }
+        } catch (Exception e) {
+            logger.error("查询账单异常", e);
+            return new ResponseInfoAssemble().failure(-1, "查询账单异常");
+        }
+        return new ResponseInfoAssemble().success(page);
     }
 }
