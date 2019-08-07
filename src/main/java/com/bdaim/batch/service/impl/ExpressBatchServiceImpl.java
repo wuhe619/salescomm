@@ -88,11 +88,23 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         //3.2 获取并保存批次详情信息 (因为第一行为标题，所以从第二行开始遍历)
         // nl_batch_detail中的id表示收件人ID label_seven是校验结果 1有效 2 无效
         for (int i = 1; i < contentList.size(); i++) {
-            StringBuffer batchDetailSql = new StringBuffer("INSERT INTO nl_batch_detail (id,label_one,label_two,label_three," +
-                    "label_four,batch_id) VALUES ('" +
-                    contentList.get(i).get(0) + "','" + contentList.get(i).get(1) + "','" + contentList.get(i).get(2) + "','" +
-                    contentList.get(i).get(4) + "','" + contentList.get(i).get(3) + "','" + batchId + "')");
-            jdbcTemplate.update(batchDetailSql.toString());
+            /**
+             * label_five 自带ID，对应收件人ID
+             * label_one 姓名
+             * label_two 电话
+             * label_four 地址(收件人信息excel中的地址)
+             * label_three 身份证号码
+             * batch_id 对应nl_batch主表中的id
+             * status 是修复状态，这里表示校验状态 0.无效、1.有效、2.校验中(此时为【2】【校验中】)
+             * label_seven 是快件状态 1、待上传内容2、待发件3、待取件4、已发件(此时为【1】【待上传内容】)
+             */
+            StringBuffer batchDetailInsert = new StringBuffer("INSERT INTO nl_batch_detail (label_five,label_one,label_two," +
+                    "label_four,label_three,batch_id," +
+                    "status,label_seven) VALUES ('");
+            batchDetailInsert.append(contentList.get(i).get(0)).append("','").append(contentList.get(i).get(1)).append("','").append(contentList.get(i).get(2))
+                    .append("','").append(contentList.get(i).get(3)).append("','").append(contentList.get(i).get(4)).append("','").append(batchId)
+                    .append("','2','1')");
+            jdbcTemplate.update(batchDetailInsert.toString());
         }
         return new ResponseInfoAssemble().success(null);
     }
@@ -167,8 +179,9 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         pageParam.setPageNum(NumberConvertUtil.parseInt(String.valueOf(map.get("page_num"))));
         pageParam.setPageSize(NumberConvertUtil.parseInt(String.valueOf(map.get("page_size"))));
         StringBuffer hql = new StringBuffer("SELECT t2.id,t2.batch_id AS batchId,t2.label_one AS name,t2.label_two AS phone,t2.label_four AS address," +
-                "t2.label_six AS fileCode,t2.label_seven AS statusId,CASE t2.label_seven WHEN '1' THEN '有效' WHEN '2' THEN '无效' END AS checkingResult," +
-                "CASE t2.status WHEN '1' THEN '待上传内容' WHEN '2' THEN '待发件' WHEN '3' THEN '待取件' WHEN '4' THEN '已发件' END AS status," +
+                "t2.label_six AS fileCode,CASE t2.label_seven WHEN '1' THEN '待上传内容' WHEN '2' THEN '待发件'" +
+                " WHEN '3' THEN '待取件' WHEN '4' THEN '已发件' END AS expressStatus," +
+                "CASE t2.status WHEN '1' THEN '有效' WHEN '0' THEN '无效' ELSE '修复中' END AS status," +
                 "t1.property_value AS expressContentType" +
                 "  FROM  nl_batch_detail t2 LEFT JOIN nl_batch_property t1 ON t2.batch_id=t1.batch_id WHERE");
         List<String> values = new ArrayList();
@@ -179,9 +192,9 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
             hql.append(" t2.batch_id = '" + batchId + "' ");
         }
         //收件人ID
-        String id = String.valueOf(map.get("id"));
+        String id = String.valueOf(map.get("receiver_id"));
         if (!nullString.equals(id) && StringUtil.isNotEmpty(id)) {
-            hql.append(" AND t2.id = '" + id + "'");
+            hql.append(" AND t2.label_five = '" + id + "'");
         }
         //姓名
         String name = String.valueOf(map.get("name"));
@@ -195,17 +208,17 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
             hql.append(" AND t2.label_six = '" + fileCode + "'");
         }
         //校验结果
-        String checkingResult = String.valueOf(map.get("checking_result"));
-        if (!nullString.equals(checkingResult) && StringUtil.isNotEmpty(checkingResult)) {
-            hql.append(" AND t2.label_seven = '" + checkingResult + "'");
-        }
-        //快件状态
         String status = String.valueOf(map.get("status"));
         if (!nullString.equals(status) && StringUtil.isNotEmpty(status)) {
             hql.append(" AND t2.status = '" + status + "'");
+        }
+        //快件状态
+        String checkingResult = String.valueOf(map.get("express_status"));
+        if (!nullString.equals(status) && StringUtil.isNotEmpty(status)) {
+            hql.append(" AND t2.label_seven = '" + checkingResult + "'");
             values.add(status);
         }
-        hql.append(" ORDER BY t2.id DESC ");
+        hql.append(" GROUP BY t2.id ORDER BY t2.id DESC ");
         Page page = new Pagination().getPageData(hql.toString(), null, pageParam, jdbcTemplate);
         List<Map<String, Object>> list = page.getList();
         Map<String, Object> resultMap = new HashMap<>(10);
