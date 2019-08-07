@@ -207,20 +207,18 @@ public class AccountAction extends BasicAction {
     @ResponseBody
     public Object querySuppliserAccountsByCondition(@Valid PageParam page, BindingResult error, CustomerBillQueryParam queryParam) {
         if (error.hasFieldErrors()) {
-            return getErrors(error);
+            return new ResponseInfoAssemble().failure(-1,"缺少分页参数");
         }
         LoginUser lu = opUser();
         Page list = null;
         Map<String, Object> resultMap = new HashMap<>();
         if ("ROLE_USER".equals(lu.getRole()) || "admin".equals(lu.getRole())) {
-            String custID = lu.getCustId();
-            queryParam.setCustomerId("0");
             list = accountService.querySupplierAcctsByCondition(page, queryParam);
             String basePath = "/pic";
             resultMap.put("basePath", basePath);
             resultMap.put("list", list);
         }
-        return JSON.toJSONString(resultMap);
+        return new ResponseInfoAssemble().success(resultMap);
     }
 
     /*

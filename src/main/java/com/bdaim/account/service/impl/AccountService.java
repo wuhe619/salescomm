@@ -88,7 +88,7 @@ public class AccountService {
         int action = param.getAction();
         String dealType = param.getDealType();
         String supplierId = param.getSupplierId();
-        boolean deductionsStatus =false;
+        boolean deductionsStatus = false;
         BigDecimal moneySale;
         int type = 0;
         try {
@@ -105,7 +105,7 @@ public class AccountService {
                     type = TransactionEnum.BALANCE_RECHARGE.getType();
                     deductionsStatus = customerDao.accountRecharge(custId, moneySale);
                 }
-            } else if (1 == action){
+            } else if (1 == action) {
                 //扣减
                 if (StringUtil.isNotEmpty(dealType) && dealType.equals("0")) {
                     type = TransactionEnum.SUPPLIER_DEDUCTION.getType();
@@ -113,7 +113,6 @@ public class AccountService {
                     deductionsStatus = sourceDao.supplierAccountDuctions(supplierId, moneySale);
                 } else {
                     //企业资金扣减
-                    type = TransactionEnum.BALANCE_DEDUCTION.getType();
                     deductionsStatus = customerDao.accountDeductions(custId, moneySale);
                 }
             }
@@ -229,12 +228,21 @@ public class AccountService {
         StringBuilder sqlBuilder = new StringBuilder("SELECT p.`name` source_name, t.create_time,t.transaction_id,p.supplier_id,t.amount/100 as amount,u.REALNAME realname , t.certificate ");
         sqlBuilder.append("FROM t_transaction_bill t");
         sqlBuilder.append(" LEFT JOIN t_supplier p ON t.supplier_id = p.supplier_id\n");
-        sqlBuilder.append("LEFT JOIN t_user u ON t.user_id = u.ID WHERE t.type =" + TransactionEnum.SUPPLIER_RECHARGE.getType() + " \n");
+        sqlBuilder.append("LEFT JOIN t_user u ON t.user_id = u.ID WHERE 1=1\n");
         if (StringUtil.isNotEmpty(queryParam.getTransactionId())) {
             sqlBuilder.append(" and t.transaction_id= " + queryParam.getTransactionId());
         }
+        if (StringUtil.isNotEmpty(queryParam.getType())) {
+            sqlBuilder.append(" and t.type= " + queryParam.getType());
+        }
         if (StringUtil.isNotEmpty(queryParam.getSupplierId())) {
             sqlBuilder.append(" and t.supplier_id= " + queryParam.getSupplierId());
+        }
+        if (StringUtil.isNotEmpty(queryParam.getStartTime())) {
+            sqlBuilder.append(" AND t.create_time >= '" + queryParam.getStartTime() + "'");
+        }
+        if (StringUtil.isNotEmpty(queryParam.getEndTime())) {
+            sqlBuilder.append(" AND t.create_time <='" + queryParam.getEndTime() + "'");
         }
         if (StringUtil.isNotEmpty(queryParam.getBillDate())) {
             sqlBuilder.append(" and DATE_FORMAT(t.create_time, '%Y%m') like'" + queryParam.getBillDate() + "'");
