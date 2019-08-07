@@ -4,6 +4,7 @@ import com.bdaim.batch.service.ExpressBatchService;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.common.util.FileUrlEntity;
+import com.github.crab2died.ExcelUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +14,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -57,13 +60,13 @@ public class ExpressBatchController {
                 fileName = "file_code_receipt_mapping.xlsx";
             }
             String pathF = PROPERTIES.getProperty("file.separator");
-            classPath = classPath.replace("/",pathF);
+            classPath = classPath.replace("/", pathF);
             String path = classPath + pathF + fileName;
 
             //下载的response属性设置
             response.setCharacterEncoding("utf-8");
-            response.setContentType("application/force-download");
-//            response.setContentType("application/vnd.ms-excel;charset=utf-8");
+//            response.setContentType("application/force-download");
+            response.setContentType("application/vnd.ms-excel;charset=utf-8");
             String returnName = response.encodeURL(new String(fileName.getBytes(), "iso8859-1"));   //保存的文件名,必须和页面编码一致,否则乱码
             response.addHeader("Content-Disposition", "attachment;filename=" + returnName);
             in = new FileInputStream(new File(path));
@@ -93,8 +96,10 @@ public class ExpressBatchController {
     /**
      * 上传发件信息(上传excel文件,对文件中的收件人信息进行批量导入)
      *
-     * @param multipartFile excel文件
-     * @param batchName     批次名称
+     * @param file               excel文件
+     * @param batchName          批次名称
+     * @param expressContentType 快件内容 1、电子版 2、打印版
+     * @param custId             企业ID，用户登录后获取custId
      * @return
      * @auther Chacker
      * @date 2019/7/31 14:54
@@ -167,20 +172,25 @@ public class ExpressBatchController {
     }
 
     /**
-     * 通过文件编码获取pdf
+     * 通过批次ID和收件人ID获取pdf
      *
-     * @param
+     * @param batchId    批次ID
+     * @param receiverId 收件人ID
      * @return
      * @auther Chacker
      * @date 2019/8/7 11:33
      */
-    @RequestMapping(value = "readFileByCode", method = RequestMethod.GET)
+    @RequestMapping(value = "/getPdfByReceiverId", method = RequestMethod.GET)
     @ResponseBody
-    public void readFileByCode(@RequestParam String fileCode, HttpServletResponse response) throws IOException {
-        //根据文件编码fileCode找到pdf所存储的路径
+    public void readFileByCode(@RequestParam String batchId, String receiverId, HttpServletResponse response) throws IOException {
+        //根据批次ID batchId 和 收件人ID receiverId 找到pdf所存储的路径
+        String pdfPath = expressBatchService.findPdfPathByReceiverId(batchId, receiverId);
+        //设置response属性
+//        response.setCharacterEncoding("UTF-8");
+        response.setContentType("application/pdf");
 
         //通过输出流输出pdf文件
-        FileInputStream inputStream = new FileInputStream(new File("pdf文件路径"));
+        FileInputStream inputStream = new FileInputStream(new File(pdfPath));
         OutputStream outputStream = response.getOutputStream();
         byte[] b = new byte[1024];
         int length;
@@ -189,6 +199,54 @@ public class ExpressBatchController {
         }
         outputStream.flush();
         inputStream.close();
+        outputStream.close();
+    }
+
+
+    /**
+     * 导出批次详情
+     *
+     * @param batch_id 批次ID
+     * @param response response
+     * @return
+     * @auther Chacker
+     * @date 2019/8/7 20:38
+     */
+    @RequestMapping(value = "/batchDetailExport", method = RequestMethod.GET)
+    @ResponseBody
+    public void batchDetailExport(@RequestParam String batch_id, HttpServletResponse response) throws IOException {
+        //根据批次ID找到数据信息
+        List<Map<String, Object>> dataList = expressBatchService.findDetailByBatchId(batch_id);
+        List<String> header = new ArrayList<>();
+        header.add("文件编码(不能重复)");
+        header.add("收件ID(不能重复)");
+        header.add("姓名");
+        header.add("电话");
+        header.add("地址");
+        //下载的response属性设置
+        response.setCharacterEncoding("utf-8");
+//        response.setContentType("application/force-download");
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        String fileName = "批次详情.xlsx";
+        String returnName = response.encodeURL(new String(fileName.getBytes(), "iso8859-1"));   //保存的文件名,必须和页面编码一致,否则乱码
+        response.addHeader("Content-Disposition", "attachment;filename=" + returnName);
+        OutputStream outputStream = response.getOutputStream();
+
+        List<List<Object>> data = new ArrayList<>();
+        List<Object> rowList;
+        for (Map<String, Object> column : dataList) {
+            rowList = new ArrayList<>();
+            rowList.add(column.get("fileCode") != null ? column.get("fileCode") : "");
+            rowList.add(column.get("receiverId") != null ? column.get("receiverId") : "");
+            rowList.add(column.get("name") != null ? column.get("name") : "");
+            rowList.add(column.get("phone") != null ? column.get("phone") : "");
+            rowList.add(column.get("address") != null ? column.get("address") : "");
+            data.add(rowList);
+        }
+
+
+        ExcelUtils.getInstance().exportObjects2Excel(data, header, outputStream);
+        outputStream.flush();
         outputStream.close();
     }
 

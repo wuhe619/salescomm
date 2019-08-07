@@ -74,12 +74,12 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
             return new ResponseInfoAssemble().failure(HttpStatus.BAD_REQUEST.value(), "请保证一次上传数据不超过1000条记录");
         }
         //3. 把批次信息和批次详情列表存入数据库
-        //3.1 设置并新增保存批次信息 (status 为"1",表示 【校验中】)
+        //3.1 设置并新增保存批次信息 (status 为"1",表示 【校验中】) (certify_type是修复方式 3.表示快递地址修复)
         StringBuffer insertBatchSql = new StringBuffer("INSERT INTO nl_batch (id,batch_name,upload_time,comp_id,certify_type,channel,status," +
                 "upload_num) VALUES ('");
         String batchId = String.valueOf(System.currentTimeMillis());
         insertBatchSql.append(batchId + "','" + batchName + "',now(),'"
-                + custId + "','-1','-1','1','" + (contentList.size() - 1) + "')");
+                + custId + "','3','-1','1','" + (contentList.size() - 1) + "')");
         jdbcTemplate.update(insertBatchSql.toString());
         //把快递内容(1. 电子版 2. 打印版)存入批次属性表
         String insertBatchProperty = "INSERT INTO nl_batch_property (batch_id,property_name,property_value,create_time)" +
@@ -178,11 +178,11 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         PageParam pageParam = new PageParam();
         pageParam.setPageNum(NumberConvertUtil.parseInt(String.valueOf(map.get("page_num"))));
         pageParam.setPageSize(NumberConvertUtil.parseInt(String.valueOf(map.get("page_size"))));
-        StringBuffer hql = new StringBuffer("SELECT t2.label_five AS receiverId,t2.batch_id AS batchId,t2.label_one AS name,t2.label_two AS phone,t2.label_four AS address," +
+        StringBuffer hql = new StringBuffer("SELECT t2.id AS addressId,t2.label_five AS receiverId,t2.batch_id AS batchId,t2.label_one AS name,t2.label_two AS phone,t2.label_four AS address," +
                 "t2.label_six AS fileCode,CASE t2.label_seven WHEN '1' THEN '待上传内容' WHEN '2' THEN '待发件'" +
                 " WHEN '3' THEN '待取件' WHEN '4' THEN '已发件' END AS expressStatus," +
-                "CASE t2.status WHEN '1' THEN '有效' WHEN '0' THEN '无效' ELSE '修复中' END AS status," +
-                "t1.property_value AS expressContentType" +
+                "CASE t2.status WHEN '1' THEN '有效' WHEN '0' THEN '无效' ELSE '校验中' END AS status,t2.status AS statusId," +
+                "t2.label_seven AS expressStatusId,t1.property_value AS expressContentType" +
                 "  FROM  nl_batch_detail t2 LEFT JOIN nl_batch_property t1 ON t2.batch_id=t1.batch_id WHERE");
         List<String> values = new ArrayList();
         //批次编号
@@ -218,7 +218,7 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
             hql.append(" AND t2.label_seven = '" + checkingResult + "'");
             values.add(status);
         }
-        hql.append(" GROUP BY t2.id ORDER BY t2.id DESC ");
+        hql.append(" ORDER BY t2.id DESC ");
         Page page = new Pagination().getPageData(hql.toString(), null, pageParam, jdbcTemplate);
         List<Map<String, Object>> list = page.getList();
         Map<String, Object> resultMap = new HashMap<>(10);
@@ -312,6 +312,25 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
             file.createNewFile();
         }
         FileUtils.copyInputStreamToFile(multipartFile.getInputStream(), file);
+    }
+
+    @Override
+    public List<Map<String, Object>> findDetailByBatchId(String batch_id) {
+        StringBuffer sql = new StringBuffer("SELECT label_six AS fileCode,label_five AS receiverId,label_one")
+                .append(" AS name,label_two AS phone,label_four AS address FROM nl_batch_detail")
+                .append(" WHERE batch_id='")
+                .append(batch_id)
+                .append("'");
+        List<Map<String, Object>> result = jdbcTemplate.queryForList(sql.toString());
+        return result;
+    }
+
+    @Override
+    public String findPdfPathByReceiverId(String batchId, String receiverId) {
+        String sql = "SELECT label_eight AS pdfPath FROM nl_batch_detail WHERE batch_id='" + batchId + "' AND label_five='" + receiverId + "'";
+        Map<String, Object> map = jdbcTemplate.queryForMap(sql);
+        String pdfPath = String.valueOf(map.get("pdfPath"));
+        return pdfPath;
     }
 
 
