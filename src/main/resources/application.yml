@@ -8,12 +8,18 @@ spring:
     password: dev__807
     url: jdbc:mysql://192.168.32.200/label?characterEncoding=utf-8&useSSL=false
     #url: jdbc:mysql://127.0.0.1/label?characterEncoding=utf-8&useSSL=false
+    hikari:
+      auto-commit: true
+      minimum-idle: 5
+      maximum-pool-size: 15
+      connection-timeout: 3000
+      connection-test-query: select 1
   jpa:
     show-sql: true
     open-in-view: true
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.MySQLDialect
+        dialect: org.hibernate.dialect.MySQL5InnoDBDialect
         new_generator_mappings: false
         current_session_context_class: org.springframework.orm.hibernate5.SpringSessionContext
         naming-strategy: org.hibernate.cfg.ImprovedNamingStrategy
@@ -23,3 +29,5 @@ spring:
   redis:
     host: 192.168.32.200
     port: 6379
+file:
+  file_path: /data/file

@@ -66,4 +66,25 @@ public interface ExpressBatchService {
      * @date 2019/8/6 23:29
      */
     void uploadModelFile(MultipartFile multipartFile) throws IOException;
+
+    /**
+     * 根据批次ID找到批次详情信息
+     *
+     * @param batch_id
+     * @return
+     * @auther Chacker
+     * @date 2019/8/7 19:26
+     */
+    List<Map<String, Object>> findDetailByBatchId(String batch_id);
+
+    /**
+     * 通过批次ID和收件人ID找到pdf存储路径
+     *
+     * @param batchId    批次ID
+     * @param receiverId 收件人ID
+     * @return
+     * @auther Chacker
+     * @date 2019/8/7 20:52
+     */
+    String findPdfPathByReceiverId(String batchId, String receiverId);
 }
