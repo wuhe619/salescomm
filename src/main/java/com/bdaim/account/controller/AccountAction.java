@@ -150,25 +150,13 @@ public class AccountAction extends BasicAction {
     @RequestMapping(value = "/balance/operate", method = RequestMethod.POST)
     @ResponseBody
     public ResponseInfo banlanceChange(@RequestBody CustomerBillQueryParam param) {
-        Map<String, Object> resultMap = new HashMap<>();
         try {
             if ("ROLE_USER".equals(opUser().getRole()) || "admin".equals(opUser().getRole())) {
                 if (opUser().getId() != null) {
                     param.setUserId(opUser().getId());
                 }
-                Integer action = param.getAction();
-                //action 0 充值   1扣减
-                if (action != null && action.equals(1)) {
                     accountService.changeBalance(param);
                     return new ResponseInfoAssemble().success(null);
-                } else if (action != null && action.equals(0)) {
-                    if (StringUtil.isNotEmpty(param.getDealType()) && param.getDealType().equals("0")) {
-                        param.setCustomerId("2");//暂时供应商联通资金添加
-                    }
-                    //企业充值  或  供应商资金添加
-                    accountService.changeBalance(param);
-                    return new ResponseInfoAssemble().success(null);
-                }
             }
         } catch (Exception e) {
             logger.error("账户充值扣减失败!\t" + e.getMessage());

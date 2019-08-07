@@ -88,26 +88,34 @@ public class AccountService {
         int action = param.getAction();
         String dealType = param.getDealType();
         String supplierId = param.getSupplierId();
-        boolean deductionsStatus;
+        boolean deductionsStatus =false;
         BigDecimal moneySale;
+        int type = 0;
         try {
             moneySale = new BigDecimal(amount * 100);
             moneySale = moneySale.multiply(new BigDecimal(1));
             //充值
             if (0 == action) {
                 if (StringUtil.isNotEmpty(dealType) && dealType.equals("0")) {
-                    action = TransactionEnum.SUPPLIER_RECHARGE.getType();
+                    type = TransactionEnum.SUPPLIER_RECHARGE.getType();
                     //供应商资金充值
                     deductionsStatus = sourceDao.accountSupplierRecharge(supplierId, moneySale);
                 } else {
                     //企业资金充值
-                    action = TransactionEnum.BALANCE_RECHARGE.getType();
+                    type = TransactionEnum.BALANCE_RECHARGE.getType();
                     deductionsStatus = customerDao.accountRecharge(custId, moneySale);
                 }
-            } else {
+            } else if (1 == action){
                 //扣减
-                action = TransactionEnum.BALANCE_DEDUCTION.getType();
-                deductionsStatus = customerDao.accountDeductions(custId, moneySale);
+                if (StringUtil.isNotEmpty(dealType) && dealType.equals("0")) {
+                    type = TransactionEnum.SUPPLIER_DEDUCTION.getType();
+                    //供应商资金扣减
+                    deductionsStatus = sourceDao.supplierAccountDuctions(supplierId, moneySale);
+                } else {
+                    //企业资金扣减
+                    type = TransactionEnum.BALANCE_DEDUCTION.getType();
+                    deductionsStatus = customerDao.accountDeductions(custId, moneySale);
+                }
             }
         } catch (Exception e) {
             logger.error(custId + " 账户充值扣款失败,", e);
@@ -131,7 +139,7 @@ public class AccountService {
                     transactionId = param.getTransactionId();
                 }
                 // 保存交易记录根据supplierId查询resourceId
-                transactionService.saveTransactionLog(custId, action, moneySale.intValue(), payMode, supplierId, remark, userId, path, transactionId, 0, null);
+                transactionService.saveTransactionLog(custId, type, moneySale.intValue(), payMode, supplierId, remark, userId, path, transactionId, 0, null);
             } catch (Exception e) {
                 logger.error(custId + " 保存交易记录失败,", e);
             }
