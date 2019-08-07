@@ -1227,7 +1227,7 @@ public class BillServiceImpl implements BillService {
         PageParam page = new PageParam();
         page.setPageNum(param.getPageNum());
         page.setPageSize(param.getPageSize());
-        StringBuffer querySql = new StringBuffer("SELECT b.batch_id batchId,n.batch_name batchName,n.upload_time uploadTime,SUM(b.amount) amount , ");
+        StringBuffer querySql = new StringBuffer("SELECT b.batch_id batchId,n.batch_name batchName,n.upload_time uploadTime,IFNULL(SUM(b.amount) / 100,0) amount ,IFNULL(SUM(b.prod_amount) / 100,0) prodAmount , ");
         querySql.append("( SELECT COUNT(id) FROM nl_batch_detail WHERE batch_id = b.batch_id ) fixNumber ");
         querySql.append("FROM stat_bill_month b LEFT JOIN nl_batch n ON b.batch_id = n.id ");
         querySql.append("WHERE n.certify_type = 3 ");
@@ -1244,7 +1244,16 @@ public class BillServiceImpl implements BillService {
             querySql.append(" AND b.stat_time = '" + param.getDate() + "' ");
         }
         querySql.append("GROUP BY b.batch_id ");
-        return new Pagination().getPageData(querySql.toString(), null, page, jdbcTemplate);
+        Page data = new Pagination().getPageData(querySql.toString(), null, page, jdbcTemplate);
+        if (data != null) {
+            List<Map<String, Object>> list = data.getList();
+            for (int i = 0; i < list.size(); i++) {
+                logger.info("企业消费金额是：" + String.valueOf(list.get(i).get("amount")) + "成本费用是：" + String.valueOf(list.get(i).get("prodAmount")));
+                String profitAmount = new BigDecimal(String.valueOf(list.get(i).get("amount"))).subtract(new BigDecimal(String.valueOf(list.get(i).get("prodAmount")))).setScale(2, BigDecimal.ROUND_DOWN).toString();
+                list.get(i).put("profitAmount", profitAmount);
+            }
+        }
+        return data;
     }
 }
 
