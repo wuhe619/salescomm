@@ -48,7 +48,8 @@ public class ExpressBatchController {
         OutputStream bos = null;
         try {
             //获取resources下的模板文件路径
-            String classPath = this.getClass().getResourceAsStream("").toString();
+//            String classPath = this.getClass().getResourceAsStream("/").toString();
+            String classPath = "/express/model";
             logger.error("hello classpath" + classPath);
             String fileName = null;
             if ("1".equals(file_type)) {
@@ -57,7 +58,7 @@ public class ExpressBatchController {
                 fileName = "file_code_receipt_mapping.xlsx";
             }
             String pathF = PROPERTIES.getProperty("file.separator");
-            String path = classPath + pathF + fileName;
+            String path = classPath +pathF+ fileName;
 
             //下载的response属性设置
             response.setCharacterEncoding("utf-8");
@@ -143,11 +144,27 @@ public class ExpressBatchController {
      * @auther Chacker
      * @date 2019/8/6 11:46
      */
-//    @RequestMapping(value = "/sendMessageUpload",method = RequestMethod.POST)
-//    @ResponseBody
-//    public ResponseInfo sendMessageUpload(MultipartFile expressContent,MultipartFile fileCodeMapping,String[] receiverId){
-//        ResponseInfo
-//    }
+    @RequestMapping(value = "/sendMessageUpload", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseInfo sendMessageUpload(MultipartFile expressContent, MultipartFile fileCodeMapping, String[] receiverId, String batchId) throws IOException {
+        ResponseInfo result = expressBatchService.sendMessageUpload(expressContent, fileCodeMapping, receiverId, batchId);
+        return result;
+    }
+
+    /**
+     * 上传模板文件，此接口不对前端提供，只是后端人员在(换环境)发布程序后使用
+     *
+     * @param
+     * @return
+     * @auther Chacker
+     * @date 2019/8/6 23:28
+     */
+    @RequestMapping(value = "/uploadModelFile", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseInfo uploadModelFile(MultipartFile multipartFile) throws IOException {
+        expressBatchService.uploadModelFile(multipartFile);
+        return new ResponseInfoAssemble().success(null);
+    }
 
 }
 
