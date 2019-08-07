@@ -384,6 +384,7 @@ public class BillServiceImpl implements BillService {
             profitAmount = new BigDecimal(consumeTotal).subtract(new BigDecimal(supAmountSum)).setScale(2, BigDecimal.ROUND_DOWN).toString();
         }
         map.put("amountSum", consumeTotal);
+        map.put("supAmountSum", supAmountSum);
         map.put("profitAmount", profitAmount);
         return map;
     }

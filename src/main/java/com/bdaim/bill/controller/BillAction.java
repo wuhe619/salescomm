@@ -1,5 +1,7 @@
 package com.bdaim.bill.controller;
 
+import com.bdaim.common.response.ResponseInfo;
+import com.bdaim.common.response.ResponseInfoAssemble;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import com.alibaba.fastjson.JSON;
@@ -49,9 +51,9 @@ public class BillAction extends BasicAction {
      * */
     @RequestMapping(value = "/customerBill/query", method = RequestMethod.GET)
     @ResponseBody
-    public Object customerBillQuery(@Valid PageParam page, BindingResult error, CustomerBillQueryParam param) {
+    public ResponseInfo customerBillQuery(@Valid PageParam page, BindingResult error, CustomerBillQueryParam param) {
         if (error.hasFieldErrors()) {
-            return getErrors(error);
+           return  new ResponseInfoAssemble().failure(-1,"缺少必要参数");
         }
         LoginUser lu = opUser();
         Page list = null;
@@ -71,12 +73,14 @@ public class BillAction extends BasicAction {
                         String custId = map.get("cust_id");
                         if (StringUtil.isNotEmpty(custId)) {
                             Map<String, String> amountMap = billService.queryCustomerConsumeTotal(custId, billDate);
-                            String amountSum = null, profitAmount = null;
+                            String amountSum = null, profitAmount = null,supAmountSum=null;
                             if (amountMap != null && amountMap.size() > 0) {
                                 amountSum = amountMap.get("amountSum");
                                 profitAmount = amountMap.get("profitAmount");
+                                supAmountSum = amountMap.get("supAmountSum");
                                 map.put("amountSum", amountSum);
                                 map.put("profit", profitAmount);
+                                map.put("supAmountSum", supAmountSum);
                             }
 
                         }
@@ -96,7 +100,7 @@ public class BillAction extends BasicAction {
             resultMap.put("profitSumTotal", profitSumTotal);
             resultMap.put("custSumAmount", custSumAmount);
         }
-        return JSON.toJSONString(resultMap);
+        return new ResponseInfoAssemble().success(resultMap);
     }
 
     /*
