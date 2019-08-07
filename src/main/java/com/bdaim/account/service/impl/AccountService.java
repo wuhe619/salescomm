@@ -22,11 +22,13 @@ import javax.transaction.Transactional;
 import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 
 @Service("accountService")
@@ -197,6 +199,12 @@ public class AccountService {
         }
         if (StringUtil.isNotEmpty(queryParam.getRealname())) {
             sqlBuilder.append(" and cu.realname like '%" + queryParam.getRealname() + "%'");
+        }
+        if (StringUtil.isNotEmpty(queryParam.getStartTime())) {
+            sqlBuilder.append(" AND t.create_time >= '" + queryParam.getStartTime() + "'");
+        }
+        if (StringUtil.isNotEmpty(queryParam.getEndTime())) {
+            sqlBuilder.append(" AND t.create_time <='" + queryParam.getEndTime() + "'");
         }
         sqlBuilder.append(" ORDER BY t.create_time desc ");
         logger.info("企业充值扣减记录sql:" + sqlBuilder.toString());

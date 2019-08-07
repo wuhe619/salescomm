@@ -17,8 +17,6 @@ import com.bdaim.common.util.StringUtil;
 import com.bdaim.common.util.page.Page;
 import com.bdaim.customer.entity.CustomerUserDO;
 import com.bdaim.customer.service.CustomerService;
-import com.bdaim.supplier.dto.SupplierEnum;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.stereotype.Controller;
@@ -108,7 +106,7 @@ public class AccountAction extends BasicAction {
     @ResponseBody
     public ResponseInfo queryAccountsByCondition(@Valid PageParam page, BindingResult error, CustomerBillQueryParam queryParam) {
         if (error.hasFieldErrors()) {
-           return new ResponseInfoAssemble().failure(-1,"缺少必要參數");
+            return new ResponseInfoAssemble().failure(-1, "缺少必要參數");
         }
         LoginUser lu = opUser();
         Page list = null;
@@ -174,25 +172,24 @@ public class AccountAction extends BasicAction {
             }
         } catch (Exception e) {
             logger.error("账户充值扣减失败!\t" + e.getMessage());
-            return new ResponseInfoAssemble().failure(-1,"账户操作失败");
+            return new ResponseInfoAssemble().failure(-1, "账户操作失败");
         }
         return new ResponseInfoAssemble().success(null);
     }
 
     /*
      *
-     * 后台 资金管理--企业资金--充值记录
+     * 后台 资金管理--企业资金--充值扣減
      *
      * */
     @RequestMapping(value = "/queryCustomerRecords", method = RequestMethod.GET)
     @ResponseBody
-    public String queryAccountsRecordsByCondition(@Valid PageParam page, BindingResult error, CustomerBillQueryParam queryParam) throws Exception {
+    public ResponseInfo queryAccountsRecordsByCondition(@Valid PageParam page, BindingResult error, CustomerBillQueryParam queryParam) throws Exception {
         if (error.hasFieldErrors()) {
-            return getErrors(error);
+            return new ResponseInfoAssemble().failure(-1, "缺少必要参数");
         }
         LoginUser lu = opUser();
         Page list = null;
-        JSONObject json = new JSONObject();
         String basePath = "";
         Map<Object, Object> map = new HashMap<Object, Object>();
         if ("ROLE_USER".equals(lu.getRole()) || "admin".equals(lu.getRole())) {
@@ -203,8 +200,7 @@ public class AccountAction extends BasicAction {
         }
         map.put("basePath", basePath);
         map.put("list", list);
-        json.put("data", map);
-        return json.toJSONString();
+        return new ResponseInfoAssemble().success(map);
     }
 
     /*
@@ -248,10 +244,10 @@ public class AccountAction extends BasicAction {
     @ResponseBody
     public Object supplierRemainMoney(String supplierId) {
         Map<String, Object> remainMap = new HashMap<>();
-        if (StringUtil.isNotEmpty(supplierId)){
+        if (StringUtil.isNotEmpty(supplierId)) {
             Double remainAmount = customerService.getSourceRemainMoney(supplierId);
             remainMap.put("cucRemainMoney", remainAmount);
-        }else {
+        } else {
             throw new RuntimeException("参数错误");
         }
         return JSONObject.toJSON(remainMap);
