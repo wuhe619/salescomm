@@ -617,6 +617,14 @@ public class Constant {
      */
     public static final String XLSX = ".xlsx";
     /**
+     * pdf文件类型
+     */
+    public static final String PDF = ".pdf";
+    /**
+     * zip文件类型
+     */
+    public static final String ZIP = ".zip";
+    /**
      * 校验中
      */
     public static final String CHECKING = "1";

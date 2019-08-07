@@ -32,6 +32,8 @@ import java.util.*;
 @Service
 public class ExpressBatchServiceImpl implements ExpressBatchService {
 
+    protected static final Properties PROPERTIES = new Properties(System.getProperties());
+
     @Autowired
     private BatchInfoDao batchInfoDao;
     @Autowired
@@ -42,6 +44,8 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
     private DataConverter dataConverter;
     @Autowired
     private JdbcTemplate jdbcTemplate;
+    @Autowired
+    private ZipUtil zipUtil;
 
     @Override
     @Transactional
@@ -54,7 +58,7 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
             return new ResponseInfoAssemble().failure(HttpStatus.BAD_REQUEST.value(), "请保证文件格式为\".xls\"或\".xlsx\"");
         }
         String generatedFileName = String.valueOf(System.currentTimeMillis()) + UUID.randomUUID().toString().substring(0, 5);
-        String uploadPath = "/express/upload/" + DateUtil.getToDay() + "/";
+        String uploadPath = "/express/upload/" + DateUtil.getDateOfYearAndMonth() + "/";
         // 文件路径的字符串拼接 目录 + 文件名 + 后缀
         uploadPath = uploadPath + generatedFileName + suffix;
         File file = new File(uploadPath);
@@ -86,8 +90,8 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         for (int i = 1; i < contentList.size(); i++) {
             StringBuffer batchDetailSql = new StringBuffer("INSERT INTO nl_batch_detail (id,label_one,label_two,label_three," +
                     "label_four,batch_id) VALUES ('" +
-                    contentList.get(i).get(4) + "','" + contentList.get(i).get(0) + "','" + contentList.get(i).get(1) + "','" +
-                    contentList.get(i).get(3) + "','" + contentList.get(i).get(2) + "','" + batchId + "')");
+                    contentList.get(i).get(0) + "','" + contentList.get(i).get(1) + "','" + contentList.get(i).get(2) + "','" +
+                    contentList.get(i).get(4) + "','" + contentList.get(i).get(3) + "','" + batchId + "')");
             jdbcTemplate.update(batchDetailSql.toString());
         }
         return new ResponseInfoAssemble().success(null);
@@ -208,6 +212,95 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         resultMap.put("total", list.size());
         resultMap.put("rows", list);
         return resultMap;
+    }
+
+    /**
+     * 上传/批量上传快件内容
+     *
+     * @param expressContent  PDF文件或PDF的压缩包（zip文件）
+     * @param fileCodeMapping 文件编码与收件人ID映射文件
+     * @param receiverId      收件人ID的字符串数组
+     * @return
+     * @auther Chacker
+     * @date 2019/8/6 13:34
+     */
+    @Override
+    public ResponseInfo sendMessageUpload(MultipartFile expressContent, MultipartFile fileCodeMapping, String[] receiverId, String batchId) throws IOException {
+        //1. 对文件类型进行校验
+        String contentFileName = expressContent.getOriginalFilename();
+        String mappingFileName = fileCodeMapping.getOriginalFilename();
+        List<String> pdfFileNameList = new ArrayList<>();
+        pdfFileNameList.add(contentFileName.substring(0, contentFileName.lastIndexOf(".")));
+        String contentSuffix = contentFileName.substring(contentFileName.lastIndexOf("."));
+        String mappingSuffix = mappingFileName.substring(mappingFileName.lastIndexOf("."));
+        if (!Constant.XLS.equals(mappingSuffix) && !Constant.XLSX.equals(mappingSuffix)) {
+            return new ResponseInfoAssemble().failure(406, "操作失败。映射关系表文件文件格式不正确(xls/xlsx)");
+        }
+        if (!Constant.PDF.equals(contentSuffix) && !Constant.ZIP.equals(contentSuffix)) {
+            return new ResponseInfoAssemble().failure(406, "操作失败。文件内容格式不正确(pdf/zip)");
+        }
+        //2. 将文件上传到服务器
+        //2.1 把文件名与收件人ID映射文件上传到服务器
+        String generatedFileName = String.valueOf(System.currentTimeMillis()) + UUID.randomUUID().toString().substring(0, 5);
+        String mappingPath = "/express/mapping/" + batchId + "/";
+        mappingPath = mappingPath + generatedFileName + mappingSuffix;
+        File mappingFile = new File(mappingPath);
+        if (!mappingFile.exists()) {
+            mappingFile.getParentFile().mkdirs();
+            mappingFile.createNewFile();
+        }
+        FileUtils.copyInputStreamToFile(fileCodeMapping.getInputStream(), mappingFile);
+        //2.2 把发件内容文件 (.PDF 或 .zip文件)上传到服务器
+        String generatedZipName = String.valueOf(System.currentTimeMillis()) + UUID.randomUUID().toString().substring(0, 5);
+        String contentPath = "/express/content/" + batchId + "/";
+        if (Constant.ZIP.equals(contentSuffix)) {
+            //zip文件，重新生成文件名
+            contentPath = contentPath + generatedZipName + contentSuffix;
+        } else if (Constant.PDF.equals(contentSuffix)) {
+            //pdf文件，文件名不变(因为要和收件人ID做映射)
+            contentPath = contentPath + contentFileName;
+        }
+        File contentFile = new File(contentPath);
+        if (!contentFile.exists()) {
+            contentFile.getParentFile().mkdirs();
+            contentFile.createNewFile();
+        }
+        FileUtils.copyInputStreamToFile(expressContent.getInputStream(), contentFile);
+        //3. 如果是zip文件，则解压
+        if (Constant.ZIP.equals(contentSuffix)) {
+            pdfFileNameList = zipUtil.unZip(contentFile, "/express/content/" + batchId);
+        }
+        //4. 根据excel中的映射关系，把pdf文件路径存入数据库
+        //4.1 读取excel
+        List<List<String>> contentStringList = ExcelReaderUtil.readExcel(mappingPath);
+        //因为第一行是标题，所以从第二行开始遍历
+        for (int i = 1; i < contentStringList.size(); i++) {
+            //文件编码
+            String fileCode = contentStringList.get(i).get(0);
+            //收件ID
+            String receiverID = contentStringList.get(i).get(1);
+            String sql = "UPDATE nl_batch_detail SET express_path='/express/content/" + batchId + "/" + fileCode + Constant.PDF + "'" +
+                    "WHERE batch_id='" + batchId + "' AND id='" + receiverID + "'";
+            jdbcTemplate.update(sql);
+        }
+        //5. 修改状态 根据收件人ID和 批次ID把 状态修改为 【2】【待发件】
+
+
+        return new ResponseInfoAssemble().success(null);
+    }
+
+    @Override
+    public void uploadModelFile(MultipartFile multipartFile) throws IOException {
+        String fileName = multipartFile.getOriginalFilename();
+        String uploadPath = "/express/model";
+        String pathF = PROPERTIES.getProperty("file.separator");
+        uploadPath = uploadPath + pathF + fileName;
+        File file = new File(uploadPath);
+        if (!file.exists()) {
+            file.getParentFile().mkdirs();
+            file.createNewFile();
+        }
+        FileUtils.copyInputStreamToFile(multipartFile.getInputStream(), file);
     }
 
 

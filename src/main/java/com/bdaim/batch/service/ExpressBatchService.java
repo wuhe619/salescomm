@@ -47,5 +47,23 @@ public interface ExpressBatchService {
      */
     Map<String, Object> batchDetail(Map<String, Object> map) throws IllegalAccessException;
 
+    /**
+     * 上传/批量上传发件内容
+     *
+     * @param
+     * @return
+     * @auther Chacker
+     * @date 2019/8/6 13:33
+     */
+    ResponseInfo sendMessageUpload(MultipartFile expressContent, MultipartFile fileCodeMapping, String[] receiverId, String batchId) throws IOException;
 
+    /**
+     * 上传模板文件，此接口不对前端提供，只是后端人员在(换环境)发布程序后使用
+     *
+     * @param multipartFile
+     * @return
+     * @auther Chacker
+     * @date 2019/8/6 23:29
+     */
+    void uploadModelFile(MultipartFile multipartFile) throws IOException;
 }
