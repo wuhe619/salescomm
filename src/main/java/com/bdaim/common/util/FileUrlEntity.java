@@ -9,7 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
  */
 @Component
 public class FileUrlEntity {
-    @Value("${file.file-url}")
+    @Value("${file.file_path}")
     private String fileUrl;
 
     public String getFileUrl() {
