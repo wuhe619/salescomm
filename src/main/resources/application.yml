@@ -30,4 +30,4 @@ spring:
     host: 192.168.32.200
     port: 6379
 file:
-  file-path: /data/file
+  file_path: /data/file
