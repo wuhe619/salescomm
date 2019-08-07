@@ -292,13 +292,11 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
             String fileCode = contentStringList.get(i).get(0);
             //收件ID
             String receiverID = contentStringList.get(i).get(1);
-            String sql = "UPDATE nl_batch_detail SET express_path='/express/content/" + batchId + "/" + fileCode + Constant.PDF + "'" +
-                    "WHERE batch_id='" + batchId + "' AND id='" + receiverID + "'";
+            String sql = "UPDATE nl_batch_detail SET express_path='/express/content/" + batchId + "/" + fileCode + Constant.PDF + "',label_seven='2' " +
+                    "WHERE batch_id='" + batchId + "' AND label_five='" + receiverID + "'";
             jdbcTemplate.update(sql);
         }
         //5. 修改状态 根据收件人ID和 批次ID把 状态修改为 【2】【待发件】
-
-
         return new ResponseInfoAssemble().success(null);
     }
 
