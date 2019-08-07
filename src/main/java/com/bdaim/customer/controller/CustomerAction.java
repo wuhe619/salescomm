@@ -264,5 +264,24 @@ public class CustomerAction extends BasicAction {
         }
         return returnJsonData(data);
     }
+
+    /**
+     * @description 修改企业服务费
+     * @metho
+     */
+    @RequestMapping(value = "/updatePrice", method = RequestMethod.GET)
+    @ResponseBody
+    public ResponseInfo updateServicePrice(String custId, String price) {
+        try {
+            LoginUser lu = opUser();
+            if ("ROLE_USER".equals(lu.getRole()) || "admin".equals(lu.getRole())) {
+                customerService.updateServicePrice(custId, price);
+            }
+        } catch (Exception e) {
+            logger.error("保存企业服务费用失败失败,", e);
+            return new ResponseInfoAssemble().failure(-1, "保存企业服务费用失败失败");
+        }
+        return new ResponseInfoAssemble().success(null);
+    }
 }
 

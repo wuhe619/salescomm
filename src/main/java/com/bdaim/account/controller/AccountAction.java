@@ -10,6 +10,8 @@ import com.bdaim.bill.service.BillService;
 import com.bdaim.bill.service.TransactionService;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.dto.PageParam;
+import com.bdaim.common.response.ResponseInfo;
+import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.common.util.AuthPassport;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.common.util.page.Page;
@@ -104,9 +106,9 @@ public class AccountAction extends BasicAction {
      * */
     @RequestMapping(value = "/queryCustomer", method = RequestMethod.GET)
     @ResponseBody
-    public String queryAccountsByCondition(@Valid PageParam page, BindingResult error, CustomerBillQueryParam queryParam) {
+    public ResponseInfo queryAccountsByCondition(@Valid PageParam page, BindingResult error, CustomerBillQueryParam queryParam) {
         if (error.hasFieldErrors()) {
-            return getErrors(error);
+           return new ResponseInfoAssemble().failure(-1,"缺少必要參數");
         }
         LoginUser lu = opUser();
         Page list = null;
@@ -137,7 +139,7 @@ public class AccountAction extends BasicAction {
                 }
             }
         }
-        return JSON.toJSONString(list);
+        return new ResponseInfoAssemble().success(list);
     }
 
 
@@ -149,7 +151,7 @@ public class AccountAction extends BasicAction {
      */
     @RequestMapping(value = "/balance/operate", method = RequestMethod.POST)
     @ResponseBody
-    public Object banlanceChange(@RequestBody CustomerBillQueryParam param) {
+    public ResponseInfo banlanceChange(@RequestBody CustomerBillQueryParam param) {
         Map<String, Object> resultMap = new HashMap<>();
         try {
             if ("ROLE_USER".equals(opUser().getRole()) || "admin".equals(opUser().getRole())) {
@@ -160,28 +162,21 @@ public class AccountAction extends BasicAction {
                 //action 0 充值   1扣减
                 if (action != null && action.equals(1)) {
                     accountService.changeBalance(param);
-                    resultMap.put("result", "0");
-                    resultMap.put("_message", "账户扣减成功！");
+                    return new ResponseInfoAssemble().success(null);
                 } else if (action != null && action.equals(0)) {
                     if (StringUtil.isNotEmpty(param.getDealType()) && param.getDealType().equals("0")) {
                         param.setCustomerId("2");//暂时供应商联通资金添加
                     }
                     //企业充值  或  供应商资金添加
                     accountService.changeBalance(param);
-                    resultMap.put("result", "0");
-                    resultMap.put("_message", "账户充值成功！");
-                } else if (action == null) {
-                    resultMap.put("result", "0");
-                    resultMap.put("_message", "账户充值扣减失败！");
+                    return new ResponseInfoAssemble().success(null);
                 }
             }
-            return JSONObject.toJSON(resultMap);
         } catch (Exception e) {
             logger.error("账户充值扣减失败!\t" + e.getMessage());
-            resultMap.put("result", "0");
-            resultMap.put("_message", "账户充值扣减失败！");
-            return JSONObject.toJSON(resultMap);
+            return new ResponseInfoAssemble().failure(-1,"账户操作失败");
         }
+        return new ResponseInfoAssemble().success(null);
     }
 
     /*

@@ -71,7 +71,7 @@ public class SupplierAction extends BasicAction {
      */
     @RequestMapping(value = "/getSupplierList", method = RequestMethod.GET)
     @ResponseBody
-        public ResponseInfo listSupplierByPage(@Valid PageParam page, BindingResult error, String supplierId, String supplierName, String person, String phone, String serviceType) {
+    public ResponseInfo listSupplierByPage(@Valid PageParam page, BindingResult error, String supplierId, String supplierName, String person, String phone, String serviceType) {
         if (error.hasFieldErrors()) {
             return new ResponseInfoAssemble().failure(-1, "缺少分页参数");
         }
@@ -151,9 +151,9 @@ public class SupplierAction extends BasicAction {
      */
     @ResponseBody
     @RequestMapping(value = "/getSupplierPrice", method = RequestMethod.GET)
-    public String searchSupplierPrice(String supplierId) {
+    public ResponseInfo searchSupplierPrice(String supplierId) {
         if (StringUtil.isEmpty(supplierId)) {
-            return "supplierId不允许为空";
+            return new ResponseInfoAssemble().failure(-1,"supplierId不允许为空");
         }
         LoginUser lu = opUser();
         JSONObject result= new JSONObject();
@@ -164,8 +164,7 @@ public class SupplierAction extends BasicAction {
                 LOG.error("供应商详情查询" + e);
             }
         }
-
-        return returnJsonData(result);
+        return new ResponseInfoAssemble().success(result);
     }
 
     /**

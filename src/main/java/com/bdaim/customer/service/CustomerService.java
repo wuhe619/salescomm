@@ -531,7 +531,7 @@ public class CustomerService {
                 "t1.create_time,\n" +
                 "t1.`status`,\n" +
                 "cjc.industry,cjc.salePerson,cjc.contactAddress,\n" +
-                "cjc.province,cjc.city,cjc.county,cjc.taxpayerId,\n" +
+                "cjc.province,cjc.city,cjc.price,cjc.county,cjc.taxpayerId,\n" +
                 "cjc.bli_path AS bliPic,\n" +
                 "cjc.bank,cjc.bankAccount,                 \n" +
                 "cjc.bank_account_certificate AS bankAccountPic\n" +
@@ -545,6 +545,7 @@ public class CustomerService {
                 "\tmax(CASE property_name WHEN 'city'   THEN property_value ELSE '' END ) city,\n" +
                 "\tmax(CASE property_name WHEN 'county'   THEN property_value ELSE '' END ) county,\n" +
                 "\tmax(CASE property_name WHEN 'taxpayer_id'   THEN property_value ELSE '' END ) taxpayerId,\n" +
+                "\tmax(CASE property_name WHEN 'price'   THEN property_value ELSE '' END ) price,\n" +
                 "\tmax(CASE property_name WHEN 'bli_path'   THEN property_value ELSE '' END ) bli_path,\n" +
                 "\tmax(CASE property_name WHEN 'bank'   THEN property_value ELSE '' END ) bank,\n" +
                 "\tmax(CASE property_name WHEN 'bank_account'   THEN property_value ELSE '' END ) bankAccount,\n" +
@@ -1020,5 +1021,21 @@ public class CustomerService {
         return list;
     }
 
+    public void updateServicePrice(String custId, String price) throws Exception{
+        //查询企业属性表是否存在
+        logger.info("查询的企业id是：" + custId);
+        CustomerProperty customerProperty = customerDao.getProperty(custId, "price");
+        if (customerProperty != null) {
+            customerProperty.setPropertyValue(price);
+        } else {
+            customerProperty = new CustomerProperty();
+            customerProperty.setCustId(custId);
+            customerProperty.setPropertyName("price");
+            customerProperty.setPropertyValue(price);
+            customerProperty.setCreateTime(DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss));
+
+        }
+        customerDao.saveOrUpdate(customerProperty);
+    }
 }
 
