@@ -11,10 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.List;
+import java.io.*;
 import java.util.Map;
 import java.util.Properties;
 
@@ -58,7 +55,7 @@ public class ExpressBatchController {
                 fileName = "file_code_receipt_mapping.xlsx";
             }
             String pathF = PROPERTIES.getProperty("file.separator");
-            String path = classPath +pathF+ fileName;
+            String path = classPath + pathF + fileName;
 
             //下载的response属性设置
             response.setCharacterEncoding("utf-8");
@@ -164,6 +161,32 @@ public class ExpressBatchController {
     public ResponseInfo uploadModelFile(MultipartFile multipartFile) throws IOException {
         expressBatchService.uploadModelFile(multipartFile);
         return new ResponseInfoAssemble().success(null);
+    }
+
+    /**
+     * 通过文件编码获取pdf
+     *
+     * @param
+     * @return
+     * @auther Chacker
+     * @date 2019/8/7 11:33
+     */
+    @RequestMapping(value = "readFileByCode", method = RequestMethod.GET)
+    @ResponseBody
+    public void readFileByCode(@RequestParam String fileCode, HttpServletResponse response) throws IOException {
+        //根据文件编码fileCode找到pdf所存储的路径
+
+        //通过输出流输出pdf文件
+        FileInputStream inputStream = new FileInputStream(new File("pdf文件路径"));
+        OutputStream outputStream = response.getOutputStream();
+        byte[] b = new byte[1024];
+        int length;
+        while ((length = inputStream.read(b)) > 0) {
+            outputStream.write(b, 0, length);
+        }
+        outputStream.flush();
+        inputStream.close();
+        outputStream.close();
     }
 
 }
