@@ -91,51 +91,8 @@ public class PackingService {
         return 0;
     }
 
-    public void sendExpress(JSONObject param, Long userId, String customerId) throws Exception {
-        //默认发送成功
-        String batchId = String.valueOf(param.get("batchId"));
-        String channel = String.valueOf(param.get("channel"));
-        String id = String.valueOf(param.get("id"));
-        String fileName = String.valueOf(param.get("fileName"));
-        String sendId = String.valueOf(param.get("sendId"));
-        //保存快递记录参数
-        String name = null, senderMessage = null;
-        double custExpressPrice = 0.0, suppperExpressPrice;
-        BigDecimal custExpressAmount, sourceSmsAmount;
-        boolean accountDeductionStatus, supperExpressStatu;
-        String touchId = Long.toString(IDHelper.getTransactionId());
-        //根据id和batchId查询收件人姓名
-        BatchDetail batchDetail = batchDetailDao.getBatchDetail(id, batchId);
-        String resourceId = marketResourceService.queryResourceId(String.valueOf(SupplierEnum.JD.getSupplierId()), ConstantsUtil.EXPRESS_TYPE);
-        if (batchDetail != null) {
-            //收件人姓名
-            name = batchDetail.getName();
-        }
-        //根据sendId查询发件人信息
-        String querySql = "SELECT sender_name,phone,province,city,district,address,postcodes FROM t_sender_info WHERE id  =" + sendId;
-        List<Map<String, Object>> list = batchDetailDao.sqlQuery(querySql);
-        if (list.size() > 0) {
-            senderMessage = JSON.toJSONString(list.get(0));
-        }
-        //查询发送快递的成本价和销售价进行扣费
-        custExpressPrice = getCustExpressPrice(customerId);
-        logger.info("发送快递扣费客户:" + customerId + "发送快递单价:" + custExpressPrice);
-        custExpressAmount = new BigDecimal(custExpressPrice);
-        logger.info("发送快递扣费客户:" + customerId + ",开始扣费,金额:" + custExpressAmount.doubleValue());
-        accountDeductionStatus = customerDao.accountDeductions(customerId, custExpressAmount);
-        logger.info("发送快递扣费客户:" + customerId + ",扣费状态:" + accountDeductionStatus);
-        //供应商扣费
-        suppperExpressPrice = getsupplierExpressPrice(customerId, SupplierEnum.JD.getSupplierId());
-        logger.info("发送快递供应商:" + customerId + "发送快递单价:" + suppperExpressPrice);
-        logger.info("发送快递供应商:" + customerId + "发送快递扣费,金额:" + suppperExpressPrice);
-        //供应商扣费需要转换为分进行扣减
-        sourceSmsAmount = new BigDecimal(suppperExpressPrice * 100);
-        supperExpressStatu = sourceDao.supplierAccountDuctions(SupplierEnum.JD.getSupplierId(), sourceSmsAmount);
-        logger.info("发送快递扣费供应商:" + customerId + "发送快递扣费状态:" + supperExpressStatu);
-        logger.info("发送快递参数是：" + "batchId\t" + batchId + "地址id\t" + id + "发送快递文件名字" + fileName + "channel:" + channel + "发件地址Id" + sendId);
-        //保存快递记录
-        String insertLogSql = "INSERT INTO t_touch_express_log (touch_id,batch_id,address_id,receive_name,sender_message,create_time,STATUS,cust_id,user_id,file_path,amount,prod_amount,resource_id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)";
-        sourceDao.executeUpdateSQL(insertLogSql, new Object[]{touchId, batchId, id, name, senderMessage, LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")), 1, customerId, userId, fileName, custExpressPrice, suppperExpressPrice, resourceId});
+    public void sendExpress(Map<String,Object> map){
+
     }
 
     public int countNumber(String batchId) throws Exception {
@@ -188,7 +145,7 @@ public class PackingService {
             json.put("sendId", sendId);
             //默认发送成功
             try {
-                sendExpress(json, userId, custId);
+                //sendExpress(json, userId, custId);
             } catch (Exception e) {
                 e.printStackTrace();
             }

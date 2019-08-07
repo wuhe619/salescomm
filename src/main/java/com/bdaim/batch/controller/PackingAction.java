@@ -1,5 +1,7 @@
 package com.bdaim.batch.controller;
 
+import com.bdaim.common.response.ResponseInfo;
+import com.bdaim.common.response.ResponseInfoAssemble;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import com.alibaba.fastjson.JSONObject;
@@ -9,10 +11,7 @@ import com.bdaim.batch.service.impl.PackingService;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.util.StringUtil;
 
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -64,42 +63,17 @@ public class PackingAction extends BasicAction {
     }
 
     /**
-     * 发送快递接口
+     * 发送快递(确认发件)
+     *
+     * @param map sender_id 发件客户ID、address_id 地址ID
+     * @return
+     * @auther Chacker
+     * @date 2019/8/7 13:52
      */
     @RequestMapping(value = "/sendExpress", method = RequestMethod.POST)
-    public String sendExpress(@RequestBody JSONObject param) {
-        JSONObject json = new JSONObject();
-        String batchId = String.valueOf(param.get("batchId"));
-        String channel = String.valueOf(param.get("channel"));
-        String id = String.valueOf(param.get("id"));
-        String fileName = String.valueOf(param.get("fileName"));
-        String sendId = String.valueOf(param.get("sendId"));
-        if (StringUtil.isEmpty(batchId) || StringUtil.isEmpty(id) || StringUtil.isEmpty(fileName) || StringUtil.isEmpty(sendId) || StringUtil.isEmpty(channel)) {
-            json.put("code", "001");
-            json.put("message", "缺少必要參數");
-            return json.toJSONString();
-        }
-        //获取当前登陆的企业id
-        Long userId = opUser().getId();
-        String customerId = opUser().getCustId();
-
-        //查询企业是否配置了销售定价
-        double custExpressPrice = packingService.getCustExpressPrice(customerId);
-        if (custExpressPrice == 0) {
-            json.put("code", "002");
-            json.put("message", "未配置销售定价");
-            return json.toJSONString();
-        }
-        //发送快递
-        try {
-            packingService.sendExpress(param, userId, customerId);
-            json.put("code", "000");
-            json.put("message", "快递发送成功");
-        } catch (Exception e) {
-            e.printStackTrace();
-            LOG.info("发送快递异常" + e);
-        }
-        return json.toJSONString();
+    public ResponseInfo sendExpress(@RequestParam Map<String, Object> map) {
+        packingService.sendExpress(map);
+        return new ResponseInfoAssemble().success(null);
     }
 
     /**

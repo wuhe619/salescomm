@@ -3,6 +3,7 @@ package com.bdaim.batch.controller;
 import com.bdaim.batch.service.ExpressBatchService;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
+import com.bdaim.common.util.FileUrlEntity;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +30,8 @@ public class ExpressBatchController {
 
     @Autowired
     private ExpressBatchService expressBatchService;
+    @Autowired
+    private FileUrlEntity fileUrlEntity;
 
     /**
      * 下载收件人信息模板
@@ -44,9 +47,8 @@ public class ExpressBatchController {
         InputStream in = null;
         OutputStream bos = null;
         try {
-            //获取resources下的模板文件路径
-//            String classPath = this.getClass().getResourceAsStream("/").toString();
-            String classPath = "/express/model";
+            //获取resources下的模板文件路径String classPath = this.getClass().getResourceAsStream("/").toString();
+            String classPath = fileUrlEntity.getFileUrl();
             logger.error("hello classpath" + classPath);
             String fileName = null;
             if ("1".equals(file_type)) {
@@ -55,15 +57,16 @@ public class ExpressBatchController {
                 fileName = "file_code_receipt_mapping.xlsx";
             }
             String pathF = PROPERTIES.getProperty("file.separator");
+            classPath = classPath.replace("/",pathF);
             String path = classPath + pathF + fileName;
 
             //下载的response属性设置
             response.setCharacterEncoding("utf-8");
-            //application/vnd.ms-excel;charset=utf-8" xls格式，注释掉
-            response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+            response.setContentType("application/force-download");
+//            response.setContentType("application/vnd.ms-excel;charset=utf-8");
             String returnName = response.encodeURL(new String(fileName.getBytes(), "iso8859-1"));   //保存的文件名,必须和页面编码一致,否则乱码
             response.addHeader("Content-Disposition", "attachment;filename=" + returnName);
-            in = this.getClass().getResourceAsStream("/" + fileName);
+            in = new FileInputStream(new File(path));
             logger.error("hello chacker" + path);
             bos = response.getOutputStream();
 
@@ -98,8 +101,8 @@ public class ExpressBatchController {
      */
     @RequestMapping(value = "/receiverInfoImport")
     @ResponseBody
-    public ResponseInfo receiverInfoImport(@RequestParam(value = "file") MultipartFile multipartFile, String batchName, int expressContentType, String custId) throws IOException {
-        ResponseInfo result = expressBatchService.receiverInfoImport(multipartFile, batchName, expressContentType, custId);
+    public ResponseInfo receiverInfoImport(@RequestParam(value = "file") MultipartFile file, String batchName, int expressContentType, String custId) throws IOException {
+        ResponseInfo result = expressBatchService.receiverInfoImport(file, batchName, expressContentType, custId);
         return result;
     }
 
