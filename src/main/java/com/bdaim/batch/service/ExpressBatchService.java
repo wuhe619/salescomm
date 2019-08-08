@@ -87,4 +87,13 @@ public interface ExpressBatchService {
      * @date 2019/8/7 20:52
      */
     String findPdfPathByReceiverId(String batchId, String receiverId);
+    /**
+     * 根据地址ID修改文件编码
+     *
+     * @param receiverId 地址ID
+     * @return
+     * @auther Chacker
+     * @date 2019/8/8 15:11
+     */
+    void updateFileCode(String receiverId,String fileCode);
 }

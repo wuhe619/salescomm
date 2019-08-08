@@ -14,9 +14,12 @@ import com.bdaim.resource.service.MarketResourceService;
 import com.bdaim.supplier.dto.SupplierEnum;
 
 import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import javax.persistence.criteria.CriteriaBuilder;
 import javax.transaction.Transactional;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
@@ -42,6 +45,8 @@ public class PackingService {
     private SourceDao sourceDao;
     @Resource
     private MarketResourceService marketResourceService;
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     public List<Map<String, Object>> getMacResoult(String batchId) {
         String querySql = "SELECT * FROM tmp_nl_batch_detail b  WHERE batch_id = 1542005544857";
@@ -91,8 +96,39 @@ public class PackingService {
         return 0;
     }
 
-    public void sendExpress(Map<String,Object> map){
-
+    /**
+     * 确认发件/批量发件
+     *
+     * @param map batchId、addressId、isBatch
+     * @return
+     * @auther Chacker
+     * @date 2019/8/8 14:42
+     */
+    public void sendExpress(Map<String, Object> map) {
+        //map中包括批次ID和地址ID，以及isBatch状态判断，
+        int isBatch = Integer.parseInt(String.valueOf(map.get("isBatch")));
+        String batchId = String.valueOf(map.get("batchId"));
+        String receiverId = String.valueOf(map.get("receiverId"));
+        String updateBatchStatus = "UPDATE nl_batch SET status='5' WHERE id='" + batchId + "'";
+        if (isBatch == 1) {
+            //批量发送、将批次状态status修改为【5】【待取件】
+            jdbcTemplate.update(updateBatchStatus);
+            //将批次详情的状态label_seven 修改为 【3】【待取件】
+            String updateDetail = "UPDATE nl_batch_detail SET label_seven='3' WHERE batch_id='" + batchId + "'";
+            jdbcTemplate.update(updateDetail);
+        } else if (isBatch == 0) {
+            //单个发送 将批次详情的状态 label_seven 状态修改为 【3】【待取件】
+            StringBuffer stringBuffer = new StringBuffer("UPDATE nl_batch_detail SET label_seven='3' WHERE batch_id='");
+            stringBuffer.append(batchId).append("' AND id='").append(receiverId).append("'");
+            jdbcTemplate.update(stringBuffer.toString());
+            //如果该批次下已没有待发件的 快递信息，则把该批次更新为 【5】【待取件】
+            String countSql = "SELECT COUNT(*) AS count FROM nl_batch_detail WHERE label_seven='2' AND batch_id='" + batchId + "'";
+            Map<String, Object> result = jdbcTemplate.queryForMap(countSql);
+            int count = Integer.parseInt(String.valueOf(result.get("count")));
+            if (count == 0) {
+                jdbcTemplate.update(updateBatchStatus);
+            }
+        }
     }
 
     public int countNumber(String batchId) throws Exception {

@@ -63,7 +63,7 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         String classPath = fileUrlEntity.getFileUrl();
         String pathF = PROPERTIES.getProperty("file.separator");
         classPath = classPath.replace("/", pathF);
-        String uploadPath = classPath + pathF + "receiver_info" + pathF+custId+pathF;
+        String uploadPath = classPath + pathF + "receiver_info" + pathF + custId + pathF;
         // 文件路径的字符串拼接 目录 + 文件名 + 后缀
         uploadPath = uploadPath + generatedFileName + suffix;
         File file = new File(uploadPath);
@@ -162,7 +162,7 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         //快递格式
         String expressType = String.valueOf(map.get("express_type"));
         if (!nullString.equals(expressType) && StringUtil.isNotEmpty(expressType)) {
-            sql.append(" AND t1.id in (SELECT batch_id FROM nl_batch_property WHERE property_name ='expressContentType' AND property_value ="+expressType+") ");
+            sql.append(" AND t1.id in (SELECT batch_id FROM nl_batch_property WHERE property_name ='expressContentType' AND property_value =" + expressType + ") ");
         }
         sql.append(" ORDER BY t1.upload_time DESC ");
         Page page = new Pagination().getPageData(sql.toString(), null, pageParam, jdbcTemplate);
@@ -253,7 +253,7 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         List<String> pdfFileNameList = new ArrayList<>();
         String fileUrl = fileUrlEntity.getFileUrl();
         String pathF = PROPERTIES.getProperty("file.separator");
-        fileUrl = fileUrl.replace("/",pathF);
+        fileUrl = fileUrl.replace("/", pathF);
         StringBuffer stringBuffer = new StringBuffer(fileUrl);
         stringBuffer.append(pathF).append("pdf").append(pathF).append(batchId).append(pathF);
         String destPath = stringBuffer.toString();
@@ -325,9 +325,9 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
             }
         }
         //5. 修改状态 根据收件人ID和 批次ID把 状态修改为 【2】【待发件】
-        String sql = "UPDATE nl_batch_detail SET label_seven='2' WHERE batch_id='"+batchId+"'";
-        if(StringUtil.isNotEmpty(receiverId)){
-            sql=sql + " AND label_five = '"+receiverId+"'";
+        String sql = "UPDATE nl_batch_detail SET label_seven='2' WHERE batch_id='" + batchId + "'";
+        if (StringUtil.isNotEmpty(receiverId)) {
+            sql = sql + " AND label_five = '" + receiverId + "'";
         }
         jdbcTemplate.update(sql);
         return new ResponseInfoAssemble().success(null);
@@ -364,6 +364,12 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         Map<String, Object> map = jdbcTemplate.queryForMap(sql);
         String pdfPath = String.valueOf(map.get("pdfPath"));
         return pdfPath;
+    }
+
+    @Override
+    public void updateFileCode(String addressId, String fileCode) {
+        String sql = "UPDATE nl_batch_detail SET label_six='" + fileCode + "' WHERE id='" + addressId + "'";
+        jdbcTemplate.update(sql);
     }
 
 
