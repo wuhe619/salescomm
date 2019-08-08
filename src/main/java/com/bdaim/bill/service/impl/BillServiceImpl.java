@@ -1285,13 +1285,13 @@ public class BillServiceImpl implements BillService {
         if (StringUtil.isNotEmpty(param.getPhone())) {
             querySql.append("AND d.label_one ='" + param.getPhone() + "'");
         }
-
         Page page = customerDao.sqlPageQuery(querySql.toString(), param.getPageNum(), param.getPageSize());
         if (page != null) {
             List<Map<String, Object>> list = page.getData();
             for (int i = 0; i < list.size(); i++) {
                 //根据资源id查询所属渠道
                 if (StringUtil.isNotEmpty(String.valueOf(list.get(i).get("amount"))) && StringUtil.isNotEmpty(String.valueOf(list.get(i).get("expressAmount")))) {
+                    logger.info("amount" + String.valueOf(list.get(i).get("amount")));
                     String sumAmount = new BigDecimal(String.valueOf(list.get(i).get("amount"))).add(new BigDecimal(String.valueOf(list.get(i).get("expressAmount")))).setScale(2, BigDecimal.ROUND_DOWN).toString();
                     list.get(i).put("sumAmount", sumAmount);
 
