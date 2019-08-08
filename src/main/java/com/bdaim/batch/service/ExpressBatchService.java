@@ -87,4 +87,6 @@ public interface ExpressBatchService {
      * @date 2019/8/7 20:52
      */
     String findPdfPathByReceiverId(String batchId, String receiverId);
+
+    void updateBatchStatus(String batchId, int status) throws Exception;
 }

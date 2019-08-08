@@ -1,5 +1,6 @@
 package com.bdaim.batch.service.impl;
 
+import com.bdaim.batch.dao.BatchDao;
 import com.bdaim.batch.dao.BatchInfoDao;
 import com.bdaim.batch.dao.BatchInfoDetailDao;
 import com.bdaim.batch.dao.BatchPropertyDao;
@@ -42,6 +43,8 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
     private BatchPropertyDao batchPropertyDao;
     @Autowired
     private DataConverter dataConverter;
+    @Autowired
+    private BatchDao batchDao;
     @Autowired
     private JdbcTemplate jdbcTemplate;
     @Autowired
@@ -157,7 +160,7 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         //快递格式
         String expressType = String.valueOf(map.get("express_type"));
         if (!nullString.equals(expressType) && StringUtil.isNotEmpty(expressType)) {
-            sql.append(" AND t1.id in (SELECT batch_id FROM nl_batch_property WHERE property_name ='expressContentType' AND property_value ="+expressType+") ");
+            sql.append(" AND t1.id in (SELECT batch_id FROM nl_batch_property WHERE property_name ='expressContentType' AND property_value =" + expressType + ") ");
         }
         sql.append(" ORDER BY t1.upload_time DESC ");
         Page page = new Pagination().getPageData(sql.toString(), null, pageParam, jdbcTemplate);
@@ -314,9 +317,9 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
             }
         }
         //5. 修改状态 根据收件人ID和 批次ID把 状态修改为 【2】【待发件】
-        String sql = "UPDATE nl_batch_detail SET label_seven='2' WHERE batch_id='"+batchId+"'";
-        if(StringUtil.isNotEmpty(receiverId)){
-            sql=sql + " AND label_five = '"+receiverId+"'";
+        String sql = "UPDATE nl_batch_detail SET label_seven='2' WHERE batch_id='" + batchId + "'";
+        if (StringUtil.isNotEmpty(receiverId)) {
+            sql = sql + " AND label_five = '" + receiverId + "'";
         }
         jdbcTemplate.update(sql);
         return new ResponseInfoAssemble().success(null);
@@ -355,5 +358,9 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         return pdfPath;
     }
 
-
+    @Override
+    public void updateBatchStatus(String batchId, int status) throws Exception {
+        String updateSql = "UPDATE nl_batch SET `status` =? WHERE id = ?";
+        batchDao.executeUpdateSQL(updateSql, status,batchId);
+    }
 }

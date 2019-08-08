@@ -266,6 +266,28 @@ public class ExpressBatchController extends BasicAction {
         outputStream.flush();
         outputStream.close();
     }
-
+    /**
+     *更改批次状态
+     *
+     * @param
+     * @retur
+     * @date 2019/8/2 14:38
+     */
+    @RequestMapping(value = "/updateBatchStatus", method = RequestMethod.GET)
+    @ResponseBody
+    public ResponseInfo updateBatchStatus(String batchId ,int status)  {
+        try {
+            LoginUser lu = opUser();
+            if ("ROLE_USER".equals(lu.getRole()) || "admin".equals(lu.getRole())) {
+                expressBatchService.updateBatchStatus(batchId,status);
+            } else {
+                return new ResponseInfoAssemble().failure(-2,"暂无权限");
+            }
+        } catch (Exception e) {
+          logger.error("修改批次状态异常" + e);
+            return new ResponseInfoAssemble().failure(-1,"修改批次状态异常");
+        }
+        return new ResponseInfoAssemble().success(null);
+    }
 }
 
