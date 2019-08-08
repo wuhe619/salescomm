@@ -1269,7 +1269,7 @@ public class BillServiceImpl implements BillService {
         querySql.append("(SELECT s.`name` FROM t_market_resource r LEFT JOIN t_supplier s ON s.supplier_id = r.supplier_id WHERE r.resource_id = l.resource_id) expressSupplier,");
         querySql.append("(SELECT s.`name` FROM t_market_resource r LEFT JOIN t_supplier s ON s.supplier_id = r.supplier_id WHERE r.resource_id = d.resource_id) fixSupplier");
         querySql.append(" FROM nl_batch_detail d LEFT JOIN t_touch_express_log l ON d.touch_id = l.touch_id ");
-        querySql.append("WHERE 1=1 ");
+        querySql.append("WHERE 1=1 AND d.`status`=1 ");
         if (StringUtil.isNotEmpty(param.getBatchId())) {
             querySql.append(" AND d.batch_id ='" + param.getBatchId() + "'");
         }
