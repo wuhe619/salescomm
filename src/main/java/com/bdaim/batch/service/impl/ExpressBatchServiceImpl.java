@@ -1,5 +1,6 @@
 package com.bdaim.batch.service.impl;
 
+import com.bdaim.batch.dao.BatchDao;
 import com.bdaim.batch.dao.BatchInfoDao;
 import com.bdaim.batch.dao.BatchInfoDetailDao;
 import com.bdaim.batch.dao.BatchPropertyDao;
@@ -43,6 +44,8 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
     @Autowired
     private DataConverter dataConverter;
     @Autowired
+    private BatchDao batchDao;
+    @Autowired
     private JdbcTemplate jdbcTemplate;
     @Autowired
     private ZipUtil zipUtil;
@@ -63,7 +66,7 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         String classPath = fileUrlEntity.getFileUrl();
         String pathF = PROPERTIES.getProperty("file.separator");
         classPath = classPath.replace("/", pathF);
-        String uploadPath = classPath + pathF + "receiver_info" + pathF + custId + pathF;
+        String uploadPath = classPath + pathF + "receiver_info" + pathF+custId+pathF;
         // 文件路径的字符串拼接 目录 + 文件名 + 后缀
         uploadPath = uploadPath + generatedFileName + suffix;
         File file = new File(uploadPath);
@@ -253,7 +256,7 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         List<String> pdfFileNameList = new ArrayList<>();
         String fileUrl = fileUrlEntity.getFileUrl();
         String pathF = PROPERTIES.getProperty("file.separator");
-        fileUrl = fileUrl.replace("/", pathF);
+        fileUrl = fileUrl.replace("/",pathF);
         StringBuffer stringBuffer = new StringBuffer(fileUrl);
         stringBuffer.append(pathF).append("pdf").append(pathF).append(batchId).append(pathF);
         String destPath = stringBuffer.toString();
@@ -367,10 +370,8 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
     }
 
     @Override
-    public void updateFileCode(String addressId, String fileCode) {
-        String sql = "UPDATE nl_batch_detail SET label_six='" + fileCode + "' WHERE id='" + addressId + "'";
-        jdbcTemplate.update(sql);
+    public void updateBatchStatus(String batchId, int status) throws Exception {
+        String updateSql = "UPDATE nl_batch SET `status` =? WHERE id = ?";
+        batchDao.executeUpdateSQL(updateSql, status,batchId);
     }
-
-
 }
