@@ -126,13 +126,13 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
                 " WHEN '6' THEN '已发件' END AS status,t1.upload_num AS uploadNum,t1.success_num AS" +
                 " successNum,DATE_FORMAT(t1.upload_time,'%Y-%m-%d %H:%i:%s') AS uploadTime,t2.property_name AS propertyName," +
                 "t2.property_value AS propertyValue");
-        sql.append(" FROM nl_batch t1 LEFT JOIN nl_batch_property t2 ON t1.id=t2.batch_id WHERE ");
+        sql.append(" FROM nl_batch t1 LEFT JOIN nl_batch_property t2 ON t1.id=t2.batch_id WHERE 1=1");
 
         //企业ID
         String custId = String.valueOf(map.get("cust_id"));
         String nullString = "null";
         if (!nullString.equals(custId) && StringUtil.isNotEmpty(custId)) {
-            sql.append(" t1.comp_id = '" + custId + "'");
+            sql.append(" AND t1.comp_id = '" + custId + "'");
         }
         //批次编号
         String batchId = String.valueOf(map.get("batch_id"));
@@ -158,6 +158,11 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         String endTime = String.valueOf(map.get("end_time"));
         if (!nullString.equals(endTime) && StringUtil.isNotEmpty(endTime)) {
             sql.append(" AND t1.upload_time <='" + endTime + "'");
+        }
+        //快递格式
+        String expressType = String.valueOf(map.get("express_type"));
+        if (!nullString.equals(expressType) && StringUtil.isNotEmpty(expressType)) {
+            sql.append(" AND t1.id in (SELECT batch_id FROM nl_batch_property WHERE property_name ='expressContentType' AND property_value ="+expressType+") ");
         }
         sql.append(" ORDER BY t1.upload_time DESC ");
         Page page = new Pagination().getPageData(sql.toString(), null, pageParam, jdbcTemplate);
