@@ -1248,9 +1248,6 @@ public class BillServiceImpl implements BillService {
     }
 
     public Page getListCustomerBill(CustomerBillQueryParam param) throws Exception {
-        PageParam page = new PageParam();
-        page.setPageNum(param.getPageNum());
-        page.setPageSize(param.getPageSize());
         StringBuffer querySql = new StringBuffer("SELECT b.batch_id batchId,n.batch_name batchName,n.upload_time uploadTime,IFNULL(SUM(b.amount) / 100,0) amount ,IFNULL(SUM(b.prod_amount) / 100,0) prodAmount , ");
         querySql.append("( SELECT COUNT(id) FROM nl_batch_detail WHERE batch_id = b.batch_id ) fixNumber ");
         querySql.append("FROM stat_bill_month b LEFT JOIN nl_batch n ON b.batch_id = n.id ");
@@ -1264,12 +1261,20 @@ public class BillServiceImpl implements BillService {
         if (StringUtil.isNotEmpty(param.getBatchName())) {
             querySql.append("AND n.batch_name like '%" + param.getBatchName() + "%'");
         }
-        if (StringUtil.isNotEmpty(param.getDate())) {
-            querySql.append(" AND b.stat_time = '" + param.getDate() + "' ");
+        String billDate = param.getBillDate();
+        //0查詢全部 1查詢1年 2 查看近半年 201901查詢具体某月账单
+        if ("1".equals(billDate)) {
+            billDate = LocalDateTime.now().minusMonths(12).format(DateTimeFormatter.ofPattern("yyyyMM"));
+            querySql.append(" AND stat_time>=" + billDate);
+            //查看近半年
+        } else if ("2".equals(billDate)) {
+            billDate = LocalDateTime.now().minusMonths(6).format(DateTimeFormatter.ofPattern("yyyyMM"));
+            querySql.append(" AND stat_time>=" + billDate);
+        } else if(!"0".equals(billDate)) {
+            querySql.append(" AND stat_time=" + billDate);
         }
-        querySql.append("GROUP BY b.batch_id ");
+        querySql.append(" GROUP BY b.batch_id ");
         Page data = customerDao.sqlPageQuery(querySql.toString(), param.getPageNum(), param.getPageSize());
-        //Page data = new Pagination().getPageData(querySql.toString(), null, page, jdbcTemplate);
         if (data != null) {
             List<Map<String, Object>> list = data.getData();
             for (int i = 0; i < list.size(); i++) {
