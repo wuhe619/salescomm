@@ -289,5 +289,19 @@ public class ExpressBatchController extends BasicAction {
         }
         return new ResponseInfoAssemble().success(null);
     }
+
+    /**
+     * 根据地址ID修改文件编码
+     *
+     * @param addressId 地址ID
+     * @return
+     * @auther Chacker
+     * @date 2019/8/8 15:10
+     */
+    @RequestMapping(value = "/updateFileCode", method = RequestMethod.POST)
+    public ResponseInfo updateFileCodeByReceiverId(@RequestParam String addressId,@RequestParam String fileCode) {
+        expressBatchService.updateFileCode(addressId,fileCode);
+        return new ResponseInfoAssemble().success(null);
+    }
 }
 

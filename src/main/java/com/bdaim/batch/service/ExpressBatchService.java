@@ -89,4 +89,14 @@ public interface ExpressBatchService {
     String findPdfPathByReceiverId(String batchId, String receiverId);
 
     void updateBatchStatus(String batchId, int status) throws Exception;
+
+    /**
+     * 根据地址ID修改文件编码
+     *
+     * @param receiverId 地址ID
+     * @return
+     * @auther Chacker
+     * @date 2019/8/8 15:11
+     */
+    void updateFileCode(String receiverId,String fileCode);
 }

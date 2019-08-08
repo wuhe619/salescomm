@@ -374,4 +374,10 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         String updateSql = "UPDATE nl_batch SET `status` =? WHERE id = ?";
         batchDao.executeUpdateSQL(updateSql, status,batchId);
     }
+
+    @Override
+    public void updateFileCode(String addressId, String fileCode) {
+        String sql = "UPDATE nl_batch_detail SET label_six='" + fileCode + "' WHERE id='" + addressId + "'";
+        jdbcTemplate.update(sql);
+    }
 }
