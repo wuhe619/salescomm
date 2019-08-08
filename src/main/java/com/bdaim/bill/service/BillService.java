@@ -2,8 +2,9 @@ package com.bdaim.bill.service;
 
 import com.bdaim.bill.dto.CustomerBillQueryParam;
 import com.bdaim.bill.dto.SupplierBillQueryParam;
+import com.bdaim.rbac.dto.Page;
 import com.bdaim.common.dto.PageParam;
-import com.bdaim.common.util.page.Page;
+
 
 import javax.servlet.http.HttpServletResponse;
 import java.util.List;

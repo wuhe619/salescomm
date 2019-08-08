@@ -9,11 +9,9 @@ import com.bdaim.bill.service.BillService;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.util.NumberConvertUtil;
 import com.bdaim.common.util.StringUtil;
-import com.bdaim.common.util.page.Page;
-import com.bdaim.common.util.page.Pagination;
-import com.bdaim.common.util.page.PaginationThrowException;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.entity.CustomerDO;
+import com.bdaim.rbac.dto.Page;
 import com.bdaim.resource.dao.SourceDao;
 import com.bdaim.resource.entity.MarketResourceEntity;
 import com.bdaim.supplier.dao.SupplierDao;
@@ -90,7 +88,8 @@ public class BillServiceImpl implements BillService {
         sqlBuilder.append(" GROUP BY t.cust_id ");
         logger.info("查询后台账单sql" + sqlBuilder.toString());
         try {
-            return new PaginationThrowException().getPageData(sqlBuilder.toString(), null, page, jdbcTemplate);
+            return customerDao.sqlPageQuery(sqlBuilder.toString(), page.getPageNum(), page.getPageSize());
+            // return new PaginationThrowException().getPageData(sqlBuilder.toString(), null, page, jdbcTemplate);
         } catch (Exception e) {
             return null;
         }
@@ -141,8 +140,9 @@ public class BillServiceImpl implements BillService {
     public Page listBillDetail(PageParam page, CustomerBillQueryParam param) {
         //查询账单sql
         String logListSql = getBillType(param.getType(), param.getBillDate(), param.getCustomerId(), param.getSupplierId(), param.getTransactionId(), param.getBatchId(), param.getEnterpriseName(), param.getStartTime(), param.getEndTime());
-        Page pageData = new Pagination().getPageData(logListSql, null, page, jdbcTemplate);
-        List<Map<String, Object>> list = pageData.getList();
+        Page data = customerDao.sqlPageQuery(logListSql, page.getPageNum(), page.getPageSize());
+        //Page pageData = new Pagination().getPageData(logListSql, null, page, jdbcTemplate);
+        List<Map<String, Object>> list = data.getData();
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.S");
         LocalDateTime localDateTime;
         for (int i = 0; i < list.size(); i++) {
@@ -158,7 +158,7 @@ public class BillServiceImpl implements BillService {
                 }
             }
         }
-        return pageData;
+        return data;
     }
 
 
@@ -350,7 +350,8 @@ public class BillServiceImpl implements BillService {
     public Page listSupplierBillDetail(PageParam page, SupplierBillQueryParam param) {
         //获取账单查询sql
         String logListSql = getBillType(param.getType(), param.getBillDate(), param.getCustId(), param.getSupplierId(), param.getTransActionId(), param.getBatchId(), param.getEnterpriseName(), param.getStartTime(), param.getEndTime());
-        return new Pagination().getPageData(logListSql, null, page, jdbcTemplate);
+        //return new Pagination().getPageData(logListSql, null, page, jdbcTemplate);
+        return customerDao.sqlPageQuery(logListSql, page.getPageNum(), page.getPageSize());
     }
 
     @Override
@@ -1244,9 +1245,10 @@ public class BillServiceImpl implements BillService {
             querySql.append(" AND b.stat_time = '" + param.getDate() + "' ");
         }
         querySql.append("GROUP BY b.batch_id ");
-        Page data = new Pagination().getPageData(querySql.toString(), null, page, jdbcTemplate);
+        Page data = customerDao.sqlPageQuery(querySql.toString(), param.getPageNum(), param.getPageSize());
+        //Page data = new Pagination().getPageData(querySql.toString(), null, page, jdbcTemplate);
         if (data != null) {
-            List<Map<String, Object>> list = data.getList();
+            List<Map<String, Object>> list = data.getData();
             for (int i = 0; i < list.size(); i++) {
                 logger.info("企业消费金额是：" + String.valueOf(list.get(i).get("amount")) + "成本费用是：" + String.valueOf(list.get(i).get("prodAmount")));
                 String profitAmount = new BigDecimal(String.valueOf(list.get(i).get("amount"))).subtract(new BigDecimal(String.valueOf(list.get(i).get("prodAmount")))).setScale(2, BigDecimal.ROUND_DOWN).toString();
@@ -1254,6 +1256,53 @@ public class BillServiceImpl implements BillService {
             }
         }
         return data;
+    }
+
+    /**
+     * 查询账单详情页
+     *
+     * @param param
+     * @return
+     */
+    public Page getBillDetailList(CustomerBillQueryParam param) {
+        StringBuffer querySql = new StringBuffer("SELECT d.batch_id batchId, d.label_five peopleId, d.label_four address,l.id expressId,l.resource_id expressResource, d.resource_id fixResource,l.create_time sendTime, IFNULL(d.amount / 100, 0) amount, IFNULL(d.prod_amount / 100, 0) prodAmount, IFNULL(l.amount / 100, 0) expressAmount, ");
+        querySql.append("(SELECT s.`name` FROM t_market_resource r LEFT JOIN t_supplier s ON s.supplier_id = r.supplier_id WHERE r.resource_id = l.resource_id) expressSupplier,");
+        querySql.append("(SELECT s.`name` FROM t_market_resource r LEFT JOIN t_supplier s ON s.supplier_id = r.supplier_id WHERE r.resource_id = d.resource_id) fixSupplier");
+        querySql.append(" FROM nl_batch_detail d LEFT JOIN t_touch_express_log l ON d.touch_id = l.touch_id ");
+        querySql.append("WHERE 1=1 ");
+        if (StringUtil.isNotEmpty(param.getBatchId())) {
+            querySql.append(" AND d.batch_id ='" + param.getBatchId() + "'");
+        }
+        if (StringUtil.isNotEmpty(param.getExpressId())) {
+            querySql.append("AND l.id ='" + param.getExpressId() + "'");
+        }
+        if (StringUtil.isNotEmpty(param.getPeopleId())) {
+            querySql.append("AND d.label_five ='" + param.getPeopleId() + "'");
+        }
+        if (StringUtil.isNotEmpty(param.getName())) {
+            querySql.append("AND d.label_one like '%" + param.getName() + "%'");
+        }
+        if (StringUtil.isNotEmpty(param.getPhone())) {
+            querySql.append("AND d.label_one ='" + param.getPhone() + "'");
+        }
+
+        Page page = customerDao.sqlPageQuery(querySql.toString(), param.getPageNum(), param.getPageSize());
+        if (page != null) {
+            List<Map<String, Object>> list = page.getData();
+            for (int i = 0; i < list.size(); i++) {
+                //根据资源id查询所属渠道
+                if (StringUtil.isNotEmpty(String.valueOf(list.get(i).get("amount"))) && StringUtil.isNotEmpty(String.valueOf(list.get(i).get("expressAmount")))) {
+                    String sumAmount = new BigDecimal(String.valueOf(list.get(i).get("amount"))).add(new BigDecimal(String.valueOf(list.get(i).get("expressAmount")))).setScale(2, BigDecimal.ROUND_DOWN).toString();
+                    list.get(i).put("sumAmount", sumAmount);
+
+                }
+                if (StringUtil.isNotEmpty(String.valueOf(list.get(i).get("amount"))) && StringUtil.isNotEmpty(String.valueOf(list.get(i).get("prodAmount")))) {
+                    String profit = new BigDecimal(String.valueOf(list.get(i).get("amount"))).subtract(new BigDecimal(String.valueOf(list.get(i).get("prodAmount")))).setScale(2, BigDecimal.ROUND_DOWN).toString();
+                    list.get(i).put("profit", profit);
+                }
+            }
+        }
+        return page;
     }
 }
 
