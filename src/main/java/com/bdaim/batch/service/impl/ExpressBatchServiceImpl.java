@@ -240,63 +240,81 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
     @Override
     public ResponseInfo sendMessageUpload(MultipartFile expressContent, MultipartFile fileCodeMapping, String[] receiverId, String batchId) throws IOException {
         //1. 对文件类型进行校验
-        String contentFileName = expressContent.getOriginalFilename();
-        String mappingFileName = fileCodeMapping.getOriginalFilename();
         List<String> pdfFileNameList = new ArrayList<>();
-        pdfFileNameList.add(contentFileName.substring(0, contentFileName.lastIndexOf(".")));
-        String contentSuffix = contentFileName.substring(contentFileName.lastIndexOf("."));
-        String mappingSuffix = mappingFileName.substring(mappingFileName.lastIndexOf("."));
-        if (!Constant.XLS.equals(mappingSuffix) && !Constant.XLSX.equals(mappingSuffix)) {
-            return new ResponseInfoAssemble().failure(406, "操作失败。映射关系表文件文件格式不正确(xls/xlsx)");
+        if (expressContent != null) {
+            String contentFileName = expressContent.getOriginalFilename();
+            pdfFileNameList.add(contentFileName.substring(0, contentFileName.lastIndexOf(".")));
+            String contentSuffix = contentFileName.substring(contentFileName.lastIndexOf("."));
+            if (!Constant.PDF.equals(contentSuffix) && !Constant.ZIP.equals(contentSuffix)) {
+                return new ResponseInfoAssemble().failure(406, "操作失败。文件内容格式不正确(pdf/zip)");
+            }
+            String generatedZipName = String.valueOf(System.currentTimeMillis()) + UUID.randomUUID().toString().substring(0, 5);
+            String contentPath = "/express/content/" + batchId + "/";
+            if (Constant.ZIP.equals(contentSuffix)) {
+                //zip文件，重新生成文件名
+                contentPath = contentPath + generatedZipName + contentSuffix;
+            } else if (Constant.PDF.equals(contentSuffix)) {
+                //pdf文件，文件名不变(因为要和收件人ID做映射)
+                contentPath = contentPath + contentFileName;
+            }
+            //2.2 把发件内容文件 (.PDF 或 .zip文件)上传到服务器
+
+            File contentFile = new File(contentPath);
+            if (!contentFile.exists()) {
+                contentFile.getParentFile().mkdirs();
+                contentFile.createNewFile();
+            }
+            FileUtils.copyInputStreamToFile(expressContent.getInputStream(), contentFile);
+            //3. 如果是zip文件，则解压
+            if (Constant.ZIP.equals(contentSuffix)) {
+                pdfFileNameList = zipUtil.unZip(contentFile, "/express/content/" + batchId);
+            }
         }
-        if (!Constant.PDF.equals(contentSuffix) && !Constant.ZIP.equals(contentSuffix)) {
-            return new ResponseInfoAssemble().failure(406, "操作失败。文件内容格式不正确(pdf/zip)");
-        }
-        //2. 将文件上传到服务器
-        //2.1 把文件名与收件人ID映射文件上传到服务器
-        String generatedFileName = String.valueOf(System.currentTimeMillis()) + UUID.randomUUID().toString().substring(0, 5);
-        String mappingPath = "/express/mapping/" + batchId + "/";
-        mappingPath = mappingPath + generatedFileName + mappingSuffix;
-        File mappingFile = new File(mappingPath);
-        if (!mappingFile.exists()) {
-            mappingFile.getParentFile().mkdirs();
-            mappingFile.createNewFile();
-        }
-        FileUtils.copyInputStreamToFile(fileCodeMapping.getInputStream(), mappingFile);
-        //2.2 把发件内容文件 (.PDF 或 .zip文件)上传到服务器
-        String generatedZipName = String.valueOf(System.currentTimeMillis()) + UUID.randomUUID().toString().substring(0, 5);
-        String contentPath = "/express/content/" + batchId + "/";
-        if (Constant.ZIP.equals(contentSuffix)) {
-            //zip文件，重新生成文件名
-            contentPath = contentPath + generatedZipName + contentSuffix;
-        } else if (Constant.PDF.equals(contentSuffix)) {
-            //pdf文件，文件名不变(因为要和收件人ID做映射)
-            contentPath = contentPath + contentFileName;
-        }
-        File contentFile = new File(contentPath);
-        if (!contentFile.exists()) {
-            contentFile.getParentFile().mkdirs();
-            contentFile.createNewFile();
-        }
-        FileUtils.copyInputStreamToFile(expressContent.getInputStream(), contentFile);
-        //3. 如果是zip文件，则解压
-        if (Constant.ZIP.equals(contentSuffix)) {
-            pdfFileNameList = zipUtil.unZip(contentFile, "/express/content/" + batchId);
-        }
-        //4. 根据excel中的映射关系，把pdf文件路径存入数据库
-        //4.1 读取excel
-        List<List<String>> contentStringList = ExcelReaderUtil.readExcel(mappingPath);
-        //因为第一行是标题，所以从第二行开始遍历
-        for (int i = 1; i < contentStringList.size(); i++) {
-            //文件编码
-            String fileCode = contentStringList.get(i).get(0);
-            //收件ID
-            String receiverID = contentStringList.get(i).get(1);
-            String sql = "UPDATE nl_batch_detail SET express_path='/express/content/" + batchId + "/" + fileCode + Constant.PDF + "',label_seven='2' " +
-                    "WHERE batch_id='" + batchId + "' AND label_five='" + receiverID + "'";
-            jdbcTemplate.update(sql);
+        if (fileCodeMapping != null) {
+            String mappingFileName = fileCodeMapping.getOriginalFilename();
+            String mappingSuffix = mappingFileName.substring(mappingFileName.lastIndexOf("."));
+            if (!Constant.XLS.equals(mappingSuffix) && !Constant.XLSX.equals(mappingSuffix)) {
+                return new ResponseInfoAssemble().failure(406, "操作失败。映射关系表文件文件格式不正确(xls/xlsx)");
+            }
+            //2. 将文件上传到服务器
+            //2.1 把文件名与收件人ID映射文件上传到服务器
+            String generatedFileName = String.valueOf(System.currentTimeMillis()) + UUID.randomUUID().toString().substring(0, 5);
+            String mappingPath = "/express/mapping/" + batchId + "/";
+            mappingPath = mappingPath + generatedFileName + mappingSuffix;
+            File mappingFile = new File(mappingPath);
+            if (!mappingFile.exists()) {
+                mappingFile.getParentFile().mkdirs();
+                mappingFile.createNewFile();
+            }
+            FileUtils.copyInputStreamToFile(fileCodeMapping.getInputStream(), mappingFile);
+
+            //4. 根据excel中的映射关系，把pdf文件路径存入数据库
+            //4.1 读取excel
+            List<List<String>> contentStringList = ExcelReaderUtil.readExcel(mappingPath);
+            //因为第一行是标题，所以从第二行开始遍历
+            for (int i = 1; i < contentStringList.size(); i++) {
+                //文件编码
+                String fileCode = contentStringList.get(i).get(0);
+                //收件人ID
+                String receiverID = contentStringList.get(i).get(1);
+                //PDF存储路径
+                String expressPath = "";
+                if (pdfFileNameList.contains(receiverID)) {
+                    expressPath = "/express/content/" + batchId + "/" + receiverID + Constant.PDF;
+                }
+                //根据批次ID batchId 和收件人ID receiverID 更新 存储路径、文件编码
+                String sql = "UPDATE nl_batch_detail SET label_eight='" + expressPath + "',label_six='" + fileCode + "' " +
+                        "WHERE batch_id='" + batchId + "' AND label_five='" + receiverID + "'";
+                jdbcTemplate.update(sql);
+            }
         }
         //5. 修改状态 根据收件人ID和 批次ID把 状态修改为 【2】【待发件】
+        String sql = "UPDATE nl_batch_detail SET label_seven='2' WHERE batch_id=? AND label_five=?";
+        List<Object[]> list = new ArrayList<>();
+        for (int i = 0; i < receiverId.length; i++) {
+            list.add(new Object[]{1, batchId, receiverId[i]});
+        }
+        jdbcTemplate.batchUpdate(sql, list);
         return new ResponseInfoAssemble().success(null);
     }
 

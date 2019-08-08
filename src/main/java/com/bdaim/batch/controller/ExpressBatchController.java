@@ -227,7 +227,7 @@ public class ExpressBatchController {
         response.setCharacterEncoding("utf-8");
 //        response.setContentType("application/force-download");
         response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-        String fileName = "批次详情.xlsx";
+        String fileName = batch_id + "批次详情.xlsx";
         String returnName = response.encodeURL(new String(fileName.getBytes(), "iso8859-1"));   //保存的文件名,必须和页面编码一致,否则乱码
         response.addHeader("Content-Disposition", "attachment;filename=" + returnName);
         OutputStream outputStream = response.getOutputStream();
