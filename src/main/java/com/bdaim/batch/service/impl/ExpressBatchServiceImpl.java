@@ -154,6 +154,11 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         if (!nullString.equals(endTime) && StringUtil.isNotEmpty(endTime)) {
             sql.append(" AND t1.upload_time <='" + endTime + "'");
         }
+        //快递格式
+        String expressType = String.valueOf(map.get("express_type"));
+        if (!nullString.equals(expressType) && StringUtil.isNotEmpty(expressType)) {
+            sql.append(" AND t1.id in (SELECT batch_id FROM nl_batch_property WHERE property_name ='expressContentType' AND property_value ="+expressType+") ");
+        }
         sql.append(" ORDER BY t1.upload_time DESC ");
         Page page = new Pagination().getPageData(sql.toString(), null, pageParam, jdbcTemplate);
         List<Map<String, Object>> list = page.getList();
