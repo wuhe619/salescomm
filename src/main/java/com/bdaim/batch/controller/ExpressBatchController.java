@@ -6,6 +6,7 @@ import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.common.util.FileUrlEntity;
+import com.bdaim.common.util.StringUtil;
 import com.github.crab2died.ExcelUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -128,6 +129,9 @@ public class ExpressBatchController extends BasicAction {
     @ResponseBody
     public ResponseInfo batchList(@RequestParam Map<String, Object> map) throws IllegalAccessException {
         LoginUser lu = opUser();
+        if (StringUtil.isEmpty(String.valueOf(map.get("page_num"))) || StringUtil.isEmpty(String.valueOf(map.get("page_size")))) {
+            return new ResponseInfoAssemble().failure(-1,"缺少必要参数");
+        }
         Map<String, Object> resultMap = null;
         if ("ROLE_USER".equals(lu.getRole()) || "admin".equals(lu.getRole())) {
             resultMap = expressBatchService.batchList(map);
