@@ -49,6 +49,8 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
     private JdbcTemplate jdbcTemplate;
     @Autowired
     private ZipUtil zipUtil;
+    @Autowired
+    private FileUrlEntity fileUrlEntity;
 
     @Override
     @Transactional
@@ -61,7 +63,10 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
             return new ResponseInfoAssemble().failure(HttpStatus.BAD_REQUEST.value(), "请保证文件格式为\".xls\"或\".xlsx\"");
         }
         String generatedFileName = String.valueOf(System.currentTimeMillis()) + UUID.randomUUID().toString().substring(0, 5);
-        String uploadPath = "/express/upload/" + DateUtil.getDateOfYearAndMonth() + "/";
+        String classPath = fileUrlEntity.getFileUrl();
+        String pathF = PROPERTIES.getProperty("file.separator");
+        classPath = classPath.replace("/", pathF);
+        String uploadPath = classPath + pathF + "receiver_info" + pathF+custId+pathF;
         // 文件路径的字符串拼接 目录 + 文件名 + 后缀
         uploadPath = uploadPath + generatedFileName + suffix;
         File file = new File(uploadPath);
@@ -249,6 +254,12 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
     public ResponseInfo sendMessageUpload(MultipartFile expressContent, MultipartFile fileCodeMapping, String receiverId, String batchId) throws IOException {
         //1. 对文件类型进行校验
         List<String> pdfFileNameList = new ArrayList<>();
+        String fileUrl = fileUrlEntity.getFileUrl();
+        String pathF = PROPERTIES.getProperty("file.separator");
+        fileUrl = fileUrl.replace("/",pathF);
+        StringBuffer stringBuffer = new StringBuffer(fileUrl);
+        stringBuffer.append(pathF).append("pdf").append(pathF).append(batchId).append(pathF);
+        String destPath = stringBuffer.toString();
         if (expressContent != null) {
             String contentFileName = expressContent.getOriginalFilename();
             pdfFileNameList.add(contentFileName.substring(0, contentFileName.lastIndexOf(".")));
@@ -257,7 +268,7 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
                 return new ResponseInfoAssemble().failure(406, "操作失败。文件内容格式不正确(pdf/zip)");
             }
             String generatedZipName = String.valueOf(System.currentTimeMillis()) + UUID.randomUUID().toString().substring(0, 5);
-            String contentPath = "/express/content/" + batchId + "/";
+            String contentPath = destPath;
             if (Constant.ZIP.equals(contentSuffix)) {
                 //zip文件，重新生成文件名
                 contentPath = contentPath + generatedZipName + contentSuffix;
@@ -275,7 +286,7 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
             FileUtils.copyInputStreamToFile(expressContent.getInputStream(), contentFile);
             //3. 如果是zip文件，则解压
             if (Constant.ZIP.equals(contentSuffix)) {
-                pdfFileNameList = zipUtil.unZip(contentFile, "/express/content/" + batchId);
+                pdfFileNameList = zipUtil.unZip(contentFile, destPath);
             }
         }
         if (fileCodeMapping != null) {
@@ -287,7 +298,7 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
             //2. 将文件上传到服务器
             //2.1 把文件名与收件人ID映射文件上传到服务器
             String generatedFileName = String.valueOf(System.currentTimeMillis()) + UUID.randomUUID().toString().substring(0, 5);
-            String mappingPath = "/express/mapping/" + batchId + "/";
+            String mappingPath = destPath;
             mappingPath = mappingPath + generatedFileName + mappingSuffix;
             File mappingFile = new File(mappingPath);
             if (!mappingFile.exists()) {
@@ -308,7 +319,7 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
                 //PDF存储路径
                 String expressPath = "";
                 if (pdfFileNameList.contains(receiverID)) {
-                    expressPath = "/express/content/" + batchId + "/" + receiverID + Constant.PDF;
+                    expressPath = destPath + receiverID + Constant.PDF;
                 }
                 //根据批次ID batchId 和收件人ID receiverID 更新 存储路径、文件编码
                 String sql = "UPDATE nl_batch_detail SET label_eight='" + expressPath + "',label_six='" + fileCode + "' " +
