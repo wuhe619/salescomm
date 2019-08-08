@@ -352,9 +352,13 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
 
     @Override
     public List<Map<String, Object>> findDetailByBatchId(String batch_id) {
-        StringBuffer sql = new StringBuffer("SELECT label_six AS fileCode,label_five AS receiverId,label_one")
-                .append(" AS name,label_two AS phone,label_four AS address FROM nl_batch_detail")
-                .append(" WHERE batch_id='")
+        StringBuffer sql = new StringBuffer("SELECT t1.label_six AS fileCode,t1.label_five AS receiverId,t1.label_one")
+                .append(" AS name,t1.label_two AS phone,t1.label_four AS address,t1.id AS addressId,t2.request_id AS expressCode, ")
+                .append("CASE t1.status WHEN '1' THEN '有效' WHEN '0' THEN '无效' ELSE '' END AS status,")
+                .append("CASE t1.label_seven WHEN '1' THEN '待上传' WHEN '2' THEN '待发件' WHEN '3' THEN '待取件' WHEN '4' THEN '已发件'")
+                .append(" ELSE '' END AS expressStatus ")
+                .append("FROM nl_batch_detail t1 ")
+                .append(" LEFT JOIN t_touch_express_log t2 ON t1.touch_id=t2.touch_id WHERE t1.batch_id='")
                 .append(batch_id)
                 .append("'");
         List<Map<String, Object>> result = jdbcTemplate.queryForList(sql.toString());

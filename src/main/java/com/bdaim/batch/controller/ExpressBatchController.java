@@ -130,7 +130,7 @@ public class ExpressBatchController extends BasicAction {
     public ResponseInfo batchList(@RequestParam Map<String, Object> map) throws IllegalAccessException {
         LoginUser lu = opUser();
         if (StringUtil.isEmpty(String.valueOf(map.get("page_num"))) || StringUtil.isEmpty(String.valueOf(map.get("page_size")))) {
-            return new ResponseInfoAssemble().failure(-1,"缺少必要参数");
+            return new ResponseInfoAssemble().failure(-1, "缺少必要参数");
         }
         Map<String, Object> resultMap = null;
         if ("ROLE_USER".equals(lu.getRole()) || "admin".equals(lu.getRole())) {
@@ -223,7 +223,7 @@ public class ExpressBatchController extends BasicAction {
     /**
      * 导出批次详情
      *
-     * @param batch_id 批次ID
+     * @param map      export_type 1前端 2后台 batch_id 批次ID
      * @param response response
      * @return
      * @auther Chacker
@@ -231,15 +231,53 @@ public class ExpressBatchController extends BasicAction {
      */
     @RequestMapping(value = "/batchDetailExport", method = RequestMethod.GET)
     @ResponseBody
-    public void batchDetailExport(@RequestParam String batch_id, HttpServletResponse response) throws IOException {
+    public void batchDetailExport(@RequestParam Map<String, Object> map, HttpServletResponse response) throws IOException {
         //根据批次ID找到数据信息
-        List<Map<String, Object>> dataList = expressBatchService.findDetailByBatchId(batch_id);
+        String batchId = String.valueOf(map.get("batch_id"));
+        List<Map<String, Object>> dataList = expressBatchService.findDetailByBatchId(batchId);
+        int exportType = Integer.parseInt(String.valueOf(map.get("export_type")));
         List<String> header = new ArrayList<>();
-        header.add("文件编码(不能重复)");
-        header.add("收件ID(不能重复)");
-        header.add("姓名");
-        header.add("电话");
-        header.add("地址");
+        List<List<Object>> data = new ArrayList<>();
+        if (exportType == 1) {
+            header.add("文件编码(不能重复)");
+            header.add("收件ID(不能重复)");
+            header.add("姓名");
+            header.add("电话");
+            header.add("地址");
+            List<Object> rowList;
+            for (Map<String, Object> column : dataList) {
+                rowList = new ArrayList<>();
+                rowList.add(column.get("fileCode") != null ? column.get("fileCode") : "");
+                rowList.add(column.get("receiverId") != null ? column.get("receiverId") : "");
+                rowList.add(column.get("name") != null ? column.get("name") : "");
+                rowList.add(column.get("phone") != null ? column.get("phone") : "");
+                rowList.add(column.get("address") != null ? column.get("address") : "");
+                data.add(rowList);
+            }
+        } else if (exportType == 2) {
+            header.add("地址ID");
+            header.add("快递单号");
+            header.add("收件ID");
+            header.add("姓名");
+            header.add("电话");
+            header.add("校验结果");
+            header.add("快件状态");
+            header.add("文件编码");
+            List<Object> rowList;
+            for (Map<String, Object> column : dataList) {
+                rowList = new ArrayList<>();
+                rowList.add(column.get("addressId") != null ? column.get("addressId") : "");
+                rowList.add(column.get("expressCode") != null ? column.get("expressCode") : "");
+                rowList.add(column.get("receiverId") != null ? column.get("receiverId") : "");
+                rowList.add(column.get("name") != null ? column.get("name") : "");
+                rowList.add(column.get("phone") != null ? column.get("phone") : "");
+                rowList.add(column.get("status") != null ? column.get("status") : "");
+                rowList.add(column.get("expressStatus") != null ? column.get("expressStatus") : "");
+                rowList.add(column.get("fileCode") != null ? column.get("fileCode") : "");
+                data.add(rowList);
+            }
+        }
+
         //下载的response属性设置
         response.setCharacterEncoding("utf-8");
 //        response.setContentType("application/force-download");
@@ -249,25 +287,14 @@ public class ExpressBatchController extends BasicAction {
         response.addHeader("Content-Disposition", "attachment;filename=" + returnName);
         OutputStream outputStream = response.getOutputStream();
 
-        List<List<Object>> data = new ArrayList<>();
-        List<Object> rowList;
-        for (Map<String, Object> column : dataList) {
-            rowList = new ArrayList<>();
-            rowList.add(column.get("fileCode") != null ? column.get("fileCode") : "");
-            rowList.add(column.get("receiverId") != null ? column.get("receiverId") : "");
-            rowList.add(column.get("name") != null ? column.get("name") : "");
-            rowList.add(column.get("phone") != null ? column.get("phone") : "");
-            rowList.add(column.get("address") != null ? column.get("address") : "");
-            data.add(rowList);
-        }
-
 
         ExcelUtils.getInstance().exportObjects2Excel(data, header, outputStream);
         outputStream.flush();
         outputStream.close();
     }
+
     /**
-     *更改批次状态
+     * 更改批次状态
      *
      * @param
      * @retur
@@ -275,17 +302,17 @@ public class ExpressBatchController extends BasicAction {
      */
     @RequestMapping(value = "/updateBatchStatus", method = RequestMethod.GET)
     @ResponseBody
-    public ResponseInfo updateBatchStatus(String batchId ,int status)  {
+    public ResponseInfo updateBatchStatus(String batchId, int status) {
         try {
             LoginUser lu = opUser();
             if ("ROLE_USER".equals(lu.getRole()) || "admin".equals(lu.getRole())) {
-                expressBatchService.updateBatchStatus(batchId,status);
+                expressBatchService.updateBatchStatus(batchId, status);
             } else {
-                return new ResponseInfoAssemble().failure(-2,"暂无权限");
+                return new ResponseInfoAssemble().failure(-2, "暂无权限");
             }
         } catch (Exception e) {
-          logger.error("修改批次状态异常" + e);
-            return new ResponseInfoAssemble().failure(-1,"修改批次状态异常");
+            logger.error("修改批次状态异常" + e);
+            return new ResponseInfoAssemble().failure(-1, "修改批次状态异常");
         }
         return new ResponseInfoAssemble().success(null);
     }
@@ -299,8 +326,8 @@ public class ExpressBatchController extends BasicAction {
      * @date 2019/8/8 15:10
      */
     @RequestMapping(value = "/updateFileCode", method = RequestMethod.POST)
-    public ResponseInfo updateFileCodeByReceiverId(@RequestParam String addressId,@RequestParam String fileCode) {
-        expressBatchService.updateFileCode(addressId,fileCode);
+    public ResponseInfo updateFileCodeByReceiverId(@RequestParam String addressId, @RequestParam String fileCode) {
+        expressBatchService.updateFileCode(addressId, fileCode);
         return new ResponseInfoAssemble().success(null);
     }
 }
