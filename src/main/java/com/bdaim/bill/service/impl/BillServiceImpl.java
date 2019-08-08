@@ -57,6 +57,7 @@ public class BillServiceImpl implements BillService {
     @Resource
     SupplierDao supplierDao;
 
+
     private final static DateTimeFormatter YYYYMM = DateTimeFormatter.ofPattern("yyyyMM");
 
     @Override
@@ -384,6 +385,7 @@ public class BillServiceImpl implements BillService {
             profitAmount = new BigDecimal(consumeTotal).subtract(new BigDecimal(supAmountSum)).setScale(2, BigDecimal.ROUND_DOWN).toString();
         }
         map.put("amountSum", consumeTotal);
+        map.put("supAmountSum", supAmountSum);
         map.put("profitAmount", profitAmount);
         return map;
     }
@@ -1219,6 +1221,39 @@ public class BillServiceImpl implements BillService {
         map.put("amountSum", consumeTotal);
         map.put("profitAmount", profitAmount);
         return map;
+    }
+
+    public Page getListCustomerBill(CustomerBillQueryParam param) throws Exception {
+        PageParam page = new PageParam();
+        page.setPageNum(param.getPageNum());
+        page.setPageSize(param.getPageSize());
+        StringBuffer querySql = new StringBuffer("SELECT b.batch_id batchId,n.batch_name batchName,n.upload_time uploadTime,IFNULL(SUM(b.amount) / 100,0) amount ,IFNULL(SUM(b.prod_amount) / 100,0) prodAmount , ");
+        querySql.append("( SELECT COUNT(id) FROM nl_batch_detail WHERE batch_id = b.batch_id ) fixNumber ");
+        querySql.append("FROM stat_bill_month b LEFT JOIN nl_batch n ON b.batch_id = n.id ");
+        querySql.append("WHERE n.certify_type = 3 ");
+        if (StringUtil.isNotEmpty(param.getCustomerId())) {
+            querySql.append("AND n.comp_id = '" + param.getCustomerId() + "' ");
+        }
+        if (StringUtil.isNotEmpty(param.getBatchId())) {
+            querySql.append("AND n.id = '" + param.getBatchId() + "' ");
+        }
+        if (StringUtil.isNotEmpty(param.getBatchName())) {
+            querySql.append("AND n.batch_name like '%" + param.getBatchName() + "%'");
+        }
+        if (StringUtil.isNotEmpty(param.getDate())) {
+            querySql.append(" AND b.stat_time = '" + param.getDate() + "' ");
+        }
+        querySql.append("GROUP BY b.batch_id ");
+        Page data = new Pagination().getPageData(querySql.toString(), null, page, jdbcTemplate);
+        if (data != null) {
+            List<Map<String, Object>> list = data.getList();
+            for (int i = 0; i < list.size(); i++) {
+                logger.info("企业消费金额是：" + String.valueOf(list.get(i).get("amount")) + "成本费用是：" + String.valueOf(list.get(i).get("prodAmount")));
+                String profitAmount = new BigDecimal(String.valueOf(list.get(i).get("amount"))).subtract(new BigDecimal(String.valueOf(list.get(i).get("prodAmount")))).setScale(2, BigDecimal.ROUND_DOWN).toString();
+                list.get(i).put("profitAmount", profitAmount);
+            }
+        }
+        return data;
     }
 }
 
