@@ -2,9 +2,8 @@ package com.bdaim.bill.service;
 
 import com.bdaim.bill.dto.CustomerBillQueryParam;
 import com.bdaim.bill.dto.SupplierBillQueryParam;
-import com.bdaim.rbac.dto.Page;
 import com.bdaim.common.dto.PageParam;
-
+import com.bdaim.rbac.dto.Page;
 
 import javax.servlet.http.HttpServletResponse;
 import java.util.List;
@@ -18,7 +17,7 @@ import java.util.Map;
 public interface BillService {
     Page queryCustomerBill(PageParam page, CustomerBillQueryParam param);
 
-    List<Map<String, Object>> querySupplierBill(PageParam page, SupplierBillQueryParam param);
+    Page querySupplierBill(PageParam page, SupplierBillQueryParam param);
 
     Page listBillDetail(PageParam page, CustomerBillQueryParam param) throws Exception;
 

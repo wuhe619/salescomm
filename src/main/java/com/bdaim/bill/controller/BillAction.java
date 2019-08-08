@@ -108,31 +108,34 @@ public class BillAction extends BasicAction {
      * */
     @RequestMapping(value = "/supplierBill/query", method = RequestMethod.GET)
     @ResponseBody
-    public Object supplierBillQuery(@Valid PageParam page, BindingResult error, SupplierBillQueryParam param) {
+    public ResponseInfo supplierBillQuery(@Valid PageParam page, BindingResult error, SupplierBillQueryParam param) {
         if (error.hasFieldErrors()) {
-            return getErrors(error);
+            return new ResponseInfoAssemble().failure(-1, "缺少必要参数");
         }
         LoginUser lu = opUser();
         Map<String, Object> resultMap = new HashMap<>();
         if ("ROLE_USER".equals(lu.getRole()) || "admin".equals(lu.getRole())) {
-            List<Map<String, Object>> supplierList = billService.querySupplierBill(page, param);
+            Page data = billService.querySupplierBill(page, param);
             BigDecimal amountSumBigDecimal = new BigDecimal("0");
             BigDecimal amountBigDecimal;
+            List<Map<String, Object>> supplierList = null;
             DecimalFormat df = new DecimalFormat("0.00");
-            if (supplierList.size() > 0) {
-                for (int i = 0; i < supplierList.size(); i++) {
-                    if (StringUtil.isNotEmpty(String.valueOf(supplierList.get(i).get("amountSum"))) && !"null".equals(String.valueOf(supplierList.get(i).get("amountSum")))) {
-                        amountBigDecimal = new BigDecimal(String.valueOf(supplierList.get(i).get("amountSum")));
-                        amountSumBigDecimal = amountSumBigDecimal.add(amountBigDecimal);
+            if (data != null) {
+                supplierList = data.getData();
+                if (supplierList.size() > 0) {
+                    for (int i = 0; i < supplierList.size(); i++) {
+                        if (StringUtil.isNotEmpty(String.valueOf(supplierList.get(i).get("amountSum"))) && !"null".equals(String.valueOf(supplierList.get(i).get("amountSum")))) {
+                            amountBigDecimal = new BigDecimal(String.valueOf(supplierList.get(i).get("amountSum")));
+                            amountSumBigDecimal = amountSumBigDecimal.add(amountBigDecimal);
+                        }
                     }
                 }
             }
             String amountSumTotal = df.format(amountSumBigDecimal);
-            resultMap.put("list", supplierList);
-            resultMap.put("total", supplierList.size());
+            resultMap.put("list", data);
             resultMap.put("amountSumTotal", amountSumTotal);
         }
-        return JSON.toJSONString(resultMap);
+        return new ResponseInfoAssemble().success(resultMap);
     }
 
     /*

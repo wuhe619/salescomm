@@ -96,7 +96,7 @@ public class BillServiceImpl implements BillService {
     }
 
     @Override
-    public List<Map<String, Object>> querySupplierBill(PageParam page, SupplierBillQueryParam param) {
+    public Page querySupplierBill(PageParam page, SupplierBillQueryParam param) {
         String billDate = param.getBillDate();
         Map<String, String> map = new HashMap<>();
         logger.info("查询账单时间范围是：" + billDate);
@@ -116,22 +116,26 @@ public class BillServiceImpl implements BillService {
             supBillSql.append(" AND stat_time=" + billDate);
         }
         //查询当前所有供应商
-        String querySql = "SELECT s.supplier_id supplierId,s.`name` supplierName,s.create_time,s.contact_person person,s.contact_phone phone FROM t_supplier s";
-        List<Map<String, Object>> supplierList = sourceDao.sqlQuery(querySql);
-        if (supplierList.size() > 0) {
-            for (int i = 0; i < supplierList.size(); i++) {
-                String supplierId = String.valueOf(supplierList.get(i).get("supplierId"));
-                if (StringUtil.isNotEmpty(supplierId)) {
-                    //根据supplierId查询出消费金额
-                    logger.info("查询供应商消费金额sql是：" + supBillSql.toString());
-                    List<Map<String, Object>> countMoneyList = sourceDao.sqlQuery(supBillSql.toString(), supplierId);
-                    if (countMoneyList.size() > 0) {
-                        supplierList.get(i).put("amountSum", countMoneyList.get(0).get("amountSum"));
+        String querySql = "SELECT s.supplier_id supplierId,s.`name` supplierName,s.create_time,s.contact_person person,s.contact_phone phone,s.status,GROUP_CONCAT(DISTINCT r.type_code) resourceType FROM t_supplier s LEFT JOIN t_market_resource r on s.supplier_id = r.supplier_id GROUP BY s.supplier_id";
+        Page data = sourceDao.sqlPageQuery(querySql, param.getPageNum(), param.getPageSize());
+        if (data != null) {
+            List<Map<String, Object>> supplierList = supplierList = data.getData();
+
+            if (supplierList.size() > 0) {
+                for (int i = 0; i < supplierList.size(); i++) {
+                    String supplierId = String.valueOf(supplierList.get(i).get("supplierId"));
+                    if (StringUtil.isNotEmpty(supplierId)) {
+                        //根据supplierId查询出消费金额
+                        logger.info("查询供应商消费金额sql是：" + supBillSql.toString());
+                        List<Map<String, Object>> countMoneyList = sourceDao.sqlQuery(supBillSql.toString(), supplierId);
+                        if (countMoneyList.size() > 0) {
+                            supplierList.get(i).put("amountSum", countMoneyList.get(0).get("amountSum"));
+                        }
                     }
                 }
             }
         }
-        return supplierList;
+        return data;
 
     }
 
