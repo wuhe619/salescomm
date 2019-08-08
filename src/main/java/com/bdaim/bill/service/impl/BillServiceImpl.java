@@ -118,8 +118,8 @@ public class BillServiceImpl implements BillService {
         //查询当前所有供应商
         StringBuffer querySql = new StringBuffer("SELECT s.supplier_id supplierId,s.`name` supplierName,s.create_time,s.contact_person person,s.contact_phone phone,s.status,GROUP_CONCAT(DISTINCT r.type_code) resourceType ");
         querySql.append("FROM t_supplier s LEFT JOIN t_market_resource r on s.supplier_id = r.supplier_id where 1=1 ");
-        if (StringUtil.isNotEmpty(param.getSupplierId())){
-            querySql.append("AND s.supplier_id = '" +param.getSupplierId()+"'" );
+        if (StringUtil.isNotEmpty(param.getSupplierId())) {
+            querySql.append("AND s.supplier_id = '" + param.getSupplierId() + "'");
         }
         querySql.append("GROUP BY s.supplier_id");
         Page data = sourceDao.sqlPageQuery(querySql.toString(), param.getPageNum(), param.getPageSize());
@@ -135,6 +135,21 @@ public class BillServiceImpl implements BillService {
                         if (countMoneyList.size() > 0) {
                             supplierList.get(i).put("amountSum", countMoneyList.get(0).get("amountSum"));
                         }
+                    }
+                    //查询供应商资源名称
+                    String resourceType = String.valueOf(supplierList.get(i).get("resourceType"));
+                    logger.info("获取到的资源类型是：" + resourceType);
+                    if (StringUtil.isNotEmpty(resourceType)) {
+                        String[] split = resourceType.split(",");
+                        String name = "";
+                        if (split.length > 0) {
+                            for (int j = 0; j < split.length; j++) {
+                                if (TransactionEnum.getName(NumberConvertUtil.parseInt(split[j])) != null) {
+                                    name += TransactionEnum.getName(NumberConvertUtil.parseInt(split[j])) + " ";
+                                }
+                            }
+                        }
+                        supplierList.get(i).put("resourceName", name);
                     }
                 }
             }
