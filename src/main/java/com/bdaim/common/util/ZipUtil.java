@@ -34,7 +34,13 @@ public class ZipUtil {
                     continue;
                 } else {
                     //如果是文件，就先创建一个文件，然后用FileUtil把文件内容copy过去
-                    File targetFile = new File(destDirPath + zipEntry.getName().substring(zipEntry.getName().lastIndexOf("/")));
+                    String entryName = zipEntry.getName();
+                    File targetFile;
+                    if(entryName.contains("/")){
+                        targetFile = new File(destDirPath + zipEntry.getName().substring(zipEntry.getName().lastIndexOf("/")));
+                    }else {
+                        targetFile = new File((destDirPath+entryName));
+                    }
                     result.add(zipEntry.getName().substring(0,zipEntry.getName().lastIndexOf(".")));
                     if (!targetFile.exists()) {
                         targetFile.getParentFile().mkdirs();

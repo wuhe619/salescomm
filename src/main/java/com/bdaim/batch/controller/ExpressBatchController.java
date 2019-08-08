@@ -66,7 +66,7 @@ public class ExpressBatchController extends BasicAction {
             }
             String pathF = PROPERTIES.getProperty("file.separator");
             classPath = classPath.replace("/", pathF);
-            String path = classPath + pathF + fileName;
+            String path = classPath + pathF + "tp" + pathF + fileName;
 
             //下载的response属性设置
             response.setCharacterEncoding("utf-8");
