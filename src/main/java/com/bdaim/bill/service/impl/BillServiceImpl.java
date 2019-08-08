@@ -116,11 +116,15 @@ public class BillServiceImpl implements BillService {
             supBillSql.append(" AND stat_time=" + billDate);
         }
         //查询当前所有供应商
-        String querySql = "SELECT s.supplier_id supplierId,s.`name` supplierName,s.create_time,s.contact_person person,s.contact_phone phone,s.status,GROUP_CONCAT(DISTINCT r.type_code) resourceType FROM t_supplier s LEFT JOIN t_market_resource r on s.supplier_id = r.supplier_id GROUP BY s.supplier_id";
-        Page data = sourceDao.sqlPageQuery(querySql, param.getPageNum(), param.getPageSize());
+        StringBuffer querySql = new StringBuffer("SELECT s.supplier_id supplierId,s.`name` supplierName,s.create_time,s.contact_person person,s.contact_phone phone,s.status,GROUP_CONCAT(DISTINCT r.type_code) resourceType ");
+        querySql.append("FROM t_supplier s LEFT JOIN t_market_resource r on s.supplier_id = r.supplier_id where 1=1 ");
+        if (StringUtil.isNotEmpty(param.getSupplierId())){
+            querySql.append("AND s.supplier_id = '" +param.getSupplierId()+"'" );
+        }
+        querySql.append("GROUP BY s.supplier_id");
+        Page data = sourceDao.sqlPageQuery(querySql.toString(), param.getPageNum(), param.getPageSize());
         if (data != null) {
-            List<Map<String, Object>> supplierList = supplierList = data.getData();
-
+            List<Map<String, Object>> supplierList = data.getData();
             if (supplierList.size() > 0) {
                 for (int i = 0; i < supplierList.size(); i++) {
                     String supplierId = String.valueOf(supplierList.get(i).get("supplierId"));
