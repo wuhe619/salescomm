@@ -1,6 +1,8 @@
 package com.bdaim.batch.controller;
 
+import com.bdaim.auth.LoginUser;
 import com.bdaim.batch.service.ExpressBatchService;
+import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.common.util.FileUrlEntity;
@@ -9,7 +11,10 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
@@ -26,7 +31,7 @@ import java.util.Properties;
  */
 @RequestMapping("/express")
 @Controller
-public class ExpressBatchController {
+public class ExpressBatchController extends BasicAction {
 
     private static Log logger = LogFactory.getLog(ExpressBatchController.class);
     protected static final Properties PROPERTIES = new Properties(System.getProperties());
@@ -122,7 +127,15 @@ public class ExpressBatchController {
     @RequestMapping(value = "/batchList", method = RequestMethod.GET)
     @ResponseBody
     public ResponseInfo batchList(@RequestParam Map<String, Object> map) throws IllegalAccessException {
-        Map<String, Object> resultMap = expressBatchService.batchList(map);
+        LoginUser lu = opUser();
+        Map<String, Object> resultMap = null;
+        if ("ROLE_USER".equals(lu.getRole()) || "admin".equals(lu.getRole())) {
+            resultMap = expressBatchService.batchList(map);
+        } else {
+            String custId = opUser().getCustId();
+            map.put("cust_id", custId);
+            resultMap = expressBatchService.batchList(map);
+        }
         return new ResponseInfoAssemble().success(resultMap);
     }
 
