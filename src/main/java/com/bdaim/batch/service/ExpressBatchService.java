@@ -55,7 +55,7 @@ public interface ExpressBatchService {
      * @auther Chacker
      * @date 2019/8/6 13:33
      */
-    ResponseInfo sendMessageUpload(MultipartFile expressContent, MultipartFile fileCodeMapping, String[] receiverId, String batchId) throws IOException;
+    ResponseInfo sendMessageUpload(MultipartFile expressContent, MultipartFile fileCodeMapping, String receiverId, String batchId) throws IOException;
 
     /**
      * 上传模板文件，此接口不对前端提供，只是后端人员在(换环境)发布程序后使用

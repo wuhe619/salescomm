@@ -151,7 +151,7 @@ public class ExpressBatchController {
      */
     @RequestMapping(value = "/sendMessageUpload", method = RequestMethod.POST)
     @ResponseBody
-    public ResponseInfo sendMessageUpload(MultipartFile expressContent, MultipartFile fileCodeMapping, String[] receiverId, String batchId) throws IOException {
+    public ResponseInfo sendMessageUpload(MultipartFile expressContent, MultipartFile fileCodeMapping, String receiverId, String batchId) throws IOException {
         ResponseInfo result = expressBatchService.sendMessageUpload(expressContent, fileCodeMapping, receiverId, batchId);
         return result;
     }

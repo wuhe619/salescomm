@@ -238,7 +238,7 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
      * @date 2019/8/6 13:34
      */
     @Override
-    public ResponseInfo sendMessageUpload(MultipartFile expressContent, MultipartFile fileCodeMapping, String[] receiverId, String batchId) throws IOException {
+    public ResponseInfo sendMessageUpload(MultipartFile expressContent, MultipartFile fileCodeMapping, String receiverId, String batchId) throws IOException {
         //1. 对文件类型进行校验
         List<String> pdfFileNameList = new ArrayList<>();
         if (expressContent != null) {
@@ -309,12 +309,11 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
             }
         }
         //5. 修改状态 根据收件人ID和 批次ID把 状态修改为 【2】【待发件】
-        String sql = "UPDATE nl_batch_detail SET label_seven='2' WHERE batch_id=? AND label_five=?";
-        List<Object[]> list = new ArrayList<>();
-        for (int i = 0; i < receiverId.length; i++) {
-            list.add(new Object[]{1, batchId, receiverId[i]});
+        String sql = "UPDATE nl_batch_detail SET label_seven='2' WHERE batch_id='"+batchId+"'";
+        if(StringUtil.isNotEmpty(receiverId)){
+            sql=sql + " AND label_five = '"+receiverId+"'";
         }
-        jdbcTemplate.batchUpdate(sql, list);
+        jdbcTemplate.update(sql);
         return new ResponseInfoAssemble().success(null);
     }
 
