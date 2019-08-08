@@ -8,8 +8,8 @@ package com.bdaim.batch;
 public enum TransactionEnum {
     BALANCE_RECHARGE(1, "充值", 0),
     EXPRESS_DEDUCTION(2, "快递", 2),
-    SMS_DEDUCTION(3, "短信触达", 3),
-    CALL_DEDUCTION(4, "语音通讯", 4),
+    SMS_DEDUCTION(3, "短信", 3),
+    CALL_DEDUCTION(4, "通话", 4),
     SEAT_DEDUCTION(5, "座席", 4),
     IDCARD_DEDUCTION(6, "身份证修复", 6),
     BALANCE_DEDUCTION(7, "扣减", 0),
@@ -17,7 +17,7 @@ public enum TransactionEnum {
     SUPPLIER_ADJUSTMENT(9, "供应商调账", 0),
     MAC_NUM_DEDUCTION(10, "mac修复", 5),
     IMEI_DEDUCTION(11, "imei修复", 7),
-    ADDRESS_DEDUCTION(12, "数据", 1),
+    ADDRESS_DEDUCTION(12, "地址修复", 1),
     SUPPLIER_DEDUCTION(13, "供应商资金扣减", 0);
 
     private int type;

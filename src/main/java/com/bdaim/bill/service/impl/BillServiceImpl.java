@@ -144,8 +144,8 @@ public class BillServiceImpl implements BillService {
                         String name = "";
                         if (split.length > 0) {
                             for (int j = 0; j < split.length; j++) {
-                                if (TransactionEnum.getName(NumberConvertUtil.parseInt(split[j])) != null) {
-                                    name += TransactionEnum.getName(NumberConvertUtil.parseInt(split[j])) + " ";
+                                if (ResourceEnum.getName(NumberConvertUtil.parseInt(split[j])) != null) {
+                                    name += ResourceEnum.getName(NumberConvertUtil.parseInt(split[j])) + " ";
                                 }
                             }
                         }
@@ -1273,7 +1273,7 @@ public class BillServiceImpl implements BillService {
         } else if ("2".equals(billDate)) {
             billDate = LocalDateTime.now().minusMonths(6).format(DateTimeFormatter.ofPattern("yyyyMM"));
             querySql.append(" AND stat_time>=" + billDate);
-        } else if(!"0".equals(billDate)) {
+        } else if (!"0".equals(billDate)) {
             querySql.append(" AND stat_time=" + billDate);
         }
         querySql.append(" GROUP BY b.batch_id ");
