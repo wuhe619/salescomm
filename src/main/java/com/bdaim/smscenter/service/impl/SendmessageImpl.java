@@ -573,14 +573,27 @@ public class SendmessageImpl implements SendmessageService {
 
     @Override
     public Map<String, Object> senderList(Map<String, Object> map) {
+        String custId = String.valueOf(map.get("cust_id"));
+        StringBuffer comboSql = new StringBuffer("SELECT id,sender_name AS senderName,type,create_time,phone,province,city,district,address FROM t_sender_info WHERE type='1' AND cust_id='");
+        comboSql.append(custId).append("' UNION SELECT id,sender_name AS senderName,type,create_time,phone,province,city,district,address FROM t_sender_info WHERE type='2' AND cust_id='")
+                .append(custId).append("' ORDER BY create_time DESC LIMIT 5");
+        String pageNum = String.valueOf(map.get("page_num"));
+        List<Map<String, Object>> resultList;
+        Map<String, Object> resultMap = new HashMap<>(10);
+        if (StringUtil.isEmpty(pageNum)) {
+            resultList = jdbcTemplate.queryForList(comboSql.toString());
+            convertAddressToArray(resultList);
+            resultMap.put("rows", resultList);
+            return resultMap;
+        }
+
         //分页参数处理
         PageParam pageParam = new PageParam();
-        pageParam.setPageNum(NumberConvertUtil.parseInt(String.valueOf(map.get("page_num"))));
+        pageParam.setPageNum(NumberConvertUtil.parseInt(pageNum));
         pageParam.setPageSize(NumberConvertUtil.parseInt(String.valueOf(map.get("page_size"))));
 
         StringBuffer listSql = new StringBuffer("SELECT id,sender_name AS senderName,phone,province,city,district,address,postcodes," +
                 "DATE_FORMAT(create_time,'%Y-%m-%d %H:%i:%s') AS createTime,type FROM t_sender_info WHERE cust_id='");
-        String custId = String.valueOf(map.get("cust_id"));
         listSql.append(custId + "'");
         String senderName = String.valueOf(map.get("sender_name"));
         if (StringUtil.isNotEmpty(senderName)) {
@@ -592,18 +605,22 @@ public class SendmessageImpl implements SendmessageService {
         }
 
         Page page = new Pagination().getPageData(listSql.toString(), null, pageParam, jdbcTemplate);
-        Map<String, Object> resultMap = new HashMap<>(10);
         resultMap.put("total", page.getTotal());
-        List<Map<String,Object>> resultList = page.getList();
-        for (Map<String, Object> tempMap : resultList) {
+        resultList = page.getList();
+        //转化省市县/区 返回方式为字符串数组
+        convertAddressToArray(resultList);
+        resultMap.put("rows", resultList);
+        return resultMap;
+    }
+
+    private void convertAddressToArray(List<Map<String, Object>> list) {
+        for (Map<String, Object> tempMap : list) {
             String province = String.valueOf(tempMap.get("province"));
             String city = String.valueOf(tempMap.get("city"));
             String district = String.valueOf(tempMap.get("district"));
             String[] provinceInfo = new String[]{province, city, district};
             tempMap.put("province", provinceInfo);
         }
-        resultMap.put("rows", resultList);
-        return resultMap;
     }
 
     @Override
@@ -612,7 +629,7 @@ public class SendmessageImpl implements SendmessageService {
         String custId = String.valueOf(map.get("cust_id"));
         String senderName = String.valueOf(map.get("sender_name"));
         String phone = String.valueOf(map.get("phone"));
-        String provinceInfo = (String)map.get("province");
+        String provinceInfo = (String) map.get("province");
         JSONArray jsonObject = JSON.parseArray(provinceInfo);
         String province = jsonObject.getString(0);
         String city = jsonObject.getString(1);
@@ -656,7 +673,7 @@ public class SendmessageImpl implements SendmessageService {
         String senderName = String.valueOf(map.get("sender_name"));
         String phone = String.valueOf(map.get("phone"));
 
-        String provinceInfo = (String)map.get("province");
+        String provinceInfo = (String) map.get("province");
         JSONArray jsonObject = JSON.parseArray(provinceInfo);
         String province = jsonObject.getString(0);
         String city = jsonObject.getString(1);

@@ -65,7 +65,7 @@ public class PackingAction extends BasicAction {
     /**
      * 发送快递(确认发件)
      *
-     * @param map sender_id 发件客户ID、address_id 地址ID
+     * @param map 
      * @return
      * @auther Chacker
      * @date 2019/8/7 13:52

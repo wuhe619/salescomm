@@ -320,6 +320,7 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
                 String expressPath = "";
                 if (pdfFileNameList.contains(receiverID)) {
                     expressPath = destPath + receiverID + Constant.PDF;
+                    expressPath = expressPath.replaceAll("\\\\", "\\\\\\\\");
                 }
                 //根据批次ID batchId 和收件人ID receiverID 更新 存储路径、文件编码
                 String sql = "UPDATE nl_batch_detail SET label_eight='" + expressPath + "',label_six='" + fileCode + "' " +

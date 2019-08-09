@@ -199,31 +199,18 @@ public class ExpressBatchController extends BasicAction {
      */
     @RequestMapping(value = "/getPdfByReceiverId", method = RequestMethod.GET)
     @ResponseBody
-    public void readFileByCode(@RequestParam String batchId, String receiverId, HttpServletResponse response) throws IOException {
+    public ResponseInfo readFileByCode(@RequestParam String batchId, String receiverId, HttpServletResponse response) throws IOException {
         //根据批次ID batchId 和 收件人ID receiverId 找到pdf所存储的路径
         String pdfPath = expressBatchService.findPdfPathByReceiverId(batchId, receiverId);
-        //设置response属性
-//        response.setCharacterEncoding("UTF-8");
-        response.setContentType("application/pdf");
-
-        //通过输出流输出pdf文件
-        FileInputStream inputStream = new FileInputStream(new File(pdfPath));
-        OutputStream outputStream = response.getOutputStream();
-        byte[] b = new byte[1024];
-        int length;
-        while ((length = inputStream.read(b)) > 0) {
-            outputStream.write(b, 0, length);
-        }
-        outputStream.flush();
-        inputStream.close();
-        outputStream.close();
+        pdfPath = pdfPath.substring(pdfPath.indexOf("pdf") - 1).replace("\\", "/");
+        return new ResponseInfoAssemble().success(pdfPath);
     }
 
 
     /**
      * 导出批次详情
      *
-     * @param map      export_type 1前端 2后台 batch_id 批次ID
+     * @param map      export_type 1前端批次详情导出 2后台批次详情导出 3后台映射关系导出batch_id 批次ID
      * @param response response
      * @return
      * @auther Chacker
@@ -276,6 +263,18 @@ public class ExpressBatchController extends BasicAction {
                 rowList.add(column.get("fileCode") != null ? column.get("fileCode") : "");
                 data.add(rowList);
             }
+        } else if (exportType == 3) {
+            header.add("文件编码(不能重复)");
+            header.add("快递单号(不能重复)");
+            header.add("姓名");
+            List<Object> rowList;
+            for (Map<String, Object> column : dataList) {
+                rowList = new ArrayList<>();
+                rowList.add(column.get("fileCode") != null ? column.get("fileCode") : "");
+                rowList.add(column.get("expressCode") != null ? column.get("expressCode") : "");
+                rowList.add(column.get("name") != null ? column.get("name") : "");
+                data.add(rowList);
+            }
         }
 
         //下载的response属性设置
@@ -326,6 +325,7 @@ public class ExpressBatchController extends BasicAction {
      * @date 2019/8/8 15:10
      */
     @RequestMapping(value = "/updateFileCode", method = RequestMethod.POST)
+    @ResponseBody
     public ResponseInfo updateFileCodeByReceiverId(@RequestParam String addressId, @RequestParam String fileCode) {
         expressBatchService.updateFileCode(addressId, fileCode);
         return new ResponseInfoAssemble().success(null);
