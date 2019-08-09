@@ -9,6 +9,7 @@ import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.rbac.dto.Page;
+import com.bdaim.resource.dto.MarketResourceLogDTO;
 import com.bdaim.supplier.dto.SupplierDTO;
 import com.bdaim.supplier.service.SupplierService;
 import org.apache.log4j.Logger;
@@ -208,6 +209,23 @@ public class SupplierAction extends BasicAction {
             return new ResponseInfoAssemble().failure(-1, "保存服务优先级失败");
         }
         return new ResponseInfoAssemble().success(null);
+    }
+
+    /**
+     * @description 修改供应商服务优先级
+     * @metho
+     */
+    @RequestMapping(value = "/getSupResource", method = RequestMethod.GET)
+    @ResponseBody
+    public ResponseInfo getSupResourceBySupplierId(String supplierId) {
+        List<MarketResourceLogDTO> supResourceBySupplierId = null;
+        try {
+            supResourceBySupplierId = supplierService.getSupResourceBySupplierId(supplierId);
+        } catch (Exception e) {
+            LOG.error("保存服务优先级异常,", e);
+            return new ResponseInfoAssemble().failure(-1, "保存服务优先级失败");
+        }
+        return new ResponseInfoAssemble().success(supResourceBySupplierId);
     }
 
 }
