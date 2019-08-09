@@ -1342,7 +1342,7 @@ public class BillServiceImpl implements BillService {
     }
 
     public Page getSupBillDetailList(CustomerBillQueryParam param) {
-        StringBuffer querySql = new StringBuffer("SELECT d.batch_id batchId, d.label_four address,l.id expressId,l.resource_id expressResource, d.resource_id fixResource,l.create_time sendTime,d.fix_time fixTime,d.label_one name,d.label_two phone, d.label_five peopleId, IFNULL(d.amount / 100, 0) amount, IFNULL(d.prod_amount / 100, 0) prodAmount, IFNULL(l.amount / 100, 0) expressAmount ");
+        StringBuffer querySql = new StringBuffer("SELECT d.batch_id batchId, d.label_four address,l.id expressId,l.resource_id expressResource, d.resource_id fixResource,l.create_time sendTime,d.fix_time fixTime,d.label_one name,d.label_two phone, d.label_five peopleId, IFNULL(d.amount / 100, 0) amount, IFNULL(d.prod_amount / 100, 0) prodAmount, IFNULL(l.prod_amount / 100, 0) expressAmount ");
         querySql.append(" FROM nl_batch_detail d LEFT JOIN t_touch_express_log l ON d.touch_id = l.touch_id ");
         querySql.append("WHERE 1=1 AND d.`status`=1 ");
         if (StringUtil.isNotEmpty(param.getBatchId())) {
