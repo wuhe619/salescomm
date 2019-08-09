@@ -44,6 +44,18 @@ public class CustomerBillQueryParam {
     private Integer payMode;
     private Long userId;
     private String dealType;
+    /**
+     * 资源id
+     */
+    private String resourceId;
+
+    public String getResourceId() {
+        return resourceId;
+    }
+
+    public void setResourceId(String resourceId) {
+        this.resourceId = resourceId;
+    }
 
     public String getName() {
         return name;
