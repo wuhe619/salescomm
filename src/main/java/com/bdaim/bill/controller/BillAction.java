@@ -313,4 +313,25 @@ public class BillAction extends BasicAction {
         }
         return new ResponseInfoAssemble().success(page);
     }
+
+
+    /*
+     *
+     * 供应商账单详情页（名址修复系统）
+     * */
+    @RequestMapping(value = "/getSupBillDetail", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseInfo getSupBillDetailList(@RequestBody CustomerBillQueryParam param) {
+        LoginUser lu = opUser();
+        Page page = null;
+        try {
+            if ("ROLE_USER".equals(lu.getRole()) || "admin".equals(lu.getRole())) {
+                page = billService.getSupBillDetailList(param);
+            }
+        } catch (Exception e) {
+            logger.error("查询账单详情异常", e);
+            return new ResponseInfoAssemble().failure(-1, "查询账单详情失败");
+        }
+        return new ResponseInfoAssemble().success(page);
+    }
 }

@@ -9,6 +9,7 @@ import com.bdaim.bill.dto.CustomerBillQueryParam;
 import com.bdaim.bill.service.TransactionService;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.util.DateUtil;
+import com.bdaim.common.util.NumberConvertUtil;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.rbac.dto.Page;
 import com.bdaim.resource.dao.MarketResourceDao;
@@ -538,6 +539,25 @@ public class SupplierService {
             }
             supplierDao.saveOrUpdate(supplierProperty);
         }
+    }
+
+    /**
+     * 根据供应商id查询服务资源
+     *
+     * @param supplierId
+     */
+    public List<MarketResourceLogDTO> getSupResourceBySupplierId(String supplierId) {
+        List<MarketResourceLogDTO> supplierResources = supplierDao.listMarketResourceBySupplierId(supplierId);
+        if (supplierResources.size() > 0) {
+            for (int i = 0; i < supplierResources.size(); i++) {
+                if (supplierResources.get(i).getTypeCode()>0) {
+                    log.info("资源类型是：" + supplierResources.get(i).getTypeCode());
+                    String name = ResourceEnum.getName(supplierResources.get(i).getTypeCode());
+                    supplierResources.get(i).setResname(name);
+                }
+            }
+        }
+        return supplierResources;
     }
 }
 

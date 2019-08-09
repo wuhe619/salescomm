@@ -1340,5 +1340,34 @@ public class BillServiceImpl implements BillService {
         }
         return page;
     }
+
+    public Page getSupBillDetailList(CustomerBillQueryParam param) {
+        StringBuffer querySql = new StringBuffer("SELECT d.batch_id batchId, d.label_four address,l.id expressId,l.resource_id expressResource, d.resource_id fixResource,l.create_time sendTime,d.fix_time fixTime,d.label_one name,d.label_two phone, d.label_five peopleId, IFNULL(d.amount / 100, 0) amount, IFNULL(d.prod_amount / 100, 0) prodAmount, IFNULL(l.amount / 100, 0) expressAmount ");
+        querySql.append(" FROM nl_batch_detail d LEFT JOIN t_touch_express_log l ON d.touch_id = l.touch_id ");
+        querySql.append("WHERE 1=1 AND d.`status`=1 ");
+        if (StringUtil.isNotEmpty(param.getBatchId())) {
+            querySql.append(" AND d.batch_id ='" + param.getBatchId() + "'");
+        }
+        if (StringUtil.isNotEmpty(param.getExpressId())) {
+            querySql.append("AND l.id ='" + param.getExpressId() + "'");
+        }
+        if (StringUtil.isNotEmpty(param.getPeopleId())) {
+            querySql.append("AND d.label_five ='" + param.getPeopleId() + "'");
+        }
+        if (StringUtil.isNotEmpty(param.getName())) {
+            querySql.append("AND d.label_one like '%" + param.getName() + "%'");
+        }
+        //type 1 数据  2快递
+        if (StringUtil.isNotEmpty(param.getResourceId()) && "1".equals(param.getType())) {
+            querySql.append("AND d.resource_id = " + param.getResourceId());
+        } else if (StringUtil.isNotEmpty(param.getResourceId()) && "2".equals(param.getType())) {
+            querySql.append("AND l.resource_id = " + param.getResourceId());
+        }
+        if (StringUtil.isNotEmpty(param.getPhone())) {
+            querySql.append("AND d.label_one ='" + param.getPhone() + "'");
+        }
+        return customerDao.sqlPageQuery(querySql.toString(), param.getPageNum(), param.getPageSize());
+    }
+
 }
 
