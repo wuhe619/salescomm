@@ -1,6 +1,5 @@
 package com.bdaim.supplier.controller;
 
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.auth.LoginUser;
 import com.bdaim.bill.dto.CustomerBillQueryParam;
@@ -13,7 +12,6 @@ import com.bdaim.rbac.dto.Page;
 import com.bdaim.supplier.dto.SupplierDTO;
 import com.bdaim.supplier.service.SupplierService;
 import org.apache.log4j.Logger;
-import org.springframework.data.redis.connection.ReactiveClusterSetCommands;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -86,6 +84,7 @@ public class SupplierAction extends BasicAction {
             }
         } catch (Exception e) {
             LOG.error("查询供应商列表失败,", e);
+            return new ResponseInfoAssemble().failure(-1, "查询供应商列表异常");
         }
         return new ResponseInfoAssemble().success(resultMap);
     }
@@ -198,7 +197,7 @@ public class SupplierAction extends BasicAction {
      */
     @RequestMapping(value = "/setSupPriority", method = RequestMethod.POST)
     @ResponseBody
-    public ResponseInfo setSupplierPriority(@RequestBody  List<Map<String, Object>> list) {
+    public ResponseInfo setSupplierPriority(@RequestBody List<Map<String, Object>> list) {
         try {
             LoginUser lu = opUser();
             if ("ROLE_USER".equals(lu.getRole()) || "admin".equals(lu.getRole())) {
