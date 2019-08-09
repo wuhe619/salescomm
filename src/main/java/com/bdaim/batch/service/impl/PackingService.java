@@ -13,6 +13,8 @@ import com.bdaim.resource.dao.SourceDao;
 import com.bdaim.resource.service.MarketResourceService;
 import com.bdaim.supplier.dto.SupplierEnum;
 
+import net.sf.json.JSONString;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -109,6 +111,8 @@ public class PackingService {
         int isBatch = Integer.parseInt(String.valueOf(map.get("isBatch")));
         String batchId = String.valueOf(map.get("batchId"));
         String addressId = String.valueOf(map.get("addressId"));
+        //发件人ID
+        String senderId = String.valueOf(map.get("senderId"));
         String updateBatchStatus = "UPDATE nl_batch SET status='5' WHERE id='" + batchId + "'";
         if (isBatch == 1) {
             //批量发送、将批次状态status修改为【5】【待取件】
@@ -116,6 +120,7 @@ public class PackingService {
             //将批次详情的状态label_seven 修改为 【3】【待取件】
             String updateDetail = "UPDATE nl_batch_detail SET label_seven='3' WHERE batch_id='" + batchId + "'";
             jdbcTemplate.update(updateDetail);
+            toSendExpress(isBatch, batchId, addressId, senderId);
         } else if (isBatch == 0) {
             //单个发送 将批次详情的状态 label_seven 状态修改为 【3】【待取件】
             StringBuffer stringBuffer = new StringBuffer("UPDATE nl_batch_detail SET label_seven='3' WHERE batch_id='");
@@ -128,7 +133,63 @@ public class PackingService {
             if (count == 0) {
                 jdbcTemplate.update(updateBatchStatus);
             }
+            toSendExpress(isBatch, batchId, addressId, senderId);
         }
+    }
+
+    /**
+     * 发送快递的接口
+     *
+     * @param isBatch   是否是批量发送 1、是 0、否
+     * @param batchId   批次编号
+     * @param addressId 地址ID
+     * @param senderId  发件人ID
+     * @return
+     * @auther Chacker
+     * @date 2019/8/9 15:02
+     */
+    private void toSendExpress(int isBatch, String batchId, String addressId, String senderId) {
+        //查询出发件人信息，并转化为json串，存入 t_touch_express_log的 sender_message 中
+        String senderSql = "SELECT id AS senderId,sender_name AS senderName,phone,province,city,district,address FROM t_sender_info WHERE id='"
+                + senderId + "'";
+        Map<String, Object> senderInfo = jdbcTemplate.queryForMap(senderSql);
+        if (isBatch == 1) {
+            //批量发送，根据批次ID batchId 找出地址ID、姓名、手机号
+            StringBuffer stringBuffer = new StringBuffer("SELECT id AS addressId,label_one AS name,label_two AS phone,label_eight AS pdfPath FROM nl_batch_detail WHERE batch_id='");
+            stringBuffer.append(batchId).append("' AND status='1'");
+            List<Map<String, Object>> resultList = jdbcTemplate.queryForList(stringBuffer.toString());
+            for (Map<String, Object> tempMap : resultList) {
+                updateExpressInfo(tempMap, senderInfo);
+
+            }
+        } else if (isBatch == 0) {
+            //单个发送，根据地址ID 找到 地址ID、姓名、手机号
+            StringBuffer stringBuffer = new StringBuffer("SELECT id AS addressId,label_one AS name,label_two AS phone,label_eight AS pdfPath FROM nl_batch_detail WHERE id='");
+            stringBuffer.append(addressId).append("'");
+            Map<String, Object> tempMap = jdbcTemplate.queryForMap(stringBuffer.toString());
+            updateExpressInfo(tempMap, senderInfo);
+        }
+    }
+
+    /**
+     * 更新t_touch_express_log中的快递信息
+     *
+     * @param
+     * @return
+     * @auther Chacker
+     * @date 2019/8/9 15:48
+     */
+    public void updateExpressInfo(Map<String, Object> tempMap, Map<String, Object> senderInfo) {
+        String requestId = DigestUtils.md5Hex(String.valueOf(tempMap.get("addressId"))).toUpperCase();
+        //根据touch_id关联，把requestId更新到t_touch_express_log中
+        StringBuffer updateRequestId = new StringBuffer("UPDATE t_touch_express_log SET create_time=NOW(),status='2',request_id='");
+        String addressIdNew = String.valueOf(tempMap.get("addressId"));
+        String pdfPath = String.valueOf(tempMap.get("pdfPath"));
+        updateRequestId.append(requestId).append("',sender_message='").append(senderInfo.toString())
+                .append("',file_path='").append(pdfPath)
+                .append("' FROM nl_batch_detail")
+                .append("WHERE nl_batch_detail.touch_id=t_touch_express_log.touch_id AND nl_batch_detail.id='")
+                .append(addressIdNew).append("'");
     }
 
     public int countNumber(String batchId) throws Exception {
