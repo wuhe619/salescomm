@@ -1,5 +1,6 @@
 package com.bdaim.supplier.controller;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.auth.LoginUser;
 import com.bdaim.bill.dto.CustomerBillQueryParam;
@@ -114,26 +115,26 @@ public class SupplierAction extends BasicAction {
                             supplierService.updatesupplier(supplierDTO);
                             return new ResponseInfoAssemble().success(null);
                         } catch (Exception e) {
-                            LOG.error("配置供应商异常" ,e);
-                            return new ResponseInfoAssemble().failure(-1,"配置供应商失败");
+                            LOG.error("配置供应商异常", e);
+                            return new ResponseInfoAssemble().failure(-1, "配置供应商失败");
                         }
                     } else if (type.get(i).equals("2")) {
                         try {
                             supplierService.updatePrice(supplierDTO);
                             return new ResponseInfoAssemble().success(null);
                         } catch (Exception e) {
-                            LOG.error("供应商定价失败" ,e);
-                            return new ResponseInfoAssemble().failure(-1,"供应商定价失败");
+                            LOG.error("供应商定价失败", e);
+                            return new ResponseInfoAssemble().failure(-1, "供应商定价失败");
                         }
                     } else if (type.get(i).equals("3")) {
                         try {
                             supplierService.supplierStatus(supplierDTO);
                             return new ResponseInfoAssemble().success(null);
                         } catch (Exception e) {
-                            LOG.error("编辑供应商状态失败" ,e);
+                            LOG.error("编辑供应商状态失败", e);
                             map.put("code", "1");
                             map.put("_message", "编辑供应商状态失败");
-                            return new ResponseInfoAssemble().failure(-1,"编辑供应商状态失败");
+                            return new ResponseInfoAssemble().failure(-1, "编辑供应商状态失败");
                         }
                     }
                 }
@@ -153,10 +154,10 @@ public class SupplierAction extends BasicAction {
     @RequestMapping(value = "/getSupplierPrice", method = RequestMethod.GET)
     public ResponseInfo searchSupplierPrice(String supplierId) {
         if (StringUtil.isEmpty(supplierId)) {
-            return new ResponseInfoAssemble().failure(-1,"supplierId不允许为空");
+            return new ResponseInfoAssemble().failure(-1, "supplierId不允许为空");
         }
         LoginUser lu = opUser();
-        JSONObject result= new JSONObject();
+        JSONObject result = new JSONObject();
         if ("ROLE_USER".equals(lu.getRole()) || "admin".equals(lu.getRole())) {
             try {
                 result = supplierService.searchSupplierPrice(supplierId);
@@ -190,4 +191,24 @@ public class SupplierAction extends BasicAction {
         }
         return JSONObject.toJSON(resultMap);
     }
+
+    /**
+     * @description 修改供应商服务优先级
+     * @metho
+     */
+    @RequestMapping(value = "/setSupPriority", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseInfo setSupplierPriority(@RequestBody  List<Map<String, Object>> list) {
+        try {
+            LoginUser lu = opUser();
+            if ("ROLE_USER".equals(lu.getRole()) || "admin".equals(lu.getRole())) {
+                supplierService.setSupplierPriority(list);
+            }
+        } catch (Exception e) {
+            LOG.error("保存服务优先级异常,", e);
+            return new ResponseInfoAssemble().failure(-1, "保存服务优先级失败");
+        }
+        return new ResponseInfoAssemble().success(null);
+    }
+
 }

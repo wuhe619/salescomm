@@ -6,10 +6,10 @@ package com.bdaim.batch;
  * @date: 2019/2/21 18:19
  */
 public enum ResourceEnum {
-    ADDRESS(1, "地址修复", "addressPrice", "", "seatMinute", "configId", "", "apparentNumber", "activityId", "callCenterId"),
+    ADDRESS(1, "数据", "addressPrice", "", "seatMinute", "configId", "", "apparentNumber", "activityId", "callCenterId"),
     EXPRESS(2, "快递", "successPrice", "", "seatMinute", "configId", "", "", "activityId", "callCenterId"),
-    SMS(3, "短信", "smsPrice", "", "seatMinute", "configId", "mianNumber", "apparentNumber", "activityId", "callCenterId"),
-    CALL(4, "通话", "callPrice", "seatPrice", "seatMinute", "configId", "mianNumber", "apparentNumber", "activityId", "callCenterId"),
+    SMS(3, "短信触达", "smsPrice", "", "seatMinute", "configId", "mianNumber", "apparentNumber", "activityId", "callCenterId"),
+    CALL(4, "语音通讯", "callPrice", "seatPrice", "seatMinute", "configId", "mianNumber", "apparentNumber", "activityId", "callCenterId"),
     MAC(5, "mac修复", "macPrice", "seatPrice", "seatMinute", "configId", "", "", "activityId", "callCenterId"),
     IDCARD(6, "身份证修复", "idCardPrice", "seatPrice", "seatMinute", "configId", "", "", "activityId", "callCenterId"),
     IMEI(7, "imei修复", "imeiPrice", "", "seatMinute", "configId", "", "", "activityId", "callCenterId");
@@ -36,6 +36,15 @@ public enum ResourceEnum {
         this.apparentNumber = apparentNumber;
         this.activityId = activityId;
         this.callCenterId = callCenterId;
+    }
+
+    public static String getName(int type) {
+        for (ResourceEnum s : ResourceEnum.values()) {
+            if (s.type == type) {
+                return s.getTypeName();
+            }
+        }
+        return null;
     }
 
     public int getType() {

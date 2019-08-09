@@ -10,7 +10,7 @@ import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.common.util.StringUtil;
-import com.bdaim.common.util.page.Page;
+import com.bdaim.rbac.dto.Page;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.stereotype.Controller;
@@ -66,8 +66,8 @@ public class BillAction extends BasicAction {
             Map<String, String> map;
 
             if (list != null) {
-                for (int i = 0; i < list.getList().size(); i++) {
-                    map = (Map<String, String>) list.getList().get(i);
+                for (int i = 0; i < list.getData().size(); i++) {
+                    map = (Map<String, String>) list.getData().get(i);
                     if (map != null && map.get("cust_id") != null) {
                         String custId = map.get("cust_id");
                         if (StringUtil.isNotEmpty(custId)) {
@@ -108,31 +108,34 @@ public class BillAction extends BasicAction {
      * */
     @RequestMapping(value = "/supplierBill/query", method = RequestMethod.GET)
     @ResponseBody
-    public Object supplierBillQuery(@Valid PageParam page, BindingResult error, SupplierBillQueryParam param) {
+    public ResponseInfo supplierBillQuery(@Valid PageParam page, BindingResult error, SupplierBillQueryParam param) {
         if (error.hasFieldErrors()) {
-            return getErrors(error);
+            return new ResponseInfoAssemble().failure(-1, "缺少必要参数");
         }
         LoginUser lu = opUser();
         Map<String, Object> resultMap = new HashMap<>();
         if ("ROLE_USER".equals(lu.getRole()) || "admin".equals(lu.getRole())) {
-            List<Map<String, Object>> supplierList = billService.querySupplierBill(page, param);
+            Page data = billService.querySupplierBill(page, param);
             BigDecimal amountSumBigDecimal = new BigDecimal("0");
             BigDecimal amountBigDecimal;
+            List<Map<String, Object>> supplierList = null;
             DecimalFormat df = new DecimalFormat("0.00");
-            if (supplierList.size() > 0) {
-                for (int i = 0; i < supplierList.size(); i++) {
-                    if (StringUtil.isNotEmpty(String.valueOf(supplierList.get(i).get("amountSum"))) && !"null".equals(String.valueOf(supplierList.get(i).get("amountSum")))) {
-                        amountBigDecimal = new BigDecimal(String.valueOf(supplierList.get(i).get("amountSum")));
-                        amountSumBigDecimal = amountSumBigDecimal.add(amountBigDecimal);
+            if (data != null) {
+                supplierList = data.getData();
+                if (supplierList.size() > 0) {
+                    for (int i = 0; i < supplierList.size(); i++) {
+                        if (StringUtil.isNotEmpty(String.valueOf(supplierList.get(i).get("amountSum"))) && !"null".equals(String.valueOf(supplierList.get(i).get("amountSum")))) {
+                            amountBigDecimal = new BigDecimal(String.valueOf(supplierList.get(i).get("amountSum")));
+                            amountSumBigDecimal = amountSumBigDecimal.add(amountBigDecimal);
+                        }
                     }
                 }
             }
             String amountSumTotal = df.format(amountSumBigDecimal);
-            resultMap.put("list", supplierList);
-            resultMap.put("total", supplierList.size());
+            resultMap.put("list", data);
             resultMap.put("amountSumTotal", amountSumTotal);
         }
-        return JSON.toJSONString(resultMap);
+        return new ResponseInfoAssemble().success(resultMap);
     }
 
     /*
@@ -178,7 +181,7 @@ public class BillAction extends BasicAction {
         if ("ROLE_USER".equals(lu.getRole()) || "admin".equals(lu.getRole())) {
             pageData = billService.listSupplierBillDetail(page, param);
         }
-        resultMap.put("list", pageData.getList());
+        resultMap.put("list", pageData.getData());
         resultMap.put("total", pageData.getTotal());
         resultMap.put("basePath", "/pic");
         return JSON.toJSONString(resultMap);
@@ -282,7 +285,31 @@ public class BillAction extends BasicAction {
             }
         } catch (Exception e) {
             logger.error("查询账单异常", e);
-            return new ResponseInfoAssemble().failure(-1, "查询账单异常");
+            return new ResponseInfoAssemble().failure(-1, "查询账单失败");
+        }
+        return new ResponseInfoAssemble().success(page);
+    }
+
+    /*
+     *
+     * 企业账单详情页
+     * */
+    @RequestMapping(value = "/getBillDetail", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseInfo getBillDetailList(@RequestBody CustomerBillQueryParam param) {
+        LoginUser lu = opUser();
+        Page page = null;
+        try {
+            if ("ROLE_USER".equals(lu.getRole()) || "admin".equals(lu.getRole())) {
+                page = billService.getBillDetailList(param);
+            } else {
+                String custId = opUser().getCustId();
+                param.setCustomerId(custId);
+                page = billService.getBillDetailList(param);
+            }
+        } catch (Exception e) {
+            logger.error("查询账单详情异常", e);
+            return new ResponseInfoAssemble().failure(-1, "查询账单详情失败");
         }
         return new ResponseInfoAssemble().success(page);
     }
