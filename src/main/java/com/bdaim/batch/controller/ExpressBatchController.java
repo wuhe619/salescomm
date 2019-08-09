@@ -202,7 +202,7 @@ public class ExpressBatchController extends BasicAction {
     public ResponseInfo readFileByCode(@RequestParam String batchId, String receiverId, HttpServletResponse response) throws IOException {
         //根据批次ID batchId 和 收件人ID receiverId 找到pdf所存储的路径
         String pdfPath = expressBatchService.findPdfPathByReceiverId(batchId, receiverId);
-        pdfPath = pdfPath.substring(pdfPath.indexOf("pdf")-1).replace("\\","/");
+        pdfPath = pdfPath.substring(pdfPath.indexOf("pdf") - 1).replace("\\", "/");
         return new ResponseInfoAssemble().success(pdfPath);
     }
 
@@ -210,7 +210,7 @@ public class ExpressBatchController extends BasicAction {
     /**
      * 导出批次详情
      *
-     * @param map      export_type 1前端 2后台 batch_id 批次ID
+     * @param map      export_type 1前端批次详情导出 2后台批次详情导出 3后台映射关系导出batch_id 批次ID
      * @param response response
      * @return
      * @auther Chacker
@@ -261,6 +261,18 @@ public class ExpressBatchController extends BasicAction {
                 rowList.add(column.get("status") != null ? column.get("status") : "");
                 rowList.add(column.get("expressStatus") != null ? column.get("expressStatus") : "");
                 rowList.add(column.get("fileCode") != null ? column.get("fileCode") : "");
+                data.add(rowList);
+            }
+        } else if (exportType == 3) {
+            header.add("文件编码(不能重复)");
+            header.add("快递单号(不能重复)");
+            header.add("姓名");
+            List<Object> rowList;
+            for (Map<String, Object> column : dataList) {
+                rowList = new ArrayList<>();
+                rowList.add(column.get("fileCode") != null ? column.get("fileCode") : "");
+                rowList.add(column.get("expressCode") != null ? column.get("expressCode") : "");
+                rowList.add(column.get("name") != null ? column.get("name") : "");
                 data.add(rowList);
             }
         }
