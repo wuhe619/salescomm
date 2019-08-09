@@ -164,7 +164,7 @@ public class SupplierService {
             SupplierPropertyEntity SupplierProperty = supplierDao.getSupplierProperty(String.valueOf(supplierDTO.getSupplierId()), "express_resource");
             if (SupplierProperty != null) {
                 SupplierProperty.setPropertyValue(supplierDTO.getRelationResource());
-            }else {
+            } else {
                 SupplierProperty = new SupplierPropertyEntity();
                 SupplierProperty.setSupplierId(String.valueOf(supplierDTO.getSupplierId()));
                 SupplierProperty.setPropertyName("express_resource");
@@ -512,6 +512,30 @@ public class SupplierService {
             }
         }
         return result;
+    }
+
+    /**
+     * 设置服务优先级
+     *
+     * @param
+     */
+    public void setSupplierPriority(List<Map<String, Object>> list) {
+        for (int i = 0; i < list.size(); i++) {
+            String supplierId = String.valueOf(list.get(i).get("supplierId"));
+            String priority = String.valueOf(list.get(i).get("priority"));
+            log.info("供应商id" + supplierId + "优先级是：" + priority);
+            SupplierPropertyEntity supplierProperty = supplierDao.getSupplierProperty(supplierId, "priority");
+            if (supplierProperty != null) {
+                supplierProperty.setPropertyValue(priority);
+            } else {
+                supplierProperty = new SupplierPropertyEntity();
+                supplierProperty.setSupplierId(supplierId);
+                supplierProperty.setPropertyName("priority");
+                supplierProperty.setCreateTime(DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss));
+                supplierProperty.setPropertyValue(priority);
+            }
+            supplierDao.saveOrUpdate(supplierProperty);
+        }
     }
 }
 
