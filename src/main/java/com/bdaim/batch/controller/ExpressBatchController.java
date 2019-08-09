@@ -330,5 +330,53 @@ public class ExpressBatchController extends BasicAction {
         expressBatchService.updateFileCode(addressId, fileCode);
         return new ResponseInfoAssemble().success(null);
     }
+
+    /**
+     * 后台导出信函文件(pdf的压缩包、zip文件)
+     *
+     * @param map batch_id 批次ID
+     * @return
+     * @auther Chacker
+     * @date 2019/8/9 14:05
+     */
+    @RequestMapping(value = "/exportFile", method = RequestMethod.GET)
+    @ResponseBody
+    public ResponseInfo exportExpressFile(@RequestParam Map<String, Object> map, HttpServletResponse response) {
+        //根据批次ID查询出zip文件的存储路径
+        Map<String, Object> zipPathMap = expressBatchService.queryPathByBatchId(map);
+        String zipPath = String.valueOf(zipPathMap.get("zipPath"));
+        String pathF = PROPERTIES.getProperty("file.separator");
+        zipPath = zipPath.replace("\\", pathF).replace("/", pathF);
+        //设置响应值
+        response.setCharacterEncoding("UTF-8");
+        response.setContentType("application/x-msdownload");
+        String downloadZipFileName = zipPath.substring(zipPath.lastIndexOf(pathF) + 1);
+        response.setHeader("Content-Disposition", "attachment;filename=" + downloadZipFileName);
+        InputStream inputStream = null;
+        OutputStream bos = null;
+        try {
+            inputStream = new FileInputStream(new File(zipPath));
+            bos = response.getOutputStream();
+            //以字节方式读取，放入输出流
+            byte[] b = new byte[2048];
+            int length;
+            while ((length = inputStream.read(b)) > 0) {
+                bos.write(b, 0, length);
+            }
+            bos.flush();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                inputStream.close();
+                bos.close();
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return new ResponseInfoAssemble().success(null);
+    }
+
 }
 

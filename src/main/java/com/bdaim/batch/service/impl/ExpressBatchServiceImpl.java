@@ -19,9 +19,11 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.persistence.criteria.CriteriaBuilder;
 import javax.transaction.Transactional;
 import java.io.File;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.*;
 
 
@@ -53,6 +55,14 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
     private FileUrlEntity fileUrlEntity;
 
     @Override
+    public Map<String, Object> queryPathByBatchId(Map<String, Object> map) {
+        String batchId = String.valueOf(map.get("batch_id"));
+        String sql = "SELECT property_value AS zipPath FROM nl_batch_property WHERE batch_id='" + batchId + "' AND property_name='batchZipPath' LIMIT 1";
+        Map<String, Object> result = jdbcTemplate.queryForMap(sql);
+        return result;
+    }
+
+    @Override
     @Transactional
     public ResponseInfo receiverInfoImport(MultipartFile multipartFile, String batchName, int expressContent, String custId) throws IOException {
         //1. 把excel文件上传到服务器中
@@ -66,7 +76,7 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         String classPath = fileUrlEntity.getFileUrl();
         String pathF = PROPERTIES.getProperty("file.separator");
         classPath = classPath.replace("/", pathF);
-        String uploadPath = classPath + pathF + "receiver_info" + pathF+custId+pathF;
+        String uploadPath = classPath + pathF + "receiver_info" + pathF + custId + pathF;
         // 文件路径的字符串拼接 目录 + 文件名 + 后缀
         uploadPath = uploadPath + generatedFileName + suffix;
         File file = new File(uploadPath);
@@ -256,7 +266,7 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         List<String> pdfFileNameList = new ArrayList<>();
         String fileUrl = fileUrlEntity.getFileUrl();
         String pathF = PROPERTIES.getProperty("file.separator");
-        fileUrl = fileUrl.replace("/",pathF);
+        fileUrl = fileUrl.replace("/", pathF);
         StringBuffer stringBuffer = new StringBuffer(fileUrl);
         stringBuffer.append(pathF).append("pdf").append(pathF).append(batchId).append(pathF);
         String destPath = stringBuffer.toString();
@@ -286,6 +296,22 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
             FileUtils.copyInputStreamToFile(expressContent.getInputStream(), contentFile);
             //3. 如果是zip文件，则解压
             if (Constant.ZIP.equals(contentSuffix)) {
+                //3.1 把zip文件存储路径存入nl_batch_property表
+                String zipPath = contentPath.replaceAll("\\\\", "\\\\\\\\");
+                //查询一下，没有则插入，有则修改
+                String sql = "SELECT COUNT(*) AS count FROM nl_batch_property WHERE batch_id='" + batchId + "' AND property_name='batchZipPath'";
+                Map<String, Object> countMap = jdbcTemplate.queryForMap(sql);
+                int count = Integer.parseInt(String.valueOf(countMap.get("count")));
+                if (count == 0) {
+                    StringBuffer updateZipPath = new StringBuffer("INSERT INTO nl_batch_property VALUES ('");
+                    updateZipPath.append(batchId).append("','batchZipPath','").append(zipPath).append("',NOW())");
+                    jdbcTemplate.update(updateZipPath.toString());
+
+                } else {
+                    StringBuffer updateZipPath = new StringBuffer("UPDATE nl_batch_property SET property_value='");
+                    updateZipPath.append(zipPath).append("' WHERE batch_id='").append(batchId).append("' AND property_name='batchZipPath'");
+                    jdbcTemplate.update(updateZipPath.toString());
+                }
                 pdfFileNameList = zipUtil.unZip(contentFile, destPath);
             }
         }
@@ -377,7 +403,7 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
     @Override
     public void updateBatchStatus(String batchId, int status) throws Exception {
         String updateSql = "UPDATE nl_batch SET `status` =? WHERE id = ?";
-        batchDao.executeUpdateSQL(updateSql, status,batchId);
+        batchDao.executeUpdateSQL(updateSql, status, batchId);
     }
 
     @Override
