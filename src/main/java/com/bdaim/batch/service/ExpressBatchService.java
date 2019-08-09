@@ -98,5 +98,15 @@ public interface ExpressBatchService {
      * @auther Chacker
      * @date 2019/8/8 15:11
      */
-    void updateFileCode(String receiverId,String fileCode);
+    void updateFileCode(String receiverId, String fileCode);
+
+    /**
+     * 根据批次ID查询出zip文件的存储路径
+     *
+     * @param map batch_id
+     * @return
+     * @auther Chacker
+     * @date 2019/8/9 14:07
+     */
+    Map<String, Object> queryPathByBatchId(Map<String, Object> map);
 }
