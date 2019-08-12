@@ -162,12 +162,13 @@ public class BillAction extends BasicAction {
             //下载的response属性设置
             response.setCharacterEncoding("utf-8");
 //        response.setContentType("application/force-download");
-            response.setContentType("vnd.ms-excel;charset=utf-8");
-            String fileName = "企业账单.xlsx";
-            // //保存的文件名,必须和页面编码一致,否则乱码
+            response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+            String fileName = "账单.xlsx";
+            ////保存的文件名,必须和页面编码一致,否则乱码
             String returnName = response.encodeURL(new String(fileName.getBytes(), "iso8859-1"));
             response.addHeader("Content-Disposition", "attachment;filename=" + returnName);
             OutputStream outputStream = response.getOutputStream();
+
 
             ExcelUtils.getInstance().exportObjects2Excel(data, header, outputStream);
             outputStream.flush();
