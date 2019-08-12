@@ -134,8 +134,8 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         pageParam.setPageSize(Integer.valueOf(String.valueOf(map.get("page_size"))));
 
         StringBuffer sql = new StringBuffer("SELECT t1.id,t1.comp_id AS custId,t1.comp_name,t1.batch_name AS batchName," +
-                "t1.certify_type AS certifyType,t1.channel,t1.repair_strategy,CASE t1.status WHEN '1' THEN '校验中'" +
-                " WHEN '2' THEN '校验失败' WHEN '3' THEN '待上传' WHEN '4' THEN '待发件' WHEN '5' THEN '待发件'" +
+                "t1.certify_type AS certifyType,t1.channel,t1.repair_strategy,t1.status AS statusId,CASE t1.status WHEN '1' THEN '校验中'" +
+                " WHEN '2' THEN '校验失败' WHEN '3' THEN '待上传' WHEN '4' THEN '待发件' WHEN '5' THEN '待取件'" +
                 " WHEN '6' THEN '已发件' END AS status,t1.upload_num AS uploadNum,t1.success_num AS" +
                 " successNum,DATE_FORMAT(t1.upload_time,'%Y-%m-%d %H:%i:%s') AS uploadTime,t2.property_name AS propertyName," +
                 "t2.property_value AS propertyValue");
