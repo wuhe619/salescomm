@@ -1331,6 +1331,53 @@ public class BillServiceImpl implements BillService {
         return data;
     }
 
+    public List<Map<String,Object>> listCustomerBillExport(CustomerBillQueryParam param) throws Exception {
+        StringBuffer querySql = new StringBuffer("SELECT n.comp_id custId,b.batch_id batchId,n.batch_name batchName,n.upload_time uploadTime,IFNULL(SUM(b.amount) / 100,0) amount ,IFNULL(SUM(b.prod_amount) / 100,0) prodAmount , ");
+        querySql.append("( SELECT COUNT(id) FROM nl_batch_detail WHERE batch_id = b.batch_id ) fixNumber ");
+        querySql.append("FROM stat_bill_month b LEFT JOIN nl_batch n ON b.batch_id = n.id  LEFT JOIN t_customer c ON  n.comp_id = c.cust_id ");
+        querySql.append("WHERE n.certify_type = 3 ");
+        if (StringUtil.isNotEmpty(param.getCustomerId())) {
+            querySql.append("AND n.comp_id = '" + param.getCustomerId() + "' ");
+        }
+        if (StringUtil.isNotEmpty(param.getEnterpriseName())) {
+            querySql.append("AND c.enterprise_name like '%" + param.getEnterpriseName() + "%' ");
+        }
+        if (StringUtil.isNotEmpty(param.getBatchId())) {
+            querySql.append("AND n.id = '" + param.getBatchId() + "' ");
+        }
+        if (StringUtil.isNotEmpty(param.getBatchName())) {
+            querySql.append("AND n.batch_name like '%" + param.getBatchName() + "%'");
+        }
+        String billDate = param.getBillDate();
+        //0查詢全部 1查詢1年 2 查看近半年 201901查詢具体某月账单
+        if ("1".equals(billDate)) {
+            billDate = LocalDateTime.now().minusMonths(12).format(DateTimeFormatter.ofPattern("yyyyMM"));
+            querySql.append(" AND stat_time>=" + billDate);
+            //查看近半年
+        } else if ("2".equals(billDate)) {
+            billDate = LocalDateTime.now().minusMonths(6).format(DateTimeFormatter.ofPattern("yyyyMM"));
+            querySql.append(" AND stat_time>=" + billDate);
+        } else if (!"0".equals(billDate)) {
+            querySql.append(" AND stat_time=" + billDate);
+        }
+        querySql.append(" GROUP BY b.batch_id ");
+        List<Map<String,Object>> data = jdbcTemplate.queryForList(querySql.toString());
+        if (data != null) {
+            List<Map<String, Object>> list = data;
+            for (int i = 0; i < list.size(); i++) {
+                logger.info("企业消费金额是：" + String.valueOf(list.get(i).get("amount")) + "成本费用是：" + String.valueOf(list.get(i).get("prodAmount")));
+                String profitAmount = new BigDecimal(String.valueOf(list.get(i).get("amount"))).subtract(new BigDecimal(String.valueOf(list.get(i).get("prodAmount")))).setScale(2, BigDecimal.ROUND_DOWN).toString();
+                list.get(i).put("profitAmount", profitAmount);
+                //根据批次id查询企业名称
+                String custId = String.valueOf(list.get(i).get("custId"));
+                String enterpriseName = customerDao.getEnterpriseName(custId);
+                list.get(i).put("custName", enterpriseName);
+            }
+
+        }
+        return data;
+    }
+
     /**
      * 查询账单详情页
      *

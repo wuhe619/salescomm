@@ -105,9 +105,9 @@ public class BillAction extends BasicAction {
         return new ResponseInfoAssemble().success(resultMap);
     }
 
-    @RequestMapping(value = "/billOrProfileExport", method = RequestMethod.GET)
+    @RequestMapping(value = "/customerBill/queryExport", method = RequestMethod.GET)
     @ResponseBody
-    public ResponseInfo billExport(CustomerBillQueryParam param, HttpServletResponse response) throws IOException {
+    public ResponseInfo billExport(CustomerBillQueryParam param, String export_type,HttpServletResponse response) throws IOException {
         LoginUser loginUser = opUser();
         String billDate = param.getBillDate();
         Map<String, Object> resultMap = new HashMap<>(16);
@@ -143,6 +143,10 @@ public class BillAction extends BasicAction {
             header.add("企业账号");
             header.add("账号状态");
             header.add("交易金额(元)");
+            if("2".equals(export_type)){
+                header.add("交易成本(元)");
+                header.add("利润(元)");
+            }
             List<Map<String,Object>> dataList = list;
             List<Object> rowList;
             for (Map<String, Object> column : dataList) {
@@ -157,6 +161,10 @@ public class BillAction extends BasicAction {
                     rowList.add("冻结");
                 }
                 rowList.add(column.get("amountSum") != null ? column.get("amountSum") : "");
+                if("2".equals(export_type)){
+                    rowList.add(column.get("supAmountSum") != null ? column.get("supAmountSum") : "");
+                    rowList.add(column.get("profit") != null ? column.get("profit") : "");
+                }
                 data.add(rowList);
             }
             //下载的response属性设置
@@ -366,6 +374,72 @@ public class BillAction extends BasicAction {
             return new ResponseInfoAssemble().failure(-1, "查询账单失败");
         }
         return new ResponseInfoAssemble().success(page);
+    }
+    @RequestMapping(value = "/listCustomerBillExport",method = RequestMethod.GET)
+    @ResponseBody
+    public ResponseInfo listCustomerBillExport(CustomerBillQueryParam param,String export_type,HttpServletResponse response){
+        LoginUser lu = opUser(); //TODO hello
+        List<Map<String,Object>> list;
+        try {
+            if ("ROLE_USER".equals(lu.getRole()) || "admin".equals(lu.getRole())) {
+                list = billService.listCustomerBillExport(param);
+            } else {
+                String custId = opUser().getCustId();
+                param.setCustomerId(custId);
+                list = billService.listCustomerBillExport(param);
+            }
+
+            //将列表信息导出为excel
+            List<String> header = new ArrayList<>();
+            List<List<Object>> data = new ArrayList<>();
+            header.add("批次编号");
+            header.add("批次名称");
+            header.add("上传时间");
+            if("1".equals(export_type)){
+                header.add("发送数量");
+            }
+            header.add("交易金额(元)");
+            if("2".equals(export_type)){
+                header.add("交易成本(元)");
+                header.add("利润(元)");
+            }
+            List<Map<String,Object>> dataList = list;
+            List<Object> rowList;
+            for (Map<String, Object> column : dataList) {
+                rowList = new ArrayList<>();
+                rowList.add(column.get("batchId") != null ? column.get("batchId") : "");
+                rowList.add(column.get("batchName") != null ? column.get("batchName") : "");
+                rowList.add(column.get("uploadTime") != null ? column.get("uploadTime") : "");
+                if("1".equals(export_type)){
+                    rowList.add(column.get("fixNumber")!=null?column.get("fixNumber"):"");
+                }
+                rowList.add(column.get("amount") != null ? column.get("amount") : "");
+                if("2".equals(export_type)){
+                    rowList.add(column.get("prodAmount") != null ? column.get("prodAmount") : "");
+                    rowList.add(column.get("profitAmount") != null ? column.get("profitAmount") : "");
+                }
+                data.add(rowList);
+            }
+            //下载的response属性设置
+            response.setCharacterEncoding("utf-8");
+//        response.setContentType("application/force-download");
+            response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+            String fileName = "账单.xlsx";
+            ////保存的文件名,必须和页面编码一致,否则乱码
+            String returnName = response.encodeURL(new String(fileName.getBytes(), "iso8859-1"));
+            response.addHeader("Content-Disposition", "attachment;filename=" + returnName);
+            OutputStream outputStream = response.getOutputStream();
+
+
+            ExcelUtils.getInstance().exportObjects2Excel(data, header, outputStream);
+            outputStream.flush();
+            outputStream.close();
+
+            return new ResponseInfoAssemble().success(null);
+        } catch (Exception e) {
+            logger.error("查询账单异常", e);
+            return new ResponseInfoAssemble().failure(-1, "查询账单失败");
+        }
     }
 
     /*
