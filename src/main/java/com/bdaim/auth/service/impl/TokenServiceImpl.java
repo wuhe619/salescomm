@@ -10,7 +10,9 @@ import com.bdaim.customer.service.CustomerService;
 import com.bdaim.rbac.dao.RoleDao;
 import com.bdaim.rbac.entity.UserDO;
 import com.bdaim.rbac.service.UserInfoService;
-import org.apache.log4j.Logger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
@@ -23,7 +25,7 @@ import java.util.Map;
 
 @Service
 public class TokenServiceImpl implements TokenService {
-    private static Logger logger = Logger.getLogger(TokenServiceImpl.class);
+    private static Logger logger = LoggerFactory.getLogger(TokenServiceImpl.class);
 
     @Resource
     private CustomerService customerService;

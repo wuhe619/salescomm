@@ -14,6 +14,9 @@ import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.metadata.ClassMetadata;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
 
 import java.io.Serializable;
 import java.util.List;
@@ -32,11 +35,14 @@ import java.util.Map;
  * @created 2011-5-6 09:36:41
  */
 @SuppressWarnings("unchecked")
-public class SimpleHibernateDao<T, PK extends Serializable> {
+public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDaoSupport{
     protected Log logger = LogFactory.getLog(getClass());
 
-    protected SessionFactory sessionFactory;
+//    protected SessionFactory sessionFactory;
 
+    @Autowired
+    public JdbcTemplate jdbcTemplate;
+    
     protected Class<T> entityClass;
 
     /**
@@ -52,38 +58,42 @@ public class SimpleHibernateDao<T, PK extends Serializable> {
      * eg. SimpleHibernateDao<User, String> userDao = new
      * SimpleHibernateDao<User, String>(sessionFactory, User.class);
      */
-    public SimpleHibernateDao(final SessionFactory sessionFactory,
-                              final Class<T> entityClass) {
-        this.sessionFactory = sessionFactory;
-        this.entityClass = entityClass;
-    }
+//    public SimpleHibernateDao(final SessionFactory sessionFactory,
+//                              final Class<T> entityClass) {
+//        this.sessionFactory = sessionFactory;
+//        this.entityClass = entityClass;
+//    }
 
-    /**
-     * 取得sessionFactory.
-     */
-    public SessionFactory getSessionFactory() {
-        return sessionFactory;
-    }
+//    /**
+//     * 取得sessionFactory.
+//     */
+//    public SessionFactory getSessionFactory() {
+//        return sessionFactory;
+//    }
 
     /**
      * 采用@javax.annotation.Resource按类型注入SessionFactory,
      * 当有多个SesionFactory的时候Override本函数.
      */
-    @javax.annotation.Resource
-    public void setSessionFactory(final SessionFactory sessionFactory) {
-        this.sessionFactory = sessionFactory;
-    }
+//    @javax.annotation.Resource
+//    public void setSessionFactory(final SessionFactory sessionFactory) {
+//        this.sessionFactory = sessionFactory;
+//    }
 
+    @Autowired
+    public void setSessionFactoryOverride(SessionFactory sessionFactory) {
+    	super.setSessionFactory(sessionFactory);
+    }
     /**
      * 取得当前Session.
      */
     public Session getSession() {
         try {
-            return sessionFactory.getCurrentSession();
+            return super.getSessionFactory().getCurrentSession();
         } catch (HibernateException ex) {
             ex.printStackTrace();
             logger.warn("can not get current session,open new.");
-            return sessionFactory.openSession();
+            return getSessionFactory().openSession();
         }
     }
 
@@ -112,7 +122,7 @@ public class SimpleHibernateDao<T, PK extends Serializable> {
         org.springframework.util.Assert.notNull(entity, "entity不能为空");
         Session ses = null;
         try {
-            ses = this.sessionFactory.openSession();
+            ses = super.getSessionFactory().openSession();
             Serializable Pk = ses.save(entity);
             ses.flush();
             return Pk;
