@@ -648,4 +648,13 @@ public class Constant {
      * 已发件
      */
     public static final String ALREADY_SEND_EXPRESS = "6";
+
+    /**
+     * ROLE_USER
+     */
+    public static final String ROLE_USER = "ROLE_USER";
+    /**
+     * admin
+     */
+    public static final String ADMIN = "admin";
 }

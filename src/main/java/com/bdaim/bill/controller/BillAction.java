@@ -9,22 +9,25 @@ import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
+import com.bdaim.common.util.Constant;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.rbac.dto.Page;
+import com.github.crab2died.ExcelUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -100,6 +103,80 @@ public class BillAction extends BasicAction {
             resultMap.put("custSumAmount", custSumAmount);
         }
         return new ResponseInfoAssemble().success(resultMap);
+    }
+
+    @RequestMapping(value = "/billOrProfileExport", method = RequestMethod.GET)
+    @ResponseBody
+    public ResponseInfo billExport(PageParam page, CustomerBillQueryParam param, HttpServletResponse response) throws IOException {
+        LoginUser loginUser = opUser();
+        String billDate = param.getBillDate();
+        Map<String, Object> resultMap = new HashMap<>(16);
+        if (Constant.ROLE_USER.equals(loginUser.getRole()) || Constant.ADMIN.equals(loginUser.getRole())) {
+            Page list = billService.queryCustomerBill(page, param);
+            Map<String,String> map;
+            if (list != null) {
+                for (int i = 0; i < list.getData().size(); i++) {
+                    map = (Map<String, String>) list.getData().get(i);
+                    if (map != null && map.get("cust_id") != null) {
+                        String custId = map.get("cust_id");
+                        if (StringUtil.isNotEmpty(custId)) {
+                            Map<String, String> amountMap = billService.queryCustomerConsumeTotal(custId, billDate);
+                            String amountSum = null, profitAmount = null, supAmountSum = null;
+                            if (amountMap != null && amountMap.size() > 0) {
+                                amountSum = amountMap.get("amountSum");
+                                profitAmount = amountMap.get("profitAmount");
+                                supAmountSum = amountMap.get("supAmountSum");
+                                map.put("amountSum", amountSum);
+                                map.put("profit", profitAmount);
+                                map.put("supAmountSum", supAmountSum);
+                            }
+
+                        }
+                    }
+                }
+            }
+            //将列表信息导出为excel
+            List<String> header = new ArrayList<>();
+            List<List<Object>> data = new ArrayList<>();
+            header.add("企业ID");
+            header.add("企业名称");
+            header.add("企业账号");
+            header.add("账号状态");
+            header.add("交易金额(元)");
+            List<Map<String,Object>> dataList = list.getData();
+            List<Object> rowList;
+            for (Map<String, Object> column : dataList) {
+                rowList = new ArrayList<>();
+                rowList.add(column.get("cust_id") != null ? column.get("cust_id") : "");
+                rowList.add(column.get("enterprise_name") != null ? column.get("enterprise_name") : "");
+                rowList.add(column.get("account") != null ? column.get("account") : "");
+                String status = String.valueOf(column.get("status"));
+                if("0".equals(status)){
+                    rowList.add("正常");
+                }else {
+                    rowList.add("冻结");
+                }
+                rowList.add(column.get("amountSum") != null ? column.get("amountSum") : "");
+                data.add(rowList);
+            }
+            //下载的response属性设置
+            response.setCharacterEncoding("utf-8");
+//        response.setContentType("application/force-download");
+            response.setContentType("vnd.ms-excel;charset=utf-8");
+            String fileName = "企业账单.xlsx";
+            // //保存的文件名,必须和页面编码一致,否则乱码
+            String returnName = response.encodeURL(new String(fileName.getBytes(), "iso8859-1"));
+            response.addHeader("Content-Disposition", "attachment;filename=" + returnName);
+            OutputStream outputStream = response.getOutputStream();
+
+            ExcelUtils.getInstance().exportObjects2Excel(data, header, outputStream);
+            outputStream.flush();
+            outputStream.close();
+
+            return new ResponseInfoAssemble().success(null);
+        } else {
+            return new ResponseInfoAssemble().failure(-1, "无权限导出");
+        }
     }
 
     /*
