@@ -224,6 +224,64 @@ public class BillAction extends BasicAction {
         return new ResponseInfoAssemble().success(resultMap);
     }
 
+    /**
+     * 供应商账单 首页导出
+     * @param param
+     * @param response
+     * @return
+     * @throws IOException
+     */
+    @RequestMapping(value = "/supplierBill/queryExport",method = RequestMethod.GET)
+    @ResponseBody
+    public ResponseInfo supplierBill(SupplierBillQueryParam param,HttpServletResponse response) throws IOException{
+        LoginUser lu = opUser();
+        Map<String, Object> resultMap = new HashMap<>();
+        if ("ROLE_USER".equals(lu.getRole()) || "admin".equals(lu.getRole())) {
+            List<Map<String,Object>> list = billService.querySupplierBill(param);
+            //将列表信息导出为excel
+            List<String> header = new ArrayList<>();
+            List<List<Object>> data = new ArrayList<>();
+            header.add("供应商ID");
+            header.add("供应商名称");
+            header.add("账号状态");
+            header.add("服务类型");
+            header.add("交易金额(元)");
+            List<Map<String,Object>> dataList = list;
+            List<Object> rowList;
+            for (Map<String, Object> column : dataList) {
+                rowList = new ArrayList<>();
+                rowList.add(column.get("supplierId") != null ? column.get("supplierId") : "");
+                rowList.add(column.get("supplierName") != null ? column.get("supplierName") : "");
+                String status = String.valueOf(column.get("status"));
+                if("1".equals(status)){
+                    rowList.add("有效");
+                }else {
+                    rowList.add("无效");
+                }
+                rowList.add(column.get("resourceName") != null ? column.get("resourceName") : "");
+                rowList.add(column.get("amountSum") != null ? column.get("amountSum") : "");
+                data.add(rowList);
+            }
+            //下载的response属性设置
+            response.setCharacterEncoding("utf-8");
+//        response.setContentType("application/force-download");
+            response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+            String fileName = "账单.xlsx";
+            ////保存的文件名,必须和页面编码一致,否则乱码
+            String returnName = response.encodeURL(new String(fileName.getBytes(), "iso8859-1"));
+            response.addHeader("Content-Disposition", "attachment;filename=" + returnName);
+            OutputStream outputStream = response.getOutputStream();
+
+
+            ExcelUtils.getInstance().exportObjects2Excel(data, header, outputStream);
+            outputStream.flush();
+            outputStream.close();
+
+            return new ResponseInfoAssemble().success(null);
+        }
+        return new ResponseInfoAssemble().success(resultMap);
+    }
+
     /*
      *
      * 账单管理--企业账单明细
