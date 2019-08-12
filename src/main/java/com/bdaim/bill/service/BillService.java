@@ -52,4 +52,10 @@ public interface BillService {
      */
     List<Map<String, Object>> queryBillList(String billDate, String custId, String type);
 
+    /**
+     * 查询企业账单，不带分页
+     * @param param
+     * @return
+     */
+    List<Map<String, Object>> queryCustomerBill(CustomerBillQueryParam param);
 }
