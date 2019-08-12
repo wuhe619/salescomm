@@ -94,6 +94,42 @@ public class BillServiceImpl implements BillService {
             return null;
         }
     }
+    @Override
+    public List<Map<String, Object>> queryCustomerBill(CustomerBillQueryParam param) {
+        StringBuilder sqlBuilder = new StringBuilder("SELECT t.cust_id,cus.enterprise_name,cus.status,\n" +
+                "cu.account,cu.realname,cjc.mobile_num\n" +
+                " from stat_bill_month t\n" +
+                "LEFT JOIN t_customer cus ON t.cust_id= cus.cust_id\n" +
+                "LEFT JOIN t_customer_user cu ON t.cust_id = cu.cust_id \n" +
+                "LEFT JOIN (SELECT cust_id, \n" +
+                "\tmax(CASE property_name WHEN 'mobile_num'   THEN property_value ELSE '' END ) mobile_num\n" +
+                "   FROM t_customer_property p GROUP BY cust_id \n" +
+                ") cjc ON t.cust_id = cjc.cust_id \n" +
+                "where 1=1 and cu.user_type=1");
+        if (StringUtil.isNotEmpty(param.getCustomerId())) {
+            sqlBuilder.append(" and t.cust_id= " + param.getCustomerId());
+        }
+        if (StringUtil.isNotEmpty(param.getEnterpriseName())) {
+            sqlBuilder.append(" and cus.enterprise_name like '%" + param.getEnterpriseName() + "%'");
+        }
+        if (StringUtil.isNotEmpty(param.getAccount())) {
+            sqlBuilder.append(" and cu.account like '%" + param.getAccount() + "%'");
+        }
+        if (StringUtil.isNotEmpty(param.getRealname())) {
+            sqlBuilder.append(" and cu.realname like '%" + param.getRealname() + "%'");
+        }
+        if (StringUtil.isNotEmpty(param.getPhone())) {
+            sqlBuilder.append(" and cjc.mobile_num like '%" + param.getPhone() + "%'");
+        }
+        sqlBuilder.append(" GROUP BY t.cust_id ");
+        logger.info("查询后台账单sql" + sqlBuilder.toString());
+        try {
+            return jdbcTemplate.queryForList(sqlBuilder.toString());
+            // return new PaginationThrowException().getPageData(sqlBuilder.toString(), null, page, jdbcTemplate);
+        } catch (Exception e) {
+            return null;
+        }
+    }
 
     @Override
     public Page querySupplierBill(PageParam page, SupplierBillQueryParam param) {
@@ -1087,6 +1123,7 @@ public class BillServiceImpl implements BillService {
         List<Map<String, Object>> billList = sourceDao.sqlQuery(billSupplierSql.toString(), null);
         return billList;
     }
+
 
     /**
      * 导出结算单

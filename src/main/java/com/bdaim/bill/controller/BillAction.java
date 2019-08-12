@@ -107,18 +107,18 @@ public class BillAction extends BasicAction {
 
     @RequestMapping(value = "/billOrProfileExport", method = RequestMethod.GET)
     @ResponseBody
-    public ResponseInfo billExport(PageParam page, CustomerBillQueryParam param, HttpServletResponse response) throws IOException {
+    public ResponseInfo billExport(CustomerBillQueryParam param, HttpServletResponse response) throws IOException {
         LoginUser loginUser = opUser();
         String billDate = param.getBillDate();
         Map<String, Object> resultMap = new HashMap<>(16);
         if (Constant.ROLE_USER.equals(loginUser.getRole()) || Constant.ADMIN.equals(loginUser.getRole())) {
-            Page list = billService.queryCustomerBill(page, param);
-            Map<String,String> map;
+            List<Map<String,Object>> list = billService.queryCustomerBill(param);
+            Map<String,Object> map;
             if (list != null) {
-                for (int i = 0; i < list.getData().size(); i++) {
-                    map = (Map<String, String>) list.getData().get(i);
+                for (int i = 0; i < list.size(); i++) {
+                    map = list.get(i);
                     if (map != null && map.get("cust_id") != null) {
-                        String custId = map.get("cust_id");
+                        String custId = String.valueOf(map.get("cust_id"));
                         if (StringUtil.isNotEmpty(custId)) {
                             Map<String, String> amountMap = billService.queryCustomerConsumeTotal(custId, billDate);
                             String amountSum = null, profitAmount = null, supAmountSum = null;
@@ -143,7 +143,7 @@ public class BillAction extends BasicAction {
             header.add("企业账号");
             header.add("账号状态");
             header.add("交易金额(元)");
-            List<Map<String,Object>> dataList = list.getData();
+            List<Map<String,Object>> dataList = list;
             List<Object> rowList;
             for (Map<String, Object> column : dataList) {
                 rowList = new ArrayList<>();
