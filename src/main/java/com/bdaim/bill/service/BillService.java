@@ -58,4 +58,12 @@ public interface BillService {
      * @return
      */
     List<Map<String, Object>> queryCustomerBill(CustomerBillQueryParam param);
+
+    /**
+     * 利润明细导出
+     *
+     * @param param
+     * @return
+     */
+    List<Map<String,Object>> getBillDetailExport(CustomerBillQueryParam param);
 }
