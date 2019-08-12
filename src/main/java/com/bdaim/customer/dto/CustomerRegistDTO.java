@@ -40,9 +40,9 @@ public class CustomerRegistDTO implements Serializable {
     //渠道
     private String channel;
     //打印员
-    private String printer;
+    private String printerId;
     //封装员
-    private String packager;
+    private String packagerId;
     //身份证正面
     private String idCardFront;
     //身份证反面
@@ -74,20 +74,20 @@ public class CustomerRegistDTO implements Serializable {
         this.idCardBack = idCardBack;
     }
 
-    public String getPrinter() {
-        return printer;
+    public String getPrinterId() {
+        return printerId;
     }
 
-    public void setPrinter(String printer) {
-        this.printer = printer;
+    public void setPrinterId(String printerId) {
+        this.printerId = printerId;
     }
 
-    public String getPackager() {
-        return packager;
+    public String getPackagerId() {
+        return packagerId;
     }
 
-    public void setPackager(String packager) {
-        this.packager = packager;
+    public void setPackagerId(String packagerId) {
+        this.packagerId = packagerId;
     }
 
     public String getChannel() {
