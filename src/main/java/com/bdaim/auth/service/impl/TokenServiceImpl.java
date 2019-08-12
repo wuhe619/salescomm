@@ -54,7 +54,7 @@ public class TokenServiceImpl implements TokenService {
             UserDO u = userInfoService.getUserByName(username.substring(8));
             if (u != null && CipherUtil.generatePassword(password).equals(u.getPassword())) {
                 List<Map<String, Object>> roleInfo = roleDao.getRoleInfoByUserId(String.valueOf(u.getId()));
-                if (roleInfo != null) {
+                if (roleInfo != null && roleInfo.size()>0) {
                     position = String.valueOf(roleInfo.get(0).get("name"));
                     positionId = String.valueOf(roleInfo.get(0).get("id"));
                 }
