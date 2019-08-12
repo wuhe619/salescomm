@@ -258,5 +258,14 @@ public class RoleService {
         }
         return array;
     }
+
+    /**
+     * 查询角色信息
+     */
+    public List<Map<String, Object>> queryUserListByRoleId(String id)throws Exception {
+        String querySql = "SELECT u.id,u.`name` FROM t_user_role_rel r LEFT JOIN t_user u on r.ID = u.ID where r.ROLE  = ? GROUP BY u.ID ";
+        List<Map<String, Object>> list = roleDao.sqlQuery(querySql, id);
+        return list;
+    }
 }
 
