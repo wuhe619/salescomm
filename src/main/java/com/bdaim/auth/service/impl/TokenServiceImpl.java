@@ -7,6 +7,7 @@ import com.bdaim.common.auth.service.TokenService;
 import com.bdaim.common.util.CipherUtil;
 import com.bdaim.customer.entity.CustomerUserDO;
 import com.bdaim.customer.service.CustomerService;
+import com.bdaim.rbac.dao.RoleDao;
 import com.bdaim.rbac.entity.UserDO;
 import com.bdaim.rbac.service.UserInfoService;
 import org.apache.log4j.Logger;
@@ -30,6 +31,8 @@ public class TokenServiceImpl implements TokenService {
     private UserInfoService userInfoService;
     @Resource
     private TokenCacheService tokenCacheService;
+    @Resource
+    private RoleDao roleDao;
 
     private static Map name2token = new HashMap();
 
@@ -47,15 +50,23 @@ public class TokenServiceImpl implements TokenService {
         List<GrantedAuthority> auths = new ArrayList<GrantedAuthority>();
 
         if (username.startsWith("backend.")) {
+            String position = null, positionId = null;
             UserDO u = userInfoService.getUserByName(username.substring(8));
             if (u != null && CipherUtil.generatePassword(password).equals(u.getPassword())) {
+                List<Map<String, Object>> roleInfo = roleDao.getRoleInfoByUserId(String.valueOf(u.getId()));
+                if (roleInfo != null) {
+                    position = String.valueOf(roleInfo.get(0).get("name"));
+                    positionId = String.valueOf(roleInfo.get(0).get("id"));
+                }
                 //寻找登录账号已有的token, 需重构
                 String tokenid = (String) name2token.get(username);
                 if (tokenid != null && !"".equals(tokenid)) {
                     userdetail = (LoginUser) tokenCacheService.getToken(tokenid);
-                    if (userdetail != null)
+                    if (userdetail != null) {
+                        userdetail.setPosition(position);
+                        userdetail.setPositionId(positionId);
                         return userdetail;
-                    else
+                    } else
                         name2token.remove(username);
                 }
 
@@ -67,12 +78,14 @@ public class TokenServiceImpl implements TokenService {
                     auths.add(new SimpleGrantedAuthority("admin"));
                     role = "admin";
                 }
-
+                //添加职位信息
                 userdetail = new LoginUser(u.getId(), u.getName(), CipherUtil.encodeByMD5(u.getId() + "" + System.currentTimeMillis()), auths);
                 userdetail.setCustId("0");
                 userdetail.setId(u.getId());
                 userdetail.setUserType(String.valueOf(u.getUserType()));
                 userdetail.setRole(role);
+                userdetail.setPosition(position);
+                userdetail.setPositionId(positionId);
                 userdetail.setName(u.getName());
             } else {
                 logger.info("username or password is error");
