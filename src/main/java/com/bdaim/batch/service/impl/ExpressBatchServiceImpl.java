@@ -285,7 +285,6 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         Map<String, Object> resultMap = new HashMap<>(10);
         int total = list.size();
         resultMap.put("total", total);
-        logger.info("total:  "+total);
         resultMap.put("rows", list);
         return resultMap;
     }
