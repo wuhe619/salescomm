@@ -130,6 +130,67 @@ public class BillServiceImpl implements BillService {
             return null;
         }
     }
+    @Override
+    public List<Map<String,Object>> querySupplierBill(SupplierBillQueryParam param){
+        String billDate = param.getBillDate();
+        Map<String, String> map = new HashMap<>();
+        logger.info("查询账单时间范围是：" + billDate);
+        StringBuffer supBillSql = new StringBuffer("SELECT IFNULL(SUM(b.prod_amount),0) /100 amountSum FROM t_market_resource r LEFT JOIN stat_bill_month b ON r.resource_id = b.resource_id WHERE supplier_id =?");
+        //查询全部
+        if ("0".equals(billDate) || StringUtil.isEmpty(billDate)) {
+            supBillSql = new StringBuffer("SELECT IFNULL(SUM(b.prod_amount),0) /100 amountSum FROM t_market_resource r LEFT JOIN stat_bill_month b ON r.resource_id = b.resource_id WHERE supplier_id =?");
+            //查看一年
+        } else if ("1".equals(billDate)) {
+            billDate = LocalDateTime.now().minusMonths(12).format(DateTimeFormatter.ofPattern("yyyyMM"));
+            supBillSql.append(" AND stat_time>=" + billDate);
+            //查看近半年
+        } else if ("2".equals(billDate)) {
+            billDate = LocalDateTime.now().minusMonths(6).format(DateTimeFormatter.ofPattern("yyyyMM"));
+            supBillSql.append(" AND stat_time>=" + billDate);
+        } else {
+            supBillSql.append(" AND stat_time=" + billDate);
+        }
+        //查询当前所有供应商
+        StringBuffer querySql = new StringBuffer("SELECT s.supplier_id supplierId,s.`name` supplierName,s.create_time,s.contact_person person,s.contact_phone phone,s.status,GROUP_CONCAT(DISTINCT r.type_code) resourceType ");
+        querySql.append("FROM t_supplier s LEFT JOIN t_market_resource r on s.supplier_id = r.supplier_id where 1=1 ");
+        if (StringUtil.isNotEmpty(param.getSupplierId())) {
+            querySql.append("AND s.supplier_id = '" + param.getSupplierId() + "'");
+        }
+        querySql.append("GROUP BY s.supplier_id");
+        List<Map<String,Object>> data = jdbcTemplate.queryForList(querySql.toString());
+        if (data != null) {
+            List<Map<String, Object>> supplierList = data;
+            if (supplierList.size() > 0) {
+                for (int i = 0; i < supplierList.size(); i++) {
+                    String supplierId = String.valueOf(supplierList.get(i).get("supplierId"));
+                    if (StringUtil.isNotEmpty(supplierId)) {
+                        //根据supplierId查询出消费金额
+                        logger.info("查询供应商消费金额sql是：" + supBillSql.toString());
+                        List<Map<String, Object>> countMoneyList = sourceDao.sqlQuery(supBillSql.toString(), supplierId);
+                        if (countMoneyList.size() > 0) {
+                            supplierList.get(i).put("amountSum", countMoneyList.get(0).get("amountSum"));
+                        }
+                    }
+                    //查询供应商资源名称
+                    String resourceType = String.valueOf(supplierList.get(i).get("resourceType"));
+                    logger.info("获取到的资源类型是：" + resourceType);
+                    if (StringUtil.isNotEmpty(resourceType)) {
+                        String[] split = resourceType.split(",");
+                        String name = "";
+                        if (split.length > 0) {
+                            for (int j = 0; j < split.length; j++) {
+                                if (ResourceEnum.getName(NumberConvertUtil.parseInt(split[j])) != null) {
+                                    name += ResourceEnum.getName(NumberConvertUtil.parseInt(split[j])) + " ";
+                                }
+                            }
+                        }
+                        supplierList.get(i).put("resourceName", name);
+                    }
+                }
+            }
+        }
+        return data;
+    }
 
     @Override
     public Page querySupplierBill(PageParam page, SupplierBillQueryParam param) {
@@ -1408,6 +1469,48 @@ public class BillServiceImpl implements BillService {
         Page page = customerDao.sqlPageQuery(querySql.toString(), param.getPageNum(), param.getPageSize());
         if (page != null) {
             List<Map<String, Object>> list = page.getData();
+            for (int i = 0; i < list.size(); i++) {
+                //根据资源id查询所属渠道
+                if (StringUtil.isNotEmpty(String.valueOf(list.get(i).get("amount"))) && StringUtil.isNotEmpty(String.valueOf(list.get(i).get("expressAmount")))) {
+                    logger.info("amount" + String.valueOf(list.get(i).get("amount")));
+                    String sumAmount = new BigDecimal(String.valueOf(list.get(i).get("amount"))).add(new BigDecimal(String.valueOf(list.get(i).get("expressAmount")))).setScale(2, BigDecimal.ROUND_DOWN).toString();
+                    list.get(i).put("sumAmount", sumAmount);
+
+                }
+                if (StringUtil.isNotEmpty(String.valueOf(list.get(i).get("amount"))) && StringUtil.isNotEmpty(String.valueOf(list.get(i).get("prodAmount")))) {
+                    String profit = new BigDecimal(String.valueOf(list.get(i).get("amount"))).subtract(new BigDecimal(String.valueOf(list.get(i).get("prodAmount")))).setScale(2, BigDecimal.ROUND_DOWN).toString();
+                    list.get(i).put("profit", profit);
+                }
+            }
+        }
+        return page;
+    }
+
+    @Override
+    public List<Map<String,Object>> getBillDetailExport(CustomerBillQueryParam param){
+        StringBuffer querySql = new StringBuffer("SELECT d.batch_id batchId, d.label_four address,l.id expressId,l.resource_id expressResource, d.resource_id fixResource,l.create_time sendTime,d.label_one name,d.label_two phone, d.label_five peopleId, IFNULL(d.amount / 100, 0) amount, IFNULL(d.prod_amount / 100, 0) prodAmount, IFNULL(l.amount / 100, 0) expressAmount, ");
+        querySql.append("(SELECT s.`name` FROM t_market_resource r LEFT JOIN t_supplier s ON s.supplier_id = r.supplier_id WHERE r.resource_id = l.resource_id) expressSupplier,");
+        querySql.append("(SELECT s.`name` FROM t_market_resource r LEFT JOIN t_supplier s ON s.supplier_id = r.supplier_id WHERE r.resource_id = d.resource_id) fixSupplier");
+        querySql.append(" FROM nl_batch_detail d LEFT JOIN t_touch_express_log l ON d.touch_id = l.touch_id ");
+        querySql.append("WHERE 1=1 AND d.`status`=1 ");
+        if (StringUtil.isNotEmpty(param.getBatchId())) {
+            querySql.append(" AND d.batch_id ='" + param.getBatchId() + "'");
+        }
+        if (StringUtil.isNotEmpty(param.getExpressId())) {
+            querySql.append("AND l.id ='" + param.getExpressId() + "'");
+        }
+        if (StringUtil.isNotEmpty(param.getPeopleId())) {
+            querySql.append("AND d.label_five ='" + param.getPeopleId() + "'");
+        }
+        if (StringUtil.isNotEmpty(param.getName())) {
+            querySql.append("AND d.label_one like '%" + param.getName() + "%'");
+        }
+        if (StringUtil.isNotEmpty(param.getPhone())) {
+            querySql.append("AND d.label_one ='" + param.getPhone() + "'");
+        }
+        List<Map<String,Object>> page = jdbcTemplate.queryForList(querySql.toString());
+        if (page != null) {
+            List<Map<String, Object>> list = page;
             for (int i = 0; i < list.size(); i++) {
                 //根据资源id查询所属渠道
                 if (StringUtil.isNotEmpty(String.valueOf(list.get(i).get("amount"))) && StringUtil.isNotEmpty(String.valueOf(list.get(i).get("expressAmount")))) {

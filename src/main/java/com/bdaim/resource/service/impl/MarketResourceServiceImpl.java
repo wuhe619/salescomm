@@ -1192,6 +1192,7 @@ public class MarketResourceServiceImpl implements MarketResourceService {
             data.put("uploadSucCompsList", uploadgeList);
             data.put("uploadNumList", uploadNumList);
 
+
         } else {
             //4 一个企业的最近7批次 的各批次的上传数、匹配数
             StringBuffer sqlzuij = new StringBuffer();
@@ -1276,12 +1277,25 @@ public class MarketResourceServiceImpl implements MarketResourceService {
             sign.append("WHERE t.cust_id=? AND t.batch_id= ? AND t.status= 4 ");
 
             //前端首页 校验统计图
-            String checkSql = "SELECT batch_name AS batchName,IFNULL(upload_num,0) AS uploadNum,IFNULL(success_num,0) AS successNum," +
-                    "IFNULL(upload_num/success_num,0) AS effectiveRate FROM nl_batch WHERE comp_id='" + customerId + "' ORDER BY " +
-                    "upload_time DESC LIMIT 10";
-            List<Map<String, Object>> checkStatistics = jdbcTemplate.queryForList(checkSql);
+            StringBuffer checkSql = new StringBuffer("SELECT batch_name AS batchName,IFNULL(upload_num,0) AS uploadNum,IFNULL(success_num,0) AS successNum,");
+            checkSql.append("IFNULL(upload_num/success_num,0) AS effectiveRate FROM nl_batch WHERE comp_id='").append(customerId).append("' ORDER BY ")
+                    .append("upload_time DESC LIMIT 10");
+            List<Map<String, Object>> checkStatistics = jdbcTemplate.queryForList(checkSql.toString());
+            //前端首页 签收统计图
+            StringBuffer signAndReceive = new StringBuffer("SELECT t1.id,t1.batch_name,SUM(CASE t3.`status` WHEN '1' THEN 0 ELSE 1 END) AS sendVal,");
+            signAndReceive.append("SUM(CASE t3.`status` WHEN '4' THEN 1 ELSE 0 END) AS receiveVal,")
+                    .append("SUM(CASE t3.`status` WHEN '2' THEN 1 WHEN '3' THEN 1 ELSE 0 END) AS sendingVal,")
+                    .append("SUM(CASE t3.`status` WHEN '5' THEN 1 ELSE 0 END) AS rejectionVal ")
+                    .append("FROM nl_batch t1 ")
+                    .append("LEFT JOIN nl_batch_detail t2 ON t1.id=t2.batch_id ")
+                    .append("LEFT JOIN t_touch_express_log t3 ON t2.touch_id=t3.touch_id ")
+                    .append("WHERE t1.comp_id='").append(customerId).append("' ")
+                    .append(" GROUP BY t1.id,t1.batch_name ")
+                    .append("ORDER BY t1.upload_time DESC LIMIT 10");
+            List<Map<String,Object>> signAndReceiveStatistic = jdbcTemplate.queryForList(signAndReceive.toString());
 
             data.put("checkStatistics", checkStatistics);
+            data.put("signAndReceive",signAndReceiveStatistic);
             data.put("siteList", siteList);
             data.put("sevenList", sevenList);
             data.put("qiyehujiao", qiyehujiaoall);

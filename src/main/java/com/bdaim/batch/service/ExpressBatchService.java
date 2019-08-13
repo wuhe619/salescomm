@@ -75,7 +75,7 @@ public interface ExpressBatchService {
      * @auther Chacker
      * @date 2019/8/7 19:26
      */
-    List<Map<String, Object>> findDetailByBatchId(String batch_id);
+    List<Map<String, Object>> findDetailByBatchId(Map<String,Object> batch_id);
 
     /**
      * 通过批次ID和收件人ID找到pdf存储路径

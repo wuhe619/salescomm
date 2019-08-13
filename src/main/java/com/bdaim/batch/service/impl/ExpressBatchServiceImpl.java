@@ -217,18 +217,18 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         //收件人ID
         String id = String.valueOf(map.get("receiver_id"));
         if (!nullString.equals(id) && StringUtil.isNotEmpty(id)) {
-            hql.append(" AND t2.label_five = '" + id + "'");
+            hql.append(" AND t2.label_five LIKE '%" + id + "%'");
         }
         //姓名
         String name = String.valueOf(map.get("name"));
         if (!nullString.equals(name) && StringUtil.isNotEmpty(name)) {
-            hql.append(" AND t2.label_one = '" + name + "'");
+            hql.append(" AND t2.label_one LIKE '%" + name + "%'");
             values.add(name);
         }
         //文件编码
         String fileCode = String.valueOf(map.get("file_code"));
         if (!nullString.equals(fileCode) && StringUtil.isNotEmpty(fileCode)) {
-            hql.append(" AND t2.label_six = '" + fileCode + "'");
+            hql.append(" AND t2.label_six LIKE '%" + fileCode + "%'");
         }
         //校验结果
         String status = String.valueOf(map.get("status"));
@@ -378,18 +378,53 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
     }
 
     @Override
-    public List<Map<String, Object>> findDetailByBatchId(String batch_id) {
-        StringBuffer sql = new StringBuffer("SELECT t1.label_six AS fileCode,t1.label_five AS receiverId,t1.label_one")
-                .append(" AS name,t1.label_two AS phone,t1.label_four AS address,t1.id AS addressId,t2.request_id AS expressCode, ")
-                .append("CASE t1.status WHEN '1' THEN '有效' WHEN '0' THEN '无效' ELSE '' END AS status,")
-                .append("CASE t1.label_seven WHEN '1' THEN '待上传' WHEN '2' THEN '待发件' WHEN '3' THEN '待取件' WHEN '4' THEN '已发件'")
-                .append(" ELSE '' END AS expressStatus ")
-                .append("FROM nl_batch_detail t1 ")
-                .append(" LEFT JOIN t_touch_express_log t2 ON t1.touch_id=t2.touch_id WHERE t1.batch_id='")
-                .append(batch_id)
-                .append("'");
-        List<Map<String, Object>> result = jdbcTemplate.queryForList(sql.toString());
-        return result;
+    public List<Map<String, Object>> findDetailByBatchId(Map<String,Object> map) {
+        String batchId = String.valueOf(map.get("batch_id"));
+        PageParam pageParam = new PageParam();
+        pageParam.setPageNum(NumberConvertUtil.parseInt(String.valueOf(map.get("page_num"))));
+        pageParam.setPageSize(NumberConvertUtil.parseInt(String.valueOf(map.get("page_size"))));
+        StringBuffer hql = new StringBuffer("SELECT t2.id AS addressId,l.request_id,t2.label_five AS receiverId,t2.batch_id AS batchId,t2.label_one AS name,t2.label_two AS phone,t2.label_four AS address," +
+                "t2.label_six AS fileCode,CASE t2.label_seven WHEN '1' THEN '待上传内容' WHEN '2' THEN '待发件'" +
+                " WHEN '3' THEN '待取件' WHEN '4' THEN '已发件' END AS expressStatus,t2.label_four AS address,l.request_id AS expressCode," +
+                "CASE t2.status WHEN '1' THEN '有效' WHEN '0' THEN '无效' ELSE '校验中' END AS status,t2.status AS statusId," +
+                "t2.label_seven AS expressStatusId,t1.property_value AS expressContentType" +
+                "  FROM  nl_batch_detail t2 LEFT JOIN nl_batch_property t1 ON t2.batch_id=t1.batch_id LEFT JOIN t_touch_express_log l ON t2.touch_id = l.touch_id WHERE");
+        List<String> values = new ArrayList();
+        //批次编号
+        String nullString = "null";
+        if (!nullString.equals(batchId) && StringUtil.isNotEmpty(batchId)) {
+            hql.append(" t2.batch_id = '" + batchId + "' ");
+        }
+        //收件人ID
+        String id = String.valueOf(map.get("receiver_id"));
+        if (!nullString.equals(id) && StringUtil.isNotEmpty(id)) {
+            hql.append(" AND t2.label_five LIKE '%" + id + "%'");
+        }
+        //姓名
+        String name = String.valueOf(map.get("name"));
+        if (!nullString.equals(name) && StringUtil.isNotEmpty(name)) {
+            hql.append(" AND t2.label_one LIKE '%" + name + "%'");
+            values.add(name);
+        }
+        //文件编码
+        String fileCode = String.valueOf(map.get("file_code"));
+        if (!nullString.equals(fileCode) && StringUtil.isNotEmpty(fileCode)) {
+            hql.append(" AND t2.label_six LIKE '%" + fileCode + "%'");
+        }
+        //校验结果
+        String status = String.valueOf(map.get("status"));
+        if (!nullString.equals(status) && StringUtil.isNotEmpty(status)) {
+            hql.append(" AND t2.status = '" + status + "'");
+        }
+        //快件状态
+        String checkingResult = String.valueOf(map.get("express_status"));
+        if (!nullString.equals(status) && StringUtil.isNotEmpty(status)) {
+            hql.append(" AND t2.label_seven = '" + checkingResult + "'");
+            values.add(status);
+        }
+        hql.append(" ORDER BY t2.id DESC ");
+        List<Map<String, Object>> list = jdbcTemplate.queryForList(hql.toString());
+        return list;
     }
 
     @Override

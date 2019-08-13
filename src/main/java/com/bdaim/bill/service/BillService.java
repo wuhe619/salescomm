@@ -54,8 +54,25 @@ public interface BillService {
 
     /**
      * 查询企业账单，不带分页
+     *
      * @param param
      * @return
      */
     List<Map<String, Object>> queryCustomerBill(CustomerBillQueryParam param);
+
+    /**
+     * 利润明细导出
+     *
+     * @param param
+     * @return
+     */
+    List<Map<String, Object>> getBillDetailExport(CustomerBillQueryParam param);
+
+    /**
+     * 供应商账单列表
+     *
+     * @param param
+     * @return
+     */
+    List<Map<String, Object>> querySupplierBill(SupplierBillQueryParam param);
 }

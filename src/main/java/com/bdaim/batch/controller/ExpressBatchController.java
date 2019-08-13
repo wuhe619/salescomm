@@ -220,8 +220,7 @@ public class ExpressBatchController extends BasicAction {
     @ResponseBody
     public void batchDetailExport(@RequestParam Map<String, Object> map, HttpServletResponse response) throws IOException {
         //根据批次ID找到数据信息
-        String batchId = String.valueOf(map.get("batch_id"));
-        List<Map<String, Object>> dataList = expressBatchService.findDetailByBatchId(batchId);
+        List<Map<String, Object>> dataList = expressBatchService.findDetailByBatchId(map);
         int exportType = Integer.parseInt(String.valueOf(map.get("export_type")));
         List<String> header = new ArrayList<>();
         List<List<Object>> data = new ArrayList<>();
