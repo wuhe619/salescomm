@@ -232,7 +232,7 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
     }
 
     @Override
-    public Map<String, Object> batchDetail(Map<String, Object> map) throws IllegalAccessException {
+    public Map<String, Object> batchDetail(Map<String, Object> map) {
         PageParam pageParam = new PageParam();
         pageParam.setPageNum(NumberConvertUtil.parseInt(String.valueOf(map.get("page_num"))));
         pageParam.setPageSize(NumberConvertUtil.parseInt(String.valueOf(map.get("page_size"))));
@@ -278,8 +278,10 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         }
         hql.append(" ORDER BY t2.id DESC ");
         logger.info("查询批次详情SQL为"+hql.toString());
+
         Page page = new Pagination().getPageData(hql.toString(), null, pageParam, jdbcTemplate);
         List<Map<String, Object>> list = page.getList();
+        logger.info("查询结果为"+list.toString());
         Map<String, Object> resultMap = new HashMap<>(10);
         int total = list.size();
         resultMap.put("total", total);
