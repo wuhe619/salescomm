@@ -435,6 +435,13 @@ public class BillAction extends BasicAction {
         return new ResponseInfoAssemble().success(page);
     }
 
+    /**
+     * 供应商账单二级页面(导出)、企业账单二级页面 + 利润列表(导出)
+     * @param param
+     * @param export_type
+     * @param response
+     * @return
+     */
     @RequestMapping(value = "/listCustomerBillExport", method = RequestMethod.GET)
     @ResponseBody
     public ResponseInfo listCustomerBillExport(CustomerBillQueryParam param, String export_type, HttpServletResponse response) {
