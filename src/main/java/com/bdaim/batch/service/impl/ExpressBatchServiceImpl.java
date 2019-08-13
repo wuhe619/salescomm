@@ -130,14 +130,14 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
              * label_five 自带ID，对应收件人ID
              * label_one 姓名
              * label_two 电话
-             * label_four 地址(收件人信息excel中的地址)
+             * label_four 地址(收件人信息excel中的地址) 现已修改为 site 字段
              * label_three 身份证号码
              * batch_id 对应nl_batch主表中的id
              * status 是修复状态，这里表示校验状态 0.无效、1.有效、2.校验中(此时为【2】【校验中】)
              * label_seven 是快件状态 1、待上传内容2、待发件3、待取件4、已发件(此时为【1】【待上传内容】)
              */
             StringBuffer batchDetailInsert = new StringBuffer("INSERT INTO nl_batch_detail (label_five,label_one,label_two," +
-                    "label_four,label_three,batch_id," +
+                    "site,label_three,batch_id," +
                     "status,label_seven) VALUES ('");
             batchDetailInsert.append(contentList.get(i).get(0)).append("','").append(contentList.get(i).get(1)).append("','").append(contentList.get(i).get(2))
                     .append("','").append(contentList.get(i).get(3)).append("','").append(contentList.get(i).get(4)).append("','").append(batchId)
@@ -221,7 +221,7 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         PageParam pageParam = new PageParam();
         pageParam.setPageNum(NumberConvertUtil.parseInt(String.valueOf(map.get("page_num"))));
         pageParam.setPageSize(NumberConvertUtil.parseInt(String.valueOf(map.get("page_size"))));
-        StringBuffer hql = new StringBuffer("SELECT t2.id AS addressId,l.request_id,t2.label_five AS receiverId,t2.batch_id AS batchId,t2.label_one AS name,t2.label_two AS phone,t2.label_four AS address," +
+        StringBuffer hql = new StringBuffer("SELECT t2.id AS addressId,l.request_id,t2.label_five AS receiverId,t2.batch_id AS batchId,t2.label_one AS name,t2.label_two AS phone,t2.site AS address," +
                 "t2.label_six AS fileCode,CASE t2.label_seven WHEN '1' THEN '待上传内容' WHEN '2' THEN '待发件'" +
                 " WHEN '3' THEN '待取件' WHEN '4' THEN '已发件' END AS expressStatus," +
                 "CASE t2.status WHEN '1' THEN '有效' WHEN '0' THEN '无效' ELSE '校验中' END AS status,t2.status AS statusId," +
@@ -403,9 +403,9 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         PageParam pageParam = new PageParam();
         pageParam.setPageNum(NumberConvertUtil.parseInt(String.valueOf(map.get("page_num"))));
         pageParam.setPageSize(NumberConvertUtil.parseInt(String.valueOf(map.get("page_size"))));
-        StringBuffer hql = new StringBuffer("SELECT t2.id AS addressId,l.request_id,t2.label_five AS receiverId,t2.batch_id AS batchId,t2.label_one AS name,t2.label_two AS phone,t2.label_four AS address," +
+        StringBuffer hql = new StringBuffer("SELECT t2.id AS addressId,l.request_id,t2.label_five AS receiverId,t2.batch_id AS batchId,t2.label_one AS name,t2.label_two AS phone," +
                 "t2.label_six AS fileCode,CASE t2.label_seven WHEN '1' THEN '待上传内容' WHEN '2' THEN '待发件'" +
-                " WHEN '3' THEN '待取件' WHEN '4' THEN '已发件' END AS expressStatus,t2.label_four AS address,l.request_id AS expressCode," +
+                " WHEN '3' THEN '待取件' WHEN '4' THEN '已发件' END AS expressStatus,t2.site AS address,l.request_id AS expressCode," +
                 "CASE t2.status WHEN '1' THEN '有效' WHEN '0' THEN '无效' ELSE '校验中' END AS status,t2.status AS statusId," +
                 "t2.label_seven AS expressStatusId,t1.property_value AS expressContentType" +
                 "  FROM  nl_batch_detail t2 LEFT JOIN nl_batch_property t1 ON t2.batch_id=t1.batch_id LEFT JOIN t_touch_express_log l ON t2.touch_id = l.touch_id WHERE");
