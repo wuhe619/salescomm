@@ -70,7 +70,7 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
 
     @Override
     @Transactional
-    public ResponseInfo receiverInfoImport(MultipartFile multipartFile, String batchName, int expressContent, String custId) throws IOException {
+    public ResponseInfo receiverInfoImport(MultipartFile multipartFile, String batchName, int expressContent, String custId){
         //1. 把excel文件上传到服务器中
         String fileName = multipartFile.getOriginalFilename();
         String suffix = fileName.substring(fileName.lastIndexOf("."));
@@ -88,13 +88,17 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         logger.info("uploadPath is:" + uploadPath);
         File file = new File(uploadPath);
         if (!file.exists()) {
-            logger.info("文件目录不存在");
             file.getParentFile().mkdirs();
-            file.createNewFile();
+            try {
+                file.createNewFile();
+                multipartFile.transferTo(file);
+            }catch (IOException e){
+                logger.info("发生异常了哦");
+                logger.info(e.getMessage());
+            }
         }
         //为保证uploadPath定义的路径 在readExcel中和在创建file中使用的路径一样，所以使用FileUtils工具类
 //        FileUtils.copyInputStreamToFile(multipartFile.getInputStream(), file);
-        multipartFile.transferTo(file);
         logger.info("excel文件上传成功");
         //2. 读取 & 解析excel文件(根据文件的后缀名进行区分)
         List<List<String>> contentList = ExcelReaderUtil.readExcel(uploadPath);
