@@ -276,7 +276,7 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
             hql.append(" AND t2.label_seven = '" + checkingResult + "'");
             values.add(status);
         }
-        hql.append(" ORDER BY t2.id DESC ");
+        hql.append(" ORDER BY t2.id DESC  ");
         logger.info("查询批次详情SQL为"+hql.toString());
 
         Page page = new Pagination().getPageData(hql.toString(), null, pageParam, jdbcTemplate);
