@@ -278,14 +278,18 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         }
         hql.append(" ORDER BY t2.id DESC  ");
         logger.info("查询批次详情SQL为"+hql.toString());
-
-        Page page = new Pagination().getPageData(hql.toString(), null, pageParam, jdbcTemplate);
-        List<Map<String, Object>> list = page.getList();
-        logger.info("查询结果为"+list.toString());
         Map<String, Object> resultMap = new HashMap<>(10);
-        int total = list.size();
-        resultMap.put("total", total);
-        resultMap.put("rows", list);
+        try{
+            Page page = new Pagination().getPageData(hql.toString(), null, pageParam, jdbcTemplate);
+            List<Map<String, Object>> list = page.getList();
+            logger.info("查询结果为"+list.toString());
+            int total = list.size();
+            resultMap.put("total", total);
+            resultMap.put("rows", list);
+
+        }catch (Exception e){
+            logger.error(e.getMessage());
+        }
         return resultMap;
     }
 
