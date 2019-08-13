@@ -217,18 +217,18 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         //收件人ID
         String id = String.valueOf(map.get("receiver_id"));
         if (!nullString.equals(id) && StringUtil.isNotEmpty(id)) {
-            hql.append(" AND t2.label_five = '" + id + "'");
+            hql.append(" AND t2.label_five LIKE '%" + id + "%'");
         }
         //姓名
         String name = String.valueOf(map.get("name"));
         if (!nullString.equals(name) && StringUtil.isNotEmpty(name)) {
-            hql.append(" AND t2.label_one = '" + name + "'");
+            hql.append(" AND t2.label_one LIKE '%" + name + "%'");
             values.add(name);
         }
         //文件编码
         String fileCode = String.valueOf(map.get("file_code"));
         if (!nullString.equals(fileCode) && StringUtil.isNotEmpty(fileCode)) {
-            hql.append(" AND t2.label_six = '" + fileCode + "'");
+            hql.append(" AND t2.label_six LIKE '%" + fileCode + "%'");
         }
         //校验结果
         String status = String.valueOf(map.get("status"));
@@ -398,18 +398,18 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         //收件人ID
         String id = String.valueOf(map.get("receiver_id"));
         if (!nullString.equals(id) && StringUtil.isNotEmpty(id)) {
-            hql.append(" AND t2.label_five = '" + id + "'");
+            hql.append(" AND t2.label_five LIKE '%" + id + "%'");
         }
         //姓名
         String name = String.valueOf(map.get("name"));
         if (!nullString.equals(name) && StringUtil.isNotEmpty(name)) {
-            hql.append(" AND t2.label_one = '" + name + "'");
+            hql.append(" AND t2.label_one LIKE '%" + name + "%'");
             values.add(name);
         }
         //文件编码
         String fileCode = String.valueOf(map.get("file_code"));
         if (!nullString.equals(fileCode) && StringUtil.isNotEmpty(fileCode)) {
-            hql.append(" AND t2.label_six = '" + fileCode + "'");
+            hql.append(" AND t2.label_six LIKE '%" + fileCode + "%'");
         }
         //校验结果
         String status = String.valueOf(map.get("status"));
