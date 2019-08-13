@@ -281,8 +281,9 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         Page page = new Pagination().getPageData(hql.toString(), null, pageParam, jdbcTemplate);
         List<Map<String, Object>> list = page.getList();
         Map<String, Object> resultMap = new HashMap<>(10);
-        resultMap.put("total", list.size());
-        logger.info("total:  "+list.size());
+        int total = list.size();
+        resultMap.put("total", total);
+        logger.info("total:  "+total);
         resultMap.put("rows", list);
         return resultMap;
     }
