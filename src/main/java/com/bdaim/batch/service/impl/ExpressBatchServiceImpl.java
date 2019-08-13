@@ -93,7 +93,9 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
             file.createNewFile();
         }
         //为保证uploadPath定义的路径 在readExcel中和在创建file中使用的路径一样，所以使用FileUtils工具类
-        FileUtils.copyInputStreamToFile(multipartFile.getInputStream(), file);
+//        FileUtils.copyInputStreamToFile(multipartFile.getInputStream(), file);
+        multipartFile.transferTo(file);
+        logger.info("excel文件上传成功");
         //2. 读取 & 解析excel文件(根据文件的后缀名进行区分)
         List<List<String>> contentList = ExcelReaderUtil.readExcel(uploadPath);
         if (contentList.size() > 1000) {
