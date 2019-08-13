@@ -423,9 +423,9 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
     @Override
     public List<Map<String, Object>> findDetailByBatchId(Map<String, Object> map) {
         String batchId = String.valueOf(map.get("batch_id"));
-        PageParam pageParam = new PageParam();
-        pageParam.setPageNum(NumberConvertUtil.parseInt(String.valueOf(map.get("page_num"))));
-        pageParam.setPageSize(NumberConvertUtil.parseInt(String.valueOf(map.get("page_size"))));
+//        PageParam pageParam = new PageParam();
+//        pageParam.setPageNum(NumberConvertUtil.parseInt(String.valueOf(map.get("page_num"))));
+//        pageParam.setPageSize(NumberConvertUtil.parseInt(String.valueOf(map.get("page_size"))));
         StringBuffer hql = new StringBuffer("SELECT t2.id AS addressId,l.request_id,t2.label_five AS receiverId,t2.batch_id AS batchId,t2.label_one AS name,t2.label_two AS phone," +
                 "t2.label_six AS fileCode,CASE t2.label_seven WHEN '1' THEN '待上传内容' WHEN '2' THEN '待发件'" +
                 " WHEN '3' THEN '待取件' WHEN '4' THEN '已发件' END AS expressStatus,t2.site AS address,l.request_id AS expressCode," +
