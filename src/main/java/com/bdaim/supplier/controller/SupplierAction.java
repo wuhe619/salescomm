@@ -72,9 +72,6 @@ public class SupplierAction extends BasicAction {
     @RequestMapping(value = "/getSupplierList", method = RequestMethod.GET)
     @ResponseBody
     public ResponseInfo listSupplierByPage(@Valid PageParam page, BindingResult error, String supplierId, String supplierName, String person, String phone, String serviceType) {
-        if (error.hasFieldErrors()) {
-            return new ResponseInfoAssemble().failure(-1, "缺少分页参数");
-        }
         Map<String, Object> resultMap = new HashMap<>();
         try {
             LoginUser lu = opUser();

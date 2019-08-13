@@ -66,7 +66,7 @@ public class SupplierService {
 
     public Page listSupplierByPage(PageParam page, String supplierId, String supplierName, String person, String phone,
                                    String serviceType) throws Exception {
-        StringBuffer sql = new StringBuffer("SELECT s.create_time createTime,s.supplier_id supplierId, NAME supplierName, contact_person person, contact_phone phone,contact_position position, s. STATUS status, GROUP_CONCAT(r.type_code) resourceType ,GROUP_CONCAT(DISTINCT r.resname) resname, ");
+        StringBuffer sql = new StringBuffer("SELECT s.create_time createTime,s.supplier_id supplierId, NAME supplierName, contact_person person, contact_phone phone,contact_position position, s. STATUS status, GROUP_CONCAT( DISTINCT r.type_code) resourceType ,GROUP_CONCAT(DISTINCT r.resname) resname, ");
         sql.append("( SELECT property_value FROM t_supplier_property WHERE property_name = 'priority' AND supplier_id = s.supplier_id ) AS priority");
         sql.append(" FROM t_supplier s LEFT JOIN t_market_resource r ON s.supplier_id = r.supplier_id ");
         sql.append("WHERE 1=1 and s.`status` = 1 AND r.`status` = 1");
