@@ -54,6 +54,7 @@ public class Pagination extends JdbcDaoSupport {
      */
     public Page getPageData(String sql, Object[] params, PageParam page, JdbcTemplate jTemplate) {
         if (jTemplate == null) {
+            logger.info("JdbcTemplate is null,please initial it first. ");
             throw new IllegalArgumentException("JdbcTemplate is null,please initial it first. ");
         } else if (sql == null || sql.equals("")) {
             throw new IllegalArgumentException("sql is empty,please initial it first. ");
