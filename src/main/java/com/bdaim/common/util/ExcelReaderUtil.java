@@ -3,6 +3,8 @@ package com.bdaim.common.util;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -16,6 +18,7 @@ import java.util.List;
  * @date: 2019/7/31 17:37
  */
 public class ExcelReaderUtil {
+    private static Logger logger = LoggerFactory.getLogger(ExcelReaderUtil.class);
     /**
      * 根据suffix(文件后缀名不同)读取excel文件
      *
@@ -53,6 +56,7 @@ public class ExcelReaderUtil {
                 lists.add(list);
             }
         } catch (IOException e) {
+            logger.info("读取excel失败");
             e.printStackTrace();
         } finally {
             //关闭IO流
