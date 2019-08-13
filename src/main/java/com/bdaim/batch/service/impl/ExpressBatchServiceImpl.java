@@ -27,6 +27,9 @@ import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.*;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 /**
  * @description: 发件批次 信息管理 (失联修复_信函模块)
@@ -54,6 +57,8 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
     private ZipUtil zipUtil;
     @Autowired
     private FileUrlEntity fileUrlEntity;
+    @Autowired
+    private static Logger logger = LoggerFactory.getLogger(ExpressBatchServiceImpl.class);
 
     @Override
     public Map<String, Object> queryPathByBatchId(Map<String, Object> map) {
@@ -80,8 +85,10 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         String uploadPath = classPath + pathF + "receiver_info" + pathF + custId + pathF;
         // 文件路径的字符串拼接 目录 + 文件名 + 后缀
         uploadPath = uploadPath + generatedFileName + suffix;
+        logger.info("uploadPath is:" + uploadPath);
         File file = new File(uploadPath);
         if (!file.exists()) {
+            logger.info("文件目录不存在");
             file.getParentFile().mkdirs();
             file.createNewFile();
         }
@@ -398,7 +405,7 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
     }
 
     @Override
-    public List<Map<String, Object>> findDetailByBatchId(Map<String,Object> map) {
+    public List<Map<String, Object>> findDetailByBatchId(Map<String, Object> map) {
         String batchId = String.valueOf(map.get("batch_id"));
         PageParam pageParam = new PageParam();
         pageParam.setPageNum(NumberConvertUtil.parseInt(String.valueOf(map.get("page_num"))));
