@@ -23,6 +23,7 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.transaction.Transactional;
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.*;
 
@@ -91,6 +92,25 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         if (contentList.size() > 1000) {
             return new ResponseInfoAssemble().failure(HttpStatus.BAD_REQUEST.value(), "请保证一次上传数据不超过1000条记录");
         }
+        //2.5 加上销售定价判断和余额的判断
+        String priceSql = "SELECT cust_id,property_value FROM t_customer_property WHERE cust_id='"+custId+"' AND property_name='price'";
+        List<Map<String,Object>> priceList = jdbcTemplate.queryForList(priceSql);
+        if(priceList == null || priceList.size() ==0){
+            return new ResponseInfoAssemble().failure(HttpStatus.BAD_REQUEST.value(),"请先设置销售定价");
+        }else{
+            // 判断余额是否足够 t_customer_property中的price的value是销售定价，单位 元，remain_amount是余额，单位分
+            int num = contentList.size() - 1;
+            String remainAmountSql = "SELECT cust_id,property_value FROM t_customer_property WHERE cust_id='" + custId + "' AND property_name='remain_amount'";
+            Map<String, Object> amountMap = jdbcTemplate.queryForMap(remainAmountSql);
+            if (amountMap != null) {
+                int price = Integer.parseInt(String.valueOf(priceList.get(0).get("property_value")));
+                int remainAmount = Integer.parseInt(String.valueOf(amountMap.get("property_value")));
+                int remain = remainAmount - price * num * 100;
+                if (remain < 0) {
+                    return new ResponseInfoAssemble().failure(HttpStatus.BAD_REQUEST.value(), "余额不足，请先充值");
+                }
+            }
+        }
         //3. 把批次信息和批次详情列表存入数据库
         //3.1 设置并新增保存批次信息 (status 为"1",表示 【校验中】) (certify_type是修复方式 3.表示快递地址修复)
         StringBuffer insertBatchSql = new StringBuffer("INSERT INTO nl_batch (id,batch_name,upload_time,comp_id,certify_type,channel,status," +
@@ -104,7 +124,7 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
                 " VALUES ('" + batchId + "','expressContentType','" + String.valueOf(expressContent) + "',NOW())";
         jdbcTemplate.update(insertBatchProperty);
         //3.2 获取并保存批次详情信息 (因为第一行为标题，所以从第二行开始遍历)
-        // nl_batch_detail中的id表示收件人ID label_seven是校验结果 1有效 2 无效
+        int checkingResult = 2;
         for (int i = 1; i < contentList.size(); i++) {
             /**
              * label_five 自带ID，对应收件人ID
@@ -121,7 +141,7 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
                     "status,label_seven) VALUES ('");
             batchDetailInsert.append(contentList.get(i).get(0)).append("','").append(contentList.get(i).get(1)).append("','").append(contentList.get(i).get(2))
                     .append("','").append(contentList.get(i).get(3)).append("','").append(contentList.get(i).get(4)).append("','").append(batchId)
-                    .append("','2','1')");
+                    .append("','").append(checkingResult).append("','1')");
             jdbcTemplate.update(batchDetailInsert.toString());
         }
         return new ResponseInfoAssemble().success(null);
