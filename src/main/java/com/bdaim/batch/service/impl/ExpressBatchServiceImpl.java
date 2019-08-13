@@ -135,7 +135,8 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         //把快递内容(1. 电子版 2. 打印版)存入批次属性表
         String insertBatchProperty = "INSERT INTO nl_batch_property (batch_id,property_name,property_value,create_time)" +
                 " VALUES ('" + batchId + "','expressContentType','" + String.valueOf(expressContent) + "',NOW())";
-        jdbcTemplate.update(insertBatchProperty);
+        int row = jdbcTemplate.update(insertBatchProperty);
+        logger.info("插入批次属性成功，条数为: "+row);
         //3.2 获取并保存批次详情信息 (因为第一行为标题，所以从第二行开始遍历)
         int checkingResult = 2;
         for (int i = 1; i < contentList.size(); i++) {
@@ -155,7 +156,8 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
             batchDetailInsert.append(contentList.get(i).get(0)).append("','").append(contentList.get(i).get(1)).append("','").append(contentList.get(i).get(2))
                     .append("','").append(contentList.get(i).get(3)).append("','").append(contentList.get(i).get(4)).append("','").append(batchId)
                     .append("','").append(checkingResult).append("','1')");
-            jdbcTemplate.update(batchDetailInsert.toString());
+            int rowDetail = jdbcTemplate.update(batchDetailInsert.toString());
+            logger.info("插入批次详情成功，条数为: "+rowDetail);
         }
         return new ResponseInfoAssemble().success(null);
     }

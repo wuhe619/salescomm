@@ -25,7 +25,7 @@ public interface ExpressBatchService {
      * @auther Chacker
      * @date 2019/7/31 14:54
      */
-    ResponseInfo receiverInfoImport(MultipartFile multipartFile, String batchName, int batchType, String custId) throws IOException;
+    ResponseInfo receiverInfoImport(MultipartFile multipartFile, String batchName, int batchType, String custId);
 
     /**
      * 分页查询批次列表
