@@ -55,6 +55,7 @@ public class ExcelReaderUtil {
                 }
                 lists.add(list);
             }
+            logger.info("读取excel成功，条数为"+lists.size());
         } catch (IOException e) {
             logger.info("读取excel失败");
             e.printStackTrace();
