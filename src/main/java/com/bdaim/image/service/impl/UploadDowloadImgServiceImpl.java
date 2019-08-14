@@ -2,11 +2,13 @@ package com.bdaim.image.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.util.CipherUtil;
+import com.bdaim.common.util.FileUrlEntity;
 import com.bdaim.common.util.PictureRotateUtil;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.image.service.UploadDowloadService;
 import com.bdaim.resource.service.impl.MarketResourceServiceImpl;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,8 +38,11 @@ import java.util.zip.ZipOutputStream;
 @Transactional
 public class UploadDowloadImgServiceImpl implements UploadDowloadService {
     private static Log logger = LogFactory.getLog(UploadDowloadImgServiceImpl.class);
+    protected static final Properties PROPERTIES = new Properties(System.getProperties());
     @Autowired
     private MarketResourceServiceImpl marketResourceServiceImpl;
+    @Autowired
+    private FileUrlEntity fileUrlEntity;
 
     @Override
     public Object uploadImgNew(HttpServletRequest request, HttpServletResponse response, String cust_id,
@@ -117,6 +122,37 @@ public class UploadDowloadImgServiceImpl implements UploadDowloadService {
         resultMap.put("_message", message);
         resultMap.put("url", pictureName + "." + suffix);
         return JSONObject.toJSON(resultMap);
+    }
+
+    @Override
+    public Object uploadImg(MultipartFile file) {
+        //1. 把图片文件上传到服务器中
+        String originalFileName = file.getOriginalFilename();
+        String suffixName = originalFileName.substring(originalFileName.lastIndexOf("."));
+        String randomFileName = System.currentTimeMillis() + UUID.randomUUID().toString().substring(0, 8);
+        randomFileName = CipherUtil.generatePassword(randomFileName);
+        String filePath = fileUrlEntity.getFileUrl();
+        String pathF = PROPERTIES.getProperty("file.separator");
+        filePath = filePath.replace("/", pathF);
+        StringBuffer uploadPathBuffer = new StringBuffer(filePath);
+        uploadPathBuffer.append("img").append(pathF).append(randomFileName).append(suffixName);
+        logger.info("upload path is" + uploadPathBuffer.toString());
+        File file1 = new File(uploadPathBuffer.toString());
+        if (!file1.exists()) {
+            file1.getParentFile().mkdirs();
+            try {
+                file1.createNewFile();
+                FileUtils.copyInputStreamToFile(file.getInputStream(), file1);
+            } catch (Exception e) {
+                logger.info("发生异常，异常信息如下");
+                logger.info(e.getMessage());
+            }
+        }
+        Map<String, Object> resultMap = new HashMap<>(10);
+        resultMap.put("code", "1");
+        resultMap.put("_message", "上传图片成功");
+        resultMap.put("url", randomFileName + suffixName);
+        return null;
     }
 
     /*
@@ -332,5 +368,6 @@ public class UploadDowloadImgServiceImpl implements UploadDowloadService {
         }
         return s;
     }
+
 
 }
