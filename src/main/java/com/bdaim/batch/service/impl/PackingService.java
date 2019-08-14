@@ -56,11 +56,7 @@ public class PackingService {
         return list;
     }
 
-    public List<Map<String, Object>> getAddressResoult(String batchId) {
-        String querySql = "SELECT * FROM tmp_nl_batch_detail b  WHERE batch_id = 1542099439991";
-        List<Map<String, Object>> list = batchDetailDao.sqlQuery(querySql);
-        return list;
-    }
+
 
     public List<Map<String, Object>> getImeiResoult() {
         String querySql = "SELECT * FROM tmp_nl_batch_detail b  WHERE batch_id = 1547293213042";

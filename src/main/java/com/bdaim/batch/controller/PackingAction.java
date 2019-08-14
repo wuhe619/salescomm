@@ -65,7 +65,7 @@ public class PackingAction extends BasicAction {
     /**
      * 发送快递(确认发件)
      *
-     * @param map 
+     * @param map
      * @return
      * @auther Chacker
      * @date 2019/8/7 13:52
@@ -114,27 +114,6 @@ public class PackingAction extends BasicAction {
             return json.toJSONString();
         }
         json.put("errorCode", "01");
-        return json.toJSONString();
-    }
-
-    /**
-     * 获取地址修复数据
-     */
-    @RequestMapping(value = "/addressFixMessage", method = RequestMethod.POST)
-    public String addressfixFile(String batchId) {
-
-        JSONObject json = new JSONObject();
-        if (batchId != null && StringUtil.isNotEmpty(batchId)) {
-            json.put("errorCode", "00");
-            json.put("message", "发送修复数据成功");
-            return json.toJSONString();
-        }
-        batchId = "1542099439991";
-        List<Map<String, Object>> list = packingService.getAddressResoult(batchId);
-        if (list.size() > 0) {
-            json.put("code", "001");
-            json.put("list", list);
-        }
         return json.toJSONString();
     }
 
