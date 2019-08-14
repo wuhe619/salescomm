@@ -91,14 +91,14 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
             file.getParentFile().mkdirs();
             try {
                 file.createNewFile();
-                multipartFile.transferTo(file);
+//                multipartFile.transferTo(file);
+                //为保证uploadPath定义的路径 在readExcel中和在创建file中使用的路径一样，所以使用FileUtils工具类
+                FileUtils.copyInputStreamToFile(multipartFile.getInputStream(), file);
             }catch (IOException e){
                 logger.info("发生异常了哦");
                 logger.info(e.getMessage());
             }
         }
-        //为保证uploadPath定义的路径 在readExcel中和在创建file中使用的路径一样，所以使用FileUtils工具类
-//        FileUtils.copyInputStreamToFile(multipartFile.getInputStream(), file);
         logger.info("excel文件上传成功");
         //2. 读取 & 解析excel文件(根据文件的后缀名进行区分)
         List<List<String>> contentList = ExcelReaderUtil.readExcel(uploadPath);
@@ -150,12 +150,13 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
              * status 是修复状态，这里表示校验状态 0.无效、1.有效、2.校验中(此时为【2】【校验中】)
              * label_seven 是快件状态 1、待上传内容2、待发件3、待取件4、已发件(此时为【1】【待上传内容】)
              */
+            String touchId = UUID.randomUUID().toString();
             StringBuffer batchDetailInsert = new StringBuffer("INSERT INTO nl_batch_detail (label_five,label_one,label_two," +
                     "site,label_three,batch_id," +
-                    "status,label_seven) VALUES ('");
+                    "status,label_seven,touch_id,upload_time) VALUES ('");
             batchDetailInsert.append(contentList.get(i).get(0)).append("','").append(contentList.get(i).get(1)).append("','").append(contentList.get(i).get(2))
                     .append("','").append(contentList.get(i).get(3)).append("','").append(contentList.get(i).get(4)).append("','").append(batchId)
-                    .append("','").append(checkingResult).append("','1')");
+                    .append("','").append(checkingResult).append("','1','").append(touchId).append("',NOW())");
             int rowDetail = jdbcTemplate.update(batchDetailInsert.toString());
             logger.info("插入批次详情成功，条数为: "+rowDetail);
         }
