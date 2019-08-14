@@ -10,6 +10,7 @@ import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.common.util.AuthPassport;
 import com.bdaim.common.util.ConfigUtil;
+import com.bdaim.common.util.IDHelper;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.entity.CustomerUserDO;
 import com.bdaim.rbac.dto.Page;
@@ -32,7 +33,7 @@ import java.util.Map;
  * @date 2019/3/25
  * 对外接口Action
  */
-@Controller
+@RestController
 @RequestMapping("/open")
 public class OpenAction extends BasicAction {
 
@@ -524,6 +525,21 @@ public class OpenAction extends BasicAction {
     public ResponseInfo saveActionRecord(@RequestBody Map<String, Object> map,HttpServletRequest request) {
         openService.saveActionRecord(map,request);
         return new ResponseInfoAssemble().success(null);
+    }
+
+    /**
+     * 获取地址修复数据
+     */
+    @RequestMapping(value = "/addressFixMessage", method = RequestMethod.POST)
+    public ResponseInfo addressfixFile(String idcard) {
+        List<Map<String, Object>> list = openService.getAddressResoult(idcard);
+        if (list.size() > 0) {
+            for (int i = 0; i < list.size(); i++) {
+                list.get(i).put("addressid", String.valueOf(IDHelper.getTransactionId()));
+                list.get(i).put("prov", "北京");
+            }
+        }
+        return new ResponseInfoAssemble().success(list);
     }
 }
 
