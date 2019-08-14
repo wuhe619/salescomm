@@ -152,7 +152,7 @@ public class UploadDowloadImgServiceImpl implements UploadDowloadService {
         resultMap.put("code", "1");
         resultMap.put("_message", "上传图片成功");
         resultMap.put("url", randomFileName + suffixName);
-        return null;
+        return resultMap;
     }
 
     /*
