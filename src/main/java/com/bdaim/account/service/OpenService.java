@@ -843,7 +843,7 @@ public class OpenService {
 
 
     public List<Map<String, Object>> getAddressResoult(String idCard) {
-        String querySql = "SELECT site address FROM nl_batch_detail b  WHERE batch_id = 1542099439991 and id_card = '" + idCard + "'";
+        String querySql = "SELECT site address FROM  tmp_nl_batch_detail b  WHERE batch_id = 1542099439991 and id_card = '" + idCard + "'";
         List<Map<String, Object>> list = batchDao.sqlQuery(querySql);
         return list;
     }
