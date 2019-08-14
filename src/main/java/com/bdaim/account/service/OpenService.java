@@ -11,6 +11,8 @@ import com.bdaim.batch.entity.BatchDetail;
 import com.bdaim.batch.service.BatchListService;
 import com.bdaim.batch.service.BatchService;
 import com.bdaim.callcenter.service.impl.CallCenterServiceImpl;
+import com.bdaim.common.response.ResponseInfo;
+import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.common.util.CipherUtil;
 import com.bdaim.common.util.IDHelper;
 import com.bdaim.common.util.StringHelper;
@@ -37,6 +39,9 @@ import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -835,5 +840,13 @@ public class OpenService {
         String sql = "INSERT INTO t_behavior_record (create_time,imei,app,device_address,device_contact,action,ip) VALUES (NOW(),?,?,?,?,?,?)";
         jdbcTemplate.batchUpdate(sql, batchArgs);
     }
+
+
+    public List<Map<String, Object>> getAddressResoult(String idCard) {
+        String querySql = "SELECT site address FROM nl_batch_detail b  WHERE batch_id = 1542099439991 and id_card = '" + idCard + "'";
+        List<Map<String, Object>> list = batchDao.sqlQuery(querySql);
+        return list;
+    }
+
 }
 
