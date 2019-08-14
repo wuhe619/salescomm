@@ -6,6 +6,8 @@ import com.bdaim.batch.dto.FixInfo;
 import com.bdaim.callcenter.dto.RecordVoiceQueryParam;
 import com.bdaim.common.annotation.CacheAnnotation;
 import com.bdaim.common.controller.BasicAction;
+import com.bdaim.common.response.ResponseInfo;
+import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.common.util.AuthPassport;
 import com.bdaim.common.util.ConfigUtil;
 import com.bdaim.common.util.StringUtil;
@@ -17,10 +19,7 @@ import com.bdaim.template.dto.TemplateParam;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -510,6 +509,21 @@ public class OpenAction extends BasicAction {
         //String targetPath = "http://online.datau.top/audio/1810090141300001/TEL-18630016545_BJHKK_zx1_20181010192854.wav";
         log.info("文件名：" + fileName + "文件路径：" + targetPath);
         return returnJsonData(map);
+    }
+
+    /**
+     * 保存用户的行为记录
+     *
+     * @param map
+     * @return
+     * @auther Chacker
+     * @date
+     */
+    @RequestMapping(value = "/saveActionRecord", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseInfo saveActionRecord(@RequestBody Map<String, Object> map,HttpServletRequest request) {
+        openService.saveActionRecord(map,request);
+        return new ResponseInfoAssemble().success(null);
     }
 }
 

@@ -1,6 +1,7 @@
 package com.bdaim.account.service;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.account.dto.Fixentity;
 import com.bdaim.batch.ResourceEnum;
@@ -12,6 +13,7 @@ import com.bdaim.batch.service.BatchService;
 import com.bdaim.callcenter.service.impl.CallCenterServiceImpl;
 import com.bdaim.common.util.CipherUtil;
 import com.bdaim.common.util.IDHelper;
+import com.bdaim.common.util.StringHelper;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerUserDao;
@@ -32,9 +34,12 @@ import com.bdaim.template.entity.MarketTemplate;
 //import io.jsonwebtoken.Claims;
 //import io.jsonwebtoken.ExpiredJwtException;
 import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 
 //import static com.bdaim.common.util.JwtUtil.generToken;
@@ -74,6 +79,8 @@ public class OpenService {
     private BatchListService batchListService;
     @Resource
     private BatchDao batchDao;
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     /**
      * 查询企业余额接口
@@ -807,6 +814,26 @@ public class OpenService {
         }
         map.put("status", status);
         return map;
+    }
+
+    public void saveActionRecord(Map<String, Object> map, HttpServletRequest request) {
+        //1. 获取入参（IMEI、app列表、设备地理位置、用户行为、通讯录列表）和通过request获取IP地址
+        String iMei = String.valueOf(map.get("IMEI"));
+        String deviceAddress = String.valueOf(map.get("device_address"));
+        String action = String.valueOf(map.get("action"));
+        String IP = StringHelper.getIpAddr(request);
+        //2. 转换格式并插入数据库
+        List<String> appList = (List<String>) map.get("apps");
+        List<Map<String, Object>> contactsList = (List<Map<String, Object>>) map.get("device_contacts");
+        List<Object[]> batchArgs = new ArrayList<>();
+        for (int i = 0; i < appList.size(); i++) {
+            for (int j = 0; j < contactsList.size(); j++) {
+                Object[] objects = new Object[]{iMei, appList.get(i), deviceAddress, contactsList.get(j).toString(), action, IP};
+                batchArgs.add(objects);
+            }
+        }
+        String sql = "INSERT INTO t_behavior_record (create_time,imei,app,device_address,device_contact,action,ip) VALUES (NOW(),?,?,?,?,?,?)";
+        jdbcTemplate.batchUpdate(sql, batchArgs);
     }
 }
 
