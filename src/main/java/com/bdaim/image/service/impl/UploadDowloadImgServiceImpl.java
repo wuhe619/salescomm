@@ -135,12 +135,12 @@ public class UploadDowloadImgServiceImpl implements UploadDowloadService {
         String pathF = PROPERTIES.getProperty("file.separator");
         filePath = filePath.replace("/", pathF);
         StringBuffer uploadPathBuffer = new StringBuffer(filePath);
-        uploadPathBuffer.append("img").append(pathF).append(randomFileName).append(suffixName);
+        uploadPathBuffer.append(pathF).append("img").append(pathF).append(randomFileName).append(suffixName);
         logger.info("upload path is" + uploadPathBuffer.toString());
         File file1 = new File(uploadPathBuffer.toString());
         if (!file1.exists()) {
-            file1.getParentFile().mkdirs();
             try {
+                file1.getParentFile().mkdirs();
                 file1.createNewFile();
                 FileUtils.copyInputStreamToFile(file.getInputStream(), file1);
             } catch (Exception e) {
