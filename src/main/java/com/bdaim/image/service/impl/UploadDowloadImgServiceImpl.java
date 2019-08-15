@@ -126,16 +126,14 @@ public class UploadDowloadImgServiceImpl implements UploadDowloadService {
 
     @Override
     public Object uploadImg(MultipartFile file) {
-        //1. 把图片文件上传到服务器中
+        //1. 把图片文件上传到服务器中 /data/upload/0/pictureName.suffix
         String originalFileName = file.getOriginalFilename();
         String suffixName = originalFileName.substring(originalFileName.lastIndexOf("."));
         String randomFileName = System.currentTimeMillis() + UUID.randomUUID().toString().substring(0, 8);
         randomFileName = CipherUtil.generatePassword(randomFileName);
-        String filePath = fileUrlEntity.getFileUrl();
         String pathF = PROPERTIES.getProperty("file.separator");
-        filePath = filePath.replace("/", pathF);
-        StringBuffer uploadPathBuffer = new StringBuffer(filePath);
-        uploadPathBuffer.append(pathF).append("img").append(pathF).append(randomFileName).append(suffixName);
+        StringBuffer uploadPathBuffer = new StringBuffer("data");
+        uploadPathBuffer.append(pathF).append("upload").append(pathF).append("0").append(pathF).append(randomFileName).append(suffixName);
         logger.info("upload path is" + uploadPathBuffer.toString());
         File file1 = new File(uploadPathBuffer.toString());
         if (!file1.exists()) {
