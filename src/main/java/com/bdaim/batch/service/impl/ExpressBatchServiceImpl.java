@@ -306,6 +306,7 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
     @Override
     public ResponseInfo sendMessageUpload(MultipartFile expressContent, MultipartFile fileCodeMapping, String receiverId, String batchId) throws IOException {
         try{
+            logger.info("进入上传快件内容方法");
             //1. 对文件类型进行校验
             List<String> pdfFileNameList = new ArrayList<>();
             String fileUrl = fileUrlEntity.getFileUrl();
