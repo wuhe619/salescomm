@@ -94,6 +94,7 @@ public class BillServiceImpl implements BillService {
             return null;
         }
     }
+
     @Override
     public List<Map<String, Object>> queryCustomerBill(CustomerBillQueryParam param) {
         StringBuilder sqlBuilder = new StringBuilder("SELECT t.cust_id,cus.enterprise_name,cus.status,\n" +
@@ -130,8 +131,9 @@ public class BillServiceImpl implements BillService {
             return null;
         }
     }
+
     @Override
-    public List<Map<String,Object>> querySupplierBill(SupplierBillQueryParam param){
+    public List<Map<String, Object>> querySupplierBill(SupplierBillQueryParam param) {
         String billDate = param.getBillDate();
         Map<String, String> map = new HashMap<>();
         logger.info("查询账单时间范围是：" + billDate);
@@ -157,7 +159,7 @@ public class BillServiceImpl implements BillService {
             querySql.append("AND s.supplier_id = '" + param.getSupplierId() + "'");
         }
         querySql.append("GROUP BY s.supplier_id");
-        List<Map<String,Object>> data = jdbcTemplate.queryForList(querySql.toString());
+        List<Map<String, Object>> data = jdbcTemplate.queryForList(querySql.toString());
         if (data != null) {
             List<Map<String, Object>> supplierList = data;
             if (supplierList.size() > 0) {
@@ -1392,7 +1394,7 @@ public class BillServiceImpl implements BillService {
         return data;
     }
 
-    public List<Map<String,Object>> listCustomerBillExport(CustomerBillQueryParam param) throws Exception {
+    public List<Map<String, Object>> listCustomerBillExport(CustomerBillQueryParam param) throws Exception {
         StringBuffer querySql = new StringBuffer("SELECT n.comp_id custId,b.batch_id batchId,n.batch_name batchName,n.upload_time uploadTime,IFNULL(SUM(b.amount) / 100,0) amount ,IFNULL(SUM(b.prod_amount) / 100,0) prodAmount , ");
         querySql.append("( SELECT COUNT(id) FROM nl_batch_detail WHERE batch_id = b.batch_id ) fixNumber ");
         querySql.append("FROM stat_bill_month b LEFT JOIN nl_batch n ON b.batch_id = n.id  LEFT JOIN t_customer c ON  n.comp_id = c.cust_id ");
@@ -1422,7 +1424,7 @@ public class BillServiceImpl implements BillService {
             querySql.append(" AND stat_time=" + billDate);
         }
         querySql.append(" GROUP BY b.batch_id ");
-        List<Map<String,Object>> data = jdbcTemplate.queryForList(querySql.toString());
+        List<Map<String, Object>> data = jdbcTemplate.queryForList(querySql.toString());
         if (data != null) {
             List<Map<String, Object>> list = data;
             for (int i = 0; i < list.size(); i++) {
@@ -1487,7 +1489,7 @@ public class BillServiceImpl implements BillService {
     }
 
     @Override
-    public List<Map<String,Object>> getBillDetailExport(CustomerBillQueryParam param){
+    public List<Map<String, Object>> getBillDetailExport(CustomerBillQueryParam param) {
         StringBuffer querySql = new StringBuffer("SELECT d.batch_id batchId, d.site address,l.id expressId,l.resource_id expressResource, d.resource_id fixResource,l.create_time sendTime,d.label_one name,d.label_two phone, d.label_five peopleId, IFNULL(d.amount / 100, 0) amount, IFNULL(d.prod_amount / 100, 0) prodAmount, IFNULL(l.amount / 100, 0) expressAmount, ");
         querySql.append("(SELECT s.`name` FROM t_market_resource r LEFT JOIN t_supplier s ON s.supplier_id = r.supplier_id WHERE r.resource_id = l.resource_id) expressSupplier,");
         querySql.append("(SELECT s.`name` FROM t_market_resource r LEFT JOIN t_supplier s ON s.supplier_id = r.supplier_id WHERE r.resource_id = d.resource_id) fixSupplier");
@@ -1508,7 +1510,7 @@ public class BillServiceImpl implements BillService {
         if (StringUtil.isNotEmpty(param.getPhone())) {
             querySql.append("AND d.label_one ='" + param.getPhone() + "'");
         }
-        List<Map<String,Object>> page = jdbcTemplate.queryForList(querySql.toString());
+        List<Map<String, Object>> page = jdbcTemplate.queryForList(querySql.toString());
         if (page != null) {
             List<Map<String, Object>> list = page;
             for (int i = 0; i < list.size(); i++) {
@@ -1545,14 +1547,19 @@ public class BillServiceImpl implements BillService {
             querySql.append("AND d.label_one like '%" + param.getName() + "%'");
         }
         //type 1 数据  2快递
-        if (StringUtil.isNotEmpty(param.getResourceId()) && "1".equals(param.getType())) {
-            querySql.append("AND d.resource_id = " + param.getResourceId());
-        } else if (StringUtil.isNotEmpty(param.getResourceId()) && "2".equals(param.getType())) {
-            querySql.append("AND l.resource_id = " + param.getResourceId());
+        MarketResourceEntity marketResourceEntity = sourceDao.getResourceId(param.getSupplierId(), NumberConvertUtil.parseInt(param.getType()));
+        if (marketResourceEntity != null) {
+            Integer resourceId = marketResourceEntity.getResourceId();
+            if (StringUtil.isNotEmpty(param.getSupplierId()) && "1".equals(param.getType())) {
+                querySql.append("AND d.resource_id = " + resourceId);
+            } else if (StringUtil.isNotEmpty(param.getResourceId()) && "2".equals(param.getType())) {
+                querySql.append("AND l.resource_id = " + resourceId);
+            }
+            if (StringUtil.isNotEmpty(param.getPhone())) {
+                querySql.append("AND d.label_one ='" + param.getPhone() + "'");
+            }
         }
-        if (StringUtil.isNotEmpty(param.getPhone())) {
-            querySql.append("AND d.label_one ='" + param.getPhone() + "'");
-        }
+        querySql.append(" GROUP BY d.touch_id");
         return customerDao.sqlPageQuery(querySql.toString(), param.getPageNum(), param.getPageSize());
     }
 

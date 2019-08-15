@@ -9,6 +9,7 @@ import com.bdaim.bill.dto.CustomerBillQueryParam;
 import com.bdaim.bill.service.TransactionService;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.util.DateUtil;
+import com.bdaim.common.util.NumberConvertUtil;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.rbac.dto.Page;
 import com.bdaim.resource.dao.MarketResourceDao;
@@ -92,10 +93,10 @@ public class SupplierService {
         if (supplierPage != null && supplierPage.getData().size() > 0) {
             List<Map<String, Object>> list = supplierPage.getData();
             for (int i = 0; i < list.size(); i++) {
-                String id = String.valueOf(list.get(i).get("supplier_id"));
+                String id = String.valueOf(list.get(i).get("supplierId"));
                 SupplierPropertyEntity remainAmount = supplierDao.getSupplierProperty(id, "remain_amount");
                 if (remainAmount != null) {
-                    list.get(i).put("remainAmount", remainAmount.getPropertyValue());
+                    list.get(i).put("remainAmount", NumberConvertUtil.transformtionElement(remainAmount.getPropertyValue()));
                 }
             }
         }
