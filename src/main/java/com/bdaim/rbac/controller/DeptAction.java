@@ -1,5 +1,6 @@
 package com.bdaim.rbac.controller;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.auth.LoginUser;
 import com.bdaim.common.controller.BasicAction;
@@ -9,10 +10,7 @@ import com.bdaim.rbac.service.DeptService;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import java.util.HashMap;
@@ -63,10 +61,10 @@ public class DeptAction extends BasicAction {
      */
     @RequestMapping(value = "/queryDeptList", method = RequestMethod.GET)
     @ResponseBody
-    public String queryDeptList() {
+    public String queryDeptList(@RequestParam Map<String,Object> map) {
         //获取当前操作人
-        List<DeptDto> list = deptService.queryDeptList();
-        return returnJsonData(list);
+        Map<String,Object> resultMap = deptService.queryDeptList(map);
+        return JSON.toJSONString(resultMap);
     }
     /**
      * 获取部门信息以及部门下职位信息
