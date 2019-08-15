@@ -87,7 +87,7 @@ public class SupplierService {
             sql.append(" and s.contact_phone ='").append(phone).append("'");
         }
         sql.append(" GROUP BY s.supplier_id");
-        sql.append(" ORDER BY priority is null, priority, s.create_time DESC");
+        sql.append(" ORDER BY priority is null, priority, FIND_IN_SET(1,resourceType) desc, s.create_time DESC");
         Page supplierPage = supplierDao.sqlPageQuery(sql.toString(), page.getPageNum(), page.getPageSize());
         if (supplierPage != null && supplierPage.getData().size() > 0) {
             List<Map<String, Object>> list = supplierPage.getData();
