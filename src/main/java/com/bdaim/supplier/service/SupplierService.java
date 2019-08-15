@@ -9,7 +9,6 @@ import com.bdaim.bill.dto.CustomerBillQueryParam;
 import com.bdaim.bill.service.TransactionService;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.util.DateUtil;
-import com.bdaim.common.util.NumberConvertUtil;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.rbac.dto.Page;
 import com.bdaim.resource.dao.MarketResourceDao;
@@ -22,6 +21,7 @@ import com.bdaim.supplier.dao.SupplierDao;
 import com.bdaim.supplier.dto.SupplierDTO;
 import com.bdaim.supplier.entity.SupplierEntity;
 import com.bdaim.supplier.entity.SupplierPropertyEntity;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Service;
 
@@ -199,10 +199,9 @@ public class SupplierService {
         }
         //删除以前的设置
         if (resourceIdList != null && resourceIdList.size() > 0) {
-            for (Integer resourceId : resourceIdList) {
-                String sql = "delete from t_market_resource_property where resource_id=" + resourceId + " and property_name='price_config'";
-                marketResourceDao.executeUpdateSQL(sql);
-            }
+            String resourceIds = StringUtils.join(resourceIdList.toArray(), ",");
+            String sql = "delete from t_market_resource_property where resource_id in (" + resourceIds + ") and property_name='price_config'";
+            marketResourceDao.executeUpdateSQLV1(sql);
         }
     }
 
@@ -550,7 +549,7 @@ public class SupplierService {
         List<MarketResourceLogDTO> supplierResources = supplierDao.listMarketResourceBySupplierId(supplierId);
         if (supplierResources.size() > 0) {
             for (int i = 0; i < supplierResources.size(); i++) {
-                if (supplierResources.get(i).getTypeCode()>0) {
+                if (supplierResources.get(i).getTypeCode() > 0) {
                     log.info("资源类型是：" + supplierResources.get(i).getTypeCode());
                     String name = ResourceEnum.getName(supplierResources.get(i).getTypeCode());
                     supplierResources.get(i).setResname(name);
