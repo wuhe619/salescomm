@@ -228,7 +228,7 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         }
         Map<String, Object> resultMap = new HashMap<>(10);
         resultMap.put("rows", list);
-        resultMap.put("total", list.size());
+        resultMap.put("total", page.getTotal());
         return resultMap;
     }
 
@@ -284,8 +284,7 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
             Page page = new Pagination().getPageData(hql.toString(), null, pageParam, jdbcTemplate);
             List<Map<String, Object>> list = page.getList();
             logger.info("查询结果为"+list.toString());
-            int total = list.size();
-            resultMap.put("total", total);
+            resultMap.put("total", page.getTotal());
             resultMap.put("rows", list);
 
         }catch (Exception e){
