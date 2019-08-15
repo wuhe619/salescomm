@@ -129,8 +129,22 @@ public class RoleDao extends SimpleHibernateDao<RoleEntity, Serializable> {
      * @date: 2019/3/19 18:56
      */
     public List<Map<String, Object>> getRoleInfoByUserId(String userId) {
-        String sql = "SELECT r.ID id,r.`NAME` name from t_user_role_rel  ur LEFT JOIN t_role r ON ur.ROLE = r.ID WHERE ur.ID = '" + userId + "'";
+        String sql = "SELECT R.type,r.ID id,r.`NAME` name from t_user_role_rel  ur LEFT JOIN t_role r ON ur.ROLE = r.ID WHERE ur.ID = '" + userId + "'";
         List<Map<String, Object>> list = this.sqlQuery(sql);
         return list;
+    }
+
+    /**
+     * 根据type查询角色信息
+     *
+     * @date: 2019/3/19 18:56
+     */
+    public RoleEntity getRoleInfoBytype(int type) {
+        RoleEntity cp = null;
+        String hql = "from RoleEntity m where m.type=?";
+        List<RoleEntity> list = this.find(hql, type);
+        if (list.size() > 0)
+            cp = (RoleEntity) list.get(0);
+        return cp;
     }
 }

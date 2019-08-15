@@ -134,6 +134,11 @@ public class ExpressBatchController extends BasicAction {
         }
         Map<String, Object> resultMap = null;
         if ("ROLE_USER".equals(lu.getRole()) || "admin".equals(lu.getRole())) {
+            if (lu.getType() != 0) {
+                //说明是封装员或者打印员登录
+                map.put("loginType", lu.getType());
+                map.put("userId", lu.getId());
+            }
             resultMap = expressBatchService.batchList(map);
         } else {
             String custId = opUser().getCustId();

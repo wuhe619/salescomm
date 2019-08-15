@@ -12,23 +12,22 @@ import com.bdaim.common.util.*;
 import com.bdaim.common.util.page.Page;
 import com.bdaim.common.util.page.Pagination;
 import com.bdaim.common.util.spring.DataConverter;
+import com.bdaim.customer.dao.CustomerDao;
+import com.bdaim.rbac.dao.RoleDao;
+import com.bdaim.rbac.entity.RoleEntity;
 import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.persistence.criteria.CriteriaBuilder;
 import javax.transaction.Transactional;
 import java.io.File;
 import java.io.IOException;
-import java.math.BigDecimal;
-import java.sql.SQLException;
 import java.util.*;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 
 /**
@@ -48,9 +47,13 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
     @Autowired
     private BatchPropertyDao batchPropertyDao;
     @Autowired
+    private CustomerDao customerDao;
+    @Autowired
     private DataConverter dataConverter;
     @Autowired
     private BatchDao batchDao;
+    @Autowired
+    private RoleDao roleDao;
     @Autowired
     private JdbcTemplate jdbcTemplate;
     @Autowired
@@ -70,7 +73,7 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
 
     @Override
     @Transactional
-    public ResponseInfo receiverInfoImport(MultipartFile multipartFile, String batchName, int expressContent, String custId){
+    public ResponseInfo receiverInfoImport(MultipartFile multipartFile, String batchName, int expressContent, String custId) {
         //1. 把excel文件上传到服务器中
         String fileName = multipartFile.getOriginalFilename();
         String suffix = fileName.substring(fileName.lastIndexOf("."));
@@ -94,7 +97,7 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
 //                multipartFile.transferTo(file);
                 //为保证uploadPath定义的路径 在readExcel中和在创建file中使用的路径一样，所以使用FileUtils工具类
                 FileUtils.copyInputStreamToFile(multipartFile.getInputStream(), file);
-            }catch (IOException e){
+            } catch (IOException e) {
                 logger.info("发生异常了哦");
                 logger.info(e.getMessage());
             }
@@ -136,7 +139,7 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         String insertBatchProperty = "INSERT INTO nl_batch_property (batch_id,property_name,property_value,create_time)" +
                 " VALUES ('" + batchId + "','expressContentType','" + String.valueOf(expressContent) + "',NOW())";
         int row = jdbcTemplate.update(insertBatchProperty);
-        logger.info("插入批次属性成功，条数为: "+row);
+        logger.info("插入批次属性成功，条数为: " + row);
         //3.2 获取并保存批次详情信息 (因为第一行为标题，所以从第二行开始遍历)
         int checkingResult = 2;
         for (int i = 1; i < contentList.size(); i++) {
@@ -158,7 +161,7 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
                     .append("','").append(contentList.get(i).get(3)).append("','").append(contentList.get(i).get(4)).append("','").append(batchId)
                     .append("','").append(checkingResult).append("','1','").append(touchId).append("',NOW())");
             int rowDetail = jdbcTemplate.update(batchDetailInsert.toString());
-            logger.info("插入批次详情成功，条数为: "+rowDetail);
+            logger.info("插入批次详情成功，条数为: " + rowDetail);
         }
         return new ResponseInfoAssemble().success(null);
     }
@@ -177,11 +180,37 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
                 "t2.property_value AS propertyValue");
         sql.append(" FROM nl_batch t1 LEFT JOIN nl_batch_property t2 ON t1.id=t2.batch_id WHERE 1=1");
 
+        //loginType 封装员:1  打印员:2需要查询负责的企业
+        String loginType = String.valueOf(map.get("loginType"));
+        String nullString = "null";
+        if (!nullString.equals(loginType) && StringUtil.isNotEmpty(loginType)) {
+            String userId = String.valueOf(map.get("userId"));
+            RoleEntity roleInfoBytype = roleDao.getRoleInfoBytype(NumberConvertUtil.parseInt(loginType));
+            String propertyName = null, roleId = null;
+            if (roleInfoBytype != null) {
+                roleId = String.valueOf(roleInfoBytype.getId());
+            }
+            if (StringUtil.isNotEmpty(userId)) {
+                //查询当前登录人所负责的企业
+                if ("1".equals(loginType)) {
+                    propertyName = "packager";
+                } else if ("2".equals(loginType))
+                    propertyName = "printer";
+            }
+            List<Map<String, Object>> custIdList = customerDao.getCustIdByPropertyValue(propertyName, roleId);
+            if (custIdList != null && custIdList.size() > 0) {
+                String custIds = "";
+                for (int i = 0; i < custIdList.size(); i++) {
+                    custIds += custIdList.get(i).get("cust_id") + ",";
+                }
+                custIds = custIds.substring(0, custIds.length() - 1);
+                map.put("cust_id", custIds);
+            }
+        }
         //企业ID
         String custId = String.valueOf(map.get("cust_id"));
-        String nullString = "null";
         if (!nullString.equals(custId) && StringUtil.isNotEmpty(custId)) {
-            sql.append(" AND t1.comp_id = '" + custId + "'");
+            sql.append(" AND t1.comp_id in ( " + custId + ")");
         }
         //批次编号
         String batchId = String.valueOf(map.get("batch_id"));
@@ -278,16 +307,16 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
             values.add(status);
         }
         hql.append(" ORDER BY t2.id DESC  ");
-        logger.info("查询批次详情SQL为"+hql.toString());
+        logger.info("查询批次详情SQL为" + hql.toString());
         Map<String, Object> resultMap = new HashMap<>(10);
-        try{
+        try {
             Page page = new Pagination().getPageData(hql.toString(), null, pageParam, jdbcTemplate);
             List<Map<String, Object>> list = page.getList();
-            logger.info("查询结果为"+list.toString());
+            logger.info("查询结果为" + list.toString());
             resultMap.put("total", page.getTotal());
             resultMap.put("rows", list);
 
-        }catch (Exception e){
+        } catch (Exception e) {
             logger.error(e.getMessage());
         }
         return resultMap;

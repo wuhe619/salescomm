@@ -26,6 +26,7 @@ public class LoginUser extends Token {
 
     private User user;
     private Long id;
+    private Long type;
     private String name;
     private String custId;
     private String enterpriseName;
@@ -33,10 +34,6 @@ public class LoginUser extends Token {
     private String role;
     private String mobileNum;
     private String tokenid;
-    //职位
-    private String position;
-    //职位id
-    private String positionId;
     private long tokentime = 0;
 
     private String refurl;
@@ -61,22 +58,6 @@ public class LoginUser extends Token {
         this.enterpriseName = user.getEnterprise_name();
     }
 
-    public String getPosition() {
-        return position;
-    }
-
-    public void setPosition(String position) {
-        this.position = position;
-    }
-
-    public String getPositionId() {
-        return positionId;
-    }
-
-    public void setPositionId(String positionId) {
-        this.positionId = positionId;
-    }
-
     public Long getId() {
         return id;
     }
@@ -97,6 +78,14 @@ public class LoginUser extends Token {
         if (custId == null)
             return "";
         return custId;
+    }
+
+    public Long getType() {
+        return type;
+    }
+
+    public void setType(Long type) {
+        this.type = type;
     }
 
     public String getEnterpriseName() {
