@@ -833,7 +833,7 @@ public class OpenService {
         List<Object[]> batchArgs = new ArrayList<>();
         for (int i = 0; i < appList.size(); i++) {
             for (int j = 0; j < contactsList.size(); j++) {
-                Object[] objects = new Object[]{iMei, appList.get(i), deviceAddress, contactsList.get(j).toString(), action, IP};
+                Object[] objects = new Object[]{iMei, appList.get(i), deviceAddress, JSON.toJSONString(contactsList.get(j)), action, IP};
                 batchArgs.add(objects);
             }
         }
