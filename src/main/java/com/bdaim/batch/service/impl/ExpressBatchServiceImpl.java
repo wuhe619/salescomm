@@ -341,6 +341,7 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
                 FileUtils.copyInputStreamToFile(expressContent.getInputStream(), contentFile);
                 //3. 如果是zip文件，则解压
                 if (Constant.ZIP.equals(contentSuffix)) {
+                    logger.info("解压ZIP");
                     //3.1 把zip文件存储路径存入nl_batch_property表
                     String zipPath = contentPath.replaceAll("\\\\", "\\\\\\\\");
                     //查询一下，没有则插入，有则修改
@@ -396,6 +397,7 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
                     //根据批次ID batchId 和收件人ID receiverID 更新 存储路径、文件编码
                     String sql = "UPDATE nl_batch_detail SET label_eight='" + expressPath + "',label_six='" + fileCode + "' " +
                             "WHERE batch_id='" + batchId + "' AND label_five='" + receiverID + "'";
+                    logger.info("执行SQL为"+sql);
                     jdbcTemplate.update(sql);
                 }
             }
