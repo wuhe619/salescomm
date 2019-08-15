@@ -397,7 +397,7 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
                     //根据批次ID batchId 和收件人ID receiverID 更新 存储路径、文件编码
                     String sql = "UPDATE nl_batch_detail SET label_eight='" + expressPath + "',label_six='" + fileCode + "' " +
                             "WHERE batch_id='" + batchId + "' AND label_five='" + receiverID + "'";
-                    logger.info("执行SQL为"+sql);
+                    logger.info("根据批次ID batchId 和收件人ID receiverID 更新 存储路径、文件编码 执行SQL为"+sql);
                     jdbcTemplate.update(sql);
                 }
             }
@@ -407,6 +407,7 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
                 sql = sql + " AND label_five = '" + receiverId + "'";
             }
             jdbcTemplate.update(sql);
+            logger.info("修改状态 根据收件人ID和 批次ID把 状态修改为 【2】【待发件】"+sql);
 
         }catch (Exception e){
             logger.info("发生异常了。。。。");
