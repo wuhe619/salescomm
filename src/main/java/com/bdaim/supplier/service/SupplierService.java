@@ -66,10 +66,11 @@ public class SupplierService {
 
     public Page listSupplierByPage(PageParam page, String supplierId, String supplierName, String person, String phone,
                                    String serviceType) throws Exception {
-        StringBuffer sql = new StringBuffer("SELECT s.create_time createTime,s.supplier_id supplierId, NAME supplierName, contact_person person, contact_phone phone,contact_position position, s. STATUS status, GROUP_CONCAT( DISTINCT r.type_code) resourceType ,GROUP_CONCAT(DISTINCT r.resname) resname, ");
-        sql.append("( SELECT property_value FROM t_supplier_property WHERE property_name = 'priority' AND supplier_id = s.supplier_id ) AS priority");
-        sql.append(" FROM t_supplier s LEFT JOIN t_market_resource r ON s.supplier_id = r.supplier_id ");
-        sql.append("WHERE 1=1 and s.`status` = 1 AND r.`status` = 1");
+        StringBuffer sql = new StringBuffer("SELECT s.create_time createTime,s.supplier_id supplierId, NAME supplierName, contact_person person, contact_phone phone,contact_position position, s.STATUS status ,");
+        sql.append("( SELECT GROUP_CONCAT(DISTINCT type_code) FROM t_market_resource WHERE supplier_id = s.supplier_id AND s.`status` = 1 ) resourceType,");
+        sql.append("( SELECT property_value FROM t_supplier_property WHERE property_name = 'priority' AND supplier_id = s.supplier_id ) AS priority, ");
+        sql.append("( SELECT GROUP_CONCAT(DISTINCT r.resname) FROM t_market_resource r WHERE supplier_id = s.supplier_id AND s.`status` = 1 ) resname ");
+        sql.append(" FROM t_supplier s WHERE s.`status` = 1 ");
         if (StringUtil.isNotEmpty(serviceType)) {
             sql.append(" and s.supplier_id IN (SELECT supplier_id FROM t_market_resource WHERE type_code = " + serviceType + " GROUP BY supplier_id)");
         }
@@ -86,9 +87,18 @@ public class SupplierService {
             sql.append(" and s.contact_phone ='").append(phone).append("'");
         }
         sql.append(" GROUP BY s.supplier_id");
-        sql.append(" ORDER BY priority is null, priority, s.create_time DESC");
+        sql.append(" ORDER BY priority is null, priority, FIND_IN_SET(1,resourceType) desc, s.create_time DESC");
         Page supplierPage = supplierDao.sqlPageQuery(sql.toString(), page.getPageNum(), page.getPageSize());
-
+        if (supplierPage != null && supplierPage.getData().size() > 0) {
+            List<Map<String, Object>> list = supplierPage.getData();
+            for (int i = 0; i < list.size(); i++) {
+                String id = String.valueOf(list.get(i).get("supplier_id"));
+                SupplierPropertyEntity remainAmount = supplierDao.getSupplierProperty(id, "remain_amount");
+                if (remainAmount != null) {
+                    list.get(i).put("remainAmount", remainAmount.getPropertyValue());
+                }
+            }
+        }
         return supplierPage;
 
     }
