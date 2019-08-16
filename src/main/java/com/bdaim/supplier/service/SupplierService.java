@@ -23,7 +23,8 @@ import com.bdaim.supplier.dto.SupplierDTO;
 import com.bdaim.supplier.entity.SupplierEntity;
 import com.bdaim.supplier.entity.SupplierPropertyEntity;
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -40,7 +41,7 @@ import java.util.*;
 @Service("supplierService")
 @Transactional
 public class SupplierService {
-    public static final Logger log = Logger.getLogger(SupplierService.class);
+    public static final Logger log = LoggerFactory.getLogger(SupplierService.class);
     @Resource
     private SupplierDao supplierDao;
     @Resource

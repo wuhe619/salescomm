@@ -1,6 +1,7 @@
 package com.bdaim.common.util.page;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.support.JdbcDaoSupport;
 
@@ -14,7 +15,7 @@ import java.util.List;
  * @description
  */
 public class Pagination extends JdbcDaoSupport {
-    private static final Logger LOGGER = Logger.getLogger(Pagination.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(Pagination.class);
     /**
      * 一页显示的记录数
      */

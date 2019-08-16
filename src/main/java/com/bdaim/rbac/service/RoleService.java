@@ -11,7 +11,8 @@ import com.bdaim.rbac.dto.RolesResourceDto;
 
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -29,7 +30,7 @@ import java.util.Map;
 @Service("RoleService")
 @Transactional
 public class RoleService {
-    public static final Logger log = Logger.getLogger(RoleService.class);
+    public static final Logger log = LoggerFactory.getLogger(RoleService.class);
     @Resource
     private RoleDao roleDao;
     @Resource
@@ -158,7 +159,7 @@ public class RoleService {
                 roleDao.insertResource(rrPermission);
             }
         } catch (SQLException e) {
-            log.error(e.getStackTrace());
+            log.error("角色设置异常",e);
             return false;
         }
         return true;
@@ -177,7 +178,7 @@ public class RoleService {
             roleDao.insertRole(rResource.getRole());
             roleDao.insertResource(rResource);
         } catch (SQLException e) {
-            log.error(e.getStackTrace());
+            log.error("添加角色异常",e);
             return false;
         }
         return true;

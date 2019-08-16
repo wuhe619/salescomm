@@ -14,8 +14,8 @@ import com.bdaim.common.util.page.Page;
 import com.bdaim.customer.dto.CustomerRegistDTO;
 import com.bdaim.customer.entity.CustomerUserProperty;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -37,7 +37,7 @@ import java.util.Map;
 @Controller
 @RequestMapping("/seats")
 public class SeatsMessageAction extends BasicAction {
-    private static Log logger = LogFactory.getLog(SeatsMessageAction.class);
+    private static Logger logger = LoggerFactory.getLogger(SeatsMessageAction.class);
     @Resource
     SeatsService seatsService;
     @Resource

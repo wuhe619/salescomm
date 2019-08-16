@@ -10,13 +10,13 @@ import java.util.List;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.httpclient.NameValuePair;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.bdaim.image.controller.UploadAction;
 
 public class StringUtil {
-    private static Log logger = LogFactory.getLog(StringUtil.class);
+    private static Logger logger = LoggerFactory.getLogger(StringUtil.class);
     public static boolean isEmpty(String str) {
         if (str == null || str.equals("") || "null".equals(str)) {
             return true;

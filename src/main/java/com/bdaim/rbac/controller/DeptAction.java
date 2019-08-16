@@ -7,8 +7,8 @@ import com.bdaim.common.controller.BasicAction;
 import com.bdaim.rbac.dto.DeptDto;
 import com.bdaim.rbac.service.DeptService;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,7 +25,7 @@ import java.util.Map;
 @Controller
 @RequestMapping("/dept")
 public class DeptAction extends BasicAction {
-    private static Log logger = LogFactory.getLog(DeptAction.class);
+    private static Logger logger = LoggerFactory.getLogger(DeptAction.class);
     @Resource
     private DeptService deptService;
 

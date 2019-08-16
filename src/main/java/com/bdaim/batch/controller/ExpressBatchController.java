@@ -8,8 +8,8 @@ import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.common.util.FileUrlEntity;
 import com.bdaim.common.util.StringUtil;
 import com.github.crab2died.ExcelUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -34,7 +34,7 @@ import java.util.Properties;
 @Controller
 public class ExpressBatchController extends BasicAction {
 
-    private static Log logger = LogFactory.getLog(ExpressBatchController.class);
+    private static Logger logger = LoggerFactory.getLogger(ExpressBatchController.class);
     protected static final Properties PROPERTIES = new Properties(System.getProperties());
 
     @Autowired

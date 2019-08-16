@@ -14,7 +14,8 @@ import com.bdaim.rbac.dto.UserDTO;
 import com.bdaim.rbac.entity.User;
 import com.bdaim.rbac.entity.UserDO;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -29,7 +30,7 @@ import java.util.Map;
 @Service("userService")
 @Transactional
 public class UserService {
-    private static Logger logger = Logger.getLogger(UserService.class);
+    private static Logger logger = LoggerFactory.getLogger(UserService.class);
     @Resource
     private UserDao userDao;
     @Resource

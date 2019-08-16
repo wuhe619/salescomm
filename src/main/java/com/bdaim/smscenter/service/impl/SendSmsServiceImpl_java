@@ -17,8 +17,8 @@ import com.bdaim.slxf.util.hazelcast.PhoneTobe;
 import com.bdaim.slxf.util.hazelcast.ToBeRegisterDB;
 import com.bdaim.slxf.util.hazelcast.UserIDNotFoundException;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.expression.ParseException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -40,7 +40,7 @@ import java.util.*;
 @Service("sendSmsService")
 @Transactional
 public class SendSmsServiceImpl implements SendSmsService {
-    private static Log logger = LogFactory.getLog(SendSmsServiceImpl.class);
+    private static Log logger = LoggerFactory.getLogger(SendSmsServiceImpl.class);
     //获取短信话术URL
     private final static String QUERY_MESSAGE_URL = "http://120.52.23.243:10080/jzyxpt";
     //联通发送短信地址

@@ -20,8 +20,8 @@ import com.bdaim.supplier.entity.SupplierEntity;
 import com.github.crab2died.ExcelUtils;
 import com.github.crab2died.sheet.wrapper.SimpleSheetWrapper;
 import org.apache.commons.lang.StringEscapeUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -44,7 +44,7 @@ import java.util.Map;
  */
 @Service("billService")
 public class BillServiceImpl implements BillService {
-    private static Log logger = LogFactory.getLog(BillServiceImpl.class);
+    private static Logger logger = LoggerFactory.getLogger(BillServiceImpl.class);
 
     @Resource
     JdbcTemplate jdbcTemplate;

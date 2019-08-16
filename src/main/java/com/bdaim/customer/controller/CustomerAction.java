@@ -12,7 +12,8 @@ import com.bdaim.common.util.page.Page;
 import com.bdaim.customer.dto.CustomerRegistDTO;
 import com.bdaim.customer.service.CustomerService;
 import com.bdaim.rbac.dto.UserDTO;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -36,7 +37,7 @@ import java.util.Map;
 @Controller
 @RequestMapping("/customer")
 public class CustomerAction extends BasicAction {
-    private static Logger logger = Logger.getLogger(CustomerAction.class);
+    private static Logger logger = LoggerFactory.getLogger(CustomerAction.class);
     @Resource
     CustomerService customerService;
 

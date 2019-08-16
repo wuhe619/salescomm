@@ -6,8 +6,8 @@ import com.bdaim.common.util.ReflectionUtils;
 import com.bdaim.common.util.StringHelper;
 import com.bdaim.rbac.dto.Page;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.hibernate.*;
 import org.hibernate.criterion.CriteriaSpecification;
 import org.hibernate.criterion.Criterion;
@@ -36,7 +36,7 @@ import java.util.Map;
  */
 @SuppressWarnings("unchecked")
 public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDaoSupport{
-    protected Log logger = LogFactory.getLog(getClass());
+    protected Logger logger = LoggerFactory.getLogger(getClass());
 
 //    protected SessionFactory sessionFactory;
 

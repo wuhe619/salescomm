@@ -4,7 +4,8 @@ import com.bdaim.common.entity.DicProperty;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.common.service.DicService;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -21,7 +22,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/dic")
 public class DicAction extends BasicAction {
-    private static Logger logger = Logger.getLogger(DicAction.class);
+    private static Logger logger = LoggerFactory.getLogger(DicAction.class);
 
     @Resource
     private DicService dicService;

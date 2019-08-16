@@ -5,8 +5,8 @@ import com.bdaim.batch.service.ExportMessageService;
 import com.bdaim.common.util.StringUtil;
 import com.github.crab2died.ExcelUtils;
 import org.apache.commons.lang.StringEscapeUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -26,7 +26,7 @@ import java.util.*;
 @Service("exportMessageService")
 @Transactional
 public class ExportMessageImpl implements ExportMessageService {
-    private static Log logger = LogFactory.getLog(ExportMessageImpl.class);
+    private static Logger logger = LoggerFactory.getLogger(ExportMessageImpl.class);
     @Resource
     private BatchDetailDao batchDetailDao;
 

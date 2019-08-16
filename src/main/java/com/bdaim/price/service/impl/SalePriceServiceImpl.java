@@ -17,7 +17,8 @@ import com.bdaim.resource.dao.SourceDao;
 import com.bdaim.resource.service.impl.MarketResourceServiceImpl;
 import com.bdaim.supplier.dto.SupplierEnum;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -35,7 +36,7 @@ import java.util.*;
 @Service("SalePriceService")
 @Transactional
 public class SalePriceServiceImpl implements SalePriceService {
-    private final static Logger LOG = Logger.getLogger(SalePriceServiceImpl.class);
+    private final static Logger LOG = LoggerFactory.getLogger(SalePriceServiceImpl.class);
     @Autowired
     CustomerDao customerDao;
     @Autowired

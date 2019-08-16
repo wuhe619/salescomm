@@ -1,7 +1,7 @@
 package com.bdaim.batch.service.impl;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.batch.dao.LostContactDao;
 import com.bdaim.batch.dto.DetailQueryParam;
@@ -31,7 +31,7 @@ import java.util.Map;
 @Transactional
 public class LostContactServiceImp implements LostContactService {
 
-    private static Log log = LogFactory.getLog(LostContactServiceImp.class);
+    private static Logger log = LoggerFactory.getLogger(LostContactServiceImp.class);
 
     private final static String VOIVE_LOG_SEND_REMARK_SPLIT = "{}";
 

@@ -6,8 +6,8 @@ import com.bdaim.callcenter.dto.SignAuthorizationResult;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.UnsupportedEncodingException;
 import java.text.MessageFormat;
@@ -21,7 +21,7 @@ import java.util.*;
  * @description
  */
 public class SaleApiUtil {
-    private static Log logger = LogFactory.getLog(SaleApiUtil.class);
+    private static Logger logger = LoggerFactory.getLogger(SaleApiUtil.class);
     public final static int ENV = 2;
     /**
      * 正式环境请求地址

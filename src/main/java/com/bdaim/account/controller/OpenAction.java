@@ -17,8 +17,8 @@ import com.bdaim.rbac.dto.Page;
 import com.bdaim.resource.service.MarketResourceService;
 import com.bdaim.template.dto.TemplateParam;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -37,7 +37,7 @@ import java.util.Map;
 @RequestMapping("/open")
 public class OpenAction extends BasicAction {
 
-    private final static Log log = LogFactory.getLog(OpenAction.class);
+    private final static Logger log = LoggerFactory.getLogger(OpenAction.class);
     @Resource
     private OpenService openService;
     @Resource

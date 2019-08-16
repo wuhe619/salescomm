@@ -26,7 +26,8 @@ import com.bdaim.resource.dao.SourceDao;
 import com.bdaim.resource.dto.MarketResourceDTO;
 import com.bdaim.resource.entity.ResourcePropertyEntity;
 import com.bdaim.supplier.service.SupplierService;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -40,7 +41,7 @@ import java.util.regex.Pattern;
 @Service("customerService")
 @Transactional
 public class CustomerService {
-    private static Logger logger = Logger.getLogger(CustomerService.class);
+    private static Logger logger = LoggerFactory.getLogger(CustomerService.class);
     @Resource
     UserDao userDao;
     @Resource

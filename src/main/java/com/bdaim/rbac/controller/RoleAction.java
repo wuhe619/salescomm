@@ -12,7 +12,8 @@ import com.bdaim.rbac.dto.RolesResourceDto;
 import com.bdaim.rbac.service.RoleService;
 import net.sf.json.JSONArray;
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -31,7 +32,7 @@ import java.util.*;
 @Controller
 @RequestMapping("/role")
 public class RoleAction extends BasicAction {
-    public static final Logger log = Logger.getLogger(RoleAction.class);
+    public static final Logger log = LoggerFactory.getLogger(RoleAction.class);
     @Resource
     private RoleService roleService;
 

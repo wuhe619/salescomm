@@ -45,7 +45,8 @@ import com.bdaim.template.dto.TemplateParam;
 import com.bdaim.template.entity.MarketTemplate;
 import com.github.crab2died.ExcelUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -70,7 +71,7 @@ import java.util.*;
 public class MarketResourceServiceImpl implements MarketResourceService {
 
 
-    private final static Logger LOG = Logger.getLogger(MarketResourceServiceImpl.class);
+    private final static Logger LOG = LoggerFactory.getLogger(MarketResourceServiceImpl.class);
 
     private final static String SMS_SEND_REMARK_SPLIT = "{}";
     //发送类型

@@ -12,7 +12,8 @@ import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.entity.CustomerProperty;
 import com.bdaim.resource.dao.SourceDao;
 import com.github.crab2died.ExcelUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -34,7 +35,7 @@ import java.util.Map;
 @Service("accountService")
 @Transactional
 public class AccountService {
-    private static Logger logger = Logger.getLogger(AccountService.class);
+    private static Logger logger = LoggerFactory.getLogger(AccountService.class);
     @Resource
     CustomerDao customerDao;
     @Resource

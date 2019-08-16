@@ -2,7 +2,8 @@ package com.bdaim.common.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.util.BusinessEnum;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
@@ -14,7 +15,7 @@ import java.security.NoSuchAlgorithmException;
 
 @Component
 public class UploadFileService {
-    private static Logger logger = Logger.getLogger(UploadFileService.class);
+    private static Logger logger = LoggerFactory.getLogger(UploadFileService.class);
 
     @Value("${file.file_path}")
     private String filePath;

@@ -12,7 +12,8 @@ import com.bdaim.rbac.dto.Page;
 import com.bdaim.resource.dto.MarketResourceLogDTO;
 import com.bdaim.supplier.dto.SupplierDTO;
 import com.bdaim.supplier.service.SupplierService;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -37,7 +38,7 @@ import java.util.Map;
 @Controller
 @RequestMapping("/supplier")
 public class SupplierAction extends BasicAction {
-    public static final Logger LOG = Logger.getLogger(SupplierAction.class);
+    public static final Logger LOG = LoggerFactory.getLogger(SupplierAction.class);
 
     @Resource
     SupplierService supplierService;

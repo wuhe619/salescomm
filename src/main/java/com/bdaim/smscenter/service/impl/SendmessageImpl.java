@@ -14,7 +14,8 @@ import com.bdaim.common.util.page.Pagination;
 import com.bdaim.smscenter.dao.SendmessageImplDao;
 import com.bdaim.smscenter.service.SendmessageService;
 import com.github.crab2died.ExcelUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -36,11 +37,11 @@ import java.util.*;
 @Transactional
 public class SendmessageImpl implements SendmessageService {
 
-    private final static Logger LOG = Logger.getLogger(SendmessageImpl.class);
+    private final static Logger LOG = LoggerFactory.getLogger(SendmessageImpl.class);
     private final static DateTimeFormatter YYYYMMDDHHMMSS = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
 
-    Logger logger = Logger.getLogger(SendmessageImpl.class);
+    Logger logger = LoggerFactory.getLogger(SendmessageImpl.class);
 
 
     @Resource

@@ -17,8 +17,8 @@ import com.bdaim.common.util.StringUtil;
 import com.bdaim.common.util.page.Page;
 import com.bdaim.customer.entity.CustomerUserDO;
 import com.bdaim.customer.service.CustomerService;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -49,7 +49,7 @@ public class AccountAction extends BasicAction {
     @Resource
     BillService billService;
 
-    private static Log logger = LogFactory.getLog(AccountAction.class);
+    private static Logger logger = LoggerFactory.getLogger(AccountAction.class);
 
     /*
      *

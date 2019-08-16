@@ -15,7 +15,8 @@ import com.bdaim.supplier.dto.SupplierEnum;
 
 import net.sf.json.JSONString;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -38,7 +39,7 @@ import java.util.Map;
 @Service("packingService")
 @Transactional
 public class PackingService {
-    private static Logger logger = Logger.getLogger(PackingService.class);
+    private static Logger logger = LoggerFactory.getLogger(PackingService.class);
     @Resource
     private BatchDetailDao batchDetailDao;
     @Resource

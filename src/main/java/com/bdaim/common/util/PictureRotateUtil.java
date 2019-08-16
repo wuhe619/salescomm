@@ -5,8 +5,8 @@ import com.drew.imaging.ImageProcessingException;
 import com.drew.metadata.Directory;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.Tag;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -22,7 +22,7 @@ import java.util.Map;
  */
 public class PictureRotateUtil {
 
-    private static Log logger = LogFactory.getLog(PictureRotateUtil.class);
+    private static Logger logger = LoggerFactory.getLogger(PictureRotateUtil.class);
 
     public static void main(String args[]){
         String url = "C:\\Users\\123\\Desktop\\微信图片_20181105091348.jpg";

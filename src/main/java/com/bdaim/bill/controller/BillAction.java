@@ -13,11 +13,14 @@ import com.bdaim.common.util.Constant;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.rbac.dto.Page;
 import com.github.crab2died.ExcelUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
@@ -25,7 +28,6 @@ import javax.validation.Valid;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -40,7 +42,7 @@ import java.util.Map;
 @Controller
 @RequestMapping(value = "/bill")
 public class BillAction extends BasicAction {
-    private static Log logger = LogFactory.getLog(BillAction.class);
+    private static Logger logger = LoggerFactory.getLogger(BillAction.class);
    /* @Resource
     BillService billService;*/
 

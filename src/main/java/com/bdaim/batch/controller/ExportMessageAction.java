@@ -1,7 +1,7 @@
 package com.bdaim.batch.controller;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.bdaim.batch.service.ExportMessageService;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.smscenter.controller.SeatsMessageAction;
@@ -22,7 +22,7 @@ import javax.servlet.http.HttpServletResponse;
 @Controller
 @RequestMapping("/export")
 public class ExportMessageAction extends BasicAction {
-    private static Log logger = LogFactory.getLog(SeatsMessageAction.class);
+    private static Logger logger = LoggerFactory.getLogger(SeatsMessageAction.class);
     @Resource
     ExportMessageService exportMessageService;
 

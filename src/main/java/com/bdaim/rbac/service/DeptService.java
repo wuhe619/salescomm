@@ -12,7 +12,8 @@ import com.bdaim.rbac.dto.DeptDto;
 import com.bdaim.rbac.entity.DeptEntity;
 import com.bdaim.rbac.entity.RoleEntity;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -30,7 +31,7 @@ import java.util.*;
 @Service("deptService")
 @Transactional
 public class DeptService {
-    private static Logger logger = Logger.getLogger(DeptService.class);
+    private static Logger logger = LoggerFactory.getLogger(DeptService.class);
     @Resource
     private DeptDao deptDao;
     @Autowired

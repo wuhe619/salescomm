@@ -9,8 +9,8 @@ import com.bdaim.image.service.UploadDowloadService;
 import com.bdaim.resource.service.impl.MarketResourceServiceImpl;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -37,7 +37,7 @@ import java.util.zip.ZipOutputStream;
 @Service("uploadDowloadImgService")
 @Transactional
 public class UploadDowloadImgServiceImpl implements UploadDowloadService {
-    private static Log logger = LogFactory.getLog(UploadDowloadImgServiceImpl.class);
+    private static Logger logger = LoggerFactory.getLogger(UploadDowloadImgServiceImpl.class);
     protected static final Properties PROPERTIES = new Properties(System.getProperties());
     @Autowired
     private MarketResourceServiceImpl marketResourceServiceImpl;

@@ -2,8 +2,8 @@ package com.bdaim.batch.controller;
 
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.auth.LoginUser;
 import com.bdaim.batch.entity.BatchSendToFile;
@@ -28,7 +28,7 @@ import java.util.Map;
 public class PackingAction extends BasicAction {
     @Resource
     PackingService packingService;
-    private final static Log LOG = LogFactory.getLog(PackingAction.class);
+    private final static Logger LOG = LoggerFactory.getLogger(PackingAction.class);
 
     /**
      * 发送mac修复信息
