@@ -38,6 +38,7 @@ import com.bdaim.template.entity.MarketTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -849,5 +850,29 @@ public class OpenService {
         return list;
     }
 
+    public ResponseInfo saveAccessChannels(Map<String, Object> map, HttpServletRequest request) {
+        //1. 获取入参 mobile、channel、name、activity_code
+        String mobile = String.valueOf(map.get("mobile"));
+        String channel = String.valueOf(map.get("channel"));
+        String name = String.valueOf(map.get("name"));
+        String activityCode = String.valueOf(map.get("activity_code"));
+        //2. 如果活动编码activity_code是ETC，且此次channel下有同样的mobile手机号，则返回新增失败
+        if ("ETC".equalsIgnoreCase(activityCode)) {
+            String countSql = "SELECT COUNT(*) AS count FROM t_access_channel WHERE activity_code='ETC' AND mobile='" + mobile + "' AND channel='" + channel + "'";
+            Map<String, Object> countMap = jdbcTemplate.queryForMap(countSql);
+            int count = Integer.parseInt(String.valueOf(countMap.get("count")));
+            if (count > 0) {
+                return new ResponseInfoAssemble().failure(HttpStatus.BAD_REQUEST.value(), "手机号已存在");
+            }
+        }
+        //3. 插入数据库
+        String IP = StringHelper.getIpAddr(request);
+
+        StringBuffer sql = new StringBuffer("INSERT INTO t_access_channel (mobile,channel,name,ip,create_time,activity_code) VALUES ('");
+        sql.append(mobile).append("','").append(channel).append("','").append(name).append("','").append(IP).append("',NOW(),'")
+                .append(activityCode).append("')");
+        jdbcTemplate.update(sql.toString());
+        return new ResponseInfoAssemble().success(null);
+    }
 }
 
