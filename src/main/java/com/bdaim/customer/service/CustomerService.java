@@ -532,7 +532,7 @@ public class CustomerService {
                 "t1.create_time,\n" +
                 "t1.`status`,\n" +
                 "cjc.industry,cjc.salePerson,cjc.contactAddress,\n" +
-                "cjc.province,cjc.city,cjc.price,cjc.county,cjc.taxpayerId,\n" +
+                "cjc.province,cjc.city,cjc.fixPrice,cjc.county,cjc.taxpayerId,\n" +
                 "cjc.bli_path AS bliPic,\n" +
                 "cjc.bank,cjc.bankAccount,                 \n" +
                 "cjc.bank_account_certificate AS bankAccountPic\n" +
