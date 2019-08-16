@@ -132,8 +132,8 @@ public class UploadDowloadImgServiceImpl implements UploadDowloadService {
         String randomFileName = System.currentTimeMillis() + UUID.randomUUID().toString().substring(0, 8);
         randomFileName = CipherUtil.generatePassword(randomFileName);
         String pathF = PROPERTIES.getProperty("file.separator");
-        StringBuffer uploadPathBuffer = new StringBuffer("data");
-        uploadPathBuffer.append(pathF).append("upload").append(pathF).append("0").append(pathF).append(randomFileName).append(suffixName);
+        StringBuffer uploadPathBuffer = new StringBuffer(pathF);
+        uploadPathBuffer.append("data").append(pathF).append("upload").append(pathF).append("0").append(pathF).append(randomFileName).append(suffixName);
         logger.info("upload path is" + uploadPathBuffer.toString());
         File file1 = new File(uploadPathBuffer.toString());
         if (!file1.exists()) {
