@@ -528,6 +528,21 @@ public class OpenAction extends BasicAction {
     }
 
     /**
+     * 保存用户的来访渠道 ETC/XIAOXOING
+     *
+     * @param
+     * @return
+     * @auther Chacker
+     * @date
+     */
+    @RequestMapping(value = "/saveAccessChannels", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseInfo saveAccessChannels(@RequestBody Map<String, Object> map, HttpServletRequest request) {
+        ResponseInfo result = openService.saveAccessChannels(map, request);
+        return result;
+    }
+
+    /**
      * 获取地址修复数据
      */
     @RequestMapping(value = "/addressFixMessage", method = RequestMethod.POST)
