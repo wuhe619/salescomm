@@ -185,11 +185,7 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         String nullString = "null";
         if (!nullString.equals(loginType) && StringUtil.isNotEmpty(loginType)) {
             String userId = String.valueOf(map.get("userId"));
-            RoleEntity roleInfoBytype = roleDao.getRoleInfoBytype(NumberConvertUtil.parseInt(loginType));
-            String propertyName = null, roleId = null;
-            if (roleInfoBytype != null) {
-                roleId = String.valueOf(roleInfoBytype.getId());
-            }
+            String propertyName = null;
             if (StringUtil.isNotEmpty(userId)) {
                 //查询当前登录人所负责的企业
                 if ("1".equals(loginType)) {
@@ -197,7 +193,7 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
                 } else if ("2".equals(loginType))
                     propertyName = "printer";
             }
-            List<Map<String, Object>> custIdList = customerDao.getCustIdByPropertyValue(propertyName, roleId);
+            List<Map<String, Object>> custIdList = customerDao.getCustIdByPropertyValue(propertyName, userId);
             if (custIdList != null && custIdList.size() > 0) {
                 String custIds = "";
                 for (int i = 0; i < custIdList.size(); i++) {
