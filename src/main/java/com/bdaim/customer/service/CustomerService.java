@@ -546,7 +546,7 @@ public class CustomerService {
                 "\tmax(CASE property_name WHEN 'city'   THEN property_value ELSE '' END ) city,\n" +
                 "\tmax(CASE property_name WHEN 'county'   THEN property_value ELSE '' END ) county,\n" +
                 "\tmax(CASE property_name WHEN 'taxpayer_id'   THEN property_value ELSE '' END ) taxpayerId,\n" +
-                "\tmax(CASE property_name WHEN 'price'   THEN property_value ELSE '' END ) price,\n" +
+                "\tmax(CASE property_name WHEN 'address_fix_price'   THEN property_value ELSE '' END ) fixPrice,\n" +
                 "\tmax(CASE property_name WHEN 'bli_path'   THEN property_value ELSE '' END ) bli_path,\n" +
                 "\tmax(CASE property_name WHEN 'bank'   THEN property_value ELSE '' END ) bank,\n" +
                 "\tmax(CASE property_name WHEN 'bank_account'   THEN property_value ELSE '' END ) bankAccount,\n" +
