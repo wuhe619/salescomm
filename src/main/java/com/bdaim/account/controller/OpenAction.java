@@ -528,7 +528,7 @@ public class OpenAction extends BasicAction {
     }
 
     /**
-     * 保存用户的来访渠道 ETC/XIAOXOING
+     * 保存用户的来访渠道 ETC/XIAOXIONG
      *
      * @param
      * @return
