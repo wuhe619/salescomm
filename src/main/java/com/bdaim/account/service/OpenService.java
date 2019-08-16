@@ -856,6 +856,7 @@ public class OpenService {
         String channel = String.valueOf(map.get("channel"));
         String name = String.valueOf(map.get("name"));
         String activityCode = String.valueOf(map.get("activity_code"));
+        String channelName = String.valueOf(map.get("channel_name"));
         //2. 如果活动编码activity_code是ETC，且此次channel下有同样的mobile手机号，则返回新增失败
         if ("ETC".equalsIgnoreCase(activityCode)) {
             String countSql = "SELECT COUNT(*) AS count FROM t_access_channel WHERE activity_code='ETC' AND mobile='" + mobile + "' AND channel='" + channel + "'";
@@ -868,8 +869,8 @@ public class OpenService {
         //3. 插入数据库
         String IP = StringHelper.getIpAddr(request);
 
-        StringBuffer sql = new StringBuffer("INSERT INTO t_access_channel (mobile,channel,name,ip,create_time,activity_code) VALUES ('");
-        sql.append(mobile).append("','").append(channel).append("','").append(name).append("','").append(IP).append("',NOW(),'")
+        StringBuffer sql = new StringBuffer("INSERT INTO t_access_channel (mobile,channel,channel_name,name,ip,create_time,activity_code) VALUES ('");
+        sql.append(mobile).append("','").append(channel).append("','").append(channelName).append("','").append(name).append("','").append(IP).append("',NOW(),'")
                 .append(activityCode).append("')");
         jdbcTemplate.update(sql.toString());
         return new ResponseInfoAssemble().success(null);
