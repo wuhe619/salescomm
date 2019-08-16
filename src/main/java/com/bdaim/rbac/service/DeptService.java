@@ -87,7 +87,7 @@ public class DeptService {
      * @author:duanliying
      * @date: 2019/3/13 17:24
      */
-    public Map<String,Object> queryDeptList(Map<String,Object> map) {
+    public Map<String,Object> queryDeptList(Map<String,Object> map)throws Exception {
         List<DeptDto> deptList = new ArrayList<DeptDto>();
         StringBuilder builder = new StringBuilder();
         builder.append(" select t.id deptId,t.TYPE,t.createTime,t.name,count(r.id) as rolecount from ");

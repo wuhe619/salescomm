@@ -63,7 +63,12 @@ public class DeptAction extends BasicAction {
     @ResponseBody
     public String queryDeptList(@RequestParam Map<String,Object> map) {
         //获取当前操作人
-        Map<String,Object> resultMap = deptService.queryDeptList(map);
+        Map<String,Object> resultMap = null;
+        try {
+            resultMap = deptService.queryDeptList(map);
+        } catch (Exception e) {
+            logger.error("查询部门列表信息异常" + e);
+        }
         return JSON.toJSONString(resultMap);
     }
     /**
