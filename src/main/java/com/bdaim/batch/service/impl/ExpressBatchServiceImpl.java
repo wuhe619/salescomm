@@ -178,7 +178,7 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
                 " WHEN '6' THEN '已发件' END AS status,t1.upload_num AS uploadNum,t1.success_num AS" +
                 " successNum,DATE_FORMAT(t1.upload_time,'%Y-%m-%d %H:%i:%s') AS uploadTime,t2.property_name AS propertyName," +
                 "t2.property_value AS propertyValue");
-        sql.append(" FROM nl_batch t1 LEFT JOIN nl_batch_property t2 ON t1.id=t2.batch_id WHERE 1=1");
+        sql.append(" FROM nl_batch t1 LEFT JOIN nl_batch_property t2 ON t1.id=t2.batch_id AND t2.property_name='expressContentType' WHERE 1=1");
 
         //loginType 封装员:1  打印员:2需要查询负责的企业
         String loginType = String.valueOf(map.get("loginType"));
