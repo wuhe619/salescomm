@@ -267,7 +267,7 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
                 " WHEN '3' THEN '待取件' WHEN '4' THEN '已发件' END AS expressStatus," +
                 "CASE t2.status WHEN '1' THEN '有效' WHEN '0' THEN '无效' ELSE '校验中' END AS status,t2.status AS statusId," +
                 "t2.label_seven AS expressStatusId,t1.property_value AS expressContentType" +
-                "  FROM  nl_batch_detail t2 LEFT JOIN nl_batch_property t1 ON t2.batch_id=t1.batch_id LEFT JOIN t_touch_express_log l ON t2.touch_id = l.touch_id WHERE");
+                "  FROM  nl_batch_detail t2 LEFT JOIN nl_batch_property t1 ON t2.batch_id=t1.batch_id AND t1.property_name='expressContentType' LEFT JOIN t_touch_express_log l ON t2.touch_id = l.touch_id WHERE");
         List<String> values = new ArrayList();
         //批次编号
         String batchId = String.valueOf(map.get("batch_id"));
