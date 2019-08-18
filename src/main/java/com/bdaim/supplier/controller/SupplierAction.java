@@ -102,7 +102,6 @@ public class SupplierAction extends BasicAction {
     @RequestMapping(value = "/supplierChange", method = RequestMethod.POST)
     public ResponseInfo supplierChange(@RequestBody SupplierDTO supplierDTO) {
         Map<String, Object> map = new HashMap<>();
-        JSONObject json = new JSONObject();
         LoginUser lu = opUser();
         if ("ROLE_USER".equals(lu.getRole()) || "admin".equals(lu.getRole())) {
             List<String> type = Arrays.asList(supplierDTO.getType().split(","));
