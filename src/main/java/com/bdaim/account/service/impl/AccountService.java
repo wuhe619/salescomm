@@ -113,6 +113,7 @@ public class AccountService {
                     //供应商资金扣减
                     deductionsStatus = sourceDao.supplierAccountDuctions(supplierId, moneySale);
                 } else {
+                    type = TransactionEnum.BALANCE_DEDUCTION.getType();
                     //企业资金扣减
                     deductionsStatus = customerDao.accountDeductions(custId, moneySale);
                 }
