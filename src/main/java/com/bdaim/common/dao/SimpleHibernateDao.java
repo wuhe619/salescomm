@@ -600,13 +600,7 @@ public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDao
         //session.close();
         return count;
     }
-    public int executeUpdateSQLV1(String sqlStr) {
-        Session session = getSession();
-        int count = session.createSQLQuery(sqlStr).executeUpdate();
-        flush();
 
-        return count;
-    }
 
     public int executeUpdateSQL(final String sql, final Object... values) {
         Query query = getSession().createSQLQuery(sql);

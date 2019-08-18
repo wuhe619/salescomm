@@ -216,7 +216,7 @@ public class SupplierService {
         if (resourceIdList != null && resourceIdList.size() > 0) {
             String resourceIds = StringUtils.join(resourceIdList.toArray(), ",");
             String sql = "delete from t_market_resource_property where resource_id in (" + resourceIds + ") and property_name='price_config'";
-            marketResourceDao.executeUpdateSQLV1(sql);
+            marketResourceDao.executeUpdateSQL(sql);
         }
     }
 
