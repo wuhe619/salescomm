@@ -19,7 +19,7 @@ public class UserDao extends SimpleHibernateDao<User, Serializable> {
      * 添加用戶信息
      */
     public void insertUser(UserDTO t) throws SQLException {
-        this.executeUpdateSQL("insert into t_user(ID,NAME,PASSWORD,REALNAME,DEPTID,OPTUSER,CREATE_TIME,SOURCE,STATUS,user_type,mobile_num) values(" + t.getId() + ",'" + t.getUserName() + "','" + t.getPassword() + "','" + t.getRealName() + "','" + t.getDeptId() + "','" + t.getOptuser() + "',now(),'" + t.getSource() + "','" + t.getStatus() + "','" + t.getUserType() + "','" + t.getMobileNumber() + "')");
+        this.executeUpdateSQLV1("insert into t_user(ID,NAME,PASSWORD,REALNAME,DEPTID,OPTUSER,CREATE_TIME,SOURCE,STATUS,user_type,mobile_num) values(" + t.getId() + ",'" + t.getUserName() + "','" + t.getPassword() + "','" + t.getRealName() + "','" + t.getDeptId() + "','" + t.getOptuser() + "',now(),'" + t.getSource() + "','" + t.getStatus() + "','" + t.getUserType() + "','" + t.getMobileNumber() + "')");
     }
 
     /**
