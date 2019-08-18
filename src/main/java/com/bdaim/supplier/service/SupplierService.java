@@ -98,6 +98,9 @@ public class SupplierService {
                 SupplierPropertyEntity remainAmount = supplierDao.getSupplierProperty(id, "remain_amount");
                 if (remainAmount != null) {
                     list.get(i).put("remainAmount", NumberConvertUtil.transformtionElement(remainAmount.getPropertyValue()));
+                }else{
+                    list.get(i).put("remainAmount", 0);
+
                 }
             }
         }

@@ -102,7 +102,7 @@ public class UserService {
             String[] roleIds = roleId.split(",");
             if (roleIds.length > 0) {
                 for (int i = 0; i < roleIds.length; i++) {
-                    int insertNum = userDao.executeUpdateSQLV1("insert into t_user_role_rel(ID,ROLE,OPTUSER,CREATE_TIME) VALUES(" + id + "," + roleIds[i] + ",'" + loginUserName + "',now())");
+                    int insertNum = userDao.executeUpdateSQL("insert into t_user_role_rel(ID,ROLE,OPTUSER,CREATE_TIME) VALUES(" + id + "," + roleIds[i] + ",'" + loginUserName + "',now())");
                     logger.info("添加职位信息数量是：" + insertNum + "用户id是：" + id);
                 }
             }

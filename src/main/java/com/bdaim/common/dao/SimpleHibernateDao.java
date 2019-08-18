@@ -597,7 +597,7 @@ public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDao
         Session session = getSession();
         int count = session.createSQLQuery(sqlStr).executeUpdate();
         flush();
-        session.close();
+        //session.close();
         return count;
     }
     public int executeUpdateSQLV1(String sqlStr) {
