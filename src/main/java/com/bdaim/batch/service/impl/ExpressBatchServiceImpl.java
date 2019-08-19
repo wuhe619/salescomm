@@ -68,6 +68,7 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         String batchId = String.valueOf(map.get("batch_id"));
         String sql = "SELECT property_value AS zipPath FROM nl_batch_property WHERE batch_id='" + batchId + "' AND property_name='batchZipPath' LIMIT 1";
         Map<String, Object> result = jdbcTemplate.queryForMap(sql);
+        logger.info("执行查询的SQL语句为"+ sql);
         return result;
     }
 
