@@ -858,7 +858,7 @@ public class OpenService {
         String name = map.get("name") == null || map.get("name") == "" ? "" : String.valueOf(map.get("name"));
         String activityCode = map.get("activity_code") == null || map.get("activity_code") == "" ? "" : String.valueOf(map.get("activity_code"));
         String channelName = map.get("channel_name") == null || map.get("channel_name") == "" ? "" : String.valueOf(map.get("channel_name"));
-
+        String deviceType = map.get("device_type") ==null ||map.get("device_type") == "" ? "":String.valueOf(map.get("device_type"));
         log.info("入参的值为" + JSON.toJSONString(map));
         //2. 如果活动编码activity_code是ETC，且此次channel下有同样的mobile手机号，则返回新增失败
         if ("ETC".equalsIgnoreCase(activityCode)) {
@@ -871,9 +871,9 @@ public class OpenService {
         }
         //3. 插入数据库
         String IP = StringHelper.getIpAddr(request);
-        StringBuffer sql = new StringBuffer("INSERT INTO t_access_channel (mobile,channel,channel_name,name,ip,create_time,activity_code) VALUES ('");
+        StringBuffer sql = new StringBuffer("INSERT INTO t_access_channel (mobile,channel,channel_name,name,ip,create_time,activity_code,device_type) VALUES ('");
         sql.append(mobile).append("','").append(channel).append("','").append(channelName).append("','").append(name).append("','").append(IP).append("',NOW(),'")
-                .append(activityCode).append("')");
+                .append(activityCode).append("','").append(deviceType).append("')");
         log.info("执行SQL语句为" + sql.toString());
         jdbcTemplate.update(sql.toString());
         return new ResponseInfoAssemble().success(null);
