@@ -17,10 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
@@ -651,5 +648,66 @@ public class BillAction extends BasicAction {
             return new ResponseInfoAssemble().failure(-1, "查询账单失败");
         }
         return new ResponseInfoAssemble().success(page);
+    }
+
+    /**
+     * 供应商账单二级页面导出(信函)
+     *
+     * @param param
+     * @return
+     * @auther Chacker
+     * @date
+     */
+    @RequestMapping(value = "/listSupplierBillExport", method = RequestMethod.GET)
+    @ResponseBody
+    public ResponseInfo getListSupplierBillExport(@RequestParam SupplierBillQueryParam param,HttpServletResponse response) {
+        LoginUser lu = opUser();
+        List<Map<String,Object>> list = null;
+        try {
+            if ("ROLE_USER".equals(lu.getRole()) || "admin".equals(lu.getRole())) {
+                list = billService.getListSupplierBillExport(param);
+                //将列表信息导出为excel
+                List<String> header = new ArrayList<>();
+                List<List<Object>> data = new ArrayList<>();
+                header.add("企业名称");
+                header.add("批次编号");
+                header.add("批次名称");
+                header.add("发送时间");
+                header.add("发送数量");
+                header.add("交易金额(元)");
+                List<Map<String, Object>> dataList = list;
+                List<Object> rowList;
+                for (Map<String, Object> column : dataList) {
+                    rowList = new ArrayList<>();
+                    rowList.add(column.get("custName") != null ? column.get("custName") : "");
+                    rowList.add(column.get("batchId") != null ? column.get("batchId") : "");
+                    rowList.add(column.get("batchName") != null ? column.get("batchName") : "");
+                    rowList.add(column.get("uploadTime") != null ? column.get("uploadTime") : "");
+                    rowList.add(column.get("fixNumber") != null ? column.get("fixNumber") : "");
+                    rowList.add(column.get("amount") != null ? column.get("amount") : "");
+                    data.add(rowList);
+                }
+                //下载的response属性设置
+                response.setCharacterEncoding("utf-8");
+//        response.setContentType("application/force-download");
+                response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+                String fileName = "账单.xlsx";
+                ////保存的文件名,必须和页面编码一致,否则乱码
+                String returnName = response.encodeURL(new String(fileName.getBytes(), "iso8859-1"));
+                response.addHeader("Content-Disposition", "attachment;filename=" + returnName);
+                OutputStream outputStream = response.getOutputStream();
+
+
+                ExcelUtils.getInstance().exportObjects2Excel(data, header, outputStream);
+                outputStream.flush();
+                outputStream.close();
+
+            }
+        } catch (Exception e) {
+            logger.info("导出账单异常", e);
+            return new ResponseInfoAssemble().failure(-1, "导出失败");
+        }
+        return new ResponseInfoAssemble().success(list);
+
     }
 }

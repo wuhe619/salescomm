@@ -28,6 +28,7 @@ import javax.transaction.Transactional;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 
 /**
@@ -242,15 +243,10 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         sql.append(" ORDER BY t1.upload_time DESC ");
         Page page = new Pagination().getPageData(sql.toString(), null, pageParam, jdbcTemplate);
         List<Map<String, Object>> list = page.getList();
+        //expressContentType 快件类型 1.电子版 2.打印版
         if (list != null && list.size() != 0) {
-            for (Map<String, Object> tempMap : list) {
-                String propertyValue = String.valueOf(tempMap.get("propertyValue"));
-                if ("1".equals(propertyValue)) {
-                    tempMap.put("expressContentType", "电子版");
-                } else {
-                    tempMap.put("expressContentType", "打印版");
-                }
-            }
+            list.stream().map(e -> "1".equals(String.valueOf(e.get("propertyValue"))) ? e.put("expressContentType", "电子版") :
+                    e.put("expressContentType", "打印版")).collect(Collectors.toList());
         }
         Map<String, Object> resultMap = new HashMap<>(10);
         resultMap.put("rows", list);

@@ -75,4 +75,14 @@ public interface BillService {
      * @return
      */
     List<Map<String, Object>> querySupplierBill(SupplierBillQueryParam param);
+
+    /**
+     * 供应商账单二级页面(导出excel专用)
+     *
+     * @param
+     * @return
+     * @auther Chacker
+     * @date
+     */
+    List<Map<String,Object>> getListSupplierBillExport(SupplierBillQueryParam param);
 }

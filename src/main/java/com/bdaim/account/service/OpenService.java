@@ -840,6 +840,7 @@ public class OpenService {
             }
         }
         String sql = "INSERT INTO t_behavior_record (create_time,imei,app,device_address,device_contact,action,ip) VALUES (NOW(),?,?,?,?,?,?)";
+        log.info("执行保存SQL "+sql);
         jdbcTemplate.batchUpdate(sql, batchArgs);
     }
 
@@ -851,13 +852,13 @@ public class OpenService {
     }
 
     public ResponseInfo saveAccessChannels(Map<String, Object> map, HttpServletRequest request) {
-        log.info("进入保存用户访问渠道接口 saveAccessChannels");
         //1. 获取入参 mobile、channel、name、activity_code
-        String mobile = String.valueOf(map.get("mobile"));
-        String channel = String.valueOf(map.get("channel"));
-        String name = String.valueOf(map.get("name"));
-        String activityCode = String.valueOf(map.get("activity_code"));
-        String channelName = String.valueOf(map.get("channel_name"));
+        String mobile = map.get("mobile") == null || map.get("mobile") == "" ? "" : String.valueOf(map.get("mobile"));
+        String channel = map.get("channel") == null || map.get("channel") == "" ? "" : String.valueOf(map.get("channel"));
+        String name = map.get("name") == null || map.get("name") == "" ? "" : String.valueOf(map.get("name"));
+        String activityCode = map.get("activity_code") == null || map.get("activity_code") == "" ? "" : String.valueOf(map.get("activity_code"));
+        String channelName = map.get("channel_name") == null || map.get("channel_name") == "" ? "" : String.valueOf(map.get("channel_name"));
+
         log.info("入参的值为" + JSON.toJSONString(map));
         //2. 如果活动编码activity_code是ETC，且此次channel下有同样的mobile手机号，则返回新增失败
         if ("ETC".equalsIgnoreCase(activityCode)) {
