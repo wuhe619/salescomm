@@ -530,7 +530,7 @@ public class CustomerService {
                 "cjc.mobile_num,  -- 属性表\n" +
                 "IFNULL (t1.title,'') AS title, -- 属性表\n" +
                 "t1.create_time,\n" +
-                "t1.`status`,\n" +
+                "t1.`status`,cjc.packager,cjc.printer,cjc.idCardBack,cjc.idCardFront,\n" +
                 "cjc.industry,cjc.salePerson,cjc.contactAddress,\n" +
                 "cjc.province,cjc.city,cjc.fixPrice,cjc.county,cjc.taxpayerId,\n" +
                 "cjc.bli_path AS bliPic,\n" +
