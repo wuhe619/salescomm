@@ -9,6 +9,7 @@ import com.bdaim.bill.dto.CustomerBillQueryParam;
 import com.bdaim.bill.service.TransactionService;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.util.DateUtil;
+import com.bdaim.common.util.NumberConvertUtil;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.rbac.dto.Page;
 import com.bdaim.resource.dao.MarketResourceDao;
@@ -20,8 +21,10 @@ import com.bdaim.resource.entity.ResourcePropertyEntity;
 import com.bdaim.supplier.dao.SupplierDao;
 import com.bdaim.supplier.dto.SupplierDTO;
 import com.bdaim.supplier.entity.SupplierEntity;
-
-import org.apache.log4j.Logger;
+import com.bdaim.supplier.entity.SupplierPropertyEntity;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -38,7 +41,7 @@ import java.util.*;
 @Service("supplierService")
 @Transactional
 public class SupplierService {
-    public static final Logger log = Logger.getLogger(SupplierService.class);
+    public static final Logger log = LoggerFactory.getLogger(SupplierService.class);
     @Resource
     private SupplierDao supplierDao;
     @Resource
@@ -64,10 +67,12 @@ public class SupplierService {
     }
 
     public Page listSupplierByPage(PageParam page, String supplierId, String supplierName, String person, String phone,
-                                   String serviceType) {
-        StringBuffer sql = new StringBuffer("SELECT s.create_time createTime,s.supplier_id supplierId, NAME supplierName, contact_person person, contact_phone phone,contact_position position, s. STATUS status, GROUP_CONCAT(r.type_code) resourceType ");
-        sql.append("FROM t_supplier s LEFT JOIN t_market_resource r ON s.supplier_id = r.supplier_id\n");
-        sql.append("WHERE 1=1");
+                                   String serviceType) throws Exception {
+        StringBuffer sql = new StringBuffer("SELECT s.create_time createTime,s.supplier_id supplierId, NAME supplierName, contact_person person, contact_phone phone,contact_position position, s.STATUS status ,");
+        sql.append("( SELECT GROUP_CONCAT(DISTINCT type_code) FROM t_market_resource WHERE supplier_id = s.supplier_id AND s.`status` = 1 ) resourceType,");
+        sql.append("( SELECT property_value FROM t_supplier_property WHERE property_name = 'priority' AND supplier_id = s.supplier_id ) AS priority, ");
+        sql.append("( SELECT GROUP_CONCAT(DISTINCT r.resname) FROM t_market_resource r WHERE supplier_id = s.supplier_id AND s.`status` = 1 ) resname ");
+        sql.append(" FROM t_supplier s WHERE s.`status` = 1 ");
         if (StringUtil.isNotEmpty(serviceType)) {
             sql.append(" and s.supplier_id IN (SELECT supplier_id FROM t_market_resource WHERE type_code = " + serviceType + " GROUP BY supplier_id)");
         }
@@ -83,9 +88,22 @@ public class SupplierService {
         if (StringUtil.isNotEmpty(phone)) {
             sql.append(" and s.contact_phone ='").append(phone).append("'");
         }
-        sql.append(" GROUP BY s.supplier_id\n");
+        sql.append(" GROUP BY s.supplier_id");
+        sql.append(" ORDER BY priority is null, priority, FIND_IN_SET(1,resourceType) desc, s.create_time DESC");
         Page supplierPage = supplierDao.sqlPageQuery(sql.toString(), page.getPageNum(), page.getPageSize());
+        if (supplierPage != null && supplierPage.getData().size() > 0) {
+            List<Map<String, Object>> list = supplierPage.getData();
+            for (int i = 0; i < list.size(); i++) {
+                String id = String.valueOf(list.get(i).get("supplierId"));
+                SupplierPropertyEntity remainAmount = supplierDao.getSupplierProperty(id, "remain_amount");
+                if (remainAmount != null) {
+                    list.get(i).put("remainAmount", NumberConvertUtil.transformtionElement(remainAmount.getPropertyValue()));
+                }else{
+                    list.get(i).put("remainAmount", 0);
 
+                }
+            }
+        }
         return supplierPage;
 
     }
@@ -157,7 +175,22 @@ public class SupplierService {
             JSONArray resouArray = JSON.parseArray(supplierDTO.getConfig());
             handleResourceList(resouArray, resourceIdList);
         }
-
+        //关联资源信息保存
+        if (StringUtil.isNotEmpty(supplierDTO.getRelationResource())) {
+            log.info("供应商id是：" + supplierDTO.getSupplierId() + "关联的资源是：" + supplierDTO.getRelationResource());
+            //根据供应商信息查询关联信息
+            SupplierPropertyEntity SupplierProperty = supplierDao.getSupplierProperty(String.valueOf(supplierDTO.getSupplierId()), "express_resource");
+            if (SupplierProperty != null) {
+                SupplierProperty.setPropertyValue(supplierDTO.getRelationResource());
+            } else {
+                SupplierProperty = new SupplierPropertyEntity();
+                SupplierProperty.setSupplierId(String.valueOf(supplierDTO.getSupplierId()));
+                SupplierProperty.setPropertyName("express_resource");
+                SupplierProperty.setPropertyValue(supplierDTO.getRelationResource());
+                SupplierProperty.setCreateTime(DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss));
+            }
+            supplierDao.saveOrUpdate(SupplierProperty);
+        }
     }
 
 
@@ -181,10 +214,9 @@ public class SupplierService {
         }
         //删除以前的设置
         if (resourceIdList != null && resourceIdList.size() > 0) {
-            for (Integer resourceId : resourceIdList) {
-                String sql = "delete from t_market_resource_property where resource_id=" + resourceId + " and property_name='price_config'";
-                marketResourceDao.executeUpdateSQL(sql);
-            }
+            String resourceIds = StringUtils.join(resourceIdList.toArray(), ",");
+            String sql = "delete from t_market_resource_property where resource_id in (" + resourceIds + ") and property_name='price_config'";
+            marketResourceDao.executeUpdateSQL(sql);
         }
     }
 
@@ -208,6 +240,8 @@ public class SupplierService {
         JSONArray callArray = new JSONArray();
         JSONArray imeiArray = new JSONArray();
         JSONArray macArray = new JSONArray();
+        JSONArray addressArray = new JSONArray();
+        JSONArray expressArray = new JSONArray();
         for (Map<String, Object> resource : resourceList) {
             Integer type = Integer.valueOf(resource.get("type").toString());
             String resourceId = String.valueOf(resource.get("resourceId"));
@@ -218,7 +252,7 @@ public class SupplierService {
 
             JSONObject priceConfig = selectResourcePriceConfig(resourceId.toString());
             if (ResourceEnum.IDCARD.getType() == type) {
-                setIDcardPriceData(priceConfig, jsonObject,"idCardPrice");
+                setIDcardPriceData(priceConfig, jsonObject, "idCardPrice");
                 idcardArray.add(jsonObject);
             } else if (ResourceEnum.SMS.getType() == type) {
                 setSMSPriceConfig(priceConfig, jsonObject);
@@ -227,11 +261,17 @@ public class SupplierService {
                 setCallPriceData(priceConfig, jsonObject);
                 callArray.add(jsonObject);
             } else if (ResourceEnum.IMEI.getType() == type) {
-                setIDcardPriceData(priceConfig, jsonObject,"imeiPrice");
+                setIDcardPriceData(priceConfig, jsonObject, "imeiPrice");
                 imeiArray.add(jsonObject);
             } else if (ResourceEnum.MAC.getType() == type) {
-                setIDcardPriceData(priceConfig, jsonObject,"macPrice");
+                setIDcardPriceData(priceConfig, jsonObject, "macPrice");
                 macArray.add(jsonObject);
+            } else if (ResourceEnum.ADDRESS.getType() == type) {
+                setAddressPriceData(priceConfig, jsonObject);
+                addressArray.add(jsonObject);
+            } else if (ResourceEnum.EXPRESS.getType() == type) {
+                setExpressPriceData(priceConfig, jsonObject);
+                expressArray.add(jsonObject);
             }
         }
         data.put("sms", smsArray);
@@ -239,6 +279,8 @@ public class SupplierService {
         data.put("imei", imeiArray);
         data.put("call", callArray);
         data.put("mac", macArray);
+        data.put("address", addressArray);
+        data.put("express", expressArray);
         data.put("supplierId", supplierId);
         data.put("name", supplierEntity.getName());
         data.put("createTime", supplierEntity.getCreateTime());
@@ -255,7 +297,7 @@ public class SupplierService {
      * @param priceConfig
      * @param jsonObject
      */
-    private void setIDcardPriceData(JSONObject priceConfig, JSONObject jsonObject,String fixPrice) {
+    private void setIDcardPriceData(JSONObject priceConfig, JSONObject jsonObject, String fixPrice) {
         if (priceConfig != null) {
             if (priceConfig.containsKey("billingMode")) {
                 jsonObject.put("billingMode", priceConfig.getString("billingMode"));
@@ -336,11 +378,51 @@ public class SupplierService {
         }
     }
 
+    /**
+     * 设置地址修复价格
+     *
+     * @param priceConfig
+     * @param jsonObject
+     */
+    private void setAddressPriceData(JSONObject priceConfig, JSONObject jsonObject) {
+        if (priceConfig == null) return;
+        if (priceConfig.containsKey("billingMode")) {
+            jsonObject.put("billingMode", priceConfig.getString("billingMode"));
+        }
+        if (priceConfig.containsKey("addressPrice")) {
+            jsonObject.put("addressPrice", priceConfig.getString("addressPrice"));
+        }
+    }
+
+    /**
+     * 设置快递价格
+     *
+     * @param priceConfig
+     * @param jsonObject
+     */
+    private void setExpressPriceData(JSONObject priceConfig, JSONObject jsonObject) {
+        if (priceConfig == null) return;
+        //是否区分地域  1 区分  2 不区分
+        if (priceConfig.containsKey("districtMode")) {
+            jsonObject.put("districtMode", priceConfig.getString("districtMode"));
+        }
+        if (priceConfig.containsKey("districtNum")) {
+            jsonObject.put("districtNum", priceConfig.getString("districtNum"));
+        }
+        if (priceConfig.containsKey("express")) {
+            jsonObject.put("express", priceConfig.getString("express"));
+        }
+        if (priceConfig.containsKey("place")) {
+            jsonObject.put("place", priceConfig.getString("place"));
+        }
+    }
+
+
     private JSONObject selectResourcePriceConfig(String resourceId) {
 
         String rsql = " select * from t_market_resource_property where resource_id=" + resourceId + " and property_name='price_config' ";
         List<Map<String, Object>> list = supplierDao.sqlQuery(rsql);
-        if (list.size() > 0 && StringUtil.isNotEmpty(String.valueOf(list.get(0).get("priceConfig")))) {
+        if (list.size() > 0 && StringUtil.isNotEmpty(String.valueOf(list.get(0).get("property_value")))) {
             String priceConfig = (String) list.get(0).get("property_value");
             JSONObject json = JSON.parseObject(priceConfig);
             return json;
@@ -447,6 +529,49 @@ public class SupplierService {
             }
         }
         return result;
+    }
+
+    /**
+     * 设置服务优先级
+     *
+     * @param
+     */
+    public void setSupplierPriority(List<Map<String, Object>> list) {
+        for (int i = 0; i < list.size(); i++) {
+            String supplierId = String.valueOf(list.get(i).get("supplierId"));
+            String priority = String.valueOf(list.get(i).get("priority"));
+            log.info("供应商id" + supplierId + "优先级是：" + priority);
+            SupplierPropertyEntity supplierProperty = supplierDao.getSupplierProperty(supplierId, "priority");
+            if (supplierProperty != null) {
+                supplierProperty.setPropertyValue(priority);
+            } else {
+                supplierProperty = new SupplierPropertyEntity();
+                supplierProperty.setSupplierId(supplierId);
+                supplierProperty.setPropertyName("priority");
+                supplierProperty.setCreateTime(DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss));
+                supplierProperty.setPropertyValue(priority);
+            }
+            supplierDao.saveOrUpdate(supplierProperty);
+        }
+    }
+
+    /**
+     * 根据供应商id查询服务资源
+     *
+     * @param supplierId
+     */
+    public List<MarketResourceLogDTO> getSupResourceBySupplierId(String supplierId) {
+        List<MarketResourceLogDTO> supplierResources = supplierDao.listMarketResourceBySupplierId(supplierId);
+        if (supplierResources.size() > 0) {
+            for (int i = 0; i < supplierResources.size(); i++) {
+                if (supplierResources.get(i).getTypeCode() > 0) {
+                    log.info("资源类型是：" + supplierResources.get(i).getTypeCode());
+                    String name = ResourceEnum.getName(supplierResources.get(i).getTypeCode());
+                    supplierResources.get(i).setResname(name);
+                }
+            }
+        }
+        return supplierResources;
     }
 }
 

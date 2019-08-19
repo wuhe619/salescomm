@@ -17,7 +17,9 @@ public enum TransactionEnum {
     SUPPLIER_ADJUSTMENT(9, "供应商调账", 0),
     MAC_NUM_DEDUCTION(10, "mac修复", 5),
     IMEI_DEDUCTION(11, "imei修复", 7),
-    ADDRESS_DEDUCTION(12, "地址修复", 1);
+    ADDRESS_DEDUCTION(12, "地址修复", 1),
+    SUPPLIER_DEDUCTION(13, "供应商资金扣减", 0);
+
     private int type;
     private String name;
     private int resourctType;

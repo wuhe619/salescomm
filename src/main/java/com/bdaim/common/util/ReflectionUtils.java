@@ -15,8 +15,8 @@ import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.beanutils.converters.DateConverter;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 反射工具类.
@@ -26,7 +26,7 @@ import org.apache.commons.logging.LogFactory;
  */
 public class ReflectionUtils
 {
-	private static final  Log logger = LogFactory.getLog(ReflectionUtils.class);
+	private static final  Logger logger = LoggerFactory.getLogger(ReflectionUtils.class);
 	
 	static
 	{

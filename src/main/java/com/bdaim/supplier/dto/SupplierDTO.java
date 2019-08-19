@@ -19,6 +19,10 @@ public class SupplierDTO {
     private Timestamp createTime;
 
     private String config;
+    /**
+     * 关联资源
+     */
+    private String RelationResource;
 
     private String type;
 
@@ -132,7 +136,13 @@ public class SupplierDTO {
     public void setType(String type) {
         this.type = type;
     }
+    public String getRelationResource() {
+        return RelationResource;
+    }
 
+    public void setRelationResource(String RelationResource) {
+        this.RelationResource = RelationResource;
+    }
 
     @Override
     public String toString() {

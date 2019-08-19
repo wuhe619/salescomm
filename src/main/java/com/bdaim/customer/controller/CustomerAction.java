@@ -6,17 +6,14 @@ import com.bdaim.auth.LoginUser;
 import com.bdaim.common.annotation.CacheAnnotation;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.dto.PageParam;
-import com.bdaim.common.exception.TouchException;
-import com.bdaim.common.util.CipherUtil;
+import com.bdaim.common.response.ResponseInfo;
+import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.common.util.page.Page;
 import com.bdaim.customer.dto.CustomerRegistDTO;
-import com.bdaim.customer.entity.CustomerUserDO;
 import com.bdaim.customer.service.CustomerService;
 import com.bdaim.rbac.dto.UserDTO;
-
-import org.apache.log4j.Logger;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -26,8 +23,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
-
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,10 +37,10 @@ import java.util.Map;
 @Controller
 @RequestMapping("/customer")
 public class CustomerAction extends BasicAction {
-    private static Logger logger = Logger.getLogger(CustomerAction.class);
+    private static Logger logger = LoggerFactory.getLogger(CustomerAction.class);
     @Resource
     CustomerService customerService;
-    
+
     /**
      * 团队管理列表以及搜索
      *
@@ -128,12 +123,15 @@ public class CustomerAction extends BasicAction {
     @RequestMapping(value = "/regist", method = RequestMethod.POST)
     @ResponseBody
     @CacheAnnotation
-    public Object regist(@RequestBody CustomerRegistDTO customerRegistDTO) {
-        Map<String, Object> resultMap = new HashMap<String, Object>();
-        customerService.registerOrUpdateCustomer(customerRegistDTO);
-        resultMap.put("code", "0");
-        resultMap.put("_message", "客户创建成功");
-        return JSONObject.toJSON(resultMap);
+    public ResponseInfo regist(@RequestBody CustomerRegistDTO customerRegistDTO) {
+        try {
+            customerService.registerOrUpdateCustomer(customerRegistDTO);
+            return new ResponseInfoAssemble().success(null);
+        } catch (Exception e) {
+            logger.error("创建企业信息异常", e);
+            return new ResponseInfoAssemble().failure(-1, "创建企业失败");
+        }
+
     }
 
     /**
@@ -142,35 +140,37 @@ public class CustomerAction extends BasicAction {
      */
     @RequestMapping(value = "/query/list", method = RequestMethod.GET)
     @ResponseBody
-    public Object queryCustomer(@Valid PageParam page, BindingResult error, CustomerRegistDTO customerRegistDTO) {
+    public ResponseInfo queryCustomer(@Valid PageParam page, BindingResult error, CustomerRegistDTO customerRegistDTO) {
         if (error.hasFieldErrors()) {
-            return getErrors(error);
+            //return getErrors(error);
+            return new ResponseInfoAssemble().failure(-1, "缺少必要参数");
         }
         LoginUser lu = opUser();
         Page list = null;
         Map<Object, Object> map = new HashMap<Object, Object>();
-        JSONObject json = new JSONObject();
+        //JSONObject json = new JSONObject();
         if ("ROLE_USER".equals(lu.getRole()) || "admin".equals(lu.getRole())) {
             list = customerService.getCustomerInfo(page, customerRegistDTO);
             map.put("list", list);
             //图片根路径
             String preUrl = "/pic";
             map.put("preUrl", preUrl);
-            json.put("data", map);
+            //json.put("data", map);
         }
-        return json.toJSONString();
+        return new ResponseInfoAssemble().success(map);
+        //return json.toJSONString();
     }
 
     @RequestMapping(value = "/update", method = RequestMethod.POST)
     @ResponseBody
-    public Object updateCustomer(@RequestBody CustomerRegistDTO customerRegistDTO) throws Exception {
-        Map<String, Object> resultMap = new HashMap<>();
+    public ResponseInfo updateCustomer(@RequestBody CustomerRegistDTO customerRegistDTO) {
         try {
             customerService.registerOrUpdateCustomer(customerRegistDTO);
+            return new ResponseInfoAssemble().success(null);
         } catch (Exception e) {
-            throw new TouchException("300", e.getMessage());
+            logger.error("修改企业信息异常", e);
+            return new ResponseInfoAssemble().failure(-1, "修改企业信息异常");
         }
-        return JSONObject.toJSON(resultMap);
     }
 
 
@@ -245,7 +245,7 @@ public class CustomerAction extends BasicAction {
      */
     @RequestMapping(value = "/salePriceLog", method = RequestMethod.GET)
     @ResponseBody
-    public String getSalePriceLog(@Valid PageParam page, String zid,BindingResult error, String custId, String name, String startTime, String endTime) {
+    public String getSalePriceLog(@Valid PageParam page, String zid, BindingResult error, String custId, String name, String startTime, String endTime) {
         if (error.hasErrors()) {
             return getErrors(error);
         }
@@ -253,7 +253,7 @@ public class CustomerAction extends BasicAction {
         try {
             LoginUser lu = opUser();
             if ("ROLE_USER".equals(lu.getRole()) || "admin".equals(lu.getRole())) {
-                List<Map<String, Object>> salePriceLog = customerService.getSalePriceLog(page,zid, custId, name, startTime, endTime);
+                List<Map<String, Object>> salePriceLog = customerService.getSalePriceLog(page, zid, custId, name, startTime, endTime);
                 data.put("code", 1);
                 data.put("list", salePriceLog);
                 data.put("message", "查询企业销售定价记录列表成功");
@@ -264,6 +264,25 @@ public class CustomerAction extends BasicAction {
             data.put("message", "查询企业销售定价记录列表失败");
         }
         return returnJsonData(data);
+    }
+
+    /**
+     * @description 修改企业服务费
+     * @metho
+     */
+    @RequestMapping(value = "/updatePrice", method = RequestMethod.GET)
+    @ResponseBody
+    public ResponseInfo updateServicePrice(String custId, String price) {
+        try {
+            LoginUser lu = opUser();
+            if ("ROLE_USER".equals(lu.getRole()) || "admin".equals(lu.getRole())) {
+                customerService.updateServicePrice(custId, price);
+            }
+        } catch (Exception e) {
+            logger.error("保存企业服务费用失败失败,", e);
+            return new ResponseInfoAssemble().failure(-1, "保存企业服务费用失败失败");
+        }
+        return new ResponseInfoAssemble().success(null);
     }
 }
 

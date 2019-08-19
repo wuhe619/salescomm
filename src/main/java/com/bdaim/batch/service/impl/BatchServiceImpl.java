@@ -5,8 +5,8 @@ import com.bdaim.batch.entity.BatchSendToFileResp;
 import com.bdaim.batch.service.BatchService;
 import com.bdaim.common.util.StringUtil;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.http.HttpEntity;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
@@ -25,7 +25,7 @@ import java.util.*;
 
 @Service("BatchService")
 public class BatchServiceImpl implements BatchService {
-    private static Log logger = LogFactory.getLog(BatchServiceImpl.class);
+    private static Logger logger = LoggerFactory.getLogger(BatchServiceImpl.class);
     @Resource
     private JdbcTemplate jdbcTemplate;
 

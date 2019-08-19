@@ -5,7 +5,7 @@ import java.io.Serializable;
 /**
  * Created by Mr.YinXin on 2017/2/21.
  */
-public class CustomerRegistDTO implements Serializable{
+public class CustomerRegistDTO implements Serializable {
     private String userId;
     //企业帐号
     private String name;
@@ -39,6 +39,56 @@ public class CustomerRegistDTO implements Serializable{
     private String salePerson;
     //渠道
     private String channel;
+    //打印员
+    private String printerId;
+    //封装员
+    private String packagerId;
+    //身份证正面
+    private String idCardFront;
+    //身份证反面
+    private String idCardBack;
+    //快递设置 1 常用地址（多个） 2 常用地址（多个）
+    private String expressConfig;
+
+    public String getExpressConfig() {
+        return expressConfig;
+    }
+
+    public void setExpressConfig(String expressConfig) {
+        this.expressConfig = expressConfig;
+    }
+
+    public String getIdCardFront() {
+        return idCardFront;
+    }
+
+    public void setIdCardFront(String idCardFront) {
+        this.idCardFront = idCardFront;
+    }
+
+    public String getIdCardBack() {
+        return idCardBack;
+    }
+
+    public void setIdCardBack(String idCardBack) {
+        this.idCardBack = idCardBack;
+    }
+
+    public String getPrinterId() {
+        return printerId;
+    }
+
+    public void setPrinterId(String printerId) {
+        this.printerId = printerId;
+    }
+
+    public String getPackagerId() {
+        return packagerId;
+    }
+
+    public void setPackagerId(String packagerId) {
+        this.packagerId = packagerId;
+    }
 
     public String getChannel() {
         return channel;

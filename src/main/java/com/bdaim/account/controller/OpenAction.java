@@ -6,21 +6,21 @@ import com.bdaim.batch.dto.FixInfo;
 import com.bdaim.callcenter.dto.RecordVoiceQueryParam;
 import com.bdaim.common.annotation.CacheAnnotation;
 import com.bdaim.common.controller.BasicAction;
+import com.bdaim.common.response.ResponseInfo;
+import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.common.util.AuthPassport;
 import com.bdaim.common.util.ConfigUtil;
+import com.bdaim.common.util.IDHelper;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.entity.CustomerUserDO;
 import com.bdaim.rbac.dto.Page;
 import com.bdaim.resource.service.MarketResourceService;
 import com.bdaim.template.dto.TemplateParam;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -33,11 +33,11 @@ import java.util.Map;
  * @date 2019/3/25
  * 对外接口Action
  */
-@Controller
+@RestController
 @RequestMapping("/open")
 public class OpenAction extends BasicAction {
 
-    private final static Log log = LogFactory.getLog(OpenAction.class);
+    private final static Logger log = LoggerFactory.getLogger(OpenAction.class);
     @Resource
     private OpenService openService;
     @Resource
@@ -510,6 +510,51 @@ public class OpenAction extends BasicAction {
         //String targetPath = "http://online.datau.top/audio/1810090141300001/TEL-18630016545_BJHKK_zx1_20181010192854.wav";
         log.info("文件名：" + fileName + "文件路径：" + targetPath);
         return returnJsonData(map);
+    }
+
+    /**
+     * 保存用户的行为记录
+     *
+     * @param map
+     * @return
+     * @auther Chacker
+     * @date
+     */
+    @RequestMapping(value = "/saveActionRecord", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseInfo saveActionRecord(@RequestBody Map<String, Object> map,HttpServletRequest request) {
+        openService.saveActionRecord(map,request);
+        return new ResponseInfoAssemble().success(null);
+    }
+
+    /**
+     * 保存用户的来访渠道 ETC/XIAOXIONG
+     *
+     * @param
+     * @return
+     * @auther Chacker
+     * @date
+     */
+    @RequestMapping(value = "/saveAccessChannels", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseInfo saveAccessChannels(@RequestBody Map<String, Object> map, HttpServletRequest request) {
+        ResponseInfo result = openService.saveAccessChannels(map, request);
+        return result;
+    }
+
+    /**
+     * 获取地址修复数据
+     */
+    @RequestMapping(value = "/addressFixMessage", method = RequestMethod.POST)
+    public ResponseInfo addressfixFile(String idcard) {
+        List<Map<String, Object>> list = openService.getAddressResoult(idcard);
+        if (list.size() > 0) {
+            for (int i = 0; i < list.size(); i++) {
+                list.get(i).put("addressid", String.valueOf(IDHelper.getTransactionId()));
+                list.get(i).put("prov", "北京");
+            }
+        }
+        return new ResponseInfoAssemble().success(list);
     }
 }
 

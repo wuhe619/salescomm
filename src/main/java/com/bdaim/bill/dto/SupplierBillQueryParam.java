@@ -8,6 +8,7 @@ package com.bdaim.bill.dto;
 public class SupplierBillQueryParam {
 
     private String supplierName;
+    private String resourceType;
     private String supplierId;
     private String type;
     private String billDate;
@@ -21,6 +22,14 @@ public class SupplierBillQueryParam {
     private String startTime;
     private String endTime;
     private String resourceId;
+
+    public String getResourceType() {
+        return resourceType;
+    }
+
+    public void setResourceType(String resourceType) {
+        this.resourceType = resourceType;
+    }
 
     public String getResourceId() {
         return resourceId;

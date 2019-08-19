@@ -10,7 +10,6 @@ import com.bdaim.customer.entity.CustomerDO;
 import com.bdaim.customer.entity.CustomerProperty;
 import com.bdaim.price.dto.ResourcesPriceDto;
 import com.bdaim.resource.entity.MarketResourceEntity;
-
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -326,7 +325,7 @@ public class CustomerDao extends SimpleHibernateDao<CustomerDO, String> {
      * @method
      * @date: 2019/4/16 11:57
      */
-    public List<Map<String, Object>> getCustStatBillMonth(String supplierId, int resourceType, String custId,String billDate,int billType) {
+    public List<Map<String, Object>> getCustStatBillMonth(String supplierId, int resourceType, String custId, String billDate, int billType) {
         //根据供应商和资源类型查询资源id
         List<Map<String, Object>> CustStatBillMonthList = null;
         try {
@@ -339,11 +338,29 @@ public class CustomerDao extends SimpleHibernateDao<CustomerDO, String> {
             }
             logger.info("获取资源id是" + resourceId);
             String sql = "SELECT * FROM stat_bill_month WHERE cust_id =? AND stat_time =? AND resource_id =? AND bill_type =?";
-            CustStatBillMonthList = this.sqlQuery(sql, custId, billDate, resourceId,billType);
+            CustStatBillMonthList = this.sqlQuery(sql, custId, billDate, resourceId, billType);
             logger.info("查询账单信息" + JSON.toJSONString(CustStatBillMonthList));
         } catch (Exception e) {
             logger.error("获取资源信息异常" + e);
         }
         return CustStatBillMonthList;
     }
+
+    /**
+     * 根据属性信查询企业信息
+     *
+     * @date: 2019/4/4 18:06
+     */
+    public List<Map<String, Object>> getCustIdByPropertyValue(String propertyName, String propertyValue) {
+        String sql = "SELECT c.cust_id FROM t_customer c LEFT JOIN t_customer_property p ON c.cust_id = p.cust_id " +
+                "WHERE c.`status` = 0 AND  p.property_name = ? AND p.property_value = ?";
+        List<Map<String, Object>> list = null;
+        try {
+            list = this.sqlQuery(sql, propertyName, propertyValue);
+        } catch (Exception e) {
+            logger.error("获取资源信息异常" + e);
+        }
+        return list;
+    }
+
 }

@@ -1,18 +1,16 @@
 package com.bdaim.rbac.controller;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.auth.LoginUser;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.rbac.dto.DeptDto;
 import com.bdaim.rbac.service.DeptService;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import java.util.HashMap;
@@ -27,7 +25,7 @@ import java.util.Map;
 @Controller
 @RequestMapping("/dept")
 public class DeptAction extends BasicAction {
-    private static Log logger = LogFactory.getLog(DeptAction.class);
+    private static Logger logger = LoggerFactory.getLogger(DeptAction.class);
     @Resource
     private DeptService deptService;
 
@@ -63,10 +61,15 @@ public class DeptAction extends BasicAction {
      */
     @RequestMapping(value = "/queryDeptList", method = RequestMethod.GET)
     @ResponseBody
-    public String queryDeptList() {
+    public String queryDeptList(@RequestParam Map<String,Object> map) {
         //获取当前操作人
-        List<DeptDto> list = deptService.queryDeptList();
-        return returnJsonData(list);
+        Map<String,Object> resultMap = null;
+        try {
+            resultMap = deptService.queryDeptList(map);
+        } catch (Exception e) {
+            logger.error("查询部门列表信息异常" + e);
+        }
+        return JSON.toJSONString(resultMap);
     }
     /**
      * 获取部门信息以及部门下职位信息

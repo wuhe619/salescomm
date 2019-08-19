@@ -1,7 +1,9 @@
 package com.bdaim.batch.controller;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import com.bdaim.common.response.ResponseInfo;
+import com.bdaim.common.response.ResponseInfoAssemble;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.auth.LoginUser;
 import com.bdaim.batch.entity.BatchSendToFile;
@@ -9,10 +11,7 @@ import com.bdaim.batch.service.impl.PackingService;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.util.StringUtil;
 
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -29,7 +28,7 @@ import java.util.Map;
 public class PackingAction extends BasicAction {
     @Resource
     PackingService packingService;
-    private final static Log LOG = LogFactory.getLog(PackingAction.class);
+    private final static Logger LOG = LoggerFactory.getLogger(PackingAction.class);
 
     /**
      * 发送mac修复信息
@@ -64,42 +63,17 @@ public class PackingAction extends BasicAction {
     }
 
     /**
-     * 发送快递接口
+     * 发送快递(确认发件)
+     *
+     * @param map
+     * @return
+     * @auther Chacker
+     * @date 2019/8/7 13:52
      */
     @RequestMapping(value = "/sendExpress", method = RequestMethod.POST)
-    public String sendExpress(@RequestBody JSONObject param) {
-        JSONObject json = new JSONObject();
-        String batchId = String.valueOf(param.get("batchId"));
-        String channel = String.valueOf(param.get("channel"));
-        String id = String.valueOf(param.get("id"));
-        String fileName = String.valueOf(param.get("fileName"));
-        String sendId = String.valueOf(param.get("sendId"));
-        if (StringUtil.isEmpty(batchId) || StringUtil.isEmpty(id) || StringUtil.isEmpty(fileName) || StringUtil.isEmpty(sendId) || StringUtil.isEmpty(channel)) {
-            json.put("code", "001");
-            json.put("message", "缺少必要參數");
-            return json.toJSONString();
-        }
-        //获取当前登陆的企业id
-        Long userId = opUser().getId();
-        String customerId = opUser().getCustId();
-
-        //查询企业是否配置了销售定价
-        double custExpressPrice = packingService.getCustExpressPrice(customerId);
-        if (custExpressPrice == 0) {
-            json.put("code", "002");
-            json.put("message", "未配置销售定价");
-            return json.toJSONString();
-        }
-        //发送快递
-        try {
-            packingService.sendExpress(param, userId, customerId);
-            json.put("code", "000");
-            json.put("message", "快递发送成功");
-        } catch (Exception e) {
-            e.printStackTrace();
-            LOG.info("发送快递异常" + e);
-        }
-        return json.toJSONString();
+    public ResponseInfo sendExpress(@RequestParam Map<String, Object> map) {
+        packingService.sendExpress(map);
+        return new ResponseInfoAssemble().success(null);
     }
 
     /**
@@ -140,27 +114,6 @@ public class PackingAction extends BasicAction {
             return json.toJSONString();
         }
         json.put("errorCode", "01");
-        return json.toJSONString();
-    }
-
-    /**
-     * 获取地址修复数据
-     */
-    @RequestMapping(value = "/addressFixMessage", method = RequestMethod.POST)
-    public String addressfixFile(String batchId) {
-
-        JSONObject json = new JSONObject();
-        if (batchId != null && StringUtil.isNotEmpty(batchId)) {
-            json.put("errorCode", "00");
-            json.put("message", "发送修复数据成功");
-            return json.toJSONString();
-        }
-        batchId = "1542099439991";
-        List<Map<String, Object>> list = packingService.getAddressResoult(batchId);
-        if (list.size() > 0) {
-            json.put("code", "001");
-            json.put("list", list);
-        }
         return json.toJSONString();
     }
 

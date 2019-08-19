@@ -4,7 +4,6 @@ import com.bdaim.common.dao.SimpleHibernateDao;
 import com.bdaim.rbac.dto.RoleDTO;
 import com.bdaim.rbac.dto.RolesResourceDto;
 import com.bdaim.rbac.entity.RoleEntity;
-
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Component;
 
@@ -116,12 +115,36 @@ public class RoleDao extends SimpleHibernateDao<RoleEntity, Serializable> {
     /**
      * 根据职位id查询用户数
      *
-     * @author:duanliyin
      * @date: 2019/3/19 18:56
      */
     public List<Map<String, Object>> getUserNumByRoleId(String roleId) throws SQLException {
         String sql = "select ID userId,ROLE roleId  from t_user_role_rel where ROLE = " + roleId;
         List<Map<String, Object>> list = this.sqlQuery(sql);
         return list;
+    }
+
+    /**
+     * 根据用户id查询角色id 和 角色名称
+     *
+     * @date: 2019/3/19 18:56
+     */
+    public List<Map<String, Object>> getRoleInfoByUserId(String userId) {
+        String sql = "SELECT R.type,r.ID id,r.`NAME` name from t_user_role_rel  ur LEFT JOIN t_role r ON ur.ROLE = r.ID WHERE ur.ID = '" + userId + "'";
+        List<Map<String, Object>> list = this.sqlQuery(sql);
+        return list;
+    }
+
+    /**
+     * 根据type查询角色信息
+     *
+     * @date: 2019/3/19 18:56
+     */
+    public RoleEntity getRoleInfoBytype(int type) {
+        RoleEntity cp = null;
+        String hql = "from RoleEntity m where m.type=?";
+        List<RoleEntity> list = this.find(hql, type);
+        if (list.size() > 0)
+            cp = (RoleEntity) list.get(0);
+        return cp;
     }
 }

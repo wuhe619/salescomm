@@ -674,6 +674,12 @@ public class DateUtil {
         ZoneId zone = ZoneId.systemDefault();
         return LocalDateTime.ofInstant(instant, zone);
     }
+    public static String getDateOfYearAndMonth(){
+        Date date = new Date();
+        SimpleDateFormat simpleDateFormat =  new SimpleDateFormat("yyyyMMdd");
+        String result = simpleDateFormat.format(date);
+        return result;
+    }
 
     /**
      * @description 年月日处理（返回年和月）

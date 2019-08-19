@@ -13,8 +13,8 @@ import com.bdaim.customer.service.CustomerService;
 import com.bdaim.price.service.SalePriceService;
 import com.bdaim.resource.service.impl.MarketResourceServiceImpl;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -40,7 +40,7 @@ import java.util.*;
 @Controller
 @RequestMapping("/batch")
 public class BatchAction extends BasicAction {
-    private static Log logger = LogFactory.getLog(BatchAction.class);
+    private static Logger logger = LoggerFactory.getLogger(BatchAction.class);
 
     @Resource
     BatchService batchService;
