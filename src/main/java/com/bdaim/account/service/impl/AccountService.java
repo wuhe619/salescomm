@@ -210,7 +210,7 @@ public class AccountService {
      */
     public Page querySupplierAcctsByCondition(PageParam page, CustomerBillQueryParam queryParam) {
         // 如果没有传开始时间
-        StringBuilder sqlBuilder = new StringBuilder("SELECT p.`name` source_name, t.create_time,t.transaction_id,p.supplier_id,t.amount/100 as amount,u.REALNAME realname , t.certificate ");
+        StringBuilder sqlBuilder = new StringBuilder("SELECT p.`name` source_name, t.create_time,t.transaction_id,p.supplier_id,t.amount/100 as amount,u.REALNAME realname , t.certificate ,t.remark,t.type  ");
         sqlBuilder.append("FROM t_transaction_bill t");
         sqlBuilder.append(" LEFT JOIN t_supplier p ON t.supplier_id = p.supplier_id\n");
         sqlBuilder.append("LEFT JOIN t_user u ON t.user_id = u.ID WHERE t.type =" + TransactionEnum.SUPPLIER_RECHARGE.getType() + " \n");
