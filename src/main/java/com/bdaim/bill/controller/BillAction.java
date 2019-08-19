@@ -661,6 +661,8 @@ public class BillAction extends BasicAction {
     @RequestMapping(value = "/listSupplierBillExport", method = RequestMethod.GET)
     @ResponseBody
     public ResponseInfo getListSupplierBillExport(@RequestParam SupplierBillQueryParam param,HttpServletResponse response) {
+        logger.info("进入供应商二级账单导出接口 listSupplierBillExport");
+        logger.info(param.toString());
         LoginUser lu = opUser();
         List<Map<String,Object>> list = null;
         try {
@@ -687,9 +689,9 @@ public class BillAction extends BasicAction {
                     rowList.add(column.get("amount") != null ? column.get("amount") : "");
                     data.add(rowList);
                 }
+                logger.info("data获取成功，值为"+data.toString());
                 //下载的response属性设置
                 response.setCharacterEncoding("utf-8");
-//        response.setContentType("application/force-download");
                 response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
                 String fileName = "账单.xlsx";
                 ////保存的文件名,必须和页面编码一致,否则乱码
@@ -701,10 +703,9 @@ public class BillAction extends BasicAction {
                 ExcelUtils.getInstance().exportObjects2Excel(data, header, outputStream);
                 outputStream.flush();
                 outputStream.close();
-
             }
         } catch (Exception e) {
-            logger.info("导出账单异常", e);
+            logger.info("导出账单异常"+e.getMessage());
             return new ResponseInfoAssemble().failure(-1, "导出失败");
         }
         return new ResponseInfoAssemble().success(list);

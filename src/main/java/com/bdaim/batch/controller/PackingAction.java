@@ -72,6 +72,7 @@ public class PackingAction extends BasicAction {
      */
     @RequestMapping(value = "/sendExpress", method = RequestMethod.POST)
     public ResponseInfo sendExpress(@RequestParam Map<String, Object> map) {
+        LOG.info("进入发送快递的接口 sendExpress 入参为 "+map.toString());
         packingService.sendExpress(map);
         return new ResponseInfoAssemble().success(null);
     }
