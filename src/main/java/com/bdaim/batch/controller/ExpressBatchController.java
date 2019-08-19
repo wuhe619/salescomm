@@ -205,9 +205,11 @@ public class ExpressBatchController extends BasicAction {
     @RequestMapping(value = "/getPdfByReceiverId", method = RequestMethod.GET)
     @ResponseBody
     public ResponseInfo readFileByCode(@RequestParam String batchId, String receiverId, HttpServletResponse response) throws IOException {
+        logger.info("进入根据收件人ID预览PDF接口" +batchId +receiverId);
         //根据批次ID batchId 和 收件人ID receiverId 找到pdf所存储的路径
         String pdfPath = expressBatchService.findPdfPathByReceiverId(batchId, receiverId);
         pdfPath = pdfPath.substring(pdfPath.indexOf("pdf") - 1).replace("\\", "/");
+        logger.info("pdf path is "+pdfPath);
         return new ResponseInfoAssemble().success(pdfPath);
     }
 

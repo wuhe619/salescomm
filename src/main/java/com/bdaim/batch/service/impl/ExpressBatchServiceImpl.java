@@ -506,7 +506,7 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
     public String findPdfPathByReceiverId(String batchId, String receiverId) {
         String pdfPath = "";
         try{
-            String sql = "SELECT label_eight AS pdfPath FROM nl_batch_detail WHERE batch_id='" + batchId + "' AND label_five='" + receiverId + "'";
+            String sql = "SELECT label_eight AS pdfPath FROM nl_batch_detail WHERE batch_id='" + batchId + "' AND label_five='" + receiverId + "' LIMIT 1";
             logger.info("执行SQL"+sql);
             Map<String, Object> map = jdbcTemplate.queryForMap(sql);
             pdfPath = String.valueOf(map.get("pdfPath"));
