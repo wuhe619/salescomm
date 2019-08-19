@@ -158,10 +158,10 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
             String touchId = UUID.randomUUID().toString();
             StringBuffer batchDetailInsert = new StringBuffer("INSERT INTO nl_batch_detail (label_five,label_one,label_two," +
                     "site,label_three,batch_id," +
-                    "status,label_seven,touch_id,upload_time) VALUES ('");
+                    "status,touch_id,upload_time) VALUES ('");
             batchDetailInsert.append(contentList.get(i).get(0)).append("','").append(contentList.get(i).get(1)).append("','").append(contentList.get(i).get(2))
                     .append("','").append(contentList.get(i).get(3)).append("','").append(contentList.get(i).get(4)).append("','").append(batchId)
-                    .append("','").append(checkingResult).append("','1','").append(touchId).append("',NOW())");
+                    .append("','").append(checkingResult).append("','").append(touchId).append("',NOW())");
             int rowDetail = jdbcTemplate.update(batchDetailInsert.toString());
             logger.info("插入批次详情成功，条数为: " + rowDetail);
         }
