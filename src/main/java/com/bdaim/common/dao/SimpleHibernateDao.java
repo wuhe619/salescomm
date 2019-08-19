@@ -30,6 +30,7 @@ import java.util.Map;
  * 参考Spring2.5自带的Petlinc例子,取消了HibernateTemplate,直接使用Hibernate原生API.
  */
 @SuppressWarnings("unchecked")
+@Transactional
 public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDaoSupport{
     protected Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -82,13 +83,12 @@ public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDao
     /**
      * 取得当前Session.
      */
-    @Transactional
     public Session getSession() {
         try {
             return super.getSessionFactory().getCurrentSession();
         } catch (HibernateException ex) {
-            ex.printStackTrace();
-            logger.warn("can not get current session,open new.");
+//            ex.printStackTrace();
+            logger.error("can not get current session,open new.");
             return getSessionFactory().openSession();
         }
     }
