@@ -111,7 +111,8 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
             return new ResponseInfoAssemble().failure(HttpStatus.BAD_REQUEST.value(), "请保证一次上传数据不超过1000条记录");
         }
         //2.5 加上销售定价判断和余额的判断
-        String priceSql = "SELECT cust_id,property_value FROM t_customer_property WHERE cust_id='" + custId + "' AND property_name='price'";
+        String priceSql = "SELECT cust_id,property_value FROM t_customer_property WHERE cust_id='" + custId + "' AND property_name='address_fix_price'";
+        logger.info("执行SQL "+priceSql);
         List<Map<String, Object>> priceList = jdbcTemplate.queryForList(priceSql);
         if (priceList == null || priceList.size() == 0) {
             return new ResponseInfoAssemble().failure(HttpStatus.BAD_REQUEST.value(), "请先设置销售定价");
