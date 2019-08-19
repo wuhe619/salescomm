@@ -252,6 +252,35 @@ public class AccountService {
         sqlBuilder.append(" ORDER BY t.create_time desc ");
         return new Pagination().getPageData(sqlBuilder.toString(), null, page, jdbcTemplate);
     }
+    public List<Map<String,Object>> querySupplierAcctsExport(CustomerBillQueryParam queryParam) {
+        // 如果没有传开始时间
+        StringBuilder sqlBuilder = new StringBuilder("SELECT p.`name` source_name, t.create_time,t.transaction_id,p.supplier_id," +
+                "t.amount/100 as amount,u.REALNAME realname , t.certificate,t.remark,CASE t.type WHEN '1' THEN '充值' WHEN '7' THEN '扣减' END AS billType ");
+        sqlBuilder.append("FROM t_transaction_bill t");
+        sqlBuilder.append(" LEFT JOIN t_supplier p ON t.supplier_id = p.supplier_id\n");
+        sqlBuilder.append("LEFT JOIN t_user u ON t.user_id = u.ID WHERE 1=1\n");
+        if (StringUtil.isNotEmpty(queryParam.getTransactionId())) {
+            sqlBuilder.append(" and t.transaction_id= " + queryParam.getTransactionId());
+        }
+        if (StringUtil.isNotEmpty(queryParam.getType())) {
+            sqlBuilder.append(" and t.type= " + queryParam.getType());
+        }
+        if (StringUtil.isNotEmpty(queryParam.getSupplierId())) {
+            sqlBuilder.append(" and t.supplier_id= " + queryParam.getSupplierId());
+        }
+        if (StringUtil.isNotEmpty(queryParam.getStartTime())) {
+            sqlBuilder.append(" AND t.create_time >= '" + queryParam.getStartTime() + "'");
+        }
+        if (StringUtil.isNotEmpty(queryParam.getEndTime())) {
+            sqlBuilder.append(" AND t.create_time <='" + queryParam.getEndTime() + "'");
+        }
+        if (StringUtil.isNotEmpty(queryParam.getBillDate())) {
+            sqlBuilder.append(" and DATE_FORMAT(t.create_time, '%Y%m') like'" + queryParam.getBillDate() + "'");
+        }
+        sqlBuilder.append(" ORDER BY t.create_time desc ");
+        List<Map<String,Object>> resultList = jdbcTemplate.queryForList(sqlBuilder.toString());
+        return resultList;
+    }
 
     public Object exportCustomerAccountRecharge(CustomerBillQueryParam param, HttpServletResponse response) {
         Map<String, Object> resultMap = new HashMap<>();
@@ -440,4 +469,6 @@ public class AccountService {
         }*/
         return resultMap;
     }
+
+
 }
