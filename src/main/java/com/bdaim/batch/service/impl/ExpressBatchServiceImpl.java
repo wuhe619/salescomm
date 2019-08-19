@@ -504,9 +504,16 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
 
     @Override
     public String findPdfPathByReceiverId(String batchId, String receiverId) {
-        String sql = "SELECT label_eight AS pdfPath FROM nl_batch_detail WHERE batch_id='" + batchId + "' AND label_five='" + receiverId + "'";
-        Map<String, Object> map = jdbcTemplate.queryForMap(sql);
-        String pdfPath = String.valueOf(map.get("pdfPath"));
+        String pdfPath = "";
+        try{
+            String sql = "SELECT label_eight AS pdfPath FROM nl_batch_detail WHERE batch_id='" + batchId + "' AND label_five='" + receiverId + "'";
+            logger.info("执行SQL"+sql);
+            Map<String, Object> map = jdbcTemplate.queryForMap(sql);
+            pdfPath = String.valueOf(map.get("pdfPath"));
+            return pdfPath;
+        }catch (Exception e){
+            logger.info("出现异常"+e.getMessage());
+        }
         return pdfPath;
     }
 
