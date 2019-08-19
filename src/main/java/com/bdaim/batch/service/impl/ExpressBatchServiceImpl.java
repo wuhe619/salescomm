@@ -117,17 +117,21 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         if (priceList == null || priceList.size() == 0) {
             return new ResponseInfoAssemble().failure(HttpStatus.BAD_REQUEST.value(), "请先设置销售定价");
         } else {
-            // 判断余额是否足够 t_customer_property中的price的value是销售定价，单位 元，remain_amount是余额，单位分
-            int num = contentList.size() - 1;
-            String remainAmountSql = "SELECT cust_id,property_value FROM t_customer_property WHERE cust_id='" + custId + "' AND property_name='remain_amount'";
-            Map<String, Object> amountMap = jdbcTemplate.queryForMap(remainAmountSql);
-            if (amountMap != null) {
-                int price = Integer.parseInt(String.valueOf(priceList.get(0).get("property_value")));
-                int remainAmount = Integer.parseInt(String.valueOf(amountMap.get("property_value")));
-                int remain = remainAmount - price * num * 100;
-                if (remain < 0) {
-                    return new ResponseInfoAssemble().failure(HttpStatus.BAD_REQUEST.value(), "余额不足，请先充值");
+            try{
+                // 判断余额是否足够 t_customer_property中的price的value是销售定价，单位 元，remain_amount是余额，单位分
+                int num = contentList.size() - 1;
+                String remainAmountSql = "SELECT cust_id,property_value FROM t_customer_property WHERE cust_id='" + custId + "' AND property_name='remain_amount'";
+                Map<String, Object> amountMap = jdbcTemplate.queryForMap(remainAmountSql);
+                if (amountMap != null) {
+                    int price = Integer.parseInt(String.valueOf(priceList.get(0).get("property_value")));
+                    int remainAmount = Integer.parseInt(String.valueOf(amountMap.get("property_value")));
+                    int remain = remainAmount - price * num * 100;
+                    if (remain < 0) {
+                        return new ResponseInfoAssemble().failure(HttpStatus.BAD_REQUEST.value(), "余额不足，请先充值");
+                    }
                 }
+            }catch (Exception e){
+                logger.info("执行出错，出错地址为"+e.getMessage());
             }
         }
         //3. 把批次信息和批次详情列表存入数据库
