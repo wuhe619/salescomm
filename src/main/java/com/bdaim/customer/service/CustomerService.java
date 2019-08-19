@@ -378,19 +378,19 @@ public class CustomerService {
                     }
                 }
                 //打印员
-                if (StringUtil.isNotEmpty(vo.getPrinterId())) {
+                if (StringUtil.isNotEmpty(vo.getPrinter())) {
                     if (StringUtil.isNotEmpty(vo.getCustId())) {
-                        customerDao.dealCustomerInfo(vo.getCustId(), "printer", vo.getPrinterId());
+                        customerDao.dealCustomerInfo(vo.getCustId(), "printer", vo.getPrinter());
                     } else {
-                        customerDao.dealCustomerInfo(customerId, "printer", vo.getPrinterId());
+                        customerDao.dealCustomerInfo(customerId, "printer", vo.getPrinter());
                     }
                 }
                 //封装员
-                if (StringUtil.isNotEmpty(vo.getPackagerId())) {
+                if (StringUtil.isNotEmpty(vo.getPackager())) {
                     if (StringUtil.isNotEmpty(vo.getCustId())) {
-                        customerDao.dealCustomerInfo(vo.getCustId(), "packager", vo.getPackagerId());
+                        customerDao.dealCustomerInfo(vo.getCustId(), "packager", vo.getPackager());
                     } else {
-                        customerDao.dealCustomerInfo(customerId, "packager", vo.getPackagerId());
+                        customerDao.dealCustomerInfo(customerId, "packager", vo.getPackager());
                     }
                 }
 
@@ -546,6 +546,10 @@ public class CustomerService {
                 "\tmax(CASE property_name WHEN 'city'   THEN property_value ELSE '' END ) city,\n" +
                 "\tmax(CASE property_name WHEN 'county'   THEN property_value ELSE '' END ) county,\n" +
                 "\tmax(CASE property_name WHEN 'taxpayer_id'   THEN property_value ELSE '' END ) taxpayerId,\n" +
+                "\tmax(CASE property_name WHEN 'packager'   THEN property_value ELSE '' END ) packager,\n" +
+                "\tmax(CASE property_name WHEN 'printer'   THEN property_value ELSE '' END ) printer,\n" +
+                "\tmax(CASE property_name WHEN 'idCard_back_path'   THEN property_value ELSE '' END ) idCardBack,\n" +
+                "\tmax(CASE property_name WHEN 'idCard_front_path'   THEN property_value ELSE '' END ) idCardFront,\n" +
                 "\tmax(CASE property_name WHEN 'address_fix_price'   THEN property_value ELSE '' END ) fixPrice,\n" +
                 "\tmax(CASE property_name WHEN 'bli_path'   THEN property_value ELSE '' END ) bli_path,\n" +
                 "\tmax(CASE property_name WHEN 'bank'   THEN property_value ELSE '' END ) bank,\n" +
