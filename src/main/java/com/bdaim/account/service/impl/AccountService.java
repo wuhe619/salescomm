@@ -471,4 +471,33 @@ public class AccountService {
     }
 
 
+    public List<Map<String,Object>> pageListRecords(CustomerBillQueryParam queryParam) {
+        // 如果没有传开始时间
+        StringBuilder sqlBuilder = new StringBuilder("SELECT t.type,CASE t.type WHEN '1' THEN '充值' WHEN '7' THEN '扣减' END AS typeContent," +
+                "t.create_time,t.transaction_id,t.amount/100 as amount ,cu.realname," +
+                "t.cust_id,t.certificate,t.remark from t_transaction_bill t \n" +
+                "LEFT JOIN t_customer_user cu on t.cust_id=cu.cust_id\n" +
+                " where 1=1 and cu.user_type=1");
+        if (StringUtil.isNotEmpty(queryParam.getCustomerId())) {
+            sqlBuilder.append(" and t.cust_id= " + queryParam.getCustomerId());
+        }
+        if (StringUtil.isNotEmpty(queryParam.getTransactionId())) {
+            sqlBuilder.append(" and t.transaction_id= " + queryParam.getTransactionId());
+        }
+        if (StringUtil.isNotEmpty(queryParam.getType())) {
+            sqlBuilder.append(" and t.type=" + queryParam.getType());
+        }
+        if (StringUtil.isNotEmpty(queryParam.getRealname())) {
+            sqlBuilder.append(" and cu.realname like '%" + queryParam.getRealname() + "%'");
+        }
+        if (StringUtil.isNotEmpty(queryParam.getStartTime())) {
+            sqlBuilder.append(" AND t.create_time >= '" + queryParam.getStartTime() + "'");
+        }
+        if (StringUtil.isNotEmpty(queryParam.getEndTime())) {
+            sqlBuilder.append(" AND t.create_time <='" + queryParam.getEndTime() + "'");
+        }
+        sqlBuilder.append(" ORDER BY t.create_time desc ");
+        logger.info("企业充值扣减记录sql:" + sqlBuilder.toString());
+        return jdbcTemplate.queryForList(sqlBuilder.toString());
+    }
 }

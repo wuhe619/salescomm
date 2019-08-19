@@ -195,6 +195,68 @@ public class AccountAction extends BasicAction {
         return new ResponseInfoAssemble().success(map);
     }
 
+    /**
+     * 后台 资金管理--企业资金--充值扣減 导出excel
+     *
+     * @param
+     * @return
+     * @auther Chacker
+     * @date
+     */
+    @RequestMapping(value = "/queryCustomerRecordsExport", method = RequestMethod.GET)
+    @ResponseBody
+    public ResponseInfo queryCustomerRecordsExport(CustomerBillQueryParam queryParam, HttpServletResponse response) {
+        LoginUser lu = opUser();
+        List<Map<String, Object>> list = null;
+        String basePath = "";
+        Map<Object, Object> map = new HashMap<Object, Object>();
+        try {
+            if ("ROLE_USER".equals(lu.getRole()) || "admin".equals(lu.getRole())) {
+                if (lu.getUserType().equals("1")) {
+                    list = accountService.pageListRecords(queryParam);
+                    //将列表信息导出为excel
+                    List<String> header = new ArrayList<>();
+                    List<List<Object>> data = new ArrayList<>();
+                    header.add("交易事项");
+                    header.add("交易日期");
+                    header.add("流水号");
+                    header.add("交易总额(元)");
+                    header.add("操作人");
+                    header.add("备注");
+                    List<Map<String, Object>> dataList = list;
+                    List<Object> rowList;
+                    for (Map<String, Object> column : dataList) {
+                        rowList = new ArrayList<>();
+                        rowList.add(column.get("typeContent") != null ? column.get("typeContent") : "");
+                        rowList.add(column.get("create_time") != null ? column.get("create_time") : "");
+                        rowList.add(column.get("transaction_id") != null ? column.get("transaction_id") : "");
+                        rowList.add(column.get("amount") != null ? column.get("amount") : "");
+                        rowList.add(column.get("realname") != null ? column.get("realname") : "");
+                        rowList.add(column.get("remark") != null ? column.get("remark") : "");
+                        data.add(rowList);
+                    }
+                    logger.info("data获取成功，值为" + data.toString());
+                    //下载的response属性设置
+                    response.setCharacterEncoding("utf-8");
+                    response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+                    String fileName = "账单.xlsx";
+                    ////保存的文件名,必须和页面编码一致,否则乱码
+                    String returnName = response.encodeURL(new String(fileName.getBytes(), "iso8859-1"));
+                    response.addHeader("Content-Disposition", "attachment;filename=" + returnName);
+                    OutputStream outputStream = response.getOutputStream();
+
+
+                    ExcelUtils.getInstance().exportObjects2Excel(data, header, outputStream);
+                    outputStream.flush();
+                    outputStream.close();
+                }
+            }
+        } catch (Exception e) {
+            logger.info("导出出现异常，异常信息为" + e.getMessage());
+        }
+        return new ResponseInfoAssemble().success(null);
+    }
+
     /*
      *
      *后台 资金管理--企业资金-充值记录导出
