@@ -356,6 +356,7 @@ public class ExpressBatchController extends BasicAction {
         response.setContentType("application/x-msdownload");
         String downloadZipFileName = zipPath.substring(zipPath.lastIndexOf(pathF) + 1);
         response.setHeader("Content-Disposition", "attachment;filename=" + downloadZipFileName);
+        logger.info("导出的文件名称为"+downloadZipFileName);
         InputStream inputStream = null;
         OutputStream bos = null;
         try {
