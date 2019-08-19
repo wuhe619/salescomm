@@ -17,6 +17,7 @@ import org.hibernate.metadata.ClassMetadata;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.Serializable;
 import java.util.List;
@@ -81,6 +82,7 @@ public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDao
     /**
      * 取得当前Session.
      */
+    @Transactional
     public Session getSession() {
         try {
             return super.getSessionFactory().getCurrentSession();
