@@ -4,7 +4,6 @@ import com.bdaim.common.dao.SimpleHibernateDao;
 import com.bdaim.rbac.dto.UserDTO;
 import com.bdaim.rbac.entity.User;
 import com.bdaim.rbac.entity.UserDO;
-
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Component;
 
@@ -113,6 +112,9 @@ public class UserDao extends SimpleHibernateDao<User, Serializable> {
         List<UserDO> list = this.find(hql, userId);
         if (list.size() > 0)
             cp = (UserDO) list.get(0);
-        return cp.getRealname();
+        if (cp != null) {
+            return cp.getRealname();
+        }
+        return null;
     }
 }

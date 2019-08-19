@@ -588,15 +588,21 @@ public class CustomerService {
         List<Map<String, Object>> list = pageData.getList();
         //查询部门里面有几个职位
         if (list.size() > 0) {
+            long packagerId = 0, printerId = 0;
             for (int i = 0; i < list.size(); i++) {
-                long packagerId = NumberConvertUtil.parseLong(String.valueOf(list.get(i).get("packagerId")));
-                long printerId = NumberConvertUtil.parseLong(String.valueOf(list.get(i).get("printerId")));
-                logger.info("封装员id是：" + packagerId + "打印员id是:" + printerId);
-                //根据id查询员工姓名
-                String packager = userDao.getUserRealName(packagerId);
-                list.get(i).put("packager", packager);
-                String printer = userDao.getUserRealName(printerId);
-                list.get(i).put("printer", printer);
+                if (StringUtil.isNotEmpty(String.valueOf(list.get(i).get("packagerId")))) {
+                    packagerId = NumberConvertUtil.parseLong(String.valueOf(list.get(i).get("packagerId")));
+                    logger.info("封装员id是：" + packagerId);
+                    //根据id查询员工姓名
+                    String packager = userDao.getUserRealName(packagerId);
+                    list.get(i).put("packager", packager);
+                }
+                if (StringUtil.isNotEmpty(String.valueOf(list.get(i).get("printerId")))) {
+                    printerId = NumberConvertUtil.parseLong(String.valueOf(list.get(i).get("printerId")));
+                    logger.info("打印员id是:" + printerId);
+                    String printer = userDao.getUserRealName(printerId);
+                    list.get(i).put("printer", printer);
+                }
             }
         }
         return pageData;
