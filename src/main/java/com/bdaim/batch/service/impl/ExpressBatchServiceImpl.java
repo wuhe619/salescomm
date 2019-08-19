@@ -153,15 +153,15 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
              * label_three 身份证号码
              * batch_id 对应nl_batch主表中的id
              * status 是修复状态，这里表示校验状态 0.无效、1.有效、2.校验中(此时为【2】【校验中】)
-             * label_seven 是快件状态 1、待上传内容2、待发件3、待取件4、已发件(此时为【1】【待上传内容】)
+             * label_seven 是快件状态 1、待上传内容2、待发件3、待取件4、已发件(此时为【1】【待上传内容】) 此时不赋值
              */
             String touchId = UUID.randomUUID().toString();
             StringBuffer batchDetailInsert = new StringBuffer("INSERT INTO nl_batch_detail (label_five,label_one,label_two," +
                     "site,label_three,batch_id," +
-                    "status,label_seven,touch_id,upload_time) VALUES ('");
+                    "status,touch_id,upload_time) VALUES ('");
             batchDetailInsert.append(contentList.get(i).get(0)).append("','").append(contentList.get(i).get(1)).append("','").append(contentList.get(i).get(2))
                     .append("','").append(contentList.get(i).get(3)).append("','").append(contentList.get(i).get(4)).append("','").append(batchId)
-                    .append("','").append(checkingResult).append("','1','").append(touchId).append("',NOW())");
+                    .append("','").append(checkingResult).append("','").append(touchId).append("',NOW())");
             int rowDetail = jdbcTemplate.update(batchDetailInsert.toString());
             logger.info("插入批次详情成功，条数为: " + rowDetail);
         }
@@ -504,9 +504,16 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
 
     @Override
     public String findPdfPathByReceiverId(String batchId, String receiverId) {
-        String sql = "SELECT label_eight AS pdfPath FROM nl_batch_detail WHERE batch_id='" + batchId + "' AND label_five='" + receiverId + "'";
-        Map<String, Object> map = jdbcTemplate.queryForMap(sql);
-        String pdfPath = String.valueOf(map.get("pdfPath"));
+        String pdfPath = "";
+        try{
+            String sql = "SELECT label_eight AS pdfPath FROM nl_batch_detail WHERE batch_id='" + batchId + "' AND label_five='" + receiverId + "' LIMIT 1";
+            logger.info("执行SQL"+sql);
+            Map<String, Object> map = jdbcTemplate.queryForMap(sql);
+            pdfPath = String.valueOf(map.get("pdfPath"));
+            return pdfPath;
+        }catch (Exception e){
+            logger.info("出现异常"+e.getMessage());
+        }
         return pdfPath;
     }
 
