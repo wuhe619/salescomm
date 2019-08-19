@@ -209,7 +209,7 @@ public class SupplierAction extends BasicAction {
     }
 
     /**
-     * @description 修改供应商服务优先级
+     * @description 根据供应商id查询服务资源
      * @metho
      */
     @RequestMapping(value = "/getSupResource", method = RequestMethod.GET)
