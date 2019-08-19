@@ -182,7 +182,7 @@ public class DeptService {
      */
     public List<Map<String, Object>> getDeptAndRoles(String deptId) throws Exception {
         logger.info("传递的部门id是：" + deptId);
-        StringBuffer queryDeptSql = new StringBuffer("SELECT ID deptID,`NAME` deptName FROM t_dept where 1=1");
+        StringBuffer queryDeptSql = new StringBuffer("SELECT  cast(ID as char) deptID,`NAME` deptName FROM t_dept where 1=1");
         if (StringUtil.isNotEmpty(deptId)) {
             queryDeptSql.append(" and ID ='" + deptId + "'");
         }
