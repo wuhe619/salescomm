@@ -612,13 +612,14 @@ public class BillAction extends BasicAction {
     }
 
 
-    /*
-     *
-     * 供应商账单详情页（名址修复系统）
-     * */
+    /**
+     * 供应商账单三级页面（信函）
+     * @param param
+     * @return
+     */
     @RequestMapping(value = "/getSupBillDetail", method = RequestMethod.POST)
     @ResponseBody
-    public ResponseInfo getSupBillDetailList(@RequestBody CustomerBillQueryParam param) {
+    public ResponseInfo getSupBillDetailList(@RequestBody SupplierBillQueryParam param) {
         LoginUser lu = opUser();
         Page page = null;
         try {
@@ -628,6 +629,26 @@ public class BillAction extends BasicAction {
         } catch (Exception e) {
             logger.error("查询账单详情异常", e);
             return new ResponseInfoAssemble().failure(-1, "查询账单详情失败");
+        }
+        return new ResponseInfoAssemble().success(page);
+    }
+    /**
+     * 供应商账单二级页面（信函）
+     * @param param
+     * @return
+     */
+    @RequestMapping(value = "/listSupplierBill", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseInfo getListSupplierBill(@RequestBody SupplierBillQueryParam param) {
+        LoginUser lu = opUser();
+        Page page = null;
+        try {
+            if ("ROLE_USER".equals(lu.getRole()) || "admin".equals(lu.getRole())) {
+                page = billService.getListSupplierBill(param);
+            }
+        } catch (Exception e) {
+            logger.error("查询账单异常", e);
+            return new ResponseInfoAssemble().failure(-1, "查询账单失败");
         }
         return new ResponseInfoAssemble().success(page);
     }

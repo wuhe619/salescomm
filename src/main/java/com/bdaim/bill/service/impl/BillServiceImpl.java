@@ -13,6 +13,7 @@ import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.entity.CustomerDO;
 import com.bdaim.rbac.dto.Page;
 import com.bdaim.resource.dao.SourceDao;
+import com.bdaim.resource.dto.MarketResourceLogDTO;
 import com.bdaim.resource.entity.MarketResourceEntity;
 import com.bdaim.supplier.dao.SupplierDao;
 import com.bdaim.supplier.dto.SupplierEnum;
@@ -1563,5 +1564,100 @@ public class BillServiceImpl implements BillService {
         return customerDao.sqlPageQuery(querySql.toString(), param.getPageNum(), param.getPageSize());
     }
 
+    /**
+     * 供应商账单三级页面(信函)
+     * @param param
+     * @return
+     */
+    public Page getSupBillDetailList(SupplierBillQueryParam param) {
+        StringBuffer querySql = new StringBuffer("SELECT d.batch_id batchId, d.site address,l.id expressId,l.resource_id expressResource, d.resource_id fixResource,l.create_time sendTime,d.fix_time fixTime,d.label_one name,d.label_two phone, d.label_five peopleId, IFNULL(d.amount / 100, 0) amount, IFNULL(d.prod_amount / 100, 0) prodAmount, IFNULL(l.prod_amount / 100, 0) expressAmount ");
+        querySql.append(" FROM nl_batch_detail d LEFT JOIN t_touch_express_log l ON d.touch_id = l.touch_id ");
+        querySql.append("WHERE 1=1 AND d.`status`=1 ");
+        if (StringUtil.isNotEmpty(param.getBatchId())) {
+            querySql.append(" AND d.batch_id ='" + param.getBatchId() + "'");
+        }
+        if (StringUtil.isNotEmpty(param.getExpressId())) {
+            querySql.append("AND l.id ='" + param.getExpressId() + "'");
+        }
+        if (StringUtil.isNotEmpty(param.getPeopleId())) {
+            querySql.append("AND d.label_five ='" + param.getPeopleId() + "'");
+        }
+        if (StringUtil.isNotEmpty(param.getName())) {
+            querySql.append("AND d.label_one like '%" + param.getName() + "%'");
+        }
+        //type 1 数据  2快递
+        MarketResourceEntity marketResourceEntity = sourceDao.getResourceId(param.getSupplierId(), NumberConvertUtil.parseInt(param.getType()));
+        if (marketResourceEntity != null) {
+            Integer resourceId = marketResourceEntity.getResourceId();
+            if (StringUtil.isNotEmpty(param.getSupplierId()) && "1".equals(param.getType())) {
+                querySql.append("AND d.resource_id = " + resourceId);
+            } else if (StringUtil.isNotEmpty(param.getResourceId()) && "2".equals(param.getType())) {
+                querySql.append("AND l.resource_id = " + resourceId);
+            }
+            if (StringUtil.isNotEmpty(param.getPhone())) {
+                querySql.append("AND d.label_one ='" + param.getPhone() + "'");
+            }
+        }
+        querySql.append(" GROUP BY d.touch_id");
+        return customerDao.sqlPageQuery(querySql.toString(), param.getPageNum(), param.getPageSize());
+    }
+
+    /**
+     * 供应商账单二级页面（信函）
+     * @param param
+     * @return
+     */
+    public Page getListSupplierBill(SupplierBillQueryParam param) {
+        //查询供应商下面所有的资源
+        List<MarketResourceLogDTO> marketResourceLogDTOS = supplierDao.listMarketResourceBySupplierId(String.valueOf(param.getSupplierId()));
+        String resourceIds = "";
+        if (marketResourceLogDTOS!=null && marketResourceLogDTOS.size()>0){
+            for (int i=0;i<marketResourceLogDTOS.size();i++){
+                resourceIds+=marketResourceLogDTOS.get(i).getResourceId() + ",";
+            }
+            resourceIds = resourceIds.substring(0,resourceIds.length()-1);
+        }
+        StringBuffer querySql = new StringBuffer("SELECT n.comp_id custId,b.batch_id batchId,n.batch_name batchName,n.upload_time uploadTime,n.repair_time repairTime,IFNULL(SUM(b.amount) / 100,0) amount ,IFNULL(SUM(b.prod_amount) / 100,0) prodAmount , ");
+        querySql.append("( SELECT COUNT(id) FROM nl_batch_detail WHERE batch_id = b.batch_id ) fixNumber ");
+        querySql.append("FROM stat_bill_month b LEFT JOIN nl_batch n ON b.batch_id = n.id  LEFT JOIN t_customer c ON  n.comp_id = c.cust_id ");
+        querySql.append("WHERE n.certify_type = 3 ");
+
+        if (StringUtil.isNotEmpty(param.getEnterpriseName())) {
+            querySql.append("AND c.enterprise_name like '%" + param.getEnterpriseName() + "%' ");
+        }
+        if (StringUtil.isNotEmpty(param.getBatchId())) {
+            querySql.append("AND n.id = '" + param.getBatchId() + "' ");
+        }
+        if (StringUtil.isNotEmpty(param.getBatchName())) {
+            querySql.append("AND n.batch_name like '%" + param.getBatchName() + "%'");
+        }
+        if (StringUtil.isNotEmpty(resourceIds)) {
+            querySql.append("AND b.resource_id in  (" + resourceIds + ")");
+        }
+        String billDate = param.getBillDate();
+        //0查詢全部 1查詢1年 2 查看近半年 201901查詢具体某月账单
+        if ("1".equals(billDate)) {
+            billDate = LocalDateTime.now().minusMonths(12).format(DateTimeFormatter.ofPattern("yyyyMM"));
+            querySql.append(" AND stat_time>=" + billDate);
+            //查看近半年
+        } else if ("2".equals(billDate)) {
+            billDate = LocalDateTime.now().minusMonths(6).format(DateTimeFormatter.ofPattern("yyyyMM"));
+            querySql.append(" AND stat_time>=" + billDate);
+        } else if (!"0".equals(billDate)) {
+            querySql.append(" AND stat_time=" + billDate);
+        }
+        querySql.append(" GROUP BY b.batch_id ");
+        Page data = customerDao.sqlPageQuery(querySql.toString(), param.getPageNum(), param.getPageSize());
+        if (data != null) {
+            List<Map<String, Object>> list = data.getData();
+            for (int i = 0; i < list.size(); i++) {
+                //根据批次id查询企业名称
+                String custId = String.valueOf(list.get(i).get("custId"));
+                String enterpriseName = customerDao.getEnterpriseName(custId);
+                list.get(i).put("custName", enterpriseName);
+            }
+        }
+        return data;
+    }
 }
 
