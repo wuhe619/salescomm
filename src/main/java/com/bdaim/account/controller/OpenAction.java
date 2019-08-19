@@ -523,6 +523,8 @@ public class OpenAction extends BasicAction {
     @RequestMapping(value = "/saveActionRecord", method = RequestMethod.POST)
     @ResponseBody
     public ResponseInfo saveActionRecord(@RequestBody Map<String, Object> map,HttpServletRequest request) {
+        log.info("进入保存用户的行为记录接口 saveActionRecord");
+        log.info("入参值为"+map.toString());
         openService.saveActionRecord(map,request);
         return new ResponseInfoAssemble().success(null);
     }
@@ -538,6 +540,8 @@ public class OpenAction extends BasicAction {
     @RequestMapping(value = "/saveAccessChannels", method = RequestMethod.POST)
     @ResponseBody
     public ResponseInfo saveAccessChannels(@RequestBody Map<String, Object> map, HttpServletRequest request) {
+        log.info("进入保存用户来访渠道接口 saveAccessChannels");
+        log.info("入参值为"+map.toString());
         ResponseInfo result = openService.saveAccessChannels(map, request);
         return result;
     }

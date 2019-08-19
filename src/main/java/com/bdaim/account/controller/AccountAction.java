@@ -224,6 +224,15 @@ public class AccountAction extends BasicAction {
         }
         return new ResponseInfoAssemble().success(resultMap);
     }
+
+    /**
+     * 供应商充扣记录 导出excel
+     *
+     * @param queryParam
+     * @return
+     * @auther Chacker
+     * @date
+     */
     @RequestMapping(value = "/querySupplierExport",method = RequestMethod.GET)
     @ResponseBody
     public ResponseInfo querySupplierExport(CustomerBillQueryParam queryParam,HttpServletResponse response){
