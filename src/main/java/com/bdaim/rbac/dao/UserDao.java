@@ -105,4 +105,14 @@ public class UserDao extends SimpleHibernateDao<User, Serializable> {
         List<Map<String, Object>> list = this.sqlQuery(sql.toString());
         return list;
     }
+
+    //根据userId查询用户信息
+    public String getUserRealName(Long userId) {
+        UserDO cp = null;
+        String hql = "from UserDO m where m.id=?";
+        List<UserDO> list = this.find(hql, userId);
+        if (list.size() > 0)
+            cp = (UserDO) list.get(0);
+        return cp.getRealname();
+    }
 }

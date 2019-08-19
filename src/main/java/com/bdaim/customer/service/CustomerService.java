@@ -530,7 +530,7 @@ public class CustomerService {
                 "cjc.mobile_num,  -- 属性表\n" +
                 "IFNULL (t1.title,'') AS title, -- 属性表\n" +
                 "t1.create_time,\n" +
-                "t1.`status`,cjc.packager,cjc.printer,cjc.idCardBack,cjc.idCardFront,\n" +
+                "t1.`status`,cjc.packagerId,cjc.printerId,cjc.idCardBack,cjc.idCardFront,\n" +
                 "cjc.industry,cjc.salePerson,cjc.contactAddress,\n" +
                 "cjc.province,cjc.city,cjc.fixPrice,cjc.county,cjc.taxpayerId,\n" +
                 "cjc.bli_path AS bliPic,\n" +
@@ -546,8 +546,8 @@ public class CustomerService {
                 "\tmax(CASE property_name WHEN 'city'   THEN property_value ELSE '' END ) city,\n" +
                 "\tmax(CASE property_name WHEN 'county'   THEN property_value ELSE '' END ) county,\n" +
                 "\tmax(CASE property_name WHEN 'taxpayer_id'   THEN property_value ELSE '' END ) taxpayerId,\n" +
-                "\tmax(CASE property_name WHEN 'packager'   THEN property_value ELSE '' END ) packager,\n" +
-                "\tmax(CASE property_name WHEN 'printer'   THEN property_value ELSE '' END ) printer,\n" +
+                "\tmax(CASE property_name WHEN 'packager'   THEN property_value ELSE '' END ) packagerId,\n" +
+                "\tmax(CASE property_name WHEN 'printer'   THEN property_value ELSE '' END ) printerId,\n" +
                 "\tmax(CASE property_name WHEN 'idCard_back_path'   THEN property_value ELSE '' END ) idCardBack,\n" +
                 "\tmax(CASE property_name WHEN 'idCard_front_path'   THEN property_value ELSE '' END ) idCardFront,\n" +
                 "\tmax(CASE property_name WHEN 'address_fix_price'   THEN property_value ELSE '' END ) fixPrice,\n" +
@@ -584,8 +584,22 @@ public class CustomerService {
             sqlBuilder.append(" AND cjc.industry = " + customerRegistDTO.getIndustry());
         }
         sqlBuilder.append(" order by t1.create_time desc");
-        return new Pagination().getPageData(sqlBuilder.toString(), null, page, jdbcTemplate);
-
+        Page pageData = new Pagination().getPageData(sqlBuilder.toString(), null, page, jdbcTemplate);
+        List<Map<String, Object>> list = pageData.getList();
+        //查询部门里面有几个职位
+        if (list.size() > 0) {
+            for (int i = 0; i < list.size(); i++) {
+                long packagerId = NumberConvertUtil.parseLong(String.valueOf(list.get(i).get("packagerId")));
+                long printerId = NumberConvertUtil.parseLong(String.valueOf(list.get(i).get("printerId")));
+                logger.info("封装员id是：" + packagerId + "打印员id是:" + printerId);
+                //根据id查询员工姓名
+                String packager = userDao.getUserRealName(packagerId);
+                list.get(i).put("packager", packager);
+                String printer = userDao.getUserRealName(printerId);
+                list.get(i).put("printer", printer);
+            }
+        }
+        return pageData;
     }
 
     public void heartbeat(long customerUserId) {
@@ -1026,7 +1040,7 @@ public class CustomerService {
         return list;
     }
 
-    public void updateServicePrice(String custId, String price) throws Exception{
+    public void updateServicePrice(String custId, String price) throws Exception {
         //查询企业属性表是否存在
         logger.info("查询的企业id是：" + custId);
         CustomerProperty customerProperty = customerDao.getProperty(custId, "address_fix_price");
