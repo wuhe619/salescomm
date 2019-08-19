@@ -660,7 +660,7 @@ public class BillAction extends BasicAction {
      */
     @RequestMapping(value = "/listSupplierBillExport", method = RequestMethod.GET)
     @ResponseBody
-    public ResponseInfo getListSupplierBillExport(@RequestParam SupplierBillQueryParam param,HttpServletResponse response) {
+    public ResponseInfo getListSupplierBillExport(SupplierBillQueryParam param,HttpServletResponse response) {
         logger.info("进入供应商二级账单导出接口 listSupplierBillExport");
         logger.info(param.toString());
         LoginUser lu = opUser();
