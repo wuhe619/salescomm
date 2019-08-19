@@ -27,12 +27,6 @@ import java.util.Map;
  * <p>
  * 可在Service层直接使用,也可以扩展泛型DAO子类使用.
  * 参考Spring2.5自带的Petlinc例子,取消了HibernateTemplate,直接使用Hibernate原生API.
- *
- * @param <T>  DAO操作的对象类型
- * @param <PK> 主键类型
- * @author zhangdebin
- * @version $Revision: 1.0 $
- * @created 2011-5-6 09:36:41
  */
 @SuppressWarnings("unchecked")
 public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDaoSupport{
