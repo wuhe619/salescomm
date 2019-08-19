@@ -72,7 +72,7 @@ public class SupplierService {
         sql.append("( SELECT GROUP_CONCAT(DISTINCT type_code) FROM t_market_resource WHERE supplier_id = s.supplier_id AND s.`status` = 1 ) resourceType,");
         sql.append("( SELECT property_value FROM t_supplier_property WHERE property_name = 'priority' AND supplier_id = s.supplier_id ) AS priority, ");
         sql.append("( SELECT GROUP_CONCAT(DISTINCT r.resname) FROM t_market_resource r WHERE supplier_id = s.supplier_id AND s.`status` = 1 ) resname ");
-        sql.append(" FROM t_supplier s WHERE s.`status` = 1 ");
+        sql.append(" FROM t_supplier s WHERE 1 = 1 ");
         if (StringUtil.isNotEmpty(serviceType)) {
             sql.append(" and s.supplier_id IN (SELECT supplier_id FROM t_market_resource WHERE type_code = " + serviceType + " GROUP BY supplier_id)");
         }
@@ -98,6 +98,7 @@ public class SupplierService {
                 SupplierPropertyEntity remainAmount = supplierDao.getSupplierProperty(id, "remain_amount");
                 if (remainAmount != null) {
                     list.get(i).put("remainAmount", NumberConvertUtil.transformtionElement(remainAmount.getPropertyValue()));
+                    log.info("供应商余额是：" + NumberConvertUtil.transformtionElement(remainAmount.getPropertyValue()));
                 }else{
                     list.get(i).put("remainAmount", 0);
 
