@@ -13,10 +13,16 @@ import com.bdaim.resource.dao.SourceDao;
 import com.bdaim.resource.service.MarketResourceService;
 import com.bdaim.supplier.dto.SupplierEnum;
 
-import org.apache.log4j.Logger;
+import net.sf.json.JSONString;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import javax.persistence.criteria.CriteriaBuilder;
 import javax.transaction.Transactional;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
@@ -33,7 +39,7 @@ import java.util.Map;
 @Service("packingService")
 @Transactional
 public class PackingService {
-    private static Logger logger = Logger.getLogger(PackingService.class);
+    private static Logger logger = LoggerFactory.getLogger(PackingService.class);
     @Resource
     private BatchDetailDao batchDetailDao;
     @Resource
@@ -42,6 +48,8 @@ public class PackingService {
     private SourceDao sourceDao;
     @Resource
     private MarketResourceService marketResourceService;
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     public List<Map<String, Object>> getMacResoult(String batchId) {
         String querySql = "SELECT * FROM tmp_nl_batch_detail b  WHERE batch_id = 1542005544857";
@@ -49,11 +57,7 @@ public class PackingService {
         return list;
     }
 
-    public List<Map<String, Object>> getAddressResoult(String batchId) {
-        String querySql = "SELECT * FROM tmp_nl_batch_detail b  WHERE batch_id = 1542099439991";
-        List<Map<String, Object>> list = batchDetailDao.sqlQuery(querySql);
-        return list;
-    }
+
 
     public List<Map<String, Object>> getImeiResoult() {
         String querySql = "SELECT * FROM tmp_nl_batch_detail b  WHERE batch_id = 1547293213042";
@@ -91,51 +95,98 @@ public class PackingService {
         return 0;
     }
 
-    public void sendExpress(JSONObject param, Long userId, String customerId) throws Exception {
-        //默认发送成功
-        String batchId = String.valueOf(param.get("batchId"));
-        String channel = String.valueOf(param.get("channel"));
-        String id = String.valueOf(param.get("id"));
-        String fileName = String.valueOf(param.get("fileName"));
-        String sendId = String.valueOf(param.get("sendId"));
-        //保存快递记录参数
-        String name = null, senderMessage = null;
-        double custExpressPrice = 0.0, suppperExpressPrice;
-        BigDecimal custExpressAmount, sourceSmsAmount;
-        boolean accountDeductionStatus, supperExpressStatu;
-        String touchId = Long.toString(IDHelper.getTransactionId());
-        //根据id和batchId查询收件人姓名
-        BatchDetail batchDetail = batchDetailDao.getBatchDetail(id, batchId);
-        String resourceId = marketResourceService.queryResourceId(String.valueOf(SupplierEnum.JD.getSupplierId()), ConstantsUtil.EXPRESS_TYPE);
-        if (batchDetail != null) {
-            //收件人姓名
-            name = batchDetail.getName();
+    /**
+     * 确认发件/批量发件
+     *
+     * @param map batchId、addressId、isBatch
+     * @return
+     * @auther Chacker
+     * @date 2019/8/8 14:42
+     */
+    public void sendExpress(Map<String, Object> map) {
+        //map中包括批次ID和地址ID，以及isBatch状态判断，
+        int isBatch = Integer.parseInt(String.valueOf(map.get("isBatch")));
+        String batchId = String.valueOf(map.get("batchId"));
+        String addressId = String.valueOf(map.get("addressId"));
+        //发件人ID
+        String senderId = String.valueOf(map.get("senderId"));
+        String updateBatchStatus = "UPDATE nl_batch SET status='5' WHERE id='" + batchId + "'";
+        if (isBatch == 1) {
+            //批量发送、将批次状态status修改为【5】【待取件】
+            jdbcTemplate.update(updateBatchStatus);
+            //将批次详情的状态label_seven 修改为 【3】【待取件】
+            String updateDetail = "UPDATE nl_batch_detail SET label_seven='3' WHERE batch_id='" + batchId + "'";
+            jdbcTemplate.update(updateDetail);
+            toSendExpress(isBatch, batchId, addressId, senderId);
+        } else if (isBatch == 0) {
+            //单个发送 将批次详情的状态 label_seven 状态修改为 【3】【待取件】
+            StringBuffer stringBuffer = new StringBuffer("UPDATE nl_batch_detail SET label_seven='3' WHERE batch_id='");
+            stringBuffer.append(batchId).append("' AND id='").append(addressId).append("'");
+            jdbcTemplate.update(stringBuffer.toString());
+            //如果该批次下已没有待发件的 快递信息，则把该批次更新为 【5】【待取件】
+            String countSql = "SELECT COUNT(*) AS count FROM nl_batch_detail WHERE label_seven='2' AND batch_id='" + batchId + "'";
+            Map<String, Object> result = jdbcTemplate.queryForMap(countSql);
+            int count = Integer.parseInt(String.valueOf(result.get("count")));
+            if (count == 0) {
+                jdbcTemplate.update(updateBatchStatus);
+            }
+            toSendExpress(isBatch, batchId, addressId, senderId);
         }
-        //根据sendId查询发件人信息
-        String querySql = "SELECT sender_name,phone,province,city,district,address,postcodes FROM t_sender_info WHERE id  =" + sendId;
-        List<Map<String, Object>> list = batchDetailDao.sqlQuery(querySql);
-        if (list.size() > 0) {
-            senderMessage = JSON.toJSONString(list.get(0));
+    }
+
+    /**
+     * 发送快递的接口
+     *
+     * @param isBatch   是否是批量发送 1、是 0、否
+     * @param batchId   批次编号
+     * @param addressId 地址ID
+     * @param senderId  发件人ID
+     * @return
+     * @auther Chacker
+     * @date 2019/8/9 15:02
+     */
+    private void toSendExpress(int isBatch, String batchId, String addressId, String senderId) {
+        //查询出发件人信息，并转化为json串，存入 t_touch_express_log的 sender_message 中
+        String senderSql = "SELECT id AS senderId,sender_name AS senderName,phone,province,city,district,address FROM t_sender_info WHERE id='"
+                + senderId + "'";
+        Map<String, Object> senderInfo = jdbcTemplate.queryForMap(senderSql);
+        if (isBatch == 1) {
+            //批量发送，根据批次ID batchId 找出地址ID、姓名、手机号
+            StringBuffer stringBuffer = new StringBuffer("SELECT id AS addressId,label_one AS name,label_two AS phone,label_eight AS pdfPath FROM nl_batch_detail WHERE batch_id='");
+            stringBuffer.append(batchId).append("' AND status='1'");
+            List<Map<String, Object>> resultList = jdbcTemplate.queryForList(stringBuffer.toString());
+            for (Map<String, Object> tempMap : resultList) {
+                updateExpressInfo(tempMap, senderInfo);
+
+            }
+        } else if (isBatch == 0) {
+            //单个发送，根据地址ID 找到 地址ID、姓名、手机号
+            StringBuffer stringBuffer = new StringBuffer("SELECT id AS addressId,label_one AS name,label_two AS phone,label_eight AS pdfPath FROM nl_batch_detail WHERE id='");
+            stringBuffer.append(addressId).append("'");
+            Map<String, Object> tempMap = jdbcTemplate.queryForMap(stringBuffer.toString());
+            updateExpressInfo(tempMap, senderInfo);
         }
-        //查询发送快递的成本价和销售价进行扣费
-        custExpressPrice = getCustExpressPrice(customerId);
-        logger.info("发送快递扣费客户:" + customerId + "发送快递单价:" + custExpressPrice);
-        custExpressAmount = new BigDecimal(custExpressPrice);
-        logger.info("发送快递扣费客户:" + customerId + ",开始扣费,金额:" + custExpressAmount.doubleValue());
-        accountDeductionStatus = customerDao.accountDeductions(customerId, custExpressAmount);
-        logger.info("发送快递扣费客户:" + customerId + ",扣费状态:" + accountDeductionStatus);
-        //供应商扣费
-        suppperExpressPrice = getsupplierExpressPrice(customerId, SupplierEnum.JD.getSupplierId());
-        logger.info("发送快递供应商:" + customerId + "发送快递单价:" + suppperExpressPrice);
-        logger.info("发送快递供应商:" + customerId + "发送快递扣费,金额:" + suppperExpressPrice);
-        //供应商扣费需要转换为分进行扣减
-        sourceSmsAmount = new BigDecimal(suppperExpressPrice * 100);
-        supperExpressStatu = sourceDao.supplierAccountDuctions(SupplierEnum.JD.getSupplierId(), sourceSmsAmount);
-        logger.info("发送快递扣费供应商:" + customerId + "发送快递扣费状态:" + supperExpressStatu);
-        logger.info("发送快递参数是：" + "batchId\t" + batchId + "地址id\t" + id + "发送快递文件名字" + fileName + "channel:" + channel + "发件地址Id" + sendId);
-        //保存快递记录
-        String insertLogSql = "INSERT INTO t_touch_express_log (touch_id,batch_id,address_id,receive_name,sender_message,create_time,STATUS,cust_id,user_id,file_path,amount,prod_amount,resource_id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)";
-        sourceDao.executeUpdateSQL(insertLogSql, new Object[]{touchId, batchId, id, name, senderMessage, LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")), 1, customerId, userId, fileName, custExpressPrice, suppperExpressPrice, resourceId});
+    }
+
+    /**
+     * 更新t_touch_express_log中的快递信息
+     *
+     * @param
+     * @return
+     * @auther Chacker
+     * @date 2019/8/9 15:48
+     */
+    public void updateExpressInfo(Map<String, Object> tempMap, Map<String, Object> senderInfo) {
+        String requestId = DigestUtils.md5Hex(String.valueOf(tempMap.get("addressId"))).toUpperCase();
+        //根据touch_id关联，把requestId更新到t_touch_express_log中
+        StringBuffer updateRequestId = new StringBuffer("UPDATE t_touch_express_log SET create_time=NOW(),status='2',request_id='");
+        String addressIdNew = String.valueOf(tempMap.get("addressId"));
+        String pdfPath = String.valueOf(tempMap.get("pdfPath"));
+        updateRequestId.append(requestId).append("',sender_message='").append(senderInfo.toString())
+                .append("',file_path='").append(pdfPath)
+                .append("' FROM nl_batch_detail")
+                .append("WHERE nl_batch_detail.touch_id=t_touch_express_log.touch_id AND nl_batch_detail.id='")
+                .append(addressIdNew).append("'");
     }
 
     public int countNumber(String batchId) throws Exception {
@@ -188,7 +239,7 @@ public class PackingService {
             json.put("sendId", sendId);
             //默认发送成功
             try {
-                sendExpress(json, userId, custId);
+                //sendExpress(json, userId, custId);
             } catch (Exception e) {
                 e.printStackTrace();
             }

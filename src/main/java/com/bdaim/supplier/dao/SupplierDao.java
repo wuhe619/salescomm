@@ -9,6 +9,7 @@ import com.bdaim.resource.entity.MarketResourceEntity;
 import com.bdaim.resource.entity.ResourcePropertyEntity;
 import com.bdaim.supplier.entity.SupplierEntity;
 
+import com.bdaim.supplier.entity.SupplierPropertyEntity;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -89,5 +90,18 @@ public class SupplierDao extends SimpleHibernateDao<SupplierEntity, Integer> {
         }
         return resourcesPriceDto;
     }
-
+    /**
+     * @description 获取供应商属性信息
+     * @author:duanliying
+     * @method
+     * @date: 2019/1/3 20:35
+     */
+    public SupplierPropertyEntity getSupplierProperty(String supplier, String propertyKey) {
+        SupplierPropertyEntity cp = null;
+        String hql = "from SupplierPropertyEntity m where m.supplierId=? and m.propertyName=?";
+        List<SupplierPropertyEntity> list = this.find(hql, supplier, propertyKey);
+        if (list.size() > 0)
+            cp = (SupplierPropertyEntity) list.get(0);
+        return cp;
+    }
 }

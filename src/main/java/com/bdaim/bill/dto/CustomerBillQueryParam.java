@@ -9,7 +9,14 @@ public class CustomerBillQueryParam {
     private String customerId;
     private String enterpriseName;
     private String account;
-
+    /**
+     * 快递id
+     */
+    private String expressId;
+    /**
+     * 收件人id
+     */
+    private String peopleId;
     private String phone;
     private String type;
     //0全部  1半年 2 一年  
@@ -18,7 +25,11 @@ public class CustomerBillQueryParam {
     private String supplierId;
     private String date;
     private String batchId;
-
+    private String batchName;
+    /**
+     * 姓名
+     */
+    private String name;
     private String startTime;
     private String endTime;
     private int pageNum;
@@ -33,6 +44,50 @@ public class CustomerBillQueryParam {
     private Integer payMode;
     private Long userId;
     private String dealType;
+    /**
+     * 资源id
+     */
+    private String resourceId;
+
+    public String getResourceId() {
+        return resourceId;
+    }
+
+    public void setResourceId(String resourceId) {
+        this.resourceId = resourceId;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getPeopleId() {
+        return peopleId;
+    }
+
+    public void setPeopleId(String peopleId) {
+        this.peopleId = peopleId;
+    }
+
+    public String getExpressId() {
+        return expressId;
+    }
+
+    public void setExpressId(String expressId) {
+        this.expressId = expressId;
+    }
+
+    public String getBatchName() {
+        return batchName;
+    }
+
+    public void setBatchName(String batchName) {
+        this.batchName = batchName;
+    }
 
     public String getEndTime() {
         return endTime;

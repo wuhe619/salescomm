@@ -1,8 +1,10 @@
 package com.bdaim.batch.controller;
 
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import com.bdaim.common.response.ResponseInfo;
+import com.bdaim.common.response.ResponseInfoAssemble;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.batch.dto.ExpressLog;
@@ -36,80 +38,110 @@ import java.util.Map;
  */
 @Controller
 @RequestMapping(value = "/express")
-public class SiteRepairAction extends BasicAction{
-    private static Log logger = LogFactory.getLog(SiteRepairAction.class);
+public class SiteRepairAction extends BasicAction {
+    private static Logger logger = LoggerFactory.getLogger(SiteRepairAction.class);
     @Resource
     private SendmessageService sendmessageService;
 
-   //添加
-
-    @RequestMapping(value = "/sendadd.do", method = RequestMethod.POST)
+    /**
+     * 添加发件人信息
+     *
+     * @param map
+     * @return
+     * @auther Chacker
+     * @date 2019/8/5 15:20
+     */
+    @RequestMapping(value = "/senderAdd", method = RequestMethod.POST)
     @ResponseBody
-    public String sendadd(@RequestBody SenderInfo senderInfo) {
-        String compId = opUser().getCustId();
-        logger.info("当前企业id是:" + compId);
-        Map<Object, Object> list=sendmessageService.sendadd(senderInfo,compId);
-
-        return JSON.toJSONString(list);
+    public ResponseInfo senderAdd(@RequestParam Map<String, Object> map) {
+        sendmessageService.senderAdd(map);
+        return new ResponseInfoAssemble().success(null);
     }
 
-    //修改
-    @ResponseBody
-    @RequestMapping(value = "/sendupdate.do", method = RequestMethod.POST)
-    public String sendupdate(@RequestBody SenderInfo senderInfo) {
-        Map<Object, Object> list=sendmessageService.sendupdate(senderInfo);
-        return JSON.toJSONString(list);
+//    //修改
+//    @ResponseBody
+//    @RequestMapping(value = "/sendupdate.do", method = RequestMethod.POST)
+//    public String sendupdate(@RequestBody SenderInfo senderInfo) {
+//        Map<Object, Object> list = sendmessageService.sendupdate(senderInfo);
+//        return JSON.toJSONString(list);
+//
+//    }
 
+    /**
+     * 修改 发件人信息/发件地址
+     *
+     * @param
+     * @return
+     * @auther Chacker
+     * @date 2019/8/5 17:19
+     */
+    @ResponseBody
+    @RequestMapping(value = "/senderUpdate", method = RequestMethod.POST)
+    public ResponseInfo senderUpdate(@RequestParam Map<String, Object> map) {
+        sendmessageService.senderUpdate(map);
+        return new ResponseInfoAssemble().success(null);
     }
 
-    //设置默认
+    //    //设置默认
+//    @ResponseBody
+//    @RequestMapping(value = "/defaultupdate.do", method = RequestMethod.GET)
+//    public String defaultupdate(String id) {
+//        String compId = opUser().getCustId();
+//        Map<Object, Object> list = sendmessageService.defaultupdate(id, compId);
+//        return JSON.toJSONString(list);
+//    }
+
+    /**
+     * 设为默认发件人/发件地址
+     *
+     * @param id      发件人信息id
+     * @param cust_id 企业ID
+     * @return
+     * @auther Chacker
+     * @date 2019/8/5 16:57
+     */
     @ResponseBody
-    @RequestMapping(value = "/defaultupdate.do", method = RequestMethod.GET)
-    public String defaultupdate(String id) {
-        String compId = opUser().getCustId();
-        Map<Object, Object> list=sendmessageService.defaultupdate(id,compId);
-        return JSON.toJSONString(list);
+    @RequestMapping(value = "/defaultUpdate", method = RequestMethod.GET)
+    public ResponseInfo defaultUpdate(@RequestParam String id, String cust_id) {
+        sendmessageService.defaultUpdate(id, cust_id);
+        return new ResponseInfoAssemble().success(null);
     }
 
-
-   //发件信息查询
+    /**
+     * 发件人信息列表查询
+     *
+     * @param map page_num、page_size、custId、senderName、phone
+     * @return
+     * @auther Chacker
+     * @date 2019/8/5 14:28
+     */
     @ResponseBody
-    @RequestMapping(value = "/sendlist.do", method = RequestMethod.GET)
-    public Object sendlist(@Valid PageParam page, BindingResult error) {
-        if (error.hasFieldErrors()) {
-            page.setPageNum(1);
-            page.setPageSize(20);
-        }
-        if (page.getPageSize() > 100) {
-            page.setPageSize(100);
-        }
-
-        String compId = opUser().getCustId();
-        logger.info("当前企业id是:" + compId);
-        Page list = null;
-       list =sendmessageService.sendlist(page,compId);
-
-        return JSON.toJSONString(list);
+    @RequestMapping(value = "/senderList", method = RequestMethod.GET)
+    public ResponseInfo senderList(@RequestParam Map<String, Object> map) {
+        Map<String, Object> resultMap = sendmessageService.senderList(map);
+        return new ResponseInfoAssemble().success(resultMap);
     }
 
-    //发件信息删除
+    /**
+     * 删除发件人信息
+     *
+     * @param id
+     * @return
+     * @auther Chacker
+     * @date 2019/8/5 16:34
+     */
     @ResponseBody
-    @RequestMapping(value = "/senddelete.do", method = RequestMethod.GET)
-    public String senddelete(String id) {
-        Map<Object, Object> list=sendmessageService.senddelete(id);
-
-        return JSON.toJSONString(list);
-
+    @RequestMapping(value = "/senderDelete", method = RequestMethod.GET)
+    public ResponseInfo senderDelete(@RequestParam String id) {
+        sendmessageService.senderDelete(id);
+        return new ResponseInfoAssemble().success(null);
     }
-
-
-
 
 
     //快递记录查询
     @RequestMapping(value = "/expressRecord.do", method = RequestMethod.GET)
     @ResponseBody
-    public String searchPropertyList(@Valid PageParam page, BindingResult error,ExpressLog expressLog) {
+    public String searchPropertyList(@Valid PageParam page, BindingResult error, ExpressLog expressLog) {
         if (error.hasFieldErrors()) {
             page.setPageNum(1);
             page.setPageSize(20);
@@ -120,7 +152,6 @@ public class SiteRepairAction extends BasicAction{
         Page list = sendmessageService.pageList(page, expressLog);
         return JSON.toJSONString(list);
     }
-
 
 
     //快递记录导出
@@ -135,9 +166,9 @@ public class SiteRepairAction extends BasicAction{
     //修复详情导出
     @RequestMapping(value = "/repair/detailsderive.do", method = RequestMethod.GET, produces = "application/vnd.ms-excel;charset=UTF-8")
     @ResponseBody
-    public Object repairDetailsderive(String batchid,String name,String phone,String touch_id,Integer status,Integer Status, HttpServletResponse response) {
+    public Object repairDetailsderive(String batchid, String name, String phone, String touch_id, Integer status, Integer Status, HttpServletResponse response) {
 
-        return sendmessageService.repairDetailsderive(batchid,name,phone,touch_id,status,Status,response);
+        return sendmessageService.repairDetailsderive(batchid, name, phone, touch_id, status, Status, response);
 
     }
 
@@ -146,15 +177,15 @@ public class SiteRepairAction extends BasicAction{
 
     @RequestMapping(value = "/repairdetails", method = RequestMethod.GET)
     @ResponseBody
-    public String repairDetails(String batchid,String name,String phone,String touch_id,Integer status,Integer Status, Integer pageNum, Integer pageSize) {
+    public String repairDetails(String batchid, String name, String phone, String touch_id, Integer status, Integer Status, Integer pageNum, Integer pageSize) {
         JSONObject json = new JSONObject();
-        List<Map<String, Object>> list = sendmessageService.repairDetails(pageNum,pageSize,batchid,name,phone,touch_id,status,Status);
-        Map<String, Object> time= sendmessageService.time(batchid);
+        List<Map<String, Object>> list = sendmessageService.repairDetails(pageNum, pageSize, batchid, name, phone, touch_id, status, Status);
+        Map<String, Object> time = sendmessageService.time(batchid);
 
-        json.put("total",list.size());
-        json.put("atlatest",time.get("atlatest"));
-        json.put("initialmortgage",time.get("initialmortgage"));
-        json.put("list",list);
+        json.put("total", list.size());
+        json.put("atlatest", time.get("atlatest"));
+        json.put("initialmortgage", time.get("initialmortgage"));
+        json.put("list", list);
         return json.toJSONString();
 
 
@@ -198,7 +229,7 @@ public class SiteRepairAction extends BasicAction{
             targetFile = new File(file1, String.valueOf(fileName));
             try {
                 file.transferTo(targetFile);
-                msg = returnUrl + fileAdd + File.separator  + fileName;
+                msg = returnUrl + fileAdd + File.separator + fileName;
                 code = 0;
 
             } catch (Exception e) {
@@ -421,7 +452,7 @@ public class SiteRepairAction extends BasicAction{
 */
 
 
-  /*  }*/
+    /*  }*/
 
  /*   @Override
     @ResponseBody
@@ -437,23 +468,15 @@ registry.addResourceHandler("/**")
  }*/
 
 
-
-
-
-
-
-
-
- //提交快递
+    //提交快递
 
     @ResponseBody
     @RequestMapping(value = "/Submit/Courier", method = RequestMethod.GET)
-    public String submitCourier(String siteid,String bachid) {
-        Map<String,Object> map = new HashMap<>();
+    public String submitCourier(String siteid, String bachid) {
+        Map<String, Object> map = new HashMap<>();
         String companyid = opUser().getCustId();
-        Map<String, Object> list = sendmessageService.submitCourier(siteid, companyid,bachid);
-        map.put("list",list);
-
+        Map<String, Object> list = sendmessageService.submitCourier(siteid, companyid, bachid);
+        map.put("list", list);
 
 
         return JSON.toJSONString(map);
@@ -465,13 +488,12 @@ registry.addResourceHandler("/**")
     @ResponseBody
     @RequestMapping(value = "/Submit/express", method = RequestMethod.GET)
     public String express(String touch_id) {
-        Map<String,Object> map = new HashMap<>();
+        Map<String, Object> map = new HashMap<>();
         Map<String, Object> list = sendmessageService.express(touch_id);
-        map.put("markedWord",list);
+        map.put("markedWord", list);
 
         return JSON.toJSONString(map);
     }
-
 
 
 }

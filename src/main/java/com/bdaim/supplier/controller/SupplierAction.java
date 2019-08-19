@@ -5,11 +5,15 @@ import com.bdaim.auth.LoginUser;
 import com.bdaim.bill.dto.CustomerBillQueryParam;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.dto.PageParam;
+import com.bdaim.common.response.ResponseInfo;
+import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.rbac.dto.Page;
+import com.bdaim.resource.dto.MarketResourceLogDTO;
 import com.bdaim.supplier.dto.SupplierDTO;
 import com.bdaim.supplier.service.SupplierService;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -34,7 +38,7 @@ import java.util.Map;
 @Controller
 @RequestMapping("/supplier")
 public class SupplierAction extends BasicAction {
-    public static final Logger LOG = Logger.getLogger(SupplierAction.class);
+    public static final Logger LOG = LoggerFactory.getLogger(SupplierAction.class);
 
     @Resource
     SupplierService supplierService;
@@ -68,10 +72,7 @@ public class SupplierAction extends BasicAction {
      */
     @RequestMapping(value = "/getSupplierList", method = RequestMethod.GET)
     @ResponseBody
-    public String listSupplierByPage(@Valid PageParam page, BindingResult error, String supplierId, String supplierName, String person, String phone, String serviceType) {
-        if (error.hasFieldErrors()) {
-            return getErrors(error);
-        }
+    public ResponseInfo listSupplierByPage(@Valid PageParam page, BindingResult error, String supplierId, String supplierName, String person, String phone, String serviceType) {
         Map<String, Object> resultMap = new HashMap<>();
         try {
             LoginUser lu = opUser();
@@ -79,12 +80,12 @@ public class SupplierAction extends BasicAction {
                 Page data = supplierService.listSupplierByPage(page, supplierId, supplierName, person, phone, serviceType);
                 resultMap.put("total", data.getTotal());
                 resultMap.put("list", data.getData());
-                return returnJsonData(resultMap);
             }
         } catch (Exception e) {
             LOG.error("查询供应商列表失败,", e);
+            return new ResponseInfoAssemble().failure(-1, "查询供应商列表异常");
         }
-        return returnJsonData("");
+        return new ResponseInfoAssemble().success(resultMap);
     }
 
 
@@ -99,9 +100,8 @@ public class SupplierAction extends BasicAction {
      */
     @ResponseBody
     @RequestMapping(value = "/supplierChange", method = RequestMethod.POST)
-    public String supplierChange(@RequestBody SupplierDTO supplierDTO) {
+    public ResponseInfo supplierChange(@RequestBody SupplierDTO supplierDTO) {
         Map<String, Object> map = new HashMap<>();
-        JSONObject json = new JSONObject();
         LoginUser lu = opUser();
         if ("ROLE_USER".equals(lu.getRole()) || "admin".equals(lu.getRole())) {
             List<String> type = Arrays.asList(supplierDTO.getType().split(","));
@@ -110,43 +110,36 @@ public class SupplierAction extends BasicAction {
                     if (type.get(i).equals("1")) {
                         try {
                             supplierService.updatesupplier(supplierDTO);
-                            map.put("code", "0");
-                            map.put("_message", "编辑供应商成功");
+                            return new ResponseInfoAssemble().success(null);
                         } catch (Exception e) {
-                            LOG.error("配置供应商异常" + e);
-                            map.put("code", "1");
-                            map.put("_message", "编辑供应商失败");
+                            LOG.error("配置供应商异常", e);
+                            return new ResponseInfoAssemble().failure(-1, "配置供应商失败");
                         }
-                        json.put("data", map);
                     } else if (type.get(i).equals("2")) {
                         try {
                             supplierService.updatePrice(supplierDTO);
-                            map.put("code", "0");
-                            map.put("_message", "供应商定价成功");
+                            return new ResponseInfoAssemble().success(null);
                         } catch (Exception e) {
-                            LOG.error("供应商定价失败" + e);
-                            map.put("code", "1");
-                            map.put("_message", "供应商定价失败");
+                            LOG.error("供应商定价失败", e);
+                            return new ResponseInfoAssemble().failure(-1, "供应商定价失败");
                         }
-                        json.put("data", map);
                     } else if (type.get(i).equals("3")) {
                         try {
                             supplierService.supplierStatus(supplierDTO);
-                            map.put("code", "0");
-                            map.put("_message", "编辑供应商状态成功");
+                            return new ResponseInfoAssemble().success(null);
                         } catch (Exception e) {
-                            LOG.error("编辑供应商状态失败" + e);
+                            LOG.error("编辑供应商状态失败", e);
                             map.put("code", "1");
                             map.put("_message", "编辑供应商状态失败");
+                            return new ResponseInfoAssemble().failure(-1, "编辑供应商状态失败");
                         }
-                        json.put("data", map);
                     }
                 }
             }
         } else {
             LOG.info("后台登陆账号错误");
         }
-        return json.toJSONString();
+        return new ResponseInfoAssemble().success(null);
     }
 
     /**
@@ -156,12 +149,12 @@ public class SupplierAction extends BasicAction {
      */
     @ResponseBody
     @RequestMapping(value = "/getSupplierPrice", method = RequestMethod.GET)
-    public String searchSupplierPrice(String supplierId) {
+    public ResponseInfo searchSupplierPrice(String supplierId) {
         if (StringUtil.isEmpty(supplierId)) {
-            return "supplierId不允许为空";
+            return new ResponseInfoAssemble().failure(-1, "supplierId不允许为空");
         }
         LoginUser lu = opUser();
-        JSONObject result= new JSONObject();
+        JSONObject result = new JSONObject();
         if ("ROLE_USER".equals(lu.getRole()) || "admin".equals(lu.getRole())) {
             try {
                 result = supplierService.searchSupplierPrice(supplierId);
@@ -169,8 +162,7 @@ public class SupplierAction extends BasicAction {
                 LOG.error("供应商详情查询" + e);
             }
         }
-
-        return returnJsonData(result);
+        return new ResponseInfoAssemble().success(result);
     }
 
     /**
@@ -196,4 +188,41 @@ public class SupplierAction extends BasicAction {
         }
         return JSONObject.toJSON(resultMap);
     }
+
+    /**
+     * @description 修改供应商服务优先级
+     * @metho
+     */
+    @RequestMapping(value = "/setSupPriority", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseInfo setSupplierPriority(@RequestBody List<Map<String, Object>> list) {
+        try {
+            LoginUser lu = opUser();
+            if ("ROLE_USER".equals(lu.getRole()) || "admin".equals(lu.getRole())) {
+                supplierService.setSupplierPriority(list);
+            }
+        } catch (Exception e) {
+            LOG.error("保存服务优先级异常,", e);
+            return new ResponseInfoAssemble().failure(-1, "保存服务优先级失败");
+        }
+        return new ResponseInfoAssemble().success(null);
+    }
+
+    /**
+     * @description 修改供应商服务优先级
+     * @metho
+     */
+    @RequestMapping(value = "/getSupResource", method = RequestMethod.GET)
+    @ResponseBody
+    public ResponseInfo getSupResourceBySupplierId(String supplierId) {
+        List<MarketResourceLogDTO> supResourceBySupplierId = null;
+        try {
+            supResourceBySupplierId = supplierService.getSupResourceBySupplierId(supplierId);
+        } catch (Exception e) {
+            LOG.error("保存服务优先级异常,", e);
+            return new ResponseInfoAssemble().failure(-1, "保存服务优先级失败");
+        }
+        return new ResponseInfoAssemble().success(supResourceBySupplierId);
+    }
+
 }

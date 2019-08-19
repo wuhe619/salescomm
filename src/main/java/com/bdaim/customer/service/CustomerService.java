@@ -9,12 +9,7 @@ import com.bdaim.batch.entity.BatchListEntity;
 import com.bdaim.common.CommonInfoCodeEnum;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.exception.TouchException;
-import com.bdaim.common.util.CipherUtil;
-import com.bdaim.common.util.Constant;
-import com.bdaim.common.util.DateUtil;
-import com.bdaim.common.util.IDHelper;
-import com.bdaim.common.util.NumberConvertUtil;
-import com.bdaim.common.util.StringUtil;
+import com.bdaim.common.util.*;
 import com.bdaim.common.util.page.Page;
 import com.bdaim.common.util.page.Pagination;
 import com.bdaim.customer.dao.CustomerDao;
@@ -31,9 +26,11 @@ import com.bdaim.resource.dao.SourceDao;
 import com.bdaim.resource.dto.MarketResourceDTO;
 import com.bdaim.resource.entity.ResourcePropertyEntity;
 import com.bdaim.supplier.service.SupplierService;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+
 import javax.annotation.Resource;
 import javax.transaction.Transactional;
 import java.sql.Timestamp;
@@ -44,7 +41,7 @@ import java.util.regex.Pattern;
 @Service("customerService")
 @Transactional
 public class CustomerService {
-    private static Logger logger = Logger.getLogger(CustomerService.class);
+    private static Logger logger = LoggerFactory.getLogger(CustomerService.class);
     @Resource
     UserDao userDao;
     @Resource
@@ -228,7 +225,7 @@ public class CustomerService {
         return customerUserDao.getName(userId);
     }
 
-    public synchronized void registerOrUpdateCustomer(CustomerRegistDTO vo) {
+    public synchronized void registerOrUpdateCustomer(CustomerRegistDTO vo) throws Exception {
         if (StringUtil.isNotEmpty(vo.getDealType())) {
             //编辑或创建客户
             CustomerUserDO customerUserDO;
@@ -364,6 +361,39 @@ public class CustomerService {
                         customerDao.dealCustomerInfo(customerId, "mobile_num", vo.getMobile());
                     }
                 }
+                //身份证正面url
+                if (StringUtil.isNotEmpty(vo.getIdCardFront())) {
+                    if (StringUtil.isNotEmpty(vo.getCustId())) {
+                        customerDao.dealCustomerInfo(vo.getCustId(), "idCard_front_path", vo.getIdCardFront());
+                    } else {
+                        customerDao.dealCustomerInfo(customerId, "idCard_front_path", vo.getIdCardFront());
+                    }
+                }
+                //身份证背面url
+                if (StringUtil.isNotEmpty(vo.getIdCardBack())) {
+                    if (StringUtil.isNotEmpty(vo.getCustId())) {
+                        customerDao.dealCustomerInfo(vo.getCustId(), "idCard_back_path", vo.getIdCardBack());
+                    } else {
+                        customerDao.dealCustomerInfo(customerId, "idCard_back_path", vo.getIdCardBack());
+                    }
+                }
+                //打印员
+                if (StringUtil.isNotEmpty(vo.getPrinterId())) {
+                    if (StringUtil.isNotEmpty(vo.getCustId())) {
+                        customerDao.dealCustomerInfo(vo.getCustId(), "printer", vo.getPrinterId());
+                    } else {
+                        customerDao.dealCustomerInfo(customerId, "printer", vo.getPrinterId());
+                    }
+                }
+                //封装员
+                if (StringUtil.isNotEmpty(vo.getPackagerId())) {
+                    if (StringUtil.isNotEmpty(vo.getCustId())) {
+                        customerDao.dealCustomerInfo(vo.getCustId(), "packager", vo.getPackagerId());
+                    } else {
+                        customerDao.dealCustomerInfo(customerId, "packager", vo.getPackagerId());
+                    }
+                }
+
 
             } else if (vo.getDealType().equals("2")) {//冻结以及解冻
                 if (StringUtil.isNotEmpty(vo.getCustId())) {
@@ -399,9 +429,15 @@ public class CustomerService {
                         }
                     }
                 }
+                //快递设置
+            } else if (vo.getDealType().equals("4")) {//快递设置
+                if (StringUtil.isNotEmpty(vo.getExpressConfig())) {
+                    if (StringUtil.isNotEmpty(vo.getCustId())) {
+                        customerDao.dealCustomerInfo(vo.getCustId(), "express_config", vo.getExpressConfig());
+                    }
+                }
             }
         }
-
     }
 
 
@@ -496,7 +532,7 @@ public class CustomerService {
                 "t1.create_time,\n" +
                 "t1.`status`,\n" +
                 "cjc.industry,cjc.salePerson,cjc.contactAddress,\n" +
-                "cjc.province,cjc.city,cjc.county,cjc.taxpayerId,\n" +
+                "cjc.province,cjc.city,cjc.fixPrice,cjc.county,cjc.taxpayerId,\n" +
                 "cjc.bli_path AS bliPic,\n" +
                 "cjc.bank,cjc.bankAccount,                 \n" +
                 "cjc.bank_account_certificate AS bankAccountPic\n" +
@@ -510,6 +546,7 @@ public class CustomerService {
                 "\tmax(CASE property_name WHEN 'city'   THEN property_value ELSE '' END ) city,\n" +
                 "\tmax(CASE property_name WHEN 'county'   THEN property_value ELSE '' END ) county,\n" +
                 "\tmax(CASE property_name WHEN 'taxpayer_id'   THEN property_value ELSE '' END ) taxpayerId,\n" +
+                "\tmax(CASE property_name WHEN 'address_fix_price'   THEN property_value ELSE '' END ) fixPrice,\n" +
                 "\tmax(CASE property_name WHEN 'bli_path'   THEN property_value ELSE '' END ) bli_path,\n" +
                 "\tmax(CASE property_name WHEN 'bank'   THEN property_value ELSE '' END ) bank,\n" +
                 "\tmax(CASE property_name WHEN 'bank_account'   THEN property_value ELSE '' END ) bankAccount,\n" +
@@ -745,7 +782,7 @@ public class CustomerService {
             }
         }
         //查询出资源id看原配置是否存在，存在更新不存在删除
-        if (StringUtil.isEmpty(suppliers.toString())){
+        if (StringUtil.isEmpty(suppliers.toString())) {
             suppliers = getCustResourceStr(custConfigLists);
             logger.info("首次配置资源" + custId + "供应商是" + suppliers.toString());
         }
@@ -933,7 +970,7 @@ public class CustomerService {
      * @method
      * @date: 2019/3/19 14:48
      */
-    public List<Map<String, Object>> getSalePriceLog(PageParam page, String zid,String custId, String name, String startTime, String endTime) throws Exception {
+    public List<Map<String, Object>> getSalePriceLog(PageParam page, String zid, String custId, String name, String startTime, String endTime) throws Exception {
         StringBuffer sql = new StringBuffer("select g.*,commoninfo.create_time as createTime from (\n");
         sql.append("SELECT cast(a.zid as char) zid,");
         sql.append("GROUP_CONCAT(custId order by custId separator '')custId, ");
@@ -985,5 +1022,21 @@ public class CustomerService {
         return list;
     }
 
+    public void updateServicePrice(String custId, String price) throws Exception{
+        //查询企业属性表是否存在
+        logger.info("查询的企业id是：" + custId);
+        CustomerProperty customerProperty = customerDao.getProperty(custId, "address_fix_price");
+        if (customerProperty != null) {
+            customerProperty.setPropertyValue(price);
+        } else {
+            customerProperty = new CustomerProperty();
+            customerProperty.setCustId(custId);
+            customerProperty.setPropertyName("address_fix_price");
+            customerProperty.setPropertyValue(price);
+            customerProperty.setCreateTime(DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss));
+
+        }
+        customerDao.saveOrUpdate(customerProperty);
+    }
 }
 

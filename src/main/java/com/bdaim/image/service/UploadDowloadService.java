@@ -1,5 +1,7 @@
 package com.bdaim.image.service;
 
+import org.springframework.web.multipart.MultipartFile;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -23,4 +25,6 @@ public interface UploadDowloadService {
 	String zipFileUrl(String zipBasePath, String zipName, String zipFilePath, List<String> filePaths, ZipOutputStream zos, String batchName, String realName, String userid) throws IOException;
 
 	String toUtf8String(HttpServletRequest request, String fileName);
+
+    Object uploadImg(MultipartFile file);
 }

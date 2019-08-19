@@ -1,7 +1,7 @@
 package com.bdaim.common.util;
 
-import org.apache.log4j.Logger;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.text.NumberFormat;
@@ -13,7 +13,7 @@ import java.text.NumberFormat;
  */
 public class NumberConvertUtil {
 
-    private final static Logger LOG = Logger.getLogger(NumberConvertUtil.class);
+    private final static Logger LOG = LoggerFactory.getLogger(NumberConvertUtil.class);
 
     private static NumberFormat numberFormat = NumberFormat.getInstance();
 

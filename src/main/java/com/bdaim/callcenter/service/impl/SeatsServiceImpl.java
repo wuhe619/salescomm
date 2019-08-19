@@ -33,7 +33,8 @@ import com.bdaim.resource.service.impl.MarketResourceServiceImpl;
 import com.bdaim.supplier.dao.SupplierDao;
 import com.bdaim.supplier.dto.SupplierEnum;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -53,7 +54,7 @@ import java.util.*;
 @Service("SeatsService")
 @Transactional
 public class SeatsServiceImpl implements SeatsService {
-    private static Logger logger = Logger.getLogger(SeatsServiceImpl.class);
+    private static Logger logger = LoggerFactory.getLogger(SeatsServiceImpl.class);
 
     @Resource
     private JdbcTemplate jdbcTemplate;

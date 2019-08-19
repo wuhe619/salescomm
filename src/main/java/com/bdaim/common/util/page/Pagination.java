@@ -1,6 +1,7 @@
 package com.bdaim.common.util.page;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.support.JdbcDaoSupport;
 
@@ -14,7 +15,7 @@ import java.util.List;
  * @description
  */
 public class Pagination extends JdbcDaoSupport {
-    private static final Logger LOGGER = Logger.getLogger(Pagination.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(Pagination.class);
     /**
      * 一页显示的记录数
      */
@@ -54,6 +55,7 @@ public class Pagination extends JdbcDaoSupport {
      */
     public Page getPageData(String sql, Object[] params, PageParam page, JdbcTemplate jTemplate) {
         if (jTemplate == null) {
+            logger.info("JdbcTemplate is null,please initial it first. ");
             throw new IllegalArgumentException("JdbcTemplate is null,please initial it first. ");
         } else if (sql == null || sql.equals("")) {
             throw new IllegalArgumentException("sql is empty,please initial it first. ");

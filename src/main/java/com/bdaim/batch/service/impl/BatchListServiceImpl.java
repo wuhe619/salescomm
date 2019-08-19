@@ -27,7 +27,8 @@ import com.bdaim.price.dto.ResourcesPriceDto;
 import com.bdaim.resource.dao.SourceDao;
 import com.bdaim.resource.entity.MarketResourceEntity;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -55,7 +56,7 @@ import java.util.*;
 @Transactional
 public class BatchListServiceImpl implements BatchListService {
 
-    private final static Logger LOG = Logger.getLogger(BatchListServiceImpl.class);
+    private final static Logger LOG = LoggerFactory.getLogger(BatchListServiceImpl.class);
 
     @Resource
     private BatchDao batchListDao;

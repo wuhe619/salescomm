@@ -10,8 +10,8 @@ import com.bdaim.common.util.page.Page;
 import com.bdaim.price.dto.SalePriceDTO;
 import com.bdaim.price.service.SalePriceService;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -33,7 +33,7 @@ import java.util.Map;
 @Controller
 @RequestMapping("/price")
 public class SalesPriceingAction extends BasicAction {
-    private static Log logger = LogFactory.getLog(SalesPriceingAction.class);
+    private static Logger logger = LoggerFactory.getLogger(SalesPriceingAction.class);
     @Resource
     private SalePriceService salePriceService;
 

@@ -11,8 +11,8 @@ import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.price.dto.ResourcesPriceDto;
 import com.bdaim.resource.service.impl.MarketResourceServiceImpl;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -28,7 +28,7 @@ import java.util.Map;
 @Service("callCenterService")
 @Transactional
 public class CallCenterServiceImpl implements CallCenterService {
-    private static Log LOG = LogFactory.getLog(CallCenterServiceImpl.class);
+    private static Logger LOG = LoggerFactory.getLogger(CallCenterServiceImpl.class);
     @Resource
     private SeatsServiceImpl seatsService;
     @Resource

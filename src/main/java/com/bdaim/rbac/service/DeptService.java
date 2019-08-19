@@ -1,18 +1,25 @@
 package com.bdaim.rbac.service;
 
+import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.util.DateUtil;
 import com.bdaim.common.util.IDHelper;
 import com.bdaim.common.util.NumberConvertUtil;
 import com.bdaim.common.util.StringUtil;
+import com.bdaim.common.util.page.Page;
+import com.bdaim.common.util.page.Pagination;
 import com.bdaim.rbac.dao.DeptDao;
 import com.bdaim.rbac.dto.DeptDto;
 import com.bdaim.rbac.entity.DeptEntity;
 import com.bdaim.rbac.entity.RoleEntity;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import javax.persistence.criteria.CriteriaBuilder;
 import javax.transaction.Transactional;
 import java.util.*;
 
@@ -24,10 +31,11 @@ import java.util.*;
 @Service("deptService")
 @Transactional
 public class DeptService {
-    private static Logger logger = Logger.getLogger(DeptService.class);
+    private static Logger logger = LoggerFactory.getLogger(DeptService.class);
     @Resource
     private DeptDao deptDao;
-
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
     /**
      * 编辑部门信息
      */
@@ -79,13 +87,17 @@ public class DeptService {
      * @author:duanliying
      * @date: 2019/3/13 17:24
      */
-    public List<DeptDto> queryDeptList() {
+    public Map<String,Object> queryDeptList(Map<String,Object> map)throws Exception {
         List<DeptDto> deptList = new ArrayList<DeptDto>();
         StringBuilder builder = new StringBuilder();
         builder.append(" select t.id deptId,t.TYPE,t.createTime,t.name,count(r.id) as rolecount from ");
         builder.append(" (select d.ID ,d.CREATE_TIME createTime,d.TYPE,d.name from t_dept d) t");
         builder.append(" left join t_role r on t.id = r.deptid group by t.id,t.TYPE,t.name");
-        List<Map<String, Object>> deptEntityList = deptDao.sqlQuery(builder.toString());
+        PageParam page=new PageParam();
+        page.setPageNum(Integer.parseInt(String.valueOf(map.get("page_num"))));
+        page.setPageSize(Integer.parseInt(String.valueOf(map.get("page_size"))));
+        Page pageData = new Pagination().getPageData(builder.toString(),null,page,jdbcTemplate);
+        List<Map<String, Object>> deptEntityList = pageData.getList();
         //查询部门里面有几个职位
         if (deptEntityList.size() > 0) {
             for (int i = 0; i < deptEntityList.size(); i++) {
@@ -103,7 +115,10 @@ public class DeptService {
                 }
             }
         }
-        return deptList;
+        Map<String,Object> resultMap = new HashMap<>(10);
+        resultMap.put("data",deptList);
+        resultMap.put("total",pageData.getTotal());
+        return resultMap;
     }
 
 

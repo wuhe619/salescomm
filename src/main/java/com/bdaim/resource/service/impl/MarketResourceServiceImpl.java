@@ -17,16 +17,7 @@ import com.bdaim.callcenter.dto.SeatsInfo;
 import com.bdaim.callcenter.service.CallCenterService;
 import com.bdaim.callcenter.service.impl.SeatsServiceImpl;
 import com.bdaim.common.dto.PageParam;
-import com.bdaim.common.util.ConfigUtil;
-import com.bdaim.common.util.ConstantsUtil;
-import com.bdaim.common.util.DateUtil;
-import com.bdaim.common.util.FileUtil;
-import com.bdaim.common.util.HttpUtil;
-import com.bdaim.common.util.IDHelper;
-import com.bdaim.common.util.NumberConvertUtil;
-import com.bdaim.common.util.PropertiesUtil;
-import com.bdaim.common.util.SaleApiUtil;
-import com.bdaim.common.util.StringUtil;
+import com.bdaim.common.util.*;
 import com.bdaim.common.util.page.Page;
 import com.bdaim.common.util.page.Pagination;
 import com.bdaim.customer.dao.CustomerDao;
@@ -49,11 +40,13 @@ import com.bdaim.smscenter.dto.SmsqueryParam;
 import com.bdaim.supplier.dao.SupplierDao;
 import com.bdaim.supplier.dto.SupplierEnum;
 import com.bdaim.supplier.dto.SupplierListParam;
+import com.bdaim.supplier.entity.SupplierPropertyEntity;
 import com.bdaim.template.dto.TemplateParam;
 import com.bdaim.template.entity.MarketTemplate;
 import com.github.crab2died.ExcelUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -78,7 +71,7 @@ import java.util.*;
 public class MarketResourceServiceImpl implements MarketResourceService {
 
 
-    private final static Logger LOG = Logger.getLogger(MarketResourceServiceImpl.class);
+    private final static Logger LOG = LoggerFactory.getLogger(MarketResourceServiceImpl.class);
 
     private final static String SMS_SEND_REMARK_SPLIT = "{}";
     //发送类型
@@ -106,7 +99,7 @@ public class MarketResourceServiceImpl implements MarketResourceService {
     private CustomerDao customerDao;
     @Resource
     private MarketResourceDao marketResourceDao;
-//    @Resource
+    //    @Resource
 //    private SendSmsService sendSmsServiceImpl;
     @Resource
     private BatchDetailDao batchDetailDao;
@@ -1150,22 +1143,6 @@ public class MarketResourceServiceImpl implements MarketResourceService {
                     "ORDER BY n.upload_time desc ) cjc \n" +
                     "GROUP BY cjc.comp_id ORDER BY cjc.upload_time DESC LIMIT 10;");
             uploadgeList = jdbcTemplate.queryForList(sqlge.toString(), new Object[]{});
-           /* if (uploadgeList != null && uploadgeList.size() > 0) {
-                for (Map map : uploadgeList) {
-                    if (map.get("failNum") != null && map.get("upload_num") != null) {
-                        int failNum = Integer.valueOf(map.get("failNum").toString());
-                        int uploadNum = Integer.valueOf(map.get("upload_num").toString());
-                        int success_num = uploadNum - failNum;
-                        map.put("success_num", success_num);
-                    } else if (map.get("failNum") == null && map.get("upload_num") != null) {
-                        int failNum = Integer.valueOf("0");
-                        int uploadNum = Integer.valueOf(map.get("upload_num").toString());
-                        int success_num = uploadNum - failNum;
-                        map.put("success_num", success_num);
-                    }
-                }
-            }*/
-
 
             // 3 各企业最近300次呼叫接通率
             NumberFormat numberFormat = NumberFormat.getInstance();
@@ -1206,10 +1183,31 @@ public class MarketResourceServiceImpl implements MarketResourceService {
                     jietonglv.add(map);
                 }
             }
+            //企业有效率 折线统计图
+            String effectiveRateSql = "SELECT batch_name AS batchName,IFNULL(upload_num/success_num,0) AS effectiveRate FROM nl_batch ORDER BY " +
+                    "upload_time DESC LIMIT 10";
+            List<Map<String, Object>> effectiveRate = jdbcTemplate.queryForList(effectiveRateSql);
+
+            //企业签收率 折现统计图
+            StringBuffer receiveRate = new StringBuffer("SELECT t1.id,t1.batch_name,t1.comp_name,");
+            receiveRate.append("ROUND(SUM( CASE t3.`status` WHEN '4' THEN 1 ELSE 0 END ) / SUM( CASE t3.`status` WHEN '1' THEN 0 ELSE 1 END ),2) AS receiveRate  ")
+                    .append(" FROM nl_batch t1").append(" LEFT JOIN nl_batch_detail t2 ON t1.id = t2.batch_id")
+                    .append(" LEFT JOIN t_touch_express_log t3 ON t2.touch_id = t3.touch_id ")
+                    .append("GROUP BY t1.id, t1.batch_name,t1.comp_name  ORDER BY t1.upload_time DESC LIMIT 10");
+            List<Map<String, Object>> receiveRateList = jdbcTemplate.queryForList(receiveRate.toString());
+
+            //客户有效数据趋势图
+            StringBuffer effectiveNum = new StringBuffer("SELECT DATE_FORMAT(upload_time, '%Y-%m-%d') AS upload_time,");
+            effectiveNum.append("SUM(CASE `status` WHEN '1' THEN 1 ELSE 0 END) AS effective_num  FROM nl_batch_detail ")
+                    .append("GROUP BY DATE_FORMAT(upload_time,'%Y-%m-%d') ").append("ORDER BY DATE_FORMAT(upload_time,'%Y-%m-%d') DESC")
+                    .append(" LIMIT 10");
+            List<Map<String, Object>> effectiveNumMap = jdbcTemplate.queryForList(effectiveNum.toString());
+            data.put("effectiveRate", effectiveRate);
             data.put("callSuccPercent", jietonglv);
             data.put("uploadSucCompsList", uploadgeList);
             data.put("uploadNumList", uploadNumList);
-
+            data.put("receiveRate", receiveRateList);
+            data.put("effectiveNum", effectiveNumMap);
         } else {
             //4 一个企业的最近7批次 的各批次的上传数、匹配数
             StringBuffer sqlzuij = new StringBuffer();
@@ -1223,21 +1221,6 @@ public class MarketResourceServiceImpl implements MarketResourceService {
                     "group by n.id\n" +
                     "ORDER BY n.upload_time desc  limit 7\n");
             sevenList = jdbcTemplate.queryForList(sqlzuij.toString(), new Object[]{customerId});
-           /* if (sevenList != null && sevenList.size() > 0) {
-                for (Map mapseven : sevenList) {
-                    if (mapseven.get("failNum") != null && mapseven.get("upload_num") != null) {
-                        int failNum = Integer.valueOf(mapseven.get("failNum").toString());
-                        int uploadNum = Integer.valueOf(mapseven.get("upload_num").toString());
-                        int success_num = uploadNum - failNum;
-                        mapseven.put("success_num", success_num);
-                    } else if (mapseven.get("failNum") == null && mapseven.get("upload_num") != null) {
-                        int uploadNum = Integer.valueOf(mapseven.get("upload_num").toString());
-                        int failNum = Integer.valueOf("0");
-                        int success_num = uploadNum - failNum;
-                        mapseven.put("success_num", success_num);
-                    }
-                }
-            }*/
 
             //5 a.某企业某批次呼叫成功的各批次数据
             StringBuffer qiyejihuao = new StringBuffer();
@@ -1253,11 +1236,6 @@ public class MarketResourceServiceImpl implements MarketResourceService {
             //5 b.某企业呼叫的各批次数据
             StringBuffer qiyejihuao1 = new StringBuffer();
             List<Map<String, Object>> qiyehujiaoall;
-          /*  qiyejihuao1.append("SELECT count(DISTINCT b.id) callAllnum,n.id as batch_id,n.batch_name,n.upload_time, t.status " +
-                    "from nl_batch n\n" +
-                    "LEFT JOIN nl_batch_detail b ON b.batch_id = n.id "+
-                    "LEFT JOIN t_touch_voice_log t ON t.batch_id = n.id  WHERE  " +
-                    "n.comp_id=? group by n.id ORDER BY n.upload_time DESC limit 7;\n");*/
             qiyejihuao1.append("SELECT count(DISTINCT t.superid) callAllnum,n.id as batch_id,n.batch_name,n.upload_time, t.status " +
                     "from nl_batch n  LEFT JOIN  t_touch_voice_log t on t.batch_id = n.id  WHERE  " +
                     "n.comp_id=? AND n.`status`=0 group by n.id ORDER BY n.upload_time DESC limit 7;\n");
@@ -1312,32 +1290,27 @@ public class MarketResourceServiceImpl implements MarketResourceService {
             sign.append("SELECT COUNT(DISTINCT t.receive_name) qianshou ");
             sign.append("FROM t_touch_express_log t ");
             sign.append("WHERE t.cust_id=? AND t.batch_id= ? AND t.status= 4 ");
-            //某企业的快递提交统计
-            StringBuffer submit = new StringBuffer();
-            List<Map<String, Object>> submit1;
-            submit.append("SELECT COUNT(DISTINCT t.receive_name) tijiao,n.id AS batch_id,n.batch_name,n.upload_time, t.status \n" +
-                    "FROM nl_batch n  LEFT JOIN t_touch_express_log t ON t.batch_id = n.id  WHERE  \n" +
-                    "n.comp_id=? AND t.status !=7 GROUP BY n.id ORDER BY n.upload_time DESC LIMIT 7;\n");
-            submit1 = jdbcTemplate.queryForList(submit.toString(), new Object[]{customerId});
 
-            if (submit1 != null && submit1.size() > 0) {
-                //删除集合中callAllnum为0的数据
-                for (int i = 0; i < submit1.size(); i++) {
-                    if ("0".equals(String.valueOf(submit1.get(i).get("tijiao")))) {
-                        submit1.remove(submit1.get(i));
-                    }
-                }
-                for (Map m : submit1) {
-                    String batchId = String.valueOf(m.get("batch_id"));
-                    signl = jdbcTemplate.queryForList(sign.toString(), new Object[]{batchId, customerId});
-                    if (signl != null && signl.size() > 0) {
-                        m.put("qianshou", signl.get(0).get("qianshou"));
-                    }
-                }
-            }
+            //前端首页 校验统计图
+            StringBuffer checkSql = new StringBuffer("SELECT batch_name AS batchName,IFNULL(upload_num,0) AS uploadNum,IFNULL(success_num,0) AS successNum,");
+            checkSql.append("IFNULL(upload_num/success_num,0) AS effectiveRate FROM nl_batch WHERE comp_id='").append(customerId).append("' ORDER BY ")
+                    .append("upload_time DESC LIMIT 10");
+            List<Map<String, Object>> checkStatistics = jdbcTemplate.queryForList(checkSql.toString());
+            //前端首页 签收统计图
+            StringBuffer signAndReceive = new StringBuffer("SELECT t1.id,t1.batch_name,SUM(CASE t3.`status` WHEN '1' THEN 0 ELSE 1 END) AS sendVal,");
+            signAndReceive.append("SUM(CASE t3.`status` WHEN '4' THEN 1 ELSE 0 END) AS receiveVal,")
+                    .append("SUM(CASE t3.`status` WHEN '2' THEN 1 WHEN '3' THEN 1 ELSE 0 END) AS sendingVal,")
+                    .append("SUM(CASE t3.`status` WHEN '5' THEN 1 ELSE 0 END) AS rejectionVal ")
+                    .append("FROM nl_batch t1 ")
+                    .append("LEFT JOIN nl_batch_detail t2 ON t1.id=t2.batch_id ")
+                    .append("LEFT JOIN t_touch_express_log t3 ON t2.touch_id=t3.touch_id ")
+                    .append("WHERE t1.comp_id='").append(customerId).append("' ")
+                    .append(" GROUP BY t1.id,t1.batch_name ")
+                    .append("ORDER BY t1.upload_time DESC LIMIT 10");
+            List<Map<String,Object>> signAndReceiveStatistic = jdbcTemplate.queryForList(signAndReceive.toString());
 
-
-            data.put("submitl", submit1);
+            data.put("checkStatistics", checkStatistics);
+            data.put("signAndReceive",signAndReceiveStatistic);
             data.put("siteList", siteList);
             data.put("sevenList", sevenList);
             data.put("qiyehujiao", qiyehujiaoall);
@@ -2836,12 +2809,12 @@ public class MarketResourceServiceImpl implements MarketResourceService {
         int resource = batchDetail.getResourceId();
         LOG.info("批次详情下的资源id是：" + resource);
         //根据资源id查询该资源使用的外呼资源
-        int callResourceId = 0,  xzResourceId = 0, cmcResourceId = 0;
+        int callResourceId = 0, xzResourceId = 0, cmcResourceId = 0;
         ResourcePropertyEntity callConfig = sourceDao.getResourceProperty(String.valueOf(resource), "call_config");
-       if (callConfig!=null){
+        if (callConfig != null) {
             callResourceId = NumberConvertUtil.parseInt(callConfig.getPropertyValue());
-           LOG.info("查询到当前批次详情下外呼的资源id是:" + callResourceId);
-       }
+            LOG.info("查询到当前批次详情下外呼的资源id是:" + callResourceId);
+        }
         //查询联通外呼的资源id
         MarketResourceEntity cmcCallResourceId = sourceDao.getResourceId(SupplierEnum.CUC.getSupplierId(), ResourceEnum.CALL.getType());
         if (cmcCallResourceId != null) {
@@ -2855,7 +2828,7 @@ public class MarketResourceServiceImpl implements MarketResourceService {
             LOG.info("联通外呼的资源id是:" + xzResourceId);
         }
         //根据资源属性表存储的外呼资源id判断外呼方式
-        if (callResourceId==cmcResourceId) {
+        if (callResourceId == cmcResourceId) {
             //判断是否设置了销售定价
             String resourceId = marketResourceService.queryResourceId(SupplierEnum.CUC.getSupplierId(), ResourceEnum.CALL.getType());
             //查询销售定价
@@ -2939,7 +2912,7 @@ public class MarketResourceServiceImpl implements MarketResourceService {
             map.put("touchId", touchId);
             map.put("code", code);
             map.put("msg", message);
-        } else if (callResourceId==xzResourceId) {
+        } else if (callResourceId == xzResourceId) {
             LOG.info("使用外呼方式是讯众外呼" + "客户id是：" + id + "批次id" + batchId);
             map = marketResourceService.xZCallResourceV1(userType, batchId, userId, id, customerId);
         }
@@ -3092,5 +3065,34 @@ public class MarketResourceServiceImpl implements MarketResourceService {
             LOG.error("获取录音文件失败,", e);
         }
         return null;
+    }
+
+    /**
+     * 根据资源类型查询资源和供应商信息
+     *
+     * @param type
+     */
+    public List<Map<String, Object>> getResourceInfoByType(String type ,  String supplierId) throws Exception {
+        StringBuffer querySql = new StringBuffer("SELECT r.resname,r.resource_id,s.`name` supplierName,s.supplier_id,r.type_code ");
+        querySql.append("FROM t_market_resource r LEFT JOIN t_supplier s ON r.supplier_id = s.supplier_id ");
+        querySql.append("WHERE s.`status` = 1 AND r.`status` = 1 ");
+        if (StringUtil.isNotEmpty(type)) {
+            querySql.append("AND r.type_code =" + type);
+        }
+        List<Map<String, Object>> list = marketResourceDao.sqlQuery(querySql.toString());
+        if (StringUtil.isNotEmpty(supplierId)){
+            //查询供应商关联的资源信息
+            SupplierPropertyEntity resourceInfo = supplierDao.getSupplierProperty(supplierId, "express_resource");
+            if (resourceInfo!=null){
+                String resourceId = resourceInfo.getPropertyValue();
+                LOG.info("供应商id是：" +supplierId +"资源类型是：" + type + "关联的资源id是：" +  resourceId);
+                for (int i= 0 ;i<list.size();i++){
+                    if (resourceId.equals(String.valueOf(list.get(i).get("resource_id")))){
+                        list.get(i).put("check",1);
+                    }
+                }
+            }
+        }
+        return list;
     }
 }

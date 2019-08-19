@@ -11,7 +11,8 @@ import com.bdaim.common.util.page.Page;
 import com.bdaim.common.util.page.Pagination;
 import com.github.crab2died.ExcelUtils;
 import org.apache.commons.lang.StringEscapeUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -34,7 +35,7 @@ import java.util.Map;
 @Service("transactionService")
 @Transactional
 public class TransactionService {
-    Logger logger = Logger.getLogger(TransactionService.class);
+    Logger logger = LoggerFactory.getLogger(TransactionService.class);
     private final static DateTimeFormatter YYYYMM = DateTimeFormatter.ofPattern("yyyyMM");
 
     private final static DateTimeFormatter YYYYMMDDHHMMSS = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");

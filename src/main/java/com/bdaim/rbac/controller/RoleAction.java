@@ -4,14 +4,16 @@ import com.alibaba.fastjson.JSONObject;
 import com.bdaim.auth.LoginUser;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.dto.PageParam;
+import com.bdaim.common.response.ResponseInfo;
+import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.rbac.dto.Page;
 import com.bdaim.rbac.dto.RoleDTO;
 import com.bdaim.rbac.dto.RolesResourceDto;
 import com.bdaim.rbac.service.RoleService;
-
-import net.sf.json.JSONArray;
+import com.alibaba.fastjson.JSONArray;
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -30,7 +32,7 @@ import java.util.*;
 @Controller
 @RequestMapping("/role")
 public class RoleAction extends BasicAction {
-    public static final Logger log = Logger.getLogger(RoleAction.class);
+    public static final Logger log = LoggerFactory.getLogger(RoleAction.class);
     @Resource
     private RoleService roleService;
 
@@ -227,5 +229,21 @@ public class RoleAction extends BasicAction {
             log.error("查询当前登录用户资源树异常" + e);
         }
         return jsonArray.toString();
+    }
+
+    /**
+     * 根据角色id查询用户列表
+     */
+    @RequestMapping(value = "/queryUserList", method = RequestMethod.GET)
+    @ResponseBody
+    public ResponseInfo queryUserListByRoleId(String id) {
+
+        try {
+            List<Map<String, Object>> list = roleService.queryUserListByRoleId(id);
+            return new ResponseInfoAssemble().success(list);
+        } catch (Exception e) {
+            log.error("根据角色id查询用户列表异常", e);
+            return new ResponseInfoAssemble().failure(-1, "根据角色id查询用户列表失败");
+        }
     }
 }

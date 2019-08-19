@@ -15,13 +15,12 @@ import com.bdaim.customer.dao.CustomerUserDao;
 import com.bdaim.image.service.impl.UploadDowloadImgServiceImpl;
 import com.bdaim.resource.service.MarketResourceService;
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -42,7 +41,7 @@ public class UploadAction extends BasicAction {
      *
      */
     private static final long serialVersionUID = 1L;
-    private static Log logger = LogFactory.getLog(UploadAction.class);
+    private static Logger logger = LoggerFactory.getLogger(UploadAction.class);
 
     @Resource
     private UploadDowloadImgServiceImpl uploadDowloadService;
@@ -56,7 +55,7 @@ public class UploadAction extends BasicAction {
     /*
      * 上传企业营业执照副本
      */
-    @RequestMapping(value = "/uploadImg", method = RequestMethod.POST)
+    @RequestMapping(value = "/uploadImgBak", method = RequestMethod.POST)
     @ResponseBody
     @CacheAnnotation
     public Object uploadImg(HttpServletRequest request,
@@ -66,6 +65,12 @@ public class UploadAction extends BasicAction {
         String pictureName = IDHelper.getTransactionId() + "";
         return uploadDowloadService.uploadImgNew(request, response, cust_id, pictureName);
     }
+    @RequestMapping(value = "/uploadImg", method = RequestMethod.POST)
+    @ResponseBody
+    public Object uploadImg(@RequestParam MultipartFile file) {
+        return uploadDowloadService.uploadImg(file);
+    }
+
 
     /*
      * 下载企业营业执照副本

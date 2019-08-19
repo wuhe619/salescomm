@@ -1,6 +1,7 @@
 package com.bdaim.account.service;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.account.dto.Fixentity;
 import com.bdaim.batch.ResourceEnum;
@@ -10,8 +11,11 @@ import com.bdaim.batch.entity.BatchDetail;
 import com.bdaim.batch.service.BatchListService;
 import com.bdaim.batch.service.BatchService;
 import com.bdaim.callcenter.service.impl.CallCenterServiceImpl;
+import com.bdaim.common.response.ResponseInfo;
+import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.common.util.CipherUtil;
 import com.bdaim.common.util.IDHelper;
+import com.bdaim.common.util.StringHelper;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerUserDao;
@@ -31,10 +35,18 @@ import com.bdaim.template.entity.MarketTemplate;
 
 //import io.jsonwebtoken.Claims;
 //import io.jsonwebtoken.ExpiredJwtException;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 
 //import static com.bdaim.common.util.JwtUtil.generToken;
@@ -55,7 +67,7 @@ import java.util.Map;
 @Service("openService")
 @Transactional
 public class OpenService {
-    public static final Logger log = Logger.getLogger(SupplierService.class);
+    public static final Logger log = LoggerFactory.getLogger(SupplierService.class);
     @Resource
     private CustomerDao customerDao;
     @Resource
@@ -74,6 +86,8 @@ public class OpenService {
     private BatchListService batchListService;
     @Resource
     private BatchDao batchDao;
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     /**
      * 查询企业余额接口
@@ -807,6 +821,61 @@ public class OpenService {
         }
         map.put("status", status);
         return map;
+    }
+
+    public void saveActionRecord(Map<String, Object> map, HttpServletRequest request) {
+        //1. 获取入参（IMEI、app列表、设备地理位置、用户行为、通讯录列表）和通过request获取IP地址
+        String iMei = String.valueOf(map.get("IMEI"));
+        String deviceAddress = String.valueOf(map.get("device_address"));
+        String action = String.valueOf(map.get("action"));
+        String IP = StringHelper.getIpAddr(request);
+        //2. 转换格式并插入数据库
+        List<String> appList = (List<String>) map.get("apps");
+        List<Map<String, Object>> contactsList = (List<Map<String, Object>>) map.get("device_contacts");
+        List<Object[]> batchArgs = new ArrayList<>();
+        for (int i = 0; i < appList.size(); i++) {
+            for (int j = 0; j < contactsList.size(); j++) {
+                Object[] objects = new Object[]{iMei, appList.get(i), deviceAddress, JSON.toJSONString(contactsList.get(j)), action, IP};
+                batchArgs.add(objects);
+            }
+        }
+        String sql = "INSERT INTO t_behavior_record (create_time,imei,app,device_address,device_contact,action,ip) VALUES (NOW(),?,?,?,?,?,?)";
+        jdbcTemplate.batchUpdate(sql, batchArgs);
+    }
+
+
+    public List<Map<String, Object>> getAddressResoult(String idCard) {
+        String querySql = "SELECT site address FROM  tmp_nl_batch_detail b  WHERE batch_id = 1542099439991 and id_card = '" + idCard + "'";
+        List<Map<String, Object>> list = batchDao.sqlQuery(querySql);
+        return list;
+    }
+
+    public ResponseInfo saveAccessChannels(Map<String, Object> map, HttpServletRequest request) {
+        log.info("进入保存用户访问渠道接口 saveAccessChannels");
+        //1. 获取入参 mobile、channel、name、activity_code
+        String mobile = String.valueOf(map.get("mobile"));
+        String channel = String.valueOf(map.get("channel"));
+        String name = String.valueOf(map.get("name"));
+        String activityCode = String.valueOf(map.get("activity_code"));
+        String channelName = String.valueOf(map.get("channel_name"));
+        log.info("入参的值为" + JSON.toJSONString(map));
+        //2. 如果活动编码activity_code是ETC，且此次channel下有同样的mobile手机号，则返回新增失败
+        if ("ETC".equalsIgnoreCase(activityCode)) {
+            String countSql = "SELECT COUNT(*) AS count FROM t_access_channel WHERE activity_code='ETC' AND mobile='" + mobile + "' AND channel='" + channel + "'";
+            Map<String, Object> countMap = jdbcTemplate.queryForMap(countSql);
+            int count = Integer.parseInt(String.valueOf(countMap.get("count")));
+            if (count > 0) {
+                return new ResponseInfoAssemble().failure(HttpStatus.BAD_REQUEST.value(), "手机号已存在");
+            }
+        }
+        //3. 插入数据库
+        String IP = StringHelper.getIpAddr(request);
+        StringBuffer sql = new StringBuffer("INSERT INTO t_access_channel (mobile,channel,channel_name,name,ip,create_time,activity_code) VALUES ('");
+        sql.append(mobile).append("','").append(channel).append("','").append(channelName).append("','").append(name).append("','").append(IP).append("',NOW(),'")
+                .append(activityCode).append("')");
+        log.info("执行SQL语句为" + sql.toString());
+        jdbcTemplate.update(sql.toString());
+        return new ResponseInfoAssemble().success(null);
     }
 }
 

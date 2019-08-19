@@ -12,7 +12,8 @@ import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.entity.CustomerProperty;
 import com.bdaim.resource.dao.SourceDao;
 import com.github.crab2died.ExcelUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -22,17 +23,19 @@ import javax.transaction.Transactional;
 import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 
 @Service("accountService")
 @Transactional
 public class AccountService {
-    private static Logger logger = Logger.getLogger(AccountService.class);
+    private static Logger logger = LoggerFactory.getLogger(AccountService.class);
     @Resource
     CustomerDao customerDao;
     @Resource
@@ -86,26 +89,34 @@ public class AccountService {
         int action = param.getAction();
         String dealType = param.getDealType();
         String supplierId = param.getSupplierId();
-        boolean deductionsStatus;
+        boolean deductionsStatus = false;
         BigDecimal moneySale;
+        int type = 0;
         try {
             moneySale = new BigDecimal(amount * 100);
             moneySale = moneySale.multiply(new BigDecimal(1));
             //充值
             if (0 == action) {
                 if (StringUtil.isNotEmpty(dealType) && dealType.equals("0")) {
-                    action = TransactionEnum.SUPPLIER_RECHARGE.getType();
+                    type = TransactionEnum.SUPPLIER_RECHARGE.getType();
                     //供应商资金充值
                     deductionsStatus = sourceDao.accountSupplierRecharge(supplierId, moneySale);
                 } else {
                     //企业资金充值
-                    action = TransactionEnum.BALANCE_RECHARGE.getType();
+                    type = TransactionEnum.BALANCE_RECHARGE.getType();
                     deductionsStatus = customerDao.accountRecharge(custId, moneySale);
                 }
-            } else {
+            } else if (1 == action) {
                 //扣减
-                action = TransactionEnum.BALANCE_DEDUCTION.getType();
-                deductionsStatus = customerDao.accountDeductions(custId, moneySale);
+                if (StringUtil.isNotEmpty(dealType) && dealType.equals("0")) {
+                    type = TransactionEnum.SUPPLIER_DEDUCTION.getType();
+                    //供应商资金扣减
+                    deductionsStatus = sourceDao.supplierAccountDuctions(supplierId, moneySale);
+                } else {
+                    type = TransactionEnum.BALANCE_DEDUCTION.getType();
+                    //企业资金扣减
+                    deductionsStatus = customerDao.accountDeductions(custId, moneySale);
+                }
             }
         } catch (Exception e) {
             logger.error(custId + " 账户充值扣款失败,", e);
@@ -129,7 +140,7 @@ public class AccountService {
                     transactionId = param.getTransactionId();
                 }
                 // 保存交易记录根据supplierId查询resourceId
-                transactionService.saveTransactionLog(custId, action, moneySale.intValue(), payMode, supplierId, remark, userId, path, transactionId, 0, null);
+                transactionService.saveTransactionLog(custId, type, moneySale.intValue(), payMode, supplierId, remark, userId, path, transactionId, 0, null);
             } catch (Exception e) {
                 logger.error(custId + " 保存交易记录失败,", e);
             }
@@ -143,7 +154,7 @@ public class AccountService {
      * @return
      */
     public Page pageList(PageParam page, CustomerBillQueryParam queryParam) {
-        StringBuilder sqlBuilder = new StringBuilder("SELECT cus.cust_id,cus.enterprise_name,cus.status,\n" +
+        StringBuilder sqlBuilder = new StringBuilder("SELECT cus.cust_id,cus.create_time createTime,cus.enterprise_name,cus.status,\n" +
                 "t2.account,t2.realname,cjc.mobile_num,CONVERT(cjc.remainAmount/100,DECIMAL(15,2)) as remainAmount\n" +
                 " from t_customer cus\n" +
                 "LEFT JOIN t_customer_user t2   ON cus.cust_id = t2.cust_id\n" +
@@ -198,6 +209,12 @@ public class AccountService {
         if (StringUtil.isNotEmpty(queryParam.getRealname())) {
             sqlBuilder.append(" and cu.realname like '%" + queryParam.getRealname() + "%'");
         }
+        if (StringUtil.isNotEmpty(queryParam.getStartTime())) {
+            sqlBuilder.append(" AND t.create_time >= '" + queryParam.getStartTime() + "'");
+        }
+        if (StringUtil.isNotEmpty(queryParam.getEndTime())) {
+            sqlBuilder.append(" AND t.create_time <='" + queryParam.getEndTime() + "'");
+        }
         sqlBuilder.append(" ORDER BY t.create_time desc ");
         logger.info("企业充值扣减记录sql:" + sqlBuilder.toString());
         return new Pagination().getPageData(sqlBuilder.toString(), null, page, jdbcTemplate);
@@ -210,21 +227,59 @@ public class AccountService {
      */
     public Page querySupplierAcctsByCondition(PageParam page, CustomerBillQueryParam queryParam) {
         // 如果没有传开始时间
-        StringBuilder sqlBuilder = new StringBuilder("SELECT p.`name` source_name, t.create_time,t.transaction_id,p.supplier_id,t.amount/100 as amount,u.REALNAME realname , t.certificate ,t.remark,t.type  ");
+        StringBuilder sqlBuilder = new StringBuilder("SELECT p.`name` source_name, t.create_time,t.transaction_id,p.supplier_id,t.amount/100 as amount,u.REALNAME realname , t.certificate ,t.remark ");
         sqlBuilder.append("FROM t_transaction_bill t");
         sqlBuilder.append(" LEFT JOIN t_supplier p ON t.supplier_id = p.supplier_id\n");
-        sqlBuilder.append("LEFT JOIN t_user u ON t.user_id = u.ID WHERE t.type =" + TransactionEnum.SUPPLIER_RECHARGE.getType() + " \n");
+        sqlBuilder.append("LEFT JOIN t_user u ON t.user_id = u.ID WHERE 1=1\n");
         if (StringUtil.isNotEmpty(queryParam.getTransactionId())) {
             sqlBuilder.append(" and t.transaction_id= " + queryParam.getTransactionId());
         }
+        if (StringUtil.isNotEmpty(queryParam.getType())) {
+            sqlBuilder.append(" and t.type= " + queryParam.getType());
+        }
         if (StringUtil.isNotEmpty(queryParam.getSupplierId())) {
             sqlBuilder.append(" and t.supplier_id= " + queryParam.getSupplierId());
+        }
+        if (StringUtil.isNotEmpty(queryParam.getStartTime())) {
+            sqlBuilder.append(" AND t.create_time >= '" + queryParam.getStartTime() + "'");
+        }
+        if (StringUtil.isNotEmpty(queryParam.getEndTime())) {
+            sqlBuilder.append(" AND t.create_time <='" + queryParam.getEndTime() + "'");
         }
         if (StringUtil.isNotEmpty(queryParam.getBillDate())) {
             sqlBuilder.append(" and DATE_FORMAT(t.create_time, '%Y%m') like'" + queryParam.getBillDate() + "'");
         }
         sqlBuilder.append(" ORDER BY t.create_time desc ");
         return new Pagination().getPageData(sqlBuilder.toString(), null, page, jdbcTemplate);
+    }
+    public List<Map<String,Object>> querySupplierAcctsExport(CustomerBillQueryParam queryParam) {
+        // 如果没有传开始时间
+        StringBuilder sqlBuilder = new StringBuilder("SELECT p.`name` source_name, t.create_time,t.transaction_id,p.supplier_id," +
+                "t.amount/100 as amount,u.REALNAME realname , t.certificate,t.remark,CASE t.type WHEN '1' THEN '充值' WHEN '7' THEN '扣减' END AS billType ");
+        sqlBuilder.append("FROM t_transaction_bill t");
+        sqlBuilder.append(" LEFT JOIN t_supplier p ON t.supplier_id = p.supplier_id\n");
+        sqlBuilder.append("LEFT JOIN t_user u ON t.user_id = u.ID WHERE 1=1\n");
+        if (StringUtil.isNotEmpty(queryParam.getTransactionId())) {
+            sqlBuilder.append(" and t.transaction_id= " + queryParam.getTransactionId());
+        }
+        if (StringUtil.isNotEmpty(queryParam.getType())) {
+            sqlBuilder.append(" and t.type= " + queryParam.getType());
+        }
+        if (StringUtil.isNotEmpty(queryParam.getSupplierId())) {
+            sqlBuilder.append(" and t.supplier_id= " + queryParam.getSupplierId());
+        }
+        if (StringUtil.isNotEmpty(queryParam.getStartTime())) {
+            sqlBuilder.append(" AND t.create_time >= '" + queryParam.getStartTime() + "'");
+        }
+        if (StringUtil.isNotEmpty(queryParam.getEndTime())) {
+            sqlBuilder.append(" AND t.create_time <='" + queryParam.getEndTime() + "'");
+        }
+        if (StringUtil.isNotEmpty(queryParam.getBillDate())) {
+            sqlBuilder.append(" and DATE_FORMAT(t.create_time, '%Y%m') like'" + queryParam.getBillDate() + "'");
+        }
+        sqlBuilder.append(" ORDER BY t.create_time desc ");
+        List<Map<String,Object>> resultList = jdbcTemplate.queryForList(sqlBuilder.toString());
+        return resultList;
     }
 
     public Object exportCustomerAccountRecharge(CustomerBillQueryParam param, HttpServletResponse response) {
@@ -414,4 +469,6 @@ public class AccountService {
         }*/
         return resultMap;
     }
+
+
 }
