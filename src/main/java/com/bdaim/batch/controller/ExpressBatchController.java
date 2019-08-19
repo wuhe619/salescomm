@@ -370,6 +370,7 @@ public class ExpressBatchController extends BasicAction {
             bos.flush();
         } catch (Exception e) {
             e.printStackTrace();
+            logger.info("导出信函文件异常" + e.getMessage());
         } finally {
             try {
                 inputStream.close();
