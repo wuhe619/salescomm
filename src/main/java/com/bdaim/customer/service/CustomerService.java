@@ -378,19 +378,19 @@ public class CustomerService {
                     }
                 }
                 //打印员
-                if (StringUtil.isNotEmpty(vo.getPrinterId())) {
+                if (StringUtil.isNotEmpty(vo.getPrinter())) {
                     if (StringUtil.isNotEmpty(vo.getCustId())) {
-                        customerDao.dealCustomerInfo(vo.getCustId(), "printer", vo.getPrinterId());
+                        customerDao.dealCustomerInfo(vo.getCustId(), "printer", vo.getPrinter());
                     } else {
-                        customerDao.dealCustomerInfo(customerId, "printer", vo.getPrinterId());
+                        customerDao.dealCustomerInfo(customerId, "printer", vo.getPrinter());
                     }
                 }
                 //封装员
-                if (StringUtil.isNotEmpty(vo.getPackagerId())) {
+                if (StringUtil.isNotEmpty(vo.getPackager())) {
                     if (StringUtil.isNotEmpty(vo.getCustId())) {
-                        customerDao.dealCustomerInfo(vo.getCustId(), "packager", vo.getPackagerId());
+                        customerDao.dealCustomerInfo(vo.getCustId(), "packager", vo.getPackager());
                     } else {
-                        customerDao.dealCustomerInfo(customerId, "packager", vo.getPackagerId());
+                        customerDao.dealCustomerInfo(customerId, "packager", vo.getPackager());
                     }
                 }
 
