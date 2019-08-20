@@ -77,14 +77,14 @@ public class RoleService {
         //admin账户可以分配所有 不是admin只能分配自己拥有的标签
         if (isAdminOperate) {
             builder.append(" select distinct r.ID,r.NAME,r.PID,r.URI,r.TYPE,case when temp.r_id is null then 1 ELSE 0 END as CHECKED from t_resource r");
-            if (StringUtil.isNotEmpty(platform)) {
-                builder.append(" and r.platform=" + platform);
-            }
             builder.append(" left join (select r_id from t_mrp_rel where role_id=");
             builder.append(roleId);
             builder.append(" ) temp on temp.r_id = r.id");
             builder.append(" where r.pid=");
             builder.append(pid);
+            if (StringUtil.isNotEmpty(platform)) {
+                builder.append(" and r.platform=" + platform);
+            }
         } else {
             builder.append(" select distinct r.ID,r.NAME,r.PID,r.URI,r.TYPE,case when temp.r_id is null then 1 ELSE 0 END as CHECKED from t_mrp_rel m ");
             builder.append(" inner join t_user_role_rel ur on ur.ROLE = m.ROLE_ID");
