@@ -878,5 +878,31 @@ public class OpenService {
         jdbcTemplate.update(sql.toString());
         return new ResponseInfoAssemble().success(null);
     }
+
+    public Map<String,Object> saveBillNo(Map<String, Object> map) {
+        //运单号，对应t_touch_express_log中的request_id字段
+        String billNo = String.valueOf(map.get("billNo"));
+//        String expressCompany = String.valueOf(map.get("expressCompany")); 快递公司名称，暂时注掉，用到再从data中获取
+        //商家订单号，对应t_touch_express_log和nl_batch_detail中的touch_id字段
+        String orderCode = String.valueOf(map.get("orderCode"));
+        //快递管家推送的所有数据，对应t_touch_express_log中的data字段
+        String data = JSON.toJSONString(map);
+
+        StringBuffer sqlBuffer = new StringBuffer("UPDATE t_touch_express_log SET data='");
+        sqlBuffer.append(data).append("',request_id='").append(billNo).append("' WHERE touch_id='")
+                .append(orderCode).append("'");
+        log.info("===》》》执行更新快递运单号SQL " + sqlBuffer.toString());
+        Map<String, Object> resultMap = new HashMap<>(10);
+        try {
+            jdbcTemplate.update(sqlBuffer.toString());
+        } catch (Exception e) {
+            resultMap.put("status", false);
+            resultMap.put("message", "失败，message如下 " + e.getMessage());
+            return resultMap;
+        }
+        resultMap.put("status", true);
+        resultMap.put("message", "成功");
+        return resultMap;
+    }
 }
 

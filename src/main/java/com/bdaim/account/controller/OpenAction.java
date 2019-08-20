@@ -560,5 +560,21 @@ public class OpenAction extends BasicAction {
         }
         return new ResponseInfoAssemble().success(list);
     }
+
+    /**
+     * 对中通快递提供此接口，接收快递管家返回的运单号和快递公司名称
+     *
+     * @param map billNo 运单号 expressCompany 快递公司名称 orderCode 商家订单号
+     * @return
+     * @auther Chacker
+     * @date
+     */
+    @RequestMapping(value = "/saveBillNo", method = RequestMethod.POST)
+    @ResponseBody
+    public Map<String,Object> saveBillNo(@RequestParam Map<String, Object> map) {
+        log.info("进入saveBillNo 接收运单号接口，入参为" + map.toString());
+        Map<String, Object> result = openService.saveBillNo(map);
+        return result;
+    }
 }
 

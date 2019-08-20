@@ -299,8 +299,8 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
             hql.append(" AND t2.status = '" + status + "'");
         }
         //快件状态
-        String checkingResult = String.valueOf(map.get("express_status"));
-        if (!nullString.equals(status) && StringUtil.isNotEmpty(status)) {
+        String checkingResult = String.valueOf(map.get("express_status")).trim();
+        if (!nullString.equals(checkingResult) && StringUtil.isNotEmpty(checkingResult)) {
             hql.append(" AND t2.label_seven = '" + checkingResult + "'");
             values.add(status);
         }
