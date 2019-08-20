@@ -20,6 +20,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -45,6 +46,14 @@ import java.util.Map;
 @Transactional
 public class PackingService {
     private static Logger logger = LoggerFactory.getLogger(PackingService.class);
+    @Value("${express.url}")
+    private String expressUrl;
+    @Value("${express.company_id}")
+    private String companyId;
+    @Value("${express.key}")
+    private String key;
+    @Value("${express.shopKey}")
+    private String shopKey;
     @Resource
     private BatchDetailDao batchDetailDao;
     @Resource
@@ -191,13 +200,13 @@ public class PackingService {
     private void sendExpressByZTO(String batchId, String addressId, Map<String, Object> senderInfo, Map<String, Object> receiverInfo) {
         logger.info(" ===== 》》》开始调用中通快递接口");
         logger.info("批次编号" + batchId + "修复地址ID" + addressId + "发件人信息" + senderInfo + "收件人信息" + receiverInfo);
-        ZopClient client = new ZopClient("295a3076000345b58ca82820113ecb95", "9457a158dc5e");
+        ZopClient client = new ZopClient(this.companyId, this.key);
         ZopPublicRequest request = new ZopPublicRequest();
-        request.setUrl("http://japi.zto.cn/exposeServicePushOrderService");
-        request.addParam("company_id", "295a3076000345b58ca82820113ecb95");
+        request.setUrl(this.expressUrl);
+        request.addParam("company_id", this.companyId);
         Map<String, Object> data = new HashMap<>(32);
         data.put("orderId", receiverInfo.get("touch_id"));
-        data.put("shopKey", "QUNFNjAwNzhCNDU0ODMzNTY1NDA0NjUzRTEzRUVGMEM");
+        data.put("shopKey", this.shopKey);
         //订单类型 0代表普通订单 1代表代收货款
         data.put("orderType", "0");
         //收件人信息
