@@ -37,7 +37,8 @@ logging:
 file:
   file_path: /data/file
 express:
-  url: http://japi.zto.cn/exposeServicePushOrderService
-  company_id: 295a3076000345b58ca82820113ecb95
-  key: 9457a158dc5e
-  shopKey: QUNFNjAwNzhCNDU0ODMzNTY1NDA0NjUzRTEzRUVGMEM=
+  zto:
+    url: http://japi.zto.cn/exposeServicePushOrderService
+    company_id: 295a3076000345b58ca82820113ecb95
+    key: 9457a158dc5e
+    shopKey: QUNFNjAwNzhCNDU0ODMzNTY1NDA0NjUzRTEzRUVGMEM=
