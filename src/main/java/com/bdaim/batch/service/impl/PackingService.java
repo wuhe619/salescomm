@@ -191,29 +191,33 @@ public class PackingService {
     private void sendExpressByZTO(String batchId, String addressId, Map<String, Object> senderInfo, Map<String, Object> receiverInfo) {
         logger.info(" ===== 》》》开始调用中通快递接口");
         logger.info("批次编号" + batchId + "修复地址ID" + addressId + "发件人信息" + senderInfo + "收件人信息" + receiverInfo);
-        ZopClient client = new ZopClient("295a3076000345b58ca82820113ecb95", "9457a158dc5e");
+        String ztoConfigSQL = "SELECT resource_id,property_name,property_value,create_time FROM t_market_resource_property WHERE resource_id='29' AND property_name='zto_config'";
+        Map<String,Object> ztoConfig = jdbcTemplate.queryForMap(ztoConfigSQL);
+        String propertyValue = String.valueOf(ztoConfig.get("property_value"));
+        Map<String,Object> zto = (Map<String, Object>)JSON.parse(propertyValue);
+        ZopClient client = new ZopClient(String.valueOf(zto.get("company_id")), String.valueOf(zto.get("key")));
         ZopPublicRequest request = new ZopPublicRequest();
-        request.setUrl("http://japi.zto.cn/exposeServicePushOrderService");
-        request.addParam("company_id", "295a3076000345b58ca82820113ecb95");
+        request.setUrl(String.valueOf(zto.get("url")));
+        request.addParam("company_id", String.valueOf(zto.get("company_id")));
         Map<String, Object> data = new HashMap<>(32);
         data.put("orderId", receiverInfo.get("touch_id"));
-        data.put("shopKey", "QUNFNjAwNzhCNDU0ODMzNTY1NDA0NjUzRTEzRUVGMEM=");
+        data.put("shopKey", String.valueOf(zto.get("shopKey")));
         //订单类型 0代表普通订单 1代表代收货款
         data.put("orderType", "0");
         //收件人信息
         data.put("receiveMan", receiverInfo.get("name"));
         data.put("receivePhone", receiverInfo.get("phone"));
         //收件人的省市区地址 ，从 label_four中获取
-//        String address= String.valueOf(receiverInfo.get("address"));
-//        Map<String,Object> addressMap = (Map<String, Object>)JSON.parse(address);
-//        data.put("receiveProvince", StringUtil.isNotEmpty(String.valueOf(addressMap.get("prov")))?String.valueOf(addressMap.get("prov")):" ");
-//        data.put("receiveCity", StringUtil.isNotEmpty(String.valueOf(addressMap.get("city")))?String.valueOf(addressMap.get("city")):" ");
-//        data.put("receiveCounty", StringUtil.isNotEmpty(String.valueOf(addressMap.get("dist")))?String.valueOf(addressMap.get("dist")):" ");
-//        data.put("receiveAddress", StringUtil.isNotEmpty(String.valueOf(addressMap.get("address")))?String.valueOf(addressMap.get("address")):" ");
-        data.put("receiveProvince","北京");
-        data.put("receiveCity","北京市");
-        data.put("receiveCounty","朝阳区");
-        data.put("receiveAddress","广顺南大街16号");
+        String address= String.valueOf(receiverInfo.get("address"));
+        Map<String,Object> addressMap = (Map<String, Object>)JSON.parse(address);
+        data.put("receiveProvince", StringUtil.isNotEmpty(String.valueOf(addressMap.get("prov")))?String.valueOf(addressMap.get("prov")):" ");
+        data.put("receiveCity", StringUtil.isNotEmpty(String.valueOf(addressMap.get("city")))?String.valueOf(addressMap.get("city")):" ");
+        data.put("receiveCounty", StringUtil.isNotEmpty(String.valueOf(addressMap.get("dist")))?String.valueOf(addressMap.get("dist")):" ");
+        data.put("receiveAddress", StringUtil.isNotEmpty(String.valueOf(addressMap.get("address")))?String.valueOf(addressMap.get("address")):" ");
+//        data.put("receiveProvince","北京");
+//        data.put("receiveCity","北京市");
+//        data.put("receiveCounty","朝阳区");
+//        data.put("receiveAddress","广顺南大街16号");
         //发件人信息
         data.put("sendMan", senderInfo.get("senderName"));
         data.put("sendMobile", senderInfo.get("phone"));
