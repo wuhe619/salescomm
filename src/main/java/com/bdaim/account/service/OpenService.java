@@ -828,6 +828,7 @@ public class OpenService {
         String iMei = String.valueOf(map.get("IMEI"));
         String deviceAddress = String.valueOf(map.get("device_address"));
         String action = String.valueOf(map.get("action"));
+        String platform = String.valueOf(map.get("platform"));
         String IP = StringHelper.getIpAddr(request);
         //2. 转换格式并插入数据库
         List<String> appList = (List<String>) map.get("apps");
@@ -835,11 +836,11 @@ public class OpenService {
         List<Object[]> batchArgs = new ArrayList<>();
         for (int i = 0; i < appList.size(); i++) {
             for (int j = 0; j < contactsList.size(); j++) {
-                Object[] objects = new Object[]{iMei, appList.get(i), deviceAddress, JSON.toJSONString(contactsList.get(j)), action, IP};
+                Object[] objects = new Object[]{iMei, appList.get(i), deviceAddress, JSON.toJSONString(contactsList.get(j)), action, IP, platform};
                 batchArgs.add(objects);
             }
         }
-        String sql = "INSERT INTO t_behavior_record (create_time,imei,app,device_address,device_contact,action,ip) VALUES (NOW(),?,?,?,?,?,?)";
+        String sql = "INSERT INTO t_behavior_record (create_time,imei,app,device_address,device_contact,action,ip,platform) VALUES (NOW(),?,?,?,?,?,?,?)";
         log.info("执行保存SQL "+sql);
         jdbcTemplate.batchUpdate(sql, batchArgs);
     }
