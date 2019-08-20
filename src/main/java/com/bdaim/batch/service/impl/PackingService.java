@@ -204,12 +204,16 @@ public class PackingService {
         data.put("receiveMan", receiverInfo.get("name"));
         data.put("receivePhone", receiverInfo.get("phone"));
         //收件人的省市区地址 ，从 label_four中获取
-        String address= String.valueOf(receiverInfo.get("address"));
-        Map<String,Object> addressMap = (Map<String, Object>)JSON.parse(address);
-        data.put("receiveProvince", StringUtil.isNotEmpty(String.valueOf(addressMap.get("prov")))?String.valueOf(addressMap.get("prov")):" ");
-        data.put("receiveCity", StringUtil.isNotEmpty(String.valueOf(addressMap.get("city")))?String.valueOf(addressMap.get("city")):" ");
-        data.put("receiveCounty", StringUtil.isNotEmpty(String.valueOf(addressMap.get("dist")))?String.valueOf(addressMap.get("dist")):" ");
-        data.put("receiveAddress", StringUtil.isNotEmpty(String.valueOf(addressMap.get("address")))?String.valueOf(addressMap.get("address")):" ");
+//        String address= String.valueOf(receiverInfo.get("address"));
+//        Map<String,Object> addressMap = (Map<String, Object>)JSON.parse(address);
+//        data.put("receiveProvince", StringUtil.isNotEmpty(String.valueOf(addressMap.get("prov")))?String.valueOf(addressMap.get("prov")):" ");
+//        data.put("receiveCity", StringUtil.isNotEmpty(String.valueOf(addressMap.get("city")))?String.valueOf(addressMap.get("city")):" ");
+//        data.put("receiveCounty", StringUtil.isNotEmpty(String.valueOf(addressMap.get("dist")))?String.valueOf(addressMap.get("dist")):" ");
+//        data.put("receiveAddress", StringUtil.isNotEmpty(String.valueOf(addressMap.get("address")))?String.valueOf(addressMap.get("address")):" ");
+        data.put("receiveProvince","北京");
+        data.put("receiveCity","北京市");
+        data.put("receiveCounty","朝阳区");
+        data.put("receiveAddress","广顺南大街16号");
         //发件人信息
         data.put("sendMan", senderInfo.get("senderName"));
         data.put("sendMobile", senderInfo.get("phone"));
