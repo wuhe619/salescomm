@@ -161,7 +161,7 @@ public class PackingService {
         Map<String, Object> senderInfo = jdbcTemplate.queryForMap(senderSql);
         if (isBatch == 1) {
             //批量发送，根据批次ID batchId 找出地址ID、姓名、手机号
-            StringBuffer stringBuffer = new StringBuffer("SELECT id AS addressId,touch_id,label_one AS name,label_two AS phone,label_eight AS pdfPath FROM nl_batch_detail WHERE batch_id='");
+            StringBuffer stringBuffer = new StringBuffer("SELECT id AS addressId,touch_id,label_four AS address,label_one AS name,label_two AS phone,label_eight AS pdfPath FROM nl_batch_detail WHERE batch_id='");
             stringBuffer.append(batchId).append("' AND status='1'");
             List<Map<String, Object>> resultList = jdbcTemplate.queryForList(stringBuffer.toString());
             for (Map<String, Object> tempMap : resultList) {
@@ -170,7 +170,7 @@ public class PackingService {
             }
         } else if (isBatch == 0) {
             //单个发送，根据地址ID 找到 地址ID、姓名、手机号
-            StringBuffer stringBuffer = new StringBuffer("SELECT id AS addressId,touch_id,label_one AS name,label_two AS phone,label_eight AS pdfPath FROM nl_batch_detail WHERE id='");
+            StringBuffer stringBuffer = new StringBuffer("SELECT id AS addressId,touch_id,label_four AS address,label_one AS name,label_two AS phone,label_eight AS pdfPath FROM nl_batch_detail WHERE id='");
             stringBuffer.append(addressId).append("'");
             Map<String, Object> tempMap = jdbcTemplate.queryForMap(stringBuffer.toString());
             updateExpressInfo(tempMap, senderInfo);
@@ -191,24 +191,25 @@ public class PackingService {
     private void sendExpressByZTO(String batchId, String addressId, Map<String, Object> senderInfo, Map<String, Object> receiverInfo) {
         logger.info(" ===== 》》》开始调用中通快递接口");
         logger.info("批次编号" + batchId + "修复地址ID" + addressId + "发件人信息" + senderInfo + "收件人信息" + receiverInfo);
-        ZopClient client = new ZopClient("ztoOrderTest", "enRvMTIzc2lnbndoeA==");
+        ZopClient client = new ZopClient("295a3076000345b58ca82820113ecb95", "9457a158dc5e");
         ZopPublicRequest request = new ZopPublicRequest();
-        request.setUrl("http://58.40.16.122:8080/exposeServicePushOrderService");
+        request.setUrl("http://japi.zto.cn/exposeServicePushOrderService");
         request.addParam("company_id", "ztoOrderTest");
         Map<String, Object> data = new HashMap<>(32);
         data.put("orderId", receiverInfo.get("touch_id"));
-        //TODO （正式的shopKey请发送邮件至kdgj1@zto.cn申请）
-        data.put("shopKey", "T3BlbktER0pfMjAxNzUxNzEyMjAyODI=");
+        data.put("shopKey", "QUNFNjAwNzhCNDU0ODMzNTY1NDA0NjUzRTEzRUVGMEM");
         //订单类型 0代表普通订单 1代表代收货款
         data.put("orderType", "0");
         //收件人信息
         data.put("receiveMan", receiverInfo.get("name"));
         data.put("receivePhone", receiverInfo.get("phone"));
-        //TODO 收件人的省市区 地址 向吴哥和立莹要
-        data.put("receiveProvince", "收件人省");
-        data.put("receiveCity", "市");
-        data.put("receiveCounty", "区县");
-        data.put("receiveAddress", "详细地址");
+        //收件人的省市区地址 ，从 label_four中获取
+        String address= String.valueOf(receiverInfo.get("address"));
+        Map<String,Object> addressMap = (Map<String, Object>)JSON.parse(address);
+        data.put("receiveProvince", StringUtil.isNotEmpty(String.valueOf(addressMap.get("prov")))?String.valueOf(addressMap.get("prov")):" ");
+        data.put("receiveCity", StringUtil.isNotEmpty(String.valueOf(addressMap.get("city")))?String.valueOf(addressMap.get("city")):" ");
+        data.put("receiveCounty", StringUtil.isNotEmpty(String.valueOf(addressMap.get("dist")))?String.valueOf(addressMap.get("dist")):" ");
+        data.put("receiveAddress", StringUtil.isNotEmpty(String.valueOf(addressMap.get("address")))?String.valueOf(addressMap.get("address")):" ");
         //发件人信息
         data.put("sendMan", senderInfo.get("senderName"));
         data.put("sendMobile", senderInfo.get("phone"));
