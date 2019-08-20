@@ -194,7 +194,7 @@ public class PackingService {
         ZopClient client = new ZopClient("295a3076000345b58ca82820113ecb95", "9457a158dc5e");
         ZopPublicRequest request = new ZopPublicRequest();
         request.setUrl("http://japi.zto.cn/exposeServicePushOrderService");
-        request.addParam("company_id", "ztoOrderTest");
+        request.addParam("company_id", "295a3076000345b58ca82820113ecb95");
         Map<String, Object> data = new HashMap<>(32);
         data.put("orderId", receiverInfo.get("touch_id"));
         data.put("shopKey", "QUNFNjAwNzhCNDU0ODMzNTY1NDA0NjUzRTEzRUVGMEM");
