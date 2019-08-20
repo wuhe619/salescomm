@@ -216,14 +216,14 @@ public class RoleAction extends BasicAction {
      */
     @RequestMapping(value = "queryResourceTree", method = RequestMethod.GET)
     @ResponseBody
-    public String queryResourceTree() {
-
+    public String queryResourceTree(String platform) {
+        //平台 1-精准营销 2-金融超市 3-信函
         LoginUser operateUser = opUser();
         Long userId = operateUser.getId();
         //根据用户角色查询当前用户拥有的资源树
         JSONArray jsonArray = null;
         try {
-            jsonArray = roleService.queryResourceTreeByRole(userId, 0L);
+            jsonArray = roleService.queryResourceTreeByRole(userId, 0L,platform);
         } catch (Exception e) {
             e.printStackTrace();
             log.error("查询当前登录用户资源树异常" + e);
