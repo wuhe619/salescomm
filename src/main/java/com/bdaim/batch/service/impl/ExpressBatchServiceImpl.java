@@ -27,6 +27,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.transaction.Transactional;
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -125,12 +126,11 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
                 logger.info("查询余额SQL为" + remainAmountSql);
                 logger.info("查询余额结果为" + amountMap.toString());
                 if (amountMap != null) {
-                    int price = Integer.parseInt(String.valueOf(priceList.get(0).get("property_value")));
-                    int remainAmount = Integer.parseInt(String.valueOf(amountMap.get("property_value")));
+                    BigDecimal price = new BigDecimal(String.valueOf(priceList.get(0).get("property_value")));
+                    BigDecimal remainAmount = new BigDecimal(String.valueOf(amountMap.get("property_value")));
                     logger.info("price 定价为" + price);
                     logger.info("remainAmount 余额是" + remainAmount);
-                    int remain = remainAmount - price * num * 100;
-                    if (remain < 0) {
+                    if (remainAmount.compareTo(price.multiply(new BigDecimal(num)).multiply(new BigDecimal("100"))) == -1) {
                         return new ResponseInfoAssemble().failure(HttpStatus.BAD_REQUEST.value(), "余额不足，请先充值");
                     }
                 }
