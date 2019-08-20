@@ -70,13 +70,16 @@ public class RoleService {
     /**
      * 查询职位详情页面
      */
-    public JSONArray queryResourceSelectStatus(Long operateUserId, Long roleId, Long pid, boolean isAdminOperate) {
+    public JSONArray queryResourceSelectStatus(Long operateUserId, Long roleId, Long pid, boolean isAdminOperate, String platform) {
         JSONArray array = new JSONArray();
         StringBuilder builder = new StringBuilder();
         //根据角色查询为0的父标签，根据父标签查询字标签  标记选中子标签为true
         //admin账户可以分配所有 不是admin只能分配自己拥有的标签
         if (isAdminOperate) {
             builder.append(" select distinct r.ID,r.NAME,r.PID,r.URI,r.TYPE,case when temp.r_id is null then 1 ELSE 0 END as CHECKED from t_resource r");
+            if (StringUtil.isNotEmpty(platform)) {
+                builder.append(" and r.platform=" + platform);
+            }
             builder.append(" left join (select r_id from t_mrp_rel where role_id=");
             builder.append(roleId);
             builder.append(" ) temp on temp.r_id = r.id");
@@ -87,6 +90,9 @@ public class RoleService {
             builder.append(" inner join t_user_role_rel ur on ur.ROLE = m.ROLE_ID");
             builder.append(" inner join t_resource r on m.R_ID = r.ID and ur.ID =");
             builder.append(operateUserId);
+            if (StringUtil.isNotEmpty(platform)) {
+                builder.append(" and r.platform=" + platform);
+            }
             builder.append(" and r.pid = ");
             builder.append(pid);
             builder.append(" left join (select r_id from t_mrp_rel where role_id=");
@@ -110,7 +116,7 @@ public class RoleService {
                 object.put("pid", parentId);
                 object.put("type", type);
                 object.put("checked", checked == 1 ? false : true);
-                object.put("children", queryResourceSelectStatus(operateUserId, roleId, id, isAdminOperate));
+                object.put("children", queryResourceSelectStatus(operateUserId, roleId, id, isAdminOperate, platform));
                 array.add(object);
             }
         }
