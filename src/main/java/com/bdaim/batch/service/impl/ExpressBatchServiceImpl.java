@@ -218,12 +218,12 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         //批次编号
         String batchId = String.valueOf(map.get("batch_id"));
         if (!nullString.equals(batchId) && StringUtil.isNotEmpty(batchId)) {
-            sql.append(" AND t1.id = '" + batchId + "'");
+            sql.append(" AND t1.id like '%" + batchId + "%'");
         }
         //批次名称
         String batchName = String.valueOf(map.get("batch_name"));
         if (!nullString.equals(batchName) && StringUtil.isNotEmpty(batchName)) {
-            sql.append(" AND t1.batch_name = '" + batchName + "'");
+            sql.append(" AND t1.batch_name like '%" + batchName + "%'");
         }
         //状态
         String status = String.valueOf(map.get("status"));
