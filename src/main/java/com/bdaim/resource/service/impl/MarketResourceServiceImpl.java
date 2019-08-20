@@ -1298,16 +1298,23 @@ public class MarketResourceServiceImpl implements MarketResourceService {
             checkSql.append("IFNULL(upload_num/success_num,0) AS effectiveRate FROM nl_batch WHERE comp_id='").append(customerId).append("' ORDER BY ")
                     .append("upload_time DESC LIMIT 10");
             List<Map<String, Object>> checkStatistics = jdbcTemplate.queryForList(checkSql.toString());
-            DecimalFormat format = new DecimalFormat("0%");
-            format.setMaximumFractionDigits(0);
-            for (Map<String, Object> e : checkStatistics) {
-                try {
-                    String number = format.format(e.get("effectiveRate"));
-                    e.put("effectiveRate", number);
-                } catch (Exception ex) {
-                    LOG.info("====>>>>>>>解析失败 " + ex.getMessage());
-                }
-            }
+//            DecimalFormat format = new DecimalFormat("0%");
+//            format.setMaximumFractionDigits(0);
+//            for (Map<String, Object> e : checkStatistics) {
+//                try {
+//                    String number = format.format(e.get("effectiveRate"));
+//                    e.put("effectiveRate", number);
+//                } catch (Exception ex) {
+//                    LOG.info("====>>>>>>>解析失败 " + ex.getMessage());
+//                }
+//            }
+//            for(Map<String,Object> e:checkStatistics){
+//                BigDecimal bigDecimal = new BigDecimal(String.valueOf(e.get("effectiveRate")));
+//
+//
+//            }
+            checkStatistics.stream().map(e -> e.put("effectiveRate",new BigDecimal(String.valueOf(e.get("effectiveRate")))
+                    .multiply(new BigDecimal("100")).setScale(0,BigDecimal.ROUND_HALF_UP))).collect(Collectors.toList());
             //前端首页 签收统计图
             StringBuffer signAndReceive = new StringBuffer("SELECT t1.id,t1.batch_name,SUM(CASE t3.`status` WHEN '1' THEN 0 ELSE 1 END) AS sendVal,");
             signAndReceive.append("SUM(CASE t3.`status` WHEN '4' THEN 1 ELSE 0 END) AS receiveVal,")
