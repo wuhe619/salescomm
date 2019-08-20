@@ -245,7 +245,6 @@ public class RoleService {
         if (StringUtil.isNotEmpty(platform)) {
             builder.append(" and r.platform = " + platform);
         }
-        builder.append(userId);
         builder.append(" and r.pid = ");
         builder.append(pid);
         builder.append(" left join (select r_id from t_mrp_rel where role_id=");
