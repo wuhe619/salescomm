@@ -46,13 +46,13 @@ import java.util.Map;
 @Transactional
 public class PackingService {
     private static Logger logger = LoggerFactory.getLogger(PackingService.class);
-    @Value("${express.url}")
+    @Value("${express.zto.url}")
     private String expressUrl;
-    @Value("${express.company_id}")
+    @Value("${express.zto.company_id}")
     private String companyId;
-    @Value("${express.key}")
+    @Value("${express.zto.key}")
     private String key;
-    @Value("${express.shopKey}")
+    @Value("${express.zto.shopKey}")
     private String shopKey;
     @Resource
     private BatchDetailDao batchDetailDao;
