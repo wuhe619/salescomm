@@ -831,17 +831,33 @@ public class OpenService {
         String platform = String.valueOf(map.get("platform"));
         String IP = StringHelper.getIpAddr(request);
         //2. 转换格式并插入数据库
-        List<String> appList = (List<String>) map.get("apps");
-        List<Map<String, Object>> contactsList = (List<Map<String, Object>>) map.get("device_contacts");
+        List<String> appList = StringUtil.isNotEmpty(String.valueOf(map.get("apps"))) ? (List<String>) map.get("apps") : new ArrayList<String>();
+        List<Map<String, Object>> contactsList =
+                StringUtil.isNotEmpty(String.valueOf(map.get("device_contacts"))) ? (List<Map<String, Object>>) map.get("device_contacts") : new ArrayList<>();
         List<Object[]> batchArgs = new ArrayList<>();
-        for (int i = 0; i < appList.size(); i++) {
-            for (int j = 0; j < contactsList.size(); j++) {
-                Object[] objects = new Object[]{iMei, appList.get(i), deviceAddress, JSON.toJSONString(contactsList.get(j)), action, IP, platform};
+        for (int i = -1; i < appList.size(); i++) {
+            String appElement;
+            if (i == -1 && appList.size() != 0) {
+                continue;
+            } else if (i == -1 && appList.size() == 0) {
+                appElement = "";
+            } else {
+                appElement = appList.get(i);
+            }
+            for (int j = -1; j < contactsList.size(); j++) {
+                Object[] objects;
+                if (j == -1 && contactsList.size() != 0) {
+                    continue;
+                } else if (j == -1 && contactsList.size() == 0) {
+                    objects = new Object[]{iMei, appElement, deviceAddress, "", action, IP, platform};
+                } else {
+                    objects = new Object[]{iMei, appElement, deviceAddress, JSON.toJSONString(contactsList.get(j)), action, IP, platform};
+                }
                 batchArgs.add(objects);
             }
         }
         String sql = "INSERT INTO t_behavior_record (create_time,imei,app,device_address,device_contact,action,ip,platform) VALUES (NOW(),?,?,?,?,?,?,?)";
-        log.info("执行保存SQL "+sql);
+        log.info("执行保存SQL " + sql);
         jdbcTemplate.batchUpdate(sql, batchArgs);
     }
 
