@@ -12,8 +12,8 @@ import java.util.Objects;
  * @date 2018/11/23
  * @description
  */
-@Entity
-@Table(name = "t_market_project", schema = "", catalog = "")
+/*@Entity
+@Table(name = "t_market_project", schema = "", catalog = "")*/
 public class MarketProject implements Serializable {
     private int id;
     private String name;

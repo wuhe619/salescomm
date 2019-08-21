@@ -9,8 +9,8 @@ import java.sql.Timestamp;
  * @date 2018/9/27
  * @description
  */
-@Entity
-@Table(name = "t_customer_user_group", schema = "", catalog = "")
+/*@Entity
+@Table(name = "t_customer_user_group", schema = "", catalog = "")*/
 public class CustomerUserGroup implements Serializable {
     private String id;
     private String name;
