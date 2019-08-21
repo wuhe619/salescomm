@@ -1377,7 +1377,7 @@ public class BillServiceImpl implements BillService {
         } else if (!"0".equals(billDate)) {
             querySql.append(" AND stat_time=" + billDate);
         }
-        querySql.append(" GROUP BY b.batch_id ");
+        querySql.append(" GROUP BY b.batch_id order by n.repair_time desc ");
         Page data = customerDao.sqlPageQuery(querySql.toString(), param.getPageNum(), param.getPageSize());
         if (data != null) {
             List<Map<String, Object>> list = data.getData();
