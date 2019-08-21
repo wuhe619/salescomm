@@ -385,6 +385,22 @@ public class ExpressBatchController extends BasicAction {
         }
         return new ResponseInfoAssemble().success(null);
     }
+    /**
+     * 查询快递记录接口
+     *
+     * @param
+     */
+    @RequestMapping(value = "/getExpressLog", method = RequestMethod.GET)
+    @ResponseBody
+    public ResponseInfo getExpressLog(String id) {
+        try {
+            List<Map<String, Object>> expressLog = expressBatchService.getExpressLog(id);
+            return new ResponseInfoAssemble().success(expressLog);
+        } catch (Exception e) {
+           logger.error("查询快递记录异常",e);
+            return new ResponseInfoAssemble().failure(-1,"查询快递记录异常");
+        }
+    }
 
 }
 

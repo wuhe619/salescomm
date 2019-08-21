@@ -109,4 +109,10 @@ public interface ExpressBatchService {
      * @date 2019/8/9 14:07
      */
     Map<String, Object> queryPathByBatchId(Map<String, Object> map);
+
+    /**
+     * 查询快件记录
+     * @param id
+     */
+    List<Map<String, Object>> getExpressLog(String id) throws  Exception;
 }
