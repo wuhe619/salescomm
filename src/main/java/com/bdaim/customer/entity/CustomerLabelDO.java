@@ -2,16 +2,17 @@ package com.bdaim.customer.entity;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
+import java.util.Objects;
 
 /**
  * @author chengning@salescomm.net
- * @date 2018/9/7
+ * @date 2018/10/19
  * @description
  */
 /*@Entity
 @Table(name = "t_customer_label", schema = "", catalog = "")*/
-public class CustomerPropertyEntity {
-    private Long id;
+public class CustomerLabelDO {
+    private int id;
     private String custId;
     private String userId;
     private String labelId;
@@ -21,15 +22,19 @@ public class CustomerPropertyEntity {
     private String labelDesc;
     private Integer type;
     private String option;
+    private Timestamp updateTime;
+    private String marketProjectId;
+    private Integer sort;
+    private Integer required;
 
     @Id
     @Column(name = "id")
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    public Long getId() {
+    @GeneratedValue
+    public int getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(int id) {
         this.id = id;
     }
 
@@ -123,9 +128,72 @@ public class CustomerPropertyEntity {
         this.option = option;
     }
 
+    @Basic
+    @Column(name = "`update_time`")
+    public Timestamp getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(Timestamp updateTime) {
+        this.updateTime = updateTime;
+    }
+
+    @Basic
+    @Column(name = "market_project_id")
+    public String getMarketProjectId() {
+        return marketProjectId;
+    }
+
+    public void setMarketProjectId(String marketProjectId) {
+        this.marketProjectId = marketProjectId;
+    }
+
+    @Basic
+    @Column(name = "sort")
+    public Integer getSort() {
+        return sort;
+    }
+
+    public void setSort(Integer sort) {
+        this.sort = sort;
+    }
+
+    @Basic
+    @Column(name = "required")
+    public Integer getRequired() {
+        return required;
+    }
+
+    public void setRequired(Integer required) {
+        this.required = required;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        CustomerLabelDO that = (CustomerLabelDO) o;
+        return id == that.id &&
+                Objects.equals(custId, that.custId) &&
+                Objects.equals(userId, that.userId) &&
+                Objects.equals(labelId, that.labelId) &&
+                Objects.equals(labelName, that.labelName) &&
+                Objects.equals(createTime, that.createTime) &&
+                Objects.equals(status, that.status) &&
+                Objects.equals(labelDesc, that.labelDesc) &&
+                Objects.equals(type, that.type) &&
+                Objects.equals(option, that.option);
+    }
+
+    @Override
+    public int hashCode() {
+
+        return Objects.hash(id, custId, userId, labelId, labelName, createTime, status, labelDesc, type, option);
+    }
+
     @Override
     public String toString() {
-        return "CustomerPropertyEntity{" +
+        return "CustomerLabelDO{" +
                 "id=" + id +
                 ", custId='" + custId + '\'' +
                 ", userId='" + userId + '\'' +
@@ -136,6 +204,8 @@ public class CustomerPropertyEntity {
                 ", labelDesc='" + labelDesc + '\'' +
                 ", type=" + type +
                 ", option='" + option + '\'' +
+                ", updateTime=" + updateTime +
+                ", marketProjectId='" + marketProjectId + '\'' +
                 '}';
     }
 }

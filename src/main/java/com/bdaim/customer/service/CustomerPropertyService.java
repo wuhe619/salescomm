@@ -2,7 +2,7 @@ package com.bdaim.customer.service;
 
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.util.page.Page;
-import com.bdaim.customer.entity.CustomerProperty;
+import com.bdaim.customer.entity.CustomerPropertyDO;
 import com.bdaim.customer.entity.CustomerPropertyParam;
 
 import java.util.List;
@@ -40,7 +40,7 @@ public interface CustomerPropertyService {
     String getListenterprise(String custId,String channel);
 
 
-    void addenterprise(CustomerProperty customerProperty) throws Exception;
+    void addenterprise(CustomerPropertyDO customerProperty) throws Exception;
 
     /**
      * 查询企业渠道信息

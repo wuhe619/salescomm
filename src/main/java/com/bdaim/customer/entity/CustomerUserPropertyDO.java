@@ -10,7 +10,7 @@ import javax.persistence.*;
 @Entity
 @Table(name = "t_customer_user_property")
 @IdClass(CustomerUserPropertyPK.class)
-public class CustomerUserProperty {
+public class CustomerUserPropertyDO {
 
 
     //用户id
@@ -27,14 +27,14 @@ public class CustomerUserProperty {
     @Column(name = "create_time")
     private String createTime;
 
-    public CustomerUserProperty(String userId, String propertyName, String propertyValue, String createTime) {
+    public CustomerUserPropertyDO(String userId, String propertyName, String propertyValue, String createTime) {
         this.userId = userId;
         this.propertyName = propertyName;
         this.propertyValue = propertyValue;
         this.createTime = createTime;
     }
 
-    public CustomerUserProperty() {
+    public CustomerUserPropertyDO() {
     }
 
     public String getUserId() {
@@ -71,7 +71,7 @@ public class CustomerUserProperty {
 
     @Override
     public String toString() {
-        return "CustomerUserProperty{" +
+        return "CustomerUserPropertyDO{" +
                 ", userId='" + userId + '\'' +
                 ", propertyName='" + propertyName + '\'' +
                 ", propertyValue='" + propertyValue + '\'' +

@@ -1,7 +1,6 @@
 package com.bdaim.account.service;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.account.dto.Fixentity;
 import com.bdaim.batch.ResourceEnum;
@@ -13,14 +12,13 @@ import com.bdaim.batch.service.BatchService;
 import com.bdaim.callcenter.service.impl.CallCenterServiceImpl;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
-import com.bdaim.common.util.CipherUtil;
 import com.bdaim.common.util.IDHelper;
 import com.bdaim.common.util.StringHelper;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerUserDao;
 import com.bdaim.customer.entity.CustomerDO;
-import com.bdaim.customer.entity.CustomerProperty;
+import com.bdaim.customer.entity.CustomerPropertyDO;
 import com.bdaim.customer.entity.CustomerUserDO;
 import com.bdaim.customer.service.CustomerService;
 import com.bdaim.rbac.dto.Page;
@@ -41,9 +39,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -97,7 +92,7 @@ public class OpenService {
      */
     public Map<String, Object> queryCustBalance(String custId) throws Exception {
         Map<String, Object> resultMap = new HashMap<>();
-        CustomerProperty remainAmoutProperty = customerDao.getProperty(custId, "remain_amount");
+        CustomerPropertyDO remainAmoutProperty = customerDao.getProperty(custId, "remain_amount");
         DecimalFormat df = new DecimalFormat("######0.00");
         if (remainAmoutProperty != null) {
             Double remainAmout = Double.parseDouble(remainAmoutProperty.getPropertyValue());
@@ -132,7 +127,7 @@ public class OpenService {
 //                            json.put("data", resultMap);
 //                            return json.toJSONString();
 //                        }
-//                        CustomerProperty customerProperty = customerDao.getProperty(custId, "token");
+//                        CustomerPropertyDO customerProperty = customerDao.getProperty(custId, "token");
 //                        if (customerProperty != null) {
 //                            token = customerProperty.getPropertyValue();
 //                            if (token.equals(oldtoken)) {
@@ -341,7 +336,7 @@ public class OpenService {
 //                if (uPassword.equals(newpassword)) {
 //                    String custId = u.getCust_id();
 //                    if (StringUtil.isNotEmpty(custId)) {
-//                        CustomerProperty customerProperty = customerDao.getProperty(custId, "token");
+//                        CustomerPropertyDO customerProperty = customerDao.getProperty(custId, "token");
 //                        if (customerProperty != null) {
 //                            token = customerProperty.getPropertyValue();
 //                            try {

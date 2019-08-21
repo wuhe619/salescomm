@@ -3,19 +3,13 @@ package com.bdaim.batch.service.impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.batch.dao.BatchDetailDao;
-import com.bdaim.batch.entity.BatchDetail;
 import com.bdaim.batch.express.ZopClient;
 import com.bdaim.batch.express.ZopPublicRequest;
-import com.bdaim.common.util.ConstantsUtil;
-import com.bdaim.common.util.IDHelper;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.dao.CustomerDao;
-import com.bdaim.customer.entity.CustomerProperty;
+import com.bdaim.customer.entity.CustomerPropertyDO;
 import com.bdaim.resource.dao.SourceDao;
 import com.bdaim.resource.service.MarketResourceService;
-import com.bdaim.supplier.dto.SupplierEnum;
-
-import net.sf.json.JSONString;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,13 +18,10 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import javax.persistence.criteria.CriteriaBuilder;
 import javax.transaction.Transactional;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -76,7 +67,7 @@ public class PackingService {
      * @return
      */
     public double getCustExpressPrice(String custId) {
-        CustomerProperty jdFailPrice = customerDao.getProperty(custId, "jd_fail_price");
+        CustomerPropertyDO jdFailPrice = customerDao.getProperty(custId, "jd_fail_price");
         if (jdFailPrice != null && StringUtil.isNotEmpty(jdFailPrice.getPropertyValue())) {
             return Double.parseDouble(jdFailPrice.getPropertyValue());
         }

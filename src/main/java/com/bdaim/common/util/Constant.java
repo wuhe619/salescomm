@@ -284,15 +284,10 @@ public class Constant {
             + "/dataflow/DataflowMonitor!getLableTaskInfo.action?";
 
     //BDOS的任务查询接口url
-    public static final String API_GET_TASKSTATUS_BM = PropertiesUtil.getStringValue("taskStatus_bm1");
+    //public static final String API_GET_TASKSTATUS_BM = PropertiesUtil.getStringValue("taskStatus_bm1");
 
     // 调度接口url 正式环境
     public static final String API_GET_TASKSTATUS_PRO = "http://192.168.11.154:8888/jupiter/dataflow/DataflowMonitor!getLableTaskInfo.action?";
-    // bdms 接口地址
-//	public static final String API_GET_TASKSTATUS_BDMS_TEST = "http://172.19.1.166:10086/ide/rest/taskstatus/?";
-
-    public static final String API_GET_TASKSTATUS_BDMS_TEST = PropertiesUtil.getStringValue("BDMS_HOST") + ":"
-            + PropertiesUtil.getStringValue("BDMS_PORT") + "/ide/rest/taskstatus/?";
 
     /**
      * 任务状态
@@ -463,10 +458,11 @@ public class Constant {
             .unmodifiableMap(NODE);
     public static final String FILTER_KEY_PREFIX = "FILTER_KEY_";
     // 标签接口url
-    public static final String LABEL_API = "http://"
+    /*public static final String LABEL_API = "http://"
             + PropertiesUtil.getStringValue("label.ip") + ":"
             + PropertiesUtil.getStringValue("label.port")
-            + PropertiesUtil.getStringValue("label.project");
+            + PropertiesUtil.getStringValue("label.project");*/
+    public static final String LABEL_API = "";
     public static String LABEL_API_ADDLABELVALUE_LOCK = "label_api_addlabelvalue_lock";
     // 审核结果
     public static final Integer AUDIT_APPROVE = 1; // 审核通过
@@ -511,8 +507,9 @@ public class Constant {
     public static final Map<Integer, String> DATA_EXPORT_AIMS = Collections
             .unmodifiableMap(DATA_EXPORT);
     // 微观画像url
-    public static final String MIC_PIC_URL = PropertiesUtil
-            .getStringValue("mic_pic_url");
+    public static final String MIC_PIC_URL = "";
+    /*public static final String MIC_PIC_URL = PropertiesUtil
+            .getStringValue("mic_pic_url");*/
     // 查询类型为品类
     public static final Integer QUERY_TYPE_CATEGORY = 0;
     // 查询类型为品牌

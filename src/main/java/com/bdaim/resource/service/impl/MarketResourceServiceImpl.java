@@ -23,9 +23,9 @@ import com.bdaim.common.util.page.Pagination;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerUserDao;
 import com.bdaim.customer.dao.CustomerUserPropertyDao;
-import com.bdaim.customer.entity.CustomerProperty;
+import com.bdaim.customer.entity.CustomerPropertyDO;
 import com.bdaim.customer.entity.CustomerUserDO;
-import com.bdaim.customer.entity.CustomerUserProperty;
+import com.bdaim.customer.entity.CustomerUserPropertyDO;
 import com.bdaim.customer.service.CustomerService;
 import com.bdaim.price.dto.ResourcesPriceDto;
 import com.bdaim.resource.dao.MarketResourceDao;
@@ -59,7 +59,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.text.ParseException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -782,7 +781,7 @@ public class MarketResourceServiceImpl implements MarketResourceService {
         boolean judge = false;
         try {
             judge = true;
-            CustomerProperty customerProperty = customerDao.getProperty(cust_id, "remain_amount");
+            CustomerPropertyDO customerProperty = customerDao.getProperty(cust_id, "remain_amount");
             if (customerProperty == null) {
                 judge = false;
             } else {
@@ -1542,7 +1541,7 @@ public class MarketResourceServiceImpl implements MarketResourceService {
      * @return
      */
     public double getCustSmsPrice(String custId) {
-        CustomerProperty cucSaleSmsPrice = customerDao.getProperty(custId, "cuc_sms_price");
+        CustomerPropertyDO cucSaleSmsPrice = customerDao.getProperty(custId, "cuc_sms_price");
         if (cucSaleSmsPrice != null && StringUtil.isNotEmpty(cucSaleSmsPrice.getPropertyValue())) {
             return Double.parseDouble(cucSaleSmsPrice.getPropertyValue());
         }
@@ -1701,7 +1700,7 @@ public class MarketResourceServiceImpl implements MarketResourceService {
         Boolean flag = true;
         String code = "0";
         //核验是否配置了坐席信息
-        CustomerUserProperty seatProperty = customerUserDao.getProperty(userId, propertyName + "_seat");
+        CustomerUserPropertyDO seatProperty = customerUserDao.getProperty(userId, propertyName + "_seat");
         if (seatProperty == null || ("").equals(seatProperty.getPropertyValue())) {
             code = "003";
             return code;
@@ -2773,7 +2772,7 @@ public class MarketResourceServiceImpl implements MarketResourceService {
      * @return
      */
     public String selectCustCallBackApparentNumber(String custId, String apparentNumber) {
-        CustomerProperty callBackApparentNumber = customerDao.getProperty(custId, apparentNumber);
+        CustomerPropertyDO callBackApparentNumber = customerDao.getProperty(custId, apparentNumber);
         if (callBackApparentNumber != null) {
             apparentNumber = callBackApparentNumber.getPropertyValue();
         }
@@ -2789,7 +2788,7 @@ public class MarketResourceServiceImpl implements MarketResourceService {
     public JSONObject getCustomerMarketResource(String custId, String resourceId) throws Exception {
         LOG.info("根据resourceId查询企业配置信息参数是：" + "企业id是：" + custId + ",资源id是：" + resourceId);
         //根据resourceId查询企业配置信息
-        CustomerProperty customerProperty = customerDao.getProperty(custId, resourceId + "_config");
+        CustomerPropertyDO customerProperty = customerDao.getProperty(custId, resourceId + "_config");
         if (customerProperty != null) {
             //获取企业配置信息
             String propertyValue = customerProperty.getPropertyValue();

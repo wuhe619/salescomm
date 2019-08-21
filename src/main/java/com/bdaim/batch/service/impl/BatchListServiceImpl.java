@@ -21,7 +21,7 @@ import com.bdaim.common.util.page.Pagination;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerUserDao;
 import com.bdaim.customer.entity.CustomerDO;
-import com.bdaim.customer.entity.CustomerProperty;
+import com.bdaim.customer.entity.CustomerPropertyDO;
 import com.bdaim.customer.service.CustomerService;
 import com.bdaim.price.dto.ResourcesPriceDto;
 import com.bdaim.resource.dao.SourceDao;
@@ -847,7 +847,7 @@ public class BatchListServiceImpl implements BatchListService {
     public Object ditchList(String companyid, int certify_type) {
         Map<String, Object> map = new HashMap<>();
         if (StringUtil.isNotEmpty(companyid)) {
-            CustomerProperty channelProperty = customerDao.getProperty(companyid, "channel");
+            CustomerPropertyDO channelProperty = customerDao.getProperty(companyid, "channel");
             String channel = channelProperty.getPropertyValue();
 
             if (StringUtil.isNotEmpty(channel)) {
@@ -861,7 +861,7 @@ public class BatchListServiceImpl implements BatchListService {
                         if (channels[i].equals("2")) {
                             ditch = "cuc";
                             if (certify_type == 0) {
-                                CustomerProperty salefixPrice = customerDao.getProperty(companyid, ditch + "_fix_price");
+                                CustomerPropertyDO salefixPrice = customerDao.getProperty(companyid, ditch + "_fix_price");
                                 if (salefixPrice != null) {
                                     if (!salefixPrice.getPropertyValue().equals("")) {
                                         supplier = "2,";
@@ -873,7 +873,7 @@ public class BatchListServiceImpl implements BatchListService {
                         if (channels[i].equals("4")) {
                             ditch = "cmc";
                             if (certify_type == 0) {
-                                CustomerProperty salefixPrice = customerDao.getProperty(companyid, ditch + "_fix_price");
+                                CustomerPropertyDO salefixPrice = customerDao.getProperty(companyid, ditch + "_fix_price");
                                 if (salefixPrice != null) {
                                     if (!salefixPrice.getPropertyValue().equals("")) {
                                         if (supplier == null) {
@@ -890,7 +890,7 @@ public class BatchListServiceImpl implements BatchListService {
                         if (channels[i].equals("3")) {
                             ditch = "ctc";
                             if (certify_type == 0) {
-                                CustomerProperty salefixPrice = customerDao.getProperty(companyid, ditch + "_fix_price");
+                                CustomerPropertyDO salefixPrice = customerDao.getProperty(companyid, ditch + "_fix_price");
                                 if (salefixPrice != null) {
                                     if (!salefixPrice.getPropertyValue().equals("")) {
                                         if (supplier == null) {
@@ -906,7 +906,7 @@ public class BatchListServiceImpl implements BatchListService {
                         if (channels[i].equals("2")) {
                             ditch = "cuc";
                             if (certify_type == 1) {
-                                CustomerProperty saleImeiPrice = customerDao.getProperty(companyid, ditch + "_imei_price");
+                                CustomerPropertyDO saleImeiPrice = customerDao.getProperty(companyid, ditch + "_imei_price");
                                 if (saleImeiPrice != null) {
                                     if (!saleImeiPrice.getPropertyValue().equals("")) {
                                         supplier = "2,";
@@ -918,7 +918,7 @@ public class BatchListServiceImpl implements BatchListService {
                         if (channels[i].equals("4")) {
                             ditch = "cmc";
                             if (certify_type == 1) {
-                                CustomerProperty saleImeiPrice = customerDao.getProperty(companyid, ditch + "_imei_price");
+                                CustomerPropertyDO saleImeiPrice = customerDao.getProperty(companyid, ditch + "_imei_price");
                                 if (saleImeiPrice != null) {
                                     if (!saleImeiPrice.getPropertyValue().equals("")) {
                                         if (supplier == null) {
@@ -934,7 +934,7 @@ public class BatchListServiceImpl implements BatchListService {
                         if (channels[i].equals("3")) {
                             ditch = "ctc";
                             if (certify_type == 1) {
-                                CustomerProperty saleImeiPrice = customerDao.getProperty(companyid, ditch + "_imei_price");
+                                CustomerPropertyDO saleImeiPrice = customerDao.getProperty(companyid, ditch + "_imei_price");
                                 if (saleImeiPrice != null) {
                                     if (!saleImeiPrice.getPropertyValue().equals("")) {
                                         if (supplier == null) {
@@ -950,7 +950,7 @@ public class BatchListServiceImpl implements BatchListService {
                         if (channels[i].equals("2")) {
                             ditch = "cuc";
                             if (certify_type == 2) {
-                                CustomerProperty saleMacPrice = customerDao.getProperty(companyid, ditch + "_mac_price");
+                                CustomerPropertyDO saleMacPrice = customerDao.getProperty(companyid, ditch + "_mac_price");
                                 if (saleMacPrice != null) {
                                     if (!saleMacPrice.getPropertyValue().equals("")) {
                                         supplier = "2,";
@@ -962,7 +962,7 @@ public class BatchListServiceImpl implements BatchListService {
                         if (channels[i].equals("4")) {
                             ditch = "cmc";
                             if (certify_type == 2) {
-                                CustomerProperty saleMacPrice = customerDao.getProperty(companyid, ditch + "_mac_price");
+                                CustomerPropertyDO saleMacPrice = customerDao.getProperty(companyid, ditch + "_mac_price");
                                 if (saleMacPrice != null) {
                                     if (!saleMacPrice.getPropertyValue().equals("")) {
                                         if (supplier == null) {
@@ -978,7 +978,7 @@ public class BatchListServiceImpl implements BatchListService {
                         if (channels[i].equals("3")) {
                             ditch = "ctc";
                             if (certify_type == 2) {
-                                CustomerProperty saleMacPrice = customerDao.getProperty(companyid, ditch + "_mac_price");
+                                CustomerPropertyDO saleMacPrice = customerDao.getProperty(companyid, ditch + "_mac_price");
                                 if (saleMacPrice != null) {
                                     if (!saleMacPrice.getPropertyValue().equals("")) {
                                         if (supplier == null) {

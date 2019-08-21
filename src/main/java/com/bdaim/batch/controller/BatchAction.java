@@ -171,7 +171,7 @@ public class BatchAction extends BasicAction {
                     if (channelall.equals("4")) {
                         propertyValue = "cmc";
                     }
-                    CustomerProperty customerProperty = customerDao.getProperty(opUser().getCustId(), propertyValue + "_fix_price");
+                    CustomerPropertyDO customerProperty = customerDao.getProperty(opUser().getCustId(), propertyValue + "_fix_price");
                     Double useAmount = null;
                     if (customerProperty != null) {
                         if (StringUtil.isNotEmpty(customerProperty.getPropertyValue())) {

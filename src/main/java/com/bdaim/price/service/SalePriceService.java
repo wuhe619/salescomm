@@ -3,7 +3,7 @@ package com.bdaim.price.service;
 import com.bdaim.bill.dto.CustomerBillQueryParam;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.util.page.Page;
-import com.bdaim.customer.entity.CustomerProperty;
+import com.bdaim.customer.entity.CustomerPropertyDO;
 import com.bdaim.price.dto.SalePriceDTO;
 
 import java.util.List;
@@ -25,10 +25,10 @@ public interface SalePriceService {
     /**
      * 查询旧的销售价格
      */
-    // List<CustomerProperty> getLabelSalePriceOld(SalePriceDTO salePriceDTO);
+    // List<CustomerPropertyDO> getLabelSalePriceOld(SalePriceDTO salePriceDTO);
 
     //更新t_label_sale_price_modify_log  修改价格记录表
-    void addLabelSalePriceModifyLog(List<CustomerProperty> oldPriceList, SalePriceDTO salePriceDTO, Long userId);
+    void addLabelSalePriceModifyLog(List<CustomerPropertyDO> oldPriceList, SalePriceDTO salePriceDTO, Long userId);
 
     /**
      * 查询销售定价

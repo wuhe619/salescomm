@@ -1,17 +1,16 @@
-package com.bdaim.customer.entity;
+package com.bdaim.customer.dto;
 
-import javax.persistence.*;
+import com.bdaim.customer.entity.CustomerLabelDO;
+
 import java.sql.Timestamp;
 
 /**
  * @author chengning@salescomm.net
- * @date 2018/9/7
+ * @date 2018/11/16
  * @description
  */
-/*@Entity
-@Table(name = "t_customer_label", schema = "", catalog = "")*/
-public class CustomerPropertyEntity {
-    private Long id;
+public class CustomerLabelDTO {
+    private int id;
     private String custId;
     private String userId;
     private String labelId;
@@ -21,20 +20,33 @@ public class CustomerPropertyEntity {
     private String labelDesc;
     private Integer type;
     private String option;
+    private String marketProjectId;
 
-    @Id
-    @Column(name = "id")
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    public Long getId() {
+    public CustomerLabelDTO(CustomerLabelDO customerLabel) {
+        this.id = customerLabel.getId();
+        this.custId = customerLabel.getCustId();
+        this.userId = customerLabel.getCustId();
+        this.labelId = customerLabel.getLabelId();
+        this.labelName = customerLabel.getLabelName();
+        this.createTime = customerLabel.getCreateTime();
+        this.status = customerLabel.getStatus();
+        this.labelDesc = customerLabel.getLabelDesc();
+        this.type = customerLabel.getType();
+        this.option = customerLabel.getOption();
+        this.marketProjectId = customerLabel.getMarketProjectId();
+    }
+
+    public CustomerLabelDTO() {
+    }
+
+    public int getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(int id) {
         this.id = id;
     }
 
-    @Basic
-    @Column(name = "cust_id")
     public String getCustId() {
         return custId;
     }
@@ -43,8 +55,6 @@ public class CustomerPropertyEntity {
         this.custId = custId;
     }
 
-    @Basic
-    @Column(name = "user_id")
     public String getUserId() {
         return userId;
     }
@@ -53,8 +63,6 @@ public class CustomerPropertyEntity {
         this.userId = userId;
     }
 
-    @Basic
-    @Column(name = "label_id")
     public String getLabelId() {
         return labelId;
     }
@@ -63,8 +71,6 @@ public class CustomerPropertyEntity {
         this.labelId = labelId;
     }
 
-    @Basic
-    @Column(name = "label_name")
     public String getLabelName() {
         return labelName;
     }
@@ -73,8 +79,6 @@ public class CustomerPropertyEntity {
         this.labelName = labelName;
     }
 
-    @Basic
-    @Column(name = "create_time")
     public Timestamp getCreateTime() {
         return createTime;
     }
@@ -83,8 +87,6 @@ public class CustomerPropertyEntity {
         this.createTime = createTime;
     }
 
-    @Basic
-    @Column(name = "status")
     public String getStatus() {
         return status;
     }
@@ -93,8 +95,6 @@ public class CustomerPropertyEntity {
         this.status = status;
     }
 
-    @Basic
-    @Column(name = "label_desc")
     public String getLabelDesc() {
         return labelDesc;
     }
@@ -103,8 +103,6 @@ public class CustomerPropertyEntity {
         this.labelDesc = labelDesc;
     }
 
-    @Basic
-    @Column(name = "type")
     public Integer getType() {
         return type;
     }
@@ -113,8 +111,6 @@ public class CustomerPropertyEntity {
         this.type = type;
     }
 
-    @Basic
-    @Column(name = "`option`")
     public String getOption() {
         return option;
     }
@@ -123,9 +119,17 @@ public class CustomerPropertyEntity {
         this.option = option;
     }
 
+    public String getMarketProjectId() {
+        return marketProjectId;
+    }
+
+    public void setMarketProjectId(String marketProjectId) {
+        this.marketProjectId = marketProjectId;
+    }
+
     @Override
     public String toString() {
-        return "CustomerPropertyEntity{" +
+        return "CustomerLabelDTO{" +
                 "id=" + id +
                 ", custId='" + custId + '\'' +
                 ", userId='" + userId + '\'' +
@@ -136,6 +140,7 @@ public class CustomerPropertyEntity {
                 ", labelDesc='" + labelDesc + '\'' +
                 ", type=" + type +
                 ", option='" + option + '\'' +
+                ", marketProjectId='" + marketProjectId + '\'' +
                 '}';
     }
 }
