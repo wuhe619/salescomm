@@ -41,7 +41,7 @@ public class ZipUtil {
                     }else {
                         targetFile = new File((destDirPath+entryName));
                     }
-                    result.add(zipEntry.getName().substring(0,zipEntry.getName().lastIndexOf(".")));
+                    result.add(zipEntry.getName().substring(entryName.lastIndexOf("/")+1,entryName.lastIndexOf(".")));
                     if (!targetFile.exists()) {
                         targetFile.getParentFile().mkdirs();
                         targetFile.createNewFile();

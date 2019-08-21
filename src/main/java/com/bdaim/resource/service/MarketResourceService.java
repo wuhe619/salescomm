@@ -126,6 +126,16 @@ public interface MarketResourceService {
      */
     Map<String, Object> countMarketData(String customerId);
 
+    /**
+     * 后台首页的统计图数据
+     *
+     * @param
+     * @return
+     * @auther Chacker
+     * @date
+     */
+    Map<String, Object> countMarketDataBackend();
+
     Page getSmsTemplateList(PageParam page, TemplateParam templateParam);
 
     Map<String, Object> updateSmsTemplate(TemplateParam templateParam);
