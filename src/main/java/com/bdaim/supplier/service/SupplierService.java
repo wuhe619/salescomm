@@ -31,6 +31,7 @@ import javax.annotation.Resource;
 import javax.transaction.Transactional;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -284,7 +285,8 @@ public class SupplierService {
         data.put("express", expressArray);
         data.put("supplierId", supplierId);
         data.put("name", supplierEntity.getName());
-        data.put("createTime", supplierEntity.getCreateTime());
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        data.put("createTime", format.format(supplierEntity.getCreateTime()));
         data.put("person", supplierEntity.getContactPosition());
         data.put("phone", supplierEntity.getContactPhone());
         data.put("position", supplierEntity.getContactPosition());
