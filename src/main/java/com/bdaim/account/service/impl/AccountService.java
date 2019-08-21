@@ -154,7 +154,7 @@ public class AccountService {
      * @return
      */
     public Page pageList(PageParam page, CustomerBillQueryParam queryParam) {
-        StringBuilder sqlBuilder = new StringBuilder("SELECT cus.cust_id,cus.create_time createTime,cus.enterprise_name,cus.status,\n" +
+        StringBuilder sqlBuilder = new StringBuilder("SELECT cus.cust_id,DATE_FORMAT(cus.create_time,'%Y-%m-%d %H:%i:%s') AS createTime,cus.enterprise_name,cus.status,\n" +
                 "t2.account,t2.realname,cjc.mobile_num,CONVERT(cjc.remainAmount/100,DECIMAL(15,2)) as remainAmount\n" +
                 " from t_customer cus\n" +
                 "LEFT JOIN t_customer_user t2   ON cus.cust_id = t2.cust_id\n" +
