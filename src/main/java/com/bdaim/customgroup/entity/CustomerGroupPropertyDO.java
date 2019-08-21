@@ -9,9 +9,9 @@ import java.util.Objects;
  * @date 2019/2/20
  * @description
  */
-@Entity
+/*@Entity
 @Table(name = "customer_group_property")
-@IdClass(CustomerGroupPropertyPK.class)
+@IdClass(CustomerGroupPropertyPK.class)*/
 public class CustomerGroupPropertyDO {
     private int customerGroupId;
     private String propertyName;

@@ -7,9 +7,9 @@ import javax.persistence.*;
  * @date 2018/9/19
  * @description 坐席信息
  */
-@Entity
+/*@Entity
 @Table(name = "t_customer_user_property")
-@IdClass(CustomerUserPropertyPK.class)
+@IdClass(CustomerUserPropertyPK.class)*/
 public class CustomerUserPropertyDO {
 
 

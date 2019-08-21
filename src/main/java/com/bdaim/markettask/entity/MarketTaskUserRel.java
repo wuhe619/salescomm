@@ -9,9 +9,9 @@ import java.util.Objects;
  * @date 2019/4/24
  * @description
  */
-@Entity
+/*@Entity
 @Table(name = "t_market_task_user_rel", schema = "", catalog = "")
-@IdClass(MarketTaskUserRelPK.class)
+@IdClass(MarketTaskUserRelPK.class)*/
 public class MarketTaskUserRel {
     private String marketTaskId;
     private String userId;

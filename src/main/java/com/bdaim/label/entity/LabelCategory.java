@@ -11,8 +11,8 @@ import java.util.List;
  * 
  *
  */
-@Entity
-@Table(name = "label_category")
+/*@Entity
+@Table(name = "label_category")*/
 public class LabelCategory {
 
 	@Id

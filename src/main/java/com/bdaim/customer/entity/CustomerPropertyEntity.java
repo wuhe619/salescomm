@@ -2,15 +2,14 @@ package com.bdaim.customer.entity;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
-import java.util.Objects;
 
 /**
  * @author chengning@salescomm.net
  * @date 2018/9/7
  * @description
  */
-@Entity
-@Table(name = "t_customer_label", schema = "", catalog = "")
+/*@Entity
+@Table(name = "t_customer_label", schema = "", catalog = "")*/
 public class CustomerPropertyEntity {
     private Long id;
     private String custId;

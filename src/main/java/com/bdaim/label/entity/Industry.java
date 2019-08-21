@@ -6,8 +6,8 @@ import java.sql.Timestamp;
 /**
  *  行业
  */
-@Entity
-@Table(name = "t_industry_info", schema = "", catalog = "")
+/*@Entity
+@Table(name = "t_industry_info", schema = "", catalog = "")*/
 public class Industry {
 	//企业ID
     private Integer industryInfoId;

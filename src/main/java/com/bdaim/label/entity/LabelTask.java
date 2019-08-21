@@ -3,8 +3,8 @@ package com.bdaim.label.entity;
 import javax.persistence.*;
 import java.util.Date;
 
-@Entity
-@Table(name = "label_task")
+/*@Entity
+@Table(name = "label_task")*/
 public class LabelTask {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)

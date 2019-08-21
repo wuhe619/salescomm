@@ -2,8 +2,8 @@ package com.bdaim.label.entity;
 
 import javax.persistence.*;
 
-@Entity
-@Table(name = "audit_flow")
+/*@Entity
+@Table(name = "audit_flow")*/
 public class AuditFlow {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)

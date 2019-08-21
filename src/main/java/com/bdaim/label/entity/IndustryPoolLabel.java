@@ -6,8 +6,8 @@ import java.sql.Timestamp;
 /**
  *  行业标签池的标签
  */
-@Entity
-@Table(name = "t_industry_label", schema = "", catalog = "")
+/*@Entity
+@Table(name = "t_industry_label", schema = "", catalog = "")*/
 public class IndustryPoolLabel {
 	//企业ID
 	@Id

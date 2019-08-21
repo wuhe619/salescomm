@@ -6,8 +6,8 @@ import java.sql.Timestamp;
 /**
  * Created by Mr.YinXin on 2017/2/28.
  */
-@Entity
-@Table(name = "t_source", schema = "", catalog = "")
+/*@Entity
+@Table(name = "t_source", schema = "", catalog = "")*/
 public class SourceDO {
     private int sourceId;
     private String sourceName;

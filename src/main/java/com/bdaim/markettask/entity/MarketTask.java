@@ -11,8 +11,8 @@ import java.util.Objects;
  * @date 2019/4/23
  * @description
  */
-@Entity
-@Table(name = "t_market_task", schema = "", catalog = "")
+/*@Entity
+@Table(name = "t_market_task", schema = "", catalog = "")*/
 public class MarketTask {
     private String id;
     private Integer customerGroupId;

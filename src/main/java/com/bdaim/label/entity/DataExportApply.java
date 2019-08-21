@@ -5,8 +5,8 @@ import com.bdaim.rbac.entity.User;
 import javax.persistence.*;
 import java.util.Date;
 
-@Entity
-@Table(name="data_export_apply")
+/*@Entity
+@Table(name="data_export_apply")*/
 public class DataExportApply {
 
 	@Id

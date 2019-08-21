@@ -1,14 +1,12 @@
 package com.bdaim.customgroup.entity;
 
-import org.hibernate.annotations.DynamicUpdate;
-
 import javax.persistence.*;
 import java.sql.Timestamp;
 import java.util.Date;
 
-@Entity
+/*@Entity
 @Table(name = "customer_group")
-@DynamicUpdate(true)
+@DynamicUpdate(true)*/
 public class CustomGroupDO {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)

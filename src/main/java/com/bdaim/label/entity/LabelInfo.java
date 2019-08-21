@@ -8,9 +8,9 @@ import javax.persistence.*;
 import java.util.Date;
 import java.util.List;
 
-@Entity
+/*@Entity
 @Table(name = "label_info")
-@DynamicUpdate(true)
+@DynamicUpdate(true)*/
 public class LabelInfo {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)

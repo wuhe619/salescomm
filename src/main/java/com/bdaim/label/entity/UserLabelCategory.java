@@ -5,8 +5,8 @@ import com.bdaim.rbac.entity.User;
 import javax.persistence.*;
 
 
-@Entity
-@Table(name="user_label_category")
+/*@Entity
+@Table(name="user_label_category")*/
 public class UserLabelCategory {
 
 	@Id

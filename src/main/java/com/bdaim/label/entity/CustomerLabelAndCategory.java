@@ -4,8 +4,8 @@ import com.bdaim.customgroup.entity.CustomGroupDO;
 
 import javax.persistence.*;
 
-@Entity
-@Table(name = "customer_label_category")
+/*@Entity
+@Table(name = "customer_label_category")*/
 public class CustomerLabelAndCategory {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)

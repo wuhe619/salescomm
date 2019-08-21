@@ -4,8 +4,8 @@ import javax.persistence.*;
 import java.util.Date;
 import java.util.List;
 
-@Entity
-@Table(name = "label_tree")
+/*@Entity
+@Table(name = "label_tree")*/
 public class LabelTree {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)

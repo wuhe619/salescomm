@@ -2,14 +2,13 @@ package com.bdaim.label.entity;
 
 import com.bdaim.customgroup.entity.CustomGroupDO;
 import com.bdaim.rbac.entity.User;
-import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.*;
 import java.util.Date;
 
-@Entity
+/*@Entity
 @Table(name = "label_audit")
-@DynamicUpdate(true)
+@DynamicUpdate(true)*/
 // 标签审核
 public class LabelAudit {
 	@Id

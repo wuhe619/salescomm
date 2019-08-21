@@ -10,8 +10,8 @@ import java.util.Objects;
  * @date 2018/9/27
  * @description
  */
-@Entity
-@Table(name = "t_customer_user_group_rel", schema = "", catalog = "")
+/*@Entity
+@Table(name = "t_customer_user_group_rel", schema = "", catalog = "")*/
 public class CustomerUserGroupRel implements Serializable {
     private String groupId;
     private String userId;

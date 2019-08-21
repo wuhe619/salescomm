@@ -9,9 +9,9 @@ import java.util.Objects;
  * @date 2019/4/24
  * @description
  */
-@Entity
+/*@Entity
 @Table(name = "t_market_task_property", schema = "", catalog = "")
-@IdClass(MarketTaskPropertyPK.class)
+@IdClass(MarketTaskPropertyPK.class)*/
 public class MarketTaskProperty {
     private String marketTaskId;
     private String propertyName;

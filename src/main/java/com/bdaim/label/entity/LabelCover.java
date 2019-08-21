@@ -8,8 +8,8 @@ import javax.persistence.*;
  * 
  *
  */
-@Entity
-@Table(name = "label_cover")
+/*@Entity
+@Table(name = "label_cover")*/
 public class LabelCover {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
