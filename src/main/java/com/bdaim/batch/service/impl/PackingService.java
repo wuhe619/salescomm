@@ -161,7 +161,7 @@ public class PackingService {
         Map<String, Object> senderInfo = jdbcTemplate.queryForMap(senderSql);
         if (isBatch == 1) {
             //批量发送，根据批次ID batchId 找出地址ID、姓名、手机号
-            StringBuffer stringBuffer = new StringBuffer("SELECT id AS addressId,touch_id,label_one AS name,label_two AS phone,label_eight AS pdfPath FROM nl_batch_detail WHERE batch_id='");
+            StringBuffer stringBuffer = new StringBuffer("SELECT id AS addressId,touch_id,label_four AS address,label_one AS name,label_two AS phone,label_eight AS pdfPath FROM nl_batch_detail WHERE batch_id='");
             stringBuffer.append(batchId).append("' AND status='1'");
             List<Map<String, Object>> resultList = jdbcTemplate.queryForList(stringBuffer.toString());
             for (Map<String, Object> tempMap : resultList) {
@@ -170,7 +170,7 @@ public class PackingService {
             }
         } else if (isBatch == 0) {
             //单个发送，根据地址ID 找到 地址ID、姓名、手机号
-            StringBuffer stringBuffer = new StringBuffer("SELECT id AS addressId,touch_id,label_one AS name,label_two AS phone,label_eight AS pdfPath FROM nl_batch_detail WHERE id='");
+            StringBuffer stringBuffer = new StringBuffer("SELECT id AS addressId,touch_id,label_four AS address,label_one AS name,label_two AS phone,label_eight AS pdfPath FROM nl_batch_detail WHERE id='");
             stringBuffer.append(addressId).append("'");
             Map<String, Object> tempMap = jdbcTemplate.queryForMap(stringBuffer.toString());
             updateExpressInfo(tempMap, senderInfo);
@@ -191,24 +191,33 @@ public class PackingService {
     private void sendExpressByZTO(String batchId, String addressId, Map<String, Object> senderInfo, Map<String, Object> receiverInfo) {
         logger.info(" ===== 》》》开始调用中通快递接口");
         logger.info("批次编号" + batchId + "修复地址ID" + addressId + "发件人信息" + senderInfo + "收件人信息" + receiverInfo);
-        ZopClient client = new ZopClient("ztoOrderTest", "enRvMTIzc2lnbndoeA==");
+        String ztoConfigSQL = "SELECT resource_id,property_name,property_value,create_time FROM t_market_resource_property WHERE resource_id='29' AND property_name='zto_config'";
+        Map<String,Object> ztoConfig = jdbcTemplate.queryForMap(ztoConfigSQL);
+        String propertyValue = String.valueOf(ztoConfig.get("property_value"));
+        Map<String,Object> zto = (Map<String, Object>)JSON.parse(propertyValue);
+        ZopClient client = new ZopClient(String.valueOf(zto.get("company_id")), String.valueOf(zto.get("key")));
         ZopPublicRequest request = new ZopPublicRequest();
-        request.setUrl("http://58.40.16.122:8080/exposeServicePushOrderService");
-        request.addParam("company_id", "ztoOrderTest");
+        request.setUrl(String.valueOf(zto.get("url")));
+        request.addParam("company_id", String.valueOf(zto.get("company_id")));
         Map<String, Object> data = new HashMap<>(32);
         data.put("orderId", receiverInfo.get("touch_id"));
-        //TODO （正式的shopKey请发送邮件至kdgj1@zto.cn申请）
-        data.put("shopKey", "T3BlbktER0pfMjAxNzUxNzEyMjAyODI=");
+        data.put("shopKey", String.valueOf(zto.get("shopKey")));
         //订单类型 0代表普通订单 1代表代收货款
         data.put("orderType", "0");
         //收件人信息
         data.put("receiveMan", receiverInfo.get("name"));
         data.put("receivePhone", receiverInfo.get("phone"));
-        //TODO 收件人的省市区 地址 向吴哥和立莹要
-        data.put("receiveProvince", "收件人省");
-        data.put("receiveCity", "市");
-        data.put("receiveCounty", "区县");
-        data.put("receiveAddress", "详细地址");
+        //收件人的省市区地址 ，从 label_four中获取
+        String address= String.valueOf(receiverInfo.get("address"));
+        Map<String,Object> addressMap = (Map<String, Object>)JSON.parse(address);
+        data.put("receiveProvince", StringUtil.isNotEmpty(String.valueOf(addressMap.get("prov")))?String.valueOf(addressMap.get("prov")):" ");
+        data.put("receiveCity", StringUtil.isNotEmpty(String.valueOf(addressMap.get("city")))?String.valueOf(addressMap.get("city")):" ");
+        data.put("receiveCounty", StringUtil.isNotEmpty(String.valueOf(addressMap.get("dist")))?String.valueOf(addressMap.get("dist")):" ");
+        data.put("receiveAddress", StringUtil.isNotEmpty(String.valueOf(addressMap.get("address")))?String.valueOf(addressMap.get("address")):" ");
+//        data.put("receiveProvince","北京");
+//        data.put("receiveCity","北京市");
+//        data.put("receiveCounty","朝阳区");
+//        data.put("receiveAddress","广顺南大街16号");
         //发件人信息
         data.put("sendMan", senderInfo.get("senderName"));
         data.put("sendMobile", senderInfo.get("phone"));
@@ -222,6 +231,17 @@ public class PackingService {
         try {
             logger.info("订单创建成功，返回值为");
             logger.info(client.execute(request));
+            //执行扣费逻辑
+            String touch_id = String.valueOf(receiverInfo.get("touch_id"));
+            String sql = "SELECT t1.amount,t2.supplier_id FROM t_touch_express_log t1 LEFT JOIN t_market_resource t2 ON t1.resource_id=t2.resource_id " +
+                    "WHERE t1.touch_id='" + touch_id + "' LIMIT 1";
+            Map<String, Object> amountMap = jdbcTemplate.queryForMap(sql);
+            BigDecimal amount = new BigDecimal(String.valueOf(amountMap.get("amount")));
+            String supplierId = String.valueOf(amountMap.get("supplier_id"));
+            sourceDao.supplierAccountDuctions(supplierId, amount);
+            //更新prod_amount 资源金额 字段
+            String prodAmount = "UPDATE t_touch_express_log SET proAmount=amount WHERE touch_id='" + touch_id + "'";
+            jdbcTemplate.update(prodAmount);
         } catch (Exception e) {
             logger.info("订单创建失败，返回值为");
             logger.info(e.getMessage());

@@ -27,6 +27,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.transaction.Transactional;
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -111,7 +112,8 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
             return new ResponseInfoAssemble().failure(HttpStatus.BAD_REQUEST.value(), "请保证一次上传数据不超过1000条记录");
         }
         //2.5 加上销售定价判断和余额的判断
-        String priceSql = "SELECT cust_id,property_value FROM t_customer_property WHERE cust_id='" + custId + "' AND property_name='address_fix_price'";
+        String priceSql = "SELECT t1.cust_id,t1.property_value,t2.enterprise_name FROM t_customer_property t1 LEFT JOIN t_customer t2 ON " +
+                "t1.cust_id=t2.cust_id WHERE t1.cust_id='" + custId + "' AND t1.property_name='address_fix_price'";
         logger.info("执行SQL "+priceSql);
         List<Map<String, Object>> priceList = jdbcTemplate.queryForList(priceSql);
         if (priceList == null || priceList.size() == 0) {
@@ -122,11 +124,14 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
                 int num = contentList.size() - 1;
                 String remainAmountSql = "SELECT cust_id,property_value FROM t_customer_property WHERE cust_id='" + custId + "' AND property_name='remain_amount'";
                 Map<String, Object> amountMap = jdbcTemplate.queryForMap(remainAmountSql);
+                logger.info("查询余额SQL为" + remainAmountSql);
+                logger.info("查询余额结果为" + amountMap.toString());
                 if (amountMap != null) {
-                    int price = Integer.parseInt(String.valueOf(priceList.get(0).get("property_value")));
-                    int remainAmount = Integer.parseInt(String.valueOf(amountMap.get("property_value")));
-                    int remain = remainAmount - price * num * 100;
-                    if (remain < 0) {
+                    BigDecimal price = new BigDecimal(String.valueOf(priceList.get(0).get("property_value")));
+                    BigDecimal remainAmount = new BigDecimal(String.valueOf(amountMap.get("property_value")));
+                    logger.info("price 定价为" + price);
+                    logger.info("remainAmount 余额是" + remainAmount);
+                    if (remainAmount.compareTo(price.multiply(new BigDecimal(num)).multiply(new BigDecimal("100"))) == -1) {
                         return new ResponseInfoAssemble().failure(HttpStatus.BAD_REQUEST.value(), "余额不足，请先充值");
                     }
                 }
@@ -136,11 +141,12 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         }
         //3. 把批次信息和批次详情列表存入数据库
         //3.1 设置并新增保存批次信息 (status 为"1",表示 【校验中】) (certify_type是修复方式 3.表示快递地址修复)
-        StringBuffer insertBatchSql = new StringBuffer("INSERT INTO nl_batch (id,batch_name,upload_time,comp_id,certify_type,channel,status," +
+        String enterprise_name = String.valueOf(priceList.get(0).get("enterprise_name"));
+        StringBuffer insertBatchSql = new StringBuffer("INSERT INTO nl_batch (id,batch_name,upload_time,comp_id,comp_name,certify_type,channel,status," +
                 "upload_num) VALUES ('");
         String batchId = String.valueOf(System.currentTimeMillis());
         insertBatchSql.append(batchId + "','" + batchName + "',now(),'"
-                + custId + "','3','-1','1','" + (contentList.size() - 1) + "')");
+                + custId + "','"+enterprise_name+"','3','-1','1','" + (contentList.size() - 1) + "')");
         jdbcTemplate.update(insertBatchSql.toString());
         //把快递内容(1. 电子版 2. 打印版)存入批次属性表
         String insertBatchProperty = "INSERT INTO nl_batch_property (batch_id,property_name,property_value,create_time)" +
@@ -386,6 +392,14 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
                         jdbcTemplate.update(updateZipPath.toString());
                     }
                     pdfFileNameList = zipUtil.unZip(contentFile, destPath);
+                }else if(Constant.PDF.equals(contentSuffix)){
+                    //pdf文件，把文件路径更新到label_eight
+                    String pdfPath = destPath+receiverId+Constant.PDF;
+                    String updatePdfPath = "UPDATE nl_batch_detail SET label_eight='"+pdfPath+"' WHERE label_five='"+
+                            receiverId+"' AND batch_id='"+batchId+"'";
+                    updatePdfPath = updatePdfPath.replaceAll("\\\\", "\\\\\\\\");
+                    logger.info("更新pdf文件路径 "+updatePdfPath);
+                    jdbcTemplate.update(updatePdfPath);
                 }
             }
             if (fileCodeMapping != null) {
