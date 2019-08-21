@@ -392,6 +392,14 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
                         jdbcTemplate.update(updateZipPath.toString());
                     }
                     pdfFileNameList = zipUtil.unZip(contentFile, destPath);
+                }else if(Constant.PDF.equals(contentSuffix)){
+                    //pdf文件，把文件路径更新到label_eight
+                    String pdfPath = destPath+receiverId+Constant.PDF;
+                    String updatePdfPath = "UPDATE nl_batch_detail SET label_eight='"+pdfPath+"' WHERE label_five='"+
+                            receiverId+"' AND batch_id='"+batchId+"'";
+                    updatePdfPath = updatePdfPath.replaceAll("\\\\", "\\\\\\\\");
+                    logger.info("更新pdf文件路径 "+updatePdfPath);
+                    jdbcTemplate.update(updatePdfPath);
                 }
             }
             if (fileCodeMapping != null) {
