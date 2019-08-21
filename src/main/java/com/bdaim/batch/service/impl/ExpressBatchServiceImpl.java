@@ -451,8 +451,17 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
                 sql = sql + " AND label_five = '" + receiverId + "'";
             }
             jdbcTemplate.update(sql);
-            logger.info("修改状态 根据收件人ID和 批次ID把 状态修改为 【2】【待发件】"+sql);
-
+            logger.info("修改状态 根据收件人ID和 批次ID把 状态修改为 【2】【待发件】" + sql);
+            //6. 如果此批次下没有待上传的 信息，则把该批次 状态修改为 【4】【待发件】
+            String countSql = "SELECT COUNT(*) AS count FROM nl_batch_detail WHERE batch_id='" + batchId
+                    + "' AND status='1' AND label_seven='1'";
+            Map<String, Object> count = jdbcTemplate.queryForMap(countSql);
+            int num = Integer.parseInt(String.valueOf(count.get("count")));
+            if (num == 0) {
+                String updateSql = "UPDATE nl_batch SET status='4' WHERE id='" + batchId + "'";
+                logger.info("执行更新批次状态SQL " + updateSql);
+                jdbcTemplate.update(updateSql);
+            }
         }catch (Exception e){
             logger.info("发生异常了。。。。");
             logger.info(e.getMessage());

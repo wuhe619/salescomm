@@ -229,7 +229,7 @@ public class PackingService {
         data.put("orderDate", format.format(new Date()));
         request.addParam("data", JSON.toJSONString(data));
         try {
-            logger.info("订单创建成功，返回值为");
+            logger.info("订单创建成功，入参值为"+JSON.toJSONString(data)+" 返回值为");
             logger.info(client.execute(request));
             //执行扣费逻辑
             String touch_id = String.valueOf(receiverInfo.get("touch_id"));
@@ -240,7 +240,7 @@ public class PackingService {
             String supplierId = String.valueOf(amountMap.get("supplier_id"));
             sourceDao.supplierAccountDuctions(supplierId, amount);
             //更新prod_amount 资源金额 字段
-            String prodAmount = "UPDATE t_touch_express_log SET proAmount=amount WHERE touch_id='" + touch_id + "'";
+            String prodAmount = "UPDATE t_touch_express_log SET prod_amount=amount WHERE touch_id='" + touch_id + "'";
             jdbcTemplate.update(prodAmount);
         } catch (Exception e) {
             logger.info("订单创建失败，返回值为");
