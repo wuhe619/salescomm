@@ -21,5 +21,6 @@ public class PathConfig implements WebMvcConfigurer {
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         String pathF = PROPERTIES.getProperty("file.separator");
         registry.addResourceHandler("/pdf/**").addResourceLocations("file:"+pathF+"data"+pathF+"file"+pathF+"pdf"+pathF);
+        registry.addResourceHandler("/pic/**").addResourceLocations("file:"+pathF+"data"+pathF+"upload"+pathF);
     }
 }
