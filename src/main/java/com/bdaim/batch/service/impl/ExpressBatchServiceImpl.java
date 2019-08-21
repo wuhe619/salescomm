@@ -563,7 +563,7 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
     public void updateBatchStatus(String batchId, int status) throws Exception {
         String updateSql = "UPDATE nl_batch SET `status` =? WHERE id = ?";
         batchDao.executeUpdateSQL(updateSql, status, batchId);
-        String updateDetailSql = "UPDATE nl_batch_detail SET `label_seven` =4 WHERE id = ? and status = 1";
+        String updateDetailSql = "UPDATE nl_batch_detail SET `label_seven` =4 WHERE batch_id = ? and status = 1";
         batchDao.executeUpdateSQL(updateDetailSql, batchId);
     }
 
