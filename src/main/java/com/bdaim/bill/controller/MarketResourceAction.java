@@ -486,6 +486,22 @@ public class MarketResourceAction extends BasicAction {
     }
 
     /**
+     * 后台首页的统计图信息
+     *
+     * @param
+     * @return
+     * @auther Chacker
+     * @date
+     */
+    @RequestMapping(value = "/countMarketDataBackend", method = RequestMethod.GET)
+    @ResponseBody
+    @CacheAnnotation
+    public ResponseInfo countMarketDataBackend() {
+        Map<String, Object> marketData = marketResourceService.countMarketDataBackend();
+        return new ResponseInfoAssemble().success(marketData);
+    }
+
+    /**
      * 短信模板列表
      */
     @ResponseBody
