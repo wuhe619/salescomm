@@ -310,7 +310,7 @@ public class ExpressBatchController extends BasicAction {
     public ResponseInfo updateBatchStatus(String batchId, int status) {
         try {
             LoginUser lu = opUser();
-            if ("ROLE_USER".equals(lu.getRole()) || "admin".equals(lu.getRole())) {
+            if ("ROLE_USER".equals(lu.getRole()) || "admin".equals(lu.getRole()) || "1".equals(lu.getType())) {
                 expressBatchService.updateBatchStatus(batchId, status);
             } else {
                 return new ResponseInfoAssemble().failure(-2, "暂无权限");
