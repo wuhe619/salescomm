@@ -231,6 +231,17 @@ public class PackingService {
         try {
             logger.info("订单创建成功，返回值为");
             logger.info(client.execute(request));
+            //执行扣费逻辑
+            String touch_id = String.valueOf(receiverInfo.get("touch_id"));
+            String sql = "SELECT t1.amount,t2.supplier_id FROM t_touch_express_log t1 LEFT JOIN t_market_resource t2 ON t1.resource_id=t2.resource_id " +
+                    "WHERE t1.touch_id='" + touch_id + "' LIMIT 1";
+            Map<String, Object> amountMap = jdbcTemplate.queryForMap(sql);
+            BigDecimal amount = new BigDecimal(String.valueOf(amountMap.get("amount")));
+            String supplierId = String.valueOf(amountMap.get("supplier_id"));
+            sourceDao.supplierAccountDuctions(supplierId, amount);
+            //更新prod_amount 资源金额 字段
+            String prodAmount = "UPDATE t_touch_express_log SET proAmount=amount WHERE touch_id='" + touch_id + "'";
+            jdbcTemplate.update(prodAmount);
         } catch (Exception e) {
             logger.info("订单创建失败，返回值为");
             logger.info(e.getMessage());
