@@ -260,7 +260,7 @@ public class PackingService {
      */
     public void updateExpressInfo(Map<String, Object> tempMap, Map<String, Object> senderInfo) {
         String requestId = DigestUtils.md5Hex(String.valueOf(tempMap.get("addressId"))).toUpperCase();
-        //根据touch_id关联，把requestId更新到t_touch_express_log中
+        //根据touch_id关联，把requestId更新到t_touch_express_log中 status更新为"2" 已发送
         StringBuffer updateRequestId = new StringBuffer("UPDATE t_touch_express_log SET create_time=NOW(),status='2',request_id='");
         String addressIdNew = String.valueOf(tempMap.get("addressId"));
         String pdfPath = String.valueOf(tempMap.get("pdfPath"));
