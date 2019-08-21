@@ -319,6 +319,9 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
             logger.info("查询结果为" + list.toString());
             resultMap.put("total", page.getTotal());
             resultMap.put("rows", list);
+            String countSql = "SELECT COUNT(*) AS count FROM nl_batch_detail WHERE status='1' AND batch_id='"+batchId+"'";
+            Map<String,Object> count = jdbcTemplate.queryForMap(countSql);
+            resultMap.put("valid",Integer.parseInt(String.valueOf(count.get("count"))));
 
         } catch (Exception e) {
             logger.error(e.getMessage());
