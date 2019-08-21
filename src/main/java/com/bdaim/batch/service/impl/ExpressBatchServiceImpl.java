@@ -112,7 +112,8 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
             return new ResponseInfoAssemble().failure(HttpStatus.BAD_REQUEST.value(), "请保证一次上传数据不超过1000条记录");
         }
         //2.5 加上销售定价判断和余额的判断
-        String priceSql = "SELECT cust_id,property_value FROM t_customer_property WHERE cust_id='" + custId + "' AND property_name='address_fix_price'";
+        String priceSql = "SELECT t1.cust_id,t1.property_value,t2.enterprise_name FROM t_customer_property t1 LEFT JOIN t_customer t2 ON " +
+                "t1.cust_id=t2.cust_id WHERE t1.cust_id='" + custId + "' AND t1.property_name='address_fix_price'";
         logger.info("执行SQL "+priceSql);
         List<Map<String, Object>> priceList = jdbcTemplate.queryForList(priceSql);
         if (priceList == null || priceList.size() == 0) {
@@ -140,11 +141,12 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         }
         //3. 把批次信息和批次详情列表存入数据库
         //3.1 设置并新增保存批次信息 (status 为"1",表示 【校验中】) (certify_type是修复方式 3.表示快递地址修复)
-        StringBuffer insertBatchSql = new StringBuffer("INSERT INTO nl_batch (id,batch_name,upload_time,comp_id,certify_type,channel,status," +
+        String enterprise_name = String.valueOf(priceList.get(0).get("enterprise_name"));
+        StringBuffer insertBatchSql = new StringBuffer("INSERT INTO nl_batch (id,batch_name,upload_time,comp_id,comp_name,certify_type,channel,status," +
                 "upload_num) VALUES ('");
         String batchId = String.valueOf(System.currentTimeMillis());
         insertBatchSql.append(batchId + "','" + batchName + "',now(),'"
-                + custId + "','3','-1','1','" + (contentList.size() - 1) + "')");
+                + custId + "','"+enterprise_name+"','3','-1','1','" + (contentList.size() - 1) + "')");
         jdbcTemplate.update(insertBatchSql.toString());
         //把快递内容(1. 电子版 2. 打印版)存入批次属性表
         String insertBatchProperty = "INSERT INTO nl_batch_property (batch_id,property_name,property_value,create_time)" +

@@ -1186,12 +1186,12 @@ public class MarketResourceServiceImpl implements MarketResourceService {
                 }
             }
             //企业有效率 折线统计图
-            String effectiveRateSql = "SELECT batch_name AS batchName,IFNULL(upload_num/success_num,0) AS effectiveRate FROM nl_batch ORDER BY " +
+            String effectiveRateSql = "SELECT batch_name AS batchName,comp_name AS companyName,IFNULL(upload_num/success_num,0) AS effectiveRate FROM nl_batch ORDER BY " +
                     "upload_time DESC LIMIT 10";
             List<Map<String, Object>> effectiveRate = jdbcTemplate.queryForList(effectiveRateSql);
 
             //企业签收率 折现统计图
-            StringBuffer receiveRate = new StringBuffer("SELECT t1.id,t1.batch_name,t1.comp_name,");
+            StringBuffer receiveRate = new StringBuffer("SELECT t1.id,t1.batch_name,t1.comp_name AS companyName,");
             receiveRate.append("ROUND(SUM( CASE t3.`status` WHEN '4' THEN 1 ELSE 0 END ) / SUM( CASE t3.`status` WHEN '1' THEN 0 ELSE 1 END ),2) AS receiveRate  ")
                     .append(" FROM nl_batch t1").append(" LEFT JOIN nl_batch_detail t2 ON t1.id = t2.batch_id")
                     .append(" LEFT JOIN t_touch_express_log t3 ON t2.touch_id = t3.touch_id ")
