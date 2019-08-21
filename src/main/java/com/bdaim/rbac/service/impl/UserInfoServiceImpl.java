@@ -5,7 +5,7 @@ import com.bdaim.common.util.CipherUtil;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.dao.CustomerUserDao;
 import com.bdaim.customer.entity.CustomerUserDO;
-import com.bdaim.customer.entity.CustomerUserProperty;
+import com.bdaim.customer.entity.CustomerUserPropertyDO;
 import com.bdaim.rbac.dao.UserInfoDao;
 import com.bdaim.rbac.dto.UserQueryParam;
 import com.bdaim.rbac.entity.UserDO;
@@ -202,7 +202,7 @@ public class UserInfoServiceImpl implements UserInfoService {
 
     @Override
     public void updateFrontRegistInfo(String userId, String oldValue, String newValue) throws Exception {
-        CustomerUserProperty customerUserProperty = customerUserDao.getProperty(userId,"mobile_num");
+        CustomerUserPropertyDO customerUserProperty = customerUserDao.getProperty(userId,"mobile_num");
         if (null != customerUserProperty) {
             customerUserProperty.setPropertyValue(newValue);
             customerUserDao.saveOrUpdate(customerUserProperty);

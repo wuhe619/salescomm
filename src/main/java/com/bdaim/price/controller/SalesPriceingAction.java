@@ -68,7 +68,7 @@ public class SalesPriceingAction extends BasicAction {
         long userId = opUser().getId();
         try {
             // 1.查询销售价格表的价格
-            // List<CustomerProperty> oldPriceList = salePriceService.getLabelSalePriceOld(salePriceDTO);
+            // List<CustomerPropertyDO> oldPriceList = salePriceService.getLabelSalePriceOld(salePriceDTO);
             // 2.将销售价格表价格更新
             if ("ROLE_USER".equals(lu.getRole()) || "admin".equals(lu.getRole())) {
                 salePriceService.updateSalePrice(salePricList);

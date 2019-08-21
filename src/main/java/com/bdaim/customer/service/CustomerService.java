@@ -16,7 +16,7 @@ import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerUserDao;
 import com.bdaim.customer.dto.CustomerRegistDTO;
 import com.bdaim.customer.entity.CustomerDO;
-import com.bdaim.customer.entity.CustomerProperty;
+import com.bdaim.customer.entity.CustomerPropertyDO;
 import com.bdaim.customer.entity.CustomerUserDO;
 import com.bdaim.price.entity.CommonInfoEntity;
 import com.bdaim.price.entity.CommonInfoPropertyEntity;
@@ -641,7 +641,7 @@ public class CustomerService {
                             resource = new HashMap<>();
                             //根据supplierList获取供应商id和type
                             String resourceId = String.valueOf(dto.getResourceId());
-                            CustomerProperty property = customerDao.getProperty(custId, resourceId + "_config");
+                            CustomerPropertyDO property = customerDao.getProperty(custId, resourceId + "_config");
                             if (property != null) {
                                 custConfigMessage = String.valueOf(property.getPropertyValue());
                                 resource.put("custConfig", custConfigMessage);
@@ -684,7 +684,7 @@ public class CustomerService {
             result.put("custName", enterpriseName);
         }
         //查询当前企业配置那些类型资源
-        CustomerProperty serviceResourceProperty = customerDao.getProperty(custId, "resource_type");
+        CustomerPropertyDO serviceResourceProperty = customerDao.getProperty(custId, "resource_type");
         if (serviceResourceProperty != null) {
             result.put("checkResourceId", serviceResourceProperty.getPropertyValue());
         }
@@ -744,7 +744,7 @@ public class CustomerService {
     private void updateCustConfig(JSONArray custConfigLists, String checkResourceId, String custId) throws Exception {
         String delectSql = "DELETE FROM t_customer_property WHERE cust_id =? AND property_name = ?";
         //先查询出原来所有的配置信息，将本次配置不存在的删除
-        List<CustomerProperty> custConfigs = customerDao.getPropertyLike(custId, "_config");
+        List<CustomerPropertyDO> custConfigs = customerDao.getPropertyLike(custId, "_config");
         //遍历所有
         StringBuffer suppliers = new StringBuffer();
         if (custConfigs.size() > 0) {
@@ -813,12 +813,12 @@ public class CustomerService {
         updateCustConfigAndPrice(custId, custConfigLists);
 
         //保存本次配置资源类型
-        CustomerProperty customerProperty = customerDao.getProperty(custId, "resource_type");
+        CustomerPropertyDO customerProperty = customerDao.getProperty(custId, "resource_type");
         if (customerProperty != null) {
             customerProperty.setPropertyValue(checkResourceId);
             customerDao.saveOrUpdate(customerProperty);
         } else {
-            CustomerProperty customerPropertyType = new CustomerProperty();
+            CustomerPropertyDO customerPropertyType = new CustomerPropertyDO();
             customerPropertyType.setCustId(custId);
             customerPropertyType.setPropertyName("resource_type");
             customerPropertyType.setPropertyValue(checkResourceId);
@@ -827,9 +827,9 @@ public class CustomerService {
         }
         //保存channel信息
         logger.info("企业配置的供应商是" + suppliers.toString());
-        CustomerProperty channelOldCustomer = customerDao.getProperty(custId, "channel");
+        CustomerPropertyDO channelOldCustomer = customerDao.getProperty(custId, "channel");
         if (channelOldCustomer == null) {
-            CustomerProperty channelCustomer = new CustomerProperty();
+            CustomerPropertyDO channelCustomer = new CustomerPropertyDO();
             channelCustomer.setCustId(custId);
             channelCustomer.setPropertyName("channel");
             channelCustomer.setPropertyValue(String.valueOf(suppliers));
@@ -907,7 +907,7 @@ public class CustomerService {
                 logger.info("企业新配置的资源信息" + jsonObject.toString());
                 String resourceId = String.valueOf(jsonObject.get("resourceId"));
                 //根据resourceId查询该资源的配置信息
-                CustomerProperty sourceProperty = customerDao.getProperty(custId, resourceId + "_config");
+                CustomerPropertyDO sourceProperty = customerDao.getProperty(custId, resourceId + "_config");
                 JSONObject oldCustConfig = null;
                 if (sourceProperty != null) {
                     String propertyValue = sourceProperty.getPropertyValue();
@@ -935,7 +935,7 @@ public class CustomerService {
                     customerDao.saveOrUpdate(sourceProperty);
                 } else {
                     //直接将json串存进数据库
-                    CustomerProperty custSourceProperty = new CustomerProperty();
+                    CustomerPropertyDO custSourceProperty = new CustomerPropertyDO();
                     custSourceProperty.setCustId(custId);
                     custSourceProperty.setPropertyName(resourceId + "_config");
                     custSourceProperty.setPropertyValue(jsonObject.toString());
@@ -1049,11 +1049,11 @@ public class CustomerService {
     public void updateServicePrice(String custId, String price) throws Exception {
         //查询企业属性表是否存在
         logger.info("查询的企业id是：" + custId);
-        CustomerProperty customerProperty = customerDao.getProperty(custId, "address_fix_price");
+        CustomerPropertyDO customerProperty = customerDao.getProperty(custId, "address_fix_price");
         if (customerProperty != null) {
             customerProperty.setPropertyValue(price);
         } else {
-            customerProperty = new CustomerProperty();
+            customerProperty = new CustomerPropertyDO();
             customerProperty.setCustId(custId);
             customerProperty.setPropertyName("address_fix_price");
             customerProperty.setPropertyValue(price);

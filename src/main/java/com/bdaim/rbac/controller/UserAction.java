@@ -11,12 +11,11 @@ import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.util.IDHelper;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.dao.CustomerDao;
-import com.bdaim.customer.entity.CustomerProperty;
+import com.bdaim.customer.entity.CustomerPropertyDO;
 import com.bdaim.customer.entity.CustomerUserDO;
 import com.bdaim.customer.service.CustomerService;
 import com.bdaim.rbac.dto.Page;
 import com.bdaim.rbac.dto.UserDTO;
-import com.bdaim.rbac.entity.User;
 import com.bdaim.rbac.service.UserInfoService;
 import com.bdaim.rbac.service.UserService;
 
@@ -29,9 +28,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @Controller
@@ -237,7 +234,7 @@ public class UserAction extends BasicAction {
     @ResponseBody
     public Object getUserToken(String userName) throws Exception {
         CustomerUserDO u = customerService.getUserByName(userName);
-        CustomerProperty customerProperty = customerDao.getProperty(u.getCust_id(), "token");
+        CustomerPropertyDO customerProperty = customerDao.getProperty(u.getCust_id(), "token");
         String token = customerProperty.getPropertyValue();
 
 
