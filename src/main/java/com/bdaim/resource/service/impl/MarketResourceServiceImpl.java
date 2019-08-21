@@ -1113,7 +1113,33 @@ public class MarketResourceServiceImpl implements MarketResourceService {
         }
         return flag;
     }
+    @Override
+    public Map<String,Object> countMarketDataBackend(){
+        //企业有效率 折线统计图
+        String effectiveRateSql = "SELECT batch_name AS batchName,comp_name AS companyName,IFNULL(upload_num/success_num,0) AS effectiveRate FROM nl_batch ORDER BY " +
+                "upload_time DESC LIMIT 10";
+        List<Map<String, Object>> effectiveRate = jdbcTemplate.queryForList(effectiveRateSql);
 
+        //企业签收率 折现统计图
+        StringBuffer receiveRate = new StringBuffer("SELECT t1.id,t1.batch_name,t1.comp_name AS companyName,");
+        receiveRate.append("ROUND(SUM( CASE t3.`status` WHEN '4' THEN 1 ELSE 0 END ) / SUM( CASE t3.`status` WHEN '1' THEN 0 ELSE 1 END ),2) AS receiveRate  ")
+                .append(" FROM nl_batch t1").append(" LEFT JOIN nl_batch_detail t2 ON t1.id = t2.batch_id")
+                .append(" LEFT JOIN t_touch_express_log t3 ON t2.touch_id = t3.touch_id ")
+                .append("GROUP BY t1.id, t1.batch_name,t1.comp_name  ORDER BY t1.upload_time DESC LIMIT 10");
+        List<Map<String, Object>> receiveRateList = jdbcTemplate.queryForList(receiveRate.toString());
+
+        //客户有效数据趋势图
+        StringBuffer effectiveNum = new StringBuffer("SELECT DATE_FORMAT(upload_time, '%Y-%m-%d') AS upload_time,");
+        effectiveNum.append("SUM(CASE `status` WHEN '1' THEN 1 ELSE 0 END) AS effective_num  FROM nl_batch_detail ")
+                .append("GROUP BY DATE_FORMAT(upload_time,'%Y-%m-%d') ").append("ORDER BY DATE_FORMAT(upload_time,'%Y-%m-%d') DESC")
+                .append(" LIMIT 10");
+        List<Map<String, Object>> effectiveNumMap = jdbcTemplate.queryForList(effectiveNum.toString());
+        Map<String,Object> data = new HashMap<>(16);
+        data.put("effectiveRate", effectiveRate);
+        data.put("receiveRate", receiveRateList);
+        data.put("effectiveNum", effectiveNumMap);
+        return data;
+    }
 
     @Override
     public Map<String, Object> countMarketData(String customerId) {
