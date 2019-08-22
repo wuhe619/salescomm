@@ -506,7 +506,7 @@ public class BillServiceImpl implements BillService {
             //企业消费金额
             consumeTotal = new BigDecimal(String.valueOf(consumeTotalsCount.get(0).get("amountSum"))).setScale(2, BigDecimal.ROUND_DOWN).toString();
             //供应商成本价格
-            supAmountSum = String.valueOf(consumeTotalsCount.get(0).get("supAmountSum"));
+            supAmountSum =  new BigDecimal(String.valueOf(consumeTotalsCount.get(0).get("supAmountSum"))).setScale(2, BigDecimal.ROUND_DOWN).toString();
             //利润
             profitAmount = new BigDecimal(consumeTotal).subtract(new BigDecimal(supAmountSum)).setScale(2, BigDecimal.ROUND_DOWN).toString();
         }
