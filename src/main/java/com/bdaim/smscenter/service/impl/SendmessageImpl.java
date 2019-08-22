@@ -604,6 +604,7 @@ public class SendmessageImpl implements SendmessageService {
         if (StringUtil.isNotEmpty(phone)) {
             listSql.append(" AND phone LIKE '%" + phone + "%'");
         }
+        listSql.append(" ORDER BY create_time DESC");
 
         Page page = new Pagination().getPageData(listSql.toString(), null, pageParam, jdbcTemplate);
         resultMap.put("total", page.getTotal());
