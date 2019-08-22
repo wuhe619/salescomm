@@ -1576,20 +1576,20 @@ public class BillServiceImpl implements BillService {
         if (marketResourceEntity == null) {
             return new Page();
         }
-        StringBuffer querySql = new StringBuffer("SELECT d.batch_id batchId, d.site address,l.id expressId,l.resource_id expressResource, d.resource_id fixResource,DATE_FORMAT(l.create_time ,'%Y-%m-%d %H:%i:%s') AS sendTime,DATE_FORMAT(d.fix_time ,'%Y-%m-%d %H:%i:%s') AS fixTime,d.label_one name,d.label_two phone, d.label_five peopleId, IFNULL(d.amount / 100, 0) amount, IFNULL(d.prod_amount / 100, 0) prodAmount, IFNULL(l.prod_amount / 100, 0) expressAmount ");
+        StringBuffer querySql = new StringBuffer("SELECT d.batch_id batchId, d.site address,l.touch_id expressId,l.resource_id expressResource, d.resource_id fixResource,DATE_FORMAT(l.create_time ,'%Y-%m-%d %H:%i:%s') AS sendTime,DATE_FORMAT(d.fix_time ,'%Y-%m-%d %H:%i:%s') AS fixTime,d.label_one name,d.label_two phone, d.label_five peopleId, IFNULL(d.amount / 100, 0) amount, IFNULL(d.prod_amount / 100, 0) prodAmount, IFNULL(l.prod_amount / 100, 0) expressAmount ");
         querySql.append(" FROM nl_batch_detail d left JOIN t_touch_express_log l ON d.touch_id = l.touch_id ");
         querySql.append("WHERE 1=1 AND d.`status`=1 ");
         if (StringUtil.isNotEmpty(param.getBatchId())) {
             querySql.append(" AND d.batch_id ='" + param.getBatchId() + "'");
         }
         if (StringUtil.isNotEmpty(param.getExpressId())) {
-            querySql.append("AND l.id ='" + param.getExpressId() + "'");
+            querySql.append(" AND l.id ='" + param.getExpressId() + "'");
         }
         if (StringUtil.isNotEmpty(param.getPeopleId())) {
-            querySql.append("AND d.label_five ='" + param.getPeopleId() + "'");
+            querySql.append(" AND d.label_five ='" + param.getPeopleId() + "'");
         }
         if (StringUtil.isNotEmpty(param.getName())) {
-            querySql.append("AND d.label_one like '%" + param.getName() + "%'");
+            querySql.append(" AND d.label_one like '%" + param.getName() + "%'");
         }
         //type 1 数据  2快递
         Integer resourceId = marketResourceEntity.getResourceId();
@@ -1599,7 +1599,7 @@ public class BillServiceImpl implements BillService {
             querySql.append(" AND l.resource_id = " + resourceId);
         }
         if (StringUtil.isNotEmpty(param.getPhone())) {
-            querySql.append("AND d.label_one ='" + param.getPhone() + "'");
+            querySql.append(" AND d.label_two ='" + param.getPhone() + "'");
         }
         querySql.append(" GROUP BY d.touch_id");
         return customerDao.sqlPageQuery(querySql.toString(), param.getPageNum(), param.getPageSize());
@@ -1621,7 +1621,7 @@ public class BillServiceImpl implements BillService {
             }
             resourceIds = resourceIds.substring(0, resourceIds.length() - 1);
         }
-        StringBuffer querySql = new StringBuffer("SELECT n.comp_id custId,b.batch_id batchId,n.batch_name batchName,n.upload_time uploadTime,n.repair_time repairTime,IFNULL(SUM(b.amount) / 100,0) amount ,IFNULL(SUM(b.prod_amount) / 100,0) prodAmount , ");
+        StringBuffer querySql = new StringBuffer("SELECT n.comp_id custId,b.batch_id batchId,n.batch_name batchName,DATE_FORMAT(n.upload_time  ,'%Y-%m-%d %H:%i:%s') AS uploadTime,DATE_FORMAT(n.repair_time  ,'%Y-%m-%d %H:%i:%s') AS repairTime,IFNULL(SUM(b.amount) / 100,0) amount ,IFNULL(SUM(b.prod_amount) / 100,0) prodAmount , ");
         querySql.append("( SELECT COUNT(id) FROM nl_batch_detail WHERE batch_id = b.batch_id ) fixNumber ");
         querySql.append("FROM stat_bill_month b LEFT JOIN nl_batch n ON b.batch_id = n.id  LEFT JOIN t_customer c ON  n.comp_id = c.cust_id ");
         querySql.append("WHERE n.certify_type = 3 ");
