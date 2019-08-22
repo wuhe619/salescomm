@@ -1,6 +1,5 @@
 package com.bdaim.batch.controller;
 
-import com.bdaim.batch.dao.BatchInfoDao;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,8 +14,6 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 public class InsertDataController {
-    @Autowired
-    private BatchInfoDao batchInfoDao;
     @Autowired
     private JdbcTemplate jdbcTemplate;
 

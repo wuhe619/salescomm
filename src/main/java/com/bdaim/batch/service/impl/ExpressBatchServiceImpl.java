@@ -1,9 +1,6 @@
 package com.bdaim.batch.service.impl;
 
 import com.bdaim.batch.dao.BatchDao;
-import com.bdaim.batch.dao.BatchInfoDao;
-import com.bdaim.batch.dao.BatchInfoDetailDao;
-import com.bdaim.batch.dao.BatchPropertyDao;
 import com.bdaim.batch.service.ExpressBatchService;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.response.ResponseInfo;
@@ -11,10 +8,7 @@ import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.common.util.*;
 import com.bdaim.common.util.page.Page;
 import com.bdaim.common.util.page.Pagination;
-import com.bdaim.common.util.spring.DataConverter;
 import com.bdaim.customer.dao.CustomerDao;
-import com.bdaim.rbac.dao.RoleDao;
-import com.bdaim.rbac.entity.RoleEntity;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,19 +37,9 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
     protected static final Properties PROPERTIES = new Properties(System.getProperties());
 
     @Autowired
-    private BatchInfoDao batchInfoDao;
-    @Autowired
-    private BatchInfoDetailDao batchInfoDetailDao;
-    @Autowired
-    private BatchPropertyDao batchPropertyDao;
-    @Autowired
     private CustomerDao customerDao;
     @Autowired
-    private DataConverter dataConverter;
-    @Autowired
     private BatchDao batchDao;
-    @Autowired
-    private RoleDao roleDao;
     @Autowired
     private JdbcTemplate jdbcTemplate;
     @Autowired
