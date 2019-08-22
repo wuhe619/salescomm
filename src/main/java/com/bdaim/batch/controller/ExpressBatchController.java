@@ -271,12 +271,14 @@ public class ExpressBatchController extends BasicAction {
             }
         } else if (exportType == 3) {
             header.add("文件编码(不能重复)");
+            header.add("收件人ID");
             header.add("快递单号(不能重复)");
             header.add("姓名");
             List<Object> rowList;
             for (Map<String, Object> column : dataList) {
                 rowList = new ArrayList<>();
                 rowList.add(column.get("fileCode") != null ? column.get("fileCode") : "");
+                rowList.add(column.get("receiverId") != null ? column.get("receiverId") : "");
                 rowList.add(column.get("expressCode") != null ? column.get("expressCode") : "");
                 rowList.add(column.get("name") != null ? column.get("name") : "");
                 data.add(rowList);

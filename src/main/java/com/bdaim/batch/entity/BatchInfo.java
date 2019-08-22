@@ -30,7 +30,7 @@ public class BatchInfo {
     @Column(name = "batch_name")
     private String batchName;
     /**
-     * 状态 1.校验中 2.校验失败 3.待上传 4.待发件 5.待取件 6.已发件
+     * 状态 1.校验中 2.校验失败 3.待上传 4.待申请发件 5.待取件 6.已发件
      */
     @Column(name = "status")
     private String status;
