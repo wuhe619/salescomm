@@ -111,15 +111,11 @@ public class PackingService {
             if (isBatch == 1) {
                 //批量发送、将批次状态status修改为【5】【待取件】
                 jdbcTemplate.update(updateBatchStatus);
+                toSendExpress(isBatch, batchId, addressId, senderId);
                 //将(有效的)批次详情的状态label_seven 修改为 【3】【待取件】
                 String updateDetail = "UPDATE nl_batch_detail SET label_seven='3' WHERE batch_id='" + batchId + "' AND status='1'";
                 jdbcTemplate.update(updateDetail);
-                toSendExpress(isBatch, batchId, addressId, senderId);
             } else if (isBatch == 0) {
-                //单个发送 将批次详情的状态 label_seven 状态修改为 【3】【待取件】
-                StringBuffer stringBuffer = new StringBuffer("UPDATE nl_batch_detail SET label_seven='3' WHERE batch_id='");
-                stringBuffer.append(batchId).append("' AND id='").append(addressId).append("'");
-                jdbcTemplate.update(stringBuffer.toString());
                 //如果该批次下(有效数据)已没有待申请发件的 快递信息，则把该批次更新为 【5】【待取件】
                 String countSql = "SELECT COUNT(*) AS count FROM nl_batch_detail WHERE label_seven='2' AND status='1' AND batch_id='" + batchId + "'";
                 Map<String, Object> result = jdbcTemplate.queryForMap(countSql);
@@ -128,6 +124,10 @@ public class PackingService {
                     jdbcTemplate.update(updateBatchStatus);
                 }
                 toSendExpress(isBatch, batchId, addressId, senderId);
+                //单个发送 将批次详情的状态 label_seven 状态修改为 【3】【待取件】
+                StringBuffer stringBuffer = new StringBuffer("UPDATE nl_batch_detail SET label_seven='3' WHERE batch_id='");
+                stringBuffer.append(batchId).append("' AND id='").append(addressId).append("'");
+                jdbcTemplate.update(stringBuffer.toString());
             }
         } catch (Exception e) {
             logger.info("发送快递出错，异常信息为" + e.getMessage());
