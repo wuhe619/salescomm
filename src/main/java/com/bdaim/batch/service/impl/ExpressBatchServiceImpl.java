@@ -180,7 +180,7 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
              * status 是修复状态，这里表示校验状态 0.无效、1.有效、2.校验中(此时为【2】【校验中】)
              * label_seven 是快件状态 1、待上传内容2、待申请发件3、待取件4、已发件(此时为【1】【待上传内容】) 此时不赋值
              */
-            String touchId = UUID.randomUUID().toString();
+            String touchId = String.valueOf(System.currentTimeMillis());
             StringBuffer batchDetailInsert = new StringBuffer("INSERT INTO nl_batch_detail (label_five,label_one,label_two," +
                     "site,label_three,batch_id," +
                     "status,touch_id,upload_time) VALUES ('");
