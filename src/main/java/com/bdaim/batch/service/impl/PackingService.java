@@ -120,7 +120,7 @@ public class PackingService {
                 StringBuffer stringBuffer = new StringBuffer("UPDATE nl_batch_detail SET label_seven='3' WHERE batch_id='");
                 stringBuffer.append(batchId).append("' AND id='").append(addressId).append("'");
                 jdbcTemplate.update(stringBuffer.toString());
-                //如果该批次下(有效数据)已没有待发件的 快递信息，则把该批次更新为 【5】【待取件】
+                //如果该批次下(有效数据)已没有待申请发件的 快递信息，则把该批次更新为 【5】【待取件】
                 String countSql = "SELECT COUNT(*) AS count FROM nl_batch_detail WHERE label_seven='2' AND status='1' AND batch_id='" + batchId + "'";
                 Map<String, Object> result = jdbcTemplate.queryForMap(countSql);
                 int count = Integer.parseInt(String.valueOf(result.get("count")));

@@ -175,7 +175,7 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
              * label_three 身份证号码
              * batch_id 对应nl_batch主表中的id
              * status 是修复状态，这里表示校验状态 0.无效、1.有效、2.校验中(此时为【2】【校验中】)
-             * label_seven 是快件状态 1、待上传内容2、待发件3、待取件4、已发件(此时为【1】【待上传内容】) 此时不赋值
+             * label_seven 是快件状态 1、待上传内容2、待申请发件3、待取件4、已发件(此时为【1】【待上传内容】) 此时不赋值
              */
             String touchId = UUID.randomUUID().toString();
             StringBuffer batchDetailInsert = new StringBuffer("INSERT INTO nl_batch_detail (label_five,label_one,label_two," +
@@ -198,7 +198,7 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
 
         StringBuffer sql = new StringBuffer("SELECT t1.id,t1.comp_id AS custId,t1.comp_name,t1.batch_name AS batchName," +
                 "t1.certify_type AS certifyType,t1.channel,t1.repair_strategy,t1.status AS statusId,CASE t1.status WHEN '1' THEN '校验中'" +
-                " WHEN '2' THEN '校验失败' WHEN '3' THEN '待上传' WHEN '4' THEN '待发件' WHEN '5' THEN '待取件'" +
+                " WHEN '2' THEN '校验失败' WHEN '3' THEN '待上传' WHEN '4' THEN '待申请发件' WHEN '5' THEN '待取件'" +
                 " WHEN '6' THEN '已发件' END AS status,t1.upload_num AS uploadNum,t1.success_num AS" +
                 " successNum,DATE_FORMAT(t1.upload_time,'%Y-%m-%d %H:%i:%s') AS uploadTime,t2.property_name AS propertyName," +
                 "t2.property_value AS propertyValue");
@@ -282,7 +282,7 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         pageParam.setPageNum(NumberConvertUtil.parseInt(String.valueOf(map.get("page_num"))));
         pageParam.setPageSize(NumberConvertUtil.parseInt(String.valueOf(map.get("page_size"))));
         StringBuffer hql = new StringBuffer("SELECT t2.id AS addressId,l.request_id,t2.label_five AS receiverId,t2.batch_id AS batchId,t2.label_one AS name,t2.label_two AS phone,t2.site AS address," +
-                "t2.label_six AS fileCode,CASE t2.label_seven WHEN '1' THEN '待上传内容' WHEN '2' THEN '待发件'" +
+                "t2.label_six AS fileCode,CASE t2.label_seven WHEN '1' THEN '待上传内容' WHEN '2' THEN '待申请发件'" +
                 " WHEN '3' THEN '待取件' WHEN '4' THEN '已发件' END AS expressStatus," +
                 "CASE t2.status WHEN '1' THEN '有效' WHEN '0' THEN '无效' ELSE '校验中' END AS status,t2.status AS statusId," +
                 "t2.label_seven AS expressStatusId,t1.property_value AS expressContentType" +
@@ -456,14 +456,14 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
                     jdbcTemplate.update(sql);
                 }
             }
-            //5. 修改状态 根据收件人ID和 批次ID把 状态修改为 【2】【待发件】
+            //5. 修改状态 根据收件人ID和 批次ID把 状态修改为 【2】【待申请发件】
             String sql = "UPDATE nl_batch_detail SET label_seven='2' WHERE batch_id='" + batchId + "'";
             if (StringUtil.isNotEmpty(receiverId)) {
                 sql = sql + " AND label_five = '" + receiverId + "'";
             }
             jdbcTemplate.update(sql);
-            logger.info("修改状态 根据收件人ID和 批次ID把 状态修改为 【2】【待发件】" + sql);
-            //6. 如果此批次下没有待上传的 信息，则把该批次 状态修改为 【4】【待发件】
+            logger.info("修改状态 根据收件人ID和 批次ID把 状态修改为 【2】【待申请发件】" + sql);
+            //6. 如果此批次下没有待上传的 信息，则把该批次 状态修改为 【4】【待申请发件】
             String countSql = "SELECT COUNT(*) AS count FROM nl_batch_detail WHERE batch_id='" + batchId
                     + "' AND status='1' AND label_seven='1'";
             Map<String, Object> count = jdbcTemplate.queryForMap(countSql);
@@ -501,7 +501,7 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
 //        pageParam.setPageNum(NumberConvertUtil.parseInt(String.valueOf(map.get("page_num"))));
 //        pageParam.setPageSize(NumberConvertUtil.parseInt(String.valueOf(map.get("page_size"))));
         StringBuffer hql = new StringBuffer("SELECT t2.id AS addressId,l.request_id,t2.label_five AS receiverId,t2.batch_id AS batchId,t2.label_one AS name,t2.label_two AS phone," +
-                "t2.label_six AS fileCode,CASE t2.label_seven WHEN '1' THEN '待上传内容' WHEN '2' THEN '待发件'" +
+                "t2.label_six AS fileCode,CASE t2.label_seven WHEN '1' THEN '待上传内容' WHEN '2' THEN '待申请发件'" +
                 " WHEN '3' THEN '待取件' WHEN '4' THEN '已发件' END AS expressStatus,t2.site AS address,l.request_id AS expressCode," +
                 "CASE t2.status WHEN '1' THEN '有效' WHEN '0' THEN '无效' ELSE '校验中' END AS status,t2.status AS statusId," +
                 "t2.label_seven AS expressStatusId,t1.property_value AS expressContentType" +

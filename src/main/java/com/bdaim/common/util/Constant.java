@@ -634,7 +634,7 @@ public class Constant {
      */
     public static final String TO_UPLOAD_FILE = "3";
     /**
-     * 待发件
+     * 待申请发件
      */
     public static final String TO_SEND_EXPRESS = "4";
     /**
