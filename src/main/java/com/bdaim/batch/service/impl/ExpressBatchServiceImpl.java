@@ -79,10 +79,13 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
      * @param id
      */
     @Override
-    public List<Map<String, Object>> getExpressLog(String id) throws Exception {
+    public Map<String, Object> getExpressLog(String id) throws Exception {
         String sqlQuery = "SELECT * from t_touch_express_log WHERE touch_id = " + id;
         List<Map<String, Object>> list = batchDao.sqlQuery(sqlQuery);
-        return  list;
+        if (list!=null && list.size()>0){
+            return  list.get(0);
+        }
+        return null;
     }
 
     @Override
