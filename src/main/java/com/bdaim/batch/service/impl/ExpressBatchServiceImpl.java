@@ -281,7 +281,7 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         PageParam pageParam = new PageParam();
         pageParam.setPageNum(NumberConvertUtil.parseInt(String.valueOf(map.get("page_num"))));
         pageParam.setPageSize(NumberConvertUtil.parseInt(String.valueOf(map.get("page_size"))));
-        StringBuffer hql = new StringBuffer("SELECT t2.id AS addressId,l.request_id,t2.label_five AS receiverId,t2.batch_id AS batchId,t2.label_one AS name,t2.label_two AS phone,t2.site AS address," +
+        StringBuffer hql = new StringBuffer("SELECT t2.touch_id touchId,t2.id AS addressId,l.request_id,t2.label_five AS receiverId,t2.batch_id AS batchId,t2.label_one AS name,t2.label_two AS phone,t2.site AS address," +
                 "t2.label_six AS fileCode,CASE t2.label_seven WHEN '1' THEN '待上传内容' WHEN '2' THEN '待申请发件'" +
                 " WHEN '3' THEN '待取件' WHEN '4' THEN '已发件' END AS expressStatus," +
                 "CASE t2.status WHEN '1' THEN '有效' WHEN '0' THEN '无效' ELSE '校验中' END AS status,t2.status AS statusId," +
