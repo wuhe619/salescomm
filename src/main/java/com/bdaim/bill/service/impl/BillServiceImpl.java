@@ -1,6 +1,7 @@
 package com.bdaim.bill.service.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.bdaim.batch.ResourceEnum;
 import com.bdaim.batch.TransactionEnum;
 import com.bdaim.bill.dto.CustomerBillQueryParam;
@@ -27,6 +28,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import javax.persistence.Id;
 import javax.servlet.http.HttpServletResponse;
 import java.io.OutputStream;
 import java.math.BigDecimal;
@@ -1387,15 +1389,15 @@ public class BillServiceImpl implements BillService {
                 logger.info("企业消费金额是：" + String.valueOf(list.get(i).get("amount")) + "成本费用是：" + String.valueOf(list.get(i).get("prodAmount")));
                 String profitAmount = new BigDecimal(String.valueOf(list.get(i).get("amount"))).subtract(new BigDecimal(String.valueOf(list.get(i).get("prodAmount")))).setScale(2, BigDecimal.ROUND_DOWN).toString();
                 list.get(i).put("profitAmount", profitAmount);
-                custSumAmount+=new BigDecimal(String.valueOf(list.get(i).get("amount"))).doubleValue();
+                custSumAmount += new BigDecimal(String.valueOf(list.get(i).get("amount"))).doubleValue();
                 //根据批次id查询企业名称
                 String custId = String.valueOf(list.get(i).get("custId"));
                 String enterpriseName = customerDao.getEnterpriseName(custId);
                 list.get(i).put("custName", enterpriseName);
             }
-            map.put("custSumAmount",custSumAmount);
-            map.put("data",data.getData());
-            map.put("total",data.getTotal());
+            map.put("custSumAmount", custSumAmount);
+            map.put("data", data.getData());
+            map.put("total", data.getTotal());
         }
 
         return map;
@@ -1582,7 +1584,7 @@ public class BillServiceImpl implements BillService {
         if (marketResourceEntity == null) {
             return new Page();
         }
-        StringBuffer querySql = new StringBuffer("SELECT d.batch_id batchId, d.site address,l.touch_id expressId,l.resource_id expressResource, d.resource_id fixResource,DATE_FORMAT(l.create_time ,'%Y-%m-%d %H:%i:%s') AS sendTime,DATE_FORMAT(d.fix_time ,'%Y-%m-%d %H:%i:%s') AS fixTime,d.label_one name,d.label_two phone, d.label_five peopleId, IFNULL(d.amount / 100, 0) amount, IFNULL(d.prod_amount / 100, 0) prodAmount, IFNULL(l.prod_amount / 100, 0) expressAmount ");
+        StringBuffer querySql = new StringBuffer("SELECT d.batch_id batchId, d.label_four address,l.touch_id expressId,l.resource_id expressResource, d.resource_id fixResource,DATE_FORMAT(l.create_time ,'%Y-%m-%d %H:%i:%s') AS sendTime,DATE_FORMAT(d.fix_time ,'%Y-%m-%d %H:%i:%s') AS fixTime,d.label_one name,d.label_two phone, d.label_five peopleId, IFNULL(d.amount / 100, 0) amount, IFNULL(d.prod_amount / 100, 0) prodAmount, IFNULL(l.prod_amount / 100, 0) expressAmount ");
         querySql.append(" FROM nl_batch_detail d left JOIN t_touch_express_log l ON d.touch_id = l.touch_id ");
         querySql.append("WHERE 1=1 AND d.`status`=1 ");
         if (StringUtil.isNotEmpty(param.getBatchId())) {
@@ -1608,7 +1610,27 @@ public class BillServiceImpl implements BillService {
             querySql.append(" AND d.label_two ='" + param.getPhone() + "'");
         }
         querySql.append(" GROUP BY d.touch_id");
-        return customerDao.sqlPageQuery(querySql.toString(), param.getPageNum(), param.getPageSize());
+        Page page = customerDao.sqlPageQuery(querySql.toString(), param.getPageNum(), param.getPageSize());
+        List<Map<String, Object>> list = page.getData();
+        if (page != null && list.size() > 0) {
+            for (int i = 0; i < list.size(); i++) {
+                //拼接地址展示结构
+                if (StringUtil.isNotEmpty(String.valueOf(list.get(i).get("address")))) {
+                    JSONObject jsonObject = JSON.parseObject(String.valueOf(list.get(i).get("address")));
+                    String prov = jsonObject.getString("prov");
+                    String city = jsonObject.getString("city");
+                    String address ="";
+                    if (StringUtil.isNotEmpty(prov)){
+                        address+=prov;
+                    }
+                    if (StringUtil.isNotEmpty(city)){
+                        address+=city;
+                    }
+                    list.get(i).put("address",address);
+                }
+            }
+        }
+        return page;
     }
 
     /**
