@@ -250,12 +250,12 @@ public class PackingService {
      * @date 2019/8/9 15:48
      */
     public void updateExpressInfo(Map<String, Object> tempMap, Map<String, Object> senderInfo) {
-        String requestId = DigestUtils.md5Hex(String.valueOf(tempMap.get("addressId"))).toUpperCase();
+//        String requestId = DigestUtils.md5Hex(String.valueOf(tempMap.get("addressId"))).toUpperCase();
         //根据touch_id关联，把requestId更新到t_touch_express_log中 status更新为"2" 已发送
-        StringBuffer updateRequestId = new StringBuffer("UPDATE t_touch_express_log SET create_time=NOW(),status='2',request_id='");
+        StringBuffer updateRequestId = new StringBuffer("UPDATE t_touch_express_log SET create_time=NOW(),status='2',");
         String addressIdNew = String.valueOf(tempMap.get("addressId"));
         String pdfPath = String.valueOf(tempMap.get("pdfPath"));
-        updateRequestId.append(requestId).append("',sender_message='").append(senderInfo.toString())
+        updateRequestId.append("sender_message='").append(senderInfo.toString())
                 .append("',file_path='").append(pdfPath)
                 .append("' FROM nl_batch_detail")
                 .append("WHERE nl_batch_detail.touch_id=t_touch_express_log.touch_id AND nl_batch_detail.id='")
