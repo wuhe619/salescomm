@@ -1457,7 +1457,7 @@ public class BillServiceImpl implements BillService {
      * @return
      */
     public Page getBillDetailList(CustomerBillQueryParam param) {
-        StringBuffer querySql = new StringBuffer("SELECT d.batch_id batchId, DATE_FORMAT(d.fix_time ,'%Y-%m-%d %H:%i:%s') AS fixTime,d.site address,l.touch_id expressId,l.resource_id expressResource, d.resource_id fixResource,l.create_time sendTime,d.label_one name,d.label_two phone, d.label_five peopleId, IFNULL(d.amount / 100, 0) amount, IFNULL(d.prod_amount / 100, 0) prodAmount, IFNULL(l.amount / 100, 0) expressAmount, IFNULL(l.prod_amount / 100, 0) exProdAmount,");
+        StringBuffer querySql = new StringBuffer("SELECT d.batch_id batchId, DATE_FORMAT(d.fix_time ,'%Y-%m-%d %H:%i:%s') AS fixTime,d.label_four address,l.touch_id expressId,l.resource_id expressResource, d.resource_id fixResource,l.create_time sendTime,d.label_one name,d.label_two phone, d.label_five peopleId, IFNULL(d.amount / 100, 0) amount, IFNULL(d.prod_amount / 100, 0) prodAmount, IFNULL(l.amount / 100, 0) expressAmount, IFNULL(l.prod_amount / 100, 0) exProdAmount,");
         querySql.append("(SELECT s.`name` FROM t_market_resource r LEFT JOIN t_supplier s ON s.supplier_id = r.supplier_id WHERE r.resource_id = l.resource_id) expressSupplier,");
         querySql.append("(SELECT s.`name` FROM t_market_resource r LEFT JOIN t_supplier s ON s.supplier_id = r.supplier_id WHERE r.resource_id = d.resource_id) fixSupplier");
         querySql.append(" FROM nl_batch_detail d LEFT JOIN t_touch_express_log l ON d.touch_id = l.touch_id ");
