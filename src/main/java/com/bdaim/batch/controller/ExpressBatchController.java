@@ -396,7 +396,7 @@ public class ExpressBatchController extends BasicAction {
     @ResponseBody
     public ResponseInfo getExpressLog(String id) {
         try {
-            List<Map<String, Object>> expressLog = expressBatchService.getExpressLog(id);
+            Map<String, Object> expressLog = expressBatchService.getExpressLog(id);
             return new ResponseInfoAssemble().success(expressLog);
         } catch (Exception e) {
            logger.error("查询快递记录异常",e);

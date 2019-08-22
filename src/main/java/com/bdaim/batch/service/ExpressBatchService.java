@@ -114,5 +114,5 @@ public interface ExpressBatchService {
      * 查询快件记录
      * @param id
      */
-    List<Map<String, Object>> getExpressLog(String id) throws  Exception;
+    Map<String, Object>getExpressLog(String id) throws  Exception;
 }
