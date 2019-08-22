@@ -1566,11 +1566,12 @@ public class BillServiceImpl implements BillService {
 
     /**
      * 供应商账单三级页面(信函)
+     *
      * @param param
      * @return
      */
     public Page getSupBillDetailList(SupplierBillQueryParam param) {
-        StringBuffer querySql = new StringBuffer("SELECT d.batch_id batchId, d.site address,l.id expressId,l.resource_id expressResource, d.resource_id fixResource,l.create_time sendTime,d.fix_time fixTime,d.label_one name,d.label_two phone, d.label_five peopleId, IFNULL(d.amount / 100, 0) amount, IFNULL(d.prod_amount / 100, 0) prodAmount, IFNULL(l.prod_amount / 100, 0) expressAmount ");
+        StringBuffer querySql = new StringBuffer("SELECT d.batch_id batchId, d.site address,l.id expressId,l.resource_id expressResource, d.resource_id fixResource,DATE_FORMAT(l.create_time ,'%Y-%m-%d %H:%i:%s') AS sendTime,DATE_FORMAT(d.fix_time ,'%Y-%m-%d %H:%i:%s') AS fixTime,d.label_one name,d.label_two phone, d.label_five peopleId, IFNULL(d.amount / 100, 0) amount, IFNULL(d.prod_amount / 100, 0) prodAmount, IFNULL(l.prod_amount / 100, 0) expressAmount ");
         querySql.append(" FROM nl_batch_detail d LEFT JOIN t_touch_express_log l ON d.touch_id = l.touch_id ");
         querySql.append("WHERE 1=1 AND d.`status`=1 ");
         if (StringUtil.isNotEmpty(param.getBatchId())) {
@@ -1589,10 +1590,10 @@ public class BillServiceImpl implements BillService {
         MarketResourceEntity marketResourceEntity = sourceDao.getResourceId(param.getSupplierId(), NumberConvertUtil.parseInt(param.getType()));
         if (marketResourceEntity != null) {
             Integer resourceId = marketResourceEntity.getResourceId();
-            if (StringUtil.isNotEmpty(param.getSupplierId()) && "1".equals(param.getType())) {
-                querySql.append("AND d.resource_id = " + resourceId);
-            } else if (StringUtil.isNotEmpty(param.getResourceId()) && "2".equals(param.getType())) {
-                querySql.append("AND l.resource_id = " + resourceId);
+            if ("1".equals(param.getType())) {
+                querySql.append(" AND d.resource_id = " + resourceId);
+            } else if ("2".equals(param.getType())) {
+                querySql.append(" AND l.resource_id = " + resourceId);
             }
             if (StringUtil.isNotEmpty(param.getPhone())) {
                 querySql.append("AND d.label_one ='" + param.getPhone() + "'");
@@ -1604,6 +1605,7 @@ public class BillServiceImpl implements BillService {
 
     /**
      * 供应商账单二级页面（信函）
+     *
      * @param param
      * @return
      */
@@ -1611,11 +1613,11 @@ public class BillServiceImpl implements BillService {
         //查询供应商下面所有的资源
         List<MarketResourceLogDTO> marketResourceLogDTOS = supplierDao.listMarketResourceBySupplierId(String.valueOf(param.getSupplierId()));
         String resourceIds = "";
-        if (marketResourceLogDTOS!=null && marketResourceLogDTOS.size()>0){
-            for (int i=0;i<marketResourceLogDTOS.size();i++){
-                resourceIds+=marketResourceLogDTOS.get(i).getResourceId() + ",";
+        if (marketResourceLogDTOS != null && marketResourceLogDTOS.size() > 0) {
+            for (int i = 0; i < marketResourceLogDTOS.size(); i++) {
+                resourceIds += marketResourceLogDTOS.get(i).getResourceId() + ",";
             }
-            resourceIds = resourceIds.substring(0,resourceIds.length()-1);
+            resourceIds = resourceIds.substring(0, resourceIds.length() - 1);
         }
         StringBuffer querySql = new StringBuffer("SELECT n.comp_id custId,b.batch_id batchId,n.batch_name batchName,n.upload_time uploadTime,n.repair_time repairTime,IFNULL(SUM(b.amount) / 100,0) amount ,IFNULL(SUM(b.prod_amount) / 100,0) prodAmount , ");
         querySql.append("( SELECT COUNT(id) FROM nl_batch_detail WHERE batch_id = b.batch_id ) fixNumber ");
@@ -1661,15 +1663,15 @@ public class BillServiceImpl implements BillService {
     }
 
     @Override
-    public List<Map<String,Object>> getListSupplierBillExport(SupplierBillQueryParam param) {
+    public List<Map<String, Object>> getListSupplierBillExport(SupplierBillQueryParam param) {
         //查询供应商下面所有的资源
         List<MarketResourceLogDTO> marketResourceLogDTOS = supplierDao.listMarketResourceBySupplierId(String.valueOf(param.getSupplierId()));
         String resourceIds = "";
-        if (marketResourceLogDTOS!=null && marketResourceLogDTOS.size()>0){
-            for (int i=0;i<marketResourceLogDTOS.size();i++){
-                resourceIds+=marketResourceLogDTOS.get(i).getResourceId() + ",";
+        if (marketResourceLogDTOS != null && marketResourceLogDTOS.size() > 0) {
+            for (int i = 0; i < marketResourceLogDTOS.size(); i++) {
+                resourceIds += marketResourceLogDTOS.get(i).getResourceId() + ",";
             }
-            resourceIds = resourceIds.substring(0,resourceIds.length()-1);
+            resourceIds = resourceIds.substring(0, resourceIds.length() - 1);
         }
         StringBuffer querySql = new StringBuffer("SELECT n.comp_id custId,b.batch_id batchId,n.batch_name batchName,n.upload_time uploadTime,n.repair_time repairTime,IFNULL(SUM(b.amount) / 100,0) amount ,IFNULL(SUM(b.prod_amount) / 100,0) prodAmount , ");
         querySql.append("( SELECT COUNT(id) FROM nl_batch_detail WHERE batch_id = b.batch_id ) fixNumber ");
@@ -1702,7 +1704,7 @@ public class BillServiceImpl implements BillService {
         }
         querySql.append(" GROUP BY b.batch_id ");
 //        Page data = customerDao.sqlPageQuery(querySql.toString(), param.getPageNum(), param.getPageSize());
-        List<Map<String,Object>> data = jdbcTemplate.queryForList(querySql.toString());
+        List<Map<String, Object>> data = jdbcTemplate.queryForList(querySql.toString());
         if (data != null) {
             for (int i = 0; i < data.size(); i++) {
                 //根据批次id查询企业名称
