@@ -1348,7 +1348,7 @@ public class BillServiceImpl implements BillService {
         return map;
     }
 
-    public Page getListCustomerBill(CustomerBillQueryParam param) throws Exception {
+    public Map<String, Object> getListCustomerBill(CustomerBillQueryParam param) throws Exception {
         StringBuffer querySql = new StringBuffer("SELECT n.comp_id custId,b.batch_id batchId,n.batch_name batchName,DATE_FORMAT(n.upload_time,'%Y-%m-%d %H:%i:%s') AS uploadTime,IFNULL(SUM(b.amount) / 100,0) amount ,IFNULL(SUM(b.prod_amount) / 100,0) prodAmount , ");
         querySql.append("( SELECT COUNT(id) FROM nl_batch_detail WHERE batch_id = b.batch_id ) fixNumber ");
         querySql.append("FROM stat_bill_month b LEFT JOIN nl_batch n ON b.batch_id = n.id  LEFT JOIN t_customer c ON  n.comp_id = c.cust_id ");
@@ -1379,20 +1379,26 @@ public class BillServiceImpl implements BillService {
         }
         querySql.append(" GROUP BY b.batch_id order by n.repair_time desc ");
         Page data = customerDao.sqlPageQuery(querySql.toString(), param.getPageNum(), param.getPageSize());
+        Map<String, Object> map = new HashMap<>();
         if (data != null) {
             List<Map<String, Object>> list = data.getData();
+            double custSumAmount = 0;
             for (int i = 0; i < list.size(); i++) {
                 logger.info("企业消费金额是：" + String.valueOf(list.get(i).get("amount")) + "成本费用是：" + String.valueOf(list.get(i).get("prodAmount")));
                 String profitAmount = new BigDecimal(String.valueOf(list.get(i).get("amount"))).subtract(new BigDecimal(String.valueOf(list.get(i).get("prodAmount")))).setScale(2, BigDecimal.ROUND_DOWN).toString();
                 list.get(i).put("profitAmount", profitAmount);
+                custSumAmount+=new BigDecimal(String.valueOf(list.get(i).get("amount"))).doubleValue();
                 //根据批次id查询企业名称
                 String custId = String.valueOf(list.get(i).get("custId"));
                 String enterpriseName = customerDao.getEnterpriseName(custId);
                 list.get(i).put("custName", enterpriseName);
             }
-
+            map.put("custSumAmount",custSumAmount);
+            map.put("data",data.getData());
+            map.put("total",data.getTotal());
         }
-        return data;
+
+        return map;
     }
 
     public List<Map<String, Object>> listCustomerBillExport(CustomerBillQueryParam param) throws Exception {

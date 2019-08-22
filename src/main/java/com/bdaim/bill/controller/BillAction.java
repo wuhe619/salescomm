@@ -17,7 +17,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
@@ -418,20 +421,20 @@ public class BillAction extends BasicAction {
     @ResponseBody
     public ResponseInfo getListCustomerBill(@RequestBody CustomerBillQueryParam param) {
         LoginUser lu = opUser();
-        Page page = null;
+        Map<String, Object> data = null;
         try {
             if ("ROLE_USER".equals(lu.getRole()) || "admin".equals(lu.getRole())) {
-                page = billService.getListCustomerBill(param);
+                data = billService.getListCustomerBill(param);
             } else {
                 String custId = opUser().getCustId();
                 param.setCustomerId(custId);
-                page = billService.getListCustomerBill(param);
+                data = billService.getListCustomerBill(param);
             }
         } catch (Exception e) {
             logger.error("查询账单异常", e);
             return new ResponseInfoAssemble().failure(-1, "查询账单失败");
         }
-        return new ResponseInfoAssemble().success(page);
+        return new ResponseInfoAssemble().success(data);
     }
 
     /**
@@ -616,6 +619,7 @@ public class BillAction extends BasicAction {
 
     /**
      * 供应商账单三级页面（信函）
+     *
      * @param param
      * @return
      */
@@ -634,8 +638,10 @@ public class BillAction extends BasicAction {
         }
         return new ResponseInfoAssemble().success(page);
     }
+
     /**
      * 供应商账单二级页面（信函）
+     *
      * @param param
      * @return
      */
@@ -665,11 +671,11 @@ public class BillAction extends BasicAction {
      */
     @RequestMapping(value = "/listSupplierBillExport", method = RequestMethod.GET)
     @ResponseBody
-    public ResponseInfo getListSupplierBillExport(SupplierBillQueryParam param,HttpServletResponse response) {
+    public ResponseInfo getListSupplierBillExport(SupplierBillQueryParam param, HttpServletResponse response) {
         logger.info("进入供应商二级账单导出接口 listSupplierBillExport");
         logger.info(param.toString());
         LoginUser lu = opUser();
-        List<Map<String,Object>> list = null;
+        List<Map<String, Object>> list = null;
         try {
             if ("ROLE_USER".equals(lu.getRole()) || "admin".equals(lu.getRole())) {
                 list = billService.getListSupplierBillExport(param);
@@ -694,7 +700,7 @@ public class BillAction extends BasicAction {
                     rowList.add(column.get("amount") != null ? column.get("amount") : "");
                     data.add(rowList);
                 }
-                logger.info("data获取成功，值为"+data.toString());
+                logger.info("data获取成功，值为" + data.toString());
                 //下载的response属性设置
                 response.setCharacterEncoding("utf-8");
                 response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
@@ -710,7 +716,7 @@ public class BillAction extends BasicAction {
                 outputStream.close();
             }
         } catch (Exception e) {
-            logger.info("导出账单异常"+e.getMessage());
+            logger.info("导出账单异常" + e.getMessage());
             return new ResponseInfoAssemble().failure(-1, "导出失败");
         }
         return new ResponseInfoAssemble().success(list);
