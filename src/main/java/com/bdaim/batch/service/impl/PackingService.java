@@ -151,9 +151,9 @@ public class PackingService {
                 + senderId + "'";
         Map<String, Object> senderInfo = jdbcTemplate.queryForMap(senderSql);
         if (isBatch == 1) {
-            //批量发送，根据批次ID batchId 找出地址ID、姓名、手机号
+            //批量发送，根据批次ID batchId 找出地址ID、姓名、手机号  (batch_id、status为"1"有效、且label_seven为"2"待申请发件的)
             StringBuffer stringBuffer = new StringBuffer("SELECT id AS addressId,touch_id,label_four AS address,label_one AS name,label_two AS phone,label_eight AS pdfPath FROM nl_batch_detail WHERE batch_id='");
-            stringBuffer.append(batchId).append("' AND status='1'");
+            stringBuffer.append(batchId).append("' AND status='1' AND label_seven='2'");
             List<Map<String, Object>> resultList = jdbcTemplate.queryForList(stringBuffer.toString());
             for (Map<String, Object> tempMap : resultList) {
                 updateExpressInfo(tempMap, senderInfo);
