@@ -1431,7 +1431,7 @@ public class BillServiceImpl implements BillService {
         } else if (!"0".equals(billDate)) {
             querySql.append(" AND stat_time=" + billDate);
         }
-        querySql.append(" GROUP BY b.batch_id ");
+        querySql.append(" GROUP BY b.batch_id ORDER BY n.upload_time DESC");
         List<Map<String, Object>> data = jdbcTemplate.queryForList(querySql.toString());
         if (data != null) {
             List<Map<String, Object>> list = data;

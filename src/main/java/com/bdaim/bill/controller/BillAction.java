@@ -439,6 +439,7 @@ public class BillAction extends BasicAction {
 
     /**
      * 供应商账单二级页面(导出)、企业账单二级页面 + 利润列表(导出)
+     * export_type 1. 企业账单二级页面 2. 利润二级页面 3. 供应商账单二级页面  4.前台企业账户余额
      *
      * @param param
      * @param export_type
@@ -467,12 +468,12 @@ public class BillAction extends BasicAction {
             }
             header.add("批次编号");
             header.add("批次名称");
-            if ("3".equals(export_type)) {
+            if ("3".equals(export_type)||"4".equals(export_type)) {
                 header.add("发送时间");
             } else {
                 header.add("上传时间");
             }
-            if ("1".equals(export_type) || "3".equals(export_type)) {
+            if ("1".equals(export_type) || "3".equals(export_type) || "4".equals(export_type)) {
                 header.add("发送数量");
             }
             header.add("交易金额(元)");
@@ -490,7 +491,7 @@ public class BillAction extends BasicAction {
                 rowList.add(column.get("batchId") != null ? column.get("batchId") : "");
                 rowList.add(column.get("batchName") != null ? column.get("batchName") : "");
                 rowList.add(column.get("uploadTime") != null ? column.get("uploadTime") : "");
-                if ("1".equals(export_type) || "3".equals(export_type)) {
+                if ("1".equals(export_type) || "4".equals(export_type) || "3".equals(export_type)) {
                     rowList.add(column.get("fixNumber") != null ? column.get("fixNumber") : "");
                 }
                 rowList.add(column.get("amount") != null ? column.get("amount") : "");
