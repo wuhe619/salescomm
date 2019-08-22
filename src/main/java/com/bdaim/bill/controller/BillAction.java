@@ -566,28 +566,32 @@ public class BillAction extends BasicAction {
             List<List<Object>> data = new ArrayList<>();
             header.add("快递ID");
             header.add("收件人ID");
+            header.add("姓名");
+            header.add("电话");
             header.add("收件地址");
-            header.add("数据渠道");
-            header.add("快递渠道");
+//            header.add("数据渠道");
+//            header.add("快递渠道");
             header.add("发送时间");
             header.add("交易金额（元）");
-            header.add("数据成本（元）");
-            header.add("快递成本（元）");
-            header.add("交易利润（元）");
+//            header.add("数据成本（元）");
+//            header.add("快递成本（元）");
+//            header.add("交易利润（元）");
             List<Map<String, Object>> dataList = page;
             List<Object> rowList;
             for (Map<String, Object> column : dataList) {
                 rowList = new ArrayList<>();
                 rowList.add(column.get("expressId") != null ? column.get("expressId") : "");
                 rowList.add(column.get("peopleId") != null ? column.get("peopleId") : "");
+                rowList.add(column.get("name") != null ? column.get("name") : "");
+                rowList.add(column.get("phone") != null ? column.get("phone") : "");
                 rowList.add(column.get("address") != null ? column.get("address") : "");
-                rowList.add(column.get("fixSupplier") != null ? column.get("fixSupplier") : "");
-                rowList.add(column.get("expressSupplier") != null ? column.get("expressSupplier") : "");
+//                rowList.add(column.get("fixSupplier") != null ? column.get("fixSupplier") : "");
+//                rowList.add(column.get("expressSupplier") != null ? column.get("expressSupplier") : "");
                 rowList.add(column.get("sendTime") != null ? column.get("sendTime") : "");
                 rowList.add(column.get("sumAmount") != null ? column.get("sumAmount") : "");
-                rowList.add(column.get("prodAmount") != null ? column.get("prodAmount") : "");
-                rowList.add(column.get("expressAmount") != null ? column.get("expressAmount") : "");
-                rowList.add(column.get("profit") != null ? column.get("profit") : "");
+//                rowList.add(column.get("prodAmount") != null ? column.get("prodAmount") : "");
+//                rowList.add(column.get("expressAmount") != null ? column.get("expressAmount") : "");
+//                rowList.add(column.get("profit") != null ? column.get("profit") : "");
                 data.add(rowList);
             }
             //下载的response属性设置
