@@ -596,12 +596,14 @@ public class CustomerService {
                     //根据id查询员工姓名
                     String packager = userDao.getUserRealName(packagerId);
                     list.get(i).put("packager", packager);
+                    list.get(i).put("packagerId", packagerId);
                 }
                 if (StringUtil.isNotEmpty(String.valueOf(list.get(i).get("printerId")))) {
                     printerId = NumberConvertUtil.parseLong(String.valueOf(list.get(i).get("printerId")));
                     logger.info("打印员id是:" + printerId);
                     String printer = userDao.getUserRealName(printerId);
                     list.get(i).put("printer", printer);
+                    list.get(i).put("printerId", printerId);
                 }
             }
         }

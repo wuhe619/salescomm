@@ -74,6 +74,17 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         return result;
     }
 
+    /**
+     * 查询快件记录接口
+     * @param id
+     */
+    @Override
+    public List<Map<String, Object>> getExpressLog(String id) throws Exception {
+        String sqlQuery = "SELECT * from t_touch_express_log WHERE touch_id = " + id;
+        List<Map<String, Object>> list = batchDao.sqlQuery(sqlQuery);
+        return  list;
+    }
+
     @Override
     @Transactional
     public ResponseInfo receiverInfoImport(MultipartFile multipartFile, String batchName, int expressContent, String custId) {
@@ -552,6 +563,8 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
     public void updateBatchStatus(String batchId, int status) throws Exception {
         String updateSql = "UPDATE nl_batch SET `status` =? WHERE id = ?";
         batchDao.executeUpdateSQL(updateSql, status, batchId);
+        String updateDetailSql = "UPDATE nl_batch_detail SET `label_seven` =4 WHERE batch_id = ? and status = 1";
+        batchDao.executeUpdateSQL(updateDetailSql, batchId);
     }
 
     @Override
