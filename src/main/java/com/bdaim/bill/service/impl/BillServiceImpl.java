@@ -1382,18 +1382,17 @@ public class BillServiceImpl implements BillService {
         Map<String, Object> map = new HashMap<>();
         if (data != null) {
             List<Map<String, Object>> list = data.getData();
-            int custSumAmount = 0;
+            double custSumAmount = 0;
             for (int i = 0; i < list.size(); i++) {
                 logger.info("企业消费金额是：" + String.valueOf(list.get(i).get("amount")) + "成本费用是：" + String.valueOf(list.get(i).get("prodAmount")));
                 String profitAmount = new BigDecimal(String.valueOf(list.get(i).get("amount"))).subtract(new BigDecimal(String.valueOf(list.get(i).get("prodAmount")))).setScale(2, BigDecimal.ROUND_DOWN).toString();
                 list.get(i).put("profitAmount", profitAmount);
-                custSumAmount+=new BigDecimal(String.valueOf(list.get(i).get("amount"))).intValue();
+                custSumAmount+=new BigDecimal(String.valueOf(list.get(i).get("amount"))).doubleValue();
                 //根据批次id查询企业名称
                 String custId = String.valueOf(list.get(i).get("custId"));
                 String enterpriseName = customerDao.getEnterpriseName(custId);
                 list.get(i).put("custName", enterpriseName);
             }
-
             map.put("custSumAmount",custSumAmount);
             map.put("data",data.getData());
             map.put("total",data.getTotal());
