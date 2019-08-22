@@ -1571,8 +1571,13 @@ public class BillServiceImpl implements BillService {
      * @return
      */
     public Page getSupBillDetailList(SupplierBillQueryParam param) {
+        //type 1 数据  2快递
+        MarketResourceEntity marketResourceEntity = sourceDao.getResourceId(param.getSupplierId(), NumberConvertUtil.parseInt(param.getType()));
+        if (marketResourceEntity == null) {
+            return new Page();
+        }
         StringBuffer querySql = new StringBuffer("SELECT d.batch_id batchId, d.site address,l.id expressId,l.resource_id expressResource, d.resource_id fixResource,DATE_FORMAT(l.create_time ,'%Y-%m-%d %H:%i:%s') AS sendTime,DATE_FORMAT(d.fix_time ,'%Y-%m-%d %H:%i:%s') AS fixTime,d.label_one name,d.label_two phone, d.label_five peopleId, IFNULL(d.amount / 100, 0) amount, IFNULL(d.prod_amount / 100, 0) prodAmount, IFNULL(l.prod_amount / 100, 0) expressAmount ");
-        querySql.append(" FROM nl_batch_detail d  JOIN t_touch_express_log l ON d.touch_id = l.touch_id ");
+        querySql.append(" FROM nl_batch_detail d left JOIN t_touch_express_log l ON d.touch_id = l.touch_id ");
         querySql.append("WHERE 1=1 AND d.`status`=1 ");
         if (StringUtil.isNotEmpty(param.getBatchId())) {
             querySql.append(" AND d.batch_id ='" + param.getBatchId() + "'");
@@ -1587,17 +1592,14 @@ public class BillServiceImpl implements BillService {
             querySql.append("AND d.label_one like '%" + param.getName() + "%'");
         }
         //type 1 数据  2快递
-        MarketResourceEntity marketResourceEntity = sourceDao.getResourceId(param.getSupplierId(), NumberConvertUtil.parseInt(param.getType()));
-        if (marketResourceEntity != null) {
-            Integer resourceId = marketResourceEntity.getResourceId();
-            if ("1".equals(param.getType())) {
-                querySql.append(" AND d.resource_id = " + resourceId);
-            } else if ("2".equals(param.getType())) {
-                querySql.append(" AND l.resource_id = " + resourceId);
-            }
-            if (StringUtil.isNotEmpty(param.getPhone())) {
-                querySql.append("AND d.label_one ='" + param.getPhone() + "'");
-            }
+        Integer resourceId = marketResourceEntity.getResourceId();
+        if ("1".equals(param.getType())) {
+            querySql.append(" AND d.resource_id = " + resourceId);
+        } else if ("2".equals(param.getType())) {
+            querySql.append(" AND l.resource_id = " + resourceId);
+        }
+        if (StringUtil.isNotEmpty(param.getPhone())) {
+            querySql.append("AND d.label_one ='" + param.getPhone() + "'");
         }
         querySql.append(" GROUP BY d.touch_id");
         return customerDao.sqlPageQuery(querySql.toString(), param.getPageNum(), param.getPageSize());
