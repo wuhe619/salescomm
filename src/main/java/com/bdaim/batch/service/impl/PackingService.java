@@ -93,7 +93,7 @@ public class PackingService {
     /**
      * 确认发件/批量发件
      *
-     * @param map batchId、addressId、isBatch
+     * @param map batchId、addressId、isBatch、senderId
      * @return
      * @auther Chacker
      * @date 2019/8/8 14:42
@@ -157,7 +157,8 @@ public class PackingService {
             List<Map<String, Object>> resultList = jdbcTemplate.queryForList(stringBuffer.toString());
             for (Map<String, Object> tempMap : resultList) {
                 updateExpressInfo(tempMap, senderInfo);
-                sendExpressByZTO(batchId, addressId, senderInfo, tempMap);
+                String addressIdNew =String.valueOf(tempMap.get("addressId"));
+                sendExpressByZTO(batchId, addressIdNew, senderInfo, tempMap);
             }
         } else if (isBatch == 0) {
             //单个发送，根据地址ID 找到 地址ID、姓名、手机号
