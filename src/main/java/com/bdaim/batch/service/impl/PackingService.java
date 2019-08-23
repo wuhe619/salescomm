@@ -152,7 +152,7 @@ public class PackingService {
         Map<String, Object> senderInfo = jdbcTemplate.queryForMap(senderSql);
         if (isBatch == 1) {
             //批量发送，根据批次ID batchId 找出地址ID、姓名、手机号  (batch_id、status为"1"有效、且label_seven为"2"待申请发件的)
-            StringBuffer stringBuffer = new StringBuffer("SELECT id AS addressId,touch_id,label_four AS address,label_one AS name,label_two AS phone,label_five AS receiverId,label_eight AS pdfPath FROM nl_batch_detail WHERE batch_id='");
+            StringBuffer stringBuffer = new StringBuffer("SELECT id AS addressId,touch_id,label_four AS address,label_one AS name,label_two AS phone,label_five AS receiverId,label_six AS fileCode,label_eight AS pdfPath FROM nl_batch_detail WHERE batch_id='");
             stringBuffer.append(batchId).append("' AND status='1' AND label_seven='2'");
             List<Map<String, Object>> resultList = jdbcTemplate.queryForList(stringBuffer.toString());
             for (Map<String, Object> tempMap : resultList) {
@@ -162,7 +162,7 @@ public class PackingService {
             }
         } else if (isBatch == 0) {
             //单个发送，根据地址ID 找到 地址ID、姓名、手机号
-            StringBuffer stringBuffer = new StringBuffer("SELECT id AS addressId,touch_id,label_four AS address,label_one AS name,label_two AS phone,label_five AS receiverId,label_eight AS pdfPath FROM nl_batch_detail WHERE id='");
+            StringBuffer stringBuffer = new StringBuffer("SELECT id AS addressId,touch_id,label_four AS address,label_one AS name,label_two AS phone,label_five AS receiverId,label_six AS fileCode,label_eight AS pdfPath FROM nl_batch_detail WHERE id='");
             stringBuffer.append(addressId).append("'");
             Map<String, Object> tempMap = jdbcTemplate.queryForMap(stringBuffer.toString());
             updateExpressInfo(tempMap, senderInfo);
@@ -221,7 +221,8 @@ public class PackingService {
         data.put("orderDate", format.format(new Date()));
         //备注 收件人id  放到收件人备注(对应买家备注)，  批次id放到发件人备注(对应卖家备注)
         data.put("sellerMessage", batchId);
-        data.put("buyerMessage", addressId);
+        String fileCode = String.valueOf(receiverInfo.get("fileCode"));
+        data.put("buyerMessage", addressId+","+fileCode);
         request.addParam("data", JSON.toJSONString(data));
         try {
             logger.info("订单创建成功，入参值为"+JSON.toJSONString(data)+" 返回值为");
