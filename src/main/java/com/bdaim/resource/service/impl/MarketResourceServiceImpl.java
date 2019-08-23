@@ -1322,25 +1322,18 @@ public class MarketResourceServiceImpl implements MarketResourceService {
             sign.append("WHERE t.cust_id=? AND t.batch_id= ? AND t.status= 4 ");
 
             //前端首页 校验统计图
-            StringBuffer checkSql = new StringBuffer("SELECT batch_name AS batchName,IFNULL(upload_num,0) AS uploadNum,IFNULL(success_num,0) AS successNum,");
-            checkSql.append("IFNULL(success_num/upload_num,0) AS effectiveRate FROM nl_batch WHERE comp_id='").append(customerId).append("' ORDER BY ")
-                    .append("upload_time DESC LIMIT 10");
+//            StringBuffer checkSql = new StringBuffer("SELECT batch_name AS batchName,IFNULL(upload_num,0) AS uploadNum,IFNULL(success_num,0) AS successNum,");
+//            checkSql.append("IFNULL(success_num/upload_num,0) AS effectiveRate FROM nl_batch WHERE comp_id='").append(customerId).append("' ORDER BY ")
+//                    .append("upload_time DESC LIMIT 10");
+            StringBuffer checkSql = new StringBuffer("SELECT x.batch_id batchId,x.batchName,SUM(CASE x.upload_num WHEN '1' THEN 1 ELSE 1 END) AS uploadNum,");
+            checkSql.append("SUM(CASE x.success_num WHEN '0' THEN 0 ELSE 1 END) successNum,")
+                    .append("SUM(CASE x.success_num WHEN '0' THEN 0 ELSE 1 END)/SUM(CASE x.upload_num WHEN '1' THEN 1 ELSE 1 END) AS effectiveRate ")
+                    .append("FROM (SELECT t1.id AS batch_id,t1.upload_time,t1.batch_name AS batchName,")
+                    .append("SUM(CASE t2.STATUS WHEN '0' THEN 1 ELSE 1 END) AS upload_num,SUM(CASE t2.STATUS WHEN '1' THEN 1 ELSE 0 END) AS success_num ")
+                    .append("FROM nl_batch t1 LEFT JOIN nl_batch_detail t2 ON t1.id = t2.batch_id ")
+                    .append("GROUP BY t1.batch_name,t1.id,t2.label_five ORDER BY t1.upload_time DESC ) x ")
+                    .append(" GROUP BY x.batch_id,x.batchName ORDER BY x.upload_time DESC LIMIT 10");
             List<Map<String, Object>> checkStatistics = jdbcTemplate.queryForList(checkSql.toString());
-//            DecimalFormat format = new DecimalFormat("0%");
-//            format.setMaximumFractionDigits(0);
-//            for (Map<String, Object> e : checkStatistics) {
-//                try {
-//                    String number = format.format(e.get("effectiveRate"));
-//                    e.put("effectiveRate", number);
-//                } catch (Exception ex) {
-//                    LOG.info("====>>>>>>>解析失败 " + ex.getMessage());
-//                }
-//            }
-//            for(Map<String,Object> e:checkStatistics){
-//                BigDecimal bigDecimal = new BigDecimal(String.valueOf(e.get("effectiveRate")));
-//
-//
-//            }
             checkStatistics.stream().map(e -> e.put("effectiveRate",new BigDecimal(String.valueOf(e.get("effectiveRate")))
                     .setScale(2,BigDecimal.ROUND_HALF_UP))).collect(Collectors.toList());
             //前端首页 签收统计图
