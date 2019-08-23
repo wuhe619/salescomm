@@ -1131,10 +1131,10 @@ public class MarketResourceServiceImpl implements MarketResourceService {
         List<Map<String, Object>> receiveRateList = jdbcTemplate.queryForList(receiveRate.toString());
 
         //客户有效数据趋势图
-        StringBuffer effectiveNum = new StringBuffer("SELECT DATE_FORMAT(upload_time, '%Y-%m-%d') AS upload_time,");
-        effectiveNum.append("SUM(CASE `status` WHEN '1' THEN 1 ELSE 0 END) AS effective_num  FROM nl_batch_detail ")
-                .append("GROUP BY DATE_FORMAT(upload_time,'%Y-%m-%d') ").append("ORDER BY DATE_FORMAT(upload_time,'%Y-%m-%d') DESC")
-                .append(" LIMIT 10");
+        StringBuffer effectiveNum = new StringBuffer("SELECT t1.upload_time,SUM(CASE t1.effective_num WHEN '0' THEN 0 ELSE 1 END) AS effective_num");
+        effectiveNum.append(" FROM (SELECT DATE_FORMAT(upload_time,'%Y-%m-%d') AS upload_time,batch_id,SUM(CASE `status` WHEN '1' THEN 1 ELSE 0 END) AS effective_num ")
+                .append("FROM nl_batch_detail GROUP BY batch_id,label_five ").append("ORDER BY upload_time DESC) t1 GROUP BY t1.upload_time")
+                .append(" ORDER BY t1.upload_time DESC LIMIT 10");
         List<Map<String, Object>> effectiveNumMap = jdbcTemplate.queryForList(effectiveNum.toString());
         Map<String,Object> data = new HashMap<>(16);
         data.put("effectiveRate", effectiveRate);
