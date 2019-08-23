@@ -1115,8 +1115,10 @@ public class MarketResourceServiceImpl implements MarketResourceService {
     @Override
     public Map<String,Object> countMarketDataBackend(){
         //企业有效率 折线统计图
-        String effectiveRateSql = "SELECT batch_name AS batchName,comp_name AS companyName,IFNULL(upload_num/success_num,0) AS effectiveRate FROM nl_batch ORDER BY " +
-                "upload_time DESC LIMIT 10";
+        String effectiveRateSql = "SELECT x.comp_name AS companyName,x.batch_id, SUM(CASE x.STATUS WHEN '1' THEN 1 ELSE 0 END)/SUM(CASE x.STATUS WHEN '0' THEN 1 ELSE 1 END) AS effectiveRate \n" +
+                "FROM (SELECT t1.comp_name,t2.batch_id,t2.`status` FROM\tnl_batch t1\tLEFT JOIN nl_batch_detail t2 ON t1.id = t2.batch_id \n" +
+                "GROUP BY t2.batch_id,t2.label_five ORDER BY t1.upload_time DESC ) x GROUP BY x.comp_name,x.batch_id \n" +
+                "ORDER BY x.batch_id DESC LIMIT 10";
         List<Map<String, Object>> effectiveRate = jdbcTemplate.queryForList(effectiveRateSql);
 
         //企业签收率 折现统计图
