@@ -46,6 +46,25 @@ public class LoginUser extends Token {
     private String mobile_num;
     private String user_id;
 
+    /**
+     * 用户组角色 1-组长 2-组员
+     */
+    private String userGroupRole;
+
+    private String userGroupId;
+
+    /**
+     * 职场ID
+     */
+    private String jobMarketId;
+
+    private String defaultUrl;
+
+    /**
+     * 授权平台 1-精准营销 2-金融超市
+     */
+    private String authorize;
+
     public User getUser() {
         return user;
     }
@@ -155,4 +174,45 @@ public class LoginUser extends Token {
     public String getMsg() {
         return msg;
     }
+
+    public String getUserGroupRole() {
+        return userGroupRole;
+    }
+
+    public void setUserGroupRole(String userGroupRole) {
+        this.userGroupRole = userGroupRole;
+    }
+
+    public String getUserGroupId() {
+        return userGroupId;
+    }
+
+    public void setUserGroupId(String userGroupId) {
+        this.userGroupId = userGroupId;
+    }
+
+    public String getJobMarketId() {
+        return jobMarketId;
+    }
+
+    public void setJobMarketId(String jobMarketId) {
+        this.jobMarketId = jobMarketId;
+    }
+
+    public String getDefaultUrl() {
+        return defaultUrl;
+    }
+
+    public void setDefaultUrl(String defaultUrl) {
+        this.defaultUrl = defaultUrl;
+    }
+
+    public String getAuthorize() {
+        return authorize;
+    }
+
+    public void setAuthorize(String authorize) {
+        this.authorize = authorize;
+    }
+
 }

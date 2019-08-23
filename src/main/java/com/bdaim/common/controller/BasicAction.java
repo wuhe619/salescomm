@@ -5,8 +5,8 @@ import com.alibaba.fastjson.JSONObject;
 import com.bdaim.auth.LoginUser;
 import com.bdaim.common.auth.Token;
 import com.bdaim.rbac.dto.Page;
+import com.bdaim.rbac.dto.UserQueryParam;
 import com.bdaim.rbac.service.UserService;
-
 import org.springframework.beans.propertyeditors.CustomDateEditor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.BindingResult;
@@ -28,6 +28,7 @@ import com.ztwj.mrp.core.treeresource.AbstractTreeResource;
 import com.ztwj.mrp.core.treeresource.CommonTreeResource;*/
 
 public class BasicAction {
+    protected final static String ADMIN_CUST_ID = "-1";
     protected HttpServletRequest request;
     //	protected HttpServletResponse response;
 //    protected ThreadLocal<User> user = new ThreadLocal<User>();
@@ -385,5 +386,24 @@ public class BasicAction {
         data.put("list", page.getData());
         data.put("total", page.getTotal());
         return data;
+    }
+
+    /**
+     * 获取用户查询权限实体
+     *
+     * @return
+     */
+    protected UserQueryParam getUserQueryParam() {
+        UserQueryParam userQueryParam = new UserQueryParam();
+        if ("ROLE_USER".equals(opUser().getRole()) || "admin".equals(opUser().getRole())) {
+            userQueryParam.setCustId(ADMIN_CUST_ID);
+        } else {
+            userQueryParam.setCustId(opUser().getCustId());
+            userQueryParam.setUserId(String.valueOf(opUser().getId()));
+            userQueryParam.setUserType(opUser().getUserType());
+            userQueryParam.setUserGroupRole(opUser().getUserGroupRole());
+            userQueryParam.setUserGroupId(opUser().getUserGroupId());
+        }
+        return userQueryParam;
     }
 }

@@ -4,7 +4,6 @@ import com.bdaim.common.dao.SimpleHibernateDao;
 import com.bdaim.rbac.dto.UserDTO;
 import com.bdaim.rbac.entity.User;
 import com.bdaim.rbac.entity.UserDO;
-
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Component;
 
@@ -104,5 +103,18 @@ public class UserDao extends SimpleHibernateDao<User, Serializable> {
         sql.append("LEFT JOIN t_role r ON re.ROLE = r.ID WHERE u.ID = '" + userId + "' GROUP BY u.ID");
         List<Map<String, Object>> list = this.sqlQuery(sql.toString());
         return list;
+    }
+
+    //根据userId查询用户信息
+    public String getUserRealName(Long userId) {
+        UserDO cp = null;
+        String hql = "from UserDO m where m.id=?";
+        List<UserDO> list = this.find(hql, userId);
+        if (list.size() > 0)
+            cp = (UserDO) list.get(0);
+        if (cp != null) {
+            return cp.getRealname();
+        }
+        return null;
     }
 }

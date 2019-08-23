@@ -8,7 +8,7 @@ import com.bdaim.common.util.page.Page;
 import com.bdaim.common.util.page.Pagination;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerPropertyDao;
-import com.bdaim.customer.entity.CustomerProperty;
+import com.bdaim.customer.entity.CustomerPropertyDO;
 import com.bdaim.customer.entity.CustomerPropertyEntity;
 import com.bdaim.customer.entity.CustomerPropertyParam;
 import com.bdaim.customer.service.CustomerPropertyService;
@@ -165,7 +165,7 @@ public class CustomerPropertyServiceImpl implements CustomerPropertyService {
                 channelProperty = "ctc";
             }
         }
-        CustomerProperty enterprisepassword = customerDao.getProperty(custId, channelProperty + "_enterprise_password");
+        CustomerPropertyDO enterprisepassword = customerDao.getProperty(custId, channelProperty + "_enterprise_password");
       if (enterprisepassword!=null){
           propertyValue = enterprisepassword.getPropertyValue();
       }
@@ -174,11 +174,11 @@ public class CustomerPropertyServiceImpl implements CustomerPropertyService {
     }
 
     @Override
-    public void addenterprise(CustomerProperty customerProperty) throws Exception {
+    public void addenterprise(CustomerPropertyDO customerProperty) throws Exception {
 
-        CustomerProperty enterprisepassword = customerDao.getProperty(customerProperty.getCustId(), customerProperty.getPropertyName());
+        CustomerPropertyDO enterprisepassword = customerDao.getProperty(customerProperty.getCustId(), customerProperty.getPropertyName());
         if (enterprisepassword == null) {
-            CustomerProperty updateenterprise = new CustomerProperty();
+            CustomerPropertyDO updateenterprise = new CustomerPropertyDO();
             updateenterprise.setCustId(customerProperty.getCustId());
             updateenterprise.setPropertyName(customerProperty.getPropertyName());
             updateenterprise.setPropertyValue(customerProperty.getPropertyValue());
@@ -193,7 +193,7 @@ public class CustomerPropertyServiceImpl implements CustomerPropertyService {
     public List<Map<String, Object>> listCustSupplier(String custId) {
         List<Map<String, Object>> channellList = new ArrayList<>();
         if (StringUtil.isNotEmpty(custId)) {
-            CustomerProperty channelProperty = customerDao.getProperty(custId, "channel");
+            CustomerPropertyDO channelProperty = customerDao.getProperty(custId, "channel");
             String channel = channelProperty.getPropertyValue();
             if (StringUtil.isNotEmpty(channel)) {
                 String[] channels = channel.split(",");

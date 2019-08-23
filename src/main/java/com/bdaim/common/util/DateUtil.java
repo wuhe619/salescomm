@@ -8,6 +8,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -700,5 +701,23 @@ public class DateUtil {
         map.put("year", year);
         map.put("month", month);
         return map;
+    }
+
+    /**
+     * 获取当前月份格式化后的日期字符串
+     *
+     * @return 201811
+     */
+    public static String getNowMonthToYYYYMM() {
+        return LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMM"));
+    }
+
+    public static String getPastNMonthDate(Date date, String format,int N) {
+        SimpleDateFormat df = new SimpleDateFormat(format);
+        Calendar c = Calendar.getInstance();
+        c.setTime(date);
+        c.add(Calendar.MONTH, N);
+        Date m = c.getTime();
+        return df.format(m);
     }
 }

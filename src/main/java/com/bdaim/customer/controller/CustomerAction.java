@@ -155,7 +155,6 @@ public class CustomerAction extends BasicAction {
             //图片根路径
             String preUrl = "/pic";
             map.put("preUrl", preUrl);
-            //json.put("data", map);
         }
         return new ResponseInfoAssemble().success(map);
         //return json.toJSONString();

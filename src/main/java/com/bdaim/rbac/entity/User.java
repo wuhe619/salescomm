@@ -49,10 +49,10 @@ public class User implements Serializable {
 
 
     /*@OneToMany(mappedBy = "createUser", fetch = FetchType.LAZY)
-    private List<CustomGroup> createCustomGroups;
+    private List<CustomGroupDO> createCustomGroups;
 
     @OneToMany(mappedBy = "updateUser", fetch = FetchType.LAZY)
-    private List<CustomGroup> updateCustomGroups;*/
+    private List<CustomGroupDO> updateCustomGroups;*/
 
 
     /*@OneToMany(mappedBy = "labelCreateUser", fetch = FetchType.LAZY)
@@ -148,19 +148,19 @@ public class User implements Serializable {
         this.devs = devs;
     }*/
 
-    /*public List<CustomGroup> getCreateCustomGroups() {
+    /*public List<CustomGroupDO> getCreateCustomGroups() {
         return createCustomGroups;
     }
 
-    public void setCreateCustomGroups(List<CustomGroup> createCustomGroups) {
+    public void setCreateCustomGroups(List<CustomGroupDO> createCustomGroups) {
         this.createCustomGroups = createCustomGroups;
     }
 
-    public List<CustomGroup> getUpdateCustomGroups() {
+    public List<CustomGroupDO> getUpdateCustomGroups() {
         return updateCustomGroups;
     }
 
-    public void setUpdateCustomGroups(List<CustomGroup> updateCustomGroups) {
+    public void setUpdateCustomGroups(List<CustomGroupDO> updateCustomGroups) {
         this.updateCustomGroups = updateCustomGroups;
     }*/
 

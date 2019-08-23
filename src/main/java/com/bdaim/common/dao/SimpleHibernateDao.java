@@ -17,6 +17,7 @@ import org.hibernate.metadata.ClassMetadata;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.Serializable;
 import java.util.List;
@@ -27,14 +28,9 @@ import java.util.Map;
  * <p>
  * 可在Service层直接使用,也可以扩展泛型DAO子类使用.
  * 参考Spring2.5自带的Petlinc例子,取消了HibernateTemplate,直接使用Hibernate原生API.
- *
- * @param <T>  DAO操作的对象类型
- * @param <PK> 主键类型
- * @author zhangdebin
- * @version $Revision: 1.0 $
- * @created 2011-5-6 09:36:41
  */
 @SuppressWarnings("unchecked")
+@Transactional
 public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDaoSupport{
     protected Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -91,8 +87,8 @@ public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDao
         try {
             return super.getSessionFactory().getCurrentSession();
         } catch (HibernateException ex) {
-            ex.printStackTrace();
-            logger.warn("can not get current session,open new.");
+//            ex.printStackTrace();
+            logger.error("can not get current session,open new.");
             return getSessionFactory().openSession();
         }
     }
@@ -173,6 +169,10 @@ public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDao
     public T get(final PK id) {
         org.springframework.util.Assert.notNull(id, "id不能为空");
         return (T) this.getSession().get(entityClass, id);
+    }
+
+    public Object get(Class clazz, Serializable id) {
+        return this.getSession().get(clazz, id);
     }
 
     /**
@@ -885,4 +885,28 @@ public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDao
         session.close();
         return p;
     }
+
+    public void batchSaveOrUpdate(final List entityList) {
+        org.springframework.util.Assert.notNull(entityList, "entityList不能为空");
+        for (Object entity : entityList) {
+            getSession().saveOrUpdate(entity);
+        }
+        getSession().flush();
+    }
+
+    /**
+     * 根据sql语句查询返回List
+     *
+     * @param sql
+     * @param className
+     * @return
+     */
+    public List queryListBySql(String sql, Class className) {
+        Session session = getSessionFactory().openSession();
+        Query query = session.createSQLQuery(sql).addEntity(className);
+        List rs = query.list();
+        session.close();
+        return rs;
+    }
+
 }

@@ -1,7 +1,6 @@
 package com.bdaim.account.service;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.account.dto.Fixentity;
 import com.bdaim.batch.ResourceEnum;
@@ -13,14 +12,13 @@ import com.bdaim.batch.service.BatchService;
 import com.bdaim.callcenter.service.impl.CallCenterServiceImpl;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
-import com.bdaim.common.util.CipherUtil;
 import com.bdaim.common.util.IDHelper;
 import com.bdaim.common.util.StringHelper;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerUserDao;
 import com.bdaim.customer.entity.CustomerDO;
-import com.bdaim.customer.entity.CustomerProperty;
+import com.bdaim.customer.entity.CustomerPropertyDO;
 import com.bdaim.customer.entity.CustomerUserDO;
 import com.bdaim.customer.service.CustomerService;
 import com.bdaim.rbac.dto.Page;
@@ -41,9 +39,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -97,7 +92,7 @@ public class OpenService {
      */
     public Map<String, Object> queryCustBalance(String custId) throws Exception {
         Map<String, Object> resultMap = new HashMap<>();
-        CustomerProperty remainAmoutProperty = customerDao.getProperty(custId, "remain_amount");
+        CustomerPropertyDO remainAmoutProperty = customerDao.getProperty(custId, "remain_amount");
         DecimalFormat df = new DecimalFormat("######0.00");
         if (remainAmoutProperty != null) {
             Double remainAmout = Double.parseDouble(remainAmoutProperty.getPropertyValue());
@@ -132,7 +127,7 @@ public class OpenService {
 //                            json.put("data", resultMap);
 //                            return json.toJSONString();
 //                        }
-//                        CustomerProperty customerProperty = customerDao.getProperty(custId, "token");
+//                        CustomerPropertyDO customerProperty = customerDao.getProperty(custId, "token");
 //                        if (customerProperty != null) {
 //                            token = customerProperty.getPropertyValue();
 //                            if (token.equals(oldtoken)) {
@@ -341,7 +336,7 @@ public class OpenService {
 //                if (uPassword.equals(newpassword)) {
 //                    String custId = u.getCust_id();
 //                    if (StringUtil.isNotEmpty(custId)) {
-//                        CustomerProperty customerProperty = customerDao.getProperty(custId, "token");
+//                        CustomerPropertyDO customerProperty = customerDao.getProperty(custId, "token");
 //                        if (customerProperty != null) {
 //                            token = customerProperty.getPropertyValue();
 //                            try {
@@ -828,18 +823,36 @@ public class OpenService {
         String iMei = String.valueOf(map.get("IMEI"));
         String deviceAddress = String.valueOf(map.get("device_address"));
         String action = String.valueOf(map.get("action"));
+        String platform = String.valueOf(map.get("platform"));
         String IP = StringHelper.getIpAddr(request);
         //2. 转换格式并插入数据库
-        List<String> appList = (List<String>) map.get("apps");
-        List<Map<String, Object>> contactsList = (List<Map<String, Object>>) map.get("device_contacts");
+        List<String> appList = StringUtil.isNotEmpty(String.valueOf(map.get("apps"))) ? (List<String>) map.get("apps") : new ArrayList<String>();
+        List<Map<String, Object>> contactsList =
+                StringUtil.isNotEmpty(String.valueOf(map.get("device_contacts"))) ? (List<Map<String, Object>>) map.get("device_contacts") : new ArrayList<>();
         List<Object[]> batchArgs = new ArrayList<>();
-        for (int i = 0; i < appList.size(); i++) {
-            for (int j = 0; j < contactsList.size(); j++) {
-                Object[] objects = new Object[]{iMei, appList.get(i), deviceAddress, JSON.toJSONString(contactsList.get(j)), action, IP};
+        for (int i = -1; i < appList.size(); i++) {
+            String appElement;
+            if (i == -1 && appList.size() != 0) {
+                continue;
+            } else if (i == -1 && appList.size() == 0) {
+                appElement = "";
+            } else {
+                appElement = appList.get(i);
+            }
+            for (int j = -1; j < contactsList.size(); j++) {
+                Object[] objects;
+                if (j == -1 && contactsList.size() != 0) {
+                    continue;
+                } else if (j == -1 && contactsList.size() == 0) {
+                    objects = new Object[]{iMei, appElement, deviceAddress, "", action, IP, platform};
+                } else {
+                    objects = new Object[]{iMei, appElement, deviceAddress, JSON.toJSONString(contactsList.get(j)), action, IP, platform};
+                }
                 batchArgs.add(objects);
             }
         }
-        String sql = "INSERT INTO t_behavior_record (create_time,imei,app,device_address,device_contact,action,ip) VALUES (NOW(),?,?,?,?,?,?)";
+        String sql = "INSERT INTO t_behavior_record (create_time,imei,app,device_address,device_contact,action,ip,platform) VALUES (NOW(),?,?,?,?,?,?,?)";
+        log.info("执行保存SQL " + sql);
         jdbcTemplate.batchUpdate(sql, batchArgs);
     }
 
@@ -851,13 +864,13 @@ public class OpenService {
     }
 
     public ResponseInfo saveAccessChannels(Map<String, Object> map, HttpServletRequest request) {
-        log.info("进入保存用户访问渠道接口 saveAccessChannels");
         //1. 获取入参 mobile、channel、name、activity_code
-        String mobile = String.valueOf(map.get("mobile"));
-        String channel = String.valueOf(map.get("channel"));
-        String name = String.valueOf(map.get("name"));
-        String activityCode = String.valueOf(map.get("activity_code"));
-        String channelName = String.valueOf(map.get("channel_name"));
+        String mobile = map.get("mobile") == null || map.get("mobile") == "" ? "" : String.valueOf(map.get("mobile"));
+        String channel = map.get("channel") == null || map.get("channel") == "" ? "" : String.valueOf(map.get("channel"));
+        String name = map.get("name") == null || map.get("name") == "" ? "" : String.valueOf(map.get("name"));
+        String activityCode = map.get("activity_code") == null || map.get("activity_code") == "" ? "" : String.valueOf(map.get("activity_code"));
+        String channelName = map.get("channel_name") == null || map.get("channel_name") == "" ? "" : String.valueOf(map.get("channel_name"));
+        String deviceType = map.get("device_type") ==null ||map.get("device_type") == "" ? "":String.valueOf(map.get("device_type"));
         log.info("入参的值为" + JSON.toJSONString(map));
         //2. 如果活动编码activity_code是ETC，且此次channel下有同样的mobile手机号，则返回新增失败
         if ("ETC".equalsIgnoreCase(activityCode)) {
@@ -870,12 +883,38 @@ public class OpenService {
         }
         //3. 插入数据库
         String IP = StringHelper.getIpAddr(request);
-        StringBuffer sql = new StringBuffer("INSERT INTO t_access_channel (mobile,channel,channel_name,name,ip,create_time,activity_code) VALUES ('");
+        StringBuffer sql = new StringBuffer("INSERT INTO t_access_channel (mobile,channel,channel_name,name,ip,create_time,activity_code,device_type) VALUES ('");
         sql.append(mobile).append("','").append(channel).append("','").append(channelName).append("','").append(name).append("','").append(IP).append("',NOW(),'")
-                .append(activityCode).append("')");
+                .append(activityCode).append("','").append(deviceType).append("')");
         log.info("执行SQL语句为" + sql.toString());
         jdbcTemplate.update(sql.toString());
         return new ResponseInfoAssemble().success(null);
+    }
+
+    public Map<String,Object> saveBillNo(Map<String, Object> map) {
+        //运单号，对应t_touch_express_log中的request_id字段
+        String billNo = String.valueOf(map.get("billNo"));
+//        String expressCompany = String.valueOf(map.get("expressCompany")); 快递公司名称，暂时注掉，用到再从data中获取
+        //商家订单号，对应t_touch_express_log和nl_batch_detail中的touch_id字段
+        String orderCode = String.valueOf(map.get("orderCode"));
+        //快递管家推送的所有数据，对应t_touch_express_log中的data字段
+        String data = JSON.toJSONString(map);
+
+        StringBuffer sqlBuffer = new StringBuffer("UPDATE t_touch_express_log SET data='");
+        sqlBuffer.append(data).append("',request_id='").append(billNo).append("' WHERE touch_id='")
+                .append(orderCode).append("'");
+        log.info("===》》》执行更新快递运单号SQL " + sqlBuffer.toString());
+        Map<String, Object> resultMap = new HashMap<>(10);
+        try {
+            jdbcTemplate.update(sqlBuffer.toString());
+        } catch (Exception e) {
+            resultMap.put("status", false);
+            resultMap.put("message", "失败，message如下 " + e.getMessage());
+            return resultMap;
+        }
+        resultMap.put("status", true);
+        resultMap.put("message", "成功");
+        return resultMap;
     }
 }
 

@@ -113,4 +113,99 @@ public class ConstantsUtil {
     public final static int DEDUCT_TYPE = 7;
     //调账
     public final static int UPDATE_BALANCE_TYPE = 9;
+
+    /**
+     * 客户群数据表前缀
+     */
+    public final static String CUSTOMER_GROUP_TABLE_PREFIX = "t_customer_group_list_";
+
+    /**
+     * 通话日志数据表前缀
+     */
+    public final static String TOUCH_VOICE_TABLE_PREFIX = "t_touch_voice_log_";
+
+    /**
+     * 客户群自动提取数据文件生成路径
+     */
+    public final static String CGROUP_AUTO_FILE_PATH = "/data/cgroupdata/auto/";
+
+    /**
+     * 客户群导入excel保存路径
+     */
+    public final static String CGROUP_IMPORT_FILE_PATH = "/data/cgroupdata/importcg/";
+
+    //public final static String CGROUP_IMPORT_FILE_PATH = "D:\\importcg\\";
+
+    /**
+     * 手机黑名单前缀
+     */
+    public final static String BLACK_PHONE_PREFIX = "b";
+
+    /**
+     * 默认购买的客户群失效月份
+     */
+    public final static int CUSTOMER_GROUP_EXPIRY_MONTH = 6;
+
+    /**
+     * 前台用户角色
+     */
+    public final static String HTML_ROLE = "ROLE_CUSTOMER";
+
+    /**
+     * 后台admin用户角色
+     */
+    public final static String ADMIN_ROLE = "admin";
+
+    /**
+     * 营销任务详情表
+     */
+    public final static String MARKET_TASK_TABLE_PREFIX = "t_market_task_list_";
+
+    /**
+     * 呼叫次数id
+     */
+    public final static String CALL_COUNT_ID = "1000010001000";
+
+    /**
+     * 呼通次数id
+     */
+    public final static String CALL_SUCCESS_COUNT_ID = "1000010001001";
+
+    /**
+     * 短信次数id
+     */
+    public final static String SMS_COUNT_ID = "1000010001002";
+
+    /**
+     * 客户资料修改记录表
+     */
+    public final static String SUPPERDATA_LOG_TABLE_PREFIX = "t_supperdata_log_";
+
+    /**
+     * 讯众自动外呼拉取号码URL
+     */
+    public final static String XZ_AUTO_TASK_PHONE_URL = PropertiesUtil.getStringValue("online.host") + "/customgroup/xzTaskGetPhone";
+
+    /**
+     * 讯众-公海自动外呼拉取号码URL
+     */
+    public final static String XZ_SEA_AUTO_TASK_PHONE_URL = PropertiesUtil.getStringValue("online.host") + "/customerSea/xzCustomerSeaGetPhone";
+
+    /**
+     * 讯众API系统渠道ID
+     */
+    public final static String XZ_API_RESOURCE_ID = "1";
+
+    /**
+     * 公海数据表前缀
+     */
+    public final static String SEA_TABLE_PREFIX = "t_customer_sea_list_";
+
+    /**
+     * 用户操作记录表
+     */
+    public final static String CUSTOMER_OPER_LOG_TABLE_PREFIX = "t_customer_user_operlog";
+
+    public final static String SUCCESS_SYS_LABEL_ID = "SYS008";
+    public final static String SUCCESS_SYS_LABEL_NAME = "邀约状态";
 }

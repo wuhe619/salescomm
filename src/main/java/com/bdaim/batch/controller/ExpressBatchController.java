@@ -205,9 +205,11 @@ public class ExpressBatchController extends BasicAction {
     @RequestMapping(value = "/getPdfByReceiverId", method = RequestMethod.GET)
     @ResponseBody
     public ResponseInfo readFileByCode(@RequestParam String batchId, String receiverId, HttpServletResponse response) throws IOException {
+        logger.info("进入根据收件人ID预览PDF接口" +batchId +receiverId);
         //根据批次ID batchId 和 收件人ID receiverId 找到pdf所存储的路径
         String pdfPath = expressBatchService.findPdfPathByReceiverId(batchId, receiverId);
         pdfPath = pdfPath.substring(pdfPath.indexOf("pdf") - 1).replace("\\", "/");
+        logger.info("pdf path is "+pdfPath);
         return new ResponseInfoAssemble().success(pdfPath);
     }
 
@@ -269,12 +271,14 @@ public class ExpressBatchController extends BasicAction {
             }
         } else if (exportType == 3) {
             header.add("文件编码(不能重复)");
+            header.add("收件人ID");
             header.add("快递单号(不能重复)");
             header.add("姓名");
             List<Object> rowList;
             for (Map<String, Object> column : dataList) {
                 rowList = new ArrayList<>();
                 rowList.add(column.get("fileCode") != null ? column.get("fileCode") : "");
+                rowList.add(column.get("receiverId") != null ? column.get("receiverId") : "");
                 rowList.add(column.get("expressCode") != null ? column.get("expressCode") : "");
                 rowList.add(column.get("name") != null ? column.get("name") : "");
                 data.add(rowList);
@@ -308,7 +312,7 @@ public class ExpressBatchController extends BasicAction {
     public ResponseInfo updateBatchStatus(String batchId, int status) {
         try {
             LoginUser lu = opUser();
-            if ("ROLE_USER".equals(lu.getRole()) || "admin".equals(lu.getRole())) {
+            if ("ROLE_USER".equals(lu.getRole()) || "admin".equals(lu.getRole()) || "1".equals(lu.getType())) {
                 expressBatchService.updateBatchStatus(batchId, status);
             } else {
                 return new ResponseInfoAssemble().failure(-2, "暂无权限");
@@ -382,6 +386,22 @@ public class ExpressBatchController extends BasicAction {
             }
         }
         return new ResponseInfoAssemble().success(null);
+    }
+    /**
+     * 查询快递记录接口
+     *
+     * @param
+     */
+    @RequestMapping(value = "/getExpressLog", method = RequestMethod.GET)
+    @ResponseBody
+    public ResponseInfo getExpressLog(String id) {
+        try {
+            Map<String, Object> expressLog = expressBatchService.getExpressLog(id);
+            return new ResponseInfoAssemble().success(expressLog);
+        } catch (Exception e) {
+           logger.error("查询快递记录异常",e);
+            return new ResponseInfoAssemble().failure(-1,"查询快递记录异常");
+        }
     }
 
 }

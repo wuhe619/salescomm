@@ -1,5 +1,6 @@
 package com.bdaim.rbac.controller;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.auth.LoginUser;
 import com.bdaim.common.controller.BasicAction;
@@ -10,7 +11,6 @@ import com.bdaim.rbac.dto.Page;
 import com.bdaim.rbac.dto.RoleDTO;
 import com.bdaim.rbac.dto.RolesResourceDto;
 import com.bdaim.rbac.service.RoleService;
-import com.alibaba.fastjson.JSONArray;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,12 +60,13 @@ public class RoleAction extends BasicAction {
      */
     @RequestMapping(value = "/getRoleDetails", method = RequestMethod.GET)
     @ResponseBody
-    public String getRoleDetails(Long roleId) {
+    public String getRoleDetails(Long roleId,String platform) {
+        //平台 1-精准营销 2-金融超市 3-信函
         JSONArray array = null;
         try {
             LoginUser operateUser = opUser();
             Long operateUserId = operateUser.getId();
-            array = roleService.queryResourceSelectStatus(operateUserId, roleId, 0L, "admin".equals(operateUser.getName()) ? true : false);
+            array = roleService.queryResourceSelectStatus(operateUserId, roleId, 0L, "admin".equals(operateUser.getName()) ? true : false,platform);
         } catch (Exception e) {
             log.error("查询职位管理列表异常" + e);
         }
@@ -216,14 +217,14 @@ public class RoleAction extends BasicAction {
      */
     @RequestMapping(value = "queryResourceTree", method = RequestMethod.GET)
     @ResponseBody
-    public String queryResourceTree() {
-
+    public String queryResourceTree(String platform) {
+        //平台 1-精准营销 2-金融超市 3-信函
         LoginUser operateUser = opUser();
         Long userId = operateUser.getId();
         //根据用户角色查询当前用户拥有的资源树
         JSONArray jsonArray = null;
         try {
-            jsonArray = roleService.queryResourceTreeByRole(userId, 0L);
+            jsonArray = roleService.queryResourceTreeByRole(userId, 0L,platform);
         } catch (Exception e) {
             e.printStackTrace();
             log.error("查询当前登录用户资源树异常" + e);

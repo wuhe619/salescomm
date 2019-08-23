@@ -577,7 +577,7 @@ public class SendmessageImpl implements SendmessageService {
         String custId = String.valueOf(map.get("cust_id"));
         StringBuffer comboSql = new StringBuffer("SELECT id,sender_name AS senderName,type,create_time,phone,province,city,district,address FROM t_sender_info WHERE type='1' AND cust_id='");
         comboSql.append(custId).append("' UNION SELECT id,sender_name AS senderName,type,create_time,phone,province,city,district,address FROM t_sender_info WHERE type='2' AND cust_id='")
-                .append(custId).append("' ORDER BY create_time DESC LIMIT 5");
+                .append(custId).append("' ORDER BY type ASC,create_time DESC LIMIT 6");
         String pageNum = String.valueOf(map.get("page_num"));
         List<Map<String, Object>> resultList;
         Map<String, Object> resultMap = new HashMap<>(10);
@@ -604,6 +604,7 @@ public class SendmessageImpl implements SendmessageService {
         if (StringUtil.isNotEmpty(phone)) {
             listSql.append(" AND phone LIKE '%" + phone + "%'");
         }
+        listSql.append(" ORDER BY create_time DESC");
 
         Page page = new Pagination().getPageData(listSql.toString(), null, pageParam, jdbcTemplate);
         resultMap.put("total", page.getTotal());

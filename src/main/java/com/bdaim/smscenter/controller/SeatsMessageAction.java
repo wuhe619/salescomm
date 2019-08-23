@@ -12,7 +12,7 @@ import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.common.util.page.Page;
 import com.bdaim.customer.dto.CustomerRegistDTO;
-import com.bdaim.customer.entity.CustomerUserProperty;
+import com.bdaim.customer.entity.CustomerUserPropertyDO;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -310,7 +310,7 @@ public class SeatsMessageAction extends BasicAction {
     @RequestMapping(value = "/getUserAllProperty", method = RequestMethod.GET)
     public String getUserAllProperty(String userId) {
         Map<String, Object> map = new HashMap<>(16);
-        List<CustomerUserProperty> list = seatsService.getUserAllProperty(userId);
+        List<CustomerUserPropertyDO> list = seatsService.getUserAllProperty(userId);
         map.put("list", list);
         return JSON.toJSONString(map);
     }

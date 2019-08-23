@@ -9,7 +9,7 @@ import com.bdaim.common.util.StringUtil;
 import com.bdaim.common.util.page.Page;
 import com.bdaim.common.util.page.Pagination;
 import com.bdaim.customer.dao.CustomerDao;
-import com.bdaim.customer.entity.CustomerProperty;
+import com.bdaim.customer.entity.CustomerPropertyDO;
 import com.bdaim.resource.dao.SourceDao;
 import com.github.crab2died.ExcelUtils;
 import org.slf4j.Logger;
@@ -61,8 +61,8 @@ public class AccountService {
             throw new TouchException("20010", "系统异常:用户信息不存在");
         }*/
         Map<String, Object> resultMap = new HashMap<>();
-        CustomerProperty remainAmoutProperty = customerDao.getProperty(customerId, "remain_amount");
-        CustomerProperty usedAmountProperty = customerDao.getProperty(customerId, "used_amount");
+        CustomerPropertyDO remainAmoutProperty = customerDao.getProperty(customerId, "remain_amount");
+        CustomerPropertyDO usedAmountProperty = customerDao.getProperty(customerId, "used_amount");
         DecimalFormat df = new DecimalFormat("######0.00");
         if (remainAmoutProperty != null) {
             Double remainAmout = Double.parseDouble(remainAmoutProperty.getPropertyValue());
@@ -154,7 +154,7 @@ public class AccountService {
      * @return
      */
     public Page pageList(PageParam page, CustomerBillQueryParam queryParam) {
-        StringBuilder sqlBuilder = new StringBuilder("SELECT cus.cust_id,cus.create_time createTime,cus.enterprise_name,cus.status,\n" +
+        StringBuilder sqlBuilder = new StringBuilder("SELECT cus.cust_id,DATE_FORMAT(cus.create_time,'%Y-%m-%d %H:%i:%s') AS createTime,cus.enterprise_name,cus.status,\n" +
                 "t2.account,t2.realname,cjc.mobile_num,CONVERT(cjc.remainAmount/100,DECIMAL(15,2)) as remainAmount\n" +
                 " from t_customer cus\n" +
                 "LEFT JOIN t_customer_user t2   ON cus.cust_id = t2.cust_id\n" +
@@ -227,7 +227,7 @@ public class AccountService {
      */
     public Page querySupplierAcctsByCondition(PageParam page, CustomerBillQueryParam queryParam) {
         // 如果没有传开始时间
-        StringBuilder sqlBuilder = new StringBuilder("SELECT p.`name` source_name, t.create_time,t.transaction_id,p.supplier_id,t.amount/100 as amount,u.REALNAME realname , t.certificate ,t.remark ");
+        StringBuilder sqlBuilder = new StringBuilder("SELECT p.`name` source_name, t.create_time,t.transaction_id,p.supplier_id,t.amount/100 as amount,u.REALNAME realname , t.certificate ,t.remark ,case t.type when 8 then '充值' when 13 then '扣減'  end  type ");
         sqlBuilder.append("FROM t_transaction_bill t");
         sqlBuilder.append(" LEFT JOIN t_supplier p ON t.supplier_id = p.supplier_id\n");
         sqlBuilder.append("LEFT JOIN t_user u ON t.user_id = u.ID WHERE 1=1\n");
@@ -456,8 +456,8 @@ public class AccountService {
      */
     public Object queryAccoutCenter(String custId) {
         Map<String, Object> resultMap = new HashMap<>();
-        CustomerProperty remainAmoutProperty = customerDao.getProperty(custId, "remain_amount");
-        //CustomerProperty usedAmountProperty = customerDao.getProperty(custId, "used_amount");
+        CustomerPropertyDO remainAmoutProperty = customerDao.getProperty(custId, "remain_amount");
+        //CustomerPropertyDO usedAmountProperty = customerDao.getProperty(custId, "used_amount");
         DecimalFormat df = new DecimalFormat("######0.00");
         if (remainAmoutProperty != null) {
             Double remainAmout = Double.parseDouble(remainAmoutProperty.getPropertyValue());
@@ -471,4 +471,33 @@ public class AccountService {
     }
 
 
+    public List<Map<String,Object>> pageListRecords(CustomerBillQueryParam queryParam) {
+        // 如果没有传开始时间
+        StringBuilder sqlBuilder = new StringBuilder("SELECT t.type,CASE t.type WHEN '1' THEN '充值' WHEN '7' THEN '扣减' END AS typeContent," +
+                "t.create_time,t.transaction_id,t.amount/100 as amount ,cu.realname," +
+                "t.cust_id,t.certificate,t.remark from t_transaction_bill t \n" +
+                "LEFT JOIN t_customer_user cu on t.cust_id=cu.cust_id\n" +
+                " where 1=1 and cu.user_type=1");
+        if (StringUtil.isNotEmpty(queryParam.getCustomerId())) {
+            sqlBuilder.append(" and t.cust_id= " + queryParam.getCustomerId());
+        }
+        if (StringUtil.isNotEmpty(queryParam.getTransactionId())) {
+            sqlBuilder.append(" and t.transaction_id= " + queryParam.getTransactionId());
+        }
+        if (StringUtil.isNotEmpty(queryParam.getType())) {
+            sqlBuilder.append(" and t.type=" + queryParam.getType());
+        }
+        if (StringUtil.isNotEmpty(queryParam.getRealname())) {
+            sqlBuilder.append(" and cu.realname like '%" + queryParam.getRealname() + "%'");
+        }
+        if (StringUtil.isNotEmpty(queryParam.getStartTime())) {
+            sqlBuilder.append(" AND t.create_time >= '" + queryParam.getStartTime() + "'");
+        }
+        if (StringUtil.isNotEmpty(queryParam.getEndTime())) {
+            sqlBuilder.append(" AND t.create_time <='" + queryParam.getEndTime() + "'");
+        }
+        sqlBuilder.append(" ORDER BY t.create_time desc ");
+        logger.info("企业充值扣减记录sql:" + sqlBuilder.toString());
+        return jdbcTemplate.queryForList(sqlBuilder.toString());
+    }
 }

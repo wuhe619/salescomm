@@ -6,7 +6,19 @@ package com.bdaim.bill.dto;
  * @date 2018/10/8 10:39
  */
 public class SupplierBillQueryParam {
-
+    /**
+     * 快递id
+     */
+    private String expressId;
+    /**
+     * 收件人id
+     */
+    private String peopleId;
+    /**
+     * 姓名
+     */
+    private String name;
+    private String phone;
     private String supplierName;
     private String resourceType;
     private String supplierId;
@@ -22,6 +34,47 @@ public class SupplierBillQueryParam {
     private String startTime;
     private String endTime;
     private String resourceId;
+    private String batchName;
+
+    public String getExpressId() {
+        return expressId;
+    }
+
+    public void setExpressId(String expressId) {
+        this.expressId = expressId;
+    }
+
+    public String getPeopleId() {
+        return peopleId;
+    }
+
+    public void setPeopleId(String peopleId) {
+        this.peopleId = peopleId;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public String getBatchName() {
+        return batchName;
+    }
+
+    public void setBatchName(String batchName) {
+        this.batchName = batchName;
+    }
 
     public String getResourceType() {
         return resourceType;

@@ -19,5 +19,6 @@ public class GetPdfConfiguration extends WebSecurityConfigurerAdapter {
     @Override
     public void configure(WebSecurity web) throws Exception {
         web.ignoring().antMatchers("/pdf/**");
+        web.ignoring().antMatchers("/pic/**");
     }
 }

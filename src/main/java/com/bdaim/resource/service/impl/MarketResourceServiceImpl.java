@@ -23,9 +23,9 @@ import com.bdaim.common.util.page.Pagination;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerUserDao;
 import com.bdaim.customer.dao.CustomerUserPropertyDao;
-import com.bdaim.customer.entity.CustomerProperty;
+import com.bdaim.customer.entity.CustomerPropertyDO;
 import com.bdaim.customer.entity.CustomerUserDO;
-import com.bdaim.customer.entity.CustomerUserProperty;
+import com.bdaim.customer.entity.CustomerUserPropertyDO;
 import com.bdaim.customer.service.CustomerService;
 import com.bdaim.price.dto.ResourcesPriceDto;
 import com.bdaim.resource.dao.MarketResourceDao;
@@ -60,6 +60,7 @@ import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author yanls@bdaim.com
@@ -780,7 +781,7 @@ public class MarketResourceServiceImpl implements MarketResourceService {
         boolean judge = false;
         try {
             judge = true;
-            CustomerProperty customerProperty = customerDao.getProperty(cust_id, "remain_amount");
+            CustomerPropertyDO customerProperty = customerDao.getProperty(cust_id, "remain_amount");
             if (customerProperty == null) {
                 judge = false;
             } else {
@@ -1111,7 +1112,36 @@ public class MarketResourceServiceImpl implements MarketResourceService {
         }
         return flag;
     }
+    @Override
+    public Map<String,Object> countMarketDataBackend(){
+        //企业有效率 折线统计图
+        String effectiveRateSql = "SELECT x.comp_name AS companyName,x.batch_id, SUM(CASE x.STATUS WHEN '1' THEN 1 ELSE 0 END)/SUM(CASE x.STATUS WHEN '0' THEN 1 ELSE 1 END) AS effectiveRate \n" +
+                "FROM (SELECT t1.comp_name,t2.batch_id,t2.`status` FROM\tnl_batch t1\tLEFT JOIN nl_batch_detail t2 ON t1.id = t2.batch_id \n" +
+                "GROUP BY t2.batch_id,t2.label_five ORDER BY t1.upload_time DESC ) x GROUP BY x.comp_name,x.batch_id \n" +
+                "ORDER BY x.batch_id DESC LIMIT 10";
+        List<Map<String, Object>> effectiveRate = jdbcTemplate.queryForList(effectiveRateSql);
 
+        //企业签收率 折现统计图
+        StringBuffer receiveRate = new StringBuffer("SELECT t1.id,t1.batch_name,t1.comp_name AS companyName,");
+        //receiveRate.append("ROUND(SUM( CASE t3.`status` WHEN '4' THEN 1 ELSE 0 END ) / SUM( CASE t3.`status` WHEN '1' THEN 0 ELSE 1 END ),2) AS receiveRate  ")
+        receiveRate.append("IFNULL(ROUND(SUM( CASE t3.`status` WHEN '4' THEN 1 ELSE 0 END ) / SUM( CASE t3.`status` WHEN '1' THEN 0 ELSE 1 END ),2) ,0) AS receiveRate  ")
+                .append(" FROM nl_batch t1").append(" LEFT JOIN nl_batch_detail t2 ON t1.id = t2.batch_id")
+                .append(" LEFT JOIN t_touch_express_log t3 ON t2.touch_id = t3.touch_id ")
+                .append("GROUP BY t1.id, t1.batch_name,t1.comp_name  ORDER BY t1.upload_time DESC LIMIT 10");
+        List<Map<String, Object>> receiveRateList = jdbcTemplate.queryForList(receiveRate.toString());
+
+        //客户有效数据趋势图
+        StringBuffer effectiveNum = new StringBuffer("SELECT t1.upload_time,SUM(CASE t1.effective_num WHEN '0' THEN 0 ELSE 1 END) AS effective_num");
+        effectiveNum.append(" FROM (SELECT DATE_FORMAT(upload_time,'%Y-%m-%d') AS upload_time,batch_id,SUM(CASE `status` WHEN '1' THEN 1 ELSE 0 END) AS effective_num ")
+                .append("FROM nl_batch_detail GROUP BY batch_id,label_five ").append("ORDER BY upload_time DESC) t1 GROUP BY t1.upload_time")
+                .append(" ORDER BY t1.upload_time DESC LIMIT 10");
+        List<Map<String, Object>> effectiveNumMap = jdbcTemplate.queryForList(effectiveNum.toString());
+        Map<String,Object> data = new HashMap<>(16);
+        data.put("effectiveRate", effectiveRate);
+        data.put("receiveRate", receiveRateList);
+        data.put("effectiveNum", effectiveNumMap);
+        return data;
+    }
 
     @Override
     public Map<String, Object> countMarketData(String customerId) {
@@ -1184,12 +1214,12 @@ public class MarketResourceServiceImpl implements MarketResourceService {
                 }
             }
             //企业有效率 折线统计图
-            String effectiveRateSql = "SELECT batch_name AS batchName,IFNULL(upload_num/success_num,0) AS effectiveRate FROM nl_batch ORDER BY " +
+            String effectiveRateSql = "SELECT batch_name AS batchName,comp_name AS companyName,IFNULL(upload_num/success_num,0) AS effectiveRate FROM nl_batch ORDER BY " +
                     "upload_time DESC LIMIT 10";
             List<Map<String, Object>> effectiveRate = jdbcTemplate.queryForList(effectiveRateSql);
 
             //企业签收率 折现统计图
-            StringBuffer receiveRate = new StringBuffer("SELECT t1.id,t1.batch_name,t1.comp_name,");
+            StringBuffer receiveRate = new StringBuffer("SELECT t1.id,t1.batch_name,t1.comp_name AS companyName,");
             receiveRate.append("ROUND(SUM( CASE t3.`status` WHEN '4' THEN 1 ELSE 0 END ) / SUM( CASE t3.`status` WHEN '1' THEN 0 ELSE 1 END ),2) AS receiveRate  ")
                     .append(" FROM nl_batch t1").append(" LEFT JOIN nl_batch_detail t2 ON t1.id = t2.batch_id")
                     .append(" LEFT JOIN t_touch_express_log t3 ON t2.touch_id = t3.touch_id ")
@@ -1292,10 +1322,20 @@ public class MarketResourceServiceImpl implements MarketResourceService {
             sign.append("WHERE t.cust_id=? AND t.batch_id= ? AND t.status= 4 ");
 
             //前端首页 校验统计图
-            StringBuffer checkSql = new StringBuffer("SELECT batch_name AS batchName,IFNULL(upload_num,0) AS uploadNum,IFNULL(success_num,0) AS successNum,");
-            checkSql.append("IFNULL(upload_num/success_num,0) AS effectiveRate FROM nl_batch WHERE comp_id='").append(customerId).append("' ORDER BY ")
-                    .append("upload_time DESC LIMIT 10");
+//            StringBuffer checkSql = new StringBuffer("SELECT batch_name AS batchName,IFNULL(upload_num,0) AS uploadNum,IFNULL(success_num,0) AS successNum,");
+//            checkSql.append("IFNULL(success_num/upload_num,0) AS effectiveRate FROM nl_batch WHERE comp_id='").append(customerId).append("' ORDER BY ")
+//                    .append("upload_time DESC LIMIT 10");
+            StringBuffer checkSql = new StringBuffer("SELECT x.batch_id batchId,x.batchName,SUM(CASE x.upload_num WHEN '1' THEN 1 ELSE 1 END) AS uploadNum,");
+            checkSql.append("SUM(CASE x.success_num WHEN '0' THEN 0 ELSE 1 END) successNum,")
+                    .append("SUM(CASE x.success_num WHEN '0' THEN 0 ELSE 1 END)/SUM(CASE x.upload_num WHEN '1' THEN 1 ELSE 1 END) AS effectiveRate ")
+                    .append("FROM (SELECT t1.id AS batch_id,t1.upload_time,t1.batch_name AS batchName,")
+                    .append("SUM(CASE t2.STATUS WHEN '0' THEN 1 ELSE 1 END) AS upload_num,SUM(CASE t2.STATUS WHEN '1' THEN 1 ELSE 0 END) AS success_num ")
+                    .append("FROM nl_batch t1 LEFT JOIN nl_batch_detail t2 ON t1.id = t2.batch_id WHERE t1.comp_id='").append(customerId).append("' ")
+                    .append("GROUP BY t1.batch_name,t1.id,t2.label_five ORDER BY t1.upload_time DESC ) x ")
+                    .append(" GROUP BY x.batch_id,x.batchName ORDER BY x.upload_time DESC LIMIT 10");
             List<Map<String, Object>> checkStatistics = jdbcTemplate.queryForList(checkSql.toString());
+            checkStatistics.stream().map(e -> e.put("effectiveRate",new BigDecimal(String.valueOf(e.get("effectiveRate")))
+                    .setScale(2,BigDecimal.ROUND_HALF_UP))).collect(Collectors.toList());
             //前端首页 签收统计图
             StringBuffer signAndReceive = new StringBuffer("SELECT t1.id,t1.batch_name,SUM(CASE t3.`status` WHEN '1' THEN 0 ELSE 1 END) AS sendVal,");
             signAndReceive.append("SUM(CASE t3.`status` WHEN '4' THEN 1 ELSE 0 END) AS receiveVal,")
@@ -1497,7 +1537,7 @@ public class MarketResourceServiceImpl implements MarketResourceService {
      * @return
      */
     public double getCustSmsPrice(String custId) {
-        CustomerProperty cucSaleSmsPrice = customerDao.getProperty(custId, "cuc_sms_price");
+        CustomerPropertyDO cucSaleSmsPrice = customerDao.getProperty(custId, "cuc_sms_price");
         if (cucSaleSmsPrice != null && StringUtil.isNotEmpty(cucSaleSmsPrice.getPropertyValue())) {
             return Double.parseDouble(cucSaleSmsPrice.getPropertyValue());
         }
@@ -1656,7 +1696,7 @@ public class MarketResourceServiceImpl implements MarketResourceService {
         Boolean flag = true;
         String code = "0";
         //核验是否配置了坐席信息
-        CustomerUserProperty seatProperty = customerUserDao.getProperty(userId, propertyName + "_seat");
+        CustomerUserPropertyDO seatProperty = customerUserDao.getProperty(userId, propertyName + "_seat");
         if (seatProperty == null || ("").equals(seatProperty.getPropertyValue())) {
             code = "003";
             return code;
@@ -2728,7 +2768,7 @@ public class MarketResourceServiceImpl implements MarketResourceService {
      * @return
      */
     public String selectCustCallBackApparentNumber(String custId, String apparentNumber) {
-        CustomerProperty callBackApparentNumber = customerDao.getProperty(custId, apparentNumber);
+        CustomerPropertyDO callBackApparentNumber = customerDao.getProperty(custId, apparentNumber);
         if (callBackApparentNumber != null) {
             apparentNumber = callBackApparentNumber.getPropertyValue();
         }
@@ -2744,7 +2784,7 @@ public class MarketResourceServiceImpl implements MarketResourceService {
     public JSONObject getCustomerMarketResource(String custId, String resourceId) throws Exception {
         LOG.info("根据resourceId查询企业配置信息参数是：" + "企业id是：" + custId + ",资源id是：" + resourceId);
         //根据resourceId查询企业配置信息
-        CustomerProperty customerProperty = customerDao.getProperty(custId, resourceId + "_config");
+        CustomerPropertyDO customerProperty = customerDao.getProperty(custId, resourceId + "_config");
         if (customerProperty != null) {
             //获取企业配置信息
             String propertyValue = customerProperty.getPropertyValue();

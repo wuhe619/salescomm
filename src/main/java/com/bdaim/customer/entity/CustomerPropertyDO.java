@@ -9,7 +9,7 @@ import java.sql.Timestamp;
 @Entity
 @Table(name = "t_customer_property")
 @IdClass(CustomerPropertyPK.class)
-public class CustomerProperty {
+public class CustomerPropertyDO {
 	////pay_password=支付密码    remain_amount=余额  
     //企业id
 	@Id
@@ -26,16 +26,16 @@ public class CustomerProperty {
     @Column(name = "create_time")
     private Timestamp createTime;
 
-    public CustomerProperty(String custId, String propertyName, String propertyValue, Timestamp createTime) {
+    public CustomerPropertyDO(String custId, String propertyName, String propertyValue, Timestamp createTime) {
         this.custId = custId;
         this.propertyName = propertyName;
         this.propertyValue = propertyValue;
         this.createTime = createTime;
     }
 
-    public CustomerProperty() {
+    public CustomerPropertyDO() {
     }
-    public CustomerProperty(String custId, String propertyName, String propertyValue) {
+    public CustomerPropertyDO(String custId, String propertyName, String propertyValue) {
     	this.custId = custId;
     	this.propertyName = propertyName;
     	this.propertyValue = propertyValue;

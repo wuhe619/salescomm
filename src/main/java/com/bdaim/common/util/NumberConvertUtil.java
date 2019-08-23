@@ -79,6 +79,23 @@ public class NumberConvertUtil {
     }
 
     /**
+     * Object转换为Long
+     *
+     * @param value
+     * @return
+     */
+    public static long parseLong(Object value) {
+        long result;
+        try {
+            result = Long.parseLong(String.valueOf(value));
+        } catch (Exception e) {
+            result = 0;
+            LOG.error("String转换为Long失败,value:" + value + ",result:" + result, e);
+        }
+        return result;
+    }
+
+    /**
      * String转换为Double
      *
      * @param value
@@ -144,6 +161,17 @@ public class NumberConvertUtil {
         return result;
     }
 
+    public static int parseInt(Object value) {
+        int result;
+        try {
+            result = Integer.parseInt(String.valueOf(value));
+        } catch (Exception e) {
+            result = 0;
+            LOG.error("String转换为Long失败,value:" + value + ",result:" + result, e);
+        }
+        return result;
+    }
+
     /**
      * 对象转long类型
      *
@@ -179,5 +207,59 @@ public class NumberConvertUtil {
             }
         }
     }
+
+    /**
+     * 2数相除
+     *
+     * @param num
+     * @param total
+     * @return
+     */
+    public static String divNumber(long num, long total) {
+        String result;
+        try {
+            // 设置精确到小数点后2位
+            numberFormat.setMaximumFractionDigits(2);
+            result = numberFormat.format((float) num / (float) total);
+        } catch (Exception e) {
+            result = "0.00";
+            LOG.error("计算百分比失败,num:" + num + ",total:" + total + ",result:" + result, e);
+        }
+        return result;
+    }
+
+
+
+    /**
+     * 元转厘
+     *
+     * @param value
+     * @return
+     */
+    public static int changeY2L(Object value) {
+        BigDecimal bigDecimal = new BigDecimal(String.valueOf(value)).multiply(new BigDecimal(1000));
+        return bigDecimal.intValue();
+    }
+
+    /**
+     * 数据保留2位小数
+     *
+     * @param value
+     * @param length
+     * @return
+     */
+    public static double parseDecimalDouble(double value, int length) {
+        double result = 0;
+        try {
+            BigDecimal bg = new BigDecimal(Double.toString(value));
+            result = bg.setScale(length, BigDecimal.ROUND_HALF_UP).doubleValue();
+        } catch (Exception e) {
+            result = 0.00;
+            LOG.error("保留2位小数失败,value:" + value + ",length:" + length, e);
+        }
+        return result;
+    }
+
+
 
 }

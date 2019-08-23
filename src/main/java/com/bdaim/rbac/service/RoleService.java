@@ -1,16 +1,16 @@
 package com.bdaim.rbac.service;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.util.IDHelper;
 import com.bdaim.common.util.NumberConvertUtil;
+import com.bdaim.common.util.StringUtil;
 import com.bdaim.rbac.dao.RoleDao;
 import com.bdaim.rbac.dao.UserDao;
 import com.bdaim.rbac.dto.Page;
 import com.bdaim.rbac.dto.RoleDTO;
 import com.bdaim.rbac.dto.RolesResourceDto;
-
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -70,7 +70,7 @@ public class RoleService {
     /**
      * 查询职位详情页面
      */
-    public JSONArray queryResourceSelectStatus(Long operateUserId, Long roleId, Long pid, boolean isAdminOperate) {
+    public JSONArray queryResourceSelectStatus(Long operateUserId, Long roleId, Long pid, boolean isAdminOperate, String platform) {
         JSONArray array = new JSONArray();
         StringBuilder builder = new StringBuilder();
         //根据角色查询为0的父标签，根据父标签查询字标签  标记选中子标签为true
@@ -82,11 +82,17 @@ public class RoleService {
             builder.append(" ) temp on temp.r_id = r.id");
             builder.append(" where r.pid=");
             builder.append(pid);
+            if (StringUtil.isNotEmpty(platform)) {
+                builder.append(" and r.platform=" + platform);
+            }
         } else {
             builder.append(" select distinct r.ID,r.NAME,r.PID,r.URI,r.TYPE,case when temp.r_id is null then 1 ELSE 0 END as CHECKED from t_mrp_rel m ");
             builder.append(" inner join t_user_role_rel ur on ur.ROLE = m.ROLE_ID");
             builder.append(" inner join t_resource r on m.R_ID = r.ID and ur.ID =");
             builder.append(operateUserId);
+            if (StringUtil.isNotEmpty(platform)) {
+                builder.append(" and r.platform=" + platform);
+            }
             builder.append(" and r.pid = ");
             builder.append(pid);
             builder.append(" left join (select r_id from t_mrp_rel where role_id=");
@@ -110,7 +116,7 @@ public class RoleService {
                 object.put("pid", parentId);
                 object.put("type", type);
                 object.put("checked", checked == 1 ? false : true);
-                object.put("children", queryResourceSelectStatus(operateUserId, roleId, id, isAdminOperate));
+                object.put("children", queryResourceSelectStatus(operateUserId, roleId, id, isAdminOperate, platform));
                 array.add(object);
             }
         }
@@ -159,7 +165,7 @@ public class RoleService {
                 roleDao.insertResource(rrPermission);
             }
         } catch (SQLException e) {
-            log.error("角色设置异常",e);
+            log.error("角色设置异常", e);
             return false;
         }
         return true;
@@ -178,7 +184,7 @@ public class RoleService {
             roleDao.insertRole(rResource.getRole());
             roleDao.insertResource(rResource);
         } catch (SQLException e) {
-            log.error("添加角色异常",e);
+            log.error("添加角色异常", e);
             return false;
         }
         return true;
@@ -221,7 +227,7 @@ public class RoleService {
      * @method
      * @date: 2019/3/19 18:32
      */
-    public JSONArray queryResourceTreeByRole(Long userId, long pid) throws Exception {
+    public JSONArray queryResourceTreeByRole(Long userId, long pid, String platform) throws Exception {
         //根据userId查询用户职位信息
         String roleId = null;
         if (userId != null) {
@@ -236,6 +242,9 @@ public class RoleService {
         builder.append(" inner join t_user_role_rel ur on ur.ROLE = m.ROLE_ID");
         builder.append(" inner join t_resource r on m.R_ID = r.ID and ur.ID =");
         builder.append(userId);
+        if (StringUtil.isNotEmpty(platform)) {
+            builder.append(" and r.platform = " + platform);
+        }
         builder.append(" and r.pid = ");
         builder.append(pid);
         builder.append(" left join (select r_id from t_mrp_rel where role_id=");
@@ -253,7 +262,7 @@ public class RoleService {
                 object.put("name", name);
                 object.put("uri", uri);
                 object.put("pid", parentId);
-                object.put("children", queryResourceTreeByRole(userId, id));
+                object.put("children", queryResourceTreeByRole(userId, id, platform));
                 array.add(object);
             }
         }
@@ -263,8 +272,8 @@ public class RoleService {
     /**
      * 查询角色信息
      */
-    public List<Map<String, Object>> queryUserListByRoleId(String id)throws Exception {
-        String querySql = "SELECT u.id,u.`name` FROM t_user_role_rel r LEFT JOIN t_user u on r.ID = u.ID where r.ROLE  = ? GROUP BY u.ID ";
+    public List<Map<String, Object>> queryUserListByRoleId(String id) throws Exception {
+        String querySql = "SELECT u.id,u.`name`,u.REALNAME realName FROM t_user_role_rel r LEFT JOIN t_user u on r.ID = u.ID where u.status=0 and r.ROLE  = ? GROUP BY u.ID ";
         List<Map<String, Object>> list = roleDao.sqlQuery(querySql, id);
         return list;
     }

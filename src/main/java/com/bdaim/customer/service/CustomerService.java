@@ -16,7 +16,7 @@ import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerUserDao;
 import com.bdaim.customer.dto.CustomerRegistDTO;
 import com.bdaim.customer.entity.CustomerDO;
-import com.bdaim.customer.entity.CustomerProperty;
+import com.bdaim.customer.entity.CustomerPropertyDO;
 import com.bdaim.customer.entity.CustomerUserDO;
 import com.bdaim.price.entity.CommonInfoEntity;
 import com.bdaim.price.entity.CommonInfoPropertyEntity;
@@ -378,19 +378,19 @@ public class CustomerService {
                     }
                 }
                 //打印员
-                if (StringUtil.isNotEmpty(vo.getPrinterId())) {
+                if (StringUtil.isNotEmpty(vo.getPrinter())) {
                     if (StringUtil.isNotEmpty(vo.getCustId())) {
-                        customerDao.dealCustomerInfo(vo.getCustId(), "printer", vo.getPrinterId());
+                        customerDao.dealCustomerInfo(vo.getCustId(), "printer", vo.getPrinter());
                     } else {
-                        customerDao.dealCustomerInfo(customerId, "printer", vo.getPrinterId());
+                        customerDao.dealCustomerInfo(customerId, "printer", vo.getPrinter());
                     }
                 }
                 //封装员
-                if (StringUtil.isNotEmpty(vo.getPackagerId())) {
+                if (StringUtil.isNotEmpty(vo.getPackager())) {
                     if (StringUtil.isNotEmpty(vo.getCustId())) {
-                        customerDao.dealCustomerInfo(vo.getCustId(), "packager", vo.getPackagerId());
+                        customerDao.dealCustomerInfo(vo.getCustId(), "packager", vo.getPackager());
                     } else {
-                        customerDao.dealCustomerInfo(customerId, "packager", vo.getPackagerId());
+                        customerDao.dealCustomerInfo(customerId, "packager", vo.getPackager());
                     }
                 }
 
@@ -530,7 +530,7 @@ public class CustomerService {
                 "cjc.mobile_num,  -- 属性表\n" +
                 "IFNULL (t1.title,'') AS title, -- 属性表\n" +
                 "t1.create_time,\n" +
-                "t1.`status`,\n" +
+                "t1.`status`,cjc.packagerId,cjc.printerId,cjc.idCardBack,cjc.idCardFront,\n" +
                 "cjc.industry,cjc.salePerson,cjc.contactAddress,\n" +
                 "cjc.province,cjc.city,cjc.fixPrice,cjc.county,cjc.taxpayerId,\n" +
                 "cjc.bli_path AS bliPic,\n" +
@@ -546,6 +546,10 @@ public class CustomerService {
                 "\tmax(CASE property_name WHEN 'city'   THEN property_value ELSE '' END ) city,\n" +
                 "\tmax(CASE property_name WHEN 'county'   THEN property_value ELSE '' END ) county,\n" +
                 "\tmax(CASE property_name WHEN 'taxpayer_id'   THEN property_value ELSE '' END ) taxpayerId,\n" +
+                "\tmax(CASE property_name WHEN 'packager'   THEN property_value ELSE '' END ) packagerId,\n" +
+                "\tmax(CASE property_name WHEN 'printer'   THEN property_value ELSE '' END ) printerId,\n" +
+                "\tmax(CASE property_name WHEN 'idCard_back_path'   THEN property_value ELSE '' END ) idCardBack,\n" +
+                "\tmax(CASE property_name WHEN 'idCard_front_path'   THEN property_value ELSE '' END ) idCardFront,\n" +
                 "\tmax(CASE property_name WHEN 'address_fix_price'   THEN property_value ELSE '' END ) fixPrice,\n" +
                 "\tmax(CASE property_name WHEN 'bli_path'   THEN property_value ELSE '' END ) bli_path,\n" +
                 "\tmax(CASE property_name WHEN 'bank'   THEN property_value ELSE '' END ) bank,\n" +
@@ -580,8 +584,30 @@ public class CustomerService {
             sqlBuilder.append(" AND cjc.industry = " + customerRegistDTO.getIndustry());
         }
         sqlBuilder.append(" order by t1.create_time desc");
-        return new Pagination().getPageData(sqlBuilder.toString(), null, page, jdbcTemplate);
-
+        Page pageData = new Pagination().getPageData(sqlBuilder.toString(), null, page, jdbcTemplate);
+        List<Map<String, Object>> list = pageData.getList();
+        //查询部门里面有几个职位
+        if (list.size() > 0) {
+            long packagerId = 0, printerId = 0;
+            for (int i = 0; i < list.size(); i++) {
+                if (StringUtil.isNotEmpty(String.valueOf(list.get(i).get("packagerId")))) {
+                    packagerId = NumberConvertUtil.parseLong(String.valueOf(list.get(i).get("packagerId")));
+                    logger.info("封装员id是：" + packagerId);
+                    //根据id查询员工姓名
+                    String packager = userDao.getUserRealName(packagerId);
+                    list.get(i).put("packager", packager);
+                    list.get(i).put("packagerId", packagerId);
+                }
+                if (StringUtil.isNotEmpty(String.valueOf(list.get(i).get("printerId")))) {
+                    printerId = NumberConvertUtil.parseLong(String.valueOf(list.get(i).get("printerId")));
+                    logger.info("打印员id是:" + printerId);
+                    String printer = userDao.getUserRealName(printerId);
+                    list.get(i).put("printer", printer);
+                    list.get(i).put("printerId", printerId);
+                }
+            }
+        }
+        return pageData;
     }
 
     public void heartbeat(long customerUserId) {
@@ -617,7 +643,7 @@ public class CustomerService {
                             resource = new HashMap<>();
                             //根据supplierList获取供应商id和type
                             String resourceId = String.valueOf(dto.getResourceId());
-                            CustomerProperty property = customerDao.getProperty(custId, resourceId + "_config");
+                            CustomerPropertyDO property = customerDao.getProperty(custId, resourceId + "_config");
                             if (property != null) {
                                 custConfigMessage = String.valueOf(property.getPropertyValue());
                                 resource.put("custConfig", custConfigMessage);
@@ -660,7 +686,7 @@ public class CustomerService {
             result.put("custName", enterpriseName);
         }
         //查询当前企业配置那些类型资源
-        CustomerProperty serviceResourceProperty = customerDao.getProperty(custId, "resource_type");
+        CustomerPropertyDO serviceResourceProperty = customerDao.getProperty(custId, "resource_type");
         if (serviceResourceProperty != null) {
             result.put("checkResourceId", serviceResourceProperty.getPropertyValue());
         }
@@ -720,7 +746,7 @@ public class CustomerService {
     private void updateCustConfig(JSONArray custConfigLists, String checkResourceId, String custId) throws Exception {
         String delectSql = "DELETE FROM t_customer_property WHERE cust_id =? AND property_name = ?";
         //先查询出原来所有的配置信息，将本次配置不存在的删除
-        List<CustomerProperty> custConfigs = customerDao.getPropertyLike(custId, "_config");
+        List<CustomerPropertyDO> custConfigs = customerDao.getPropertyLike(custId, "_config");
         //遍历所有
         StringBuffer suppliers = new StringBuffer();
         if (custConfigs.size() > 0) {
@@ -789,12 +815,12 @@ public class CustomerService {
         updateCustConfigAndPrice(custId, custConfigLists);
 
         //保存本次配置资源类型
-        CustomerProperty customerProperty = customerDao.getProperty(custId, "resource_type");
+        CustomerPropertyDO customerProperty = customerDao.getProperty(custId, "resource_type");
         if (customerProperty != null) {
             customerProperty.setPropertyValue(checkResourceId);
             customerDao.saveOrUpdate(customerProperty);
         } else {
-            CustomerProperty customerPropertyType = new CustomerProperty();
+            CustomerPropertyDO customerPropertyType = new CustomerPropertyDO();
             customerPropertyType.setCustId(custId);
             customerPropertyType.setPropertyName("resource_type");
             customerPropertyType.setPropertyValue(checkResourceId);
@@ -803,9 +829,9 @@ public class CustomerService {
         }
         //保存channel信息
         logger.info("企业配置的供应商是" + suppliers.toString());
-        CustomerProperty channelOldCustomer = customerDao.getProperty(custId, "channel");
+        CustomerPropertyDO channelOldCustomer = customerDao.getProperty(custId, "channel");
         if (channelOldCustomer == null) {
-            CustomerProperty channelCustomer = new CustomerProperty();
+            CustomerPropertyDO channelCustomer = new CustomerPropertyDO();
             channelCustomer.setCustId(custId);
             channelCustomer.setPropertyName("channel");
             channelCustomer.setPropertyValue(String.valueOf(suppliers));
@@ -883,7 +909,7 @@ public class CustomerService {
                 logger.info("企业新配置的资源信息" + jsonObject.toString());
                 String resourceId = String.valueOf(jsonObject.get("resourceId"));
                 //根据resourceId查询该资源的配置信息
-                CustomerProperty sourceProperty = customerDao.getProperty(custId, resourceId + "_config");
+                CustomerPropertyDO sourceProperty = customerDao.getProperty(custId, resourceId + "_config");
                 JSONObject oldCustConfig = null;
                 if (sourceProperty != null) {
                     String propertyValue = sourceProperty.getPropertyValue();
@@ -911,7 +937,7 @@ public class CustomerService {
                     customerDao.saveOrUpdate(sourceProperty);
                 } else {
                     //直接将json串存进数据库
-                    CustomerProperty custSourceProperty = new CustomerProperty();
+                    CustomerPropertyDO custSourceProperty = new CustomerPropertyDO();
                     custSourceProperty.setCustId(custId);
                     custSourceProperty.setPropertyName(resourceId + "_config");
                     custSourceProperty.setPropertyValue(jsonObject.toString());
@@ -1022,14 +1048,14 @@ public class CustomerService {
         return list;
     }
 
-    public void updateServicePrice(String custId, String price) throws Exception{
+    public void updateServicePrice(String custId, String price) throws Exception {
         //查询企业属性表是否存在
         logger.info("查询的企业id是：" + custId);
-        CustomerProperty customerProperty = customerDao.getProperty(custId, "address_fix_price");
+        CustomerPropertyDO customerProperty = customerDao.getProperty(custId, "address_fix_price");
         if (customerProperty != null) {
             customerProperty.setPropertyValue(price);
         } else {
-            customerProperty = new CustomerProperty();
+            customerProperty = new CustomerPropertyDO();
             customerProperty.setCustId(custId);
             customerProperty.setPropertyName("address_fix_price");
             customerProperty.setPropertyValue(price);
