@@ -415,8 +415,8 @@ public class SupplierService {
         if (priceConfig.containsKey("express")) {
             jsonObject.put("express", priceConfig.getString("express"));
         }
-        if (priceConfig.containsKey("place")) {
-            jsonObject.put("place", priceConfig.getString("place"));
+        if (priceConfig.containsKey("price")) {
+            jsonObject.put("price", priceConfig.getString("price"));
         }
     }
 

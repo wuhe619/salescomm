@@ -1,9 +1,6 @@
 package com.bdaim.batch.service.impl;
 
 import com.bdaim.batch.dao.BatchDao;
-import com.bdaim.batch.dao.BatchInfoDao;
-import com.bdaim.batch.dao.BatchInfoDetailDao;
-import com.bdaim.batch.dao.BatchPropertyDao;
 import com.bdaim.batch.service.ExpressBatchService;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.response.ResponseInfo;
@@ -11,10 +8,7 @@ import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.common.util.*;
 import com.bdaim.common.util.page.Page;
 import com.bdaim.common.util.page.Pagination;
-import com.bdaim.common.util.spring.DataConverter;
 import com.bdaim.customer.dao.CustomerDao;
-import com.bdaim.rbac.dao.RoleDao;
-import com.bdaim.rbac.entity.RoleEntity;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,19 +37,9 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
     protected static final Properties PROPERTIES = new Properties(System.getProperties());
 
     @Autowired
-    private BatchInfoDao batchInfoDao;
-    @Autowired
-    private BatchInfoDetailDao batchInfoDetailDao;
-    @Autowired
-    private BatchPropertyDao batchPropertyDao;
-    @Autowired
     private CustomerDao customerDao;
     @Autowired
-    private DataConverter dataConverter;
-    @Autowired
     private BatchDao batchDao;
-    @Autowired
-    private RoleDao roleDao;
     @Autowired
     private JdbcTemplate jdbcTemplate;
     @Autowired
@@ -180,7 +164,7 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
              * status 是修复状态，这里表示校验状态 0.无效、1.有效、2.校验中(此时为【2】【校验中】)
              * label_seven 是快件状态 1、待上传内容2、待申请发件3、待取件4、已发件(此时为【1】【待上传内容】) 此时不赋值
              */
-            String touchId = UUID.randomUUID().toString();
+            String touchId = UUID.randomUUID().toString().replace("-","");
             StringBuffer batchDetailInsert = new StringBuffer("INSERT INTO nl_batch_detail (label_five,label_one,label_two," +
                     "site,label_three,batch_id," +
                     "status,touch_id,upload_time) VALUES ('");
@@ -188,6 +172,7 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
                     .append("','").append(contentList.get(i).get(3)).append("','").append(contentList.get(i).get(4)).append("','").append(batchId)
                     .append("','").append(checkingResult).append("','").append(touchId).append("',NOW())");
             int rowDetail = jdbcTemplate.update(batchDetailInsert.toString());
+            logger.info("执行SQL" +batchDetailInsert.toString());
             logger.info("插入批次详情成功，条数为: " + rowDetail);
         }
         return new ResponseInfoAssemble().success(null);

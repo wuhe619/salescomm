@@ -17,7 +17,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
@@ -418,24 +421,25 @@ public class BillAction extends BasicAction {
     @ResponseBody
     public ResponseInfo getListCustomerBill(@RequestBody CustomerBillQueryParam param) {
         LoginUser lu = opUser();
-        Page page = null;
+        Map<String, Object> data = null;
         try {
             if ("ROLE_USER".equals(lu.getRole()) || "admin".equals(lu.getRole())) {
-                page = billService.getListCustomerBill(param);
+                data = billService.getListCustomerBill(param);
             } else {
                 String custId = opUser().getCustId();
                 param.setCustomerId(custId);
-                page = billService.getListCustomerBill(param);
+                data = billService.getListCustomerBill(param);
             }
         } catch (Exception e) {
             logger.error("查询账单异常", e);
             return new ResponseInfoAssemble().failure(-1, "查询账单失败");
         }
-        return new ResponseInfoAssemble().success(page);
+        return new ResponseInfoAssemble().success(data);
     }
 
     /**
      * 供应商账单二级页面(导出)、企业账单二级页面 + 利润列表(导出)
+     * export_type 1. 企业账单二级页面 2. 利润二级页面 3. 供应商账单二级页面  4.前台企业账户余额
      *
      * @param param
      * @param export_type
@@ -464,12 +468,12 @@ public class BillAction extends BasicAction {
             }
             header.add("批次编号");
             header.add("批次名称");
-            if ("3".equals(export_type)) {
+            if ("3".equals(export_type)||"4".equals(export_type)) {
                 header.add("发送时间");
             } else {
                 header.add("上传时间");
             }
-            if ("1".equals(export_type) || "3".equals(export_type)) {
+            if ("1".equals(export_type) || "3".equals(export_type) || "4".equals(export_type)) {
                 header.add("发送数量");
             }
             header.add("交易金额(元)");
@@ -487,7 +491,7 @@ public class BillAction extends BasicAction {
                 rowList.add(column.get("batchId") != null ? column.get("batchId") : "");
                 rowList.add(column.get("batchName") != null ? column.get("batchName") : "");
                 rowList.add(column.get("uploadTime") != null ? column.get("uploadTime") : "");
-                if ("1".equals(export_type) || "3".equals(export_type)) {
+                if ("1".equals(export_type) || "4".equals(export_type) || "3".equals(export_type)) {
                     rowList.add(column.get("fixNumber") != null ? column.get("fixNumber") : "");
                 }
                 rowList.add(column.get("amount") != null ? column.get("amount") : "");
@@ -562,28 +566,32 @@ public class BillAction extends BasicAction {
             List<List<Object>> data = new ArrayList<>();
             header.add("快递ID");
             header.add("收件人ID");
+            header.add("姓名");
+            header.add("电话");
             header.add("收件地址");
-            header.add("数据渠道");
-            header.add("快递渠道");
+//            header.add("数据渠道");
+//            header.add("快递渠道");
             header.add("发送时间");
             header.add("交易金额（元）");
-            header.add("数据成本（元）");
-            header.add("快递成本（元）");
-            header.add("交易利润（元）");
+//            header.add("数据成本（元）");
+//            header.add("快递成本（元）");
+//            header.add("交易利润（元）");
             List<Map<String, Object>> dataList = page;
             List<Object> rowList;
             for (Map<String, Object> column : dataList) {
                 rowList = new ArrayList<>();
                 rowList.add(column.get("expressId") != null ? column.get("expressId") : "");
                 rowList.add(column.get("peopleId") != null ? column.get("peopleId") : "");
+                rowList.add(column.get("name") != null ? column.get("name") : "");
+                rowList.add(column.get("phone") != null ? column.get("phone") : "");
                 rowList.add(column.get("address") != null ? column.get("address") : "");
-                rowList.add(column.get("fixSupplier") != null ? column.get("fixSupplier") : "");
-                rowList.add(column.get("expressSupplier") != null ? column.get("expressSupplier") : "");
+//                rowList.add(column.get("fixSupplier") != null ? column.get("fixSupplier") : "");
+//                rowList.add(column.get("expressSupplier") != null ? column.get("expressSupplier") : "");
                 rowList.add(column.get("sendTime") != null ? column.get("sendTime") : "");
                 rowList.add(column.get("sumAmount") != null ? column.get("sumAmount") : "");
-                rowList.add(column.get("prodAmount") != null ? column.get("prodAmount") : "");
-                rowList.add(column.get("expressAmount") != null ? column.get("expressAmount") : "");
-                rowList.add(column.get("profit") != null ? column.get("profit") : "");
+//                rowList.add(column.get("prodAmount") != null ? column.get("prodAmount") : "");
+//                rowList.add(column.get("expressAmount") != null ? column.get("expressAmount") : "");
+//                rowList.add(column.get("profit") != null ? column.get("profit") : "");
                 data.add(rowList);
             }
             //下载的response属性设置
@@ -611,6 +619,7 @@ public class BillAction extends BasicAction {
 
     /**
      * 供应商账单三级页面（信函）
+     *
      * @param param
      * @return
      */
@@ -629,8 +638,10 @@ public class BillAction extends BasicAction {
         }
         return new ResponseInfoAssemble().success(page);
     }
+
     /**
      * 供应商账单二级页面（信函）
+     *
      * @param param
      * @return
      */
@@ -660,11 +671,11 @@ public class BillAction extends BasicAction {
      */
     @RequestMapping(value = "/listSupplierBillExport", method = RequestMethod.GET)
     @ResponseBody
-    public ResponseInfo getListSupplierBillExport(SupplierBillQueryParam param,HttpServletResponse response) {
+    public ResponseInfo getListSupplierBillExport(SupplierBillQueryParam param, HttpServletResponse response) {
         logger.info("进入供应商二级账单导出接口 listSupplierBillExport");
         logger.info(param.toString());
         LoginUser lu = opUser();
-        List<Map<String,Object>> list = null;
+        List<Map<String, Object>> list = null;
         try {
             if ("ROLE_USER".equals(lu.getRole()) || "admin".equals(lu.getRole())) {
                 list = billService.getListSupplierBillExport(param);
@@ -689,7 +700,7 @@ public class BillAction extends BasicAction {
                     rowList.add(column.get("amount") != null ? column.get("amount") : "");
                     data.add(rowList);
                 }
-                logger.info("data获取成功，值为"+data.toString());
+                logger.info("data获取成功，值为" + data.toString());
                 //下载的response属性设置
                 response.setCharacterEncoding("utf-8");
                 response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
@@ -705,7 +716,7 @@ public class BillAction extends BasicAction {
                 outputStream.close();
             }
         } catch (Exception e) {
-            logger.info("导出账单异常"+e.getMessage());
+            logger.info("导出账单异常" + e.getMessage());
             return new ResponseInfoAssemble().failure(-1, "导出失败");
         }
         return new ResponseInfoAssemble().success(list);
