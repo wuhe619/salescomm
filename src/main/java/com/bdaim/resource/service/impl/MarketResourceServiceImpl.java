@@ -1330,7 +1330,7 @@ public class MarketResourceServiceImpl implements MarketResourceService {
                     .append("SUM(CASE x.success_num WHEN '0' THEN 0 ELSE 1 END)/SUM(CASE x.upload_num WHEN '1' THEN 1 ELSE 1 END) AS effectiveRate ")
                     .append("FROM (SELECT t1.id AS batch_id,t1.upload_time,t1.batch_name AS batchName,")
                     .append("SUM(CASE t2.STATUS WHEN '0' THEN 1 ELSE 1 END) AS upload_num,SUM(CASE t2.STATUS WHEN '1' THEN 1 ELSE 0 END) AS success_num ")
-                    .append("FROM nl_batch t1 LEFT JOIN nl_batch_detail t2 ON t1.id = t2.batch_id ")
+                    .append("FROM nl_batch t1 LEFT JOIN nl_batch_detail t2 ON t1.id = t2.batch_id WHERE t1.comp_id='").append(customerId).append("' ")
                     .append("GROUP BY t1.batch_name,t1.id,t2.label_five ORDER BY t1.upload_time DESC ) x ")
                     .append(" GROUP BY x.batch_id,x.batchName ORDER BY x.upload_time DESC LIMIT 10");
             List<Map<String, Object>> checkStatistics = jdbcTemplate.queryForList(checkSql.toString());
