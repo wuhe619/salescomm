@@ -171,6 +171,10 @@ public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDao
         return (T) this.getSession().get(entityClass, id);
     }
 
+    public Object get(Class clazz, Serializable id) {
+        return this.getSession().get(clazz, id);
+    }
+
     /**
      * 获取全部对象.
      */
@@ -881,4 +885,28 @@ public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDao
         session.close();
         return p;
     }
+
+    public void batchSaveOrUpdate(final List entityList) {
+        org.springframework.util.Assert.notNull(entityList, "entityList不能为空");
+        for (Object entity : entityList) {
+            getSession().saveOrUpdate(entity);
+        }
+        getSession().flush();
+    }
+
+    /**
+     * 根据sql语句查询返回List
+     *
+     * @param sql
+     * @param className
+     * @return
+     */
+    public List queryListBySql(String sql, Class className) {
+        Session session = getSessionFactory().openSession();
+        Query query = session.createSQLQuery(sql).addEntity(className);
+        List rs = query.list();
+        session.close();
+        return rs;
+    }
+
 }
