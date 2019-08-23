@@ -58,7 +58,7 @@ public class ExpressBatchController extends BasicAction {
         try {
             //获取resources下的模板文件路径String classPath = this.getClass().getResourceAsStream("/").toString();
             String classPath = fileUrlEntity.getFileUrl();
-            logger.error("hello classpath" + classPath);
+            logger.info("hello classpath" + classPath);
             String fileName = null;
             if ("1".equals(file_type)) {
                 fileName = "receiver_info.xlsx";
@@ -88,6 +88,7 @@ public class ExpressBatchController extends BasicAction {
             }
             bos.flush();
         } catch (Exception e) {
+            logger.error("下载模板异常 "+e.getMessage());
             return new ResponseInfoAssemble().failure(500, "模板下载异常，请稍后重试或联系网站管理员");
         } finally {
             try {
