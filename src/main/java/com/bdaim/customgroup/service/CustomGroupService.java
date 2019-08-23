@@ -71,6 +71,7 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
@@ -87,11 +88,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.zip.ZipOutputStream;
 
-
 @Service("customGroupService")
 @Transactional
 public class CustomGroupService {
-
     private static Logger log = LoggerFactory.getLogger(CustomGroupService.class);
 
     private final static DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
@@ -162,17 +161,17 @@ public class CustomGroupService {
     private RedisUtil redisUtil;
 
 
-    //@PostConstruct
+    /*@PostConstruct
     public void init() {
         jdbcTemplate.update("update customer_group set download_status=? where download_status=?",
                 Constant.DOWNLOAD_NOTAPPLY, Constant.DOWNLOAD_APPLY);
-    }
+    }*/
 
 
     public Page page(String customer_group_id, String cust_id, String user_id, Integer pageNum, Integer pageSize,
                      String id, String name, Integer status, String callType, String dateStart, String dateEnd,
                      String enterpriseName, String marketProjectId) {
-        StringBuffer hql = new StringBuffer("from CustomGroup m where 1=1");
+        StringBuffer hql = new StringBuffer("from CustomGroupDO m where 1=1");
         List values = new ArrayList();
         if (null != customer_group_id && !"".equals(customer_group_id)) {
             hql.append(" and m.id = ?");
@@ -210,7 +209,7 @@ public class CustomGroupService {
         }
 
         if (StringUtil.isNotEmpty(enterpriseName)) {
-            hql.append(" and m.custId IN (SELECT id FROM Customer WHERE enterpriseName LIKE ?)");
+            hql.append(" and m.custId IN (SELECT id FROM CustomerDO WHERE enterpriseName LIKE ?)");
             values.add("%" + enterpriseName + "%");
         }
         hql.append(" ORDER BY m.createTime desc ");
@@ -343,7 +342,7 @@ public class CustomGroupService {
 
     @SuppressWarnings("unchecked")
     public List<CustomGroupDO> getListByCondition(Map<String, Object> map, Map<String, Object> likeMap, Page page) {
-        String hql = "From CustomGroup t where t.availably =1 ";
+        String hql = "From CustomGroupDO t where t.availably =1 ";
         Date sTime = null;
         Date eTime = null;
         if (map.containsKey(Constant.FILTER_KEY_PREFIX + "dayType")) {
@@ -371,7 +370,7 @@ public class CustomGroupService {
     }
 
     public Integer getCountByCondition(Map<String, Object> map, Map<String, Object> likeMap, Page page) {
-        String hql = "select count(id) From CustomGroup t where t.availably =1 ";
+        String hql = "select count(id) From CustomGroupDO t where t.availably =1 ";
         Date sTime = null;
         Date eTime = null;
         if (map.containsKey(Constant.FILTER_KEY_PREFIX + "dayType")) {
@@ -539,7 +538,7 @@ public class CustomGroupService {
             map.put("userCount", d.getLong("count"));
             map.put("errorDesc", "00");
         } catch (Exception e) {
-            log.error("通过标签查询客户总数异常", e);
+            log.error("通过标签查询客户总数异常",e);
             map.put("errorDesc", "05");
             return map;
         }
@@ -571,7 +570,7 @@ public class CustomGroupService {
             map.put("list", data);
             map.put("errorDesc", "00");
         } catch (Exception e) {
-            log.error("通过标签查询客户列表异常,", e);
+            log.error("通过标签查询客户总数异常",e);
             map.put("errorDesc", "05");
             return map;
         }
@@ -820,7 +819,7 @@ public class CustomGroupService {
     public List<RemainSourceDTO> getRemainSourceByGroupConditionV1(CustomGroupDO group, Integer industryPoolId) {
         Map<String, Object> mapCondition = new HashMap<String, Object>();
         List<RemainSourceDTO> resultList = new ArrayList<RemainSourceDTO>();
-        String hql = "select remark From CustomGroup t where t.availably =1 ";
+        String hql = "select remark From CustomGroupDO t where t.availably =1 ";
         mapCondition.put("createUserId", group.getCreateUserId());
         mapCondition.put("groupCondition", "'" + group.getGroupCondition() + "'");
         Query query = customGroupDao.getHqlQuery(hql, mapCondition, new HashMap(), null);
@@ -1619,6 +1618,8 @@ public class CustomGroupService {
         Map<String, Long> calledData = new HashMap<>(16);
         sb.setLength(0);
         for (Map.Entry<String, Set<String>> map : userGroupData.entrySet()) {
+            // 检查通话记录月表是否存在
+            marketResourceDao.createVoiceLogTableNotExist(DateUtil.getNowMonthToYYYYMM());
             sb.append("SELECT cust_id, user_id, create_time FROM " + ConstantsUtil.TOUCH_VOICE_TABLE_PREFIX + DateUtil.getNowMonthToYYYYMM() + " WHERE cust_id = ? AND customer_group_id = ? ");
             if (StringUtil.isNotEmpty(userId)) {
                 sb.append(" AND user_id = " + userId);
@@ -2154,7 +2155,8 @@ public class CustomGroupService {
             final DateTimeFormatter YYYYMM = DateTimeFormatter.ofPattern("yyyyMM");
             // 处理跨月查询逻辑
             for (LocalDateTime nowTime = localStartDateTime; nowTime.isBefore(localEndDateTime); ) {
-
+                // 检查通话记录月表是否存在
+                marketResourceDao.createVoiceLogTableNotExist(nowTime.format(YYYYMM));
                 sqlSb.setLength(0);
                 sqlSb.append("SELECT t.status, t.call_data, t.superid FROM " + ConstantsUtil.TOUCH_VOICE_TABLE_PREFIX + nowTime.format(YYYYMM) + " t ");
                 sqlSb.append("WHERE t.cust_id = ? AND t.customer_group_id = ? AND t.create_time >= ? AND t.create_time <= ?");
@@ -4074,6 +4076,9 @@ public class CustomGroupService {
                     nowMonth = LocalDateTime.parse(endTimeStr, DATE_TIME_FORMATTER).format(DateTimeFormatter.ofPattern("yyyyMM"));
                 }
 
+                // 检查通话记录月表是否存在
+                marketResourceDao.createVoiceLogTableNotExist(nowMonth);
+
                 String labelDataLikeValue = "\"" + invitationLabelId + "\":\"" + invitationLabelValue + "\"";
                 StringBuffer sql = new StringBuffer();
                 // 获取邀约成功,拨打电话成功用户的通话记录
@@ -4348,6 +4353,9 @@ public class CustomGroupService {
                 if (StringUtil.isNotEmpty(startTimeStr) && StringUtil.isNotEmpty(endTimeStr)) {
                     nowMonth = LocalDateTime.parse(endTimeStr, DATE_TIME_FORMATTER).format(DateTimeFormatter.ofPattern("yyyyMM"));
                 }
+
+                // 检查通话记录月表是否存在
+                marketResourceDao.createVoiceLogTableNotExist(nowMonth);
 
                 String labelDataLikeValue = "\"" + invitationLabelId + "\":\"" + invitationLabelValue + "\"";
                 StringBuffer sql = new StringBuffer();
@@ -4639,6 +4647,9 @@ public class CustomGroupService {
                 List<Map<String, Object>> callLogListTmp;
                 // 处理跨月查询逻辑
                 for (LocalDateTime nowTime = localStartDateTime; nowTime.isBefore(localEndDateTime); ) {
+                    // 检查通话记录月表是否存在
+                    marketResourceDao.createVoiceLogTableNotExist(nowTime.format(YYYYMM));
+
                     sql.setLength(0);
                     // 获取邀约成功,拨打电话成功用户的通话记录
                     sql.append("SELECT voice.touch_id touchId, voice.user_id, voice.customer_group_id, voice.superid, voice.recordurl, ")
@@ -4937,6 +4948,8 @@ public class CustomGroupService {
             List<Map<String, Object>> callLogListTmp;
             // 处理跨月查询逻辑
             for (LocalDateTime nowTime = localStartDateTime; nowTime.isBefore(localEndDateTime); ) {
+                // 检查通话记录月表是否存在
+                marketResourceDao.createVoiceLogTableNotExist(nowTime.format(yyyymm));
 
                 sql.setLength(0);
                 // 获取邀约成功,拨打电话成功用户的通话记录
@@ -5363,7 +5376,7 @@ public class CustomGroupService {
      * @param headers
      * @return 1-通过 -1文件格式不正确 -2表头必须包含手机号 -3表头为空
      */
-    /*public int checkUploadCustGroupData(MultipartFile file, List<String> headers) {
+    public int checkUploadCustGroupData(MultipartFile file, List<String> headers) {
         // 检查excel文件格式是否正确
         boolean ftStatus = uploadDowloadImgService.checkFileTypeByMultipartFile(file, FileUtil.EXCEL_FILE_TYPES);
         int code = 0;
@@ -5399,7 +5412,7 @@ public class CustomGroupService {
         }
 
         return 1;
-    }*/
+    }
 
     /**
      * 上传客户群excel数据
@@ -5408,10 +5421,10 @@ public class CustomGroupService {
      * @param headers
      * @return
      */
-    /*public String uploadCustGroupData(MultipartFile file, List<String> headers) {
+    public String uploadCustGroupData(MultipartFile file, List<String> headers) {
         // 上传excel
         return uploadDowloadImgService.uploadSingleFile(file, ConstantsUtil.CGROUP_IMPORT_FILE_PATH, FileUtil.EXCEL_FILE_TYPES);
-    }*/
+    }
 
     /**
      * 处理导入客户群数据保存进数据库
@@ -5577,7 +5590,7 @@ public class CustomGroupService {
         if (pageSize == null || pageSize > 100 || pageSize <= 0) pageSize = 100;
         try {
             StringBuffer sql = new StringBuffer(" from t_customer_group_list_" + groupId + " ");
-            String total = this.jdbcTemplate.queryForObject("select count(1) " + sql.toString(), String.class);
+            String total = this.jdbcTemplate.queryForObject("select count(1) " + sql.toString(),String.class);
 
             if ("".equals(total) || "0".equals(total)) {
                 json.put("errorDesc", "01");
@@ -5725,7 +5738,7 @@ public class CustomGroupService {
             Map<String, Long> s = previewByGroupCondition2(null, null, buildGroupcondition2(customGroupDTO.getLabel()));
             userAcount = s.getOrDefault("count", 0l);
         } catch (Exception e) {
-            log.error("预览人数异常,", e);
+            log.error("预览人数异常",e);
         }
         result.put("errorDesc", "00");
         result.put("groupId", customGroup.getId() + "");
