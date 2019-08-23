@@ -105,71 +105,71 @@ public class OpenService {
         return resultMap;
     }
 
-//    /**
-//     * 刷新token接口
-//     *
-//     * @param
-//     * @return
-//     */
-//    public String refreshToken(String oldtoken, String username) {
-//        log.info("旧的token是 ： " + oldtoken + "用户名字是 ： " + username);
-//        JSONObject json = new JSONObject();
-//        Map<String, Object> resultMap = new HashMap<>();
-//        String token = null;
-//        try {
-//            if (StringUtil.isNotEmpty(oldtoken) && StringUtil.isNotEmpty(username)) {
-//                CustomerUserDO u = customerService.getUserByName(username);
-//                if (u != null) {
-//                    String custId = u.getCust_id();
-//                    String password = u.getPassword();
-//                    if (StringUtil.isNotEmpty(custId)) {
-//                        //根据企业id查询当前企业是否有效
-//                        CustomerDO custMessage = customerDao.getCustMessage(custId);
-//                        if (custMessage==null){
-//                            resultMap.put("status", "005");
-//                            json.put("data", resultMap);
-//                            return json.toJSONString();
-//                        }
-//                        CustomerPropertyDO customerProperty = customerDao.getProperty(custId, "token");
-//                        if (customerProperty != null) {
-//                            token = customerProperty.getPropertyValue();
-//                            if (token.equals(oldtoken)) {
-//                                username = "customer." + username;
-//                                token = generToken(custId, username, password);
-//                                log.info("刷新token,新token：" + token + "\ttoken长度：" + token.length());
-//                                customerDao.dealCustomerInfo(custId, "token", token);
-//                            } else {
-//                                //resultMap.put("msg", "旧的token不存在");
-//                                resultMap.put("status", "004");
-//                                json.put("data", resultMap);
-//                                return json.toJSONString();
-//                            }
-//                        } else {
-//                            // resultMap.put("msg", "请先获取token,再刷新token");
-//                            resultMap.put("status", "002");
-//                            json.put("data", resultMap);
-//                            return json.toJSONString();
-//                        }
-//                    }
-//                }
-//            } else {
-//                //resultMap.put("msg", "缺少必要参数");
-//                resultMap.put("status", "001");
-//                json.put("data", resultMap);
-//                return json.toJSONString();
-//            }
-//            resultMap.put("token", token);
-//            resultMap.put("status", "000");
-//            json.put("data", resultMap);
-//            return json.toJSONString();
-//        } catch (Exception e) {
-//            log.error(e.getMessage());
-//            //resultMap.put("msg", "刷新token失败");
-//            resultMap.put("status", "003");
-//            json.put("data", resultMap);
-//            return json.toJSONString();
-//        }
-//    }
+    /**
+     * 刷新token接口
+     *
+     * @param
+     * @return
+     */
+    public String refreshToken(String oldtoken, String username) {
+        log.info("旧的token是 ： " + oldtoken + "用户名字是 ： " + username);
+        JSONObject json = new JSONObject();
+        Map<String, Object> resultMap = new HashMap<>();
+        String token = null;
+        try {
+            if (StringUtil.isNotEmpty(oldtoken) && StringUtil.isNotEmpty(username)) {
+                CustomerUserDO u = customerService.getUserByName(username);
+                if (u != null) {
+                    String custId = u.getCust_id();
+                    String password = u.getPassword();
+                    if (StringUtil.isNotEmpty(custId)) {
+                        //根据企业id查询当前企业是否有效
+                        CustomerDO custMessage = customerDao.getCustMessage(custId);
+                        if (custMessage==null){
+                            resultMap.put("status", "005");
+                            json.put("data", resultMap);
+                            return json.toJSONString();
+                        }
+                        CustomerPropertyDO customerProperty = customerDao.getProperty(custId, "token");
+                        if (customerProperty != null) {
+                            token = customerProperty.getPropertyValue();
+                            if (token.equals(oldtoken)) {
+                                username = "customer." + username;
+                                token = generToken(custId, username, password);
+                                log.info("刷新token,新token：" + token + "\ttoken长度：" + token.length());
+                                customerDao.dealCustomerInfo(custId, "token", token);
+                            } else {
+                                //resultMap.put("msg", "旧的token不存在");
+                                resultMap.put("status", "004");
+                                json.put("data", resultMap);
+                                return json.toJSONString();
+                            }
+                        } else {
+                            // resultMap.put("msg", "请先获取token,再刷新token");
+                            resultMap.put("status", "002");
+                            json.put("data", resultMap);
+                            return json.toJSONString();
+                        }
+                    }
+                }
+            } else {
+                //resultMap.put("msg", "缺少必要参数");
+                resultMap.put("status", "001");
+                json.put("data", resultMap);
+                return json.toJSONString();
+            }
+            resultMap.put("token", token);
+            resultMap.put("status", "000");
+            json.put("data", resultMap);
+            return json.toJSONString();
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            //resultMap.put("msg", "刷新token失败");
+            resultMap.put("status", "003");
+            json.put("data", resultMap);
+            return json.toJSONString();
+        }
+    }
 
     /**
      * 根据坐席账号查询坐席信息
