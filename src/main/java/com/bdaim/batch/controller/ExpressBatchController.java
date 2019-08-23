@@ -73,7 +73,8 @@ public class ExpressBatchController extends BasicAction {
             response.setCharacterEncoding("utf-8");
 //            response.setContentType("application/force-download");
             response.setContentType("application/vnd.ms-excel;charset=utf-8");
-            String returnName = response.encodeURL(new String(fileName.getBytes(), "iso8859-1"));   //保存的文件名,必须和页面编码一致,否则乱码
+            //保存的文件名,必须和页面编码一致,否则乱码
+            String returnName = response.encodeURL(new String(fileName.getBytes(), "iso8859-1"));
             response.addHeader("Content-Disposition", "attachment;filename=" + returnName);
             in = new FileInputStream(new File(path));
             logger.error("hello chacker" + path);
