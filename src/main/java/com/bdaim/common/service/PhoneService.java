@@ -1,5 +1,6 @@
 package com.bdaim.common.service;
 
+import com.bdaim.common.redis.RedisUtil;
 import com.bdaim.common.util.ConstantsUtil;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.customgroup.dao.CustomGroupDao;
@@ -33,6 +34,9 @@ public class PhoneService {
 
     @Resource
     private CustomGroupDao customGroupDao;
+
+    @Resource
+    private RedisUtil redisUtil;
 
 
     /**
@@ -120,9 +124,8 @@ public class PhoneService {
      * @return
      */
     private String getValueByIdFromRedis(String id) {
-        /*String phone = RedisUtil.getRedisUtil().get(id);
-        return phone;*/
-        return "";
+        String phone = redisUtil.get(id);
+        return phone;
     }
 
     /**
@@ -133,10 +136,8 @@ public class PhoneService {
      * @param phone           手机号
      * @return
      */
-    public String setCGroupDataToRedis(String customerGroupId, String superId, String phone) {
-        /*String result = RedisUtil.getRedisUtil().setex(customerGroupId + CG_PHONE_KEY_SPLIT + phone, CG_PHONE_KEY_EXPIRE, superId);
-        return result;*/
-        return "";
+    public void setCGroupDataToRedis(String customerGroupId, String superId, String phone) {
+        redisUtil.setex(customerGroupId + CG_PHONE_KEY_SPLIT + phone, CG_PHONE_KEY_EXPIRE, superId);
     }
 
     /**
@@ -146,10 +147,8 @@ public class PhoneService {
      * @param value
      * @return
      */
-    public String setValueByIdFromRedis(String key, String value) {
-       /* String phone = RedisUtil.getRedisUtil().set(key, value);
-        return phone;*/
-        return "";
+    public void setValueByIdFromRedis(String key, String value) {
+        redisUtil.set(key, value);
     }
 
     /**
@@ -166,7 +165,7 @@ public class PhoneService {
         return phoneNumber;
     }
 
-    public static void main(String[] args) {
+    /*public static void main(String[] args) {
         PhoneService phoneService = new PhoneService();
         String result = phoneService.setCGroupDataToRedis("52", "-1", "18630016545");
         System.out.println(result);
@@ -174,5 +173,5 @@ public class PhoneService {
         System.out.println(superId);
         String phone = phoneService.getPhoneBySuperId("-1");
         System.out.println(phone);
-    }
+    }*/
 }
