@@ -228,4 +228,38 @@ public class NumberConvertUtil {
         return result;
     }
 
+
+
+    /**
+     * 元转厘
+     *
+     * @param value
+     * @return
+     */
+    public static int changeY2L(Object value) {
+        BigDecimal bigDecimal = new BigDecimal(String.valueOf(value)).multiply(new BigDecimal(1000));
+        return bigDecimal.intValue();
+    }
+
+    /**
+     * 数据保留2位小数
+     *
+     * @param value
+     * @param length
+     * @return
+     */
+    public static double parseDecimalDouble(double value, int length) {
+        double result = 0;
+        try {
+            BigDecimal bg = new BigDecimal(Double.toString(value));
+            result = bg.setScale(length, BigDecimal.ROUND_HALF_UP).doubleValue();
+        } catch (Exception e) {
+            result = 0.00;
+            LOG.error("保留2位小数失败,value:" + value + ",length:" + length, e);
+        }
+        return result;
+    }
+
+
+
 }

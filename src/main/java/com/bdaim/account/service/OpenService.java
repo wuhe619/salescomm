@@ -12,6 +12,7 @@ import com.bdaim.batch.service.BatchService;
 import com.bdaim.callcenter.service.impl.CallCenterServiceImpl;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
+import com.bdaim.common.util.CipherUtil;
 import com.bdaim.common.util.IDHelper;
 import com.bdaim.common.util.StringHelper;
 import com.bdaim.common.util.StringUtil;
@@ -33,6 +34,8 @@ import com.bdaim.template.entity.MarketTemplate;
 
 //import io.jsonwebtoken.Claims;
 //import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,8 +47,8 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 
-//import static com.bdaim.common.util.JwtUtil.generToken;
-//import static com.bdaim.common.util.JwtUtil.verifyToken;
+import static com.bdaim.common.util.JwtUtil.generToken;
+import static com.bdaim.common.util.JwtUtil.verifyToken;
 
 import java.sql.Timestamp;
 import java.text.DecimalFormat;
@@ -102,71 +105,71 @@ public class OpenService {
         return resultMap;
     }
 
-//    /**
-//     * 刷新token接口
-//     *
-//     * @param
-//     * @return
-//     */
-//    public String refreshToken(String oldtoken, String username) {
-//        log.info("旧的token是 ： " + oldtoken + "用户名字是 ： " + username);
-//        JSONObject json = new JSONObject();
-//        Map<String, Object> resultMap = new HashMap<>();
-//        String token = null;
-//        try {
-//            if (StringUtil.isNotEmpty(oldtoken) && StringUtil.isNotEmpty(username)) {
-//                CustomerUserDO u = customerService.getUserByName(username);
-//                if (u != null) {
-//                    String custId = u.getCust_id();
-//                    String password = u.getPassword();
-//                    if (StringUtil.isNotEmpty(custId)) {
-//                        //根据企业id查询当前企业是否有效
-//                        CustomerDO custMessage = customerDao.getCustMessage(custId);
-//                        if (custMessage==null){
-//                            resultMap.put("status", "005");
-//                            json.put("data", resultMap);
-//                            return json.toJSONString();
-//                        }
-//                        CustomerPropertyDO customerProperty = customerDao.getProperty(custId, "token");
-//                        if (customerProperty != null) {
-//                            token = customerProperty.getPropertyValue();
-//                            if (token.equals(oldtoken)) {
-//                                username = "customer." + username;
-//                                token = generToken(custId, username, password);
-//                                log.info("刷新token,新token：" + token + "\ttoken长度：" + token.length());
-//                                customerDao.dealCustomerInfo(custId, "token", token);
-//                            } else {
-//                                //resultMap.put("msg", "旧的token不存在");
-//                                resultMap.put("status", "004");
-//                                json.put("data", resultMap);
-//                                return json.toJSONString();
-//                            }
-//                        } else {
-//                            // resultMap.put("msg", "请先获取token,再刷新token");
-//                            resultMap.put("status", "002");
-//                            json.put("data", resultMap);
-//                            return json.toJSONString();
-//                        }
-//                    }
-//                }
-//            } else {
-//                //resultMap.put("msg", "缺少必要参数");
-//                resultMap.put("status", "001");
-//                json.put("data", resultMap);
-//                return json.toJSONString();
-//            }
-//            resultMap.put("token", token);
-//            resultMap.put("status", "000");
-//            json.put("data", resultMap);
-//            return json.toJSONString();
-//        } catch (Exception e) {
-//            log.error(e.getMessage());
-//            //resultMap.put("msg", "刷新token失败");
-//            resultMap.put("status", "003");
-//            json.put("data", resultMap);
-//            return json.toJSONString();
-//        }
-//    }
+    /**
+     * 刷新token接口
+     *
+     * @param
+     * @return
+     */
+    public String refreshToken(String oldtoken, String username) {
+        log.info("旧的token是 ： " + oldtoken + "用户名字是 ： " + username);
+        JSONObject json = new JSONObject();
+        Map<String, Object> resultMap = new HashMap<>();
+        String token = null;
+        try {
+            if (StringUtil.isNotEmpty(oldtoken) && StringUtil.isNotEmpty(username)) {
+                CustomerUserDO u = customerService.getUserByName(username);
+                if (u != null) {
+                    String custId = u.getCust_id();
+                    String password = u.getPassword();
+                    if (StringUtil.isNotEmpty(custId)) {
+                        //根据企业id查询当前企业是否有效
+                        CustomerDO custMessage = customerDao.getCustMessage(custId);
+                        if (custMessage==null){
+                            resultMap.put("status", "005");
+                            json.put("data", resultMap);
+                            return json.toJSONString();
+                        }
+                        CustomerPropertyDO customerProperty = customerDao.getProperty(custId, "token");
+                        if (customerProperty != null) {
+                            token = customerProperty.getPropertyValue();
+                            if (token.equals(oldtoken)) {
+                                username = "customer." + username;
+                                token = generToken(custId, username, password);
+                                log.info("刷新token,新token：" + token + "\ttoken长度：" + token.length());
+                                customerDao.dealCustomerInfo(custId, "token", token);
+                            } else {
+                                //resultMap.put("msg", "旧的token不存在");
+                                resultMap.put("status", "004");
+                                json.put("data", resultMap);
+                                return json.toJSONString();
+                            }
+                        } else {
+                            // resultMap.put("msg", "请先获取token,再刷新token");
+                            resultMap.put("status", "002");
+                            json.put("data", resultMap);
+                            return json.toJSONString();
+                        }
+                    }
+                }
+            } else {
+                //resultMap.put("msg", "缺少必要参数");
+                resultMap.put("status", "001");
+                json.put("data", resultMap);
+                return json.toJSONString();
+            }
+            resultMap.put("token", token);
+            resultMap.put("status", "000");
+            json.put("data", resultMap);
+            return json.toJSONString();
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            //resultMap.put("msg", "刷新token失败");
+            resultMap.put("status", "003");
+            json.put("data", resultMap);
+            return json.toJSONString();
+        }
+    }
 
     /**
      * 根据坐席账号查询坐席信息
@@ -317,62 +320,62 @@ public class OpenService {
         return list;
     }
 
-//    /**
-//     * 获取token
-//     *
-//     * @param username
-//     * @param password
-//     */
-//    public Map<String, Object> getTokenInfo(String username, String password) {
-//        log.info("账号是：" + username + "密码是：" + password);
-//        Map<String, Object> resultMap = new HashMap<>();
-//        JSONObject json = new JSONObject();
-//        String newpassword = CipherUtil.generatePassword(password);
-//        String token = null;
-//        if (StringUtil.isNotEmpty(username) && StringUtil.isNotEmpty(password)) {
-//            CustomerUserDO u = customerService.getUserByName(username);
-//            if (u != null) {
-//                String uPassword = u.getPassword();
-//                if (uPassword.equals(newpassword)) {
-//                    String custId = u.getCust_id();
-//                    if (StringUtil.isNotEmpty(custId)) {
-//                        CustomerPropertyDO customerProperty = customerDao.getProperty(custId, "token");
-//                        if (customerProperty != null) {
-//                            token = customerProperty.getPropertyValue();
-//                            try {
-//                                Claims claims = verifyToken(token);
-//                            } catch (ExpiredJwtException e) {
-//                                resultMap.put("status", "003");
-//                                resultMap.put("msg", "token失效");
-//                                return resultMap;
-//                            }
-//                        } else {
-//                            username = "customer." + username;
-//                            token = generToken(custId, username, password);
-//                            customerDao.dealCustomerInfo(custId, "token", token);
-//                            log.info("获取token,第一次生成，token：" + token);
-//                        }
-//                    }
-//                } else {
-//                    resultMap.put("status", "002");
-//                    resultMap.put("msg", "用户名密码不一致");
-//                    return resultMap;
-//                }
-//            } else {
-//                log.info("用户" + username + "不存在");
-//                resultMap.put("status", "004");
-//                resultMap.put("msg", "用户不存在");
-//                return resultMap;
-//            }
-//        } else {
-//            resultMap.put("status", "001");
-//            resultMap.put("msg", "用户名或密码不能为空");
-//            return resultMap;
-//        }
-//        resultMap.put("token", token);
-//        resultMap.put("status", "000");
-//        return resultMap;
-//    }
+    /**
+     * 获取token
+     *
+     * @param username
+     * @param password
+     */
+    public Map<String, Object> getTokenInfo(String username, String password) {
+        log.info("账号是：" + username + "密码是：" + password);
+        Map<String, Object> resultMap = new HashMap<>();
+        JSONObject json = new JSONObject();
+        String newpassword = CipherUtil.generatePassword(password);
+        String token = null;
+        if (StringUtil.isNotEmpty(username) && StringUtil.isNotEmpty(password)) {
+            CustomerUserDO u = customerService.getUserByName(username);
+            if (u != null) {
+                String uPassword = u.getPassword();
+                if (uPassword.equals(newpassword)) {
+                    String custId = u.getCust_id();
+                    if (StringUtil.isNotEmpty(custId)) {
+                        CustomerPropertyDO customerProperty = customerDao.getProperty(custId, "token");
+                        if (customerProperty != null) {
+                            token = customerProperty.getPropertyValue();
+                            try {
+                                Claims claims = verifyToken(token);
+                            } catch (ExpiredJwtException e) {
+                                resultMap.put("status", "003");
+                                resultMap.put("msg", "token失效");
+                                return resultMap;
+                            }
+                        } else {
+                            username = "customer." + username;
+                            token = generToken(custId, username, password);
+                            customerDao.dealCustomerInfo(custId, "token", token);
+                            log.info("获取token,第一次生成，token：" + token);
+                        }
+                    }
+                } else {
+                    resultMap.put("status", "002");
+                    resultMap.put("msg", "用户名密码不一致");
+                    return resultMap;
+                }
+            } else {
+                log.info("用户" + username + "不存在");
+                resultMap.put("status", "004");
+                resultMap.put("msg", "用户不存在");
+                return resultMap;
+            }
+        } else {
+            resultMap.put("status", "001");
+            resultMap.put("msg", "用户名或密码不能为空");
+            return resultMap;
+        }
+        resultMap.put("token", token);
+        resultMap.put("status", "000");
+        return resultMap;
+    }
 
     /**
      * 获取用户上传修复数据

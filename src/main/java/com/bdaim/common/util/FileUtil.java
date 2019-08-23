@@ -1,11 +1,14 @@
 package com.bdaim.common.util;
 
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author chengning@salescomm.net
@@ -134,6 +137,86 @@ public class FileUtil {
         }
         // 目录此时为空，可以删除
         return dir.delete();
+    }
+
+    public final static Set<String> EXCEL_FILE_TYPES = new HashSet() {{
+        add(".xls");
+        add(".xlsx");
+    }};
+
+    /**
+     * 文件复制
+     *
+     * @param source
+     * @param dest
+     * @throws IOException
+     */
+    public static void copyFile(File source, File dest)
+            throws IOException {
+        FileUtils.copyFile(source, dest);
+    }
+
+
+    /**
+     * 创建文件
+     *
+     * @param filePath
+     * @param fileName
+     */
+    public static void createFile(String filePath, String fileName) {
+        File folder = new File(filePath);
+        //文件夹路径不存在
+        if (!folder.exists() && !folder.isDirectory()) {
+            folder.mkdirs();
+        } else {
+            LOG.warn("文件夹路径存在:" + filePath);
+        }
+
+        // 如果文件不存在就创建
+        File file = new File(filePath + fileName);
+        if (!file.exists()) {
+            try {
+                file.createNewFile();
+            } catch (IOException e) {
+                LOG.error("文件创建失败:", e);
+            }
+        } else {
+            LOG.warn("文件已存在,文件为:" + filePath + fileName);
+        }
+    }
+
+    public static void writeFile(String filePath, String fileName, String content) throws Exception {
+        File f = new File(filePath);
+        if (!f.exists()) {
+            LOG.warn(filePath + " 文件夹不存在,创建文件");
+            f.mkdirs();
+        } else {
+            LOG.warn("文件夹路径存在:" + filePath);
+        }
+        FileOutputStream fos = null;
+        OutputStreamWriter osw = null;
+        try {
+            // 打开一个写文件器，构造函数中的第二个参数true表示以追加形式写文件
+            fos = new FileOutputStream(filePath + File.separator + fileName);
+            osw = new OutputStreamWriter(fos, "UTF-8");
+            osw.write(content);
+            osw.flush();
+        } catch (IOException e) {
+            LOG.error("文件创建失败:", e);
+            throw e;
+        } finally {
+            try {
+                if (fos != null) {
+                    fos.close();
+                }
+                if (osw != null) {
+                    osw.close();
+                }
+            } catch (IOException e) {
+                LOG.error("文件创建失败:", e);
+                throw e;
+            }
+        }
     }
 
 }

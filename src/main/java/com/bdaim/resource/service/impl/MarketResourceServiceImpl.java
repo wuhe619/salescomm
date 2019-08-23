@@ -1115,8 +1115,10 @@ public class MarketResourceServiceImpl implements MarketResourceService {
     @Override
     public Map<String,Object> countMarketDataBackend(){
         //企业有效率 折线统计图
-        String effectiveRateSql = "SELECT batch_name AS batchName,comp_name AS companyName,IFNULL(upload_num/success_num,0) AS effectiveRate FROM nl_batch ORDER BY " +
-                "upload_time DESC LIMIT 10";
+        String effectiveRateSql = "SELECT x.comp_name AS companyName,x.batch_id, SUM(CASE x.STATUS WHEN '1' THEN 1 ELSE 0 END)/SUM(CASE x.STATUS WHEN '0' THEN 1 ELSE 1 END) AS effectiveRate \n" +
+                "FROM (SELECT t1.comp_name,t2.batch_id,t2.`status` FROM\tnl_batch t1\tLEFT JOIN nl_batch_detail t2 ON t1.id = t2.batch_id \n" +
+                "GROUP BY t2.batch_id,t2.label_five ORDER BY t1.upload_time DESC ) x GROUP BY x.comp_name,x.batch_id \n" +
+                "ORDER BY x.batch_id DESC LIMIT 10";
         List<Map<String, Object>> effectiveRate = jdbcTemplate.queryForList(effectiveRateSql);
 
         //企业签收率 折现统计图
@@ -1129,10 +1131,10 @@ public class MarketResourceServiceImpl implements MarketResourceService {
         List<Map<String, Object>> receiveRateList = jdbcTemplate.queryForList(receiveRate.toString());
 
         //客户有效数据趋势图
-        StringBuffer effectiveNum = new StringBuffer("SELECT DATE_FORMAT(upload_time, '%Y-%m-%d') AS upload_time,");
-        effectiveNum.append("SUM(CASE `status` WHEN '1' THEN 1 ELSE 0 END) AS effective_num  FROM nl_batch_detail ")
-                .append("GROUP BY DATE_FORMAT(upload_time,'%Y-%m-%d') ").append("ORDER BY DATE_FORMAT(upload_time,'%Y-%m-%d') DESC")
-                .append(" LIMIT 10");
+        StringBuffer effectiveNum = new StringBuffer("SELECT t1.upload_time,SUM(CASE t1.effective_num WHEN '0' THEN 0 ELSE 1 END) AS effective_num");
+        effectiveNum.append(" FROM (SELECT DATE_FORMAT(upload_time,'%Y-%m-%d') AS upload_time,batch_id,SUM(CASE `status` WHEN '1' THEN 1 ELSE 0 END) AS effective_num ")
+                .append("FROM nl_batch_detail GROUP BY batch_id,label_five ").append("ORDER BY upload_time DESC) t1 GROUP BY t1.upload_time")
+                .append(" ORDER BY t1.upload_time DESC LIMIT 10");
         List<Map<String, Object>> effectiveNumMap = jdbcTemplate.queryForList(effectiveNum.toString());
         Map<String,Object> data = new HashMap<>(16);
         data.put("effectiveRate", effectiveRate);
@@ -1320,25 +1322,18 @@ public class MarketResourceServiceImpl implements MarketResourceService {
             sign.append("WHERE t.cust_id=? AND t.batch_id= ? AND t.status= 4 ");
 
             //前端首页 校验统计图
-            StringBuffer checkSql = new StringBuffer("SELECT batch_name AS batchName,IFNULL(upload_num,0) AS uploadNum,IFNULL(success_num,0) AS successNum,");
-            checkSql.append("IFNULL(success_num/upload_num,0) AS effectiveRate FROM nl_batch WHERE comp_id='").append(customerId).append("' ORDER BY ")
-                    .append("upload_time DESC LIMIT 10");
+//            StringBuffer checkSql = new StringBuffer("SELECT batch_name AS batchName,IFNULL(upload_num,0) AS uploadNum,IFNULL(success_num,0) AS successNum,");
+//            checkSql.append("IFNULL(success_num/upload_num,0) AS effectiveRate FROM nl_batch WHERE comp_id='").append(customerId).append("' ORDER BY ")
+//                    .append("upload_time DESC LIMIT 10");
+            StringBuffer checkSql = new StringBuffer("SELECT x.batch_id batchId,x.batchName,SUM(CASE x.upload_num WHEN '1' THEN 1 ELSE 1 END) AS uploadNum,");
+            checkSql.append("SUM(CASE x.success_num WHEN '0' THEN 0 ELSE 1 END) successNum,")
+                    .append("SUM(CASE x.success_num WHEN '0' THEN 0 ELSE 1 END)/SUM(CASE x.upload_num WHEN '1' THEN 1 ELSE 1 END) AS effectiveRate ")
+                    .append("FROM (SELECT t1.id AS batch_id,t1.upload_time,t1.batch_name AS batchName,")
+                    .append("SUM(CASE t2.STATUS WHEN '0' THEN 1 ELSE 1 END) AS upload_num,SUM(CASE t2.STATUS WHEN '1' THEN 1 ELSE 0 END) AS success_num ")
+                    .append("FROM nl_batch t1 LEFT JOIN nl_batch_detail t2 ON t1.id = t2.batch_id WHERE t1.comp_id='").append(customerId).append("' ")
+                    .append("GROUP BY t1.batch_name,t1.id,t2.label_five ORDER BY t1.upload_time DESC ) x ")
+                    .append(" GROUP BY x.batch_id,x.batchName ORDER BY x.upload_time DESC LIMIT 10");
             List<Map<String, Object>> checkStatistics = jdbcTemplate.queryForList(checkSql.toString());
-//            DecimalFormat format = new DecimalFormat("0%");
-//            format.setMaximumFractionDigits(0);
-//            for (Map<String, Object> e : checkStatistics) {
-//                try {
-//                    String number = format.format(e.get("effectiveRate"));
-//                    e.put("effectiveRate", number);
-//                } catch (Exception ex) {
-//                    LOG.info("====>>>>>>>解析失败 " + ex.getMessage());
-//                }
-//            }
-//            for(Map<String,Object> e:checkStatistics){
-//                BigDecimal bigDecimal = new BigDecimal(String.valueOf(e.get("effectiveRate")));
-//
-//
-//            }
             checkStatistics.stream().map(e -> e.put("effectiveRate",new BigDecimal(String.valueOf(e.get("effectiveRate")))
                     .setScale(2,BigDecimal.ROUND_HALF_UP))).collect(Collectors.toList());
             //前端首页 签收统计图

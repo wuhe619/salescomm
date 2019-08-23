@@ -1,14 +1,14 @@
 package com.bdaim.image.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.bdaim.common.util.CipherUtil;
-import com.bdaim.common.util.FileUrlEntity;
-import com.bdaim.common.util.PictureRotateUtil;
-import com.bdaim.common.util.StringUtil;
+import com.bdaim.common.util.*;
 import com.bdaim.image.service.UploadDowloadService;
 import com.bdaim.resource.service.impl.MarketResourceServiceImpl;
-
 import org.apache.commons.io.FileUtils;
+import org.apache.tomcat.util.http.fileupload.FileItem;
+import org.apache.tomcat.util.http.fileupload.disk.DiskFileItemFactory;
+import org.apache.tomcat.util.http.fileupload.servlet.ServletFileUpload;
+import org.apache.tomcat.util.http.fileupload.servlet.ServletRequestContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -365,6 +365,306 @@ public class UploadDowloadImgServiceImpl implements UploadDowloadService {
             e.printStackTrace();
         }
         return s;
+    }
+
+    private final static Set<String> ALLOW_FILE_TYPES = new HashSet() {{
+        add(".jpg");
+        add(".png");
+        add(".gif");
+        add(".pdf");
+        add(".xlsx");
+        add(".xls");
+    }};
+
+    public Object uploadImg(HttpServletRequest request, HttpServletResponse response, String path, String cust_id,
+                            String pictureName) {
+        String code = "";
+        String message = "";
+        // 返回结果编码： 1：成功 0：失败
+        // 得到上传文件的保存目录
+        // 获取用户名
+        String userid = cust_id;
+        logger.info("上传图片-->>>" + userid);
+        pictureName = CipherUtil.generatePassword(pictureName);
+        logger.info("上传图片名称---->>" + pictureName);
+        String savePath = path + userid;
+        File filePath = new File(savePath);
+        // 判断上传文件的保存目录是否存在
+        if (!filePath.exists() && !filePath.isDirectory()) {
+            // 创建目录
+            filePath.mkdirs();
+        }
+        String sPath = savePath + "/" + pictureName + ".jpg";
+        // 判断文件是否已经存在
+        File file = new File(sPath);
+        // 判断目录或文件是否存在
+        if (file.exists()) { // 存在
+            // 删除文件
+            file.delete();
+        }
+        try {
+            // 1、创建一个DiskFileItemFactory工厂
+            DiskFileItemFactory factory = new DiskFileItemFactory();
+            // 2、创建一个文件上传解析器
+            ServletFileUpload upload = new ServletFileUpload(factory);
+            // 解决上传文件名的中文乱码
+            upload.setHeaderEncoding("UTF-8");
+            // 3、获取Form表单的输入项
+            List<FileItem> list = upload.parseRequest(new ServletRequestContext(request));
+            // 用来获取用户的user_id
+            //
+            for (FileItem item : list) {
+                // 获取item中的上传文件的输入流
+                InputStream in = item.getInputStream();
+                // 创建一个文件输出流-->自定义文件名userid
+                FileOutputStream out = new FileOutputStream(savePath + "/" + pictureName + ".jpg");
+                // 创建一个缓冲区
+                byte buffer[] = new byte[1024];
+                // 判断输入流中的数据是否已经读完的标识
+                int len = 0;
+                // 循环将输入流读入到缓冲区当中，(len=in.read(buffer))>0就表示in里面还有数据
+                while ((len = in.read(buffer)) > 0) {
+                    // 使用FileOutputStream输出流将缓冲区的数据写入到指定的目录
+                    out.write(buffer, 0, len);
+                }
+                // 关闭输入流
+                in.close();
+                // 关闭输出流
+                out.close();
+                // 删除处理文件上传时生成的临时文件
+                item.delete();
+                logger.info("上传营业执照成功！");
+                code = "1";
+                message = "上传营业执照成功";
+            }
+        } catch (Exception e) {
+            code = "0";
+            message = "上传营业执照失败";
+            logger.error("上传营业执照失败！", e);
+        }
+        Map<String, Object> resultMap = new HashMap<String, Object>();
+        resultMap.put("code", code);
+        resultMap.put("_message", message);
+        resultMap.put("url", pictureName + ".jpg");
+        return JSONObject.toJSON(resultMap);
+    }
+
+    public String uploadFile(HttpServletRequest request, String custId) {
+        String savePath = PropertiesUtil.getStringValue("location") + custId + File.separator;
+        File filePath = new File(savePath);
+        // 判断上传文件的保存目录是否存在
+        if (!filePath.exists() && !filePath.isDirectory()) {
+            // 创建目录
+            filePath.mkdirs();
+        }
+        String fileName = CipherUtil.generatePassword(IDHelper.getTransactionId() + "");
+        String sPath;
+        File file;
+        try {
+            CommonsMultipartResolver multipartResolver = new CommonsMultipartResolver(
+                    request.getSession().getServletContext());
+            if (multipartResolver.isMultipart(request)) {
+                MultipartHttpServletRequest multiRequest = (MultipartHttpServletRequest) request;
+                Iterator<String> iter = multiRequest.getFileNames();
+                String fileType;
+                while (iter.hasNext()) {
+                    MultipartFile f = multiRequest.getFile(iter.next());
+                    if (f != null) {
+                        fileType = f.getOriginalFilename().substring(f.getOriginalFilename().lastIndexOf("."), f.getOriginalFilename().length());
+                        if (StringUtil.isNotEmpty(fileType) && ALLOW_FILE_TYPES.contains(fileType.toLowerCase())) {
+                            fileName += fileType;
+                            // 加上文件格式
+                            sPath = savePath + fileName;
+                            file = new File(sPath);
+                            // 判断目录或文件是否存在
+                            if (file.exists()) {
+                                // 删除文件
+                                file.delete();
+                            }
+                            File localFile = new File(sPath);
+                            f.transferTo(localFile);
+                        } else {
+                            logger.warn("上传文件格式不允许," + f.getOriginalFilename());
+                        }
+                    }
+                }
+            }
+            logger.info("上传文件成功！");
+        } catch (Exception e) {
+            logger.error("上传文件失败！", e);
+        }
+        return fileName;
+    }
+
+
+    public String uploadFile0(HttpServletRequest request, String savePath, Set<String> includeFileTypes) {
+        File filePath = new File(savePath);
+        // 判断上传文件的保存目录是否存在
+        if (!filePath.exists() && !filePath.isDirectory()) {
+            // 创建目录
+            filePath.mkdirs();
+        }
+        String fileName = CipherUtil.generatePassword(IDHelper.getTransactionId() + "");
+        String sPath;
+        File file;
+        try {
+            CommonsMultipartResolver multipartResolver = new CommonsMultipartResolver(
+                    request.getSession().getServletContext());
+            if (multipartResolver.isMultipart(request)) {
+                MultipartHttpServletRequest multiRequest = (MultipartHttpServletRequest) request;
+                Iterator<String> iter = multiRequest.getFileNames();
+                String fileType;
+                while (iter.hasNext()) {
+                    MultipartFile f = multiRequest.getFile(iter.next());
+                    if (f != null) {
+                        fileType = f.getOriginalFilename().substring(f.getOriginalFilename().lastIndexOf("."), f.getOriginalFilename().length());
+                        if (StringUtil.isNotEmpty(fileType) && includeFileTypes.contains(fileType.toLowerCase())) {
+                            fileName += fileType;
+                            // 加上文件格式
+                            sPath = savePath + fileName;
+                            file = new File(sPath);
+                            // 判断目录或文件是否存在
+                            if (file.exists()) {
+                                // 删除文件
+                                file.delete();
+                            }
+                            File localFile = new File(sPath);
+                            f.transferTo(localFile);
+                        } else {
+                            logger.warn("上传文件格式不允许," + f.getOriginalFilename());
+                        }
+                    }
+                }
+            }
+            logger.info("上传文件成功！");
+        } catch (Exception e) {
+            logger.error("上传文件失败！", e);
+        }
+        return fileName;
+    }
+
+    /**
+     * 上传单文件
+     *
+     * @param f
+     * @param savePath
+     * @param includeFileTypes
+     * @return
+     */
+    public String uploadSingleFile(MultipartFile f, String savePath, Set<String> includeFileTypes) {
+        File filePath = new File(savePath);
+        // 判断上传文件的保存目录是否存在
+        if (!filePath.exists() && !filePath.isDirectory()) {
+            // 创建目录
+            filePath.mkdirs();
+        }
+        String fileName = CipherUtil.generatePassword(IDHelper.getTransactionId() + "");
+        String sPath;
+        File file;
+        try {
+            String fileType;
+            if (f != null) {
+                fileType = f.getOriginalFilename().substring(f.getOriginalFilename().lastIndexOf("."), f.getOriginalFilename().length());
+                if (StringUtil.isNotEmpty(fileType) && includeFileTypes.contains(fileType.toLowerCase())) {
+                    fileName += fileType;
+                    // 加上文件格式
+                    sPath = savePath + fileName;
+                    file = new File(sPath);
+                    // 判断目录或文件是否存在
+                    if (file.exists()) {
+                        // 删除文件
+                        file.delete();
+                    }
+                    File localFile = new File(sPath);
+                    f.transferTo(localFile);
+                } else {
+                    logger.warn("上传文件格式不允许," + f.getOriginalFilename());
+                }
+            }
+            logger.info("上传文件成功,文件名:" + fileName);
+        } catch (Exception e) {
+            logger.error("上传文件失败！", e);
+        }
+        return fileName;
+    }
+
+    /**
+     * 检查文件格式
+     *
+     * @param f
+     * @param includeFileTypes
+     * @return
+     */
+    public boolean checkFileTypeByMultipartFile(MultipartFile f, Set<String> includeFileTypes) {
+        boolean b = false;
+        try {
+            String fileType;
+            if (f != null) {
+                fileType = f.getOriginalFilename().substring(f.getOriginalFilename().lastIndexOf("."), f.getOriginalFilename().length());
+                if (StringUtil.isNotEmpty(fileType) && includeFileTypes.contains(fileType.toLowerCase())) {
+                    b = true;
+                    logger.info("检查文件格式成功:" + f.getOriginalFilename());
+                } else {
+                    logger.warn("检查文件格式不匹配,支持格式:" + includeFileTypes + ",文件名称" + f.getOriginalFilename());
+                }
+            }
+        } catch (Exception e) {
+            logger.error("检查文件格式失败！", e);
+        }
+        return b;
+    }
+
+    /*
+     * 下载企业营业执照副本
+     */
+    public Object downloadImg(HttpServletRequest request, HttpServletResponse response, String path) {
+        String code = "";
+        String message = "";
+        // 返回结果编码： 1：成功 0：失败
+        // 得到上传文件的保存目录
+        String userid = request.getParameter("userId");
+        String pictureName = request.getParameter("fileName");
+        logger.info("加载图片---->>" + userid);
+        logger.info("加载图片名称---->>" + pictureName);
+        String savePath = path + userid;
+        File picFile = new File(savePath);
+        // 判断userid
+        // 找到当前用户上传过的营业执照
+        File[] tempFile = picFile.listFiles();
+        for (int i = 0; i < tempFile.length; i++) {
+            if (tempFile[i].getName().startsWith(pictureName)) {
+
+                savePath = savePath + File.separator + tempFile[i].getName();
+            }
+        }
+        logger.info("最终加载图片路径---->>" + savePath);
+        picFile = new File(savePath);
+        response.setContentType("image/jpeg; charset=GBK");
+        ServletOutputStream outputStream;
+        try {
+            outputStream = response.getOutputStream();
+            FileInputStream inputStream = new FileInputStream(savePath);
+            byte[] buffer = new byte[1024];
+            int i = -1;
+            while ((i = inputStream.read(buffer)) != -1) {
+                outputStream.write(buffer, 0, i);
+            }
+            outputStream.flush();
+            outputStream.close();
+            inputStream.close();
+            outputStream = null;
+            code = "1";
+            message = "加载营业执照成功";
+        } catch (IOException e) {
+            logger.error("加载营业执照失败！", e);
+            code = "0";
+            message = "加载营业执照失败";
+        }
+        Map<String, Object> resultMap = new HashMap<String, Object>();
+        resultMap.put("code", code);
+        resultMap.put("_message", message);
+        resultMap.put("data", "");
+        return JSONObject.toJSON(resultMap);
     }
 
 

@@ -68,21 +68,21 @@ public class OpenAction extends BasicAction {
         return returnJsonData(map);
     }
 
-//    /**
-//     * 刷新token
-//     *
-//     * @author:duanliying
-//     * @method
-//     * @date: 2019/3/25 11:10
-//     */
-//    @RequestMapping(value = "/refreshToken", method = RequestMethod.POST)
-//    @ResponseBody
-//    public Object refreshToken(@RequestBody JSONObject param) {
-//        String oldtoken = param.getString("oldtoken");
-//        String username = param.getString("username");
-//        String refreshToken = openService.refreshToken(oldtoken, username);
-//        return refreshToken;
-//    }
+    /**
+     * 刷新token
+     *
+     * @author:duanliying
+     * @method
+     * @date: 2019/3/25 11:10
+     */
+    @RequestMapping(value = "/refreshToken", method = RequestMethod.POST)
+    @ResponseBody
+    public Object refreshToken(@RequestBody JSONObject param) {
+        String oldtoken = param.getString("oldtoken");
+        String username = param.getString("username");
+        String refreshToken = openService.refreshToken(oldtoken, username);
+        return refreshToken;
+    }
 
     /**
      * 根据坐席账号查询坐席详情
@@ -217,22 +217,22 @@ public class OpenAction extends BasicAction {
         return returnJsonData(map);
     }
 
-//    /**
-//     * 获取token
-//     *
-//     * @author:duanliying
-//     * @method
-//     * @date: 2019/3/27 16:04
-//     */
-//    @RequestMapping(value = "/tokenInfoGet", method = RequestMethod.POST)
-//    @ResponseBody
-//    public Object tokenInfoGet(@RequestBody JSONObject param) {
-//        Map<String, Object> resultMap = new HashMap<>();
-//        String username = param.getString("username");
-//        String password = param.getString("password");
-//        resultMap = openService.getTokenInfo(username, password);
-//        return returnJsonData(resultMap);
-//    }
+    /**
+     * 获取token
+     *
+     * @author:duanliying
+     * @method
+     * @date: 2019/3/27 16:04
+     */
+    @RequestMapping(value = "/tokenInfoGet", method = RequestMethod.POST)
+    @ResponseBody
+    public Object tokenInfoGet(@RequestBody JSONObject param) {
+        Map<String, Object> resultMap = new HashMap<>();
+        String username = param.getString("username");
+        String password = param.getString("password");
+        resultMap = openService.getTokenInfo(username, password);
+        return returnJsonData(resultMap);
+    }
 
     /**
      * 失联修复数据上传接口
