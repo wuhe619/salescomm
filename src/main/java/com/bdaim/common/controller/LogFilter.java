@@ -25,7 +25,7 @@ public class LogFilter implements Filter{
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
     	String auth = ((HttpServletRequest)request).getHeader("Authorization");
     	String uri = ((HttpServletRequest)request).getRequestURI();
-//    	logger.info("["+auth+"] "+uri);
+    	logger.info("["+auth+"] "+uri);
     	
     	chain.doFilter(request, response);
     }
