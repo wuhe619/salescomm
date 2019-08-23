@@ -711,4 +711,13 @@ public class DateUtil {
     public static String getNowMonthToYYYYMM() {
         return LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMM"));
     }
+
+    public static String getPastNMonthDate(Date date, String format,int N) {
+        SimpleDateFormat df = new SimpleDateFormat(format);
+        Calendar c = Calendar.getInstance();
+        c.setTime(date);
+        c.add(Calendar.MONTH, N);
+        Date m = c.getTime();
+        return df.format(m);
+    }
 }

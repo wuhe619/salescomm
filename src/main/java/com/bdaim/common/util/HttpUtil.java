@@ -191,7 +191,7 @@ public class HttpUtil {
     }
 
 
-    public static String httpGet(String strUrl, Map<String, Object> params, Map<String, Object> headers) throws Exception {
+    public static String httpGet(String strUrl, Map<String, Object> params, Map<String, Object> headers) {
         HttpClient httpClient;
         HttpGet httpGet;
         String result;

@@ -1,30 +1,44 @@
 package com.bdaim.customer.dao;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.batch.entity.BatchListEntity;
 import com.bdaim.common.dao.SimpleHibernateDao;
 import com.bdaim.common.exception.TouchException;
+import com.bdaim.common.util.NumberConvertUtil;
 import com.bdaim.common.util.StringUtil;
+import com.bdaim.customer.dto.ApparentNumberQueryParam;
+import com.bdaim.customer.dto.CustomerDTO;
+import com.bdaim.customer.entity.ApparentNumber;
 import com.bdaim.customer.entity.CustomerDO;
 import com.bdaim.customer.entity.CustomerPropertyDO;
+import com.bdaim.customgroup.dto.CGroupImportParam;
 import com.bdaim.price.dto.ResourcesPriceDto;
+import com.bdaim.rbac.dto.Page;
 import com.bdaim.resource.entity.MarketResourceEntity;
+import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.text.MessageFormat;
+import java.util.*;
 
 /**
  * Created by Mr.YinXin on 2017/2/21.
  */
 @Component
 public class CustomerDao extends SimpleHibernateDao<CustomerDO, String> {
+
+    private final static String U_INSERT_SQL = "replace INTO u (id,phone) VALUES(?,?)";
+
+    private final static String CG_INSERT_SQL = " replace INTO  t_customer_group_list_{0} (id,super_data,status) VALUES(?,?,?)";
+
+
     public CustomerPropertyDO getProperty(String custId, String propertyName) {
         CustomerPropertyDO cp = null;
         String hql = "from CustomerPropertyDO m where m.custId=? and m.propertyName=?";
@@ -361,6 +375,304 @@ public class CustomerDao extends SimpleHibernateDao<CustomerDO, String> {
             logger.error("获取资源信息异常" + e);
         }
         return list;
+    }
+
+    public CustomerDO getName(String name) {
+        CustomerDO cp = null;
+        String hql = "from Customer m where m.enterpriseName=? and status = 0";
+        List<CustomerDO> list = this.find(hql, name);
+        if (list.size() > 0)
+            cp = (CustomerDO) list.get(0);
+        return cp;
+    }
+
+    public List<CustomerPropertyDO> getPropertyList(String custId, String propertyName) {
+        CustomerPropertyDO cp = null;
+        String hql = "from CustomerProperty m where m.custId=? and m.propertyName like ?";
+        List<CustomerPropertyDO> list = this.find(hql, custId, propertyName);
+
+        return list;
+    }
+
+
+    public List<CustomerPropertyDO> getPropertyAllList(String custId) {
+        CustomerPropertyDO cp = null;
+        String hql = "from CustomerProperty m where m.custId=?";
+        List<CustomerPropertyDO> list = this.find(hql, custId);
+        return list;
+    }
+
+    /**
+     * 根据状态获取客户列表
+     *
+     * @param status 状态（0正常 1.冻结 2资质未认证3.删除4.审核中5.审核失败)
+     * @return
+     */
+    public Page listCustomer(int status, int pageNum, int pageSize) {
+        String hql = "from Customer m where m.status=? ORDER BY m.createTime DESC ";
+        List<Object> params = new ArrayList<>();
+        params.add(status);
+        return page(hql, params, pageNum, pageSize);
+    }
+
+    /**
+     * 客户列表
+     *
+     * @param param
+     * @return
+     */
+    public List<CustomerDTO> listCustomer(CustomerDO param, String propertyName, String propertyValue) {
+        StringBuffer hql = new StringBuffer("from Customer m where 1=1");
+        List values = new ArrayList();
+        if (StringUtil.isNotEmpty(param.getEnterpriseName())) {
+            hql.append(" and m.enterpriseName like ?");
+            values.add("%" + param.getEnterpriseName() + "%");
+        }
+        if (param.getStatus() >= 0) {
+            hql.append(" and m.status = ?");
+            values.add(param.getStatus());
+        }
+        if (StringUtil.isNotEmpty(propertyName) && StringUtil.isNotEmpty(propertyValue)) {
+            hql.append(" and m.id IN (SELECT custId FROM CustomerProperty m where m.propertyName=? AND m.propertyValue = ? ) ");
+            values.add(propertyName);
+            values.add(propertyValue);
+        } else if (StringUtil.isNotEmpty(propertyName)) {
+            hql.append(" and m.id IN (SELECT custId FROM CustomerProperty m where m.propertyName=? ) ");
+            values.add(propertyName);
+        }
+        List<CustomerDO> list = this.find(hql.toString(), values);
+        List<CustomerDTO> result = new ArrayList<>();
+        if (list.size() > 0) {
+            for (CustomerDO m : list) {
+                result.add(new CustomerDTO(m));
+            }
+        }
+        return result;
+    }
+
+
+    /**
+     * 查询单个外显号
+     *
+     * @param id
+     * @return com.bdaim.sale.dto.ApparentNumber
+     * @author chengning@salescomm.net
+     * @date 2019/2/13 14:44
+     */
+    public ApparentNumber selectApparentNumber(int id) {
+        StringBuffer hql = new StringBuffer();
+        List<Object> params = new ArrayList<>();
+        hql.append("from ApparentNumber m where m.id = ? ");
+        params.add(id);
+        List<ApparentNumber> list = this.find(hql.toString(), params);
+        if (list.size() > 0) {
+            return list.get(0);
+        }
+        return null;
+    }
+
+
+    /**
+     * 企业外显号列表
+     *
+     * @param model
+     * @return com.bdaim.sale.dto.Page
+     * @author chengning@salescomm.net
+     * @date 2019/2/13 14:50
+     */
+    public List<ApparentNumber> listApparentNumber(ApparentNumberQueryParam model) {
+        StringBuffer hql = new StringBuffer();
+        List<Object> params = new ArrayList<>();
+        hql.append("from ApparentNumber m where 1=1 ");
+        if (StringUtil.isNotEmpty(model.getCustId())) {
+            hql.append(" AND m.custId = ? ");
+            params.add(model.getCustId());
+        }
+        if (StringUtil.isNotEmpty(model.getApparentNumber())) {
+            hql.append(" AND m.apparentNumber = ? ");
+            params.add(model.getApparentNumber());
+        }
+        if (StringUtil.isNotEmpty(model.getProvince())) {
+            hql.append(" AND m.province = ?");
+            params.add(model.getProvince());
+        }
+        if (StringUtil.isNotEmpty(model.getOperator())) {
+            hql.append(" AND m.operator = ?");
+            params.add(model.getOperator());
+        }
+        if (model.getStatus() != null) {
+            hql.append(" AND m.status = ?");
+            params.add(model.getStatus());
+        }
+        if (model.getStopStatus() != null) {
+            hql.append(" AND m.stopStatus = ?");
+            params.add(model.getStopStatus());
+        }
+        if (StringUtil.isNotEmpty(model.getCallChannel())) {
+            hql.append(" AND m.callChannel = ?");
+            params.add(model.getCallChannel());
+        }
+        if (StringUtil.isNotEmpty(model.getCallType())) {
+            hql.append(" AND m.callType = ?");
+            params.add(model.getCallType());
+        }
+        hql.append(" ORDER BY m.createTime DESC ");
+        return this.find(hql.toString(), params);
+    }
+
+    public Page pageApparentNumber(ApparentNumberQueryParam model) {
+        StringBuffer hql = new StringBuffer();
+        List<Object> params = new ArrayList<>();
+        hql.append("from ApparentNumber m where 1=1 ");
+        if (StringUtil.isNotEmpty(model.getCustId())) {
+            hql.append(" AND m.custId = ? ");
+            params.add(model.getCustId());
+        }
+        if (StringUtil.isNotEmpty(model.getApparentNumber())) {
+            hql.append(" AND m.apparentNumber = ? ");
+            params.add(model.getApparentNumber());
+        }
+        if (StringUtil.isNotEmpty(model.getProvince())) {
+            hql.append(" AND m.province = ?");
+            params.add(model.getProvince());
+        }
+        if (StringUtil.isNotEmpty(model.getOperator())) {
+            hql.append(" AND m.operator = ?");
+            params.add(model.getOperator());
+        }
+        if (model.getStatus() != null) {
+            hql.append(" AND m.status = ?");
+            params.add(model.getStatus());
+        }
+        if (model.getStopStatus() != null) {
+            hql.append(" AND m.stopStatus = ?");
+            params.add(model.getStopStatus());
+        }
+        if (StringUtil.isNotEmpty(model.getCallChannel())) {
+            hql.append(" AND m.callChannel = ?");
+            params.add(model.getCallChannel());
+        }
+        if (StringUtil.isNotEmpty(model.getCallType())) {
+            hql.append(" AND m.callType = ?");
+            params.add(model.getCallType());
+        }
+        hql.append(" ORDER BY m.createTime DESC ");
+        return this.page(hql.toString(), params, model.getPageNum(), model.getPageSize());
+    }
+
+    /**
+     * 批量保存客户群数据表数据
+     *
+     * @param custGroupId
+     * @param list
+     * @return
+     * @throws Exception
+     */
+    public int insertBatchDataGroupData(String custGroupId, List<CGroupImportParam> list) throws Exception {
+        int[] status = jdbcTemplate.batchUpdate(MessageFormat.format(CG_INSERT_SQL, custGroupId), new BatchPreparedStatementSetter() {
+            @Override
+            public void setValues(PreparedStatement preparedStatement, int i) throws SQLException {
+                preparedStatement.setString(1, list.get(i).getMd5Phone());
+                preparedStatement.setString(2, list.get(i).getSuperData());
+                preparedStatement.setInt(3, list.get(i).getStatus());
+            }
+
+            @Override
+            public int getBatchSize() {
+                return list.size();
+            }
+        });
+        return status.length;
+    }
+
+    /**
+     * 批量保存手机号
+     *
+     * @param list
+     * @return
+     * @throws Exception
+     */
+    public int insertBatchUData(List<CGroupImportParam> list) throws Exception {
+        int[] status = jdbcTemplate.batchUpdate(U_INSERT_SQL, new BatchPreparedStatementSetter() {
+            @Override
+            public void setValues(PreparedStatement preparedStatement, int i) throws SQLException {
+                preparedStatement.setString(1, list.get(i).getMd5Phone());
+                preparedStatement.setString(2, list.get(i).getPhone());
+            }
+
+            @Override
+            public int getBatchSize() {
+                return list.size();
+            }
+        });
+        return status.length;
+    }
+
+    /**
+     * 查询讯众呼叫中心企业ID
+     *
+     * @param custId
+     * @return
+     */
+    public Map<String, Object> selectXzCallCenterInfo(String custId) {
+        Map<String, Object> data = new HashMap<>();
+        String sql = "SELECT cust_id, property_value FROM t_customer_property where property_name = 'xz_callcenterid' AND cust_id = ? LIMIT 1";
+        List<Map<String, Object>> list = this.sqlQuery(sql, custId);
+        if (list != null && list.size() > 0) {
+            data.put("cust_id", list.get(0).get("cust_id"));
+            data.put("id", list.get(0).get("property_value"));
+        }
+        return data;
+    }
+
+    /**
+     * 根据客户ID和资源ID查询客户短信售价
+     *
+     * @param custId
+     * @param resourceId
+     * @return
+     * @throws Exception
+     */
+    public String selectCustSmsPrice(String custId, String resourceId) throws Exception {
+        StringBuffer sql = new StringBuffer();
+        sql.append(" SELECT property_value FROM t_customer_property WHERE property_name='sms_config' AND cust_id = ? ");
+        List<Map<String, Object>> list = this.sqlQuery(sql.toString(), custId);
+        if (list.size() > 0) {
+            String configs = String.valueOf(list.get(0).get("property_value"));
+            JSONArray jsonArray = JSON.parseArray(configs);
+            JSONObject jsonObject;
+            for (int i = 0; i < jsonArray.size(); i++) {
+                jsonObject = jsonArray.getJSONObject(i);
+                if (StringUtil.isNotEmpty(resourceId) && resourceId.equals(jsonObject.getString("resourceId"))) {
+                    logger.info("客户ID:" + custId + ",资源ID:" + resourceId + "配置的短信资源:" + jsonObject);
+                    return String.valueOf(NumberConvertUtil.changeY2L(jsonObject.getDouble("price")));
+                }
+            }
+        }
+        logger.warn("客户ID:" + custId + ",资源ID:" + resourceId + "未配置短信资源!");
+        return null;
+    }
+
+    /**
+     * 根据资源ID获取供应商短信定价
+     *
+     * @param resourceId
+     * @return
+     * @throws Exception
+     */
+    public String selectSupplierSmsPrice(String resourceId) throws Exception {
+        StringBuffer sql = new StringBuffer();
+        sql.append(" SELECT t2.property_value FROM t_market_resource t1 JOIN t_market_resource_property t2 ON t1.resource_id = t2.resource_id ");
+        sql.append(" WHERE t1.`status` = 1 AND t1.type_code = 2 AND t2.property_name='price_config' AND t1.resource_id=?");
+        List<Map<String, Object>> list = this.sqlQuery(sql.toString(), resourceId);
+        if (list.size() > 0) {
+            String config = String.valueOf(list.get(0).get("property_value"));
+            JSONObject jsonObject = JSON.parseObject(config);
+            logger.info("资源ID:" + resourceId + "配置的短信资源:" + jsonObject);
+            return String.valueOf(NumberConvertUtil.changeY2L(jsonObject.getDouble("price")));
+        }
+        logger.warn("资源ID:" + resourceId + "未配置短信资源!");
+        return null;
     }
 
 }
