@@ -217,22 +217,22 @@ public class OpenAction extends BasicAction {
         return returnJsonData(map);
     }
 
-//    /**
-//     * 获取token
-//     *
-//     * @author:duanliying
-//     * @method
-//     * @date: 2019/3/27 16:04
-//     */
-//    @RequestMapping(value = "/tokenInfoGet", method = RequestMethod.POST)
-//    @ResponseBody
-//    public Object tokenInfoGet(@RequestBody JSONObject param) {
-//        Map<String, Object> resultMap = new HashMap<>();
-//        String username = param.getString("username");
-//        String password = param.getString("password");
-//        resultMap = openService.getTokenInfo(username, password);
-//        return returnJsonData(resultMap);
-//    }
+    /**
+     * 获取token
+     *
+     * @author:duanliying
+     * @method
+     * @date: 2019/3/27 16:04
+     */
+    @RequestMapping(value = "/tokenInfoGet", method = RequestMethod.POST)
+    @ResponseBody
+    public Object tokenInfoGet(@RequestBody JSONObject param) {
+        Map<String, Object> resultMap = new HashMap<>();
+        String username = param.getString("username");
+        String password = param.getString("password");
+        resultMap = openService.getTokenInfo(username, password);
+        return returnJsonData(resultMap);
+    }
 
     /**
      * 失联修复数据上传接口
