@@ -290,7 +290,7 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         //地址ID
         String addressId = String.valueOf(map.get("address_id"));
         if (!nullString.equals(addressId) && StringUtil.isNotEmpty(addressId)) {
-            hql.append(" AND t2.id LIKE '%" + id + "%'");
+            hql.append(" AND t2.id LIKE '%" + addressId + "%'");
         }
         //姓名
         String name = String.valueOf(map.get("name"));
