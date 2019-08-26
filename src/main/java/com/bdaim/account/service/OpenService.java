@@ -258,7 +258,7 @@ public class OpenService {
                         result = new CallCenterServiceImpl().unicomExtensionRegister(callCenterId, mainNumber, 1);
 
                         log.info("坐席主叫号增加" + ":" + result);
-                        if (result.get("result") != null && result.get("result").equals("0") || result.get("code").equals("211")) {
+                        if (result.get("result") != null && result.get("result").equals("0") || result.get("code").equals("211") || result.get("code").equals("213")) {
                             jsonObject.put("mainNumber", mainNumber);
                             String updateSql = "update t_customer_user_property SET property_value= ? where property_name=? AND user_id= ? ";
                             int update = customerDao.executeUpdateSQL(updateSql, new Object[]{JSON.toJSONString(jsonObject), "cuc_seat", userId});
