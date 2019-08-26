@@ -241,6 +241,7 @@ public class OpenService {
             sql.append("WHERE p.property_name =  'cuc_seat' AND  u.cust_id =" + custId);
             sql.append(" AND u.account='" + seatAccount + "'");
             List<Map<String, Object>> list = customerDao.sqlQuery(sql.toString());
+            log.info("query SQL is : "+sql.toString());
             log.info("SQL result is : "+JSON.toJSONString(list.get(0)));
             if (list.size() > 0) {
                 String propertyValue = String.valueOf(list.get(0).get("propertyValue"));
