@@ -1717,8 +1717,8 @@ public class MarketResourceServiceImpl implements MarketResourceService {
         LOG.info("资源id是：" + resourceId + " custId是" + custId);
         JSONObject customerMarketResource = getCustomerMarketResource(custId, resourceId);
         if (customerMarketResource != null) {
-//           String propertyValue = customerMarketResource.getString(ResourceEnum.CALL.getApparentNumber());
-            String propertyValue = null;
+           String propertyValue = customerMarketResource.getString(ResourceEnum.CALL.getApparentNumber());
+//            String propertyValue = null;
             List<String> apparentsList = Arrays.asList(propertyValue.split(","));
             if (apparentsList.size() > 0) {
                 flag = apparentsList.contains(apparentNumber);
