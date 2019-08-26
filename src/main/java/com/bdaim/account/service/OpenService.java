@@ -226,7 +226,7 @@ public class OpenService {
         if (resourceId != null) {
             JSONObject customerMarketResource = marketResourceServiceImpl.getCustomerMarketResource(custId, String.valueOf(resourceId.getResourceId()));
             if (customerMarketResource != null) {
-                //             callCenterId = customerMarketResource.getString(ResourceEnum.CALL.getCallCenterId());
+                             callCenterId = customerMarketResource.getString(ResourceEnum.CALL.getCallCenterId());
             }
         }
 
