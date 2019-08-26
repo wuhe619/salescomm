@@ -405,7 +405,7 @@ public class OpenService {
                 if (resourceId != null) {
                     JSONObject customerMarketResource = marketResourceServiceImpl.getCustomerMarketResource(compId, String.valueOf(resourceId));
                     if (customerMarketResource != null) {
-                        //                idCardPrice = customerMarketResource.getDoubleValue(ResourceEnum.IDCARD.getPrice());
+                        idCardPrice = customerMarketResource.getDoubleValue(ResourceEnum.IDCARD.getPrice());
                         log.info("身份证修复单价是：" + idCardPrice + "企业id是：" + compId);
                         if (idCardPrice == null || idCardPrice <= 0) {
                             resultMap.put("status", "006");
