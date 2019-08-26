@@ -251,8 +251,8 @@ public class OpenService {
                     if (jsonObject != null) {
                         if (jsonObject.getString("mainNumber") != null) {
                             //先删除联通注册上的主叫号码（分机号码）
-                            Map<String, Object> extensionDeleteResult = new CallCenterServiceImpl().unicomExtensionDelete(callCenterId, jsonObject.getString("mainNumber"));
-                            log.info("坐席主叫号码删除" + ":" + extensionDeleteResult);
+//                            Map<String, Object> extensionDeleteResult = new CallCenterServiceImpl().unicomExtensionDelete(callCenterId, jsonObject.getString("mainNumber"));
+//                            log.info("坐席主叫号码删除" + ":" + extensionDeleteResult);
                         }
                         //调用联通接口进行增加主叫号码
                         result = new CallCenterServiceImpl().unicomExtensionRegister(callCenterId, mainNumber, 1);
