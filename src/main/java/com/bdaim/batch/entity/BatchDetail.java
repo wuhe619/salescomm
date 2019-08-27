@@ -341,7 +341,7 @@ public class BatchDetail implements Serializable {
         this.phoneNum = phoneNum;
     }*/
     @Basic
-    @Column(name = "phoneId")
+    @Column(name = "phoneid")
     public String getPhoneId() {
         return phoneId;
     }
