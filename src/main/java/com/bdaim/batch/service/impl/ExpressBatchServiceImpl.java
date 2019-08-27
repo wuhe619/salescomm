@@ -13,6 +13,7 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -121,7 +122,12 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
                 // 判断余额是否足够 t_customer_property中的price的value是销售定价，单位 元，remain_amount是余额，单位分
                 int num = contentList.size() - 1;
                 String remainAmountSql = "SELECT cust_id,property_value FROM t_customer_property WHERE cust_id='" + custId + "' AND property_name='remain_amount'";
-                Map<String, Object> amountMap = jdbcTemplate.queryForMap(remainAmountSql);
+                Map<String,Object> amountMap = null;
+                try{
+                    amountMap = jdbcTemplate.queryForMap(remainAmountSql);
+                }catch (EmptyResultDataAccessException e){
+                    return new ResponseInfoAssemble().failure(HttpStatus.BAD_REQUEST.value(), "余额不足，请先充值");
+                }
                 logger.info("查询余额SQL为" + remainAmountSql);
                 logger.info("查询余额结果为" + amountMap.toString());
                 if (amountMap != null) {
