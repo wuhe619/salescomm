@@ -65,9 +65,9 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
      */
     @Override
     public Map<String, Object> getExpressLog(String id) throws Exception {
-        String sqlQuery = "SELECT * from t_touch_express_log WHERE touch_id = " + id;
+        String sqlQuery = "SELECT * from t_touch_express_log WHERE touch_id = '" + id+"'";
         logger.info("查询快件记录"+sqlQuery);
-        List<Map<String, Object>> list = batchDao.sqlQuery(sqlQuery);
+        List<Map<String, Object>> list = jdbcTemplate.queryForList(sqlQuery);
         Map<String,Object> resultMap = new HashMap<>(16);
         if (list!=null && list.size()>0){
             resultMap = list.get(0);
