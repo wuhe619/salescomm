@@ -226,7 +226,7 @@ public class OpenService {
         if (resourceId != null) {
             JSONObject customerMarketResource = marketResourceServiceImpl.getCustomerMarketResource(custId, String.valueOf(resourceId.getResourceId()));
             if (customerMarketResource != null) {
-                //             callCenterId = customerMarketResource.getString(ResourceEnum.CALL.getCallCenterId());
+                             callCenterId = customerMarketResource.getString(ResourceEnum.CALL.getCallCenterId());
             }
         }
 
@@ -241,6 +241,8 @@ public class OpenService {
             sql.append("WHERE p.property_name =  'cuc_seat' AND  u.cust_id =" + custId);
             sql.append(" AND u.account='" + seatAccount + "'");
             List<Map<String, Object>> list = customerDao.sqlQuery(sql.toString());
+            log.info("query SQL is : "+sql.toString());
+            log.info("SQL result is : "+JSON.toJSONString(list.get(0)));
             if (list.size() > 0) {
                 String propertyValue = String.valueOf(list.get(0).get("propertyValue"));
                 String userId = String.valueOf(list.get(0).get("id"));
@@ -249,14 +251,14 @@ public class OpenService {
                     if (jsonObject != null) {
                         if (jsonObject.getString("mainNumber") != null) {
                             //先删除联通注册上的主叫号码（分机号码）
-                            Map<String, Object> extensionDeleteResult = new CallCenterServiceImpl().unicomExtensionDelete(callCenterId, jsonObject.getString("mainNumber"));
-                            log.info("坐席主叫号码删除" + ":" + extensionDeleteResult);
+//                            Map<String, Object> extensionDeleteResult = new CallCenterServiceImpl().unicomExtensionDelete(callCenterId, jsonObject.getString("mainNumber"));
+//                            log.info("坐席主叫号码删除" + ":" + extensionDeleteResult);
                         }
                         //调用联通接口进行增加主叫号码
                         result = new CallCenterServiceImpl().unicomExtensionRegister(callCenterId, mainNumber, 1);
 
                         log.info("坐席主叫号增加" + ":" + result);
-                        if (result.get("result") != null && result.get("result").equals("0") || result.get("code").equals("211")) {
+                        if (result.get("result") != null && result.get("result").equals("0") || result.get("code").equals("211") || result.get("code").equals("213")) {
                             jsonObject.put("mainNumber", mainNumber);
                             String updateSql = "update t_customer_user_property SET property_value= ? where property_name=? AND user_id= ? ";
                             int update = customerDao.executeUpdateSQL(updateSql, new Object[]{JSON.toJSONString(jsonObject), "cuc_seat", userId});
@@ -403,7 +405,7 @@ public class OpenService {
                 if (resourceId != null) {
                     JSONObject customerMarketResource = marketResourceServiceImpl.getCustomerMarketResource(compId, String.valueOf(resourceId));
                     if (customerMarketResource != null) {
-                        //                idCardPrice = customerMarketResource.getDoubleValue(ResourceEnum.IDCARD.getPrice());
+                        idCardPrice = customerMarketResource.getDoubleValue(ResourceEnum.IDCARD.getPrice());
                         log.info("身份证修复单价是：" + idCardPrice + "企业id是：" + compId);
                         if (idCardPrice == null || idCardPrice <= 0) {
                             resultMap.put("status", "006");
@@ -749,7 +751,7 @@ public class OpenService {
         stringBuffer.append("SELECT t.touch_id touchId,t.remark,t.create_time createTime,t.`status`,t.superid superId,t.channel,t.batch_id batchId,t.enterprise_id enterpriseId,u.account account,backInfo.Callerduration Callerduration,backInfo.Callercaller mainNumber  ");
         stringBuffer.append(" FROM t_touch_voice_log t LEFT JOIN t_customer_user u ON t.user_id = u.id ");
         stringBuffer.append(" LEFT JOIN t_callback_info backInfo ON t.callSid = backInfo.callSid ");
-        stringBuffer.append(" WHERE t.cust_id = " + custId);
+        stringBuffer.append(" WHERE t.cust_id = '" + custId + "' ORDER BY t.create_time DESC");
         log.info("查询单条通话记录sql" + stringBuffer);
         Page page = batchDao.sqlPageQuery(stringBuffer.toString(), pageNum, pageSize);
         //根据touchId和custId查询一条记录

@@ -13,6 +13,7 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -64,10 +65,20 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
      */
     @Override
     public Map<String, Object> getExpressLog(String id) throws Exception {
-        String sqlQuery = "SELECT * from t_touch_express_log WHERE touch_id = " + id;
+        String sqlQuery = "SELECT * from t_touch_express_log WHERE touch_id = '" + id+"'";
+        logger.info("查询快件记录"+sqlQuery);
         List<Map<String, Object>> list = batchDao.sqlQuery(sqlQuery);
+        Map<String,Object> resultMap = new HashMap<>(16);
         if (list!=null && list.size()>0){
-            return  list.get(0);
+            resultMap = list.get(0);
+            //根据touchId查询发件时间
+            String sql = "SELECT DATE_FORMAT(create_time,'%Y-%m-%d %H:%i:%s') AS createTime FROM t_touch_express_log WHERE touch_id='" + id + "' LIMIT 1";
+            logger.info("查询发件时间"+sql);
+            Map<String, Object> createTime = jdbcTemplate.queryForMap(sql);
+            String myStatus = String.valueOf(createTime.get("createTime"));
+            myStatus = StringUtil.isNotEmpty(myStatus) ? myStatus : "";
+            resultMap.put("myStatus", "待取件：" + myStatus);
+            return  resultMap;
         }
         return null;
     }
@@ -121,7 +132,12 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
                 // 判断余额是否足够 t_customer_property中的price的value是销售定价，单位 元，remain_amount是余额，单位分
                 int num = contentList.size() - 1;
                 String remainAmountSql = "SELECT cust_id,property_value FROM t_customer_property WHERE cust_id='" + custId + "' AND property_name='remain_amount'";
-                Map<String, Object> amountMap = jdbcTemplate.queryForMap(remainAmountSql);
+                Map<String,Object> amountMap = null;
+                try{
+                    amountMap = jdbcTemplate.queryForMap(remainAmountSql);
+                }catch (EmptyResultDataAccessException e){
+                    return new ResponseInfoAssemble().failure(HttpStatus.BAD_REQUEST.value(), "余额不足，请先充值");
+                }
                 logger.info("查询余额SQL为" + remainAmountSql);
                 logger.info("查询余额结果为" + amountMap.toString());
                 if (amountMap != null) {
@@ -132,6 +148,9 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
                     if (remainAmount.compareTo(price.multiply(new BigDecimal(num)).multiply(new BigDecimal("100"))) == -1) {
                         return new ResponseInfoAssemble().failure(HttpStatus.BAD_REQUEST.value(), "余额不足，请先充值");
                     }
+                }else{
+                    //没有余额，直接返回余额不足
+                    return new ResponseInfoAssemble().failure(HttpStatus.BAD_REQUEST.value(), "余额不足，请先充值");
                 }
             }catch (Exception e){
                 logger.info("执行出错，出错地址为"+e.getMessage());
@@ -558,6 +577,11 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         batchDao.executeUpdateSQL(updateSql, status, batchId);
         String updateDetailSql = "UPDATE nl_batch_detail SET `label_seven` =4 WHERE batch_id = ? and status = 1";
         batchDao.executeUpdateSQL(updateDetailSql, batchId);
+        String updateBatchSql = "UPDATE t_touch_express_log t1,nl_batch_detail t2 SET t1.create_time=NOW() WHERE t2.touch_id=t1.touch_id AND t2.batch_id='"
+                +batchId+"'";
+        logger.info("执行更新 发件完成 时间SQL"+updateBatchSql);
+        int result = jdbcTemplate.update(updateBatchSql);
+        logger.info("更新完成，影响条数为 "+result +" 条");
     }
 
     @Override

@@ -2,7 +2,9 @@ package com.bdaim.account.controller;
 
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.account.service.OpenService;
+import com.bdaim.batch.dao.BatchDetailDao;
 import com.bdaim.batch.dto.FixInfo;
+import com.bdaim.batch.entity.BatchDetail;
 import com.bdaim.callcenter.dto.RecordVoiceQueryParam;
 import com.bdaim.common.annotation.CacheAnnotation;
 import com.bdaim.common.controller.BasicAction;
@@ -42,6 +44,8 @@ public class OpenAction extends BasicAction {
     private OpenService openService;
     @Resource
     private MarketResourceService marketResourceService;
+    @Resource
+    private BatchDetailDao batchDetailDao;
 
     /**
      * 账户余额查询
@@ -464,7 +468,13 @@ public class OpenAction extends BasicAction {
         map = openService.sendSmsMessage(batchId, templateId, channel, variables, customerId, seatAccount, custId);
         return returnJsonData(map);
     }
-
+    @RequestMapping(value = "/testBatchDetail")
+    public ResponseInfo testBatchDetail(@RequestBody Map map){
+        String id = String.valueOf(map.get("id"));
+        String batchId = String.valueOf(map.get("batch_id"));
+        BatchDetail batchDetail = batchDetailDao.getBatchDetail(id,batchId);
+        return new ResponseInfoAssemble().success(batchDetail);
+    }
     /**
      * 录音文件地址查询
      */

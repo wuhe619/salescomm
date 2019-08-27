@@ -222,7 +222,7 @@ public class PackingService {
         //备注 收件人id  放到收件人备注(对应买家备注)，  批次id放到发件人备注(对应卖家备注)
         data.put("sellerMessage", batchId);
         String fileCode = String.valueOf(receiverInfo.get("fileCode"));
-        data.put("buyerMessage", addressId+","+fileCode);
+        data.put("buyerMessage", fileCode+","+addressId);
         request.addParam("data", JSON.toJSONString(data));
         try {
             logger.info("订单创建成功，入参值为"+JSON.toJSONString(data)+" 返回值为");
@@ -236,7 +236,7 @@ public class PackingService {
             String supplierId = String.valueOf(amountMap.get("supplier_id"));
             sourceDao.supplierAccountDuctions(supplierId, amount);
             //更新prod_amount 资源金额 字段
-            String prodAmount = "UPDATE t_touch_express_log SET prod_amount=amount WHERE touch_id='" + touch_id + "'";
+            String prodAmount = "UPDATE t_touch_express_log SET prod_amount=amount,create_time=NOW() WHERE touch_id='" + touch_id + "'";
             jdbcTemplate.update(prodAmount);
         } catch (Exception e) {
             logger.info("订单创建失败，返回值为");

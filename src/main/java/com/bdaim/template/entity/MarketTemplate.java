@@ -28,7 +28,7 @@ public class MarketTemplate implements Serializable {
     private String templateCode;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     public int getId() {
         return id;
