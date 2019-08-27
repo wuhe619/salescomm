@@ -235,6 +235,7 @@ public class ExpressBatchController extends BasicAction {
         List<List<Object>> data = new ArrayList<>();
         if (exportType == 1) {
             header.add("文件编码(不能重复)");
+            header.add("校验结果");
             header.add("收件ID(不能重复)");
             header.add("姓名");
             header.add("电话");
@@ -243,6 +244,7 @@ public class ExpressBatchController extends BasicAction {
             for (Map<String, Object> column : dataList) {
                 rowList = new ArrayList<>();
                 rowList.add(column.get("fileCode") != null ? column.get("fileCode") : "");
+                rowList.add(column.get("status") != null ? column.get("status") : "");
                 rowList.add(column.get("receiverId") != null ? column.get("receiverId") : "");
                 rowList.add(column.get("name") != null ? column.get("name") : "");
                 rowList.add(column.get("phone") != null ? column.get("phone") : "");
