@@ -340,15 +340,15 @@ public class BatchDetail implements Serializable {
     public void setPhoneNum(String phoneNum) {
         this.phoneNum = phoneNum;
     }*/
-    @Basic
-    @Column(name = "phoneId")
-    public String getPhoneId() {
-        return phoneId;
-    }
-
-    public void setPhoneId(String phoneId) {
-        this.phoneId = phoneId;
-    }
+//    @Basic
+//    @Column(name = "phoneId")
+//    public String getPhoneId() {
+//        return phoneId;
+//    }
+//
+//    public void setPhoneId(String phoneId) {
+//        this.phoneId = phoneId;
+//    }
 
     @Basic
     @Column(name = "site")
@@ -443,7 +443,7 @@ public class BatchDetail implements Serializable {
                 ", lastCallTime=" + lastCallTime +
                 ", allocation=" + allocation +
                 ", provideId='" + provideId + '\'' +
-                ", phoneId='" + phoneId + '\'' +
+//                ", phoneId='" + phoneId + '\'' +
                 ", site='" + site + '\'' +
                 ", name='" + name + '\'' +
                 ", activityId='" + activityId + '\'' +
