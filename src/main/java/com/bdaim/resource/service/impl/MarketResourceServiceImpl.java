@@ -1339,7 +1339,7 @@ public class MarketResourceServiceImpl implements MarketResourceService {
             //前端首页 签收统计图
             StringBuffer signAndReceive = new StringBuffer("SELECT t1.id,t1.batch_name,SUM(CASE t3.`status` WHEN '1' THEN 0 ELSE 1 END) AS sendVal,");
             signAndReceive.append("SUM(CASE t3.`status` WHEN '4' THEN 1 ELSE 0 END) AS receiveVal,")
-                    .append("SUM(CASE t3.`status` WHEN '2' THEN 1 WHEN '3' THEN 1 ELSE 0 END) AS sendingVal,")
+                    .append("SUM(CASE t2.`label_seven` WHEN '4' THEN 1 ELSE 0 END) AS sendingVal,")
                     .append("SUM(CASE t3.`status` WHEN '5' THEN 1 ELSE 0 END) AS rejectionVal ")
                     .append("FROM nl_batch t1 ")
                     .append("LEFT JOIN nl_batch_detail t2 ON t1.id=t2.batch_id ")
