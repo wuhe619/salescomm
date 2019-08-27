@@ -577,8 +577,8 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         batchDao.executeUpdateSQL(updateSql, status, batchId);
         String updateDetailSql = "UPDATE nl_batch_detail SET `label_seven` =4 WHERE batch_id = ? and status = 1";
         batchDao.executeUpdateSQL(updateDetailSql, batchId);
-        String updateBatchSql = "UPDATE t_touch_express_log SET create_time=NOW() FROM nl_batch_detail WHERE nl_batch_detail.touch_id=t_touch_express_log.touch_id"
-                +" AND nl_batch_detail.batch_id='"+batchId+"'";
+        String updateBatchSql = "UPDATE t_touch_express_log t1,nl_batch_detail t2 SET t1.create_time=NOW() WHERE t2.touch_id=t1.touch_id AND t2.batch_id='"
+                +batchId+"'";
         logger.info("执行更新 发件完成 时间SQL"+updateBatchSql);
         int result = jdbcTemplate.update(updateBatchSql);
         logger.info("更新完成，影响条数为 "+result +" 条");
