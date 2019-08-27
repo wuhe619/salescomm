@@ -55,8 +55,6 @@ public class BatchDetail implements Serializable {
     //性别
     //private String sex;
     //手机号码
-    @Basic
-    @Column(name = "phoneId")
     private String phoneId;
     //快递地址
     private String site;
@@ -342,7 +340,8 @@ public class BatchDetail implements Serializable {
     public void setPhoneNum(String phoneNum) {
         this.phoneNum = phoneNum;
     }*/
-
+    @Basic
+    @Column(name = "phoneId")
     public String getPhoneId() {
         return phoneId;
     }
@@ -444,7 +443,7 @@ public class BatchDetail implements Serializable {
                 ", lastCallTime=" + lastCallTime +
                 ", allocation=" + allocation +
                 ", provideId='" + provideId + '\'' +
-//                ", phoneId='" + phoneId + '\'' +
+                ", phoneId='" + phoneId + '\'' +
                 ", site='" + site + '\'' +
                 ", name='" + name + '\'' +
                 ", activityId='" + activityId + '\'' +
