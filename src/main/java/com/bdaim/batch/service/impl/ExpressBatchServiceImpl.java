@@ -132,6 +132,9 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
                     if (remainAmount.compareTo(price.multiply(new BigDecimal(num)).multiply(new BigDecimal("100"))) == -1) {
                         return new ResponseInfoAssemble().failure(HttpStatus.BAD_REQUEST.value(), "余额不足，请先充值");
                     }
+                }else{
+                    //没有余额，直接返回余额不足
+                    return new ResponseInfoAssemble().failure(HttpStatus.BAD_REQUEST.value(), "余额不足，请先充值");
                 }
             }catch (Exception e){
                 logger.info("执行出错，出错地址为"+e.getMessage());
