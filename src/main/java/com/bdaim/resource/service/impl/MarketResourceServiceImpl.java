@@ -37,6 +37,7 @@ import com.bdaim.resource.entity.ResourcePropertyEntity;
 import com.bdaim.resource.service.MarketResourceService;
 import com.bdaim.smscenter.dto.SendSmsDTO;
 import com.bdaim.smscenter.dto.SmsqueryParam;
+import com.bdaim.smscenter.service.SendSmsService;
 import com.bdaim.supplier.dao.SupplierDao;
 import com.bdaim.supplier.dto.SupplierEnum;
 import com.bdaim.supplier.dto.SupplierListParam;
@@ -100,8 +101,8 @@ public class MarketResourceServiceImpl implements MarketResourceService {
     private CustomerDao customerDao;
     @Resource
     private MarketResourceDao marketResourceDao;
-    //    @Resource
-//    private SendSmsService sendSmsServiceImpl;
+    @Resource
+    private SendSmsService sendSmsServiceImpl;
     @Resource
     private BatchDetailDao batchDetailDao;
     @Resource
@@ -1808,7 +1809,7 @@ public class MarketResourceServiceImpl implements MarketResourceService {
                 JSONObject smsConfigData = getCustomerMarketResource(custId, resourceId);
                 if (smsConfigData != null) {
                     LOG.info("发送短信custId:" + custId + "配置参数是" + smsConfigData.toJSONString());
-                    //            sendSmsDTO.setEntId(smsConfigData.getString(ResourceEnum.SMS.getCallCenterId()));
+                                sendSmsDTO.setEntId(smsConfigData.getString(ResourceEnum.SMS.getCallCenterId()));
                 }
                 if (batchDetail != null) {
                     sendSmsDTO.setMessageWord(marketTemplate.getTemplateCode());
@@ -1821,55 +1822,55 @@ public class MarketResourceServiceImpl implements MarketResourceService {
                         sendSmsDTO.setVariableFour(variableList.size() > 3 ? variableList.get(3) : "");
                         sendSmsDTO.setVariableFive(variableList.size() > 4 ? variableList.get(4) : "");
                     }
-//                    sendResult = sendSmsServiceImpl.sendSmsService(sendSmsDTO, customerId, batchId);
-//                    if (StringUtil.isNotEmpty(sendResult)) {
-//                        result = JSONObject.parseObject(sendResult);
-//                        marketResourceLogDTO.setRemark(result.getString("msg"));
-//                        map.put("code", result.get("code"));
-//                        map.put("touchId", touchId);
-//                    }
+                    sendResult = sendSmsServiceImpl.sendSmsService(sendSmsDTO, customerId, batchId);
+                    if (StringUtil.isNotEmpty(sendResult)) {
+                        result = JSONObject.parseObject(sendResult);
+                        marketResourceLogDTO.setRemark(result.getString("msg"));
+                        map.put("code", result.get("code"));
+                        map.put("touchId", touchId);
+                    }
                     marketResourceLogDTO.setActivityId(batchDetail.getActivityId());
                     marketResourceLogDTO.setEnterpriseId(batchDetail.getEnterpriseId());
-//                    marketResourceLogDTO.setCallBackData(sendResult);
+                    marketResourceLogDTO.setCallBackData(sendResult);
 
-                    // 发送成功
-//                    if (StringUtil.isNotEmpty(sendResult) && "000".equals(JSON.parseObject(sendResult, Map.class).get("code"))) {
-//                        sendSuccessCount++;
-//                        marketResourceLogDTO.setRemark("发送成功");
-//                        marketResourceLogDTO.setStatus(1001);
-//                        // 账户余额扣款
-//                        if (smsConfigData != null) {
-//                            //获取短信的销售定价
-//                            //             custSmsPrice = NumberConvertUtil.transformtionCent(smsConfigData.getDoubleValue(ResourceEnum.SMS.getPrice()));
-//                        }
-//                        custSmsAmount = new BigDecimal(custSmsPrice);
-//                        LOG.info("短信扣费客户:" + custId + ",开始扣费,金额（分）:" + custSmsAmount.doubleValue());
-//                        accountDeductionStatus = customerDao.accountDeductions(custId, custSmsAmount);
-//                        LOG.info("短信扣费客户:" + custId + ",扣费状态:" + accountDeductionStatus);
-//
-//                        // 供应商余额扣款
-//                        JSONObject supplierMarketResource = null;
-//                        if (StringUtil.isNotEmpty(resourceId)) {
-//                            supplierMarketResource = getSupplierMarketResource(Integer.parseInt(resourceId));
-//                        }
-//                        if (supplierMarketResource != null) {
-//                            //获取供应商短信价格
-//                            //                supSmsPrice = NumberConvertUtil.transformtionCent(supplierMarketResource.getDoubleValue(ResourceEnum.SMS.getPrice()));
-//                        }
-//                        // 供应商余额扣款
-//                        LOG.info("短信扣费供应商:" + custId + "开始短信扣费,金额(分):" + supSmsPrice);
-//                        //供应商扣费需要转换为分进行扣减
-//                        sourceSmsAmount = new BigDecimal(supSmsPrice);
-//                        LOG.info("短信扣费供应商:" + custId + "开始短信扣费,金额:" + sourceSmsAmount);
-//                        sourceSmsDeductionStatus = sourceDao.supplierAccountDuctions(SupplierEnum.CUC.getSupplierId(), sourceSmsAmount);
-//                        LOG.info("短信扣费供应商:" + custId + "短信扣费状态:" + sourceSmsDeductionStatus);
-//                        //短信log表，添加企业和供应商扣减金额
-//                        marketResourceLogDTO.setAmount(custSmsPrice);
-//                        marketResourceLogDTO.setProdAmount(supSmsPrice);
-//                    } else {
-//                        marketResourceLogDTO.setRemark(result.getString("msg"));
-//                        marketResourceLogDTO.setStatus(1002);
-//                    }
+//                     发送成功
+                    if (StringUtil.isNotEmpty(sendResult) && "000".equals(JSON.parseObject(sendResult, Map.class).get("code"))) {
+                        sendSuccessCount++;
+                        marketResourceLogDTO.setRemark("发送成功");
+                        marketResourceLogDTO.setStatus(1001);
+                        // 账户余额扣款
+                        if (smsConfigData != null) {
+                            //获取短信的销售定价
+                            //             custSmsPrice = NumberConvertUtil.transformtionCent(smsConfigData.getDoubleValue(ResourceEnum.SMS.getPrice()));
+                        }
+                        custSmsAmount = new BigDecimal(custSmsPrice);
+                        LOG.info("短信扣费客户:" + custId + ",开始扣费,金额（分）:" + custSmsAmount.doubleValue());
+                        accountDeductionStatus = customerDao.accountDeductions(custId, custSmsAmount);
+                        LOG.info("短信扣费客户:" + custId + ",扣费状态:" + accountDeductionStatus);
+
+                        // 供应商余额扣款
+                        JSONObject supplierMarketResource = null;
+                        if (StringUtil.isNotEmpty(resourceId)) {
+                            supplierMarketResource = getSupplierMarketResource(Integer.parseInt(resourceId));
+                        }
+                        if (supplierMarketResource != null) {
+                            //获取供应商短信价格
+                            //                supSmsPrice = NumberConvertUtil.transformtionCent(supplierMarketResource.getDoubleValue(ResourceEnum.SMS.getPrice()));
+                        }
+                        // 供应商余额扣款
+                        LOG.info("短信扣费供应商:" + custId + "开始短信扣费,金额(分):" + supSmsPrice);
+                        //供应商扣费需要转换为分进行扣减
+                        sourceSmsAmount = new BigDecimal(supSmsPrice);
+                        LOG.info("短信扣费供应商:" + custId + "开始短信扣费,金额:" + sourceSmsAmount);
+                        sourceSmsDeductionStatus = sourceDao.supplierAccountDuctions(SupplierEnum.CUC.getSupplierId(), sourceSmsAmount);
+                        LOG.info("短信扣费供应商:" + custId + "短信扣费状态:" + sourceSmsDeductionStatus);
+                        //短信log表，添加企业和供应商扣减金额
+                        marketResourceLogDTO.setAmount(custSmsPrice);
+                        marketResourceLogDTO.setProdAmount(supSmsPrice);
+                    } else {
+                        marketResourceLogDTO.setRemark(result.getString("msg"));
+                        marketResourceLogDTO.setStatus(1002);
+                    }
                 } else {
                     marketResourceLogDTO.setRemark("未查询到失联人员信息");
                     marketResourceLogDTO.setStatus(1002);

@@ -1,0 +1,50 @@
+package com.bdaim.smscenter.service;
+
+import com.bdaim.smscenter.dto.SendSmsDTO;
+
+/**
+ * 发送短信service服务接口
+ * 2017/2/21
+ *
+ * @author lich@bdcsdk.com
+ */
+public interface SendSmsService {
+//    public Object sendSmsVcode(String phone, String state, String username);
+
+//    public int verificationCode(String phone, String code);
+
+    /**
+     * 使用讯众平台发生短信
+     *
+     * @param phone
+     * @param type
+     * @param username
+     * @return java.lang.String
+     * @author chengning@salescomm.net
+     * @date 2018/7/31 14:07
+     */
+//    Object sendSmsVcCodeByCommChinaAPI(String phone, int type, String username);
+
+    /**
+     * 调用api接口发送短信
+     *
+     * @param phone
+     * @param templateId
+     * @param templateValue
+     * @return
+     */
+    String sendSmsVcCodeByRestAPI(String phone, String templateId, String templateValue);
+
+//    /**
+//     * 验证码验证功能
+//     *
+//     * @param 手机号 验证类型
+//     * @author:duanliying
+//     * @description
+//     * @method
+//     * @date: 2018/8/13 15:48
+//     */
+//    int verificationCode(String phone, int type, String Code);
+
+    String sendSmsService(SendSmsDTO sendSmsDTO, String id, String batchId);
+}
