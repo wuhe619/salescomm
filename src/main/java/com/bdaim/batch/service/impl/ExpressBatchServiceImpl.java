@@ -67,8 +67,14 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
     public Map<String, Object> getExpressLog(String id) throws Exception {
         String sqlQuery = "SELECT * from t_touch_express_log WHERE touch_id = " + id;
         List<Map<String, Object>> list = batchDao.sqlQuery(sqlQuery);
+        Map<String,Object> resultMap = new HashMap<>(16);
         if (list!=null && list.size()>0){
-            return  list.get(0);
+            resultMap = list.get(0);
+            //根据touchId查询发件时间
+            String sql = "SELECT DATE_FORMAT(create_time,'%Y-%m-%d %H:%i:%s') AS createTime FROM t_touch_express_log WHERE touch_id='"+id+"' LIMIT 1";
+            Map<String,Object> createTime = jdbcTemplate.queryForMap(sql);
+            resultMap.put("myStatus","待取件："+String.valueOf(createTime.get("createTime")));
+            return  resultMap;
         }
         return null;
     }

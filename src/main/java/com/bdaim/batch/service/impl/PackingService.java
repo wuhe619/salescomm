@@ -236,7 +236,7 @@ public class PackingService {
             String supplierId = String.valueOf(amountMap.get("supplier_id"));
             sourceDao.supplierAccountDuctions(supplierId, amount);
             //更新prod_amount 资源金额 字段
-            String prodAmount = "UPDATE t_touch_express_log SET prod_amount=amount WHERE touch_id='" + touch_id + "'";
+            String prodAmount = "UPDATE t_touch_express_log SET prod_amount=amount,create_time=NOW() WHERE touch_id='" + touch_id + "'";
             jdbcTemplate.update(prodAmount);
         } catch (Exception e) {
             logger.info("订单创建失败，返回值为");
