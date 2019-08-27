@@ -751,7 +751,7 @@ public class OpenService {
         stringBuffer.append("SELECT t.touch_id touchId,t.remark,t.create_time createTime,t.`status`,t.superid superId,t.channel,t.batch_id batchId,t.enterprise_id enterpriseId,u.account account,backInfo.Callerduration Callerduration,backInfo.Callercaller mainNumber  ");
         stringBuffer.append(" FROM t_touch_voice_log t LEFT JOIN t_customer_user u ON t.user_id = u.id ");
         stringBuffer.append(" LEFT JOIN t_callback_info backInfo ON t.callSid = backInfo.callSid ");
-        stringBuffer.append(" WHERE t.cust_id = " + custId);
+        stringBuffer.append(" WHERE t.cust_id = '" + custId + "' ORDER BY t.create_time DESC");
         log.info("查询单条通话记录sql" + stringBuffer);
         Page page = batchDao.sqlPageQuery(stringBuffer.toString(), pageNum, pageSize);
         //根据touchId和custId查询一条记录
