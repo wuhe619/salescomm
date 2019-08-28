@@ -1,6 +1,8 @@
 package com.bdaim.account.service;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.account.dto.Fixentity;
 import com.bdaim.batch.ResourceEnum;
@@ -12,10 +14,7 @@ import com.bdaim.batch.service.BatchService;
 import com.bdaim.callcenter.service.impl.CallCenterServiceImpl;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
-import com.bdaim.common.util.CipherUtil;
-import com.bdaim.common.util.IDHelper;
-import com.bdaim.common.util.StringHelper;
-import com.bdaim.common.util.StringUtil;
+import com.bdaim.common.util.*;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerUserDao;
 import com.bdaim.customer.entity.CustomerDO;
@@ -36,6 +35,7 @@ import com.bdaim.template.entity.MarketTemplate;
 //import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,11 +45,16 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
 
 import static com.bdaim.common.util.JwtUtil.generToken;
 import static com.bdaim.common.util.JwtUtil.verifyToken;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.sql.Timestamp;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -920,6 +925,85 @@ public class OpenService {
         resultMap.put("status", true);
         resultMap.put("message", "成功");
         return resultMap;
+    }
+
+    public void getVoiceRecordFile(String userId, String fileName, HttpServletRequest request, HttpServletResponse response) {
+        // 设置响应头
+        response.addHeader("Accept-Ranges", "bytes");
+        response.addHeader("Content-Type", "audio/mpeg;charset=UTF-8");
+        String range = request.getHeader("Range");
+        FileInputStream fis = null;
+        ByteArrayInputStream hBaseInputStream = null;
+        try {
+            // 查询本地磁盘的录音文件
+            String filePath = "/home/soft/audio/"+ userId + File.separator + fileName;
+            File file = new File(filePath);
+            if (file.exists()) {
+                fis = new FileInputStream(file);
+                if (StringUtil.isNotEmpty(range)) {
+                    long length = file.length();
+                    log.info("文件大小: " + length);
+                    String[] rs = range.split("\\=");
+                    range = rs[1].split("\\-")[0];
+                    length -= Integer.parseInt(range);
+                    response.addHeader("Content-Length", length + "");
+                    response.addHeader("Content-Range", "bytes " + range + "-" + length + "/" + length);
+                }
+                IOUtils.copy(fis, response.getOutputStream());
+            } else {
+                log.warn(filePath + ",音频文件不存在,穿透查询一次录音文件");
+                long length;
+                // 通过HBase接口读取录音文件
+                Map<String, Object> param = new HashMap<>();
+                Map<String, Object> headers = new HashMap<>();
+                headers.put("Accept", "application/json");
+                String result = HttpUtil.httpGet("http://ds4:1111/voice/" + fileName + "/f1:file", param, headers);
+                if (StringUtil.isNotEmpty(result)) {
+                    log.info("开始解析HBase返回的录音文件,userId:" + userId + ",fileName:" + fileName);
+                    String base64Str = null;
+                    JSONObject jsonObject;
+                    try {
+                        jsonObject = JSON.parseObject(result);
+                    } catch (JSONException e) {
+                        log.error("解析HBase录音文件返回Json出错,userId:" + userId + ",fileName:" + fileName + ",返回结果:" + result, e);
+                        return;
+                    }
+                    JSONArray row = jsonObject.getJSONArray("Row");
+                    if (row != null && row.size() > 0) {
+                        JSONObject rowData = row.getJSONObject(0);
+                        JSONArray cell = rowData.getJSONArray("Cell");
+                        if (cell != null && cell.size() > 0) {
+                            base64Str = cell.getJSONObject(0).getString("$");
+                        }
+                    }
+                    if (StringUtil.isNotEmpty(base64Str)) {
+                        byte[] bytes = org.apache.commons.codec.binary.Base64.decodeBase64(base64Str);
+                        hBaseInputStream = new ByteArrayInputStream(bytes);
+                        length = hBaseInputStream.available();
+                        response.addHeader("Content-Length", length + "");
+                        response.addHeader("Content-Range", "bytes " + range + "-" + length + "/" + length);
+                        IOUtils.copy(hBaseInputStream, response.getOutputStream());
+                    } else {
+                        log.warn("通过HBase读取录音文件base64字符串为空,userId:" + userId + ",fileName:" + fileName + ",base64Str:" + base64Str);
+                    }
+                } else {
+                    log.warn("通过HBase读取录音文件返回为空,userId:" + userId + ",fileName:" + fileName + ",result:" + result);
+                }
+            }
+        } catch (Exception e) {
+            log.error("获取录音文件失败,", e);
+        } finally {
+            try {
+                if (fis != null) {
+                    fis.close();
+                }
+                if (hBaseInputStream != null) {
+                    hBaseInputStream.close();
+                }
+            } catch (IOException e) {
+                log.error("获取录音文件失败,", e);
+            }
+        }
     }
 }
 

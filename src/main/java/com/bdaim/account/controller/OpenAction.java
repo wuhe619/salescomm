@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -481,9 +482,14 @@ public class OpenAction extends BasicAction {
     @AuthPassport
     @RequestMapping(value = "/getRecordUrl", method = RequestMethod.POST)
     @ResponseBody
-    public String downloadSound(@RequestBody JSONObject param) {
+    public String downloadSound(@RequestBody JSONObject param,HttpServletRequest request) {
+        log.info("/open/getRecordUrl/"+param.toJSONString());
         Map<String, Object> map = new HashMap<>();
-        String basePath = ConfigUtil.getInstance().get("audio_server_url") + "/";
+//        String basePath = ConfigUtil.getInstance().get("audio_server_url") + "/";
+        String basePath = request.getRequestURL().toString();
+        basePath = basePath.substring(0,basePath.lastIndexOf("/"))+"/getVoiceRecordFile/";
+        log.info("basePath is :"+basePath);
+
         RecordVoiceQueryParam recordVoiceQueryParam = new RecordVoiceQueryParam();
         String touchId = param.getString("touchId");
         recordVoiceQueryParam.setTouchId(touchId);
@@ -585,6 +591,11 @@ public class OpenAction extends BasicAction {
         log.info("进入saveBillNo 接收运单号接口，入参为" + map.toString());
         Map<String, Object> result = openService.saveBillNo(map);
         return result;
+    }
+
+    @RequestMapping("/getVoiceRecordFile/{userId}/{fileName:.+}")
+    public void getVoiceRecordFile(@PathVariable String userId, @PathVariable String fileName, HttpServletResponse response){
+        openService.getVoiceRecordFile(userId,fileName,request,response);
     }
 }
 

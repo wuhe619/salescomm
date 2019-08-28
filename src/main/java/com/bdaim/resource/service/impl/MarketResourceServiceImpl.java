@@ -1508,7 +1508,7 @@ public class MarketResourceServiceImpl implements MarketResourceService {
                 "LEFT JOIN t_callback_info backInfo ON voicLog.callSid = backInfo.callSid\n" +
                 "WHERE 1 = 1 ");
         if (StringUtil.isNotEmpty(recordVoiceQueryParam.getTouchId())) {
-            sb.append(" AND  voicLog.touch_id= " + recordVoiceQueryParam.getTouchId());
+            sb.append(" AND  voicLog.touch_id= '" + recordVoiceQueryParam.getTouchId()+"'");
         }
         LOG.info("录音文件单个下载功能查询sql：" + sb.toString());
         List<Map<String, Object>> list = jdbcTemplate.queryForList(sb.toString());
