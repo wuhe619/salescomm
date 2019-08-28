@@ -20,5 +20,7 @@ public class GetPdfConfiguration extends WebSecurityConfigurerAdapter {
     public void configure(WebSecurity web) throws Exception {
         web.ignoring().antMatchers("/pdf/**");
         web.ignoring().antMatchers("/pic/**");
+
+        web.ignoring().antMatchers("/open/getVoiceRecordFile/**");
     }
 }

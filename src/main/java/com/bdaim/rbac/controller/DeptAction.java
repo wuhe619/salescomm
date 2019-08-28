@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.auth.LoginUser;
 import com.bdaim.common.controller.BasicAction;
+import com.bdaim.common.util.StringUtil;
 import com.bdaim.rbac.dto.DeptDto;
 import com.bdaim.rbac.service.DeptService;
 
@@ -62,14 +63,21 @@ public class DeptAction extends BasicAction {
     @RequestMapping(value = "/queryDeptList", method = RequestMethod.GET)
     @ResponseBody
     public String queryDeptList(@RequestParam Map<String,Object> map) {
-        //获取当前操作人
-        Map<String,Object> resultMap = null;
-        try {
-            resultMap = deptService.queryDeptList(map);
-        } catch (Exception e) {
-            logger.error("查询部门列表信息异常" + e);
+        String pageNum = String.valueOf(map.get("page_num"));
+        if(StringUtil.isNotEmpty(pageNum)){
+            //BP、快递 中的部门列表，有分页入参
+            Map<String,Object> resultMap = null;
+            try {
+                resultMap = deptService.queryDeptList(map);
+            } catch (Exception e) {
+                logger.error("查询部门列表信息异常" + e);
+            }
+            return JSON.toJSONString(resultMap);
+        }else {
+            //失联修复中的部门列表 无分页入参
+            List<Map<String,Object>> list = deptService.getDeptList();
+            return returnJsonData(list);
         }
-        return JSON.toJSONString(resultMap);
     }
     /**
      * 获取部门信息以及部门下职位信息

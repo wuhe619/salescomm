@@ -201,4 +201,19 @@ public class DeptService {
         }
         return deptList;
     }
+    /**
+     * 失联修复中的部门列表信息查询 没有分页入参
+     *
+     * @param
+     * @return
+     * @auther Chacker
+     * @date
+     */
+    public List<Map<String, Object>> getDeptList() {
+        StringBuffer buffer = new StringBuffer("SELECT t1.id,t1.create_time createTime,t1.name,COUNT(t2.id) rowNum ");
+        buffer.append("FROM t_dept t1 LEFT JOIN t_role t2 ON t1.id=t2.deptid ")
+                .append("GROUP BY t1.id,t1.create_time,t1.name");
+        List<Map<String, Object>> resultList = jdbcTemplate.queryForList(buffer.toString());
+        return resultList;
+    }
 }
