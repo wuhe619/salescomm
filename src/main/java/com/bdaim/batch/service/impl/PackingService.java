@@ -156,7 +156,7 @@ public class PackingService {
             stringBuffer.append(batchId).append("' AND status='1' AND label_seven='2'");
             List<Map<String, Object>> resultList = jdbcTemplate.queryForList(stringBuffer.toString());
             for (Map<String, Object> tempMap : resultList) {
-                updateExpressInfo(tempMap, senderInfo);
+//                updateExpressInfo(tempMap, senderInfo);
                 String addressIdNew =String.valueOf(tempMap.get("addressId"));
                 sendExpressByZTO(batchId, addressIdNew, senderInfo, tempMap);
             }
@@ -165,7 +165,7 @@ public class PackingService {
             StringBuffer stringBuffer = new StringBuffer("SELECT id AS addressId,touch_id,label_four AS address,label_one AS name,label_two AS phone,label_five AS receiverId,label_six AS fileCode,label_eight AS pdfPath FROM nl_batch_detail WHERE id='");
             stringBuffer.append(addressId).append("'");
             Map<String, Object> tempMap = jdbcTemplate.queryForMap(stringBuffer.toString());
-            updateExpressInfo(tempMap, senderInfo);
+//            updateExpressInfo(tempMap, senderInfo);
             //调用发送快递的接口
             sendExpressByZTO(batchId, addressId, senderInfo, tempMap);
         }
@@ -225,7 +225,7 @@ public class PackingService {
         data.put("buyerMessage", fileCode+","+addressId);
         request.addParam("data", JSON.toJSONString(data));
         try {
-            logger.info("订单创建成功，入参值为"+JSON.toJSONString(data)+" 返回值为");
+            logger.info("订单创建成功，入参值为" + JSON.toJSONString(data) + " 返回值为");
             logger.info(client.execute(request));
             //执行扣费逻辑
             String touch_id = String.valueOf(receiverInfo.get("touch_id"));
@@ -235,8 +235,10 @@ public class PackingService {
             BigDecimal amount = new BigDecimal(String.valueOf(amountMap.get("amount")));
             String supplierId = String.valueOf(amountMap.get("supplier_id"));
             sourceDao.supplierAccountDuctions(supplierId, amount);
+            String pdfPath = String.valueOf(receiverInfo.get("pdfPath"));
             //更新prod_amount 资源金额 字段
-            String prodAmount = "UPDATE t_touch_express_log SET prod_amount=amount,create_time=NOW() WHERE touch_id='" + touch_id + "'";
+            String prodAmount = "UPDATE t_touch_express_log SET prod_amount=amount,create_time=NOW(),status='2',sender_message='" +
+                    senderInfo.toString() + "',file_path='" + pdfPath + "' WHERE touch_id='" + touch_id + "'";
             jdbcTemplate.update(prodAmount);
         } catch (Exception e) {
             logger.info("订单创建失败，返回值为");
@@ -246,26 +248,26 @@ public class PackingService {
 
     }
 
-    /**
-     * 更新t_touch_express_log中的快递信息
-     *
-     * @param
-     * @return
-     * @auther Chacker
-     * @date 2019/8/9 15:48
-     */
-    public void updateExpressInfo(Map<String, Object> tempMap, Map<String, Object> senderInfo) {
-//        String requestId = DigestUtils.md5Hex(String.valueOf(tempMap.get("addressId"))).toUpperCase();
-        //根据touch_id关联，把requestId更新到t_touch_express_log中 status更新为"2" 已发送
-        StringBuffer updateRequestId = new StringBuffer("UPDATE t_touch_express_log SET create_time=NOW(),status='2',");
-        String addressIdNew = String.valueOf(tempMap.get("addressId"));
-        String pdfPath = String.valueOf(tempMap.get("pdfPath"));
-        updateRequestId.append("sender_message='").append(senderInfo.toString())
-                .append("',file_path='").append(pdfPath)
-                .append("' FROM nl_batch_detail")
-                .append("WHERE nl_batch_detail.touch_id=t_touch_express_log.touch_id AND nl_batch_detail.id='")
-                .append(addressIdNew).append("'");
-    }
+//    /**
+//     * 更新t_touch_express_log中的快递信息
+//     *
+//     * @param
+//     * @return
+//     * @auther Chacker
+//     * @date 2019/8/9 15:48
+//     */
+//    public void updateExpressInfo(Map<String, Object> tempMap, Map<String, Object> senderInfo) {
+////        String requestId = DigestUtils.md5Hex(String.valueOf(tempMap.get("addressId"))).toUpperCase();
+//        //根据touch_id关联，把requestId更新到t_touch_express_log中 status更新为"2" 已发送
+//        StringBuffer updateRequestId = new StringBuffer("UPDATE t_touch_express_log SET create_time=NOW(),status='2',");
+//        String addressIdNew = String.valueOf(tempMap.get("addressId"));
+//        String pdfPath = String.valueOf(tempMap.get("pdfPath"));
+//        updateRequestId.append("sender_message='").append(senderInfo.toString())
+//                .append("',file_path='").append(pdfPath)
+//                .append("' FROM nl_batch_detail ")
+//                .append("WHERE nl_batch_detail.touch_id=t_touch_express_log.touch_id AND nl_batch_detail.id='")
+//                .append(addressIdNew).append("'");
+//    }
 
     public int countNumber(String batchId) throws Exception {
         String querySql = "SELECT COUNT(id) count FROM nl_batch_detail  WHERE batch_id=? AND express_path IS NOT NULL ";
