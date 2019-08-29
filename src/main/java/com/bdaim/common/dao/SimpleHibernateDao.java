@@ -341,7 +341,12 @@ public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDao
         Query query = getSession().createQuery(queryString);
         if (values != null) {
             for (int i = 0; i < values.length; i++) {
-                query.setParameter(String.valueOf(i), values[i]);
+                if(i==0){
+                    query.setParameter("0", values[i]);
+
+                }else if(i==1){
+                    query.setParameter("1",values[i]);
+                }
             }
         }
         return query;
