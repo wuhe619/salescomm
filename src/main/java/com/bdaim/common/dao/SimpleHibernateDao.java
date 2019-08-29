@@ -243,7 +243,7 @@ public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDao
         return createQuery(hql, values).list();
     }
     public <X> List<X> findWithPositionalParams(final String hql, final Object... values) {
-        return createQuery(hql, values).list();
+        return queryWithPositionalParameters(hql, values).list();
     }
 
     /**
