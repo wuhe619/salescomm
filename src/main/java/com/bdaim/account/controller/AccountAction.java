@@ -356,12 +356,18 @@ public class AccountAction extends BasicAction {
     @RequestMapping(value = "/supplierRemainMoney", method = RequestMethod.GET)
     @ResponseBody
     public Object supplierRemainMoney(String supplierId) {
+        logger.info("查询供应商可用余额 ===》》》");
         Map<String, Object> remainMap = new HashMap<>();
-        if (StringUtil.isNotEmpty(supplierId)) {
-            Double remainAmount = customerService.getSourceRemainMoney(supplierId);
-            remainMap.put("cucRemainMoney", remainAmount);
-        } else {
-            throw new RuntimeException("参数错误");
+        try {
+            if (StringUtil.isNotEmpty(supplierId)) {
+                Double remainAmount = customerService.getSourceRemainMoney(supplierId);
+                remainMap.put("cucRemainMoney", remainAmount);
+            } else {
+                throw new RuntimeException("参数错误");
+            }
+
+        } catch (Exception e) {
+            logger.info("查询发生异常 》》》" + e);
         }
         return JSONObject.toJSON(remainMap);
     }
