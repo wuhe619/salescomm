@@ -44,48 +44,43 @@ public class DeptService {
      * @date
      */
     public Map<String, String> updateDeptMessage(DeptDto deptDto, String optUserId) {
-        logger.info("新增或编辑修改 部门信息 ======");
         Map<String, String> resultMap = new HashMap<>();
-        String id = deptDto.getId();
+        String code = "1";
         try {
-            if (StringUtil.isEmpty(id)) {
-                /**
-                 * 入参中不存在部门id，则执行新增操作
-                 * 先查验该部门名称是否已存在，如果已存在则不允许新增
-                 */
-                boolean isExisted = checkDeptName(deptDto.getName());
-                logger.info("该部门是否已存在 " + isExisted);
-                if (!isExisted) {
-                    DeptEntity deptEntity = new DeptEntity();
+            String id = deptDto.getId();
+            logger.info("编辑部门id是" + id);
+            //根据id查询是否存在,不存在新增操作\
+            DeptEntity deptEntity = deptDao.getDeptEntityById(NumberConvertUtil.parseLong(id));
+            if (deptEntity != null) {
+                deptEntity.setName(deptDto.getName());
+                deptEntity.setModifyTime(DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss));
+                deptEntity.setOptuser(optUserId);
+                deptDao.saveOrUpdate(deptEntity);
+                resultMap.put("code", code);
+                resultMap.put("message", "编辑成功");
+            } else {
+                //核验部门名字是否存在
+                boolean flag = checkDeptName(deptDto.getName());
+                if (!flag) {
+                    deptEntity = new DeptEntity();
                     deptEntity.setCreateTime(DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss));
                     deptEntity.setId(IDHelper.getTransactionId());
                     deptEntity.setType(1);
                     deptEntity.setOptuser(String.valueOf(optUserId));
                     deptEntity.setName(deptDto.getName());
                     deptDao.saveOrUpdate(deptEntity);
-                    resultMap.put("code", Constant.SUCCESS_CODE);
-                    resultMap.put("message", "操作成功");
+                    resultMap.put("code", code);
+                    resultMap.put("message", "添加成功");
                 } else {
-                    resultMap.put("code", Constant.FAILURE_CODE);
-                    resultMap.put("message", "该部门已存在");
-                }
-            } else {
-                //入参中存在部门id，则执行修改操作
-                DeptEntity deptEntity = deptDao.getDeptEntityById(NumberConvertUtil.parseLong(id));
-                logger.info("执行修改操作" + deptEntity.toString());
-                if (deptEntity != null) {
-                    deptEntity.setName(deptDto.getName());
-                    deptEntity.setModifyTime(DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss));
-                    deptEntity.setOptuser(optUserId);
-                    deptDao.saveOrUpdate(deptEntity);
-                    resultMap.put("code", Constant.SUCCESS_CODE);
-                    resultMap.put("message", "编辑成功");
+                    resultMap.put("code", "0");
+                    resultMap.put("message", "该部门已经存在");
                 }
             }
         } catch (Exception e) {
             logger.error("编辑部门信息异常" + e);
-            resultMap.put("code", Constant.FAILURE_CODE);
-            resultMap.put("message", "操作失败");
+            code = "0";
+            resultMap.put("code", code);
+            resultMap.put("message", "编辑失败");
         }
         return resultMap;
     }
