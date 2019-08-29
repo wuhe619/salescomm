@@ -58,9 +58,15 @@ public class DeptDao extends SimpleHibernateDao<DeptEntity, Serializable> {
      *
      * @throws SQLException
      */
-    public int deleteByDeptId(Long deptId) throws SQLException {
-        String sql = "DELETE FROM t_dept WHERE ID = '" + deptId + "'";
-        int i = jdbcTemplate.update(sql);
+    public int deleteByDeptId(Long deptId) {
+        int i = 0;
+        try {
+            String sql = "DELETE FROM t_dept WHERE ID = '" + deptId + "'";
+            i = jdbcTemplate.update(sql);
+
+        } catch (Exception e) {
+            logger.info("删除失败>>>>>>>" + e);
+        }
         return i;
     }
 }
