@@ -42,8 +42,8 @@ public class DeptDao extends SimpleHibernateDao<DeptEntity, Serializable> {
      * 根据部门id查询职位集合
      */
     public List<RoleEntity> getRoleEntityList(Long deptId) {
-        String hql = "from RoleEntity m where m.deptId=?";
-        List<RoleEntity> list = this.find(hql, deptId);
+        String hql = "from RoleEntity m where m.deptId=?0";
+        List<RoleEntity> list = this.findWithPositionalParams(hql, deptId);
         return list;
     }
 
