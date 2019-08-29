@@ -6,6 +6,7 @@ import com.bdaim.auth.LoginUser;
 import com.bdaim.bill.dto.CustomerBillQueryParam;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.dto.PageParam;
+import com.bdaim.common.util.Constant;
 import com.bdaim.common.util.page.Page;
 import com.bdaim.price.dto.SalePriceDTO;
 import com.bdaim.price.service.SalePriceService;
@@ -43,14 +44,14 @@ public class SalesPriceingAction extends BasicAction {
      * @return
      */
     @ResponseBody
-    @RequestMapping(value = "/getSalePriceList", method = RequestMethod.GET)
+    @RequestMapping(value = "/getSalePriceList.do", method = RequestMethod.GET)
     public String searchPage(@Valid PageParam page, BindingResult error, CustomerBillQueryParam customerBillQueryParam) {
         if (error.hasFieldErrors()) {
             return getErrors(error);
         }
         LoginUser lu = opUser();
         Page list = null;
-        if ("ROLE_USER".equals(lu.getRole()) || "admin".equals(lu.getRole())) {
+        if (Constant.ROLE_USER.equals(lu.getRole()) || Constant.ADMIN.equals(lu.getRole())) {
             list = salePriceService.getSalePriceList(page, customerBillQueryParam);
         }
         return JSON.toJSONString(list);
