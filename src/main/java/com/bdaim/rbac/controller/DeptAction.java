@@ -58,26 +58,27 @@ public class DeptAction extends BasicAction {
     }
 
     /**
-     * 部门列表查询
+     * 部门列表信息查询
+     *
+     * @param map page_num、page_size
+     * @return
+     * @auther Chacker
+     * @date
      */
     @RequestMapping(value = "/queryDeptList", method = RequestMethod.GET)
     @ResponseBody
-    public String queryDeptList(@RequestParam Map<String,Object> map) {
+    public String queryDeptList(@RequestParam Map<String, Object> map) {
         String pageNum = String.valueOf(map.get("page_num"));
-        if(StringUtil.isNotEmpty(pageNum)){
-            //BP、快递 中的部门列表，有分页入参
-            Map<String,Object> resultMap = null;
-            try {
-                resultMap = deptService.queryDeptList(map);
-            } catch (Exception e) {
-                logger.error("查询部门列表信息异常" + e);
-            }
-            return JSON.toJSONString(resultMap);
-        }else {
-            //失联修复中的部门列表 无分页入参
-            List<Map<String,Object>> list = deptService.getDeptList();
-            return returnJsonData(list);
+        if (StringUtil.isEmpty(pageNum)) {
+            return "请传入分页参数";
         }
+        Map<String, Object> resultMap = null;
+        try {
+            resultMap = deptService.queryDeptList(map);
+        } catch (Exception e) {
+            logger.error("查询部门列表信息异常" + e);
+        }
+        return JSON.toJSONString(resultMap);
     }
     /**
      * 获取部门信息以及部门下职位信息

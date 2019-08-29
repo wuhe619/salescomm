@@ -82,43 +82,32 @@ public class DeptService {
     }
 
     /**
-     * 部门列表查询
+     * 部门列表信息查询
      *
-     * @author:duanliying
-     * @date: 2019/3/13 17:24
+     * @param map page_num、page_size
+     * @return
+     * @auther Chacker
+     * @date
      */
-    public Map<String,Object> queryDeptList(Map<String,Object> map)throws Exception {
-        List<DeptDto> deptList = new ArrayList<DeptDto>();
-        StringBuilder builder = new StringBuilder();
-        builder.append(" select t.id deptId,t.TYPE,t.createTime,t.name,count(r.id) as rolecount from ");
-        builder.append(" (select d.ID ,d.CREATE_TIME createTime,d.TYPE,d.name from t_dept d) t");
-        builder.append(" left join t_role r on t.id = r.deptid group by t.id,t.TYPE,t.name");
-        PageParam page=new PageParam();
-        page.setPageNum(Integer.parseInt(String.valueOf(map.get("page_num"))));
-        page.setPageSize(Integer.parseInt(String.valueOf(map.get("page_size"))));
-        Page pageData = new Pagination().getPageData(builder.toString(),null,page,jdbcTemplate);
-        List<Map<String, Object>> deptEntityList = pageData.getList();
-        //查询部门里面有几个职位
-        if (deptEntityList.size() > 0) {
-            for (int i = 0; i < deptEntityList.size(); i++) {
-                String id = String.valueOf(deptEntityList.get(i).get("deptId"));
-                String deptName = String.valueOf(deptEntityList.get(i).get("name"));
-                int rolecount = Integer.parseInt(String.valueOf(deptEntityList.get(i).get("rolecount")));
-                String createTime = String.valueOf(deptEntityList.get(i).get("createTime"));
-                DeptDto deptDto = new DeptDto();
-                if (StringUtil.isNotEmpty(id)) {
-                    deptDto.setId(id);
-                    deptDto.setName(deptName);
-                    deptDto.setRoleNum(rolecount);
-                    deptDto.setCreateTime(createTime);
-                    deptList.add(deptDto);
-                }
-            }
-        }
-        Map<String,Object> resultMap = new HashMap<>(10);
-        resultMap.put("data",deptList);
-        resultMap.put("total",pageData.getTotal());
-        return resultMap;
+    public Map<String, Object> queryDeptList(Map<String, Object> map) throws Exception {
+        //设置分页参数
+        PageParam param = new PageParam();
+        param.setPageNum(Integer.parseInt(String.valueOf(map.get("page_num"))));
+        param.setPageSize(Integer.parseInt(String.valueOf(map.get("page_size"))));
+
+        //查询SQL语句
+        StringBuffer buffer = new StringBuffer("SELECT t1.id,t1.create_time createTime,t1.name,COUNT(t2.id) rowNum ");
+        buffer.append("FROM t_dept t1 LEFT JOIN t_role t2 ON t1.id=t2.deptid ")
+                .append("GROUP BY t1.id,t1.create_time,t1.name");
+        logger.info("执行查询 " + buffer.toString());
+        Page page = new Pagination().getPageData(buffer.toString(), null, param, jdbcTemplate);
+        List<Map<String, Object>> data = page.getList();
+
+        //组装返回值
+        Map<String, Object> result = new HashMap<>(16);
+        result.put("data", data);
+        result.put("total", page.getTotal());
+        return result;
     }
 
 
@@ -200,20 +189,5 @@ public class DeptService {
             }
         }
         return deptList;
-    }
-    /**
-     * 失联修复中的部门列表信息查询 没有分页入参
-     *
-     * @param
-     * @return
-     * @auther Chacker
-     * @date
-     */
-    public List<Map<String, Object>> getDeptList() {
-        StringBuffer buffer = new StringBuffer("SELECT t1.id,t1.create_time createTime,t1.name,COUNT(t2.id) rowNum ");
-        buffer.append("FROM t_dept t1 LEFT JOIN t_role t2 ON t1.id=t2.deptid ")
-                .append("GROUP BY t1.id,t1.create_time,t1.name");
-        List<Map<String, Object>> resultList = jdbcTemplate.queryForList(buffer.toString());
-        return resultList;
     }
 }
