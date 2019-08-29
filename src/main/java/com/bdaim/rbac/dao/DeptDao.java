@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -43,7 +44,12 @@ public class DeptDao extends SimpleHibernateDao<DeptEntity, Serializable> {
      */
     public List<RoleEntity> getRoleEntityList(Long deptId) {
         String hql = "from RoleEntity m where m.deptId=?";
-        List<RoleEntity> list = this.find(hql, deptId);
+        List<RoleEntity> list = new ArrayList<>();
+        try {
+            list = this.find(hql, deptId);
+        } catch (Exception e) {
+            logger.info("查询职位出错" + e);
+        }
         return list;
     }
 
