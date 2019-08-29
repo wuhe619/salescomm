@@ -43,7 +43,7 @@ public class SalesPriceingAction extends BasicAction {
      * @return
      */
     @ResponseBody
-    @RequestMapping(value = "/getSalePriceList.do", method = RequestMethod.GET)
+    @RequestMapping(value = "/getSalePriceList", method = RequestMethod.GET)
     public String searchPage(@Valid PageParam page, BindingResult error, CustomerBillQueryParam customerBillQueryParam) {
         if (error.hasFieldErrors()) {
             return getErrors(error);

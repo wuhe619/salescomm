@@ -537,22 +537,22 @@ public class SalePriceServiceImpl implements SalePriceService {
                 "   FROM t_customer_property p GROUP BY cust_id \n" +
                 ") cjc ON t.cust_id = cjc.cust_id  where 1=1 and t2.user_type=1  ");
         if (StringUtil.isNotEmpty(customerBillQueryParam.getCustomerId())) {
-            sqlBuilder.append(" and t.cust_id like '%" + customerBillQueryParam.getCustomerId() + "%'");
+            sqlBuilder.append(" AND t.cust_id LIKE '%" + customerBillQueryParam.getCustomerId() + "%'");
         }
         if (StringUtil.isNotEmpty(customerBillQueryParam.getEnterpriseName())) {
-            sqlBuilder.append(" and t.enterprise_name like'%" + customerBillQueryParam.getEnterpriseName() + "%'");
+            sqlBuilder.append(" AND t.enterprise_name LIKE'%" + customerBillQueryParam.getEnterpriseName() + "%'");
         }
         if (StringUtil.isNotEmpty(customerBillQueryParam.getRealname())) {
-            sqlBuilder.append(" and t2.REALNAME like '%" + customerBillQueryParam.getRealname() + "%'");
+            sqlBuilder.append(" AND t2.REALNAME LIKE '%" + customerBillQueryParam.getRealname() + "%'");
         }
         if (StringUtil.isNotEmpty(customerBillQueryParam.getPhone())) {
-            sqlBuilder.append(" and cjc.mobile_num like '%" + customerBillQueryParam.getPhone() + "%'");
+            sqlBuilder.append(" AND cjc.mobile_num LIKE '%" + customerBillQueryParam.getPhone() + "%'");
         }
         if (StringUtil.isNotEmpty(customerBillQueryParam.getIndustry())) {
-            sqlBuilder.append(" and cjc.industry= " + customerBillQueryParam.getIndustry());
+            sqlBuilder.append(" AND cjc.industry= " + customerBillQueryParam.getIndustry());
         }
         sqlBuilder.append(" GROUP BY t.cust_id ");
-        sqlBuilder.append(" order by t.create_time desc ");
+        sqlBuilder.append(" ORDER BY t.create_time DESC ");
         return new Pagination().getPageData(sqlBuilder.toString(), null, page, jdbcTemplate);
     }
 
