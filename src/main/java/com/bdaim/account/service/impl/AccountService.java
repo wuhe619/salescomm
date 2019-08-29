@@ -379,18 +379,22 @@ public class AccountService {
                 LocalDateTime localStartDateTime = LocalDateTime.parse(startTime, YYYYMMDDHHMMSS);
                 nowYearMonth = localStartDateTime.format(YYYYMM);
             }
-            StringBuilder sqlBuilder = new StringBuilder("SELECT t.create_time,t.transaction_id,t.amount/100 as amount,\n" +
-                    " cu.person as realname,\n" +
-                    "s.source_name,t.supplier_id \n" +
-                    "from t_transaction_" + nowYearMonth + " t\n" +
-                    "LEFT JOIN t_source s on t.supplier_id=s.source_id\n" +
-                    "LEFT JOIN (\n" +
-                    "SELECT\n" +
-                    "source_id,\n" +
-                    "max(CASE property_key WHEN 'person'      THEN property_value  ELSE '' END ) person\n" +
-                    "FROM t_source_property p GROUP BY source_id\n" +
-                    ") cu ON t.supplier_id = cu.source_id\n" +
-                    "WHERE 1=1  and t.type = 8");
+//            StringBuilder sqlBuilder = new StringBuilder("SELECT t.create_time,t.transaction_id,t.amount/100 as amount,\n" +
+//                    " cu.person as realname,\n" +
+//                    "s.source_name,t.supplier_id \n" +
+//                    "from t_transaction_" + nowYearMonth + " t\n" +
+//                    "LEFT JOIN t_source s on t.supplier_id=s.source_id\n" +
+//                    "LEFT JOIN (\n" +
+//                    "SELECT\n" +
+//                    "source_id,\n" +
+//                    "max(CASE property_key WHEN 'person'      THEN property_value  ELSE '' END ) person\n" +
+//                    "FROM t_source_property p GROUP BY source_id\n" +
+//                    ") cu ON t.supplier_id = cu.source_id\n" +
+//                    "WHERE 1=1  and t.type = 8");
+            StringBuilder sqlBuilder = new StringBuilder("SELECT p.`name` source_name, t.create_time,t.transaction_id,p.supplier_id,t.amount/100 as amount,u.REALNAME realname , t.certificate ,t.remark ,case t.type when 8 then '充值' when 13 then '扣減'  end  type ");
+            sqlBuilder.append("FROM t_transaction_bill t");
+            sqlBuilder.append(" LEFT JOIN t_supplier p ON t.supplier_id = p.supplier_id\n");
+            sqlBuilder.append("LEFT JOIN t_user u ON t.user_id = u.ID WHERE 1=1\n");
             if (StringUtil.isNotEmpty(queryParam.getTransactionId())) {
                 sqlBuilder.append(" and t.transaction_id= " + queryParam.getTransactionId());
             }
