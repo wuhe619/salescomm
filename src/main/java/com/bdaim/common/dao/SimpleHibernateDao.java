@@ -242,6 +242,9 @@ public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDao
     public <X> List<X> find(final String hql, final Object... values) {
         return createQuery(hql, values).list();
     }
+    public <X> List<X> findWithPositionalParams(final String hql, final Object... values) {
+        return createQuery(hql, values).list();
+    }
 
     /**
      * 按HQL查询对象列表.
@@ -329,6 +332,16 @@ public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDao
         if (values != null) {
             for (int i = 0; i < values.length; i++) {
                 query.setParameter(i, values[i]);
+            }
+        }
+        return query;
+    }
+    public Query queryWithPositionalParameters (final String queryString, final Object... values) {
+        org.springframework.util.Assert.hasText(queryString, "查询语句不能为空");
+        Query query = getSession().createQuery(queryString);
+        if (values != null) {
+            for (int i = 0; i < values.length; i++) {
+                query.setParameter(String.valueOf(i), values[i]);
             }
         }
         return query;
