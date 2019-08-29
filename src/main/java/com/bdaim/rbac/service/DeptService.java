@@ -129,23 +129,22 @@ public class DeptService {
         Map<String, String> resultMap = new HashMap<>();
         logger.info("需要删除的部门id是：" + deptId);
         //根据部门id查询是否存在成员,存在不能删除
-        String code = "0";
         try {
             if (StringUtil.isNotEmpty(deptId)) {
                 List<RoleEntity> roleEntityList = deptDao.getRoleEntityList(Long.parseLong(deptId));
                 if (roleEntityList.size() > 0) {
                     //有成员信息所以不能删除
-                    resultMap.put("code", code);
+                    resultMap.put("code", Constant.FAILURE_CODE);
                     resultMap.put("message", "该部门下有其他成员,暂时不能删除此部门");
                     return resultMap;
                 }
             }
             int i = deptDao.deleteBydeptId(Long.parseLong(deptId));
             if (i > 0) {
-                resultMap.put("code", "1");
+                resultMap.put("code", Constant.SUCCESS_CODE);
                 resultMap.put("message", "删除部门成功");
             } else {
-                resultMap.put("code", code);
+                resultMap.put("code", Constant.FAILURE_CODE);
                 resultMap.put("message", "删除部门失败");
             }
 

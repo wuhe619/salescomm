@@ -55,9 +55,7 @@ public class DeptAction extends BasicAction {
     @RequestMapping(value = "/delDept", method = RequestMethod.GET)
     @ResponseBody
     public Object delDeptMessage(String deptId) {
-        Map<String, String> resultMap = new HashMap<>();
-        //获取当前操作人
-        resultMap = deptService.delDeptMessage(deptId);
+        Map<String, String> resultMap = deptService.delDeptMessage(deptId);
         return JSONObject.toJSON(resultMap);
     }
 
