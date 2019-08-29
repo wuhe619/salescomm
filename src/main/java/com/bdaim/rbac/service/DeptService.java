@@ -96,7 +96,7 @@ public class DeptService {
         param.setPageSize(Integer.parseInt(String.valueOf(map.get("page_size"))));
 
         //查询SQL语句
-        StringBuffer buffer = new StringBuffer("SELECT t1.id,t1.create_time createTime,t1.name,COUNT(t2.id) rowNum ");
+        StringBuffer buffer = new StringBuffer("SELECT t1.id,t1.create_time createTime,t1.name,COUNT(t2.id) roleNum ");
         buffer.append("FROM t_dept t1 LEFT JOIN t_role t2 ON t1.id=t2.deptid ")
                 .append("GROUP BY t1.id,t1.create_time,t1.name");
         logger.info("执行查询 " + buffer.toString());
