@@ -41,10 +41,11 @@ public class DeptAction extends BasicAction {
     @RequestMapping(value = "/editDeptMessage", method = RequestMethod.POST)
     @ResponseBody
     public Object editDeptMessage(@RequestBody DeptDto deptDto) {
+        Map<String, String> resultMap = new HashMap<>();
         //获取当前操作人
         LoginUser lu = opUser();
         String optUser = lu.getUsername();
-        Map<String, String> resultMap = deptService.updateDeptMessage(deptDto, optUser);
+        resultMap = deptService.updateDeptMessage(deptDto, optUser);
         return JSONObject.toJSON(resultMap);
     }
 
