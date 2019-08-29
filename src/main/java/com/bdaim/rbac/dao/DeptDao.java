@@ -22,7 +22,7 @@ public class DeptDao extends SimpleHibernateDao<DeptEntity, Serializable> {
      */
     public DeptEntity getDeptEntityById(Long id) {
         DeptEntity cp = null;
-        String hql = "from DeptEntity m where m.id=?";
+        String hql = "from DeptEntity m where m.id=?0";
         List<DeptEntity> list = this.find(hql, id);
         if (list.size() > 0)
             cp = (DeptEntity) list.get(0);

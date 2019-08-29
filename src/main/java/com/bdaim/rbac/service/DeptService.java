@@ -163,7 +163,7 @@ public class DeptService {
      * @date: 2019/3/13 19:24
      */
     public boolean checkDeptName(String deptName) {
-        String sql = "select * from t_dept where name = '" + deptName + "'";
+        String sql = "SELECT id FROM t_dept WHERE name = '" + deptName + "'";
         List<Map<String, Object>> list = deptDao.sqlQuery(sql);
         if (list.size() > 0) {
             return true;
