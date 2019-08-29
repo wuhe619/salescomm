@@ -100,9 +100,9 @@ public class DeptService {
         param.setPageSize(Integer.parseInt(String.valueOf(map.get("page_size"))));
 
         //查询SQL语句
-        StringBuffer buffer = new StringBuffer("SELECT t1.id,t1.create_time createTime,t1.name,COUNT(t2.id) roleNum ");
+        StringBuffer buffer = new StringBuffer("SELECT t1.id,t1.create_time createTime,t1.modify_time,t1.name,COUNT(t2.id) roleNum ");
         buffer.append("FROM t_dept t1 LEFT JOIN t_role t2 ON t1.id=t2.deptid ")
-                .append("GROUP BY t1.id,t1.create_time,t1.name");
+                .append("GROUP BY t1.id,t1.create_time,t1.name,t1.modify_time ORDER BY t1.modify_time DESC,t1.create_time DESC");
         logger.info("执行查询 " + buffer.toString());
         Page page = new Pagination().getPageData(buffer.toString(), null, param, jdbcTemplate);
         List<Map<String, Object>> data = page.getList();
