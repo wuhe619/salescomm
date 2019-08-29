@@ -139,7 +139,7 @@ public class DeptService {
                     return resultMap;
                 }
             }
-            int i = deptDao.deleteBydeptId(Long.parseLong(deptId));
+            int i = deptDao.deleteByDeptId(Long.parseLong(deptId));
             if (i > 0) {
                 resultMap.put("code", Constant.SUCCESS_CODE);
                 resultMap.put("message", "删除部门成功");
