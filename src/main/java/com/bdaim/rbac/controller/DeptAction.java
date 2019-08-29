@@ -31,16 +31,20 @@ public class DeptAction extends BasicAction {
     private DeptService deptService;
 
     /**
-     * 编辑部门信息
+     * 编辑部门信息(部门名称)
+     *
+     * @param deptDto id,name
+     * @return
+     * @auther Chacker
+     * @date
      */
     @RequestMapping(value = "/editDeptMessage", method = RequestMethod.POST)
     @ResponseBody
     public Object editDeptMessage(@RequestBody DeptDto deptDto) {
-        Map<String, String> resultMap = new HashMap<>();
         //获取当前操作人
         LoginUser lu = opUser();
         String optUser = lu.getUsername();
-        resultMap = deptService.updateDeptMessage(deptDto, optUser);
+        Map<String, String> resultMap = deptService.updateDeptMessage(deptDto, optUser);
         return JSONObject.toJSON(resultMap);
     }
 
