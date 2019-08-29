@@ -54,7 +54,7 @@ public class DeptService {
                  * 先查验该部门名称是否已存在，如果已存在则不允许新增
                  */
                 boolean isExisted = checkDeptName(deptDto.getName());
-                logger.info("该部门是否已存在 "+isExisted);
+                logger.info("该部门是否已存在 " + isExisted);
                 if (!isExisted) {
                     DeptEntity deptEntity = new DeptEntity();
                     deptEntity.setCreateTime(DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss));
@@ -72,6 +72,7 @@ public class DeptService {
             } else {
                 //入参中存在部门id，则执行修改操作
                 DeptEntity deptEntity = deptDao.getDeptEntityById(NumberConvertUtil.parseLong(id));
+                logger.info("执行修改操作" + deptEntity.toString());
                 if (deptEntity != null) {
                     deptEntity.setName(deptDto.getName());
                     deptEntity.setModifyTime(DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss));
