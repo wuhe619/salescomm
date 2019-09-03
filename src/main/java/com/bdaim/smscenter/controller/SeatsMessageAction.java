@@ -210,7 +210,7 @@ public class SeatsMessageAction extends BasicAction {
      * @date: 2018/9/21 10:49
      */
     @ResponseBody
-    @RequestMapping(value = "/getUserList.do", method = RequestMethod.GET)
+    @RequestMapping(value = "/getUserList", method = RequestMethod.GET)
     public Object getUserMessageList(String custId, Integer pageNum, Integer pageSize) {
         Map<String, Object> resultMap = new HashMap<String, Object>();
         List<SeatsMessageParam> seatsList;
