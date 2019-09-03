@@ -1151,6 +1151,7 @@ public class MarketResourceServiceImpl implements MarketResourceService {
         //customerId 为空，则是后台首页各个企业的信息
         if (StringUtil.isEmpty(customerId)) {
             // 1 各个企业最近一周上传的客户量
+            long time1 = System.currentTimeMillis();
             StringBuffer sqlSb = new StringBuffer();
             List<Map<String, Object>> uploadNumList;
             //todo 没数据  6--->16了
@@ -1159,7 +1160,8 @@ public class MarketResourceServiceImpl implements MarketResourceService {
                     "WHERE DATE_SUB(CURDATE(), INTERVAL 6 DAY) <= date(upload_time) GROUP BY date(upload_time))s \n" +
                     "LEFT JOIN t_customer t on s.comp_id=t.cust_id;");
             uploadNumList = jdbcTemplate.queryForList(sqlSb.toString(), new Object[]{});
-
+            long time2 = System.currentTimeMillis();
+            LOG.info("上传客户量 查询耗时 "+(time2-time1)+" 毫秒");
             //2 各个企业最近上传一次上传、成功次数
             StringBuffer sqlge = new StringBuffer();
             List<Map<String, Object>> uploadgeList;
@@ -1174,6 +1176,8 @@ public class MarketResourceServiceImpl implements MarketResourceService {
                     "ORDER BY n.upload_time desc ) cjc \n" +
                     "GROUP BY cjc.comp_id ORDER BY cjc.upload_time DESC LIMIT 10;");
             uploadgeList = jdbcTemplate.queryForList(sqlge.toString(), new Object[]{});
+            long time3 = System.currentTimeMillis();
+            LOG.info("企业修复率 查询耗时 "+(time3-time2)+" 毫秒");
 
             // 3 各企业最近300次呼叫接通率
             NumberFormat numberFormat = NumberFormat.getInstance();
@@ -1214,12 +1218,8 @@ public class MarketResourceServiceImpl implements MarketResourceService {
                     jietonglv.add(map);
                 }
             }
-            //企业有效率 折线统计图
-            String effectiveRateSql = "SELECT batch_name AS batchName,comp_name AS companyName,IFNULL(upload_num/success_num,0) AS effectiveRate FROM nl_batch ORDER BY " +
-                    "upload_time DESC LIMIT 10";
-            List<Map<String, Object>> effectiveRate = jdbcTemplate.queryForList(effectiveRateSql);
-
-            data.put("effectiveRate", effectiveRate);
+            long time4 = System.currentTimeMillis();
+            LOG.info("企业接通率 查询耗时 " + (time4 - time3) + " 毫秒");
             data.put("callSuccPercent", jietonglv);
             data.put("uploadSucCompsList", uploadgeList);
             data.put("uploadNumList", uploadNumList);
