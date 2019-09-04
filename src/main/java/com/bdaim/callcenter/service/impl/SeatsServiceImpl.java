@@ -675,7 +675,7 @@ public class SeatsServiceImpl implements SeatsService {
         CustomerProperty channelList = null;
         HashMap<String, Object> map = new HashMap<>();
         //获取平台信息集合
-        StringBuffer hql = new StringBuffer(" from CustomerUserDO m where 1=1");
+        StringBuffer hql = new StringBuffer(" from CustomerUser m where 1=1");
         List<String> values = new ArrayList();
         if (custId != null && !custId.equals("")) {
             hql.append(" and m.cust_id = ?");

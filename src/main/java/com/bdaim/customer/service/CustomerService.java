@@ -215,8 +215,8 @@ public class CustomerService {
     }
 
     public CustomerUser getUserByName(String name) {
-        //String hql="from CustomerUserDO m where m.account=? and m.status=0";
-        String hql = "from CustomerUserDO m where m.account=?";
+        //String hql="from CustomerUser m where m.account=? and m.status=0";
+        String hql = "from CustomerUser m where m.account=?";
         CustomerUser m = userDao.findUnique(hql, name);
         return m;
     }

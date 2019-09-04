@@ -50,7 +50,7 @@ public class CustomerDao extends SimpleHibernateDao<Customer, String> {
 
     public Customer getCustMessage(String custId) {
         Customer cp = null;
-        String hql = "from CustomerDO m where m.custId=? and status =0 ";
+        String hql = "from Customer m where m.custId=? and status =0 ";
         List<Customer> list = this.find(hql, custId);
         if (list.size() > 0)
             cp = (Customer) list.get(0);
