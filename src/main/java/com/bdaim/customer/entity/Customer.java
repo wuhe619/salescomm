@@ -147,6 +147,7 @@ public class Customer {
     @Basic
     @GeneratedValue(strategy=GenerationType.IDENTITY)
     @Column(name="comp_id")
+    @Transient
     public Integer getCompId() {
         return compId;
     }
@@ -156,6 +157,7 @@ public class Customer {
     }
     @Basic
     @Column(name = "brand_id")
+    @Transient
     public String getBrandId() {
         return brandId;
     }
