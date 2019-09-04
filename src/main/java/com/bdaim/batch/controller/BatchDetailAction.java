@@ -7,7 +7,7 @@ import com.bdaim.batch.dto.DetailQueryParam;
 import com.bdaim.batch.service.BatchDetaiService;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.util.StringUtil;
-import com.bdaim.common.util.page.Page;
+import com.bdaim.common.util.page.PageList;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -69,7 +69,7 @@ public class BatchDetailAction extends BasicAction {
         detailQueryParam.setStatus(status);
         detailQueryParam.setPageNum(pageNum);
         detailQueryParam.setPageSize(pageSize);
-        Page list = batchDetaiService.getDetailList(detailQueryParam, userId, userType, custProperty,role);
+        PageList list = batchDetaiService.getDetailList(detailQueryParam, userId, userType, custProperty,role);
         resultMap.put("batchDetailList", list.getList());
         resultMap.put("listLength", list.getTotal());
         return JSON.toJSONString(resultMap);

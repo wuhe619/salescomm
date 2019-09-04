@@ -8,7 +8,7 @@ import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
-import com.bdaim.common.util.page.Page;
+import com.bdaim.common.util.page.PageList;
 import com.bdaim.customer.dto.CustomerRegistDTO;
 import com.bdaim.customer.service.CustomerService;
 import com.bdaim.rbac.dto.UserDTO;
@@ -55,7 +55,7 @@ public class CustomerAction extends BasicAction {
         }
         String customerId = opUser().getCustId();
 
-        Page list = customerService.getUser(page, customerId, name, realName, mobileNum);
+        PageList list = customerService.getUser(page, customerId, name, realName, mobileNum);
         //String customerId ="1702210227030000";
         return JSON.toJSONString(list);
     }
@@ -146,7 +146,7 @@ public class CustomerAction extends BasicAction {
             return new ResponseInfoAssemble().failure(-1, "缺少必要参数");
         }
         LoginUser lu = opUser();
-        Page list = null;
+        PageList list = null;
         Map<Object, Object> map = new HashMap<Object, Object>();
         //JSONObject json = new JSONObject();
         if ("ROLE_USER".equals(lu.getRole()) || "admin".equals(lu.getRole())) {

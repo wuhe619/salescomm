@@ -10,7 +10,7 @@ import com.bdaim.callcenter.service.impl.SeatsServiceImpl;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.util.StringUtil;
-import com.bdaim.common.util.page.Page;
+import com.bdaim.common.util.page.PageList;
 import com.bdaim.customer.dto.CustomerRegistDTO;
 import com.bdaim.customer.entity.CustomerUserProperty;
 
@@ -243,7 +243,7 @@ public class SeatsMessageAction extends BasicAction {
         if (error.hasFieldErrors()) {
             return getErrors(error);
         }
-        Page list = null;
+        PageList list = null;
         list = seatsService.getCustomerInfo(page, customerRegistDTO);
         return JSON.toJSONString(list);
     }

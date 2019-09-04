@@ -17,7 +17,7 @@ import com.bdaim.common.util.DateUtil;
 import com.bdaim.common.util.IDHelper;
 import com.bdaim.common.util.NumberConvertUtil;
 import com.bdaim.common.util.StringUtil;
-import com.bdaim.common.util.page.Page;
+import com.bdaim.common.util.page.PageList;
 import com.bdaim.common.util.page.Pagination;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerUserDao;
@@ -613,7 +613,7 @@ public class SeatsServiceImpl implements SeatsService {
      * @return
      */
     @Override
-    public Page getCustomerInfo(PageParam page, CustomerRegistDTO customerRegistDTO) {
+    public PageList getCustomerInfo(PageParam page, CustomerRegistDTO customerRegistDTO) {
         StringBuilder sqlBuilder = new StringBuilder("SELECT\n" +
                 "\tt1.cust_id AS custId,\n" +
                 "\tt1.enterprise_name AS enterpriseName,t1.create_time,\n" +

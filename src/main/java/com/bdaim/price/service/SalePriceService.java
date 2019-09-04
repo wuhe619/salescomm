@@ -2,7 +2,7 @@ package com.bdaim.price.service;
 
 import com.bdaim.bill.dto.CustomerBillQueryParam;
 import com.bdaim.common.dto.PageParam;
-import com.bdaim.common.util.page.Page;
+import com.bdaim.common.util.page.PageList;
 import com.bdaim.customer.entity.CustomerProperty;
 import com.bdaim.price.dto.SalePriceDTO;
 
@@ -35,7 +35,7 @@ public interface SalePriceService {
      */
     Map<String, Object> querySalePriceList(String custId);
 
-    Page getSalePriceList(PageParam page, CustomerBillQueryParam customerBillQueryParam);
+    PageList getSalePriceList(PageParam page, CustomerBillQueryParam customerBillQueryParam);
 
     /**
      * 验证当前企业是否配置了销售定价

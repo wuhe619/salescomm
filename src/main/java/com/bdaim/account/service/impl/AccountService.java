@@ -6,7 +6,7 @@ import com.bdaim.bill.dto.CustomerBillQueryParam;
 import com.bdaim.bill.service.TransactionService;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.util.StringUtil;
-import com.bdaim.common.util.page.Page;
+import com.bdaim.common.util.page.PageList;
 import com.bdaim.common.util.page.Pagination;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.entity.CustomerProperty;
@@ -153,7 +153,7 @@ public class AccountService {
      *
      * @return
      */
-    public Page pageList(PageParam page, CustomerBillQueryParam queryParam) {
+    public PageList pageList(PageParam page, CustomerBillQueryParam queryParam) {
         StringBuilder sqlBuilder = new StringBuilder("SELECT cus.cust_id,DATE_FORMAT(cus.create_time,'%Y-%m-%d %H:%i:%s') AS createTime,cus.enterprise_name,cus.status,\n" +
                 "t2.account,t2.realname,cjc.mobile_num,CONVERT(cjc.remainAmount/100,DECIMAL(15,2)) as remainAmount\n" +
                 " from t_customer cus\n" +
@@ -191,7 +191,7 @@ public class AccountService {
      *
      * @return
      */
-    public Page pageListRecords(PageParam page, CustomerBillQueryParam queryParam) {
+    public PageList pageListRecords(PageParam page, CustomerBillQueryParam queryParam) {
         // 如果没有传开始时间
         StringBuilder sqlBuilder = new StringBuilder("SELECT t.type,t.create_time,t.transaction_id,t.amount/100 as amount ,cu.realname," +
                 "t.cust_id,t.certificate,t.remark from t_transaction_bill t \n" +
@@ -225,7 +225,7 @@ public class AccountService {
      *
      * @return
      */
-    public Page querySupplierAcctsByCondition(PageParam page, CustomerBillQueryParam queryParam) {
+    public PageList querySupplierAcctsByCondition(PageParam page, CustomerBillQueryParam queryParam) {
         // 如果没有传开始时间
         StringBuilder sqlBuilder = new StringBuilder("SELECT p.`name` source_name, t.create_time,t.transaction_id,p.supplier_id,t.amount/100 as amount,u.REALNAME realname , t.certificate ,t.remark ,case t.type when 8 then '充值' when 13 then '扣減'  end  type ");
         sqlBuilder.append("FROM t_transaction_bill t");

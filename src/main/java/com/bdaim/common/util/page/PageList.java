@@ -7,7 +7,7 @@ import java.util.List;
  * @date 2018/9/6
  * @description
  */
-public class Page {
+public class PageList {
     /**
      * total
      */

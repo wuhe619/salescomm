@@ -3,7 +3,7 @@ package com.bdaim.smscenter.service;
 import com.bdaim.batch.dto.ExpressLog;
 import com.bdaim.batch.entity.SenderInfo;
 import com.bdaim.common.dto.PageParam;
-import com.bdaim.common.util.page.Page;
+import com.bdaim.common.util.page.PageList;
 
 import javax.servlet.http.HttpServletResponse;
 import java.util.List;
@@ -18,7 +18,7 @@ import java.util.Map;
 public interface SendmessageService {
     Map<Object, Object> sendadd(SenderInfo senderInfo, String compId);
 
-    Page sendlist(PageParam page, String compId);
+    PageList sendlist(PageParam page, String compId);
 
     Map<Object, Object> senddelete(String id);
 
@@ -27,7 +27,7 @@ public interface SendmessageService {
     Map<Object, Object> defaultupdate(String id, String compId);
 
 
-    Page pageList(PageParam page, ExpressLog expressLog);
+    PageList pageList(PageParam page, ExpressLog expressLog);
 
     Object exportExportRecords(ExpressLog expressLog, HttpServletResponse response);
 

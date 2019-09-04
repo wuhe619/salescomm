@@ -3,7 +3,7 @@ package com.bdaim.batch.service;
 import com.alibaba.fastjson.JSONArray;
 import com.bdaim.batch.dto.DetailQueryParam;
 import com.bdaim.common.dto.PageParam;
-import com.bdaim.common.util.page.Page;
+import com.bdaim.common.util.page.PageList;
 
 /**
  * @author duanliying
@@ -20,7 +20,7 @@ public interface BatchDetaiService {
      * @method
      * @date: 2018/9/6 16:52
      */
-    Page getDetailListById(PageParam page, String batchId, String custId);
+    PageList getDetailListById(PageParam page, String batchId, String custId);
 
     /**
      * @description 列表搜索--某批次被叫客户列表搜索
@@ -28,7 +28,7 @@ public interface BatchDetaiService {
      * @method
      * @date: 2018/9/6 11:23
      */
-    Page getDetailList(DetailQueryParam detailQueryParam, Long userId, String userType, JSONArray custProperty,String role);
+    PageList getDetailList(DetailQueryParam detailQueryParam, Long userId, String userType, JSONArray custProperty, String role);
 
     /**
      * @description 查询批次详情属性列表

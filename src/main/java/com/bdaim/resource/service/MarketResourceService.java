@@ -22,7 +22,7 @@ import com.bdaim.common.service.PhoneService;
 import com.bdaim.common.util.*;
 import com.bdaim.common.util.ftp.SFTPChannel;
 import com.bdaim.common.util.http.HttpUtil;
-import com.bdaim.common.util.page.Page;
+import com.bdaim.common.util.page.PageList;
 import com.bdaim.common.util.page.Pagination;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerLabelDao;
@@ -154,7 +154,7 @@ public class MarketResourceService {
     private SupplierDao supplierDao;
 
 
-    public Page querySmsHistory(PageParam page, SmsqueryParam smsqueryParm) {
+    public PageList querySmsHistory(PageParam page, SmsqueryParam smsqueryParm) {
         StringBuffer sb = new StringBuffer();
         sb.append(" select cust_id,touch_id,remark,superid,enterprise_id,batch_id,create_time,`status`,sms_content \n" +
                 "from t_touch_sms_log sms where 1=1  ");
@@ -236,7 +236,7 @@ public class MarketResourceService {
     }
 
 
-    public Page queryRecordVoicelog(PageParam page, String cust_id, Long userid, String user_type, String superId, String realName, String createTimeStart, String createTimeEnd, String enterpriseId, String batchId, int touchStatus, String enterpriseName) {
+    public PageList queryRecordVoicelog(PageParam page, String cust_id, Long userid, String user_type, String superId, String realName, String createTimeStart, String createTimeEnd, String enterpriseId, String batchId, int touchStatus, String enterpriseName) {
         List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
         StringBuffer sb = new StringBuffer();
         //user_type 1.管理员   2.普通用户   superId为用户id(联通返回的)
@@ -966,7 +966,7 @@ public class MarketResourceService {
     }
 
 
-    public Page getSupplierList(PageParam page, SupplierListParam supplierListParam) {
+    public PageList getSupplierList(PageParam page, SupplierListParam supplierListParam) {
         StringBuilder sqlBuilder = new StringBuilder();
         sqlBuilder.append("SELECT supplier_id source_id ,name source_name,type,contact_person person,contact_phone phone ,create_time FROM t_supplier where 1=1");
         if (StringUtil.isNotEmpty(supplierListParam.getSupplierId())) {
@@ -1377,7 +1377,7 @@ public class MarketResourceService {
     }
 
 
-    public Page getSmsTemplateList(PageParam page, TemplateParam templateParam) {
+    public PageList getSmsTemplateList(PageParam page, TemplateParam templateParam) {
         String title = templateParam.getTemplateName();
         String sms_signatures = templateParam.getSmsSignatures();
         String templateId = templateParam.getTemplateId();
@@ -1911,7 +1911,7 @@ public class MarketResourceService {
      * @date: 2018/11/22 19:09
      */
 
-    public Page openSmsHistory(PageParam page, String custId) {
+    public PageList openSmsHistory(PageParam page, String custId) {
         StringBuffer stringBuffer = new StringBuffer();
         stringBuffer.append("SELECT t.touch_id touchId,t.remark,t.create_time createTime,t.`status`,t.sms_content smsContent,t.superid superId,t.batch_id batchId,t.channel,u.account ");
         stringBuffer.append(" FROM t_touch_sms_log t LEFT JOIN t_customer_user u ON t.user_id = u.id ");

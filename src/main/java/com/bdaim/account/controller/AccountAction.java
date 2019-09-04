@@ -14,7 +14,7 @@ import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.common.util.AuthPassport;
 import com.bdaim.common.util.StringUtil;
-import com.bdaim.common.util.page.Page;
+import com.bdaim.common.util.page.PageList;
 import com.bdaim.customer.entity.CustomerUser;
 import com.bdaim.customer.service.CustomerService;
 import com.github.crab2died.ExcelUtils;
@@ -113,7 +113,7 @@ public class AccountAction extends BasicAction {
             return new ResponseInfoAssemble().failure(-1, "缺少必要參數");
         }
         LoginUser lu = opUser();
-        Page list = null;
+        PageList list = null;
         if ("ROLE_USER".equals(lu.getRole()) || "admin".equals(lu.getRole())) {
             list = accountService.pageList(page, queryParam);
             if (list != null) {
@@ -181,7 +181,7 @@ public class AccountAction extends BasicAction {
             return new ResponseInfoAssemble().failure(-1, "缺少必要参数");
         }
         LoginUser lu = opUser();
-        Page list = null;
+        PageList list = null;
         String basePath = "";
         Map<Object, Object> map = new HashMap<Object, Object>();
         if ("ROLE_USER".equals(lu.getRole()) || "admin".equals(lu.getRole())) {
@@ -276,7 +276,7 @@ public class AccountAction extends BasicAction {
             return new ResponseInfoAssemble().failure(-1,"缺少分页参数");
         }
         LoginUser lu = opUser();
-        Page list = null;
+        PageList list = null;
         Map<String, Object> resultMap = new HashMap<>();
         if ("ROLE_USER".equals(lu.getRole()) || "admin".equals(lu.getRole())) {
             list = accountService.querySupplierAcctsByCondition(page, queryParam);

@@ -16,7 +16,7 @@ import com.bdaim.common.util.Constant;
 import com.bdaim.common.util.IDHelper;
 import com.bdaim.common.util.NumberConvertUtil;
 import com.bdaim.common.util.StringUtil;
-import com.bdaim.common.util.page.Page;
+import com.bdaim.common.util.page.PageList;
 import com.bdaim.common.util.page.Pagination;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerUserDao;
@@ -295,7 +295,7 @@ public class BatchListServiceImpl implements BatchListService {
     }
 
     @Override
-    public Page pageList(PageParam page, BatchListParam batchListParam, String role) {
+    public PageList pageList(PageParam page, BatchListParam batchListParam, String role) {
         StringBuilder sqlBuilder = new StringBuilder("SELECT id, comp_id, comp_name, repair_mode repairMode,batch_name batchName, certify_type certifyType, status, upload_num uploadNum, success_num successNum, upload_time uploadTime, repair_time repairTime, channel, repair_strategy repairStrategy FROM nl_batch WHERE 1=1");
         if (StringUtil.isNotEmpty(batchListParam.getComp_name())) {
             sqlBuilder.append(" AND comp_name LIKE '%" + batchListParam.getComp_name() + "%'");
@@ -334,7 +334,7 @@ public class BatchListServiceImpl implements BatchListService {
         }
         sqlBuilder.append(" AND certify_type !=3 ORDER BY upload_time DESC");
         LOG.info("批次列表查询sql:\t" + sqlBuilder.toString());
-        Page result = new Pagination().getPageData(sqlBuilder.toString(), null, page, jdbcTemplate);
+        PageList result = new Pagination().getPageData(sqlBuilder.toString(), null, page, jdbcTemplate);
         if (result != null && result.getList() != null && result.getList().size() > 0) {
             Map map;
             // 处理修复状态为 4数据待发送给联通或者5发送联通成功都为2-修复中
@@ -756,7 +756,7 @@ public class BatchListServiceImpl implements BatchListService {
 
 
     @Override
-    public Page sitelist(PageParam page, BatchListParam batchListParam) {
+    public PageList sitelist(PageParam page, BatchListParam batchListParam) {
         StringBuilder sqlBuilder = new StringBuilder("SELECT n.id, n.comp_id, n.comp_name, n.repair_mode repairMode,n.batch_name \n" +
                 "batchName,n.status, n.upload_num uploadNum, n.success_num successNum, n.upload_time uploadTime, n.repair_time repairTime, n.channel, n.repair_strategy repairStrategy ,MAX(t.create_time) AS Latest_time,MIN(t.create_time) AS Earliest_time\n" +
                 "FROM nl_batch n LEFT JOIN t_touch_express_log t ON n.id=t.batch_id WHERE 1=1");
@@ -797,7 +797,7 @@ public class BatchListServiceImpl implements BatchListService {
         }
         sqlBuilder.append(" AND n.certify_type=3 GROUP BY n.id ORDER BY n.upload_time DESC");
         LOG.info("批次列表查询sql:\t" + sqlBuilder.toString());
-        Page result = new Pagination().getPageData(sqlBuilder.toString(), null, page, jdbcTemplate);
+        PageList result = new Pagination().getPageData(sqlBuilder.toString(), null, page, jdbcTemplate);
         if (result != null && result.getList() != null && result.getList().size() > 0) {
             Map map;
             // 处理修复状态为 4数据待发送给联通或者5发送联通成功都为2-修复中

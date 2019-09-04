@@ -4,7 +4,7 @@ import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.util.DateUtil;
 import com.bdaim.common.util.IDHelper;
 import com.bdaim.common.util.StringUtil;
-import com.bdaim.common.util.page.Page;
+import com.bdaim.common.util.page.PageList;
 import com.bdaim.common.util.page.Pagination;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerPropertyDao;
@@ -92,7 +92,7 @@ public class CustomerPropertyService {
     }
 
     
-    public Page pageList(PageParam page, CustomerPropertyParam customerPropertyParam) {
+    public PageList pageList(PageParam page, CustomerPropertyParam customerPropertyParam) {
         StringBuilder sqlBuilder = new StringBuilder();
         sqlBuilder.append("  SELECT t1.id, t1.cust_id, t1.user_id userId, t1.label_id labelId, t1.status, t1.label_name labelName,")
                 .append("  t1.create_time createTime, t1.label_desc labelDesc, t1.type, t1.`option`, COUNT(t2.super_id) AS useCount")

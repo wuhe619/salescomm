@@ -3,7 +3,7 @@ package com.bdaim.callcenter.service;
 import com.bdaim.callcenter.dto.SeatsInfo;
 import com.bdaim.callcenter.dto.SeatsMessageParam;
 import com.bdaim.common.dto.PageParam;
-import com.bdaim.common.util.page.Page;
+import com.bdaim.common.util.page.PageList;
 import com.bdaim.customer.dto.CustomerRegistDTO;
 import com.bdaim.customer.entity.CustomerUserProperty;
 
@@ -55,7 +55,7 @@ public interface SeatsService {
      * @param customerRegistDTO
      * @return
      */
-    Page getCustomerInfo(PageParam page, CustomerRegistDTO customerRegistDTO);
+    PageList getCustomerInfo(PageParam page, CustomerRegistDTO customerRegistDTO);
 
     /**
      * @description 获取坐席列表集合信息

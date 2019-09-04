@@ -6,7 +6,7 @@ import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.util.ConstantsUtil;
 import com.bdaim.common.util.DateUtil;
 import com.bdaim.common.util.StringUtil;
-import com.bdaim.common.util.page.Page;
+import com.bdaim.common.util.page.PageList;
 import com.bdaim.common.util.page.Pagination;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerUserDao;
@@ -505,7 +505,7 @@ public class SalePriceServiceImpl implements SalePriceService {
     }
 
     @Override
-    public Page getSalePriceList(PageParam page, CustomerBillQueryParam customerBillQueryParam) {
+    public PageList getSalePriceList(PageParam page, CustomerBillQueryParam customerBillQueryParam) {
         StringBuilder sqlBuilder = new StringBuilder("SELECT t.cust_id,t.create_time,t.enterprise_name,t.status,\n" +
                 "t2.REALNAME as realName,\n" +
                 "cjc.mobile_num,\n" +

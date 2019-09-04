@@ -6,7 +6,7 @@ import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.common.util.*;
-import com.bdaim.common.util.page.Page;
+import com.bdaim.common.util.page.PageList;
 import com.bdaim.common.util.page.Pagination;
 import com.bdaim.customer.dao.CustomerDao;
 import org.apache.commons.io.FileUtils;
@@ -270,7 +270,7 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
             sql.append(" AND t1.id in (SELECT batch_id FROM nl_batch_property WHERE property_name ='expressContentType' AND property_value =" + expressType + ") ");
         }
         sql.append(" ORDER BY t1.upload_time DESC ");
-        Page page = new Pagination().getPageData(sql.toString(), null, pageParam, jdbcTemplate);
+        PageList page = new Pagination().getPageData(sql.toString(), null, pageParam, jdbcTemplate);
         List<Map<String, Object>> list = page.getList();
         //expressContentType 快件类型 1.电子版 2.打印版
         if (list != null && list.size() != 0) {
@@ -337,7 +337,7 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         logger.info("查询批次详情SQL为" + hql.toString());
         Map<String, Object> resultMap = new HashMap<>(10);
         try {
-            Page page = new Pagination().getPageData(hql.toString(), null, pageParam, jdbcTemplate);
+            PageList page = new Pagination().getPageData(hql.toString(), null, pageParam, jdbcTemplate);
             List<Map<String, Object>> list = page.getList();
             logger.info("查询结果为" + list.toString());
             resultMap.put("total", page.getTotal());

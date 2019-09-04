@@ -3,7 +3,7 @@ package com.bdaim.batch.service;
 import com.bdaim.batch.entity.BatchDetail;
 import com.bdaim.batch.entity.BatchListParam;
 import com.bdaim.common.dto.PageParam;
-import com.bdaim.common.util.page.Page;
+import com.bdaim.common.util.page.PageList;
 
 import java.util.List;
 import java.util.Map;
@@ -24,7 +24,7 @@ public interface BatchListService {
      * @author chengning@salescomm.net
      * @date 2018/9/6 16:40
      */
-    Page pageList(PageParam page, BatchListParam batchListParam, String role);
+    PageList pageList(PageParam page, BatchListParam batchListParam, String role);
 
     /**
      * 批次列表接口
@@ -81,7 +81,7 @@ public interface BatchListService {
      */
     /* Page pageget(PageParam page, BatchListParam batchListParam);*/
 
-    Page sitelist(PageParam page, BatchListParam batchListParam);
+    PageList sitelist(PageParam page, BatchListParam batchListParam);
 
 
     void addressrepairupload(String certifyMd5, String name, String batchId, String phone, String compId, String channelall);

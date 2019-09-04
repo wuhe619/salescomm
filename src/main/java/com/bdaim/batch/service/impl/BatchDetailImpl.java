@@ -6,7 +6,7 @@ import com.bdaim.batch.dto.DetailQueryParam;
 import com.bdaim.batch.service.BatchDetaiService;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.util.StringUtil;
-import com.bdaim.common.util.page.Page;
+import com.bdaim.common.util.page.PageList;
 import com.bdaim.common.util.page.Pagination;
 
 import org.apache.commons.lang.StringEscapeUtils;
@@ -35,7 +35,7 @@ public class BatchDetailImpl implements BatchDetaiService {
      * @date: 2018/9/6 16:53
      */
     @Override
-    public Page getDetailListById(PageParam page, String batchId, String custId) {
+    public PageList getDetailListById(PageParam page, String batchId, String custId) {
         StringBuffer sql = new StringBuffer("SELECT  n.id superId,n.batch_id batchId,n.enterprise_id enterpriseId,n.id_card idCard,n.channel,n.label_one labelOne,n.label_two labelTwo,n.label_three labelThree,n.`status` ,n.upload_time uploadTime,n.fix_time fixTime");
         sql.append(" FROM nl_batch_detail n LEFT JOIN nl_batch nl ON n.batch_id = nl.id\n");
         if (StringUtil.isNotEmpty(batchId)) {
@@ -44,7 +44,7 @@ public class BatchDetailImpl implements BatchDetaiService {
         if (StringUtil.isNotEmpty(custId)) {
             sql.append(" and nl.comp_id ='" + custId + "'");
         }
-        Page list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
+        PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
         //查询批次下所有自建属性信息
         return list;
     }
@@ -56,7 +56,7 @@ public class BatchDetailImpl implements BatchDetaiService {
      * @date: 2018/9/6 11:26
      */
     @Override
-    public Page getDetailList(DetailQueryParam detailQueryParam, Long userId, String userType, JSONArray custProperty,String role) {
+    public PageList getDetailList(DetailQueryParam detailQueryParam, Long userId, String userType, JSONArray custProperty, String role) {
         String batchId = detailQueryParam.getBatchId();
         StringBuffer sqlBuilder = new StringBuffer();
         sqlBuilder.append("SELECT t.* FROM ( select custG.id,custG.batch_id,custG.enterprise_id,custG.id_card,custG.`status`,custG.channel,custG.user_id, t.realname,GROUP_CONCAT(t2.label_id) AS labelId,\n" +
@@ -117,7 +117,7 @@ public class BatchDetailImpl implements BatchDetaiService {
         PageParam page = new PageParam();
         page.setPageNum(detailQueryParam.getPageNum());
         page.setPageSize(detailQueryParam.getPageSize());
-        Page pageData = new Pagination().getPageData(sqlBuilder.toString(), null, page, jdbcTemplate);
+        PageList pageData = new Pagination().getPageData(sqlBuilder.toString(), null, page, jdbcTemplate);
         List<Map> list = pageData.getList();
         for (int i = 0; i < list.size(); i++) {
             String queryCreatTime = "SELECT create_time FROM t_touch_voice_log  where batch_id =? AND superid=? ORDER BY create_time DESC LIMIT 1";

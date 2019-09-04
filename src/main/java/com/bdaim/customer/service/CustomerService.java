@@ -10,7 +10,7 @@ import com.bdaim.common.CommonInfoCodeEnum;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.util.*;
-import com.bdaim.common.util.page.Page;
+import com.bdaim.common.util.page.PageList;
 import com.bdaim.common.util.page.Pagination;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerUserDao;
@@ -160,7 +160,7 @@ public class CustomerService {
         return code;
     }
 
-    public Page getUser(PageParam page, String customerId, String name, String realName, String mobileNum) {
+    public PageList getUser(PageParam page, String customerId, String name, String realName, String mobileNum) {
         JSONObject json = new JSONObject();
         StringBuffer sql = new StringBuffer();
 
@@ -185,7 +185,7 @@ public class CustomerService {
             sql.append(" AND cjc.mobile_num like '%" + mobileNum + "%'");
         }
 
-        Page list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
+        PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
 
         if (list != null && list.getList() != null && list.getList().size() > 0) {
             Map<String, Object> map;
@@ -518,7 +518,7 @@ public class CustomerService {
         return remainMony;
     }
 
-    public Page getCustomerInfo(PageParam page, CustomerRegistDTO customerRegistDTO) {
+    public PageList getCustomerInfo(PageParam page, CustomerRegistDTO customerRegistDTO) {
 
         StringBuilder sqlBuilder = new StringBuilder("SELECT\n" +
                 "t1.cust_id as custId,\n" +
@@ -584,7 +584,7 @@ public class CustomerService {
             sqlBuilder.append(" AND cjc.industry = " + customerRegistDTO.getIndustry());
         }
         sqlBuilder.append(" order by t1.create_time desc");
-        Page pageData = new Pagination().getPageData(sqlBuilder.toString(), null, page, jdbcTemplate);
+        PageList pageData = new Pagination().getPageData(sqlBuilder.toString(), null, page, jdbcTemplate);
         List<Map<String, Object>> list = pageData.getList();
         //查询部门里面有几个职位
         if (list.size() > 0) {
@@ -1026,7 +1026,7 @@ public class CustomerService {
             sql.append(" and g.zid='" + zid + "'");
         }
         sql.append(" order by commoninfo.create_time desc");
-        Page pageData = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
+        PageList pageData = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
         List<Map<String, Object>> list = null;
         if (pageData != null) {
             list = pageData.getList();

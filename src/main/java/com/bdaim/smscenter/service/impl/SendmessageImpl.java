@@ -2,14 +2,13 @@ package com.bdaim.smscenter.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
 import com.bdaim.batch.TransactionEnum;
 import com.bdaim.batch.dto.ExpressLog;
 import com.bdaim.batch.entity.SenderInfo;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.util.NumberConvertUtil;
 import com.bdaim.common.util.StringUtil;
-import com.bdaim.common.util.page.Page;
+import com.bdaim.common.util.page.PageList;
 import com.bdaim.common.util.page.Pagination;
 import com.bdaim.smscenter.dao.SendmessageImplDao;
 import com.bdaim.smscenter.service.SendmessageService;
@@ -89,7 +88,7 @@ public class SendmessageImpl implements SendmessageService {
 
     //查询
     @Override
-    public Page sendlist(PageParam page, String compId) {
+    public PageList sendlist(PageParam page, String compId) {
 
         StringBuilder sqlBuilder = new StringBuilder("SELECT t.id,t.sender_name,t.province,t.city,t.district,t.address,t.postcodes,t.phone,t.type FROM t_sender_info t WHERE 1=1");
         if (StringUtil.isNotEmpty(compId)) {
@@ -148,7 +147,7 @@ public class SendmessageImpl implements SendmessageService {
     }
 
     @Override
-    public Page pageList(PageParam page, ExpressLog expressLog) {
+    public PageList pageList(PageParam page, ExpressLog expressLog) {
         String batchid = expressLog.getBatchid();
         StringBuilder sqlBuilder = new StringBuilder("SELECT touch_id, address_id, receive_name,create_time,STATUS \n" +
                 "FROM t_touch_express_log WHERE batch_id= " + batchid);
@@ -170,7 +169,7 @@ public class SendmessageImpl implements SendmessageService {
         }
         sqlBuilder.append(" ORDER BY create_time DESC");
 
-        Page result = new Pagination().getPageData(sqlBuilder.toString(), null, page, jdbcTemplate);
+        PageList result = new Pagination().getPageData(sqlBuilder.toString(), null, page, jdbcTemplate);
 
         return result;
 
@@ -606,7 +605,7 @@ public class SendmessageImpl implements SendmessageService {
         }
         listSql.append(" ORDER BY create_time DESC");
 
-        Page page = new Pagination().getPageData(listSql.toString(), null, pageParam, jdbcTemplate);
+        PageList page = new Pagination().getPageData(listSql.toString(), null, pageParam, jdbcTemplate);
         resultMap.put("total", page.getTotal());
         resultList = page.getList();
         //转化省市县/区 返回方式为字符串数组

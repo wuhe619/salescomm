@@ -7,7 +7,7 @@ import com.bdaim.batch.TransactionEnum;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.util.IDHelper;
 import com.bdaim.common.util.StringUtil;
-import com.bdaim.common.util.page.Page;
+import com.bdaim.common.util.page.PageList;
 import com.bdaim.common.util.page.Pagination;
 import com.github.crab2died.ExcelUtils;
 import org.apache.commons.lang.StringEscapeUtils;
@@ -82,7 +82,7 @@ public class TransactionService {
         logger.debug(sql.toString());
         System.out.println("前台企业用户账户余额页面 交易明细sql：" + sql.toString());
         List<Map<String, Object>> result = new ArrayList<>();
-        Page pageret = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
+        PageList pageret = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
         ret.put("total", pageret.getTotal());
         ret.put("transactions", pageret);
 

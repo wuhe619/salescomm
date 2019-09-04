@@ -7,7 +7,7 @@ import com.bdaim.common.annotation.CacheAnnotation;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.util.StringUtil;
-import com.bdaim.common.util.page.Page;
+import com.bdaim.common.util.page.PageList;
 import com.bdaim.customer.entity.CustomerProperty;
 import com.bdaim.customer.entity.CustomerPropertyParam;
 import com.bdaim.customer.service.CustomerPropertyService;
@@ -76,7 +76,7 @@ public class CustomerPropertyAction extends BasicAction {
         } else {
             customerPropertyParam.setCustomerId(opUser().getCustId());
         }
-        Page list = customerPropertyService.pageList(page, customerPropertyParam);
+        PageList list = customerPropertyService.pageList(page, customerPropertyParam);
         return JSON.toJSONString(list);
 
     }

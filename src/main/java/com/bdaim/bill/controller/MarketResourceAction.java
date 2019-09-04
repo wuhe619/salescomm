@@ -13,9 +13,8 @@ import com.bdaim.common.annotation.CacheAnnotation;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.util.AuthPassport;
-import com.bdaim.common.util.ConfigUtil;
 import com.bdaim.common.util.StringUtil;
-import com.bdaim.common.util.page.Page;
+import com.bdaim.common.util.page.PageList;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerUserDao;
 import com.bdaim.customer.entity.CustomerUser;
@@ -75,7 +74,7 @@ public class MarketResourceAction extends BasicAction {
         Map<Object, Object> map = new HashMap<>();
         int touchStatu = 0;
         LoginUser lu = opUser();
-        Page list = null;
+        PageList list = null;
         if ("ROLE_USER".equals(lu.getRole()) || "admin".equals(lu.getRole())) {
             LOG.info("后台用户查询通话历史记录");
         } else {
@@ -166,7 +165,7 @@ public class MarketResourceAction extends BasicAction {
         }
         JSONObject json = new JSONObject();
         LoginUser lu = opUser();
-        Page list;
+        PageList list;
         if ("ROLE_USER".equals(lu.getRole()) || "admin".equals(lu.getRole())) {
             smsqueryParm.setCompId(null);
             LOG.info("后台用户查询短信历史记录");
@@ -413,7 +412,7 @@ public class MarketResourceAction extends BasicAction {
             return getErrors(error);
         }
         LoginUser lu = opUser();
-        Page list = null;
+        PageList list = null;
         if ("ROLE_USER".equals(lu.getRole()) || "admin".equals(lu.getRole())) {
             list = marketResourceService.getSupplierList(page, supplierListParam);
         }
@@ -521,7 +520,7 @@ public class MarketResourceAction extends BasicAction {
         } else {
             templateParam.setCompId(opUser().getCustId());
         }
-        Page list = marketResourceService.getSmsTemplateList(page, templateParam);
+        PageList list = marketResourceService.getSmsTemplateList(page, templateParam);
         return JSON.toJSONString(list);
     }
 
@@ -570,7 +569,7 @@ public class MarketResourceAction extends BasicAction {
         CustomerUser u = (CustomerUser) request.getAttribute("customerUserDO");
         String custId = u.getCust_id();
         JSONObject json = new JSONObject();
-        Page list = marketResourceService.openSmsHistory(page, custId);
+        PageList list = marketResourceService.openSmsHistory(page, custId);
         json.put("data", list);
         return json.toJSONString();
     }

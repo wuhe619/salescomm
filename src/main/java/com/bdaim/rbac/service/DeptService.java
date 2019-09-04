@@ -2,7 +2,7 @@ package com.bdaim.rbac.service;
 
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.util.*;
-import com.bdaim.common.util.page.Page;
+import com.bdaim.common.util.page.PageList;
 import com.bdaim.common.util.page.Pagination;
 import com.bdaim.rbac.dao.DeptDao;
 import com.bdaim.rbac.dto.DeptDto;
@@ -16,7 +16,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import javax.persistence.criteria.CriteriaBuilder;
 import javax.transaction.Transactional;
 import java.util.*;
 
@@ -104,7 +103,7 @@ public class DeptService {
         buffer.append("FROM t_dept t1 LEFT JOIN t_role t2 ON t1.id=t2.deptid ")
                 .append("GROUP BY t1.id,t1.create_time,t1.name,t1.modify_time ORDER BY t1.create_time DESC");
         logger.info("执行查询 " + buffer.toString());
-        Page page = new Pagination().getPageData(buffer.toString(), null, param, jdbcTemplate);
+        PageList page = new Pagination().getPageData(buffer.toString(), null, param, jdbcTemplate);
         List<Map<String, Object>> data = page.getList();
 
         //组装返回值
