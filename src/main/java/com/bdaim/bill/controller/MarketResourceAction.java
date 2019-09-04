@@ -86,47 +86,52 @@ public class MarketResourceAction extends BasicAction {
         if (StringUtil.isNotEmpty(touchStatus)) {
             touchStatu = Integer.parseInt(touchStatus);
         }
-        list = marketResourceService.queryRecordVoicelog(page, cust_id, userid, user_type, superId,
-                realName, createTimeStart, createTimeEnd, enterpriseId, batchId, touchStatu, enterpriseName);
+        try{
+            list = marketResourceService.queryRecordVoicelog(page, cust_id, userid, user_type, superId,
+                    realName, createTimeStart, createTimeEnd, enterpriseId, batchId, touchStatu, enterpriseName);
 
-        Map<String, Object> mapObj;
-        for (int i = 0; i < list.getList().size(); i++) {
-            mapObj = (Map<String, Object>) list.getList().get(i);
-            if (mapObj != null && mapObj.get("remark") != null) {
-                String remark = mapObj.get("remark").toString();
-                String remarkArg[] = remark.split("\\{\\}");
-                String realname = "";
-                String enterprisename = "";
-                String account = "";
-                if (remarkArg != null && remarkArg.length >= 3) {
-                    remark = remarkArg[0];
-                    realname = remarkArg[1];
-                    enterprisename = remarkArg[2];
-                }
-                if (StringUtil.isEmpty(realname)) {
-                    if (mapObj.get("user_id") != null) {
-                        String user_id = mapObj.get("user_id").toString();
-                        realname = customerUserDao.getName(user_id);
-                        account = customerUserDao.getLoginName(user_id);
+            Map<String, Object> mapObj;
+            for (int i = 0; i < list.getList().size(); i++) {
+                mapObj = (Map<String, Object>) list.getList().get(i);
+                if (mapObj != null && mapObj.get("remark") != null) {
+                    String remark = mapObj.get("remark").toString();
+                    String remarkArg[] = remark.split("\\{\\}");
+                    String realname = "";
+                    String enterprisename = "";
+                    String account = "";
+                    if (remarkArg != null && remarkArg.length >= 3) {
+                        remark = remarkArg[0];
+                        realname = remarkArg[1];
+                        enterprisename = remarkArg[2];
                     }
-                }
-                if (StringUtil.isEmpty(enterprisename)) {
-                    if (mapObj.get("cust_id") != null) {
-                        String custId = mapObj.get("cust_id").toString();
-                        enterprisename = customerDao.getEnterpriseName(custId);
+                    if (StringUtil.isEmpty(realname)) {
+                        if (mapObj.get("user_id") != null) {
+                            String user_id = mapObj.get("user_id").toString();
+                            realname = customerUserDao.getName(user_id);
+                            account = customerUserDao.getLoginName(user_id);
+                        }
                     }
+                    if (StringUtil.isEmpty(enterprisename)) {
+                        if (mapObj.get("cust_id") != null) {
+                            String custId = mapObj.get("cust_id").toString();
+                            enterprisename = customerDao.getEnterpriseName(custId);
+                        }
+                    }
+                    mapObj.put("enterpriseName", enterprisename);
+                    mapObj.put("account", account);
+                    mapObj.put("realname", realname);
+                    mapObj.put("remark", remark);
                 }
-                mapObj.put("enterpriseName", enterprisename);
-                mapObj.put("account", account);
-                mapObj.put("realname", realname);
-                mapObj.put("remark", remark);
             }
+            map.put("data", list);
+            //录音路径
+            String audioUrl = ConfigUtil.getInstance().get("audio_server_url") + "/";
+            map.put("audioUrl", audioUrl);
+            json.put("data", map);
+
+        } catch (Exception e) {
+            LOG.info("查询通话记录出错 》》》》》 " + e);
         }
-        map.put("data", list);
-        //录音路径
-        String audioUrl = ConfigUtil.getInstance().get("audio_server_url") + "/";
-        map.put("audioUrl", audioUrl);
-        json.put("data", map);
         return json.toJSONString();
     }
 
