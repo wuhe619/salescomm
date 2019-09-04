@@ -3,7 +3,7 @@ package com.bdaim.resource.dao;
 import com.bdaim.common.dao.SimpleHibernateDao;
 import com.bdaim.common.util.SqlAppendUtil;
 import com.bdaim.common.util.StringUtil;
-import com.bdaim.rbac.dto.Page;
+import com.bdaim.common.dto.Page;
 import com.bdaim.resource.dto.MarketResourceDTO;
 import com.bdaim.resource.dto.VoiceLogQueryParam;
 import com.bdaim.resource.entity.MarketResourceEntity;

@@ -1,6 +1,7 @@
 package com.bdaim.rbac.service;
 
 import com.bdaim.auth.LoginUser;
+import com.bdaim.common.dto.Page;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.util.CipherUtil;
 import com.bdaim.common.util.IDHelper;
@@ -9,23 +10,20 @@ import com.bdaim.common.util.StringUtil;
 import com.bdaim.rbac.DataFromEnum;
 import com.bdaim.rbac.dao.RoleDao;
 import com.bdaim.rbac.dao.UserDao;
-import com.bdaim.rbac.dto.Page;
 import com.bdaim.rbac.dto.UserDTO;
 import com.bdaim.rbac.entity.User;
 import com.bdaim.rbac.entity.UserDO;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import javax.transaction.Transactional;
-
-import static com.bdaim.rbac.controller.RoleAction.log;
-
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+
+import static com.bdaim.rbac.controller.RoleAction.log;
 
 @Service("userService")
 @Transactional
@@ -35,6 +33,17 @@ public class UserService {
     private UserDao userDao;
     @Resource
     private RoleDao roleDao;
+
+    /**
+     * 管理员类型
+     */
+    public final static String ADMIN_USER_TYPE = "1";
+
+    /**
+     * 操作员类型
+     */
+    public final static String OPERATOR_USER_TYPE = "2";
+
 
     @SuppressWarnings("unchecked")
     public List<User> getAllUsers() {

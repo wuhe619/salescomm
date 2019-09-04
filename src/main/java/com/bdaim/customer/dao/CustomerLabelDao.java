@@ -4,7 +4,7 @@ import com.bdaim.common.dao.SimpleHibernateDao;
 import com.bdaim.common.util.NumberConvertUtil;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.dto.CustomerLabelDTO;
-import com.bdaim.customer.entity.CustomerLabelDO;
+import com.bdaim.customer.entity.CustomerLabel;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -16,19 +16,19 @@ import java.util.Map;
  * @description
  */
 @Component
-public class CustomerLabelDao extends SimpleHibernateDao<CustomerLabelDO, String> {
+public class CustomerLabelDao extends SimpleHibernateDao<CustomerLabel, String> {
 
-    public CustomerLabelDO getLabelByProjectId(String projectId, String custId, String labelName) {
-        CustomerLabelDO cp = null;
-        String hql = "from CustomerLabelDO m where  custId =? and status = 1 and labelName = ?";
+    public CustomerLabel getLabelByProjectId(String projectId, String custId, String labelName) {
+        CustomerLabel cp = null;
+        String hql = "from CustomerLabel m where  custId =? and status = 1 and labelName = ?";
         if (StringUtil.isNotEmpty(projectId)) {
             hql += " and marketProjectId = '" + projectId + "'";
         } else {
             hql += " and marketProjectId is NULL";
         }
-        List<CustomerLabelDO> list = this.find(hql, custId, labelName);
+        List<CustomerLabel> list = this.find(hql, custId, labelName);
         if (list.size() > 0)
-            cp = (CustomerLabelDO) list.get(0);
+            cp = (CustomerLabel) list.get(0);
         return cp;
     }
 
@@ -40,10 +40,11 @@ public class CustomerLabelDao extends SimpleHibernateDao<CustomerLabelDO, String
      * @param status
      * @return
      */
-    public List<CustomerLabelDO> listCustomerLabelNameExist(String includeLabelId, String name, int status) {
+    public List<CustomerLabel> listCustomerLabelNameExist(String includeLabelId, String name, int status, String custId) {
         List<Object> param = new ArrayList<>();
         param.add(name);
-        StringBuilder hql = new StringBuilder("FROM CustomerLabelDO m where m.labelName=? ");
+        param.add(custId);
+        StringBuilder hql = new StringBuilder("FROM CustomerLabel m where m.labelName=? AND (m.custId = ? OR m.custId = 0) ");
         if (StringUtil.isNotEmpty(includeLabelId)) {
             hql.append(" AND m.labelId NOT IN(?) ");
             param.add(includeLabelId);
@@ -56,35 +57,35 @@ public class CustomerLabelDao extends SimpleHibernateDao<CustomerLabelDO, String
     }
 
 
-    public CustomerLabelDO getCustomerLabel(String labelId) {
-        CustomerLabelDO cp = null;
-        String hql = "from CustomerLabelDO m where m.labelId=? ";
-        List<CustomerLabelDO> list = this.find(hql, labelId);
+    public CustomerLabel getCustomerLabel(String labelId) {
+        CustomerLabel cp = null;
+        String hql = "from CustomerLabel m where m.labelId=? ";
+        List<CustomerLabel> list = this.find(hql, labelId);
         if (list.size() > 0)
-            cp = (CustomerLabelDO) list.get(0);
+            cp = (CustomerLabel) list.get(0);
         return cp;
     }
 
-    public CustomerLabelDO getCustomerLabel(String labelId, String projectId, int noStatus) {
-        CustomerLabelDO cp = null;
-        String hql = "from CustomerLabelDO m where m.labelId=?  AND m.status<>? ";
+    public CustomerLabel getCustomerLabel(String labelId, String projectId, int noStatus) {
+        CustomerLabel cp = null;
+        String hql = "from CustomerLabel m where m.labelId=?  AND m.status<>? ";
         if (StringUtil.isEmpty(projectId)) {
             hql += " AND m.marketProjectId IS NULL ";
         } else {
             hql += " AND m.marketProjectId = '" + projectId + "'";
         }
-        List<CustomerLabelDO> list = this.find(hql, labelId, String.valueOf(noStatus));
+        List<CustomerLabel> list = this.find(hql, labelId, String.valueOf(noStatus));
         if (list.size() > 0)
-            cp = (CustomerLabelDO) list.get(0);
+            cp = (CustomerLabel) list.get(0);
         return cp;
     }
 
-    public CustomerLabelDO getCustomerLabel(int id) {
-        CustomerLabelDO cp = null;
-        String hql = "from CustomerLabelDO m where m.id=?";
-        List<CustomerLabelDO> list = this.find(hql, id);
+    public CustomerLabel getCustomerLabel(int id) {
+        CustomerLabel cp = null;
+        String hql = "from CustomerLabel m where m.id=?";
+        List<CustomerLabel> list = this.find(hql, id);
         if (list.size() > 0)
-            cp = (CustomerLabelDO) list.get(0);
+            cp = (CustomerLabel) list.get(0);
         return cp;
     }
 
@@ -93,9 +94,9 @@ public class CustomerLabelDao extends SimpleHibernateDao<CustomerLabelDO, String
      * @param noStatus
      * @return
      */
-    public List<CustomerLabelDO> listCustomerLabel(String labelId, int noStatus) {
-        String hql = "from CustomerLabelDO m where m.labelId=? AND m.status<> ?";
-        List<CustomerLabelDO> list = this.find(hql, labelId, String.valueOf(noStatus));
+    public List<CustomerLabel> listCustomerLabel(String labelId, int noStatus) {
+        String hql = "from CustomerLabel m where m.labelId=? AND m.status<> ?";
+        List<CustomerLabel> list = this.find(hql, labelId, String.valueOf(noStatus));
         return list;
     }
 
@@ -105,9 +106,9 @@ public class CustomerLabelDao extends SimpleHibernateDao<CustomerLabelDO, String
      * @param custId
      * @return
      */
-    public List<CustomerLabelDO> listCustomerLabel(String custId) {
-        String hql = "from CustomerLabelDO m where m.custId=? ";
-        List<CustomerLabelDO> list = this.find(hql, custId);
+    public List<CustomerLabel> listCustomerLabel(String custId) {
+        String hql = "from CustomerLabel m where m.custId=? ";
+        List<CustomerLabel> list = this.find(hql, custId);
         return list;
     }
 
@@ -116,23 +117,23 @@ public class CustomerLabelDao extends SimpleHibernateDao<CustomerLabelDO, String
      *
      * @return
      */
-    public List<CustomerLabelDO> listSystemCustomerLabel() {
-        String hql = "from CustomerLabelDO m where m.custId=? ";
-        List<CustomerLabelDO> list = this.find(hql, "0");
+    public List<CustomerLabel> listSystemCustomerLabel() {
+        String hql = "from CustomerLabel m where m.custId=? ";
+        List<CustomerLabel> list = this.find(hql, "0");
         return list;
     }
 
-    public int updateCustomerLabel(CustomerLabelDO customerLabel) {
+    public int updateCustomerLabel(CustomerLabel customerLabel) {
         this.saveOrUpdate(customerLabel);
         return 1;
     }
 
-    public CustomerLabelDO getCustomerLabelByName(String labelName, String custId) {
-        CustomerLabelDO cp = null;
-        String hql = "from CustomerLabelDO m where m.labelName=? and custId=?";
-        List<CustomerLabelDO> list = this.find(hql, labelName, custId);
+    public CustomerLabel getCustomerLabelByName(String labelName, String custId) {
+        CustomerLabel cp = null;
+        String hql = "from CustomerLabel m where m.labelName=? and custId=?";
+        List<CustomerLabel> list = this.find(hql, labelName, custId);
         if (list.size() > 0)
-            cp = (CustomerLabelDO) list.get(0);
+            cp = (CustomerLabel) list.get(0);
         return cp;
     }
 

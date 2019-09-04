@@ -1,7 +1,5 @@
 package com.bdaim.customer.controller;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.auth.LoginUser;
@@ -10,10 +8,11 @@ import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.common.util.page.Page;
-import com.bdaim.customer.entity.CustomerPropertyDO;
+import com.bdaim.customer.entity.CustomerProperty;
 import com.bdaim.customer.entity.CustomerPropertyParam;
 import com.bdaim.customer.service.CustomerPropertyService;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -95,7 +94,7 @@ public class CustomerPropertyAction extends BasicAction {
 
     @RequestMapping(value = "/enterpriseadd.do", method = RequestMethod.POST)
     @ResponseBody
-    public Object enterpriseadd(@RequestBody CustomerPropertyDO customerProperty) {
+    public Object enterpriseadd(@RequestBody CustomerProperty customerProperty) {
         LoginUser lu = opUser();
         Map<String, Object> resultMap = new HashMap<String, Object>();
         if ("ROLE_USER".equals(lu.getRole()) || "admin".equals(lu.getRole())) {

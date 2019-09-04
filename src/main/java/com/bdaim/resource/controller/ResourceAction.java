@@ -3,7 +3,7 @@ package com.bdaim.resource.controller;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
-import com.bdaim.resource.service.impl.MarketResourceServiceImpl;
+import com.bdaim.resource.service.MarketResourceService;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -22,7 +22,7 @@ import java.util.Map;
 @RequestMapping("/resource")
 public class ResourceAction extends BasicAction {
     @Resource
-    MarketResourceServiceImpl marketResourceService;
+    MarketResourceService marketResourceService;
     private static org.apache.log4j.Logger logger = org.apache.log4j.Logger.getLogger(ResourceAction.class);
 
     /**

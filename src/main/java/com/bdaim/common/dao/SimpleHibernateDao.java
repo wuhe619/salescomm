@@ -4,7 +4,7 @@ import com.bdaim.common.util.Constant;
 import com.bdaim.common.util.NumberConvertUtil;
 import com.bdaim.common.util.ReflectionUtils;
 import com.bdaim.common.util.StringHelper;
-import com.bdaim.rbac.dto.Page;
+import com.bdaim.common.dto.Page;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -262,6 +262,60 @@ public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDao
         Page p = new Page();
         p.setTotal(this.findCount(hql, values));
         p.setData(this.createQuery(hql, values).setFirstResult(startIndex).setMaxResults(maxSize).list());
+        return p;
+    }
+
+    /**
+     * pageSize不做限制
+     * @param sql
+     * @param pageNum
+     * @param pageSize
+     * @param values
+     * @return
+     */
+    public Page sqlPageQueryByPageSize(String sql, int pageNum, int pageSize, final Object... values) {
+        if (pageNum < 0) {
+            pageNum = 0;
+        }
+        if (pageSize < 0) {
+            pageSize = 100;
+        }
+        int total = 0;
+        Page p = new Page();
+        StringBuilder totalSql = new StringBuilder();
+        totalSql.append("select count(*) count from (");
+        totalSql.append(sql);
+        totalSql.append(") as temp");
+
+        Session session = getSessionFactory().openSession();
+        Query query = session.createSQLQuery(totalSql.toString());
+        query.setResultTransformer(CriteriaSpecification.ALIAS_TO_ENTITY_MAP);
+        if (values != null) {
+            for (int i = 0; i < values.length; i++) {
+                query.setParameter(i, values[i]);
+            }
+        }
+        // 先查询total
+        List<Map<String, Object>> totalList = query.list();
+        if (totalList.size() > 0) {
+            total = NumberConvertUtil.parseInt(String.valueOf(totalList.get(0).get("count")));
+        }
+        p.setTotal(total);
+
+        //查询分页数据
+        query = session.createSQLQuery(sql);
+        query.setResultTransformer(CriteriaSpecification.ALIAS_TO_ENTITY_MAP);
+        // 先查询total
+        query.setFirstResult(pageNum);
+        query.setMaxResults(pageSize);
+        if (values != null) {
+            for (int i = 0; i < values.length; i++) {
+                query.setParameter(i, values[i]);
+            }
+        }
+        List rs = query.list();
+        p.setData(rs);
+        session.close();
         return p;
     }
 
@@ -925,6 +979,28 @@ public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDao
         List rs = query.list();
         session.close();
         return rs;
+    }
+
+    public List<Map<String, Object>> queryListBySql(String sql) {
+        Session session = getSessionFactory().openSession();
+        Query query = session.createSQLQuery(sql);
+        query.setResultTransformer(CriteriaSpecification.ALIAS_TO_ENTITY_MAP);
+        List rs = query.list();
+        session.close();
+        return rs;
+    }
+
+    public String queryForObject(String sql, final Object... values) {
+        Session session = getSessionFactory().openSession();
+        Query query = session.createSQLQuery(sql);
+        if (values != null)
+            for (int i = 0; i < values.length; i++) {
+                query.setParameter(i, values[i]);
+            }
+        List rs = query.list();
+        if (rs.size() > 0)
+            return String.valueOf(rs.get(0));
+        return "";
     }
 
 }

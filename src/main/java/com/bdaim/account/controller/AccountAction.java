@@ -15,7 +15,7 @@ import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.common.util.AuthPassport;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.common.util.page.Page;
-import com.bdaim.customer.entity.CustomerUserDO;
+import com.bdaim.customer.entity.CustomerUser;
 import com.bdaim.customer.service.CustomerService;
 import com.github.crab2died.ExcelUtils;
 import org.slf4j.Logger;
@@ -390,7 +390,7 @@ public class AccountAction extends BasicAction {
     @RequestMapping(value = "/open/show.do", method = RequestMethod.POST)
     @ResponseBody
     public Object showAccount() {
-        CustomerUserDO u = (CustomerUserDO) request.getAttribute("customerUserDO");
+        CustomerUser u = (CustomerUser) request.getAttribute("customerUserDO");
         String custId = u.getCust_id();
         Map<String, Object> resultMap = new HashMap<>();
         resultMap.put("data", JSONObject.toJSON(accountService.queryAccoutCenter(custId)));

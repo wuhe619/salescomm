@@ -1,7 +1,7 @@
 package com.bdaim.customer.dto;
 
 
-import com.bdaim.customer.entity.CustomerUserDO;
+import com.bdaim.customer.entity.CustomerUser;
 
 public class CustomerUserDTO {
 
@@ -48,7 +48,7 @@ public class CustomerUserDTO {
         this.realname = realname;
     }
 
-    public CustomerUserDTO(CustomerUserDO customerUser) {
+    public CustomerUserDTO(CustomerUser customerUser) {
         this.setId(String.valueOf(customerUser.getId()));
         this.setAccount(customerUser.getAccount());
         this.setRealname(customerUser.getRealname());

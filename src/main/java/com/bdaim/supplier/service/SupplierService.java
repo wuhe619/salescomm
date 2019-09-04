@@ -11,7 +11,7 @@ import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.util.DateUtil;
 import com.bdaim.common.util.NumberConvertUtil;
 import com.bdaim.common.util.StringUtil;
-import com.bdaim.rbac.dto.Page;
+import com.bdaim.common.dto.Page;
 import com.bdaim.resource.dao.MarketResourceDao;
 import com.bdaim.resource.dao.SourceDao;
 import com.bdaim.resource.dto.MarketResourceDTO;

@@ -7,7 +7,7 @@ import com.bdaim.common.util.CalendarUtil;
 import com.bdaim.common.util.Constant;
 import com.bdaim.common.util.spring.SpringContextHelper;
 import com.bdaim.customer.dao.CustomerUserDao;
-import com.bdaim.customgroup.entity.CustomGroupDO;
+import com.bdaim.customgroup.entity.CustomGroup;
 import com.bdaim.label.entity.*;
 import com.bdaim.label.service.LabelCategoryService;
 import com.bdaim.label.service.LabelInfoService;
@@ -544,9 +544,9 @@ public class CommonService {
     }
 
     public List<Map<String, Object>> getCustomGroupMapList(
-            List<CustomGroupDO> groups) {
+            List<CustomGroup> groups) {
         List<Map<String, Object>> mapList = new ArrayList<Map<String, Object>>();
-        for (CustomGroupDO group : groups) {
+        for (CustomGroup group : groups) {
             mapList.add(getCustomGroupMap(group));
         }
         return mapList;
@@ -567,7 +567,7 @@ public class CommonService {
      * @param group
      * @return
      */
-    public Map<String, Object> getCustomGroupMap(CustomGroupDO group) {
+    public Map<String, Object> getCustomGroupMap(CustomGroup group) {
         Map<String, Object> map = new HashMap<String, Object>();
         Map<String, Object> labelMap = new HashMap<String, Object>();
         Integer id = group.getId();

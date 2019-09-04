@@ -22,14 +22,14 @@ import com.bdaim.common.util.page.Pagination;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerUserDao;
 import com.bdaim.customer.dto.CustomerRegistDTO;
-import com.bdaim.customer.entity.CustomerDO;
-import com.bdaim.customer.entity.CustomerPropertyDO;
-import com.bdaim.customer.entity.CustomerUserDO;
-import com.bdaim.customer.entity.CustomerUserPropertyDO;
+import com.bdaim.customer.entity.Customer;
+import com.bdaim.customer.entity.CustomerProperty;
+import com.bdaim.customer.entity.CustomerUser;
+import com.bdaim.customer.entity.CustomerUserProperty;
 import com.bdaim.price.dto.ResourcesPriceDto;
 import com.bdaim.resource.dao.SourceDao;
 import com.bdaim.resource.entity.MarketResourceEntity;
-import com.bdaim.resource.service.impl.MarketResourceServiceImpl;
+import com.bdaim.resource.service.MarketResourceService;
 import com.bdaim.supplier.dao.SupplierDao;
 import com.bdaim.supplier.dto.SupplierEnum;
 
@@ -73,7 +73,7 @@ public class SeatsServiceImpl implements SeatsService {
     @Resource
     private BatchDao batchDao;
     @Resource
-    private MarketResourceServiceImpl marketResourceServiceImpl;
+    private MarketResourceService marketResourceServiceImpl;
 
     /**
      * 联通包月分钟数配置key
@@ -135,9 +135,9 @@ public class SeatsServiceImpl implements SeatsService {
                     logger.info(channel + "活动Id是：" + activityId);
                 }
                 if (ConstantsUtil.SUPPLIERID__CUC.equals(channel) || ConstantsUtil.SUPPLIERID__CTC.equals(channel) || ConstantsUtil.SUPPLIERID__CMC.equals(channel)) {
-                    CustomerPropertyDO callIdProperty = customerDao.getProperty(custId, channelProperty + "_call_id");
+                    CustomerProperty callIdProperty = customerDao.getProperty(custId, channelProperty + "_call_id");
                     if (callIdProperty == null) {
-                        CustomerPropertyDO callIdCustomer = new CustomerPropertyDO();
+                        CustomerProperty callIdCustomer = new CustomerProperty();
                         callIdCustomer.setCustId(custId);
                         callIdCustomer.setPropertyName(channelProperty + "_call_id");
                         callIdCustomer.setPropertyValue(callEnterpriseId);
@@ -148,9 +148,9 @@ public class SeatsServiceImpl implements SeatsService {
                         customerDao.saveOrUpdate(callIdProperty);
                     }
                     //案件ID
-                    CustomerPropertyDO activityProperty = customerDao.getProperty(custId, channelProperty + "_activity_id");
+                    CustomerProperty activityProperty = customerDao.getProperty(custId, channelProperty + "_activity_id");
                     if (activityProperty == null) {
-                        CustomerPropertyDO activityIdCustomer = new CustomerPropertyDO();
+                        CustomerProperty activityIdCustomer = new CustomerProperty();
                         activityIdCustomer.setCustId(custId);
                         activityIdCustomer.setPropertyName(channelProperty + "_activity_id");
                         activityIdCustomer.setPropertyValue(activityId);
@@ -160,9 +160,9 @@ public class SeatsServiceImpl implements SeatsService {
                         activityProperty.setPropertyValue(activityId);
                         customerDao.saveOrUpdate(activityProperty);
                     }
-                    CustomerPropertyDO apparentNumberCustomer = customerDao.getProperty(custId, channelProperty + "_apparent_number");
+                    CustomerProperty apparentNumberCustomer = customerDao.getProperty(custId, channelProperty + "_apparent_number");
                     if (apparentNumberCustomer == null) {
-                        CustomerPropertyDO apparentCustomer = new CustomerPropertyDO();
+                        CustomerProperty apparentCustomer = new CustomerProperty();
                         apparentCustomer.setCustId(custId);
                         apparentCustomer.setPropertyName(channelProperty + "_apparent_number");
                         apparentCustomer.setPropertyValue(apparentNumber);
@@ -176,9 +176,9 @@ public class SeatsServiceImpl implements SeatsService {
                 }
                 if (ConstantsUtil.SUPPLIERID__JD.equals(channel)) {
                     String configId = seatsList.get(i).getConfigId();
-                    CustomerPropertyDO configCustomerProperty = customerDao.getProperty(custId, channelProperty + "_config_id");
+                    CustomerProperty configCustomerProperty = customerDao.getProperty(custId, channelProperty + "_config_id");
                     if (configCustomerProperty == null) {
-                        CustomerPropertyDO configCustomer = new CustomerPropertyDO();
+                        CustomerProperty configCustomer = new CustomerProperty();
                         configCustomer.setCustId(custId);
                         configCustomer.setPropertyName(channelProperty + "_config_id");
                         configCustomer.setPropertyValue(configId);
@@ -192,9 +192,9 @@ public class SeatsServiceImpl implements SeatsService {
 
                 if (ConstantsUtil.SUPPLIERID__YD.equals(channel)) {
                     String configId = seatsList.get(i).getConfigId();
-                    CustomerPropertyDO configCustomerProperty = customerDao.getProperty(custId, channelProperty + "_config_id");
+                    CustomerProperty configCustomerProperty = customerDao.getProperty(custId, channelProperty + "_config_id");
                     if (configCustomerProperty == null) {
-                        CustomerPropertyDO configCustomer = new CustomerPropertyDO();
+                        CustomerProperty configCustomer = new CustomerProperty();
                         configCustomer.setCustId(custId);
                         configCustomer.setPropertyName(channelProperty + "_config_id");
                         configCustomer.setPropertyValue(configId);
@@ -206,9 +206,9 @@ public class SeatsServiceImpl implements SeatsService {
                     }
                 }
                 if (ConstantsUtil.SUPPLIERID__XZ.equals(channel)) {
-                    CustomerPropertyDO configCustomerProperty = customerDao.getProperty(custId, channelProperty + "_apparent_number");
+                    CustomerProperty configCustomerProperty = customerDao.getProperty(custId, channelProperty + "_apparent_number");
                     if (configCustomerProperty == null) {
-                        CustomerPropertyDO configCustomer = new CustomerPropertyDO();
+                        CustomerProperty configCustomer = new CustomerProperty();
                         configCustomer.setCustId(custId);
                         configCustomer.setPropertyName(channelProperty + "_apparent_number");
                         configCustomer.setPropertyValue(apparentNumber);
@@ -267,9 +267,9 @@ public class SeatsServiceImpl implements SeatsService {
                 }
                 //将渠道信息存储到数据库
                 //查询数据库是否存在  存在更新  不存在增加
-                CustomerPropertyDO channelOldCustomer = customerDao.getProperty(custId, "channel");
+                CustomerProperty channelOldCustomer = customerDao.getProperty(custId, "channel");
                 if (channelOldCustomer == null) {
-                    CustomerPropertyDO channelCustomer = new CustomerPropertyDO();
+                    CustomerProperty channelCustomer = new CustomerProperty();
                     channelCustomer.setCustId(custId);
                     channelCustomer.setPropertyName("channel");
                     channelCustomer.setPropertyValue(channelStr.toString());
@@ -308,7 +308,7 @@ public class SeatsServiceImpl implements SeatsService {
                     SeatsInfo seatsInfo = seatsInfoList.get(i);
                     Long userId = IDHelper.getID();
                     //添加坐席的登陆账号密码
-                    CustomerUserDO customerUserDO = new CustomerUserDO();
+                    CustomerUser customerUserDO = new CustomerUser();
                     customerUserDO.setId(userId);
                     customerUserDO.setAccount(seatsInfoList.get(i).getAccount());
                     customerUserDO.setPassword(CipherUtil.encodeByMD5(seatsInfoList.get(i).getPassword()));
@@ -318,7 +318,7 @@ public class SeatsServiceImpl implements SeatsService {
                     customerUserDO.setUserType(2);
                     customerUserDao.save(customerUserDO);
                     //保存坐席手机号码
-                    CustomerUserPropertyDO customerPropertyDo = new CustomerUserPropertyDO();
+                    CustomerUserProperty customerPropertyDo = new CustomerUserProperty();
                     customerPropertyDo.setUserId(String.valueOf(userId));
                     customerPropertyDo.setPropertyName("mobile_num");
                     customerPropertyDo.setPropertyValue(seatsInfoList.get(i).getPhoneNum());
@@ -365,7 +365,7 @@ public class SeatsServiceImpl implements SeatsService {
                                 resourceId = String.valueOf(list.get(0).get("resource_id"));
                             }
                             //根据供应商id查询坐席对象
-                            CustomerUserPropertyDO customerUser = new CustomerUserPropertyDO();
+                            CustomerUserProperty customerUser = new CustomerUserProperty();
                             customerUser.setUserId(String.valueOf(userId));
                             customerUser.setPropertyName(seatName);
                             customerUser.setPropertyValue(JSON.toJSONString(map));
@@ -439,7 +439,7 @@ public class SeatsServiceImpl implements SeatsService {
                                         "坐席扣费", accountUserId, "", "", seatSpperPrice.intValue(), resourceId);
                                 logger.info("坐席扣费客户:" + custId + "保存交易记录状态:" + seatAmountStatus);
                                 //添加坐席套餐分钟数在user属性表中
-                                CustomerUserPropertyDO customerUserProperty = new CustomerUserPropertyDO();
+                                CustomerUserProperty customerUserProperty = new CustomerUserProperty();
                                 customerUserProperty.setUserId(String.valueOf(userId));
                                 customerUserProperty.setPropertyName(seatMinute);
                                 customerUserProperty.setPropertyValue(String.valueOf(custSeatMinute));
@@ -447,7 +447,7 @@ public class SeatsServiceImpl implements SeatsService {
                                 customerUserDao.saveOrUpdate(customerUserProperty);
 
                                 //保存坐席的供应商分钟数
-                                CustomerUserPropertyDO customerSupplierMinute = new CustomerUserPropertyDO();
+                                CustomerUserProperty customerSupplierMinute = new CustomerUserProperty();
                                 customerSupplierMinute.setUserId(String.valueOf(userId));
                                 customerSupplierMinute.setPropertyName(resourceId + "_minute");
                                 customerSupplierMinute.setPropertyValue(String.valueOf(supSeatMinute));
@@ -672,7 +672,7 @@ public class SeatsServiceImpl implements SeatsService {
         Integer start = (pageNum - 1) * pageSize;
         List<SeatsMessageParam> seatsParamsList = new ArrayList<SeatsMessageParam>();
         String channelProperty = null;
-        CustomerPropertyDO channelList = null;
+        CustomerProperty channelList = null;
         HashMap<String, Object> map = new HashMap<>();
         //获取平台信息集合
         StringBuffer hql = new StringBuffer(" from CustomerUserDO m where 1=1");
@@ -683,9 +683,9 @@ public class SeatsServiceImpl implements SeatsService {
         }
         hql.append(" and userType='2' ");
         hql.append(" ORDER BY m.createTime desc ");
-        com.bdaim.rbac.dto.Page page = customerUserDao.page(hql.toString(), values, start, pageSize);
+        com.bdaim.common.dto.Page page = customerUserDao.page(hql.toString(), values, start, pageSize);
         if (page.getData() != null && page.getData().size() > 0) {
-            List<CustomerUserDO> customerUserList = page.getData();
+            List<CustomerUser> customerUserList = page.getData();
             channelList = customerDao.getProperty(custId, "channel");
             logger.info("企业id是：" + custId + "现在已经添加的渠道是" + String.valueOf(channelList));
             for (int i = 0; i < customerUserList.size(); i++) {
@@ -704,7 +704,7 @@ public class SeatsServiceImpl implements SeatsService {
                             if (callIdPropertyName!=null){
                                 channelProperty = callIdPropertyName.getSeatName();
                                 //根据userid获取坐席信息
-                                CustomerUserPropertyDO userProperty = customerUserDao.getProperty(String.valueOf(id), channelProperty);
+                                CustomerUserProperty userProperty = customerUserDao.getProperty(String.valueOf(id), channelProperty);
                                 //將json串存入对象
                                 if (userProperty != null) {
                                     com.alibaba.fastjson.JSONObject json = JSON.parseObject(userProperty.getPropertyValue());
@@ -736,8 +736,8 @@ public class SeatsServiceImpl implements SeatsService {
             }
         }
         //查询企业信息
-        CustomerDO customerDO = customerDao.findUniqueBy("custId", custId);
-        List<CustomerUserDO> customerUser = customerUserDao.getPropertyByType(1, custId);
+        Customer customerDO = customerDao.findUniqueBy("custId", custId);
+        List<CustomerUser> customerUser = customerUserDao.getPropertyByType(1, custId);
         CustomerRegistDTO customerRegistDTO = new CustomerRegistDTO();
         customerRegistDTO.setEnterpriseName(customerDO.getEnterpriseName());
         customerRegistDTO.setName(customerUser.get(0).getAccount());
@@ -758,7 +758,7 @@ public class SeatsServiceImpl implements SeatsService {
     @Override
     public void updateSeatsStatus(String id, int status, String channel, String custId) throws Exception {
         //根据id和属性名查询seats_status
-        List<CustomerUserDO> customerUserDO = customerUserDao.findBy("id", Long.valueOf(id));
+        List<CustomerUser> customerUserDO = customerUserDao.findBy("id", Long.valueOf(id));
         if (customerUserDO.size() > 0) {
             if (customerUserDO.get(0) != null) {
                 customerUserDO.get(0).setStatus(status);
@@ -790,12 +790,12 @@ public class SeatsServiceImpl implements SeatsService {
                             SupplierEnum callIdPropertyName = SupplierEnum.getCallIdPropertyName(split[i]);
                             String seatMinute = callIdPropertyName.getSeatMinute();
                             //查询当前坐席下企业分钟数是否存在
-                            CustomerUserPropertyDO seatMiuteInfo = customerUserDao.getProperty(id, seatMinute);
+                            CustomerUserProperty seatMiuteInfo = customerUserDao.getProperty(id, seatMinute);
                             if (seatMiuteInfo != null) {
                                 seatMiuteInfo.setPropertyValue(custSeatMinute);
                                 customerUserDao.saveOrUpdate(seatMiuteInfo);
                             } else {
-                                CustomerUserPropertyDO customerUserProperty = new CustomerUserPropertyDO();
+                                CustomerUserProperty customerUserProperty = new CustomerUserProperty();
                                 customerUserProperty.setUserId(id);
                                 customerUserProperty.setPropertyName(seatMinute);
                                 customerUserProperty.setPropertyValue(custSeatMinute);
@@ -804,12 +804,12 @@ public class SeatsServiceImpl implements SeatsService {
                             }
 
                             //查询当前坐席下供应商分钟数是否存在
-                            CustomerUserPropertyDO supSeatInfo = customerUserDao.getProperty(id, resourceId + "_minute");
+                            CustomerUserProperty supSeatInfo = customerUserDao.getProperty(id, resourceId + "_minute");
                             if (supSeatInfo != null) {
                                 supSeatInfo.setPropertyValue(supplierSeatMinute);
                                 customerUserDao.saveOrUpdate(supSeatInfo);
                             } else {
-                                CustomerUserPropertyDO customerUserProperty = new CustomerUserPropertyDO();
+                                CustomerUserProperty customerUserProperty = new CustomerUserProperty();
                                 customerUserProperty.setUserId(id);
                                 customerUserProperty.setPropertyName(resourceId + "_minute");
                                 customerUserProperty.setPropertyValue(supplierSeatMinute);
@@ -880,11 +880,11 @@ public class SeatsServiceImpl implements SeatsService {
         for (SupplierEnum supper : SupplierEnum.values()) {
             SeatsMessageParam seatsAllocation = new SeatsMessageParam();
             //根据key查询配置value
-            CustomerPropertyDO callId = customerDao.getProperty(custId, supper.getCallId());
-            CustomerPropertyDO apparentNumber = customerDao.getProperty(custId, supper.getApparentNumber());
-            CustomerPropertyDO activityId = customerDao.getProperty(custId, supper.getActivityId());
+            CustomerProperty callId = customerDao.getProperty(custId, supper.getCallId());
+            CustomerProperty apparentNumber = customerDao.getProperty(custId, supper.getApparentNumber());
+            CustomerProperty activityId = customerDao.getProperty(custId, supper.getActivityId());
             //地址渠道 暂时没有确定
-            CustomerPropertyDO configId = customerDao.getProperty(custId, supper.getConfig());
+            CustomerProperty configId = customerDao.getProperty(custId, supper.getConfig());
             if (callId != null) {
                 seatsAllocation.setCallEnterpriseId(callId.getPropertyValue());
             }
@@ -979,7 +979,7 @@ public class SeatsServiceImpl implements SeatsService {
         int code = 0;
         if (account != null && !account.equals("")) {
             //查询此登陆账户是否存在
-            List<CustomerUserDO> userAccount = customerUserDao.findBy("account", account);
+            List<CustomerUser> userAccount = customerUserDao.findBy("account", account);
             if (userAccount.size() > 0) {
                 //平台账户已经存在不可以重复添加
                 code = 1;
@@ -994,7 +994,7 @@ public class SeatsServiceImpl implements SeatsService {
     }
 
     @Override
-    public List<CustomerUserPropertyDO> getUserAllProperty(String userId) {
+    public List<CustomerUserProperty> getUserAllProperty(String userId) {
         return customerUserDao.getAllProperty(userId);
     }
 
@@ -1006,7 +1006,7 @@ public class SeatsServiceImpl implements SeatsService {
      * @return
      */
     public double getCustSeatsPrice(String custId, String channel) {
-        CustomerPropertyDO seatPrice = customerDao.getProperty(custId, channel + "_seat_price");
+        CustomerProperty seatPrice = customerDao.getProperty(custId, channel + "_seat_price");
         if (seatPrice != null && StringUtil.isNotEmpty(seatPrice.getPropertyValue())) {
             return Integer.parseInt(seatPrice.getPropertyValue());
         }
@@ -1026,7 +1026,7 @@ public class SeatsServiceImpl implements SeatsService {
         for (int i = 0; i < seatsInfoList.size(); i++) {
             if (seatsInfoList.get(i).getAccount() != null && !seatsInfoList.get(i).getAccount().equals("")) {
                 //查询此登陆账户是否存在
-                List<CustomerUserDO> userAccount = customerUserDao.findBy("account", seatsInfoList.get(i).getAccount());
+                List<CustomerUser> userAccount = customerUserDao.findBy("account", seatsInfoList.get(i).getAccount());
                 if (userAccount.size() > 0) {
                     //账号已经存在
                     flag = true;
@@ -1115,7 +1115,7 @@ public class SeatsServiceImpl implements SeatsService {
             }
         }
         //查询企业余额
-        CustomerPropertyDO customerBalance = customerDao.getProperty(custId, "remain_amount");
+        CustomerProperty customerBalance = customerDao.getProperty(custId, "remain_amount");
         if (customerBalance != null && !customerBalance.equals("")) {
             if (new BigDecimal(customerBalance.getPropertyValue()).compareTo((cucAmount == null ? new BigDecimal("0") : cucAmount).add(xzAmount == null ? new BigDecimal("0") : xzAmount).add(cmcAmount == null ? new BigDecimal("0") : cmcAmount).add(ctcAmount == null ? new BigDecimal("0") : ctcAmount)) >= 0) {
                 resultMap.put("result", "1");
@@ -1150,11 +1150,11 @@ public class SeatsServiceImpl implements SeatsService {
         String message = null;
         String mainNumber = null;
         //根据custId和seatAccount查询userId
-        CustomerUserDO customer = customerUserDao.getCustomer(seatAccount, cust_id);
+        CustomerUser customer = customerUserDao.getCustomer(seatAccount, cust_id);
         if (customer != null) {
             Long userId = customer.getId();
             //根据user查询坐席配置信息
-            CustomerUserPropertyDO customerUser = customerUserDao.getProperty(String.valueOf(userId), channelProperty + "_seat");
+            CustomerUserProperty customerUser = customerUserDao.getProperty(String.valueOf(userId), channelProperty + "_seat");
             if (customerUser != null) {
                 String propertyValue = customerUser.getPropertyValue();
                 if (!"".equals(propertyValue)) {
@@ -1342,7 +1342,7 @@ public class SeatsServiceImpl implements SeatsService {
             seatMinute = callIdPropertyName.getSeatMinute();
         }
         //添加坐席json信息
-        CustomerUserPropertyDO customerUser = new CustomerUserPropertyDO();
+        CustomerUserProperty customerUser = new CustomerUserProperty();
         customerUser.setUserId(String.valueOf(userId));
         customerUser.setPropertyName(cusSeatName);
         customerUser.setPropertyValue(JSON.toJSONString(map));
@@ -1410,14 +1410,14 @@ public class SeatsServiceImpl implements SeatsService {
             logger.info("坐席扣费客户:" + custId + "保存交易记录状态:" + seatAmountStatus);
             //添加坐席套餐分钟数在user属性表中
             //查询企业属性表的销售定价中坐席套餐分钟数
-            CustomerUserPropertyDO customerUserProperty = new CustomerUserPropertyDO();
+            CustomerUserProperty customerUserProperty = new CustomerUserProperty();
             customerUserProperty.setUserId(String.valueOf(userId));
             customerUserProperty.setPropertyName(seatMinute);
             customerUserProperty.setPropertyValue(String.valueOf(custSeatMinute));
             customerUserProperty.setCreateTime(String.valueOf(DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss)));
             customerUserDao.saveOrUpdate(customerUserProperty);
             //保存坐席的供应商分钟
-            CustomerUserPropertyDO customerSupUserProperty = new CustomerUserPropertyDO();
+            CustomerUserProperty customerSupUserProperty = new CustomerUserProperty();
             customerSupUserProperty.setUserId(String.valueOf(userId));
             customerSupUserProperty.setPropertyName(resourceId + "_minute");
             customerSupUserProperty.setPropertyValue(String.valueOf(supSeatMinute));

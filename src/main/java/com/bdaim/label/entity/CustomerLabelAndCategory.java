@@ -1,6 +1,6 @@
 package com.bdaim.label.entity;
 
-import com.bdaim.customgroup.entity.CustomGroupDO;
+import com.bdaim.customgroup.entity.CustomGroup;
 
 import javax.persistence.*;
 
@@ -12,7 +12,7 @@ public class CustomerLabelAndCategory {
 	private Integer id;
 	@ManyToOne
 	@JoinColumn(name = "group_id")
-	private CustomGroupDO customerGroup;
+	private CustomGroup customerGroup;
 	@ManyToOne
 	@JoinColumn(name = "label_id")
 	private LabelInfo labelInfo;
@@ -28,11 +28,11 @@ public class CustomerLabelAndCategory {
 		this.id = id;
 	}
 
-	public CustomGroupDO getCustomerGroup() {
+	public CustomGroup getCustomerGroup() {
 		return customerGroup;
 	}
 
-	public void setCustomerGroup(CustomGroupDO customerGroup) {
+	public void setCustomerGroup(CustomGroup customerGroup) {
 		this.customerGroup = customerGroup;
 	}
 

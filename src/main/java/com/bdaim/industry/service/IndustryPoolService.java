@@ -11,7 +11,7 @@ import com.bdaim.common.util.NumberConvertUtil;
 import com.bdaim.common.util.StringHelper;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.dao.CustomerDao;
-import com.bdaim.customer.entity.CustomerPropertyDO;
+import com.bdaim.customer.entity.CustomerProperty;
 import com.bdaim.industry.dto.IndustryLabelsDTO;
 import com.bdaim.industry.dto.IndustryPoolDTO;
 import com.bdaim.industry.dto.IndustryPoolPriceDTO;
@@ -2167,7 +2167,7 @@ public class IndustryPoolService {
             resourceId = String.valueOf(industryPool.getSourceId());
         }
         if (StringUtil.isNotEmpty(resourceId)) {
-            CustomerPropertyDO cu = customerDao.getProperty(custId, MarketResourceTypeEnum.LABEL.getPropertyName());
+            CustomerProperty cu = customerDao.getProperty(custId, MarketResourceTypeEnum.LABEL.getPropertyName());
             if (cu != null) {
                 JSONArray jsonArray = JSON.parseArray(cu.getPropertyValue());
                 JSONObject jsonObject = null;
@@ -2219,7 +2219,7 @@ public class IndustryPoolService {
             log.warn("客户:" + custId + ",标签池ID:" + industryPoolId + "未配置渠道ID");
             return industryPoolPriceDTO;
         }
-        CustomerPropertyDO cu = customerDao.getProperty(custId, MarketResourceTypeEnum.LABEL.getPropertyName());
+        CustomerProperty cu = customerDao.getProperty(custId, MarketResourceTypeEnum.LABEL.getPropertyName());
         if (cu == null || StringUtil.isEmpty(cu.getPropertyValue())) {
             log.warn("客户:" + custId + ",未配置数据资源售价");
             return industryPoolPriceDTO;

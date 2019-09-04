@@ -11,8 +11,8 @@ import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.util.NumberConvertUtil;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.dao.CustomerDao;
-import com.bdaim.customer.entity.CustomerDO;
-import com.bdaim.rbac.dto.Page;
+import com.bdaim.customer.entity.Customer;
+import com.bdaim.common.dto.Page;
 import com.bdaim.resource.dao.SourceDao;
 import com.bdaim.resource.dto.MarketResourceLogDTO;
 import com.bdaim.resource.entity.MarketResourceEntity;
@@ -28,7 +28,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import javax.persistence.Id;
 import javax.servlet.http.HttpServletResponse;
 import java.io.OutputStream;
 import java.math.BigDecimal;
@@ -293,7 +292,7 @@ public class BillServiceImpl implements BillService {
         try {
             // 生成sheet数据
             List<SimpleSheetWrapper> list = new ArrayList<>();
-            CustomerDO customer = customerDao.findUniqueBy("custId", param.getCustomerId());
+            Customer customer = customerDao.findUniqueBy("custId", param.getCustomerId());
             String enterprisename = "";
             if (customer != null) {
                 enterprisename = customer.getEnterpriseName();
@@ -1201,7 +1200,7 @@ public class BillServiceImpl implements BillService {
     public String exportSettlementBill(HttpServletResponse response, String custId, String billDate) {
         Map<String, Object> resultMap = new HashMap<>();
         try {
-            CustomerDO custMessage = customerDao.getCustMessage(custId);
+            Customer custMessage = customerDao.getCustMessage(custId);
             String enterpriseName = custMessage.getEnterpriseName();
             StringBuffer billSql = new StringBuffer("SELECT bill_time,cust_id,repair_num,repair_success_num,repair_phone_num,CONVERT(IFNULL(repair_price/ 100, 0),DECIMAL(15,2)) repair_price,");
             billSql.append("CONVERT(IFNULL(SUM(repair_amount) / 100, 0),DECIMAL(15,2)) repair_amount,send_sms_num,send_sms_success_num,CONVERT(IFNULL(sms_price/ 100, 0),DECIMAL(15,2)) sms_price,CONVERT(IFNULL(SUM(sms_amount) / 100, 0),DECIMAL(15,2)) sms_amount,call_minute_num,");

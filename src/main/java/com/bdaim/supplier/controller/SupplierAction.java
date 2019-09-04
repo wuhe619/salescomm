@@ -8,7 +8,7 @@ import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.common.util.StringUtil;
-import com.bdaim.rbac.dto.Page;
+import com.bdaim.common.dto.Page;
 import com.bdaim.resource.dto.MarketResourceLogDTO;
 import com.bdaim.supplier.dto.SupplierDTO;
 import com.bdaim.supplier.service.SupplierService;

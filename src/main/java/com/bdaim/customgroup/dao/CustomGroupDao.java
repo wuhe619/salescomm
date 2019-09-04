@@ -5,8 +5,8 @@ import com.bdaim.common.util.ConstantsUtil;
 import com.bdaim.common.util.NumberConvertUtil;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.customgroup.dto.CustomGroupDTO;
-import com.bdaim.customgroup.entity.CustomGroupDO;
-import com.bdaim.customgroup.entity.CustomerGroupPropertyDO;
+import com.bdaim.customgroup.entity.CustomGroup;
+import com.bdaim.customgroup.entity.CustomerGroupProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -17,24 +17,24 @@ import java.util.List;
 import java.util.Map;
 
 @Component
-public class CustomGroupDao extends SimpleHibernateDao<CustomGroupDO, Serializable> {
+public class CustomGroupDao extends SimpleHibernateDao<CustomGroup, Serializable> {
 
     private static Logger LOG = LoggerFactory.getLogger(CustomGroupDao.class);
 
-    public CustomerGroupPropertyDO getProperty(int customerGroupId, String propertyName) {
-        CustomerGroupPropertyDO cp = null;
+    public CustomerGroupProperty getProperty(int customerGroupId, String propertyName) {
+        CustomerGroupProperty cp = null;
         String hql = "from CustomerGroupPropertyDO m where m.customerGroupId=? and m.propertyName=?";
-        List<CustomerGroupPropertyDO> list = this.find(hql, customerGroupId, propertyName);
+        List<CustomerGroupProperty> list = this.find(hql, customerGroupId, propertyName);
         if (list.size() > 0) {
             cp = list.get(0);
         }
         return cp;
     }
 
-    public CustomerGroupPropertyDO getProperty(String propertyName, String propertyValue) {
-        CustomerGroupPropertyDO cp = null;
+    public CustomerGroupProperty getProperty(String propertyName, String propertyValue) {
+        CustomerGroupProperty cp = null;
         String hql = " FROM CustomerGroupPropertyDO m WHERE m.propertyName = ? AND m.propertyValue = ? ";
-        List<CustomerGroupPropertyDO> list = this.find(hql, propertyName, propertyValue);
+        List<CustomerGroupProperty> list = this.find(hql, propertyName, propertyValue);
         if (list.size() > 0) {
             cp = list.get(0);
         }
@@ -108,7 +108,7 @@ public class CustomGroupDao extends SimpleHibernateDao<CustomGroupDO, Serializab
      * @param param
      * @return
      */
-    public List<CustomGroupDTO> listCustomGroup(CustomGroupDO param) {
+    public List<CustomGroupDTO> listCustomGroup(CustomGroup param) {
         StringBuilder hql = new StringBuilder();
         hql.append(" FROM CustomGroupDO m WHERE 1=1 ");
         List<Object> params = new ArrayList<>();
@@ -121,8 +121,8 @@ public class CustomGroupDao extends SimpleHibernateDao<CustomGroupDO, Serializab
             params.add(param.getCustId());
         }
         List<CustomGroupDTO> result = new ArrayList<>();
-        List<CustomGroupDO> list = this.find(hql.toString(), params);
-        for (CustomGroupDO c : list) {
+        List<CustomGroup> list = this.find(hql.toString(), params);
+        for (CustomGroup c : list) {
             result.add(new CustomGroupDTO(c));
         }
         return result;

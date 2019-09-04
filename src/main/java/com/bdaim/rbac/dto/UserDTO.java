@@ -23,6 +23,10 @@ public class UserDTO implements Serializable {
     public String optuser;
     public Date createTime;
     public int source;
+    /**
+     * 授权平台 1-精准营销 2-金融超市
+     */
+    private String authorize;
 
     public UserDTO() {
     }
@@ -201,6 +205,14 @@ public class UserDTO implements Serializable {
         this.source = source;
     }
 
+    public String getAuthorize() {
+        return authorize;
+    }
+
+    public void setAuthorize(String authorize) {
+        this.authorize = authorize;
+    }
+
     @Override
     public String toString() {
         return "UserDTO{" +
@@ -223,6 +235,7 @@ public class UserDTO implements Serializable {
                 ", optuser='" + optuser + '\'' +
                 ", createTime=" + createTime +
                 ", source=" + source +
+                ", authorize='" + authorize + '\'' +
                 '}';
     }
 }

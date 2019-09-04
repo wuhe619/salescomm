@@ -117,4 +117,55 @@ public class UserDao extends SimpleHibernateDao<User, Serializable> {
         }
         return null;
     }
+
+    public void insert(UserDTO t) throws SQLException {
+        this.executeUpdateSQL("insert into t_user(ID,NAME,PASSWORD,REALNAME,DEPTID,OPTUSER,CREATE_TIME,SOURCE,STATUS,authorize) values(" + t.getId() + ",'" + t.getUserName() + "','" + t.getPassword() + "','" + t.getRealName() + "','" + t.getDeptId() + "','" + t.getOptuser() + "',now(),'" + t.getSource() + "','" + t.getStatus() + "','" + t.getAuthorize() + "')");
+
+    }
+
+    public String getName(String userId) {
+        try {
+            User cu = this.get(Long.parseLong(userId));
+            if (cu != null)
+                return cu.getRealname();
+        } catch (Exception e) {
+
+        }
+        return "";
+    }
+
+    public void delete(UserDTO t) {
+        String sql = "update t_user set status=9 where id=" + t.getId();
+        this.executeUpdateSQL(sql);
+
+    }
+
+    public void update(UserDTO t) {
+        Long id = t.getId();
+        if (id == null) {
+            throw new NullPointerException("更新记录的ID不可为空");
+        }
+        StringBuilder builder = new StringBuilder();
+        builder.append("update t_user set modify_time = now()");
+
+        String optuser = t.getOptuser();
+        if (!StringUtils.isEmpty(optuser)) {
+            builder.append(" ,optuser = ' " + optuser + "' ");
+        }
+        if (StringUtils.isNotBlank(t.getPassword())) {
+            builder.append(",password = '" + t.getPassword() + "' ");
+        }
+        if (t.getStatus() == 0 || t.getStatus() == 1) {
+            builder.append(",status = " + t.getStatus());
+        }
+        builder.append(" where id = " + id);
+
+        this.executeUpdateSQL(builder.toString());
+    }
+
+    public User getObj(User t) {
+
+        return null;
+    }
+
 }

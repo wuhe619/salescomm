@@ -1,6 +1,6 @@
 package com.bdaim.customer.dto;
 
-import com.bdaim.customer.entity.CustomerLabelDO;
+import com.bdaim.customer.entity.CustomerLabel;
 
 import java.sql.Timestamp;
 
@@ -22,7 +22,7 @@ public class CustomerLabelDTO {
     private String option;
     private String marketProjectId;
 
-    public CustomerLabelDTO(CustomerLabelDO customerLabel) {
+    public CustomerLabelDTO(CustomerLabel customerLabel) {
         this.id = customerLabel.getId();
         this.custId = customerLabel.getCustId();
         this.userId = customerLabel.getCustId();

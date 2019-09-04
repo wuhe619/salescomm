@@ -11,7 +11,7 @@ import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.common.util.Constant;
 import com.bdaim.common.util.StringUtil;
-import com.bdaim.rbac.dto.Page;
+import com.bdaim.common.dto.Page;
 import com.github.crab2died.ExcelUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

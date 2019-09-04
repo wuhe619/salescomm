@@ -3,7 +3,7 @@ package com.bdaim.image.service.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.util.*;
 import com.bdaim.image.service.UploadDowloadService;
-import com.bdaim.resource.service.impl.MarketResourceServiceImpl;
+import com.bdaim.resource.service.MarketResourceService;
 import org.apache.commons.io.FileUtils;
 import org.apache.tomcat.util.http.fileupload.FileItem;
 import org.apache.tomcat.util.http.fileupload.disk.DiskFileItemFactory;
@@ -40,7 +40,7 @@ public class UploadDowloadImgServiceImpl implements UploadDowloadService {
     private static Logger logger = LoggerFactory.getLogger(UploadDowloadImgServiceImpl.class);
     protected static final Properties PROPERTIES = new Properties(System.getProperties());
     @Autowired
-    private MarketResourceServiceImpl marketResourceServiceImpl;
+    private MarketResourceService marketResourceServiceImpl;
     @Autowired
     private FileUrlEntity fileUrlEntity;
 

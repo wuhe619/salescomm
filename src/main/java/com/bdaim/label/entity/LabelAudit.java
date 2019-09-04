@@ -1,6 +1,6 @@
 package com.bdaim.label.entity;
 
-import com.bdaim.customgroup.entity.CustomGroupDO;
+import com.bdaim.customgroup.entity.CustomGroup;
 import com.bdaim.rbac.entity.User;
 import org.hibernate.annotations.DynamicUpdate;
 
@@ -44,7 +44,7 @@ public class LabelAudit {
 	private LabelInfo labelInfo;
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "group_id")
-	private CustomGroupDO customGroup;
+	private CustomGroup customGroup;
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "dev_uid")
 	private User devUser;// 指定的开发人员id
@@ -196,11 +196,11 @@ public class LabelAudit {
 		this.labelInfo = labelInfo;
 	}
 
-	public CustomGroupDO getCustomGroup() {
+	public CustomGroup getCustomGroup() {
 		return customGroup;
 	}
 
-	public void setCustomGroup(CustomGroupDO customGroup) {
+	public void setCustomGroup(CustomGroup customGroup) {
 		this.customGroup = customGroup;
 	}
 

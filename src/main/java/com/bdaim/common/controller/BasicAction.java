@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.auth.LoginUser;
 import com.bdaim.common.auth.Token;
-import com.bdaim.rbac.dto.Page;
+import com.bdaim.common.dto.Page;
 import com.bdaim.rbac.dto.UserQueryParam;
 import com.bdaim.rbac.service.UserService;
 import org.springframework.beans.propertyeditors.CustomDateEditor;

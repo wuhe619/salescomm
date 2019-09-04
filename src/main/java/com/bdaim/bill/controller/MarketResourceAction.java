@@ -18,8 +18,8 @@ import com.bdaim.common.util.StringUtil;
 import com.bdaim.common.util.page.Page;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerUserDao;
-import com.bdaim.customer.entity.CustomerUserDO;
-import com.bdaim.resource.service.impl.MarketResourceServiceImpl;
+import com.bdaim.customer.entity.CustomerUser;
+import com.bdaim.resource.service.MarketResourceService;
 import com.bdaim.smscenter.dto.SmsqueryParam;
 import com.bdaim.supplier.dto.SupplierListParam;
 import com.bdaim.template.dto.TemplateParam;
@@ -45,7 +45,7 @@ public class MarketResourceAction extends BasicAction {
     private final static Logger LOG = LoggerFactory.getLogger(MarketResourceAction.class);
 
     @Resource
-    private MarketResourceServiceImpl marketResourceService;
+    private MarketResourceService marketResourceService;
     @Resource
     private CustomerUserDao customerUserDao;
     @Resource
@@ -562,7 +562,7 @@ public class MarketResourceAction extends BasicAction {
         } else {
             page.setPageSize(pageSize);
         }
-        CustomerUserDO u = (CustomerUserDO) request.getAttribute("customerUserDO");
+        CustomerUser u = (CustomerUser) request.getAttribute("customerUserDO");
         String custId = u.getCust_id();
         JSONObject json = new JSONObject();
         Page list = marketResourceService.openSmsHistory(page, custId);
@@ -650,7 +650,7 @@ public class MarketResourceAction extends BasicAction {
      */
     @RequestMapping("/getVoice/{userId}/{fileName:.+}")
     public void getVoiceFile(@PathVariable String userId, @PathVariable String fileName, HttpServletResponse response) throws Exception {
-        marketResourceService.getVoiceFile(userId, fileName, request, response);
+        marketResourceService.getNoloseVoiceFile(userId, fileName, request, response);
     }
 }
 

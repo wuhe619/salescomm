@@ -3,7 +3,7 @@ package com.bdaim.markettask.dao;
 import com.bdaim.common.dao.SimpleHibernateDao;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.dto.CustomerUserDTO;
-import com.bdaim.customgroup.entity.CustomGroupDO;
+import com.bdaim.customgroup.entity.CustomGroup;
 import com.bdaim.markettask.entity.MarketTask;
 import com.bdaim.markettask.entity.MarketTaskProperty;
 import com.bdaim.markettask.entity.MarketTaskUserRel;
@@ -92,10 +92,10 @@ public class MarketTaskDao extends SimpleHibernateDao<MarketTask, String> {
      * @param marketTaskId
      * @return
      */
-    public CustomGroupDO getCustomGroupByMarketTaskId(String marketTaskId) {
-        CustomGroupDO cp = null;
+    public CustomGroup getCustomGroupByMarketTaskId(String marketTaskId) {
+        CustomGroup cp = null;
         String hql = "from CustomGroupDO m where m.id = (SELECT customerGroupId FROM MarketTask WHERE id = ?) ";
-        List<CustomGroupDO> list = this.find(hql, marketTaskId);
+        List<CustomGroup> list = this.find(hql, marketTaskId);
         if (list.size() > 0)
             cp = list.get(0);
         return cp;

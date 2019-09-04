@@ -11,7 +11,7 @@ import com.bdaim.common.util.DateUtil;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.service.CustomerService;
 import com.bdaim.price.service.SalePriceService;
-import com.bdaim.resource.service.impl.MarketResourceServiceImpl;
+import com.bdaim.resource.service.MarketResourceService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,7 +54,7 @@ public class BatchAction extends BasicAction {
     SalePriceService salePriceService;
 
     @Resource
-    MarketResourceServiceImpl marketResourceServiceImpl;
+    MarketResourceService marketResourceServiceImpl;
 
     /**
      * 失联修复上传文件

@@ -15,18 +15,19 @@ import com.bdaim.callcenter.service.impl.CallCenterServiceImpl;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.common.util.*;
+import com.bdaim.common.util.http.HttpUtil;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerUserDao;
-import com.bdaim.customer.entity.CustomerDO;
-import com.bdaim.customer.entity.CustomerPropertyDO;
-import com.bdaim.customer.entity.CustomerUserDO;
+import com.bdaim.customer.entity.Customer;
+import com.bdaim.customer.entity.CustomerProperty;
+import com.bdaim.customer.entity.CustomerUser;
 import com.bdaim.customer.service.CustomerService;
-import com.bdaim.rbac.dto.Page;
+import com.bdaim.common.dto.Page;
 import com.bdaim.resource.dao.MarketResourceDao;
 import com.bdaim.resource.dao.SourceDao;
 import com.bdaim.resource.dto.MarketResourceLogDTO;
 import com.bdaim.resource.entity.MarketResourceEntity;
-import com.bdaim.resource.service.impl.MarketResourceServiceImpl;
+import com.bdaim.resource.service.MarketResourceService;
 import com.bdaim.supplier.dto.SupplierEnum;
 import com.bdaim.supplier.service.SupplierService;
 import com.bdaim.template.entity.MarketTemplate;
@@ -80,7 +81,7 @@ public class OpenService {
     @Resource
     private SourceDao sourceDao;
     @Resource
-    private MarketResourceServiceImpl marketResourceServiceImpl;
+    private MarketResourceService marketResourceServiceImpl;
     @Resource
     private MarketResourceDao marketResourceDao;
     @Resource
@@ -100,7 +101,7 @@ public class OpenService {
      */
     public Map<String, Object> queryCustBalance(String custId) throws Exception {
         Map<String, Object> resultMap = new HashMap<>();
-        CustomerPropertyDO remainAmoutProperty = customerDao.getProperty(custId, "remain_amount");
+        CustomerProperty remainAmoutProperty = customerDao.getProperty(custId, "remain_amount");
         DecimalFormat df = new DecimalFormat("######0.00");
         if (remainAmoutProperty != null) {
             Double remainAmout = Double.parseDouble(remainAmoutProperty.getPropertyValue());
@@ -123,19 +124,19 @@ public class OpenService {
         String token = null;
         try {
             if (StringUtil.isNotEmpty(oldtoken) && StringUtil.isNotEmpty(username)) {
-                CustomerUserDO u = customerService.getUserByName(username);
+                CustomerUser u = customerService.getUserByName(username);
                 if (u != null) {
                     String custId = u.getCust_id();
                     String password = u.getPassword();
                     if (StringUtil.isNotEmpty(custId)) {
                         //根据企业id查询当前企业是否有效
-                        CustomerDO custMessage = customerDao.getCustMessage(custId);
+                        Customer custMessage = customerDao.getCustMessage(custId);
                         if (custMessage==null){
                             resultMap.put("status", "005");
                             json.put("data", resultMap);
                             return json.toJSONString();
                         }
-                        CustomerPropertyDO customerProperty = customerDao.getProperty(custId, "token");
+                        CustomerProperty customerProperty = customerDao.getProperty(custId, "token");
                         if (customerProperty != null) {
                             token = customerProperty.getPropertyValue();
                             if (token.equals(oldtoken)) {
@@ -185,7 +186,7 @@ public class OpenService {
         Map<String, Object> map = new HashMap<>();
         log.info("当前登录的企业id是 ： " + custId + "坐席账号是：" + seatAccount);
         //查询当前企业账号是否存在
-        CustomerDO custMessage = customerDao.getCustMessage(custId);
+        Customer custMessage = customerDao.getCustMessage(custId);
         if (custMessage != null) {
             //根据坐席账号和企业id查询坐席信息
             StringBuffer sql = new StringBuffer("SELECT u.id id, p.property_value propertyValue, p.property_name propertyName\n");
@@ -237,7 +238,7 @@ public class OpenService {
 
         Map<String, Object> map = new HashMap<>();
         //查询当前企业账号是否存在
-        CustomerDO custMessage = customerDao.getCustMessage(custId);
+        Customer custMessage = customerDao.getCustMessage(custId);
         Map<String, Object> result = null;
         if (custMessage != null) {
             //根据坐席账号和企业id查询坐席信息
@@ -340,13 +341,13 @@ public class OpenService {
         String newpassword = CipherUtil.generatePassword(password);
         String token = null;
         if (StringUtil.isNotEmpty(username) && StringUtil.isNotEmpty(password)) {
-            CustomerUserDO u = customerService.getUserByName(username);
+            CustomerUser u = customerService.getUserByName(username);
             if (u != null) {
                 String uPassword = u.getPassword();
                 if (uPassword.equals(newpassword)) {
                     String custId = u.getCust_id();
                     if (StringUtil.isNotEmpty(custId)) {
-                        CustomerPropertyDO customerProperty = customerDao.getProperty(custId, "token");
+                        CustomerProperty customerProperty = customerDao.getProperty(custId, "token");
                         if (customerProperty != null) {
                             token = customerProperty.getPropertyValue();
                             try {
@@ -552,7 +553,7 @@ public class OpenService {
             marketResourceLogDTO.setSuperId(id);
 
             //根据登陆账号获取userId判断当前账户是否存在
-            CustomerUserDO account = customerUserDao.getCustomer(seatAccount, custId);
+            CustomerUser account = customerUserDao.getCustomer(seatAccount, custId);
             if (account != null && account.getId() != null) {
                 userId = String.valueOf(account.getId());
                 marketResourceLogDTO.setUser_id(Long.parseLong(userId));
@@ -793,7 +794,7 @@ public class OpenService {
             map.put("status", "002");
             return map;
         }
-        CustomerUserDO account = customerUserDao.getCustomer(seatAccount, custId);
+        CustomerUser account = customerUserDao.getCustomer(seatAccount, custId);
         if (account == null) {
             map.put("status", "004");
             return map;

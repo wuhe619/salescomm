@@ -11,11 +11,11 @@ import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.dto.ApparentNumberQueryParam;
 import com.bdaim.customer.dto.CustomerDTO;
 import com.bdaim.customer.entity.ApparentNumber;
-import com.bdaim.customer.entity.CustomerDO;
-import com.bdaim.customer.entity.CustomerPropertyDO;
+import com.bdaim.customer.entity.Customer;
+import com.bdaim.customer.entity.CustomerProperty;
 import com.bdaim.customgroup.dto.CGroupImportParam;
 import com.bdaim.price.dto.ResourcesPriceDto;
-import com.bdaim.rbac.dto.Page;
+import com.bdaim.common.dto.Page;
 import com.bdaim.resource.entity.MarketResourceEntity;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.stereotype.Component;
@@ -32,28 +32,28 @@ import java.util.*;
  * Created by Mr.YinXin on 2017/2/21.
  */
 @Component
-public class CustomerDao extends SimpleHibernateDao<CustomerDO, String> {
+public class CustomerDao extends SimpleHibernateDao<Customer, String> {
 
     private final static String U_INSERT_SQL = "replace INTO u (id,phone) VALUES(?,?)";
 
     private final static String CG_INSERT_SQL = " replace INTO  t_customer_group_list_{0} (id,super_data,status) VALUES(?,?,?)";
 
 
-    public CustomerPropertyDO getProperty(String custId, String propertyName) {
-        CustomerPropertyDO cp = null;
+    public CustomerProperty getProperty(String custId, String propertyName) {
+        CustomerProperty cp = null;
         String hql = "from CustomerPropertyDO m where m.custId=? and m.propertyName=?";
-        List<CustomerPropertyDO> list = this.find(hql, custId, propertyName);
+        List<CustomerProperty> list = this.find(hql, custId, propertyName);
         if (list.size() > 0)
-            cp = (CustomerPropertyDO) list.get(0);
+            cp = (CustomerProperty) list.get(0);
         return cp;
     }
 
-    public CustomerDO getCustMessage(String custId) {
-        CustomerDO cp = null;
+    public Customer getCustMessage(String custId) {
+        Customer cp = null;
         String hql = "from CustomerDO m where m.custId=? and status =0 ";
-        List<CustomerDO> list = this.find(hql, custId);
+        List<Customer> list = this.find(hql, custId);
         if (list.size() > 0)
-            cp = (CustomerDO) list.get(0);
+            cp = (Customer) list.get(0);
         return cp;
     }
 
@@ -81,11 +81,11 @@ public class CustomerDao extends SimpleHibernateDao<CustomerDO, String> {
             amount = new BigDecimal(Math.abs(amount.doubleValue()));
         }
         boolean success = false;
-        CustomerPropertyDO remainAmount = this.getProperty(custId, "remain_amount");
-        CustomerPropertyDO usedAmount = this.getProperty(custId, "used_amount");
+        CustomerProperty remainAmount = this.getProperty(custId, "remain_amount");
+        CustomerProperty usedAmount = this.getProperty(custId, "used_amount");
         if (remainAmount == null) {
             // 处理账户不存在
-            remainAmount = new CustomerPropertyDO();
+            remainAmount = new CustomerProperty();
             remainAmount.setCustId(custId);
             remainAmount.setPropertyValue("0");
             logger.info(custId + " 账户不存在开始新建账户信息");
@@ -94,7 +94,7 @@ public class CustomerDao extends SimpleHibernateDao<CustomerDO, String> {
         }
         if (usedAmount == null) {
             // 累计消费 处理账户不存在
-            usedAmount = new CustomerPropertyDO();
+            usedAmount = new CustomerProperty();
             usedAmount.setCustId(custId);
             usedAmount.setPropertyValue("0");
             logger.info(custId + " 账户不存在开始新建账户累计消费信息");
@@ -138,10 +138,10 @@ public class CustomerDao extends SimpleHibernateDao<CustomerDO, String> {
      */
     public boolean accountRecharge(String custId, BigDecimal amount) {
         boolean success = false;
-        CustomerPropertyDO remainAmount = this.getProperty(custId, "remain_amount");
+        CustomerProperty remainAmount = this.getProperty(custId, "remain_amount");
         if (remainAmount == null) {
             // 处理账户不存在,则重新创建对象保存账户
-            remainAmount = new CustomerPropertyDO();
+            remainAmount = new CustomerProperty();
             remainAmount.setCustId(custId);
             remainAmount.setCreateTime(new Timestamp(System.currentTimeMillis()));
             remainAmount.setPropertyValue(String.valueOf(amount.doubleValue()));
@@ -171,7 +171,7 @@ public class CustomerDao extends SimpleHibernateDao<CustomerDO, String> {
      * @date 2018/10/9 15:58
      */
     public Double remainMoney(String custId) throws TouchException {
-        CustomerPropertyDO remainAmount = this.getProperty(custId, "remain_amount");
+        CustomerProperty remainAmount = this.getProperty(custId, "remain_amount");
         if (remainAmount == null) {
             logger.info(custId + " 账户不存在");
         } else {
@@ -195,10 +195,10 @@ public class CustomerDao extends SimpleHibernateDao<CustomerDO, String> {
      * @param propertyName
      * @return
      */
-    public List<CustomerPropertyDO> getPropertyLike(String custId, String propertyName) {
-        CustomerPropertyDO cp = null;
+    public List<CustomerProperty> getPropertyLike(String custId, String propertyName) {
+        CustomerProperty cp = null;
         String hql = "from CustomerPropertyDO m where m.custId=? and m.propertyName LIKE '%" + propertyName + "'";
-        List<CustomerPropertyDO> list = this.find(hql, custId);
+        List<CustomerProperty> list = this.find(hql, custId);
         return list;
     }
 
@@ -207,9 +207,9 @@ public class CustomerDao extends SimpleHibernateDao<CustomerDO, String> {
      */
     public boolean dealCustomerInfo(String custId, String propertyName, String propertyValue) {
         boolean success = false;
-        CustomerPropertyDO propertyInfo = this.getProperty(custId, propertyName);
+        CustomerProperty propertyInfo = this.getProperty(custId, propertyName);
         if (propertyInfo == null) {
-            propertyInfo = new CustomerPropertyDO();
+            propertyInfo = new CustomerProperty();
             propertyInfo.setCreateTime(new Timestamp(new Date().getTime()));
             propertyInfo.setCustId(custId);
             propertyInfo.setPropertyValue(propertyValue);
@@ -228,7 +228,7 @@ public class CustomerDao extends SimpleHibernateDao<CustomerDO, String> {
 
     public String getEnterpriseName(String custId) {
         try {
-            CustomerDO cu = this.get(custId);
+            Customer cu = this.get(custId);
             if (cu != null)
                 return cu.getEnterpriseName();
         } catch (Exception e) {
@@ -247,9 +247,9 @@ public class CustomerDao extends SimpleHibernateDao<CustomerDO, String> {
         ResourcesPriceDto resourcesPriceDto = null;
         String hql = "from CustomerPropertyDO m where m.custId=? AND m.propertyName = ?";
         try {
-            List<CustomerPropertyDO> list = this.find(hql, custId, resourceId + "_config");
+            List<CustomerProperty> list = this.find(hql, custId, resourceId + "_config");
             if (list.size() > 0) {
-                CustomerPropertyDO cp = (CustomerPropertyDO) list.get(0);
+                CustomerProperty cp = (CustomerProperty) list.get(0);
                 if (StringUtil.isNotEmpty(cp.getPropertyValue())) {
                     resourcesPriceDto = JSONObject.parseObject(cp.getPropertyValue(), ResourcesPriceDto.class);
                     logger.info("获取资源数据" + resourcesPriceDto.toString() + "企业id是：" + custId + "资源id是：" + resourceId);
@@ -280,9 +280,9 @@ public class CustomerDao extends SimpleHibernateDao<CustomerDO, String> {
             }
 
             String hql = "from CustomerPropertyDO m where m.custId=? AND m.propertyName = ?";
-            List<CustomerPropertyDO> list = this.find(hql, custId, resourceId + "_config");
+            List<CustomerProperty> list = this.find(hql, custId, resourceId + "_config");
             if (list.size() > 0) {
-                CustomerPropertyDO cp = (CustomerPropertyDO) list.get(0);
+                CustomerProperty cp = (CustomerProperty) list.get(0);
                 if (StringUtil.isNotEmpty(cp.getPropertyValue())) {
                     resourcesPriceDto = JSONObject.parseObject(cp.getPropertyValue(), ResourcesPriceDto.class);
                     logger.info("获取资源数据" + resourcesPriceDto.toString() + "企业id是：" + custId + "资源id是：" + resourceId);
@@ -313,9 +313,9 @@ public class CustomerDao extends SimpleHibernateDao<CustomerDO, String> {
                 for (int i = 0; i < ResourceList.size(); i++) {
                     resourceId = String.valueOf(ResourceList.get(i).getResourceId());
                     String hql = "from CustomerPropertyDO m where m.custId=? AND m.propertyName = ?";
-                    List<CustomerPropertyDO> list = this.find(hql, custId, resourceId + "_config");
+                    List<CustomerProperty> list = this.find(hql, custId, resourceId + "_config");
                     if (list.size() > 0) {
-                        CustomerPropertyDO cp = (CustomerPropertyDO) list.get(0);
+                        CustomerProperty cp = (CustomerProperty) list.get(0);
                         if (StringUtil.isNotEmpty(cp.getPropertyValue())) {
                             resourcesPriceDto = JSONObject.parseObject(cp.getPropertyValue(), ResourcesPriceDto.class);
                             logger.info("获取资源数据" + resourcesPriceDto.toString() + "企业id是：" + custId + "资源id是：" + resourceId);
@@ -377,28 +377,28 @@ public class CustomerDao extends SimpleHibernateDao<CustomerDO, String> {
         return list;
     }
 
-    public CustomerDO getName(String name) {
-        CustomerDO cp = null;
+    public Customer getName(String name) {
+        Customer cp = null;
         String hql = "from Customer m where m.enterpriseName=? and status = 0";
-        List<CustomerDO> list = this.find(hql, name);
+        List<Customer> list = this.find(hql, name);
         if (list.size() > 0)
-            cp = (CustomerDO) list.get(0);
+            cp = (Customer) list.get(0);
         return cp;
     }
 
-    public List<CustomerPropertyDO> getPropertyList(String custId, String propertyName) {
-        CustomerPropertyDO cp = null;
+    public List<CustomerProperty> getPropertyList(String custId, String propertyName) {
+        CustomerProperty cp = null;
         String hql = "from CustomerProperty m where m.custId=? and m.propertyName like ?";
-        List<CustomerPropertyDO> list = this.find(hql, custId, propertyName);
+        List<CustomerProperty> list = this.find(hql, custId, propertyName);
 
         return list;
     }
 
 
-    public List<CustomerPropertyDO> getPropertyAllList(String custId) {
-        CustomerPropertyDO cp = null;
+    public List<CustomerProperty> getPropertyAllList(String custId) {
+        CustomerProperty cp = null;
         String hql = "from CustomerProperty m where m.custId=?";
-        List<CustomerPropertyDO> list = this.find(hql, custId);
+        List<CustomerProperty> list = this.find(hql, custId);
         return list;
     }
 
@@ -421,7 +421,7 @@ public class CustomerDao extends SimpleHibernateDao<CustomerDO, String> {
      * @param param
      * @return
      */
-    public List<CustomerDTO> listCustomer(CustomerDO param, String propertyName, String propertyValue) {
+    public List<CustomerDTO> listCustomer(Customer param, String propertyName, String propertyValue) {
         StringBuffer hql = new StringBuffer("from Customer m where 1=1");
         List values = new ArrayList();
         if (StringUtil.isNotEmpty(param.getEnterpriseName())) {
@@ -440,10 +440,10 @@ public class CustomerDao extends SimpleHibernateDao<CustomerDO, String> {
             hql.append(" and m.id IN (SELECT custId FROM CustomerProperty m where m.propertyName=? ) ");
             values.add(propertyName);
         }
-        List<CustomerDO> list = this.find(hql.toString(), values);
+        List<Customer> list = this.find(hql.toString(), values);
         List<CustomerDTO> result = new ArrayList<>();
         if (list.size() > 0) {
-            for (CustomerDO m : list) {
+            for (Customer m : list) {
                 result.add(new CustomerDTO(m));
             }
         }

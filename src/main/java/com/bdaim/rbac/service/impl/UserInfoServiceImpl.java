@@ -4,8 +4,8 @@ import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.util.CipherUtil;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.dao.CustomerUserDao;
-import com.bdaim.customer.entity.CustomerUserDO;
-import com.bdaim.customer.entity.CustomerUserPropertyDO;
+import com.bdaim.customer.entity.CustomerUser;
+import com.bdaim.customer.entity.CustomerUserProperty;
 import com.bdaim.rbac.dao.UserInfoDao;
 import com.bdaim.rbac.dto.UserQueryParam;
 import com.bdaim.rbac.entity.UserDO;
@@ -141,7 +141,7 @@ public class UserInfoServiceImpl implements UserInfoService {
     @Override
     public void updateFrontPwd(long uid, String oldPwd, String newPwd, int pwdLevel) throws Exception {
 
-        CustomerUserDO customerUserDo = new CustomerUserDO();
+        CustomerUser customerUserDo = new CustomerUser();
         try {
             customerUserDo = customerUserDao.findUniqueBy("id", uid);
         } catch (Exception e) {
@@ -202,7 +202,7 @@ public class UserInfoServiceImpl implements UserInfoService {
 
     @Override
     public void updateFrontRegistInfo(String userId, String oldValue, String newValue) throws Exception {
-        CustomerUserPropertyDO customerUserProperty = customerUserDao.getProperty(userId,"mobile_num");
+        CustomerUserProperty customerUserProperty = customerUserDao.getProperty(userId,"mobile_num");
         if (null != customerUserProperty) {
             customerUserProperty.setPropertyValue(newValue);
             customerUserDao.saveOrUpdate(customerUserProperty);

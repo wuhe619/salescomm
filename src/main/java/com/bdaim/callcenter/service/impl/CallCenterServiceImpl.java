@@ -5,11 +5,11 @@ import com.alibaba.fastjson.JSONArray;
 import com.bdaim.callcenter.dto.SeatsInfo;
 import com.bdaim.callcenter.dto.UnicomSendSmsParam;
 import com.bdaim.callcenter.service.CallCenterService;
-import com.bdaim.common.util.HttpUtil;
+import com.bdaim.common.util.http.HttpUtil;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.price.dto.ResourcesPriceDto;
-import com.bdaim.resource.service.impl.MarketResourceServiceImpl;
+import com.bdaim.resource.service.MarketResourceService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +34,7 @@ public class CallCenterServiceImpl implements CallCenterService {
     @Resource
     private CustomerDao customerDao;
     @Resource
-    private MarketResourceServiceImpl marketResourceServiceImpl;
+    private MarketResourceService marketResourceServiceImpl;
     private final static String UNICOM_BASE_URL = "http://120.52.23.243:10080/jzyxpt/";
 
 

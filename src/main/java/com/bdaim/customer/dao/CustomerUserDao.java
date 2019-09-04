@@ -6,11 +6,11 @@ import com.bdaim.common.util.SqlAppendUtil;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.dto.CustomerUserDTO;
 import com.bdaim.customer.dto.CustomerUserGroupRelDTO;
-import com.bdaim.customer.entity.CustomerUserDO;
+import com.bdaim.customer.entity.CustomerUser;
 import com.bdaim.customer.entity.CustomerUserGroup;
 import com.bdaim.customer.entity.CustomerUserGroupRel;
-import com.bdaim.customer.entity.CustomerUserPropertyDO;
-import com.bdaim.rbac.dto.Page;
+import com.bdaim.customer.entity.CustomerUserProperty;
+import com.bdaim.common.dto.Page;
 import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
@@ -19,56 +19,56 @@ import java.util.List;
 import java.util.Map;
 
 @Component
-public class CustomerUserDao extends SimpleHibernateDao<CustomerUserDO, Serializable> {
-    public CustomerUserPropertyDO getProperty(String userId, String propertyName) {
-        CustomerUserPropertyDO cp = null;
+public class CustomerUserDao extends SimpleHibernateDao<CustomerUser, Serializable> {
+    public CustomerUserProperty getProperty(String userId, String propertyName) {
+        CustomerUserProperty cp = null;
         String hql = "from CustomerUserPropertyDO m where m.userId=? and m.propertyName=?";
-        List<CustomerUserPropertyDO> list = this.find(hql, userId, propertyName);
+        List<CustomerUserProperty> list = this.find(hql, userId, propertyName);
         if (list.size() > 0)
-            cp = (CustomerUserPropertyDO) list.get(0);
+            cp = (CustomerUserProperty) list.get(0);
         return cp;
     }
 
-    public List<CustomerUserPropertyDO> getAllProperty(String userId) {
+    public List<CustomerUserProperty> getAllProperty(String userId) {
         String hql = "from CustomerUserPropertyDO m where m.userId=? ";
-        List<CustomerUserPropertyDO> list = this.find(hql, userId);
+        List<CustomerUserProperty> list = this.find(hql, userId);
         return list;
     }
 
-    public List<CustomerUserDO> getPropertyByType(int userType, String custId) {
-        CustomerUserDO cp = null;
+    public List<CustomerUser> getPropertyByType(int userType, String custId) {
+        CustomerUser cp = null;
         String hql = "from CustomerUserDO m where m.userType=? and m.cust_id=?";
-        List<CustomerUserDO> list = this.find(hql, userType, custId);
+        List<CustomerUser> list = this.find(hql, userType, custId);
         return list;
     }
 
-    public CustomerUserDO getPropertyByCustId(String custId) {
-        CustomerUserDO cp = null;
+    public CustomerUser getPropertyByCustId(String custId) {
+        CustomerUser cp = null;
         String hql = "from CustomerUserDO m where m.userType=1 and m.cust_id=?";
-        List<CustomerUserDO> list = this.find(hql, custId);
+        List<CustomerUser> list = this.find(hql, custId);
         if (list.size() > 0)
-            cp = (CustomerUserDO) list.get(0);
+            cp = (CustomerUser) list.get(0);
         return cp;
     }
-    public CustomerUserDO getCustomer(String account,String custId) {
-        CustomerUserDO cp = null;
+    public CustomerUser getCustomer(String account, String custId) {
+        CustomerUser cp = null;
         String hql = "from CustomerUserDO m where m.account=? AND m.cust_id = ?";
-        List<CustomerUserDO> list = this.find(hql,account,custId);
+        List<CustomerUser> list = this.find(hql,account,custId);
         if (list.size() > 0)
-            cp = (CustomerUserDO) list.get(0);
+            cp = (CustomerUser) list.get(0);
         return cp;
     }
 
-    public List<CustomerUserDO> getAllByCustId(String custId) {
-        CustomerUserDO cp = null;
+    public List<CustomerUser> getAllByCustId(String custId) {
+        CustomerUser cp = null;
         String hql = "from CustomerUserDO m where m.cust_id=?";
-        List<CustomerUserDO> list = this.find(hql, custId);
+        List<CustomerUser> list = this.find(hql, custId);
         return list;
     }
 
     public String getName(String userId) {
         try {
-            CustomerUserDO cu = this.get(Long.parseLong(userId));
+            CustomerUser cu = this.get(Long.parseLong(userId));
             if (cu != null)
                 return cu.getRealname();
         } catch (Exception e) {
@@ -79,7 +79,7 @@ public class CustomerUserDao extends SimpleHibernateDao<CustomerUserDO, Serializ
 
     public String getLoginName(String userId) {
         try {
-            CustomerUserDO cu = this.get(Long.parseLong(userId));
+            CustomerUser cu = this.get(Long.parseLong(userId));
             if (cu != null)
                 return cu.getAccount();
         } catch (Exception e) {
@@ -89,28 +89,28 @@ public class CustomerUserDao extends SimpleHibernateDao<CustomerUserDO, Serializ
     }
 
 
-    public CustomerUserDO getCustomerUserByLoginName(String loginName) {
-        CustomerUserDO cp = null;
+    public CustomerUser getCustomerUserByLoginName(String loginName) {
+        CustomerUser cp = null;
         String hql = "from CustomerUserDO m where m.account=?";
-        List<CustomerUserDO> list = this.find(hql, loginName);
+        List<CustomerUser> list = this.find(hql, loginName);
         if (list.size() > 0)
             cp = list.get(0);
         return cp;
     }
 
-    public CustomerUserDO getCustomerUserByName(String realName) {
-        CustomerUserDO cp = null;
+    public CustomerUser getCustomerUserByName(String realName) {
+        CustomerUser cp = null;
         String hql = "from CustomerUserDO m where m.realname=?";
-        List<CustomerUserDO> list = this.find(hql, realName);
+        List<CustomerUser> list = this.find(hql, realName);
         if (list.size() > 0)
             cp = list.get(0);
         return cp;
     }
 
-    public CustomerUserDO getCustomerAdminUser(String custId) {
-        CustomerUserDO cp = null;
+    public CustomerUser getCustomerAdminUser(String custId) {
+        CustomerUser cp = null;
         String hql = "from CustomerUserDO m where m.cust_id=? AND userType =1 ";
-        List<CustomerUserDO> list = this.find(hql, custId);
+        List<CustomerUser> list = this.find(hql, custId);
         if (list.size() > 0)
             cp = list.get(0);
         return cp;
@@ -128,8 +128,8 @@ public class CustomerUserDao extends SimpleHibernateDao<CustomerUserDO, Serializ
         }
         String hql = "FROM CustomerUserDO WHERE cust_id = ? AND STATUS = 0 ";
         List<CustomerUserDTO> list = new ArrayList<>();
-        List<CustomerUserDO> customerUserList = this.find(hql, customerId);
-        for (CustomerUserDO customerUser : customerUserList) {
+        List<CustomerUser> customerUserList = this.find(hql, customerId);
+        for (CustomerUser customerUser : customerUserList) {
             list.add(new CustomerUserDTO(customerUser));
         }
         return list;
@@ -469,11 +469,11 @@ public class CustomerUserDao extends SimpleHibernateDao<CustomerUserDO, Serializ
      * @return
      */
     public List<String> listCustGroupByUserId(Long userId) {
-        CustomerUserDO user = this.get(userId);
+        CustomerUser user = this.get(userId);
         if (user == null) {
             return null;
         }
-        CustomerUserPropertyDO property = this.getProperty(String.valueOf(userId), "hasMarketProject");
+        CustomerUserProperty property = this.getProperty(String.valueOf(userId), "hasMarketProject");
         if (property == null || StringUtil.isEmpty(property.getPropertyValue())) {
             return null;
         }
@@ -499,11 +499,11 @@ public class CustomerUserDao extends SimpleHibernateDao<CustomerUserDO, Serializ
      * @return
      */
     public List<String> listProjectByUserId(Long userId) {
-        CustomerUserDO user = this.get(userId);
+        CustomerUser user = this.get(userId);
         if (user == null) {
             return null;
         }
-        CustomerUserPropertyDO property = this.getProperty(String.valueOf(userId), "hasMarketProject");
+        CustomerUserProperty property = this.getProperty(String.valueOf(userId), "hasMarketProject");
         if (property == null || StringUtil.isEmpty(property.getPropertyValue())) {
             return null;
         }

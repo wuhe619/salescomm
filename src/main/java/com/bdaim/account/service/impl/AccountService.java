@@ -9,7 +9,7 @@ import com.bdaim.common.util.StringUtil;
 import com.bdaim.common.util.page.Page;
 import com.bdaim.common.util.page.Pagination;
 import com.bdaim.customer.dao.CustomerDao;
-import com.bdaim.customer.entity.CustomerPropertyDO;
+import com.bdaim.customer.entity.CustomerProperty;
 import com.bdaim.resource.dao.SourceDao;
 import com.github.crab2died.ExcelUtils;
 import org.slf4j.Logger;
@@ -61,8 +61,8 @@ public class AccountService {
             throw new TouchException("20010", "系统异常:用户信息不存在");
         }*/
         Map<String, Object> resultMap = new HashMap<>();
-        CustomerPropertyDO remainAmoutProperty = customerDao.getProperty(customerId, "remain_amount");
-        CustomerPropertyDO usedAmountProperty = customerDao.getProperty(customerId, "used_amount");
+        CustomerProperty remainAmoutProperty = customerDao.getProperty(customerId, "remain_amount");
+        CustomerProperty usedAmountProperty = customerDao.getProperty(customerId, "used_amount");
         DecimalFormat df = new DecimalFormat("######0.00");
         if (remainAmoutProperty != null) {
             Double remainAmout = Double.parseDouble(remainAmoutProperty.getPropertyValue());
@@ -460,7 +460,7 @@ public class AccountService {
      */
     public Object queryAccoutCenter(String custId) {
         Map<String, Object> resultMap = new HashMap<>();
-        CustomerPropertyDO remainAmoutProperty = customerDao.getProperty(custId, "remain_amount");
+        CustomerProperty remainAmoutProperty = customerDao.getProperty(custId, "remain_amount");
         //CustomerPropertyDO usedAmountProperty = customerDao.getProperty(custId, "used_amount");
         DecimalFormat df = new DecimalFormat("######0.00");
         if (remainAmoutProperty != null) {

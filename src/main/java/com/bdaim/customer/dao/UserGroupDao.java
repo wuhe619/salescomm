@@ -3,7 +3,7 @@ package com.bdaim.customer.dao;
 import com.bdaim.common.dao.SimpleHibernateDao;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.entity.CustomerUserGroup;
-import com.bdaim.rbac.dto.Page;
+import com.bdaim.common.dto.Page;
 import org.springframework.stereotype.Component;
 
 import java.io.Serializable;

@@ -8,20 +8,17 @@ import com.bdaim.batch.entity.BatchDetail;
 import com.bdaim.callcenter.dto.RecordVoiceQueryParam;
 import com.bdaim.common.annotation.CacheAnnotation;
 import com.bdaim.common.controller.BasicAction;
+import com.bdaim.common.dto.Page;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.common.util.AuthPassport;
-import com.bdaim.common.util.ConfigUtil;
 import com.bdaim.common.util.IDHelper;
 import com.bdaim.common.util.StringUtil;
-import com.bdaim.customer.entity.CustomerUserDO;
-import com.bdaim.rbac.dto.Page;
+import com.bdaim.customer.entity.CustomerUser;
 import com.bdaim.resource.service.MarketResourceService;
 import com.bdaim.template.dto.TemplateParam;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -58,7 +55,7 @@ public class OpenAction extends BasicAction {
     @RequestMapping(value = "/getBalance", method = RequestMethod.POST)
     @ResponseBody
     public String updateMainNumber() {
-        CustomerUserDO u = (CustomerUserDO) request.getAttribute("customerUserDO");
+        CustomerUser u = (CustomerUser) request.getAttribute("customerUserDO");
         String custId = u.getCust_id();
         log.info("当前登录的企业id是 ： " + custId);
         //根据当前企业id查询企业余额
@@ -99,7 +96,7 @@ public class OpenAction extends BasicAction {
     @RequestMapping(value = "/getSeatMessage", method = RequestMethod.POST)
     @ResponseBody
     public String getSeatMessage(@RequestBody JSONObject param) {
-        CustomerUserDO u = (CustomerUserDO) request.getAttribute("customerUserDO");
+        CustomerUser u = (CustomerUser) request.getAttribute("customerUserDO");
         String custId = u.getCust_id();
         Map<String, Object> map = new HashMap<>();
         try {
@@ -136,7 +133,7 @@ public class OpenAction extends BasicAction {
             //   map.put("msg", "缺少必要参数");
             return returnJsonData(map);
         }
-        CustomerUserDO u = (CustomerUserDO) request.getAttribute("customerUserDO");
+        CustomerUser u = (CustomerUser) request.getAttribute("customerUserDO");
         String custId = u.getCust_id();
         try {
             map = openService.updateMainNumber(seatAccount, custId, mainNumber);
@@ -159,7 +156,7 @@ public class OpenAction extends BasicAction {
     @ResponseBody
     public String insertSmsTemplate(@RequestBody TemplateParam templateParam) {
         Map<String, Object> map = new HashMap<>();
-        CustomerUserDO u = (CustomerUserDO) request.getAttribute("customerUserDO");
+        CustomerUser u = (CustomerUser) request.getAttribute("customerUserDO");
         //模板名字
         String templateName = templateParam.getTemplateName();
         //模板内容
@@ -198,7 +195,7 @@ public class OpenAction extends BasicAction {
     @ResponseBody
     public String querySmsTemplate(@RequestBody TemplateParam templateParam) {
         Map<String, Object> map = new HashMap<>();
-        CustomerUserDO u = (CustomerUserDO) request.getAttribute("customerUserDO");
+        CustomerUser u = (CustomerUser) request.getAttribute("customerUserDO");
         String templateId = templateParam.getTemplateId();
         if (StringUtil.isEmpty(templateId)) {
             map.put("status", "001");
@@ -247,7 +244,7 @@ public class OpenAction extends BasicAction {
     @ResponseBody
     public String FixParse(@RequestBody FixInfo fixInfo, HttpServletRequest request) {
         Map<String, Object> resultMap = new HashMap<>();
-        CustomerUserDO u = (CustomerUserDO) request.getAttribute("customerUserDO");
+        CustomerUser u = (CustomerUser) request.getAttribute("customerUserDO");
         String compId = u.getCust_id();
         Long id = u.getId();
         String realname = u.getRealname();
@@ -266,7 +263,7 @@ public class OpenAction extends BasicAction {
     @ResponseBody
     public Object queryCustomerListById(@RequestBody JSONObject param) {
         Map<Object, Object> map = new HashMap<>();
-        CustomerUserDO u = (CustomerUserDO) request.getAttribute("customerUserDO");
+        CustomerUser u = (CustomerUser) request.getAttribute("customerUserDO");
         String compId = u.getCust_id();
         String batchId = param.getString("batchId");
         Integer pageSize = param.getInteger("pageSize");
@@ -290,7 +287,7 @@ public class OpenAction extends BasicAction {
     @RequestMapping(value = "/getCallLog", method = RequestMethod.POST)
     @ResponseBody
     public String getSingleVoicelog(@RequestBody Map<String, Object> params) {
-        CustomerUserDO u = (CustomerUserDO) request.getAttribute("customerUserDO");
+        CustomerUser u = (CustomerUser) request.getAttribute("customerUserDO");
         String custId = u.getCust_id();
         Map<String, Object> map = new HashMap<>();
         String touchId = String.valueOf(params.get("touchId"));
@@ -322,7 +319,7 @@ public class OpenAction extends BasicAction {
     @ResponseBody
     public String unicomSeatMakeCall(@RequestBody Map<String, Object> params) {
         Map<String, Object> map = new HashMap<>();
-        CustomerUserDO u = (CustomerUserDO) request.getAttribute("customerUserDO");
+        CustomerUser u = (CustomerUser) request.getAttribute("customerUserDO");
         String custId = u.getCust_id();
         log.info("对外接口---外呼接口调用参数是：" + params.toString());
         String id = String.valueOf(params.get("superId"));
@@ -345,7 +342,7 @@ public class OpenAction extends BasicAction {
     @RequestMapping(value = "/getSingleSmslog", method = RequestMethod.POST)
     @ResponseBody
     public String getSingleSmslog(@RequestBody Map<String, Object> params) {
-        CustomerUserDO u = (CustomerUserDO) request.getAttribute("customerUserDO");
+        CustomerUser u = (CustomerUser) request.getAttribute("customerUserDO");
         String custId = u.getCust_id();
         Map<String, Object> map = new HashMap<>();
         String touchId = String.valueOf(params.get("touchId"));
@@ -379,7 +376,7 @@ public class OpenAction extends BasicAction {
         int pageNum = param.getIntValue("pageNum");
         int pageSize = param.getIntValue("pageSize");
         Map<String, Object> map = new HashMap<>();
-        CustomerUserDO u = (CustomerUserDO) request.getAttribute("customerUserDO");
+        CustomerUser u = (CustomerUser) request.getAttribute("customerUserDO");
         String custId = u.getCust_id();
         Page list = null;
         try {
@@ -399,7 +396,7 @@ public class OpenAction extends BasicAction {
     @ResponseBody
     @CacheAnnotation
     public String queryRecordVoicelog(@RequestBody JSONObject param) {
-        CustomerUserDO u = (CustomerUserDO) request.getAttribute("customerUserDO");
+        CustomerUser u = (CustomerUser) request.getAttribute("customerUserDO");
         String custId = u.getCust_id();
         Map<String, Object> map = new HashMap<>();
         int pageNum = param.getInteger("pageNum");
@@ -424,7 +421,7 @@ public class OpenAction extends BasicAction {
         int pageNum = param.getInteger("pageNum");
         int pageSize = param.getInteger("pageSize");
         Map<String, Object> map = new HashMap<>();
-        CustomerUserDO u = (CustomerUserDO) request.getAttribute("customerUserDO");
+        CustomerUser u = (CustomerUser) request.getAttribute("customerUserDO");
         String custId = u.getCust_id();
         JSONObject json = new JSONObject();
         Page list = null;
@@ -451,7 +448,7 @@ public class OpenAction extends BasicAction {
     @RequestMapping(value = "/sendSms", method = RequestMethod.POST)
     @ResponseBody
     public String sendMessageData(@RequestBody Map<String, Object> params) {
-        CustomerUserDO u = (CustomerUserDO) request.getAttribute("customerUserDO");
+        CustomerUser u = (CustomerUser) request.getAttribute("customerUserDO");
         String custId = u.getCust_id();
         Map<String, Object> map = new HashMap<>();
         String batchId = String.valueOf(params.get("batchId"));

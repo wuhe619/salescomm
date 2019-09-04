@@ -8,7 +8,7 @@ import java.sql.Timestamp;
  */
 @Entity
 @Table(name = "t_customer_group_list", schema = "", catalog = "")
-@IdClass(CustomerGroupListDOPK.class)
+@IdClass(CustomerGroupListPK.class)
 public class CustomerGroupListDO {
     private String id;
     private String custId;

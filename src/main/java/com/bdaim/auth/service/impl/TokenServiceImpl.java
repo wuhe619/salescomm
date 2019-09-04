@@ -6,7 +6,7 @@ import com.bdaim.common.auth.service.TokenCacheService;
 import com.bdaim.common.auth.service.TokenService;
 import com.bdaim.common.util.CipherUtil;
 import com.bdaim.common.util.NumberConvertUtil;
-import com.bdaim.customer.entity.CustomerUserDO;
+import com.bdaim.customer.entity.CustomerUser;
 import com.bdaim.customer.service.CustomerService;
 import com.bdaim.rbac.dao.RoleDao;
 import com.bdaim.rbac.entity.UserDO;
@@ -91,7 +91,7 @@ public class TokenServiceImpl implements TokenService {
                 return null;
             }
         } else {
-            CustomerUserDO u = customerService.getUserByName(username);
+            CustomerUser u = customerService.getUserByName(username);
             String md5Password = CipherUtil.generatePassword(password);
             if (u != null && md5Password.equals(u.getPassword())) {
                 logger.info("登陆框，用户：" + u.getAccount() + " 状态：" + u.getStatus());

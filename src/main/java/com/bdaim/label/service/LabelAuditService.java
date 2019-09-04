@@ -2,7 +2,7 @@ package com.bdaim.label.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.util.Constant;
-import com.bdaim.customgroup.entity.CustomGroupDO;
+import com.bdaim.customgroup.entity.CustomGroup;
 import com.bdaim.customgroup.service.CustomGroupService;
 import com.bdaim.label.dao.CommonService;
 import com.bdaim.label.dao.LabelAuditDao;
@@ -309,7 +309,7 @@ public class LabelAuditService {
 				resultMap.put("msg", "删除失败 无法删除非申请中的数据");
 				return resultMap;
 			}
-			CustomGroupDO customGroup = customGroupService.getCustomGroupById(aid);
+			CustomGroup customGroup = customGroupService.getCustomGroupById(aid);
 			if(!customGroup.getStatus().equals(Constant.ONLINE)){
 				customGroup.setUpdateTime(new Date());
 //				customGroup.setUpdateUser(audit.getAuditUser());

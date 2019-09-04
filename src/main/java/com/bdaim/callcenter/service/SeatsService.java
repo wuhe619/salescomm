@@ -5,7 +5,7 @@ import com.bdaim.callcenter.dto.SeatsMessageParam;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.util.page.Page;
 import com.bdaim.customer.dto.CustomerRegistDTO;
-import com.bdaim.customer.entity.CustomerUserPropertyDO;
+import com.bdaim.customer.entity.CustomerUserProperty;
 
 import java.util.List;
 import java.util.Map;
@@ -99,7 +99,7 @@ public interface SeatsService {
      * @param userId
      * @return
      */
-    List<CustomerUserPropertyDO> getUserAllProperty(String userId);
+    List<CustomerUserProperty> getUserAllProperty(String userId);
 
     /**
      * @description 查询主叫号码（对外接口）

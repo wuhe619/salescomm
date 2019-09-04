@@ -8,7 +8,7 @@ import com.bdaim.marketproject.dto.MarketProjectDTO;
 import com.bdaim.marketproject.dto.MarketProjectParam;
 import com.bdaim.marketproject.entity.MarketProject;
 import com.bdaim.marketproject.entity.MarketProjectProperty;
-import com.bdaim.rbac.dto.Page;
+import com.bdaim.common.dto.Page;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;

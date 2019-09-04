@@ -74,6 +74,16 @@ public class RedisUtil {
         return result;
     }
 
+    public boolean del(String key) {
+        boolean result = false;
+        try {
+            result = redisTemplate.delete(key);
+        } catch (Exception e) {
+            LOG.error("删除key异常,", e);
+        }
+        return result;
+    }
+
     /**
      * 通过key向指定的value值追加值
      *
