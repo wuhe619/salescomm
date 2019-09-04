@@ -12,9 +12,13 @@ import com.bdaim.batch.entity.BatchDetail;
 import com.bdaim.batch.service.BatchListService;
 import com.bdaim.batch.service.BatchService;
 import com.bdaim.callcenter.service.impl.CallCenterServiceImpl;
+import com.bdaim.common.dto.Page;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
-import com.bdaim.common.util.*;
+import com.bdaim.common.util.CipherUtil;
+import com.bdaim.common.util.IDHelper;
+import com.bdaim.common.util.StringHelper;
+import com.bdaim.common.util.StringUtil;
 import com.bdaim.common.util.http.HttpUtil;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerUserDao;
@@ -22,7 +26,6 @@ import com.bdaim.customer.entity.Customer;
 import com.bdaim.customer.entity.CustomerProperty;
 import com.bdaim.customer.entity.CustomerUser;
 import com.bdaim.customer.service.CustomerService;
-import com.bdaim.common.dto.Page;
 import com.bdaim.resource.dao.MarketResourceDao;
 import com.bdaim.resource.dao.SourceDao;
 import com.bdaim.resource.dto.MarketResourceLogDTO;
@@ -30,10 +33,8 @@ import com.bdaim.resource.entity.MarketResourceEntity;
 import com.bdaim.resource.service.MarketResourceService;
 import com.bdaim.supplier.dto.SupplierEnum;
 import com.bdaim.supplier.service.SupplierService;
+import com.bdaim.template.dao.MarketTemplateDao;
 import com.bdaim.template.entity.MarketTemplate;
-
-//import io.jsonwebtoken.Claims;
-//import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import org.apache.commons.io.IOUtils;
@@ -48,10 +49,6 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
-
-import static com.bdaim.common.util.JwtUtil.generToken;
-import static com.bdaim.common.util.JwtUtil.verifyToken;
-
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -62,6 +59,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static com.bdaim.common.util.JwtUtil.generToken;
+import static com.bdaim.common.util.JwtUtil.verifyToken;
+
+//import io.jsonwebtoken.Claims;
+//import io.jsonwebtoken.ExpiredJwtException;
 
 /**
  * @author duanliying
@@ -92,6 +95,8 @@ public class OpenService {
     private BatchDao batchDao;
     @Autowired
     private JdbcTemplate jdbcTemplate;
+    @Resource
+    private MarketTemplateDao marketTemplateDao;
 
     /**
      * 查询企业余额接口
@@ -303,7 +308,7 @@ public class OpenService {
         marketTemplate.setSmsSignatures(smsSignatures);
         marketTemplate.setCreateTime(new Timestamp(System.currentTimeMillis()));
         marketTemplate.setStatus(1);
-        int templateId = (int) marketResourceDao.saveReturnPk(marketTemplate);
+        int templateId = (int) marketTemplateDao.saveReturnPk(marketTemplate);
         return templateId;
     }
 

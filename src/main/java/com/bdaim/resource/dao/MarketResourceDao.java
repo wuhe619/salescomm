@@ -19,7 +19,7 @@ import java.util.Map;
  * 营销资源DAO服务
  */
 @Component
-public class MarketResourceDao extends SimpleHibernateDao<Object, Integer> {
+public class MarketResourceDao extends SimpleHibernateDao<MarketResourceEntity, Integer> {
     public String getResourceName(Long resourceId) {
         String hql = "from MarketResourceEntity m where m.resourceId=?";
         List<MarketResourceEntity> list = this.find(hql, resourceId);
@@ -38,7 +38,7 @@ public class MarketResourceDao extends SimpleHibernateDao<Object, Integer> {
         return null;
     }
 
-    public void updateMarketResourceStatus(Long resourceId, int status) {
+    public void updateMarketResourceStatus(Integer resourceId, int status) {
         String hql = "UPDATE MarketResourceEntity SET status = ? where resourceId=?";
         this.batchExecute(hql, status, resourceId);
     }

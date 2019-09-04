@@ -9,8 +9,8 @@ import java.util.Objects;
  * @date 2018/10/19
  * @description
  */
-/*@Entity
-@Table(name = "t_customer_label", schema = "", catalog = "")*/
+@Entity
+@Table(name = "t_customer_label", schema = "", catalog = "")
 public class CustomerLabel {
     private int id;
     private String custId;

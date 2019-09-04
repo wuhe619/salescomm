@@ -9,6 +9,7 @@ import com.bdaim.price.dto.ResourcesPriceDto;
 import com.bdaim.resource.dto.MarketResourceLogDTO;
 import com.bdaim.resource.entity.MarketResourceEntity;
 import com.bdaim.resource.entity.ResourcePropertyEntity;
+import com.bdaim.supplier.dto.SupplierDTO;
 import com.bdaim.supplier.entity.SupplierEntity;
 import com.bdaim.supplier.entity.SupplierPropertyEntity;
 import org.springframework.stereotype.Component;
@@ -51,6 +52,24 @@ public class SupplierDao extends SimpleHibernateDao<SupplierEntity, Integer> {
         List<SupplierEntity> result = new ArrayList<>();
         for (SupplierEntity m : supplierDOList) {
             result.add(m);
+        }
+        return result;
+    }
+
+    /**
+     * 根据资源类型获取供应商列表
+     *
+     * @param type
+     * @return
+     */
+    public List<SupplierDTO> listOnlineAllSupplierByResourceType(int type) {
+        // 查询所有数据供应商
+        StringBuffer hql = new StringBuffer(" FROM SupplierDO m WHERE status=1 AND m.supplierId IN(SELECT supplierId FROM MarketResource WHERE typeCode = ? AND status = 1)");
+        hql.append(" ORDER BY m.createTime DESC");
+        List<SupplierEntity> supplierDOList = this.find(hql.toString(), type);
+        List<SupplierDTO> result = new ArrayList<>();
+        for (SupplierEntity m : supplierDOList) {
+            result.add(new SupplierDTO(m));
         }
         return result;
     }
@@ -239,4 +258,6 @@ public class SupplierDao extends SimpleHibernateDao<SupplierEntity, Integer> {
         }
         return false;
     }
+
+
 }

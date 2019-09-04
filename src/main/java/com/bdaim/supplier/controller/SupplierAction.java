@@ -55,7 +55,7 @@ public class SupplierAction extends BasicAction {
         try {
             LoginUser lu = opUser();
             if ("ROLE_USER".equals(lu.getRole()) || "admin".equals(lu.getRole())) {
-                data = supplierService.listAllSupplier();
+                data = supplierService.listNoloseAllSupplier();
             }
         } catch (Exception e) {
             LOG.error("查询单个供应商详情失败,", e);

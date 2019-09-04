@@ -27,7 +27,7 @@ import com.bdaim.customer.dto.CustomerUserDTO;
 import com.bdaim.customer.dto.CustomerUserPropertyEnum;
 import com.bdaim.customer.entity.CustomerLabel;
 import com.bdaim.customer.entity.CustomerUser;
-import com.bdaim.customer.entity.CustomerUserProperty;
+import com.bdaim.customer.entity.CustomerUserPropertyDO;
 import com.bdaim.customer.service.CustomerLabelService;
 import com.bdaim.customer.service.CustomerService;
 import com.bdaim.customgroup.dao.CustomGroupDao;
@@ -36,6 +36,7 @@ import com.bdaim.customgroup.entity.CustomGroup;
 import com.bdaim.customgroup.service.CustomGroupService;
 import com.bdaim.marketproject.dao.MarketProjectDao;
 import com.bdaim.marketproject.entity.MarketProject;
+import com.bdaim.marketproject.service.MarketProjectService;
 import com.bdaim.markettask.dao.MarketTaskDao;
 import com.bdaim.markettask.dto.MarketTaskDTO;
 import com.bdaim.markettask.dto.MarketTaskListParam;
@@ -52,9 +53,10 @@ import com.bdaim.smscenter.service.SendSmsService;
 import com.bdaim.template.dto.MarketTemplateDTO;
 import com.bdaim.template.entity.MarketTemplate;
 import org.apache.commons.lang.StringEscapeUtils;
-import org.apache.log4j.Logger;
 import org.hibernate.exception.SQLGrammarException;
 import org.hibernate.transform.Transformers;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -88,7 +90,7 @@ import java.util.zip.ZipOutputStream;
 @Transactional
 public class MarketTaskService {
 
-    private static Logger LOG = Logger.getLogger(MarketTaskService.class);
+    public static final Logger LOG = LoggerFactory.getLogger(MarketTaskService.class);
 
     private static long dataExportTime = 0;
 
@@ -350,7 +352,7 @@ public class MarketTaskService {
         if (param.getUserIds() != null && param.getUserIds().size() > 0) {
             Set<String> addSeatIds = new HashSet<>();
             MarketTaskUserRel userRel;
-            CustomerUserProperty cp = null;
+            CustomerUserPropertyDO cp = null;
             for (String userId : param.getUserIds()) {
                 userRel = new MarketTaskUserRel(marketTask.getId(), userId, 1, new Timestamp(System.currentTimeMillis()));
                 marketTaskDao.saveOrUpdate(userRel);
@@ -499,7 +501,7 @@ public class MarketTaskService {
             Set<String> addSeatIds = new HashSet<>();
             List<MarketTaskUserRel> list = marketTaskDao.listMarketTaskUser(marketTask.getId(), 1);
             // 删除不存在的用户
-            CustomerUserProperty cp = null;
+            CustomerUserPropertyDO cp = null;
             for (MarketTaskUserRel rel : list) {
                 if (!param.getUserIds().contains(rel.getUserId())) {
                     marketTaskDao.deleteMarketTaskUser(marketTask.getId(), rel.getUserId());
@@ -776,7 +778,7 @@ public class MarketTaskService {
 
         //组长或员工只查看呼叫渠道相同的营销任务
         if ("2".equals(loginUser.getUserType())) {
-            CustomerUserProperty cp = customerUserDao.getProperty(String.valueOf(loginUser.getId()), CustomerUserPropertyEnum.CALL_CHANNEL.getKey());
+            CustomerUserPropertyDO cp = customerUserDao.getProperty(String.valueOf(loginUser.getId()), CustomerUserPropertyEnum.CALL_CHANNEL.getKey());
             if (cp == null || StringUtil.isEmpty(cp.getPropertyValue())) {
                 result.add(map);
                 return result;
@@ -1389,7 +1391,7 @@ public class MarketTaskService {
             throw new TouchException("余额不足");
         }
         if ("2".equals(lu.getUserType())) {
-            CustomerUserProperty call_channel = customerUserDao.getProperty(lu.getId().toString(), "call_channel");
+            CustomerUserPropertyDO call_channel = customerUserDao.getProperty(lu.getId().toString(), "call_channel");
             if (call_channel == null || StringUtil.isEmpty(call_channel.getPropertyValue())) {
                 throw new TouchException("坐席未指定渠道");
             }

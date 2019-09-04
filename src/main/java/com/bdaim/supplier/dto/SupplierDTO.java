@@ -1,8 +1,8 @@
 package com.bdaim.supplier.dto;
 
-import java.sql.Timestamp;
-
 import com.bdaim.supplier.entity.SupplierEntity;
+
+import java.sql.Timestamp;
 
 /**
  * @author wangxx
@@ -26,8 +26,39 @@ public class SupplierDTO {
 
     private String type;
 
-
+    /**
+     * 结算类型 1-预付费 2-授信
+     */
     private Integer settlementType;
+
+    /**
+     * 联系人姓名
+     */
+    private String contactPerson;
+    /**
+     * 联系人岗位
+     */
+    private String contactPosition;
+    /**
+     * 联系人手机
+     */
+    private String contactPhone;
+    /**
+     * 资源类型 1-数据，2-呼叫，3-短信,多个逗号隔开
+     */
+    private String serviceResource;
+
+    private String dataConfig;
+
+    private String callConfig;
+
+    private String smsConfig;
+
+
+    /**
+     * 授信额度(元)
+     */
+    private String creditAmount;
 
     public SupplierDTO(Integer supplierId, String name, String person, String phone, String position, Integer status, Timestamp createTime, String config, String type, Integer settlementType) {
         this.supplierId = supplierId;
@@ -144,6 +175,70 @@ public class SupplierDTO {
         this.RelationResource = RelationResource;
     }
 
+    public String getContactPerson() {
+        return contactPerson;
+    }
+
+    public void setContactPerson(String contactPerson) {
+        this.contactPerson = contactPerson;
+    }
+
+    public String getContactPosition() {
+        return contactPosition;
+    }
+
+    public void setContactPosition(String contactPosition) {
+        this.contactPosition = contactPosition;
+    }
+
+    public String getContactPhone() {
+        return contactPhone;
+    }
+
+    public void setContactPhone(String contactPhone) {
+        this.contactPhone = contactPhone;
+    }
+
+    public String getServiceResource() {
+        return serviceResource;
+    }
+
+    public void setServiceResource(String serviceResource) {
+        this.serviceResource = serviceResource;
+    }
+
+    public String getDataConfig() {
+        return dataConfig;
+    }
+
+    public void setDataConfig(String dataConfig) {
+        this.dataConfig = dataConfig;
+    }
+
+    public String getCallConfig() {
+        return callConfig;
+    }
+
+    public void setCallConfig(String callConfig) {
+        this.callConfig = callConfig;
+    }
+
+    public String getSmsConfig() {
+        return smsConfig;
+    }
+
+    public void setSmsConfig(String smsConfig) {
+        this.smsConfig = smsConfig;
+    }
+
+    public String getCreditAmount() {
+        return creditAmount;
+    }
+
+    public void setCreditAmount(String creditAmount) {
+        this.creditAmount = creditAmount;
+    }
+
     @Override
     public String toString() {
         return "SupplierDTO{" +
@@ -155,8 +250,18 @@ public class SupplierDTO {
                 ", status=" + status +
                 ", createTime=" + createTime +
                 ", config='" + config + '\'' +
+                ", RelationResource='" + RelationResource + '\'' +
                 ", type='" + type + '\'' +
                 ", settlementType=" + settlementType +
+                ", settlementType=" + settlementType +
+                ", contactPerson='" + contactPerson + '\'' +
+                ", contactPosition='" + contactPosition + '\'' +
+                ", contactPhone='" + contactPhone + '\'' +
+                ", serviceResource='" + serviceResource + '\'' +
+                ", dataConfig='" + dataConfig + '\'' +
+                ", callConfig='" + callConfig + '\'' +
+                ", smsConfig='" + smsConfig + '\'' +
+                ", creditAmount='" + creditAmount + '\'' +
                 '}';
     }
 }

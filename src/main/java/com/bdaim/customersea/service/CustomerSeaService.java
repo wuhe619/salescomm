@@ -20,7 +20,7 @@ import com.bdaim.customer.dto.CustomerUserDTO;
 import com.bdaim.customer.entity.CustomerLabel;
 import com.bdaim.customer.entity.CustomerUser;
 import com.bdaim.customer.entity.CustomerUserGroup;
-import com.bdaim.customer.entity.CustomerUserProperty;
+import com.bdaim.customer.entity.CustomerUserPropertyDO;
 import com.bdaim.customer.service.CustomerLabelService;
 import com.bdaim.customer.service.CustomerService;
 import com.bdaim.customersea.dao.CustomerSeaDao;
@@ -41,9 +41,10 @@ import com.bdaim.marketproject.service.MarketProjectService;
 import com.bdaim.resource.dao.MarketResourceDao;
 import com.bdaim.resource.dto.MarketResourceDTO;
 import com.bdaim.resource.entity.ResourcePropertyEntity;
-import org.apache.log4j.Logger;
 import org.hibernate.HibernateException;
 import org.hibernate.exception.SQLGrammarException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -70,7 +71,8 @@ import java.util.*;
 @Transactional
 public class CustomerSeaService {
 
-    private static Logger LOG = Logger.getLogger(CustomerSeaService.class);
+    public static final Logger LOG = LoggerFactory.getLogger(CustomerSeaService.class);
+
 
     private final static String CREATE_SEA_SQL = "CREATE TABLE IF NOT EXISTS " + ConstantsUtil.SEA_TABLE_PREFIX + "{0} LIKE t_customer_group_list";
 
@@ -340,7 +342,7 @@ public class CustomerSeaService {
             JSONObject callCenterConfig;
             Set<String> seatIds, addSeatIds, delSeatIds;
             List<CustomerUserDTO> tmp;
-            CustomerUserProperty cp;
+            CustomerUserPropertyDO cp;
             String callCenterId;
             Map<String, Object> addResult;
             JSONObject jsonObject;
@@ -665,7 +667,6 @@ public class CustomerSeaService {
      */
     public Page page(CustomerSeaParam param, int pageNum, int pageSize) {
         Page page = customerSeaDao.pageCustomerSea(param, pageNum, pageSize);
-        LOG.info(page.getCount());
         if (page.getData() != null && page.getData().size() > 0) {
             List<CustomerSeaDTO> list = new ArrayList<>();
             CustomerSea customerSea;
@@ -704,7 +705,7 @@ public class CustomerSeaService {
                     LOG.info("xzinfo..." + (xzinfo == null ? "" : xzinfo.toJSONString()));
                     for (CustomerSeaProperty p : properties) {
                         LOG.info("getPropertyName:" + p.getPropertyName() + ";v=" + p.getPropertyValue());
-                        LOG.info("callChannel".equals(p.getPropertyName()));
+                        //LOG.info("callChannel".equals(p.getPropertyName()));
                         if ("xzTaskConfig".equals(p.getPropertyName())) {
                             String v = p.getPropertyValue();
                             LOG.info("vvvv==" + v);
@@ -1955,7 +1956,7 @@ public class CustomerSeaService {
                 throw new TouchException("-1", "请先配置公海呼叫渠道");
             }
             // 判断坐席呼叫渠道和公海呼叫渠道是否相同
-            CustomerUserProperty cp = customerUserDao.getProperty(param.getUserIds().get(0), "call_channel");
+            CustomerUserPropertyDO cp = customerUserDao.getProperty(param.getUserIds().get(0), "call_channel");
             if (!Objects.equals(csp.getPropertyValue(), cp.getPropertyValue())) {
                 throw new TouchException("-1", "坐席呼叫渠道与公海不一致,不可领取");
             }
@@ -2741,7 +2742,7 @@ public class CustomerSeaService {
                 LOG.warn("公海[" + seaId + "]状态关闭,状态:" + customerSea.getStatus());
                 return false;
             }
-            CustomerUserProperty call_channel = customerUserDao.getProperty(lu.getId().toString(), "call_channel");
+            CustomerUserPropertyDO call_channel = customerUserDao.getProperty(lu.getId().toString(), "call_channel");
             if (call_channel == null || StringUtil.isEmpty(call_channel.getPropertyValue())) {
                 throw new TouchException("坐席[" + lu.getId() + "]未指定渠道");
             }

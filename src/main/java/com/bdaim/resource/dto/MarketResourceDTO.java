@@ -1,8 +1,8 @@
 package com.bdaim.resource.dto;
 
-import java.util.Date;
-
 import com.bdaim.resource.entity.MarketResourceEntity;
+
+import java.util.Date;
 
 /**
  * 营销资源实体类
@@ -79,6 +79,10 @@ public class MarketResourceDTO {
     private String resourceProperty;
 
     private Integer chargingType;
+    /**
+     * 1-单机 2-SaaS
+     */
+    private Integer callCenterType;
 
     public MarketResourceDTO() {
     }
@@ -224,5 +228,13 @@ public class MarketResourceDTO {
 
     public void setChargingType(Integer chargingType) {
         this.chargingType = chargingType;
+    }
+
+    public Integer getCallCenterType() {
+        return callCenterType;
+    }
+
+    public void setCallCenterType(Integer callCenterType) {
+        this.callCenterType = callCenterType;
     }
 }

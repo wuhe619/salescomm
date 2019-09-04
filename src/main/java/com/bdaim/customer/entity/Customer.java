@@ -21,6 +21,8 @@ public class Customer {
     private Timestamp createTime;
     private Timestamp modifyTime;
     private Timestamp activeTime;
+    private Integer compId;
+    private String brandId;
 
     @Id
     @Column(name = "cust_id")
@@ -140,6 +142,26 @@ public class Customer {
 
     public void setActiveTime(Timestamp activeTime) {
         this.activeTime = activeTime;
+    }
+
+    @Basic
+    @GeneratedValue(strategy=GenerationType.IDENTITY)
+    @Column(name="comp_id")
+    public Integer getCompId() {
+        return compId;
+    }
+
+    public void setCompId(Integer compId) {
+        this.compId = compId;
+    }
+    @Basic
+    @Column(name = "brand_id")
+    public String getBrandId() {
+        return brandId;
+    }
+
+    public void setBrandId(String brandId) {
+        this.brandId = brandId;
     }
 
     @Override

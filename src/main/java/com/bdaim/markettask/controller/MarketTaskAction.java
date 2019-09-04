@@ -20,7 +20,8 @@ import com.bdaim.markettask.dto.MarketTaskListParam;
 import com.bdaim.markettask.dto.MarketTaskParam;
 import com.bdaim.markettask.service.MarketTaskService;
 import com.bdaim.rbac.dto.RoleEnum;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -45,7 +46,7 @@ import java.util.*;
 @Controller
 public class MarketTaskAction extends BasicAction {
 
-    private static Logger LOG = Logger.getLogger(MarketTaskAction.class);
+    public static final Logger LOG = LoggerFactory.getLogger(MarketTaskAction.class);
 
     @Resource
     private MarketTaskService marketTaskService;
@@ -239,8 +240,7 @@ public class MarketTaskAction extends BasicAction {
         try {
             result = marketTaskService.isValidAccount(lu, marketTaskId);
         } catch (Exception e) {
-            e.printStackTrace();
-            LOG.error(e);
+            LOG.error("判断用户方能否致电发短信异常",e);
             result = false;
         }
         return returnJsonData(result);

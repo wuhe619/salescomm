@@ -7,32 +7,31 @@ import com.bdaim.batch.TransactionEnum;
 import com.bdaim.batch.dao.BatchDao;
 import com.bdaim.batch.entity.BatchListEntity;
 import com.bdaim.bill.service.TransactionService;
-import com.bdaim.callcenter.dto.SeatsInfo;
-import com.bdaim.callcenter.dto.SeatsMessageParam;
+import com.bdaim.callcenter.dto.*;
 import com.bdaim.callcenter.service.SeatsService;
 import com.bdaim.common.dto.PageParam;
-import com.bdaim.common.util.CipherUtil;
-import com.bdaim.common.util.ConstantsUtil;
-import com.bdaim.common.util.DateUtil;
-import com.bdaim.common.util.IDHelper;
-import com.bdaim.common.util.NumberConvertUtil;
-import com.bdaim.common.util.StringUtil;
+import com.bdaim.common.util.*;
 import com.bdaim.common.util.page.PageList;
 import com.bdaim.common.util.page.Pagination;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerUserDao;
 import com.bdaim.customer.dto.CustomerRegistDTO;
+import com.bdaim.customer.dto.CustomerUserPropertyEnum;
 import com.bdaim.customer.entity.Customer;
 import com.bdaim.customer.entity.CustomerProperty;
 import com.bdaim.customer.entity.CustomerUser;
-import com.bdaim.customer.entity.CustomerUserProperty;
+import com.bdaim.customer.entity.CustomerUserPropertyDO;
+import com.bdaim.customer.service.CustomerService;
 import com.bdaim.price.dto.ResourcesPriceDto;
+import com.bdaim.resource.dao.MarketResourceDao;
 import com.bdaim.resource.dao.SourceDao;
+import com.bdaim.resource.dto.MarketResourceDTO;
 import com.bdaim.resource.entity.MarketResourceEntity;
+import com.bdaim.resource.entity.ResourcePropertyEntity;
 import com.bdaim.resource.service.MarketResourceService;
 import com.bdaim.supplier.dao.SupplierDao;
 import com.bdaim.supplier.dto.SupplierEnum;
-
+import com.bdaim.supplier.service.SupplierService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
@@ -318,7 +317,7 @@ public class SeatsServiceImpl implements SeatsService {
                     customerUserDO.setUserType(2);
                     customerUserDao.save(customerUserDO);
                     //保存坐席手机号码
-                    CustomerUserProperty customerPropertyDo = new CustomerUserProperty();
+                    CustomerUserPropertyDO customerPropertyDo = new CustomerUserPropertyDO();
                     customerPropertyDo.setUserId(String.valueOf(userId));
                     customerPropertyDo.setPropertyName("mobile_num");
                     customerPropertyDo.setPropertyValue(seatsInfoList.get(i).getPhoneNum());
@@ -365,7 +364,7 @@ public class SeatsServiceImpl implements SeatsService {
                                 resourceId = String.valueOf(list.get(0).get("resource_id"));
                             }
                             //根据供应商id查询坐席对象
-                            CustomerUserProperty customerUser = new CustomerUserProperty();
+                            CustomerUserPropertyDO customerUser = new CustomerUserPropertyDO();
                             customerUser.setUserId(String.valueOf(userId));
                             customerUser.setPropertyName(seatName);
                             customerUser.setPropertyValue(JSON.toJSONString(map));
@@ -439,7 +438,7 @@ public class SeatsServiceImpl implements SeatsService {
                                         "坐席扣费", accountUserId, "", "", seatSpperPrice.intValue(), resourceId);
                                 logger.info("坐席扣费客户:" + custId + "保存交易记录状态:" + seatAmountStatus);
                                 //添加坐席套餐分钟数在user属性表中
-                                CustomerUserProperty customerUserProperty = new CustomerUserProperty();
+                                CustomerUserPropertyDO customerUserProperty = new CustomerUserPropertyDO();
                                 customerUserProperty.setUserId(String.valueOf(userId));
                                 customerUserProperty.setPropertyName(seatMinute);
                                 customerUserProperty.setPropertyValue(String.valueOf(custSeatMinute));
@@ -447,7 +446,7 @@ public class SeatsServiceImpl implements SeatsService {
                                 customerUserDao.saveOrUpdate(customerUserProperty);
 
                                 //保存坐席的供应商分钟数
-                                CustomerUserProperty customerSupplierMinute = new CustomerUserProperty();
+                                CustomerUserPropertyDO customerSupplierMinute = new CustomerUserPropertyDO();
                                 customerSupplierMinute.setUserId(String.valueOf(userId));
                                 customerSupplierMinute.setPropertyName(resourceId + "_minute");
                                 customerSupplierMinute.setPropertyValue(String.valueOf(supSeatMinute));
@@ -704,7 +703,7 @@ public class SeatsServiceImpl implements SeatsService {
                             if (callIdPropertyName!=null){
                                 channelProperty = callIdPropertyName.getSeatName();
                                 //根据userid获取坐席信息
-                                CustomerUserProperty userProperty = customerUserDao.getProperty(String.valueOf(id), channelProperty);
+                                CustomerUserPropertyDO userProperty = customerUserDao.getProperty(String.valueOf(id), channelProperty);
                                 //將json串存入对象
                                 if (userProperty != null) {
                                     com.alibaba.fastjson.JSONObject json = JSON.parseObject(userProperty.getPropertyValue());
@@ -790,12 +789,12 @@ public class SeatsServiceImpl implements SeatsService {
                             SupplierEnum callIdPropertyName = SupplierEnum.getCallIdPropertyName(split[i]);
                             String seatMinute = callIdPropertyName.getSeatMinute();
                             //查询当前坐席下企业分钟数是否存在
-                            CustomerUserProperty seatMiuteInfo = customerUserDao.getProperty(id, seatMinute);
+                            CustomerUserPropertyDO seatMiuteInfo = customerUserDao.getProperty(id, seatMinute);
                             if (seatMiuteInfo != null) {
                                 seatMiuteInfo.setPropertyValue(custSeatMinute);
                                 customerUserDao.saveOrUpdate(seatMiuteInfo);
                             } else {
-                                CustomerUserProperty customerUserProperty = new CustomerUserProperty();
+                                CustomerUserPropertyDO customerUserProperty = new CustomerUserPropertyDO();
                                 customerUserProperty.setUserId(id);
                                 customerUserProperty.setPropertyName(seatMinute);
                                 customerUserProperty.setPropertyValue(custSeatMinute);
@@ -804,12 +803,12 @@ public class SeatsServiceImpl implements SeatsService {
                             }
 
                             //查询当前坐席下供应商分钟数是否存在
-                            CustomerUserProperty supSeatInfo = customerUserDao.getProperty(id, resourceId + "_minute");
+                            CustomerUserPropertyDO supSeatInfo = customerUserDao.getProperty(id, resourceId + "_minute");
                             if (supSeatInfo != null) {
                                 supSeatInfo.setPropertyValue(supplierSeatMinute);
                                 customerUserDao.saveOrUpdate(supSeatInfo);
                             } else {
-                                CustomerUserProperty customerUserProperty = new CustomerUserProperty();
+                                CustomerUserPropertyDO customerUserProperty = new CustomerUserPropertyDO();
                                 customerUserProperty.setUserId(id);
                                 customerUserProperty.setPropertyName(resourceId + "_minute");
                                 customerUserProperty.setPropertyValue(supplierSeatMinute);
@@ -994,7 +993,7 @@ public class SeatsServiceImpl implements SeatsService {
     }
 
     @Override
-    public List<CustomerUserProperty> getUserAllProperty(String userId) {
+    public List<CustomerUserPropertyDO> getUserAllProperty(String userId) {
         return customerUserDao.getAllProperty(userId);
     }
 
@@ -1154,7 +1153,7 @@ public class SeatsServiceImpl implements SeatsService {
         if (customer != null) {
             Long userId = customer.getId();
             //根据user查询坐席配置信息
-            CustomerUserProperty customerUser = customerUserDao.getProperty(String.valueOf(userId), channelProperty + "_seat");
+            CustomerUserPropertyDO customerUser = customerUserDao.getProperty(String.valueOf(userId), channelProperty + "_seat");
             if (customerUser != null) {
                 String propertyValue = customerUser.getPropertyValue();
                 if (!"".equals(propertyValue)) {
@@ -1342,7 +1341,7 @@ public class SeatsServiceImpl implements SeatsService {
             seatMinute = callIdPropertyName.getSeatMinute();
         }
         //添加坐席json信息
-        CustomerUserProperty customerUser = new CustomerUserProperty();
+        CustomerUserPropertyDO customerUser = new CustomerUserPropertyDO();
         customerUser.setUserId(String.valueOf(userId));
         customerUser.setPropertyName(cusSeatName);
         customerUser.setPropertyValue(JSON.toJSONString(map));
@@ -1410,14 +1409,14 @@ public class SeatsServiceImpl implements SeatsService {
             logger.info("坐席扣费客户:" + custId + "保存交易记录状态:" + seatAmountStatus);
             //添加坐席套餐分钟数在user属性表中
             //查询企业属性表的销售定价中坐席套餐分钟数
-            CustomerUserProperty customerUserProperty = new CustomerUserProperty();
+            CustomerUserPropertyDO customerUserProperty = new CustomerUserPropertyDO();
             customerUserProperty.setUserId(String.valueOf(userId));
             customerUserProperty.setPropertyName(seatMinute);
             customerUserProperty.setPropertyValue(String.valueOf(custSeatMinute));
             customerUserProperty.setCreateTime(String.valueOf(DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss)));
             customerUserDao.saveOrUpdate(customerUserProperty);
             //保存坐席的供应商分钟
-            CustomerUserProperty customerSupUserProperty = new CustomerUserProperty();
+            CustomerUserPropertyDO customerSupUserProperty = new CustomerUserPropertyDO();
             customerSupUserProperty.setUserId(String.valueOf(userId));
             customerSupUserProperty.setPropertyName(resourceId + "_minute");
             customerSupUserProperty.setPropertyValue(String.valueOf(supSeatMinute));
@@ -1464,5 +1463,479 @@ public class SeatsServiceImpl implements SeatsService {
             }
         }
         return custSeatsPrice;
+    }
+
+    @Resource
+    MarketResourceDao marketResourceDao;
+    @Resource
+    CustomerService customerService;
+    @Resource
+    SupplierService supplierService;
+
+    /**
+     * 坐席信息添加
+     *
+     * @param customerPropertyDTO
+     */
+    public void addSeatsList(SeatPropertyDTO customerPropertyDTO) throws Exception {
+        //获取管理员账号用于生成坐席登陆的账号密码
+        String custId = customerPropertyDTO.getCustId();
+        CustomerUser customerUser = customerUserDao.selectPropertyByType(1, custId);
+        //获取坐席添加集合
+        List<SeatsInfo> seatsInfoList = customerPropertyDTO.getSeatsInfoList();
+        for (int i = 0; i < seatsInfoList.size(); i++) {
+            //为坐席添加登陆账号密码
+            CustomerUser customer = new CustomerUser();
+            //坐席账号
+            String seatsAccount = seatsInfoList.get(i).getSeatsAccount();
+            customer.setId(IDHelper.getID());
+            customer.setAccount(customerUser.getAccount() + seatsAccount);
+            customer.setPassword(CipherUtil.encodeByMD5("aa123456"));
+            customer.setCreateTime(String.valueOf(new Timestamp(System.currentTimeMillis())));
+            customer.setStatus(0);
+            customer.setCust_id(custId);
+            customer.setUserType(2);
+            customer.setRealname(seatsInfoList.get(i).getSeatsName());
+            customerUserDao.saveOrUpdate(customer);
+
+            CustomerUserPropertyDO customerUserProperty = new CustomerUserPropertyDO();
+            //坐席账号
+            //将坐席信息保存到属性表中
+            customerUserProperty.setUserId(String.valueOf(customer.getId()));
+            customerUserProperty.setPropertyName("seats_account");
+            customerUserProperty.setPropertyValue(seatsAccount);
+            customerUserProperty.setCreateTime(String.valueOf(DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss)));
+            customerUserDao.saveOrUpdate(customerUserProperty);
+            //坐席密码
+            CustomerUserPropertyDO passwordCustomerUser = new CustomerUserPropertyDO();
+            String seatsPassword = seatsInfoList.get(i).getSeatsPassword();
+            passwordCustomerUser.setUserId(String.valueOf(customer.getId()));
+            passwordCustomerUser.setPropertyName("seats_password");
+            passwordCustomerUser.setPropertyValue(CipherUtil.encodeByMD5(CipherUtil.encodeByMD5(seatsPassword)));
+            passwordCustomerUser.setCreateTime(String.valueOf(DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss)));
+            customerUserDao.saveOrUpdate(passwordCustomerUser);
+            //分机号码
+            CustomerUserPropertyDO extensionNumberCustomer = new CustomerUserPropertyDO();
+            String extensionNumber = seatsInfoList.get(i).getExtensionNumber();
+            extensionNumberCustomer.setUserId(String.valueOf(customer.getId()));
+            extensionNumberCustomer.setPropertyName("extension_number");
+            extensionNumberCustomer.setPropertyValue(extensionNumber);
+            extensionNumberCustomer.setCreateTime(String.valueOf(new Timestamp(System.currentTimeMillis())));
+            customerUserDao.saveOrUpdate(extensionNumberCustomer);
+            //分机密码
+            CustomerUserPropertyDO extensionpasswordCustomer = new CustomerUserPropertyDO();
+            String extensionPassword = seatsInfoList.get(i).getExtensionPassword();
+            extensionpasswordCustomer.setUserId(String.valueOf(customer.getId()));
+            extensionpasswordCustomer.setPropertyName("extension_password");
+            extensionpasswordCustomer.setPropertyValue(extensionPassword);
+            extensionpasswordCustomer.setCreateTime(String.valueOf(new Timestamp(System.currentTimeMillis())));
+            customerUserDao.saveOrUpdate(extensionpasswordCustomer);
+            //坐席状态
+            CustomerUserPropertyDO statusCustomer = new CustomerUserPropertyDO();
+            statusCustomer.setUserId(String.valueOf(customer.getId()));
+            statusCustomer.setPropertyName("seats_status");
+            statusCustomer.setPropertyValue(String.valueOf(1));
+            statusCustomer.setCreateTime(String.valueOf(DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss)));
+            customerUserDao.saveOrUpdate(statusCustomer);
+        }
+    }
+
+    public void addSeatsListV1(SeatPropertyDTO customerPropertyDTO) throws Exception {
+        //获取管理员账号用于生成坐席登陆的账号密码
+        String custId = customerPropertyDTO.getCustId();
+        CustomerUser customerAdminUser = customerUserDao.selectPropertyByType(1, custId);
+        //获取坐席添加集合
+        List<SeatsInfo> seatsInfoList = customerPropertyDTO.getSeatsInfoList();
+        CustomerUser customerUser;
+        SeatsInfo seatsInfo;
+        for (int i = 0; i < seatsInfoList.size(); i++) {
+            //为坐席添加登陆账号密码
+            customerUser = new CustomerUser();
+            seatsInfo = seatsInfoList.get(i);
+            customerUser.setId(IDHelper.getID());
+            customerUser.setAccount(customerAdminUser.getAccount() + seatsInfo.getSeatsAccount());
+            customerUser.setPassword(CipherUtil.encodeByMD5(seatsInfo.getSeatsPassword()));
+            customerUser.setCreateTime(String.valueOf(new Timestamp(System.currentTimeMillis())));
+            customerUser.setStatus(0);
+            customerUser.setCust_id(custId);
+            customerUser.setUserType(2);
+            customerUser.setRealname(seatsInfoList.get(i).getSeatsName());
+            customerUserDao.saveOrUpdate(customerUser);
+
+            CustomerUserPropertyDO customerUserProperty = new CustomerUserPropertyDO();
+            //坐席账号
+            //将坐席信息保存到属性表中
+            customerUserProperty.setUserId(String.valueOf(customerUser.getId()));
+            customerUserProperty.setPropertyName("seats_account");
+            customerUserProperty.setPropertyValue(seatsInfo.getSeatsAccount());
+            customerUserProperty.setCreateTime(String.valueOf(new Timestamp(System.currentTimeMillis())));
+            customerUserDao.saveOrUpdate(customerUserProperty);
+            //坐席密码
+            CustomerUserPropertyDO passwordCustomerUser = new CustomerUserPropertyDO();
+            String seatsPassword = seatsInfoList.get(i).getSeatsPassword();
+            passwordCustomerUser.setUserId(String.valueOf(customerUser.getId()));
+            passwordCustomerUser.setPropertyName("seats_password");
+            passwordCustomerUser.setPropertyValue(CipherUtil.encodeByMD5(CipherUtil.encodeByMD5(seatsPassword)));
+            passwordCustomerUser.setCreateTime(String.valueOf(new Timestamp(System.currentTimeMillis())));
+            customerUserDao.saveOrUpdate(passwordCustomerUser);
+            //分机号码
+            CustomerUserPropertyDO extensionNumberCustomer = new CustomerUserPropertyDO();
+            String extensionNumber = seatsInfoList.get(i).getExtensionNumber();
+            extensionNumberCustomer.setUserId(String.valueOf(customerUser.getId()));
+            extensionNumberCustomer.setPropertyName("extension_number");
+            extensionNumberCustomer.setPropertyValue(extensionNumber);
+            extensionNumberCustomer.setCreateTime(String.valueOf(new Timestamp(System.currentTimeMillis())));
+            customerUserDao.saveOrUpdate(extensionNumberCustomer);
+            //分机密码
+            CustomerUserPropertyDO extensionpasswordCustomer = new CustomerUserPropertyDO();
+            String extensionPassword = seatsInfoList.get(i).getExtensionPassword();
+            extensionpasswordCustomer.setUserId(String.valueOf(customerUser.getId()));
+            extensionpasswordCustomer.setPropertyName("extension_password");
+            extensionpasswordCustomer.setPropertyValue(extensionPassword);
+            extensionpasswordCustomer.setCreateTime(String.valueOf(new Timestamp(System.currentTimeMillis())));
+            customerUserDao.saveOrUpdate(extensionpasswordCustomer);
+            //坐席状态
+            CustomerUserPropertyDO statusCustomer = new CustomerUserPropertyDO();
+            statusCustomer.setUserId(String.valueOf(customerUser.getId()));
+            statusCustomer.setPropertyName("seats_status");
+            statusCustomer.setPropertyValue(String.valueOf(1));
+            statusCustomer.setCreateTime(String.valueOf(new Timestamp(System.currentTimeMillis())));
+            customerUserDao.saveOrUpdate(statusCustomer);
+        }
+    }
+
+    /**
+     * @description 添加主信息
+     * @author:duanliying
+     * @method
+     * @date: 2018/10/16 18:44
+     */
+    public void saveMainMessage(SeatPropertyDTO customerPropertyDTO) throws Exception {
+        //为主信息添加登陆信息
+        String adminAccount = customerPropertyDTO.getAdminAccount();
+        String adminPassword = customerPropertyDTO.getAdminPassword();
+        CustomerUser customer = new CustomerUser();
+        //坐席账号
+        customer.setId(IDHelper.getID());
+        customer.setAccount(adminAccount);
+        customer.setPassword(CipherUtil.encodeByMD5(adminPassword));
+        customer.setCreateTime(String.valueOf(new Timestamp(System.currentTimeMillis())));
+        customer.setStatus(0);
+        customer.setCust_id(customerPropertyDTO.getCustId());
+        customer.setUserType(1);
+        customerUserDao.saveOrUpdate(customer);
+
+        //获取呼叫中心企业ID并存储
+        CustomerProperty callCenterProperty = new CustomerProperty();
+        String callCenterId = customerPropertyDTO.getCallCenterId();
+        callCenterProperty.setCustId(customerPropertyDTO.getCustId());
+        callCenterProperty.setPropertyName("call_center_id");
+        callCenterProperty.setPropertyValue(callCenterId);
+        callCenterProperty.setCreateTime(DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss));
+        customerDao.saveOrUpdate(callCenterProperty);
+        //存储外显号
+        CustomerProperty customerProperty = new CustomerProperty();
+        String apparentNumber = customerPropertyDTO.getApparentNumber();
+        customerProperty.setCustId(customerPropertyDTO.getCustId());
+        customerProperty.setPropertyName("apparent_number");
+        customerProperty.setPropertyValue(apparentNumber);
+        customerProperty.setCreateTime(DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss));
+        customerDao.saveOrUpdate(customerProperty);
+    }
+
+    public void saveMainMessageV4(SeatPropertyDTO customerPropertyDTO) throws Exception {
+
+        //获取呼叫中心企业ID并存储
+
+        String callCenterId = customerPropertyDTO.getCallCenterId();
+        if (StringUtil.isNotEmpty(callCenterId)) {
+            CustomerProperty callCenterProperty = customerDao.getProperty(customerPropertyDTO.getCustId(), "call_center_id");
+            if (callCenterProperty == null) {
+                callCenterProperty = new CustomerProperty();
+            }
+            callCenterProperty.setCustId(customerPropertyDTO.getCustId());
+            callCenterProperty.setPropertyName("call_center_id");
+            callCenterProperty.setPropertyValue(callCenterId);
+            callCenterProperty.setCreateTime(new Timestamp(System.currentTimeMillis()));
+            customerDao.saveOrUpdate(callCenterProperty);
+        }
+        String apparentNumber = customerPropertyDTO.getApparentNumber();
+        if (StringUtil.isNotEmpty(apparentNumber)) {
+            //存储外显号
+            CustomerProperty customerProperty = customerDao.getProperty(customerPropertyDTO.getCustId(), "apparent_number");
+            if (customerProperty == null) {
+                customerProperty = new CustomerProperty();
+            }
+            customerProperty.setCustId(customerPropertyDTO.getCustId());
+            customerProperty.setPropertyName("apparent_number");
+            customerProperty.setPropertyValue(apparentNumber);
+            customerProperty.setCreateTime(new Timestamp(System.currentTimeMillis()));
+            customerDao.saveOrUpdate(customerProperty);
+        }
+    }
+
+    /**
+     * @description 修改坐席状态
+     * @author:duanliying
+     * @method
+     * @date: 2018/10/17 12:05
+     */
+    public void updateSeatsList(String status, String userId) throws Exception {
+        CustomerUserPropertyDO seatsUser = customerUserDao.getProperty(userId, "seats_status");
+        if (seatsUser == null) {
+            seatsUser = new CustomerUserPropertyDO(userId, "seats_status", status, new Timestamp(System.currentTimeMillis()));
+        }
+        seatsUser.setPropertyValue(status);
+        customerUserDao.saveOrUpdate(seatsUser);
+    }
+
+    /**
+     * 查询用户的坐席配置信息
+     *
+     * @param userId
+     * @param callCenterType
+     * @param resourceId
+     * @return null-用户未配置呼叫中心
+     */
+    public SeatCallConfig selectUserSeatConfig(String userId, String callCenterType, String resourceId) {
+        SeatCallConfig config = new SeatCallConfig();
+        boolean configStatus = false;
+        if (CallCenterTypeEnum.XF.getPropertyName().equals(callCenterType)) {
+            CustomerUserPropertyDO xfSeatsAccount = customerUserDao.getProperty(userId, "seats_account");
+            if (xfSeatsAccount != null) {
+                config.setXfSeatsAccount(xfSeatsAccount.getPropertyValue());
+                configStatus = true;
+            }
+        } else if (CallCenterTypeEnum.XZ_CC.getPropertyName().equals(callCenterType)) {
+            CustomerUserPropertyDO seatsAccount = customerUserDao.getProperty(userId, "seats_account");
+            CustomerUserPropertyDO seatsPassword = customerUserDao.getProperty(userId, "seats_password");
+            CustomerUserPropertyDO extensionNumber = customerUserDao.getProperty(userId, "extension_number");
+            CustomerUserPropertyDO extensionPassword = customerUserDao.getProperty(userId, "extension_password");
+            if (seatsAccount != null && seatsPassword != null && extensionNumber != null && extensionPassword != null) {
+                config.setAccount(seatsAccount.getPropertyValue());
+                config.setPassword(seatsPassword.getPropertyValue());
+                config.setExtensionNumber(extensionNumber.getPropertyValue());
+                config.setExtensionPassword(extensionPassword.getPropertyValue());
+                configStatus = true;
+            }
+        } else if (CallCenterTypeEnum.XZ_SH.getPropertyName().equals(callCenterType)) {
+            CustomerUserPropertyDO workNum = customerUserDao.getProperty(userId, "work_num");
+            if (workNum != null) {
+                config.setWorkNum(workNum.getPropertyValue());
+                configStatus = true;
+            }
+        } else {
+            logger.warn("用户:" + userId + ",呼叫中心类型:" + callCenterType + ",resourceId:" + resourceId + "无坐席配置信息");
+            return null;
+        }
+        if (!configStatus) {
+            logger.warn("用户:" + userId + ",呼叫中心类型:" + callCenterType + ",resourceId:" + resourceId + "无坐席配置信息");
+            return null;
+        }
+        return config;
+    }
+
+    /**
+     * 查询用户的呼叫中心配置信息
+     *
+     * @param userId
+     * @param callCenterType
+     * @param resourceId
+     * @return
+     */
+    public CallCenterConfig selectUserCallCenterConfig(String userId, String callCenterType, String resourceId) {
+        CallCenterConfig config = new CallCenterConfig();
+        boolean configStatus = false;
+        if (CallCenterTypeEnum.XF.getPropertyName().equals(callCenterType)) {
+            CustomerUserPropertyDO callCenterId = customerUserDao.getProperty(userId, "xf_call_center_id");
+            CustomerUserPropertyDO callCenterIp = customerUserDao.getProperty(userId, "xf_call_center_ip");
+            CustomerUserPropertyDO xfCallSipPort = customerUserDao.getProperty(userId, "xf_call_sip_port");
+            CustomerUserPropertyDO xfCallSipPwd = customerUserDao.getProperty(userId, "xf_call_sip_pwd");
+            if (callCenterId != null && callCenterIp != null && xfCallSipPort != null && xfCallSipPwd != null) {
+                // 呼叫中心
+                config.setCallCenterId(callCenterId.getPropertyValue());
+                config.setCallCenterIp(callCenterIp.getPropertyValue());
+                config.setXfCallSipPort(xfCallSipPort.getPropertyValue());
+                config.setXfCallSipPwd(xfCallSipPwd.getPropertyValue());
+                configStatus = true;
+            }
+        } else if (CallCenterTypeEnum.XZ_CC.getPropertyName().equals(callCenterType)) {
+            CustomerUserPropertyDO callCenterId = customerUserDao.getProperty(userId, "call_center_id");
+            CustomerUserPropertyDO apparentNumber = customerUserDao.getProperty(userId, "apparent_number");
+            if (callCenterId != null && apparentNumber != null) {
+                config.setCallCenterId(callCenterId.getPropertyValue());
+                config.setApparentNumber(apparentNumber.getPropertyValue());
+                configStatus = true;
+            }
+
+        } else if (CallCenterTypeEnum.XZ_SH.getPropertyName().equals(callCenterType)) {
+            CustomerUserPropertyDO appId = customerUserDao.getProperty(userId, "appId");
+            if (appId != null) {
+                config.setCallCenterAppIp(appId.getPropertyValue());
+                configStatus = true;
+            }
+        } else {
+            logger.warn("用户:" + userId + ",呼叫中心类型:" + callCenterType + ",resourceId:" + resourceId + "无呼叫中心配置信息");
+            return null;
+        }
+        if (!configStatus) {
+            logger.warn("用户:" + userId + ",呼叫中心类型:" + callCenterType + ",resourceId:" + resourceId + "无呼叫中心配置信息");
+            return null;
+        }
+        return config;
+    }
+
+    /**
+     * 检查坐席配置的呼叫线路渠道与企业是否匹配
+     *
+     * @param userId
+     * @param custId
+     * @return null-
+     * @throws Exception
+     */
+    public String checkSeatConfigStatus(String userId, String custId) throws Exception {
+        String resourceId = null;
+        CustomerUserPropertyDO cup = customerUserDao.getProperty(userId, CustomerUserPropertyEnum.CALL_CHANNEL.getKey());
+        boolean channelStatus = false;
+        if (cup != null && StringUtil.isNotEmpty(cup.getPropertyValue())) {
+            resourceId = cup.getPropertyValue();
+            CustomerUserPropertyDO callType = customerUserDao.getProperty(userId, CustomerUserPropertyEnum.CALL_TYPE.getKey());
+            if (callType != null && StringUtil.isNotEmpty(callType.getPropertyValue())) {
+                JSONObject jsonObject = supplierService.getCustomerCallPriceConfig(custId);
+                logger.info("客户配置的渠道:" + jsonObject);
+                List<MarketResourceDTO> callResList = new ArrayList<>();
+
+                List<MarketResourceDTO> call2way = (List<MarketResourceDTO>) jsonObject.get("call2way");
+                if (call2way != null || call2way.size() >= 0) {
+                    callResList.addAll(call2way);
+                }
+                List<MarketResourceDTO> callCenter = (List<MarketResourceDTO>) jsonObject.get("callCenter");
+                if (callCenter != null || callCenter.size() >= 0) {
+                    callResList.addAll(callCenter);
+                }
+                for (MarketResourceDTO m : callResList) {
+                    // 判断坐席配置的呼叫渠道客户有没有进行配置
+                    if (Objects.equals(resourceId, String.valueOf(m.getResourceId()))) {
+                        channelStatus = true;
+                        break;
+                    }
+                }
+                if (!channelStatus) {
+                    logger.warn("userId:" + userId + ",custId:" + custId + ",客户未配置该渠道,resourceId:" + resourceId);
+                }
+            } else {
+                logger.warn("userId:" + userId + ",custId:" + custId + ",未配置呼叫类型,resourceId:" + resourceId);
+            }
+        } else {
+            logger.warn("userId:" + userId + ",custId:" + custId + ",未配置呼叫渠道");
+        }
+        if (channelStatus) {
+            return resourceId;
+        }
+        return null;
+    }
+
+    /**
+     * 获取用户当前配置的渠道呼叫中心配置信息
+     *
+     * @param userId
+     * @param custId
+     * @return
+     */
+    public SeatCallCenterConfig selectUserSeatConfig(String userId, String custId) throws Exception {
+        // 检查坐席配置的呼叫线路渠道与企业是否匹配
+        String resourceId = checkSeatConfigStatus(userId, custId);
+        if (StringUtil.isNotEmpty(resourceId)) {
+            MarketResourceEntity mr = marketResourceDao.getMarketResource(NumberConvertUtil.parseLong(resourceId));
+            if (mr == null) {
+                logger.warn("userId:" + userId + ",custId:" + custId + ",呼叫线路资源为空,resourceId:" + resourceId);
+                return null;
+            }
+            // 资源无效
+            if (2 == mr.getStatus()) {
+                logger.warn("userId:" + userId + ",custId:" + custId + ",呼叫线路资源状态无效,resourceId:" + resourceId);
+                return null;
+            }
+            ResourcePropertyEntity callConfig = marketResourceDao.getProperty(resourceId, "price_config");
+            if (callConfig == null) {
+                logger.warn("userId:" + userId + ",custId:" + custId + ",未查询到资源,resourceId:" + resourceId);
+                return null;
+            }
+            if (StringUtil.isEmpty(callConfig.getPropertyValue())) {
+                logger.warn("userId:" + userId + ",custId:" + custId + ",呼叫线路资源配置为空,resourceId:" + resourceId);
+                return null;
+            }
+            JSONObject property = JSON.parseObject(callConfig.getPropertyValue());
+            if (property != null) {
+                logger.info("userId:" + userId + ",custId:" + custId + ",呼叫线路资源配置信息:" + property);
+                SeatCallCenterConfig seatConfig = JSON.parseObject(property.getString("call_center_config"), SeatCallCenterConfig.class);
+                seatConfig.setUserId(userId);
+                // 1-单机 2-SaaS
+                int callCenterType = property.getIntValue("call_center_type");
+                // 1 呼叫中心 2-双呼 3-机器人外呼
+                int type = property.getIntValue("type");
+                // 新方
+                if (CallCenterTypeEnum.XF.getType() == callCenterType) {
+                    seatConfig.setCallCenterIp(property.getJSONObject("call_center_config").getString("xfCallCenterIp"));
+                    seatConfig.setCallCenterId(property.getJSONObject("call_center_config").getString("xfCallCenterId"));
+                    // 查询坐席的开通状态
+                    CustomerUserPropertyDO xfSeatsAccount = customerUserDao.getProperty(userId, "seats_account");
+                    if (xfSeatsAccount != null) {
+                        seatConfig.setXfSeatsAccount(xfSeatsAccount.getPropertyValue());
+                        seatConfig.setCallCenterType(CallCenterTypeEnum.XF.getPropertyName());
+                    } else {
+                        logger.warn("userId:" + userId + ",custId:" + custId + ",新方坐席ID未配置");
+                    }
+                } else if (CallCenterTypeEnum.XZ_CC.getType() == callCenterType) {
+                    // API渠道ID
+                    if (ConstantsUtil.XZ_API_RESOURCE_ID.equals(resourceId)) {
+                        logger.info("用户:" + userId + ",使用的渠道ID:" + resourceId + "为讯众API渠道");
+                        // 查询讯众呼叫中心企业配置的呼叫中心账号
+                        Map<String, Object> map = customerDao.selectXzCallCenterInfo(custId);
+                        if (map == null || map.size() == 0) {
+                            logger.warn("custId:" + custId + ",未配置讯众呼叫中心");
+                        } else {
+                            seatConfig.setCallCenterId(String.valueOf(map.get("id")));
+                        }
+                    }
+
+                    CustomerUserPropertyDO seatsAccount = customerUserDao.getProperty(userId, "seats_account");
+                    CustomerUserPropertyDO seatsPassword = customerUserDao.getProperty(userId, "seats_password");
+                    CustomerUserPropertyDO extensionNumber = customerUserDao.getProperty(userId, "extension_number");
+                    CustomerUserPropertyDO extensionPassword = customerUserDao.getProperty(userId, "extension_password");
+                    if (seatsAccount != null && seatsPassword != null && extensionNumber != null && extensionPassword != null) {
+                        seatConfig.setAccount(seatsAccount.getPropertyValue());
+                        if (StringUtil.isNotEmpty(seatsPassword.getPropertyValue()) && 32 == seatsPassword.getPropertyValue().length()) {
+                            seatConfig.setPassword(seatsPassword.getPropertyValue());
+                        } else {
+                            // 坐席密码2次MD5加密
+                            seatConfig.setPassword(CipherUtil.encodeByMD5(CipherUtil.encodeByMD5(seatsPassword.getPropertyValue())));
+                        }
+                        // 新版渠道配置分机号为企业ID加坐席分机
+                        if (StringUtil.isNotEmpty(extensionNumber.getPropertyValue())
+                                && extensionNumber.getPropertyValue().length() > seatsAccount.getPropertyValue().length()) {
+                            seatConfig.setExtensionNumber(extensionNumber.getPropertyValue());
+                        } else {
+                            seatConfig.setExtensionNumber(seatConfig.getCallCenterId() + extensionNumber.getPropertyValue());
+                        }
+                        seatConfig.setExtensionPassword(extensionPassword.getPropertyValue());
+                        seatConfig.setCallCenterType(CallCenterTypeEnum.XZ_CC.getPropertyName());
+                    } else {
+                        logger.warn("userId:" + userId + ",custId:" + custId + ",讯众坐席ID未配置");
+                    }
+                } else if (2 == type) {
+                    //单独处理双呼
+                    seatConfig.setCallCenterType("twoCall");
+                }
+                return seatConfig;
+            } else {
+                logger.warn("userId:" + userId + ",custId:" + custId + ",呼叫线路资源转换为空,resourceId:" + resourceId);
+                return null;
+            }
+        }
+        // 穿透读取之前的呼叫中心配置
+        Map<String, Object> oldConfig = customerService.getCustomerCallCenterType_V1(custId, userId);
+        SeatCallCenterConfig seatConfig = JSON.parseObject(JSON.toJSONString(oldConfig), SeatCallCenterConfig.class);
+        return seatConfig;
     }
 }

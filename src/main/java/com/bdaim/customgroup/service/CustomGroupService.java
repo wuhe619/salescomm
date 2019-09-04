@@ -209,7 +209,7 @@ public class CustomGroupService {
         }
 
         if (StringUtil.isNotEmpty(enterpriseName)) {
-            hql.append(" and m.custId IN (SELECT id FROM CustomerDO WHERE enterpriseName LIKE ?)");
+            hql.append(" and m.custId IN (SELECT id FROM Customer WHERE enterpriseName LIKE ?)");
             values.add("%" + enterpriseName + "%");
         }
         hql.append(" ORDER BY m.createTime desc ");

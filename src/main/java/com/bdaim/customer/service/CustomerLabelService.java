@@ -18,7 +18,8 @@ import com.bdaim.customgroup.entity.CustomerGroupProperty;
 import com.bdaim.marketproject.dao.MarketProjectDao;
 import com.bdaim.marketproject.entity.MarketProject;
 import com.bdaim.markettask.dao.MarketTaskDao;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -33,7 +34,7 @@ import java.util.*;
 @Transactional
 public class CustomerLabelService {
 
-    private static Logger log = Logger.getLogger(CustomerLabelService.class);
+    public static final Logger log = LoggerFactory.getLogger(CustomerLabelService.class);
 
     @Autowired
     private CustomerDao customerDao;

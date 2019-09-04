@@ -5,7 +5,8 @@ import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.util.ESUtil;
 import com.bdaim.common.util.http.HttpUtil;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -20,7 +21,7 @@ import javax.annotation.Resource;
 @Service
 public class ElasticSearchService {
 
-    public static final Logger LOG = Logger.getLogger(ElasticSearchService.class);
+    public static final Logger LOG = LoggerFactory.getLogger(ElasticSearchService.class);
 
     public static final String CUSTOMER_SEA_INDEX_PREFIX = "customer_sea_";
 

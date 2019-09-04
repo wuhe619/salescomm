@@ -33,6 +33,13 @@ public class SeatsInfo {
     private String mainNumber;
     //企业id
     private String custId;
+
+    //坐席真实姓名
+    private String seatsName;
+    private String seatsAccount;
+    private String seatsPassword;
+    private String extensionNumber;
+    private String extensionPassword;
     //坐席信息集合
     private List<Map<String, Object>> userPropertyInfoList;
 
@@ -145,6 +152,46 @@ public class SeatsInfo {
     }
 
 
+    public String getSeatsName() {
+        return seatsName;
+    }
+
+    public void setSeatsName(String seatsName) {
+        this.seatsName = seatsName;
+    }
+
+    public String getSeatsAccount() {
+        return seatsAccount;
+    }
+
+    public void setSeatsAccount(String seatsAccount) {
+        this.seatsAccount = seatsAccount;
+    }
+
+    public String getSeatsPassword() {
+        return seatsPassword;
+    }
+
+    public void setSeatsPassword(String seatsPassword) {
+        this.seatsPassword = seatsPassword;
+    }
+
+    public String getExtensionNumber() {
+        return extensionNumber;
+    }
+
+    public void setExtensionNumber(String extensionNumber) {
+        this.extensionNumber = extensionNumber;
+    }
+
+    public String getExtensionPassword() {
+        return extensionPassword;
+    }
+
+    public void setExtensionPassword(String extensionPassword) {
+        this.extensionPassword = extensionPassword;
+    }
+
     @Override
     public String toString() {
         return "SeatsInfo{" +
@@ -160,6 +207,11 @@ public class SeatsInfo {
                 ", seatPassword='" + seatPassword + '\'' +
                 ", mainNumber='" + mainNumber + '\'' +
                 ", custId='" + custId + '\'' +
+                ", seatsName='" + seatsName + '\'' +
+                ", seatsAccount='" + seatsAccount + '\'' +
+                ", seatsPassword='" + seatsPassword + '\'' +
+                ", extensionNumber='" + extensionNumber + '\'' +
+                ", extensionPassword='" + extensionPassword + '\'' +
                 ", userPropertyInfoList=" + userPropertyInfoList +
                 '}';
     }

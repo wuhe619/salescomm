@@ -720,4 +720,59 @@ public class DateUtil {
         Date m = c.getTime();
         return df.format(m);
     }
+
+
+    /**
+     * 将秒数转换为日时分秒，
+     *
+     * @param second
+     * @return
+     */
+    public static String secondToTime(long second) {
+        second = second % 86400;
+        long hours = second / 3600;
+        second = second % 3600;
+        long minutes = second / 60;
+        second = second % 60;
+        StringBuilder result = new StringBuilder();
+        if (hours >= 10) {
+            result.append(hours).append(":");
+        } else {
+            result.append("0").append(hours).append(":");
+        }
+        if (minutes >= 10) {
+            result.append(minutes).append(":");
+        } else {
+            result.append("0").append(minutes).append(":");
+        }
+        if (second >= 10) {
+            result.append(second);
+        } else {
+            result.append("0").append(second);
+        }
+        return result.toString();
+
+    }
+
+    /**
+     * 校验时间是否在相同年月
+     *
+     * @return
+     */
+    public static boolean isSameMonth(LocalDateTime date1, LocalDateTime date2) {
+        if ((date1.getYear() == date2.getYear()) && (date1.getMonthValue() == date2.getMonthValue())) {
+            return true;
+        }
+        return false;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(secondToTime(121));
+        System.out.println(getPastNMonthDate(new Date(),"yyyyMM",-5));
+        System.out.println(fmtStrToDate("2019/02/24 00:00:00","yyyy/MM/dd HH:mm:ss"));
+
+        Date d = DateUtil.fmtStrToDate("2019-02-12 12:23:49");
+        Timestamp s=new Timestamp(d.getTime());
+        System.out.println(s);
+    }
 }

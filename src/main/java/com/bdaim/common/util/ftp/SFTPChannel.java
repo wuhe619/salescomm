@@ -1,26 +1,17 @@
 package com.bdaim.common.util.ftp;
 
-import java.util.Map;
+import com.jcraft.jsch.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.Properties;
-
-import javax.transaction.SystemException;
-
-import org.apache.log4j.Logger;
-
-import com.jcraft.jsch.Channel;
-import com.jcraft.jsch.ChannelSftp;
-import com.jcraft.jsch.JSch;
-import com.jcraft.jsch.JSchException;
-import com.jcraft.jsch.Session;
-import com.jcraft.jsch.SftpATTRS;
-import com.jcraft.jsch.SftpException;
 
 public class SFTPChannel {
 	Session session = null;
 
 	Channel channel = null;
 
-	private static final Logger LOG = Logger.getLogger(SFTPChannel.class.getName());
+	public static final Logger LOG = LoggerFactory.getLogger(SFTPChannel.class);
 
 	public ChannelSftp getChannel(String dpath, int timeout) throws JSchException {
 	
@@ -85,7 +76,7 @@ public class SFTPChannel {
     public boolean isDirExist(String directory,ChannelSftp sftp) {  
      boolean isDirExistFlag = false;  
      try {  
-      SftpATTRS sftpATTRS = sftp.lstat(directory);  
+      SftpATTRS sftpATTRS = sftp.lstat(directory);
       isDirExistFlag = true;  
       return sftpATTRS.isDir();  
      } catch (Exception e) {  
@@ -120,7 +111,7 @@ public class SFTPChannel {
        }  
       }  
       sftp.cd(createpath);  
-     } catch (SftpException e) {  
+     } catch (SftpException e) {
     	 LOG.debug("创建路径错误：" + createpath);  
      }  
     }  

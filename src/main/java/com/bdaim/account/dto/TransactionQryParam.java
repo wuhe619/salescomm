@@ -6,7 +6,7 @@ import java.io.Serializable;
  */
 public class TransactionQryParam implements Serializable{
     private String userName;
-    private int type;
+    private Integer type;
     private String startTime;
     private String endTime;
     private String transactionId;
@@ -31,11 +31,11 @@ public class TransactionQryParam implements Serializable{
         this.transactionId = transactionId;
     }
 
-    public int getType() {
+    public Integer getType() {
         return type;
     }
 
-    public void setType(int type) {
+    public void setType(Integer type) {
         this.type = type;
     }
 

@@ -22,7 +22,7 @@ import com.bdaim.customer.dto.CustomerUserDTO;
 import com.bdaim.customer.entity.Customer;
 import com.bdaim.customer.entity.CustomerProperty;
 import com.bdaim.customer.entity.CustomerUser;
-import com.bdaim.customer.entity.CustomerUserProperty;
+import com.bdaim.customer.entity.CustomerUserPropertyDO;
 import com.bdaim.customer.service.CustomerLabelService;
 import com.bdaim.customer.service.UserGroupService;
 import com.bdaim.customersea.dao.CustomerSeaDao;
@@ -211,7 +211,7 @@ public class MarketProjectService {
             List<Map<String, Object>> list = marketProjectDao.sqlQuery(sql, marketProjectDTO.getId(), custId);
             Map<String, Object> m;
             String propertyValue = "";
-            CustomerUserProperty cp;
+            CustomerUserPropertyDO cp;
             for (int i = 0; i < list.size(); i++) {
                 m = list.get(i);
                 if (!projectUserId.equals(String.valueOf(m.get("user_id")))) {
@@ -228,7 +228,7 @@ public class MarketProjectService {
             cp = customerUserDao.getProperty(projectUserId, "hasMarketProject");
             if (cp == null) {
                 propertyValue = "," + marketProjectDTO.getId();
-                cp = new CustomerUserProperty(projectUserId, "hasMarketProject", propertyValue, new Timestamp(System.currentTimeMillis()));
+                cp = new CustomerUserPropertyDO(projectUserId, "hasMarketProject", propertyValue, new Timestamp(System.currentTimeMillis()));
             } else {
                 if (StringUtil.isNotEmpty(cp.getPropertyValue())) {
                     propertyValue = cp.getPropertyValue();

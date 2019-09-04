@@ -5,7 +5,8 @@ import com.alibaba.fastjson.JSONObject;
 import com.bdaim.callcenter.dto.*;
 import com.bdaim.common.util.JavaBeanUtil;
 import com.bdaim.common.util.SaleApiUtil;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -19,7 +20,7 @@ import java.util.Map;
  */
 public class XzCallCenterUtil {
 
-    private final static Logger LOG = Logger.getLogger(XzCallCenterUtil.class);
+    public static final Logger LOG = LoggerFactory.getLogger(XzCallCenterUtil.class);
 
     /**
      * 添加自动外呼任务URL

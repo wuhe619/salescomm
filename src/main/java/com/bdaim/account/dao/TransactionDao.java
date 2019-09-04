@@ -2,14 +2,17 @@ package com.bdaim.account.dao;
 
 import com.bdaim.account.entity.TransactionDO;
 import com.bdaim.common.dao.SimpleHibernateDao;
+import com.bdaim.common.util.IDHelper;
+import com.bdaim.common.util.NumberConvertUtil;
 import com.bdaim.common.util.StringUtil;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.text.DecimalFormat;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -129,6 +132,109 @@ public class TransactionDao extends SimpleHibernateDao<TransactionDO, String> {
         String updateSql = "UPDATE t_customer_user_property SET property_value=? WHERE user_id = ? AND property_name = ?";
         logger.info("坐席:" + userId + "剩余分钟数:" + (seatSurplusMinute - minute));
         return this.executeUpdateSQL(updateSql, seatSurplusMinute - minute, userId, SEAT_MONTH_PACKAGE_MINUTE_KEY);
+    }
+
+    /**
+     * 账户交易
+     *
+     * @param custId
+     * @param type        交易类型（1.充值 2.用户群扣费 3.短信扣费 4.通话扣费 5.座席扣费 6.修复扣费.）
+     * @param amount      金额(分)
+     * @param payMode     支付类型（1.余额 2.第三方 3.线下 4.包月分钟）
+     * @param supplierId  供应商ID
+     * @param metaData    第三方信息
+     * @param remark
+     * @param userId
+     * @param certificate
+     * @return
+     * @throws Exception
+     */
+    public boolean saveTransactionLog(String custId, int type, double amount, int payMode, String supplierId, String metaData, String remark, long userId, String certificate) throws Exception {
+        String nowYearMonth = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMM"));
+        // 创建交易记录年月分表
+        StringBuilder sql = new StringBuilder();
+        sql.append("create table IF NOT EXISTS t_transaction_");
+        sql.append(nowYearMonth);
+        sql.append(" like t_transaction");
+        this.executeUpdateSQL(sql.toString());
+
+        sql.setLength(0);
+        sql.append("insert into t_transaction_");
+        sql.append(nowYearMonth);
+        sql.append(" (transaction_id, cust_id, type, pay_mode, meta_data, amount, remark, create_time, supplier_id, user_id, certificate)values(?,?,?,?,?,?,?,?,?,?,?)");
+        String transactionId = Long.toString(IDHelper.getTransactionId());
+        this.executeUpdateSQL(sql.toString(), new Object[]{transactionId, custId, type,
+                payMode, metaData, Math.abs(amount), remark, new Timestamp(System.currentTimeMillis()), supplierId, userId, certificate});
+
+        return true;
+    }
+
+
+    public boolean saveTransactionLog(String custId, int type, int amount, int payMode, String supplierId, String metaData, String remark, long userId, String certificate, String resourceId) throws Exception {
+        String nowYearMonth = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMM"));
+        // 创建交易记录年月分表
+        StringBuilder sql = new StringBuilder();
+        sql.append("create table IF NOT EXISTS t_transaction_");
+        sql.append(nowYearMonth);
+        sql.append(" like t_transaction");
+        this.executeUpdateSQL(sql.toString());
+
+        sql.setLength(0);
+        sql.append("insert into t_transaction_");
+        sql.append(nowYearMonth);
+        sql.append(" (transaction_id, cust_id, type, pay_mode, meta_data, amount, remark, create_time, supplier_id, user_id, certificate)values(?,?,?,?,?,?,?,?,?,?,?)");
+        String transactionId = Long.toString(IDHelper.getTransactionId());
+        this.executeUpdateSQL(sql.toString(), new Object[]{transactionId, custId, type,
+                payMode, metaData, Math.abs(amount), remark, new Timestamp(System.currentTimeMillis()), supplierId, userId, certificate});
+
+        return true;
+    }
+
+    /**
+     * 获取客户的消费总金额
+     *
+     * @param customerId
+     * @param nowMonth
+     * @return
+     * @throws Exception
+     */
+    public double totalCustomerConsumptionAmount(String customerId, LocalDateTime nowMonth, int type) {
+        double result = 0.0;
+        try {
+            // 检查交易记录月表是否存在,不存在则创建
+            checkTransactionLogMonthTableNotExist(nowMonth.format(DateTimeFormatter.ofPattern("yyyyMM")));
+
+            StringBuilder sql = new StringBuilder("SELECT FORMAT(sum(t.amount)/1000,2) as amount")
+                    .append(" FROM t_transaction_" + nowMonth.format(DateTimeFormatter.ofPattern("yyyyMM")) + " t where cust_id = ?");
+            if (type > 0) {
+                sql.append(" and t.type=").append(type);
+            }
+            List<Map<String, Object>> list = this.sqlQuery(sql.toString(), customerId);
+            if (list != null && list.size() > 0 && list.get(0).get("amount") != null) {
+                result = NumberConvertUtil.parseDouble(String.valueOf(list.get(0).get("amount")));
+            }
+        } catch (Exception e) {
+            logger.error("获取客户的消费总金额失败,", e);
+            result = 0;
+        }
+        return result;
+    }
+
+    /**
+     * 检查某个月份表是否存在,不存在则执行创建语句
+     *
+     * @param month
+     * @return
+     * @throws Exception
+     */
+    public int checkTransactionLogMonthTableNotExist(String month) throws Exception {
+        StringBuffer sql = new StringBuffer();
+        // 创建通话记录年月分表
+        sql.append("create table IF NOT EXISTS t_transaction_");
+        sql.append(month);
+        sql.append(" like t_transaction");
+        int code = this.executeUpdateSQL(sql.toString());
+        return code;
     }
 
 }

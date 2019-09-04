@@ -15,7 +15,8 @@ import com.bdaim.markettask.entity.MarketTaskProperty;
 import com.bdaim.resource.dao.MarketResourceDao;
 import com.bdaim.resource.entity.ResourcePropertyEntity;
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -35,7 +36,7 @@ import java.util.Set;
 @Transactional
 public class XzCallCenterService {
 
-    private final static Logger LOG = Logger.getLogger(XzCallCenterService.class);
+    public static final Logger LOG = LoggerFactory.getLogger(XzCallCenterService.class);
 
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 

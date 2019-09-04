@@ -4,6 +4,8 @@ import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.resource.service.MarketResourceService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -23,8 +25,7 @@ import java.util.Map;
 public class ResourceAction extends BasicAction {
     @Resource
     MarketResourceService marketResourceService;
-    private static org.apache.log4j.Logger logger = org.apache.log4j.Logger.getLogger(ResourceAction.class);
-
+    public static final Logger logger = LoggerFactory.getLogger(ResourceAction.class);
     /**
      * @Title:
      * @Description: 根据资源类型查询供应商信息和资源信息

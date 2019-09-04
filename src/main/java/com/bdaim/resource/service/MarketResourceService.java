@@ -1713,7 +1713,7 @@ public class MarketResourceService {
         Boolean flag = true;
         String code = "0";
         //核验是否配置了坐席信息
-        CustomerUserProperty seatProperty = customerUserDao.getProperty(userId, propertyName + "_seat");
+        CustomerUserPropertyDO seatProperty = customerUserDao.getProperty(userId, propertyName + "_seat");
         if (seatProperty == null || ("").equals(seatProperty.getPropertyValue())) {
             code = "003";
             return code;
@@ -4262,8 +4262,8 @@ public class MarketResourceService {
             return map.toJSONString();
         }
 
-        CustomerUserProperty work_num = new CustomerUserProperty(userid, "work_num", workNum, new Timestamp(System.currentTimeMillis()));
-        CustomerUserProperty work_num_status = new CustomerUserProperty(userid, "work_num_status", "0", new Timestamp(System.currentTimeMillis()));
+        CustomerUserPropertyDO work_num = new CustomerUserPropertyDO(userid, "work_num", workNum, new Timestamp(System.currentTimeMillis()));
+        CustomerUserPropertyDO work_num_status = new CustomerUserPropertyDO(userid, "work_num_status", "0", new Timestamp(System.currentTimeMillis()));
         this.customerUserDao.saveOrUpdate(work_num);
         this.customerUserDao.saveOrUpdate(work_num_status);
 
@@ -4299,7 +4299,7 @@ public class MarketResourceService {
 
     public Map<String, Object> approvePhone(String status, String userid, String workNum, String remark) {
         Map<String, Object> map = new HashMap<String, Object>();
-        CustomerUserProperty work_num_status = customerUserDao.getProperty(userid, "work_num_status");
+        CustomerUserPropertyDO work_num_status = customerUserDao.getProperty(userid, "work_num_status");
         if (work_num_status != null) {
             if (status.equals("1")) {
                 work_num_status.setPropertyValue("1");
@@ -4349,9 +4349,9 @@ public class MarketResourceService {
 
         for (int i = 0; i < list.size(); i++) {
             Map u = (Map) list.get(i);
-            CustomerUserProperty work_num = customerUserDao.getProperty(String.valueOf(u.get("id")), "work_num");
-            CustomerUserProperty work_num_status = customerUserDao.getProperty(String.valueOf(u.get("id")), "work_num_status");
-            CustomerUserProperty active_time = customerUserDao.getProperty(String.valueOf(u.get("id")), "active_time");
+            CustomerUserPropertyDO work_num = customerUserDao.getProperty(String.valueOf(u.get("id")), "work_num");
+            CustomerUserPropertyDO work_num_status = customerUserDao.getProperty(String.valueOf(u.get("id")), "work_num_status");
+            CustomerUserPropertyDO active_time = customerUserDao.getProperty(String.valueOf(u.get("id")), "active_time");
             if (work_num != null && StringUtil.isNotEmpty(work_num.getPropertyValue())) {
                 u.put("workNum", work_num.getPropertyValue());
             } else {
@@ -4396,9 +4396,9 @@ public class MarketResourceService {
         if (page.getData() != null) {
             for (int i = 0; i < page.getData().size(); i++) {
                 Map u = (Map) page.getData().get(i);
-                CustomerUserProperty work_num = customerUserDao.getProperty(String.valueOf(u.get("id")), "work_num");
-                CustomerUserProperty work_num_status = customerUserDao.getProperty(String.valueOf(u.get("id")), "work_num_status");
-                CustomerUserProperty active_time = customerUserDao.getProperty(String.valueOf(u.get("id")), "active_time");
+                CustomerUserPropertyDO work_num = customerUserDao.getProperty(String.valueOf(u.get("id")), "work_num");
+                CustomerUserPropertyDO work_num_status = customerUserDao.getProperty(String.valueOf(u.get("id")), "work_num_status");
+                CustomerUserPropertyDO active_time = customerUserDao.getProperty(String.valueOf(u.get("id")), "active_time");
                 if (work_num != null && StringUtil.isNotEmpty(work_num.getPropertyValue())) {
                     u.put("workNum", work_num.getPropertyValue());
                 } else {
@@ -5328,7 +5328,7 @@ public class MarketResourceService {
         //CustomerUserProperty workNumStatus = customerUserDao.getProperty(String.valueOf(userId), "work_num_status");
         // 主叫号码已经设置并且审核通过
         //if (workNumStatus != null && "1".equals(workNumStatus.getPropertyValue())) {
-        CustomerUserProperty workNum = customerUserDao.getProperty(String.valueOf(userId), "work_num");
+        CustomerUserPropertyDO workNum = customerUserDao.getProperty(String.valueOf(userId), "work_num");
         if (workNum != null) {
             workNumSet = workNum.getPropertyValue();
         }
@@ -5497,7 +5497,7 @@ public class MarketResourceService {
             }
             String sql = "select CAST(id AS CHAR) id from t_customer_user m where cust_id='" + cust_id + "' ";
             List<Map<String, Object>> customerUserList = this.marketResourceDao.sqlQuery(sql);
-            CustomerUserProperty workNum;
+            CustomerUserPropertyDO workNum;
             voiceCount = customerUserList.size();
             for (int i = 0; i < customerUserList.size(); i++) {
                 workNum = customerUserDao.getProperty(String.valueOf(customerUserList.get(i).get("id")), "work_num");

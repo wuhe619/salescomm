@@ -9,7 +9,7 @@ import com.bdaim.customer.dto.CustomerUserGroupRelDTO;
 import com.bdaim.customer.entity.CustomerUser;
 import com.bdaim.customer.entity.CustomerUserGroup;
 import com.bdaim.customer.entity.CustomerUserGroupRel;
-import com.bdaim.customer.entity.CustomerUserProperty;
+import com.bdaim.customer.entity.CustomerUserPropertyDO;
 import com.bdaim.common.dto.Page;
 import org.springframework.stereotype.Component;
 
@@ -20,18 +20,18 @@ import java.util.Map;
 
 @Component
 public class CustomerUserDao extends SimpleHibernateDao<CustomerUser, Serializable> {
-    public CustomerUserProperty getProperty(String userId, String propertyName) {
-        CustomerUserProperty cp = null;
+    public CustomerUserPropertyDO getProperty(String userId, String propertyName) {
+        CustomerUserPropertyDO cp = null;
         String hql = "from CustomerUserPropertyDO m where m.userId=? and m.propertyName=?";
-        List<CustomerUserProperty> list = this.find(hql, userId, propertyName);
+        List<CustomerUserPropertyDO> list = this.find(hql, userId, propertyName);
         if (list.size() > 0)
-            cp = (CustomerUserProperty) list.get(0);
+            cp = (CustomerUserPropertyDO) list.get(0);
         return cp;
     }
 
-    public List<CustomerUserProperty> getAllProperty(String userId) {
+    public List<CustomerUserPropertyDO> getAllProperty(String userId) {
         String hql = "from CustomerUserPropertyDO m where m.userId=? ";
-        List<CustomerUserProperty> list = this.find(hql, userId);
+        List<CustomerUserPropertyDO> list = this.find(hql, userId);
         return list;
     }
 
@@ -40,6 +40,14 @@ public class CustomerUserDao extends SimpleHibernateDao<CustomerUser, Serializab
         String hql = "from CustomerUser m where m.userType=? and m.cust_id=?";
         List<CustomerUser> list = this.find(hql, userType, custId);
         return list;
+    }
+    public CustomerUser selectPropertyByType(int userType, String custId) {
+        CustomerUser cp = null;
+        String hql = "from CustomerUser m where m.userType=? and m.cust_id=?";
+        List<CustomerUser> list = this.find(hql, userType, custId);
+        if (list.size() > 0)
+            cp = (CustomerUser) list.get(0);
+        return cp;
     }
 
     public CustomerUser getPropertyByCustId(String custId) {
@@ -463,9 +471,9 @@ public class CustomerUserDao extends SimpleHibernateDao<CustomerUser, Serializab
     }
 
 
-    public List<CustomerUserProperty> getPropertiesByUserId(String userId) {
-        String hql = "from CustomerUserProperty m where m.userId=? ";
-        List<CustomerUserProperty> list = this.find(hql, userId);
+    public List<CustomerUserPropertyDO> getPropertiesByUserId(String userId) {
+        String hql = "from CustomerUserPropertyDO m where m.userId=? ";
+        List<CustomerUserPropertyDO> list = this.find(hql, userId);
         return list;
     }
 
@@ -480,7 +488,7 @@ public class CustomerUserDao extends SimpleHibernateDao<CustomerUser, Serializab
         if (user == null) {
             return null;
         }
-        CustomerUserProperty property = this.getProperty(String.valueOf(userId), "hasMarketProject");
+        CustomerUserPropertyDO property = this.getProperty(String.valueOf(userId), "hasMarketProject");
         if (property == null || StringUtil.isEmpty(property.getPropertyValue())) {
             return null;
         }
@@ -510,7 +518,7 @@ public class CustomerUserDao extends SimpleHibernateDao<CustomerUser, Serializab
         if (user == null) {
             return null;
         }
-        CustomerUserProperty property = this.getProperty(String.valueOf(userId), "hasMarketProject");
+        CustomerUserPropertyDO property = this.getProperty(String.valueOf(userId), "hasMarketProject");
         if (property == null || StringUtil.isEmpty(property.getPropertyValue())) {
             return null;
         }
