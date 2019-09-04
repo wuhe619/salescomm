@@ -42,3 +42,8 @@ express:
     company_id: 295a3076000345b58ca82820113ecb95
     key: 9457a158dc5e
     shopKey: QUNFNjAwNzhCNDU0ODMzNTY1NDA0NjUzRTEzRUVGMEM=
+
+#云讯短信通道参数
+ytx:
+  spuid: 469
+  sppwd: 108492
