@@ -37,14 +37,14 @@ public class CustomerUserDao extends SimpleHibernateDao<CustomerUser, Serializab
 
     public List<CustomerUser> getPropertyByType(int userType, String custId) {
         CustomerUser cp = null;
-        String hql = "from CustomerUserDO m where m.userType=? and m.cust_id=?";
+        String hql = "from CustomerUser m where m.userType=? and m.cust_id=?";
         List<CustomerUser> list = this.find(hql, userType, custId);
         return list;
     }
 
     public CustomerUser getPropertyByCustId(String custId) {
         CustomerUser cp = null;
-        String hql = "from CustomerUserDO m where m.userType=1 and m.cust_id=?";
+        String hql = "from CustomerUser m where m.userType=1 and m.cust_id=?";
         List<CustomerUser> list = this.find(hql, custId);
         if (list.size() > 0)
             cp = (CustomerUser) list.get(0);
@@ -52,7 +52,7 @@ public class CustomerUserDao extends SimpleHibernateDao<CustomerUser, Serializab
     }
     public CustomerUser getCustomer(String account, String custId) {
         CustomerUser cp = null;
-        String hql = "from CustomerUserDO m where m.account=? AND m.cust_id = ?";
+        String hql = "from CustomerUser m where m.account=? AND m.cust_id = ?";
         List<CustomerUser> list = this.find(hql,account,custId);
         if (list.size() > 0)
             cp = (CustomerUser) list.get(0);
@@ -61,7 +61,7 @@ public class CustomerUserDao extends SimpleHibernateDao<CustomerUser, Serializab
 
     public List<CustomerUser> getAllByCustId(String custId) {
         CustomerUser cp = null;
-        String hql = "from CustomerUserDO m where m.cust_id=?";
+        String hql = "from CustomerUser m where m.cust_id=?";
         List<CustomerUser> list = this.find(hql, custId);
         return list;
     }
@@ -91,7 +91,7 @@ public class CustomerUserDao extends SimpleHibernateDao<CustomerUser, Serializab
 
     public CustomerUser getCustomerUserByLoginName(String loginName) {
         CustomerUser cp = null;
-        String hql = "from CustomerUserDO m where m.account=?";
+        String hql = "from CustomerUser m where m.account=?";
         List<CustomerUser> list = this.find(hql, loginName);
         if (list.size() > 0)
             cp = list.get(0);
@@ -100,7 +100,7 @@ public class CustomerUserDao extends SimpleHibernateDao<CustomerUser, Serializab
 
     public CustomerUser getCustomerUserByName(String realName) {
         CustomerUser cp = null;
-        String hql = "from CustomerUserDO m where m.realname=?";
+        String hql = "from CustomerUser m where m.realname=?";
         List<CustomerUser> list = this.find(hql, realName);
         if (list.size() > 0)
             cp = list.get(0);
@@ -109,7 +109,7 @@ public class CustomerUserDao extends SimpleHibernateDao<CustomerUser, Serializab
 
     public CustomerUser getCustomerAdminUser(String custId) {
         CustomerUser cp = null;
-        String hql = "from CustomerUserDO m where m.cust_id=? AND userType =1 ";
+        String hql = "from CustomerUser m where m.cust_id=? AND userType =1 ";
         List<CustomerUser> list = this.find(hql, custId);
         if (list.size() > 0)
             cp = list.get(0);
@@ -126,7 +126,7 @@ public class CustomerUserDao extends SimpleHibernateDao<CustomerUser, Serializab
         if (StringUtil.isEmpty(customerId)) {
             throw new NullPointerException("customerId不能为空");
         }
-        String hql = "FROM CustomerUserDO WHERE cust_id = ? AND STATUS = 0 ";
+        String hql = "FROM CustomerUser WHERE cust_id = ? AND STATUS = 0 ";
         List<CustomerUserDTO> list = new ArrayList<>();
         List<CustomerUser> customerUserList = this.find(hql, customerId);
         for (CustomerUser customerUser : customerUserList) {
@@ -460,6 +460,13 @@ public class CustomerUserDao extends SimpleHibernateDao<CustomerUser, Serializab
             customerUserGroupRelDTO = list.get(0);
         }
         return customerUserGroupRelDTO;
+    }
+
+
+    public List<CustomerUserProperty> getPropertiesByUserId(String userId) {
+        String hql = "from CustomerUserProperty m where m.userId=? ";
+        List<CustomerUserProperty> list = this.find(hql, userId);
+        return list;
     }
 
     /**
