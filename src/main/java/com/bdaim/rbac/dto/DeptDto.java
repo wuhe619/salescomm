@@ -1,94 +1,82 @@
 package com.bdaim.rbac.dto;
 
-import java.io.Serializable;
+import java.util.Date;
+
 
 /**
- * @author duanliying
- * @date 2019/3/13
- * 部门管理类
+ * @author lin.han
+ *
  */
-public class DeptDto implements Serializable {
-    //部门id
-    private String id;
-    //部门名字
-    private String name;
-    //操作用户
-    private String optUser;
-    //创建时间
-    private String createTime;
-    //修改时间
-    private String modifyTime;
-    //角色数量
-    private int roleNum;
+public class DeptDTO implements Manager<Long>{
+	
+	private Long id;
+	
+	private String name;
+	
+	private String optuser;
+	
+	private Date createTime;
+	
+	private Date modifyTime;
+	
+	private int type;
+	
+	public DeptDTO(){
+		
+	}
 
-    public DeptDto() {
-    }
+	public Long getId() {
+		return id;
+	}
 
-    public int getRoleNum() {
-        return roleNum;
-    }
+	public void setId(Long id) {
+		this.id = id;
+	}
 
-    public void setRoleNum(int roleNum) {
-        this.roleNum = roleNum;
-    }
+	public String getName() {
+		return name;
+	}
 
-    public String getId() {
-        return id;
-    }
+	public void setName(String name) {
+		this.name = name;
+	}
 
-    public void setId(String id) {
-        this.id = id;
-    }
+	public String getOptuser() {
+		return optuser;
+	}
 
-    public String getName() {
-        return name;
-    }
+	public void setOptuser(String optuser) {
+		this.optuser = optuser;
+	}
 
-    public void setName(String name) {
-        this.name = name;
-    }
+	public Date getCreateTime() {
+		return createTime;
+	}
 
-    public String getOptuser() {
-        return optUser;
-    }
+	public void setCreateTime(Date createTime) {
+		this.createTime = createTime;
+	}
 
-    public void setOptuser(String optuser) {
-        this.optUser = optUser;
-    }
+	public Date getModifyTime() {
+		return modifyTime;
+	}
 
-    public String getOptUser() {
-        return optUser;
-    }
+	public void setModifyTime(Date modifyTime) {
+		this.modifyTime = modifyTime;
+	}
 
-    public void setOptUser(String optUser) {
-        this.optUser = optUser;
-    }
+	@Override
+	public Long getKey() {
+		return this.id;
+	}
 
-    public String getCreateTime() {
-        return createTime;
-    }
+	public int getType() {
+		return type;
+	}
 
-    public void setCreateTime(String createTime) {
-        this.createTime = createTime;
-    }
+	public void setType(int type) {
+		this.type = type;
+	}
 
-    public String getModifyTime() {
-        return modifyTime;
-    }
 
-    public void setModifyTime(String modifyTime) {
-        this.modifyTime = modifyTime;
-    }
-
-    @Override
-    public String toString() {
-        return "DeptDto{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", optUser='" + optUser + '\'' +
-                ", createTime='" + createTime + '\'' +
-                ", modifyTime='" + modifyTime + '\'' +
-                ", roleNum=" + roleNum +
-                '}';
-    }
 }

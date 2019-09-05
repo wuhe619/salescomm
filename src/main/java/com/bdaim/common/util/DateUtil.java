@@ -639,11 +639,11 @@ public class DateUtil {
     }
 
     /**
-     * @Comment 包含当天
      * @param format
      * @return
+     * @Comment 包含当天
      */
-    public static String getPastWeekDate(Date date,String format) {
+    public static String getPastWeekDate(Date date, String format) {
         SimpleDateFormat df = new SimpleDateFormat(format);
         Calendar c = Calendar.getInstance();
         //过去七天
@@ -653,7 +653,7 @@ public class DateUtil {
         return df.format(d);
     }
 
-    public static String getPastMonthDate(Date date,String format){
+    public static String getPastMonthDate(Date date, String format) {
         SimpleDateFormat df = new SimpleDateFormat(format);
         Calendar c = Calendar.getInstance();
         c.setTime(date);
@@ -662,7 +662,7 @@ public class DateUtil {
         return df.format(m);
     }
 
-    public static String getPastThreeMonthDate(Date date,String format){
+    public static String getPastThreeMonthDate(Date date, String format) {
         SimpleDateFormat df = new SimpleDateFormat(format);
         Calendar c = Calendar.getInstance();
         c.setTime(date);
@@ -677,9 +677,10 @@ public class DateUtil {
         ZoneId zone = ZoneId.systemDefault();
         return LocalDateTime.ofInstant(instant, zone);
     }
-    public static String getDateOfYearAndMonth(){
+
+    public static String getDateOfYearAndMonth() {
         Date date = new Date();
-        SimpleDateFormat simpleDateFormat =  new SimpleDateFormat("yyyyMMdd");
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMdd");
         String result = simpleDateFormat.format(date);
         return result;
     }
@@ -714,7 +715,7 @@ public class DateUtil {
         return LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMM"));
     }
 
-    public static String getPastNMonthDate(Date date, String format,int N) {
+    public static String getPastNMonthDate(Date date, String format, int N) {
         SimpleDateFormat df = new SimpleDateFormat(format);
         Calendar c = Calendar.getInstance();
         c.setTime(date);
@@ -769,15 +770,28 @@ public class DateUtil {
     }
 
 
-    /**@see
+    /**
      * @param date
      * @param pattern
      * @return
+     * @see
      */
-    public static String format(Date date,String pattern){
+    public static String format(Date date, String pattern) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
         String rs = null;
-        if(date!=null){
+        if (date != null) {
+            Instant instant = date.toInstant();
+            ZoneId zoneId = ZoneId.systemDefault();
+            LocalDateTime localDateTime = instant.atZone(zoneId).toLocalDateTime();
+            rs = localDateTime.format(formatter);
+        }
+        return rs;
+    }
+
+    public static String formatDate(String pattern, Date date) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
+        String rs = null;
+        if (date != null) {
             Instant instant = date.toInstant();
             ZoneId zoneId = ZoneId.systemDefault();
             LocalDateTime localDateTime = instant.atZone(zoneId).toLocalDateTime();
@@ -788,11 +802,11 @@ public class DateUtil {
 
     public static void main(String[] args) {
         System.out.println(secondToTime(121));
-        System.out.println(getPastNMonthDate(new Date(),"yyyyMM",-5));
-        System.out.println(fmtStrToDate("2019/02/24 00:00:00","yyyy/MM/dd HH:mm:ss"));
+        System.out.println(getPastNMonthDate(new Date(), "yyyyMM", -5));
+        System.out.println(fmtStrToDate("2019/02/24 00:00:00", "yyyy/MM/dd HH:mm:ss"));
 
         Date d = DateUtil.fmtStrToDate("2019-02-12 12:23:49");
-        Timestamp s=new Timestamp(d.getTime());
+        Timestamp s = new Timestamp(d.getTime());
         System.out.println(s);
     }
 }
