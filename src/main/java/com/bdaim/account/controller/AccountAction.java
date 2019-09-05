@@ -62,9 +62,14 @@ public class AccountAction extends BasicAction {
      * */
     @RequestMapping(value = "/center/show/", method = RequestMethod.GET)
     @ResponseBody
-    public Object showAccountCenter() throws Exception {
+    public Object showAccountCenter()  {
         Map<String, Object> resultMap = new HashMap<>();
-        resultMap.put("data", JSONObject.toJSON(accountService.showAccoutCenter(opUser().getCustId())));
+        try{
+            resultMap.put("data", JSONObject.toJSON(accountService.showAccoutCenter(opUser().getCustId())));
+
+        }catch (Exception e){
+            logger.info("查询账户余额出错 》》》》》" + e);
+        }
         return JSONObject.toJSON(resultMap);
     }
 
