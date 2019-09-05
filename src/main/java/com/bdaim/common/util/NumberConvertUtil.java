@@ -2,8 +2,12 @@ package com.bdaim.common.util;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.BufferedReader;
+import java.io.Reader;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.sql.Clob;
 import java.text.NumberFormat;
 
 /**
@@ -27,7 +31,7 @@ public class NumberConvertUtil {
     public static String getPercent(long num, long total) {
         String result;
         try {
-            if (0==num || 0==total){
+            if (0 == num || 0 == total) {
                 return "0";
             }
             // 设置精确到小数点后2位
@@ -48,7 +52,7 @@ public class NumberConvertUtil {
     public static String getAverage(long num, long total) {
         String result;
         try {
-            if (0==num || 0==total){
+            if (0 == num || 0 == total) {
                 return "0";
             }
             // 设置精确到小数点后2位
@@ -122,6 +126,7 @@ public class NumberConvertUtil {
         BigDecimal bigDecimal = new BigDecimal(Double.toString(value)).multiply(new BigDecimal(100)).setScale(2, BigDecimal.ROUND_DOWN);
         return bigDecimal.intValue();
     }
+
     /**
      * 分转换为元(只取2位小数)
      *
@@ -229,7 +234,6 @@ public class NumberConvertUtil {
     }
 
 
-
     /**
      * 元转厘
      *
@@ -260,6 +264,27 @@ public class NumberConvertUtil {
         return result;
     }
 
+    public static String everythingToString(Object value) {
+        if (null == value) return null;
+        try {
+            return (String) value;
+        } catch (Exception ex) {
+            try {
+                Clob c = (java.sql.Clob) value;
+                Reader reader = c.getCharacterStream();
+                String vvv = "";
+                String line = "";
+                BufferedReader br = new BufferedReader(reader);
+                while ((line = br.readLine()) != null) {
+                    vvv += line + "\r\n";
+                }
+                return vvv;
+            } catch (Exception ex2) {
+                return null;
+            }
+        }
+
+    }
 
 
 }

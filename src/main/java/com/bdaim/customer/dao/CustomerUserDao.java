@@ -461,7 +461,7 @@ public class CustomerUserDao extends SimpleHibernateDao<CustomerUser, Serializab
     public CustomerUserGroupRelDTO getCustomerUserGroupByUserId(long userId) {
         CustomerUserGroupRelDTO customerUserGroupRelDTO = null;
         StringBuffer sql = new StringBuffer();
-        sql.append(" SELECT new com.bdaim.sale.dto.CustomerUserGroupRelDTO(t.groupId, t2.name, t.type, t2.pid) FROM CustomerUserGroupRel t, CustomerUserGroup t2");
+        sql.append(" SELECT new com.bdaim.customer.dto.CustomerUserGroupRelDTO(t.groupId, t2.name, t.type, t2.pid) FROM CustomerUserGroupRel t, CustomerUserGroup t2");
         sql.append(" WHERE t.groupId = t2.id AND t.userId = ? AND t.status = 1 AND t2.status = 1");
         List<CustomerUserGroupRelDTO> list = this.find(sql.toString(), String.valueOf(userId));
         if (list.size() > 0) {
@@ -539,7 +539,7 @@ public class CustomerUserDao extends SimpleHibernateDao<CustomerUser, Serializab
      */
     public List<String> listUserIdByWorkPlaceId(String workPlaceId) {
         StringBuffer sql = new StringBuffer();
-        sql.append(" SELECT new com.bdaim.sale.dto.CustomerUserGroupRelDTO(t.groupId, t.userId) FROM CustomerUserGroupRel t, CustomerUserGroup t2");
+        sql.append(" SELECT new com.bdaim.customer.dto.CustomerUserGroupRelDTO(t.groupId, t.userId) FROM CustomerUserGroupRel t, CustomerUserGroup t2");
         sql.append(" WHERE t.groupId = t2.id AND t.status = 1 AND t2.status = 1 AND t2.pid =? ");
         List<CustomerUserGroupRelDTO> list = this.find(sql.toString(), workPlaceId);
         List<String> ids = new ArrayList<>();

@@ -1,4 +1,4 @@
-package com.bdaim.customer.service;
+package com.bdaim.customeruser.service;
 
 import com.alibaba.excel.ExcelWriter;
 import com.alibaba.excel.metadata.Sheet;

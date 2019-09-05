@@ -1,8 +1,7 @@
-package com.bdaim.label.service;
+package com.bdaim.dataexport.service;
 
-
-import com.bdaim.label.dao.DataExportApplyDao;
-import com.bdaim.label.entity.DataExportApply;
+import com.bdaim.dataexport.dao.DataExportApplyDao;
+import com.bdaim.dataexport.entity.DataExportApply;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -15,7 +14,7 @@ public class DataExportApplyService {
 
 	@Resource
 	private DataExportApplyDao dataExportApplyDao;
-
+	
 	public Integer addDataExportApply(DataExportApply dataExportApply) {
 		if(null!=dataExportApply)
 			dataExportApply.setCreateTime(new Date());

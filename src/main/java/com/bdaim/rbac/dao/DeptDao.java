@@ -1,12 +1,13 @@
 package com.bdaim.rbac.dao;
 
 import com.bdaim.common.dao.SimpleHibernateDao;
+import com.bdaim.rbac.dto.DeptDTO;
 import com.bdaim.rbac.entity.DeptEntity;
 import com.bdaim.rbac.entity.RoleEntity;
-
 import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -69,4 +70,33 @@ public class DeptDao extends SimpleHibernateDao<DeptEntity, Serializable> {
         }
         return i;
     }
+
+    public void insert(DeptDTO t) throws SQLException {
+        this.executeUpdateSQL("insert into t_dept(ID,NAME,OPTUSER,CREATE_TIME,TYPE) values("+t.getId()+",'"+t.getName()+"','"+t.getOptuser()+"',now(),'"+t.getType()+"')");
+    }
+
+    public void delete( DeptDTO t) {
+        if (t.getId() == null) throw new NullPointerException("删除记录的ID不可为空");
+        this.executeUpdateSQL("delete from t_dept where ID="+t.getId());
+    }
+
+    public void update(DeptDTO t)  {
+        if (t.getId() == null) throw new NullPointerException("更新记录的ID不可为空");
+        StringBuffer sb = new StringBuffer();
+        sb.append("update t_dept set MODIFY_TIME=now(),");
+        if (t.getOptuser() != null && !t.getOptuser().equals("")) {
+            sb.append("OPTUSER='"+t.getOptuser()+"',");
+        }
+        if (t.getName() != null && !t.getName().equals("")) {
+            sb.append("NAME='"+t.getName()+"',");
+        }
+        //确认SQL，绑定参数
+        this.executeUpdateSQL(sb.substring(0, sb.length() - 1) + " where ID="+t.getId());
+    }
+
+    public DeptDTO getObj(Connection con, DeptDTO t) {
+
+        return null;
+    }
+
 }

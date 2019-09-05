@@ -29,6 +29,7 @@ import com.bdaim.customer.dao.EnterpriseDao;
 import com.bdaim.customer.dto.*;
 import com.bdaim.customer.entity.*;
 import com.bdaim.customeruser.dto.UserCallConfigDTO;
+import com.bdaim.customeruser.service.UserGroupService;
 import com.bdaim.customgroup.dao.CustomGroupDao;
 import com.bdaim.customgroup.entity.CustomerGroupProperty;
 import com.bdaim.industry.dto.MarketResourceTypeEnum;

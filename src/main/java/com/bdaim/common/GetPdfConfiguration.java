@@ -21,6 +21,6 @@ public class GetPdfConfiguration extends WebSecurityConfigurerAdapter {
         web.ignoring().antMatchers("/pdf/**");
         web.ignoring().antMatchers("/pic/**");
 
-        web.ignoring().antMatchers("/open/getVoiceRecordFile/**");
+        web.ignoring().antMatchers("/open/getVoiceRecordFile/**", "/customer/token", "/user/token");
     }
 }

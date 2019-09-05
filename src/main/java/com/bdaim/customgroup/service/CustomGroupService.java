@@ -25,7 +25,7 @@ import com.bdaim.customer.dto.CustomerPropertyEnum;
 import com.bdaim.customer.dto.CustomerUserDTO;
 import com.bdaim.customer.entity.*;
 import com.bdaim.customer.service.CustomerService;
-import com.bdaim.customer.service.UserGroupService;
+import com.bdaim.customeruser.service.UserGroupService;
 import com.bdaim.customgroup.dao.CustomGroupDao;
 import com.bdaim.customgroup.dao.CustomerGroupListDao;
 import com.bdaim.customgroup.dto.*;
