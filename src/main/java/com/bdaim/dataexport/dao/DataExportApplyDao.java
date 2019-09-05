@@ -1,7 +1,7 @@
-package com.bdaim.label.dao;
+package com.bdaim.dataexport.dao;
 
 import com.bdaim.common.dao.SimpleHibernateDao;
-import com.bdaim.label.entity.DataExportApply;
+import com.bdaim.dataexport.entity.DataExportApply;
 import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
