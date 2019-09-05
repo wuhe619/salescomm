@@ -31,14 +31,14 @@ import java.util.Map;
  */
 @SuppressWarnings("unchecked")
 @Transactional
-public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDaoSupport{
+public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDaoSupport {
     protected Logger logger = LoggerFactory.getLogger(getClass());
 
 //    protected SessionFactory sessionFactory;
 
     @Autowired
     public JdbcTemplate jdbcTemplate;
-    
+
     protected Class<T> entityClass;
 
     /**
@@ -75,11 +75,11 @@ public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDao
 //    public void setSessionFactory(final SessionFactory sessionFactory) {
 //        this.sessionFactory = sessionFactory;
 //    }
-
     @Autowired
     public void setSessionFactoryOverride(SessionFactory sessionFactory) {
-    	super.setSessionFactory(sessionFactory);
+        super.setSessionFactory(sessionFactory);
     }
+
     /**
      * 取得当前Session.
      */
@@ -242,6 +242,7 @@ public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDao
     public <X> List<X> find(final String hql, final Object... values) {
         return createQuery(hql, values).list();
     }
+
     public <X> List<X> findWithPositionalParams(final String hql, final Object... values) {
         return queryWithPositionalParameters(hql, values).list();
     }
@@ -267,6 +268,7 @@ public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDao
 
     /**
      * pageSize不做限制
+     *
      * @param sql
      * @param pageNum
      * @param pageSize
@@ -390,16 +392,17 @@ public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDao
         }
         return query;
     }
-    public Query queryWithPositionalParameters (final String queryString, final Object... values) {
+
+    public Query queryWithPositionalParameters(final String queryString, final Object... values) {
         org.springframework.util.Assert.hasText(queryString, "查询语句不能为空");
         Query query = getSession().createQuery(queryString);
         if (values != null) {
             for (int i = 0; i < values.length; i++) {
-                if(i==0){
+                if (i == 0) {
                     query.setParameter("0", values[i]);
 
-                }else if(i==1){
-                    query.setParameter("1",values[i]);
+                } else if (i == 1) {
+                    query.setParameter("1", values[i]);
                 }
             }
         }
@@ -918,7 +921,7 @@ public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDao
         if (pageSize < 0 || pageSize > 100) {
             pageSize = 100;
         }
-        pageNum = (pageNum-1)* pageSize;
+        pageNum = (pageNum - 1) * pageSize;
         int total = 0;
         Page p = new Page();
         StringBuilder totalSql = new StringBuilder();
@@ -1001,6 +1004,19 @@ public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDao
         if (rs.size() > 0)
             return String.valueOf(rs.get(0));
         return "";
+    }
+
+    public int queryForInt(String sql, final Object... values) {
+        Session session = getSessionFactory().openSession();
+        Query query = session.createSQLQuery(sql);
+        if (values != null)
+            for (int i = 0; i < values.length; i++) {
+                query.setParameter(i, values[i]);
+            }
+        List rs = query.list();
+        if (rs.size() > 0)
+            return NumberConvertUtil.parseInt(rs.get(0));
+        return 0;
     }
 
 }

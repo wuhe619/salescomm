@@ -50,11 +50,13 @@ public class RedisUtil {
      * @param value
      * @return
      */
-    public void set(String key, String value) {
+    public String set(String key, String value) {
         try {
             redisTemplate.opsForValue().set(key, value);
+            return "ok";
         } catch (Exception e) {
             LOG.error("设置key的值异常,", e);
+            return "fail";
         }
     }
 
