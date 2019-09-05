@@ -9,7 +9,9 @@ import com.bdaim.bill.dto.CustomerBillQueryParam;
 import com.bdaim.bill.service.BillService;
 import com.bdaim.bill.service.TransactionService;
 import com.bdaim.common.controller.BasicAction;
+import com.bdaim.common.dto.Page;
 import com.bdaim.common.dto.PageParam;
+import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.common.util.AuthPassport;
@@ -17,15 +19,15 @@ import com.bdaim.common.util.StringUtil;
 import com.bdaim.common.util.page.PageList;
 import com.bdaim.customer.entity.CustomerUser;
 import com.bdaim.customer.service.CustomerService;
+import com.bdaim.rbac.dto.RoleEnum;
+import com.bdaim.rbac.dto.UserQueryParam;
+import com.bdaim.smscenter.service.SendSmsService;
 import com.github.crab2died.ExcelUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
@@ -400,6 +402,115 @@ public class AccountAction extends BasicAction {
         Map<String, Object> resultMap = new HashMap<>();
         resultMap.put("data", JSONObject.toJSON(accountService.queryAccoutCenter(custId)));
         return JSONObject.toJSON(resultMap);
+    }
+
+    @Resource
+    SendSmsService sendSmsService;
+
+    @RequestMapping(value = "/query", method = RequestMethod.GET)
+    @ResponseBody
+    public Object queryAccountsByCondition(UserQueryParam queryParam) throws Exception {
+        Map<String, Object> resultMap = new HashMap<String, Object>();
+        try {
+            resultMap.put("data", JSONObject.toJSON(accountService.queryAccountByCondition(queryParam)));
+        } catch (Exception e) {
+            logger.error("查询客户余额列表失败", e);
+            Map<String, Object> map = new HashMap<>();
+            map.put("total", 0);
+            map.put("list", new ArrayList<>());
+            resultMap.put("data", map);
+        }
+        return JSONObject.toJSON(resultMap);
+    }
+
+
+    @RequestMapping(value = "/balance/operate", method = {RequestMethod.PUT,RequestMethod.POST})
+    @ResponseBody
+    public Object banlanceChange(@RequestBody JSONObject param) {
+        Map<String, Object> resultMap = new HashMap<String, Object>();
+        param.put("userId", opUser().getId());
+        return JSONObject.toJSON(accountService.changeBalance(param));
+    }
+
+    @RequestMapping(value = "/creditLimit/set/{accountId}/{creditLimit}")
+    @ResponseBody
+    public Object setCreditLimit(@PathVariable String accountId, @PathVariable int creditLimit) throws TouchException {
+        Map<String, Object> resultMap = new HashMap<String, Object>();
+        accountService.setCreditLimit(accountId, creditLimit);
+        return JSONObject.toJSON(resultMap);
+    }
+
+    @RequestMapping(value = "/update/pwd/")
+    @ResponseBody
+    public Object updatePayPwd(@RequestBody JSONObject param) throws Exception {
+        Map<String, Object> resultMap = new HashMap<String, Object>();
+        String mobileNum = param.get("mobileNum").toString();
+        String otp = param.get("otp").toString();
+        String customerId = opUser().getCustId();
+        if (StringUtil.isEmpty(mobileNum)) {
+            throw new TouchException("20005", "手机号码不能为空");
+        }
+        boolean success = sendSmsService.verificationCode(mobileNum, 7, otp) == 1 ? true : false;
+        if (!success) {
+            throw new TouchException("20006", "手机验证码不正确");
+        }
+        try {
+            accountService.updatePayPassword(customerId, param);
+        } catch (Exception e) {
+            logger.error("更新支付密码失败,", e);
+        }
+        return JSONObject.toJSON(resultMap);
+    }
+
+    /*@RequestMapping(value = "/center/show/", method = RequestMethod.GET)
+    @ResponseBody
+    public Object showAccountCenter() throws Exception {
+        //Todo 需要在登录的时候将customerId加入到session
+        Map<String, Object> resultMap = new HashMap<String, Object>();
+        resultMap.put("data", JSONObject.toJSON(accountService.showAccoutCenter(opUser().getCustId())));
+        return JSONObject.toJSON(resultMap);
+    }*/
+
+    @RequestMapping(value = "/transaction/query0", method = RequestMethod.GET)
+    @ResponseBody
+    public Object queryTransactions(TransactionQryParam param) throws Exception {
+        //Todo 需要在登录的时候将customerId加入到session
+        Map<String, Object> resultMap = new HashMap<String, Object>();
+        HashMap<String, Object> ret = new HashMap<>();
+        // 处理前台客户权限
+        String custId = null;
+        if (RoleEnum.ROLE_CUSTOMER.getRole().equals(opUser().getRole())) {
+            custId = opUser().getCustId();
+        }
+        Page page = transactionService.listTransactionsByCondition_V2(custId, param);
+        //long total = transactionService.countTransactionsByCondition_V1(custId, param);
+        ret.put("transactions", page.getData());
+        ret.put("total", page.getTotal());
+
+        List<Map<String, Object>> result = new ArrayList<>();
+        result.add(ret);
+
+        resultMap.put("data", result);
+        return JSONObject.toJSON(resultMap);
+    }
+
+    /**
+     * @param param
+     * @return
+     * @throws Exception
+     * @Description平台查询所有客户的交易记录接口
+     */
+    @RequestMapping(value = "/transaction/query/all", method = RequestMethod.GET)
+    @ResponseBody
+    public Object listAllTransactions(TransactionQryParam param) throws Exception {
+        Map<String, Object> resultMap = new HashMap<>();
+        List<Map<String, Object>> list = transactionService.listAllTransactions(param);
+        long total = transactionService.countAllTransactions(param);
+        resultMap.put("transactionList", list);
+        resultMap.put("total", total);
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("data", resultMap);
+        return jsonObject.toJSONString();
     }
 }
 

@@ -1,15 +1,29 @@
 package com.bdaim.account.service.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.bdaim.account.dao.AccountDao;
+import com.bdaim.account.dao.TransactionDao;
+import com.bdaim.account.entity.AccountDO;
 import com.bdaim.batch.TransactionEnum;
 import com.bdaim.bill.dto.CustomerBillQueryParam;
 import com.bdaim.bill.service.TransactionService;
+import com.bdaim.common.dto.Page;
 import com.bdaim.common.dto.PageParam;
+import com.bdaim.common.exception.TouchException;
+import com.bdaim.common.util.CipherUtil;
+import com.bdaim.common.util.DateUtil;
+import com.bdaim.common.util.NumberConvertUtil;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.common.util.page.PageList;
 import com.bdaim.common.util.page.Pagination;
 import com.bdaim.customer.dao.CustomerDao;
+import com.bdaim.customer.dao.CustomerUserDao;
+import com.bdaim.customer.entity.Customer;
 import com.bdaim.customer.entity.CustomerProperty;
+import com.bdaim.customer.entity.CustomerUser;
+import com.bdaim.customer.entity.CustomerUserPropertyDO;
+import com.bdaim.rbac.dto.UserQueryParam;
 import com.bdaim.resource.dao.SourceDao;
 import com.github.crab2died.ExcelUtils;
 import org.slf4j.Logger;
@@ -22,14 +36,12 @@ import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
 import java.io.OutputStream;
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 @Service("accountService")
@@ -504,4 +516,186 @@ public class AccountService {
         logger.info("企业充值扣减记录sql:" + sqlBuilder.toString());
         return jdbcTemplate.queryForList(sqlBuilder.toString());
     }
+
+    @Resource
+    CustomerUserDao customerUserDao;
+    @Resource
+    AccountDao accountDao;
+    @Resource
+    TransactionDao transactionDao;
+
+    public void createAccout(AccountDO account) {
+        accountDao.save(account);
+    }
+
+    public Map<String, Object> queryAccountByCondition(UserQueryParam queryParam) {
+        Map<String, Object> map = new HashMap<>();
+        StringBuffer hql = new StringBuffer();
+        hql.append("FROM Customer m where 1=1 ");
+        List<String> params = new ArrayList<>();
+        if (StringUtil.isNotEmpty(queryParam.getEnterpriseName())) {
+            hql.append(" AND m.enterpriseName LIKE ? ");
+            params.add("%" + queryParam.getEnterpriseName() + "%");
+        }
+        if (StringUtil.isNotEmpty(queryParam.getCustId())) {
+            hql.append(" AND m.custId = ? ");
+            params.add(queryParam.getCustId());
+        }
+        if (StringUtil.isNotEmpty(queryParam.getSettlementType())) {
+            hql.append(" AND m.custId IN (SELECT custId FROM CustomerProperty WHERE propertyName='settlement_type' AND propertyValue= ? ) ");
+            params.add(queryParam.getSettlementType());
+        }
+        hql.append(" order by m.createTime DESC ");
+        Page page = accountDao.page(hql.toString(), params, queryParam.getPageNum(), queryParam.getPageSize());
+        List<Map<String, Object>> list = new ArrayList<>();
+        if (page.getData() != null && page.getData().size() > 0) {
+            Customer customer;
+            CustomerProperty remainAmount, settlementType,creditAmount;
+            CustomerUserPropertyDO mobileNum;
+            List<CustomerUser> us;
+            Map<String, Object> d;
+            for (int i = 0; i < page.getData().size(); i++) {
+                d = new HashMap<>();
+                customer = (Customer) page.getData().get(i);
+                d.put("customerId", customer.getCustId());
+                d.put("enterpriseName", customer.getEnterpriseName());
+                d.put("createTime", customer.getCreateTime());
+
+                remainAmount = customerDao.getProperty(customer.getCustId(), "remain_amount");
+                d.put("balance", remainAmount == null ? 0 : NumberConvertUtil.parseDouble(remainAmount.getPropertyValue()) / 1000);
+                d.put("accountId", String.valueOf(d.get("customerId")));
+
+                settlementType = customerDao.getProperty(customer.getCustId(), "settlement_type");
+                d.put("settlementType", settlementType != null ? NumberConvertUtil.parseInt(settlementType.getPropertyValue()) : "");
+
+                creditAmount = customerDao.getProperty(customer.getCustId(), "creditAmount");
+                d.put("creditAmount", creditAmount != null ? NumberConvertUtil.parseInt(creditAmount.getPropertyValue()) : "");
+
+                us = customerUserDao.find("from CustomerUser m where m.cust_id='" + d.get("customerId") + "' and m.userType=1");
+                if (us.size() > 0) {
+                    d.put("userId", us.get(0).getId());
+                    d.put("userName", us.get(0).getAccount());
+                    d.put("status", us.get(0).getStatus());
+                    mobileNum = customerUserDao.getProperty(us.get(0).getId().toString(), "mobile_num");
+                    d.put("mobileNum", mobileNum == null ? "" : mobileNum.getPropertyValue());
+                }
+                list.add(d);
+            }
+        }
+
+        map.put("total", page.getTotal());
+        map.put("list", list);
+        return map;
+    }
+
+
+    public Map<String, Object> changeBalance(JSONObject param) {
+        String custId = param.getString("accountId");
+        double amount = param.getDouble("amount");
+        String path = param.getString("path");
+        String remark = param.getString("remark");
+        int action = param.getInteger("action");
+        int payMode = param.getInteger("payMode");
+        long userId = param.getLong("userId");
+
+        boolean deductionsStatus;
+        BigDecimal moneySale;
+        try {
+            moneySale = new BigDecimal(amount * 1000);
+            moneySale = moneySale.multiply(new BigDecimal(1));
+            //充值
+            if (1 == action) {
+                deductionsStatus = customerDao.accountRecharge(custId, moneySale);
+            } else {//扣减
+                deductionsStatus = customerDao.accountDeductions(custId, moneySale);
+            }
+        } catch (Exception e) {
+            logger.error(custId + " 账户扣款失败,", e);
+            throw new RuntimeException(custId + " 账户扣款失败");
+        }
+        if (deductionsStatus) {
+            // 保存交易记录
+            try {
+                transactionDao.saveTransactionLog(custId, action, moneySale.doubleValue(), payMode, "1", "", remark, userId, path);
+            } catch (Exception e) {
+                logger.error(custId + " 保存交易记录失败,", e);
+            }
+        }
+
+        Map<String, Object> ret = new HashMap<>();
+        double remainAmount = 0.0;
+        CustomerProperty cp = customerDao.getProperty(custId, "remain_amount");
+        if (cp != null && StringUtil.isNotEmpty(cp.getPropertyValue())) {
+            remainAmount = Double.parseDouble(cp.getPropertyValue());
+        }
+        if (remainAmount > 0) {
+            ret.put("remainAmount", remainAmount / 1000);
+        } else {
+            ret.put("remainAmount", remainAmount);
+        }
+        return ret;
+    }
+
+
+    public void setCreditLimit(String accountId, int creditLimit) throws TouchException {
+        AccountDO accountDO = accountDao.findUniqueBy("acctId", accountId);
+        if (null != accountDO) {
+            //分
+            accountDO.setCreditLimit(creditLimit * 100);
+            accountDO.setModifyTime(DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss));
+            accountDao.save(accountDO);
+        } else {
+            throw new TouchException("20002", "查询账户失败");
+        }
+    }
+
+
+    public void updatePayPassword(String customerId, JSONObject param) throws Exception {
+        String password = param.get("password").toString();
+        int pwdLevel = param.getIntValue("pwdLevel");
+        if (StringUtil.isEmpty(customerId)) {
+            throw new TouchException("300", "系统异常");
+        }
+        if (StringUtil.isEmpty(password)) {
+            throw new TouchException("20003", "密码不能为空");
+        }
+        CustomerProperty remainAmount = customerDao.getProperty(customerId, "remain_amount");
+        // 账户余额不存在 初始化账户余额为0
+        if (null == remainAmount) {
+            remainAmount = new CustomerProperty(customerId, "remain_amount", "0", new Timestamp(System.currentTimeMillis()));
+            customerDao.saveOrUpdate(remainAmount);
+        }
+        // 保存支付密码和支付密码等级
+        CustomerProperty payPassword = new CustomerProperty(customerId, "pay_password", CipherUtil.generatePassword(password), new Timestamp(System.currentTimeMillis()));
+        CustomerProperty pwdStatus = new CustomerProperty(customerId, "pwd_status", String.valueOf(pwdLevel), new Timestamp(System.currentTimeMillis()));
+        this.customerUserDao.saveOrUpdate(payPassword);
+        this.customerUserDao.saveOrUpdate(pwdStatus);
+    }
+
+
+    /*public List<Map<String, Object>> showAccoutCenter(String customerId) throws Exception {
+        if (StringUtil.isEmpty(customerId)) {
+            throw new TouchException("20010", "系统异常:用户信息不存在");
+        }
+        Map<String, Object> resultMap = new HashMap<>();
+
+        //余额查询分
+        Double remainAmout = 0.0;
+        CustomerProperty ra = customerDao.getProperty(customerId, "remain_amount");
+        try {
+            if (ra != null)
+                remainAmout = Double.parseDouble(ra.getPropertyValue());
+        } catch (Exception e) {
+            logger.error("get balance error", e);
+        }
+        DecimalFormat df = new DecimalFormat("######0.00");
+        resultMap.put("balance", df.format(remainAmout / 1000));
+
+        CustomerProperty ps = customerDao.getProperty(customerId, "pwd_status");
+        resultMap.put("pwdStatus", ps == null ? "" : ps.getPropertyValue());
+
+        List<Map<String, Object>> result = new ArrayList<>();
+        result.add(resultMap);
+        return result;
+    }*/
 }
