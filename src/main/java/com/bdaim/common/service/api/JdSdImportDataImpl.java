@@ -3,7 +3,7 @@ package com.bdaim.common.service.api;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.bdaim.common.redis.RedisUtil;
+import com.bdaim.common.util.redis.RedisUtil;
 import com.bdaim.common.util.LogUtil;
 import com.bdaim.common.util.MD5Util;
 import com.bdaim.common.util.StringUtil;

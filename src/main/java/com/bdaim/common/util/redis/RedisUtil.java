@@ -1,4 +1,4 @@
-package com.bdaim.common.redis;
+package com.bdaim.common.util.redis;
 
 
 import org.slf4j.Logger;

@@ -20,6 +20,7 @@ import com.bdaim.label.dao.*;
 import com.bdaim.label.dto.CategoryType;
 import com.bdaim.label.dto.QueryType;
 import com.bdaim.label.entity.*;
+import com.bdaim.label.service.CommonService;
 import com.bdaim.label.service.LabelAuditService;
 import com.bdaim.label.service.LabelCategoryService;
 import com.bdaim.label.service.LabelInterfaceService;

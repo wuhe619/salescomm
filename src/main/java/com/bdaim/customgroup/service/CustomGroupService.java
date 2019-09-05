@@ -14,7 +14,7 @@ import com.bdaim.callcenter.common.PhoneAreaUtil;
 import com.bdaim.callcenter.dto.VoiceLogCallDataDTO;
 import com.bdaim.callcenter.dto.XzPullPhoneDTO;
 import com.bdaim.common.dto.Page;
-import com.bdaim.common.redis.RedisUtil;
+import com.bdaim.common.util.redis.RedisUtil;
 import com.bdaim.common.service.PhoneService;
 import com.bdaim.common.util.*;
 import com.bdaim.common.util.spring.SpringContextHelper;

@@ -1,18 +1,21 @@
 package com.bdaim.label.service;
 
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.common.dto.Page;
+import com.bdaim.common.util.CalendarUtil;
 import com.bdaim.common.util.Constant;
 import com.bdaim.customgroup.entity.CustomGroup;
 import com.bdaim.customgroup.service.CustomGroupService;
+import com.bdaim.dataexport.entity.DataExportApply;
 import com.bdaim.dataexport.service.DataExportApplyService;
-import com.bdaim.label.dao.CommonService;
 import com.bdaim.label.dao.LabelAuditDao;
 import com.bdaim.label.dao.LabelCoverDao;
 import com.bdaim.label.entity.LabelAudit;
+import com.bdaim.label.entity.LabelCover;
 import com.bdaim.label.entity.LabelInfo;
 import com.bdaim.rbac.entity.User;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -22,7 +25,7 @@ import java.util.*;
 @Service("labelAuditService")
 @Transactional
 public class LabelAuditService {
-	private static Logger log = LoggerFactory.getLogger(LabelAuditService.class);
+	private static Log log = LogFactory.getLog(LabelAuditService.class);
 	@Resource
 	private LabelAuditDao labelAuditDao;
 	@Resource
@@ -183,7 +186,7 @@ public class LabelAuditService {
 		return result;
 	}
 
-	/*@SuppressWarnings("unchecked")
+	@SuppressWarnings("unchecked")
 	public List<LabelAudit> getAuditsByCondition(Map<String, Object> map,
 			Map<String, Object> likeMap, Page page) {
 		String hql = "From LabelAudit t ";
@@ -209,7 +212,7 @@ public class LabelAuditService {
 					.setMaxResults(page.getLimit()).list();
 		}
 		return audits;
-	}*/
+	}
 
 	public Integer getAuditsCountByCondition(Map<String, Object> map,
 			Map<String, Object> likeMap) {
@@ -228,7 +231,7 @@ public class LabelAuditService {
 		return count == null ? 0 : Integer.parseInt(count.toString());
 	}
 
-	/*public Map<String, Object> getAuditDetailById(Integer id) {
+	public Map<String, Object> getAuditDetailById(Integer id) {
 		Map<String, Object> resultMap = new HashMap<String, Object>();
 		LabelAudit audit = labelAuditDao.get(id);
 		Integer aid = audit.getAid();
@@ -261,7 +264,7 @@ public class LabelAuditService {
 				}
 			}
 		} else if (auditType.equals(Constant.AUDIT_TYPE_GROUP)) {
-			CustomGroupDO customGroup = customGroupService
+			CustomGroup customGroup = customGroupService
 					.getCustomGroupById(aid);
 			if(null != customGroup)
 				resultMap.putAll(commonService.getCustomGroupMap(customGroup));
@@ -276,7 +279,7 @@ public class LabelAuditService {
 			resultMap.put("statusCn", Constant.STATUS_MAP.get(status));
 		}
 		return resultMap;
-	}*/
+	}
 
 	public Map<String, Object> deleteAuditInfo(LabelAudit audit) {
 		Map<String, Object> resultMap = new HashMap<String, Object>();

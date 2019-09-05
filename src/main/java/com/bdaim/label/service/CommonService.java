@@ -1,16 +1,18 @@
-package com.bdaim.label.dao;
-
+package com.bdaim.label.service;
 
 import com.alibaba.fastjson.JSON;
 import com.bdaim.common.service.InitService;
 import com.bdaim.common.util.CalendarUtil;
 import com.bdaim.common.util.Constant;
+import com.bdaim.common.util.DateUtil;
 import com.bdaim.common.util.spring.SpringContextHelper;
 import com.bdaim.customer.dao.CustomerUserDao;
 import com.bdaim.customgroup.entity.CustomGroup;
+import com.bdaim.dataexport.entity.DataExportApply;
+import com.bdaim.label.dao.CustomerLabelAndCategoryDao;
+import com.bdaim.label.dao.LabelCategoryDao;
+import com.bdaim.label.dao.LabelInfoDao;
 import com.bdaim.label.entity.*;
-import com.bdaim.label.service.LabelCategoryService;
-import com.bdaim.label.service.LabelInfoService;
 import com.bdaim.rbac.entity.User;
 import org.hibernate.Query;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -552,14 +554,14 @@ public class CommonService {
         return mapList;
     }
 
-    /*public static List<Map<String, Object>> getCustomMapList(
+    public static List<Map<String, Object>> getCustomMapList(
             List<User> users) {
         List<Map<String, Object>> mapList = new ArrayList<Map<String, Object>>();
         for (User user : users) {
             mapList.add(getCustomerMap(user));
         }
         return mapList;
-    }*/
+    }
 
     /**
      * 根据用户群组对象返回相应map数据
@@ -721,6 +723,51 @@ public class CommonService {
     }
 
     /**
+     * @param apply
+     * @return
+     */
+    public static Map<String, Object> getDataExportApplyMap(
+            DataExportApply apply) {
+        Map<String, Object> map = new HashMap<String, Object>();
+        map.put("id", apply.getId());
+        map.put("applyReason", apply.getApplyReason());
+        map.put("applyReasonDetail", apply.getApplyReasonDetail());
+        Integer status = apply.getStatus();
+        if (null == status) {
+            map.put("applyStatus", null);
+        } else {
+            map.put("applyStatus", status);
+            map.put("applyStatusCn", Constant.STATUS_MAP.get(status));
+        }
+        Date startTime = apply.getStartTime();
+        if (null != startTime) {
+            map.put("startTime", CalendarUtil.getDateString(startTime,
+                    CalendarUtil.SHORT_DATE_FORMAT));
+        }
+        Date endTime = apply.getEndTime();
+        if (null != endTime) {
+            map.put("endTime", CalendarUtil.getDateString(endTime,
+                    CalendarUtil.SHORT_DATE_FORMAT));
+        }
+
+        Date createTime = apply.getCreateTime();
+        if (null != createTime) {
+            map.put("createTime", CalendarUtil.getDateString(createTime,
+                    CalendarUtil.SHORT_DATE_FORMAT));
+        }
+        Date updateTime = apply.getUpdateTime();
+        if (null != updateTime) {
+            map.put("updateTime", CalendarUtil.getDateString(updateTime,
+                    CalendarUtil.SHORT_DATE_FORMAT));
+        }
+        User updateUser = apply.getUpdateUser();
+        if (null != updateUser) {
+            map.put("updateUser", updateUser);
+        }
+        return map;
+    }
+
+    /**
      * 根据指定的key获取整棵树的第一个节点信息
      *
      * @param list
@@ -744,7 +791,7 @@ public class CommonService {
         if (!INIT_CATE_FLAG) {
 
             try {
-                //initCategorys();
+                initCategorys();
                 // initFirstCategory();
                 // initPicinfo();
                 INIT_CATE_FLAG = true;
@@ -836,7 +883,7 @@ public class CommonService {
         return mapList;
     }
 
-   /* public static Map<String, Object> getCustomerMap(User info) {
+    public static Map<String, Object> getCustomerMap(User info) {
         Map<String, Object> map = new HashMap<>();
         if (null != info) {
             map.put("userName", info.getName());
@@ -849,6 +896,6 @@ public class CommonService {
             map.put("customerId",info.getCustId());
         }
         return map;
-    }*/
+    }
 
 }
