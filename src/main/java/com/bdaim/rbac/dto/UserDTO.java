@@ -3,7 +3,7 @@ package com.bdaim.rbac.dto;
 import java.io.Serializable;
 import java.util.Date;
 
-public class UserDTO implements Serializable {
+public class UserDTO implements Serializable, Manager<Long> {
     public Long Id;
     public String userName;
     public String realName;
@@ -27,6 +27,7 @@ public class UserDTO implements Serializable {
      * 授权平台 1-精准营销 2-金融超市
      */
     private String authorize;
+    private String name;
 
     public UserDTO() {
     }
@@ -51,6 +52,11 @@ public class UserDTO implements Serializable {
         this.optuser = optuser;
         this.createTime = createTime;
         this.source = source;
+    }
+
+    @Override
+    public Long getKey() {
+        return this.Id;
     }
 
     public Long getId() {
@@ -213,6 +219,14 @@ public class UserDTO implements Serializable {
         this.authorize = authorize;
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
     @Override
     public String toString() {
         return "UserDTO{" +
@@ -236,6 +250,7 @@ public class UserDTO implements Serializable {
                 ", createTime=" + createTime +
                 ", source=" + source +
                 ", authorize='" + authorize + '\'' +
+                ", name='" + name + '\'' +
                 '}';
     }
 }

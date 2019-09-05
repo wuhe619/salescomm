@@ -1,5 +1,7 @@
 package com.bdaim.common.util;
 
+import org.apache.commons.lang.StringUtils;
+
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -764,6 +766,24 @@ public class DateUtil {
             return true;
         }
         return false;
+    }
+
+
+    /**@see
+     * @param date
+     * @param pattern
+     * @return
+     */
+    public static String format(Date date,String pattern){
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
+        String rs = null;
+        if(date!=null){
+            Instant instant = date.toInstant();
+            ZoneId zoneId = ZoneId.systemDefault();
+            LocalDateTime localDateTime = instant.atZone(zoneId).toLocalDateTime();
+            rs = localDateTime.format(formatter);
+        }
+        return rs;
     }
 
     public static void main(String[] args) {

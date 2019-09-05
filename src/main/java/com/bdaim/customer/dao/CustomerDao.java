@@ -41,7 +41,7 @@ public class CustomerDao extends SimpleHibernateDao<Customer, String> {
 
     public CustomerProperty getProperty(String custId, String propertyName) {
         CustomerProperty cp = null;
-        String hql = "from CustomerPropertyDO m where m.custId=? and m.propertyName=?";
+        String hql = "from CustomerProperty m where m.custId=? and m.propertyName=?";
         List<CustomerProperty> list = this.find(hql, custId, propertyName);
         if (list.size() > 0)
             cp = (CustomerProperty) list.get(0);
@@ -197,7 +197,7 @@ public class CustomerDao extends SimpleHibernateDao<Customer, String> {
      */
     public List<CustomerProperty> getPropertyLike(String custId, String propertyName) {
         CustomerProperty cp = null;
-        String hql = "from CustomerPropertyDO m where m.custId=? and m.propertyName LIKE '%" + propertyName + "'";
+        String hql = "from CustomerProperty m where m.custId=? and m.propertyName LIKE '%" + propertyName + "'";
         List<CustomerProperty> list = this.find(hql, custId);
         return list;
     }
@@ -245,7 +245,7 @@ public class CustomerDao extends SimpleHibernateDao<Customer, String> {
      */
     public ResourcesPriceDto getCustResourceMessageById(String resourceId, String custId) {
         ResourcesPriceDto resourcesPriceDto = null;
-        String hql = "from CustomerPropertyDO m where m.custId=? AND m.propertyName = ?";
+        String hql = "from CustomerProperty m where m.custId=? AND m.propertyName = ?";
         try {
             List<CustomerProperty> list = this.find(hql, custId, resourceId + "_config");
             if (list.size() > 0) {
@@ -279,7 +279,7 @@ public class CustomerDao extends SimpleHibernateDao<Customer, String> {
                 resourceId = String.valueOf(ResourceList.get(0).getResourceId());
             }
 
-            String hql = "from CustomerPropertyDO m where m.custId=? AND m.propertyName = ?";
+            String hql = "from CustomerProperty m where m.custId=? AND m.propertyName = ?";
             List<CustomerProperty> list = this.find(hql, custId, resourceId + "_config");
             if (list.size() > 0) {
                 CustomerProperty cp = (CustomerProperty) list.get(0);
@@ -312,7 +312,7 @@ public class CustomerDao extends SimpleHibernateDao<Customer, String> {
             if (ResourceList.size() > 0) {
                 for (int i = 0; i < ResourceList.size(); i++) {
                     resourceId = String.valueOf(ResourceList.get(i).getResourceId());
-                    String hql = "from CustomerPropertyDO m where m.custId=? AND m.propertyName = ?";
+                    String hql = "from CustomerProperty m where m.custId=? AND m.propertyName = ?";
                     List<CustomerProperty> list = this.find(hql, custId, resourceId + "_config");
                     if (list.size() > 0) {
                         CustomerProperty cp = (CustomerProperty) list.get(0);
