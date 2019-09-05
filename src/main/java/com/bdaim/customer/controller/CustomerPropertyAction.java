@@ -54,14 +54,20 @@ public class CustomerPropertyAction extends BasicAction {
     @RequestMapping(value = "/modify.do", method = RequestMethod.POST)
     @ResponseBody
     public String modifyCustomerProperty(@RequestBody CustomerPropertyParam customerPropertyParam) {
-        customerPropertyParam.setCustomerId(StringUtil.isNotEmpty(opUser().getCustId()) ? opUser().getCustId() : "0");
-        customerPropertyParam.setUserId(String.valueOf(opUser().getId()));
-        int returnCode = customerPropertyService.update(customerPropertyParam);
-        if (returnCode == 1) {
-            return returnSuccess();
-        } else {
-            return returnError();
+        logger.info("启用自建属性 /modify.do");
+        int returnCode = 0;
+        try {
+            customerPropertyParam.setCustomerId(StringUtil.isNotEmpty(opUser().getCustId()) ? opUser().getCustId() : "0");
+            customerPropertyParam.setUserId(String.valueOf(opUser().getId()));
+            returnCode = customerPropertyService.update(customerPropertyParam);
+            if (returnCode == 1) {
+                return returnSuccess();
+            }
+
+        } catch (Exception e) {
+            logger.info("修改出错 >>>" + e);
         }
+        return returnError();
     }
 
     @RequestMapping(value = "/list.do", method = RequestMethod.GET)
