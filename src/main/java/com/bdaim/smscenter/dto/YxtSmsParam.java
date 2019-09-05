@@ -1,5 +1,6 @@
 package com.bdaim.smscenter.dto;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -17,9 +18,9 @@ public class YxtSmsParam {
     private String appid;
     private String templateId;
     private List<String> datas;
-    //@Value("${ytx.spuid}")
+    @Value("${ytx.spuid}")
     private String spuid;
-    //@Value("${ytx.sppwd}")
+    @Value("${ytx.sppwd}")
     private String sppwd;
 
     public String getAction() {
