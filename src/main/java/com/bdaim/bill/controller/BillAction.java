@@ -305,7 +305,11 @@ public class BillAction extends BasicAction {
         } else {
             String custId = opUser().getCustId();
             param.setCustomerId(custId);
-            list = billService.listBillDetail(page, param);
+            try{
+                list = billService.listBillDetail(page, param);
+            }catch (Exception e){
+                logger.info("查询账单明细出错 "+e);
+            }
         }
         Map<String, Object> resultMap = new HashMap<>();
         resultMap.put("basePath", "/pic");

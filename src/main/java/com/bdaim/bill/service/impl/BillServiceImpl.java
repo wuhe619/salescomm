@@ -267,6 +267,7 @@ public class BillServiceImpl implements BillService {
         //查询账单sql
         String logListSql = getBillType(param.getType(), param.getBillDate(), param.getCustomerId(), param.getSupplierId(), param.getTransactionId(), param.getBatchId(), param.getEnterpriseName(), param.getStartTime(), param.getEndTime());
         Page data = customerDao.sqlPageQuery(logListSql, page.getPageNum(), page.getPageSize());
+        logger.info("查询结果为"+data);
         //Page pageData = new Pagination().getPageData(logListSql, null, page, jdbcTemplate);
         List<Map<String, Object>> list = data.getData();
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.S");
