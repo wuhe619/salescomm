@@ -635,6 +635,31 @@ public class BasicAction {
         }
     }
 
+    protected void operlog(long objectid, String pageName) {
+        try {//operation logs
+            if (OperlogUtils.isEnable()) {//to write operation log
+                OperLog entity = new OperLog();
+                LoginUser user = opUser();
+                if (null != user) {
+                    entity.setOper_uid(user.getId());
+                    entity.setOper_uname(user.getName());
+                }
+                entity.setOper_object_id((int)objectid);
+                entity.setOper_page_name(pageName);
+                entity.setOper_object_id((int)objectid);
+                entity.setOper_source_ip(request.getRemoteAddr());
+                entity.setOper_source_port(request.getRemotePort());
+                entity.setOper_target_ip(request.getLocalAddr());
+                entity.setOper_target_port(request.getLocalPort());
+                entity.setOper_project(request.getContextPath());
+                entity.setOper_uri(request.getRequestURI());
+                OperlogUtils.getInstance().insertLog(entity);
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
     protected void operlog(List<Map<String, Object>> objectid) {
         if (null == objectid || 0 == objectid.size())
             return;
