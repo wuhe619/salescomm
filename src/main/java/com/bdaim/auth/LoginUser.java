@@ -65,6 +65,13 @@ public class LoginUser extends Token {
      */
     private String authorize;
 
+    private String status;
+
+    /**
+     * 服务权限 1-营销任务 2-公海 多个逗号隔开
+     */
+    private String serviceMode;
+
     public User getUser() {
         return user;
     }
@@ -215,4 +222,83 @@ public class LoginUser extends Token {
         this.authorize = authorize;
     }
 
+    public String getRefurl() {
+        return refurl;
+    }
+
+    public void setRefurl(String refurl) {
+        this.refurl = refurl;
+    }
+
+    public String getRedirecturl() {
+        return redirecturl;
+    }
+
+    public void setRedirecturl(String redirecturl) {
+        this.redirecturl = redirecturl;
+    }
+
+    public void setMsg(String msg) {
+        this.msg = msg;
+    }
+
+    public void setStateCode(String stateCode) {
+        this.stateCode = stateCode;
+    }
+
+    public Object getResultData() {
+        return resultData;
+    }
+
+    public void setResultData(Object resultData) {
+        this.resultData = resultData;
+    }
+
+    public String getAuth() {
+        return auth;
+    }
+
+    public void setAuth(String auth) {
+        this.auth = auth;
+    }
+
+    public String getUserName() {
+        return userName;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
+    }
+
+    public String getMobile_num() {
+        return mobile_num;
+    }
+
+    public void setMobile_num(String mobile_num) {
+        this.mobile_num = mobile_num;
+    }
+
+    public String getUser_id() {
+        return user_id;
+    }
+
+    public void setUser_id(String user_id) {
+        this.user_id = user_id;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getServiceMode() {
+        return serviceMode;
+    }
+
+    public void setServiceMode(String serviceMode) {
+        this.serviceMode = serviceMode;
+    }
 }
