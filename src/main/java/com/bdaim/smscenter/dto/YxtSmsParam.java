@@ -1,7 +1,5 @@
 package com.bdaim.smscenter.dto;
 
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 
 /**
@@ -9,7 +7,7 @@ import java.util.List;
  * @date 2018/7/26
  * @description
  */
-@Component
+//@Component
 public class YxtSmsParam {
 
     private String action;
