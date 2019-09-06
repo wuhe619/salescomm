@@ -6,10 +6,16 @@ import com.bdaim.common.auth.service.TokenCacheService;
 import com.bdaim.common.auth.service.TokenService;
 import com.bdaim.common.util.CipherUtil;
 import com.bdaim.common.util.NumberConvertUtil;
+import com.bdaim.common.util.StringUtil;
+import com.bdaim.customer.dto.CustomerPropertyDTO;
+import com.bdaim.customer.dto.CustomerPropertyEnum;
+import com.bdaim.customer.dto.ServiceModeEnum;
 import com.bdaim.customer.entity.CustomerUser;
 import com.bdaim.customer.service.CustomerService;
 import com.bdaim.rbac.dao.RoleDao;
+import com.bdaim.rbac.dto.ResourceDTO;
 import com.bdaim.rbac.entity.UserDO;
+import com.bdaim.rbac.service.ResourceService;
 import com.bdaim.rbac.service.UserInfoService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +41,8 @@ public class TokenServiceImpl implements TokenService {
     private TokenCacheService tokenCacheService;
     @Resource
     private RoleDao roleDao;
+    @Resource
+    private ResourceService resourceService;
 
     private static Map name2token = new HashMap();
 
@@ -86,6 +94,34 @@ public class TokenServiceImpl implements TokenService {
                 userdetail.setRole(role);
                 userdetail.setType(type);
                 userdetail.setName(u.getName());
+
+                String defaultUrl = "";
+                if ("admin".equals(u.getName())) {
+                    auths.add(new SimpleGrantedAuthority("admin"));
+                    role = "admin";
+                    defaultUrl = "/backend/customerGroupManagement/customerGroup.html";
+                } else {
+                    auths.add(new SimpleGrantedAuthority("ROLE_USER"));
+                    // 查询用户关联的所有资源
+                    List<ResourceDTO> list = resourceService.queryResource(u.getId(), 0L, 1, false);
+                    for (int i = 0; i < list.size(); i++) {
+                        // 处理登录成功后的默认页
+                        if (StringUtil.isNotEmpty(list.get(i).getUri())) {
+                            defaultUrl = list.get(i).getUri();
+                            break;
+                        }
+                    }
+                }
+
+                userdetail.setStateCode("200");
+                userdetail.setMsg("SUCCESS");
+                userdetail.setAuth(userdetail.getAuthorities().toArray()[0].toString());
+                userdetail.setUserName(userdetail.getUsername());
+                userdetail.setCustId(userdetail.getCustId());
+                userdetail.setUserType(userdetail.getUserType());
+                userdetail.setUser_id(userdetail.getId().toString());
+                userdetail.setTokenid(userdetail.getTokenid());
+                userdetail.setDefaultUrl(defaultUrl);
             } else {
                 logger.info("username or password is error");
                 return null;
@@ -119,6 +155,19 @@ public class TokenServiceImpl implements TokenService {
                 userdetail.setId(u.getId());
                 userdetail.setUserType(String.valueOf(u.getUserType()));
                 userdetail.setRole(auths.size() > 0 ? auths.toArray()[0].toString() : "");
+
+                userdetail.setStatus(u.getStatus().toString());
+                userdetail.setStateCode("200");
+                userdetail.setMsg("SUCCESS");
+                userdetail.setAuth(userdetail.getAuthorities().toArray()[0].toString());
+                userdetail.setUserName(userdetail.getUsername());
+                userdetail.setUser_id(userdetail.getId().toString());
+                // 处理服务权限
+                userdetail.setServiceMode(ServiceModeEnum.MARKET_TASK.getCode());
+                CustomerPropertyDTO cpd = customerService.getCustomerProperty(u.getCust_id(), CustomerPropertyEnum.SERVICE_MODE.getKey());
+                if (cpd != null && StringUtil.isNotEmpty(cpd.getPropertyValue())) {
+                    userdetail.setServiceMode(cpd.getPropertyValue());
+                }
             } else {
                 logger.info("username or password is error");
                 return null;
