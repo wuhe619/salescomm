@@ -11,6 +11,7 @@ import com.bdaim.common.util.CalendarUtil;
 import com.bdaim.common.util.OperLog.OperlogUtils;
 import com.bdaim.common.util.PropertiesUtil;
 import com.bdaim.common.util.StringUtil;
+import com.bdaim.label.service.CommonService;
 import com.bdaim.log.entity.OperLog;
 import com.bdaim.log.entity.UserOperLog;
 import com.bdaim.rbac.dto.UserQueryParam;
@@ -51,8 +52,8 @@ public class BasicAction {
 //    protected ThreadLocal<User> user = new ThreadLocal<User>();
     @Resource
     private UserService userService;
-    /*@Resource
-    private CommonService commonService;*/
+    @Resource
+    protected CommonService commonService;
     public List<String> labelSystem = new ArrayList<String>(); //标签体系
     //	public  static String LABEL_TYPE = ""; //标签体系类型，值从cookie中获取，
     protected String pageName = "其他页面";

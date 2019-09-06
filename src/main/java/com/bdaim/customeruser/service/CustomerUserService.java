@@ -34,7 +34,7 @@ import com.bdaim.rbac.dao.UserDao;
 import com.bdaim.resource.dao.MarketResourceDao;
 import com.bdaim.resource.entity.MarketResourceEntity;
 import com.bdaim.smscenter.dto.SmsPriceConfig;
-import com.bdaim.supplier.dao.DicDao;
+import com.bdaim.common.dao.DicDao;
 import org.hibernate.transform.Transformers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

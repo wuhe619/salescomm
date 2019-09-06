@@ -13,7 +13,7 @@ import com.bdaim.log.dao.OperLogDao;
 import com.bdaim.log.dto.UserOperLogDTO;
 import com.bdaim.log.entity.OperLog;
 import com.bdaim.log.entity.UserOperLog;
-import com.bdaim.supplier.dao.DicDao;
+import com.bdaim.common.dao.DicDao;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;

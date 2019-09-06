@@ -7,19 +7,23 @@ import com.bdaim.common.util.Constant;
 import com.bdaim.common.util.StringHelper;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerLabelDao;
-import com.bdaim.label.dao.*;
+import com.bdaim.label.dao.IndustryLabelDao;
+import com.bdaim.label.dao.LabelCoverDao;
+import com.bdaim.label.dao.LabelDao;
+import com.bdaim.label.dao.LabelInfoDao;
 import com.bdaim.label.dto.CategoryType;
-import com.bdaim.label.dto.LabelDTO;
+import com.bdaim.label.dto.Label;
 import com.bdaim.label.dto.QueryType;
 import com.bdaim.label.entity.*;
 import com.bdaim.rbac.dto.UserDTO;
 import com.bdaim.rbac.service.UserService;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.Resource;
 import javax.transaction.Transactional;
@@ -27,10 +31,11 @@ import java.io.Serializable;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 @Service("labelInfoService")
 @Transactional
 public class LabelInfoService {
-    private static Logger log = LoggerFactory.getLogger(LabelInfoService.class);
+    private static Log log = LogFactory.getLog(LabelInfoService.class);
     @Resource
     private LabelInfoDao labelInfoDao;
     @Resource
@@ -39,6 +44,8 @@ public class LabelInfoService {
     private UserService userService;
     @Resource
     private LabelCategoryService labelCategoryServiceImpl;
+    @Resource
+    private RestTemplate restTemplate;
     @Resource
     private LabelCoverDao labelCoverDao;
     @Resource
@@ -65,9 +72,9 @@ public class LabelInfoService {
     /**
      * *****  2、获取指定节点的子节点  *****
      */
-    public List<LabelDTO> children(String poolId, Integer id, String status, Integer cycle,
+    public List<Label> children(String poolId, Integer id, String status, Integer cycle,
                                 String queryType, String queryKey, Integer type, Integer categoryFlag, Boolean isLogAvailably) {
-        List<LabelDTO> labels = new ArrayList<>();
+        List<Label> labels = new ArrayList<Label>();
         LabelInfo labelInfo = labelInfoDao.get(id);
         if (labelInfo == null)
             return labels;
@@ -98,11 +105,11 @@ public class LabelInfoService {
             return labels;
 
         for (LabelInfo li : labelInfos) {
-            LabelDTO label = new LabelDTO(li);
+            Label label = new Label(li);
             List<LabelInfo> LabelInfoChildren = li.getChildren();
             if (LabelInfoChildren != null) {
                 for (LabelInfo lic : LabelInfoChildren) {
-                    LabelDTO labelChild = new LabelDTO(lic);
+                    Label labelChild = new Label(lic);
                     label.addChild(labelChild);
                 }
             }
@@ -112,9 +119,9 @@ public class LabelInfoService {
         return labels;
     }
 
-    public List<LabelDTO> childrenV1(String poolId, Integer id, String status, Integer cycle,
+    public List<Label> childrenV1(String poolId, Integer id, String status, Integer cycle,
                                   String queryType, String queryKey, Integer type, Integer categoryFlag, Boolean isLogAvailably) {
-        List<LabelDTO> labels = new ArrayList<>();
+        List<Label> labels = new ArrayList<>();
         LabelInfo labelInfo = labelInfoDao.get(id);
         if (labelInfo == null) {
             return labels;
@@ -153,11 +160,11 @@ public class LabelInfoService {
 
         for (LabelInfo li : labelInfos) {
             if (industryPoolLabelIds.contains(String.valueOf(li.getId()))) {
-                LabelDTO label = new LabelDTO(li);
+                Label label = new Label(li);
                 List<LabelInfo> LabelInfoChildren = li.getChildren();
                 if (LabelInfoChildren != null) {
                     for (LabelInfo lic : LabelInfoChildren) {
-                        LabelDTO labelChild = new LabelDTO(lic);
+                        Label labelChild = new Label(lic);
                         label.addChild(labelChild);
                     }
                 }
@@ -171,7 +178,7 @@ public class LabelInfoService {
     /***
      * 3.获取标签值
      */
-    public List<LabelDTO> values(Integer id, String status) {
+    public List<Label> values(Integer id, String status) {
         StringBuffer hql = new StringBuffer("from LabelInfo t where t.availably=1 ");
         hql.append(" and t.level=4 ");
 
@@ -181,9 +188,9 @@ public class LabelInfoService {
         hql.append(" order by level, label_name");
         List<LabelInfo> labelInfos = labelInfoDao.find(hql.toString());
 
-        List<LabelDTO> labels = new ArrayList();
+        List<Label> labels = new ArrayList();
         for (LabelInfo labelInfo : labelInfos) {
-            LabelDTO label = new LabelDTO(labelInfo);
+            Label label = new Label(labelInfo);
             labels.add(label);
         }
         return labels;
