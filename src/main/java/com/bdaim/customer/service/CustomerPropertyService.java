@@ -6,13 +6,18 @@ import com.bdaim.common.util.IDHelper;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.common.util.page.PageList;
 import com.bdaim.common.util.page.Pagination;
+import com.bdaim.customer.controller.CustomerPropertyAction;
 import com.bdaim.customer.dao.CustomerDao;
+import com.bdaim.customer.dao.CustomerLabelDao;
 import com.bdaim.customer.dao.CustomerPropertyDao;
+import com.bdaim.customer.entity.CustomerLabel;
 import com.bdaim.customer.entity.CustomerProperty;
 import com.bdaim.customer.entity.CustomerPropertyEntity;
 import com.bdaim.customer.entity.CustomerPropertyParam;
 import com.bdaim.supplier.dao.SupplierDao;
 import com.bdaim.supplier.entity.SupplierEntity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -30,12 +35,13 @@ import java.util.*;
 @Service("customerPropertyService")
 @Transactional
 public class CustomerPropertyService {
+    private static Logger logger = LoggerFactory.getLogger(CustomerPropertyAction.class);
 
     @Resource
     private JdbcTemplate jdbcTemplate;
 
     @Resource
-    private CustomerPropertyDao customerPropertyDao;
+    private CustomerLabelDao customerPropertyDao;
     @Resource
     private CustomerDao customerDao;
     @Resource
@@ -46,7 +52,7 @@ public class CustomerPropertyService {
 
     
     public int save(CustomerPropertyParam customerPropertyParam) {
-        CustomerPropertyEntity customerPropertyEntity = new CustomerPropertyEntity();
+        CustomerLabel customerPropertyEntity = new CustomerLabel();
         customerPropertyEntity.setCustId(customerPropertyParam.getCustomerId());
         customerPropertyEntity.setUserId(customerPropertyParam.getUserId());
         customerPropertyEntity.setLabelId(Long.toString(IDHelper.getID()));
@@ -64,8 +70,10 @@ public class CustomerPropertyService {
 
     
     public int update(CustomerPropertyParam customerPropertyParam) {
+        logger.info("modify 自建属性 "+customerPropertyParam.toString());
         if (customerPropertyParam.getLabelId() != null) {
-            CustomerPropertyEntity customerPropertyEntity = customerPropertyDao.findUniqueBy("labelId", customerPropertyParam.getLabelId());
+            CustomerLabel customerPropertyEntity = customerPropertyDao.getCustomerLabel(customerPropertyParam.getLabelId());
+            logger.info("查询结果"+customerPropertyEntity.toString());
             if (customerPropertyEntity != null) {
                 customerPropertyEntity.setCustId(customerPropertyParam.getCustomerId());
                 customerPropertyEntity.setUserId(customerPropertyParam.getUserId());
@@ -84,6 +92,7 @@ public class CustomerPropertyService {
                 if (StringUtil.isNotEmpty(customerPropertyParam.getOption())) {
                     customerPropertyEntity.setOption(customerPropertyParam.getOption());
                 }
+                logger.info("修改前 customerPropertyEntity "+customerPropertyEntity.toString());
                 customerPropertyDao.update(customerPropertyEntity);
                 return 1;
             }
