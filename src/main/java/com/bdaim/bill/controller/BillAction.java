@@ -304,6 +304,7 @@ public class BillAction extends BasicAction {
             list = billService.listBillDetail(page, param);
         } else {
             String custId = opUser().getCustId();
+            logger.info("custId的值为"+ custId);
             param.setCustomerId(custId);
             try{
                 list = billService.listBillDetail(page, param);
