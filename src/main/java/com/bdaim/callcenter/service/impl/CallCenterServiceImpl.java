@@ -2,18 +2,28 @@ package com.bdaim.callcenter.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.bdaim.callcenter.dto.SeatCallCenterConfig;
 import com.bdaim.callcenter.dto.SeatsInfo;
 import com.bdaim.callcenter.dto.UnicomSendSmsParam;
 import com.bdaim.callcenter.service.CallCenterService;
+import com.bdaim.common.util.*;
 import com.bdaim.common.util.http.HttpUtil;
-import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.dao.CustomerDao;
+import com.bdaim.customer.dto.CustomerPropertyEnum;
+import com.bdaim.customer.entity.CustomerProperty;
 import com.bdaim.price.dto.ResourcesPriceDto;
+import com.bdaim.resource.dao.MarketResourceDao;
+import com.bdaim.resource.dto.CallBackParam;
+import com.bdaim.resource.entity.MarketResourceEntity;
+import com.bdaim.resource.entity.ResourcePropertyEntity;
 import com.bdaim.resource.service.MarketResourceService;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.Resource;
 import javax.transaction.Transactional;
@@ -410,6 +420,90 @@ public class CallCenterServiceImpl implements CallCenterService {
             throw new RuntimeException("联通坐席删除分机失败", e);
         }
         return null;
+    }
+
+    @Resource
+    private RestTemplate restTemplate;
+    @Resource
+    private MarketResourceDao marketResourceDao;
+
+    public String handleCallBack(Map<String, Object> params) {
+        MultiValueMap<String, Object> urlVariables = new LinkedMultiValueMap<>();
+        // 请求api的双向回呼接口
+        urlVariables.add("interfaceID", "SaleBackCallService");
+        for (Map.Entry<String, Object> param : params.entrySet()) {
+            urlVariables.add(param.getKey(), param.getValue());
+        }
+        LogUtil.info("调用ds-api双向回呼接口前构造数据:" + params.toString());
+        String result = restTemplate.postForObject(Constant.LABEL_API
+                + "/sales/rest.do", urlVariables, String.class);
+
+        return result;
+    }
+
+    public String handleCallBack(CallBackParam param, String custId) {
+        param.setAction(SaleApiUtil.DAIL_BACK_CALL_ACTION);
+        CustomerProperty cp = customerDao.getProperty(custId, CustomerPropertyEnum.CALL_BACK_APP_ID.getKey());
+        if (cp != null && StringUtil.isNotEmpty(cp.getPropertyValue())) {
+            param.setAppid(cp.getPropertyValue());
+        } else {
+            param.setAppid(SaleApiUtil.ONLINE_CALL_BACK_APP_ID);
+        }
+        LogUtil.info("调用双向回呼接口请求数据:" + JSON.toJSONString(param));
+        String result = SaleApiUtil.sendCallBack(JSON.toJSONString(param), SaleApiUtil.ENV);
+        LogUtil.info("调用双向回呼接口返回数据:" + result);
+        return result;
+    }
+
+    public String handleCallBack0(CallBackParam param, String custId, String userId) {
+        param.setAction(SaleApiUtil.DAIL_BACK_CALL_ACTION);
+        // 处理应用ID
+        String appId = null;
+        String resourceId = null;
+        try {
+            resourceId = seatsService.checkSeatConfigStatus(userId, custId);
+            if (StringUtil.isNotEmpty(resourceId)) {
+                MarketResourceEntity mr = marketResourceDao.getMarketResource(NumberConvertUtil.parseLong(resourceId));
+                if (mr == null) {
+                    LOG.warn("userId:" + userId + ",custId:" + custId + ",呼叫线路资源为空,resourceId:" + resourceId);
+                }
+                // 资源无效
+                if (2 == mr.getStatus()) {
+                    LOG.warn("userId:" + userId + ",custId:" + custId + ",呼叫线路资源状态无效,resourceId:" + resourceId);
+                }
+                ResourcePropertyEntity callConfig = marketResourceDao.getProperty(resourceId, "price_config");
+                if (callConfig == null) {
+                    LOG.warn("userId:" + userId + ",custId:" + custId + ",未查询到资源,resourceId:" + resourceId);
+                }
+                if (StringUtil.isEmpty(callConfig.getPropertyValue())) {
+                    LOG.warn("userId:" + userId + ",custId:" + custId + ",呼叫线路资源配置为空,resourceId:" + resourceId);
+                }
+                JSONObject property = JSON.parseObject(callConfig.getPropertyValue());
+                if (property != null) {
+                    LOG.info("userId:" + userId + ",custId:" + custId + ",呼叫线路资源配置信息:" + property);
+                    SeatCallCenterConfig seatConfig = JSON.parseObject(property.getString("call_center_config"), SeatCallCenterConfig.class);
+                    if (seatConfig != null) {
+                        appId = seatConfig.getCallCenterAppIp();
+                    }
+                } else {
+                    LOG.warn("userId:" + userId + ",custId:" + custId + ",呼叫线路资源转换为空,resourceId:" + resourceId);
+                }
+            }
+        } catch (Exception e) {
+            LOG.error("坐席:" + userId + ",获取客户选择资源的双呼应用ID失败,resourceId:" + resourceId, e);
+        }
+        CustomerProperty cp = customerDao.getProperty(custId, CustomerPropertyEnum.CALL_BACK_APP_ID.getKey());
+        if (StringUtil.isNotEmpty(appId)) {
+            param.setAppid(appId);
+        } /*else if (cp != null && StringUtil.isNotEmpty(cp.getPropertyValue())) {
+            param.setAppid(cp.getPropertyValue());
+        } */else {
+            param.setAppid(SaleApiUtil.ONLINE_CALL_BACK_APP_ID);
+        }
+        LogUtil.info("调用双向回呼接口请求数据:" + JSON.toJSONString(param));
+        String result = SaleApiUtil.sendCallBack(JSON.toJSONString(param), SaleApiUtil.ENV);
+        LogUtil.info("调用双向回呼接口返回数据:" + result);
+        return result;
     }
 
 

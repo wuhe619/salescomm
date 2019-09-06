@@ -91,6 +91,11 @@ public class SaleApiUtil {
      */
     public static final String NOLOSE_CALL_BACK_APP_ID = "0b9612e9f8f24b6e81c3527ce6318eaf";
 
+    /**
+     * 精准营销双向回呼appId
+     */
+    public static final String ONLINE_CALL_BACK_APP_ID = "c217790f22634c288dd6a917dc809722";
+
     private final static DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
 
 
