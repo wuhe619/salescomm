@@ -424,7 +424,7 @@ public class AccountAction extends BasicAction {
     }
 
 
-    @RequestMapping(value = "/balance/operate", method = {RequestMethod.PUT,RequestMethod.POST})
+    @RequestMapping(value = "/balance/operate0", method = {RequestMethod.PUT,RequestMethod.POST})
     @ResponseBody
     public Object banlanceChange(@RequestBody JSONObject param) {
         Map<String, Object> resultMap = new HashMap<String, Object>();
