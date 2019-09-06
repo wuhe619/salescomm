@@ -335,6 +335,8 @@ public class SendSmsService{
         smsParam.setMobile(phone);
         smsParam.setTemplateId(templateId);
         smsParam.setDatas(Arrays.asList(templateValue.split(",")));
+        smsParam.setSpuid(PropertiesUtil.getStringValue("ytx.spuid"));
+        smsParam.setSppwd(PropertiesUtil.getStringValue("ytx.sppwd"));
         String result = SaleApiUtil.sendSms(JSON.toJSONString(smsParam), SaleApiUtil.ENV);
         LogUtil.info("模板ID:" + smsParam.getTemplateId() + "----手机号：" + smsParam.getMobile());
         //短信

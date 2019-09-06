@@ -7,7 +7,6 @@ import java.util.List;
  * @date 2018/7/26
  * @description
  */
-//@Component
 public class YxtSmsParam {
 
     private String action;
@@ -15,9 +14,7 @@ public class YxtSmsParam {
     private String appid;
     private String templateId;
     private List<String> datas;
-    //@Value("${ytx.spuid}")
     private String spuid;
-    //@Value("${ytx.sppwd}")
     private String sppwd;
 
     public String getAction() {
