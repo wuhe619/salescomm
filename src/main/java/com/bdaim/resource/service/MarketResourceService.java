@@ -3013,7 +3013,9 @@ public class MarketResourceService {
                 Map<String, Object> param = new HashMap<>();
                 Map<String, Object> headers = new HashMap<>();
                 headers.put("Accept", "application/json");
-                String result = HttpUtil.httpGet(PropertiesUtil.getStringValue("hbase_audio_url") + fileName + "/f1:file", param, headers);
+//                String result = HttpUtil.httpGet(PropertiesUtil.getStringValue("hbase_audio_url") + fileName + "/f1:file", param, headers);
+
+                String result = HttpUtil.httpGet("http://ds4:1111/voice/" + fileName + "/f1:file", param, headers);
                 if (StringUtil.isNotEmpty(result)) {
                     LOG.info("开始解析HBase返回的录音文件,userId:" + userId + ",fileName:" + fileName);
                     String base64Str = null;
