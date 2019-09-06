@@ -4,35 +4,39 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.exception.TouchException;
+import com.bdaim.common.util.PropertiesUtil;
 import com.bdaim.common.util.StringUtil;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.*;
+import org.springframework.stereotype.Component;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
-//@Aspect
-//@Component
+@Aspect
+@Component
 public class ResponseBodyInterceptor {
 	/*@Resource
 	private LogService logService;*/
 
-	private static final Log log = LogFactory.getLog("Response");
+    private static final Log log = LogFactory.getLog("Response");
 
-	@Pointcut("@annotation(org.springframework.web.bind.annotation.ResponseBody)")
-	private void pointCutMethod() {
-	}
+    private static final String APP_NAME = PropertiesUtil.getStringValue("app");
+
+    @Pointcut("@annotation(org.springframework.web.bind.annotation.ResponseBody)")
+    private void pointCutMethod() {
+    }
 
 
-	@AfterReturning(pointcut = "pointCutMethod()", returning = "result")
-	public void doAfterReturn(JoinPoint joinPoint, String result) {
-	}
+    @AfterReturning(pointcut = "pointCutMethod()", returning = "result")
+    public void doAfterReturn(JoinPoint joinPoint, String result) {
+    }
 
-	@AfterThrowing(pointcut = "pointCutMethod()", throwing = "e")
-	public void doAfterException(JoinPoint joinPoint, Throwable e) {
+    @AfterThrowing(pointcut = "pointCutMethod()", throwing = "e")
+    public void doAfterException(JoinPoint joinPoint, Throwable e) {
 //		HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder
 //				.getRequestAttributes()).getRequest();
 //		HttpSession session = request.getSession();
@@ -46,108 +50,111 @@ public class ResponseBodyInterceptor {
 //			for (int i = 0; i < joinPoint.getArgs().length; i++) {
 //			}
 //		}
-	}
+    }
 
-	@After("pointCutMethod()")
-	public void doAfter() {
-	}
+    @After("pointCutMethod()")
+    public void doAfter() {
+    }
 
-	/**
-	 * 
-	 * @param pjp
-	 * @return
-	 * @throws Throwable
-	 */
-	@Around("pointCutMethod()")
-	public Object doAround(ProceedingJoinPoint pjp) throws Throwable {
-		JSONObject result = new JSONObject();
-		result.put("code", 200);
+    /**
+     * @param pjp
+     * @return
+     * @throws Throwable
+     */
+    @Around("pointCutMethod()")
+    public Object doAround(ProceedingJoinPoint pjp) throws Throwable {
+        // 标识不为精准营销项目则不进行返回值操作
+        if (!"online".equalsIgnoreCase(APP_NAME)) {
+            return pjp.proceed();
+        }
+
+        JSONObject result = new JSONObject();
+        result.put("code", 200);
 //		result.put("data", new JSONArray());
-		result.put("_message", "成功");
-		String className = null;
-		String method = null;
-		long begin = System.currentTimeMillis();
-		try {
-			method = pjp.getSignature().getName();
-			className = pjp.getTarget().getClass().getSimpleName();
+        result.put("_message", "成功");
+        String className = null;
+        String method = null;
+        long begin = System.currentTimeMillis();
+        try {
+            method = pjp.getSignature().getName();
+            className = pjp.getTarget().getClass().getSimpleName();
 
-			Object o = pjp.proceed();
+            Object o = pjp.proceed();
 
-			if (o != null) {
-				String str = null;
-				if(o instanceof String) {
-					str = o.toString();
-				}else {
-					str = JSONObject.toJSONString(o);
-				}
-				
-				String reg0 = "\\{.*\\}";
-				String reg1 = "\\[.*\\]";
-				if (str.matches(reg0)) {
-					log.debug("json string!");
-					JSONObject json = JSONObject.parseObject(str);
-					if (json.containsKey("code")) {
-						result.put("code",json.get("code"));
-					} 
-					if (json.containsKey("_message")) {
-						result.put("_message", json.getString("_message"));
-					} 
-					if(json.containsKey("data")) {
-						result.put("data", json.get("data"));
-					}else{
-						result.put("data", json);
-					}
-				} else if (str.matches(reg1)) {
-					log.debug("json array string!");
-					result.put("data", JSONArray.parseArray(str));
-				} else {
-					result.put("data", str);
-				}
-			}
-		} catch (TouchException e) {
-			if(StringUtil.isEmpty(e.getCode())) {
-				result.put("code", 300);
-			}else {
-				result.put("code",e.getCode());
-			}
-			result.put("_message", "失败");
-			log.error(e.getMessage());
-		}
-		log.info("method:" + className + "." + method + " time:"+ (System.currentTimeMillis() - begin) + "ms " + "response:"+result);
-		return JSON.toJSONString(result.toJSONString());
-	}
+            if (o != null) {
+                String str = null;
+                if (o instanceof String) {
+                    str = o.toString();
+                } else {
+                    str = JSONObject.toJSONString(o);
+                }
 
-	/**
-	 * 获取注解中对方法的描述信息 用于Controller层注解
-	 * 
-	 * @param joinPoint
-	 *            切点
-	 * @return 方法描述
-	 * @throws Exception
-	 */
-	public static String getControllerMethodDescription(JoinPoint joinPoint)
-			throws Exception {
-		String targetName = joinPoint.getTarget().getClass().getName();
-		String methodName = joinPoint.getSignature().getName();
-		Object[] arguments = joinPoint.getArgs();
-		Class targetClass = Class.forName(targetName);
-		Method[] methods = targetClass.getMethods();
-		String description = "";
-		for (Method method : methods) {
-			if (method.getName().equals(methodName)) {
-				Class[] clazzs = method.getParameterTypes();
-				if (clazzs.length == arguments.length) {
-					Annotation[] annotations = method.getAnnotations();
-					for (Annotation a : annotations) {
-						Class<?>[] interfaces = a.getClass().getInterfaces();
-						for (Class inter : interfaces) {
-							System.out.println(inter.getName());
-						}
-					}
-					break;
-				}
-			}
-		}
-		return description;
-	}
+                String reg0 = "\\{.*\\}";
+                String reg1 = "\\[.*\\]";
+                if (str.matches(reg0)) {
+                    log.debug("json string!");
+                    JSONObject json = JSONObject.parseObject(str);
+                    if (json.containsKey("code")) {
+                        result.put("code", json.get("code"));
+                    }
+                    if (json.containsKey("_message")) {
+                        result.put("_message", json.getString("_message"));
+                    }
+                    if (json.containsKey("data")) {
+                        result.put("data", json.get("data"));
+                    } else {
+                        result.put("data", json);
+                    }
+                } else if (str.matches(reg1)) {
+                    log.debug("json array string!");
+                    result.put("data", JSONArray.parseArray(str));
+                } else {
+                    result.put("data", str);
+                }
+            }
+        } catch (TouchException e) {
+            if (StringUtil.isEmpty(e.getCode())) {
+                result.put("code", 300);
+            } else {
+                result.put("code", e.getCode());
+            }
+            result.put("_message", "失败");
+            log.error(e.getMessage());
+        }
+        log.info("method:" + className + "." + method + " time:" + (System.currentTimeMillis() - begin) + "ms " + "response:" + result);
+        return JSON.toJSONString(result);
+    }
+
+    /**
+     * 获取注解中对方法的描述信息 用于Controller层注解
+     *
+     * @param joinPoint 切点
+     * @return 方法描述
+     * @throws Exception
+     */
+    public static String getControllerMethodDescription(JoinPoint joinPoint)
+            throws Exception {
+        String targetName = joinPoint.getTarget().getClass().getName();
+        String methodName = joinPoint.getSignature().getName();
+        Object[] arguments = joinPoint.getArgs();
+        Class targetClass = Class.forName(targetName);
+        Method[] methods = targetClass.getMethods();
+        String description = "";
+        for (Method method : methods) {
+            if (method.getName().equals(methodName)) {
+                Class[] clazzs = method.getParameterTypes();
+                if (clazzs.length == arguments.length) {
+                    Annotation[] annotations = method.getAnnotations();
+                    for (Annotation a : annotations) {
+                        Class<?>[] interfaces = a.getClass().getInterfaces();
+                        for (Class inter : interfaces) {
+                            System.out.println(inter.getName());
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+        return description;
+    }
 }
