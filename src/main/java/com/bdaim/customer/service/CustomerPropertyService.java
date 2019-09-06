@@ -9,10 +9,8 @@ import com.bdaim.common.util.page.Pagination;
 import com.bdaim.customer.controller.CustomerPropertyAction;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerLabelDao;
-import com.bdaim.customer.dao.CustomerPropertyDao;
 import com.bdaim.customer.entity.CustomerLabel;
 import com.bdaim.customer.entity.CustomerProperty;
-import com.bdaim.customer.entity.CustomerPropertyEntity;
 import com.bdaim.customer.entity.CustomerPropertyParam;
 import com.bdaim.supplier.dao.SupplierDao;
 import com.bdaim.supplier.entity.SupplierEntity;
@@ -41,7 +39,7 @@ public class CustomerPropertyService {
     private JdbcTemplate jdbcTemplate;
 
     @Resource
-    private CustomerLabelDao customerPropertyDao;
+    private CustomerLabelDao customerLabelDao;
     @Resource
     private CustomerDao customerDao;
     @Resource
@@ -62,7 +60,7 @@ public class CustomerPropertyService {
         customerPropertyEntity.setLabelDesc(customerPropertyParam.getLabelDesc());
         customerPropertyEntity.setType(customerPropertyParam.getType());
         customerPropertyEntity.setOption(customerPropertyParam.getOption());
-        if ((Long) customerPropertyDao.saveReturnPk(customerPropertyEntity) > 0) {
+        if ((Long) customerLabelDao.saveReturnPk(customerPropertyEntity) > 0) {
             return 1;
         }
         return 0;
@@ -72,7 +70,7 @@ public class CustomerPropertyService {
     public int update(CustomerPropertyParam customerPropertyParam) {
         logger.info("modify 自建属性 "+customerPropertyParam.toString());
         if (customerPropertyParam.getLabelId() != null) {
-            CustomerLabel customerPropertyEntity = customerPropertyDao.getCustomerLabel(customerPropertyParam.getLabelId());
+            CustomerLabel customerPropertyEntity = customerLabelDao.getCustomerLabel(customerPropertyParam.getLabelId());
             logger.info("查询结果"+customerPropertyEntity.toString());
             if (customerPropertyEntity != null) {
                 customerPropertyEntity.setCustId(customerPropertyParam.getCustomerId());
@@ -93,7 +91,7 @@ public class CustomerPropertyService {
                     customerPropertyEntity.setOption(customerPropertyParam.getOption());
                 }
                 logger.info("修改前 customerPropertyEntity "+customerPropertyEntity.toString());
-                customerPropertyDao.update(customerPropertyEntity);
+                customerLabelDao.update(customerPropertyEntity);
                 return 1;
             }
         }
