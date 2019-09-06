@@ -10,13 +10,12 @@ import org.apache.commons.logging.LogFactory;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.*;
-import org.springframework.stereotype.Component;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
-@Aspect
-@Component
+//@Aspect
+//@Component
 public class ResponseBodyInterceptor {
 	/*@Resource
 	private LogService logService;*/

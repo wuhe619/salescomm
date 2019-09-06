@@ -1,14 +1,20 @@
 package com.bdaim.rbac.dao;
 
 import com.bdaim.common.dao.SimpleHibernateDao;
+import com.bdaim.common.util.DateUtil;
+import com.bdaim.common.util.IDHelper;
+import com.bdaim.rbac.dto.ManagerType;
 import com.bdaim.rbac.dto.RoleDTO;
 import com.bdaim.rbac.dto.RolesResourceDto;
+import com.bdaim.rbac.dto.UserDTO;
 import com.bdaim.rbac.entity.RoleEntity;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
+import java.sql.Date;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -146,5 +152,93 @@ public class RoleDao extends SimpleHibernateDao<RoleEntity, Serializable> {
         if (list.size() > 0)
             cp = (RoleEntity) list.get(0);
         return cp;
+    }
+
+    public void insert(RoleDTO role) {
+        this.executeUpdateSQL("insert into t_role(ID,NAME,OPTUSER,CREATE_TIME,DEPTID) values('" + role.getKey() + "','" + role.getName() + "','" + role.getUser() + "',now(),'" + role.getDeptId() + "')");
+    }
+
+    public void insert0(RoleDTO role)  {
+        this.executeUpdateSQL("insert into t_role(ID,NAME,OPTUSER,CREATE_TIME,DEPTID) values('"+IDHelper.getID()+"','"+role.getName()+"','"+role.getUser()+"',now(),'"+role.getDeptId()+"')");
+    }
+
+    public void delete(RoleDTO role) {
+        this.executeUpdateSQL("delete from t_role where ID=" + role.getKey());
+        this.executeUpdateSQL("delete from t_mrp_rel where ROLE_ID=" + role.getKey());
+    }
+
+    public RoleDTO getObj(RoleDTO role) {
+        try {
+            List list = this.getSQLQuery("select ID,NAME,OPTUSER,CREATE_TIME,MODIFY_TIME,TYPE from t_role where id=" + role.getKey()).list();
+
+            RoleDTO resultRole = new RoleDTO();
+            for (int i = 0; i < list.size(); i++) {
+                Object[] obj = (Object[]) list.get(i);
+                resultRole.setKey(Long.parseLong(String.valueOf(obj[0])));
+                resultRole.setName(String.valueOf(obj[1]));
+                resultRole.setModifyDate(DateUtil.fmtStrToDate(String.valueOf(obj[2])));
+                resultRole.setCreateDate(DateUtil.fmtStrToDate(String.valueOf(obj[3])));
+                resultRole.setUser(String.valueOf(obj[4]));
+                resultRole.setType(ManagerType.getManagerType(Integer.parseInt(String.valueOf(obj[5]))));
+            }
+            return resultRole;
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+
+        }
+        return null;  //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    /**
+     * 这个方法还没有想好怎么实现
+     *
+     * @param role
+     * @return
+     */
+    public List<RoleDTO> query(RoleDTO role) {
+        List list = this.getSQLQuery("select ID,NAME,OPTUSER,CREATE_TIME,MODIFY_TIME,TYPE from t_user_role_rel where role=" + role.getKey()).list();
+        List<RoleDTO> roles = new ArrayList<RoleDTO>();
+        try {
+            for (int i = 0; i < list.size(); i++) {
+                Object[] obj = (Object[]) list.get(i);
+                RoleDTO roleDTO = new RoleDTO();
+                roleDTO.setKey(Long.parseLong(String.valueOf(obj[0])));
+                roleDTO.setName(String.valueOf(obj[1]));
+                roleDTO.setUser(String.valueOf(obj[2]));
+                roleDTO.setCreateDate(new Date(Long.parseLong(String.valueOf(obj[3]))));
+                roleDTO.setModifyDate(new Date(Long.parseLong(String.valueOf(obj[4]))));
+                roles.add(roleDTO);
+            }
+            return roles;
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;  //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    public List<RoleDTO> queryUserRoles(UserDTO user) {
+        try {
+            List list = this.getSQLQuery("SELECT r.ID,r.NAME,r.OPTUSER,r.CREATE_TIME,r.MODIFY_TIME FROM t_role r,t_user_role_rel rel where r.ID=rel.ROLE " +
+                    "and rel.ID= " + user.getKey()).list();
+
+            List<RoleDTO> roles = new ArrayList<RoleDTO>();
+            for (int i = 0; i < list.size(); i++) {
+                Object[] obj = (Object[]) list.get(i);
+                RoleDTO role = new RoleDTO();
+                role.setKey(Long.parseLong(String.valueOf(obj[0])));
+                role.setName(String.valueOf(obj[1]));
+                role.setUser(String.valueOf(obj[2]));
+                role.setCreateDate(new Date(Long.parseLong(String.valueOf(obj[3]))));
+                role.setModifyDate(new Date(Long.parseLong(String.valueOf(obj[4]))));
+                roles.add(role);
+            }
+            return roles;
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+
+        }
+        return null;
     }
 }
