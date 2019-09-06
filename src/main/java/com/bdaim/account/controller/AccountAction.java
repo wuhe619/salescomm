@@ -158,7 +158,7 @@ public class AccountAction extends BasicAction {
      * @param param
      * @return
      */
-    @RequestMapping(value = "/balance/operate", method = RequestMethod.POST)
+    @RequestMapping(value = "/balance/operation", method = RequestMethod.POST)
     @ResponseBody
     public ResponseInfo banlanceChange(@RequestBody CustomerBillQueryParam param) {
         try {
