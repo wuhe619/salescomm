@@ -20,7 +20,7 @@ import java.util.List;
 public class UserRoleDao extends SimpleHibernateDao<User, Serializable> {
 
     public void insert(UserRoles userRoles)  {
-    	UserDTO user = userRoles.getUser();
+        UserDTO user = userRoles.getUser();
     	List<RoleDTO> roles = userRoles.getRoles();
     	String optUser = userRoles.getOptUser();
         if (roles != null && user != null && !roles.isEmpty() && user.getId()!=null) {

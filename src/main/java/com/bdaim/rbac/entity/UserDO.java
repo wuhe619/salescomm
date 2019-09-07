@@ -34,6 +34,15 @@ public class UserDO {
     private String workNumStatus;
     private Integer userPwdLevel;
 
+    @Transient
+    private String newPassword;
+    /**
+     * 授权平台 1-精准营销 2-金融超市
+     */
+    @Basic
+    @Column(name = "authorize")
+    private Integer authorize;
+
     @Id
     @Column(name = "id")
     public long getId() {
@@ -262,6 +271,23 @@ public class UserDO {
 
     public void setWorkNumStatus(String workNumStatus) {
         this.workNumStatus = workNumStatus;
+    }
+
+
+    public String getNewPassword() {
+        return newPassword;
+    }
+
+    public void setNewPassword(String newPassword) {
+        this.newPassword = newPassword;
+    }
+
+    public Integer getAuthorize() {
+        return authorize;
+    }
+
+    public void setAuthorize(Integer authorize) {
+        this.authorize = authorize;
     }
 
     @Override

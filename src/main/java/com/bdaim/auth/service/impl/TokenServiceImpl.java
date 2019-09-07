@@ -16,7 +16,7 @@ import com.bdaim.rbac.dao.RoleDao;
 import com.bdaim.rbac.dto.ResourceDTO;
 import com.bdaim.rbac.entity.UserDO;
 import com.bdaim.rbac.service.ResourceService;
-import com.bdaim.rbac.service.UserInfoService;
+import com.bdaim.rbac.service.impl.UserInfoService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.GrantedAuthority;

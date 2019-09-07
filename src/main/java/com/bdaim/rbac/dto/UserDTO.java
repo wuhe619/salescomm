@@ -2,6 +2,7 @@ package com.bdaim.rbac.dto;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
 public class UserDTO implements Serializable, Manager<Long> {
     public Long Id;
@@ -19,9 +20,11 @@ public class UserDTO implements Serializable, Manager<Long> {
     public Long deptId;
     public String deptName;
     public String roles;
+    public List<RoleDTO> roleList;
     public String roleName;
     public String optuser;
     public Date createTime;
+    private Date modifyTime;
     public int source;
     /**
      * 授权平台 1-精准营销 2-金融超市
@@ -227,6 +230,22 @@ public class UserDTO implements Serializable, Manager<Long> {
         this.name = name;
     }
 
+    public List<RoleDTO> getRoleList() {
+        return roleList;
+    }
+
+    public void setRoleList(List<RoleDTO> roleList) {
+        this.roleList = roleList;
+    }
+
+    public Date getModifyTime() {
+        return modifyTime;
+    }
+
+    public void setModifyTime(Date modifyTime) {
+        this.modifyTime = modifyTime;
+    }
+
     @Override
     public String toString() {
         return "UserDTO{" +
@@ -245,9 +264,11 @@ public class UserDTO implements Serializable, Manager<Long> {
                 ", deptId=" + deptId +
                 ", deptName='" + deptName + '\'' +
                 ", roles='" + roles + '\'' +
+                ", roleList=" + roleList +
                 ", roleName='" + roleName + '\'' +
                 ", optuser='" + optuser + '\'' +
                 ", createTime=" + createTime +
+                ", modifyTime=" + modifyTime +
                 ", source=" + source +
                 ", authorize='" + authorize + '\'' +
                 ", name='" + name + '\'' +
