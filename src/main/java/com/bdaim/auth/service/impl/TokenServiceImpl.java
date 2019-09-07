@@ -46,6 +46,10 @@ public class TokenServiceImpl implements TokenService {
 
     private static Map name2token = new HashMap();
 
+    public static Map listTokens() {
+        return name2token;
+    }
+
     @Override
     public Token createToken(String username, String password) {
         // TODO Auto-generated method stub
