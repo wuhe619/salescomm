@@ -6,7 +6,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.bdaim.callcenter.dto.SeatCallCenterConfig;
 import com.bdaim.callcenter.dto.SeatsInfo;
 import com.bdaim.callcenter.dto.UnicomSendSmsParam;
-import com.bdaim.callcenter.service.CallCenterService;
 import com.bdaim.common.util.*;
 import com.bdaim.common.util.http.HttpUtil;
 import com.bdaim.customer.dao.CustomerDao;
@@ -37,10 +36,10 @@ import java.util.Map;
  */
 @Service("callCenterService")
 @Transactional
-public class CallCenterServiceImpl implements CallCenterService {
-    private static Logger LOG = LoggerFactory.getLogger(CallCenterServiceImpl.class);
+public class CallCenterService{
+    private static Logger LOG = LoggerFactory.getLogger(CallCenterService.class);
     @Resource
-    private SeatsServiceImpl seatsService;
+    private SeatsService seatsService;
     @Resource
     private CustomerDao customerDao;
     @Resource
@@ -50,11 +49,11 @@ public class CallCenterServiceImpl implements CallCenterService {
 
     public static void main(String[] args) {
         //System.out.println(DigestUtils.md5Hex("13042719930903173X").toUpperCase());
-        System.out.println(new CallCenterServiceImpl().unicomExtensionDelete("LTBD2018090701", "11111111111"));
-        //System.out.println(new CallCenterServiceImpl().unicomDeleteMainNum("5b5badd5ee20615d:LTBD2018090701:BJHKK_zx1", "1", "", "LTBD2018090701", "CC48qcueeWmuGzLP9G9o8", "111111"));
+        System.out.println(new CallCenterService().unicomExtensionDelete("LTBD2018090701", "11111111111"));
+        //System.out.println(new CallCenterService().unicomDeleteMainNum("5b5badd5ee20615d:LTBD2018090701:BJHKK_zx1", "1", "", "LTBD2018090701", "CC48qcueeWmuGzLP9G9o8", "111111"));
     }
 
-    @Override
+    
     public Map<String, Object> getCallCenterConfigData(String customerId, String userId) {
         Map<String, String> enterpriseMessage = seatsService.getEnterpriseMessage(customerId, "cuc");
         if (enterpriseMessage != null) {
@@ -74,7 +73,7 @@ public class CallCenterServiceImpl implements CallCenterService {
         return null;
     }
 
-    @Override
+    
     public Map<String, Object> getCallCenterConfigDataV1(String customerId, String userId, String resourceId) {
         ResourcesPriceDto resourcesPriceDto = null;
         try {
@@ -101,7 +100,7 @@ public class CallCenterServiceImpl implements CallCenterService {
         return result;
     }
 
-    @Override
+    
     public Map<String, Object> getXzConfigData(String custId, String userId, String resourceId) {
         ResourcesPriceDto resourcesPriceDto = null;
         try {
@@ -127,7 +126,7 @@ public class CallCenterServiceImpl implements CallCenterService {
         return result;
     }
 
-    @Override
+    
     public Map<String, Object> unicomSeatLogin(String entId, String userId, String userPwd, String tel, int type) {
         Map<String, String> params = new HashMap<>();
         if (StringUtil.isEmpty(entId)) {
@@ -154,7 +153,7 @@ public class CallCenterServiceImpl implements CallCenterService {
         return null;
     }
 
-    @Override
+    
     public Map<String, Object> unicomSeatLogout(String entId, String userId) {
         Map<String, String> params = new HashMap<>();
         params.put("entId", entId);
@@ -173,7 +172,7 @@ public class CallCenterServiceImpl implements CallCenterService {
         return null;
     }
 
-    @Override
+    
     public Map<String, Object> unicomAgentReset(String entId, String userId) {
         Map<String, String> params = new HashMap<>();
         params.put("entId", entId);
@@ -192,7 +191,7 @@ public class CallCenterServiceImpl implements CallCenterService {
         return null;
     }
 
-    @Override
+    
     public Map<String, Object> unicomSeatMakeCallEx(String entId, String userId, String activityId, String provideId, String customerId, String showNumber) {
         Map<String, String> params = new HashMap<>();
         if (StringUtil.isEmpty(entId)) {
@@ -222,7 +221,7 @@ public class CallCenterServiceImpl implements CallCenterService {
         return null;
     }
 
-    @Override
+    
     public Map<String, Object> unicomGetSeatStatus(String entId, String userId) {
         Map<String, String> params = new HashMap<>();
         if (StringUtil.isEmpty(entId)) {
@@ -246,7 +245,7 @@ public class CallCenterServiceImpl implements CallCenterService {
     }
 
 
-    @Override
+    
     public Map<String, Object> unicomSeatHangUp(String entId, String userId, String uuid) {
         Map<String, String> params = new HashMap<>();
         params.put("entId", entId);
@@ -266,7 +265,7 @@ public class CallCenterServiceImpl implements CallCenterService {
         return null;
     }
 
-    @Override
+    
     public Map<String, Object> unicomGetCallData(String uuid, String callStatus, String callReply, String entId, String activityId, String entPassword) {
         Map<String, String> params = new HashMap<>();
         params.put("uuid", uuid);
@@ -296,7 +295,7 @@ public class CallCenterServiceImpl implements CallCenterService {
         return null;
     }
 
-    @Override
+    
     public Map<String, Object> unicomRecordByRequestId(String uuid, String entId) {
         Map<String, String> params = new HashMap<>();
         params.put("uuid", uuid);
@@ -315,7 +314,7 @@ public class CallCenterServiceImpl implements CallCenterService {
         return null;
     }
 
-    @Override
+    
     public Map<String, Object> unicomAddSeatAccount(String entId, String userId, String userName, String password) {
         Map<String, String> params = new HashMap<>();
         params.put("entId", entId);
@@ -336,7 +335,7 @@ public class CallCenterServiceImpl implements CallCenterService {
         return null;
     }
 
-    @Override
+    
     public Map<String, Object> unicomUpdateSeatPasswd(String entId, String userId, String password) {
         Map<String, String> params = new HashMap<>();
         params.put("entId", entId);
@@ -356,7 +355,7 @@ public class CallCenterServiceImpl implements CallCenterService {
         return null;
     }
 
-    @Override
+    
     public Map<String, Object> unicomExtensionRegister(String entId, String tel, int type) {
         Map<String, String> params = new HashMap<>();
         params.put("entId", entId);
@@ -376,7 +375,7 @@ public class CallCenterServiceImpl implements CallCenterService {
         return null;
     }
 
-    @Override
+    
     public Map<String, Object> unicomSendMessageData(UnicomSendSmsParam unicomSendSmsParam) {
         Map<String, String> params = new HashMap<>();
         params.put("entId", unicomSendSmsParam.getEntId());
@@ -403,7 +402,7 @@ public class CallCenterServiceImpl implements CallCenterService {
         return null;
     }
 
-    @Override
+    
     public Map<String, Object> unicomExtensionDelete(String entId, String extension) {
         Map<String, String> params = new HashMap<>();
         params.put("entId", entId);

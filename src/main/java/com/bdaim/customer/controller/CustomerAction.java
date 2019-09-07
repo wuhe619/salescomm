@@ -9,7 +9,7 @@ import com.bdaim.callcenter.dto.CustomCallConfigDTO;
 import com.bdaim.callcenter.dto.SeatCallCenterConfig;
 import com.bdaim.callcenter.dto.SeatPropertyDTO;
 import com.bdaim.callcenter.dto.XFCallCenterConfig;
-import com.bdaim.callcenter.service.impl.SeatsServiceImpl;
+import com.bdaim.callcenter.service.impl.SeatsService;
 import com.bdaim.common.annotation.CacheAnnotation;
 import com.bdaim.common.annotation.ValidatePermission;
 import com.bdaim.common.auth.service.TokenCacheService;
@@ -80,7 +80,7 @@ public class CustomerAction extends BasicAction {
     @Resource
     SendSmsService sendSmsService;
     @Resource
-    SeatsServiceImpl seatsService;
+    SeatsService seatsService;
     @Resource
     CustomerUserDao customerUserDao;
     @Resource

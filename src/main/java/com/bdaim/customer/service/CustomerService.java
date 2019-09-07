@@ -15,7 +15,7 @@ import com.bdaim.bill.dao.BillDao;
 import com.bdaim.bill.dto.TransactionTypeEnum;
 import com.bdaim.bill.service.TransactionService;
 import com.bdaim.callcenter.dto.*;
-import com.bdaim.callcenter.service.impl.SeatsServiceImpl;
+import com.bdaim.callcenter.service.impl.SeatsService;
 import com.bdaim.common.CommonInfoCodeEnum;
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.dto.PageParam;
@@ -116,7 +116,7 @@ public class CustomerService {
     @Resource
     CustomGroupDao customGroupDao;
     @Resource
-    SeatsServiceImpl seatsService;
+    SeatsService seatsService;
 
     @Resource
     TransactionService transactionService;

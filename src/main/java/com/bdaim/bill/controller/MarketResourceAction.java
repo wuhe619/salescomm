@@ -8,8 +8,8 @@ import com.bdaim.batch.dto.TouchInfoDTO;
 import com.bdaim.batch.service.BatchService;
 import com.bdaim.bill.dto.CallBackInfoParam;
 import com.bdaim.bill.dto.MarketResourceBuyDTO;
-import com.bdaim.callcenter.service.impl.CallCenterServiceImpl;
-import com.bdaim.callcenter.service.impl.SeatsServiceImpl;
+import com.bdaim.callcenter.service.impl.CallCenterService;
+import com.bdaim.callcenter.service.impl.SeatsService;
 import com.bdaim.common.annotation.CacheAnnotation;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.controller.util.ResponseJson;
@@ -717,7 +717,7 @@ public class MarketResourceAction extends BasicAction {
     @Resource
     private OrderService orderService;
     @Resource
-    private CallCenterServiceImpl callCenterService;
+    private CallCenterService callCenterService;
     @Resource
     private CustomerService customerService;
     @Resource
@@ -725,7 +725,7 @@ public class MarketResourceAction extends BasicAction {
     @Resource
     private SendSmsService smsService;
     @Resource
-    private SeatsServiceImpl seatsService;
+    private SeatsService seatsService;
     @Resource
     private MarketTaskService marketTaskService;
 

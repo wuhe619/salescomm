@@ -8,7 +8,7 @@ import com.bdaim.bill.service.TransactionService;
 import com.bdaim.callcenter.dto.CallPriceConfig;
 import com.bdaim.callcenter.dto.XzCallcenterSeatParam;
 import com.bdaim.callcenter.dto.XzCompanyCallcenterParam;
-import com.bdaim.callcenter.service.impl.SeatsServiceImpl;
+import com.bdaim.callcenter.service.impl.SeatsService;
 import com.bdaim.callcenter.util.XzCallCenterUtil;
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.entity.Dic;
@@ -73,7 +73,7 @@ public class CustomerUserService {
     private TransactionService transactionService;
 
     @Resource
-    private SeatsServiceImpl seatsService;
+    private SeatsService seatsService;
 
     @Resource
     private DicDao dicDao;

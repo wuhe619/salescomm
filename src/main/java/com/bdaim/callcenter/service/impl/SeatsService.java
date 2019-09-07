@@ -8,7 +8,6 @@ import com.bdaim.batch.dao.BatchDao;
 import com.bdaim.batch.entity.BatchListEntity;
 import com.bdaim.bill.service.TransactionService;
 import com.bdaim.callcenter.dto.*;
-import com.bdaim.callcenter.service.SeatsService;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.util.*;
 import com.bdaim.common.util.page.PageList;
@@ -52,8 +51,8 @@ import java.util.*;
  */
 @Service("SeatsService")
 @Transactional
-public class SeatsServiceImpl implements SeatsService {
-    private static Logger logger = LoggerFactory.getLogger(SeatsServiceImpl.class);
+public class SeatsService {
+    private static Logger logger = LoggerFactory.getLogger(SeatsService.class);
 
     @Resource
     private JdbcTemplate jdbcTemplate;
@@ -85,7 +84,7 @@ public class SeatsServiceImpl implements SeatsService {
      * @method 渠道/供应商 0-联通 1-移动 2-电信
      * @date: 2018/9/19 17:58
      */
-    @Override
+    
     public void updateMainMessage(List<SeatsMessageParam> seatsList) throws Exception {
         String channelProperty = null;
         ArrayList<String> channelList = new ArrayList<>();
@@ -354,7 +353,7 @@ public class SeatsServiceImpl implements SeatsService {
                             UNICOM_ENT_ID=String.valueOf(maps.get(0).get("property_value"));
                         }
                     //调用联通注册坐席接口
-                    Map<String, Object> registerSeatsMessage = new CallCenterServiceImpl().unicomAddSeatAccount(UNICOM_ENT_ID, String.valueOf(userPropertyInfoList.get(j).get("seatId")), String.valueOf(userPropertyInfoList.get(j).get("seatName")), String.valueOf(userPropertyInfoList.get(j).get("seatPassword")));
+                    Map<String, Object> registerSeatsMessage = new CallCenterService().unicomAddSeatAccount(UNICOM_ENT_ID, String.valueOf(userPropertyInfoList.get(j).get("seatId")), String.valueOf(userPropertyInfoList.get(j).get("seatName")), String.valueOf(userPropertyInfoList.get(j).get("seatPassword")));
                     logger.info("坐席注册结果" + ":" + registerSeatsMessage);
                     if (registerSeatsMessage.get("code").equals("000")) {*/
                             //根据supplierId和type查询resourceId
@@ -480,7 +479,7 @@ public class SeatsServiceImpl implements SeatsService {
      * @method
      * @date: 2018/9/27 13:40
      */
-    @Override
+    
     public int updateSeatMessage(SeatsInfo seatsInfo) {
         //1-讯众 2-联通 3-电信 4-移动
         String channel = seatsInfo.getChannel();
@@ -523,7 +522,7 @@ public class SeatsServiceImpl implements SeatsService {
             if (seatsInfo.getType().equals("2")) {
                 //修改坐席密码 同时调用联通接口修改坐席密码
                 if (!seatsInfo.getSeatPassword().equals(json.getString("seatPassword"))) {
-                    seatsPasswordResult = new CallCenterServiceImpl().unicomUpdateSeatPasswd(callCenterId, seatsInfo.getSeatId(), seatsInfo.getSeatPassword());
+                    seatsPasswordResult = new CallCenterService().unicomUpdateSeatPasswd(callCenterId, seatsInfo.getSeatId(), seatsInfo.getSeatPassword());
                     logger.info("坐席密码修改" + ":" + seatsPasswordResult);
                 }
             }
@@ -531,12 +530,12 @@ public class SeatsServiceImpl implements SeatsService {
             if (seatsInfo != null && seatsInfo.getMainNumber() != null && !seatsInfo.getMainNumber().equals(json.getString("mainNumber")) && "2".equals(channel)) {
               /*  if (json.getString("mainNumber") != null) {
                     //先删除联通注册上的主叫号码（分机号码）
-                    Map<String, Object> extensionDeleteResult = new CallCenterServiceImpl().unicomExtensionDelete(UNICOM_ENT_ID, json.getString("mainNumber"));
+                    Map<String, Object> extensionDeleteResult = new CallCenterService().unicomExtensionDelete(UNICOM_ENT_ID, json.getString("mainNumber"));
                     logger.info("坐席主叫号码删除" + ":" + extensionDeleteResult);
                 }*/
                 //调用联通接口进行增加主叫号码
                 logger.info("修改主叫号码使用的企业外呼id是：" + ":" + callCenterId);
-                result = new CallCenterServiceImpl().unicomExtensionRegister(callCenterId, seatsInfo.getMainNumber(), 1);
+                result = new CallCenterService().unicomExtensionRegister(callCenterId, seatsInfo.getMainNumber(), 1);
                 logger.info("坐席主叫号增加" + ":" + result);
 
                 if (result.get("result") != null && result.get("result").equals("0") || result.get("code").equals("211") || result.get("code").equals("213")) {
@@ -563,7 +562,7 @@ public class SeatsServiceImpl implements SeatsService {
         return update;
     }
 
-    @Override
+    
     public String updatePlatformMessage(SeatsInfo seatsInfo) {
         String phoneNum = seatsInfo.getPhoneNum();
         String userId = seatsInfo.getUserId();
@@ -611,7 +610,7 @@ public class SeatsServiceImpl implements SeatsService {
      * @param customerRegistDTO
      * @return
      */
-    @Override
+    
     public PageList getCustomerInfo(PageParam page, CustomerRegistDTO customerRegistDTO) {
         StringBuilder sqlBuilder = new StringBuilder("SELECT\n" +
                 "\tt1.cust_id AS custId,\n" +
@@ -665,7 +664,7 @@ public class SeatsServiceImpl implements SeatsService {
      * @param
      * @return
      */
-    @Override
+    
     public Map<String, Object> getSeatsMessage(String custId, Integer pageNum, Integer pageSize) {
         //前台传的是页数 需要转化成起始值
         Integer start = (pageNum - 1) * pageSize;
@@ -754,7 +753,7 @@ public class SeatsServiceImpl implements SeatsService {
      * @method
      * @date: 2018/9/21 10:51
      */
-    @Override
+    
     public void updateSeatsStatus(String id, int status, String channel, String custId) throws Exception {
         //根据id和属性名查询seats_status
         List<CustomerUser> customerUserDO = customerUserDao.findBy("id", Long.valueOf(id));
@@ -872,7 +871,7 @@ public class SeatsServiceImpl implements SeatsService {
      * @method
      * @date: 2018/10/22 18:04
      */
-    @Override
+    
     public Object getChannelList(String custId) {
         HashMap<String, Object> map = new HashMap<>();
         //查询枚举类查找所有渠道信息
@@ -917,7 +916,7 @@ public class SeatsServiceImpl implements SeatsService {
      * @method
      * @date: 2018/10/24 13:58
      */
-    @Override
+    
     public Map<String, Object> getApparentNum(String batchId, String cust_id) {
         HashMap<String, Object> map = new HashMap<>();
         List<String> apparentbycustId = null;
@@ -959,7 +958,7 @@ public class SeatsServiceImpl implements SeatsService {
      * @author:duanliying
      * @date: 2018/10/24 14:54
      */
-    @Override
+    
     public void updateApparentNum(String batchId, String apparentNums) throws Exception {
         //根据批次查询对象
         BatchListEntity batchListEntity = batchListDao.findUniqueBy("id", batchId);
@@ -973,7 +972,7 @@ public class SeatsServiceImpl implements SeatsService {
      * @method
      * @date: 2018/11/2 14:03
      */
-    @Override
+    
     public int checkAccount(String account, String seatId) {
         int code = 0;
         if (account != null && !account.equals("")) {
@@ -992,7 +991,7 @@ public class SeatsServiceImpl implements SeatsService {
         return code;
     }
 
-    @Override
+    
     public List<CustomerUserPropertyDO> getUserAllProperty(String userId) {
         return customerUserDao.getAllProperty(userId);
     }
@@ -1132,7 +1131,7 @@ public class SeatsServiceImpl implements SeatsService {
      * @method
      * @date: 2018/11/20 16:02
      */
-    @Override
+    
     public Map<String, String> getExtensionNum(String seatAccount, String cust_id, String channel) {
         Map<String, String> resultmap = new HashMap<>();
         String channelProperty = null;
@@ -1183,7 +1182,7 @@ public class SeatsServiceImpl implements SeatsService {
         return resultmap;
     }
 
-    @Override
+    
     public int updateCallerID(SeatsMessageParam seatsMessageParam, String custId) {
         List<SeatsInfo> list = seatsMessageParam.getSeatsInfoList();
         String UserId = list.get(0).getUserId();
@@ -1247,7 +1246,7 @@ public class SeatsServiceImpl implements SeatsService {
                     if (list.get(i).getType().equals("2")) {
                         //修改坐席密码 同时调用联通接口修改坐席密码
                         if (!list.get(i).getSeatPassword().equals(json.getString("seatPassword"))) {
-                            seatsPasswordResult = new CallCenterServiceImpl().unicomUpdateSeatPasswd(callCenterId, list.get(i).getSeatId(), list.get(i).getSeatPassword());
+                            seatsPasswordResult = new CallCenterService().unicomUpdateSeatPasswd(callCenterId, list.get(i).getSeatId(), list.get(i).getSeatPassword());
                             logger.info("坐席密码修改" + ":" + seatsPasswordResult);
                         }
                     }
@@ -1255,12 +1254,12 @@ public class SeatsServiceImpl implements SeatsService {
                     if (!list.get(i).getMainNumber().equals(json.getString("mainNumber")) && channel.equals(ConstantsUtil.SUPPLIERID__CUC)) {
                  /*  if (json.getString("mainNumber") != null) {
                         //先删除联通注册上的主叫号码（分机号码）
-                        Map<String, Object> extensionDeleteResult = new CallCenterServiceImpl().unicomExtensionDelete(UNICOM_ENT_ID, json.getString("mainNumber"));
+                        Map<String, Object> extensionDeleteResult = new CallCenterService().unicomExtensionDelete(UNICOM_ENT_ID, json.getString("mainNumber"));
                         logger.info("坐席主叫号码删除" + ":" + extensionDeleteResult);
                     }*/
                         //判断是不是联通的 是修改
                         //调用联通接口进行增加主叫号码
-                        resultl = new CallCenterServiceImpl().unicomExtensionRegister(callCenterId, list.get(i).getMainNumber(), 1);
+                        resultl = new CallCenterService().unicomExtensionRegister(callCenterId, list.get(i).getMainNumber(), 1);
                         logger.info("坐席主叫号增加" + ":" + resultl);
                     }
                     if (resultl != null) {

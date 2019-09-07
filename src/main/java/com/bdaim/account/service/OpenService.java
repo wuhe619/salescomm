@@ -11,7 +11,7 @@ import com.bdaim.batch.dto.FixInfo;
 import com.bdaim.batch.entity.BatchDetail;
 import com.bdaim.batch.service.BatchListService;
 import com.bdaim.batch.service.BatchService;
-import com.bdaim.callcenter.service.impl.CallCenterServiceImpl;
+import com.bdaim.callcenter.service.impl.CallCenterService;
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
@@ -262,11 +262,11 @@ public class OpenService {
                     if (jsonObject != null) {
                         if (jsonObject.getString("mainNumber") != null) {
                             //先删除联通注册上的主叫号码（分机号码）
-//                            Map<String, Object> extensionDeleteResult = new CallCenterServiceImpl().unicomExtensionDelete(callCenterId, jsonObject.getString("mainNumber"));
+//                            Map<String, Object> extensionDeleteResult = new CallCenterService().unicomExtensionDelete(callCenterId, jsonObject.getString("mainNumber"));
 //                            log.info("坐席主叫号码删除" + ":" + extensionDeleteResult);
                         }
                         //调用联通接口进行增加主叫号码
-                        result = new CallCenterServiceImpl().unicomExtensionRegister(callCenterId, mainNumber, 1);
+                        result = new CallCenterService().unicomExtensionRegister(callCenterId, mainNumber, 1);
 
                         log.info("坐席主叫号增加" + ":" + result);
                         if (result.get("result") != null && result.get("result").equals("0") || result.get("code").equals("211") || result.get("code").equals("213")) {

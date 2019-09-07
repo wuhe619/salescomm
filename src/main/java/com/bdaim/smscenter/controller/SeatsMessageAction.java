@@ -5,8 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.bdaim.auth.LoginUser;
 import com.bdaim.callcenter.dto.SeatsInfo;
 import com.bdaim.callcenter.dto.SeatsMessageParam;
-import com.bdaim.callcenter.service.SeatsService;
-import com.bdaim.callcenter.service.impl.SeatsServiceImpl;
+import com.bdaim.callcenter.service.impl.SeatsService;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.util.StringUtil;
@@ -41,7 +40,7 @@ public class SeatsMessageAction extends BasicAction {
     @Resource
     SeatsService seatsService;
     @Resource
-    SeatsServiceImpl seatsServiceImpl;
+    SeatsService seatsServiceImpl;
 
     /**
      * @description 配置渠道信息（企业中心id 外显号）

@@ -15,8 +15,8 @@ import com.bdaim.batch.entity.BatchDetail;
 import com.bdaim.bill.dto.CallBackInfoParam;
 import com.bdaim.callcenter.common.CallUtil;
 import com.bdaim.callcenter.dto.*;
-import com.bdaim.callcenter.service.CallCenterService;
-import com.bdaim.callcenter.service.impl.SeatsServiceImpl;
+import com.bdaim.callcenter.service.impl.CallCenterService;
+import com.bdaim.callcenter.service.impl.SeatsService;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.service.PhoneService;
 import com.bdaim.common.util.*;
@@ -129,7 +129,7 @@ public class MarketResourceService {
     @Resource
     private MarketResourceService marketResourceService;
     @Resource
-    private SeatsServiceImpl seatsService;
+    private SeatsService seatsService;
     @Resource
     private CustomerDao customerDao;
     @Resource
