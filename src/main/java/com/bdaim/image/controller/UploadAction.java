@@ -327,6 +327,60 @@ public class UploadAction extends BasicAction {
         }
     }
 
+    /**
+     * 上传企业营业执照副本
+     *
+     * @param request
+     * @param response
+     * @return
+     */
+    @RequestMapping(value = "/uploadImg0", method = RequestMethod.POST)
+    @ResponseBody
+    @CacheAnnotation
+    public Object uploadImgNew(HttpServletRequest request,
+                            HttpServletResponse response) {
+        String cust_id = "0";
+        String pictureName = IDHelper.getTransactionId() + "";
+        return uploadDowloadService.uploadImgNew(request, response, cust_id, pictureName);
+    }
+
+    /**
+     * 下载企业营业执照副本
+     *
+     * @param request
+     * @param response
+     * @param path
+     * @return
+     */
+    /*@RequestMapping(value = "/downloadImg", method = RequestMethod.POST)
+    @ResponseBody
+    @CacheAnnotation
+    public Object downloadDate(HttpServletRequest request,
+                               HttpServletResponse response, String path) {
+        return uploadDowloadImgService.downloadImg(request, response, path);
+    }*/
+
+    @RequestMapping(value = "/uploadFile", method = RequestMethod.POST)
+    @ResponseBody
+    public Object uploadFile(HttpServletRequest request) {
+        String custId = "0";
+       /* if (StringUtil.isNotEmpty(opUser().getCustId())) {
+            custId = opUser().getCustId();
+        }*/
+        String fileName = uploadDowloadService.uploadFile(request, custId);
+        Map<String, Object> resultMap = new HashMap<String, Object>();
+        if (StringUtil.isNotEmpty(fileName)) {
+            resultMap.put("code", 1);
+            resultMap.put("_message", "成功");
+            resultMap.put("url", fileName);
+        } else {
+            resultMap.put("code", 0);
+            resultMap.put("_message", "失败");
+            resultMap.put("url", "");
+        }
+        return JSONObject.toJSON(resultMap);
+    }
+
 
     /**
      * 从输入流中获取字节数组
