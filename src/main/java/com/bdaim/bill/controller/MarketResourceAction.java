@@ -3137,7 +3137,7 @@ public class MarketResourceAction extends BasicAction {
         if ("3".equals(opUser().getUserType())) {
             projectUserId = String.valueOf(opUser().getId());
         }
-        return customerLabelService.getCustomLabel0(custId, pageNum, pageSize, customerGroupId,
+        return customerLabelService.getCustomLabel1(custId, pageNum, pageSize, customerGroupId,
                 marketTaskId, projectUserId, projectId, labelName, type, status);
 
     }

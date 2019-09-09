@@ -836,6 +836,176 @@ public class CustomerLabelService {
     }
 
     /**
+     * 自建属性列表
+     * @param custId
+     * @param pageNum
+     * @param pageSize
+     * @param customerGroupId
+     * @param marketTaskId
+     * @param projectUserId
+     * @param projectId
+     * @param labelName
+     * @param type
+     * @param status
+     * @return
+     */
+    public String getCustomLabel1(String custId, Integer pageNum, Integer pageSize, String customerGroupId, String marketTaskId,
+                                  String projectUserId, String projectId, String labelName, String type, String status) {
+        Integer marketProjectId = 0;
+        boolean projectStatus = false;
+        if (StringUtil.isNotEmpty(marketTaskId)) {
+            projectStatus = true;
+            CustomGroup cg = marketTaskDao.getCustomGroupByMarketTaskId(marketTaskId);
+            if (cg != null) {
+                marketProjectId = cg.getMarketProjectId();
+            }
+        } else if (StringUtil.isNotEmpty(customerGroupId)) {
+            projectStatus = true;
+            CustomGroup cg = customGroupDao.get(NumberConvertUtil.parseInt(customerGroupId));
+            if (cg != null) {
+                marketProjectId = cg.getMarketProjectId();
+            }
+        }
+        Map<String, Object> map = new HashMap<>(16);
+        List<Map<String, Object>> list;
+        JSONObject json = new JSONObject();
+        StringBuffer sql = new StringBuffer();
+        sql.append("  SELECT t1.id,t1.cust_id,t1.user_id,t1.label_id,t1.status,t1.label_name, t1.market_project_id, ")
+                .append("  t1.create_time,t1.update_time, t1.label_desc,t1.type, t1.`option`, t1.sort, t1.required ")
+                .append("  FROM  t_customer_label t1")
+                .append("  WHERE (t1.cust_id ='" + custId + "' OR  t1.cust_id = '0')");
+        // 如果按照客户或者营销任务查询
+        if (projectStatus) {
+            if (marketProjectId != null) {
+                sql.append(" AND (t1.market_project_id = 0 OR t1.market_project_id is null OR t1.market_project_id = " + marketProjectId + " )");
+            } else {
+                sql.append(" AND (t1.market_project_id = 0 OR t1.market_project_id is null)");
+            }
+        }
+
+        if (StringUtil.isNotEmpty(projectId)) {
+            sql.append(" AND t1.market_project_id ='" + projectId + "'");
+        }
+        // 属性名称检索
+        if (StringUtil.isNotEmpty(labelName)) {
+            sql.append(" AND t1.label_name LIKE '%" + labelName + "%'");
+        }
+        // 类型检索
+        if (StringUtil.isNotEmpty(type)) {
+            sql.append(" AND t1.type ='" + type + "'");
+        }
+        // 状态检索
+        if (StringUtil.isNotEmpty(status)) {
+            sql.append(" AND t1.status ='" + status + "'");
+        }
+        if (pageNum == null || "".equals(pageNum) || pageSize == null || "".equals(pageSize)) {
+            sql.append(" AND t1.status =1 ");
+            //sql.append(" GROUP BY t1.label_id");
+            sql.append(" ORDER BY t1.sort IS NULL, t1.sort, t1.label_name ");
+            list = this.customerDao.sqlQuery(sql.toString());
+            if (list != null && list.size() > 0) {
+                for (Map<String, Object> key : list) {
+                    // 如果编辑时间为空则取创建时间
+                    if (key != null) {
+                        // 处理默认自建属性
+                        if (key.get("cust_id") != null && "0".equals(String.valueOf(key.get("cust_id")))) {
+                            key.put("defaultLabel", 1);
+                        } else {
+                            key.put("defaultLabel", 2);
+                        }
+                        // 为空时默认为不必填
+                        if (key.get("required") == null) {
+                            key.put("required", 2);
+                        }
+                        // 处理邀约状态必填属性
+                        key.put("sysLabelId", "");
+                        if (ConstantsUtil.SUCCESS_SYS_LABEL_ID.equals(String.valueOf(key.get("label_id"))) || ConstantsUtil.SUCCESS_SYS_LABEL_NAME.equals(String.valueOf(key.get("label_name")))) {
+                            key.put("sysLabelId", ConstantsUtil.SUCCESS_SYS_LABEL_ID);
+                        }
+                    }
+                }
+            }
+            map.put("custGroupOrders", staticCustomerLabels(list, false));
+            json.put("staffJson", map);
+        } else {
+            StringBuffer maxSortSql = new StringBuffer();
+            maxSortSql.append("SELECT MAX(sort) maxSort FROM t_customer_label t1 WHERE (t1.cust_id ='" + custId + "' OR  t1.cust_id = '0') ");
+            // 项目管理员ID
+            if (StringUtil.isNotEmpty(projectUserId)) {
+                List<String> projectIds = customerUserDao.listProjectByUserId(NumberConvertUtil.parseLong(projectUserId));
+                if (projectIds != null && projectIds.size() > 0) {
+                    sql.append(" AND (t1.market_project_id = 0 OR t1.market_project_id is null OR t1.market_project_id IN (" + SqlAppendUtil.sqlAppendWhereIn(projectIds) + " ) )");
+                    maxSortSql.append(" AND (t1.market_project_id = 0 OR t1.market_project_id is null OR t1.market_project_id IN (" + SqlAppendUtil.sqlAppendWhereIn(projectIds) + " ) )");
+                } else {
+                    sql.append(" AND (t1.market_project_id = 0 OR t1.market_project_id is null) ");
+                    maxSortSql.append(" AND (t1.market_project_id = 0 OR t1.market_project_id is null) ");
+                }
+            }
+            sql.append("  AND (t1.status =1 OR t1.status =2) ");
+            maxSortSql.append("  AND (t1.status =1 OR t1.status =2) ");
+            if (StringUtil.isNotEmpty(projectId)) {
+                maxSortSql.append(" AND t1.market_project_id ='" + projectId + "'");
+            }
+            //sql.append("  GROUP BY t1.label_id");
+            sql.append("  ORDER BY t1.status, t1.create_time DESC, t1.sort ");
+            Page page = null;
+            try {
+                page = customerDao.sqlPageQuery(sql.toString(), pageNum, pageSize);
+            } catch (Exception e) {
+                page = new Page();
+            }
+            map.put("total", page.getTotal());
+            map.put("custGroupOrders", page.getData());
+            if (page.getData() != null && page.getData().size() > 0) {
+                List<Map<String, Object>> maxSortList = customerDao.sqlQuery(maxSortSql.toString());
+                int maxSort = maxSortList.size() > 0 && maxSortList.get(0).get("maxSort") != null ? NumberConvertUtil.parseInt(maxSortList.get(0).get("maxSort")) : 0;
+                MarketProject marketProject;
+                String projectIds, projectName;
+                Map<String, Object> key = null;
+                for (int i = 0; i < page.getData().size(); i++) {
+                    key = (Map<String, Object>) page.getData().get(i);
+                    // 最大排序数
+                    key.put("maxSort", maxSort);
+                    // 为空时默认为不必填
+                    if (key.get("required") == null) {
+                        key.put("required", 2);
+                    }
+                    key.put("acount", "");
+                    // 如果编辑时间为空则取创建时间
+                    if (key != null) {
+                        if (key.get("update_time") == null) {
+                            key.put("update_time", key.get("create_time"));
+                        }
+                        // 处理默认自建属性
+                        if (key.get("cust_id") != null && "0".equals(String.valueOf(key.get("cust_id")))) {
+                            key.put("defaultLabel", 1);
+                        } else {
+                            key.put("defaultLabel", 2);
+                        }
+                    }
+                    key.put("market_project_name", "");
+                    projectIds = String.valueOf(key.get("market_project_id"));
+                    if (StringUtil.isNotEmpty(projectIds)) {
+                        projectName = "";
+                        for (String pId : projectIds.split(",")) {
+                            marketProject = marketProjectDao.selectMarketProject(NumberConvertUtil.parseInt(pId));
+                            if (marketProject != null) {
+                                projectName += marketProject.getName() + ",";
+                            }
+                        }
+                        if (projectName.length() > 0) {
+                            projectName = projectName.substring(0, projectName.length() - 1);
+                        }
+                        key.put("market_project_name", projectName);
+                    }
+                }
+            }
+            json.put("staffJson", map);
+        }
+        return json.toJSONString();
+    }
+
+    /**
      * 营销任务左侧树
      *
      * @param custId
