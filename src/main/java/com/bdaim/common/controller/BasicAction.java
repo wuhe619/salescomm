@@ -589,11 +589,11 @@ public class BasicAction {
             response.setContentType("application/json; charset=utf-8");
             out = response.getWriter();
             if (ex instanceof AccessDeniedException) {
-                out.println(JSON.toJSONString(returnError(ex.getMessage())));
+                out.println(returnError(ex.getMessage()));
             } else if (ex instanceof ParamException) {
-                out.println(JSON.toJSONString(returnError(ex.getMessage())));
+                out.println(returnError(ex.getMessage()));
             } else {
-                out.println(JSON.toJSONString(returnError("系统异常")));
+                out.println(returnError("系统异常"));
             }
 
         } catch (IOException e) {
