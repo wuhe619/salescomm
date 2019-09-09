@@ -110,7 +110,7 @@ public class CustomGroupDao extends SimpleHibernateDao<CustomGroup, Serializable
      */
     public List<CustomGroupDTO> listCustomGroup(CustomGroup param) {
         StringBuilder hql = new StringBuilder();
-        hql.append(" FROM CustomGroupDO m WHERE 1=1 ");
+        hql.append(" FROM CustomGroup m WHERE 1=1 ");
         List<Object> params = new ArrayList<>();
         if (param.getMarketProjectId() != null) {
             hql.append(" AND m.marketProjectId = ? ");

@@ -171,7 +171,7 @@ public class CustomGroupService {
     public Page page(String customer_group_id, String cust_id, String user_id, Integer pageNum, Integer pageSize,
                      String id, String name, Integer status, String callType, String dateStart, String dateEnd,
                      String enterpriseName, String marketProjectId) {
-        StringBuffer hql = new StringBuffer("from CustomGroupDO m where 1=1");
+        StringBuffer hql = new StringBuffer("from CustomGroup m where 1=1");
         List values = new ArrayList();
         if (null != customer_group_id && !"".equals(customer_group_id)) {
             hql.append(" and m.id = ?");
@@ -342,7 +342,7 @@ public class CustomGroupService {
 
     @SuppressWarnings("unchecked")
     public List<CustomGroup> getListByCondition(Map<String, Object> map, Map<String, Object> likeMap, Page page) {
-        String hql = "From CustomGroupDO t where t.availably =1 ";
+        String hql = "From CustomGroup t where t.availably =1 ";
         Date sTime = null;
         Date eTime = null;
         if (map.containsKey(Constant.FILTER_KEY_PREFIX + "dayType")) {
@@ -370,7 +370,7 @@ public class CustomGroupService {
     }
 
     public Integer getCountByCondition(Map<String, Object> map, Map<String, Object> likeMap, Page page) {
-        String hql = "select count(id) From CustomGroupDO t where t.availably =1 ";
+        String hql = "select count(id) From CustomGroup t where t.availably =1 ";
         Date sTime = null;
         Date eTime = null;
         if (map.containsKey(Constant.FILTER_KEY_PREFIX + "dayType")) {
@@ -819,7 +819,7 @@ public class CustomGroupService {
     public List<RemainSourceDTO> getRemainSourceByGroupConditionV1(CustomGroup group, Integer industryPoolId) {
         Map<String, Object> mapCondition = new HashMap<String, Object>();
         List<RemainSourceDTO> resultList = new ArrayList<RemainSourceDTO>();
-        String hql = "select remark From CustomGroupDO t where t.availably =1 ";
+        String hql = "select remark From CustomGroup t where t.availably =1 ";
         mapCondition.put("createUserId", group.getCreateUserId());
         mapCondition.put("groupCondition", "'" + group.getGroupCondition() + "'");
         Query query = customGroupDao.getHqlQuery(hql, mapCondition, new HashMap(), null);

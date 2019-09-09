@@ -13,7 +13,7 @@ public class OrderDao extends SimpleHibernateDao<OrderDO, Serializable> {
 
     public CustomGroup getCusomGroup(String orderId) {
         CustomGroup cp = null;
-        String hql = "from CustomGroupDO m where m.orderId=?";
+        String hql = "from CustomGroup m where m.orderId=?";
         List<CustomGroup> list = this.find(hql, orderId);
         if (list.size() > 0)
             cp = list.get(0);
