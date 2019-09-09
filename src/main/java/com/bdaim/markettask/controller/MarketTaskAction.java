@@ -8,6 +8,7 @@ import com.bdaim.callcenter.dto.XzAutoTaskMonitor;
 import com.bdaim.callcenter.service.impl.XzCallCenterService;
 import com.bdaim.common.annotation.CacheAnnotation;
 import com.bdaim.common.controller.BasicAction;
+import com.bdaim.common.controller.util.ResponseCommon;
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.exception.ParamException;
@@ -236,14 +237,17 @@ public class MarketTaskAction extends BasicAction {
         }
         LOG.info("isValidAccount.marketTaskId::" + marketTaskId);
         LoginUser lu = opUser();
-        Boolean result;
+        ResponseCommon response = new ResponseCommon();
+        boolean result;
         try {
             result = marketTaskService.isValidAccount(lu, marketTaskId);
-        } catch (Exception e) {
-            LOG.error("判断用户方能否致电发短信异常",e);
+        } catch (TouchException e) {
+            LOG.error("判断用户方能否致电发短信异常,", e);
+            response.setMessage(e.getMessage());
             result = false;
         }
-        return returnJsonData(result);
+        response.setCode(result ? 1 : -1);
+        return returnJsonData(response);
     }
 
     @RequestMapping(value = "/selectMarketTask", method = RequestMethod.GET)
