@@ -2685,7 +2685,7 @@ public class CustomerService {
                 if (supplierId.equals(jsonObject.getString("supplierId"))) {
                     map = new HashMap<>();
                     map.put("resourceId", jsonObject.getLongValue("resourceId"));
-                    resourceName = marketResourceDao.getResourceName(jsonObject.getLongValue("resourceId"));
+                    resourceName = marketResourceDao.getResourceName(jsonObject.getInteger("resourceId"));
                     map.put("resourceName", resourceName != null ? resourceName : "");
                     checkedResourceList.add(map);
                 }
@@ -3194,7 +3194,7 @@ public class CustomerService {
                 }
                 // 处理渠道名称
                 if (d.getCallChannel() != null) {
-                    d.setCallChannelName(marketResourceDao.getResourceName(NumberConvertUtil.parseLong(d.getCallChannel())));
+                    d.setCallChannelName(marketResourceDao.getResourceName(NumberConvertUtil.parseInt(d.getCallChannel())));
                 }
                 if (d.getType() == null) {
                     continue;

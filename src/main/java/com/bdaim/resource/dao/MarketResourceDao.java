@@ -21,7 +21,7 @@ import java.util.Map;
  */
 @Component
 public class MarketResourceDao extends SimpleHibernateDao<MarketResourceEntity, Integer> {
-    public String getResourceName(Long resourceId) {
+    public String getResourceName(int resourceId) {
         String hql = "from MarketResourceEntity m where m.resourceId=?";
         List<MarketResourceEntity> list = this.find(hql, resourceId);
         if (list.size() > 0) {
