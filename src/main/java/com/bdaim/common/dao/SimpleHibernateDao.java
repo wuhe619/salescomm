@@ -994,7 +994,7 @@ public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDao
     }
 
     public String queryForObject(String sql, final Object... values) {
-        Session session = getSessionFactory().openSession();
+        Session session = getSession();
         Query query = session.createSQLQuery(sql);
         if (values != null)
             for (int i = 0; i < values.length; i++) {
@@ -1007,7 +1007,7 @@ public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDao
     }
 
     public int queryForInt(String sql, final Object... values) {
-        Session session = getSessionFactory().openSession();
+        Session session = getSession();
         Query query = session.createSQLQuery(sql);
         if (values != null)
             for (int i = 0; i < values.length; i++) {
