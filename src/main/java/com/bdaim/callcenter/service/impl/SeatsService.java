@@ -1845,7 +1845,7 @@ public class SeatsService {
         // 检查坐席配置的呼叫线路渠道与企业是否匹配
         String resourceId = checkSeatConfigStatus(userId, custId);
         if (StringUtil.isNotEmpty(resourceId)) {
-            MarketResourceEntity mr = marketResourceDao.getMarketResource(NumberConvertUtil.parseLong(resourceId));
+            MarketResourceEntity mr = marketResourceDao.getMarketResource(NumberConvertUtil.parseInt(resourceId));
             if (mr == null) {
                 logger.warn("userId:" + userId + ",custId:" + custId + ",呼叫线路资源为空,resourceId:" + resourceId);
                 return null;

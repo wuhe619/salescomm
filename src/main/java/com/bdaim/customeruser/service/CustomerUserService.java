@@ -1215,7 +1215,7 @@ public class CustomerUserService {
      * @throws TouchException
      */
     private JSONObject selectCustResourcePrice(String custId, String resourceId) {
-        MarketResourceEntity marketResource = marketResourceDao.getMarketResource(NumberConvertUtil.parseLong(resourceId));
+        MarketResourceEntity marketResource = marketResourceDao.getMarketResource(NumberConvertUtil.parseInt(resourceId));
         if (marketResource == null) {
             logger.warn("未查询到该资源,custId:" + custId + ",resourceId:" + resourceId);
             return null;

@@ -745,7 +745,7 @@ public class SupplierService {
                 marketResourceProperty = new ResourcePropertyEntity(marketResourceId, "price_config", jsonObject.toJSONString(), new Timestamp(System.currentTimeMillis()));
                 marketResourceDao.saveOrUpdate(marketResourceProperty);
                 dbResourceCodes.remove(marketResourceId);
-                marketResource = marketResourceDao.getMarketResource(jsonObject.getLongValue("resourceId"));
+                marketResource = marketResourceDao.getMarketResource(jsonObject.getInteger("resourceId"));
                 if (marketResource != null) {
                     marketResource.setResname(jsonObject.getString("name"));
                     marketResourceDao.saveOrUpdate(marketResource);

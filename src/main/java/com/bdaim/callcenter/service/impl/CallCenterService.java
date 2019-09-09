@@ -462,7 +462,7 @@ public class CallCenterService{
         try {
             resourceId = seatsService.checkSeatConfigStatus(userId, custId);
             if (StringUtil.isNotEmpty(resourceId)) {
-                MarketResourceEntity mr = marketResourceDao.getMarketResource(NumberConvertUtil.parseLong(resourceId));
+                MarketResourceEntity mr = marketResourceDao.getMarketResource(NumberConvertUtil.parseInt(resourceId));
                 if (mr == null) {
                     LOG.warn("userId:" + userId + ",custId:" + custId + ",呼叫线路资源为空,resourceId:" + resourceId);
                 }

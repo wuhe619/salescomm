@@ -30,7 +30,7 @@ public class MarketResourceDao extends SimpleHibernateDao<MarketResourceEntity, 
         return null;
     }
 
-    public MarketResourceEntity getMarketResource(Long resourceId) {
+    public MarketResourceEntity getMarketResource(int resourceId) {
         String hql = "from MarketResourceEntity m where m.resourceId=?";
         List<MarketResourceEntity> list = this.find(hql, resourceId);
         if (list.size() > 0) {
@@ -197,7 +197,7 @@ public class MarketResourceDao extends SimpleHibernateDao<MarketResourceEntity, 
      * @param propertyName
      * @return
      */
-    public MarketResourceDTO getInfoProperty(long resourceId, String propertyName) {
+    public MarketResourceDTO getInfoProperty(int resourceId, String propertyName) {
         MarketResourceEntity mr = this.getMarketResource(resourceId);
         if (mr != null) {
             ResourcePropertyEntity mp = null;
