@@ -61,7 +61,6 @@ public class User implements Serializable {
     /*@OneToMany(mappedBy = "labelCategoryUser", fetch = FetchType.LAZY)
     private List<UserLabelCategory> userLabelCategoryLs;*/
 
-    @Transient
     private String newPassword;
 
     @Basic
@@ -180,6 +179,7 @@ public class User implements Serializable {
         this.password = password;
     }
 
+    @Transient
     public String getNewPassword() {
         return newPassword;
     }
