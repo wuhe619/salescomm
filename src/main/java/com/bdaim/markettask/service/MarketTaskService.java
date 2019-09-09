@@ -30,6 +30,7 @@ import com.bdaim.customer.entity.CustomerUser;
 import com.bdaim.customer.entity.CustomerUserPropertyDO;
 import com.bdaim.customer.service.CustomerLabelService;
 import com.bdaim.customer.service.CustomerService;
+import com.bdaim.customeruser.dto.CustomerUserTypeEnum;
 import com.bdaim.customgroup.dao.CustomGroupDao;
 import com.bdaim.customgroup.dto.CustomGroupDTO;
 import com.bdaim.customgroup.entity.CustomGroup;
@@ -1558,7 +1559,10 @@ public class MarketTaskService {
                     columnList.add(String.valueOf(row.get("superid")));
                     columnList.add(String.valueOf(row.get("customer_group_id")));
                     columnList.add(String.valueOf(row.get("market_task_id")));
-                    columnList.add(PhoneAreaUtil.replacePhone(phoneMap.get(String.valueOf(row.get("superid")))));
+                    // 普通员工取消手机号表头
+                    if(!CustomerUserTypeEnum.STAFF_USER.getType().equals(loginUser.getUserType())){
+                        columnList.add(PhoneAreaUtil.replacePhone(phoneMap.get(String.valueOf(row.get("superid")))));
+                    }
                     //归属地
                     columnList.add(String.valueOf(row.get("phonearea")));
                     columnList.add(String.valueOf(realNameMap.get(String.valueOf(row.get("user_id")))));
@@ -1759,6 +1763,84 @@ public class MarketTaskService {
     }
 
     /**
+     * 获取导出成功单excel表头,普通员工不导出手机号表头
+     * @param user
+     * @param marketProjectId
+     * @return
+     */
+    public List<List<String>> getSuccessExcelTitle(LoginUser user, int marketProjectId) {
+        List<CustomerLabelDTO> labels = customerLabelDao.listLabelIds(user.getCustId(), marketProjectId, true);
+        // 处理excel表头
+        List<List<String>> headers = new ArrayList<>();
+        List<String> head;
+        Set<String> headNames = new HashSet<>();
+        headNames.add("身份ID");
+        headNames.add("客户群ID");
+        headNames.add("营销任务ID");
+        // 普通员工取消手机号表头
+        if(!CustomerUserTypeEnum.STAFF_USER.getType().equals(user.getUserType())){
+            headNames.add("手机号");
+        }
+        headNames.add("归属地");
+        headNames.add("操作人");
+        headNames.add("登录账号");
+        headNames.add("时间");
+        headNames.add("录音");
+        headNames.add("意向度");
+
+        for (CustomerLabelDTO map : labels) {
+            if (StringUtil.isNotEmpty(map.getLabelName())) {
+                head = new ArrayList<>();
+                if (headNames.contains(map.getLabelName())) {
+                    head.add(map.getLabelName() + map.getLabelId());
+                } else {
+                    head.add(map.getLabelName());
+                    headNames.add(map.getLabelName());
+                }
+                headers.add(head);
+            }
+        }
+        head = new ArrayList<>();
+        head.add("身份ID");
+        headers.add(head);
+
+        head = new ArrayList<>();
+        head.add("客户群ID");
+        headers.add(head);
+
+        head = new ArrayList<>();
+        head.add("营销任务ID");
+        headers.add(head);
+        // 普通员工取消手机号表头
+        if(!CustomerUserTypeEnum.STAFF_USER.getType().equals(user.getUserType())){
+            head = new ArrayList<>();
+            head.add("手机号");
+            headers.add(head);
+        }
+
+        head = new ArrayList<>();
+        head.add("归属地");
+        headers.add(head);
+
+        head = new ArrayList<>();
+        head.add("操作人");
+        headers.add(head);
+
+        head = new ArrayList<>();
+        head.add("登录账号");
+        headers.add(head);
+
+        head = new ArrayList<>();
+        head.add("时间");
+        headers.add(head);
+
+        head = new ArrayList<>();
+        head.add("录音");
+        headers.add(head);
+        return headers;
+    }
+
+    /**
      * 导出满足自建属性的单个营销任务的成功单
      *
      * @param response
@@ -1818,7 +1900,7 @@ public class MarketTaskService {
                 return;
             }
             // 获取excel表头
-            List<List<String>> headers = getSuccessExcelTitle(custId, marketProjectId);
+            List<List<String>> headers = getSuccessExcelTitle(loginUser, marketProjectId);
             if (cg.getTaskType() != null && 3 == cg.getTaskType().intValue()) {
                 List<String> intent = new ArrayList();
                 intent.add("意向度");
