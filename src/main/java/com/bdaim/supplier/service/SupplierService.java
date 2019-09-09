@@ -745,7 +745,7 @@ public class SupplierService {
                 marketResourceProperty = new ResourcePropertyEntity(marketResourceId, "price_config", jsonObject.toJSONString(), new Timestamp(System.currentTimeMillis()));
                 marketResourceDao.saveOrUpdate(marketResourceProperty);
                 dbResourceCodes.remove(marketResourceId);
-                marketResource = marketResourceDao.getMarketResource(jsonObject.getLongValue("resourceId"));
+                marketResource = marketResourceDao.getMarketResource(jsonObject.getInteger("resourceId"));
                 if (marketResource != null) {
                     marketResource.setResname(jsonObject.getString("name"));
                     marketResourceDao.saveOrUpdate(marketResource);
@@ -935,7 +935,7 @@ public class SupplierService {
         SupplierEntity supplierDO;
         List<MarketResourceDTO> result = new ArrayList<>();
         for (MarketResourceDTO m : list) {
-            supplierDO = supplierDao.getSupplier(Long.parseLong(m.getSupplierId()));
+            supplierDO = supplierDao.getSupplier(NumberConvertUtil.parseInt(m.getSupplierId()));
             if (supplierDO != null && supplierDO.getStatus() != null && 1 == supplierDO.getStatus()) {
                 m.setSupplierName(supplierDO.getName());
                 marketResourceProperty = marketResourceDao.getProperty(String.valueOf(m.getResourceId()), "price_config");
@@ -1065,7 +1065,7 @@ public class SupplierService {
             dto.setResname(resource.getResname());
             dto.setSupplierId(resource.getSupplierId());
             dto.setChargingType(json.getInteger("type"));
-            SupplierEntity supplierDO = supplierDao.getSupplier(Long.parseLong(resource.getSupplierId()));
+            SupplierEntity supplierDO = supplierDao.getSupplier(NumberConvertUtil.parseInt(resource.getSupplierId()));
             dto.setSupplierName(supplierDO.getName());
             if ("1".equals(json.getString("type")) || "3".equals(json.getString("type"))) {
                 callCenter.add(dto);
@@ -1092,7 +1092,7 @@ public class SupplierService {
                     dto.setCallCenterType(property.getInteger("call_center_type"));
                 }
             }
-            SupplierEntity supplierDO = supplierDao.getSupplier(Long.parseLong(resource.getSupplierId()));
+            SupplierEntity supplierDO = supplierDao.getSupplier(NumberConvertUtil.parseInt(resource.getSupplierId()));
             dto.setSupplierName(supplierDO.getName());
             return dto;
         }

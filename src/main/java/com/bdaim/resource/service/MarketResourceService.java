@@ -3428,10 +3428,10 @@ public class MarketResourceService {
                     marketTemplateDTO.setCustName(customerDao.getEnterpriseName(marketTemplateDTO.getCustId()));
                     // 查询供应商和资源名称
                     if (StringUtil.isNotEmpty(marketTemplateDTO.getResourceId())) {
-                        tmpMarketResource = marketResourceDao.getMarketResource(Long.parseLong(marketTemplateDTO.getResourceId()));
+                        tmpMarketResource = marketResourceDao.getMarketResource(NumberConvertUtil.parseInt(marketTemplateDTO.getResourceId()));
                         marketTemplateDTO.setResourceName(tmpMarketResource != null ? tmpMarketResource.getResname() : "");
                         if (tmpMarketResource != null) {
-                            marketTemplateDTO.setSupplierName(supplierDao.getSupplierName(Long.parseLong(tmpMarketResource.getSupplierId())));
+                            marketTemplateDTO.setSupplierName(supplierDao.getSupplierName(NumberConvertUtil.parseInt(tmpMarketResource.getSupplierId())));
                         } else {
                             marketTemplateDTO.setSupplierName("");
                         }
@@ -3518,10 +3518,10 @@ public class MarketResourceService {
         marketTemplateDTO.setCustName(customerDao.getEnterpriseName(marketTemplateDTO.getCustId()));
         // 查询供应商和资源名称
         if (StringUtil.isNotEmpty(marketTemplateDTO.getResourceId())) {
-            MarketResourceEntity tmpMarketResource = marketResourceDao.getMarketResource(Long.parseLong(marketTemplateDTO.getResourceId()));
+            MarketResourceEntity tmpMarketResource = marketResourceDao.getMarketResource(NumberConvertUtil.parseInt(marketTemplateDTO.getResourceId()));
             marketTemplateDTO.setResourceName(tmpMarketResource != null ? tmpMarketResource.getResname() : "");
             if (tmpMarketResource != null) {
-                marketTemplateDTO.setSupplierName(supplierDao.getSupplierName(Long.parseLong(tmpMarketResource.getSupplierId())));
+                marketTemplateDTO.setSupplierName(supplierDao.getSupplierName(NumberConvertUtil.parseInt(tmpMarketResource.getSupplierId())));
             } else {
                 marketTemplateDTO.setSupplierName("");
             }

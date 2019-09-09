@@ -2641,7 +2641,7 @@ public class CustomerService {
                 jsonObject = jsonArray.getJSONObject(i);
                 map = new HashMap<>();
                 map.put("supplierId", jsonObject.getLongValue("supplierId"));
-                supplierName = supplierDao.getSupplierName(jsonObject.getLongValue("supplierId"));
+                supplierName = supplierDao.getSupplierName(jsonObject.getInteger("supplierId"));
                 map.put("supplierName", supplierName != null ? supplierName : "");
                 checkedSupplierList.add(map);
             }
@@ -2685,7 +2685,7 @@ public class CustomerService {
                 if (supplierId.equals(jsonObject.getString("supplierId"))) {
                     map = new HashMap<>();
                     map.put("resourceId", jsonObject.getLongValue("resourceId"));
-                    resourceName = marketResourceDao.getResourceName(jsonObject.getLongValue("resourceId"));
+                    resourceName = marketResourceDao.getResourceName(jsonObject.getInteger("resourceId"));
                     map.put("resourceName", resourceName != null ? resourceName : "");
                     checkedResourceList.add(map);
                 }
@@ -3194,7 +3194,7 @@ public class CustomerService {
                 }
                 // 处理渠道名称
                 if (d.getCallChannel() != null) {
-                    d.setCallChannelName(marketResourceDao.getResourceName(NumberConvertUtil.parseLong(d.getCallChannel())));
+                    d.setCallChannelName(marketResourceDao.getResourceName(NumberConvertUtil.parseInt(d.getCallChannel())));
                 }
                 if (d.getType() == null) {
                     continue;
@@ -3335,7 +3335,7 @@ public class CustomerService {
             String type = marketResourceDTO.getChargingType() + "";
 
             if (StringUtil.isNotEmpty(supplierId)) {
-                SupplierEntity s = supplierDao.getSupplier(Long.valueOf(supplierId));
+                SupplierEntity s = supplierDao.getSupplier(NumberConvertUtil.parseInt(supplierId));
                 if (supplierDao != null) {
                     map.put("supplier", s.getName());
                 }

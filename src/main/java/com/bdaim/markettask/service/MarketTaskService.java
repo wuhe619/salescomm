@@ -2204,7 +2204,7 @@ public class MarketTaskService {
         MarketTaskProperty cChannel = marketTaskDao.getProperty(marketTaskId, "callChannel");
         if (cChannel != null && StringUtil.isNotEmpty(cChannel.getPropertyValue())) {
             dto.setCallChannel(cChannel.getPropertyValue());
-            MarketResourceDTO mr = marketResourceDao.getInfoProperty(NumberConvertUtil.parseLong(cChannel.getPropertyValue()), "price_config");
+            MarketResourceDTO mr = marketResourceDao.getInfoProperty(NumberConvertUtil.parseInt(cChannel.getPropertyValue()), "price_config");
             if (mr != null && mr.getTypeCode() != null) {
                 dto.setCallChannelName(mr.getResname());
                 JSONObject priceConfig = JSON.parseObject(mr.getResourceProperty());

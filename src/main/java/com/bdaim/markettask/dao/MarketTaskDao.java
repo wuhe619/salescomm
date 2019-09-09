@@ -71,7 +71,7 @@ public class MarketTaskDao extends SimpleHibernateDao<MarketTask, String> {
      * @return
      */
     public List<MarketTask> listMarketTaskByProjectId(int projectId) {
-        String hql = "from MarketTask m where m.customerGroupId IN (SELECT id FROM CustomGroupDO WHERE marketProjectId = ?) ORDER BY m.createTime DESC";
+        String hql = "from MarketTask m where m.customerGroupId IN (SELECT id FROM CustomGroup WHERE marketProjectId = ?) ORDER BY m.createTime DESC";
         List<MarketTask> list = this.find(hql, projectId);
         return list;
     }
@@ -94,7 +94,7 @@ public class MarketTaskDao extends SimpleHibernateDao<MarketTask, String> {
      */
     public CustomGroup getCustomGroupByMarketTaskId(String marketTaskId) {
         CustomGroup cp = null;
-        String hql = "from CustomGroupDO m where m.id = (SELECT customerGroupId FROM MarketTask WHERE id = ?) ";
+        String hql = "from CustomGroup m where m.id = (SELECT customerGroupId FROM MarketTask WHERE id = ?) ";
         List<CustomGroup> list = this.find(hql, marketTaskId);
         if (list.size() > 0)
             cp = list.get(0);

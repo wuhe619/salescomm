@@ -824,7 +824,7 @@ public class CustomerSeaService {
             LOG.info("channelId is null");
             return null;
         }
-        MarketResourceDTO mr = marketResourceDao.getInfoProperty(Long.valueOf(channelId), "price_config");
+        MarketResourceDTO mr = marketResourceDao.getInfoProperty(NumberConvertUtil.parseInt(channelId), "price_config");
         LOG.info("mr=" + JSONObject.toJSONString(mr));
         if (mr != null && mr.getTypeCode() != null) {
             JSONObject priceConfig = JSON.parseObject(mr.getResourceProperty());
@@ -2599,7 +2599,7 @@ public class CustomerSeaService {
         CustomerSeaProperty cChannel = customerSeaDao.getProperty(seaId, "callChannel");
         if (cChannel != null && StringUtil.isNotEmpty(cChannel.getPropertyValue())) {
             dto.setCallChannel(cChannel.getPropertyValue());
-            MarketResourceDTO mr = marketResourceDao.getInfoProperty(NumberConvertUtil.parseLong(cChannel.getPropertyValue()), "price_config");
+            MarketResourceDTO mr = marketResourceDao.getInfoProperty(NumberConvertUtil.parseInt(cChannel.getPropertyValue()), "price_config");
             if (mr != null && mr.getTypeCode() != null) {
                 dto.setCallChannelName(mr.getResname());
                 JSONObject priceConfig = JSON.parseObject(mr.getResourceProperty());

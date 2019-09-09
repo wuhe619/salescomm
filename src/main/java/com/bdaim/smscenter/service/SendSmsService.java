@@ -222,7 +222,7 @@ public class SendSmsService{
                     }
                     if (custSmsConfig != null) {
                         String supplierId = "";
-                        MarketResourceEntity mr = marketResourceDao.getMarketResource(NumberConvertUtil.parseLong(resourceId));
+                        MarketResourceEntity mr = marketResourceDao.getMarketResource(NumberConvertUtil.parseInt(resourceId));
                         if (mr != null) {
                             supplierId = mr.getSupplierId();
                         }

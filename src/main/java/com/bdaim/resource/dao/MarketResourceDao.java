@@ -1,6 +1,7 @@
 package com.bdaim.resource.dao;
 
 import com.bdaim.common.dao.SimpleHibernateDao;
+import com.bdaim.common.util.NumberConvertUtil;
 import com.bdaim.common.util.SqlAppendUtil;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.common.dto.Page;
@@ -20,7 +21,7 @@ import java.util.Map;
  */
 @Component
 public class MarketResourceDao extends SimpleHibernateDao<MarketResourceEntity, Integer> {
-    public String getResourceName(Long resourceId) {
+    public String getResourceName(int resourceId) {
         String hql = "from MarketResourceEntity m where m.resourceId=?";
         List<MarketResourceEntity> list = this.find(hql, resourceId);
         if (list.size() > 0) {
@@ -29,7 +30,7 @@ public class MarketResourceDao extends SimpleHibernateDao<MarketResourceEntity, 
         return null;
     }
 
-    public MarketResourceEntity getMarketResource(Long resourceId) {
+    public MarketResourceEntity getMarketResource(int resourceId) {
         String hql = "from MarketResourceEntity m where m.resourceId=?";
         List<MarketResourceEntity> list = this.find(hql, resourceId);
         if (list.size() > 0) {
@@ -182,7 +183,7 @@ public class MarketResourceDao extends SimpleHibernateDao<MarketResourceEntity, 
     public ResourcePropertyEntity getProperty(String resourceId, String propertyName) {
         ResourcePropertyEntity mp = null;
         String hql = "from ResourcePropertyEntity m where m.resourceId=? and m.propertyName=?";
-        List<ResourcePropertyEntity> list = this.find(hql, resourceId, propertyName);
+        List<ResourcePropertyEntity> list = this.find(hql, NumberConvertUtil.parseInt(resourceId), propertyName);
         if (list.size() > 0) {
             mp = list.get(0);
         }
@@ -196,7 +197,7 @@ public class MarketResourceDao extends SimpleHibernateDao<MarketResourceEntity, 
      * @param propertyName
      * @return
      */
-    public MarketResourceDTO getInfoProperty(long resourceId, String propertyName) {
+    public MarketResourceDTO getInfoProperty(int resourceId, String propertyName) {
         MarketResourceEntity mr = this.getMarketResource(resourceId);
         if (mr != null) {
             ResourcePropertyEntity mp = null;
