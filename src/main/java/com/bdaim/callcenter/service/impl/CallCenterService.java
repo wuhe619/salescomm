@@ -23,9 +23,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
-
+import javax.crypto.SecretKey;
+import javax.crypto.Cipher;
+import sun.misc.BASE64Decoder;
+import sun.misc.BASE64Encoder;
 import javax.annotation.Resource;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.DESedeKeySpec;
 import javax.transaction.Transactional;
+import java.net.URLEncoder;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -45,6 +54,7 @@ public class CallCenterService{
     @Resource
     private MarketResourceService marketResourceServiceImpl;
     private final static String UNICOM_BASE_URL = "http://120.52.23.243:10080/jzyxpt/";
+    private final static String UNICOM_BASE_URL_V1 = "http://120.52.23.243:10080/sdyxinterface/20190426/";
 
 
     public static void main(String[] args) {
@@ -505,5 +515,136 @@ public class CallCenterService{
         return result;
     }
 
+    /**
+     * 联通坐席外呼接口V2
+     * @param entId
+     * @param customerId
+     * @param callerNumber
+     * @param showNumber
+     * @param key
+     * @return
+     */
+    public Map<String, Object> unicomSeatMakeCallExV2(String entId, String customerId, String callerNumber, String showNumber,String key) {
+        Map<String, String> params = new HashMap<>();
+        params.put("dataId", customerId);
+        params.put("callerNumber", callerNumber);
+        params.put("showNumber", showNumber);
+        String result;
+        try {
+            Map<String, Object> headers = new HashMap<>(16);
+            //获取请求token
+            String token= unicomGetToken("111111", entId);
+            //签名处理
+            DateFormat df = new SimpleDateFormat("yyyyMMddHHmmssSSS");
+            String sysTime =df.format(new Date());
+            String parmToken=token+sysTime;
+            LOG.info("加密数据是:" + parmToken);
+            String sgin = encryptThreeDESECB(URLEncoder.encode(parmToken, "UTF-8"), key);
+            LOG.info("加密结果是:" + sgin);
+            headers.put("Sig", sgin);
+            headers.put("Content-Type", "application/json;charset=utf-8");
+            LOG.info("联通坐席外呼参数:" + params.toString());
+            result = HttpUtil.httpPost(UNICOM_BASE_URL_V1 + "call/makeCall/" + entId, params, null);
+            LOG.info("联通坐席外呼返回:" + result);
+            if (StringUtil.isNotEmpty(result)) {
+                return JSON.parseObject(result, Map.class);
+            }
+        } catch (Exception e) {
+            LOG.error("联通坐席外呼失败:", e);
+            throw new RuntimeException("联通坐席外呼失败", e);
+        }
+        return null;
+    }
+
+
+    /**
+     * 获取企业登录token
+     * @param entPassword
+     * @param entId
+     * @return
+     */
+    public String unicomGetToken(String entPassword, String entId) {
+        Map<String, String> params = new HashMap<>();
+        params.put("entPassword", entPassword);
+        String result;
+        try {
+            Map<String, Object> headers = new HashMap<>();
+            headers.put("Content-Type", "application/json;charset=utf-8");
+            LOG.info("联通获取token参数:" + params.toString());
+            result = HttpUtil.httpPost(UNICOM_BASE_URL_V1 + "login/getToken/"+entId, params, headers);
+            //result = "{ \"code\": \"000\", \"msg\": \"success\", \"data\": { \"token\": \"eyJ0eXAiOiJKV1\" } }";
+            LOG.info("联通获取token联通返回结果:" + result);
+            if (StringUtil.isNotEmpty(result)) {
+                JSONObject jsonObject = JSON.parseObject(result);
+                String code = jsonObject.getString("code");
+                if ("000".equals(code)) {
+                    String token = jsonObject.getJSONObject("data").getString("token");
+                    LOG.info("联通获取token:" + token);
+                    return token;
+                }else {
+                    LOG.warn("联通获取token失败:");
+                    return "";
+                }
+            }
+        } catch (Exception e) {
+            LOG.error("联通获取token参数失败:", e);
+            throw new RuntimeException("联通获取token失败", e);
+        }
+        return null;
+    }
+    /**
+     * token加密流程
+     * @param src
+     * @param key
+     * @return
+     * @throws Exception
+     */
+    public static String encryptThreeDESECB(final String src, final String key) throws Exception {
+
+        final DESedeKeySpec dks = new DESedeKeySpec(key.getBytes("UTF-8"));
+        final SecretKeyFactory keyFactory = SecretKeyFactory.getInstance("DESede");
+        final SecretKey securekey = keyFactory.generateSecret(dks);
+
+        final Cipher cipher = Cipher.getInstance("DESede/ECB/PKCS5Padding");
+        cipher.init(Cipher.ENCRYPT_MODE, securekey);
+        final byte[] b = cipher.doFinal(src.getBytes());
+
+        final BASE64Encoder encoder = new BASE64Encoder();
+        return encoder.encode(b).replaceAll("\r", "").replaceAll("\n", "");
+
+    }
+    /**
+     * token解密流程
+     * @param
+     * @param key
+     * @return
+     * @throws Exception
+     */
+    public static String decryptThreeDESECB(final String token, final String key) throws Exception {
+        final BASE64Decoder decoder = new BASE64Decoder();
+        final byte[] bytesrc = decoder.decodeBuffer(token);
+        final DESedeKeySpec dks = new DESedeKeySpec(key.getBytes("UTF-8"));
+        final SecretKeyFactory keyFactory = SecretKeyFactory.getInstance("DESede");
+        final SecretKey securekey = keyFactory.generateSecret(dks);
+        final Cipher cipher = Cipher.getInstance("DESede/ECB/PKCS5Padding");
+        cipher.init(Cipher.DECRYPT_MODE, securekey);
+        final byte[] retByte = cipher.doFinal(bytesrc);
+        return new String(retByte);
+    }
+    /*public static void main(String[] args) throws Exception {
+        String key = "wuhwfoihfiuwbfqegiefuwfe";
+        DateFormat df = new SimpleDateFormat("yyyyMMddHHmmssSSS");
+        String sysTime =df.format(new Date());
+        // 加密流程
+        String token="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUz";
+        String parmToken=token+sysTime;
+        String sgin = encryptThreeDESECB(URLEncoder.encode(parmToken, "UTF-8"), key);
+        System.out.println(sgin);
+
+        // 解密流程
+        String tele_decrypt = decryptThreeDESECB(sgin, key);
+        System.out.println("模拟代码解密:" + tele_decrypt);
+
+    }*/
 
 }
