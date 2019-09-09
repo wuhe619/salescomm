@@ -493,6 +493,9 @@ public class CustomerAction extends BasicAction {
             responseResult.setUserType(userDetail.getUserType());
             responseResult.setUser_id(userDetail.getId().toString());
             responseResult.setTokenid(userDetail.getTokenid());
+            if (userDetail != null) {
+                this.tokenCacheService.saveToken(userDetail);
+            }
             // 记录用户行为
             saveUserOperlog(u.getId(), 1, "", "", "", client, channel, registerSource, "", userDetail.getTokenid(), "");
         } else {
