@@ -8,8 +8,8 @@ import java.sql.Timestamp;
  * @date 2018/9/7
  * @description
  */
-/*@Entity
-@Table(name = "t_customer_label", schema = "", catalog = "")*/
+@Entity
+@Table(name = "t_customer_label", schema = "", catalog = "")
 public class CustomerPropertyEntity {
     private Long id;
     private String custId;
