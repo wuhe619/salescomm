@@ -17,6 +17,8 @@ spring:
   jpa:
     show-sql: true
     open-in-view: true
+    hibernate:
+      use-new-id-generator-mappings: false
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQL5InnoDBDialect
@@ -24,6 +26,7 @@ spring:
         current_session_context_class: org.springframework.orm.hibernate5.SpringSessionContext
         naming-strategy: org.hibernate.cfg.ImprovedNamingStrategy
         format_sql: true
+
   jackson:
     default-property-inclusion: non_null
   redis:
