@@ -837,6 +837,7 @@ public class CustomerLabelService {
 
     /**
      * 自建属性列表
+     *
      * @param custId
      * @param pageNum
      * @param pageSize
@@ -1302,6 +1303,20 @@ public class CustomerLabelService {
      */
     public boolean checkLabelNameExist(String includeLabelId, String name, int status, String custId) {
         List<CustomerLabel> customerLabels = customerLabelDao.listCustomerLabelNameExist(includeLabelId, name, status, custId);
+        return customerLabels.size() > 0 ? true : false;
+    }
+
+    /**
+     * 检查项目下自建属性名称是否存在
+     * @param includeLabelId
+     * @param name
+     * @param status
+     * @param custId
+     * @param projectId
+     * @return
+     */
+    public boolean checkProjectLabelNameExist(String includeLabelId, String name, int status, String custId, String projectId) {
+        List<CustomerLabel> customerLabels = customerLabelDao.listCustomerLabelNameExist(includeLabelId, name, status, custId, projectId);
         return customerLabels.size() > 0 ? true : false;
     }
 }

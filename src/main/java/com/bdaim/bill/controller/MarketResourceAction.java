@@ -124,7 +124,7 @@ public class MarketResourceAction extends BasicAction {
         if (StringUtil.isNotEmpty(touchStatus)) {
             touchStatu = Integer.parseInt(touchStatus);
         }
-        try{
+        try {
             list = marketResourceService.queryRecordVoicelog(page, cust_id, userid, user_type, superId,
                     realName, createTimeStart, createTimeEnd, enterpriseId, batchId, touchStatu, enterpriseName);
 
@@ -1116,7 +1116,7 @@ public class MarketResourceAction extends BasicAction {
     @ResponseBody
     @CacheAnnotation
     public String queryRecordVoicelogV0(@Valid PageParam pageParam, BindingResult error, String superId, String customerGroupId, String realName, String createTimeStart,
-                                       String createTimeEnd, String remark, String callStatus, String intentLevel, String auditingStatus) {
+                                        String createTimeEnd, String remark, String callStatus, String intentLevel, String auditingStatus) {
         if (error.hasErrors()) {
             return getErrors(error);
         }
@@ -2985,30 +2985,30 @@ public class MarketResourceAction extends BasicAction {
         if (StringUtil.isEmpty(opUser().getCustId())) {
             throw new TouchException("20010", "系统异常:用户信息不存在");
         }
-        synchronized (this) {
-            boolean nameExist = customerLabelService.checkLabelNameExist("", labelName, 1, opUser().getCustId());
+       /* synchronized (this) {
+            boolean nameExist = customerLabelService.checkProjectLabelNameExist("", labelName, 1, opUser().getCustId());
             if (nameExist) {
                 resultMap.put("code", "0");
                 resultMap.put("message", "自建属性名称已经存在");
                 json.put("data", resultMap);
                 return json.toJSONString();
-            }
-            String custId = opUser().getCustId();
-            Long userId = opUser().getId();
+            }*/
+        String custId = opUser().getCustId();
+        Long userId = opUser().getId();
 
-            String labelId = Long.toString(IDHelper.getID());
-            boolean judgeSuccess = customerLabelService.insertCustomLabel0(custId, userId, labelId, labelName, labelDesc, type, option, marketProjectId.split(","), sort, required);
+        String labelId = Long.toString(IDHelper.getID());
+        boolean judgeSuccess = customerLabelService.insertCustomLabel0(custId, userId, labelId, labelName, labelDesc, type, option, marketProjectId.split(","), sort, required);
 
-            if (judgeSuccess) {
-                resultMap.put("code", "1");
-                resultMap.put("message", "添加自建属性成功");
-                json.put("data", resultMap);
-            } else {
-                resultMap.put("code", "0");
-                resultMap.put("message", "添加自建属性失败");
-                json.put("data", resultMap);
-            }
+        if (judgeSuccess) {
+            resultMap.put("code", "1");
+            resultMap.put("message", "添加自建属性成功");
+            json.put("data", resultMap);
+        } else {
+            resultMap.put("code", "0");
+            resultMap.put("message", "添加自建属性失败");
+            json.put("data", resultMap);
         }
+        //}
         return json;
     }
 
@@ -3166,27 +3166,27 @@ public class MarketResourceAction extends BasicAction {
     public String updateCustomLabel(CustomerLabel customerLabel) {
         JSONObject json = new JSONObject();
         Map<Object, Object> map = new HashMap<>();
-        synchronized (this) {
-            boolean nameExist = customerLabelService.checkLabelNameExist(customerLabel.getLabelId(), customerLabel.getLabelName(), 1, opUser().getCustId());
+        /*synchronized (this) {
+            boolean nameExist = customerLabelService.checkProjectLabelNameExist(customerLabel.getLabelId(), customerLabel.getLabelName(), 1, opUser().getCustId());
             if (nameExist) {
                 map.put("code", "0");
                 map.put("message", "自建属性名称已经存在");
                 json.put("data", map);
                 return json.toJSONString();
-            }
+            }*/
 
-            customerLabel.setCustId(opUser().getCustId());
-            int code = customerLabelService.modifyCustomLabel0(customerLabel);
-            if (code == 1) {
-                map.put("code", 1);
-                map.put("message", "成功");
-                json.put("data", map);
-            } else {
-                map.put("code", 0);
-                map.put("message", "失败");
-                json.put("data", map);
-            }
+        customerLabel.setCustId(opUser().getCustId());
+        int code = customerLabelService.modifyCustomLabel0(customerLabel);
+        if (code == 1) {
+            map.put("code", 1);
+            map.put("message", "成功");
+            json.put("data", map);
+        } else {
+            map.put("code", 0);
+            map.put("message", "失败");
+            json.put("data", map);
         }
+        //}
         return json.toJSONString();
 
     }

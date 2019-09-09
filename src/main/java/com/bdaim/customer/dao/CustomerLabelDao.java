@@ -56,6 +56,23 @@ public class CustomerLabelDao extends SimpleHibernateDao<CustomerLabel, String> 
         return this.find(hql.toString(), param);
     }
 
+    public List<CustomerLabel> listCustomerLabelNameExist(String includeLabelId, String name, int status, String custId, String projectId) {
+        List<Object> param = new ArrayList<>();
+        param.add(name);
+        param.add(custId);
+        param.add(projectId);
+        StringBuilder hql = new StringBuilder("FROM CustomerLabel m where m.labelName=? AND (m.custId = ? OR m.custId = 0) AND m.marketProjectId = ?");
+        if (StringUtil.isNotEmpty(includeLabelId)) {
+            hql.append(" AND m.labelId NOT IN(?) ");
+            param.add(includeLabelId);
+        }
+        if (status > 0) {
+            hql.append(" AND m.status = ? ");
+            param.add(String.valueOf(status));
+        }
+        return this.find(hql.toString(), param);
+    }
+
 
     public CustomerLabel getCustomerLabel(String labelId) {
         CustomerLabel cp = null;
