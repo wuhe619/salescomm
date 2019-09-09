@@ -409,6 +409,9 @@ public class CustomerAction extends BasicAction {
             if (cpd != null && StringUtil.isNotEmpty(cpd.getPropertyValue())) {
                 responseResult.setServiceMode(cpd.getPropertyValue());
             }
+            if (userdetail != null) {
+                this.tokenCacheService.saveToken(userdetail);
+            }
         } else {
             responseResult.setMsg("username or password is error");
         }

@@ -7,6 +7,7 @@ import com.bdaim.auth.entity.UserVerificationCode;
 import com.bdaim.auth.service.UserVerificationCodeService;
 import com.bdaim.auth.util.ResponseResult;
 import com.bdaim.common.annotation.CacheAnnotation;
+import com.bdaim.common.auth.service.TokenCacheService;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.dto.PageParam;
@@ -81,6 +82,8 @@ public class UserAction extends BasicAction {
     private CustomerDao customerDao;
     @Resource
     private CustomerService customerService;
+    @Resource
+    private TokenCacheService tokenCacheService;
 
     @RequestMapping(value = "/identify/check", method = RequestMethod.GET)
     @ResponseBody
@@ -320,6 +323,9 @@ public class UserAction extends BasicAction {
             responseResult.setUser_id(userdetail.getId().toString());
             responseResult.setTokenid(userdetail.getTokenid());
             responseResult.setDefaultUrl(defaultUrl);
+            if (userdetail != null) {
+                this.tokenCacheService.saveToken(userdetail);
+            }
 
         } else {
             responseResult.setMsg("用户名或密码错误，请检查后重新输入");
