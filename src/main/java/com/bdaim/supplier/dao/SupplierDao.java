@@ -138,7 +138,7 @@ public class SupplierDao extends SimpleHibernateDao<SupplierEntity, Integer> {
         return cp;
     }
 
-    public String getSupplierName(Long supplierId) {
+    public String getSupplierName(int supplierId) {
         String hql = "from SupplierEntity m where m.supplierId=?";
         List<SupplierEntity> list = this.find(hql, supplierId);
         if (list.size() > 0) {
@@ -147,7 +147,7 @@ public class SupplierDao extends SimpleHibernateDao<SupplierEntity, Integer> {
         return null;
     }
 
-    public SupplierEntity getSupplier(Long supplierId) {
+    public SupplierEntity getSupplier(int supplierId) {
         String hql = "from SupplierEntity m where m.supplierId=? AND m.status = 1";
         List<SupplierEntity> list = this.find(hql, supplierId);
         if (list.size() > 0) {
@@ -175,7 +175,7 @@ public class SupplierDao extends SimpleHibernateDao<SupplierEntity, Integer> {
         }
         if (StringUtil.isNotEmpty(supplierId)) {
             hql.append(" AND m.supplierId = ?");
-            params.add(Long.parseLong(supplierId));
+            params.add(NumberConvertUtil.parseInt(supplierId));
         }
         if (StringUtil.isNotEmpty(supplierType)) {
             hql.append(" AND m.supplierId IN(SELECT supplierId FROM MarketResourceEntity WHERE typeCode = ?)");

@@ -3431,7 +3431,7 @@ public class MarketResourceService {
                         tmpMarketResource = marketResourceDao.getMarketResource(Long.parseLong(marketTemplateDTO.getResourceId()));
                         marketTemplateDTO.setResourceName(tmpMarketResource != null ? tmpMarketResource.getResname() : "");
                         if (tmpMarketResource != null) {
-                            marketTemplateDTO.setSupplierName(supplierDao.getSupplierName(Long.parseLong(tmpMarketResource.getSupplierId())));
+                            marketTemplateDTO.setSupplierName(supplierDao.getSupplierName(NumberConvertUtil.parseInt(tmpMarketResource.getSupplierId())));
                         } else {
                             marketTemplateDTO.setSupplierName("");
                         }
@@ -3521,7 +3521,7 @@ public class MarketResourceService {
             MarketResourceEntity tmpMarketResource = marketResourceDao.getMarketResource(Long.parseLong(marketTemplateDTO.getResourceId()));
             marketTemplateDTO.setResourceName(tmpMarketResource != null ? tmpMarketResource.getResname() : "");
             if (tmpMarketResource != null) {
-                marketTemplateDTO.setSupplierName(supplierDao.getSupplierName(Long.parseLong(tmpMarketResource.getSupplierId())));
+                marketTemplateDTO.setSupplierName(supplierDao.getSupplierName(NumberConvertUtil.parseInt(tmpMarketResource.getSupplierId())));
             } else {
                 marketTemplateDTO.setSupplierName("");
             }

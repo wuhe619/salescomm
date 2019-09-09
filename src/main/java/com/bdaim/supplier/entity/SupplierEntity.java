@@ -3,7 +3,6 @@ package com.bdaim.supplier.entity;
 import javax.persistence.*;
 import java.io.Serializable;
 import java.sql.Timestamp;
-import java.util.Date;
 
 /**
  * @author duanliying
