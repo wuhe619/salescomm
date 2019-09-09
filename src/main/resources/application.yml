@@ -58,11 +58,11 @@ destpath: /home/soft/images/
 audiolocation: /home/soft/audio/
 destaudiolocation: /home/soft/audio/
 pic_server_url: http://10.0.0.200:9888/pic
-audio_server_url: http://localhost:8080/marketResource/getVoice
+audio_server_url: http://bp.online.datau.top/marketResource/getVoice0
 hbase_audio_url: http://ds4:1111/voice/
 
 finance.h5.host: http://financedev.datau.top/h5
-online.host: http://online.service.dev.datau.top
+online.host: http://bp.online.datau.top
 es.rest: http://10.1.37.200:9200
 ds.es.index.0: labels
 ds.es.type.0: label
