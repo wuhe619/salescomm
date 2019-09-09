@@ -538,7 +538,7 @@ public class CustomGroupService {
             map.put("userCount", d.getLong("count"));
             map.put("errorDesc", "00");
         } catch (Exception e) {
-            log.error("通过标签查询客户总数异常",e);
+            log.error("通过标签查询客户总数异常", e);
             map.put("errorDesc", "05");
             return map;
         }
@@ -570,7 +570,7 @@ public class CustomGroupService {
             map.put("list", data);
             map.put("errorDesc", "00");
         } catch (Exception e) {
-            log.error("通过标签查询客户总数异常",e);
+            log.error("通过标签查询客户总数异常", e);
             map.put("errorDesc", "05");
             return map;
         }
@@ -2051,7 +2051,7 @@ public class CustomGroupService {
                 sql.append(" and id='" + id + "'");
             }
 
-            String total = this.jdbcTemplate.queryForObject("select count(1) " + sql.toString(),String.class);
+            String total = this.jdbcTemplate.queryForObject("select count(1) " + sql.toString(), String.class);
             page.setTotal("".equals(total) ? 0 : Integer.parseInt(total));
 
             String sql_list = "SELECT id,user_id,call_count,last_call_time,remark,call_success_count,call_fail_count,call_empty_count"
@@ -5370,6 +5370,84 @@ public class CustomGroupService {
     }
 
     /**
+     * 保存导入的客户群基本信息
+     *
+     * @param custId     客户ID
+     * @param name       客群名称
+     * @param fileName   文件名称
+     * @param headers    excel表头
+     * @param projectId  项目ID
+     * @param touchModes 触达方式 1-电话 2-短信
+     * @return
+     */
+    public int saveImportCustGroupData(String custId, String name, String fileName, JSONArray headers, Integer projectId, String touchModes) {
+        CustomerGroupProperty uploadFileStatus = customGroupDao.getProperty("uploadFilePath", fileName);
+        if (uploadFileStatus != null) {
+            log.warn("导入客户群文件:" + fileName + ",已经成功导入,忽略");
+            return 2;
+        }
+
+        String orderId = String.valueOf(IDHelper.getTransactionId());
+        StringBuffer insertOrder = new StringBuffer();
+        insertOrder.append("INSERT INTO  t_order (`order_id`, `cust_id`, `order_type`, `create_time`,  `remarks`, `amount`, `order_state`, `cost_price`) ");
+        insertOrder.append(" VALUES ('" + orderId + "','" + custId + "','1','" + new Timestamp(System.currentTimeMillis()) + "','导入客户群创建','0','2','0')");
+        int status = customGroupDao.executeUpdateSQL(insertOrder.toString());
+        LogUtil.info("导入客户群创建订单表状态:" + status);
+        if (status == 0) {
+            return 0;
+        }
+
+        CustomGroup cg = new CustomGroup();
+        cg.setName(name);
+        cg.setDesc("导入客户群创建");
+        cg.setOrderId(orderId);
+        cg.setMarketProjectId(projectId);
+        cg.setStatus(3);
+        cg.setDataSource(1);
+        cg.setCustId(custId);
+        cg.setCreateTime(new Timestamp(System.currentTimeMillis()));
+        cg.setGroupCondition("[{\"symbol\":0,\"leafs\":[{\"name\":\"4\",\"id\":\"87\"}],\"type\":1,\"labelId\":\"84\",\"parentName\":\"家庭人口数\",\"path\":\"人口统计学/基本信息/家庭人口数\"}]");
+        LogUtil.info("导入客户群插入customer_group表的数据:" + cg);
+        int id = (int) customGroupDao.saveReturnPk(cg);
+        if (id > 0) {
+            StringBuffer sb = new StringBuffer();
+            sb.append(" create table IF NOT EXISTS t_customer_group_list_");
+            sb.append(id);
+            sb.append(" like t_customer_group_list");
+            try {
+                customGroupDao.executeUpdateSQL(sb.toString());
+            } catch (HibernateException e) {
+                log.error("创建用户群表失败,id:" + id, e);
+            }
+
+            CustomerGroupProperty cgp = new CustomerGroupProperty(id, "uploadHeaders", StringUtils.join(headers, ","), new Timestamp(System.currentTimeMillis()));
+            customGroupDao.saveOrUpdate(cgp);
+            cgp = new CustomerGroupProperty(id, "uploadFilePath", fileName, new Timestamp(System.currentTimeMillis()));
+            customGroupDao.saveOrUpdate(cgp);
+            // 保存客户群触达方式
+            if (StringUtil.isNotEmpty(touchModes)) {
+                cgp = new CustomerGroupProperty(id, "touchMode", touchModes, new Timestamp(System.currentTimeMillis()));
+                customGroupDao.saveOrUpdate(cgp);
+            }
+            // 异步处理客户群数据
+            new Thread() {
+                public void run() {
+                    log.info("创建导入客群成功,开始异步处理数据,ID:" + id);
+                    try {
+                        CustomGroupService cgs = (CustomGroupService) SpringContextHelper.getBean("customGroupService");
+                        int code = cgs.handleCustGroupImportData(String.valueOf(id), custId, customGroupDao, customerDao, customerLabelDao, jdbcTemplate);
+                        log.info("导入客户群数据ID:" + id + "更改状态成功,status:" + status);
+                    } catch (Exception e) {
+                        log.error("异步处理导入客群异常,", e);
+                    }
+                }
+            }.start();
+            return 1;
+        }
+        return 0;
+    }
+
+    /**
      * 检查导入客户群的数据
      *
      * @param file
@@ -5590,7 +5668,7 @@ public class CustomGroupService {
         if (pageSize == null || pageSize > 100 || pageSize <= 0) pageSize = 100;
         try {
             StringBuffer sql = new StringBuffer(" from t_customer_group_list_" + groupId + " ");
-            String total = this.jdbcTemplate.queryForObject("select count(1) " + sql.toString(),String.class);
+            String total = this.jdbcTemplate.queryForObject("select count(1) " + sql.toString(), String.class);
 
             if ("".equals(total) || "0".equals(total)) {
                 json.put("errorDesc", "01");
@@ -5738,7 +5816,7 @@ public class CustomGroupService {
             Map<String, Long> s = previewByGroupCondition2(null, null, buildGroupcondition2(customGroupDTO.getLabel()));
             userAcount = s.getOrDefault("count", 0l);
         } catch (Exception e) {
-            log.error("预览人数异常",e);
+            log.error("预览人数异常", e);
         }
         result.put("errorDesc", "00");
         result.put("groupId", customGroup.getId() + "");
