@@ -335,13 +335,7 @@ public class MarketTaskService {
                         marketTaskDao.update(marketTask);
                         // 设置讯众自动外呼第三方取号地址
                         xzCallCenterService.addPhoneUrl(xzCallCenterId, "admin", taskIdentity, ConstantsUtil.XZ_AUTO_TASK_PHONE_URL);
-                        // 通过接口开启自动外呼任务
-                        try {
-                            JSONObject jsonObject = XzCallCenterUtil.startAutoTask(xzCallCenterId, taskIdentity);
-                            LOG.info("营销任务开启讯众自动外呼任务返回结果:" + jsonObject);
-                        } catch (Exception e) {
-                            LOG.error("营销任务开启讯众自动外呼任务失败", e);
-                        }
+
                     }
                 } else {
                     LOG.warn("呼叫渠道:" + param.getCallChannel() + ",非Saas模式!");
@@ -366,6 +360,13 @@ public class MarketTaskService {
             }
             // 向讯众自动外呼添加成功
             xzCallCenterService.addTaskMembers(marketTask.getTaskId(), addSeatIds, xzCallCenterId);
+            // 通过接口开启自动外呼任务
+            try {
+                JSONObject jsonObject = XzCallCenterUtil.startAutoTask(xzCallCenterId, marketTask.getTaskId());
+                LOG.info("营销任务开启讯众自动外呼任务返回结果:" + jsonObject);
+            } catch (Exception e) {
+                LOG.error("营销任务开启讯众自动外呼任务失败", e);
+            }
         }
         // 导入营销任务详情数据
         asyncImportMarketTaskData(marketTask.getId(), marketTask.getCustomerGroupId(), marketTask.getGroupCondition());
