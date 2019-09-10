@@ -878,7 +878,7 @@ public class UserService {
         if (lIds.size() > 0) {
             for (int i = 0; i < lIds.size(); i++) {
                 Long labelId = lIds.get(i);
-                this.userDao.executeUpdateSQL("insert into t_user_label_rel(USER_ID,LABEL_ID,OPT_TIME) values(" + userId + "," + labelId + ", now())");
+                //this.userDao.executeUpdateSQL("insert into t_user_label_rel(USER_ID,LABEL_ID,OPT_TIME) values(" + userId + "," + labelId + ", now())");
             }
         }
     }
@@ -918,7 +918,7 @@ public class UserService {
         if (cIds.size() > 0) {
             for (int i = 0; i < cIds.size(); i++) {
                 Long categoryId = cIds.get(i);
-                this.userDao.executeUpdateSQL("insert into t_user_category_rel(USER_ID, CATEGORY_ID, OPT_TIME) values(" + userId + "," + categoryId + ", now())");
+                //this.userDao.executeUpdateSQL("insert into t_user_category_rel(USER_ID, CATEGORY_ID, OPT_TIME) values(" + userId + "," + categoryId + ", now())");
             }
         }
     }
@@ -950,32 +950,32 @@ public class UserService {
     }
 
     private void deleteLabelPermission(Long id) throws SQLException {
-        String sql = "delete from t_user_label_rel where USER_ID = " + id;
-        this.userDao.executeUpdateSQL(sql);
+       /* String sql = "delete from t_user_label_rel where USER_ID = " + id;
+        this.userDao.executeUpdateSQL(sql);*/
     }
 
     private void deleteCategoryPermission(Long id) throws SQLException {
-        String sql = "delete from t_user_category_rel where USER_ID = " + id;
-        this.userDao.executeUpdateSQL(sql);
+       /* String sql = "delete from t_user_category_rel where USER_ID = " + id;
+        this.userDao.executeUpdateSQL(sql);*/
     }
 
     private void deleteCustomerPermission(Long operateUserId, Long userId) throws SQLException {
     }
 
     private void deleteLabelPermission(Long operateUserId, Long userId) throws SQLException {
-        StringBuilder builder = new StringBuilder();
+        /*StringBuilder builder = new StringBuilder();
         builder.append(" delete from t_user_label_rel where USER_ID = '" + userId + "' and LABEL_ID in (select temp.id from");
         builder.append(" (select r.id from label_info r inner join t_user_label_rel ur on ur.LABEL_ID = r.ID and ur.id = '" + operateUserId + "')temp)");
         String sql = builder.toString();
-        this.userDao.executeUpdateSQL(sql);
+        this.userDao.executeUpdateSQL(sql);*/
     }
 
     private void deleteCategoryPermission(Long operateUserId, Long userId) throws SQLException {
-        StringBuilder builder = new StringBuilder();
+        /*StringBuilder builder = new StringBuilder();
         builder.append(" delete from t_user_category_rel where USER_ID = '" + userId + "' and CATEGORY_ID in (select temp.id from");
         builder.append(" (select r.id from label_category r inner join t_user_category_rel ur on ur.CATEGORY_ID = r.ID and ur.id = '" + operateUserId + "')temp)");
         String sql = builder.toString();
-        this.userDao.executeUpdateSQL(sql);
+        this.userDao.executeUpdateSQL(sql);*/
     }
 
     public boolean updateDataPermission(Long id, Long operateUserId, boolean isAdminOperate, String customerIds, String labelIds,
