@@ -311,7 +311,7 @@ public class CustomerUserDao extends SimpleHibernateDao<CustomerUser, Serializab
             throw new NullPointerException("groupId不能为空");
         }
         StringBuilder sql = new StringBuilder();
-        sql.append(" SELECT new com.bdaim.sale.dto.CustomerUserDTO(t.userId AS id, user.realname, user.account) FROM CustomerUserGroupRel t, CustomerUser user");
+        sql.append(" SELECT new com.bdaim.customer.dto.CustomerUserDTO(t.userId AS id, user.realname, user.account) FROM CustomerUserGroupRel t, CustomerUser user");
         sql.append(" WHERE user.id = t.userId AND t.groupId = (SELECT id FROM CustomerUserGroup WHERE status = 1 AND custId = ? AND id= ?) AND t.status = 1 ");
         // 开始搜索不为空
         if (StringUtil.isNotEmpty(startAccount) && StringUtil.isEmpty(endAccount)) {
@@ -347,7 +347,7 @@ public class CustomerUserDao extends SimpleHibernateDao<CustomerUser, Serializab
             throw new NullPointerException("groupId不能为空");
         }
         StringBuilder sql = new StringBuilder();
-        sql.append(" SELECT new com.bdaim.sale.dto.CustomerUserDTO(t.userId AS id, user.realname, user.account) FROM CustomerUserGroupRel t, CustomerUser user");
+        sql.append(" SELECT new com.bdaim.customer.dto.CustomerUserDTO(t.userId AS id, user.realname, user.account) FROM CustomerUserGroupRel t, CustomerUser user");
         sql.append(" WHERE user.id = t.userId AND t.groupId = (SELECT id FROM CustomerUserGroup WHERE status = 1 AND custId = ? AND id= ?) AND t.status = 1");
         List<CustomerUserDTO> customerUserList = this.find(sql.toString(), customerId, groupId);
         return customerUserList;
@@ -364,7 +364,7 @@ public class CustomerUserDao extends SimpleHibernateDao<CustomerUser, Serializab
             throw new NullPointerException("customerId不能为空");
         }
         StringBuilder sql = new StringBuilder();
-        sql.append(" SELECT new com.bdaim.sale.dto.CustomerUserDTO( user.id, user.realname, user.account) FROM CustomerUser user");
+        sql.append(" SELECT new com.bdaim.customer.dto.CustomerUserDTO( user.id, user.realname, user.account) FROM CustomerUser user");
         sql.append(" WHERE user.cust_id = ? AND user.userType = '2' AND user.id NOT IN " +
                 "    (SELECT cast(rel.userId AS integer) FROM CustomerUserGroupRel rel WHERE rel.status = 1 AND rel.groupId IN(SELECT t2.id FROM CustomerUserGroup t2 WHERE t2.custId = user.cust_id AND t2.status = 1) )");
         // 开始搜索不为空
@@ -395,7 +395,7 @@ public class CustomerUserDao extends SimpleHibernateDao<CustomerUser, Serializab
             throw new NullPointerException("customerId不能为空");
         }
         StringBuilder sql = new StringBuilder();
-        sql.append(" SELECT new com.bdaim.sale.dto.CustomerUserDTO( user.id, user.realname, user.account) FROM CustomerUser user");
+        sql.append(" SELECT new com.bdaim.customer.dto.CustomerUserDTO( user.id, user.realname, user.account) FROM CustomerUser user");
         sql.append(" WHERE user.cust_id = ? AND user.userType = '2' AND user.id NOT IN (SELECT cast(rel.userId AS integer) FROM CustomerUserGroupRel rel WHERE rel.status = 1 AND rel.groupId IN(SELECT t2.id FROM CustomerUserGroup t2 WHERE t2.custId = user.cust_id AND t2.status = 1) )");
         List<CustomerUserDTO> customerUserList = this.find(sql.toString(), customerId);
         return customerUserList;
