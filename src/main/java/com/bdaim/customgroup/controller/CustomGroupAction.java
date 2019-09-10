@@ -1344,9 +1344,9 @@ public class CustomGroupAction extends BasicAction {
         }
         int status = customGroupService.customerGroupTransferByCustId(NumberConvertUtil.parseInt(custGroupId), custId);
         if (status >= 1) {
-            return returnJsonData(returnSuccess());
+            return returnSuccess();
         }
-        return returnJsonData(returnError());
+        return returnError();
     }
 
     /**

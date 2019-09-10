@@ -1027,9 +1027,9 @@ public class MarketResourceAction extends BasicAction {
             LOG.error("审核模板异常,", e);
         }
         if (code == 1) {
-            return returnJsonData(returnSuccess("成功"));
+            return returnSuccess("成功");
         }
-        return returnJsonData(returnError());
+        return returnError();
     }
 
     @RequestMapping(value = "/approveFlashSmsTemplate", method = RequestMethod.POST)

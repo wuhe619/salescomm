@@ -94,7 +94,7 @@ public class MarketTaskAction extends BasicAction {
             result.put("code", code);
             return returnJsonData(result);
         }
-        return returnJsonData(returnError(msg));
+        return returnError(msg);
     }
 
     @RequestMapping(value = "/listMarketTaskUser", method = RequestMethod.GET)
@@ -110,7 +110,7 @@ public class MarketTaskAction extends BasicAction {
             if (StringUtil.isNotEmpty(marketTaskId)) {
                 boolean status = marketTaskService.checkMarketTaskPermission(opUser().getCustId(), marketTaskId);
                 if (!status) {
-                    return returnJsonData(returnError("权限不足"));
+                    return returnError("权限不足");
                 }
                 selectUsers = marketTaskService.listSelectMarketTaskUser(marketTaskId, opUser().getCustId(), sStartAccount, sEndAccount);
             }
@@ -261,7 +261,7 @@ public class MarketTaskAction extends BasicAction {
             // 检查营销任务权限
             boolean status = marketTaskService.checkMarketTaskPermission(opUser().getCustId(), marketTaskId);
             if (!status) {
-                return returnJsonData(returnError("权限不足"));
+                return returnError("权限不足");
             }
             data = marketTaskService.selectMarketTask(marketTaskId);
         } catch (Exception e) {
@@ -339,7 +339,7 @@ public class MarketTaskAction extends BasicAction {
         }
         // 普通员工无权限
         if ("2".equals(opUser().getUserType()) && RoleEnum.ROLE_CUSTOMER.equals(opUser().getRole())) {
-            return returnJsonData(returnError("权限不足"));
+            return returnError("权限不足");
         }
         XzAutoTaskMonitor data = null;
         try {
@@ -347,7 +347,7 @@ public class MarketTaskAction extends BasicAction {
             if (RoleEnum.ROLE_CUSTOMER.equals(opUser().getRole())) {
                 boolean status = marketTaskService.checkMarketTaskPermission(opUser().getCustId(), marketTaskId);
                 if (!status) {
-                    return returnJsonData(returnError("权限不足"));
+                    return returnError("权限不足");
                 }
             }
             data = xzCallCenterService.getXzAutoTaskMonitor(1, marketTaskId);

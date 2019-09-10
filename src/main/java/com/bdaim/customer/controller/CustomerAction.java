@@ -1872,7 +1872,7 @@ public class CustomerAction extends BasicAction {
             }
             String custId = opUser().getCustId();
             if ("2".equals(opUser().getUserType())) {
-                return returnJsonData(returnError("权限不足"));
+                return returnError("权限不足");
             }
             customerService.setPhoneProtectByCust(type, status, custId);
         } catch (Exception e) {

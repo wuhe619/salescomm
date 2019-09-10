@@ -635,7 +635,7 @@ public class CustomerSeaAction extends BasicAction {
         }
         // 普通员工无权限
         if ("2".equals(opUser().getUserType()) && RoleEnum.ROLE_CUSTOMER.equals(opUser().getRole())) {
-            return returnJsonData(returnError("权限不足"));
+            return returnError("权限不足");
         }
         XzAutoTaskMonitor data = null;
         try {
@@ -643,7 +643,7 @@ public class CustomerSeaAction extends BasicAction {
             if (RoleEnum.ROLE_CUSTOMER.equals(opUser().getRole())) {
                 boolean status = seaService.checkCustomerSeaPermission(opUser().getCustId(), seaId);
                 if (!status) {
-                    return returnJsonData(returnError("权限不足"));
+                    return returnError("权限不足");
                 }
             }
             data = xzCallCenterService.getXzAutoTaskMonitor(2, seaId);
