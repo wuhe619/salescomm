@@ -1010,9 +1010,9 @@ public class SupplierService {
         List<MarketResourceDTO> call2way = new ArrayList<>();
         List<MarketResourceDTO> callCenter = new ArrayList<>();
         List<MarketResourceDTO> robot = new ArrayList<>();
-        String config = voiceCustomerProperty.getPropertyValue();
         MarketResourceDTO dto;
-        if (voiceCustomerProperty != null && StringUtil.isNotEmpty(config)) {
+        if (voiceCustomerProperty != null && StringUtil.isNotEmpty(voiceCustomerProperty.getPropertyValue())) {
+            String config = voiceCustomerProperty.getPropertyValue();
             if (config.startsWith("[")) {
                 JSONArray array = JSON.parseArray(config);
                 for (int i = 0; i < array.size(); i++) {
