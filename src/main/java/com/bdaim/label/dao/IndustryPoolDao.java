@@ -18,7 +18,7 @@ public class IndustryPoolDao extends SimpleHibernateDao<IndustryPool, Serializab
 
     public SupplierDTO getSupplierInfo(int poolId) {
         IndustryPool industryPool = (IndustryPool) this.get(poolId);
-        MarketResourceEntity marketResource = this.findUnique(" FROM MarketResource m where m.resourceId=?", (long) industryPool.getSourceId());
+        MarketResourceEntity marketResource = this.findUnique(" FROM MarketResourceEntity m where m.resourceId=?", (long) industryPool.getSourceId());
         if (marketResource != null) {
             SupplierEntity supplierDO = this.findUnique(" FROM SupplierDO m where m.supplierId=?", Long.parseLong(marketResource.getSupplierId()));
             return new SupplierDTO(supplierDO);
