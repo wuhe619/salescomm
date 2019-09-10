@@ -567,10 +567,10 @@ public class CustomerSeaService {
                 customerSea.setName(param.getName());
                 customerSea.setTaskType(param.getTaskType());
                 customerSea.setTaskId(param.getTaskId());
-                if (param.getTaskCreateTime() == null) {
+                if (param.getTaskCreateTime() != null) {
                     customerSea.setTaskCreateTime(new Timestamp(param.getTaskCreateTime()));
                 }
-                if (param.getTaskEndTime() == null) {
+                if (param.getTaskEndTime() != null) {
                     customerSea.setTaskEndTime(new Timestamp(param.getTaskEndTime()));
                 }
                 if (StringUtil.isNotEmpty(param.getHistoryTaskId())) {
