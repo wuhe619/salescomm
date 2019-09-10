@@ -54,7 +54,7 @@ public class TokenServiceImpl implements TokenService {
     public Token createToken(String username, String password) {
         if (username == null || password == null || "".equals(username) || "".equals(password)) {
             logger.warn("username or password is null");
-            return new LoginUser("", "",  null, "402", "用户名密码不能为空");
+            return new LoginUser("guest", "", new ArrayList<>(), "402", "用户名密码不能为空");
         }
 
         LoginUser userdetail = null;
@@ -127,7 +127,7 @@ public class TokenServiceImpl implements TokenService {
                 userdetail.setDefaultUrl(defaultUrl);
             } else {
                 logger.warn("username or password is error");
-                return new LoginUser("", "",  null, "401", "用户名密码错误");
+                return new LoginUser("guest", "", new ArrayList<>(), "401", "用户名密码错误");
             }
         } else {
             CustomerUser u = customerService.getUserByName(username);
@@ -173,7 +173,7 @@ public class TokenServiceImpl implements TokenService {
                 }
             } else {
                 logger.warn("username or password is error");
-                return new LoginUser("", "",  null, "401", "用户名密码错误");
+                return new LoginUser("guest", "", new ArrayList<>(), "401", "用户名密码错误");
             }
         }
 
