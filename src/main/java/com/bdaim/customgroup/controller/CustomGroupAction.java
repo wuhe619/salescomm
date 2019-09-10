@@ -1017,7 +1017,7 @@ public class CustomGroupAction extends BasicAction {
 
     @ResponseBody
     @CacheAnnotation
-    @RequestMapping("/updateCustomerGroupState")
+    @RequestMapping("/updateCustomerGroupState0")
     public String getCustomGroup(String id) {
         return customGroupService.updateCustomerGroupState(id);
     }
@@ -1135,12 +1135,12 @@ public class CustomGroupAction extends BasicAction {
             Integer marketProjectId = jsonObject.getInteger("marketProjectId");
             result = customGroupService.updateCustomeGroupMarketProject(opUser().getCustId(), customerGroupId, marketProjectId);
         } else {
-            return JSON.toJSONString(returnError("权限不足"));
+            return returnError("权限不足");
         }
         if (result == 1) {
-            return JSON.toJSONString(returnSuccess());
+            return returnSuccess();
         }
-        return JSON.toJSONString(returnError());
+        return returnError();
     }
 
     /**
