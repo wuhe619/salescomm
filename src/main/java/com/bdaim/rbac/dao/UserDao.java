@@ -155,7 +155,7 @@ public class UserDao extends SimpleHibernateDao<User, Serializable> {
         if (StringUtils.isNotBlank(t.getPassword())) {
             builder.append(",password = '" + t.getPassword() + "' ");
         }
-        if (t.getStatus() == 0 || t.getStatus() == 1) {
+        if (t.getStatus() != null && (t.getStatus() == 0 || t.getStatus() == 1)) {
             builder.append(",status = " + t.getStatus());
         }
         builder.append(" where id = " + id);
