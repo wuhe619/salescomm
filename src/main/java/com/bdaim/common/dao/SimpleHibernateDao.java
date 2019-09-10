@@ -118,18 +118,18 @@ public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDao
         org.springframework.util.Assert.notNull(entity, "entity不能为空");
         Session ses = null;
         try {
-            ses = super.getSessionFactory().openSession();
+            ses = getSession();
             Serializable Pk = ses.save(entity);
             ses.flush();
             return Pk;
         } catch (Exception ex) {
             ex.printStackTrace();
             return null;
-        } finally {
+        }/* finally {
             if (null != ses) {
                 ses.close();
             }
-        }
+        }*/
     }
 
     /**
@@ -292,7 +292,7 @@ public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDao
         totalSql.append(sql);
         totalSql.append(") as temp");
 
-        Session session = getSessionFactory().openSession();
+        Session session = getSession();
         Query query = session.createSQLQuery(totalSql.toString());
         query.setResultTransformer(CriteriaSpecification.ALIAS_TO_ENTITY_MAP);
         if (values != null) {
@@ -320,7 +320,6 @@ public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDao
         }
         List rs = query.list();
         p.setData(rs);
-        session.close();
         return p;
     }
 
@@ -895,7 +894,7 @@ public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDao
     }
 
     public List<Map<String, Object>> sqlQuery(String sql, final Object... values) {
-        Session session = getSessionFactory().openSession();
+        Session session = getSession();
         Query query = session.createSQLQuery(sql);
         query.setResultTransformer(CriteriaSpecification.ALIAS_TO_ENTITY_MAP);
         if (values != null)
@@ -903,7 +902,6 @@ public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDao
                 query.setParameter(i, values[i]);
             }
         List rs = query.list();
-        session.close();
         return rs;
     }
 
@@ -932,7 +930,7 @@ public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDao
         totalSql.append(sql);
         totalSql.append(") as temp");
 
-        Session session = getSessionFactory().openSession();
+        Session session = getSession();
         Query query = session.createSQLQuery(totalSql.toString());
         query.setResultTransformer(CriteriaSpecification.ALIAS_TO_ENTITY_MAP);
         if (values != null) {
@@ -960,7 +958,6 @@ public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDao
         }
         List rs = query.list();
         p.setData(rs);
-        session.close();
         return p;
     }
 
@@ -980,19 +977,17 @@ public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDao
      * @return
      */
     public List queryListBySql(String sql, Class className) {
-        Session session = getSessionFactory().openSession();
+        Session session = getSession();
         Query query = session.createSQLQuery(sql).addEntity(className);
         List rs = query.list();
-        session.close();
         return rs;
     }
 
     public List<Map<String, Object>> queryListBySql(String sql) {
-        Session session = getSessionFactory().openSession();
+        Session session = getSession();
         Query query = session.createSQLQuery(sql);
         query.setResultTransformer(CriteriaSpecification.ALIAS_TO_ENTITY_MAP);
         List rs = query.list();
-        session.close();
         return rs;
     }
 
