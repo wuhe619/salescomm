@@ -28,12 +28,12 @@ public class ConfigUtil {
 	}
 	
 	public String get(String key){
-		return prop.getProperty(key).toString().trim();
+		return prop.getProperty(key);
 	}
 	
 	public String get(String key, String defaultValue){
 		try {
-			return prop.getProperty(key).toString().trim();
+			return prop.getProperty(key);
 		}
 		catch (Exception ex) {
 			return defaultValue;
