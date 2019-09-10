@@ -567,8 +567,12 @@ public class CustomerSeaService {
                 customerSea.setName(param.getName());
                 customerSea.setTaskType(param.getTaskType());
                 customerSea.setTaskId(param.getTaskId());
-                customerSea.setTaskCreateTime(new Timestamp(param.getTaskCreateTime()));
-                customerSea.setTaskEndTime(new Timestamp(param.getTaskEndTime()));
+                if (param.getTaskCreateTime() == null) {
+                    customerSea.setTaskCreateTime(new Timestamp(param.getTaskCreateTime()));
+                }
+                if (param.getTaskEndTime() == null) {
+                    customerSea.setTaskEndTime(new Timestamp(param.getTaskEndTime()));
+                }
                 if (StringUtil.isNotEmpty(param.getHistoryTaskId())) {
                     CustomerSea sea = customerSeaDao.get(Long.valueOf(param.getHistoryTaskId()));
                     if (sea != null && StringUtil.isNotEmpty(sea.getTaskId())) {
