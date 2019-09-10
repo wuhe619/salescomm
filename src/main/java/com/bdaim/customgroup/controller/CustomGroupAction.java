@@ -1017,7 +1017,7 @@ public class CustomGroupAction extends BasicAction {
 
     @ResponseBody
     @CacheAnnotation
-    @RequestMapping("/updateCustomerGroupState0")
+    @RequestMapping("/updateCustomerGroupStatus")
     public String updateCustomerGroupState0(String id) {
         return customGroupService.updateCustomerGroupState(id);
     }
