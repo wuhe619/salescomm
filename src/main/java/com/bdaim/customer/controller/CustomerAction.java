@@ -1168,12 +1168,12 @@ public class CustomerAction extends BasicAction {
         if ("ROLE_USER".equals(opUser().getRole()) || "admin".equals(opUser().getRole())) {
             result = customerService.updateCustCallBackApparentNumber(custId, apparentNumber);
         } else {
-            return JSON.toJSONString(returnError("权限不足"));
+            return returnError("权限不足");
         }
         if (result == 1) {
-            return JSON.toJSONString(returnSuccess());
+            return returnSuccess();
         }
-        return JSON.toJSONString(returnError());
+        return returnError();
     }
 
     /**
@@ -1200,9 +1200,9 @@ public class CustomerAction extends BasicAction {
             result = marketProjectService.updateMarketProject(dto, 2, projectUserId, opUser().getCustId());
         }
         if (result == 1) {
-            return JSON.toJSONString(returnSuccess());
+            return returnSuccess();
         }
-        return JSON.toJSONString(returnError());
+        return returnError();
     }
 
     /**
@@ -1227,9 +1227,9 @@ public class CustomerAction extends BasicAction {
         String projectUserId = jsonObject.getString("projectUserId");
         result = marketProjectService.updateMarketProject(marketProjectDTO, operation, projectUserId, opUser().getCustId());
         if (result == 1) {
-            return JSON.toJSONString(returnSuccess());
+            return returnSuccess();
         }
-        return JSON.toJSONString(returnError());
+        return returnError();
     }
 
     /**
@@ -1247,9 +1247,9 @@ public class CustomerAction extends BasicAction {
         marketProjectDTO.setStatus(jsonObject.getInteger("status"));
         result = marketProjectService.closeMarketProject(marketProjectDTO);
         if (result == 1) {
-            return JSON.toJSONString(returnSuccess());
+            return returnSuccess();
         }
-        return JSON.toJSONString(returnError());
+        return returnError();
     }
 
     @ResponseBody
@@ -1324,12 +1324,12 @@ public class CustomerAction extends BasicAction {
             result = marketProjectService.saveMarketProjectRelationEnterprises(marketProjectId, custIds);
         } catch (Exception e) {
             logger.error("查询项目下已选择和未选择企业列表失败,", e);
-            return JSON.toJSONString(returnError());
+            return returnError();
         }
         if (result == 1) {
-            return JSON.toJSONString(returnSuccess());
+            return returnSuccess();
         }
-        return JSON.toJSONString(returnError());
+        return returnError();
     }
 
 
@@ -1606,9 +1606,9 @@ public class CustomerAction extends BasicAction {
             code = 0;
         }
         if (code == 1) {
-            return JSON.toJSONString(returnSuccess());
+            return returnSuccess();
         } else {
-            return JSON.toJSONString(returnError());
+            return returnError();
         }
     }
 
@@ -1624,9 +1624,9 @@ public class CustomerAction extends BasicAction {
             code = 0;
         }
         if (code == 1) {
-            return JSON.toJSONString(returnSuccess());
+            return returnSuccess();
         } else {
-            return JSON.toJSONString(returnError());
+            return returnError();
         }
     }
 
@@ -1681,9 +1681,9 @@ public class CustomerAction extends BasicAction {
             code = 0;
         }
         if (code == 1) {
-            return JSON.toJSONString(returnSuccess());
+            return returnSuccess();
         } else {
-            return JSON.toJSONString(returnError());
+            return returnError();
         }
     }
 

@@ -238,7 +238,7 @@ public class CustomGroupAction extends BasicAction {
         Map<String, Object> resultMap = new HashMap<>();
         boolean status = customGroupService.checkCustomerGroupPermission(opUser().getCustId(), customGroupId);
         if (!status) {
-            return JSON.toJSONString(returnError("权限不足"));
+            return returnError("权限不足");
         }
         try {
             resultMap = customGroupService.previewCustomGroupInfo(customGroupId, groupCondition);
@@ -1053,9 +1053,9 @@ public class CustomGroupAction extends BasicAction {
         String customerId = lu.getCustId();
         int result = customGroupService.updateCustomerGroupTaskId(customerId, customerGroupId, taskId);
         if (result == 1) {
-            return JSON.toJSONString(returnSuccess());
+            return returnSuccess();
         }
-        return JSON.toJSONString(returnError());
+        return returnError();
     }
 
     @RequestMapping(value = "/updateCustomerGroupTaskIdAndTaskPhoneIndex", method = RequestMethod.POST)
@@ -1065,9 +1065,9 @@ public class CustomGroupAction extends BasicAction {
         String customerId = lu.getCustId();
         int result = customGroupService.updateCustomerGroupTaskIdAndTaskPhoneIndex(customerId, customerGroupId, taskId);
         if (result == 1) {
-            return JSON.toJSONString(returnSuccess());
+            return returnSuccess();
         }
-        return JSON.toJSONString(returnError());
+        return returnError();
 
     }
 
@@ -1114,9 +1114,9 @@ public class CustomGroupAction extends BasicAction {
 
         int result = customGroupService.createMarketTask(customerId, groupId, taskId, taskType, userGroupId, taskEndTime);
         if (result == 1) {
-            return JSON.toJSONString(returnSuccess());
+            return returnSuccess();
         }
-        return JSON.toJSONString(returnError());
+        return returnError();
 
     }
 
@@ -1246,12 +1246,12 @@ public class CustomGroupAction extends BasicAction {
             long endTime = jsonObject.getLongValue("endTime");
             result = customGroupService.updateMarketTaskTime(customerGroupId, endTime);
         } else {
-            return JSON.toJSONString(returnError("权限不足"));
+            return returnError("权限不足");
         }
         if (result == 1) {
-            return JSON.toJSONString(returnSuccess());
+            return returnSuccess();
         }
-        return JSON.toJSONString(returnError());
+        return returnError();
     }
 
     @RequestMapping(value = "/exportCustGroupStatData", method = RequestMethod.GET)
