@@ -52,10 +52,9 @@ public class TokenServiceImpl implements TokenService {
 
     @Override
     public Token createToken(String username, String password) {
-        // TODO Auto-generated method stub
         if (username == null || password == null || "".equals(username) || "".equals(password)) {
-            logger.info("username or password is null");
-            return null;
+            logger.warn("username or password is null");
+            return new LoginUser("", "",  null, "402", "用户名密码不能为空");
         }
 
         LoginUser userdetail = null;
@@ -127,8 +126,8 @@ public class TokenServiceImpl implements TokenService {
                 userdetail.setTokenid(userdetail.getTokenid());
                 userdetail.setDefaultUrl(defaultUrl);
             } else {
-                logger.info("username or password is error");
-                return null;
+                logger.warn("username or password is error");
+                return new LoginUser("", "",  null, "401", "用户名密码错误");
             }
         } else {
             CustomerUser u = customerService.getUserByName(username);
@@ -173,8 +172,8 @@ public class TokenServiceImpl implements TokenService {
                     userdetail.setServiceMode(cpd.getPropertyValue());
                 }
             } else {
-                logger.info("username or password is error");
-                return null;
+                logger.warn("username or password is error");
+                return new LoginUser("", "",  null, "401", "用户名密码错误");
             }
         }
 
