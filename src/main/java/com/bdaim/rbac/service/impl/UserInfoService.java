@@ -237,34 +237,41 @@ public class UserInfoService {
         int pageNum = Integer.valueOf(param.getParameter("pageNum"));
         int pageSize = Integer.valueOf(param.getParameter("pageSize"));
 
-        StringBuilder sql = new StringBuilder("SELECT *,\n" +
-                "\tCOUNT(*) as industrypoolNum\n" +
-                "FROM\n" +
-                "\t(\n" +
-                "\t\tSELECT\n" +
-                "\t\t\tt2. NAME AS userName,\n" +
-                "\t\t\tt2.id AS userId,\n" +
-                "\t\t\tt2.cust_id AS custId,\n" +
-                "\t\t\tt2.mobile_num AS mobileNum,\n" +
-                "\t\t\tt2.enterprise_name AS enterpriseName,\n" +
-                "\t\t\tt2.status as status\n" +
-                "\t\tFROM\n" +
-                "\t\t\tt_cust_industry t1\n" +
-                "\t\tLEFT JOIN t_user t2 ON t1.cust_id = t2.cust_id  where t2.user_type=1 \n" +
-                "\t) t3 where 1=1  ");
+        StringBuilder sql = new StringBuilder("SELECT " +
+                " t3.account AS userName," +
+                " cast(t3.id as char) AS userId," +
+                " t3.cust_id AS custId," +
+                " t3. STATUS AS status," +
+                " IFNULL(industrypoolNum,0) AS industrypoolNum, t5.enterprise_name enterpriseName" +
+                " FROM t_customer_user t3" +
+                " LEFT JOIN (" +
+                " SELECT t1.*, COUNT(*) AS industrypoolNum FROM t_cust_industry t1" +
+                " LEFT JOIN t_industry_pool t4 ON t1.industry_pool_id =t4.industry_pool_id" +
+                " WHERE  t1.`STATUS` = 1 AND t4.STATUS =3" +
+                " GROUP BY t1.cust_id) t2 ON t3.cust_id = t2.cust_id" +
+                " JOIN t_customer t5 ON t3.cust_id = t5.cust_id" +
+                " WHERE t3.user_type = 1 AND t3.`STATUS` = 0 ");
         if (StringUtil.isNotEmpty(userName)) {
-            sql.append(" and t3.userName='").append(StringEscapeUtils.escapeSql(userName)).append("'");
+            sql.append(" and t3.account='").append(StringEscapeUtils.escapeSql(userName)).append("'");
         }
         if (StringUtil.isNotEmpty(userId)) {
-            sql.append(" and t3.userId='").append(StringEscapeUtils.escapeSql(userId)).append("'");
+            sql.append(" and t3.id='").append(StringEscapeUtils.escapeSql(userId)).append("'");
         }
         if (StringUtil.isNotEmpty(enterpriseName)) {
-            sql.append(" and t3.enterpriseName='").append(StringEscapeUtils.escapeSql(enterpriseName)).append("'");
+            sql.append(" and t5.enterprise_name='").append(StringEscapeUtils.escapeSql(enterpriseName)).append("'");
         }
-        sql.append(" group by t3.custId");
-        List list = userInfoDao.getSQLQuery(sql.toString()).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP).setFirstResult(pageNum).setMaxResults(pageSize).list();
-        map.put("total", list.size());
-        map.put("userIndustryPoolList", list);
+        sql.append(" order by t5.create_time desc ");
+
+        map.put("total", userInfoDao.queryListBySql(sql.toString()).size());
+        List userIndustryPoolList = userInfoDao.getSQLQuery(sql.toString()).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP).setFirstResult(pageNum).setMaxResults(pageSize).list();
+        Map customerProperty;
+        CustomerUserPropertyDO mobileNum;
+        for (int i = 0; i < userIndustryPoolList.size(); i++) {
+            customerProperty = (Map) userIndustryPoolList.get(i);
+            mobileNum = customerUserDao.getProperty(String.valueOf(customerProperty.get("userId")), "mobile_num");
+            customerProperty.put("mobileNum", mobileNum == null ? "" : mobileNum.getPropertyValue());
+        }
+        map.put("userIndustryPoolList", userIndustryPoolList);
         return map;
     }
 

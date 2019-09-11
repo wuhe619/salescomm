@@ -1,10 +1,12 @@
 package com.bdaim.image.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.common.service.MongoFileService;
 import com.bdaim.common.util.*;
 import com.bdaim.image.service.UploadDowloadService;
 import com.bdaim.resource.service.MarketResourceService;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.tomcat.util.http.fileupload.FileItem;
 import org.apache.tomcat.util.http.fileupload.disk.DiskFileItemFactory;
 import org.apache.tomcat.util.http.fileupload.servlet.ServletFileUpload;
@@ -32,7 +34,6 @@ import java.util.zip.ZipOutputStream;
 
 /**
  * 上传下载图片service服务 2017/2/21
- *
  */
 @Service("uploadDowloadImgService")
 @Transactional
@@ -43,6 +44,8 @@ public class UploadDowloadImgServiceImpl implements UploadDowloadService {
     private MarketResourceService marketResourceServiceImpl;
     @Autowired
     private FileUrlEntity fileUrlEntity;
+    @Autowired
+    private MongoFileService mongoFileService;
 
     @Override
     public Object uploadImgNew(HttpServletRequest request, HttpServletResponse response, String cust_id,
@@ -805,6 +808,73 @@ public class UploadDowloadImgServiceImpl implements UploadDowloadService {
         return JSONObject.toJSON(resultMap);
     }*/
 
+    public Object uploadImgNew0(HttpServletRequest request, HttpServletResponse response, String cust_id,
+                                String pictureName) {
+        String code = "";
+        String message = "";
+        // 返回结果编码： 1：成功 0：失败
+        // 得到上传文件的保存目录
+        // 获取用户名
+        String userid = cust_id;
+        logger.info("上传图片-->>>" + userid);
+        pictureName = CipherUtil.generatePassword(pictureName);
+        logger.info("上传图片名称---->>" + pictureName);
+        String savePath = PropertiesUtil.getStringValue("location") + userid + File.separator;
+        File filePath = new File(savePath);
+        // 判断上传文件的保存目录是否存在
+        if (!filePath.exists() && !filePath.isDirectory()) {
+            // 创建目录
+            filePath.mkdirs();
+        }
+        String sPath = savePath + pictureName + ".jpg";
+        // 判断文件是否已经存在
+        File file = new File(sPath);
+        // 判断目录或文件是否存在
+        if (file.exists()) {
+            // 删除文件
+            file.delete();
+        }
+        try {
+            CommonsMultipartResolver multipartResolver = new CommonsMultipartResolver(
+                    request.getSession().getServletContext());
+            if (multipartResolver.isMultipart(request)) {
+                MultipartHttpServletRequest multiRequest = (MultipartHttpServletRequest) request;
+                Iterator<String> iter = multiRequest.getFileNames();
+                while (iter.hasNext()) {
+                    MultipartFile multiRequestFile = multiRequest.getFile(iter.next());
+                    if (multiRequestFile != null) {
+                        mongoFileService.saveFile(multiRequestFile, pictureName);
+                        /*File localFile = new File(sPath);
+                        file1.transferTo(localFile);*/
+
+                        File desFile = new File(sPath);
+                        FileUtils.copyInputStreamToFile(multiRequestFile.getInputStream(), desFile);
+                    }
+                }
+            }
+            //ftp同步图片
+			/*String src = sPath; // 本地文件名
+			String dst = PropertiesUtil.getStringValue("destpath")+userid+ "/" + fileName + ".jpg"; // 目标文件名
+			SFTPChannel channel = new SFTPChannel();
+			ChannelSftp chSftp = channel.getChannel(PropertiesUtil.getStringValue("location")+userid+ "/",60000);
+			chSftp.put(src, dst, ChannelSftp.OVERWRITE); // 代码段2sPath
+			chSftp.quit();
+			channel.closeChannel();*/
+            logger.info("上传营业执照成功！");
+            code = "1";
+            message = "上传营业执照成功";
+        } catch (Exception e) {
+            code = "0";
+            message = "上传营业执照失败";
+            logger.error("上传营业执照失败！", e);
+        }
+        Map<String, Object> resultMap = new HashMap<String, Object>();
+        resultMap.put("code", code);
+        resultMap.put("_message", message);
+        resultMap.put("url", pictureName + ".jpg");
+        return JSONObject.toJSON(resultMap);
+    }
+
    /* public String uploadFile(HttpServletRequest request, String custId) {
         String savePath = PropertiesUtil.getStringValue("location") + custId + File.separator;
         File filePath = new File(savePath);
@@ -1024,5 +1094,29 @@ public class UploadDowloadImgServiceImpl implements UploadDowloadService {
         return JSONObject.toJSON(resultMap);
     }*/
 
-
+    /**
+     * 文件下载
+     *
+     * @param response
+     * @param userId
+     * @param fileName
+     */
+    public void downloadFile(HttpServletResponse response, String userId, String fileName) {
+        String filePath = PropertiesUtil.getStringValue("location") + userId + File.separator + fileName;
+        File file = new File(filePath);
+        try (FileInputStream fis = new FileInputStream(file)) {
+            if (!file.exists()) {
+                IOUtils.copy(fis, response.getOutputStream());
+            } else {
+                logger.warn(filePath + ",磁盘文件不存在,穿透查询mongodb文件");
+                if (fileName.indexOf(".") > 0) {
+                    fileName = fileName.substring(0, fileName.lastIndexOf("."));
+                }
+                byte[] bytes = mongoFileService.downloadFile(fileName);
+                IOUtils.copy(new ByteArrayInputStream(bytes), response.getOutputStream());
+            }
+        } catch (Exception e) {
+            logger.error("获取文件异常", e);
+        }
+    }
 }

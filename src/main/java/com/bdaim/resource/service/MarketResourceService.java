@@ -3204,6 +3204,7 @@ public class MarketResourceService {
                 .setFirstResult(Integer.parseInt(pageNum)).setMaxResults(Integer.parseInt(pageSize)).list();
 
     }
+
     public void insertLogV3(MarketResourceLogDTO dto) {
         String type_code = dto.getType_code();
         StringBuffer sql = new StringBuffer();
@@ -3994,8 +3995,8 @@ public class MarketResourceService {
      * @return
      */
     public com.bdaim.common.dto.Page queryRecordVoiceLogV4(UserQueryParam userQueryParam, String customerGroupId, String superId, String realName,
-                                      String createTimeStart, String createTimeEnd, String remark, String callStatus, String level,
-                                      String auditingStatus, String marketTaskId, int calledDuration, String custProperty, String seaId) {
+                                                           String createTimeStart, String createTimeEnd, String remark, String callStatus, String level,
+                                                           String auditingStatus, String marketTaskId, int calledDuration, String custProperty, String seaId) {
         com.bdaim.common.dto.Page page = null;
         int taskType = -1;
         try {
@@ -4016,10 +4017,17 @@ public class MarketResourceService {
 
             String monthTableName = ConstantsUtil.TOUCH_VOICE_TABLE_PREFIX + endTime.format(YYYYMM);
             // 处理任务类型
-            MarketTask marketTask = marketTaskDao.get(marketTaskId);
-            if (marketTask != null && marketTask.getTaskType() != null) {
-                taskType = marketTask.getTaskType();
+            MarketTask marketTask = null;
+            if (StringUtil.isNotEmpty(marketTaskId)) {
+                marketTask = marketTaskDao.get(marketTaskId);
+                if (marketTask != null && marketTask.getTaskType() != null) {
+                    taskType = marketTask.getTaskType();
+                }
             }
+            if (marketTask == null) {
+                marketTask = new MarketTask();
+            }
+
             sb.append("select voicLog.touch_id touchId, voicLog.callSid, voicLog.superid,voicLog.create_time create_time,voicLog.status, CAST(voicLog.user_id AS CHAR) user_id,voicLog.remark,")
                     .append(" voicLog.call_data, voicLog.recordurl, voicLog.clue_audit_status auditingStatus, voicLog.market_task_id marketTaskId")
                     .append("  from " + monthTableName + " voicLog ");
@@ -5948,8 +5956,8 @@ public class MarketResourceService {
 
 
     public com.bdaim.common.dto.Page querySmsHistoryV1(String user_id, String userType, String cust_id, Integer pageNum, Integer pageSize, String superId,
-                                  String startTime, String endTime, String userName, String groupId, String marketTaskId, String seaId,
-                                  String activeSTime, String activeETime, String status) {
+                                                       String startTime, String endTime, String userName, String groupId, String marketTaskId, String seaId,
+                                                       String activeSTime, String activeETime, String status) {
         StringBuffer sb = new StringBuffer();
         sb.append(" SELECT count(*) as total, sms.superid, sms.create_time, sms.STATUS, tem.title, us.account realname, sms.templateId, sms.touch_id batch_number, sms.active_time ");
         sb.append(" FROM t_touch_sms_log sms ");
@@ -6645,7 +6653,7 @@ public class MarketResourceService {
                 }
 
                 public void setValues(java.sql.PreparedStatement ps, int i) throws SQLException {
-                            PeopleAssignedDTO peopleAssigned = (PeopleAssignedDTO) list.get(i);
+                    PeopleAssignedDTO peopleAssigned = (PeopleAssignedDTO) list.get(i);
                     if (type == 1) {
                         ps.setLong(1, peopleAssigned.getUserId());
                     } else if (type == 2) {

@@ -193,7 +193,7 @@ public class CustomGroupService {
 
         if (StringUtil.isNotEmpty(marketProjectId)) {
             hql.append(" and m.marketProjectId= ?");
-            values.add(marketProjectId);
+            values.add(NumberConvertUtil.parseInt(marketProjectId));
         }
 
         if (StringUtil.isNotEmpty(dateStart)) {
