@@ -1440,6 +1440,7 @@ public class CustomGroupAction extends BasicAction {
             response.getWriter().write(json.toJSONString());
         } catch (Exception e) {
             e.printStackTrace();
+            log.error("创建客户群异常",e);
             json.put("errorDesc", "05");
             try {
                 response.getWriter().write(json.toJSONString());
