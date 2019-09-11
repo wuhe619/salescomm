@@ -14,7 +14,8 @@ import com.bdaim.customer.dto.CustomerUserDTO;
 import com.bdaim.customer.dto.CustomerUserGroupDTO;
 import com.bdaim.customer.entity.CustomerUserGroup;
 import com.bdaim.customeruser.service.UserGroupService;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -30,6 +31,7 @@ import java.util.Map;
 
 /**
  * 坐席组
+ *
  * @author chengning@salescomm.net
  * @date 2018/9/27
  * @description
@@ -38,7 +40,7 @@ import java.util.Map;
 @RequestMapping("/userGroup")
 public class CustomerUserGroupAction extends BasicAction {
 
-    private final static Logger LOG = Logger.getLogger(CustomerUserGroupAction.class);
+    private final static Logger LOG = LoggerFactory.getLogger(CustomerUserGroupAction.class);
 
     @Resource
     private UserGroupService userGroupService;
@@ -53,8 +55,8 @@ public class CustomerUserGroupAction extends BasicAction {
      */
     @RequestMapping(value = "/save", method = RequestMethod.POST)
     public ResponseCommon addUserGroup(@RequestBody Map<String, Object> params) {
-        Object leavel = params.getOrDefault("leavel",null);
-        if(null == leavel || "".equals(leavel)){
+        Object leavel = params.getOrDefault("leavel", null);
+        if (null == leavel || "".equals(leavel)) {
             throw new ParamException("参数leavel必填");
         }
         CustomerUserGroup userGroupEntity = new CustomerUserGroup();
@@ -65,20 +67,20 @@ public class CustomerUserGroupAction extends BasicAction {
         userGroupEntity.setLeavel(Integer.valueOf(leavel.toString()));
         List<String> userIds = null;
         String groupLeaderUserId = null;
-        if("0".equals(leavel.toString())){ //职场
-            userGroupEntity.setProvince(params.get("province")==null?"":params.get("province").toString());
-            userGroupEntity.setCity(params.get("city")==null?"":params.get("city").toString());
-            userGroupEntity.setRemark(params.get("remark")==null?"":params.get("remark").toString());
-        }else if("1".equals(leavel.toString())){
-            if(null == params.get("pid") || "".equals(params.get("pid"))){
+        if ("0".equals(leavel.toString())) { //职场
+            userGroupEntity.setProvince(params.get("province") == null ? "" : params.get("province").toString());
+            userGroupEntity.setCity(params.get("city") == null ? "" : params.get("city").toString());
+            userGroupEntity.setRemark(params.get("remark") == null ? "" : params.get("remark").toString());
+        } else if ("1".equals(leavel.toString())) {
+            if (null == params.get("pid") || "".equals(params.get("pid"))) {
                 throw new ParamException("参数pid不能为空");
             }
             //组长Id
-             groupLeaderUserId = String.valueOf(params.get("groupLeaderUserId") != null ? params.get("groupLeaderUserId") : "");
+            groupLeaderUserId = String.valueOf(params.get("groupLeaderUserId") != null ? params.get("groupLeaderUserId") : "");
             if (params.get("userIds") != null) {
                 userIds = (List<String>) params.get("userIds");
             }
-            userGroupEntity.setPid(params.get("pid")==null?"":params.get("pid").toString());
+            userGroupEntity.setPid(params.get("pid") == null ? "" : params.get("pid").toString());
         }
         ResponseCommon responseCommon = new ResponseCommon();
         int result = userGroupService.addUserGroup(userGroupEntity, userIds, groupLeaderUserId);
@@ -169,7 +171,7 @@ public class CustomerUserGroupAction extends BasicAction {
             responseJson.setData(getErrors(error));
             return responseJson;
         }
-        if(userGroupEntity.getLeavel()==null){
+        if (userGroupEntity.getLeavel() == null) {
             throw new ParamException("参数leavel不能为空");
         }
 
@@ -180,19 +182,19 @@ public class CustomerUserGroupAction extends BasicAction {
     }
 
     @RequestMapping(value = "/listCustomerUserGroup", method = RequestMethod.GET)
-    public ResponseJson listCustomerUserGroup(CustomerUserGroup userGroupEntity,String custId) {
+    public ResponseJson listCustomerUserGroup(CustomerUserGroup userGroupEntity, String custId) {
         ResponseJson responseJson = new ResponseJson();
-        LoginUser lu=opUser();
-        if("ROLE_USER".equals(lu.getRole()) || "admin".equals(lu.getRole())){
-            if(StringUtil.isNotEmpty(custId)){
+        LoginUser lu = opUser();
+        if ("ROLE_USER".equals(lu.getRole()) || "admin".equals(lu.getRole())) {
+            if (StringUtil.isNotEmpty(custId)) {
                 userGroupEntity.setCustId(custId);
-            }else{
+            } else {
                 throw new ParamException("custId参数不能为空");
             }
-        }else{
+        } else {
             userGroupEntity.setCustId(opUser().getCustId());
         }
-        if(userGroupEntity.getLeavel()==null){
+        if (userGroupEntity.getLeavel() == null) {
             throw new ParamException("leavel参数不能为空");
         }
         List<CustomerUserGroupDTO> result = userGroupService.listCustomerUserGroup(userGroupEntity, lu);
@@ -256,6 +258,7 @@ public class CustomerUserGroupAction extends BasicAction {
 
     /**
      * 职场结算价列表查询 list
+     *
      * @param projectId
      * @param customerId
      * @param jobId
@@ -275,13 +278,14 @@ public class CustomerUserGroupAction extends BasicAction {
             return responseJson;
         }
 
-        Page result = userGroupService.searchSettlementList(serviceCode,pageParam.getPageNum(), pageParam.getPageSize(),projectId ,customerId,jobId,billDate,lu);
+        Page result = userGroupService.searchSettlementList(serviceCode, pageParam.getPageNum(), pageParam.getPageSize(), projectId, customerId, jobId, billDate, lu);
         responseJson.setData(getPageData(result));
         return responseJson;
     }
 
     /**
      * 设置售价/修改售价,结算单录入，项目审单录入
+     *
      * @param infoDTO
      * @return
      */
@@ -297,7 +301,7 @@ public class CustomerUserGroupAction extends BasicAction {
         if (StringUtil.isEmpty(infoDTO.getCustId())) {
             throw new ParamException("参数custId不能为空");
         }
-        if(infoDTO.getServiceCode().equals(CommonInfoServiceCodeEnum.SETTING_JOB_SETTLEMENT_PRICE.getKey().toString())) {
+        if (infoDTO.getServiceCode().equals(CommonInfoServiceCodeEnum.SETTING_JOB_SETTLEMENT_PRICE.getKey().toString())) {
             if (StringUtil.isEmpty(infoDTO.getJobId())) {
                 throw new ParamException("参数jobId不能为空");
             }
@@ -309,11 +313,11 @@ public class CustomerUserGroupAction extends BasicAction {
             return responseJson;
         }
         try {
-            userGroupService.settingSettlementPrice(infoDTO,lu);
+            userGroupService.settingSettlementPrice(infoDTO, lu);
             responseJson.setCode(0);
             responseJson.setMessage("操作成功");
         } catch (Exception e) {
-            e.printStackTrace();
+            LOG.error("添加结算单异常,", e);
             responseJson.setCode(-1);
             responseJson.setMessage("操作失败");
             return responseJson;

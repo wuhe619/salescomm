@@ -462,14 +462,14 @@ public class AccountAction extends BasicAction {
         return JSONObject.toJSON(resultMap);
     }
 
-    /*@RequestMapping(value = "/center/show/", method = RequestMethod.GET)
+    @RequestMapping(value = "/center/show0/", method = RequestMethod.GET)
     @ResponseBody
-    public Object showAccountCenter() throws Exception {
+    public Object showAccountCenter0() throws Exception {
         //Todo 需要在登录的时候将customerId加入到session
         Map<String, Object> resultMap = new HashMap<String, Object>();
-        resultMap.put("data", JSONObject.toJSON(accountService.showAccoutCenter(opUser().getCustId())));
+        resultMap.put("data", JSONObject.toJSON(accountService.showOnlineAccoutCenter(opUser().getCustId())));
         return JSONObject.toJSON(resultMap);
-    }*/
+    }
 
     @RequestMapping(value = "/transaction/query0", method = RequestMethod.GET)
     @ResponseBody

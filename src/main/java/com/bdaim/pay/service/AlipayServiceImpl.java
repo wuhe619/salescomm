@@ -117,7 +117,7 @@ public class AlipayServiceImpl implements AlipayService{
 	        orderDO.setRemarks(extra_common_param);//备注
 	        //从t_market_resource查看销售价和成本价
 	    	StringBuffer hql = new StringBuffer();
-			hql.append("from MarketResource where status=1 and supplierId=? and typeCode=?");//资源类型（1.voice 2.SMS 3.email）
+			hql.append("from MarketResourceEntity where status=1 and supplierId=? and typeCode=?");//资源类型（1.voice 2.SMS 3.email）
 			List<Map<String, Object>> list=new ArrayList<Map<String, Object>>();
 			if(type.equals("MarketResource/voice")){
 				list = alipayDao.createQuery(hql.toString(),request.getParameter("supplierId").toString(),1).list();

@@ -140,7 +140,7 @@ public class MarketTaskDao extends SimpleHibernateDao<MarketTask, String> {
      */
     public List<CustomerUserDTO> listMarketTaskUser(String marketTaskId, int status, String custId, String startAccount, String endAccount) {
         StringBuilder hql = new StringBuilder();
-        hql.append(" SELECT new com.bdaim.sale.dto.CustomerUserDTO(t.userId AS id, user.realname, user.account, p.propertyValue) FROM MarketTaskUserRel t, CustomerUser user, CustomerUserPropertyDO p ");
+        hql.append(" SELECT new com.bdaim.customer.dto.CustomerUserDTO(t.userId AS id, user.realname, user.account, p.propertyValue) FROM MarketTaskUserRel t, CustomerUser user, CustomerUserPropertyDO p ");
         hql.append(" WHERE user.id = t.userId AND user.id = p.userId AND p.propertyName = 'seats_account' AND t.marketTaskId = ? AND t.status = ? AND user.cust_id = ? ");
         // 开始搜索不为空
         if (StringUtil.isNotEmpty(startAccount) && StringUtil.isNotEmpty(endAccount)) {
@@ -166,7 +166,7 @@ public class MarketTaskDao extends SimpleHibernateDao<MarketTask, String> {
      */
     public List<CustomerUserDTO> listNotInUserByResourceId(String resourceId, String marketTaskId, String custId, String startAccount, String endAccount) {
         StringBuilder hql = new StringBuilder();
-        hql.append(" SELECT new com.bdaim.sale.dto.CustomerUserDTO(user.id, user.realname, user.account, p.propertyValue) FROM CustomerUser user, CustomerUserPropertyDO p ")
+        hql.append(" SELECT new com.bdaim.customer.dto.CustomerUserDTO(user.id, user.realname, user.account, p.propertyValue) FROM CustomerUser user, CustomerUserPropertyDO p ")
                 .append(" WHERE user.id = p.userId AND user.userType=2 AND p.propertyName = 'seats_account' AND user.cust_id = ? ")
                 .append(" AND user.id IN (SELECT userId FROM CustomerUserPropertyDO WHERE propertyName = 'call_channel' AND propertyValue = ? ) ");
         if (StringUtil.isNotEmpty(marketTaskId)) {

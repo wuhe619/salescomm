@@ -23,7 +23,7 @@ public class CustomGroupDao extends SimpleHibernateDao<CustomGroup, Serializable
 
     public CustomerGroupProperty getProperty(int customerGroupId, String propertyName) {
         CustomerGroupProperty cp = null;
-        String hql = "from CustomerGroupPropertyDO m where m.customerGroupId=? and m.propertyName=?";
+        String hql = "from CustomerGroupProperty m where m.customerGroupId=? and m.propertyName=?";
         List<CustomerGroupProperty> list = this.find(hql, customerGroupId, propertyName);
         if (list.size() > 0) {
             cp = list.get(0);
@@ -33,7 +33,7 @@ public class CustomGroupDao extends SimpleHibernateDao<CustomGroup, Serializable
 
     public CustomerGroupProperty getProperty(String propertyName, String propertyValue) {
         CustomerGroupProperty cp = null;
-        String hql = " FROM CustomerGroupPropertyDO m WHERE m.propertyName = ? AND m.propertyValue = ? ";
+        String hql = " FROM CustomerGroupProperty m WHERE m.propertyName = ? AND m.propertyValue = ? ";
         List<CustomerGroupProperty> list = this.find(hql, propertyName, propertyValue);
         if (list.size() > 0) {
             cp = list.get(0);

@@ -35,7 +35,7 @@ public class UserDO {
     private Integer userPwdLevel;
 
 
-    private String newPassword;
+    /*private String newPassword;*/
     /**
      * 授权平台 1-精准营销 2-金融超市
      */
@@ -273,14 +273,14 @@ public class UserDO {
         this.workNumStatus = workNumStatus;
     }
 
-    @Transient
+    /*@Transient
     public String getNewPassword() {
         return newPassword;
     }
 
     public void setNewPassword(String newPassword) {
         this.newPassword = newPassword;
-    }
+    }*/
 
     public Integer getAuthorize() {
         return authorize;

@@ -252,9 +252,9 @@ public class SupplierAction extends BasicAction {
             LOG.error("保存供应商失败,", e);
         }
         if (1 == code) {
-            return returnJsonData(returnSuccess());
+            return returnSuccess();
         }
-        return returnJsonData(returnError());
+        return returnError();
     }
 
     @RequestMapping(value = "/selectSupplier", method = RequestMethod.GET)
@@ -354,9 +354,9 @@ public class SupplierAction extends BasicAction {
             LOG.error("修改供应商主信息失败,", e);
         }
         if (1 == code) {
-            return returnJsonData(returnSuccess());
+            return returnSuccess();
         }
-        return returnJsonData(returnError());
+        return returnError();
     }
 
     @RequestMapping(value = "/listEffectiveSupplier0", method = RequestMethod.GET)

@@ -673,7 +673,7 @@ public class AccountService {
     }
 
 
-    /*public List<Map<String, Object>> showAccoutCenter(String customerId) throws Exception {
+    public List<Map<String, Object>> showOnlineAccoutCenter(String customerId) throws Exception {
         if (StringUtil.isEmpty(customerId)) {
             throw new TouchException("20010", "系统异常:用户信息不存在");
         }
@@ -697,5 +697,5 @@ public class AccountService {
         List<Map<String, Object>> result = new ArrayList<>();
         result.add(resultMap);
         return result;
-    }*/
+    }
 }

@@ -64,7 +64,7 @@ public class SupplierDao extends SimpleHibernateDao<SupplierEntity, Integer> {
      */
     public List<SupplierDTO> listOnlineAllSupplierByResourceType(int type) {
         // 查询所有数据供应商
-        StringBuffer hql = new StringBuffer(" FROM SupplierDO m WHERE status=1 AND m.supplierId IN(SELECT supplierId FROM MarketResource WHERE typeCode = ? AND status = 1)");
+        StringBuffer hql = new StringBuffer(" FROM SupplierEntity m WHERE status=1 AND m.supplierId IN(SELECT supplierId FROM MarketResourceEntity WHERE typeCode = ? AND status = 1)");
         hql.append(" ORDER BY m.createTime DESC");
         List<SupplierEntity> supplierDOList = this.find(hql.toString(), type);
         List<SupplierDTO> result = new ArrayList<>();

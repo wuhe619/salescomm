@@ -202,7 +202,7 @@ public class MarketResourceDao extends SimpleHibernateDao<MarketResourceEntity, 
         if (mr != null) {
             ResourcePropertyEntity mp = null;
             String hql = "from ResourcePropertyEntity m where m.resourceId=? and m.propertyName=?";
-            List<ResourcePropertyEntity> list = this.find(hql, String.valueOf(resourceId), propertyName);
+            List<ResourcePropertyEntity> list = this.find(hql, resourceId, propertyName);
             if (list.size() > 0) {
                 mp = list.get(0);
                 MarketResourceDTO dto = new MarketResourceDTO(mr);
@@ -222,7 +222,7 @@ public class MarketResourceDao extends SimpleHibernateDao<MarketResourceEntity, 
      */
     public int deleteProperty(String resourceId, String propertyName) {
         String hql = "Delete FROM MarketResourceEntity m where m.resourceId=? and m.propertyName=?";
-        int code = this.batchExecute(hql, resourceId, propertyName);
+        int code = this.batchExecute(hql, NumberConvertUtil.parseInt(resourceId), propertyName);
         return code;
     }
 

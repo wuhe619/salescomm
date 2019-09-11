@@ -1027,9 +1027,9 @@ public class MarketResourceAction extends BasicAction {
             LOG.error("审核模板异常,", e);
         }
         if (code == 1) {
-            return returnJsonData(returnSuccess("成功"));
+            return returnSuccess("成功");
         }
-        return returnJsonData(returnError());
+        return returnError();
     }
 
     @RequestMapping(value = "/approveFlashSmsTemplate", method = RequestMethod.POST)
@@ -3202,9 +3202,9 @@ public class MarketResourceAction extends BasicAction {
     public String openCustomLabel(CustomerLabel customerLabel) {
         int code = customerLabelService.openCustomLabel(customerLabel);
         if (code == 1) {
-            return JSON.toJSONString(returnSuccess());
+            return returnSuccess();
         } else {
-            return JSON.toJSONString(returnError());
+            return returnError();
         }
 
     }
@@ -3450,9 +3450,9 @@ public class MarketResourceAction extends BasicAction {
         }
         boolean result = marketResourceService.saveVoiceIntention(touchIds, intentStatus, endTime);
         if (result) {
-            return JSON.toJSONString(returnSuccess());
+            return returnSuccess();
         }
-        return JSON.toJSONString(returnError());
+        return returnError();
     }
 
     /**
@@ -3481,9 +3481,9 @@ public class MarketResourceAction extends BasicAction {
         }
         boolean result = marketResourceService.saveBatchVoiceIntention(param);
         if (result) {
-            return JSON.toJSONString(returnSuccess());
+            return returnSuccess();
         }
-        return JSON.toJSONString(returnError());
+        return returnError();
     }
 
 

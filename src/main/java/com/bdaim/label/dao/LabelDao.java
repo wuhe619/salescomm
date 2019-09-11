@@ -69,7 +69,7 @@ public class LabelDao extends SimpleHibernateDao<LabelInfo, Serializable> {
         Map<Object, List<DataNode>> map = new HashMap<Object, List<DataNode>>();
         List<DataNode> lst = new ArrayList<DataNode>();
 //		PreparedStatement st = null;
-        List rs = null;
+        List rs = new ArrayList();
         Object parentId = 0;
         try {
             if (user != null && user.getId() != null) {
@@ -88,12 +88,12 @@ public class LabelDao extends SimpleHibernateDao<LabelInfo, Serializable> {
                     rs = this.sqlQuery(sql);
 
                 } else {
-                    String sql = "select t1.id,t1.label_id,COALESCE(t1.parent_id,0) parent_id,t1.label_name,COALESCE(t2.LABEL_ID,'0') as LABELID " +
+                   /* String sql = "select t1.id,t1.label_id,COALESCE(t1.parent_id,0) parent_id,t1.label_name,COALESCE(t2.LABEL_ID,'0') as LABELID " +
                             "	  from label_info t1 " +
                             "     left join t_user_label_rel t2 on t1.id = t2.LABEL_ID and t2.user_id=" + user.getId() + " " +
                             "     where t1.LEVEL<=" + deep + " order by t1.parent_id";
                     sql = SqlKeywordUtils.processKeyword(sql, "com.mysql.jdbc.Driver");
-                    rs = this.sqlQuery(sql);
+                    rs = this.sqlQuery(sql);*/
                 }
             }
 
@@ -137,7 +137,7 @@ public class LabelDao extends SimpleHibernateDao<LabelInfo, Serializable> {
         Map<Object, List<DataNode>> map = new HashMap<Object, List<DataNode>>();
         List<DataNode> lst = new ArrayList<DataNode>();
 //		PreparedStatement st = null;
-        List rs = null;
+        List rs = new ArrayList();
         Object parentId = 0;
         try {
             if (user != null && user.getId() != null) {
@@ -148,9 +148,9 @@ public class LabelDao extends SimpleHibernateDao<LabelInfo, Serializable> {
                     }
                     Integer dp = getDeep(rs, deep, root, true);
                     String uri = getUri(root, true);
-                    rs = this.sqlQuery("select t2.id,t2.label_id,t2.label_name,COALESCE(t2.parent_id,0) parent_id from t_user_label_rel t1 left join label_info t2 on t1.label_id = t2.id and t1.user_id = " + user.getId() + " where t2.`LEVEL` <= " + dp + " and t2.uri like '" + uri + "' order by t2.parent_id");
+                    //rs = this.sqlQuery("select t2.id,t2.label_id,t2.label_name,COALESCE(t2.parent_id,0) parent_id from t_user_label_rel t1 left join label_info t2 on t1.label_id = t2.id and t1.user_id = " + user.getId() + " where t2.`LEVEL` <= " + dp + " and t2.uri like '" + uri + "' order by t2.parent_id");
                 } else {
-                    rs = this.sqlQuery("select t2.id,t2.label_id,t2.label_name,COALESCE(t2.parent_id,0) parent_id from t_user_label_rel t1 left join label_info t2 on t1.label_id = t2.id and t1.user_id = " + user.getId() + " where t2.`LEVEL` <= " + deep + " order by t2.parent_id");
+                    //rs = this.sqlQuery("select t2.id,t2.label_id,t2.label_name,COALESCE(t2.parent_id,0) parent_id from t_user_label_rel t1 left join label_info t2 on t1.label_id = t2.id and t1.user_id = " + user.getId() + " where t2.`LEVEL` <= " + deep + " order by t2.parent_id");
                 }
 
                 for (int i = 0; i < rs.size(); i++) {
@@ -241,7 +241,7 @@ public class LabelDao extends SimpleHibernateDao<LabelInfo, Serializable> {
         Map<Object, List<DataNode>> map = new HashMap<Object, List<DataNode>>();
         List<DataNode> lst = new ArrayList<DataNode>();
 
-        List rs = null;
+        List rs = new ArrayList();
         Object parentId = 0;
         try {
             if (user != null && user.getId() != null) {
@@ -252,9 +252,9 @@ public class LabelDao extends SimpleHibernateDao<LabelInfo, Serializable> {
                     }
                     Integer dp = getDeep(rs, deep, root, false);
                     String uri = getUri(root, false);
-                    rs = this.sqlQuery("select t2.id,t2.name,COALESCE(t2.parent_id,0) parent_id from t_user_category_rel t1 left join label_category t2 on t1.category_id = t2.id and t1.user_id = " + user.getId() + " where t2.`LEVEL` <= " + dp + " and t2.uri like '" + uri + "' and t2.type = " + categoryType.ordinal() + " order by t2.parent_id");
+                    //rs = this.sqlQuery("select t2.id,t2.name,COALESCE(t2.parent_id,0) parent_id from t_user_category_rel t1 left join label_category t2 on t1.category_id = t2.id and t1.user_id = " + user.getId() + " where t2.`LEVEL` <= " + dp + " and t2.uri like '" + uri + "' and t2.type = " + categoryType.ordinal() + " order by t2.parent_id");
                 } else {
-                    rs = this.sqlQuery("select t2.id,t2.name,COALESCE(t2.parent_id,0) parent_id from t_user_category_rel t1 left join label_category t2 on t1.category_id = t2.id and t1.user_id = " + user.getId() + " where t2.`LEVEL` <= " + deep + " and t2.type = " + categoryType.ordinal() + " order by t2.parent_id");
+                    //rs = this.sqlQuery("select t2.id,t2.name,COALESCE(t2.parent_id,0) parent_id from t_user_category_rel t1 left join label_category t2 on t1.category_id = t2.id and t1.user_id = " + user.getId() + " where t2.`LEVEL` <= " + deep + " and t2.type = " + categoryType.ordinal() + " order by t2.parent_id");
                 }
                 for (int i = 0; i < rs.size(); i++) {
                     Map r = (Map) rs.get(i);
@@ -333,11 +333,11 @@ public class LabelDao extends SimpleHibernateDao<LabelInfo, Serializable> {
     }
 
     private Boolean validPermission(UserDTO user, DataNode root, boolean isLabel) throws SQLException {
-        List rs = null;
+        List rs = new ArrayList();
         if (isLabel) {
-            rs = this.getSQLQuery("select OPT_TIME from t_user_label_rel where USER_ID=" + user.getId() + " and LABEL_ID=" + root.getId()).list();
+            //rs = this.getSQLQuery("select OPT_TIME from t_user_label_rel where USER_ID=" + user.getId() + " and LABEL_ID=" + root.getId()).list();
         } else {
-            rs = this.getSQLQuery("select OPT_TIME from t_user_category_rel where USER_ID=" + user.getId() + " and CATEGORY_ID=" + root.getId()).list();
+            //rs = this.getSQLQuery("select OPT_TIME from t_user_category_rel where USER_ID=" + user.getId() + " and CATEGORY_ID=" + root.getId()).list();
         }
         if (rs.size() > 0) {
             return true;

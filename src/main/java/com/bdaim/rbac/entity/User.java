@@ -61,7 +61,7 @@ public class User implements Serializable {
     /*@OneToMany(mappedBy = "labelCategoryUser", fetch = FetchType.LAZY)
     private List<UserLabelCategory> userLabelCategoryLs;*/
 
-    private String newPassword;
+    /*private String newPassword;*/
 
     @Basic
     @Column(name = "email")
@@ -179,14 +179,14 @@ public class User implements Serializable {
         this.password = password;
     }
 
-    @Transient
+   /* @Transient
     public String getNewPassword() {
         return newPassword;
     }
 
     public void setNewPassword(String newPassword) {
         this.newPassword = newPassword;
-    }
+    }*/
 
     /*public List<LabelCategory> getCreateCategory() {
         return createCategory;

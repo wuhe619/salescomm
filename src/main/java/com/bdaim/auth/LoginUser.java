@@ -23,6 +23,11 @@ public class LoginUser extends Token {
         this.tokentime = tokentime;
     }
 
+    public LoginUser(String username, String tokenid, Collection<? extends GrantedAuthority> authorities, String msg, String stateCode) {
+        super(username, tokenid, authorities);
+        this.msg = msg;
+        this.stateCode = stateCode;
+    }
 
     private User user;
     private Long id;

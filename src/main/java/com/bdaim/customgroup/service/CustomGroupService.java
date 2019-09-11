@@ -1119,7 +1119,7 @@ public class CustomGroupService {
             }
 
         } catch (Exception e) {
-            log.error("订单号 " + orderId + " 创建客户群详情表失败:" + e.getMessage());
+            log.error("订单号:[" + orderId + "]创建客户群详情表失败,", e);
         }
 
         // 2.更新客户群状态
