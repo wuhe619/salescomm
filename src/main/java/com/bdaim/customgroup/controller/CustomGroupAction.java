@@ -39,8 +39,8 @@ import com.bdaim.markettask.service.MarketTaskService;
 import com.bdaim.rbac.dto.UserQueryParam;
 import com.bdaim.rbac.entity.User;
 import com.bdaim.resource.service.MarketResourceService;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -70,7 +70,7 @@ import java.util.*;
 @RequestMapping("/customgroup")
 public class CustomGroupAction extends BasicAction {
 
-    private static Log log = LogFactory.getLog(CustomGroupAction.class);
+    private static Logger log = LoggerFactory.getLogger(CustomGroupAction.class);
 
     @Resource
     private CustomGroupService customGroupService;
