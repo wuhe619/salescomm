@@ -1158,7 +1158,7 @@ public class MarketResourceAction extends BasicAction {
     @CacheAnnotation
     public String queryRecordVoicelogV2(@Valid PageParam pageParam, BindingResult error, String superId, String customerGroupId, String realName, String createTimeStart,
                                         String createTimeEnd, String remark, String callStatus, String intentLevel, String auditingStatus,
-                                        String marketTaskId, String calledDuration, String labelProperty, String seaId) {
+                                        String marketTaskId, String calledDuration, String labelProperty, String seaId, String group_id) {
         if (error.hasErrors()) {
             return getErrors(error);
         }
@@ -1173,6 +1173,9 @@ public class MarketResourceAction extends BasicAction {
             duration = NumberConvertUtil.parseInt(calledDuration);
         }
         Page page = null;
+        if (StringUtil.isEmpty(customerGroupId)) {
+            customerGroupId = group_id;
+        }
         try {
             page = marketResourceService.queryRecordVoiceLogV4(userQueryParam, customerGroupId, superId, realName, createTimeStart,
                     createTimeEnd, remark, callStatus, intentLevel, auditingStatus, marketTaskId, duration, labelProperty, seaId);
@@ -2522,15 +2525,25 @@ public class MarketResourceAction extends BasicAction {
                 pageSize, superId, startTime, endTime, userName, group_id, marketTaskId, seaId, activeSTime, activeETime, status);
         map.put("data", page.getData());
         map.put("total", page.getTotal());
-        MarketTemplateDTO dto = marketTaskService.getSmsEmailTemplate(marketTaskId);
+
         Map<String, Object> template = new HashMap<>();
-        template.put("id", dto.getId());
-        template.put("createTime", dto.getCreateTime());
-        template.put("title", dto.getTitle() != null ? dto.getTitle() : "");
-        template.put("mouldContent", dto.getMouldContent() != null ? dto.getMouldContent() : "");
+        template.put("id", "");
+        template.put("createTime", "");
+        template.put("title", "");
+        template.put("mouldContent", "");
         map.put("templateData", template);
         // 发送时间
-        map.put("sendTime", marketTaskService.getSmsTime(marketTaskId));
+        map.put("sendTime", "");
+        if (StringUtil.isNotEmpty(marketTaskId)) {
+            MarketTemplateDTO dto = marketTaskService.getSmsEmailTemplate(marketTaskId);
+            template.put("id", dto.getId());
+            template.put("createTime", dto.getCreateTime());
+            template.put("title", dto.getTitle() != null ? dto.getTitle() : "");
+            template.put("mouldContent", dto.getMouldContent() != null ? dto.getMouldContent() : "");
+            map.put("templateData", template);
+            // 发送时间
+            map.put("sendTime", marketTaskService.getSmsTime(marketTaskId));
+        }
         json.put("data", map);
         return json.toJSONString();
     }
