@@ -61,6 +61,7 @@ public class UploadAction extends BasicAction {
         String pictureName = IDHelper.getTransactionId() + "";
         return uploadDowloadService.uploadImgNew(request, response, cust_id, pictureName);
     }
+
     @RequestMapping(value = "/uploadImg", method = RequestMethod.POST)
     @ResponseBody
     public Object uploadImg(@RequestParam MultipartFile file) {
@@ -99,7 +100,7 @@ public class UploadAction extends BasicAction {
             byte[] byt = new byte[fis.available()];
             fis.read(byt);
             String base64 = Base64.encodeBase64String(byt);
-            return JSON.toJSONString("data:image/jpg;base64,"+base64);
+            return JSON.toJSONString("data:image/jpg;base64," + base64);
            /* response.setCharacterEncoding("utf-8");
             response.setContentType("application/vnd.ms-excel;charset=utf-8");
             String returnName = response.encodeURL(new String(fileName.getBytes(), "iso8859-1"));    //保存的文件名,必须和页面编码一致,否则乱码
@@ -338,10 +339,10 @@ public class UploadAction extends BasicAction {
     @ResponseBody
     @CacheAnnotation
     public Object uploadImgNew(HttpServletRequest request,
-                            HttpServletResponse response) {
+                               HttpServletResponse response) {
         String cust_id = "0";
         String pictureName = IDHelper.getTransactionId() + "";
-        return uploadDowloadService.uploadImgNew(request, response, cust_id, pictureName);
+        return uploadDowloadService.uploadImgNew0(request, response, cust_id, pictureName);
     }
 
     /**
@@ -359,7 +360,6 @@ public class UploadAction extends BasicAction {
                                HttpServletResponse response, String path) {
         return uploadDowloadImgService.downloadImg(request, response, path);
     }*/
-
     @RequestMapping(value = "/uploadFile", method = RequestMethod.POST)
     @ResponseBody
     public Object uploadFile(HttpServletRequest request) {
@@ -398,6 +398,15 @@ public class UploadAction extends BasicAction {
         }
         bos.close();
         return bos.toByteArray();
+    }
+
+    /**
+     * 凭证图片下载
+     */
+    @RequestMapping(value = "/pic/{fileName:.+}", method = RequestMethod.GET)
+    public void pic(@PathVariable String fileName, HttpServletResponse response) {
+        String userId = "0";
+        uploadDowloadService.downloadFile(response, userId, fileName);
     }
 
     public static void main(String[] args) {

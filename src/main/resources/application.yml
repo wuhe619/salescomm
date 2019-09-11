@@ -26,6 +26,9 @@ spring:
         current_session_context_class: org.springframework.orm.hibernate5.SpringSessionContext
         naming-strategy: org.hibernate.cfg.ImprovedNamingStrategy
         format_sql: true
+  data:
+      mongodb:
+         uri: mongodb://admin:123456@localhost:27017/admin
 
   jackson:
     default-property-inclusion: non_null
@@ -59,7 +62,7 @@ location: /home/soft/images/
 destpath: /home/soft/images/
 audiolocation: /home/soft/audio/
 destaudiolocation: /home/soft/audio/
-pic_server_url: http://10.0.0.200:9888/pic
+pic_server_url: http://localhost:8081/upload/pic
 audio_server_url: http://bp.online.datau.top/marketResource/getVoice0
 hbase_audio_url: http://ds4:1111/voice/
 
