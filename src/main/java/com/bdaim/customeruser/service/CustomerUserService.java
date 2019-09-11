@@ -939,22 +939,26 @@ public class CustomerUserService {
                         }
                     } else if ("hasMarketProject".equals(customerUserProperty.getPropertyName())) {
                         if (StringUtil.isNotEmpty(customerUserProperty.getPropertyValue())) {
-                            String v = customerUserProperty.getPropertyValue();
+                            /*String v = customerUserProperty.getPropertyValue();
                             if (v.startsWith(",")) {
                                 v = v.substring(1);
                             }
                             if (v.endsWith(",")) {
                                 v = v.substring(0, v.length() - 1);
-                            }
-                            String _sql = " select * from t_market_project where id in(" + v + ")";
-                            List<MarketProject> projectList = customerDao.queryListBySql(_sql, MarketProject.class);
+                            }*/
                             String name = "";
-                            if (projectList != null && projectList.size() > 0) {
-                                for (MarketProject project : projectList) {
-                                    name += "," + project.getName();
-                                }
-                                if (name.length() > 0) {
-                                    name = name.substring(1);
+                            List<String> projectIds = customerUserDao.listProjectByUserId(NumberConvertUtil.parseLong(u.get("id")));
+                            if (projectIds != null && projectIds.size() > 0) {
+                                String _sql = " select * from t_market_project where id in(" + SqlAppendUtil.sqlAppendWhereIn(customerUserDao.listProjectByUserId(NumberConvertUtil.parseLong(u.get("id")))) + ")";
+                                List<MarketProject> projectList = customerDao.queryListBySql(_sql, MarketProject.class);
+
+                                if (projectList != null && projectList.size() > 0) {
+                                    for (MarketProject project : projectList) {
+                                        name += "," + project.getName();
+                                    }
+                                    if (name.length() > 0) {
+                                        name = name.substring(1);
+                                    }
                                 }
                             }
                             u.put("hasMarketProject", name);
