@@ -3,6 +3,10 @@ package com.bdaim.common.util;
 import net.sf.json.JSONObject;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.web.client.RestTemplate;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -46,7 +50,7 @@ public class RestUtil {
 	
 	public static String postDataWithParms(JSONObject jsonObj, String url){
 		String result="";
-		/*log.info(url+" "+jsonObj);
+		log.info(url+" "+jsonObj);
 		try {
 			RestTemplate restTemplate = new RestTemplate();
 			HttpHeaders headers=new HttpHeaders();
@@ -57,7 +61,7 @@ public class RestUtil {
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			log.error("rest error:"+e.getMessage());
-		}*/
+		}
 		return result;
 	}
 	

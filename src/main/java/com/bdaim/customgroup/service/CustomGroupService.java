@@ -534,8 +534,12 @@ public class CustomGroupService {
         try {
             String r = RestUtil.postDataWithParms(params, ESUtil.getUrl() + "_count");
             log.info("通过标签查询客户总数:" + r);
-            JSONObject d = JSON.parseObject(r);
-            map.put("userCount", d.getLong("count"));
+            if (StringUtil.isNotEmpty(r)){
+                JSONObject d = JSON.parseObject(r);
+                map.put("userCount", d.getLong("count"));
+            }else {
+                map.put("userCount", 0);
+            }
             map.put("errorDesc", "00");
         } catch (Exception e) {
             log.error("通过标签查询客户总数异常", e);
