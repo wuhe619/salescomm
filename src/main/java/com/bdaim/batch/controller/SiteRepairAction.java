@@ -8,10 +8,9 @@ import org.slf4j.LoggerFactory;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.batch.dto.ExpressLog;
-import com.bdaim.batch.entity.SenderInfo;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.dto.PageParam;
-import com.bdaim.common.util.page.Page;
+import com.bdaim.common.util.page.PageList;
 import com.bdaim.smscenter.service.SendmessageService;
 
 import org.springframework.stereotype.Controller;
@@ -149,7 +148,7 @@ public class SiteRepairAction extends BasicAction {
         if (page.getPageSize() > 100) {
             page.setPageSize(100);
         }
-        Page list = sendmessageService.pageList(page, expressLog);
+        PageList list = sendmessageService.pageList(page, expressLog);
         return JSON.toJSONString(list);
     }
 

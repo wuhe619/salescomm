@@ -8,10 +8,11 @@ import com.bdaim.batch.service.BatchService;
 import com.bdaim.batch.service.impl.BatchListServiceImpl;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.util.DateUtil;
+import com.bdaim.common.util.FileUrlEntity;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.service.CustomerService;
 import com.bdaim.price.service.SalePriceService;
-import com.bdaim.resource.service.impl.MarketResourceServiceImpl;
+import com.bdaim.resource.service.MarketResourceService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,6 +22,7 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -54,7 +56,9 @@ public class BatchAction extends BasicAction {
     SalePriceService salePriceService;
 
     @Resource
-    MarketResourceServiceImpl marketResourceServiceImpl;
+    MarketResourceService marketResourceServiceImpl;
+    @Autowired
+    private FileUrlEntity fileUrlEntity;
 
     /**
      * 失联修复上传文件
@@ -237,7 +241,7 @@ public class BatchAction extends BasicAction {
     }
 
     /**
-     * 失联修复模板下载
+     * 失联修复模板下载 TODO
      */
 
     @RequestMapping("/downloadModel")
@@ -246,10 +250,12 @@ public class BatchAction extends BasicAction {
         InputStream in = null;
         OutputStream bos = null;
         try {
-            String classPath = new BatchAction().getClass().getResource("/").getPath();
-            String fileName = "范式数联上传模板.xlsx";
+            String classPath = fileUrlEntity.getFileUrl();
+            logger.info("hello classpath" + classPath);
+            String fileName = "nolose_upload.xlsx";
             String pathF = PROPERTIES.getProperty("file.separator");
-            String path = classPath.substring(0, (classPath.length() - 8)) + "/" + pathF + "model" + pathF + fileName;
+            classPath = classPath.replace("/", pathF);
+            String path = classPath + pathF + "tp" + pathF + fileName;
             response.setCharacterEncoding("utf-8");
             response.setContentType("application/vnd.ms-excel;charset=utf-8");
             String returnName = response.encodeURL(new String(fileName.getBytes(), "iso8859-1"));   //保存的文件名,必须和页面编码一致,否则乱码

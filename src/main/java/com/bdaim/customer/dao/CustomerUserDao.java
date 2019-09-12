@@ -6,11 +6,11 @@ import com.bdaim.common.util.SqlAppendUtil;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.dto.CustomerUserDTO;
 import com.bdaim.customer.dto.CustomerUserGroupRelDTO;
-import com.bdaim.customer.entity.CustomerUserDO;
+import com.bdaim.customer.entity.CustomerUser;
 import com.bdaim.customer.entity.CustomerUserGroup;
 import com.bdaim.customer.entity.CustomerUserGroupRel;
 import com.bdaim.customer.entity.CustomerUserPropertyDO;
-import com.bdaim.rbac.dto.Page;
+import com.bdaim.common.dto.Page;
 import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 @Component
-public class CustomerUserDao extends SimpleHibernateDao<CustomerUserDO, Serializable> {
+public class CustomerUserDao extends SimpleHibernateDao<CustomerUser, Serializable> {
     public CustomerUserPropertyDO getProperty(String userId, String propertyName) {
         CustomerUserPropertyDO cp = null;
         String hql = "from CustomerUserPropertyDO m where m.userId=? and m.propertyName=?";
@@ -35,40 +35,48 @@ public class CustomerUserDao extends SimpleHibernateDao<CustomerUserDO, Serializ
         return list;
     }
 
-    public List<CustomerUserDO> getPropertyByType(int userType, String custId) {
-        CustomerUserDO cp = null;
-        String hql = "from CustomerUserDO m where m.userType=? and m.cust_id=?";
-        List<CustomerUserDO> list = this.find(hql, userType, custId);
+    public List<CustomerUser> getPropertyByType(int userType, String custId) {
+        CustomerUser cp = null;
+        String hql = "from CustomerUser m where m.userType=? and m.cust_id=?";
+        List<CustomerUser> list = this.find(hql, userType, custId);
         return list;
     }
-
-    public CustomerUserDO getPropertyByCustId(String custId) {
-        CustomerUserDO cp = null;
-        String hql = "from CustomerUserDO m where m.userType=1 and m.cust_id=?";
-        List<CustomerUserDO> list = this.find(hql, custId);
+    public CustomerUser selectPropertyByType(int userType, String custId) {
+        CustomerUser cp = null;
+        String hql = "from CustomerUser m where m.userType=? and m.cust_id=?";
+        List<CustomerUser> list = this.find(hql, userType, custId);
         if (list.size() > 0)
-            cp = (CustomerUserDO) list.get(0);
-        return cp;
-    }
-    public CustomerUserDO getCustomer(String account,String custId) {
-        CustomerUserDO cp = null;
-        String hql = "from CustomerUserDO m where m.account=? AND m.cust_id = ?";
-        List<CustomerUserDO> list = this.find(hql,account,custId);
-        if (list.size() > 0)
-            cp = (CustomerUserDO) list.get(0);
+            cp = (CustomerUser) list.get(0);
         return cp;
     }
 
-    public List<CustomerUserDO> getAllByCustId(String custId) {
-        CustomerUserDO cp = null;
-        String hql = "from CustomerUserDO m where m.cust_id=?";
-        List<CustomerUserDO> list = this.find(hql, custId);
+    public CustomerUser getPropertyByCustId(String custId) {
+        CustomerUser cp = null;
+        String hql = "from CustomerUser m where m.userType=1 and m.cust_id=?";
+        List<CustomerUser> list = this.find(hql, custId);
+        if (list.size() > 0)
+            cp = (CustomerUser) list.get(0);
+        return cp;
+    }
+    public CustomerUser getCustomer(String account, String custId) {
+        CustomerUser cp = null;
+        String hql = "from CustomerUser m where m.account=? AND m.cust_id = ?";
+        List<CustomerUser> list = this.find(hql,account,custId);
+        if (list.size() > 0)
+            cp = (CustomerUser) list.get(0);
+        return cp;
+    }
+
+    public List<CustomerUser> getAllByCustId(String custId) {
+        CustomerUser cp = null;
+        String hql = "from CustomerUser m where m.cust_id=?";
+        List<CustomerUser> list = this.find(hql, custId);
         return list;
     }
 
     public String getName(String userId) {
         try {
-            CustomerUserDO cu = this.get(Long.parseLong(userId));
+            CustomerUser cu = this.get(Long.parseLong(userId));
             if (cu != null)
                 return cu.getRealname();
         } catch (Exception e) {
@@ -79,7 +87,7 @@ public class CustomerUserDao extends SimpleHibernateDao<CustomerUserDO, Serializ
 
     public String getLoginName(String userId) {
         try {
-            CustomerUserDO cu = this.get(Long.parseLong(userId));
+            CustomerUser cu = this.get(Long.parseLong(userId));
             if (cu != null)
                 return cu.getAccount();
         } catch (Exception e) {
@@ -89,28 +97,28 @@ public class CustomerUserDao extends SimpleHibernateDao<CustomerUserDO, Serializ
     }
 
 
-    public CustomerUserDO getCustomerUserByLoginName(String loginName) {
-        CustomerUserDO cp = null;
-        String hql = "from CustomerUserDO m where m.account=?";
-        List<CustomerUserDO> list = this.find(hql, loginName);
+    public CustomerUser getCustomerUserByLoginName(String loginName) {
+        CustomerUser cp = null;
+        String hql = "from CustomerUser m where m.account=?";
+        List<CustomerUser> list = this.find(hql, loginName);
         if (list.size() > 0)
             cp = list.get(0);
         return cp;
     }
 
-    public CustomerUserDO getCustomerUserByName(String realName) {
-        CustomerUserDO cp = null;
-        String hql = "from CustomerUserDO m where m.realname=?";
-        List<CustomerUserDO> list = this.find(hql, realName);
+    public CustomerUser getCustomerUserByName(String realName) {
+        CustomerUser cp = null;
+        String hql = "from CustomerUser m where m.realname=?";
+        List<CustomerUser> list = this.find(hql, realName);
         if (list.size() > 0)
             cp = list.get(0);
         return cp;
     }
 
-    public CustomerUserDO getCustomerAdminUser(String custId) {
-        CustomerUserDO cp = null;
-        String hql = "from CustomerUserDO m where m.cust_id=? AND userType =1 ";
-        List<CustomerUserDO> list = this.find(hql, custId);
+    public CustomerUser getCustomerAdminUser(String custId) {
+        CustomerUser cp = null;
+        String hql = "from CustomerUser m where m.cust_id=? AND userType =1 ";
+        List<CustomerUser> list = this.find(hql, custId);
         if (list.size() > 0)
             cp = list.get(0);
         return cp;
@@ -126,10 +134,10 @@ public class CustomerUserDao extends SimpleHibernateDao<CustomerUserDO, Serializ
         if (StringUtil.isEmpty(customerId)) {
             throw new NullPointerException("customerId不能为空");
         }
-        String hql = "FROM CustomerUserDO WHERE cust_id = ? AND STATUS = 0 ";
+        String hql = "FROM CustomerUser WHERE cust_id = ? AND STATUS = 0 ";
         List<CustomerUserDTO> list = new ArrayList<>();
-        List<CustomerUserDO> customerUserList = this.find(hql, customerId);
-        for (CustomerUserDO customerUser : customerUserList) {
+        List<CustomerUser> customerUserList = this.find(hql, customerId);
+        for (CustomerUser customerUser : customerUserList) {
             list.add(new CustomerUserDTO(customerUser));
         }
         return list;
@@ -303,7 +311,7 @@ public class CustomerUserDao extends SimpleHibernateDao<CustomerUserDO, Serializ
             throw new NullPointerException("groupId不能为空");
         }
         StringBuilder sql = new StringBuilder();
-        sql.append(" SELECT new com.bdaim.sale.dto.CustomerUserDTO(t.userId AS id, user.realname, user.account) FROM CustomerUserGroupRel t, CustomerUser user");
+        sql.append(" SELECT new com.bdaim.customer.dto.CustomerUserDTO(t.userId AS id, user.realname, user.account) FROM CustomerUserGroupRel t, CustomerUser user");
         sql.append(" WHERE user.id = t.userId AND t.groupId = (SELECT id FROM CustomerUserGroup WHERE status = 1 AND custId = ? AND id= ?) AND t.status = 1 ");
         // 开始搜索不为空
         if (StringUtil.isNotEmpty(startAccount) && StringUtil.isEmpty(endAccount)) {
@@ -339,7 +347,7 @@ public class CustomerUserDao extends SimpleHibernateDao<CustomerUserDO, Serializ
             throw new NullPointerException("groupId不能为空");
         }
         StringBuilder sql = new StringBuilder();
-        sql.append(" SELECT new com.bdaim.sale.dto.CustomerUserDTO(t.userId AS id, user.realname, user.account) FROM CustomerUserGroupRel t, CustomerUser user");
+        sql.append(" SELECT new com.bdaim.customer.dto.CustomerUserDTO(t.userId AS id, user.realname, user.account) FROM CustomerUserGroupRel t, CustomerUser user");
         sql.append(" WHERE user.id = t.userId AND t.groupId = (SELECT id FROM CustomerUserGroup WHERE status = 1 AND custId = ? AND id= ?) AND t.status = 1");
         List<CustomerUserDTO> customerUserList = this.find(sql.toString(), customerId, groupId);
         return customerUserList;
@@ -356,7 +364,7 @@ public class CustomerUserDao extends SimpleHibernateDao<CustomerUserDO, Serializ
             throw new NullPointerException("customerId不能为空");
         }
         StringBuilder sql = new StringBuilder();
-        sql.append(" SELECT new com.bdaim.sale.dto.CustomerUserDTO( user.id, user.realname, user.account) FROM CustomerUser user");
+        sql.append(" SELECT new com.bdaim.customer.dto.CustomerUserDTO( user.id, user.realname, user.account) FROM CustomerUser user");
         sql.append(" WHERE user.cust_id = ? AND user.userType = '2' AND user.id NOT IN " +
                 "    (SELECT cast(rel.userId AS integer) FROM CustomerUserGroupRel rel WHERE rel.status = 1 AND rel.groupId IN(SELECT t2.id FROM CustomerUserGroup t2 WHERE t2.custId = user.cust_id AND t2.status = 1) )");
         // 开始搜索不为空
@@ -387,7 +395,7 @@ public class CustomerUserDao extends SimpleHibernateDao<CustomerUserDO, Serializ
             throw new NullPointerException("customerId不能为空");
         }
         StringBuilder sql = new StringBuilder();
-        sql.append(" SELECT new com.bdaim.sale.dto.CustomerUserDTO( user.id, user.realname, user.account) FROM CustomerUser user");
+        sql.append(" SELECT new com.bdaim.customer.dto.CustomerUserDTO( user.id, user.realname, user.account) FROM CustomerUser user");
         sql.append(" WHERE user.cust_id = ? AND user.userType = '2' AND user.id NOT IN (SELECT cast(rel.userId AS integer) FROM CustomerUserGroupRel rel WHERE rel.status = 1 AND rel.groupId IN(SELECT t2.id FROM CustomerUserGroup t2 WHERE t2.custId = user.cust_id AND t2.status = 1) )");
         List<CustomerUserDTO> customerUserList = this.find(sql.toString(), customerId);
         return customerUserList;
@@ -453,13 +461,20 @@ public class CustomerUserDao extends SimpleHibernateDao<CustomerUserDO, Serializ
     public CustomerUserGroupRelDTO getCustomerUserGroupByUserId(long userId) {
         CustomerUserGroupRelDTO customerUserGroupRelDTO = null;
         StringBuffer sql = new StringBuffer();
-        sql.append(" SELECT new com.bdaim.sale.dto.CustomerUserGroupRelDTO(t.groupId, t2.name, t.type, t2.pid) FROM CustomerUserGroupRel t, CustomerUserGroup t2");
+        sql.append(" SELECT new com.bdaim.customer.dto.CustomerUserGroupRelDTO(t.groupId, t2.name, t.type, t2.pid) FROM CustomerUserGroupRel t, CustomerUserGroup t2");
         sql.append(" WHERE t.groupId = t2.id AND t.userId = ? AND t.status = 1 AND t2.status = 1");
         List<CustomerUserGroupRelDTO> list = this.find(sql.toString(), String.valueOf(userId));
         if (list.size() > 0) {
             customerUserGroupRelDTO = list.get(0);
         }
         return customerUserGroupRelDTO;
+    }
+
+
+    public List<CustomerUserPropertyDO> getPropertiesByUserId(String userId) {
+        String hql = "from CustomerUserPropertyDO m where m.userId=? ";
+        List<CustomerUserPropertyDO> list = this.find(hql, userId);
+        return list;
     }
 
     /**
@@ -469,7 +484,7 @@ public class CustomerUserDao extends SimpleHibernateDao<CustomerUserDO, Serializ
      * @return
      */
     public List<String> listCustGroupByUserId(Long userId) {
-        CustomerUserDO user = this.get(userId);
+        CustomerUser user = this.get(userId);
         if (user == null) {
             return null;
         }
@@ -499,7 +514,7 @@ public class CustomerUserDao extends SimpleHibernateDao<CustomerUserDO, Serializ
      * @return
      */
     public List<String> listProjectByUserId(Long userId) {
-        CustomerUserDO user = this.get(userId);
+        CustomerUser user = this.get(userId);
         if (user == null) {
             return null;
         }
@@ -524,7 +539,7 @@ public class CustomerUserDao extends SimpleHibernateDao<CustomerUserDO, Serializ
      */
     public List<String> listUserIdByWorkPlaceId(String workPlaceId) {
         StringBuffer sql = new StringBuffer();
-        sql.append(" SELECT new com.bdaim.sale.dto.CustomerUserGroupRelDTO(t.groupId, t.userId) FROM CustomerUserGroupRel t, CustomerUserGroup t2");
+        sql.append(" SELECT new com.bdaim.customer.dto.CustomerUserGroupRelDTO(t.groupId, t.userId) FROM CustomerUserGroupRel t, CustomerUserGroup t2");
         sql.append(" WHERE t.groupId = t2.id AND t.status = 1 AND t2.status = 1 AND t2.pid =? ");
         List<CustomerUserGroupRelDTO> list = this.find(sql.toString(), workPlaceId);
         List<String> ids = new ArrayList<>();

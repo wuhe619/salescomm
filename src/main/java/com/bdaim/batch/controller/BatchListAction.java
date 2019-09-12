@@ -7,7 +7,7 @@ import com.bdaim.batch.service.BatchListService;
 import com.bdaim.common.annotation.CacheAnnotation;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.dto.PageParam;
-import com.bdaim.common.util.page.Page;
+import com.bdaim.common.util.page.PageList;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
@@ -46,7 +46,7 @@ public class BatchListAction extends BasicAction {
         batchListParam.setCompId(opUser().getCustId());
         batchListParam.setUserId(String.valueOf(opUser().getId()));
         batchListParam.setUserType(opUser().getUserType());
-        Page list = batchListService.pageList(page, batchListParam, opUser().getRole());
+        PageList list = batchListService.pageList(page, batchListParam, opUser().getRole());
         return JSON.toJSONString(list);
     }
 
@@ -65,7 +65,7 @@ public class BatchListAction extends BasicAction {
         batchListParam.setCompId(opUser().getCustId());
         batchListParam.setUserId(String.valueOf(opUser().getId()));
         batchListParam.setUserType(opUser().getUserType());
-        Page list = batchListService.pageList(page, batchListParam, role);
+        PageList list = batchListService.pageList(page, batchListParam, role);
         return JSON.toJSONString(list);
     }
 
@@ -85,7 +85,7 @@ public class BatchListAction extends BasicAction {
         batchListParam.setCompId(opUser().getCustId());
         batchListParam.setUserId(String.valueOf(opUser().getId()));
         batchListParam.setUserType(opUser().getUserType());
-        Page list = batchListService.sitelist(page, batchListParam);
+        PageList list = batchListService.sitelist(page, batchListParam);
         return JSON.toJSONString(list);
     }
 

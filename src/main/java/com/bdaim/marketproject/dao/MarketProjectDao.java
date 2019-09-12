@@ -8,7 +8,7 @@ import com.bdaim.marketproject.dto.MarketProjectDTO;
 import com.bdaim.marketproject.dto.MarketProjectParam;
 import com.bdaim.marketproject.entity.MarketProject;
 import com.bdaim.marketproject.entity.MarketProjectProperty;
-import com.bdaim.rbac.dto.Page;
+import com.bdaim.common.dto.Page;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -75,7 +75,7 @@ public class MarketProjectDao extends SimpleHibernateDao<MarketProject, Integer>
             //全部时企业项目需要添加上全局的项目进行展示
             if ("0".equals(marketProjectDTO.getType()) && StringUtil.isNotEmpty(marketProjectDTO.getEnterpriseName())) {
                 hql.append(" OR (m.custId is null AND  (SELECT coalesce(COUNT(p.propertyValue),0)");
-                hql.append(" FROM CustomerPropertyDO p");
+                hql.append(" FROM CustomerProperty p");
                 hql.append("  WHERE  p.propertyName LIKE 'marketProjectId_%' AND p.propertyValue=m.id )=0)");
             }
             hql.append("))");
@@ -121,7 +121,7 @@ public class MarketProjectDao extends SimpleHibernateDao<MarketProject, Integer>
             //全部时企业项目需要添加上全局的项目进行展示
             if ("0".equals(marketProjectDTO.getType()) && StringUtil.isNotEmpty(marketProjectDTO.getEnterpriseName())) {
                 hql.append(" OR (m.custId is null AND  (SELECT coalesce(COUNT(p.propertyValue),0)");
-                hql.append(" FROM CustomerPropertyDO p");
+                hql.append(" FROM CustomerProperty p");
                 hql.append("  WHERE  p.propertyName LIKE 'marketProjectId_%' AND p.propertyValue=m.id )=0)");
             }
             hql.append("))");
@@ -153,7 +153,7 @@ public class MarketProjectDao extends SimpleHibernateDao<MarketProject, Integer>
     public List<MarketProjectDTO> listCustomerMarketProject(String custId) {
         StringBuffer hql = new StringBuffer();
         hql.append(" from MarketProject m where 1=1 ");
-        hql.append(" AND m.id IN (SELECT propertyValue FROM CustomerPropertyDO WHERE propertyName LIKE '" + CustomerPropertyEnum.MARKET_PROJECT_ID_PREFIX.getKey() + "%' AND custId = ? AND propertyValue <> '')");
+        hql.append(" AND m.id IN (SELECT propertyValue FROM CustomerProperty WHERE propertyName LIKE '" + CustomerPropertyEnum.MARKET_PROJECT_ID_PREFIX.getKey() + "%' AND custId = ? AND propertyValue <> '')");
         hql.append(" AND m.status = 1 ");
         hql.append(" ORDER BY m.createTime DESC ");
         List<MarketProject> list = this.find(hql.toString(), custId);
@@ -180,7 +180,7 @@ public class MarketProjectDao extends SimpleHibernateDao<MarketProject, Integer>
         params.add(param.getCustId());
         StringBuffer hql = new StringBuffer();
         hql.append(" from MarketProject m where 1=1 ");
-        hql.append(" AND m.id IN (SELECT propertyValue FROM CustomerPropertyDO WHERE propertyName LIKE '" + CustomerPropertyEnum.MARKET_PROJECT_ID_PREFIX.getKey() + "%' AND custId = ? AND propertyValue <> '')");
+        hql.append(" AND m.id IN (SELECT propertyValue FROM CustomerProperty WHERE propertyName LIKE '" + CustomerPropertyEnum.MARKET_PROJECT_ID_PREFIX.getKey() + "%' AND custId = ? AND propertyValue <> '')");
         hql.append(" AND m.status = 1 ");
         if (param.getId() != null) {
             hql.append(" AND m.id = ?");

@@ -6,7 +6,7 @@ spring:
     driver-class-name: com.mysql.jdbc.Driver
     username: dev
     password: dev__807
-    url: jdbc:mysql://192.168.32.200/label?characterEncoding=utf-8&useSSL=false
+    url: jdbc:mysql://192.168.32.200/label?characterEncoding=utf-8&useSSL=false&zeroDateTimeBehavior=convertToNull
     #url: jdbc:mysql://127.0.0.1/label?characterEncoding=utf-8&useSSL=false
     hikari:
       auto-commit: true
@@ -17,6 +17,8 @@ spring:
   jpa:
     show-sql: true
     open-in-view: true
+    hibernate:
+      use-new-id-generator-mappings: false
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQL5InnoDBDialect
@@ -24,10 +26,16 @@ spring:
         current_session_context_class: org.springframework.orm.hibernate5.SpringSessionContext
         naming-strategy: org.hibernate.cfg.ImprovedNamingStrategy
         format_sql: true
+  data:
+      mongodb:
+         uri: mongodb://admin:123456@localhost:27017/admin
+
   jackson:
     default-property-inclusion: non_null
+    serialization:
+      write-dates-as-timestamps: true
   redis:
-    host: 192.168.32.200
+    host: localhost
     port: 6379
 logging:
   level: 
@@ -42,3 +50,24 @@ express:
     company_id: 295a3076000345b58ca82820113ecb95
     key: 9457a158dc5e
     shopKey: QUNFNjAwNzhCNDU0ODMzNTY1NDA0NjUzRTEzRUVGMEM=
+
+#云讯短信通道参数
+ytx:
+  spuid: 469
+  sppwd: 108492
+
+app: online
+#精准营销原有参数
+location: /home/soft/images/
+destpath: /home/soft/images/
+audiolocation: /home/soft/audio/
+destaudiolocation: /home/soft/audio/
+pic_server_url: http://localhost:8081/upload/pic
+audio_server_url: http://bp.online.datau.top/marketResource/getVoice0
+hbase_audio_url: http://ds4:1111/voice/
+
+finance.h5.host: http://financedev.datau.top/h5
+online.host: http://bp.online.datau.top
+es.rest: http://10.1.37.200:9200
+ds.es.index.0: labels
+ds.es.type.0: label

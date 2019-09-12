@@ -1,6 +1,6 @@
 package com.bdaim.label.entity;
 
-import com.bdaim.customgroup.entity.CustomGroupDO;
+import com.bdaim.customgroup.entity.CustomGroup;
 import com.bdaim.rbac.entity.User;
 import org.hibernate.annotations.DynamicUpdate;
 
@@ -129,7 +129,7 @@ public class LabelInfo {
 //	private List<CustomerLabelAndCategory> customerLabelAndCategorys;
 	
 	@Transient
-	private List<CustomGroupDO> groups;
+	private List<CustomGroup> groups;
 
 	@Transient
 	private List<LabelCategory> cateList;
@@ -432,11 +432,11 @@ public class LabelInfo {
 		this.ids = ids;
 	}
 
-	public List<CustomGroupDO> getGroups() {
+	public List<CustomGroup> getGroups() {
 		return groups;
 	}
 
-	public void setGroups(List<CustomGroupDO> groups) {
+	public void setGroups(List<CustomGroup> groups) {
 		this.groups = groups;
 	}
 

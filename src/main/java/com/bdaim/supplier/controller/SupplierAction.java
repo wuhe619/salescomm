@@ -3,12 +3,18 @@ package com.bdaim.supplier.controller;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.auth.LoginUser;
 import com.bdaim.bill.dto.CustomerBillQueryParam;
+import com.bdaim.common.annotation.ValidatePermission;
 import com.bdaim.common.controller.BasicAction;
+import com.bdaim.common.dto.Page;
 import com.bdaim.common.dto.PageParam;
+import com.bdaim.common.exception.ParamException;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
+import com.bdaim.common.util.NumberConvertUtil;
 import com.bdaim.common.util.StringUtil;
-import com.bdaim.rbac.dto.Page;
+import com.bdaim.customgroup.dto.CustomerGrpOrdParam;
+import com.bdaim.customgroup.service.CustomGroupService;
+import com.bdaim.resource.dto.MarketResourceDTO;
 import com.bdaim.resource.dto.MarketResourceLogDTO;
 import com.bdaim.supplier.dto.SupplierDTO;
 import com.bdaim.supplier.service.SupplierService;
@@ -22,7 +28,10 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -55,7 +64,7 @@ public class SupplierAction extends BasicAction {
         try {
             LoginUser lu = opUser();
             if ("ROLE_USER".equals(lu.getRole()) || "admin".equals(lu.getRole())) {
-                data = supplierService.listAllSupplier();
+                data = supplierService.listNoloseAllSupplier();
             }
         } catch (Exception e) {
             LOG.error("查询单个供应商详情失败,", e);
@@ -223,6 +232,344 @@ public class SupplierAction extends BasicAction {
             return new ResponseInfoAssemble().failure(-1, "保存服务优先级失败");
         }
         return new ResponseInfoAssemble().success(supResourceBySupplierId);
+    }
+
+    @Resource
+    CustomGroupService customGroupService;
+
+    @RequestMapping(value = "/save", method = RequestMethod.POST)
+    @ResponseBody
+    @ValidatePermission(role = "admin,ROLE_USER")
+    public Object saveSupplier(@RequestBody SupplierDTO supplierDTO) {
+        int code = 0;
+        try {
+            if (supplierDTO.getSupplierId() == null) {
+                code = supplierService.saveSupplier(supplierDTO);
+            } else {
+                code = supplierService.updateSupplierPrice(supplierDTO);
+            }
+        } catch (Exception e) {
+            LOG.error("保存供应商失败,", e);
+        }
+        if (1 == code) {
+            return returnSuccess();
+        }
+        return returnError();
+    }
+
+    @RequestMapping(value = "/selectSupplier", method = RequestMethod.GET)
+    @ResponseBody
+    @ValidatePermission(role = "admin,ROLE_USER")
+    public String selectSupplier(String supplierId) {
+        SupplierDTO supplierDTO = null;
+        try {
+            supplierDTO = supplierService.selectSupplierAndResourceProperty(supplierId);
+        } catch (Exception e) {
+            LOG.error("查询单个供应商详情失败,", e);
+        }
+        return returnJsonData(supplierDTO);
+    }
+
+    @RequestMapping(value = "/listResource", method = RequestMethod.GET)
+    @ResponseBody
+    @ValidatePermission(role = "admin,ROLE_USER")
+    public String listResource(String supplierId) {
+        if (StringUtil.isEmpty(supplierId)) {
+            throw new ParamException("supplierId参数不能为空");
+        }
+        List<MarketResourceDTO> marketResourceDTOList = null;
+        try {
+            marketResourceDTOList = supplierService.listResourceBySupplierId(supplierId);
+        } catch (Exception e) {
+            LOG.error("查询供应商下的资源列表失败,", e);
+        }
+        return returnJsonData(marketResourceDTOList);
+    }
+
+    /**
+     * 查询所有通话资源（区分呼叫中心、双呼）
+     *
+     * @param custId 查询某客户分配的呼叫线路资源
+     * @return
+     */
+    @RequestMapping(value = "/listVoiceResource", method = RequestMethod.GET)
+    @ResponseBody
+    @ValidatePermission(role = "admin,ROLE_USER,ROLE_CUSTOMER")
+    public String listVoiceResourceByType(String custId) {
+        JSONObject result = null;
+        try {
+            LoginUser lu = opUser();
+            if (lu == null) return null;
+            if("ROLE_CUSTOMER".equals(lu.getRole())){
+                custId=lu.getCustId();
+            }
+            if (StringUtil.isEmpty(custId)) {
+                result = supplierService.listVoiceResourceByType("1");
+            } else {
+                result = supplierService.getCustomerCallPriceConfig(custId);
+            }
+        } catch (Exception e) {
+            LOG.error("查询资源列表失败,", e);
+        }
+        return returnJsonData(result);
+    }
+
+    @RequestMapping(value = "/selectResource", method = RequestMethod.GET)
+    @ResponseBody
+    @ValidatePermission(role = "admin,ROLE_USER")
+    public String selectResource(String type) {
+        List<MarketResourceDTO> marketResourceDTOList = null;
+        try {
+            marketResourceDTOList = supplierService.listResource(type);
+        } catch (Exception e) {
+            LOG.error("查询资源列表失败,", e);
+        }
+        return returnJsonData(marketResourceDTOList);
+    }
+
+    @RequestMapping(value = "/page", method = RequestMethod.POST)
+    @ResponseBody
+    @ValidatePermission(role = "admin,ROLE_USER")
+    public String page(@Valid PageParam page, BindingResult error, String supplierId, String supplierName, String supplierType) {
+        if (error.hasFieldErrors()) {
+            return getErrors(error);
+        }
+        Page pageData = null;
+        try {
+            pageData = supplierService.pageSupplier(page.getPageNum(), page.getPageSize(), supplierName, supplierId, supplierType);
+        } catch (Exception e) {
+            LOG.error("查询单个供应商详情失败,", e);
+        }
+        return returnJsonData(getPageData(pageData));
+    }
+
+    @RequestMapping(value = "/update", method = RequestMethod.POST)
+    @ResponseBody
+    @ValidatePermission(role = "admin,ROLE_USER")
+    public Object updateSupplier(@RequestBody SupplierDTO supplierDTO) {
+        int code = 0;
+        try {
+            code = supplierService.updateSupplier(supplierDTO);
+        } catch (Exception e) {
+            LOG.error("修改供应商主信息失败,", e);
+        }
+        if (1 == code) {
+            return returnSuccess();
+        }
+        return returnError();
+    }
+
+    @RequestMapping(value = "/listEffectiveSupplier0", method = RequestMethod.GET)
+    @ResponseBody
+    @ValidatePermission(role = "admin,ROLE_USER")
+    public String listAllSupplier() {
+        List<Map<String, Object>> data = null;
+        try {
+            data = supplierService.listOnlineAllSupplier();
+        } catch (Exception e) {
+            LOG.error("查询单个供应商详情失败,", e);
+        }
+        return returnJsonData(data);
+    }
+
+    @RequestMapping(value = "/listMonthBill", method = RequestMethod.POST)
+    @ResponseBody
+    @ValidatePermission(role = "admin,ROLE_USER")
+    public String page(@Valid PageParam page, BindingResult error, String yearMonth, String supplierId, String supplierName, String supplierType) {
+        if (error.hasFieldErrors()) {
+            return getErrors(error);
+        }
+        if (StringUtil.isEmpty(yearMonth)) {
+            throw new ParamException("yearMonth参数不能为空");
+        }
+        Map<String, Object> data = null;
+        try {
+            data = supplierService.listSupplierMonthBill(yearMonth, page.getPageNum(), page.getPageSize(), supplierName, supplierId, supplierType);
+        } catch (Exception e) {
+            LOG.error("查询供应商月账单失败,", e);
+        }
+        return returnJsonData(data);
+    }
+
+    @RequestMapping(value = "/listBill", method = RequestMethod.POST)
+    @ResponseBody
+    @ValidatePermission(role = "admin,ROLE_USER")
+    public String listBill(@Valid PageParam page, BindingResult error, String supplierId, String resourceId, String type, String orderNo, String custId, String startTime, String endTime) {
+        if (error.hasFieldErrors()) {
+            return getErrors(error);
+        }
+        if (StringUtil.isEmpty(supplierId)) {
+            throw new ParamException("supplierId参数不能为空");
+        }
+        if (StringUtil.isEmpty(type)) {
+            throw new ParamException("type参数不能为空");
+        }
+        if (StringUtil.isEmpty(startTime)) {
+            throw new ParamException("startTime参数不能为空");
+        }
+        if (StringUtil.isEmpty(endTime)) {
+            throw new ParamException("endTime参数不能为空");
+        }
+        int typeCode = -1;
+        if (StringUtil.isEmpty(type)) {
+            throw new ParamException("type参数不能为空");
+        }
+        typeCode = NumberConvertUtil.parseInt(type);
+        Map<String, Object> data = null;
+        String account = custId;
+        try {
+            data = supplierService.listSupplierBill(supplierId, resourceId, typeCode, orderNo, account, startTime, endTime, page.getPageNum(), page.getPageSize());
+        } catch (Exception e) {
+            LOG.error("查询供应商月账单详情列表失败,", e);
+        }
+        return returnJsonData(data);
+    }
+
+    @RequestMapping(value = "/exportExcelListBillByType", method = RequestMethod.GET)
+    @ValidatePermission(role = "admin,ROLE_USER")
+    public void exportExcelListBillByType(HttpServletResponse response, String supplierId, String resourceId, String type, String orderNo, String custId, String startTime, String endTime) {
+        if (StringUtil.isEmpty(supplierId)) {
+            throw new ParamException("supplierId参数不能为空");
+        }
+        if (StringUtil.isEmpty(type)) {
+            throw new ParamException("type参数不能为空");
+        }
+        if (StringUtil.isEmpty(startTime)) {
+            throw new ParamException("startTime参数不能为空");
+        }
+        if (StringUtil.isEmpty(endTime)) {
+            throw new ParamException("endTime参数不能为空");
+        }
+        int typeCode = -1;
+        if (StringUtil.isEmpty(type)) {
+            throw new ParamException("type参数不能为空");
+        }
+        typeCode = NumberConvertUtil.parseInt(type);
+        response.setContentType("application/json;charset=utf-8");
+        try {
+            supplierService.exportExcelListBillByType(response, supplierId, resourceId, typeCode, orderNo, custId, startTime, endTime);
+        } catch (Exception e) {
+            LOG.error("供应商月账单详情导出失败,", e);
+        }
+    }
+
+
+    @RequestMapping(value = "/exportExcelMonthBill", method = RequestMethod.GET)
+    @ValidatePermission(role = "admin,ROLE_USER")
+    public void exportExcelMonthBill(HttpServletResponse response, String supplierId, String year, String month) {
+        if (StringUtil.isEmpty(supplierId)) {
+            throw new ParamException("supplierId参数不能为空");
+        }
+        if (StringUtil.isEmpty(year)) {
+            throw new ParamException("year参数不能为空");
+        }
+        if (StringUtil.isEmpty(month)) {
+            throw new ParamException("month参数不能为空");
+        }
+        response.setContentType("application/json;charset=utf-8");
+        try {
+            DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+            LocalDateTime startTime = LocalDateTime.of(Integer.parseInt(year), Integer.parseInt(month), 1, 0, 0, 0, 0);
+            LocalDateTime endTime = startTime.plusMonths(1);
+            supplierService.exportExcelMonthBill(response, supplierId, startTime.format(dateTimeFormatter), endTime.format(dateTimeFormatter));
+        } catch (Exception e) {
+            LOG.error("供应商月账单总数据导出失败,", e);
+        }
+    }
+
+    /**
+     * 供应商客群分页
+     *
+     * @param param
+     * @param error
+     * @return
+     */
+    @RequestMapping(value = "/listSupplierCustGroup", method = RequestMethod.POST)
+    @ResponseBody
+    @ValidatePermission(role = "admin,ROLE_USER")
+    public String listSupplierCustGroup(@Valid CustomerGrpOrdParam param, BindingResult error) {
+        if (error.hasErrors()) {
+            return getErrors(error);
+        }
+        Page page = null;
+        try {
+            String userId = "";
+            if ("ROLE_USER".equals(opUser().getRole())) {
+                userId = String.valueOf(opUser().getId());
+            }
+            page = customGroupService.pageSupplierCustGroup(userId, param);
+        } catch (Exception e) {
+            LOG.error("供应商客群分页失败,", e);
+        }
+        return returnJsonData(getPageData(page));
+    }
+
+    /**
+     * 导出供应商调用统计数据
+     *
+     * @param response
+     * @param param
+     */
+    @RequestMapping(value = "/exportSupplierCustGroup", method = RequestMethod.GET)
+    @ValidatePermission(role = "admin,ROLE_USER")
+    public void exportSupplierCustGroup(HttpServletResponse response, CustomerGrpOrdParam param) {
+        try {
+            param.setPageNum(0);
+            param.setPageSize(Integer.MAX_VALUE);
+            String userId = "";
+            if ("ROLE_USER".equals(opUser().getRole())) {
+                userId = String.valueOf(opUser().getId());
+            }
+            supplierService.exportSupplierCustGroupExcel(response, userId, param);
+        } catch (Exception e) {
+            LOG.error("供应商调用统计数据导出导出失败,", e);
+        }
+    }
+
+    /**
+     * 供应商数据提取量和标记成单量按月统计
+     *
+     * @return
+     */
+    @RequestMapping(value = "/statSupplierMonthData", method = RequestMethod.POST)
+    @ResponseBody
+    @ValidatePermission(role = "admin,ROLE_USER")
+    public String statSupplierData() {
+        String userId = "";
+        if ("ROLE_USER".equals(opUser().getRole())) {
+            userId = String.valueOf(opUser().getId());
+        }
+        Map<String, Object> list = supplierService.statSupplierMonthData(userId, 6);
+        return returnJsonData(list);
+    }
+
+    /**
+     * 供供应商数据提取量和标记成单量按天统计
+     *
+     * @param supplierId
+     * @param yearMonth
+     * @param type
+     * @return
+     */
+    @RequestMapping(value = "/statSupplierDayData", method = RequestMethod.POST)
+    @ResponseBody
+    @ValidatePermission(role = "admin,ROLE_USER")
+    public String statSupplierDayData(String supplierId, String yearMonth, Integer type) {
+        if (StringUtil.isEmpty(supplierId)) {
+            throw new ParamException("supplierId参数不能为空");
+        }
+        if (StringUtil.isEmpty(yearMonth)) {
+            throw new ParamException("yearMonth参数不能为空");
+        }
+        if (type == null) {
+            throw new ParamException("type参数不能为空");
+        }
+        String userId = "";
+        if ("ROLE_USER".equals(opUser().getRole())) {
+            userId = String.valueOf(opUser().getId());
+        }
+        List<String> list = supplierService.statSupplierDayData(userId, type, supplierId, yearMonth);
+        return returnJsonData(list);
     }
 
 }

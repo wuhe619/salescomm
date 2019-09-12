@@ -654,4 +654,12 @@ public class Constant {
      * admin
      */
     public static final String ADMIN = "admin";
+    /**
+     * 失联修复中操作成功状态码
+     */
+    public static final String SUCCESS_CODE = "1";
+    /**
+     * 失联修复中操作失败状态码
+     */
+    public static final String FAILURE_CODE = "0";
 }

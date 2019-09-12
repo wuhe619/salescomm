@@ -1,6 +1,6 @@
 package com.bdaim.common.service;
 
-import com.bdaim.common.redis.RedisUtil;
+import com.bdaim.common.util.redis.RedisUtil;
 import com.bdaim.common.util.ConstantsUtil;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.customgroup.dao.CustomGroupDao;

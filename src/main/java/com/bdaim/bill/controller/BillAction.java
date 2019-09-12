@@ -1,17 +1,19 @@
 package com.bdaim.bill.controller;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.bdaim.auth.LoginUser;
+import com.bdaim.bill.dto.BillDetailQueryParam;
 import com.bdaim.bill.dto.CustomerBillQueryParam;
 import com.bdaim.bill.dto.SupplierBillQueryParam;
 import com.bdaim.bill.service.impl.BillServiceImpl;
 import com.bdaim.common.controller.BasicAction;
+import com.bdaim.common.dto.Page;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.common.util.Constant;
 import com.bdaim.common.util.StringUtil;
-import com.bdaim.rbac.dto.Page;
 import com.github.crab2died.ExcelUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -302,8 +304,13 @@ public class BillAction extends BasicAction {
             list = billService.listBillDetail(page, param);
         } else {
             String custId = opUser().getCustId();
+            logger.info("custId的值为"+ custId);
             param.setCustomerId(custId);
-            list = billService.listBillDetail(page, param);
+            try{
+                list = billService.listBillDetail(page, param);
+            }catch (Exception e){
+                logger.info("查询账单明细出错 "+e);
+            }
         }
         Map<String, Object> resultMap = new HashMap<>();
         resultMap.put("basePath", "/pic");
@@ -721,5 +728,23 @@ public class BillAction extends BasicAction {
         }
         return new ResponseInfoAssemble().success(list);
 
+    }
+
+    @RequestMapping(value = "/customerBill/query0", method = RequestMethod.GET)
+    @ResponseBody
+    public Object customerBillQuery(CustomerBillQueryParam param) throws Exception {
+        return JSONObject.toJSON(billService.queryOnlineCustomerBill(param));
+    }
+
+    @RequestMapping(value = "/supplierBill/query0", method = RequestMethod.GET)
+    @ResponseBody
+    public Object supplierBillQuery(SupplierBillQueryParam param) throws Exception {
+        return JSONObject.toJSON(billService.queryOnlineSupplierBill(param));
+    }
+
+    @RequestMapping(value = "/detail",method = RequestMethod.GET)
+    @ResponseBody
+    public Object listBillDetails(BillDetailQueryParam param) throws Exception{
+        return JSONObject.toJSON(billService.listBillDetail(param));
     }
 }

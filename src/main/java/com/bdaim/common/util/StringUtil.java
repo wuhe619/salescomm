@@ -7,6 +7,8 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.httpclient.NameValuePair;
@@ -145,6 +147,21 @@ public class StringUtil {
             }
         }
         return sb.toString();
+    }
+
+    /**
+     * 利用正则表达式判断字符串是否是数字
+     * @param str
+     * @return
+     */
+    public static boolean isNumeric(String str){
+        if(isEmpty(str))return false;
+        Pattern pattern = Pattern.compile("[0-9]*");
+        Matcher isNum = pattern.matcher(str);
+        if( !isNum.matches() ){
+            return false;
+        }
+        return true;
     }
 
     public static void main(String[] args) throws IOException {

@@ -1,6 +1,6 @@
 package com.bdaim.customer.dto;
 
-import com.bdaim.customer.entity.CustomerDO;
+import com.bdaim.customer.entity.Customer;
 
 public class CustomerDTO {
     private String id;
@@ -54,7 +54,7 @@ public class CustomerDTO {
 
     }
 
-    public CustomerDTO(CustomerDO cust) {
+    public CustomerDTO(Customer cust) {
         this.id = cust.getCustId();
         this.enterpriseName = cust.getEnterpriseName();
         this.status = cust.getStatus();

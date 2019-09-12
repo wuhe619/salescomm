@@ -17,6 +17,8 @@ public class TouchInfoDTO implements Serializable {
     private String super_address_province_city;
     private String super_address_street;
     private String bantch_id;
+    private String labelData;
+    private String market_task_id;
 
     public TouchInfoDTO() {
         super();
@@ -143,4 +145,40 @@ public class TouchInfoDTO implements Serializable {
         this.super_address_street = super_address_street;
     }
 
+    public String getLabelData() {
+        return labelData;
+    }
+
+    public void setLabelData(String labelData) {
+        this.labelData = labelData;
+    }
+
+    public String getMarket_task_id() {
+        return market_task_id;
+    }
+
+    public void setMarket_task_id(String market_task_id) {
+        this.market_task_id = market_task_id;
+    }
+
+    @Override
+    public String toString() {
+        return "TouchInfoDTO{" +
+                "voice_info_id='" + voice_info_id + '\'' +
+                ", cust_id='" + cust_id + '\'' +
+                ", user_id='" + user_id + '\'' +
+                ", cust_group_id='" + cust_group_id + '\'' +
+                ", super_id='" + super_id + '\'' +
+                ", super_name='" + super_name + '\'' +
+                ", super_age='" + super_age + '\'' +
+                ", super_sex='" + super_sex + '\'' +
+                ", super_telphone='" + super_telphone + '\'' +
+                ", super_phone='" + super_phone + '\'' +
+                ", super_address_province_city='" + super_address_province_city + '\'' +
+                ", super_address_street='" + super_address_street + '\'' +
+                ", bantch_id='" + bantch_id + '\'' +
+                ", labelData='" + labelData + '\'' +
+                ", market_task_id='" + market_task_id + '\'' +
+                '}';
+    }
 }

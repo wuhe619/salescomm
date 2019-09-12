@@ -2,7 +2,7 @@ package com.bdaim.common;
 
 import com.bdaim.common.util.AuthPassport;
 import com.bdaim.common.util.StringUtil;
-import com.bdaim.customer.entity.CustomerUserDO;
+import com.bdaim.customer.entity.CustomerUser;
 import com.bdaim.customer.service.CustomerService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -14,7 +14,6 @@ import org.aspectj.lang.annotation.Aspect;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
-import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -76,7 +75,7 @@ public class AuthInterceptor implements HandlerInterceptor {
                     String subject = claims.getSubject();
                     request.setAttribute("j_password",subject);
                     logger.info("compId:" + compId + "\tissue:" + issue + "\tsubject;" + subject);
-                    CustomerUserDO u = customerService.getUserByName(issue.substring(9));
+                    CustomerUser u = customerService.getUserByName(issue.substring(9));
                     request.setAttribute("customerUserDO",u);
                     return true;
                 }catch (ExpiredJwtException e){

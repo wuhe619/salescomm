@@ -5,12 +5,11 @@ import com.alibaba.fastjson.JSONObject;
 import com.bdaim.auth.LoginUser;
 import com.bdaim.callcenter.dto.SeatsInfo;
 import com.bdaim.callcenter.dto.SeatsMessageParam;
-import com.bdaim.callcenter.service.SeatsService;
-import com.bdaim.callcenter.service.impl.SeatsServiceImpl;
+import com.bdaim.callcenter.service.impl.SeatsService;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.util.StringUtil;
-import com.bdaim.common.util.page.Page;
+import com.bdaim.common.util.page.PageList;
 import com.bdaim.customer.dto.CustomerRegistDTO;
 import com.bdaim.customer.entity.CustomerUserPropertyDO;
 
@@ -41,7 +40,7 @@ public class SeatsMessageAction extends BasicAction {
     @Resource
     SeatsService seatsService;
     @Resource
-    SeatsServiceImpl seatsServiceImpl;
+    SeatsService seatsServiceImpl;
 
     /**
      * @description 配置渠道信息（企业中心id 外显号）
@@ -210,7 +209,7 @@ public class SeatsMessageAction extends BasicAction {
      * @date: 2018/9/21 10:49
      */
     @ResponseBody
-    @RequestMapping(value = "/getUserList.do", method = RequestMethod.GET)
+    @RequestMapping(value = "/getUserList", method = RequestMethod.GET)
     public Object getUserMessageList(String custId, Integer pageNum, Integer pageSize) {
         Map<String, Object> resultMap = new HashMap<String, Object>();
         List<SeatsMessageParam> seatsList;
@@ -243,7 +242,7 @@ public class SeatsMessageAction extends BasicAction {
         if (error.hasFieldErrors()) {
             return getErrors(error);
         }
-        Page list = null;
+        PageList list = null;
         list = seatsService.getCustomerInfo(page, customerRegistDTO);
         return JSON.toJSONString(list);
     }

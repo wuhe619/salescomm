@@ -1,7 +1,6 @@
 package com.bdaim.template.entity;
 
 import javax.persistence.*;
-import java.io.Serializable;
 import java.sql.Timestamp;
 
 /**
@@ -11,7 +10,7 @@ import java.sql.Timestamp;
  */
 @Entity
 @Table(name = "t_template", schema = "", catalog = "")
-public class MarketTemplate implements Serializable {
+public class MarketTemplate {
     private int id;
     private String custId;
     private String title;
@@ -26,10 +25,12 @@ public class MarketTemplate implements Serializable {
     private String emailMouldContent;
     private String operator;
     private String templateCode;
+    private String resourceId;
+    private Integer marketProjectId;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
+    @GeneratedValue(strategy = GenerationType.AUTO)
     public int getId() {
         return id;
     }
@@ -168,6 +169,28 @@ public class MarketTemplate implements Serializable {
         this.templateCode = templateCode;
     }
 
+    @Basic
+    @Column(name = "resource_id")
+    public String getResourceId() {
+        return resourceId;
+    }
+
+    public void setResourceId(String resourceId) {
+        this.resourceId = resourceId;
+    }
+
+    @Basic
+    @Column(name = "market_project_id")
+
+    public Integer getMarketProjectId() {
+        return marketProjectId;
+    }
+
+    public void setMarketProjectId(Integer marketProjectId) {
+        this.marketProjectId = marketProjectId;
+    }
+
+
     @Override
     public String toString() {
         return "MarketTemplate{" +
@@ -185,6 +208,8 @@ public class MarketTemplate implements Serializable {
                 ", emailMouldContent='" + emailMouldContent + '\'' +
                 ", operator='" + operator + '\'' +
                 ", templateCode='" + templateCode + '\'' +
+                ", resourceId='" + resourceId + '\'' +
+                ", marketProjectId=" + marketProjectId +
                 '}';
     }
 }

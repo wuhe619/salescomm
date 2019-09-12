@@ -18,6 +18,16 @@ public class SupplierPropertyEntity implements Serializable {
     private String propertyValue;
     private Timestamp createTime;
 
+    public SupplierPropertyEntity() {
+    }
+
+    public SupplierPropertyEntity(String supplierId, String propertyName, String propertyValue, Timestamp createTime) {
+        this.supplierId = supplierId;
+        this.propertyName = propertyName;
+        this.propertyValue = propertyValue;
+        this.createTime = createTime;
+    }
+
     @Id
     @Column(name = "supplier_id")
     public String getSupplierId() {

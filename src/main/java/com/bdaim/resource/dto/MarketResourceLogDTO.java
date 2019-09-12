@@ -1,9 +1,9 @@
 package com.bdaim.resource.dto;
 
+import com.bdaim.resource.entity.MarketResourceEntity;
+
 import java.io.Serializable;
 import java.util.Date;
-
-import com.bdaim.resource.entity.MarketResourceEntity;
 
 /**
  * @author Created by lanxq
@@ -137,6 +137,21 @@ public class MarketResourceLogDTO implements Serializable {
     private String resPicPath;
     private String resourceProperty;
 
+    /**
+     * 职场ID
+     */
+    private String cugId;
+
+    /**
+     * 营销任务ID
+     */
+    private String marketTaskId;
+
+    /**
+     * 公海ID
+     */
+    private String customerSeaId;
+
     public String getCallBackData() {
         return callBackData;
     }
@@ -236,6 +251,26 @@ public class MarketResourceLogDTO implements Serializable {
     public MarketResourceLogDTO() {
         super();
         // TODO Auto-generated constructor stub
+    }
+
+    public MarketResourceLogDTO(String touch_id, String cust_id, Long user_id, String type_code, String resname, String remark,
+                                String create_time, int status, String sms_content, String email_content, String superId, Integer templateId, String callSid, String batchNumber, Integer customerGroupId, Integer callOwner) {
+        this.touch_id = touch_id;
+        this.cust_id = cust_id;
+        this.user_id = user_id;
+        this.type_code = type_code;
+        this.resname = resname;
+        this.remark = remark;
+        this.create_time = create_time;
+        this.status = status;
+        this.sms_content = sms_content;
+        this.email_content = email_content;
+        this.superId = superId;
+        this.templateId = templateId;
+        this.callSid = callSid;
+        this.batchNumber = batchNumber;
+        this.customerGroupId = customerGroupId;
+        this.callOwner = callOwner;
     }
 
     public MarketResourceLogDTO(String touch_id, String cust_id, Long user_id, String type_code, String resname, String remark, String create_time, int status, String sms_content, String email_content, String superId, Integer templateId, String callBackData, String callSid, String batchNumber, Integer customerGroupId, Integer callOwner, String batchId, String activityId, Integer amount, Integer prodAmount, Integer resourceId, Integer channel, String enterpriseId, String supplierId, String supplierName, Integer typeCode, Integer salePrice, Integer costPrice, String description, Date createTime, Date validDate, Date expireDate, String resPicPath, String resourceProperty) {
@@ -475,6 +510,30 @@ public class MarketResourceLogDTO implements Serializable {
         this.enterpriseId = enterpriseId;
     }
 
+    public String getCugId() {
+        return cugId;
+    }
+
+    public void setCugId(String cugId) {
+        this.cugId = cugId;
+    }
+
+    public String getMarketTaskId() {
+        return marketTaskId;
+    }
+
+    public void setMarketTaskId(String marketTaskId) {
+        this.marketTaskId = marketTaskId;
+    }
+
+    public String getCustomerSeaId() {
+        return customerSeaId;
+    }
+
+    public void setCustomerSeaId(String customerSeaId) {
+        this.customerSeaId = customerSeaId;
+    }
+
     @Override
     public String toString() {
         return "MarketResourceLogDTO{" +
@@ -513,6 +572,9 @@ public class MarketResourceLogDTO implements Serializable {
                 ", expireDate=" + expireDate +
                 ", resPicPath='" + resPicPath + '\'' +
                 ", resourceProperty='" + resourceProperty + '\'' +
+                ", cugId='" + cugId + '\'' +
+                ", marketTaskId='" + marketTaskId + '\'' +
+                ", customerSeaId='" + customerSeaId + '\'' +
                 '}';
     }
 }

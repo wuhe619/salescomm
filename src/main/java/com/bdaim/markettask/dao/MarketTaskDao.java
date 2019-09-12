@@ -3,7 +3,7 @@ package com.bdaim.markettask.dao;
 import com.bdaim.common.dao.SimpleHibernateDao;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.dto.CustomerUserDTO;
-import com.bdaim.customgroup.entity.CustomGroupDO;
+import com.bdaim.customgroup.entity.CustomGroup;
 import com.bdaim.markettask.entity.MarketTask;
 import com.bdaim.markettask.entity.MarketTaskProperty;
 import com.bdaim.markettask.entity.MarketTaskUserRel;
@@ -71,7 +71,7 @@ public class MarketTaskDao extends SimpleHibernateDao<MarketTask, String> {
      * @return
      */
     public List<MarketTask> listMarketTaskByProjectId(int projectId) {
-        String hql = "from MarketTask m where m.customerGroupId IN (SELECT id FROM CustomGroupDO WHERE marketProjectId = ?) ORDER BY m.createTime DESC";
+        String hql = "from MarketTask m where m.customerGroupId IN (SELECT id FROM CustomGroup WHERE marketProjectId = ?) ORDER BY m.createTime DESC";
         List<MarketTask> list = this.find(hql, projectId);
         return list;
     }
@@ -92,10 +92,10 @@ public class MarketTaskDao extends SimpleHibernateDao<MarketTask, String> {
      * @param marketTaskId
      * @return
      */
-    public CustomGroupDO getCustomGroupByMarketTaskId(String marketTaskId) {
-        CustomGroupDO cp = null;
-        String hql = "from CustomGroupDO m where m.id = (SELECT customerGroupId FROM MarketTask WHERE id = ?) ";
-        List<CustomGroupDO> list = this.find(hql, marketTaskId);
+    public CustomGroup getCustomGroupByMarketTaskId(String marketTaskId) {
+        CustomGroup cp = null;
+        String hql = "from CustomGroup m where m.id = (SELECT customerGroupId FROM MarketTask WHERE id = ?) ";
+        List<CustomGroup> list = this.find(hql, marketTaskId);
         if (list.size() > 0)
             cp = list.get(0);
         return cp;
@@ -140,7 +140,7 @@ public class MarketTaskDao extends SimpleHibernateDao<MarketTask, String> {
      */
     public List<CustomerUserDTO> listMarketTaskUser(String marketTaskId, int status, String custId, String startAccount, String endAccount) {
         StringBuilder hql = new StringBuilder();
-        hql.append(" SELECT new com.bdaim.sale.dto.CustomerUserDTO(t.userId AS id, user.realname, user.account, p.propertyValue) FROM MarketTaskUserRel t, CustomerUser user, CustomerUserPropertyDO p ");
+        hql.append(" SELECT new com.bdaim.customer.dto.CustomerUserDTO(t.userId AS id, user.realname, user.account, p.propertyValue) FROM MarketTaskUserRel t, CustomerUser user, CustomerUserPropertyDO p ");
         hql.append(" WHERE user.id = t.userId AND user.id = p.userId AND p.propertyName = 'seats_account' AND t.marketTaskId = ? AND t.status = ? AND user.cust_id = ? ");
         // 开始搜索不为空
         if (StringUtil.isNotEmpty(startAccount) && StringUtil.isNotEmpty(endAccount)) {
@@ -166,7 +166,7 @@ public class MarketTaskDao extends SimpleHibernateDao<MarketTask, String> {
      */
     public List<CustomerUserDTO> listNotInUserByResourceId(String resourceId, String marketTaskId, String custId, String startAccount, String endAccount) {
         StringBuilder hql = new StringBuilder();
-        hql.append(" SELECT new com.bdaim.sale.dto.CustomerUserDTO(user.id, user.realname, user.account, p.propertyValue) FROM CustomerUser user, CustomerUserPropertyDO p ")
+        hql.append(" SELECT new com.bdaim.customer.dto.CustomerUserDTO(user.id, user.realname, user.account, p.propertyValue) FROM CustomerUser user, CustomerUserPropertyDO p ")
                 .append(" WHERE user.id = p.userId AND user.userType=2 AND p.propertyName = 'seats_account' AND user.cust_id = ? ")
                 .append(" AND user.id IN (SELECT userId FROM CustomerUserPropertyDO WHERE propertyName = 'call_channel' AND propertyValue = ? ) ");
         if (StringUtil.isNotEmpty(marketTaskId)) {

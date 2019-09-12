@@ -1,8 +1,10 @@
 package com.bdaim.common.util;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.bdaim.callcenter.dto.SignAuthorizationResult;
 
+import com.bdaim.common.util.http.HttpUtil;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
@@ -21,7 +23,7 @@ import java.util.*;
  * @description
  */
 public class SaleApiUtil {
-    private static Logger logger = LoggerFactory.getLogger(SaleApiUtil.class);
+    private static Logger LOG = LoggerFactory.getLogger(SaleApiUtil.class);
     public final static int ENV = 2;
     /**
      * 正式环境请求地址
@@ -40,6 +42,21 @@ public class SaleApiUtil {
      * 云通信平台用户账户授权令牌：对应管理控制台中的 AUTH TOKEN
      */
     public static String authToken = "1ed582d1035844f1b8231db10c6d61e4";
+
+    /**
+     * 云通信平台营销短信用户账户Id：对应管理控制台中的 ACCOUNT SID
+     */
+    public static String market_accountSid = "498edd8b309d48078575cd46dc409ecd";
+    /**
+     * 云通信平台营销短信用户账户授权令牌：对应管理控制台中的 AUTH TOKEN
+     */
+    public static String market_authToken = "dbcf67b401f24d6db97653bf09c1722b";
+
+    public static final String MARKET_SMS_APP_ID = "767ad08b784548e4825fe75b6be03f9c";
+
+    public final static String MARKET_SP_UID = "555";
+
+    public final static String MARKET_SP_PWD = "630294";
 
     public static final String API_VERSION = "201512";
 
@@ -70,12 +87,27 @@ public class SaleApiUtil {
     public static final String FLASH_APP_ID = "c217790f22634c288dd6a917dc809722";
 
     /**
-     * 双向回呼appId
+     * 失联修复双向回呼appId
      */
-    public static final String CALL_BACK_APP_ID = "0b9612e9f8f24b6e81c3527ce6318eaf";
+    public static final String NOLOSE_CALL_BACK_APP_ID = "0b9612e9f8f24b6e81c3527ce6318eaf";
+
+    /**
+     * 精准营销双向回呼appId
+     */
+    public static final String ONLINE_CALL_BACK_APP_ID = "c217790f22634c288dd6a917dc809722";
 
     private final static DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
 
+
+    /**
+     * 短信
+     */
+    public final static int SMS_TYPE = 1;
+
+    /**
+     * 闪信
+     */
+    public final static int FLASH_TYPE = 2;
 
     /**
      *短信appId
@@ -96,7 +128,13 @@ public class SaleApiUtil {
     /**
      * 呼叫中心api地址
      */
-    public static final String CALL_CENTER_API = "http://api.salescomm.net:8200";
+    public static final String CALL_CENTER_API = "http://api.salescomm.net:8017";
+
+    /**
+     * 讯众外呼pdf版地址
+     */
+    public static final String CALL_CENTER_API_PDF = "http://api.salescomm.net:8012";
+
 
     public enum FunctionType {
         CALL("call"),
@@ -195,6 +233,24 @@ public class SaleApiUtil {
         }
     }
 
+    public static String sendMarketSms(String jsonBody, int env) throws RuntimeException {
+        String url;
+        // 构造authorization和sign参数
+        SignAuthorizationResult signAuthorizationResult = createAuthorizationAndSignByMarket();
+        if (signAuthorizationResult != null) {
+            // 沙箱环境
+            if (env == 1) {
+                url = SANDBOX_BASE_URL + MessageFormat.format(REQUEST_TEMP_URL, API_VERSION, market_accountSid, FunctionType.SMS.getValue(), FunctionServiceUrl.TEMPLATE_SMS.getValue(), signAuthorizationResult.getSign());
+                //正式环境
+            } else {
+                url = PRD_BASE_URL + MessageFormat.format(REQUEST_TEMP_URL, API_VERSION, market_accountSid, FunctionType.SMS.getValue(), FunctionServiceUrl.TEMPLATE_SMS.getValue(), signAuthorizationResult.getSign());
+            }
+            return send(url, jsonBody, signAuthorizationResult.getAuthorization());
+        } else {
+            throw new RuntimeException("构造sign和authorization异常");
+        }
+    }
+
     private static String send(String url, String jsonBody, String authorization) throws RuntimeException {
         String result;
         try {
@@ -203,7 +259,20 @@ public class SaleApiUtil {
             headers.put("Content-Type", "application/x-www-from-urlencoded");
             result = HttpUtil.httpPost(url, jsonBody, headers);
         } catch (Exception e) {
-            throw new RuntimeException("发生短信失败", e);
+            throw new RuntimeException("发送请求失败", e);
+        }
+        return result;
+    }
+
+    private static String send(String url, String jsonBody, String authorization, int timeout) throws RuntimeException {
+        String result;
+        try {
+            Map<String, Object> headers = new HashMap<>(16);
+            headers.put("Authorization", authorization);
+            headers.put("Content-Type", "application/x-www-from-urlencoded");
+            result = HttpUtil.httpPost(url, jsonBody, headers, timeout);
+        } catch (Exception e) {
+            throw new RuntimeException("发送请求失败", e);
         }
         return result;
     }
@@ -233,6 +302,23 @@ public class SaleApiUtil {
         return signAuthorizationResult;
     }
 
+    public static SignAuthorizationResult createAuthorizationAndSignByMarket() {
+        SignAuthorizationResult signAuthorizationResult = new SignAuthorizationResult();
+        String dataTime = LocalDateTime.now().format(DATE_TIME_FORMATTER);
+        byte[] authorization;
+        try {
+            authorization = Base64.encodeBase64(MessageFormat.format("{0}|{1}", market_accountSid, dataTime).getBytes("UTF-8"));
+            // 设置authorization
+            signAuthorizationResult.setAuthorization(new String(authorization, "UTF-8"));
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        String sign = DigestUtils.md5Hex(MessageFormat.format("{0}{1}{2}", market_accountSid, market_authToken, dataTime)).toUpperCase();
+        // 设置sign
+        signAuthorizationResult.setSign(sign);
+        return signAuthorizationResult;
+    }
+
     /**
      * 获取呼叫中心的API的token
      *
@@ -248,12 +334,7 @@ public class SaleApiUtil {
         Map<String, Object> headers = new HashMap<>(16);
         headers.put("Content-Type", "application/json");
         headers.put("Accept", "application/json");
-        String token = null;
-        try {
-            token = HttpUtil.httpGet(CALL_CENTER_API + "/GetToken", params, headers);
-        } catch (Exception e) {
-            logger.error("发送HttpGet请发异常" + e);
-        }
+        String token = HttpUtil.httpGet(CALL_CENTER_API + "/GetToken", params, headers);
         if (token != null && !"".equals(token)) {
             return JSON.parseObject(token).getString("token");
         }
@@ -268,7 +349,7 @@ public class SaleApiUtil {
      * @author chengning@salescomm.net
      * @date 2018/7/31 11:35
      */
-    public static String getCenterBodyBase64Str(Map<String, Object> map) throws Exception {
+    private static String getCenterBodyBase64Str(Map<String, Object> map) throws Exception {
         String data = "";
         for (Map.Entry<String, Object> param : map.entrySet()) {
             data += param.getKey() + param.getValue() + "&";
@@ -289,7 +370,7 @@ public class SaleApiUtil {
     }
 
     /**
-     * 获取authorization
+     * 获取请求authorization
      *
      * @param method
      * @param accept
@@ -299,7 +380,102 @@ public class SaleApiUtil {
      * @author chengning@salescomm.net
      * @date 2018/7/31 11:35
      */
-    public static String getCallCenterAuthorization(String method, String accept, String base64Str, String contentType) throws Exception {
+    private static String getCallCenterAuthorization(String method, String accept, String base64Str, String contentType) throws Exception {
         return DigestUtils.sha1Hex((method + accept + base64Str + contentType).getBytes("UTF-8"));
+    }
+
+    /**
+     * 讯众呼叫中心接口请求公共方法
+     * @param apiUrl
+     * @param map
+     * @param token
+     * @return
+     * @throws Exception
+     */
+    public static String callAgentCallOut(String apiUrl, Map<String, Object> map, String token) throws Exception {
+        String sha1 = SaleApiUtil.getCallCenterAuthorization("POST", "application/json", SaleApiUtil.getCenterBodyBase64Str(map), "application/json");
+        Map<String, Object> headers = new HashMap<>();
+        headers.put("Content-Type", "application/json");
+        headers.put("Accept", "application/json");
+        headers.put("Authorization", sha1);
+        headers.put("Token", token);
+        String result = HttpUtil.httpPost(SaleApiUtil.CALL_CENTER_API + apiUrl, JSON.toJSONString(map), headers);
+        return result;
+    }
+
+    /**
+     * 根据讯众接口查询号码标记
+     *
+     * @param phoneNumber
+     * @return {"statusCode":"0","requestId":"20190536493972024149934080901","statusMsg":"提交成功","data":{"phone":"01053182579","tagType":"广告推销","tagAmount":"83","tagSource":"1"}}
+     */
+    public static String getPhoneNumberTagByXz(String phoneNumber) {
+        String url = "http://sandbox.ytx.net:8080/201612/sid/e7459a8d5f4844939bb139e5da36e268/haoma/NumberTag.wx?Sign=";
+        JSONObject jsonBody = new JSONObject();
+        jsonBody.put("action", "viewNumberTag");
+        jsonBody.put("phone", phoneNumber);
+        jsonBody.put("tagSource", "1");
+        jsonBody.put("appid", "bef04fd6fa6e4942bc4bf716da09b5a0");
+
+        // 构造authorization和sign参数
+        SignAuthorizationResult authorizationResult = new SignAuthorizationResult();
+        String dataTime = LocalDateTime.now().format(DATE_TIME_FORMATTER);
+        byte[] authorization;
+        try {
+            authorization = Base64.encodeBase64(MessageFormat.format("{0}|{1}", "e7459a8d5f4844939bb139e5da36e268", dataTime).getBytes("UTF-8"));
+            // 设置authorization
+            authorizationResult.setAuthorization(new String(authorization, "UTF-8"));
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        String sign = DigestUtils.md5Hex(MessageFormat.format("{0}{1}{2}", "e7459a8d5f4844939bb139e5da36e268", "1ed582d1035844f1b8231db10c6d61e4", dataTime)).toUpperCase();
+        String result = null;
+        if (authorizationResult != null) {
+            // 沙箱环境
+            url += sign;
+            result = send(url, jsonBody.toJSONString(), authorizationResult.getAuthorization(), 500);
+            LOG.info("通过讯众接口查询号码标记返回结果:" + result);
+            return result;
+        } else {
+            LOG.warn("构造sign和authorization异常");
+        }
+        return result;
+    }
+
+    public static void main(String[] args) {
+        List<String> phones = new ArrayList<>();
+        phones.add("01053182579");
+        phones.add("01053189655");
+        phones.add("01053189656");
+        phones.add("01053189657");
+        phones.add("01053189658");
+        phones.add("01053189659");
+        phones.add("01053189660");
+        phones.add("01053189661");
+        phones.add("01053189662");
+        phones.add("01053189707");
+        for (String phone : phones) {
+            String result = getPhoneNumberTagByXz(phone);
+            JSONObject jsonObject = JSON.parseObject(result);
+            JSONObject data = jsonObject.getJSONObject("data");
+            System.out.println("号码:" + data.getString("phone") + ",类型:" + data.getString("tagType") + ",标记次数:" + data.getString("tagAmount"));
+        }
+
+    }
+
+
+    public void testHD() throws Exception {
+        String comId = "933333";
+        Map<String, Object> map = new HashMap<>();
+        map.put("compid",comId);
+        map.put("actions","time");
+        map.put("lastid",0);
+        map.put("limit",5000);
+        map.put("pdate","2019-06-14");
+        map.put("ptime","16");
+        map.put("anytype",2);
+
+        String result = SaleApiUtil.callAgentCallOut("/api/callcenter/GetCdrAnyCallRecord", map, SaleApiUtil.getCallCenterToken(comId));
+        System.out.println(result);
     }
 }

@@ -18,6 +18,7 @@ public class IDHelper {
     private static int maxI=9999;
     private static int maxJ=99999;
     private static int maxK=999999;
+    private static int maxG=999999;
     private static Date curDate=new Date();
 
     public static synchronized Long getID(){
@@ -47,5 +48,14 @@ public class IDHelper {
         String date = simpleDateFormat.format(new Date());
         return no + date + i;
     }
+
+    public static synchronized Long getTouchId(){
+        curDate.setTime(System.currentTimeMillis());
+        if (i>=maxG)i=0;
+        Long id=Long.valueOf(dataFormat.format(curDate)+String.format("%1$06d",i++));
+        return id;
+    }
+
+
 
 }

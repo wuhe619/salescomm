@@ -16,12 +16,12 @@ import com.bdaim.common.util.Constant;
 import com.bdaim.common.util.IDHelper;
 import com.bdaim.common.util.NumberConvertUtil;
 import com.bdaim.common.util.StringUtil;
-import com.bdaim.common.util.page.Page;
+import com.bdaim.common.util.page.PageList;
 import com.bdaim.common.util.page.Pagination;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerUserDao;
-import com.bdaim.customer.entity.CustomerDO;
-import com.bdaim.customer.entity.CustomerPropertyDO;
+import com.bdaim.customer.entity.Customer;
+import com.bdaim.customer.entity.CustomerProperty;
 import com.bdaim.customer.service.CustomerService;
 import com.bdaim.price.dto.ResourcesPriceDto;
 import com.bdaim.resource.dao.SourceDao;
@@ -295,7 +295,7 @@ public class BatchListServiceImpl implements BatchListService {
     }
 
     @Override
-    public Page pageList(PageParam page, BatchListParam batchListParam, String role) {
+    public PageList pageList(PageParam page, BatchListParam batchListParam, String role) {
         StringBuilder sqlBuilder = new StringBuilder("SELECT id, comp_id, comp_name, repair_mode repairMode,batch_name batchName, certify_type certifyType, status, upload_num uploadNum, success_num successNum, upload_time uploadTime, repair_time repairTime, channel, repair_strategy repairStrategy FROM nl_batch WHERE 1=1");
         if (StringUtil.isNotEmpty(batchListParam.getComp_name())) {
             sqlBuilder.append(" AND comp_name LIKE '%" + batchListParam.getComp_name() + "%'");
@@ -334,7 +334,7 @@ public class BatchListServiceImpl implements BatchListService {
         }
         sqlBuilder.append(" AND certify_type !=3 ORDER BY upload_time DESC");
         LOG.info("批次列表查询sql:\t" + sqlBuilder.toString());
-        Page result = new Pagination().getPageData(sqlBuilder.toString(), null, page, jdbcTemplate);
+        PageList result = new Pagination().getPageData(sqlBuilder.toString(), null, page, jdbcTemplate);
         if (result != null && result.getList() != null && result.getList().size() > 0) {
             Map map;
             // 处理修复状态为 4数据待发送给联通或者5发送联通成功都为2-修复中
@@ -544,7 +544,7 @@ public class BatchListServiceImpl implements BatchListService {
                           int certifyType, String channel) throws Exception {
         int channels = Integer.parseInt(channel.toString());
         String compName = "";
-        CustomerDO customer = customerDao.findUniqueBy("custId", compId);
+        Customer customer = customerDao.findUniqueBy("custId", compId);
         if (customer != null) {
             compName = customer.getEnterpriseName();
         }
@@ -756,7 +756,7 @@ public class BatchListServiceImpl implements BatchListService {
 
 
     @Override
-    public Page sitelist(PageParam page, BatchListParam batchListParam) {
+    public PageList sitelist(PageParam page, BatchListParam batchListParam) {
         StringBuilder sqlBuilder = new StringBuilder("SELECT n.id, n.comp_id, n.comp_name, n.repair_mode repairMode,n.batch_name \n" +
                 "batchName,n.status, n.upload_num uploadNum, n.success_num successNum, n.upload_time uploadTime, n.repair_time repairTime, n.channel, n.repair_strategy repairStrategy ,MAX(t.create_time) AS Latest_time,MIN(t.create_time) AS Earliest_time\n" +
                 "FROM nl_batch n LEFT JOIN t_touch_express_log t ON n.id=t.batch_id WHERE 1=1");
@@ -797,7 +797,7 @@ public class BatchListServiceImpl implements BatchListService {
         }
         sqlBuilder.append(" AND n.certify_type=3 GROUP BY n.id ORDER BY n.upload_time DESC");
         LOG.info("批次列表查询sql:\t" + sqlBuilder.toString());
-        Page result = new Pagination().getPageData(sqlBuilder.toString(), null, page, jdbcTemplate);
+        PageList result = new Pagination().getPageData(sqlBuilder.toString(), null, page, jdbcTemplate);
         if (result != null && result.getList() != null && result.getList().size() > 0) {
             Map map;
             // 处理修复状态为 4数据待发送给联通或者5发送联通成功都为2-修复中
@@ -847,7 +847,7 @@ public class BatchListServiceImpl implements BatchListService {
     public Object ditchList(String companyid, int certify_type) {
         Map<String, Object> map = new HashMap<>();
         if (StringUtil.isNotEmpty(companyid)) {
-            CustomerPropertyDO channelProperty = customerDao.getProperty(companyid, "channel");
+            CustomerProperty channelProperty = customerDao.getProperty(companyid, "channel");
             String channel = channelProperty.getPropertyValue();
 
             if (StringUtil.isNotEmpty(channel)) {
@@ -861,7 +861,7 @@ public class BatchListServiceImpl implements BatchListService {
                         if (channels[i].equals("2")) {
                             ditch = "cuc";
                             if (certify_type == 0) {
-                                CustomerPropertyDO salefixPrice = customerDao.getProperty(companyid, ditch + "_fix_price");
+                                CustomerProperty salefixPrice = customerDao.getProperty(companyid, ditch + "_fix_price");
                                 if (salefixPrice != null) {
                                     if (!salefixPrice.getPropertyValue().equals("")) {
                                         supplier = "2,";
@@ -873,7 +873,7 @@ public class BatchListServiceImpl implements BatchListService {
                         if (channels[i].equals("4")) {
                             ditch = "cmc";
                             if (certify_type == 0) {
-                                CustomerPropertyDO salefixPrice = customerDao.getProperty(companyid, ditch + "_fix_price");
+                                CustomerProperty salefixPrice = customerDao.getProperty(companyid, ditch + "_fix_price");
                                 if (salefixPrice != null) {
                                     if (!salefixPrice.getPropertyValue().equals("")) {
                                         if (supplier == null) {
@@ -890,7 +890,7 @@ public class BatchListServiceImpl implements BatchListService {
                         if (channels[i].equals("3")) {
                             ditch = "ctc";
                             if (certify_type == 0) {
-                                CustomerPropertyDO salefixPrice = customerDao.getProperty(companyid, ditch + "_fix_price");
+                                CustomerProperty salefixPrice = customerDao.getProperty(companyid, ditch + "_fix_price");
                                 if (salefixPrice != null) {
                                     if (!salefixPrice.getPropertyValue().equals("")) {
                                         if (supplier == null) {
@@ -906,7 +906,7 @@ public class BatchListServiceImpl implements BatchListService {
                         if (channels[i].equals("2")) {
                             ditch = "cuc";
                             if (certify_type == 1) {
-                                CustomerPropertyDO saleImeiPrice = customerDao.getProperty(companyid, ditch + "_imei_price");
+                                CustomerProperty saleImeiPrice = customerDao.getProperty(companyid, ditch + "_imei_price");
                                 if (saleImeiPrice != null) {
                                     if (!saleImeiPrice.getPropertyValue().equals("")) {
                                         supplier = "2,";
@@ -918,7 +918,7 @@ public class BatchListServiceImpl implements BatchListService {
                         if (channels[i].equals("4")) {
                             ditch = "cmc";
                             if (certify_type == 1) {
-                                CustomerPropertyDO saleImeiPrice = customerDao.getProperty(companyid, ditch + "_imei_price");
+                                CustomerProperty saleImeiPrice = customerDao.getProperty(companyid, ditch + "_imei_price");
                                 if (saleImeiPrice != null) {
                                     if (!saleImeiPrice.getPropertyValue().equals("")) {
                                         if (supplier == null) {
@@ -934,7 +934,7 @@ public class BatchListServiceImpl implements BatchListService {
                         if (channels[i].equals("3")) {
                             ditch = "ctc";
                             if (certify_type == 1) {
-                                CustomerPropertyDO saleImeiPrice = customerDao.getProperty(companyid, ditch + "_imei_price");
+                                CustomerProperty saleImeiPrice = customerDao.getProperty(companyid, ditch + "_imei_price");
                                 if (saleImeiPrice != null) {
                                     if (!saleImeiPrice.getPropertyValue().equals("")) {
                                         if (supplier == null) {
@@ -950,7 +950,7 @@ public class BatchListServiceImpl implements BatchListService {
                         if (channels[i].equals("2")) {
                             ditch = "cuc";
                             if (certify_type == 2) {
-                                CustomerPropertyDO saleMacPrice = customerDao.getProperty(companyid, ditch + "_mac_price");
+                                CustomerProperty saleMacPrice = customerDao.getProperty(companyid, ditch + "_mac_price");
                                 if (saleMacPrice != null) {
                                     if (!saleMacPrice.getPropertyValue().equals("")) {
                                         supplier = "2,";
@@ -962,7 +962,7 @@ public class BatchListServiceImpl implements BatchListService {
                         if (channels[i].equals("4")) {
                             ditch = "cmc";
                             if (certify_type == 2) {
-                                CustomerPropertyDO saleMacPrice = customerDao.getProperty(companyid, ditch + "_mac_price");
+                                CustomerProperty saleMacPrice = customerDao.getProperty(companyid, ditch + "_mac_price");
                                 if (saleMacPrice != null) {
                                     if (!saleMacPrice.getPropertyValue().equals("")) {
                                         if (supplier == null) {
@@ -978,7 +978,7 @@ public class BatchListServiceImpl implements BatchListService {
                         if (channels[i].equals("3")) {
                             ditch = "ctc";
                             if (certify_type == 2) {
-                                CustomerPropertyDO saleMacPrice = customerDao.getProperty(companyid, ditch + "_mac_price");
+                                CustomerProperty saleMacPrice = customerDao.getProperty(companyid, ditch + "_mac_price");
                                 if (saleMacPrice != null) {
                                     if (!saleMacPrice.getPropertyValue().equals("")) {
                                         if (supplier == null) {
@@ -1069,7 +1069,7 @@ public class BatchListServiceImpl implements BatchListService {
             channelall) {
         int channels = Integer.parseInt(channelall.toString());
         String compName = "";
-        CustomerDO customer = customerDao.findUniqueBy("custId", compId);
+        Customer customer = customerDao.findUniqueBy("custId", compId);
         if (customer != null) {
             compName = customer.getEnterpriseName();
         }

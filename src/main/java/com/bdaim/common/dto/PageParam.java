@@ -11,7 +11,7 @@ import javax.validation.constraints.NotNull;
 public class PageParam {
 
     @NotNull(message = "pageNum参数必填")
-    @Min(value = 1, message = "pageNum最小值为1")
+    @Min(value = 0, message = "pageNum最小值为0")
     private Integer pageNum;
     @NotNull(message = "pageSize参数必填")
     @Min(value = 1, message = "pageSize最小值为1")
@@ -61,6 +61,9 @@ public class PageParam {
         this.dir = dir;
     }
 
+    /**
+     * @see java.lang.Object#toString()
+     */
     @Override
     public String toString() {
         return "PageParam{" +

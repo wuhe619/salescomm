@@ -1,9 +1,10 @@
 package com.bdaim.resource.dao;
 
 import com.bdaim.common.dao.SimpleHibernateDao;
+import com.bdaim.common.util.NumberConvertUtil;
 import com.bdaim.common.util.SqlAppendUtil;
 import com.bdaim.common.util.StringUtil;
-import com.bdaim.rbac.dto.Page;
+import com.bdaim.common.dto.Page;
 import com.bdaim.resource.dto.MarketResourceDTO;
 import com.bdaim.resource.dto.VoiceLogQueryParam;
 import com.bdaim.resource.entity.MarketResourceEntity;
@@ -19,8 +20,8 @@ import java.util.Map;
  * 营销资源DAO服务
  */
 @Component
-public class MarketResourceDao extends SimpleHibernateDao<Object, Integer> {
-    public String getResourceName(Long resourceId) {
+public class MarketResourceDao extends SimpleHibernateDao<MarketResourceEntity, Integer> {
+    public String getResourceName(int resourceId) {
         String hql = "from MarketResourceEntity m where m.resourceId=?";
         List<MarketResourceEntity> list = this.find(hql, resourceId);
         if (list.size() > 0) {
@@ -29,7 +30,7 @@ public class MarketResourceDao extends SimpleHibernateDao<Object, Integer> {
         return null;
     }
 
-    public MarketResourceEntity getMarketResource(Long resourceId) {
+    public MarketResourceEntity getMarketResource(int resourceId) {
         String hql = "from MarketResourceEntity m where m.resourceId=?";
         List<MarketResourceEntity> list = this.find(hql, resourceId);
         if (list.size() > 0) {
@@ -38,7 +39,7 @@ public class MarketResourceDao extends SimpleHibernateDao<Object, Integer> {
         return null;
     }
 
-    public void updateMarketResourceStatus(Long resourceId, int status) {
+    public void updateMarketResourceStatus(Integer resourceId, int status) {
         String hql = "UPDATE MarketResourceEntity SET status = ? where resourceId=?";
         this.batchExecute(hql, status, resourceId);
     }
@@ -182,7 +183,7 @@ public class MarketResourceDao extends SimpleHibernateDao<Object, Integer> {
     public ResourcePropertyEntity getProperty(String resourceId, String propertyName) {
         ResourcePropertyEntity mp = null;
         String hql = "from ResourcePropertyEntity m where m.resourceId=? and m.propertyName=?";
-        List<ResourcePropertyEntity> list = this.find(hql, resourceId, propertyName);
+        List<ResourcePropertyEntity> list = this.find(hql, NumberConvertUtil.parseInt(resourceId), propertyName);
         if (list.size() > 0) {
             mp = list.get(0);
         }
@@ -196,12 +197,12 @@ public class MarketResourceDao extends SimpleHibernateDao<Object, Integer> {
      * @param propertyName
      * @return
      */
-    public MarketResourceDTO getInfoProperty(long resourceId, String propertyName) {
+    public MarketResourceDTO getInfoProperty(int resourceId, String propertyName) {
         MarketResourceEntity mr = this.getMarketResource(resourceId);
         if (mr != null) {
             ResourcePropertyEntity mp = null;
             String hql = "from ResourcePropertyEntity m where m.resourceId=? and m.propertyName=?";
-            List<ResourcePropertyEntity> list = this.find(hql, String.valueOf(resourceId), propertyName);
+            List<ResourcePropertyEntity> list = this.find(hql, resourceId, propertyName);
             if (list.size() > 0) {
                 mp = list.get(0);
                 MarketResourceDTO dto = new MarketResourceDTO(mr);
@@ -221,7 +222,7 @@ public class MarketResourceDao extends SimpleHibernateDao<Object, Integer> {
      */
     public int deleteProperty(String resourceId, String propertyName) {
         String hql = "Delete FROM MarketResourceEntity m where m.resourceId=? and m.propertyName=?";
-        int code = this.batchExecute(hql, resourceId, propertyName);
+        int code = this.batchExecute(hql, NumberConvertUtil.parseInt(resourceId), propertyName);
         return code;
     }
 

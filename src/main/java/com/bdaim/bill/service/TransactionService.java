@@ -4,13 +4,23 @@ import com.alibaba.fastjson.JSON;
 import com.bdaim.account.dao.TransactionDao;
 import com.bdaim.account.dto.TransactionQryParam;
 import com.bdaim.batch.TransactionEnum;
+import com.bdaim.common.dto.Page;
 import com.bdaim.common.dto.PageParam;
+import com.bdaim.common.util.ConfigUtil;
 import com.bdaim.common.util.IDHelper;
+import com.bdaim.common.util.NumberConvertUtil;
 import com.bdaim.common.util.StringUtil;
-import com.bdaim.common.util.page.Page;
+import com.bdaim.common.util.page.PageList;
 import com.bdaim.common.util.page.Pagination;
+import com.bdaim.customer.dao.CustomerDao;
+import com.bdaim.customer.dao.CustomerUserDao;
+import com.bdaim.customer.entity.Customer;
+import com.bdaim.customer.entity.CustomerUser;
+import com.bdaim.rbac.dao.UserDao;
+import com.bdaim.supplier.dao.SupplierDao;
 import com.github.crab2died.ExcelUtils;
 import org.apache.commons.lang.StringEscapeUtils;
+import org.hibernate.transform.Transformers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -20,6 +30,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
 import java.io.OutputStream;
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -43,6 +54,14 @@ public class TransactionService {
     private JdbcTemplate jdbcTemplate;
     @Resource
     private TransactionDao transactionDao;
+    @Resource
+    CustomerDao customerDao;
+    @Resource
+    CustomerUserDao customerUserDao;
+    @Resource
+    UserDao userDao;
+    @Resource
+    SupplierDao supplierDao;
 
     public List<Map<String, Object>> listTransactionsByCondtion(PageParam page, String customerId, TransactionQryParam param) throws Exception {
         HashMap<String, Object> ret = new HashMap<>();
@@ -82,7 +101,7 @@ public class TransactionService {
         logger.debug(sql.toString());
         System.out.println("前台企业用户账户余额页面 交易明细sql：" + sql.toString());
         List<Map<String, Object>> result = new ArrayList<>();
-        Page pageret = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
+        PageList pageret = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
         ret.put("total", pageret.getTotal());
         ret.put("transactions", pageret);
 
@@ -284,6 +303,443 @@ public class TransactionService {
                 payMode, amount, remark, new Timestamp(System.currentTimeMillis()), supplierId, userId, certificate, prodAmount, resourceId});
 
         return true;
+    }
+
+
+    public List<Map<String, Object>> listTransactionsByCondtion(String customerId, TransactionQryParam param) throws Exception {
+        HashMap<String, Object> ret = new HashMap<>();
+        List<Map<String, Object>> result = new ArrayList<>();
+        try {
+            int type = param.getType();
+            String transactionId = param.getTransactionId();
+            String startTime = param.getStartTime();
+            String endTime = param.getEndTime();
+            int pageNum = param.getPageNum();
+            int pageSize = param.getPageSize();
+            //当前月
+            String nowYearMonth;
+            // 如果没有传开始时间
+            if (StringUtil.isEmpty(startTime)) {
+                nowYearMonth = LocalDate.now().format(YYYYMM);
+            } else {
+                LocalDateTime localStartDateTime = LocalDateTime.parse(startTime, YYYYMMDDHHMMSS);
+                nowYearMonth = localStartDateTime.format(YYYYMM);
+            }
+
+            // 检查交易记录月表是否存在,不存在则创建
+            transactionDao.checkTransactionLogMonthTableNotExist(nowYearMonth);
+
+            StringBuilder sql = new StringBuilder("SELECT\n" +
+                    "  t.create_time AS transactionDate,\n" +
+                    "  t.TYPE,\n" +
+                    "  t.transaction_id AS transactionId,\n" +
+                    "  FORMAT(t.amount/1000,2) as amount,\n" +
+                    "  t.remark,\n" +
+                    "  t.certificate\n" +
+                    " FROM\n" +
+                    "  t_transaction_" + nowYearMonth + " t where 1=1 ");
+            sql.append(" and t.cust_id = '").append(StringEscapeUtils.escapeSql(customerId)).append("'");
+            if (StringUtil.isNotEmpty(transactionId)) {
+                sql.append(" and t.transaction_id='").append(StringEscapeUtils.escapeSql(transactionId)).append("'");
+            }
+            if (type > 0) {
+                sql.append(" and t.type=").append(type);
+            }
+            if (StringUtil.isNotEmpty(startTime) && StringUtil.isNotEmpty(endTime)) {
+                sql.append(" and t.create_time between ").append("'").append(StringEscapeUtils.escapeSql(startTime)).append("' and ").append("'").append(StringEscapeUtils.escapeSql(endTime)).append("'");
+            }
+            sql.append(" order by t.create_time desc ");
+            logger.debug(sql.toString());
+
+            List<Map<String, Object>> values = null;
+            try {
+                values = transactionDao.getSQLQuery(sql.toString()).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP).setFirstResult(pageNum).setMaxResults(pageSize).list();
+                ret.put("total", transactionDao.getSQLQuery(sql.toString()).list().size());
+            } catch (Exception e) {
+                logger.error("获取交易记录列表失败", e);
+                ret.put("total", 0);
+            }
+            ret.put("transactions", values);
+        } catch (Exception e) {
+            logger.error("获取交易日志失败,", e);
+            ret.put("transactions", new ArrayList<>());
+        }
+        result.add(ret);
+        return result;
+    }
+
+    public List<Map<String, Object>> listTransactionsByCondition_V1(String customerId, TransactionQryParam param) throws Exception {
+        List<Map<String, Object>> result = new ArrayList<>();
+        try {
+            String transactionId = param.getTransactionId();
+            String startTime = param.getStartTime();
+            String endTime = param.getEndTime();
+            int pageNum = param.getPageNum();
+            int pageSize = param.getPageSize();
+            //当前月
+            String nowYearMonth;
+            // 如果没有传开始时间
+            if (StringUtil.isEmpty(startTime)) {
+                nowYearMonth = LocalDate.now().format(YYYYMM);
+            } else {
+                LocalDateTime localStartDateTime = LocalDateTime.parse(startTime, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+                nowYearMonth = localStartDateTime.format(YYYYMM);
+            }
+
+            // 检查交易记录月表是否存在,不存在则创建
+            transactionDao.checkTransactionLogMonthTableNotExist(nowYearMonth);
+
+            StringBuilder sql = new StringBuilder("SELECT" +
+                    "  t.create_time AS transactionDate," +
+                    "  t.TYPE, t.user_id, t.cust_id, " +
+                    "  t.transaction_id AS transactionId," +
+                    "  FORMAT(t.amount/1000,2) as amount," +
+                    "  t.remark," +
+                    "  t.certificate" +
+                    " FROM" +
+                    "  t_transaction_" + nowYearMonth + " t where 1=1 ");
+            if (StringUtil.isNotEmpty(customerId)) {
+                sql.append(" and t.cust_id = '").append(StringEscapeUtils.escapeSql(customerId)).append("'");
+            }
+            if (StringUtil.isNotEmpty(transactionId)) {
+                sql.append(" and t.transaction_id='").append(StringEscapeUtils.escapeSql(transactionId)).append("'");
+            }
+            if (param.getType() != null && param.getType() > 0) {
+                sql.append(" and t.type=").append(param.getType());
+            }
+            if (StringUtil.isNotEmpty(startTime) && StringUtil.isNotEmpty(endTime)) {
+                sql.append(" and t.create_time between ").append("'").append(StringEscapeUtils.escapeSql(startTime)).append("' and ").append("'").append(StringEscapeUtils.escapeSql(endTime)).append("'");
+            }
+            sql.append(" order by t.create_time desc ");
+            logger.debug(sql.toString());
+            result = transactionDao.getSQLQuery(sql.toString()).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP).setFirstResult(pageNum).setMaxResults(pageSize).list();
+            if (result.size() > 0) {
+                Customer customer;
+                for (Map<String, Object> m : result) {
+                    m.put("userName", customerUserDao.getName(String.valueOf(m.get("user_id"))));
+                    customer = customerDao.get(String.valueOf(m.get("cust_id")));
+                    if (customer != null) {
+                        m.put("enterpriseName", customer.getEnterpriseName());
+                    } else {
+                        m.put("enterpriseName", "");
+                    }
+                }
+            }
+        } catch (Exception e) {
+            logger.error("获取交易日志失败,", e);
+        }
+        return result;
+    }
+
+    public Page listTransactionsByCondition_V2(String customerId, TransactionQryParam param) throws Exception {
+        Page page = null;
+        try {
+            String transactionId = param.getTransactionId();
+            String startTime = param.getStartTime();
+            String endTime = param.getEndTime();
+            int pageNum = param.getPageNum();
+            int pageSize = param.getPageSize();
+            //当前月
+            String nowYearMonth;
+            // 如果没有传开始时间
+            if (StringUtil.isEmpty(startTime)) {
+                nowYearMonth = LocalDate.now().format(YYYYMM);
+            } else {
+                LocalDateTime localStartDateTime = LocalDateTime.parse(startTime, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+                nowYearMonth = localStartDateTime.format(YYYYMM);
+            }
+
+            // 检查交易记录月表是否存在,不存在则创建
+            transactionDao.checkTransactionLogMonthTableNotExist(nowYearMonth);
+
+            StringBuilder sql = new StringBuilder("SELECT" +
+                    "  t.create_time AS transactionDate," +
+                    "  t.TYPE, t.user_id, t.cust_id, " +
+                    "  t.transaction_id AS transactionId," +
+                    "  t.amount/1000 as amount," +
+                    "  t.remark," +
+                    "  t.certificate" +
+                    " FROM" +
+                    "  t_transaction_" + nowYearMonth + " t where 1=1 ");
+            if (StringUtil.isNotEmpty(customerId)) {
+                sql.append(" and t.cust_id = '").append(StringEscapeUtils.escapeSql(customerId)).append("'");
+            }
+            if (StringUtil.isNotEmpty(transactionId)) {
+                sql.append(" and t.transaction_id='").append(StringEscapeUtils.escapeSql(transactionId)).append("'");
+            }
+            if (param.getType() == null) {
+                sql.append(" and (type = 1 or type =2)");
+            }
+            if (param.getType() != null && param.getType() > 0) {
+                sql.append(" and t.type=").append(param.getType());
+            }
+            if (StringUtil.isNotEmpty(startTime) && StringUtil.isNotEmpty(endTime)) {
+                sql.append(" and t.create_time between ").append("'").append(StringEscapeUtils.escapeSql(startTime)).append("' and ").append("'").append(StringEscapeUtils.escapeSql(endTime)).append("'");
+            }
+            sql.append(" order by t.create_time desc ");
+            logger.debug(sql.toString());
+            page = transactionDao.sqlPageQuery(sql.toString(), pageNum, pageSize);
+            if (page != null && page.getData().size() > 0) {
+                String picPath = ConfigUtil.getInstance().get("pic_server_url") + "/0/";
+                Customer customer;
+                Map<String, Object> m;
+                for (int i = 0; i < page.getData().size(); i++) {
+                    m = (Map<String, Object>) page.getData().get(i);
+
+                    m.put("userName", userDao.getName(String.valueOf(m.get("user_id"))));
+                    customer = customerDao.get(String.valueOf(m.get("cust_id")));
+                    if (customer != null) {
+                        m.put("enterpriseName", customer.getEnterpriseName());
+                    } else {
+                        m.put("enterpriseName", "");
+                    }
+                    if (m.get("certificate") != null) {
+                        m.put("certificate", picPath + m.get("certificate"));
+                    }
+                }
+            }
+        } catch (Exception e) {
+            logger.error("获取交易日志失败,", e);
+        }
+        return page;
+    }
+
+    public long countTransactionsByCondition_V1(String customerId, TransactionQryParam param) throws Exception {
+        long total = 0;
+        try {
+            String transactionId = param.getTransactionId();
+            String startTime = param.getStartTime();
+            String endTime = param.getEndTime();
+            //当前月
+            String nowYearMonth;
+            // 如果没有传开始时间
+            if (StringUtil.isEmpty(startTime)) {
+                nowYearMonth = LocalDate.now().format(YYYYMM);
+            } else {
+                LocalDateTime localStartDateTime = LocalDateTime.parse(startTime, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+                nowYearMonth = localStartDateTime.format(YYYYMM);
+            }
+
+            // 检查交易记录月表是否存在,不存在则创建
+            transactionDao.checkTransactionLogMonthTableNotExist(nowYearMonth);
+
+            StringBuilder sql = new StringBuilder("SELECT COUNT(0) count FROM t_transaction_" + nowYearMonth + " t where 1=1 ");
+            if (StringUtil.isNotEmpty(customerId)) {
+                sql.append(" and t.cust_id = '").append(StringEscapeUtils.escapeSql(customerId)).append("'");
+            }
+            if (StringUtil.isNotEmpty(transactionId)) {
+                sql.append(" and t.transaction_id='").append(StringEscapeUtils.escapeSql(transactionId)).append("'");
+            }
+            if (param.getType() != null && param.getType() > 0) {
+                sql.append(" and t.type=").append(param.getType());
+            }
+            if (StringUtil.isNotEmpty(startTime) && StringUtil.isNotEmpty(endTime)) {
+                sql.append(" and t.create_time between ").append("'").append(StringEscapeUtils.escapeSql(startTime)).append("' and ").append("'").append(StringEscapeUtils.escapeSql(endTime)).append("'");
+            }
+            sql.append(" order by t.create_time desc ");
+            List<Map<String, Object>> list = transactionDao.sqlQuery(sql.toString());
+            if (list != null && list.size() > 0) {
+                total = NumberConvertUtil.parseLong(String.valueOf(list.get(0).get("count")));
+            }
+        } catch (Exception e) {
+            logger.error("获取交易日志失败,", e);
+            total = 0;
+        }
+        return total;
+    }
+
+    public List<Map<String, Object>> listAllTransactions(TransactionQryParam param) throws Exception {
+        String startTime = param.getStartTime();
+
+        //当前月
+        String nowYearMonth;
+        // 如果没有传开始时间
+        if (StringUtil.isEmpty(startTime)) {
+            nowYearMonth = LocalDate.now().format(YYYYMM);
+        } else {
+            LocalDateTime localStartDateTime = LocalDateTime.parse(startTime, YYYYMMDDHHMMSS);
+            nowYearMonth = localStartDateTime.format(YYYYMM);
+        }
+
+        // 检查交易记录月表是否存在,不存在则创建
+        transactionDao.checkTransactionLogMonthTableNotExist(nowYearMonth);
+
+        StringBuilder sql = new StringBuilder("SELECT" +
+                " t1.user_id, t1.cust_id, (t1.amount/1000) AS amount," +
+                " t1.create_time AS transDate," +
+                " t1.TYPE as transType," +
+                " t1.transaction_id as transactionId," +
+                " t1.remark as remark," +
+                " t1.certificate as certificate FROM" +
+                " t_transaction_" + nowYearMonth + " t1 where 1=1 ");
+
+        if (StringUtil.isNotEmpty(param.getUserName())) {
+            CustomerUser customerUser = customerUserDao.getCustomerUserByName(param.getUserName());
+            if (customerUser != null) {
+                sql.append(" and t1.user_id='").append(customerUser.getId()).append("'");
+            }
+        }
+        if (param.getType() != null && param.getType() > 0) {
+            sql.append(" and t1.type='").append(param.getType()).append("'");
+        }
+        if (StringUtil.isNotEmpty(param.getTransactionId())) {
+            sql.append(" and t1.transaction_id='").append(StringEscapeUtils.escapeSql(param.getTransactionId())).append("'");
+        }
+        if (StringUtil.isNotEmpty(param.getStartTime()) && StringUtil.isNotEmpty(param.getEndTime())) {
+            sql.append(" and t1.create_time between '").append(StringEscapeUtils.escapeSql(param.getStartTime())).append("'");
+            sql.append(" and '").append(StringEscapeUtils.escapeSql(param.getEndTime())).append("'");
+        }
+        sql.append(" order by t1.create_time desc ");
+        List<Map<String, Object>> transactionList = transactionDao.getSQLQuery(sql.toString()).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP).setFirstResult(param.getPageNum()).setMaxResults(param.getPageSize()).list();
+        if (transactionList.size() > 0) {
+            Customer customer;
+            for (Map<String, Object> m : transactionList) {
+                m.put("userName", customerUserDao.getName(String.valueOf(m.get("user_id"))));
+                customer = customerDao.get(String.valueOf(m.get("cust_id")));
+                if (customer != null) {
+                    m.put("enterpriseName", customer.getEnterpriseName());
+                } else {
+                    m.put("enterpriseName", "");
+                }
+            }
+        }
+        return transactionList;
+    }
+
+    public long countAllTransactions(TransactionQryParam param) throws Exception {
+        String startTime = param.getStartTime();
+        //当前月
+        String nowYearMonth;
+        // 如果没有传开始时间
+        if (StringUtil.isEmpty(startTime)) {
+            nowYearMonth = LocalDate.now().format(YYYYMM);
+        } else {
+            LocalDateTime localStartDateTime = LocalDateTime.parse(startTime, YYYYMMDDHHMMSS);
+            nowYearMonth = localStartDateTime.format(YYYYMM);
+        }
+
+        // 检查交易记录月表是否存在,不存在则创建
+        transactionDao.checkTransactionLogMonthTableNotExist(nowYearMonth);
+
+        StringBuilder sql = new StringBuilder("SELECT count(*) count FROM" +
+                " t_transaction_" + nowYearMonth + " t1 WHERE 1=1 ");
+
+        if (StringUtil.isNotEmpty(param.getUserName())) {
+            CustomerUser customerUser = customerUserDao.getCustomerUserByName(param.getUserName());
+            if (customerUser != null) {
+                sql.append(" and t1.user_id='").append(customerUser.getId()).append("'");
+            }
+        }
+        if (param.getType() != null && param.getType() > 0) {
+            sql.append(" and t1.type='").append(param.getType()).append("'");
+        }
+        if (StringUtil.isNotEmpty(param.getTransactionId())) {
+            sql.append(" and t1.transaction_id='").append(StringEscapeUtils.escapeSql(param.getTransactionId())).append("'");
+        }
+        if (StringUtil.isNotEmpty(param.getStartTime()) && StringUtil.isNotEmpty(param.getEndTime())) {
+            sql.append(" and t1.create_time between '").append(StringEscapeUtils.escapeSql(param.getStartTime())).append("'");
+            sql.append(" and '").append(StringEscapeUtils.escapeSql(param.getEndTime())).append("'");
+        }
+        long total = 0;
+        try {
+            List<Map<String, Object>> list = transactionDao.sqlQuery(sql.toString());
+            if (list.size() > 0) {
+                total = NumberConvertUtil.parseLong(String.valueOf(list.get(0).get("count")));
+            }
+        } catch (Exception e) {
+            logger.error("获取交易记录异常", e);
+        }
+        return total;
+    }
+
+    /**
+     * 坐席扣费
+     *
+     * @param custId 客户ID
+     * @param amount 客户价格
+     * @param prodAmount 供应商价格
+     * @param resourceId 资源ID
+     * @param remark
+     * @param userId 坐席ID
+     * @return
+     * @throws Exception
+     */
+    public int seatMonthDeduction(String custId, int amount, int prodAmount, String resourceId, String remark, String userId) throws Exception {
+        logger.info("短信扣费参数,custId:" + custId + ",amount:" + amount + ",prodAmount:" + prodAmount + ",resourceId:" + resourceId);
+        String nowYearMonth = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMM"));
+        // 创建交易记录年月分表
+        StringBuilder sql = new StringBuilder();
+        sql.append("create table IF NOT EXISTS t_transaction_");
+        sql.append(nowYearMonth);
+        sql.append(" like t_transaction");
+        transactionDao.executeUpdateSQL(sql.toString());
+
+        sql.setLength(0);
+        sql.append("insert into t_transaction_");
+        sql.append(nowYearMonth);
+        sql.append(" (transaction_id, cust_id, type, pay_mode, amount, remark, create_time, resource_id, user_id, prod_amount)values(?,?,?,?,?,?,?,?,?,?)");
+        String transactionId = Long.toString(IDHelper.getTransactionId());
+        if (StringUtil.isEmpty(userId)) {
+            userId = "-1";
+        }
+
+        int status = transactionDao.executeUpdateSQL(sql.toString(), transactionId, custId, 5,
+                1, amount, remark, new Timestamp(System.currentTimeMillis()), resourceId, userId, prodAmount);
+        //扣除客户费用
+        customerDao.accountDeductions(custId, new BigDecimal(amount));
+        //扣除供应商费用
+        List<Map<String, Object>> marketResource = transactionDao.sqlQuery("SELECT * FROM t_market_resource WHERE resource_id = ? AND `status` = 1", resourceId);
+        String supplierId = null;
+        if (marketResource != null && marketResource.size() > 0) {
+            supplierId = String.valueOf(marketResource.get(0).get("supplier_id"));
+        }
+        supplierDao.supplierAccountDeductions(supplierId, new BigDecimal(prodAmount));
+        return status;
+    }
+
+    /**
+     * 客户和供应商资源扣费
+     * @param custId
+     * @param type
+     * @param amount
+     * @param prodAmount
+     * @param resourceId
+     * @param remark
+     * @param userId
+     * @return
+     * @throws Exception
+     */
+    public int customerSupplierDeduction(String custId, int type, int amount, int prodAmount, String resourceId, String remark, String userId) throws Exception {
+        logger.info("短信扣费参数,custId:" + custId + ",amount:" + amount + ",prodAmount:" + prodAmount + ",resourceId:" + resourceId);
+        String nowYearMonth = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMM"));
+        // 创建交易记录年月分表
+        StringBuilder sql = new StringBuilder();
+        sql.append("create table IF NOT EXISTS t_transaction_");
+        sql.append(nowYearMonth);
+        sql.append(" like t_transaction");
+        transactionDao.executeUpdateSQL(sql.toString());
+
+        sql.setLength(0);
+        sql.append("insert into t_transaction_");
+        sql.append(nowYearMonth);
+        sql.append(" (transaction_id, cust_id, type, pay_mode, amount, remark, create_time, resource_id, user_id, prod_amount)values(?,?,?,?,?,?,?,?,?,?)");
+        String transactionId = Long.toString(IDHelper.getTransactionId());
+        if (StringUtil.isEmpty(userId)) {
+            userId = "-1";
+        }
+
+        int status = transactionDao.executeUpdateSQL(sql.toString(), transactionId, custId, type,
+                1, amount, remark, new Timestamp(System.currentTimeMillis()), resourceId, userId, prodAmount);
+        //扣除客户费用
+        customerDao.accountDeductions(custId, new BigDecimal(amount));
+        //扣除供应商费用
+        List<Map<String, Object>> marketResource = transactionDao.sqlQuery("SELECT * FROM t_market_resource WHERE resource_id = ? AND `status` = 1", resourceId);
+        String supplierId = null;
+        if (marketResource != null && marketResource.size() > 0) {
+            supplierId = String.valueOf(marketResource.get(0).get("supplier_id"));
+        }
+        supplierDao.supplierAccountDeductions(supplierId, new BigDecimal(prodAmount));
+        return status;
     }
 
 }

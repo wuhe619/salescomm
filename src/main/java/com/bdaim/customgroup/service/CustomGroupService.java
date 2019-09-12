@@ -13,7 +13,8 @@ import com.bdaim.callcenter.common.CallUtil;
 import com.bdaim.callcenter.common.PhoneAreaUtil;
 import com.bdaim.callcenter.dto.VoiceLogCallDataDTO;
 import com.bdaim.callcenter.dto.XzPullPhoneDTO;
-import com.bdaim.common.redis.RedisUtil;
+import com.bdaim.common.dto.Page;
+import com.bdaim.common.util.redis.RedisUtil;
 import com.bdaim.common.service.PhoneService;
 import com.bdaim.common.util.*;
 import com.bdaim.common.util.spring.SpringContextHelper;
@@ -24,12 +25,12 @@ import com.bdaim.customer.dto.CustomerPropertyEnum;
 import com.bdaim.customer.dto.CustomerUserDTO;
 import com.bdaim.customer.entity.*;
 import com.bdaim.customer.service.CustomerService;
-import com.bdaim.customer.service.impl.UserGroupService;
+import com.bdaim.customeruser.service.UserGroupService;
 import com.bdaim.customgroup.dao.CustomGroupDao;
 import com.bdaim.customgroup.dao.CustomerGroupListDao;
 import com.bdaim.customgroup.dto.*;
-import com.bdaim.customgroup.entity.CustomGroupDO;
-import com.bdaim.customgroup.entity.CustomerGroupPropertyDO;
+import com.bdaim.customgroup.entity.CustomGroup;
+import com.bdaim.customgroup.entity.CustomerGroupProperty;
 import com.bdaim.image.service.impl.UploadDowloadImgServiceImpl;
 import com.bdaim.industry.service.IndustryPoolService;
 import com.bdaim.label.dao.IndustryPoolDao;
@@ -49,7 +50,6 @@ import com.bdaim.markettask.entity.MarketTask;
 import com.bdaim.order.dao.OrderDao;
 import com.bdaim.order.entity.OrderDO;
 import com.bdaim.order.service.OrderService;
-import com.bdaim.rbac.dto.Page;
 import com.bdaim.rbac.dto.UserQueryParam;
 import com.bdaim.resource.dao.MarketResourceDao;
 import com.bdaim.resource.dao.SourceDao;
@@ -171,7 +171,7 @@ public class CustomGroupService {
     public Page page(String customer_group_id, String cust_id, String user_id, Integer pageNum, Integer pageSize,
                      String id, String name, Integer status, String callType, String dateStart, String dateEnd,
                      String enterpriseName, String marketProjectId) {
-        StringBuffer hql = new StringBuffer("from CustomGroupDO m where 1=1");
+        StringBuffer hql = new StringBuffer("from CustomGroup m where 1=1");
         List values = new ArrayList();
         if (null != customer_group_id && !"".equals(customer_group_id)) {
             hql.append(" and m.id = ?");
@@ -193,7 +193,7 @@ public class CustomGroupService {
 
         if (StringUtil.isNotEmpty(marketProjectId)) {
             hql.append(" and m.marketProjectId= ?");
-            values.add(marketProjectId);
+            values.add(NumberConvertUtil.parseInt(marketProjectId));
         }
 
         if (StringUtil.isNotEmpty(dateStart)) {
@@ -209,19 +209,19 @@ public class CustomGroupService {
         }
 
         if (StringUtil.isNotEmpty(enterpriseName)) {
-            hql.append(" and m.custId IN (SELECT id FROM CustomerDO WHERE enterpriseName LIKE ?)");
+            hql.append(" and m.custId IN (SELECT id FROM Customer WHERE enterpriseName LIKE ?)");
             values.add("%" + enterpriseName + "%");
         }
         hql.append(" ORDER BY m.createTime desc ");
         Page page = customGroupDao.page(hql.toString(), values, pageNum, pageSize);
         if (page.getData() != null && page.getData().size() > 0) {
-            CustomGroupDO customGroup;
+            CustomGroup customGroup;
             CustomGroupDTO customGroupDTO;
-            CustomerDO customer;
+            Customer customer;
             List data = new ArrayList();
             MarketProject marketProject;
             for (int i = 0; i < page.getData().size(); i++) {
-                customGroup = (CustomGroupDO) page.getData().get(i);
+                customGroup = (CustomGroup) page.getData().get(i);
                 customGroupDTO = new CustomGroupDTO(customGroup);
                 if (customGroupDTO != null) {
                     if (customGroup.getCustId() != null && !"".equals(customGroup.getCustId())) {
@@ -250,7 +250,7 @@ public class CustomGroupService {
     }
 
 
-    public Integer addCustomGroup(CustomGroupDO customGroup) {
+    public Integer addCustomGroup(CustomGroup customGroup) {
         Date date = new Date();
         customGroup.setAvailably(Constant.AVAILABLY);
         customGroup.setCreateTime(date);
@@ -318,31 +318,31 @@ public class CustomGroupService {
         return id;
     }
 
-    public void updateCustomGroup(CustomGroupDO customGroup) {
+    public void updateCustomGroup(CustomGroup customGroup) {
         customGroupDao.update(customGroup);
     }
 
-    public CustomGroupDO getCustomGroupById(Integer id) {
+    public CustomGroup getCustomGroupById(Integer id) {
         return customGroupDao.get(id);
     }
 
-    public CustomGroupDO findUniqueById(Integer id) {
+    public CustomGroup findUniqueById(Integer id) {
         return customGroupDao.findUniqueBy("id", id);
     }
 
-    public List<CustomGroupDO> getCustomerGroupByProjectId(String custId, String projectIdStr) {
+    public List<CustomGroup> getCustomerGroupByProjectId(String custId, String projectIdStr) {
         if (StringUtil.isNotEmpty(projectIdStr)) {
             String hql = "select id,name,market_project_id,status from customer_group t where t.cust_id= '" + custId + "' and market_project_id in (" + projectIdStr + ")";
-            RowMapper<CustomGroupDO> rowMapper = new BeanPropertyRowMapper<>(CustomGroupDO.class);
-            List<CustomGroupDO> list = jdbcTemplate.query(hql, rowMapper);
+            RowMapper<CustomGroup> rowMapper = new BeanPropertyRowMapper<>(CustomGroup.class);
+            List<CustomGroup> list = jdbcTemplate.query(hql, rowMapper);
             return list;
         }
         return null;
     }
 
     @SuppressWarnings("unchecked")
-    public List<CustomGroupDO> getListByCondition(Map<String, Object> map, Map<String, Object> likeMap, Page page) {
-        String hql = "From CustomGroupDO t where t.availably =1 ";
+    public List<CustomGroup> getListByCondition(Map<String, Object> map, Map<String, Object> likeMap, Page page) {
+        String hql = "From CustomGroup t where t.availably =1 ";
         Date sTime = null;
         Date eTime = null;
         if (map.containsKey(Constant.FILTER_KEY_PREFIX + "dayType")) {
@@ -370,7 +370,7 @@ public class CustomGroupService {
     }
 
     public Integer getCountByCondition(Map<String, Object> map, Map<String, Object> likeMap, Page page) {
-        String hql = "select count(id) From CustomGroupDO t where t.availably =1 ";
+        String hql = "select count(id) From CustomGroup t where t.availably =1 ";
         Date sTime = null;
         Date eTime = null;
         if (map.containsKey(Constant.FILTER_KEY_PREFIX + "dayType")) {
@@ -418,7 +418,7 @@ public class CustomGroupService {
         map.put("count", previewCustomGroupCount(customGroupId, groupCondition));
         // 查询触达方式
         String[] touchModes = new String[]{};
-        CustomerGroupPropertyDO cgp = customGroupDao.getProperty(customGroupId, "touchMode");
+        CustomerGroupProperty cgp = customGroupDao.getProperty(customGroupId, "touchMode");
         if (cgp != null && StringUtil.isNotEmpty(cgp.getPropertyValue())) {
             touchModes = cgp.getPropertyValue().split(",");
         }
@@ -533,12 +533,16 @@ public class CustomGroupService {
         }
         try {
             String r = RestUtil.postDataWithParms(params, ESUtil.getUrl() + "_count");
-            log.info("通过标签查询客户总数:" + r);
-            JSONObject d = JSON.parseObject(r);
-            map.put("userCount", d.getLong("count"));
+            log.info("通过标签查询客户总数:[" + r + "]");
+            if (StringUtil.isNotEmpty(r)) {
+                JSONObject d = JSON.parseObject(r);
+                map.put("userCount", d.getLong("count"));
+            } else {
+                map.put("userCount", 0);
+            }
             map.put("errorDesc", "00");
         } catch (Exception e) {
-            log.error("通过标签查询客户总数异常",e);
+            log.error("通过标签查询客户总数异常", e);
             map.put("errorDesc", "05");
             return map;
         }
@@ -570,7 +574,7 @@ public class CustomGroupService {
             map.put("list", data);
             map.put("errorDesc", "00");
         } catch (Exception e) {
-            log.error("通过标签查询客户总数异常",e);
+            log.error("通过标签查询客户总数异常", e);
             map.put("errorDesc", "05");
             return map;
         }
@@ -656,7 +660,7 @@ public class CustomGroupService {
                                                String searchValue) {
         Map<String, Object> map = new HashMap<String, Object>();
         JSONArray result = new JSONArray();
-        CustomGroupDO group = getCustomGroupById(groupId);
+        CustomGroup group = getCustomGroupById(groupId);
         // 查询不到对应人群
         if (group == null)
             return map;
@@ -720,7 +724,7 @@ public class CustomGroupService {
     }
 
 
-    public Map<String, Object> getCharacteristic(CustomGroupDO group) {
+    public Map<String, Object> getCharacteristic(CustomGroup group) {
         Map<String, Object> result = new HashMap<String, Object>();
         String str = labelInterfaceService.getCharacteristic(group);
         JSONObject json = JSONObject.parseObject(str);
@@ -759,7 +763,7 @@ public class CustomGroupService {
      * download_status 0、未申请；1、已申请；2、下载完成；3、任务下载失败
      */
     public int applyDownloadUserProfileByGroup(Integer groupId) {
-        final CustomGroupDO group = getCustomGroupById(groupId);
+        final CustomGroup group = getCustomGroupById(groupId);
         if (group == null)
             return Constant.DOWNLOAD_FAILED;
         Integer downloadStatus = group.getDownloadStatus();
@@ -816,10 +820,10 @@ public class CustomGroupService {
     }
 
 
-    public List<RemainSourceDTO> getRemainSourceByGroupConditionV1(CustomGroupDO group, Integer industryPoolId) {
+    public List<RemainSourceDTO> getRemainSourceByGroupConditionV1(CustomGroup group, Integer industryPoolId) {
         Map<String, Object> mapCondition = new HashMap<String, Object>();
         List<RemainSourceDTO> resultList = new ArrayList<RemainSourceDTO>();
-        String hql = "select remark From CustomGroupDO t where t.availably =1 ";
+        String hql = "select remark From CustomGroup t where t.availably =1 ";
         mapCondition.put("createUserId", group.getCreateUserId());
         mapCondition.put("groupCondition", "'" + group.getGroupCondition() + "'");
         Query query = customGroupDao.getHqlQuery(hql, mapCondition, new HashMap(), null);
@@ -872,7 +876,7 @@ public class CustomGroupService {
     public Map<String, Object> addCustomGroupV1(CustomerGroupAddDTO customGroupDTO) throws Exception {
 
         // 0可购买量查询
-        CustomGroupDO customGroup = new CustomGroupDO();
+        CustomGroup customGroup = new CustomGroup();
         customGroup.setGroupCondition(customGroupDTO.getGroupCondition());
         customGroup.setName(customGroupDTO.getName());
         customGroup.setCycle(0);
@@ -966,7 +970,7 @@ public class CustomGroupService {
         Integer id = (Integer) customGroupDao.saveReturnPk(customGroup);
         // 保存客户群触达方式
         if (StringUtil.isNotEmpty(customGroupDTO.getTouchMode())) {
-            CustomerGroupPropertyDO cgp = new CustomerGroupPropertyDO(id, "touchMode", customGroupDTO.getTouchMode(), new Timestamp(System.currentTimeMillis()));
+            CustomerGroupProperty cgp = new CustomerGroupProperty(id, "touchMode", customGroupDTO.getTouchMode(), new Timestamp(System.currentTimeMillis()));
             customGroupDao.saveOrUpdate(cgp);
         }
         for (int i = 0; i < arr.size(); i++) {
@@ -1082,7 +1086,7 @@ public class CustomGroupService {
 
 
     public synchronized void addCustomGroupData0(String orderId) throws Exception {
-        CustomGroupDO customGroup = customGroupDao.findUniqueBy("orderId", orderId);
+        CustomGroup customGroup = customGroupDao.findUniqueBy("orderId", orderId);
         if (customGroup != null) {
             customGroup.setStatus(3);
             customGroupDao.update(customGroup);
@@ -1119,7 +1123,7 @@ public class CustomGroupService {
             }
 
         } catch (Exception e) {
-            log.error("订单号 " + orderId + " 创建客户群详情表失败:" + e.getMessage());
+            log.error("订单号:[" + orderId + "]创建客户群详情表失败,", e);
         }
 
         // 2.更新客户群状态
@@ -1137,7 +1141,7 @@ public class CustomGroupService {
         List<Map<String, Object>> result = null;
         String userId = String.valueOf(loginUser.getId());
         StringBuffer sb = new StringBuffer();
-        CustomGroupDO customGroup = customGroupDao.get(Integer.parseInt(customer_group_id));
+        CustomGroup customGroup = customGroupDao.get(Integer.parseInt(customer_group_id));
         // 机器人任务查询意向度字段
         if (customGroup.getTaskType() != null && 3 == customGroup.getTaskType()) {
             sb.append(" select custG.id, custG.user_id, custG.STATUS, custG.call_count callCount, custG.last_call_time lastCallTime, custG.intent_level intentLevel,");
@@ -1205,7 +1209,7 @@ public class CustomGroupService {
             log.error("查询客户群列表失败,", e);
             return result;
         }
-        CustomerUserDO user;
+        CustomerUser user;
         for (Map<String, Object> map : result) {
             if (map != null) {
                 map.put("phone", "");
@@ -1241,7 +1245,7 @@ public class CustomGroupService {
         Page page = null;
         String userId = String.valueOf(loginUser.getId());
         StringBuffer sb = new StringBuffer();
-        CustomGroupDO customGroup = customGroupDao.get(NumberConvertUtil.parseInt(customer_group_id));
+        CustomGroup customGroup = customGroupDao.get(NumberConvertUtil.parseInt(customer_group_id));
         if (customGroup == null) {
             page = new Page();
             return page;
@@ -1303,9 +1307,9 @@ public class CustomGroupService {
             sb.append(" and custG.intent_level = '" + intentLevel + "'");
         }
         // 查询所有自建属性
-        List<CustomerLabelDO> customerLabels = customerLabelDao.listCustomerLabel(loginUser.getCustId());
-        Map<String, CustomerLabelDO> cacheLabel = new HashMap<>();
-        for (CustomerLabelDO c : customerLabels) {
+        List<CustomerLabel> customerLabels = customerLabelDao.listCustomerLabel(loginUser.getCustId());
+        Map<String, CustomerLabel> cacheLabel = new HashMap<>();
+        for (CustomerLabel c : customerLabels) {
             cacheLabel.put(c.getLabelId(), c);
         }
         if (custProperty != null && custProperty.size() != 0) {
@@ -1336,7 +1340,7 @@ public class CustomGroupService {
             log.error("查询客户群列表失败,", e);
             return new Page();
         }
-        CustomerUserDO user;
+        CustomerUser user;
         if (page != null && page.getData() != null) {
             Map<String, Object> map, superData, labelData;
             List<Map<String, Object>> labelList;
@@ -1458,7 +1462,7 @@ public class CustomGroupService {
     }
 
 
-    private LabelPriceSumVO getCustomGroupPrice(CustomGroupDO customGroup, Integer sourceId, Integer industryPoolId) {
+    private LabelPriceSumVO getCustomGroupPrice(CustomGroup customGroup, Integer sourceId, Integer industryPoolId) {
         // 1查询标签成本价、销售价、订单金额、订单成本价
         String groupCondition = customGroup.getGroupCondition();
         JSONArray arr = JSONArray.parseArray(groupCondition);
@@ -1699,7 +1703,7 @@ public class CustomGroupService {
                 map = list.get(0);
                 Map<String, String> labelDataMap;
                 Map<String, Object> superLabel;
-                CustomerLabelDO customerLabel;
+                CustomerLabel customerLabel;
                 List<Map<String, Object>> selLabel = new ArrayList<>();
                 if (StringUtil.isNotEmpty((String) map.get("super_data"))) {
                     labelDataMap = JSON.parseObject(String.valueOf(map.get("super_data")), Map.class);
@@ -2051,7 +2055,7 @@ public class CustomGroupService {
                 sql.append(" and id='" + id + "'");
             }
 
-            String total = this.jdbcTemplate.queryForObject("select count(1) " + sql.toString(),String.class);
+            String total = this.jdbcTemplate.queryForObject("select count(1) " + sql.toString(), String.class);
             page.setTotal("".equals(total) ? 0 : Integer.parseInt(total));
 
             String sql_list = "SELECT id,user_id,call_count,last_call_time,remark,call_success_count,call_fail_count,call_empty_count"
@@ -2107,7 +2111,7 @@ public class CustomGroupService {
                 return data;
             }
             int taskType = -1;
-            CustomGroupDO customGroup = customGroupDao.get(Integer.parseInt(customerGroupId));
+            CustomGroup customGroup = customGroupDao.get(Integer.parseInt(customerGroupId));
             if (customGroup == null) {
                 log.warn("客户群为空:" + customerGroupId);
                 return data;
@@ -2440,7 +2444,7 @@ public class CustomGroupService {
                 return data;
             }
             int taskType = -1;
-            CustomGroupDO customGroup = customGroupDao.get(NumberConvertUtil.parseInt(customerGroupId));
+            CustomGroup customGroup = customGroupDao.get(NumberConvertUtil.parseInt(customerGroupId));
             if (customGroup == null) {
                 log.warn("未查询到指定客户群:" + customerGroupId);
                 return data;
@@ -2709,7 +2713,7 @@ public class CustomGroupService {
                 return data;
             }
             int taskType = -1;
-            CustomGroupDO customGroup = customGroupDao.get(NumberConvertUtil.parseInt(customerGroupId));
+            CustomGroup customGroup = customGroupDao.get(NumberConvertUtil.parseInt(customerGroupId));
             if (customGroup == null) {
                 log.warn("未查询到指定客户群:" + customerGroupId);
                 return data;
@@ -2837,7 +2841,7 @@ public class CustomGroupService {
                 return;
             }
             int taskType = -1;
-            CustomGroupDO customGroup = customGroupDao.get(NumberConvertUtil.parseInt(customerGroupId));
+            CustomGroup customGroup = customGroupDao.get(NumberConvertUtil.parseInt(customerGroupId));
             if (customGroup == null) {
                 log.warn("未查询到指定客户群:" + customerGroupId);
                 return;
@@ -3331,7 +3335,7 @@ public class CustomGroupService {
      * @return
      */
     public int updateCustomerGroupTaskId(String customerId, String groupId, String taskId) {
-        CustomGroupDO customGroup = customGroupDao.get(Integer.parseInt(groupId));
+        CustomGroup customGroup = customGroupDao.get(Integer.parseInt(groupId));
         log.info("更改任务ID,customerId:" + customerId + ",groupId:" + groupId + ",taskId:" + taskId);
         if (customGroup != null) {
             if (StringUtil.isNotEmpty(customGroup.getCustId()) && customGroup.getCustId().equals(customerId)) {
@@ -3352,7 +3356,7 @@ public class CustomGroupService {
      * @return
      */
     public int updateCustomerGroupTaskIdAndTaskPhoneIndex(String customerId, String groupId, String taskId) {
-        CustomGroupDO customGroup = customGroupDao.get(Integer.parseInt(groupId));
+        CustomGroup customGroup = customGroupDao.get(Integer.parseInt(groupId));
         log.info("更改任务ID和第三方供号置为0,customerId:" + customerId + ",groupId:" + groupId + ",taskId:" + taskId);
         if (customGroup != null) {
             if (StringUtil.isNotEmpty(customGroup.getCustId()) && customGroup.getCustId().equals(customerId)) {
@@ -3378,7 +3382,7 @@ public class CustomGroupService {
      */
     public int createMarketTask(String customerId, String id, String taskId, int taskType, String userGroupId,
                                 long taskEndTime) {
-        CustomGroupDO customGroup = customGroupDao.get(Integer.parseInt(id));
+        CustomGroup customGroup = customGroupDao.get(Integer.parseInt(id));
         if (customGroup != null) {
             if (StringUtil.isNotEmpty(customGroup.getCustId()) && customGroup.getCustId().equals(customerId)) {
                 customGroup.setTaskId(taskId);
@@ -3407,7 +3411,7 @@ public class CustomGroupService {
      * @return
      */
     public int updateCustomeGroupMarketProject(String customerId, int id, Integer marketProjectId) {
-        CustomGroupDO customGroup = customGroupDao.get(id);
+        CustomGroup customGroup = customGroupDao.get(id);
         if (customGroup != null) {
             if (marketProjectId != null) {
                 customGroup.setMarketProjectId(marketProjectId);
@@ -3455,7 +3459,7 @@ public class CustomGroupService {
             return 0;
         }
 
-        CustomGroupDO cg = customGroupDao.get(NumberConvertUtil.parseInt(id));
+        CustomGroup cg = customGroupDao.get(NumberConvertUtil.parseInt(id));
         if (cg == null) {
             log.warn("更改客户群状态未查询到客户群,id:" + id);
             return 0;
@@ -3712,7 +3716,7 @@ public class CustomGroupService {
         }
         // 用户名搜索
         if (StringUtil.isNotEmpty(param.getCustUserName())) {
-            CustomerUserDO u = customerUserDao.getCustomerUserByLoginName(param.getCustUserName());
+            CustomerUser u = customerUserDao.getCustomerUserByLoginName(param.getCustUserName());
             if (u == null) {
                 map.put("list", new ArrayList<>());
                 map.put("total", 0);
@@ -3737,7 +3741,7 @@ public class CustomGroupService {
                 .setFirstResult(param.getPageNum()).setMaxResults(param.getPageSize()).list();
         if (list != null && list.size() > 0) {
             CustomerUserGroup customerUserGroup;
-            CustomerUserDO cu;
+            CustomerUser cu;
             List<Map<String, Object>> unAssignedUsers;
             StringBuffer userGroupId, userGroupName;
             String[] userGroupIds;
@@ -3777,7 +3781,7 @@ public class CustomGroupService {
                 return;
             }
 
-            CustomGroupDO customGroup = customGroupDao.get(NumberConvertUtil.parseInt(customerGroupId));
+            CustomGroup customGroup = customGroupDao.get(NumberConvertUtil.parseInt(customerGroupId));
             if (customGroup == null) {
                 msg.put("msg", "营销任务不存在");
                 return;
@@ -3982,7 +3986,7 @@ public class CustomGroupService {
             String custId = loginUser.getCustId();
             // 处理管理员权限
             if (StringUtil.isEmpty(loginUser.getCustId())) {
-                CustomGroupDO cg = customGroupDao.get(NumberConvertUtil.parseInt(customerGroupId));
+                CustomGroup cg = customGroupDao.get(NumberConvertUtil.parseInt(customerGroupId));
                 if (cg != null) {
                     custId = cg.getCustId();
                 } else {
@@ -4260,7 +4264,7 @@ public class CustomGroupService {
             String custId = userQueryParam.getCustId();
             // 处理管理员权限
             if ("-1".equals(custId)) {
-                CustomGroupDO cg = customGroupDao.get(NumberConvertUtil.parseInt(customerGroupId));
+                CustomGroup cg = customGroupDao.get(NumberConvertUtil.parseInt(customerGroupId));
                 if (cg != null) {
                     custId = cg.getCustId();
                 } else {
@@ -4554,7 +4558,7 @@ public class CustomGroupService {
                 outputStream.write(JSON.toJSONString(msg).getBytes("UTF-8"));
                 return;
             }
-            CustomGroupDO customGroup = customGroupDao.get(Integer.parseInt(customerGroupId));
+            CustomGroup customGroup = customGroupDao.get(Integer.parseInt(customerGroupId));
             if (customGroup == null) {
                 log.warn("客户群为空:" + customerGroupId);
                 msg.put("msg", "客户群为空");
@@ -4841,7 +4845,7 @@ public class CustomGroupService {
                 outputStream.write(JSON.toJSONString(msg).getBytes("UTF-8"));
                 return;
             }
-            CustomGroupDO customGroup = customGroupDao.get(Integer.parseInt(customerGroupId));
+            CustomGroup customGroup = customGroupDao.get(Integer.parseInt(customerGroupId));
             if (customGroup == null) {
                 log.warn("客户群为空:" + customerGroupId);
                 msg.put("msg", "客户群为空");
@@ -5160,7 +5164,7 @@ public class CustomGroupService {
 
 
     public int updateMarketTaskTime(int custGroupId, long endTime) {
-        CustomGroupDO customGroup = customGroupDao.get(custGroupId);
+        CustomGroup customGroup = customGroupDao.get(custGroupId);
         if (customGroup != null) {
             customGroup.setTaskEndTime(new Timestamp(endTime));
             customGroupDao.update(customGroup);
@@ -5308,7 +5312,7 @@ public class CustomGroupService {
      * @return 0-失败 1-成功 2-文件已经导入过
      */
     public int saveImportCustGroupData(String custId, String name, String fileName, JSONArray headers, Integer projectId) {
-        CustomerGroupPropertyDO uploadFileStatus = customGroupDao.getProperty("uploadFilePath", fileName);
+        CustomerGroupProperty uploadFileStatus = customGroupDao.getProperty("uploadFilePath", fileName);
         if (uploadFileStatus != null) {
             log.warn("导入客户群文件:" + fileName + ",已经成功导入,忽略");
             return 2;
@@ -5324,7 +5328,7 @@ public class CustomGroupService {
             return 0;
         }
 
-        CustomGroupDO cg = new CustomGroupDO();
+        CustomGroup cg = new CustomGroup();
         cg.setName(name);
         cg.setDesc("导入客户群创建");
         cg.setOrderId(orderId);
@@ -5347,10 +5351,88 @@ public class CustomGroupService {
                 log.error("创建用户群表失败,id:" + id, e);
             }
 
-            CustomerGroupPropertyDO cgp = new CustomerGroupPropertyDO(id, "uploadHeaders", StringUtils.join(headers, ","), new Timestamp(System.currentTimeMillis()));
+            CustomerGroupProperty cgp = new CustomerGroupProperty(id, "uploadHeaders", StringUtils.join(headers, ","), new Timestamp(System.currentTimeMillis()));
             customGroupDao.saveOrUpdate(cgp);
-            cgp = new CustomerGroupPropertyDO(id, "uploadFilePath", fileName, new Timestamp(System.currentTimeMillis()));
+            cgp = new CustomerGroupProperty(id, "uploadFilePath", fileName, new Timestamp(System.currentTimeMillis()));
             customGroupDao.saveOrUpdate(cgp);
+            // 异步处理客户群数据
+            new Thread() {
+                public void run() {
+                    log.info("创建导入客群成功,开始异步处理数据,ID:" + id);
+                    try {
+                        CustomGroupService cgs = (CustomGroupService) SpringContextHelper.getBean("customGroupService");
+                        int code = cgs.handleCustGroupImportData(String.valueOf(id), custId, customGroupDao, customerDao, customerLabelDao, jdbcTemplate);
+                        log.info("导入客户群数据ID:" + id + "更改状态成功,status:" + status);
+                    } catch (Exception e) {
+                        log.error("异步处理导入客群异常,", e);
+                    }
+                }
+            }.start();
+            return 1;
+        }
+        return 0;
+    }
+
+    /**
+     * 保存导入的客户群基本信息
+     *
+     * @param custId     客户ID
+     * @param name       客群名称
+     * @param fileName   文件名称
+     * @param headers    excel表头
+     * @param projectId  项目ID
+     * @param touchModes 触达方式 1-电话 2-短信
+     * @return
+     */
+    public int saveImportCustGroupData(String custId, String name, String fileName, JSONArray headers, Integer projectId, String touchModes) {
+        CustomerGroupProperty uploadFileStatus = customGroupDao.getProperty("uploadFilePath", fileName);
+        if (uploadFileStatus != null) {
+            log.warn("导入客户群文件:" + fileName + ",已经成功导入,忽略");
+            return 2;
+        }
+
+        String orderId = String.valueOf(IDHelper.getTransactionId());
+        StringBuffer insertOrder = new StringBuffer();
+        insertOrder.append("INSERT INTO  t_order (`order_id`, `cust_id`, `order_type`, `create_time`,  `remarks`, `amount`, `order_state`, `cost_price`) ");
+        insertOrder.append(" VALUES ('" + orderId + "','" + custId + "','1','" + new Timestamp(System.currentTimeMillis()) + "','导入客户群创建','0','2','0')");
+        int status = customGroupDao.executeUpdateSQL(insertOrder.toString());
+        LogUtil.info("导入客户群创建订单表状态:" + status);
+        if (status == 0) {
+            return 0;
+        }
+
+        CustomGroup cg = new CustomGroup();
+        cg.setName(name);
+        cg.setDesc("导入客户群创建");
+        cg.setOrderId(orderId);
+        cg.setMarketProjectId(projectId);
+        cg.setStatus(3);
+        cg.setDataSource(1);
+        cg.setCustId(custId);
+        cg.setCreateTime(new Timestamp(System.currentTimeMillis()));
+        cg.setGroupCondition("[{\"symbol\":0,\"leafs\":[{\"name\":\"4\",\"id\":\"87\"}],\"type\":1,\"labelId\":\"84\",\"parentName\":\"家庭人口数\",\"path\":\"人口统计学/基本信息/家庭人口数\"}]");
+        LogUtil.info("导入客户群插入customer_group表的数据:" + cg);
+        int id = (int) customGroupDao.saveReturnPk(cg);
+        if (id > 0) {
+            StringBuffer sb = new StringBuffer();
+            sb.append(" create table IF NOT EXISTS t_customer_group_list_");
+            sb.append(id);
+            sb.append(" like t_customer_group_list");
+            try {
+                customGroupDao.executeUpdateSQL(sb.toString());
+            } catch (HibernateException e) {
+                log.error("创建用户群表失败,id:" + id, e);
+            }
+
+            CustomerGroupProperty cgp = new CustomerGroupProperty(id, "uploadHeaders", StringUtils.join(headers, ","), new Timestamp(System.currentTimeMillis()));
+            customGroupDao.saveOrUpdate(cgp);
+            cgp = new CustomerGroupProperty(id, "uploadFilePath", fileName, new Timestamp(System.currentTimeMillis()));
+            customGroupDao.saveOrUpdate(cgp);
+            // 保存客户群触达方式
+            if (StringUtil.isNotEmpty(touchModes)) {
+                cgp = new CustomerGroupProperty(id, "touchMode", touchModes, new Timestamp(System.currentTimeMillis()));
+                customGroupDao.saveOrUpdate(cgp);
+            }
             // 异步处理客户群数据
             new Thread() {
                 public void run() {
@@ -5435,7 +5517,7 @@ public class CustomGroupService {
      */
     private int handleCustGroupImportData(String custGroupId, String custId, CustomGroupDao
             customGroupDao, CustomerDao customerDao, CustomerLabelDao customerLabelDao, JdbcTemplate jdbcTemplate) {
-        CustomerGroupPropertyDO uploadFilePath = customGroupDao.getProperty(NumberConvertUtil.parseInt(custGroupId), "uploadFilePath");
+        CustomerGroupProperty uploadFilePath = customGroupDao.getProperty(NumberConvertUtil.parseInt(custGroupId), "uploadFilePath");
         if (uploadFilePath == null) {
             log.warn("导入客户群ID:" + custGroupId + "未查询到文件路径");
             return 0;
@@ -5444,7 +5526,7 @@ public class CustomGroupService {
             log.warn("导入客户群ID:" + custGroupId + "文件路径为空," + uploadFilePath);
             return 0;
         }
-        CustomerGroupPropertyDO uploadHeaders = customGroupDao.getProperty(NumberConvertUtil.parseInt(custGroupId), "uploadHeaders");
+        CustomerGroupProperty uploadHeaders = customGroupDao.getProperty(NumberConvertUtil.parseInt(custGroupId), "uploadHeaders");
         if (uploadHeaders == null) {
             log.warn("导入客户群ID:" + custGroupId + "未查询到上传表头");
             return 0;
@@ -5467,7 +5549,7 @@ public class CustomGroupService {
             Map<Integer, String> cellMap = new HashMap<>();
             Map<Integer, String> labelMap = new HashMap<>();
             if (excelHeads != null) {
-                CustomerLabelDO cl;
+                CustomerLabel cl;
                 for (int i = 0; i < excelHeads.size(); i++) {
                     // excel中的表头在勾选的表头中
                     if (!headers.contains(excelHeads.get(i))) {
@@ -5524,7 +5606,7 @@ public class CustomGroupService {
                     if (uCount) {
                         log.info("导入客户群数据ID:" + custGroupId + "成功");
                         // 更改客户群状态
-                        CustomGroupDO cg = customGroupDao.get(NumberConvertUtil.parseInt(custGroupId));
+                        CustomGroup cg = customGroupDao.get(NumberConvertUtil.parseInt(custGroupId));
                         if (cg != null) {
                             // 处理完成
                             long userCount = customGroupDao.getCustomerGroupListDataCount(NumberConvertUtil.parseInt(custGroupId));
@@ -5562,7 +5644,7 @@ public class CustomGroupService {
      */
     public int customerGroupTransferByCustId(int groupId, String custId) {
         log.info("开始平移客户群所属客户,groupId:" + groupId + ",custId:" + custId);
-        CustomerDO customer = customerDao.get(custId);
+        Customer customer = customerDao.get(custId);
         if (customer == null) {
             log.warn("客户ID未查询到对应客户:" + custId);
             return 0;
@@ -5575,7 +5657,7 @@ public class CustomGroupService {
 
     public JSONObject getCustomGroupList(String custId, String groupId, Integer pageNum, Integer pageSize) {
         JSONObject json = new JSONObject();
-        CustomGroupDO cg = customGroupDao.get(NumberConvertUtil.parseInt(groupId));
+        CustomGroup cg = customGroupDao.get(NumberConvertUtil.parseInt(groupId));
         if (cg == null) {
             log.error("客群 " + groupId + " 不存在");
             json.put("errorDesc", "01");
@@ -5590,7 +5672,7 @@ public class CustomGroupService {
         if (pageSize == null || pageSize > 100 || pageSize <= 0) pageSize = 100;
         try {
             StringBuffer sql = new StringBuffer(" from t_customer_group_list_" + groupId + " ");
-            String total = this.jdbcTemplate.queryForObject("select count(1) " + sql.toString(),String.class);
+            String total = this.jdbcTemplate.queryForObject("select count(1) " + sql.toString(), String.class);
 
             if ("".equals(total) || "0".equals(total)) {
                 json.put("errorDesc", "01");
@@ -5626,7 +5708,7 @@ public class CustomGroupService {
         JSONObject result = new JSONObject();
 
         // 0可购买量查询
-        CustomGroupDO customGroup = new CustomGroupDO();
+        CustomGroup customGroup = new CustomGroup();
         String label = customGroupDTO.getLabel();
         String groupCondition = buildGroupcondition(label);
         customGroup.setGroupCondition(groupCondition);
@@ -5643,7 +5725,7 @@ public class CustomGroupService {
                 log.error("项目" + customGroupDTO.getProjectId() + " 不存在");
                 return result;
             }
-            CustomerPropertyDO cp = customerDao.getProperty(customGroupDTO.getCustId(), CustomerPropertyEnum.MARKET_PROJECT_ID_PREFIX.getKey() + customGroupDTO.getProjectId());
+            CustomerProperty cp = customerDao.getProperty(customGroupDTO.getCustId(), CustomerPropertyEnum.MARKET_PROJECT_ID_PREFIX.getKey() + customGroupDTO.getProjectId());
             if (cp == null || StringUtil.isEmpty(cp.getPropertyValue())) {
                 result.put("errorDesc", "04");
                 log.error("企业" + customGroupDTO.getCustId() + " 未关联项目" + project.getId());
@@ -5658,7 +5740,7 @@ public class CustomGroupService {
         int labelCostAmount = industryPoolService.getCostPriceV1(groupCondition, Integer.valueOf(customGroupDTO.getPoolId()));
         SupplierDTO supplierDTO = industryPoolDao.getSupplierInfo(Integer.valueOf(customGroupDTO.getPoolId()));
 
-        CustomerDO customer = customerDao.get(customGroupDTO.getCustId());
+        Customer customer = customerDao.get(customGroupDTO.getCustId());
         if (customer != null) {
             customGroupDTO.setEnterpriseName(customer.getEnterpriseName());
         }
@@ -5721,7 +5803,7 @@ public class CustomGroupService {
         Integer id = (Integer) customGroupDao.saveReturnPk(customGroup);
         // 保存客户群触达方式
         if (StringUtil.isNotEmpty(customGroupDTO.getTouchType())) {
-            CustomerGroupPropertyDO cgp = new CustomerGroupPropertyDO(id, "touchMode", customGroupDTO.getTouchType(), new Timestamp(System.currentTimeMillis()));
+            CustomerGroupProperty cgp = new CustomerGroupProperty(id, "touchMode", customGroupDTO.getTouchType(), new Timestamp(System.currentTimeMillis()));
             customGroupDao.saveOrUpdate(cgp);
         }
 
@@ -5738,7 +5820,7 @@ public class CustomGroupService {
             Map<String, Long> s = previewByGroupCondition2(null, null, buildGroupcondition2(customGroupDTO.getLabel()));
             userAcount = s.getOrDefault("count", 0l);
         } catch (Exception e) {
-            log.error("预览人数异常",e);
+            log.error("预览人数异常", e);
         }
         result.put("errorDesc", "00");
         result.put("groupId", customGroup.getId() + "");
@@ -5748,7 +5830,7 @@ public class CustomGroupService {
 
 
     public void buyCustomGroup(String orderNo, Long userId, String custId) {
-        CustomerPropertyDO pp = customerDao.getProperty(custId, "pay_password");
+        CustomerProperty pp = customerDao.getProperty(custId, "pay_password");
         Map<String, String> jsonMap = buyCustomGroup(orderNo, userId, custId, "1", pp.getPropertyValue(), true);
         log.info("购买客群结果 orderNo：" + orderNo + ":" + JSONObject.toJSONString(jsonMap));
         String successBuym = jsonMap.get("code");
@@ -5842,7 +5924,7 @@ public class CustomGroupService {
      * @return
      */
     public boolean checkCGroupDataPermission(int cGroupId, String custId) {
-        CustomGroupDO cg = getCustomGroupById(cGroupId);
+        CustomGroup cg = getCustomGroupById(cGroupId);
         if (cg == null) {
             log.warn("检查客户-客户群-身份ID数据权限失败,custId:" + custId + ",客户群Id:" + cGroupId + "未查询到对应客户群");
             return false;
@@ -5892,7 +5974,7 @@ public class CustomGroupService {
      * @return
      */
     public boolean checkCustomerGroupPermission(String customerId, int groupId) {
-        CustomGroupDO customGroup = customGroupDao.get(groupId);
+        CustomGroup customGroup = customGroupDao.get(groupId);
         log.info("检查客群所属客户权限,customerId:" + customerId + ",groupId:" + groupId);
         if (customGroup != null) {
             if (StringUtil.isNotEmpty(customGroup.getCustId()) && customGroup.getCustId().equals(customerId)) {
@@ -5910,7 +5992,7 @@ public class CustomGroupService {
         Map<String, String> map = new HashMap<String, String>();
         // 判断密码是否正确
         try {
-            CustomerPropertyDO pp = customerDao.getProperty(custId, "pay_password"); //支付密码
+            CustomerProperty pp = customerDao.getProperty(custId, "pay_password"); //支付密码
 
             if (pp == null || "".equals(pp.getPropertyValue())) {
                 map.put("code", "1");
@@ -5949,14 +6031,14 @@ public class CustomGroupService {
             return map;
         }
         //---客户群---
-        CustomGroupDO cg = orderDao.getCusomGroup(orderNo);
+        CustomGroup cg = orderDao.getCusomGroup(orderNo);
 
 
         // 客户群的订单金额
         BigDecimal money = new BigDecimal(order.getAmount());
 
         // 账户扣钱（余额支付）查询账户余额
-        CustomerPropertyDO ra = customerDao.getProperty(custId, "remain_amount");
+        CustomerProperty ra = customerDao.getProperty(custId, "remain_amount");
         Double remain_amount = 0.0;
         try {
             if (ra != null) remain_amount = Double.parseDouble(ra.getPropertyValue());
@@ -5972,7 +6054,7 @@ public class CustomGroupService {
         }
         // 更新企业账户余额（余额扣款）
         if (ra == null) {
-            ra = new CustomerPropertyDO(custId, "remain_amount", "0");
+            ra = new CustomerProperty(custId, "remain_amount", "0");
         }
         ra.setPropertyValue(df.format(amount.subtract(money)));
         try {

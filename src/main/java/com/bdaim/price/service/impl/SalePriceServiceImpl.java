@@ -6,15 +6,15 @@ import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.util.ConstantsUtil;
 import com.bdaim.common.util.DateUtil;
 import com.bdaim.common.util.StringUtil;
-import com.bdaim.common.util.page.Page;
+import com.bdaim.common.util.page.PageList;
 import com.bdaim.common.util.page.Pagination;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerUserDao;
-import com.bdaim.customer.entity.CustomerPropertyDO;
+import com.bdaim.customer.entity.CustomerProperty;
 import com.bdaim.price.dto.SalePriceDTO;
 import com.bdaim.price.service.SalePriceService;
 import com.bdaim.resource.dao.SourceDao;
-import com.bdaim.resource.service.impl.MarketResourceServiceImpl;
+import com.bdaim.resource.service.MarketResourceService;
 import com.bdaim.supplier.dto.SupplierEnum;
 
 import org.slf4j.Logger;
@@ -46,7 +46,7 @@ public class SalePriceServiceImpl implements SalePriceService {
     @Resource
     SourceDao sourceDao;
     @Resource
-    MarketResourceServiceImpl marketResourceServiceImpl;
+    MarketResourceService marketResourceServiceImpl;
 
     /**
      * 修改销售定价
@@ -63,10 +63,10 @@ public class SalePriceServiceImpl implements SalePriceService {
             SupplierEnum callIdPropertyName = SupplierEnum.getCallIdPropertyName(channel);
             PropertyName = callIdPropertyName.getSupplierName();
             if (channel.equals(ConstantsUtil.SUPPLIERID__CUC) || channel.equals(ConstantsUtil.SUPPLIERID__CMC) || channel.equals(ConstantsUtil.SUPPLIERID__CTC)) {
-                CustomerPropertyDO customer = customerDao.getProperty(custId, PropertyName + "_sms_price");
+                CustomerProperty customer = customerDao.getProperty(custId, PropertyName + "_sms_price");
                 if (salePricList.get(i).getSaleSmsPrice() != null && StringUtil.isNotEmpty(salePricList.get(i).getSaleSmsPrice())) {
                     if (customer == null) {
-                        CustomerPropertyDO cucSmsCustomer = new CustomerPropertyDO();
+                        CustomerProperty cucSmsCustomer = new CustomerProperty();
                         cucSmsCustomer.setCustId(custId);
                         cucSmsCustomer.setPropertyName(PropertyName + "_sms_price");
                         cucSmsCustomer.setPropertyValue(new BigDecimal(salePricList.get(i).getSaleSmsPrice()).multiply(new BigDecimal("100")).stripTrailingZeros().toPlainString());
@@ -78,10 +78,10 @@ public class SalePriceServiceImpl implements SalePriceService {
                         customerDao.saveOrUpdate(customer);
                     }
                 }
-                CustomerPropertyDO callMinuteCustomer = customerDao.getProperty(custId, PropertyName + "_minute");
+                CustomerProperty callMinuteCustomer = customerDao.getProperty(custId, PropertyName + "_minute");
                 if (salePricList.get(i).getSaleMinute() != null && StringUtil.isNotEmpty(salePricList.get(i).getSaleMinute())) {
                     if (callMinuteCustomer == null) {
-                        CustomerPropertyDO callMinute = new CustomerPropertyDO();
+                        CustomerProperty callMinute = new CustomerProperty();
                         callMinute.setCustId(custId);
                         callMinute.setPropertyName(PropertyName + "_minute");
                         callMinute.setPropertyValue(salePricList.get(i).getSaleMinute());
@@ -114,10 +114,10 @@ public class SalePriceServiceImpl implements SalePriceService {
                     }*/
 
                 }
-                CustomerPropertyDO fixCustomer = customerDao.getProperty(custId, PropertyName + "_fix_price");
+                CustomerProperty fixCustomer = customerDao.getProperty(custId, PropertyName + "_fix_price");
                 if (salePricList.get(i).getSalefixPrice() != null && StringUtil.isNotEmpty(salePricList.get(i).getSalefixPrice())) {
                     if (fixCustomer == null) {
-                        CustomerPropertyDO fixPriceCustomer = new CustomerPropertyDO();
+                        CustomerProperty fixPriceCustomer = new CustomerProperty();
                         fixPriceCustomer.setCustId(custId);
                         fixPriceCustomer.setPropertyName(PropertyName + "_fix_price");
                         fixPriceCustomer.setPropertyValue(new BigDecimal(salePricList.get(i).getSalefixPrice()).multiply(new BigDecimal("100")).stripTrailingZeros().toPlainString());
@@ -129,10 +129,10 @@ public class SalePriceServiceImpl implements SalePriceService {
                         customerDao.saveOrUpdate(fixCustomer);
                     }
                 }
-                CustomerPropertyDO CallCustomer = customerDao.getProperty(custId, PropertyName + "_call_price");
+                CustomerProperty CallCustomer = customerDao.getProperty(custId, PropertyName + "_call_price");
                 if (salePricList.get(i).getSaleCallPrice() != null && StringUtil.isNotEmpty(salePricList.get(i).getSaleCallPrice())) {
                     if (CallCustomer == null) {
-                        CustomerPropertyDO callPriceCustomer = new CustomerPropertyDO();
+                        CustomerProperty callPriceCustomer = new CustomerProperty();
                         callPriceCustomer.setCustId(custId);
                         callPriceCustomer.setPropertyName(PropertyName + "_call_price");
                         callPriceCustomer.setPropertyValue(new BigDecimal(salePricList.get(i).getSaleCallPrice()).multiply(new BigDecimal("100")).stripTrailingZeros().toPlainString());
@@ -144,10 +144,10 @@ public class SalePriceServiceImpl implements SalePriceService {
                         customerDao.saveOrUpdate(CallCustomer);
                     }
                 }
-                CustomerPropertyDO seatCustomer = customerDao.getProperty(custId, PropertyName + "_seat_price");
+                CustomerProperty seatCustomer = customerDao.getProperty(custId, PropertyName + "_seat_price");
                 if (salePricList.get(i).getSaleSeatPrice() != null && StringUtil.isNotEmpty(salePricList.get(i).getSaleSeatPrice())) {
                     if (seatCustomer == null) {
-                        CustomerPropertyDO callPriceCustomer = new CustomerPropertyDO();
+                        CustomerProperty callPriceCustomer = new CustomerProperty();
                         callPriceCustomer.setCustId(custId);
                         callPriceCustomer.setPropertyName(PropertyName + "_seat_price");
                         callPriceCustomer.setPropertyValue(new BigDecimal(salePricList.get(i).getSaleSeatPrice()).multiply(new BigDecimal("100")).stripTrailingZeros().toPlainString());
@@ -159,10 +159,10 @@ public class SalePriceServiceImpl implements SalePriceService {
                         customerDao.saveOrUpdate(seatCustomer);
                     }
                 }
-                CustomerPropertyDO imeiCustomer = customerDao.getProperty(custId, PropertyName + "_imei_price");
+                CustomerProperty imeiCustomer = customerDao.getProperty(custId, PropertyName + "_imei_price");
                 if (salePricList.get(i).getImeiPrice() != null && StringUtil.isNotEmpty(salePricList.get(i).getImeiPrice())) {
                     if (imeiCustomer == null) {
-                        CustomerPropertyDO imeiCustomerProperty = new CustomerPropertyDO();
+                        CustomerProperty imeiCustomerProperty = new CustomerProperty();
                         imeiCustomerProperty.setCustId(custId);
                         imeiCustomerProperty.setPropertyName(PropertyName + "_imei_price");
                         imeiCustomerProperty.setPropertyValue(new BigDecimal(salePricList.get(i).getImeiPrice()).multiply(new BigDecimal("100")).stripTrailingZeros().toPlainString());
@@ -174,10 +174,10 @@ public class SalePriceServiceImpl implements SalePriceService {
                         customerDao.saveOrUpdate(imeiCustomer);
                     }
                 }
-                CustomerPropertyDO macCustomer = customerDao.getProperty(custId, PropertyName + "_mac_price");
+                CustomerProperty macCustomer = customerDao.getProperty(custId, PropertyName + "_mac_price");
                 if (salePricList.get(i).getMacPrice() != null && StringUtil.isNotEmpty(salePricList.get(i).getMacPrice())) {
                     if (macCustomer == null) {
-                        CustomerPropertyDO macCustomerProperty = new CustomerPropertyDO();
+                        CustomerProperty macCustomerProperty = new CustomerProperty();
                         macCustomerProperty.setCustId(custId);
                         macCustomerProperty.setPropertyName(PropertyName + "_mac_price");
                         macCustomerProperty.setPropertyValue(new BigDecimal(salePricList.get(i).getMacPrice()).multiply(new BigDecimal("100")).stripTrailingZeros().toPlainString());
@@ -190,10 +190,10 @@ public class SalePriceServiceImpl implements SalePriceService {
                     }
                 }
             } else if (channel.equals(SupplierEnum.XZ.getSupplierId())) {
-                CustomerPropertyDO CallCustomer = customerDao.getProperty(custId, PropertyName + "_call_price");
+                CustomerProperty CallCustomer = customerDao.getProperty(custId, PropertyName + "_call_price");
                 if (salePricList.get(i).getSaleCallPrice() != null && StringUtil.isNotEmpty(salePricList.get(i).getSaleCallPrice())) {
                     if (CallCustomer == null) {
-                        CustomerPropertyDO callPriceCustomer = new CustomerPropertyDO();
+                        CustomerProperty callPriceCustomer = new CustomerProperty();
                         callPriceCustomer.setCustId(custId);
                         callPriceCustomer.setPropertyName(PropertyName + "_call_price");
                         if (salePricList.get(i).getSaleCallPrice() != null)
@@ -206,10 +206,10 @@ public class SalePriceServiceImpl implements SalePriceService {
                         customerDao.saveOrUpdate(CallCustomer);
                     }
                 }
-                CustomerPropertyDO seatCustomer = customerDao.getProperty(custId, PropertyName + "_seat_price");
+                CustomerProperty seatCustomer = customerDao.getProperty(custId, PropertyName + "_seat_price");
                 if (salePricList.get(i).getSaleSeatPrice() != null && StringUtil.isNotEmpty(salePricList.get(i).getSaleSeatPrice())) {
                     if (seatCustomer == null) {
-                        CustomerPropertyDO callPriceCustomer = new CustomerPropertyDO();
+                        CustomerProperty callPriceCustomer = new CustomerProperty();
                         callPriceCustomer.setCustId(custId);
                         callPriceCustomer.setPropertyName(PropertyName + "_seat_price");
                         callPriceCustomer.setPropertyValue(new BigDecimal(salePricList.get(i).getSaleSeatPrice()).multiply(new BigDecimal("100")).stripTrailingZeros().toPlainString());
@@ -221,10 +221,10 @@ public class SalePriceServiceImpl implements SalePriceService {
                         customerDao.saveOrUpdate(seatCustomer);
                     }
                 }
-                CustomerPropertyDO callMinuteCustomer = customerDao.getProperty(custId, PropertyName + "_minute");
+                CustomerProperty callMinuteCustomer = customerDao.getProperty(custId, PropertyName + "_minute");
                 if (salePricList.get(i).getSaleMinute() != null && StringUtil.isNotEmpty(salePricList.get(i).getSaleMinute())) {
                     if (callMinuteCustomer == null) {
-                        CustomerPropertyDO callMinute = new CustomerPropertyDO();
+                        CustomerProperty callMinute = new CustomerProperty();
                         callMinute.setCustId(custId);
                         callMinute.setPropertyName(PropertyName + "_minute");
                         callMinute.setPropertyValue(salePricList.get(i).getSaleMinute());
@@ -238,10 +238,10 @@ public class SalePriceServiceImpl implements SalePriceService {
             }
             if (channel.equals(ConstantsUtil.SUPPLIERID__JD)) {
                 PropertyName = "jd";
-                CustomerPropertyDO macCustomer = customerDao.getProperty(custId, PropertyName + "_address_price");
+                CustomerProperty macCustomer = customerDao.getProperty(custId, PropertyName + "_address_price");
                 if (salePricList.get(i).getAddressPrice() != null && StringUtil.isNotEmpty(salePricList.get(i).getAddressPrice())) {
                     if (macCustomer == null) {
-                        CustomerPropertyDO customerProperty = new CustomerPropertyDO();
+                        CustomerProperty customerProperty = new CustomerProperty();
                         customerProperty.setCustId(custId);
                         customerProperty.setPropertyName(PropertyName + "_address_price");
                         customerProperty.setPropertyValue(new BigDecimal(salePricList.get(i).getAddressPrice()).multiply(new BigDecimal("100")).stripTrailingZeros().toPlainString());
@@ -254,10 +254,10 @@ public class SalePriceServiceImpl implements SalePriceService {
                     }
                 }
 
-                CustomerPropertyDO failCustomer = customerDao.getProperty(custId, PropertyName + "_fail_price");
+                CustomerProperty failCustomer = customerDao.getProperty(custId, PropertyName + "_fail_price");
                 if (salePricList.get(i).getFailPrice() != null && StringUtil.isNotEmpty(salePricList.get(i).getFailPrice())) {
                     if (failCustomer == null) {
-                        CustomerPropertyDO failCustomerProperty = new CustomerPropertyDO();
+                        CustomerProperty failCustomerProperty = new CustomerProperty();
                         failCustomerProperty.setCustId(custId);
                         failCustomerProperty.setPropertyName(PropertyName + "_fail_price");
                         failCustomerProperty.setPropertyValue(new BigDecimal(salePricList.get(i).getFailPrice()).multiply(new BigDecimal("100")).stripTrailingZeros().toPlainString());
@@ -269,10 +269,10 @@ public class SalePriceServiceImpl implements SalePriceService {
                         customerDao.saveOrUpdate(failCustomer);
                     }
                 }
-                CustomerPropertyDO successCustomer = customerDao.getProperty(custId, PropertyName + "_success_price");
+                CustomerProperty successCustomer = customerDao.getProperty(custId, PropertyName + "_success_price");
                 if (salePricList.get(i).getSuccessPrice() != null && StringUtil.isNotEmpty(salePricList.get(i).getSuccessPrice())) {
                     if (successCustomer == null) {
-                        CustomerPropertyDO successCustomerProperty = new CustomerPropertyDO();
+                        CustomerProperty successCustomerProperty = new CustomerProperty();
                         successCustomerProperty.setCustId(custId);
                         successCustomerProperty.setPropertyName(PropertyName + "_success_price");
                         successCustomerProperty.setPropertyValue(new BigDecimal(salePricList.get(i).getSuccessPrice()).multiply(new BigDecimal("100")).stripTrailingZeros().toPlainString());
@@ -315,7 +315,7 @@ public class SalePriceServiceImpl implements SalePriceService {
 
     //将修改记录添加t_label_sale_price_modify_log表中
     @Override
-    public void addLabelSalePriceModifyLog(List<CustomerPropertyDO> oldPriceList, SalePriceDTO salePriceDTO, Long userId) {
+    public void addLabelSalePriceModifyLog(List<CustomerProperty> oldPriceList, SalePriceDTO salePriceDTO, Long userId) {
 
     }
 
@@ -326,7 +326,7 @@ public class SalePriceServiceImpl implements SalePriceService {
     public Map<String, Object> querySalePriceList(String custId) {
         Map<String, Object> map = new HashMap<>();
         //根据企业Id查询当前企业配置的渠道
-        CustomerPropertyDO channelProperty = customerDao.getProperty(custId, "channel");
+        CustomerProperty channelProperty = customerDao.getProperty(custId, "channel");
         //根据不同渠道展示不同定价，使用，分割
         if (channelProperty != null) {
             String channel = channelProperty.getPropertyValue();
@@ -345,13 +345,13 @@ public class SalePriceServiceImpl implements SalePriceService {
                     }
                     SalePriceDTO salePriceDTO = new SalePriceDTO();
                     if (channels[i].equals(SupplierEnum.CUC.getSupplierId()) || channels[i].equals(ConstantsUtil.SUPPLIERID__CMC) || channels[i].equals(ConstantsUtil.SUPPLIERID__CTC)) {
-                        CustomerPropertyDO saleSmsPrice = customerDao.getProperty(custId, supplierName + "_sms_price");
-                        CustomerPropertyDO saleMinute = customerDao.getProperty(custId, supplierName + "_minute");
-                        CustomerPropertyDO saleFixPrice = customerDao.getProperty(custId, supplierName + "_fix_price");
-                        CustomerPropertyDO saleCallPrice = customerDao.getProperty(custId, supplierName + "_call_price");
-                        CustomerPropertyDO saleSeatPrice = customerDao.getProperty(custId, supplierName + "_seat_price");
-                        CustomerPropertyDO saleImeiPrice = customerDao.getProperty(custId, supplierName + "_imei_price");
-                        CustomerPropertyDO saleMacPrice = customerDao.getProperty(custId, supplierName + "_mac_price");
+                        CustomerProperty saleSmsPrice = customerDao.getProperty(custId, supplierName + "_sms_price");
+                        CustomerProperty saleMinute = customerDao.getProperty(custId, supplierName + "_minute");
+                        CustomerProperty saleFixPrice = customerDao.getProperty(custId, supplierName + "_fix_price");
+                        CustomerProperty saleCallPrice = customerDao.getProperty(custId, supplierName + "_call_price");
+                        CustomerProperty saleSeatPrice = customerDao.getProperty(custId, supplierName + "_seat_price");
+                        CustomerProperty saleImeiPrice = customerDao.getProperty(custId, supplierName + "_imei_price");
+                        CustomerProperty saleMacPrice = customerDao.getProperty(custId, supplierName + "_mac_price");
                         salePriceDTO.setChannel(channels[i]);
                         if (saleSmsPrice != null) {
                             if (!saleSmsPrice.getPropertyValue().equals("")) {
@@ -406,9 +406,9 @@ public class SalePriceServiceImpl implements SalePriceService {
                     }
                     if (channels[i].equals(SupplierEnum.JD.getSupplierId())) {
                         supplierName = SupplierEnum.JD.getSupplierName();
-                        CustomerPropertyDO saleAddressFixPrice = customerDao.getProperty(custId, supplierName + "_address_price");
-                        CustomerPropertyDO salefailPrice = customerDao.getProperty(custId, supplierName + "_fail_price");
-                        CustomerPropertyDO salesuccessprice = customerDao.getProperty(custId, supplierName + "_success_price");
+                        CustomerProperty saleAddressFixPrice = customerDao.getProperty(custId, supplierName + "_address_price");
+                        CustomerProperty salefailPrice = customerDao.getProperty(custId, supplierName + "_fail_price");
+                        CustomerProperty salesuccessprice = customerDao.getProperty(custId, supplierName + "_success_price");
                         salePriceDTO.setChannel(channels[i]);
                         if (saleAddressFixPrice != null) {
                             if (!saleAddressFixPrice.getPropertyValue().equals("")) {
@@ -436,9 +436,9 @@ public class SalePriceServiceImpl implements SalePriceService {
 
                     if (channels[i].equals(SupplierEnum.YD.getSupplierId())) {
                         supplierName = SupplierEnum.YD.getSupplierName();
-                        CustomerPropertyDO saleAddressFixPrice = customerDao.getProperty(custId, supplierName + "_address_price");
-                        CustomerPropertyDO salefailPrice = customerDao.getProperty(custId, supplierName + "_fail_price");
-                        CustomerPropertyDO salesuccessprice = customerDao.getProperty(custId, supplierName + "_success_price");
+                        CustomerProperty saleAddressFixPrice = customerDao.getProperty(custId, supplierName + "_address_price");
+                        CustomerProperty salefailPrice = customerDao.getProperty(custId, supplierName + "_fail_price");
+                        CustomerProperty salesuccessprice = customerDao.getProperty(custId, supplierName + "_success_price");
                         salePriceDTO.setChannel(channels[i]);
                         if (saleAddressFixPrice != null) {
                             if (!saleAddressFixPrice.getPropertyValue().equals("")) {
@@ -465,9 +465,9 @@ public class SalePriceServiceImpl implements SalePriceService {
                     }
                     if (channels[i].equals(SupplierEnum.XZ.getSupplierId())) {
                         supplierName = SupplierEnum.XZ.getSupplierName();
-                        CustomerPropertyDO saleCallPrice = customerDao.getProperty(custId, supplierName + "_call_price");
-                        CustomerPropertyDO saleMinute = customerDao.getProperty(custId, supplierName + "_minute");
-                        CustomerPropertyDO saleSeatPrice = customerDao.getProperty(custId, supplierName + "_seat_price");
+                        CustomerProperty saleCallPrice = customerDao.getProperty(custId, supplierName + "_call_price");
+                        CustomerProperty saleMinute = customerDao.getProperty(custId, supplierName + "_minute");
+                        CustomerProperty saleSeatPrice = customerDao.getProperty(custId, supplierName + "_seat_price");
 
                         salePriceDTO.setChannel(channels[i]);
                         if (saleCallPrice != null) {
@@ -505,7 +505,7 @@ public class SalePriceServiceImpl implements SalePriceService {
     }
 
     @Override
-    public Page getSalePriceList(PageParam page, CustomerBillQueryParam customerBillQueryParam) {
+    public PageList getSalePriceList(PageParam page, CustomerBillQueryParam customerBillQueryParam) {
         StringBuilder sqlBuilder = new StringBuilder("SELECT t.cust_id,t.create_time,t.enterprise_name,t.status,\n" +
                 "t2.REALNAME as realName,\n" +
                 "cjc.mobile_num,\n" +
@@ -537,22 +537,22 @@ public class SalePriceServiceImpl implements SalePriceService {
                 "   FROM t_customer_property p GROUP BY cust_id \n" +
                 ") cjc ON t.cust_id = cjc.cust_id  where 1=1 and t2.user_type=1  ");
         if (StringUtil.isNotEmpty(customerBillQueryParam.getCustomerId())) {
-            sqlBuilder.append(" and t.cust_id like '%" + customerBillQueryParam.getCustomerId() + "%'");
+            sqlBuilder.append(" AND t.cust_id LIKE '%" + customerBillQueryParam.getCustomerId() + "%'");
         }
         if (StringUtil.isNotEmpty(customerBillQueryParam.getEnterpriseName())) {
-            sqlBuilder.append(" and t.enterprise_name like'%" + customerBillQueryParam.getEnterpriseName() + "%'");
+            sqlBuilder.append(" AND t.enterprise_name LIKE'%" + customerBillQueryParam.getEnterpriseName() + "%'");
         }
         if (StringUtil.isNotEmpty(customerBillQueryParam.getRealname())) {
-            sqlBuilder.append(" and t2.REALNAME like '%" + customerBillQueryParam.getRealname() + "%'");
+            sqlBuilder.append(" AND t2.REALNAME LIKE '%" + customerBillQueryParam.getRealname() + "%'");
         }
         if (StringUtil.isNotEmpty(customerBillQueryParam.getPhone())) {
-            sqlBuilder.append(" and cjc.mobile_num like '%" + customerBillQueryParam.getPhone() + "%'");
+            sqlBuilder.append(" AND cjc.mobile_num LIKE '%" + customerBillQueryParam.getPhone() + "%'");
         }
         if (StringUtil.isNotEmpty(customerBillQueryParam.getIndustry())) {
-            sqlBuilder.append(" and cjc.industry= " + customerBillQueryParam.getIndustry());
+            sqlBuilder.append(" AND cjc.industry= " + customerBillQueryParam.getIndustry());
         }
         sqlBuilder.append(" GROUP BY t.cust_id ");
-        sqlBuilder.append(" order by t.create_time desc ");
+        sqlBuilder.append(" ORDER BY t.create_time DESC ");
         return new Pagination().getPageData(sqlBuilder.toString(), null, page, jdbcTemplate);
     }
 
@@ -584,7 +584,7 @@ public class SalePriceServiceImpl implements SalePriceService {
                     propertyName = "移动";
                 }
 
-                CustomerPropertyDO fixPrice = customerDao.getProperty(custId, propertyValue + "_fix_price");
+                CustomerProperty fixPrice = customerDao.getProperty(custId, propertyValue + "_fix_price");
                 if (fixPrice != null) {
                     code = "0";
                 } else {
@@ -676,7 +676,7 @@ public class SalePriceServiceImpl implements SalePriceService {
                 }
 
                 if (certifyType == 0) {
-                    CustomerPropertyDO fixPrice = customerDao.getProperty(compId, propertyValue + "_fix_price");
+                    CustomerProperty fixPrice = customerDao.getProperty(compId, propertyValue + "_fix_price");
                     if (fixPrice != null) {
                         code = "0";
                     } else {
@@ -686,7 +686,7 @@ public class SalePriceServiceImpl implements SalePriceService {
                     }
                 }
                 if (certifyType == 1) {
-                    CustomerPropertyDO fixPrice = customerDao.getProperty(compId, propertyValue + "_imei_price");
+                    CustomerProperty fixPrice = customerDao.getProperty(compId, propertyValue + "_imei_price");
                     if (fixPrice != null) {
                         code = "0";
                     } else {
@@ -696,7 +696,7 @@ public class SalePriceServiceImpl implements SalePriceService {
                     }
                 }
                 if (certifyType == 2) {
-                    CustomerPropertyDO fixPrice = customerDao.getProperty(compId, propertyValue + "_mac_price");
+                    CustomerProperty fixPrice = customerDao.getProperty(compId, propertyValue + "_mac_price");
                     if (fixPrice != null) {
                         code = "0";
                     } else {

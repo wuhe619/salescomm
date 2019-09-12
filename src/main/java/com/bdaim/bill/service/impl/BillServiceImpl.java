@@ -2,17 +2,21 @@ package com.bdaim.bill.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.account.dao.TransactionDao;
 import com.bdaim.batch.ResourceEnum;
 import com.bdaim.batch.TransactionEnum;
+import com.bdaim.bill.dto.BillDetailQueryParam;
 import com.bdaim.bill.dto.CustomerBillQueryParam;
 import com.bdaim.bill.dto.SupplierBillQueryParam;
 import com.bdaim.bill.service.BillService;
+import com.bdaim.common.dto.Page;
 import com.bdaim.common.dto.PageParam;
+import com.bdaim.common.util.DateUtil;
 import com.bdaim.common.util.NumberConvertUtil;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.dao.CustomerDao;
-import com.bdaim.customer.entity.CustomerDO;
-import com.bdaim.rbac.dto.Page;
+import com.bdaim.customer.entity.Customer;
+import com.bdaim.order.dao.OrderDao;
 import com.bdaim.resource.dao.SourceDao;
 import com.bdaim.resource.dto.MarketResourceLogDTO;
 import com.bdaim.resource.entity.MarketResourceEntity;
@@ -22,23 +26,20 @@ import com.bdaim.supplier.entity.SupplierEntity;
 import com.github.crab2died.ExcelUtils;
 import com.github.crab2died.sheet.wrapper.SimpleSheetWrapper;
 import org.apache.commons.lang.StringEscapeUtils;
+import org.hibernate.transform.Transformers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import javax.persistence.Id;
 import javax.servlet.http.HttpServletResponse;
 import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author yanls@bdaim.com
@@ -266,6 +267,7 @@ public class BillServiceImpl implements BillService {
         //查询账单sql
         String logListSql = getBillType(param.getType(), param.getBillDate(), param.getCustomerId(), param.getSupplierId(), param.getTransactionId(), param.getBatchId(), param.getEnterpriseName(), param.getStartTime(), param.getEndTime());
         Page data = customerDao.sqlPageQuery(logListSql, page.getPageNum(), page.getPageSize());
+        logger.info("查询结果为"+data.toString());
         //Page pageData = new Pagination().getPageData(logListSql, null, page, jdbcTemplate);
         List<Map<String, Object>> list = data.getData();
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.S");
@@ -293,7 +295,7 @@ public class BillServiceImpl implements BillService {
         try {
             // 生成sheet数据
             List<SimpleSheetWrapper> list = new ArrayList<>();
-            CustomerDO customer = customerDao.findUniqueBy("custId", param.getCustomerId());
+            Customer customer = customerDao.findUniqueBy("custId", param.getCustomerId());
             String enterprisename = "";
             if (customer != null) {
                 enterprisename = customer.getEnterpriseName();
@@ -1201,7 +1203,7 @@ public class BillServiceImpl implements BillService {
     public String exportSettlementBill(HttpServletResponse response, String custId, String billDate) {
         Map<String, Object> resultMap = new HashMap<>();
         try {
-            CustomerDO custMessage = customerDao.getCustMessage(custId);
+            Customer custMessage = customerDao.getCustMessage(custId);
             String enterpriseName = custMessage.getEnterpriseName();
             StringBuffer billSql = new StringBuffer("SELECT bill_time,cust_id,repair_num,repair_success_num,repair_phone_num,CONVERT(IFNULL(repair_price/ 100, 0),DECIMAL(15,2)) repair_price,");
             billSql.append("CONVERT(IFNULL(SUM(repair_amount) / 100, 0),DECIMAL(15,2)) repair_amount,send_sms_num,send_sms_success_num,CONVERT(IFNULL(sms_price/ 100, 0),DECIMAL(15,2)) sms_price,CONVERT(IFNULL(SUM(sms_amount) / 100, 0),DECIMAL(15,2)) sms_amount,call_minute_num,");
@@ -1758,6 +1760,239 @@ public class BillServiceImpl implements BillService {
             }
         }
         return data;
+    }
+
+    @Resource
+    OrderDao orderDao;
+    @Resource
+    TransactionDao transactionDao;
+
+    public Map<String, Object> queryOnlineCustomerBill(CustomerBillQueryParam param) throws Exception {
+        Map<String, Object> map = new HashMap<>();
+        String currentDate = DateUtil.fmtDateToStr(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM);
+
+        StringBuilder sumSql = new StringBuilder("select sum(amount)/1000 as totalAmount from t_order t1 where t1.order_state=2 ");
+
+        StringBuilder sql = new StringBuilder("SELECT " +
+                "t1.enpterprise_name AS enterpriseName, " +
+                "t1.cust_id AS customerId, " +
+                "t1.pay_type AS payType, " +
+                "DATE_FORMAT(now(),'%Y-%m') as billDate, " +
+                "1 as billCycle, " +
+                "sum(t1.amount)/1000 AS totalAmount " +
+                " FROM " +
+                "t_order t1 where t1.order_state=2 ");
+        if (StringUtil.isNotEmpty(param.getEnterpriseName())) {
+            sql.append(" and t1.enpterprise_name='").append(StringEscapeUtils.escapeSql(param.getEnterpriseName())).append("'");
+            sumSql.append(" and t1.enpterprise_name='").append(StringEscapeUtils.escapeSql(param.getEnterpriseName())).append("'");
+        }
+        if (StringUtil.isNotEmpty(param.getCustomerId())) {
+            sql.append(" and t1.cust_id='").append(StringEscapeUtils.escapeSql(param.getCustomerId())).append("'");
+            sumSql.append(" and t1.cust_id='").append(StringEscapeUtils.escapeSql(param.getCustomerId())).append("'");
+        }
+        if (StringUtil.isNotEmpty(param.getType())) {
+            sql.append(" and t1.pay_type='").append(StringEscapeUtils.escapeSql(param.getType())).append("'");
+            sumSql.append(" and t1.pay_type='").append(StringEscapeUtils.escapeSql(param.getType())).append("'");
+        }
+//        if (StringUtil.isNotEmpty(param.getBillDate())) {
+//            if (currentDate.equals(param.getBillDate())) {
+//                sql.append(" and t1.create_time between '").append(StringEscapeUtils.escapeSql(param.getBillDate())).append("-01 00:00:00").append("'");
+//                sql.append(" and '").append(DateUtil.fmtDateToStr(new Date(), DateUtil.YYYY_MM_DD_HH_mm_ss)).append("'");
+//                sumSql.append(" and t1.create_time between '").append(StringEscapeUtils.escapeSql(param.getBillDate())).append("-01 00:00:00").append("'");
+//                sumSql.append(" and '").append(DateUtil.fmtDateToStr(new Date(), DateUtil.YYYY_MM_DD_HH_mm_ss)).append("'");
+//            } else {
+//                sql.append(" and date_format(t1.create_time,'%Y-%m')='").append(StringEscapeUtils.escapeSql(param.getBillDate())).append("'");
+//                sumSql.append(" and date_format(t1.create_time,'%Y-%m')='").append(StringEscapeUtils.escapeSql(param.getBillDate())).append("'");
+//            }
+//        }
+        sql.append(" GROUP BY t1.cust_id ");
+        List list = orderDao.getSQLQuery(sumSql.toString()).list();
+        map.put("totalAmount", list.size() > 0 && list.get(0) != null ? list.get(0).toString() : 0);
+        map.put("total", orderDao.getSQLQuery(sql.toString()).list().size());
+        map.put("customerBillList", orderDao.getSQLQuery(sql.toString()).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP).setFirstResult(param.getPageNum()).setMaxResults(param.getPageSize()).list());
+        return map;
+    }
+
+    public Map<String, Object> queryCustomerBill_V1(CustomerBillQueryParam param) throws Exception {
+        Map<String, Object> map = new HashMap<>();
+        Page page = customerDao.listCustomer(0, param.getPageNum(), param.getPageSize());
+
+        String currentDate = DateUtil.fmtDateToStr(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM);
+        double totalAmount = 0.0;
+        List<Map<String, Object>> list = new ArrayList<>();
+        if (page != null && page.getData() != null) {
+            LocalDateTime now = LocalDateTime.now();
+            Map<String, Object> dataMap;
+            List<Map<String, Object>> dataList = new ArrayList<>();
+            Customer customer;
+            double customerAmount = 0;
+            for (int i = 0; i < page.getData().size(); i++) {
+                customer = (Customer) page.getData().get(i);
+                dataMap = new HashMap<>();
+                customerAmount = transactionDao.totalCustomerConsumptionAmount(customer.getCustId(), now, -1);
+                totalAmount += customerAmount;
+
+                dataMap.put("totalAmount", customerAmount);
+                dataMap.put("customerId", customer.getCustId());
+                dataMap.put("enterpriseName", customer.getEnterpriseName());
+
+                dataMap.put("payType", 1);
+                dataMap.put("billDate", currentDate);
+                dataMap.put("billCycle", 1);
+                dataList.add(dataMap);
+
+            }
+            page.setData(dataList);
+        }
+
+        map.put("totalAmount", totalAmount);
+        map.put("total", page.getTotal());
+        map.put("customerBillList", page.getData());
+        return map;
+    }
+
+    public Map<String, Object> queryOnlineSupplierBill(SupplierBillQueryParam param) throws Exception {
+        Map<String, Object> map = new HashMap<>();
+        String supplierName = StringEscapeUtils.escapeSql(param.getSupplierName());
+        String supplierId = StringEscapeUtils.escapeSql(param.getSupplierId());
+        String type = StringEscapeUtils.escapeSql(param.getType());
+        String billDate = StringEscapeUtils.escapeSql(param.getBillDate());
+        String currentDate = DateUtil.fmtDateToStr(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM);
+        int pageNum = param.getPageNum();
+        int pageSize = param.getPageSize();
+        StringBuilder fsql = new StringBuilder("select t5.supplierName as supplierName,t5.supplierId as supplierId,t5.type as type,t5.billCycle as billCycle,t5.billDate as billDate,t5.totalAmount/100 as totalAmount from ( ");
+        //查询数据源账单
+        StringBuilder dsql = new StringBuilder("(SELECT " +
+                "  t2.`NAME` as supplierName, " +
+                "t2.supplier_id as supplierId, " +
+                "t2.TYPE AS type, " +
+                "t2.bill_cycle as billCycle, " +
+                "DATE_FORMAT(now(),'%Y-%m') as billDate, " +
+                "(" +
+                "sum(t1.quantity) * t1.cost_price" +
+                ") AS totalAmount " +
+                "FROM " +
+                "t_supplier_settlement t1 " +
+                "LEFT JOIN t_supplier t2 ON t1.source_id = t2.supplier_id where 1=1 ");
+
+        //查询营销资源账单
+        StringBuilder rsql = new StringBuilder("(SELECT " +
+                "t4.`NAME` AS supplierName, " +
+                "t4.supplier_id AS supplierId, " +
+                "t4.TYPE AS supplierType, " +
+                "t4.bill_cycle AS billCycle, " +
+                "DATE_FORMAT(now(), '%Y-%m') AS billDate, " +
+                "(" +
+                "SUM(t1.quantity) * t3.cost_price " +
+                ") AS totalAmount " +
+                "FROM " +
+                "t_order t1 " +
+                "LEFT JOIN t_resource_order t2 ON t1.order_id = t2.order_id " +
+                "LEFT JOIN t_market_resource t3 ON t2.resource_id = t3.resource_id " +
+                "LEFT JOIN t_supplier t4 ON t4.supplier_id = t3.supplier_id " +
+                "WHERE " +
+                "t1.order_type = 2 " +
+                "AND t1.order_state = 2 ");
+        if (StringUtil.isNotEmpty(supplierName)) {
+            dsql.append(" and t2.name='").append(supplierName).append("'");
+            rsql.append(" and t4.name='").append(supplierName).append("'");
+        }
+        if (StringUtil.isNotEmpty(supplierId)) {
+            dsql.append(" and t2.supplier_id='").append(supplierId).append("'");
+            rsql.append(" and t4.supplier_id='").append(supplierId).append("'");
+        }
+        if (StringUtil.isNotEmpty(type)) {
+            dsql.append(" and t2.type='").append(type).append("'");
+            rsql.append(" and t4.type='").append(type).append("'");
+        }
+//        if (StringUtil.isNotEmpty(billDate)) {
+//            if (currentDate.equals(billDate)) {
+//                dsql.append(" and t1.create_time between '").append(StringEscapeUtils.escapeSql(param.getBillDate())).append("-01 00:00:00").append("'");
+//                dsql.append(" and '").append(DateUtil.fmtDateToStr(new Date(), DateUtil.YYYY_MM_DD_HH_mm_ss)).append("'");
+//                rsql.append(" and t1.create_time between '").append(StringEscapeUtils.escapeSql(param.getBillDate())).append("-01 00:00:00").append("'");
+//                rsql.append(" and '").append(DateUtil.fmtDateToStr(new Date(), DateUtil.YYYY_MM_DD_HH_mm_ss)).append("'");
+//            } else {
+//                dsql.append(" and date_format(t1.create_time,'%Y-%m')='").append(StringEscapeUtils.escapeSql(param.getBillDate())).append("'");
+//                rsql.append(" and date_format(t1.create_time,'%Y-%m')='").append(StringEscapeUtils.escapeSql(param.getBillDate())).append("'");
+//            }
+//        }
+        dsql.append("GROUP BY " +
+                "source_id, " +
+                "label_id) ");
+        rsql.append("GROUP BY " +
+                "t2.resource_id) ");
+        fsql.append(dsql).append(" UNION ALL ").append(rsql).append(") t5 ");
+        List list = orderDao.getSQLQuery(fsql.toString()).list();
+        map.put("total", list.size());
+        map.put("supplierBillList", orderDao.getSQLQuery(fsql.toString()).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP).setFirstResult(pageNum).setMaxResults(pageSize).list());
+        return map;
+    }
+
+    public Map<String, Object> listBillDetail(BillDetailQueryParam param) throws Exception {
+
+        Map<String, Object> retMap = new HashMap<>();
+        String qryType = param.getType();
+        String condtion = StringEscapeUtils.escapeSql(param.getCondition());
+        String orderId = StringEscapeUtils.escapeSql(param.getOrderId());
+        String orderType = StringEscapeUtils.escapeSql(param.getOrderType());
+        String productName = StringEscapeUtils.escapeSql(param.getProductName());
+        String productId = StringEscapeUtils.escapeSql(param.getProductId());
+        String startTime = StringEscapeUtils.escapeSql(param.getStartTime());
+        String endTime = StringEscapeUtils.escapeSql(param.getEndTime());
+        String status = StringEscapeUtils.escapeSql(param.getStatus());
+        int pageNum = param.getPageNum();
+        int pageSize = param.getPageSize();
+
+        StringBuilder sql = new StringBuilder("SELECT\n" +
+                "\tt1.order_id AS orderId,\n" +
+                "\tt1.amount AS amount,\n" +
+                "\tt1.cost_price as costAmount,\n" +
+                "\tt1.order_type,\n" +
+                "\tt1.product_name AS productName,\n" +
+                "\tt1.quantity AS quantity,\n" +
+                "\tt1.create_time AS createTime,\n" +
+                "\tt1.order_state as status\n" +
+                "FROM\n" +
+                "\tt_order t1 where 1=1");
+        if (StringUtil.isNotEmpty(orderId)) {
+            sql.append(" and t1.order_id='").append(orderId).append("'");
+        }
+        if (StringUtil.isNotEmpty(orderType)) {
+            sql.append(" and t1.order_type='").append(orderType).append("'");
+        }
+        if (StringUtil.isNotEmpty(productName)) {
+            sql.append(" and t1.product_name='").append(productName).append("'");
+        }
+        if (StringUtil.isNotEmpty(status)) {
+            sql.append(" and t1.order_state='").append(status).append("'");
+        }
+
+        if (StringUtil.isNotEmpty(productId)) {
+            //todo 库中无产品id字段
+        }
+        if (StringUtil.isNotEmpty(qryType)) {
+            //客户类详单
+            if ("1".equals(qryType)) {
+                sql.append(" and t1.cust_id='").append(condtion).append("'");
+            }
+            //数据源类账单
+            if ("2".equals(qryType)) {
+                sql.append(" and t1.supplier_id='").append(condtion).append("'");
+                sql.append(" and t1.order_type=1 ");
+            }
+            //营销资源类账单
+            if ("3".equals(qryType)) {
+                sql.append(" and t1.supplier_id='").append(condtion).append("'");
+                sql.append(" and t1.order_type=2 ");
+            }
+        }
+        if (StringUtil.isNotEmpty(startTime) && StringUtil.isNotEmpty(endTime)) {
+            sql.append(" and t1.create_time between '").append(startTime).append("' and '").append(endTime).append("'");
+        }
+        List list = orderDao.getSQLQuery(sql.toString()).list();
+        retMap.put("total", list.size());
+        retMap.put("billDetailList", orderDao.getSQLQuery(sql.toString()).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP).setFirstResult(pageNum).setMaxResults(pageSize).list());
+        return retMap;
     }
 }
 

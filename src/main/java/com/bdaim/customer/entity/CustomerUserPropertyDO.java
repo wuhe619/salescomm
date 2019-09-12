@@ -1,6 +1,7 @@
 package com.bdaim.customer.entity;
 
 import javax.persistence.*;
+import java.sql.Timestamp;
 
 /**
  * @author duanliying
@@ -32,6 +33,13 @@ public class CustomerUserPropertyDO {
         this.propertyName = propertyName;
         this.propertyValue = propertyValue;
         this.createTime = createTime;
+    }
+
+    public CustomerUserPropertyDO(String userId, String propertyName, String propertyValue, Timestamp createTime) {
+        this.userId = userId;
+        this.propertyName = propertyName;
+        this.propertyValue = propertyValue;
+        this.createTime = createTime.toString();
     }
 
     public CustomerUserPropertyDO() {
@@ -77,5 +85,9 @@ public class CustomerUserPropertyDO {
                 ", propertyValue='" + propertyValue + '\'' +
                 ", createTime='" + createTime + '\'' +
                 '}';
+    }
+
+    public static void main(String[] args) {
+        System.out.println(new Timestamp(System.currentTimeMillis()).toString());
     }
 }

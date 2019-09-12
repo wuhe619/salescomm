@@ -6,11 +6,7 @@ import com.bdaim.batch.service.BatchService;
 import com.bdaim.callcenter.dto.RecordVoiceQueryParam;
 import com.bdaim.common.annotation.CacheAnnotation;
 import com.bdaim.common.controller.BasicAction;
-import com.bdaim.common.util.AuthPassport;
-import com.bdaim.common.util.ConfigUtil;
-import com.bdaim.common.util.DateUtil;
-import com.bdaim.common.util.IDHelper;
-import com.bdaim.common.util.StringUtil;
+import com.bdaim.common.util.*;
 import com.bdaim.customer.dao.CustomerUserDao;
 import com.bdaim.image.service.impl.UploadDowloadImgServiceImpl;
 import com.bdaim.resource.service.MarketResourceService;
@@ -65,6 +61,7 @@ public class UploadAction extends BasicAction {
         String pictureName = IDHelper.getTransactionId() + "";
         return uploadDowloadService.uploadImgNew(request, response, cust_id, pictureName);
     }
+
     @RequestMapping(value = "/uploadImg", method = RequestMethod.POST)
     @ResponseBody
     public Object uploadImg(@RequestParam MultipartFile file) {
@@ -103,7 +100,7 @@ public class UploadAction extends BasicAction {
             byte[] byt = new byte[fis.available()];
             fis.read(byt);
             String base64 = Base64.encodeBase64String(byt);
-            return JSON.toJSONString("data:image/jpg;base64,"+base64);
+            return JSON.toJSONString("data:image/jpg;base64," + base64);
            /* response.setCharacterEncoding("utf-8");
             response.setContentType("application/vnd.ms-excel;charset=utf-8");
             String returnName = response.encodeURL(new String(fileName.getBytes(), "iso8859-1"));    //保存的文件名,必须和页面编码一致,否则乱码
@@ -331,6 +328,59 @@ public class UploadAction extends BasicAction {
         }
     }
 
+    /**
+     * 上传企业营业执照副本
+     *
+     * @param request
+     * @param response
+     * @return
+     */
+    @RequestMapping(value = "/uploadImg0", method = RequestMethod.POST)
+    @ResponseBody
+    @CacheAnnotation
+    public Object uploadImgNew(HttpServletRequest request,
+                               HttpServletResponse response) {
+        String cust_id = "0";
+        String pictureName = IDHelper.getTransactionId() + "";
+        return uploadDowloadService.uploadImgNew0(request, response, cust_id, pictureName);
+    }
+
+    /**
+     * 下载企业营业执照副本
+     *
+     * @param request
+     * @param response
+     * @param path
+     * @return
+     */
+    /*@RequestMapping(value = "/downloadImg", method = RequestMethod.POST)
+    @ResponseBody
+    @CacheAnnotation
+    public Object downloadDate(HttpServletRequest request,
+                               HttpServletResponse response, String path) {
+        return uploadDowloadImgService.downloadImg(request, response, path);
+    }*/
+    @RequestMapping(value = "/uploadFile", method = RequestMethod.POST)
+    @ResponseBody
+    public Object uploadFile(HttpServletRequest request) {
+        String custId = "0";
+       /* if (StringUtil.isNotEmpty(opUser().getCustId())) {
+            custId = opUser().getCustId();
+        }*/
+        String fileName = uploadDowloadService.uploadFile(request, custId);
+        Map<String, Object> resultMap = new HashMap<String, Object>();
+        if (StringUtil.isNotEmpty(fileName)) {
+            resultMap.put("code", 1);
+            resultMap.put("_message", "成功");
+            resultMap.put("url", fileName);
+        } else {
+            resultMap.put("code", 0);
+            resultMap.put("_message", "失败");
+            resultMap.put("url", "");
+        }
+        return JSONObject.toJSON(resultMap);
+    }
+
 
     /**
      * 从输入流中获取字节数组
@@ -348,6 +398,15 @@ public class UploadAction extends BasicAction {
         }
         bos.close();
         return bos.toByteArray();
+    }
+
+    /**
+     * 凭证图片下载
+     */
+    @RequestMapping(value = "/pic/{fileName:.+}", method = RequestMethod.GET)
+    public void pic(@PathVariable String fileName, HttpServletResponse response) {
+        String userId = "0";
+        uploadDowloadService.downloadFile(response, userId, fileName);
     }
 
     public static void main(String[] args) {

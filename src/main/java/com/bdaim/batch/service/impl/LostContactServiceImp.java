@@ -1,17 +1,15 @@
 package com.bdaim.batch.service.impl;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.batch.dao.LostContactDao;
-import com.bdaim.batch.dto.DetailQueryParam;
 import com.bdaim.batch.dto.TouchInfoDTO;
 import com.bdaim.batch.service.LostContactService;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerUserDao;
 import com.bdaim.customer.service.CustomerPropertyService;
-
 import org.hibernate.transform.Transformers;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

@@ -1,6 +1,8 @@
 package com.bdaim.account.service;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.account.dto.Fixentity;
 import com.bdaim.batch.ResourceEnum;
@@ -9,33 +11,34 @@ import com.bdaim.batch.dto.FixInfo;
 import com.bdaim.batch.entity.BatchDetail;
 import com.bdaim.batch.service.BatchListService;
 import com.bdaim.batch.service.BatchService;
-import com.bdaim.callcenter.service.impl.CallCenterServiceImpl;
+import com.bdaim.callcenter.service.impl.CallCenterService;
+import com.bdaim.common.dto.Page;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.common.util.CipherUtil;
 import com.bdaim.common.util.IDHelper;
 import com.bdaim.common.util.StringHelper;
 import com.bdaim.common.util.StringUtil;
+import com.bdaim.common.util.http.HttpUtil;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerUserDao;
-import com.bdaim.customer.entity.CustomerDO;
-import com.bdaim.customer.entity.CustomerPropertyDO;
-import com.bdaim.customer.entity.CustomerUserDO;
+import com.bdaim.customer.entity.Customer;
+import com.bdaim.customer.entity.CustomerProperty;
+import com.bdaim.customer.entity.CustomerUser;
 import com.bdaim.customer.service.CustomerService;
-import com.bdaim.rbac.dto.Page;
+import com.bdaim.customeruser.service.CustomerUserService;
 import com.bdaim.resource.dao.MarketResourceDao;
 import com.bdaim.resource.dao.SourceDao;
 import com.bdaim.resource.dto.MarketResourceLogDTO;
 import com.bdaim.resource.entity.MarketResourceEntity;
-import com.bdaim.resource.service.impl.MarketResourceServiceImpl;
+import com.bdaim.resource.service.MarketResourceService;
 import com.bdaim.supplier.dto.SupplierEnum;
 import com.bdaim.supplier.service.SupplierService;
+import com.bdaim.template.dao.MarketTemplateDao;
 import com.bdaim.template.entity.MarketTemplate;
-
-//import io.jsonwebtoken.Claims;
-//import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,17 +48,24 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
-
-import static com.bdaim.common.util.JwtUtil.generToken;
-import static com.bdaim.common.util.JwtUtil.verifyToken;
-
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.sql.Timestamp;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static com.bdaim.common.util.JwtUtil.generToken;
+import static com.bdaim.common.util.JwtUtil.verifyToken;
+
+//import io.jsonwebtoken.Claims;
+//import io.jsonwebtoken.ExpiredJwtException;
 
 /**
  * @author duanliying
@@ -75,7 +85,7 @@ public class OpenService {
     @Resource
     private SourceDao sourceDao;
     @Resource
-    private MarketResourceServiceImpl marketResourceServiceImpl;
+    private MarketResourceService marketResourceServiceImpl;
     @Resource
     private MarketResourceDao marketResourceDao;
     @Resource
@@ -86,6 +96,8 @@ public class OpenService {
     private BatchDao batchDao;
     @Autowired
     private JdbcTemplate jdbcTemplate;
+    @Resource
+    private MarketTemplateDao marketTemplateDao;
 
     /**
      * 查询企业余额接口
@@ -95,7 +107,7 @@ public class OpenService {
      */
     public Map<String, Object> queryCustBalance(String custId) throws Exception {
         Map<String, Object> resultMap = new HashMap<>();
-        CustomerPropertyDO remainAmoutProperty = customerDao.getProperty(custId, "remain_amount");
+        CustomerProperty remainAmoutProperty = customerDao.getProperty(custId, "remain_amount");
         DecimalFormat df = new DecimalFormat("######0.00");
         if (remainAmoutProperty != null) {
             Double remainAmout = Double.parseDouble(remainAmoutProperty.getPropertyValue());
@@ -118,19 +130,19 @@ public class OpenService {
         String token = null;
         try {
             if (StringUtil.isNotEmpty(oldtoken) && StringUtil.isNotEmpty(username)) {
-                CustomerUserDO u = customerService.getUserByName(username);
+                CustomerUser u = customerService.getUserByName(username);
                 if (u != null) {
                     String custId = u.getCust_id();
                     String password = u.getPassword();
                     if (StringUtil.isNotEmpty(custId)) {
                         //根据企业id查询当前企业是否有效
-                        CustomerDO custMessage = customerDao.getCustMessage(custId);
+                        Customer custMessage = customerDao.getCustMessage(custId);
                         if (custMessage==null){
                             resultMap.put("status", "005");
                             json.put("data", resultMap);
                             return json.toJSONString();
                         }
-                        CustomerPropertyDO customerProperty = customerDao.getProperty(custId, "token");
+                        CustomerProperty customerProperty = customerDao.getProperty(custId, "token");
                         if (customerProperty != null) {
                             token = customerProperty.getPropertyValue();
                             if (token.equals(oldtoken)) {
@@ -180,7 +192,7 @@ public class OpenService {
         Map<String, Object> map = new HashMap<>();
         log.info("当前登录的企业id是 ： " + custId + "坐席账号是：" + seatAccount);
         //查询当前企业账号是否存在
-        CustomerDO custMessage = customerDao.getCustMessage(custId);
+        Customer custMessage = customerDao.getCustMessage(custId);
         if (custMessage != null) {
             //根据坐席账号和企业id查询坐席信息
             StringBuffer sql = new StringBuffer("SELECT u.id id, p.property_value propertyValue, p.property_name propertyName\n");
@@ -232,7 +244,7 @@ public class OpenService {
 
         Map<String, Object> map = new HashMap<>();
         //查询当前企业账号是否存在
-        CustomerDO custMessage = customerDao.getCustMessage(custId);
+        Customer custMessage = customerDao.getCustMessage(custId);
         Map<String, Object> result = null;
         if (custMessage != null) {
             //根据坐席账号和企业id查询坐席信息
@@ -251,11 +263,11 @@ public class OpenService {
                     if (jsonObject != null) {
                         if (jsonObject.getString("mainNumber") != null) {
                             //先删除联通注册上的主叫号码（分机号码）
-//                            Map<String, Object> extensionDeleteResult = new CallCenterServiceImpl().unicomExtensionDelete(callCenterId, jsonObject.getString("mainNumber"));
+//                            Map<String, Object> extensionDeleteResult = new CallCenterService().unicomExtensionDelete(callCenterId, jsonObject.getString("mainNumber"));
 //                            log.info("坐席主叫号码删除" + ":" + extensionDeleteResult);
                         }
                         //调用联通接口进行增加主叫号码
-                        result = new CallCenterServiceImpl().unicomExtensionRegister(callCenterId, mainNumber, 1);
+                        result = new CallCenterService().unicomExtensionRegister(callCenterId, mainNumber, 1);
 
                         log.info("坐席主叫号增加" + ":" + result);
                         if (result.get("result") != null && result.get("result").equals("0") || result.get("code").equals("211") || result.get("code").equals("213")) {
@@ -297,7 +309,7 @@ public class OpenService {
         marketTemplate.setSmsSignatures(smsSignatures);
         marketTemplate.setCreateTime(new Timestamp(System.currentTimeMillis()));
         marketTemplate.setStatus(1);
-        int templateId = (int) marketResourceDao.saveReturnPk(marketTemplate);
+        int templateId = (int) marketTemplateDao.saveReturnPk(marketTemplate);
         return templateId;
     }
 
@@ -335,13 +347,13 @@ public class OpenService {
         String newpassword = CipherUtil.generatePassword(password);
         String token = null;
         if (StringUtil.isNotEmpty(username) && StringUtil.isNotEmpty(password)) {
-            CustomerUserDO u = customerService.getUserByName(username);
+            CustomerUser u = customerService.getUserByName(username);
             if (u != null) {
                 String uPassword = u.getPassword();
                 if (uPassword.equals(newpassword)) {
                     String custId = u.getCust_id();
                     if (StringUtil.isNotEmpty(custId)) {
-                        CustomerPropertyDO customerProperty = customerDao.getProperty(custId, "token");
+                        CustomerProperty customerProperty = customerDao.getProperty(custId, "token");
                         if (customerProperty != null) {
                             token = customerProperty.getPropertyValue();
                             try {
@@ -547,7 +559,7 @@ public class OpenService {
             marketResourceLogDTO.setSuperId(id);
 
             //根据登陆账号获取userId判断当前账户是否存在
-            CustomerUserDO account = customerUserDao.getCustomer(seatAccount, custId);
+            CustomerUser account = customerUserDao.getCustomer(seatAccount, custId);
             if (account != null && account.getId() != null) {
                 userId = String.valueOf(account.getId());
                 marketResourceLogDTO.setUser_id(Long.parseLong(userId));
@@ -788,7 +800,7 @@ public class OpenService {
             map.put("status", "002");
             return map;
         }
-        CustomerUserDO account = customerUserDao.getCustomer(seatAccount, custId);
+        CustomerUser account = customerUserDao.getCustomer(seatAccount, custId);
         if (account == null) {
             map.put("status", "004");
             return map;
@@ -921,5 +933,204 @@ public class OpenService {
         resultMap.put("message", "成功");
         return resultMap;
     }
+
+    public void getVoiceRecordFile(String userId, String fileName, HttpServletRequest request, HttpServletResponse response) {
+        // 设置响应头
+        response.addHeader("Accept-Ranges", "bytes");
+        response.addHeader("Content-Type", "audio/mpeg;charset=UTF-8");
+        String range = request.getHeader("Range");
+        FileInputStream fis = null;
+        ByteArrayInputStream hBaseInputStream = null;
+        try {
+            // 查询本地磁盘的录音文件
+            String filePath = "/home/soft/audio/"+ userId + File.separator + fileName;
+            File file = new File(filePath);
+            if (file.exists()) {
+                fis = new FileInputStream(file);
+                if (StringUtil.isNotEmpty(range)) {
+                    long length = file.length();
+                    log.info("文件大小: " + length);
+                    String[] rs = range.split("\\=");
+                    range = rs[1].split("\\-")[0];
+                    length -= Integer.parseInt(range);
+                    response.addHeader("Content-Length", length + "");
+                    response.addHeader("Content-Range", "bytes " + range + "-" + length + "/" + length);
+                }
+                IOUtils.copy(fis, response.getOutputStream());
+            } else {
+                log.warn(filePath + ",音频文件不存在,穿透查询一次录音文件");
+                long length;
+                // 通过HBase接口读取录音文件
+                Map<String, Object> param = new HashMap<>();
+                Map<String, Object> headers = new HashMap<>();
+                headers.put("Accept", "application/json");
+                String result = HttpUtil.httpGet("http://ds4:1111/voice/" + fileName + "/f1:file", param, headers);
+                if (StringUtil.isNotEmpty(result)) {
+                    log.info("开始解析HBase返回的录音文件,userId:" + userId + ",fileName:" + fileName);
+                    String base64Str = null;
+                    JSONObject jsonObject;
+                    try {
+                        jsonObject = JSON.parseObject(result);
+                    } catch (JSONException e) {
+                        log.error("解析HBase录音文件返回Json出错,userId:" + userId + ",fileName:" + fileName + ",返回结果:" + result, e);
+                        return;
+                    }
+                    JSONArray row = jsonObject.getJSONArray("Row");
+                    if (row != null && row.size() > 0) {
+                        JSONObject rowData = row.getJSONObject(0);
+                        JSONArray cell = rowData.getJSONArray("Cell");
+                        if (cell != null && cell.size() > 0) {
+                            base64Str = cell.getJSONObject(0).getString("$");
+                        }
+                    }
+                    if (StringUtil.isNotEmpty(base64Str)) {
+                        byte[] bytes = org.apache.commons.codec.binary.Base64.decodeBase64(base64Str);
+                        hBaseInputStream = new ByteArrayInputStream(bytes);
+                        length = hBaseInputStream.available();
+                        response.addHeader("Content-Length", length + "");
+                        response.addHeader("Content-Range", "bytes " + range + "-" + length + "/" + length);
+                        IOUtils.copy(hBaseInputStream, response.getOutputStream());
+                    } else {
+                        log.warn("通过HBase读取录音文件base64字符串为空,userId:" + userId + ",fileName:" + fileName + ",base64Str:" + base64Str);
+                    }
+                } else {
+                    log.warn("通过HBase读取录音文件返回为空,userId:" + userId + ",fileName:" + fileName + ",result:" + result);
+                }
+            }
+        } catch (Exception e) {
+            log.error("获取录音文件失败,", e);
+        } finally {
+            try {
+                if (fis != null) {
+                    fis.close();
+                }
+                if (hBaseInputStream != null) {
+                    hBaseInputStream.close();
+                }
+            } catch (IOException e) {
+                log.error("获取录音文件失败,", e);
+            }
+        }
+    }
+
+    @Resource
+    private CustomerUserService customerUserService;
+
+    private final static String token_suffix="TOKEN_";
+
+    /**
+     * 刷新token接口
+     *
+     * @param
+     * @return
+     */
+    public Map<String, Object> refreshToken0(String oldtoken, String username) {
+        log.info("旧的token是 ： " + oldtoken + "用户名字是 ： " + username);
+        Map<String, Object> resultMap = new HashMap<>();
+        resultMap.put("data","");
+        String token = null;
+        try {
+            if (StringUtil.isNotEmpty(oldtoken) && StringUtil.isNotEmpty(username)) {
+                CustomerUser u = customerUserService.getUserByName(username);
+                if (u != null) {
+                    String custId = u.getCust_id();
+                    String password = u.getPassword();
+                    if (StringUtil.isNotEmpty(custId)) {
+                        CustomerProperty customerProperty = customerDao.getProperty(custId, token_suffix+custId);
+                        if (customerProperty != null) {
+                            token = customerProperty.getPropertyValue();
+                            if (token.equals(oldtoken)) {
+                                username = "customer." + username;
+                                token = generToken(custId, username, password);
+                                log.info("刷新token,新token：" + token + "\ttoken长度：" + token.length());
+                                customerDao.dealCustomerInfo(custId, token_suffix+custId, token);
+                            } else {
+                                resultMap.put("_message", "token不正确");
+                                resultMap.put("code", "04");
+                                return resultMap;
+                            }
+                        } else {
+                            resultMap.put("_message", "请先获取token");
+                            resultMap.put("code", "02");
+                            return resultMap;
+                        }
+                    }else{
+                        log.error("custId is null");
+                    }
+                }else{
+                    log.error("user "+username+" is not exists or status is wrong");
+                }
+            } else {
+                resultMap.put("_message", "参数错误");
+                resultMap.put("code", "02");
+                return resultMap;
+            }
+            resultMap.put("data", token);
+            resultMap.put("code", "00");
+            return resultMap;
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            resultMap.put("_message", "刷新token失败");
+            resultMap.put("code", "05");
+//            json.put("data", resultMap);
+            return resultMap;
+        }
+    }
+
+
+
+   /* *//**
+     * 获取token
+     *
+     * @param username
+     * @param password
+     *//*
+    public Map<String, Object> getTokenInfo(String username, String password) {
+        log.info("账号是：" + username + "密码是：" + password);
+        Map<String, Object> resultMap = new HashMap<>();
+        resultMap.put("data","");
+        if(StringUtil.isEmpty(username) || StringUtil.isEmpty(password)){
+            resultMap.put("code", "02");
+            resultMap.put("_message", "用户名或密码不能为空");
+            return resultMap;
+        }
+        CustomerUser u = customerUserService.getUserByName(username);
+        if(u==null){
+            log.error("用户" + username + "不存在");
+            resultMap.put("code", "01");
+            resultMap.put("_message", "用户不存在");
+            return resultMap;
+        }
+        String token = null;
+        String newpassword = CipherUtil.generatePassword(password);
+        String uPassword = u.getPassword();
+        if(!uPassword.equals(newpassword)){
+            resultMap.put("code", "02");
+            resultMap.put("_message", "用户名密码不一致");
+            return resultMap;
+        }
+        String custId = u.getCust_id();
+        if (StringUtil.isNotEmpty(custId)) {
+            CustomerProperty customerProperty = customerDao.getProperty(custId, token_suffix+custId);
+            if (customerProperty != null) {
+                token = customerProperty.getPropertyValue();
+                try {
+                    Claims claims = verifyToken(token);
+                } catch (ExpiredJwtException e) {
+                    resultMap.put("code", "03");
+                    resultMap.put("_message", "token失效");
+                    return resultMap;
+                }
+            } else {
+                username = "customer." + username;
+                token = generToken(custId, username, password);
+                customerDao.dealCustomerInfo(custId, token_suffix+custId, token);
+                log.info("获取token,第一次生成，token：" + token);
+            }
+        }
+        resultMap.put("data", token);
+        resultMap.put("code", "00");
+        return resultMap;
+    }*/
 }
 

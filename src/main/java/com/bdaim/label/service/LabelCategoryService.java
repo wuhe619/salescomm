@@ -2,7 +2,6 @@ package com.bdaim.label.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.service.InitService;
-import com.bdaim.label.dao.CommonService;
 import com.bdaim.label.dao.LabelCategoryDao;
 import com.bdaim.label.entity.LabelCategory;
 import com.bdaim.rbac.entity.User;

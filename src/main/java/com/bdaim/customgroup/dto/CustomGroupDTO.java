@@ -1,6 +1,6 @@
 package com.bdaim.customgroup.dto;
 
-import com.bdaim.customgroup.entity.CustomGroupDO;
+import com.bdaim.customgroup.entity.CustomGroup;
 
 import java.sql.Timestamp;
 import java.util.Date;
@@ -56,7 +56,7 @@ public class CustomGroupDTO {
 
     }
 
-    public CustomGroupDTO(CustomGroupDO cg) {
+    public CustomGroupDTO(CustomGroup cg) {
         this.id = cg.getId();
         this.name = cg.getName();
         this.desc = cg.getDesc();

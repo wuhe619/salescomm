@@ -7,10 +7,9 @@ import com.bdaim.batch.express.ZopClient;
 import com.bdaim.batch.express.ZopPublicRequest;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.dao.CustomerDao;
-import com.bdaim.customer.entity.CustomerPropertyDO;
+import com.bdaim.customer.entity.CustomerProperty;
 import com.bdaim.resource.dao.SourceDao;
 import com.bdaim.resource.service.MarketResourceService;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,7 +66,7 @@ public class PackingService {
      * @return
      */
     public double getCustExpressPrice(String custId) {
-        CustomerPropertyDO jdFailPrice = customerDao.getProperty(custId, "jd_fail_price");
+        CustomerProperty jdFailPrice = customerDao.getProperty(custId, "jd_fail_price");
         if (jdFailPrice != null && StringUtil.isNotEmpty(jdFailPrice.getPropertyValue())) {
             return Double.parseDouble(jdFailPrice.getPropertyValue());
         }
@@ -264,7 +263,7 @@ public class PackingService {
 //        String pdfPath = String.valueOf(tempMap.get("pdfPath"));
 //        updateRequestId.append("sender_message='").append(senderInfo.toString())
 //                .append("',file_path='").append(pdfPath)
-//                .append("' FROM nl_batch_detail")
+//                .append("' FROM nl_batch_detail ")
 //                .append("WHERE nl_batch_detail.touch_id=t_touch_express_log.touch_id AND nl_batch_detail.id='")
 //                .append(addressIdNew).append("'");
 //    }

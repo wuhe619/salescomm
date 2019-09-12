@@ -5,7 +5,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.util.ConfigUtil;
-import com.bdaim.common.util.HttpUtil;
+import com.bdaim.common.util.http.HttpUtil;
 import com.bdaim.common.util.PropertiesUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -1,19 +1,8 @@
 package com.bdaim.rbac.entity;
 
+import javax.persistence.*;
 import java.io.Serializable;
-import java.util.List;
-
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
-import javax.persistence.Transient;
+import java.sql.Timestamp;
 
 @Entity
 @Table(name = "t_user")
@@ -72,8 +61,98 @@ public class User implements Serializable {
     /*@OneToMany(mappedBy = "labelCategoryUser", fetch = FetchType.LAZY)
     private List<UserLabelCategory> userLabelCategoryLs;*/
 
+    /*private String newPassword;*/
+
+    @Basic
+    @Column(name = "email")
+    private String email;
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    @Basic
+    @Column(name = "mobile_num")
+    String mobileNum = null;
+    public String getMobileNum() {
+        return mobileNum;
+    }
+
+    public void setMobileNum(String mobileNum) {
+        this.mobileNum = mobileNum;
+    }
+
+    @Basic
+    @Column(name = "user_pwd_level")
+    private Integer userPwdLevel;
+
+    public Integer getUserPwdLevel() {
+        return userPwdLevel;
+    }
+
+    public void setUserPwdLevel(Integer userPwdLevel) {
+        this.userPwdLevel = userPwdLevel;
+    }
+
+    @Basic
+    @Column(name = "STATUS")
+    private Integer status;
+
+    public Integer getStatus() {
+        return status;
+    }
+
+    @Basic
+    @Column(name = "source")
+    private Integer source;
+
+    public Integer getSource() {
+        return source;
+    }
+
+    public void setSource(Integer source) {
+        this.source = source;
+    }
+
+    @Basic
+    @Column(name = "cust_id")
     @Transient
-    private String newPassword;
+    private String custId;
+
+    public String getCustId() {
+        return custId;
+    }
+
+    public void setCustId(String custId) {
+        this.custId = custId;
+    }
+
+    @Basic
+    @Column(name = "create_time")
+    private Timestamp createTime;
+
+    public Timestamp getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(Timestamp createTime) {
+        this.createTime = createTime;
+    }
+
+    @Basic
+    @Column(name = "title")
+    private String title;
+
+    /**
+     * 授权平台 1-精准营销 2-金融超市
+     */
+    @Basic
+    @Column(name = "authorize")
+    private Integer authorize;
 
     public Long getId() {
         return id;
@@ -100,13 +179,14 @@ public class User implements Serializable {
         this.password = password;
     }
 
+   /* @Transient
     public String getNewPassword() {
         return newPassword;
     }
 
     public void setNewPassword(String newPassword) {
         this.newPassword = newPassword;
-    }
+    }*/
 
     /*public List<LabelCategory> getCreateCategory() {
         return createCategory;
@@ -234,5 +314,25 @@ public class User implements Serializable {
 
     public void setUser_type(String user_type) {
         this.user_type = user_type;
+    }
+
+    public void setStatus(Integer status) {
+        this.status = status;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public Integer getAuthorize() {
+        return authorize;
+    }
+
+    public void setAuthorize(Integer authorize) {
+        this.authorize = authorize;
     }
 }

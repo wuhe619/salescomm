@@ -7,7 +7,7 @@ import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.util.ConstantsUtil;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.dao.CustomerDao;
-import com.bdaim.customer.entity.CustomerPropertyDO;
+import com.bdaim.customer.entity.CustomerProperty;
 import com.bdaim.resource.entity.MarketResourceEntity;
 import com.bdaim.resource.entity.ResourcePropertyEntity;
 import com.bdaim.resource.entity.SourcePropertyEntity;
@@ -333,7 +333,7 @@ public class SourceDao extends SimpleHibernateDao<Object, String> {
                     List<Map<String, Object>> queryFixPricelist = this.sqlQuery(sqlBuilder.toString(), supplierId, ConstantsUtil.IDCARD_FIX_TYPE);
                     if (queryFixPricelist != null && queryFixPricelist.size() > 0) {
                         JSONObject jsonObject = JSON.parseObject(String.valueOf(queryFixPricelist.get(0).get("property_value")));
-                        CustomerPropertyDO customerProperty = customerDao.getProperty(custId, "industry");
+                        CustomerProperty customerProperty = customerDao.getProperty(custId, "industry");
                         if (jsonObject != null && customerProperty != null) {
                             if (customerProperty.getPropertyValue().equals("1")) {
                                 supplierPriceMap.put("fixpriceBank", jsonObject.getDouble("fixpriceBank"));

@@ -5,9 +5,9 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.util.CalendarUtil;
 import com.bdaim.common.util.Constant;
-import com.bdaim.common.util.HttpUtil;
+import com.bdaim.common.util.http.HttpUtil;
 import com.bdaim.common.util.StringHelper;
-import com.bdaim.customgroup.entity.CustomGroupDO;
+import com.bdaim.customgroup.entity.CustomGroup;
 import com.bdaim.customgroup.service.CustomGroupService;
 import com.bdaim.label.entity.LabelInfo;
 import org.slf4j.Logger;
@@ -117,8 +117,8 @@ public class LabelInterfaceService {
 	 * interfaceID	接口ID	BQ0006
 	 *terms	自定义用户群标签
 	 */
-	public String getUserGroupGid(CustomGroupDO group, Integer begin,
-								  Integer limit, String searchType, String searchValue) {
+	public String getUserGroupGid(CustomGroup group, Integer begin,
+                                  Integer limit, String searchType, String searchValue) {
 		String groupName = group.getName();
 		JSONArray groupTerms = getCustomerGroupTerms(group.getGroupCondition());
 		JSONObject obj = new JSONObject();
@@ -255,7 +255,7 @@ public class LabelInterfaceService {
 	 * cycle	调度方式	
 	 * groupBy	特征标签	
 	 */
-	public String getCharacteristic(CustomGroupDO group) {
+	public String getCharacteristic(CustomGroup group) {
 		// 人群条件
 		String groupCondition = group.getGroupCondition();
 		// 分组条件
@@ -522,7 +522,7 @@ public class LabelInterfaceService {
 	/**
 	 *下载
 	 */
-	public String downloadByCustomerGroup(CustomGroupDO group) {
+	public String downloadByCustomerGroup(CustomGroup group) {
 		// 人群条件
 		String groupCondition = group.getGroupCondition();
 		String groupId = group.getId().toString();
@@ -554,7 +554,7 @@ public class LabelInterfaceService {
 	/**
 	 * 直接获取下载数据流
 	 */
-	public InputStream downloadStreamByCustomerGroup(CustomGroupDO group) {
+	public InputStream downloadStreamByCustomerGroup(CustomGroup group) {
 		// 人群条件
 		String groupCondition = group.getGroupCondition();
 		String downloadType = "stream";
@@ -624,7 +624,7 @@ public class LabelInterfaceService {
 	 * @return
 	 */
 	
-	public String queryCustomerGroupPicture(CustomGroupDO group) {
+	public String queryCustomerGroupPicture(CustomGroup group) {
 
 		// 分组条件，用于在ES进行聚合的条件
 		// 普通标签：grouping:[{"labelId":"100010000100001"}]

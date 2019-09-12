@@ -20,5 +20,20 @@ public class GetPdfConfiguration extends WebSecurityConfigurerAdapter {
     public void configure(WebSecurity web) throws Exception {
         web.ignoring().antMatchers("/pdf/**");
         web.ignoring().antMatchers("/pic/**");
+
+        web.ignoring().antMatchers("/open/getVoiceRecordFile/**", "/customer/token",
+                "/user/token", "/customer/m/login", "/user/otp/verify/**", "/user/identify/**",
+                "/user/reset/password", "/mail/sendVerifyCode", "/sms/sendSms",
+                "/returnUrl/**", "/retuNotifyUrl/**", "/marketResource/callBack/**",
+                "/registerUser/validationPhone", "/registerUser/saveNew", "/registerUser/validationUserName",
+                "/mail/sendEmailForAsk", "/customgroup/taskphone/**", "/customgroup/taskPhoneTest/**",
+                "/customgroup/customPhoneList/**", "/customgroup/xfTaskPhones/**", "/customgroup/xzTaskGetPhone",
+                "/sms/ytxCallbackSms/**", "/sms/getSmsStatus", "/marketResource/getVoice/**",
+                "/api/sales/**", "/api/open/**", "/marketTask/xzTaskHandle",
+                "/dic/get/**", "/dic/page/query", "/institution/getInstitutionInfo",
+                "/institution/getInstitutionList", "/operlog/saveUserOperateLog", "/operlog/pageUserOperateLog",
+                "/dic/getApplyList", "/dic/getApplyDetail", "/dic/queryType", "/institution/applyRank",
+                "/dic/getLoanCost", "/dic/productApply", "/dic/listShowAdSpace", "/dic/getBrandList",
+                "/customerSea/xzCustomerSeaGetPhone", "/upload/pic/**", "/marketResource/getVoice0/**");
     }
 }

@@ -53,7 +53,7 @@ public class Pagination extends JdbcDaoSupport {
      * @param page      分页参数对象
      * @param jTemplate JdbcTemplate实例
      */
-    public Page getPageData(String sql, Object[] params, PageParam page, JdbcTemplate jTemplate) {
+    public PageList getPageData(String sql, Object[] params, PageParam page, JdbcTemplate jTemplate) {
         if (jTemplate == null) {
             logger.info("JdbcTemplate is null,please initial it first. ");
             throw new IllegalArgumentException("JdbcTemplate is null,please initial it first. ");
@@ -82,7 +82,7 @@ public class Pagination extends JdbcDaoSupport {
         setLastIndex();
         //装入结果集
         setResultList(getJdbcTemplate().queryForList(getMySQLPageSQL(new StringBuilder(sql), page), params));
-        Page data = new Page();
+        PageList data = new PageList();
         data.setTotal(this.totalRows);
         data.setList(this.resultList);
         return data;

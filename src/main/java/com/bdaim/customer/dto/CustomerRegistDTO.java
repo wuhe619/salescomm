@@ -9,6 +9,7 @@ public class CustomerRegistDTO implements Serializable {
     private String userId;
     //企业帐号
     private String name;
+    private String userName;
     private String password;
     private int userPwdLevel;
     private String enterpriseName;
@@ -49,6 +50,12 @@ public class CustomerRegistDTO implements Serializable {
     private String idCardBack;
     //快递设置 1 常用地址（多个） 2 常用地址（多个）
     private String expressConfig;
+    private String county;
+    private String serviceMode;
+    /**
+     * 所属行业ID
+     */
+    private String industryId;
 
     public String getExpressConfig() {
         return expressConfig;
@@ -313,5 +320,37 @@ public class CustomerRegistDTO implements Serializable {
 
     public void setUserPwdLevel(int userPwdLevel) {
         this.userPwdLevel = userPwdLevel;
+    }
+
+    public String getUserName() {
+        return userName;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
+    }
+
+    public String getCounty() {
+        return county;
+    }
+
+    public void setCounty(String county) {
+        this.county = county;
+    }
+
+    public String getServiceMode() {
+        return serviceMode;
+    }
+
+    public void setServiceMode(String serviceMode) {
+        this.serviceMode = serviceMode;
+    }
+
+    public String getIndustryId() {
+        return industryId;
+    }
+
+    public void setIndustryId(String industryId) {
+        this.industryId = industryId;
     }
 }

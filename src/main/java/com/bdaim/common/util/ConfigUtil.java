@@ -5,7 +5,7 @@ import java.util.Properties;
 
 public class ConfigUtil {
 	//配置文件的路径，项目所有需要手动读取的配置参数均保存在config.properties中(还有一些其他配置文件，但其他配置文件都是不需要手动读取的)
-	private static String configFilePath="config.properties";
+	private static String configFilePath="application.yml";
 	
 	private static Properties prop = new Properties();
 	private static final ConfigUtil instance=new ConfigUtil();
@@ -28,12 +28,12 @@ public class ConfigUtil {
 	}
 	
 	public String get(String key){
-		return prop.getProperty(key).toString().trim();
+		return prop.getProperty(key);
 	}
 	
 	public String get(String key, String defaultValue){
 		try {
-			return prop.getProperty(key).toString().trim();
+			return prop.getProperty(key);
 		}
 		catch (Exception ex) {
 			return defaultValue;

@@ -4,7 +4,7 @@ import com.bdaim.common.util.Constant;
 import com.bdaim.common.util.NumberConvertUtil;
 import com.bdaim.common.util.ReflectionUtils;
 import com.bdaim.common.util.StringHelper;
-import com.bdaim.rbac.dto.Page;
+import com.bdaim.common.dto.Page;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,14 +31,14 @@ import java.util.Map;
  */
 @SuppressWarnings("unchecked")
 @Transactional
-public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDaoSupport{
+public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDaoSupport {
     protected Logger logger = LoggerFactory.getLogger(getClass());
 
 //    protected SessionFactory sessionFactory;
 
     @Autowired
     public JdbcTemplate jdbcTemplate;
-    
+
     protected Class<T> entityClass;
 
     /**
@@ -75,11 +75,11 @@ public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDao
 //    public void setSessionFactory(final SessionFactory sessionFactory) {
 //        this.sessionFactory = sessionFactory;
 //    }
-
     @Autowired
     public void setSessionFactoryOverride(SessionFactory sessionFactory) {
-    	super.setSessionFactory(sessionFactory);
+        super.setSessionFactory(sessionFactory);
     }
+
     /**
      * 取得当前Session.
      */
@@ -118,18 +118,18 @@ public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDao
         org.springframework.util.Assert.notNull(entity, "entity不能为空");
         Session ses = null;
         try {
-            ses = super.getSessionFactory().openSession();
+            ses = getSession();
             Serializable Pk = ses.save(entity);
             ses.flush();
             return Pk;
         } catch (Exception ex) {
             ex.printStackTrace();
             return null;
-        } finally {
+        }/* finally {
             if (null != ses) {
                 ses.close();
             }
-        }
+        }*/
     }
 
     /**
@@ -242,6 +242,13 @@ public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDao
     public <X> List<X> find(final String hql, final Object... values) {
         return createQuery(hql, values).list();
     }
+    public <X> List<X> find(final String hql, final List values) {
+        return createQuery(hql, values).list();
+    }
+
+    public <X> List<X> findWithPositionalParams(final String hql, final Object... values) {
+        return queryWithPositionalParameters(hql, values).list();
+    }
 
     /**
      * 按HQL查询对象列表.
@@ -259,6 +266,60 @@ public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDao
         Page p = new Page();
         p.setTotal(this.findCount(hql, values));
         p.setData(this.createQuery(hql, values).setFirstResult(startIndex).setMaxResults(maxSize).list());
+        return p;
+    }
+
+    /**
+     * pageSize不做限制
+     *
+     * @param sql
+     * @param pageNum
+     * @param pageSize
+     * @param values
+     * @return
+     */
+    public Page sqlPageQueryByPageSize(String sql, int pageNum, int pageSize, final Object... values) {
+        if (pageNum < 0) {
+            pageNum = 0;
+        }
+        if (pageSize < 0) {
+            pageSize = 100;
+        }
+        int total = 0;
+        Page p = new Page();
+        StringBuilder totalSql = new StringBuilder();
+        totalSql.append("select count(*) count from (");
+        totalSql.append(sql);
+        totalSql.append(") as temp");
+
+        Session session = getSession();
+        Query query = session.createSQLQuery(totalSql.toString());
+        query.setResultTransformer(CriteriaSpecification.ALIAS_TO_ENTITY_MAP);
+        if (values != null) {
+            for (int i = 0; i < values.length; i++) {
+                query.setParameter(i, values[i]);
+            }
+        }
+        // 先查询total
+        List<Map<String, Object>> totalList = query.list();
+        if (totalList.size() > 0) {
+            total = NumberConvertUtil.parseInt(String.valueOf(totalList.get(0).get("count")));
+        }
+        p.setTotal(total);
+
+        //查询分页数据
+        query = session.createSQLQuery(sql);
+        query.setResultTransformer(CriteriaSpecification.ALIAS_TO_ENTITY_MAP);
+        // 先查询total
+        query.setFirstResult(pageNum);
+        query.setMaxResults(pageSize);
+        if (values != null) {
+            for (int i = 0; i < values.length; i++) {
+                query.setParameter(i, values[i]);
+            }
+        }
+        List rs = query.list();
+        p.setData(rs);
         return p;
     }
 
@@ -329,6 +390,22 @@ public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDao
         if (values != null) {
             for (int i = 0; i < values.length; i++) {
                 query.setParameter(i, values[i]);
+            }
+        }
+        return query;
+    }
+
+    public Query queryWithPositionalParameters(final String queryString, final Object... values) {
+        org.springframework.util.Assert.hasText(queryString, "查询语句不能为空");
+        Query query = getSession().createQuery(queryString);
+        if (values != null) {
+            for (int i = 0; i < values.length; i++) {
+                if (i == 0) {
+                    query.setParameter("0", values[i]);
+
+                } else if (i == 1) {
+                    query.setParameter("1", values[i]);
+                }
             }
         }
         return query;
@@ -817,7 +894,7 @@ public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDao
     }
 
     public List<Map<String, Object>> sqlQuery(String sql, final Object... values) {
-        Session session = getSessionFactory().openSession();
+        Session session = getSession();
         Query query = session.createSQLQuery(sql);
         query.setResultTransformer(CriteriaSpecification.ALIAS_TO_ENTITY_MAP);
         if (values != null)
@@ -825,7 +902,6 @@ public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDao
                 query.setParameter(i, values[i]);
             }
         List rs = query.list();
-        session.close();
         return rs;
     }
 
@@ -846,7 +922,7 @@ public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDao
         if (pageSize < 0 || pageSize > 100) {
             pageSize = 100;
         }
-        pageNum = (pageNum-1)* pageSize;
+        pageNum = (pageNum - 1) * pageSize;
         int total = 0;
         Page p = new Page();
         StringBuilder totalSql = new StringBuilder();
@@ -854,7 +930,7 @@ public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDao
         totalSql.append(sql);
         totalSql.append(") as temp");
 
-        Session session = getSessionFactory().openSession();
+        Session session = getSession();
         Query query = session.createSQLQuery(totalSql.toString());
         query.setResultTransformer(CriteriaSpecification.ALIAS_TO_ENTITY_MAP);
         if (values != null) {
@@ -882,7 +958,6 @@ public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDao
         }
         List rs = query.list();
         p.setData(rs);
-        session.close();
         return p;
     }
 
@@ -902,11 +977,44 @@ public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDao
      * @return
      */
     public List queryListBySql(String sql, Class className) {
-        Session session = getSessionFactory().openSession();
+        Session session = getSession();
         Query query = session.createSQLQuery(sql).addEntity(className);
         List rs = query.list();
-        session.close();
         return rs;
+    }
+
+    public List<Map<String, Object>> queryListBySql(String sql) {
+        Session session = getSession();
+        Query query = session.createSQLQuery(sql);
+        query.setResultTransformer(CriteriaSpecification.ALIAS_TO_ENTITY_MAP);
+        List rs = query.list();
+        return rs;
+    }
+
+    public String queryForObject(String sql, final Object... values) {
+        Session session = getSession();
+        Query query = session.createSQLQuery(sql);
+        if (values != null)
+            for (int i = 0; i < values.length; i++) {
+                query.setParameter(i, values[i]);
+            }
+        List rs = query.list();
+        if (rs.size() > 0)
+            return String.valueOf(rs.get(0));
+        return "";
+    }
+
+    public int queryForInt(String sql, final Object... values) {
+        Session session = getSession();
+        Query query = session.createSQLQuery(sql);
+        if (values != null)
+            for (int i = 0; i < values.length; i++) {
+                query.setParameter(i, values[i]);
+            }
+        List rs = query.list();
+        if (rs.size() > 0)
+            return NumberConvertUtil.parseInt(rs.get(0));
+        return 0;
     }
 
 }
