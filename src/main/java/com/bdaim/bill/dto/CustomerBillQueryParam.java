@@ -45,6 +45,18 @@ public class CustomerBillQueryParam {
     private Long userId;
     private String dealType;
     /**
+     * 场站id
+     */
+    private String stationId;
+
+    public String getStationId() {
+        return stationId;
+    }
+
+    public void setStationId(String stationId) {
+        this.stationId = stationId;
+    }
+    /**
      * 资源id
      */
     private String resourceId;
