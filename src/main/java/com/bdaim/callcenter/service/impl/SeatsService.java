@@ -740,8 +740,10 @@ public class SeatsService {
         CustomerRegistDTO customerRegistDTO = new CustomerRegistDTO();
         customerRegistDTO.setEnterpriseName(customerDO.getEnterpriseName());
         customerRegistDTO.setName(customerUser.get(0).getAccount());
-        logger.info("查询供应商是：" + channelList.getPropertyValue());
-        customerRegistDTO.setChannel(String.valueOf(channelList.getPropertyValue()));
+        logger.info("查询供应商是：" + channelList);
+        if (page.getData() != null && page.getData().size() > 0) {
+            customerRegistDTO.setChannel(String.valueOf(channelList.getPropertyValue()));
+        }
         map.put("seatsParamsList", seatsParamsList);
         map.put("total", page.getTotal());
         map.put("CustomerRegistDTO", customerRegistDTO);
