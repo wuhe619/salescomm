@@ -349,7 +349,9 @@ public class BillServiceImpl implements BillService {
                         }
 
                         list.add(new SimpleSheetWrapper(data, titles, billName));
-
+                        logger.info("data is >>> "+data);
+                        logger.info("titles are >>> "+titles);
+                        logger.info("billName is >>> "+billName);
                     }
                     if (list.size() > 0) {
                         String fileName = enterprisename + "_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm:ss"));
