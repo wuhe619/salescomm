@@ -311,17 +311,18 @@ public class MarketTaskAction extends BasicAction {
      */
     @RequestMapping(value = "/exportMarketVoiceData", method = RequestMethod.GET)
     public void exportCustomerGroupMarketVoiceData(HttpServletResponse response, String startTime, String endTime, String marketTaskId) {
-        boolean status = marketTaskService.checkMarketTaskPermission(opUser().getCustId(), marketTaskId);
-        if (!status) {
-            try {
+        try {
+            boolean status = marketTaskService.checkMarketTaskPermission(opUser().getCustId(), marketTaskId);
+            if (!status) {
+                response.setContentType("application/json;charset=utf-8");
                 response.getOutputStream().write(JSON.toJSONString(returnError("权限不足")).getBytes("UTF-8"));
                 return;
-            } catch (IOException e) {
-                LOG.error("导出营销任务成功单录音异常,", e);
             }
+            marketTaskService.exportMarketTaskSuccessVoice(response, opUser(), marketTaskId, "", "邀约状态", "成功",
+                    startTime, endTime);
+        } catch (IOException e) {
+            LOG.error("导出营销任务成功单录音异常,", e);
         }
-        marketTaskService.exportMarketTaskSuccessVoice(response, opUser(), marketTaskId, "", "邀约状态", "成功",
-                startTime, endTime);
     }
 
 
