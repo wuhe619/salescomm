@@ -1011,27 +1011,26 @@ public class SupplierService {
         List<MarketResourceDTO> callCenter = new ArrayList<>();
         List<MarketResourceDTO> robot = new ArrayList<>();
         MarketResourceDTO dto;
-        Set<Long> resourceIds = new HashSet<>();
+        Set<Integer> resourceIds = new HashSet<>();
         if (voiceCustomerProperty != null && StringUtil.isNotEmpty(voiceCustomerProperty.getPropertyValue())) {
             String config = voiceCustomerProperty.getPropertyValue();
             if (config.startsWith("[")) {
                 JSONArray array = JSON.parseArray(config);
                 for (int i = 0; i < array.size(); i++) {
                     JSONObject json = array.getJSONObject(i);
-                    if (resourceIds.contains(json.getLong("resourceId"))) {
+                    if (resourceIds.contains(json.getInteger("resourceId"))) {
                         continue;
                     }
                     if (json.containsKey("status") && json.getInteger("status") == 1) {
                         dto = buildCallConfig(json);
                         list.add(dto);
-                        resourceIds.add(dto.getId());
+                        resourceIds.add(dto.getResourceId());
                     }
                 }
             } else if (config.startsWith("{")) {
                 JSONObject json = JSON.parseObject(config);
                 dto = buildCallConfig(json);
                 list.add(dto);
-                resourceIds.add(dto.getId());
             }
         }
         for (MarketResourceDTO s : list) {
@@ -1087,6 +1086,9 @@ public class SupplierService {
             MarketResourceDTO dto = new MarketResourceDTO();
             dto.setResourceId(resourceId);
             MarketResourceEntity resource = marketResourceDao.get(resourceId);
+            if (resource == null) {
+                return dto;
+            }
             dto.setResname(resource.getResname());
             dto.setSupplierId(resource.getSupplierId());
             dto.setChargingType(json.getInteger("type"));
