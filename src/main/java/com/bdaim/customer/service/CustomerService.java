@@ -301,6 +301,12 @@ public class CustomerService {
                 if (StringUtil.isNotEmpty(vo.getUserId())) {
                     customerUserDO = customerUserDao.findUniqueBy("id", Long.valueOf(vo.getUserId()));
                     customerUserDO.setRealname(vo.getRealName());
+                    if (StringUtil.isNotEmpty(vo.getName())) {
+                        customerUserDO.setAccount(vo.getName());
+                    }
+                    if (StringUtil.isNotEmpty(vo.getPassword())) {
+                        customerUserDO.setPassword(CipherUtil.generatePassword(vo.getPassword()));
+                    }
                 } else {
                     customerUserDO = new CustomerUser();
                     //1企业客户 2 操作员
@@ -460,7 +466,14 @@ public class CustomerService {
                         customerDao.dealCustomerInfo(customerId, "packager", vo.getPackager());
                     }
                 }
-
+                //场站信息
+                if (StringUtil.isNotEmpty(vo.getStationId())) {
+                    if (StringUtil.isNotEmpty(vo.getCustId())) {
+                        customerDao.dealCustomerInfo(vo.getCustId(), "station_id", vo.getStationId());
+                    } else {
+                        customerDao.dealCustomerInfo(customerId, "station_id", vo.getStationId());
+                    }
+                }
 
             } else if (vo.getDealType().equals("2")) {//冻结以及解冻
                 if (StringUtil.isNotEmpty(vo.getCustId())) {
