@@ -56,6 +56,18 @@ public class CustomerRegistDTO implements Serializable {
      * 所属行业ID
      */
     private String industryId;
+    /**
+     * 场站id
+     */
+    private String stationId;
+
+    public String getStationId() {
+        return stationId;
+    }
+
+    public void setStationId(String stationId) {
+        this.stationId = stationId;
+    }
 
     public String getExpressConfig() {
         return expressConfig;
