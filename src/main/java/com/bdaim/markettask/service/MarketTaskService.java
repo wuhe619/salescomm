@@ -1966,6 +1966,7 @@ public class MarketTaskService {
             if (StringUtil.isNotEmpty(s)) {
                 msg.put("msg", "请稍后重试");
                 msg.put("data", voiceExportTime);
+                LOG.warn("导出营销任务:{}录音请稍后重试,", marketTaskId);
                 outputStream.write(JSON.toJSONString(msg).getBytes("UTF-8"));
                 return;
             }
@@ -1975,6 +1976,7 @@ public class MarketTaskService {
                 msg.put("msg", "未查询到该营销任务:" + marketTaskId);
                 msg.put("data", voiceExportTime);
                 outputStream.write(JSON.toJSONString(msg).getBytes("UTF-8"));
+                LOG.warn("未查询到该营销任务:{},", marketTaskId);
                 return;
             }
             int customerGroupId = cg.getCustomerGroupId();
@@ -1988,6 +1990,7 @@ public class MarketTaskService {
                 msg.put("data", voiceExportTime);
                 outputStream.write(JSON.toJSONString(msg).getBytes("UTF-8"));
                 redisUtil.del(key);
+                LOG.warn("导出营销任务:{}录音请稍后重试,", marketTaskId);
                 return;
             }
             voiceExportTime = System.currentTimeMillis();
@@ -2016,6 +2019,7 @@ public class MarketTaskService {
                 msg.put("data", voiceExportTime);
                 outputStream.write(JSON.toJSONString(msg).getBytes("UTF-8"));
                 redisUtil.del(key);
+                LOG.warn("导出营销任务:{}未查询满足条件的自建属性,", marketTaskId);
                 return;
             }
 
@@ -2066,6 +2070,7 @@ public class MarketTaskService {
                 msg.put("msg", "营销任务下无满足条件的数据,Id:" + marketTaskId);
                 msg.put("data", String.valueOf(voiceExportTime));
                 outputStream.write(JSON.toJSONString(msg).getBytes("UTF-8"));
+                LOG.warn("导出营销任务:{}营销任务下无满足条件的数据,", marketTaskId);
                 return;
             }
         } catch (Exception e) {

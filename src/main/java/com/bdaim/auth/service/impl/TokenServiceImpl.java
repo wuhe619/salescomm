@@ -7,10 +7,13 @@ import com.bdaim.common.auth.service.TokenService;
 import com.bdaim.common.util.CipherUtil;
 import com.bdaim.common.util.NumberConvertUtil;
 import com.bdaim.common.util.StringUtil;
+import com.bdaim.customer.dao.CustomerUserDao;
 import com.bdaim.customer.dto.CustomerPropertyDTO;
 import com.bdaim.customer.dto.CustomerPropertyEnum;
+import com.bdaim.customer.dto.CustomerUserGroupRelDTO;
 import com.bdaim.customer.dto.ServiceModeEnum;
 import com.bdaim.customer.entity.CustomerUser;
+import com.bdaim.customer.entity.CustomerUserPropertyDO;
 import com.bdaim.customer.service.CustomerService;
 import com.bdaim.rbac.dao.RoleDao;
 import com.bdaim.rbac.dto.ResourceDTO;
@@ -43,6 +46,8 @@ public class TokenServiceImpl implements TokenService {
     private RoleDao roleDao;
     @Resource
     private ResourceService resourceService;
+    @Resource
+    private CustomerUserDao customerUserDao;
 
     private static Map name2token = new HashMap();
 
@@ -171,6 +176,23 @@ public class TokenServiceImpl implements TokenService {
                 if (cpd != null && StringUtil.isNotEmpty(cpd.getPropertyValue())) {
                     userdetail.setServiceMode(cpd.getPropertyValue());
                 }
+                CustomerUserPropertyDO mobile_num = customerUserDao.getProperty(u.getId().toString(), "mobile_num");
+                if (mobile_num != null && StringUtil.isNotEmpty(mobile_num.getPropertyValue())) {
+                    userdetail.setMobile_num(mobile_num.getPropertyValue());
+                } else {
+                    userdetail.setMobile_num("");
+                }
+                // 查询用户组信息
+                CustomerUserGroupRelDTO cug = customerUserDao.getCustomerUserGroupByUserId(u.getId());
+                userdetail.setUserGroupId("");
+                userdetail.setUserGroupRole("2");
+                userdetail.setJobMarketId("");
+                if (cug != null) {
+                    userdetail.setUserGroupId(cug.getGroupId());
+                    userdetail.setUserGroupRole(String.valueOf(cug.getType()));
+                    userdetail.setJobMarketId(cug.getJobMarketId());
+                }
+
             } else {
                 logger.warn("username or password is error");
                 return new LoginUser("guest", "", new ArrayList<>(), "用户名密码错误", "401");

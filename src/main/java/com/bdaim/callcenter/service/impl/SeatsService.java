@@ -683,9 +683,9 @@ public class SeatsService {
         hql.append(" ORDER BY m.createTime desc ");
         com.bdaim.common.dto.Page page = customerUserDao.page(hql.toString(), values, start, pageSize);
         logger.info("企业ID "+custId+"查询结果是"+page.toString());
+        channelList = customerDao.getProperty(custId, "channel");
         if (page.getData() != null && page.getData().size() > 0) {
             List<CustomerUser> customerUserList = page.getData();
-            channelList = customerDao.getProperty(custId, "channel");
             logger.info("企业id是：" + custId + "现在已经添加的渠道是" + String.valueOf(channelList));
             for (int i = 0; i < customerUserList.size(); i++) {
                 SeatsMessageParam seatsMessageParam = new SeatsMessageParam();
@@ -741,9 +741,7 @@ public class SeatsService {
         customerRegistDTO.setEnterpriseName(customerDO.getEnterpriseName());
         customerRegistDTO.setName(customerUser.get(0).getAccount());
         logger.info("查询供应商是：" + channelList);
-        if (page.getData() != null && page.getData().size() > 0) {
-            customerRegistDTO.setChannel(String.valueOf(channelList.getPropertyValue()));
-        }
+        customerRegistDTO.setChannel(String.valueOf(channelList.getPropertyValue()));
         map.put("seatsParamsList", seatsParamsList);
         map.put("total", page.getTotal());
         map.put("CustomerRegistDTO", customerRegistDTO);
