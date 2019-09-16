@@ -311,10 +311,10 @@ public class MarketTaskAction extends BasicAction {
      */
     @RequestMapping(value = "/exportMarketVoiceData", method = RequestMethod.GET)
     public void exportCustomerGroupMarketVoiceData(HttpServletResponse response, String startTime, String endTime, String marketTaskId) {
+        response.setContentType("application/json;charset=utf-8");
         try {
             boolean status = marketTaskService.checkMarketTaskPermission(opUser().getCustId(), marketTaskId);
             if (!status) {
-                response.setContentType("application/json;charset=utf-8");
                 response.getOutputStream().write(JSON.toJSONString(returnError("权限不足")).getBytes("UTF-8"));
                 return;
             }
