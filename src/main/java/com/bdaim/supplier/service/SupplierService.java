@@ -126,7 +126,7 @@ public class SupplierService {
                 if (remainAmount != null) {
                     list.get(i).put("remainAmount", NumberConvertUtil.transformtionElement(remainAmount.getPropertyValue()));
                     log.info("供应商余额是：" + NumberConvertUtil.transformtionElement(remainAmount.getPropertyValue()));
-                }else{
+                } else {
                     list.get(i).put("remainAmount", 0);
 
                 }
@@ -1011,21 +1011,27 @@ public class SupplierService {
         List<MarketResourceDTO> callCenter = new ArrayList<>();
         List<MarketResourceDTO> robot = new ArrayList<>();
         MarketResourceDTO dto;
+        Set<Long> resourceIds = new HashSet<>();
         if (voiceCustomerProperty != null && StringUtil.isNotEmpty(voiceCustomerProperty.getPropertyValue())) {
             String config = voiceCustomerProperty.getPropertyValue();
             if (config.startsWith("[")) {
                 JSONArray array = JSON.parseArray(config);
                 for (int i = 0; i < array.size(); i++) {
                     JSONObject json = array.getJSONObject(i);
+                    if (resourceIds.contains(json.getLong("resourceId"))) {
+                        continue;
+                    }
                     if (json.containsKey("status") && json.getInteger("status") == 1) {
                         dto = buildCallConfig(json);
                         list.add(dto);
+                        resourceIds.add(dto.getId());
                     }
                 }
             } else if (config.startsWith("{")) {
                 JSONObject json = JSON.parseObject(config);
                 dto = buildCallConfig(json);
                 list.add(dto);
+                resourceIds.add(dto.getId());
             }
         }
         for (MarketResourceDTO s : list) {
