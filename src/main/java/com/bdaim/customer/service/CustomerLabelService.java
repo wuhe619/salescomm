@@ -885,7 +885,7 @@ public class CustomerLabelService {
         }
 
         if (StringUtil.isNotEmpty(projectId)) {
-            sql.append(" AND t1.market_project_id ='" + projectId + "'");
+            sql.append(" AND (t1.market_project_id ='" + projectId + "' OR t1.market_project_id = 0 OR t1.market_project_id is null) ");
         }
         // 属性名称检索
         if (StringUtil.isNotEmpty(labelName)) {

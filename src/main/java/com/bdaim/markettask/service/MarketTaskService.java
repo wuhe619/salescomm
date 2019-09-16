@@ -1388,7 +1388,7 @@ public class MarketTaskService {
      */
     public Boolean isValidAccount(LoginUser lu, String marketTaskId) throws Exception {
         boolean has_remain = marketResourceService.judRemainAmount(lu.getCustId());
-        if (!has_remain) {
+        if (!has_remain && "2".equals(lu.getUserType())) {
             throw new TouchException("余额不足");
         }
         if ("2".equals(lu.getUserType())) {
