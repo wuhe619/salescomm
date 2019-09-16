@@ -60,7 +60,7 @@ public class CustomerPropertyService {
         customerPropertyEntity.setLabelDesc(customerPropertyParam.getLabelDesc());
         customerPropertyEntity.setType(customerPropertyParam.getType());
         customerPropertyEntity.setOption(customerPropertyParam.getOption());
-        if ((Long) customerLabelDao.saveReturnPk(customerPropertyEntity) > 0) {
+        if ((Integer) customerLabelDao.saveReturnPk(customerPropertyEntity) > 0) {
             return 1;
         }
         return 0;

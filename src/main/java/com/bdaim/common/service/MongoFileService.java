@@ -68,6 +68,7 @@ public class MongoFileService {
 
     /**
      * 下载文件
+     *
      * @param fileName
      * @return
      * @throws Exception
@@ -76,7 +77,7 @@ public class MongoFileService {
         Query query = new Query();
         query.addCriteria(Criteria.where("filename").is(fileName));
         GridFSFile gridFSFile = gridfsTemplate.findOne(query);
-        if(gridFSFile==null){
+        if (gridFSFile == null) {
             return new byte[]{};
         }
         GridFSBucket bucket = GridFSBuckets.create(mongoDbFactory.getDb());

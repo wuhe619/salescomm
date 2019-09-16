@@ -319,6 +319,8 @@ public class BillServiceImpl implements BillService {
                         //对象转换
                         String logListSql = getBillType(billTypes[j], param.getBillDate(), param.getCustomerId(), param.getSupplierId(), param.getTransactionId(), param.getBatchId(), param.getEnterpriseName(), param.getStartTime(), param.getEndTime());
                         List<Map<String, Object>> billlist = jdbcTemplate.queryForList(logListSql);
+                        logger.info("查询SQL为 >>> " +logListSql);
+                        logger.info("查询结果为 >>> "+billlist);
                         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.S");
                         LocalDateTime localDateTime;
                         for (int i = 0; i < billlist.size(); i++) {
@@ -347,7 +349,9 @@ public class BillServiceImpl implements BillService {
                         }
 
                         list.add(new SimpleSheetWrapper(data, titles, billName));
-
+                        logger.info("data is >>> "+data);
+                        logger.info("titles are >>> "+titles);
+                        logger.info("billName is >>> "+billName);
                     }
                     if (list.size() > 0) {
                         String fileName = enterprisename + "_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm:ss"));
@@ -1111,15 +1115,35 @@ public class BillServiceImpl implements BillService {
                 customerBillList.get(i).put("channel", sourceName);
             }
         }
+        //失联修复 总收入和总支出
+        Map<String, Object> totalIncomeAndExpenditure = new HashMap<>(16);
+        BigDecimal totalPay = BigDecimal.ZERO;
+        if (customerBillList != null && customerBillList.size() != 0) {
+            for (Map<String, Object> e : customerBillList) {
+                BigDecimal pay = new BigDecimal(String.valueOf(e.get("consumeAmountsum")));
+                totalPay = totalPay.add(pay);
+            }
+        }
+        totalIncomeAndExpenditure.put("totalPay", totalPay);
         //添加企业充值扣减(按月展示)
         String sql = "select type , SUM(amount)/100 consumeAmountsum from t_transaction_bill WHERE cust_id =?  AND type in (" + TransactionEnum.BALANCE_DEDUCTION.getType() + "," + TransactionEnum.BALANCE_RECHARGE.getType() + ") AND DATE_FORMAT(create_time, '%Y%m') like " + billDate + " GROUP BY type";
         List<Map<String, Object>> customerMoneyList = sourceDao.sqlQuery(sql, customerId);
         if (customerMoneyList != null && customerMoneyList.size() > 0) {
             customerBillList.addAll(customerMoneyList);
         }
+        if (customerMoneyList != null && customerMoneyList.size() > 0) {
+            BigDecimal totalIncome;
+            for (Map<String, Object> e : customerMoneyList) {
+                if ("1".equals(String.valueOf(e.get("type")))) {
+                    totalIncome = new BigDecimal(String.valueOf(e.get("consumeAmountsum")));
+                    totalIncomeAndExpenditure.put("totalIncome", totalIncome);
+                }
+            }
+        }
         resultMap.put("customerMessage", headerData);
         resultMap.put("billMessage", customerBillList);
         resultMap.put("total", customerBillList.size());
+        resultMap.put("totalMoneyInfo", totalIncomeAndExpenditure);
         return resultMap;
     }
 

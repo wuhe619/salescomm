@@ -1102,21 +1102,32 @@ public class UploadDowloadImgServiceImpl implements UploadDowloadService {
      * @param fileName
      */
     public void downloadFile(HttpServletResponse response, String userId, String fileName) {
+        if (StringUtil.isEmpty(fileName)) {
+            return;
+        }
         String filePath = PropertiesUtil.getStringValue("location") + userId + File.separator + fileName;
         File file = new File(filePath);
+        boolean status = true;
         try (FileInputStream fis = new FileInputStream(file)) {
             if (!file.exists()) {
                 IOUtils.copy(fis, response.getOutputStream());
-            } else {
-                logger.warn(filePath + ",磁盘文件不存在,穿透查询mongodb文件");
-                if (fileName.indexOf(".") > 0) {
-                    fileName = fileName.substring(0, fileName.lastIndexOf("."));
-                }
-                byte[] bytes = mongoFileService.downloadFile(fileName);
-                IOUtils.copy(new ByteArrayInputStream(bytes), response.getOutputStream());
+                status = false;
             }
         } catch (Exception e) {
             logger.error("获取文件异常", e);
+            status = false;
+        }
+        if (!status) {
+            logger.warn(filePath + ",磁盘文件不存在,穿透查询mongodb文件");
+            if (fileName.indexOf(".") > 0) {
+                fileName = fileName.substring(0, fileName.lastIndexOf("."));
+            }
+            try {
+                byte[] bytes = mongoFileService.downloadFile(fileName);
+                IOUtils.copy(new ByteArrayInputStream(bytes), response.getOutputStream());
+            } catch (Exception e) {
+                logger.error("获取mongodb文件异常", e);
+            }
         }
     }
 }

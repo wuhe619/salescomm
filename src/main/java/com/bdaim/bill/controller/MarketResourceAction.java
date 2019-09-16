@@ -163,7 +163,7 @@ public class MarketResourceAction extends BasicAction {
             }
             map.put("data", list);
             //录音路径
-            String audioUrl = "http://nolose.service.dev.datau.top/marketResource/getVoice/";
+            String audioUrl = "/marketResource/getVoice/";
             map.put("audioUrl", audioUrl);
             json.put("data", map);
 

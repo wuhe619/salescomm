@@ -478,7 +478,7 @@ public class TransactionService {
             }
             sql.append(" order by t.create_time desc ");
             logger.debug(sql.toString());
-            page = transactionDao.sqlPageQuery(sql.toString(), pageNum, pageSize);
+            page = transactionDao.sqlPageQuery0(sql.toString(), pageNum, pageSize);
             if (page != null && page.getData().size() > 0) {
                 String picPath = ConfigUtil.getInstance().get("pic_server_url") + "/0/";
                 Customer customer;

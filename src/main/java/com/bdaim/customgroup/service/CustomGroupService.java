@@ -1335,7 +1335,7 @@ public class CustomGroupService {
 
         sb.append(" ORDER BY id ASC ");
         try {
-            page = customGroupDao.sqlPageQuery(sb.toString(), pageNum, pageSize);
+            page = customGroupDao.sqlPageQuery0(sb.toString(), pageNum, pageSize);
         } catch (Exception e) {
             log.error("查询客户群列表失败,", e);
             return new Page();
@@ -2797,7 +2797,7 @@ public class CustomGroupService {
                 }
             }
             sqlSb.append(" GROUP BY user_id ");
-            page = this.customerGroupListDao.sqlPageQuery(sqlSb.toString(), userQueryParam.getPageNum(), userQueryParam.getPageSize(), startTime, endTime, customerGroupId);
+            page = this.customerGroupListDao.sqlPageQuery0(sqlSb.toString(), userQueryParam.getPageNum(), userQueryParam.getPageSize(), startTime, endTime, customerGroupId);
 
             // 呼叫量,接通量,未通量, 成单量
             long calledSum = 0L, successSum = 0L;
@@ -5361,7 +5361,7 @@ public class CustomGroupService {
                     log.info("创建导入客群成功,开始异步处理数据,ID:" + id);
                     try {
                         CustomGroupService cgs = (CustomGroupService) SpringContextHelper.getBean("customGroupService");
-                        int code = cgs.handleCustGroupImportData(String.valueOf(id), custId, customGroupDao, customerDao, customerLabelDao, jdbcTemplate);
+                        int code = cgs.handleCustGroupImportData(String.valueOf(id), custId, customGroupDao, customerDao, customerLabelDao, jdbcTemplate, redisUtil);
                         log.info("导入客户群数据ID:" + id + "更改状态成功,status:" + status);
                     } catch (Exception e) {
                         log.error("异步处理导入客群异常,", e);
@@ -5439,7 +5439,7 @@ public class CustomGroupService {
                     log.info("创建导入客群成功,开始异步处理数据,ID:" + id);
                     try {
                         CustomGroupService cgs = (CustomGroupService) SpringContextHelper.getBean("customGroupService");
-                        int code = cgs.handleCustGroupImportData(String.valueOf(id), custId, customGroupDao, customerDao, customerLabelDao, jdbcTemplate);
+                        int code = cgs.handleCustGroupImportData(String.valueOf(id), custId, customGroupDao, customerDao, customerLabelDao, jdbcTemplate, redisUtil);
                         log.info("导入客户群数据ID:" + id + "更改状态成功,status:" + status);
                     } catch (Exception e) {
                         log.error("异步处理导入客群异常,", e);
@@ -5516,7 +5516,7 @@ public class CustomGroupService {
      * @return
      */
     private int handleCustGroupImportData(String custGroupId, String custId, CustomGroupDao
-            customGroupDao, CustomerDao customerDao, CustomerLabelDao customerLabelDao, JdbcTemplate jdbcTemplate) {
+            customGroupDao, CustomerDao customerDao, CustomerLabelDao customerLabelDao, JdbcTemplate jdbcTemplate, RedisUtil redisUtil) {
         CustomerGroupProperty uploadFilePath = customGroupDao.getProperty(NumberConvertUtil.parseInt(custGroupId), "uploadFilePath");
         if (uploadFilePath == null) {
             log.warn("导入客户群ID:" + custGroupId + "未查询到文件路径");
@@ -6178,7 +6178,7 @@ public class CustomGroupService {
             sql.append(" and rp.property_value LIKE '%type\":\"" + param.getChargingType() + "%'");
         }
         sql.append(" ORDER BY t2.extract_time desc, t2.create_time desc ");
-        Page page = orderDao.sqlPageQuery(sql.toString(), param.getPageNum(), param.getPageSize(), null);
+        Page page = orderDao.sqlPageQuery0(sql.toString(), param.getPageNum(), param.getPageSize(), null);
         if (page != null && page.getData().size() > 0) {
             String orderSql = "SELECT IFNULL(SUM(order_sum), 0) order_sum from stat_c_g_u_d WHERE customer_group_id = ?";
             Map<String, Object> model;
