@@ -67,6 +67,18 @@ public class Page {
 	public void setCount(int count) {
 		this.count = count;
 	}
-	
-	
+
+	@Override
+	public String toString() {
+		return "Page{" +
+				"start=" + start +
+				", limit=" + limit +
+				", total=" + total +
+				", data=" + data +
+				", perPageCount=" + perPageCount +
+				", pageIndex=" + pageIndex +
+				", countPerPage=" + countPerPage +
+				", count=" + count +
+				'}';
+	}
 }

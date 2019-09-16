@@ -682,6 +682,7 @@ public class SeatsService {
         hql.append(" and userType='2' ");
         hql.append(" ORDER BY m.createTime desc ");
         com.bdaim.common.dto.Page page = customerUserDao.page(hql.toString(), values, start, pageSize);
+        logger.info("企业ID "+custId+"查询结果是"+page.toString());
         if (page.getData() != null && page.getData().size() > 0) {
             List<CustomerUser> customerUserList = page.getData();
             channelList = customerDao.getProperty(custId, "channel");
