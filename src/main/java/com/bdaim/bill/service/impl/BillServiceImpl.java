@@ -1120,7 +1120,7 @@ public class BillServiceImpl implements BillService {
                 totalPay = totalPay.add(pay);
             }
         }
-        totalIncomeAndExpenditure.put("totalPay", totalPay.toString());
+        totalIncomeAndExpenditure.put("totalPay", totalPay);
         //添加企业充值扣减(按月展示)
         String sql = "select type , SUM(amount)/100 consumeAmountsum from t_transaction_bill WHERE cust_id =?  AND type in (" + TransactionEnum.BALANCE_DEDUCTION.getType() + "," + TransactionEnum.BALANCE_RECHARGE.getType() + ") AND DATE_FORMAT(create_time, '%Y%m') like " + billDate + " GROUP BY type";
         List<Map<String, Object>> customerMoneyList = sourceDao.sqlQuery(sql, customerId);
@@ -1128,10 +1128,10 @@ public class BillServiceImpl implements BillService {
             customerBillList.addAll(customerMoneyList);
         }
         if (customerMoneyList != null && customerMoneyList.size() > 0) {
-            String totalIncome;
+            BigDecimal totalIncome;
             for (Map<String, Object> e : customerMoneyList) {
                 if ("1".equals(String.valueOf(e.get("type")))) {
-                    totalIncome = String.valueOf(e.get("consumeAmountsum"));
+                    totalIncome = new BigDecimal(String.valueOf(e.get("consumeAmountsum")));
                     totalIncomeAndExpenditure.put("totalIncome", totalIncome);
                 }
             }
