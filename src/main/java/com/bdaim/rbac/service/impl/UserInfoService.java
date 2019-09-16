@@ -299,7 +299,7 @@ public class UserInfoService {
         return map;
     }
 
-    
+
     public Map<String, Object> showCustIndustryPoolStatus(HttpServletRequest param) throws Exception {
         Map<String, Object> map = new HashMap<>();
         String customerId = param.getParameter("customerId");
@@ -314,7 +314,7 @@ public class UserInfoService {
                 "\tt1.`NAME` as industryPoolName,\n" +
                 "\tt1.industry_pool_id as industryPoolId,\n" +
                 "\tIFNULL(t7.industryName,'') as industryName,\n" +
-                "\t(case when t3.cust_id is NULL THEN 2 ELSE 1 END) as status\n" +
+                "\t(case when t3.status is NULL THEN 2 ELSE t3.status END) as status\n" +
                 "FROM\n" +
                 "\tt_industry_pool t1\n" +
                 "LEFT JOIN (\n" +
@@ -340,10 +340,10 @@ public class UserInfoService {
                 "\t\t) t6\n" +
                 "\tGROUP BY\n" +
                 "\t\tt6.industry_pool_id\n" +
-                ") t7 ON t7.industryPoolId = t1.industry_pool_id");
-        List list = userInfoDao.getSQLQuery(sql.toString()).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP).setFirstResult(pageNum).setMaxResults(pageSize).list();
+                ") t7 ON t7.industryPoolId = t1.industry_pool_id where t1.`STATUS`= 3 order by t1.create_time DESC, status ");
+        List list = userInfoDao.getSQLQuery(sql.toString()).list();
         map.put("total", list.size());
-        map.put("industryPoolStatusList", list);
+        map.put("industryPoolStatusList", userInfoDao.getSQLQuery(sql.toString()).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP).setFirstResult(pageNum).setMaxResults(pageSize).list());
         return map;
     }
 
