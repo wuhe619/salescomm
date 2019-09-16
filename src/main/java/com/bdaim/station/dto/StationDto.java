@@ -19,6 +19,24 @@ public class StationDto {
     private String operatorMobile;
     //0：新增  1 修改  2 修改状态
     private Integer optType;
+    private Integer pageNum;
+    private Integer pageSize;
+
+    public Integer getPageNum() {
+        return pageNum;
+    }
+
+    public void setPageNum(Integer pageNum) {
+        this.pageNum = pageNum;
+    }
+
+    public Integer getPageSize() {
+        return pageSize;
+    }
+
+    public void setPageSize(Integer pageSize) {
+        this.pageSize = pageSize;
+    }
 
     public Integer getOptType() {
         return optType;
