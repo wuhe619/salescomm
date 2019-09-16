@@ -319,6 +319,8 @@ public class BillServiceImpl implements BillService {
                         //对象转换
                         String logListSql = getBillType(billTypes[j], param.getBillDate(), param.getCustomerId(), param.getSupplierId(), param.getTransactionId(), param.getBatchId(), param.getEnterpriseName(), param.getStartTime(), param.getEndTime());
                         List<Map<String, Object>> billlist = jdbcTemplate.queryForList(logListSql);
+                        logger.info("查询SQL为 >>> " +logListSql);
+                        logger.info("查询结果为 >>> "+billlist);
                         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.S");
                         LocalDateTime localDateTime;
                         for (int i = 0; i < billlist.size(); i++) {
