@@ -1,5 +1,7 @@
 package com.bdaim.station.service;
 
+import com.bdaim.common.dto.Page;
+import com.bdaim.common.util.StringUtil;
 import com.bdaim.station.dao.StationDao;
 import com.bdaim.station.dto.StationDto;
 import com.bdaim.station.entity.Station;
@@ -47,5 +49,28 @@ public class StationService {
             station.setStatus(status);
             stationDao.saveOrUpdate(station);
         }
+    }
+
+    /**
+     * @description 获取场站信息列表
+     * @author:duanliying
+     * @method
+     * @date: 2019/9/16 16:03
+     */
+    public Page getStationList(StationDto stationDto) throws Exception {
+        StringBuffer querySql = new StringBuffer("SELECT * FROM h_station_info where 1=1 ");
+        if (StringUtil.isNotEmpty(stationDto.getProvince())) {
+            querySql.append(" and province ='" + stationDto.getProvince() + "'");
+        }
+        if (StringUtil.isNotEmpty(stationDto.getName())) {
+            querySql.append(" and name like '%" + stationDto.getName() + "%'");
+        }
+        if (StringUtil.isNotEmpty(stationDto.getStatus())) {
+            querySql.append(" and status =" + stationDto.getStatus());
+        }
+        if (stationDto.getId() != null) {
+            querySql.append(" and id =" + stationDto.getId());
+        }
+        return stationDao.sqlPageQuery(querySql.toString(), stationDto.getPageNum(), stationDto.getPageSize());
     }
 }
