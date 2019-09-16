@@ -1478,17 +1478,17 @@ public class CustomerService {
         CustomerDTO cd = new CustomerDTO(c);
         String picServerUrl = "";
         if (bliPic != null) {
-            cd.setBliPic(picServerUrl + "/upload/pic/" + bliPic.getPropertyValue());
+            cd.setBliPic(picServerUrl + "upload/pic/" + bliPic.getPropertyValue());
         } else {
             cd.setBliPic("");
         }
         if (taxPic != null) {
-            cd.setTaxPic(picServerUrl + "/upload/pic/" + taxPic.getPropertyValue());
+            cd.setTaxPic(picServerUrl + "upload/pic/" + taxPic.getPropertyValue());
         } else {
             cd.setTaxPic("");
         }
         if (bankAccountPic != null) {
-            cd.setBankAccountPic(picServerUrl + "/upload/pic/" + bankAccountPic.getPropertyValue());
+            cd.setBankAccountPic(picServerUrl + "upload/pic/" + bankAccountPic.getPropertyValue());
         } else {
             cd.setBankAccountPic("");
         }
