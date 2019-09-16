@@ -916,13 +916,12 @@ public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDao
      * @return
      */
     public Page sqlPageQuery0(String sql, int pageNum, int pageSize, final Object... values) {
-        if (pageNum <= 0) {
-            pageNum = 1;
+        if (pageNum < 0) {
+            pageNum = 0;
         }
         if (pageSize < 0 || pageSize > 100) {
             pageSize = 100;
         }
-        //pageNum = (pageNum - 1) * pageSize;
         int total = 0;
         Page p = new Page();
         StringBuilder totalSql = new StringBuilder();
