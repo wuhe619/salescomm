@@ -1076,7 +1076,7 @@ public class MarketProjectService {
                 }
             }
             sqlSb.append(" GROUP BY user_id ");
-            page = this.marketProjectDao.sqlPageQuery(sqlSb.toString(), userQueryParam.getPageNum(), userQueryParam.getPageSize(), startTime, endTime);
+            page = this.marketProjectDao.sqlPageQuery0(sqlSb.toString(), userQueryParam.getPageNum(), userQueryParam.getPageSize(), startTime, endTime);
 
             // 呼叫量,接通量,未通量, 成单量
             long calledSum = 0L, successSum = 0L;

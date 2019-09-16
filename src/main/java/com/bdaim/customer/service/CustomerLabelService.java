@@ -641,7 +641,7 @@ public class CustomerLabelService {
             sql.append("  ORDER BY t1.update_time DESC, t1.create_time DESC ");
             Page page = null;
             try {
-                page = customerDao.sqlPageQuery(sql.toString(), pageNum, pageSize);
+                page = customerDao.sqlPageQuery0(sql.toString(), pageNum, pageSize);
             } catch (Exception e) {
                 page = new Page();
             }
@@ -780,7 +780,7 @@ public class CustomerLabelService {
             sql.append("  ORDER BY t1.status, t1.create_time DESC, t1.sort ");
             Page page = null;
             try {
-                page = customerDao.sqlPageQuery(sql.toString(), pageNum, pageSize);
+                page = customerDao.sqlPageQuery0(sql.toString(), pageNum, pageSize);
             } catch (Exception e) {
                 page = new Page();
             }
@@ -951,7 +951,7 @@ public class CustomerLabelService {
             sql.append("  ORDER BY t1.status, t1.create_time DESC, t1.sort ");
             Page page = null;
             try {
-                page = customerDao.sqlPageQuery(sql.toString(), pageNum, pageSize);
+                page = customerDao.sqlPageQuery0(sql.toString(), pageNum, pageSize);
             } catch (Exception e) {
                 page = new Page();
             }

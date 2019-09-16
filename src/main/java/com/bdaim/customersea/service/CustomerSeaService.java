@@ -961,7 +961,7 @@ public class CustomerSeaService {
         }
         sb.append(" ORDER BY custG.create_time DESC ");
         try {
-            page = customerSeaDao.sqlPageQuery(sb.toString(), param.getPageNum(), param.getPageSize());
+            page = customerSeaDao.sqlPageQuery0(sb.toString(), param.getPageNum(), param.getPageSize());
         } catch (Exception e) {
             LOG.error("查询公海线索列表失败,", e);
             return new Page();
@@ -1865,7 +1865,7 @@ public class CustomerSeaService {
             appSql.append(" AND custG.super_data LIKE '" + likeValue + "' ");
         }
         // 分批处理
-        Page page = customerSeaDao.sqlPageQuery(sql.toString(), 0, 1);
+        Page page = customerSeaDao.sqlPageQuery0(sql.toString(), 0, 1);
         int status = page.getTotal();
         int size = 5000;
         LOG.info("开始批量更改跟进状态时间:" + LocalDateTime.now());
@@ -2650,7 +2650,7 @@ public class CustomerSeaService {
             sql.append(" AND user_id = '").append(userId).append("' ");
         }
         sql.append(" ORDER BY create_time DESC ");
-        Page page = customerSeaDao.sqlPageQuery(sql.toString(), pageNum, pageSize);
+        Page page = customerSeaDao.sqlPageQuery0(sql.toString(), pageNum, pageSize);
         if (page.getData() != null && page.getData().size() > 0) {
             Map<Object, Object> labelName = customerLabelService.getCustomAndSystemLabel(custId);
             LOG.info("labelName" + labelName);

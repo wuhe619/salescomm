@@ -833,7 +833,7 @@ public class MarketTaskService {
         LOG.info(sql.toString());
         Page page = null;
         try {
-            page = marketTaskDao.sqlPageQuery(sql.toString(), param.getPageNum(), param.getPageSize());
+            page = marketTaskDao.sqlPageQuery0(sql.toString(), param.getPageNum(), param.getPageSize());
         } catch (Exception e) {
             LOG.error("前台营销任务列表查询异常", e);
             page = new Page();
@@ -1202,7 +1202,7 @@ public class MarketTaskService {
 
         sb.append(" ORDER BY id ASC ");
         try {
-            page = marketTaskDao.sqlPageQuery(sb.toString(), pageNum, pageSize);
+            page = marketTaskDao.sqlPageQuery0(sb.toString(), pageNum, pageSize);
         } catch (Exception e) {
             LOG.error("查询任务详情列表失败,", e);
             return new Page();
@@ -2600,7 +2600,7 @@ public class MarketTaskService {
             // 呼叫量,接通量,未通量, 成单量
             long calledSum = 0L, successSum = 0L;
 
-            page = this.marketTaskDao.sqlPageQuery(sqlSb.toString(), userQueryParam.getPageNum(), userQueryParam.getPageSize(), startTime, endTime, marketTask.getCustomerGroupId(), marketTaskId);
+            page = this.marketTaskDao.sqlPageQuery0(sqlSb.toString(), userQueryParam.getPageNum(), userQueryParam.getPageSize(), startTime, endTime, marketTask.getCustomerGroupId(), marketTaskId);
             if (page.getData() != null && page.getData().size() > 0) {
                 Map<String, Object> m;
                 for (int i = 0; i < page.getData().size(); i++) {

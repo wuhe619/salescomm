@@ -1303,7 +1303,7 @@ public class CustomerUserService {
             sql.append(" AND id IN (SELECT user_id FROM t_customer_user_property WHERE property_name='touchType' AND property_value = '").append(touchType).append("')");
         }
         sql.append(" ORDER BY create_time DESC ");
-        Page page = customerUserDao.sqlPageQuery(sql.toString(), pageNum, pageSize, custId, 1);
+        Page page = customerUserDao.sqlPageQuery0(sql.toString(), pageNum, pageSize, custId, 1);
         if (page != null && page.getData() != null) {
             Map<String, Object> m;
             CustomerUserPropertyDO userProperty;

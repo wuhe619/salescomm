@@ -134,7 +134,7 @@ public class SettlementService {
             querySql += " AND property_value LIKE '%" + "\"settlementType\":" + settlementType + "%'";
         }
 
-        Page page = customerDao.sqlPageQuery(querySql, pageNum, pageSize);
+        Page page = customerDao.sqlPageQuery0(querySql, pageNum, pageSize);
         List<Map<String, Object>> productInfo = null;
         if (page != null && page.getData().size() > 0) {
             List<Map<String, Object>> data = page.getData();
@@ -234,7 +234,7 @@ public class SettlementService {
             querySql.append(" AND d.settlement_time = '" + settlementTime + "'");
         }
         querySql.append(" GROUP BY d.settlement_time");
-        Page page = dicDao.sqlPageQuery(querySql.toString(), pageNum, pageSize, settlementObj, type, objId);
+        Page page = dicDao.sqlPageQuery0(querySql.toString(), pageNum, pageSize, settlementObj, type, objId);
         List<Map<String, Object>> data = page.getData();
         if (data != null && data.size() > 0) {
             for (int j = 0; j < data.size(); j++) {
@@ -421,7 +421,7 @@ public class SettlementService {
             stringBuffer.append(" GROUP BY channel ORDER BY income DESC");
         }
 
-        page = dicDao.sqlPageQuery(stringBuffer.toString(), pageNum, pageSize);
+        page = dicDao.sqlPageQuery0(stringBuffer.toString(), pageNum, pageSize);
         if (page != null && page.getData().size() > 0) {
             List<Map<String, Object>> data = page.getData();
             for (int i = 0; i < data.size(); i++) {

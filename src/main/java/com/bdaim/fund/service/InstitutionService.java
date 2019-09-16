@@ -159,7 +159,7 @@ public class InstitutionService {
             }
             querySql.append(" AND c.source = 2 AND c. STATUS = 0 ");
             querySql.append(" GROUP BY c.cust_id ORDER BY successNum DESC,c.create_time DESC");
-            page = customerDao.sqlPageQuery(querySql.toString(), pageNum, pageSize);
+            page = customerDao.sqlPageQuery0(querySql.toString(), pageNum, pageSize);
             List<Map<String, Object>> data = page.getData();
             log.info("查询出信息是：" + data);
             if (data.size() > 0) {
@@ -216,7 +216,7 @@ public class InstitutionService {
             querySql.append(" AND product_type = '" + dicType + "' ) applyNum FROM t_customer c");
             querySql.append(" LEFT JOIN t_customer_property p ON c.cust_id = p.cust_id");
             querySql.append(" WHERE c.source = 2 AND c. STATUS = 0 GROUP BY c.cust_id ORDER BY applyNum DESC");
-            page = customerDao.sqlPageQuery(querySql.toString(), pageNum, pageSize);
+            page = customerDao.sqlPageQuery0(querySql.toString(), pageNum, pageSize);
             List<Map<String, Object>> data = page.getData();
             if (data.size() > 0) {
                 for (int i = 0; i < data.size(); i++) {
