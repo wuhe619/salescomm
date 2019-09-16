@@ -47,6 +47,8 @@ import com.bdaim.resource.dao.SourceDao;
 import com.bdaim.resource.dto.MarketResourceDTO;
 import com.bdaim.resource.entity.MarketResourceEntity;
 import com.bdaim.resource.entity.ResourcePropertyEntity;
+import com.bdaim.station.dao.StationDao;
+import com.bdaim.station.entity.Station;
 import com.bdaim.supplier.dao.SupplierDao;
 import com.bdaim.supplier.entity.SupplierEntity;
 import com.bdaim.supplier.service.SupplierService;
@@ -107,6 +109,8 @@ public class CustomerService {
     IndustryInfoDao industryInfoDao;
     @Resource
     BillDao billDao;
+    @Resource
+    StationDao stationDao;
     @Resource
     SupplierDao supplierDao;
     @Resource
@@ -301,6 +305,12 @@ public class CustomerService {
                 if (StringUtil.isNotEmpty(vo.getUserId())) {
                     customerUserDO = customerUserDao.findUniqueBy("id", Long.valueOf(vo.getUserId()));
                     customerUserDO.setRealname(vo.getRealName());
+                    if (StringUtil.isNotEmpty(vo.getName())) {
+                        customerUserDO.setAccount(vo.getName());
+                    }
+                    if (StringUtil.isNotEmpty(vo.getPassword())) {
+                        customerUserDO.setPassword(CipherUtil.generatePassword(vo.getPassword()));
+                    }
                 } else {
                     customerUserDO = new CustomerUser();
                     //1企业客户 2 操作员
@@ -460,7 +470,14 @@ public class CustomerService {
                         customerDao.dealCustomerInfo(customerId, "packager", vo.getPackager());
                     }
                 }
-
+                //场站信息
+                if (StringUtil.isNotEmpty(vo.getStationId())) {
+                    if (StringUtil.isNotEmpty(vo.getCustId())) {
+                        customerDao.dealCustomerInfo(vo.getCustId(), "station_id", vo.getStationId());
+                    } else {
+                        customerDao.dealCustomerInfo(customerId, "station_id", vo.getStationId());
+                    }
+                }
 
             } else if (vo.getDealType().equals("2")) {//冻结以及解冻
                 if (StringUtil.isNotEmpty(vo.getCustId())) {
@@ -601,7 +618,7 @@ public class CustomerService {
                 "cjc.industry,cjc.salePerson,cjc.contactAddress,\n" +
                 "cjc.province,cjc.city,cjc.fixPrice,cjc.county,cjc.taxpayerId,\n" +
                 "cjc.bli_path AS bliPic,\n" +
-                "cjc.bank,cjc.bankAccount,                 \n" +
+                "cjc.bank,cjc.bankAccount,cjc.stationId,\n" +
                 "cjc.bank_account_certificate AS bankAccountPic\n" +
                 "FROM t_customer t1\n" +
                 "LEFT JOIN t_customer_user t2   ON t1.cust_id = t2.cust_id \n" +
@@ -622,6 +639,7 @@ public class CustomerService {
                 "\tmax(CASE property_name WHEN 'bank'   THEN property_value ELSE '' END ) bank,\n" +
                 "\tmax(CASE property_name WHEN 'bank_account'   THEN property_value ELSE '' END ) bankAccount,\n" +
                 "\tmax(CASE property_name WHEN 'bank_account_certificate'   THEN property_value ELSE '' END ) bank_account_certificate,\n" +
+                "\tmax(CASE property_name WHEN 'station_id'   THEN property_value ELSE '' END ) stationId,\n" +
                 "\tmax(CASE property_name WHEN 'mobile_num'   THEN property_value ELSE '' END ) mobile_num\n" +
                 "   FROM t_customer_property p GROUP BY cust_id \n" +
                 ") cjc ON t1.cust_id = cjc.cust_id \n" +
@@ -637,6 +655,9 @@ public class CustomerService {
         }
         if (StringUtil.isNotEmpty(customerRegistDTO.getRealName())) {
             sqlBuilder.append(" AND t2.realname LIKE '%" + customerRegistDTO.getRealName() + "%'");
+        }
+        if (StringUtil.isNotEmpty(customerRegistDTO.getStationId())) {
+            sqlBuilder.append(" AND cjc.stationId =" + customerRegistDTO.getStationId());
         }
         if (StringUtil.isNotEmpty(customerRegistDTO.getSalePerson())) {
             sqlBuilder.append(" AND cjc.salePerson LIKE '%" + customerRegistDTO.getSalePerson() + "%'");
@@ -671,6 +692,16 @@ public class CustomerService {
                     String printer = userDao.getUserRealName(printerId);
                     list.get(i).put("printer", printer);
                     list.get(i).put("printerId", printerId);
+                }
+                //场站信息
+                if (StringUtil.isNotEmpty(String.valueOf(list.get(i).get("stationId")))) {
+                    logger.info("场站id是：" + list.get(i).get("stationId"));
+                    //根据id查询员工姓名
+                    Station station = stationDao.getStationById(NumberConvertUtil.parseInt(String.valueOf(list.get(i).get("stationId"))));
+                    list.get(i).put("stationName", "");
+                    if (station != null) {
+                        list.get(i).put("stationName", station.getName());
+                    }
                 }
             }
         }
@@ -1445,19 +1476,19 @@ public class CustomerService {
         CustomerProperty service_mode = customerDao.getProperty(custId, "service_mode");
 
         CustomerDTO cd = new CustomerDTO(c);
-        String picServerUrl = ConfigUtil.getInstance().get("pic_server_url");
+        String picServerUrl = "";
         if (bliPic != null) {
-            cd.setBliPic(picServerUrl + "/0/" + bliPic.getPropertyValue());
+            cd.setBliPic(picServerUrl + "upload/pic/" + bliPic.getPropertyValue());
         } else {
             cd.setBliPic("");
         }
         if (taxPic != null) {
-            cd.setTaxPic(picServerUrl + "/0/" + taxPic.getPropertyValue());
+            cd.setTaxPic(picServerUrl + "upload/pic/" + taxPic.getPropertyValue());
         } else {
             cd.setTaxPic("");
         }
         if (bankAccountPic != null) {
-            cd.setBankAccountPic(picServerUrl + "/0/" + bankAccountPic.getPropertyValue());
+            cd.setBankAccountPic(picServerUrl + "upload/pic/" + bankAccountPic.getPropertyValue());
         } else {
             cd.setBankAccountPic("");
         }
@@ -2324,7 +2355,7 @@ public class CustomerService {
     public Map<String, Object> selectCustomerPriceAndSupplierList(String custId, String callType) throws Exception {
         Map<String, Object> result = new HashMap<>();
         CustomerPriceConfigDTO customerPriceConfigDTO = selectCustomerPriceDetail(custId);
-        Set<Long> resourceIds = new HashSet<>();
+        Set<Integer> resourceIds = new HashSet<>();
         if (customerPriceConfigDTO != null) {
             // 处理通话资源
             if (StringUtil.isNotEmpty(customerPriceConfigDTO.getCallConfig())) {
@@ -2346,7 +2377,7 @@ public class CustomerService {
                         marketResource = marketResourceDao.get(callConfig.getInteger("resourceId"));
                     }
                     callConfig.put("resourceName", marketResource != null ? marketResource.getResname() : "");
-                    resourceIds.add(callConfig.getLong("resourceId"));
+                    resourceIds.add(callConfig.getInteger("resourceId"));
                     // 处理供应商名称
                     if (callConfig.get("supplierId") != null) {
                         supplierDO = supplierDao.get(callConfig.getInteger("supplierId"));
@@ -2364,7 +2395,7 @@ public class CustomerService {
                 JSONObject jsonObject = null;
                 for (int i = 0; i < jsonArray.size(); i++) {
                     jsonObject = jsonArray.getJSONObject(i);
-                    resourceIds.add(jsonArray.getJSONObject(i).getLong("resourceId"));
+                    resourceIds.add(jsonArray.getJSONObject(i).getInteger("resourceId"));
                     // 处理资源名称
                     if (jsonObject.get("resourceId") != null) {
                         marketResource = marketResourceDao.get(jsonObject.getInteger("resourceId"));
@@ -2386,7 +2417,7 @@ public class CustomerService {
                 JSONObject jsonObject = null;
                 for (int i = 0; i < jsonArray.size(); i++) {
                     jsonObject = jsonArray.getJSONObject(i);
-                    resourceIds.add(jsonArray.getJSONObject(i).getLong("resourceId"));
+                    resourceIds.add(jsonArray.getJSONObject(i).getInteger("resourceId"));
                     // 处理资源名称
                     if (jsonObject.get("resourceId") != null) {
                         marketResource = marketResourceDao.get(jsonObject.getInteger("resourceId"));

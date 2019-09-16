@@ -1388,7 +1388,7 @@ public class MarketTaskService {
      */
     public Boolean isValidAccount(LoginUser lu, String marketTaskId) throws Exception {
         boolean has_remain = marketResourceService.judRemainAmount(lu.getCustId());
-        if (!has_remain) {
+        if (!has_remain && "2".equals(lu.getUserType())) {
             throw new TouchException("余额不足");
         }
         if ("2".equals(lu.getUserType())) {
@@ -1966,6 +1966,7 @@ public class MarketTaskService {
             if (StringUtil.isNotEmpty(s)) {
                 msg.put("msg", "请稍后重试");
                 msg.put("data", voiceExportTime);
+                LOG.warn("导出营销任务:{}录音请稍后重试,", marketTaskId);
                 outputStream.write(JSON.toJSONString(msg).getBytes("UTF-8"));
                 return;
             }
@@ -1975,6 +1976,7 @@ public class MarketTaskService {
                 msg.put("msg", "未查询到该营销任务:" + marketTaskId);
                 msg.put("data", voiceExportTime);
                 outputStream.write(JSON.toJSONString(msg).getBytes("UTF-8"));
+                LOG.warn("未查询到该营销任务:{},", marketTaskId);
                 return;
             }
             int customerGroupId = cg.getCustomerGroupId();
@@ -1988,6 +1990,7 @@ public class MarketTaskService {
                 msg.put("data", voiceExportTime);
                 outputStream.write(JSON.toJSONString(msg).getBytes("UTF-8"));
                 redisUtil.del(key);
+                LOG.warn("导出营销任务:{}录音请稍后重试,", marketTaskId);
                 return;
             }
             voiceExportTime = System.currentTimeMillis();
@@ -1998,13 +2001,12 @@ public class MarketTaskService {
                 if (customGroup != null && customGroup.getMarketProjectId() != null) {
                     marketProjectId = customGroup.getMarketProjectId();
                 }
-                List<Map<String, Object>> labelNames = marketTaskDao.sqlQuery("SELECT label_name, label_id, type FROM t_customer_label WHERE status = 1 AND cust_id = ? AND (market_project_id = 0 OR market_project_id is null OR market_project_id =?) ", custId, marketProjectId);
-                for (Map<String, Object> map : labelNames) {
-                    if (map == null || map.get("label_name") == null) {
-                        continue;
-                    }
-                    if (invitationLabelName.equals(String.valueOf(map.get("label_name")))) {
-                        invitationLabelId = String.valueOf(map.get("label_id"));
+                LOG.info("导出营销任务:{}开始查询自建属性,", marketTaskId);
+                List<CustomerLabelDTO> labels = customerLabelDao.listLabelIds(custId, marketProjectId, true);
+                LOG.info("导出营销任务:{}自建属性:{},", JSON.toJSONString(labels));
+                for (CustomerLabelDTO dto : labels) {
+                    if (StringUtil.isNotEmpty(invitationLabelName) && invitationLabelName.equals(dto.getLabelName())) {
+                        invitationLabelId = String.valueOf(dto.getLabelId());
                         break;
                     }
                 }
@@ -2016,6 +2018,7 @@ public class MarketTaskService {
                 msg.put("data", voiceExportTime);
                 outputStream.write(JSON.toJSONString(msg).getBytes("UTF-8"));
                 redisUtil.del(key);
+                LOG.warn("导出营销任务:{}未查询满足条件的自建属性,", marketTaskId);
                 return;
             }
 
@@ -2066,6 +2069,7 @@ public class MarketTaskService {
                 msg.put("msg", "营销任务下无满足条件的数据,Id:" + marketTaskId);
                 msg.put("data", String.valueOf(voiceExportTime));
                 outputStream.write(JSON.toJSONString(msg).getBytes("UTF-8"));
+                LOG.warn("导出营销任务:{}营销任务下无满足条件的数据,", marketTaskId);
                 return;
             }
         } catch (Exception e) {

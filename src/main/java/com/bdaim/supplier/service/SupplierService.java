@@ -126,7 +126,7 @@ public class SupplierService {
                 if (remainAmount != null) {
                     list.get(i).put("remainAmount", NumberConvertUtil.transformtionElement(remainAmount.getPropertyValue()));
                     log.info("供应商余额是：" + NumberConvertUtil.transformtionElement(remainAmount.getPropertyValue()));
-                }else{
+                } else {
                     list.get(i).put("remainAmount", 0);
 
                 }
@@ -1011,15 +1011,20 @@ public class SupplierService {
         List<MarketResourceDTO> callCenter = new ArrayList<>();
         List<MarketResourceDTO> robot = new ArrayList<>();
         MarketResourceDTO dto;
+        Set<Integer> resourceIds = new HashSet<>();
         if (voiceCustomerProperty != null && StringUtil.isNotEmpty(voiceCustomerProperty.getPropertyValue())) {
             String config = voiceCustomerProperty.getPropertyValue();
             if (config.startsWith("[")) {
                 JSONArray array = JSON.parseArray(config);
                 for (int i = 0; i < array.size(); i++) {
                     JSONObject json = array.getJSONObject(i);
+                    if (resourceIds.contains(json.getInteger("resourceId"))) {
+                        continue;
+                    }
                     if (json.containsKey("status") && json.getInteger("status") == 1) {
                         dto = buildCallConfig(json);
                         list.add(dto);
+                        resourceIds.add(dto.getResourceId());
                     }
                 }
             } else if (config.startsWith("{")) {
@@ -1081,6 +1086,9 @@ public class SupplierService {
             MarketResourceDTO dto = new MarketResourceDTO();
             dto.setResourceId(resourceId);
             MarketResourceEntity resource = marketResourceDao.get(resourceId);
+            if (resource == null) {
+                return dto;
+            }
             dto.setResname(resource.getResname());
             dto.setSupplierId(resource.getSupplierId());
             dto.setChargingType(json.getInteger("type"));

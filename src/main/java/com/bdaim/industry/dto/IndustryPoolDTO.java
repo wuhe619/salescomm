@@ -3,9 +3,9 @@ package com.bdaim.industry.dto;
 import org.springframework.jdbc.core.RowMapper;
 
 import java.io.Serializable;
-import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 
 public class IndustryPoolDTO implements RowMapper<IndustryPoolDTO>, Serializable{
 
@@ -21,7 +21,7 @@ public class IndustryPoolDTO implements RowMapper<IndustryPoolDTO>, Serializable
 	    
 	    private String creator;
 	    
-	    private Date createTime;
+	    private Timestamp createTime;
 		  
 	
 
@@ -83,21 +83,15 @@ public class IndustryPoolDTO implements RowMapper<IndustryPoolDTO>, Serializable
 			this.creator = creator;
 		}
 
+	public Timestamp getCreateTime() {
+		return createTime;
+	}
 
+	public void setCreateTime(Timestamp createTime) {
+		this.createTime = createTime;
+	}
 
-		public Date getCreateTime() {
-			return createTime;
-		}
-
-
-
-		public void setCreateTime(Date createTime) {
-			this.createTime = createTime;
-		}
-
-
-
-		public static long getSerialversionuid() {
+	public static long getSerialversionuid() {
 			return serialVersionUID;
 		}
 
@@ -111,7 +105,7 @@ public class IndustryPoolDTO implements RowMapper<IndustryPoolDTO>, Serializable
 	    	industryPool.setStatus(rs.getInt("status"));
 	    	industryPool.setDescription(rs.getString("description")); 
 	    	industryPool.setCreator(rs.getString("creator"));
-	    	industryPool.setCreateTime(rs.getDate("createTime"));
+	    	industryPool.setCreateTime(rs.getTimestamp("createTime"));
 	        return industryPool;  
 	    } 
 

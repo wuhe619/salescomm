@@ -416,8 +416,7 @@ public class CustomerUserService {
                 seatMonthDeduction(custId, "", userDTO.getId());
             }
         } catch (Exception e) {
-            e.printStackTrace();
-            logger.error("保存操作员出错:" + e);
+            logger.error("保存操作员出错:", e);
             if ("1".equals(userDTO.getAddAgentMethod())) {
                 try {
                     delAgent(custId, userDTO.getSeatsAccount());

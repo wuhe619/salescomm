@@ -885,7 +885,7 @@ public class CustomerLabelService {
         }
 
         if (StringUtil.isNotEmpty(projectId)) {
-            sql.append(" AND t1.market_project_id ='" + projectId + "'");
+            sql.append(" AND (t1.market_project_id ='" + projectId + "' OR t1.market_project_id = 0 OR t1.market_project_id is null) ");
         }
         // 属性名称检索
         if (StringUtil.isNotEmpty(labelName)) {
@@ -904,10 +904,14 @@ public class CustomerLabelService {
             //sql.append(" GROUP BY t1.label_id");
             sql.append(" ORDER BY t1.sort IS NULL, t1.sort, t1.label_name ");
             list = this.customerDao.sqlQuery(sql.toString());
+            List<Map<String, Object>> result = new ArrayList<>();
             if (list != null && list.size() > 0) {
                 for (Map<String, Object> key : list) {
                     // 如果编辑时间为空则取创建时间
                     if (key != null) {
+                        if ("SYS007".equals(String.valueOf(key.get("label_id")))) {
+                           continue;
+                        }
                         // 处理默认自建属性
                         if (key.get("cust_id") != null && "0".equals(String.valueOf(key.get("cust_id")))) {
                             key.put("defaultLabel", 1);
@@ -923,10 +927,11 @@ public class CustomerLabelService {
                         if (ConstantsUtil.SUCCESS_SYS_LABEL_ID.equals(String.valueOf(key.get("label_id"))) || ConstantsUtil.SUCCESS_SYS_LABEL_NAME.equals(String.valueOf(key.get("label_name")))) {
                             key.put("sysLabelId", ConstantsUtil.SUCCESS_SYS_LABEL_ID);
                         }
+                        result.add(key);
                     }
                 }
             }
-            map.put("custGroupOrders", staticCustomerLabels(list, false));
+            map.put("custGroupOrders", staticCustomerLabels(result, false));
             json.put("staffJson", map);
         } else {
             StringBuffer maxSortSql = new StringBuffer();

@@ -599,13 +599,6 @@ public class CustomerSeaService {
                                         param.getCallSpeed(), param.getCallCount(), LocalDateTime.now().toEpochSecond(ZoneOffset.of("+8")),
                                         LocalDateTime.now().plusMonths(360).toEpochSecond(ZoneOffset.of("+8")), ConstantsUtil.XZ_SEA_AUTO_TASK_PHONE_URL);
                                 if (jsonObject != null) {
-                                    // 通过接口开启自动外呼任务
-                                    try {
-                                        JSONObject startResult = XzCallCenterUtil.startAutoTask(xzCallCenterId, jsonObject.getString("taskidentity"));
-                                        LOG.info("公海开启讯众自动外呼任务返回结果:" + startResult);
-                                    } catch (Exception e) {
-                                        LOG.error("公海开启讯众自动外呼任务失败", e);
-                                    }
                                     customerSea.setTaskId(jsonObject.getString("taskidentity"));
                                     customerSeaDao.update(customerSea);
                                     // 保存营销任务讯众呼叫中心配置信息
@@ -618,6 +611,13 @@ public class CustomerSeaService {
                                             List<String> groupIds = Arrays.asList(mp.getPropertyValue().split(","));
                                             int code = saveXzAutoMember(customerSea.getMarketProjectId(), customerSea.getCustId(), groupIds);
                                             LOG.info("编辑公海处理项目执行组成员,项目ID[" + customerSea.getMarketProjectId() + "]更改状态成功,status:" + code);
+                                            // 通过接口开启自动外呼任务
+                                            try {
+                                                JSONObject startResult = XzCallCenterUtil.startAutoTask(xzCallCenterId, jsonObject.getString("taskidentity"));
+                                                LOG.info("公海开启讯众自动外呼任务返回结果:" + startResult);
+                                            } catch (Exception e) {
+                                                LOG.error("公海开启讯众自动外呼任务失败", e);
+                                            }
                                         }
                                     } catch (Exception e) {
                                         LOG.error("异步处理项目执行组成员异常,", e);
@@ -680,7 +680,7 @@ public class CustomerSeaService {
             CustomerUser user;
             List<CustomerSeaProperty> properties;
             List<Map<String, Object>> stat;
-            String statSql = "SELECT COUNT(0) sumCount,IFNULL(COUNT(super_data like ''%\"SYS007\":\"未跟进\"%'' OR null),0) AS noFollowSum, IFNULL(COUNT(`status` = 1 OR null),0) AS clueSurplusSum, IFNULL(COUNT(`call_fail_count` >= 1 OR null),0) AS failCallSum FROM " + ConstantsUtil.SEA_TABLE_PREFIX + "{0} WHERE 1=1 ";
+            String statSql = "SELECT COUNT(status=0 OR null) sumCount,IFNULL(COUNT(super_data like ''%\"SYS007\":\"未跟进\"%'' AND status = 0 OR null),0) AS noFollowSum, IFNULL(COUNT(`status` = 1 OR null),0) AS clueSurplusSum, IFNULL(COUNT(`call_fail_count` >= 1 OR null),0) AS failCallSum FROM " + ConstantsUtil.SEA_TABLE_PREFIX + "{0} WHERE 1=1 ";
             MarketProjectProperty executionGroup;
             StringBuilder userGroupName;
             CustomerUserGroup customerUserGroup;
