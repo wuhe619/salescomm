@@ -2324,7 +2324,7 @@ public class CustomerService {
     public Map<String, Object> selectCustomerPriceAndSupplierList(String custId, String callType) throws Exception {
         Map<String, Object> result = new HashMap<>();
         CustomerPriceConfigDTO customerPriceConfigDTO = selectCustomerPriceDetail(custId);
-        Set<Long> resourceIds = new HashSet<>();
+        Set<Integer> resourceIds = new HashSet<>();
         if (customerPriceConfigDTO != null) {
             // 处理通话资源
             if (StringUtil.isNotEmpty(customerPriceConfigDTO.getCallConfig())) {
@@ -2346,7 +2346,7 @@ public class CustomerService {
                         marketResource = marketResourceDao.get(callConfig.getInteger("resourceId"));
                     }
                     callConfig.put("resourceName", marketResource != null ? marketResource.getResname() : "");
-                    resourceIds.add(callConfig.getLong("resourceId"));
+                    resourceIds.add(callConfig.getInteger("resourceId"));
                     // 处理供应商名称
                     if (callConfig.get("supplierId") != null) {
                         supplierDO = supplierDao.get(callConfig.getInteger("supplierId"));
@@ -2364,7 +2364,7 @@ public class CustomerService {
                 JSONObject jsonObject = null;
                 for (int i = 0; i < jsonArray.size(); i++) {
                     jsonObject = jsonArray.getJSONObject(i);
-                    resourceIds.add(jsonArray.getJSONObject(i).getLong("resourceId"));
+                    resourceIds.add(jsonArray.getJSONObject(i).getInteger("resourceId"));
                     // 处理资源名称
                     if (jsonObject.get("resourceId") != null) {
                         marketResource = marketResourceDao.get(jsonObject.getInteger("resourceId"));
@@ -2386,7 +2386,7 @@ public class CustomerService {
                 JSONObject jsonObject = null;
                 for (int i = 0; i < jsonArray.size(); i++) {
                     jsonObject = jsonArray.getJSONObject(i);
-                    resourceIds.add(jsonArray.getJSONObject(i).getLong("resourceId"));
+                    resourceIds.add(jsonArray.getJSONObject(i).getInteger("resourceId"));
                     // 处理资源名称
                     if (jsonObject.get("resourceId") != null) {
                         marketResource = marketResourceDao.get(jsonObject.getInteger("resourceId"));
