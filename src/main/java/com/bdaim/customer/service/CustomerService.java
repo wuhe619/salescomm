@@ -47,6 +47,8 @@ import com.bdaim.resource.dao.SourceDao;
 import com.bdaim.resource.dto.MarketResourceDTO;
 import com.bdaim.resource.entity.MarketResourceEntity;
 import com.bdaim.resource.entity.ResourcePropertyEntity;
+import com.bdaim.station.dao.StationDao;
+import com.bdaim.station.entity.Station;
 import com.bdaim.supplier.dao.SupplierDao;
 import com.bdaim.supplier.entity.SupplierEntity;
 import com.bdaim.supplier.service.SupplierService;
@@ -107,6 +109,8 @@ public class CustomerService {
     IndustryInfoDao industryInfoDao;
     @Resource
     BillDao billDao;
+    @Resource
+    StationDao stationDao;
     @Resource
     SupplierDao supplierDao;
     @Resource
@@ -614,7 +618,7 @@ public class CustomerService {
                 "cjc.industry,cjc.salePerson,cjc.contactAddress,\n" +
                 "cjc.province,cjc.city,cjc.fixPrice,cjc.county,cjc.taxpayerId,\n" +
                 "cjc.bli_path AS bliPic,\n" +
-                "cjc.bank,cjc.bankAccount,                 \n" +
+                "cjc.bank,cjc.bankAccount,cjc.stationId,\n" +
                 "cjc.bank_account_certificate AS bankAccountPic\n" +
                 "FROM t_customer t1\n" +
                 "LEFT JOIN t_customer_user t2   ON t1.cust_id = t2.cust_id \n" +
@@ -635,6 +639,7 @@ public class CustomerService {
                 "\tmax(CASE property_name WHEN 'bank'   THEN property_value ELSE '' END ) bank,\n" +
                 "\tmax(CASE property_name WHEN 'bank_account'   THEN property_value ELSE '' END ) bankAccount,\n" +
                 "\tmax(CASE property_name WHEN 'bank_account_certificate'   THEN property_value ELSE '' END ) bank_account_certificate,\n" +
+                "\tmax(CASE property_name WHEN 'station_id'   THEN property_value ELSE '' END ) stationId,\n" +
                 "\tmax(CASE property_name WHEN 'mobile_num'   THEN property_value ELSE '' END ) mobile_num\n" +
                 "   FROM t_customer_property p GROUP BY cust_id \n" +
                 ") cjc ON t1.cust_id = cjc.cust_id \n" +
@@ -650,6 +655,9 @@ public class CustomerService {
         }
         if (StringUtil.isNotEmpty(customerRegistDTO.getRealName())) {
             sqlBuilder.append(" AND t2.realname LIKE '%" + customerRegistDTO.getRealName() + "%'");
+        }
+        if (StringUtil.isNotEmpty(customerRegistDTO.getStationId())) {
+            sqlBuilder.append(" AND cjc.stationId =" + customerRegistDTO.getStationId());
         }
         if (StringUtil.isNotEmpty(customerRegistDTO.getSalePerson())) {
             sqlBuilder.append(" AND cjc.salePerson LIKE '%" + customerRegistDTO.getSalePerson() + "%'");
@@ -684,6 +692,16 @@ public class CustomerService {
                     String printer = userDao.getUserRealName(printerId);
                     list.get(i).put("printer", printer);
                     list.get(i).put("printerId", printerId);
+                }
+                //场站信息
+                if (StringUtil.isNotEmpty(String.valueOf(list.get(i).get("stationId")))) {
+                    logger.info("场站id是：" + list.get(i).get("stationId"));
+                    //根据id查询员工姓名
+                    Station station = stationDao.getStationById(NumberConvertUtil.parseInt(String.valueOf(list.get(i).get("stationId"))));
+                    list.get(i).put("stationName", "");
+                    if (station != null) {
+                        list.get(i).put("stationName", station.getName());
+                    }
                 }
             }
         }
