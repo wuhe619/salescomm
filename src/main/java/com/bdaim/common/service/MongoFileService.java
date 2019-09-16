@@ -4,7 +4,6 @@ import com.mongodb.client.gridfs.GridFSBucket;
 import com.mongodb.client.gridfs.GridFSBuckets;
 import com.mongodb.client.gridfs.GridFSDownloadStream;
 import com.mongodb.client.gridfs.model.GridFSFile;
-import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -17,8 +16,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * @author chengning@salescomm.net
@@ -47,14 +44,15 @@ public class MongoFileService {
      * @param file
      */
     public String saveFile(MultipartFile file, String fileName) throws IOException {
-        String filename = file.getOriginalFilename();
+       /* String filename = file.getOriginalFilename();
         String type = filename.substring(filename.lastIndexOf("."), filename.length());
         Map<String, Object> metadata = new HashMap<>();
         metadata.put("_contentType", file.getContentType());
         metadata.put("resFileName", filename);
         metadata.put("resFileType", type);
         ObjectId id = gridfsTemplate.store(file.getInputStream(), fileName, metadata);
-        return id.toString();
+        return id.toString();*/
+        return "";
     }
 
     /**
@@ -68,6 +66,7 @@ public class MongoFileService {
 
     /**
      * 下载文件
+     *
      * @param fileName
      * @return
      * @throws Exception
@@ -76,7 +75,7 @@ public class MongoFileService {
         Query query = new Query();
         query.addCriteria(Criteria.where("filename").is(fileName));
         GridFSFile gridFSFile = gridfsTemplate.findOne(query);
-        if(gridFSFile==null){
+        if (gridFSFile == null) {
             return new byte[]{};
         }
         GridFSBucket bucket = GridFSBuckets.create(mongoDbFactory.getDb());
