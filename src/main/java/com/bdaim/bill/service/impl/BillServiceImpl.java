@@ -1139,6 +1139,7 @@ public class BillServiceImpl implements BillService {
         resultMap.put("customerMessage", headerData);
         resultMap.put("billMessage", customerBillList);
         resultMap.put("total", customerBillList.size());
+        resultMap.put("totalMoneyInfo", totalIncomeAndExpenditure);
         return resultMap;
     }
 
