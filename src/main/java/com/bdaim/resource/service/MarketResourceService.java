@@ -4186,7 +4186,7 @@ public class MarketResourceService {
                 sb.append(" AND voicLog.customer_sea_id = '" + seaId + "'");
             }
             sb.append(" order by voicLog.create_time DESC");
-            page = this.marketResourceDao.sqlPageQuery(sb.toString(), userQueryParam.getPageNum(), userQueryParam.getPageSize());
+            page = this.marketResourceDao.sqlPageQuery0(sb.toString(), userQueryParam.getPageNum(), userQueryParam.getPageSize());
             CustomerUser customerUser;
             if (page.getData() != null && page.getData().size() > 0) {
                 //处理用户信息和录音文件
@@ -4402,7 +4402,7 @@ public class MarketResourceService {
                 sql += " ORDER BY m.account ASC ";
             }
         }
-        page = marketResourceDao.sqlPageQuery(sql, pageNum, pageSize, null);
+        page = marketResourceDao.sqlPageQuery0(sql, pageNum, pageSize, null);
         if (page.getData() != null) {
             for (int i = 0; i < page.getData().size(); i++) {
                 Map u = (Map) page.getData().get(i);
@@ -6007,7 +6007,7 @@ public class MarketResourceService {
         sb.append(" ORDER BY sms.create_time DESC ");
         com.bdaim.common.dto.Page page = null;
         try {
-            page = this.marketResourceDao.sqlPageQuery(sb.toString(), pageNum, pageSize);
+            page = this.marketResourceDao.sqlPageQuery0(sb.toString(), pageNum, pageSize);
         } catch (Exception e) {
             LOG.error("查询短信营销记录失败,", e);
             page = new com.bdaim.common.dto.Page();
@@ -6790,7 +6790,7 @@ public class MarketResourceService {
         }
         com.bdaim.common.dto.Page page = null;
         try {
-            page = this.marketResourceDao.sqlPageQuery(sql.toString(), pageNum, pageSize, touch_id);
+            page = this.marketResourceDao.sqlPageQuery0(sql.toString(), pageNum, pageSize, touch_id);
         } catch (Exception e) {
             page = new com.bdaim.common.dto.Page();
             LOG.error("查询短信详细发送内容失败,", e);

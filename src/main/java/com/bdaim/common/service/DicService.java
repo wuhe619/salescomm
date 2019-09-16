@@ -312,7 +312,7 @@ public class DicService {
                 sql += " AND a.status=" + searchPropertyDto.getStatus();
             }
             sql += " ORDER BY a.create_time DESC ";
-            page = dicDao.sqlPageQuery(sql, pageNum, pageSize);
+            page = dicDao.sqlPageQuery0(sql, pageNum, pageSize);
         } catch (Exception e) {
             logger.error("查询渠道列表异常,", e);
         }
@@ -339,7 +339,7 @@ public class DicService {
                 sql += " AND a.status=" + searchPropertyDto.getStatus();
             }
             sql += " ORDER BY a.create_time DESC ";
-            page = dicDao.sqlPageQuery(sql, pageNum, pageSize);
+            page = dicDao.sqlPageQuery0(sql, pageNum, pageSize);
             if (page != null && page.getData() != null) {
                 Map<String, Object> m;
                 DicProperty property;
@@ -416,7 +416,7 @@ public class DicService {
                 sql += " AND a.status=" + dto.getStatus();
             }
             sql += " ORDER BY a.create_time DESC ";
-            page = dicDao.sqlPageQuery(sql, pageNum, pageSize);
+            page = dicDao.sqlPageQuery0(sql, pageNum, pageSize);
             if (page != null) {
                 List<Map<String, Object>> data = null;
                 String statSql = "SELECT IFNULL(SUM(regedit_num),0) regeditNum, IFNULL(SUM(firstget_num),0) firstgetNum, IFNULL(SUM(active_num),0) activeNum," +
@@ -558,7 +558,7 @@ public class DicService {
             if (dto.getAdPlatform() != null) {
                 sql += " AND a.id in (SELECT dic_id FROM t_dic_property where dic_prop_value = '" + dto.getAdPlatform() + "' AND dic_prop_key='platform')";
             }
-            page = dicDao.sqlPageQuery(sql, pageNum, pageSize);
+            page = dicDao.sqlPageQuery0(sql, pageNum, pageSize);
         } catch (Exception e) {
             logger.error("查询广告位列表异常,", e);
         }
@@ -1492,7 +1492,7 @@ public class DicService {
         } else {
             querySql.append(" GROUP BY product_id ORDER BY count DESC");
         }
-        Page page = dicDao.sqlPageQuery(querySql.toString(), pageNum, pageSize);
+        Page page = dicDao.sqlPageQuery0(querySql.toString(), pageNum, pageSize);
         //查询的是用户足迹信息
         if (page != null && page.getData() != null) {
             Map<String, Object> m;
@@ -1568,7 +1568,7 @@ public class DicService {
         }
         stringBuffer.append(" ORDER BY apply_time DESC ");
         logger.info("检索sql是：" + stringBuffer.toString());
-        Page page = dicDao.sqlPageQuery(stringBuffer.toString(), pageNum, pageSize);
+        Page page = dicDao.sqlPageQuery0(stringBuffer.toString(), pageNum, pageSize);
         if (page != null && page.getData().size() > 0) {
             List<Map<String, Object>> data = page.getData();
             List<DicProperty> propertyList;

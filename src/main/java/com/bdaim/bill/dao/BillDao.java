@@ -294,7 +294,7 @@ public class BillDao extends SimpleHibernateDao {
             sql.append(" AND t.transaction_id = '").append(orderNo).append("'");
         }
         sql.append(" ORDER BY t.create_time DESC ");
-        Page page = this.sqlPageQuery(sql.toString(), pageNum, pageSize, type, startTime, endTime);
+        Page page = this.sqlPageQuery0(sql.toString(), pageNum, pageSize, type, startTime, endTime);
         return page;
     }
 
@@ -376,7 +376,7 @@ public class BillDao extends SimpleHibernateDao {
             sql.append(" AND t.touch_id = '").append(orderNo).append("'");
         }
         sql.append(" ORDER BY t.create_time DESC ");
-        Page page = this.sqlPageQuery(sql.toString(), pageNum, pageSize, startTime, endTime);
+        Page page = this.sqlPageQuery0(sql.toString(), pageNum, pageSize, startTime, endTime);
         return page;
     }
 
@@ -455,7 +455,7 @@ public class BillDao extends SimpleHibernateDao {
             sql.append(" AND t.touch_id = '").append(orderNo).append("'");
         }
         sql.append(" ORDER BY t.create_time DESC ");
-        Page page = this.sqlPageQuery(sql.toString(), pageNum, pageSize, startTime, endTime);
+        Page page = this.sqlPageQuery0(sql.toString(), pageNum, pageSize, startTime, endTime);
         return page;
     }
 
@@ -533,7 +533,7 @@ public class BillDao extends SimpleHibernateDao {
             sql.append(" AND t.order_id = '").append(orderNo).append("'");
         }
         sql.append(" ORDER BY t.create_time DESC");
-        Page page = this.sqlPageQuery(sql.toString(), pageNum, pageSize, startTime, endTime);
+        Page page = this.sqlPageQuery0(sql.toString(), pageNum, pageSize, startTime, endTime);
         return page;
     }
 
