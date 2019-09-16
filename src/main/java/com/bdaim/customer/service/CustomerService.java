@@ -1476,19 +1476,19 @@ public class CustomerService {
         CustomerProperty service_mode = customerDao.getProperty(custId, "service_mode");
 
         CustomerDTO cd = new CustomerDTO(c);
-        String picServerUrl = ConfigUtil.getInstance().get("pic_server_url");
+        String picServerUrl = "";
         if (bliPic != null) {
-            cd.setBliPic(picServerUrl + "/0/" + bliPic.getPropertyValue());
+            cd.setBliPic(picServerUrl + "/upload/pic/" + bliPic.getPropertyValue());
         } else {
             cd.setBliPic("");
         }
         if (taxPic != null) {
-            cd.setTaxPic(picServerUrl + "/0/" + taxPic.getPropertyValue());
+            cd.setTaxPic(picServerUrl + "/upload/pic/" + taxPic.getPropertyValue());
         } else {
             cd.setTaxPic("");
         }
         if (bankAccountPic != null) {
-            cd.setBankAccountPic(picServerUrl + "/0/" + bankAccountPic.getPropertyValue());
+            cd.setBankAccountPic(picServerUrl + "/upload/pic/" + bankAccountPic.getPropertyValue());
         } else {
             cd.setBankAccountPic("");
         }
