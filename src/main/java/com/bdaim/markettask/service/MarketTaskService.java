@@ -2001,13 +2001,12 @@ public class MarketTaskService {
                 if (customGroup != null && customGroup.getMarketProjectId() != null) {
                     marketProjectId = customGroup.getMarketProjectId();
                 }
-                List<Map<String, Object>> labelNames = marketTaskDao.sqlQuery("SELECT label_name, label_id, type FROM t_customer_label WHERE status = 1 AND cust_id = ? AND (market_project_id = 0 OR market_project_id is null OR market_project_id =?) ", custId, marketProjectId);
-                for (Map<String, Object> map : labelNames) {
-                    if (map == null || map.get("label_name") == null) {
-                        continue;
-                    }
-                    if (invitationLabelName.equals(String.valueOf(map.get("label_name")))) {
-                        invitationLabelId = String.valueOf(map.get("label_id"));
+                LOG.info("导出营销任务:{}开始查询自建属性,", marketTaskId);
+                List<CustomerLabelDTO> labels = customerLabelDao.listLabelIds(custId, marketProjectId, true);
+                LOG.info("导出营销任务:{}自建属性:{},", JSON.toJSONString(labels));
+                for (CustomerLabelDTO dto : labels) {
+                    if (StringUtil.isNotEmpty(invitationLabelName) && invitationLabelName.equals(dto.getLabelName())) {
+                        invitationLabelId = String.valueOf(dto.getLabelId());
                         break;
                     }
                 }
