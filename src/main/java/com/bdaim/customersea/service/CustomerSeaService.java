@@ -212,15 +212,19 @@ public class CustomerSeaService {
         Timestamp createTime = new Timestamp(System.currentTimeMillis());
         int code = 0;
         // 保存呼叫模式
-        CustomerSeaProperty callType = new CustomerSeaProperty(param.getId(), "callType", String.valueOf(param.getCallType()), createTime);
-        customerSeaDao.saveOrUpdate(callType);
-        // 保存渠道
-        CustomerSeaProperty callChannel = customerSeaDao.getProperty(String.valueOf(param.getId()), "callChannel");
-        if (callChannel == null) {
-            callChannel = new CustomerSeaProperty(param.getId(), "callChannel", param.getCallChannel(), createTime);
+        if (param.getCallType() != null) {
+            CustomerSeaProperty callType = new CustomerSeaProperty(param.getId(), "callType", String.valueOf(param.getCallType()), createTime);
+            customerSeaDao.saveOrUpdate(callType);
         }
-        callChannel.setPropertyValue(param.getCallChannel());
-        customerSeaDao.saveOrUpdate(callChannel);
+        // 保存渠道
+        if (StringUtil.isNotEmpty(param.getCallChannel())) {
+            CustomerSeaProperty callChannel = customerSeaDao.getProperty(String.valueOf(param.getId()), "callChannel");
+            if (callChannel == null) {
+                callChannel = new CustomerSeaProperty(param.getId(), "callChannel", param.getCallChannel(), createTime);
+            }
+            callChannel.setPropertyValue(param.getCallChannel());
+            customerSeaDao.saveOrUpdate(callChannel);
+        }
 
         // 线索领取方式
         if (param.getClueGetMode() != null) {
@@ -565,7 +569,9 @@ public class CustomerSeaService {
                 }
             } else if (2 == param.getOperation()) {
                 customerSea.setName(param.getName());
-                customerSea.setTaskType(param.getTaskType());
+                if (param.getTaskType() != null) {
+                    customerSea.setTaskType(param.getTaskType());
+                }
                 //customerSea.setTaskId(param.getTaskId());
                 if (param.getTaskCreateTime() != null) {
                     customerSea.setTaskCreateTime(new Timestamp(param.getTaskCreateTime()));
