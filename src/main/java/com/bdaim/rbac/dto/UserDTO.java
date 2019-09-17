@@ -27,6 +27,10 @@ public class UserDTO implements Serializable, Manager<Long> {
     private Date modifyTime;
     public int source;
     /**
+     * 场站id
+     */
+    public String stationId;
+    /**
      * 授权平台 1-精准营销 2-金融超市
      */
     private String authorize;
@@ -64,6 +68,14 @@ public class UserDTO implements Serializable, Manager<Long> {
 
     public Long getId() {
         return Id;
+    }
+
+    public String getStationId() {
+        return stationId;
+    }
+
+    public void setStationId(String stationId) {
+        this.stationId = stationId;
     }
 
     public void setId(Long id) {
