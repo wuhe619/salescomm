@@ -185,7 +185,7 @@ public class TokenServiceImpl implements TokenService {
                 // 查询用户组信息
                 CustomerUserGroupRelDTO cug = customerUserDao.getCustomerUserGroupByUserId(u.getId());
                 userdetail.setUserGroupId("");
-                userdetail.setUserGroupRole("2");
+                userdetail.setUserGroupRole("");
                 userdetail.setJobMarketId("");
                 if (cug != null) {
                     userdetail.setUserGroupId(cug.getGroupId());
