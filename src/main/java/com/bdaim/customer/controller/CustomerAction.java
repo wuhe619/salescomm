@@ -882,6 +882,7 @@ public class CustomerAction extends BasicAction {
         LoginUser lu = opUser();
         // 员工不能看团队管理
         if ("2".equals(lu.getUserType()) && "2".equals(lu.getUserGroupRole())) {
+            logger.warn("员工:[{}]为普通员工,无权查询员工列表", lu.getId());
             return "";
         }
 

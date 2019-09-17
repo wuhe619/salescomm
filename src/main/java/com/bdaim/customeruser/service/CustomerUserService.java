@@ -822,6 +822,7 @@ public class CustomerUserService {
             map.put("total", 0);
             map.put("users", new ArrayList<>());
             json.put("data", map);
+            logger.warn("员工:[{}]为普通员工,无权查询员工列表", loginUser.getId());
             return json.toJSONString();
         }
 
