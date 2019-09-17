@@ -12,6 +12,8 @@ import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.exception.TouchException;
+import com.bdaim.common.response.ResponseInfo;
+import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.common.util.CipherUtil;
 import com.bdaim.common.util.IDHelper;
 import com.bdaim.common.util.NumberConvertUtil;
@@ -96,17 +98,23 @@ public class UserAction extends BasicAction {
 
     @RequestMapping(value = "/update/password", method = RequestMethod.POST)
     @ResponseBody
-    public Object updatePassword(@RequestBody JSONObject param) throws Exception {
-        Map<String, Object> resultMap = new HashMap<>();
+    public ResponseInfo updatePassword(@RequestBody JSONObject param) {
         String oldPwd = param.getString("oldPassword");
         String newPwd = param.getString("newPassword");
         int pwdLevel = param.getIntValue("pwdLevel");
-        if ("ROLE_USER".equals(opUser().getRole()) || "admin".equals(opUser().getRole())) {
-            userInfoService.updateFrontPwd(opUser().getId(), oldPwd, newPwd, pwdLevel);
-        } else {
-            userInfoService.updatePwd(opUser().getId(), oldPwd, newPwd, pwdLevel);
+        try {
+            if ("ROLE_USER".equals(opUser().getRole()) || "admin".equals(opUser().getRole())) {
+                //userInfoService.updateFrontPwd(opUser().getId(), oldPwd, newPwd, pwdLevel);
+                userInfoService.updatePwd(opUser().getId(), oldPwd, newPwd, pwdLevel);
+            } else {
+                //userInfoService.updatePwd(opUser().getId(), oldPwd, newPwd, pwdLevel);
+                userInfoService.updateFrontPwd(opUser().getId(), oldPwd, newPwd, pwdLevel);
+            }
+        } catch (Exception e) {
+            logger.error("修改密码异常");
+            return new ResponseInfoAssemble().failure(-1, "修改密码失败");
         }
-        return JSONObject.toJSON(resultMap);
+        return new ResponseInfoAssemble().success(null);
     }
 
     @RequestMapping(value = "/securityCenter/", method = RequestMethod.GET)
@@ -305,7 +313,7 @@ public class UserAction extends BasicAction {
                 }
             }
 
-            userdetail = new LoginUser(u.getId(),u.getName(), CipherUtil.encodeByMD5(u.getId() + "" + System.currentTimeMillis()), auths);
+            userdetail = new LoginUser(u.getId(), u.getName(), CipherUtil.encodeByMD5(u.getId() + "" + System.currentTimeMillis()), auths);
             userdetail.setCustId("0");
             userdetail.setId(u.getId());
             userdetail.setUserType(String.valueOf(1));
