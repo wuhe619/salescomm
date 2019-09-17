@@ -475,17 +475,22 @@ public class UploadDowloadImgServiceImpl implements UploadDowloadService {
                     if (f != null) {
                         fileType = f.getOriginalFilename().substring(f.getOriginalFilename().lastIndexOf("."), f.getOriginalFilename().length());
                         if (StringUtil.isNotEmpty(fileType) && ALLOW_FILE_TYPES.contains(fileType.toLowerCase())) {
+                            mongoFileService.saveFile(f, fileName);
+
                             fileName += fileType;
                             // 加上文件格式
                             sPath = savePath + fileName;
-                            file = new File(sPath);
+                            /*file = new File(sPath);
                             // 判断目录或文件是否存在
                             if (file.exists()) {
                                 // 删除文件
                                 file.delete();
                             }
                             File localFile = new File(sPath);
-                            f.transferTo(localFile);
+                            f.transferTo(localFile);*/
+
+                            File desFile = new File(sPath);
+                            FileUtils.copyInputStreamToFile(f.getInputStream(), desFile);
                         } else {
                             logger.warn("上传文件格式不允许," + f.getOriginalFilename());
                         }
@@ -1107,18 +1112,18 @@ public class UploadDowloadImgServiceImpl implements UploadDowloadService {
         }
         String filePath = PropertiesUtil.getStringValue("location") + userId + File.separator + fileName;
         File file = new File(filePath);
-        boolean status = true;
+        boolean status = false;
         try (FileInputStream fis = new FileInputStream(file)) {
-            if (!file.exists()) {
+            if (file.exists()) {
                 IOUtils.copy(fis, response.getOutputStream());
-                status = false;
+                status = true;
             }
         } catch (Exception e) {
             logger.error("获取文件异常", e);
             status = false;
         }
         if (!status) {
-            logger.warn(filePath + ",磁盘文件不存在,穿透查询mongodb文件");
+            logger.warn("[" + filePath + "]磁盘文件不存在,穿透查询mongodb文件");
             if (fileName.indexOf(".") > 0) {
                 fileName = fileName.substring(0, fileName.lastIndexOf("."));
             }

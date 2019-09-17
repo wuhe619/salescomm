@@ -279,7 +279,7 @@ public class CustomerUserService {
     }
 
 
-    public synchronized Integer addUser(UserCallConfigDTO userDTO, String enpterprise_name) {
+    public synchronized Integer addUser(UserCallConfigDTO userDTO, String enpterprise_name) throws RuntimeException{
 
         String id = userDTO.getId();
         String custId = userDTO.getCustomerId();
@@ -424,7 +424,8 @@ public class CustomerUserService {
                     e1.printStackTrace();
                 }
             }
-            return 0;
+            throw new RuntimeException(e.getMessage(), e);
+            //return 0;
         }
         return 1;
     }
@@ -821,6 +822,7 @@ public class CustomerUserService {
             map.put("total", 0);
             map.put("users", new ArrayList<>());
             json.put("data", map);
+            logger.warn("员工:[{}]为普通员工,无权查询员工列表", loginUser.getId());
             return json.toJSONString();
         }
 
