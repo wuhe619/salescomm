@@ -1,0 +1,176 @@
+package com.bdaim.customs.services;
+
+import com.alibaba.fastjson.JSON;
+import com.bdaim.auth.LoginUser;
+import com.bdaim.common.dto.Page;
+import com.bdaim.common.util.StringUtil;
+import com.bdaim.customs.dao.HBusiDataManagerDao;
+import com.bdaim.customs.dao.HDicDao;
+import com.bdaim.customs.dao.HMetaDataDefDao;
+import com.bdaim.customs.dao.HReceiptRecordDao;
+import com.bdaim.customs.entity.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.*;
+
+@Service
+@Transactional
+public class CustomsService {
+    private static Logger log = LoggerFactory.getLogger(CustomsService.class);
+
+    @Autowired
+    private HBusiDataManagerDao hBusiDataManagerDao;
+
+    @Autowired
+    private HDicDao hDicDao;
+
+    @Autowired
+    private HMetaDataDefDao hMetaDataDefDao;
+
+    @Autowired
+    private HReceiptRecordDao hReceiptRecordDao;
+
+
+    public void saveinfo(MainDan mainDan, LoginUser user) {
+        List<HBusiDataManager> list = new ArrayList<>();
+        buildMain(list, mainDan, user);
+        if (list != null && list.size() > 0) {
+            hBusiDataManagerDao.batchSaveOrUpdate(list);
+        }
+    }
+
+    /**
+     * 组装主单数据
+     * @param list
+     * @param mainDan
+     * @param user
+     */
+    public void buildMain(List<HBusiDataManager> list,MainDan mainDan,LoginUser user){
+        HBusiDataManager dataManager=new HBusiDataManager();
+        dataManager.setCreateId(user.getId());
+        dataManager.setCreateTime(new Date());
+        dataManager.setType(BusiTypeEnum.SZ.getKey());
+        dataManager.setContent(JSON.toJSONString(mainDan));
+        dataManager.setExt_1("N");//commit to cangdan 是否提交仓单 N:未提交，Y：已提交
+        dataManager.setExt_2("N");//commit to baogaundan N:未提交，Y：已提交
+        dataManager.setExt_3(mainDan.getBILL_NO());
+        list.add(dataManager);
+        buildPartyDan(list,mainDan.getSINGLES(),user);
+    }
+
+
+    /**
+     * 组装分单
+     * @param list
+     * @param partList
+     * @param user
+     */
+    public void buildPartyDan(List<HBusiDataManager> list, List<PartyDan> partList,LoginUser user){
+        if(partList!=null && partList.size()>0){
+            for(PartyDan dan:partList){
+                List<Product> pList = dan.getPRODUCTS();
+                buildGoods(list,pList,user);
+                HBusiDataManager dataManager=new HBusiDataManager();
+                dataManager.setType(BusiTypeEnum.SF.getKey());
+                dataManager.setCreateId(user.getId());
+                dataManager.setCust_id(Long.valueOf(user.getCustId()));
+                dataManager.setContent(JSON.toJSONString(dan));
+                dataManager.setCreateTime(new Date());
+                dataManager.setExt_3(dan.getBILL_NO());//分单号
+                dataManager.setExt_4(dan.getMain_bill_NO());//主单号
+                list.add(dataManager);
+            }
+        }
+    }
+
+    /**
+     * 组装商品
+     * @param list
+     * @param pList
+     * @param user
+     */
+    public void buildGoods(List<HBusiDataManager> list, List<Product> pList,LoginUser user){
+        if(pList!=null && pList.size()>0){
+            for(Product product:pList){
+                HBusiDataManager dataManager=new HBusiDataManager();
+                dataManager.setType(BusiTypeEnum.SS.getKey());
+                dataManager.setCreateTime(new Date());
+                dataManager.setCreateId(user.getId());
+                dataManager.setCust_id(Long.valueOf(user.getCustId()));
+                dataManager.setContent(JSON.toJSONString(product));
+                dataManager.setExt_3(product.getCODE_TS());//商品编号
+                dataManager.setExt_4(product.getParty_No());//分单号
+                list.add(dataManager);
+            }
+        }
+    }
+
+
+    public Map<String,List<Map<String,Object>>> getdicList(String type,String propertyName){
+        String  hql=" from  HMetaDataDef a where filed_type='array' and type='"+type+"' ";
+        if(StringUtil.isNotEmpty(propertyName)){
+            hql+="a.property_name='"+propertyName+"'";
+        }
+        Map<String,List<Map<String,Object>>> m = new HashMap<>();
+        List<HMetaDataDef> hMetaDataDeflist = hMetaDataDefDao.find(hql);
+        if(hMetaDataDeflist != null && hMetaDataDeflist.size()>0){
+            for(int i=0;i<hMetaDataDeflist.size();i++){
+                String propertyCode = hMetaDataDeflist.get(i).getProperty_code();
+                String property_name_en = hMetaDataDeflist.get(i).getProperty_name_en();
+                String sql = "select type,code,name_zh from h_dic where type='"+propertyCode+"'";
+                List<Map<String, Object>> list = hMetaDataDefDao.queryListBySql(sql);
+                if(list!=null && list.size()>0){
+                    for(Map<String,Object> map:list){
+                        List<Map<String,Object>> l=null;
+                        if(m.containsKey(property_name_en)){
+                            l = m.get(property_name_en);
+                        }
+                        if(l==null){
+                            l=new ArrayList<>();
+                        }
+                        l.add(map);
+                        m.put(property_name_en,l);
+                    }
+                }
+            }
+
+        }
+
+        return m;
+    }
+
+
+
+    public Page  getdicPageList(String dicType,Integer pageSize,Integer pageNo){
+        String sql="select * from h_dic where type='"+dicType+ "'";
+        Page page = hDicDao.sqlPageQuery(sql,pageNo,pageSize);
+        return page;
+    }
+
+
+    public void saveDic(Map<String,String> paramMap){
+        HDic dic=new HDic();
+        dic.setCode(paramMap.get("code"));
+        dic.setName_zh(paramMap.get("name_zh"));
+        dic.setName_en(paramMap.get("name_en"));
+        dic.setDesc(paramMap.get("desc"));
+        if(paramMap.get("status")==null){
+            dic.setStatus("Y");
+        }else{
+            dic.setStatus(paramMap.get("status"));
+        }
+        dic.setType(paramMap.get("type"));
+        hDicDao.saveOrUpdate(dic);
+    }
+
+
+
+//
+//    public MainDan getDetail(){
+//
+//    }
+}

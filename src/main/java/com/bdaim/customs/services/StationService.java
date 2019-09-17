@@ -1,10 +1,10 @@
-package com.bdaim.station.service;
+package com.bdaim.customs.services;
 
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.util.StringUtil;
-import com.bdaim.station.dao.StationDao;
-import com.bdaim.station.dto.StationDto;
-import com.bdaim.station.entity.Station;
+import com.bdaim.customs.dao.StationDao;
+import com.bdaim.customs.dto.StationDto;
+import com.bdaim.customs.entity.Station;
 import com.bdaim.supplier.service.SupplierService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
