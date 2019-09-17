@@ -115,6 +115,57 @@ public class CustomsService {
          updateDataToES(manager,Integer.valueOf(id));
     }
 
+
+    public void delMainById(Long id,String type) throws Exception {
+        HBusiDataManager manager = hBusiDataManagerDao.get(id);
+        if("Y".equals(manager.getExt_1()) || "Y".equals(manager.getExt_2())){
+            throw new Exception("已经被提交，无法删除");
+        }
+        String sql = "select id,ext_3 from h_data_manager where ext_4='"+manager.getExt_3()+"'";
+        List<Map<String,Object>> ids = hBusiDataManagerDao.queryListBySql(sql);
+        List<Map<String,Object>> idList=new ArrayList<>();
+        for(Map<String,Object> map:ids){
+            Long _id = (Long) map.get("id");
+            Map<String,Object> idmap=new HashMap();
+            idmap.put("id",_id);
+            idmap.put("type",BusiTypeEnum.SF);
+            idList.add(idmap);
+            String billno = (String) map.get("ext_3");
+            String _sql = "select id from h_data_manager where ext_4='"+billno+"'";
+            List<Map<String,Object>> _ids = hBusiDataManagerDao.queryListBySql(_sql);
+            for(Map<String,Object> m:_ids){
+                Long _gid = (Long) m.get("id");
+                idmap=new HashMap();
+                idmap.put("id",_gid);
+                idmap.put("type",BusiTypeEnum.SS);
+                idList.add(idmap);
+            }
+        }
+        Map<String,Object> temp=new HashMap();
+        temp.put("id",id);
+        temp.put("type",BusiTypeEnum.SZ);
+        idList.add(temp);
+        for(Map<String,Object> _map:idList){
+            hBusiDataManagerDao.delete((Long)_map.get("id"));
+            deleteDatafromES((String)_map.get("type"),(String)_map.get("id"));
+        }
+    }
+
+    /**
+     * 从es删除文档
+     * @param type
+     * @param id
+     */
+    private void deleteDatafromES(String type,String id){
+        if (type.equals(BusiTypeEnum.SZ.getKey())) {
+            elasticSearchService.deleteDocumentFromType(Constants.SZ_INFO_INDEX, "haiguan", id);
+        }else if(type.equals(BusiTypeEnum.SF.getKey())){
+            elasticSearchService.deleteDocumentFromType(Constants.SF_INFO_INDEX, "haiguan", id);
+        }else if(type.equals(BusiTypeEnum.SS.getKey())){
+            elasticSearchService.deleteDocumentFromType(Constants.SS_INFO_INDEX, "haiguan", id);
+        }
+    }
+
     /**
      * 更新索引数据
      * @param hBusiDataManager

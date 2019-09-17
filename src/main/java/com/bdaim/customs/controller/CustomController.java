@@ -100,6 +100,27 @@ public class CustomController extends BasicAction {
         return responseJson;
     }
 
+    /**
+     * 删除主单
+     * @param id
+     * @param type
+     * @return
+     */
+    @RequestMapping(value="main/{id}",method = RequestMethod.DELETE)
+    @ResponseBody
+    public ResponseJson deleteMain(@PathVariable("id")Long id,String type){
+        ResponseJson responseJson = new ResponseJson();
+        try {
+            customsService.delMainById(id,type);
+            responseJson.setMessage("SUCCESS");
+            responseJson.setCode(200);
+        } catch (Exception e) {
+            e.printStackTrace();
+            responseJson.setCode(-1);
+            responseJson.setMessage(e.getMessage());
+        }
+        return responseJson;
+    }
 
     /**
      * 根据分单查询商品列表

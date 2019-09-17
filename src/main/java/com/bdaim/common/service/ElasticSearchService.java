@@ -95,20 +95,15 @@ public class ElasticSearchService {
     public JSONObject deleteDocumentFromType(String index, String type, String id) {
         JSONObject result = null;
         try {
-            LOG.info("向es新增记录:index[" + index + "],type[" + type + "],id:[" + id + "]");
-//            JSONObject document = getDocument(index, type, id);
-//            if (document.size() > 0) {
-//                LOG.warn("id:[" + id + "]已经存在,不可再次添加");
-//                return new JSONObject();
-//            }
+            LOG.info("从es删除记录:index[" + index + "],type[" + type + "],id:[" + id + "]");
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             HttpEntity<JSONObject> entity = new HttpEntity<>(headers);
             ResponseEntity<JSONObject> resultEntity = restTemplate.exchange(ESUtil.getUrl(index, type) + id, HttpMethod.DELETE, entity, JSONObject.class);
             result = resultEntity.getBody();
-            LOG.info("向es新增记录返回结果:[" + result + "]");
+            LOG.info("从es删除记录返回结果:[" + result + "]");
         } catch (Exception e) {
-            LOG.error("向es新增记录异常:" + e.getMessage());
+            LOG.error("从es删除记录异常:" + e.getMessage());
         }
         return result;
     }
