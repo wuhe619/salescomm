@@ -109,26 +109,37 @@ public class CustomsService {
         }
     }
 
-    public Map<String,List<Map<String,Object>>> getdicList(String dicType){
-        String sql = "select type,code,name_zh from h_dic where type='"+dicType+"'";
-        List<Map<String, Object>> list = hMetaDataDefDao.queryListBySql(sql);
-        Map<String,List<Map<String,Object>>> m = new HashMap<>();
-        if(list!=null && list.size()>0){
-            for(Map<String,Object> map:list){
-                List<Map<String,Object>> l=null;
-                String _type = (String) map.get("type");
-//                String code = (String) map.get("code");
-//                String name_zh = (String) map.get("name_zh");
-                if(m.containsKey(_type)){
-                    l = m.get(_type);
-                }
-                if(l==null){
-                    l=new ArrayList<>();
-                }
-                l.add(map);
-                m.put(_type,l);
-            }
+
+    public Map<String,List<Map<String,Object>>> getdicList(String type,String propertyName){
+        String  hql=" from  HMetaDataDef a where filed_type='array' and type='"+type+"' ";
+        if(StringUtil.isNotEmpty(propertyName)){
+            hql+="a.property_name='"+propertyName+"'";
         }
+        Map<String,List<Map<String,Object>>> m = new HashMap<>();
+        List<HMetaDataDef> hMetaDataDeflist = hMetaDataDefDao.find(hql);
+        if(hMetaDataDeflist != null && hMetaDataDeflist.size()>0){
+            for(int i=0;i<hMetaDataDeflist.size();i++){
+                String propertyCode = hMetaDataDeflist.get(i).getProperty_code();
+                String property_name_en = hMetaDataDeflist.get(i).getProperty_name_en();
+                String sql = "select type,code,name_zh from h_dic where type='"+propertyCode+"'";
+                List<Map<String, Object>> list = hMetaDataDefDao.queryListBySql(sql);
+                if(list!=null && list.size()>0){
+                    for(Map<String,Object> map:list){
+                        List<Map<String,Object>> l=null;
+                        if(m.containsKey(property_name_en)){
+                            l = m.get(property_name_en);
+                        }
+                        if(l==null){
+                            l=new ArrayList<>();
+                        }
+                        l.add(map);
+                        m.put(property_name_en,l);
+                    }
+                }
+            }
+
+        }
+
         return m;
     }
 
