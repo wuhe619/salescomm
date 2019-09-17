@@ -1,4 +1,4 @@
-package com.bdaim.station.controller;
+package com.bdaim.customs.controller;
 
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.dto.Page;
@@ -6,8 +6,8 @@ import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.common.util.NumberConvertUtil;
 import com.bdaim.common.util.StringUtil;
-import com.bdaim.station.dto.StationDto;
-import com.bdaim.station.service.StationService;
+import com.bdaim.customs.dto.StationDto;
+import com.bdaim.customs.services.StationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
@@ -25,8 +25,8 @@ import javax.annotation.Resource;
  */
 @Controller
 @RequestMapping(value = "/station")
-public class StationAction extends BasicAction {
-    private static Logger logger = LoggerFactory.getLogger(StationAction.class);
+public class StationController extends BasicAction {
+    private static Logger logger = LoggerFactory.getLogger(StationController.class);
     @Resource
     StationService stationService;
 
@@ -56,7 +56,7 @@ public class StationAction extends BasicAction {
 
 
     /**
-     *@description 获取场站信息列表
+     * @description 获取场站信息列表
      * @author:duanliying
      * @method
      * @date: 2019/9/16 16:02
