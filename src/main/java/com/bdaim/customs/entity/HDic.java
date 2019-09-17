@@ -2,14 +2,16 @@ package com.bdaim.customs.entity;
 
 
 import javax.persistence.*;
-import java.io.Serializable;
 
 @Entity
 @Table(name="h_dic")
-public class HDic implements Serializable {
+@IdClass(HdicKey.class)
+public class HDic  {
 
+    @Id
 	@Column(name="type")
 	private String type;
+    @Id
 	@Column(name="code")
 	private String code;
 	@Column(name="name_zh")
