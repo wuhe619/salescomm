@@ -2,6 +2,7 @@ package com.bdaim.customs.services;
 
 import com.alibaba.fastjson.JSON;
 import com.bdaim.auth.LoginUser;
+import com.bdaim.common.dto.Page;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.customs.dao.HBusiDataManagerDao;
 import com.bdaim.customs.dao.HDicDao;
@@ -130,6 +131,33 @@ public class CustomsService {
         }
         return m;
     }
+
+
+
+    public Page  getdicPageList(String dicType,Integer pageSize,Integer pageNo){
+        String sql="select * from h_dic where type='"+dicType+ "'";
+        Page page = hDicDao.sqlPageQuery(sql,pageNo,pageSize);
+        return page;
+    }
+
+
+    public void saveDic(Map<String,String> paramMap){
+        HDic dic=new HDic();
+        dic.setCode(paramMap.get("code"));
+        dic.setName_zh(paramMap.get("name_zh"));
+        dic.setName_en(paramMap.get("name_en"));
+        dic.setDesc(paramMap.get("desc"));
+        if(paramMap.get("status")==null){
+            dic.setStatus("Y");
+        }else{
+            dic.setStatus(paramMap.get("status"));
+        }
+        dic.setType(paramMap.get("type"));
+        hDicDao.saveOrUpdate(dic);
+    }
+
+
+
 //
 //    public MainDan getDetail(){
 //

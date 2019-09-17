@@ -127,22 +127,48 @@ public class CustomController extends BasicAction {
             responseJson.setMessage("SUCCESS");
             responseJson.setData(d);
             return responseJson;
-        }catch (Exception e){
+        } catch (Exception e) {
             log.error("获取失败");
             responseJson.setCode(-1);
             responseJson.setMessage(e.getMessage());
             return responseJson;
         }
+    }
 
+    /**
+     * 分页查询参数
+     * @param type
+     * @param pageSize
+     * @param pageNo
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping(value = "page/diclist",method = RequestMethod.GET)
+    public Page getdicPageList(String type,Integer pageSize,Integer pageNo){
+        return customsService.getdicPageList(type,pageSize,pageNo);
     }
 
 
-
-
-
-
-
-
+    /**
+     * 添加/编辑参数
+     * @param map
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping(value = "savedic",method = RequestMethod.POST)
+    public ResponseJson saveDic(Map<String,String> map) {
+        ResponseJson responseJson = new ResponseJson();
+        try {
+            customsService.saveDic(map);
+            responseJson.setCode(200);
+            responseJson.setMessage("SUCCESS");
+        }catch (Exception e){
+            e.printStackTrace();
+            responseJson.setCode(-1);
+            responseJson.setMessage(e.getMessage());
+        }
+        return responseJson;
+    }
 
 
 }
