@@ -635,9 +635,9 @@ public class SupplierService {
         supplierDO.setContactPosition(supplierDTO.getContactPosition());
         supplierDO.setStatus(1);
         supplierDO.setCreateTime(new Timestamp(System.currentTimeMillis()));
-        long supplierId = (long) supplierDao.saveReturnPk(supplierDO);
+        int supplierId = (int) supplierDao.saveReturnPk(supplierDO);
         if (supplierId > 0) {
-            // 处理授信额度
+            // 处理授信额度supplierDao
             if (supplierDTO.getSettlementType() != null && 2 == supplierDTO.getSettlementType()) {
                 SupplierPropertyEntity creditAmountProperty = new SupplierPropertyEntity(String.valueOf(supplierId), "creditAmount", supplierDTO.getCreditAmount(), new Timestamp(System.currentTimeMillis()));
                 supplierDao.saveOrUpdate(creditAmountProperty);

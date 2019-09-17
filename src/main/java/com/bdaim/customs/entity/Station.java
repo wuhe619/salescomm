@@ -1,6 +1,6 @@
-package com.bdaim.station.entity;
+package com.bdaim.customs.entity;
 
-import com.bdaim.station.dto.StationDto;
+import com.bdaim.customs.dto.StationDto;
 
 import javax.persistence.*;
 import java.sql.Timestamp;

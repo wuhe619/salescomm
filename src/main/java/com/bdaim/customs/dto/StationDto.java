@@ -1,4 +1,4 @@
-package com.bdaim.station.dto;
+package com.bdaim.customs.dto;
 import java.sql.Timestamp;
 
 /**
