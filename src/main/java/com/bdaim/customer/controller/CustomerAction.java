@@ -671,7 +671,14 @@ public class CustomerAction extends BasicAction {
             userDTO.setMobileNumber(mobileNumber);
             userDTO.setEmail(email);
 
-            customerUserService.addUser(userDTO, enpterprise_name);
+            try {
+                customerUserService.addUser(userDTO, enpterprise_name);
+            } catch (Exception e) {
+                logger.error("保存用户异常:", e);
+                resultMap.put("code", "1");
+                resultMap.put("_message", e.getMessage());
+                return JSONObject.toJSONString(resultMap);
+            }
 
             resultMap.put("code", "0");
             resultMap.put("_message", "添加操作员成功");
@@ -794,7 +801,14 @@ public class CustomerAction extends BasicAction {
                 if ("ROLE_CUSTOMER".equals(lu.getRole())) {
                     userDTO.setCustomerId(lu.getCustId());
                 }
-                code = customerUserService.addUser(userDTO, null);
+                try {
+                    code = customerUserService.addUser(userDTO, null);
+                } catch (Exception e) {
+                    logger.error("保存用户异常:", e);
+                    resultMap.put("code", "1");
+                    resultMap.put("_message", e.getMessage());
+                    return JSONObject.toJSONString(resultMap);
+                }
             } else {
                 resultMap.put("code", "1");
                 resultMap.put("_message", "无权操作");
