@@ -38,7 +38,7 @@ public class ElasticSearchService {
      * @param id
      * @return
      */
-    public JSONObject getDocument(String index, String type, String id) {
+    public static JSONObject getDocument(String index, String type, String id) {
         JSONObject result = null;
         try {
             LOG.info("向es查询记录:index[" + index + "],type[" + type + "],id:[" + id + "]");
@@ -68,11 +68,11 @@ public class ElasticSearchService {
         JSONObject result = null;
         try {
             LOG.info("向es新增记录:index[" + index + "],type[" + type + "],id:[" + id + "],data:[" + jsonObject + "]");
-            JSONObject document = getDocument(index, type, id);
+            /*JSONObject document = getDocument(index, type, id);
             if (document.size() > 0) {
                 LOG.warn("id:[" + id + "]已经存在,不可再次添加");
                 return new JSONObject();
-            }
+            }*/
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             HttpEntity<JSONObject> entity = new HttpEntity<>(jsonObject, headers);
@@ -84,6 +84,52 @@ public class ElasticSearchService {
         }
         return result;
     }
+
+    /**
+     * 删除文档
+     * @param index
+     * @param type
+     * @param id
+     * @return
+     */
+    public JSONObject deleteDocumentFromType(String index, String type, String id) {
+        JSONObject result = null;
+        try {
+            LOG.info("向es新增记录:index[" + index + "],type[" + type + "],id:[" + id + "]");
+//            JSONObject document = getDocument(index, type, id);
+//            if (document.size() > 0) {
+//                LOG.warn("id:[" + id + "]已经存在,不可再次添加");
+//                return new JSONObject();
+//            }
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<JSONObject> entity = new HttpEntity<>(headers);
+            ResponseEntity<JSONObject> resultEntity = restTemplate.exchange(ESUtil.getUrl(index, type) + id, HttpMethod.DELETE, entity, JSONObject.class);
+            result = resultEntity.getBody();
+            LOG.info("向es新增记录返回结果:[" + result + "]");
+        } catch (Exception e) {
+            LOG.error("向es新增记录异常:" + e.getMessage());
+        }
+        return result;
+    }
+
+    public JSONObject getDocumentById(String index, String type, String id) {
+        JSONObject result = null;
+        try {
+            LOG.info("从es查询数据:index[" + index + "],type[" + type + "],id:[" + id + "]");
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<JSONObject> entity = new HttpEntity<>(headers);
+            ResponseEntity<JSONObject> resultEntity = restTemplate.exchange(ESUtil.getUrl(index, type) + id, HttpMethod.GET, entity, JSONObject.class);
+            result = resultEntity.getBody();
+            LOG.info("向es新增记录返回结果:[" + result + "]");
+        } catch (Exception e) {
+            LOG.error("向es新增记录异常:" + e.getMessage());
+        }
+        return result;
+    }
+
+
 
     /**
      * 修改记录
@@ -112,10 +158,14 @@ public class ElasticSearchService {
         return result;
     }
 
+
+    public static void main(String[] args) {
+        testAdd();
+    }
     //@Test
-    public void testAdd() {
+    public static void testAdd() {
         JSONObject jsonObject = new JSONObject();
-        jsonObject.put("id", "1");
+        jsonObject.put("id", "1000");
         jsonObject.put("superId", "1");
         jsonObject.put("superName", "测试");
         jsonObject.put("superPhone", "18811112222");
@@ -161,14 +211,14 @@ public class ElasticSearchService {
         testUpdateDocumentToType("customer_sea_190622170552000000", "data", "2", data);
     }
 
-    public String testAddDocumentToType(String index, String type, String id, JSONObject jsonObject) {
+    public static String testAddDocumentToType(String index, String type, String id, JSONObject jsonObject) {
         String result = "";
         try {
             LOG.info("向es新增记录:index[" + index + "],type[" + type + "],id:[" + id + "],data:[" + jsonObject + "]");
-            JSONObject document = getDocument(index, type, id);
-            if (document.size() > 0) {
-                throw new TouchException(id, "id:[" + id + "]已经存在,不可再次添加");
-            }
+//            JSONObject document = getDocument(index, type, id);
+//            if (document.size() > 0) {
+//                throw new TouchException(id, "id:[" + id + "]已经存在,不可再次添加");
+//            }
             RestTemplate restTemplate = new RestTemplate();
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);

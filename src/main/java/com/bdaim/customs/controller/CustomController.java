@@ -1,44 +1,26 @@
 package com.bdaim.customs.controller;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.bdaim.auth.LoginUser;
 import com.bdaim.common.annotation.CacheAnnotation;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.controller.util.ResponseCommon;
 import com.bdaim.common.controller.util.ResponseJson;
 import com.bdaim.common.dto.Page;
-import com.bdaim.common.util.Constant;
-import com.bdaim.common.util.StringUtil;
-import com.bdaim.customgroup.entity.CustomGroup;
-import com.bdaim.customgroup.service.CustomGroupService;
 import com.bdaim.customs.entity.MainDan;
 import com.bdaim.customs.services.CustomsService;
-import com.bdaim.dataexport.entity.DataExport;
-import com.bdaim.dataexport.service.DataExportService;
-import com.bdaim.label.service.LabelInterfaceService;
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
-import net.sf.json.JsonConfig;
-import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.lang.time.DateFormatUtils;
-import org.apache.http.client.utils.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.io.IOException;
 import java.util.*;
 
 @Controller
-@RequestMapping("/customs")
+@RequestMapping("/open/customs")
 public class CustomController extends BasicAction {
 
     private static Logger log = LoggerFactory.getLogger(CustomController.class);
@@ -53,6 +35,7 @@ public class CustomController extends BasicAction {
     @RequestMapping(value="saveinfo",method = RequestMethod.POST)
     @ResponseBody
     public ResponseCommon saveMaindan(@RequestBody MainDan mainDan){
+        log.info("saveMaindan::"+JSON.toJSONString(mainDan));
         ResponseCommon responseJson = new ResponseCommon();
         LoginUser user = opUser();
         if(user==null || user.getId()==null){
@@ -76,13 +59,45 @@ public class CustomController extends BasicAction {
 
 
     /**
-     * 根据主单id查询分单
+     * 根据主单id查询分单列表
      * @param id
+     */
+    @RequestMapping(value="main/{id}",method = RequestMethod.GET)
+    @ResponseBody
+    public ResponseJson getPartiesByMainId(@PathVariable("id")String id,String type){
+        ResponseJson responseJson = new ResponseJson();
+        try {
+            JSONObject json = customsService.getMainDetailById(id, type);
+            responseJson.setMessage("SUCCESS");
+            responseJson.setCode(200);
+            responseJson.setData(json);
+        }catch (Exception e){
+            e.printStackTrace();
+            responseJson.setCode(-1);
+            responseJson.setMessage(e.getMessage());
+        }
+        return responseJson;
+    }
+
+    /**
+     * 编辑主单信息
+     * @param mainDan
+     * @return
      */
     @RequestMapping(value="main/{id}",method = RequestMethod.POST)
     @ResponseBody
-    public void getPartiesByMainId(@PathVariable("id")String id,String type){
-
+    public ResponseJson saveMainDetail(@PathVariable("id")String id,@RequestBody MainDan mainDan){
+        ResponseJson responseJson = new ResponseJson();
+        try {
+            customsService.saveMainDetail(id,mainDan);
+            responseJson.setMessage("SUCCESS");
+            responseJson.setCode(200);
+        } catch (Exception e) {
+            e.printStackTrace();
+            responseJson.setCode(-1);
+            responseJson.setMessage(e.getMessage());
+        }
+        return responseJson;
     }
 
 
@@ -113,7 +128,7 @@ public class CustomController extends BasicAction {
     /**
      * 根据业务类型、字典类型查询字典数据
      * @param type
-     * @param dicType
+     * @param propertyName
      * @return
      */
     @ResponseBody

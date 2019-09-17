@@ -1,159 +1,178 @@
 package com.bdaim.customs.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.List;
 
 public class PartyDan {
-    private String Main_bill_NO;//主单号
-    private String BILL_NO;//分单号
-    private String WEIGHT;//重量
-    private String PACK_NO ;//件数
-    private String MainGName ;//主要货物名称
-    private String ID_TYPE ;// 证件类型
-    private String TOTAL_VALUE ;//价值
-    private String CURR_CODE ;//币制
-    private String TRADE_COUNTRY ;//贸易国别
-    private String ID_NO ;// 证件号码
-    private String RECEIVE_NAME ;// 收件人
-    private String RECEIVE_TEL ;//收件人电话
-    private String RECEIVE_ADDRESS ;// 收件人地址
-    private String RECEIVE_PRO ;// 收件人省份
-    private String RECEIVE_CITY ;// 收件人城市
-    private String RECEIVE_COUNTRY ;//收件人国别
-    private List<Product> PRODUCTS;
+    @JsonProperty(value = "Main_bill_NO")
+    private String main_bill_NO;//主单号
+    @JsonProperty(value = "BILL_NO")
+    private String bill_NO;//分单号
+    @JsonProperty(value = "WEIGHT")
+    private String weight;//重量
+    @JsonProperty(value = "PACK_NO")
+    private String pack_NO ;//件数
+    @JsonProperty(value = "MainGName")
+    private String main_gName ;//主要货物名称
+    @JsonProperty(value = "ID_TYPE")
+    private String id_type ;// 证件类型
+    @JsonProperty(value = "TOTAL_VALUE")
+    private String total_value ;//价值
+    @JsonProperty(value = "CURR_CODE")
+    private String curr_code ;//币制
+    @JsonProperty(value = "TRADE_COUNTRY")
+    private String trade_country;//贸易国别
+    @JsonProperty(value = "ID_NO")
+    private String id_NO ;// 证件号码
+    @JsonProperty(value = "RECEIVE_NAME")
+    private String receive_name ;// 收件人
+    @JsonProperty(value = "RECEIVE_TEL")
+    private String receive_tel ;//收件人电话
+    @JsonProperty(value = "RECEIVE_ADDRESS")
+    private String receive_address;// 收件人地址
+    @JsonProperty(value = "RECEIVE_PRO")
+    private String receive_pro;// 收件人省份
+    @JsonProperty(value = "RECEIVE_CITY")
+    private String receive_city ;// 收件人城市
+    @JsonProperty(value = "RECEIVE_COUNTRY")
+    private String receive_country ;//收件人国别
+    @JsonProperty(value = "PRODUCTS")
+    private List<Product> products;
 
     public String getMain_bill_NO() {
-        return Main_bill_NO;
+        return main_bill_NO;
     }
 
     public void setMain_bill_NO(String main_bill_NO) {
-        Main_bill_NO = main_bill_NO;
+        this.main_bill_NO = main_bill_NO;
     }
 
-    public String getBILL_NO() {
-        return BILL_NO;
+    public String getBill_NO() {
+        return bill_NO;
     }
 
-    public void setBILL_NO(String BILL_NO) {
-        this.BILL_NO = BILL_NO;
+    public void setBill_NO(String bill_NO) {
+        this.bill_NO = bill_NO;
     }
 
-    public String getWEIGHT() {
-        return WEIGHT;
+    public String getWeight() {
+        return weight;
     }
 
-    public void setWEIGHT(String WEIGHT) {
-        this.WEIGHT = WEIGHT;
+    public void setWeight(String weight) {
+        this.weight = weight;
     }
 
-    public String getPACK_NO() {
-        return PACK_NO;
+    public String getPack_NO() {
+        return pack_NO;
     }
 
-    public void setPACK_NO(String PACK_NO) {
-        this.PACK_NO = PACK_NO;
+    public void setPack_NO(String pack_NO) {
+        this.pack_NO = pack_NO;
     }
 
-    public String getMainGName() {
-        return MainGName;
+    public String getMain_gName() {
+        return main_gName;
     }
 
-    public void setMainGName(String mainGName) {
-        MainGName = mainGName;
+    public void setMain_gName(String main_gName) {
+        this.main_gName = main_gName;
     }
 
-    public String getID_TYPE() {
-        return ID_TYPE;
+    public String getId_type() {
+        return id_type;
     }
 
-    public void setID_TYPE(String ID_TYPE) {
-        this.ID_TYPE = ID_TYPE;
+    public void setId_type(String id_type) {
+        this.id_type = id_type;
     }
 
-    public String getTOTAL_VALUE() {
-        return TOTAL_VALUE;
+    public String getTotal_value() {
+        return total_value;
     }
 
-    public void setTOTAL_VALUE(String TOTAL_VALUE) {
-        this.TOTAL_VALUE = TOTAL_VALUE;
+    public void setTotal_value(String total_value) {
+        this.total_value = total_value;
     }
 
-    public String getCURR_CODE() {
-        return CURR_CODE;
+    public String getCurr_code() {
+        return curr_code;
     }
 
-    public void setCURR_CODE(String CURR_CODE) {
-        this.CURR_CODE = CURR_CODE;
+    public void setCurr_code(String curr_code) {
+        this.curr_code = curr_code;
     }
 
-    public String getTRADE_COUNTRY() {
-        return TRADE_COUNTRY;
+    public String getTrade_country() {
+        return trade_country;
     }
 
-    public void setTRADE_COUNTRY(String TRADE_COUNTRY) {
-        this.TRADE_COUNTRY = TRADE_COUNTRY;
+    public void setTrade_country(String trade_country) {
+        this.trade_country = trade_country;
     }
 
-    public String getID_NO() {
-        return ID_NO;
+    public String getId_NO() {
+        return id_NO;
     }
 
-    public void setID_NO(String ID_NO) {
-        this.ID_NO = ID_NO;
+    public void setId_NO(String id_NO) {
+        this.id_NO = id_NO;
     }
 
-    public String getRECEIVE_NAME() {
-        return RECEIVE_NAME;
+    public String getReceive_name() {
+        return receive_name;
     }
 
-    public void setRECEIVE_NAME(String RECEIVE_NAME) {
-        this.RECEIVE_NAME = RECEIVE_NAME;
+    public void setReceive_name(String receive_name) {
+        this.receive_name = receive_name;
     }
 
-    public String getRECEIVE_TEL() {
-        return RECEIVE_TEL;
+    public String getReceive_tel() {
+        return receive_tel;
     }
 
-    public void setRECEIVE_TEL(String RECEIVE_TEL) {
-        this.RECEIVE_TEL = RECEIVE_TEL;
+    public void setReceive_tel(String receive_tel) {
+        this.receive_tel = receive_tel;
     }
 
-    public String getRECEIVE_ADDRESS() {
-        return RECEIVE_ADDRESS;
+    public String getReceive_address() {
+        return receive_address;
     }
 
-    public void setRECEIVE_ADDRESS(String RECEIVE_ADDRESS) {
-        this.RECEIVE_ADDRESS = RECEIVE_ADDRESS;
+    public void setReceive_address(String receive_address) {
+        this.receive_address = receive_address;
     }
 
-    public String getRECEIVE_PRO() {
-        return RECEIVE_PRO;
+    public String getReceive_pro() {
+        return receive_pro;
     }
 
-    public void setRECEIVE_PRO(String RECEIVE_PRO) {
-        this.RECEIVE_PRO = RECEIVE_PRO;
+    public void setReceive_pro(String receive_pro) {
+        this.receive_pro = receive_pro;
     }
 
-    public String getRECEIVE_CITY() {
-        return RECEIVE_CITY;
+    public String getReceive_city() {
+        return receive_city;
     }
 
-    public void setRECEIVE_CITY(String RECEIVE_CITY) {
-        this.RECEIVE_CITY = RECEIVE_CITY;
+    public void setReceive_city(String receive_city) {
+        this.receive_city = receive_city;
     }
 
-    public String getRECEIVE_COUNTRY() {
-        return RECEIVE_COUNTRY;
+    public String getReceive_country() {
+        return receive_country;
     }
 
-    public void setRECEIVE_COUNTRY(String RECEIVE_COUNTRY) {
-        this.RECEIVE_COUNTRY = RECEIVE_COUNTRY;
+    public void setReceive_country(String receive_country) {
+        this.receive_country = receive_country;
     }
 
-    public List<Product> getPRODUCTS() {
-        return PRODUCTS;
+    public List<Product> getProducts() {
+        return products;
     }
 
-    public void setPRODUCTS(List<Product> PRODUCTS) {
-        this.PRODUCTS = PRODUCTS;
+    public void setProducts(List<Product> products) {
+        this.products = products;
     }
 }

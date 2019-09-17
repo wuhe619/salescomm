@@ -18,8 +18,8 @@ public class HBusiDataManager implements Serializable {
 	private String content;
 	@Column(name="create_id")
 	private Long createId;
-	@Column(name="crate_time")
-	private Date createTime;
+	@Column(name="create_date")
+	private Date createDate;
 	@Column(name="cust_id")
 	private Long cust_id;
 	@Column(name="ext_date1")
@@ -89,12 +89,12 @@ public class HBusiDataManager implements Serializable {
 		this.createId = createId;
 	}
 
-	public Date getCreateTime() {
-		return createTime;
+	public Date getCreateDate() {
+		return createDate;
 	}
 
-	public void setCreateTime(Date createTime) {
-		this.createTime = createTime;
+	public void setCreateDate(Date createDate) {
+		this.createDate = createDate;
 	}
 
 	public Long getCust_id() {
