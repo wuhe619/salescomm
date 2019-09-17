@@ -4,6 +4,7 @@ import com.bdaim.common.dao.SimpleHibernateDao;
 import com.bdaim.rbac.dto.UserDTO;
 import com.bdaim.rbac.entity.User;
 import com.bdaim.rbac.entity.UserDO;
+import com.bdaim.rbac.entity.UserProperty;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Component;
 
@@ -167,5 +168,21 @@ public class UserDao extends SimpleHibernateDao<User, Serializable> {
 
         return null;
     }
+    public UserProperty getProperty(long userId, String propertyName) {
+        UserProperty cp = null;
+        String hql = "from UserProperty m where m.userId=? and m.propertyName=?";
+        List<UserProperty> list = this.find(hql, userId, propertyName);
+        if (list.size() > 0)
+            cp = (UserProperty) list.get(0);
+        return cp;
+    }
 
+    public User getUserMessage(long userId) {
+        User cp = null;
+        String hql = "from User m where m.userId=? and status =0 ";
+        List<User> list = this.find(hql, userId);
+        if (list.size() > 0)
+            cp = (User) list.get(0);
+        return cp;
+    }
 }

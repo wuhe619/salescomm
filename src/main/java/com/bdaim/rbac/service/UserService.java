@@ -18,6 +18,7 @@ import com.bdaim.rbac.dto.UserQueryParam;
 import com.bdaim.rbac.dto.UserRoles;
 import com.bdaim.rbac.entity.User;
 import com.bdaim.rbac.entity.UserDO;
+import com.bdaim.rbac.entity.UserProperty;
 import com.bdaim.rbac.vo.QueryDataParam;
 import com.bdaim.rbac.vo.UserInfo;
 import org.apache.commons.lang.StringEscapeUtils;
@@ -86,7 +87,7 @@ public class UserService {
             userDTO.setStatus(0);
             userDTO.setSource(DataFromEnum.SYSTEM.getValue());
             //加密密码
-            if (StringUtil.isNotEmpty(userDTO.getPassword())){
+            if (StringUtil.isNotEmpty(userDTO.getPassword())) {
                 String passwordMd5 = CipherUtil.generatePassword(userDTO.getPassword());
                 userDTO.setPassword(passwordMd5);
             }
@@ -108,6 +109,22 @@ public class UserService {
                 } else {
                     userDao.deleteRoleByUserId(loginId, userDTO.getId());
                 }
+            }
+            //添加场站信息
+            if (StringUtil.isNotEmpty(userDTO.getStationId())) {
+                log.info("场站id是：" + userDTO.getStationId());
+                UserProperty userProperty;
+                userProperty = userDao.getProperty(userDTO.getId(), "station_id");
+                if (userProperty == null) {
+                    userProperty = new UserProperty();
+                    userProperty.setUserId(userDTO.getId());
+                    userProperty.setPropertyName("station_id");
+                    userProperty.setPropertyValue(userDTO.getStationId());
+                    userProperty.setCreateTime(new Timestamp(System.currentTimeMillis()));
+                } else {
+                    userProperty.setPropertyValue(userDTO.getStationId());
+                }
+                userDao.saveOrUpdate(userProperty);
             }
             //添加用户职位信息
             insertUserRole(userDTO.getId(), userDTO.getRoles(), loginUserName);
@@ -248,7 +265,6 @@ public class UserService {
      * 日期格式化(秒)
      */
     private final static DateTimeFormatter YDMHMS = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
-
 
 
     private Log log = LogFactory.getLog(UserService.class);
