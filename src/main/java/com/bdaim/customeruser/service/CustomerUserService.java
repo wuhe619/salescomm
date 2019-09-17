@@ -327,7 +327,7 @@ public class CustomerUserService {
                     logger.info("客户[" + custId + "],渠道:[" + callChannel + "]未设置坐席售价");
                     throw new TouchException("客户[" + custId + "],渠道:[" + callChannel + "]未设置坐席售价");
                 }
-                int seatMonthPrice = cpc.getSeat_month_price();
+                double seatMonthPrice = cpc.getSeat_month_price();
                 if (remainAmount.compareTo(new BigDecimal(seatMonthPrice)) < 0) {
                     logger.info("客户" + custId + " 添加坐席余额不足");
                     throw new TouchException("客户余额不足");
