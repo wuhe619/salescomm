@@ -118,11 +118,11 @@ public class CustomController extends BasicAction {
      */
     @ResponseBody
     @RequestMapping(value = "/diclist",method = RequestMethod.POST)
-    public  ResponseJson  queryDicList(String type,String dicType) {
+    public  ResponseJson  queryDicList(String dicType) {
 
         ResponseJson responseJson = new ResponseJson();
         try {
-            Map<String, List<Map<String, Object>>> d = customsService.getdicList(type, dicType);
+            Map<String, List<Map<String, Object>>> d = customsService.getdicList(dicType);
             responseJson.setCode(200);
             responseJson.setMessage("SUCCESS");
             responseJson.setData(d);

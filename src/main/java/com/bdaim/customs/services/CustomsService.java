@@ -109,7 +109,7 @@ public class CustomsService {
         }
     }
 
-    public Map<String,List<Map<String,Object>>> getdicList(String type,String dicType){
+    public Map<String,List<Map<String,Object>>> getdicList(String dicType){
         String sql = "select type,code,name_zh from h_dic where type='"+dicType+"'";
         List<Map<String, Object>> list = hMetaDataDefDao.queryListBySql(sql);
         Map<String,List<Map<String,Object>>> m = new HashMap<>();
