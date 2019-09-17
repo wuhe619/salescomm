@@ -6,7 +6,6 @@ import com.bdaim.account.dto.TransactionQryParam;
 import com.bdaim.batch.TransactionEnum;
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.dto.PageParam;
-import com.bdaim.common.util.ConfigUtil;
 import com.bdaim.common.util.IDHelper;
 import com.bdaim.common.util.NumberConvertUtil;
 import com.bdaim.common.util.StringUtil;
@@ -480,7 +479,8 @@ public class TransactionService {
             logger.debug(sql.toString());
             page = transactionDao.sqlPageQuery0(sql.toString(), pageNum, pageSize);
             if (page != null && page.getData().size() > 0) {
-                String picPath = ConfigUtil.getInstance().get("pic_server_url") + "/0/";
+                //String picPath = ConfigUtil.getInstance().get("pic_server_url") + "/0/";
+                String picPath = "upload/pic/0/";
                 Customer customer;
                 Map<String, Object> m;
                 for (int i = 0; i < page.getData().size(); i++) {
