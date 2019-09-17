@@ -9,6 +9,8 @@ import com.bdaim.common.helper.JDBCHelper;
 import com.bdaim.common.service.DaoService;
 import com.bdaim.common.util.*;
 import com.bdaim.common.util.spring.ConfigPropertiesHolder;
+import com.bdaim.customs.dao.StationDao;
+import com.bdaim.customs.entity.Station;
 import com.bdaim.rbac.DataFromEnum;
 import com.bdaim.rbac.dao.RoleDao;
 import com.bdaim.rbac.dao.UserDao;
@@ -51,6 +53,8 @@ public class UserService {
     private UserDao userDao;
     @Resource
     private RoleDao roleDao;
+    @Resource
+    private StationDao stationDao;
 
     /**
      * 管理员类型
@@ -253,6 +257,31 @@ public class UserService {
         sql.append(" and u.status!=2 ");
         sql.append(" GROUP BY u.ID ORDER BY d.`NAME` ");
         Page dataPage = userDao.sqlPageQuery(sql.toString(), page.getPageNum(), page.getPageSize());
+        List<Map<String, Object>> data = dataPage.getData();
+        //添加场站信息
+        if (data.size() > 0) {
+            for (int i = 0; i < data.size(); i++) {
+                String stationName = "";
+                long userId = NumberConvertUtil.parseLong(data.get(i).get("id"));
+                log.info("用戶id是：" + userId);
+                UserProperty userProperty = userDao.getProperty(userId, "station_id");
+                if (userProperty != null) {
+                    String propertyValue = userProperty.getPropertyValue();
+                    log.info("场站id是：" + propertyValue);
+                    List<String> stationIdList = Arrays.asList(propertyValue.split(","));
+                    for (int j = 0; j < stationIdList.size(); j++) {
+                        Station station = stationDao.getStationById(NumberConvertUtil.parseInt(stationIdList.get(j)));
+                        if (station != null && StringUtil.isNotEmpty(station.getName())) {
+                            stationName += station.getName() + ",";
+                        }
+                    }
+                }
+                if (StringUtil.isNotEmpty(stationName)) {
+                    stationName = stationName.substring(0, stationName.length() - 1);
+                }
+                data.get(i).put("stationName", stationName);
+            }
+        }
         return dataPage;
     }
 
