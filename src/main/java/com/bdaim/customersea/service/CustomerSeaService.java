@@ -566,7 +566,7 @@ public class CustomerSeaService {
             } else if (2 == param.getOperation()) {
                 customerSea.setName(param.getName());
                 customerSea.setTaskType(param.getTaskType());
-                customerSea.setTaskId(param.getTaskId());
+                //customerSea.setTaskId(param.getTaskId());
                 if (param.getTaskCreateTime() != null) {
                     customerSea.setTaskCreateTime(new Timestamp(param.getTaskCreateTime()));
                 }
@@ -579,7 +579,10 @@ public class CustomerSeaService {
                         param.setTaskId(sea.getTaskId());
                     }
                 }
-                customerSea.setTaskId(param.getTaskId());
+                if (StringUtil.isNotEmpty(param.getTaskId())) {
+                    customerSea.setTaskId(param.getTaskId());
+                }
+
                 String xzCallCenterId = null;
                 // 只处理创建的自动外呼新任务
                 if (param.getTaskType() != null && param.getTaskType() == 1) {
