@@ -279,7 +279,7 @@ public class CustomerUserService {
     }
 
 
-    public synchronized Integer addUser(UserCallConfigDTO userDTO, String enpterprise_name) {
+    public synchronized Integer addUser(UserCallConfigDTO userDTO, String enpterprise_name) throws RuntimeException{
 
         String id = userDTO.getId();
         String custId = userDTO.getCustomerId();
@@ -424,7 +424,8 @@ public class CustomerUserService {
                     e1.printStackTrace();
                 }
             }
-            return 0;
+            throw new RuntimeException(e.getMessage(), e);
+            //return 0;
         }
         return 1;
     }
