@@ -264,11 +264,13 @@ public class RoleService {
                 Long id = NumberConvertUtil.everythingToLong(map.get("ID"));
                 String name = (String) map.get("NAME");
                 String uri = (String) map.get("URI");
+                String type = String.valueOf(map.get("TYPE"));
                 Long parentId = NumberConvertUtil.everythingToLong(map.get("PID"));
                 JSONObject object = new JSONObject();
                 object.put("id", id);
                 object.put("name", name);
                 object.put("uri", uri);
+                object.put("type", type);
                 object.put("pid", parentId);
                 object.put("children", queryResourceTreeByRole(userId, id, platform));
                 array.add(object);
@@ -414,7 +416,7 @@ public class RoleService {
     /**
      * 递规查询数据
      *
-     * @param con
+     * @param
      * @param sql
      * @param pid
      * @return

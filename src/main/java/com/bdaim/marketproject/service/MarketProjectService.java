@@ -15,10 +15,7 @@ import com.bdaim.common.util.excel.ExcelAfterWriteHandlerImpl;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerLabelDao;
 import com.bdaim.customer.dao.CustomerUserDao;
-import com.bdaim.customer.dto.CustomerDTO;
-import com.bdaim.customer.dto.CustomerLabelDTO;
-import com.bdaim.customer.dto.CustomerPropertyEnum;
-import com.bdaim.customer.dto.CustomerUserDTO;
+import com.bdaim.customer.dto.*;
 import com.bdaim.customer.entity.Customer;
 import com.bdaim.customer.entity.CustomerProperty;
 import com.bdaim.customer.entity.CustomerUser;
@@ -157,13 +154,17 @@ public class MarketProjectService {
                 List<String> custIds = new ArrayList<>();
                 custIds.add(custId);
                 this.saveMarketProjectRelationEnterprises(marketProjectId, custIds);
-                // 客户级别的项目自动创建公海
-                CustomerSeaParam customerSea = new CustomerSeaParam();
-                customerSea.setName(dto.getName() + "公海");
-                customerSea.setMarketProjectId(id);
-                customerSea.setCustId(custId);
-                customerSea.setCreateUid(userId);
-                customerSeaService.save(customerSea);
+                //服务权限 1-营销任务 2-公海 多个逗号隔开
+                CustomerProperty cpd = customerDao.getProperty(custId, CustomerPropertyEnum.SERVICE_MODE.getKey());
+                if (cpd != null && "2".equals(cpd.getPropertyValue())) {
+                    // 客户级别的项目自动创建公海
+                    CustomerSeaParam customerSea = new CustomerSeaParam();
+                    customerSea.setName(dto.getName() + "公海");
+                    customerSea.setMarketProjectId(id);
+                    customerSea.setCustId(custId);
+                    customerSea.setCreateUid(userId);
+                    customerSeaService.save(customerSea);
+                }
             }
             return 1;
         } catch (Exception e) {

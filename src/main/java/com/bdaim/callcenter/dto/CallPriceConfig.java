@@ -32,7 +32,7 @@ public class CallPriceConfig {
     /**
      *坐席包月价格(元)
      */
-    private Integer seat_month_price;
+    private Double seat_month_price;
     /**
      *坐席包月分钟
      */
@@ -119,11 +119,11 @@ public class CallPriceConfig {
         this.seat_price_type = seat_price_type;
     }
 
-    public Integer getSeat_month_price() {
+    public Double getSeat_month_price() {
         return seat_month_price;
     }
 
-    public void setSeat_month_price(Integer seat_month_price) {
+    public void setSeat_month_price(Double seat_month_price) {
         this.seat_month_price = seat_month_price;
     }
 
