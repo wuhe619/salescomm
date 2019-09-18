@@ -4,12 +4,20 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.auth.LoginUser;
 import com.bdaim.common.dto.Page;
+import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.service.ElasticSearchService;
+import com.bdaim.common.service.UploadFileService;
+import com.bdaim.common.util.BusinessEnum;
+import com.bdaim.common.util.NumberConvertUtil;
 import com.bdaim.common.util.StringUtil;
+import com.bdaim.common.util.ZipUtil;
+import com.bdaim.customer.dao.CustomerDao;
+import com.bdaim.customer.entity.CustomerProperty;
 import com.bdaim.customs.dao.HBusiDataManagerDao;
 import com.bdaim.customs.dao.HDicDao;
 import com.bdaim.customs.dao.HMetaDataDefDao;
 import com.bdaim.customs.dao.HReceiptRecordDao;
+import com.bdaim.customs.dto.FileModel;
 import com.bdaim.customs.entity.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,7 +25,10 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 
 @Service
