@@ -8,7 +8,10 @@ import java.sql.Timestamp;
  * @description es查询参数类
  */
 public class QueryDataParams {
-
+    /**
+     * 主单：sz   分单：sf  税单：ss
+     */
+    private String queryType;
     private Integer mainId;
     private Integer stationId;
     /**
@@ -44,6 +47,14 @@ public class QueryDataParams {
     private Integer pageNum;
     private Integer pageSize;
     private String overWarp;
+
+    public String getQueryType() {
+        return queryType;
+    }
+
+    public void setQueryType(String queryType) {
+        this.queryType = queryType;
+    }
 
     public String getOverWarp() {
         return overWarp;
