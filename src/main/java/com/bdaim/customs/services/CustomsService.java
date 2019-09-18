@@ -4,14 +4,21 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.auth.LoginUser;
 import com.bdaim.common.dto.Page;
+import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.service.ElasticSearchService;
+import com.bdaim.common.service.UploadFileService;
+import com.bdaim.common.util.BusinessEnum;
+import com.bdaim.common.util.NumberConvertUtil;
 import com.bdaim.common.util.StringUtil;
+import com.bdaim.common.util.ZipUtil;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.entity.CustomerProperty;
 import com.bdaim.customs.dao.HBusiDataManagerDao;
 import com.bdaim.customs.dao.HDicDao;
 import com.bdaim.customs.dao.HMetaDataDefDao;
 import com.bdaim.customs.dao.HReceiptRecordDao;
+import com.bdaim.customs.dto.FileModel;
+import com.bdaim.customs.dto.QueryDataParams;
 import com.bdaim.customs.entity.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,7 +26,10 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 
 @Service
@@ -43,10 +53,14 @@ public class CustomsService {
     private ElasticSearchService elasticSearchService;
 
     @Autowired
+    private UploadFileService uploadFileService;
+
+    @Autowired
     private CustomerDao customerDao;
 
     /**
      * 保存信息
+     *
      * @param mainDan
      * @param user
      */
@@ -415,6 +429,89 @@ public class CustomsService {
     }
 
 
+//
+//    public MainDan getDetail(){
+//
+//    }
+
+
+    /**
+     * 上传申报单分单身份证照片
+     *
+     * @param file
+     * @param id   主/分单ID
+     * @param type 1-主单 2-分单
+     * @return
+     * @throws TouchException
+     */
+    public int uploadCardIdPic(MultipartFile file, String id, int type) throws TouchException {
+        int code = 0;
+        // 判断文件格式
+        String filename = file.getOriginalFilename();
+        if (!filename.endsWith("zip") && !filename.endsWith("jpg") && !filename.endsWith("png")) {
+            log.warn("传入身份证文件格式错误:" + filename);
+            return -1;
+        }
+        List<FileModel> fileList = null;
+        try (InputStream inputStream = file.getInputStream()) {
+            // zip身份证文件
+            if (filename.endsWith("zip")) {
+                fileList = ZipUtil.unZip(file);
+            } else if (filename.endsWith("jpg") || filename.endsWith("png")) {
+                // 单个身份证文件
+                fileList = new ArrayList<>();
+                String fileType = file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf("."));
+
+                FileModel fileModel = new FileModel(file.getOriginalFilename(), fileType, inputStream);
+                fileList.add(fileModel);
+
+            }
+            if (fileList != null && fileList.size() > 0) {
+                // 根据主单ID查询分单列表
+                List<HBusiDataManager> fdList = new ArrayList<>();
+                if (1 == type) {
+                    fdList = hBusiDataManagerDao.listHBusiDataManager(NumberConvertUtil.parseInt(id), BusiTypeEnum.SF.getKey());
+                } else if (2 == type) {
+                    // 根据ID查询单个申报单分单
+                    HBusiDataManager data = hBusiDataManagerDao.get(NumberConvertUtil.parseInt(id));
+                    if (data != null) {
+                        fdList.add(data);
+                    }
+                }
+                // 文件存储
+                Map<String, String> map = new HashMap<>();
+                String objectId;
+                for (FileModel f : fileList) {
+                    objectId = uploadFileService.uploadFile(f.getFileInputstream(), BusinessEnum.CUSTOMS, true, f.getFileName());
+                    map.put(f.getFileName().substring(0, f.getFileName().indexOf(".")), objectId);
+                }
+                // 上传身份证照片并且更新分单数据库和ES信息
+                JSONObject jsonObject;
+                String picKey = "ID_NO_PIC";
+                for (HBusiDataManager d : fdList) {
+                    if (StringUtil.isEmpty(d.getContent())) {
+                        continue;
+                    }
+                    jsonObject = JSON.parseObject(d.getContent());
+                    if (jsonObject != null) {
+                        // 身份证照片存储对象ID
+                        jsonObject.put(picKey, map.get(jsonObject.getString("ID_NO")));
+                        d.setContent(jsonObject.toJSONString());
+                        d.setExt_6(jsonObject.getString(picKey));
+                        hBusiDataManagerDao.saveOrUpdate(d);
+                        updateDataToES(d, d.getId());
+                    }
+                }
+                code = 1;
+            } else {
+                log.warn("传入身份证文件为空:" + filename);
+                return -5;
+            }
+        } catch (IOException e) {
+            log.error("读取身份证单个图片异常", e);
+        }
+        return code;
+    }
     /**
      * 提交为报单、仓单、
      * 1.添加报单主单
@@ -462,6 +559,7 @@ public class CustomsService {
 
             }
         }
+    }
 
     }
 
@@ -470,10 +568,67 @@ public class CustomsService {
      * @param billNo
      * @return
      */
-    private List<HBusiDataManager> getPartiesByMainBillNo(String billNo,String type){
-        String hql=" from HBusiDataManager a where a.ext_4='"+billNo+"' and type='"+type+"'";
+    private List<HBusiDataManager> getPartiesByMainBillNo(String billNo,String type) {
+        String hql = " from HBusiDataManager a where a.ext_4='" + billNo + "' and type='" + type + "'";
         List<HBusiDataManager> list = hBusiDataManagerDao.find(hql);
         return list;
+    }
+    /**
+     * 查询主单列表信息
+     *
+     * @return
+     */
+    public JSONObject getMainList(QueryDataParams queryDataParams) {
+        //String a ="{ \"query\": { \"bool\": { \"must\": { \"match\": { \"_id\": \"8\" } }, } } }";
+        //生成查询语句
+        StringBuffer dsl = new StringBuffer("{\"query\": {\"bool\":");
+        if (StringUtil.isNotEmpty(String.valueOf(queryDataParams.getStationId()))) {
+            dsl.append("{\"must\":{\"match\":{\"station_id\":\"" + queryDataParams.getStationId() + "\"}},");
+        }
+        if (StringUtil.isNotEmpty(String.valueOf(queryDataParams.getCustName()))) {
+            dsl.append("\"must\":{\"match\":{\"cust_name\":\"" + queryDataParams.getCustName() + "\"}},");
+        }
+        if (StringUtil.isNotEmpty(String.valueOf(queryDataParams.getBillNo()))) {
+            dsl.append("\"must\":{\"match\":{\"bill_no\":\"" + queryDataParams.getBillNo() + "\"}},");
+        }
+        if (StringUtil.isNotEmpty(String.valueOf(queryDataParams.getStartTime()))) {
+            dsl.append("\"must\":{\"match\":{\"start_time\":\"" + queryDataParams.getStartTime() + "\"}},");
+        }
+        if (StringUtil.isNotEmpty(String.valueOf(queryDataParams.getEndTime()))) {
+            dsl.append("\"must\":{\"match\":{\"end_time\":\"" + queryDataParams.getEndTime() + "\"}},");
+        }
+        if (StringUtil.isNotEmpty(String.valueOf(queryDataParams.getArrivalStartTime()))) {
+            dsl.append("\"must\":{\"match\":{\"i_d_date\":\"" + queryDataParams.getArrivalStartTime() + "\"}},");
+        }
+        if (StringUtil.isNotEmpty(String.valueOf(queryDataParams.getArrivalEndTime()))) {
+            dsl.append("\"must\":{\"match\":{\"arrival_end_time\":\"" + queryDataParams.getArrivalEndTime() + "\"}},");
+        }
+        //提交记录
+        if (StringUtil.isNotEmpty(String.valueOf(queryDataParams.getSubmitLog()))) {
+            dsl.append("\"must\":{\"match\":{\"submit_log\":\"" + queryDataParams.getSubmitLog() + "\"}},");
+        }
+        //低价商品
+        if (StringUtil.isNotEmpty(String.valueOf(queryDataParams.getLowPriceProduct()))) {
+            dsl.append("\"must\":{\"match\":{\"low_price\":\"" + queryDataParams.getSubmitLog() + "\"}},");
+        }
+        //1溢装 2 短装
+        if (StringUtil.isNotEmpty(String.valueOf(queryDataParams.getType()))) {
+            dsl.append("\"must\":{\"match\":{\"type\":\"" + queryDataParams.getType() + "\"}},");
+        }
+        //1溢装 2 短装
+        if (StringUtil.isNotEmpty(String.valueOf(queryDataParams.getMainId()))) {
+            dsl.append("{\"must\":{\"match\":{\"_id\":\"" + queryDataParams.getMainId() + "\"}},");
+        }
+        //分页处理
+        /*dsl.append("\"from\":"+queryDataParams.getPageNum() +",\"size\": "+queryDataParams.getPageSize()+",");
+        dsl.append("\"sort\": [{ \"_id\": {\"order\": \"desc\" } } ]");*/
+        dsl.append("}}}");
+        log.info("查询dsl语句" + dsl.toString());
+        JSONObject json = elasticSearchService.getEsData(Constants.SZ_INFO_INDEX, "haiguan", net.sf.json.JSONObject.fromObject(dsl.toString()));
+        if (json != null) {
+            return json.getJSONObject("hits");
+        }
+        return json;
     }
 
 }

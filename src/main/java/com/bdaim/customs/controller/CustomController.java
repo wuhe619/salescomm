@@ -3,11 +3,12 @@ package com.bdaim.customs.controller;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.auth.LoginUser;
-import com.bdaim.common.annotation.CacheAnnotation;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.controller.util.ResponseCommon;
 import com.bdaim.common.controller.util.ResponseJson;
 import com.bdaim.common.dto.Page;
+import com.bdaim.common.exception.TouchException;
+import com.bdaim.customs.dto.QueryDataParams;
 import com.bdaim.customs.entity.HDic;
 import com.bdaim.customs.entity.MainDan;
 import com.bdaim.customs.services.CustomsService;
@@ -17,8 +18,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
+import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 
-import java.util.*;
+import javax.servlet.http.HttpServletRequest;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/customs")
@@ -129,6 +135,7 @@ public class CustomController extends BasicAction {
      * @return
      */
     @RequestMapping(value="main/{id}",method = RequestMethod.DELETE)
+    @ResponseBody
     public ResponseJson deleteMain(@PathVariable("id")Long id,String type){
         ResponseJson responseJson = new ResponseJson();
         try {
@@ -230,6 +237,55 @@ public class CustomController extends BasicAction {
         return responseJson;
     }
 
+    @RequestMapping(value = "/uploadCardIdPic", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseJson uploadCardIdPic(HttpServletRequest request, String id, int type) {
+        CommonsMultipartResolver multipartResolver = new CommonsMultipartResolver(
+                request.getSession().getServletContext());
+        MultipartFile f = null;
+        if (multipartResolver.isMultipart(request)) {
+            MultipartHttpServletRequest multiRequest = (MultipartHttpServletRequest) request;
+            Iterator<String> iter = multiRequest.getFileNames();
+            while (iter.hasNext()) {
+                f = multiRequest.getFile(iter.next());
+                break;
+            }
+        }
+        ResponseJson responseJson = new ResponseJson();
+        if (f == null) {
+            responseJson.setCode(0);
+            responseJson.setMessage("文件为空");
+            return responseJson;
+        }
+        try {
+            int status = customsService.uploadCardIdPic(f, id, type);
+            if (status == 1) {
+                responseJson.setCode(1);
+                responseJson.setMessage("成功");
+            } else {
+                responseJson.setCode(status);
+                String msg = "文件异常";
+                if (status == -1) {
+                    msg = "文件格式不正确";
+                } else if (status == -2) {
+                    msg = "表头必须包含手机号";
+                } else if (status == -3) {
+                    msg = "表头为空";
+                } else if (status == -4) {
+                    msg = "总行数超过限制";
+                } else if (status == -5) {
+                    msg = "文件为空";
+                }
+                responseJson.setMessage(msg);
+            }
+        } catch (TouchException e) {
+            log.error("上传分单身份证照片异常", e);
+            responseJson.setCode(0);
+            responseJson.setMessage(e.getMessage());
+        }
+        return responseJson;
+    }
+
 
     @ResponseBody
     @RequestMapping(value = "commit/{id}",method = RequestMethod.POST)
@@ -246,6 +302,28 @@ public class CustomController extends BasicAction {
             responseJson.setCode(200);
             responseJson.setMessage("SUCCESS");
         }catch (Exception e){
+            e.printStackTrace();
+            responseJson.setCode(-1);
+            responseJson.setMessage(e.getMessage());
+        }
+        return responseJson;
+    }
+
+    /**
+     * 查询主单数据列表
+     *
+     * @param
+     */
+    @RequestMapping(value = "/get", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseJson getmainList(@RequestBody QueryDataParams queryDataParams) {
+        ResponseJson responseJson = new ResponseJson();
+        try {
+            JSONObject json = customsService.getMainList(queryDataParams);
+            responseJson.setMessage("SUCCESS");
+            responseJson.setCode(200);
+            responseJson.setData(json);
+        } catch (Exception e) {
             e.printStackTrace();
             responseJson.setCode(-1);
             responseJson.setMessage(e.getMessage());
