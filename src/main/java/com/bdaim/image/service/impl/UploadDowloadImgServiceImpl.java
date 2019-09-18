@@ -1,7 +1,10 @@
 package com.bdaim.image.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.common.dao.FileDao;
+import com.bdaim.common.entity.FileInfo;
 import com.bdaim.common.service.MongoFileService;
+import com.bdaim.common.service.UploadFileService;
 import com.bdaim.common.util.*;
 import com.bdaim.image.service.UploadDowloadService;
 import com.bdaim.resource.service.MarketResourceService;
@@ -46,6 +49,10 @@ public class UploadDowloadImgServiceImpl implements UploadDowloadService {
     private FileUrlEntity fileUrlEntity;
     @Autowired
     private MongoFileService mongoFileService;
+    @Autowired
+    private UploadFileService uploadFileService;
+    @Autowired
+    private FileDao fileDao;
 
     @Override
     public Object uploadImgNew(HttpServletRequest request, HttpServletResponse response, String cust_id,
@@ -848,12 +855,14 @@ public class UploadDowloadImgServiceImpl implements UploadDowloadService {
                 while (iter.hasNext()) {
                     MultipartFile multiRequestFile = multiRequest.getFile(iter.next());
                     if (multiRequestFile != null) {
-                        mongoFileService.saveFile(multiRequestFile, pictureName);
+                        //mongoFileService.saveFile(multiRequestFile, pictureName);
                         /*File localFile = new File(sPath);
                         file1.transferTo(localFile);*/
+                        pictureName = uploadFileService.uploadFile(multiRequestFile, BusinessEnum.ONLINE, true);
 
                         File desFile = new File(sPath);
                         FileUtils.copyInputStreamToFile(multiRequestFile.getInputStream(), desFile);
+                        break;
                     }
                 }
             }
@@ -876,7 +885,7 @@ public class UploadDowloadImgServiceImpl implements UploadDowloadService {
         Map<String, Object> resultMap = new HashMap<String, Object>();
         resultMap.put("code", code);
         resultMap.put("_message", message);
-        resultMap.put("url", pictureName + ".jpg");
+        resultMap.put("url", pictureName);
         return JSONObject.toJSON(resultMap);
     }
 
@@ -1122,10 +1131,30 @@ public class UploadDowloadImgServiceImpl implements UploadDowloadService {
             logger.error("获取文件异常", e);
             status = false;
         }
+        // 查询数据库对应文件磁盘位置
+        FileInfo fileInfo = fileDao.selectByServiceId(fileName);
+        if (fileInfo != null) {
+            filePath = PropertiesUtil.getStringValue("file.file_path") + File.separator + fileInfo.getServiceId().split("_")[0] + File.separator + fileInfo.getServiceId().split("_")[1];
+            file = new File(filePath);
+            try (FileInputStream fis = new FileInputStream(file)) {
+                if (file.exists()) {
+                    IOUtils.copy(fis, response.getOutputStream());
+                    status = true;
+                }
+            } catch (Exception e) {
+                logger.error("获取文件异常", e);
+                status = false;
+            }
+        }
+
         if (!status) {
             logger.warn("[" + filePath + "]磁盘文件不存在,穿透查询mongodb文件");
-            if (fileName.indexOf(".") > 0) {
-                fileName = fileName.substring(0, fileName.lastIndexOf("."));
+            if (fileInfo != null) {
+                fileName = fileInfo.getServiceId();
+            }else{
+                if (fileName.indexOf(".") > 0) {
+                    fileName = fileName.substring(0, fileName.lastIndexOf("."));
+                }
             }
             try {
                 byte[] bytes = mongoFileService.downloadFile(fileName);
