@@ -374,18 +374,17 @@ public class CustomsService {
     }
 
 
-    public void saveDic(Map<String,String> paramMap){
+    public void saveDic(HDic hdic){
         HDic dic=new HDic();
-        dic.setCode(paramMap.get("code"));
-        dic.setName_zh(paramMap.get("name_zh"));
-        dic.setName_en(paramMap.get("name_en"));
-        dic.setDesc(paramMap.get("desc"));
-        if(paramMap.get("status")==null){
+        BeanUtils.copyProperties(hdic,dic);
+//        dic.setCode(paramMap.get("code"));
+//        dic.setName_zh(paramMap.get("name_zh"));
+//        dic.setName_en(paramMap.get("name_en"));
+//        dic.setDesc(paramMap.get("desc"));
+        if(hdic.getStatus()==null){
             dic.setStatus("Y");
-        }else{
-            dic.setStatus(paramMap.get("status"));
         }
-        dic.setType(paramMap.get("type"));
+//        dic.setType(paramMap.get("type"));
         hDicDao.saveOrUpdate(dic);
     }
 
