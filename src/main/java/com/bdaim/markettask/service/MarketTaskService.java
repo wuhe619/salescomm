@@ -3812,7 +3812,7 @@ public class MarketTaskService {
         sb.append("  from " + ConstantsUtil.MARKET_TASK_TABLE_PREFIX + marketTask.getId() + " custG ");
         sb.append(" where 1=1 ");
 
-        sb.append(" ORDER BY custG.id ASC ");
+        sb.append(" ORDER BY custG.n_id ASC ");
         if (pageSize != null && !"".equals(pageSize)) {
             sb.append("  LIMIT " + taskPhoneIndex + "," + pageSize);
         }
