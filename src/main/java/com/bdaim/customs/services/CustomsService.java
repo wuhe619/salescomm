@@ -4,18 +4,12 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.auth.LoginUser;
 import com.bdaim.common.dto.Page;
-import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.service.ElasticSearchService;
-import com.bdaim.common.service.UploadFileService;
-import com.bdaim.common.util.BusinessEnum;
-import com.bdaim.common.util.NumberConvertUtil;
 import com.bdaim.common.util.StringUtil;
-import com.bdaim.common.util.ZipUtil;
 import com.bdaim.customs.dao.HBusiDataManagerDao;
 import com.bdaim.customs.dao.HDicDao;
 import com.bdaim.customs.dao.HMetaDataDefDao;
 import com.bdaim.customs.dao.HReceiptRecordDao;
-import com.bdaim.customs.dto.FileModel;
 import com.bdaim.customs.entity.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,10 +17,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.*;
 
 @Service
@@ -52,15 +43,22 @@ public class CustomsService {
     @Autowired
     private UploadFileService uploadFileService;
 
+    @Autowired
+    private CustomerDao customerDao;
+
     /**
      * 保存信息
      *
      * @param mainDan
      * @param user
      */
-    public void saveinfo(MainDan mainDan, LoginUser user) {
+    public void saveinfo(MainDan mainDan, LoginUser user) throws Exception {
         List<HBusiDataManager> list = new ArrayList<>();
-        buildMain(list, mainDan, user);
+        CustomerProperty station_idProperty = customerDao.getProperty(user.getCustId(),"station_id");
+        if(station_idProperty==null || StringUtil.isEmpty(station_idProperty.getPropertyValue())){
+            throw new Exception("未配置场站信息");
+        }
+        buildMain(list, mainDan, user,station_idProperty.getPropertyValue());
         if (list != null && list.size() > 0) {
             for(HBusiDataManager hBusiDataManager:list) {
                 Integer id = (Integer) hBusiDataManagerDao.saveReturnPk(hBusiDataManager);
@@ -201,7 +199,7 @@ public class CustomsService {
      * @param mainDan
      * @param user
      */
-    public void buildMain(List<HBusiDataManager> list,MainDan mainDan,LoginUser user){
+    public void buildMain(List<HBusiDataManager> list,MainDan mainDan,LoginUser user,String station_id){
         HBusiDataManager dataManager = new HBusiDataManager();
         dataManager.setCreateId(user.getId());
         dataManager.setCreateDate(new Date());
@@ -212,7 +210,7 @@ public class CustomsService {
         jsonObject.put("commitBaoDanStatus","N");
         jsonObject.put("create_date",new Date());
         jsonObject.put("create_id",user.getId()+"");
-        jsonObject.put("stationId","");//场站id
+        jsonObject.put("station_id",station_id);//场站id
         jsonObject.put("cust_id",user.getCustId());
         jsonObject.put("idCardNumber",0);
         dataManager.setContent(jsonObject.toJSONString());
@@ -485,4 +483,51 @@ public class CustomsService {
         }
         return code;
     }
+    /**
+     * 提交为报单、仓单
+     * @param id
+     * @param type
+     */
+    public void commit2cangdanorbaodan(String id,String type,LoginUser user) throws Exception {
+        HBusiDataManager h = hBusiDataManagerDao.get(Long.valueOf(id));
+        if(h==null){
+            throw new Exception("数据不存在");
+        }
+        if(BusiTypeEnum.BZ.getKey().equals(type)){
+            if("Y".equals(h.getExt_1())){
+                throw new Exception("已经提交过了,不能重复提交");
+            }
+
+        }else if(BusiTypeEnum.CZ.getKey().equals(type)){
+            if("Y".equals(h.getExt_2())){
+                throw new Exception("已经提交过了,不能重复提交");
+            }
+
+            HBusiDataManager CZ=new HBusiDataManager();
+            CZ.setType(BusiTypeEnum.CZ.getKey());
+            CZ.setCreateDate(new Date());
+            CZ.setCust_id(Long.valueOf(user.getCustId()));
+            CZ.setCreateId(user.getId());
+            CZ.setExt_3(h.getExt_3());
+            CZ.setExt_1("0");//未发送 1，已发送
+
+            JSONObject json = JSON.parseObject(h.getContent());
+            json.put("create_id",user.getId());
+            json.put("cust_id",user.getCustId());
+            json.put("type",CZ.getType());
+            json.put("create_date",CZ.getCreateDate());
+            json.put("send_status",CZ.getExt_1());
+            String content=json.toJSONString();
+            CZ.setContent(content);
+            Long cid = (Long) hBusiDataManagerDao.saveReturnPk(CZ);
+            json.put("id",cid);
+
+            String sql="insert into h_data_manager(type,content,create_date,create_id,cust_id,ext_1,ext_3)select" +
+                    "'"+BusiTypeEnum.CZ.getKey()+"',contnet,now(),"+user.getId()+","+user.getCustId()+",1,ext_3 from h_data_manager where id="+id;
+
+        }
+
+
+    }
+
 }

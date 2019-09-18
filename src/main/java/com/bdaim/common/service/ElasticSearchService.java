@@ -112,17 +112,19 @@ public class ElasticSearchService {
         JSONObject result = null;
         try {
             LOG.info("从es查询数据:index[" + index + "],type[" + type + "],id:[" + id + "]");
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            HttpEntity<JSONObject> entity = new HttpEntity<>(headers);
-            ResponseEntity<JSONObject> resultEntity = restTemplate.exchange(ESUtil.getUrl(index, type) + id, HttpMethod.GET, entity, JSONObject.class);
-            result = resultEntity.getBody();
-            LOG.info("向es新增记录返回结果:[" + result + "]");
+            String httpResult = HttpUtil.httpGet(ESUtil.getUrl(index, type) + id, null, null);
+            result = JSON.parseObject(httpResult);
+            result = result.getJSONObject("hits");
+            if(result.containsKey("_source")){
+              result = result.getJSONObject("_source");
+            }
+            LOG.info("从es查询记录返回结果:[" + httpResult + "]");
         } catch (Exception e) {
-            LOG.error("向es新增记录异常:" + e.getMessage());
+            LOG.error("从es查询记录异常:" + e.getMessage());
         }
         return result;
     }
+
 
 
 
