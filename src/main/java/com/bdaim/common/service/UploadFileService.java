@@ -3,6 +3,7 @@ package com.bdaim.common.service;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.dao.FileDao;
 import com.bdaim.common.util.BusinessEnum;
+import com.bdaim.common.util.CipherUtil;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.annotation.Resource;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
@@ -61,6 +63,33 @@ public class UploadFileService {
             String savePath = filePath + _filePath;
             File desFile = new File(savePath + fileType);
             FileUtils.copyInputStreamToFile(file.getInputStream(), desFile);
+            fileDao.save(serviceId, subFilePath);
+            return subFilePath;
+        } catch (IOException e) {
+            logger.error("文件上传失败", e);
+        }
+        return "";
+    }
+
+    public String uploadFile(InputStream file, BusinessEnum businessEnum, boolean saveMongoDb, String fileName) {
+        if (fileName.indexOf(".") == -1) {
+            logger.warn("文件错误");
+            return "";
+        }
+        try {
+            String fileType = fileName.substring(fileName.lastIndexOf(".") + 1);
+            String subFilePath = CipherUtil.encodeByMD5(businessEnum + fileName + System.currentTimeMillis());
+            String serviceId = businessEnum.getKey() + "_" + subFilePath;
+            // 保存文件到mongodb中
+            if (saveMongoDb) {
+                String objectId = mongoFileService.saveFile(file, serviceId);
+                fileDao.save(serviceId, objectId);
+            }
+            // 保存文件到磁盘
+            String _filePath = File.separator + businessEnum.getKey() + File.separator + subFilePath;
+            String savePath = filePath + _filePath;
+            File desFile = new File(savePath + fileType);
+            FileUtils.copyInputStreamToFile(file, desFile);
             fileDao.save(serviceId, subFilePath);
             return subFilePath;
         } catch (IOException e) {

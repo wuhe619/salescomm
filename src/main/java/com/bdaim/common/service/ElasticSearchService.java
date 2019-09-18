@@ -2,8 +2,8 @@ package com.bdaim.common.service;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.util.ESUtil;
-import com.bdaim.common.util.RestUtil;
 import com.bdaim.common.util.http.HttpUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -87,7 +87,6 @@ public class ElasticSearchService {
 
     /**
      * 删除文档
-     *
      * @param index
      * @param type
      * @param id
@@ -113,17 +112,20 @@ public class ElasticSearchService {
         JSONObject result = null;
         try {
             LOG.info("从es查询数据:index[" + index + "],type[" + type + "],id:[" + id + "]");
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            HttpEntity<JSONObject> entity = new HttpEntity<>(headers);
-            ResponseEntity<JSONObject> resultEntity = restTemplate.exchange(ESUtil.getUrl(index, type) + id, HttpMethod.GET, entity, JSONObject.class);
-            result = resultEntity.getBody();
-            LOG.info("向es新增记录返回结果:[" + result + "]");
+            String httpResult = HttpUtil.httpGet(ESUtil.getUrl(index, type) + id, null, null);
+            result = JSON.parseObject(httpResult);
+            result = result.getJSONObject("hits");
+            if(result.containsKey("_source")){
+              result = result.getJSONObject("_source");
+            }
+            LOG.info("从es查询记录返回结果:[" + httpResult + "]");
         } catch (Exception e) {
-            LOG.error("向es新增记录异常:" + e.getMessage());
+            LOG.error("从es查询记录异常:" + e.getMessage());
         }
         return result;
     }
+
+
 
 
     /**
@@ -157,7 +159,6 @@ public class ElasticSearchService {
     public static void main(String[] args) {
         testAdd();
     }
-
     //@Test
     public static void testAdd() {
         JSONObject jsonObject = new JSONObject();
@@ -245,22 +246,5 @@ public class ElasticSearchService {
             LOG.error("rest error:" + e.getMessage());
         }
         return result;
-    }
-
-    /**
-     * @description 查询es信息
-     * @author:duanliying
-     * @method
-     * @date: 2019/9/18 11:36
-     */
-    public JSONObject getEsData(String index, String type, net.sf.json.JSONObject queryStr) {
-        String r = null;
-        LOG.info("向es修改记录:index[" + index + "],type[" + type + "],data:[" + queryStr + "]");
-        try {
-            r = RestUtil.postDataWithParms(queryStr, ESUtil.getUrl(index, type) + "/_search/");
-        } catch (Exception e) {
-            LOG.error("插查询es信息异常", e);
-        }
-        return JSONObject.parseObject(r);
     }
 }

@@ -57,6 +57,12 @@ public class MongoFileService {
         return id.toString();
     }
 
+    public String saveFile(InputStream file, String fileName) throws IOException {
+        Map<String, Object> metadata = new HashMap<>();
+        ObjectId id = gridfsTemplate.store(file, fileName, metadata);
+        return id.toString();
+    }
+
     /**
      * 根据文件名称删除文件
      */
