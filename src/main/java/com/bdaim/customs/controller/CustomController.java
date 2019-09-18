@@ -3,11 +3,11 @@ package com.bdaim.customs.controller;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.auth.LoginUser;
-import com.bdaim.common.annotation.CacheAnnotation;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.controller.util.ResponseCommon;
 import com.bdaim.common.controller.util.ResponseJson;
 import com.bdaim.common.dto.Page;
+import com.bdaim.customs.dto.QueryDataParams;
 import com.bdaim.customs.entity.HDic;
 import com.bdaim.customs.entity.MainDan;
 import com.bdaim.customs.services.CustomsService;
@@ -16,9 +16,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/customs")
@@ -31,15 +31,16 @@ public class CustomController extends BasicAction {
 
     /**
      * 保存数据
+     *
      * @param mainDan
      */
-    @RequestMapping(value="saveinfo",method = RequestMethod.POST)
+    @RequestMapping(value = "saveinfo", method = RequestMethod.POST)
     @ResponseBody
-    public ResponseCommon saveMaindan(@RequestBody MainDan mainDan){
-        log.info("saveMaindan::"+JSON.toJSONString(mainDan));
+    public ResponseCommon saveMaindan(@RequestBody MainDan mainDan) {
+        log.info("saveMaindan::" + JSON.toJSONString(mainDan));
         ResponseCommon responseJson = new ResponseCommon();
         LoginUser user = opUser();
-        if(user==null || user.getId()==null){
+        if (user == null || user.getId() == null) {
             log.error("请先登陆");
             responseJson.setCode(-1);
             responseJson.setMessage("请先登陆");
@@ -50,7 +51,7 @@ public class CustomController extends BasicAction {
             responseJson.setCode(200);
             responseJson.setMessage("SUCCESS");
             return responseJson;
-        }catch (Exception e){
+        } catch (Exception e) {
             responseJson.setCode(-1);
             responseJson.setMessage("保存出错");
             return responseJson;
@@ -61,18 +62,19 @@ public class CustomController extends BasicAction {
 
     /**
      * 根据主单id查询分单列表
+     *
      * @param id
      */
-    @RequestMapping(value="/parties/main/{id}",method = RequestMethod.GET)
+    @RequestMapping(value = "/parties/main/{id}", method = RequestMethod.GET)
     @ResponseBody
-    public ResponseJson getPartiesByMainId(@PathVariable("id")String id,String type){
+    public ResponseJson getPartiesByMainId(@PathVariable("id") String id, String type) {
         ResponseJson responseJson = new ResponseJson();
         try {
 //            JSONObject json = customsService.getMainDetailById(id, type);
             responseJson.setMessage("SUCCESS");
             responseJson.setCode(200);
 //            responseJson.setData(json);
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             responseJson.setCode(-1);
             responseJson.setMessage(e.getMessage());
@@ -82,18 +84,19 @@ public class CustomController extends BasicAction {
 
     /**
      * 根据主单id查询详情
+     *
      * @param id
      */
-    @RequestMapping(value="main/{id}",method = RequestMethod.GET)
+    @RequestMapping(value = "main/{id}", method = RequestMethod.GET)
     @ResponseBody
-    public ResponseJson getMainDetailById(@PathVariable("id")String id,String type){
+    public ResponseJson getMainDetailById(@PathVariable("id") String id, String type) {
         ResponseJson responseJson = new ResponseJson();
         try {
             JSONObject json = customsService.getMainDetailById(id, type);
             responseJson.setMessage("SUCCESS");
             responseJson.setCode(200);
             responseJson.setData(json);
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             responseJson.setCode(-1);
             responseJson.setMessage(e.getMessage());
@@ -103,15 +106,16 @@ public class CustomController extends BasicAction {
 
     /**
      * 编辑主单信息
+     *
      * @param mainDan
      * @return
      */
-    @RequestMapping(value="main/{id}",method = RequestMethod.POST)
+    @RequestMapping(value = "main/{id}", method = RequestMethod.POST)
     @ResponseBody
-    public ResponseJson saveMainDetail(@PathVariable("id")String id,@RequestBody MainDan mainDan){
+    public ResponseJson saveMainDetail(@PathVariable("id") String id, @RequestBody MainDan mainDan) {
         ResponseJson responseJson = new ResponseJson();
         try {
-            customsService.saveMainDetail(id,mainDan);
+            customsService.saveMainDetail(id, mainDan);
             responseJson.setMessage("SUCCESS");
             responseJson.setCode(200);
         } catch (Exception e) {
@@ -124,16 +128,17 @@ public class CustomController extends BasicAction {
 
     /**
      * 删除主单
+     *
      * @param id
      * @param type
      * @return
      */
-    @RequestMapping(value="main/{id}",method = RequestMethod.DELETE)
+    @RequestMapping(value = "main/{id}", method = RequestMethod.DELETE)
     @ResponseBody
-    public ResponseJson deleteMain(@PathVariable("id")Long id,String type){
+    public ResponseJson deleteMain(@PathVariable("id") Long id, String type) {
         ResponseJson responseJson = new ResponseJson();
         try {
-            customsService.delMainById(id,type);
+            customsService.delMainById(id, type);
             responseJson.setMessage("SUCCESS");
             responseJson.setCode(200);
         } catch (Exception e) {
@@ -146,27 +151,27 @@ public class CustomController extends BasicAction {
 
     /**
      * 根据分单查询商品列表
+     *
      * @param id
      */
-    @RequestMapping(value="party/{id}",method = RequestMethod.POST)
+    @RequestMapping(value = "party/{id}", method = RequestMethod.POST)
     @ResponseBody
-    public void getGoodsByPartyId(@PathVariable("id")String id){
+    public void getGoodsByPartyId(@PathVariable("id") String id) {
 
 
     }
 
 
-
-
     /**
      * 根据业务类型、字典类型查询字典数据
+     *
      * @param type
      * @param propertyName
      * @return
      */
     @ResponseBody
-    @RequestMapping(value = "/diclist",method = RequestMethod.POST)
-    public  ResponseJson  queryDicList(String type,String propertyName) {
+    @RequestMapping(value = "/diclist", method = RequestMethod.POST)
+    public ResponseJson queryDicList(String type, String propertyName) {
 
         ResponseJson responseJson = new ResponseJson();
         try {
@@ -185,32 +190,56 @@ public class CustomController extends BasicAction {
 
     /**
      * 分页查询参数
+     *
      * @param type
      * @param pageSize
      * @param pageNo
      * @return
      */
     @ResponseBody
-    @RequestMapping(value = "page/diclist",method = RequestMethod.GET)
-    public Page getdicPageList(String type,Integer pageSize,Integer pageNo){
-        return customsService.getdicPageList(type,pageSize,pageNo);
+    @RequestMapping(value = "page/diclist", method = RequestMethod.GET)
+    public Page getdicPageList(String type, Integer pageSize, Integer pageNo) {
+        return customsService.getdicPageList(type, pageSize, pageNo);
     }
 
 
     /**
      * 添加/编辑参数
+     *
      * @param hdic
      * @return
      */
     @ResponseBody
-    @RequestMapping(value = "savedic",method = RequestMethod.POST)
-    public ResponseJson saveDic(@RequestBody  HDic hdic) {
+    @RequestMapping(value = "savedic", method = RequestMethod.POST)
+    public ResponseJson saveDic(@RequestBody HDic hdic) {
         ResponseJson responseJson = new ResponseJson();
         try {
             customsService.saveDic(hdic);
             responseJson.setCode(200);
             responseJson.setMessage("SUCCESS");
-        }catch (Exception e){
+        } catch (Exception e) {
+            e.printStackTrace();
+            responseJson.setCode(-1);
+            responseJson.setMessage(e.getMessage());
+        }
+        return responseJson;
+    }
+
+    /**
+     * 查询主单数据列表
+     *
+     * @param
+     */
+    @RequestMapping(value = "/get", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseJson getmainList(@RequestBody QueryDataParams queryDataParams) {
+        ResponseJson responseJson = new ResponseJson();
+        try {
+            JSONObject json = customsService.getMainList(queryDataParams);
+            responseJson.setMessage("SUCCESS");
+            responseJson.setCode(200);
+            responseJson.setData(json);
+        } catch (Exception e) {
             e.printStackTrace();
             responseJson.setCode(-1);
             responseJson.setMessage(e.getMessage());
