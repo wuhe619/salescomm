@@ -63,7 +63,7 @@ public class CustomController extends BasicAction {
      * 根据主单id查询分单列表
      * @param id
      */
-    @RequestMapping(value="main/{id}",method = RequestMethod.GET)
+    @RequestMapping(value="/parties/main/{id}",method = RequestMethod.GET)
     @ResponseBody
     public ResponseJson getPartiesByMainId(@PathVariable("id")String id,String type){
         ResponseJson responseJson = new ResponseJson();
