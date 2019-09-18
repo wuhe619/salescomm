@@ -120,7 +120,7 @@ public class CustomsService {
      * @param
      * @throws Exception
      */
-    public void saveMainDetail(String id,MainDan mainDan) throws Exception {
+    public void saveMainDetail(String id,MainDan mainDan,LoginUser user) throws Exception {
 //         String id = jsonObject.getString("id");
          if(StringUtil.isEmpty(id)){
             log.error("参数id为空");
@@ -130,6 +130,9 @@ public class CustomsService {
          if(manager==null){
              throw new Exception("修改的数据不存在");
          }
+        if(!manager.getCust_id().toString().equals(user.getCustId())){
+            throw new Exception("你无权处理");
+        }
          String content = manager.getContent();
          MainDan dbjson = JSON.parseObject(content,MainDan.class);
          BeanUtils.copyProperties(mainDan,dbjson);
@@ -139,8 +142,11 @@ public class CustomsService {
     }
 
 
-    public void delMainById(Long id,String type) throws Exception {
+    public void delMainById(Long id,String type,LoginUser user) throws Exception {
         HBusiDataManager manager = hBusiDataManagerDao.get(id);
+        if(!manager.getCust_id().toString().equals(user.getCustId())){
+            throw new Exception("你无权删除");
+        }
         if("Y".equals(manager.getExt_1()) || "Y".equals(manager.getExt_2())){
             throw new Exception("已经被提交，无法删除");
         }
@@ -524,6 +530,9 @@ public class CustomsService {
         HBusiDataManager h = hBusiDataManagerDao.get(Long.valueOf(id));
         if(h==null){
             throw new Exception("数据不存在");
+        }
+        if(!user.getCustId().equals(h.getCust_id().toString())){
+            throw new Exception("你无权处理");
         }
         List<HBusiDataManager> dataList = new ArrayList<>();
         if(BusiTypeEnum.BZ.getKey().equals(type)){ //提交为报单
