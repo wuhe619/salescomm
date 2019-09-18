@@ -8,6 +8,7 @@ import com.bdaim.common.controller.util.ResponseCommon;
 import com.bdaim.common.controller.util.ResponseJson;
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.exception.TouchException;
+import com.bdaim.customs.dto.QueryDataParams;
 import com.bdaim.customs.entity.HDic;
 import com.bdaim.customs.entity.MainDan;
 import com.bdaim.customs.services.CustomsService;
@@ -301,6 +302,28 @@ public class CustomController extends BasicAction {
             responseJson.setCode(200);
             responseJson.setMessage("SUCCESS");
         }catch (Exception e){
+            e.printStackTrace();
+            responseJson.setCode(-1);
+            responseJson.setMessage(e.getMessage());
+        }
+        return responseJson;
+    }
+
+    /**
+     * 查询主单数据列表
+     *
+     * @param
+     */
+    @RequestMapping(value = "/get", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseJson getmainList(@RequestBody QueryDataParams queryDataParams) {
+        ResponseJson responseJson = new ResponseJson();
+        try {
+            JSONObject json = customsService.getMainList(queryDataParams);
+            responseJson.setMessage("SUCCESS");
+            responseJson.setCode(200);
+            responseJson.setData(json);
+        } catch (Exception e) {
             e.printStackTrace();
             responseJson.setCode(-1);
             responseJson.setMessage(e.getMessage());

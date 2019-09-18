@@ -18,6 +18,7 @@ import com.bdaim.customs.dao.HDicDao;
 import com.bdaim.customs.dao.HMetaDataDefDao;
 import com.bdaim.customs.dao.HReceiptRecordDao;
 import com.bdaim.customs.dto.FileModel;
+import com.bdaim.customs.dto.QueryDataParams;
 import com.bdaim.customs.entity.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -537,8 +538,64 @@ public class CustomsService {
                     "'"+BusiTypeEnum.CZ.getKey()+"',contnet,now(),"+user.getId()+","+user.getCustId()+",1,ext_3 from h_data_manager where id="+id;
 
         }
+    }
 
-
+    /**
+     * 查询主单列表信息
+     *
+     * @return
+     */
+    public JSONObject getMainList(QueryDataParams queryDataParams) {
+        //String a ="{ \"query\": { \"bool\": { \"must\": { \"match\": { \"_id\": \"8\" } }, } } }";
+        //生成查询语句
+        StringBuffer dsl = new StringBuffer("{\"query\": {\"bool\":");
+        if (StringUtil.isNotEmpty(String.valueOf(queryDataParams.getStationId()))) {
+            dsl.append("{\"must\":{\"match\":{\"station_id\":\"" + queryDataParams.getStationId() + "\"}},");
+        }
+        if (StringUtil.isNotEmpty(String.valueOf(queryDataParams.getCustName()))) {
+            dsl.append("\"must\":{\"match\":{\"cust_name\":\"" + queryDataParams.getCustName() + "\"}},");
+        }
+        if (StringUtil.isNotEmpty(String.valueOf(queryDataParams.getBillNo()))) {
+            dsl.append("\"must\":{\"match\":{\"bill_no\":\"" + queryDataParams.getBillNo() + "\"}},");
+        }
+        if (StringUtil.isNotEmpty(String.valueOf(queryDataParams.getStartTime()))) {
+            dsl.append("\"must\":{\"match\":{\"start_time\":\"" + queryDataParams.getStartTime() + "\"}},");
+        }
+        if (StringUtil.isNotEmpty(String.valueOf(queryDataParams.getEndTime()))) {
+            dsl.append("\"must\":{\"match\":{\"end_time\":\"" + queryDataParams.getEndTime() + "\"}},");
+        }
+        if (StringUtil.isNotEmpty(String.valueOf(queryDataParams.getArrivalStartTime()))) {
+            dsl.append("\"must\":{\"match\":{\"i_d_date\":\"" + queryDataParams.getArrivalStartTime() + "\"}},");
+        }
+        if (StringUtil.isNotEmpty(String.valueOf(queryDataParams.getArrivalEndTime()))) {
+            dsl.append("\"must\":{\"match\":{\"arrival_end_time\":\"" + queryDataParams.getArrivalEndTime() + "\"}},");
+        }
+        //提交记录
+        if (StringUtil.isNotEmpty(String.valueOf(queryDataParams.getSubmitLog()))) {
+            dsl.append("\"must\":{\"match\":{\"submit_log\":\"" + queryDataParams.getSubmitLog() + "\"}},");
+        }
+        //低价商品
+        if (StringUtil.isNotEmpty(String.valueOf(queryDataParams.getLowPriceProduct()))) {
+            dsl.append("\"must\":{\"match\":{\"low_price\":\"" + queryDataParams.getSubmitLog() + "\"}},");
+        }
+        //1溢装 2 短装
+        if (StringUtil.isNotEmpty(String.valueOf(queryDataParams.getType()))) {
+            dsl.append("\"must\":{\"match\":{\"type\":\"" + queryDataParams.getType() + "\"}},");
+        }
+        //1溢装 2 短装
+        if (StringUtil.isNotEmpty(String.valueOf(queryDataParams.getMainId()))) {
+            dsl.append("{\"must\":{\"match\":{\"_id\":\"" + queryDataParams.getMainId() + "\"}},");
+        }
+        //分页处理
+        /*dsl.append("\"from\":"+queryDataParams.getPageNum() +",\"size\": "+queryDataParams.getPageSize()+",");
+        dsl.append("\"sort\": [{ \"_id\": {\"order\": \"desc\" } } ]");*/
+        dsl.append("}}}");
+        log.info("查询dsl语句" + dsl.toString());
+        JSONObject json = elasticSearchService.getEsData(Constants.SZ_INFO_INDEX, "haiguan", net.sf.json.JSONObject.fromObject(dsl.toString()));
+        if (json != null) {
+            return json.getJSONObject("hits");
+        }
+        return json;
     }
 
 }
