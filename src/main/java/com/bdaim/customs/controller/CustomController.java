@@ -184,19 +184,19 @@ public class CustomController extends BasicAction {
      * 分页查询参数
      * @param type
      * @param pageSize
-     * @param pageNo
+     * @param pageNum
      * @return
      */
     @RequestMapping(value = "page/diclist",method = RequestMethod.GET)
-    public ResponseJson getdicPageList(String type,Integer pageSize,Integer pageNo) {
+    public ResponseJson getdicPageList(String type,Integer pageSize,Integer pageNum) {
         ResponseJson responseJson = new ResponseJson();
-        if (type == null || pageNo == null || pageSize == null) {
+        if (type == null || pageNum == null || pageSize == null) {
             responseJson.setCode(-1);
             responseJson.setMessage("参数错误");
             return responseJson;
         }
         try {
-            Page page = customsService.getdicPageList(type, pageSize, pageNo);
+            Page page = customsService.getdicPageList(type, pageSize, pageNum);
             responseJson.setData(page);
             responseJson.setCode(200);
             responseJson.setMessage("SUCCESS");
