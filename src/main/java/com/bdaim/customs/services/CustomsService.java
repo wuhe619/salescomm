@@ -56,7 +56,7 @@ public class CustomsService {
         if(station_idProperty==null || StringUtil.isEmpty(station_idProperty.getPropertyValue())){
             throw new Exception("未配置场站信息");
         }
-        buildMain(list, mainDan, user,station_idProperty.getPropertyValue());
+        buildMain(list, mainDan, user,station_idProperty.getPropertyValue(),BusiTypeEnum.SZ.getKey());
         if (list != null && list.size() > 0) {
             for(HBusiDataManager hBusiDataManager:list) {
                 Integer id = (Integer) hBusiDataManagerDao.saveReturnPk(hBusiDataManager);
@@ -197,15 +197,22 @@ public class CustomsService {
      * @param mainDan
      * @param user
      */
-    public void buildMain(List<HBusiDataManager> list,MainDan mainDan,LoginUser user,String station_id){
+    public void buildMain(List<HBusiDataManager> list,MainDan mainDan,LoginUser user,String station_id,String type){
         HBusiDataManager dataManager = new HBusiDataManager();
         dataManager.setCreateId(user.getId());
         dataManager.setCreateDate(new Date());
-        dataManager.setType(BusiTypeEnum.SZ.getKey());
+        dataManager.setType(type);
         JSONObject jsonObject = buildMainContent(mainDan);
-        jsonObject.put("type",BusiTypeEnum.SZ.getKey());
-        jsonObject.put("commitCangdanStatus","N");
-        jsonObject.put("commitBaoDanStatus","N");
+        jsonObject.put("type",type);
+        String cangdanflag="N";
+        String baodanflag="N";
+        if(type.equals(BusiTypeEnum.CZ.getKey())) {
+            cangdanflag = "Y";
+        }else if(type.equals(BusiTypeEnum.BZ.getKey())) {
+            cangdanflag = "Y";
+        }
+        jsonObject.put("commitBaoDanStatus", baodanflag);
+        jsonObject.put("commitCangdanStatus", cangdanflag);
         jsonObject.put("create_date",new Date());
         jsonObject.put("create_id",user.getId()+"");
         jsonObject.put("station_id",station_id);//场站id
@@ -216,7 +223,7 @@ public class CustomsService {
         dataManager.setExt_2("N");//commit to baogaundan N:未提交，Y：已提交
         dataManager.setExt_3(mainDan.getBill_no());
         list.add(dataManager);
-        buildPartyDan(list,mainDan,user);
+        buildPartyDan(list,mainDan,user,type);
     }
 
 
@@ -233,9 +240,7 @@ public class CustomsService {
     private static JSONObject buildMainContent(MainDan mainDan){
         log.info(JSON.toJSONString(mainDan));
         JSONObject jsonObject = JSON.parseObject(JSON.toJSONString(mainDan));
-//        String CHARGE_WT = mainDan.getCharge_wt();
         String partynum = mainDan.getSingle_batch_num();
-//        String packNo = mainDan.getPack_no();
 
         List<PartyDan> list = mainDan.getSingles();
         float weightTotal=0;
@@ -283,14 +288,20 @@ public class CustomsService {
      * @param mainDan
      * @param user
      */
-    public void buildPartyDan(List<HBusiDataManager> list, MainDan mainDan,LoginUser user){
+    public void buildPartyDan(List<HBusiDataManager> list, MainDan mainDan,LoginUser user,String type){
         List<PartyDan> partList = mainDan.getSingles();
         if(partList!=null && partList.size()>0){
+            String subType = BusiTypeEnum.SF.getKey();
+            if(BusiTypeEnum.CZ.getKey().equals(type)){
+                subType = BusiTypeEnum.CF.getKey();
+            }else if(BusiTypeEnum.BZ.getKey().equals(type)){
+                subType = BusiTypeEnum.BF.getKey();
+            }
             for(PartyDan dan:partList){
                 List<Product> pList = dan.getProducts();
-                buildGoods(list,pList,user);
-                HBusiDataManager dataManager=new HBusiDataManager();
-                dataManager.setType(BusiTypeEnum.SF.getKey());
+                buildGoods(list,pList,user,type);
+                HBusiDataManager dataManager = new HBusiDataManager();
+                dataManager.setType(subType);
                 dataManager.setCreateId(user.getId());
                 dataManager.setCust_id(Long.valueOf(user.getCustId()));
 
@@ -298,14 +309,14 @@ public class CustomsService {
                 dataManager.setExt_3(dan.getBill_NO());//分单号
                 dataManager.setExt_4(dan.getMain_bill_NO());//主单号
 
-                JSONObject json=buildPartyContent(dan);
-                json.put("type",BusiTypeEnum.SF.getKey());
-                json.put("mail_bill_no",mainDan.getBill_no());
+                JSONObject json = buildPartyContent(dan);
+                json.put("type",subType);
+                json.put("main_bill_no",mainDan.getBill_no());
                 json.put("create_date",dataManager.getCreateDate());
                 json.put("create_id",user.getId());
                 json.put("cust_id",user.getCustId());
-                json.put("check_status","0");
-                json.put("idcard_pic_flag","0");
+                json.put("check_status","0");//身份核验状态 0：未核验 1核验通过，-1：未通过
+                json.put("idcard_pic_flag","0");//0无，1，有
                 dataManager.setContent(json.toJSONString());
 
                 list.add(dataManager);
@@ -320,11 +331,17 @@ public class CustomsService {
      * @param pList
      * @param user
      */
-    public void buildGoods(List<HBusiDataManager> list, List<Product> pList,LoginUser user){
+    public void buildGoods(List<HBusiDataManager> list, List<Product> pList,LoginUser user,String type){
         if(pList!=null && pList.size()>0){
+            String subType = BusiTypeEnum.SS.getKey();
+            if(BusiTypeEnum.CZ.getKey().equals(type)){
+                subType = BusiTypeEnum.CS.getKey();
+            }else if(BusiTypeEnum.BZ.getKey().equals(type)){
+                subType = BusiTypeEnum.BS.getKey();
+            }
             for(Product product:pList){
                 HBusiDataManager dataManager=new HBusiDataManager();
-                dataManager.setType(BusiTypeEnum.SS.getKey());
+                dataManager.setType(subType);
                 dataManager.setCreateDate(new Date());
                 dataManager.setCreateId(user.getId());
                 dataManager.setCust_id(Long.valueOf(user.getCustId()));
@@ -334,7 +351,7 @@ public class CustomsService {
                 json.put("create_date",new Date());
                 json.put("create_id",user.getId());
                 json.put("cust_id",user.getCustId());
-                json.put("type",BusiTypeEnum.SS);
+                json.put("type",subType);
                 dataManager.setContent(json.toJSONString());
 
                 list.add(dataManager);
@@ -399,7 +416,10 @@ public class CustomsService {
 
 
     /**
-     * 提交为报单、仓单
+     * 提交为报单、仓单、
+     * 1.添加报单主单
+     * 2.添加报单分单
+     * 3.添加报单税单
      * @param id
      * @param type
      */
@@ -432,17 +452,28 @@ public class CustomsService {
             json.put("type",CZ.getType());
             json.put("create_date",CZ.getCreateDate());
             json.put("send_status",CZ.getExt_1());
-            String content=json.toJSONString();
+            String content = json.toJSONString();
             CZ.setContent(content);
             Long cid = (Long) hBusiDataManagerDao.saveReturnPk(CZ);
             json.put("id",cid);
 
-            String sql="insert into h_data_manager(type,content,create_date,create_id,cust_id,ext_1,ext_3)select" +
-                    "'"+BusiTypeEnum.CZ.getKey()+"',contnet,now(),"+user.getId()+","+user.getCustId()+",1,ext_3 from h_data_manager where id="+id;
+            List<HBusiDataManager> parties = getPartiesByMainBillNo(CZ.getExt_3(),BusiTypeEnum.SF.getKey());
+            for(HBusiDataManager hp:parties){
 
+            }
         }
 
+    }
 
+    /**
+     * 根据主单获取分单
+     * @param billNo
+     * @return
+     */
+    private List<HBusiDataManager> getPartiesByMainBillNo(String billNo,String type){
+        String hql=" from HBusiDataManager a where a.ext_4='"+billNo+"' and type='"+type+"'";
+        List<HBusiDataManager> list = hBusiDataManagerDao.find(hql);
+        return list;
     }
 
 }
