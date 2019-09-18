@@ -20,7 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
 
-@Controller
+@RestController
 @RequestMapping("/customs")
 public class CustomController extends BasicAction {
 
@@ -129,7 +129,6 @@ public class CustomController extends BasicAction {
      * @return
      */
     @RequestMapping(value="main/{id}",method = RequestMethod.DELETE)
-    @ResponseBody
     public ResponseJson deleteMain(@PathVariable("id")Long id,String type){
         ResponseJson responseJson = new ResponseJson();
         try {
@@ -149,7 +148,6 @@ public class CustomController extends BasicAction {
      * @param id
      */
     @RequestMapping(value="party/{id}",method = RequestMethod.POST)
-    @ResponseBody
     public void getGoodsByPartyId(@PathVariable("id")String id){
 
 
@@ -164,7 +162,6 @@ public class CustomController extends BasicAction {
      * @param propertyName
      * @return
      */
-    @ResponseBody
     @RequestMapping(value = "/diclist",method = RequestMethod.POST)
     public  ResponseJson  queryDicList(String type,String propertyName) {
 
@@ -190,10 +187,25 @@ public class CustomController extends BasicAction {
      * @param pageNo
      * @return
      */
-    @ResponseBody
     @RequestMapping(value = "page/diclist",method = RequestMethod.GET)
-    public Page getdicPageList(String type,Integer pageSize,Integer pageNo){
-        return customsService.getdicPageList(type,pageSize,pageNo);
+    public ResponseJson getdicPageList(String type,Integer pageSize,Integer pageNo) {
+        ResponseJson responseJson = new ResponseJson();
+        if (type == null || pageNo == null || pageSize == null) {
+            responseJson.setCode(-1);
+            responseJson.setMessage("参数错误");
+            return responseJson;
+        }
+        try {
+            Page page = customsService.getdicPageList(type, pageSize, pageNo);
+            responseJson.setData(page);
+            responseJson.setCode(200);
+            responseJson.setMessage("SUCCESS");
+        }catch (Exception e){
+            e.printStackTrace();
+            responseJson.setCode(-1);
+            responseJson.setMessage(e.getMessage());
+        }
+        return responseJson;
     }
 
 
@@ -218,5 +230,27 @@ public class CustomController extends BasicAction {
         return responseJson;
     }
 
+
+    @ResponseBody
+    @RequestMapping(value = "commit/{id}",method = RequestMethod.POST)
+    public ResponseJson commit2cangdanorbaodan(@PathVariable("id")String id,String type) {
+        ResponseJson responseJson = new ResponseJson();
+            LoginUser user=opUser();
+            if(user==null || user.getCustId()==null){
+                responseJson.setCode(-1);
+                responseJson.setMessage("未登陆，或无权限");
+                return responseJson;
+            }
+        try {
+            customsService.commit2cangdanorbaodan(id,type,user);
+            responseJson.setCode(200);
+            responseJson.setMessage("SUCCESS");
+        }catch (Exception e){
+            e.printStackTrace();
+            responseJson.setCode(-1);
+            responseJson.setMessage(e.getMessage());
+        }
+        return responseJson;
+    }
 
 }
