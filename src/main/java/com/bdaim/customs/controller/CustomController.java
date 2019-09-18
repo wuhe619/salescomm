@@ -8,6 +8,7 @@ import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.controller.util.ResponseCommon;
 import com.bdaim.common.controller.util.ResponseJson;
 import com.bdaim.common.dto.Page;
+import com.bdaim.customs.entity.HDic;
 import com.bdaim.customs.entity.MainDan;
 import com.bdaim.customs.services.CustomsService;
 import org.slf4j.Logger;
@@ -62,7 +63,7 @@ public class CustomController extends BasicAction {
      * 根据主单id查询分单列表
      * @param id
      */
-    @RequestMapping(value="main/{id}",method = RequestMethod.GET)
+    @RequestMapping(value="/parties/main/{id}",method = RequestMethod.GET)
     @ResponseBody
     public ResponseJson getPartiesByMainId(@PathVariable("id")String id,String type){
         ResponseJson responseJson = new ResponseJson();
@@ -198,15 +199,15 @@ public class CustomController extends BasicAction {
 
     /**
      * 添加/编辑参数
-     * @param map
+     * @param hdic
      * @return
      */
     @ResponseBody
     @RequestMapping(value = "savedic",method = RequestMethod.POST)
-    public ResponseJson saveDic(Map<String,String> map) {
+    public ResponseJson saveDic(@RequestBody  HDic hdic) {
         ResponseJson responseJson = new ResponseJson();
         try {
-            customsService.saveDic(map);
+            customsService.saveDic(hdic);
             responseJson.setCode(200);
             responseJson.setMessage("SUCCESS");
         }catch (Exception e){
