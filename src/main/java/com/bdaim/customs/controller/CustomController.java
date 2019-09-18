@@ -20,7 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.*;
 
 @Controller
-@RequestMapping("/open/customs")
+@RequestMapping("/customs")
 public class CustomController extends BasicAction {
 
     private static Logger log = LoggerFactory.getLogger(CustomController.class);
@@ -65,6 +65,27 @@ public class CustomController extends BasicAction {
     @RequestMapping(value="main/{id}",method = RequestMethod.GET)
     @ResponseBody
     public ResponseJson getPartiesByMainId(@PathVariable("id")String id,String type){
+        ResponseJson responseJson = new ResponseJson();
+        try {
+//            JSONObject json = customsService.getMainDetailById(id, type);
+            responseJson.setMessage("SUCCESS");
+            responseJson.setCode(200);
+//            responseJson.setData(json);
+        }catch (Exception e){
+            e.printStackTrace();
+            responseJson.setCode(-1);
+            responseJson.setMessage(e.getMessage());
+        }
+        return responseJson;
+    }
+
+    /**
+     * 根据主单id查询详情
+     * @param id
+     */
+    @RequestMapping(value="main/{id}",method = RequestMethod.GET)
+    @ResponseBody
+    public ResponseJson getMainDetailById(@PathVariable("id")String id,String type){
         ResponseJson responseJson = new ResponseJson();
         try {
             JSONObject json = customsService.getMainDetailById(id, type);
@@ -134,16 +155,6 @@ public class CustomController extends BasicAction {
     }
 
 
-    /**
-     * 根据id查询数据详情
-     * @param id
-     */
-    @RequestMapping(value="{id}",method = RequestMethod.POST)
-    @ResponseBody
-    public void getDetailById(@PathVariable("id")String id,String type){
-
-
-    }
 
 
     /**
