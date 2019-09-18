@@ -114,9 +114,13 @@ public class ElasticSearchService {
             LOG.info("从es查询数据:index[" + index + "],type[" + type + "],id:[" + id + "]");
             String httpResult = HttpUtil.httpGet(ESUtil.getUrl(index, type) + id, null, null);
             result = JSON.parseObject(httpResult);
-            LOG.info("向es新增记录返回结果:[" + httpResult + "]");
+            result = result.getJSONObject("hits");
+            if(result.containsKey("_source")){
+              result = result.getJSONObject("_source");
+            }
+            LOG.info("从es查询记录返回结果:[" + httpResult + "]");
         } catch (Exception e) {
-            LOG.error("向es新增记录异常:" + e.getMessage());
+            LOG.error("从es查询记录异常:" + e.getMessage());
         }
         return result;
     }
