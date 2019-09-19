@@ -5,6 +5,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
 public class MainDan {
+    @JsonProperty(value = "_id")
+    private String id;
     @JsonProperty(value = "I_E_FLAG")
     private String i_e_flag;
     @JsonProperty(value = "I_E_PORT")
@@ -149,6 +151,14 @@ public class MainDan {
 
     public void setBusiness_unit_name(String business_unit_name) {
         this.business_unit_name = business_unit_name;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getI_e_flag() {

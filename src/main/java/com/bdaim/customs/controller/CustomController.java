@@ -334,10 +334,10 @@ public class CustomController extends BasicAction {
     public ResponseJson getmainList(@RequestBody QueryDataParams queryDataParams) {
         ResponseJson responseJson = new ResponseJson();
         try {
-            JSONObject json = customsService.getMainList(queryDataParams);
+            Page page = customsService.getMainList(queryDataParams);
             responseJson.setMessage("SUCCESS");
             responseJson.setCode(200);
-            responseJson.setData(json);
+            responseJson.setData(page);
         } catch (Exception e) {
             e.printStackTrace();
             responseJson.setCode(-1);

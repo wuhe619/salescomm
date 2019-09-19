@@ -409,12 +409,12 @@ public class CustomsService {
 
 
     public void saveDic(HDic hdic) {
-        if (StringUtil.isEmpty(hdic.getStatus())){
+        if (StringUtil.isEmpty(hdic.getStatus())) {
             hdic.setStatus("1");
         }
-        String sql="replace INTO `bp`.`h_dic` (`type`, `code`, `name_zh`, `name_en`,  `status`,`desc`, `p_code`, `ext_1`, `ext_2`, `ext_3`) VALUES('"+hdic.getType()+"'," +
-                "'"+hdic.getCode()+"','"+hdic.getName_zh()+"','"+hdic.getName_en()+"','"+hdic.getStatus()+"','"+hdic.getDesc()+"','"+hdic.getP_code()+"'," +
-                "'"+hdic.getExt_1()+"','"+hdic.getExt_2()+"','"+hdic.getExt_3()+"')";
+        String sql = "replace INTO `bp`.`h_dic` (`type`, `code`, `name_zh`, `name_en`,  `status`,`desc`, `p_code`, `ext_1`, `ext_2`, `ext_3`) VALUES('" + hdic.getType() + "'," +
+                "'" + hdic.getCode() + "','" + hdic.getName_zh() + "','" + hdic.getName_en() + "','" + hdic.getStatus() + "','" + hdic.getDesc() + "','" + hdic.getP_code() + "'," +
+                "'" + hdic.getExt_1() + "','" + hdic.getExt_2() + "','" + hdic.getExt_3() + "')";
 //        hDicDao.saveOrUpdate(dic);
         hDicDao.executeUpdateSQL(sql);
     }
@@ -629,7 +629,7 @@ public class CustomsService {
      *
      * @return
      */
-    public JSONObject getMainList(QueryDataParams queryDataParams) {
+    public Page getMainList(QueryDataParams queryDataParams) {
         //String a = "{\"query\": {\"bool\":{\"must\":[{\"match\":{\"singles.bill_NO\":\"20001\"}},{\"match\":{\"_id\":\"8\"}}]}}}";
         JSONObject params = new JSONObject();
         JSONObject query = new JSONObject();
@@ -732,30 +732,10 @@ public class CustomsService {
             }
         }
         JSONObject json = elasticSearchService.getEsData(index, "haiguan", params);
-      /*  if (json != null) {
-            JSONObject hits = json.getJSONObject("hits");
-            if (hits != null) {
-                //获取数组信息
-                JSONArray list = hits.getJSONArray("hits");
-                JSONObject hitsList;
-                for (int i = 0; i < list.size(); i++) {
-                    hitsList = list.getJSONObject(i);
-                    int id = hitsList.getIntValue("_id");
-                    JSONObject source = hitsList.getJSONObject("_source");
-                    Map<Object, Object> map = new HashMap<>();
-                    map.put("")
-                }
-                if (list != null) {
-                    for (int i = 0; i < list.size(); i++) {
-                        list.get(i).
-                    }
-                }
-            }
-        }*/
         if (json != null) {
-            return json.getJSONObject("hits");
+            return elasticSearchService.returnDataPackage(json, index);
         }
-        return json;
+        return new Page();
     }
 
     /**
@@ -790,10 +770,10 @@ public class CustomsService {
     public static void main(String[] args) {
         QueryDataParams queryDataParams = new QueryDataParams();
         queryDataParams.setQueryType("SZ");
-        queryDataParams.setBillNo("2000");
+        //queryDataParams.setBillNo("20001");
         queryDataParams.setPageSize(2);
         queryDataParams.setPageNum(0);
-        queryDataParams.setMainId(8);
+        queryDataParams.setMainId(1714);
         new CustomsService().getMainList(queryDataParams);
     }
 }

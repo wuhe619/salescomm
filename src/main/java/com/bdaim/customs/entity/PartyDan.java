@@ -5,6 +5,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
 public class PartyDan {
+    @JsonProperty(value = "_id")
+    private String id;
     @JsonProperty(value = "Main_bill_NO")
     private String main_bill_NO;//主单号
     @JsonProperty(value = "BILL_NO")
@@ -39,6 +41,14 @@ public class PartyDan {
     private String receive_country ;//收件人国别
     @JsonProperty(value = "PRODUCTS")
     private List<Product> products;
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
 
     public String getMain_bill_NO() {
         return main_bill_NO;
