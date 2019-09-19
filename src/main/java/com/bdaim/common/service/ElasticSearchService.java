@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.util.ESUtil;
+import com.bdaim.common.util.RestUtil;
 import com.bdaim.common.util.http.HttpUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -246,5 +247,21 @@ public class ElasticSearchService {
             LOG.error("rest error:" + e.getMessage());
         }
         return result;
+    }
+    /**
+     * @description 查询ES信息
+     * @author:duanliying
+     * @method
+     * @date: 2019/9/18 11:36
+     */
+    public JSONObject getEsData(String index, String type, net.sf.json.JSONObject queryStr) {
+        String r = null;
+        LOG.info("向es修改记录:index[" + index + "],type[" + type + "],data:[" + queryStr + "]");
+        try {
+            r = RestUtil.postDataWithParms(queryStr, ESUtil.getUrl(index, type) + "/_search/");
+        } catch (Exception e) {
+            LOG.error("插查询es信息异常", e);
+        }
+        return JSONObject.parseObject(r);
     }
 }

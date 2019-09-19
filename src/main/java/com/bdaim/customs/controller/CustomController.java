@@ -8,6 +8,7 @@ import com.bdaim.common.controller.util.ResponseCommon;
 import com.bdaim.common.controller.util.ResponseJson;
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.exception.TouchException;
+import com.bdaim.customs.dto.QueryDataParams;
 import com.bdaim.customs.entity.HDic;
 import com.bdaim.customs.entity.MainDan;
 import com.bdaim.customs.services.CustomsService;
@@ -116,7 +117,8 @@ public class CustomController extends BasicAction {
     public ResponseJson saveMainDetail(@PathVariable("id")String id,@RequestBody MainDan mainDan){
         ResponseJson responseJson = new ResponseJson();
         try {
-            customsService.saveMainDetail(id,mainDan);
+            LoginUser user = opUser();
+            customsService.saveMainDetail(id,mainDan,user);
             responseJson.setMessage("SUCCESS");
             responseJson.setCode(200);
         } catch (Exception e) {
@@ -138,7 +140,8 @@ public class CustomController extends BasicAction {
     public ResponseJson deleteMain(@PathVariable("id")Long id,String type){
         ResponseJson responseJson = new ResponseJson();
         try {
-            customsService.delMainById(id,type);
+            LoginUser user = opUser();
+            customsService.delMainById(id,type,user);
             responseJson.setMessage("SUCCESS");
             responseJson.setCode(200);
         } catch (Exception e) {
@@ -286,11 +289,16 @@ public class CustomController extends BasicAction {
     }
 
 
-    @ResponseBody
-    @RequestMapping(value = "commit/{id}",method = RequestMethod.POST)
-    public ResponseJson commit2cangdanorbaodan(@PathVariable("id")String id,String type) {
+    /**
+     * 提交到仓单/报关单
+      * @param id
+     * @param type
+     * @return
+     */
+    @RequestMapping(value = "/busi/{type}/{id}",method = RequestMethod.POST)
+    public ResponseJson commit2cangdanorbaodan(@PathVariable("id")String id,@PathVariable("type") String type) {
         ResponseJson responseJson = new ResponseJson();
-            LoginUser user=opUser();
+            LoginUser user = opUser();
             if(user==null || user.getCustId()==null){
                 responseJson.setCode(-1);
                 responseJson.setMessage("未登陆，或无权限");
@@ -301,6 +309,28 @@ public class CustomController extends BasicAction {
             responseJson.setCode(200);
             responseJson.setMessage("SUCCESS");
         }catch (Exception e){
+            e.printStackTrace();
+            responseJson.setCode(-1);
+            responseJson.setMessage(e.getMessage());
+        }
+        return responseJson;
+    }
+
+    /**
+     * 查询主单数据列表
+     *
+     * @param
+     */
+    @RequestMapping(value = "/getList", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseJson getmainList(@RequestBody QueryDataParams queryDataParams) {
+        ResponseJson responseJson = new ResponseJson();
+        try {
+            JSONObject json = customsService.getMainList(queryDataParams);
+            responseJson.setMessage("SUCCESS");
+            responseJson.setCode(200);
+            responseJson.setData(json);
+        } catch (Exception e) {
             e.printStackTrace();
             responseJson.setCode(-1);
             responseJson.setMessage(e.getMessage());
