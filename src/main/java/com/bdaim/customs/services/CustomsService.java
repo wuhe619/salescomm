@@ -663,70 +663,62 @@ public class CustomsService {
         JSONObject params = new JSONObject();
         JSONObject query = new JSONObject();
         JSONObject bool = new JSONObject();
+        JSONObject range = new JSONObject();
         JSONArray sort = new JSONArray();
         JSONArray must = new JSONArray();
 
         //生成查询语句
-        if (StringUtil.isNotEmpty(String.valueOf(queryDataParams.getStationId()))) {
+        //场站id
+        if (StringUtil.isNotEmpty(String.valueOf(queryDataParams.getStation_id()))) {
             JSONObject json = new JSONObject();
-            json.put("station_id.bill_NO", queryDataParams.getStationId());
+            json.put("station_id.bill_NO", queryDataParams.getStation_id());
             JSONObject match = new JSONObject();
             match.put("match", json);
             must.add(match);
         }
-        if (StringUtil.isNotEmpty(String.valueOf(queryDataParams.getCustName()))) {
+        //报关单位
+        if (StringUtil.isNotEmpty(String.valueOf(queryDataParams.getCust_id()))) {
             JSONObject json = new JSONObject();
-            json.put("cust_name", queryDataParams.getCustName());
+            json.put("cust_name", queryDataParams.getCust_id());
             JSONObject match = new JSONObject();
             match.put("match", json);
             must.add(match);
         }
-        if (StringUtil.isNotEmpty(String.valueOf(queryDataParams.getBillNo()))) {
+        //主单号
+        if (StringUtil.isNotEmpty(String.valueOf(queryDataParams.getBill_no()))) {
             JSONObject json = new JSONObject();
-            json.put("singles.bill_NO", queryDataParams.getBillNo());
+            json.put("singles.bill_NO", queryDataParams.getBill_no());
             JSONObject match = new JSONObject();
             match.put("match", json);
             must.add(match);
         }
-        if (StringUtil.isNotEmpty(String.valueOf(queryDataParams.getStartTime()))) {
+        //导入日期
+        if (StringUtil.isNotEmpty(String.valueOf(queryDataParams.getCreate_date()))) {
             JSONObject json = new JSONObject();
-            json.put("start_time", queryDataParams.getStartTime());
+            json.put("start_time", queryDataParams.getCreate_date());
             JSONObject match = new JSONObject();
             match.put("match", json);
             must.add(match);
         }
-        if (StringUtil.isNotEmpty(String.valueOf(queryDataParams.getEndTime()))) {
+        //进港日期
+        if (StringUtil.isNotEmpty(String.valueOf(queryDataParams.getI_d_date()))) {
             JSONObject json = new JSONObject();
-            json.put("end_time", queryDataParams.getEndTime());
-            JSONObject match = new JSONObject();
-            match.put("match", json);
-            must.add(match);
-        }
-        if (StringUtil.isNotEmpty(String.valueOf(queryDataParams.getArrivalStartTime()))) {
-            JSONObject json = new JSONObject();
-            json.put("i_d_date", queryDataParams.getArrivalStartTime());
-            JSONObject match = new JSONObject();
-            match.put("match", json);
-            must.add(match);
-        }
-        if (StringUtil.isNotEmpty(String.valueOf(queryDataParams.getArrivalEndTime()))) {
-            JSONObject json = new JSONObject();
-            json.put("arrival_end_time", queryDataParams.getArrivalEndTime());
+            json.put("end_time", queryDataParams.getI_d_date());
             JSONObject match = new JSONObject();
             match.put("match", json);
             must.add(match);
         }
         //提交记录
-        if (StringUtil.isNotEmpty(String.valueOf(queryDataParams.getSubmitLog()))) {
+        if (StringUtil.isNotEmpty(String.valueOf(queryDataParams.getCommitCangdanStatus()))) {
             JSONObject json = new JSONObject();
-            json.put("submit_log", queryDataParams.getSubmitLog());
+            json.put("submit_log", queryDataParams.getCommitCangdanStatus());
             JSONObject match = new JSONObject();
             match.put("match", json);
             must.add(match);
         }
-        if (StringUtil.isNotEmpty(String.valueOf(queryDataParams.getMainId()))) {
+        if (StringUtil.isNotEmpty(String.valueOf(queryDataParams.getId()))) {
             JSONObject json = new JSONObject();
-            json.put("_id", queryDataParams.getMainId());
+            json.put("_id", queryDataParams.getId());
             JSONObject match = new JSONObject();
             match.put("match", json);
             must.add(match);
@@ -750,19 +742,9 @@ public class CustomsService {
 
         log.info("查询dsl语句" + String.valueOf(params));
         //处理查询索引
-        String index = "";
-        if (StringUtil.isNotEmpty(queryDataParams.getQueryType())) {
-            if ("SZ".equals(queryDataParams.getQueryType())) {
-                index = Constants.SZ_INFO_INDEX;
-            } else if ("SF".equals(queryDataParams.getQueryType())) {
-                index = Constants.SF_INFO_INDEX;
-            } else if ("SS".equals(queryDataParams.getQueryType())) {
-                index = Constants.SS_INFO_INDEX;
-            }
-        }
-        JSONObject json = elasticSearchService.getEsData(index, "haiguan", params);
+        JSONObject json = elasticSearchService.getEsData(Constants.SZ_INFO_INDEX, "haiguan", params);
         if (json != null) {
-            return elasticSearchService.returnDataPackage(json, index);
+            return elasticSearchService.returnDataPackage(json, Constants.SZ_INFO_INDEX);
         }
         return new Page();
     }
@@ -827,11 +809,10 @@ public class CustomsService {
 
     public static void main(String[] args) {
         QueryDataParams queryDataParams = new QueryDataParams();
-        queryDataParams.setQueryType("SZ");
         //queryDataParams.setBillNo("20001");
         queryDataParams.setPageSize(2);
         queryDataParams.setPageNum(0);
-        queryDataParams.setMainId(1714);
+        queryDataParams.setId(1714);
         new CustomsService().getMainList(queryDataParams);
     }
 }
