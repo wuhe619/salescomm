@@ -404,17 +404,14 @@ public class CustomsService {
 
 
     public void saveDic(HDic hdic) {
-        HDic dic = new HDic();
-        BeanUtils.copyProperties(hdic, dic);
-//        dic.setCode(paramMap.get("code"));
-//        dic.setName_zh(paramMap.get("name_zh"));
-//        dic.setName_en(paramMap.get("name_en"));
-//        dic.setDesc(paramMap.get("desc"));
-        if (hdic.getStatus() == null) {
-            dic.setStatus("Y");
+        if (StringUtil.isEmpty(hdic.getStatus())){
+            hdic.setStatus("1");
         }
-//        dic.setType(paramMap.get("type"));
-        hDicDao.saveOrUpdate(dic);
+        String sql="replace INTO `bp`.`h_dic` (`type`, `code`, `name_zh`, `name_en`,  `status`,`desc`, `p_code`, `ext_1`, `ext_2`, `ext_3`) VALUES('"+hdic.getType()+"'," +
+                "'"+hdic.getCode()+"','"+hdic.getName_zh()+"','"+hdic.getName_en()+"','"+hdic.getStatus()+"','"+hdic.getDesc()+"','"+hdic.getP_code()+"'," +
+                "'"+hdic.getExt_1()+"','"+hdic.getExt_2()+"','"+hdic.getExt_3()+"')";
+//        hDicDao.saveOrUpdate(dic);
+        hDicDao.executeUpdateSQL(sql);
     }
 
 
