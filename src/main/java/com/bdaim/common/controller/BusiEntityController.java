@@ -52,13 +52,14 @@ public class BusiEntityController extends BasicAction {
         try {
         	LoginUser lu = opUser();
         	String cust_id = lu.getCustId();
-        	String user_id = lu.getUser_id();
+        	String cust_group_id = lu.getUserGroupId();
+        	String cust_user_id = lu.getUser_id();
         	if(cust_id==null || "".equals(cust_id))
         		cust_id="-1";
         	if(lu.getAuthorities().contains("admin") || lu.getAuthorities().contains("ROLE_USER"))
         		cust_id="all";
         	
-        	resp.setData(busiEntityService.query(cust_id, user_id, busiType, params));
+        	resp.setData(busiEntityService.query(cust_id, cust_group_id, cust_user_id, busiType, params));
         } catch (Exception e) {
             logger.error("查询记录异常:"+e.getMessage());
             return new ResponseInfoAssemble().failure(-1, "查询记录异常["+busiType+"]");
@@ -89,9 +90,10 @@ public class BusiEntityController extends BasicAction {
         		return new ResponseInfoAssemble().failure(-1, "无归属企业，不能保存记录:["+busiType+"]");
         	
         	String cust_id = lu.getCustId();
-        	String user_id = lu.getUser_id();
+        	String cust_group_id = lu.getUserGroupId();
+        	String cust_user_id = lu.getUser_id();
         	
-            busiEntityService.saveInfo(cust_id, user_id, busiType, id, info);
+            busiEntityService.saveInfo(cust_id, cust_group_id, cust_user_id, busiType, id, info);
         } catch (Exception e) {
             logger.error("保存记录异常:"+e.getMessage());
             return new ResponseInfoAssemble().failure(-1, "保存记录异常:["+busiType+"]");
@@ -111,9 +113,10 @@ public class BusiEntityController extends BasicAction {
         try {
         	LoginUser lu = opUser();
         	String cust_id = lu.getCustId();
-        	String user_id = lu.getUser_id();
+        	String cust_group_id = lu.getUserGroupId();
+        	String cust_user_id = lu.getUser_id();
         	
-        	JSONObject jo = busiEntityService.getInfo(cust_id, user_id, busiType, id);
+        	JSONObject jo = busiEntityService.getInfo(cust_id, cust_group_id, cust_user_id, busiType, id);
         	resp.setData(jo);
         } catch (Exception e) {
             logger.error("获取记录异常:"+id+" "+e.getMessage());
@@ -136,9 +139,10 @@ public class BusiEntityController extends BasicAction {
         		return new ResponseInfoAssemble().failure(-1, "无归属企业，不能删除记录:["+busiType+"]");
         	
         	String cust_id = lu.getCustId();
-        	String user_id = lu.getUser_id();
+        	String cust_group_id = lu.getUserGroupId();
+        	String cust_user_id = lu.getUser_id();
         	
-        	busiEntityService.deleteInfo(cust_id, user_id, busiType, id);
+        	busiEntityService.deleteInfo(cust_id, cust_group_id, cust_user_id, busiType, id);
         } catch (Exception e) {
             logger.error("删除记录异常:"+id+" "+ e.getMessage());
             return new ResponseInfoAssemble().failure(-1, "删除记录异常["+busiType+"]");

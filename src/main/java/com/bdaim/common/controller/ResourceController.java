@@ -69,7 +69,7 @@ public class ResourceController extends BasicAction {
      */
     @ResponseBody
     @RequestMapping(value = "/info/{id}", method = RequestMethod.POST)
-    public ResponseInfo saveInfo(@PathVariable(name = "id", required=false) String id, @RequestBody(required=false) String body, @PathVariable(name = "resourceType") String resourceType) {
+    public ResponseInfo saveInfo(@PathVariable(name = "id", required=false) Long id, @RequestBody(required=false) String body, @PathVariable(name = "resourceType") String resourceType) {
     	ResponseInfo resp = new ResponseInfo();
     	JSONObject info = null;
     	try {
@@ -102,7 +102,7 @@ public class ResourceController extends BasicAction {
      */
     @ResponseBody
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
-    public ResponseInfo getInfo(@PathVariable(name = "id") String id, @PathVariable(name = "resourceType") String resourceType) {
+    public ResponseInfo getInfo(@PathVariable(name = "id") Long id, @PathVariable(name = "resourceType") String resourceType) {
     	ResponseInfo resp = new ResponseInfo();
     	
         try {
@@ -124,7 +124,7 @@ public class ResourceController extends BasicAction {
      */
     @ResponseBody
     @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
-    public ResponseInfo deleteInfo(@PathVariable(name = "id") String id, @PathVariable(name = "resourceType") String resourceType) {
+    public ResponseInfo deleteInfo(@PathVariable(name = "id") Long id, @PathVariable(name = "resourceType") String resourceType) {
     	ResponseInfo resp = new ResponseInfo();
         try {
         	LoginUser lu = opUser();

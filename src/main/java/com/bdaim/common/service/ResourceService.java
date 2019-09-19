@@ -50,7 +50,7 @@ public class ResourceService {
     public JSONObject getInfo(String user_id, String resourceType, String id) throws Exception{
     	JSONObject d = null;
     	
-    	String sql = "select content, create_id, create_date from h_resource where type=? and id=? ";
+    	String sql = "select content, create_id, create_date, update_id, update_date from h_resource where type=? and id=? ";
     	
     	Map data = jdbcTemplate.queryForMap(sql, resourceType, id);
     	if(d==null)
@@ -144,11 +144,10 @@ public class ResourceService {
     /*
      * 保存资源
      */
-    public String saveInfo(String user_id, String resourceType, String id, JSONObject info) throws Exception{	
+    public Long saveInfo(String user_id, String resourceType, Long id, JSONObject info) throws Exception{	
     	if(id==null || "".equals(id) || "0".equals(id)) {
     		//insert
-    		Long nid = sequenceService.getSeq(resourceType);
-    		id = String.valueOf(nid);
+    		id = sequenceService.getSeq(resourceType);
     		
     		String sql2 = "insert into h_resource(id, type, content, create_id, create_date) value(?, ?, ?, ?, now())";
     		try {
@@ -162,17 +161,17 @@ public class ResourceService {
     	    			info.remove(key);
     	    	}
     	    	
-    			jdbcTemplate.update(sql2, nid, resourceType, info.toJSONString(), user_id);
+    			jdbcTemplate.update(sql2, id, resourceType, info.toJSONString(), user_id);
     		}catch(Exception e) {
     			logger.error(e.getMessage());
     			throw new Exception("添加新资源异常:["+resourceType+"]");
     		}
     	}else{
     		// update
-    		String sql1 = "select content, create_id, create_date from h_resource where type=? and id=?";
+    		String sql1 = "select content from h_resource where type=? and id=?";
         	Map data = null;
         	try {
-        		data = jdbcTemplate.queryForMap(sql1, resourceType, Long.parseLong(id));
+        		data = jdbcTemplate.queryForMap(sql1, resourceType, id);
         	}catch(Exception e) {
         		throw new Exception("读取数据异常:["+resourceType+"]"+id);
         	}
@@ -197,13 +196,13 @@ public class ResourceService {
         		throw new Exception("解析数据异常:["+resourceType+"]"+id);
         	}
         	
-    		String sql2 = "update h_resource set content=? where type=? and id=?";
+    		String sql2 = "update h_resource set content=?, update_id=?, update_date=now() where type=? and id=?";
     		
     		try {
 //    			BusiService busiService = (BusiService) SpringContextHelper.getBean("busi_"+resourceType);
 //    			busiService.updateInfo(resourceType, cust_id, user_id, id, jo);
     			
-    			jdbcTemplate.update(sql2, jo.toJSONString(), resourceType, Long.parseLong(id));
+    			jdbcTemplate.update(sql2, jo.toJSONString(), user_id, resourceType, id);
     		}catch(Exception e) {
     			logger.error(e.getMessage());
     			throw new Exception("更新资源异常:["+resourceType+"]"+id);
@@ -216,13 +215,13 @@ public class ResourceService {
     /**
      * 删除资源
      */
-    public void deleteInfo(String user_id, String resourceType, String id) throws Exception{
+    public void deleteInfo(String user_id, String resourceType, Long id) throws Exception{
     	String sql = "delete from h_resource where type=? and id=?";
     	try {
 //    		BusiService busiService = (BusiService) SpringContextHelper.getBean("busi_"+resourceType);
 //			busiService.deleteInfo(resourceType, cust_id, user_id, id);
     		
-    		jdbcTemplate.update(sql, resourceType, Long.parseLong(id));
+    		jdbcTemplate.update(sql, resourceType, id);
     	}catch(Exception e) {
     		logger.error(e.getMessage());
     		throw new Exception("删除资源异常:["+resourceType+"]"+id);
