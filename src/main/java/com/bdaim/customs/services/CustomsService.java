@@ -513,7 +513,7 @@ public class CustomsService {
      * @param id
      * @param type
      */
-    public void commit2cangdanorbaodan(String id, String type, LoginUser user) throws Exception {
+    public void commit2cangdanorbaodan(String id, String type, LoginUser user,String to) throws Exception {
         HBusiDataManager h = hBusiDataManagerDao.get(Long.valueOf(id));
         if (h == null) {
             throw new Exception("数据不存在");
@@ -521,21 +521,29 @@ public class CustomsService {
         if (!user.getCustId().equals(h.getCust_id().toString())) {
             throw new Exception("你无权处理");
         }
-        List<HBusiDataManager> dataList = new ArrayList<>();
-        if (BusiTypeEnum.BZ.getKey().equals(type)) { //提交为报单
-            if ("Y".equals(h.getExt_1())) {
-                throw new Exception("已经提交过了,不能重复提交");
+        if("HAIGUAN".equals(to)){
+            if (BusiTypeEnum.BZ.getKey().equals(type)) {
+             //todo修改状态，生成xml
+            }else if (BusiTypeEnum.CZ.getKey().equals(type)) {
+                //todo修改状态，生成xml
             }
-        } else if (BusiTypeEnum.CZ.getKey().equals(type)) { //提交为舱单
-            if ("Y".equals(h.getExt_2())) {
-                throw new Exception("已经提交过了,不能重复提交");
+        }else {
+            List<HBusiDataManager> dataList = new ArrayList<>();
+            if (BusiTypeEnum.BZ.getKey().equals(type)) { //提交为报单
+                if ("Y".equals(h.getExt_1())) {
+                    throw new Exception("已经提交过了,不能重复提交");
+                }
+            } else if (BusiTypeEnum.CZ.getKey().equals(type)) { //提交为舱单
+                if ("Y".equals(h.getExt_2())) {
+                    throw new Exception("已经提交过了,不能重复提交");
+                }
             }
-        }
-        buildDanList(dataList, user, h, type);
+            buildDanList(dataList, user, h, type);
 
-        for (HBusiDataManager dm : dataList) {
-            Integer hid = (Integer) hBusiDataManagerDao.saveReturnPk(dm);
-            addDataToES(dm, hid);
+            for (HBusiDataManager dm : dataList) {
+                Integer hid = (Integer) hBusiDataManagerDao.saveReturnPk(dm);
+                addDataToES(dm, hid);
+            }
         }
     }
 
