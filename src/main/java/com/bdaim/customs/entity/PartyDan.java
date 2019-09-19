@@ -26,6 +26,7 @@ public class PartyDan {
     private String trade_country;//贸易国别
     @JsonProperty(value = "ID_NO")
     private String id_NO ;// 证件号码
+    private String id_NO_PIC ;// 证件照片
     @JsonProperty(value = "RECEIVE_NAME")
     private String receive_name ;// 收件人
     @JsonProperty(value = "RECEIVE_TEL")
@@ -183,5 +184,13 @@ public class PartyDan {
 
     public void setProducts(List<Product> products) {
         this.products = products;
+    }
+
+    public String getId_NO_PIC() {
+        return id_NO_PIC;
+    }
+
+    public void setId_NO_PIC(String id_NO_PIC) {
+        this.id_NO_PIC = id_NO_PIC;
     }
 }

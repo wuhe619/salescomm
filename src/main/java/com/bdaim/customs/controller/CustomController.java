@@ -12,6 +12,7 @@ import com.bdaim.customs.dto.QueryDataParams;
 import com.bdaim.customs.entity.HDic;
 import com.bdaim.customs.entity.MainDan;
 import com.bdaim.customs.services.CustomsService;
+import com.bdaim.customs.services.ExportExcelService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +22,7 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +35,9 @@ public class CustomController extends BasicAction {
 
     @Autowired
     private CustomsService customsService;
+
+    @Autowired
+    private ExportExcelService exportExcelService;
 
     /**
      * 保存数据
@@ -58,7 +63,7 @@ public class CustomController extends BasicAction {
         } catch (Exception e) {
             e.printStackTrace();
             responseJson.setCode(-1);
-            responseJson.setMessage("保存出错："+e.getMessage());
+            responseJson.setMessage("保存出错：" + e.getMessage());
             return responseJson;
         }
 
@@ -296,9 +301,9 @@ public class CustomController extends BasicAction {
 
     /**
      * 提交为仓单、报关单
-     *
+     * <p>
      * to==HAIGUAN 时提交仓单到海关，提交报关单到海关，opType不起作用
-     *
+     * <p>
      * opType和to不能同时出现
      *
      * @param id
@@ -309,7 +314,7 @@ public class CustomController extends BasicAction {
      */
     @RequestMapping(value = "/busi/{type}/{id}", method = RequestMethod.POST)
     public ResponseJson commit2cangdanorbaodan(@PathVariable("id") String id, @PathVariable("type") String type,
-                                               String to,String optType) {
+                                               String to, String optType) {
         ResponseJson responseJson = new ResponseJson();
         LoginUser user = opUser();
         if (user == null || user.getCustId() == null) {
@@ -318,7 +323,7 @@ public class CustomController extends BasicAction {
             return responseJson;
         }
         try {
-            customsService.commit2cangdanorbaodan(id, type, user,to);
+            customsService.commit2cangdanorbaodan(id, type, user, to);
             responseJson.setCode(200);
             responseJson.setMessage("SUCCESS");
         } catch (Exception e) {
@@ -369,4 +374,12 @@ public class CustomController extends BasicAction {
         return responseJson;
     }
 
+    @RequestMapping(value = "/exportExcel", method = RequestMethod.GET)
+    public void exportExcel(int id, int type, HttpServletResponse response) {
+        try {
+            exportExcelService.exportExcel(id, type, response);
+        } catch (Exception e) {
+            log.error("导出excel异常", e);
+        }
+    }
 }

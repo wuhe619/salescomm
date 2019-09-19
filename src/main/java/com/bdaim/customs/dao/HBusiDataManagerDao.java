@@ -46,6 +46,31 @@ public class HBusiDataManagerDao extends SimpleHibernateDao<HBusiDataManager, Se
     }
 
     /**
+     * 查询主单下的分单
+     * @param pid
+     * @param type
+     * @param idCardPhotoStatus 1-有身份证图片 2-无
+     * @param idCardCheckStatus 1-身份证校验通过 2-无
+     * @return
+     */
+    public List<HBusiDataManager> listFDIdCard(int pid, String type, int idCardPhotoStatus, int idCardCheckStatus) {
+        StringBuilder hql = new StringBuilder("FROM HBusiDataManager WHERE type = ? AND ext_4 = (SELECT ext_3 FROM HBusiDataManager WHERE id = ?)");
+        // 有身份照片
+        if (1 == idCardPhotoStatus) {
+            hql.append(" AND ext_6 IS NOT NULL AND ext_6 <>'' ");
+        } else if (2 == idCardPhotoStatus) {
+            hql.append(" AND (ext_6 IS NULL OR ext_6 ='') ");
+        }
+        //身份核验结果通过
+        if (1 == idCardCheckStatus) {
+            hql.append(" AND ext_7 = 1 ");
+        } else if (2 == idCardPhotoStatus) {
+            hql.append(" AND (ext_7 IS NULL OR ext_7 ='' OR ext_7 =2) ");
+        }
+        return this.find(hql.toString(), type, pid);
+    }
+
+    /**
      * 查询主单下分单的身份证照片数量
      *
      * @param pid
