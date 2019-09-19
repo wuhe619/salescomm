@@ -58,7 +58,7 @@ public class CustomController extends BasicAction {
         } catch (Exception e) {
             e.printStackTrace();
             responseJson.setCode(-1);
-            responseJson.setMessage("保存出错");
+            responseJson.setMessage("保存出错："+e.getMessage());
             return responseJson;
         }
 
@@ -295,15 +295,21 @@ public class CustomController extends BasicAction {
 
 
     /**
-     * 提交到仓单/报关单
+     * 提交为仓单、报关单
+     *
+     * to==HAIGUAN 时提交仓单到海关，提交报关单到海关，opType不起作用
+     *
+     * opType和to不能同时出现
      *
      * @param id
      * @param type
      * @param to
+     * @param optType apd 追加商品时，id为分单id，type为分单类型（SF,BF）；追加分单时，id为主单id,type为主单类型（SZ,BZ）；add 同上
      * @return
      */
     @RequestMapping(value = "/busi/{type}/{id}", method = RequestMethod.POST)
-    public ResponseJson commit2cangdanorbaodan(@PathVariable("id") String id, @PathVariable("type") String type,String to) {
+    public ResponseJson commit2cangdanorbaodan(@PathVariable("id") String id, @PathVariable("type") String type,
+                                               String to,String optType) {
         ResponseJson responseJson = new ResponseJson();
         LoginUser user = opUser();
         if (user == null || user.getCustId() == null) {

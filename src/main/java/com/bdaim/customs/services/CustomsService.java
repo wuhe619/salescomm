@@ -66,9 +66,11 @@ public class CustomsService {
      * @param user
      */
     public void saveinfo(MainDan mainDan, LoginUser user) throws Exception {
+        log.info("saveinfo");
         List<HBusiDataManager> list = new ArrayList<>();
         CustomerProperty station_idProperty = customerDao.getProperty(user.getCustId(), "station_id");
         if (station_idProperty == null || StringUtil.isEmpty(station_idProperty.getPropertyValue())) {
+            log.error("未配置场站信息");
             throw new Exception("未配置场站信息");
         }
         try {
