@@ -1,7 +1,6 @@
 package com.bdaim.customs.services;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.auth.LoginUser;
 import com.bdaim.common.dto.Page;
@@ -21,6 +20,11 @@ import com.bdaim.customs.dao.HReceiptRecordDao;
 import com.bdaim.customs.dto.FileModel;
 import com.bdaim.customs.dto.QueryDataParams;
 import com.bdaim.customs.entity.*;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.MatchPhraseQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.elasticsearch.search.sort.SortOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -150,112 +154,115 @@ public class CustomsService {
 
     /**
      * 保存申报单分单
+     *
      * @param partyDan
      * @param user
      */
-    public void saveSbPartDetail(PartyDan partyDan,LoginUser user) throws Exception {
+    public void saveSbPartDetail(PartyDan partyDan, LoginUser user) throws Exception {
         List<HBusiDataManager> list = new ArrayList<>();
-        if(partyDan.getId()==null){
-            HBusiDataManager manager = getObjectByBillNo(partyDan.getBill_NO(),BusiTypeEnum.SF.getKey());
-            if(manager!=null){
-                throw new Exception("分单号"+partyDan.getBill_NO()+" 已经存在");
+        if (partyDan.getId() == null) {
+            HBusiDataManager manager = getObjectByBillNo(partyDan.getBill_NO(), BusiTypeEnum.SF.getKey());
+            if (manager != null) {
+                throw new Exception("分单号" + partyDan.getBill_NO() + " 已经存在");
             }
-            buildSenbaodanFendan(partyDan,list,user,partyDan.getMain_bill_NO());
-            for(HBusiDataManager hBusiDataManager:list){
+            buildSenbaodanFendan(partyDan, list, user, partyDan.getMain_bill_NO());
+            for (HBusiDataManager hBusiDataManager : list) {
                 Long id = (Long) hBusiDataManagerDao.saveReturnPk(hBusiDataManager);
-                addDataToES(hBusiDataManager,id.intValue());
+                addDataToES(hBusiDataManager, id.intValue());
             }
-        }else{
+        } else {
             HBusiDataManager dbManager = hBusiDataManagerDao.get(partyDan.getId());
             String content = dbManager.getContent();
             JSONObject json = JSONObject.parseObject(content);
-            json.put("weight",partyDan.getWeight());
-            json.put("id_type",partyDan.getId_type());
-            json.put("id_NO",partyDan.getId_NO());
-            json.put("receive_name",partyDan.getReceive_name());
-            json.put("receive_pro",partyDan.getReceive_pro());
-            json.put("receive_city",partyDan.getReceive_city());
-            json.put("receive_tel",partyDan.getReceive_tel());
-            json.put("receive_address",partyDan.getReceive_address());
+            json.put("weight", partyDan.getWeight());
+            json.put("id_type", partyDan.getId_type());
+            json.put("id_NO", partyDan.getId_NO());
+            json.put("receive_name", partyDan.getReceive_name());
+            json.put("receive_pro", partyDan.getReceive_pro());
+            json.put("receive_city", partyDan.getReceive_city());
+            json.put("receive_tel", partyDan.getReceive_tel());
+            json.put("receive_address", partyDan.getReceive_address());
             dbManager.setContent(json.toJSONString());
             hBusiDataManagerDao.saveReturnPk(dbManager);
-            updateDataToES(dbManager,dbManager.getId());
+            updateDataToES(dbManager, dbManager.getId());
         }
-        totalPartDanToMainDan(partyDan.getMain_bill_NO(),BusiTypeEnum.SF.getKey());
+        totalPartDanToMainDan(partyDan.getMain_bill_NO(), BusiTypeEnum.SF.getKey());
     }
 
 
     /**
      * 重新汇总主单的重量，数量等信息,并存入主单
+     *
      * @param mainBillNo
      * @param type
      */
-    public void totalPartDanToMainDan(String mainBillNo,String type){
-        List<HBusiDataManager> data = getHbusiDataByBillNo(mainBillNo,type);
+    public void totalPartDanToMainDan(String mainBillNo, String type) {
+        List<HBusiDataManager> data = getHbusiDataByBillNo(mainBillNo, type);
         Float weightTotal = 0f;
-        for(HBusiDataManager d:data){
-                String content=d.getContent();
-                JSONObject json = JSONObject.parseObject(content);
+        for (HBusiDataManager d : data) {
+            String content = d.getContent();
+            JSONObject json = JSONObject.parseObject(content);
 
-                String WEIGHT = json.getString("weight");
-                if (StringUtil.isEmpty(WEIGHT)) {
-                    WEIGHT = "0";
-                }
-                weightTotal += Float.valueOf(WEIGHT);
+            String WEIGHT = json.getString("weight");
+            if (StringUtil.isEmpty(WEIGHT)) {
+                WEIGHT = "0";
             }
-            HBusiDataManager hBusiDataManager = getObjectByBillNo(mainBillNo,type);
-            String hcontent = hBusiDataManager.getContent();
-            JSONObject jsonObject = JSONObject.parseObject(hcontent);
-            jsonObject.put("weight_total", weightTotal);//总重量
-            jsonObject.put("party_total", data.size());//分单总数
-            hBusiDataManager.setContent(jsonObject.toJSONString());
-            hBusiDataManagerDao.saveOrUpdate(hBusiDataManager);
-            updateDataToES(hBusiDataManager,hBusiDataManager.getId());
+            weightTotal += Float.valueOf(WEIGHT);
+        }
+        HBusiDataManager hBusiDataManager = getObjectByBillNo(mainBillNo, type);
+        String hcontent = hBusiDataManager.getContent();
+        JSONObject jsonObject = JSONObject.parseObject(hcontent);
+        jsonObject.put("weight_total", weightTotal);//总重量
+        jsonObject.put("party_total", data.size());//分单总数
+        hBusiDataManager.setContent(jsonObject.toJSONString());
+        hBusiDataManagerDao.saveOrUpdate(hBusiDataManager);
+        updateDataToES(hBusiDataManager, hBusiDataManager.getId());
 
     }
 
 
-    public HBusiDataManager getObjectByBillNo(String billNo,String type){
-        String hql="from where ext_3='"+billNo+"' and type='"+type+"'";
+    public HBusiDataManager getObjectByBillNo(String billNo, String type) {
+        String hql = "from where ext_3='" + billNo + "' and type='" + type + "'";
         List<HBusiDataManager> hlist = hBusiDataManagerDao.find(hql);
         return hlist.get(0);
     }
 
 
-
     /**
      * 申报单从主单删除分单
+     *
      * @param mainId 主单id
      * @param partId 分单id
-     * 1.获取税单id，从db删除，从es删除
-     * 2.从es删除
-     * 3.从db删除
-     * 4.重新统计主单信息
+     *               1.获取税单id，从db删除，从es删除
+     *               2.从es删除
+     *               3.从db删除
+     *               4.重新统计主单信息
      */
-    public void delPartDanFromSZ(String mainId,String partId,LoginUser user) throws Exception {
+    public void delPartDanFromSZ(String mainId, String partId, LoginUser user) throws Exception {
         HBusiDataManager hBusiDataManager = hBusiDataManagerDao.get(partId);
-        if(hBusiDataManager==null){
+        if (hBusiDataManager == null) {
             throw new Exception("数据不存在");
         }
-        if(!mainId.equals(hBusiDataManager.getExt_4())){
+        if (!mainId.equals(hBusiDataManager.getExt_4())) {
             throw new Exception("分单不属于此主单");
         }
-        if(hBusiDataManager.getCust_id()==null || (!user.getCustId().equals(hBusiDataManager.getCust_id().toString()))){
+        if (hBusiDataManager.getCust_id() == null || (!user.getCustId().equals(hBusiDataManager.getCust_id().toString()))) {
             throw new Exception("无权删除");
         }
-        List<HBusiDataManager> data = getHbusiDataByBillNo(partId,BusiTypeEnum.SS.getKey());
-        for(HBusiDataManager manager:data){
-            deleteDatafromES(manager.getType(),manager.getId().toString());
+        List<HBusiDataManager> data = getHbusiDataByBillNo(partId, BusiTypeEnum.SS.getKey());
+        for (HBusiDataManager manager : data) {
+            deleteDatafromES(manager.getType(), manager.getId().toString());
             hBusiDataManagerDao.delete(manager);
         }
-        deleteDatafromES(BusiTypeEnum.SF.getKey(),partId);
+        deleteDatafromES(BusiTypeEnum.SF.getKey(), partId);
         hBusiDataManagerDao.delete(partId);
-        totalPartDanToMainDan(mainId,BusiTypeEnum.SZ.getKey());
+        totalPartDanToMainDan(mainId, BusiTypeEnum.SZ.getKey());
     }
 
 
     /**
      * 删除申报单主单
+     *
      * @param id
      * @param type
      * @param user
@@ -298,11 +305,12 @@ public class CustomsService {
 
     /**
      * 添加商品到申报单分单
+     *
      * @param product
      * @param partId
      */
-    public void addProductToSB(Product product,String partId,LoginUser user){
-        HBusiDataManager hBusiDataManager=new HBusiDataManager();
+    public void addProductToSB(Product product, String partId, LoginUser user) {
+        HBusiDataManager hBusiDataManager = new HBusiDataManager();
         hBusiDataManager.setCreateDate(new Date());
         hBusiDataManager.setType(BusiTypeEnum.SS.getKey());
         hBusiDataManager.setCreateId(user.getId());
@@ -310,58 +318,59 @@ public class CustomsService {
         hBusiDataManager.setExt_3(product.getCode_ts());
         hBusiDataManager.setExt_4(product.getParty_No());
         product.setPid(partId);
-        JSONObject json=JSON.parseObject(JSONObject.toJSONString(product));
+        JSONObject json = JSON.parseObject(JSONObject.toJSONString(product));
         //todo 待合计
-        json.put("duty_paid_price","0");//完税价格
-        json.put("estimated_tax","0");//预估税金
-        json.put("tax_rate","0");//税率
-        json.put("total_price","0");//价格合计
+        json.put("duty_paid_price", "0");//完税价格
+        json.put("estimated_tax", "0");//预估税金
+        json.put("tax_rate", "0");//税率
+        json.put("total_price", "0");//价格合计
         hBusiDataManager.setContent(json.toJSONString());
-        Long id= (Long) hBusiDataManagerDao.saveReturnPk(hBusiDataManager);
-        addDataToES(hBusiDataManager,id.intValue());
+        Long id = (Long) hBusiDataManagerDao.saveReturnPk(hBusiDataManager);
+        addDataToES(hBusiDataManager, id.intValue());
 
         HBusiDataManager partH = hBusiDataManagerDao.get(partId);
         String pcontent = partH.getContent();
         JSONObject jsonObject = JSON.parseObject(pcontent);
         Float weight = jsonObject.getFloatValue("weight");
         Float pack_NO = jsonObject.getFloatValue("pack_NO");
-        if(weight==null)weight=0f;
-        if(StringUtil.isNotEmpty(product.getGgrossWt())){
+        if (weight == null) weight = 0f;
+        if (StringUtil.isNotEmpty(product.getGgrossWt())) {
             weight += Float.valueOf(product.getGgrossWt());
         }
-        if (pack_NO==null)pack_NO =0f;
-        if(StringUtil.isNotEmpty(product.getG_qty())){
-            pack_NO+=Float.valueOf(product.getG_qty());
+        if (pack_NO == null) pack_NO = 0f;
+        if (StringUtil.isNotEmpty(product.getG_qty())) {
+            pack_NO += Float.valueOf(product.getG_qty());
         }
-        jsonObject.put("weight",weight);
-        jsonObject.put("pack_NO",pack_NO);
+        jsonObject.put("weight", weight);
+        jsonObject.put("pack_NO", pack_NO);
         partH.setContent(jsonObject.toJSONString());
         hBusiDataManagerDao.saveOrUpdate(partH);
-        updateDataToES(partH,Integer.valueOf(partId));
+        updateDataToES(partH, Integer.valueOf(partId));
 
         //todo改为通过pid获取主单
-        HBusiDataManager zh = getObjectByBillNo(partH.getExt_4(),BusiTypeEnum.SZ.getKey());
+        HBusiDataManager zh = getObjectByBillNo(partH.getExt_4(), BusiTypeEnum.SZ.getKey());
         String zcontent = zh.getContent();
-        JSONObject jsonz=JSON.parseObject(zcontent);
+        JSONObject jsonz = JSON.parseObject(zcontent);
         Float weight_total = jsonz.getFloatValue("weight_total");
-        if(weight_total==null)weight_total=0f;
+        if (weight_total == null) weight_total = 0f;
 
-        weight_total+=Float.valueOf(product.getGgrossWt()==null?"0":product.getGgrossWt());
+        weight_total += Float.valueOf(product.getGgrossWt() == null ? "0" : product.getGgrossWt());
         jsonz.put("weight_total", weight_total);
         zh.setContent(jsonz.toJSONString());
         hBusiDataManagerDao.saveOrUpdate(zh);
-        updateDataToES(zh,zh.getId());
+        updateDataToES(zh, zh.getId());
     }
 
 
     /**
      * 从分单删除商品
+     *
      * @param partId
      * @param productId
      */
-    public void delProductFromSB(String partId,String productId){
+    public void delProductFromSB(String partId, String productId) {
         HBusiDataManager ph = hBusiDataManagerDao.get(productId);
-        deleteDatafromES(BusiTypeEnum.SS.getKey(),productId);
+        deleteDatafromES(BusiTypeEnum.SS.getKey(), productId);
         hBusiDataManagerDao.delete(productId);
         String pcontent = ph.getContent();
         JSONObject pjson = JSON.parseObject(pcontent);
@@ -373,32 +382,32 @@ public class CustomsService {
 
         Float weight = partcontentJson.getFloatValue("weight");
         Float pack_NO = partcontentJson.getFloatValue("pack_NO");
-        if(weight==null)weight=0f;
-        if(StringUtil.isNotEmpty(pjson.getString("ggrossWt"))){
+        if (weight == null) weight = 0f;
+        if (StringUtil.isNotEmpty(pjson.getString("ggrossWt"))) {
             weight -= Float.valueOf(pjson.getString("ggrossWt"));
         }
-        if (pack_NO==null)pack_NO =0f;
-        if(StringUtil.isNotEmpty(pjson.getString("g_qty"))){
+        if (pack_NO == null) pack_NO = 0f;
+        if (StringUtil.isNotEmpty(pjson.getString("g_qty"))) {
             pack_NO -= Float.valueOf(pjson.getString("g_qty"));
         }
-        partcontentJson.put("weight",weight);
-        partcontentJson.put("pack_NO",pack_NO);
+        partcontentJson.put("weight", weight);
+        partcontentJson.put("pack_NO", pack_NO);
         parth.setContent(partcontentJson.toJSONString());
         hBusiDataManagerDao.saveOrUpdate(parth);
-        updateDataToES(parth,Integer.valueOf(partId));
+        updateDataToES(parth, Integer.valueOf(partId));
 
         //处理主单
-        HBusiDataManager zh = getObjectByBillNo(parth.getExt_4(),BusiTypeEnum.SZ.getKey());
+        HBusiDataManager zh = getObjectByBillNo(parth.getExt_4(), BusiTypeEnum.SZ.getKey());
         String zcontent = zh.getContent();
-        JSONObject jsonz=JSON.parseObject(zcontent);
+        JSONObject jsonz = JSON.parseObject(zcontent);
         Float weight_total = jsonz.getFloatValue("weight_total");
-        if(weight_total==null)weight_total=0f;
+        if (weight_total == null) weight_total = 0f;
 
-        weight_total -= Float.valueOf(pjson.getString("ggrossWt")==null?"0":pjson.getString("ggrossWt"));
+        weight_total -= Float.valueOf(pjson.getString("ggrossWt") == null ? "0" : pjson.getString("ggrossWt"));
         jsonz.put("weight_total", weight_total);
         zh.setContent(jsonz.toJSONString());
         hBusiDataManagerDao.saveOrUpdate(zh);
-        updateDataToES(zh,zh.getId());
+        updateDataToES(zh, zh.getId());
 
     }
 
@@ -533,12 +542,12 @@ public class CustomsService {
         List<PartyDan> partList = mainDan.getSingles();
         if (partList != null && partList.size() > 0) {
             for (PartyDan dan : partList) {
-                buildSenbaodanFendan(dan,list,user,mainDan.getBill_no());
+                buildSenbaodanFendan(dan, list, user, mainDan.getBill_no());
             }
         }
     }
 
-    public void buildSenbaodanFendan(PartyDan dan,List<HBusiDataManager> list,LoginUser user,String mainBillNo){
+    public void buildSenbaodanFendan(PartyDan dan, List<HBusiDataManager> list, LoginUser user, String mainBillNo) {
         List<Product> pList = dan.getProducts();
         buildGoods(list, pList, user);
         HBusiDataManager dataManager = new HBusiDataManager();
@@ -738,10 +747,11 @@ public class CustomsService {
      * 2.添加报单分单
      * 3.添加报单税单
      * to=HAIGUAN:提交到海关
+     *
      * @param id
      * @param type
      */
-    public void commit2cangdanorbaodan(String id, String type, LoginUser user,String to) throws Exception {
+    public void commit2cangdanorbaodan(String id, String type, LoginUser user, String to) throws Exception {
         HBusiDataManager h = hBusiDataManagerDao.get(Long.valueOf(id));
         if (h == null) {
             throw new Exception("数据不存在");
@@ -750,13 +760,13 @@ public class CustomsService {
             throw new Exception("你无权处理");
         }
 
-        if(StringUtil.isNotEmpty(to) && "HAIGUAN".equals(to)){//提交到海关
+        if (StringUtil.isNotEmpty(to) && "HAIGUAN".equals(to)) {//提交到海关
             if (BusiTypeEnum.BZ.getKey().equals(type)) {
-             //todo修改状态，生成xml
-            }else if (BusiTypeEnum.CZ.getKey().equals(type)) {
+                //todo修改状态，生成xml
+            } else if (BusiTypeEnum.CZ.getKey().equals(type)) {
                 //todo修改状态，生成xml
             }
-        }else {
+        } else {
             //提交为舱单、报关单
             List<HBusiDataManager> dataList = new ArrayList<>();
             if (BusiTypeEnum.BZ.getKey().equals(type)) { //提交为报单
@@ -854,101 +864,6 @@ public class CustomsService {
         return list;
     }
 
-    /**
-     * 查询主单列表信息
-     *
-     * @return
-     */
-    public Page getMainList(QueryDataParams queryDataParams) {
-        //String a = "{\"query\": {\"bool\":{\"must\":[{\"match\":{\"singles.bill_NO\":\"20001\"}},{\"match\":{\"_id\":\"8\"}}]}}}";
-        JSONObject params = new JSONObject();
-        JSONObject query = new JSONObject();
-        JSONObject bool = new JSONObject();
-        JSONObject range = new JSONObject();
-        JSONArray sort = new JSONArray();
-        JSONArray must = new JSONArray();
-
-        //生成查询语句
-        //场站id
-        if (StringUtil.isNotEmpty(String.valueOf(queryDataParams.getStation_id()))) {
-            JSONObject json = new JSONObject();
-            json.put("station_id.bill_NO", queryDataParams.getStation_id());
-            JSONObject match = new JSONObject();
-            match.put("match", json);
-            must.add(match);
-        }
-        //报关单位
-        if (StringUtil.isNotEmpty(String.valueOf(queryDataParams.getCust_id()))) {
-            JSONObject json = new JSONObject();
-            json.put("cust_name", queryDataParams.getCust_id());
-            JSONObject match = new JSONObject();
-            match.put("match", json);
-            must.add(match);
-        }
-        //主单号
-        if (StringUtil.isNotEmpty(String.valueOf(queryDataParams.getBill_no()))) {
-            JSONObject json = new JSONObject();
-            json.put("singles.bill_NO", queryDataParams.getBill_no());
-            JSONObject match = new JSONObject();
-            match.put("match", json);
-            must.add(match);
-        }
-        //导入日期
-        if (StringUtil.isNotEmpty(String.valueOf(queryDataParams.getCreate_date()))) {
-            JSONObject json = new JSONObject();
-            json.put("start_time", queryDataParams.getCreate_date());
-            JSONObject match = new JSONObject();
-            match.put("match", json);
-            must.add(match);
-        }
-        //进港日期
-        if (StringUtil.isNotEmpty(String.valueOf(queryDataParams.getI_d_date()))) {
-            JSONObject json = new JSONObject();
-            json.put("end_time", queryDataParams.getI_d_date());
-            JSONObject match = new JSONObject();
-            match.put("match", json);
-            must.add(match);
-        }
-        //提交记录
-        if (StringUtil.isNotEmpty(String.valueOf(queryDataParams.getCommitCangdanStatus()))) {
-            JSONObject json = new JSONObject();
-            json.put("submit_log", queryDataParams.getCommitCangdanStatus());
-            JSONObject match = new JSONObject();
-            match.put("match", json);
-            must.add(match);
-        }
-        if (StringUtil.isNotEmpty(String.valueOf(queryDataParams.getId()))) {
-            JSONObject json = new JSONObject();
-            json.put("_id", queryDataParams.getId());
-            JSONObject match = new JSONObject();
-            match.put("match", json);
-            must.add(match);
-        }
-        bool.put("must", must);
-        query.put("bool", bool);
-        params.put("query", query);
-        //分页处理
-        if (StringUtil.isNotEmpty(String.valueOf(queryDataParams.getPageNum()))) {
-            params.put("from", queryDataParams.getPageNum());
-        }
-        if (StringUtil.isNotEmpty(String.valueOf(queryDataParams.getPageSize()))) {
-            params.put("size", queryDataParams.getPageSize());
-        }
-        //排序
-       /* params.put("sort", queryDataParams.getPageSize());
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("_id","{\"order\": \"ASC\" }");
-        sort.add(jsonObject);
-        params.put("sort", sort);*/
-
-        log.info("查询dsl语句" + String.valueOf(params));
-        //处理查询索引
-        JSONObject json = elasticSearchService.getEsData(Constants.SZ_INFO_INDEX, "haiguan", params);
-        if (json != null) {
-            return elasticSearchService.returnDataPackage(json, Constants.SZ_INFO_INDEX);
-        }
-        return new Page();
-    }
 
     /**
      * 清空分单身份证照片
@@ -1014,6 +929,74 @@ public class CustomsService {
         queryDataParams.setPageSize(2);
         queryDataParams.setPageNum(0);
         queryDataParams.setId(1714);
-        new CustomsService().getMainList(queryDataParams);
+    }
+
+    public SearchSourceBuilder makeQueryStringForSearch(QueryDataParams queryDataParams) {
+
+        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+        BoolQueryBuilder qb = QueryBuilders.boolQuery();
+        if (queryDataParams.getId() != null) {
+            MatchPhraseQueryBuilder mpq = QueryBuilders
+                    .matchPhraseQuery("_id", queryDataParams.getId());
+            qb.must(mpq);
+        }
+        //单号
+        if (queryDataParams.getBill_no() != null) {
+            qb.must(QueryBuilders.matchPhraseQuery("bill_no", queryDataParams.getBill_no()));
+        }
+        //场站id
+        if (StringUtil.isNotEmpty(queryDataParams.getStationId())) {
+            qb.must(QueryBuilders.matchPhraseQuery("stationId", queryDataParams.getStationId()));
+        }
+        //时间
+        if (queryDataParams.getCreateDate() != null && queryDataParams.getI_d_date() != null) {
+            qb.must(QueryBuilders.rangeQuery("createDate").from(queryDataParams.getCreateDate()).to(queryDataParams.getI_d_date()));
+        }
+        searchSourceBuilder.query(qb);
+        return searchSourceBuilder;
+       /*  int from = (queryDataParams.getPageNum() - 1) * queryDataParams.getPageSize();
+        searchSourceBuilder.from(from);
+        searchSourceBuilder.size(queryDataParams.getPageSize());
+        //排序
+        searchSourceBuilder.sort("_id", SortOrder.ASC);
+
+        String query = searchSourceBuilder.toString();
+       SearchResult result = elasticSearchService.searchToEs(query, Constants.SZ_INFO_INDEX, "haiguan");
+
+        List<Object> list = new ArrayList<>();
+        if (result != null) {
+            List<SearchResult.Hit<MainDan, Void>> hits = result.getHits(MainDan.class);
+            for (SearchResult.Hit<MainDan, Void> hit : hits) {
+                MainDan mainDan = hit.source;
+                list.add(mainDan);
+            }
+            page.setData(list);
+            page.setTotal(NumberConvertUtil.parseInt(result.getTotal()));
+        }
+
+        return page;
+       return  query;*/
+    }
+
+    public Page queryDataPage(QueryDataParams queryDataParams) {
+        String index = "";
+        if ("SZ".equals(queryDataParams.getIndex())) {
+            index = Constants.SZ_INFO_INDEX;
+        } else if ("SF".equals(queryDataParams.getIndex())) {
+            index = Constants.SF_INFO_INDEX;
+        } else if ("SS".equals(queryDataParams.getIndex())) {
+            index = Constants.SS_INFO_INDEX;
+        }
+        SearchSourceBuilder searchSourceBuilder = makeQueryStringForSearch(queryDataParams);
+        int from = (queryDataParams.getPageNum() - 1) * queryDataParams.getPageSize();
+        searchSourceBuilder.from(from);
+        searchSourceBuilder.size(queryDataParams.getPageSize());
+        //排序
+        searchSourceBuilder.sort("_id", SortOrder.ASC);
+
+        String query = searchSourceBuilder.toString();
+        Page page = elasticSearchService.searchToEsPage(query, index, "haiguan");
+        return page;
     }
 }
+

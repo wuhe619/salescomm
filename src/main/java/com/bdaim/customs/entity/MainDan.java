@@ -24,7 +24,7 @@ public class MainDan {
     private String land_proxy;
     @JsonProperty(value = "CURR_CODE")
     private String curr_code;
-//    private String TRADE_COUNTRY;
+    //    private String TRADE_COUNTRY;
     @JsonProperty(value = "TRAF_MODE")
     private String traf_mode;
     @JsonProperty(value = "WRAP_TYPE")
@@ -42,107 +42,107 @@ public class MainDan {
     @JsonProperty(value = "ONE_TO_BOTTOM")
     private String one_to_bottom;   //是否一单到底
     @JsonProperty(value = "RECEIPT_DATE")
-    private String  receipt_date;    //接单日期
+    private String receipt_date;    //接单日期
     @JsonProperty(value = "BILL_NO")
     private String bill_no;         //主单号
     @JsonProperty(value = "PACK_NO")
-    private String  pack_no;     //件数
+    private String pack_no;     //件数
     @JsonProperty(value = "GROSS_WT")
-    private String  gross_wt;    //主单毛重
+    private String gross_wt;    //主单毛重
     @JsonProperty(value = "CHARGE_WT")
-    private String  charge_wt;   //主单计费重量
+    private String charge_wt;   //主单计费重量
     @JsonProperty(value = "SINGLE_BATCH_NUM")
-    private String  single_batch_num;    //分单数量
+    private String single_batch_num;    //分单数量
     @JsonProperty(value = "PRODUCT_NUM")
-    private String  product_num; //商品数量
+    private String product_num; //商品数量
     @JsonProperty(value = "TRAF_NAME")
-    private String  traf_name;   //运输工具名称
+    private String traf_name;   //运输工具名称
     @JsonProperty(value = "TRAF_NAME_EN")
-    private String  traf_name_en;    //运输工具英文名称
+    private String traf_name_en;    //运输工具英文名称
     @JsonProperty(value = "VOYAGE_NO")
-    private String  voyage_no;   //航班号
+    private String voyage_no;   //航班号
     @JsonProperty(value = "VOYAGE_TIMES")
-    private String  voyage_times;    //航次
+    private String voyage_times;    //航次
     @JsonProperty(value = "VOYAGE_DATE")
-    private String  voyage_date; //航班日期
+    private String voyage_date; //航班日期
     @JsonProperty(value = "TRADE_COUNTRY")
     private String trade_country;   //起运国家
     @JsonProperty(value = "E_AIRPORT")
-    private String  e_airport;   //出港机场
+    private String e_airport;   //出港机场
     @JsonProperty(value = "I_D_DATE")
     private String i_d_date;    //进港日期
     @JsonProperty(value = "QIYUN_PORT")
-    private String  qiyun_port;  //起运港口
+    private String qiyun_port;  //起运港口
     @JsonProperty(value = "USA_PROV")
     private String usa_prov;    //美国城市所属州
     @JsonProperty(value = "WAREHOUSE_CODE")
     private String warehouse_code;  //仓库编码
     @JsonProperty(value = "SEND_NAME")
-    private String  send_name;   //发件人
+    private String send_name;   //发件人
     @JsonProperty(value = "SEND_NAME_EN")
     private String send_name_en;    //发件人英文
     @JsonProperty(value = "SEND_CITY")
-    private String  send_city;   //发件人城市
+    private String send_city;   //发件人城市
     @JsonProperty(value = "SEND_CITY_EN")
     private String SEND_CITY_EN;    //发件人城市英文
     @JsonProperty(value = "SEND_ADDRESS")
-    private String	send_address;   //发件人地址
+    private String send_address;   //发件人地址
     @JsonProperty(value = "SEND_ADDRESS_EN")
-    private String	send_address_en;    //发件人地址英文
+    private String send_address_en;    //发件人地址英文
     @JsonProperty(value = "SEND_TEL")
-    private String	send_tel; //发件人电话
+    private String send_tel; //发件人电话
     @JsonProperty(value = "STOP_ADDRESS")
-    private String	stop_access;//经停地址
+    private String stop_access;//经停地址
     @JsonProperty(value = "STOP_ADDRESS_EN")
-    private String	stop_address_en;//经停地址英文
+    private String stop_address_en;//经停地址英文
     @JsonProperty(value = "S_C_CODE_DECL")
-    private String	s_c_code_decl;//申报单位社会信用代码
+    private String s_c_code_decl;//申报单位社会信用代码
     @JsonProperty(value = "S_C_CODE_SEND_REC")
-    private String	s_c_code_send_rec;//收发货人社会信用代码
+    private String s_c_code_send_rec;//收发货人社会信用代码
     @JsonProperty(value = "S_C_CODE_SHIPPER")
-    private String	s_c_code_shipper;//货主社会信用代码
+    private String s_c_code_shipper;//货主社会信用代码
     @JsonProperty(value = "S_C_CODE_BUSI_UNIT")
-    private String	s_c_code_busi_unit;//经营单位代码
+    private String s_c_code_busi_unit;//经营单位代码
     @JsonProperty(value = "TRADE_MODE")
-    private String	trade_mode;//监管方式
+    private String trade_mode;//监管方式
     @JsonProperty(value = "TRANS_MODE")
-    private String  trans_mode;//成交方式
+    private String trans_mode;//成交方式
     @JsonProperty(value = "FEE_MARK")
-    private String	fee_mark; //运费标记
+    private String fee_mark; //运费标记
     @JsonProperty(value = "FEE_CURR")
-    private String	fee_curr;//运费币制
+    private String fee_curr;//运费币制
     @JsonProperty(value = "FEE_RATE")
-    private String	fee_rate;//运费率
+    private String fee_rate;//运费率
     @JsonProperty(value = "INSUR_MARK")
-    private String	insur_mark;//保险费标记
+    private String insur_mark;//保险费标记
     @JsonProperty(value = "INSUR_CURR")
-    private String	insur_curr;//保险费币制
+    private String insur_curr;//保险费币制
     @JsonProperty(value = "INSUR_RATE")
-    private String	insur_rate    ;//保险费／率
+    private String insur_rate;//保险费／率
     @JsonProperty(value = "OTHER_MARK")
-    private String	other_mark;// 杂费标记
+    private String other_mark;// 杂费标记
     @JsonProperty(value = "OTHER_CURR")
-    private String	other_curr ;// 杂费币制
+    private String other_curr;// 杂费币制
     @JsonProperty(value = "OTHER_RATE")
-    private String	other_rate;// 杂费／率
+    private String other_rate;// 杂费／率
     @JsonProperty(value = "INSPCTION_TYPE")
-    private String	inspction_type;//   报检类型
+    private String inspction_type;//   报检类型
     @JsonProperty(value = "SPLIT_LUGGAGE")
-    private String	split_luggage; //分运行李
+    private String split_luggage; //分运行李
     @JsonProperty(value = "DEPART_ARRIVAL_PORT")
     private String depart_arrival_port;//起运/运抵港
     @JsonProperty(value = "NOTE_S")
-    private String  note_S; //备注
+    private String note_S; //备注
     private String entrusted_unit;//委托单位
     private String business_unit_name;//经营单位名称
     @JsonProperty(value = "CUST_ID")
-    private String cust_id;//报关单位
+    private String custId;//报关单位
     @JsonProperty(value = "RECEIPTZ_STATUS")
     private String receiptz_status;//最新回执
     @JsonProperty(value = "MAIN_GNAME")
     private String main_gname;//主要货物名称
     @JsonProperty(value = "STATION_ID")
-    private String station_id;//场站id
+    private String stationId;//场站id
     @JsonProperty(value = "COMMIT_CANGDAN_STATUS")
     private String commitCangdanStatus;//舱单已提交 Y
     @JsonProperty(value = "COMMIT_BAODAN_STATUS")
@@ -152,7 +152,7 @@ public class MainDan {
     @JsonProperty(value = "OVER_WARP")
     private String overWarp;//溢短装
     @JsonProperty(value = "CREATE_DATE")
-    private String create_date;//导入日期
+    private String createDate;//导入日期
     @JsonProperty(value = "SINGLES")
     private List<PartyDan> singles;
 
@@ -692,28 +692,12 @@ public class MainDan {
         this.receiptz_status = receiptz_status;
     }
 
-    public String getCust_id() {
-        return cust_id;
-    }
-
-    public void setCust_id(String cust_id) {
-        this.cust_id = cust_id;
-    }
-
     public String getMain_gname() {
         return main_gname;
     }
 
     public void setMain_gname(String main_gname) {
         this.main_gname = main_gname;
-    }
-
-    public String getStation_id() {
-        return station_id;
-    }
-
-    public void setStation_id(String station_id) {
-        this.station_id = station_id;
     }
 
     public String getCommitCangdanStatus() {
@@ -748,12 +732,28 @@ public class MainDan {
         this.overWarp = overWarp;
     }
 
-    public String getCreate_date() {
-        return create_date;
+    public String getCustId() {
+        return custId;
     }
 
-    public void setCreate_date(String create_date) {
-        this.create_date = create_date;
+    public void setCustId(String custId) {
+        this.custId = custId;
+    }
+
+    public String getStationId() {
+        return stationId;
+    }
+
+    public void setStationId(String stationId) {
+        this.stationId = stationId;
+    }
+
+    public String getCreateDate() {
+        return createDate;
+    }
+
+    public void setCreateDate(String createDate) {
+        this.createDate = createDate;
     }
 
     public Integer getId() {

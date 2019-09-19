@@ -8,10 +8,17 @@ import com.bdaim.customs.entity.MainDan;
  * @description es查询参数类
  */
 public class QueryDataParams extends MainDan {
-
     private Integer pageNum;
     private Integer pageSize;
-    private String  queyType;
+    private String index;
+
+    public String getIndex() {
+        return index;
+    }
+
+    public void setIndex(String index) {
+        this.index = index;
+    }
 
     public Integer getPageNum() {
         return pageNum;
@@ -29,20 +36,12 @@ public class QueryDataParams extends MainDan {
         this.pageSize = pageSize;
     }
 
-    public String getQueyType() {
-        return queyType;
-    }
-
-    public void setQueyType(String queyType) {
-        this.queyType = queyType;
-    }
-
     @Override
     public String toString() {
         return "QueryDataParams{" +
                 "pageNum=" + pageNum +
                 ", pageSize=" + pageSize +
-                ", queyType='" + queyType + '\'' +
+                ", index='" + index + '\'' +
                 '}';
     }
 }

@@ -346,9 +346,11 @@ public class CustomController extends BasicAction {
         try {
             LoginUser lu = opUser();
             if (!"ROLE_USER".equals(lu.getRole()) || !"admin".equals(lu.getRole())) {
-               queryDataParams.setCust_id(lu.getCustId());
+                queryDataParams.setCustId(lu.getCustId());
             }
-            Page page = customsService.getMainList(queryDataParams);
+            queryDataParams.setIndex("SZ");
+            Page page = customsService.queryDataPage(queryDataParams);
+            // Page page = customsService.getMainList(queryDataParams);
             responseJson.setMessage("SUCCESS");
             responseJson.setCode(200);
             responseJson.setData(page);
