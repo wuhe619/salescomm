@@ -1,6 +1,7 @@
 package com.bdaim.customs.services;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.auth.LoginUser;
 import com.bdaim.common.dto.Page;
@@ -618,50 +619,95 @@ public class CustomsService {
      */
     public JSONObject getMainList(QueryDataParams queryDataParams) {
         //String a = "{\"query\": {\"bool\":{\"must\":[{\"match\":{\"singles.bill_NO\":\"20001\"}},{\"match\":{\"_id\":\"8\"}}]}}}";
+        JSONObject params = new JSONObject();
+        JSONObject query = new JSONObject();
+        JSONObject bool = new JSONObject();
+        JSONArray sort = new JSONArray();
+        JSONArray must = new JSONArray();
+
         //生成查询语句
-        StringBuffer dsl = new StringBuffer("{\"query\": {\"bool\":{\"must\":[ ");
         if (StringUtil.isNotEmpty(String.valueOf(queryDataParams.getStationId()))) {
-            dsl.append("{\"match\":{\"station_id\":\"" + queryDataParams.getStationId() + "\"}},");
+            JSONObject json = new JSONObject();
+            json.put("station_id.bill_NO", queryDataParams.getStationId());
+            JSONObject match = new JSONObject();
+            match.put("match", json);
+            must.add(match);
         }
         if (StringUtil.isNotEmpty(String.valueOf(queryDataParams.getCustName()))) {
-            dsl.append("{\"match\":{\"cust_name\":\"" + queryDataParams.getCustName() + "\"}},");
+            JSONObject json = new JSONObject();
+            json.put("cust_name", queryDataParams.getCustName());
+            JSONObject match = new JSONObject();
+            match.put("match", json);
+            must.add(match);
         }
         if (StringUtil.isNotEmpty(String.valueOf(queryDataParams.getBillNo()))) {
-            dsl.append("{\"match\":{\"singles.bill_NO\":\"" + queryDataParams.getBillNo() + "\"}},");
+            JSONObject json = new JSONObject();
+            json.put("singles.bill_NO", queryDataParams.getBillNo());
+            JSONObject match = new JSONObject();
+            match.put("match", json);
+            must.add(match);
         }
         if (StringUtil.isNotEmpty(String.valueOf(queryDataParams.getStartTime()))) {
-            dsl.append("{\"match\":{\"start_time\":\"" + queryDataParams.getStartTime() + "\"}},");
+            JSONObject json = new JSONObject();
+            json.put("start_time", queryDataParams.getStartTime());
+            JSONObject match = new JSONObject();
+            match.put("match", json);
+            must.add(match);
         }
         if (StringUtil.isNotEmpty(String.valueOf(queryDataParams.getEndTime()))) {
-            dsl.append("{\"match\":{\"end_time\":\"" + queryDataParams.getEndTime() + "\"}},");
+            JSONObject json = new JSONObject();
+            json.put("end_time", queryDataParams.getEndTime());
+            JSONObject match = new JSONObject();
+            match.put("match", json);
+            must.add(match);
         }
         if (StringUtil.isNotEmpty(String.valueOf(queryDataParams.getArrivalStartTime()))) {
-            dsl.append("{\"match\":{\"i_d_date\":\"" + queryDataParams.getArrivalStartTime() + "\"}},");
+            JSONObject json = new JSONObject();
+            json.put("i_d_date", queryDataParams.getArrivalStartTime());
+            JSONObject match = new JSONObject();
+            match.put("match", json);
+            must.add(match);
         }
         if (StringUtil.isNotEmpty(String.valueOf(queryDataParams.getArrivalEndTime()))) {
-            dsl.append("{\"match\":{\"arrival_end_time\":\"" + queryDataParams.getArrivalEndTime() + "\"}},");
+            JSONObject json = new JSONObject();
+            json.put("arrival_end_time", queryDataParams.getArrivalEndTime());
+            JSONObject match = new JSONObject();
+            match.put("match", json);
+            must.add(match);
         }
         //提交记录
         if (StringUtil.isNotEmpty(String.valueOf(queryDataParams.getSubmitLog()))) {
-            dsl.append("{\"match\":{\"submit_log\":\"" + queryDataParams.getSubmitLog() + "\"}},");
+            JSONObject json = new JSONObject();
+            json.put("submit_log", queryDataParams.getSubmitLog());
+            JSONObject match = new JSONObject();
+            match.put("match", json);
+            must.add(match);
         }
-        //低价商品
-        if (StringUtil.isNotEmpty(String.valueOf(queryDataParams.getLowPriceProduct()))) {
-            dsl.append("{\"match\":{\"low_price\":\"" + queryDataParams.getSubmitLog() + "\"}},");
-        }
-        //1溢装 2 短装
-        if (StringUtil.isNotEmpty(String.valueOf(queryDataParams.getType()))) {
-            dsl.append("{\"match\":{\"type\":\"" + queryDataParams.getType() + "\"}},");
-        }
-        //1溢装 2 短装
         if (StringUtil.isNotEmpty(String.valueOf(queryDataParams.getMainId()))) {
-            dsl.append("{\"match\":{\"_id\":\"" + queryDataParams.getMainId() + "\"}},");
+            JSONObject json = new JSONObject();
+            json.put("_id", queryDataParams.getMainId());
+            JSONObject match = new JSONObject();
+            match.put("match", json);
+            must.add(match);
         }
+        bool.put("must", must);
+        query.put("bool", bool);
+        params.put("query", query);
         //分页处理
-        /*dsl.append("\"from\":"+queryDataParams.getPageNum() +",\"size\": "+queryDataParams.getPageSize()+",");
-        dsl.append("\"sort\": [{ \"_id\": {\"order\": \"desc\" } } ]");*/
-        String dslStr = dsl.substring(0, dsl.length() - 1) + "]}}}";
-        log.info("查询dsl语句" + dslStr);
+        if (StringUtil.isNotEmpty(String.valueOf(queryDataParams.getPageNum()))) {
+            params.put("from", queryDataParams.getPageNum());
+        }
+        if (StringUtil.isNotEmpty(String.valueOf(queryDataParams.getPageSize()))) {
+            params.put("size", queryDataParams.getPageSize());
+        }
+        //排序
+       /* params.put("sort", queryDataParams.getPageSize());
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("_id","{\"order\": \"ASC\" }");
+        sort.add(jsonObject);
+        params.put("sort", sort);*/
+
+        log.info("查询dsl语句" + String.valueOf(params));
         //处理查询索引
         String index = "";
         if (StringUtil.isNotEmpty(queryDataParams.getQueryType())) {
@@ -673,7 +719,27 @@ public class CustomsService {
                 index = Constants.SS_INFO_INDEX;
             }
         }
-        JSONObject json = elasticSearchService.getEsData(index, "haiguan", net.sf.json.JSONObject.fromObject(dslStr));
+        JSONObject json = elasticSearchService.getEsData(index, "haiguan", params);
+      /*  if (json != null) {
+            JSONObject hits = json.getJSONObject("hits");
+            if (hits != null) {
+                //获取数组信息
+                JSONArray list = hits.getJSONArray("hits");
+                JSONObject hitsList;
+                for (int i = 0; i < list.size(); i++) {
+                    hitsList = list.getJSONObject(i);
+                    int id = hitsList.getIntValue("_id");
+                    JSONObject source = hitsList.getJSONObject("_source");
+                    Map<Object, Object> map = new HashMap<>();
+                    map.put("")
+                }
+                if (list != null) {
+                    for (int i = 0; i < list.size(); i++) {
+                        list.get(i).
+                    }
+                }
+            }
+        }*/
         if (json != null) {
             return json.getJSONObject("hits");
         }
@@ -712,7 +778,9 @@ public class CustomsService {
     public static void main(String[] args) {
         QueryDataParams queryDataParams = new QueryDataParams();
         queryDataParams.setQueryType("SZ");
-        queryDataParams.setBillNo("20001");
+        queryDataParams.setBillNo("2000");
+        queryDataParams.setPageSize(2);
+        queryDataParams.setPageNum(0);
         queryDataParams.setMainId(8);
         new CustomsService().getMainList(queryDataParams);
     }
