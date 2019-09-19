@@ -6,6 +6,8 @@ import java.util.List;
 
 public class MainDan {
     private String id;
+    private Integer pageNum;
+    private Integer pageSize;
     @JsonProperty(value = "I_E_FLAG")
     private String i_e_flag;
     @JsonProperty(value = "I_E_PORT")
@@ -129,6 +131,8 @@ public class MainDan {
     private String	inspction_type;//   报检类型
     @JsonProperty(value = "SPLIT_LUGGAGE")
     private String	split_luggage; //分运行李
+    @JsonProperty(value = "DEPART_ARRIVAL_PORT")
+    private String depart_arrival_port;//起运/运抵港
     @JsonProperty(value = "NOTE_S")
     private String  note_S; //备注
     private String entrusted_unit;//委托单位
@@ -158,6 +162,22 @@ public class MainDan {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public Integer getPageSize() {
+        return pageSize;
+    }
+
+    public void setPageSize(Integer pageSize) {
+        this.pageSize = pageSize;
+    }
+
+    public String getDepart_arrival_port() {
+        return depart_arrival_port;
+    }
+
+    public void setDepart_arrival_port(String depart_arrival_port) {
+        this.depart_arrival_port = depart_arrival_port;
     }
 
     public String getI_e_flag() {
@@ -662,5 +682,13 @@ public class MainDan {
 
     public void setSingles(List<PartyDan> singles) {
         this.singles = singles;
+    }
+
+    public Integer getPageNum() {
+        return pageNum;
+    }
+
+    public void setPageNum(Integer pageNum) {
+        this.pageNum = pageNum;
     }
 }
