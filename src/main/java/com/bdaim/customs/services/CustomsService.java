@@ -414,7 +414,7 @@ public class CustomsService {
         if (StringUtil.isEmpty(hdic.getStatus())) {
             hdic.setStatus("1");
         }
-        String sql = "replace INTO `bp`.`h_dic` (`type`, `code`, `name_zh`, `name_en`,  `status`,`desc`, `p_code`, `ext_1`, `ext_2`, `ext_3`) VALUES('" + hdic.getType() + "'," +
+        String sql = "replace INTO `h_dic` (`type`, `code`, `name_zh`, `name_en`,  `status`,`desc`, `p_code`, `ext_1`, `ext_2`, `ext_3`) VALUES('" + hdic.getType() + "'," +
                 "'" + hdic.getCode() + "','" + hdic.getName_zh() + "','" + hdic.getName_en() + "','" + hdic.getStatus() + "','" + hdic.getDesc() + "','" + hdic.getP_code() + "'," +
                 "'" + hdic.getExt_1() + "','" + hdic.getExt_2() + "','" + hdic.getExt_3() + "')";
 //        hDicDao.saveOrUpdate(dic);
