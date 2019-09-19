@@ -47,7 +47,7 @@ public class ResourceService {
     /*
      * 按ID获取资源
      */
-    public JSONObject getInfo(String user_id, String resourceType, String id) throws Exception{
+    public JSONObject getInfo(String user_id, String resourceType, Long id) throws Exception{
     	JSONObject d = null;
     	
     	String sql = "select content, create_id, create_date, update_id, update_date from h_resource where type=? and id=? ";
@@ -145,7 +145,7 @@ public class ResourceService {
      * 保存资源
      */
     public Long saveInfo(String user_id, String resourceType, Long id, JSONObject info) throws Exception{	
-    	if(id==null || "".equals(id) || "0".equals(id)) {
+    	if(id==null || id==0) {
     		//insert
     		id = sequenceService.getSeq(resourceType);
     		

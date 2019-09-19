@@ -10,7 +10,10 @@ import com.bdaim.common.dto.DicTypeEnum;
 import com.bdaim.common.entity.DicProperty;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
-import com.bdaim.common.service.BusiEntityService;
+import com.bdaim.common.service.BusiFileService;
+
+import javax.servlet.http.HttpServletRequest;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,19 +21,21 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
- * 业务实体服务
+ * 业务文件服务
  */
 @RestController
-@RequestMapping("/be/{busiType}")
-public class BusiEntityController extends BasicAction {
-    private static Logger logger = LoggerFactory.getLogger(BusiEntityController.class);
+@RequestMapping("/bf/{busiType}")
+public class BusiFileController extends BasicAction {
+    private static Logger logger = LoggerFactory.getLogger(BusiFileController.class);
 
     @Autowired
-    private BusiEntityService busiEntityService;
+    private BusiFileService busiFileService;
 
     /**
      * 按多条件查询
@@ -59,21 +64,21 @@ public class BusiEntityController extends BasicAction {
         	if(lu.getAuthorities().contains("admin") || lu.getAuthorities().contains("ROLE_USER"))
         		cust_id="all";
         	
-        	resp.setData(busiEntityService.query(cust_id, cust_group_id, cust_user_id, busiType, params));
+        	resp.setData(busiFileService.query(cust_id, cust_group_id, cust_user_id, busiType, params));
         } catch (Exception e) {
-            logger.error("查询记录异常:"+e.getMessage());
-            return new ResponseInfoAssemble().failure(-1, "查询记录异常["+busiType+"]");
+            logger.error("查询文件异常:"+e.getMessage());
+            return new ResponseInfoAssemble().failure(-1, "查询文件异常["+busiType+"]");
         }
         return resp;
     }
 
     
     /**
-     * 保存记录
+     * 保存文件
      */
     @ResponseBody
     @RequestMapping(value = "/info/{id}", method = RequestMethod.POST)
-    public ResponseInfo saveInfo(@PathVariable(name = "id", required=false) Long id, @RequestBody(required=false) String body, @PathVariable(name = "busiType") String busiType) {
+    public ResponseInfo saveInfo(@PathVariable(name = "id", required=false) Long id, @RequestBody(required=false) String body, @PathVariable(name = "busiType") String busiType, @RequestParam("file") MultipartFile file) {
     	ResponseInfo resp = new ResponseInfo();
     	JSONObject info = null;
     	try {
@@ -81,29 +86,29 @@ public class BusiEntityController extends BasicAction {
     			body="{}";
     		info = JSONObject.parseObject(body);
     	}catch(Exception e) {
-    		return new ResponseInfoAssemble().failure(-1, "记录解析异常:["+busiType+"]");
+    		return new ResponseInfoAssemble().failure(-1, "文件解析异常:["+busiType+"]");
     	}
     	
         try {
         	LoginUser lu = opUser();
         	if(lu.getCustId()==null || "".equals(lu.getCustId()))
-        		return new ResponseInfoAssemble().failure(-1, "无归属企业，不能保存记录:["+busiType+"]");
+        		return new ResponseInfoAssemble().failure(-1, "无归属企业，不能保存文件:["+busiType+"]");
         	
         	String cust_id = lu.getCustId();
         	String cust_group_id = lu.getUserGroupId();
         	String cust_user_id = lu.getUser_id();
         	
-            id = busiEntityService.saveInfo(cust_id, cust_group_id, cust_user_id, busiType, id, info);
+            id = busiFileService.saveInfo(cust_id, cust_group_id, cust_user_id, busiType, id, info, file);
             resp.setData(id);
         } catch (Exception e) {
-            logger.error("保存记录异常:"+e.getMessage());
-            return new ResponseInfoAssemble().failure(-1, "保存记录异常:["+busiType+"]");
+            logger.error("保存文件异常:"+e.getMessage());
+            return new ResponseInfoAssemble().failure(-1, "保存文件异常:["+busiType+"]");
         }
         return resp;
     }
     
     /**
-     * 根据id唯一标识获取记录
+     * 根据id唯一标识获取文件
      *
      */
     @ResponseBody
@@ -117,17 +122,17 @@ public class BusiEntityController extends BasicAction {
         	String cust_group_id = lu.getUserGroupId();
         	String cust_user_id = lu.getUser_id();
         	
-        	JSONObject jo = busiEntityService.getInfo(cust_id, cust_group_id, cust_user_id, busiType, id);
+        	JSONObject jo = busiFileService.getInfo(cust_id, cust_group_id, cust_user_id, busiType, id);
         	resp.setData(jo);
         } catch (Exception e) {
-            logger.error("获取记录异常:"+id+" "+e.getMessage());
-            return new ResponseInfoAssemble().failure(-1, "查询记录异常["+busiType+"]");
+            logger.error("获取文件异常:"+id+" "+e.getMessage());
+            return new ResponseInfoAssemble().failure(-1, "查询文件异常["+busiType+"]");
         }
         return resp;
     }
     
     /**
-     * 根据id唯一标识获取记录
+     * 根据id唯一标识获取文件
      *
      */
     @ResponseBody
@@ -137,16 +142,16 @@ public class BusiEntityController extends BasicAction {
         try {
         	LoginUser lu = opUser();
         	if(lu.getCustId()==null || "".equals(lu.getCustId()))
-        		return new ResponseInfoAssemble().failure(-1, "无归属企业，不能删除记录:["+busiType+"]");
+        		return new ResponseInfoAssemble().failure(-1, "无归属企业，不能删除文件:["+busiType+"]");
         	
         	String cust_id = lu.getCustId();
         	String cust_group_id = lu.getUserGroupId();
         	String cust_user_id = lu.getUser_id();
         	
-        	busiEntityService.deleteInfo(cust_id, cust_group_id, cust_user_id, busiType, id);
+        	busiFileService.deleteInfo(cust_id, cust_group_id, cust_user_id, busiType, id);
         } catch (Exception e) {
-            logger.error("删除记录异常:"+id+" "+ e.getMessage());
-            return new ResponseInfoAssemble().failure(-1, "删除记录异常["+busiType+"]");
+            logger.error("删除文件异常:"+id+" "+ e.getMessage());
+            return new ResponseInfoAssemble().failure(-1, "删除文件异常["+busiType+"]");
         }
         return resp;
     }

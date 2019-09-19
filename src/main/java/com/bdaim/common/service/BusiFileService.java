@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -31,12 +32,12 @@ import javax.annotation.Resource;
 import javax.transaction.Transactional;
 
 /**
- *  通用业务实体服务
+ *  通用业务文件服务
  */
 @Service
 @Transactional
-public class BusiEntityService {
-    private static Logger logger = LoggerFactory.getLogger(BusiEntityService.class);
+public class BusiFileService {
+    private static Logger logger = LoggerFactory.getLogger(BusiFileService.class);
     
     @Resource
     private JdbcTemplate jdbcTemplate;
@@ -45,12 +46,12 @@ public class BusiEntityService {
     private SequenceService sequenceService;
 
     /*
-     * 按ID获取记录
+     * 按ID获取文件
      */
     public JSONObject getInfo(String cust_id, String cust_group_id, String cust_user_id, String busiType, Long id) throws Exception{
     	JSONObject jo = null;
     	
-    	String sql = "select content, cust_id, cust_group_id, cust_user_id, create_id, create_date, update_id, update_date,ext_1, ext_2, ext_3, ext_4, ext_5 from h_data_manager where type=? and id=? ";
+    	String sql = "select content, cust_id, cust_group_id, cust_user_id, create_id, create_date, update_id, update_date,file_type,file_name,file_size,file_id,ext_1 from f_file where type=? and id=? ";
     	if(!"all".equals(cust_id))
     		sql+=" and cust_id='"+cust_id+"'";
     	
@@ -68,16 +69,12 @@ public class BusiEntityService {
     		jo.put("create_date", data.get("create_date"));
     		jo.put("update_id", data.get("update_id"));
     		jo.put("update_date", data.get("update_date"));
+    		jo.put("file_name", data.get("file_name"));
+    		jo.put("file_type", data.get("file_type"));
+    		jo.put("file_size", data.get("file_size"));
+    		jo.put("file_id", data.get("file_id"));
     		if(data.get("ext_1")!=null && !"".equals(data.get("ext_1")))
     			jo.put("ext_1", data.get("ext_1"));
-    		if(data.get("ext_2")!=null && !"".equals(data.get("ext_2")))
-    			jo.put("ext_2", data.get("ext_2"));
-    		if(data.get("ext_3")!=null && !"".equals(data.get("ext_3")))
-    			jo.put("ext_3", data.get("ext_3"));
-    		if(data.get("ext_4")!=null && !"".equals(data.get("ext_4")))
-    			jo.put("ext_4", data.get("ext_4"));
-    		if(data.get("ext_5")!=null && !"".equals(data.get("ext_5")))
-    			jo.put("ext_5", data.get("ext_5"));
     		
     		//执行自定义单数据规则
     		BusiService busiService = (BusiService) SpringContextHelper.getBean("busi_"+busiType);
@@ -91,7 +88,7 @@ public class BusiEntityService {
     }
     
     /*
-     * 查询记录
+     * 查询文件
      */
     public Page query(String cust_id, String cust_group_id, String cust_user_id, String busiType, JSONObject params) throws Exception{
     	Page p = new Page();
@@ -109,7 +106,7 @@ public class BusiEntityService {
     	}
     	if(sql==null || "".equals(sql)) {
     		sqlParams.clear();
-	    	StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from h_data_manager where type=?");
+	    	StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date, file_name, file_type, file_size, file_id, ext_1 from f_file where type=?");
 	    	if(!"all".equals(cust_id))
 	    		sqlstr.append(" and cust_id='").append(cust_id).append("'");
 	    	
@@ -163,16 +160,12 @@ public class BusiEntityService {
 			    		jo.put("create_date", m.get("create_date"));
 			    		jo.put("update_id", m.get("update_id"));
 			    		jo.put("update_date", m.get("update_date"));
+			    		jo.put("file_name", m.get("file_name"));
+			    		jo.put("file_type", m.get("file_type"));
+			    		jo.put("file_size", m.get("file_size"));
+			    		jo.put("file_id", m.get("file_id"));
 			    		if(m.get("ext_1")!=null && !"".equals(m.get("ext_1")))
 			    			jo.put("ext_1", m.get("ext_1"));
-			    		if(m.get("ext_2")!=null && !"".equals(m.get("ext_2")))
-			    			jo.put("ext_2", m.get("ext_2"));
-			    		if(m.get("ext_3")!=null && !"".equals(m.get("ext_3")))
-			    			jo.put("ext_3", m.get("ext_3"));
-			    		if(m.get("ext_4")!=null && !"".equals(m.get("ext_4")))
-			    			jo.put("ext_4", m.get("ext_4"));
-			    		if(m.get("ext_5")!=null && !"".equals(m.get("ext_5")))
-			    			jo.put("ext_5", m.get("ext_5"));
 		    		}else
 		    			jo = JSONObject.parseObject(JSONObject.toJSONString(m));
 	    		}catch(Exception e) {
@@ -205,14 +198,19 @@ public class BusiEntityService {
     }
     
     /*
-     * 保存记录
+     * 保存文件
      */
-    public Long saveInfo(String cust_id, String cust_group_id, String cust_user_id, String busiType, Long id, JSONObject info) throws Exception{
-    	if(id==null || id==0) {
+    public Long saveInfo(String cust_id, String cust_group_id, String cust_user_id, String busiType, Long id, JSONObject info, MultipartFile file) throws Exception{
+    	String file_name = file.getName();
+    	String file_type = file.getContentType();
+    	Long file_size = file.getSize();
+    	String file_id = "";
+    	
+    	if(id==null || "".equals(id) || "0".equals(id)) {
     		//insert
     		id = sequenceService.getSeq(busiType);
     		
-    		String sql2 = "insert into h_data_manager(id, type, content, cust_id, cust_group_id, cust_user_id, create_id, create_date) value(?, ?, ?, ?, ?, ?, ?, now())";
+    		String sql2 = "insert into f_file(id, type, content, cust_id, cust_group_id, cust_user_id, create_id, create_date, file_name, file_type, file_size, file_id) value(?, ?, ?, ?, ?, ?, ?, now())";
     		try {
     			//执行自定义新增规则
     			BusiService busiService = (BusiService) SpringContextHelper.getBean("busi_"+busiType);
@@ -225,14 +223,14 @@ public class BusiEntityService {
     	    			info.remove(key);
     	    	}
     	    	
-    			jdbcTemplate.update(sql2, id, busiType, info.toJSONString(), cust_id, cust_group_id, cust_user_id, cust_user_id);
+    			jdbcTemplate.update(sql2, id, busiType, info.toJSONString(), cust_id, cust_group_id, cust_user_id, cust_user_id, file_name, file_type, file_size, file_id);
     		}catch(Exception e) {
     			logger.error(e.getMessage());
-    			throw new Exception("添加新记录异常:["+busiType+"]");
+    			throw new Exception("添加新文件异常:["+busiType+"]");
     		}
     	}else{
     		// update
-    		String sql1 = "select content from h_data_manager where type=? and cust_id=? and id=?";
+    		String sql1 = "select content from f_file where type=? and cust_id=? and id=?";
         	Map data = null;
         	try {
         		data = jdbcTemplate.queryForMap(sql1, busiType, cust_group_id, cust_user_id, id);
@@ -260,7 +258,7 @@ public class BusiEntityService {
         		throw new Exception("解析数据异常:["+busiType+"]"+id);
         	}
         	
-    		String sql2 = "update h_data_manager set content=?,update_id=?,update_date=now() where type=? and cust_id=? and id=?";
+    		String sql2 = "update f_file set content=?,update_id=?,update_date=now(),file_name=?,file_type=?,file_size=?,file_id=? where type=? and cust_id=? and id=?";
     		
     		try {
     			//执行自定义更新规则
@@ -274,10 +272,10 @@ public class BusiEntityService {
     	    			jo.remove(key);
     	    	}
     	    	
-    			jdbcTemplate.update(sql2, jo.toJSONString(), cust_user_id, busiType, cust_id, id);
+    			jdbcTemplate.update(sql2, jo.toJSONString(), cust_user_id, file_name, file_type, file_size, file_id,  busiType, cust_id, id);
     		}catch(Exception e) {
     			logger.error(e.getMessage());
-    			throw new Exception("更新记录异常:["+busiType+"]"+id);
+    			throw new Exception("更新文件异常:["+busiType+"]"+id);
     		}
     	}
     	
@@ -285,10 +283,10 @@ public class BusiEntityService {
     }
     
     /**
-     * 删除记录
+     * 删除文件
      */
     public void deleteInfo(String cust_id, String cust_group_id, String cust_user_id, String busiType, Long id) throws Exception{
-    	String sql = "delete from h_data_manager where type=? and cust_id=? and id=?";
+    	String sql = "delete from f_file where type=? and cust_id=? and id=?";
     	try {
     		//执行自定义删除规则
     		BusiService busiService = (BusiService) SpringContextHelper.getBean("busi_"+busiType);
@@ -298,7 +296,7 @@ public class BusiEntityService {
     		
     	}catch(Exception e) {
     		logger.error(e.getMessage());
-    		throw new Exception("删除记录异常:["+busiType+"]"+id);
+    		throw new Exception("删除文件异常:["+busiType+"]"+id);
     	}
     }
 

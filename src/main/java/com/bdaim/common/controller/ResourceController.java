@@ -87,8 +87,8 @@ public class ResourceController extends BasicAction {
 
         	String user_id = lu.getUser_id();
         	
-        	
-        	resourceService.saveInfo(user_id, resourceType, id, info);
+        	id = resourceService.saveInfo(user_id, resourceType, id, info);
+        	resp.setData(id);
         } catch (Exception e) {
             logger.error("保存资源异常:"+e.getMessage());
             return new ResponseInfoAssemble().failure(-1, "保存资源异常:["+resourceType+"]");
