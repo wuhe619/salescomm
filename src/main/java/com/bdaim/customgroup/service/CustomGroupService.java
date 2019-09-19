@@ -1950,7 +1950,7 @@ public class CustomGroupService {
         sb.append("select custG.id ");
         sb.append("  from " + ConstantsUtil.MARKET_TASK_TABLE_PREFIX + marketTask.getId() + " custG ");
         sb.append(" where 1=1 ");
-        sb.append(" ORDER BY custG.id ASC ");
+        sb.append(" ORDER BY custG.n_id ASC ");
 
         // 如果记录的号码index大于拉取的index,则从记录号码的index开始拉取,防止重复拨打
         if (phoneIndex > pageNum) {
@@ -2007,7 +2007,7 @@ public class CustomGroupService {
         sb.append("select custG.id ");
         sb.append("  from " + ConstantsUtil.MARKET_TASK_TABLE_PREFIX + marketTask.getId() + " custG ");
         sb.append(" where 1=1 ");
-        sb.append(" ORDER BY custG.id ASC ");
+        sb.append(" ORDER BY custG.n_id ASC ");
 
         // 如果记录的号码index大于拉取的index,则从记录号码的index开始拉取,防止重复拨打
         if (phoneIndex > pageNum) {
@@ -3503,7 +3503,7 @@ public class CustomGroupService {
         sb.append("  from t_customer_group_list_" + customerGroupId + " custG ");
         sb.append(" where 1=1 ");
 
-        sb.append(" ORDER BY custG.id ASC ");
+        sb.append(" ORDER BY custG.n_id ASC ");
         if (pageSize != null && !"".equals(pageSize)) {
             sb.append("  LIMIT " + taskPhoneIndex + "," + pageSize);
         }

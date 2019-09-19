@@ -2829,7 +2829,7 @@ public class CustomerSeaService {
         sb.append(" select custG.id, custG.batch_id ")
                 .append("  from " + ConstantsUtil.SEA_TABLE_PREFIX + customerSea.getId() + " custG ")
                 .append(" where pull_status = 0 ")
-                .append(" ORDER BY custG.id ASC ")
+                .append(" ORDER BY custG.n_id ASC ")
                 .append("  LIMIT ?,? ");
 
         List<Map<String, Object>> phones = null;
@@ -2927,7 +2927,7 @@ public class CustomerSeaService {
         sb.append("SELECT id, batch_id ");
         sb.append(" FROM " + ConstantsUtil.SEA_TABLE_PREFIX + customerSea.getId());
         sb.append(" WHERE pull_status = 0 ");
-        sb.append(" ORDER BY id ASC ");
+        sb.append(" ORDER BY n_id ASC ");
 
         // 如果记录的号码index大于拉取的index,则从记录号码的index开始拉取,防止重复拨打
         if (phoneIndex > pageNum) {

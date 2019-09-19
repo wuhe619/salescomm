@@ -314,7 +314,7 @@ public class CustomController extends BasicAction {
      */
     @RequestMapping(value = "/busi/{type}/{id}", method = RequestMethod.POST)
     public ResponseJson commit2cangdanorbaodan(@PathVariable("id") String id, @PathVariable("type") String type,
-                                               String to, String optType) {
+                                               String to) {
         ResponseJson responseJson = new ResponseJson();
         LoginUser user = opUser();
         if (user == null || user.getCustId() == null) {
