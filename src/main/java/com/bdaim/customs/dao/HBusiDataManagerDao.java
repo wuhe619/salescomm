@@ -12,6 +12,7 @@ public class HBusiDataManagerDao extends SimpleHibernateDao<HBusiDataManager, Se
 
     /**
      * 根据字段名称和值查询单个对象
+     *
      * @param propertyName
      * @param value
      * @return
@@ -22,12 +23,19 @@ public class HBusiDataManagerDao extends SimpleHibernateDao<HBusiDataManager, Se
 
     /**
      * 通过主单查询分单集合
+     *
      * @param pid
      * @return
      */
     public List<HBusiDataManager> listHBusiDataManager(int pid, String type) {
         String hql = "FROM HBusiDataManager WHERE type = ? AND ext_4 = (SELECT ext_3 FROM HBusiDataManager WHERE id = ?)";
         return this.find(hql, type, pid);
+    }
+
+
+    public List<HBusiDataManager> listHBusiDataManager(List ids, String type) {
+        String hql = "FROM HBusiDataManager WHERE id IN (?) AND type = ? ";
+        return this.find(hql, ids, type);
     }
 
 }
