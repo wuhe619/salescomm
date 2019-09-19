@@ -87,13 +87,13 @@ public class CustomsService {
      * @param hBusiDataManager
      * @param id
      */
-    private void addDataToES(HBusiDataManager hBusiDataManager, Integer id) {
+    private void addDataToES(HBusiDataManager hBusiDataManager,Integer id){
         String type = hBusiDataManager.getType();
-        if (type.equals(BusiTypeEnum.SZ.getKey())) {
+        if (type.equals(BusiTypeEnum.SZ.getKey()) || type.equals(BusiTypeEnum.CZ.getKey()) || type.equals(BusiTypeEnum.BZ.getKey())) {
             elasticSearchService.addDocumentToType(Constants.SZ_INFO_INDEX, "haiguan", id.toString(), JSON.parseObject(hBusiDataManager.getContent()));
-        } else if (type.equals(BusiTypeEnum.SF.getKey())) {
+        }else if(type.equals(BusiTypeEnum.SF.getKey()) || type.equals(BusiTypeEnum.CF.getKey()) || type.equals(BusiTypeEnum.BF.getKey())){
             elasticSearchService.addDocumentToType(Constants.SF_INFO_INDEX, "haiguan", id.toString(), JSON.parseObject(hBusiDataManager.getContent()));
-        } else if (type.equals(BusiTypeEnum.SS.getKey())) {
+        }else if(type.equals(BusiTypeEnum.SS.getKey()) || type.equals(BusiTypeEnum.CS.getKey()) || type.equals(BusiTypeEnum.BS.getKey())){
             elasticSearchService.addDocumentToType(Constants.SS_INFO_INDEX, "haiguan", id.toString(), JSON.parseObject(hBusiDataManager.getContent()));
         }
     }
@@ -183,12 +183,12 @@ public class CustomsService {
      * @param type
      * @param id
      */
-    private void deleteDatafromES(String type, String id) {
-        if (type.equals(BusiTypeEnum.SZ.getKey())) {
+    private void deleteDatafromES(String type,String id){
+        if (type.equals(BusiTypeEnum.SZ.getKey()) || type.equals(BusiTypeEnum.CZ.getKey()) || type.equals(BusiTypeEnum.BZ.getKey())) {
             elasticSearchService.deleteDocumentFromType(Constants.SZ_INFO_INDEX, "haiguan", id);
-        } else if (type.equals(BusiTypeEnum.SF.getKey())) {
+        }else if(type.equals(BusiTypeEnum.SF.getKey()) || type.equals(BusiTypeEnum.CF.getKey()) || type.equals(BusiTypeEnum.BF.getKey())){
             elasticSearchService.deleteDocumentFromType(Constants.SF_INFO_INDEX, "haiguan", id);
-        } else if (type.equals(BusiTypeEnum.SS.getKey())) {
+        }else if(type.equals(BusiTypeEnum.SS.getKey()) || type.equals(BusiTypeEnum.CS.getKey()) || type.equals(BusiTypeEnum.BS.getKey())){
             elasticSearchService.deleteDocumentFromType(Constants.SS_INFO_INDEX, "haiguan", id);
         }
     }
@@ -199,13 +199,13 @@ public class CustomsService {
      * @param hBusiDataManager
      * @param id
      */
-    private void updateDataToES(HBusiDataManager hBusiDataManager, Integer id) {
+    private void updateDataToES(HBusiDataManager hBusiDataManager,Integer id){
         String type = hBusiDataManager.getType();
-        if (type.equals(BusiTypeEnum.SZ.getKey())) {
+        if (type.equals(BusiTypeEnum.SZ.getKey()) || type.equals(BusiTypeEnum.CZ.getKey()) || type.equals(BusiTypeEnum.BZ.getKey())) {
             elasticSearchService.updateDocumentToType(Constants.SZ_INFO_INDEX, "haiguan", id.toString(), JSON.parseObject(hBusiDataManager.getContent()));
-        } else if (type.equals(BusiTypeEnum.SF.getKey())) {
+        }else if(type.equals(BusiTypeEnum.SF.getKey()) || type.equals(BusiTypeEnum.CF.getKey()) || type.equals(BusiTypeEnum.BF.getKey())){
             elasticSearchService.updateDocumentToType(Constants.SF_INFO_INDEX, "haiguan", id.toString(), JSON.parseObject(hBusiDataManager.getContent()));
-        } else if (type.equals(BusiTypeEnum.SS.getKey())) {
+        }else if(type.equals(BusiTypeEnum.SS.getKey()) || type.equals(BusiTypeEnum.CS.getKey()) || type.equals(BusiTypeEnum.BS.getKey())){
             elasticSearchService.updateDocumentToType(Constants.SS_INFO_INDEX, "haiguan", id.toString(), JSON.parseObject(hBusiDataManager.getContent()));
         }
     }
@@ -503,49 +503,113 @@ public class CustomsService {
     }
 
     /**
-     * 提交为报单、仓单
-     *
+     * 提交为报单、仓单、
+     * 1.添加报单主单
+     * 2.添加报单分单
+     * 3.添加报单税单
      * @param id
      * @param type
      */
-    public void commit2cangdanorbaodan(String id, String type, LoginUser user) throws Exception {
+    public void commit2cangdanorbaodan(String id,String type,LoginUser user) throws Exception {
         HBusiDataManager h = hBusiDataManagerDao.get(Long.valueOf(id));
-        if (h == null) {
+        if(h==null){
             throw new Exception("数据不存在");
         }
-        if (BusiTypeEnum.BZ.getKey().equals(type)) {
-            if ("Y".equals(h.getExt_1())) {
-                throw new Exception("已经提交过了,不能重复提交");
-            }
-
-        } else if (BusiTypeEnum.CZ.getKey().equals(type)) {
-            if ("Y".equals(h.getExt_2())) {
-                throw new Exception("已经提交过了,不能重复提交");
-            }
-
-            HBusiDataManager CZ = new HBusiDataManager();
-            CZ.setType(BusiTypeEnum.CZ.getKey());
-            CZ.setCreateDate(new Date());
-            CZ.setCust_id(Long.valueOf(user.getCustId()));
-            CZ.setCreateId(user.getId());
-            CZ.setExt_3(h.getExt_3());
-            CZ.setExt_1("0");//未发送 1，已发送
-
-            JSONObject json = JSON.parseObject(h.getContent());
-            json.put("create_id", user.getId());
-            json.put("cust_id", user.getCustId());
-            json.put("type", CZ.getType());
-            json.put("create_date", CZ.getCreateDate());
-            json.put("send_status", CZ.getExt_1());
-            String content = json.toJSONString();
-            CZ.setContent(content);
-            Long cid = (Long) hBusiDataManagerDao.saveReturnPk(CZ);
-            json.put("id", cid);
-
-            String sql = "insert into h_data_manager(type,content,create_date,create_id,cust_id,ext_1,ext_3)select" +
-                    "'" + BusiTypeEnum.CZ.getKey() + "',contnet,now()," + user.getId() + "," + user.getCustId() + ",1,ext_3 from h_data_manager where id=" + id;
-
+        if(!user.getCustId().equals(h.getCust_id().toString())){
+            throw new Exception("你无权处理");
         }
+        List<HBusiDataManager> dataList = new ArrayList<>();
+        if(BusiTypeEnum.BZ.getKey().equals(type)){ //提交为报单
+            if("Y".equals(h.getExt_1())){
+                throw new Exception("已经提交过了,不能重复提交");
+            }
+        }else if(BusiTypeEnum.CZ.getKey().equals(type)){ //提交为舱单
+            if("Y".equals(h.getExt_2())){
+                throw new Exception("已经提交过了,不能重复提交");
+            }
+        }
+        buildDanList(dataList,user,h,type);
+
+        for(HBusiDataManager dm:dataList){
+            Integer hid = (Integer) hBusiDataManagerDao.saveReturnPk(dm);
+            addDataToES(dm,hid);
+        }
+    }
+
+    public void buildDanList(List<HBusiDataManager> dataList,LoginUser user,HBusiDataManager h,String type){
+        HBusiDataManager CZ = new HBusiDataManager();
+        if(BusiTypeEnum.CZ.getKey().equals(type)){
+            CZ.setType(BusiTypeEnum.CZ.getKey());
+            h.setExt_2("Y");
+        }else if(BusiTypeEnum.BZ.getKey().equals(type)){
+            CZ.setType(BusiTypeEnum.BZ.getKey());
+            h.setExt_1("Y");
+        }
+
+        CZ.setCreateDate(new Date());
+        CZ.setCust_id(Long.valueOf(user.getCustId()));
+        CZ.setCreateId(user.getId());
+        CZ.setExt_3(h.getExt_3());
+        CZ.setExt_1("0");//未发送 1，已发送
+
+        JSONObject json = JSON.parseObject(h.getContent());
+        json.put("create_id",user.getId());
+        json.put("cust_id",user.getCustId());
+        json.put("type",CZ.getType());
+        json.put("create_date",CZ.getCreateDate());
+        json.put("send_status",CZ.getExt_1());
+        JSONObject jon=JSON.parseObject(h.getContent());
+        if(BusiTypeEnum.CZ.getKey().equals(type)) {
+            json.put("commitCangdanStatus", "Y");
+            jon.put("commitCangdanStatus","Y");
+        }else {
+            json.put("commitBaoDanStatus", "Y");
+            jon.put("commitBaoDanStatus","Y");
+        }
+        h.setContent(jon.toJSONString());
+
+        dataList.add(h);
+        String content = json.toJSONString();
+        CZ.setContent(content);
+//            Long cid = (Long) hBusiDataManagerDao.saveReturnPk(CZ);
+//            json.put("id",cid);
+        dataList.add(CZ);
+        List<HBusiDataManager> parties = getHbusiDataByBillNo(CZ.getExt_3(),BusiTypeEnum.SF.getKey());
+        for(HBusiDataManager hp:parties){
+            if(BusiTypeEnum.CZ.getKey().equals(type)){
+                hp.setType(BusiTypeEnum.CF.getKey());
+            }else if(BusiTypeEnum.BZ.getKey().equals(type)){
+                hp.setType(BusiTypeEnum.BF.getKey());
+            }
+            hp.setCreateDate(new Date());
+            hp.setId(null);
+            dataList.add(hp);
+            List<HBusiDataManager> goods = getHbusiDataByBillNo(hp.getExt_3(),BusiTypeEnum.SS.getKey());
+            for(HBusiDataManager gp:goods){
+                gp.setId(null);
+                gp.setCreateDate(new Date());
+                if(BusiTypeEnum.CZ.getKey().equals(type)){
+                    gp.setType(BusiTypeEnum.CS.getKey());
+                }else if(BusiTypeEnum.BZ.getKey().equals(type)){
+                    gp.setType(BusiTypeEnum.BS.getKey());
+                }
+                dataList.add(gp);
+            }
+        }
+
+
+    }
+
+
+    /**
+     * 根据主单获取分单
+     * @param billNo
+     * @return
+     */
+    private List<HBusiDataManager> getHbusiDataByBillNo(String billNo,String type) {
+        String hql = " from HBusiDataManager a where a.ext_4='" + billNo + "' and type='" + type + "'";
+        List<HBusiDataManager> list = hBusiDataManagerDao.find(hql);
+        return list;
     }
 
     /**
