@@ -254,11 +254,11 @@ public class ElasticSearchService {
      * @method
      * @date: 2019/9/18 11:36
      */
-    public JSONObject getEsData(String index, String type, net.sf.json.JSONObject queryStr) {
+    public JSONObject getEsData(String index, String type, JSONObject queryStr) {
         String r = null;
         LOG.info("向es修改记录:index[" + index + "],type[" + type + "],data:[" + queryStr + "]");
         try {
-            r = RestUtil.postDataWithParms(queryStr, ESUtil.getUrl(index, type) + "/_search/");
+            r = RestUtil.postDataWithParms(net.sf.json.JSONObject.fromObject(queryStr), ESUtil.getUrl(index, type) + "/_search/");
         } catch (Exception e) {
             LOG.error("插查询es信息异常", e);
         }
