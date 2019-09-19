@@ -836,9 +836,9 @@ public class CustomsService {
 
         log.info("查询dsl语句" + String.valueOf(params));
         //处理查询索引
-        JSONObject json = elasticSearchService.getEsData(Constants.SZ_INFO_INDEX, "haiguan", params);
+        JSONObject json = elasticSearchService.getEsData(Constants.SF_INFO_INDEX, "haiguan", params);
         if (json != null) {
-            return elasticSearchService.returnDataPackage(json, Constants.SZ_INFO_INDEX);
+            return elasticSearchService.returnDataPackage(json, Constants.SF_INFO_INDEX);
         }
         return new Page();
     }
