@@ -81,7 +81,7 @@ public class BusiEntityService {
     	BusiService busiService = (BusiService) SpringContextHelper.getBean("busi_"+busiType);
     	String sql = null;
     	try {
-    		busiService.formatQuery(busiType, cust_id, user_id, params, sqlParams);
+    		sql = busiService.formatQuery(busiType, cust_id, user_id, params, sqlParams);
     	}catch(Exception e) {
     		logger.error(e.getMessage());
     		throw new Exception("查询条件自定义解析异常:["+busiType+"]");
