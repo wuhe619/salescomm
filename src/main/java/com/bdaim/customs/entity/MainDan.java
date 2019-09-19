@@ -137,6 +137,8 @@ public class MainDan {
     private String  note_S; //备注
     private String entrusted_unit;//委托单位
     private String business_unit_name;//经营单位名称
+    @JsonProperty(value = "QUERY_TYPE")
+    private String query_type;//查询类型  主单/分单/税单
     @JsonProperty(value = "SINGLES")
     private List<PartyDan> singles;
 
@@ -690,5 +692,13 @@ public class MainDan {
 
     public void setPageNum(Integer pageNum) {
         this.pageNum = pageNum;
+    }
+
+    public String getQuery_type() {
+        return query_type;
+    }
+
+    public void setQuery_type(String query_type) {
+        this.query_type = query_type;
     }
 }
