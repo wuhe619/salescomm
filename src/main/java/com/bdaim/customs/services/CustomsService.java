@@ -79,7 +79,7 @@ public class CustomsService {
                     addDataToES(hBusiDataManager, id);
                 }
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             throw new Exception("保存主单出错");
         }
@@ -111,7 +111,7 @@ public class CustomsService {
     public JSONObject getMainDetailById(String id, String type) {
         JSONObject json = elasticSearchService.getDocumentById(Constants.SF_INFO_INDEX, "haiguan", id);
         if (json == null) {
-            HBusiDataManager h = hBusiDataManagerDao.get(id);
+            HBusiDataManager h = hBusiDataManagerDao.get(NumberConvertUtil.parseInt(id));
             if (h != null && h.getContent() != null) {
                 json = JSON.parseObject(h.getContent());
             }
@@ -493,6 +493,10 @@ public class CustomsService {
                         updateDataToES(d, d.getId());
                     }
                 }
+                // 更新主单下分单的身份证照片数量
+                if (1 == type) {
+                    updateMainDanIdCardNumber(NumberConvertUtil.parseInt(id));
+                }
                 code = 1;
             } else {
                 log.warn("传入身份证文件为空:" + filename);
@@ -745,12 +749,13 @@ public class CustomsService {
      * @return
      * @throws TouchException
      */
-    public int clearSFCardIdPic(List<String> id) {
+    public int clearSFCardIdPic(List<Integer> id) {
         int code = 0;
         List<HBusiDataManager> hBusiDataManagers = hBusiDataManagerDao.listHBusiDataManager(id, BusiTypeEnum.SF.getKey());
         if (hBusiDataManagers != null) {
             JSONObject jsonObject;
             String picKey = "ID_NO_PIC";
+            HBusiDataManager mainD = null;
             for (HBusiDataManager d : hBusiDataManagers) {
                 d.setExt_6("");
                 jsonObject = JSON.parseObject(d.getContent());
@@ -761,6 +766,34 @@ public class CustomsService {
                 }
                 hBusiDataManagerDao.saveOrUpdate(d);
                 updateDataToES(d, d.getId());
+                mainD = hBusiDataManagerDao.getHBusiDataManager("ext_3", d.getExt_4());
+            }
+            if (mainD != null) {
+                updateMainDanIdCardNumber(mainD.getId());
+            }
+            code = 1;
+        }
+        return code;
+    }
+
+    /**
+     * 更新申报单主单身份证照片数量
+     *
+     * @param mainId
+     * @return
+     */
+    public int updateMainDanIdCardNumber(int mainId) {
+        int idCardNumber = hBusiDataManagerDao.countMainDIdCardNum(mainId, BusiTypeEnum.SF.getKey());
+        log.info("开始更新主单:{}的身份证照片数量:{}", mainId, idCardNumber);
+        int code = 0;
+        JSONObject mainDetail = getMainDetailById(String.valueOf(mainId), BusiTypeEnum.SZ.getKey());
+        if (mainDetail != null && mainDetail.containsKey("id")) {
+            mainDetail.put("idCardNumber", idCardNumber);
+            HBusiDataManager mainD = hBusiDataManagerDao.get(mainId);
+            if (mainD != null) {
+                mainD.setContent(mainDetail.toJSONString());
+                hBusiDataManagerDao.update(mainD);
+                updateDataToES(mainD, mainId);
             }
             code = 1;
         }
