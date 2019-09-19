@@ -297,6 +297,113 @@ public class CustomsService {
     }
 
     /**
+     * 添加商品到申报单分单
+     * @param product
+     * @param partId
+     */
+    public void addProductToSB(Product product,String partId,LoginUser user){
+        HBusiDataManager hBusiDataManager=new HBusiDataManager();
+        hBusiDataManager.setCreateDate(new Date());
+        hBusiDataManager.setType(BusiTypeEnum.SS.getKey());
+        hBusiDataManager.setCreateId(user.getId());
+        hBusiDataManager.setCust_id(Long.valueOf(user.getCustId()));
+        hBusiDataManager.setExt_3(product.getCode_ts());
+        hBusiDataManager.setExt_4(product.getParty_No());
+        product.setPid(partId);
+        JSONObject json=JSON.parseObject(JSONObject.toJSONString(product));
+        //todo 待合计
+        json.put("duty_paid_price","0");//完税价格
+        json.put("estimated_tax","0");//预估税金
+        json.put("tax_rate","0");//税率
+        json.put("total_price","0");//价格合计
+        hBusiDataManager.setContent(json.toJSONString());
+        Long id= (Long) hBusiDataManagerDao.saveReturnPk(hBusiDataManager);
+        addDataToES(hBusiDataManager,id.intValue());
+
+        HBusiDataManager partH = hBusiDataManagerDao.get(partId);
+        String pcontent = partH.getContent();
+        JSONObject jsonObject = JSON.parseObject(pcontent);
+        Float weight = jsonObject.getFloatValue("weight");
+        Float pack_NO = jsonObject.getFloatValue("pack_NO");
+        if(weight==null)weight=0f;
+        if(StringUtil.isNotEmpty(product.getGgrossWt())){
+            weight += Float.valueOf(product.getGgrossWt());
+        }
+        if (pack_NO==null)pack_NO =0f;
+        if(StringUtil.isNotEmpty(product.getG_qty())){
+            pack_NO+=Float.valueOf(product.getG_qty());
+        }
+        jsonObject.put("weight",weight);
+        jsonObject.put("pack_NO",pack_NO);
+        partH.setContent(jsonObject.toJSONString());
+        hBusiDataManagerDao.saveOrUpdate(partH);
+        updateDataToES(partH,Integer.valueOf(partId));
+
+        //todo改为通过pid获取主单
+        HBusiDataManager zh = getObjectByBillNo(partH.getExt_4(),BusiTypeEnum.SZ.getKey());
+        String zcontent = zh.getContent();
+        JSONObject jsonz=JSON.parseObject(zcontent);
+        Float weight_total = jsonz.getFloatValue("weight_total");
+        if(weight_total==null)weight_total=0f;
+
+        weight_total+=Float.valueOf(product.getGgrossWt()==null?"0":product.getGgrossWt());
+        jsonz.put("weight_total", weight_total);
+        zh.setContent(jsonz.toJSONString());
+        hBusiDataManagerDao.saveOrUpdate(zh);
+        updateDataToES(zh,zh.getId());
+    }
+
+
+    /**
+     * 从分单删除商品
+     * @param partId
+     * @param productId
+     */
+    public void delProductFromSB(String partId,String productId){
+        HBusiDataManager ph = hBusiDataManagerDao.get(productId);
+        deleteDatafromES(BusiTypeEnum.SS.getKey(),productId);
+        hBusiDataManagerDao.delete(productId);
+        String pcontent = ph.getContent();
+        JSONObject pjson = JSON.parseObject(pcontent);
+
+        //获取分单信息，从分单中减去商品的重量等
+        HBusiDataManager parth = hBusiDataManagerDao.get(partId);
+        String partcontent = parth.getContent();
+        JSONObject partcontentJson = JSON.parseObject(partcontent);
+
+        Float weight = partcontentJson.getFloatValue("weight");
+        Float pack_NO = partcontentJson.getFloatValue("pack_NO");
+        if(weight==null)weight=0f;
+        if(StringUtil.isNotEmpty(pjson.getString("ggrossWt"))){
+            weight -= Float.valueOf(pjson.getString("ggrossWt"));
+        }
+        if (pack_NO==null)pack_NO =0f;
+        if(StringUtil.isNotEmpty(pjson.getString("g_qty"))){
+            pack_NO -= Float.valueOf(pjson.getString("g_qty"));
+        }
+        partcontentJson.put("weight",weight);
+        partcontentJson.put("pack_NO",pack_NO);
+        parth.setContent(partcontentJson.toJSONString());
+        hBusiDataManagerDao.saveOrUpdate(parth);
+        updateDataToES(parth,Integer.valueOf(partId));
+
+        //处理主单
+        HBusiDataManager zh = getObjectByBillNo(parth.getExt_4(),BusiTypeEnum.SZ.getKey());
+        String zcontent = zh.getContent();
+        JSONObject jsonz=JSON.parseObject(zcontent);
+        Float weight_total = jsonz.getFloatValue("weight_total");
+        if(weight_total==null)weight_total=0f;
+
+        weight_total -= Float.valueOf(pjson.getString("ggrossWt")==null?"0":pjson.getString("ggrossWt"));
+        jsonz.put("weight_total", weight_total);
+        zh.setContent(jsonz.toJSONString());
+        hBusiDataManagerDao.saveOrUpdate(zh);
+        updateDataToES(zh,zh.getId());
+
+    }
+
+
+    /**
      * 从es删除文档
      *
      * @param type
@@ -836,9 +943,9 @@ public class CustomsService {
 
         log.info("查询dsl语句" + String.valueOf(params));
         //处理查询索引
-        JSONObject json = elasticSearchService.getEsData(Constants.SF_INFO_INDEX, "haiguan", params);
+        JSONObject json = elasticSearchService.getEsData(Constants.SZ_INFO_INDEX, "haiguan", params);
         if (json != null) {
-            return elasticSearchService.returnDataPackage(json, Constants.SF_INFO_INDEX);
+            return elasticSearchService.returnDataPackage(json, Constants.SZ_INFO_INDEX);
         }
         return new Page();
     }
