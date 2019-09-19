@@ -41,7 +41,6 @@ public class CustomController extends BasicAction {
      * @param mainDan
      */
     @RequestMapping(value = "saveinfo", method = RequestMethod.POST)
-    @ResponseBody
     public ResponseCommon saveMaindan(@RequestBody MainDan mainDan) {
         log.info("saveMaindan::" + JSON.toJSONString(mainDan));
         ResponseCommon responseJson = new ResponseCommon();
