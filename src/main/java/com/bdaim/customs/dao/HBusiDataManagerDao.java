@@ -2,6 +2,7 @@ package com.bdaim.customs.dao;
 
 import com.bdaim.common.dao.SimpleHibernateDao;
 import com.bdaim.customs.entity.HBusiDataManager;
+import org.hibernate.Query;
 import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
@@ -18,7 +19,11 @@ public class HBusiDataManagerDao extends SimpleHibernateDao<HBusiDataManager, Se
      * @return
      */
     public HBusiDataManager getHBusiDataManager(String propertyName, String value) {
-        return this.findUniqueBy(propertyName, value);
+        List<HBusiDataManager> list = this.findBy(propertyName, value);
+        if (list != null && list.size() > 0) {
+            return list.get(0);
+        }
+        return null;
     }
 
     /**
@@ -34,8 +39,22 @@ public class HBusiDataManagerDao extends SimpleHibernateDao<HBusiDataManager, Se
 
 
     public List<HBusiDataManager> listHBusiDataManager(List ids, String type) {
-        String hql = "FROM HBusiDataManager WHERE id IN (?) AND type = ? ";
-        return this.find(hql, ids, type);
+        String hql = "FROM HBusiDataManager WHERE type = ? AND id IN (:ids)";
+        Query query = super.createQuery(hql, type);
+        query.setParameterList("ids", ids);
+        return query.list();
+    }
+
+    /**
+     * 查询主单下分单的身份证照片数量
+     *
+     * @param pid
+     * @param type
+     * @return
+     */
+    public int countMainDIdCardNum(int pid, String type) {
+        String hql = "SELECT COUNT(0) FROM HBusiDataManager WHERE type = ? AND ext_4 = (SELECT ext_3 FROM HBusiDataManager WHERE id = ?) AND ext_6 IS NOT NULL AND ext_6 <>'' ";
+        return this.findCount(hql, type, pid);
     }
 
 }

@@ -1,11 +1,17 @@
 package com.bdaim.common.service;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.bdaim.common.exception.TouchException;
+import com.alibaba.fastjson.TypeReference;
+import com.bdaim.common.dto.Page;
 import com.bdaim.common.util.ESUtil;
 import com.bdaim.common.util.RestUtil;
 import com.bdaim.common.util.http.HttpUtil;
+import com.bdaim.customs.entity.Constants;
+import com.bdaim.customs.entity.MainDan;
+import com.bdaim.customs.entity.PartyDan;
+import com.bdaim.customs.entity.Product;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.*;
@@ -13,6 +19,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author chengning@salescomm.net
@@ -88,6 +96,7 @@ public class ElasticSearchService {
 
     /**
      * 删除文档
+     *
      * @param index
      * @param type
      * @param id
@@ -116,8 +125,8 @@ public class ElasticSearchService {
             String httpResult = HttpUtil.httpGet(ESUtil.getUrl(index, type) + id, null, null);
             result = JSON.parseObject(httpResult);
             result = result.getJSONObject("hits");
-            if(result.containsKey("_source")){
-              result = result.getJSONObject("_source");
+            if (result.containsKey("_source")) {
+                result = result.getJSONObject("_source");
             }
             LOG.info("从es查询记录返回结果:[" + httpResult + "]");
         } catch (Exception e) {
@@ -125,8 +134,6 @@ public class ElasticSearchService {
         }
         return result;
     }
-
-
 
 
     /**
@@ -160,6 +167,7 @@ public class ElasticSearchService {
     public static void main(String[] args) {
         testAdd();
     }
+
     //@Test
     public static void testAdd() {
         JSONObject jsonObject = new JSONObject();
@@ -248,6 +256,7 @@ public class ElasticSearchService {
         }
         return result;
     }
+
     /**
      * @description 查询ES信息
      * @author:duanliying
@@ -263,5 +272,52 @@ public class ElasticSearchService {
             LOG.error("插查询es信息异常", e);
         }
         return JSONObject.parseObject(r);
+    }
+
+
+    /**
+     * @description 查询ES数据封装
+     * @author:duanliying
+     * @method
+     * @date: 2019/9/18 11:36
+     */
+    public Page returnDataPackage(JSONObject data, String index) {
+        Page page = new Page();
+        LOG.info("封装数据信息是：" + data.toJSONString() + "封装对象索引是：" + index);
+        try {
+            JSONObject hits = data.getJSONObject("hits");
+            JSONArray dataList =new JSONArray();
+            int total = hits.getIntValue("total");
+            if (hits != null) {
+                //获取数组信息
+                JSONArray jsonArray = hits.getJSONArray("hits");
+                JSONObject hitsList;
+                for (int i = 0; i < jsonArray.size(); i++) {
+                    hitsList = jsonArray.getJSONObject(i);
+                    int id = hitsList.getIntValue("_id");
+                    JSONObject source = hitsList.getJSONObject("_source");
+                    source.put("id",id);
+                    dataList.add(source);
+                }
+
+                if (Constants.SZ_INFO_INDEX.equals(index)) {
+                    //封装主单对象
+                    List<MainDan> mainDanList=JSON.parseArray(dataList.toJSONString(),MainDan.class);
+                    page.setData(mainDanList);
+                } else if (Constants.SF_INFO_INDEX.equals(index)) {
+                    //封装分单对象
+                    List<PartyDan> partyDanList=JSON.parseArray(dataList.toJSONString(),PartyDan.class);
+                    page.setData(partyDanList);
+                } else if (Constants.SS_INFO_INDEX.equals(index)) {
+                    //封装商品对象
+                    List<Product> productDanList=JSON.parseArray(dataList.toJSONString(),Product.class);
+                    page.setData(productDanList);
+                }
+                page.setTotal(total);
+            }
+        } catch (Exception e) {
+            LOG.error("封装数据信息异常", e);
+        }
+        return page;
     }
 }
