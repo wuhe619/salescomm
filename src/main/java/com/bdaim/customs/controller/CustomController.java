@@ -339,11 +339,15 @@ public class CustomController extends BasicAction {
      *
      * @param
      */
-    @RequestMapping(value = "/getData", method = RequestMethod.POST)
+    @RequestMapping(value = "/be/cd_z/all", method = RequestMethod.POST)
     @ResponseBody
     public ResponseJson getDataList(@RequestBody QueryDataParams queryDataParams) {
         ResponseJson responseJson = new ResponseJson();
         try {
+            LoginUser lu = opUser();
+            if (!"ROLE_USER".equals(lu.getRole()) || !"admin".equals(lu.getRole())) {
+               queryDataParams.setCust_id(lu.getCustId());
+            }
             Page page = customsService.getMainList(queryDataParams);
             responseJson.setMessage("SUCCESS");
             responseJson.setCode(200);

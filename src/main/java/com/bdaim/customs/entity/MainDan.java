@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
 public class MainDan {
+    private Integer id;
     @JsonProperty(value = "I_E_FLAG")
     private String i_e_flag;
     @JsonProperty(value = "I_E_PORT")
@@ -753,5 +754,13 @@ public class MainDan {
 
     public void setCreate_date(String create_date) {
         this.create_date = create_date;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
     }
 }
