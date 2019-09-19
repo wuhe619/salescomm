@@ -40,7 +40,6 @@ public class CustomController extends BasicAction {
      * @param mainDan
      */
     @RequestMapping(value = "saveinfo", method = RequestMethod.POST)
-    @ResponseBody
     public ResponseCommon saveMaindan(@RequestBody MainDan mainDan) {
         log.info("saveMaindan::" + JSON.toJSONString(mainDan));
         ResponseCommon responseJson = new ResponseCommon();
@@ -57,6 +56,7 @@ public class CustomController extends BasicAction {
             responseJson.setMessage("SUCCESS");
             return responseJson;
         } catch (Exception e) {
+            e.printStackTrace();
             responseJson.setCode(-1);
             responseJson.setMessage("保存出错");
             return responseJson;
@@ -299,10 +299,11 @@ public class CustomController extends BasicAction {
      *
      * @param id
      * @param type
+     * @param to
      * @return
      */
     @RequestMapping(value = "/busi/{type}/{id}", method = RequestMethod.POST)
-    public ResponseJson commit2cangdanorbaodan(@PathVariable("id") String id, @PathVariable("type") String type) {
+    public ResponseJson commit2cangdanorbaodan(@PathVariable("id") String id, @PathVariable("type") String type,String to) {
         ResponseJson responseJson = new ResponseJson();
         LoginUser user = opUser();
         if (user == null || user.getCustId() == null) {
@@ -311,7 +312,7 @@ public class CustomController extends BasicAction {
             return responseJson;
         }
         try {
-            customsService.commit2cangdanorbaodan(id, type, user);
+            customsService.commit2cangdanorbaodan(id, type, user,to);
             responseJson.setCode(200);
             responseJson.setMessage("SUCCESS");
         } catch (Exception e) {
