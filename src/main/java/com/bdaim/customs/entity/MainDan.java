@@ -5,9 +5,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
 public class MainDan {
-    private String id;
-    private Integer pageNum;
-    private Integer pageSize;
     @JsonProperty(value = "I_E_FLAG")
     private String i_e_flag;
     @JsonProperty(value = "I_E_PORT")
@@ -137,8 +134,24 @@ public class MainDan {
     private String  note_S; //备注
     private String entrusted_unit;//委托单位
     private String business_unit_name;//经营单位名称
-    @JsonProperty(value = "QUERY_TYPE")
-    private String query_type;//查询类型  主单/分单/税单
+    @JsonProperty(value = "CUST_ID")
+    private String cust_id;//报关单位
+    @JsonProperty(value = "RECEIPTZ_STATUS")
+    private String receiptz_status;//最新回执
+    @JsonProperty(value = "MAIN_GNAME")
+    private String main_gname;//主要货物名称
+    @JsonProperty(value = "STATION_ID")
+    private String station_id;//场站id
+    @JsonProperty(value = "COMMIT_CANGDAN_STATUS")
+    private String commitCangdanStatus;//舱单已提交 Y
+    @JsonProperty(value = "COMMIT_BAODAN_STATUS")
+    private String commitBaoDanStatus;//报单已提交 Y
+    @JsonProperty(value = "LOWER_GOODS")
+    private String lowergoods;//低价商品
+    @JsonProperty(value = "OVER_WARP")
+    private String overWarp;//溢短装
+    @JsonProperty(value = "CREATE_DATE")
+    private String create_date;//导入日期
     @JsonProperty(value = "SINGLES")
     private List<PartyDan> singles;
 
@@ -156,22 +169,6 @@ public class MainDan {
 
     public void setBusiness_unit_name(String business_unit_name) {
         this.business_unit_name = business_unit_name;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public Integer getPageSize() {
-        return pageSize;
-    }
-
-    public void setPageSize(Integer pageSize) {
-        this.pageSize = pageSize;
     }
 
     public String getDepart_arrival_port() {
@@ -686,19 +683,75 @@ public class MainDan {
         this.singles = singles;
     }
 
-    public Integer getPageNum() {
-        return pageNum;
+    public String getReceiptz_status() {
+        return receiptz_status;
     }
 
-    public void setPageNum(Integer pageNum) {
-        this.pageNum = pageNum;
+    public void setReceiptz_status(String receiptz_status) {
+        this.receiptz_status = receiptz_status;
     }
 
-    public String getQuery_type() {
-        return query_type;
+    public String getCust_id() {
+        return cust_id;
     }
 
-    public void setQuery_type(String query_type) {
-        this.query_type = query_type;
+    public void setCust_id(String cust_id) {
+        this.cust_id = cust_id;
+    }
+
+    public String getMain_gname() {
+        return main_gname;
+    }
+
+    public void setMain_gname(String main_gname) {
+        this.main_gname = main_gname;
+    }
+
+    public String getStation_id() {
+        return station_id;
+    }
+
+    public void setStation_id(String station_id) {
+        this.station_id = station_id;
+    }
+
+    public String getCommitCangdanStatus() {
+        return commitCangdanStatus;
+    }
+
+    public void setCommitCangdanStatus(String commitCangdanStatus) {
+        this.commitCangdanStatus = commitCangdanStatus;
+    }
+
+    public String getCommitBaoDanStatus() {
+        return commitBaoDanStatus;
+    }
+
+    public void setCommitBaoDanStatus(String commitBaoDanStatus) {
+        this.commitBaoDanStatus = commitBaoDanStatus;
+    }
+
+    public String getLowergoods() {
+        return lowergoods;
+    }
+
+    public void setLowergoods(String lowergoods) {
+        this.lowergoods = lowergoods;
+    }
+
+    public String getOverWarp() {
+        return overWarp;
+    }
+
+    public void setOverWarp(String overWarp) {
+        this.overWarp = overWarp;
+    }
+
+    public String getCreate_date() {
+        return create_date;
+    }
+
+    public void setCreate_date(String create_date) {
+        this.create_date = create_date;
     }
 }
