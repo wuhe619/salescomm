@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
 public class PartyDan {
-    @JsonProperty(value = "_id")
     private String id;
     @JsonProperty(value = "Main_bill_NO")
     private String main_bill_NO;//主单号

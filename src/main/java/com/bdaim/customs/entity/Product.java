@@ -3,8 +3,7 @@ package com.bdaim.customs.entity;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Product {
-    @JsonProperty(value = "_id")
-    private String _id ;
+    private String id ;
      private String party_No;//分单单号
     @JsonProperty(value = "CODE_TS")
      private String code_ts ;//商品编号
@@ -43,12 +42,12 @@ public class Product {
     @JsonProperty(value = "GGrossWt")
 	 private String ggrossWt ;//商品毛重
 
-    public String get_id() {
-        return _id;
+    public String getId() {
+        return id;
     }
 
-    public void set_id(String _id) {
-        this._id = _id;
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getParty_No() {

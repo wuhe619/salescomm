@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
 public class MainDan {
-    @JsonProperty(value = "_id")
     private String id;
     @JsonProperty(value = "I_E_FLAG")
     private String i_e_flag;
