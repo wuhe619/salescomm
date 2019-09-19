@@ -23,11 +23,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
-import javax.crypto.SecretKey;
-import javax.crypto.Cipher;
 import sun.misc.BASE64Decoder;
 import sun.misc.BASE64Encoder;
+
 import javax.annotation.Resource;
+import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.DESedeKeySpec;
 import javax.transaction.Transactional;
@@ -509,9 +510,9 @@ public class CallCenterService{
         } */else {
             param.setAppid(SaleApiUtil.ONLINE_CALL_BACK_APP_ID);
         }
-        LogUtil.info("调用双向回呼接口请求数据:" + JSON.toJSONString(param));
+        LOG.info("调用双向回呼接口请求数据:" + JSON.toJSONString(param));
         String result = SaleApiUtil.sendCallBack(JSON.toJSONString(param), SaleApiUtil.ENV);
-        LogUtil.info("调用双向回呼接口返回数据:" + result);
+        LOG.info("调用双向回呼接口返回数据:" + result);
         return result;
     }
 
