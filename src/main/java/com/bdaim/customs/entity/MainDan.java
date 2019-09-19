@@ -130,8 +130,26 @@ public class MainDan {
     private String	split_luggage; //分运行李
     @JsonProperty(value = "NOTE_S")
     private String  note_S; //备注
+    private String entrusted_unit;//委托单位
+    private String business_unit_name;//经营单位名称
     @JsonProperty(value = "SINGLES")
     private List<PartyDan> singles;
+
+    public String getEntrusted_unit() {
+        return entrusted_unit;
+    }
+
+    public void setEntrusted_unit(String entrusted_unit) {
+        this.entrusted_unit = entrusted_unit;
+    }
+
+    public String getBusiness_unit_name() {
+        return business_unit_name;
+    }
+
+    public void setBusiness_unit_name(String business_unit_name) {
+        this.business_unit_name = business_unit_name;
+    }
 
     public String getI_e_flag() {
         return i_e_flag;

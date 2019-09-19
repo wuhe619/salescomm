@@ -70,13 +70,17 @@ public class CustomsService {
         if (station_idProperty == null || StringUtil.isEmpty(station_idProperty.getPropertyValue())) {
             throw new Exception("未配置场站信息");
         }
-        buildMain(list, mainDan, user, station_idProperty.getPropertyValue());
-        if (list != null && list.size() > 0) {
-            for (HBusiDataManager hBusiDataManager : list) {
-                Integer id = (Integer) hBusiDataManagerDao.saveReturnPk(hBusiDataManager);
-                addDataToES(hBusiDataManager, id);
+        try {
+            buildMain(list, mainDan, user, station_idProperty.getPropertyValue());
+            if (list != null && list.size() > 0) {
+                for (HBusiDataManager hBusiDataManager : list) {
+                    Integer id = (Integer) hBusiDataManagerDao.saveReturnPk(hBusiDataManager);
+                    addDataToES(hBusiDataManager, id);
+                }
             }
-//            hBusiDataManagerDao.batchSaveOrUpdate(list);
+        }catch (Exception e){
+            e.printStackTrace();
+            throw new Exception("保存主单出错");
         }
     }
 
