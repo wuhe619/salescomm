@@ -267,7 +267,7 @@ public class CustomController extends BasicAction {
         try {
             int status = customsService.uploadCardIdPic(f, id, type);
             if (status == 1) {
-                responseJson.setCode(1);
+                responseJson.setCode(200);
                 responseJson.setMessage("成功");
             } else {
                 responseJson.setCode(status);
@@ -356,7 +356,7 @@ public class CustomController extends BasicAction {
         ResponseJson responseJson = new ResponseJson();
         int status = customsService.clearSFCardIdPic(id);
         if (status == 1) {
-            responseJson.success();
+            responseJson.setCode(200);
         } else {
             responseJson.fail();
         }
