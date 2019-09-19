@@ -334,9 +334,9 @@ public class CustomController extends BasicAction {
      *
      * @param
      */
-    @RequestMapping(value = "/getList", method = RequestMethod.POST)
+    @RequestMapping(value = "/getData", method = RequestMethod.POST)
     @ResponseBody
-    public ResponseJson getmainList(@RequestBody QueryDataParams queryDataParams) {
+    public ResponseJson getDataList(@RequestBody QueryDataParams queryDataParams) {
         ResponseJson responseJson = new ResponseJson();
         try {
             Page page = customsService.getMainList(queryDataParams);
