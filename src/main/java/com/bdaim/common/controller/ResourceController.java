@@ -11,6 +11,8 @@ import com.bdaim.common.entity.DicProperty;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.common.service.BusiEntityService;
+import com.bdaim.common.service.ResourceService;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,22 +24,22 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * 业务实体服务
+ * 公共资源服务
  */
 @RestController
-@RequestMapping("/be/{busiType}")
-public class BusiEntityController extends BasicAction {
+@RequestMapping("/rs/{resourceType}")
+public class ResourceController extends BasicAction {
     private static Logger logger = LoggerFactory.getLogger(BusiEntityController.class);
 
     @Autowired
-    private BusiEntityService busiEntityService;
+    private ResourceService resourceService;
 
     /**
      * 按多条件查询
      */
     @ResponseBody
     @RequestMapping(value = "/all", method = RequestMethod.POST)
-    public ResponseInfo query(@RequestBody(required=false) String body, @PathVariable(name = "busiType") String busiType) {
+    public ResponseInfo query(@RequestBody(required=false) String body, @PathVariable(name = "resourceType") String resourceType) {
     	ResponseInfo resp = new ResponseInfo();
     	
     	JSONObject params = null;
@@ -46,33 +48,28 @@ public class BusiEntityController extends BasicAction {
     			body="{}";
     		params = JSONObject.parseObject(body);
     	}catch(Exception e) {
-    		return new ResponseInfoAssemble().failure(-1, "查询条件解析异常["+busiType+"]");
+    		return new ResponseInfoAssemble().failure(-1, "查询条件解析异常["+resourceType+"]");
     	}
     	
         try {
         	LoginUser lu = opUser();
-        	String cust_id = lu.getCustId();
         	String user_id = lu.getUser_id();
-        	if(cust_id==null || "".equals(cust_id))
-        		cust_id="-1";
-        	if(lu.getAuthorities().contains("admin") || lu.getAuthorities().contains("ROLE_USER"))
-        		cust_id="all";
         	
-        	resp.setData(busiEntityService.query(cust_id, user_id, busiType, params));
+        	resp.setData(resourceService.query(user_id, resourceType, params));
         } catch (Exception e) {
-            logger.error("查询记录异常:"+e.getMessage());
-            return new ResponseInfoAssemble().failure(-1, "查询记录异常["+busiType+"]");
+            logger.error("查询资源异常:"+e.getMessage());
+            return new ResponseInfoAssemble().failure(-1, "查询资源异常["+resourceType+"]");
         }
         return resp;
     }
 
     
     /**
-     * 保存记录
+     * 保存资源，目前只开放给运营管理员
      */
     @ResponseBody
     @RequestMapping(value = "/info/{id}", method = RequestMethod.POST)
-    public ResponseInfo saveInfo(@PathVariable(name = "id", required=false) String id, @RequestBody(required=false) String body, @PathVariable(name = "busiType") String busiType) {
+    public ResponseInfo saveInfo(@PathVariable(name = "id", required=false) String id, @RequestBody(required=false) String body, @PathVariable(name = "resourceType") String resourceType) {
     	ResponseInfo resp = new ResponseInfo();
     	JSONObject info = null;
     	try {
@@ -80,68 +77,66 @@ public class BusiEntityController extends BasicAction {
     			body="{}";
     		info = JSONObject.parseObject(body);
     	}catch(Exception e) {
-    		return new ResponseInfoAssemble().failure(-1, "记录解析异常:["+busiType+"]");
+    		return new ResponseInfoAssemble().failure(-1, "资源解析异常:["+resourceType+"]");
     	}
     	
         try {
         	LoginUser lu = opUser();
-        	if(lu.getCustId()==null || "".equals(lu.getCustId()))
-        		return new ResponseInfoAssemble().failure(-1, "无归属企业，不能保存记录:["+busiType+"]");
-        	
-        	String cust_id = lu.getCustId();
+        	if(!lu.getAuthorities().contains("admin"))
+        		return new ResponseInfoAssemble().failure(-1, "无权限保存资源:["+resourceType+"]");
+
         	String user_id = lu.getUser_id();
         	
-            busiEntityService.saveInfo(cust_id, user_id, busiType, id, info);
+        	
+        	resourceService.saveInfo(user_id, resourceType, id, info);
         } catch (Exception e) {
-            logger.error("保存记录异常:"+e.getMessage());
-            return new ResponseInfoAssemble().failure(-1, "保存记录异常:["+busiType+"]");
+            logger.error("保存资源异常:"+e.getMessage());
+            return new ResponseInfoAssemble().failure(-1, "保存资源异常:["+resourceType+"]");
         }
         return resp;
     }
     
     /**
-     * 根据id唯一标识获取记录
+     * 根据id唯一标识获取资源
      *
      */
     @ResponseBody
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
-    public ResponseInfo getInfo(@PathVariable(name = "id") String id, @PathVariable(name = "busiType") String busiType) {
+    public ResponseInfo getInfo(@PathVariable(name = "id") String id, @PathVariable(name = "resourceType") String resourceType) {
     	ResponseInfo resp = new ResponseInfo();
     	
         try {
         	LoginUser lu = opUser();
-        	String cust_id = lu.getCustId();
         	String user_id = lu.getUser_id();
         	
-        	JSONObject jo = busiEntityService.getInfo(cust_id, user_id, busiType, id);
+        	JSONObject jo = resourceService.getInfo(user_id, resourceType, id);
         	resp.setData(jo);
         } catch (Exception e) {
-            logger.error("获取记录异常:"+id+" "+e.getMessage());
-            return new ResponseInfoAssemble().failure(-1, "查询记录异常["+busiType+"]");
+            logger.error("获取资源异常:"+id+" "+e.getMessage());
+            return new ResponseInfoAssemble().failure(-1, "查询资源异常["+resourceType+"]");
         }
         return resp;
     }
     
     /**
-     * 根据id唯一标识获取记录
+     * 根据id唯一标识获取资源
      *
      */
     @ResponseBody
     @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
-    public ResponseInfo deleteInfo(@PathVariable(name = "id") String id, @PathVariable(name = "busiType") String busiType) {
+    public ResponseInfo deleteInfo(@PathVariable(name = "id") String id, @PathVariable(name = "resourceType") String resourceType) {
     	ResponseInfo resp = new ResponseInfo();
         try {
         	LoginUser lu = opUser();
-        	if(lu.getCustId()==null || "".equals(lu.getCustId()))
-        		return new ResponseInfoAssemble().failure(-1, "无归属企业，不能删除记录:["+busiType+"]");
+        	if(!lu.getAuthorities().contains("admin"))
+        		return new ResponseInfoAssemble().failure(-1, "无权限保存资源:["+resourceType+"]");
         	
-        	String cust_id = lu.getCustId();
         	String user_id = lu.getUser_id();
         	
-        	busiEntityService.deleteInfo(cust_id, user_id, busiType, id);
+        	resourceService.deleteInfo(user_id, resourceType, id);
         } catch (Exception e) {
-            logger.error("删除记录异常:"+id+" "+ e.getMessage());
-            return new ResponseInfoAssemble().failure(-1, "删除记录异常["+busiType+"]");
+            logger.error("删除资源异常:"+id+" "+ e.getMessage());
+            return new ResponseInfoAssemble().failure(-1, "删除资源异常["+resourceType+"]");
         }
         return resp;
     }
