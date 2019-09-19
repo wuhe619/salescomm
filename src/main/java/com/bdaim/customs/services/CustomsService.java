@@ -148,6 +148,22 @@ public class CustomsService {
         updateDataToES(manager, Integer.valueOf(id));
     }
 
+    /**
+     * 保存申报单分单
+     * @param partyDan
+     * @param user
+     */
+    public void saveSbPartDetail(PartyDan partyDan,LoginUser user){
+        if(partyDan.getId()==null){
+            List<HBusiDataManager> list=new ArrayList<>();
+            buildSenbaodanFendan(partyDan,list,user,partyDan.getMain_bill_NO());
+            for(HBusiDataManager hBusiDataManager:list){
+                Long id = (Long) hBusiDataManagerDao.saveReturnPk(hBusiDataManager);
+                addDataToES(hBusiDataManager,id.intValue());
+            }
+        }
+    }
+
 
     public void delMainById(Long id, String type, LoginUser user) throws Exception {
         HBusiDataManager manager = hBusiDataManagerDao.get(id);
@@ -314,32 +330,35 @@ public class CustomsService {
         List<PartyDan> partList = mainDan.getSingles();
         if (partList != null && partList.size() > 0) {
             for (PartyDan dan : partList) {
-                List<Product> pList = dan.getProducts();
-                buildGoods(list, pList, user);
-                HBusiDataManager dataManager = new HBusiDataManager();
-                dataManager.setType(BusiTypeEnum.SF.getKey());
-                dataManager.setCreateId(user.getId());
-                dataManager.setCust_id(Long.valueOf(user.getCustId()));
-
-                dataManager.setCreateDate(new Date());
-                dataManager.setExt_3(dan.getBill_NO());//分单号
-                dataManager.setExt_4(dan.getMain_bill_NO());//主单号
-
-                JSONObject json = buildPartyContent(dan);
-                json.put("type", BusiTypeEnum.SF.getKey());
-                json.put("mail_bill_no", mainDan.getBill_no());
-                json.put("create_date", dataManager.getCreateDate());
-                json.put("create_id", user.getId());
-                json.put("cust_id", user.getCustId());
-                json.put("check_status", "0");
-                json.put("idcard_pic_flag", "0");
-                dataManager.setContent(json.toJSONString());
-
-                list.add(dataManager);
+                buildSenbaodanFendan(dan,list,user,mainDan.getBill_no());
             }
         }
     }
 
+    public void buildSenbaodanFendan(PartyDan dan,List<HBusiDataManager> list,LoginUser user,String mainBillNo){
+        List<Product> pList = dan.getProducts();
+        buildGoods(list, pList, user);
+        HBusiDataManager dataManager = new HBusiDataManager();
+        dataManager.setType(BusiTypeEnum.SF.getKey());
+        dataManager.setCreateId(user.getId());
+        dataManager.setCust_id(Long.valueOf(user.getCustId()));
+
+        dataManager.setCreateDate(new Date());
+        dataManager.setExt_3(dan.getBill_NO());//分单号
+        dataManager.setExt_4(dan.getMain_bill_NO());//主单号
+
+        JSONObject json = buildPartyContent(dan);
+        json.put("type", BusiTypeEnum.SF.getKey());
+        json.put("mail_bill_no", mainBillNo);
+        json.put("create_date", dataManager.getCreateDate());
+        json.put("create_id", user.getId());
+        json.put("cust_id", user.getCustId());
+        json.put("check_status", "0");
+        json.put("idcard_pic_flag", "0");
+        dataManager.setContent(json.toJSONString());
+
+        list.add(dataManager);
+    }
 
     /**
      * 组装商品
@@ -515,11 +534,11 @@ public class CustomsService {
      * 1.添加报单主单
      * 2.添加报单分单
      * 3.添加报单税单
-     *
+     * to=HAIGUAN:提交到海关
      * @param id
      * @param type
      */
-    public void commit2cangdanorbaodan(String id, String type, LoginUser user,String to) throws Exception {
+    public void commit2cangdanorbaodan(String id, String type, LoginUser user,String to,String optType) throws Exception {
         HBusiDataManager h = hBusiDataManagerDao.get(Long.valueOf(id));
         if (h == null) {
             throw new Exception("数据不存在");
@@ -527,13 +546,17 @@ public class CustomsService {
         if (!user.getCustId().equals(h.getCust_id().toString())) {
             throw new Exception("你无权处理");
         }
-        if("HAIGUAN".equals(to)){
+
+        if(StringUtil.isNotEmpty(to) && "HAIGUAN".equals(to)){//提交到海关
             if (BusiTypeEnum.BZ.getKey().equals(type)) {
              //todo修改状态，生成xml
             }else if (BusiTypeEnum.CZ.getKey().equals(type)) {
                 //todo修改状态，生成xml
             }
+        }else if(StringUtil.isNotEmpty(optType)){ //追加分单，追加商品
+
         }else {
+            //提交为舱单、报关单
             List<HBusiDataManager> dataList = new ArrayList<>();
             if (BusiTypeEnum.BZ.getKey().equals(type)) { //提交为报单
                 if ("Y".equals(h.getExt_1())) {
