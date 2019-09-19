@@ -21,7 +21,6 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -347,13 +346,14 @@ public class CustomController extends BasicAction {
 
     /**
      * 清空分单身份证照片
+     *
      * @param id
      * @return
      */
-    @RequestMapping(value = "/clearSFCardIdPic", method = RequestMethod.POST)
-    public ResponseJson clearSFCardIdPic(String id) {
+    @PostMapping(value = "/clearSFCardIdPic")
+    public ResponseJson clearSFCardIdPic(@RequestBody List<Integer> id) {
         ResponseJson responseJson = new ResponseJson();
-        int status = customsService.clearSFCardIdPic(Arrays.asList(id.split(",")));
+        int status = customsService.clearSFCardIdPic(id);
         if (status == 1) {
             responseJson.success();
         } else {
