@@ -64,7 +64,7 @@ public class HBusiDataManagerDao extends SimpleHibernateDao<HBusiDataManager, Se
         //身份核验结果通过
         if (1 == idCardCheckStatus) {
             hql.append(" AND ext_7 = 1 ");
-        } else if (2 == idCardPhotoStatus) {
+        } else if (2 == idCardCheckStatus) {
             hql.append(" AND (ext_7 IS NULL OR ext_7 ='' OR ext_7 =2) ");
         }
         return this.find(hql.toString(), type, pid);

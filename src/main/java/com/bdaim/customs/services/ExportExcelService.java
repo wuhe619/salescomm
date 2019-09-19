@@ -1,5 +1,6 @@
 package com.bdaim.customs.services;
 
+import com.alibaba.excel.support.ExcelTypeEnum;
 import com.alibaba.fastjson.JSON;
 import com.bdaim.common.util.excel.EasyExcelUtil;
 import com.bdaim.customs.dao.HBusiDataManagerDao;
@@ -35,25 +36,33 @@ public class ExportExcelService {
 
     /**
      * 导出excel
+     *
      * @param id
      * @param type
      * @param response
      * @throws UnsupportedEncodingException
      */
-    public void exportExcel(int id, int type, HttpServletResponse response) throws UnsupportedEncodingException {
-        final String fileType = ".xlsx";
-        response.setHeader("Content-Disposition", "attachment; filename=" + System.currentTimeMillis() + fileType);
+    public void exportExcel(int id, int type, HttpServletResponse response) {
+        response.setHeader("Content-Disposition", "attachment; filename=" + System.currentTimeMillis() + ExcelTypeEnum.XLSX.getValue());
         response.setContentType("application/vnd.ms-excel;charset=utf-8");
         switch (type) {
             case 1:
                 // 导出分单身份图片缺失
-                exportIdCardNoPhoto(id, response);
+                exportIdCard(id, 1, response);
+            case 2:
+                // 导出分单身份校验未通过
+                exportIdCard(id, 2, response);
         }
     }
 
-    private void exportIdCardNoPhoto(int id, HttpServletResponse response) {
+    private void exportIdCard(int id, int type, HttpServletResponse response) {
         LOG.info("开始导出分单身份图片缺失,主单:{}", id);
-        List<HBusiDataManager> list = hBusiDataManagerDao.listFDIdCard(id, BusiTypeEnum.SF.getKey(), 2, 0);
+        List<HBusiDataManager> list = new ArrayList<>();
+        if (1 == type) {
+            list = hBusiDataManagerDao.listFDIdCard(id, BusiTypeEnum.SF.getKey(), 2, 0);
+        } else if (2 == type) {
+            list = hBusiDataManagerDao.listFDIdCard(id, BusiTypeEnum.SF.getKey(), 0, 2);
+        }
         EasyExcelUtil.EasyExcelParams param = new EasyExcelUtil.EasyExcelParams();
         ArrayList<IdCardNoVerify> data = new ArrayList<>();
         IdCardNoVerify idCardNoVerify;
