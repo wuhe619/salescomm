@@ -538,7 +538,7 @@ public class CustomsService {
      * @param id
      * @param type
      */
-    public void commit2cangdanorbaodan(String id, String type, LoginUser user,String to,String optType) throws Exception {
+    public void commit2cangdanorbaodan(String id, String type, LoginUser user,String to) throws Exception {
         HBusiDataManager h = hBusiDataManagerDao.get(Long.valueOf(id));
         if (h == null) {
             throw new Exception("数据不存在");
@@ -553,8 +553,6 @@ public class CustomsService {
             }else if (BusiTypeEnum.CZ.getKey().equals(type)) {
                 //todo修改状态，生成xml
             }
-        }else if(StringUtil.isNotEmpty(optType)){ //追加分单，追加商品
-
         }else {
             //提交为舱单、报关单
             List<HBusiDataManager> dataList = new ArrayList<>();
