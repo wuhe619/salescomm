@@ -15,6 +15,7 @@ public class BusiMetaConfig {
 	class BusiMeta{
 		public String type = null;
 		public String name = null;
+		public String idxSr = null;
 		private Map<String,BusiMetaField> fields = new HashMap();
 		
 		public BusiMetaField getField(String fieldId) {
@@ -27,7 +28,7 @@ public class BusiMetaConfig {
 		String fieldName = null;
 		String fieldType = null;
 		Integer fieldLength = null;
-		
+		String fieldSave = null;
 	}
 	
 }
