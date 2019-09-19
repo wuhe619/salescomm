@@ -6,6 +6,7 @@ import java.util.List;
 
 public class PartyDan {
     private String id;
+    private String pid;
     @JsonProperty(value = "Main_bill_NO")
     private String main_bill_NO;//主单号
     @JsonProperty(value = "BILL_NO")
@@ -41,6 +42,14 @@ public class PartyDan {
     private String receive_country ;//收件人国别
     @JsonProperty(value = "PRODUCTS")
     private List<Product> products;
+
+    public String getPid() {
+        return pid;
+    }
+
+    public void setPid(String pid) {
+        this.pid = pid;
+    }
 
     public String getId() {
         return id;

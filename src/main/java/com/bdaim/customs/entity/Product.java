@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Product {
     private String id ;
+    private String pid;
      private String party_No;//分单单号
     @JsonProperty(value = "CODE_TS")
      private String code_ts ;//商品编号
@@ -41,6 +42,15 @@ public class Product {
 	 private String unit_2 ;//第二计量单位
     @JsonProperty(value = "GGrossWt")
 	 private String ggrossWt ;//商品毛重
+
+
+    public String getPid() {
+        return pid;
+    }
+
+    public void setPid(String pid) {
+        this.pid = pid;
+    }
 
     public String getId() {
         return id;

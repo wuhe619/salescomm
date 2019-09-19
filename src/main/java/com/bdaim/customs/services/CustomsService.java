@@ -153,18 +153,114 @@ public class CustomsService {
      * @param partyDan
      * @param user
      */
-    public void saveSbPartDetail(PartyDan partyDan,LoginUser user){
+    public void saveSbPartDetail(PartyDan partyDan,LoginUser user) throws Exception {
+        List<HBusiDataManager> list = new ArrayList<>();
         if(partyDan.getId()==null){
-            List<HBusiDataManager> list=new ArrayList<>();
+            HBusiDataManager manager = getObjectByBillNo(partyDan.getBill_NO(),BusiTypeEnum.SF.getKey());
+            if(manager!=null){
+                throw new Exception("分单号"+partyDan.getBill_NO()+" 已经存在");
+            }
             buildSenbaodanFendan(partyDan,list,user,partyDan.getMain_bill_NO());
             for(HBusiDataManager hBusiDataManager:list){
                 Long id = (Long) hBusiDataManagerDao.saveReturnPk(hBusiDataManager);
                 addDataToES(hBusiDataManager,id.intValue());
             }
+        }else{
+            HBusiDataManager dbManager = hBusiDataManagerDao.get(partyDan.getId());
+            String content = dbManager.getContent();
+            JSONObject json = JSONObject.parseObject(content);
+            json.put("weight",partyDan.getWeight());
+            json.put("id_type",partyDan.getId_type());
+            json.put("id_NO",partyDan.getId_NO());
+            json.put("receive_name",partyDan.getReceive_name());
+            json.put("receive_pro",partyDan.getReceive_pro());
+            json.put("receive_city",partyDan.getReceive_city());
+            json.put("receive_tel",partyDan.getReceive_tel());
+            json.put("receive_address",partyDan.getReceive_address());
+            dbManager.setContent(json.toJSONString());
+            hBusiDataManagerDao.saveReturnPk(dbManager);
+            updateDataToES(dbManager,dbManager.getId());
         }
+        totalPartDanToMainDan(partyDan.getMain_bill_NO(),BusiTypeEnum.SF.getKey());
     }
 
 
+    /**
+     * 重新汇总主单的重量，数量等信息,并存入主单
+     * @param mainBillNo
+     * @param type
+     */
+    public void totalPartDanToMainDan(String mainBillNo,String type){
+        List<HBusiDataManager> data = getHbusiDataByBillNo(mainBillNo,type);
+        Float weightTotal = 0f;
+        for(HBusiDataManager d:data){
+                String content=d.getContent();
+                JSONObject json = JSONObject.parseObject(content);
+
+                String WEIGHT = json.getString("weight");
+                if (StringUtil.isEmpty(WEIGHT)) {
+                    WEIGHT = "0";
+                }
+                weightTotal += Float.valueOf(WEIGHT);
+            }
+            HBusiDataManager hBusiDataManager = getObjectByBillNo(mainBillNo,type);
+            String hcontent = hBusiDataManager.getContent();
+            JSONObject jsonObject = JSONObject.parseObject(hcontent);
+            jsonObject.put("weight_total", weightTotal);//总重量
+            jsonObject.put("party_total", data.size());//分单总数
+            hBusiDataManager.setContent(jsonObject.toJSONString());
+            hBusiDataManagerDao.saveOrUpdate(hBusiDataManager);
+            updateDataToES(hBusiDataManager,hBusiDataManager.getId());
+
+    }
+
+
+    public HBusiDataManager getObjectByBillNo(String billNo,String type){
+        String hql="from where ext_3='"+billNo+"' and type='"+type+"'";
+        List<HBusiDataManager> hlist = hBusiDataManagerDao.find(hql);
+        return hlist.get(0);
+    }
+
+
+
+    /**
+     * 申报单从主单删除分单
+     * @param mainId 主单id
+     * @param partId 分单id
+     * 1.获取税单id，从db删除，从es删除
+     * 2.从es删除
+     * 3.从db删除
+     * 4.重新统计主单信息
+     */
+    public void delPartDanFromSZ(String mainId,String partId,LoginUser user) throws Exception {
+        HBusiDataManager hBusiDataManager = hBusiDataManagerDao.get(partId);
+        if(hBusiDataManager==null){
+            throw new Exception("数据不存在");
+        }
+        if(!mainId.equals(hBusiDataManager.getExt_4())){
+            throw new Exception("分单不属于此主单");
+        }
+        if(hBusiDataManager.getCust_id()==null || (!user.getCustId().equals(hBusiDataManager.getCust_id().toString()))){
+            throw new Exception("无权删除");
+        }
+        List<HBusiDataManager> data = getHbusiDataByBillNo(partId,BusiTypeEnum.SS.getKey());
+        for(HBusiDataManager manager:data){
+            deleteDatafromES(manager.getType(),manager.getId().toString());
+            hBusiDataManagerDao.delete(manager);
+        }
+        deleteDatafromES(BusiTypeEnum.SF.getKey(),partId);
+        hBusiDataManagerDao.delete(partId);
+        totalPartDanToMainDan(mainId,BusiTypeEnum.SZ.getKey());
+    }
+
+
+    /**
+     * 删除申报单主单
+     * @param id
+     * @param type
+     * @param user
+     * @throws Exception
+     */
     public void delMainById(Long id, String type, LoginUser user) throws Exception {
         HBusiDataManager manager = hBusiDataManagerDao.get(id);
         if ("Y".equals(manager.getExt_1()) || "Y".equals(manager.getExt_2())) {
@@ -290,8 +386,8 @@ public class CustomsService {
             weightTotal += Float.valueOf(WEIGHT);
         }
 
-        jsonObject.put("weight_total", weightTotal);
-        jsonObject.put("party_total", list.size());
+        jsonObject.put("weight_total", weightTotal);//总重量
+        jsonObject.put("party_total", list.size());//分单总数
 
         if (Integer.valueOf(partynum) < list.size()) {
             jsonObject.put("overWarp", "溢装");//溢装
