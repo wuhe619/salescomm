@@ -38,7 +38,7 @@ public class ResourceService {
     	String sql = "select content, create_id, create_date, update_id, update_date from h_resource where type=? and id=? ";
 
     	Map data = jdbcTemplate.queryForMap(sql, resourceType, id);
-    	if(d==null)
+    	if(data==null)
     		return d;
     	String content = (String)data.get("content");
     	try {
