@@ -2,6 +2,7 @@ package com.bdaim.common.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.dto.Page;
+import com.bdaim.common.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,7 +73,7 @@ public class ResourceService {
 	    	Iterator keys = params.keySet().iterator();
 	    	while(keys.hasNext()) {
 	    		String key = (String)keys.next();
-	    		if ("pageNum".equals(key) || "pageSize".equals(key))continue;
+	    		if ("pageNum".equals(key) || "pageSize".equals(key) || StringUtil.isEmpty(params.getString(key)))continue;
                     if(key.endsWith(".c")) {
                         sqlstr.append(" and JSON_EXTRACT(content, '$."+key.substring(0, key.length()-2)+"') like '%?%'");
                     }else {
