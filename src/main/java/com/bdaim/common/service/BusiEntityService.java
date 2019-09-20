@@ -108,9 +108,9 @@ public class BusiEntityService {
 	    		if("cust_id".equals(key)) {
 	    			sqlstr.append(" and cust_id=?");
 	    		}else if(key.endsWith(".c")) {
-	    			sqlstr.append(" and JSON_EXTRACT(content, $."+key.substring(0, key.length()-2)+") like '%?%'");
+	    			sqlstr.append(" and JSON_EXTRACT(content, '$."+key.substring(0, key.length()-2)+"') like '%?%'");
 	    		}else {
-	    			sqlstr.append(" and JSON_EXTRACT(content, $."+key+")=?");
+	    			sqlstr.append(" and JSON_EXTRACT(content, '$."+key+"')=?");
 	    		}
 	
 	    		sqlParams.add(params.get(key));   
