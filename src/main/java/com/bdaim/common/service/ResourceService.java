@@ -72,15 +72,13 @@ public class ResourceService {
 	    	Iterator keys = params.keySet().iterator();
 	    	while(keys.hasNext()) {
 	    		String key = (String)keys.next();
-	    		if (!"pageNum".equals(key) && !"pageSize".equals(key)){
+	    		if ("pageNum".equals(key) || "pageSize".equals(key))continue;
                     if(key.endsWith(".c")) {
                         sqlstr.append(" and JSON_EXTRACT(content, '$."+key.substring(0, key.length()-2)+"') like '%?%'");
                     }else {
                         sqlstr.append(" and JSON_EXTRACT(content, '$."+key+"')=?");
                     }
-
                     sqlParams.add(params.get(key));
-                }
                 }
 	    	sql = sqlstr.toString();
     	}
