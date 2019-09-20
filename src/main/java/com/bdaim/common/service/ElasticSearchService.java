@@ -54,7 +54,7 @@ public class ElasticSearchService {
      * @param id
      * @return
      */
-    public static JSONObject getDocument(String index, String type, String id) {
+    public JSONObject getDocument(String index, String type, String id) {
         JSONObject result = null;
         try {
             LOG.info("向es查询记录:index[" + index + "],type[" + type + "],id:[" + id + "]");
@@ -175,8 +175,7 @@ public class ElasticSearchService {
         testAdd();
     }
 
-    //@Test
-    public static void testAdd() {
+    private static void testAdd() {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("id", "1000");
         jsonObject.put("superId", "1");
@@ -199,8 +198,7 @@ public class ElasticSearchService {
         testAddDocumentToType("customer_sea_190622170552000000", "data", "1", jsonObject);
     }
 
-    //@Test
-    public void testUpdate() {
+    private void testUpdate() {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("id", "2");
         jsonObject.put("superId", "2");
@@ -224,7 +222,7 @@ public class ElasticSearchService {
         testUpdateDocumentToType("customer_sea_190622170552000000", "data", "2", data);
     }
 
-    public static String testAddDocumentToType(String index, String type, String id, JSONObject jsonObject) {
+    private static String testAddDocumentToType(String index, String type, String id, JSONObject jsonObject) {
         String result = "";
         try {
             LOG.info("向es新增记录:index[" + index + "],type[" + type + "],id:[" + id + "],data:[" + jsonObject + "]");
@@ -247,7 +245,7 @@ public class ElasticSearchService {
         return result;
     }
 
-    public JSONObject testUpdateDocumentToType(String index, String type, String id, JSONObject jsonObject) {
+    private JSONObject testUpdateDocumentToType(String index, String type, String id, JSONObject jsonObject) {
         JSONObject result = null;
         try {
             LOG.info("向es修改记录:index[" + index + "],type[" + type + "],id:[" + id + "],data:[" + jsonObject + "]");
@@ -270,7 +268,7 @@ public class ElasticSearchService {
      * @method
      * @date: 2019/9/18 11:36
      */
-    public JSONObject getEsData(String index, String type, JSONObject queryStr) {
+    private JSONObject getEsData(String index, String type, JSONObject queryStr) {
         String r = null;
         LOG.info("向es修改记录:index[" + index + "],type[" + type + "],data:[" + queryStr + "]");
         try {
@@ -288,7 +286,7 @@ public class ElasticSearchService {
      * @method
      * @date: 2019/9/18 11:36
      */
-    public Page returnDataPackage(JSONObject data, String index) {
+    private Page returnDataPackage(JSONObject data, String index) {
         Page page = new Page();
         LOG.info("封装数据信息是：" + data.toJSONString() + "封装对象索引是：" + index);
         try {
@@ -329,61 +327,64 @@ public class ElasticSearchService {
     }
 
     /**
-     * ES执行dsl语句
-     * dsl 查询语句
-     * index 索引
-     *
+     * ES查询
+     * @param dsl
+     * @param index
+     * @param indexType
+     * @param sourceType
+     * @param <T>
      * @return
      */
-    public List<Object> searchToEsLit(String dsl, String index, String indexType) {
+    public <T> List<Object> searchToEsLit(String dsl, String index, String indexType, Class<T> sourceType) {
         List<Object> list = new ArrayList<>();
-        LOG.info("ES检索语句是" + dsl);
-        SearchResult result = null;
-        try {
-            Search search = new Search.Builder(dsl)
-                    .addIndex(index)
-                    .addType(indexType)
-                    .build();
-            result = jestClient.execute(search);
-        } catch (IOException e) {
-            LOG.error("ES查询异常", e);
-        }
-        LOG.info("ES查询结果:{}", result.getJsonString());
-
+        SearchResult result = search(dsl, index, indexType);
         if (result != null) {
-            if (Constants.SZ_INFO_INDEX.equals(index)) {
-                List<SearchResult.Hit<MainDan, Void>> hits = result.getHits(MainDan.class);
-                for (SearchResult.Hit<MainDan, Void> hit : hits) {
-                    MainDan mainDan = hit.source;
-                    list.add(mainDan);
-                }
-            } else if (Constants.SF_INFO_INDEX.equals(index)) {
-                List<SearchResult.Hit<PartyDan, Void>> hits = result.getHits(PartyDan.class);
-                for (SearchResult.Hit<PartyDan, Void> hit : hits) {
-                    PartyDan partyDan = hit.source;
-                    list.add(partyDan);
-                }
-            } else if (Constants.SS_INFO_INDEX.equals(index)) {
-                List<SearchResult.Hit<Product, Void>> hits = result.getHits(Product.class);
-                for (SearchResult.Hit<Product, Void> hit : hits) {
-                    Product product = hit.source;
-                    list.add(product);
-                }
+            List<SearchResult.Hit<T , Void>> hits = result.getHits(sourceType);
+            T t;
+            for (SearchResult.Hit<T, Void> hit : hits) {
+                t = hit.source;
+                list.add(t);
             }
         }
         return list;
     }
 
     /**
-     * ES执行dsl语句
-     * dsl 查询语句
-     * index 索引
-     *
+     * ES分页查询
+     * @param dsl 执行dsl语句
+     * @param index 索引
+     * @param indexType
+     * @param sourceType 数据实体类
+     * @param <T>
      * @return
      */
-    public Page searchToEsPage(String dsl, String index, String indexType) {
+    public <T> Page searchToEsPage(String dsl, String index, String indexType, Class<T> sourceType) {
         Page page = new Page();
-        LOG.info("ES检索语句是" + dsl);
+        SearchResult result = search(dsl, index, indexType);
+        List list = new ArrayList<>();
+        if (result != null) {
+            List<SearchResult.Hit<T , Void>> hits = result.getHits(sourceType);
+            T t;
+            for (SearchResult.Hit<T, Void> hit : hits) {
+                t = hit.source;
+                list.add(t);
+            }
+            page.setData(list);
+            page.setTotal(NumberConvertUtil.parseInt(result.getTotal()));
+        }
+        return page;
+    }
+
+    /**
+     * ES检索
+     *
+     * @param dsl
+     * @param index
+     * @param indexType
+     * @return
+     */
+    public SearchResult search(String dsl, String index, String indexType) {
+        LOG.info("ES检索语句:" + dsl);
         SearchResult result = null;
         try {
             Search search = new Search.Builder(dsl)
@@ -395,31 +396,6 @@ public class ElasticSearchService {
             LOG.error("ES查询异常", e);
         }
         LOG.info("ES查询结果:{}", result.getJsonString());
-
-        List<Object> list = new ArrayList<>();
-        if (result != null) {
-            if (Constants.SZ_INFO_INDEX.equals(index)) {
-                List<SearchResult.Hit<MainDan, Void>> hits = result.getHits(MainDan.class);
-                for (SearchResult.Hit<MainDan, Void> hit : hits) {
-                    MainDan mainDan = hit.source;
-                    list.add(mainDan);
-                }
-            } else if (Constants.SF_INFO_INDEX.equals(index)) {
-                List<SearchResult.Hit<PartyDan, Void>> hits = result.getHits(PartyDan.class);
-                for (SearchResult.Hit<PartyDan, Void> hit : hits) {
-                    PartyDan partyDan = hit.source;
-                    list.add(partyDan);
-                }
-            } else if (Constants.SS_INFO_INDEX.equals(index)) {
-                List<SearchResult.Hit<Product, Void>> hits = result.getHits(Product.class);
-                for (SearchResult.Hit<Product, Void> hit : hits) {
-                    Product product = hit.source;
-                    list.add(product);
-                }
-            }
-            page.setData(list);
-            page.setTotal(NumberConvertUtil.parseInt(result.getTotal()));
-        }
-        return page;
+        return result;
     }
 }
