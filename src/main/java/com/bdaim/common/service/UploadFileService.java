@@ -56,14 +56,14 @@ public class UploadFileService {
             // 保存文件到mongodb中
             if (saveMongoDb) {
                 String objectId = mongoFileService.saveFile(file, serviceId);
-                fileDao.save(serviceId, objectId);
+                fileDao.save(serviceId, objectId, businessEnum, fileName);
             }
             // 保存文件到磁盘
             String _filePath = File.separator + businessEnum.getKey() + File.separator + subFilePath;
             String savePath = filePath + _filePath;
             File desFile = new File(savePath + fileType);
             FileUtils.copyInputStreamToFile(file.getInputStream(), desFile);
-            fileDao.save(serviceId, subFilePath);
+            fileDao.save(serviceId, subFilePath, businessEnum, fileName);
             return subFilePath;
         } catch (IOException e) {
             logger.error("文件上传失败", e);
@@ -83,14 +83,14 @@ public class UploadFileService {
             // 保存文件到mongodb中
             if (saveMongoDb) {
                 String objectId = mongoFileService.saveFile(file, serviceId);
-                fileDao.save(serviceId, objectId);
+                fileDao.save(serviceId, objectId, businessEnum, fileName);
             }
             // 保存文件到磁盘
             String _filePath = File.separator + businessEnum.getKey() + File.separator + subFilePath;
             String savePath = filePath + _filePath;
             File desFile = new File(savePath + fileType);
             FileUtils.copyInputStreamToFile(file, desFile);
-            fileDao.save(serviceId, subFilePath);
+            fileDao.save(serviceId, subFilePath, businessEnum, fileName);
             return subFilePath;
         } catch (IOException e) {
             logger.error("文件上传失败", e);

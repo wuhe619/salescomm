@@ -1,6 +1,8 @@
 package com.bdaim.common.dao;
 
-import com.bdaim.common.entity.FileInfo;
+import com.bdaim.common.entity.HFile;
+import com.bdaim.common.util.BusinessEnum;
+import com.bdaim.common.util.IDHelper;
 import org.springframework.stereotype.Component;
 
 import java.sql.Timestamp;
@@ -11,19 +13,22 @@ import java.sql.Timestamp;
  * @description
  */
 @Component
-public class FileDao extends SimpleHibernateDao<FileInfo, Integer> {
+public class FileDao extends SimpleHibernateDao<HFile, Integer> {
 
-    public FileInfo selectByServiceId(String objectId) {
+    public HFile selectByServiceId(String fileId) {
         //String hql = "FROM FileInfo WHERE serviceId = ?";
-        FileInfo fileInfo = this.findUniqueBy("objectId", objectId);
+        HFile fileInfo = this.findUniqueBy("fileId", fileId);
         return fileInfo;
     }
 
-    public void save(String serviceId, String objectId) {
-        FileInfo fileInfo = new FileInfo();
-        fileInfo.setCreateTime(new Timestamp(System.currentTimeMillis()));
-        fileInfo.setObjectId(objectId);
-        fileInfo.setServiceId(serviceId);
+    public void save(String serviceId, String objectId, BusinessEnum businessEnum,String fileName) {
+        HFile fileInfo = new HFile();
+        fileInfo.setId(IDHelper.getID());
+        fileInfo.setCreateDate(new Timestamp(System.currentTimeMillis()));
+        fileInfo.setFileId(objectId);
+        fileInfo.setType(businessEnum.getKey());
+        fileInfo.setFileName(fileName);
+        fileInfo.setExt1(serviceId);
         this.save(fileInfo);
     }
 }

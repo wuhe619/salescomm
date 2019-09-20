@@ -1,52 +1,200 @@
 package com.bdaim.customs.services;
 
-import java.util.List;
-
-import org.springframework.stereotype.Service;
-
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.service.BusiService;
+import com.bdaim.common.service.ElasticSearchService;
+import com.bdaim.common.util.NumberConvertUtil;
+import com.bdaim.common.util.StringUtil;
+import com.bdaim.customs.dao.HBusiDataManagerDao;
+import com.bdaim.customs.entity.BusiTypeEnum;
+import com.bdaim.customs.entity.Constants;
+import com.bdaim.customs.entity.HBusiDataManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 /***
  * 申报单.分单
  */
 @Service("busi_sbd_f")
-public class SbdFService implements BusiService{
+public class SbdFService implements BusiService {
 
-	@Override
-	public void insertInfo(String busiType, String cust_id, String cust_group_id, String cust_user_id, Long id, JSONObject info) {
-		// TODO Auto-generated method stub
-		
-	}
+    private static Logger log = LoggerFactory.getLogger(SbdFService.class);
 
-	@Override
-	public void updateInfo(String busiType, String cust_id, String cust_group_id, String cust_user_id, Long id, JSONObject info) {
-		// TODO Auto-generated method stub
-		
-	}
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+    @Autowired
+    private HBusiDataManagerDao hBusiDataManagerDao;
+    @Autowired
+    private ElasticSearchService elasticSearchService;
 
-	@Override
-	public void getInfo(String busiType, String cust_id, String cust_group_id, String cust_user_id, Long id, JSONObject info) {
-		// TODO Auto-generated method stub
-		
-	}
+    @Override
+    public void insertInfo(String busiType, String cust_id, String cust_group_id, String cust_user_id, Long id, JSONObject info) {
+        // TODO Auto-generated method stub
 
-	@Override
-	public void deleteInfo(String busiType, String cust_id, String cust_group_id, String cust_user_id, Long id) {
-		// TODO Auto-generated method stub
-		
-	}
+    }
 
-	@Override
-	public String formatQuery(String busiType, String cust_id, String cust_group_id, String cust_user_id, JSONObject params, List sqlParams) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    @Override
+    public void updateInfo(String busiType, String cust_id, String cust_group_id, String cust_user_id, Long id, JSONObject info) {
+        // 身份核验
+        if ("verification".equals(info.getString("rule.do"))) {
+            StringBuffer sql = new StringBuffer("select id from h_data_manager where type=?")
+                    .append(" and cust_id='").append(cust_id).append("'")
+                    .append(" and id =? ");
+            List sqlParams = new ArrayList();
+            sqlParams.add(busiType);
+            sqlParams.add(id);
+            Map<String, Object> map = jdbcTemplate.queryForMap(sql.toString(), sqlParams.toArray());
+            if (map != null && map.size() > 0) {
+                String updateSql = "UPDATE h_data_manager SET ext_7 = 3 WHERE id =? ";
+                jdbcTemplate.update(updateSql, map.get("id"));
+            }
 
-	@Override
-	public void formatInfo(String busiType, String cust_id, String cust_group_id, String cust_user_id, JSONObject info) {
-		// TODO Auto-generated method stub
-		
-	}
+        }else if ("clear_verify".equals(info.getString("rule.do"))) {
+            // 清空身份证件图片
+            List ids = info.getJSONArray("ids");
+            List<HBusiDataManager> hBusiDataManagers = hBusiDataManagerDao.listHBusiDataManager(ids, BusiTypeEnum.SF.getType());
+            if (hBusiDataManagers != null) {
+                JSONObject jsonObject;
+                String picKey = "ID_NO_PIC";
+                HBusiDataManager mainD = null;
+                for (HBusiDataManager d : hBusiDataManagers) {
+                    d.setExt_6("");
+                    jsonObject = JSON.parseObject(d.getContent());
+                    if (jsonObject != null) {
+                        // 身份证照片存储对象ID
+                        jsonObject.put(picKey, "");
+                        d.setContent(jsonObject.toJSONString());
+                    }
+                    hBusiDataManagerDao.saveOrUpdate(d);
+                    elasticSearchService.update(d, d.getId());
+                    mainD = hBusiDataManagerDao.getHBusiDataManager("ext_3", d.getExt_4());
+                }
+                if (mainD != null) {
+                    updateMainDanIdCardNumber(mainD.getId());
+                }
+            }
+
+        }
+    }
+
+    /**
+     * 更新申报单主单身份证照片数量
+     *
+     * @param mainId
+     * @return
+     */
+    private int updateMainDanIdCardNumber(int mainId) {
+        int idCardNumber = hBusiDataManagerDao.countMainDIdCardNum(mainId, BusiTypeEnum.SF.getType());
+        log.info("开始更新主单:{}的身份证照片数量:{}", mainId, idCardNumber);
+        int code = 0;
+
+        JSONObject mainDetail = elasticSearchService.getDocumentById(Constants.SF_INFO_INDEX, "haiguan", String.valueOf(mainId));
+        if (mainDetail == null) {
+            HBusiDataManager param = new HBusiDataManager();
+            param.setId(NumberConvertUtil.parseInt(mainId));
+            param.setType(BusiTypeEnum.SZ.getType());
+            HBusiDataManager h = hBusiDataManagerDao.get(param);
+            if (h != null && h.getContent() != null) {
+                mainDetail = JSON.parseObject(h.getContent());
+            }
+        }
+        if (mainDetail != null) {
+            mainDetail.put("id", mainId);
+        }
+        if (mainDetail != null && mainDetail.containsKey("id")) {
+            mainDetail.put("idCardNumber", idCardNumber);
+            HBusiDataManager param = new HBusiDataManager();
+            param.setId(mainId);
+            param.setType(BusiTypeEnum.SZ.getType());
+            HBusiDataManager mainD = hBusiDataManagerDao.get(param);
+            if (mainD != null) {
+                mainD.setContent(mainDetail.toJSONString());
+                hBusiDataManagerDao.update(mainD);
+                elasticSearchService.update(mainD, mainId);
+            }
+            code = 1;
+        }
+        return code;
+    }
+
+    @Override
+    public void getInfo(String busiType, String cust_id, String cust_group_id, String cust_user_id, Long id, JSONObject info) {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void deleteInfo(String busiType, String cust_id, String cust_group_id, String cust_user_id, Long id) {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public String formatQuery(String busiType, String cust_id, String cust_group_id, String cust_user_id, JSONObject params, List sqlParams) {
+        String sql = null;
+        //查询主列表
+        if ("main".equals(params.getString("rule.do"))) {
+            sqlParams.clear();
+            StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from h_data_manager where type=?");
+            if (!"all".equals(cust_id))
+                sqlstr.append(" and cust_id='").append(cust_id).append("'");
+
+            sqlParams.add(busiType);
+
+            Iterator keys = params.keySet().iterator();
+            while (keys.hasNext()) {
+                String key = (String) keys.next();
+                if ("pageNum".equals(key) || "pageSize".equals(key) || "pid1".equals(key) || "pid2".equals(key))
+                    continue;
+                if ("cust_id".equals(key)) {
+                    sqlstr.append(" and cust_id=?");
+                } else if (key.endsWith(".c")) {
+                    sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(0, key.length() - 2) + "') like '%?%'");
+                } else if (key.endsWith(".start")) {
+                    sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(0, key.length() - 6) + "') >= ?");
+                } else if (key.endsWith(".end")) {
+                    sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(0, key.length() - 6) + "') <= ?");
+                } else {
+                    sqlstr.append(" and JSON_EXTRACT(content, '$." + key + "')=?");
+                }
+
+                sqlParams.add(params.get(key));
+            }
+            String verify_status = params.getString("verify_status");
+            String verify_photo = params.getString("verify_photo");
+            // 身份校验状态
+            if (StringUtil.isNotEmpty(verify_status)) {
+                if ("3".equals(verify_status)) {
+                    sqlstr.append(" and ( ext_7 IS NULL OR ext_7='' OR ext_7 =3 ");
+                }
+            }
+            //身份图片状态
+            if (StringUtil.isNotEmpty(verify_photo)) {
+                if ("1".equals(verify_photo)) {
+                    sqlstr.append(" and ext_6 IS NOT NULL ");
+                } else if ("2".equals(verify_photo)) {
+                    sqlstr.append(" and (ext_6 IS NULL OR ext_6='') ");
+                }
+
+            }
+            return sqlstr.toString();
+        }
+        return null;
+    }
+
+    @Override
+    public void formatInfo(String busiType, String cust_id, String cust_group_id, String cust_user_id, JSONObject info) {
+        // TODO Auto-generated method stub
+
+    }
 
 }

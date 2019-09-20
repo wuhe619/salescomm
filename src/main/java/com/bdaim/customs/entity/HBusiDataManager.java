@@ -10,8 +10,9 @@ import java.util.Date;
 public class HBusiDataManager implements Serializable {
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
+//	@GeneratedValue(strategy = GenerationType.AUTO)
 	private Integer id;
+	@Id
 	@Column(name="type")
 	private String type;
 	@Column(name="content")
@@ -26,6 +27,12 @@ public class HBusiDataManager implements Serializable {
 	private Date ext_date1;
 	@Column(name="ext_date2")
 	private Date ext_date2;
+
+	@Column(name="cust_group_id")
+	private String cust_group_id;
+
+	@Column(name="cust_user_id")
+	private String cust_user_id;
 
 	@Column(name="ext_1")
 	private String ext_1;
@@ -56,6 +63,23 @@ public class HBusiDataManager implements Serializable {
 
 	@Column(name="ext_10")
 	private String ext_10;
+
+
+	public String getCust_group_id() {
+		return cust_group_id;
+	}
+
+	public void setCust_group_id(String cust_group_id) {
+		this.cust_group_id = cust_group_id;
+	}
+
+	public String getCust_user_id() {
+		return cust_user_id;
+	}
+
+	public void setCust_user_id(String cust_user_id) {
+		this.cust_user_id = cust_user_id;
+	}
 
 	public Integer getId() {
 		return id;
