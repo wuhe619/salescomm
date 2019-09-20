@@ -33,7 +33,7 @@ import javax.transaction.Transactional;
 /**
  *  通用业务实体服务
  */
-@Service
+@Service("rsService")
 @Transactional
 public class ResourceService {
     private static Logger logger = LoggerFactory.getLogger(ResourceService.class);
