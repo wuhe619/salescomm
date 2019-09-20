@@ -980,12 +980,16 @@ public class CustomsService {
 
     public Page queryDataPage(QueryDataParams queryDataParams) {
         String index = "";
+        Class c = null;
         if ("SZ".equals(queryDataParams.getIndex())) {
             index = Constants.SZ_INFO_INDEX;
+            c = MainDan.class;
         } else if ("SF".equals(queryDataParams.getIndex())) {
             index = Constants.SF_INFO_INDEX;
+            c = PartyDan.class;
         } else if ("SS".equals(queryDataParams.getIndex())) {
             index = Constants.SS_INFO_INDEX;
+            c = Product.class;
         }
         SearchSourceBuilder searchSourceBuilder = makeQueryStringForSearch(queryDataParams);
         int from = (queryDataParams.getPageNum() - 1) * queryDataParams.getPageSize();
@@ -995,7 +999,7 @@ public class CustomsService {
         searchSourceBuilder.sort("_id", SortOrder.ASC);
 
         String query = searchSourceBuilder.toString();
-        Page page = elasticSearchService.searchToEsPage(query, index, "haiguan");
+        Page page = elasticSearchService.searchToEsPage(query, index, "haiguan", c);
         return page;
     }
 }
