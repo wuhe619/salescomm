@@ -116,7 +116,7 @@ public class BusiEntityController extends BasicAction {
     }
     
     /**
-     * 根据id唯一标识获取记录
+     * 根据id唯一标识删除记录
      *
      */
     @ResponseBody

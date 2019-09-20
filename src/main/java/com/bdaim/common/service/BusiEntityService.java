@@ -36,12 +36,12 @@ public class BusiEntityService {
     public JSONObject getInfo(String cust_id, String cust_group_id, String cust_user_id, String busiType, Long id) throws Exception {
         JSONObject jo = null;
 
-        String sql = "select content, cust_id, cust_group_id, cust_user_id, create_id, create_date, update_id, update_date,ext_1, ext_2, ext_3, ext_4, ext_5 from h_data_manager where type=? and id=? ";
+        String sql = "select content, cust_id, cust_group_id, cust_user_id, create_id, create_date ,ext_1, ext_2, ext_3, ext_4, ext_5 from h_data_manager where type=? and id=? ";
         if (!"all".equals(cust_id))
             sql += " and cust_id='" + cust_id + "'";
 
         Map data = jdbcTemplate.queryForMap(sql, busiType, id);
-        if (jo == null)
+        if (data == null)
             return jo;
         String content = (String) data.get("content");
         try {
