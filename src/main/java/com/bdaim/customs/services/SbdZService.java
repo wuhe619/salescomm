@@ -61,13 +61,25 @@ public class SbdZService implements BusiService{
 		List<HBusiDataManager> list = new ArrayList<>();
 		MainDan mainDan = JSON.parseObject(info.toJSONString(),MainDan.class);
 		try {
-			buildMain(info,list,mainDan,Long.parseLong(cust_user_id),Long.parseLong(cust_id),station_idProperty.getPropertyValue(),id);
+			buildMain(list,mainDan,Long.parseLong(cust_user_id),Long.parseLong(cust_id),station_idProperty.getPropertyValue(),id);
 			if (list != null && list.size() > 0) {
 				for (HBusiDataManager hBusiDataManager : list) {
-					hBusiDataManagerDao.save(hBusiDataManager);
+					JSONObject json=JSON.parseObject(hBusiDataManager.getContent());
+					if(BusiTypeEnum.SZ.getType().equals(hBusiDataManager.getType())){
+						json.remove("singles");
+						info = json;
+						hBusiDataManager.setContent(json.toJSONString());
+					}else if(BusiTypeEnum.SF.getType().equals(hBusiDataManager.getType())){
+						json.remove("products");
+						hBusiDataManager.setContent(json.toJSONString());
+						hBusiDataManagerDao.save(hBusiDataManager);
+					}else{
+						hBusiDataManagerDao.save(hBusiDataManager);
+					}
 					addDataToES(hBusiDataManager);
 				}
 			}
+			System.out.println(info.toJSONString());
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new Exception("保存主单出错");
@@ -135,28 +147,27 @@ public class SbdZService implements BusiService{
 		}
 	}
 
-	public void buildMain(JSONObject info,List<HBusiDataManager> list, MainDan mainDan, Long userId,Long custId, String station_id,Long mainid) throws Exception {
+	public void buildMain(List<HBusiDataManager> list, MainDan mainDan, Long userId,Long custId, String station_id,Long mainid) throws Exception {
 		HBusiDataManager dataManager = new HBusiDataManager();
 		dataManager.setCreateId(userId);
 		dataManager.setId(mainid.intValue());
 		dataManager.setCreateDate(new Date());
 		dataManager.setType(BusiTypeEnum.SZ.getType());
-		JSONObject jsonObject = buildMainContent(mainDan,info);
-		info.put("type", BusiTypeEnum.SZ.getType());
-		info.put("commitCangdanStatus", "N");
-		info.put("commitBaoDanStatus", "N");
-		info.put("create_date", new Date());
-		info.put("create_id", userId + "");
-		info.put("station_id", station_id);//场站id
-		info.put("cust_id", custId);
-		info.put("idCardNumber", 0);
-		info.put("ext_1","N");
-		info.put("ext_2","N");
-		info.put("ext_3",mainDan.getBill_no());
+		JSONObject jsonObject = buildMainContent(mainDan);
+		jsonObject.put("type", BusiTypeEnum.SZ.getType());
+		jsonObject.put("commit_cangdan_status", "N");
+		jsonObject.put("commit_baodan_status", "N");
+		jsonObject.put("create_date", new Date());
+		jsonObject.put("create_id", userId + "");
+		jsonObject.put("station_id", station_id);//场站id
+		jsonObject.put("cust_id", custId);
+		jsonObject.put("id_card_number", 0);
+		jsonObject.put("ext_1","N");
+		jsonObject.put("ext_2","N");
+		jsonObject.put("ext_3",mainDan.getBill_no());
+		dataManager.setContent(jsonObject.toJSONString());
 
-
-		//list.add(dataManager);
-		//String sql2 = "insert into h_data_manager(id, type, content, cust_id, cust_group_id, cust_user_id, create_id, create_date) value(?, ?, ?, ?, ?, ?, ?, now())";
+		list.add(dataManager);
 		buildPartyDan(list, mainDan, userId,custId,mainid);
 	}
 
@@ -187,8 +198,8 @@ public class SbdZService implements BusiService{
 
 		dataManager.setId(id.intValue());
 		dataManager.setCreateDate(new Date());
-		dataManager.setExt_3(dan.getBill_NO());//分单号
-		dataManager.setExt_4(dan.getMain_bill_NO());//主单号
+		dataManager.setExt_3(dan.getBill_no());//分单号
+		dataManager.setExt_4(dan.getMain_bill_no());//主单号
 
 		JSONObject json = buildPartyContent(dan);
 		json.put("type", BusiTypeEnum.SF.getType());
@@ -222,7 +233,7 @@ public class SbdZService implements BusiService{
 				dataManager.setId(id.intValue());
 				dataManager.setCust_id(Long.valueOf(custId));
 				dataManager.setExt_3(product.getCode_ts());//商品编号
-				dataManager.setExt_4(product.getParty_No());//分单号
+				dataManager.setExt_4(product.getParty_no());//分单号
 				JSONObject json = buildGoodsContent(product);
 				json.put("create_date", new Date());
 				json.put("create_id", userId);
@@ -258,7 +269,7 @@ public class SbdZService implements BusiService{
 	 * 取近3个月的商品均值进行比较。若低于均值，则判断为低价商品
 	 * 冷启动阶段：商品完税价格
 	 */
-	private static JSONObject buildMainContent(MainDan mainDan,JSONObject info) {
+	private static JSONObject buildMainContent(MainDan mainDan) {
 		log.info(JSON.toJSONString(mainDan));
 		JSONObject jsonObject = JSON.parseObject(JSON.toJSONString(mainDan));
 		String partynum = mainDan.getSingle_batch_num();
@@ -273,15 +284,15 @@ public class SbdZService implements BusiService{
 			weightTotal += Float.valueOf(WEIGHT);
 		}
 
-		info.put("weight_total", weightTotal);//总重量
-		info.put("party_total", list.size());//分单总数
+		jsonObject.put("weight_total", weightTotal);//总重量
+		jsonObject.put("party_total", list.size());//分单总数
 
 		if (Integer.valueOf(partynum) < list.size()) {
-			info.put("overWarp", "溢装");//溢装
+			jsonObject.put("overWarp", "溢装");//溢装
 		} else if (Integer.valueOf(partynum) > list.size()) {
-			info.put("overWarp", "短装");//短装
+			jsonObject.put("overWarp", "短装");//短装
 		} else {
-			info.put("overWarp", "正常");//正常
+			jsonObject.put("overWarp", "正常");//正常
 		}
 
 		//todo:低价商品暂时不处理

@@ -8,13 +8,13 @@ public class PartyDan {
     private String id;
     private String pid;
     @JsonProperty(value = "Main_bill_NO")
-    private String main_bill_NO;//主单号
+    private String main_bill_no;//主单号
     @JsonProperty(value = "BILL_NO")
-    private String bill_NO;//分单号
+    private String bill_no;//分单号
     @JsonProperty(value = "WEIGHT")
     private String weight;//重量
     @JsonProperty(value = "PACK_NO")
-    private String pack_NO ;//件数
+    private String pack_no ;//件数
     @JsonProperty(value = "MainGName")
     private String main_gName ;//主要货物名称
     @JsonProperty(value = "ID_TYPE")
@@ -26,8 +26,8 @@ public class PartyDan {
     @JsonProperty(value = "TRADE_COUNTRY")
     private String trade_country;//贸易国别
     @JsonProperty(value = "ID_NO")
-    private String id_NO ;// 证件号码
-    private String id_NO_PIC ;// 证件照片
+    private String id_no;// 证件号码
+    private String id_no_pic ;// 证件照片
     @JsonProperty(value = "RECEIVE_NAME")
     private String receive_name ;// 收件人
     @JsonProperty(value = "RECEIVE_TEL")
@@ -43,14 +43,6 @@ public class PartyDan {
     @JsonProperty(value = "PRODUCTS")
     private List<Product> products;
 
-    public String getPid() {
-        return pid;
-    }
-
-    public void setPid(String pid) {
-        this.pid = pid;
-    }
-
     public String getId() {
         return id;
     }
@@ -59,20 +51,28 @@ public class PartyDan {
         this.id = id;
     }
 
-    public String getMain_bill_NO() {
-        return main_bill_NO;
+    public String getPid() {
+        return pid;
     }
 
-    public void setMain_bill_NO(String main_bill_NO) {
-        this.main_bill_NO = main_bill_NO;
+    public void setPid(String pid) {
+        this.pid = pid;
     }
 
-    public String getBill_NO() {
-        return bill_NO;
+    public String getMain_bill_no() {
+        return main_bill_no;
     }
 
-    public void setBill_NO(String bill_NO) {
-        this.bill_NO = bill_NO;
+    public void setMain_bill_no(String main_bill_no) {
+        this.main_bill_no = main_bill_no;
+    }
+
+    public String getBill_no() {
+        return bill_no;
+    }
+
+    public void setBill_no(String bill_no) {
+        this.bill_no = bill_no;
     }
 
     public String getWeight() {
@@ -83,12 +83,12 @@ public class PartyDan {
         this.weight = weight;
     }
 
-    public String getPack_NO() {
-        return pack_NO;
+    public String getPack_no() {
+        return pack_no;
     }
 
-    public void setPack_NO(String pack_NO) {
-        this.pack_NO = pack_NO;
+    public void setPack_no(String pack_no) {
+        this.pack_no = pack_no;
     }
 
     public String getMain_gName() {
@@ -131,12 +131,20 @@ public class PartyDan {
         this.trade_country = trade_country;
     }
 
-    public String getId_NO() {
-        return id_NO;
+    public String getId_no() {
+        return id_no;
     }
 
-    public void setId_NO(String id_NO) {
-        this.id_NO = id_NO;
+    public void setId_no(String id_no) {
+        this.id_no = id_no;
+    }
+
+    public String getId_no_pic() {
+        return id_no_pic;
+    }
+
+    public void setId_no_pic(String id_no_pic) {
+        this.id_no_pic = id_no_pic;
     }
 
     public String getReceive_name() {
@@ -193,13 +201,5 @@ public class PartyDan {
 
     public void setProducts(List<Product> products) {
         this.products = products;
-    }
-
-    public String getId_NO_PIC() {
-        return id_NO_PIC;
-    }
-
-    public void setId_NO_PIC(String id_NO_PIC) {
-        this.id_NO_PIC = id_NO_PIC;
     }
 }

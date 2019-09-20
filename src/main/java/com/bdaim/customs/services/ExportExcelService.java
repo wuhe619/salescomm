@@ -73,7 +73,7 @@ public class ExportExcelService {
             partyDan = JSON.parseObject(h.getContent(), PartyDan.class);
             if (partyDan != null) {
                 idCardNoVerify.setAddressee(partyDan.getReceive_name());
-                idCardNoVerify.setIdCard(partyDan.getId_NO());
+                idCardNoVerify.setIdCard(partyDan.getId_no());
             }
             data.add(idCardNoVerify);
         }

@@ -79,6 +79,7 @@ public class BusiEntityController extends BasicAction {
     	try {
     		if(body==null || "".equals(body))
     			body="{}";
+
     		info = JSONObject.parseObject(body);
     	}catch(Exception e) {
     		return new ResponseInfoAssemble().failure(-1, "记录解析异常:["+busiType+"]");
