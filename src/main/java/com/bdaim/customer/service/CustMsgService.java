@@ -1,6 +1,7 @@
 package com.bdaim.customer.service;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -11,6 +12,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+
+import com.alibaba.fastjson.JSONObject;
+import com.bdaim.common.dto.Page;
+import com.bdaim.common.service.BusiService;
+import com.bdaim.common.util.spring.SpringContextHelper;
 
 @Service
 @Transactional
@@ -79,4 +85,63 @@ public class CustMsgService {
 		}
 	}
 	
+	
+	
+	/*
+     * 查询消息
+     */
+    public Page query(String cust_id, String user_id, JSONObject params) throws Exception{
+    	Page p = new Page();
+    	
+    	List sqlParams =  new ArrayList();
+
+		sqlParams.clear();
+    	StringBuffer sqlstr = new StringBuffer("select id, msg_type, content, create_time, status, level from h_customer_msg where cust_user_id=?  ");
+    	
+    	sqlParams.add(user_id);
+    	
+    	Iterator keys = params.keySet().iterator();
+    	while(keys.hasNext()) {
+    		String key = (String)keys.next();
+    		if(key.contains(".op"))
+    			continue;
+    		sqlstr.append(" and "+key+" = ?");
+    		if(params.containsKey(key+".op") && "c".equals(params.get(key+".op")))
+    			sqlstr.append(" like '%?%'");
+    		else
+    			sqlstr.append("=?");
+
+    		sqlParams.add(params.get(key));   
+    	}
+
+    	
+    	int pageNum = 1; 
+        int pageSize = 10; 
+        try {
+        	pageNum = params.getIntValue("pageNum");
+        }catch(Exception e) {}
+        try {
+        	pageSize = params.getIntValue("pageSize");
+        }catch(Exception e) {}
+        if(pageNum<=0)
+        	pageNum = 1;
+        if(pageSize<=0)
+        	pageSize = 10;
+        if(pageSize>1000)
+        	pageSize = 1000;
+        
+        try {
+	        List<Map<String,Object>> ds = jdbcTemplate.queryForList(sqlstr+" order by id desc limit "+(pageNum-1)*pageSize+", "+pageSize, sqlParams.toArray());
+
+	    	p.setData(ds);
+	    	p.setTotal(ds.size());
+	    	p.setPerPageCount(pageSize);
+	    	p.setStart((pageNum-1)*pageSize+1);
+        }catch(Exception e) {
+        	logger.error(e.getMessage());
+        	throw new Exception("查询异常");
+        }
+    	
+    	return p;
+    }
 }
