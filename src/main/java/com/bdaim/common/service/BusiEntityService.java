@@ -1,34 +1,20 @@
 package com.bdaim.common.service;
 
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.bdaim.auth.LoginUser;
-import com.bdaim.common.dao.DicDao;
-import com.bdaim.common.dao.SettlementDao;
 import com.bdaim.common.dto.Page;
-import com.bdaim.common.entity.Dic;
-import com.bdaim.common.entity.DicProperty;
-import com.bdaim.fund.entity.Settlement;
-import com.bdaim.fund.entity.SettlementProperty;
-import com.bdaim.log.service.OperLogService;
-import com.bdaim.common.util.*;
 import com.bdaim.common.util.spring.SpringContextHelper;
-import com.bdaim.customer.dao.CustomerDao;
-import com.bdaim.rbac.dao.UserDao;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
+import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-
-import javax.annotation.Resource;
-import javax.transaction.Transactional;
 
 /**
  *  通用业务实体服务
@@ -118,6 +104,7 @@ public class BusiEntityService {
 	    	Iterator keys = params.keySet().iterator();
 	    	while(keys.hasNext()) {
 	    		String key = (String)keys.next();
+				if ("pageNum".equals(key) || "pageSize".equals(key))continue;
 	    		if("cust_id".equals(key)) {
 	    			sqlstr.append(" and cust_id=?");
 	    		}else if(key.endsWith(".c")) {

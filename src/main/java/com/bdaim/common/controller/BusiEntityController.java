@@ -1,25 +1,14 @@
 package com.bdaim.common.controller;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.auth.LoginUser;
-import com.bdaim.common.annotation.ValidatePermission;
-import com.bdaim.common.auth.service.TokenCacheService;
-import com.bdaim.common.controller.util.ResponseJson;
-import com.bdaim.common.dto.DicTypeEnum;
-import com.bdaim.common.entity.DicProperty;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.common.service.BusiEntityService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * 业务实体服务
@@ -56,7 +45,7 @@ public class BusiEntityController extends BasicAction {
         	String cust_user_id = lu.getUser_id();
         	if(cust_id==null || "".equals(cust_id))
         		cust_id="-1";
-        	if(lu.getAuthorities().contains("admin") || lu.getAuthorities().contains("ROLE_USER"))
+        	if(lu.getRole().contains("admin") || lu.getRole().contains("ROLE_USER"))
         		cust_id="all";
         	
         	resp.setData(busiEntityService.query(cust_id, cust_group_id, cust_user_id, busiType, params));
