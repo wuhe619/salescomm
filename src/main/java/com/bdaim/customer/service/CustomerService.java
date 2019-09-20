@@ -239,15 +239,16 @@ public class CustomerService {
         StringBuffer sql = new StringBuffer();
 
 
-        sql.append("  SELECT  CAST(s.id AS CHAR) id,s.cust_id,s.user_type, s.account AS name,s.password AS PASSWORD,s.realname AS realname,cjc.cuc_minute seatMinute,\n" +
+        sql.append("  SELECT  CAST(s.id AS CHAR) id,cjc.resource,s.cust_id,s.user_type, s.account AS name,s.password AS PASSWORD,s.realname AS realname,cjc.cuc_minute seatMinute,\n" +
                 "s.status STATUS,cjc.mobile_num AS mobile_num,cjc.cuc_seat AS cuc_seat,cjc.xz_seat AS xz_seat FROM t_customer_user s\n" +
                 " LEFT JOIN (SELECT user_id, \n" +
                 " MAX(CASE property_name WHEN 'mobile_num'  THEN property_value ELSE '' END ) mobile_num, \n" +
                 " MAX(CASE property_name WHEN 'cuc_seat'    THEN property_value ELSE '' END ) cuc_seat,\n" +
                 " MAX(CASE property_name WHEN 'xz_seat'    THEN property_value ELSE '' END ) xz_seat, \n" +
-                " MAX(CASE property_name WHEN 'cuc_minute'  THEN property_value ELSE '0' END ) cuc_minute \n" +
+                " MAX(CASE property_name WHEN 'cuc_minute'  THEN property_value ELSE '0' END ) cuc_minute, \n" +
+                " MAX(CASE property_name WHEN 'resource'    THEN property_value ELSE '' END ) resource \n" +
                 " FROM t_customer_user_property p GROUP BY user_id \n" +
-                ") cjc ON s.id = cjc.user_id WHERE 1=1 AND user_type = 2  AND STATUS <> 3 ");
+                ") cjc ON s.id = cjc.user_id WHERE 1=1 AND user_type = 2  AND STATUS <> 2 ");
         sql.append(" AND cust_id = '" + customerId + "'");
         if (null != name && !"".equals(name)) {
             sql.append(" AND s.account like '%" + name + "%'");
@@ -3678,8 +3679,8 @@ public class CustomerService {
                     } else {
                         customerUserDO = new CustomerUser();
                         //1企业客户 2 操作员
-                        customerUserDO.setUserType(1);
-                        customerUserDO.setId(IDHelper.getUserID());
+                        customerUserDO.setUserType(2);
+                        customerUserDO.setId(userId);
                         customerUserDO.setCust_id(vo.getCustId());
                         customerUserDO.setAccount(vo.getName());
                         customerUserDO.setPassword(CipherUtil.generatePassword(vo.getPassword()));

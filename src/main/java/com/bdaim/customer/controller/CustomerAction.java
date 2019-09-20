@@ -198,6 +198,8 @@ public class CustomerAction extends BasicAction {
     @CacheAnnotation
     public ResponseInfo customerAddUser(@RequestBody CustomerRegistDTO customerRegistDTO) {
         try {
+            LoginUser lu = opUser();
+            customerRegistDTO.setCustId(lu.getCustId());
             String code = customerService.customerAddUser(customerRegistDTO);
             if ("001".equals(code)) {
                 return new ResponseInfoAssemble().failure(-1, customerRegistDTO.getName() + "账号已经存在");
