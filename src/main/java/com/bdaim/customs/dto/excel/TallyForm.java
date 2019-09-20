@@ -626,6 +626,7 @@ public class TallyForm {
         public void setCust_id(String cust_id) {
             this.cust_id = cust_id;
         }
+
     }
 
     class PartyData {
@@ -823,6 +824,8 @@ public class TallyForm {
         @ExcelProperty(value = "包装种类", index = 8)
         private String packagingType;
 
+
+        private String send_name;
 
         private String send_name_en;    //发件人英文
         private String send_city;   //发件人城市
@@ -1222,7 +1225,13 @@ public class TallyForm {
             this.send_address_en = send_address_en;
         }
 
+        public String getSend_name() {
+            return send_name;
+        }
 
+        public void setSend_name(String send_name) {
+            this.send_name = send_name;
+        }
     }
 
     class ProductData {
@@ -1265,8 +1274,6 @@ public class TallyForm {
 
 
         private String decl_total;//申报总价
-        @JsonProperty(value = "USE_TO")
-
 
         @ExcelProperty(value = "用途", index = 16)
         private String use_to;
@@ -1305,6 +1312,10 @@ public class TallyForm {
         private String remark4;
         @ExcelProperty(value = "备用字段5", index = 22)
         private String remark5;
+        @ExcelProperty(value = "商品ID", index = 7)
+        private String g_id;
+        @ExcelProperty(value = "生产厂商", index = 7)
+        private String manufactor;
 
         public String getId() {
             return id;
@@ -1529,5 +1540,23 @@ public class TallyForm {
         public void setRemark5(String remark5) {
             this.remark5 = remark5;
         }
+
+        public String getG_id() {
+            return g_id;
+        }
+
+        public void setG_id(String g_id) {
+            this.g_id = g_id;
+        }
+
+        public String getManufactor() {
+            return manufactor;
+        }
+
+        public void setManufactor(String manufactor) {
+            this.manufactor = manufactor;
+        }
+
+
     }
 }
