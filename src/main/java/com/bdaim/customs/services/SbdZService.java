@@ -56,14 +56,13 @@ public class SbdZService implements BusiService{
 		List<HBusiDataManager> list = new ArrayList<>();
 		MainDan mainDan = JSON.parseObject(info.toJSONString(),MainDan.class);
 		try {
-			buildMain(list,mainDan,Long.parseLong(cust_user_id),Long.parseLong(cust_id),station_idProperty.getPropertyValue(),id);
+			buildMain(info,list,mainDan,Long.parseLong(cust_user_id),Long.parseLong(cust_id),station_idProperty.getPropertyValue(),id);
 			if (list != null && list.size() > 0) {
 				for (HBusiDataManager hBusiDataManager : list) {
 					JSONObject json=JSON.parseObject(hBusiDataManager.getContent());
 					if(BusiTypeEnum.SZ.getType().equals(hBusiDataManager.getType())){
-						json.remove("singles");
-						info = json;
-						hBusiDataManager.setContent(json.toJSONString());
+                        info.remove("singles");
+						hBusiDataManager.setContent(info.toJSONString());
 					}else if(BusiTypeEnum.SF.getType().equals(hBusiDataManager.getType())){
 						json.remove("products");
 						hBusiDataManager.setContent(json.toJSONString());
@@ -160,25 +159,25 @@ public class SbdZService implements BusiService{
 		}
 	}
 
-	public void buildMain(List<HBusiDataManager> list, MainDan mainDan, Long userId,Long custId, String station_id,Long mainid) throws Exception {
+	public void buildMain(JSONObject info,List<HBusiDataManager> list, MainDan mainDan, Long userId,Long custId, String station_id,Long mainid) throws Exception {
 		HBusiDataManager dataManager = new HBusiDataManager();
 		dataManager.setCreateId(userId);
 		dataManager.setId(mainid.intValue());
 		dataManager.setCreateDate(new Date());
 		dataManager.setType(BusiTypeEnum.SZ.getType());
-		JSONObject jsonObject = buildMainContent(mainDan);
-		jsonObject.put("type", BusiTypeEnum.SZ.getType());
-		jsonObject.put("commit_cangdan_status", "N");
-		jsonObject.put("commit_baodan_status", "N");
-		jsonObject.put("create_date", new Date());
-		jsonObject.put("create_id", userId + "");
-		jsonObject.put("station_id", station_id);//场站id
-		jsonObject.put("cust_id", custId);
-		jsonObject.put("id_card_number", 0);
-		jsonObject.put("ext_1","N");
-		jsonObject.put("ext_2","N");
-		jsonObject.put("ext_3",mainDan.getBill_no());
-		dataManager.setContent(jsonObject.toJSONString());
+		buildMainContent(mainDan,info);
+        info.put("type", BusiTypeEnum.SZ.getType());
+        info.put("commit_cangdan_status", "N");
+        info.put("commit_baodan_status", "N");
+        info.put("create_date", new Date());
+        info.put("create_id", userId + "");
+        info.put("station_id", station_id);//场站id
+        info.put("cust_id", custId);
+        info.put("id_card_number", 0);
+        info.put("ext_1","N");
+        info.put("ext_2","N");
+        info.put("ext_3",mainDan.getBill_no());
+		dataManager.setContent(info.toJSONString());
 
 		list.add(dataManager);
 		buildPartyDan(list, mainDan, userId,custId,mainid);
@@ -282,9 +281,9 @@ public class SbdZService implements BusiService{
 	 * 取近3个月的商品均值进行比较。若低于均值，则判断为低价商品
 	 * 冷启动阶段：商品完税价格
 	 */
-	private static JSONObject buildMainContent(MainDan mainDan) {
+	private void buildMainContent(MainDan mainDan,JSONObject info) {
 		log.info(JSON.toJSONString(mainDan));
-		JSONObject jsonObject = JSON.parseObject(JSON.toJSONString(mainDan));
+		//JSONObject jsonObject = JSON.parseObject(JSON.toJSONString(mainDan));
 		String partynum = mainDan.getSingle_batch_num();
 
 		List<PartyDan> list = mainDan.getSingles();
@@ -297,21 +296,21 @@ public class SbdZService implements BusiService{
 			weightTotal += Float.valueOf(WEIGHT);
 		}
 
-		jsonObject.put("weight_total", weightTotal);//总重量
-		jsonObject.put("party_total", list.size());//分单总数
+        info.put("weight_total", weightTotal);//总重量
+        info.put("party_total", list.size());//分单总数
 
 		if (Integer.valueOf(partynum) < list.size()) {
-			jsonObject.put("overWarp", "溢装");//溢装
+            info.put("overWarp", "溢装");//溢装
 		} else if (Integer.valueOf(partynum) > list.size()) {
-			jsonObject.put("overWarp", "短装");//短装
+            info.put("overWarp", "短装");//短装
 		} else {
-			jsonObject.put("overWarp", "正常");//正常
+            info.put("overWarp", "正常");//正常
 		}
 
 		//todo:低价商品暂时不处理
-		System.out.println(jsonObject);
+		//System.out.println(jsonObject);
 
-		return jsonObject;
+//		return jsonObject;
 
 	}
 }
