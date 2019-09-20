@@ -82,7 +82,8 @@ public class ResourceController extends BasicAction {
     	
         try {
         	LoginUser lu = opUser();
-        	if(!lu.getAuthorities().contains("admin"))
+        	//if(!lu.getAuthorities().contains("admin"))
+            if(!lu.getRole().contains("admin"))
         		return new ResponseInfoAssemble().failure(-1, "无权限保存资源:["+resourceType+"]");
 
         	String user_id = lu.getUser_id();
