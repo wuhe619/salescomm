@@ -166,6 +166,7 @@ public class SbdZService implements BusiService {
         info.put("ext_1", "N");
         info.put("ext_2", "N");
         info.put("ext_3", mainDan.getBill_no());
+        info.put("bill_no", mainDan.getBill_no());
 
 
         //list.add(dataManager);
@@ -205,7 +206,8 @@ public class SbdZService implements BusiService {
 
         JSONObject json = buildPartyContent(dan);
         json.put("type", BusiTypeEnum.SF.getType());
-        json.put("mail_bill_no", mainBillNo);
+        json.put("bill_no", dan.getBill_NO());
+        json.put("main_bill_no", mainBillNo);
         json.put("create_date", dataManager.getCreateDate());
         json.put("create_id", userId);
         json.put("cust_id", custId);
