@@ -1,22 +1,42 @@
 package com.bdaim.customs.entity;
 
+
 public enum BusiTypeEnum {
-    SZ("SZ","申报单-主单"),
-    SF("SF","申报单-分单"),
-    SS("SS","申报单-税单"),
-    CZ("CZ","舱单-主单"),
-    CF("CF","舱单-分单"),
-    CS("CS","舱单-税单"),
-    BZ("BZ","报关单-主单"),
-    BF("BF","报关单-分单"),
-    BS("BS","报关单-税单");
+    SZ("SZ", "申报单-主单", "sbd_z"),
+    SF("SF", "申报单-分单", "sbd_f"),
+    SS("SS", "申报单-税单", "sbd_s"),
+    CZ("CZ", "舱单-主单", "cd_z"),
+    CF("CF", "舱单-分单", "cd_f"),
+    CS("CS", "舱单-税单", "cd_s"),
+    BZ("BZ", "报关单-主单", "bgd_z"),
+    BF("BF", "报关单-分单", "bgd_f"),
+    BS("BS", "报关单-税单", "bgd_s"),
+    ST("ST", "场站", "station");
 
     private String key;
     private String name;
+    private String type;
 
-    BusiTypeEnum(String key, String name) {
+    BusiTypeEnum(String key, String name, String type) {
         this.key = key;
         this.name = name;
+        this.type = type;
+    }
+
+
+    /**
+     * 获取type
+     *
+     * @param key
+     * @return
+     */
+    public static String getType(String key) {
+        for (BusiTypeEnum v : BusiTypeEnum.values()) {
+            if (v.getKey().equals(key)) {
+                return v.getType();
+            }
+        }
+        return "";
     }
 
     public String getKey() {
@@ -24,10 +44,12 @@ public enum BusiTypeEnum {
     }
 
 
-
     public String getName() {
         return name;
     }
 
+    public String getType() {
+        return type;
+    }
 
 }
