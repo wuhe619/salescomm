@@ -21,7 +21,14 @@ public class CustMsgService {
 	@Resource
 	private JdbcTemplate jdbcTemplate;
 	
-	
+	/**
+	 * 生成客户消息。
+	 * cust_user_id=客户账号ID，不空时只为这一个账号生成消息
+	 * cust_id=客户ID，当cust_user_id空时有效，为客户下所有账号生成消息
+	 * msg_type=消息类型，自定义
+	 * content=消息内容
+	 * level=消息级别，>=4级时会发送微信通知
+	 */
 	public void createMsg(String cust_id, String cust_user_id, String msg_type, String content, int level) throws Exception{
 		if(level<0)
 			level = 0;
