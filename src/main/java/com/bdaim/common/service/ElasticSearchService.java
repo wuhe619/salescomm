@@ -8,10 +8,7 @@ import com.bdaim.common.util.ESUtil;
 import com.bdaim.common.util.NumberConvertUtil;
 import com.bdaim.common.util.RestUtil;
 import com.bdaim.common.util.http.HttpUtil;
-import com.bdaim.customs.entity.Constants;
-import com.bdaim.customs.entity.MainDan;
-import com.bdaim.customs.entity.PartyDan;
-import com.bdaim.customs.entity.Product;
+import com.bdaim.customs.entity.*;
 import io.searchbox.client.JestClient;
 import io.searchbox.core.Search;
 import io.searchbox.core.SearchResult;
@@ -168,6 +165,17 @@ public class ElasticSearchService {
             LOG.error("向es修改记录异常:" + e.getMessage());
         }
         return result;
+    }
+
+    public void update(HBusiDataManager hBusiDataManager, Integer id) {
+        String type = hBusiDataManager.getType();
+        if (type.equals(BusiTypeEnum.SZ.getKey()) || type.equals(BusiTypeEnum.CZ.getKey()) || type.equals(BusiTypeEnum.BZ.getKey())) {
+            updateDocumentToType(Constants.SZ_INFO_INDEX, "haiguan", id.toString(), JSON.parseObject(hBusiDataManager.getContent()));
+        } else if (type.equals(BusiTypeEnum.SF.getKey()) || type.equals(BusiTypeEnum.CF.getKey()) || type.equals(BusiTypeEnum.BF.getKey())) {
+            updateDocumentToType(Constants.SF_INFO_INDEX, "haiguan", id.toString(), JSON.parseObject(hBusiDataManager.getContent()));
+        } else if (type.equals(BusiTypeEnum.SS.getKey()) || type.equals(BusiTypeEnum.CS.getKey()) || type.equals(BusiTypeEnum.BS.getKey())) {
+            updateDocumentToType(Constants.SS_INFO_INDEX, "haiguan", id.toString(), JSON.parseObject(hBusiDataManager.getContent()));
+        }
     }
 
 
