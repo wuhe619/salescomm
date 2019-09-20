@@ -25,6 +25,7 @@ import com.bdaim.common.util.page.PageList;
 import com.bdaim.common.util.page.Pagination;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerUserDao;
+import com.bdaim.customer.dao.CustomerUserPropertyDao;
 import com.bdaim.customer.dao.EnterpriseDao;
 import com.bdaim.customer.dto.*;
 import com.bdaim.customer.entity.*;
@@ -97,6 +98,8 @@ public class CustomerService {
     SupplierService supplierService;
     @Resource
     BatchDao batchDao;
+    @Resource
+    CustomerUserPropertyDao customerUserPropertyDao;
 
 
     @Resource
@@ -3644,5 +3647,74 @@ public class CustomerService {
         }
         return map;
     }
-}
 
+    /**
+     * 企业创建员工
+     *
+     * @param
+     */
+    public String customerAddUser(CustomerRegistDTO vo) {
+        String code = "000";
+        long userId = IDHelper.getUserID();
+        CustomerUser customerUserDO = null;
+        //（1 添加编辑 2 冻结与解冻 3.修改密码）
+        if ("1".equals(vo.getDealType())) {
+            if (StringUtil.isNotEmpty(vo.getDealType())) {
+                CustomerUser user = customerUserDao.getUserByAccount(vo.getName());
+                if (user != null) return code = "001";
+                //编辑或创建客户
+                if (vo.getDealType().equals("1")) {
+                    if (StringUtil.isNotEmpty(vo.getUserId())) {
+                        customerUserDO = customerUserDao.findUniqueBy("id", Long.valueOf(vo.getUserId()));
+                        if (StringUtil.isNotEmpty(vo.getRealName())) {
+                            customerUserDO.setRealname(vo.getRealName());
+                        }
+                        if (StringUtil.isNotEmpty(vo.getName())) {
+                            customerUserDO.setAccount(vo.getName());
+                        }
+                        if (StringUtil.isNotEmpty(vo.getPassword())) {
+                            customerUserDO.setPassword(CipherUtil.generatePassword(vo.getPassword()));
+                        }
+                    } else {
+                        customerUserDO = new CustomerUser();
+                        //1企业客户 2 操作员
+                        customerUserDO.setUserType(1);
+                        customerUserDO.setId(IDHelper.getUserID());
+                        customerUserDO.setCust_id(vo.getCustId());
+                        customerUserDO.setAccount(vo.getName());
+                        customerUserDO.setPassword(CipherUtil.generatePassword(vo.getPassword()));
+                        customerUserDO.setRealname(vo.getRealName());
+                        customerUserDO.setStatus(Constant.USER_ACTIVE_STATUS);
+                    }
+                    customerUserDao.saveOrUpdate(customerUserDO);
+                    //编辑用户属性信息
+                    //联系人电话
+                    if (StringUtil.isNotEmpty(vo.getMobile())) {
+                        if (StringUtil.isNotEmpty(vo.getUserId())) {
+                            customerUserPropertyDao.dealUserPropertyInfo(vo.getUserId(), "mobile_num", vo.getMobile());
+                        } else {
+                            customerUserPropertyDao.dealUserPropertyInfo(String.valueOf(userId), "mobile_num", vo.getMobile());
+                        }
+                    }
+                    if (StringUtil.isNotEmpty(vo.getResource())) {
+                        if (StringUtil.isNotEmpty(vo.getUserId())) {
+                            customerUserPropertyDao.dealUserPropertyInfo(vo.getUserId(), "resource", vo.getResource());
+                        } else {
+                            customerUserPropertyDao.dealUserPropertyInfo(String.valueOf(userId), "resource", vo.getResource());
+                        }
+                    }
+                }
+            }
+        } else if ("2".equals(vo.getDealType())) {
+            //冻结以及解冻
+            if (StringUtil.isNotEmpty(vo.getUserId())) {
+                CustomerUser customerUser = customerUserDao.findUniqueBy("id", Long.valueOf(vo.getUserId()));
+                if (customerUser != null && StringUtil.isNotEmpty(vo.getStatus())) {
+                    customerUser.setStatus(Integer.valueOf(vo.getStatus()));
+                    customerDao.saveOrUpdate(customerUser);
+                }
+            }
+        }
+        return code;
+    }
+}

@@ -190,6 +190,27 @@ public class CustomerAction extends BasicAction {
     }
 
     /**
+     * @Title:
+     * @Description: 企业员工信息编辑
+     */
+    @RequestMapping(value = "/updateUser", method = RequestMethod.POST)
+    @ResponseBody
+    @CacheAnnotation
+    public ResponseInfo customerAddUser(@RequestBody CustomerRegistDTO customerRegistDTO) {
+        try {
+            String code = customerService.customerAddUser(customerRegistDTO);
+            if ("001".equals(code)) {
+                return new ResponseInfoAssemble().failure(-1, customerRegistDTO.getName() + "账号已经存在");
+            }
+            return new ResponseInfoAssemble().success(null);
+        } catch (Exception e) {
+            logger.error("创建企业信息异常", e);
+            return new ResponseInfoAssemble().failure(-1, "用户编辑失败");
+        }
+
+    }
+
+    /**
      * @Title: queryCustomer
      * @Description: 企业管理 客户详情
      */
