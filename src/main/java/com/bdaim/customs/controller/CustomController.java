@@ -309,7 +309,7 @@ public class CustomController extends BasicAction {
      * @param id
      * @param type
      * @param to
-     * @param optType apd 追加商品时，id为分单id，type为分单类型（SF,BF）；追加分单时，id为主单id,type为主单类型（SZ,BZ）；add 同上
+     * @param //optType apd 追加商品时，id为分单id，type为分单类型（SF,BF）；追加分单时，id为主单id,type为主单类型（SZ,BZ）；add 同上
      * @return
      */
     @RequestMapping(value = "/busi/{type}/{id}", method = RequestMethod.POST)

@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class Product {
     private String id ;
     private String pid;
-     private String party_No;//分单单号
+     private String party_no;//分单单号
     @JsonProperty(value = "CODE_TS")
      private String code_ts ;//商品编号
     @JsonProperty(value = "G_NAME")
@@ -16,12 +16,12 @@ public class Product {
 	 private String g_model ;//商品规格、型号
     @JsonProperty(value = "ORIGIN_COUNTRY")
 	 private String origin_country;// 产销国
-	 private String tradeCurr ;//成交币制
+	 private String trade_curr ;//成交币制
 
     @JsonProperty(value = "Trade_total")
 	 private String trade_total ;//成交总价
     @JsonProperty(value = "declPrice")
-	 private String declPrice ;//申报单价
+	 private String decl_price ;//申报单价
     @JsonProperty(value = "DECL_TOTAL")
 	 private String decl_total;//申报总价
     @JsonProperty(value = "USE_TO")
@@ -41,16 +41,7 @@ public class Product {
     @JsonProperty(value = "UNIT_2")
 	 private String unit_2 ;//第二计量单位
     @JsonProperty(value = "GGrossWt")
-	 private String ggrossWt ;//商品毛重
-
-
-    public String getPid() {
-        return pid;
-    }
-
-    public void setPid(String pid) {
-        this.pid = pid;
-    }
+	 private String ggrosswt ;//商品毛重
 
     public String getId() {
         return id;
@@ -60,12 +51,20 @@ public class Product {
         this.id = id;
     }
 
-    public String getParty_No() {
-        return party_No;
+    public String getPid() {
+        return pid;
     }
 
-    public void setParty_No(String party_No) {
-        this.party_No = party_No;
+    public void setPid(String pid) {
+        this.pid = pid;
+    }
+
+    public String getParty_no() {
+        return party_no;
+    }
+
+    public void setParty_no(String party_no) {
+        this.party_no = party_no;
     }
 
     public String getCode_ts() {
@@ -108,12 +107,12 @@ public class Product {
         this.origin_country = origin_country;
     }
 
-    public String getTradeCurr() {
-        return tradeCurr;
+    public String getTrade_curr() {
+        return trade_curr;
     }
 
-    public void setTradeCurr(String tradeCurr) {
-        this.tradeCurr = tradeCurr;
+    public void setTrade_curr(String trade_curr) {
+        this.trade_curr = trade_curr;
     }
 
     public String getTrade_total() {
@@ -124,12 +123,12 @@ public class Product {
         this.trade_total = trade_total;
     }
 
-    public String getDeclPrice() {
-        return declPrice;
+    public String getDecl_price() {
+        return decl_price;
     }
 
-    public void setDeclPrice(String declPrice) {
-        this.declPrice = declPrice;
+    public void setDecl_price(String decl_price) {
+        this.decl_price = decl_price;
     }
 
     public String getDecl_total() {
@@ -204,11 +203,11 @@ public class Product {
         this.unit_2 = unit_2;
     }
 
-    public String getGgrossWt() {
-        return ggrossWt;
+    public String getGgrosswt() {
+        return ggrosswt;
     }
 
-    public void setGgrossWt(String ggrossWt) {
-        this.ggrossWt = ggrossWt;
+    public void setGgrosswt(String ggrosswt) {
+        this.ggrosswt = ggrosswt;
     }
 }

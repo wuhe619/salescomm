@@ -84,7 +84,7 @@ public class MainDan {
     @JsonProperty(value = "SEND_CITY")
     private String send_city;   //发件人城市
     @JsonProperty(value = "SEND_CITY_EN")
-    private String SEND_CITY_EN;    //发件人城市英文
+    private String send_city_en;    //发件人城市英文
     @JsonProperty(value = "SEND_ADDRESS")
     private String send_address;   //发件人地址
     @JsonProperty(value = "SEND_ADDRESS_EN")
@@ -144,40 +144,24 @@ public class MainDan {
     @JsonProperty(value = "STATION_ID")
     private String stationId;//场站id
     @JsonProperty(value = "COMMIT_CANGDAN_STATUS")
-    private String commitCangdanStatus;//舱单已提交 Y
+    private String commit_sangdan_status;//舱单已提交 Y
     @JsonProperty(value = "COMMIT_BAODAN_STATUS")
-    private String commitBaoDanStatus;//报单已提交 Y
+    private String commit_baodan_status;//报单已提交 Y
     @JsonProperty(value = "LOWER_GOODS")
-    private String lowergoods;//低价商品
+    private String lower_goods;//低价商品
     @JsonProperty(value = "OVER_WARP")
-    private String overWarp;//溢短装
+    private String over_warp;//溢短装
     @JsonProperty(value = "CREATE_DATE")
-    private String createDate;//导入日期
+    private String create_date;//导入日期
     @JsonProperty(value = "SINGLES")
     private List<PartyDan> singles;
 
-    public String getEntrusted_unit() {
-        return entrusted_unit;
+    public Integer getId() {
+        return id;
     }
 
-    public void setEntrusted_unit(String entrusted_unit) {
-        this.entrusted_unit = entrusted_unit;
-    }
-
-    public String getBusiness_unit_name() {
-        return business_unit_name;
-    }
-
-    public void setBusiness_unit_name(String business_unit_name) {
-        this.business_unit_name = business_unit_name;
-    }
-
-    public String getDepart_arrival_port() {
-        return depart_arrival_port;
-    }
-
-    public void setDepart_arrival_port(String depart_arrival_port) {
-        this.depart_arrival_port = depart_arrival_port;
+    public void setId(Integer id) {
+        this.id = id;
     }
 
     public String getI_e_flag() {
@@ -484,12 +468,12 @@ public class MainDan {
         this.send_city = send_city;
     }
 
-    public String getSEND_CITY_EN() {
-        return SEND_CITY_EN;
+    public String getSend_city_en() {
+        return send_city_en;
     }
 
-    public void setSEND_CITY_EN(String SEND_CITY_EN) {
-        this.SEND_CITY_EN = SEND_CITY_EN;
+    public void setSend_city_en(String send_city_en) {
+        this.send_city_en = send_city_en;
     }
 
     public String getSend_address() {
@@ -668,6 +652,14 @@ public class MainDan {
         this.split_luggage = split_luggage;
     }
 
+    public String getDepart_arrival_port() {
+        return depart_arrival_port;
+    }
+
+    public void setDepart_arrival_port(String depart_arrival_port) {
+        this.depart_arrival_port = depart_arrival_port;
+    }
+
     public String getNote_S() {
         return note_S;
     }
@@ -676,12 +668,28 @@ public class MainDan {
         this.note_S = note_S;
     }
 
-    public List<PartyDan> getSingles() {
-        return singles;
+    public String getEntrusted_unit() {
+        return entrusted_unit;
     }
 
-    public void setSingles(List<PartyDan> singles) {
-        this.singles = singles;
+    public void setEntrusted_unit(String entrusted_unit) {
+        this.entrusted_unit = entrusted_unit;
+    }
+
+    public String getBusiness_unit_name() {
+        return business_unit_name;
+    }
+
+    public void setBusiness_unit_name(String business_unit_name) {
+        this.business_unit_name = business_unit_name;
+    }
+
+    public String getCustId() {
+        return custId;
+    }
+
+    public void setCustId(String custId) {
+        this.custId = custId;
     }
 
     public String getReceiptz_status() {
@@ -700,46 +708,6 @@ public class MainDan {
         this.main_gname = main_gname;
     }
 
-    public String getCommitCangdanStatus() {
-        return commitCangdanStatus;
-    }
-
-    public void setCommitCangdanStatus(String commitCangdanStatus) {
-        this.commitCangdanStatus = commitCangdanStatus;
-    }
-
-    public String getCommitBaoDanStatus() {
-        return commitBaoDanStatus;
-    }
-
-    public void setCommitBaoDanStatus(String commitBaoDanStatus) {
-        this.commitBaoDanStatus = commitBaoDanStatus;
-    }
-
-    public String getLowergoods() {
-        return lowergoods;
-    }
-
-    public void setLowergoods(String lowergoods) {
-        this.lowergoods = lowergoods;
-    }
-
-    public String getOverWarp() {
-        return overWarp;
-    }
-
-    public void setOverWarp(String overWarp) {
-        this.overWarp = overWarp;
-    }
-
-    public String getCustId() {
-        return custId;
-    }
-
-    public void setCustId(String custId) {
-        this.custId = custId;
-    }
-
     public String getStationId() {
         return stationId;
     }
@@ -748,19 +716,51 @@ public class MainDan {
         this.stationId = stationId;
     }
 
-    public String getCreateDate() {
-        return createDate;
+    public String getCommit_sangdan_status() {
+        return commit_sangdan_status;
     }
 
-    public void setCreateDate(String createDate) {
-        this.createDate = createDate;
+    public void setCommit_sangdan_status(String commit_sangdan_status) {
+        this.commit_sangdan_status = commit_sangdan_status;
     }
 
-    public Integer getId() {
-        return id;
+    public String getCommit_baodan_status() {
+        return commit_baodan_status;
     }
 
-    public void setId(Integer id) {
-        this.id = id;
+    public void setCommit_baodan_status(String commit_baodan_status) {
+        this.commit_baodan_status = commit_baodan_status;
+    }
+
+    public String getLower_goods() {
+        return lower_goods;
+    }
+
+    public void setLower_goods(String lower_goods) {
+        this.lower_goods = lower_goods;
+    }
+
+    public String getOver_warp() {
+        return over_warp;
+    }
+
+    public void setOver_warp(String over_warp) {
+        this.over_warp = over_warp;
+    }
+
+    public String getCreate_date() {
+        return create_date;
+    }
+
+    public void setCreate_date(String create_date) {
+        this.create_date = create_date;
+    }
+
+    public List<PartyDan> getSingles() {
+        return singles;
+    }
+
+    public void setSingles(List<PartyDan> singles) {
+        this.singles = singles;
     }
 }
