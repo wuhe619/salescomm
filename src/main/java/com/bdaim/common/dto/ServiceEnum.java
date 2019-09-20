@@ -15,7 +15,7 @@ public enum ServiceEnum {
     BZ("H", "报关单主单", "bgd_z"),
     BF("I", "报关单分单", "bgd_f"),
     BS("J", "报关单税单", "bgd_s"),
-    ST("K", "场站", "cz");
+    ST("K", "场站", "station");
 
     private String id;
     private String name;
