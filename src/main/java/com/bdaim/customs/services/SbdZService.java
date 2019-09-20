@@ -53,6 +53,11 @@ public class SbdZService implements BusiService{
 			log.error("未配置场站信息");
 			throw new Exception("未配置场站信息");
 		}
+		String billno = info.getString("bill_no");
+		int count = hBusiDataManagerDao.findCount("from HBusiDataManager where ext_3='"+billno+"' and type='"+BusiTypeEnum.SZ.getType()+"'");
+		if(count>0){
+		    throw new Exception("此主单已经申报");
+        }
 		List<HBusiDataManager> list = new ArrayList<>();
 		MainDan mainDan = JSON.parseObject(info.toJSONString(),MainDan.class);
 		try {
@@ -194,6 +199,9 @@ public class SbdZService implements BusiService{
 		List<PartyDan> partList = mainDan.getSingles();
 		if (partList != null && partList.size() > 0) {
 			for (PartyDan dan : partList) {
+			    if(StringUtil.isEmpty(dan.getMain_bill_no())){
+			        dan.setMain_bill_no(mainDan.getBill_no());
+                }
 				buildSenbaodanFendan(dan, list,  userId, custId, mainDan.getBill_no(),mainid);
 			}
 		}
