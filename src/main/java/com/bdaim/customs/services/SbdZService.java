@@ -1,21 +1,15 @@
 package com.bdaim.customs.services;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
 import com.alibaba.fastjson.JSON;
-import com.bdaim.auth.LoginUser;
+import com.alibaba.fastjson.JSONObject;
+import com.bdaim.common.service.BusiService;
 import com.bdaim.common.service.ElasticSearchService;
 import com.bdaim.common.service.SequenceService;
-import com.bdaim.common.service.UploadFileService;
+import com.bdaim.common.util.SqlAppendUtil;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.entity.CustomerProperty;
 import com.bdaim.customs.dao.HBusiDataManagerDao;
-import com.bdaim.customs.dao.HDicDao;
-import com.bdaim.customs.dao.HMetaDataDefDao;
-import com.bdaim.customs.dao.HReceiptRecordDao;
 import com.bdaim.customs.entity.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,10 +17,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
-import com.alibaba.fastjson.JSONObject;
-import com.bdaim.common.service.BusiService;
-
 import javax.annotation.Resource;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 /***
  * 申报单.主单
@@ -79,18 +74,36 @@ public class SbdZService implements BusiService{
 					addDataToES(hBusiDataManager);
 				}
 			}
-			System.out.println(info.toJSONString());
+			log.info(info.toJSONString());
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new Exception("保存主单出错");
 		}
 	}
 
-	@Override
-	public void updateInfo(String busiType, String cust_id, String cust_group_id, String cust_user_id, Long id, JSONObject info) {
-		// TODO Auto-generated method stub
-		
-	}
+    @Override
+    public void updateInfo(String busiType, String cust_id, String cust_group_id, String cust_user_id, Long id, JSONObject info) {
+        // 身份核验
+        if ("verification".equals(info.getString("rule.do"))) {
+            StringBuffer sql = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from h_data_manager where type=?")
+                    .append(" and cust_id='").append(cust_id).append("'")
+                    .append(" and (ext_7 IS NULL OR ext_7 = '') ")
+                    .append(" and JSON_EXTRACT(content, '$.'pid')=?");
+            List sqlParams = new ArrayList();
+            sqlParams.add(busiType);
+            sqlParams.add(id);
+            List<Map<String, Object>> dfList = jdbcTemplate.queryForList(sql.toString(), sqlParams.toArray());
+            if (dfList != null && dfList.size() > 0) {
+                List ids = new ArrayList();
+                for (Map<String, Object> m : dfList) {
+                    ids.add(m.get("id"));
+                }
+                String updateSql = "UPDATE h_data_manager SET ext_7 = 3 WHERE id IN(" + SqlAppendUtil.sqlAppendWhereIn(ids) + ")";
+                jdbcTemplate.update(updateSql);
+            }
+
+        }
+    }
 
 	@Override
 	public void getInfo(String busiType, String cust_id, String cust_group_id, String cust_user_id, Long id, JSONObject info) {
