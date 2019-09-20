@@ -3,6 +3,7 @@ package com.bdaim.image.service.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.dao.FileDao;
 import com.bdaim.common.entity.FileInfo;
+import com.bdaim.common.entity.HFile;
 import com.bdaim.common.service.MongoFileService;
 import com.bdaim.common.service.UploadFileService;
 import com.bdaim.common.util.*;
@@ -1132,9 +1133,9 @@ public class UploadDowloadImgServiceImpl implements UploadDowloadService {
             status = false;
         }
         // 查询数据库对应文件磁盘位置
-        FileInfo fileInfo = fileDao.selectByServiceId(fileName);
+        HFile fileInfo = fileDao.selectByServiceId(fileName);
         if (fileInfo != null) {
-            filePath = PropertiesUtil.getStringValue("file.file_path") + File.separator + fileInfo.getServiceId().split("_")[0] + File.separator + fileInfo.getServiceId().split("_")[1];
+            filePath = PropertiesUtil.getStringValue("file.file_path") + File.separator + fileInfo.getExt1().split("_")[0] + File.separator + fileInfo.getExt1().split("_")[1];
             file = new File(filePath);
             try (FileInputStream fis = new FileInputStream(file)) {
                 if (file.exists()) {
@@ -1150,7 +1151,7 @@ public class UploadDowloadImgServiceImpl implements UploadDowloadService {
         if (!status) {
             logger.warn("[" + filePath + "]磁盘文件不存在,穿透查询mongodb文件");
             if (fileInfo != null) {
-                fileName = fileInfo.getServiceId();
+                fileName = fileInfo.getExt1();
             }else{
                 if (fileName.indexOf(".") > 0) {
                     fileName = fileName.substring(0, fileName.lastIndexOf("."));

@@ -117,7 +117,10 @@ public class CustomsService {
     public JSONObject getMainDetailById(String id, String type) {
         JSONObject json = elasticSearchService.getDocumentById(Constants.SF_INFO_INDEX, "haiguan", id);
         if (json == null) {
-            HBusiDataManager h = hBusiDataManagerDao.get(NumberConvertUtil.parseInt(id));
+            HBusiDataManager param = new HBusiDataManager();
+            param.setId(NumberConvertUtil.parseInt(id));
+            param.setType(type);
+            HBusiDataManager h = hBusiDataManagerDao.get(param);
             if (h != null && h.getContent() != null) {
                 json = JSON.parseObject(h.getContent());
             }
@@ -694,10 +697,13 @@ public class CustomsService {
                 // 根据主单ID查询分单列表
                 List<HBusiDataManager> fdList = new ArrayList<>();
                 if (1 == type) {
-                    fdList = hBusiDataManagerDao.listHBusiDataManager(NumberConvertUtil.parseInt(id), BusiTypeEnum.SF.getKey());
+                    fdList = hBusiDataManagerDao.listHBusiDataManager(NumberConvertUtil.parseInt(id), BusiTypeEnum.SF.getType());
                 } else if (2 == type) {
                     // 根据ID查询单个申报单分单
-                    HBusiDataManager data = hBusiDataManagerDao.get(NumberConvertUtil.parseInt(id));
+                    HBusiDataManager param = new HBusiDataManager();
+                    param.setId(NumberConvertUtil.parseInt(id));
+                    param.setType(BusiTypeEnum.SF.getType());
+                    HBusiDataManager data = hBusiDataManagerDao.get(param);
                     if (data != null) {
                         fdList.add(data);
                     }
@@ -906,13 +912,16 @@ public class CustomsService {
      * @return
      */
     public int updateMainDanIdCardNumber(int mainId) {
-        int idCardNumber = hBusiDataManagerDao.countMainDIdCardNum(mainId, BusiTypeEnum.SF.getKey());
+        int idCardNumber = hBusiDataManagerDao.countMainDIdCardNum(mainId, BusiTypeEnum.SF.getType());
         log.info("开始更新主单:{}的身份证照片数量:{}", mainId, idCardNumber);
         int code = 0;
-        JSONObject mainDetail = getMainDetailById(String.valueOf(mainId), BusiTypeEnum.SZ.getKey());
+        JSONObject mainDetail = getMainDetailById(String.valueOf(mainId), BusiTypeEnum.SZ.getType());
         if (mainDetail != null && mainDetail.containsKey("id")) {
             mainDetail.put("idCardNumber", idCardNumber);
-            HBusiDataManager mainD = hBusiDataManagerDao.get(mainId);
+            HBusiDataManager param = new HBusiDataManager();
+            param.setId(mainId);
+            param.setType(BusiTypeEnum.SZ.getType());
+            HBusiDataManager mainD = hBusiDataManagerDao.get(param);
             if (mainD != null) {
                 mainD.setContent(mainDetail.toJSONString());
                 hBusiDataManagerDao.update(mainD);

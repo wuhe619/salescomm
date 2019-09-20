@@ -9,8 +9,8 @@ import java.util.Objects;
  * @date 2019/9/18
  * @description
  */
-@Entity
-@Table(name = "file_info", schema = "", catalog = "")
+/*@Entity
+@Table(name = "file_info", schema = "", catalog = "")*/
 public class FileInfo {
     private int id;
     private String serviceId;
