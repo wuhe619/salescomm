@@ -251,7 +251,7 @@ public class CustomController extends BasicAction {
     }
 
     @RequestMapping(value = "/uploadCardIdPic", method = RequestMethod.POST)
-    public ResponseJson uploadCardIdPic(HttpServletRequest request, String id, int type) {
+    public ResponseJson uploadCardIdPic(HttpServletRequest request, String id, Integer type) {
         CommonsMultipartResolver multipartResolver = new CommonsMultipartResolver(
                 request.getSession().getServletContext());
         MultipartFile f = null;

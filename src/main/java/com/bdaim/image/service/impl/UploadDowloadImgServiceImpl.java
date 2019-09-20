@@ -858,7 +858,7 @@ public class UploadDowloadImgServiceImpl implements UploadDowloadService {
                         //mongoFileService.saveFile(multiRequestFile, pictureName);
                         /*File localFile = new File(sPath);
                         file1.transferTo(localFile);*/
-                        pictureName = uploadFileService.uploadFile(multiRequestFile, BusinessEnum.ONLINE, true);
+                        pictureName = uploadFileService.uploadFile(multiRequestFile, BusinessEnum.ONLINE, false);
 
                         File desFile = new File(sPath);
                         FileUtils.copyInputStreamToFile(multiRequestFile.getInputStream(), desFile);
