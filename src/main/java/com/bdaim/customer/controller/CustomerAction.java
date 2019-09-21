@@ -180,7 +180,18 @@ public class CustomerAction extends BasicAction {
     @CacheAnnotation
     public ResponseInfo regist(@RequestBody CustomerRegistDTO customerRegistDTO) {
         try {
-            customerService.registerOrUpdateCustomer(customerRegistDTO);
+            LoginUser lu = opUser();
+            if ("ROLE_USER".equals(lu.getRole()) || "admin".equals(lu.getRole())) {
+                //后台创建的企业赋值为0
+                customerRegistDTO.setCreateId("0");
+            } else {
+                //前台创建的createId是当前登陆企业id
+                customerRegistDTO.setCreateId(lu.getCustId());
+            }
+            String code = customerService.registerOrUpdateCustomer(customerRegistDTO);
+            if ("001".equals(code)) {
+                return new ResponseInfoAssemble().failure(-1, customerRegistDTO.getName() + "账号已经存在");
+            }
             return new ResponseInfoAssemble().success(null);
         } catch (Exception e) {
             logger.error("创建企业信息异常", e);
@@ -220,22 +231,22 @@ public class CustomerAction extends BasicAction {
     @ResponseBody
     public ResponseInfo queryCustomer(@Valid PageParam page, BindingResult error, CustomerRegistDTO customerRegistDTO) {
         if (error.hasFieldErrors()) {
-            //return getErrors(error);
             return new ResponseInfoAssemble().failure(-1, "缺少必要参数");
         }
         LoginUser lu = opUser();
         PageList list = null;
         Map<Object, Object> map = new HashMap<Object, Object>();
-        //JSONObject json = new JSONObject();
         if ("ROLE_USER".equals(lu.getRole()) || "admin".equals(lu.getRole())) {
             list = customerService.getCustomerInfo(page, customerRegistDTO);
-            map.put("list", list);
-            //图片根路径
-            String preUrl = "/pic";
-            map.put("preUrl", preUrl);
+        } else {
+            customerRegistDTO.setCreateId(lu.getCustId());
+            list = customerService.getCustomerInfo(page, customerRegistDTO);
         }
+        map.put("list", list);
+        //图片根路径
+        String preUrl = "/pic";
+        map.put("preUrl", preUrl);
         return new ResponseInfoAssemble().success(map);
-        //return json.toJSONString();
     }
 
     @RequestMapping(value = "/update", method = RequestMethod.POST)

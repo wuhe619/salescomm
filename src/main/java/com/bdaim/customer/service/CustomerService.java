@@ -300,8 +300,11 @@ public class CustomerService {
         return customerUserDao.getName(userId);
     }
 
-    public synchronized void registerOrUpdateCustomer(CustomerRegistDTO vo) throws Exception {
+    public synchronized String registerOrUpdateCustomer(CustomerRegistDTO vo) throws Exception {
+        String code = "000";
         if (StringUtil.isNotEmpty(vo.getDealType())) {
+            CustomerUser user = customerUserDao.getUserByAccount(vo.getName());
+            if (user != null) return code = "001";
             //编辑或创建客户
             CustomerUser customerUserDO;
             if (vo.getDealType().equals("1")) {
@@ -482,6 +485,14 @@ public class CustomerService {
                         customerDao.dealCustomerInfo(customerId, "station_id", vo.getStationId());
                     }
                 }
+                //创建企业id
+                if (StringUtil.isNotEmpty(vo.getCreateId())) {
+                    if (StringUtil.isNotEmpty(vo.getCustId())) {
+                        customerDao.dealCustomerInfo(vo.getCustId(), "create_id", vo.getCreateId());
+                    } else {
+                        customerDao.dealCustomerInfo(customerId, "create_id", vo.getCreateId());
+                    }
+                }
 
             } else if (vo.getDealType().equals("2")) {//冻结以及解冻
                 if (StringUtil.isNotEmpty(vo.getCustId())) {
@@ -526,6 +537,7 @@ public class CustomerService {
                 }
             }
         }
+        return code;
     }
 
 
@@ -618,7 +630,7 @@ public class CustomerService {
                 "cjc.mobile_num,  -- 属性表\n" +
                 "IFNULL (t1.title,'') AS title, -- 属性表\n" +
                 "t1.create_time,\n" +
-                "t1.`status`,cjc.packagerId,cjc.printerId,cjc.idCardBack,cjc.idCardFront,\n" +
+                "t1.`status`,cjc.`createId`,cjc.packagerId,cjc.printerId,cjc.idCardBack,cjc.idCardFront,\n" +
                 "cjc.industry,cjc.salePerson,cjc.contactAddress,\n" +
                 "cjc.province,cjc.city,cjc.fixPrice,cjc.county,cjc.taxpayerId,\n" +
                 "cjc.bli_path AS bliPic,\n" +
@@ -644,6 +656,7 @@ public class CustomerService {
                 "\tmax(CASE property_name WHEN 'bank_account'   THEN property_value ELSE '' END ) bankAccount,\n" +
                 "\tmax(CASE property_name WHEN 'bank_account_certificate'   THEN property_value ELSE '' END ) bank_account_certificate,\n" +
                 "\tmax(CASE property_name WHEN 'station_id'   THEN property_value ELSE '' END ) stationId,\n" +
+                "\tmax(CASE property_name WHEN 'create_id'   THEN property_value ELSE '' END ) createId,\n" +
                 "\tmax(CASE property_name WHEN 'mobile_num'   THEN property_value ELSE '' END ) mobile_num\n" +
                 "   FROM t_customer_property p GROUP BY cust_id \n" +
                 ") cjc ON t1.cust_id = cjc.cust_id \n" +
@@ -653,6 +666,9 @@ public class CustomerService {
         }
         if (StringUtil.isNotEmpty(customerRegistDTO.getEnterpriseName())) {
             sqlBuilder.append(" AND t1.enterprise_name like '%" + customerRegistDTO.getEnterpriseName() + "%'");
+        }
+        if (StringUtil.isNotEmpty(customerRegistDTO.getCreateId())) {
+            sqlBuilder.append(" AND cjc.createId ='" +customerRegistDTO.getCreateId() + "'");
         }
         if (StringUtil.isNotEmpty(customerRegistDTO.getName())) {
             sqlBuilder.append(" AND t2.account LIKE '%" + customerRegistDTO.getName() + "%'");
