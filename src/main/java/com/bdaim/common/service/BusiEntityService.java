@@ -114,6 +114,8 @@ public class BusiEntityService {
                     sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(3) + "') < ?");
                 } else if (key.startsWith("_le_")) {
                     sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(4) + "') <= ?");
+                }else if (key.startsWith("_eq_")) {
+                    sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(4) + "') = ?");
                 }else if (key.startsWith("_range_")) {
                     if ("0".equals(String.valueOf(params.get(key)))) {
                         sqlstr.append(" and ( JSON_EXTRACT(content, '$." + key.substring(7) + "') <= ?")
