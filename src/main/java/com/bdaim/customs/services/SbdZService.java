@@ -330,7 +330,7 @@ public class SbdZService implements BusiService{
         }
         json.put("main_gname",mainGoodsName);
         json.put("low_price_goods",arrt.getString("low_price_goods"));
-        if(info.containsKey("low_price_goods")){
+        if(info.containsKey("low_price_goods") && info.getInteger("low_price_goods")!=null){
             int low_price_goods = info.getInteger("low_price_goods");
             info.put("low_price_goods",low_price_goods+arrt.getInteger("low_price_goods"));
         }else{
@@ -398,7 +398,7 @@ public class SbdZService implements BusiService{
                     smap.put("g_model",product.getG_model()==null?"":product.getG_model());
                     smap.put("price",product.getDecl_price()==null?"0":product.getDecl_price());
                     mainGoodsName.add(smap);
-                    Collections.sort(mainGoodsName, new Comparator<Map<String, String>>() {
+                   /* Collections.sort(mainGoodsName, new Comparator<Map<String, String>>() {
                         @Override
                         public int compare(Map<String, String> o1, Map<String, String> o2) {
                             if(Float.valueOf(o1.get("price"))>Float.valueOf(o2.get("price"))){
@@ -406,9 +406,9 @@ public class SbdZService implements BusiService{
                             }
                             return 0;
                         }
-                    });
+                    });*/
                 }else{
-                    Map<String,String> m = mainGoodsName.get(mainGoodsName.size()-1);
+                    /*Map<String,String> m = mainGoodsName.get(mainGoodsName.size()-1);
                     if(Float.valueOf(m.get("price"))<Float.valueOf(product.getDecl_price())){
                         mainGoodsName.remove(mainGoodsName.size()-1);
                         Map<String,String>smap=new HashMap<>();
@@ -426,7 +426,7 @@ public class SbdZService implements BusiService{
                                 return 0;
                             }
                         });
-                    }
+                    }*/
                 }
                 if(is_low_price==1){
                     if(arrt.containsKey("low_price_goods")){
@@ -437,7 +437,7 @@ public class SbdZService implements BusiService{
                     arrt.put("main_goods_name",mainGoodsName);
                 }
                 json.put("is_low_price",is_low_price);
-                float total_price = Float.valueOf(product.getDecl_total()==null?"0":product.getDecl_total());
+                float total_price = Float.valueOf(product.getDecl_total()==null||"".equals(product.getDecl_total())?"0":product.getDecl_total());
                 json.put("duty_paid_price", duty_paid_price);//完税价格
                 json.put("estimated_tax", estimated_tax);//预估税金
                 json.put("tax_rate", tax_rate);//税率
