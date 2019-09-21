@@ -109,8 +109,9 @@ public class SbdZService implements BusiService{
                 String updateSql = "UPDATE h_data_manager SET ext_7 = 3 WHERE id IN(" + SqlAppendUtil.sqlAppendWhereIn(ids) + ")";
                 jdbcTemplate.update(updateSql);
             }
-
-        }
+        }else {
+			updateDataToES(busiType,id.toString(),info);
+		}
     }
 
 	@Override
@@ -218,6 +219,35 @@ public class SbdZService implements BusiService{
 		}else if(type.equals(BusiTypeEnum.BS.getType())){
 			elasticSearchService.addDocumentToType(Constants.BS_INFO_INDEX, "haiguan", id.toString(), JSON.parseObject(hBusiDataManager.getContent()));
 		}
+	}
+
+	/**
+	 * 更新es
+	 * @param type
+	 * @param id
+	 * @param content
+	 */
+	private void updateDataToES(String type,String id,JSONObject content) {
+		if (type.equals(BusiTypeEnum.SZ.getType())) {
+			elasticSearchService.updateDocumentToType(Constants.SZ_INFO_INDEX, "haiguan", id, content);
+		}else if(type.equals(BusiTypeEnum.CZ.getType())){
+			elasticSearchService.updateDocumentToType(Constants.CZ_INFO_INDEX, "haiguan", id, content);
+		}else if(type.equals(BusiTypeEnum.BZ.getType())){
+			elasticSearchService.updateDocumentToType(Constants.BZ_INFO_INDEX, "haiguan", id, content);
+		} else if (type.equals(BusiTypeEnum.SF.getType())) {
+			elasticSearchService.updateDocumentToType(Constants.SF_INFO_INDEX, "haiguan", id, content);
+		}else if( type.equals(BusiTypeEnum.CF.getType())){
+			elasticSearchService.updateDocumentToType(Constants.CF_INFO_INDEX, "haiguan", id, content);
+		}else if(type.equals(BusiTypeEnum.BF.getType())){
+			elasticSearchService.updateDocumentToType(Constants.BF_INFO_INDEX, "haiguan", id, content);
+		}else if (type.equals(BusiTypeEnum.SS.getType())) {
+			elasticSearchService.updateDocumentToType(Constants.SS_INFO_INDEX, "haiguan", id, content);
+		}else if(type.equals(BusiTypeEnum.CS.getType())){
+			elasticSearchService.updateDocumentToType(Constants.CS_INFO_INDEX, "haiguan", id, content);
+		}else if(type.equals(BusiTypeEnum.BS.getType())){
+			elasticSearchService.updateDocumentToType(Constants.BS_INFO_INDEX, "haiguan", id, content);
+		}
+
 	}
 
 	public void buildMain(JSONObject info,List<HBusiDataManager> list, MainDan mainDan, Long userId,Long custId, String station_id,Long mainid) throws Exception {
