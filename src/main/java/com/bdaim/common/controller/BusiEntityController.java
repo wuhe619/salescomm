@@ -95,7 +95,7 @@ public class BusiEntityController extends BasicAction {
             id = busiEntityService.saveInfo(cust_id, cust_group_id, cust_user_id, busiType, id, info);
             resp.setData(id);
         } catch (Exception e) {
-            logger.error("保存记录异常:"+e.getMessage());
+            logger.error("保存记录异常:",e);
             return new ResponseInfoAssemble().failure(-1, "保存记录异常:["+busiType+"]");
         }
         return resp;
