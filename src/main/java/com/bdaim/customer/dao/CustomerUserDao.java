@@ -1,6 +1,7 @@
 package com.bdaim.customer.dao;
 
 import com.bdaim.common.dao.SimpleHibernateDao;
+import com.bdaim.common.dto.Page;
 import com.bdaim.common.util.NumberConvertUtil;
 import com.bdaim.common.util.SqlAppendUtil;
 import com.bdaim.common.util.StringUtil;
@@ -10,7 +11,6 @@ import com.bdaim.customer.entity.CustomerUser;
 import com.bdaim.customer.entity.CustomerUserGroup;
 import com.bdaim.customer.entity.CustomerUserGroupRel;
 import com.bdaim.customer.entity.CustomerUserPropertyDO;
-import com.bdaim.common.dto.Page;
 import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
@@ -29,6 +29,15 @@ public class CustomerUserDao extends SimpleHibernateDao<CustomerUser, Serializab
         return cp;
     }
 
+    public CustomerUser getUserByAccount(String account) {
+        CustomerUser cp = null;
+        String hql = "from CustomerUser m where m.account=? ";
+        List<CustomerUser> list = this.find(hql, account);
+        if (list.size() > 0)
+            cp = (CustomerUser) list.get(0);
+        return cp;
+    }
+
     public List<CustomerUserPropertyDO> getAllProperty(String userId) {
         String hql = "from CustomerUserPropertyDO m where m.userId=? ";
         List<CustomerUserPropertyDO> list = this.find(hql, userId);
@@ -41,6 +50,7 @@ public class CustomerUserDao extends SimpleHibernateDao<CustomerUser, Serializab
         List<CustomerUser> list = this.find(hql, userType, custId);
         return list;
     }
+
     public CustomerUser selectPropertyByType(int userType, String custId) {
         CustomerUser cp = null;
         String hql = "from CustomerUser m where m.userType=? and m.cust_id=?";
@@ -58,10 +68,11 @@ public class CustomerUserDao extends SimpleHibernateDao<CustomerUser, Serializab
             cp = (CustomerUser) list.get(0);
         return cp;
     }
+
     public CustomerUser getCustomer(String account, String custId) {
         CustomerUser cp = null;
         String hql = "from CustomerUser m where m.account=? AND m.cust_id = ?";
-        List<CustomerUser> list = this.find(hql,account,custId);
+        List<CustomerUser> list = this.find(hql, account, custId);
         if (list.size() > 0)
             cp = (CustomerUser) list.get(0);
         return cp;
@@ -338,6 +349,7 @@ public class CustomerUserDao extends SimpleHibernateDao<CustomerUser, Serializab
 
     /**
      * 获取用户组下的用户
+     *
      * @param groupId
      * @param customerId
      * @return
@@ -403,6 +415,7 @@ public class CustomerUserDao extends SimpleHibernateDao<CustomerUser, Serializab
 
     /**
      * 获取分组下的员工总数
+     *
      * @param groupId
      * @param customerId
      * @return
