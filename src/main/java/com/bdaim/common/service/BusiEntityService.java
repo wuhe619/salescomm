@@ -245,9 +245,8 @@ public class BusiEntityService {
                 		,jo.containsKey("ext_4")?info.getString("ext_4"):""
                 		,jo.containsKey("ext_5")?info.getString("ext_5"):"");
             } catch (Exception e) {
-                e.printStackTrace();
                 logger.error("添加新记录异常:[" + busiType + "]",e);
-                throw new Exception("添加新记录异常:[" + busiType + "]");
+                throw new Exception("添加新记录异常:[" + busiType + "]",e);
             }
         } else {
             // update
@@ -256,7 +255,7 @@ public class BusiEntityService {
                 data = jdbcTemplate.queryForMap("select content from h_data_manager where type=? and cust_id=? and id=?", busiType, cust_id, id);
             } catch (Exception e) {
                 logger.error("读取数据异常:[" + busiType + "]" + id,e);
-                throw new Exception("读取数据异常:[" + busiType + "]" + id);
+                throw new Exception("读取数据异常:[" + busiType + "]" + id,e);
             }
             if (data == null) {
                 logger.warn("数据不存在:[" + busiType + "]" + id);
