@@ -14,10 +14,13 @@ import com.bdaim.customs.entity.HBusiDataManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -142,6 +145,21 @@ public class SbdSService implements BusiService {
     @Override
     public void updateInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) {
         // TODO Auto-generated method stub
+        HBusiDataManager dbManager = getObjectByIdAndType(id,busiType);
+        String content = dbManager.getContent();
+        JSONObject json = JSONObject.parseObject(content);
+        Iterator keys = info.keySet().iterator();
+        while (keys.hasNext()) {
+            String key = (String) keys.next();
+            json.put(key, info.get(key));
+        }
+        updateDataToES(busiType,id.toString(),json);
+        HBusiDataManager fmanager = getObjectByIdAndType(id,busiType);
+        String fcontent = dbManager.getContent();
+
+        JSONObject fjson = JSONObject.parseObject(fcontent);
+
+//        getDataList
 
     }
 
@@ -243,9 +261,16 @@ public class SbdSService implements BusiService {
 
     }
 
+    public List<HBusiDataManager> getDataList(Long pid){
+        String sql2 = "select type,id,content from h_data_manager where  JSON_EXTRACT(content, '$.pid')="+pid;
+        RowMapper<HBusiDataManager> managerRowMapper=new BeanPropertyRowMapper<>(HBusiDataManager.class);
+        return jdbcTemplate.query(sql2,managerRowMapper);
+    }
+
     public HBusiDataManager getObjectByIdAndType(Long id,String type){
         String sql="select * from h_data_manager where id="+id+" and type='"+type+"'";
-        return jdbcTemplate.queryForObject(sql,HBusiDataManager.class);
+        RowMapper<HBusiDataManager> managerRowMapper=new BeanPropertyRowMapper<>(HBusiDataManager.class);
+        return jdbcTemplate.queryForObject(sql,managerRowMapper);
     }
 
     public void delDataListByIdAndType(Long id,String type){

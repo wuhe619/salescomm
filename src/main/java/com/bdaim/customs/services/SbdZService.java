@@ -17,7 +17,9 @@ import com.bdaim.customs.entity.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -239,7 +241,8 @@ public class SbdZService implements BusiService {
 
     public List<HBusiDataManager> getDataList(Long pid) {
         String sql2 = "select type,id,content from h_data_manager where  JSON_EXTRACT(content, '$.pid')=" + pid;
-        return jdbcTemplate.queryForList(sql2, HBusiDataManager.class);
+        RowMapper<HBusiDataManager> managerRowMapper=new BeanPropertyRowMapper<>(HBusiDataManager.class);
+        return jdbcTemplate.query(sql2, managerRowMapper);
     }
 
     /**

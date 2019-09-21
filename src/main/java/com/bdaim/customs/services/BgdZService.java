@@ -14,7 +14,9 @@ import com.bdaim.customs.entity.HBusiDataManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -117,6 +119,7 @@ public class BgdZService implements BusiService{
 
 	public HBusiDataManager getObjectByIdAndType(Long id,String type){
 		String sql="select * from h_data_manager where id="+id+" and type='"+type+"'";
+		RowMapper<HBusiDataManager> managerRowMapper=new BeanPropertyRowMapper<>(HBusiDataManager.class);
 		return jdbcTemplate.queryForObject(sql,HBusiDataManager.class);
 	}
 
@@ -124,6 +127,7 @@ public class BgdZService implements BusiService{
 		String sql="delete from h_data_manager where type='"+type+"' and id="+id;
 		jdbcTemplate.execute(sql);
 	}
+
 	/**
 	 * 添加数据到es
 	 *
@@ -222,6 +226,7 @@ public class BgdZService implements BusiService{
 
 	public List<HBusiDataManager> getDataList(Long pid){
 		String sql2 = "select type,id,content from h_data_manager where  JSON_EXTRACT(content, '$.pid')="+pid;
-		return jdbcTemplate.queryForList(sql2,HBusiDataManager.class);
+		RowMapper<HBusiDataManager> managerRowMapper=new BeanPropertyRowMapper<>(HBusiDataManager.class);
+		return jdbcTemplate.query(sql2,managerRowMapper);
 	}
 }
