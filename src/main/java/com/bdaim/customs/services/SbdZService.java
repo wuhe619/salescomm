@@ -109,8 +109,9 @@ public class SbdZService implements BusiService{
                 String updateSql = "UPDATE h_data_manager SET ext_7 = 3 WHERE id IN(" + SqlAppendUtil.sqlAppendWhereIn(ids) + ")";
                 jdbcTemplate.update(updateSql);
             }
-
-        }
+        }else {
+			updateDataToES(busiType,id.toString(),info);
+		}
     }
 
 	@Override
@@ -120,9 +121,25 @@ public class SbdZService implements BusiService{
 	}
 
 	@Override
-	public void deleteInfo(String busiType, String cust_id, String cust_group_id, String cust_user_id, Long id) {
-		// TODO Auto-generated method stub
-		
+	public void deleteInfo(String busiType, String cust_id, String cust_group_id, String cust_user_id, Long id) throws Exception {
+		String sql="select id,type,content,ext_1,ext_2,ext_3,ext_4 from h_data_manager where id="+id +" and type='"+busiType+"'";
+		HBusiDataManager manager = jdbcTemplate.queryForObject(sql,HBusiDataManager.class);
+
+		if ("Y".equals(manager.getExt_1()) || "Y".equals(manager.getExt_2())) {
+			throw new Exception("已经被提交，无法删除");
+		}
+
+		List<HBusiDataManager> list = getDataList(id);
+		for(HBusiDataManager hBusiDataManager:list){
+			List<HBusiDataManager> slist = getDataList(hBusiDataManager.getId().longValue());//所有税单
+			for(HBusiDataManager shBusiDataManager:slist) {
+				deleteDatafromES(BusiTypeEnum.CS.getType(),shBusiDataManager.getId().toString());
+			}
+			deleteDatafromES(BusiTypeEnum.CS.getType(),hBusiDataManager.getId().toString());
+			delDataListByPid(hBusiDataManager.getId().longValue());
+		}
+		delDataListByPid(id);
+
 	}
 
 	@Override
@@ -137,6 +154,43 @@ public class SbdZService implements BusiService{
 		
 	}
 
+	public void delDataListByPid(Long pid){
+		String sql="delete from h_data_manager where JSON_EXTRACT(content, '$.pid')="+pid;
+		jdbcTemplate.execute(sql);
+	}
+
+	public List<HBusiDataManager> getDataList(Long pid){
+		String sql2 = "select type,id,content from h_data_manager where  JSON_EXTRACT(content, '$.pid')="+pid;
+		return jdbcTemplate.queryForList(sql2,HBusiDataManager.class);
+	}
+
+	/**
+	 * 从es删除文档
+	 *
+	 * @param type
+	 * @param id
+	 */
+	private void deleteDatafromES(String type, String id) {
+		if (type.equals(BusiTypeEnum.SZ.getType())) {
+			elasticSearchService.deleteDocumentFromType(Constants.SZ_INFO_INDEX, "haiguan", id);
+		}else if(type.equals(BusiTypeEnum.CZ.getType())){
+			elasticSearchService.deleteDocumentFromType(Constants.CZ_INFO_INDEX, "haiguan", id);
+		}else if(type.equals(BusiTypeEnum.BZ.getType())){
+			elasticSearchService.deleteDocumentFromType(Constants.BZ_INFO_INDEX, "haiguan", id);
+		} else if (type.equals(BusiTypeEnum.SF.getType())) {
+			elasticSearchService.deleteDocumentFromType(Constants.SF_INFO_INDEX, "haiguan", id);
+		}else if( type.equals(BusiTypeEnum.CF.getType())){
+			elasticSearchService.deleteDocumentFromType(Constants.CF_INFO_INDEX, "haiguan", id);
+		}else if(type.equals(BusiTypeEnum.BF.getType())){
+			elasticSearchService.deleteDocumentFromType(Constants.BF_INFO_INDEX, "haiguan", id);
+		}else if (type.equals(BusiTypeEnum.SS.getType())) {
+			elasticSearchService.deleteDocumentFromType(Constants.SS_INFO_INDEX, "haiguan", id);
+		}else if(type.equals(BusiTypeEnum.CS.getType())){
+			elasticSearchService.deleteDocumentFromType(Constants.CS_INFO_INDEX, "haiguan", id);
+		}else if(type.equals(BusiTypeEnum.BS.getType())){
+			elasticSearchService.deleteDocumentFromType(Constants.BS_INFO_INDEX, "haiguan", id);
+		}
+	}
 
 	/**
 	 * 添加数据到es
@@ -166,6 +220,35 @@ public class SbdZService implements BusiService{
 		}else if(type.equals(BusiTypeEnum.BS.getType())){
 			elasticSearchService.addDocumentToType(Constants.BS_INFO_INDEX, "haiguan", id.toString(), JSON.parseObject(hBusiDataManager.getContent()));
 		}
+	}
+
+	/**
+	 * 更新es
+	 * @param type
+	 * @param id
+	 * @param content
+	 */
+	private void updateDataToES(String type,String id,JSONObject content) {
+		if (type.equals(BusiTypeEnum.SZ.getType())) {
+			elasticSearchService.updateDocumentToType(Constants.SZ_INFO_INDEX, "haiguan", id, content);
+		}else if(type.equals(BusiTypeEnum.CZ.getType())){
+			elasticSearchService.updateDocumentToType(Constants.CZ_INFO_INDEX, "haiguan", id, content);
+		}else if(type.equals(BusiTypeEnum.BZ.getType())){
+			elasticSearchService.updateDocumentToType(Constants.BZ_INFO_INDEX, "haiguan", id, content);
+		} else if (type.equals(BusiTypeEnum.SF.getType())) {
+			elasticSearchService.updateDocumentToType(Constants.SF_INFO_INDEX, "haiguan", id, content);
+		}else if( type.equals(BusiTypeEnum.CF.getType())){
+			elasticSearchService.updateDocumentToType(Constants.CF_INFO_INDEX, "haiguan", id, content);
+		}else if(type.equals(BusiTypeEnum.BF.getType())){
+			elasticSearchService.updateDocumentToType(Constants.BF_INFO_INDEX, "haiguan", id, content);
+		}else if (type.equals(BusiTypeEnum.SS.getType())) {
+			elasticSearchService.updateDocumentToType(Constants.SS_INFO_INDEX, "haiguan", id, content);
+		}else if(type.equals(BusiTypeEnum.CS.getType())){
+			elasticSearchService.updateDocumentToType(Constants.CS_INFO_INDEX, "haiguan", id, content);
+		}else if(type.equals(BusiTypeEnum.BS.getType())){
+			elasticSearchService.updateDocumentToType(Constants.BS_INFO_INDEX, "haiguan", id, content);
+		}
+
 	}
 
 	public void buildMain(JSONObject info,List<HBusiDataManager> list, MainDan mainDan, Long userId,Long custId, String station_id,Long mainid) throws Exception {
@@ -408,11 +491,11 @@ public class SbdZService implements BusiService{
         info.put("party_total", list.size());//分单总数
 
 		if (Integer.valueOf(partynum) < list.size()) {
-            info.put("overWarp", "溢装");//溢装
+            info.put("over_warp", "溢装");//溢装
 		} else if (Integer.valueOf(partynum) > list.size()) {
-            info.put("overWarp", "短装");//短装
+            info.put("over_warp", "短装");//短装
 		} else {
-            info.put("overWarp", "正常");//正常
+            info.put("over_warp", "正常");//正常
 		}
 
 		//todo:低价商品暂时不处理
