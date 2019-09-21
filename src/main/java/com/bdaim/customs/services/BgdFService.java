@@ -2,6 +2,19 @@ package com.bdaim.customs.services;
 
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.service.BusiService;
+import com.bdaim.common.service.ElasticSearchService;
+import com.bdaim.common.service.SequenceService;
+import com.bdaim.customer.dao.CustomerDao;
+import com.bdaim.customs.dao.HBusiDataManagerDao;
+import com.bdaim.customs.entity.BusiTypeEnum;
+import com.bdaim.customs.entity.Constants;
+import com.bdaim.customs.entity.HBusiDataManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,16 +34,8 @@ public class BgdFService implements BusiService{
 	@Autowired
 	private ElasticSearchService elasticSearchService;
 
-	private static Logger log = LoggerFactory.getLogger(BgdFService.class);
-
-	@Autowired
-	private ElasticSearchService elasticSearchService;
-
 	@Autowired
 	private CustomerDao customerDao;
-
-	@Resource
-	private JdbcTemplate jdbcTemplate;
 
 	@Autowired
 	private SequenceService sequenceService;
