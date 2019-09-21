@@ -295,6 +295,7 @@ public class CdZService implements BusiService {
             hm.setCust_id(hp.getCust_id());
             JSONObject _content = JSON.parseObject(hp.getContent());
             _content.put("pid", id);
+            _content.put("main_bill_no", json.get("bill_no"));
             hm.setContent(_content.toJSONString());
             dataList.add(hm);
             List<HBusiDataManager> goods = getDataList(hp.getId().longValue());
@@ -306,6 +307,7 @@ public class CdZService implements BusiService {
                 good.setCreateDate(new Date());
                 JSONObject __content = JSON.parseObject(gp.getContent());
                 __content.put("pid", fid);
+                _content.put("main_bill_no", _content.get("bill_no"));
                 good.setContent(__content.toJSONString());
                 good.setType(BusiTypeEnum.CS.getType());
                 good.setCreateId(gp.getCreateId());
