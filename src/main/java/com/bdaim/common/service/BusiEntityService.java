@@ -226,7 +226,7 @@ public class BusiEntityService {
                 Iterator ifks = info.keySet().iterator();
                 while (ifks.hasNext()) {
                     String key = (String) ifks.next();
-                    if ("id".equals(key) || "cust_id".equals(key) || "create_id".equals(key) || "create_date".equals(key) || key.startsWith("rule.")) //关键字冲突
+                    if ("id".equals(key) || "cust_id".equals(key) || "create_id".equals(key) || "create_date".equals(key) || key.startsWith("_")) //关键字冲突
                         info.remove(key);
                 }
 
@@ -276,7 +276,7 @@ public class BusiEntityService {
                 Iterator ifks = jo.keySet().iterator();
                 while (ifks.hasNext()) {
                     String key = (String) ifks.next();
-                    if ("id".equals(key) || "cust_id".equals(key) || "create_id".equals(key) || "create_date".equals(key) || key.startsWith("rule.")) //关键字冲突
+                    if ("id".equals(key) || "cust_id".equals(key) || "create_id".equals(key) || "create_date".equals(key) || key.startsWith("_")) //关键字冲突
                         jo.remove(key);
                 }
 
