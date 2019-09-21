@@ -30,7 +30,7 @@ public class BusiEntityService {
     /*
      * 按ID获取记录
      */
-    public JSONObject getInfo(String cust_id, String cust_group_id, Long cust_user_id, String busiType, Long id) throws Exception {
+    public JSONObject getInfo(String cust_id, String cust_group_id, Long cust_user_id, String busiType, Long id, JSONObject param) throws Exception {
         JSONObject jo = null;
 
         String sql = "select content, cust_id, cust_group_id, cust_user_id, create_id, create_date ,ext_1, ext_2, ext_3, ext_4, ext_5 from h_data_manager where type=? and id=? ";
@@ -64,7 +64,7 @@ public class BusiEntityService {
 
             //执行自定义单数据规则
             BusiService busiService = (BusiService) SpringContextHelper.getBean("busi_" + busiType);
-            busiService.getInfo(busiType, cust_id, cust_group_id, cust_user_id, id, jo);
+            busiService.getInfo(busiType, cust_id, cust_group_id, cust_user_id, id, jo,param);
         } catch (Exception e) {
             logger.error(e.getMessage());
             throw new Exception("数据格式错误！");
@@ -220,9 +220,9 @@ public class BusiEntityService {
         	if(info.containsKey(extKey))
         		info.remove(extKey);
         }
-        
+
         JSONObject jo = null;
-        
+
         if (id == null || id == 0) {
             //insert
             id = sequenceService.getSeq(busiType);
@@ -232,7 +232,7 @@ public class BusiEntityService {
                 //执行自定义新增规则
                 BusiService busiService = (BusiService) SpringContextHelper.getBean("busi_" + busiType);
                 busiService.insertInfo(busiType, cust_id, cust_group_id, cust_user_id, id, jo);
-                
+
                 if(jo.containsKey("_rule_"))
                 	jo.remove("_rule_");
 
@@ -283,7 +283,7 @@ public class BusiEntityService {
                 StringBuffer sql2 = new StringBuffer("update h_data_manager set update_id=?,update_date=now() ");
                 List sqlParams = new ArrayList();
                 sqlParams.add(cust_user_id);
-                
+
                 if(jo.containsKey("_rule_"))
                 	jo.remove("_rule_");
                 for(String extKey : extKeys) {

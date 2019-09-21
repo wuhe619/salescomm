@@ -1,21 +1,8 @@
 package com.bdaim.common.service;
 
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.bdaim.auth.LoginUser;
-import com.bdaim.common.dao.DicDao;
-import com.bdaim.common.dao.SettlementDao;
 import com.bdaim.common.dto.Page;
-import com.bdaim.common.entity.Dic;
-import com.bdaim.common.entity.DicProperty;
-import com.bdaim.fund.entity.Settlement;
-import com.bdaim.fund.entity.SettlementProperty;
-import com.bdaim.log.service.OperLogService;
-import com.bdaim.common.util.*;
 import com.bdaim.common.util.spring.SpringContextHelper;
-import com.bdaim.customer.dao.CustomerDao;
-import com.bdaim.rbac.dao.UserDao;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,13 +10,12 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.annotation.Resource;
+import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-
-import javax.annotation.Resource;
-import javax.transaction.Transactional;
 
 /**
  *  通用业务文件服务
@@ -48,7 +34,7 @@ public class BusiFileService {
     /*
      * 按ID获取文件
      */
-    public JSONObject getInfo(String cust_id, String cust_group_id, String cust_user_id, String busiType, Long id) throws Exception{
+    public JSONObject getInfo(String cust_id, String cust_group_id, long cust_user_id, String busiType, Long id,JSONObject param) throws Exception{
     	JSONObject jo = null;
     	
     	String sql = "select content, cust_id, cust_group_id, cust_user_id, create_id, create_date, update_id, update_date,file_type,file_name,file_size,file_id,ext_1 from f_file where type=? and id=? ";
@@ -90,7 +76,7 @@ public class BusiFileService {
     /*
      * 查询文件
      */
-    public Page query(String cust_id, String cust_group_id, String cust_user_id, String busiType, JSONObject params) throws Exception{
+    public Page query(String cust_id, String cust_group_id, long cust_user_id, String busiType, JSONObject params) throws Exception{
     	Page p = new Page();
     	
     	List sqlParams =  new ArrayList();
@@ -99,7 +85,7 @@ public class BusiFileService {
     	String sql = null;
     	try {
     		//执行自定义查询sql
-    		sql = busiService.formatQuery(busiType, cust_id, cust_group_id, Long.valueOf(cust_user_id), params, sqlParams);
+    		sql = busiService.formatQuery(busiType, cust_id, cust_group_id, cust_user_id, params, sqlParams);
     	}catch(Exception e) {
     		logger.error(e.getMessage());
     		throw new Exception("查询条件自定义解析异常:["+busiType+"]");
@@ -178,7 +164,7 @@ public class BusiFileService {
 	    		
 	    		try {
 	    			//执行自定义查询结果格式化
-	    			busiService.formatInfo(busiType, cust_id, cust_group_id, Long.valueOf(cust_user_id), jo);
+	    			busiService.formatInfo(busiType, cust_id, cust_group_id, cust_user_id, jo);
 	    		}catch(Exception e) {
 	    			logger.error(e.getMessage());
 	    		}
@@ -285,7 +271,7 @@ public class BusiFileService {
     /**
      * 删除文件
      */
-    public void deleteInfo(String cust_id, String cust_group_id, String cust_user_id, String busiType, Long id) throws Exception{
+    public void deleteInfo(String cust_id, String cust_group_id, Long cust_user_id, String busiType, Long id) throws Exception{
     	String sql = "delete from f_file where type=? and cust_id=? and id=?";
     	try {
     		//执行自定义删除规则
