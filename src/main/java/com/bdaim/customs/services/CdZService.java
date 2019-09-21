@@ -31,7 +31,7 @@ import java.util.List;
 @Service("busi_cd_z")
 public class CdZService implements BusiService{
 
-	private static Logger log = LoggerFactory.getLogger(BusiService.class);
+	private static Logger log = LoggerFactory.getLogger(CdZService.class);
 
 	@Autowired
 	private ElasticSearchService elasticSearchService;

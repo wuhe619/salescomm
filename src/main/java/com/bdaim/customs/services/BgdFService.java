@@ -2,8 +2,20 @@ package com.bdaim.customs.services;
 
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.service.BusiService;
+import com.bdaim.common.service.ElasticSearchService;
+import com.bdaim.common.service.SequenceService;
+import com.bdaim.customer.dao.CustomerDao;
+import com.bdaim.customs.dao.HBusiDataManagerDao;
+import com.bdaim.customs.entity.HBusiDataManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.util.List;
 
 /***
@@ -11,6 +23,24 @@ import java.util.List;
  */
 @Service("busi_bgd_f")
 public class BgdFService implements BusiService{
+
+	private static Logger log = LoggerFactory.getLogger(BgdFService.class);
+
+	@Autowired
+	private ElasticSearchService elasticSearchService;
+
+	@Autowired
+	private CustomerDao customerDao;
+
+	@Resource
+	private JdbcTemplate jdbcTemplate;
+
+	@Autowired
+	private SequenceService sequenceService;
+
+	@Autowired
+	private HBusiDataManagerDao hBusiDataManagerDao;
+
 
 	@Override
 	public void insertInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) {
@@ -46,6 +76,19 @@ public class BgdFService implements BusiService{
 	public void formatInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, JSONObject info) {
 		// TODO Auto-generated method stub
 		
+	}
+
+	public HBusiDataManager getObjectByIdAndType(Long id, String type){
+		String sql="select * from h_data_manager where id="+id+" and type='"+type+"'";
+		RowMapper<HBusiDataManager> managerRowMapper=new BeanPropertyRowMapper<>(HBusiDataManager.class);
+		return jdbcTemplate.queryForObject(sql,managerRowMapper);
+	}
+
+
+	public List<HBusiDataManager> getDataList(Long pid){
+		String sql2 = "select * from h_data_manager where  JSON_EXTRACT(content, '$.pid')="+pid +" or JSON_EXTRACT(content, '$.pid')='"+pid+"'";
+		RowMapper<HBusiDataManager>managerRowMapper = new BeanPropertyRowMapper<>(HBusiDataManager.class);
+		return jdbcTemplate.query(sql2,managerRowMapper);
 	}
 
 }

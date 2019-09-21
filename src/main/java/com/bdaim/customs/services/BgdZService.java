@@ -31,7 +31,7 @@ import java.util.List;
 @Service("busi_bgd_z")
 public class BgdZService implements BusiService{
 
-	private static Logger log = LoggerFactory.getLogger(BusiService.class);
+	private static Logger log = LoggerFactory.getLogger(BgdZService.class);
 
 	@Autowired
 	private ElasticSearchService elasticSearchService;
