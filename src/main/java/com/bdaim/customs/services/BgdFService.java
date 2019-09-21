@@ -1,11 +1,10 @@
 package com.bdaim.customs.services;
 
-import java.util.List;
-
-import org.springframework.stereotype.Service;
-
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.service.BusiService;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 /***
  * 报关单.分单
@@ -26,7 +25,7 @@ public class BgdFService implements BusiService{
 	}
 
 	@Override
-	public void getInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) {
+	public void getInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info, JSONObject param) {
 		// TODO Auto-generated method stub
 		
 	}

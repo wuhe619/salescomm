@@ -5,10 +5,16 @@ import com.bdaim.auth.LoginUser;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.common.service.BusiEntityService;
+import com.bdaim.common.util.StringUtil;
+import com.bdaim.customs.services.ExportExcelService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpServletResponse;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 业务实体服务
@@ -21,7 +27,10 @@ public class BusiEntityController extends BasicAction {
     @Autowired
     private BusiEntityService busiEntityService;
 
-    /**
+    @Autowired
+    private ExportExcelService exportExcelService;
+
+   /**
      * 按多条件查询
      */
     @ResponseBody
@@ -94,28 +103,44 @@ public class BusiEntityController extends BasicAction {
     
     /**
      * 根据id唯一标识获取记录
-     *
      */
     @ResponseBody
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
-    public ResponseInfo getInfo(@PathVariable(name = "id") Long id, @PathVariable(name = "busiType") String busiType) {
-    	ResponseInfo resp = new ResponseInfo();
-    	
+    public ResponseInfo getInfo(@PathVariable(name = "id") Long id, @RequestBody(required = false) String body, @PathVariable(name = "busiType") String busiType, HttpServletResponse response) {
+        ResponseInfo resp = new ResponseInfo();
+        JSONObject param = null;
+        try {
+            if (body == null || "".equals(body))
+                body = "{}";
+
+            param = JSONObject.parseObject(body);
+        } catch (Exception e) {
+            return new ResponseInfoAssemble().failure(-1, "记录解析异常:[" + busiType + "]");
+        }
         try {
         	LoginUser lu = opUser();
         	String cust_id = lu.getCustId();
         	String cust_group_id = lu.getUserGroupId();
         	Long cust_user_id = lu.getId();
-        	
-        	JSONObject jo = busiEntityService.getInfo(cust_id, cust_group_id, cust_user_id, busiType, id);
-        	resp.setData(jo);
+            JSONObject jo = busiEntityService.getInfo(cust_id, cust_group_id, cust_user_id, busiType, id, param);
+            // 导出直接下载文件
+            if (StringUtil.isNotEmpty(param.getString("_rule_")) && param.getString("_rule_").startsWith("_export_")) {
+                List list = null;
+                if (jo.getInteger("export_type") != null && jo.getInteger("export_type").intValue() == 2) {
+                    list = new ArrayList();
+                    list.add(jo);
+                }
+                exportExcelService.exportExcel(jo.getInteger("id"), list, param.getString("_rule_"), response);
+                return null;
+            }
+            resp.setData(jo);
         } catch (Exception e) {
-            logger.error("获取记录异常:"+id+" "+e.getMessage());
-            return new ResponseInfoAssemble().failure(-1, "查询记录异常["+busiType+"]");
+            logger.error("获取记录异常:" + id + " " + e.getMessage());
+            return new ResponseInfoAssemble().failure(-1, "查询记录异常[" + busiType + "]");
         }
         return resp;
     }
-    
+
     /**
      * 根据id唯一标识删除记录
      *
