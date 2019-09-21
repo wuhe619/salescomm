@@ -57,7 +57,7 @@ public class SbdZService implements BusiService{
 			throw new Exception("未配置场站信息");
 		}
 		String billno = info.getString("bill_no");
-		String sql="select id from h_data_manager where  type='"+busiType+ " and JSON_EXTRACT(content, '$.ext_3')='"+billno+"'";
+		String sql="select id from h_data_manager where  type='"+busiType+ "' and JSON_EXTRACT(content, '$.ext_3')='"+billno+"'";
 		List<Map<String,Object>>countList = jdbcTemplate.queryForList(sql);
 		if(countList!=null && countList.size()>0){
 			throw new Exception("此主单已经申报");
