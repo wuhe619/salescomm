@@ -108,7 +108,7 @@ public class BusiEntityService {
                 if ("cust_id".equals(key)) {
                     sqlstr.append(" and cust_id=?");
                 } else if (key.startsWith("_c_")) {
-                    sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(3) + "') like '%?%'");
+                    sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(3) + "') like concat('%',?,'%')");
                 } else if (key.startsWith("_g_")) {
                     sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(3) + "') > ?");
                 } else if (key.startsWith("_ge_")) {
