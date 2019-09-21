@@ -58,10 +58,10 @@ public class SbdZService implements BusiService{
 			throw new Exception("未配置场站信息");
 		}
 		String billno = info.getString("bill_no");
-		int count = hBusiDataManagerDao.findCount("from HBusiDataManager where ext_3='"+billno+"' and type='"+BusiTypeEnum.SZ.getType()+"'");
+		/*int count = hBusiDataManagerDao.findCount("from HBusiDataManager where ext_3='"+billno+"' and type='"+BusiTypeEnum.SZ.getType()+"'");
 		if(count>0){
 		    throw new Exception("此主单已经申报");
-        }
+        }*/
 		List<HBusiDataManager> list = new ArrayList<>();
 		MainDan mainDan = JSON.parseObject(info.toJSONString(),MainDan.class);
 		try {
