@@ -153,7 +153,7 @@ public class CdZService implements BusiService{
 	public void buildDanList(JSONObject info,Long id,List<HBusiDataManager> dataList, String custId,Long userId, HBusiDataManager h) throws Exception {
 		HBusiDataManager CZ = new HBusiDataManager();
 		CZ.setType(BusiTypeEnum.CZ.getType());
-
+		CZ.setId(id.intValue());
 		CZ.setCreateDate(new Date());
 		CZ.setCust_id(Long.valueOf(custId));
 		CZ.setCreateId(Long.valueOf(userId));

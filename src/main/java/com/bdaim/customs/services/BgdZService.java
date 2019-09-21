@@ -120,7 +120,7 @@ public class BgdZService implements BusiService{
 	public HBusiDataManager getObjectByIdAndType(Long id,String type){
 		String sql="select * from h_data_manager where id="+id+" and type='"+type+"'";
 		RowMapper<HBusiDataManager> managerRowMapper=new BeanPropertyRowMapper<>(HBusiDataManager.class);
-		return jdbcTemplate.queryForObject(sql,HBusiDataManager.class);
+		return jdbcTemplate.queryForObject(sql,managerRowMapper);
 	}
 
 	public void delDataListByIdAndType(Long id,String type){
@@ -161,7 +161,7 @@ public class BgdZService implements BusiService{
 	public void buildDanList(JSONObject info,Long id,List<HBusiDataManager> dataList, String custId,Long userId, HBusiDataManager h, String type) throws Exception {
 		HBusiDataManager CZ = new HBusiDataManager();
 		CZ.setType(BusiTypeEnum.BZ.getType());
-
+		CZ.setId(id.intValue());
 		CZ.setCreateDate(new Date());
 		CZ.setCust_id(Long.valueOf(custId));
 		CZ.setCreateId(Long.valueOf(userId));
