@@ -109,10 +109,18 @@ public class BusiEntityService {
                     sqlstr.append(" and cust_id=?");
                 } else if (key.endsWith(".c")) {
                     sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(0, key.length() - 2) + "') like '%?%'");
-                } else if (key.endsWith(".start") ) {
+                } else if (key.endsWith(".start")) {
                     sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(0, key.length() - 6) + "') >= ?");
                 } else if (key.endsWith(".end")) {
-                    sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(0, key.length() - 6) + "') <= ?");
+                    sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(0, key.length() - 4) + "') <= ?");
+                } else if (key.endsWith(".num.range")) {
+                    if ("0".equals(String.valueOf(params.get(key)))) {
+                        sqlstr.append(" and ( JSON_EXTRACT(content, '$." + key.substring(0, key.length() - 10) + "') <= ?")
+                                .append(" OR JSON_EXTRACT(content, '$." + key.substring(0, key.length() - 10) + "') = '' ")
+                                .append(" OR JSON_EXTRACT(content, '$." + key.substring(0, key.length() - 10) + "') IS NULL ) ");
+                    } else {
+                        sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(0, key.length() - 10) + "') >= ?");
+                    }
                 } else {
                     sqlstr.append(" and JSON_EXTRACT(content, '$." + key + "')=?");
                 }
