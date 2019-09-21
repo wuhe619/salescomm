@@ -127,10 +127,31 @@ public class SbdZService implements BusiService {
                 case "_export_v_nopass":
                     info.put("export_type", 1);
                     break;
-                // 查询报检单,理货单下的分单和商品
+                // 低价商品
+                case "_export_low_product":
+                    param.put("_ge_low_price_goods", 1);
+                    //查询包含低价的分单列表
+                    List singles = queryChildData(BusiTypeEnum.SF.getType(), cust_id, cust_group_id, cust_user_id, id, info, param);
+                    if (singles != null) {
+                        param.remove("_ge_low_price_goods");
+                        param.put("_eq_low_price_goods", 1);
+                        List products = new ArrayList();
+                        List tmp;
+                        JSONObject js;
+                        // 查询分单下的低价商品
+                        for (int i = 0; i < singles.size(); i++) {
+                            js = (JSONObject) singles.get(i);
+                            tmp = queryChildData(BusiTypeEnum.SS.getType(), cust_id, cust_group_id, cust_user_id, js.getLong("id"), info, param);
+                            if (tmp != null && tmp.size() > 0) {
+                                products.add(tmp);
+                            }
+                        }
+                        info.put("low_price_goods", products);
+                    }
+                    // 查询报检单,理货单下的分单和商品
                 case "_export_declaration_form":
                 case "_export_tally_form":
-                    List singles = queryChildData(BusiTypeEnum.SF.getType(), cust_id, cust_group_id, cust_user_id, id, info, param);
+                    singles = queryChildData(BusiTypeEnum.SF.getType(), cust_id, cust_group_id, cust_user_id, id, info, param);
                     if (singles != null) {
                         info.put("singles", singles);
                         List products;
@@ -138,7 +159,7 @@ public class SbdZService implements BusiService {
                         for (int i = 0; i < singles.size(); i++) {
                             js = (JSONObject) singles.get(i);
                             products = queryChildData(BusiTypeEnum.SS.getType(), cust_id, cust_group_id, cust_user_id, js.getLong("id"), info, param);
-                            info.put("products", products);
+                            js.put("products", products);
                         }
                     }
                     break;
@@ -202,17 +223,17 @@ public class SbdZService implements BusiService {
                 }
             } else if ("commit_status".equals(key)) {
                 // 提交记录特殊处理
-                if("1".equals(String.valueOf(params.get(key)))){
+                if ("1".equals(String.valueOf(params.get(key)))) {
                     //  未提交
                     sqlstr.append(" AND ( JSON_EXTRACT(content, '$.commit_cangdan_status') = 'N' OR JSON_EXTRACT(content, '$.commit_cangdan_status') = '' )  ")
                             .append(" AND ( JSON_EXTRACT(content, '$.commit_baodan_status') = 'N' OR JSON_EXTRACT(content, '$.commit_baodan_status') = '' )  ");
-                }else if("2".equals(String.valueOf(params.get(key)))){
+                } else if ("2".equals(String.valueOf(params.get(key)))) {
                     //  舱单已提交
                     sqlstr.append(" AND JSON_EXTRACT(content, '$.commit_cangdan_status') = 'Y' ");
-                }else if("3".equals(String.valueOf(params.get(key)))){
+                } else if ("3".equals(String.valueOf(params.get(key)))) {
                     //  报单已提交
                     sqlstr.append(" AND JSON_EXTRACT(content, '$.commit_baodan_status') = 'Y' ");
-                }else if("4".equals(String.valueOf(params.get(key)))){
+                } else if ("4".equals(String.valueOf(params.get(key)))) {
                     //  舱单 报单都提交
                     sqlstr.append(" AND ( JSON_EXTRACT(content, '$.commit_cangdan_status') = 'Y' AND JSON_EXTRACT(content, '$.commit_baodan_status') = 'Y' ) ");
                 }
@@ -610,15 +631,25 @@ public class SbdZService implements BusiService {
             sqlstr.append(" and cust_id='").append(cust_id).append("'");
 
         sqlParams.add(busiType);
-        Iterator keys = info.keySet().iterator();
+        Iterator keys = param.keySet().iterator();
         while (keys.hasNext()) {
             String key = (String) keys.next();
             if ("cust_id".equals(key)) {
                 sqlstr.append(" and cust_id=?");
+            } else if (key.startsWith("_g_")) {
+                sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(3) + "') > ?");
+            } else if (key.startsWith("_ge_")) {
+                sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(4) + "') >= ?");
+            } else if (key.startsWith("_l_")) {
+                sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(3) + "') < ?");
+            } else if (key.startsWith("_le_")) {
+                sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(4) + "') <= ?");
+            } else if (key.startsWith("_eq_")) {
+                sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(4) + "') = ?");
             } else {
                 sqlstr.append(" and JSON_EXTRACT(content, '$." + key + "')=?");
             }
-            sqlParams.add(info.get(key));
+            sqlParams.add(param.get(key));
         }
         sqlstr.append(" and JSON_EXTRACT(content, '$.pid')=?");
         sqlParams.add(pid);

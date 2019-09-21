@@ -59,7 +59,7 @@ public class BusiEntityController extends BasicAction {
         	
         	resp.setData(busiEntityService.query(cust_id, cust_group_id, cust_user_id, busiType, params));
         } catch (Exception e) {
-            logger.error("查询记录异常:"+e.getMessage());
+            logger.error("查询记录异常,",e);
             return new ResponseInfoAssemble().failure(-1, "查询记录异常["+busiType+"]");
         }
         return resp;
@@ -95,7 +95,7 @@ public class BusiEntityController extends BasicAction {
             id = busiEntityService.saveInfo(cust_id, cust_group_id, cust_user_id, busiType, id, info);
             resp.setData(id);
         } catch (Exception e) {
-            logger.error("保存记录异常:"+e.getMessage());
+            logger.error("保存记录异常:",e);
             return new ResponseInfoAssemble().failure(-1, "保存记录异常:["+busiType+"]");
         }
         return resp;
@@ -130,12 +130,16 @@ public class BusiEntityController extends BasicAction {
                     list = new ArrayList();
                     list.add(jo);
                 }
+                // 低价商品
+                if("_export_low_product".equals(param.getString("_rule_"))){
+                    list = jo.getJSONArray("low_price_goods");
+                }
                 exportExcelService.exportExcel(jo.getInteger("id"), list, param.getString("_rule_"), response);
                 return null;
             }
             resp.setData(jo);
         } catch (Exception e) {
-            logger.error("获取记录异常:" + id + " " + e.getMessage());
+            logger.error("获取记录异常:" + id , e);
             return new ResponseInfoAssemble().failure(-1, "查询记录异常[" + busiType + "]");
         }
         return resp;
@@ -160,7 +164,7 @@ public class BusiEntityController extends BasicAction {
         	
         	busiEntityService.deleteInfo(cust_id, cust_group_id, cust_user_id, busiType, id);
         } catch (Exception e) {
-            logger.error("删除记录异常:"+id+" "+ e.getMessage());
+            logger.error("删除记录异常:"+id,e);
             return new ResponseInfoAssemble().failure(-1, "删除记录异常["+busiType+"]");
         }
         return resp;
