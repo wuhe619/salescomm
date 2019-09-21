@@ -107,19 +107,23 @@ public class BusiEntityService {
                 if ("pageNum".equals(key) || "pageSize".equals(key)) continue;
                 if ("cust_id".equals(key)) {
                     sqlstr.append(" and cust_id=?");
-                } else if (key.endsWith(".c")) {
-                    sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(0, key.length() - 2) + "') like '%?%'");
-                } else if (key.endsWith(".start")) {
-                    sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(0, key.length() - 6) + "') >= ?");
-                } else if (key.endsWith(".end")) {
-                    sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(0, key.length() - 4) + "') <= ?");
-                } else if (key.endsWith(".num.range")) {
+                } else if (key.startsWith("_c_")) {
+                    sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(3) + "') like '%?%'");
+                } else if (key.startsWith("_g_")) {
+                    sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(3) + "') > ?");
+                } else if (key.startsWith("_ge_")) {
+                    sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(4) + "') >= ?");
+                } else if (key.startsWith("_l_")) {
+                    sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(3) + "') < ?");
+                } else if (key.startsWith("_le_")) {
+                    sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(4) + "') <= ?");
+                } else if (key.startsWith("_range_")) {
                     if ("0".equals(String.valueOf(params.get(key)))) {
-                        sqlstr.append(" and ( JSON_EXTRACT(content, '$." + key.substring(0, key.length() - 10) + "') <= ?")
-                                .append(" OR JSON_EXTRACT(content, '$." + key.substring(0, key.length() - 10) + "') = '' ")
-                                .append(" OR JSON_EXTRACT(content, '$." + key.substring(0, key.length() - 10) + "') IS NULL ) ");
+                        sqlstr.append(" and ( JSON_EXTRACT(content, '$." + key.substring(7) + "') <= ?")
+                                .append(" OR JSON_EXTRACT(content, '$." + key.substring(7) + "') = '' ")
+                                .append(" OR JSON_EXTRACT(content, '$." + key.substring(7) + "') IS NULL ) ");
                     } else {
-                        sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(0, key.length() - 10) + "') >= ?");
+                        sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(7) + "') >= ?");
                     }
                 } else {
                     sqlstr.append(" and JSON_EXTRACT(content, '$." + key + "')=?");
