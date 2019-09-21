@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -208,5 +209,13 @@ public class TokenServiceImpl implements TokenService {
     public Token removeToken(String username) {
         // TODO Auto-generated method stub
         return null;
+    }
+    
+    public LoginUser opUser() {
+        Token u = (LoginUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if(u instanceof LoginUser) 
+        	return (LoginUser)u;
+        else
+            return new LoginUser(0L, "", "", null);
     }
 }
