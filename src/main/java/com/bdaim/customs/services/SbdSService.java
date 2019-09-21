@@ -13,31 +13,31 @@ import java.util.List;
 public class SbdSService implements BusiService {
 
     @Override
-    public void insertInfo(String busiType, String cust_id, String cust_group_id, String cust_user_id, Long id, JSONObject info) {
+    public void insertInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) {
         // TODO Auto-generated method stub
 
     }
 
     @Override
-    public void updateInfo(String busiType, String cust_id, String cust_group_id, String cust_user_id, Long id, JSONObject info) {
+    public void updateInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) {
         // TODO Auto-generated method stub
 
     }
 
     @Override
-    public void getInfo(String busiType, String cust_id, String cust_group_id, String cust_user_id, Long id, JSONObject info) {
+    public void getInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) {
         // TODO Auto-generated method stub
 
     }
 
     @Override
-    public void deleteInfo(String busiType, String cust_id, String cust_group_id, String cust_user_id, Long id) {
+    public void deleteInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id) {
         // TODO Auto-generated method stub
 
     }
 
     @Override
-    public String formatQuery(String busiType, String cust_id, String cust_group_id, String cust_user_id, JSONObject params, List sqlParams) {
+    public String formatQuery(String busiType, String cust_id, String cust_group_id, Long cust_user_id, JSONObject params, List sqlParams) {
        /* String sql = null;
         //查询主列表
         if ("main".equals(params.getString("rule.do"))) {
@@ -77,7 +77,7 @@ public class SbdSService implements BusiService {
     }
 
     @Override
-    public void formatInfo(String busiType, String cust_id, String cust_group_id, String cust_user_id, JSONObject info) {
+    public void formatInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, JSONObject info) {
         // TODO Auto-generated method stub
 
     }

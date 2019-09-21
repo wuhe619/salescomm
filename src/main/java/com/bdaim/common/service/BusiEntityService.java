@@ -30,7 +30,7 @@ public class BusiEntityService {
     /*
      * 按ID获取记录
      */
-    public JSONObject getInfo(String cust_id, String cust_group_id, String cust_user_id, String busiType, Long id) throws Exception {
+    public JSONObject getInfo(String cust_id, String cust_group_id, Long cust_user_id, String busiType, Long id) throws Exception {
         JSONObject jo = null;
 
         String sql = "select content, cust_id, cust_group_id, cust_user_id, create_id, create_date ,ext_1, ext_2, ext_3, ext_4, ext_5 from h_data_manager where type=? and id=? ";
@@ -76,7 +76,7 @@ public class BusiEntityService {
     /*
      * 查询记录
      */
-    public Page query(String cust_id, String cust_group_id, String cust_user_id, String busiType, JSONObject params) throws Exception {
+    public Page query(String cust_id, String cust_group_id, Long cust_user_id, String busiType, JSONObject params) throws Exception {
         Page p = new Page();
 
         List sqlParams = new ArrayList();
@@ -209,7 +209,7 @@ public class BusiEntityService {
     /*
      * 保存记录
      */
-    public Long saveInfo(String cust_id, String cust_group_id, String cust_user_id, String busiType, Long id, JSONObject info) throws Exception {
+    public Long saveInfo(String cust_id, String cust_group_id, Long cust_user_id, String busiType, Long id, JSONObject info) throws Exception {
         if (id == null || id == 0) {
             //insert
             id = sequenceService.getSeq(busiType);
@@ -292,7 +292,7 @@ public class BusiEntityService {
     /**
      * 删除记录
      */
-    public void deleteInfo(String cust_id, String cust_group_id, String cust_user_id, String busiType, Long id) throws Exception {
+    public void deleteInfo(String cust_id, String cust_group_id, Long cust_user_id, String busiType, Long id) throws Exception {
         String sql = "delete from h_data_manager where type=? and cust_id=? and id=?";
         try {
             //执行自定义删除规则
