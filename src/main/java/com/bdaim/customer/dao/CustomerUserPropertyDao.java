@@ -3,11 +3,15 @@ package com.bdaim.customer.dao;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.callcenter.dto.SeatInfoDto;
 import com.bdaim.common.dao.SimpleHibernateDao;
+import com.bdaim.common.util.DateUtil;
 import com.bdaim.common.util.StringUtil;
+import com.bdaim.customer.entity.CustomerProperty;
 import com.bdaim.customer.entity.CustomerUserPropertyDO;
 
 import org.springframework.stereotype.Component;
 
+import java.sql.Timestamp;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -59,5 +63,37 @@ public class CustomerUserPropertyDao extends SimpleHibernateDao<CustomerUserProp
         }
         logger.info("获取坐席信息" + seatInfoDto.toString() + "userid是：" + userId);
         return seatInfoDto;
+    }
+    public CustomerUserPropertyDO getProperty(String userId, String propertyName) {
+        CustomerUserPropertyDO cp = null;
+        String hql = "from CustomerUserPropertyDO m where m.userId=? and m.propertyName=?";
+        List<CustomerUserPropertyDO> list = this.find(hql, userId, propertyName);
+        if (list.size() > 0)
+            cp = (CustomerUserPropertyDO) list.get(0);
+        return cp;
+    }
+
+    /**
+     * 企业属性编辑与新增
+     */
+    public boolean dealUserPropertyInfo(String userId, String propertyName, String propertyValue) {
+        boolean success = false;
+        CustomerUserPropertyDO propertyInfo = this.getProperty(userId, propertyName);
+        if (propertyInfo == null) {
+            propertyInfo = new CustomerUserPropertyDO();
+            propertyInfo.setCreateTime(String.valueOf(DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss)));
+            propertyInfo.setUserId(userId);
+            propertyInfo.setPropertyValue(propertyValue);
+            logger.info(userId + " 属性不存在，新建该属性" + "\tpropertyName:" + propertyName + "\tpropertyValue:" + propertyValue);
+            propertyInfo.setPropertyName(propertyName);
+            success = true;
+        } else {
+            if (StringUtil.isNotEmpty(propertyInfo.getPropertyValue())) {
+                propertyInfo.setPropertyValue(propertyValue);
+                success = true;
+            }
+        }
+        this.saveOrUpdate(propertyInfo);
+        return success;
     }
 }
