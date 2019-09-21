@@ -46,7 +46,7 @@ public class CdZService implements BusiService{
 
 
 	@Override
-	public void insertInfo(String busiType, String cust_id, String cust_group_id, String cust_user_id, Long id, JSONObject info) throws Exception {
+	public void insertInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) throws Exception {
 		// TODO Auto-generated method stub
 		if("HAIGUAN".equals(info.getString("rule.to"))) {
 			HBusiDataManager h = hBusiDataManagerDao.get(Long.valueOf(id));
@@ -77,31 +77,32 @@ public class CdZService implements BusiService{
 	}
 
 	@Override
-	public void updateInfo(String busiType, String cust_id, String cust_group_id, String cust_user_id, Long id, JSONObject info) {
+	public void updateInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) {
 		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
 	public void getInfo(String busiType, String cust_id, String cust_group_id, String cust_user_id, Long id, JSONObject info, JSONObject param) {
+	public void getInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) {
 		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
-	public void deleteInfo(String busiType, String cust_id, String cust_group_id, String cust_user_id, Long id) {
+	public void deleteInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id) {
 		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
-	public String formatQuery(String busiType, String cust_id, String cust_group_id, String cust_user_id, JSONObject params, List sqlParams) {
+	public String formatQuery(String busiType, String cust_id, String cust_group_id, Long cust_user_id, JSONObject params, List sqlParams) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public void formatInfo(String busiType, String cust_id, String cust_group_id, String cust_user_id, JSONObject info) {
+	public void formatInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, JSONObject info) {
 		// TODO Auto-generated method stub
 		
 	}
@@ -136,7 +137,7 @@ public class CdZService implements BusiService{
 		}
 	}
 
-	public void buildDanList(JSONObject info,Long id,List<HBusiDataManager> dataList, String custId,String userId, HBusiDataManager h, String type) throws Exception {
+	public void buildDanList(JSONObject info,Long id,List<HBusiDataManager> dataList, String custId,Long userId, HBusiDataManager h, String type) throws Exception {
 		HBusiDataManager CZ = new HBusiDataManager();
 		CZ.setType(BusiTypeEnum.CZ.getType());
 

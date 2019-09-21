@@ -13,6 +13,7 @@ import com.bdaim.customs.entity.Constants;
 import com.bdaim.customs.entity.HBusiDataManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -42,7 +43,7 @@ public class SbdFService implements BusiService {
 
 
     @Override
-    public void insertInfo(String busiType, String cust_id, String cust_group_id, String cust_user_id, Long id, JSONObject info) throws Exception {
+    public void insertInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) throws Exception {
         Integer pid = info.getInteger("pid");
         String billNo = info.getString("bill_no");
         if(pid==null){
@@ -57,7 +58,8 @@ public class SbdFService implements BusiService {
         List<HBusiDataManager> list = getDataList(pid.longValue());
         if(list!=null && list.size()>0){
             for(HBusiDataManager hBusiDataManager:list){
-                if(billNo.equals(hBusiDataManager.getExt_3())){
+                JSONObject jsonObject=JSONObject.parseObject(hBusiDataManager.getContent());
+                if(billNo.equals(jsonObject.getString("bill_no"))){
                     log.error("分单号【"+billNo+"】在主单【"+pid+"】中已经存在");
                     throw new Exception("分单号【"+billNo+"】在主单【"+pid+"】中已经存在");
                 }
@@ -93,7 +95,7 @@ public class SbdFService implements BusiService {
     }
 
     @Override
-    public void updateInfo(String busiType, String cust_id, String cust_group_id, String cust_user_id, Long id, JSONObject info) {
+    public void updateInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) {
         // 身份核验
         if ("verification".equals(info.getString("_rule_"))) {
             StringBuffer sql = new StringBuffer("select id from h_data_manager where type=?")
@@ -133,6 +135,19 @@ public class SbdFService implements BusiService {
                 }
             }
 
+        }else{
+            HBusiDataManager dbManager = getObjectByIdAndType(id,busiType);
+            String content = dbManager.getContent();
+            JSONObject json = JSONObject.parseObject(content);
+            //BeanUtils.copyProperties(info,json);
+            Iterator keys = info.keySet().iterator();
+            while (keys.hasNext()) {
+                String key = (String) keys.next();
+                json.put(key, info.get(key));
+            }
+            //dbManager.setContent(json.toJSONString());
+            updateDataToES(busiType,id.toString(),json);
+            totalPartDanToMainDan(json.getInteger("pid"), BusiTypeEnum.SF.getKey(),id);
         }
     }
 
@@ -177,13 +192,14 @@ public class SbdFService implements BusiService {
     }
 
     @Override
+    public void getInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) {
     public void getInfo(String busiType, String cust_id, String cust_group_id, String cust_user_id, Long id, JSONObject info, JSONObject param) {
         // TODO Auto-generated method stub
 
     }
 
     @Override
-    public void deleteInfo(String busiType, String cust_id, String cust_group_id, String cust_user_id, Long id) throws Exception {
+    public void deleteInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id) throws Exception {
         String sql="select id,type,content,ext_1,ext_2,ext_3,ext_4 from h_data_manager where id="+id +" and type='"+busiType+"'";
         HBusiDataManager manager = jdbcTemplate.queryForObject(sql,HBusiDataManager.class);
         if (manager.getCust_id() == null || (!cust_id.equals(manager.getCust_id().toString()))) {
@@ -202,7 +218,7 @@ public class SbdFService implements BusiService {
     }
 
     @Override
-    public String formatQuery(String busiType, String cust_id, String cust_group_id, String cust_user_id, JSONObject params, List sqlParams) {
+    public String formatQuery(String busiType, String cust_id, String cust_group_id, Long cust_user_id, JSONObject params, List sqlParams) {
         String sql = null;
         //查询主列表
         if ("main".equals(params.getString("_rule_"))) {
@@ -255,7 +271,7 @@ public class SbdFService implements BusiService {
     }
 
     @Override
-    public void formatInfo(String busiType, String cust_id, String cust_group_id, String cust_user_id, JSONObject info) {
+    public void formatInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, JSONObject info) {
         // TODO Auto-generated method stub
 
     }
