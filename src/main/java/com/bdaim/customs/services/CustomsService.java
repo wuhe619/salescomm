@@ -184,7 +184,7 @@ public class CustomsService {
             JSONObject json = JSONObject.parseObject(content);
             json.put("weight", partyDan.getWeight());
             json.put("id_type", partyDan.getId_type());
-            json.put("id_NO", partyDan.getId_no());
+            json.put("id_no", partyDan.getId_no());
             json.put("receive_name", partyDan.getReceive_name());
             json.put("receive_pro", partyDan.getReceive_pro());
             json.put("receive_city", partyDan.getReceive_city());

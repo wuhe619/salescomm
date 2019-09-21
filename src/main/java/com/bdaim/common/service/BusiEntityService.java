@@ -232,6 +232,7 @@ public class BusiEntityService {
 
                 jdbcTemplate.update(sql2, id, busiType, info.toJSONString(), cust_id, cust_group_id, cust_user_id, cust_user_id);
             } catch (Exception e) {
+                e.printStackTrace();
                 logger.error(e.getMessage());
                 throw new Exception("添加新记录异常:[" + busiType + "]");
             }
