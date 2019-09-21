@@ -53,7 +53,8 @@ public class SbdFService implements BusiService {
         List<HBusiDataManager> list = getDataList(pid.longValue());
         if(list!=null && list.size()>0){
             for(HBusiDataManager hBusiDataManager:list){
-                if(billNo.equals(hBusiDataManager.getExt_3())){
+                JSONObject jsonObject=JSONObject.parseObject(hBusiDataManager.getContent());
+                if(billNo.equals(jsonObject.getString("bill_no"))){
                     log.error("分单号【"+billNo+"】在主单【"+pid+"】中已经存在");
                     throw new Exception("分单号【"+billNo+"】在主单【"+pid+"】中已经存在");
                 }
