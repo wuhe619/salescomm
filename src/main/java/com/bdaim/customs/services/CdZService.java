@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 
 /***
@@ -177,8 +178,14 @@ public class CdZService implements BusiService{
 		h.setContent(jon.toJSONString());
 		dataList.add(h);
 
-		String content = json.toJSONString();
-		CZ.setContent(content);
+        Iterator keys = json.keySet().iterator();
+        while (keys.hasNext()) {
+            String key = (String) keys.next();
+            info.put(key, info.get(key));
+        }
+
+//		String content = json.toJSONString();
+		CZ.setContent(info.toJSONString());
 		dataList.add(CZ);
 		List<HBusiDataManager> parties = getDataList(info.getLong("fromSbzId"));
 		for (HBusiDataManager hp : parties) {
@@ -216,10 +223,9 @@ public class CdZService implements BusiService{
 	}
 
 
-
 	public List<HBusiDataManager> getDataList(Long pid){
-		String sql2 = "select type,id,content from h_data_manager where  JSON_EXTRACT(content, '$.pid')="+pid;
-		RowMapper<HBusiDataManager>managerRowMapper=new BeanPropertyRowMapper<>(HBusiDataManager.class);
+		String sql2 = "select * from h_data_manager where  JSON_EXTRACT(content, '$.pid')="+pid +" or JSON_EXTRACT(content, '$.pid')='"+pid+"'";
+		RowMapper<HBusiDataManager>managerRowMapper = new BeanPropertyRowMapper<>(HBusiDataManager.class);
 		return jdbcTemplate.query(sql2,managerRowMapper);
 	}
 }

@@ -311,7 +311,7 @@ public class SbdFService implements BusiService {
     }
 
     public List<HBusiDataManager> getDataList(Long pid){
-        String sql2 = "select type,id,content from h_data_manager where  JSON_EXTRACT(content, '$.pid')="+pid;
+        String sql2 = "select * from h_data_manager where  JSON_EXTRACT(content, '$.pid')="+pid;
         RowMapper<HBusiDataManager> managerRowMapper=new BeanPropertyRowMapper<>(HBusiDataManager.class);
         return jdbcTemplate.query(sql2,managerRowMapper);
     }

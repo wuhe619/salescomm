@@ -170,8 +170,7 @@ public class SbdZService implements BusiService {
 
     @Override
     public void deleteInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id) throws Exception {
-        String sql = "select id,type,content,ext_1,ext_2,ext_3,ext_4 from h_data_manager where id=" + id + " and type='" + busiType + "'";
-        HBusiDataManager manager = jdbcTemplate.queryForObject(sql, HBusiDataManager.class);
+        HBusiDataManager manager = getObjectByIdAndType(id,busiType);
 
         if ("Y".equals(manager.getExt_1()) || "Y".equals(manager.getExt_2())) {
             throw new Exception("已经被提交，无法删除");
@@ -255,14 +254,21 @@ public class SbdZService implements BusiService {
 
     }
 
+
+    public HBusiDataManager getObjectByIdAndType(Long id,String type){
+        String sql="select * from h_data_manager where id="+id+" and type='"+type+"'";
+        RowMapper<HBusiDataManager> managerRowMapper=new BeanPropertyRowMapper<>(HBusiDataManager.class);
+        return jdbcTemplate.queryForObject(sql,managerRowMapper);
+    }
+
     public void delDataListByPid(Long pid) {
         String sql = "delete from h_data_manager where JSON_EXTRACT(content, '$.pid')=" + pid;
         jdbcTemplate.execute(sql);
     }
 
     public List<HBusiDataManager> getDataList(Long pid) {
-        String sql2 = "select type,id,content from h_data_manager where  JSON_EXTRACT(content, '$.pid')=" + pid;
-        RowMapper<HBusiDataManager> managerRowMapper = new BeanPropertyRowMapper<>(HBusiDataManager.class);
+        String sql2 = "select * from h_data_manager where  JSON_EXTRACT(content, '$.pid')=" + pid;
+        RowMapper<HBusiDataManager> managerRowMapper=new BeanPropertyRowMapper<>(HBusiDataManager.class);
         return jdbcTemplate.query(sql2, managerRowMapper);
     }
 
