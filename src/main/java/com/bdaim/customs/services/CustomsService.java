@@ -173,7 +173,7 @@ public class CustomsService {
             if (manager != null) {
                 throw new Exception("分单号" + partyDan.getBill_no() + " 已经存在");
             }
-            buildSenbaodanFendan(partyDan, list, user, partyDan.getMain_bill_no());
+            buildSenbaodanFendan(partyDan, list, user, partyDan.getMain_bill_no(),new JSONObject());
             for (HBusiDataManager hBusiDataManager : list) {
                 Long id = (Long) hBusiDataManagerDao.saveReturnPk(hBusiDataManager);
                 addDataToES(hBusiDataManager, id.intValue());
@@ -207,6 +207,7 @@ public class CustomsService {
     public void totalPartDanToMainDan(String mainBillNo, String type) {
         List<HBusiDataManager> data = getHbusiDataByBillNo(mainBillNo, type);
         Float weightTotal = 0f;
+//        Integer low_price_goods = 0;
         for (HBusiDataManager d : data) {
             String content = d.getContent();
             JSONObject json = JSONObject.parseObject(content);
@@ -506,12 +507,13 @@ public class CustomsService {
         jsonObject.put("station_id", station_id);//场站id
         jsonObject.put("cust_id", user.getCustId());
         jsonObject.put("idcard_num", 0);
-        dataManager.setContent(jsonObject.toJSONString());
         dataManager.setExt_1("N");//commit to cangdan 是否提交仓单 N:未提交，Y：已提交
         dataManager.setExt_2("N");//commit to baogaundan N:未提交，Y：已提交
         dataManager.setExt_3(mainDan.getBill_no());
+        buildPartyDan(list, mainDan, user,jsonObject);
+        dataManager.setContent(jsonObject.toJSONString());
         list.add(dataManager);
-        buildPartyDan(list, mainDan, user);
+
     }
 
 
@@ -554,9 +556,6 @@ public class CustomsService {
         }
         jsonObject.put("low_price_goods",0);
 
-        //todo:低价商品暂时不处理
-        System.out.println(jsonObject);
-
         return jsonObject;
 
     }
@@ -579,16 +578,16 @@ public class CustomsService {
      * @param mainDan
      * @param user
      */
-    public void buildPartyDan(List<HBusiDataManager> list, MainDan mainDan, LoginUser user) throws Exception {
+    public void buildPartyDan(List<HBusiDataManager> list, MainDan mainDan, LoginUser user,JSONObject mainJson) throws Exception {
         List<PartyDan> partList = mainDan.getSingles();
         if (partList != null && partList.size() > 0) {
             for (PartyDan dan : partList) {
-                buildSenbaodanFendan(dan, list, user, mainDan.getBill_no());
+                buildSenbaodanFendan(dan, list, user, mainDan.getBill_no(),mainJson);
             }
         }
     }
 
-    public void buildSenbaodanFendan(PartyDan dan, List<HBusiDataManager> list, LoginUser user, String mainBillNo) throws Exception {
+    public void buildSenbaodanFendan(PartyDan dan, List<HBusiDataManager> list, LoginUser user, String mainBillNo,JSONObject mainJson) throws Exception {
         List<Product> pList = dan.getProducts();
         JSONObject arrt=new JSONObject();
         buildGoods(list, pList, user,arrt);
@@ -619,6 +618,12 @@ public class CustomsService {
         }
         json.put("main_gname",mainGoodsName);
         json.put("low_price_goods",arrt.getString("low_price_goods"));
+        if(mainJson.containsKey("low_price_goods")){
+           int low_price_goods = mainJson.getInteger("low_price_goods");
+            mainJson.put("low_price_goods",low_price_goods+arrt.getInteger("low_price_goods"));
+        }else{
+            mainJson.put("low_price_goods",arrt.getString("low_price_goods"));
+        }
 
         dataManager.setContent(json.toJSONString());
 
