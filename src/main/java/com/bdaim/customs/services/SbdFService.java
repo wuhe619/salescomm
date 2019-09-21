@@ -12,6 +12,7 @@ import com.bdaim.customs.dao.HBusiDataManagerDao;
 import com.bdaim.customs.entity.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -130,6 +131,19 @@ public class SbdFService implements BusiService {
                 }
             }
 
+        }else{
+            HBusiDataManager dbManager = getObjectByIdAndType(id,busiType);
+            String content = dbManager.getContent();
+            JSONObject json = JSONObject.parseObject(content);
+            //BeanUtils.copyProperties(info,json);
+            Iterator keys = info.keySet().iterator();
+            while (keys.hasNext()) {
+                String key = (String) keys.next();
+                json.put(key, info.get(key));
+            }
+            //dbManager.setContent(json.toJSONString());
+            updateDataToES(busiType,id.toString(),json);
+            totalPartDanToMainDan(json.getInteger("pid"), BusiTypeEnum.SF.getKey(),id);
         }
     }
 
