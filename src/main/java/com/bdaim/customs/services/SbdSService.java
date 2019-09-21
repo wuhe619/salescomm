@@ -128,7 +128,7 @@ public class SbdSService implements BusiService {
         JSONObject jsonz = JSON.parseObject(zcontent);
         Float weight_total = jsonz.getFloatValue("weight_total");
         Integer lowPricegoodsz = jsonObject.getInteger("low_price_goods");
-        if(lowPricegoodsz==null)lowPricegoodsz = 0;
+        if(lowPricegoodsz == null)lowPricegoodsz = 0;
         jsonz.put("low_price_goods",lowPricegoodsz + is_low_price);
 
         if (weight_total == null) weight_total = 0f;
@@ -140,10 +140,12 @@ public class SbdSService implements BusiService {
         zh.setContent(jsonz.toJSONString());
         hBusiDataManagerDao.saveOrUpdate(zh);
         updateDataToES(BusiTypeEnum.SZ.getType(),zh.getId().toString(),jsonz);
+
+
     }
 
     @Override
-    public void updateInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) {
+    public void updateInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) throws Exception {
         // TODO Auto-generated method stub
         HBusiDataManager dbManager = getObjectByIdAndType(id,busiType);
         String content = dbManager.getContent();
@@ -154,12 +156,71 @@ public class SbdSService implements BusiService {
             json.put(key, info.get(key));
         }
         updateDataToES(busiType,id.toString(),json);
+
         HBusiDataManager fmanager = getObjectByIdAndType(id,busiType);
-        String fcontent = dbManager.getContent();
+        String fcontent = fmanager.getContent();
 
         JSONObject fjson = JSONObject.parseObject(fcontent);
 
-//        getDataList
+        List<HBusiDataManager> goodsList = getDataList(fjson.getLong("pid"));
+        float weight = 0;  //重量
+        float pack_NO = 0; //数量
+        int lowPricegoods = 0; //低价商品数
+        int is_low_price = 0;
+        float festimated_tax = 0;//预估税金
+        for(HBusiDataManager m:goodsList){
+            JSONObject params = new JSONObject();
+            params.put("code", m.getExt_1());
+            float tax_rate=0;
+            float estimated_tax=0;
+            float duty_paid_price=0;
+            Page page = resourceService.query("", "duty_paid_rate",params);
+            if(page!=null && page.getTotal()>0){
+                List dataList = page.getData();
+                Map<String ,Object> d = (Map<String, Object>) dataList.get(0);
+                String _content = (String) d.get("content");
+                JSONObject contentObj = JSON.parseObject(_content);
+                duty_paid_price = contentObj.getFloatValue("duty_price");
+
+                tax_rate = contentObj.getFloatValue("tax_rate");
+                estimated_tax = duty_paid_price*tax_rate;
+                festimated_tax += estimated_tax;
+            }
+
+            JSONObject goods = JSONObject.parseObject(m.getContent());
+            if(m.getId()==id.intValue()){
+                if(StringUtil.isNotEmpty(info.getString("decl_price"))){
+                    if(Float.valueOf(info.getString("decl_price")) < duty_paid_price){
+                        is_low_price = 1;
+                    }
+                }
+                info.put("is_low_price",is_low_price);
+                info.put("duty_paid_price", duty_paid_price);//完税价格
+                info.put("estimated_tax", estimated_tax);//预估税金
+                info.put("tax_rate", tax_rate);//税率
+                info.put("total_price",0);//价格合计
+            }else{
+                if(goods.containsKey("ggrosswt") && StringUtil.isNotEmpty(goods.getString("ggrosswt"))){
+                    weight += goods.getFloatValue("ggrosswt");
+                }
+                if(goods.containsKey("g_qty") && StringUtil.isNotEmpty(goods.getString("g_qty"))){
+                    pack_NO += goods.getFloatValue("g_qty");
+                }
+                if(StringUtil.isNotEmpty(goods.getString("decl_price"))){
+                    if(Float.valueOf(goods.getString("decl_price")) < duty_paid_price){
+                        is_low_price = 1;
+                    }
+                }
+            }
+            if(is_low_price==1){
+                lowPricegoods++;
+            }
+        }
+        fjson.put("weight_total",weight);
+        fjson.put("lowPricegoods",lowPricegoods);
+        fjson.put("pack_no",pack_NO);
+        fjson.put("estimated_tax",festimated_tax);
+        updateDataToES(BusiTypeEnum.SF.getType(),fmanager.getId().toString(),fjson);
 
     }
 
