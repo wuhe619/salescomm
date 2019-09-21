@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 
 /***
@@ -61,7 +62,7 @@ public class BgdZService implements BusiService{
 			}
 
 			List<HBusiDataManager> dataList = new ArrayList<>();
-			if ("Y".equals(h.getExt_2())) {
+			if ("Y".equals(h.getExt_1())) {
 				throw new Exception("已经提交过了,不能重复提交");
 			}
 
@@ -168,8 +169,6 @@ public class BgdZService implements BusiService{
 		CZ.setExt_3(h.getExt_3());
 		CZ.setExt_1("0");//未发送 1，已发送
 
-		info.put("ext_3",h.getExt_3());
-		info.put("ext_1","0");
 
 		JSONObject json = JSON.parseObject(h.getContent());
 		json.put("create_id", userId);
@@ -179,14 +178,21 @@ public class BgdZService implements BusiService{
 		json.put("send_status", CZ.getExt_1());
 		json.put("commit_baodan_status", "Y");
 
+		Iterator keys = json.keySet().iterator();
+		while (keys.hasNext()) {
+			String key = (String) keys.next();
+			info.put(key, json.get(key));
+		}
+		info.put("ext_3",h.getExt_3());
+		info.put("ext_1","0");
+
 		JSONObject jon = JSON.parseObject(h.getContent());
 		jon.put("commit_baodan_status", "Y");
 		h.setExt_1("Y");
 		h.setContent(jon.toJSONString());
 		dataList.add(h);
 
-		String content = json.toJSONString();
-		CZ.setContent(content);
+		CZ.setContent(info.toJSONString());
 		dataList.add(CZ);
 		List<HBusiDataManager> parties = getDataList(info.getLong("fromSbzId"));
 		for (HBusiDataManager hp : parties) {
@@ -225,8 +231,8 @@ public class BgdZService implements BusiService{
 
 
 	public List<HBusiDataManager> getDataList(Long pid){
-		String sql2 = "select type,id,content from h_data_manager where  JSON_EXTRACT(content, '$.pid')="+pid;
-		RowMapper<HBusiDataManager> managerRowMapper=new BeanPropertyRowMapper<>(HBusiDataManager.class);
+		String sql2 = "select * from h_data_manager where  JSON_EXTRACT(content, '$.pid')="+pid +" or JSON_EXTRACT(content, '$.pid')='"+pid+"'";
+		RowMapper<HBusiDataManager>managerRowMapper = new BeanPropertyRowMapper<>(HBusiDataManager.class);
 		return jdbcTemplate.query(sql2,managerRowMapper);
 	}
 }
