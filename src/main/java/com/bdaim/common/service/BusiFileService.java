@@ -78,7 +78,7 @@ public class BusiFileService {
     		
     		//执行自定义单数据规则
     		BusiService busiService = (BusiService) SpringContextHelper.getBean("busi_"+busiType);
-			busiService.getInfo(busiType, cust_id, cust_group_id, cust_user_id, id, jo);
+			busiService.getInfo(busiType, cust_id, cust_group_id, Long.valueOf(cust_user_id), id, jo);
     	}catch(Exception e) {
     		logger.error(e.getMessage());
     		throw new Exception("数据格式错误！");
@@ -99,7 +99,7 @@ public class BusiFileService {
     	String sql = null;
     	try {
     		//执行自定义查询sql
-    		sql = busiService.formatQuery(busiType, cust_id, cust_group_id, cust_user_id, params, sqlParams);
+    		sql = busiService.formatQuery(busiType, cust_id, cust_group_id, Long.valueOf(cust_user_id), params, sqlParams);
     	}catch(Exception e) {
     		logger.error(e.getMessage());
     		throw new Exception("查询条件自定义解析异常:["+busiType+"]");
@@ -178,7 +178,7 @@ public class BusiFileService {
 	    		
 	    		try {
 	    			//执行自定义查询结果格式化
-	    			busiService.formatInfo(busiType, cust_id, cust_group_id, cust_user_id, jo);
+	    			busiService.formatInfo(busiType, cust_id, cust_group_id, Long.valueOf(cust_user_id), jo);
 	    		}catch(Exception e) {
 	    			logger.error(e.getMessage());
 	    		}
@@ -214,7 +214,7 @@ public class BusiFileService {
     		try {
     			//执行自定义新增规则
     			BusiService busiService = (BusiService) SpringContextHelper.getBean("busi_"+busiType);
-    			busiService.insertInfo(busiType, cust_id, cust_group_id, cust_user_id, id, info);
+    			busiService.insertInfo(busiType, cust_id, cust_group_id, Long.valueOf(cust_user_id), id, info);
     			
     			Iterator ifks = info.keySet().iterator();
     	    	while(ifks.hasNext()) {
@@ -263,7 +263,7 @@ public class BusiFileService {
     		try {
     			//执行自定义更新规则
     			BusiService busiService = (BusiService) SpringContextHelper.getBean("busi_"+busiType);
-    			busiService.updateInfo(busiType, cust_id, cust_group_id, cust_user_id, id, jo);
+    			busiService.updateInfo(busiType, cust_id, cust_group_id, Long.valueOf(cust_user_id), id, jo);
     			
     			Iterator ifks = jo.keySet().iterator();
     	    	while(ifks.hasNext()) {
@@ -290,7 +290,7 @@ public class BusiFileService {
     	try {
     		//执行自定义删除规则
     		BusiService busiService = (BusiService) SpringContextHelper.getBean("busi_"+busiType);
-			busiService.deleteInfo(busiType, cust_id, cust_group_id, cust_user_id, id);
+			busiService.deleteInfo(busiType, cust_id, cust_group_id, Long.valueOf(cust_user_id), id);
     		
     		jdbcTemplate.update(sql, busiType, cust_id, id);
     		

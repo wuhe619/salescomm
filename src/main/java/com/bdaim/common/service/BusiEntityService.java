@@ -227,7 +227,7 @@ public class BusiEntityService {
             //insert
             id = sequenceService.getSeq(busiType);
             jo = info;
-            String sql1 = "insert into h_data_manager(id, type, content, cust_id, cust_group_id, cust_user_id, create_id, create_date, ext_1, ext_2, ext_3, ext_4, ext_5 ) value(?, ?, ?, ?, ?, ?, ?, now(), ?, ?, ?, ?, ?";
+            String sql1 = "insert into h_data_manager(id, type, content, cust_id, cust_group_id, cust_user_id, create_id, create_date, ext_1, ext_2, ext_3, ext_4, ext_5 ) value(?, ?, ?, ?, ?, ?, ?, now(), ?, ?, ?, ?, ?)";
             try {
                 //执行自定义新增规则
                 BusiService busiService = (BusiService) SpringContextHelper.getBean("busi_" + busiType);

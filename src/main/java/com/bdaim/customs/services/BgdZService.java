@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.service.BusiService;
 import com.bdaim.common.service.ElasticSearchService;
 import com.bdaim.common.service.SequenceService;
+import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customs.dao.HBusiDataManagerDao;
 import com.bdaim.customs.entity.BusiTypeEnum;
@@ -48,8 +49,8 @@ public class BgdZService implements BusiService{
 	@Override
 	public void insertInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) throws Exception {
 		// TODO Auto-generated method stub
-		if("HAIGUAN".equals(info.getString("rule.to"))) {
-			HBusiDataManager h = hBusiDataManagerDao.get(Long.valueOf(id));
+		if(StringUtil.isNotEmpty(info.getString("fromSbzId"))) {
+			HBusiDataManager h = getObjectByIdAndType(info.getLong("fromSbzId"),BusiTypeEnum.SZ.getType());
 			if (h == null) {
 				throw new Exception("数据不存在");
 			}
@@ -114,6 +115,15 @@ public class BgdZService implements BusiService{
 	}
 
 
+	public HBusiDataManager getObjectByIdAndType(Long id,String type){
+		String sql="select * from h_data_manager where id="+id+" and type='"+type+"'";
+		return jdbcTemplate.queryForObject(sql,HBusiDataManager.class);
+	}
+
+	public void delDataListByIdAndType(Long id,String type){
+		String sql="delete from h_data_manager where type='"+type+"' and id="+id;
+		jdbcTemplate.execute(sql);
+	}
 	/**
 	 * 添加数据到es
 	 *
@@ -174,7 +184,7 @@ public class BgdZService implements BusiService{
 		String content = json.toJSONString();
 		CZ.setContent(content);
 		dataList.add(CZ);
-		List<HBusiDataManager> parties = getHbusiDataByBillNo(CZ.getExt_3(), BusiTypeEnum.SF.getType());
+		List<HBusiDataManager> parties = getDataList(info.getLong("fromSbzId"));
 		for (HBusiDataManager hp : parties) {
 			HBusiDataManager hm = new HBusiDataManager();
 			hm.setType(BusiTypeEnum.BF.getType());
@@ -189,7 +199,7 @@ public class BgdZService implements BusiService{
 			_content.put("pid",id);
 			hm.setContent(_content.toJSONString());
 			dataList.add(hm);
-			List<HBusiDataManager> goods = getHbusiDataByBillNo(hp.getExt_3(), BusiTypeEnum.SS.getType());
+			List<HBusiDataManager> goods = getDataList(hp.getId().longValue());
 			for (HBusiDataManager gp : goods) {
 				HBusiDataManager good = new HBusiDataManager();
 				gp.setType(BusiTypeEnum.BS.getType());
@@ -209,16 +219,9 @@ public class BgdZService implements BusiService{
 		}
 	}
 
-	/**
-	 * 根据主单获取分单
-	 *
-	 * @param billNo
-	 * @return
-	 */
-	private List<HBusiDataManager> getHbusiDataByBillNo(String billNo, String type) {
-		String hql = " from HBusiDataManager a where a.ext_4='" + billNo + "' and type='" + type + "'";
-		List<HBusiDataManager> list = hBusiDataManagerDao.find(hql);
-		return list;
-	}
 
+	public List<HBusiDataManager> getDataList(Long pid){
+		String sql2 = "select type,id,content from h_data_manager where  JSON_EXTRACT(content, '$.pid')="+pid;
+		return jdbcTemplate.queryForList(sql2,HBusiDataManager.class);
+	}
 }

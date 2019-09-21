@@ -499,8 +499,6 @@ public class SbdZService implements BusiService{
             info.put("over_warp", "正常");//正常
 		}
 
-		//todo:低价商品暂时不处理
-		//System.out.println(jsonObject);
 
 //		return jsonObject;
 

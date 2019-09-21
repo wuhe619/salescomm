@@ -44,7 +44,7 @@ public class BgdSService implements BusiService{
 	}
 
 	@Override
-	public void formatInfo(String busiType, String cust_id, String cust_group_id, String cust_user_id, JSONObject info) {
+	public void formatInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, JSONObject info) {
 		// TODO Auto-generated method stub
 		
 	}
