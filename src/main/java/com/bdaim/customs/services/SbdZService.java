@@ -50,7 +50,7 @@ public class SbdZService implements BusiService{
 
 
 	@Override
-	public void insertInfo(String busiType, String cust_id, String cust_group_id, String cust_user_id, Long id, JSONObject info) throws Exception {
+	public void insertInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) throws Exception {
 		CustomerProperty station_idProperty = customerDao.getProperty(cust_id, "station_id");
 		if (station_idProperty == null || StringUtil.isEmpty(station_idProperty.getPropertyValue())) {
 			log.error("未配置场站信息");
@@ -66,7 +66,7 @@ public class SbdZService implements BusiService{
 		List<HBusiDataManager> list = new ArrayList<>();
 		MainDan mainDan = JSON.parseObject(info.toJSONString(),MainDan.class);
 		try {
-			buildMain(info,list,mainDan,Long.parseLong(cust_user_id),Long.parseLong(cust_id),station_idProperty.getPropertyValue(),id);
+			buildMain(info,list,mainDan,cust_user_id,cust_id,station_idProperty.getPropertyValue(),id);
 			if (list != null && list.size() > 0) {
 				for (HBusiDataManager hBusiDataManager : list) {
 					JSONObject json=JSON.parseObject(hBusiDataManager.getContent());
@@ -91,7 +91,7 @@ public class SbdZService implements BusiService{
 	}
 
     @Override
-    public void updateInfo(String busiType, String cust_id, String cust_group_id, String cust_user_id, Long id, JSONObject info) {
+    public void updateInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) {
         // 身份核验
         if ("verification".equals(info.getString("rule.do"))) {
             StringBuffer sql = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from h_data_manager where type=?")
@@ -116,13 +116,13 @@ public class SbdZService implements BusiService{
     }
 
 	@Override
-	public void getInfo(String busiType, String cust_id, String cust_group_id, String cust_user_id, Long id, JSONObject info) {
+	public void getInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) {
 		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
-	public void deleteInfo(String busiType, String cust_id, String cust_group_id, String cust_user_id, Long id) throws Exception {
+	public void deleteInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id) throws Exception {
 		String sql="select id,type,content,ext_1,ext_2,ext_3,ext_4 from h_data_manager where id="+id +" and type='"+busiType+"'";
 		HBusiDataManager manager = jdbcTemplate.queryForObject(sql,HBusiDataManager.class);
 
@@ -144,13 +144,13 @@ public class SbdZService implements BusiService{
 	}
 
 	@Override
-	public String formatQuery(String busiType, String cust_id, String cust_group_id, String cust_user_id, JSONObject params, List sqlParams) {
+	public String formatQuery(String busiType, String cust_id, String cust_group_id, Long cust_user_id, JSONObject params, List sqlParams) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public void formatInfo(String busiType, String cust_id, String cust_group_id, String cust_user_id, JSONObject info) {
+	public void formatInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, JSONObject info) {
 		// TODO Auto-generated method stub
 		
 	}
@@ -252,7 +252,7 @@ public class SbdZService implements BusiService{
 
 	}
 
-	public void buildMain(JSONObject info,List<HBusiDataManager> list, MainDan mainDan, Long userId,Long custId, String station_id,Long mainid) throws Exception {
+	public void buildMain(JSONObject info,List<HBusiDataManager> list, MainDan mainDan, Long userId,String custId, String station_id,Long mainid) throws Exception {
 		HBusiDataManager dataManager = new HBusiDataManager();
 		dataManager.setCreateId(userId);
 		dataManager.setId(mainid.intValue());
@@ -285,7 +285,7 @@ public class SbdZService implements BusiService{
 	 * @param mainDan
 	 * @param
 	 */
-	public void buildPartyDan(List<HBusiDataManager> list, MainDan mainDan, Long userId,Long custId,Long mainid,JSONObject info) throws Exception {
+	public void buildPartyDan(List<HBusiDataManager> list, MainDan mainDan, Long userId,String custId,Long mainid,JSONObject info) throws Exception {
 		List<PartyDan> partList = mainDan.getSingles();
 		if (partList != null && partList.size() > 0) {
 			for (PartyDan dan : partList) {
@@ -297,7 +297,7 @@ public class SbdZService implements BusiService{
 		}
 	}
 
-	public void buildSenbaodanFendan(PartyDan dan, List<HBusiDataManager> list,Long userId,Long custId, String mainBillNo,Long mainid,JSONObject info) throws Exception {
+	public void buildSenbaodanFendan(PartyDan dan, List<HBusiDataManager> list,Long userId,String custId, String mainBillNo,Long mainid,JSONObject info) throws Exception {
 		List<Product> pList = dan.getProducts();
 		Long id = sequenceService.getSeq(BusiTypeEnum.SF.getType());
         JSONObject arrt=new JSONObject();
@@ -349,7 +349,7 @@ public class SbdZService implements BusiService{
 	 * @param pList
 	 * @param
 	 */
-	public void buildGoods(List<HBusiDataManager> list, List<Product> pList, Long userId,Long custId,String pid,JSONObject arrt) throws Exception {
+	public void buildGoods(List<HBusiDataManager> list, List<Product> pList, Long userId,String custId,String pid,JSONObject arrt) throws Exception {
 		if (pList != null && pList.size() > 0) {
             List<Map<String,String>> mainGoodsName = new ArrayList<>();
 			for (Product product : pList) {

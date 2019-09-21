@@ -42,7 +42,7 @@ public class BusiEntityController extends BasicAction {
         	LoginUser lu = opUser();
         	String cust_id = lu.getCustId();
         	String cust_group_id = lu.getUserGroupId();
-        	String cust_user_id = lu.getUser_id();
+        	Long cust_user_id = lu.getId();
         	if(cust_id==null || "".equals(cust_id))
         		cust_id="-1";
         	if(lu.getRole().contains("admin") || lu.getRole().contains("ROLE_USER"))
@@ -81,7 +81,7 @@ public class BusiEntityController extends BasicAction {
         	
         	String cust_id = lu.getCustId();
         	String cust_group_id = lu.getUserGroupId();
-        	String cust_user_id = lu.getUser_id();
+        	Long cust_user_id = lu.getId();
         	
             id = busiEntityService.saveInfo(cust_id, cust_group_id, cust_user_id, busiType, id, info);
             resp.setData(id);
@@ -105,7 +105,7 @@ public class BusiEntityController extends BasicAction {
         	LoginUser lu = opUser();
         	String cust_id = lu.getCustId();
         	String cust_group_id = lu.getUserGroupId();
-        	String cust_user_id = lu.getUser_id();
+        	Long cust_user_id = lu.getId();
         	
         	JSONObject jo = busiEntityService.getInfo(cust_id, cust_group_id, cust_user_id, busiType, id);
         	resp.setData(jo);
@@ -131,7 +131,7 @@ public class BusiEntityController extends BasicAction {
         	
         	String cust_id = lu.getCustId();
         	String cust_group_id = lu.getUserGroupId();
-        	String cust_user_id = lu.getUser_id();
+        	Long cust_user_id = lu.getId();
         	
         	busiEntityService.deleteInfo(cust_id, cust_group_id, cust_user_id, busiType, id);
         } catch (Exception e) {

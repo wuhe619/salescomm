@@ -38,7 +38,7 @@ public class SbdFService implements BusiService {
 
 
     @Override
-    public void insertInfo(String busiType, String cust_id, String cust_group_id, String cust_user_id, Long id, JSONObject info) throws Exception {
+    public void insertInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) throws Exception {
         Integer pid = info.getInteger("pid");
         String billNo = info.getString("bill_no");
         if(pid==null){
@@ -89,7 +89,7 @@ public class SbdFService implements BusiService {
     }
 
     @Override
-    public void updateInfo(String busiType, String cust_id, String cust_group_id, String cust_user_id, Long id, JSONObject info) {
+    public void updateInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) {
         // 身份核验
         if ("verification".equals(info.getString("rule.do"))) {
             StringBuffer sql = new StringBuffer("select id from h_data_manager where type=?")
@@ -173,13 +173,13 @@ public class SbdFService implements BusiService {
     }
 
     @Override
-    public void getInfo(String busiType, String cust_id, String cust_group_id, String cust_user_id, Long id, JSONObject info) {
+    public void getInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) {
         // TODO Auto-generated method stub
 
     }
 
     @Override
-    public void deleteInfo(String busiType, String cust_id, String cust_group_id, String cust_user_id, Long id) throws Exception {
+    public void deleteInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id) throws Exception {
         String sql="select id,type,content,ext_1,ext_2,ext_3,ext_4 from h_data_manager where id="+id +" and type='"+busiType+"'";
         HBusiDataManager manager = jdbcTemplate.queryForObject(sql,HBusiDataManager.class);
         if (manager.getCust_id() == null || (!cust_id.equals(manager.getCust_id().toString()))) {
@@ -198,7 +198,7 @@ public class SbdFService implements BusiService {
     }
 
     @Override
-    public String formatQuery(String busiType, String cust_id, String cust_group_id, String cust_user_id, JSONObject params, List sqlParams) {
+    public String formatQuery(String busiType, String cust_id, String cust_group_id, Long cust_user_id, JSONObject params, List sqlParams) {
         String sql = null;
         //查询主列表
         if ("main".equals(params.getString("rule.do"))) {
@@ -251,7 +251,7 @@ public class SbdFService implements BusiService {
     }
 
     @Override
-    public void formatInfo(String busiType, String cust_id, String cust_group_id, String cust_user_id, JSONObject info) {
+    public void formatInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, JSONObject info) {
         // TODO Auto-generated method stub
 
     }
