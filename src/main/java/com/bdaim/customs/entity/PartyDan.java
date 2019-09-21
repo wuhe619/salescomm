@@ -16,7 +16,7 @@ public class PartyDan {
     @JsonProperty(value = "PACK_NO")
     private String pack_no ;//件数
     @JsonProperty(value = "MainGName")
-    private String main_gName ;//主要货物名称
+    private String main_gname ;//主要货物名称
     @JsonProperty(value = "ID_TYPE")
     private String id_type ;// 证件类型
     @JsonProperty(value = "TOTAL_VALUE")
@@ -91,12 +91,12 @@ public class PartyDan {
         this.pack_no = pack_no;
     }
 
-    public String getMain_gName() {
-        return main_gName;
+    public String getMain_gname() {
+        return main_gname;
     }
 
-    public void setMain_gName(String main_gName) {
-        this.main_gName = main_gName;
+    public void setMain_gname(String main_gname) {
+        this.main_gname = main_gname;
     }
 
     public String getId_type() {
