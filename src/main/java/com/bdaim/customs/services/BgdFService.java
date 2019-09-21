@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.service.BusiService;
 import com.bdaim.common.service.ElasticSearchService;
 import com.bdaim.common.service.SequenceService;
+import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customs.dao.HBusiDataManagerDao;
 import com.bdaim.customs.entity.BusiTypeEnum;
@@ -17,6 +18,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Service;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -45,9 +47,56 @@ public class BgdFService implements BusiService{
 
 
 	@Override
-	public void insertInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) {
+	public void insertInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) throws Exception {
 		// TODO Auto-generated method stub
+		Integer pid = info.getInteger("pid");
+		String billNo = info.getString("bill_no");
+		if(pid==null){
+			log.error("主单id不能为空");
+			throw new Exception("主单id不能为空");
+		}
+		if(StringUtil.isEmpty(billNo)){
+			log.error("分单号不能为空");
+			throw new Exception("分单号不能为空");
+		}
+		HBusiDataManager sbdzd = getObjectByIdAndType(pid.longValue(),BusiTypeEnum.SZ.getType());
+		List<HBusiDataManager> list = getDataList(pid.longValue());
+		if(list!=null && list.size()>0){
+			for(HBusiDataManager hBusiDataManager:list){
+				JSONObject jsonObject=JSONObject.parseObject(hBusiDataManager.getContent());
+				if(billNo.equals(jsonObject.getString("bill_no"))){
+					log.error("分单号【"+billNo+"】在主单【"+pid+"】中已经存在");
+					throw new Exception("分单号【"+billNo+"】在主单【"+pid+"】中已经存在");
+				}
+			}
+		}
+		info.put("type", BusiTypeEnum.BF.getType());
+		info.put("check_status", "0");
+		info.put("idcard_pic_flag", "0");
+		info.put("main_gname","");
+		info.put("low_price_goods",0);
+		info.put("id",id);
+		info.put("pid",pid);
+		addDataToES(id.toString(),busiType,info);
+		JSONObject jsonObject = JSONObject.parseObject(sbdzd.getContent());
+		if(info.containsKey("weight") && info.getString("weight")!=null){
+			if(jsonObject.containsKey("weight_total")) {
+				String  weight_total = jsonObject.getString("weight_total");
+				if(StringUtil.isNotEmpty(weight_total)){
+					weight_total=String.valueOf(Float.valueOf(weight_total)+Float.valueOf(info.getString("weight")));
+					jsonObject.put("weight_total", weight_total);//总重量
+				}
+			}
+		}
+		int value = 1;
+		if(jsonObject.containsKey("party_total")){
+			value = jsonObject.getInteger("party_total")+value;
+		}
+		jsonObject.put("party_total", value);//分单总数
 
+		sbdzd.setContent(jsonObject.toJSONString());
+		hBusiDataManagerDao.saveOrUpdate(sbdzd);
+		updateDataToES(BusiTypeEnum.BZ.getType(),sbdzd.getId().toString(),jsonObject);
 		
 	}
 
@@ -88,9 +137,43 @@ public class BgdFService implements BusiService{
 			sql = "UPDATE h_data_manager SET ext_1 = '1', ext_date1 = NOW(), content=? WHERE id = ? AND ext_1 <>'1' ";
 			jdbcTemplate.update(sql, jo.toJSONString(), id);
 			updateDataToES(BusiTypeEnum.SZ.getType(), id.toString(), jo);
+		}else{
+			HBusiDataManager dbManager = getObjectByIdAndType(id,busiType);
+			String content = dbManager.getContent();
+			JSONObject json = JSONObject.parseObject(content);
+			Iterator keys = info.keySet().iterator();
+			while (keys.hasNext()) {
+				String key = (String) keys.next();
+				json.put(key, info.get(key));
+			}
+			updateDataToES(busiType,id.toString(),json);
 		}
 		
 	}
+
+
+	private void addDataToES(String id,String type,JSONObject content) {
+		if (type.equals(BusiTypeEnum.SZ.getType())) {
+			elasticSearchService.addDocumentToType(Constants.SZ_INFO_INDEX, "haiguan", id, content);
+		}else if(type.equals(BusiTypeEnum.CZ.getType())){
+			elasticSearchService.addDocumentToType(Constants.CZ_INFO_INDEX, "haiguan", id, content);
+		}else if(type.equals(BusiTypeEnum.BZ.getType())){
+			elasticSearchService.addDocumentToType(Constants.BZ_INFO_INDEX, "haiguan", id, content);
+		} else if (type.equals(BusiTypeEnum.SF.getType())) {
+			elasticSearchService.addDocumentToType(Constants.SF_INFO_INDEX, "haiguan", id, content);
+		}else if( type.equals(BusiTypeEnum.CF.getType())){
+			elasticSearchService.addDocumentToType(Constants.CF_INFO_INDEX, "haiguan", id, content);
+		}else if(type.equals(BusiTypeEnum.BF.getType())){
+			elasticSearchService.addDocumentToType(Constants.BF_INFO_INDEX, "haiguan", id,content);
+		}else if (type.equals(BusiTypeEnum.SS.getType())) {
+			elasticSearchService.addDocumentToType(Constants.SS_INFO_INDEX, "haiguan", id, content);
+		}else if(type.equals(BusiTypeEnum.CS.getType())){
+			elasticSearchService.addDocumentToType(Constants.CS_INFO_INDEX, "haiguan", id, content);
+		}else if(type.equals(BusiTypeEnum.BS.getType())){
+			elasticSearchService.addDocumentToType(Constants.BS_INFO_INDEX, "haiguan", id, content);
+		}
+	}
+
 
 	/**
 	 * 更新es
