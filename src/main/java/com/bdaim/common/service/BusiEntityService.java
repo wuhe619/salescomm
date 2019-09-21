@@ -253,7 +253,7 @@ public class BusiEntityService {
             // update
             Map data = null;
             try {
-                data = jdbcTemplate.queryForMap("select content from h_data_manager where type=? and cust_id=? and id=?", busiType, cust_group_id, cust_user_id, id);
+                data = jdbcTemplate.queryForMap("select content from h_data_manager where type=? and cust_id=? and id=?", busiType, cust_id, id);
             } catch (Exception e) {
                 logger.error("读取数据异常:[" + busiType + "]" + id,e);
                 throw new Exception("读取数据异常:[" + busiType + "]" + id);
