@@ -51,7 +51,6 @@ public class SbdZService implements BusiService{
 
 	@Override
 	public void insertInfo(String busiType, String cust_id, String cust_group_id, String cust_user_id, Long id, JSONObject info) throws Exception {
-		// TODO Auto-generated method stub
 		CustomerProperty station_idProperty = customerDao.getProperty(cust_id, "station_id");
 		if (station_idProperty == null || StringUtil.isEmpty(station_idProperty.getPropertyValue())) {
 			log.error("未配置场站信息");
