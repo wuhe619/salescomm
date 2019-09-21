@@ -59,7 +59,7 @@ public class BusiEntityController extends BasicAction {
         	
         	resp.setData(busiEntityService.query(cust_id, cust_group_id, cust_user_id, busiType, params));
         } catch (Exception e) {
-            logger.error("查询记录异常:"+e.getMessage());
+            logger.error("查询记录异常,",e);
             return new ResponseInfoAssemble().failure(-1, "查询记录异常["+busiType+"]");
         }
         return resp;
@@ -139,7 +139,7 @@ public class BusiEntityController extends BasicAction {
             }
             resp.setData(jo);
         } catch (Exception e) {
-            logger.error("获取记录异常:" + id + " " + e.getMessage());
+            logger.error("获取记录异常:" + id , e);
             return new ResponseInfoAssemble().failure(-1, "查询记录异常[" + busiType + "]");
         }
         return resp;
@@ -164,7 +164,7 @@ public class BusiEntityController extends BasicAction {
         	
         	busiEntityService.deleteInfo(cust_id, cust_group_id, cust_user_id, busiType, id);
         } catch (Exception e) {
-            logger.error("删除记录异常:"+id+" "+ e.getMessage());
+            logger.error("删除记录异常:"+id,e);
             return new ResponseInfoAssemble().failure(-1, "删除记录异常["+busiType+"]");
         }
         return resp;
