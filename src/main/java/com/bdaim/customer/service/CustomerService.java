@@ -303,8 +303,6 @@ public class CustomerService {
     public synchronized String registerOrUpdateCustomer(CustomerRegistDTO vo) throws Exception {
         String code = "000";
         if (StringUtil.isNotEmpty(vo.getDealType())) {
-            CustomerUser user = customerUserDao.getUserByAccount(vo.getName());
-            if (user != null) return code = "001";
             //编辑或创建客户
             CustomerUser customerUserDO;
             if (vo.getDealType().equals("1")) {
@@ -319,6 +317,8 @@ public class CustomerService {
                         customerUserDO.setPassword(CipherUtil.generatePassword(vo.getPassword()));
                     }
                 } else {
+                    CustomerUser user = customerUserDao.getUserByAccount(vo.getName());
+                    if (user != null) return code = "001";
                     customerUserDO = new CustomerUser();
                     //1企业客户 2 操作员
                     customerUserDO.setUserType(1);
@@ -668,7 +668,7 @@ public class CustomerService {
             sqlBuilder.append(" AND t1.enterprise_name like '%" + customerRegistDTO.getEnterpriseName() + "%'");
         }
         if (StringUtil.isNotEmpty(customerRegistDTO.getCreateId())) {
-            sqlBuilder.append(" AND cjc.createId ='" +customerRegistDTO.getCreateId() + "'");
+            sqlBuilder.append(" AND cjc.createId ='" + customerRegistDTO.getCreateId() + "'");
         }
         if (StringUtil.isNotEmpty(customerRegistDTO.getName())) {
             sqlBuilder.append(" AND t2.account LIKE '%" + customerRegistDTO.getName() + "%'");
@@ -3676,50 +3676,46 @@ public class CustomerService {
         CustomerUser customerUserDO = null;
         //（1 添加编辑 2 冻结与解冻 3.修改密码）
         if ("1".equals(vo.getDealType())) {
-            if (StringUtil.isNotEmpty(vo.getDealType())) {
+            //编辑或创建客户
+            if (StringUtil.isNotEmpty(vo.getUserId())) {
+                customerUserDO = customerUserDao.findUniqueBy("id", Long.valueOf(vo.getUserId()));
+                if (StringUtil.isNotEmpty(vo.getRealName())) {
+                    customerUserDO.setRealname(vo.getRealName());
+                }
+                if (StringUtil.isNotEmpty(vo.getName())) {
+                    customerUserDO.setAccount(vo.getName());
+                }
+                if (StringUtil.isNotEmpty(vo.getPassword())) {
+                    customerUserDO.setPassword(CipherUtil.generatePassword(vo.getPassword()));
+                }
+            } else {
+                customerUserDO = new CustomerUser();
                 CustomerUser user = customerUserDao.getUserByAccount(vo.getName());
                 if (user != null) return code = "001";
-                //编辑或创建客户
-                if (vo.getDealType().equals("1")) {
-                    if (StringUtil.isNotEmpty(vo.getUserId())) {
-                        customerUserDO = customerUserDao.findUniqueBy("id", Long.valueOf(vo.getUserId()));
-                        if (StringUtil.isNotEmpty(vo.getRealName())) {
-                            customerUserDO.setRealname(vo.getRealName());
-                        }
-                        if (StringUtil.isNotEmpty(vo.getName())) {
-                            customerUserDO.setAccount(vo.getName());
-                        }
-                        if (StringUtil.isNotEmpty(vo.getPassword())) {
-                            customerUserDO.setPassword(CipherUtil.generatePassword(vo.getPassword()));
-                        }
-                    } else {
-                        customerUserDO = new CustomerUser();
-                        //1企业客户 2 操作员
-                        customerUserDO.setUserType(2);
-                        customerUserDO.setId(userId);
-                        customerUserDO.setCust_id(vo.getCustId());
-                        customerUserDO.setAccount(vo.getName());
-                        customerUserDO.setPassword(CipherUtil.generatePassword(vo.getPassword()));
-                        customerUserDO.setRealname(vo.getRealName());
-                        customerUserDO.setStatus(Constant.USER_ACTIVE_STATUS);
-                    }
-                    customerUserDao.saveOrUpdate(customerUserDO);
-                    //编辑用户属性信息
-                    //联系人电话
-                    if (StringUtil.isNotEmpty(vo.getMobile())) {
-                        if (StringUtil.isNotEmpty(vo.getUserId())) {
-                            customerUserPropertyDao.dealUserPropertyInfo(vo.getUserId(), "mobile_num", vo.getMobile());
-                        } else {
-                            customerUserPropertyDao.dealUserPropertyInfo(String.valueOf(userId), "mobile_num", vo.getMobile());
-                        }
-                    }
-                    if (StringUtil.isNotEmpty(vo.getResource())) {
-                        if (StringUtil.isNotEmpty(vo.getUserId())) {
-                            customerUserPropertyDao.dealUserPropertyInfo(vo.getUserId(), "resource", vo.getResource());
-                        } else {
-                            customerUserPropertyDao.dealUserPropertyInfo(String.valueOf(userId), "resource", vo.getResource());
-                        }
-                    }
+                //1企业客户 2 操作员
+                customerUserDO.setUserType(2);
+                customerUserDO.setId(userId);
+                customerUserDO.setCust_id(vo.getCustId());
+                customerUserDO.setAccount(vo.getName());
+                customerUserDO.setPassword(CipherUtil.generatePassword(vo.getPassword()));
+                customerUserDO.setRealname(vo.getRealName());
+                customerUserDO.setStatus(Constant.USER_ACTIVE_STATUS);
+            }
+            customerUserDao.saveOrUpdate(customerUserDO);
+            //编辑用户属性信息
+            //联系人电话
+            if (StringUtil.isNotEmpty(vo.getMobile())) {
+                if (StringUtil.isNotEmpty(vo.getUserId())) {
+                    customerUserPropertyDao.dealUserPropertyInfo(vo.getUserId(), "mobile_num", vo.getMobile());
+                } else {
+                    customerUserPropertyDao.dealUserPropertyInfo(String.valueOf(userId), "mobile_num", vo.getMobile());
+                }
+            }
+            if (StringUtil.isNotEmpty(vo.getResource())) {
+                if (StringUtil.isNotEmpty(vo.getUserId())) {
+                    customerUserPropertyDao.dealUserPropertyInfo(vo.getUserId(), "resource", vo.getResource());
+                } else {
+                    customerUserPropertyDao.dealUserPropertyInfo(String.valueOf(userId), "resource", vo.getResource());
                 }
             }
         } else if ("2".equals(vo.getDealType())) {
