@@ -210,6 +210,7 @@ public class BgdZService implements BusiService{
 			hm.setContent(_content.toJSONString());
 			dataList.add(hm);
 			List<HBusiDataManager> goods = getDataList(hp.getId().longValue());
+			int index=1;
 			for (HBusiDataManager gp : goods) {
 				HBusiDataManager good = new HBusiDataManager();
 				gp.setType(BusiTypeEnum.BS.getType());
@@ -218,12 +219,15 @@ public class BgdZService implements BusiService{
 				good.setCreateDate(new Date());
 				JSONObject __content = JSON.parseObject(gp.getContent());
 				__content.put("pid",fid);
+				_content.put("index",index);
 				good.setContent(__content.toJSONString());
 				good.setType(BusiTypeEnum.BS.getType());
 				good.setCreateId(gp.getCreateId());
 				good.setCust_id(gp.getCust_id());
 				good.setExt_3(gp.getExt_3());
 				good.setExt_4(gp.getExt_4());
+				good.setExt_5(String.valueOf(index));//商品序号
+				index++;
 				dataList.add(good);
 			}
 		}

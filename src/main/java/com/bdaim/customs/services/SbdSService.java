@@ -146,7 +146,6 @@ public class SbdSService implements BusiService {
 
     @Override
     public void updateInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) throws Exception {
-        // TODO Auto-generated method stub
         HBusiDataManager dbManager = getObjectByIdAndType(id,busiType);
         String content = dbManager.getContent();
         JSONObject json = JSONObject.parseObject(content);
@@ -221,7 +220,7 @@ public class SbdSService implements BusiService {
         fjson.put("pack_no",pack_NO);
         fjson.put("estimated_tax",festimated_tax);
         updateDataToES(BusiTypeEnum.SF.getType(),fmanager.getId().toString(),fjson);
-
+        updateDataToES(BusiTypeEnum.SS.getType(),id.toString(),info);
     }
 
     @Override
