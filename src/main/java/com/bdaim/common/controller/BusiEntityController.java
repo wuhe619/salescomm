@@ -130,6 +130,10 @@ public class BusiEntityController extends BasicAction {
                     list = new ArrayList();
                     list.add(jo);
                 }
+                // 低价商品
+                if("_export_low_product".equals(param.getString("_rule_"))){
+                    list = jo.getJSONArray("low_price_goods");
+                }
                 exportExcelService.exportExcel(jo.getInteger("id"), list, param.getString("_rule_"), response);
                 return null;
             }
