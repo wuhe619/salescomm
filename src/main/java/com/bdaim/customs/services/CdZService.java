@@ -161,8 +161,7 @@ public class CdZService implements BusiService{
 		CZ.setExt_3(h.getExt_3());
 		CZ.setExt_1("0");//未发送 1，已发送
 
-		info.put("ext_3",h.getExt_3());
-		info.put("ext_1","0");
+
 
 		JSONObject json = JSON.parseObject(h.getContent());
 		json.put("create_id", userId);
@@ -181,9 +180,10 @@ public class CdZService implements BusiService{
         Iterator keys = json.keySet().iterator();
         while (keys.hasNext()) {
             String key = (String) keys.next();
-            info.put(key, info.get(key));
+            info.put(key, json.get(key));
         }
-
+		info.put("ext_3",h.getExt_3());
+		info.put("ext_1","0");
 //		String content = json.toJSONString();
 		CZ.setContent(info.toJSONString());
 		dataList.add(CZ);
