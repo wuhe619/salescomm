@@ -44,7 +44,15 @@ public class SbdFService implements BusiService {
         if (manager.getCust_id() == null || (!cust_id.equals(manager.getCust_id().toString()))) {
             throw new Exception("无权删除");
         }
-        List<HBusiDataManager> list=getDataList(id);
+        List<HBusiDataManager> list = getDataList(id);
+        for (HBusiDataManager manager2 : list) {
+            deleteDatafromES(manager2.getType(), manager2.getId().toString());
+        }
+        delDataListByPid(id);
+        deleteDatafromES(manager.getType(), manager.getId().toString());
+        JSONObject json = JSONObject.parseObject(manager.getContent());
+        Integer zid=json.getInteger("pid");
+        totalPartDanToMainDan(zid, BusiTypeEnum.SZ.getType(),id);
     }
 
     @Override
@@ -203,7 +211,6 @@ public class SbdFService implements BusiService {
     }
 
 
-
     public void delDataListByPid(Long pid){
         String sql="delete from h_data_manager where JSON_EXTRACT(content, '$.pid')="+pid;
         jdbcTemplate.execute(sql);
@@ -214,5 +221,107 @@ public class SbdFService implements BusiService {
         return jdbcTemplate.queryForList(sql2,HBusiDataManager.class);
     }
 
+    /**
+     * 重新统计主单content
+     * @param zid
+     * @param type
+     * @param id
+     */
+    public void totalPartDanToMainDan(Integer zid, String type,Long id) {
+
+        List<HBusiDataManager> data = getDataList(zid.longValue());
+        Float weightTotal = 0f;
+        Integer low_price_goods=0;
+        for (HBusiDataManager d : data) {
+            if(d.getId()==id.intValue())continue;
+
+            String content = d.getContent();
+            JSONObject json = JSONObject.parseObject(content);
+            Integer s=json.getInteger("low_price_goods");
+            if(s==null)s=0;
+            low_price_goods += s;
+            String WEIGHT = json.getString("weight");
+            if (StringUtil.isEmpty(WEIGHT)) {
+                WEIGHT = "0";
+            }
+            weightTotal += Float.valueOf(WEIGHT);
+        }
+
+        String sql="select id,type,content,ext_1,ext_2,ext_3,ext_4 from h_data_manager where id="+zid +" and type='"+type+"'";
+        HBusiDataManager manager = jdbcTemplate.queryForObject(sql,HBusiDataManager.class);
+
+        String hcontent = manager.getContent();
+        JSONObject jsonObject = JSONObject.parseObject(hcontent);
+        jsonObject.put("weight_total", weightTotal);//总重量
+        jsonObject.put("party_total", data.size()-1<0?0:data.size()-1);//分单总数
+        Integer s=jsonObject.getInteger("low_price_goods");
+        if(s==null){
+            s=0;
+        }
+        jsonObject.put("low_price_goods",s + low_price_goods);
+        manager.setContent(jsonObject.toJSONString());
+        sql = " update h_data_manager set content='"+jsonObject.toJSONString()+"' where id="+zid+" and type='"+type+"'";
+        jdbcTemplate.update(sql);
+        updateDataToES(BusiTypeEnum.SZ.getType(), zid.toString(),jsonObject);
+
+    }
+
+
+    /**
+     * 更新es
+     * @param type
+     * @param id
+     * @param content
+     */
+    private void updateDataToES(String type,String id,JSONObject content) {
+        if (type.equals(BusiTypeEnum.SZ.getType())) {
+            elasticSearchService.updateDocumentToType(Constants.SZ_INFO_INDEX, "haiguan", id, content);
+        }else if(type.equals(BusiTypeEnum.CZ.getType())){
+            elasticSearchService.updateDocumentToType(Constants.CZ_INFO_INDEX, "haiguan", id, content);
+        }else if(type.equals(BusiTypeEnum.BZ.getType())){
+            elasticSearchService.updateDocumentToType(Constants.BZ_INFO_INDEX, "haiguan", id, content);
+        } else if (type.equals(BusiTypeEnum.SF.getType())) {
+            elasticSearchService.updateDocumentToType(Constants.SF_INFO_INDEX, "haiguan", id, content);
+        }else if( type.equals(BusiTypeEnum.CF.getType())){
+            elasticSearchService.updateDocumentToType(Constants.CF_INFO_INDEX, "haiguan", id, content);
+        }else if(type.equals(BusiTypeEnum.BF.getType())){
+            elasticSearchService.updateDocumentToType(Constants.BF_INFO_INDEX, "haiguan", id, content);
+        }else if (type.equals(BusiTypeEnum.SS.getType())) {
+            elasticSearchService.updateDocumentToType(Constants.SS_INFO_INDEX, "haiguan", id, content);
+        }else if(type.equals(BusiTypeEnum.CS.getType())){
+            elasticSearchService.updateDocumentToType(Constants.CS_INFO_INDEX, "haiguan", id, content);
+        }else if(type.equals(BusiTypeEnum.BS.getType())){
+            elasticSearchService.updateDocumentToType(Constants.BS_INFO_INDEX, "haiguan", id, content);
+        }
+
+    }
+
+    /**
+     * 从es删除文档
+     *
+     * @param type
+     * @param id
+     */
+    private void deleteDatafromES(String type, String id) {
+        if (type.equals(BusiTypeEnum.SZ.getType())) {
+            elasticSearchService.deleteDocumentFromType(Constants.SZ_INFO_INDEX, "haiguan", id);
+        }else if(type.equals(BusiTypeEnum.CZ.getType())){
+            elasticSearchService.deleteDocumentFromType(Constants.CZ_INFO_INDEX, "haiguan", id);
+        }else if(type.equals(BusiTypeEnum.BZ.getType())){
+            elasticSearchService.deleteDocumentFromType(Constants.BZ_INFO_INDEX, "haiguan", id);
+        } else if (type.equals(BusiTypeEnum.SF.getType())) {
+            elasticSearchService.deleteDocumentFromType(Constants.SF_INFO_INDEX, "haiguan", id);
+        }else if( type.equals(BusiTypeEnum.CF.getType())){
+            elasticSearchService.deleteDocumentFromType(Constants.CF_INFO_INDEX, "haiguan", id);
+        }else if(type.equals(BusiTypeEnum.BF.getType())){
+            elasticSearchService.deleteDocumentFromType(Constants.BF_INFO_INDEX, "haiguan", id);
+        }else if (type.equals(BusiTypeEnum.SS.getType())) {
+            elasticSearchService.deleteDocumentFromType(Constants.SS_INFO_INDEX, "haiguan", id);
+        }else if(type.equals(BusiTypeEnum.CS.getType())){
+            elasticSearchService.deleteDocumentFromType(Constants.CS_INFO_INDEX, "haiguan", id);
+        }else if(type.equals(BusiTypeEnum.BS.getType())){
+            elasticSearchService.deleteDocumentFromType(Constants.BS_INFO_INDEX, "haiguan", id);
+        }
+    }
 
 }
