@@ -163,6 +163,7 @@ public class SbdZService implements BusiService{
 		String sql2 = "select type,id,content from h_data_manager where  JSON_EXTRACT(content, '$.pid')="+pid;
 		return jdbcTemplate.queryForList(sql2,HBusiDataManager.class);
 	}
+
 	/**
 	 * 从es删除文档
 	 *
