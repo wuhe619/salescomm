@@ -383,7 +383,7 @@ public class CustomController extends BasicAction {
     @RequestMapping(value = "/exportExcel", method = RequestMethod.GET)
     public void exportExcel(int id, int type, HttpServletResponse response) {
         try {
-            exportExcelService.exportExcel(id, type, response);
+            //exportExcelService.exportExcel(id, type, response);
         } catch (Exception e) {
             log.error("导出excel异常", e);
         }

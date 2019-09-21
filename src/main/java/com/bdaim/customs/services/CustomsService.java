@@ -1013,7 +1013,7 @@ public class CustomsService {
         List<HBusiDataManager> hBusiDataManagers = hBusiDataManagerDao.listHBusiDataManager(id, BusiTypeEnum.SF.getKey());
         if (hBusiDataManagers != null) {
             JSONObject jsonObject;
-            String picKey = "ID_NO_PIC";
+            String picKey = "id_card_pic";
             HBusiDataManager mainD = null;
             for (HBusiDataManager d : hBusiDataManagers) {
                 d.setExt_6("");
@@ -1047,7 +1047,7 @@ public class CustomsService {
         int code = 0;
         JSONObject mainDetail = getMainDetailById(String.valueOf(mainId), BusiTypeEnum.SZ.getType());
         if (mainDetail != null && mainDetail.containsKey("id")) {
-            mainDetail.put("idCardNumber", idCardNumber);
+            mainDetail.put("id_card_pic_number", idCardNumber);
             HBusiDataManager param = new HBusiDataManager();
             param.setId(mainId);
             param.setType(BusiTypeEnum.SZ.getType());

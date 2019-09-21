@@ -90,7 +90,7 @@ public class BgdZService implements BusiService{
 	}
 
 	@Override
-	public void getInfo(String busiType, String cust_id, String cust_group_id, String cust_user_id, Long id, JSONObject info) {
+	public void getInfo(String busiType, String cust_id, String cust_group_id, String cust_user_id, Long id, JSONObject info, JSONObject param) {
 		// TODO Auto-generated method stub
 		
 	}

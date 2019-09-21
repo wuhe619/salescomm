@@ -1,11 +1,8 @@
 package com.bdaim.customs.services;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
 import com.alibaba.fastjson.JSON;
-import com.bdaim.auth.LoginUser;
+import com.alibaba.fastjson.JSONObject;
+import com.bdaim.common.service.BusiService;
 import com.bdaim.common.service.ElasticSearchService;
 import com.bdaim.common.service.SequenceService;
 import com.bdaim.customer.dao.CustomerDao;
@@ -19,10 +16,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
-import com.alibaba.fastjson.JSONObject;
-import com.bdaim.common.service.BusiService;
-
 import javax.annotation.Resource;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 /***
  * 舱单.主单
@@ -86,7 +83,7 @@ public class CdZService implements BusiService{
 	}
 
 	@Override
-	public void getInfo(String busiType, String cust_id, String cust_group_id, String cust_user_id, Long id, JSONObject info) {
+	public void getInfo(String busiType, String cust_id, String cust_group_id, String cust_user_id, Long id, JSONObject info, JSONObject param) {
 		// TODO Auto-generated method stub
 		
 	}

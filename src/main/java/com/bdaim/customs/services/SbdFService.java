@@ -1,7 +1,6 @@
 package com.bdaim.customs.services;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.service.BusiService;
 import com.bdaim.common.service.ElasticSearchService;
@@ -9,14 +8,19 @@ import com.bdaim.common.service.SequenceService;
 import com.bdaim.common.util.NumberConvertUtil;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.customs.dao.HBusiDataManagerDao;
-import com.bdaim.customs.entity.*;
+import com.bdaim.customs.entity.BusiTypeEnum;
+import com.bdaim.customs.entity.Constants;
+import com.bdaim.customs.entity.HBusiDataManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 /***
  * 申报单.分单
@@ -91,7 +95,7 @@ public class SbdFService implements BusiService {
     @Override
     public void updateInfo(String busiType, String cust_id, String cust_group_id, String cust_user_id, Long id, JSONObject info) {
         // 身份核验
-        if ("verification".equals(info.getString("rule.do"))) {
+        if ("verification".equals(info.getString("_rule_"))) {
             StringBuffer sql = new StringBuffer("select id from h_data_manager where type=?")
                     .append(" and cust_id='").append(cust_id).append("'")
                     .append(" and id =? ");
@@ -104,7 +108,7 @@ public class SbdFService implements BusiService {
                 jdbcTemplate.update(updateSql, map.get("id"));
             }
 
-        }else if ("clear_verify".equals(info.getString("rule.do"))) {
+        }else if ("clear_verify".equals(info.getString("_rule_"))) {
             // 清空身份证件图片
             List ids = info.getJSONArray("ids");
             List<HBusiDataManager> hBusiDataManagers = hBusiDataManagerDao.listHBusiDataManager(ids, BusiTypeEnum.SF.getType());
@@ -173,7 +177,7 @@ public class SbdFService implements BusiService {
     }
 
     @Override
-    public void getInfo(String busiType, String cust_id, String cust_group_id, String cust_user_id, Long id, JSONObject info) {
+    public void getInfo(String busiType, String cust_id, String cust_group_id, String cust_user_id, Long id, JSONObject info, JSONObject param) {
         // TODO Auto-generated method stub
 
     }
@@ -201,7 +205,7 @@ public class SbdFService implements BusiService {
     public String formatQuery(String busiType, String cust_id, String cust_group_id, String cust_user_id, JSONObject params, List sqlParams) {
         String sql = null;
         //查询主列表
-        if ("main".equals(params.getString("rule.do"))) {
+        if ("main".equals(params.getString("_rule_"))) {
             sqlParams.clear();
             StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from h_data_manager where type=?");
             if (!"all".equals(cust_id))

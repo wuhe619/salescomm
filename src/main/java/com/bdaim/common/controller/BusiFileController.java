@@ -1,29 +1,14 @@
 package com.bdaim.common.controller;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.auth.LoginUser;
-import com.bdaim.common.annotation.ValidatePermission;
-import com.bdaim.common.auth.service.TokenCacheService;
-import com.bdaim.common.controller.util.ResponseJson;
-import com.bdaim.common.dto.DicTypeEnum;
-import com.bdaim.common.entity.DicProperty;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.common.service.BusiFileService;
-
-import javax.servlet.http.HttpServletRequest;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
@@ -113,16 +98,24 @@ public class BusiFileController extends BasicAction {
      */
     @ResponseBody
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
-    public ResponseInfo getInfo(@PathVariable(name = "id") Long id, @PathVariable(name = "busiType") String busiType) {
+    public ResponseInfo getInfo(@PathVariable(name = "id") Long id,  @RequestBody(required = false) String body,@PathVariable(name = "busiType") String busiType) {
     	ResponseInfo resp = new ResponseInfo();
-    	
+        JSONObject param = null;
+        try {
+            if (body == null || "".equals(body))
+                body = "{}";
+
+            param = JSONObject.parseObject(body);
+        } catch (Exception e) {
+            return new ResponseInfoAssemble().failure(-1, "记录解析异常:[" + busiType + "]");
+        }
         try {
         	LoginUser lu = opUser();
         	String cust_id = lu.getCustId();
         	String cust_group_id = lu.getUserGroupId();
         	String cust_user_id = lu.getUser_id();
         	
-        	JSONObject jo = busiFileService.getInfo(cust_id, cust_group_id, cust_user_id, busiType, id);
+        	JSONObject jo = busiFileService.getInfo(cust_id, cust_group_id, cust_user_id, busiType, id, param);
         	resp.setData(jo);
         } catch (Exception e) {
             logger.error("获取文件异常:"+id+" "+e.getMessage());
