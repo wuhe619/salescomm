@@ -210,26 +210,38 @@ public class BusiEntityService {
      * 保存记录
      */
     public Long saveInfo(String cust_id, String cust_group_id, Long cust_user_id, String busiType, Long id, JSONObject info) throws Exception {
+    	String[] extKeys = new String[] {"ext_1","ext_2","ext_3","ext_4","ext_5"};
+    	String[] sysKeys = new String[] {"id","cust_id","create_id","create_date"}; //系统数据字段名
+        for(String sysKey : sysKeys) {
+        	if(info.containsKey(sysKey))
+        		info.remove(sysKey);
+        }
+        for(String extKey : extKeys) {
+        	if(info.containsKey(extKey))
+        		info.remove(extKey);
+        }
+        
+        JSONObject jo = null;
+        
         if (id == null || id == 0) {
             //insert
             id = sequenceService.getSeq(busiType);
-
-            String sql2 = "insert into h_data_manager(id, type, content, cust_id, cust_group_id, cust_user_id, create_id, create_date) value(?, ?, ?, ?, ?, ?, ?, now())";
+            jo = info;
+            String sql1 = "insert into h_data_manager(id, type, content, cust_id, cust_group_id, cust_user_id, create_id, create_date, ext_1, ext_2, ext_3, ext_4, ext_5 ) value(?, ?, ?, ?, ?, ?, ?, now(), ?, ?, ?, ?, ?";
             try {
                 //执行自定义新增规则
                 BusiService busiService = (BusiService) SpringContextHelper.getBean("busi_" + busiType);
-                busiService.insertInfo(busiType, cust_id, cust_group_id, cust_user_id, id, info);
-                Set<String> removeSet = new TreeSet<>();
-                Iterator ifks = info.keySet().iterator();
-                while (ifks.hasNext()) {
-                    String key = (String) ifks.next();
-                    if ("id".equals(key) || "cust_id".equals(key) || "create_id".equals(key) || "create_date".equals(key) || key.startsWith("_")) //关键字冲突
-                        removeSet.add(key);
-                }
+                busiService.insertInfo(busiType, cust_id, cust_group_id, cust_user_id, id, jo);
+                
+                if(jo.containsKey("_rule_"))
+                	jo.remove("_rule_");
 
-                removeSet.forEach(key->info.remove(key));
-
-                jdbcTemplate.update(sql2, id, busiType, info.toJSONString(), cust_id, cust_group_id, cust_user_id, cust_user_id);
+                jdbcTemplate.update(sql1, id, busiType, info.toJSONString(), cust_id, cust_group_id, cust_user_id, cust_user_id
+                		,jo.containsKey("ext_1")?info.getString("ext_1"):""
+                		,jo.containsKey("ext_2")?info.getString("ext_2"):""
+                		,jo.containsKey("ext_3")?info.getString("ext_3"):""
+                		,jo.containsKey("ext_4")?info.getString("ext_4"):""
+                		,jo.containsKey("ext_5")?info.getString("ext_5"):"");
             } catch (Exception e) {
                 e.printStackTrace();
                 logger.error(e.getMessage());
@@ -237,10 +249,9 @@ public class BusiEntityService {
             }
         } else {
             // update
-            String sql1 = "select content from h_data_manager where type=? and cust_id=? and id=?";
             Map data = null;
             try {
-                data = jdbcTemplate.queryForMap(sql1, busiType, cust_group_id, cust_user_id, id);
+                data = jdbcTemplate.queryForMap("select content from h_data_manager where type=? and cust_id=? and id=?", busiType, cust_group_id, cust_user_id, id);
             } catch (Exception e) {
                 throw new Exception("读取数据异常:[" + busiType + "]" + id);
             }
@@ -252,7 +263,6 @@ public class BusiEntityService {
             if (content == null || "".equals(content))
                 content = "{}";
 
-            JSONObject jo = null;
             try {
                 jo = JSONObject.parseObject(content);
                 Iterator keys = info.keySet().iterator();
@@ -265,21 +275,31 @@ public class BusiEntityService {
                 throw new Exception("解析数据异常:[" + busiType + "]" + id);
             }
 
-            String sql2 = "update h_data_manager set content=?,update_id=?,update_date=now() where type=? and cust_id=? and id=?";
-
             try {
                 //执行自定义更新规则
                 BusiService busiService = (BusiService) SpringContextHelper.getBean("busi_" + busiType);
                 busiService.updateInfo(busiType, cust_id, cust_group_id, cust_user_id, id, jo);
 
-                Iterator ifks = jo.keySet().iterator();
-                while (ifks.hasNext()) {
-                    String key = (String) ifks.next();
-                    if ("id".equals(key) || "cust_id".equals(key) || "create_id".equals(key) || "create_date".equals(key) || key.startsWith("_")) //关键字冲突
-                        jo.remove(key);
+                StringBuffer sql2 = new StringBuffer("update h_data_manager set update_id=?,update_date=now() ");
+                List sqlParams = new ArrayList();
+                sqlParams.add(cust_user_id);
+                
+                if(jo.containsKey("_rule_"))
+                	jo.remove("_rule_");
+                for(String extKey : extKeys) {
+                	if(jo.containsKey(extKey)) {
+                		sql2.append(",").append(extKey).append("=?");
+                		sqlParams.add(jo.getString(extKey));
+                		jo.remove(extKey);
+                	}
                 }
+                sql2.append(",content=?  where type=? and cust_id=? and id=?");
+                sqlParams.add(jo.toJSONString());
+                sqlParams.add(busiType);
+                sqlParams.add(cust_id);
+                sqlParams.add(id);
 
-                jdbcTemplate.update(sql2, jo.toJSONString(), cust_user_id, busiType, cust_id, id);
+                jdbcTemplate.update(sql2.toString(), sqlParams.toArray());
             } catch (Exception e) {
                 logger.error(e.getMessage());
                 throw new Exception("更新记录异常:[" + busiType + "]" + id);
