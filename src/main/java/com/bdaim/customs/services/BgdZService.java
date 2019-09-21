@@ -82,8 +82,8 @@ public class BgdZService implements BusiService{
 			String sql = "select content, cust_id, cust_group_id, cust_user_id, create_id, create_date ,ext_1, ext_2, ext_3, ext_4, ext_5 from h_data_manager where type=? and id=? ";
 			Map m = jdbcTemplate.queryForMap(sql, busiType, id);
 			if ("1".equals(String.valueOf(m.get("ext_1")))) {
-				log.warn("报关单:[" + id + "]已提交至海关");
-				throw new Exception("报关单:[" + id + "]已提交至海关");
+				log.warn("报关单主单:[" + id + "]已提交至海关");
+				throw new Exception("报关单主单:[" + id + "]已提交至海关");
 			}
 			// 更新报关单主单信息
 			String content = (String) m.get("content");
@@ -143,11 +143,8 @@ public class BgdZService implements BusiService{
 					jo.put("ext_5", m.get("ext_5"));
 				jdbcTemplate.update(updateSql, jo.toJSONString(), id);
 				updateDataToES(BusiTypeEnum.SF.getType(), String.valueOf(m.get("id")), jo);
-
 			}
-
 		}
-
 
 	}
 
