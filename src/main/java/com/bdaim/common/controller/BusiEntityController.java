@@ -27,7 +27,10 @@ public class BusiEntityController extends BasicAction {
     @Autowired
     private BusiEntityService busiEntityService;
 
-    /**
+    @Autowired
+    private ExportExcelService exportExcelService;
+
+   /**
      * 按多条件查询
      */
     @ResponseBody
@@ -119,14 +122,6 @@ public class BusiEntityController extends BasicAction {
         	String cust_id = lu.getCustId();
         	String cust_group_id = lu.getUserGroupId();
         	Long cust_user_id = lu.getId();
-        	
-        	JSONObject jo = busiEntityService.getInfo(cust_id, cust_group_id, cust_user_id, busiType, id);
-        	resp.setData(jo);
-            LoginUser lu = opUser();
-            String cust_id = lu.getCustId();
-            String cust_group_id = lu.getUserGroupId();
-            String cust_user_id = lu.getUser_id();
-
             JSONObject jo = busiEntityService.getInfo(cust_id, cust_group_id, cust_user_id, busiType, id, param);
             // 导出直接下载文件
             if (StringUtil.isNotEmpty(param.getString("_rule_")) && param.getString("_rule_").startsWith("_export_")) {

@@ -43,7 +43,7 @@ public class BusiFileController extends BasicAction {
         	LoginUser lu = opUser();
         	String cust_id = lu.getCustId();
         	String cust_group_id = lu.getUserGroupId();
-        	String cust_user_id = lu.getUser_id();
+        	Long cust_user_id = lu.getId();
         	if(cust_id==null || "".equals(cust_id))
         		cust_id="-1";
         	if(lu.getAuthorities().contains("admin") || lu.getAuthorities().contains("ROLE_USER"))
@@ -81,7 +81,7 @@ public class BusiFileController extends BasicAction {
         	
         	String cust_id = lu.getCustId();
         	String cust_group_id = lu.getUserGroupId();
-        	String cust_user_id = lu.getUser_id();
+            long cust_user_id = lu.getId();
         	
             id = busiFileService.saveInfo(cust_id, cust_group_id, cust_user_id, busiType, id, info, file);
             resp.setData(id);
@@ -113,7 +113,7 @@ public class BusiFileController extends BasicAction {
         	LoginUser lu = opUser();
         	String cust_id = lu.getCustId();
         	String cust_group_id = lu.getUserGroupId();
-        	String cust_user_id = lu.getUser_id();
+            Long cust_user_id = lu.getId();
         	
         	JSONObject jo = busiFileService.getInfo(cust_id, cust_group_id, cust_user_id, busiType, id, param);
         	resp.setData(jo);
@@ -139,7 +139,7 @@ public class BusiFileController extends BasicAction {
         	
         	String cust_id = lu.getCustId();
         	String cust_group_id = lu.getUserGroupId();
-        	String cust_user_id = lu.getUser_id();
+        	long cust_user_id = lu.getId();
         	
         	busiFileService.deleteInfo(cust_id, cust_group_id, cust_user_id, busiType, id);
         } catch (Exception e) {

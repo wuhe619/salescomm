@@ -34,7 +34,7 @@ public class BusiFileService {
     /*
      * 按ID获取文件
      */
-    public JSONObject getInfo(String cust_id, String cust_group_id, String cust_user_id, String busiType, Long id,JSONObject param) throws Exception{
+    public JSONObject getInfo(String cust_id, String cust_group_id, long cust_user_id, String busiType, Long id,JSONObject param) throws Exception{
     	JSONObject jo = null;
     	
     	String sql = "select content, cust_id, cust_group_id, cust_user_id, create_id, create_date, update_id, update_date,file_type,file_name,file_size,file_id,ext_1 from f_file where type=? and id=? ";
@@ -76,7 +76,7 @@ public class BusiFileService {
     /*
      * 查询文件
      */
-    public Page query(String cust_id, String cust_group_id, String cust_user_id, String busiType, JSONObject params) throws Exception{
+    public Page query(String cust_id, String cust_group_id, long cust_user_id, String busiType, JSONObject params) throws Exception{
     	Page p = new Page();
     	
     	List sqlParams =  new ArrayList();
@@ -186,7 +186,7 @@ public class BusiFileService {
     /*
      * 保存文件
      */
-    public Long saveInfo(String cust_id, String cust_group_id, String cust_user_id, String busiType, Long id, JSONObject info, MultipartFile file) throws Exception{
+    public Long saveInfo(String cust_id, String cust_group_id, Long cust_user_id, String busiType, Long id, JSONObject info, MultipartFile file) throws Exception{
     	String file_name = file.getName();
     	String file_type = file.getContentType();
     	Long file_size = file.getSize();
@@ -271,7 +271,7 @@ public class BusiFileService {
     /**
      * 删除文件
      */
-    public void deleteInfo(String cust_id, String cust_group_id, String cust_user_id, String busiType, Long id) throws Exception{
+    public void deleteInfo(String cust_id, String cust_group_id, Long cust_user_id, String busiType, Long id) throws Exception{
     	String sql = "delete from f_file where type=? and cust_id=? and id=?";
     	try {
     		//执行自定义删除规则

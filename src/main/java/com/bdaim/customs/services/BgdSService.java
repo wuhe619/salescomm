@@ -12,6 +12,8 @@ import java.util.List;
 @Service("busi_bgd_s")
 public class BgdSService implements BusiService{
 
+
+
 	@Override
 	public void insertInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) {
 		// TODO Auto-generated method stub
@@ -25,8 +27,7 @@ public class BgdSService implements BusiService{
 	}
 
 	@Override
-	public void getInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) {
-	public void getInfo(String busiType, String cust_id, String cust_group_id, String cust_user_id, Long id, JSONObject info, JSONObject param) {
+	public void getInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info, JSONObject param) {
 		// TODO Auto-generated method stub
 		
 	}
@@ -44,7 +45,7 @@ public class BgdSService implements BusiService{
 	}
 
 	@Override
-	public void formatInfo(String busiType, String cust_id, String cust_group_id, String cust_user_id, JSONObject info) {
+	public void formatInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, JSONObject info) {
 		// TODO Auto-generated method stub
 		
 	}
