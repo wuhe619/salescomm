@@ -11,10 +11,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import javax.transaction.Transactional;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 通用业务实体服务
@@ -222,13 +219,15 @@ public class BusiEntityService {
                 //执行自定义新增规则
                 BusiService busiService = (BusiService) SpringContextHelper.getBean("busi_" + busiType);
                 busiService.insertInfo(busiType, cust_id, cust_group_id, cust_user_id, id, info);
-
+                Set<String> removeSet = new TreeSet<>();
                 Iterator ifks = info.keySet().iterator();
                 while (ifks.hasNext()) {
                     String key = (String) ifks.next();
                     if ("id".equals(key) || "cust_id".equals(key) || "create_id".equals(key) || "create_date".equals(key) || key.startsWith("_")) //关键字冲突
-                        info.remove(key);
+                        removeSet.add(key);
                 }
+
+                removeSet.forEach(key->info.remove(key));
 
                 jdbcTemplate.update(sql2, id, busiType, info.toJSONString(), cust_id, cust_group_id, cust_user_id, cust_user_id);
             } catch (Exception e) {
