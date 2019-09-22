@@ -1,6 +1,7 @@
 package com.bdaim.customs.utils;
 
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.batch.ResourceEnum;
 import com.bdaim.common.service.ElasticSearchService;
 import com.bdaim.common.service.SequenceService;
 import com.bdaim.common.util.CipherUtil;
@@ -10,6 +11,9 @@ import com.bdaim.customs.entity.BusiTypeEnum;
 import com.bdaim.customs.entity.Constants;
 import com.bdaim.customs.entity.HBusiDataManager;
 import com.bdaim.customs.entity.TResourceLog;
+import com.bdaim.resource.dao.SourceDao;
+import com.bdaim.resource.entity.MarketResourceEntity;
+import com.bdaim.supplier.dto.SupplierEnum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +39,8 @@ public class ServiceUtils {
 
     @Autowired
     private SequenceService sequenceService;
+    @Autowired
+    private SourceDao sourceDao;
 
     public void addDataToES(String id, String type, JSONObject content) {
         if (type.equals(BusiTypeEnum.SZ.getType())) {
@@ -145,6 +151,12 @@ public class ServiceUtils {
         queue.setCustUserId(userId);
         queue.setBatchId(CipherUtil.encodeByMD5(IDHelper.getID().toString()));
         queue.setCreateTime(new Timestamp(System.currentTimeMillis()));
+        queue.setBusiType(1);
+        queue.setSupplierId(SupplierEnum.ZAX.getSupplierId());
+        MarketResourceEntity resourceId = sourceDao.getResourceId(SupplierEnum.ZAX.getSupplierId(), ResourceEnum.CHECK_IDCARD.getType());
+        if(resourceId!=null){
+            queue.setResourceId(resourceId.getResourceId());
+        }
         hBusiDataManagerDao.saveOrUpdate(queue);
     }
 }
