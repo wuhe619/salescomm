@@ -11,7 +11,10 @@ public enum SupplierEnum {
     CTC("3", "电信", "ctc", 1, "ctc_seat", "ctc_call_id", "ctc_apparent_number", "ctc_activity_id", "ctc_minute", ""),
     CMC("4", "移动", "cmc", 1, "cmc_seat", "cmc_call_id", "cmc_apparent_number", "cmc_activity_id", "cmc_minute", ""),
     JD("5", "京东", "jd", 2, "", "", "", "", "", "jd_config_id"),
-    YD("6", "韵达", "yd", 2, "", "", "", "", "", "yd_config_id");
+    YD("6", "韵达", "yd", 2, "", "", "", "", "", "yd_config_id"),
+    SW("7", "三网", "", 2, "", "", "", "", "", ""),
+    ZT("9", "中通", "", 2, "", "", "", "", "", ""),
+    ZAX("10", "智安信", "", 2, "", "", "", "", "", "");
     private String supplierId;
     private String name;
     private String supplierName;
