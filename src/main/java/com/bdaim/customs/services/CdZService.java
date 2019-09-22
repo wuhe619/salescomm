@@ -11,6 +11,7 @@ import com.bdaim.customs.dao.HBusiDataManagerDao;
 import com.bdaim.customs.entity.BusiTypeEnum;
 import com.bdaim.customs.entity.Constants;
 import com.bdaim.customs.entity.HBusiDataManager;
+import com.bdaim.customs.utils.ServiceUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,12 +46,14 @@ public class CdZService implements BusiService {
     @Autowired
     private HBusiDataManagerDao hBusiDataManagerDao;
 
+    @Autowired
+    private ServiceUtils serviceUtils;
 
     @Override
     public void insertInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) throws Exception {
         // TODO Auto-generated method stub
         if (StringUtil.isNotEmpty(info.getString("fromSbzId"))) {
-            HBusiDataManager h = getObjectByIdAndType(info.getLong("fromSbzId"), BusiTypeEnum.SZ.getType());
+            HBusiDataManager h = serviceUtils.getObjectByIdAndType(info.getLong("fromSbzId"), BusiTypeEnum.SZ.getType());
             if (h == null) {
                 throw new Exception("数据不存在");
             }
@@ -67,7 +70,7 @@ public class CdZService implements BusiService {
             int index = -1;
             for (int i = 0; i < dataList.size(); i++) {
                 HBusiDataManager dm = dataList.get(i);
-                addDataToES(dm);
+                serviceUtils.addDataToES(dm.getId().toString(),dm.getType(),JSON.parseObject(dm.getContent()));
                 if (!dm.getType().equals(BusiTypeEnum.CZ.getType())) {
                     index = i;
                 }
@@ -213,47 +216,6 @@ public class CdZService implements BusiService {
     }
 
 
-    public HBusiDataManager getObjectByIdAndType(Long id, String type) {
-        String sql = "select * from h_data_manager where id=" + id + " and type='" + type + "'";
-        RowMapper<HBusiDataManager> managerRowMapper = new BeanPropertyRowMapper<>(HBusiDataManager.class);
-        return jdbcTemplate.queryForObject(sql, managerRowMapper);
-    }
-
-    public void delDataListByIdAndType(Long id, String type) {
-        String sql = "delete from h_data_manager where type='" + type + "' and id=" + id;
-        jdbcTemplate.execute(sql);
-    }
-
-    /**
-     * 添加数据到es
-     *
-     * @param hBusiDataManager
-     * @param
-     */
-    private void addDataToES(HBusiDataManager hBusiDataManager) {
-        String type = hBusiDataManager.getType();
-        String id = hBusiDataManager.getId().toString();
-        if (type.equals(BusiTypeEnum.SZ.getType())) {
-            elasticSearchService.addDocumentToType(Constants.SZ_INFO_INDEX, "haiguan", id, JSON.parseObject(hBusiDataManager.getContent()));
-        } else if (type.equals(BusiTypeEnum.CZ.getType())) {
-            elasticSearchService.addDocumentToType(Constants.CZ_INFO_INDEX, "haiguan", id.toString(), JSON.parseObject(hBusiDataManager.getContent()));
-        } else if (type.equals(BusiTypeEnum.BZ.getType())) {
-            elasticSearchService.addDocumentToType(Constants.BZ_INFO_INDEX, "haiguan", id.toString(), JSON.parseObject(hBusiDataManager.getContent()));
-        } else if (type.equals(BusiTypeEnum.SF.getType())) {
-            elasticSearchService.addDocumentToType(Constants.SF_INFO_INDEX, "haiguan", id.toString(), JSON.parseObject(hBusiDataManager.getContent()));
-        } else if (type.equals(BusiTypeEnum.CF.getType())) {
-            elasticSearchService.addDocumentToType(Constants.CF_INFO_INDEX, "haiguan", id.toString(), JSON.parseObject(hBusiDataManager.getContent()));
-        } else if (type.equals(BusiTypeEnum.BF.getType())) {
-            elasticSearchService.addDocumentToType(Constants.BF_INFO_INDEX, "haiguan", id.toString(), JSON.parseObject(hBusiDataManager.getContent()));
-        } else if (type.equals(BusiTypeEnum.SS.getType())) {
-            elasticSearchService.addDocumentToType(Constants.SS_INFO_INDEX, "haiguan", id.toString(), JSON.parseObject(hBusiDataManager.getContent()));
-        } else if (type.equals(BusiTypeEnum.CS.getType())) {
-            elasticSearchService.addDocumentToType(Constants.CS_INFO_INDEX, "haiguan", id.toString(), JSON.parseObject(hBusiDataManager.getContent()));
-        } else if (type.equals(BusiTypeEnum.BS.getType())) {
-            elasticSearchService.addDocumentToType(Constants.BS_INFO_INDEX, "haiguan", id.toString(), JSON.parseObject(hBusiDataManager.getContent()));
-        }
-    }
-
     public void buildDanList(JSONObject info, Long id, List<HBusiDataManager> dataList, String custId, Long userId, HBusiDataManager h) throws Exception {
         HBusiDataManager CZ = new HBusiDataManager();
         CZ.setType(BusiTypeEnum.CZ.getType());
@@ -289,7 +251,7 @@ public class CdZService implements BusiService {
 //		String content = json.toJSONString();
         CZ.setContent(info.toJSONString());
         dataList.add(CZ);
-        List<HBusiDataManager> parties = getDataList(info.getLong("fromSbzId"));
+        List<HBusiDataManager> parties = serviceUtils.getDataList(info.getLong("fromSbzId"));
         for (HBusiDataManager hp : parties) {
             HBusiDataManager hm = new HBusiDataManager();
             hm.setType(BusiTypeEnum.CF.getType());
@@ -305,7 +267,7 @@ public class CdZService implements BusiService {
             _content.put("main_bill_no", json.get("bill_no"));
             hm.setContent(_content.toJSONString());
             dataList.add(hm);
-            List<HBusiDataManager> goods = getDataList(hp.getId().longValue());
+            List<HBusiDataManager> goods = serviceUtils.getDataList(hp.getId().longValue());
             for (HBusiDataManager gp : goods) {
                 HBusiDataManager good = new HBusiDataManager();
                 gp.setType(BusiTypeEnum.CS.getType());
@@ -327,9 +289,4 @@ public class CdZService implements BusiService {
     }
 
 
-    public List<HBusiDataManager> getDataList(Long pid) {
-        String sql2 = "select * from h_data_manager where  JSON_EXTRACT(content, '$.pid')=" + pid + " or JSON_EXTRACT(content, '$.pid')='" + pid + "'";
-        RowMapper<HBusiDataManager> managerRowMapper = new BeanPropertyRowMapper<>(HBusiDataManager.class);
-        return jdbcTemplate.query(sql2, managerRowMapper);
-    }
 }
