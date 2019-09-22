@@ -240,7 +240,7 @@ public class BgdZService implements BusiService{
 
 		CZ.setContent(info.toJSONString());
 		dataList.add(CZ);
-		List<HBusiDataManager> parties = serviceUtils.getDataList(info.getLong("fromSbzId"));
+		List<HBusiDataManager> parties = serviceUtils.getDataList(BusiTypeEnum.BF.getType(),info.getLong("fromSbzId"));
 		for (HBusiDataManager hp : parties) {
 			HBusiDataManager hm = new HBusiDataManager();
 			hm.setType(BusiTypeEnum.BF.getType());
@@ -255,7 +255,7 @@ public class BgdZService implements BusiService{
 			_content.put("pid",id);
 			hm.setContent(_content.toJSONString());
 			dataList.add(hm);
-			List<HBusiDataManager> goods = serviceUtils.getDataList(hp.getId().longValue());
+			List<HBusiDataManager> goods = serviceUtils.getDataList(BusiTypeEnum.BS.getType(),hp.getId().longValue());
 			int index=1;
 			for (HBusiDataManager gp : goods) {
 				HBusiDataManager good = new HBusiDataManager();

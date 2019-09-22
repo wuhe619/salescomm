@@ -60,8 +60,8 @@ public class BgdFService implements BusiService{
 			log.error("分单号不能为空");
 			throw new Exception("分单号不能为空");
 		}
-		HBusiDataManager sbdzd = serviceUtils.getObjectByIdAndType(pid.longValue(),BusiTypeEnum.SZ.getType());
-		List<HBusiDataManager> list = serviceUtils.getDataList(pid.longValue());
+		HBusiDataManager sbdzd = serviceUtils.getObjectByIdAndType(pid.longValue(),BusiTypeEnum.BZ.getType());
+		List<HBusiDataManager> list = serviceUtils.getDataList(busiType,pid.longValue());
 		if(list!=null && list.size()>0){
 			for(HBusiDataManager hBusiDataManager:list){
 				JSONObject jsonObject=JSONObject.parseObject(hBusiDataManager.getContent());
@@ -138,7 +138,7 @@ public class BgdFService implements BusiService{
 
 			sql = "UPDATE h_data_manager SET ext_1 = '1', ext_date1 = NOW(), content=? WHERE id = ? AND ext_1 <>'1' ";
 			jdbcTemplate.update(sql, jo.toJSONString(), id);
-			serviceUtils.updateDataToES(BusiTypeEnum.SZ.getType(), id.toString(), jo);
+			serviceUtils.updateDataToES(BusiTypeEnum.BZ.getType(), id.toString(), jo);
 		}else{
 			HBusiDataManager dbManager = serviceUtils.getObjectByIdAndType(id,busiType);
 			String content = dbManager.getContent();

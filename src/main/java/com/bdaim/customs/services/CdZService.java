@@ -231,7 +231,7 @@ public class CdZService implements BusiService {
 //		String content = json.toJSONString();
         CZ.setContent(info.toJSONString());
         dataList.add(CZ);
-        List<HBusiDataManager> parties = serviceUtils.getDataList(info.getLong("fromSbzId"));
+        List<HBusiDataManager> parties = serviceUtils.getDataList(BusiTypeEnum.CF.getType(),info.getLong("fromSbzId"));
         for (HBusiDataManager hp : parties) {
             HBusiDataManager hm = new HBusiDataManager();
             hm.setType(BusiTypeEnum.CF.getType());
@@ -247,7 +247,7 @@ public class CdZService implements BusiService {
             _content.put("main_bill_no", json.get("bill_no"));
             hm.setContent(_content.toJSONString());
             dataList.add(hm);
-            List<HBusiDataManager> goods = serviceUtils.getDataList(hp.getId().longValue());
+            List<HBusiDataManager> goods = serviceUtils.getDataList(BusiTypeEnum.CS.getType(),hp.getId().longValue());
             for (HBusiDataManager gp : goods) {
                 HBusiDataManager good = new HBusiDataManager();
                 gp.setType(BusiTypeEnum.CS.getType());
