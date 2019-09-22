@@ -58,7 +58,7 @@ public class SbdFService implements BusiService {
             throw new Exception("分单号不能为空");
         }
         HBusiDataManager sbdzd = serviceUtils.getObjectByIdAndType(pid.longValue(),BusiTypeEnum.SZ.getType());
-        List<HBusiDataManager> list = serviceUtils.getDataList(pid.longValue());
+        List<HBusiDataManager> list = serviceUtils.getDataList(BusiTypeEnum.SF.getType(),pid.longValue());
         if(list!=null && list.size()>0){
             for(HBusiDataManager hBusiDataManager:list){
                 JSONObject jsonObject=JSONObject.parseObject(hBusiDataManager.getContent());
@@ -218,7 +218,7 @@ public class SbdFService implements BusiService {
         if (manager.getCust_id() == null || (!cust_id.equals(manager.getCust_id().toString()))) {
             throw new Exception("无权删除");
         }
-        List<HBusiDataManager> list = serviceUtils.getDataList(id);
+        List<HBusiDataManager> list = serviceUtils.getDataList(BusiTypeEnum.SS.getType(),id);
         for (HBusiDataManager manager2 : list) {
             serviceUtils.deleteDatafromES(manager2.getType(), manager2.getId().toString());
         }
@@ -298,7 +298,7 @@ public class SbdFService implements BusiService {
      */
     public void totalPartDanToMainDan(Integer zid, String type,Long id) {
 
-        List<HBusiDataManager> data = serviceUtils.getDataList(zid.longValue());
+        List<HBusiDataManager> data = serviceUtils.getDataList(BusiTypeEnum.SF.getType(),zid.longValue());
         Float weightTotal = 0f;
         Integer low_price_goods=0;
         for (HBusiDataManager d : data) {

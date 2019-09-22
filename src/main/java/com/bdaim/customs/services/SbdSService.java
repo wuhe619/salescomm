@@ -160,12 +160,12 @@ public class SbdSService implements BusiService {
         }
         serviceUtils.updateDataToES(busiType,id.toString(),json);
 
-        HBusiDataManager fmanager = serviceUtils.getObjectByIdAndType(id,busiType);
+        HBusiDataManager fmanager = serviceUtils.getObjectByIdAndType(json.getLong("pid"),BusiTypeEnum.SF.getType());
         String fcontent = fmanager.getContent();
 
         JSONObject fjson = JSONObject.parseObject(fcontent);
 
-        List<HBusiDataManager> goodsList = serviceUtils.getDataList(fjson.getLong("pid"));
+        List<HBusiDataManager> goodsList = serviceUtils.getDataList(BusiTypeEnum.SS.getType(),fmanager.getId().longValue());
         float weight = 0;  //重量
         float pack_NO = 0; //数量
         int lowPricegoods = 0; //低价商品数
@@ -224,7 +224,7 @@ public class SbdSService implements BusiService {
         fjson.put("pack_no",pack_NO);
         fjson.put("estimated_tax",festimated_tax);
         serviceUtils.updateDataToES(BusiTypeEnum.SF.getType(),fmanager.getId().toString(),fjson);
-        serviceUtils.updateDataToES(BusiTypeEnum.SS.getType(),id.toString(),info);
+        //serviceUtils.updateDataToES(BusiTypeEnum.SS.getType(),id.toString(),info);
     }
 
     @Override

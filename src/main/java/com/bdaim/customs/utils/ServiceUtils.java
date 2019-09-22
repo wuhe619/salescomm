@@ -133,8 +133,8 @@ public class ServiceUtils {
         jdbcTemplate.execute(sql);
     }
 
-    public List<HBusiDataManager> getDataList(Long pid){
-        String sql2 = "select * from h_data_manager where  JSON_EXTRACT(content, '$.pid')="+pid +" or JSON_EXTRACT(content, '$.pid')='"+pid+"'";
+    public List<HBusiDataManager> getDataList(String type,Long pid){
+        String sql2 = "select * from h_data_manager where  type='"+type+"' and (JSON_EXTRACT(content, '$.pid')="+pid +" or JSON_EXTRACT(content, '$.pid')='"+pid+"')";
         RowMapper<HBusiDataManager> managerRowMapper=new BeanPropertyRowMapper<>(HBusiDataManager.class);
         return jdbcTemplate.query(sql2,managerRowMapper);
     }

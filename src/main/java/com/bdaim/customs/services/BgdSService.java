@@ -110,7 +110,7 @@ public class BgdSService implements BusiService{
 		info.put("estimated_tax", estimated_tax);//预估税金
 		info.put("tax_rate", tax_rate);//税率
 		info.put("total_price",0);//价格合计
-		List<HBusiDataManager> goodslist = serviceUtils.getDataList(Long.valueOf(pid));
+		List<HBusiDataManager> goodslist = serviceUtils.getDataList(BusiTypeEnum.BS.getType(),Long.valueOf(pid));
 		Integer index = 0;
 		for(HBusiDataManager m:goodslist){
 			String indexStr = m.getExt_5();
@@ -185,7 +185,7 @@ public class BgdSService implements BusiService{
 
 		JSONObject fjson = JSONObject.parseObject(fcontent);
 
-		List<HBusiDataManager> goodsList = serviceUtils.getDataList(fjson.getLong("pid"));
+		List<HBusiDataManager> goodsList = serviceUtils.getDataList(BusiTypeEnum.BS.getType(),fjson.getLong("pid"));
 		float weight = 0;  //重量
 		float pack_NO = 0; //数量
 		int lowPricegoods = 0; //低价商品数
