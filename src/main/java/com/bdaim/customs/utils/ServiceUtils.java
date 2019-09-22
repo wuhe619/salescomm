@@ -129,14 +129,16 @@ public class ServiceUtils {
     }
 
     public void delDataListByPid(Long pid){
-        String sql="delete from h_data_manager where JSON_EXTRACT(content, '$.pid')=" + pid + " or JSON_EXTRACT(content, '$.pid')='"+pid+"'";
+        String sql="delete from h_data_manager where CASE WHEN JSON_VALID(content) THEN  JSON_EXTRACT(content, '$.pid')=" + pid + " ELSE null END or CASE WHEN JSON_VALID(content) THEN  JSON_EXTRACT(content, '$.pid')='"+pid+"' ELSE null END";
         jdbcTemplate.execute(sql);
     }
 
     public List<HBusiDataManager> getDataList(String type,Long pid){
-        String sql2 = "select * from h_data_manager where  type='"+type+"' and (JSON_EXTRACT(content, '$.pid')="+pid +" or JSON_EXTRACT(content, '$.pid')='"+pid+"')";
+        String sql2 = "select * from h_data_manager where  type='"+type+"' and ( CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')="+pid +" ELSE null END  or CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')='"+pid+"' ELSE null END)";
+        log.info("sql2="+sql2);
         RowMapper<HBusiDataManager> managerRowMapper=new BeanPropertyRowMapper<>(HBusiDataManager.class);
-        return jdbcTemplate.query(sql2,managerRowMapper);
+        List<HBusiDataManager> list = jdbcTemplate.query(sql2,managerRowMapper);
+        return list;
     }
 
     public void delDataListByIdAndType(Long id,String type){

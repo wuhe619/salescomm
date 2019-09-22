@@ -195,22 +195,22 @@ public class SbdZService implements BusiService {
 
     @Override
     public void deleteInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id) throws Exception {
-        HBusiDataManager manager = getObjectByIdAndType(id,busiType);
+        HBusiDataManager manager = serviceUtils.getObjectByIdAndType(id,busiType);
 
         if ("Y".equals(manager.getExt_1()) || "Y".equals(manager.getExt_2())) {
             throw new Exception("已经被提交，无法删除");
         }
 
-        List<HBusiDataManager> list = getDataList(id);
+        List<HBusiDataManager> list = serviceUtils.getDataList(BusiTypeEnum.SF.getType(),id);
         for (HBusiDataManager hBusiDataManager : list) {
-            List<HBusiDataManager> slist = getDataList(hBusiDataManager.getId().longValue());//所有税单
+            List<HBusiDataManager> slist = serviceUtils.getDataList(BusiTypeEnum.SS.getType(),hBusiDataManager.getId().longValue());//所有税单
             for (HBusiDataManager shBusiDataManager : slist) {
-                deleteDatafromES(BusiTypeEnum.CS.getType(), shBusiDataManager.getId().toString());
+                serviceUtils.deleteDatafromES(BusiTypeEnum.CS.getType(), shBusiDataManager.getId().toString());
             }
-            deleteDatafromES(BusiTypeEnum.CS.getType(), hBusiDataManager.getId().toString());
-            delDataListByPid(hBusiDataManager.getId().longValue());
+            serviceUtils.deleteDatafromES(BusiTypeEnum.CS.getType(), hBusiDataManager.getId().toString());
+            serviceUtils.delDataListByPid(hBusiDataManager.getId().longValue());
         }
-        delDataListByPid(id);
+        serviceUtils.delDataListByPid(id);
 
     }
 
@@ -279,55 +279,6 @@ public class SbdZService implements BusiService {
         // TODO Auto-generated method stub
 
     }
-
-
-    public HBusiDataManager getObjectByIdAndType(Long id,String type){
-        String sql="select * from h_data_manager where id="+id+" and type='"+type+"'";
-        RowMapper<HBusiDataManager> managerRowMapper=new BeanPropertyRowMapper<>(HBusiDataManager.class);
-        return jdbcTemplate.queryForObject(sql,managerRowMapper);
-    }
-
-    public void delDataListByPid(Long pid) {
-        String sql = "delete from h_data_manager where JSON_EXTRACT(content, '$.pid')=" + pid;
-        jdbcTemplate.execute(sql);
-    }
-
-    public List<HBusiDataManager> getDataList(Long pid) {
-        String sql2 = "select * from h_data_manager where  JSON_EXTRACT(content, '$.pid')=" + pid;
-        RowMapper<HBusiDataManager> managerRowMapper=new BeanPropertyRowMapper<>(HBusiDataManager.class);
-        return jdbcTemplate.query(sql2, managerRowMapper);
-    }
-
-    /**
-     * 从es删除文档
-     *
-     * @param type
-     * @param id
-     */
-    private void deleteDatafromES(String type, String id) {
-        if (type.equals(BusiTypeEnum.SZ.getType())) {
-            elasticSearchService.deleteDocumentFromType(Constants.SZ_INFO_INDEX, "haiguan", id);
-        } else if (type.equals(BusiTypeEnum.CZ.getType())) {
-            elasticSearchService.deleteDocumentFromType(Constants.CZ_INFO_INDEX, "haiguan", id);
-        } else if (type.equals(BusiTypeEnum.BZ.getType())) {
-            elasticSearchService.deleteDocumentFromType(Constants.BZ_INFO_INDEX, "haiguan", id);
-        } else if (type.equals(BusiTypeEnum.SF.getType())) {
-            elasticSearchService.deleteDocumentFromType(Constants.SF_INFO_INDEX, "haiguan", id);
-        } else if (type.equals(BusiTypeEnum.CF.getType())) {
-            elasticSearchService.deleteDocumentFromType(Constants.CF_INFO_INDEX, "haiguan", id);
-        } else if (type.equals(BusiTypeEnum.BF.getType())) {
-            elasticSearchService.deleteDocumentFromType(Constants.BF_INFO_INDEX, "haiguan", id);
-        } else if (type.equals(BusiTypeEnum.SS.getType())) {
-            elasticSearchService.deleteDocumentFromType(Constants.SS_INFO_INDEX, "haiguan", id);
-        } else if (type.equals(BusiTypeEnum.CS.getType())) {
-            elasticSearchService.deleteDocumentFromType(Constants.CS_INFO_INDEX, "haiguan", id);
-        } else if (type.equals(BusiTypeEnum.BS.getType())) {
-            elasticSearchService.deleteDocumentFromType(Constants.BS_INFO_INDEX, "haiguan", id);
-        }
-    }
-
-
-
 
 
     public void buildMain(JSONObject info, List<HBusiDataManager> list, MainDan mainDan, Long userId, String custId, String station_id, Long mainid) throws Exception {
