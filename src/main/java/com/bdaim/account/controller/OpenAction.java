@@ -1,5 +1,6 @@
 package com.bdaim.account.controller;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.account.service.OpenService;
 import com.bdaim.batch.dao.BatchDetailDao;
@@ -19,6 +20,7 @@ import com.bdaim.resource.service.MarketResourceService;
 import com.bdaim.template.dto.TemplateParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpMethod;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -593,6 +595,46 @@ public class OpenAction extends BasicAction {
     @RequestMapping("/getVoiceRecordFile/{userId}/{fileName:.+}")
     public void getVoiceRecordFile(@PathVariable String userId, @PathVariable String fileName, HttpServletResponse response){
         openService.getVoiceRecordFile(userId,fileName,request,response);
+    }
+
+    /**
+     * 场站信息同步接口
+     * “场站”将检查结果同步给”快件通关辅助系统”，以便系统及时通知报关公司
+     *
+     * @param queryParams
+     * {
+     *     "id":"",分单号(必填)
+     *     "code":"1",检查结果 1：通过 2：未通过
+     *     "msg":"",具体结果描述
+     *     "time":"" 检查结束时间
+     * }
+     */
+    @RequestMapping(value = "/customs/terminal/check",method = RequestMethod.POST)
+    public JSONObject customsCheckResult(@RequestBody String queryParams){
+        log.info("customsCheckResult:"+queryParams);
+        JSONObject result = new JSONObject();
+        if(StringUtil.isEmpty(queryParams)){
+            result.put("code",0);
+            result.put("msg","无效参数");
+            return result;
+        }else {
+            JSONObject json= JSON.parseObject(queryParams);
+            if(!json.containsKey("id") || StringUtil.isEmpty(json.getString("id"))){
+                result.put("code",0);
+                result.put("msg","无效参数");
+                return result;
+            }
+            if(!json.containsKey("code") || StringUtil.isEmpty(json.getString("code"))){
+                result.put("code",0);
+                result.put("msg","无效参数");
+                return result;
+            }
+        }
+
+        result.put("code",200);
+        result.put("msg","成功");
+        return result;
+
     }
 }
 
