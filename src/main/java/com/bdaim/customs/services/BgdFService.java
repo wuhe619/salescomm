@@ -8,14 +8,12 @@ import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customs.dao.HBusiDataManagerDao;
 import com.bdaim.customs.entity.BusiTypeEnum;
-import com.bdaim.customs.entity.Constants;
 import com.bdaim.customs.entity.HBusiDataManager;
+import com.bdaim.customs.utils.ServiceUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.Iterator;
@@ -178,7 +176,7 @@ public class BgdFService implements BusiService{
     @Override
     public void formatInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, JSONObject info) {
         //报关单主单赋值到分单中
-        HBusiDataManager bgdZ = getObjectByIdAndType(info.getLongValue("pid"), BusiTypeEnum.BZ.getType());
+        HBusiDataManager bgdZ = serviceUtils.getObjectByIdAndType(info.getLongValue("pid"), BusiTypeEnum.BZ.getType());
         if (bgdZ != null) {
             JSONObject jo = JSONObject.parseObject(bgdZ.getContent());
             Iterator keys = jo.keySet().iterator();
