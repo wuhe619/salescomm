@@ -171,7 +171,28 @@ public class BgdZService implements BusiService{
 
 	@Override
 	public void getInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info, JSONObject param) {
-		// TODO Auto-generated method stub
+        if (StringUtil.isNotEmpty(param.getString("_rule_")) && param.getString("_rule_").startsWith("_export")) {
+            info.put("export_type", 2);
+            switch (param.getString("_rule_")) {
+                case "_export_bgd_z_main_data ":
+                    List singles = queryChildData(BusiTypeEnum.BZ.getType(), cust_id, cust_group_id, cust_user_id, id, info, param);
+                    if (singles != null) {
+                        List products = new ArrayList();
+                        List tmp;
+                        JSONObject js;
+                        // 查询分单下的低价商品
+                        for (int i = 0; i < singles.size(); i++) {
+                            js = (JSONObject) singles.get(i);
+                            tmp = queryChildData(BusiTypeEnum.BS.getType(), cust_id, cust_group_id, cust_user_id, js.getLong("id"), info, param);
+                            if (tmp != null && tmp.size() > 0) {
+                                products.add(tmp);
+                            }
+                        }
+                        info.put("singles", products);
+                    }
+            }
+
+        }
 		
 	}
 
