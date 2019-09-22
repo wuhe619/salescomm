@@ -8,6 +8,7 @@ import com.bdaim.common.service.BusiService;
 import com.bdaim.common.service.ElasticSearchService;
 import com.bdaim.common.service.ResourceService;
 import com.bdaim.common.service.SequenceService;
+import com.bdaim.common.util.NumberConvertUtil;
 import com.bdaim.common.util.SqlAppendUtil;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.dao.CustomerDao;
@@ -112,16 +113,29 @@ public class SbdZService implements BusiService {
                     .append(" and (ext_7 IS NULL OR ext_7 = '') ")
                     .append(" and JSON_EXTRACT(content, '$.'pid')=?");
             List sqlParams = new ArrayList();
-            sqlParams.add(busiType);
+            sqlParams.add(BusiTypeEnum.SF.getType());
             sqlParams.add(id);
             List<Map<String, Object>> dfList = jdbcTemplate.queryForList(sql.toString(), sqlParams.toArray());
             if (dfList != null && dfList.size() > 0) {
                 List ids = new ArrayList();
+                JSONObject content = new JSONObject();
+                content.put("main_id", id);
+                content.put("status", 3);
+                JSONObject input;
+                JSONObject data;
                 for (Map<String, Object> m : dfList) {
                     ids.add(m.get("id"));
+                    input = new JSONObject();
+                    // 身份核验待核验入队列
+                    data = JSON.parseObject((String) m.getOrDefault("content",""));
+                    input.put("name", data.getString("receive_name"));
+                    input.put("id", data.getString("id_no"));
+                    content.put("input",input);
+                    serviceUtils.insertSFVerifyQueue(content.toJSONString(),data.getString("bii_no"), cust_user_id);
                 }
                 String updateSql = "UPDATE h_data_manager SET ext_7 = 3 WHERE id IN(" + SqlAppendUtil.sqlAppendWhereIn(ids) + ")";
                 jdbcTemplate.update(updateSql);
+
             }
         } else {
             serviceUtils.updateDataToES(busiType, id.toString(), info);

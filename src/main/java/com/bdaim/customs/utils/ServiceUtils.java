@@ -3,10 +3,13 @@ package com.bdaim.customs.utils;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.service.ElasticSearchService;
 import com.bdaim.common.service.SequenceService;
+import com.bdaim.common.util.CipherUtil;
+import com.bdaim.common.util.IDHelper;
 import com.bdaim.customs.dao.HBusiDataManagerDao;
 import com.bdaim.customs.entity.BusiTypeEnum;
 import com.bdaim.customs.entity.Constants;
 import com.bdaim.customs.entity.HBusiDataManager;
+import com.bdaim.customs.entity.TResourceLog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +18,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
 
+import java.sql.Timestamp;
 import java.util.List;
 
 @Component
@@ -132,5 +136,15 @@ public class ServiceUtils {
     public void delDataListByIdAndType(Long id,String type){
         String sql="delete from h_data_manager where type='"+type+"' and id="+id;
         jdbcTemplate.execute(sql);
+    }
+
+    public void insertSFVerifyQueue(String content, String billNo, long userId){
+        TResourceLog queue = new TResourceLog();
+        queue.setContent(content);
+        queue.setBusiId(billNo);
+        queue.setCustUserId(userId);
+        queue.setBatchId(CipherUtil.encodeByMD5(IDHelper.getID().toString()));
+        queue.setCreateTime(new Timestamp(System.currentTimeMillis()));
+        hBusiDataManagerDao.saveOrUpdate(queue);
     }
 }
