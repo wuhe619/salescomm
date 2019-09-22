@@ -50,28 +50,35 @@ public class BgdZService implements BusiService{
 	public void insertInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) throws Exception {
 		// TODO Auto-generated method stub
 		if(StringUtil.isNotEmpty(info.getString("fromSbzId"))) {
-			HBusiDataManager h = getObjectByIdAndType(info.getLong("fromSbzId"),BusiTypeEnum.SZ.getType());
-			if (h == null) {
-				throw new Exception("数据不存在");
-			}
-			if (!cust_id.equals(h.getCust_id().toString())) {
-				throw new Exception("你无权处理");
-			}
+            HBusiDataManager h = getObjectByIdAndType(info.getLong("fromSbzId"), BusiTypeEnum.SZ.getType());
+            if (h == null) {
+                throw new Exception("数据不存在");
+            }
+            if (!cust_id.equals(h.getCust_id().toString())) {
+                throw new Exception("你无权处理");
+            }
 
-			List<HBusiDataManager> dataList = new ArrayList<>();
-			if ("Y".equals(h.getExt_1())) {
-				throw new Exception("已经提交过了,不能重复提交");
-			}
+            List<HBusiDataManager> dataList = new ArrayList<>();
+            if ("Y".equals(h.getExt_1())) {
+                throw new Exception("已经提交过了,不能重复提交");
+            }
 
-			buildDanList(info,id,dataList, cust_id,cust_user_id, h, BusiTypeEnum.BZ.getType());
-
-			for (HBusiDataManager dm : dataList) {
-				if(!dm.getType().equals(BusiTypeEnum.BZ.getType())) {
-					hBusiDataManagerDao.saveOrUpdate(dm);
-				}
-				addDataToES(dm);
-			}
-		}
+            buildDanList(info, id, dataList, cust_id, cust_user_id, h, BusiTypeEnum.BZ.getType());
+            int index = -1;
+            for (int i = 0; i < dataList.size(); i++) {
+                HBusiDataManager dm = dataList.get(i);
+                addDataToES(dm);
+                if (!dm.getType().equals(BusiTypeEnum.BZ.getType())) {
+                    index = i;
+                }
+            }
+            if (index > -1) {
+                dataList.remove(index);
+            }
+            if (dataList.size() > 0) {
+                hBusiDataManagerDao.batchSaveOrUpdate(dataList);
+            }
+        }
 
 	}
 

@@ -64,12 +64,19 @@ public class CdZService implements BusiService {
             }
 
             buildDanList(info, id, dataList, cust_id, cust_user_id, h);
-
-            for (HBusiDataManager dm : dataList) {
-                if (!dm.getType().equals(BusiTypeEnum.CZ.getType())) {
-                    hBusiDataManagerDao.saveOrUpdate(dm);
-                }
+            int index = -1;
+            for (int i = 0; i < dataList.size(); i++) {
+                HBusiDataManager dm = dataList.get(i);
                 addDataToES(dm);
+                if (!dm.getType().equals(BusiTypeEnum.CZ.getType())) {
+                    index = i;
+                }
+            }
+            if (index > -1) {
+                dataList.remove(index);
+            }
+            if (dataList.size() > 0) {
+                hBusiDataManagerDao.batchSaveOrUpdate(dataList);
             }
         }
 

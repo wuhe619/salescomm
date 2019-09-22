@@ -36,6 +36,7 @@ public class SequenceService {
 				}
 			}
 		}catch(Exception e) {
+		    e.printStackTrace();
 			logger.error("获取主键ID异常:["+type+"] ",e);
 			throw new Exception("获取主键ID异常");
 		}
