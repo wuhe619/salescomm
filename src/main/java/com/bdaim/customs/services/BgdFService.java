@@ -10,6 +10,7 @@ import com.bdaim.customs.dao.HBusiDataManagerDao;
 import com.bdaim.customs.entity.BusiTypeEnum;
 import com.bdaim.customs.entity.Constants;
 import com.bdaim.customs.entity.HBusiDataManager;
+import com.bdaim.customs.utils.ServiceUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +46,9 @@ public class BgdFService implements BusiService{
 	@Autowired
 	private HBusiDataManagerDao hBusiDataManagerDao;
 
+	@Autowired
+	private ServiceUtils serviceUtils;
+
 
 	@Override
 	public void insertInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) throws Exception {
@@ -59,8 +63,8 @@ public class BgdFService implements BusiService{
 			log.error("分单号不能为空");
 			throw new Exception("分单号不能为空");
 		}
-		HBusiDataManager sbdzd = getObjectByIdAndType(pid.longValue(),BusiTypeEnum.SZ.getType());
-		List<HBusiDataManager> list = getDataList(pid.longValue());
+		HBusiDataManager sbdzd = serviceUtils.getObjectByIdAndType(pid.longValue(),BusiTypeEnum.SZ.getType());
+		List<HBusiDataManager> list = serviceUtils.getDataList(pid.longValue());
 		if(list!=null && list.size()>0){
 			for(HBusiDataManager hBusiDataManager:list){
 				JSONObject jsonObject=JSONObject.parseObject(hBusiDataManager.getContent());
@@ -78,7 +82,7 @@ public class BgdFService implements BusiService{
 		info.put("id",id);
 		info.put("pid",pid);
 		info.put("opt_type","APD");
-		addDataToES(id.toString(),busiType,info);
+		serviceUtils.addDataToES(id.toString(),busiType,info);
 		JSONObject jsonObject = JSONObject.parseObject(sbdzd.getContent());
 		if(info.containsKey("weight") && info.getString("weight")!=null){
 			if(jsonObject.containsKey("weight_total")) {
@@ -97,7 +101,7 @@ public class BgdFService implements BusiService{
 
 		sbdzd.setContent(jsonObject.toJSONString());
 		hBusiDataManagerDao.saveOrUpdate(sbdzd);
-		updateDataToES(BusiTypeEnum.BZ.getType(),sbdzd.getId().toString(),jsonObject);
+		serviceUtils.updateDataToES(BusiTypeEnum.BZ.getType(),sbdzd.getId().toString(),jsonObject);
 		
 	}
 
@@ -137,9 +141,9 @@ public class BgdFService implements BusiService{
 
 			sql = "UPDATE h_data_manager SET ext_1 = '1', ext_date1 = NOW(), content=? WHERE id = ? AND ext_1 <>'1' ";
 			jdbcTemplate.update(sql, jo.toJSONString(), id);
-			updateDataToES(BusiTypeEnum.SZ.getType(), id.toString(), jo);
+			serviceUtils.updateDataToES(BusiTypeEnum.SZ.getType(), id.toString(), jo);
 		}else{
-			HBusiDataManager dbManager = getObjectByIdAndType(id,busiType);
+			HBusiDataManager dbManager = serviceUtils.getObjectByIdAndType(id,busiType);
 			String content = dbManager.getContent();
 			JSONObject json = JSONObject.parseObject(content);
 			Iterator keys = info.keySet().iterator();
@@ -147,64 +151,12 @@ public class BgdFService implements BusiService{
 				String key = (String) keys.next();
 				json.put(key, info.get(key));
 			}
-			updateDataToES(busiType,id.toString(),json);
+			serviceUtils.updateDataToES(busiType,id.toString(),json);
 		}
 		
 	}
 
 
-	private void addDataToES(String id,String type,JSONObject content) {
-		if (type.equals(BusiTypeEnum.SZ.getType())) {
-			elasticSearchService.addDocumentToType(Constants.SZ_INFO_INDEX, "haiguan", id, content);
-		}else if(type.equals(BusiTypeEnum.CZ.getType())){
-			elasticSearchService.addDocumentToType(Constants.CZ_INFO_INDEX, "haiguan", id, content);
-		}else if(type.equals(BusiTypeEnum.BZ.getType())){
-			elasticSearchService.addDocumentToType(Constants.BZ_INFO_INDEX, "haiguan", id, content);
-		} else if (type.equals(BusiTypeEnum.SF.getType())) {
-			elasticSearchService.addDocumentToType(Constants.SF_INFO_INDEX, "haiguan", id, content);
-		}else if( type.equals(BusiTypeEnum.CF.getType())){
-			elasticSearchService.addDocumentToType(Constants.CF_INFO_INDEX, "haiguan", id, content);
-		}else if(type.equals(BusiTypeEnum.BF.getType())){
-			elasticSearchService.addDocumentToType(Constants.BF_INFO_INDEX, "haiguan", id,content);
-		}else if (type.equals(BusiTypeEnum.SS.getType())) {
-			elasticSearchService.addDocumentToType(Constants.SS_INFO_INDEX, "haiguan", id, content);
-		}else if(type.equals(BusiTypeEnum.CS.getType())){
-			elasticSearchService.addDocumentToType(Constants.CS_INFO_INDEX, "haiguan", id, content);
-		}else if(type.equals(BusiTypeEnum.BS.getType())){
-			elasticSearchService.addDocumentToType(Constants.BS_INFO_INDEX, "haiguan", id, content);
-		}
-	}
-
-
-	/**
-	 * 更新es
-	 *
-	 * @param type
-	 * @param id
-	 * @param content
-	 */
-	private void updateDataToES(String type, String id, JSONObject content) {
-		if (type.equals(BusiTypeEnum.SZ.getType())) {
-			elasticSearchService.updateDocumentToType(Constants.SZ_INFO_INDEX, "haiguan", id, content);
-		} else if (type.equals(BusiTypeEnum.CZ.getType())) {
-			elasticSearchService.updateDocumentToType(Constants.CZ_INFO_INDEX, "haiguan", id, content);
-		} else if (type.equals(BusiTypeEnum.BZ.getType())) {
-			elasticSearchService.updateDocumentToType(Constants.BZ_INFO_INDEX, "haiguan", id, content);
-		} else if (type.equals(BusiTypeEnum.SF.getType())) {
-			elasticSearchService.updateDocumentToType(Constants.SF_INFO_INDEX, "haiguan", id, content);
-		} else if (type.equals(BusiTypeEnum.CF.getType())) {
-			elasticSearchService.updateDocumentToType(Constants.CF_INFO_INDEX, "haiguan", id, content);
-		} else if (type.equals(BusiTypeEnum.BF.getType())) {
-			elasticSearchService.updateDocumentToType(Constants.BF_INFO_INDEX, "haiguan", id, content);
-		} else if (type.equals(BusiTypeEnum.SS.getType())) {
-			elasticSearchService.updateDocumentToType(Constants.SS_INFO_INDEX, "haiguan", id, content);
-		} else if (type.equals(BusiTypeEnum.CS.getType())) {
-			elasticSearchService.updateDocumentToType(Constants.CS_INFO_INDEX, "haiguan", id, content);
-		} else if (type.equals(BusiTypeEnum.BS.getType())) {
-			elasticSearchService.updateDocumentToType(Constants.BS_INFO_INDEX, "haiguan", id, content);
-		}
-
-	}
 
 	@Override
 	public void getInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info, JSONObject param) {
@@ -230,17 +182,5 @@ public class BgdFService implements BusiService{
 		
 	}
 
-	public HBusiDataManager getObjectByIdAndType(Long id, String type){
-		String sql="select * from h_data_manager where id="+id+" and type='"+type+"'";
-		RowMapper<HBusiDataManager> managerRowMapper=new BeanPropertyRowMapper<>(HBusiDataManager.class);
-		return jdbcTemplate.queryForObject(sql,managerRowMapper);
-	}
-
-
-	public List<HBusiDataManager> getDataList(Long pid){
-		String sql2 = "select * from h_data_manager where  JSON_EXTRACT(content, '$.pid')="+pid +" or JSON_EXTRACT(content, '$.pid')='"+pid+"'";
-		RowMapper<HBusiDataManager>managerRowMapper = new BeanPropertyRowMapper<>(HBusiDataManager.class);
-		return jdbcTemplate.query(sql2,managerRowMapper);
-	}
 
 }
