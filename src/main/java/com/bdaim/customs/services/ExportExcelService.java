@@ -43,6 +43,8 @@ public class ExportExcelService {
         put("_export_estimated_tax", "预估税单.xlsx");
         put("_export_declaration_form", "报检单.xlsx");
         put("_export_tally_form", "理货单.xlsx");
+        put("_export_bgd_z_main_data  ", "报关单数据.xls");
+        put("_export_cd_z_main_data  ", "理货单.xlsx");
     }};
 
     @Autowired
@@ -59,32 +61,38 @@ public class ExportExcelService {
         workbook.write(response.getOutputStream());
     }
 
-    public void exportExcel(int id, List<JSONObject> list, String rule, HttpServletResponse response) throws IllegalAccessException, IOException {
+    public void exportExcel(int id, List<JSONObject> list, JSONObject param, HttpServletResponse response) throws IllegalAccessException, IOException {
         if (list == null && id > 0) {
-            exportIdCardExcel(id, rule, response);
+            exportIdCardExcel(id, param.getString("_rule_"), response);
             return;
         }
-        exportExcelByTemplate(list, rule, response);
+        exportExcelByTemplate(list, param, response);
     }
 
-    private void exportExcelByTemplate(List<JSONObject> list, String rule, HttpServletResponse response) throws IllegalAccessException, IOException {
+    private void exportExcelByTemplate(List<JSONObject> list, JSONObject param, HttpServletResponse response) throws IllegalAccessException, IOException {
         // 生成workbook 并导出
-        String templatePath = "tp/" + exportTemplate.get(rule);
+        String templatePath = "tp/" + exportTemplate.get(param);
         Map<String, Object> map = new HashMap<>();
         map.put("list", JavaBeanUtil.convertBeanToMapList(list));
 
         response.setHeader("Content-Disposition", "attachment; filename=" + System.currentTimeMillis() + ExcelTypeEnum.XLSX.getValue());
         response.setContentType("application/vnd.ms-excel;charset=utf-8");
-        switch (rule) {
+        switch (param.getString("_rule_")) {
             // 导出低价商品单,导出预估税单
             case "_export_low_product":
             case "_export_estimated_tax":
+            case "_export_cd_z_main_data":
                 export(templatePath, map, null, response);
                 break;
                 // 导出报检单,导出理货单
             case "_export_declaration_form":
             case "_export_tally_form":
                 String[] sheetName = new String[]{"主单", "分单", "税单"};
+                generateMainDan(list, map);
+                export(templatePath, map, sheetName, response);
+                break;
+            case "_export_bgd_z_main_data":
+                sheetName = new String[]{"报关单表头", "报关单商品"};
                 generateMainDan(list, map);
                 export(templatePath, map, sheetName, response);
                 break;

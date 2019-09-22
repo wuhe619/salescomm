@@ -23,7 +23,10 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 @Component
 public class ServiceUtils {
@@ -160,5 +163,50 @@ public class ServiceUtils {
             queue.setResourceId(resourceId.getResourceId());
         }
         hBusiDataManagerDao.saveOrUpdate(queue);
+    }
+
+    public List<Map<String, Object>> listObjectByParam(String busiType, String cust_id, JSONObject params){
+        List sqlParams = new ArrayList();
+        StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from h_data_manager where type=?");
+        if (!"all".equals(cust_id))
+            sqlstr.append(" and cust_id='").append(cust_id).append("'");
+
+        sqlParams.add(busiType);
+
+        Iterator keys = params.keySet().iterator();
+        while (keys.hasNext()) {
+            String key = (String) keys.next();
+            if("".equals(String.valueOf(params.get(key)))) continue;
+            if ("pageNum".equals(key) || "pageSize".equals(key)) continue;
+            if ("cust_id".equals(key)) {
+                sqlstr.append(" and cust_id=?");
+            } else if (key.startsWith("_c_")) {
+                sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(3) + "') like concat('%',?,'%')");
+            } else if (key.startsWith("_g_")) {
+                sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(3) + "') > ?");
+            } else if (key.startsWith("_ge_")) {
+                sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(4) + "') >= ?");
+            } else if (key.startsWith("_l_")) {
+                sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(3) + "') < ?");
+            } else if (key.startsWith("_le_")) {
+                sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(4) + "') <= ?");
+            }else if (key.startsWith("_eq_")) {
+                sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(4) + "') = ?");
+            }else if (key.startsWith("_range_")) {
+                if ("0".equals(String.valueOf(params.get(key)))) {
+                    sqlstr.append(" and ( JSON_EXTRACT(content, '$." + key.substring(7) + "') <= ?")
+                            .append(" OR JSON_EXTRACT(content, '$." + key.substring(7) + "') = '' ")
+                            .append(" OR JSON_EXTRACT(content, '$." + key.substring(7) + "') IS NULL ) ");
+                } else {
+                    sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(7) + "') >= ?");
+                }
+            }  else {
+                sqlstr.append(" and JSON_EXTRACT(content, '$." + key + "')=?");
+            }
+
+            sqlParams.add(params.get(key));
+        }
+        List<Map<String, Object>> ds = jdbcTemplate.queryForList(sqlstr.toString(), sqlParams.toArray());
+        return ds;
     }
 }

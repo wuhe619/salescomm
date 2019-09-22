@@ -171,7 +171,28 @@ public class BgdZService implements BusiService{
 
 	@Override
 	public void getInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info, JSONObject param) {
-		// TODO Auto-generated method stub
+        if (StringUtil.isNotEmpty(param.getString("_rule_")) && param.getString("_rule_").startsWith("_export")) {
+            info.put("export_type", 2);
+            switch (param.getString("_rule_")) {
+                case "_export_bgd_z_main_data ":
+                    List singles = queryChildData(BusiTypeEnum.BZ.getType(), cust_id, cust_group_id, cust_user_id, id, info, param);
+                    if (singles != null) {
+                        List products = new ArrayList();
+                        List tmp;
+                        JSONObject js;
+                        // 查询分单下的低价商品
+                        for (int i = 0; i < singles.size(); i++) {
+                            js = (JSONObject) singles.get(i);
+                            tmp = queryChildData(BusiTypeEnum.BS.getType(), cust_id, cust_group_id, cust_user_id, js.getLong("id"), info, param);
+                            if (tmp != null && tmp.size() > 0) {
+                                products.add(tmp);
+                            }
+                        }
+                        info.put("singles", products);
+                    }
+            }
+
+        }
 		
 	}
 
@@ -278,5 +299,75 @@ public class BgdZService implements BusiService{
 			}
 		}
 	}
+
+    private List queryChildData(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long pid, JSONObject info, JSONObject param) {
+        List sqlParams = new ArrayList();
+        StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from h_data_manager where type=?");
+        if (!"all".equals(cust_id))
+            sqlstr.append(" and cust_id='").append(cust_id).append("'");
+
+        sqlParams.add(busiType);
+        Iterator keys = param.keySet().iterator();
+        while (keys.hasNext()) {
+            String key = (String) keys.next();
+            if ("cust_id".equals(key)) {
+                sqlstr.append(" and cust_id=?");
+            } else if (key.startsWith("_g_")) {
+                sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(3) + "') > ?");
+            } else if (key.startsWith("_ge_")) {
+                sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(4) + "') >= ?");
+            } else if (key.startsWith("_l_")) {
+                sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(3) + "') < ?");
+            } else if (key.startsWith("_le_")) {
+                sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(4) + "') <= ?");
+            } else if (key.startsWith("_eq_")) {
+                sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(4) + "') = ?");
+            } else {
+                sqlstr.append(" and JSON_EXTRACT(content, '$." + key + "')=?");
+            }
+            sqlParams.add(param.get(key));
+        }
+        sqlstr.append(" and JSON_EXTRACT(content, '$.pid')=?");
+        sqlParams.add(pid);
+
+        List<Map<String, Object>> ds = jdbcTemplate.queryForList(sqlstr.toString(), sqlParams.toArray());
+        List data = new ArrayList();
+        for (int i = 0; i < ds.size(); i++) {
+            Map m = (Map) ds.get(i);
+            JSONObject jo = null;
+            try {
+                if (m.containsKey("content")) {
+                    jo = JSONObject.parseObject((String) m.get("content"));
+                    jo.put("id", m.get("id"));
+                    jo.put("cust_id", m.get("cust_id"));
+                    jo.put("cust_group_id", m.get("cust_group_id"));
+                    jo.put("cust_user_id", m.get("cust_user_id"));
+                    jo.put("create_id", m.get("create_id"));
+                    jo.put("create_date", m.get("create_date"));
+                    jo.put("update_id", m.get("update_id"));
+                    jo.put("update_date", m.get("update_date"));
+                    if (m.get("ext_1") != null && !"".equals(m.get("ext_1")))
+                        jo.put("ext_1", m.get("ext_1"));
+                    if (m.get("ext_2") != null && !"".equals(m.get("ext_2")))
+                        jo.put("ext_2", m.get("ext_2"));
+                    if (m.get("ext_3") != null && !"".equals(m.get("ext_3")))
+                        jo.put("ext_3", m.get("ext_3"));
+                    if (m.get("ext_4") != null && !"".equals(m.get("ext_4")))
+                        jo.put("ext_4", m.get("ext_4"));
+                    if (m.get("ext_5") != null && !"".equals(m.get("ext_5")))
+                        jo.put("ext_5", m.get("ext_5"));
+                } else
+                    jo = JSONObject.parseObject(JSONObject.toJSONString(m));
+            } catch (Exception e) {
+                log.error(e.getMessage());
+            }
+            if (jo == null) { //jo异常导致为空时，只填充id
+                jo = new JSONObject();
+                jo.put("id", m.get("id"));
+            }
+            data.add(jo);
+        }
+        return data;
+    }
 
 }

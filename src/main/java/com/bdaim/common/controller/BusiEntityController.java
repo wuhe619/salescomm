@@ -134,7 +134,7 @@ public class BusiEntityController extends BasicAction {
                 if("_export_low_product".equals(param.getString("_rule_"))){
                     list = jo.getJSONArray("low_price_goods");
                 }
-                exportExcelService.exportExcel(jo.getInteger("id"), list, param.getString("_rule_"), response);
+                exportExcelService.exportExcel(jo.getInteger("id"), list, param, response);
                 return null;
             }
             resp.setData(jo);
