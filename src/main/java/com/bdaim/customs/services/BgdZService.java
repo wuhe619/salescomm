@@ -154,6 +154,16 @@ public class BgdZService implements BusiService{
 				jdbcTemplate.update(updateSql, jo.toJSONString(), id);
 				serviceUtils.updateDataToES(BusiTypeEnum.SF.getType(), String.valueOf(m.get("id")), jo);
 			}
+		}else{
+			HBusiDataManager dbManager = serviceUtils.getObjectByIdAndType(id,busiType);
+			String content = dbManager.getContent();
+			JSONObject json = JSONObject.parseObject(content);
+			Iterator keys = info.keySet().iterator();
+			while (keys.hasNext()) {
+				String key = (String) keys.next();
+				json.put(key, info.get(key));
+			}
+			serviceUtils.updateDataToES(busiType,id.toString(),json);
 		}
 
 	}

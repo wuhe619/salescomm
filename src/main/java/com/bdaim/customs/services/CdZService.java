@@ -122,7 +122,7 @@ public class CdZService implements BusiService {
 
             sql = "UPDATE h_data_manager SET ext_1 = '1', ext_date1 = NOW(), content=? WHERE id = ? AND ext_1 <>'1' ";
             jdbcTemplate.update(sql, jo.toJSONString(), id);
-            updateDataToES(BusiTypeEnum.CZ.getType(), id.toString(), jo);
+            serviceUtils.updateDataToES(BusiTypeEnum.CZ.getType(), id.toString(), jo);
 
             //更新舱单分单信息
             String selectSql = "select content, cust_id, cust_group_id, cust_user_id, create_id, create_date ,ext_1, ext_2, ext_3, ext_4, ext_5 from h_data_manager JSON_EXTRACT(content, '$.pid')=? AND ext_1 <>'1' ";
@@ -153,43 +153,23 @@ public class CdZService implements BusiService {
                 if (m.get("ext_5") != null && !"".equals(m.get("ext_5")))
                     jo.put("ext_5", m.get("ext_5"));
                 jdbcTemplate.update(updateSql, jo.toJSONString(), id);
-                updateDataToES(BusiTypeEnum.CF.getType(), String.valueOf(m.get("id")), jo);
+                serviceUtils.updateDataToES(BusiTypeEnum.CF.getType(), String.valueOf(m.get("id")), jo);
 
             }
-
+        }else{
+            HBusiDataManager dbManager = serviceUtils.getObjectByIdAndType(id,busiType);
+            String content = dbManager.getContent();
+            JSONObject json = JSONObject.parseObject(content);
+            Iterator keys = info.keySet().iterator();
+            while (keys.hasNext()) {
+                String key = (String) keys.next();
+                json.put(key, info.get(key));
+            }
+            serviceUtils.updateDataToES(busiType,id.toString(),json);
         }
 
     }
 
-    /**
-     * 更新es
-     *
-     * @param type
-     * @param id
-     * @param content
-     */
-    private void updateDataToES(String type, String id, JSONObject content) {
-        if (type.equals(BusiTypeEnum.SZ.getType())) {
-            elasticSearchService.updateDocumentToType(Constants.SZ_INFO_INDEX, "haiguan", id, content);
-        } else if (type.equals(BusiTypeEnum.CZ.getType())) {
-            elasticSearchService.updateDocumentToType(Constants.CZ_INFO_INDEX, "haiguan", id, content);
-        } else if (type.equals(BusiTypeEnum.BZ.getType())) {
-            elasticSearchService.updateDocumentToType(Constants.BZ_INFO_INDEX, "haiguan", id, content);
-        } else if (type.equals(BusiTypeEnum.SF.getType())) {
-            elasticSearchService.updateDocumentToType(Constants.SF_INFO_INDEX, "haiguan", id, content);
-        } else if (type.equals(BusiTypeEnum.CF.getType())) {
-            elasticSearchService.updateDocumentToType(Constants.CF_INFO_INDEX, "haiguan", id, content);
-        } else if (type.equals(BusiTypeEnum.BF.getType())) {
-            elasticSearchService.updateDocumentToType(Constants.BF_INFO_INDEX, "haiguan", id, content);
-        } else if (type.equals(BusiTypeEnum.SS.getType())) {
-            elasticSearchService.updateDocumentToType(Constants.SS_INFO_INDEX, "haiguan", id, content);
-        } else if (type.equals(BusiTypeEnum.CS.getType())) {
-            elasticSearchService.updateDocumentToType(Constants.CS_INFO_INDEX, "haiguan", id, content);
-        } else if (type.equals(BusiTypeEnum.BS.getType())) {
-            elasticSearchService.updateDocumentToType(Constants.BS_INFO_INDEX, "haiguan", id, content);
-        }
-
-    }
 
     @Override
     public void getInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info, JSONObject param) {
