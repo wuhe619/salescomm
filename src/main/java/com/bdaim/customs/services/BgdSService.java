@@ -76,6 +76,7 @@ public class BgdSService implements BusiService{
 		info.put("create_date",new Date());
 		info.put("ext_3",code_ts);
 		info.put("ext_4",billNo);
+        info.put("opt_type","APD");
 		float duty_paid_price = 0;
 		float estimated_tax = 0;
 		float tax_rate = 0;

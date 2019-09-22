@@ -77,6 +77,7 @@ public class BgdFService implements BusiService{
 		info.put("low_price_goods",0);
 		info.put("id",id);
 		info.put("pid",pid);
+		info.put("opt_type","APD");
 		addDataToES(id.toString(),busiType,info);
 		JSONObject jsonObject = JSONObject.parseObject(sbdzd.getContent());
 		if(info.containsKey("weight") && info.getString("weight")!=null){
