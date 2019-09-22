@@ -11,7 +11,9 @@ public enum BusiTypeEnum {
     BZ("BZ", "报关单-主单", "bgd_z"),
     BF("BF", "报关单-分单", "bgd_f"),
     BS("BS", "报关单-税单", "bgd_s"),
-    ST("ST", "场站", "station");
+    ST("ST", "场站", "station"),
+    BGD_HZ("ST", "报关单-海关回执", "bgd_hz"),
+    CD_HZ("ST", "舱单-海关回执", "cd_hz");
 
     private String key;
     private String name;

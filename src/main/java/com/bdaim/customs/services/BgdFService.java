@@ -1,5 +1,6 @@
 package com.bdaim.customs.services;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.service.BusiService;
 import com.bdaim.common.service.ElasticSearchService;
@@ -45,6 +46,7 @@ public class BgdFService implements BusiService{
 
 	@Autowired
 	private ServiceUtils serviceUtils;
+
 
 
 	@Override
@@ -157,8 +159,27 @@ public class BgdFService implements BusiService{
 
 	@Override
 	public void getInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info, JSONObject param) {
-		// TODO Auto-generated method stub
-		
+		//查询报关单海关回执数据
+		JSONObject params = new JSONObject();
+		params.put("receiptz_status",1);
+		params.put("bill_no",info.getString("bill_no"));
+		List<Map<String, Object>> dbManager = serviceUtils.listObjectByParam(BusiTypeEnum.BGD_HZ.getType(), cust_id,params);
+		String content = null;
+		if(dbManager!=null){
+			content = String.valueOf(dbManager.get(0).get("content"));
+		}
+		if(StringUtil.isNotEmpty(content)){
+			JSONObject json = JSONObject.parseObject(content);
+			Iterator keys = info.keySet().iterator();
+			// 海关回执存入报关单数据中
+			while (keys.hasNext()) {
+				String key = (String) keys.next();
+				if(!info.containsKey(key)){
+					info.put(key, info.get(key));
+				}
+			}
+		}
+
 	}
 
 	@Override
