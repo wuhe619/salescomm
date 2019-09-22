@@ -847,7 +847,7 @@ public class CustomsService {
                 }
                 // 上传身份证照片并且更新分单数据库和ES信息
                 JSONObject jsonObject;
-                String picKey = "ID_NO_PIC";
+                String picKey = "id_no_pic";
                 for (HBusiDataManager d : fdList) {
                     if (StringUtil.isEmpty(d.getContent())) {
                         continue;
@@ -855,7 +855,8 @@ public class CustomsService {
                     jsonObject = JSON.parseObject(d.getContent());
                     if (jsonObject != null) {
                         // 身份证照片存储对象ID
-                        jsonObject.put(picKey, map.get(jsonObject.getString("ID_NO")));
+                        jsonObject.put(picKey, map.get(jsonObject.getString("id_no")));
+                        jsonObject.put("idcard_pic_flag", "1");
                         d.setContent(jsonObject.toJSONString());
                         d.setExt_6(jsonObject.getString(picKey));
                         hBusiDataManagerDao.saveOrUpdate(d);
@@ -1021,6 +1022,7 @@ public class CustomsService {
                 if (jsonObject != null) {
                     // 身份证照片存储对象ID
                     jsonObject.put(picKey, "");
+                    jsonObject.put("idcard_pic_flag", "0");
                     d.setContent(jsonObject.toJSONString());
                 }
                 hBusiDataManagerDao.saveOrUpdate(d);

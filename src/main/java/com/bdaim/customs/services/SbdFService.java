@@ -119,7 +119,7 @@ public class SbdFService implements BusiService {
             List<HBusiDataManager> hBusiDataManagers = hBusiDataManagerDao.listHBusiDataManager(ids, BusiTypeEnum.SF.getType());
             if (hBusiDataManagers != null) {
                 JSONObject jsonObject;
-                String picKey = "ID_NO_PIC";
+                String picKey = "id_no_pic";
                 HBusiDataManager mainD = null;
                 for (HBusiDataManager d : hBusiDataManagers) {
                     d.setExt_6("");
@@ -127,6 +127,7 @@ public class SbdFService implements BusiService {
                     if (jsonObject != null) {
                         // 身份证照片存储对象ID
                         jsonObject.put(picKey, "");
+                        jsonObject.put("idcard_pic_flag", "0");
                         d.setContent(jsonObject.toJSONString());
                     }
                     hBusiDataManagerDao.saveOrUpdate(d);
