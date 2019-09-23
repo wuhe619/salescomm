@@ -112,7 +112,7 @@ public class BusiEntityController extends BasicAction {
      */
     @ResponseBody
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
-    public ResponseInfo getInfo(@PathVariable(name = "id") Long id, @RequestBody(required = false) String body, @PathVariable(name = "busiType") String busiType, HttpServletResponse response) {
+    public ResponseInfo getInfo(@PathVariable(name = "id") Long id, @RequestBody(required = false) String body, @PathVariable(name = "busiType") String busiType, @RequestParam(name = "_rule_") String rule, HttpServletResponse response) {
         ResponseInfo resp = new ResponseInfo();
         JSONObject param = null;
         try {
@@ -120,6 +120,9 @@ public class BusiEntityController extends BasicAction {
                 body = "{}";
 
             param = JSONObject.parseObject(body);
+            if (!param.containsKey("_rule_")) {
+                param.put("_rule_", rule);
+            }
         } catch (Exception e) {
             return new ResponseInfoAssemble().failure(-1, "记录解析异常:[" + busiType + "]");
         }
