@@ -71,8 +71,13 @@ public class CdFService implements BusiService{
 			json.put(key, info.get(key));
 		}
         serviceUtils.updateDataToES(busiType,id.toString(),json);
-
-		List<HBusiDataManager> list = serviceUtils.getDataList(busiType,json.getLong("pid"));
+        List<HBusiDataManager> list=null;
+		try {
+            list = serviceUtils.getDataList(busiType, json.getLong("pid"));
+        }catch(Exception e){
+            e.printStackTrace();
+            throw new Exception();
+        }
 		int packNo=0;
 		float weight=0;
 		for(HBusiDataManager hBusiDataManager:list){
