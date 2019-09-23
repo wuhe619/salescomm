@@ -6,6 +6,9 @@ import java.util.List;
 
 public class MainDan {
     private Integer id;
+    /**
+     * 进出口标志 E-出口 I-进口
+     */
     @JsonProperty(value = "I_E_FLAG")
     private String i_e_flag;
     @JsonProperty(value = "I_E_PORT")

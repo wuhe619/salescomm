@@ -58,6 +58,11 @@ public class Product {
      */
     private Integer is_low_price;
 
+    /**
+     * 添加类型 ADD-添加 APD-追加
+     */
+    private String opt_type;
+
     public String getId() {
         return id;
     }
@@ -250,5 +255,11 @@ public class Product {
         this.is_low_price = is_low_price;
     }
 
+    public String getOpt_type() {
+        return opt_type;
+    }
 
+    public void setOpt_type(String opt_type) {
+        this.opt_type = opt_type;
+    }
 }
