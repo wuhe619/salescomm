@@ -46,7 +46,7 @@ public class BusiEntityService {
         try {
             data = jdbcTemplate.queryForMap(sql, busiType, id);
         } catch (EmptyResultDataAccessException e) {
-            logger.warn("查询主单:{},busiType:{}失败",id,busiType);
+            logger.warn("查询主单:{},busiType:{}失败", id, busiType);
         }
         if (data == null)
             return jo;
@@ -74,9 +74,9 @@ public class BusiEntityService {
 
             //执行自定义单数据规则
             BusiService busiService = (BusiService) SpringContextHelper.getBean("busi_" + busiType);
-            busiService.getInfo(busiType, cust_id, cust_group_id, cust_user_id, id, jo,param);
+            busiService.getInfo(busiType, cust_id, cust_group_id, cust_user_id, id, jo, param);
         } catch (Exception e) {
-            logger.error("数据格式错误！",e);
+            logger.error("数据格式错误！", e);
             throw new Exception("数据格式错误！");
         }
 
@@ -98,7 +98,7 @@ public class BusiEntityService {
             //执行自定义查询sql
             sql = busiService.formatQuery(busiType, cust_id, cust_group_id, cust_user_id, params, sqlParams);
         } catch (Exception e) {
-            logger.error("查询条件自定义解析异常:[" + busiType + "]",e);
+            logger.error("查询条件自定义解析异常:[" + busiType + "]", e);
             throw new Exception("查询条件自定义解析异常:[" + busiType + "]");
         }
         if (sql == null || "".equals(sql)) {
@@ -108,8 +108,8 @@ public class BusiEntityService {
                 sqlstr.append(" and cust_id='").append(cust_id).append("'");
             sqlParams.add(busiType);
             // 处理场站检索
-            if(StringUtil.isNotEmpty(stationId)){
-                String stationSql ="SELECT cust_id FROM t_customer_property WHERE property_name='station_id' AND property_value = ?";
+            if (StringUtil.isNotEmpty(stationId)) {
+                String stationSql = "SELECT cust_id FROM t_customer_property WHERE property_name='station_id' AND property_value = ?";
                 /*List<String> custIds = jdbcTemplate.queryForList(stationSql, String.class,"station_id", stationId);
                 if(custIds==null||custIds.size()==0){
                     return p;
@@ -121,8 +121,9 @@ public class BusiEntityService {
             Iterator keys = params.keySet().iterator();
             while (keys.hasNext()) {
                 String key = (String) keys.next();
-                if("".equals(String.valueOf(params.get(key)))) continue;
-                if ("pageNum".equals(key) || "pageSize".equals(key)||"stationId".equals(key) || "cust_id".equals(key)) continue;
+                if ("".equals(String.valueOf(params.get(key)))) continue;
+                if ("pageNum".equals(key) || "pageSize".equals(key) || "stationId".equals(key) || "cust_id".equals(key))
+                    continue;
                 if ("cust_id".equals(key)) {
                     sqlstr.append(" and cust_id=?");
                 } else if (key.startsWith("_c_")) {
@@ -135,9 +136,9 @@ public class BusiEntityService {
                     sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(3) + "') < ?");
                 } else if (key.startsWith("_le_")) {
                     sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(4) + "') <= ?");
-                }else if (key.startsWith("_eq_")) {
+                } else if (key.startsWith("_eq_")) {
                     sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(4) + "') = ?");
-                }else if (key.startsWith("_range_")) {
+                } else if (key.startsWith("_range_")) {
                     if ("0".equals(String.valueOf(params.get(key)))) {
                         sqlstr.append(" and ( JSON_EXTRACT(content, '$." + key.substring(7) + "') <= ?")
                                 .append(" OR JSON_EXTRACT(content, '$." + key.substring(7) + "') = '' ")
@@ -145,7 +146,7 @@ public class BusiEntityService {
                     } else {
                         sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(7) + "') >= ?");
                     }
-                }  else {
+                } else {
                     sqlstr.append(" and JSON_EXTRACT(content, '$." + key + "')=?");
                 }
 
@@ -173,6 +174,7 @@ public class BusiEntityService {
 
         try {
             List<Map<String, Object>> ds = jdbcTemplate.queryForList(sql + " limit " + (pageNum - 1) * pageSize + ", " + pageSize, sqlParams.toArray());
+            String totalSql = "select count(0) from ( "+sql+ " ) t ";
             List data = new ArrayList();
             for (int i = 0; i < ds.size(); i++) {
                 Map m = (Map) ds.get(i);
@@ -218,11 +220,12 @@ public class BusiEntityService {
                 data.add(jo);
             }
             p.setData(data);
-            p.setTotal(data.size());
+            int total = jdbcTemplate.queryForObject(totalSql, sqlParams.toArray(),Integer.class);
+            p.setTotal(total);
             p.setPerPageCount(pageSize);
             p.setStart((pageNum - 1) * pageSize + 1);
         } catch (Exception e) {
-            logger.error("查询异常:[" + busiType + "]",e);
+            logger.error("查询异常:[" + busiType + "]", e);
             throw new Exception("查询异常:[" + busiType + "]");
         }
 
@@ -233,15 +236,15 @@ public class BusiEntityService {
      * 保存记录
      */
     public Long saveInfo(String cust_id, String cust_group_id, Long cust_user_id, String busiType, Long id, JSONObject info) throws Exception {
-    	String[] extKeys = new String[] {"ext_1","ext_2","ext_3","ext_4","ext_5"};
-    	String[] sysKeys = new String[] {"id","cust_id","create_id","create_date"}; //系统数据字段名
-        for(String sysKey : sysKeys) {
-        	if(info.containsKey(sysKey))
-        		info.remove(sysKey);
+        String[] extKeys = new String[]{"ext_1", "ext_2", "ext_3", "ext_4", "ext_5"};
+        String[] sysKeys = new String[]{"id", "cust_id", "create_id", "create_date"}; //系统数据字段名
+        for (String sysKey : sysKeys) {
+            if (info.containsKey(sysKey))
+                info.remove(sysKey);
         }
-        for(String extKey : extKeys) {
-        	if(info.containsKey(extKey))
-        		info.remove(extKey);
+        for (String extKey : extKeys) {
+            if (info.containsKey(extKey))
+                info.remove(extKey);
         }
 
         JSONObject jo = null;
@@ -256,18 +259,18 @@ public class BusiEntityService {
                 BusiService busiService = (BusiService) SpringContextHelper.getBean("busi_" + busiType);
                 busiService.insertInfo(busiType, cust_id, cust_group_id, cust_user_id, id, jo);
 
-                if(jo.containsKey("_rule_"))
-                	jo.remove("_rule_");
+                if (jo.containsKey("_rule_"))
+                    jo.remove("_rule_");
 
                 jdbcTemplate.update(sql1, id, busiType, info.toJSONString(), cust_id, cust_group_id, cust_user_id, cust_user_id
-                		,jo.containsKey("ext_1")?info.getString("ext_1"):""
-                		,jo.containsKey("ext_2")?info.getString("ext_2"):""
-                		,jo.containsKey("ext_3")?info.getString("ext_3"):""
-                		,jo.containsKey("ext_4")?info.getString("ext_4"):""
-                		,jo.containsKey("ext_5")?info.getString("ext_5"):"");
+                        , jo.containsKey("ext_1") ? info.getString("ext_1") : ""
+                        , jo.containsKey("ext_2") ? info.getString("ext_2") : ""
+                        , jo.containsKey("ext_3") ? info.getString("ext_3") : ""
+                        , jo.containsKey("ext_4") ? info.getString("ext_4") : ""
+                        , jo.containsKey("ext_5") ? info.getString("ext_5") : "");
             } catch (Exception e) {
-                logger.error("添加新记录异常:[" + busiType + "]",e);
-                throw new Exception("添加新记录异常:[" + busiType + "]",e);
+                logger.error("添加新记录异常:[" + busiType + "]", e);
+                throw new Exception("添加新记录异常:[" + busiType + "]", e);
             }
         } else {
             // update
@@ -275,8 +278,8 @@ public class BusiEntityService {
             try {
                 data = jdbcTemplate.queryForMap("select content from h_data_manager where type=? and cust_id=? and id=?", busiType, cust_id, id);
             } catch (Exception e) {
-                logger.error("读取数据异常:[" + busiType + "]" + id,e);
-                throw new Exception("读取数据异常:[" + busiType + "]" + id,e);
+                logger.error("读取数据异常:[" + busiType + "]" + id, e);
+                throw new Exception("读取数据异常:[" + busiType + "]" + id, e);
             }
             if (data == null) {
                 logger.warn("数据不存在:[" + busiType + "]" + id);
@@ -295,7 +298,7 @@ public class BusiEntityService {
                     jo.put(key, info.get(key));
                 }
             } catch (Exception e) {
-                logger.error("解析数据异常:[" + busiType + "]" + id,e);
+                logger.error("解析数据异常:[" + busiType + "]" + id, e);
                 throw new Exception("解析数据异常:[" + busiType + "]" + id);
             }
 
@@ -308,14 +311,14 @@ public class BusiEntityService {
                 List sqlParams = new ArrayList();
                 sqlParams.add(cust_user_id);
 
-                if(jo.containsKey("_rule_"))
-                	jo.remove("_rule_");
-                for(String extKey : extKeys) {
-                	if(jo.containsKey(extKey)) {
-                		sql2.append(",").append(extKey).append("=?");
-                		sqlParams.add(jo.getString(extKey));
-                		jo.remove(extKey);
-                	}
+                if (jo.containsKey("_rule_"))
+                    jo.remove("_rule_");
+                for (String extKey : extKeys) {
+                    if (jo.containsKey(extKey)) {
+                        sql2.append(",").append(extKey).append("=?");
+                        sqlParams.add(jo.getString(extKey));
+                        jo.remove(extKey);
+                    }
                 }
                 sql2.append(",content=?  where type=? and cust_id=? and id=?");
                 sqlParams.add(jo.toJSONString());
@@ -325,7 +328,7 @@ public class BusiEntityService {
 
                 jdbcTemplate.update(sql2.toString(), sqlParams.toArray());
             } catch (Exception e) {
-                logger.error("更新记录异常:[" + busiType + "]" + id,e);
+                logger.error("更新记录异常:[" + busiType + "]" + id, e);
                 throw new Exception("更新记录异常:[" + busiType + "]" + id);
             }
         }
