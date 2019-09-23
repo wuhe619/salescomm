@@ -34,11 +34,8 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
@@ -847,7 +844,7 @@ public class CustomsService {
                 }
                 // 文件存储
                 Map<String, String> map = new HashMap<>();
-                String objectId;
+                String objectId = "";
                 for (FileModel f : fileList) {
                     objectId = uploadFileService.uploadFile(f.getFileInputstream(), BusinessEnum.CUSTOMS, false, f.getFileName());
                     map.put(f.getFileName().substring(0, f.getFileName().indexOf(".")), objectId);
@@ -862,7 +859,12 @@ public class CustomsService {
                     jsonObject = JSON.parseObject(d.getContent());
                     if (jsonObject != null) {
                         // 身份证照片存储对象ID
-                        jsonObject.put(picKey, map.get(jsonObject.getString("id_no")));
+                        if (1 == type) {
+                            jsonObject.put(picKey, map.get(jsonObject.getString("id_no")));
+                        } else {
+                            jsonObject.put(picKey, objectId);
+                        }
+
                         jsonObject.put("idcard_pic_flag", "1");
                         d.setContent(jsonObject.toJSONString());
                         d.setExt_6(jsonObject.getString(picKey));
@@ -1152,12 +1154,10 @@ public class CustomsService {
     }
 
 
-    public void  countSBDNumByMonth(String station,String custId, LoginUser lu){
-        if(!"ROLE_USER".equals(lu.getUserType())){
+    public void countSBDNumByMonth(String station, String custId, LoginUser lu) {
+        if (!"ROLE_USER".equals(lu.getUserType())) {
             custId = lu.getCustId();
         }
-
-
 
 
     }
