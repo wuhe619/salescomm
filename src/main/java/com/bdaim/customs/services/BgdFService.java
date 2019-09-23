@@ -158,7 +158,23 @@ public class BgdFService implements BusiService{
 
 	@Override
 	public void getInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info, JSONObject param) {
-
+		// 查询报关单主单数据,合并到分单中
+		long pid = info.getLong("pid");
+		HBusiDataManager dbManager = serviceUtils.getObjectByIdAndType(pid, BusiTypeEnum.BZ.getType());
+		String content = null;
+		if (dbManager != null) {
+			content = dbManager.getContent();
+		}
+		if (StringUtil.isNotEmpty(content)) {
+			JSONObject mainData = JSONObject.parseObject(content);
+			Iterator keys = mainData.keySet().iterator();
+			while (keys.hasNext()) {
+				String key = (String) keys.next();
+				if (!info.containsKey(key)) {
+					info.put(key, mainData.get(key));
+				}
+			}
+		}
 
 	}
 
