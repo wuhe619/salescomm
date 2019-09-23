@@ -125,11 +125,11 @@ public class SbdZService implements BusiService {
                     ids.add(m.get("id"));
                     input = new JSONObject();
                     // 身份核验待核验入队列
-                    data = JSON.parseObject((String) m.getOrDefault("content",""));
+                    data = JSON.parseObject((String) m.getOrDefault("content", ""));
                     input.put("name", data.getString("receive_name"));
                     input.put("id", data.getString("id_no"));
-                    content.put("input",input);
-                    serviceUtils.insertSFVerifyQueue(content.toJSONString(),data.getString("bii_no"), cust_user_id);
+                    content.put("input", input);
+                    serviceUtils.insertSFVerifyQueue(content.toJSONString(), data.getString("bii_no"), cust_user_id);
                 }
                 String updateSql = "UPDATE h_data_manager SET ext_7 = 3 WHERE id IN(" + SqlAppendUtil.sqlAppendWhereIn(ids) + ")";
                 jdbcTemplate.update(updateSql);
@@ -186,6 +186,12 @@ public class SbdZService implements BusiService {
                         }
                     }
                     break;
+                case "_export_estimated_tax":
+                    // 预估税单
+                    singles = queryChildData(BusiTypeEnum.SF.getType(), cust_id, cust_group_id, cust_user_id, id, info, param);
+                    if (singles != null) {
+                        info.put("singles", singles);
+                    }
             }
 
         }
@@ -193,15 +199,15 @@ public class SbdZService implements BusiService {
 
     @Override
     public void deleteInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id) throws Exception {
-        HBusiDataManager manager = serviceUtils.getObjectByIdAndType(id,busiType);
+        HBusiDataManager manager = serviceUtils.getObjectByIdAndType(id, busiType);
 
         if ("Y".equals(manager.getExt_1()) || "Y".equals(manager.getExt_2())) {
             throw new Exception("已经被提交，无法删除");
         }
 
-        List<HBusiDataManager> list = serviceUtils.getDataList(BusiTypeEnum.SF.getType(),id);
+        List<HBusiDataManager> list = serviceUtils.getDataList(BusiTypeEnum.SF.getType(), id);
         for (HBusiDataManager hBusiDataManager : list) {
-            List<HBusiDataManager> slist = serviceUtils.getDataList(BusiTypeEnum.SS.getType(),hBusiDataManager.getId().longValue());//所有税单
+            List<HBusiDataManager> slist = serviceUtils.getDataList(BusiTypeEnum.SS.getType(), hBusiDataManager.getId().longValue());//所有税单
             for (HBusiDataManager shBusiDataManager : slist) {
                 serviceUtils.deleteDatafromES(BusiTypeEnum.CS.getType(), shBusiDataManager.getId().toString());
             }
@@ -220,8 +226,8 @@ public class SbdZService implements BusiService {
         sqlParams.add(busiType);
         String stationId = params.getString("stationId");
         // 处理场站检索
-        if(StringUtil.isNotEmpty(stationId)){
-            String stationSql ="SELECT cust_id FROM t_customer_property WHERE property_name='station_id' AND property_value = ?";
+        if (StringUtil.isNotEmpty(stationId)) {
+            String stationSql = "SELECT cust_id FROM t_customer_property WHERE property_name='station_id' AND property_value = ?";
                 /*List<String> custIds = jdbcTemplate.queryForList(stationSql, String.class,"station_id", stationId);
                 if(custIds==null||custIds.size()==0){
                     return p;
@@ -233,8 +239,9 @@ public class SbdZService implements BusiService {
         Iterator keys = params.keySet().iterator();
         while (keys.hasNext()) {
             String key = (String) keys.next();
-            if("".equals(String.valueOf(params.get(key)))) continue;
-            if ("pageNum".equals(key) || "pageSize".equals(key)||"stationId".equals(key) || "cust_id".equals(key)) continue;
+            if ("".equals(String.valueOf(params.get(key)))) continue;
+            if ("pageNum".equals(key) || "pageSize".equals(key) || "stationId".equals(key) || "cust_id".equals(key))
+                continue;
             if ("cust_id".equals(key)) {
                 sqlstr.append(" and cust_id=?");
             } else if (key.startsWith("_c_")) {
@@ -563,8 +570,9 @@ public class SbdZService implements BusiService {
         Iterator keys = param.keySet().iterator();
         while (keys.hasNext()) {
             String key = (String) keys.next();
-            if ("cust_id".equals(key)) {
-                sqlstr.append(" and cust_id=?");
+            if ("".equals(String.valueOf(param.get(key)))) continue;
+            if ("pageNum".equals(key) || "pageSize".equals(key) || "stationId".equals(key) || "cust_id".equals(key)|| "_rule_".equals(key)){
+                continue;
             } else if (key.startsWith("_g_")) {
                 sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(3) + "') > ?");
             } else if (key.startsWith("_ge_")) {
