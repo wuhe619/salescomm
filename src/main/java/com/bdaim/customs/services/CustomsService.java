@@ -34,8 +34,11 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
@@ -1147,5 +1150,17 @@ public class CustomsService {
         Page page = elasticSearchService.searchToEsPage(query, index, "haiguan", c);
         return page;
     }
+
+
+    public void  countSBDNumByMonth(String station,String custId, LoginUser lu){
+        if(!"ROLE_USER".equals(lu.getUserType())){
+            custId = lu.getCustId();
+        }
+
+
+
+
+    }
+
 }
 
