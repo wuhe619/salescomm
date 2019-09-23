@@ -156,6 +156,21 @@ public class MainDan {
     @JsonProperty(value = "SINGLES")
     private List<PartyDan> singles;
 
+    /**
+     * 低价商品数
+     */
+    private Integer low_price_goods;
+
+    /**
+     * 身份证图片数量
+     */
+    private Integer id_card_pic_number;
+
+    /**
+     * 身份证核验数量
+     */
+    private Integer id_card_check_number;
+
     public Integer getId() {
         return id;
     }
@@ -762,5 +777,29 @@ public class MainDan {
 
     public void setSingles(List<PartyDan> singles) {
         this.singles = singles;
+    }
+
+    public Integer getLow_price_goods() {
+        return low_price_goods;
+    }
+
+    public void setLow_price_goods(Integer low_price_goods) {
+        this.low_price_goods = low_price_goods;
+    }
+
+    public Integer getId_card_pic_number() {
+        return id_card_pic_number;
+    }
+
+    public void setId_card_pic_number(Integer id_card_pic_number) {
+        this.id_card_pic_number = id_card_pic_number;
+    }
+
+    public Integer getId_card_check_number() {
+        return id_card_check_number;
+    }
+
+    public void setId_card_check_number(Integer id_card_check_number) {
+        this.id_card_check_number = id_card_check_number;
     }
 }

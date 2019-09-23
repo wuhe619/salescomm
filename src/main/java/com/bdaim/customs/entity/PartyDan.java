@@ -14,34 +14,49 @@ public class PartyDan {
     @JsonProperty(value = "WEIGHT")
     private String weight;//重量
     @JsonProperty(value = "PACK_NO")
-    private String pack_no ;//件数
+    private String pack_no;//件数
     @JsonProperty(value = "MainGName")
-    private String main_gname ;//主要货物名称
+    private String main_gname;//主要货物名称
     @JsonProperty(value = "ID_TYPE")
-    private String id_type ;// 证件类型
+    private String id_type;// 证件类型
     @JsonProperty(value = "TOTAL_VALUE")
-    private String total_value ;//价值
+    private String total_value;//价值
     @JsonProperty(value = "CURR_CODE")
-    private String curr_code ;//币制
+    private String curr_code;//币制
     @JsonProperty(value = "TRADE_COUNTRY")
     private String trade_country;//贸易国别
     @JsonProperty(value = "ID_NO")
     private String id_no;// 证件号码
-    private String id_no_pic ;// 证件照片
+    private String id_no_pic;// 证件照片
     @JsonProperty(value = "RECEIVE_NAME")
-    private String receive_name ;// 收件人
+    private String receive_name;// 收件人
     @JsonProperty(value = "RECEIVE_TEL")
-    private String receive_tel ;//收件人电话
+    private String receive_tel;//收件人电话
     @JsonProperty(value = "RECEIVE_ADDRESS")
     private String receive_address;// 收件人地址
     @JsonProperty(value = "RECEIVE_PRO")
     private String receive_pro;// 收件人省份
     @JsonProperty(value = "RECEIVE_CITY")
-    private String receive_city ;// 收件人城市
+    private String receive_city;// 收件人城市
     @JsonProperty(value = "RECEIVE_COUNTRY")
-    private String receive_country ;//收件人国别
+    private String receive_country;//收件人国别
     @JsonProperty(value = "PRODUCTS")
     private List<Product> products;
+
+    /**
+     * 低价商品数
+     */
+    private Integer low_price_goods;
+
+    /**
+     * 身份证图片
+     */
+    private String id_card_pic;
+
+    /**
+     * 身份证图片状态 1-有 2-无
+     */
+    private String idcard_pic_flag;
 
     public String getId() {
         return id;
@@ -201,5 +216,29 @@ public class PartyDan {
 
     public void setProducts(List<Product> products) {
         this.products = products;
+    }
+
+    public Integer getLow_price_goods() {
+        return low_price_goods;
+    }
+
+    public void setLow_price_goods(Integer low_price_goods) {
+        this.low_price_goods = low_price_goods;
+    }
+
+    public String getId_card_pic() {
+        return id_card_pic;
+    }
+
+    public void setId_card_pic(String id_card_pic) {
+        this.id_card_pic = id_card_pic;
+    }
+
+    public String getIdcard_pic_flag() {
+        return idcard_pic_flag;
+    }
+
+    public void setIdcard_pic_flag(String idcard_pic_flag) {
+        this.idcard_pic_flag = idcard_pic_flag;
     }
 }
