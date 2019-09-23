@@ -9,15 +9,12 @@ import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customs.dao.HBusiDataManagerDao;
 import com.bdaim.customs.entity.BusiTypeEnum;
-import com.bdaim.customs.entity.Constants;
 import com.bdaim.customs.entity.HBusiDataManager;
 import com.bdaim.customs.utils.ServiceUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -120,14 +117,14 @@ public class CdZService implements BusiService {
             if (m.get("ext_5") != null && !"".equals(m.get("ext_5")))
                 jo.put("ext_5", m.get("ext_5"));
 
-            sql = "UPDATE h_data_manager SET ext_1 = '1', ext_date1 = NOW(), content=? WHERE id = ? AND ext_1 <>'1' ";
-            jdbcTemplate.update(sql, jo.toJSONString(), id);
+            sql = "UPDATE h_data_manager SET ext_1 = '1', ext_date1 = NOW(), content=? WHERE id = ?  AND type = ? AND ext_1 <>'1' ";
+            jdbcTemplate.update(sql, jo.toJSONString(), id, busiType);
             serviceUtils.updateDataToES(BusiTypeEnum.CZ.getType(), id.toString(), jo);
 
             //更新舱单分单信息
-            String selectSql = "select content, cust_id, cust_group_id, cust_user_id, create_id, create_date ,ext_1, ext_2, ext_3, ext_4, ext_5 from h_data_manager JSON_EXTRACT(content, '$.pid')=? AND ext_1 <>'1' ";
-            List<Map<String, Object>> ds = jdbcTemplate.queryForList(selectSql, id);
-            String updateSql = " UPDATE h_data_manager SET ext_1 = '1', ext_date1 = NOW(), content=? WHERE JSON_EXTRACT(content, '$.pid')=? AND ext_1 <>'1' ";
+            String selectSql = "select content, cust_id, cust_group_id, cust_user_id, create_id, create_date ,ext_1, ext_2, ext_3, ext_4, ext_5 from h_data_manager WHERE ( CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')=? ELSE null END  or CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')=? ELSE null END) AND type = ? AND ext_1 <>'1' ";
+            List<Map<String, Object>> ds = jdbcTemplate.queryForList(selectSql, id, id, BusiTypeEnum.CF.getType());
+            String updateSql = " UPDATE h_data_manager SET ext_1 = '1', ext_date1 = NOW(), content=? WHERE JSON_EXTRACT(content, '$.pid')=? AND type = ? AND ext_1 <>'1' ";
             for (int i = 0; i < ds.size(); i++) {
                 m = ds.get(i);
                 content = (String) m.get("content");
@@ -152,7 +149,7 @@ public class CdZService implements BusiService {
                     jo.put("ext_4", m.get("ext_4"));
                 if (m.get("ext_5") != null && !"".equals(m.get("ext_5")))
                     jo.put("ext_5", m.get("ext_5"));
-                jdbcTemplate.update(updateSql, jo.toJSONString(), id);
+                jdbcTemplate.update(updateSql, jo.toJSONString(), id,BusiTypeEnum.CF.getType());
                 serviceUtils.updateDataToES(BusiTypeEnum.CF.getType(), String.valueOf(m.get("id")), jo);
 
             }
