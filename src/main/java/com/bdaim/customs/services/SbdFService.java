@@ -213,6 +213,7 @@ public class SbdFService implements BusiService {
 
     @Override
     public void deleteInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id) throws Exception {
+        log.info("申报单分单id:{}开始删除,type:{}", id, busiType);
         String sql="select id,type,content,ext_1,ext_2,ext_3,ext_4 from h_data_manager where id="+id +" and type='"+busiType+"'";
         HBusiDataManager manager = jdbcTemplate.queryForObject(sql,HBusiDataManager.class);
         if (manager.getCust_id() == null || (!cust_id.equals(manager.getCust_id().toString()))) {
