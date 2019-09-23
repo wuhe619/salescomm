@@ -40,7 +40,7 @@ public class CdHzService implements BusiService {
             while (keys.hasNext()) {
                 String key = (String) keys.next();
                 if (!info.containsKey(key)) {
-                    info.put(key, info.get(key));
+                    info.put(key, json.get(key));
                 }
             }
         }
