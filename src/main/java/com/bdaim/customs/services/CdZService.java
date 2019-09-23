@@ -247,12 +247,13 @@ public class CdZService implements BusiService {
             _content.put("main_bill_no", json.get("bill_no"));
             hm.setContent(_content.toJSONString());
             dataList.add(hm);
-            List<HBusiDataManager> goods = serviceUtils.getDataList(BusiTypeEnum.BS.getType(),hp.getId().longValue());
+            List<HBusiDataManager> goods = serviceUtils.getDataList(BusiTypeEnum.SS.getType(),hp.getId().longValue());
             for (HBusiDataManager gp : goods) {
                 HBusiDataManager good = new HBusiDataManager();
                 gp.setType(BusiTypeEnum.CS.getType());
                 Long gid = sequenceService.getSeq(BusiTypeEnum.CS.getType());
                 good.setId(gid.intValue());
+                good.setCreateId(userId);
                 good.setCreateDate(new Date());
                 JSONObject __content = JSON.parseObject(gp.getContent());
                 __content.put("pid", fid);
