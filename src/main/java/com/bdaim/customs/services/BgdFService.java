@@ -1,6 +1,5 @@
 package com.bdaim.customs.services;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.service.BusiService;
 import com.bdaim.common.service.ElasticSearchService;
@@ -159,23 +158,20 @@ public class BgdFService implements BusiService{
 
 	@Override
 	public void getInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info, JSONObject param) {
-		//查询报关单海关回执数据
-		JSONObject params = new JSONObject();
-		params.put("receiptz_status",1);
-		params.put("bill_no",info.getString("bill_no"));
-		List<Map<String, Object>> dbManager = serviceUtils.listObjectByParam(BusiTypeEnum.BGD_HZ.getType(), cust_id,params);
+		// 查询报关单主单数据,合并到分单中
+		long pid = info.getLong("pid");
+		HBusiDataManager dbManager = serviceUtils.getObjectByIdAndType(pid, BusiTypeEnum.BZ.getType());
 		String content = null;
-		if(dbManager!=null){
-			content = String.valueOf(dbManager.get(0).get("content"));
+		if (dbManager != null) {
+			content = dbManager.getContent();
 		}
-		if(StringUtil.isNotEmpty(content)){
-			JSONObject json = JSONObject.parseObject(content);
-			Iterator keys = info.keySet().iterator();
-			// 海关回执存入报关单数据中
+		if (StringUtil.isNotEmpty(content)) {
+			JSONObject mainData = JSONObject.parseObject(content);
+			Iterator keys = mainData.keySet().iterator();
 			while (keys.hasNext()) {
 				String key = (String) keys.next();
-				if(!info.containsKey(key)){
-					info.put(key, info.get(key));
+				if (!info.containsKey(key)) {
+					info.put(key, mainData.get(key));
 				}
 			}
 		}

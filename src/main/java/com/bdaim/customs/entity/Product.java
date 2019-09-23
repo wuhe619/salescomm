@@ -3,45 +3,70 @@ package com.bdaim.customs.entity;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Product {
-    private String id ;
+    private String id;
     private String pid;
-     private String party_no;//分单单号
+    private String party_no;//分单单号
     @JsonProperty(value = "CODE_TS")
-     private String code_ts ;//商品编号
+    private String code_ts;//商品编号
     @JsonProperty(value = "G_NAME")
-	 private String g_name ;//商品名称
+    private String g_name;//商品名称
     @JsonProperty(value = "G_NAME_EN")
-	 private String g_name_en ;//商品英文名称
+    private String g_name_en;//商品英文名称
     @JsonProperty(value = "G_MODEL")
-	 private String g_model ;//商品规格、型号
+    private String g_model;//商品规格、型号
     @JsonProperty(value = "ORIGIN_COUNTRY")
-	 private String origin_country;// 产销国
-	 private String trade_curr ;//成交币制
+    private String origin_country;// 产销国
+    private String trade_curr;//成交币制
 
     @JsonProperty(value = "Trade_total")
-	 private String trade_total ;//成交总价
+    private String trade_total;//成交总价
     @JsonProperty(value = "declPrice")
-	 private String decl_price ;//申报单价
+    private String decl_price;//申报单价
     @JsonProperty(value = "DECL_TOTAL")
-	 private String decl_total;//申报总价
+    private String decl_total;//申报总价
     @JsonProperty(value = "USE_TO")
-	 private String  use_to;//用途
+    private String use_to;//用途
     @JsonProperty(value = "DUTY_MODE")
-	 private String duty_mode;//征减免税方式
+    private String duty_mode;//征减免税方式
     @JsonProperty(value = "G_QTY")
-	 private String g_qty;//申报数量
+    private String g_qty;//申报数量
     @JsonProperty(value = "G_UNIT")
-	 private String g_unit;//申报计量单位
+    private String g_unit;//申报计量单位
     @JsonProperty(value = "QTY_1")
-	 private String qty_1;//第一（法定）数量
+    private String qty_1;//第一（法定）数量
     @JsonProperty(value = "UNIT_1")
-	 private String unit_1;//第一(法定)计量单位
+    private String unit_1;//第一(法定)计量单位
     @JsonProperty(value = "QTY_2")
-	 private String qty_2;//第二数量
+    private String qty_2;//第二数量
     @JsonProperty(value = "UNIT_2")
-	 private String unit_2 ;//第二计量单位
+    private String unit_2;//第二计量单位
     @JsonProperty(value = "GGrossWt")
-	 private String ggrosswt ;//商品毛重
+    private String ggrosswt;//商品毛重
+
+    /**
+     * 完税价格
+     */
+    private String duty_paid_price;
+
+    /**
+     * 预估税金
+     */
+    private String estimated_tax;
+
+    /**
+     * 税率
+     */
+    private String tax_rate;
+
+    /**
+     * 是否为低价商品 1-低价 0-正常
+     */
+    private Integer is_low_price;
+
+    /**
+     * 添加类型 ADD-添加 APD-追加
+     */
+    private String opt_type;
 
     public String getId() {
         return id;
@@ -209,5 +234,45 @@ public class Product {
 
     public void setGgrosswt(String ggrosswt) {
         this.ggrosswt = ggrosswt;
+    }
+
+    public String getDuty_paid_price() {
+        return duty_paid_price;
+    }
+
+    public void setDuty_paid_price(String duty_paid_price) {
+        this.duty_paid_price = duty_paid_price;
+    }
+
+    public String getEstimated_tax() {
+        return estimated_tax;
+    }
+
+    public void setEstimated_tax(String estimated_tax) {
+        this.estimated_tax = estimated_tax;
+    }
+
+    public Integer getIs_low_price() {
+        return is_low_price;
+    }
+
+    public void setIs_low_price(Integer is_low_price) {
+        this.is_low_price = is_low_price;
+    }
+
+    public String getOpt_type() {
+        return opt_type;
+    }
+
+    public void setOpt_type(String opt_type) {
+        this.opt_type = opt_type;
+    }
+
+    public String getTax_rate() {
+        return tax_rate;
+    }
+
+    public void setTax_rate(String tax_rate) {
+        this.tax_rate = tax_rate;
     }
 }

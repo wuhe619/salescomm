@@ -3,14 +3,13 @@ package com.bdaim.customs.services;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.service.BusiService;
 import com.bdaim.common.util.StringUtil;
-import com.bdaim.customs.entity.BusiTypeEnum;
+import com.bdaim.customs.entity.HBusiDataManager;
 import com.bdaim.customs.utils.ServiceUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 @Service("busi_bgd_hz")
 public class BgdHzService implements BusiService {
@@ -29,6 +28,23 @@ public class BgdHzService implements BusiService {
 
     @Override
     public void getInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info, JSONObject param) {
+        //通过报关单分单ID查询海关回执数据
+        HBusiDataManager dbManager = serviceUtils.getObjectByIdAndType(id, busiType);
+        String content = null;
+        if (dbManager != null) {
+            content = dbManager.getContent();
+        }
+        if (StringUtil.isNotEmpty(content)) {
+            JSONObject json = JSONObject.parseObject(content);
+            Iterator keys = json.keySet().iterator();
+            // 海关回执存入报关单数据中
+            while (keys.hasNext()) {
+                String key = (String) keys.next();
+                if (!info.containsKey(key)) {
+                    info.put(key, json.get(key));
+                }
+            }
+        }
     }
 
     @Override
