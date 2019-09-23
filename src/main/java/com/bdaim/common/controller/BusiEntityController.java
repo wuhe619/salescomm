@@ -30,83 +30,83 @@ public class BusiEntityController extends BasicAction {
     @Autowired
     private ExportExcelService exportExcelService;
 
-   /**
+    /**
      * 按多条件查询
      */
     @ResponseBody
     @RequestMapping(value = "/all", method = RequestMethod.POST)
-    public ResponseInfo query(@RequestBody(required=false) String body, @PathVariable(name = "busiType") String busiType) {
-    	ResponseInfo resp = new ResponseInfo();
-    	
-    	JSONObject params = null;
-    	try {
-    		if(body==null || "".equals(body))
-    			body="{}";
-    		params = JSONObject.parseObject(body);
-    	}catch(Exception e) {
-    		return new ResponseInfoAssemble().failure(-1, "查询条件解析异常["+busiType+"]");
-    	}
-    	
+    public ResponseInfo query(@RequestBody(required = false) String body, @PathVariable(name = "busiType") String busiType) {
+        ResponseInfo resp = new ResponseInfo();
+
+        JSONObject params = null;
         try {
-        	LoginUser lu = opUser();
-        	String cust_id = lu.getCustId();
-        	String cust_group_id = lu.getUserGroupId();
-        	Long cust_user_id = lu.getId();
-        	if(cust_id==null || "".equals(cust_id))
-        		cust_id="-1";
-        	if(lu.getRole().contains("admin") || lu.getRole().contains("ROLE_USER")){
-                cust_id="all";
-        	    if(StringUtil.isNotEmpty(params.getString("cust_id"))){
+            if (body == null || "".equals(body))
+                body = "{}";
+            params = JSONObject.parseObject(body);
+        } catch (Exception e) {
+            return new ResponseInfoAssemble().failure(-1, "查询条件解析异常[" + busiType + "]");
+        }
+
+        try {
+            LoginUser lu = opUser();
+            String cust_id = lu.getCustId();
+            String cust_group_id = lu.getUserGroupId();
+            Long cust_user_id = lu.getId();
+            if (cust_id == null || "".equals(cust_id))
+                cust_id = "-1";
+            if (lu.getRole().contains("admin") || lu.getRole().contains("ROLE_USER")) {
+                cust_id = "all";
+                if (StringUtil.isNotEmpty(params.getString("cust_id"))) {
                     cust_id = params.getString("cust_id");
                 }
-            }else{
-        	    // 前台用户不能按照场站查询
+            } else {
+                // 前台用户不能按照场站查询
                 params.remove("stationId");
             }
-        	resp.setData(busiEntityService.query(cust_id, cust_group_id, cust_user_id, busiType, params));
+            resp.setData(busiEntityService.query(cust_id, cust_group_id, cust_user_id, busiType, params));
         } catch (Exception e) {
-            logger.error("查询记录异常,",e);
-            return new ResponseInfoAssemble().failure(-1, "查询记录异常["+busiType+"]");
+            logger.error("查询记录异常,", e);
+            return new ResponseInfoAssemble().failure(-1, "查询记录异常[" + busiType + "]");
         }
         return resp;
     }
 
-    
+
     /**
      * 保存记录
      */
     @ResponseBody
     @RequestMapping(value = "/info/{id}", method = RequestMethod.POST)
-    public ResponseInfo saveInfo(@PathVariable(name = "id", required=false) Long id, @RequestBody(required=false) String body, @PathVariable(name = "busiType") String busiType) {
-    	ResponseInfo resp = new ResponseInfo();
-    	JSONObject info = null;
-    	try {
-    		if(body==null || "".equals(body))
-    			body="{}";
-
-    		info = JSONObject.parseObject(body);
-    	}catch(Exception e) {
-    		return new ResponseInfoAssemble().failure(-1, "记录解析异常:["+busiType+"]");
-    	}
-    	
+    public ResponseInfo saveInfo(@PathVariable(name = "id", required = false) Long id, @RequestBody(required = false) String body, @PathVariable(name = "busiType") String busiType) {
+        ResponseInfo resp = new ResponseInfo();
+        JSONObject info = null;
         try {
-        	LoginUser lu = opUser();
-        	if(lu.getCustId()==null || "".equals(lu.getCustId()))
-        		return new ResponseInfoAssemble().failure(-1, "无归属企业，不能保存记录:["+busiType+"]");
-        	
-        	String cust_id = lu.getCustId();
-        	String cust_group_id = lu.getUserGroupId();
-        	Long cust_user_id = lu.getId();
-        	
+            if (body == null || "".equals(body))
+                body = "{}";
+
+            info = JSONObject.parseObject(body);
+        } catch (Exception e) {
+            return new ResponseInfoAssemble().failure(-1, "记录解析异常:[" + busiType + "]");
+        }
+
+        try {
+            LoginUser lu = opUser();
+            if (lu.getCustId() == null || "".equals(lu.getCustId()))
+                return new ResponseInfoAssemble().failure(-1, "无归属企业，不能保存记录:[" + busiType + "]");
+
+            String cust_id = lu.getCustId();
+            String cust_group_id = lu.getUserGroupId();
+            Long cust_user_id = lu.getId();
+
             id = busiEntityService.saveInfo(cust_id, cust_group_id, cust_user_id, busiType, id, info);
             resp.setData(id);
         } catch (Exception e) {
-            logger.error("保存记录异常:",e);
-            return new ResponseInfoAssemble().failure(-1, "保存记录异常:["+busiType+"]");
+            logger.error("保存记录异常:", e);
+            return new ResponseInfoAssemble().failure(-1, "保存记录异常:[" + busiType + "]");
         }
         return resp;
     }
-    
+
     /**
      * 根据id唯一标识获取记录
      */
@@ -124,13 +124,13 @@ public class BusiEntityController extends BasicAction {
             return new ResponseInfoAssemble().failure(-1, "记录解析异常:[" + busiType + "]");
         }
         try {
-        	LoginUser lu = opUser();
-        	String cust_id = lu.getCustId();
-        	if("admin".equals(lu.getRole())){
-        	    cust_id = "all";
+            LoginUser lu = opUser();
+            String cust_id = lu.getCustId();
+            if ("admin".equals(lu.getRole())) {
+                cust_id = "all";
             }
-        	String cust_group_id = lu.getUserGroupId();
-        	Long cust_user_id = lu.getId();
+            String cust_group_id = lu.getUserGroupId();
+            Long cust_user_id = lu.getId();
             JSONObject jo = busiEntityService.getInfo(cust_id, cust_group_id, cust_user_id, busiType, id, param);
             // 导出直接下载文件
             if (StringUtil.isNotEmpty(param.getString("_rule_")) && param.getString("_rule_").startsWith("_export_")) {
@@ -140,15 +140,18 @@ public class BusiEntityController extends BasicAction {
                     list.add(jo);
                 }
                 // 低价商品
-                if("_export_low_product".equals(param.getString("_rule_"))){
+                if ("_export_low_product".equals(param.getString("_rule_"))) {
                     list = jo.getJSONArray("low_price_goods");
+                } else if ("_export_estimated_tax".equals(param.getString("_rule_"))) {
+                    // 预估税单
+                    list = jo.getJSONArray("singles");
                 }
                 exportExcelService.exportExcel(jo.getInteger("id"), list, param, response);
                 return null;
             }
             resp.setData(jo);
         } catch (Exception e) {
-            logger.error("获取记录异常:" + id , e);
+            logger.error("获取记录异常:" + id, e);
             return new ResponseInfoAssemble().failure(-1, "查询记录异常[" + busiType + "]");
         }
         return resp;
@@ -156,27 +159,26 @@ public class BusiEntityController extends BasicAction {
 
     /**
      * 根据id唯一标识删除记录
-     *
      */
     @ResponseBody
     @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
     public ResponseInfo deleteInfo(@PathVariable(name = "id") Long id, @PathVariable(name = "busiType") String busiType) {
-    	ResponseInfo resp = new ResponseInfo();
+        ResponseInfo resp = new ResponseInfo();
         try {
-        	LoginUser lu = opUser();
-        	if(lu.getCustId()==null || "".equals(lu.getCustId()))
-        		return new ResponseInfoAssemble().failure(-1, "无归属企业，不能删除记录:["+busiType+"]");
-        	
-        	String cust_id = lu.getCustId();
-        	String cust_group_id = lu.getUserGroupId();
-        	Long cust_user_id = lu.getId();
-        	
-        	busiEntityService.deleteInfo(cust_id, cust_group_id, cust_user_id, busiType, id);
+            LoginUser lu = opUser();
+            if (lu.getCustId() == null || "".equals(lu.getCustId()))
+                return new ResponseInfoAssemble().failure(-1, "无归属企业，不能删除记录:[" + busiType + "]");
+
+            String cust_id = lu.getCustId();
+            String cust_group_id = lu.getUserGroupId();
+            Long cust_user_id = lu.getId();
+
+            busiEntityService.deleteInfo(cust_id, cust_group_id, cust_user_id, busiType, id);
         } catch (Exception e) {
-            logger.error("删除记录异常:"+id,e);
-            return new ResponseInfoAssemble().failure(-1, "删除记录异常["+busiType+"]");
+            logger.error("删除记录异常:" + id, e);
+            return new ResponseInfoAssemble().failure(-1, "删除记录异常[" + busiType + "]");
         }
         return resp;
     }
-    
+
 }

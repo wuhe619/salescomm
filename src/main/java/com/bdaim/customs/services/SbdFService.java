@@ -15,6 +15,7 @@ import com.bdaim.customs.utils.ServiceUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -318,7 +319,12 @@ public class SbdFService implements BusiService {
         }
 
         String sql="select id,type,content,ext_1,ext_2,ext_3,ext_4 from h_data_manager where id="+zid +" and type='"+type+"'";
-        HBusiDataManager manager = jdbcTemplate.queryForObject(sql,HBusiDataManager.class);
+        HBusiDataManager manager = null;
+        try {
+            manager = jdbcTemplate.queryForObject(sql, HBusiDataManager.class);
+        } catch (EmptyResultDataAccessException e) {
+           log.warn("查询主单:{},type:{}失败",zid,type);
+        }
 
         String hcontent = manager.getContent();
         JSONObject jsonObject = JSONObject.parseObject(hcontent);

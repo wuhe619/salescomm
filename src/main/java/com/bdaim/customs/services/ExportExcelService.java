@@ -71,9 +71,9 @@ public class ExportExcelService {
 
     private void exportExcelByTemplate(List<JSONObject> list, JSONObject param, HttpServletResponse response) throws IllegalAccessException, IOException {
         // 生成workbook 并导出
-        String templatePath = "tp/" + exportTemplate.get(param);
+        String templatePath = "tp/" + exportTemplate.get(param.getString("_rule_"));
         Map<String, Object> map = new HashMap<>();
-        map.put("list", JavaBeanUtil.convertBeanToMapList(list));
+        map.put("list", JavaBeanUtil.convertJsonObjectToMapList(list));
 
         response.setHeader("Content-Disposition", "attachment; filename=" + System.currentTimeMillis() + ExcelTypeEnum.XLSX.getValue());
         response.setContentType("application/vnd.ms-excel;charset=utf-8");

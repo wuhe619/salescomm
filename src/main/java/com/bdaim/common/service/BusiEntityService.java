@@ -7,6 +7,7 @@ import com.bdaim.common.util.spring.SpringContextHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -41,7 +42,12 @@ public class BusiEntityService {
         if (!"all".equals(cust_id))
             sql += " and cust_id='" + cust_id + "'";
 
-        Map data = jdbcTemplate.queryForMap(sql, busiType, id);
+        Map data = null;
+        try {
+            data = jdbcTemplate.queryForMap(sql, busiType, id);
+        } catch (EmptyResultDataAccessException e) {
+            logger.warn("查询主单:{},busiType:{}失败",id,busiType);
+        }
         if (data == null)
             return jo;
         String content = (String) data.get("content");
