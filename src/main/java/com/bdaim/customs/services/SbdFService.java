@@ -327,7 +327,7 @@ public class SbdFService implements BusiService {
         String sql = "select id,type,content,ext_1,ext_2,ext_3,ext_4 from h_data_manager where id=" + zid + " and type='" + type + "'";
         HBusiDataManager manager = null;
         try {
-            manager = jdbcTemplate.queryForObject(sql, HBusiDataManager.class);
+            manager = serviceUtils.getObjectByIdAndType(NumberConvertUtil.parseLong(zid), type);
         } catch (EmptyResultDataAccessException e) {
             log.warn("查询主单:{},type:{}失败", zid, type);
         }
