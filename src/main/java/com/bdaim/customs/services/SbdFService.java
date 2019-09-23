@@ -117,7 +117,7 @@ public class SbdFService implements BusiService {
                 content.put("main_id", id);
                 content.put("status", 3);
                 JSONObject input = new JSONObject();
-                JSONObject data = JSON.parseObject((String) map.getOrDefault("content", ""));
+                JSONObject data = JSON.parseObject(String.valueOf(map.getOrDefault("content", "")));
                 input.put("name", data.getString("receive_name"));
                 input.put("id", data.getString("id_no"));
                 content.put("input", input);
