@@ -8,6 +8,7 @@ import com.bdaim.common.service.BusiService;
 import com.bdaim.common.service.ElasticSearchService;
 import com.bdaim.common.service.ResourceService;
 import com.bdaim.common.service.SequenceService;
+import com.bdaim.common.util.NumberConvertUtil;
 import com.bdaim.common.util.SqlAppendUtil;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.dao.CustomerDao;
@@ -402,7 +403,7 @@ public class SbdZService implements BusiService {
                 json.put("create_date", new Date());
                 json.put("create_id", userId);
                 json.put("cust_id", custId);
-                json.put("pid", pid);
+                json.put("pid", NumberConvertUtil.parseLong(pid));
                 json.put("type", BusiTypeEnum.SS.getType());
 
                 Float duty_paid_price = 0f;
