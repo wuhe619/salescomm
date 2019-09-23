@@ -10,6 +10,9 @@ import org.springframework.stereotype.Service;
 import java.util.Iterator;
 import java.util.List;
 
+/**
+ * 舱单回执
+ */
 @Service("busi_cd_hz")
 public class CdHzService implements BusiService {
 

@@ -11,6 +11,9 @@ import org.springframework.stereotype.Service;
 import java.util.Iterator;
 import java.util.List;
 
+/**
+ * 报关单回执
+ */
 @Service("busi_bgd_hz")
 public class BgdHzService implements BusiService {
     @Autowired
