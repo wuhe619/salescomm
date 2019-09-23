@@ -1,5 +1,6 @@
 package com.bdaim.customs.utils;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.batch.ResourceEnum;
 import com.bdaim.common.service.ElasticSearchService;
@@ -127,8 +128,12 @@ public class ServiceUtils {
 
     public HBusiDataManager getObjectByIdAndType(Long id, String type){
         String sql="select * from h_data_manager where id="+id+" and type='"+type+"'";
-        RowMapper<HBusiDataManager> managerRowMapper=new BeanPropertyRowMapper<>(HBusiDataManager.class);
-        return jdbcTemplate.queryForObject(sql,managerRowMapper);
+        RowMapper<HBusiDataManager> managerRowMapper = new BeanPropertyRowMapper<>(HBusiDataManager.class);
+        List<HBusiDataManager> list = jdbcTemplate.query(sql,managerRowMapper);
+        if(list!=null && list.size()>0){
+            return list.get(0);
+        }
+        return null;
     }
 
     public void delDataListByPid(Long pid){
@@ -139,10 +144,13 @@ public class ServiceUtils {
     public List<HBusiDataManager> getDataList(String type,Long pid){
         String sql2 = "select * from h_data_manager where  type='"+type+"' and ( CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')="+pid +" ELSE null END  or CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')='"+pid+"' ELSE null END)";
         log.info("sql2="+sql2);
-        RowMapper<HBusiDataManager> managerRowMapper=new BeanPropertyRowMapper<>(HBusiDataManager.class);
-        List<HBusiDataManager> list = jdbcTemplate.query(sql2,managerRowMapper);
-        log.info("list=="+list);
-        return list;
+       /* RowMapper<HBusiDataManager> managerRowMapper=new BeanPropertyRowMapper<>(HBusiDataManager.class);
+        List<HBusiDataManager> list = jdbcTemplate.query(sql2,managerRowMapper);*/
+
+       List<Map<String,Object>> list2 = jdbcTemplate.queryForList(sql2);
+       log.info("list=="+list2);
+        List<HBusiDataManager> list = JSON.parseArray(JSON.toJSONString(list2),HBusiDataManager.class);
+       return list;
     }
 
     public void delDataListByIdAndType(Long id,String type){
