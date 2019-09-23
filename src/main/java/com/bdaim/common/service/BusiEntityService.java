@@ -4,9 +4,13 @@ import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.common.util.spring.SpringContextHelper;
+import com.bdaim.customer.dao.CustomerDao;
+import com.bdaim.customer.entity.Customer;
+import com.bdaim.customer.entity.CustomerProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -31,6 +35,9 @@ public class BusiEntityService {
 
     @Autowired
     private SequenceService sequenceService;
+
+    @Autowired
+    private CustomerDao customerDao;
 
     /*
      * 按ID获取记录
@@ -174,7 +181,7 @@ public class BusiEntityService {
 
         try {
             List<Map<String, Object>> ds = jdbcTemplate.queryForList(sql + " limit " + (pageNum - 1) * pageSize + ", " + pageSize, sqlParams.toArray());
-            String totalSql = "select count(0) from ( "+sql+ " ) t ";
+            String totalSql = "select count(0) from ( " + sql + " ) t ";
             List data = new ArrayList();
             for (int i = 0; i < ds.size(); i++) {
                 Map m = (Map) ds.get(i);
@@ -208,6 +215,30 @@ public class BusiEntityService {
                 if (jo == null) { //jo异常导致为空时，只填充id
                     jo = new JSONObject();
                     jo.put("id", m.get("id"));
+                } else {
+                    //查询场站和报关单位
+                    String custId = jo.getString("cust_id");
+                    jo.put("cust_name", "");
+                    jo.put("station_name", "");
+                    Customer customer = customerDao.get(custId);
+                    if (customer != null) {
+                        jo.put("cust_name", customer.getEnterpriseName());
+                        jo.put("station_id", "");
+                        CustomerProperty cp = customerDao.getProperty(custId, "station_id");
+                        if (cp != null) {
+                            jo.put("station_id", cp.getPropertyValue());
+                            String stationSql = "select content, create_id, create_date, update_id, update_date from h_resource where type=? and id=? ";
+                            try {
+                                Map station = jdbcTemplate.queryForMap(stationSql, "station", cp.getPropertyValue());
+                                if (station != null) {
+                                    jo.put("station_name", JSONObject.parseObject(String.valueOf(station.get("content"))).getString("name"));
+                                }
+                            } catch (DataAccessException e) {
+                                logger.error("查询场站信息异常", e);
+                            }
+
+                        }
+                    }
                 }
 
                 try {
@@ -220,7 +251,7 @@ public class BusiEntityService {
                 data.add(jo);
             }
             p.setData(data);
-            int total = jdbcTemplate.queryForObject(totalSql, sqlParams.toArray(),Integer.class);
+            int total = jdbcTemplate.queryForObject(totalSql, sqlParams.toArray(), Integer.class);
             p.setTotal(total);
             p.setPerPageCount(pageSize);
             p.setStart((pageNum - 1) * pageSize + 1);
