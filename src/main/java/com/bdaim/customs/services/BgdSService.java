@@ -121,7 +121,7 @@ public class BgdSService implements BusiService{
 		info.put("index",index);
 		serviceUtils.addDataToES(id.toString(),busiType,info);
 
-		HBusiDataManager partH = serviceUtils.getObjectByIdAndType(pid.longValue(),BusiTypeEnum.SF.getType());
+		HBusiDataManager partH = serviceUtils.getObjectByIdAndType(pid.longValue(),BusiTypeEnum.BF.getType());
 
 		String pcontent = partH.getContent();
 		JSONObject jsonObject = JSON.parseObject(pcontent);
@@ -145,7 +145,7 @@ public class BgdSService implements BusiService{
 
 		serviceUtils.updateDataToES(BusiTypeEnum.BF.getType(),pid.toString(),jsonObject);
 
-		HBusiDataManager zh = serviceUtils.getObjectByIdAndType(jsonObject.getLong("pid"), BusiTypeEnum.SZ.getKey());
+		HBusiDataManager zh = serviceUtils.getObjectByIdAndType(jsonObject.getLong("pid"), BusiTypeEnum.BZ.getKey());
 		String zcontent = zh.getContent();
 		JSONObject jsonz = JSON.parseObject(zcontent);
 		Float weight_total = jsonz.getFloatValue("weight_total");
