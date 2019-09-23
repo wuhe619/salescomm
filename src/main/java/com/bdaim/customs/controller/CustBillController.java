@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletResponse;
 import java.util.Map;
 
 /**
@@ -78,4 +79,22 @@ public class CustBillController extends BasicAction {
         }
         return new ResponseInfoAssemble().success(page);
     }
+
+
+    /*
+     *
+     * 账单导出
+     * */
+    @RequestMapping(value = "/billExport", method = RequestMethod.GET)
+    @ResponseBody
+    public ResponseInfo customerBillExport(CustomerBillQueryParam param, String exportType, HttpServletResponse response) {
+        try {
+            hbillService.customerBillExport(param, exportType, response);
+        } catch (Exception e) {
+            logger.error("查询账单详情异常", e);
+            return new ResponseInfoAssemble().failure(-1, "查询账单详情失败");
+        }
+        return new ResponseInfoAssemble().success(null);
+    }
+
 }
