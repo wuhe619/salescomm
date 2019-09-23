@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.bill.dto.CustomerBillQueryParam;
 import com.bdaim.common.dto.Page;
+import com.bdaim.common.util.ExcelUtil;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.dao.CustomerDao;
 import org.slf4j.Logger;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletResponse;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
@@ -74,7 +76,7 @@ public class HBillService {
         try {
             StringBuffer querySql = new StringBuffer("SELECT id, busi_type busiType, cust_id custId, create_time createTime, IFNULL(amount / 100, 0)  unitPrice, content, IFNULL(amount / 100, 0) amount, IFNULL(prod_amount / 100, 0) prodAmount FROM t_resource_log WHERE 1=1");
             if (param.getMainId() != null) {
-                querySql.append(" AND JSON_EXTRACT(content, '$.main_id') ='" + param.getMainId()+"'");
+                querySql.append(" AND JSON_EXTRACT(content, '$.main_id') ='" + param.getMainId() + "'");
             }
             if (StringUtil.isNotEmpty(param.getTransactionId())) {
                 querySql.append(" AND id ='" + param.getTransactionId() + "'");
@@ -101,6 +103,7 @@ public class HBillService {
                     if (jsonObject != null) {
                         int status = jsonObject.getIntValue("status");
                         list.get(i).put("status", status);
+                        list.get(i).put("checkStatus", status == 1 ? "成功" : "失败");
                         JSONObject input = jsonObject.getJSONObject("input");
                         if (input != null) {
                             String idCard = input.getString("idCard");
@@ -110,9 +113,20 @@ public class HBillService {
                 }
             }
         } catch (Exception e) {
-            logger.error("查询账单详情异常",e);
+            logger.error("查询账单详情异常", e);
         }
         return page;
+    }
+
+    /**
+     * 企业账单页导出
+     *
+     * @param param
+     * @return
+     */
+    public void customerBillExport(CustomerBillQueryParam param, String exportType, HttpServletResponse response) throws Exception {
+        Page billDetail = getBillDetail(param);
+        ExcelUtil.exportExcelByList(billDetail.getData(), "tp/企业账单详情.xlsx", response);
     }
 }
 
