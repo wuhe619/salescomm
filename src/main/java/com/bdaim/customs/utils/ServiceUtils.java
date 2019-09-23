@@ -141,6 +141,7 @@ public class ServiceUtils {
         log.info("sql2="+sql2);
         RowMapper<HBusiDataManager> managerRowMapper=new BeanPropertyRowMapper<>(HBusiDataManager.class);
         List<HBusiDataManager> list = jdbcTemplate.query(sql2,managerRowMapper);
+        log.info("list=="+list);
         return list;
     }
 
