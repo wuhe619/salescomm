@@ -2,6 +2,7 @@ package com.bdaim.common.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.dto.Page;
+import com.bdaim.common.util.StringUtil;
 import com.bdaim.common.util.spring.SpringContextHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,7 +12,10 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import javax.transaction.Transactional;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 通用业务实体服务
@@ -78,6 +82,7 @@ public class BusiEntityService {
      */
     public Page query(String cust_id, String cust_group_id, Long cust_user_id, String busiType, JSONObject params) throws Exception {
         Page p = new Page();
+        String stationId = params.getString("station_id");
 
         List sqlParams = new ArrayList();
 
@@ -95,14 +100,23 @@ public class BusiEntityService {
             StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from h_data_manager where type=?");
             if (!"all".equals(cust_id))
                 sqlstr.append(" and cust_id='").append(cust_id).append("'");
-
             sqlParams.add(busiType);
+            // 处理场站检索
+            if(StringUtil.isNotEmpty(stationId)){
+                String stationSql ="SELECT cust_id FROM t_customer_property WHERE property_name='station_id' AND property_value = ?";
+                /*List<String> custIds = jdbcTemplate.queryForList(stationSql, String.class,"station_id", stationId);
+                if(custIds==null||custIds.size()==0){
+                    return p;
+                }*/
+                sqlstr.append(" and cust_id IN ( ").append(stationSql).append(" )");
+                sqlParams.add(stationId);
+            }
 
             Iterator keys = params.keySet().iterator();
             while (keys.hasNext()) {
                 String key = (String) keys.next();
                 if("".equals(String.valueOf(params.get(key)))) continue;
-                if ("pageNum".equals(key) || "pageSize".equals(key)) continue;
+                if ("pageNum".equals(key) || "pageSize".equals(key)||"stationId".equals(key) || "cust_id".equals(key)) continue;
                 if ("cust_id".equals(key)) {
                     sqlstr.append(" and cust_id=?");
                 } else if (key.startsWith("_c_")) {

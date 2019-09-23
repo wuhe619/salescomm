@@ -56,9 +56,12 @@ public class BusiEntityController extends BasicAction {
         		cust_id="-1";
         	if(lu.getRole().contains("admin") || lu.getRole().contains("ROLE_USER")){
                 cust_id="all";
-        	    if(StringUtil.isNotEmpty(params.getString(cust_id))){
-                    cust_id = params.getString(cust_id);
+        	    if(StringUtil.isNotEmpty(params.getString("cust_id"))){
+                    cust_id = params.getString("cust_id");
                 }
+            }else{
+        	    // 前台用户不能按照场站查询
+                params.remove("stationId");
             }
         	resp.setData(busiEntityService.query(cust_id, cust_group_id, cust_user_id, busiType, params));
         } catch (Exception e) {
