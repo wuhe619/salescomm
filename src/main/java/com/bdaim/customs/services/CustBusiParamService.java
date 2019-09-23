@@ -26,12 +26,12 @@ import java.util.List;
 import java.util.Map;
 
 /***
- * 报关单.税单
+ * 企业参数管理
  */
-@Service("busi_bgd_s")
-public class BgdSService implements BusiService{
+@Service("busi_param_proxy")
+public class CustBusiParamService implements BusiService{
 
-	private static Logger log = LoggerFactory.getLogger(BgdSService.class);
+	private static Logger log = LoggerFactory.getLogger(CustBusiParamService.class);
 
 	@Autowired
 	private ElasticSearchService elasticSearchService;
@@ -121,7 +121,7 @@ public class BgdSService implements BusiService{
 		info.put("index",index);
 		serviceUtils.addDataToES(id.toString(),busiType,info);
 
-		HBusiDataManager partH = serviceUtils.getObjectByIdAndType(pid.longValue(),BusiTypeEnum.BF.getType());
+		HBusiDataManager partH = serviceUtils.getObjectByIdAndType(pid.longValue(),BusiTypeEnum.SF.getType());
 
 		String pcontent = partH.getContent();
 		JSONObject jsonObject = JSON.parseObject(pcontent);
@@ -145,7 +145,7 @@ public class BgdSService implements BusiService{
 
 		serviceUtils.updateDataToES(BusiTypeEnum.BF.getType(),pid.toString(),jsonObject);
 
-		HBusiDataManager zh = serviceUtils.getObjectByIdAndType(jsonObject.getLong("pid"), BusiTypeEnum.BZ.getType());
+		HBusiDataManager zh = serviceUtils.getObjectByIdAndType(jsonObject.getLong("pid"), BusiTypeEnum.SZ.getKey());
 		String zcontent = zh.getContent();
 		JSONObject jsonz = JSON.parseObject(zcontent);
 		Float weight_total = jsonz.getFloatValue("weight_total");
