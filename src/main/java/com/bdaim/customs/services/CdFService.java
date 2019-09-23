@@ -80,24 +80,28 @@ public class CdFService implements BusiService{
         }
 		int packNo=0;
 		float weight=0;
-		for(HBusiDataManager hBusiDataManager:list){
-			JSONObject json2 = JSONObject.parseObject(fM.getContent());
-			if(hBusiDataManager.getId()==id.intValue()){
-				if(info.containsKey("pack_no") && StringUtil.isNotEmpty(info.getString("pack_no"))){
+		JSONObject json2 = JSONObject.parseObject(fM.getContent());
+		for(HBusiDataManager hBusiDataManager:list) {
+			if (hBusiDataManager.getId() == id.intValue()) {
+				if (info.containsKey("pack_no") && StringUtil.isNotEmpty(info.getString("pack_no"))) {
 					packNo += info.getInteger("pack_no");
 				}
-				if(info.containsKey("pack_no") && StringUtil.isNotEmpty(info.getString("pack_no"))){
+				if (info.containsKey("weight") && StringUtil.isNotEmpty(info.getString("weight"))) {
 					weight += info.getFloatValue("weight");
 				}
-			}else{
-				if(json2.containsKey("pack_no")&& StringUtil.isNotEmpty("pack_no")){
+			} else {
+				if (json2.containsKey("pack_no") && StringUtil.isNotEmpty("pack_no")) {
+					System.out.println("pack_no: " + json2.getString("pack_no"));
 					packNo += json2.getInteger("pack_no");
 				}
-				if(json2.containsKey("pack_no") && StringUtil.isNotEmpty(json2.getString("pack_no"))){
-					weight += json2.getInteger("weight_total");
+				if (json2.containsKey("weight_total") && StringUtil.isNotEmpty(json2.getString("weight_total"))) {
+					System.out.println("weight_total: " + json2.getString("weight_total"));
+					weight += json2.getFloatValue("weight_total");
 				}
 			}
+
 		}
+		log.info("jieshu...");
 		HBusiDataManager cangdanz = serviceUtils.getObjectByIdAndType(json.getLong("pid"),BusiTypeEnum.CZ.getType());
 		JSONObject superObj = JSONObject.parseObject(cangdanz.getContent());
 		superObj.put("weight",weight);
