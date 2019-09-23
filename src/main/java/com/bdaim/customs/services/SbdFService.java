@@ -50,52 +50,52 @@ public class SbdFService implements BusiService {
     public void insertInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) throws Exception {
         Integer pid = info.getInteger("pid");
         String billNo = info.getString("bill_no");
-        if(pid==null){
+        if (pid == null) {
             log.error("主单id不能为空");
             throw new Exception("主单id不能为空");
         }
-        if(StringUtil.isEmpty(billNo)){
+        if (StringUtil.isEmpty(billNo)) {
             log.error("分单号不能为空");
             throw new Exception("分单号不能为空");
         }
-        HBusiDataManager sbdzd = serviceUtils.getObjectByIdAndType(pid.longValue(),BusiTypeEnum.SZ.getType());
-        List<HBusiDataManager> list = serviceUtils.getDataList(BusiTypeEnum.SF.getType(),pid.longValue());
-        if(list!=null && list.size()>0){
-            for(HBusiDataManager hBusiDataManager:list){
-                JSONObject jsonObject=JSONObject.parseObject(hBusiDataManager.getContent());
-                if(billNo.equals(jsonObject.getString("bill_no"))){
-                    log.error("分单号【"+billNo+"】在主单【"+pid+"】中已经存在");
-                    throw new Exception("分单号【"+billNo+"】在主单【"+pid+"】中已经存在");
+        HBusiDataManager sbdzd = serviceUtils.getObjectByIdAndType(pid.longValue(), BusiTypeEnum.SZ.getType());
+        List<HBusiDataManager> list = serviceUtils.getDataList(BusiTypeEnum.SF.getType(), pid.longValue());
+        if (list != null && list.size() > 0) {
+            for (HBusiDataManager hBusiDataManager : list) {
+                JSONObject jsonObject = JSONObject.parseObject(hBusiDataManager.getContent());
+                if (billNo.equals(jsonObject.getString("bill_no"))) {
+                    log.error("分单号【" + billNo + "】在主单【" + pid + "】中已经存在");
+                    throw new Exception("分单号【" + billNo + "】在主单【" + pid + "】中已经存在");
                 }
             }
         }
         info.put("type", BusiTypeEnum.SF.getType());
         info.put("check_status", "0");
         info.put("idcard_pic_flag", "0");
-        info.put("main_gname","");
-        info.put("low_price_goods",0);
-        info.put("id",id);
-        info.put("pid",pid);
-        serviceUtils.addDataToES(id.toString(),busiType,info);
+        info.put("main_gname", "");
+        info.put("low_price_goods", 0);
+        info.put("id", id);
+        info.put("pid", pid);
+        serviceUtils.addDataToES(id.toString(), busiType, info);
         JSONObject jsonObject = JSONObject.parseObject(sbdzd.getContent());
-        if(info.containsKey("weight") && info.getString("weight")!=null){
-          if(jsonObject.containsKey("weight_total")) {
-              String  weight_total = jsonObject.getString("weight_total");
-              if(StringUtil.isNotEmpty(weight_total)){
-                  weight_total=String.valueOf(Float.valueOf(weight_total)+Float.valueOf(info.getString("weight")));
-                  jsonObject.put("weight_total", weight_total);//总重量
-              }
-          }
+        if (info.containsKey("weight") && info.getString("weight") != null) {
+            if (jsonObject.containsKey("weight_total")) {
+                String weight_total = jsonObject.getString("weight_total");
+                if (StringUtil.isNotEmpty(weight_total)) {
+                    weight_total = String.valueOf(Float.valueOf(weight_total) + Float.valueOf(info.getString("weight")));
+                    jsonObject.put("weight_total", weight_total);//总重量
+                }
+            }
         }
         int value = 1;
-        if(jsonObject.containsKey("party_total")){
-            value = jsonObject.getInteger("party_total")+value;
+        if (jsonObject.containsKey("party_total")) {
+            value = jsonObject.getInteger("party_total") + value;
         }
         jsonObject.put("party_total", value);//分单总数
 
         sbdzd.setContent(jsonObject.toJSONString());
         hBusiDataManagerDao.saveOrUpdate(sbdzd);
-        serviceUtils.updateDataToES(BusiTypeEnum.SZ.getType(),sbdzd.getId().toString(),jsonObject);
+        serviceUtils.updateDataToES(BusiTypeEnum.SZ.getType(), sbdzd.getId().toString(), jsonObject);
     }
 
     @Override
@@ -117,41 +117,42 @@ public class SbdFService implements BusiService {
                 content.put("main_id", id);
                 content.put("status", 3);
                 JSONObject input = new JSONObject();
-                JSONObject data = JSON.parseObject((String) map.getOrDefault("content",""));
+                JSONObject data = JSON.parseObject((String) map.getOrDefault("content", ""));
                 input.put("name", data.getString("receive_name"));
                 input.put("id", data.getString("id_no"));
-                content.put("input",input);
-                serviceUtils.insertSFVerifyQueue(content.toJSONString(),data.getString("bii_no"), cust_user_id);
+                content.put("input", input);
+                serviceUtils.insertSFVerifyQueue(content.toJSONString(), data.getString("bii_no"), cust_user_id);
             }
 
-        }else if ("clear_verify".equals(info.getString("_rule_"))) {
+        } else if ("clear_verify".equals(info.getString("_rule_"))) {
             // 清空身份证件图片
-            List ids = info.getJSONArray("ids");
-            List<HBusiDataManager> hBusiDataManagers = hBusiDataManagerDao.listHBusiDataManager(ids, BusiTypeEnum.SF.getType());
-            if (hBusiDataManagers != null) {
+            //List ids = info.getJSONArray("ids");
+            HBusiDataManager d = serviceUtils.getObjectByIdAndType(info.getLong("id"), BusiTypeEnum.SF.getType());
+            if (d != null) {
                 JSONObject jsonObject;
                 String picKey = "id_no_pic";
                 HBusiDataManager mainD = null;
-                for (HBusiDataManager d : hBusiDataManagers) {
-                    d.setExt_6("");
-                    jsonObject = JSON.parseObject(d.getContent());
-                    if (jsonObject != null) {
-                        // 身份证照片存储对象ID
-                        jsonObject.put(picKey, "");
-                        jsonObject.put("idcard_pic_flag", "0");
-                        d.setContent(jsonObject.toJSONString());
-                    }
-                    hBusiDataManagerDao.saveOrUpdate(d);
-                    elasticSearchService.update(d, d.getId());
-                    mainD = hBusiDataManagerDao.getHBusiDataManager("ext_3", d.getExt_4());
+                //for (HBusiDataManager d : hBusiDataManagers) {
+                d.setExt_6("");
+                jsonObject = JSON.parseObject(d.getContent());
+                if (jsonObject != null) {
+                    // 身份证照片存储对象ID
+                    jsonObject.put(picKey, "");
+                    jsonObject.put("idcard_pic_flag", "0");
+                    d.setContent(jsonObject.toJSONString());
                 }
+                hBusiDataManagerDao.saveOrUpdate(d);
+                elasticSearchService.update(d, d.getId());
+                mainD = hBusiDataManagerDao.getHBusiDataManager("ext_3", d.getExt_4());
+                //}
                 if (mainD != null) {
                     updateMainDanIdCardNumber(mainD.getId());
                 }
+                //}
             }
 
-        }else{
-            HBusiDataManager dbManager = serviceUtils.getObjectByIdAndType(id,busiType);
+        } else {
+            HBusiDataManager dbManager = serviceUtils.getObjectByIdAndType(id, busiType);
             String content = dbManager.getContent();
             JSONObject json = JSONObject.parseObject(content);
             //BeanUtils.copyProperties(info,json);
@@ -161,8 +162,8 @@ public class SbdFService implements BusiService {
                 json.put(key, info.get(key));
             }
             //dbManager.setContent(json.toJSONString());
-            serviceUtils.updateDataToES(busiType,id.toString(),json);
-            totalPartDanToMainDan(json.getInteger("pid"), BusiTypeEnum.SF.getKey(),id);
+            serviceUtils.updateDataToES(busiType, id.toString(), json);
+            totalPartDanToMainDan(json.getInteger("pid"), BusiTypeEnum.SF.getKey(), id);
         }
     }
 
@@ -207,33 +208,36 @@ public class SbdFService implements BusiService {
     }
 
     @Override
-    public void getInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info, JSONObject param) {
+    public void getInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long
+            id, JSONObject info, JSONObject param) {
         // TODO Auto-generated method stub
 
     }
 
     @Override
-    public void deleteInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id) throws Exception {
+    public void deleteInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id) throws
+            Exception {
         log.info("申报单分单id:{}开始删除,type:{}", id, busiType);
-        String sql="select id,type,content,ext_1,ext_2,ext_3,ext_4 from h_data_manager where id="+id +" and type='"+busiType+"'";
-        HBusiDataManager manager = jdbcTemplate.queryForObject(sql,HBusiDataManager.class);
+        String sql = "select id,type,content,ext_1,ext_2,ext_3,ext_4 from h_data_manager where id=" + id + " and type='" + busiType + "'";
+        HBusiDataManager manager = jdbcTemplate.queryForObject(sql, HBusiDataManager.class);
         if (manager.getCust_id() == null || (!cust_id.equals(manager.getCust_id().toString()))) {
             throw new Exception("无权删除");
         }
-        List<HBusiDataManager> list = serviceUtils.getDataList(BusiTypeEnum.SS.getType(),id);
+        List<HBusiDataManager> list = serviceUtils.getDataList(BusiTypeEnum.SS.getType(), id);
         for (HBusiDataManager manager2 : list) {
             serviceUtils.deleteDatafromES(manager2.getType(), manager2.getId().toString());
         }
         serviceUtils.delDataListByPid(id);
         serviceUtils.deleteDatafromES(manager.getType(), manager.getId().toString());
         JSONObject json = JSONObject.parseObject(manager.getContent());
-        Integer zid=json.getInteger("pid");
-        totalPartDanToMainDan(zid, BusiTypeEnum.SZ.getType(),id);
+        Integer zid = json.getInteger("pid");
+        totalPartDanToMainDan(zid, BusiTypeEnum.SZ.getType(), id);
 
     }
 
     @Override
-    public String formatQuery(String busiType, String cust_id, String cust_group_id, Long cust_user_id, JSONObject params, List sqlParams) {
+    public String formatQuery(String busiType, String cust_id, String cust_group_id, Long cust_user_id, JSONObject
+            params, List sqlParams) {
         String sql = null;
         //查询主列表
         if ("main".equals(params.getString("_rule_"))) {
@@ -286,7 +290,8 @@ public class SbdFService implements BusiService {
     }
 
     @Override
-    public void formatInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, JSONObject info) {
+    public void formatInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, JSONObject
+            info) {
         // TODO Auto-generated method stub
 
     }
@@ -294,22 +299,23 @@ public class SbdFService implements BusiService {
 
     /**
      * 重新统计主单content
+     *
      * @param zid
      * @param type
      * @param id
      */
-    public void totalPartDanToMainDan(Integer zid, String type,Long id) {
+    public void totalPartDanToMainDan(Integer zid, String type, Long id) {
 
-        List<HBusiDataManager> data = serviceUtils.getDataList(BusiTypeEnum.SF.getType(),zid.longValue());
+        List<HBusiDataManager> data = serviceUtils.getDataList(BusiTypeEnum.SF.getType(), zid.longValue());
         Float weightTotal = 0f;
-        Integer low_price_goods=0;
+        Integer low_price_goods = 0;
         for (HBusiDataManager d : data) {
-            if(d.getId()==id.intValue())continue;
+            if (d.getId() == id.intValue()) continue;
 
             String content = d.getContent();
             JSONObject json = JSONObject.parseObject(content);
-            Integer s=json.getInteger("low_price_goods");
-            if(s==null)s=0;
+            Integer s = json.getInteger("low_price_goods");
+            if (s == null) s = 0;
             low_price_goods += s;
             String WEIGHT = json.getString("weight");
             if (StringUtil.isEmpty(WEIGHT)) {
@@ -318,30 +324,29 @@ public class SbdFService implements BusiService {
             weightTotal += Float.valueOf(WEIGHT);
         }
 
-        String sql="select id,type,content,ext_1,ext_2,ext_3,ext_4 from h_data_manager where id="+zid +" and type='"+type+"'";
+        String sql = "select id,type,content,ext_1,ext_2,ext_3,ext_4 from h_data_manager where id=" + zid + " and type='" + type + "'";
         HBusiDataManager manager = null;
         try {
             manager = jdbcTemplate.queryForObject(sql, HBusiDataManager.class);
         } catch (EmptyResultDataAccessException e) {
-           log.warn("查询主单:{},type:{}失败",zid,type);
+            log.warn("查询主单:{},type:{}失败", zid, type);
         }
 
         String hcontent = manager.getContent();
         JSONObject jsonObject = JSONObject.parseObject(hcontent);
         jsonObject.put("weight_total", weightTotal);//总重量
-        jsonObject.put("party_total", data.size()-1<0?0:data.size()-1);//分单总数
-        Integer s=jsonObject.getInteger("low_price_goods");
-        if(s==null){
-            s=0;
+        jsonObject.put("party_total", data.size() - 1 < 0 ? 0 : data.size() - 1);//分单总数
+        Integer s = jsonObject.getInteger("low_price_goods");
+        if (s == null) {
+            s = 0;
         }
-        jsonObject.put("low_price_goods",s + low_price_goods);
+        jsonObject.put("low_price_goods", s + low_price_goods);
         manager.setContent(jsonObject.toJSONString());
-        sql = " update h_data_manager set content='"+jsonObject.toJSONString()+"' where id="+zid+" and type='"+type+"'";
+        sql = " update h_data_manager set content='" + jsonObject.toJSONString() + "' where id=" + zid + " and type='" + type + "'";
         jdbcTemplate.update(sql);
-        serviceUtils.updateDataToES(BusiTypeEnum.SZ.getType(), zid.toString(),jsonObject);
+        serviceUtils.updateDataToES(BusiTypeEnum.SZ.getType(), zid.toString(), jsonObject);
 
     }
-
 
 
 }
