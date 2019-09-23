@@ -163,7 +163,7 @@ public class SbdFService implements BusiService {
             }
             //dbManager.setContent(json.toJSONString());
             serviceUtils.updateDataToES(busiType, id.toString(), json);
-            totalPartDanToMainDan(json.getInteger("pid"), BusiTypeEnum.SF.getKey(), id);
+            totalPartDanToMainDan(json.getInteger("pid"), BusiTypeEnum.SZ.getKey(), id);
         }
     }
 
