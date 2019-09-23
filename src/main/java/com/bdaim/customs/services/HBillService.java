@@ -53,7 +53,7 @@ public class HBillService {
                 String content = String.valueOf(list.get(i).get("content"));
                 if (StringUtil.isNotEmpty(content)) {
                     JSONObject jsonObject = JSON.parseObject(content);
-                    list.get(i).put("mianId", jsonObject.getString("main_id"));
+                    list.get(i).put("mainId", jsonObject.getString("main_id"));
                 }
             }
             map.put("custSumAmount", custSumAmount);
