@@ -70,7 +70,7 @@ public class BusiEntityService {
             BusiService busiService = (BusiService) SpringContextHelper.getBean("busi_" + busiType);
             busiService.getInfo(busiType, cust_id, cust_group_id, cust_user_id, id, jo,param);
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            logger.error("数据格式错误！",e);
             throw new Exception("数据格式错误！");
         }
 
@@ -92,7 +92,7 @@ public class BusiEntityService {
             //执行自定义查询sql
             sql = busiService.formatQuery(busiType, cust_id, cust_group_id, cust_user_id, params, sqlParams);
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            logger.error("查询条件自定义解析异常:[" + busiType + "]",e);
             throw new Exception("查询条件自定义解析异常:[" + busiType + "]");
         }
         if (sql == null || "".equals(sql)) {
@@ -216,7 +216,7 @@ public class BusiEntityService {
             p.setPerPageCount(pageSize);
             p.setStart((pageNum - 1) * pageSize + 1);
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            logger.error("查询异常:[" + busiType + "]",e);
             throw new Exception("查询异常:[" + busiType + "]");
         }
 
@@ -289,7 +289,7 @@ public class BusiEntityService {
                     jo.put(key, info.get(key));
                 }
             } catch (Exception e) {
-                logger.error(e.getMessage());
+                logger.error("解析数据异常:[" + busiType + "]" + id,e);
                 throw new Exception("解析数据异常:[" + busiType + "]" + id);
             }
 
@@ -319,7 +319,7 @@ public class BusiEntityService {
 
                 jdbcTemplate.update(sql2.toString(), sqlParams.toArray());
             } catch (Exception e) {
-                logger.error(e.getMessage());
+                logger.error("更新记录异常:[" + busiType + "]" + id,e);
                 throw new Exception("更新记录异常:[" + busiType + "]" + id);
             }
         }
