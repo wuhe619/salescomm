@@ -54,6 +54,11 @@ public class PartyDan {
     private String id_card_pic;
 
     /**
+     * 发送至海关状态 1-成功 0-失败
+     */
+    private Integer send_status;
+
+    /**
      * 身份证图片状态 1-有 2-无
      */
     private String idcard_pic_flag;
@@ -240,5 +245,13 @@ public class PartyDan {
 
     public void setIdcard_pic_flag(String idcard_pic_flag) {
         this.idcard_pic_flag = idcard_pic_flag;
+    }
+
+    public Integer getSend_status() {
+        return send_status;
+    }
+
+    public void setSend_status(Integer send_status) {
+        this.send_status = send_status;
     }
 }
