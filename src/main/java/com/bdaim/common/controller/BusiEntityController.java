@@ -112,7 +112,7 @@ public class BusiEntityController extends BasicAction {
      */
     @ResponseBody
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
-    public ResponseInfo getInfo(@PathVariable(name = "id") Long id, @RequestBody(required = false) String body, @PathVariable(name = "busiType") String busiType, @RequestParam(name = "_rule_") String rule, HttpServletResponse response) {
+    public ResponseInfo getInfo(@PathVariable(name = "id") Long id, @RequestBody(required = false) String body, @PathVariable(name = "busiType") String busiType, @RequestParam(name = "_rule_", required = false) String rule, HttpServletResponse response) {
         ResponseInfo resp = new ResponseInfo();
         JSONObject param = null;
         try {
