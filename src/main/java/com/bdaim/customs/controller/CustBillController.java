@@ -91,8 +91,8 @@ public class CustBillController extends BasicAction {
         try {
             hbillService.customerBillExport(param, exportType, response);
         } catch (Exception e) {
-            logger.error("查询账单详情异常", e);
-            return new ResponseInfoAssemble().failure(-1, "查询账单详情失败");
+            logger.error("导出企业账单异常", e);
+            return new ResponseInfoAssemble().failure(-1, "导出企业账单失败");
         }
         return new ResponseInfoAssemble().success(null);
     }

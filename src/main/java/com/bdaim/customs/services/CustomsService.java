@@ -325,7 +325,7 @@ public class CustomsService {
         hBusiDataManager.setCreateId(user.getId());
         hBusiDataManager.setCust_id(Long.valueOf(user.getCustId()));
         hBusiDataManager.setExt_3(product.getCode_ts());
-        hBusiDataManager.setExt_4(product.getParty_no());
+        hBusiDataManager.setExt_4(product.getBill_no());
         product.setPid(partId);
         JSONObject json = JSON.parseObject(JSONObject.toJSONString(product));
         //todo 待合计
@@ -647,7 +647,7 @@ public class CustomsService {
                 dataManager.setCreateId(user.getId());
                 dataManager.setCust_id(Long.valueOf(user.getCustId()));
                 dataManager.setExt_3(product.getCode_ts());//商品编号
-                dataManager.setExt_4(product.getParty_no());//分单号
+                dataManager.setExt_4(product.getBill_no());//分单号
                 JSONObject json = buildGoodsContent(product);
                 json.put("create_date", new Date());
                 json.put("create_id", user.getId());
