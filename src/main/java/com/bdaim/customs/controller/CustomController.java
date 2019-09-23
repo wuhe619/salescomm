@@ -388,4 +388,12 @@ public class CustomController extends BasicAction {
             log.error("导出excel异常", e);
         }
     }
+
+
+    @RequestMapping(value = "/count/sbd",method = RequestMethod.GET)
+    public void countSBD(HttpServletRequest request,String stationId,String custId){
+        LoginUser user = opUser();
+
+
+    }
 }
