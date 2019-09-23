@@ -54,9 +54,12 @@ public class BusiEntityController extends BasicAction {
         	Long cust_user_id = lu.getId();
         	if(cust_id==null || "".equals(cust_id))
         		cust_id="-1";
-        	if(lu.getRole().contains("admin") || lu.getRole().contains("ROLE_USER"))
-        		cust_id="all";
-        	
+        	if(lu.getRole().contains("admin") || lu.getRole().contains("ROLE_USER")){
+                cust_id="all";
+        	    if(StringUtil.isNotEmpty(params.getString(cust_id))){
+                    cust_id = params.getString(cust_id);
+                }
+            }
         	resp.setData(busiEntityService.query(cust_id, cust_group_id, cust_user_id, busiType, params));
         } catch (Exception e) {
             logger.error("查询记录异常,",e);
