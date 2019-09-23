@@ -54,6 +54,11 @@ public class Product {
     private String estimated_tax;
 
     /**
+     * 税率
+     */
+    private String tax_rate;
+
+    /**
      * 是否为低价商品 1-低价 0-正常
      */
     private Integer is_low_price;
@@ -261,5 +266,13 @@ public class Product {
 
     public void setOpt_type(String opt_type) {
         this.opt_type = opt_type;
+    }
+
+    public String getTax_rate() {
+        return tax_rate;
+    }
+
+    public void setTax_rate(String tax_rate) {
+        this.tax_rate = tax_rate;
     }
 }
