@@ -99,6 +99,8 @@ public class BgdZService implements BusiService {
             JSONObject jo = JSONObject.parseObject(content);
             jo.put("ext_1", "1");
             jo.put("send_status", "1");
+            info.put("ext_1", "1");
+            info.put("send_status", "1");
             jo.put("id", m.get("id"));
             jo.put("cust_id", m.get("cust_id"));
             jo.put("cust_group_id", m.get("cust_group_id"));
