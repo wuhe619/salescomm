@@ -63,6 +63,51 @@ public class PartyDan {
      */
     private String idcard_pic_flag;
 
+    /**
+     * 申报类别
+     */
+    private String decl_type;
+
+    /**
+     * 净重
+     */
+    private String net_weight;
+
+    /**
+     * 经营单位性质
+     */
+    private String s_c_busi_kinds;
+
+    /**
+     * 经营单位代码
+     */
+    private String s_c_code_busi_unit;
+
+    /**
+     * 货主单位社会信用代码
+     */
+    private String s_c_code_shipper;
+
+    /**
+     * 货主单位代码
+     */
+    private String shipper_unit_code;
+
+    /**
+     * 货主地区代码
+     */
+    private String shipper_area_code;
+
+    /**
+     * 货主单位名称
+     */
+    private String  shipper_unit_name;
+
+    /**
+     * 征免性质
+     */
+    private String  tax_kinds;
+
     public String getId() {
         return id;
     }
@@ -253,5 +298,77 @@ public class PartyDan {
 
     public void setSend_status(Integer send_status) {
         this.send_status = send_status;
+    }
+
+    public String getDecl_type() {
+        return decl_type;
+    }
+
+    public void setDecl_type(String decl_type) {
+        this.decl_type = decl_type;
+    }
+
+    public String getNet_weight() {
+        return net_weight;
+    }
+
+    public void setNet_weight(String net_weight) {
+        this.net_weight = net_weight;
+    }
+
+    public String getS_c_busi_kinds() {
+        return s_c_busi_kinds;
+    }
+
+    public void setS_c_busi_kinds(String s_c_busi_kinds) {
+        this.s_c_busi_kinds = s_c_busi_kinds;
+    }
+
+    public String getS_c_code_busi_unit() {
+        return s_c_code_busi_unit;
+    }
+
+    public void setS_c_code_busi_unit(String s_c_code_busi_unit) {
+        this.s_c_code_busi_unit = s_c_code_busi_unit;
+    }
+
+    public String getS_c_code_shipper() {
+        return s_c_code_shipper;
+    }
+
+    public void setS_c_code_shipper(String s_c_code_shipper) {
+        this.s_c_code_shipper = s_c_code_shipper;
+    }
+
+    public String getShipper_unit_code() {
+        return shipper_unit_code;
+    }
+
+    public void setShipper_unit_code(String shipper_unit_code) {
+        this.shipper_unit_code = shipper_unit_code;
+    }
+
+    public String getShipper_area_code() {
+        return shipper_area_code;
+    }
+
+    public void setShipper_area_code(String shipper_area_code) {
+        this.shipper_area_code = shipper_area_code;
+    }
+
+    public String getShipper_unit_name() {
+        return shipper_unit_name;
+    }
+
+    public void setShipper_unit_name(String shipper_unit_name) {
+        this.shipper_unit_name = shipper_unit_name;
+    }
+
+    public String getTax_kinds() {
+        return tax_kinds;
+    }
+
+    public void setTax_kinds(String tax_kinds) {
+        this.tax_kinds = tax_kinds;
     }
 }
