@@ -126,6 +126,9 @@ public class BusiEntityController extends BasicAction {
         try {
         	LoginUser lu = opUser();
         	String cust_id = lu.getCustId();
+        	if("admin".equals(lu.getRole())){
+        	    cust_id = "all";
+            }
         	String cust_group_id = lu.getUserGroupId();
         	Long cust_user_id = lu.getId();
             JSONObject jo = busiEntityService.getInfo(cust_id, cust_group_id, cust_user_id, busiType, id, param);

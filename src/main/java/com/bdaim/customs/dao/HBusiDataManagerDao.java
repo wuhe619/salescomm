@@ -1,5 +1,6 @@
 package com.bdaim.customs.dao;
 
+import com.alibaba.fastjson.JSON;
 import com.bdaim.common.dao.SimpleHibernateDao;
 import com.bdaim.customs.entity.HBusiDataManager;
 import org.hibernate.Query;
@@ -7,6 +8,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
 
 @Component
 public class HBusiDataManagerDao extends SimpleHibernateDao<HBusiDataManager, Serializable> {
@@ -32,7 +34,7 @@ public class HBusiDataManagerDao extends SimpleHibernateDao<HBusiDataManager, Se
      * @param pid
      * @return
      */
-    public List<HBusiDataManager> listHBusiDataManager(int pid, String type) {
+    public List<HBusiDataManager> listHBusiDataManager0(int pid, String type) {
         String hql = "FROM HBusiDataManager WHERE type = ? AND ext_4 = (SELECT ext_3 FROM HBusiDataManager WHERE id = ?)";
         return this.find(hql, type, pid);
     }
@@ -78,8 +80,13 @@ public class HBusiDataManagerDao extends SimpleHibernateDao<HBusiDataManager, Se
      * @return
      */
     public int countMainDIdCardNum(int pid, String type) {
-        String hql = "SELECT COUNT(0) FROM HBusiDataManager WHERE type = ? AND ext_4 = (SELECT ext_3 FROM HBusiDataManager WHERE id = ?) AND ext_6 IS NOT NULL AND ext_6 <>'' ";
-        return this.findCount(hql, type, pid);
+        String sql = "select id from h_data_manager where type=? AND ext_6 IS NOT NULL AND ext_6 <>'' and ( CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')="+pid +" ELSE null END  or CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')='"+pid+"' ELSE null END)";
+        List<Map<String,Object>> list2 = jdbcTemplate.queryForList(sql, type);
+        List<HBusiDataManager> list = JSON.parseArray(JSON.toJSONString(list2),HBusiDataManager.class);
+        if(list!=null){
+            return list.size();
+        }
+        return 0;
     }
 
 }

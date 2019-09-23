@@ -1239,7 +1239,7 @@ public class TallyForm {
         private String id;
 
         @ExcelProperty(value = "分单单号", index = 0)
-        private String party_No;
+        private String bill_no;
 
         @ExcelProperty(value = "商品编码", index = 1)
         private String code_ts;
@@ -1325,12 +1325,12 @@ public class TallyForm {
             this.id = id;
         }
 
-        public String getParty_No() {
-            return party_No;
+        public String getBill_no() {
+            return bill_no;
         }
 
-        public void setParty_No(String party_No) {
-            this.party_No = party_No;
+        public void setBill_no(String bill_no) {
+            this.bill_no = bill_no;
         }
 
         public String getCode_ts() {

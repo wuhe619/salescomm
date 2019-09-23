@@ -22,6 +22,7 @@ import com.bdaim.customs.dao.HReceiptRecordDao;
 import com.bdaim.customs.dto.FileModel;
 import com.bdaim.customs.dto.QueryDataParams;
 import com.bdaim.customs.entity.*;
+import com.bdaim.customs.utils.ServiceUtils;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.MatchPhraseQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -67,6 +68,9 @@ public class CustomsService {
 
     @Autowired
     private ResourceService resourceService;
+
+    @Autowired
+    private ServiceUtils serviceUtils;
 
     /**
      * 保存信息
@@ -173,7 +177,7 @@ public class CustomsService {
             if (manager != null) {
                 throw new Exception("分单号" + partyDan.getBill_no() + " 已经存在");
             }
-            buildSenbaodanFendan(partyDan, list, user, partyDan.getMain_bill_no(),new JSONObject());
+            buildSenbaodanFendan(partyDan, list, user, partyDan.getMain_bill_no(), new JSONObject());
             for (HBusiDataManager hBusiDataManager : list) {
                 Long id = (Long) hBusiDataManagerDao.saveReturnPk(hBusiDataManager);
                 addDataToES(hBusiDataManager, id.intValue());
@@ -325,7 +329,7 @@ public class CustomsService {
         hBusiDataManager.setCreateId(user.getId());
         hBusiDataManager.setCust_id(Long.valueOf(user.getCustId()));
         hBusiDataManager.setExt_3(product.getCode_ts());
-        hBusiDataManager.setExt_4(product.getParty_no());
+        hBusiDataManager.setExt_4(product.getBill_no());
         product.setPid(partId);
         JSONObject json = JSON.parseObject(JSONObject.toJSONString(product));
         //todo 待合计
@@ -333,31 +337,31 @@ public class CustomsService {
         float estimated_tax = 0;
         float tax_rate = 0;
         int is_low_price = 0;
-        if(StringUtil.isNotEmpty(product.getCode_ts())) {
+        if (StringUtil.isNotEmpty(product.getCode_ts())) {
             JSONObject params = new JSONObject();
             params.put("code", product.getCode_ts());
-           Page page = resourceService.query("", "duty_paid_rate",params);
-           if(page!=null && page.getTotal()>0){
-               List dataList = page.getData();
-               Map<String ,Object> d = (Map<String, Object>) dataList.get(0);
-               String content = (String) d.get("content");
-               JSONObject contentObj=JSON.parseObject(content);
-               duty_paid_price = contentObj.getFloatValue("duty_price");
-               if(StringUtil.isNotEmpty(product.getDecl_price())){
-                   if(Float.valueOf(product.getDecl_price())<duty_paid_price){
-                       is_low_price = 1;
-                   }
-               }
-               tax_rate = contentObj.getFloatValue("tax_rate");
-               estimated_tax = duty_paid_price*tax_rate;
-           }
+            Page page = resourceService.query("", "duty_paid_rate", params);
+            if (page != null && page.getTotal() > 0) {
+                List dataList = page.getData();
+                Map<String, Object> d = (Map<String, Object>) dataList.get(0);
+                String content = (String) d.get("content");
+                JSONObject contentObj = JSON.parseObject(content);
+                duty_paid_price = contentObj.getFloatValue("duty_price");
+                if (StringUtil.isNotEmpty(product.getDecl_price())) {
+                    if (Float.valueOf(product.getDecl_price()) < duty_paid_price) {
+                        is_low_price = 1;
+                    }
+                }
+                tax_rate = contentObj.getFloatValue("tax_rate");
+                estimated_tax = duty_paid_price * tax_rate;
+            }
         }
-        json.put("is_low_price",is_low_price);
-        float total_price = Float.valueOf(product.getDecl_total()==null?"0":product.getDecl_total());
+        json.put("is_low_price", is_low_price);
+        float total_price = Float.valueOf(product.getDecl_total() == null ? "0" : product.getDecl_total());
         json.put("duty_paid_price", duty_paid_price);//完税价格
         json.put("estimated_tax", estimated_tax);//预估税金
         json.put("tax_rate", tax_rate);//税率
-        json.put("total_price",total_price);//价格合计
+        json.put("total_price", total_price);//价格合计
         hBusiDataManager.setContent(json.toJSONString());
         Long id = (Long) hBusiDataManagerDao.saveReturnPk(hBusiDataManager);
         addDataToES(hBusiDataManager, id.intValue());
@@ -378,8 +382,8 @@ public class CustomsService {
         jsonObject.put("weight", weight);
         jsonObject.put("pack_no", pack_NO);
         Integer lowPricegoods = jsonObject.getInteger("low_price_goods");
-        if(lowPricegoods==null)lowPricegoods=0;
-        jsonObject.put("low_price_goods",lowPricegoods+is_low_price);
+        if (lowPricegoods == null) lowPricegoods = 0;
+        jsonObject.put("low_price_goods", lowPricegoods + is_low_price);
         partH.setContent(jsonObject.toJSONString());
         hBusiDataManagerDao.saveOrUpdate(partH);
         updateDataToES(partH, Integer.valueOf(partId));
@@ -390,8 +394,8 @@ public class CustomsService {
         JSONObject jsonz = JSON.parseObject(zcontent);
         Float weight_total = jsonz.getFloatValue("weight_total");
         Integer lowPricegoodsz = jsonObject.getInteger("low_price_goods");
-        if(lowPricegoodsz==null)lowPricegoodsz = 0;
-        jsonz.put("low_price_goods",lowPricegoodsz + is_low_price);
+        if (lowPricegoodsz == null) lowPricegoodsz = 0;
+        jsonz.put("low_price_goods", lowPricegoodsz + is_low_price);
 
         if (weight_total == null) weight_total = 0f;
         weight_total += Float.valueOf(product.getGgrosswt() == null ? "0" : product.getGgrosswt());
@@ -510,7 +514,7 @@ public class CustomsService {
         dataManager.setExt_1("N");//commit to cangdan 是否提交仓单 N:未提交，Y：已提交
         dataManager.setExt_2("N");//commit to baogaundan N:未提交，Y：已提交
         dataManager.setExt_3(mainDan.getBill_no());
-        buildPartyDan(list, mainDan, user,jsonObject);
+        buildPartyDan(list, mainDan, user, jsonObject);
         dataManager.setContent(jsonObject.toJSONString());
         list.add(dataManager);
 
@@ -554,7 +558,7 @@ public class CustomsService {
         } else {
             jsonObject.put("overWarp", "正常");//正常
         }
-        jsonObject.put("low_price_goods",0);
+        jsonObject.put("low_price_goods", 0);
 
         return jsonObject;
 
@@ -578,19 +582,19 @@ public class CustomsService {
      * @param mainDan
      * @param user
      */
-    public void buildPartyDan(List<HBusiDataManager> list, MainDan mainDan, LoginUser user,JSONObject mainJson) throws Exception {
+    public void buildPartyDan(List<HBusiDataManager> list, MainDan mainDan, LoginUser user, JSONObject mainJson) throws Exception {
         List<PartyDan> partList = mainDan.getSingles();
         if (partList != null && partList.size() > 0) {
             for (PartyDan dan : partList) {
-                buildSenbaodanFendan(dan, list, user, mainDan.getBill_no(),mainJson);
+                buildSenbaodanFendan(dan, list, user, mainDan.getBill_no(), mainJson);
             }
         }
     }
 
-    public void buildSenbaodanFendan(PartyDan dan, List<HBusiDataManager> list, LoginUser user, String mainBillNo,JSONObject mainJson) throws Exception {
+    public void buildSenbaodanFendan(PartyDan dan, List<HBusiDataManager> list, LoginUser user, String mainBillNo, JSONObject mainJson) throws Exception {
         List<Product> pList = dan.getProducts();
-        JSONObject arrt=new JSONObject();
-        buildGoods(list, pList, user,arrt);
+        JSONObject arrt = new JSONObject();
+        buildGoods(list, pList, user, arrt);
         HBusiDataManager dataManager = new HBusiDataManager();
         dataManager.setType(BusiTypeEnum.SF.getKey());
         dataManager.setCreateId(user.getId());
@@ -609,20 +613,20 @@ public class CustomsService {
         json.put("check_status", "0");
         json.put("idcard_pic_flag", "0");
         JSONArray jsonArray = arrt.getJSONArray("mainGoodsName");
-        String mainGoodsName="";
-        if(jsonArray!=null && jsonArray.size()>0){
-            for(int i=0;i<jsonArray.size();i++){
-                JSONObject obj=jsonArray.getJSONObject(i);
-                mainGoodsName += obj.getString("name")+"|"+obj.getString("name_en")+"|"+obj.getString("g_model");
+        String mainGoodsName = "";
+        if (jsonArray != null && jsonArray.size() > 0) {
+            for (int i = 0; i < jsonArray.size(); i++) {
+                JSONObject obj = jsonArray.getJSONObject(i);
+                mainGoodsName += obj.getString("name") + "|" + obj.getString("name_en") + "|" + obj.getString("g_model");
             }
         }
-        json.put("main_gname",mainGoodsName);
-        json.put("low_price_goods",arrt.getString("low_price_goods"));
-        if(mainJson.containsKey("low_price_goods")){
-           int low_price_goods = mainJson.getInteger("low_price_goods");
-            mainJson.put("low_price_goods",low_price_goods+arrt.getInteger("low_price_goods"));
-        }else{
-            mainJson.put("low_price_goods",arrt.getString("low_price_goods"));
+        json.put("main_gname", mainGoodsName);
+        json.put("low_price_goods", arrt.getString("low_price_goods"));
+        if (mainJson.containsKey("low_price_goods")) {
+            int low_price_goods = mainJson.getInteger("low_price_goods");
+            mainJson.put("low_price_goods", low_price_goods + arrt.getInteger("low_price_goods"));
+        } else {
+            mainJson.put("low_price_goods", arrt.getString("low_price_goods"));
         }
 
         dataManager.setContent(json.toJSONString());
@@ -637,9 +641,9 @@ public class CustomsService {
      * @param pList
      * @param user
      */
-    public void buildGoods(List<HBusiDataManager> list, List<Product> pList, LoginUser user,JSONObject arrt) throws Exception {
+    public void buildGoods(List<HBusiDataManager> list, List<Product> pList, LoginUser user, JSONObject arrt) throws Exception {
         if (pList != null && pList.size() > 0) {
-            List<Map<String,String>> mainGoodsName = new ArrayList<>();
+            List<Map<String, String>> mainGoodsName = new ArrayList<>();
             for (Product product : pList) {
                 HBusiDataManager dataManager = new HBusiDataManager();
                 dataManager.setType(BusiTypeEnum.SS.getKey());
@@ -647,66 +651,66 @@ public class CustomsService {
                 dataManager.setCreateId(user.getId());
                 dataManager.setCust_id(Long.valueOf(user.getCustId()));
                 dataManager.setExt_3(product.getCode_ts());//商品编号
-                dataManager.setExt_4(product.getParty_no());//分单号
+                dataManager.setExt_4(product.getBill_no());//分单号
                 JSONObject json = buildGoodsContent(product);
                 json.put("create_date", new Date());
                 json.put("create_id", user.getId());
                 json.put("cust_id", user.getCustId());
                 json.put("type", BusiTypeEnum.SS);
 
-                Float duty_paid_price=0f;
-                int is_low_price=0;
-                float tax_rate=0;
-                float estimated_tax=0;
-                if(StringUtil.isNotEmpty(product.getCode_ts())) {
+                Float duty_paid_price = 0f;
+                int is_low_price = 0;
+                float tax_rate = 0;
+                float estimated_tax = 0;
+                if (StringUtil.isNotEmpty(product.getCode_ts())) {
                     JSONObject params = new JSONObject();
                     params.put("code", product.getCode_ts());
-                    Page page = resourceService.query("", "duty_paid_rate",params);
-                    if(page!=null && page.getTotal()>0){
+                    Page page = resourceService.query("", "duty_paid_rate", params);
+                    if (page != null && page.getTotal() > 0) {
                         List dataList = page.getData();
-                        Map<String ,Object> d = (Map<String, Object>) dataList.get(0);
+                        Map<String, Object> d = (Map<String, Object>) dataList.get(0);
                         String content = (String) d.get("content");
-                        JSONObject contentObj=JSON.parseObject(content);
+                        JSONObject contentObj = JSON.parseObject(content);
                         duty_paid_price = contentObj.getFloatValue("duty_price");
-                        if(StringUtil.isNotEmpty(product.getDecl_price())){
-                            if(Float.valueOf(product.getDecl_price())<duty_paid_price){
+                        if (StringUtil.isNotEmpty(product.getDecl_price())) {
+                            if (Float.valueOf(product.getDecl_price()) < duty_paid_price) {
                                 is_low_price = 1;
                             }
                         }
                         tax_rate = contentObj.getFloatValue("tax_rate");
-                        estimated_tax = duty_paid_price*tax_rate;
+                        estimated_tax = duty_paid_price * tax_rate;
                     }
                 }
-                if(mainGoodsName.size()<3){
-                    Map<String,String> smap = new HashMap<>();
-                    smap.put("name",product.getG_name()==null?"":product.getG_name());
-                    smap.put("name_en",product.getG_name_en()==null?"":product.getG_name_en());
-                    smap.put("g_model",product.getG_model()==null?"":product.getG_model());
-                    smap.put("price",product.getDecl_price()==null?"0":product.getDecl_price());
+                if (mainGoodsName.size() < 3) {
+                    Map<String, String> smap = new HashMap<>();
+                    smap.put("name", product.getG_name() == null ? "" : product.getG_name());
+                    smap.put("name_en", product.getG_name_en() == null ? "" : product.getG_name_en());
+                    smap.put("g_model", product.getG_model() == null ? "" : product.getG_model());
+                    smap.put("price", product.getDecl_price() == null ? "0" : product.getDecl_price());
                     mainGoodsName.add(smap);
                     Collections.sort(mainGoodsName, new Comparator<Map<String, String>>() {
                         @Override
                         public int compare(Map<String, String> o1, Map<String, String> o2) {
-                            if(Float.valueOf(o1.get("price"))>Float.valueOf(o2.get("price"))){
+                            if (Float.valueOf(o1.get("price")) > Float.valueOf(o2.get("price"))) {
                                 return 1;
                             }
                             return 0;
                         }
                     });
-                }else{
-                    Map<String,String> m = mainGoodsName.get(mainGoodsName.size()-1);
-                    if(Float.valueOf(m.get("price"))<Float.valueOf(product.getDecl_price())){
-                        mainGoodsName.remove(mainGoodsName.size()-1);
-                        Map<String,String>smap=new HashMap<>();
-                        smap.put("name",product.getG_name()==null?"":product.getG_name());
-                        smap.put("name_en",product.getG_name_en()==null?"":product.getG_name_en());
-                        smap.put("g_model",product.getG_model()==null?"":product.getG_model());
-                        smap.put("price",product.getDecl_price()==null?"0":product.getDecl_price());
+                } else {
+                    Map<String, String> m = mainGoodsName.get(mainGoodsName.size() - 1);
+                    if (Float.valueOf(m.get("price")) < Float.valueOf(product.getDecl_price())) {
+                        mainGoodsName.remove(mainGoodsName.size() - 1);
+                        Map<String, String> smap = new HashMap<>();
+                        smap.put("name", product.getG_name() == null ? "" : product.getG_name());
+                        smap.put("name_en", product.getG_name_en() == null ? "" : product.getG_name_en());
+                        smap.put("g_model", product.getG_model() == null ? "" : product.getG_model());
+                        smap.put("price", product.getDecl_price() == null ? "0" : product.getDecl_price());
                         mainGoodsName.add(smap);
                         Collections.sort(mainGoodsName, new Comparator<Map<String, String>>() {
                             @Override
                             public int compare(Map<String, String> o1, Map<String, String> o2) {
-                                if(Float.valueOf(o1.get("price"))>Float.valueOf(o2.get("price"))){
+                                if (Float.valueOf(o1.get("price")) > Float.valueOf(o2.get("price"))) {
                                     return 1;
                                 }
                                 return 0;
@@ -714,20 +718,20 @@ public class CustomsService {
                         });
                     }
                 }
-                if(is_low_price==1){
-                    if(arrt.containsKey("low_price_goods")){
-                        arrt.put("low_price_goods",arrt.getInteger("low_price_goods")+1);
-                    }else{
-                       arrt.put("low_price_goods",1);
+                if (is_low_price == 1) {
+                    if (arrt.containsKey("low_price_goods")) {
+                        arrt.put("low_price_goods", arrt.getInteger("low_price_goods") + 1);
+                    } else {
+                        arrt.put("low_price_goods", 1);
                     }
-                    arrt.put("main_goods_name",mainGoodsName);
+                    arrt.put("main_goods_name", mainGoodsName);
                 }
-                json.put("is_low_price",is_low_price);
-                float total_price = Float.valueOf(product.getDecl_total()==null?"0":product.getDecl_total());
+                json.put("is_low_price", is_low_price);
+                float total_price = Float.valueOf(product.getDecl_total() == null ? "0" : product.getDecl_total());
                 json.put("duty_paid_price", duty_paid_price);//完税价格
                 json.put("estimated_tax", estimated_tax);//预估税金
                 json.put("tax_rate", tax_rate);//税率
-                json.put("total_price",total_price);//价格合计
+                json.put("total_price", total_price);//价格合计
                 dataManager.setContent(json.toJSONString());
                 list.add(dataManager);
             }
@@ -827,7 +831,7 @@ public class CustomsService {
                 // 根据主单ID查询分单列表
                 List<HBusiDataManager> fdList = new ArrayList<>();
                 if (1 == type) {
-                    fdList = hBusiDataManagerDao.listHBusiDataManager(NumberConvertUtil.parseInt(id), BusiTypeEnum.SF.getType());
+                    fdList = serviceUtils.getDataList(BusiTypeEnum.SF.getType(), NumberConvertUtil.parseLong(id));
                 } else if (2 == type) {
                     // 根据ID查询单个申报单分单
                     HBusiDataManager param = new HBusiDataManager();
