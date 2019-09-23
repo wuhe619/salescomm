@@ -16,7 +16,6 @@ public class TResourceLog {
     private Integer resourceId;
     private String supplierId;
     private String custId;
-    private String custAccountId;
     private Timestamp createTime;
     private Integer prodAmount;
     private Integer amount;
@@ -64,16 +63,6 @@ public class TResourceLog {
 
     public void setCustId(String custId) {
         this.custId = custId;
-    }
-
-    @Basic
-    @Column(name = "cust_account_id")
-    public String getCustAccountId() {
-        return custAccountId;
-    }
-
-    public void setCustAccountId(String custAccountId) {
-        this.custAccountId = custAccountId;
     }
 
     @Basic
@@ -165,7 +154,6 @@ public class TResourceLog {
                 Objects.equals(resourceId, that.resourceId) &&
                 Objects.equals(supplierId, that.supplierId) &&
                 Objects.equals(custId, that.custId) &&
-                Objects.equals(custAccountId, that.custAccountId) &&
                 Objects.equals(createTime, that.createTime) &&
                 Objects.equals(prodAmount, that.prodAmount) &&
                 Objects.equals(amount, that.amount) &&
@@ -179,6 +167,6 @@ public class TResourceLog {
     @Override
     public int hashCode() {
 
-        return Objects.hash(id, resourceId, supplierId, custId, custAccountId, createTime, prodAmount, amount, busiType, batchId, busiId, custUserId, content);
+        return Objects.hash(id, resourceId, supplierId, custId, createTime, prodAmount, amount, busiType, batchId, busiId, custUserId, content);
     }
 }
