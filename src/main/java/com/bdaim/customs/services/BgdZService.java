@@ -52,7 +52,7 @@ public class BgdZService implements BusiService {
     public void insertInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) throws Exception {
         // TODO Auto-generated method stub
         if (StringUtil.isNotEmpty(info.getString("fromSbzId"))) {
-            HBusiDataManager h = getObjectByIdAndType(info.getLong("fromSbzId"), BusiTypeEnum.SZ.getType());
+            HBusiDataManager h = serviceUtils.getObjectByIdAndType(info.getLong("fromSbzId"), BusiTypeEnum.SZ.getType());
             if (h == null) {
                 throw new Exception("数据不存在");
             }
@@ -216,16 +216,6 @@ public class BgdZService implements BusiService {
     }
 
 
-    public HBusiDataManager getObjectByIdAndType(Long id, String type) {
-        String sql = "select * from h_data_manager where id=" + id + " and type='" + type + "'";
-        RowMapper<HBusiDataManager> managerRowMapper = new BeanPropertyRowMapper<>(HBusiDataManager.class);
-        return jdbcTemplate.queryForObject(sql, managerRowMapper);
-    }
-
-    public void delDataListByIdAndType(Long id, String type) {
-        String sql = "delete from h_data_manager where type='" + type + "' and id=" + id;
-        jdbcTemplate.execute(sql);
-    }
 
     public void buildDanList(JSONObject info, Long id, List<HBusiDataManager> dataList, String custId, Long userId, HBusiDataManager h, String type) throws Exception {
         HBusiDataManager CZ = new HBusiDataManager();
