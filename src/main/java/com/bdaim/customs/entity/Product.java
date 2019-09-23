@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class Product {
     private String id;
     private String pid;
-    private String party_no;//分单单号
+    private String bill_no;//分单单号
     @JsonProperty(value = "CODE_TS")
     private String code_ts;//商品编号
     @JsonProperty(value = "G_NAME")
@@ -84,12 +84,12 @@ public class Product {
         this.pid = pid;
     }
 
-    public String getParty_no() {
-        return party_no;
+    public String getBill_no() {
+        return bill_no;
     }
 
-    public void setParty_no(String party_no) {
-        this.party_no = party_no;
+    public void setBill_no(String bill_no) {
+        this.bill_no = bill_no;
     }
 
     public String getCode_ts() {

@@ -9,15 +9,12 @@ import com.bdaim.common.service.ResourceService;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.customs.dao.HBusiDataManagerDao;
 import com.bdaim.customs.entity.BusiTypeEnum;
-import com.bdaim.customs.entity.Constants;
 import com.bdaim.customs.entity.HBusiDataManager;
 import com.bdaim.customs.utils.ServiceUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -51,7 +48,7 @@ public class SbdSService implements BusiService {
     @Override
     public void insertInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) throws Exception {
         Integer pid = info.getInteger("pid");
-        String billNo = info.getString("party_no");
+        String billNo = info.getString("bill_no");
         if(pid==null){
             log.error("分单id不能为空");
             throw new Exception("分单id不能为空");
