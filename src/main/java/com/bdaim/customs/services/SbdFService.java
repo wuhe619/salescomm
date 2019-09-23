@@ -102,7 +102,7 @@ public class SbdFService implements BusiService {
     public void updateInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) {
         // 身份核验
         if ("verification".equals(info.getString("_rule_"))) {
-            StringBuffer sql = new StringBuffer("select id from h_data_manager where type=?")
+            StringBuffer sql = new StringBuffer("select id,content from h_data_manager where type=?")
                     .append(" and cust_id='").append(cust_id).append("'")
                     .append(" and id =? ");
             List sqlParams = new ArrayList();
