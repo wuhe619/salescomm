@@ -109,7 +109,7 @@ public class SbdZService implements BusiService {
             StringBuffer sql = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from h_data_manager where type=?")
                     .append(" and cust_id='").append(cust_id).append("'")
                     .append(" and (ext_7 IS NULL OR ext_7 = '') ")
-                    .append(" and JSON_EXTRACT(content, '$.'pid')=?");
+                    .append(" and JSON_EXTRACT(content, '$.pid')=?");
             List sqlParams = new ArrayList();
             sqlParams.add(BusiTypeEnum.SF.getType());
             sqlParams.add(id);
@@ -122,7 +122,7 @@ public class SbdZService implements BusiService {
                 JSONObject input;
                 JSONObject data;
                 for (Map<String, Object> m : dfList) {
-                    ids.add(m.get("id"));
+                    ids.add(String.valueOf(m.get("id")));
                     input = new JSONObject();
                     // 身份核验待核验入队列
                     data = JSON.parseObject((String) m.getOrDefault("content", ""));
