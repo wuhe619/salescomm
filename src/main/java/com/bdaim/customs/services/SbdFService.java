@@ -124,6 +124,7 @@ public class SbdFService implements BusiService {
                 serviceUtils.insertSFVerifyQueue(content.toJSONString(), NumberConvertUtil.parseLong(map.get("id")), cust_user_id, cust_id);
                 if (data != null) {
                     data.put("check_status", "0");
+                    info.put("check_status", "0");
                     jdbcTemplate.update(updateSql, data.toJSONString(), map.get("id"), busiType);
                 }
             }
@@ -131,7 +132,7 @@ public class SbdFService implements BusiService {
         } else if ("clear_verify".equals(info.getString("_rule_"))) {
             // 清空身份证件图片
             //List ids = info.getJSONArray("ids");
-            HBusiDataManager d = serviceUtils.getObjectByIdAndType(info.getLong("id"), BusiTypeEnum.SF.getType());
+            HBusiDataManager d = serviceUtils.getObjectByIdAndType(id, BusiTypeEnum.SF.getType());
             if (d != null) {
                 JSONObject jsonObject;
                 String picKey = "id_no_pic";
@@ -144,6 +145,8 @@ public class SbdFService implements BusiService {
                     jsonObject.put(picKey, "");
                     jsonObject.put("idcard_pic_flag", "0");
                     d.setContent(jsonObject.toJSONString());
+                    info.put(picKey, "");
+                    info.put("idcard_pic_flag", "0");
                 }
                 hBusiDataManagerDao.saveOrUpdate(d);
                 elasticSearchService.update(d, d.getId());
