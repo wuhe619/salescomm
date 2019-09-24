@@ -1139,7 +1139,7 @@ public class UploadDowloadImgServiceImpl implements UploadDowloadService {
                 return;
             }
         } catch (Exception e) {
-            logger.warn("获取文件异常" + e.getMessage());
+            logger.warn("获取location文件异常" + e.getMessage());
         }
 
         filePath = PropertiesUtil.getStringValue("file.file_path") + File.separator + userId + File.separator + fileId;
@@ -1149,7 +1149,7 @@ public class UploadDowloadImgServiceImpl implements UploadDowloadService {
                 IOUtils.copy(fis, response.getOutputStream());
             }
         } catch (Exception e) {
-            logger.warn("获取文件异常" + e.getMessage());
+            logger.warn("获取file.file_path文件异常" + e.getMessage());
         }
 
         // 查询数据库对应文件磁盘位置
@@ -1167,7 +1167,7 @@ public class UploadDowloadImgServiceImpl implements UploadDowloadService {
                     return;
                 }
             } catch (Exception e) {
-                logger.warn("获取文件异常" + e.getMessage());
+                logger.warn("获取file.file_path-2文件异常" + e.getMessage());
                 filePath = PropertiesUtil.getStringValue("location") + File.separator + fileInfo.getExt1().replaceAll("_", Matcher.quoteReplacement(File.separator));
                 file = new File(filePath + fileType);
                 try (FileInputStream fis = new FileInputStream(file)) {
@@ -1176,7 +1176,7 @@ public class UploadDowloadImgServiceImpl implements UploadDowloadService {
                         return;
                     }
                 } catch (Exception e1) {
-                    logger.warn("获取文件异常" + e1.getMessage());
+                    logger.warn("获取location-2文件异常" + e1.getMessage());
                 }
             }
         }
