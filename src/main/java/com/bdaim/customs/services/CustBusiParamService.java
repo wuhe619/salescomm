@@ -78,8 +78,23 @@ public class CustBusiParamService implements BusiService{
 
 	@Override
 	public String formatQuery(String busiType, String cust_id, String cust_group_id, Long cust_user_id, JSONObject params, List sqlParams) {
-		// TODO Auto-generated method stub
-		return null;
+		StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from h_data_manager where type=?");
+		if (!"all".equals(cust_id))
+			sqlstr.append(" and cust_id='").append(cust_id).append("'");
+		sqlParams.add(busiType);
+		Iterator keys = params.keySet().iterator();
+		while (keys.hasNext()) {
+			String key = (String) keys.next();
+			if ("".equals(String.valueOf(params.get(key)))) continue;
+			if ("pageNum".equals(key) || "pageSize".equals(key) || "stationId".equals(key) || "cust_id".equals(key))
+				continue;
+
+			if ("cust_id".equals(key)) {
+				sqlstr.append(" and cust_id=?");
+			}
+			sqlParams.add(params.get(key));
+		}
+		return sqlstr.toString();
 	}
 
 	@Override
