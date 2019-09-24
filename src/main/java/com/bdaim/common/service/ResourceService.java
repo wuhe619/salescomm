@@ -101,6 +101,7 @@ public class ResourceService {
 
         try {
 	        List<Map<String,Object>> ds = jdbcTemplate.queryForList(sql+" limit "+(pageNum-1)*pageSize+", "+pageSize, sqlParams.toArray());
+			String totalSql = "select count(0) from ( " + sql + " ) t ";
 	        List data = new ArrayList();
 	    	for(int i=0;i<ds.size();i++) {
 	    		Map m = (Map)ds.get(i);
@@ -115,8 +116,9 @@ public class ResourceService {
 
 	    		data.add(jo);
 	    	}
+			int total = jdbcTemplate.queryForObject(totalSql, sqlParams.toArray(), Integer.class);
 	    	p.setData(data);
-	    	p.setTotal(data.size());
+	    	p.setTotal(total);
 	    	p.setPerPageCount(pageSize);
 	    	p.setStart((pageNum-1)*pageSize+1);
         }catch(Exception e) {
