@@ -76,7 +76,7 @@ public class HBillService {
         try {
             StringBuffer querySql = new StringBuffer("SELECT id, busi_type busiType, cust_id custId, create_time createTime, IFNULL(amount / 100, 0)  unitPrice, content, IFNULL(amount / 100, 0) amount, IFNULL(prod_amount / 100, 0) prodAmount FROM t_resource_log WHERE 1=1");
             if (param.getMainId() != null) {
-                querySql.append(" AND JSON_EXTRACT(content, '$.main_id') ='" + param.getMainId() + "'");
+                querySql.append(" AND JSON_EXTRACT(content, '$.main_id') =" + param.getMainId());
             }
             if (StringUtil.isNotEmpty(param.getTransactionId())) {
                 querySql.append(" AND id ='" + param.getTransactionId() + "'");
