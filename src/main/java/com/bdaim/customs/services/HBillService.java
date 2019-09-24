@@ -84,7 +84,7 @@ public class HBillService {
             if (StringUtil.isNotEmpty(param.getStatus())) {
                 querySql.append(" AND JSON_EXTRACT(content, '$.status') =" + param.getStatus());
             } else {
-                querySql.append(" AND JSON_EXTRACT(content, '$.status') <>3");
+                querySql.append(" AND JSON_EXTRACT(content, '$.status')>0");
             }
             if (StringUtil.isNotEmpty(param.getStartTime())) {
                 querySql.append(" AND create_time >= '" + param.getStartTime() + "'");
