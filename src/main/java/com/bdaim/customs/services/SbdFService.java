@@ -113,13 +113,13 @@ public class SbdFService implements BusiService {
             if (map != null && map.size() > 0) {
                 String updateSql = "UPDATE h_data_manager SET ext_7 = 0, content = ? WHERE id =? AND type =? ";
                 // 身份核验待核验入队列
-                JSONObject content = new JSONObject();
-                content.put("main_id", id);
-                content.put("status", 0);
                 JSONObject input = new JSONObject();
                 JSONObject data = JSON.parseObject(String.valueOf(map.getOrDefault("content", "")));
                 input.put("name", data.getString("receive_name"));
                 input.put("idCard", data.getString("id_no"));
+                JSONObject content = new JSONObject();
+                content.put("main_id", data.getLongValue("pid"));
+                content.put("status", 0);
                 content.put("input", input);
                 serviceUtils.insertSFVerifyQueue(content.toJSONString(), NumberConvertUtil.parseLong(map.get("id")), cust_user_id);
                 if(data!=null){
