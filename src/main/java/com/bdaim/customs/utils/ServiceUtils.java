@@ -158,10 +158,10 @@ public class ServiceUtils {
         jdbcTemplate.execute(sql);
     }
 
-    public void insertSFVerifyQueue(String content, String billNo, long userId){
+    public void insertSFVerifyQueue(String content, long billId, long userId){
         TResourceLog queue = new TResourceLog();
         queue.setContent(content);
-        queue.setBusiId(billNo);
+        queue.setBusiId(String.valueOf(billId));
         queue.setCustUserId(userId);
         queue.setBatchId(CipherUtil.encodeByMD5(IDHelper.getID().toString()));
         queue.setCreateTime(new Timestamp(System.currentTimeMillis()));
