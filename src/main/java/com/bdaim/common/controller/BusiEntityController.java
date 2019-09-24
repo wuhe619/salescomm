@@ -5,6 +5,7 @@ import com.bdaim.auth.LoginUser;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.common.service.BusiEntityService;
+import com.bdaim.common.util.FileUtil;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.customs.services.ExportExcelService;
 import org.slf4j.Logger;
@@ -138,16 +139,18 @@ public class BusiEntityController extends BasicAction {
             // 导出直接下载文件
             if (StringUtil.isNotEmpty(param.getString("_rule_")) && param.getString("_rule_").startsWith("_export_")) {
                 List list = new ArrayList();
-                // 单个sheet导出
-                if (jo.getInteger("export_type") != null && jo.getInteger("export_type").intValue() == 1) {
-                    list.add(jo);
+                // 低价商品  预估税单
+                if ("_export_low_product".equals(param.getString("_rule_"))
+                        || "_export_estimated_tax".equals(param.getString("_rule_"))) {
+                    // 单个sheet导出
+                    list.addAll(jo.getJSONArray("singles"));
+                } else if ("_export_cd_z_main_data".equals(param.getString("_rule_"))) {
+                    // 舱单主单txt
+                    FileUtil.writeFileToResponse(jo.getString("_export_cd_z_main_data"), jo.getString("id") + ".txt", response);
+                    return null;
                 } else {
                     // 多sheet导出
-                    // 低价商品  预估税单
-                    if ("_export_low_product".equals(param.getString("_rule_"))
-                            || "_export_estimated_tax".equals(param.getString("_rule_"))) {
-                        list.addAll(jo.getJSONArray("singles"));
-                    }
+                    list.add(jo);
                 }
                 exportExcelService.exportExcel(jo.getIntValue("id"), list, param, response);
                 return null;

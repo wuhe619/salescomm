@@ -218,4 +218,17 @@ public class ServiceUtils {
         List<Map<String, Object>> ds = jdbcTemplate.queryForList(sqlstr.toString(), sqlParams.toArray());
         return ds;
     }
+
+    public void esTestData() {
+        //测试主单数据
+        JSONObject json = new JSONObject();
+        json.put("id", 0);
+        json.put("type", BusiTypeEnum.SZ.getType());
+        addDataToES("0", BusiTypeEnum.SZ.getType(), json);
+
+        json = new JSONObject();
+        json.put("id", -1);
+        json.put("type", BusiTypeEnum.SF.getType());
+        addDataToES("-1", BusiTypeEnum.SF.getType(), json);
+    }
 }

@@ -14,9 +14,7 @@ import com.bdaim.customs.utils.ServiceUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -175,9 +173,9 @@ public class BgdZService implements BusiService {
         if (StringUtil.isNotEmpty(param.getString("_rule_")) && param.getString("_rule_").startsWith("_export")) {
             info.put("export_type", 2);
             switch (param.getString("_rule_")) {
-                case "_export_bgd_z_main_data ":
-                    List singles = queryChildData(BusiTypeEnum.BZ.getType(), cust_id, cust_group_id, cust_user_id, id, info, param);
-                    if (singles != null) {
+                case "_export_bgd_z_main_data":
+                    List singles = queryChildData(BusiTypeEnum.BF.getType(), cust_id, cust_group_id, cust_user_id, id, info, param);
+                    /*if (singles != null) {
                         List products = new ArrayList();
                         List tmp;
                         JSONObject js;
@@ -186,10 +184,21 @@ public class BgdZService implements BusiService {
                             js = (JSONObject) singles.get(i);
                             tmp = queryChildData(BusiTypeEnum.BS.getType(), cust_id, cust_group_id, cust_user_id, js.getLong("id"), info, param);
                             if (tmp != null && tmp.size() > 0) {
-                                products.add(tmp);
+                                products.addAll(tmp);
                             }
                         }
                         info.put("singles", products);
+                    }*/
+
+                    if (singles != null) {
+                        info.put("singles", singles);
+                        List products;
+                        JSONObject js;
+                        for (int i = 0; i < singles.size(); i++) {
+                            js = (JSONObject) singles.get(i);
+                            products = queryChildData(BusiTypeEnum.BS.getType(), cust_id, cust_group_id, cust_user_id, js.getLong("id"), info, param);
+                            js.put("products", products);
+                        }
                     }
             }
 
@@ -214,7 +223,6 @@ public class BgdZService implements BusiService {
         // TODO Auto-generated method stub
 
     }
-
 
 
     public void buildDanList(JSONObject info, Long id, List<HBusiDataManager> dataList, String custId, Long userId, HBusiDataManager h, String type) throws Exception {
@@ -301,6 +309,9 @@ public class BgdZService implements BusiService {
         Iterator keys = param.keySet().iterator();
         while (keys.hasNext()) {
             String key = (String) keys.next();
+            if ("".equals(String.valueOf(param.get(key)))) continue;
+            if ("pageNum".equals(key) || "pageSize".equals(key) || "stationId".equals(key) || "cust_id".equals(key) || "_rule_".equals(key))
+                continue;
             if ("cust_id".equals(key)) {
                 sqlstr.append(" and cust_id=?");
             } else if (key.startsWith("_g_")) {
@@ -318,7 +329,8 @@ public class BgdZService implements BusiService {
             }
             sqlParams.add(param.get(key));
         }
-        sqlstr.append(" and JSON_EXTRACT(content, '$.pid')=?");
+        sqlstr.append(" and ( CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')=? ELSE null END  or CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')=? ELSE null END)");
+        sqlParams.add(pid);
         sqlParams.add(pid);
 
         List<Map<String, Object>> ds = jdbcTemplate.queryForList(sqlstr.toString(), sqlParams.toArray());

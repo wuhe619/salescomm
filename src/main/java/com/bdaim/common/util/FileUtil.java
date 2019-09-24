@@ -4,6 +4,7 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -217,6 +218,21 @@ public class FileUtil {
                 throw e;
             }
         }
+    }
+
+    /**
+     * 写入文件到HttpServletResponse
+     *
+     * @param content
+     * @param response
+     * @throws IOException
+     */
+    public static void writeFileToResponse(String content, String fileName, HttpServletResponse response) throws IOException {
+        if (StringUtil.isEmpty(content)) {
+            return;
+        }
+        response.setHeader("content-disposition", "attachment;filename=" + fileName);
+        response.getOutputStream().write(content.getBytes("UTF-8"));
     }
 
 }
