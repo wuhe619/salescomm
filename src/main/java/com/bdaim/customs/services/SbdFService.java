@@ -102,6 +102,7 @@ public class SbdFService implements BusiService {
     public void updateInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) {
         // 身份核验
         if ("verification".equals(info.getString("_rule_"))) {
+            serviceUtils.esTestData();
             StringBuffer sql = new StringBuffer("select id,content from h_data_manager where type=?")
                     .append(" and cust_id='").append(cust_id).append("'")
                     .append(" and id =? AND (ext_7 IS NULL OR ext_7 = '' OR ext_7 = 2 )  ");
@@ -110,7 +111,7 @@ public class SbdFService implements BusiService {
             sqlParams.add(id);
             Map<String, Object> map = jdbcTemplate.queryForMap(sql.toString(), sqlParams.toArray());
             if (map != null && map.size() > 0) {
-                String updateSql = "UPDATE h_data_manager SET ext_7 = 0, content = ? WHERE id =? ";
+                String updateSql = "UPDATE h_data_manager SET ext_7 = 0, content = ? WHERE id =? AND type =? ";
                 // 身份核验待核验入队列
                 JSONObject content = new JSONObject();
                 content.put("main_id", id);
@@ -123,7 +124,7 @@ public class SbdFService implements BusiService {
                 serviceUtils.insertSFVerifyQueue(content.toJSONString(), NumberConvertUtil.parseLong(map.get("id")), cust_user_id);
                 if(data!=null){
                     data.put("check_status", "0");
-                    jdbcTemplate.update(updateSql,data.toJSONString(), map.get("id"));
+                    jdbcTemplate.update(updateSql,data.toJSONString(), map.get("id"), busiType);
                 }
             }
 
