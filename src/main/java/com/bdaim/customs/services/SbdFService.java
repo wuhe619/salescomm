@@ -118,7 +118,7 @@ public class SbdFService implements BusiService {
                 JSONObject input = new JSONObject();
                 JSONObject data = JSON.parseObject(String.valueOf(map.getOrDefault("content", "")));
                 input.put("name", data.getString("receive_name"));
-                input.put("id", data.getString("id_no"));
+                input.put("idCard", data.getString("id_no"));
                 content.put("input", input);
                 serviceUtils.insertSFVerifyQueue(content.toJSONString(), NumberConvertUtil.parseLong(map.get("id")), cust_user_id);
                 if(data!=null){
