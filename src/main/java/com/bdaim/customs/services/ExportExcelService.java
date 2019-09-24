@@ -6,7 +6,6 @@ import com.alibaba.excel.support.ExcelTypeEnum;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.bdaim.common.util.StringUtil;
 import com.bdaim.common.util.excel.EasyExcelUtil;
 import com.bdaim.customs.dao.HBusiDataManagerDao;
 import com.bdaim.customs.dto.excel.IdCardNoVerify;
@@ -39,13 +38,13 @@ public class ExportExcelService {
 
     private final static Logger LOG = LoggerFactory.getLogger(ExportExcelService.class);
 
-    private Map<String, String> exportTemplate = new HashMap() {{
-        put("_export_low_product", "低价商品单.xlsx");
-        put("_export_estimated_tax", "预估税单.xlsx");
-        put("_export_declaration_form", "报检单.xlsx");
-        put("_export_tally_form", "理货单.xlsx");
-        put("_export_bgd_z_main_data", "报关单数据.xls");
-    }};
+   /* private Map<String, String> exportTemplate = new HashMap() {{
+        put("_export_low_product", "_export_low_product.xlsx");
+        put("_export_estimated_tax", "_export_estimated_tax.xlsx");
+        put("_export_declaration_form", "_export_declaration_form].xlsx");
+        put("_export_tally_form", "_export_tally_form.xlsx");
+        put("_export_bgd_z_main_data", "_export_bgd_z_main_data.xls");
+    }};*/
 
     @Autowired
     private HBusiDataManagerDao hBusiDataManagerDao;
@@ -73,12 +72,12 @@ public class ExportExcelService {
     }
 
     private void exportExcelByTemplate(List<JSONObject> list, JSONObject param, HttpServletResponse response) throws IllegalAccessException, IOException {
-        if (StringUtil.isEmpty(exportTemplate.get(param.getString("_rule_")))) {
+        /*if (StringUtil.isEmpty(exportTemplate.get(param.getString("_rule_")))) {
             LOG.warn("导出规格:{}未找到对应模板", param.getString("_rule_"));
             return;
-        }
+        }*/
         // 生成workbook 并导出
-        String templatePath = "tp/" + exportTemplate.get(param.getString("_rule_"));
+        String templatePath = "tp/" + param.getString("_rule_") + ".xlsx";
         Map<String, Object> map = new HashMap<>();
         //map.put("list", JavaBeanUtil.convertJsonObjectToMapList(list));
         map.put("list", list);
