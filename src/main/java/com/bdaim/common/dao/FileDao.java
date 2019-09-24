@@ -21,7 +21,7 @@ public class FileDao extends SimpleHibernateDao<HFile, Integer> {
         return fileInfo;
     }
 
-    public void save(String serviceId, String objectId, BusinessEnum businessEnum,String fileName) {
+    public void save(String serviceId, String objectId, BusinessEnum businessEnum, String fileName, String fileType) {
         HFile fileInfo = new HFile();
         fileInfo.setId(IDHelper.getID());
         fileInfo.setCreateDate(new Timestamp(System.currentTimeMillis()));
@@ -29,6 +29,7 @@ public class FileDao extends SimpleHibernateDao<HFile, Integer> {
         fileInfo.setType(businessEnum.getKey());
         fileInfo.setFileName(fileName);
         fileInfo.setExt1(serviceId);
+        fileInfo.setFileType(fileType);
         this.save(fileInfo);
     }
 }
