@@ -64,12 +64,12 @@ public class AccountAction extends BasicAction {
      * */
     @RequestMapping(value = "/center/show/", method = RequestMethod.GET)
     @ResponseBody
-    public Object showAccountCenter()  {
+    public Object showAccountCenter() {
         Map<String, Object> resultMap = new HashMap<>();
-        try{
+        try {
             resultMap.put("data", JSONObject.toJSON(accountService.showAccoutCenter(opUser().getCustId())));
 
-        }catch (Exception e){
+        } catch (Exception e) {
             logger.info("查询账户余额出错 》》》》》" + e);
         }
         return JSONObject.toJSON(resultMap);
@@ -166,8 +166,8 @@ public class AccountAction extends BasicAction {
                 if (opUser().getId() != null) {
                     param.setUserId(opUser().getId());
                 }
-                    accountService.changeBalance(param);
-                    return new ResponseInfoAssemble().success(null);
+                accountService.changeBalance(param);
+                return new ResponseInfoAssemble().success(null);
             }
         } catch (Exception e) {
             logger.error("账户充值扣减失败!\t" + e.getMessage());
@@ -192,10 +192,10 @@ public class AccountAction extends BasicAction {
         String basePath = "";
         Map<Object, Object> map = new HashMap<Object, Object>();
         if ("ROLE_USER".equals(lu.getRole()) || "admin".equals(lu.getRole())) {
-            if (lu.getUserType().equals("1")) {
-                list = accountService.pageListRecords(page, queryParam);
-                basePath = "/pic";
-            }
+            //if (lu.getUserType().equals("1")) {
+            list = accountService.pageListRecords(page, queryParam);
+            basePath = "/pic";
+            // }
         }
         map.put("basePath", basePath);
         map.put("list", list);
@@ -280,7 +280,7 @@ public class AccountAction extends BasicAction {
     @ResponseBody
     public Object querySuppliserAccountsByCondition(@Valid PageParam page, BindingResult error, CustomerBillQueryParam queryParam) {
         if (error.hasFieldErrors()) {
-            return new ResponseInfoAssemble().failure(-1,"缺少分页参数");
+            return new ResponseInfoAssemble().failure(-1, "缺少分页参数");
         }
         LoginUser lu = opUser();
         PageList list = null;
@@ -302,11 +302,11 @@ public class AccountAction extends BasicAction {
      * @auther Chacker
      * @date
      */
-    @RequestMapping(value = "/querySupplierExport",method = RequestMethod.GET)
+    @RequestMapping(value = "/querySupplierExport", method = RequestMethod.GET)
     @ResponseBody
-    public ResponseInfo querySupplierExport(CustomerBillQueryParam queryParam,HttpServletResponse response){
+    public ResponseInfo querySupplierExport(CustomerBillQueryParam queryParam, HttpServletResponse response) {
         LoginUser lu = opUser();
-        List<Map<String,Object>> list = null;
+        List<Map<String, Object>> list = null;
         Map<String, Object> resultMap = new HashMap<>();
         if ("ROLE_USER".equals(lu.getRole()) || "admin".equals(lu.getRole())) {
             list = accountService.querySupplierAcctsExport(queryParam);
@@ -347,7 +347,7 @@ public class AccountAction extends BasicAction {
             outputStream.close();
 
             return new ResponseInfoAssemble().success(null);
-        }catch (Exception e){
+        } catch (Exception e) {
             logger.info("导出充扣记录异常");
             logger.info(e.getMessage());
         }
@@ -424,7 +424,7 @@ public class AccountAction extends BasicAction {
     }
 
 
-    @RequestMapping(value = "/balance/operate0", method = {RequestMethod.PUT,RequestMethod.POST})
+    @RequestMapping(value = "/balance/operate0", method = {RequestMethod.PUT, RequestMethod.POST})
     @ResponseBody
     public Object banlanceChange(@RequestBody JSONObject param) {
         Map<String, Object> resultMap = new HashMap<String, Object>();
