@@ -32,6 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -71,6 +72,9 @@ public class CustomsService {
 
     @Autowired
     private ServiceUtils serviceUtils;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     /**
      * 保存信息
@@ -1071,13 +1075,13 @@ public class CustomsService {
         return code;
     }
 
-    public static void main(String[] args) {
-        QueryDataParams queryDataParams = new QueryDataParams();
-        //queryDataParams.setBillNo("20001");
-        queryDataParams.setPageSize(2);
-        queryDataParams.setPageNum(0);
-        queryDataParams.setId(1714);
-    }
+//    public static void main(String[] args) {
+//        QueryDataParams queryDataParams = new QueryDataParams();
+//        //queryDataParams.setBillNo("20001");
+//        queryDataParams.setPageSize(2);
+//        queryDataParams.setPageNum(0);
+//        queryDataParams.setId(1714);
+//    }
 
     public SearchSourceBuilder makeQueryStringForSearch(QueryDataParams queryDataParams) {
 
@@ -1152,13 +1156,110 @@ public class CustomsService {
     }
 
 
-    public void countSBDNumByMonth(String station, String custId, LoginUser lu) {
+    public List<Map<String,Object>> countSBDNumByMonth(String stationId, String custId, LoginUser lu) {
+        StringBuffer sql = new StringBuffer(" select DATE_FORMAT(create_date,'%Y%m') mon,count(0) num from h_data_manager where type='"+BusiTypeEnum.SZ.getType()+"' ");
         if (!"ROLE_USER".equals(lu.getUserType())) {
             custId = lu.getCustId();
+            sql.append(" and cust_id='"+custId+"'");
+        }else{
+            if(StringUtil.isNotEmpty(stationId)){
+                sql.append(" and JSON_EXTRACT(content, '$.station_id')='"+stationId+"')");
+            }
+            if(StringUtil.isNotEmpty(custId)){
+                sql.append(" and cust_id='"+custId+"'");
+            }
+        }
+        sql.append(" and create_date>(SELECT DATE_FORMAT(DATE_ADD(CURDATE(), INTERVAL -6 MONTH),'%Y-%m-01') from dual) ");
+        sql.append(" group by mon order by mon asc");
+        List<Map<String,Object>> list = jdbcTemplate.queryForList(sql.toString());
+        return list;
+    }
+
+    public List<Map<String,Object>> sbdLastestTotal(String stationId, String custId, LoginUser lu){
+        StringBuffer sql = new StringBuffer("select id,content from  h_data_manager where type='"+BusiTypeEnum.SZ.getType()+"' ");
+        if (!"ROLE_USER".equals(lu.getUserType())) {
+            custId = lu.getCustId();
+            sql.append(" and cust_id='"+custId+"'");
+        }else {
+            if (StringUtil.isNotEmpty(stationId)) {
+                sql.append(" and JSON_EXTRACT(content, '$.station_id')='" + stationId + "')");
+            }
+            if (StringUtil.isNotEmpty(custId)) {
+                sql.append(" and cust_id='" + custId + "'");
+            }
+        }
+        sql.append(" order by create_date desc limit 10 ");
+
+        List<Map<String,Object>> idList = jdbcTemplate.queryForList(sql.toString());
+        List<Map<String,Object>> result = new ArrayList<>();
+        for(Map<String,Object> map:idList){
+            Long mid = (Long) map.get("id");
+            JSONObject json = JSON.parseObject((String) map.get("content"));
+            Map<String, Integer> dataMap = new HashMap<>();
+            if(json.containsKey("party_total") && null != json.getInteger("party_total")){
+                dataMap.put("partNum",json.getInteger("party_total"));
+            }else{
+                dataMap.put("partNum",0);
+            }
+
+            if(json.containsKey("product_num") && StringUtil.isNotEmpty(json.getString("product_num"))){
+                dataMap.put("goodsNum",json.getIntValue("product_num"));
+            }else{
+                dataMap.put("goodsNum",0);
+            }
+
+            /*
+            String _sql = "select id,content from h_data_manager type='"+BusiTypeEnum.SF.getType()+"' " +
+                    " and (JSON_EXTRACT(content, '$.pid')='"+mid+"' or JSON_EXTRACT(content, '$.pid')="+mid+")";
+
+            List<Map<String,Object>> pidList = jdbcTemplate.queryForList(_sql);
+            Integer goodsNum = 0;
+
+            for(Map<String,Object> m:pidList){
+                Integer _num = countGoodsNumByPartId(m.get("id").toString());
+                    goodsNum += _num;
+            }
+
+            dataMap.put("partNum",pidList.size());
+            dataMap.put("goodsNum",goodsNum);
+            */
+
+            Map tMap = new HashMap();
+            tMap.put(mid,dataMap);
+            result.add(tMap);
+        }
+        return result;
+    }
+
+
+    public List<Map<String, Object>> hzTotal(String type,String stationId, String custId, LoginUser lu){
+        StringBuffer sql = new StringBuffer("select ext_5,count(0)num from h_data_manager where type='"+type+"'");
+        if (!"ROLE_USER".equals(lu.getUserType())) {
+            custId = lu.getCustId();
+            sql.append(" and cust_id='"+custId+"'");
+        }else {
+            if (StringUtil.isNotEmpty(stationId)) {
+                sql.append(" and JSON_EXTRACT(content, '$.station_id')='" + stationId + "')");
+            }
+            if (StringUtil.isNotEmpty(custId)) {
+                sql.append(" and cust_id='" + custId + "'");
+            }
         }
 
+        return null;
 
     }
+
+
+
+    public Integer countGoodsNumByPartId(String id){
+        String _sql = "select content from h_data_manager type='"+BusiTypeEnum.SS.getType()+"' " +
+                " and (JSON_EXTRACT(content, '$.pid')='"+id+"' or JSON_EXTRACT(content, '$.pid')="+id+")";
+
+        return 0;
+    }
+
+
 
 }
 
