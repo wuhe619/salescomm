@@ -425,8 +425,7 @@ public class SbdZService implements BusiService {
                     if (page != null && page.getTotal() > 0) {
                         List dataList = page.getData();
                         Map<String, Object> d = (Map<String, Object>) dataList.get(0);
-                        String content = (String) d.get("content");
-                        JSONObject contentObj = JSON.parseObject(content);
+                        JSONObject contentObj = JSON.parseObject(JSON.toJSONString(d));
                         duty_paid_price = contentObj.getFloatValue("duty_price");
                         if (StringUtil.isNotEmpty(product.getDecl_price())) {
                             if (Float.valueOf(product.getDecl_price()) < duty_paid_price) {
