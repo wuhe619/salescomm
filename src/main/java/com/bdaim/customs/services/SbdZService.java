@@ -170,6 +170,7 @@ public class SbdZService implements BusiService {
                         }
                         info.put("singles", products);
                     }
+                    break;
                     // 查询报检单,理货单下的分单和商品
                 case "_export_declaration_form":
                 case "_export_tally_form":
@@ -191,6 +192,7 @@ public class SbdZService implements BusiService {
                     if (singles != null) {
                         info.put("singles", singles);
                     }
+                    break;
             }
 
         }

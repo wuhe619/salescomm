@@ -137,19 +137,19 @@ public class BusiEntityController extends BasicAction {
             JSONObject jo = busiEntityService.getInfo(cust_id, cust_group_id, cust_user_id, busiType, id, param);
             // 导出直接下载文件
             if (StringUtil.isNotEmpty(param.getString("_rule_")) && param.getString("_rule_").startsWith("_export_")) {
-                List list = null;
-                if (jo.getInteger("export_type") != null && jo.getInteger("export_type").intValue() == 2) {
-                    list = new ArrayList();
+                List list = new ArrayList();
+                // 单个sheet导出
+                if (jo.getInteger("export_type") != null && jo.getInteger("export_type").intValue() == 1) {
                     list.add(jo);
+                } else {
+                    // 多sheet导出
+                    // 低价商品  预估税单
+                    if ("_export_low_product".equals(param.getString("_rule_"))
+                            || "_export_estimated_tax".equals(param.getString("_rule_"))) {
+                        list.addAll(jo.getJSONArray("singles"));
+                    }
                 }
-                // 低价商品
-                if ("_export_low_product".equals(param.getString("_rule_"))) {
-                    list = jo.getJSONArray("low_price_goods");
-                } else if ("_export_estimated_tax".equals(param.getString("_rule_"))) {
-                    // 预估税单
-                    list = jo.getJSONArray("singles");
-                }
-                exportExcelService.exportExcel(jo.getInteger("id"), list, param, response);
+                exportExcelService.exportExcel(jo.getIntValue("id"), list, param, response);
                 return null;
             }
             resp.setData(jo);

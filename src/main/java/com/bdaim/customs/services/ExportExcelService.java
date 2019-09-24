@@ -66,7 +66,9 @@ public class ExportExcelService {
             exportIdCardExcel(id, param.getString("_rule_"), response);
             return;
         }
-        exportExcelByTemplate(list, param, response);
+        if (list != null) {
+            exportExcelByTemplate(list, param, response);
+        }
     }
 
     private void exportExcelByTemplate(List<JSONObject> list, JSONObject param, HttpServletResponse response) throws IllegalAccessException, IOException {
@@ -84,7 +86,7 @@ public class ExportExcelService {
             case "_export_cd_z_main_data":
                 export(templatePath, map, null, response);
                 break;
-                // 导出报检单,导出理货单
+            // 导出报检单,导出理货单
             case "_export_declaration_form":
             case "_export_tally_form":
                 String[] sheetName = new String[]{"主单", "分单", "税单"};
