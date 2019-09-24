@@ -62,11 +62,14 @@ public class ExportExcelService {
     }
 
     public void exportExcel(int id, List<JSONObject> list, JSONObject param, HttpServletResponse response) throws IllegalAccessException, IOException {
-        if (list == null && id > 0) {
+        if ("_export_v_photo".equals(param.getString("_rule_"))
+                || "_export_v_nopass".equals(param.getString("_rule_"))) {
             exportIdCardExcel(id, param.getString("_rule_"), response);
             return;
         }
-        exportExcelByTemplate(list, param, response);
+        if (list != null) {
+            exportExcelByTemplate(list, param, response);
+        }
     }
 
     private void exportExcelByTemplate(List<JSONObject> list, JSONObject param, HttpServletResponse response) throws IllegalAccessException, IOException {
@@ -84,7 +87,7 @@ public class ExportExcelService {
             case "_export_cd_z_main_data":
                 export(templatePath, map, null, response);
                 break;
-                // 导出报检单,导出理货单
+            // 导出报检单,导出理货单
             case "_export_declaration_form":
             case "_export_tally_form":
                 String[] sheetName = new String[]{"主单", "分单", "税单"};
@@ -144,9 +147,9 @@ public class ExportExcelService {
         LOG.info("开始导出分单身份图片缺失,主单:{}", id);
         List<HBusiDataManager> list = new ArrayList<>();
         if (1 == type) {
-            list = hBusiDataManagerDao.listFDIdCard(id, BusiTypeEnum.SF.getKey(), 2, 0);
+            list = hBusiDataManagerDao.listFDIdCard(id, BusiTypeEnum.SF.getType(), 2, 0);
         } else if (2 == type) {
-            list = hBusiDataManagerDao.listFDIdCard(id, BusiTypeEnum.SF.getKey(), 0, 2);
+            list = hBusiDataManagerDao.listFDIdCard(id, BusiTypeEnum.SF.getType(), 0, 2);
         }
         EasyExcelUtil.EasyExcelParams param = new EasyExcelUtil.EasyExcelParams();
         ArrayList<IdCardNoVerify> data = new ArrayList<>();

@@ -27,6 +27,7 @@ public class TResourceLog {
 
     @Id
     @Column(name = "id")
+    @GeneratedValue
     public long getId() {
         return id;
     }

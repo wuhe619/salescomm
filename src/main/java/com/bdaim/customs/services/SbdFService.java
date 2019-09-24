@@ -104,24 +104,27 @@ public class SbdFService implements BusiService {
         if ("verification".equals(info.getString("_rule_"))) {
             StringBuffer sql = new StringBuffer("select id,content from h_data_manager where type=?")
                     .append(" and cust_id='").append(cust_id).append("'")
-                    .append(" and id =? ");
+                    .append(" and id =? AND (ext_7 IS NULL OR ext_7 = '' OR ext_7 = 2 )  ");
             List sqlParams = new ArrayList();
             sqlParams.add(busiType);
             sqlParams.add(id);
             Map<String, Object> map = jdbcTemplate.queryForMap(sql.toString(), sqlParams.toArray());
             if (map != null && map.size() > 0) {
-                String updateSql = "UPDATE h_data_manager SET ext_7 = 3 WHERE id =? ";
-                jdbcTemplate.update(updateSql, map.get("id"));
+                String updateSql = "UPDATE h_data_manager SET ext_7 = 0, content = ? WHERE id =? ";
                 // 身份核验待核验入队列
                 JSONObject content = new JSONObject();
                 content.put("main_id", id);
-                content.put("status", 3);
+                content.put("status", 0);
                 JSONObject input = new JSONObject();
                 JSONObject data = JSON.parseObject(String.valueOf(map.getOrDefault("content", "")));
                 input.put("name", data.getString("receive_name"));
                 input.put("id", data.getString("id_no"));
                 content.put("input", input);
-                serviceUtils.insertSFVerifyQueue(content.toJSONString(), data.getString("bii_no"), cust_user_id);
+                serviceUtils.insertSFVerifyQueue(content.toJSONString(), NumberConvertUtil.parseLong(map.get("id")), cust_user_id);
+                if(data!=null){
+                    data.put("check_status", "0");
+                    jdbcTemplate.update(updateSql,data.toJSONString(), map.get("id"));
+                }
             }
 
         } else if ("clear_verify".equals(info.getString("_rule_"))) {

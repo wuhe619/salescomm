@@ -9,7 +9,6 @@ import com.bdaim.common.service.ElasticSearchService;
 import com.bdaim.common.service.ResourceService;
 import com.bdaim.common.service.SequenceService;
 import com.bdaim.common.util.NumberConvertUtil;
-import com.bdaim.common.util.SqlAppendUtil;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.entity.CustomerProperty;
@@ -108,38 +107,38 @@ public class SbdZService implements BusiService {
         if ("verification".equals(info.getString("_rule_"))) {
             StringBuffer sql = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from h_data_manager where type=?")
                     .append(" and cust_id='").append(cust_id).append("'")
-                    .append(" and (ext_7 IS NULL OR ext_7 = '') ")
-                    .append(" and JSON_EXTRACT(content, '$.'pid')=?");
+                    .append(" and (ext_7 IS NULL OR ext_7 = '' OR ext_7 = 2) ")
+                    .append(" and JSON_EXTRACT(content, '$.pid')=?");
             List sqlParams = new ArrayList();
             sqlParams.add(BusiTypeEnum.SF.getType());
             sqlParams.add(id);
+            // 根据主单查询待核验的分单列表
             List<Map<String, Object>> dfList = jdbcTemplate.queryForList(sql.toString(), sqlParams.toArray());
             if (dfList != null && dfList.size() > 0) {
-                List ids = new ArrayList();
                 JSONObject content = new JSONObject();
                 content.put("main_id", id);
-                content.put("status", 3);
+                content.put("status", 0);
                 JSONObject input;
                 JSONObject data;
+                String updateSql = "UPDATE h_data_manager SET ext_7 = 0, content = ? WHERE id =? ";
                 for (Map<String, Object> m : dfList) {
-                    ids.add(m.get("id"));
                     input = new JSONObject();
                     // 身份核验待核验入队列
-                    data = JSON.parseObject((String) m.getOrDefault("content", ""));
+                    data = JSON.parseObject(String.valueOf(m.getOrDefault("content", "")));
                     input.put("name", data.getString("receive_name"));
                     input.put("id", data.getString("id_no"));
                     content.put("input", input);
-                    serviceUtils.insertSFVerifyQueue(content.toJSONString(), data.getString("bii_no"), cust_user_id);
+                    serviceUtils.insertSFVerifyQueue(content.toJSONString(), NumberConvertUtil.parseLong(m.get("id")), cust_user_id);
+                    if(data!=null){
+                        data.put("check_status", "0");
+                        jdbcTemplate.update(updateSql,data.toJSONString(), m.get("id"));
+                    }
                 }
-                String updateSql = "UPDATE h_data_manager SET ext_7 = 3 WHERE id IN(" + SqlAppendUtil.sqlAppendWhereIn(ids) + ")";
-                jdbcTemplate.update(updateSql);
-
             }
         } else {
             serviceUtils.updateDataToES(busiType, id.toString(), info);
         }
     }
-
 
     @Override
     public void getInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info, JSONObject param) {
@@ -157,7 +156,7 @@ public class SbdZService implements BusiService {
                     List singles = queryChildData(BusiTypeEnum.SF.getType(), cust_id, cust_group_id, cust_user_id, id, info, param);
                     if (singles != null) {
                         param.remove("_ge_low_price_goods");
-                        param.put("_eq_low_price_goods", 1);
+                        param.put("_eq_is_low_price", 1);
                         List products = new ArrayList();
                         List tmp;
                         JSONObject js;
@@ -169,8 +168,9 @@ public class SbdZService implements BusiService {
                                 products.add(tmp);
                             }
                         }
-                        info.put("low_price_goods", products);
+                        info.put("singles", products);
                     }
+                    break;
                     // 查询报检单,理货单下的分单和商品
                 case "_export_declaration_form":
                 case "_export_tally_form":
@@ -192,6 +192,7 @@ public class SbdZService implements BusiService {
                     if (singles != null) {
                         info.put("singles", singles);
                     }
+                    break;
             }
 
         }
@@ -571,7 +572,7 @@ public class SbdZService implements BusiService {
         while (keys.hasNext()) {
             String key = (String) keys.next();
             if ("".equals(String.valueOf(param.get(key)))) continue;
-            if ("pageNum".equals(key) || "pageSize".equals(key) || "stationId".equals(key) || "cust_id".equals(key)|| "_rule_".equals(key)){
+            if ("pageNum".equals(key) || "pageSize".equals(key) || "stationId".equals(key) || "cust_id".equals(key) || "_rule_".equals(key)) {
                 continue;
             } else if (key.startsWith("_g_")) {
                 sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(3) + "') > ?");

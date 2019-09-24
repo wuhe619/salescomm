@@ -56,7 +56,7 @@ public class HBusiDataManagerDao extends SimpleHibernateDao<HBusiDataManager, Se
      * @return
      */
     public List<HBusiDataManager> listFDIdCard(int pid, String type, int idCardPhotoStatus, int idCardCheckStatus) {
-        StringBuilder hql = new StringBuilder("FROM HBusiDataManager WHERE type = ? AND ext_4 = (SELECT ext_3 FROM HBusiDataManager WHERE id = ?)");
+        StringBuilder hql = new StringBuilder("FROM HBusiDataManager WHERE type = ? AND JSON_EXTRACT(content, '$.pid')=?  ");
         // 有身份照片
         if (1 == idCardPhotoStatus) {
             hql.append(" AND ext_6 IS NOT NULL AND ext_6 <>'' ");

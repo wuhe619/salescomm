@@ -43,7 +43,7 @@ public class BusiEntityService {
      * 按ID获取记录
      */
     public JSONObject getInfo(String cust_id, String cust_group_id, Long cust_user_id, String busiType, Long id, JSONObject param) throws Exception {
-        JSONObject jo = null;
+        JSONObject jo = new JSONObject();
 
         String sql = "select content, cust_id, cust_group_id, cust_user_id, create_id, create_date ,ext_1, ext_2, ext_3, ext_4, ext_5 from h_data_manager where type=? and id=? ";
         if (!"all".equals(cust_id))
@@ -54,6 +54,7 @@ public class BusiEntityService {
             data = jdbcTemplate.queryForMap(sql, busiType, id);
         } catch (EmptyResultDataAccessException e) {
             logger.warn("查询主单:{},busiType:{}失败", id, busiType);
+            data = null;
         }
         if (data == null)
             return jo;
@@ -308,6 +309,8 @@ public class BusiEntityService {
             Map data = null;
             try {
                 data = jdbcTemplate.queryForMap("select content from h_data_manager where type=? and cust_id=? and id=?", busiType, cust_id, id);
+            }  catch (DataAccessException e) {
+                logger.error("未查询到数据:[" + busiType + "]" + id, e);
             } catch (Exception e) {
                 logger.error("读取数据异常:[" + busiType + "]" + id, e);
                 throw new Exception("读取数据异常:[" + busiType + "]" + id, e);

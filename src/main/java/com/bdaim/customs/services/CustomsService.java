@@ -173,7 +173,7 @@ public class CustomsService {
     public void saveSbPartDetail(PartyDan partyDan, LoginUser user) throws Exception {
         List<HBusiDataManager> list = new ArrayList<>();
         if (partyDan.getId() == null) {
-            HBusiDataManager manager = getObjectByBillNo(partyDan.getBill_no(), BusiTypeEnum.SF.getKey());
+            HBusiDataManager manager = getObjectByBillNo(partyDan.getBill_no(), BusiTypeEnum.SF.getType());
             if (manager != null) {
                 throw new Exception("分单号" + partyDan.getBill_no() + " 已经存在");
             }
