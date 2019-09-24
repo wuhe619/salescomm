@@ -67,7 +67,7 @@ public class CdZService implements BusiService {
             int index = -1;
             for (int i = 0; i < dataList.size(); i++) {
                 HBusiDataManager dm = dataList.get(i);
-                serviceUtils.addDataToES(dm.getId().toString(),dm.getType(),JSON.parseObject(dm.getContent()));
+                serviceUtils.addDataToES(dm.getId().toString(), dm.getType(), JSON.parseObject(dm.getContent()));
                 if (dm.getType().equals(BusiTypeEnum.CZ.getType())) {
                     index = i;
                 }
@@ -151,12 +151,12 @@ public class CdZService implements BusiService {
                     jo.put("ext_4", m.get("ext_4"));
                 if (m.get("ext_5") != null && !"".equals(m.get("ext_5")))
                     jo.put("ext_5", m.get("ext_5"));
-                jdbcTemplate.update(updateSql, jo.toJSONString(), id,BusiTypeEnum.CF.getType());
+                jdbcTemplate.update(updateSql, jo.toJSONString(), id, BusiTypeEnum.CF.getType());
                 serviceUtils.updateDataToES(BusiTypeEnum.CF.getType(), String.valueOf(m.get("id")), jo);
 
             }
-        }else{
-            HBusiDataManager dbManager = serviceUtils.getObjectByIdAndType(id,busiType);
+        } else {
+            HBusiDataManager dbManager = serviceUtils.getObjectByIdAndType(id, busiType);
             String content = dbManager.getContent();
             JSONObject json = JSONObject.parseObject(content);
             Iterator keys = info.keySet().iterator();
@@ -164,7 +164,7 @@ public class CdZService implements BusiService {
                 String key = (String) keys.next();
                 json.put(key, info.get(key));
             }
-            serviceUtils.updateDataToES(busiType,id.toString(),json);
+            serviceUtils.updateDataToES(busiType, id.toString(), json);
         }
 
     }
@@ -172,7 +172,38 @@ public class CdZService implements BusiService {
 
     @Override
     public void getInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info, JSONObject param) {
-        // TODO Auto-generated method stub
+        //舱单导出
+        if (StringUtil.isNotEmpty(param.getString("_rule_")) && param.getString("_rule_").startsWith("_export")) {
+            String split = "||";
+            StringBuffer content = new StringBuffer();
+            //主单数据
+            content.append(info.getString("bill_no")).append(split)
+                    .append(info.getString("voyage_no")).append(split)
+                    .append(info.getString("i_e_flag")).append(split)
+                    .append(info.getString("traf_name")).append(split)
+                    .append(info.getString("traf_name_en")).append(split)
+                    .append(info.getString("gross_wt")).append(split)
+                    .append(info.getString("pack_no")).append(split)
+                    .append(info.getString("single_batch_num")).append(split)
+                    .append(info.getString("traf_mode")).append(split)
+                    .append(info.getString("depart_arrival_port")).append(split)
+                    .append(info.getString("i_e_port")).append(split).append("\r\n");
+            //分单数据
+            List<JSONObject> singles = queryChildData(BusiTypeEnum.CF.getType(), cust_id, cust_group_id, cust_user_id, id, info, param);
+            if (singles != null && singles.size() > 0) {
+                for (JSONObject jo : singles) {
+                    content.append(jo.getString("bill_no")).append(split)
+                            .append(jo.getString("main_gname")).append(split)
+                            .append(jo.getString("pack_no")).append(split)
+                            .append(jo.getString("total_value")).append(split)
+                            .append(jo.getString("curr_code")).append(split)
+                            .append(info.getString("trade_country")).append(split)
+                            .append(jo.getString("wrap_type")).append(split)
+                            .append("\r\n");
+                }
+            }
+            info.put("_export_cd_z_main_data", content);
+        }
 
     }
 
@@ -230,7 +261,7 @@ public class CdZService implements BusiService {
 //		String content = json.toJSONString();
         CZ.setContent(info.toJSONString());
         dataList.add(CZ);
-        List<HBusiDataManager> parties = serviceUtils.getDataList(BusiTypeEnum.SF.getType(),info.getLong("fromSbzId"));
+        List<HBusiDataManager> parties = serviceUtils.getDataList(BusiTypeEnum.SF.getType(), info.getLong("fromSbzId"));
         for (HBusiDataManager hp : parties) {
             HBusiDataManager hm = new HBusiDataManager();
             hm.setType(BusiTypeEnum.CF.getType());
@@ -246,7 +277,7 @@ public class CdZService implements BusiService {
             _content.put("main_bill_no", json.get("bill_no"));
             hm.setContent(_content.toJSONString());
             dataList.add(hm);
-            List<HBusiDataManager> goods = serviceUtils.getDataList(BusiTypeEnum.SS.getType(),hp.getId().longValue());
+            List<HBusiDataManager> goods = serviceUtils.getDataList(BusiTypeEnum.SS.getType(), hp.getId().longValue());
             for (HBusiDataManager gp : goods) {
                 HBusiDataManager good = new HBusiDataManager();
                 gp.setType(BusiTypeEnum.CS.getType());
@@ -266,6 +297,88 @@ public class CdZService implements BusiService {
                 dataList.add(good);
             }
         }
+    }
+
+    /**
+     * 查询分单和商品
+     *
+     * @param busiType
+     * @param cust_id
+     * @param cust_group_id
+     * @param cust_user_id
+     * @param pid
+     * @param info
+     * @return
+     */
+    private List queryChildData(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long pid, JSONObject info, JSONObject param) {
+        List sqlParams = new ArrayList();
+        StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from h_data_manager where type=?");
+        if (!"all".equals(cust_id))
+            sqlstr.append(" and cust_id='").append(cust_id).append("'");
+
+        sqlParams.add(busiType);
+        Iterator keys = param.keySet().iterator();
+        while (keys.hasNext()) {
+            String key = (String) keys.next();
+            if ("".equals(String.valueOf(param.get(key)))) continue;
+            if ("pageNum".equals(key) || "pageSize".equals(key) || "stationId".equals(key) || "cust_id".equals(key) || "_rule_".equals(key)) {
+                continue;
+            } else if (key.startsWith("_g_")) {
+                sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(3) + "') > ?");
+            } else if (key.startsWith("_ge_")) {
+                sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(4) + "') >= ?");
+            } else if (key.startsWith("_l_")) {
+                sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(3) + "') < ?");
+            } else if (key.startsWith("_le_")) {
+                sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(4) + "') <= ?");
+            } else if (key.startsWith("_eq_")) {
+                sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(4) + "') = ?");
+            } else {
+                sqlstr.append(" and JSON_EXTRACT(content, '$." + key + "')=?");
+            }
+            sqlParams.add(param.get(key));
+        }
+        sqlstr.append(" and JSON_EXTRACT(content, '$.pid')=?");
+        sqlParams.add(pid);
+
+        List<Map<String, Object>> ds = jdbcTemplate.queryForList(sqlstr.toString(), sqlParams.toArray());
+        List data = new ArrayList();
+        for (int i = 0; i < ds.size(); i++) {
+            Map m = (Map) ds.get(i);
+            JSONObject jo = null;
+            try {
+                if (m.containsKey("content")) {
+                    jo = JSONObject.parseObject((String) m.get("content"));
+                    jo.put("id", m.get("id"));
+                    jo.put("cust_id", m.get("cust_id"));
+                    jo.put("cust_group_id", m.get("cust_group_id"));
+                    jo.put("cust_user_id", m.get("cust_user_id"));
+                    jo.put("create_id", m.get("create_id"));
+                    jo.put("create_date", m.get("create_date"));
+                    jo.put("update_id", m.get("update_id"));
+                    jo.put("update_date", m.get("update_date"));
+                    if (m.get("ext_1") != null && !"".equals(m.get("ext_1")))
+                        jo.put("ext_1", m.get("ext_1"));
+                    if (m.get("ext_2") != null && !"".equals(m.get("ext_2")))
+                        jo.put("ext_2", m.get("ext_2"));
+                    if (m.get("ext_3") != null && !"".equals(m.get("ext_3")))
+                        jo.put("ext_3", m.get("ext_3"));
+                    if (m.get("ext_4") != null && !"".equals(m.get("ext_4")))
+                        jo.put("ext_4", m.get("ext_4"));
+                    if (m.get("ext_5") != null && !"".equals(m.get("ext_5")))
+                        jo.put("ext_5", m.get("ext_5"));
+                } else
+                    jo = JSONObject.parseObject(JSONObject.toJSONString(m));
+            } catch (Exception e) {
+                log.error(e.getMessage());
+            }
+            if (jo == null) { //jo异常导致为空时，只填充id
+                jo = new JSONObject();
+                jo.put("id", m.get("id"));
+            }
+            data.add(jo);
+        }
+        return data;
     }
 
 

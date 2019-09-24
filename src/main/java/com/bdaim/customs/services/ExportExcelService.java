@@ -45,7 +45,6 @@ public class ExportExcelService {
         put("_export_declaration_form", "报检单.xlsx");
         put("_export_tally_form", "理货单.xlsx");
         put("_export_bgd_z_main_data", "报关单数据.xls");
-        put("_export_cd_z_main_data", "理货单.xlsx");
     }};
 
     @Autowired
@@ -87,10 +86,11 @@ public class ExportExcelService {
         response.setHeader("Content-Disposition", "attachment; filename=" + System.currentTimeMillis() + ExcelTypeEnum.XLSX.getValue());
         response.setContentType("application/vnd.ms-excel;charset=utf-8");
         switch (param.getString("_rule_")) {
+            // 舱单导出txt
+            //case "_export_cd_z_main_data":
             // 导出低价商品单,导出预估税单
             case "_export_low_product":
             case "_export_estimated_tax":
-            case "_export_cd_z_main_data":
                 export(templatePath, map, null, response);
                 break;
             // 导出报检单,导出理货单
