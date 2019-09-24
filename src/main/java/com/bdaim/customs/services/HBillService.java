@@ -126,7 +126,7 @@ public class HBillService {
      */
     public void customerBillExport(CustomerBillQueryParam param, String exportType, HttpServletResponse response) throws Exception {
         Page billDetail = getBillDetail(param);
-        ExcelUtil.exportExcelByList(billDetail.getData(), "tp/企业账单详情.xlsx", response);
+        ExcelUtil.exportExcelByList(billDetail.getData(), "tp/customer_bill.xlsx", response);
     }
 }
 
