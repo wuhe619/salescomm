@@ -3,6 +3,8 @@ package com.bdaim.common.dao;
 import com.bdaim.common.entity.HFile;
 import com.bdaim.common.util.BusinessEnum;
 import com.bdaim.common.util.IDHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.sql.Timestamp;
@@ -14,6 +16,8 @@ import java.sql.Timestamp;
  */
 @Component
 public class FileDao extends SimpleHibernateDao<HFile, Integer> {
+
+    private static Logger logger = LoggerFactory.getLogger(FileDao.class);
 
     public HFile selectByServiceId(String fileId) {
         //String hql = "FROM FileInfo WHERE serviceId = ?";
@@ -30,6 +34,7 @@ public class FileDao extends SimpleHibernateDao<HFile, Integer> {
         fileInfo.setFileName(fileName);
         fileInfo.setExt1(serviceId);
         fileInfo.setFileType(fileType);
+        logger.info("文件表插入数据:{}", fileInfo);
         this.save(fileInfo);
     }
 }

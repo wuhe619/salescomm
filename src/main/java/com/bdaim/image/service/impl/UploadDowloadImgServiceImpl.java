@@ -1126,11 +1126,12 @@ public class UploadDowloadImgServiceImpl implements UploadDowloadService {
      * @param fileId
      */
     public void downloadFile(HttpServletResponse response, String userId, String fileId, boolean downMongoDBStatus) {
+        logger.info("开始通过接口获取文件,userId:{},fileId:{},downMongoDBStatus:{}", userId, fileId, downMongoDBStatus);
         if (StringUtil.isEmpty(fileId)) {
             return;
         }
         //兼容原来图片
-        String filePath = PropertiesUtil.getStringValue("location") + userId + File.separator + fileId;
+        String filePath = PropertiesUtil.getStringValue("location") + File.separator + userId + File.separator + fileId;
         File file = new File(filePath);
         try (FileInputStream fis = new FileInputStream(file)) {
             if (file.exists()) {
@@ -1141,7 +1142,7 @@ public class UploadDowloadImgServiceImpl implements UploadDowloadService {
             logger.warn("获取文件异常" + e.getMessage());
         }
 
-        filePath = PropertiesUtil.getStringValue("file.file_path") + userId + File.separator + fileId;
+        filePath = PropertiesUtil.getStringValue("file.file_path") + File.separator + userId + File.separator + fileId;
         file = new File(filePath);
         try (FileInputStream fis = new FileInputStream(file)) {
             if (file.exists()) {

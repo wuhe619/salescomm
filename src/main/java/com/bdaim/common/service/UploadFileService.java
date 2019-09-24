@@ -55,12 +55,14 @@ public class UploadFileService {
             String serviceId = businessEnum.getKey() + "_" + subFilePath;
             // 保存文件到mongodb中
             if (saveMongoDb) {
+                logger.info("上传文件到mongo,serviceId:{},文件名称", serviceId, fileName);
                 String objectId = mongoFileService.saveFile(file, serviceId);
                 fileDao.save(serviceId, objectId, businessEnum, fileName, fileType);
             }
             // 保存文件到磁盘
             String _filePath = File.separator + businessEnum.getKey() + File.separator + subFilePath;
             String savePath = filePath + _filePath;
+            logger.info("上传文件路径:{}", savePath + fileType);
             File desFile = new File(savePath + fileType);
             FileUtils.copyInputStreamToFile(file.getInputStream(), desFile);
             fileDao.save(serviceId, subFilePath, businessEnum, fileName, fileType);

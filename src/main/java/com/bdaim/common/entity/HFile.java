@@ -206,4 +206,25 @@ public class HFile {
 
         return Objects.hash(id, type, content, custId, custGroupId, custUserId, createId, createDate, updateId, updateDate, fileType, fileSize, fileName, fileId, ext1);
     }
+
+    @Override
+    public String toString() {
+        return "HFile{" +
+                "id=" + id +
+                ", type='" + type + '\'' +
+                ", content='" + content + '\'' +
+                ", custId=" + custId +
+                ", custGroupId='" + custGroupId + '\'' +
+                ", custUserId=" + custUserId +
+                ", createId=" + createId +
+                ", createDate=" + createDate +
+                ", updateId=" + updateId +
+                ", updateDate=" + updateDate +
+                ", fileType='" + fileType + '\'' +
+                ", fileSize=" + fileSize +
+                ", fileName='" + fileName + '\'' +
+                ", fileId='" + fileId + '\'' +
+                ", ext1='" + ext1 + '\'' +
+                '}';
+    }
 }
