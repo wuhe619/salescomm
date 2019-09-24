@@ -44,10 +44,28 @@ public class CustomerBillQueryParam {
     private Integer payMode;
     private Long userId;
     private String dealType;
+    private String status;
+    private String mainId;
     /**
      * 场站id
      */
     private String stationId;
+
+    public String getMainId() {
+        return mainId;
+    }
+
+    public void setMainId(String mainId) {
+        this.mainId = mainId;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
 
     public String getStationId() {
         return stationId;

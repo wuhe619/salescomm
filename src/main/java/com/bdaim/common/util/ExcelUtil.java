@@ -1,5 +1,7 @@
 package com.bdaim.common.util;
 
+import cn.afterturn.easypoi.excel.ExcelExportUtil;
+import cn.afterturn.easypoi.excel.entity.TemplateExportParams;
 import com.alibaba.excel.ExcelReader;
 import com.alibaba.excel.context.AnalysisContext;
 import com.alibaba.excel.event.AnalysisEventListener;
@@ -8,9 +10,12 @@ import com.alibaba.excel.support.ExcelTypeEnum;
 import org.apache.poi.EmptyFileException;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.poifs.filesystem.FileMagic;
+import org.apache.poi.ss.usermodel.Workbook;
 
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -162,5 +167,54 @@ public class ExcelUtil {
             return new ExcelReader(in, customContent, eventListener, trim);
         }
         throw new InvalidFormatException("Your InputStream was neither an OLE2 stream, nor an OOXML stream");
+    }
+
+
+    /**
+     * 根据模板导出
+     * @param list
+     * @param templateName
+     * @param response
+     * @throws IOException
+     * @throws IllegalAccessException
+     */
+    public static void exportExcelByList(List list, String templateName, HttpServletResponse response) throws IOException, IllegalAccessException {
+        // 加载模板
+        TemplateExportParams params = new TemplateExportParams(templateName);
+        // 生成workbook 并导出
+        Map<String, Object> map = new HashMap<>();
+        map.put("list", list);
+        Workbook workbook = ExcelExportUtil.exportExcel(params, map);
+        /*File savefile = new File("C:/Users/Administrator/Desktop/");
+        if (!savefile.exists()) {
+            boolean result = savefile.mkdirs();
+            System.out.println("目录不存在,进行创建,创建" + (result ? "成功!" : "失败！"));
+        }*/
+        //FileOutputStream fos = new FileOutputStream("C:/Users/Administrator/Desktop/理货.xlsx");
+        workbook.write(response.getOutputStream());
+        response.getOutputStream().close();
+    }
+
+    private static List<Map<String, Object>> objectToMap(List obj) throws IllegalAccessException {
+        List<Map<String, Object>> list = new ArrayList<>(16);
+        for (Object o : obj) {
+            Map<String, Object> map = new HashMap<>();
+            Class<?> clazz = o.getClass();
+            for (Field field : clazz.getDeclaredFields()) {
+                field.setAccessible(true);
+                String fieldName = field.getName();
+                /*
+                 * Returns the value of the field represented by this {@code Field}, on the
+                 * specified object. The value is automatically wrapped in an object if it
+                 * has a primitive type.
+                 * 注:返回对象该该属性的属性值，如果该属性的基本类型，那么自动转换为包装类
+                 */
+                Object value = field.get(o);
+                map.put(fieldName, value);
+            }
+            list.add(map);
+        }
+
+        return list;
     }
 }

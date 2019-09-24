@@ -25,6 +25,7 @@ import com.bdaim.common.util.page.PageList;
 import com.bdaim.common.util.page.Pagination;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerUserDao;
+import com.bdaim.customer.dao.CustomerUserPropertyDao;
 import com.bdaim.customer.dao.EnterpriseDao;
 import com.bdaim.customer.dto.*;
 import com.bdaim.customer.entity.*;
@@ -97,6 +98,8 @@ public class CustomerService {
     SupplierService supplierService;
     @Resource
     BatchDao batchDao;
+    @Resource
+    CustomerUserPropertyDao customerUserPropertyDao;
 
 
     @Resource
@@ -236,15 +239,16 @@ public class CustomerService {
         StringBuffer sql = new StringBuffer();
 
 
-        sql.append("  SELECT  CAST(s.id AS CHAR) id,s.cust_id,s.user_type, s.account AS name,s.password AS PASSWORD,s.realname AS realname,cjc.cuc_minute seatMinute,\n" +
+        sql.append("  SELECT  CAST(s.id AS CHAR) id,cjc.resource,s.cust_id,s.user_type, s.account AS name,s.password AS PASSWORD,s.realname AS realname,cjc.cuc_minute seatMinute,\n" +
                 "s.status STATUS,cjc.mobile_num AS mobile_num,cjc.cuc_seat AS cuc_seat,cjc.xz_seat AS xz_seat FROM t_customer_user s\n" +
                 " LEFT JOIN (SELECT user_id, \n" +
                 " MAX(CASE property_name WHEN 'mobile_num'  THEN property_value ELSE '' END ) mobile_num, \n" +
                 " MAX(CASE property_name WHEN 'cuc_seat'    THEN property_value ELSE '' END ) cuc_seat,\n" +
                 " MAX(CASE property_name WHEN 'xz_seat'    THEN property_value ELSE '' END ) xz_seat, \n" +
-                " MAX(CASE property_name WHEN 'cuc_minute'  THEN property_value ELSE '0' END ) cuc_minute \n" +
+                " MAX(CASE property_name WHEN 'cuc_minute'  THEN property_value ELSE '0' END ) cuc_minute, \n" +
+                " MAX(CASE property_name WHEN 'resource'    THEN property_value ELSE '' END ) resource \n" +
                 " FROM t_customer_user_property p GROUP BY user_id \n" +
-                ") cjc ON s.id = cjc.user_id WHERE 1=1 AND user_type = 2  AND STATUS <> 3 ");
+                ") cjc ON s.id = cjc.user_id WHERE 1=1 AND user_type = 2  AND STATUS <> 2 ");
         sql.append(" AND cust_id = '" + customerId + "'");
         if (null != name && !"".equals(name)) {
             sql.append(" AND s.account like '%" + name + "%'");
@@ -296,7 +300,8 @@ public class CustomerService {
         return customerUserDao.getName(userId);
     }
 
-    public synchronized void registerOrUpdateCustomer(CustomerRegistDTO vo) throws Exception {
+    public synchronized String registerOrUpdateCustomer(CustomerRegistDTO vo) throws Exception {
+        String code = "000";
         if (StringUtil.isNotEmpty(vo.getDealType())) {
             //编辑或创建客户
             CustomerUser customerUserDO;
@@ -312,6 +317,8 @@ public class CustomerService {
                         customerUserDO.setPassword(CipherUtil.generatePassword(vo.getPassword()));
                     }
                 } else {
+                    CustomerUser user = customerUserDao.getUserByAccount(vo.getName());
+                    if (user != null) return code = "001";
                     customerUserDO = new CustomerUser();
                     //1企业客户 2 操作员
                     customerUserDO.setUserType(1);
@@ -478,6 +485,14 @@ public class CustomerService {
                         customerDao.dealCustomerInfo(customerId, "station_id", vo.getStationId());
                     }
                 }
+                //创建企业id
+                if (StringUtil.isNotEmpty(vo.getCreateId())) {
+                    if (StringUtil.isNotEmpty(vo.getCustId())) {
+                        customerDao.dealCustomerInfo(vo.getCustId(), "create_id", vo.getCreateId());
+                    } else {
+                        customerDao.dealCustomerInfo(customerId, "create_id", vo.getCreateId());
+                    }
+                }
 
             } else if (vo.getDealType().equals("2")) {//冻结以及解冻
                 if (StringUtil.isNotEmpty(vo.getCustId())) {
@@ -522,6 +537,7 @@ public class CustomerService {
                 }
             }
         }
+        return code;
     }
 
 
@@ -614,7 +630,7 @@ public class CustomerService {
                 "cjc.mobile_num,  -- 属性表\n" +
                 "IFNULL (t1.title,'') AS title, -- 属性表\n" +
                 "t1.create_time,\n" +
-                "t1.`status`,cjc.packagerId,cjc.printerId,cjc.idCardBack,cjc.idCardFront,\n" +
+                "t1.`status`,cjc.`createId`,cjc.packagerId,cjc.printerId,cjc.idCardBack,cjc.idCardFront,\n" +
                 "cjc.industry,cjc.salePerson,cjc.contactAddress,\n" +
                 "cjc.province,cjc.city,cjc.fixPrice,cjc.county,cjc.taxpayerId,\n" +
                 "cjc.bli_path AS bliPic,\n" +
@@ -640,6 +656,7 @@ public class CustomerService {
                 "\tmax(CASE property_name WHEN 'bank_account'   THEN property_value ELSE '' END ) bankAccount,\n" +
                 "\tmax(CASE property_name WHEN 'bank_account_certificate'   THEN property_value ELSE '' END ) bank_account_certificate,\n" +
                 "\tmax(CASE property_name WHEN 'station_id'   THEN property_value ELSE '' END ) stationId,\n" +
+                "\tmax(CASE property_name WHEN 'create_id'   THEN property_value ELSE '' END ) createId,\n" +
                 "\tmax(CASE property_name WHEN 'mobile_num'   THEN property_value ELSE '' END ) mobile_num\n" +
                 "   FROM t_customer_property p GROUP BY cust_id \n" +
                 ") cjc ON t1.cust_id = cjc.cust_id \n" +
@@ -649,6 +666,9 @@ public class CustomerService {
         }
         if (StringUtil.isNotEmpty(customerRegistDTO.getEnterpriseName())) {
             sqlBuilder.append(" AND t1.enterprise_name like '%" + customerRegistDTO.getEnterpriseName() + "%'");
+        }
+        if (StringUtil.isNotEmpty(customerRegistDTO.getCreateId())) {
+            sqlBuilder.append(" AND cjc.createId ='" + customerRegistDTO.getCreateId() + "'");
         }
         if (StringUtil.isNotEmpty(customerRegistDTO.getName())) {
             sqlBuilder.append(" AND t2.account LIKE '%" + customerRegistDTO.getName() + "%'");
@@ -3644,5 +3664,70 @@ public class CustomerService {
         }
         return map;
     }
-}
 
+    /**
+     * 企业创建员工
+     *
+     * @param
+     */
+    public String customerAddUser(CustomerRegistDTO vo) {
+        String code = "000";
+        long userId = IDHelper.getUserID();
+        CustomerUser customerUserDO = null;
+        //（1 添加编辑 2 冻结与解冻 3.修改密码）
+        if ("1".equals(vo.getDealType())) {
+            //编辑或创建客户
+            if (StringUtil.isNotEmpty(vo.getUserId())) {
+                customerUserDO = customerUserDao.findUniqueBy("id", Long.valueOf(vo.getUserId()));
+                if (StringUtil.isNotEmpty(vo.getRealName())) {
+                    customerUserDO.setRealname(vo.getRealName());
+                }
+                if (StringUtil.isNotEmpty(vo.getName())) {
+                    customerUserDO.setAccount(vo.getName());
+                }
+                if (StringUtil.isNotEmpty(vo.getPassword())) {
+                    customerUserDO.setPassword(CipherUtil.generatePassword(vo.getPassword()));
+                }
+            } else {
+                customerUserDO = new CustomerUser();
+                CustomerUser user = customerUserDao.getUserByAccount(vo.getName());
+                if (user != null) return code = "001";
+                //1企业客户 2 操作员
+                customerUserDO.setUserType(2);
+                customerUserDO.setId(userId);
+                customerUserDO.setCust_id(vo.getCustId());
+                customerUserDO.setAccount(vo.getName());
+                customerUserDO.setPassword(CipherUtil.generatePassword(vo.getPassword()));
+                customerUserDO.setRealname(vo.getRealName());
+                customerUserDO.setStatus(Constant.USER_ACTIVE_STATUS);
+            }
+            customerUserDao.saveOrUpdate(customerUserDO);
+            //编辑用户属性信息
+            //联系人电话
+            if (StringUtil.isNotEmpty(vo.getMobile())) {
+                if (StringUtil.isNotEmpty(vo.getUserId())) {
+                    customerUserPropertyDao.dealUserPropertyInfo(vo.getUserId(), "mobile_num", vo.getMobile());
+                } else {
+                    customerUserPropertyDao.dealUserPropertyInfo(String.valueOf(userId), "mobile_num", vo.getMobile());
+                }
+            }
+            if (StringUtil.isNotEmpty(vo.getResource())) {
+                if (StringUtil.isNotEmpty(vo.getUserId())) {
+                    customerUserPropertyDao.dealUserPropertyInfo(vo.getUserId(), "resource", vo.getResource());
+                } else {
+                    customerUserPropertyDao.dealUserPropertyInfo(String.valueOf(userId), "resource", vo.getResource());
+                }
+            }
+        } else if ("2".equals(vo.getDealType())) {
+            //冻结以及解冻
+            if (StringUtil.isNotEmpty(vo.getUserId())) {
+                CustomerUser customerUser = customerUserDao.findUniqueBy("id", Long.valueOf(vo.getUserId()));
+                if (customerUser != null && StringUtil.isNotEmpty(vo.getStatus())) {
+                    customerUser.setStatus(Integer.valueOf(vo.getStatus()));
+                    customerDao.saveOrUpdate(customerUser);
+                }
+            }
+        }
+        return code;
+    }
+}

@@ -1,267 +1,392 @@
 package com.bdaim.common.service;
 
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.bdaim.auth.LoginUser;
-import com.bdaim.common.dao.DicDao;
-import com.bdaim.common.dao.SettlementDao;
 import com.bdaim.common.dto.Page;
-import com.bdaim.common.entity.Dic;
-import com.bdaim.common.entity.DicProperty;
-import com.bdaim.fund.entity.Settlement;
-import com.bdaim.fund.entity.SettlementProperty;
-import com.bdaim.log.service.OperLogService;
-import com.bdaim.common.util.*;
+import com.bdaim.common.util.StringUtil;
 import com.bdaim.common.util.spring.SpringContextHelper;
 import com.bdaim.customer.dao.CustomerDao;
-import com.bdaim.rbac.dao.UserDao;
-
+import com.bdaim.customer.entity.Customer;
+import com.bdaim.customer.entity.CustomerProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
+import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import javax.annotation.Resource;
-import javax.transaction.Transactional;
-
 /**
- *  通用业务实体服务
+ * 通用业务实体服务
  */
 @Service
 @Transactional
 public class BusiEntityService {
     private static Logger logger = LoggerFactory.getLogger(BusiEntityService.class);
-    
+
     @Resource
     private JdbcTemplate jdbcTemplate;
-    
+
     @Autowired
     private SequenceService sequenceService;
+
+    @Autowired
+    private CustomerDao customerDao;
 
     /*
      * 按ID获取记录
      */
-    public JSONObject getInfo(String cust_id, String user_id, String busiType, String id) throws Exception{
-    	JSONObject d = null;
-    	
-    	String sql = "select content, cust_id, create_id, create_date from h_data_manager where type=? and id=? ";
-    	sql+=" and cust_id='"+cust_id+"'";
-    	
-    	Map data = jdbcTemplate.queryForMap(sql, busiType, id);
-    	if(d==null)
-    		return d;
-    	String content = (String)data.get("content");
-    	try {
-    		d = JSONObject.parseObject(content);
-    		
-    		BusiService busiService = (BusiService) SpringContextHelper.getBean("busi_"+busiType);
-			busiService.getInfo(busiType, cust_id, user_id, id, d);
-    	}catch(Exception e) {
-    		logger.error(e.getMessage());
-    		throw new Exception("数据格式错误！");
-    	}
-    	
-    	return d;
+    public JSONObject getInfo(String cust_id, String cust_group_id, Long cust_user_id, String busiType, Long id, JSONObject param) throws Exception {
+        JSONObject jo = new JSONObject();
+
+        String sql = "select content, cust_id, cust_group_id, cust_user_id, create_id, create_date ,ext_1, ext_2, ext_3, ext_4, ext_5 from h_data_manager where type=? and id=? ";
+        if (!"all".equals(cust_id))
+            sql += " and cust_id='" + cust_id + "'";
+
+        Map data = null;
+        try {
+            data = jdbcTemplate.queryForMap(sql, busiType, id);
+        } catch (EmptyResultDataAccessException e) {
+            logger.warn("查询主单:{},busiType:{}失败", id, busiType);
+            data = null;
+        }
+        if (data == null)
+            return jo;
+        String content = (String) data.get("content");
+        try {
+            jo = JSONObject.parseObject(content);
+            jo.put("id", id);
+            jo.put("cust_id", data.get("cust_id"));
+            jo.put("cust_group_id", data.get("cust_group_id"));
+            jo.put("cust_user_id", data.get("cust_user_id"));
+            jo.put("create_id", data.get("create_id"));
+            jo.put("create_date", data.get("create_date"));
+            jo.put("update_id", data.get("update_id"));
+            jo.put("update_date", data.get("update_date"));
+            if (data.get("ext_1") != null && !"".equals(data.get("ext_1")))
+                jo.put("ext_1", data.get("ext_1"));
+            if (data.get("ext_2") != null && !"".equals(data.get("ext_2")))
+                jo.put("ext_2", data.get("ext_2"));
+            if (data.get("ext_3") != null && !"".equals(data.get("ext_3")))
+                jo.put("ext_3", data.get("ext_3"));
+            if (data.get("ext_4") != null && !"".equals(data.get("ext_4")))
+                jo.put("ext_4", data.get("ext_4"));
+            if (data.get("ext_5") != null && !"".equals(data.get("ext_5")))
+                jo.put("ext_5", data.get("ext_5"));
+
+            //执行自定义单数据规则
+            BusiService busiService = (BusiService) SpringContextHelper.getBean("busi_" + busiType);
+            busiService.getInfo(busiType, cust_id, cust_group_id, cust_user_id, id, jo, param);
+        } catch (Exception e) {
+            logger.error("数据格式错误！", e);
+            throw new Exception("数据格式错误！");
+        }
+
+        return jo;
     }
-    
+
     /*
      * 查询记录
      */
-    public Page query(String cust_id, String user_id, String busiType, JSONObject params) throws Exception{
-    	Page p = new Page();
-    	
-    	List sqlParams =  new ArrayList();
-    	
-    	BusiService busiService = (BusiService) SpringContextHelper.getBean("busi_"+busiType);
-    	String sql = null;
-    	try {
-    		busiService.formatQuery(busiType, cust_id, user_id, params, sqlParams);
-    	}catch(Exception e) {
-    		logger.error(e.getMessage());
-    		throw new Exception("查询条件自定义解析异常:["+busiType+"]");
-    	}
-    	if(sql==null || "".equals(sql)) {
-    		sqlParams.clear();
-	    	StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5, ext_6, ext_7, ext_8, ext_9, ext_10 from h_data_manager where type=?");
-	    	sqlstr.append(" and cust_id='").append(cust_id).append("'");
-	    	
-	    	sqlParams.add(busiType);
-	    	
-	    	Iterator keys = params.keySet().iterator();
-	    	while(keys.hasNext()) {
-	    		String key = (String)keys.next();
-	    		if(key.contains(".op"))
-	    			continue;
-	    		sqlstr.append(" and JSON_EXTRACT(content, $."+key+") = ?");
-	    		if(params.containsKey(key+".op") && "c".equals(params.get(key+".op")))
-	    			sqlstr.append(" like '%?%'");
-	    		else
-	    			sqlstr.append("=?");
-	
-	    		sqlParams.add(params.get(key));   
-	    	}
-	    	sql = sqlstr.toString();
-    	}
-    	
-    	int pageNum = 1; 
-        int pageSize = 10; 
+    public Page query(String cust_id, String cust_group_id, Long cust_user_id, String busiType, JSONObject params) throws Exception {
+        Page p = new Page();
+        String stationId = params.getString("station_id");
+
+        List sqlParams = new ArrayList();
+
+        BusiService busiService = (BusiService) SpringContextHelper.getBean("busi_" + busiType);
+        String sql = null;
         try {
-        	pageNum = params.getIntValue("pageNum");
-        }catch(Exception e) {}
-        try {
-        	pageSize = params.getIntValue("pageSize");
-        }catch(Exception e) {}
-        if(pageNum<=0)
-        	pageNum = 1;
-        if(pageSize<=0)
-        	pageSize = 10;
-        if(pageSize>1000)
-        	pageSize = 1000;
-        
-        try {
-	        List<Map<String,Object>> ds = jdbcTemplate.queryForList(sql+" limit "+(pageNum-1)*pageSize+", "+pageSize, sqlParams.toArray());
-	        List data = new ArrayList();
-	    	for(int i=0;i<ds.size();i++) {
-	    		Map m = (Map)ds.get(i);
-	    		JSONObject jo = JSONObject.parseObject((String)m.get("content"));
-	    		jo.put("id", m.get("id"));
-	    		jo.put("create_id", m.get("create_id"));
-	    		jo.put("create_date", m.get("create_date"));
-	    		jo.put("cust_id", m.get("cust_id"));
-	    		if(m.get("ext_1")!=null && !"".equals(m.get("ext_1")))
-	    			jo.put("ext_1", m.get("ext_1"));
-	    		if(m.get("ext_2")!=null && !"".equals(m.get("ext_2")))
-	    			jo.put("ext_2", m.get("ext_2"));
-	    		if(m.get("ext_3")!=null && !"".equals(m.get("ext_3")))
-	    			jo.put("ext_3", m.get("ext_3"));
-	    		if(m.get("ext_4")!=null && !"".equals(m.get("ext_4")))
-	    			jo.put("ext_4", m.get("ext_4"));
-	    		if(m.get("ext_5")!=null && !"".equals(m.get("ext_5")))
-	    			jo.put("ext_5", m.get("ext_5"));
-	    		if(m.get("ext_6")!=null && !"".equals(m.get("ext_6")))
-	    			jo.put("ext_6", m.get("ext_6"));
-	    		if(m.get("ext_7")!=null && !"".equals(m.get("ext_7")))
-	    			jo.put("ext_7", m.get("ext_7"));
-	    		if(m.get("ext_18")!=null && !"".equals(m.get("ext_8")))
-	    			jo.put("ext_8", m.get("ext_8"));
-	    		if(m.get("ext_9")!=null && !"".equals(m.get("ext_9")))
-	    			jo.put("ext_9", m.get("ext_9"));
-	    		if(m.get("ext_10")!=null && !"".equals(m.get("ext_10")))
-	    			jo.put("ext_10", m.get("ext_10"));
-	    		
-	    		try {
-	    			busiService.formatInfo(busiType, cust_id, user_id, jo);
-	    		}catch(Exception e) {
-	    			logger.error(e.getMessage());
-	    		}
-	    		
-	    		data.add(jo);
-	    	}
-	    	p.setData(data);
-	    	p.setTotal(data.size());
-	    	p.setPerPageCount(pageSize);
-	    	p.setStart((pageNum-1)*pageSize+1);
-        }catch(Exception e) {
-        	logger.error(e.getMessage());
-        	throw new Exception("查询异常:["+busiType+"]");
+            //执行自定义查询sql
+            sql = busiService.formatQuery(busiType, cust_id, cust_group_id, cust_user_id, params, sqlParams);
+        } catch (Exception e) {
+            logger.error("查询条件自定义解析异常:[" + busiType + "]", e);
+            throw new Exception("查询条件自定义解析异常:[" + busiType + "]");
         }
-    	
-    	return p;
+        if (sql == null || "".equals(sql)) {
+            sqlParams.clear();
+            StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from h_data_manager where type=?");
+            if (!"all".equals(cust_id))
+                sqlstr.append(" and cust_id='").append(cust_id).append("'");
+            sqlParams.add(busiType);
+            // 处理场站检索
+            if (StringUtil.isNotEmpty(stationId)) {
+                String stationSql = "SELECT cust_id FROM t_customer_property WHERE property_name='station_id' AND property_value = ?";
+                /*List<String> custIds = jdbcTemplate.queryForList(stationSql, String.class,"station_id", stationId);
+                if(custIds==null||custIds.size()==0){
+                    return p;
+                }*/
+                sqlstr.append(" and cust_id IN ( ").append(stationSql).append(" )");
+                sqlParams.add(stationId);
+            }
+
+            Iterator keys = params.keySet().iterator();
+            while (keys.hasNext()) {
+                String key = (String) keys.next();
+                if ("".equals(String.valueOf(params.get(key)))) continue;
+                if ("pageNum".equals(key) || "pageSize".equals(key) || "stationId".equals(key) || "cust_id".equals(key))
+                    continue;
+                if ("cust_id".equals(key)) {
+                    sqlstr.append(" and cust_id=?");
+                } else if (key.startsWith("_c_")) {
+                    sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(3) + "') like concat('%',?,'%')");
+                } else if (key.startsWith("_g_")) {
+                    sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(3) + "') > ?");
+                } else if (key.startsWith("_ge_")) {
+                    sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(4) + "') >= ?");
+                } else if (key.startsWith("_l_")) {
+                    sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(3) + "') < ?");
+                } else if (key.startsWith("_le_")) {
+                    sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(4) + "') <= ?");
+                } else if (key.startsWith("_eq_")) {
+                    sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(4) + "') = ?");
+                } else if (key.startsWith("_range_")) {
+                    if ("0".equals(String.valueOf(params.get(key)))) {
+                        sqlstr.append(" and ( JSON_EXTRACT(content, '$." + key.substring(7) + "') <= ?")
+                                .append(" OR JSON_EXTRACT(content, '$." + key.substring(7) + "') = '' ")
+                                .append(" OR JSON_EXTRACT(content, '$." + key.substring(7) + "') IS NULL ) ");
+                    } else {
+                        sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(7) + "') >= ?");
+                    }
+                } else {
+                    sqlstr.append(" and JSON_EXTRACT(content, '$." + key + "')=?");
+                }
+
+                sqlParams.add(params.get(key));
+            }
+            sql = sqlstr.toString();
+        }
+
+        int pageNum = 1;
+        int pageSize = 10;
+        try {
+            pageNum = params.getIntValue("pageNum");
+        } catch (Exception e) {
+        }
+        try {
+            pageSize = params.getIntValue("pageSize");
+        } catch (Exception e) {
+        }
+        if (pageNum <= 0)
+            pageNum = 1;
+        if (pageSize <= 0)
+            pageSize = 10;
+        if (pageSize > 1000)
+            pageSize = 1000;
+
+        try {
+            List<Map<String, Object>> ds = jdbcTemplate.queryForList(sql + " limit " + (pageNum - 1) * pageSize + ", " + pageSize, sqlParams.toArray());
+            String totalSql = "select count(0) from ( " + sql + " ) t ";
+            List data = new ArrayList();
+            for (int i = 0; i < ds.size(); i++) {
+                Map m = (Map) ds.get(i);
+                JSONObject jo = null;
+                try {
+                    if (m.containsKey("content")) {
+                        jo = JSONObject.parseObject((String) m.get("content"));
+                        jo.put("id", m.get("id"));
+                        jo.put("cust_id", m.get("cust_id"));
+                        jo.put("cust_group_id", m.get("cust_group_id"));
+                        jo.put("cust_user_id", m.get("cust_user_id"));
+                        jo.put("create_id", m.get("create_id"));
+                        jo.put("create_date", m.get("create_date"));
+                        jo.put("update_id", m.get("update_id"));
+                        jo.put("update_date", m.get("update_date"));
+                        if (m.get("ext_1") != null && !"".equals(m.get("ext_1")))
+                            jo.put("ext_1", m.get("ext_1"));
+                        if (m.get("ext_2") != null && !"".equals(m.get("ext_2")))
+                            jo.put("ext_2", m.get("ext_2"));
+                        if (m.get("ext_3") != null && !"".equals(m.get("ext_3")))
+                            jo.put("ext_3", m.get("ext_3"));
+                        if (m.get("ext_4") != null && !"".equals(m.get("ext_4")))
+                            jo.put("ext_4", m.get("ext_4"));
+                        if (m.get("ext_5") != null && !"".equals(m.get("ext_5")))
+                            jo.put("ext_5", m.get("ext_5"));
+                    } else
+                        jo = JSONObject.parseObject(JSONObject.toJSONString(m));
+                } catch (Exception e) {
+                    logger.error(e.getMessage());
+                }
+                if (jo == null) { //jo异常导致为空时，只填充id
+                    jo = new JSONObject();
+                    jo.put("id", m.get("id"));
+                } else {
+                    //查询场站和报关单位
+                    String custId = jo.getString("cust_id");
+                    jo.put("cust_name", "");
+                    jo.put("station_name", "");
+                    Customer customer = customerDao.get(custId);
+                    if (customer != null) {
+                        jo.put("cust_name", customer.getEnterpriseName());
+                        jo.put("station_id", "");
+                        CustomerProperty cp = customerDao.getProperty(custId, "station_id");
+                        if (cp != null) {
+                            jo.put("station_id", cp.getPropertyValue());
+                            String stationSql = "select content, create_id, create_date, update_id, update_date from h_resource where type=? and id=? ";
+                            try {
+                                Map station = jdbcTemplate.queryForMap(stationSql, "station", cp.getPropertyValue());
+                                if (station != null) {
+                                    jo.put("station_name", JSONObject.parseObject(String.valueOf(station.get("content"))).getString("name"));
+                                }
+                            } catch (DataAccessException e) {
+                                logger.error("查询场站信息异常", e);
+                            }
+
+                        }
+                    }
+                }
+
+                try {
+                    //执行自定义查询结果格式化
+                    busiService.formatInfo(busiType, cust_id, cust_group_id, cust_user_id, jo);
+                } catch (Exception e) {
+                    logger.error(e.getMessage());
+                }
+
+                data.add(jo);
+            }
+            p.setData(data);
+            int total = jdbcTemplate.queryForObject(totalSql, sqlParams.toArray(), Integer.class);
+            p.setTotal(total);
+            p.setPerPageCount(pageSize);
+            p.setStart((pageNum - 1) * pageSize + 1);
+        } catch (Exception e) {
+            logger.error("查询异常:[" + busiType + "]", e);
+            throw new Exception("查询异常:[" + busiType + "]");
+        }
+
+        return p;
     }
-    
+
     /*
      * 保存记录
      */
-    public String saveInfo(String cust_id, String user_id, String busiType, String id, JSONObject info) throws Exception{
-    	Iterator ifks = info.keySet().iterator();
-    	while(ifks.hasNext()) {
-    		String key = (String)ifks.next();
-    		if("id".equals(key) || "cust_id".equals(key) || "create_id".equals(key) || "create_date".equals(key) || key.startsWith("op.")) //关键字冲突
-    			info.remove(key);
-    	}
-    	
-    	if(id==null || "".equals(id) || "0".equals(id)) {
-    		//insert
-    		Long nid = sequenceService.getSeq(busiType);
-    		
-    		String sql2 = "insert into h_data_manager(id, type, content, cust_id, create_id, create_date) value(?, ?, ?, ?, ?, now())";
-    		try {
-    			BusiService busiService = (BusiService) SpringContextHelper.getBean("busi_"+busiType);
-    			busiService.insertInfo(busiType, cust_id, user_id, id, info);
-    			
-    			
-    			jdbcTemplate.update(sql2, nid, busiType, info.toJSONString(), cust_id, user_id);
-    		}catch(Exception e) {
-    			logger.error(e.getMessage());
-    			throw new Exception("添加新记录异常:["+busiType+"]");
-    		}
-    	}else{
-    		// update
-    		String sql1 = "select content, cust_id, create_id, create_date from h_data_manager where type=? and cust_id=? and id=?";
-        	Map data = null;
-        	try {
-        		data = jdbcTemplate.queryForMap(sql1, busiType, cust_id, Long.parseLong(id));
-        	}catch(Exception e) {
-        		throw new Exception("读取数据异常:["+busiType+"]"+id);
-        	}
-        	if(data==null) {
-        		throw new Exception("数据不存在:["+busiType+"]"+id);
-        	}
-        	
-        	String content = (String)data.get("content");
-        	if(content==null || "".equals(content))
-        		content = "{}";
-        	
-        	JSONObject jo = null;
-        	try {
-	        	jo = JSONObject.parseObject(content);
-	        	Iterator keys = info.keySet().iterator();
-	        	while(keys.hasNext()) {
-	        		String key = (String)keys.next();
-	        		jo.put(key, info.get(key));
-	        	}
-        	}catch(Exception e) {
-        		logger.error(e.getMessage());
-        		throw new Exception("解析数据异常:["+busiType+"]"+id);
-        	}
-        	
-    		String sql2 = "update h_data_manager set content=? where type=? and cust_id=? and id=?";
-    		
-    		try {
-    			BusiService busiService = (BusiService) SpringContextHelper.getBean("busi_"+busiType);
-    			busiService.updateInfo(busiType, cust_id, user_id, id, jo);
-    			
-    			jdbcTemplate.update(sql2, jo.toJSONString(), busiType, cust_id, Long.parseLong(id));
-    		}catch(Exception e) {
-    			logger.error(e.getMessage());
-    			throw new Exception("更新记录异常:["+busiType+"]"+id);
-    		}
-    	}
-    	
-    	return id;
+    public Long saveInfo(String cust_id, String cust_group_id, Long cust_user_id, String busiType, Long id, JSONObject info) throws Exception {
+        String[] extKeys = new String[]{"ext_1", "ext_2", "ext_3", "ext_4", "ext_5"};
+        String[] sysKeys = new String[]{"id", "cust_id", "create_id", "create_date"}; //系统数据字段名
+        for (String sysKey : sysKeys) {
+            if (info.containsKey(sysKey))
+                info.remove(sysKey);
+        }
+        for (String extKey : extKeys) {
+            if (info.containsKey(extKey))
+                info.remove(extKey);
+        }
+
+        JSONObject jo = null;
+
+        if (id == null || id == 0) {
+            //insert
+            id = sequenceService.getSeq(busiType);
+            jo = info;
+            String sql1 = "insert into h_data_manager(id, type, content, cust_id, cust_group_id, cust_user_id, create_id, create_date, ext_1, ext_2, ext_3, ext_4, ext_5 ) value(?, ?, ?, ?, ?, ?, ?, now(), ?, ?, ?, ?, ?)";
+            try {
+                //执行自定义新增规则
+                BusiService busiService = (BusiService) SpringContextHelper.getBean("busi_" + busiType);
+                busiService.insertInfo(busiType, cust_id, cust_group_id, cust_user_id, id, jo);
+
+                if (jo.containsKey("_rule_"))
+                    jo.remove("_rule_");
+
+                jdbcTemplate.update(sql1, id, busiType, info.toJSONString(), cust_id, cust_group_id, cust_user_id, cust_user_id
+                        , jo.containsKey("ext_1") ? info.getString("ext_1") : ""
+                        , jo.containsKey("ext_2") ? info.getString("ext_2") : ""
+                        , jo.containsKey("ext_3") ? info.getString("ext_3") : ""
+                        , jo.containsKey("ext_4") ? info.getString("ext_4") : ""
+                        , jo.containsKey("ext_5") ? info.getString("ext_5") : "");
+            } catch (Exception e) {
+                logger.error("添加新记录异常:[" + busiType + "]", e);
+                throw new Exception("添加新记录异常:[" + busiType + "]", e);
+            }
+        } else {
+            // update
+            Map data = null;
+            try {
+                data = jdbcTemplate.queryForMap("select content from h_data_manager where type=? and cust_id=? and id=?", busiType, cust_id, id);
+            }  catch (DataAccessException e) {
+                logger.error("未查询到数据:[" + busiType + "]" + id, e);
+            } catch (Exception e) {
+                logger.error("读取数据异常:[" + busiType + "]" + id, e);
+                throw new Exception("读取数据异常:[" + busiType + "]" + id, e);
+            }
+            if (data == null) {
+                logger.warn("数据不存在:[" + busiType + "]" + id);
+                throw new Exception("数据不存在:[" + busiType + "]" + id);
+            }
+
+            String content = (String) data.get("content");
+            if (content == null || "".equals(content))
+                content = "{}";
+
+            try {
+                jo = JSONObject.parseObject(content);
+                Iterator keys = info.keySet().iterator();
+                while (keys.hasNext()) {
+                    String key = (String) keys.next();
+                    jo.put(key, info.get(key));
+                }
+            } catch (Exception e) {
+                logger.error("解析数据异常:[" + busiType + "]" + id, e);
+                throw new Exception("解析数据异常:[" + busiType + "]" + id);
+            }
+
+            try {
+                //执行自定义更新规则
+                BusiService busiService = (BusiService) SpringContextHelper.getBean("busi_" + busiType);
+                busiService.updateInfo(busiType, cust_id, cust_group_id, cust_user_id, id, jo);
+
+                StringBuffer sql2 = new StringBuffer("update h_data_manager set update_id=?,update_date=now() ");
+                List sqlParams = new ArrayList();
+                sqlParams.add(cust_user_id);
+
+                if (jo.containsKey("_rule_"))
+                    jo.remove("_rule_");
+                for (String extKey : extKeys) {
+                    if (jo.containsKey(extKey)) {
+                        sql2.append(",").append(extKey).append("=?");
+                        sqlParams.add(jo.getString(extKey));
+                        jo.remove(extKey);
+                    }
+                }
+                sql2.append(",content=?  where type=? and cust_id=? and id=?");
+                sqlParams.add(jo.toJSONString());
+                sqlParams.add(busiType);
+                sqlParams.add(cust_id);
+                sqlParams.add(id);
+
+                jdbcTemplate.update(sql2.toString(), sqlParams.toArray());
+            } catch (Exception e) {
+                logger.error("更新记录异常:[" + busiType + "]" + id, e);
+                throw new Exception("更新记录异常:[" + busiType + "]" + id);
+            }
+        }
+
+        return id;
     }
-    
+
     /**
      * 删除记录
      */
-    public void deleteInfo(String cust_id, String user_id, String busiType, String id) throws Exception{
-    	String sql = "delete from h_data_manager where type=? and cust_id=? and id=?";
-    	try {
-    		BusiService busiService = (BusiService) SpringContextHelper.getBean("busi_"+busiType);
-			busiService.deleteInfo(busiType, cust_id, user_id, id);
-    		
-    		jdbcTemplate.update(sql, busiType, cust_id, Long.parseLong(id));
-    		
-    	}catch(Exception e) {
-    		logger.error(e.getMessage());
-    		throw new Exception("删除记录异常:["+busiType+"]"+id);
-    	}
+    public void deleteInfo(String cust_id, String cust_group_id, Long cust_user_id, String busiType, Long id) throws Exception {
+        String sql = "delete from h_data_manager where type=? and cust_id=? and id=?";
+        try {
+            //执行自定义删除规则
+            BusiService busiService = (BusiService) SpringContextHelper.getBean("busi_" + busiType);
+            busiService.deleteInfo(busiType, cust_id, cust_group_id, cust_user_id, id);
+
+            jdbcTemplate.update(sql, busiType, cust_id, id);
+
+        } catch (Exception e) {
+            logger.error("删除记录异常:[" + busiType + "]" + id, e);
+            throw new Exception("删除记录异常:[" + busiType + "]" + id);
+        }
     }
+
 
 }

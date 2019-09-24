@@ -1,9 +1,11 @@
 package com.bdaim.common.util;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.event.Level;
+
 import java.lang.reflect.InvocationTargetException;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
 
 /**
  * log4j日志Util
@@ -17,7 +19,7 @@ public class LogUtil {
 		StackTraceElement[] stackTraceElements=new Throwable().getStackTrace();
 		String callerClassName=stackTraceElements[1].getClassName();
 		//用调用者类名初始化logger,保证日志输出的类是调用者类名
-		logger=Logger.getLogger(callerClassName);
+		logger=LoggerFactory.getLogger(callerClassName);
 	}
 	
 	private LogUtil(){}
@@ -25,7 +27,7 @@ public class LogUtil {
 	//---------------------error---------------------------------
 	public static void error(String msg){
 		//必须用这种方法调用才能获取调用者的正确代码行号
-		logger.log(clazzName, Level.ERROR, msg, null);
+		logger.error(clazzName, Level.ERROR, msg, null);
 	}
 	
 	public static void error(Throwable e){
@@ -52,13 +54,13 @@ public class LogUtil {
 	//---------------------warn----------------------------------
 	public static void warn(String msg){
 		//必须用这种方法调用才能获取调用者的正确代码行号
-		logger.log(clazzName, Level.WARN, msg, null);
+		logger.warn(clazzName, Level.WARN, msg, null);
 	}
 	
 	//---------------------info----------------------------------
 	public static void info(String msg){
 		//必须用这种方法调用才能获取调用者的正确代码行号
-		logger.log(clazzName, Level.INFO, msg, null);
+		logger.info(clazzName, Level.INFO, msg, null);
 	}
 	
 	

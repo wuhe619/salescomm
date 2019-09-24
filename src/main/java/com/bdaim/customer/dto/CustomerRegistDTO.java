@@ -52,6 +52,17 @@ public class CustomerRegistDTO implements Serializable {
     private String expressConfig;
     private String county;
     private String serviceMode;
+    private String resource;
+    private String createId;
+
+    public String getCreateId() {
+        return createId;
+    }
+
+    public void setCreateId(String createId) {
+        this.createId = createId;
+    }
+
     /**
      * 所属行业ID
      */
@@ -60,6 +71,14 @@ public class CustomerRegistDTO implements Serializable {
      * 场站id
      */
     private String stationId;
+
+    public String getResource() {
+        return resource;
+    }
+
+    public void setResource(String resource) {
+        this.resource = resource;
+    }
 
     public String getStationId() {
         return stationId;

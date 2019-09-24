@@ -1,7 +1,10 @@
 package com.bdaim.image.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.common.dao.FileDao;
+import com.bdaim.common.entity.HFile;
 import com.bdaim.common.service.MongoFileService;
+import com.bdaim.common.service.UploadFileService;
 import com.bdaim.common.util.*;
 import com.bdaim.image.service.UploadDowloadService;
 import com.bdaim.resource.service.MarketResourceService;
@@ -29,6 +32,7 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.*;
+import java.util.regex.Matcher;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -46,6 +50,10 @@ public class UploadDowloadImgServiceImpl implements UploadDowloadService {
     private FileUrlEntity fileUrlEntity;
     @Autowired
     private MongoFileService mongoFileService;
+    @Autowired
+    private UploadFileService uploadFileService;
+    @Autowired
+    private FileDao fileDao;
 
     @Override
     public Object uploadImgNew(HttpServletRequest request, HttpServletResponse response, String cust_id,
@@ -139,11 +147,19 @@ public class UploadDowloadImgServiceImpl implements UploadDowloadService {
         uploadPathBuffer.append("data").append(pathF).append("upload").append(pathF).append("0").append(pathF).append(randomFileName).append(suffixName);
         logger.info("upload path is" + uploadPathBuffer.toString());
         File file1 = new File(uploadPathBuffer.toString());
+        String pictureName = null;
         if (!file1.exists()) {
             try {
+                pictureName = uploadFileService.uploadFile(file, BusinessEnum.CUSTOMS, false);
+
                 file1.getParentFile().mkdirs();
                 file1.createNewFile();
                 FileUtils.copyInputStreamToFile(file.getInputStream(), file1);
+
+                //mongoFileService.saveFile(multiRequestFile, pictureName);
+                        /*File localFile = new File(sPath);
+                        file1.transferTo(localFile);*/
+
             } catch (Exception e) {
                 logger.info("发生异常，异常信息如下");
                 logger.info(e.getMessage());
@@ -152,7 +168,8 @@ public class UploadDowloadImgServiceImpl implements UploadDowloadService {
         Map<String, Object> resultMap = new HashMap<>(10);
         resultMap.put("code", "1");
         resultMap.put("_message", "上传图片成功");
-        resultMap.put("url", randomFileName + suffixName);
+        //resultMap.put("url", randomFileName + suffixName);
+        resultMap.put("url", pictureName);
         return JSONObject.toJSON(resultMap);
     }
 
@@ -848,12 +865,14 @@ public class UploadDowloadImgServiceImpl implements UploadDowloadService {
                 while (iter.hasNext()) {
                     MultipartFile multiRequestFile = multiRequest.getFile(iter.next());
                     if (multiRequestFile != null) {
-                        mongoFileService.saveFile(multiRequestFile, pictureName);
+                        //mongoFileService.saveFile(multiRequestFile, pictureName);
                         /*File localFile = new File(sPath);
                         file1.transferTo(localFile);*/
+                        pictureName = uploadFileService.uploadFile(multiRequestFile, BusinessEnum.ONLINE, false);
 
                         File desFile = new File(sPath);
                         FileUtils.copyInputStreamToFile(multiRequestFile.getInputStream(), desFile);
+                        break;
                     }
                 }
             }
@@ -876,7 +895,7 @@ public class UploadDowloadImgServiceImpl implements UploadDowloadService {
         Map<String, Object> resultMap = new HashMap<String, Object>();
         resultMap.put("code", code);
         resultMap.put("_message", message);
-        resultMap.put("url", pictureName + ".jpg");
+        resultMap.put("url", pictureName);
         return JSONObject.toJSON(resultMap);
     }
 
@@ -1104,31 +1123,82 @@ public class UploadDowloadImgServiceImpl implements UploadDowloadService {
      *
      * @param response
      * @param userId
-     * @param fileName
+     * @param fileId
      */
-    public void downloadFile(HttpServletResponse response, String userId, String fileName) {
-        if (StringUtil.isEmpty(fileName)) {
+    public void downloadFile(HttpServletResponse response, String userId, String fileId, boolean downMongoDBStatus) {
+        logger.info("开始通过接口获取文件,userId:{},fileId:{},downMongoDBStatus:{}", userId, fileId, downMongoDBStatus);
+        if (StringUtil.isEmpty(fileId)) {
             return;
         }
-        String filePath = PropertiesUtil.getStringValue("location") + userId + File.separator + fileName;
+        //兼容原来图片
+        String filePath = PropertiesUtil.getStringValue("location") + File.separator + userId + File.separator + fileId;
         File file = new File(filePath);
-        boolean status = false;
         try (FileInputStream fis = new FileInputStream(file)) {
             if (file.exists()) {
                 IOUtils.copy(fis, response.getOutputStream());
-                status = true;
+                return;
             }
         } catch (Exception e) {
-            logger.error("获取文件异常", e);
-            status = false;
+            logger.warn("获取location文件异常" + e.getMessage());
         }
-        if (!status) {
+
+        filePath = PropertiesUtil.getStringValue("file.file_path") + File.separator + userId + File.separator + fileId;
+        file = new File(filePath);
+        try (FileInputStream fis = new FileInputStream(file)) {
+            if (file.exists()) {
+                IOUtils.copy(fis, response.getOutputStream());
+            }
+        } catch (Exception e) {
+            logger.warn("获取file.file_path文件异常" + e.getMessage());
+        }
+
+        filePath = "/data/upload/0/" + fileId;
+        file = new File(filePath);
+        try (FileInputStream fis = new FileInputStream(file)) {
+            if (file.exists()) {
+                IOUtils.copy(fis, response.getOutputStream());
+            }
+        } catch (Exception e) {
+            logger.warn("获取/data/upload/0文件异常" + e.getMessage());
+        }
+
+        // 查询数据库对应文件磁盘位置
+        HFile fileInfo = fileDao.selectByServiceId(fileId);
+        if (fileInfo != null) {
+            filePath = PropertiesUtil.getStringValue("file.file_path") + File.separator + fileInfo.getExt1().replaceAll("_", Matcher.quoteReplacement(File.separator));
+            String fileType = fileInfo.getFileType();
+            if (StringUtil.isEmpty(fileType)) {
+                fileType = fileInfo.getFileName().substring(fileInfo.getFileName().lastIndexOf("."));
+            }
+            file = new File(filePath + fileType);
+            try (FileInputStream fis = new FileInputStream(file)) {
+                if (file.exists()) {
+                    IOUtils.copy(fis, response.getOutputStream());
+                    return;
+                }
+            } catch (Exception e) {
+                logger.warn("获取file.file_path-2文件异常" + e.getMessage());
+                filePath = PropertiesUtil.getStringValue("location") + File.separator + fileInfo.getExt1().replaceAll("_", Matcher.quoteReplacement(File.separator));
+                file = new File(filePath + fileType);
+                try (FileInputStream fis = new FileInputStream(file)) {
+                    if (file.exists()) {
+                        IOUtils.copy(fis, response.getOutputStream());
+                        return;
+                    }
+                } catch (Exception e1) {
+                    logger.warn("获取location-2文件异常" + e1.getMessage());
+                }
+            }
+        }
+        if (downMongoDBStatus) {
             logger.warn("[" + filePath + "]磁盘文件不存在,穿透查询mongodb文件");
-            if (fileName.indexOf(".") > 0) {
-                fileName = fileName.substring(0, fileName.lastIndexOf("."));
+            if (fileInfo != null) {
+                fileId = fileInfo.getExt1();
+            } else if (fileId.indexOf(".") > 0) {
+                fileId = fileId.substring(0, fileId.lastIndexOf("."));
             }
             try {
-                byte[] bytes = mongoFileService.downloadFile(fileName);
+                byte[] bytes = mongoFileService.downloadFile(fileId);
                 IOUtils.copy(new ByteArrayInputStream(bytes), response.getOutputStream());
             } catch (Exception e) {
                 logger.error("获取mongodb文件异常", e);

@@ -12,7 +12,8 @@ public enum ResourceEnum {
     CALL(4, "语音通讯", "callPrice", "seatPrice", "seatMinute", "configId", "mianNumber", "apparentNumber", "activityId", "callCenterId"),
     MAC(5, "mac修复", "macPrice", "seatPrice", "seatMinute", "configId", "", "", "activityId", "callCenterId"),
     IDCARD(6, "身份证修复", "idCardPrice", "seatPrice", "seatMinute", "configId", "", "", "activityId", "callCenterId"),
-    IMEI(7, "imei修复", "imeiPrice", "", "seatMinute", "configId", "", "", "activityId", "callCenterId");
+    IMEI(7, "imei修复", "imeiPrice", "", "seatMinute", "configId", "", "", "activityId", "callCenterId"),
+    CHECK_IDCARD(8, "身份核验", "", "", "", "", "", "", "", "");
     private int type;
     private String typeName;
     private String price;

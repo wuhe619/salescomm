@@ -100,18 +100,17 @@ public class CustMsgService {
     	
     	sqlParams.add(user_id);
     	
-    	Iterator keys = params.keySet().iterator();
-    	while(keys.hasNext()) {
-    		String key = (String)keys.next();
-    		if(key.contains(".op"))
-    			continue;
-    		sqlstr.append(" and "+key+" = ?");
-    		if(params.containsKey(key+".op") && "c".equals(params.get(key+".op")))
-    			sqlstr.append(" like '%?%'");
-    		else
-    			sqlstr.append("=?");
-
-    		sqlParams.add(params.get(key));   
+    	if(params.containsKey("status")) {
+    		sqlstr.append(" and status=?");
+    		sqlParams.add(params.get("status"));
+    	}
+    	if(params.containsKey("level")) {
+    		sqlstr.append(" and level=?");
+    		sqlParams.add(params.get("level"));
+    	}
+    	if(params.containsKey("msg_type")) {
+    		sqlstr.append(" and msg_type=?");
+    		sqlParams.add(params.get("msg_type"));
     	}
 
     	
@@ -143,5 +142,42 @@ public class CustMsgService {
         }
     	
     	return p;
+    }
+    
+    
+    /*
+     * 按ID获取记录
+     */
+    public JSONObject getInfo(String cust_id, String cust_user_id, Long id) throws Exception {
+        JSONObject jo = null;
+
+        String sql = "select id, msg_type, content, create_time, status, level from h_customer_msg where cust_user_id=? and id=? ";
+
+        Map data = null;
+        try {
+        	data = jdbcTemplate.queryForMap(sql, cust_user_id, id);
+        	if (data == null)
+        		return jo;
+        }catch(Exception e) {
+        	logger.error(e.getMessage());
+        	throw new Exception("获取消息异常:"+id);
+        }
+        
+        try {
+        	jdbcTemplate.update("update h_customer_msg set status=1 where cust_user_id=? and id=?", cust_user_id, id);
+        	
+        }catch(Exception e) {
+        	logger.error(e.getMessage());
+        }
+
+        try {
+            jo = JSONObject.parseObject(JSONObject.toJSONString(data));
+
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            throw new Exception("消息数据格式错误！");
+        }
+
+        return jo;
     }
 }

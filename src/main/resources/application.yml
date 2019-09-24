@@ -1,12 +1,12 @@
 server:
-  port: 8081
+  port: 8083
 spring:
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
     driver-class-name: com.mysql.jdbc.Driver
     username: dev
     password: dev__807
-    url: jdbc:mysql://192.168.32.200/label?characterEncoding=utf-8&useSSL=false&zeroDateTimeBehavior=convertToNull
+    url: jdbc:mysql://192.168.32.200/bp?characterEncoding=utf-8&useSSL=false&zeroDateTimeBehavior=convertToNull
     #url: jdbc:mysql://127.0.0.1/label?characterEncoding=utf-8&useSSL=false
     hikari:
       auto-commit: true
@@ -28,7 +28,7 @@ spring:
         format_sql: true
   data:
       mongodb:
-         uri: mongodb://admin:123456@localhost:27017/admin
+         uri: mongodb://myTester:xyz123@localhost:27017/testmogo
 
   jackson:
     default-property-inclusion: non_null
@@ -68,6 +68,6 @@ hbase_audio_url: http://ds4:1111/voice/
 
 finance.h5.host: http://financedev.datau.top/h5
 online.host: http://bp.online.datau.top
-es.rest: http://10.1.37.200:9200
+es.rest: http://192.168.32.200:9200
 ds.es.index.0: labels
 ds.es.type.0: label

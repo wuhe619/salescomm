@@ -1,14 +1,13 @@
 package com.bdaim.common.service;
 
-import java.util.List;
-import java.util.Map;
-
-import javax.annotation.Resource;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class SequenceService {
@@ -37,7 +36,8 @@ public class SequenceService {
 				}
 			}
 		}catch(Exception e) {
-			logger.error("获取主键ID异常:["+type+"] "+e.getMessage());
+		    e.printStackTrace();
+			logger.error("获取主键ID异常:["+type+"] ",e);
 			throw new Exception("获取主键ID异常");
 		}
 		

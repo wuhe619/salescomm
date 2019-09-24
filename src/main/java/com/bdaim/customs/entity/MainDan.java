@@ -1,575 +1,808 @@
 package com.bdaim.customs.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.List;
 
 public class MainDan {
-    private String I_E_FLAG;
-    private String I_E_PORT;
-    private String I_E_DATE;
-    private String  D_DATE;
-    private String DECL_PORT;
-    private String SEND_COUNTRY;
-    private String AGENT_TYPE;
-    private String LAND_PROXY;
-    private String CURR_CODE;
-//    private String TRADE_COUNTRY;
-    private String TRAF_MODE;
-    private String WRAP_TYPE;
-    private String WRAP_WOOD;
-    private String IS_OLD;
-    private String ID_TYPE;
-    private String L_T_TRANS;
-    private String ENTRY_TYPE;
-    private String ONE_TO_BOTTOM;   //是否一单到底
-    private String RECEIPT_DATE;    //接单日期
-    private String BILL_NO;         //主单号
-    private String PACK_NO;     //件数
-    private String GROSS_WT;    //主单毛重
-    private String CHARGE_WT;   //主单计费重量
-    private String SINGLE_BATCH_NUM;    //分单数量
-    private String PRODUCT_NUM; //商品数量
-    private String TRAF_NAME;   //运输工具名称
-    private String TRAF_NAME_EN;    //运输工具英文名称
-    private String VOYAGE_NO;   //航班号
-    private String VOYAGE_TIMES;    //航次
-    private String VOYAGE_DATE; //航班日期
-    private String TRADE_COUNTRY;   //起运国家
-    private String E_AIRPORT;   //出港机场
-    private String I_D_DATE;    //进港日期
-    private String QIYUN_PORT;  //起运港口
-    private String USA_PROV;    //美国城市所属州
-    private String WAREHOUSE_CODE;  //仓库编码
-    private String SEND_NAME;   //发件人
-    private String SEND_NAME_EN;    //发件人英文
-    private String SEND_CITY;   //发件人城市
-    private String SEND_CITY_EN;    //发件人城市英文
-    private String	SEND_ADDRESS;   //发件人地址
-    private String	SEND_ADDRESS_EN;    //发件人地址英文
-    private String	SEND_TEL; //发件人电话
-    private String	STOP_ADDRESS;//经停地址
-    private String	STOP_ADDRESS_EN;//经停地址英文
-    private String	S_C_CODE_DECL;//申报单位社会信用代码
-    private String	S_C_CODE_SEND_REC;//收发货人社会信用代码
-    private String	S_C_CODE_SHIPPER;//货主社会信用代码
-    private String	S_C_CODE_BUSI_UNIT;//经营单位代码
-    private String	TRADE_MODE;//监管方式
-    private String  TRANS_MODE;//成交方式
-    private String	FEE_MARK; //运费标记
-    private String	FEE_CURR;//运费币制
-    private String	FEE_RATE;//运费率
-    private String	INSUR_MARK ;//保险费标记
-    private String	INSUR_CURR ;//保险费币制
-    private String	INSUR_RATE    ;//保险费／率
-    private String	OTHER_MARK;// 杂费标记
-    private String	OTHER_CURR ;// 杂费币制
-    private String	OTHER_RATE;// 杂费／率
-    private String	INSPCTION_TYPE;//   报检类型
-    private String	SPLIT_LUGGAGE; //分运行李
-    private String  NOTE_S; //备注
+    private Integer id;
+    /**
+     * 进出口标志 E-出口 I-进口
+     */
+    @JsonProperty(value = "I_E_FLAG")
+    private String i_e_flag;
+    @JsonProperty(value = "I_E_PORT")
+    private String i_e_port;
+    @JsonProperty(value = "I_E_DATE")
+    private String i_e_date;
+    @JsonProperty(value = "D_DATE")
+    private String d_date;
+    @JsonProperty(value = "DECL_PORT")
+    private String decl_port;
+    @JsonProperty(value = "SEND_COUNTRY")
+    private String send_country;
+    @JsonProperty(value = "AGENT_TYPE")
+    private String agent_type;
+    @JsonProperty(value = "LAND_PROXY")
+    private String land_proxy;
+    @JsonProperty(value = "CURR_CODE")
+    private String curr_code;
+    //    private String TRADE_COUNTRY;
+    @JsonProperty(value = "TRAF_MODE")
+    private String traf_mode;
+    @JsonProperty(value = "WRAP_TYPE")
+    private String wrap_type;
+    @JsonProperty(value = "WRAP_WOOD")
+    private String wrap_wood;
+    @JsonProperty(value = "IS_OLD")
+    private String is_old;
+    @JsonProperty(value = "ID_TYPE")
+    private String id_type;
+    @JsonProperty(value = "L_T_TRANS")
+    private String l_t_trans;
+    @JsonProperty(value = "ENTRY_TYPE")
+    private String entry_type;
+    @JsonProperty(value = "ONE_TO_BOTTOM")
+    private String one_to_bottom;   //是否一单到底
+    @JsonProperty(value = "RECEIPT_DATE")
+    private String receipt_date;    //接单日期
+    @JsonProperty(value = "BILL_NO")
+    private String bill_no;         //主单号
+    @JsonProperty(value = "PACK_NO")
+    private String pack_no;     //件数
+    @JsonProperty(value = "GROSS_WT")
+    private String gross_wt;    //主单毛重
+    @JsonProperty(value = "CHARGE_WT")
+    private String charge_wt;   //主单计费重量
+    @JsonProperty(value = "SINGLE_BATCH_NUM")
+    private String single_batch_num;    //分单数量
+    @JsonProperty(value = "PRODUCT_NUM")
+    private String product_num; //商品数量
+    @JsonProperty(value = "TRAF_NAME")
+    private String traf_name;   //运输工具名称
+    @JsonProperty(value = "TRAF_NAME_EN")
+    private String traf_name_en;    //运输工具英文名称
+    @JsonProperty(value = "VOYAGE_NO")
+    private String voyage_no;   //航班号
+    @JsonProperty(value = "VOYAGE_TIMES")
+    private String voyage_times;    //航次
+    @JsonProperty(value = "VOYAGE_DATE")
+    private String voyage_date; //航班日期
+    @JsonProperty(value = "TRADE_COUNTRY")
+    private String trade_country;   //起运国家
+    @JsonProperty(value = "E_AIRPORT")
+    private String e_airport;   //出港机场
+    @JsonProperty(value = "I_D_DATE")
+    private String i_d_date;    //进港日期
+    @JsonProperty(value = "QIYUN_PORT")
+    private String qiyun_port;  //起运港口
+    @JsonProperty(value = "USA_PROV")
+    private String usa_prov;    //美国城市所属州
+    @JsonProperty(value = "WAREHOUSE_CODE")
+    private String warehouse_code;  //仓库编码
+    @JsonProperty(value = "SEND_NAME")
+    private String send_name;   //发件人
+    @JsonProperty(value = "SEND_NAME_EN")
+    private String send_name_en;    //发件人英文
+    @JsonProperty(value = "SEND_CITY")
+    private String send_city;   //发件人城市
+    @JsonProperty(value = "SEND_CITY_EN")
+    private String send_city_en;    //发件人城市英文
+    @JsonProperty(value = "SEND_ADDRESS")
+    private String send_address;   //发件人地址
+    @JsonProperty(value = "SEND_ADDRESS_EN")
+    private String send_address_en;    //发件人地址英文
+    @JsonProperty(value = "SEND_TEL")
+    private String send_tel; //发件人电话
+    @JsonProperty(value = "STOP_ADDRESS")
+    private String stop_access;//经停地址
+    @JsonProperty(value = "STOP_ADDRESS_EN")
+    private String stop_address_en;//经停地址英文
+    @JsonProperty(value = "S_C_CODE_DECL")
+    private String s_c_code_decl;//申报单位社会信用代码
+    @JsonProperty(value = "S_C_CODE_SEND_REC")
+    private String s_c_code_send_rec;//收发货人社会信用代码
+    @JsonProperty(value = "S_C_CODE_SHIPPER")
+    private String s_c_code_shipper;//货主社会信用代码
+    @JsonProperty(value = "S_C_CODE_BUSI_UNIT")
+    private String s_c_code_busi_unit;//经营单位代码
+    @JsonProperty(value = "TRADE_MODE")
+    private String trade_mode;//监管方式
+    @JsonProperty(value = "TRANS_MODE")
+    private String trans_mode;//成交方式
+    @JsonProperty(value = "FEE_MARK")
+    private String fee_mark; //运费标记
+    @JsonProperty(value = "FEE_CURR")
+    private String fee_curr;//运费币制
+    @JsonProperty(value = "FEE_RATE")
+    private String fee_rate;//运费率
+    @JsonProperty(value = "INSUR_MARK")
+    private String insur_mark;//保险费标记
+    @JsonProperty(value = "INSUR_CURR")
+    private String insur_curr;//保险费币制
+    @JsonProperty(value = "INSUR_RATE")
+    private String insur_rate;//保险费／率
+    @JsonProperty(value = "OTHER_MARK")
+    private String other_mark;// 杂费标记
+    @JsonProperty(value = "OTHER_CURR")
+    private String other_curr;// 杂费币制
+    @JsonProperty(value = "OTHER_RATE")
+    private String other_rate;// 杂费／率
+    @JsonProperty(value = "INSPCTION_TYPE")
+    private String inspction_type;//   报检类型
+    @JsonProperty(value = "SPLIT_LUGGAGE")
+    private String split_luggage; //分运行李
+    @JsonProperty(value = "DEPART_ARRIVAL_PORT")
+    private String depart_arrival_port;//起运/运抵港
+    @JsonProperty(value = "NOTE_S")
+    private String note_S; //备注
+    private String entrusted_unit;//委托单位
+    private String business_unit_name;//经营单位名称
+    @JsonProperty(value = "CUST_ID")
+    private String custId;//报关单位
+    @JsonProperty(value = "RECEIPTZ_STATUS")
+    private String receiptz_status;//最新回执
+    @JsonProperty(value = "MAIN_GNAME")
+    private String main_gname;//主要货物名称
+    @JsonProperty(value = "STATION_ID")
+    private String stationId;//场站id
+    @JsonProperty(value = "COMMIT_CANGDAN_STATUS")
+    private String commit_sangdan_status;//舱单已提交 Y
+    @JsonProperty(value = "COMMIT_BAODAN_STATUS")
+    private String commit_baodan_status;//报单已提交 Y
+    @JsonProperty(value = "LOWER_GOODS")
+    private String lower_goods;//低价商品
+    @JsonProperty(value = "OVER_WARP")
+    private String over_warp;//溢短装
+    @JsonProperty(value = "CREATE_DATE")
+    private String create_date;//导入日期
+    @JsonProperty(value = "SINGLES")
+    private List<PartyDan> singles;
 
-    private List<PartyDan> SINGLES;
+    /**
+     * 低价商品数
+     */
+    private Integer low_price_goods;
 
-    public String getI_E_FLAG() {
-        return I_E_FLAG;
+    /**
+     * 身份证图片数量
+     */
+    private Integer id_card_pic_number;
+
+    /**
+     * 身份证核验数量
+     */
+    private Integer id_card_check_number;
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public String getI_e_flag() {
+        return i_e_flag;
+    }
+
+    public void setI_e_flag(String i_e_flag) {
+        this.i_e_flag = i_e_flag;
+    }
+
+    public String getI_e_port() {
+        return i_e_port;
+    }
+
+    public void setI_e_port(String i_e_port) {
+        this.i_e_port = i_e_port;
+    }
+
+    public String getI_e_date() {
+        return i_e_date;
+    }
+
+    public void setI_e_date(String i_e_date) {
+        this.i_e_date = i_e_date;
+    }
+
+    public String getD_date() {
+        return d_date;
+    }
+
+    public void setD_date(String d_date) {
+        this.d_date = d_date;
+    }
+
+    public String getDecl_port() {
+        return decl_port;
+    }
+
+    public void setDecl_port(String decl_port) {
+        this.decl_port = decl_port;
+    }
+
+    public String getSend_country() {
+        return send_country;
+    }
+
+    public void setSend_country(String send_country) {
+        this.send_country = send_country;
+    }
+
+    public String getAgent_type() {
+        return agent_type;
+    }
+
+    public void setAgent_type(String agent_type) {
+        this.agent_type = agent_type;
+    }
+
+    public String getLand_proxy() {
+        return land_proxy;
+    }
+
+    public void setLand_proxy(String land_proxy) {
+        this.land_proxy = land_proxy;
+    }
+
+    public String getCurr_code() {
+        return curr_code;
+    }
+
+    public void setCurr_code(String curr_code) {
+        this.curr_code = curr_code;
+    }
+
+    public String getTraf_mode() {
+        return traf_mode;
+    }
+
+    public void setTraf_mode(String traf_mode) {
+        this.traf_mode = traf_mode;
+    }
+
+    public String getWrap_type() {
+        return wrap_type;
+    }
+
+    public void setWrap_type(String wrap_type) {
+        this.wrap_type = wrap_type;
+    }
+
+    public String getWrap_wood() {
+        return wrap_wood;
+    }
+
+    public void setWrap_wood(String wrap_wood) {
+        this.wrap_wood = wrap_wood;
+    }
+
+    public String getIs_old() {
+        return is_old;
+    }
+
+    public void setIs_old(String is_old) {
+        this.is_old = is_old;
+    }
+
+    public String getId_type() {
+        return id_type;
+    }
+
+    public void setId_type(String id_type) {
+        this.id_type = id_type;
+    }
+
+    public String getL_t_trans() {
+        return l_t_trans;
+    }
+
+    public void setL_t_trans(String l_t_trans) {
+        this.l_t_trans = l_t_trans;
+    }
+
+    public String getEntry_type() {
+        return entry_type;
     }
 
-    public void setI_E_FLAG(String i_E_FLAG) {
-        I_E_FLAG = i_E_FLAG;
+    public void setEntry_type(String entry_type) {
+        this.entry_type = entry_type;
     }
 
-    public String getI_E_PORT() {
-        return I_E_PORT;
+    public String getOne_to_bottom() {
+        return one_to_bottom;
     }
 
-    public void setI_E_PORT(String i_E_PORT) {
-        I_E_PORT = i_E_PORT;
+    public void setOne_to_bottom(String one_to_bottom) {
+        this.one_to_bottom = one_to_bottom;
     }
 
-    public String getI_E_DATE() {
-        return I_E_DATE;
+    public String getReceipt_date() {
+        return receipt_date;
     }
 
-    public void setI_E_DATE(String i_E_DATE) {
-        I_E_DATE = i_E_DATE;
+    public void setReceipt_date(String receipt_date) {
+        this.receipt_date = receipt_date;
     }
 
-    public String getD_DATE() {
-        return D_DATE;
+    public String getBill_no() {
+        return bill_no;
     }
 
-    public void setD_DATE(String d_DATE) {
-        D_DATE = d_DATE;
+    public void setBill_no(String bill_no) {
+        this.bill_no = bill_no;
     }
 
-    public String getDECL_PORT() {
-        return DECL_PORT;
+    public String getPack_no() {
+        return pack_no;
     }
 
-    public void setDECL_PORT(String DECL_PORT) {
-        this.DECL_PORT = DECL_PORT;
+    public void setPack_no(String pack_no) {
+        this.pack_no = pack_no;
     }
 
-    public String getSEND_COUNTRY() {
-        return SEND_COUNTRY;
+    public String getGross_wt() {
+        return gross_wt;
     }
 
-    public void setSEND_COUNTRY(String SEND_COUNTRY) {
-        this.SEND_COUNTRY = SEND_COUNTRY;
+    public void setGross_wt(String gross_wt) {
+        this.gross_wt = gross_wt;
     }
 
-    public String getAGENT_TYPE() {
-        return AGENT_TYPE;
+    public String getCharge_wt() {
+        return charge_wt;
     }
 
-    public void setAGENT_TYPE(String AGENT_TYPE) {
-        this.AGENT_TYPE = AGENT_TYPE;
+    public void setCharge_wt(String charge_wt) {
+        this.charge_wt = charge_wt;
     }
 
-    public String getLAND_PROXY() {
-        return LAND_PROXY;
+    public String getSingle_batch_num() {
+        return single_batch_num;
     }
 
-    public void setLAND_PROXY(String LAND_PROXY) {
-        this.LAND_PROXY = LAND_PROXY;
+    public void setSingle_batch_num(String single_batch_num) {
+        this.single_batch_num = single_batch_num;
     }
 
-    public String getCURR_CODE() {
-        return CURR_CODE;
+    public String getProduct_num() {
+        return product_num;
     }
 
-    public void setCURR_CODE(String CURR_CODE) {
-        this.CURR_CODE = CURR_CODE;
+    public void setProduct_num(String product_num) {
+        this.product_num = product_num;
     }
 
-    public String getTRADE_COUNTRY() {
-        return TRADE_COUNTRY;
+    public String getTraf_name() {
+        return traf_name;
     }
 
-    public void setTRADE_COUNTRY(String TRADE_COUNTRY) {
-        this.TRADE_COUNTRY = TRADE_COUNTRY;
+    public void setTraf_name(String traf_name) {
+        this.traf_name = traf_name;
     }
 
-    public String getE_AIRPORT() {
-        return E_AIRPORT;
+    public String getTraf_name_en() {
+        return traf_name_en;
     }
 
-    public void setE_AIRPORT(String e_AIRPORT) {
-        E_AIRPORT = e_AIRPORT;
+    public void setTraf_name_en(String traf_name_en) {
+        this.traf_name_en = traf_name_en;
     }
 
-    public String getI_D_DATE() {
-        return I_D_DATE;
+    public String getVoyage_no() {
+        return voyage_no;
     }
 
-    public void setI_D_DATE(String i_D_DATE) {
-        I_D_DATE = i_D_DATE;
+    public void setVoyage_no(String voyage_no) {
+        this.voyage_no = voyage_no;
     }
 
-    public String getQIYUN_PORT() {
-        return QIYUN_PORT;
+    public String getVoyage_times() {
+        return voyage_times;
     }
 
-    public void setQIYUN_PORT(String QIYUN_PORT) {
-        this.QIYUN_PORT = QIYUN_PORT;
+    public void setVoyage_times(String voyage_times) {
+        this.voyage_times = voyage_times;
     }
 
-    public String getUSA_PROV() {
-        return USA_PROV;
+    public String getVoyage_date() {
+        return voyage_date;
     }
 
-    public void setUSA_PROV(String USA_PROV) {
-        this.USA_PROV = USA_PROV;
+    public void setVoyage_date(String voyage_date) {
+        this.voyage_date = voyage_date;
     }
 
-    public String getWAREHOUSE_CODE() {
-        return WAREHOUSE_CODE;
+    public String getTrade_country() {
+        return trade_country;
     }
 
-    public void setWAREHOUSE_CODE(String WAREHOUSE_CODE) {
-        this.WAREHOUSE_CODE = WAREHOUSE_CODE;
+    public void setTrade_country(String trade_country) {
+        this.trade_country = trade_country;
     }
 
-    public String getSEND_NAME() {
-        return SEND_NAME;
+    public String getE_airport() {
+        return e_airport;
     }
 
-    public void setSEND_NAME(String SEND_NAME) {
-        this.SEND_NAME = SEND_NAME;
+    public void setE_airport(String e_airport) {
+        this.e_airport = e_airport;
     }
 
-    public String getSEND_NAME_EN() {
-        return SEND_NAME_EN;
+    public String getI_d_date() {
+        return i_d_date;
     }
 
-    public void setSEND_NAME_EN(String SEND_NAME_EN) {
-        this.SEND_NAME_EN = SEND_NAME_EN;
+    public void setI_d_date(String i_d_date) {
+        this.i_d_date = i_d_date;
     }
 
-    public String getSEND_CITY() {
-        return SEND_CITY;
+    public String getQiyun_port() {
+        return qiyun_port;
     }
 
-    public void setSEND_CITY(String SEND_CITY) {
-        this.SEND_CITY = SEND_CITY;
+    public void setQiyun_port(String qiyun_port) {
+        this.qiyun_port = qiyun_port;
     }
 
-    public String getSEND_CITY_EN() {
-        return SEND_CITY_EN;
+    public String getUsa_prov() {
+        return usa_prov;
     }
 
-    public void setSEND_CITY_EN(String SEND_CITY_EN) {
-        this.SEND_CITY_EN = SEND_CITY_EN;
+    public void setUsa_prov(String usa_prov) {
+        this.usa_prov = usa_prov;
     }
 
-    public String getSEND_ADDRESS() {
-        return SEND_ADDRESS;
+    public String getWarehouse_code() {
+        return warehouse_code;
     }
 
-    public void setSEND_ADDRESS(String SEND_ADDRESS) {
-        this.SEND_ADDRESS = SEND_ADDRESS;
+    public void setWarehouse_code(String warehouse_code) {
+        this.warehouse_code = warehouse_code;
     }
 
-    public String getSEND_ADDRESS_EN() {
-        return SEND_ADDRESS_EN;
+    public String getSend_name() {
+        return send_name;
     }
 
-    public void setSEND_ADDRESS_EN(String SEND_ADDRESS_EN) {
-        this.SEND_ADDRESS_EN = SEND_ADDRESS_EN;
+    public void setSend_name(String send_name) {
+        this.send_name = send_name;
     }
 
-    public String getSEND_TEL() {
-        return SEND_TEL;
+    public String getSend_name_en() {
+        return send_name_en;
     }
 
-    public void setSEND_TEL(String SEND_TEL) {
-        this.SEND_TEL = SEND_TEL;
+    public void setSend_name_en(String send_name_en) {
+        this.send_name_en = send_name_en;
     }
 
-    public String getSTOP_ADDRESS() {
-        return STOP_ADDRESS;
+    public String getSend_city() {
+        return send_city;
     }
 
-    public void setSTOP_ADDRESS(String STOP_ADDRESS) {
-        this.STOP_ADDRESS = STOP_ADDRESS;
+    public void setSend_city(String send_city) {
+        this.send_city = send_city;
     }
 
-    public String getSTOP_ADDRESS_EN() {
-        return STOP_ADDRESS_EN;
+    public String getSend_city_en() {
+        return send_city_en;
     }
 
-    public void setSTOP_ADDRESS_EN(String STOP_ADDRESS_EN) {
-        this.STOP_ADDRESS_EN = STOP_ADDRESS_EN;
+    public void setSend_city_en(String send_city_en) {
+        this.send_city_en = send_city_en;
     }
 
-    public String getS_C_CODE_DECL() {
-        return S_C_CODE_DECL;
+    public String getSend_address() {
+        return send_address;
     }
 
-    public void setS_C_CODE_DECL(String s_C_CODE_DECL) {
-        S_C_CODE_DECL = s_C_CODE_DECL;
+    public void setSend_address(String send_address) {
+        this.send_address = send_address;
     }
 
-    public String getS_C_CODE_SEND_REC() {
-        return S_C_CODE_SEND_REC;
+    public String getSend_address_en() {
+        return send_address_en;
     }
 
-    public void setS_C_CODE_SEND_REC(String s_C_CODE_SEND_REC) {
-        S_C_CODE_SEND_REC = s_C_CODE_SEND_REC;
+    public void setSend_address_en(String send_address_en) {
+        this.send_address_en = send_address_en;
     }
 
-    public String getS_C_CODE_SHIPPER() {
-        return S_C_CODE_SHIPPER;
+    public String getSend_tel() {
+        return send_tel;
     }
 
-    public void setS_C_CODE_SHIPPER(String s_C_CODE_SHIPPER) {
-        S_C_CODE_SHIPPER = s_C_CODE_SHIPPER;
+    public void setSend_tel(String send_tel) {
+        this.send_tel = send_tel;
     }
 
-    public String getS_C_CODE_BUSI_UNIT() {
-        return S_C_CODE_BUSI_UNIT;
+    public String getStop_access() {
+        return stop_access;
     }
 
-    public void setS_C_CODE_BUSI_UNIT(String s_C_CODE_BUSI_UNIT) {
-        S_C_CODE_BUSI_UNIT = s_C_CODE_BUSI_UNIT;
+    public void setStop_access(String stop_access) {
+        this.stop_access = stop_access;
     }
 
-    public String getTRADE_MODE() {
-        return TRADE_MODE;
+    public String getStop_address_en() {
+        return stop_address_en;
     }
 
-    public void setTRADE_MODE(String TRADE_MODE) {
-        this.TRADE_MODE = TRADE_MODE;
+    public void setStop_address_en(String stop_address_en) {
+        this.stop_address_en = stop_address_en;
     }
 
-    public String getTRANS_MODE() {
-        return TRANS_MODE;
+    public String getS_c_code_decl() {
+        return s_c_code_decl;
     }
 
-    public void setTRANS_MODE(String TRANS_MODE) {
-        this.TRANS_MODE = TRANS_MODE;
+    public void setS_c_code_decl(String s_c_code_decl) {
+        this.s_c_code_decl = s_c_code_decl;
     }
 
-    public String getFEE_MARK() {
-        return FEE_MARK;
+    public String getS_c_code_send_rec() {
+        return s_c_code_send_rec;
     }
 
-    public void setFEE_MARK(String FEE_MARK) {
-        this.FEE_MARK = FEE_MARK;
+    public void setS_c_code_send_rec(String s_c_code_send_rec) {
+        this.s_c_code_send_rec = s_c_code_send_rec;
     }
 
-    public String getFEE_CURR() {
-        return FEE_CURR;
+    public String getS_c_code_shipper() {
+        return s_c_code_shipper;
     }
 
-    public void setFEE_CURR(String FEE_CURR) {
-        this.FEE_CURR = FEE_CURR;
+    public void setS_c_code_shipper(String s_c_code_shipper) {
+        this.s_c_code_shipper = s_c_code_shipper;
     }
 
-    public String getFEE_RATE() {
-        return FEE_RATE;
+    public String getS_c_code_busi_unit() {
+        return s_c_code_busi_unit;
     }
 
-    public void setFEE_RATE(String FEE_RATE) {
-        this.FEE_RATE = FEE_RATE;
+    public void setS_c_code_busi_unit(String s_c_code_busi_unit) {
+        this.s_c_code_busi_unit = s_c_code_busi_unit;
     }
 
-    public String getINSUR_MARK() {
-        return INSUR_MARK;
+    public String getTrade_mode() {
+        return trade_mode;
     }
 
-    public void setINSUR_MARK(String INSUR_MARK) {
-        this.INSUR_MARK = INSUR_MARK;
+    public void setTrade_mode(String trade_mode) {
+        this.trade_mode = trade_mode;
     }
 
-    public String getINSUR_CURR() {
-        return INSUR_CURR;
+    public String getTrans_mode() {
+        return trans_mode;
     }
 
-    public void setINSUR_CURR(String INSUR_CURR) {
-        this.INSUR_CURR = INSUR_CURR;
+    public void setTrans_mode(String trans_mode) {
+        this.trans_mode = trans_mode;
     }
 
-    public String getINSUR_RATE() {
-        return INSUR_RATE;
+    public String getFee_mark() {
+        return fee_mark;
     }
 
-    public void setINSUR_RATE(String INSUR_RATE) {
-        this.INSUR_RATE = INSUR_RATE;
+    public void setFee_mark(String fee_mark) {
+        this.fee_mark = fee_mark;
     }
 
-    public String getOTHER_MARK() {
-        return OTHER_MARK;
+    public String getFee_curr() {
+        return fee_curr;
     }
 
-    public void setOTHER_MARK(String OTHER_MARK) {
-        this.OTHER_MARK = OTHER_MARK;
+    public void setFee_curr(String fee_curr) {
+        this.fee_curr = fee_curr;
     }
 
-    public String getOTHER_CURR() {
-        return OTHER_CURR;
+    public String getFee_rate() {
+        return fee_rate;
     }
 
-    public void setOTHER_CURR(String OTHER_CURR) {
-        this.OTHER_CURR = OTHER_CURR;
+    public void setFee_rate(String fee_rate) {
+        this.fee_rate = fee_rate;
     }
 
-    public String getOTHER_RATE() {
-        return OTHER_RATE;
+    public String getInsur_mark() {
+        return insur_mark;
     }
 
-    public void setOTHER_RATE(String OTHER_RATE) {
-        this.OTHER_RATE = OTHER_RATE;
+    public void setInsur_mark(String insur_mark) {
+        this.insur_mark = insur_mark;
     }
 
-    public String getINSPCTION_TYPE() {
-        return INSPCTION_TYPE;
+    public String getInsur_curr() {
+        return insur_curr;
     }
 
-    public void setINSPCTION_TYPE(String INSPCTION_TYPE) {
-        this.INSPCTION_TYPE = INSPCTION_TYPE;
+    public void setInsur_curr(String insur_curr) {
+        this.insur_curr = insur_curr;
     }
 
-    public String getSPLIT_LUGGAGE() {
-        return SPLIT_LUGGAGE;
+    public String getInsur_rate() {
+        return insur_rate;
     }
 
-    public void setSPLIT_LUGGAGE(String SPLIT_LUGGAGE) {
-        this.SPLIT_LUGGAGE = SPLIT_LUGGAGE;
+    public void setInsur_rate(String insur_rate) {
+        this.insur_rate = insur_rate;
     }
 
-    public String getNOTE_S() {
-        return NOTE_S;
+    public String getOther_mark() {
+        return other_mark;
     }
 
-    public void setNOTE_S(String NOTE_S) {
-        this.NOTE_S = NOTE_S;
+    public void setOther_mark(String other_mark) {
+        this.other_mark = other_mark;
     }
 
-    public List<PartyDan> getSINGLES() {
-        return SINGLES;
+    public String getOther_curr() {
+        return other_curr;
     }
 
-    public void setSINGLES(List<PartyDan> SINGLES) {
-        this.SINGLES = SINGLES;
+    public void setOther_curr(String other_curr) {
+        this.other_curr = other_curr;
     }
 
-    public String getTRAF_MODE() {
-        return TRAF_MODE;
+    public String getOther_rate() {
+        return other_rate;
     }
 
-    public void setTRAF_MODE(String TRAF_MODE) {
-        this.TRAF_MODE = TRAF_MODE;
+    public void setOther_rate(String other_rate) {
+        this.other_rate = other_rate;
     }
 
-    public String getWRAP_TYPE() {
-        return WRAP_TYPE;
+    public String getInspction_type() {
+        return inspction_type;
     }
 
-    public void setWRAP_TYPE(String WRAP_TYPE) {
-        this.WRAP_TYPE = WRAP_TYPE;
+    public void setInspction_type(String inspction_type) {
+        this.inspction_type = inspction_type;
     }
 
-    public String getWRAP_WOOD() {
-        return WRAP_WOOD;
+    public String getSplit_luggage() {
+        return split_luggage;
     }
 
-    public void setWRAP_WOOD(String WRAP_WOOD) {
-        this.WRAP_WOOD = WRAP_WOOD;
+    public void setSplit_luggage(String split_luggage) {
+        this.split_luggage = split_luggage;
     }
 
-    public String getIS_OLD() {
-        return IS_OLD;
+    public String getDepart_arrival_port() {
+        return depart_arrival_port;
     }
 
-    public void setIS_OLD(String IS_OLD) {
-        this.IS_OLD = IS_OLD;
+    public void setDepart_arrival_port(String depart_arrival_port) {
+        this.depart_arrival_port = depart_arrival_port;
     }
 
-    public String getID_TYPE() {
-        return ID_TYPE;
+    public String getNote_S() {
+        return note_S;
     }
 
-    public void setID_TYPE(String ID_TYPE) {
-        this.ID_TYPE = ID_TYPE;
+    public void setNote_S(String note_S) {
+        this.note_S = note_S;
     }
 
-    public String getL_T_TRANS() {
-        return L_T_TRANS;
+    public String getEntrusted_unit() {
+        return entrusted_unit;
     }
 
-    public void setL_T_TRANS(String l_T_TRANS) {
-        L_T_TRANS = l_T_TRANS;
+    public void setEntrusted_unit(String entrusted_unit) {
+        this.entrusted_unit = entrusted_unit;
     }
 
-    public String getENTRY_TYPE() {
-        return ENTRY_TYPE;
+    public String getBusiness_unit_name() {
+        return business_unit_name;
     }
 
-    public void setENTRY_TYPE(String ENTRY_TYPE) {
-        this.ENTRY_TYPE = ENTRY_TYPE;
+    public void setBusiness_unit_name(String business_unit_name) {
+        this.business_unit_name = business_unit_name;
     }
 
-    public String getONE_TO_BOTTOM() {
-        return ONE_TO_BOTTOM;
+    public String getCustId() {
+        return custId;
     }
 
-    public void setONE_TO_BOTTOM(String ONE_TO_BOTTOM) {
-        this.ONE_TO_BOTTOM = ONE_TO_BOTTOM;
+    public void setCustId(String custId) {
+        this.custId = custId;
     }
 
-    public String getRECEIPT_DATE() {
-        return RECEIPT_DATE;
+    public String getReceiptz_status() {
+        return receiptz_status;
     }
 
-    public void setRECEIPT_DATE(String RECEIPT_DATE) {
-        this.RECEIPT_DATE = RECEIPT_DATE;
+    public void setReceiptz_status(String receiptz_status) {
+        this.receiptz_status = receiptz_status;
     }
 
-    public String getBILL_NO() {
-        return BILL_NO;
+    public String getMain_gname() {
+        return main_gname;
     }
 
-    public void setBILL_NO(String BILL_NO) {
-        this.BILL_NO = BILL_NO;
+    public void setMain_gname(String main_gname) {
+        this.main_gname = main_gname;
     }
 
-    public String getPACK_NO() {
-        return PACK_NO;
+    public String getStationId() {
+        return stationId;
     }
 
-    public void setPACK_NO(String PACK_NO) {
-        this.PACK_NO = PACK_NO;
+    public void setStationId(String stationId) {
+        this.stationId = stationId;
     }
 
-    public String getGROSS_WT() {
-        return GROSS_WT;
+    public String getCommit_sangdan_status() {
+        return commit_sangdan_status;
     }
 
-    public void setGROSS_WT(String GROSS_WT) {
-        this.GROSS_WT = GROSS_WT;
+    public void setCommit_sangdan_status(String commit_sangdan_status) {
+        this.commit_sangdan_status = commit_sangdan_status;
     }
 
-    public String getCHARGE_WT() {
-        return CHARGE_WT;
+    public String getCommit_baodan_status() {
+        return commit_baodan_status;
     }
 
-    public void setCHARGE_WT(String CHARGE_WT) {
-        this.CHARGE_WT = CHARGE_WT;
+    public void setCommit_baodan_status(String commit_baodan_status) {
+        this.commit_baodan_status = commit_baodan_status;
     }
 
-    public String getSINGLE_BATCH_NUM() {
-        return SINGLE_BATCH_NUM;
+    public String getLower_goods() {
+        return lower_goods;
     }
 
-    public void setSINGLE_BATCH_NUM(String SINGLE_BATCH_NUM) {
-        this.SINGLE_BATCH_NUM = SINGLE_BATCH_NUM;
+    public void setLower_goods(String lower_goods) {
+        this.lower_goods = lower_goods;
     }
 
-    public String getPRODUCT_NUM() {
-        return PRODUCT_NUM;
+    public String getOver_warp() {
+        return over_warp;
     }
 
-    public void setPRODUCT_NUM(String PRODUCT_NUM) {
-        this.PRODUCT_NUM = PRODUCT_NUM;
+    public void setOver_warp(String over_warp) {
+        this.over_warp = over_warp;
     }
 
-    public String getTRAF_NAME() {
-        return TRAF_NAME;
+    public String getCreate_date() {
+        return create_date;
     }
 
-    public void setTRAF_NAME(String TRAF_NAME) {
-        this.TRAF_NAME = TRAF_NAME;
+    public void setCreate_date(String create_date) {
+        this.create_date = create_date;
     }
 
-    public String getTRAF_NAME_EN() {
-        return TRAF_NAME_EN;
+    public List<PartyDan> getSingles() {
+        return singles;
     }
 
-    public void setTRAF_NAME_EN(String TRAF_NAME_EN) {
-        this.TRAF_NAME_EN = TRAF_NAME_EN;
+    public void setSingles(List<PartyDan> singles) {
+        this.singles = singles;
     }
 
-    public String getVOYAGE_NO() {
-        return VOYAGE_NO;
+    public Integer getLow_price_goods() {
+        return low_price_goods;
     }
 
-    public void setVOYAGE_NO(String VOYAGE_NO) {
-        this.VOYAGE_NO = VOYAGE_NO;
+    public void setLow_price_goods(Integer low_price_goods) {
+        this.low_price_goods = low_price_goods;
     }
 
-    public String getVOYAGE_TIMES() {
-        return VOYAGE_TIMES;
+    public Integer getId_card_pic_number() {
+        return id_card_pic_number;
     }
 
-    public void setVOYAGE_TIMES(String VOYAGE_TIMES) {
-        this.VOYAGE_TIMES = VOYAGE_TIMES;
+    public void setId_card_pic_number(Integer id_card_pic_number) {
+        this.id_card_pic_number = id_card_pic_number;
     }
 
-    public String getVOYAGE_DATE() {
-        return VOYAGE_DATE;
+    public Integer getId_card_check_number() {
+        return id_card_check_number;
     }
 
-    public void setVOYAGE_DATE(String VOYAGE_DATE) {
-        this.VOYAGE_DATE = VOYAGE_DATE;
+    public void setId_card_check_number(Integer id_card_check_number) {
+        this.id_card_check_number = id_card_check_number;
     }
 }
