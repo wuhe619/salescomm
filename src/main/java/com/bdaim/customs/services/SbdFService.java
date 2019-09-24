@@ -121,10 +121,10 @@ public class SbdFService implements BusiService {
                 content.put("main_id", data.getLongValue("pid"));
                 content.put("status", 0);
                 content.put("input", input);
-                serviceUtils.insertSFVerifyQueue(content.toJSONString(), NumberConvertUtil.parseLong(map.get("id")), cust_user_id);
-                if(data!=null){
+                serviceUtils.insertSFVerifyQueue(content.toJSONString(), NumberConvertUtil.parseLong(map.get("id")), cust_user_id, cust_id);
+                if (data != null) {
                     data.put("check_status", "0");
-                    jdbcTemplate.update(updateSql,data.toJSONString(), map.get("id"), busiType);
+                    jdbcTemplate.update(updateSql, data.toJSONString(), map.get("id"), busiType);
                 }
             }
 
@@ -223,7 +223,7 @@ public class SbdFService implements BusiService {
             Exception {
         log.info("申报单分单id:{}开始删除,type:{}", id, busiType);
 //        String sql = "select id,type,content,ext_1,ext_2,ext_3,ext_4 from h_data_manager where id=" + id + " and type='" + busiType + "'";
-        HBusiDataManager manager = serviceUtils.getObjectByIdAndType(id,busiType);//jdbcTemplate.queryForObject(sql, HBusiDataManager.class);
+        HBusiDataManager manager = serviceUtils.getObjectByIdAndType(id, busiType);//jdbcTemplate.queryForObject(sql, HBusiDataManager.class);
         if (manager.getCust_id() == null || (!cust_id.equals(manager.getCust_id().toString()))) {
             throw new Exception("无权删除");
         }

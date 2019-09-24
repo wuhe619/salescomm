@@ -49,49 +49,50 @@ public class ServiceUtils {
     public void addDataToES(String id, String type, JSONObject content) {
         if (type.equals(BusiTypeEnum.SZ.getType())) {
             elasticSearchService.addDocumentToType(Constants.SZ_INFO_INDEX, "haiguan", id, content);
-        }else if(type.equals(BusiTypeEnum.CZ.getType())){
+        } else if (type.equals(BusiTypeEnum.CZ.getType())) {
             elasticSearchService.addDocumentToType(Constants.CZ_INFO_INDEX, "haiguan", id, content);
-        }else if(type.equals(BusiTypeEnum.BZ.getType())){
+        } else if (type.equals(BusiTypeEnum.BZ.getType())) {
             elasticSearchService.addDocumentToType(Constants.BZ_INFO_INDEX, "haiguan", id, content);
         } else if (type.equals(BusiTypeEnum.SF.getType())) {
             elasticSearchService.addDocumentToType(Constants.SF_INFO_INDEX, "haiguan", id, content);
-        }else if( type.equals(BusiTypeEnum.CF.getType())){
+        } else if (type.equals(BusiTypeEnum.CF.getType())) {
             elasticSearchService.addDocumentToType(Constants.CF_INFO_INDEX, "haiguan", id, content);
-        }else if(type.equals(BusiTypeEnum.BF.getType())){
-            elasticSearchService.addDocumentToType(Constants.BF_INFO_INDEX, "haiguan", id,content);
-        }else if (type.equals(BusiTypeEnum.SS.getType())) {
+        } else if (type.equals(BusiTypeEnum.BF.getType())) {
+            elasticSearchService.addDocumentToType(Constants.BF_INFO_INDEX, "haiguan", id, content);
+        } else if (type.equals(BusiTypeEnum.SS.getType())) {
             elasticSearchService.addDocumentToType(Constants.SS_INFO_INDEX, "haiguan", id, content);
-        }else if(type.equals(BusiTypeEnum.CS.getType())){
+        } else if (type.equals(BusiTypeEnum.CS.getType())) {
             elasticSearchService.addDocumentToType(Constants.CS_INFO_INDEX, "haiguan", id, content);
-        }else if(type.equals(BusiTypeEnum.BS.getType())){
+        } else if (type.equals(BusiTypeEnum.BS.getType())) {
             elasticSearchService.addDocumentToType(Constants.BS_INFO_INDEX, "haiguan", id, content);
         }
     }
 
     /**
      * 更新es
+     *
      * @param type
      * @param id
      * @param content
      */
-    public void updateDataToES(String type,String id,JSONObject content) {
+    public void updateDataToES(String type, String id, JSONObject content) {
         if (type.equals(BusiTypeEnum.SZ.getType())) {
             elasticSearchService.updateDocumentToType(Constants.SZ_INFO_INDEX, "haiguan", id, content);
-        }else if(type.equals(BusiTypeEnum.CZ.getType())){
+        } else if (type.equals(BusiTypeEnum.CZ.getType())) {
             elasticSearchService.updateDocumentToType(Constants.CZ_INFO_INDEX, "haiguan", id, content);
-        }else if(type.equals(BusiTypeEnum.BZ.getType())){
+        } else if (type.equals(BusiTypeEnum.BZ.getType())) {
             elasticSearchService.updateDocumentToType(Constants.BZ_INFO_INDEX, "haiguan", id, content);
         } else if (type.equals(BusiTypeEnum.SF.getType())) {
             elasticSearchService.updateDocumentToType(Constants.SF_INFO_INDEX, "haiguan", id, content);
-        }else if( type.equals(BusiTypeEnum.CF.getType())){
+        } else if (type.equals(BusiTypeEnum.CF.getType())) {
             elasticSearchService.updateDocumentToType(Constants.CF_INFO_INDEX, "haiguan", id, content);
-        }else if(type.equals(BusiTypeEnum.BF.getType())){
+        } else if (type.equals(BusiTypeEnum.BF.getType())) {
             elasticSearchService.updateDocumentToType(Constants.BF_INFO_INDEX, "haiguan", id, content);
-        }else if (type.equals(BusiTypeEnum.SS.getType())) {
+        } else if (type.equals(BusiTypeEnum.SS.getType())) {
             elasticSearchService.updateDocumentToType(Constants.SS_INFO_INDEX, "haiguan", id, content);
-        }else if(type.equals(BusiTypeEnum.CS.getType())){
+        } else if (type.equals(BusiTypeEnum.CS.getType())) {
             elasticSearchService.updateDocumentToType(Constants.CS_INFO_INDEX, "haiguan", id, content);
-        }else if(type.equals(BusiTypeEnum.BS.getType())){
+        } else if (type.equals(BusiTypeEnum.BS.getType())) {
             elasticSearchService.updateDocumentToType(Constants.BS_INFO_INDEX, "haiguan", id, content);
         }
 
@@ -106,60 +107,61 @@ public class ServiceUtils {
     public void deleteDatafromES(String type, String id) {
         if (type.equals(BusiTypeEnum.SZ.getType())) {
             elasticSearchService.deleteDocumentFromType(Constants.SZ_INFO_INDEX, "haiguan", id);
-        }else if(type.equals(BusiTypeEnum.CZ.getType())){
+        } else if (type.equals(BusiTypeEnum.CZ.getType())) {
             elasticSearchService.deleteDocumentFromType(Constants.CZ_INFO_INDEX, "haiguan", id);
-        }else if(type.equals(BusiTypeEnum.BZ.getType())){
+        } else if (type.equals(BusiTypeEnum.BZ.getType())) {
             elasticSearchService.deleteDocumentFromType(Constants.BZ_INFO_INDEX, "haiguan", id);
         } else if (type.equals(BusiTypeEnum.SF.getType())) {
             elasticSearchService.deleteDocumentFromType(Constants.SF_INFO_INDEX, "haiguan", id);
-        }else if( type.equals(BusiTypeEnum.CF.getType())){
+        } else if (type.equals(BusiTypeEnum.CF.getType())) {
             elasticSearchService.deleteDocumentFromType(Constants.CF_INFO_INDEX, "haiguan", id);
-        }else if(type.equals(BusiTypeEnum.BF.getType())){
+        } else if (type.equals(BusiTypeEnum.BF.getType())) {
             elasticSearchService.deleteDocumentFromType(Constants.BF_INFO_INDEX, "haiguan", id);
-        }else if (type.equals(BusiTypeEnum.SS.getType())) {
+        } else if (type.equals(BusiTypeEnum.SS.getType())) {
             elasticSearchService.deleteDocumentFromType(Constants.SS_INFO_INDEX, "haiguan", id);
-        }else if(type.equals(BusiTypeEnum.CS.getType())){
+        } else if (type.equals(BusiTypeEnum.CS.getType())) {
             elasticSearchService.deleteDocumentFromType(Constants.CS_INFO_INDEX, "haiguan", id);
-        }else if(type.equals(BusiTypeEnum.BS.getType())){
+        } else if (type.equals(BusiTypeEnum.BS.getType())) {
             elasticSearchService.deleteDocumentFromType(Constants.BS_INFO_INDEX, "haiguan", id);
         }
     }
 
 
-    public HBusiDataManager getObjectByIdAndType(Long id, String type){
-        String sql="select * from h_data_manager where id="+id+" and type='"+type+"'";
+    public HBusiDataManager getObjectByIdAndType(Long id, String type) {
+        String sql = "select * from h_data_manager where id=" + id + " and type='" + type + "'";
         RowMapper<HBusiDataManager> managerRowMapper = new BeanPropertyRowMapper<>(HBusiDataManager.class);
-        List<HBusiDataManager> list = jdbcTemplate.query(sql,managerRowMapper);
-        if(list!=null && list.size()>0){
+        List<HBusiDataManager> list = jdbcTemplate.query(sql, managerRowMapper);
+        if (list != null && list.size() > 0) {
             return list.get(0);
         }
         return null;
     }
 
-    public void delDataListByPid(Long pid){
-        String sql="delete from h_data_manager where CASE WHEN JSON_VALID(content) THEN  JSON_EXTRACT(content, '$.pid')=" + pid + " ELSE null END or CASE WHEN JSON_VALID(content) THEN  JSON_EXTRACT(content, '$.pid')='"+pid+"' ELSE null END";
+    public void delDataListByPid(Long pid) {
+        String sql = "delete from h_data_manager where CASE WHEN JSON_VALID(content) THEN  JSON_EXTRACT(content, '$.pid')=" + pid + " ELSE null END or CASE WHEN JSON_VALID(content) THEN  JSON_EXTRACT(content, '$.pid')='" + pid + "' ELSE null END";
         jdbcTemplate.execute(sql);
     }
 
-    public List<HBusiDataManager> getDataList(String type,Long pid){
-        String sql2 = "select * from h_data_manager where  type='"+type+"' and ( CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')="+pid +" ELSE null END  or CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')='"+pid+"' ELSE null END)";
-        log.info("sql2="+sql2);
+    public List<HBusiDataManager> getDataList(String type, Long pid) {
+        String sql2 = "select * from h_data_manager where  type='" + type + "' and ( CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')=" + pid + " ELSE null END  or CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')='" + pid + "' ELSE null END)";
+        log.info("sql2=" + sql2);
        /* RowMapper<HBusiDataManager> managerRowMapper=new BeanPropertyRowMapper<>(HBusiDataManager.class);
         List<HBusiDataManager> list = jdbcTemplate.query(sql2,managerRowMapper);*/
 
-       List<Map<String,Object>> list2 = jdbcTemplate.queryForList(sql2);
-       log.info("list=="+list2);
-        List<HBusiDataManager> list = JSON.parseArray(JSON.toJSONString(list2),HBusiDataManager.class);
-       return list;
+        List<Map<String, Object>> list2 = jdbcTemplate.queryForList(sql2);
+        log.info("list==" + list2);
+        List<HBusiDataManager> list = JSON.parseArray(JSON.toJSONString(list2), HBusiDataManager.class);
+        return list;
     }
 
-    public void delDataListByIdAndType(Long id,String type){
-        String sql="delete from h_data_manager where type='"+type+"' and id="+id;
+    public void delDataListByIdAndType(Long id, String type) {
+        String sql = "delete from h_data_manager where type='" + type + "' and id=" + id;
         jdbcTemplate.execute(sql);
     }
 
-    public void insertSFVerifyQueue(String content, long billId, long userId){
+    public void insertSFVerifyQueue(String content, long billId, long userId, String custId) {
         TResourceLog queue = new TResourceLog();
+        queue.setCustId(custId);
         queue.setContent(content);
         queue.setBusiId(String.valueOf(billId));
         queue.setCustUserId(userId);
@@ -168,13 +170,13 @@ public class ServiceUtils {
         queue.setBusiType(1);
         queue.setSupplierId(SupplierEnum.ZAX.getSupplierId());
         MarketResourceEntity resourceId = sourceDao.getResourceId(SupplierEnum.ZAX.getSupplierId(), ResourceEnum.CHECK_IDCARD.getType());
-        if(resourceId!=null){
+        if (resourceId != null) {
             queue.setResourceId(resourceId.getResourceId());
         }
         hBusiDataManagerDao.saveOrUpdate(queue);
     }
 
-    public List<Map<String, Object>> listObjectByParam(String busiType, String cust_id, JSONObject params){
+    public List<Map<String, Object>> listObjectByParam(String busiType, String cust_id, JSONObject params) {
         List sqlParams = new ArrayList();
         StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from h_data_manager where type=?");
         if (!"all".equals(cust_id))
@@ -185,7 +187,7 @@ public class ServiceUtils {
         Iterator keys = params.keySet().iterator();
         while (keys.hasNext()) {
             String key = (String) keys.next();
-            if("".equals(String.valueOf(params.get(key)))) continue;
+            if ("".equals(String.valueOf(params.get(key)))) continue;
             if ("pageNum".equals(key) || "pageSize".equals(key)) continue;
             if ("cust_id".equals(key)) {
                 sqlstr.append(" and cust_id=?");
@@ -199,9 +201,9 @@ public class ServiceUtils {
                 sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(3) + "') < ?");
             } else if (key.startsWith("_le_")) {
                 sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(4) + "') <= ?");
-            }else if (key.startsWith("_eq_")) {
+            } else if (key.startsWith("_eq_")) {
                 sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(4) + "') = ?");
-            }else if (key.startsWith("_range_")) {
+            } else if (key.startsWith("_range_")) {
                 if ("0".equals(String.valueOf(params.get(key)))) {
                     sqlstr.append(" and ( JSON_EXTRACT(content, '$." + key.substring(7) + "') <= ?")
                             .append(" OR JSON_EXTRACT(content, '$." + key.substring(7) + "') = '' ")
@@ -209,7 +211,7 @@ public class ServiceUtils {
                 } else {
                     sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(7) + "') >= ?");
                 }
-            }  else {
+            } else {
                 sqlstr.append(" and JSON_EXTRACT(content, '$." + key + "')=?");
             }
 
