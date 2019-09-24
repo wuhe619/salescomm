@@ -79,8 +79,7 @@ public class SbdSService implements BusiService {
             if(page!=null && page.getTotal()>0){
                 List dataList = page.getData();
                 Map<String ,Object> d = (Map<String, Object>) dataList.get(0);
-                String content = (String) d.get("content");
-                JSONObject contentObj=JSON.parseObject(content);
+                JSONObject contentObj = JSON.parseObject(JSON.toJSONString(d));
                 duty_paid_price = contentObj.getFloatValue("duty_price");
                 if(StringUtil.isNotEmpty(info.getString("decl_price"))){
                     if(Float.valueOf(info.getString("decl_price")) < duty_paid_price){
@@ -178,8 +177,7 @@ public class SbdSService implements BusiService {
             if(page!=null && page.getTotal()>0){
                 List dataList = page.getData();
                 Map<String ,Object> d = (Map<String, Object>) dataList.get(0);
-                String _content = (String) d.get("content");
-                JSONObject contentObj = JSON.parseObject(_content);
+                JSONObject contentObj = JSON.parseObject(JSON.toJSONString(d));
                 duty_paid_price = contentObj.getFloatValue("duty_price");
 
                 tax_rate = contentObj.getFloatValue("tax_rate");
