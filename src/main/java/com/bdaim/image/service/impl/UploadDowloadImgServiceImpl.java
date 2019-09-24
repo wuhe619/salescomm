@@ -1152,6 +1152,16 @@ public class UploadDowloadImgServiceImpl implements UploadDowloadService {
             logger.warn("获取file.file_path文件异常" + e.getMessage());
         }
 
+        filePath = "/data/upload/0/" + fileId;
+        file = new File(filePath);
+        try (FileInputStream fis = new FileInputStream(file)) {
+            if (file.exists()) {
+                IOUtils.copy(fis, response.getOutputStream());
+            }
+        } catch (Exception e) {
+            logger.warn("获取/data/upload/0文件异常" + e.getMessage());
+        }
+
         // 查询数据库对应文件磁盘位置
         HFile fileInfo = fileDao.selectByServiceId(fileId);
         if (fileInfo != null) {
