@@ -72,10 +72,6 @@ public class ExportExcelService {
     }
 
     private void exportExcelByTemplate(List<JSONObject> list, JSONObject param, HttpServletResponse response) throws IllegalAccessException, IOException {
-        /*if (StringUtil.isEmpty(exportTemplate.get(param.getString("_rule_")))) {
-            LOG.warn("导出规格:{}未找到对应模板", param.getString("_rule_"));
-            return;
-        }*/
         // 生成workbook 并导出
         String templatePath = "tp/" + param.getString("_rule_") + ".xlsx";
         Map<String, Object> map = new HashMap<>();
