@@ -9,10 +9,7 @@ import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.service.ElasticSearchService;
 import com.bdaim.common.service.ResourceService;
 import com.bdaim.common.service.UploadFileService;
-import com.bdaim.common.util.BusinessEnum;
-import com.bdaim.common.util.NumberConvertUtil;
-import com.bdaim.common.util.StringUtil;
-import com.bdaim.common.util.ZipUtil;
+import com.bdaim.common.util.*;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.entity.CustomerProperty;
 import com.bdaim.customs.dao.HBusiDataManagerDao;
@@ -22,6 +19,7 @@ import com.bdaim.customs.dao.HReceiptRecordDao;
 import com.bdaim.customs.dto.FileModel;
 import com.bdaim.customs.dto.QueryDataParams;
 import com.bdaim.customs.entity.*;
+import com.bdaim.customs.utils.DatesUtil;
 import com.bdaim.customs.utils.ServiceUtils;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.MatchPhraseQueryBuilder;
@@ -39,6 +37,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 @Service
@@ -1233,7 +1232,7 @@ public class CustomsService {
 
 
     public List<Map<String, Object>> hzTotal(String type,String stationId, String custId, LoginUser lu){
-        StringBuffer sql = new StringBuffer("select ext_1,count(0)num from h_data_manager where type='"+type+"'");
+        StringBuffer sql = new StringBuffer("select ext_1 status,count(0)num from h_data_manager where type='"+type+"'");
         if (!"ROLE_USER".equals(lu.getUserType())) {
             custId = lu.getCustId();
             sql.append(" and cust_id='"+custId+"'");
@@ -1245,8 +1244,13 @@ public class CustomsService {
                 sql.append(" and cust_id='" + custId + "'");
             }
         }
+        String begin = DateUtil.fmtDateToStr(DatesUtil.getBeginDayOfWeek(),"yyyy-MM-dd");
+        String end = DateUtil.fmtDateToStr(DatesUtil.getEndDayOfWeek(),"yyyy-MM-dd");
+        sql.append(" and create_date>='").append(begin).append("' and create_date<='").append(end).append("'");
+        sql.append("group by ext_1");
 
-        return null;
+        List<Map<String,Object>> data = jdbcTemplate.queryForList(sql.toString());
+        return data;
 
     }
 
