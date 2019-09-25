@@ -669,6 +669,9 @@ public class CustomerService {
         }
         if (StringUtil.isNotEmpty(customerRegistDTO.getCreateId())) {
             sqlBuilder.append(" AND cjc.createId ='" + customerRegistDTO.getCreateId() + "'");
+        }else {
+            //过滤客户自己创建的企业
+            sqlBuilder.append(" AND cjc.createId =''");
         }
         if (StringUtil.isNotEmpty(customerRegistDTO.getName())) {
             sqlBuilder.append(" AND t2.account LIKE '%" + customerRegistDTO.getName() + "%'");
