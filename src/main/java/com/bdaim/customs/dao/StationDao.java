@@ -32,7 +32,7 @@ public class StationDao extends SimpleHibernateDao<Station, String> {
         try {
             data = jdbcTemplate.queryForMap(sql, id);
         } catch (EmptyResultDataAccessException e) {
-            logger.warn("查询主单:{}失败", id);
+            logger.warn("查询:{}失败", id);
             data = null;
         }
         if (data == null)
