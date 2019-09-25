@@ -2,6 +2,7 @@ package com.bdaim.customs.services;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.service.BusiService;
 import com.bdaim.common.service.ElasticSearchService;
 import com.bdaim.common.service.SequenceService;
@@ -88,9 +89,11 @@ public class BgdZService implements BusiService {
         if ("HAIGUAN".equals(info.getString("_rule_"))) {
             String sql = "select content, cust_id, cust_group_id, cust_user_id, create_id, create_date ,ext_1, ext_2, ext_3, ext_4, ext_5 from h_data_manager where type=? and id=? ";
             Map m = jdbcTemplate.queryForMap(sql, busiType, id);
-            if ("1".equals(String.valueOf(m.get("ext_1")))) {
+            String cdContent = String.valueOf(m.get("content"));
+            if ("1".equals(String.valueOf(m.get("ext_1"))) && StringUtil.isNotEmpty(cdContent)
+                    && "1.".equals(JSON.parseObject(cdContent).getString("send_status"))) {
                 log.warn("报关单主单:[" + id + "]已提交至海关");
-                throw new Exception("报关单主单:[" + id + "]已提交至海关");
+                throw new TouchException("报关单主单:[" + id + "]已提交至海关");
             }
             // 更新报关单主单信息
             String content = (String) m.get("content");

@@ -2,6 +2,7 @@ package com.bdaim.common.controller;
 
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.auth.LoginUser;
+import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.common.service.BusiEntityService;
@@ -101,7 +102,9 @@ public class BusiEntityController extends BasicAction {
 
             id = busiEntityService.saveInfo(cust_id, cust_group_id, cust_user_id, busiType, id, info);
             resp.setData(id);
-        } catch (Exception e) {
+        } catch (TouchException e) {
+            return new ResponseInfoAssemble().failure(-1, e.getMessage());
+        }catch (Exception e) {
             logger.error("保存记录异常:", e);
             return new ResponseInfoAssemble().failure(-1, "保存记录异常:[" + busiType + "]");
         }

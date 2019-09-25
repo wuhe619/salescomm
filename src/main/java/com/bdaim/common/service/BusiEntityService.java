@@ -2,6 +2,7 @@ package com.bdaim.common.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.dto.Page;
+import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.common.util.spring.SpringContextHelper;
 import com.bdaim.customer.dao.CustomerDao;
@@ -309,7 +310,7 @@ public class BusiEntityService {
             Map data = null;
             try {
                 data = jdbcTemplate.queryForMap("select content from h_data_manager where type=? and cust_id=? and id=?", busiType, cust_id, id);
-            }  catch (DataAccessException e) {
+            } catch (DataAccessException e) {
                 logger.error("未查询到数据:[" + busiType + "]" + id, e);
             } catch (Exception e) {
                 logger.error("读取数据异常:[" + busiType + "]" + id, e);
@@ -361,6 +362,9 @@ public class BusiEntityService {
                 sqlParams.add(id);
 
                 jdbcTemplate.update(sql2.toString(), sqlParams.toArray());
+            } catch (TouchException e) {
+                logger.warn("更新记录异常:[" + busiType + "]" + id, e);
+                throw e;
             } catch (Exception e) {
                 logger.error("更新记录异常:[" + busiType + "]" + id, e);
                 throw new Exception("更新记录异常:[" + busiType + "]" + id);
