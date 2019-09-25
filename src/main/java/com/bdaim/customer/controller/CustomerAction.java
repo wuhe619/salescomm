@@ -181,10 +181,7 @@ public class CustomerAction extends BasicAction {
     public ResponseInfo regist(@RequestBody CustomerRegistDTO customerRegistDTO) {
         try {
             LoginUser lu = opUser();
-            if ("ROLE_USER".equals(lu.getRole()) || "admin".equals(lu.getRole())) {
-                //后台创建的企业赋值为0
-                customerRegistDTO.setCreateId("0");
-            } else {
+            if (!"ROLE_USER".equals(lu.getRole()) && !"admin".equals(lu.getRole())) {
                 //前台创建的createId是当前登陆企业id
                 customerRegistDTO.setCreateId(lu.getCustId());
             }
