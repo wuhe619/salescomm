@@ -37,7 +37,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 @Service
@@ -828,6 +827,7 @@ public class CustomsService {
                 fileList.add(fileModel);
 
             }
+            HBusiDataManager data = null;
             if (fileList != null && fileList.size() > 0) {
                 // 根据主单ID查询分单列表
                 List<HBusiDataManager> fdList = new ArrayList<>();
@@ -838,7 +838,7 @@ public class CustomsService {
                     HBusiDataManager param = new HBusiDataManager();
                     param.setId(NumberConvertUtil.parseInt(id));
                     param.setType(BusiTypeEnum.SF.getType());
-                    HBusiDataManager data = hBusiDataManagerDao.get(param);
+                    data = hBusiDataManagerDao.get(param);
                     if (data != null) {
                         fdList.add(data);
                     }
@@ -861,12 +861,17 @@ public class CustomsService {
                     if (jsonObject != null) {
                         // 身份证照片存储对象ID
                         if (1 == type) {
-                            jsonObject.put(picKey, map.get(jsonObject.getString("id_no")));
+                            if (StringUtil.isEmpty(String.valueOf(map.get(jsonObject.getString("id_no"))))) {
+                                jsonObject.put("idcard_pic_flag", "0");
+                                jsonObject.put(picKey, "");
+                            } else {
+                                jsonObject.put(picKey, map.get(jsonObject.getString("id_no")));
+                                jsonObject.put("idcard_pic_flag", "1");
+                            }
                         } else {
                             jsonObject.put(picKey, objectId);
+                            jsonObject.put("idcard_pic_flag", "1");
                         }
-
-                        jsonObject.put("idcard_pic_flag", "1");
                         d.setContent(jsonObject.toJSONString());
                         d.setExt_6(jsonObject.getString(picKey));
                         hBusiDataManagerDao.saveOrUpdate(d);
@@ -876,6 +881,9 @@ public class CustomsService {
                 // 更新主单下分单的身份证照片数量
                 if (1 == type) {
                     updateMainDanIdCardNumber(NumberConvertUtil.parseInt(id));
+                } else if (2 == type && data != null) {
+                    JSONObject dfData = JSON.parseObject(data.getContent());
+                    updateMainDanIdCardNumber(dfData.getIntValue("pid"));
                 }
                 code = 1;
             } else {
@@ -1019,7 +1027,7 @@ public class CustomsService {
      * @return
      * @throws TouchException
      */
-    public int clearSFCardIdPic(List<Integer> id) {
+    /*public int clearSFCardIdPic(List<Integer> id) {
         int code = 0;
         List<HBusiDataManager> hBusiDataManagers = hBusiDataManagerDao.listHBusiDataManager(id, BusiTypeEnum.SF.getKey());
         if (hBusiDataManagers != null) {
@@ -1045,7 +1053,7 @@ public class CustomsService {
             code = 1;
         }
         return code;
-    }
+    }*/
 
     /**
      * 更新申报单主单身份证照片数量
