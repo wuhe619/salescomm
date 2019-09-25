@@ -37,7 +37,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 @Service
@@ -828,6 +827,7 @@ public class CustomsService {
                 fileList.add(fileModel);
 
             }
+            HBusiDataManager data = null;
             if (fileList != null && fileList.size() > 0) {
                 // 根据主单ID查询分单列表
                 List<HBusiDataManager> fdList = new ArrayList<>();
@@ -838,7 +838,7 @@ public class CustomsService {
                     HBusiDataManager param = new HBusiDataManager();
                     param.setId(NumberConvertUtil.parseInt(id));
                     param.setType(BusiTypeEnum.SF.getType());
-                    HBusiDataManager data = hBusiDataManagerDao.get(param);
+                    data = hBusiDataManagerDao.get(param);
                     if (data != null) {
                         fdList.add(data);
                     }
@@ -861,12 +861,16 @@ public class CustomsService {
                     if (jsonObject != null) {
                         // 身份证照片存储对象ID
                         if (1 == type) {
-                            jsonObject.put(picKey, map.get(jsonObject.getString("id_no")));
+                            if (StringUtil.isEmpty(String.valueOf(map.get(jsonObject.getString("id_no"))))) {
+                                jsonObject.put("idcard_pic_flag", "0");
+                                jsonObject.put(picKey, "");
+                            } else {
+                                jsonObject.put(picKey, map.get(jsonObject.getString("id_no")));
+                                jsonObject.put("idcard_pic_flag", "1");
+                            }
                         } else {
                             jsonObject.put(picKey, objectId);
                         }
-
-                        jsonObject.put("idcard_pic_flag", "1");
                         d.setContent(jsonObject.toJSONString());
                         d.setExt_6(jsonObject.getString(picKey));
                         hBusiDataManagerDao.saveOrUpdate(d);
@@ -876,6 +880,9 @@ public class CustomsService {
                 // 更新主单下分单的身份证照片数量
                 if (1 == type) {
                     updateMainDanIdCardNumber(NumberConvertUtil.parseInt(id));
+                } else if (2 == type && data != null) {
+                    JSONObject dfData = JSON.parseObject(data.getContent());
+                    updateMainDanIdCardNumber(dfData.getIntValue("pid"));
                 }
                 code = 1;
             } else {
@@ -1155,31 +1162,31 @@ public class CustomsService {
     }
 
 
-    public List<Map<String,Object>> countSBDNumByMonth(String stationId, String custId, LoginUser lu) {
-        StringBuffer sql = new StringBuffer(" select DATE_FORMAT(create_date,'%Y%m') mon,count(0) num from h_data_manager where type='"+BusiTypeEnum.SZ.getType()+"' ");
+    public List<Map<String, Object>> countSBDNumByMonth(String stationId, String custId, LoginUser lu) {
+        StringBuffer sql = new StringBuffer(" select DATE_FORMAT(create_date,'%Y%m') mon,count(0) num from h_data_manager where type='" + BusiTypeEnum.SZ.getType() + "' ");
         if (!"ROLE_USER".equals(lu.getUserType())) {
             custId = lu.getCustId();
-            sql.append(" and cust_id='"+custId+"'");
-        }else{
-            if(StringUtil.isNotEmpty(stationId)){
-                sql.append(" and JSON_EXTRACT(content, '$.station_id')='"+stationId+"')");
+            sql.append(" and cust_id='" + custId + "'");
+        } else {
+            if (StringUtil.isNotEmpty(stationId)) {
+                sql.append(" and JSON_EXTRACT(content, '$.station_id')='" + stationId + "')");
             }
-            if(StringUtil.isNotEmpty(custId)){
-                sql.append(" and cust_id='"+custId+"'");
+            if (StringUtil.isNotEmpty(custId)) {
+                sql.append(" and cust_id='" + custId + "'");
             }
         }
         sql.append(" and create_date>(SELECT DATE_FORMAT(DATE_ADD(CURDATE(), INTERVAL -6 MONTH),'%Y-%m-01') from dual) ");
         sql.append(" group by mon order by mon asc");
-        List<Map<String,Object>> list = jdbcTemplate.queryForList(sql.toString());
+        List<Map<String, Object>> list = jdbcTemplate.queryForList(sql.toString());
         return list;
     }
 
-    public Map<String,Object> sbdLastestTotal(String stationId, String custId, LoginUser lu){
-        StringBuffer sql = new StringBuffer("select id,content from  h_data_manager where type='"+BusiTypeEnum.SZ.getType()+"' ");
+    public Map<String, Object> sbdLastestTotal(String stationId, String custId, LoginUser lu) {
+        StringBuffer sql = new StringBuffer("select id,content from  h_data_manager where type='" + BusiTypeEnum.SZ.getType() + "' ");
         if (!"ROLE_USER".equals(lu.getUserType())) {
             custId = lu.getCustId();
-            sql.append(" and cust_id='"+custId+"'");
-        }else {
+            sql.append(" and cust_id='" + custId + "'");
+        } else {
             if (StringUtil.isNotEmpty(stationId)) {
                 sql.append(" and JSON_EXTRACT(content, '$.station_id')='" + stationId + "')");
             }
@@ -1189,22 +1196,22 @@ public class CustomsService {
         }
         sql.append(" order by create_date desc limit 10 ");
 
-        List<Map<String,Object>> idList = jdbcTemplate.queryForList(sql.toString());
+        List<Map<String, Object>> idList = jdbcTemplate.queryForList(sql.toString());
         Map tMap = new HashMap();
-        for(Map<String,Object> map:idList){
+        for (Map<String, Object> map : idList) {
             Long mid = (Long) map.get("id");
             JSONObject json = JSON.parseObject((String) map.get("content"));
             Map<String, Integer> dataMap = new HashMap<>();
-            if(json.containsKey("party_total") && null != json.getInteger("party_total")){
-                dataMap.put("partNum",json.getInteger("party_total"));
-            }else{
-                dataMap.put("partNum",0);
+            if (json.containsKey("party_total") && null != json.getInteger("party_total")) {
+                dataMap.put("partNum", json.getInteger("party_total"));
+            } else {
+                dataMap.put("partNum", 0);
             }
 
-            if(json.containsKey("product_num") && StringUtil.isNotEmpty(json.getString("product_num"))){
-                dataMap.put("goodsNum",json.getIntValue("product_num"));
-            }else{
-                dataMap.put("goodsNum",0);
+            if (json.containsKey("product_num") && StringUtil.isNotEmpty(json.getString("product_num"))) {
+                dataMap.put("goodsNum", json.getIntValue("product_num"));
+            } else {
+                dataMap.put("goodsNum", 0);
             }
 
             /*
@@ -1223,18 +1230,18 @@ public class CustomsService {
             dataMap.put("goodsNum",goodsNum);
             */
 
-            tMap.put(mid,dataMap);
+            tMap.put(mid, dataMap);
         }
         return tMap;
     }
 
 
-    public List<Map<String, Object>> hzTotal(String type,String stationId, String custId, LoginUser lu){
-        StringBuffer sql = new StringBuffer("select ext_1 status,count(0)num from h_data_manager where type='"+type+"'");
+    public List<Map<String, Object>> hzTotal(String type, String stationId, String custId, LoginUser lu) {
+        StringBuffer sql = new StringBuffer("select ext_1 status,count(0)num from h_data_manager where type='" + type + "'");
         if (!"ROLE_USER".equals(lu.getUserType())) {
             custId = lu.getCustId();
-            sql.append(" and cust_id='"+custId+"'");
-        }else {
+            sql.append(" and cust_id='" + custId + "'");
+        } else {
             if (StringUtil.isNotEmpty(stationId)) {
                 sql.append(" and JSON_EXTRACT(content, '$.station_id')='" + stationId + "')");
             }
@@ -1242,25 +1249,23 @@ public class CustomsService {
                 sql.append(" and cust_id='" + custId + "'");
             }
         }
-        String begin = DateUtil.fmtDateToStr(DatesUtil.getBeginDayOfWeek(),"yyyy-MM-dd");
-        String end = DateUtil.fmtDateToStr(DatesUtil.getEndDayOfWeek(),"yyyy-MM-dd");
+        String begin = DateUtil.fmtDateToStr(DatesUtil.getBeginDayOfWeek(), "yyyy-MM-dd");
+        String end = DateUtil.fmtDateToStr(DatesUtil.getEndDayOfWeek(), "yyyy-MM-dd");
         sql.append(" and create_date>='").append(begin).append("' and create_date<='").append(end).append("'");
         sql.append("group by status");
 
-        List<Map<String,Object>> data = jdbcTemplate.queryForList(sql.toString());
+        List<Map<String, Object>> data = jdbcTemplate.queryForList(sql.toString());
         return data;
 
     }
 
 
-
-    public Integer countGoodsNumByPartId(String id){
-        String _sql = "select content from h_data_manager type='"+BusiTypeEnum.SS.getType()+"' " +
-                " and (JSON_EXTRACT(content, '$.pid')='"+id+"' or JSON_EXTRACT(content, '$.pid')="+id+")";
+    public Integer countGoodsNumByPartId(String id) {
+        String _sql = "select content from h_data_manager type='" + BusiTypeEnum.SS.getType() + "' " +
+                " and (JSON_EXTRACT(content, '$.pid')='" + id + "' or JSON_EXTRACT(content, '$.pid')=" + id + ")";
 
         return 0;
     }
-
 
 
 }
