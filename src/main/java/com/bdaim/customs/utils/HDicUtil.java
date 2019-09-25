@@ -43,7 +43,6 @@ public class HDicUtil {
 
     public HDic getCache(String type, String code) {
         HDic dic = DIC_CACHE.get(type + split + code);
-        LOG.info("查询缓存字典数据type:[{}],code:[{}],字典数据:[{}]", type, code, dic);
         return dic;
     }
 }
