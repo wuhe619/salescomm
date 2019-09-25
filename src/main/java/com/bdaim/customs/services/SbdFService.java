@@ -137,7 +137,6 @@ public class SbdFService implements BusiService {
             if (d != null) {
                 JSONObject jsonObject;
                 String picKey = "id_no_pic";
-                HBusiDataManager mainD = null;
                 //for (HBusiDataManager d : hBusiDataManagers) {
                 d.setExt_6("");
                 jsonObject = JSON.parseObject(d.getContent());
@@ -148,15 +147,10 @@ public class SbdFService implements BusiService {
                     d.setContent(jsonObject.toJSONString());
                     info.put(picKey, "");
                     info.put("idcard_pic_flag", "0");
+                    hBusiDataManagerDao.saveOrUpdate(d);
+                    elasticSearchService.update(d, d.getId());
+                    updateMainDanIdCardNumber(jsonObject.getIntValue("pid"));
                 }
-                hBusiDataManagerDao.saveOrUpdate(d);
-                elasticSearchService.update(d, d.getId());
-                mainD = hBusiDataManagerDao.getHBusiDataManager("ext_3", d.getExt_4());
-                //}
-                if (mainD != null) {
-                    updateMainDanIdCardNumber(mainD.getId());
-                }
-                //}
             }
 
         } else {
