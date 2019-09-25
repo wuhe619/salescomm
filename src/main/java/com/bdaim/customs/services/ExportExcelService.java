@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletResponse;
+import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -74,6 +75,8 @@ public class ExportExcelService {
     private void exportExcelByTemplate(List<JSONObject> list, JSONObject param, HttpServletResponse response) throws IllegalAccessException, IOException {
         // 生成workbook 并导出
         String templatePath = "tp/" + param.getString("_rule_") + ".xlsx";
+        File file = new File(templatePath);
+        LOG.info("excel模板文件路径:{},文件状态:{}", file.getPath(), file.exists());
         LOG.info("开始导出excel:{}", templatePath);
         Map<String, Object> map = new HashMap<>();
         //map.put("list", JavaBeanUtil.convertJsonObjectToMapList(list));
