@@ -7,17 +7,19 @@ import com.bdaim.common.service.ElasticSearchService;
 import com.bdaim.common.service.SequenceService;
 import com.bdaim.common.util.CipherUtil;
 import com.bdaim.common.util.IDHelper;
+import com.bdaim.common.util.StringUtil;
+import com.bdaim.customer.dao.CustomerDao;
+import com.bdaim.customer.entity.Customer;
+import com.bdaim.customer.entity.CustomerProperty;
 import com.bdaim.customs.dao.HBusiDataManagerDao;
-import com.bdaim.customs.entity.BusiTypeEnum;
-import com.bdaim.customs.entity.Constants;
-import com.bdaim.customs.entity.HBusiDataManager;
-import com.bdaim.customs.entity.TResourceLog;
+import com.bdaim.customs.entity.*;
 import com.bdaim.resource.dao.SourceDao;
 import com.bdaim.resource.entity.MarketResourceEntity;
 import com.bdaim.supplier.dto.SupplierEnum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -45,6 +47,10 @@ public class ServiceUtils {
     private SequenceService sequenceService;
     @Autowired
     private SourceDao sourceDao;
+    @Autowired
+    private HDicUtil dicUtil;
+    @Autowired
+    private CustomerDao customerDao;
 
     public void addDataToES(String id, String type, JSONObject content) {
         if (type.equals(BusiTypeEnum.SZ.getType())) {
@@ -219,6 +225,66 @@ public class ServiceUtils {
         }
         List<Map<String, Object>> ds = jdbcTemplate.queryForList(sqlstr.toString(), sqlParams.toArray());
         return ds;
+    }
+
+    /**
+     * 通过数据查询场站和报关单位名称
+     *
+     * @param jo
+     */
+    public void getStationCustName(JSONObject jo) {
+        //查询场站和报关单位
+        String custId = jo.getString("cust_id");
+        jo.put("cust_name", "");
+        jo.put("station_name", "");
+        jo.put("station_id", "");
+        Customer customer = customerDao.get(custId);
+        if (customer != null) {
+            jo.put("cust_name", customer.getEnterpriseName());
+            CustomerProperty cp = customerDao.getProperty(custId, "station_id");
+            if (cp != null) {
+                jo.put("station_id", cp.getPropertyValue());
+                String stationSql = "select content, create_id, create_date, update_id, update_date from h_resource where type=? and id=? ";
+                try {
+                    Map station = jdbcTemplate.queryForMap(stationSql, "station", cp.getPropertyValue());
+                    if (station != null) {
+                        jo.put("station_name", JSONObject.parseObject(String.valueOf(station.get("content"))).getString("name"));
+                    }
+                } catch (DataAccessException e) {
+                    log.error("查询场站信息异常", e);
+                }
+            }
+        }
+    }
+
+    /**
+     * 查询字典数据
+     *
+     * @param jo
+     */
+    public void getHDicData(JSONObject jo) {
+        Iterator keys = jo.keySet().iterator();
+        HDic dic;
+        JSONObject tmp = new JSONObject();
+        while (keys.hasNext()) {
+            String key = (String) keys.next();
+            if (StringUtil.isEmpty(jo.getString(key))) continue;
+            dic = dicUtil.getCache(key.toUpperCase(), jo.getString(key));
+            if (dic == null) {
+                continue;
+            }
+            log.info("查询缓存字典数据type:[{}],code:[{}],字典数据:[{}]", key.toUpperCase(), jo.getString(key), dic);
+            tmp.put(key + "_name", dic.getName_zh());
+            tmp.put(key + "_name_en", dic.getName_en());
+        }
+        if (tmp.size() > 0) {
+            Iterator tmpKeys = tmp.keySet().iterator();
+            while (tmpKeys.hasNext()) {
+                String key = (String) tmpKeys.next();
+                jo.put(key, tmp.get(key));
+            }
+        }
+
     }
 
     public void esTestData() {

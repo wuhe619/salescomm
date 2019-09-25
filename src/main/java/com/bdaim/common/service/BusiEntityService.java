@@ -6,8 +6,7 @@ import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.common.util.spring.SpringContextHelper;
 import com.bdaim.customer.dao.CustomerDao;
-import com.bdaim.customer.entity.Customer;
-import com.bdaim.customer.entity.CustomerProperty;
+import com.bdaim.customs.utils.ServiceUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +39,9 @@ public class BusiEntityService {
     @Autowired
     private CustomerDao customerDao;
 
+    @Autowired
+    private ServiceUtils serviceUtils;
+
     /*
      * 按ID获取记录
      */
@@ -55,7 +57,6 @@ public class BusiEntityService {
             data = jdbcTemplate.queryForMap(sql, busiType, id);
         } catch (EmptyResultDataAccessException e) {
             logger.warn("查询:{},busiType:{}失败,数据不存在", id, busiType);
-            data = null;
             throw new TouchException("1000", "未查询到数据:[" + busiType + "]" + id);
         }
         if (data == null)
@@ -85,6 +86,10 @@ public class BusiEntityService {
             //执行自定义单数据规则
             BusiService busiService = (BusiService) SpringContextHelper.getBean("busi_" + busiType);
             busiService.getInfo(busiType, cust_id, cust_group_id, cust_user_id, id, jo, param);
+            //查询场站和报关单位
+            serviceUtils.getStationCustName(jo);
+            // 查询字典数据
+            serviceUtils.getHDicData(jo);
         } catch (Exception e) {
             logger.error("数据格式错误！", e);
             throw new Exception("数据格式错误！");
@@ -120,10 +125,6 @@ public class BusiEntityService {
             // 处理场站检索
             if (StringUtil.isNotEmpty(stationId)) {
                 String stationSql = "SELECT cust_id FROM t_customer_property WHERE property_name='station_id' AND property_value = ?";
-                /*List<String> custIds = jdbcTemplate.queryForList(stationSql, String.class,"station_id", stationId);
-                if(custIds==null||custIds.size()==0){
-                    return p;
-                }*/
                 sqlstr.append(" and cust_id IN ( ").append(stationSql).append(" )");
                 sqlParams.add(stationId);
             }
@@ -220,28 +221,9 @@ public class BusiEntityService {
                     jo.put("id", m.get("id"));
                 } else {
                     //查询场站和报关单位
-                    String custId = jo.getString("cust_id");
-                    jo.put("cust_name", "");
-                    jo.put("station_name", "");
-                    Customer customer = customerDao.get(custId);
-                    if (customer != null) {
-                        jo.put("cust_name", customer.getEnterpriseName());
-                        jo.put("station_id", "");
-                        CustomerProperty cp = customerDao.getProperty(custId, "station_id");
-                        if (cp != null) {
-                            jo.put("station_id", cp.getPropertyValue());
-                            String stationSql = "select content, create_id, create_date, update_id, update_date from h_resource where type=? and id=? ";
-                            try {
-                                Map station = jdbcTemplate.queryForMap(stationSql, "station", cp.getPropertyValue());
-                                if (station != null) {
-                                    jo.put("station_name", JSONObject.parseObject(String.valueOf(station.get("content"))).getString("name"));
-                                }
-                            } catch (DataAccessException e) {
-                                logger.error("查询场站信息异常", e);
-                            }
-
-                        }
-                    }
+                    serviceUtils.getStationCustName(jo);
+                    // 查询字典数据
+                    serviceUtils.getHDicData(jo);
                 }
 
                 try {
@@ -396,6 +378,5 @@ public class BusiEntityService {
             throw new Exception("删除记录异常:[" + busiType + "]" + id);
         }
     }
-
 
 }
