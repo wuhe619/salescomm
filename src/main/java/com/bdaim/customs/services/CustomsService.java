@@ -1174,7 +1174,7 @@ public class CustomsService {
         return list;
     }
 
-    public List<Map<String,Object>> sbdLastestTotal(String stationId, String custId, LoginUser lu){
+    public Map<String,Object> sbdLastestTotal(String stationId, String custId, LoginUser lu){
         StringBuffer sql = new StringBuffer("select id,content from  h_data_manager where type='"+BusiTypeEnum.SZ.getType()+"' ");
         if (!"ROLE_USER".equals(lu.getUserType())) {
             custId = lu.getCustId();
@@ -1190,7 +1190,7 @@ public class CustomsService {
         sql.append(" order by create_date desc limit 10 ");
 
         List<Map<String,Object>> idList = jdbcTemplate.queryForList(sql.toString());
-        List<Map<String,Object>> result = new ArrayList<>();
+        Map tMap = new HashMap();
         for(Map<String,Object> map:idList){
             Long mid = (Long) map.get("id");
             JSONObject json = JSON.parseObject((String) map.get("content"));
@@ -1223,11 +1223,9 @@ public class CustomsService {
             dataMap.put("goodsNum",goodsNum);
             */
 
-            Map tMap = new HashMap();
             tMap.put(mid,dataMap);
-            result.add(tMap);
         }
-        return result;
+        return tMap;
     }
 
 
@@ -1247,7 +1245,7 @@ public class CustomsService {
         String begin = DateUtil.fmtDateToStr(DatesUtil.getBeginDayOfWeek(),"yyyy-MM-dd");
         String end = DateUtil.fmtDateToStr(DatesUtil.getEndDayOfWeek(),"yyyy-MM-dd");
         sql.append(" and create_date>='").append(begin).append("' and create_date<='").append(end).append("'");
-        sql.append("group by ext_1");
+        sql.append("group by status");
 
         List<Map<String,Object>> data = jdbcTemplate.queryForList(sql.toString());
         return data;
