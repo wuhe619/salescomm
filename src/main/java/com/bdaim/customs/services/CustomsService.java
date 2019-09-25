@@ -1175,7 +1175,7 @@ public class CustomsService {
     }
 
     public Map<String,Object> sbdLastestTotal(String stationId, String custId, LoginUser lu){
-        StringBuffer sql = new StringBuffer("select id,content from  h_data_manager where type='"+BusiTypeEnum.SZ.getType()+"' ");
+        StringBuffer sql = new StringBuffer("select id,content,ext_3 from  h_data_manager where type='"+BusiTypeEnum.SZ.getType()+"' ");
         if (!"ROLE_USER".equals(lu.getAuth())) {
             custId = lu.getCustId();
             sql.append(" and cust_id='"+custId+"'");
@@ -1192,7 +1192,7 @@ public class CustomsService {
         List<Map<String, Object>> idList = jdbcTemplate.queryForList(sql.toString());
         Map tMap = new HashMap();
         for (Map<String, Object> map : idList) {
-            Long mid = (Long) map.get("id");
+            String mid = (String) map.get("ext_3");
             JSONObject json = JSON.parseObject((String) map.get("content"));
             Map<String, Integer> dataMap = new HashMap<>();
             if (json.containsKey("party_total") && null != json.getInteger("party_total")) {
