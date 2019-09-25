@@ -1189,22 +1189,22 @@ public class CustomsService {
         }
         sql.append(" order by create_date desc limit 10 ");
 
-        List<Map<String,Object>> idList = jdbcTemplate.queryForList(sql.toString());
+        List<Map<String, Object>> idList = jdbcTemplate.queryForList(sql.toString());
         Map tMap = new HashMap();
-        for(Map<String,Object> map:idList){
+        for (Map<String, Object> map : idList) {
             Long mid = (Long) map.get("id");
             JSONObject json = JSON.parseObject((String) map.get("content"));
             Map<String, Integer> dataMap = new HashMap<>();
-            if(json.containsKey("party_total") && null != json.getInteger("party_total")){
-                dataMap.put("partNum",json.getInteger("party_total"));
-            }else{
-                dataMap.put("partNum",0);
+            if (json.containsKey("party_total") && null != json.getInteger("party_total")) {
+                dataMap.put("partNum", json.getInteger("party_total"));
+            } else {
+                dataMap.put("partNum", 0);
             }
 
-            if(json.containsKey("product_num") && StringUtil.isNotEmpty(json.getString("product_num"))){
-                dataMap.put("goodsNum",json.getIntValue("product_num"));
-            }else{
-                dataMap.put("goodsNum",0);
+            if (json.containsKey("product_num") && StringUtil.isNotEmpty(json.getString("product_num"))) {
+                dataMap.put("goodsNum", json.getIntValue("product_num"));
+            } else {
+                dataMap.put("goodsNum", 0);
             }
 
             /*
@@ -1223,7 +1223,7 @@ public class CustomsService {
             dataMap.put("goodsNum",goodsNum);
             */
 
-            tMap.put(mid,dataMap);
+            tMap.put(mid, dataMap);
         }
         return tMap;
     }
@@ -1233,8 +1233,8 @@ public class CustomsService {
         StringBuffer sql = new StringBuffer("select ext_1 status,count(0)num from h_data_manager where type='"+type+"'");
         if (!"ROLE_USER".equals(lu.getAuth())) {
             custId = lu.getCustId();
-            sql.append(" and cust_id='"+custId+"'");
-        }else {
+            sql.append(" and cust_id='" + custId + "'");
+        } else {
             if (StringUtil.isNotEmpty(stationId)) {
                 sql.append(" and JSON_EXTRACT(content, '$.station_id')='" + stationId + "')");
             }
@@ -1242,8 +1242,8 @@ public class CustomsService {
                 sql.append(" and cust_id='" + custId + "'");
             }
         }
-        String begin = DateUtil.fmtDateToStr(DatesUtil.getBeginDayOfWeek(),"yyyy-MM-dd");
-        String end = DateUtil.fmtDateToStr(DatesUtil.getEndDayOfWeek(),"yyyy-MM-dd");
+        String begin = DateUtil.fmtDateToStr(DatesUtil.getBeginDayOfWeek(), "yyyy-MM-dd");
+        String end = DateUtil.fmtDateToStr(DatesUtil.getEndDayOfWeek(), "yyyy-MM-dd");
         sql.append(" and create_date>='").append(begin).append("' and create_date<='").append(end).append("'");
         sql.append("group by status");
 
@@ -1260,7 +1260,6 @@ public class CustomsService {
 
         return 0;
     }
-
 
 
 }

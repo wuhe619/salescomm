@@ -134,7 +134,7 @@ public class ElasticSearchService {
             }
             LOG.info("从es查询记录返回结果:[" + httpResult + "]");
         } catch (Exception e) {
-            LOG.error("从es查询记录异常:" + e.getMessage());
+            LOG.error("从es查询记录异常:", e);
         }
         return result;
     }
