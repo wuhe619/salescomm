@@ -3305,8 +3305,9 @@ public class CustomerService {
         CustomerProperty cp = customerDao.getProperty(property.getCustId(), property.getPropertyName());
         logger.info("客户原配置属性:" + cp);
         if (cp == null) {
-            cp = new CustomerProperty(property.getCustId(), property.getPropertyName(), property.getPropertyValue());
+            cp = new CustomerProperty(property.getCustId(), property.getPropertyName(), property.getPropertyValue(), new Timestamp(System.currentTimeMillis()));
         }
+        cp.setCreateTime(new Timestamp(System.currentTimeMillis()));
         cp.setPropertyValue(property.getPropertyValue());
         try {
             customerDao.saveOrUpdate(cp);
