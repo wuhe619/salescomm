@@ -11,11 +11,7 @@ import com.bdaim.batch.entity.BatchListParam;
 import com.bdaim.batch.service.BatchListService;
 import com.bdaim.batch.service.BatchService;
 import com.bdaim.common.dto.PageParam;
-import com.bdaim.common.util.CipherUtil;
-import com.bdaim.common.util.Constant;
-import com.bdaim.common.util.IDHelper;
-import com.bdaim.common.util.NumberConvertUtil;
-import com.bdaim.common.util.StringUtil;
+import com.bdaim.common.util.*;
 import com.bdaim.common.util.page.PageList;
 import com.bdaim.common.util.page.Pagination;
 import com.bdaim.customer.dao.CustomerDao;
@@ -26,15 +22,10 @@ import com.bdaim.customer.service.CustomerService;
 import com.bdaim.price.dto.ResourcesPriceDto;
 import com.bdaim.resource.dao.SourceDao;
 import com.bdaim.resource.entity.MarketResourceEntity;
-
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.apache.poi.hssf.usermodel.HSSFCell;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -184,8 +175,8 @@ public class BatchListServiceImpl implements BatchListService {
                         short lastCellNum = row.getLastCellNum();
                         for (int j = 0; j < lastCellNum; j++) {
                             Cell cell = row.getCell(j);
-                            if (cell != null && cell.getCellType() != HSSFCell.CELL_TYPE_BLANK) {
-                                cell.setCellType(HSSFCell.CELL_TYPE_STRING);
+                            if (cell != null && cell.getCellType() != CellType.BLANK) {
+                                cell.setCellType(CellType.STRING);
                                 switch (j) {
                                     case 0:
                                         certlist.add(cell.getStringCellValue().trim());
