@@ -1720,10 +1720,12 @@ public class CustomerAction extends BasicAction {
 
     @RequestMapping(value = "/saveCustomerProperty", method = RequestMethod.POST)
     @ResponseBody
-    @ValidatePermission(role = "admin,ROLE_USER")
     public String saveCustomerProperty(@RequestBody CustomerProperty param) {
         int code = 0;
         try {
+            if (StringUtil.isEmpty(param.getCustId())) {
+                param.setCustId(opUser().getCustId());
+            }
             code = customerService.saveCustomerProperty(param);
         } catch (Exception e) {
             logger.error("保存客户属性失败,参数:" + param, e);
@@ -1738,10 +1740,12 @@ public class CustomerAction extends BasicAction {
 
     @RequestMapping(value = "/getCustomerProperty", method = RequestMethod.GET)
     @ResponseBody
-    @ValidatePermission(role = "admin,ROLE_USER")
     public String getCustomerProperty(CustomerProperty param) {
         CustomerPropertyDTO data = null;
         try {
+            if (StringUtil.isEmpty(param.getCustId())) {
+                param.setCustId(opUser().getCustId());
+            }
             data = customerService.getCustomerProperty(param);
         } catch (Exception e) {
             logger.error("获取客户属性失败,参数:" + param, e);
