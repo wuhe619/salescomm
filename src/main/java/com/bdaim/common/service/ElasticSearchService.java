@@ -129,7 +129,7 @@ public class ElasticSearchService {
             String httpResult = HttpUtil.httpGet(ESUtil.getUrl(index, type) + id, null, null);
             result = JSON.parseObject(httpResult);
             result = result.getJSONObject("hits");
-            if (result.containsKey("_source")) {
+            if (result != null && result.containsKey("_source")) {
                 result = result.getJSONObject("_source");
             }
             LOG.info("从es查询记录返回结果:[" + httpResult + "]");
@@ -336,6 +336,7 @@ public class ElasticSearchService {
 
     /**
      * ES查询
+     *
      * @param dsl
      * @param index
      * @param indexType
@@ -347,7 +348,7 @@ public class ElasticSearchService {
         List<Object> list = new ArrayList<>();
         SearchResult result = search(dsl, index, indexType);
         if (result != null) {
-            List<SearchResult.Hit<T , Void>> hits = result.getHits(sourceType);
+            List<SearchResult.Hit<T, Void>> hits = result.getHits(sourceType);
             T t;
             for (SearchResult.Hit<T, Void> hit : hits) {
                 t = hit.source;
@@ -359,8 +360,9 @@ public class ElasticSearchService {
 
     /**
      * ES分页查询
-     * @param dsl 执行dsl语句
-     * @param index 索引
+     *
+     * @param dsl        执行dsl语句
+     * @param index      索引
      * @param indexType
      * @param sourceType 数据实体类
      * @param <T>
@@ -371,7 +373,7 @@ public class ElasticSearchService {
         SearchResult result = search(dsl, index, indexType);
         List list = new ArrayList<>();
         if (result != null) {
-            List<SearchResult.Hit<T , Void>> hits = result.getHits(sourceType);
+            List<SearchResult.Hit<T, Void>> hits = result.getHits(sourceType);
             T t;
             for (SearchResult.Hit<T, Void> hit : hits) {
                 t = hit.source;
