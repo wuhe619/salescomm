@@ -54,8 +54,9 @@ public class BusiEntityService {
         try {
             data = jdbcTemplate.queryForMap(sql, busiType, id);
         } catch (EmptyResultDataAccessException e) {
-            logger.warn("查询主单:{},busiType:{}失败", id, busiType);
+            logger.warn("查询:{},busiType:{}失败,数据不存在", id, busiType);
             data = null;
+            throw new TouchException("1000", "未查询到数据:[" + busiType + "]" + id);
         }
         if (data == null)
             return jo;
@@ -312,6 +313,7 @@ public class BusiEntityService {
                 data = jdbcTemplate.queryForMap("select content from h_data_manager where type=? and cust_id=? and id=?", busiType, cust_id, id);
             } catch (DataAccessException e) {
                 logger.error("未查询到数据:[" + busiType + "]" + id, e);
+                throw new TouchException("1000", "未查询到数据:[" + busiType + "]" + id);
             } catch (Exception e) {
                 logger.error("读取数据异常:[" + busiType + "]" + id, e);
                 throw new Exception("读取数据异常:[" + busiType + "]" + id, e);
@@ -365,6 +367,9 @@ public class BusiEntityService {
             } catch (TouchException e) {
                 logger.warn("更新记录异常:[" + busiType + "]" + id, e);
                 throw e;
+            } catch (EmptyResultDataAccessException e) {
+                logger.warn("更新记录异常:[" + busiType + "]" + id, e);
+                throw new TouchException("1000", "未查询到数据:[" + busiType + "]" + id);
             } catch (Exception e) {
                 logger.error("更新记录异常:[" + busiType + "]" + id, e);
                 throw new Exception("更新记录异常:[" + busiType + "]" + id);

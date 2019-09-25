@@ -109,7 +109,8 @@ public class SbdFService implements BusiService {
             List sqlParams = new ArrayList();
             sqlParams.add(busiType);
             sqlParams.add(id);
-            Map<String, Object> map = jdbcTemplate.queryForMap(sql.toString(), sqlParams.toArray());
+
+            Map map = jdbcTemplate.queryForMap(sql.toString(), sqlParams.toArray());
             if (map != null && map.size() > 0) {
                 String updateSql = "UPDATE h_data_manager SET ext_7 = 0, content = ? WHERE id =? AND type =? ";
                 // 身份核验待核验入队列
