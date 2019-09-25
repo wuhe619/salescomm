@@ -1,6 +1,5 @@
 package com.bdaim.customs.dao;
 
-import com.alibaba.fastjson.JSON;
 import com.bdaim.common.dao.SimpleHibernateDao;
 import com.bdaim.customs.entity.HBusiDataManager;
 import org.hibernate.Query;
@@ -49,6 +48,7 @@ public class HBusiDataManagerDao extends SimpleHibernateDao<HBusiDataManager, Se
 
     /**
      * 查询主单下的分单
+     *
      * @param pid
      * @param type
      * @param idCardPhotoStatus 1-有身份证图片 2-无
@@ -80,10 +80,9 @@ public class HBusiDataManagerDao extends SimpleHibernateDao<HBusiDataManager, Se
      * @return
      */
     public int countMainDIdCardNum(int pid, String type) {
-        String sql = "select id from h_data_manager where type=? AND ext_6 IS NOT NULL AND ext_6 <>'' and ( CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')="+pid +" ELSE null END  or CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')='"+pid+"' ELSE null END)";
-        List<Map<String,Object>> list2 = jdbcTemplate.queryForList(sql, type);
-        List<HBusiDataManager> list = JSON.parseArray(JSON.toJSONString(list2),HBusiDataManager.class);
-        if(list!=null){
+        String sql = "select id from h_data_manager where type=? AND ext_6 IS NOT NULL AND ext_6 <>'' and ( CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')=" + pid + " ELSE null END  or CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')=" + pid + " ELSE null END)";
+        List<Map<String, Object>> list = sqlQuery(sql, type);
+        if (list != null) {
             return list.size();
         }
         return 0;
