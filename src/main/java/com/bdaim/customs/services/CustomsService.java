@@ -1157,7 +1157,7 @@ public class CustomsService {
 
     public List<Map<String,Object>> countSBDNumByMonth(String stationId, String custId, LoginUser lu) {
         StringBuffer sql = new StringBuffer(" select DATE_FORMAT(create_date,'%Y%m') mon,count(0) num from h_data_manager where type='"+BusiTypeEnum.SZ.getType()+"' ");
-        if (!"ROLE_USER".equals(lu.getUserType())) {
+        if (!"ROLE_USER".equals(lu.getAuth())) {
             custId = lu.getCustId();
             sql.append(" and cust_id='"+custId+"'");
         }else{
@@ -1176,7 +1176,7 @@ public class CustomsService {
 
     public Map<String,Object> sbdLastestTotal(String stationId, String custId, LoginUser lu){
         StringBuffer sql = new StringBuffer("select id,content from  h_data_manager where type='"+BusiTypeEnum.SZ.getType()+"' ");
-        if (!"ROLE_USER".equals(lu.getUserType())) {
+        if (!"ROLE_USER".equals(lu.getAuth())) {
             custId = lu.getCustId();
             sql.append(" and cust_id='"+custId+"'");
         }else {
@@ -1231,7 +1231,7 @@ public class CustomsService {
 
     public List<Map<String, Object>> hzTotal(String type,String stationId, String custId, LoginUser lu){
         StringBuffer sql = new StringBuffer("select ext_1 status,count(0)num from h_data_manager where type='"+type+"'");
-        if (!"ROLE_USER".equals(lu.getUserType())) {
+        if (!"ROLE_USER".equals(lu.getAuth())) {
             custId = lu.getCustId();
             sql.append(" and cust_id='"+custId+"'");
         }else {
