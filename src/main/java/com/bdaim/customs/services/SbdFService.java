@@ -9,7 +9,6 @@ import com.bdaim.common.util.NumberConvertUtil;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.customs.dao.HBusiDataManagerDao;
 import com.bdaim.customs.entity.BusiTypeEnum;
-import com.bdaim.customs.entity.Constants;
 import com.bdaim.customs.entity.HBusiDataManager;
 import com.bdaim.customs.utils.ServiceUtils;
 import org.slf4j.Logger;
@@ -44,6 +43,9 @@ public class SbdFService implements BusiService {
 
     @Autowired
     private ServiceUtils serviceUtils;
+
+    @Autowired
+    private CustomsService customsService;
 
 
     @Override
@@ -149,7 +151,7 @@ public class SbdFService implements BusiService {
                     info.put("idcard_pic_flag", "0");
                     hBusiDataManagerDao.saveOrUpdate(d);
                     elasticSearchService.update(d, d.getId());
-                    updateMainDanIdCardNumber(jsonObject.getIntValue("pid"));
+                    customsService.updateMainDanIdCardNumber(jsonObject.getIntValue("pid"));
                 }
             }
 
@@ -157,7 +159,6 @@ public class SbdFService implements BusiService {
             HBusiDataManager dbManager = serviceUtils.getObjectByIdAndType(id, busiType);
             String content = dbManager.getContent();
             JSONObject json = JSONObject.parseObject(content);
-            //BeanUtils.copyProperties(info,json);
             Iterator keys = info.keySet().iterator();
             while (keys.hasNext()) {
                 String key = (String) keys.next();
@@ -169,45 +170,6 @@ public class SbdFService implements BusiService {
         }
     }
 
-    /**
-     * 更新申报单主单身份证照片数量
-     *
-     * @param mainId
-     * @return
-     */
-    private int updateMainDanIdCardNumber(int mainId) {
-        int idCardNumber = hBusiDataManagerDao.countMainDIdCardNum(mainId, BusiTypeEnum.SF.getType());
-        log.info("开始更新主单:{}的身份证照片数量:{}", mainId, idCardNumber);
-        int code = 0;
-
-        JSONObject mainDetail = elasticSearchService.getDocumentById(Constants.SF_INFO_INDEX, "haiguan", String.valueOf(mainId));
-        if (mainDetail == null) {
-            HBusiDataManager param = new HBusiDataManager();
-            param.setId(NumberConvertUtil.parseInt(mainId));
-            param.setType(BusiTypeEnum.SZ.getType());
-            HBusiDataManager h = hBusiDataManagerDao.get(param);
-            if (h != null && h.getContent() != null) {
-                mainDetail = JSON.parseObject(h.getContent());
-            }
-        }
-        if (mainDetail != null) {
-            mainDetail.put("id", mainId);
-        }
-        if (mainDetail != null && mainDetail.containsKey("id")) {
-            mainDetail.put("idCardNumber", idCardNumber);
-            HBusiDataManager param = new HBusiDataManager();
-            param.setId(mainId);
-            param.setType(BusiTypeEnum.SZ.getType());
-            HBusiDataManager mainD = hBusiDataManagerDao.get(param);
-            if (mainD != null) {
-                mainD.setContent(mainDetail.toJSONString());
-                hBusiDataManagerDao.update(mainD);
-                elasticSearchService.update(mainD, mainId);
-            }
-            code = 1;
-        }
-        return code;
-    }
 
     @Override
     public void getInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long
