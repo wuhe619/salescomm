@@ -6,6 +6,7 @@ import com.alibaba.excel.support.ExcelTypeEnum;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.common.util.FileUrlEntity;
 import com.bdaim.common.util.excel.EasyExcelUtil;
 import com.bdaim.customs.dao.HBusiDataManagerDao;
 import com.bdaim.customs.dto.excel.IdCardNoVerify;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletResponse;
+import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -49,6 +51,9 @@ public class ExportExcelService {
     @Autowired
     private HBusiDataManagerDao hBusiDataManagerDao;
 
+    @Autowired
+    private FileUrlEntity fileUrlEntity;
+
 
     private void export(String templatePath, Map<String, Object> map, String[] sheetName, HttpServletResponse response) throws IOException {
         // 加载模板
@@ -73,7 +78,13 @@ public class ExportExcelService {
 
     private void exportExcelByTemplate(List<JSONObject> list, JSONObject param, HttpServletResponse response) throws IllegalAccessException, IOException {
         // 生成workbook 并导出
-        String templatePath = "tp/" + param.getString("_rule_") + ".xlsx";
+        String classPath = fileUrlEntity.getFileUrl();
+        String pathF = File.separator;
+        classPath = classPath.replace("/", pathF);
+        String templatePath = classPath + pathF + "tp" + pathF + param.getString("_rule_") + ".xlsx";
+        //String templatePath = "tp/" + param.getString("_rule_") + ".xlsx";
+        File file = new File(templatePath);
+        LOG.info("excel模板文件路径:{},文件状态:{}", file.getPath(), file.exists());
         LOG.info("开始导出excel:{}", templatePath);
         Map<String, Object> map = new HashMap<>();
         //map.put("list", JavaBeanUtil.convertJsonObjectToMapList(list));
