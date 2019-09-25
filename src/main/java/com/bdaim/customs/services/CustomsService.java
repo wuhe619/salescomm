@@ -1245,7 +1245,7 @@ public class CustomsService {
         String begin = DateUtil.fmtDateToStr(DatesUtil.getBeginDayOfWeek(),"yyyy-MM-dd");
         String end = DateUtil.fmtDateToStr(DatesUtil.getEndDayOfWeek(),"yyyy-MM-dd");
         sql.append(" and create_date>='").append(begin).append("' and create_date<='").append(end).append("'");
-        sql.append("group by ext_1");
+        sql.append("group by status");
 
         List<Map<String,Object>> data = jdbcTemplate.queryForList(sql.toString());
         return data;
