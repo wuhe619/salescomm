@@ -870,6 +870,7 @@ public class CustomsService {
                             }
                         } else {
                             jsonObject.put(picKey, objectId);
+                            jsonObject.put("idcard_pic_flag", "1");
                         }
                         d.setContent(jsonObject.toJSONString());
                         d.setExt_6(jsonObject.getString(picKey));
