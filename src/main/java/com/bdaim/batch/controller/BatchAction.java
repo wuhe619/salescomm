@@ -13,15 +13,10 @@ import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.service.CustomerService;
 import com.bdaim.price.service.SalePriceService;
 import com.bdaim.resource.service.MarketResourceService;
-
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.apache.poi.hssf.usermodel.HSSFCell;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -384,8 +379,8 @@ public class BatchAction extends BasicAction {
                             short lastCellNum = row.getLastCellNum();
                             for (int j = 0; j < lastCellNum; j++) {
                                 Cell cell = row.getCell(j);
-                                if (cell != null && cell.getCellType() != HSSFCell.CELL_TYPE_BLANK) {
-                                    cell.setCellType(HSSFCell.CELL_TYPE_STRING);
+                                if (cell != null && cell.getCellType() != CellType.BLANK) {
+                                    cell.setCellType(CellType.STRING);
                                     switch (j) {
                                         case 0:
                                             certlist.add(cell.getStringCellValue().trim());

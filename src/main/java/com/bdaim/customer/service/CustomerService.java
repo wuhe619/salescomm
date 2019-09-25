@@ -669,6 +669,9 @@ public class CustomerService {
         }
         if (StringUtil.isNotEmpty(customerRegistDTO.getCreateId())) {
             sqlBuilder.append(" AND cjc.createId ='" + customerRegistDTO.getCreateId() + "'");
+        }else {
+            //过滤客户自己创建的企业
+            sqlBuilder.append(" AND cjc.createId =''");
         }
         if (StringUtil.isNotEmpty(customerRegistDTO.getName())) {
             sqlBuilder.append(" AND t2.account LIKE '%" + customerRegistDTO.getName() + "%'");
@@ -3305,8 +3308,9 @@ public class CustomerService {
         CustomerProperty cp = customerDao.getProperty(property.getCustId(), property.getPropertyName());
         logger.info("客户原配置属性:" + cp);
         if (cp == null) {
-            cp = new CustomerProperty(property.getCustId(), property.getPropertyName(), property.getPropertyValue());
+            cp = new CustomerProperty(property.getCustId(), property.getPropertyName(), property.getPropertyValue(), new Timestamp(System.currentTimeMillis()));
         }
+        cp.setCreateTime(new Timestamp(System.currentTimeMillis()));
         cp.setPropertyValue(property.getPropertyValue());
         try {
             customerDao.saveOrUpdate(cp);
