@@ -8,7 +8,8 @@ package com.bdaim.customer.dto;
 public enum CustomerUserPropertyEnum {
 
     CALL_CHANNEL("call_channel", "呼叫中心渠道ID"),
-    CALL_TYPE("call_type", "呼叫中心类型");
+    CALL_TYPE("call_type", "呼叫中心类型"),
+    RESOURCE_MENU("resource","菜单权限");
 
     private String key;
     private String name;
