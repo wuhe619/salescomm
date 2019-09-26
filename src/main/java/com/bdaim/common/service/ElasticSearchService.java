@@ -167,7 +167,7 @@ public class ElasticSearchService {
     }
 
     public void update(HBusiDataManager hBusiDataManager, Integer id) {
-        String type = hBusiDataManager.getType();
+        String type = "+HMetaDataDef.getTable()+";
         if (type.equals(BusiTypeEnum.SZ.getKey()) || type.equals(BusiTypeEnum.CZ.getKey()) || type.equals(BusiTypeEnum.BZ.getKey())) {
             updateDocumentToType(Constants.SZ_INFO_INDEX, "haiguan", id.toString(), JSON.parseObject(hBusiDataManager.getContent()));
         } else if (type.equals(BusiTypeEnum.SF.getKey()) || type.equals(BusiTypeEnum.CF.getKey()) || type.equals(BusiTypeEnum.BF.getKey())) {

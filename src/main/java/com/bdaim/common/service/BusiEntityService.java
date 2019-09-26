@@ -6,6 +6,7 @@ import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.common.util.spring.SpringContextHelper;
 import com.bdaim.customer.dao.CustomerDao;
+import com.bdaim.customs.entity.HMetaDataDef;
 import com.bdaim.customs.utils.ServiceUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,7 +49,7 @@ public class BusiEntityService {
     public JSONObject getInfo(String cust_id, String cust_group_id, Long cust_user_id, String busiType, Long id, JSONObject param) throws Exception {
         JSONObject jo = new JSONObject();
 
-        String sql = "select content, cust_id, cust_group_id, cust_user_id, create_id, create_date ,ext_1, ext_2, ext_3, ext_4, ext_5 from h_data_manager where type=? and id=? ";
+        String sql = "select content, cust_id, cust_group_id, cust_user_id, create_id, create_date ,ext_1, ext_2, ext_3, ext_4, ext_5 from "+HMetaDataDef.getTable(busiType,"")+" where type=? and id=? ";
         if (!"all".equals(cust_id))
             sql += " and cust_id='" + cust_id + "'";
 
@@ -118,7 +119,7 @@ public class BusiEntityService {
         }
         if (sql == null || "".equals(sql)) {
             sqlParams.clear();
-            StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from h_data_manager where type=?");
+            StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from "+HMetaDataDef.getTable(busiType,"")+" where type=?");
             if (!"all".equals(cust_id))
                 sqlstr.append(" and cust_id='").append(cust_id).append("'");
             sqlParams.add(busiType);
@@ -280,7 +281,7 @@ public class BusiEntityService {
             //insert
             id = sequenceService.getSeq(busiType);
             jo = info;
-            String sql1 = "insert into h_data_manager(id, type, content, cust_id, cust_group_id, cust_user_id, create_id, create_date, ext_1, ext_2, ext_3, ext_4, ext_5 ) value(?, ?, ?, ?, ?, ?, ?, now(), ?, ?, ?, ?, ?)";
+            String sql1 = "insert into "+ HMetaDataDef.getTable(busiType,"")+"(id, type, content, cust_id, cust_group_id, cust_user_id, create_id, create_date, ext_1, ext_2, ext_3, ext_4, ext_5 ) value(?, ?, ?, ?, ?, ?, ?, now(), ?, ?, ?, ?, ?)";
             try {
                 //执行自定义新增规则
                 BusiService busiService = (BusiService) SpringContextHelper.getBean("busi_" + busiType);
@@ -306,7 +307,7 @@ public class BusiEntityService {
             // update
             Map data = null;
             try {
-                data = jdbcTemplate.queryForMap("select content from h_data_manager where type=? and cust_id=? and id=?", busiType, cust_id, id);
+                data = jdbcTemplate.queryForMap("select content from "+HMetaDataDef.getTable(busiType,"")+" where type=? and cust_id=? and id=?", busiType, cust_id, id);
             } catch (DataAccessException e) {
                 logger.error("未查询到数据:[" + busiType + "]" + id, e);
                 throw new TouchException("1000", "未查询到数据:[" + busiType + "]" + id);
@@ -340,7 +341,7 @@ public class BusiEntityService {
                 BusiService busiService = (BusiService) SpringContextHelper.getBean("busi_" + busiType);
                 busiService.updateInfo(busiType, cust_id, cust_group_id, cust_user_id, id, jo);
 
-                StringBuffer sql2 = new StringBuffer("update h_data_manager set update_id=?,update_date=now() ");
+                StringBuffer sql2 = new StringBuffer("update "+HMetaDataDef.getTable(busiType,"")+" set update_id=?,update_date=now() ");
                 List sqlParams = new ArrayList();
                 sqlParams.add(cust_user_id);
 
@@ -379,7 +380,7 @@ public class BusiEntityService {
      * 删除记录
      */
     public void deleteInfo(String cust_id, String cust_group_id, Long cust_user_id, String busiType, Long id) throws Exception {
-        String sql = "delete from h_data_manager where type=? and cust_id=? and id=?";
+        String sql = "delete from "+HMetaDataDef.getTable(busiType,"")+" where type=? and cust_id=? and id=?";
         try {
             //执行自定义删除规则
             BusiService busiService = (BusiService) SpringContextHelper.getBean("busi_" + busiType);

@@ -1,6 +1,8 @@
 package com.bdaim.customs.entity;
 
 
+import com.bdaim.common.util.StringUtil;
+
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Date;
@@ -113,5 +115,16 @@ public class HMetaDataDef implements Serializable {
 
 	public void setInsertdb_rule(String insertdb_rule) {
 		this.insertdb_rule = insertdb_rule;
+	}
+
+	public static String getTable(String type,String time){
+		StringBuffer table_name = new StringBuffer("h_meta_data_def");
+		if(StringUtil.isNotEmpty(type)){
+			table_name.append("_").append(type);
+		}
+		if(StringUtil.isNotEmpty(time)){
+			table_name.append("_").append(time);
+		}
+		return table_name.toString();
 	}
 }

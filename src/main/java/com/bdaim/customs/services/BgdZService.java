@@ -11,6 +11,7 @@ import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customs.dao.HBusiDataManagerDao;
 import com.bdaim.customs.entity.BusiTypeEnum;
 import com.bdaim.customs.entity.HBusiDataManager;
+import com.bdaim.customs.entity.HMetaDataDef;
 import com.bdaim.customs.utils.ServiceUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,8 +42,8 @@ public class BgdZService implements BusiService {
     @Autowired
     private SequenceService sequenceService;
 
-    @Autowired
-    private HBusiDataManagerDao hBusiDataManagerDao;
+//    @Autowired
+//    private HBusiDataManagerDao hBusiDataManagerDao;
 
     @Autowired
     private ServiceUtils serviceUtils;
@@ -77,7 +78,26 @@ public class BgdZService implements BusiService {
                 dataList.remove(index);
             }
             if (dataList.size() > 0) {
-                hBusiDataManagerDao.batchSaveOrUpdate(dataList);
+                //hBusiDataManagerDao.batchSaveOrUpdate(dataList);
+
+                Map<String,List<HBusiDataManager>> datamap = new TreeMap<>();
+                for(HBusiDataManager manager:dataList){
+                    if(datamap.containsKey(manager.getType())){
+                        List<HBusiDataManager> d = datamap.get(manager.getType());
+                        d.add(manager);
+                    }else{
+                        List<HBusiDataManager> d = new ArrayList<>();
+                        d.add(manager);
+                        datamap.put(manager.getType(),d);
+                    }
+                }
+                Set<String> types = datamap.keySet();
+                Iterator<String> iterator = types.iterator();
+                while (iterator.hasNext()){
+                    String key = iterator.next();
+                    List<HBusiDataManager> d = datamap.get(key);
+                    serviceUtils.batchInsert(key,d);
+                }
             }
         }
 
@@ -87,7 +107,7 @@ public class BgdZService implements BusiService {
     public void updateInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) throws Exception {
         // 提交至海关平台
         if ("HAIGUAN".equals(info.getString("_rule_"))) {
-            String sql = "select content, cust_id, cust_group_id, cust_user_id, create_id, create_date ,ext_1, ext_2, ext_3, ext_4, ext_5 from h_data_manager where type=? and id=? ";
+            String sql = "select content, cust_id, cust_group_id, cust_user_id, create_id, create_date ,ext_1, ext_2, ext_3, ext_4, ext_5 from "+ HMetaDataDef.getTable(busiType,"")+" where type=? and id=? ";
             List<Map<String, Object>> list = jdbcTemplate.queryForList(sql, busiType, id);
             if (list.size() == 0) {
                 log.warn("报关单主单数据不存在[" + busiType + "]" + id);
@@ -127,14 +147,14 @@ public class BgdZService implements BusiService {
             if (m.get("ext_5") != null && !"".equals(m.get("ext_5")))
                 jo.put("ext_5", m.get("ext_5"));
 
-            sql = "UPDATE h_data_manager SET ext_1 = '1', ext_date1 = NOW(), content=? WHERE id = ?  AND type = ? AND IFNULL(ext_1,'') <>'1' ";
+            sql = "UPDATE "+HMetaDataDef.getTable(busiType,"")+" SET ext_1 = '1', ext_date1 = NOW(), content=? WHERE id = ?  AND type = ? AND IFNULL(ext_1,'') <>'1' ";
             jdbcTemplate.update(sql, jo.toJSONString(), id, BusiTypeEnum.BZ.getType());
             serviceUtils.updateDataToES(BusiTypeEnum.BZ.getType(), id.toString(), jo);
 
             //更新报关单分单信息
-            String selectSql = "select id, type, content, cust_id, cust_group_id, cust_user_id, create_id, create_date ,ext_1, ext_2, ext_3, ext_4, ext_5 from h_data_manager WHERE ( CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')=? ELSE null END  or CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')=? ELSE null END) AND type = ? AND IFNULL(ext_1,'') <>'1' ";
+            String selectSql = "select id, type, content, cust_id, cust_group_id, cust_user_id, create_id, create_date ,ext_1, ext_2, ext_3, ext_4, ext_5 from "+HMetaDataDef.getTable(BusiTypeEnum.BF.getType(),"")+" WHERE ( CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')=? ELSE null END  or CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')=? ELSE null END) AND type = ? AND IFNULL(ext_1,'') <>'1' ";
             List<Map<String, Object>> ds = jdbcTemplate.queryForList(selectSql, id, id, BusiTypeEnum.BF.getType());
-            String updateSql = " UPDATE h_data_manager SET ext_1 = '1', ext_date1 = NOW(), content=? WHERE id=? AND type = ? AND IFNULL(ext_1,'') <>'1' ";
+            String updateSql = " UPDATE "+HMetaDataDef.getTable(BusiTypeEnum.BF.getType(),"")+" SET ext_1 = '1', ext_date1 = NOW(), content=? WHERE id=? AND type = ? AND IFNULL(ext_1,'') <>'1' ";
             for (int i = 0; i < ds.size(); i++) {
                 m = ds.get(i);
                 content = (String) m.get("content");
@@ -265,8 +285,11 @@ public class BgdZService implements BusiService {
         jon.put("commit_baodan_status", "Y");
         h.setExt_1("Y");
         h.setContent(jon.toJSONString());
-        dataList.add(h);
-
+//        dataList.add(h);
+        String sql = "update "+ HMetaDataDef.getTable(h.getType(),"")+" set content='"+jon.toJSONString()+"'"
+                + " ,ext_1='Y'"
+                + " where id="+h.getId()+" and type='"+h.getType()+"'";
+        jdbcTemplate.update(sql);
         CZ.setContent(info.toJSONString());
         dataList.add(CZ);
         List<HBusiDataManager> parties = serviceUtils.getDataList(BusiTypeEnum.SF.getType(), info.getLong("fromSbzId"));
@@ -310,7 +333,7 @@ public class BgdZService implements BusiService {
 
     private List queryChildData(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long pid, JSONObject info, JSONObject param) {
         List sqlParams = new ArrayList();
-        StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from h_data_manager where type=?");
+        StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from "+HMetaDataDef.getTable(busiType,"")+" where type=?");
         if (!"all".equals(cust_id))
             sqlstr.append(" and cust_id='").append(cust_id).append("'");
 
