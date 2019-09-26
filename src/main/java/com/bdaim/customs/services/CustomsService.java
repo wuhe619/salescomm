@@ -926,11 +926,11 @@ public class CustomsService {
             List<HBusiDataManager> dataList = new ArrayList<>();
             if (BusiTypeEnum.BZ.getKey().equals(type)) { //提交为报单
                 if ("Y".equals(h.getExt_1())) {
-                    throw new Exception("已经提交过了,不能重复提交");
+                    throw new TouchException("已经提交过了,不能重复提交");
                 }
             } else if (BusiTypeEnum.CZ.getKey().equals(type)) { //提交为舱单
                 if ("Y".equals(h.getExt_2())) {
-                    throw new Exception("已经提交过了,不能重复提交");
+                    throw new TouchException("已经提交过了,不能重复提交");
                 }
             }
             buildDanList(dataList, user, h, type);

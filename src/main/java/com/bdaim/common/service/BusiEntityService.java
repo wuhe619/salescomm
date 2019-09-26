@@ -137,6 +137,17 @@ public class BusiEntityService {
                     continue;
                 if ("cust_id".equals(key)) {
                     sqlstr.append(" and cust_id=?");
+                } else if (key.endsWith("create_date")) {
+                    // 处理创建时间查询
+                    if (key.startsWith("_g_")) {
+                        sqlstr.append(" and create_date > ?");
+                    } else if (key.startsWith("_ge_")) {
+                        sqlstr.append(" and create_date >= ?");
+                    } else if (key.startsWith("_l_")) {
+                        sqlstr.append(" and create_date < ?");
+                    } else if (key.startsWith("_le_")) {
+                        sqlstr.append(" and create_date <= ?");
+                    }
                 } else if (key.startsWith("_c_")) {
                     sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(3) + "') like concat('%',?,'%')");
                 } else if (key.startsWith("_g_")) {
@@ -284,6 +295,9 @@ public class BusiEntityService {
                         , jo.containsKey("ext_3") ? info.getString("ext_3") : ""
                         , jo.containsKey("ext_4") ? info.getString("ext_4") : ""
                         , jo.containsKey("ext_5") ? info.getString("ext_5") : "");
+            } catch (TouchException e) {
+                logger.warn("添加记录异常:[" + busiType + "]" + id, e);
+                throw e;
             } catch (Exception e) {
                 logger.error("添加新记录异常:[" + busiType + "]", e);
                 throw new Exception("添加新记录异常:[" + busiType + "]", e);
