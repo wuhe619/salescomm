@@ -43,7 +43,7 @@ public class ExportExcelService {
    /* private Map<String, String> exportTemplate = new HashMap() {{
         put("_export_low_product", "_export_low_product.xlsx");
         put("_export_estimated_tax", "_export_estimated_tax.xlsx");
-        put("_export_declaration_form", "_export_declaration_form].xlsx");
+        put("_export_declaration_form", "_export_declaration_form.xlsx");
         put("_export_tally_form", "_export_tally_form.xlsx");
         put("_export_bgd_z_main_data", "_export_bgd_z_main_data.xls");
     }};*/
