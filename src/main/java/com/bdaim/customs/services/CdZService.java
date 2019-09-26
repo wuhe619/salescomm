@@ -53,15 +53,15 @@ public class CdZService implements BusiService {
         if (StringUtil.isNotEmpty(info.getString("fromSbzId"))) {
             HBusiDataManager h = serviceUtils.getObjectByIdAndType(info.getLong("fromSbzId"), BusiTypeEnum.SZ.getType());
             if (h == null) {
-                throw new Exception("数据不存在");
+                throw new TouchException("数据不存在");
             }
             if (!cust_id.equals(h.getCust_id().toString())) {
-                throw new Exception("你无权处理");
+                throw new TouchException("你无权处理");
             }
 
             List<HBusiDataManager> dataList = new ArrayList<>();
             if ("Y".equals(h.getExt_2())) {
-                throw new Exception("已经提交过了,不能重复提交");
+                throw new TouchException("已经提交过了,不能重复提交");
             }
 
             buildDanList(info, id, dataList, cust_id, cust_user_id, h);
