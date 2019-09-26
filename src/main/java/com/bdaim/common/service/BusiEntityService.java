@@ -295,6 +295,9 @@ public class BusiEntityService {
                         , jo.containsKey("ext_3") ? info.getString("ext_3") : ""
                         , jo.containsKey("ext_4") ? info.getString("ext_4") : ""
                         , jo.containsKey("ext_5") ? info.getString("ext_5") : "");
+            } catch (TouchException e) {
+                logger.warn("添加记录异常:[" + busiType + "]" + id, e);
+                throw e;
             } catch (Exception e) {
                 logger.error("添加新记录异常:[" + busiType + "]", e);
                 throw new Exception("添加新记录异常:[" + busiType + "]", e);
