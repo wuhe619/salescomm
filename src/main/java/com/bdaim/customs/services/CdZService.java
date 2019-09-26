@@ -89,12 +89,18 @@ public class CdZService implements BusiService {
         // 提交至海关平台
         if ("HAIGUAN".equals(info.getString("_rule_"))) {
             String sql = "select content, cust_id, cust_group_id, cust_user_id, create_id, create_date ,ext_1, ext_2, ext_3, ext_4, ext_5 from h_data_manager where type=? and id=? ";
-            Map m  = jdbcTemplate.queryForMap(sql, busiType, id);
+            List<Map<String, Object>> list = jdbcTemplate.queryForList(sql, busiType, id);
+            if (list.size() == 0) {
+                log.warn("舱单主单数据不存在[" + busiType + "]" + id);
+                throw new TouchException("1000", "舱单主单数据不存在");
+            }
+            Map m = list.get(0);
+            //Map m  = jdbcTemplate.queryForMap(sql, busiType, id);
             String cdContent = String.valueOf(m.get("content"));
             if ("1".equals(String.valueOf(m.get("ext_1"))) && StringUtil.isNotEmpty(cdContent)
                     && "1.".equals(JSON.parseObject(cdContent).getString("send_status"))) {
-                log.warn("舱单:[" + id + "]已提交至海关");
-                throw new TouchException("舱单:[" + id + "]已提交至海关");
+                log.warn("舱单主单:[" + id + "]已提交至海关");
+                throw new TouchException("舱单主单:[" + id + "]已提交至海关");
             }
             // 更新舱单主单信息
             String content = (String) m.get("content");

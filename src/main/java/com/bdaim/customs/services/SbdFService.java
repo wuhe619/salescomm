@@ -2,6 +2,7 @@ package com.bdaim.customs.services;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.service.BusiService;
 import com.bdaim.common.service.ElasticSearchService;
 import com.bdaim.common.service.SequenceService;
@@ -101,23 +102,33 @@ public class SbdFService implements BusiService {
     }
 
     @Override
-    public void updateInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) {
+    public void updateInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) throws TouchException {
         // 身份核验
         if ("verification".equals(info.getString("_rule_"))) {
             serviceUtils.esTestData();
-            StringBuffer sql = new StringBuffer("select id,content from h_data_manager where type=?")
+            StringBuffer sql = new StringBuffer("select id, content from h_data_manager where type=?")
                     .append(" and cust_id='").append(cust_id).append("'")
-                    .append(" and id =? AND (ext_7 IS NULL OR ext_7 = '' OR ext_7 = 2 )  ");
+                    //.append(" and id =? AND (ext_7 IS NULL OR ext_7 = '' OR ext_7 = 2 )  ");
+                    .append(" and id =?  ");
             List sqlParams = new ArrayList();
             sqlParams.add(busiType);
             sqlParams.add(id);
 
-            Map map = jdbcTemplate.queryForMap(sql.toString(), sqlParams.toArray());
+            List<Map<String, Object>> list = jdbcTemplate.queryForList(sql.toString(), sqlParams.toArray());
+            if (list.size() == 0) {
+                log.warn("申报单分单数据不存在[" + busiType + "]" + id);
+                throw new TouchException("1000", "申报单分单数据不存在");
+            }
+            Map map = list.get(0);
             if (map != null && map.size() > 0) {
                 String updateSql = "UPDATE h_data_manager SET ext_7 = 0, content = ? WHERE id =? AND type =? ";
                 // 身份核验待核验入队列
                 JSONObject input = new JSONObject();
                 JSONObject data = JSON.parseObject(String.valueOf(map.getOrDefault("content", "")));
+                if (data != null && !"0".equals(data.getString("check_status"))) {
+                    log.warn("申报单分单已经核验[" + busiType + "]" + id);
+                    throw new TouchException("1000", "申报单分单已经核验");
+                }
                 input.put("name", data.getString("receive_name"));
                 input.put("idCard", data.getString("id_no"));
                 JSONObject content = new JSONObject();
