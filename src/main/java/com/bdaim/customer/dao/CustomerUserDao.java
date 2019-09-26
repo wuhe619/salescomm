@@ -31,7 +31,7 @@ public class CustomerUserDao extends SimpleHibernateDao<CustomerUser, Serializab
 
     public CustomerUser getUserByAccount(String account) {
         CustomerUser cp = null;
-        String hql = "from CustomerUser m where m.account=? ";
+        String hql = "from CustomerUser m where m.account=? and m.status<>2";
         List<CustomerUser> list = this.find(hql, account);
         if (list.size() > 0)
             cp = (CustomerUser) list.get(0);
