@@ -8,10 +8,7 @@ import com.bdaim.common.util.CipherUtil;
 import com.bdaim.common.util.NumberConvertUtil;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.dao.CustomerUserDao;
-import com.bdaim.customer.dto.CustomerPropertyDTO;
-import com.bdaim.customer.dto.CustomerPropertyEnum;
-import com.bdaim.customer.dto.CustomerUserGroupRelDTO;
-import com.bdaim.customer.dto.ServiceModeEnum;
+import com.bdaim.customer.dto.*;
 import com.bdaim.customer.entity.CustomerUser;
 import com.bdaim.customer.entity.CustomerUserPropertyDO;
 import com.bdaim.customer.service.CustomerService;
@@ -176,6 +173,11 @@ public class TokenServiceImpl implements TokenService {
                 CustomerPropertyDTO cpd = customerService.getCustomerProperty(u.getCust_id(), CustomerPropertyEnum.SERVICE_MODE.getKey());
                 if (cpd != null && StringUtil.isNotEmpty(cpd.getPropertyValue())) {
                     userdetail.setServiceMode(cpd.getPropertyValue());
+                }
+                //前台用户权限信息
+                CustomerUserPropertyDO userProperty = customerUserDao.getProperty(String.valueOf(u.getId()), CustomerUserPropertyEnum.RESOURCE_MENU.getKey());
+                if (userProperty != null && StringUtil.isNotEmpty(userProperty.getPropertyValue())) {
+                    userdetail.setResourceMenu(userProperty.getPropertyValue());
                 }
                 CustomerUserPropertyDO mobile_num = customerUserDao.getProperty(u.getId().toString(), "mobile_num");
                 if (mobile_num != null && StringUtil.isNotEmpty(mobile_num.getPropertyValue())) {

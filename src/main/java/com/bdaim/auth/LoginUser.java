@@ -76,6 +76,18 @@ public class LoginUser extends Token {
      * 服务权限 1-营销任务 2-公海 多个逗号隔开
      */
     private String serviceMode;
+    /**
+     *前台菜单资源
+     */
+    private String resourceMenu;
+
+    public String getResourceMenu() {
+        return resourceMenu;
+    }
+
+    public void setResourceMenu(String resourceMenu) {
+        this.resourceMenu = resourceMenu;
+    }
 
     public User getUser() {
         return user;
