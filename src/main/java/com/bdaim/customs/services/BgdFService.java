@@ -56,11 +56,11 @@ public class BgdFService implements BusiService {
         String billNo = info.getString("bill_no");
         if (pid == null) {
             log.error("主单id不能为空");
-            throw new Exception("主单id不能为空");
+            throw new TouchException("主单id不能为空");
         }
         if (StringUtil.isEmpty(billNo)) {
             log.error("分单号不能为空");
-            throw new Exception("分单号不能为空");
+            throw new TouchException("分单号不能为空");
         }
         HBusiDataManager sbdzd = serviceUtils.getObjectByIdAndType(pid.longValue(), BusiTypeEnum.BZ.getType());
         List<HBusiDataManager> list = serviceUtils.getDataList(busiType, pid.longValue());
@@ -69,7 +69,7 @@ public class BgdFService implements BusiService {
                 JSONObject jsonObject = JSONObject.parseObject(hBusiDataManager.getContent());
                 if (billNo.equals(jsonObject.getString("bill_no"))) {
                     log.error("分单号【" + billNo + "】在主单【" + pid + "】中已经存在");
-                    throw new Exception("分单号【" + billNo + "】在主单【" + pid + "】中已经存在");
+                    throw new TouchException("分单号【" + billNo + "】在主单【" + pid + "】中已经存在");
                 }
             }
         }

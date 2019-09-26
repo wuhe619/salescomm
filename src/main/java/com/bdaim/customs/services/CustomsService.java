@@ -86,7 +86,7 @@ public class CustomsService {
         CustomerProperty station_idProperty = customerDao.getProperty(user.getCustId(), "station_id");
         if (station_idProperty == null || StringUtil.isEmpty(station_idProperty.getPropertyValue())) {
             log.error("未配置场站信息");
-            throw new Exception("未配置场站信息");
+            throw new TouchException("未配置场站信息");
         }
         try {
             buildMain(list, mainDan, user, station_idProperty.getPropertyValue());
@@ -152,11 +152,11 @@ public class CustomsService {
 //         String id = jsonObject.getString("id");
         if (StringUtil.isEmpty(id)) {
             log.error("参数id为空");
-            throw new Exception("参数错误");
+            throw new TouchException("参数错误");
         }
         HBusiDataManager manager = hBusiDataManagerDao.get(id);
         if (manager == null) {
-            throw new Exception("修改的数据不存在");
+            throw new TouchException("修改的数据不存在");
         }
         String content = manager.getContent();
         MainDan dbjson = JSON.parseObject(content, MainDan.class);
@@ -256,13 +256,13 @@ public class CustomsService {
     public void delPartDanFromSZ(String mainId, String partId, LoginUser user) throws Exception {
         HBusiDataManager hBusiDataManager = hBusiDataManagerDao.get(partId);
         if (hBusiDataManager == null) {
-            throw new Exception("数据不存在");
+            throw new TouchException("数据不存在");
         }
         if (!mainId.equals(hBusiDataManager.getExt_4())) {
-            throw new Exception("分单不属于此主单");
+            throw new TouchException("分单不属于此主单");
         }
         if (hBusiDataManager.getCust_id() == null || (!user.getCustId().equals(hBusiDataManager.getCust_id().toString()))) {
-            throw new Exception("无权删除");
+            throw new TouchException("无权删除");
         }
         List<HBusiDataManager> data = getHbusiDataByBillNo(partId, BusiTypeEnum.SS.getKey());
         for (HBusiDataManager manager : data) {
@@ -286,7 +286,7 @@ public class CustomsService {
     public void delMainById(Long id, String type, LoginUser user) throws Exception {
         HBusiDataManager manager = hBusiDataManagerDao.get(id);
         if ("Y".equals(manager.getExt_1()) || "Y".equals(manager.getExt_2())) {
-            throw new Exception("已经被提交，无法删除");
+            throw new TouchException("已经被提交，无法删除");
         }
         String sql = "select id,ext_3 from h_data_manager where ext_4='" + manager.getExt_3() + "'";
         List<Map<String, Object>> ids = hBusiDataManagerDao.queryListBySql(sql);
@@ -909,10 +909,10 @@ public class CustomsService {
     public void commit2cangdanorbaodan(String id, String type, LoginUser user, String to) throws Exception {
         HBusiDataManager h = hBusiDataManagerDao.get(Long.valueOf(id));
         if (h == null) {
-            throw new Exception("数据不存在");
+            throw new TouchException("数据不存在");
         }
         if (!user.getCustId().equals(h.getCust_id().toString())) {
-            throw new Exception("你无权处理");
+            throw new TouchException("你无权处理");
         }
 
         if (StringUtil.isNotEmpty(to) && "HAIGUAN".equals(to)) {//提交到海关

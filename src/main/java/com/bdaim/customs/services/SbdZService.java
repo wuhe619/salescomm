@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.dto.Page;
+import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.service.BusiService;
 import com.bdaim.common.service.ElasticSearchService;
 import com.bdaim.common.service.ResourceService;
@@ -58,13 +59,13 @@ public class SbdZService implements BusiService {
         CustomerProperty station_idProperty = customerDao.getProperty(cust_id, "station_id");
         if (station_idProperty == null || StringUtil.isEmpty(station_idProperty.getPropertyValue())) {
             log.error("未配置场站信息");
-            throw new Exception("未配置场站信息");
+            throw new TouchException("未配置场站信息");
         }
         String billno = info.getString("bill_no");
         String sql = "select id from h_data_manager where  type='" + busiType + "' and JSON_EXTRACT(content, '$.ext_3')='" + billno + "'";
         List<Map<String, Object>> countList = jdbcTemplate.queryForList(sql);
         if (countList != null && countList.size() > 0) {
-            throw new Exception("此主单已经申报");
+            throw new TouchException("此主单已经申报");
         }
 
         List<HBusiDataManager> list = new ArrayList<>();
@@ -205,7 +206,7 @@ public class SbdZService implements BusiService {
         HBusiDataManager manager = serviceUtils.getObjectByIdAndType(id, busiType);
 
         if ("Y".equals(manager.getExt_1()) || "Y".equals(manager.getExt_2())) {
-            throw new Exception("已经被提交，无法删除");
+            throw new TouchException("已经被提交，无法删除");
         }
 
         List<HBusiDataManager> list = serviceUtils.getDataList(BusiTypeEnum.SF.getType(), id);
