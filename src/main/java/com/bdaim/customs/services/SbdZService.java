@@ -230,10 +230,6 @@ public class SbdZService implements BusiService {
         // 处理场站检索
         if (StringUtil.isNotEmpty(stationId)) {
             String stationSql = "SELECT cust_id FROM t_customer_property WHERE property_name='station_id' AND property_value = ?";
-                /*List<String> custIds = jdbcTemplate.queryForList(stationSql, String.class,"station_id", stationId);
-                if(custIds==null||custIds.size()==0){
-                    return p;
-                }*/
             sqlstr.append(" and cust_id IN ( ").append(stationSql).append(" )");
             sqlParams.add(stationId);
         }
@@ -288,6 +284,7 @@ public class SbdZService implements BusiService {
 
             sqlParams.add(params.get(key));
         }
+        sqlstr.append(" ORDER BY create_date DESC, update_date DESC ");
         return sqlstr.toString();
     }
 
