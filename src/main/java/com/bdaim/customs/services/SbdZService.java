@@ -71,6 +71,7 @@ public class SbdZService implements BusiService {
         MainDan mainDan = JSON.parseObject(info.toJSONString(), MainDan.class);
         try {
             buildMain(info, list, mainDan, cust_user_id, cust_id, station_idProperty.getPropertyValue(), id);
+            log.info("has "+list.size()+" data");
             if (list != null && list.size() > 0) {
                 int index = -1;
                 for (int i = 0; i < list.size(); i++) {
@@ -313,6 +314,7 @@ public class SbdZService implements BusiService {
         info.put("ext_1", "N");
         info.put("ext_2", "N");
         info.put("ext_3", mainDan.getBill_no());
+        log.info("申报单分单:"+mainDan.getBill_no());
         buildPartyDan(list, mainDan, userId, custId, mainid, info);
         buildMainContent(mainDan, info);
         dataManager.setContent(info.toJSONString());
@@ -344,6 +346,7 @@ public class SbdZService implements BusiService {
         List<Product> pList = dan.getProducts();
         Long id = sequenceService.getSeq(BusiTypeEnum.SF.getType());
         JSONObject arrt = new JSONObject();
+        log.info("申报单分单:"+dan.getBill_no());
         buildGoods(list, pList, userId, custId, id.toString(), arrt);
         HBusiDataManager dataManager = new HBusiDataManager();
         dataManager.setType(BusiTypeEnum.SF.getType());
@@ -396,6 +399,7 @@ public class SbdZService implements BusiService {
         if (pList != null && pList.size() > 0) {
             List<Map<String, String>> mainGoodsName = new ArrayList<>();
             for (Product product : pList) {
+                log.info("goods:"+product.getCode_ts());
                 HBusiDataManager dataManager = new HBusiDataManager();
                 dataManager.setType(BusiTypeEnum.SS.getType());
                 dataManager.setCreateDate(new Date());
