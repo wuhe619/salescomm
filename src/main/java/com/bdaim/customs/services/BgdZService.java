@@ -127,14 +127,14 @@ public class BgdZService implements BusiService {
             if (m.get("ext_5") != null && !"".equals(m.get("ext_5")))
                 jo.put("ext_5", m.get("ext_5"));
 
-            sql = "UPDATE h_data_manager SET ext_1 = '1', ext_date1 = NOW(), content=? WHERE id = ?  AND type = ? AND ext_1 <>'1' ";
-            jdbcTemplate.update(sql, jo.toJSONString(), id, BusiTypeEnum.SZ.getType());
-            serviceUtils.updateDataToES(BusiTypeEnum.SZ.getType(), id.toString(), jo);
+            sql = "UPDATE h_data_manager SET ext_1 = '1', ext_date1 = NOW(), content=? WHERE id = ?  AND type = ? AND IFNULL(ext_1,'') <>'1' ";
+            jdbcTemplate.update(sql, jo.toJSONString(), id, BusiTypeEnum.BZ.getType());
+            serviceUtils.updateDataToES(BusiTypeEnum.BZ.getType(), id.toString(), jo);
 
             //更新报关单分单信息
-            String selectSql = "select content, cust_id, cust_group_id, cust_user_id, create_id, create_date ,ext_1, ext_2, ext_3, ext_4, ext_5 from h_data_manager WHERE ( CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')=? ELSE null END  or CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')=? ELSE null END) AND type = ? AND ext_1 <>'1' ";
+            String selectSql = "select id, type, content, cust_id, cust_group_id, cust_user_id, create_id, create_date ,ext_1, ext_2, ext_3, ext_4, ext_5 from h_data_manager WHERE ( CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')=? ELSE null END  or CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')=? ELSE null END) AND type = ? AND IFNULL(ext_1,'') <>'1' ";
             List<Map<String, Object>> ds = jdbcTemplate.queryForList(selectSql, id, id, BusiTypeEnum.BF.getType());
-            String updateSql = " UPDATE h_data_manager SET ext_1 = '1', ext_date1 = NOW(), content=? WHERE JSON_EXTRACT(content, '$.pid')=? AND type = ? AND ext_1 <>'1' ";
+            String updateSql = " UPDATE h_data_manager SET ext_1 = '1', ext_date1 = NOW(), content=? WHERE id=? AND type = ? AND IFNULL(ext_1,'') <>'1' ";
             for (int i = 0; i < ds.size(); i++) {
                 m = ds.get(i);
                 content = (String) m.get("content");
@@ -159,8 +159,8 @@ public class BgdZService implements BusiService {
                     jo.put("ext_4", m.get("ext_4"));
                 if (m.get("ext_5") != null && !"".equals(m.get("ext_5")))
                     jo.put("ext_5", m.get("ext_5"));
-                jdbcTemplate.update(updateSql, jo.toJSONString(), id, BusiTypeEnum.BF.getType());
-                serviceUtils.updateDataToES(BusiTypeEnum.SF.getType(), String.valueOf(m.get("id")), jo);
+                jdbcTemplate.update(updateSql, jo.toJSONString(), m.get("id"), BusiTypeEnum.BF.getType());
+                serviceUtils.updateDataToES(BusiTypeEnum.BF.getType(), String.valueOf(m.get("id")), jo);
             }
         } else {
             HBusiDataManager dbManager = serviceUtils.getObjectByIdAndType(id, busiType);

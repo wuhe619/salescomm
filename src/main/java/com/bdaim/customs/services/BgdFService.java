@@ -148,9 +148,9 @@ public class BgdFService implements BusiService {
             if (m.get("ext_5") != null && !"".equals(m.get("ext_5")))
                 jo.put("ext_5", m.get("ext_5"));
 
-            sql = "UPDATE h_data_manager SET ext_1 = '1', ext_date1 = NOW(), content=? WHERE id = ? AND type = ? AND ext_1 <>'1' ";
+            sql = "UPDATE h_data_manager SET ext_1 = '1', ext_date1 = NOW(), content=? WHERE id = ? AND type = ? AND IFNULL(ext_1,'') <>'1' ";
             jdbcTemplate.update(sql, jo.toJSONString(), id, busiType);
-            serviceUtils.updateDataToES(BusiTypeEnum.BZ.getType(), id.toString(), jo);
+            serviceUtils.updateDataToES(BusiTypeEnum.BF.getType(), id.toString(), jo);
         } else {
             HBusiDataManager dbManager = serviceUtils.getObjectByIdAndType(id, busiType);
             String content = dbManager.getContent();

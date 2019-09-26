@@ -159,7 +159,6 @@ public class ElasticSearchService {
             headers.setContentType(MediaType.APPLICATION_JSON);
             HttpEntity<JSONObject> entity = new HttpEntity<>(data, headers);
             result = restTemplate.postForObject(ESUtil.getUrl(index, type) + id + "/_update/", entity, JSONObject.class);
-            System.out.println(result);
             LOG.info("向es修改记录返回结果:[" + result + "]");
         } catch (Exception e) {
             LOG.error("向es修改记录异常:" + e.getMessage());
