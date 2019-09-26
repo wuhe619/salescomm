@@ -3,6 +3,7 @@ package com.bdaim.customs.services;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.dto.Page;
+import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.service.BusiService;
 import com.bdaim.common.service.ElasticSearchService;
 import com.bdaim.common.service.ResourceService;
@@ -51,16 +52,16 @@ public class SbdSService implements BusiService {
         String billNo = info.getString("bill_no");
         if(pid==null){
             log.error("分单id不能为空");
-            throw new Exception("分单id不能为空");
+            throw new TouchException("分单id不能为空");
         }
         if(StringUtil.isEmpty(billNo)){
             log.error("分单号不能为空");
-            throw new Exception("分单号不能为空");
+            throw new TouchException("分单号不能为空");
         }
         String code_ts=info.getString("code_ts");
         if(StringUtil.isEmpty(code_ts)){
             log.error("商品编码不能为空");
-            throw new Exception("商品编码不能为空");
+            throw new TouchException("商品编码不能为空");
         }
         info.put("cust_id",cust_id);
         info.put("create_id",cust_user_id);

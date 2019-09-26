@@ -19,6 +19,19 @@ public class HDicUtil {
 
     public static Map<String, HDic> DIC_CACHE = new HashMap<>(16);
 
+    private static Map<String, String> KEY_ALIAS = new HashMap(16){{
+        put("fee_curr","CURR_CODE");
+        put("insur_curr","CURR_CODE");
+        put("curr_code","CURR_CODE");
+        put("qiyun_port","DECL_PORT");
+        put("insur_mark","FEE_MARK");
+        put("fee_mark","FEE_MARK");
+        put("other_mark","FEE_MARK");
+        put("trade_country","SEND_COUNTRY");
+        put("receive_country","SEND_COUNTRY");
+
+    }};
+
     private String split = "$";
 
     @Autowired
@@ -42,6 +55,9 @@ public class HDicUtil {
     }
 
     public HDic getCache(String type, String code) {
+        if(KEY_ALIAS.containsKey(type.toLowerCase())){
+            type = KEY_ALIAS.get(type.toLowerCase());
+        }
         HDic dic = DIC_CACHE.get(type + split + code);
         return dic;
     }

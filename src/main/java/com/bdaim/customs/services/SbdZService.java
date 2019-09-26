@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.dto.Page;
+import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.service.BusiService;
 import com.bdaim.common.service.ElasticSearchService;
 import com.bdaim.common.service.ResourceService;
@@ -58,13 +59,13 @@ public class SbdZService implements BusiService {
         CustomerProperty station_idProperty = customerDao.getProperty(cust_id, "station_id");
         if (station_idProperty == null || StringUtil.isEmpty(station_idProperty.getPropertyValue())) {
             log.error("未配置场站信息");
-            throw new Exception("未配置场站信息");
+            throw new TouchException("未配置场站信息");
         }
         String billno = info.getString("bill_no");
         String sql = "select id from h_data_manager where  type='" + busiType + "' and JSON_EXTRACT(content, '$.ext_3')='" + billno + "'";
         List<Map<String, Object>> countList = jdbcTemplate.queryForList(sql);
         if (countList != null && countList.size() > 0) {
-            throw new Exception("此主单已经申报");
+            throw new TouchException("此主单已经申报");
         }
 
         List<HBusiDataManager> list = new ArrayList<>();
@@ -205,7 +206,7 @@ public class SbdZService implements BusiService {
         HBusiDataManager manager = serviceUtils.getObjectByIdAndType(id, busiType);
 
         if ("Y".equals(manager.getExt_1()) || "Y".equals(manager.getExt_2())) {
-            throw new Exception("已经被提交，无法删除");
+            throw new TouchException("已经被提交，无法删除");
         }
 
         List<HBusiDataManager> list = serviceUtils.getDataList(BusiTypeEnum.SF.getType(), id);
@@ -238,7 +239,7 @@ public class SbdZService implements BusiService {
         Iterator keys = params.keySet().iterator();
         while (keys.hasNext()) {
             String key = (String) keys.next();
-            if ("".equals(String.valueOf(params.get(key)))) continue;
+            if (StringUtil.isEmpty(String.valueOf(params.get(key)))) continue;
             if ("pageNum".equals(key) || "pageSize".equals(key) || "stationId".equals(key) || "cust_id".equals(key))
                 continue;
             if ("cust_id".equals(key)) {
@@ -308,30 +309,33 @@ public class SbdZService implements BusiService {
 
 
     public void buildMain(JSONObject info, List<HBusiDataManager> list, MainDan mainDan, Long userId, String custId, String station_id, Long mainid) throws Exception {
-        HBusiDataManager dataManager = new HBusiDataManager();
-        dataManager.setCreateId(userId);
-        dataManager.setId(mainid.intValue());
-        dataManager.setCreateDate(new Date());
-        dataManager.setType(BusiTypeEnum.SZ.getType());
+       try {
+           HBusiDataManager dataManager = new HBusiDataManager();
+           dataManager.setCreateId(userId);
+           dataManager.setId(mainid.intValue());
+           dataManager.setCreateDate(new Date());
+           dataManager.setType(BusiTypeEnum.SZ.getType());
 
-        info.put("type", BusiTypeEnum.SZ.getType());
-        info.put("commit_cangdan_status", "N");
-        info.put("commit_baodan_status", "N");
-        info.put("create_date", new Date());
-        info.put("create_id", userId + "");
-        info.put("station_id", station_id);//场站id
-        info.put("cust_id", custId);
-        info.put("id_card_number", 0);
-        info.put("ext_1", "N");
-        info.put("ext_2", "N");
-        info.put("ext_3", mainDan.getBill_no());
-        log.info("申报单主单:"+mainDan.getBill_no());
-        buildPartyDan(list, mainDan, userId, custId, mainid, info);
-        buildMainContent(mainDan, info);
-        dataManager.setContent(info.toJSONString());
+           info.put("type", BusiTypeEnum.SZ.getType());
+           info.put("commit_cangdan_status", "N");
+           info.put("commit_baodan_status", "N");
+           info.put("create_date", new Date());
+           info.put("create_id", userId + "");
+           info.put("station_id", station_id);//场站id
+           info.put("cust_id", custId);
+           info.put("id_card_number", 0);
+           info.put("ext_1", "N");
+           info.put("ext_2", "N");
+           info.put("ext_3", mainDan.getBill_no());
+           log.info("申报单主单:" + mainDan.getBill_no());
+           buildPartyDan(list, mainDan, userId, custId, mainid, info);
+           buildMainContent(mainDan, info);
+           dataManager.setContent(info.toJSONString());
 
-        list.add(dataManager);
-
+           list.add(dataManager);
+       }catch (Exception e){
+           e.printStackTrace();
+       }
     }
 
     /**

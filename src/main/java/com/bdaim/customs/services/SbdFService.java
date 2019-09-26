@@ -55,11 +55,11 @@ public class SbdFService implements BusiService {
         String billNo = info.getString("bill_no");
         if (pid == null) {
             log.error("主单id不能为空");
-            throw new Exception("主单id不能为空");
+            throw new TouchException("主单id不能为空");
         }
         if (StringUtil.isEmpty(billNo)) {
             log.error("分单号不能为空");
-            throw new Exception("分单号不能为空");
+            throw new TouchException("分单号不能为空");
         }
         HBusiDataManager sbdzd = serviceUtils.getObjectByIdAndType(pid.longValue(), BusiTypeEnum.SZ.getType());
         List<HBusiDataManager> list = serviceUtils.getDataList(BusiTypeEnum.SF.getType(), pid.longValue());
@@ -68,7 +68,7 @@ public class SbdFService implements BusiService {
                 JSONObject jsonObject = JSONObject.parseObject(hBusiDataManager.getContent());
                 if (billNo.equals(jsonObject.getString("bill_no"))) {
                     log.error("分单号【" + billNo + "】在主单【" + pid + "】中已经存在");
-                    throw new Exception("分单号【" + billNo + "】在主单【" + pid + "】中已经存在");
+                    throw new TouchException("分单号【" + billNo + "】在主单【" + pid + "】中已经存在");
                 }
             }
         }
@@ -196,7 +196,7 @@ public class SbdFService implements BusiService {
 //        String sql = "select id,type,content,ext_1,ext_2,ext_3,ext_4 from h_data_manager where id=" + id + " and type='" + busiType + "'";
         HBusiDataManager manager = serviceUtils.getObjectByIdAndType(id, busiType);//jdbcTemplate.queryForObject(sql, HBusiDataManager.class);
         if (manager.getCust_id() == null || (!cust_id.equals(manager.getCust_id().toString()))) {
-            throw new Exception("无权删除");
+            throw new TouchException("无权删除");
         }
         List<HBusiDataManager> list = serviceUtils.getDataList(BusiTypeEnum.SS.getType(), id);
         for (HBusiDataManager manager2 : list) {
@@ -226,6 +226,7 @@ public class SbdFService implements BusiService {
             Iterator keys = params.keySet().iterator();
             while (keys.hasNext()) {
                 String key = (String) keys.next();
+                if (StringUtil.isNotEmpty(String.valueOf(params.get(key)))) continue;
                 if ("pageNum".equals(key) || "pageSize".equals(key) || "pid1".equals(key) || "pid2".equals(key))
                     continue;
                 if ("cust_id".equals(key)) {

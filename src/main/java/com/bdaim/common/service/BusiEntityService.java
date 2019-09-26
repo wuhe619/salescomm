@@ -132,7 +132,7 @@ public class BusiEntityService {
             Iterator keys = params.keySet().iterator();
             while (keys.hasNext()) {
                 String key = (String) keys.next();
-                if ("".equals(String.valueOf(params.get(key)))) continue;
+                if (StringUtil.isEmpty(String.valueOf(params.get(key)))) continue;
                 if ("pageNum".equals(key) || "pageSize".equals(key) || "stationId".equals(key) || "cust_id".equals(key))
                     continue;
                 if ("cust_id".equals(key)) {
@@ -387,6 +387,9 @@ public class BusiEntityService {
 
             jdbcTemplate.update(sql, busiType, cust_id, id);
 
+        } catch (TouchException e) {
+            logger.warn("删除记录异常:[" + busiType + "]" + id, e);
+            throw e;
         } catch (Exception e) {
             logger.error("删除记录异常:[" + busiType + "]" + id, e);
             throw new Exception("删除记录异常:[" + busiType + "]" + id);
