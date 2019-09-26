@@ -343,49 +343,53 @@ public class SbdZService implements BusiService {
     }
 
     public void buildSenbaodanFendan(PartyDan dan, List<HBusiDataManager> list, Long userId, String custId, String mainBillNo, Long mainid, JSONObject info) throws Exception {
-        List<Product> pList = dan.getProducts();
-        Long id = sequenceService.getSeq(BusiTypeEnum.SF.getType());
-        JSONObject arrt = new JSONObject();
-        log.info("申报单分单:"+dan.getBill_no());
-        buildGoods(list, pList, userId, custId, id.toString(), arrt);
-        HBusiDataManager dataManager = new HBusiDataManager();
-        dataManager.setType(BusiTypeEnum.SF.getType());
-        dataManager.setCreateId(userId);
-        dataManager.setCust_id(Long.valueOf(custId));
+        try {
+            List<Product> pList = dan.getProducts();
+            Long id = sequenceService.getSeq(BusiTypeEnum.SF.getType());
+            JSONObject arrt = new JSONObject();
+            log.info("申报单分单:" + dan.getBill_no());
+            buildGoods(list, pList, userId, custId, id.toString(), arrt);
+            HBusiDataManager dataManager = new HBusiDataManager();
+            dataManager.setType(BusiTypeEnum.SF.getType());
+            dataManager.setCreateId(userId);
+            dataManager.setCust_id(Long.valueOf(custId));
 
-        dataManager.setId(id.intValue());
-        dataManager.setCreateDate(new Date());
-        dataManager.setExt_3(dan.getBill_no());//分单号
-        dataManager.setExt_4(dan.getMain_bill_no());//主单号
+            dataManager.setId(id.intValue());
+            dataManager.setCreateDate(new Date());
+            dataManager.setExt_3(dan.getBill_no());//分单号
+            dataManager.setExt_4(dan.getMain_bill_no());//主单号
 
-        JSONObject json = buildPartyContent(dan);
-        json.put("type", BusiTypeEnum.SF.getType());
-        json.put("mail_bill_no", mainBillNo);
-        json.put("create_date", dataManager.getCreateDate());
-        json.put("create_id", userId);
-        json.put("cust_id", custId);
-        json.put("check_status", "0");
-        json.put("idcard_pic_flag", "0");
-        json.put("pid", mainid);
-        JSONArray jsonArray = arrt.getJSONArray("mainGoodsName");
-        String mainGoodsName = "";
-        if (jsonArray != null && jsonArray.size() > 0) {
-            for (int i = 0; i < jsonArray.size(); i++) {
-                JSONObject obj = jsonArray.getJSONObject(i);
-                mainGoodsName += obj.getString("name") + "|" + obj.getString("name_en") + "|" + obj.getString("g_model");
+            JSONObject json = buildPartyContent(dan);
+            json.put("type", BusiTypeEnum.SF.getType());
+            json.put("mail_bill_no", mainBillNo);
+            json.put("create_date", dataManager.getCreateDate());
+            json.put("create_id", userId);
+            json.put("cust_id", custId);
+            json.put("check_status", "0");
+            json.put("idcard_pic_flag", "0");
+            json.put("pid", mainid);
+            JSONArray jsonArray = arrt.getJSONArray("mainGoodsName");
+            String mainGoodsName = "";
+            if (jsonArray != null && jsonArray.size() > 0) {
+                for (int i = 0; i < jsonArray.size(); i++) {
+                    JSONObject obj = jsonArray.getJSONObject(i);
+                    mainGoodsName += obj.getString("name") + "|" + obj.getString("name_en") + "|" + obj.getString("g_model");
+                }
             }
-        }
-        json.put("main_gname", mainGoodsName);
-        json.put("low_price_goods", arrt.getString("low_price_goods"));
-        if (info.containsKey("low_price_goods") && info.getInteger("low_price_goods") != null) {
-            int low_price_goods = info.getInteger("low_price_goods");
-            info.put("low_price_goods", low_price_goods + arrt.getInteger("low_price_goods"));
-        } else {
-            info.put("low_price_goods", arrt.getString("low_price_goods"));
-        }
-        dataManager.setContent(json.toJSONString());
+            json.put("main_gname", mainGoodsName);
+            json.put("low_price_goods", arrt.getString("low_price_goods"));
+            if (info.containsKey("low_price_goods") && info.getInteger("low_price_goods") != null) {
+                int low_price_goods = info.getInteger("low_price_goods");
+                info.put("low_price_goods", low_price_goods + arrt.getInteger("low_price_goods"));
+            } else {
+                info.put("low_price_goods", arrt.getString("low_price_goods"));
+            }
+            dataManager.setContent(json.toJSONString());
 
-        list.add(dataManager);
+            list.add(dataManager);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
     /**
