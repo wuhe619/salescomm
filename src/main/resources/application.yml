@@ -37,9 +37,7 @@ spring:
   redis:
     host: localhost
     port: 6379
-  elasticsearch:
-    jest:
-      uris: http://192.168.32.200:9200
+
 logging:
   level: 
     org.hibernate: INFO
