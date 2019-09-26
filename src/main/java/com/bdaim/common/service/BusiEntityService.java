@@ -132,7 +132,7 @@ public class BusiEntityService {
             Iterator keys = params.keySet().iterator();
             while (keys.hasNext()) {
                 String key = (String) keys.next();
-                if ("".equals(String.valueOf(params.get(key)))) continue;
+                if (StringUtil.isEmpty(String.valueOf(params.get(key)))) continue;
                 if ("pageNum".equals(key) || "pageSize".equals(key) || "stationId".equals(key) || "cust_id".equals(key))
                     continue;
                 if ("cust_id".equals(key)) {
