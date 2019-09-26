@@ -93,10 +93,12 @@ public class HDicUtil {
 
     public HDic getCache(String type, String code) {
         HDic dic = null;
-        if (KEY_ALIAS.containsKey(type.toLowerCase())) {
-            type = KEY_ALIAS.get(type.toLowerCase());
+        if ("code_ts".equals(type.toLowerCase())) {
             dic = getHResource(type, code);
         } else {
+            if (KEY_ALIAS.containsKey(type.toLowerCase())) {
+                type = KEY_ALIAS.get(type.toLowerCase());
+            }
             dic = hDicDao.getDic(type, code);
         }
         /*HDic dic = DIC_CACHE.get(type + split + code);
