@@ -118,7 +118,7 @@ public class HMetaDataDef implements Serializable {
 	}
 
 	public static String getTable(String type,String time){
-		StringBuffer table_name = new StringBuffer("h_meta_data_def");
+		StringBuffer table_name = new StringBuffer("h_data_manager");
 		if(StringUtil.isNotEmpty(type)){
 			table_name.append("_").append(type);
 		}

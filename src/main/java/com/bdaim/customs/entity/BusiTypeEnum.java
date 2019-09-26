@@ -1,6 +1,9 @@
 package com.bdaim.customs.entity;
 
 
+import java.util.ArrayList;
+import java.util.List;
+
 public enum BusiTypeEnum {
     SZ("SZ", "申报单-主单", "sbd_z"),
     SF("SF", "申报单-分单", "sbd_f"),
@@ -12,8 +15,8 @@ public enum BusiTypeEnum {
     BF("BF", "报关单-分单", "bgd_f"),
     BS("BS", "报关单-税单", "bgd_s"),
     ST("ST", "场站", "station"),
-    BGD_HZ("ST", "报关单-海关回执", "bgd_hz"),
-    CD_HZ("ST", "舱单-海关回执", "cd_hz");
+    BGD_HZ("BGD_HZ", "报关单-海关回执", "bgd_hz"),
+    CD_HZ("CD_HZ", "舱单-海关回执", "cd_hz");
 
     private String key;
     private String name;
@@ -52,6 +55,14 @@ public enum BusiTypeEnum {
 
     public String getType() {
         return type;
+    }
+
+    public static List<String> getTypeList(){
+        List types = new ArrayList();
+        for (BusiTypeEnum v : BusiTypeEnum.values()) {
+            types.add(v.getType());
+        }
+        return types;
     }
 
 }
