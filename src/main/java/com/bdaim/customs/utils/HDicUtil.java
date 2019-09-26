@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,7 +38,6 @@ public class HDicUtil {
     @Autowired
     private HDicDao hDicDao;
 
-    @PostConstruct
     private void init() {
         LOG.info("开始初始化缓存字典数据时间:[{}]", System.currentTimeMillis());
         List<HDic> list = hDicDao.listHDic();
@@ -72,15 +70,37 @@ public class HDicUtil {
         }
     }
 
+    private HDic getHResource(String type, String code) {
+        String stationSql = "select content, create_id, create_date, update_id, update_date from h_resource where type=? and JSON_EXTRACT(content, '$.code')=? ";
+        List<Map<String, Object>> list = hDicDao.sqlQuery(stationSql, "duty_paid_rate", code);
+        HDic hDic = null;
+        if (list != null && list.size() > 0) {
+            Map<String, Object> m = list.get(0);
+            JSONObject jsonObject = JSON.parseObject(String.valueOf(m.get("content")));
+            if (jsonObject != null) {
+                hDic = new HDic();
+                hDic.setType("code_ts".toUpperCase());
+                hDic.setCode(jsonObject.getString("code"));
+                hDic.setName_zh(jsonObject.getString("g_model"));
+            }
+        }
+        return hDic;
+    }
+
     public void saveCache(String type, String code, HDic dic) {
         DIC_CACHE.put(type + split + code, dic);
     }
 
     public HDic getCache(String type, String code) {
+        HDic dic = null;
         if (KEY_ALIAS.containsKey(type.toLowerCase())) {
             type = KEY_ALIAS.get(type.toLowerCase());
+            dic = getHResource(type, code);
+        } else {
+            dic = hDicDao.getDic(type, code);
         }
-        HDic dic = DIC_CACHE.get(type + split + code);
+        /*HDic dic = DIC_CACHE.get(type + split + code);
+        return dic;*/
         return dic;
     }
 }
