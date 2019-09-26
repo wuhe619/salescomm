@@ -308,30 +308,33 @@ public class SbdZService implements BusiService {
 
 
     public void buildMain(JSONObject info, List<HBusiDataManager> list, MainDan mainDan, Long userId, String custId, String station_id, Long mainid) throws Exception {
-        HBusiDataManager dataManager = new HBusiDataManager();
-        dataManager.setCreateId(userId);
-        dataManager.setId(mainid.intValue());
-        dataManager.setCreateDate(new Date());
-        dataManager.setType(BusiTypeEnum.SZ.getType());
+       try {
+           HBusiDataManager dataManager = new HBusiDataManager();
+           dataManager.setCreateId(userId);
+           dataManager.setId(mainid.intValue());
+           dataManager.setCreateDate(new Date());
+           dataManager.setType(BusiTypeEnum.SZ.getType());
 
-        info.put("type", BusiTypeEnum.SZ.getType());
-        info.put("commit_cangdan_status", "N");
-        info.put("commit_baodan_status", "N");
-        info.put("create_date", new Date());
-        info.put("create_id", userId + "");
-        info.put("station_id", station_id);//场站id
-        info.put("cust_id", custId);
-        info.put("id_card_number", 0);
-        info.put("ext_1", "N");
-        info.put("ext_2", "N");
-        info.put("ext_3", mainDan.getBill_no());
-        log.info("申报单主单:"+mainDan.getBill_no());
-        buildPartyDan(list, mainDan, userId, custId, mainid, info);
-        buildMainContent(mainDan, info);
-        dataManager.setContent(info.toJSONString());
+           info.put("type", BusiTypeEnum.SZ.getType());
+           info.put("commit_cangdan_status", "N");
+           info.put("commit_baodan_status", "N");
+           info.put("create_date", new Date());
+           info.put("create_id", userId + "");
+           info.put("station_id", station_id);//场站id
+           info.put("cust_id", custId);
+           info.put("id_card_number", 0);
+           info.put("ext_1", "N");
+           info.put("ext_2", "N");
+           info.put("ext_3", mainDan.getBill_no());
+           log.info("申报单主单:" + mainDan.getBill_no());
+           buildPartyDan(list, mainDan, userId, custId, mainid, info);
+           buildMainContent(mainDan, info);
+           dataManager.setContent(info.toJSONString());
 
-        list.add(dataManager);
-
+           list.add(dataManager);
+       }catch (Exception e){
+           e.printStackTrace();
+       }
     }
 
     /**
