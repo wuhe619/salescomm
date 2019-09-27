@@ -1,6 +1,5 @@
 package com.bdaim.customs.utils;
 
-import com.bdaim.common.util.spring.SpringContextHelper;
 import com.bdaim.customs.entity.BusiTypeEnum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,12 +20,16 @@ public class HMetaDataDefUtil {
     @PostConstruct
     private void init(){
        // JdbcTemplate jdbcTemplate = (JdbcTemplate) SpringContextHelper.getBean("jdbcTemplate");
-        List<String> types = BusiTypeEnum.getTypeList();
-        for(String type:types){
-            String sql=" create table  if not exists  h_data_manager_"+type+" like h_data_manager";
-            jdbcTemplate.execute(sql);
+        try {
+            List<String> types = BusiTypeEnum.getTypeList();
+            for(String type:types){
+                String sql=" create table  if not exists  h_data_manager_"+type+" like h_data_manager";
+                jdbcTemplate.execute(sql);
+            }
+            log.info("create table finish");
+        } catch (Exception e) {
+            log.error("创建h_data_manager_异常",e);
         }
-        log.info("create table finish");
 
     }
 }
