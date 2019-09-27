@@ -1127,7 +1127,7 @@ public class CustomsService {
                 continue;
             if (key.startsWith("_c_")) {
                 // 模糊查询
-                queryBuilder = QueryBuilders.moreLikeThisQuery(key.substring(3)).like(params.getString(key));
+                queryBuilder = QueryBuilders.matchQuery(key.substring(3),params.getString(key));
             } else if (key.startsWith("_g_")) {
                 queryBuilder = QueryBuilders.rangeQuery(key.substring(3)).gt(params.get(key));
             } else if (key.startsWith("_ge_")) {
