@@ -22,7 +22,7 @@ import com.bdaim.customs.entity.*;
 import com.bdaim.customs.utils.DatesUtil;
 import com.bdaim.customs.utils.ServiceUtils;
 import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.MatchPhraseQueryBuilder;
+import org.elasticsearch.index.query.MatchQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.SortOrder;
@@ -1090,13 +1090,12 @@ public class CustomsService {
 //        queryDataParams.setId(1714);
 //    }
 
-    public SearchSourceBuilder makeQueryStringForSearch(QueryDataParams queryDataParams) {
-
+    public SearchSourceBuilder queryCondition(QueryDataParams queryDataParams) {
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         BoolQueryBuilder qb = QueryBuilders.boolQuery();
         if (queryDataParams.getId() != null) {
-            MatchPhraseQueryBuilder mpq = QueryBuilders
-                    .matchPhraseQuery("_id", queryDataParams.getId());
+            MatchQueryBuilder mpq = QueryBuilders
+                    .matchPhrasePrefixQuery("_id", queryDataParams.getId());
             qb.must(mpq);
         }
         //单号
@@ -1113,52 +1112,46 @@ public class CustomsService {
         }
         searchSourceBuilder.query(qb);
         return searchSourceBuilder;
-       /*  int from = (queryDataParams.getPageNum() - 1) * queryDataParams.getPageSize();
-        searchSourceBuilder.from(from);
-        searchSourceBuilder.size(queryDataParams.getPageSize());
-        //排序
-        searchSourceBuilder.sort("_id", SortOrder.ASC);
-
-        String query = searchSourceBuilder.toString();
-       SearchResult result = elasticSearchService.searchToEs(query, Constants.SZ_INFO_INDEX, "haiguan");
-
-        List<Object> list = new ArrayList<>();
-        if (result != null) {
-            List<SearchResult.Hit<MainDan, Void>> hits = result.getHits(MainDan.class);
-            for (SearchResult.Hit<MainDan, Void> hit : hits) {
-                MainDan mainDan = hit.source;
-                list.add(mainDan);
-            }
-            page.setData(list);
-            page.setTotal(NumberConvertUtil.parseInt(result.getTotal()));
-        }
-
-        return page;
-       return  query;*/
     }
 
     public Page queryDataPage(QueryDataParams queryDataParams) {
         String index = "";
-        Class c = null;
+        Class object = null;
         if ("SZ".equals(queryDataParams.getIndex())) {
             index = Constants.SZ_INFO_INDEX;
-            c = MainDan.class;
+            object = MainDan.class;
         } else if ("SF".equals(queryDataParams.getIndex())) {
             index = Constants.SF_INFO_INDEX;
-            c = PartyDan.class;
+            object = PartyDan.class;
         } else if ("SS".equals(queryDataParams.getIndex())) {
             index = Constants.SS_INFO_INDEX;
-            c = Product.class;
+            object = Product.class;
         }
-        SearchSourceBuilder searchSourceBuilder = makeQueryStringForSearch(queryDataParams);
-        int from = (queryDataParams.getPageNum() - 1) * queryDataParams.getPageSize();
+        SearchSourceBuilder searchSourceBuilder = queryCondition(queryDataParams);
+        int pageNum = 1;
+        int pageSize = 10;
+        try {
+            pageNum = queryDataParams.getPageNum();
+        } catch (Exception e) {
+        }
+        try {
+            pageSize = queryDataParams.getPageSize();
+        } catch (Exception e) {
+        }
+        if (pageNum <= 0)
+            pageNum = 1;
+        if (pageSize <= 0)
+            pageSize = 10;
+        if (pageSize > 1000)
+            pageSize = 1000;
+        int from = (pageNum - 1) * pageSize;
         searchSourceBuilder.from(from);
-        searchSourceBuilder.size(queryDataParams.getPageSize());
+        searchSourceBuilder.size(pageSize);
         //排序
         searchSourceBuilder.sort("_id", SortOrder.ASC);
 
         String query = searchSourceBuilder.toString();
-        Page page = elasticSearchService.searchToEsPage(query, index, "haiguan", c);
+        Page page = elasticSearchService.pageSearch(query, index, "haiguan", object);
         return page;
     }
 

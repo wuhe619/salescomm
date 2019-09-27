@@ -3,19 +3,26 @@ package com.bdaim.customs.utils;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.batch.ResourceEnum;
+import com.bdaim.common.dto.Page;
 import com.bdaim.common.service.ElasticSearchService;
 import com.bdaim.common.service.SequenceService;
 import com.bdaim.common.util.CipherUtil;
 import com.bdaim.common.util.IDHelper;
+import com.bdaim.common.util.NumberConvertUtil;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.entity.Customer;
 import com.bdaim.customer.entity.CustomerProperty;
-import com.bdaim.customs.dao.HBusiDataManagerDao;
 import com.bdaim.customs.entity.*;
 import com.bdaim.resource.dao.SourceDao;
 import com.bdaim.resource.entity.MarketResourceEntity;
 import com.bdaim.supplier.dto.SupplierEnum;
+import io.searchbox.core.SearchResult;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.elasticsearch.search.sort.SortOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -133,7 +140,7 @@ public class ServiceUtils {
 
 
     public HBusiDataManager getObjectByIdAndType(Long id, String type) {
-        String sql = "select * from "+HMetaDataDef.getTable(type,"")+" where id=" + id + " and type='" + type + "'";
+        String sql = "select * from " + HMetaDataDef.getTable(type, "") + " where id=" + id + " and type='" + type + "'";
         RowMapper<HBusiDataManager> managerRowMapper = new BeanPropertyRowMapper<>(HBusiDataManager.class);
         List<HBusiDataManager> list = jdbcTemplate.query(sql, managerRowMapper);
         if (list != null && list.size() > 0) {
@@ -142,13 +149,13 @@ public class ServiceUtils {
         return null;
     }
 
-    public void delDataListByPid(String type,Long pid) {
-        String sql = "delete from "+HMetaDataDef.getTable(type,"")+" where CASE WHEN JSON_VALID(content) THEN  JSON_EXTRACT(content, '$.pid')=" + pid + " ELSE null END or CASE WHEN JSON_VALID(content) THEN  JSON_EXTRACT(content, '$.pid')='" + pid + "' ELSE null END";
+    public void delDataListByPid(String type, Long pid) {
+        String sql = "delete from " + HMetaDataDef.getTable(type, "") + " where CASE WHEN JSON_VALID(content) THEN  JSON_EXTRACT(content, '$.pid')=" + pid + " ELSE null END or CASE WHEN JSON_VALID(content) THEN  JSON_EXTRACT(content, '$.pid')='" + pid + "' ELSE null END";
         jdbcTemplate.execute(sql);
     }
 
     public List<HBusiDataManager> getDataList(String type, Long pid) {
-        String sql2 = "select * from "+HMetaDataDef.getTable(type,"")+" where  type='" + type + "' and ( CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')=" + pid + " ELSE null END  or CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')='" + pid + "' ELSE null END)";
+        String sql2 = "select * from " + HMetaDataDef.getTable(type, "") + " where  type='" + type + "' and ( CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')=" + pid + " ELSE null END  or CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')='" + pid + "' ELSE null END)";
         log.info("sql2=" + sql2);
        /* RowMapper<HBusiDataManager> managerRowMapper=new BeanPropertyRowMapper<>(HBusiDataManager.class);
         List<HBusiDataManager> list = jdbcTemplate.query(sql2,managerRowMapper);*/
@@ -160,7 +167,7 @@ public class ServiceUtils {
     }
 
     public void delDataListByIdAndType(Long id, String type) {
-        String sql = "delete from "+HMetaDataDef.getTable(type,"")+" where type='" + type + "' and id=" + id;
+        String sql = "delete from " + HMetaDataDef.getTable(type, "") + " where type='" + type + "' and id=" + id;
         jdbcTemplate.execute(sql);
     }
 
@@ -174,7 +181,7 @@ public class ServiceUtils {
      * @return
      */
     public List<HBusiDataManager> listFDIdCard(int pid, String type, int idCardPhotoStatus, int idCardCheckStatus) {
-        StringBuilder hql = new StringBuilder("select * from "+HMetaDataDef.getTable(type,"")+" WHERE type = ? AND JSON_EXTRACT(content, '$.pid')=?  ");
+        StringBuilder hql = new StringBuilder("select * from " + HMetaDataDef.getTable(type, "") + " WHERE type = ? AND JSON_EXTRACT(content, '$.pid')=?  ");
         // 有身份照片
         if (1 == idCardPhotoStatus) {
             hql.append(" AND ext_6 IS NOT NULL AND ext_6 <>'' ");
@@ -193,10 +200,10 @@ public class ServiceUtils {
     }
 
 
-    private static  Integer BATCH_SIZE = 1000;
+    private static Integer BATCH_SIZE = 1000;
 
-    public void batchInsert(String busiType,List<HBusiDataManager> hBusiDataManagerList){
-        String sql = "insert into "+ HMetaDataDef.getTable(busiType,"")+"(id, type, content, cust_id, cust_group_id, cust_user_id, create_id, create_date, ext_1, ext_2, ext_3, ext_4, ext_5 ) value(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    public void batchInsert(String busiType, List<HBusiDataManager> hBusiDataManagerList) {
+        String sql = "insert into " + HMetaDataDef.getTable(busiType, "") + "(id, type, content, cust_id, cust_group_id, cust_user_id, create_id, create_date, ext_1, ext_2, ext_3, ext_4, ext_5 ) value(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         List<Object[]> args = transformFlowCarReportDayBoToObjects(hBusiDataManagerList);
         int fromIndex = 0;
         int toIndex = BATCH_SIZE;
@@ -204,7 +211,7 @@ public class ServiceUtils {
             if (toIndex > args.size()) {
                 toIndex = args.size();
             }
-            this.jdbcTemplate.batchUpdate(sql,args.subList(fromIndex, toIndex));
+            this.jdbcTemplate.batchUpdate(sql, args.subList(fromIndex, toIndex));
             fromIndex = toIndex;
             toIndex += BATCH_SIZE;
             if (toIndex > args.size())
@@ -216,7 +223,7 @@ public class ServiceUtils {
     private List<Object[]> transformFlowCarReportDayBoToObjects(List<HBusiDataManager> hBusiDataManagerList) {
         List<Object[]> list = new ArrayList<>();
         Object[] object = null;
-        for(HBusiDataManager hBusiDataManager :hBusiDataManagerList){
+        for (HBusiDataManager hBusiDataManager : hBusiDataManagerList) {
             object = new Object[]{
                     hBusiDataManager.getId(),
                     hBusiDataManager.getType(),
@@ -235,7 +242,7 @@ public class ServiceUtils {
             list.add(object);
         }
 
-        return list ;
+        return list;
     }
 
     public void insertSFVerifyQueue(String content, long billId, long userId, String custId) {
@@ -257,7 +264,7 @@ public class ServiceUtils {
 
     public List<Map<String, Object>> listObjectByParam(String busiType, String cust_id, JSONObject params) {
         List sqlParams = new ArrayList();
-        StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from "+HMetaDataDef.getTable(busiType,"")+" where type=?");
+        StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(busiType, "") + " where type=?");
         if (!"all".equals(cust_id))
             sqlstr.append(" and cust_id='").append(cust_id).append("'");
 
@@ -358,6 +365,97 @@ public class ServiceUtils {
             }
         }
 
+    }
+
+    private SearchSourceBuilder queryConditionToDSL(JSONObject params) {
+        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+        BoolQueryBuilder qb = QueryBuilders.boolQuery();
+        QueryBuilder queryBuilder = null;
+        Iterator keys = params.keySet().iterator();
+        while (keys.hasNext()) {
+            String key = (String) keys.next();
+            if (StringUtil.isEmpty(String.valueOf(params.get(key)))) continue;
+            if ("pageNum".equals(key) || "pageSize".equals(key) || "stationId".equals(key) || "cust_id".equals(key))
+                continue;
+            if (key.startsWith("_c_")) {
+                // 模糊查询
+                queryBuilder = QueryBuilders.matchPhraseQuery(key.substring(3), params.getString(key));
+            } else if (key.startsWith("_g_")) {
+                queryBuilder = QueryBuilders.rangeQuery(key.substring(3)).gt(params.get(key));
+            } else if (key.startsWith("_ge_")) {
+                queryBuilder = QueryBuilders.rangeQuery(key.substring(4)).gte(params.get(key));
+            } else if (key.startsWith("_l_")) {
+                queryBuilder = QueryBuilders.rangeQuery(key.substring(3)).lt(params.get(key));
+            } else if (key.startsWith("_le_")) {
+                queryBuilder = QueryBuilders.rangeQuery(key.substring(4)).lte(params.get(key));
+            } else if (key.startsWith("_range_")) {
+                if ("0".equals(String.valueOf(params.get(key)))) {
+                    queryBuilder = QueryBuilders.rangeQuery(key.substring(7)).lte(params.get(key));
+                } else {
+                    queryBuilder = QueryBuilders.rangeQuery(key.substring(7)).gte(params.get(key));
+                }
+            } else {
+                queryBuilder = QueryBuilders.matchQuery(key, params.get(key));
+            }
+
+            qb.must(queryBuilder);
+        }
+
+        int pageNum = 1;
+        int pageSize = 10;
+        try {
+            pageNum = params.getIntValue("pageNum");
+        } catch (Exception e) {
+        }
+        try {
+            pageSize = params.getIntValue("pageSize");
+        } catch (Exception e) {
+        }
+        if (pageNum <= 0)
+            pageNum = 1;
+        if (pageSize <= 0)
+            pageSize = 10;
+        if (pageSize > 1000)
+            pageSize = 1000;
+        int from = (pageNum - 1) * pageSize;
+        searchSourceBuilder.from(from);
+        searchSourceBuilder.size(pageSize);
+        //排序
+        searchSourceBuilder.sort("_id", SortOrder.DESC);
+        searchSourceBuilder.query(qb);
+        return searchSourceBuilder;
+    }
+
+    /**
+     * es检索数据
+     *
+     * @param cust_id
+     * @param cust_group_id
+     * @param cust_user_id
+     * @param busiType
+     * @param params
+     * @return
+     */
+    public Page queryByEs(String cust_id, String cust_group_id, Long cust_user_id, String busiType, JSONObject params) {
+        Page page = new Page();
+        if (!"all".equals(cust_id)) {
+            params.put("cust_id", cust_id);
+        }
+        //params.put("cust_group_id", cust_group_id);
+        //params.put("cust_user_id", cust_user_id);
+        SearchResult result = elasticSearchService.search(queryConditionToDSL(params).toString(), BusiTypeEnum.getEsIndex(busiType), Constants.INDEX_TYPE);
+        if (result != null) {
+            List list = new ArrayList<>();
+            JSONObject t;
+            for (SearchResult.Hit<JSONObject, Void> hit : result.getHits(JSONObject.class)) {
+                t = hit.source;
+                t.put("id", hit.id);
+                list.add(t);
+            }
+            page.setData(list);
+            page.setTotal(NumberConvertUtil.parseInt(result.getTotal()));
+        }
+        return page;
     }
 
     public void esTestData() {

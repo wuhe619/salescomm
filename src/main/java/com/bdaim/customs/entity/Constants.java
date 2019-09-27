@@ -11,4 +11,6 @@ public class Constants {
     public static final String BF_INFO_INDEX = "bgd_f_info_index";
     public static final String BS_INFO_INDEX = "bgd_s_info_index";
 
+
+    public static final String INDEX_TYPE = "haiguan";
 }
