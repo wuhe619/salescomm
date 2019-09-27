@@ -141,9 +141,14 @@ public class TokenServiceImpl implements TokenService {
                 String tokenid = (String) name2token.get(username);
                 if (tokenid != null && !"".equals(tokenid)) {
                     userdetail = (LoginUser) tokenCacheService.getToken(tokenid);
-                    if (userdetail != null)
-                        return userdetail;
-                    else
+                    if (userdetail != null){
+                        //前台用户权限信息
+                        CustomerUserPropertyDO userProperty = customerUserDao.getProperty(String.valueOf(u.getId()), CustomerUserPropertyEnum.RESOURCE_MENU.getKey());
+                        if (userProperty != null && StringUtil.isNotEmpty(userProperty.getPropertyValue())) {
+                            userdetail.setResourceMenu(userProperty.getPropertyValue());
+                            return userdetail;
+                        }
+                    }  else
                         name2token.remove(username);
                 }
 
