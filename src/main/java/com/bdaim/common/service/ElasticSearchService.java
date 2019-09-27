@@ -93,6 +93,7 @@ public class ElasticSearchService {
             result = resultEntity.getBody();
             LOG.info("向es新增记录返回结果:[" + result + "]");
         } catch (Exception e) {
+            e.printStackTrace();
             LOG.error("向es新增记录异常:" + e.getMessage());
         }
         return result;
