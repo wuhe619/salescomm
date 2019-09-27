@@ -7,11 +7,17 @@ import com.bdaim.common.dto.Page;
 import com.bdaim.common.util.ESUtil;
 import com.bdaim.common.util.NumberConvertUtil;
 import com.bdaim.common.util.RestUtil;
+import com.bdaim.common.util.StringUtil;
 import com.bdaim.common.util.http.HttpUtil;
 import com.bdaim.customs.entity.*;
 import io.searchbox.client.JestClient;
 import io.searchbox.core.Search;
 import io.searchbox.core.SearchResult;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.elasticsearch.search.sort.SortOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +28,7 @@ import org.springframework.web.client.RestTemplate;
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -425,5 +432,65 @@ public class ElasticSearchService {
         }
         LOG.info("ES查询结果:\n{}", result.getJsonString());
         return result;
+    }
+
+    public SearchSourceBuilder queryConditionToDSL(JSONObject params) {
+        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+        BoolQueryBuilder qb = QueryBuilders.boolQuery();
+        QueryBuilder queryBuilder = null;
+        Iterator keys = params.keySet().iterator();
+        while (keys.hasNext()) {
+            String key = (String) keys.next();
+            if (StringUtil.isEmpty(String.valueOf(params.get(key)))) continue;
+            if ("pageNum".equals(key) || "pageSize".equals(key) || "stationId".equals(key) || "cust_id".equals(key))
+                continue;
+            // 排序
+            if (key.startsWith("_sort_")) {
+                searchSourceBuilder.sort(key.substring(6), SortOrder.valueOf(params.getString(key).toUpperCase()));
+                continue;
+            } else if (key.startsWith("_c_")) {
+                // 模糊查询
+                queryBuilder = QueryBuilders.matchPhraseQuery(key.substring(3), params.getString(key));
+            } else if (key.startsWith("_g_")) {
+                queryBuilder = QueryBuilders.rangeQuery(key.substring(3)).gt(params.get(key));
+            } else if (key.startsWith("_ge_")) {
+                queryBuilder = QueryBuilders.rangeQuery(key.substring(4)).gte(params.get(key));
+            } else if (key.startsWith("_l_")) {
+                queryBuilder = QueryBuilders.rangeQuery(key.substring(3)).lt(params.get(key));
+            } else if (key.startsWith("_le_")) {
+                queryBuilder = QueryBuilders.rangeQuery(key.substring(4)).lte(params.get(key));
+            } else if (key.startsWith("_range_")) {
+                if ("0".equals(String.valueOf(params.get(key)))) {
+                    queryBuilder = QueryBuilders.rangeQuery(key.substring(7)).lte(params.get(key));
+                } else {
+                    queryBuilder = QueryBuilders.rangeQuery(key.substring(7)).gte(params.get(key));
+                }
+            } else {
+                queryBuilder = QueryBuilders.matchQuery(key, params.get(key));
+            }
+
+            qb.must(queryBuilder);
+        }
+
+        int pageNum = 1;
+        int pageSize = 10;
+        try {
+            pageNum = params.getIntValue("pageNum");
+        } catch (Exception e) {
+        }
+        try {
+            pageSize = params.getIntValue("pageSize");
+        } catch (Exception e) {
+        }
+        if (pageNum <= 0)
+            pageNum = 1;
+        if (pageSize <= 0)
+            pageSize = 10;
+        if (pageSize > 1000)
+            pageSize = 1000;
+        int from = (pageNum - 1) * pageSize;
+        searchSourceBuilder.from(from).size(pageSize);
+        searchSourceBuilder.query(qb);
+        return searchSourceBuilder;
     }
 }

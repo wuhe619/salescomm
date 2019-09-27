@@ -104,7 +104,7 @@ public class BusiEntityController extends BasicAction {
             resp.setData(id);
         } catch (TouchException e) {
             return new ResponseInfoAssemble().failure(-1, e.getMessage());
-        }catch (Exception e) {
+        } catch (Exception e) {
             logger.error("保存记录异常:", e);
             return new ResponseInfoAssemble().failure(-1, "保存记录异常:[" + busiType + "]");
         }
@@ -159,6 +159,8 @@ public class BusiEntityController extends BasicAction {
                 return null;
             }
             resp.setData(jo);
+        } catch (TouchException e) {
+            return new ResponseInfoAssemble().failure(-1, e.getMessage());
         } catch (Exception e) {
             logger.error("获取记录异常:" + id, e);
             return new ResponseInfoAssemble().failure(-1, "查询记录异常[" + busiType + "]");
