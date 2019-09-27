@@ -13,6 +13,7 @@ import com.bdaim.customs.dto.excel.IdCardNoVerify;
 import com.bdaim.customs.entity.BusiTypeEnum;
 import com.bdaim.customs.entity.HBusiDataManager;
 import com.bdaim.customs.entity.PartyDan;
+import com.bdaim.customs.utils.ServiceUtils;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,12 +49,14 @@ public class ExportExcelService {
         put("_export_bgd_z_main_data", "_export_bgd_z_main_data.xls");
     }};*/
 
-    @Autowired
-    private HBusiDataManagerDao hBusiDataManagerDao;
+//    @Autowired
+//    private HBusiDataManagerDao hBusiDataManagerDao;
 
     @Autowired
     private FileUrlEntity fileUrlEntity;
 
+    @Autowired
+    private ServiceUtils serviceUtils;
 
     private void export(String templatePath, Map<String, Object> map, String[] sheetName, HttpServletResponse response) throws IOException {
         // 加载模板
@@ -178,9 +181,9 @@ public class ExportExcelService {
         LOG.info("开始导出分单身份图片缺失,主单:{}", id);
         List<HBusiDataManager> list = new ArrayList<>();
         if (1 == type) {
-            list = hBusiDataManagerDao.listFDIdCard(id, BusiTypeEnum.SF.getType(), 2, 0);
+            list = serviceUtils.listFDIdCard(id, BusiTypeEnum.SF.getType(), 2, 0);
         } else if (2 == type) {
-            list = hBusiDataManagerDao.listFDIdCard(id, BusiTypeEnum.SF.getType(), 0, 2);
+            list = serviceUtils.listFDIdCard(id, BusiTypeEnum.SF.getType(), 0, 2);
         }
         EasyExcelUtil.EasyExcelParams param = new EasyExcelUtil.EasyExcelParams();
         ArrayList<IdCardNoVerify> data = new ArrayList<>();

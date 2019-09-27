@@ -167,7 +167,7 @@ public class ElasticSearchService {
     }
 
     public void update(HBusiDataManager hBusiDataManager, Integer id) {
-        String type = hBusiDataManager.getType();
+        String type = "+HMetaDataDef.getTable()+";
         if (type.equals(BusiTypeEnum.SZ.getKey()) || type.equals(BusiTypeEnum.CZ.getKey()) || type.equals(BusiTypeEnum.BZ.getKey())) {
             updateDocumentToType(Constants.SZ_INFO_INDEX, "haiguan", id.toString(), JSON.parseObject(hBusiDataManager.getContent()));
         } else if (type.equals(BusiTypeEnum.SF.getKey()) || type.equals(BusiTypeEnum.CF.getKey()) || type.equals(BusiTypeEnum.BF.getKey())) {
@@ -343,7 +343,7 @@ public class ElasticSearchService {
      * @param <T>
      * @return
      */
-    public <T> List<Object> searchToEsLit(String dsl, String index, String indexType, Class<T> sourceType) {
+    public <T> List<Object> listSearch(String dsl, String index, String indexType, Class<T> sourceType) {
         List<Object> list = new ArrayList<>();
         SearchResult result = search(dsl, index, indexType);
         if (result != null) {
@@ -367,7 +367,7 @@ public class ElasticSearchService {
      * @param <T>
      * @return
      */
-    public <T> Page searchToEsPage(String dsl, String index, String indexType, Class<T> sourceType) {
+    public <T> Page pageSearch(String dsl, String index, String indexType, Class<T> sourceType) {
         Page page = new Page();
         SearchResult result = search(dsl, index, indexType);
         List list = new ArrayList<>();
@@ -376,6 +376,24 @@ public class ElasticSearchService {
             T t;
             for (SearchResult.Hit<T, Void> hit : hits) {
                 t = hit.source;
+                list.add(t);
+            }
+            page.setData(list);
+            page.setTotal(NumberConvertUtil.parseInt(result.getTotal()));
+        }
+        return page;
+    }
+
+    public Page pageSearch(String dsl, String index, String indexType) {
+        Page page = new Page();
+        SearchResult result = search(dsl, index, indexType);
+        List list = new ArrayList<>();
+        if (result != null) {
+            List<SearchResult.Hit<JSONObject, Void>> hits = result.getHits(JSONObject.class);
+            JSONObject t;
+            for (SearchResult.Hit<JSONObject, Void> hit : hits) {
+                t = hit.source;
+                t.put("id", hit.id);
                 list.add(t);
             }
             page.setData(list);
@@ -393,7 +411,7 @@ public class ElasticSearchService {
      * @return
      */
     public SearchResult search(String dsl, String index, String indexType) {
-        LOG.info("ES检索语句:" + dsl);
+        LOG.info("ES检索语句:\n{}", dsl);
         SearchResult result = null;
         try {
             Search search = new Search.Builder(dsl)
@@ -404,7 +422,7 @@ public class ElasticSearchService {
         } catch (IOException e) {
             LOG.error("ES查询异常", e);
         }
-        LOG.info("ES查询结果:{}", result.getJsonString());
+        LOG.info("ES查询结果:\n{}", result.getJsonString());
         return result;
     }
 }

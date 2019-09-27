@@ -22,7 +22,7 @@ import com.bdaim.customs.entity.*;
 import com.bdaim.customs.utils.DatesUtil;
 import com.bdaim.customs.utils.ServiceUtils;
 import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.MatchPhraseQueryBuilder;
+import org.elasticsearch.index.query.MatchQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.SortOrder;
@@ -288,7 +288,7 @@ public class CustomsService {
         if ("Y".equals(manager.getExt_1()) || "Y".equals(manager.getExt_2())) {
             throw new TouchException("已经被提交，无法删除");
         }
-        String sql = "select id,ext_3 from h_data_manager where ext_4='" + manager.getExt_3() + "'";
+        String sql = "select id,ext_3 from "+HMetaDataDef.getTable(type,"")+" where ext_4='" + manager.getExt_3() + "'";
         List<Map<String, Object>> ids = hBusiDataManagerDao.queryListBySql(sql);
         List<Map<String, Object>> idList = new ArrayList<>();
         for (Map<String, Object> map : ids) {
@@ -298,7 +298,7 @@ public class CustomsService {
             idmap.put("type", BusiTypeEnum.SF);
             idList.add(idmap);
             String billno = (String) map.get("ext_3");
-            String _sql = "select id from h_data_manager where ext_4='" + billno + "'";
+            String _sql = "select id from "+HMetaDataDef.getTable(type,"")+" where ext_4='" + billno + "'";
             List<Map<String, Object>> _ids = hBusiDataManagerDao.queryListBySql(_sql);
             for (Map<String, Object> m : _ids) {
                 Long _gid = (Long) m.get("id");
@@ -1090,13 +1090,12 @@ public class CustomsService {
 //        queryDataParams.setId(1714);
 //    }
 
-    public SearchSourceBuilder makeQueryStringForSearch(QueryDataParams queryDataParams) {
-
+    public SearchSourceBuilder queryCondition(QueryDataParams queryDataParams) {
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         BoolQueryBuilder qb = QueryBuilders.boolQuery();
         if (queryDataParams.getId() != null) {
-            MatchPhraseQueryBuilder mpq = QueryBuilders
-                    .matchPhraseQuery("_id", queryDataParams.getId());
+            MatchQueryBuilder mpq = QueryBuilders
+                    .matchPhrasePrefixQuery("_id", queryDataParams.getId());
             qb.must(mpq);
         }
         //单号
@@ -1113,58 +1112,52 @@ public class CustomsService {
         }
         searchSourceBuilder.query(qb);
         return searchSourceBuilder;
-       /*  int from = (queryDataParams.getPageNum() - 1) * queryDataParams.getPageSize();
-        searchSourceBuilder.from(from);
-        searchSourceBuilder.size(queryDataParams.getPageSize());
-        //排序
-        searchSourceBuilder.sort("_id", SortOrder.ASC);
-
-        String query = searchSourceBuilder.toString();
-       SearchResult result = elasticSearchService.searchToEs(query, Constants.SZ_INFO_INDEX, "haiguan");
-
-        List<Object> list = new ArrayList<>();
-        if (result != null) {
-            List<SearchResult.Hit<MainDan, Void>> hits = result.getHits(MainDan.class);
-            for (SearchResult.Hit<MainDan, Void> hit : hits) {
-                MainDan mainDan = hit.source;
-                list.add(mainDan);
-            }
-            page.setData(list);
-            page.setTotal(NumberConvertUtil.parseInt(result.getTotal()));
-        }
-
-        return page;
-       return  query;*/
     }
 
     public Page queryDataPage(QueryDataParams queryDataParams) {
         String index = "";
-        Class c = null;
+        Class object = null;
         if ("SZ".equals(queryDataParams.getIndex())) {
             index = Constants.SZ_INFO_INDEX;
-            c = MainDan.class;
+            object = MainDan.class;
         } else if ("SF".equals(queryDataParams.getIndex())) {
             index = Constants.SF_INFO_INDEX;
-            c = PartyDan.class;
+            object = PartyDan.class;
         } else if ("SS".equals(queryDataParams.getIndex())) {
             index = Constants.SS_INFO_INDEX;
-            c = Product.class;
+            object = Product.class;
         }
-        SearchSourceBuilder searchSourceBuilder = makeQueryStringForSearch(queryDataParams);
-        int from = (queryDataParams.getPageNum() - 1) * queryDataParams.getPageSize();
+        SearchSourceBuilder searchSourceBuilder = queryCondition(queryDataParams);
+        int pageNum = 1;
+        int pageSize = 10;
+        try {
+            pageNum = queryDataParams.getPageNum();
+        } catch (Exception e) {
+        }
+        try {
+            pageSize = queryDataParams.getPageSize();
+        } catch (Exception e) {
+        }
+        if (pageNum <= 0)
+            pageNum = 1;
+        if (pageSize <= 0)
+            pageSize = 10;
+        if (pageSize > 1000)
+            pageSize = 1000;
+        int from = (pageNum - 1) * pageSize;
         searchSourceBuilder.from(from);
-        searchSourceBuilder.size(queryDataParams.getPageSize());
+        searchSourceBuilder.size(pageSize);
         //排序
         searchSourceBuilder.sort("_id", SortOrder.ASC);
 
         String query = searchSourceBuilder.toString();
-        Page page = elasticSearchService.searchToEsPage(query, index, "haiguan", c);
+        Page page = elasticSearchService.pageSearch(query, index, "haiguan", object);
         return page;
     }
 
 
     public List<Map<String,Object>> countSBDNumByMonth(String stationId, String custId, LoginUser lu) {
-        StringBuffer sql = new StringBuffer(" select DATE_FORMAT(create_date,'%Y%m') mon,count(0) num from h_data_manager where type='"+BusiTypeEnum.SZ.getType()+"' ");
+        StringBuffer sql = new StringBuffer(" select DATE_FORMAT(create_date,'%Y%m') mon,count(0) num from "+HMetaDataDef.getTable(BusiTypeEnum.SZ.getType(),"")+" where type='"+BusiTypeEnum.SZ.getType()+"' ");
         if (!"ROLE_USER".equals(lu.getAuth())) {
             custId = lu.getCustId();
             sql.append(" and cust_id='"+custId+"'");
@@ -1183,7 +1176,7 @@ public class CustomsService {
     }
 
     public Map<String,Object> sbdLastestTotal(String stationId, String custId, LoginUser lu){
-        StringBuffer sql = new StringBuffer("select id,content,ext_3 from  h_data_manager where type='"+BusiTypeEnum.SZ.getType()+"' ");
+        StringBuffer sql = new StringBuffer("select id,content,ext_3 from  "+HMetaDataDef.getTable(BusiTypeEnum.SZ.getType(),"")+" where type='"+BusiTypeEnum.SZ.getType()+"' ");
         if (!"ROLE_USER".equals(lu.getAuth())) {
             custId = lu.getCustId();
             sql.append(" and cust_id='"+custId+"'");
@@ -1216,7 +1209,7 @@ public class CustomsService {
             }
 
             /*
-            String _sql = "select id,content from h_data_manager type='"+BusiTypeEnum.SF.getType()+"' " +
+            String _sql = "select id,content from "+HMetaDataDef.getTable()+" type='"+BusiTypeEnum.SF.getType()+"' " +
                     " and (JSON_EXTRACT(content, '$.pid')='"+mid+"' or JSON_EXTRACT(content, '$.pid')="+mid+")";
 
             List<Map<String,Object>> pidList = jdbcTemplate.queryForList(_sql);
@@ -1238,7 +1231,7 @@ public class CustomsService {
 
 
     public List<Map<String, Object>> hzTotal(String type,String stationId, String custId, LoginUser lu){
-        StringBuffer sql = new StringBuffer("select ext_1 status,count(0)num from h_data_manager where type='"+type+"'");
+        StringBuffer sql = new StringBuffer("select ext_1 status,count(0)num from "+HMetaDataDef.getTable(type,"")+" where type='"+type+"'");
         if (!"ROLE_USER".equals(lu.getAuth())) {
             custId = lu.getCustId();
             sql.append(" and cust_id='" + custId + "'");
@@ -1262,8 +1255,8 @@ public class CustomsService {
 
 
 
-    public Integer countGoodsNumByPartId(String id){
-        String _sql = "select content from h_data_manager type='"+BusiTypeEnum.SS.getType()+"' " +
+    public Integer countGoodsNumByPartId(String busiType,String id){
+        String _sql = "select content from "+HMetaDataDef.getTable(busiType,"")+" type='"+busiType+"' " +
                 " and (JSON_EXTRACT(content, '$.pid')='"+id+"' or JSON_EXTRACT(content, '$.pid')="+id+")";
 
         return 0;

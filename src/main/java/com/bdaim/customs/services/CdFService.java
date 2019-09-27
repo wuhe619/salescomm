@@ -10,6 +10,7 @@ import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customs.dao.HBusiDataManagerDao;
 import com.bdaim.customs.entity.BusiTypeEnum;
 import com.bdaim.customs.entity.HBusiDataManager;
+import com.bdaim.customs.entity.HMetaDataDef;
 import com.bdaim.customs.utils.ServiceUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,9 +31,6 @@ public class CdFService implements BusiService {
     private static Logger log = LoggerFactory.getLogger(CdFService.class);
 
     @Autowired
-    private ElasticSearchService elasticSearchService;
-
-    @Autowired
     private CustomerDao customerDao;
 
     @Resource
@@ -41,8 +39,8 @@ public class CdFService implements BusiService {
     @Autowired
     private SequenceService sequenceService;
 
-    @Autowired
-    private HBusiDataManagerDao hBusiDataManagerDao;
+//    @Autowired
+//    private HBusiDataManagerDao hBusiDataManagerDao;
 
     @Autowired
     private ServiceUtils serviceUtils;
@@ -105,7 +103,12 @@ public class CdFService implements BusiService {
         superObj.put("weight", weight);
         superObj.put("pack_no", packNo);
         cangdanz.setContent(superObj.toJSONString());
-        hBusiDataManagerDao.saveOrUpdate(cangdanz);
+        String sql = "update "+ HMetaDataDef.getTable(cangdanz.getType(),"")+" set " +
+                " content='"+superObj.toJSONString()+"'"+
+                " where id="+cangdanz.getId()+" and type='"+cangdanz.getType()+"'";
+        jdbcTemplate.update(sql);
+        //hBusiDataManagerDao.saveOrUpdate(cangdanz);
+
         serviceUtils.updateDataToES(BusiTypeEnum.CZ.getType(), cangdanz.getId().toString(), superObj);
     }
 

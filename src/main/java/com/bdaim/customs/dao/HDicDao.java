@@ -15,4 +15,13 @@ public class HDicDao extends SimpleHibernateDao<HMetaDataDef, Serializable> {
         String hql = "FROM HDic ";
         return this.find(hql.toString());
     }
+
+    public HDic getDic(String type, String code) {
+        String hql = "FROM HDic WHERE type = ? AND code = ?";
+        List<HDic> list = this.find(hql.toString(), type, code);
+        if (list != null && list.size() > 0) {
+            return list.get(0);
+        }
+        return null;
+    }
 }
