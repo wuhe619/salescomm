@@ -289,7 +289,7 @@ public class CustomsService {
         if ("Y".equals(manager.getExt_1()) || "Y".equals(manager.getExt_2())) {
             throw new TouchException("已经被提交，无法删除");
         }
-        String sql = "select id,ext_3 from h_data_manager where ext_4='" + manager.getExt_3() + "'";
+        String sql = "select id,ext_3 from "+HMetaDataDef.getTable(type,"")+" where ext_4='" + manager.getExt_3() + "'";
         List<Map<String, Object>> ids = hBusiDataManagerDao.queryListBySql(sql);
         List<Map<String, Object>> idList = new ArrayList<>();
         for (Map<String, Object> map : ids) {
@@ -299,7 +299,7 @@ public class CustomsService {
             idmap.put("type", BusiTypeEnum.SF);
             idList.add(idmap);
             String billno = (String) map.get("ext_3");
-            String _sql = "select id from h_data_manager where ext_4='" + billno + "'";
+            String _sql = "select id from "+HMetaDataDef.getTable(type,"")+" where ext_4='" + billno + "'";
             List<Map<String, Object>> _ids = hBusiDataManagerDao.queryListBySql(_sql);
             for (Map<String, Object> m : _ids) {
                 Long _gid = (Long) m.get("id");
@@ -1195,31 +1195,31 @@ public class CustomsService {
     }
 
 
-    public List<Map<String, Object>> countSBDNumByMonth(String stationId, String custId, LoginUser lu) {
-        StringBuffer sql = new StringBuffer(" select DATE_FORMAT(create_date,'%Y%m') mon,count(0) num from h_data_manager where type='" + BusiTypeEnum.SZ.getType() + "' ");
+    public List<Map<String,Object>> countSBDNumByMonth(String stationId, String custId, LoginUser lu) {
+        StringBuffer sql = new StringBuffer(" select DATE_FORMAT(create_date,'%Y%m') mon,count(0) num from "+HMetaDataDef.getTable(BusiTypeEnum.SZ.getType(),"")+" where type='"+BusiTypeEnum.SZ.getType()+"' ");
         if (!"ROLE_USER".equals(lu.getAuth())) {
             custId = lu.getCustId();
-            sql.append(" and cust_id='" + custId + "'");
-        } else {
-            if (StringUtil.isNotEmpty(stationId)) {
-                sql.append(" and JSON_EXTRACT(content, '$.station_id')='" + stationId + "')");
+            sql.append(" and cust_id='"+custId+"'");
+        }else{
+            if(StringUtil.isNotEmpty(stationId)){
+                sql.append(" and JSON_EXTRACT(content, '$.station_id')='"+stationId+"')");
             }
-            if (StringUtil.isNotEmpty(custId)) {
-                sql.append(" and cust_id='" + custId + "'");
+            if(StringUtil.isNotEmpty(custId)){
+                sql.append(" and cust_id='"+custId+"'");
             }
         }
         sql.append(" and create_date>(SELECT DATE_FORMAT(DATE_ADD(CURDATE(), INTERVAL -6 MONTH),'%Y-%m-01') from dual) ");
         sql.append(" group by mon order by mon asc");
-        List<Map<String, Object>> list = jdbcTemplate.queryForList(sql.toString());
+        List<Map<String,Object>> list = jdbcTemplate.queryForList(sql.toString());
         return list;
     }
 
-    public Map<String, Object> sbdLastestTotal(String stationId, String custId, LoginUser lu) {
-        StringBuffer sql = new StringBuffer("select id,content,ext_3 from  h_data_manager where type='" + BusiTypeEnum.SZ.getType() + "' ");
+    public Map<String,Object> sbdLastestTotal(String stationId, String custId, LoginUser lu){
+        StringBuffer sql = new StringBuffer("select id,content,ext_3 from  "+HMetaDataDef.getTable(BusiTypeEnum.SZ.getType(),"")+" where type='"+BusiTypeEnum.SZ.getType()+"' ");
         if (!"ROLE_USER".equals(lu.getAuth())) {
             custId = lu.getCustId();
-            sql.append(" and cust_id='" + custId + "'");
-        } else {
+            sql.append(" and cust_id='"+custId+"'");
+        }else {
             if (StringUtil.isNotEmpty(stationId)) {
                 sql.append(" and JSON_EXTRACT(content, '$.station_id')='" + stationId + "')");
             }
@@ -1248,7 +1248,7 @@ public class CustomsService {
             }
 
             /*
-            String _sql = "select id,content from h_data_manager type='"+BusiTypeEnum.SF.getType()+"' " +
+            String _sql = "select id,content from "+HMetaDataDef.getTable()+" type='"+BusiTypeEnum.SF.getType()+"' " +
                     " and (JSON_EXTRACT(content, '$.pid')='"+mid+"' or JSON_EXTRACT(content, '$.pid')="+mid+")";
 
             List<Map<String,Object>> pidList = jdbcTemplate.queryForList(_sql);
@@ -1269,8 +1269,8 @@ public class CustomsService {
     }
 
 
-    public List<Map<String, Object>> hzTotal(String type, String stationId, String custId, LoginUser lu) {
-        StringBuffer sql = new StringBuffer("select ext_1 status,count(0)num from h_data_manager where type='" + type + "'");
+    public List<Map<String, Object>> hzTotal(String type,String stationId, String custId, LoginUser lu){
+        StringBuffer sql = new StringBuffer("select ext_1 status,count(0)num from "+HMetaDataDef.getTable(type,"")+" where type='"+type+"'");
         if (!"ROLE_USER".equals(lu.getAuth())) {
             custId = lu.getCustId();
             sql.append(" and cust_id='" + custId + "'");
@@ -1287,15 +1287,16 @@ public class CustomsService {
         sql.append(" and create_date>='").append(begin).append("' and create_date<='").append(end).append("'");
         sql.append("group by status");
 
-        List<Map<String, Object>> data = jdbcTemplate.queryForList(sql.toString());
+        List<Map<String,Object>> data = jdbcTemplate.queryForList(sql.toString());
         return data;
 
     }
 
 
-    public Integer countGoodsNumByPartId(String id) {
-        String _sql = "select content from h_data_manager type='" + BusiTypeEnum.SS.getType() + "' " +
-                " and (JSON_EXTRACT(content, '$.pid')='" + id + "' or JSON_EXTRACT(content, '$.pid')=" + id + ")";
+
+    public Integer countGoodsNumByPartId(String busiType,String id){
+        String _sql = "select content from "+HMetaDataDef.getTable(busiType,"")+" type='"+busiType+"' " +
+                " and (JSON_EXTRACT(content, '$.pid')='"+id+"' or JSON_EXTRACT(content, '$.pid')="+id+")";
 
         return 0;
     }

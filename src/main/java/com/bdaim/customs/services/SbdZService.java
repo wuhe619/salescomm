@@ -33,9 +33,6 @@ public class SbdZService implements BusiService {
     private static Logger log = LoggerFactory.getLogger(SbdZService.class);
 
     @Autowired
-    private ElasticSearchService elasticSearchService;
-
-    @Autowired
     private CustomerDao customerDao;
 
     @Resource
@@ -43,9 +40,6 @@ public class SbdZService implements BusiService {
 
     @Autowired
     private SequenceService sequenceService;
-
-    @Autowired
-    private HBusiDataManagerDao hBusiDataManagerDao;
 
     @Autowired
     private ResourceService resourceService;
@@ -62,7 +56,7 @@ public class SbdZService implements BusiService {
             throw new TouchException("未配置场站信息");
         }
         String billno = info.getString("bill_no");
-        String sql = "select id from h_data_manager where  type='" + busiType + "' and JSON_EXTRACT(content, '$.ext_3')='" + billno + "'";
+        String sql = "select id from "+HMetaDataDef.getTable(busiType,"")+" where  type='" + busiType + "' and JSON_EXTRACT(content, '$.ext_3')='" + billno + "'";
         List<Map<String, Object>> countList = jdbcTemplate.queryForList(sql);
         if (countList != null && countList.size() > 0) {
             throw new TouchException("此主单已经申报");
@@ -92,10 +86,26 @@ public class SbdZService implements BusiService {
                     list.remove(index);
                 }
                 if (list.size() > 0) {
-                    hBusiDataManagerDao.batchSaveOrUpdate(list);
+                    Map<String,List<HBusiDataManager>> datamap = new TreeMap<>();
+                    for(HBusiDataManager manager:list){
+                        if(datamap.containsKey(manager.getType())){
+                            List<HBusiDataManager> d = datamap.get(manager.getType());
+                            d.add(manager);
+                        }else{
+                            List<HBusiDataManager> d = new ArrayList<>();
+                            d.add(manager);
+                            datamap.put(manager.getType(),d);
+                        }
+                    }
+                    Set<String> types =  datamap.keySet();
+                    Iterator<String> iterator = types.iterator();
+                    while (iterator.hasNext()){
+                        String key = iterator.next();
+                        List<HBusiDataManager> d = datamap.get(key);
+                        serviceUtils.batchInsert(key,d);
+                    }
                 }
             }
-
             log.info(info.toJSONString());
         } catch (Exception e) {
             e.printStackTrace();
@@ -108,7 +118,7 @@ public class SbdZService implements BusiService {
         // 身份核验
         if ("verification".equals(info.getString("_rule_"))) {
             serviceUtils.esTestData();
-            StringBuffer sql = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from h_data_manager where type=?")
+            StringBuffer sql = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from "+HMetaDataDef.getTable(BusiTypeEnum.SF.getType(),"")+" where type=?")
                     .append(" and cust_id='").append(cust_id).append("'")
                     .append(" and (ext_7 IS NULL OR ext_7 = '' OR ext_7 = 2) ")
                     .append(" and JSON_EXTRACT(content, '$.pid')=?");
@@ -123,7 +133,7 @@ public class SbdZService implements BusiService {
                 content.put("status", 0);
                 JSONObject input;
                 JSONObject data;
-                String updateSql = "UPDATE h_data_manager SET ext_7 = 0, content = ? WHERE id =? AND type =? ";
+                String updateSql = "UPDATE "+HMetaDataDef.getTable(BusiTypeEnum.SF.getType(),"")+" SET ext_7 = 0, content = ? WHERE id =? AND type =? ";
                 for (Map<String, Object> m : dfList) {
                     input = new JSONObject();
                     // 身份核验待核验入队列
@@ -213,18 +223,18 @@ public class SbdZService implements BusiService {
         for (HBusiDataManager hBusiDataManager : list) {
             List<HBusiDataManager> slist = serviceUtils.getDataList(BusiTypeEnum.SS.getType(), hBusiDataManager.getId().longValue());//所有税单
             for (HBusiDataManager shBusiDataManager : slist) {
-                serviceUtils.deleteDatafromES(BusiTypeEnum.CS.getType(), shBusiDataManager.getId().toString());
+                serviceUtils.deleteDatafromES(BusiTypeEnum.SS.getType(), shBusiDataManager.getId().toString());
             }
-            serviceUtils.deleteDatafromES(BusiTypeEnum.CS.getType(), hBusiDataManager.getId().toString());
-            serviceUtils.delDataListByPid(hBusiDataManager.getId().longValue());
+            serviceUtils.deleteDatafromES(BusiTypeEnum.SF.getType(), hBusiDataManager.getId().toString());
+            serviceUtils.delDataListByPid(BusiTypeEnum.SS.getType(),hBusiDataManager.getId().longValue());
         }
-        serviceUtils.delDataListByPid(id);
+        serviceUtils.delDataListByPid(BusiTypeEnum.SF.getType(),id);
 
     }
 
     @Override
     public String formatQuery(String busiType, String cust_id, String cust_group_id, Long cust_user_id, JSONObject params, List sqlParams) {
-        StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from h_data_manager where type=?");
+        StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from "+HMetaDataDef.getTable(busiType,"")+" where type=?");
         if (!"all".equals(cust_id))
             sqlstr.append(" and cust_id='").append(cust_id).append("'");
         sqlParams.add(busiType);
@@ -578,7 +588,7 @@ public class SbdZService implements BusiService {
      */
     private List queryChildData(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long pid, JSONObject info, JSONObject param) {
         List sqlParams = new ArrayList();
-        StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from h_data_manager where type=?");
+        StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from "+HMetaDataDef.getTable(busiType,"")+" where type=?");
         if (!"all".equals(cust_id))
             sqlstr.append(" and cust_id='").append(cust_id).append("'");
 

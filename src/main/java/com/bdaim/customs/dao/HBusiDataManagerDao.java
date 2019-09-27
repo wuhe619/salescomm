@@ -1,8 +1,12 @@
 package com.bdaim.customs.dao;
 
+import com.alibaba.fastjson.JSON;
 import com.bdaim.common.dao.SimpleHibernateDao;
 import com.bdaim.customs.entity.HBusiDataManager;
+import com.bdaim.customs.entity.HMetaDataDef;
 import org.hibernate.Query;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
@@ -11,6 +15,9 @@ import java.util.Map;
 
 @Component
 public class HBusiDataManagerDao extends SimpleHibernateDao<HBusiDataManager, Serializable> {
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     /**
      * 根据字段名称和值查询单个对象
@@ -34,7 +41,7 @@ public class HBusiDataManagerDao extends SimpleHibernateDao<HBusiDataManager, Se
      * @return
      */
     public List<HBusiDataManager> listHBusiDataManager0(int pid, String type) {
-        String hql = "FROM HBusiDataManager WHERE type = ? AND ext_4 = (SELECT ext_3 FROM HBusiDataManager WHERE id = ?)";
+        String hql = "select * from  "+ HMetaDataDef.getTable(type,"")+" WHERE type = ? AND ext_4 = (SELECT ext_3 FROM HBusiDataManager WHERE id = ?)";
         return this.find(hql, type, pid);
     }
 
@@ -56,7 +63,7 @@ public class HBusiDataManagerDao extends SimpleHibernateDao<HBusiDataManager, Se
      * @return
      */
     public List<HBusiDataManager> listFDIdCard(int pid, String type, int idCardPhotoStatus, int idCardCheckStatus) {
-        StringBuilder hql = new StringBuilder("FROM HBusiDataManager WHERE type = ? AND JSON_EXTRACT(content, '$.pid')=?  ");
+        StringBuilder hql = new StringBuilder("select * from "+HMetaDataDef.getTable(type,"")+" WHERE type = ? AND JSON_EXTRACT(content, '$.pid')=?  ");
         // 有身份照片
         if (1 == idCardPhotoStatus) {
             hql.append(" AND ext_6 IS NOT NULL AND ext_6 <>'' ");
@@ -69,7 +76,9 @@ public class HBusiDataManagerDao extends SimpleHibernateDao<HBusiDataManager, Se
         } else if (2 == idCardCheckStatus) {
             hql.append(" AND (ext_7 IS NULL OR ext_7 ='' OR ext_7 =2) ");
         }
-        return this.find(hql.toString(), type, pid);
+        List<Map<String, Object>> list2 = jdbcTemplate.queryForList(hql.toString());
+        List<HBusiDataManager> list = JSON.parseArray(JSON.toJSONString(list2), HBusiDataManager.class);
+        return list;
     }
 
     /**
@@ -80,7 +89,7 @@ public class HBusiDataManagerDao extends SimpleHibernateDao<HBusiDataManager, Se
      * @return
      */
     public int countMainDIdCardNum(int pid, String type) {
-        String sql = "select id from h_data_manager where type=? AND ext_6 IS NOT NULL AND ext_6 <>'' and ( CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')=" + pid + " ELSE null END  or CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')=" + pid + " ELSE null END)";
+        String sql = "select id from "+ HMetaDataDef.getTable(type,"")+" where type=? AND ext_6 IS NOT NULL AND ext_6 <>'' and ( CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')=" + pid + " ELSE null END  or CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')=" + pid + " ELSE null END)";
         List<Map<String, Object>> list = sqlQuery(sql, type);
         if (list != null) {
             return list.size();

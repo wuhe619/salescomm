@@ -38,8 +38,7 @@ public class ServiceUtils {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
-    @Autowired
-    private HBusiDataManagerDao hBusiDataManagerDao;
+
     @Autowired
     private ElasticSearchService elasticSearchService;
 
@@ -134,7 +133,7 @@ public class ServiceUtils {
 
 
     public HBusiDataManager getObjectByIdAndType(Long id, String type) {
-        String sql = "select * from h_data_manager where id=" + id + " and type='" + type + "'";
+        String sql = "select * from "+HMetaDataDef.getTable(type,"")+" where id=" + id + " and type='" + type + "'";
         RowMapper<HBusiDataManager> managerRowMapper = new BeanPropertyRowMapper<>(HBusiDataManager.class);
         List<HBusiDataManager> list = jdbcTemplate.query(sql, managerRowMapper);
         if (list != null && list.size() > 0) {
@@ -143,13 +142,13 @@ public class ServiceUtils {
         return null;
     }
 
-    public void delDataListByPid(Long pid) {
-        String sql = "delete from h_data_manager where CASE WHEN JSON_VALID(content) THEN  JSON_EXTRACT(content, '$.pid')=" + pid + " ELSE null END or CASE WHEN JSON_VALID(content) THEN  JSON_EXTRACT(content, '$.pid')='" + pid + "' ELSE null END";
+    public void delDataListByPid(String type,Long pid) {
+        String sql = "delete from "+HMetaDataDef.getTable(type,"")+" where CASE WHEN JSON_VALID(content) THEN  JSON_EXTRACT(content, '$.pid')=" + pid + " ELSE null END or CASE WHEN JSON_VALID(content) THEN  JSON_EXTRACT(content, '$.pid')='" + pid + "' ELSE null END";
         jdbcTemplate.execute(sql);
     }
 
     public List<HBusiDataManager> getDataList(String type, Long pid) {
-        String sql2 = "select * from h_data_manager where  type='" + type + "' and ( CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')=" + pid + " ELSE null END  or CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')='" + pid + "' ELSE null END)";
+        String sql2 = "select * from "+HMetaDataDef.getTable(type,"")+" where  type='" + type + "' and ( CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')=" + pid + " ELSE null END  or CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')='" + pid + "' ELSE null END)";
         log.info("sql2=" + sql2);
        /* RowMapper<HBusiDataManager> managerRowMapper=new BeanPropertyRowMapper<>(HBusiDataManager.class);
         List<HBusiDataManager> list = jdbcTemplate.query(sql2,managerRowMapper);*/
@@ -161,8 +160,82 @@ public class ServiceUtils {
     }
 
     public void delDataListByIdAndType(Long id, String type) {
-        String sql = "delete from h_data_manager where type='" + type + "' and id=" + id;
+        String sql = "delete from "+HMetaDataDef.getTable(type,"")+" where type='" + type + "' and id=" + id;
         jdbcTemplate.execute(sql);
+    }
+
+    /**
+     * 查询主单下的分单
+     *
+     * @param pid
+     * @param type
+     * @param idCardPhotoStatus 1-有身份证图片 2-无
+     * @param idCardCheckStatus 1-身份证校验通过 2-无
+     * @return
+     */
+    public List<HBusiDataManager> listFDIdCard(int pid, String type, int idCardPhotoStatus, int idCardCheckStatus) {
+        StringBuilder hql = new StringBuilder("select * from "+HMetaDataDef.getTable(type,"")+" WHERE type = ? AND JSON_EXTRACT(content, '$.pid')=?  ");
+        // 有身份照片
+        if (1 == idCardPhotoStatus) {
+            hql.append(" AND ext_6 IS NOT NULL AND ext_6 <>'' ");
+        } else if (2 == idCardPhotoStatus) {
+            hql.append(" AND (ext_6 IS NULL OR ext_6 ='') ");
+        }
+        //身份核验结果通过
+        if (1 == idCardCheckStatus) {
+            hql.append(" AND ext_7 = 1 ");
+        } else if (2 == idCardCheckStatus) {
+            hql.append(" AND (ext_7 IS NULL OR ext_7 ='' OR ext_7 =2) ");
+        }
+        List<Map<String, Object>> list2 = jdbcTemplate.queryForList(hql.toString());
+        List<HBusiDataManager> list = JSON.parseArray(JSON.toJSONString(list2), HBusiDataManager.class);
+        return list;
+    }
+
+
+    private static  Integer BATCH_SIZE = 1000;
+
+    public void batchInsert(String busiType,List<HBusiDataManager> hBusiDataManagerList){
+        String sql = "insert into "+ HMetaDataDef.getTable(busiType,"")+"(id, type, content, cust_id, cust_group_id, cust_user_id, create_id, create_date, ext_1, ext_2, ext_3, ext_4, ext_5 ) value(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        List<Object[]> args = transformFlowCarReportDayBoToObjects(hBusiDataManagerList);
+        int fromIndex = 0;
+        int toIndex = BATCH_SIZE;
+        while (fromIndex != args.size()) {
+            if (toIndex > args.size()) {
+                toIndex = args.size();
+            }
+            this.jdbcTemplate.batchUpdate(sql,args.subList(fromIndex, toIndex));
+            fromIndex = toIndex;
+            toIndex += BATCH_SIZE;
+            if (toIndex > args.size())
+                toIndex = args.size();
+        }
+
+    }
+
+    private List<Object[]> transformFlowCarReportDayBoToObjects(List<HBusiDataManager> hBusiDataManagerList) {
+        List<Object[]> list = new ArrayList<>();
+        Object[] object = null;
+        for(HBusiDataManager hBusiDataManager :hBusiDataManagerList){
+            object = new Object[]{
+                    hBusiDataManager.getId(),
+                    hBusiDataManager.getType(),
+                    hBusiDataManager.getContent(),
+                    hBusiDataManager.getCust_id(),
+                    hBusiDataManager.getCust_group_id(),
+                    hBusiDataManager.getCreateId(),
+                    hBusiDataManager.getCreateId(),
+                    hBusiDataManager.getCreateDate(),
+                    hBusiDataManager.getExt_1(),
+                    hBusiDataManager.getExt_2(),
+                    hBusiDataManager.getExt_3(),
+                    hBusiDataManager.getExt_4(),
+                    hBusiDataManager.getExt_5()
+            };
+            list.add(object);
+        }
+
+        return list ;
     }
 
     public void insertSFVerifyQueue(String content, long billId, long userId, String custId) {
@@ -179,12 +252,12 @@ public class ServiceUtils {
         if (resourceId != null) {
             queue.setResourceId(resourceId.getResourceId());
         }
-        hBusiDataManagerDao.saveOrUpdate(queue);
+        customerDao.saveOrUpdate(queue);
     }
 
     public List<Map<String, Object>> listObjectByParam(String busiType, String cust_id, JSONObject params) {
         List sqlParams = new ArrayList();
-        StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from h_data_manager where type=?");
+        StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from "+HMetaDataDef.getTable(busiType,"")+" where type=?");
         if (!"all".equals(cust_id))
             sqlstr.append(" and cust_id='").append(cust_id).append("'");
 
