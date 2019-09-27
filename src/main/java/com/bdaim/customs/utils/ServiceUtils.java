@@ -18,11 +18,6 @@ import com.bdaim.resource.dao.SourceDao;
 import com.bdaim.resource.entity.MarketResourceEntity;
 import com.bdaim.supplier.dto.SupplierEnum;
 import io.searchbox.core.SearchResult;
-import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.builder.SearchSourceBuilder;
-import org.elasticsearch.search.sort.SortOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -367,65 +362,6 @@ public class ServiceUtils {
 
     }
 
-    private SearchSourceBuilder queryConditionToDSL(JSONObject params) {
-        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
-        BoolQueryBuilder qb = QueryBuilders.boolQuery();
-        QueryBuilder queryBuilder = null;
-        Iterator keys = params.keySet().iterator();
-        while (keys.hasNext()) {
-            String key = (String) keys.next();
-            if (StringUtil.isEmpty(String.valueOf(params.get(key)))) continue;
-            if ("pageNum".equals(key) || "pageSize".equals(key) || "stationId".equals(key) || "cust_id".equals(key))
-                continue;
-            if (key.startsWith("_c_")) {
-                // 模糊查询
-                queryBuilder = QueryBuilders.matchPhraseQuery(key.substring(3), params.getString(key));
-            } else if (key.startsWith("_g_")) {
-                queryBuilder = QueryBuilders.rangeQuery(key.substring(3)).gt(params.get(key));
-            } else if (key.startsWith("_ge_")) {
-                queryBuilder = QueryBuilders.rangeQuery(key.substring(4)).gte(params.get(key));
-            } else if (key.startsWith("_l_")) {
-                queryBuilder = QueryBuilders.rangeQuery(key.substring(3)).lt(params.get(key));
-            } else if (key.startsWith("_le_")) {
-                queryBuilder = QueryBuilders.rangeQuery(key.substring(4)).lte(params.get(key));
-            } else if (key.startsWith("_range_")) {
-                if ("0".equals(String.valueOf(params.get(key)))) {
-                    queryBuilder = QueryBuilders.rangeQuery(key.substring(7)).lte(params.get(key));
-                } else {
-                    queryBuilder = QueryBuilders.rangeQuery(key.substring(7)).gte(params.get(key));
-                }
-            } else {
-                queryBuilder = QueryBuilders.matchQuery(key, params.get(key));
-            }
-
-            qb.must(queryBuilder);
-        }
-
-        int pageNum = 1;
-        int pageSize = 10;
-        try {
-            pageNum = params.getIntValue("pageNum");
-        } catch (Exception e) {
-        }
-        try {
-            pageSize = params.getIntValue("pageSize");
-        } catch (Exception e) {
-        }
-        if (pageNum <= 0)
-            pageNum = 1;
-        if (pageSize <= 0)
-            pageSize = 10;
-        if (pageSize > 1000)
-            pageSize = 1000;
-        int from = (pageNum - 1) * pageSize;
-        searchSourceBuilder.from(from);
-        searchSourceBuilder.size(pageSize);
-        //排序
-        searchSourceBuilder.sort("_id", SortOrder.DESC);
-        searchSourceBuilder.query(qb);
-        return searchSourceBuilder;
-    }
-
     /**
      * es检索数据
      *
@@ -443,13 +379,13 @@ public class ServiceUtils {
         }
         //params.put("cust_group_id", cust_group_id);
         //params.put("cust_user_id", cust_user_id);
-        SearchResult result = elasticSearchService.search(queryConditionToDSL(params).toString(), BusiTypeEnum.getEsIndex(busiType), Constants.INDEX_TYPE);
+        SearchResult result = elasticSearchService.search(elasticSearchService.queryConditionToDSL(params).toString(), BusiTypeEnum.getEsIndex(busiType), Constants.INDEX_TYPE);
         if (result != null) {
             List list = new ArrayList<>();
             JSONObject t;
             for (SearchResult.Hit<JSONObject, Void> hit : result.getHits(JSONObject.class)) {
                 t = hit.source;
-                t.put("id", hit.id);
+                t.put("id", NumberConvertUtil.parseLong(hit.id));
                 list.add(t);
             }
             page.setData(list);

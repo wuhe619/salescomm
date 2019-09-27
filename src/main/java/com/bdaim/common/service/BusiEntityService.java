@@ -103,6 +103,11 @@ public class BusiEntityService {
      * 查询记录
      */
     public Page query(String cust_id, String cust_group_id, Long cust_user_id, String busiType, JSONObject params) throws Exception {
+        Page page = serviceUtils.queryByEs(cust_id, cust_group_id, cust_user_id, busiType, params);
+        if(page!=null){
+            return page;
+        }
+
         Page p = new Page();
         String stationId = params.getString("station_id");
 
