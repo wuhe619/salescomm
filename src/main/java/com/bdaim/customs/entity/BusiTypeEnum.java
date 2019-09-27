@@ -16,7 +16,8 @@ public enum BusiTypeEnum {
     BS("BS", "报关单-税单", "bgd_s"),
     ST("ST", "场站", "station"),
     BGD_HZ("BGD_HZ", "报关单-海关回执", "bgd_hz"),
-    CD_HZ("CD_HZ", "舱单-海关回执", "cd_hz");
+    CD_HZ("CD_HZ", "舱单-海关回执", "cd_hz"),
+    PARAM_PROXY("PARAM_proxy","地面代理参数","param_proxy");
 
     private String key;
     private String name;
