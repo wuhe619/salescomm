@@ -22,7 +22,8 @@ import com.bdaim.customs.entity.*;
 import com.bdaim.customs.utils.DatesUtil;
 import com.bdaim.customs.utils.ServiceUtils;
 import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.MatchPhraseQueryBuilder;
+import org.elasticsearch.index.query.MatchQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.SortOrder;
@@ -1090,13 +1091,12 @@ public class CustomsService {
 //        queryDataParams.setId(1714);
 //    }
 
-    public SearchSourceBuilder makeQueryStringForSearch(QueryDataParams queryDataParams) {
-
+    public SearchSourceBuilder queryCondition(QueryDataParams queryDataParams) {
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         BoolQueryBuilder qb = QueryBuilders.boolQuery();
         if (queryDataParams.getId() != null) {
-            MatchPhraseQueryBuilder mpq = QueryBuilders
-                    .matchPhraseQuery("_id", queryDataParams.getId());
+            MatchQueryBuilder mpq = QueryBuilders
+                    .matchPhrasePrefixQuery("_id", queryDataParams.getId());
             qb.must(mpq);
         }
         //单号
@@ -1113,81 +1113,113 @@ public class CustomsService {
         }
         searchSourceBuilder.query(qb);
         return searchSourceBuilder;
-       /*  int from = (queryDataParams.getPageNum() - 1) * queryDataParams.getPageSize();
-        searchSourceBuilder.from(from);
-        searchSourceBuilder.size(queryDataParams.getPageSize());
-        //排序
-        searchSourceBuilder.sort("_id", SortOrder.ASC);
+    }
 
-        String query = searchSourceBuilder.toString();
-       SearchResult result = elasticSearchService.searchToEs(query, Constants.SZ_INFO_INDEX, "haiguan");
-
-        List<Object> list = new ArrayList<>();
-        if (result != null) {
-            List<SearchResult.Hit<MainDan, Void>> hits = result.getHits(MainDan.class);
-            for (SearchResult.Hit<MainDan, Void> hit : hits) {
-                MainDan mainDan = hit.source;
-                list.add(mainDan);
+    public SearchSourceBuilder queryCondition(JSONObject params) {
+        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+        BoolQueryBuilder qb = QueryBuilders.boolQuery();
+        QueryBuilder queryBuilder = null;
+        Iterator keys = params.keySet().iterator();
+        while (keys.hasNext()) {
+            String key = (String) keys.next();
+            if (StringUtil.isEmpty(String.valueOf(params.get(key)))) continue;
+            if ("pageNum".equals(key) || "pageSize".equals(key) || "stationId".equals(key) || "cust_id".equals(key))
+                continue;
+            if (key.startsWith("_c_")) {
+                // 模糊查询
+                queryBuilder = QueryBuilders.moreLikeThisQuery(key.substring(3)).like(params.getString(key));
+            } else if (key.startsWith("_g_")) {
+                queryBuilder = QueryBuilders.rangeQuery(key.substring(3)).gt(params.get(key));
+            } else if (key.startsWith("_ge_")) {
+                queryBuilder = QueryBuilders.rangeQuery(key.substring(4)).gte(params.get(key));
+            } else if (key.startsWith("_l_")) {
+                queryBuilder = QueryBuilders.rangeQuery(key.substring(3)).lt(params.get(key));
+            } else if (key.startsWith("_le_")) {
+                queryBuilder = QueryBuilders.rangeQuery(key.substring(4)).lte(params.get(key));
+            } else if (key.startsWith("_range_")) {
+                if ("0".equals(String.valueOf(params.get(key)))) {
+                    queryBuilder = QueryBuilders.rangeQuery(key.substring(7)).lte(params.get(key));
+                } else {
+                    queryBuilder = QueryBuilders.rangeQuery(key.substring(7)).gte(params.get(key));
+                }
+            } else {
+                queryBuilder = QueryBuilders.matchQuery(key, params.get(key));
             }
-            page.setData(list);
-            page.setTotal(NumberConvertUtil.parseInt(result.getTotal()));
+
+            qb.must(queryBuilder);
         }
 
-        return page;
-       return  query;*/
+        searchSourceBuilder.query(qb);
+        return searchSourceBuilder;
     }
 
     public Page queryDataPage(QueryDataParams queryDataParams) {
         String index = "";
-        Class c = null;
+        Class object = null;
         if ("SZ".equals(queryDataParams.getIndex())) {
             index = Constants.SZ_INFO_INDEX;
-            c = MainDan.class;
+            object = MainDan.class;
         } else if ("SF".equals(queryDataParams.getIndex())) {
             index = Constants.SF_INFO_INDEX;
-            c = PartyDan.class;
+            object = PartyDan.class;
         } else if ("SS".equals(queryDataParams.getIndex())) {
             index = Constants.SS_INFO_INDEX;
-            c = Product.class;
+            object = Product.class;
         }
-        SearchSourceBuilder searchSourceBuilder = makeQueryStringForSearch(queryDataParams);
-        int from = (queryDataParams.getPageNum() - 1) * queryDataParams.getPageSize();
+        SearchSourceBuilder searchSourceBuilder = queryCondition(queryDataParams);
+        int pageNum = 1;
+        int pageSize = 10;
+        try {
+            pageNum = queryDataParams.getPageNum();
+        } catch (Exception e) {
+        }
+        try {
+            pageSize = queryDataParams.getPageSize();
+        } catch (Exception e) {
+        }
+        if (pageNum <= 0)
+            pageNum = 1;
+        if (pageSize <= 0)
+            pageSize = 10;
+        if (pageSize > 1000)
+            pageSize = 1000;
+        int from = (pageNum - 1) * pageSize;
         searchSourceBuilder.from(from);
-        searchSourceBuilder.size(queryDataParams.getPageSize());
+        searchSourceBuilder.size(pageSize);
         //排序
         searchSourceBuilder.sort("_id", SortOrder.ASC);
 
         String query = searchSourceBuilder.toString();
-        Page page = elasticSearchService.searchToEsPage(query, index, "haiguan", c);
+        Page page = elasticSearchService.pageSearch(query, index, "haiguan", object);
         return page;
     }
 
 
-    public List<Map<String,Object>> countSBDNumByMonth(String stationId, String custId, LoginUser lu) {
-        StringBuffer sql = new StringBuffer(" select DATE_FORMAT(create_date,'%Y%m') mon,count(0) num from h_data_manager where type='"+BusiTypeEnum.SZ.getType()+"' ");
+    public List<Map<String, Object>> countSBDNumByMonth(String stationId, String custId, LoginUser lu) {
+        StringBuffer sql = new StringBuffer(" select DATE_FORMAT(create_date,'%Y%m') mon,count(0) num from h_data_manager where type='" + BusiTypeEnum.SZ.getType() + "' ");
         if (!"ROLE_USER".equals(lu.getAuth())) {
             custId = lu.getCustId();
-            sql.append(" and cust_id='"+custId+"'");
-        }else{
-            if(StringUtil.isNotEmpty(stationId)){
-                sql.append(" and JSON_EXTRACT(content, '$.station_id')='"+stationId+"')");
+            sql.append(" and cust_id='" + custId + "'");
+        } else {
+            if (StringUtil.isNotEmpty(stationId)) {
+                sql.append(" and JSON_EXTRACT(content, '$.station_id')='" + stationId + "')");
             }
-            if(StringUtil.isNotEmpty(custId)){
-                sql.append(" and cust_id='"+custId+"'");
+            if (StringUtil.isNotEmpty(custId)) {
+                sql.append(" and cust_id='" + custId + "'");
             }
         }
         sql.append(" and create_date>(SELECT DATE_FORMAT(DATE_ADD(CURDATE(), INTERVAL -6 MONTH),'%Y-%m-01') from dual) ");
         sql.append(" group by mon order by mon asc");
-        List<Map<String,Object>> list = jdbcTemplate.queryForList(sql.toString());
+        List<Map<String, Object>> list = jdbcTemplate.queryForList(sql.toString());
         return list;
     }
 
-    public Map<String,Object> sbdLastestTotal(String stationId, String custId, LoginUser lu){
-        StringBuffer sql = new StringBuffer("select id,content,ext_3 from  h_data_manager where type='"+BusiTypeEnum.SZ.getType()+"' ");
+    public Map<String, Object> sbdLastestTotal(String stationId, String custId, LoginUser lu) {
+        StringBuffer sql = new StringBuffer("select id,content,ext_3 from  h_data_manager where type='" + BusiTypeEnum.SZ.getType() + "' ");
         if (!"ROLE_USER".equals(lu.getAuth())) {
             custId = lu.getCustId();
-            sql.append(" and cust_id='"+custId+"'");
-        }else {
+            sql.append(" and cust_id='" + custId + "'");
+        } else {
             if (StringUtil.isNotEmpty(stationId)) {
                 sql.append(" and JSON_EXTRACT(content, '$.station_id')='" + stationId + "')");
             }
@@ -1237,8 +1269,8 @@ public class CustomsService {
     }
 
 
-    public List<Map<String, Object>> hzTotal(String type,String stationId, String custId, LoginUser lu){
-        StringBuffer sql = new StringBuffer("select ext_1 status,count(0)num from h_data_manager where type='"+type+"'");
+    public List<Map<String, Object>> hzTotal(String type, String stationId, String custId, LoginUser lu) {
+        StringBuffer sql = new StringBuffer("select ext_1 status,count(0)num from h_data_manager where type='" + type + "'");
         if (!"ROLE_USER".equals(lu.getAuth())) {
             custId = lu.getCustId();
             sql.append(" and cust_id='" + custId + "'");
@@ -1255,16 +1287,15 @@ public class CustomsService {
         sql.append(" and create_date>='").append(begin).append("' and create_date<='").append(end).append("'");
         sql.append("group by status");
 
-        List<Map<String,Object>> data = jdbcTemplate.queryForList(sql.toString());
+        List<Map<String, Object>> data = jdbcTemplate.queryForList(sql.toString());
         return data;
 
     }
 
 
-
-    public Integer countGoodsNumByPartId(String id){
-        String _sql = "select content from h_data_manager type='"+BusiTypeEnum.SS.getType()+"' " +
-                " and (JSON_EXTRACT(content, '$.pid')='"+id+"' or JSON_EXTRACT(content, '$.pid')="+id+")";
+    public Integer countGoodsNumByPartId(String id) {
+        String _sql = "select content from h_data_manager type='" + BusiTypeEnum.SS.getType() + "' " +
+                " and (JSON_EXTRACT(content, '$.pid')='" + id + "' or JSON_EXTRACT(content, '$.pid')=" + id + ")";
 
         return 0;
     }
