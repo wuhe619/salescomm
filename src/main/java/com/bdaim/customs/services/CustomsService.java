@@ -23,7 +23,6 @@ import com.bdaim.customs.utils.DatesUtil;
 import com.bdaim.customs.utils.ServiceUtils;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.MatchQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.SortOrder;
@@ -1111,44 +1110,6 @@ public class CustomsService {
         if (queryDataParams.getCreate_date() != null && queryDataParams.getI_d_date() != null) {
             qb.must(QueryBuilders.rangeQuery("createDate").from(queryDataParams.getCreate_date()).to(queryDataParams.getI_d_date()));
         }
-        searchSourceBuilder.query(qb);
-        return searchSourceBuilder;
-    }
-
-    public SearchSourceBuilder queryCondition(JSONObject params) {
-        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
-        BoolQueryBuilder qb = QueryBuilders.boolQuery();
-        QueryBuilder queryBuilder = null;
-        Iterator keys = params.keySet().iterator();
-        while (keys.hasNext()) {
-            String key = (String) keys.next();
-            if (StringUtil.isEmpty(String.valueOf(params.get(key)))) continue;
-            if ("pageNum".equals(key) || "pageSize".equals(key) || "stationId".equals(key) || "cust_id".equals(key))
-                continue;
-            if (key.startsWith("_c_")) {
-                // 模糊查询
-                queryBuilder = QueryBuilders.matchQuery(key.substring(3),params.getString(key));
-            } else if (key.startsWith("_g_")) {
-                queryBuilder = QueryBuilders.rangeQuery(key.substring(3)).gt(params.get(key));
-            } else if (key.startsWith("_ge_")) {
-                queryBuilder = QueryBuilders.rangeQuery(key.substring(4)).gte(params.get(key));
-            } else if (key.startsWith("_l_")) {
-                queryBuilder = QueryBuilders.rangeQuery(key.substring(3)).lt(params.get(key));
-            } else if (key.startsWith("_le_")) {
-                queryBuilder = QueryBuilders.rangeQuery(key.substring(4)).lte(params.get(key));
-            } else if (key.startsWith("_range_")) {
-                if ("0".equals(String.valueOf(params.get(key)))) {
-                    queryBuilder = QueryBuilders.rangeQuery(key.substring(7)).lte(params.get(key));
-                } else {
-                    queryBuilder = QueryBuilders.rangeQuery(key.substring(7)).gte(params.get(key));
-                }
-            } else {
-                queryBuilder = QueryBuilders.matchQuery(key, params.get(key));
-            }
-
-            qb.must(queryBuilder);
-        }
-
         searchSourceBuilder.query(qb);
         return searchSourceBuilder;
     }

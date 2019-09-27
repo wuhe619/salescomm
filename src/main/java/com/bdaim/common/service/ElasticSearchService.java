@@ -411,7 +411,7 @@ public class ElasticSearchService {
      * @return
      */
     public SearchResult search(String dsl, String index, String indexType) {
-        LOG.info("ES检索语句:{}", dsl);
+        LOG.info("ES检索语句:\n{}", dsl);
         SearchResult result = null;
         try {
             Search search = new Search.Builder(dsl)
@@ -422,7 +422,7 @@ public class ElasticSearchService {
         } catch (IOException e) {
             LOG.error("ES查询异常", e);
         }
-        LOG.info("ES查询结果:{}", result.getJsonString());
+        LOG.info("ES查询结果:\n{}", result.getJsonString());
         return result;
     }
 }
