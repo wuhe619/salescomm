@@ -12,8 +12,7 @@ import com.bdaim.common.util.http.HttpUtil;
 import com.bdaim.customs.entity.*;
 import io.searchbox.client.JestClient;
 import io.searchbox.client.JestResult;
-import io.searchbox.core.Search;
-import io.searchbox.core.SearchResult;
+import io.searchbox.core.*;
 import io.searchbox.indices.mapping.GetMapping;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -119,7 +118,7 @@ public class ElasticSearchService {
             }*/
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
-            if(!isExistIndex(index, type)){
+            if (!isExistIndex(index, type)) {
                 JSONObject settings = JSON.parseObject("{\"settings\":{\"index.analysis.analyzer.default.type\":\"whitespace\"}}");
                 HttpEntity<JSONObject> entity = new HttpEntity<>(settings, headers);
                 ResponseEntity<JSONObject> resultEntity = restTemplate.exchange(ESUtil.getUrl(index, ""), HttpMethod.PUT, entity, JSONObject.class);
@@ -134,6 +133,30 @@ public class ElasticSearchService {
             LOG.error("向es新增记录异常:", e);
         }
         return result;
+    }
+
+    /**
+     * 向ElasticSearch中批量新增
+     *
+     * @param indexName
+     * @param typeName
+     * @param list
+     * @throws Exception
+     */
+    public void bulkInsertDocument(String indexName, String typeName, List list) {
+        boolean result = false;
+        try {
+            Bulk.Builder bulk = new Bulk.Builder().defaultIndex(indexName).defaultType(typeName);
+            for (Object obj : list) {
+                Index index = new Index.Builder(obj).build();
+                bulk.addAction(index);
+            }
+            BulkResult br = jestClient.execute(bulk.build());
+            result = br.isSucceeded();
+        } catch (Exception e) {
+            LOG.error("向ES中批量新增异常", e);
+        }
+        LOG.info("向ES中批量新增:" + result);
     }
 
     /**

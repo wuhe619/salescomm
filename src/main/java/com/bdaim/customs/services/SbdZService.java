@@ -6,6 +6,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.service.BusiService;
+import com.bdaim.common.service.ElasticSearchService;
 import com.bdaim.common.service.ResourceService;
 import com.bdaim.common.service.SequenceService;
 import com.bdaim.common.util.NumberConvertUtil;
@@ -47,6 +48,9 @@ public class SbdZService implements BusiService {
     @Autowired
     private ServiceUtils serviceUtils;
 
+    @Autowired
+    ElasticSearchService elasticSearchService;
+
 
     @Override
     public void insertInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) throws Exception {
@@ -69,6 +73,9 @@ public class SbdZService implements BusiService {
             log.info("has " + list.size() + " data");
             if (list != null && list.size() > 0) {
                 int index = -1;
+                HBusiDataManager mainData = null;
+                List<JSONObject> sfdData = new ArrayList();
+                List<JSONObject> ssData = new ArrayList();
                 for (int i = 0; i < list.size(); i++) {
                     HBusiDataManager hBusiDataManager = list.get(i);
                     JSONObject json = JSON.parseObject(hBusiDataManager.getContent());
@@ -76,12 +83,26 @@ public class SbdZService implements BusiService {
                         info.remove("singles");
                         hBusiDataManager.setContent(info.toJSONString());
                         index = i;
+                        mainData = hBusiDataManager;
                     } else if (BusiTypeEnum.SF.getType().equals(hBusiDataManager.getType())) {
                         json.remove("products");
                         hBusiDataManager.setContent(json.toJSONString());
+                        sfdData.add(json);
+                    } else if (BusiTypeEnum.SS.getType().equals(hBusiDataManager.getType())) {
+                        ssData.add(json);
                     }
-                    serviceUtils.addDataToES(hBusiDataManager.getId().toString(), hBusiDataManager.getType(), JSONObject.parseObject(hBusiDataManager.getContent()));
+                    //serviceUtils.addDataToES(hBusiDataManager.getId().toString(), hBusiDataManager.getType(), JSONObject.parseObject(hBusiDataManager.getContent()));
                 }
+                if (mainData != null) {
+                    serviceUtils.addDataToES(String.valueOf(mainData.getId()), mainData.getType(), JSON.parseObject(mainData.getContent()));
+                }
+                if (sfdData.size() > 0) {
+                    elasticSearchService.bulkInsertDocument(BusiTypeEnum.getEsIndex(BusiTypeEnum.SF.getType()), Constants.INDEX_TYPE, sfdData);
+                }
+                if (ssData.size() > 0) {
+                    elasticSearchService.bulkInsertDocument(BusiTypeEnum.getEsIndex(BusiTypeEnum.SS.getType()), Constants.INDEX_TYPE, ssData);
+                }
+
                 if (index > -1) {
                     list.remove(index);
                 }
