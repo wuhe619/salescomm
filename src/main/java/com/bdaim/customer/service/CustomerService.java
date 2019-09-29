@@ -735,6 +735,115 @@ public class CustomerService {
         return pageData;
     }
 
+
+    public PageList getCustomerList(PageParam page, CustomerRegistDTO customerRegistDTO) {
+
+        StringBuilder sqlBuilder = new StringBuilder("SELECT\n" +
+                "t1.cust_id as custId,\n" +
+                "t1.enterprise_name AS enterpriseName,\n" +
+                "cjc.mobile_num,  -- 属性表\n" +
+                "IFNULL (t1.title,'') AS title, -- 属性表\n" +
+                "t1.create_time,\n" +
+                "t1.`status`,cjc.`createId`,cjc.packagerId,cjc.printerId,cjc.idCardBack,cjc.idCardFront,\n" +
+                "cjc.industry,cjc.salePerson,cjc.contactAddress,\n" +
+                "cjc.province,cjc.city,cjc.fixPrice,cjc.county,cjc.taxpayerId,\n" +
+                "cjc.bli_path AS bliPic,\n" +
+                "cjc.bank,cjc.bankAccount,cjc.stationId,\n" +
+                "cjc.bank_account_certificate AS bankAccountPic\n" +
+                "FROM t_customer t1\n" +
+                "LEFT JOIN (SELECT cust_id, \n" +
+                "\tmax(CASE property_name WHEN 'industry'   THEN property_value ELSE '' END ) industry,\n" +
+                "\tmax(CASE property_name WHEN 'sale_person'   THEN property_value ELSE '' END ) salePerson,\n" +
+                "\tmax(CASE property_name WHEN 'reg_address'   THEN property_value ELSE '' END ) contactAddress,\n" +
+                "\tmax(CASE property_name WHEN 'province'   THEN property_value ELSE '' END ) province,\n" +
+                "\tmax(CASE property_name WHEN 'city'   THEN property_value ELSE '' END ) city,\n" +
+                "\tmax(CASE property_name WHEN 'county'   THEN property_value ELSE '' END ) county,\n" +
+                "\tmax(CASE property_name WHEN 'taxpayer_id'   THEN property_value ELSE '' END ) taxpayerId,\n" +
+                "\tmax(CASE property_name WHEN 'packager'   THEN property_value ELSE '' END ) packagerId,\n" +
+                "\tmax(CASE property_name WHEN 'printer'   THEN property_value ELSE '' END ) printerId,\n" +
+                "\tmax(CASE property_name WHEN 'idCard_back_path'   THEN property_value ELSE '' END ) idCardBack,\n" +
+                "\tmax(CASE property_name WHEN 'idCard_front_path'   THEN property_value ELSE '' END ) idCardFront,\n" +
+                "\tmax(CASE property_name WHEN 'address_fix_price'   THEN property_value ELSE '' END ) fixPrice,\n" +
+                "\tmax(CASE property_name WHEN 'bli_path'   THEN property_value ELSE '' END ) bli_path,\n" +
+                "\tmax(CASE property_name WHEN 'bank'   THEN property_value ELSE '' END ) bank,\n" +
+                "\tmax(CASE property_name WHEN 'bank_account'   THEN property_value ELSE '' END ) bankAccount,\n" +
+                "\tmax(CASE property_name WHEN 'bank_account_certificate'   THEN property_value ELSE '' END ) bank_account_certificate,\n" +
+                "\tmax(CASE property_name WHEN 'station_id'   THEN property_value ELSE '' END ) stationId,\n" +
+                "\tmax(CASE property_name WHEN 'create_id'   THEN property_value ELSE '' END ) createId,\n" +
+                "\tmax(CASE property_name WHEN 'mobile_num'   THEN property_value ELSE '' END ) mobile_num\n" +
+                "   FROM t_customer_property p GROUP BY cust_id \n" +
+                ") cjc ON t1.cust_id = cjc.cust_id \n" +
+                "where 1=1 and ");
+        if (StringUtil.isNotEmpty(customerRegistDTO.getCustId())) {
+            sqlBuilder.append(" AND t1.cust_id = " + customerRegistDTO.getCustId());
+        }
+        if (StringUtil.isNotEmpty(customerRegistDTO.getEnterpriseName())) {
+            sqlBuilder.append(" AND t1.enterprise_name like '%" + customerRegistDTO.getEnterpriseName() + "%'");
+        }
+        if (StringUtil.isNotEmpty(customerRegistDTO.getCreateId())) {
+            sqlBuilder.append(" AND cjc.createId ='" + customerRegistDTO.getCreateId() + "'");
+        }else {
+            //过滤客户自己创建的企业
+            sqlBuilder.append(" AND cjc.createId =''");
+        }
+        if (StringUtil.isNotEmpty(customerRegistDTO.getName())) {
+            sqlBuilder.append(" AND t2.account LIKE '%" + customerRegistDTO.getName() + "%'");
+        }
+        if (StringUtil.isNotEmpty(customerRegistDTO.getRealName())) {
+            sqlBuilder.append(" AND t2.realname LIKE '%" + customerRegistDTO.getRealName() + "%'");
+        }
+        if (StringUtil.isNotEmpty(customerRegistDTO.getStationId())) {
+            sqlBuilder.append(" AND cjc.stationId =" + customerRegistDTO.getStationId());
+        }
+        if (StringUtil.isNotEmpty(customerRegistDTO.getSalePerson())) {
+            sqlBuilder.append(" AND cjc.salePerson LIKE '%" + customerRegistDTO.getSalePerson() + "%'");
+        }
+        if (StringUtil.isNotEmpty(customerRegistDTO.getStartTime())) {
+            sqlBuilder.append(" AND t1.create_time >= '" + customerRegistDTO.getStartTime() + "'");
+        }
+        if (StringUtil.isNotEmpty(customerRegistDTO.getEndTime())) {
+            sqlBuilder.append(" AND t1.create_time <= '" + customerRegistDTO.getEndTime() + "'");
+        }
+        if (StringUtil.isNotEmpty(customerRegistDTO.getIndustry())) {
+            sqlBuilder.append(" AND cjc.industry = " + customerRegistDTO.getIndustry());
+        }
+        sqlBuilder.append(" order by t1.create_time desc");
+        PageList pageData = new Pagination().getPageData(sqlBuilder.toString(), null, page, jdbcTemplate);
+        List<Map<String, Object>> list = pageData.getList();
+        //查询部门里面有几个职位
+        if (list.size() > 0) {
+            long packagerId = 0, printerId = 0;
+            for (int i = 0; i < list.size(); i++) {
+                if (StringUtil.isNotEmpty(String.valueOf(list.get(i).get("packagerId")))) {
+                    packagerId = NumberConvertUtil.parseLong(String.valueOf(list.get(i).get("packagerId")));
+                    logger.info("封装员id是：" + packagerId);
+                    //根据id查询员工姓名
+                    String packager = userDao.getUserRealName(packagerId);
+                    list.get(i).put("packager", packager);
+                    list.get(i).put("packagerId", packagerId);
+                }
+                if (StringUtil.isNotEmpty(String.valueOf(list.get(i).get("printerId")))) {
+                    printerId = NumberConvertUtil.parseLong(String.valueOf(list.get(i).get("printerId")));
+                    logger.info("打印员id是:" + printerId);
+                    String printer = userDao.getUserRealName(printerId);
+                    list.get(i).put("printer", printer);
+                    list.get(i).put("printerId", printerId);
+                }
+                //场站信息
+                if (StringUtil.isNotEmpty(String.valueOf(list.get(i).get("stationId")))) {
+                    logger.info("场站id是：" + list.get(i).get("stationId"));
+                    //根据id查询员工姓名
+                    Station station = stationDao.getStationById(NumberConvertUtil.parseInt(String.valueOf(list.get(i).get("stationId"))));
+                    list.get(i).put("stationName", "");
+                    if (station != null) {
+                        list.get(i).put("stationName", station.getName());
+                    }
+                }
+            }
+        }
+        return pageData;
+    }
+
     public void heartbeat(long customerUserId) {
         //customerUserDao.executeUpdateSQL("update t_customer_user set active_time=now() where id="+customerUserId);
     }
