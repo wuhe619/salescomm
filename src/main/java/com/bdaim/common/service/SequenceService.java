@@ -4,14 +4,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.List;
 import java.util.Map;
 
 @Service
-@Transactional
 public class SequenceService {
     static private Logger logger = LoggerFactory.getLogger(SequenceService.class);
 
@@ -38,6 +36,7 @@ public class SequenceService {
                 }
             }
         }catch(Exception e) {
+            e.printStackTrace();
             logger.error("获取主键ID异常:["+type+"] ",e);
             throw new Exception("获取主键ID异常");
         }
@@ -45,3 +44,4 @@ public class SequenceService {
         return seq;
     }
 }
+
