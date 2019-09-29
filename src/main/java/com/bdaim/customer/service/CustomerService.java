@@ -316,20 +316,23 @@ public class CustomerService {
                     if (StringUtil.isNotEmpty(vo.getPassword())) {
                         customerUserDO.setPassword(CipherUtil.generatePassword(vo.getPassword()));
                     }
+                    customerUserDao.saveOrUpdate(customerUserDO);
                 } else {
-                    CustomerUser user = customerUserDao.getUserByAccount(vo.getName());
-                    if (user != null) return code = "001";
-                    customerUserDO = new CustomerUser();
-                    //1企业客户 2 操作员
-                    customerUserDO.setUserType(1);
-                    customerUserDO.setId(IDHelper.getUserID());
-                    customerUserDO.setCust_id(customerId);
-                    customerUserDO.setAccount(vo.getName());
-                    customerUserDO.setPassword(CipherUtil.generatePassword(vo.getPassword()));
-                    customerUserDO.setRealname(vo.getRealName());
-                    customerUserDO.setStatus(Constant.USER_ACTIVE_STATUS);
+                    if (StringUtil.isNotEmpty(vo.getName())){
+                        CustomerUser user = customerUserDao.getUserByAccount(vo.getName());
+                        if (user != null) return code = "001";
+                        customerUserDO = new CustomerUser();
+                        //1企业客户 2 操作员
+                        customerUserDO.setUserType(1);
+                        customerUserDO.setId(IDHelper.getUserID());
+                        customerUserDO.setCust_id(customerId);
+                        customerUserDO.setAccount(vo.getName());
+                        customerUserDO.setPassword(CipherUtil.generatePassword(vo.getPassword()));
+                        customerUserDO.setRealname(vo.getRealName());
+                        customerUserDO.setStatus(Constant.USER_ACTIVE_STATUS);
+                        customerUserDao.saveOrUpdate(customerUserDO);
+                    }
                 }
-                customerUserDao.saveOrUpdate(customerUserDO);
 
                 Customer customer;
                 if (StringUtil.isNotEmpty(vo.getCustId())) {
@@ -438,13 +441,13 @@ public class CustomerService {
                     }
                 }
                 //联系人电话
-                if (StringUtil.isNotEmpty(vo.getMobile())) {
+                //if (StringUtil.isNotEmpty(vo.getMobile())) {
                     if (StringUtil.isNotEmpty(vo.getCustId())) {
                         customerDao.dealCustomerInfo(vo.getCustId(), "mobile_num", vo.getMobile());
                     } else {
                         customerDao.dealCustomerInfo(customerId, "mobile_num", vo.getMobile());
                     }
-                }
+               // }
                 //身份证正面url
                 if (StringUtil.isNotEmpty(vo.getIdCardFront())) {
                     if (StringUtil.isNotEmpty(vo.getCustId())) {
@@ -505,12 +508,13 @@ public class CustomerService {
                     if (customerUserList != null && customerUserList.size() > 0) {
                         for (CustomerUser customeruser : customerUserList) {
                             if (StringUtil.isNotEmpty(vo.getStatus())) {
-                                if (vo.getStatus().equals("0")) {//解冻或正常
+                                customeruser.setStatus(Integer.valueOf(vo.getStatus()));
+                                /*if (vo.getStatus().equals("0")) {//解冻或正常
                                     customeruser.setStatus(Integer.valueOf(vo.getStatus()));
                                 }
                                 if (vo.getStatus().equals("1")) {//冻结
                                     customeruser.setStatus(Integer.valueOf(2));
-                                }
+                                }*/
                             }
                             customerUserDao.update(customeruser);
                         }
