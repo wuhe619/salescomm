@@ -80,7 +80,7 @@ public class SbdZService implements BusiService {
                         json.remove("products");
                         hBusiDataManager.setContent(json.toJSONString());
                     }
-                    //serviceUtils.addDataToES(hBusiDataManager.getId().toString(), hBusiDataManager.getType(), JSONObject.parseObject(hBusiDataManager.getContent()));
+                    serviceUtils.addDataToES(hBusiDataManager.getId().toString(), hBusiDataManager.getType(), JSONObject.parseObject(hBusiDataManager.getContent()));
                 }
                 if (index > -1) {
                     list.remove(index);
