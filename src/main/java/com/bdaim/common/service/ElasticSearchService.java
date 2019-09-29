@@ -95,13 +95,18 @@ public class ElasticSearchService {
             }*/
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
+            /*JSONObject settings = JSON.parseObject("{\"settings\": {\"analysis\": {\"analyzer\": {\"default\":{\"type\":\"whitespace\"}}}}}");
+            HttpEntity<JSONObject> entity = new HttpEntity<>(settings, headers);
+            ResponseEntity<JSONObject> resultEntity = restTemplate.exchange(ESUtil.getUrl(index, type), HttpMethod.PUT, entity, JSONObject.class);
+            result = resultEntity.getBody();
+            LOG.info("向es添加索引返回数据:[" + result + "]");*/
+
             HttpEntity<JSONObject> entity = new HttpEntity<>(jsonObject, headers);
             ResponseEntity<JSONObject> resultEntity = restTemplate.exchange(ESUtil.getUrl(index, type) + id, HttpMethod.PUT, entity, JSONObject.class);
             result = resultEntity.getBody();
             LOG.info("向es新增记录返回结果:[" + result + "]");
         } catch (Exception e) {
-            e.printStackTrace();
-            LOG.error("向es新增记录异常:" + e.getMessage());
+            LOG.error("向es新增记录异常:",e);
         }
         return result;
     }

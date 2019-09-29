@@ -6,14 +6,12 @@ import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.service.BusiService;
-import com.bdaim.common.service.ElasticSearchService;
 import com.bdaim.common.service.ResourceService;
 import com.bdaim.common.service.SequenceService;
 import com.bdaim.common.util.NumberConvertUtil;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.entity.CustomerProperty;
-import com.bdaim.customs.dao.HBusiDataManagerDao;
 import com.bdaim.customs.entity.*;
 import com.bdaim.customs.utils.ServiceUtils;
 import org.slf4j.Logger;
@@ -56,7 +54,7 @@ public class SbdZService implements BusiService {
             throw new TouchException("未配置场站信息");
         }
         String billno = info.getString("bill_no");
-        String sql = "select id from "+HMetaDataDef.getTable(busiType,"")+" where  type='" + busiType + "' and JSON_EXTRACT(content, '$.ext_3')='" + billno + "'";
+        String sql = "select id from " + HMetaDataDef.getTable(busiType, "") + " where  type='" + busiType + "' and JSON_EXTRACT(content, '$.ext_3')='" + billno + "'";
         List<Map<String, Object>> countList = jdbcTemplate.queryForList(sql);
         if (countList != null && countList.size() > 0) {
             throw new TouchException("此主单已经申报");
@@ -66,7 +64,7 @@ public class SbdZService implements BusiService {
         MainDan mainDan = JSON.parseObject(info.toJSONString(), MainDan.class);
         try {
             buildMain(info, list, mainDan, cust_user_id, cust_id, station_idProperty.getPropertyValue(), id);
-            log.info("has "+list.size()+" data");
+            log.info("has " + list.size() + " data");
             if (list != null && list.size() > 0) {
                 int index = -1;
                 for (int i = 0; i < list.size(); i++) {
@@ -86,30 +84,30 @@ public class SbdZService implements BusiService {
                     list.remove(index);
                 }
                 if (list.size() > 0) {
-                    Map<String,List<HBusiDataManager>> datamap = new TreeMap<>();
-                    for(HBusiDataManager manager:list){
-                        if(datamap.containsKey(manager.getType())){
+                    Map<String, List<HBusiDataManager>> datamap = new TreeMap<>();
+                    for (HBusiDataManager manager : list) {
+                        if (datamap.containsKey(manager.getType())) {
                             List<HBusiDataManager> d = datamap.get(manager.getType());
                             d.add(manager);
-                        }else{
+                        } else {
                             List<HBusiDataManager> d = new ArrayList<>();
                             d.add(manager);
-                            datamap.put(manager.getType(),d);
+                            datamap.put(manager.getType(), d);
                         }
                     }
-                    Set<String> types =  datamap.keySet();
+                    Set<String> types = datamap.keySet();
                     Iterator<String> iterator = types.iterator();
-                    while (iterator.hasNext()){
+                    while (iterator.hasNext()) {
                         String key = iterator.next();
                         List<HBusiDataManager> d = datamap.get(key);
-                        serviceUtils.batchInsert(key,d);
+                        serviceUtils.batchInsert(key, d);
                     }
                 }
             }
             log.info(info.toJSONString());
         } catch (Exception e) {
-            e.printStackTrace();
-            throw new Exception("保存主单出错");
+            log.error("保存主单出错", e);
+            throw new Exception("保存主单出错", e);
         }
     }
 
@@ -118,7 +116,7 @@ public class SbdZService implements BusiService {
         // 身份核验
         if ("verification".equals(info.getString("_rule_"))) {
             serviceUtils.esTestData();
-            StringBuffer sql = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from "+HMetaDataDef.getTable(BusiTypeEnum.SF.getType(),"")+" where type=?")
+            StringBuffer sql = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(BusiTypeEnum.SF.getType(), "") + " where type=?")
                     .append(" and cust_id='").append(cust_id).append("'")
                     .append(" and (ext_7 IS NULL OR ext_7 = '' OR ext_7 = 2) ")
                     .append(" and JSON_EXTRACT(content, '$.pid')=?");
@@ -133,7 +131,7 @@ public class SbdZService implements BusiService {
                 content.put("status", 0);
                 JSONObject input;
                 JSONObject data;
-                String updateSql = "UPDATE "+HMetaDataDef.getTable(BusiTypeEnum.SF.getType(),"")+" SET ext_7 = 0, content = ? WHERE id =? AND type =? ";
+                String updateSql = "UPDATE " + HMetaDataDef.getTable(BusiTypeEnum.SF.getType(), "") + " SET ext_7 = 0, content = ? WHERE id =? AND type =? ";
                 for (Map<String, Object> m : dfList) {
                     input = new JSONObject();
                     // 身份核验待核验入队列
@@ -226,15 +224,15 @@ public class SbdZService implements BusiService {
                 serviceUtils.deleteDatafromES(BusiTypeEnum.SS.getType(), shBusiDataManager.getId().toString());
             }
             serviceUtils.deleteDatafromES(BusiTypeEnum.SF.getType(), hBusiDataManager.getId().toString());
-            serviceUtils.delDataListByPid(BusiTypeEnum.SS.getType(),hBusiDataManager.getId().longValue());
+            serviceUtils.delDataListByPid(BusiTypeEnum.SS.getType(), hBusiDataManager.getId().longValue());
         }
-        serviceUtils.delDataListByPid(BusiTypeEnum.SF.getType(),id);
+        serviceUtils.delDataListByPid(BusiTypeEnum.SF.getType(), id);
 
     }
 
     @Override
     public String formatQuery(String busiType, String cust_id, String cust_group_id, Long cust_user_id, JSONObject params, List sqlParams) {
-        StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from "+HMetaDataDef.getTable(busiType,"")+" where type=?");
+        StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(busiType, "") + " where type=?");
         if (!"all".equals(cust_id))
             sqlstr.append(" and cust_id='").append(cust_id).append("'");
         sqlParams.add(busiType);
@@ -308,33 +306,33 @@ public class SbdZService implements BusiService {
 
 
     public void buildMain(JSONObject info, List<HBusiDataManager> list, MainDan mainDan, Long userId, String custId, String station_id, Long mainid) throws Exception {
-       try {
-           HBusiDataManager dataManager = new HBusiDataManager();
-           dataManager.setCreateId(userId);
-           dataManager.setId(mainid.intValue());
-           dataManager.setCreateDate(new Date());
-           dataManager.setType(BusiTypeEnum.SZ.getType());
+        try {
+            HBusiDataManager dataManager = new HBusiDataManager();
+            dataManager.setCreateId(userId);
+            dataManager.setId(mainid.intValue());
+            dataManager.setCreateDate(new Date());
+            dataManager.setType(BusiTypeEnum.SZ.getType());
 
-           info.put("type", BusiTypeEnum.SZ.getType());
-           info.put("commit_cangdan_status", "N");
-           info.put("commit_baodan_status", "N");
-           info.put("create_date", new Date());
-           info.put("create_id", userId + "");
-           info.put("station_id", station_id);//场站id
-           info.put("cust_id", custId);
-           info.put("id_card_number", 0);
-           info.put("ext_1", "N");
-           info.put("ext_2", "N");
-           info.put("ext_3", mainDan.getBill_no());
-           log.info("申报单主单:" + mainDan.getBill_no());
-           buildPartyDan(list, mainDan, userId, custId, mainid, info);
-           buildMainContent(mainDan, info);
-           dataManager.setContent(info.toJSONString());
+            info.put("type", BusiTypeEnum.SZ.getType());
+            info.put("commit_cangdan_status", "N");
+            info.put("commit_baodan_status", "N");
+            info.put("create_date", new Date());
+            info.put("create_id", userId + "");
+            info.put("station_id", station_id);//场站id
+            info.put("cust_id", custId);
+            info.put("id_card_number", 0);
+            info.put("ext_1", "N");
+            info.put("ext_2", "N");
+            info.put("ext_3", mainDan.getBill_no());
+            log.info("申报单主单:" + mainDan.getBill_no());
+            buildPartyDan(list, mainDan, userId, custId, mainid, info);
+            buildMainContent(mainDan, info);
+            dataManager.setContent(info.toJSONString());
 
-           list.add(dataManager);
-       }catch (Exception e){
-           e.printStackTrace();
-       }
+            list.add(dataManager);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -401,7 +399,7 @@ public class SbdZService implements BusiService {
             dataManager.setContent(json.toJSONString());
 
             list.add(dataManager);
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -417,7 +415,7 @@ public class SbdZService implements BusiService {
         if (pList != null && pList.size() > 0) {
             List<Map<String, String>> mainGoodsName = new ArrayList<>();
             for (Product product : pList) {
-                log.info("goods:"+product.getCode_ts());
+                log.info("goods:" + product.getCode_ts());
                 try {
                     HBusiDataManager dataManager = new HBusiDataManager();
                     dataManager.setType(BusiTypeEnum.SS.getType());
@@ -447,7 +445,7 @@ public class SbdZService implements BusiService {
                             List dataList = page.getData();
                             Map<String, Object> d = (Map<String, Object>) dataList.get(0);
                             JSONObject contentObj = JSON.parseObject(JSON.toJSONString(d));
-                            if(contentObj!=null && contentObj.containsKey("duty_price") && StringUtil.isNotEmpty(contentObj.getString("duty_price"))) {
+                            if (contentObj != null && contentObj.containsKey("duty_price") && StringUtil.isNotEmpty(contentObj.getString("duty_price"))) {
                                 duty_paid_price = contentObj.getFloat("duty_price");
                                 if (StringUtil.isNotEmpty(product.getDecl_price())) {
                                     if (Float.valueOf(product.getDecl_price()) < duty_paid_price) {
@@ -455,7 +453,7 @@ public class SbdZService implements BusiService {
                                     }
                                 }
                             }
-                            if(contentObj!=null && null!=contentObj.getString("tax_rate")) {
+                            if (contentObj != null && null != contentObj.getString("tax_rate")) {
                                 tax_rate = contentObj.getFloatValue("tax_rate");
                                 estimated_tax = duty_paid_price * tax_rate;
                             }
@@ -517,9 +515,9 @@ public class SbdZService implements BusiService {
 
                     list.add(dataManager);
 
-            }catch (Exception e){
-                e.printStackTrace();
-                throw new Exception("生成商品信息异常");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    throw new Exception("生成商品信息异常");
                 }
             }
         }
@@ -592,7 +590,7 @@ public class SbdZService implements BusiService {
      */
     private List queryChildData(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long pid, JSONObject info, JSONObject param) {
         List sqlParams = new ArrayList();
-        StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from "+HMetaDataDef.getTable(busiType,"")+" where type=?");
+        StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(busiType, "") + " where type=?");
         if (!"all".equals(cust_id))
             sqlstr.append(" and cust_id='").append(cust_id).append("'");
 
