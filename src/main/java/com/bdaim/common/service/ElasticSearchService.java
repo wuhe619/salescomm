@@ -11,8 +11,10 @@ import com.bdaim.common.util.StringUtil;
 import com.bdaim.common.util.http.HttpUtil;
 import com.bdaim.customs.entity.*;
 import io.searchbox.client.JestClient;
+import io.searchbox.client.JestResult;
 import io.searchbox.core.Search;
 import io.searchbox.core.SearchResult;
+import io.searchbox.indices.mapping.GetMapping;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -75,6 +77,28 @@ public class ElasticSearchService {
         return result;
     }
 
+
+    /**
+     * 判断ES是否含有索引名的索引
+     *
+     * @param indexName
+     * @return
+     */
+    public boolean isExistIndex(String indexName, String typeName) {
+        GetMapping.Builder builder = new GetMapping.Builder();
+        builder.addIndex(indexName).addType(typeName);
+        try {
+            JestResult result = jestClient.execute(builder.build());
+            if (404 == result.getResponseCode()) {
+                return false;
+            }
+            return true;
+        } catch (Exception e) {
+            LOG.error("es查询索引异常", e);
+        }
+        return false;
+    }
+
     /**
      * 新增记录
      *
@@ -95,18 +119,19 @@ public class ElasticSearchService {
             }*/
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
-            /*JSONObject settings = JSON.parseObject("{\"settings\": {\"analysis\": {\"analyzer\": {\"default\":{\"type\":\"whitespace\"}}}}}");
-            HttpEntity<JSONObject> entity = new HttpEntity<>(settings, headers);
-            ResponseEntity<JSONObject> resultEntity = restTemplate.exchange(ESUtil.getUrl(index, type), HttpMethod.PUT, entity, JSONObject.class);
-            result = resultEntity.getBody();
-            LOG.info("向es添加索引返回数据:[" + result + "]");*/
-
+            if(!isExistIndex(index, type)){
+                JSONObject settings = JSON.parseObject("{\"settings\":{\"index.analysis.analyzer.default.type\":\"whitespace\"}}");
+                HttpEntity<JSONObject> entity = new HttpEntity<>(settings, headers);
+                ResponseEntity<JSONObject> resultEntity = restTemplate.exchange(ESUtil.getUrl(index, ""), HttpMethod.PUT, entity, JSONObject.class);
+                result = resultEntity.getBody();
+                LOG.info("向es添加索引返回数据:[" + result + "]");
+            }
             HttpEntity<JSONObject> entity = new HttpEntity<>(jsonObject, headers);
             ResponseEntity<JSONObject> resultEntity = restTemplate.exchange(ESUtil.getUrl(index, type) + id, HttpMethod.PUT, entity, JSONObject.class);
             result = resultEntity.getBody();
             LOG.info("向es新增记录返回结果:[" + result + "]");
         } catch (Exception e) {
-            LOG.error("向es新增记录异常:",e);
+            LOG.error("向es新增记录异常:", e);
         }
         return result;
     }
