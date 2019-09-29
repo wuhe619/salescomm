@@ -208,7 +208,7 @@ public class ServiceUtils {
             if (toIndex > args.size()) {
                 toIndex = args.size();
             }
-            this.jdbcTemplate.batchUpdate(sql, args.subList(fromIndex, toIndex));
+            jdbcTemplate.batchUpdate(sql, args.subList(fromIndex, toIndex));
             fromIndex = toIndex;
             toIndex += BATCH_SIZE;
             if (toIndex > args.size())

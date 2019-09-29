@@ -8,7 +8,6 @@ import com.bdaim.common.service.ElasticSearchService;
 import com.bdaim.common.service.SequenceService;
 import com.bdaim.common.util.NumberConvertUtil;
 import com.bdaim.common.util.StringUtil;
-import com.bdaim.customs.dao.HBusiDataManagerDao;
 import com.bdaim.customs.entity.BusiTypeEnum;
 import com.bdaim.customs.entity.HBusiDataManager;
 import com.bdaim.customs.entity.HMetaDataDef;
@@ -19,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -29,6 +29,7 @@ import java.util.Map;
  * 申报单.分单
  */
 @Service("busi_sbd_f")
+@Transactional
 public class SbdFService implements BusiService {
 
     private static Logger log = LoggerFactory.getLogger(SbdFService.class);

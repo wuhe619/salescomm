@@ -5,10 +5,8 @@ import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.service.BusiService;
-import com.bdaim.common.service.ElasticSearchService;
 import com.bdaim.common.service.ResourceService;
 import com.bdaim.common.util.StringUtil;
-import com.bdaim.customs.dao.HBusiDataManagerDao;
 import com.bdaim.customs.entity.BusiTypeEnum;
 import com.bdaim.customs.entity.HBusiDataManager;
 import com.bdaim.customs.entity.HMetaDataDef;
@@ -18,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.Iterator;
@@ -28,6 +27,7 @@ import java.util.Map;
  * 申报单.税单
  */
 @Service("busi_sbd_s")
+@Transactional
 public class SbdSService implements BusiService {
 
     private static Logger log = LoggerFactory.getLogger(SbdFService.class);
