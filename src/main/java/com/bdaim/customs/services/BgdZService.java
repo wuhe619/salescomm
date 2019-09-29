@@ -8,7 +8,6 @@ import com.bdaim.common.service.ElasticSearchService;
 import com.bdaim.common.service.SequenceService;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.dao.CustomerDao;
-import com.bdaim.customs.dao.HBusiDataManagerDao;
 import com.bdaim.customs.entity.BusiTypeEnum;
 import com.bdaim.customs.entity.HBusiDataManager;
 import com.bdaim.customs.entity.HMetaDataDef;
@@ -257,7 +256,7 @@ public class BgdZService implements BusiService {
     public void buildDanList(JSONObject info, Long id, List<HBusiDataManager> dataList, String custId, Long userId, HBusiDataManager h, String type) throws Exception {
         HBusiDataManager CZ = new HBusiDataManager();
         CZ.setType(BusiTypeEnum.BZ.getType());
-        CZ.setId(id.intValue());
+        CZ.setId(id);
         CZ.setCreateDate(new Date());
         CZ.setCust_id(Long.valueOf(custId));
         CZ.setCreateId(Long.valueOf(userId));
@@ -298,7 +297,7 @@ public class BgdZService implements BusiService {
             hm.setType(BusiTypeEnum.BF.getType());
             hm.setCreateDate(new Date());
             Long fid = sequenceService.getSeq(BusiTypeEnum.BF.getType());
-            hm.setId(fid.intValue());
+            hm.setId(fid);
             hm.setExt_3(hp.getExt_3());
             hm.setExt_4(hp.getExt_4());
             hm.setCreateId(hp.getCreateId());
@@ -313,7 +312,7 @@ public class BgdZService implements BusiService {
                 HBusiDataManager good = new HBusiDataManager();
                 gp.setType(BusiTypeEnum.BS.getType());
                 Long gid = sequenceService.getSeq(BusiTypeEnum.BS.getType());
-                good.setId(gid.intValue());
+                good.setId(gid);
                 good.setCreateDate(new Date());
                 JSONObject __content = JSON.parseObject(gp.getContent());
                 __content.put("pid", fid);

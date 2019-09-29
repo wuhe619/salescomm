@@ -16,28 +16,55 @@ public class SequenceService {
     @Resource
     private JdbcTemplate jdbcTemplate;
 
-    public Long getSeq(String type) throws Exception{
+    public Long getSeq(String type) throws Exception {
         Long seq = 1L;
         try {
             synchronized (type) {
-                String sql = "select value from sys_sequences where name='"+type+"'";
+                String sql = "select value from sys_sequences where name='" + type + "'";
                 List<Map<String, Object>> r = jdbcTemplate.queryForList(sql);
-                if(r.size()==0) {
-                    seq=1L;
-                    sql = "insert into sys_sequences(name,value) value('"+type+"', "+seq+")";
+                if (r.size() == 0) {
+                    seq = 1L;
+                    sql = "insert into sys_sequences(name,value) value('" + type + "', " + seq + ")";
                     jdbcTemplate.update(sql);
-                }else {
-                    seq = (Long)r.get(0).get("value");
-                    if(seq<=0)
-                        seq=1L;
+                } else {
+                    seq = (Long) r.get(0).get("value");
+                    if (seq <= 0)
+                        seq = 1L;
                     seq++;
-                    sql = "update sys_sequences set value="+seq+" where name='"+type+"'";
+                    sql = "update sys_sequences set value=" + seq + " where name='" + type + "'";
                     jdbcTemplate.update(sql);
                 }
             }
-        }catch(Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
-            logger.error("获取主键ID异常:["+type+"] ",e);
+            logger.error("获取主键ID异常:[" + type + "] ", e);
+            throw new Exception("获取主键ID异常");
+        }
+
+        return seq;
+    }
+
+    public Long getSeq(String type, long size) throws Exception {
+        Long seq = 1L;
+        try {
+            synchronized (type) {
+                String sql = "select value from sys_sequences where name='" + type + "'";
+                List<Map<String, Object>> r = jdbcTemplate.queryForList(sql);
+                if (r.size() == 0) {
+                    seq = size + 1;
+                    sql = "insert into sys_sequences(name,value) value('" + type + "', " + seq + ")";
+                    jdbcTemplate.update(sql);
+                } else {
+                    seq = (Long) r.get(0).get("value");
+                    if (seq <= 0)
+                        seq = 1L;
+                    seq += size + 1;
+                    sql = "update sys_sequences set value=" + seq + " where name='" + type + "'";
+                    jdbcTemplate.update(sql);
+                }
+            }
+        } catch (Exception e) {
+            logger.error("获取主键ID异常:[" + type + "] ", e);
             throw new Exception("获取主键ID异常");
         }
 

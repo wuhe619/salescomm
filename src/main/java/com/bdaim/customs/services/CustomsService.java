@@ -129,7 +129,7 @@ public class CustomsService {
         JSONObject json = elasticSearchService.getDocumentById(Constants.SF_INFO_INDEX, "haiguan", id);
         if (json == null) {
             HBusiDataManager param = new HBusiDataManager();
-            param.setId(NumberConvertUtil.parseInt(id));
+            param.setId(NumberConvertUtil.parseLong(id));
             param.setType(type);
             HBusiDataManager h = hBusiDataManagerDao.get(param);
             if (h != null && h.getContent() != null) {
@@ -163,7 +163,7 @@ public class CustomsService {
         BeanUtils.copyProperties(mainDan, dbjson);
         manager.setContent(JSON.toJSONString(dbjson));
         hBusiDataManagerDao.save(manager);
-        updateDataToES(manager, Integer.valueOf(id));
+        updateDataToES(manager, NumberConvertUtil.parseLong(id));
     }
 
     /**
@@ -387,7 +387,7 @@ public class CustomsService {
         jsonObject.put("low_price_goods", lowPricegoods + is_low_price);
         partH.setContent(jsonObject.toJSONString());
         hBusiDataManagerDao.saveOrUpdate(partH);
-        updateDataToES(partH, Integer.valueOf(partId));
+        updateDataToES(partH, NumberConvertUtil.parseLong(partId));
 
         //todo改为通过pid获取主单
         HBusiDataManager zh = getObjectByBillNo(partH.getExt_4(), BusiTypeEnum.SZ.getKey());
@@ -440,7 +440,7 @@ public class CustomsService {
         partcontentJson.put("pack_NO", pack_NO);
         parth.setContent(partcontentJson.toJSONString());
         hBusiDataManagerDao.saveOrUpdate(parth);
-        updateDataToES(parth, Integer.valueOf(partId));
+        updateDataToES(parth, NumberConvertUtil.parseLong(partId));
 
         //处理主单
         HBusiDataManager zh = getObjectByBillNo(parth.getExt_4(), BusiTypeEnum.SZ.getKey());
@@ -480,7 +480,7 @@ public class CustomsService {
      * @param hBusiDataManager
      * @param id
      */
-    private void updateDataToES(HBusiDataManager hBusiDataManager, Integer id) {
+    private void updateDataToES(HBusiDataManager hBusiDataManager, Long id) {
         String type = hBusiDataManager.getType();
         if (type.equals(BusiTypeEnum.SZ.getKey()) || type.equals(BusiTypeEnum.CZ.getKey()) || type.equals(BusiTypeEnum.BZ.getKey())) {
             elasticSearchService.updateDocumentToType(Constants.SZ_INFO_INDEX, "haiguan", id.toString(), JSON.parseObject(hBusiDataManager.getContent()));
@@ -836,7 +836,7 @@ public class CustomsService {
                 } else if (2 == type) {
                     // 根据ID查询单个申报单分单
                     HBusiDataManager param = new HBusiDataManager();
-                    param.setId(NumberConvertUtil.parseInt(id));
+                    param.setId(NumberConvertUtil.parseLong(id));
                     param.setType(BusiTypeEnum.SF.getType());
                     data = hBusiDataManagerDao.get(param);
                     if (data != null) {
@@ -1061,7 +1061,7 @@ public class CustomsService {
      * @param mainId
      * @return
      */
-    public int updateMainDanIdCardNumber(int mainId) {
+    public int updateMainDanIdCardNumber(long mainId) {
         int idCardNumber = hBusiDataManagerDao.countMainDIdCardNum(mainId, BusiTypeEnum.SF.getType());
         log.info("开始更新主单:{}的身份证照片数量:{}", mainId, idCardNumber);
         int code = 0;

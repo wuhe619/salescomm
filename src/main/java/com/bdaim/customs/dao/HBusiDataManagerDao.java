@@ -88,7 +88,7 @@ public class HBusiDataManagerDao extends SimpleHibernateDao<HBusiDataManager, Se
      * @param type
      * @return
      */
-    public int countMainDIdCardNum(int pid, String type) {
+    public int countMainDIdCardNum(long pid, String type) {
         String sql = "select id from "+ HMetaDataDef.getTable(type,"")+" where type=? AND ext_6 IS NOT NULL AND ext_6 <>'' and ( CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')=" + pid + " ELSE null END  or CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')=" + pid + " ELSE null END)";
         List<Map<String, Object>> list = sqlQuery(sql, type);
         if (list != null) {
