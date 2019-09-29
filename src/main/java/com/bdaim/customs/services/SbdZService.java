@@ -61,7 +61,7 @@ public class SbdZService implements BusiService {
         if (countList != null && countList.size() > 0) {
             throw new TouchException("此主单已经申报");
         }
-
+        log.info("申报单主单号:{}开始插入:{}", billno, System.currentTimeMillis());
         List<HBusiDataManager> list = new ArrayList<>();
         MainDan mainDan = JSON.parseObject(info.toJSONString(), MainDan.class);
         try {
@@ -80,7 +80,7 @@ public class SbdZService implements BusiService {
                         json.remove("products");
                         hBusiDataManager.setContent(json.toJSONString());
                     }
-                    serviceUtils.addDataToES(hBusiDataManager.getId().toString(), hBusiDataManager.getType(), JSONObject.parseObject(hBusiDataManager.getContent()));
+                    //serviceUtils.addDataToES(hBusiDataManager.getId().toString(), hBusiDataManager.getType(), JSONObject.parseObject(hBusiDataManager.getContent()));
                 }
                 if (index > -1) {
                     list.remove(index);
@@ -106,6 +106,7 @@ public class SbdZService implements BusiService {
                     }
                 }
             }
+            log.info("申报单主单号:{}结束插入:{}", billno, System.currentTimeMillis());
             log.info(info.toJSONString());
         } catch (Exception e) {
             log.error("保存主单出错", e);
