@@ -25,7 +25,8 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -33,7 +34,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-@Component
+@Service
+@Transactional
 public class ServiceUtils {
 
     private static Logger log = LoggerFactory.getLogger(ServiceUtils.class);
