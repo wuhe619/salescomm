@@ -6,6 +6,7 @@ import com.bdaim.common.util.StringUtil;
 import com.bdaim.customs.entity.HBusiDataManager;
 import com.bdaim.customs.utils.ServiceUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Iterator;
 import java.util.List;
@@ -14,6 +15,7 @@ import java.util.List;
  * 舱单回执
  */
 @Service("busi_cd_hz")
+@Transactional
 public class CdHzService implements BusiService {
 
     private ServiceUtils serviceUtils;

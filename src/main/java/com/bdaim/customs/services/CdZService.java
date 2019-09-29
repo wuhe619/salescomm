@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.*;
@@ -26,6 +27,7 @@ import java.util.*;
  * 舱单.主单
  */
 @Service("busi_cd_z")
+@Transactional
 public class CdZService implements BusiService {
 
     private static Logger log = LoggerFactory.getLogger(BusiService.class);
