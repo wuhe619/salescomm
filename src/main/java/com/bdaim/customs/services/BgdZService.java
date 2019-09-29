@@ -9,6 +9,7 @@ import com.bdaim.common.service.SequenceService;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customs.entity.BusiTypeEnum;
+import com.bdaim.customs.entity.Constants;
 import com.bdaim.customs.entity.HBusiDataManager;
 import com.bdaim.customs.entity.HMetaDataDef;
 import com.bdaim.customs.utils.ServiceUtils;
@@ -56,7 +57,7 @@ public class BgdZService implements BusiService {
                 throw new TouchException("数据不存在");
             }
             if (!cust_id.equals(h.getCust_id().toString())) {
-                throw new TouchException("你无权处理");
+                throw new TouchException("无权处理");
             }
 
             List<HBusiDataManager> dataList = new ArrayList<>();
@@ -64,14 +65,27 @@ public class BgdZService implements BusiService {
                 throw new TouchException("已经提交过了,不能重复提交");
             }
 
-            buildDanList(info, id, dataList, cust_id, cust_user_id, h, BusiTypeEnum.BZ.getType());
+            buildDanList0(info, id, dataList, cust_id, cust_user_id, h, BusiTypeEnum.BZ.getType());
             int index = -1;
+            List<JSONObject> fdData = new ArrayList();
+            List<JSONObject> sData = new ArrayList();
             for (int i = 0; i < dataList.size(); i++) {
                 HBusiDataManager dm = dataList.get(i);
-                serviceUtils.addDataToES(dm.getId().toString(), dm.getType(), JSON.parseObject(dm.getContent()));
+                //serviceUtils.addDataToES(dm.getId().toString(), dm.getType(), JSON.parseObject(dm.getContent()));
                 if (dm.getType().equals(BusiTypeEnum.BZ.getType())) {
                     index = i;
+                    serviceUtils.addDataToES(dm.getId().toString(), dm.getType(), JSON.parseObject(dm.getContent()));
+                }else if (dm.getType().equals(BusiTypeEnum.BF.getType())) {
+                    fdData.add(JSON.parseObject(dm.getContent()));
+                } else if (dm.getType().equals(BusiTypeEnum.BS.getType())) {
+                    sData.add(JSON.parseObject(dm.getContent()));
                 }
+            }
+            if (fdData.size() > 0) {
+                elasticSearchService.bulkInsertDocument(BusiTypeEnum.getEsIndex(BusiTypeEnum.BF.getType()), Constants.INDEX_TYPE, fdData);
+            }
+            if (sData.size() > 0) {
+                elasticSearchService.bulkInsertDocument(BusiTypeEnum.getEsIndex(BusiTypeEnum.BS.getType()), Constants.INDEX_TYPE, sData);
             }
             if (index > -1) {
                 dataList.remove(index);
@@ -327,6 +341,100 @@ public class BgdZService implements BusiService {
                 index++;
                 dataList.add(good);
             }
+        }
+    }
+
+    public void buildDanList0(JSONObject info, Long id, List<HBusiDataManager> dataList, String custId, Long userId, HBusiDataManager h, String type) throws Exception {
+        HBusiDataManager CZ = new HBusiDataManager();
+        CZ.setType(BusiTypeEnum.BZ.getType());
+        CZ.setId(id);
+        CZ.setCreateDate(new Date());
+        CZ.setCust_id(Long.valueOf(custId));
+        CZ.setCreateId(Long.valueOf(userId));
+        CZ.setExt_3(h.getExt_3());
+        CZ.setExt_1("0");//未发送 1，已发送
+
+
+        JSONObject json = JSON.parseObject(h.getContent());
+        json.put("create_id", userId);
+        json.put("cust_id", custId);
+        json.put("type", CZ.getType());
+        json.put("create_date", CZ.getCreateDate());
+        json.put("send_status", CZ.getExt_1());
+        json.put("commit_baodan_status", "Y");
+
+        Iterator keys = json.keySet().iterator();
+        while (keys.hasNext()) {
+            String key = (String) keys.next();
+            info.put(key, json.get(key));
+        }
+        info.put("ext_3", h.getExt_3());
+        info.put("ext_1", "0");
+
+        JSONObject jon = JSON.parseObject(h.getContent());
+        jon.put("commit_baodan_status", "Y");
+        h.setExt_1("Y");
+        h.setContent(jon.toJSONString());
+//        dataList.add(h);
+        String sql = "update "+ HMetaDataDef.getTable(h.getType(),"")+" set content='"+jon.toJSONString()+"'"
+                + " ,ext_1='Y'"
+                + " where id="+h.getId()+" and type='"+h.getType()+"'";
+        jdbcTemplate.update(sql);
+        CZ.setContent(info.toJSONString());
+        dataList.add(CZ);
+
+        List<HBusiDataManager> parties = serviceUtils.getDataList(BusiTypeEnum.SF.getType(), info.getLong("fromSbzId"));
+        // 预先生成分单ID
+        long size = parties.size();
+        long maxId = sequenceService.getSeq(BusiTypeEnum.BF.getType(), size);
+
+        // 预先生成商品ID
+        long sSize = 0L;
+        Map<Long, List> cache = new HashMap<>();
+        for (HBusiDataManager hp : parties) {
+            List<HBusiDataManager> goods = serviceUtils.getDataList(BusiTypeEnum.SS.getType(), hp.getId().longValue());
+            cache.put(hp.getId(), goods);
+            sSize += goods.size();
+        }
+        long sMaxId = sequenceService.getSeq(BusiTypeEnum.BS.getType(), sSize);
+
+        for (HBusiDataManager hp : parties) {
+            HBusiDataManager hm = new HBusiDataManager();
+            hm.setType(BusiTypeEnum.BF.getType());
+            hm.setCreateDate(new Date());
+            //Long fid = sequenceService.getSeq(BusiTypeEnum.BF.getType());
+            hm.setId(maxId - size);
+            hm.setExt_3(hp.getExt_3());
+            hm.setExt_4(hp.getExt_4());
+            hm.setCreateId(hp.getCreateId());
+            hm.setCust_id(hp.getCust_id());
+            JSONObject _content = JSON.parseObject(hp.getContent());
+            _content.put("pid", id);
+            hm.setContent(_content.toJSONString());
+            dataList.add(hm);
+            List<HBusiDataManager> goods = cache.get(hp.getId());
+            int index = 1;
+            for (HBusiDataManager gp : goods) {
+                HBusiDataManager good = new HBusiDataManager();
+                gp.setType(BusiTypeEnum.BS.getType());
+                Long gid = sMaxId - sSize;
+                good.setId(gid);
+                good.setCreateDate(new Date());
+                JSONObject __content = JSON.parseObject(gp.getContent());
+                __content.put("pid", hp.getId());
+                _content.put("index", index);
+                good.setContent(__content.toJSONString());
+                good.setType(BusiTypeEnum.BS.getType());
+                good.setCreateId(gp.getCreateId());
+                good.setCust_id(gp.getCust_id());
+                good.setExt_3(gp.getExt_3());
+                good.setExt_4(gp.getExt_4());
+                good.setExt_5(String.valueOf(index));//商品序号
+                index++;
+                dataList.add(good);
+                sSize--;
+            }
+            size--;
         }
     }
 

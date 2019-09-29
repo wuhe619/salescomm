@@ -394,8 +394,6 @@ public class CdZService implements BusiService {
         long sSize = 0L;
         Map<Long, List> cache = new HashMap<>();
         for (HBusiDataManager hp : parties) {
-            hp.setId(maxId - size);
-            size--;
             List<HBusiDataManager> goods = serviceUtils.getDataList(BusiTypeEnum.SS.getType(), hp.getId().longValue());
             cache.put(hp.getId(), goods);
             sSize += goods.size();
@@ -407,7 +405,7 @@ public class CdZService implements BusiService {
             hm.setType(BusiTypeEnum.CF.getType());
             hm.setCreateDate(new Date());
             //Long fid = sequenceService.getSeq(BusiTypeEnum.CF.getType());
-            hm.setId(hp.getId());
+            hm.setId(maxId - size);
             hm.setExt_3(hp.getExt_3());
             hm.setExt_4(hp.getExt_4());
             hm.setCreateId(hp.getCreateId());
@@ -437,6 +435,7 @@ public class CdZService implements BusiService {
                 dataList.add(good);
                 sSize--;
             }
+            size--;
         }
     }
 
