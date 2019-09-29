@@ -246,6 +246,32 @@ public class CustomerAction extends BasicAction {
         return new ResponseInfoAssemble().success(map);
     }
 
+    /**
+     * @Title: queryCustomer
+     * @Description: 海关客户列表
+     */
+    @RequestMapping(value = "/list", method = RequestMethod.GET)
+    @ResponseBody
+    public ResponseInfo queryCustomerList(@Valid PageParam page, BindingResult error, CustomerRegistDTO customerRegistDTO) {
+        if (error.hasFieldErrors()) {
+            return new ResponseInfoAssemble().failure(-1, "缺少必要参数");
+        }
+        LoginUser lu = opUser();
+        PageList list = null;
+        Map<Object, Object> map = new HashMap<Object, Object>();
+        if ("ROLE_USER".equals(lu.getRole()) || "admin".equals(lu.getRole())) {
+            list = customerService.getCustomerList(page, customerRegistDTO);
+        } else {
+            customerRegistDTO.setCreateId(lu.getCustId());
+            list = customerService.getCustomerList(page, customerRegistDTO);
+        }
+        map.put("list", list);
+        //图片根路径
+        String preUrl = "/pic";
+        map.put("preUrl", preUrl);
+        return new ResponseInfoAssemble().success(map);
+    }
+
     @RequestMapping(value = "/update", method = RequestMethod.POST)
     @ResponseBody
     public ResponseInfo updateCustomer(@RequestBody CustomerRegistDTO customerRegistDTO) {
