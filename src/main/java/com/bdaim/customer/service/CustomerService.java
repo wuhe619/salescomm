@@ -773,7 +773,7 @@ public class CustomerService {
                 "\tmax(CASE property_name WHEN 'mobile_num'   THEN property_value ELSE '' END ) mobile_num\n" +
                 "   FROM t_customer_property p GROUP BY cust_id \n" +
                 ") cjc ON t1.cust_id = cjc.cust_id \n" +
-                "where 1=1 and ");
+                "where 1=1 ");
         if (StringUtil.isNotEmpty(customerRegistDTO.getCustId())) {
             sqlBuilder.append(" AND t1.cust_id = " + customerRegistDTO.getCustId());
         }
@@ -785,15 +785,6 @@ public class CustomerService {
         }else {
             //过滤客户自己创建的企业
             sqlBuilder.append(" AND cjc.createId =''");
-        }
-        if (StringUtil.isNotEmpty(customerRegistDTO.getName())) {
-            sqlBuilder.append(" AND t2.account LIKE '%" + customerRegistDTO.getName() + "%'");
-        }
-        if (StringUtil.isNotEmpty(customerRegistDTO.getRealName())) {
-            sqlBuilder.append(" AND t2.realname LIKE '%" + customerRegistDTO.getRealName() + "%'");
-        }
-        if (StringUtil.isNotEmpty(customerRegistDTO.getStationId())) {
-            sqlBuilder.append(" AND cjc.stationId =" + customerRegistDTO.getStationId());
         }
         if (StringUtil.isNotEmpty(customerRegistDTO.getSalePerson())) {
             sqlBuilder.append(" AND cjc.salePerson LIKE '%" + customerRegistDTO.getSalePerson() + "%'");
@@ -810,37 +801,6 @@ public class CustomerService {
         sqlBuilder.append(" order by t1.create_time desc");
         PageList pageData = new Pagination().getPageData(sqlBuilder.toString(), null, page, jdbcTemplate);
         List<Map<String, Object>> list = pageData.getList();
-        //查询部门里面有几个职位
-        if (list.size() > 0) {
-            long packagerId = 0, printerId = 0;
-            for (int i = 0; i < list.size(); i++) {
-                if (StringUtil.isNotEmpty(String.valueOf(list.get(i).get("packagerId")))) {
-                    packagerId = NumberConvertUtil.parseLong(String.valueOf(list.get(i).get("packagerId")));
-                    logger.info("封装员id是：" + packagerId);
-                    //根据id查询员工姓名
-                    String packager = userDao.getUserRealName(packagerId);
-                    list.get(i).put("packager", packager);
-                    list.get(i).put("packagerId", packagerId);
-                }
-                if (StringUtil.isNotEmpty(String.valueOf(list.get(i).get("printerId")))) {
-                    printerId = NumberConvertUtil.parseLong(String.valueOf(list.get(i).get("printerId")));
-                    logger.info("打印员id是:" + printerId);
-                    String printer = userDao.getUserRealName(printerId);
-                    list.get(i).put("printer", printer);
-                    list.get(i).put("printerId", printerId);
-                }
-                //场站信息
-                if (StringUtil.isNotEmpty(String.valueOf(list.get(i).get("stationId")))) {
-                    logger.info("场站id是：" + list.get(i).get("stationId"));
-                    //根据id查询员工姓名
-                    Station station = stationDao.getStationById(NumberConvertUtil.parseInt(String.valueOf(list.get(i).get("stationId"))));
-                    list.get(i).put("stationName", "");
-                    if (station != null) {
-                        list.get(i).put("stationName", station.getName());
-                    }
-                }
-            }
-        }
         return pageData;
     }
 
