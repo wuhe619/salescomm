@@ -152,7 +152,7 @@ public class ServiceUtils {
     }
 
     public List<HBusiDataManager> getDataList(String type, Long pid) {
-        String sql2 = "select * from " + HMetaDataDef.getTable(type, "") + " where  type='" + type + "' and ( CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')=" + pid + " ELSE null END  or CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')='" + pid + "' ELSE null END)";
+        String sql2 = "select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(type, "") + " where  type='" + type + "' and ( CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')=" + pid + " ELSE null END  or CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')='" + pid + "' ELSE null END)";
         log.info("sql2=" + sql2);
        /* RowMapper<HBusiDataManager> managerRowMapper=new BeanPropertyRowMapper<>(HBusiDataManager.class);
         List<HBusiDataManager> list = jdbcTemplate.query(sql2,managerRowMapper);*/
