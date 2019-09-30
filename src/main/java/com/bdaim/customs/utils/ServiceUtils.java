@@ -6,10 +6,7 @@ import com.bdaim.batch.ResourceEnum;
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.service.ElasticSearchService;
 import com.bdaim.common.service.SequenceService;
-import com.bdaim.common.util.CipherUtil;
-import com.bdaim.common.util.IDHelper;
-import com.bdaim.common.util.NumberConvertUtil;
-import com.bdaim.common.util.StringUtil;
+import com.bdaim.common.util.*;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.entity.Customer;
 import com.bdaim.customer.entity.CustomerProperty;
@@ -29,10 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @Transactional
@@ -163,6 +157,47 @@ public class ServiceUtils {
         return list;
     }
 
+    /**
+     * 根据父级单号查询子单列表
+     *
+     * @param custId
+     * @param type
+     * @param pBillNo
+     * @return
+     */
+    public List<HBusiDataManager> listDataByParentBillNo(String custId, String type, String pBillNo) {
+        StringBuffer sql = new StringBuffer();
+        sql.append("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(type, "") + " where cust_id = ? AND type=? AND ext_4 = ?");
+        log.info("查询分单sql:{}", sql);
+        List<Map<String, Object>> list = jdbcTemplate.queryForList(sql.toString(), custId, type, pBillNo);
+        List<HBusiDataManager> result = JSON.parseArray(JSON.toJSONString(list), HBusiDataManager.class);
+        return result;
+    }
+
+    public List<HBusiDataManager> listDataByParentBillNos(String custId, String type, List<String> pBillNos) {
+        StringBuffer sql = new StringBuffer();
+        sql.append("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(type, "") + " where cust_id = ? AND type=? AND ext_4 IN (" + SqlAppendUtil.sqlAppendWhereIn(pBillNos) + ")");
+        log.info("查询分单sql:{}", sql);
+        List<Map<String, Object>> list = jdbcTemplate.queryForList(sql.toString(), custId, type);
+        List<HBusiDataManager> result = JSON.parseArray(JSON.toJSONString(list), HBusiDataManager.class);
+        return result;
+    }
+
+    /**
+     * 根据pid从ES查询子列表
+     *
+     * @param type
+     * @param pid
+     * @return
+     */
+    public List<HBusiDataManager> getDataListByES(String type, Long pid) {
+        JSONObject params = new JSONObject();
+        params.put("pid", pid);
+        List result = listQueryByEs("all", 0, 0L, type, params);
+        List<HBusiDataManager> list = JSON.parseArray(JSON.toJSONString(result), HBusiDataManager.class);
+        return list;
+    }
+
     public void delDataListByIdAndType(Long id, String type) {
         String sql = "delete from " + HMetaDataDef.getTable(type, "") + " where type='" + type + "' and id=" + id;
         jdbcTemplate.execute(sql);
@@ -242,6 +277,14 @@ public class ServiceUtils {
         return list;
     }
 
+    /**
+     * 保存身份核验信息到身份核验队列表
+     *
+     * @param content
+     * @param billId
+     * @param userId
+     * @param custId
+     */
     public void insertSFVerifyQueue(String content, long billId, long userId, String custId) {
         TResourceLog queue = new TResourceLog();
         queue.setCustId(custId);
@@ -361,7 +404,41 @@ public class ServiceUtils {
                 jo.put(key, tmp.get(key));
             }
         }
+    }
 
+    /**
+     * 获取资源
+     *
+     * @param resourceType
+     * @param code
+     * @return
+     */
+    public Map<String, Object> getHResourceData(String resourceType, String code) {
+        StringBuffer sql = new StringBuffer("select id, content, create_id, create_date from h_resource where type=? and JSON_EXTRACT(content, '$.code')=?");
+        List<Map<String, Object>> list = jdbcTemplate.queryForList(sql.toString(), resourceType, code);
+        if (list != null) {
+            return list.get(0);
+        }
+        return null;
+    }
+
+    /**
+     * 根据类型获取资源缓存
+     * @param resourceType
+     * @return
+     */
+    public Map<String, JSONObject> getHResourceCacheData(String resourceType) {
+        Map<String, JSONObject> cache = new HashMap<>();
+        StringBuffer sql = new StringBuffer("select id, content from h_resource where type=? ");
+        List<Map<String, Object>> list = jdbcTemplate.queryForList(sql.toString(), resourceType);
+        if (list != null) {
+            JSONObject jsonObject;
+            for (Map<String, Object> m : list) {
+                jsonObject = JSON.parseObject(String.valueOf(m.get("content")));
+                cache.put(jsonObject.getString("code"), jsonObject);
+            }
+        }
+        return cache;
     }
 
     /**
@@ -394,6 +471,25 @@ public class ServiceUtils {
             page.setTotal(NumberConvertUtil.parseInt(result.getTotal()));
         }
         return page;
+    }
+
+    public List listQueryByEs(String cust_id, int cust_group_id, Long cust_user_id, String busiType, JSONObject params) {
+        if (!"all".equals(cust_id)) {
+            params.put("cust_id", cust_id);
+        }
+        //params.put("cust_group_id", cust_group_id);
+        //params.put("cust_user_id", cust_user_id);
+        List list = new ArrayList<>();
+        SearchResult result = elasticSearchService.search(elasticSearchService.queryConditionToDSL(params).toString(), BusiTypeEnum.getEsIndex(busiType), Constants.INDEX_TYPE);
+        if (result != null) {
+            JSONObject t;
+            for (SearchResult.Hit<JSONObject, Void> hit : result.getHits(JSONObject.class)) {
+                t = hit.source;
+                t.put("id", NumberConvertUtil.parseLong(hit.id));
+                list.add(t);
+            }
+        }
+        return list;
     }
 
     public void esTestData() {

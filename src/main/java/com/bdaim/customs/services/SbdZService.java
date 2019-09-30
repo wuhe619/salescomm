@@ -142,8 +142,17 @@ public class SbdZService implements BusiService {
             serviceUtils.esTestData();
             StringBuffer sql = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(BusiTypeEnum.SF.getType(), "") + " where type=?")
                     .append(" and cust_id='").append(cust_id).append("'")
-                    .append(" and (ext_7 IS NULL OR ext_7 = '' OR ext_7 = 2) ")
-                    .append(" and JSON_EXTRACT(content, '$.pid')=?");
+                    .append(" and (ext_7 IS NULL OR ext_7 = '' OR ext_7 = 2) ");
+                    //.append(" and JSON_EXTRACT(content, '$.pid')=?");
+
+            String tmpType = "";
+            if (busiType.endsWith("_f")) {
+                tmpType = busiType.replaceAll("_f", "_z");
+            } else if (busiType.endsWith("_s")) {
+                tmpType = busiType.replaceAll("_s", "_f");
+            }
+            sql.append(" and ext_4=(SELECT ext_3 FROM " + HMetaDataDef.getTable(tmpType, "") + " WHERE id = ?)");
+
             List sqlParams = new ArrayList();
             sqlParams.add(BusiTypeEnum.SF.getType());
             sqlParams.add(id);
@@ -372,28 +381,34 @@ public class SbdZService implements BusiService {
         List<PartyDan> partList = mainDan.getSingles();
         if (partList != null && partList.size() > 0) {
             // 预先生成分单ID
-            long size = partList.size();
+            /*long size = partList.size();
             long maxId = sequenceService.getSeq(BusiTypeEnum.SF.getType(), size);
             // 预先生成商品ID
             long sSize = 0L;
             for (PartyDan dan : partList) {
                 sSize += dan.getProducts().size();
             }
-            long sMaxId = sequenceService.getSeq(BusiTypeEnum.SS.getType(), sSize);
-
+            long sMaxId = sequenceService.getSeq(BusiTypeEnum.SS.getType(), sSize);*/
+            Map<String, JSONObject> resource = serviceUtils.getHResourceCacheData("duty_paid_rate");
             for (PartyDan dan : partList) {
                 if (StringUtil.isEmpty(dan.getMain_bill_no())) {
                     dan.setMain_bill_no(mainDan.getBill_no());
                 }
                 if (dan.getProducts() != null) {
                     for (Product p : dan.getProducts()) {
-                        p.setId(String.valueOf(sMaxId - sSize));
-                        sSize--;
+                        p.setMain_bill_no(mainDan.getBill_no());
                     }
                 }
+                /*if (dan.getProducts() != null) {
+                    for (Product p : dan.getProducts()) {
+                        p.setId(String.valueOf(sMaxId - sSize));
+                        p.setMain_bill_no(mainDan.getBill_no());
+                        sSize--;
+                    }
+                }*/
 
-                buildSBDFendan(maxId - size, dan, list, userId, custId, mainDan.getBill_no(), mainid, info);
-                size--;
+                buildSBDFenDan(0, dan, list, userId, custId, mainDan.getBill_no(), mainid, info, resource);
+                //size--;
             }
         }
     }
@@ -449,14 +464,14 @@ public class SbdZService implements BusiService {
     }
 
 
-    public void buildSBDFendan(long id, PartyDan dan, List<HBusiDataManager> list, Long userId, String custId, String mainBillNo, Long mainid, JSONObject info) throws Exception {
+    public void buildSBDFenDan(long id1, PartyDan dan, List<HBusiDataManager> list, Long userId, String custId, String mainBillNo, Long mainid, JSONObject info, Map<String, JSONObject> resource) throws Exception {
         try {
             List<Product> pList = dan.getProducts();
-            //Long id = sequenceService.getSeq(BusiTypeEnum.SF.getType());
+            Long id = sequenceService.getSeq(BusiTypeEnum.SF.getType());
             JSONObject arrt = new JSONObject();
             log.info("申报单分单:" + dan.getBill_no());
             // 构造商品数据
-            buildGoods0(list, pList, userId, custId, String.valueOf(id), arrt);
+            buildGoods0(list, pList, userId, custId, String.valueOf(id), arrt, resource);
             HBusiDataManager dataManager = new HBusiDataManager();
             dataManager.setType(BusiTypeEnum.SF.getType());
             dataManager.setCreateId(userId);
@@ -464,8 +479,10 @@ public class SbdZService implements BusiService {
 
             dataManager.setId(id);
             dataManager.setCreateDate(new Date());
-            dataManager.setExt_3(dan.getBill_no());//分单号
-            dataManager.setExt_4(dan.getMain_bill_no());//主单号
+            //分单号
+            dataManager.setExt_3(dan.getBill_no());
+            //主单号
+            dataManager.setExt_4(dan.getMain_bill_no());
 
             JSONObject json = buildPartyContent(dan);
             json.put("type", BusiTypeEnum.SF.getType());
@@ -619,18 +636,20 @@ public class SbdZService implements BusiService {
         }
     }
 
-    public void buildGoods0(List<HBusiDataManager> list, List<Product> pList, Long userId, String custId, String pid, JSONObject arrt) throws Exception {
+    public void buildGoods0(List<HBusiDataManager> list, List<Product> pList, Long userId, String custId, String pid, JSONObject arrt, Map<String, JSONObject> resource) throws Exception {
         if (pList != null && pList.size() > 0) {
             List<Map<String, String>> mainGoodsName = new ArrayList<>();
+            HBusiDataManager dataManager;
             for (Product product : pList) {
                 log.info("goods:" + product.getCode_ts());
                 try {
-                    HBusiDataManager dataManager = new HBusiDataManager();
+                    dataManager = new HBusiDataManager();
                     dataManager.setType(BusiTypeEnum.SS.getType());
                     dataManager.setCreateDate(new Date());
                     dataManager.setCreateId(userId);
-                    //Long id = sequenceService.getSeq(BusiTypeEnum.SS.getType());
-                    dataManager.setId(NumberConvertUtil.parseLong(product.getId()));
+                    Long id = sequenceService.getSeq(BusiTypeEnum.SS.getType());
+                    //dataManager.setId(NumberConvertUtil.parseLong(product.getId()));
+                    dataManager.setId(id);
                     dataManager.setCust_id(Long.valueOf(custId));
                     dataManager.setExt_3(product.getCode_ts());//商品编号
                     dataManager.setExt_4(product.getBill_no());//分单号
@@ -646,26 +665,28 @@ public class SbdZService implements BusiService {
                     float tax_rate = 0;
                     float estimated_tax = 0;
                     if (StringUtil.isNotEmpty(product.getCode_ts())) {
-                        JSONObject params = new JSONObject();
-                        params.put("code", product.getCode_ts());
-                        Page page = resourceService.query("", "duty_paid_rate", params);
-                        if (page != null && page.getTotal() > 0) {
-                            List dataList = page.getData();
-                            Map<String, Object> d = (Map<String, Object>) dataList.get(0);
-                            JSONObject contentObj = JSON.parseObject(JSON.toJSONString(d));
-                            if (contentObj != null && contentObj.containsKey("duty_price") && StringUtil.isNotEmpty(contentObj.getString("duty_price"))) {
-                                duty_paid_price = contentObj.getFloat("duty_price");
-                                if (StringUtil.isNotEmpty(product.getDecl_price())) {
-                                    if (Float.valueOf(product.getDecl_price()) < duty_paid_price) {
-                                        is_low_price = 1;
-                                    }
+                        /*Map<String, Object> duty_paid_rate;
+                        if (resource.get(product.getCode_ts()) == null) {
+                            duty_paid_rate = serviceUtils.getHResourceData("duty_paid_rate", product.getCode_ts());
+                            resource.put(product.getCode_ts(), duty_paid_rate);
+                        } else {
+                            duty_paid_rate = resource.get(product.getCode_ts());
+                        }*/
+
+                        JSONObject contentObj = resource.get(product.getCode_ts());
+                        if (contentObj != null && contentObj.containsKey("duty_price") && StringUtil.isNotEmpty(contentObj.getString("duty_price"))) {
+                            duty_paid_price = contentObj.getFloat("duty_price");
+                            if (StringUtil.isNotEmpty(product.getDecl_price())) {
+                                if (Float.valueOf(product.getDecl_price()) < duty_paid_price) {
+                                    is_low_price = 1;
                                 }
                             }
-                            if (contentObj != null && null != contentObj.getString("tax_rate")) {
-                                tax_rate = contentObj.getFloatValue("tax_rate");
-                                estimated_tax = duty_paid_price * tax_rate;
-                            }
                         }
+                        if (contentObj != null && null != contentObj.getString("tax_rate")) {
+                            tax_rate = contentObj.getFloatValue("tax_rate");
+                            estimated_tax = duty_paid_price * tax_rate;
+                        }
+
                     }
                     if (mainGoodsName.size() < 3) {
                         Map<String, String> smap = new HashMap<>();

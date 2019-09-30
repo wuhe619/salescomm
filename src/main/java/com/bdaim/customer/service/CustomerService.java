@@ -426,12 +426,12 @@ public class CustomerService {
                 }
                 //销售负责人
                 //if (StringUtil.isNotEmpty(vo.getSalePerson())) {
-                    if (StringUtil.isNotEmpty(vo.getCustId())) {
-                        customerDao.dealCustomerInfo(vo.getCustId(), "sale_person", vo.getSalePerson());
-                    } else {
-                        customerDao.dealCustomerInfo(customerId, "sale_person", vo.getSalePerson());
-                    }
-               // }
+                if (StringUtil.isNotEmpty(vo.getCustId())) {
+                    customerDao.dealCustomerInfo(vo.getCustId(), "sale_person", vo.getSalePerson());
+                } else {
+                    customerDao.dealCustomerInfo(customerId, "sale_person", vo.getSalePerson());
+                }
+                // }
                 //企业注册详细街道地址
                 if (StringUtil.isNotEmpty(vo.getAddress())) {
                     if (StringUtil.isNotEmpty(vo.getCustId())) {
@@ -442,12 +442,12 @@ public class CustomerService {
                 }
                 //联系人电话
                 //if (StringUtil.isNotEmpty(vo.getMobile())) {
-                    if (StringUtil.isNotEmpty(vo.getCustId())) {
-                        customerDao.dealCustomerInfo(vo.getCustId(), "mobile_num", vo.getMobile());
-                    } else {
-                        customerDao.dealCustomerInfo(customerId, "mobile_num", vo.getMobile());
-                    }
-               // }
+                if (StringUtil.isNotEmpty(vo.getCustId())) {
+                    customerDao.dealCustomerInfo(vo.getCustId(), "mobile_num", vo.getMobile());
+                } else {
+                    customerDao.dealCustomerInfo(customerId, "mobile_num", vo.getMobile());
+                }
+                // }
                 //身份证正面url
                 if (StringUtil.isNotEmpty(vo.getIdCardFront())) {
                     if (StringUtil.isNotEmpty(vo.getCustId())) {
@@ -630,7 +630,7 @@ public class CustomerService {
                 "cast(t2.id as char) as userId ,\n" +
                 "t2.account as adminAccount,\n" +
                 "t2.password as passwords,\n" +
-                "t2.realname as realName,  -- 属性表\n" +
+                "t1.real_name as realName,  -- 属性表\n" +
                 "cjc.mobile_num,  -- 属性表\n" +
                 "IFNULL (t1.title,'') AS title, -- 属性表\n" +
                 "t1.create_time,\n" +
@@ -673,7 +673,7 @@ public class CustomerService {
         }
         if (StringUtil.isNotEmpty(customerRegistDTO.getCreateId())) {
             sqlBuilder.append(" AND cjc.createId ='" + customerRegistDTO.getCreateId() + "'");
-        }else {
+        } else {
             //过滤客户自己创建的企业
             sqlBuilder.append(" AND cjc.createId =''");
         }
@@ -744,6 +744,7 @@ public class CustomerService {
                 "cjc.mobile_num,  -- 属性表\n" +
                 "IFNULL (t1.title,'') AS title, -- 属性表\n" +
                 "t1.create_time,\n" +
+                "t1.real_name as realName,\n" +
                 "t1.`status`,cjc.`createId`,cjc.packagerId,cjc.printerId,cjc.idCardBack,cjc.idCardFront,\n" +
                 "cjc.industry,cjc.salePerson,cjc.contactAddress,\n" +
                 "cjc.province,cjc.city,cjc.fixPrice,cjc.county,cjc.taxpayerId,\n" +
