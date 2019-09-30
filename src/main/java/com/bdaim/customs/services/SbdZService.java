@@ -372,14 +372,14 @@ public class SbdZService implements BusiService {
         List<PartyDan> partList = mainDan.getSingles();
         if (partList != null && partList.size() > 0) {
             // 预先生成分单ID
-            long size = partList.size();
+            /*long size = partList.size();
             long maxId = sequenceService.getSeq(BusiTypeEnum.SF.getType(), size);
             // 预先生成商品ID
             long sSize = 0L;
             for (PartyDan dan : partList) {
                 sSize += dan.getProducts().size();
             }
-            long sMaxId = sequenceService.getSeq(BusiTypeEnum.SS.getType(), sSize);
+            long sMaxId = sequenceService.getSeq(BusiTypeEnum.SS.getType(), sSize);*/
 
             for (PartyDan dan : partList) {
                 if (StringUtil.isEmpty(dan.getMain_bill_no())) {
@@ -387,14 +387,19 @@ public class SbdZService implements BusiService {
                 }
                 if (dan.getProducts() != null) {
                     for (Product p : dan.getProducts()) {
+                        p.setMain_bill_no(mainDan.getBill_no());
+                    }
+                }
+                /*if (dan.getProducts() != null) {
+                    for (Product p : dan.getProducts()) {
                         p.setId(String.valueOf(sMaxId - sSize));
                         p.setMain_bill_no(mainDan.getBill_no());
                         sSize--;
                     }
-                }
+                }*/
 
-                buildSBDFendan(maxId - size, dan, list, userId, custId, mainDan.getBill_no(), mainid, info);
-                size--;
+                buildSBDFendan(0, dan, list, userId, custId, mainDan.getBill_no(), mainid, info);
+                //size--;
             }
         }
     }
@@ -450,10 +455,10 @@ public class SbdZService implements BusiService {
     }
 
 
-    public void buildSBDFendan(long id, PartyDan dan, List<HBusiDataManager> list, Long userId, String custId, String mainBillNo, Long mainid, JSONObject info) throws Exception {
+    public void buildSBDFendan(long id1, PartyDan dan, List<HBusiDataManager> list, Long userId, String custId, String mainBillNo, Long mainid, JSONObject info) throws Exception {
         try {
             List<Product> pList = dan.getProducts();
-            //Long id = sequenceService.getSeq(BusiTypeEnum.SF.getType());
+            Long id = sequenceService.getSeq(BusiTypeEnum.SF.getType());
             JSONObject arrt = new JSONObject();
             log.info("申报单分单:" + dan.getBill_no());
             // 构造商品数据
@@ -632,11 +637,12 @@ public class SbdZService implements BusiService {
                     dataManager.setType(BusiTypeEnum.SS.getType());
                     dataManager.setCreateDate(new Date());
                     dataManager.setCreateId(userId);
-                    //Long id = sequenceService.getSeq(BusiTypeEnum.SS.getType());
-                    dataManager.setId(NumberConvertUtil.parseLong(product.getId()));
+                    Long id = sequenceService.getSeq(BusiTypeEnum.SS.getType());
+                    //dataManager.setId(NumberConvertUtil.parseLong(product.getId()));
+                    dataManager.setId(id);
                     dataManager.setCust_id(Long.valueOf(custId));
                     dataManager.setExt_3(product.getCode_ts());//商品编号
-                    dataManager.setExt_4(product.getBill_no());//分单号
+                    dataManager.setExt_4(product.getMain_bill_no() + "," + product.getBill_no());//主单号,分单号
                     JSONObject json = buildGoodsContent(product);
                     json.put("create_date", new Date());
                     json.put("create_id", userId);

@@ -164,7 +164,25 @@ public class ServiceUtils {
     }
 
     /**
+     * 根据父级单号查询子单列表
+     *
+     * @param custId
+     * @param type
+     * @param pBillNo
+     * @return
+     */
+    public List<HBusiDataManager> listDataByParentBillNo(String custId, String type, String pBillNo) {
+        StringBuffer sql = new StringBuffer();
+        sql.append("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(type, "") + " where cust_id = ? AND type=? AND ext_4 = ?");
+        log.info("查询分单sql:{}", sql);
+        List<Map<String, Object>> list = jdbcTemplate.queryForList(sql.toString(), custId, type, pBillNo);
+        List<HBusiDataManager> result = JSON.parseArray(JSON.toJSONString(list), HBusiDataManager.class);
+        return result;
+    }
+
+    /**
      * 根据pid从ES查询子列表
+     *
      * @param type
      * @param pid
      * @return
