@@ -437,26 +437,28 @@ public class BgdZService implements BusiService {
             hm.setContent(_content.toJSONString());
             dataList.add(hm);
             goodList = cache.get(hp.getId());
-            int index = 1;
-            for (HBusiDataManager gp : goodList) {
-                good = new HBusiDataManager();
-                gp.setType(BusiTypeEnum.BS.getType());
-                Long gid = sequenceService.getSeq(BusiTypeEnum.BS.getType());
-                good.setId(gid);
-                good.setCreateDate(new Date());
-                JSONObject __content = JSON.parseObject(gp.getContent());
-                __content.put("pid", hp.getId());
-                _content.put("index", index);
-                good.setContent(__content.toJSONString());
-                good.setType(BusiTypeEnum.BS.getType());
-                good.setCreateId(gp.getCreateId());
-                good.setCust_id(gp.getCust_id());
-                good.setExt_3(gp.getExt_3());
-                good.setExt_4(gp.getExt_4());
-                good.setExt_5(String.valueOf(index));//商品序号
-                index++;
-                dataList.add(good);
-                //sSize--;
+            if (goodList != null) {
+                int index = 1;
+                for (HBusiDataManager gp : goodList) {
+                    good = new HBusiDataManager();
+                    gp.setType(BusiTypeEnum.BS.getType());
+                    Long gid = sequenceService.getSeq(BusiTypeEnum.BS.getType());
+                    good.setId(gid);
+                    good.setCreateDate(new Date());
+                    JSONObject __content = JSON.parseObject(gp.getContent());
+                    __content.put("pid", hp.getId());
+                    _content.put("index", index);
+                    good.setContent(__content.toJSONString());
+                    good.setType(BusiTypeEnum.BS.getType());
+                    good.setCreateId(gp.getCreateId());
+                    good.setCust_id(gp.getCust_id());
+                    good.setExt_3(gp.getExt_3());
+                    good.setExt_4(gp.getExt_4());
+                    good.setExt_5(String.valueOf(index));//商品序号
+                    index++;
+                    dataList.add(good);
+                    //sSize--;
+                }
             }
             //size--;
         }
