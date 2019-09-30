@@ -32,7 +32,7 @@ public class SequenceService {
             	ResultSet rs = conn.prepareStatement("select value from sys_sequences where uuid='"+uuid+"'").executeQuery();
             	
             	if(rs.next()) {
-            		seq = rs.getLong(0);
+            		seq = rs.getLong(1);
             		rs.close();
             	}else
             		throw new Exception("获取主键异常："+type);
