@@ -163,6 +163,20 @@ public class ServiceUtils {
         return list;
     }
 
+    /**
+     * 根据pid从ES查询子列表
+     * @param type
+     * @param pid
+     * @return
+     */
+    public List<HBusiDataManager> getDataListByES(String type, Long pid) {
+        JSONObject params = new JSONObject();
+        params.put("pid", pid);
+        List result = listQueryByEs("all", 0, 0L, type, params);
+        List<HBusiDataManager> list = JSON.parseArray(JSON.toJSONString(result), HBusiDataManager.class);
+        return list;
+    }
+
     public void delDataListByIdAndType(Long id, String type) {
         String sql = "delete from " + HMetaDataDef.getTable(type, "") + " where type='" + type + "' and id=" + id;
         jdbcTemplate.execute(sql);
@@ -242,6 +256,14 @@ public class ServiceUtils {
         return list;
     }
 
+    /**
+     * 保存身份核验信息到身份核验队列表
+     *
+     * @param content
+     * @param billId
+     * @param userId
+     * @param custId
+     */
     public void insertSFVerifyQueue(String content, long billId, long userId, String custId) {
         TResourceLog queue = new TResourceLog();
         queue.setCustId(custId);
@@ -394,6 +416,25 @@ public class ServiceUtils {
             page.setTotal(NumberConvertUtil.parseInt(result.getTotal()));
         }
         return page;
+    }
+
+    public List listQueryByEs(String cust_id, int cust_group_id, Long cust_user_id, String busiType, JSONObject params) {
+        if (!"all".equals(cust_id)) {
+            params.put("cust_id", cust_id);
+        }
+        //params.put("cust_group_id", cust_group_id);
+        //params.put("cust_user_id", cust_user_id);
+        List list = new ArrayList<>();
+        SearchResult result = elasticSearchService.search(elasticSearchService.queryConditionToDSL(params).toString(), BusiTypeEnum.getEsIndex(busiType), Constants.INDEX_TYPE);
+        if (result != null) {
+            JSONObject t;
+            for (SearchResult.Hit<JSONObject, Void> hit : result.getHits(JSONObject.class)) {
+                t = hit.source;
+                t.put("id", NumberConvertUtil.parseLong(hit.id));
+                list.add(t);
+            }
+        }
+        return list;
     }
 
     public void esTestData() {

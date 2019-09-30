@@ -388,6 +388,7 @@ public class SbdZService implements BusiService {
                 if (dan.getProducts() != null) {
                     for (Product p : dan.getProducts()) {
                         p.setId(String.valueOf(sMaxId - sSize));
+                        p.setMain_bill_no(mainDan.getBill_no());
                         sSize--;
                     }
                 }
@@ -464,8 +465,10 @@ public class SbdZService implements BusiService {
 
             dataManager.setId(id);
             dataManager.setCreateDate(new Date());
-            dataManager.setExt_3(dan.getBill_no());//分单号
-            dataManager.setExt_4(dan.getMain_bill_no());//主单号
+            //分单号
+            dataManager.setExt_3(dan.getBill_no());
+            //主单号
+            dataManager.setExt_4(dan.getMain_bill_no());
 
             JSONObject json = buildPartyContent(dan);
             json.put("type", BusiTypeEnum.SF.getType());

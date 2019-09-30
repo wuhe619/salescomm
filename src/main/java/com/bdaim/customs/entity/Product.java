@@ -6,6 +6,10 @@ public class Product {
     private String id;
     private String pid;
     private String bill_no;//分单单号
+    /**
+     * 主单号
+     */
+    private String main_bill_no;
     @JsonProperty(value = "CODE_TS")
     private String code_ts;//商品编号
     @JsonProperty(value = "G_NAME")
@@ -274,5 +278,13 @@ public class Product {
 
     public void setTax_rate(String tax_rate) {
         this.tax_rate = tax_rate;
+    }
+
+    public String getMain_bill_no() {
+        return main_bill_no;
+    }
+
+    public void setMain_bill_no(String main_bill_no) {
+        this.main_bill_no = main_bill_no;
     }
 }
