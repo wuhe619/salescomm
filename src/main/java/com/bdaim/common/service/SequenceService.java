@@ -26,7 +26,7 @@ public class SequenceService {
         try {
 //            synchronized (type) {
             	conn = jdbcTemplate.getDataSource().getConnection();
-            	String uuid = UUID.randomUUID().toString();
+            	String uuid = UUID.randomUUID().toString().replace("-", "");
             	
             	conn.prepareStatement("insert into sys_sequences(name,uuid) value('"+type+"','"+uuid+"')").execute();
             	ResultSet rs = conn.prepareStatement("select value from sys_sequences where uuid='"+uuid+"'").executeQuery();
