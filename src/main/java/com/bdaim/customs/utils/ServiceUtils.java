@@ -26,10 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @Transactional
@@ -407,7 +404,41 @@ public class ServiceUtils {
                 jo.put(key, tmp.get(key));
             }
         }
+    }
 
+    /**
+     * 获取资源
+     *
+     * @param resourceType
+     * @param code
+     * @return
+     */
+    public Map<String, Object> getHResourceData(String resourceType, String code) {
+        StringBuffer sql = new StringBuffer("select id, content, create_id, create_date from h_resource where type=? and JSON_EXTRACT(content, '$.code')=?");
+        List<Map<String, Object>> list = jdbcTemplate.queryForList(sql.toString(), resourceType, code);
+        if (list != null) {
+            return list.get(0);
+        }
+        return null;
+    }
+
+    /**
+     * 根据类型获取资源缓存
+     * @param resourceType
+     * @return
+     */
+    public Map<String, JSONObject> getHResourceCacheData(String resourceType) {
+        Map<String, JSONObject> cache = new HashMap<>();
+        StringBuffer sql = new StringBuffer("select id, content from h_resource where type=? ");
+        List<Map<String, Object>> list = jdbcTemplate.queryForList(sql.toString(), resourceType);
+        if (list != null) {
+            JSONObject jsonObject;
+            for (Map<String, Object> m : list) {
+                jsonObject = JSON.parseObject(String.valueOf(m.get("content")));
+                cache.put(jsonObject.getString("code"), jsonObject);
+            }
+        }
+        return cache;
     }
 
     /**
