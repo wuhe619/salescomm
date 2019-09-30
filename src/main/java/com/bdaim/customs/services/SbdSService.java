@@ -3,19 +3,20 @@ package com.bdaim.customs.services;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.dto.Page;
+import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.service.BusiService;
-import com.bdaim.common.service.ElasticSearchService;
 import com.bdaim.common.service.ResourceService;
 import com.bdaim.common.util.StringUtil;
-import com.bdaim.customs.dao.HBusiDataManagerDao;
 import com.bdaim.customs.entity.BusiTypeEnum;
 import com.bdaim.customs.entity.HBusiDataManager;
+import com.bdaim.customs.entity.HMetaDataDef;
 import com.bdaim.customs.utils.ServiceUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.Iterator;
@@ -26,17 +27,13 @@ import java.util.Map;
  * 申报单.税单
  */
 @Service("busi_sbd_s")
+@Transactional
 public class SbdSService implements BusiService {
 
     private static Logger log = LoggerFactory.getLogger(SbdFService.class);
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
-    @Autowired
-    private HBusiDataManagerDao hBusiDataManagerDao;
-
-    @Autowired
-    private ElasticSearchService elasticSearchService;
+//    @Autowired
+//    private HBusiDataManagerDao hBusiDataManagerDao;
 
     @Autowired
     private ResourceService resourceService;
@@ -44,6 +41,8 @@ public class SbdSService implements BusiService {
     @Autowired
     private ServiceUtils serviceUtils;
 
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     @Override
     public void insertInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) throws Exception {
@@ -51,16 +50,16 @@ public class SbdSService implements BusiService {
         String billNo = info.getString("bill_no");
         if(pid==null){
             log.error("分单id不能为空");
-            throw new Exception("分单id不能为空");
+            throw new TouchException("分单id不能为空");
         }
         if(StringUtil.isEmpty(billNo)){
             log.error("分单号不能为空");
-            throw new Exception("分单号不能为空");
+            throw new TouchException("分单号不能为空");
         }
         String code_ts=info.getString("code_ts");
         if(StringUtil.isEmpty(code_ts)){
             log.error("商品编码不能为空");
-            throw new Exception("商品编码不能为空");
+            throw new TouchException("商品编码不能为空");
         }
         info.put("cust_id",cust_id);
         info.put("create_id",cust_user_id);
@@ -119,7 +118,13 @@ public class SbdSService implements BusiService {
         if(lowPricegoods==null)lowPricegoods=0;
         jsonObject.put("low_price_goods",lowPricegoods+is_low_price);
         partH.setContent(jsonObject.toJSONString());
-        hBusiDataManagerDao.saveOrUpdate(partH);
+
+
+        String sql = "update "+ HMetaDataDef.getTable(partH.getType(),"")+" set content='"+jsonObject.toJSONString()+"'"+
+                " where id="+partH.getId()+" and type='"+partH.getType()+"'";
+        jdbcTemplate.update(sql);
+
+//        hBusiDataManagerDao.saveOrUpdate(partH);
 
         serviceUtils.updateDataToES(BusiTypeEnum.SF.getType(),pid.toString(),jsonObject);
 
@@ -138,9 +143,12 @@ public class SbdSService implements BusiService {
         jsonz.put("weight_total", weight_total);
 
         zh.setContent(jsonz.toJSONString());
-        hBusiDataManagerDao.saveOrUpdate(zh);
-        serviceUtils.updateDataToES(BusiTypeEnum.SZ.getType(),zh.getId().toString(),jsonz);
 
+        String sql2 = "update "+ HMetaDataDef.getTable(zh.getType(),"")+" set content='"+jsonz.toJSONString()+"'"+
+                " where id="+zh.getId()+" and type='"+zh.getType()+"'";
+        jdbcTemplate.update(sql2);
+//        hBusiDataManagerDao.saveOrUpdate(zh);
+        serviceUtils.updateDataToES(BusiTypeEnum.SZ.getType(),zh.getId().toString(),jsonz);
 
     }
 
@@ -256,7 +264,12 @@ public class SbdSService implements BusiService {
         partcontentJson.put("weight", weight);
         partcontentJson.put("pack_NO", pack_NO);
         parth.setContent(partcontentJson.toJSONString());
-        hBusiDataManagerDao.saveOrUpdate(parth);
+
+        String sql = "update "+ HMetaDataDef.getTable(parth.getType(),"")+" set content='"+partcontentJson.toJSONString()+"'"+
+                " where id="+parth.getId()+" and type='"+parth.getType()+"'";
+        jdbcTemplate.update(sql);
+
+//        hBusiDataManagerDao.saveOrUpdate(parth);
         serviceUtils.updateDataToES(BusiTypeEnum.SF.getType(),parth.getId().toString(),partcontentJson);
 
         //处理主单
@@ -269,7 +282,12 @@ public class SbdSService implements BusiService {
         weight_total -= Float.valueOf(pjson.getString("ggrossWt") == null ? "0" : pjson.getString("ggrossWt"));
         jsonz.put("weight_total", weight_total);
         zh.setContent(jsonz.toJSONString());
-        hBusiDataManagerDao.saveOrUpdate(zh);
+
+        String sql2 = "update "+ HMetaDataDef.getTable(zh.getType(),"")+" set content='"+jsonz.toJSONString()+"'"+
+                " where id="+zh.getId()+" and type='"+zh.getType()+"'";
+        jdbcTemplate.update(sql2);
+
+//        hBusiDataManagerDao.saveOrUpdate(zh);
         serviceUtils.updateDataToES(BusiTypeEnum.SZ.getType(),zh.getId().toString(),jsonz);
 
     }
@@ -280,7 +298,7 @@ public class SbdSService implements BusiService {
         //查询主列表
         if ("main".equals(params.getString("rule.do"))) {
             sqlParams.clear();
-            StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from h_data_manager where type=?");
+            StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from "+HMetaDataDef.getTable()+" where type=?");
             if (!"all".equals(cust_id))
                 sqlstr.append(" and cust_id='").append(cust_id).append("'");
 
@@ -307,7 +325,7 @@ public class SbdSService implements BusiService {
             String pidO = params.getString("pidO");
             String pidS = params.getString("pidO");
             if(StringUtil.isNotEmpty(pidO) && StringUtil.isNotEmpty(pidS)) {
-                sqlstr.append(" and JSON_EXTRACT(content, '$.pid')= SELECT id FROM h_data_manager WHERE type =? AND JSON_EXTRACT(content, '$.pid')=?");
+                sqlstr.append(" and JSON_EXTRACT(content, '$.pid')= SELECT id FROM "+HMetaDataDef.getTable()+" WHERE type =? AND JSON_EXTRACT(content, '$.pid')=?");
             }
             sql = sqlstr.toString();
         }*/

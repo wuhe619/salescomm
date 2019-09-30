@@ -3,15 +3,16 @@ package com.bdaim.customs.services;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.dto.Page;
+import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.service.BusiService;
 import com.bdaim.common.service.ElasticSearchService;
 import com.bdaim.common.service.ResourceService;
 import com.bdaim.common.service.SequenceService;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.dao.CustomerDao;
-import com.bdaim.customs.dao.HBusiDataManagerDao;
 import com.bdaim.customs.entity.BusiTypeEnum;
 import com.bdaim.customs.entity.HBusiDataManager;
+import com.bdaim.customs.entity.HMetaDataDef;
 import com.bdaim.customs.utils.ServiceUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,9 +45,9 @@ public class BgdSService implements BusiService{
 
 	@Autowired
 	private SequenceService sequenceService;
-
-	@Autowired
-	private HBusiDataManagerDao hBusiDataManagerDao;
+//
+//	@Autowired
+//	private HBusiDataManagerDao hBusiDataManagerDao;
 
 	@Autowired
 	private ResourceService resourceService;
@@ -60,16 +61,16 @@ public class BgdSService implements BusiService{
 		String billNo = info.getString("bill_no");
 		if(pid==null){
 			log.error("分单id不能为空");
-			throw new Exception("分单id不能为空");
+			throw new TouchException("分单id不能为空");
 		}
 		if(StringUtil.isEmpty(billNo)){
 			log.error("分单号不能为空");
-			throw new Exception("分单号不能为空");
+			throw new TouchException("分单号不能为空");
 		}
 		String code_ts=info.getString("code_ts");
 		if(StringUtil.isEmpty(code_ts)){
 			log.error("商品编码不能为空");
-			throw new Exception("商品编码不能为空");
+			throw new TouchException("商品编码不能为空");
 		}
 		info.put("cust_id",cust_id);
 		info.put("create_id",cust_user_id);
@@ -140,7 +141,12 @@ public class BgdSService implements BusiService{
 		if(lowPricegoods==null)lowPricegoods=0;
 		jsonObject.put("low_price_goods",lowPricegoods+is_low_price);
 		partH.setContent(jsonObject.toJSONString());
-		hBusiDataManagerDao.saveOrUpdate(partH);
+
+		String sql = "update "+ HMetaDataDef.getTable(partH.getType(),"")+" set content='"+jsonObject.toJSONString()+"'"+
+				" where id="+partH.getId()+" and type='"+partH.getType()+"'";
+		jdbcTemplate.update(sql);
+
+//		hBusiDataManagerDao.saveOrUpdate(partH);
 
 		serviceUtils.updateDataToES(BusiTypeEnum.BF.getType(),pid.toString(),jsonObject);
 
@@ -159,7 +165,12 @@ public class BgdSService implements BusiService{
 		jsonz.put("weight_total", weight_total);
 
 		zh.setContent(jsonz.toJSONString());
-		hBusiDataManagerDao.saveOrUpdate(zh);
+
+		String sql2 = "update "+ HMetaDataDef.getTable(zh.getType(),"")+" set content='"+jsonz.toJSONString()+"'"+
+				" where id="+zh.getId()+" and type='"+zh.getType()+"'";
+		jdbcTemplate.update(sql2);
+
+//		hBusiDataManagerDao.saveOrUpdate(zh);
 		serviceUtils.updateDataToES(BusiTypeEnum.BZ.getType(),zh.getId().toString(),jsonz);
 
 	}

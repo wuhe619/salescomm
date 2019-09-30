@@ -1,6 +1,9 @@
 package com.bdaim.customs.entity;
 
 
+import java.util.ArrayList;
+import java.util.List;
+
 public enum BusiTypeEnum {
     SZ("SZ", "申报单-主单", "sbd_z"),
     SF("SF", "申报单-分单", "sbd_f"),
@@ -12,8 +15,10 @@ public enum BusiTypeEnum {
     BF("BF", "报关单-分单", "bgd_f"),
     BS("BS", "报关单-税单", "bgd_s"),
     ST("ST", "场站", "station"),
-    BGD_HZ("ST", "报关单-海关回执", "bgd_hz"),
-    CD_HZ("ST", "舱单-海关回执", "cd_hz");
+    BGD_HZ("BGD_HZ", "报关单-海关回执", "bgd_hz"),
+    CD_HZ("CD_HZ", "舱单-海关回执", "cd_hz"),
+    TAX_MANAGE("TAX_MANAGE","纳税管理","tax_manage"),
+    PARAM_PROXY("PARAM_PROXY","地面代理参数","param_proxy");
 
     private String key;
     private String name;
@@ -25,6 +30,41 @@ public enum BusiTypeEnum {
         this.type = type;
     }
 
+
+    public static BusiTypeEnum get(String busiType) {
+        for (BusiTypeEnum v : BusiTypeEnum.values()) {
+            if (v.getType().equals(busiType)) {
+                return v;
+            }
+        }
+        return null;
+    }
+
+    public static String getEsIndex(String busiType) {
+        BusiTypeEnum busiTypeEnum = get(busiType);
+        switch (busiTypeEnum) {
+            case SZ:
+                return Constants.SZ_INFO_INDEX;
+            case CZ:
+                return Constants.CZ_INFO_INDEX;
+            case BZ:
+                return Constants.BZ_INFO_INDEX;
+            case SF:
+                return Constants.SF_INFO_INDEX;
+            case CF:
+                return Constants.CF_INFO_INDEX;
+            case BF:
+                return Constants.BF_INFO_INDEX;
+            case SS:
+                return Constants.SS_INFO_INDEX;
+            case CS:
+                return Constants.CS_INFO_INDEX;
+            case BS:
+                return Constants.BS_INFO_INDEX;
+            default:
+                return "-1";
+        }
+    }
 
     /**
      * 获取type
@@ -52,6 +92,14 @@ public enum BusiTypeEnum {
 
     public String getType() {
         return type;
+    }
+
+    public static List<String> getTypeList(){
+        List types = new ArrayList();
+        for (BusiTypeEnum v : BusiTypeEnum.values()) {
+            types.add(v.getType());
+        }
+        return types;
     }
 
 }

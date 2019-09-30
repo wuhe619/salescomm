@@ -368,7 +368,7 @@ public class CustomController extends BasicAction {
      * @param id
      * @return
      */
-    @PostMapping(value = "/clearSFCardIdPic")
+    /*@PostMapping(value = "/clearSFCardIdPic")
     public ResponseJson clearSFCardIdPic(@RequestBody List<Integer> id) {
         ResponseJson responseJson = new ResponseJson();
         int status = customsService.clearSFCardIdPic(id);
@@ -378,7 +378,7 @@ public class CustomController extends BasicAction {
             responseJson.fail();
         }
         return responseJson;
-    }
+    }*/
 
     @RequestMapping(value = "/exportExcel", method = RequestMethod.GET)
     public void exportExcel(int id, int type, HttpServletResponse response) {
@@ -427,7 +427,7 @@ public class CustomController extends BasicAction {
         ResponseJson responseJson = new ResponseJson();
         LoginUser user = opUser();
         try {
-            List<Map<String, Object>> d = customsService.sbdLastestTotal(stationId, custId, user);
+            Map<String, Object> d = customsService.sbdLastestTotal(stationId, custId, user);
             responseJson.setData(d);
             responseJson.setCode(200);
             responseJson.setMessage("SUCCESS");

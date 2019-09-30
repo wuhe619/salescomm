@@ -114,4 +114,20 @@ public class HDic  {
     public void setExt_3(String ext_3) {
         this.ext_3 = ext_3;
     }
+
+    @Override
+    public String toString() {
+        return "HDic{" +
+                "type='" + type + '\'' +
+                ", code='" + code + '\'' +
+                ", name_zh='" + name_zh + '\'' +
+                ", name_en='" + name_en + '\'' +
+                ", desc='" + desc + '\'' +
+                ", status='" + status + '\'' +
+                ", p_code='" + p_code + '\'' +
+                ", ext_1='" + ext_1 + '\'' +
+                ", ext_2='" + ext_2 + '\'' +
+                ", ext_3='" + ext_3 + '\'' +
+                '}';
+    }
 }

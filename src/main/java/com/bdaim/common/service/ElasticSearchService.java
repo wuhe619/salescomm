@@ -7,11 +7,18 @@ import com.bdaim.common.dto.Page;
 import com.bdaim.common.util.ESUtil;
 import com.bdaim.common.util.NumberConvertUtil;
 import com.bdaim.common.util.RestUtil;
+import com.bdaim.common.util.StringUtil;
 import com.bdaim.common.util.http.HttpUtil;
 import com.bdaim.customs.entity.*;
 import io.searchbox.client.JestClient;
-import io.searchbox.core.Search;
-import io.searchbox.core.SearchResult;
+import io.searchbox.client.JestResult;
+import io.searchbox.core.*;
+import io.searchbox.indices.mapping.GetMapping;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.elasticsearch.search.sort.SortOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +29,7 @@ import org.springframework.web.client.RestTemplate;
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -68,6 +76,28 @@ public class ElasticSearchService {
         return result;
     }
 
+
+    /**
+     * 判断ES是否含有索引名的索引
+     *
+     * @param indexName
+     * @return
+     */
+    public boolean isExistIndex(String indexName, String typeName) {
+        GetMapping.Builder builder = new GetMapping.Builder();
+        builder.addIndex(indexName).addType(typeName);
+        try {
+            JestResult result = jestClient.execute(builder.build());
+            if (404 == result.getResponseCode()) {
+                return false;
+            }
+            return true;
+        } catch (Exception e) {
+            LOG.error("es查询索引异常", e);
+        }
+        return false;
+    }
+
     /**
      * 新增记录
      *
@@ -88,14 +118,45 @@ public class ElasticSearchService {
             }*/
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
+            if (!isExistIndex(index, type)) {
+                JSONObject settings = JSON.parseObject("{\"settings\":{\"index.analysis.analyzer.default.type\":\"whitespace\"}}");
+                HttpEntity<JSONObject> entity = new HttpEntity<>(settings, headers);
+                ResponseEntity<JSONObject> resultEntity = restTemplate.exchange(ESUtil.getUrl(index, ""), HttpMethod.PUT, entity, JSONObject.class);
+                result = resultEntity.getBody();
+                LOG.info("向es添加索引返回数据:[" + result + "]");
+            }
             HttpEntity<JSONObject> entity = new HttpEntity<>(jsonObject, headers);
             ResponseEntity<JSONObject> resultEntity = restTemplate.exchange(ESUtil.getUrl(index, type) + id, HttpMethod.PUT, entity, JSONObject.class);
             result = resultEntity.getBody();
             LOG.info("向es新增记录返回结果:[" + result + "]");
         } catch (Exception e) {
-            LOG.error("向es新增记录异常:" + e.getMessage());
+            LOG.error("向es新增记录异常:", e);
         }
         return result;
+    }
+
+    /**
+     * 向ElasticSearch中批量新增
+     *
+     * @param indexName
+     * @param typeName
+     * @param list
+     * @throws Exception
+     */
+    public void bulkInsertDocument(String indexName, String typeName, List list) {
+        boolean result = false;
+        try {
+            Bulk.Builder bulk = new Bulk.Builder().defaultIndex(indexName).defaultType(typeName);
+            for (Object obj : list) {
+                Index index = new Index.Builder(obj).build();
+                bulk.addAction(index);
+            }
+            BulkResult br = jestClient.execute(bulk.build());
+            result = br.isSucceeded();
+        } catch (Exception e) {
+            LOG.error("向ES中批量新增异常", e);
+        }
+        LOG.info("向ES中批量新增:" + result);
     }
 
     /**
@@ -129,12 +190,12 @@ public class ElasticSearchService {
             String httpResult = HttpUtil.httpGet(ESUtil.getUrl(index, type) + id, null, null);
             result = JSON.parseObject(httpResult);
             result = result.getJSONObject("hits");
-            if (result.containsKey("_source")) {
+            if (result != null && result.containsKey("_source")) {
                 result = result.getJSONObject("_source");
             }
             LOG.info("从es查询记录返回结果:[" + httpResult + "]");
         } catch (Exception e) {
-            LOG.error("从es查询记录异常:" + e.getMessage());
+            LOG.error("从es查询记录异常:", e);
         }
         return result;
     }
@@ -159,7 +220,6 @@ public class ElasticSearchService {
             headers.setContentType(MediaType.APPLICATION_JSON);
             HttpEntity<JSONObject> entity = new HttpEntity<>(data, headers);
             result = restTemplate.postForObject(ESUtil.getUrl(index, type) + id + "/_update/", entity, JSONObject.class);
-            System.out.println(result);
             LOG.info("向es修改记录返回结果:[" + result + "]");
         } catch (Exception e) {
             LOG.error("向es修改记录异常:" + e.getMessage());
@@ -167,8 +227,8 @@ public class ElasticSearchService {
         return result;
     }
 
-    public void update(HBusiDataManager hBusiDataManager, Integer id) {
-        String type = hBusiDataManager.getType();
+    public void update(HBusiDataManager hBusiDataManager, Long id) {
+        String type = "+HMetaDataDef.getTable()+";
         if (type.equals(BusiTypeEnum.SZ.getKey()) || type.equals(BusiTypeEnum.CZ.getKey()) || type.equals(BusiTypeEnum.BZ.getKey())) {
             updateDocumentToType(Constants.SZ_INFO_INDEX, "haiguan", id.toString(), JSON.parseObject(hBusiDataManager.getContent()));
         } else if (type.equals(BusiTypeEnum.SF.getKey()) || type.equals(BusiTypeEnum.CF.getKey()) || type.equals(BusiTypeEnum.BF.getKey())) {
@@ -336,6 +396,7 @@ public class ElasticSearchService {
 
     /**
      * ES查询
+     *
      * @param dsl
      * @param index
      * @param indexType
@@ -343,11 +404,11 @@ public class ElasticSearchService {
      * @param <T>
      * @return
      */
-    public <T> List<Object> searchToEsLit(String dsl, String index, String indexType, Class<T> sourceType) {
+    public <T> List<Object> listSearch(String dsl, String index, String indexType, Class<T> sourceType) {
         List<Object> list = new ArrayList<>();
         SearchResult result = search(dsl, index, indexType);
         if (result != null) {
-            List<SearchResult.Hit<T , Void>> hits = result.getHits(sourceType);
+            List<SearchResult.Hit<T, Void>> hits = result.getHits(sourceType);
             T t;
             for (SearchResult.Hit<T, Void> hit : hits) {
                 t = hit.source;
@@ -359,22 +420,41 @@ public class ElasticSearchService {
 
     /**
      * ES分页查询
-     * @param dsl 执行dsl语句
-     * @param index 索引
+     *
+     * @param dsl        执行dsl语句
+     * @param index      索引
      * @param indexType
      * @param sourceType 数据实体类
      * @param <T>
      * @return
      */
-    public <T> Page searchToEsPage(String dsl, String index, String indexType, Class<T> sourceType) {
+    public <T> Page pageSearch(String dsl, String index, String indexType, Class<T> sourceType) {
         Page page = new Page();
         SearchResult result = search(dsl, index, indexType);
         List list = new ArrayList<>();
         if (result != null) {
-            List<SearchResult.Hit<T , Void>> hits = result.getHits(sourceType);
+            List<SearchResult.Hit<T, Void>> hits = result.getHits(sourceType);
             T t;
             for (SearchResult.Hit<T, Void> hit : hits) {
                 t = hit.source;
+                list.add(t);
+            }
+            page.setData(list);
+            page.setTotal(NumberConvertUtil.parseInt(result.getTotal()));
+        }
+        return page;
+    }
+
+    public Page pageSearch(String dsl, String index, String indexType) {
+        Page page = new Page();
+        SearchResult result = search(dsl, index, indexType);
+        List list = new ArrayList<>();
+        if (result != null) {
+            List<SearchResult.Hit<JSONObject, Void>> hits = result.getHits(JSONObject.class);
+            JSONObject t;
+            for (SearchResult.Hit<JSONObject, Void> hit : hits) {
+                t = hit.source;
+                t.put("id", hit.id);
                 list.add(t);
             }
             page.setData(list);
@@ -392,7 +472,7 @@ public class ElasticSearchService {
      * @return
      */
     public SearchResult search(String dsl, String index, String indexType) {
-        LOG.info("ES检索语句:" + dsl);
+        LOG.info("ES检索语句:\n{}", dsl);
         SearchResult result = null;
         try {
             Search search = new Search.Builder(dsl)
@@ -403,7 +483,67 @@ public class ElasticSearchService {
         } catch (IOException e) {
             LOG.error("ES查询异常", e);
         }
-        LOG.info("ES查询结果:{}", result.getJsonString());
+        LOG.info("ES查询结果:\n{}", result.getJsonString());
         return result;
+    }
+
+    public SearchSourceBuilder queryConditionToDSL(JSONObject params) {
+        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+        BoolQueryBuilder qb = QueryBuilders.boolQuery();
+        QueryBuilder queryBuilder = null;
+        Iterator keys = params.keySet().iterator();
+        while (keys.hasNext()) {
+            String key = (String) keys.next();
+            if (StringUtil.isEmpty(String.valueOf(params.get(key)))) continue;
+            if ("pageNum".equals(key) || "pageSize".equals(key) || "stationId".equals(key) || "cust_id".equals(key))
+                continue;
+            // 排序
+            if (key.startsWith("_sort_")) {
+                searchSourceBuilder.sort(key.substring(6), SortOrder.valueOf(params.getString(key).toUpperCase()));
+                continue;
+            } else if (key.startsWith("_c_")) {
+                // 模糊查询
+                queryBuilder = QueryBuilders.matchPhraseQuery(key.substring(3), params.getString(key));
+            } else if (key.startsWith("_g_")) {
+                queryBuilder = QueryBuilders.rangeQuery(key.substring(3)).gt(params.get(key));
+            } else if (key.startsWith("_ge_")) {
+                queryBuilder = QueryBuilders.rangeQuery(key.substring(4)).gte(params.get(key));
+            } else if (key.startsWith("_l_")) {
+                queryBuilder = QueryBuilders.rangeQuery(key.substring(3)).lt(params.get(key));
+            } else if (key.startsWith("_le_")) {
+                queryBuilder = QueryBuilders.rangeQuery(key.substring(4)).lte(params.get(key));
+            } else if (key.startsWith("_range_")) {
+                if ("0".equals(String.valueOf(params.get(key)))) {
+                    queryBuilder = QueryBuilders.rangeQuery(key.substring(7)).lte(params.get(key));
+                } else {
+                    queryBuilder = QueryBuilders.rangeQuery(key.substring(7)).gte(params.get(key));
+                }
+            } else {
+                queryBuilder = QueryBuilders.matchQuery(key, params.get(key));
+            }
+
+            qb.must(queryBuilder);
+        }
+
+        int pageNum = 1;
+        int pageSize = 10;
+        try {
+            pageNum = params.getIntValue("pageNum");
+        } catch (Exception e) {
+        }
+        try {
+            pageSize = params.getIntValue("pageSize");
+        } catch (Exception e) {
+        }
+        if (pageNum <= 0)
+            pageNum = 1;
+        if (pageSize <= 0)
+            pageSize = 10;
+        if (pageSize > 1000)
+            pageSize = 1000;
+        int from = (pageNum - 1) * pageSize;
+        searchSourceBuilder.from(from).size(pageSize);
+        searchSourceBuilder.query(qb);
+        return searchSourceBuilder;
     }
 }

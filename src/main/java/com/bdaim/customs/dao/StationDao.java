@@ -7,6 +7,7 @@ import com.bdaim.customs.entity.Station;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
@@ -27,7 +28,13 @@ public class StationDao extends SimpleHibernateDao<Station, String> {
     public Station getStationById(int id) {
         Station cp = null;
         String sql = "SELECT type, content, create_id, create_date,update_id, update_date FROM h_resource m where m.id=? AND m.type ='station' ";
-        Map data = jdbcTemplate.queryForMap(sql, id);
+        Map data = null;
+        try {
+            data = jdbcTemplate.queryForMap(sql, id);
+        } catch (EmptyResultDataAccessException e) {
+            logger.warn("查询:{}失败", id);
+            data = null;
+        }
         if (data == null)
             return new Station();
         String content = (String) data.get("content");

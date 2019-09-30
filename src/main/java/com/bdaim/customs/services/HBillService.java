@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
@@ -124,9 +125,60 @@ public class HBillService {
      * @param param
      * @return
      */
-    public void customerBillExport(CustomerBillQueryParam param, String exportType, HttpServletResponse response) throws Exception {
-        Page billDetail = getBillDetail(param);
-        ExcelUtil.exportExcelByList(billDetail.getData(), "tp/customer_bill.xlsx", response);
+    public void customerBillExport(CustomerBillQueryParam param, String exportType, HttpServletResponse response) throws IOException, IllegalAccessException {
+        List<Map<String, Object>> list = exportBillDetail(param);
+        ExcelUtil.exportExcelByList(list,  exportType, response);
+    }
+
+
+    /**
+     * 查询账单详情页
+     *
+     * @param param
+     * @return
+     */
+    public List<Map<String, Object>> exportBillDetail(CustomerBillQueryParam param) {
+        List<Map<String, Object>> list = null;
+        try {
+            StringBuffer querySql = new StringBuffer("SELECT id, busi_type busiType, cust_id custId, create_time createTime, IFNULL(amount / 100, 0)  unitPrice, content, IFNULL(amount / 100, 0) amount, IFNULL(prod_amount / 100, 0) prodAmount FROM t_resource_log WHERE 1=1");
+            if (param.getMainId() != null) {
+                querySql.append(" AND CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.main_id') =" + param.getMainId() + " ELSE null END");
+            }
+            if (StringUtil.isNotEmpty(param.getTransactionId())) {
+                querySql.append(" AND id ='" + param.getTransactionId() + "'");
+            }
+            if (StringUtil.isNotEmpty(param.getStatus())) {
+                querySql.append(" AND CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.status') =" + param.getStatus() + " ELSE null END ");
+            } else {
+                querySql.append(" AND CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.status')>0" + " ELSE null END");
+            }
+            if (StringUtil.isNotEmpty(param.getStartTime())) {
+                querySql.append(" AND create_time >= '" + param.getStartTime() + "'");
+            }
+            if (StringUtil.isNotEmpty(param.getEndTime())) {
+                querySql.append(" AND create_time <='" + param.getEndTime() + "'");
+            }
+
+            list = customerDao.sqlQuery(querySql.toString());
+            for (int i = 0; i < list.size(); i++) {
+                //查询身份证信息
+                String content = String.valueOf(list.get(i).get("content"));
+                JSONObject jsonObject = JSON.parseObject(content);
+                if (jsonObject != null) {
+                    int status = jsonObject.getIntValue("status");
+                    list.get(i).put("status", status);
+                    list.get(i).put("checkStatus", status == 1 ? "成功" : "失败");
+                    JSONObject input = jsonObject.getJSONObject("input");
+                    if (input != null) {
+                        String idCard = input.getString("idCard");
+                        list.get(i).put("idCard", idCard);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            logger.error("查询账单详情异常", e);
+        }
+        return list;
     }
 }
 

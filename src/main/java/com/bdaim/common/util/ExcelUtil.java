@@ -11,8 +11,11 @@ import org.apache.poi.EmptyFileException;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.poifs.filesystem.FileMagic;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.http.HttpServletResponse;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
@@ -27,6 +30,7 @@ import java.util.Map;
  * @description
  */
 public class ExcelUtil {
+    private final static Logger LOG = LoggerFactory.getLogger(ExcelUtil.class);
 
     /**
      * 获取excel表头
@@ -172,6 +176,7 @@ public class ExcelUtil {
 
     /**
      * 根据模板导出
+     *
      * @param list
      * @param templateName
      * @param response
@@ -179,20 +184,20 @@ public class ExcelUtil {
      * @throws IllegalAccessException
      */
     public static void exportExcelByList(List list, String templateName, HttpServletResponse response) throws IOException, IllegalAccessException {
-        // 加载模板
-        TemplateExportParams params = new TemplateExportParams(templateName);
+        //String classPath = new FileUrlEntity().getFileUrl();
+        String classPath = PropertiesUtil.getStringValue("file.file_path");
+        String pathF = File.separator;
+        classPath = classPath.replace("/", pathF);
+        String templatePath = classPath + pathF + "tp" + pathF + templateName + ".xlsx";
+        LOG.info("文件路径是：" + templatePath);
+        TemplateExportParams params = new TemplateExportParams(templatePath);
         // 生成workbook 并导出
         Map<String, Object> map = new HashMap<>();
         map.put("list", list);
         Workbook workbook = ExcelExportUtil.exportExcel(params, map);
-        /*File savefile = new File("C:/Users/Administrator/Desktop/");
-        if (!savefile.exists()) {
-            boolean result = savefile.mkdirs();
-            System.out.println("目录不存在,进行创建,创建" + (result ? "成功!" : "失败！"));
-        }*/
-        //FileOutputStream fos = new FileOutputStream("C:/Users/Administrator/Desktop/理货.xlsx");
+        response.setHeader("Content-Disposition", "attachment; filename=" + System.currentTimeMillis() + ExcelTypeEnum.XLSX.getValue());
+        response.setContentType("application/vnd.ms-excel;charset=utf-8");
         workbook.write(response.getOutputStream());
-        response.getOutputStream().close();
     }
 
     private static List<Map<String, Object>> objectToMap(List obj) throws IllegalAccessException {

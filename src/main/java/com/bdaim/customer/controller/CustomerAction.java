@@ -181,10 +181,7 @@ public class CustomerAction extends BasicAction {
     public ResponseInfo regist(@RequestBody CustomerRegistDTO customerRegistDTO) {
         try {
             LoginUser lu = opUser();
-            if ("ROLE_USER".equals(lu.getRole()) || "admin".equals(lu.getRole())) {
-                //后台创建的企业赋值为0
-                customerRegistDTO.setCreateId("0");
-            } else {
+            if (!"ROLE_USER".equals(lu.getRole()) && !"admin".equals(lu.getRole())) {
                 //前台创建的createId是当前登陆企业id
                 customerRegistDTO.setCreateId(lu.getCustId());
             }
@@ -241,6 +238,32 @@ public class CustomerAction extends BasicAction {
         } else {
             customerRegistDTO.setCreateId(lu.getCustId());
             list = customerService.getCustomerInfo(page, customerRegistDTO);
+        }
+        map.put("list", list);
+        //图片根路径
+        String preUrl = "/pic";
+        map.put("preUrl", preUrl);
+        return new ResponseInfoAssemble().success(map);
+    }
+
+    /**
+     * @Title: queryCustomer
+     * @Description: 海关客户列表
+     */
+    @RequestMapping(value = "/list", method = RequestMethod.GET)
+    @ResponseBody
+    public ResponseInfo queryCustomerList(@Valid PageParam page, BindingResult error, CustomerRegistDTO customerRegistDTO) {
+        if (error.hasFieldErrors()) {
+            return new ResponseInfoAssemble().failure(-1, "缺少必要参数");
+        }
+        LoginUser lu = opUser();
+        PageList list = null;
+        Map<Object, Object> map = new HashMap<Object, Object>();
+        if ("ROLE_USER".equals(lu.getRole()) || "admin".equals(lu.getRole())) {
+            list = customerService.getCustomerList(page, customerRegistDTO);
+        } else {
+            customerRegistDTO.setCreateId(lu.getCustId());
+            list = customerService.getCustomerList(page, customerRegistDTO);
         }
         map.put("list", list);
         //图片根路径
@@ -1720,10 +1743,12 @@ public class CustomerAction extends BasicAction {
 
     @RequestMapping(value = "/saveCustomerProperty", method = RequestMethod.POST)
     @ResponseBody
-    @ValidatePermission(role = "admin,ROLE_USER")
     public String saveCustomerProperty(@RequestBody CustomerProperty param) {
         int code = 0;
         try {
+            if (StringUtil.isEmpty(param.getCustId())) {
+                param.setCustId(opUser().getCustId());
+            }
             code = customerService.saveCustomerProperty(param);
         } catch (Exception e) {
             logger.error("保存客户属性失败,参数:" + param, e);
@@ -1738,10 +1763,12 @@ public class CustomerAction extends BasicAction {
 
     @RequestMapping(value = "/getCustomerProperty", method = RequestMethod.GET)
     @ResponseBody
-    @ValidatePermission(role = "admin,ROLE_USER")
     public String getCustomerProperty(CustomerProperty param) {
         CustomerPropertyDTO data = null;
         try {
+            if (StringUtil.isEmpty(param.getCustId())) {
+                param.setCustId(opUser().getCustId());
+            }
             data = customerService.getCustomerProperty(param);
         } catch (Exception e) {
             logger.error("获取客户属性失败,参数:" + param, e);

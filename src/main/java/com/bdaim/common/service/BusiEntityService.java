@@ -2,11 +2,12 @@ package com.bdaim.common.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.dto.Page;
+import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.common.util.spring.SpringContextHelper;
 import com.bdaim.customer.dao.CustomerDao;
-import com.bdaim.customer.entity.Customer;
-import com.bdaim.customer.entity.CustomerProperty;
+import com.bdaim.customs.entity.HMetaDataDef;
+import com.bdaim.customs.utils.ServiceUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,9 +15,9 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -39,13 +40,16 @@ public class BusiEntityService {
     @Autowired
     private CustomerDao customerDao;
 
+    @Autowired
+    private ServiceUtils serviceUtils;
+
     /*
      * 按ID获取记录
      */
     public JSONObject getInfo(String cust_id, String cust_group_id, Long cust_user_id, String busiType, Long id, JSONObject param) throws Exception {
         JSONObject jo = new JSONObject();
 
-        String sql = "select content, cust_id, cust_group_id, cust_user_id, create_id, create_date ,ext_1, ext_2, ext_3, ext_4, ext_5 from h_data_manager where type=? and id=? ";
+        String sql = "select content, cust_id, cust_group_id, cust_user_id, create_id, create_date ,ext_1, ext_2, ext_3, ext_4, ext_5 from "+HMetaDataDef.getTable(busiType,"")+" where type=? and id=? ";
         if (!"all".equals(cust_id))
             sql += " and cust_id='" + cust_id + "'";
 
@@ -53,8 +57,8 @@ public class BusiEntityService {
         try {
             data = jdbcTemplate.queryForMap(sql, busiType, id);
         } catch (EmptyResultDataAccessException e) {
-            logger.warn("查询主单:{},busiType:{}失败", id, busiType);
-            data = null;
+            logger.warn("查询:{},busiType:{}失败,数据不存在", id, busiType);
+            throw new TouchException("1000", "未查询到数据:[" + busiType + "]" + id);
         }
         if (data == null)
             return jo;
@@ -83,6 +87,10 @@ public class BusiEntityService {
             //执行自定义单数据规则
             BusiService busiService = (BusiService) SpringContextHelper.getBean("busi_" + busiType);
             busiService.getInfo(busiType, cust_id, cust_group_id, cust_user_id, id, jo, param);
+            //查询场站和报关单位
+            serviceUtils.getStationCustName(jo);
+            // 查询字典数据
+            serviceUtils.getHDicData(jo);
         } catch (Exception e) {
             logger.error("数据格式错误！", e);
             throw new Exception("数据格式错误！");
@@ -111,17 +119,13 @@ public class BusiEntityService {
         }
         if (sql == null || "".equals(sql)) {
             sqlParams.clear();
-            StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from h_data_manager where type=?");
+            StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from "+HMetaDataDef.getTable(busiType,"")+" where type=?");
             if (!"all".equals(cust_id))
                 sqlstr.append(" and cust_id='").append(cust_id).append("'");
             sqlParams.add(busiType);
             // 处理场站检索
             if (StringUtil.isNotEmpty(stationId)) {
                 String stationSql = "SELECT cust_id FROM t_customer_property WHERE property_name='station_id' AND property_value = ?";
-                /*List<String> custIds = jdbcTemplate.queryForList(stationSql, String.class,"station_id", stationId);
-                if(custIds==null||custIds.size()==0){
-                    return p;
-                }*/
                 sqlstr.append(" and cust_id IN ( ").append(stationSql).append(" )");
                 sqlParams.add(stationId);
             }
@@ -129,7 +133,7 @@ public class BusiEntityService {
             Iterator keys = params.keySet().iterator();
             while (keys.hasNext()) {
                 String key = (String) keys.next();
-                if ("".equals(String.valueOf(params.get(key)))) continue;
+                if (StringUtil.isEmpty(String.valueOf(params.get(key)))) continue;
                 if ("pageNum".equals(key) || "pageSize".equals(key) || "stationId".equals(key) || "cust_id".equals(key))
                     continue;
                 if ("cust_id".equals(key)) {
@@ -218,28 +222,9 @@ public class BusiEntityService {
                     jo.put("id", m.get("id"));
                 } else {
                     //查询场站和报关单位
-                    String custId = jo.getString("cust_id");
-                    jo.put("cust_name", "");
-                    jo.put("station_name", "");
-                    Customer customer = customerDao.get(custId);
-                    if (customer != null) {
-                        jo.put("cust_name", customer.getEnterpriseName());
-                        jo.put("station_id", "");
-                        CustomerProperty cp = customerDao.getProperty(custId, "station_id");
-                        if (cp != null) {
-                            jo.put("station_id", cp.getPropertyValue());
-                            String stationSql = "select content, create_id, create_date, update_id, update_date from h_resource where type=? and id=? ";
-                            try {
-                                Map station = jdbcTemplate.queryForMap(stationSql, "station", cp.getPropertyValue());
-                                if (station != null) {
-                                    jo.put("station_name", JSONObject.parseObject(String.valueOf(station.get("content"))).getString("name"));
-                                }
-                            } catch (DataAccessException e) {
-                                logger.error("查询场站信息异常", e);
-                            }
-
-                        }
-                    }
+                    serviceUtils.getStationCustName(jo);
+                    // 查询字典数据
+                    serviceUtils.getHDicData(jo);
                 }
 
                 try {
@@ -285,7 +270,7 @@ public class BusiEntityService {
             //insert
             id = sequenceService.getSeq(busiType);
             jo = info;
-            String sql1 = "insert into h_data_manager(id, type, content, cust_id, cust_group_id, cust_user_id, create_id, create_date, ext_1, ext_2, ext_3, ext_4, ext_5 ) value(?, ?, ?, ?, ?, ?, ?, now(), ?, ?, ?, ?, ?)";
+            String sql1 = "insert into "+ HMetaDataDef.getTable(busiType,"")+"(id, type, content, cust_id, cust_group_id, cust_user_id, create_id, create_date, ext_1, ext_2, ext_3, ext_4, ext_5 ) value(?, ?, ?, ?, ?, ?, ?, now(), ?, ?, ?, ?, ?)";
             try {
                 //执行自定义新增规则
                 BusiService busiService = (BusiService) SpringContextHelper.getBean("busi_" + busiType);
@@ -300,6 +285,9 @@ public class BusiEntityService {
                         , jo.containsKey("ext_3") ? info.getString("ext_3") : ""
                         , jo.containsKey("ext_4") ? info.getString("ext_4") : ""
                         , jo.containsKey("ext_5") ? info.getString("ext_5") : "");
+            } catch (TouchException e) {
+                logger.warn("添加记录异常:[" + busiType + "]" + id, e);
+                throw e;
             } catch (Exception e) {
                 logger.error("添加新记录异常:[" + busiType + "]", e);
                 throw new Exception("添加新记录异常:[" + busiType + "]", e);
@@ -308,9 +296,10 @@ public class BusiEntityService {
             // update
             Map data = null;
             try {
-                data = jdbcTemplate.queryForMap("select content from h_data_manager where type=? and cust_id=? and id=?", busiType, cust_id, id);
-            }  catch (DataAccessException e) {
+                data = jdbcTemplate.queryForMap("select content from "+HMetaDataDef.getTable(busiType,"")+" where type=? and cust_id=? and id=?", busiType, cust_id, id);
+            } catch (DataAccessException e) {
                 logger.error("未查询到数据:[" + busiType + "]" + id, e);
+                throw new TouchException("1000", "未查询到数据:[" + busiType + "]" + id);
             } catch (Exception e) {
                 logger.error("读取数据异常:[" + busiType + "]" + id, e);
                 throw new Exception("读取数据异常:[" + busiType + "]" + id, e);
@@ -341,7 +330,7 @@ public class BusiEntityService {
                 BusiService busiService = (BusiService) SpringContextHelper.getBean("busi_" + busiType);
                 busiService.updateInfo(busiType, cust_id, cust_group_id, cust_user_id, id, jo);
 
-                StringBuffer sql2 = new StringBuffer("update h_data_manager set update_id=?,update_date=now() ");
+                StringBuffer sql2 = new StringBuffer("update "+HMetaDataDef.getTable(busiType,"")+" set update_id=?,update_date=now() ");
                 List sqlParams = new ArrayList();
                 sqlParams.add(cust_user_id);
 
@@ -361,6 +350,12 @@ public class BusiEntityService {
                 sqlParams.add(id);
 
                 jdbcTemplate.update(sql2.toString(), sqlParams.toArray());
+            } catch (TouchException e) {
+                logger.warn("更新记录异常:[" + busiType + "]" + id, e);
+                throw e;
+            } catch (EmptyResultDataAccessException e) {
+                logger.warn("更新记录异常:[" + busiType + "]" + id, e);
+                throw new TouchException("1000", "未查询到数据:[" + busiType + "]" + id);
             } catch (Exception e) {
                 logger.error("更新记录异常:[" + busiType + "]" + id, e);
                 throw new Exception("更新记录异常:[" + busiType + "]" + id);
@@ -374,7 +369,7 @@ public class BusiEntityService {
      * 删除记录
      */
     public void deleteInfo(String cust_id, String cust_group_id, Long cust_user_id, String busiType, Long id) throws Exception {
-        String sql = "delete from h_data_manager where type=? and cust_id=? and id=?";
+        String sql = "delete from "+HMetaDataDef.getTable(busiType,"")+" where type=? and cust_id=? and id=?";
         try {
             //执行自定义删除规则
             BusiService busiService = (BusiService) SpringContextHelper.getBean("busi_" + busiType);
@@ -382,11 +377,13 @@ public class BusiEntityService {
 
             jdbcTemplate.update(sql, busiType, cust_id, id);
 
+        } catch (TouchException e) {
+            logger.warn("删除记录异常:[" + busiType + "]" + id, e);
+            throw e;
         } catch (Exception e) {
             logger.error("删除记录异常:[" + busiType + "]" + id, e);
             throw new Exception("删除记录异常:[" + busiType + "]" + id);
         }
     }
-
 
 }

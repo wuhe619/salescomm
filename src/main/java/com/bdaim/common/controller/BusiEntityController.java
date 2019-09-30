@@ -2,6 +2,7 @@ package com.bdaim.common.controller;
 
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.auth.LoginUser;
+import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.common.service.BusiEntityService;
@@ -101,6 +102,8 @@ public class BusiEntityController extends BasicAction {
 
             id = busiEntityService.saveInfo(cust_id, cust_group_id, cust_user_id, busiType, id, info);
             resp.setData(id);
+        } catch (TouchException e) {
+            return new ResponseInfoAssemble().failure(-1, e.getMessage());
         } catch (Exception e) {
             logger.error("保存记录异常:", e);
             return new ResponseInfoAssemble().failure(-1, "保存记录异常:[" + busiType + "]");
@@ -146,7 +149,7 @@ public class BusiEntityController extends BasicAction {
                     list.addAll(jo.getJSONArray("singles"));
                 } else if ("_export_cd_z_main_data".equals(param.getString("_rule_"))) {
                     // 舱单主单txt
-                    FileUtil.writeFileToResponse(jo.getString("_export_cd_z_main_data"), jo.getString("id") + ".txt", response);
+                    FileUtil.writeFileToResponse(jo.getString("_export_cd_z_main_data"), jo.getString("bill_no") + ".txt", response);
                     return null;
                 } else {
                     // 多sheet导出
@@ -156,6 +159,8 @@ public class BusiEntityController extends BasicAction {
                 return null;
             }
             resp.setData(jo);
+        } catch (TouchException e) {
+            return new ResponseInfoAssemble().failure(-1, e.getMessage());
         } catch (Exception e) {
             logger.error("获取记录异常:" + id, e);
             return new ResponseInfoAssemble().failure(-1, "查询记录异常[" + busiType + "]");
