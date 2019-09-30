@@ -643,7 +643,7 @@ public class SbdZService implements BusiService {
                     dataManager.setId(id);
                     dataManager.setCust_id(Long.valueOf(custId));
                     dataManager.setExt_3(product.getCode_ts());//商品编号
-                    dataManager.setExt_4(product.getMain_bill_no() + "," + product.getBill_no());//主单号,分单号
+                    dataManager.setExt_4(product.getBill_no());//分单号
                     JSONObject json = buildGoodsContent(product);
                     json.put("create_date", new Date());
                     json.put("create_id", userId);

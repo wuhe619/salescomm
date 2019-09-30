@@ -388,7 +388,7 @@ public class CdZService implements BusiService {
         List<HBusiDataManager> parties = serviceUtils.listDataByParentBillNo(custId, BusiTypeEnum.SF.getType(), h.getExt_3());
         List<String> billNos = new ArrayList<>();
         for (HBusiDataManager hp : parties) {
-            billNos.add(hp.getExt_4() + "," + hp.getExt_3());
+            billNos.add(hp.getExt_3());
         }
         // 查询所有分单下的税单
         List<HBusiDataManager> goods = serviceUtils.listDataByParentBillNos(custId, BusiTypeEnum.SS.getType(), billNos);
