@@ -425,13 +425,13 @@ public class CustomerService {
                     }
                 }
                 //销售负责人
-                if (StringUtil.isNotEmpty(vo.getSalePerson())) {
+                //if (StringUtil.isNotEmpty(vo.getSalePerson())) {
                     if (StringUtil.isNotEmpty(vo.getCustId())) {
                         customerDao.dealCustomerInfo(vo.getCustId(), "sale_person", vo.getSalePerson());
                     } else {
                         customerDao.dealCustomerInfo(customerId, "sale_person", vo.getSalePerson());
                     }
-                }
+               // }
                 //企业注册详细街道地址
                 if (StringUtil.isNotEmpty(vo.getAddress())) {
                     if (StringUtil.isNotEmpty(vo.getCustId())) {
