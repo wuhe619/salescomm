@@ -205,8 +205,7 @@ public class CustomerDao extends SimpleHibernateDao<Customer, String> {
     /**
      * 企业属性编辑与新增
      */
-    public boolean dealCustomerInfo(String custId, String propertyName, String propertyValue) {
-        boolean success = false;
+    public void dealCustomerInfo(String custId, String propertyName, String propertyValue) {
         CustomerProperty propertyInfo = this.getProperty(custId, propertyName);
         if (propertyInfo == null) {
             propertyInfo = new CustomerProperty();
@@ -215,15 +214,10 @@ public class CustomerDao extends SimpleHibernateDao<Customer, String> {
             propertyInfo.setPropertyValue(propertyValue);
             logger.info(custId + " 属性不存在，新建该属性" + "\tpropertyName:" + propertyName + "\tpropertyValue:" + propertyValue);
             propertyInfo.setPropertyName(propertyName);
-            success = true;
         } else {
-            if (StringUtil.isNotEmpty(propertyInfo.getPropertyValue())) {
                 propertyInfo.setPropertyValue(propertyValue);
-                success = true;
-            }
         }
         this.saveOrUpdate(propertyInfo);
-        return success;
     }
 
     public String getEnterpriseName(String custId) {
