@@ -437,25 +437,28 @@ public class CdZService implements BusiService {
             hm.setContent(_content.toJSONString());
             dataList.add(hm);
             goodList = cache.get(hp.getId());
-            for (HBusiDataManager gp : goodList) {
-                good = new HBusiDataManager();
-                gp.setType(BusiTypeEnum.CS.getType());
-                Long gid = sequenceService.getSeq(BusiTypeEnum.CS.getType());
-                good.setId(gid);
-                good.setCreateId(userId);
-                good.setCreateDate(new Date());
-                JSONObject __content = JSON.parseObject(gp.getContent());
-                __content.put("pid", hm.getId());
-                _content.put("main_bill_no", _content.get("bill_no"));
-                good.setContent(__content.toJSONString());
-                good.setType(BusiTypeEnum.CS.getType());
-                good.setCreateId(gp.getCreateId());
-                good.setCust_id(gp.getCust_id());
-                good.setExt_3(gp.getExt_3());
-                good.setExt_4(gp.getExt_4());
-                dataList.add(good);
-                //sSize--;
+            if (goodList != null) {
+                for (HBusiDataManager gp : goodList) {
+                    good = new HBusiDataManager();
+                    gp.setType(BusiTypeEnum.CS.getType());
+                    Long gid = sequenceService.getSeq(BusiTypeEnum.CS.getType());
+                    good.setId(gid);
+                    good.setCreateId(userId);
+                    good.setCreateDate(new Date());
+                    JSONObject __content = JSON.parseObject(gp.getContent());
+                    __content.put("pid", hm.getId());
+                    _content.put("main_bill_no", _content.get("bill_no"));
+                    good.setContent(__content.toJSONString());
+                    good.setType(BusiTypeEnum.CS.getType());
+                    good.setCreateId(gp.getCreateId());
+                    good.setCust_id(gp.getCust_id());
+                    good.setExt_3(gp.getExt_3());
+                    good.setExt_4(gp.getExt_4());
+                    dataList.add(good);
+                    //sSize--;
+                }
             }
+
             //size--;
         }
     }
