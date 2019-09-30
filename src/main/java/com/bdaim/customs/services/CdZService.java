@@ -386,6 +386,26 @@ public class CdZService implements BusiService {
         dataList.add(CZ);
         // 根据主单号查询申报单分单列表
         List<HBusiDataManager> parties = serviceUtils.listDataByParentBillNo(custId, BusiTypeEnum.SF.getType(), h.getExt_3());
+        List<String> billNos = new ArrayList<>();
+        for (HBusiDataManager hp : parties) {
+            billNos.add(hp.getExt_4() + "," + hp.getExt_3());
+        }
+        // 查询所有分单下的税单
+        List<HBusiDataManager> goods = serviceUtils.listDataByParentBillNos(custId, BusiTypeEnum.SS.getType(), billNos);
+        Map<Long, List> cache = new HashMap<>();
+        JSONObject fd = null;
+        List<HBusiDataManager> tmp;
+        for (HBusiDataManager p : goods) {
+            fd = JSON.parseObject(p.getContent());
+            if (fd != null) {
+                tmp = cache.get(fd.getLong("pid"));
+                if (tmp == null) {
+                    tmp = new ArrayList<>();
+                }
+                tmp.add(p);
+                cache.put(fd.getLong("pid"), tmp);
+            }
+        }
         // 预先生成分单ID
        /* long size = parties.size();
         long maxId = sequenceService.getSeq(BusiTypeEnum.CF.getType(), size);*/
@@ -399,9 +419,10 @@ public class CdZService implements BusiService {
             sSize += goods.size();
         }
         long sMaxId = sequenceService.getSeq(BusiTypeEnum.CS.getType(), sSize);*/
-
+        List<HBusiDataManager> goodList;
+        HBusiDataManager hm, good;
         for (HBusiDataManager hp : parties) {
-            HBusiDataManager hm = new HBusiDataManager();
+            hm = new HBusiDataManager();
             hm.setType(BusiTypeEnum.CF.getType());
             hm.setCreateDate(new Date());
             Long fid = sequenceService.getSeq(BusiTypeEnum.CF.getType());
@@ -415,9 +436,9 @@ public class CdZService implements BusiService {
             _content.put("main_bill_no", json.get("bill_no"));
             hm.setContent(_content.toJSONString());
             dataList.add(hm);
-            List<HBusiDataManager> goods = serviceUtils.listDataByParentBillNo(custId, BusiTypeEnum.SS.getType(), hp.getExt_4() + "," + hp.getExt_3());
-            for (HBusiDataManager gp : goods) {
-                HBusiDataManager good = new HBusiDataManager();
+            goodList = cache.get(hp.getId());
+            for (HBusiDataManager gp : goodList) {
+                good = new HBusiDataManager();
                 gp.setType(BusiTypeEnum.CS.getType());
                 Long gid = sequenceService.getSeq(BusiTypeEnum.CS.getType());
                 good.setId(gid);
