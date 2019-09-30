@@ -25,7 +25,8 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -33,7 +34,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-@Component
+@Service
+@Transactional
 public class ServiceUtils {
 
     private static Logger log = LoggerFactory.getLogger(ServiceUtils.class);
@@ -150,7 +152,7 @@ public class ServiceUtils {
     }
 
     public List<HBusiDataManager> getDataList(String type, Long pid) {
-        String sql2 = "select * from " + HMetaDataDef.getTable(type, "") + " where  type='" + type + "' and ( CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')=" + pid + " ELSE null END  or CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')='" + pid + "' ELSE null END)";
+        String sql2 = "select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(type, "") + " where  type='" + type + "' and ( CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')=" + pid + " ELSE null END  or CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')='" + pid + "' ELSE null END)";
         log.info("sql2=" + sql2);
        /* RowMapper<HBusiDataManager> managerRowMapper=new BeanPropertyRowMapper<>(HBusiDataManager.class);
         List<HBusiDataManager> list = jdbcTemplate.query(sql2,managerRowMapper);*/
@@ -206,7 +208,7 @@ public class ServiceUtils {
             if (toIndex > args.size()) {
                 toIndex = args.size();
             }
-            this.jdbcTemplate.batchUpdate(sql, args.subList(fromIndex, toIndex));
+            jdbcTemplate.batchUpdate(sql, args.subList(fromIndex, toIndex));
             fromIndex = toIndex;
             toIndex += BATCH_SIZE;
             if (toIndex > args.size())
