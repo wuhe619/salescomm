@@ -352,7 +352,7 @@ public class CdZService implements BusiService {
         CZ.setCust_id(Long.valueOf(custId));
         CZ.setCreateId(Long.valueOf(userId));
         CZ.setExt_3(h.getExt_3());
-        CZ.setExt_1("0");//未发送 1，已发送
+        CZ.setExt_1("0");//0 未发送 1，已发送
 
 
         JSONObject json = JSON.parseObject(h.getContent());
@@ -384,28 +384,49 @@ public class CdZService implements BusiService {
 //		String content = json.toJSONString();
         CZ.setContent(info.toJSONString());
         dataList.add(CZ);
-
-        List<HBusiDataManager> parties = serviceUtils.getDataList(BusiTypeEnum.SF.getType(), info.getLong("fromSbzId"));
+        // 根据主单号查询申报单分单列表
+        List<HBusiDataManager> parties = serviceUtils.listDataByParentBillNo(custId, BusiTypeEnum.SF.getType(), h.getExt_3());
+        List<String> billNos = new ArrayList<>();
+        for (HBusiDataManager hp : parties) {
+            billNos.add(hp.getExt_4() + "," + hp.getExt_3());
+        }
+        // 查询所有分单下的税单
+        List<HBusiDataManager> goods = serviceUtils.listDataByParentBillNos(custId, BusiTypeEnum.SS.getType(), billNos);
+        Map<Long, List> cache = new HashMap<>();
+        JSONObject fd = null;
+        List<HBusiDataManager> tmp;
+        for (HBusiDataManager p : goods) {
+            fd = JSON.parseObject(p.getContent());
+            if (fd != null) {
+                tmp = cache.get(fd.getLong("pid"));
+                if (tmp == null) {
+                    tmp = new ArrayList<>();
+                }
+                tmp.add(p);
+                cache.put(fd.getLong("pid"), tmp);
+            }
+        }
         // 预先生成分单ID
-        long size = parties.size();
-        long maxId = sequenceService.getSeq(BusiTypeEnum.CF.getType(), size);
+       /* long size = parties.size();
+        long maxId = sequenceService.getSeq(BusiTypeEnum.CF.getType(), size);*/
 
         // 预先生成商品ID
-        long sSize = 0L;
-        Map<Long, List> cache = new HashMap<>();
+        //long sSize = 0L;
+       /* Map<Long, List> cache = new HashMap<>();
         for (HBusiDataManager hp : parties) {
-            List<HBusiDataManager> goods = serviceUtils.getDataList(BusiTypeEnum.SS.getType(), hp.getId().longValue());
+            List<HBusiDataManager> goods = serviceUtils.listDataByParentBillNo(custId, BusiTypeEnum.SS.getType(), hp.getExt_4() + "," + hp.getExt_3());
             cache.put(hp.getId(), goods);
             sSize += goods.size();
         }
-        long sMaxId = sequenceService.getSeq(BusiTypeEnum.CS.getType(), sSize);
-
+        long sMaxId = sequenceService.getSeq(BusiTypeEnum.CS.getType(), sSize);*/
+        List<HBusiDataManager> goodList;
+        HBusiDataManager hm, good;
         for (HBusiDataManager hp : parties) {
-            HBusiDataManager hm = new HBusiDataManager();
+            hm = new HBusiDataManager();
             hm.setType(BusiTypeEnum.CF.getType());
             hm.setCreateDate(new Date());
-            //Long fid = sequenceService.getSeq(BusiTypeEnum.CF.getType());
-            hm.setId(maxId - size);
+            Long fid = sequenceService.getSeq(BusiTypeEnum.CF.getType());
+            hm.setId(fid);
             hm.setExt_3(hp.getExt_3());
             hm.setExt_4(hp.getExt_4());
             hm.setCreateId(hp.getCreateId());
@@ -415,11 +436,11 @@ public class CdZService implements BusiService {
             _content.put("main_bill_no", json.get("bill_no"));
             hm.setContent(_content.toJSONString());
             dataList.add(hm);
-            List<HBusiDataManager> goods = cache.get(hp.getId());
-            for (HBusiDataManager gp : goods) {
-                HBusiDataManager good = new HBusiDataManager();
+            goodList = cache.get(hp.getId());
+            for (HBusiDataManager gp : goodList) {
+                good = new HBusiDataManager();
                 gp.setType(BusiTypeEnum.CS.getType());
-                Long gid = sMaxId - sSize;
+                Long gid = sequenceService.getSeq(BusiTypeEnum.CS.getType());
                 good.setId(gid);
                 good.setCreateId(userId);
                 good.setCreateDate(new Date());
@@ -433,9 +454,9 @@ public class CdZService implements BusiService {
                 good.setExt_3(gp.getExt_3());
                 good.setExt_4(gp.getExt_4());
                 dataList.add(good);
-                sSize--;
+                //sSize--;
             }
-            size--;
+            //size--;
         }
     }
 

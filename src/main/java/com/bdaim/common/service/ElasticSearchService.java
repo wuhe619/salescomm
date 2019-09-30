@@ -524,25 +524,26 @@ public class ElasticSearchService {
 
             qb.must(queryBuilder);
         }
-
-        int pageNum = 1;
-        int pageSize = 10;
-        try {
-            pageNum = params.getIntValue("pageNum");
-        } catch (Exception e) {
+        if (params.getInteger("pageNum") != null && params.getInteger("pageSize") != null) {
+            int pageNum = 1;
+            int pageSize = 10;
+            try {
+                pageNum = params.getIntValue("pageNum");
+            } catch (Exception e) {
+            }
+            try {
+                pageSize = params.getIntValue("pageSize");
+            } catch (Exception e) {
+            }
+            if (pageNum <= 0)
+                pageNum = 1;
+            if (pageSize <= 0)
+                pageSize = 10;
+            if (pageSize > 1000)
+                pageSize = 1000;
+            int from = (pageNum - 1) * pageSize;
+            searchSourceBuilder.from(from).size(pageSize);
         }
-        try {
-            pageSize = params.getIntValue("pageSize");
-        } catch (Exception e) {
-        }
-        if (pageNum <= 0)
-            pageNum = 1;
-        if (pageSize <= 0)
-            pageSize = 10;
-        if (pageSize > 1000)
-            pageSize = 1000;
-        int from = (pageNum - 1) * pageSize;
-        searchSourceBuilder.from(from).size(pageSize);
         searchSourceBuilder.query(qb);
         return searchSourceBuilder;
     }
