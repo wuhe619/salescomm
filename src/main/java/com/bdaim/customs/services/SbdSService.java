@@ -102,7 +102,6 @@ public class SbdSService implements BusiService {
 
         String pcontent = partH.getContent();
         JSONObject jsonObject = JSON.parseObject(pcontent);
-        info.put("ext_4", jsonObject.getString("mail_bill_no") + "," + billNo);
         Float weight = jsonObject.getFloatValue("weight");
         Float pack_NO = jsonObject.getFloatValue("pack_no");
         if (weight == null) weight = 0f;
