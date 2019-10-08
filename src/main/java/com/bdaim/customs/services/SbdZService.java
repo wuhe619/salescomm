@@ -519,6 +519,7 @@ public class SbdZService implements BusiService {
             list.add(dataManager);
         } catch (Exception e) {
             e.printStackTrace();
+            log.error("build 分单ERROR："+dan.getBill_no()+" "+e.getMessage());
         }
     }
 
@@ -533,7 +534,7 @@ public class SbdZService implements BusiService {
         if (pList != null && pList.size() > 0) {
             List<Map<String, String>> mainGoodsName = new ArrayList<>();
             for (Product product : pList) {
-                log.info("goods:" + product.getCode_ts());
+                log.info("goods_Code_ts:" + product.getCode_ts());
                 try {
                     HBusiDataManager dataManager = new HBusiDataManager();
                     dataManager.setType(BusiTypeEnum.SS.getType());
@@ -584,35 +585,9 @@ public class SbdZService implements BusiService {
                         smap.put("g_model", product.getG_model() == null ? "" : product.getG_model());
                         smap.put("price", product.getDecl_price() == null ? "0" : product.getDecl_price());
                         mainGoodsName.add(smap);
-                   /* Collections.sort(mainGoodsName, new Comparator<Map<String, String>>() {
-                        @Override
-                        public int compare(Map<String, String> o1, Map<String, String> o2) {
-                            if(Float.valueOf(o1.get("price"))>Float.valueOf(o2.get("price"))){
-                                return 1;
-                            }
-                            return 0;
-                        }
-                    });*/
+
                     } else {
-                    /*Map<String,String> m = mainGoodsName.get(mainGoodsName.size()-1);
-                    if(Float.valueOf(m.get("price"))<Float.valueOf(product.getDecl_price())){
-                        mainGoodsName.remove(mainGoodsName.size()-1);
-                        Map<String,String>smap=new HashMap<>();
-                        smap.put("name",product.getG_name()==null?"":product.getG_name());
-                        smap.put("name_en",product.getG_name_en()==null?"":product.getG_name_en());
-                        smap.put("g_model",product.getG_model()==null?"":product.getG_model());
-                        smap.put("price",product.getDecl_price()==null?"0":product.getDecl_price());
-                        mainGoodsName.add(smap);
-                        Collections.sort(mainGoodsName, new Comparator<Map<String, String>>() {
-                            @Override
-                            public int compare(Map<String, String> o1, Map<String, String> o2) {
-                                if(Float.valueOf(o1.get("price"))>Float.valueOf(o2.get("price"))){
-                                    return 1;
-                                }
-                                return 0;
-                            }
-                        });
-                    }*/
+
                     }
                     if (is_low_price == 1) {
                         if (arrt.containsKey("low_price_goods")) {
@@ -635,6 +610,7 @@ public class SbdZService implements BusiService {
 
                 } catch (Exception e) {
                     e.printStackTrace();
+                    log.error("生成商品信息 " + product.getCode_ts() + " 异常");
                     throw new Exception("生成商品信息异常");
                 }
             }
@@ -700,35 +676,7 @@ public class SbdZService implements BusiService {
                         smap.put("g_model", product.getG_model() == null ? "" : product.getG_model());
                         smap.put("price", product.getDecl_price() == null ? "0" : product.getDecl_price());
                         mainGoodsName.add(smap);
-                   /* Collections.sort(mainGoodsName, new Comparator<Map<String, String>>() {
-                        @Override
-                        public int compare(Map<String, String> o1, Map<String, String> o2) {
-                            if(Float.valueOf(o1.get("price"))>Float.valueOf(o2.get("price"))){
-                                return 1;
-                            }
-                            return 0;
-                        }
-                    });*/
-                    } else {
-                    /*Map<String,String> m = mainGoodsName.get(mainGoodsName.size()-1);
-                    if(Float.valueOf(m.get("price"))<Float.valueOf(product.getDecl_price())){
-                        mainGoodsName.remove(mainGoodsName.size()-1);
-                        Map<String,String>smap=new HashMap<>();
-                        smap.put("name",product.getG_name()==null?"":product.getG_name());
-                        smap.put("name_en",product.getG_name_en()==null?"":product.getG_name_en());
-                        smap.put("g_model",product.getG_model()==null?"":product.getG_model());
-                        smap.put("price",product.getDecl_price()==null?"0":product.getDecl_price());
-                        mainGoodsName.add(smap);
-                        Collections.sort(mainGoodsName, new Comparator<Map<String, String>>() {
-                            @Override
-                            public int compare(Map<String, String> o1, Map<String, String> o2) {
-                                if(Float.valueOf(o1.get("price"))>Float.valueOf(o2.get("price"))){
-                                    return 1;
-                                }
-                                return 0;
-                            }
-                        });
-                    }*/
+
                     }
                     if (is_low_price == 1) {
                         if (arrt.containsKey("low_price_goods")) {
@@ -751,7 +699,7 @@ public class SbdZService implements BusiService {
 
                 } catch (Exception e) {
                     e.printStackTrace();
-                    throw new Exception("生成商品信息异常");
+                    log.error("生成商品信息 " + product.getCode_ts() + " 异常");
                 }
             }
         }
