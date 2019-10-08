@@ -699,7 +699,7 @@ public class SbdZService implements BusiService {
 
                 } catch (Exception e) {
                     e.printStackTrace();
-                    log.error("生成商品信息 " + product.getCode_ts() + " 异常");
+                    log.error("生成商品信息 " + product.getCode_ts() + " 异常",e.getMessage());
                 }
             }
         }
