@@ -12,6 +12,9 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.File;
 
+/**
+ * 生成xml文件demo
+ */
 public class DomXml {
 
 
