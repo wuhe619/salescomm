@@ -94,7 +94,11 @@ public class SbdZService implements BusiService {
                     //serviceUtils.addDataToES(hBusiDataManager.getId().toString(), hBusiDataManager.getType(), JSONObject.parseObject(hBusiDataManager.getContent()));
                 }
                 if (mainData != null) {
-                    serviceUtils.addDataToES(String.valueOf(mainData.getId()), mainData.getType(), JSON.parseObject(mainData.getContent()));
+                    try {
+                        serviceUtils.addDataToES(String.valueOf(mainData.getId()), mainData.getType(), JSON.parseObject(mainData.getContent()));
+                    }catch (Exception e){
+                        log.error("啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊,主单信息保存到es失败");
+                    }
                 }
                 if (sfdData.size() > 0) {
                     elasticSearchService.bulkInsertDocument(BusiTypeEnum.getEsIndex(BusiTypeEnum.SF.getType()), Constants.INDEX_TYPE, sfdData);
@@ -123,6 +127,7 @@ public class SbdZService implements BusiService {
                     while (iterator.hasNext()) {
                         String key = iterator.next();
                         List<HBusiDataManager> d = datamap.get(key);
+                        log.info("key="+key+":"+d.size());
                         serviceUtils.batchInsert(key, d);
                     }
                 }
