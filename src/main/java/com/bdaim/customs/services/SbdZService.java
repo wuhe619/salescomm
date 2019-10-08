@@ -698,8 +698,7 @@ public class SbdZService implements BusiService {
                     list.add(dataManager);
 
                 } catch (Exception e) {
-                    e.printStackTrace();
-                    log.error("生成商品信息 " + product.getCode_ts() + " 异常",e.getMessage());
+                    log.error("生成商品信息 " + product.getCode_ts() + " 异常",e);
                 }
             }
         }
