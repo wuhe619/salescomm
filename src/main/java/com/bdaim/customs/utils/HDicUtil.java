@@ -25,6 +25,7 @@ public class HDicUtil {
         put("insur_curr", "CURR_CODE");
         put("curr_code", "CURR_CODE");
         put("qiyun_port", "DECL_PORT");
+        put("depart_arrival_port", "DECL_PORT");
         put("insur_mark", "FEE_MARK");
         put("fee_mark", "FEE_MARK");
         put("other_mark", "FEE_MARK");
