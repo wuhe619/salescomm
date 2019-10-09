@@ -633,6 +633,7 @@ public class SbdZService implements BusiService {
         if (pList != null && pList.size() > 0) {
             List<Map<String, String>> mainGoodsName = new ArrayList<>();
             HBusiDataManager dataManager;
+            arrt.put("low_price_goods", 0);
             for (Product product : pList) {
                 log.info("goods:" + product.getCode_ts());
                 try {
