@@ -325,6 +325,10 @@ public class BusiEntityService {
 
             try {
                 jo = JSONObject.parseObject(content);
+                JSONObject jsonObject = JSON.parseObject(extData);
+                if(jsonObject.containsKey("ext_1")){
+                    jo.put("ext_1", jsonObject.get("ext_1"));
+                }
                 Iterator keys = info.keySet().iterator();
                 while (keys.hasNext()) {
                     String key = (String) keys.next();
