@@ -145,9 +145,9 @@ public class ServiceUtils {
         jdbcTemplate.execute(sql);
     }
 
-    public void delDataListByPid0(String type, Long pid) {
-        String sql = "delete from " + HMetaDataDef.getTable(type, "") + " where CASE WHEN JSON_VALID(content) THEN  JSON_EXTRACT(content, '$.pid')=" + pid + " ELSE null END or CASE WHEN JSON_VALID(content) THEN  JSON_EXTRACT(content, '$.pid')='" + pid + "' ELSE null END";
-        jdbcTemplate.execute(sql);
+    public void delDataListByPid0(String type, Long pid, String custId, String pBusiType) {
+        String sql = "delete from " + HMetaDataDef.getTable(type, "") + " where cust_id = ?  AND ext_4 = (SELECT ext_3 FROM " + HMetaDataDef.getTable(pBusiType, "") + " WHERE id = ?) ";
+        jdbcTemplate.update(sql, custId, pid);
     }
 
     public List<HBusiDataManager> getDataList(String type, Long pid) {

@@ -268,14 +268,15 @@ public class SbdZService implements BusiService {
 
         List<HBusiDataManager> list = serviceUtils.listDataByPid(cust_id, BusiTypeEnum.SF.getType(), id, BusiTypeEnum.SZ.getType());
         for (HBusiDataManager hBusiDataManager : list) {
-            List<HBusiDataManager> slist = serviceUtils.listDataByPid(cust_id, BusiTypeEnum.SS.getType(), hBusiDataManager.getId(), BusiTypeEnum.SF.getType());//所有税单
+            // TODO 删除税单是否需要主单号+分单号确定唯一
+            /*List<HBusiDataManager> slist = serviceUtils.listDataByPid(cust_id, BusiTypeEnum.SS.getType(), hBusiDataManager.getId(), BusiTypeEnum.SF.getType());//所有税单
             for (HBusiDataManager shBusiDataManager : slist) {
                 serviceUtils.deleteDatafromES(BusiTypeEnum.SS.getType(), shBusiDataManager.getId().toString());
-            }
+            }*/
             serviceUtils.deleteDatafromES(BusiTypeEnum.SF.getType(), hBusiDataManager.getId().toString());
-            serviceUtils.delDataListByPid0(BusiTypeEnum.SS.getType(), hBusiDataManager.getId().longValue());
+            //serviceUtils.delDataListByPid0(BusiTypeEnum.SS.getType(), hBusiDataManager.getId().longValue());
         }
-        serviceUtils.delDataListByPid0(BusiTypeEnum.SF.getType(), id);
+        serviceUtils.delDataListByPid0(BusiTypeEnum.SF.getType(), id, cust_id, BusiTypeEnum.SZ.getType());
 
     }
 
