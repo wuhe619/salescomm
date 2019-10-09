@@ -126,7 +126,12 @@ public class ExportExcelService {
             List<Map<String, Object>> list_two = new ArrayList();
             Map<String, Object> fdData, ssData;
             JSONArray fdList, ssList;
+            int index = 1, fIndex = 1, sIndex = 1;
             for (JSONObject m : list) {
+                if (!m.containsKey("index")) {
+                    m.put("index", index);
+                }
+                index++;
                 fdList = m.getJSONArray("singles");
                 if (fdList == null || fdList.size() == 0) {
                     continue;
@@ -134,6 +139,8 @@ public class ExportExcelService {
                 // 处理分单
                 for (int i = 0; i < fdList.size(); i++) {
                     fdData = new HashMap<>();
+                    fdData.put("index", fIndex);
+                    fIndex++;
                     fdData.putAll(fdList.getJSONObject(i));
                     list_one.add(fdData);
                     if (fdList.getJSONObject(i) == null) {
@@ -144,6 +151,8 @@ public class ExportExcelService {
                     for (int j = 0; j < ssList.size(); j++) {
                         ssData = new HashMap<>();
                         ssData.putAll(ssList.getJSONObject(j));
+                        ssData.put("index", sIndex);
+                        sIndex++;
                         list_two.add(ssData);
                     }
                 }
