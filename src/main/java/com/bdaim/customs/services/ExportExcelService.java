@@ -8,7 +8,6 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.util.FileUrlEntity;
 import com.bdaim.common.util.excel.EasyExcelUtil;
-import com.bdaim.customs.dao.HBusiDataManagerDao;
 import com.bdaim.customs.dto.excel.IdCardNoVerify;
 import com.bdaim.customs.entity.BusiTypeEnum;
 import com.bdaim.customs.entity.HBusiDataManager;
@@ -181,9 +180,9 @@ public class ExportExcelService {
         LOG.info("开始导出分单身份图片缺失,主单:{}", id);
         List<HBusiDataManager> list = new ArrayList<>();
         if (1 == type) {
-            list = serviceUtils.listFDIdCard(id, BusiTypeEnum.SF.getType(), 2, 0);
+            list = serviceUtils.listFDIdCard(id, BusiTypeEnum.SF.getType(), BusiTypeEnum.SZ.getType(), 2, 0);
         } else if (2 == type) {
-            list = serviceUtils.listFDIdCard(id, BusiTypeEnum.SF.getType(), 0, 2);
+            list = serviceUtils.listFDIdCard(id, BusiTypeEnum.SF.getType(), BusiTypeEnum.SZ.getType(), 0, 2);
         }
         EasyExcelUtil.EasyExcelParams param = new EasyExcelUtil.EasyExcelParams();
         ArrayList<IdCardNoVerify> data = new ArrayList<>();
