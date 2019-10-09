@@ -267,6 +267,7 @@ public class UserService {
                 UserProperty userProperty = userDao.getProperty(userId, "station_id");
                 if (userProperty != null) {
                     String propertyValue = userProperty.getPropertyValue();
+                    data.get(i).put("stationId", propertyValue);
                     log.info("场站id是：" + propertyValue);
                     List<String> stationIdList = Arrays.asList(propertyValue.split(","));
                     for (int j = 0; j < stationIdList.size(); j++) {
