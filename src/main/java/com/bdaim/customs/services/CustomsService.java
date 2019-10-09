@@ -128,10 +128,10 @@ public class CustomsService {
     public JSONObject getMainDetailById(String id, String type) {
         JSONObject json = elasticSearchService.getDocumentById(Constants.SF_INFO_INDEX, "haiguan", id);
         if (json == null) {
-            HBusiDataManager param = new HBusiDataManager();
+            /*HBusiDataManager param = new HBusiDataManager();
             param.setId(NumberConvertUtil.parseLong(id));
-            param.setType(type);
-            HBusiDataManager h = hBusiDataManagerDao.get(param);
+            param.setType(type);*/
+            HBusiDataManager h = serviceUtils.getObjectByIdAndType(NumberConvertUtil.parseLong(id), type);
             if (h != null && h.getContent() != null) {
                 json = JSON.parseObject(h.getContent());
             }
@@ -835,10 +835,10 @@ public class CustomsService {
                     fdList = serviceUtils.listDataByPid(custId, BusiTypeEnum.SF.getType(), NumberConvertUtil.parseLong(id), BusiTypeEnum.SZ.getType());
                 } else if (2 == type) {
                     // 根据ID查询单个申报单分单
-                    HBusiDataManager param = new HBusiDataManager();
+                   /* HBusiDataManager param = new HBusiDataManager();
                     param.setId(NumberConvertUtil.parseLong(id));
-                    param.setType(BusiTypeEnum.SF.getType());
-                    data = hBusiDataManagerDao.get(param);
+                    param.setType(BusiTypeEnum.SF.getType());*/
+                    data = serviceUtils.getObjectByIdAndType(NumberConvertUtil.parseLong(id), BusiTypeEnum.SF.getType());
                     if (data != null) {
                         fdList.add(data);
                     }
@@ -853,6 +853,8 @@ public class CustomsService {
                 // 上传身份证照片并且更新分单数据库和ES信息
                 JSONObject jsonObject;
                 String picKey = "id_no_pic";
+                StringBuffer sql = new StringBuffer("update " + HMetaDataDef.getTable(BusiTypeEnum.SF.getType(), "") + " set update_date=now() ");
+                sql.append(",content=?, ext_6=? where type=? and cust_id=? and id=?");
                 for (HBusiDataManager d : fdList) {
                     if (StringUtil.isEmpty(d.getContent())) {
                         continue;
@@ -874,7 +876,8 @@ public class CustomsService {
                         }
                         d.setContent(jsonObject.toJSONString());
                         d.setExt_6(jsonObject.getString(picKey));
-                        hBusiDataManagerDao.saveOrUpdate(d);
+                        //hBusiDataManagerDao.saveOrUpdate(d);
+                        jdbcTemplate.update(sql.toString(), jsonObject.toJSONString(), jsonObject.getString(picKey), BusiTypeEnum.SF.getType(), custId, d.getId());
                         updateDataToES(d, d.getId());
                     }
                 }
@@ -1068,13 +1071,15 @@ public class CustomsService {
         JSONObject mainDetail = getMainDetailById(String.valueOf(mainId), BusiTypeEnum.SZ.getType());
         if (mainDetail != null && mainDetail.containsKey("id")) {
             mainDetail.put("id_card_pic_number", idCardNumber);
-            HBusiDataManager param = new HBusiDataManager();
+           /* HBusiDataManager param = new HBusiDataManager();
             param.setId(mainId);
-            param.setType(BusiTypeEnum.SZ.getType());
-            HBusiDataManager mainD = hBusiDataManagerDao.get(param);
+            param.setType(BusiTypeEnum.SZ.getType());*/
+            HBusiDataManager mainD = serviceUtils.getObjectByIdAndType(mainId, BusiTypeEnum.SZ.getType());
             if (mainD != null) {
+                StringBuffer sql = new StringBuffer("update " + HMetaDataDef.getTable(BusiTypeEnum.SZ.getType(), "") + " set update_date=now() ");
+                sql.append(",content=?  where type=? and cust_id=? and id=?");
                 mainD.setContent(mainDetail.toJSONString());
-                hBusiDataManagerDao.update(mainD);
+                jdbcTemplate.update(sql.toString(), mainD.getContent(), BusiTypeEnum.SZ.getType(), mainD.getCust_id(), mainId);
                 updateDataToES(mainD, mainId);
             }
             code = 1;
