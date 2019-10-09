@@ -66,7 +66,7 @@ public class HypicZService implements BusiService {
             }
             //构造住批次信息
             //批次名称
-            info.put("ext_1",batchName);
+            info.put("ext_5",batchName);
             info.put("ext_2",0);
             info.put("ext_3",batchId);
         }
