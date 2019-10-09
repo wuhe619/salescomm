@@ -185,6 +185,8 @@ public class BusiEntityController extends BasicAction {
             Long cust_user_id = lu.getId();
 
             busiEntityService.deleteInfo(cust_id, cust_group_id, cust_user_id, busiType, id);
+        } catch (TouchException e) {
+            return new ResponseInfoAssemble().failure(-1, e.getMessage());
         } catch (Exception e) {
             logger.error("删除记录异常:" + id, e);
             return new ResponseInfoAssemble().failure(-1, "删除记录异常[" + busiType + "]");

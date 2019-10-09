@@ -128,10 +128,10 @@ public class CustomsService {
     public JSONObject getMainDetailById(String id, String type) {
         JSONObject json = elasticSearchService.getDocumentById(Constants.SF_INFO_INDEX, "haiguan", id);
         if (json == null) {
-            HBusiDataManager param = new HBusiDataManager();
+            /*HBusiDataManager param = new HBusiDataManager();
             param.setId(NumberConvertUtil.parseLong(id));
-            param.setType(type);
-            HBusiDataManager h = hBusiDataManagerDao.get(param);
+            param.setType(type);*/
+            HBusiDataManager h = serviceUtils.getObjectByIdAndType(NumberConvertUtil.parseLong(id), type);
             if (h != null && h.getContent() != null) {
                 json = JSON.parseObject(h.getContent());
             }
@@ -288,7 +288,7 @@ public class CustomsService {
         if ("Y".equals(manager.getExt_1()) || "Y".equals(manager.getExt_2())) {
             throw new TouchException("已经被提交，无法删除");
         }
-        String sql = "select id,ext_3 from "+HMetaDataDef.getTable(type,"")+" where ext_4='" + manager.getExt_3() + "'";
+        String sql = "select id,ext_3 from " + HMetaDataDef.getTable(type, "") + " where ext_4='" + manager.getExt_3() + "'";
         List<Map<String, Object>> ids = hBusiDataManagerDao.queryListBySql(sql);
         List<Map<String, Object>> idList = new ArrayList<>();
         for (Map<String, Object> map : ids) {
@@ -298,7 +298,7 @@ public class CustomsService {
             idmap.put("type", BusiTypeEnum.SF);
             idList.add(idmap);
             String billno = (String) map.get("ext_3");
-            String _sql = "select id from "+HMetaDataDef.getTable(type,"")+" where ext_4='" + billno + "'";
+            String _sql = "select id from " + HMetaDataDef.getTable(type, "") + " where ext_4='" + billno + "'";
             List<Map<String, Object>> _ids = hBusiDataManagerDao.queryListBySql(_sql);
             for (Map<String, Object> m : _ids) {
                 Long _gid = (Long) m.get("id");
@@ -772,7 +772,7 @@ public class CustomsService {
 
 
     public Page getdicPageList(String dicType, Integer pageSize, Integer pageNo) {
-        String sql = "select type,code,name_zh,name_en,`desc`,`status` from h_dic where type='" + dicType + "'";
+        String sql = "select type,code,name_zh,name_en,`desc`,`status`,ext_1, ext_2, ext_3 from h_dic where type='" + dicType + "'";
         Page page = hDicDao.sqlPageQuery(sql, pageNo, pageSize);
         return page;
     }
@@ -805,7 +805,7 @@ public class CustomsService {
      * @return
      * @throws TouchException
      */
-    public int uploadCardIdPic(MultipartFile file, String id, int type) throws TouchException {
+    public int uploadCardIdPic(MultipartFile file, String id, int type, String custId) throws TouchException {
         int code = 0;
         // 判断文件格式
         String filename = file.getOriginalFilename();
@@ -832,13 +832,13 @@ public class CustomsService {
                 // 根据主单ID查询分单列表
                 List<HBusiDataManager> fdList = new ArrayList<>();
                 if (1 == type) {
-                    fdList = serviceUtils.getDataList(BusiTypeEnum.SF.getType(), NumberConvertUtil.parseLong(id));
+                    fdList = serviceUtils.listDataByPid(custId, BusiTypeEnum.SF.getType(), NumberConvertUtil.parseLong(id), BusiTypeEnum.SZ.getType());
                 } else if (2 == type) {
                     // 根据ID查询单个申报单分单
-                    HBusiDataManager param = new HBusiDataManager();
+                   /* HBusiDataManager param = new HBusiDataManager();
                     param.setId(NumberConvertUtil.parseLong(id));
-                    param.setType(BusiTypeEnum.SF.getType());
-                    data = hBusiDataManagerDao.get(param);
+                    param.setType(BusiTypeEnum.SF.getType());*/
+                    data = serviceUtils.getObjectByIdAndType(NumberConvertUtil.parseLong(id), BusiTypeEnum.SF.getType());
                     if (data != null) {
                         fdList.add(data);
                     }
@@ -853,6 +853,8 @@ public class CustomsService {
                 // 上传身份证照片并且更新分单数据库和ES信息
                 JSONObject jsonObject;
                 String picKey = "id_no_pic";
+                StringBuffer sql = new StringBuffer("update " + HMetaDataDef.getTable(BusiTypeEnum.SF.getType(), "") + " set update_date=now() ");
+                sql.append(",content=?, ext_6=? where type=? and cust_id=? and id=?");
                 for (HBusiDataManager d : fdList) {
                     if (StringUtil.isEmpty(d.getContent())) {
                         continue;
@@ -874,7 +876,8 @@ public class CustomsService {
                         }
                         d.setContent(jsonObject.toJSONString());
                         d.setExt_6(jsonObject.getString(picKey));
-                        hBusiDataManagerDao.saveOrUpdate(d);
+                        //hBusiDataManagerDao.saveOrUpdate(d);
+                        jdbcTemplate.update(sql.toString(), jsonObject.toJSONString(), jsonObject.getString(picKey), BusiTypeEnum.SF.getType(), custId, d.getId());
                         updateDataToES(d, d.getId());
                     }
                 }
@@ -1068,13 +1071,15 @@ public class CustomsService {
         JSONObject mainDetail = getMainDetailById(String.valueOf(mainId), BusiTypeEnum.SZ.getType());
         if (mainDetail != null && mainDetail.containsKey("id")) {
             mainDetail.put("id_card_pic_number", idCardNumber);
-            HBusiDataManager param = new HBusiDataManager();
+           /* HBusiDataManager param = new HBusiDataManager();
             param.setId(mainId);
-            param.setType(BusiTypeEnum.SZ.getType());
-            HBusiDataManager mainD = hBusiDataManagerDao.get(param);
+            param.setType(BusiTypeEnum.SZ.getType());*/
+            HBusiDataManager mainD = serviceUtils.getObjectByIdAndType(mainId, BusiTypeEnum.SZ.getType());
             if (mainD != null) {
+                StringBuffer sql = new StringBuffer("update " + HMetaDataDef.getTable(BusiTypeEnum.SZ.getType(), "") + " set update_date=now() ");
+                sql.append(",content=?  where type=? and cust_id=? and id=?");
                 mainD.setContent(mainDetail.toJSONString());
-                hBusiDataManagerDao.update(mainD);
+                jdbcTemplate.update(sql.toString(), mainD.getContent(), BusiTypeEnum.SZ.getType(), mainD.getCust_id(), mainId);
                 updateDataToES(mainD, mainId);
             }
             code = 1;
@@ -1156,31 +1161,31 @@ public class CustomsService {
     }
 
 
-    public List<Map<String,Object>> countSBDNumByMonth(String stationId, String custId, LoginUser lu) {
-        StringBuffer sql = new StringBuffer(" select DATE_FORMAT(create_date,'%Y%m') mon,count(0) num from "+HMetaDataDef.getTable(BusiTypeEnum.SZ.getType(),"")+" where type='"+BusiTypeEnum.SZ.getType()+"' ");
+    public List<Map<String, Object>> countSBDNumByMonth(String stationId, String custId, LoginUser lu) {
+        StringBuffer sql = new StringBuffer(" select DATE_FORMAT(create_date,'%Y%m') mon,count(0) num from " + HMetaDataDef.getTable(BusiTypeEnum.SZ.getType(), "") + " where type='" + BusiTypeEnum.SZ.getType() + "' ");
         if (!"ROLE_USER".equals(lu.getAuth())) {
             custId = lu.getCustId();
-            sql.append(" and cust_id='"+custId+"'");
-        }else{
-            if(StringUtil.isNotEmpty(stationId)){
-                sql.append(" and JSON_EXTRACT(content, '$.station_id')='"+stationId+"')");
+            sql.append(" and cust_id='" + custId + "'");
+        } else {
+            if (StringUtil.isNotEmpty(stationId)) {
+                sql.append(" and JSON_EXTRACT(content, '$.station_id')='" + stationId + "')");
             }
-            if(StringUtil.isNotEmpty(custId)){
-                sql.append(" and cust_id='"+custId+"'");
+            if (StringUtil.isNotEmpty(custId)) {
+                sql.append(" and cust_id='" + custId + "'");
             }
         }
         sql.append(" and create_date>(SELECT DATE_FORMAT(DATE_ADD(CURDATE(), INTERVAL -6 MONTH),'%Y-%m-01') from dual) ");
         sql.append(" group by mon order by mon asc");
-        List<Map<String,Object>> list = jdbcTemplate.queryForList(sql.toString());
+        List<Map<String, Object>> list = jdbcTemplate.queryForList(sql.toString());
         return list;
     }
 
-    public Map<String,Object> sbdLastestTotal(String stationId, String custId, LoginUser lu){
-        StringBuffer sql = new StringBuffer("select id,content,ext_3 from  "+HMetaDataDef.getTable(BusiTypeEnum.SZ.getType(),"")+" where type='"+BusiTypeEnum.SZ.getType()+"' ");
+    public Map<String, Object> sbdLastestTotal(String stationId, String custId, LoginUser lu) {
+        StringBuffer sql = new StringBuffer("select id,content,ext_3 from  " + HMetaDataDef.getTable(BusiTypeEnum.SZ.getType(), "") + " where type='" + BusiTypeEnum.SZ.getType() + "' ");
         if (!"ROLE_USER".equals(lu.getAuth())) {
             custId = lu.getCustId();
-            sql.append(" and cust_id='"+custId+"'");
-        }else {
+            sql.append(" and cust_id='" + custId + "'");
+        } else {
             if (StringUtil.isNotEmpty(stationId)) {
                 sql.append(" and JSON_EXTRACT(content, '$.station_id')='" + stationId + "')");
             }
@@ -1230,8 +1235,8 @@ public class CustomsService {
     }
 
 
-    public List<Map<String, Object>> hzTotal(String type,String stationId, String custId, LoginUser lu){
-        StringBuffer sql = new StringBuffer("select ext_1 status,count(0)num from "+HMetaDataDef.getTable(type,"")+" where type='"+type+"'");
+    public List<Map<String, Object>> hzTotal(String type, String stationId, String custId, LoginUser lu) {
+        StringBuffer sql = new StringBuffer("select ext_1 status,count(0)num from " + HMetaDataDef.getTable(type, "") + " where type='" + type + "'");
         if (!"ROLE_USER".equals(lu.getAuth())) {
             custId = lu.getCustId();
             sql.append(" and cust_id='" + custId + "'");
@@ -1248,16 +1253,15 @@ public class CustomsService {
         sql.append(" and create_date>='").append(begin).append("' and create_date<='").append(end).append("'");
         sql.append("group by status");
 
-        List<Map<String,Object>> data = jdbcTemplate.queryForList(sql.toString());
+        List<Map<String, Object>> data = jdbcTemplate.queryForList(sql.toString());
         return data;
 
     }
 
 
-
-    public Integer countGoodsNumByPartId(String busiType,String id){
-        String _sql = "select content from "+HMetaDataDef.getTable(busiType,"")+" type='"+busiType+"' " +
-                " and (JSON_EXTRACT(content, '$.pid')='"+id+"' or JSON_EXTRACT(content, '$.pid')="+id+")";
+    public Integer countGoodsNumByPartId(String busiType, String id) {
+        String _sql = "select content from " + HMetaDataDef.getTable(busiType, "") + " type='" + busiType + "' " +
+                " and (JSON_EXTRACT(content, '$.pid')='" + id + "' or JSON_EXTRACT(content, '$.pid')=" + id + ")";
 
         return 0;
     }

@@ -96,7 +96,7 @@ public class SbdZService implements BusiService {
                 if (mainData != null) {
                     try {
                         serviceUtils.addDataToES(String.valueOf(mainData.getId()), mainData.getType(), JSON.parseObject(mainData.getContent()));
-                    }catch (Exception e){
+                    } catch (Exception e) {
                         log.error("啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊,主单信息保存到es失败");
                     }
                 }
@@ -127,7 +127,7 @@ public class SbdZService implements BusiService {
                     while (iterator.hasNext()) {
                         String key = iterator.next();
                         List<HBusiDataManager> d = datamap.get(key);
-                        log.info("key="+key+":"+d.size());
+                        log.info("key=" + key + ":" + d.size());
                         serviceUtils.batchInsert(key, d);
                     }
                 }
@@ -148,7 +148,7 @@ public class SbdZService implements BusiService {
             StringBuffer sql = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(BusiTypeEnum.SF.getType(), "") + " where type=?")
                     .append(" and cust_id='").append(cust_id).append("'")
                     .append(" and (ext_7 IS NULL OR ext_7 = '' OR ext_7 = 2) ");
-                    //.append(" and JSON_EXTRACT(content, '$.pid')=?");
+            //.append(" and JSON_EXTRACT(content, '$.pid')=?");
 
             String tmpType = "";
             if (busiType.endsWith("_f")) {
@@ -255,7 +255,7 @@ public class SbdZService implements BusiService {
             throw new TouchException("已经被提交，无法删除");
         }
 
-        List<HBusiDataManager> list = serviceUtils.getDataList(BusiTypeEnum.SF.getType(), id);
+        /*List<HBusiDataManager> list = serviceUtils.getDataList(BusiTypeEnum.SF.getType(), id);
         for (HBusiDataManager hBusiDataManager : list) {
             List<HBusiDataManager> slist = serviceUtils.getDataList(BusiTypeEnum.SS.getType(), hBusiDataManager.getId().longValue());//所有税单
             for (HBusiDataManager shBusiDataManager : slist) {
@@ -264,7 +264,19 @@ public class SbdZService implements BusiService {
             serviceUtils.deleteDatafromES(BusiTypeEnum.SF.getType(), hBusiDataManager.getId().toString());
             serviceUtils.delDataListByPid(BusiTypeEnum.SS.getType(), hBusiDataManager.getId().longValue());
         }
-        serviceUtils.delDataListByPid(BusiTypeEnum.SF.getType(), id);
+        serviceUtils.delDataListByPid(BusiTypeEnum.SF.getType(), id);*/
+
+        List<HBusiDataManager> list = serviceUtils.listDataByPid(cust_id, BusiTypeEnum.SF.getType(), id, BusiTypeEnum.SZ.getType());
+        for (HBusiDataManager hBusiDataManager : list) {
+            // TODO 删除税单是否需要主单号+分单号确定唯一
+            /*List<HBusiDataManager> slist = serviceUtils.listDataByPid(cust_id, BusiTypeEnum.SS.getType(), hBusiDataManager.getId(), BusiTypeEnum.SF.getType());//所有税单
+            for (HBusiDataManager shBusiDataManager : slist) {
+                serviceUtils.deleteDatafromES(BusiTypeEnum.SS.getType(), shBusiDataManager.getId().toString());
+            }*/
+            serviceUtils.deleteDatafromES(BusiTypeEnum.SF.getType(), hBusiDataManager.getId().toString());
+            //serviceUtils.delDataListByPid0(BusiTypeEnum.SS.getType(), hBusiDataManager.getId().longValue());
+        }
+        serviceUtils.delDataListByPid0(BusiTypeEnum.SF.getType(), id, cust_id, BusiTypeEnum.SZ.getType());
 
     }
 
@@ -519,7 +531,7 @@ public class SbdZService implements BusiService {
             list.add(dataManager);
         } catch (Exception e) {
             e.printStackTrace();
-            log.error("build 分单ERROR："+dan.getBill_no()+" "+e.getMessage());
+            log.error("build 分单ERROR：" + dan.getBill_no() + " " + e.getMessage());
         }
     }
 
@@ -621,6 +633,7 @@ public class SbdZService implements BusiService {
         if (pList != null && pList.size() > 0) {
             List<Map<String, String>> mainGoodsName = new ArrayList<>();
             HBusiDataManager dataManager;
+            arrt.put("low_price_goods", 0);
             for (Product product : pList) {
                 log.info("goods:" + product.getCode_ts());
                 try {
@@ -698,7 +711,7 @@ public class SbdZService implements BusiService {
                     list.add(dataManager);
 
                 } catch (Exception e) {
-                    log.error("生成商品信息 " + product.getCode_ts() + " 异常",e);
+                    log.error("生成商品信息 " + product.getCode_ts() + " 异常", e);
                 }
             }
         }

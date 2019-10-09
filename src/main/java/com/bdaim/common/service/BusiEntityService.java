@@ -1,5 +1,6 @@
 package com.bdaim.common.service;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.exception.TouchException;
@@ -267,6 +268,7 @@ public class BusiEntityService {
             if (info.containsKey(sysKey))
                 info.remove(sysKey);
         }
+        String extData = info.toJSONString();
         for (String extKey : extKeys) {
             if (info.containsKey(extKey))
                 info.remove(extKey);
@@ -286,9 +288,9 @@ public class BusiEntityService {
 
                 if (jo.containsKey("_rule_"))
                     jo.remove("_rule_");
-
+                JSONObject jsonObject = JSON.parseObject(extData);
                 jdbcTemplate.update(sql1, id, busiType, info.toJSONString(), cust_id, cust_group_id, cust_user_id, cust_user_id
-                        , jo.containsKey("ext_1") ? info.getString("ext_1") : ""
+                        , jsonObject.containsKey("ext_1") ? jsonObject.getString("ext_1") : ""
                         , jo.containsKey("ext_2") ? info.getString("ext_2") : ""
                         , jo.containsKey("ext_3") ? info.getString("ext_3") : ""
                         , jo.containsKey("ext_4") ? info.getString("ext_4") : ""
@@ -323,6 +325,10 @@ public class BusiEntityService {
 
             try {
                 jo = JSONObject.parseObject(content);
+                JSONObject jsonObject = JSON.parseObject(extData);
+                if(jsonObject.containsKey("ext_1")){
+                    jo.put("ext_1", jsonObject.get("ext_1"));
+                }
                 Iterator keys = info.keySet().iterator();
                 while (keys.hasNext()) {
                     String key = (String) keys.next();

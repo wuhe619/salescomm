@@ -145,8 +145,13 @@ public class ServiceUtils {
         jdbcTemplate.execute(sql);
     }
 
+    public void delDataListByPid0(String type, Long pid, String custId, String pBusiType) {
+        String sql = "delete from " + HMetaDataDef.getTable(type, "") + " where cust_id = ?  AND ext_4 = (SELECT ext_3 FROM " + HMetaDataDef.getTable(pBusiType, "") + " WHERE id = ?) ";
+        jdbcTemplate.update(sql, custId, pid);
+    }
+
     public List<HBusiDataManager> getDataList(String type, Long pid) {
-        String sql2 = "select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(type, "") + " where  type='" + type + "' and ( CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')=" + pid + " ELSE null END  or CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')='" + pid + "' ELSE null END)";
+        String sql2 = "select id, type, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(type, "") + " where  type='" + type + "' and ( CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')=" + pid + " ELSE null END  or CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')='" + pid + "' ELSE null END)";
         log.info("sql2=" + sql2);
        /* RowMapper<HBusiDataManager> managerRowMapper=new BeanPropertyRowMapper<>(HBusiDataManager.class);
         List<HBusiDataManager> list = jdbcTemplate.query(sql2,managerRowMapper);*/
@@ -155,6 +160,15 @@ public class ServiceUtils {
         log.info("list==" + list2);
         List<HBusiDataManager> list = JSON.parseArray(JSON.toJSONString(list2), HBusiDataManager.class);
         return list;
+    }
+
+    public List<HBusiDataManager> listDataByPid(String custId, String type, long pid, String pBusiType) {
+        StringBuffer sql = new StringBuffer();
+        sql.append("select id, type, content, cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(type, "") + " where cust_id = ? AND type=? AND ext_4 = (SELECT ext_3 FROM " + HMetaDataDef.getTable(pBusiType, "") + " WHERE id = ?) ");
+        log.info("查询分单sql:{}", sql);
+        List<Map<String, Object>> list = jdbcTemplate.queryForList(sql.toString(), custId, type, pid);
+        List<HBusiDataManager> result = JSON.parseArray(JSON.toJSONString(list), HBusiDataManager.class);
+        return result;
     }
 
     /**
@@ -424,6 +438,7 @@ public class ServiceUtils {
 
     /**
      * 根据类型获取资源缓存
+     *
      * @param resourceType
      * @return
      */
