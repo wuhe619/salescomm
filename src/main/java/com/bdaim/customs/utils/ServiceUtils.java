@@ -145,6 +145,11 @@ public class ServiceUtils {
         jdbcTemplate.execute(sql);
     }
 
+    public void delDataListByPid0(String type, Long pid) {
+        String sql = "delete from " + HMetaDataDef.getTable(type, "") + " where CASE WHEN JSON_VALID(content) THEN  JSON_EXTRACT(content, '$.pid')=" + pid + " ELSE null END or CASE WHEN JSON_VALID(content) THEN  JSON_EXTRACT(content, '$.pid')='" + pid + "' ELSE null END";
+        jdbcTemplate.execute(sql);
+    }
+
     public List<HBusiDataManager> getDataList(String type, Long pid) {
         String sql2 = "select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(type, "") + " where  type='" + type + "' and ( CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')=" + pid + " ELSE null END  or CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')='" + pid + "' ELSE null END)";
         log.info("sql2=" + sql2);
@@ -159,7 +164,7 @@ public class ServiceUtils {
 
     public List<HBusiDataManager> listDataByPid(String custId, String type, long pid, String pBusiType) {
         StringBuffer sql = new StringBuffer();
-        sql.append("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(type, "") + " where cust_id = ? AND type=? AND ext_4 = (SELECT ext_3 FROM " + HMetaDataDef.getTable(pBusiType, "") + " WHERE id = ?)");
+        sql.append("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(type, "") + " where cust_id = ? AND type=? AND ext_4 = (SELECT ext_3 FROM " + HMetaDataDef.getTable(pBusiType, "") + " WHERE id = ?) ");
         log.info("查询分单sql:{}", sql);
         List<Map<String, Object>> list = jdbcTemplate.queryForList(sql.toString(), custId, type, pid);
         List<HBusiDataManager> result = JSON.parseArray(JSON.toJSONString(list), HBusiDataManager.class);
