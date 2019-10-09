@@ -208,14 +208,19 @@ public class SbdZService implements BusiService {
                         param.put("_eq_is_low_price", 1);
                         List products = new ArrayList();
                         List tmp;
-                        JSONObject js;
+                        JSONObject js, product;
                         // 查询分单下的低价商品
                         for (int i = 0; i < singles.size(); i++) {
                             js = (JSONObject) singles.get(i);
+                            js.put("index", i + 1);
                             tmp = queryChildData(BusiTypeEnum.SS.getType(), cust_id, cust_group_id, cust_user_id, js.getLong("id"), info, param);
                             if (tmp != null && tmp.size() > 0) {
                                 products.addAll(tmp);
                             }
+                        }
+                        for (int j = 0; j < products.size(); j++) {
+                            product = (JSONObject) products.get(j);
+                            product.put("index", j + 1);
                         }
                         info.put("singles", products);
                     }
@@ -227,11 +232,17 @@ public class SbdZService implements BusiService {
                     if (singles != null) {
                         info.put("singles", singles);
                         List products;
-                        JSONObject js;
+                        JSONObject js, product;
                         for (int i = 0; i < singles.size(); i++) {
                             js = (JSONObject) singles.get(i);
+                            js.put("index", i + 1);
                             products = queryChildData(BusiTypeEnum.SS.getType(), cust_id, cust_group_id, cust_user_id, js.getLong("id"), info, param);
+                            for (int j = 0; j < products.size(); j++) {
+                                product = (JSONObject) products.get(j);
+                                product.put("index", j + 1);
+                            }
                             js.put("products", products);
+
                         }
                     }
                     break;
@@ -239,6 +250,11 @@ public class SbdZService implements BusiService {
                     // 预估税单
                     singles = queryChildData(BusiTypeEnum.SF.getType(), cust_id, cust_group_id, cust_user_id, id, info, param);
                     if (singles != null) {
+                        JSONObject js;
+                        for (int i = 0; i < singles.size(); i++) {
+                            js = (JSONObject) singles.get(i);
+                            js.put("index", i + 1);
+                        }
                         info.put("singles", singles);
                     }
                     break;
