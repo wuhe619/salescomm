@@ -165,8 +165,9 @@ public class BgdZService implements BusiService {
             serviceUtils.updateDataToES(BusiTypeEnum.BZ.getType(), id.toString(), jo);
 
             //更新报关单分单信息
-            String selectSql = "select id, type, content, cust_id, cust_group_id, cust_user_id, create_id, create_date ,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(BusiTypeEnum.BF.getType(), "") + " WHERE ( CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')=? ELSE null END  or CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')=? ELSE null END) AND type = ? AND IFNULL(ext_1,'') <>'1' ";
-            List<Map<String, Object>> ds = jdbcTemplate.queryForList(selectSql, id, id, BusiTypeEnum.BF.getType());
+            //String selectSql = "select id, type, content, cust_id, cust_group_id, cust_user_id, create_id, create_date ,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(BusiTypeEnum.BF.getType(), "") + " WHERE ( CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')=? ELSE null END  or CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')=? ELSE null END) AND type = ? AND IFNULL(ext_1,'') <>'1' ";
+            String selectSql = "select id, type, content, cust_id, cust_group_id, cust_user_id, create_id, create_date ,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(BusiTypeEnum.BF.getType(), "") + " WHERE ext_4=(SELECT ext_3 FROM " + HMetaDataDef.getTable(BusiTypeEnum.getParentType(busiType), "") + " WHERE id = ?) AND type = ? AND IFNULL(ext_1,'') <>'1' ";
+            List<Map<String, Object>> ds = jdbcTemplate.queryForList(selectSql, id, BusiTypeEnum.BF.getType());
             String updateSql = " UPDATE " + HMetaDataDef.getTable(BusiTypeEnum.BF.getType(), "") + " SET ext_1 = '1', ext_date1 = NOW(), content=? WHERE id=? AND type = ? AND IFNULL(ext_1,'') <>'1' ";
             for (int i = 0; i < ds.size(); i++) {
                 m = ds.get(i);
@@ -494,8 +495,9 @@ public class BgdZService implements BusiService {
             }
             sqlParams.add(param.get(key));
         }
-        sqlstr.append(" and ( CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')=? ELSE null END  or CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')=? ELSE null END)");
-        sqlParams.add(pid);
+        //sqlstr.append(" and ( CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')=? ELSE null END  or CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')=? ELSE null END)");
+        sqlstr.append(" and ext_4=(SELECT ext_3 FROM " + HMetaDataDef.getTable(BusiTypeEnum.getParentType(busiType), "") + " WHERE id = ?)");
+        //sqlParams.add(pid);
         sqlParams.add(pid);
 
         List<Map<String, Object>> ds = jdbcTemplate.queryForList(sqlstr.toString(), sqlParams.toArray());

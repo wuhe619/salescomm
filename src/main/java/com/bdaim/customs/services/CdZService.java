@@ -169,8 +169,9 @@ public class CdZService implements BusiService {
             serviceUtils.updateDataToES(BusiTypeEnum.CZ.getType(), id.toString(), jo);
 
             //更新舱单分单信息
-            String selectSql = "select id, type, content, cust_id, cust_group_id, cust_user_id, create_id, create_date ,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(BusiTypeEnum.CF.getType(), "") + " WHERE ( CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')=? ELSE null END  or CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')=? ELSE null END) AND type = ? AND IFNULL(ext_1,'') <>'1' ";
-            List<Map<String, Object>> ds = jdbcTemplate.queryForList(selectSql, id, id, BusiTypeEnum.CF.getType());
+            //String selectSql = "select id, type, content, cust_id, cust_group_id, cust_user_id, create_id, create_date ,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(BusiTypeEnum.CF.getType(), "") + " WHERE ( CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')=? ELSE null END  or CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')=? ELSE null END) AND type = ? AND IFNULL(ext_1,'') <>'1' ";
+            String selectSql = "select id, type, content, cust_id, cust_group_id, cust_user_id, create_id, create_date ,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(BusiTypeEnum.CF.getType(), "") + " WHERE ext_4=(SELECT ext_3 FROM " + HMetaDataDef.getTable(BusiTypeEnum.getParentType(busiType), "") + " WHERE id = ?) AND type = ? AND IFNULL(ext_1,'') <>'1' ";
+            List<Map<String, Object>> ds = jdbcTemplate.queryForList(selectSql, id, BusiTypeEnum.CF.getType());
             String updateSql = " UPDATE " + HMetaDataDef.getTable(BusiTypeEnum.CF.getType(), "") + " SET ext_1 = '1', ext_date1 = NOW(), content=? WHERE id =? AND type = ? AND IFNULL(ext_1,'') <>'1' ";
             for (int i = 0; i < ds.size(); i++) {
                 m = ds.get(i);
@@ -200,7 +201,7 @@ public class CdZService implements BusiService {
                 serviceUtils.updateDataToES(BusiTypeEnum.CF.getType(), String.valueOf(m.get("id")), jo);
 
                 //start to create xml file
-                cangdanXmlEXP311.createXml(m,ds);
+                cangdanXmlEXP311.createXml(m, ds);
             }
         } else {
             HBusiDataManager dbManager = serviceUtils.getObjectByIdAndType(id, busiType);
@@ -509,7 +510,8 @@ public class CdZService implements BusiService {
             }
             sqlParams.add(param.get(key));
         }
-        sqlstr.append(" and JSON_EXTRACT(content, '$.pid')=?");
+        //sqlstr.append(" and JSON_EXTRACT(content, '$.pid')=?");
+        sqlstr.append(" and ext_4=(SELECT ext_3 FROM " + HMetaDataDef.getTable(BusiTypeEnum.getParentType(busiType), "") + " WHERE id = ?)");
         sqlParams.add(pid);
 
         List<Map<String, Object>> ds = jdbcTemplate.queryForList(sqlstr.toString(), sqlParams.toArray());

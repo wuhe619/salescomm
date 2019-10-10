@@ -731,7 +731,8 @@ public class HypicZService implements BusiService {
             }
             sqlParams.add(param.get(key));
         }
-        sqlstr.append(" and JSON_EXTRACT(content, '$.pid')=?");
+        //sqlstr.append(" and JSON_EXTRACT(content, '$.pid')=?");
+        sqlstr.append(" and ext_4=(SELECT ext_3 FROM " + HMetaDataDef.getTable(BusiTypeEnum.getParentType(busiType), "") + " WHERE id = ?)");
         sqlParams.add(pid);
 
         List<Map<String, Object>> ds = jdbcTemplate.queryForList(sqlstr.toString(), sqlParams.toArray());

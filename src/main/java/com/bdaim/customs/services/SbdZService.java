@@ -151,13 +151,7 @@ public class SbdZService implements BusiService {
                     .append(" and (ext_7 IS NULL OR ext_7 = '' OR ext_7 = 2) ");
             //.append(" and JSON_EXTRACT(content, '$.pid')=?");
 
-            String tmpType = "";
-            if (busiType.endsWith("_f")) {
-                tmpType = busiType.replaceAll("_f", "_z");
-            } else if (busiType.endsWith("_s")) {
-                tmpType = busiType.replaceAll("_s", "_f");
-            }
-            sql.append(" and ext_4=(SELECT ext_3 FROM " + HMetaDataDef.getTable(tmpType, "") + " WHERE id = ?)");
+            sql.append(" and ext_4=(SELECT ext_3 FROM " + HMetaDataDef.getTable(BusiTypeEnum.getParentType(busiType), "") + " WHERE id = ?)");
 
             List sqlParams = new ArrayList();
             sqlParams.add(BusiTypeEnum.SF.getType());
