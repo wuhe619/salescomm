@@ -107,7 +107,7 @@ public class BusiEntityService {
      */
     public Page query(String cust_id, String cust_group_id, Long cust_user_id, String busiType, JSONObject params) throws Exception {
         Page p = new Page();
-        String stationId = params.getString("station_id");
+        String stationId = params.getString("stationId");
 
         List sqlParams = new ArrayList();
 
