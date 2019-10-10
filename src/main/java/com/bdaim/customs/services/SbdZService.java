@@ -208,6 +208,7 @@ public class SbdZService implements BusiService {
                         for (int i = 0; i < singles.size(); i++) {
                             js = (JSONObject) singles.get(i);
                             js.put("index", i + 1);
+                            param.put("main_bill_no", js.getString("main_bill_no"));
                             tmp = queryChildData(BusiTypeEnum.SS.getType(), cust_id, cust_group_id, cust_user_id, js.getLong("id"), info, param);
                             if (tmp != null && tmp.size() > 0) {
                                 for (int j = 0; j < products.size(); j++) {
@@ -235,6 +236,7 @@ public class SbdZService implements BusiService {
                         for (int i = 0; i < singles.size(); i++) {
                             js = (JSONObject) singles.get(i);
                             js.put("index", i + 1);
+                            param.put("main_bill_no", js.getString("main_bill_no"));
                             products = queryChildData(BusiTypeEnum.SS.getType(), cust_id, cust_group_id, cust_user_id, js.getLong("id"), info, param);
                             for (int j = 0; j < products.size(); j++) {
                                 product = (JSONObject) products.get(j);
