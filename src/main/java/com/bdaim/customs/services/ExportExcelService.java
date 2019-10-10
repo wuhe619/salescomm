@@ -65,6 +65,7 @@ public class ExportExcelService {
         }
         Workbook workbook = ExcelExportUtil.exportExcel(params, map);
         workbook.write(response.getOutputStream());
+        LOG.info("导出:{}完成",templatePath);
     }
 
     public void exportExcel(int id, List<JSONObject> list, JSONObject param, HttpServletResponse response) throws IllegalAccessException, IOException {

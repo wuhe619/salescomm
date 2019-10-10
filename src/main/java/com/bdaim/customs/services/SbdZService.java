@@ -151,7 +151,7 @@ public class SbdZService implements BusiService {
                     .append(" and (ext_7 IS NULL OR ext_7 = '' OR ext_7 = 2) ");
             //.append(" and JSON_EXTRACT(content, '$.pid')=?");
 
-            sql.append(" and ext_4=(SELECT ext_3 FROM " + HMetaDataDef.getTable(BusiTypeEnum.getParentType(busiType), "") + " WHERE id = ?)");
+            sql.append(" and ext_4=(SELECT ext_3 FROM " + HMetaDataDef.getTable(BusiTypeEnum.getParentType(BusiTypeEnum.SF.getType()), "") + " WHERE id = ?)");
 
             List sqlParams = new ArrayList();
             sqlParams.add(BusiTypeEnum.SF.getType());
@@ -208,6 +208,7 @@ public class SbdZService implements BusiService {
                         for (int i = 0; i < singles.size(); i++) {
                             js = (JSONObject) singles.get(i);
                             js.put("index", i + 1);
+                            param.put("main_bill_no", js.getString("main_bill_no"));
                             tmp = queryChildData(BusiTypeEnum.SS.getType(), cust_id, cust_group_id, cust_user_id, js.getLong("id"), info, param);
                             if (tmp != null && tmp.size() > 0) {
                                 for (int j = 0; j < products.size(); j++) {
@@ -235,6 +236,7 @@ public class SbdZService implements BusiService {
                         for (int i = 0; i < singles.size(); i++) {
                             js = (JSONObject) singles.get(i);
                             js.put("index", i + 1);
+                            param.put("main_bill_no", js.getString("main_bill_no"));
                             products = queryChildData(BusiTypeEnum.SS.getType(), cust_id, cust_group_id, cust_user_id, js.getLong("id"), info, param);
                             for (int j = 0; j < products.size(); j++) {
                                 product = (JSONObject) products.get(j);
