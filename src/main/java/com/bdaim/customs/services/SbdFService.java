@@ -208,13 +208,15 @@ public class SbdFService implements BusiService {
         if (manager.getCust_id() == null || (!cust_id.equals(manager.getCust_id().toString()))) {
             throw new TouchException("无权删除");
         }
-        List<HBusiDataManager> list = serviceUtils.getDataList(BusiTypeEnum.SS.getType(), id);
+
+        JSONObject json = JSONObject.parseObject(manager.getContent());
+        //List<HBusiDataManager> list = serviceUtils.getDataList(BusiTypeEnum.SS.getType(), id);
+        List<HBusiDataManager> list = serviceUtils.listSdByBillNo(cust_id, BusiTypeEnum.SS.getType(), json.getString("main_bill_no"), json.getString("bill_no"));
         for (HBusiDataManager manager2 : list) {
             serviceUtils.deleteDatafromES(manager2.getType(), manager2.getId().toString());
         }
         serviceUtils.delDataListByPid(BusiTypeEnum.SS.getType(), id);
         serviceUtils.deleteDatafromES(manager.getType(), manager.getId().toString());
-        JSONObject json = JSONObject.parseObject(manager.getContent());
         Integer zid = json.getInteger("pid");
         totalPartDanToMainDan(json.getLongValue("pid"), BusiTypeEnum.SZ.getType(), id, cust_id);
 
