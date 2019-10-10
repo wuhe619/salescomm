@@ -3,6 +3,7 @@ package com.bdaim.customs.services;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.common.BusiMetaConfig;
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.service.BusiService;
@@ -814,22 +815,27 @@ public class SbdZService implements BusiService {
             if ("pageNum".equals(key) || "pageSize".equals(key) || "stationId".equals(key) || "cust_id".equals(key) || "_rule_".equals(key)) {
                 continue;
             } else if (key.startsWith("_g_")) {
-                sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(3) + "') > ?");
+                sqlstr.append(" and " + BusiMetaConfig.getFieldIndex(busiType, key) + " > ?");
             } else if (key.startsWith("_ge_")) {
-                sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(4) + "') >= ?");
+                sqlstr.append(" and " + BusiMetaConfig.getFieldIndex(busiType, key) + " >= ?");
             } else if (key.startsWith("_l_")) {
-                sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(3) + "') < ?");
+                sqlstr.append(" and " + BusiMetaConfig.getFieldIndex(busiType, key) + " < ?");
             } else if (key.startsWith("_le_")) {
-                sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(4) + "') <= ?");
+                sqlstr.append(" and " + BusiMetaConfig.getFieldIndex(busiType, key) + " <= ?");
             } else if (key.startsWith("_eq_")) {
-                sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(4) + "') = ?");
+                sqlstr.append(" and " + BusiMetaConfig.getFieldIndex(busiType, key) + " = ?");
             } else {
-                sqlstr.append(" and JSON_EXTRACT(content, '$." + key + "')=?");
+                sqlstr.append(" and " + BusiMetaConfig.getFieldIndex(busiType, key) + "=?");
             }
             sqlParams.add(param.get(key));
         }
-        sqlstr.append(" and ").append(serviceUtils.getQueryFieldAs(busiType, "pid"));
-        //and ext_4=(SELECT ext_3 FROM " + HMetaDataDef.getTable(tmpType, "") + " WHERE id = ?)
+        String tmpType = "";
+        if (busiType.endsWith("_f")) {
+            tmpType = busiType.replaceAll("_f", "_z");
+        } else if (busiType.endsWith("_s")) {
+            tmpType = busiType.replaceAll("_s", "_f");
+        }
+        sqlstr.append(" and " + BusiMetaConfig.getFieldIndex(busiType, "pid") + "=(SELECT ext_3 FROM " + HMetaDataDef.getTable(tmpType, "") + " WHERE id = ?)");
         sqlParams.add(pid);
 
         List<Map<String, Object>> ds = jdbcTemplate.queryForList(sqlstr.toString(), sqlParams.toArray());

@@ -508,52 +508,6 @@ public class ServiceUtils {
         return list;
     }
 
-    public String getQueryFieldAs(String type, String key) {
-        key = " JSON_EXTRACT(content, '$." + key + "')";
-        if ("pid".equals(key)) {
-            String tmpType = "";
-            if (type.endsWith("_f")) {
-                tmpType = type.replaceAll("_f", "_z");
-            } else if (type.endsWith("_s")) {
-                tmpType = type.replaceAll("_s", "_f");
-            }
-            key = " ext_4=(SELECT ext_3 FROM " + HMetaDataDef.getTable(tmpType, "") + " WHERE id = ?";
-        } else if ("cust_id".equals(key)) {
-            key = " cust_id=?";
-        } /*else if ("pid".equals(key)) {
-            String tmpType = "";
-            if (busiType.endsWith("_f")) {
-                tmpType = busiType.replaceAll("_f", "_z");
-            } else if (busiType.endsWith("_s")) {
-                tmpType = busiType.replaceAll("_s", "_f");
-            }
-            sqlstr.append(" and ext_4=(SELECT ext_3 FROM " + HMetaDataDef.getTable(tmpType, "") + " WHERE id = ?)");
-        } else if (key.startsWith("_c_")) {
-            sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(3) + "') like concat('%',?,'%')");
-        } else if (key.startsWith("_g_")) {
-            sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(3) + "') > ?");
-        } else if (key.startsWith("_ge_")) {
-            sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(4) + "') >= ?");
-        } else if (key.startsWith("_l_")) {
-            sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(3) + "') < ?");
-        } else if (key.startsWith("_le_")) {
-            sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(4) + "') <= ?");
-        } else if (key.startsWith("_eq_")) {
-            sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(4) + "') = ?");
-        } else if (key.startsWith("_range_")) {
-            if ("0".equals(String.valueOf(params.get(key)))) {
-                sqlstr.append(" and ( JSON_EXTRACT(content, '$." + key.substring(7) + "') <= ?")
-                        .append(" OR JSON_EXTRACT(content, '$." + key.substring(7) + "') = '' ")
-                        .append(" OR JSON_EXTRACT(content, '$." + key.substring(7) + "') IS NULL ) ");
-            } else {
-                sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(7) + "') >= ?");
-            }
-        } else {
-            sqlstr.append(" and JSON_EXTRACT(content, '$." + key + "')=?");
-        }*/
-        return key;
-    }
-
     public void esTestData() {
         //测试主单数据
         JSONObject json = new JSONObject();
