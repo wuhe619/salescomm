@@ -2,7 +2,11 @@ package com.bdaim.common.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.dto.Page;
+import com.bdaim.common.util.NumberConvertUtil;
 import com.bdaim.common.util.StringUtil;
+import com.bdaim.customs.entity.BusiTypeEnum;
+import com.bdaim.rbac.dao.UserDao;
+import com.bdaim.rbac.entity.UserProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,10 +16,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import javax.transaction.Transactional;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 通用业务实体服务
@@ -30,6 +31,8 @@ public class ResourceService {
 
     @Autowired
     private SequenceService sequenceService;
+    @Autowired
+    private UserDao userDao;
 
     /*
      * 按ID获取资源
@@ -74,7 +77,20 @@ public class ResourceService {
             StringBuffer sqlstr = new StringBuffer("select id, content, create_id, create_date from h_resource where type=?");
 
             sqlParams.add(resourceType);
-
+            if (StringUtil.isNotEmpty(user_id) && BusiTypeEnum.ST.getType().equals(resourceType)) {
+                String stationIds = "";
+                UserProperty userProperty = userDao.getProperty(NumberConvertUtil.parseLong(user_id), "station_id");
+                if (userProperty != null && StringUtil.isNotEmpty(userProperty.getPropertyValue())) {
+                    String propertyValue = userProperty.getPropertyValue();
+                    List<String> stationIdList = Arrays.asList(propertyValue.split(","));
+                    for (int j = 0; j < stationIdList.size(); j++) {
+                        stationIds += stationIdList.get(j) + ",";
+                    }
+                    stationIds = stationIds.substring(0, stationIds.length() - 1);
+                    logger.info("用戶配置的场站信息是：" + stationIds);
+                    sqlstr.append(" and id in (" + stationIds + ")");
+                }
+            }
             Iterator keys = params.keySet().iterator();
             while (keys.hasNext()) {
                 String key = (String) keys.next();

@@ -54,7 +54,9 @@ public class ResourceController extends BasicAction {
         try {
         	LoginUser lu = opUser();
         	String user_id = lu.getUser_id();
-        	
+            if ("admin".equals(lu.getRole())) {
+                user_id = "";
+            }
         	resp.setData(resourceService.query(user_id, resourceType, params));
         } catch (Exception e) {
             logger.error("查询资源异常:"+e.getMessage());
