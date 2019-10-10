@@ -773,7 +773,7 @@ public class CustomsService {
 
     public Page getdicPageList(String dicType, Integer pageSize, Integer pageNo) {
         String sql = "select type,code,name_zh,name_en,`desc`,`status`,ext_1, ext_2, ext_3 from h_dic where type='" + dicType + "'";
-        Page page = hDicDao.sqlPageQuery(sql, pageNo, pageSize);
+        Page page = hDicDao.sqlPageQueryByPageSize(sql, pageNo, pageSize);
         return page;
     }
 
