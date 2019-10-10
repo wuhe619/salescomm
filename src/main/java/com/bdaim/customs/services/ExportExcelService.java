@@ -63,9 +63,19 @@ public class ExportExcelService {
         if (sheetName != null && sheetName.length > 0) {
             params.setSheetName(sheetName);
         }
+        try {
+            List list = (List) map.get("list");
+            LOG.info("导出list:", list != null ? list.size() : 0);
+            List list1 = (List) map.get("list1");
+            LOG.info("导出list1:", list1 != null ? list1.size() : 0);
+            List list2 = (List) map.get("list2");
+            LOG.info("导出list2:", list2 != null ? list2.size() : 0);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         Workbook workbook = ExcelExportUtil.exportExcel(params, map);
         workbook.write(response.getOutputStream());
-        LOG.info("导出:{}完成",templatePath);
+        LOG.info("导出:{}完成", templatePath);
     }
 
     public void exportExcel(int id, List<JSONObject> list, JSONObject param, HttpServletResponse response) throws IllegalAccessException, IOException {
