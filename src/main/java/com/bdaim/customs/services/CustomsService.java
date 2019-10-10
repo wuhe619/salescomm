@@ -863,10 +863,14 @@ public class CustomsService {
                     if (jsonObject != null) {
                         // 身份证照片存储对象ID
                         if (1 == type) {
-                            if (StringUtil.isEmpty(String.valueOf(map.get(jsonObject.getString("id_no"))))) {
+                            /*if (StringUtil.isEmpty(String.valueOf(map.get(jsonObject.getString("id_no"))))) {
                                 jsonObject.put("idcard_pic_flag", "0");
                                 jsonObject.put(picKey, "");
                             } else {
+                                jsonObject.put(picKey, map.get(jsonObject.getString("id_no")));
+                                jsonObject.put("idcard_pic_flag", "1");
+                            }*/
+                            if (StringUtil.isNotEmpty(String.valueOf(map.get(jsonObject.getString("id_no"))))) {
                                 jsonObject.put(picKey, map.get(jsonObject.getString("id_no")));
                                 jsonObject.put("idcard_pic_flag", "1");
                             }
