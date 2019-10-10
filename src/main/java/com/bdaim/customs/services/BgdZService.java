@@ -236,10 +236,15 @@ public class BgdZService implements BusiService {
                     if (singles != null) {
                         info.put("singles", singles);
                         List products;
-                        JSONObject js;
+                        JSONObject js, product;
                         for (int i = 0; i < singles.size(); i++) {
                             js = (JSONObject) singles.get(i);
                             products = queryChildData(BusiTypeEnum.BS.getType(), cust_id, cust_group_id, cust_user_id, js.getLong("id"), info, param);
+                            for (int j = 0; j < products.size(); j++) {
+                                product = (JSONObject) products.get(j);
+                                product.put("index", j + 1);
+                                product.put("main_bill_no", js.getString("main_bill_no"));
+                            }
                             js.put("products", products);
                         }
                     }
@@ -429,6 +434,7 @@ public class BgdZService implements BusiService {
             hm.setCreateDate(new Date());
             Long fid = sequenceService.getSeq(BusiTypeEnum.BF.getType());
             hm.setId(fid);
+            hm.setExt_2(hp.getExt_2());
             hm.setExt_3(hp.getExt_3());
             hm.setExt_4(hp.getExt_4());
             hm.setCreateId(hp.getCreateId());

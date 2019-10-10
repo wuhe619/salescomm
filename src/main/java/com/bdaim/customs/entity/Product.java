@@ -35,7 +35,7 @@ public class Product {
     @JsonProperty(value = "G_QTY")
     private String g_qty;//申报数量
     @JsonProperty(value = "G_UNIT")
-    private String g_unit;//申报计量单位
+    private String g_unit;//申报单位
     @JsonProperty(value = "QTY_1")
     private String qty_1;//第一（法定）数量
     @JsonProperty(value = "UNIT_1")

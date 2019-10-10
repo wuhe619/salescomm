@@ -607,7 +607,7 @@ public class CustomsService {
 
         JSONObject json = buildPartyContent(dan);
         json.put("type", BusiTypeEnum.SF.getKey());
-        json.put("mail_bill_no", mainBillNo);
+        json.put("main_bill_no", mainBillNo);
         json.put("create_date", dataManager.getCreateDate());
         json.put("create_id", user.getId());
         json.put("cust_id", user.getCustId());

@@ -210,6 +210,10 @@ public class SbdZService implements BusiService {
                             js.put("index", i + 1);
                             tmp = queryChildData(BusiTypeEnum.SS.getType(), cust_id, cust_group_id, cust_user_id, js.getLong("id"), info, param);
                             if (tmp != null && tmp.size() > 0) {
+                                for (int j = 0; j < products.size(); j++) {
+                                    JSONObject tmpS = (JSONObject) tmp.get(j);
+                                    tmpS.put("main_bill_no", js.getString("main_bill_no"));
+                                }
                                 products.addAll(tmp);
                             }
                         }
@@ -235,6 +239,7 @@ public class SbdZService implements BusiService {
                             for (int j = 0; j < products.size(); j++) {
                                 product = (JSONObject) products.get(j);
                                 product.put("index", j + 1);
+                                product.put("main_bill_no", js.getString("main_bill_no"));
                             }
                             js.put("products", products);
 
@@ -249,6 +254,7 @@ public class SbdZService implements BusiService {
                         for (int i = 0; i < singles.size(); i++) {
                             js = (JSONObject) singles.get(i);
                             js.put("index", i + 1);
+                            js.put("main_bill_no", js.getString("main_bill_no"));
                         }
                         info.put("singles", singles);
                     }
@@ -462,7 +468,7 @@ public class SbdZService implements BusiService {
 
             JSONObject json = buildPartyContent(dan);
             json.put("type", BusiTypeEnum.SF.getType());
-            json.put("mail_bill_no", mainBillNo);
+            json.put("main_bill_no", mainBillNo);
             json.put("create_date", dataManager.getCreateDate());
             json.put("create_id", userId);
             json.put("cust_id", custId);
@@ -501,7 +507,7 @@ public class SbdZService implements BusiService {
             JSONObject arrt = new JSONObject();
             log.info("申报单分单:" + dan.getBill_no());
             // 构造商品数据
-            buildGoods0(list, pList, userId, custId, String.valueOf(id), arrt, resource);
+            buildGoods0(list, pList, userId, custId, String.valueOf(id), arrt, resource, mainBillNo);
             HBusiDataManager dataManager = new HBusiDataManager();
             dataManager.setType(BusiTypeEnum.SF.getType());
             dataManager.setCreateId(userId);
@@ -642,7 +648,7 @@ public class SbdZService implements BusiService {
         }
     }
 
-    public void buildGoods0(List<HBusiDataManager> list, List<Product> pList, Long userId, String custId, String pid, JSONObject arrt, Map<String, JSONObject> resource) throws Exception {
+    public void buildGoods0(List<HBusiDataManager> list, List<Product> pList, Long userId, String custId, String pid, JSONObject arrt, Map<String, JSONObject> resource, String main_bill_no) throws Exception {
         if (pList != null && pList.size() > 0) {
             List<Map<String, String>> mainGoodsName = new ArrayList<>();
             HBusiDataManager dataManager;
@@ -658,8 +664,12 @@ public class SbdZService implements BusiService {
                     //dataManager.setId(NumberConvertUtil.parseLong(product.getId()));
                     dataManager.setId(id);
                     dataManager.setCust_id(Long.valueOf(custId));
-                    dataManager.setExt_3(product.getCode_ts());//商品编号
-                    dataManager.setExt_4(product.getBill_no());//分单号
+                    // 主单号
+                    dataManager.setExt_2(main_bill_no);
+                    //分单号
+                    dataManager.setExt_4(product.getBill_no());
+                    //商品编号
+                    dataManager.setExt_3(product.getCode_ts());
                     JSONObject json = buildGoodsContent(product);
                     json.put("create_date", new Date());
                     json.put("create_id", userId);

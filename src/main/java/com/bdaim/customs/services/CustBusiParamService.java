@@ -72,6 +72,9 @@ public class CustBusiParamService implements BusiService{
 
 			if ("cust_id".equals(key)) {
 				sqlstr.append(" and cust_id=?");
+			}else if ("status".equals(key)){
+				sqlstr.append(" and JSON_EXTRACT(content, '$.status') =?");
+
 			}
 			sqlParams.add(params.get(key));
 		}

@@ -64,6 +64,7 @@ public class SbdSService implements BusiService {
         info.put("cust_id", cust_id);
         info.put("create_id", cust_user_id);
         info.put("create_date", new Date());
+
         info.put("ext_3", code_ts);
         info.put("ext_4", billNo);
         float duty_paid_price = 0;
@@ -102,6 +103,9 @@ public class SbdSService implements BusiService {
 
         String pcontent = partH.getContent();
         JSONObject jsonObject = JSON.parseObject(pcontent);
+        // 税单存入主单号
+        info.put("ext_2", jsonObject.getString("main_bill_no"));
+
         Float weight = jsonObject.getFloatValue("weight");
         Float pack_NO = jsonObject.getFloatValue("pack_no");
         if (weight == null) weight = 0f;
