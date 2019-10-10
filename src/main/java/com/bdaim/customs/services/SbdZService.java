@@ -318,6 +318,8 @@ public class SbdZService implements BusiService {
                 continue;
             if ("cust_id".equals(key)) {
                 sqlstr.append(" and cust_id=?");
+            } else if (key.equals("bill_no")) {
+                sqlstr.append(" and ext_3 = ? ");
             } else if (key.startsWith("_c_")) {
                 sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(3) + "') like concat('%',?,'%')");
             } else if (key.startsWith("_g_")) {
@@ -826,7 +828,8 @@ public class SbdZService implements BusiService {
             }
             sqlParams.add(param.get(key));
         }
-        sqlstr.append(" and JSON_EXTRACT(content, '$.pid')=?");
+        sqlstr.append(" and ").append(serviceUtils.getQueryFieldAs(busiType, "pid"));
+        //and ext_4=(SELECT ext_3 FROM " + HMetaDataDef.getTable(tmpType, "") + " WHERE id = ?)
         sqlParams.add(pid);
 
         List<Map<String, Object>> ds = jdbcTemplate.queryForList(sqlstr.toString(), sqlParams.toArray());
