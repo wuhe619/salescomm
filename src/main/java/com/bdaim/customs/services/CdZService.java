@@ -6,6 +6,7 @@ import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.service.BusiService;
 import com.bdaim.common.service.ElasticSearchService;
 import com.bdaim.common.service.SequenceService;
+import com.bdaim.common.util.CangdanXmlEXP311;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customs.entity.BusiTypeEnum;
@@ -49,6 +50,10 @@ public class CdZService implements BusiService {
 
     @Autowired
     private ServiceUtils serviceUtils;
+
+    @Autowired
+    private CangdanXmlEXP311 cangdanXmlEXP311;
+
 
     @Override
     public void insertInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) throws Exception {
@@ -194,6 +199,8 @@ public class CdZService implements BusiService {
                 jdbcTemplate.update(updateSql, jo.toJSONString(), m.get("id"), BusiTypeEnum.CF.getType());
                 serviceUtils.updateDataToES(BusiTypeEnum.CF.getType(), String.valueOf(m.get("id")), jo);
 
+                //start to create xml file
+                cangdanXmlEXP311.createXml(m,ds);
             }
         } else {
             HBusiDataManager dbManager = serviceUtils.getObjectByIdAndType(id, busiType);

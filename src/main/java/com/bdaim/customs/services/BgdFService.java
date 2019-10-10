@@ -6,6 +6,7 @@ import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.service.BusiService;
 import com.bdaim.common.service.ElasticSearchService;
 import com.bdaim.common.service.SequenceService;
+import com.bdaim.common.util.BaoguandanXmlEXP301;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customs.dao.HBusiDataManagerDao;
@@ -49,6 +50,8 @@ public class BgdFService implements BusiService {
     @Autowired
     private ServiceUtils serviceUtils;
 
+    @Autowired
+    private BaoguandanXmlEXP301 baoguandanXmlEXP301;
 
     @Override
     public void insertInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) throws Exception {
@@ -152,6 +155,13 @@ public class BgdFService implements BusiService {
             sql = "UPDATE "+HMetaDataDef.getTable(busiType,"")+" SET ext_1 = '1', ext_date1 = NOW(), content=? WHERE id = ? AND type = ? AND IFNULL(ext_1,'') <>'1' ";
             jdbcTemplate.update(sql, jo.toJSONString(), id, busiType);
             serviceUtils.updateDataToES(BusiTypeEnum.BF.getType(), id.toString(), jo);
+            //start to create xml
+            String mainsql = "select content, cust_id, cust_group_id, cust_user_id, create_id, create_date ,ext_1, ext_2, ext_3, ext_4, ext_5 from "+ HMetaDataDef.getTable(BusiTypeEnum.BZ.getType(),"")+" where type=? and id=? ";
+            list = jdbcTemplate.queryForList(mainsql, BusiTypeEnum.BZ.getType(), jo.getString("pid"));
+            Map<String,Object> mainMap = list.get(0);
+            List<HBusiDataManager> list2 = serviceUtils.listDataByParentBillNo(cust_id,BusiTypeEnum.BS.getType(),jo.getString("bill_no"));
+            baoguandanXmlEXP301.createXml(mainMap,m,list2);
+
         } else {
             HBusiDataManager dbManager = serviceUtils.getObjectByIdAndType(id, busiType);
             String content = dbManager.getContent();
