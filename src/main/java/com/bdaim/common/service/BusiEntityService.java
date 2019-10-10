@@ -194,6 +194,8 @@ public class BusiEntityService {
             pageSize = 1000;
 
         try {
+            logger.info("querySql:{}", sql + " limit " + (pageNum - 1) * pageSize + ", " + pageSize);
+            logger.info("queryParam:{}", JSON.toJSONString(sqlParams));
             List<Map<String, Object>> ds = jdbcTemplate.queryForList(sql + " limit " + (pageNum - 1) * pageSize + ", " + pageSize, sqlParams.toArray());
             String totalSql = "select count(0) from ( " + sql + " ) t ";
             List data = new ArrayList();
@@ -326,7 +328,7 @@ public class BusiEntityService {
             try {
                 jo = JSONObject.parseObject(content);
                 JSONObject jsonObject = JSON.parseObject(extData);
-                if(jsonObject.containsKey("ext_1")){
+                if (jsonObject.containsKey("ext_1")) {
                     jo.put("ext_1", jsonObject.get("ext_1"));
                 }
                 Iterator keys = info.keySet().iterator();
