@@ -252,17 +252,17 @@ public class SbdSService implements BusiService {
         JSONObject partcontentJson = JSON.parseObject(partcontent);
 
         Float weight = partcontentJson.getFloatValue("weight");
-        Float pack_NO = partcontentJson.getFloatValue("pack_NO");
+        Float pack_NO = partcontentJson.getFloatValue("pack_no");
         if (weight == null) weight = 0f;
-        if (StringUtil.isNotEmpty(pjson.getString("ggrossWt"))) {
-            weight -= Float.valueOf(pjson.getString("ggrossWt"));
+        if (StringUtil.isNotEmpty(pjson.getString("ggrosswt"))) {
+            weight -= Float.valueOf(pjson.getString("ggrosswt"));
         }
         if (pack_NO == null) pack_NO = 0f;
         if (StringUtil.isNotEmpty(pjson.getString("g_qty"))) {
             pack_NO -= Float.valueOf(pjson.getString("g_qty"));
         }
         partcontentJson.put("weight", weight);
-        partcontentJson.put("pack_NO", pack_NO);
+        partcontentJson.put("pack_no", pack_NO);
         parth.setContent(partcontentJson.toJSONString());
 
         String sql = "update " + HMetaDataDef.getTable(parth.getType(), "") + " set content='" + partcontentJson.toJSONString() + "'" +
