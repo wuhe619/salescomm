@@ -289,7 +289,7 @@ public class BusiEntityService {
                 JSONObject jsonObject = JSON.parseObject(extData);
                 jdbcTemplate.update(sql1, id, busiType, info.toJSONString(), cust_id, cust_group_id, cust_user_id, cust_user_id
                         , jsonObject.containsKey("ext_1") ? jsonObject.getString("ext_1") : ""
-                        , jo.containsKey("ext_2") ? info.getString("ext_2") : ""
+                        , jo.containsKey("ext_2") ? jo.getString("ext_2") : ""
                         , jo.containsKey("ext_3") ? info.getString("ext_3") : ""
                         , jo.containsKey("ext_4") ? info.getString("ext_4") : ""
                         , jo.containsKey("ext_5") ? info.getString("ext_5") : "");
