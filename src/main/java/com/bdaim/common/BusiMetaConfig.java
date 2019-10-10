@@ -31,4 +31,16 @@ public class BusiMetaConfig {
 		String fieldSave = null;
 	}
 	
+	public static String getFieldIndex(String type,String field) {
+		String newField = null;
+		if("sbd_f".equals(type) && "pid".equals(field)) {
+			newField = "ext_3";
+		}else if("cust_id".equals(field) || "cust_user_id".equals(field) || "cust_group_id".equals(field)){
+			newField = field;
+		}else{
+			newField = "JSON_EXTRACT(content, '$."+field+"')";
+		}
+		
+		return newField;
+	}
 }
