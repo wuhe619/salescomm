@@ -42,6 +42,11 @@ public class BusiMetaConfig {
                 || BusiTypeEnum.BF.getType().equals(type) || BusiTypeEnum.BS.getType().equals(type))
                 && "pid".equals(field)) {
             newField = "ext_4";
+        } else if ((BusiTypeEnum.SZ.getType().equals(type) || BusiTypeEnum.CZ.getType().equals(type)
+                || BusiTypeEnum.BZ.getType().equals(type) || BusiTypeEnum.SF.getType().equals(type)
+                || BusiTypeEnum.CF.getType().equals(type) || BusiTypeEnum.BF.getType().equals(type))
+                && "bill_no".equals(field)) {
+            newField = "ext_3";
         } else if ((BusiTypeEnum.SS.getType().equals(type) || BusiTypeEnum.CS.getType().equals(type)
                 || BusiTypeEnum.BS.getType().equals(type))
                 && "main_bill_no".equals(field)) {
@@ -49,7 +54,7 @@ public class BusiMetaConfig {
         } else if ((BusiTypeEnum.SS.getType().equals(type) || BusiTypeEnum.CS.getType().equals(type)
                 || BusiTypeEnum.BS.getType().equals(type))
                 && "bill_no".equals(field)) {
-            newField = "ext_3";
+            newField = "ext_4";
         } else if ((BusiTypeEnum.SF.getType().equals(type) || BusiTypeEnum.CF.getType().equals(type)
                 || BusiTypeEnum.BF.getType().equals(type))
                 && "main_bill_no".equals(field)) {
