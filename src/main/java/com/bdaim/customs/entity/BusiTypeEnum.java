@@ -87,6 +87,16 @@ public enum BusiTypeEnum {
         return "";
     }
 
+    public static String getParentType(String busiType) {
+        String parentType = "";
+        if (busiType.endsWith("_f")) {
+            parentType = busiType.replaceAll("_f", "_z");
+        } else if (busiType.endsWith("_s")) {
+            parentType = busiType.replaceAll("_s", "_f");
+        }
+        return parentType;
+    }
+
     public String getKey() {
         return key;
     }

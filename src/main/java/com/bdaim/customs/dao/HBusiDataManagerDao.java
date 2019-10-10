@@ -2,6 +2,7 @@ package com.bdaim.customs.dao;
 
 import com.alibaba.fastjson.JSON;
 import com.bdaim.common.dao.SimpleHibernateDao;
+import com.bdaim.customs.entity.BusiTypeEnum;
 import com.bdaim.customs.entity.HBusiDataManager;
 import com.bdaim.customs.entity.HMetaDataDef;
 import org.hibernate.Query;
@@ -41,7 +42,7 @@ public class HBusiDataManagerDao extends SimpleHibernateDao<HBusiDataManager, Se
      * @return
      */
     public List<HBusiDataManager> listHBusiDataManager0(int pid, String type) {
-        String hql = "select * from  "+ HMetaDataDef.getTable(type,"")+" WHERE type = ? AND ext_4 = (SELECT ext_3 FROM HBusiDataManager WHERE id = ?)";
+        String hql = "select * from  " + HMetaDataDef.getTable(type, "") + " WHERE type = ? AND ext_4 = (SELECT ext_3 FROM HBusiDataManager WHERE id = ?)";
         return this.find(hql, type, pid);
     }
 
@@ -63,7 +64,7 @@ public class HBusiDataManagerDao extends SimpleHibernateDao<HBusiDataManager, Se
      * @return
      */
     public List<HBusiDataManager> listFDIdCard(int pid, String type, int idCardPhotoStatus, int idCardCheckStatus) {
-        StringBuilder hql = new StringBuilder("select * from "+HMetaDataDef.getTable(type,"")+" WHERE type = ? AND JSON_EXTRACT(content, '$.pid')=?  ");
+        StringBuilder hql = new StringBuilder("select * from " + HMetaDataDef.getTable(type, "") + " WHERE type = ? AND JSON_EXTRACT(content, '$.pid')=?  ");
         // 有身份照片
         if (1 == idCardPhotoStatus) {
             hql.append(" AND ext_6 IS NOT NULL AND ext_6 <>'' ");
@@ -89,8 +90,9 @@ public class HBusiDataManagerDao extends SimpleHibernateDao<HBusiDataManager, Se
      * @return
      */
     public int countMainDIdCardNum(long pid, String type) {
-        String sql = "select id from "+ HMetaDataDef.getTable(type,"")+" where type=? AND ext_6 IS NOT NULL AND ext_6 <>'' and ( CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')=" + pid + " ELSE null END  or CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')=" + pid + " ELSE null END)";
-        List<Map<String, Object>> list = sqlQuery(sql, type);
+        //String sql = "select id from "+ HMetaDataDef.getTable(type,"")+" where type=? AND ext_6 IS NOT NULL AND ext_6 <>'' and ( CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')=" + pid + " ELSE null END  or CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')=" + pid + " ELSE null END)";
+        String sql = "select id from " + HMetaDataDef.getTable(type, "") + " where type=? AND ext_4=(SELECT ext_3 FROM " + HMetaDataDef.getTable(BusiTypeEnum.getParentType(type), "") + " WHERE id = ?)";
+        List<Map<String, Object>> list = sqlQuery(sql, type, pid);
         if (list != null) {
             return list.size();
         }

@@ -2,11 +2,13 @@ package com.bdaim.common.service;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.common.BusiMetaConfig;
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.common.util.spring.SpringContextHelper;
 import com.bdaim.customer.dao.CustomerDao;
+import com.bdaim.customs.entity.BusiTypeEnum;
 import com.bdaim.customs.entity.HMetaDataDef;
 import com.bdaim.customs.utils.ServiceUtils;
 import org.slf4j.Logger;
@@ -140,13 +142,7 @@ public class BusiEntityService {
                 if ("cust_id".equals(key)) {
                     sqlstr.append(" and cust_id=?");
                 } else if ("pid".equals(key)) {
-                    String tmpType = "";
-                    if (busiType.endsWith("_f")) {
-                        tmpType = busiType.replaceAll("_f", "_z");
-                    } else if (busiType.endsWith("_s")) {
-                        tmpType = busiType.replaceAll("_s", "_f");
-                    }
-                    sqlstr.append(" and ext_4=(SELECT ext_3 FROM " + HMetaDataDef.getTable(tmpType, "") + " WHERE id = ?)");
+                    sqlstr.append(" AND " + BusiMetaConfig.getFieldIndex(busiType, key) + "=(SELECT ext_3 FROM " + HMetaDataDef.getTable(BusiTypeEnum.getParentType(busiType), "") + " WHERE id = ?)");
                 } else if (key.startsWith("_c_")) {
                     sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(3) + "') like concat('%',?,'%')");
                 } else if (key.startsWith("_g_")) {
@@ -168,7 +164,7 @@ public class BusiEntityService {
                         sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(7) + "') >= ?");
                     }
                 } else {
-                    sqlstr.append(" and JSON_EXTRACT(content, '$." + key + "')=?");
+                    sqlstr.append(" and " + BusiMetaConfig.getFieldIndex(busiType, key) + "=?");
                 }
 
                 sqlParams.add(params.get(key));
