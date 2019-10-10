@@ -123,7 +123,55 @@ public class CdZService implements BusiService {
     @Override
     public void updateInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) throws Exception {
         // 提交至海关平台
-        if ("HAIGUAN".equals(info.getString("_rule_"))) {
+          {
+            HBusiDataManager dbManager = serviceUtils.getObjectByIdAndType(id, busiType);
+            String content = dbManager.getContent();
+            JSONObject json = JSONObject.parseObject(content);
+            Iterator keys = info.keySet().iterator();
+            while (keys.hasNext()) {
+                String key = (String) keys.next();
+                json.put(key, info.get(key));
+            }
+            serviceUtils.updateDataToES(busiType, id.toString(), json);
+        }
+
+    }
+
+
+    @Override
+    public void getInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info, JSONObject param) throws TouchException {
+        //舱单导出
+        if (StringUtil.isNotEmpty(param.getString("_rule_")) && param.getString("_rule_").startsWith("_export")) {
+            String split = "||";
+            StringBuffer content = new StringBuffer();
+            //主单数据
+            content.append(info.getString("bill_no")).append(split)
+                    .append(info.getString("voyage_no")).append(split)
+                    .append(info.getString("i_e_flag")).append(split)
+                    .append(info.getString("traf_name")).append(split)
+                    .append(info.getString("traf_name_en")).append(split)
+                    .append(info.getString("gross_wt")).append(split)
+                    .append(info.getString("pack_no")).append(split)
+                    .append(info.getString("single_batch_num")).append(split)
+                    .append(info.getString("traf_mode")).append(split)
+                    .append(info.getString("depart_arrival_port")).append(split)
+                    .append(info.getString("i_e_port")).append(split).append("\r\n");
+            //分单数据
+            List<JSONObject> singles = queryChildData(BusiTypeEnum.CF.getType(), cust_id, cust_group_id, cust_user_id, id, info, param);
+            if (singles != null && singles.size() > 0) {
+                for (JSONObject jo : singles) {
+                    content.append(jo.getString("bill_no")).append(split)
+                            .append(jo.getString("main_gname")).append(split)
+                            .append(jo.getString("pack_no")).append(split)
+                            .append(jo.getString("total_value")).append(split)
+                            .append(jo.getString("curr_code")).append(split)
+                            .append(info.getString("trade_country")).append(split)
+                            .append(jo.getString("wrap_type")).append(split)
+                            .append("\r\n");
+                }
+            }
+            info.put("_export_cd_z_main_data", content);
+        }else if ("HAIGUAN".equals(info.getString("_rule_"))) {
             String sql = "select content, cust_id, cust_group_id, cust_user_id, create_id, create_date ,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(busiType, "") + " where type=? and id=? ";
             List<Map<String, Object>> list = jdbcTemplate.queryForList(sql, busiType, id);
             if (list.size() == 0) {
@@ -201,56 +249,9 @@ public class CdZService implements BusiService {
                 serviceUtils.updateDataToES(BusiTypeEnum.CF.getType(), String.valueOf(m.get("id")), jo);
 
                 //start to create xml file
-                cangdanXmlEXP311.createXml(m, ds);
+                String xmlString = cangdanXmlEXP311.createXml(m, ds);
+                info.put("xml",xmlString);
             }
-        } else {
-            HBusiDataManager dbManager = serviceUtils.getObjectByIdAndType(id, busiType);
-            String content = dbManager.getContent();
-            JSONObject json = JSONObject.parseObject(content);
-            Iterator keys = info.keySet().iterator();
-            while (keys.hasNext()) {
-                String key = (String) keys.next();
-                json.put(key, info.get(key));
-            }
-            serviceUtils.updateDataToES(busiType, id.toString(), json);
-        }
-
-    }
-
-
-    @Override
-    public void getInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info, JSONObject param) {
-        //舱单导出
-        if (StringUtil.isNotEmpty(param.getString("_rule_")) && param.getString("_rule_").startsWith("_export")) {
-            String split = "||";
-            StringBuffer content = new StringBuffer();
-            //主单数据
-            content.append(info.getString("bill_no")).append(split)
-                    .append(info.getString("voyage_no")).append(split)
-                    .append(info.getString("i_e_flag")).append(split)
-                    .append(info.getString("traf_name")).append(split)
-                    .append(info.getString("traf_name_en")).append(split)
-                    .append(info.getString("gross_wt")).append(split)
-                    .append(info.getString("pack_no")).append(split)
-                    .append(info.getString("single_batch_num")).append(split)
-                    .append(info.getString("traf_mode")).append(split)
-                    .append(info.getString("depart_arrival_port")).append(split)
-                    .append(info.getString("i_e_port")).append(split).append("\r\n");
-            //分单数据
-            List<JSONObject> singles = queryChildData(BusiTypeEnum.CF.getType(), cust_id, cust_group_id, cust_user_id, id, info, param);
-            if (singles != null && singles.size() > 0) {
-                for (JSONObject jo : singles) {
-                    content.append(jo.getString("bill_no")).append(split)
-                            .append(jo.getString("main_gname")).append(split)
-                            .append(jo.getString("pack_no")).append(split)
-                            .append(jo.getString("total_value")).append(split)
-                            .append(jo.getString("curr_code")).append(split)
-                            .append(info.getString("trade_country")).append(split)
-                            .append(jo.getString("wrap_type")).append(split)
-                            .append("\r\n");
-                }
-            }
-            info.put("_export_cd_z_main_data", content);
         }
 
     }

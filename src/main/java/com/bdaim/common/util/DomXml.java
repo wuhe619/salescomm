@@ -10,6 +10,7 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 
 /**
@@ -58,12 +59,21 @@ public class DomXml {
             TransformerFactory tff = TransformerFactory.newInstance();
             // 创建 Transformer对象
             Transformer tf = tff.newTransformer();
-
+            tf.setOutputProperty(OutputKeys.DOCTYPE_PUBLIC, "");
             // 输出内容是否使用换行
             tf.setOutputProperty(OutputKeys.INDENT, "yes");
             // 创建xml文件并写入内容
-            tf.transform(new DOMSource(document), new StreamResult(new File("E:\\book1.xml")));
+            //tf.transform(new DOMSource(document), new StreamResult(new File("E:\\book1.xml")));
             System.out.println("生成book1.xml成功");
+
+
+            DOMSource domSource = new DOMSource(document);
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            // 使用Transformer的transform()方法将DOM树转换成XML
+            tf.transform(domSource, new StreamResult(bos));
+            String xmlString = bos.toString();
+            System.out.println(xmlString);
+
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("生成book1.xml失败");

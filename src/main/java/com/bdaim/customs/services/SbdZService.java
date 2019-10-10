@@ -98,7 +98,7 @@ public class SbdZService implements BusiService {
                     try {
                         serviceUtils.addDataToES(String.valueOf(mainData.getId()), mainData.getType(), JSON.parseObject(mainData.getContent()));
                     } catch (Exception e) {
-                        log.error("啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊,主单信息保存到es失败");
+                        log.error("主单信息保存到es失败");
                     }
                 }
                 if (sfdData.size() > 0) {
@@ -516,7 +516,7 @@ public class SbdZService implements BusiService {
 
             JSONObject json = buildPartyContent(dan);
             json.put("type", BusiTypeEnum.SF.getType());
-            json.put("mail_bill_no", mainBillNo);
+            json.put("main_bill_no", mainBillNo);
             json.put("create_date", dataManager.getCreateDate());
             json.put("create_id", userId);
             json.put("cust_id", custId);
