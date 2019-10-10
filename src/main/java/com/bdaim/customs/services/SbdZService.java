@@ -210,6 +210,10 @@ public class SbdZService implements BusiService {
                             js.put("index", i + 1);
                             tmp = queryChildData(BusiTypeEnum.SS.getType(), cust_id, cust_group_id, cust_user_id, js.getLong("id"), info, param);
                             if (tmp != null && tmp.size() > 0) {
+                                for (int j = 0; j < products.size(); j++) {
+                                    JSONObject tmpS = (JSONObject) tmp.get(j);
+                                    tmpS.put("main_bill_no", js.getString("main_bill_no"));
+                                }
                                 products.addAll(tmp);
                             }
                         }
@@ -235,6 +239,7 @@ public class SbdZService implements BusiService {
                             for (int j = 0; j < products.size(); j++) {
                                 product = (JSONObject) products.get(j);
                                 product.put("index", j + 1);
+                                product.put("main_bill_no", js.getString("main_bill_no"));
                             }
                             js.put("products", products);
 
@@ -249,6 +254,7 @@ public class SbdZService implements BusiService {
                         for (int i = 0; i < singles.size(); i++) {
                             js = (JSONObject) singles.get(i);
                             js.put("index", i + 1);
+                            js.put("main_bill_no", js.getString("main_bill_no"));
                         }
                         info.put("singles", singles);
                     }

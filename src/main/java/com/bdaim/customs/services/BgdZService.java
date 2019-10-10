@@ -236,10 +236,15 @@ public class BgdZService implements BusiService {
                     if (singles != null) {
                         info.put("singles", singles);
                         List products;
-                        JSONObject js;
+                        JSONObject js, product;
                         for (int i = 0; i < singles.size(); i++) {
                             js = (JSONObject) singles.get(i);
                             products = queryChildData(BusiTypeEnum.BS.getType(), cust_id, cust_group_id, cust_user_id, js.getLong("id"), info, param);
+                            for (int j = 0; j < products.size(); j++) {
+                                product = (JSONObject) products.get(j);
+                                product.put("index", j + 1);
+                                product.put("main_bill_no", js.getString("main_bill_no"));
+                            }
                             js.put("products", products);
                         }
                     }
