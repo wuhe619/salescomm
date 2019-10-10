@@ -65,11 +65,11 @@ public class ExportExcelService {
         }
         try {
             List list = (List) map.get("list");
-            LOG.info("导出list:", list != null ? list.size() : 0);
+            LOG.info("导出list:{}", list != null ? list.size() : 0);
             List list1 = (List) map.get("list1");
-            LOG.info("导出list1:", list1 != null ? list1.size() : 0);
+            LOG.info("导出list1:{}", list1 != null ? list1.size() : 0);
             List list2 = (List) map.get("list2");
-            LOG.info("导出list2:", list2 != null ? list2.size() : 0);
+            LOG.info("导出list2:{}", list2 != null ? list2.size() : 0);
         } catch (Exception e) {
             e.printStackTrace();
         }
