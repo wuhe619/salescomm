@@ -343,7 +343,7 @@ public class HypicZService implements BusiService {
 
             JSONObject json = buildPartyContent(dan);
             json.put("type", BusiTypeEnum.SF.getType());
-            json.put("mail_bill_no", mainBillNo);
+            json.put("main_bill_no", mainBillNo);
             json.put("create_date", dataManager.getCreateDate());
             json.put("create_id", userId);
             json.put("cust_id", custId);
@@ -397,7 +397,7 @@ public class HypicZService implements BusiService {
 
             JSONObject json = buildPartyContent(dan);
             json.put("type", BusiTypeEnum.SF.getType());
-            json.put("mail_bill_no", mainBillNo);
+            json.put("main_bill_no", mainBillNo);
             json.put("create_date", dataManager.getCreateDate());
             json.put("create_id", userId);
             json.put("cust_id", custId);
