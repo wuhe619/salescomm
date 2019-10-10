@@ -434,6 +434,7 @@ public class BgdZService implements BusiService {
             hm.setCreateDate(new Date());
             Long fid = sequenceService.getSeq(BusiTypeEnum.BF.getType());
             hm.setId(fid);
+            hm.setExt_2(hp.getExt_2());
             hm.setExt_3(hp.getExt_3());
             hm.setExt_4(hp.getExt_4());
             hm.setCreateId(hp.getCreateId());
