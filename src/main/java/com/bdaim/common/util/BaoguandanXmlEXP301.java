@@ -222,7 +222,7 @@ public class BaoguandanXmlEXP301 {
         GrossWt.setTextContent(json.getString("weight"));  //r
         EntryHead.appendChild(GrossWt);
         Element NetWt = document.createElement("NetWt");
-        NetWt.setTextContent(json.containsKey("netwt")?json.getString("netwt"):"");  //r
+        NetWt.setTextContent(json.containsKey("weight")?json.getString("weight"):"");  //r
         EntryHead.appendChild(NetWt);
         Element WrapType = document.createElement("WrapType");
         WrapType.setTextContent(mainJson.getString("wrap_type"));  //r
@@ -327,7 +327,8 @@ public class BaoguandanXmlEXP301 {
             OpType.setTextContent(optype);
             EntryList.appendChild(OpType);
             Element GNo = document.createElement("GNo");
-            GNo.setTextContent("1");
+            String gno = map.getExt_5();
+            GNo.setTextContent(gno);
             EntryList.appendChild(GNo);
             Element CodeTS = document.createElement("CodeTS");
             CodeTS.setTextContent(json.getString("code_ts"));
