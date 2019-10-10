@@ -158,6 +158,22 @@ public class ServiceUtils {
         jdbcTemplate.update(sql, custId, mainBillNo, billNo);
     }
 
+    /**
+     * 根据多个ID删除税单
+     *
+     * @param custId
+     * @param type
+     * @param ids
+     */
+    public void deleteByIds(String custId, String type, List ids) {
+        if (ids == null || ids.size() == 0) {
+            log.warn("批量根据多个ID删除ids为空");
+            return;
+        }
+        String sql = "delete from " + HMetaDataDef.getTable(type, "") + " where cust_id = ?  AND id IN(" + SqlAppendUtil.sqlAppendWhereIn(ids) + ") ";
+        jdbcTemplate.update(sql, custId);
+    }
+
     public List<HBusiDataManager> getDataList(String type, Long pid) {
         String sql2 = "select id, type, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(type, "") + " where  type='" + type + "' and ( CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')=" + pid + " ELSE null END  or CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')='" + pid + "' ELSE null END)";
         log.info("sql2=" + sql2);
@@ -181,6 +197,7 @@ public class ServiceUtils {
 
     /**
      * 查询税单列表
+     *
      * @param custId
      * @param type
      * @param mainBillNo

@@ -267,7 +267,9 @@ public class SbdZService implements BusiService {
     @Override
     public void deleteInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id) throws Exception {
         HBusiDataManager manager = serviceUtils.getObjectByIdAndType(id, busiType);
-
+        if (manager == null) {
+            throw new TouchException("主单已经删除");
+        }
         if ("Y".equals(manager.getExt_1()) || "Y".equals(manager.getExt_2())) {
             throw new TouchException("已经被提交，无法删除");
         }
@@ -285,20 +287,31 @@ public class SbdZService implements BusiService {
 
         List<HBusiDataManager> list = serviceUtils.listDataByPid(cust_id, BusiTypeEnum.SF.getType(), id, BusiTypeEnum.SZ.getType());
         JSONObject content;
+        List<String> fdIds = new ArrayList<>();
+        List<String> sdIds = new ArrayList<>();
+        List<HBusiDataManager> slist;
         for (HBusiDataManager hBusiDataManager : list) {
-            // 删除税单需要主单号+分单号确定唯一
+            //分单ID集合
+            fdIds.add(String.valueOf(hBusiDataManager.getId()));
             content = JSON.parseObject(hBusiDataManager.getContent());
-            List<HBusiDataManager> slist = serviceUtils.listSdByBillNo(cust_id, BusiTypeEnum.SS.getType(), content.getString("main_bill_no"), content.getString("bill_no"));
+            slist = serviceUtils.listSdByBillNo(cust_id, BusiTypeEnum.SS.getType(), content.getString("main_bill_no"), content.getString("bill_no"));
             for (HBusiDataManager shBusiDataManager : slist) {
-                serviceUtils.deleteDatafromES(BusiTypeEnum.SS.getType(), shBusiDataManager.getId().toString());
+                sdIds.add(String.valueOf(shBusiDataManager.getId()));
+                //serviceUtils.deleteDatafromES(BusiTypeEnum.SS.getType(), shBusiDataManager.getId().toString());
             }
-            serviceUtils.deleteDatafromES(BusiTypeEnum.SF.getType(), hBusiDataManager.getId().toString());
-            // 删除税单
-            serviceUtils.deleteSListByBillNo(cust_id, BusiTypeEnum.SS.getType(), content.getString("main_bill_no"), content.getString("bill_no"));
+            // 删除es税单
+            //serviceUtils.deleteDatafromES(BusiTypeEnum.SF.getType(), hBusiDataManager.getId().toString());
+            // 删除数据库税单
+            //serviceUtils.deleteSListByBillNo(cust_id, BusiTypeEnum.SS.getType(), content.getString("main_bill_no"), content.getString("bill_no"));
         }
-        // 删除分单
-        serviceUtils.delDataListByPid(BusiTypeEnum.SF.getType(), id);
-
+        // 批量删除数据库分单
+        serviceUtils.deleteByIds(cust_id,BusiTypeEnum.SF.getType(), fdIds);
+        // 批量删除es分单
+        elasticSearchService.bulkDeleteDocument(BusiTypeEnum.getEsIndex(BusiTypeEnum.SF.getType()), Constants.INDEX_TYPE, fdIds);
+        // 批量删除数据库税单
+        serviceUtils.deleteByIds(cust_id, BusiTypeEnum.SS.getType(), sdIds);
+        // 批量删除es税单
+        elasticSearchService.bulkDeleteDocument(BusiTypeEnum.getEsIndex(BusiTypeEnum.SS.getType()), Constants.INDEX_TYPE, sdIds);
     }
 
     @Override
