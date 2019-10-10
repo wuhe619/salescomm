@@ -1,5 +1,7 @@
 package com.bdaim.common;
 
+import com.bdaim.customs.entity.BusiTypeEnum;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -34,6 +36,11 @@ public class BusiMetaConfig {
     public static String getFieldIndex(String type, String field) {
         String newField = null;
         if ("sbd_f".equals(type) && "pid".equals(field)) {
+            newField = "ext_4";
+        } else if ((BusiTypeEnum.SS.getType().equals(type) ||
+                BusiTypeEnum.CF.getType().equals(type) || BusiTypeEnum.CS.getType().equals(type)
+                || BusiTypeEnum.BF.getType().equals(type) || BusiTypeEnum.BS.getType().equals(type))
+                && "pid".equals(field)) {
             newField = "ext_4";
         } else if ("cust_id".equals(field) || "cust_user_id".equals(field) || "cust_group_id".equals(field)) {
             newField = field;
