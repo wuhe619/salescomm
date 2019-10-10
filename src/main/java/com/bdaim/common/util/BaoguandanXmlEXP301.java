@@ -14,6 +14,7 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
@@ -26,7 +27,7 @@ public class BaoguandanXmlEXP301 {
     }*/
 
 
-    public  void createXml(Map<String,Object>mainMap,Map<String,Object> map, List<HBusiDataManager> ds){
+    public  String  createXml(Map<String,Object>mainMap,Map<String,Object> map, List<HBusiDataManager> ds){
         try {
             // 创建解析器工厂
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -54,14 +55,26 @@ public class BaoguandanXmlEXP301 {
             Transformer tf = tff.newTransformer();
 
             // 输出内容是否使用换行
+            tf.setOutputProperty(OutputKeys.DOCTYPE_PUBLIC, "");//
             tf.setOutputProperty(OutputKeys.INDENT, "yes");
             // 创建xml文件并写入内容
+          /*生成xml文件
             tf.transform(new DOMSource(document), new StreamResult(new File("E:\\EXP301.xml")));
             System.out.println("生成EXP301.xml成功");
+          */
+            //生成xml内容字符串
+            DOMSource domSource = new DOMSource(document);
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            // 使用Transformer的transform()方法将DOM树转换成XML
+            tf.transform(domSource, new StreamResult(bos));
+            String xmlString = bos.toString();
+            System.out.println(xmlString);
+            return xmlString;
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("生成EXP301.xml失败");
         }
+        return null;
     }
 
     private  void createEnvelopInfoXML(Document document,Element envelopInfo){

@@ -98,7 +98,7 @@ public class SbdZService implements BusiService {
                     try {
                         serviceUtils.addDataToES(String.valueOf(mainData.getId()), mainData.getType(), JSON.parseObject(mainData.getContent()));
                     } catch (Exception e) {
-                        log.error("啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊,主单信息保存到es失败");
+                        log.error("主单信息保存到es失败");
                     }
                 }
                 if (sfdData.size() > 0) {

@@ -12,6 +12,7 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
@@ -24,7 +25,7 @@ public class CangdanXmlEXP311 {
     }
     */
 
-    public  void createXml(Map<String,Object> map, List<Map<String, Object>> dsList){
+    public  String createXml(Map<String,Object> map, List<Map<String, Object>> dsList){
         try {
             // 创建解析器工厂
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -51,14 +52,27 @@ public class CangdanXmlEXP311 {
             Transformer tf = tff.newTransformer();
 
             // 输出内容是否使用换行
+            tf.setOutputProperty(OutputKeys.DOCTYPE_PUBLIC, "");
             tf.setOutputProperty(OutputKeys.INDENT, "yes");
             // 创建xml文件并写入内容
-            tf.transform(new DOMSource(document), new StreamResult(new File("E:\\EXP311.xml")));
-            System.out.println("生成EXP311.xml成功");
+           /* tf.transform(new DOMSource(document), new StreamResult(new File("E:\\EXP311.xml")));
+            System.out.println("生成EXP311.xml成功");*/
+
+
+            //生成xml内容字符串
+            DOMSource domSource = new DOMSource(document);
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            // 使用Transformer的transform()方法将DOM树转换成XML
+            tf.transform(domSource, new StreamResult(bos));
+            String xmlString = bos.toString();
+            System.out.println(xmlString);
+            return xmlString;
+
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("生成EXP311.xml失败");
         }
+        return null;
     }
 
     private  void createEnvelopInfoXML(Document document,Element envelopInfo){
