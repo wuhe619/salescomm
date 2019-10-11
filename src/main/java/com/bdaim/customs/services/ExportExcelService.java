@@ -72,13 +72,13 @@ public class ExportExcelService {
             e.printStackTrace();
         }
         //写入本地临时文件中
-        String fileName = "C:\\Users\\Administrator\\Desktop\\" + System.currentTimeMillis() + ExcelTypeEnum.XLSX.getValue();
+        String fileName = "/tmp/tmp_" + System.currentTimeMillis() + ExcelTypeEnum.XLSX.getValue();
         Workbook workbook = ExcelExportUtil.exportExcel(params, map);
         //workbook.write(response.getOutputStream());
         FileOutputStream fos = new FileOutputStream(fileName);
         workbook.write(fos);
         fos.close();
-
+        LOG.info("导出excel:{}本地磁盘写入成功", fileName);
         InputStream in = new BufferedInputStream(new FileInputStream(fileName), 4096);
         OutputStream os = new BufferedOutputStream(response.getOutputStream());
         byte[] bytes = new byte[4096];
@@ -88,7 +88,11 @@ public class ExportExcelService {
         }
         os.flush();
         os.close();
-        LOG.info("导出:{}完成", templatePath);
+        in.close();
+        LOG.info("导出excel:{}完成", fileName);
+        File file = new File(fileName);
+        boolean delete = file.delete();
+        LOG.info("删除excel:{}状态", delete);
     }
 
     public void exportExcel(int id, List<JSONObject> list, JSONObject param, HttpServletResponse response) throws IllegalAccessException, IOException {
