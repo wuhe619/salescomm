@@ -23,8 +23,6 @@ import org.springframework.context.annotation.Import;
 @ServletComponentScan(basePackages = "com.bdaim.common.controller")
 public class BPApp {
 	public static void main(String[] args) {
-		System.setProperty("org.apache.poi.util.POILogger","org.apache.poi.util.SystemOutLogger");
-		System.out.println(System.getProperty("org.apache.poi.util.POILogger"));
 		SpringApplication.run(BPApp.class , args);
 	}
 	
