@@ -226,7 +226,8 @@ public class SbdFService implements BusiService {
         elasticSearchService.bulkDeleteDocument(BusiTypeEnum.getEsIndex(BusiTypeEnum.SS.getType()), Constants.INDEX_TYPE, sdIds);
         Integer zid = json.getInteger("pid");
         totalPartDanToMainDan(json.getLongValue("pid"), BusiTypeEnum.SZ.getType(), id, cust_id);
-
+        // 更新主单身份证照片数量
+        customsService.updateMainDanIdCardNumber(zid);
     }
 
     @Override
