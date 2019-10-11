@@ -16,6 +16,9 @@ import com.bdaim.resource.dao.SourceDao;
 import com.bdaim.resource.entity.MarketResourceEntity;
 import com.bdaim.supplier.dto.SupplierEnum;
 import io.searchbox.core.SearchResult;
+import org.dom4j.Document;
+import org.dom4j.Element;
+import org.dom4j.io.SAXReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +29,9 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.sql.Timestamp;
 import java.util.*;
 
@@ -694,4 +700,32 @@ public class ServiceUtils {
         json.put("type", BusiTypeEnum.SF.getType());
         addDataToES("-1", BusiTypeEnum.SF.getType(), json);
     }
+
+    /**
+     * XML格式转为map格式
+     * @param xmlString
+     * @return
+     */
+    public static Map<String , String> xmlToMap(String xmlString) {
+        Map<String, String> map = new HashMap<String, String>();
+        try {
+            InputStream inputStream = null;
+            ByteArrayInputStream byteArrayInputStream2 = new ByteArrayInputStream(xmlString.getBytes(Charset.forName("UTF-8")));
+
+            inputStream = byteArrayInputStream2;
+            SAXReader reader = new SAXReader();
+            Document doc = reader.read(inputStream);
+            Element rootElement = doc.getRootElement();
+            List<Element> elements = rootElement.elements();
+            for (Element el : elements) {
+                map.put(el.getName(), el.getText());
+            }
+            inputStream.close();
+            return map;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
 }
