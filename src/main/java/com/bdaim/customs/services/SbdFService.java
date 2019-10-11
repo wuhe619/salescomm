@@ -65,7 +65,7 @@ public class SbdFService implements BusiService {
             throw new TouchException("分单号不能为空");
         }
         HBusiDataManager sbdzd = serviceUtils.getObjectByIdAndType(pid.longValue(), BusiTypeEnum.SZ.getType());
-        List<HBusiDataManager> list = serviceUtils.getDataList(BusiTypeEnum.SF.getType(), pid.longValue());
+        List<HBusiDataManager> list = serviceUtils.listDataByPid(cust_id,BusiTypeEnum.SF.getType(), pid.longValue(),BusiTypeEnum.SZ.getType());
         if (list != null && list.size() > 0) {
             for (HBusiDataManager hBusiDataManager : list) {
                 JSONObject jsonObject = JSONObject.parseObject(hBusiDataManager.getContent());
@@ -98,7 +98,10 @@ public class SbdFService implements BusiService {
             value = jsonObject.getInteger("party_total") + value;
         }
         jsonObject.put("party_total", value);//分单总数
-
+        if (jsonObject.containsKey("single_batch_num")) {
+            value = jsonObject.getInteger("single_batch_num") + value;
+        }
+        jsonObject.put("single_batch_num", value);//分单总数
         //sbdzd.setContent(jsonObject.toJSONString());
         //hBusiDataManagerDao.saveOrUpdate(sbdzd);
         String sql = "update " + HMetaDataDef.getTable(sbdzd.getType(), "") + " set content='" + jsonObject.toJSONString() + "'" +
