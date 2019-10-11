@@ -174,8 +174,8 @@ public class SbdSService implements BusiService {
         JSONObject fjson = JSONObject.parseObject(fcontent);
 
         List<HBusiDataManager> goodsList = serviceUtils.getDataList(BusiTypeEnum.SS.getType(), fmanager.getId().longValue());
-        float weight = 0;  //重量
-        float pack_NO = 0; //数量
+        Double weight = 0d;  //重量
+        Double pack_NO = 0d; //数量
         int lowPricegoods = 0; //低价商品数
         int is_low_price = 0;
         float festimated_tax = 0;//预估税金
@@ -226,7 +226,7 @@ public class SbdSService implements BusiService {
                 lowPricegoods++;
             }
         }
-        fjson.put("weight_total", weight);
+        fjson.put("weight_total", weight.floatValue());
         fjson.put("lowPricegoods", lowPricegoods);
         fjson.put("pack_no", pack_NO);
         fjson.put("estimated_tax", festimated_tax);
