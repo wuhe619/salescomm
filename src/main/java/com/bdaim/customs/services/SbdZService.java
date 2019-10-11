@@ -786,16 +786,16 @@ public class SbdZService implements BusiService {
         String partynum = mainDan.getSingle_batch_num();
 
         List<PartyDan> list = mainDan.getSingles();
-        float weightTotal = 0;
+        Double weightTotal = 0d;
         for (PartyDan partyDan : list) {
             String WEIGHT = partyDan.getWeight();
             if (StringUtil.isEmpty(WEIGHT)) {
                 WEIGHT = "0";
             }
-            weightTotal += Float.valueOf(WEIGHT);
+            weightTotal += Double.valueOf(WEIGHT);
         }
 
-        info.put("weight_total", weightTotal);//总重量
+        info.put("weight_total", weightTotal.floatValue());//总重量
         info.put("party_total", list.size());//分单总数
 
         if (Integer.valueOf(partynum) < list.size()) {
@@ -806,10 +806,6 @@ public class SbdZService implements BusiService {
             info.put("over_warp", "正常");//正常
         }
 
-        //todo:低价商品暂时不处理
-        //System.out.println(jsonObject);
-
-//		return jsonObject;
 
     }
 
