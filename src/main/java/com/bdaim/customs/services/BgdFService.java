@@ -140,7 +140,7 @@ public class BgdFService implements BusiService {
     @Override
     public void getInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info, JSONObject param) throws TouchException {
         // 提交至海关平台
-        if ("HAIGUAN".equals(info.getString("_rule_"))) {
+        if ("HAIGUAN".equals(param.getString("_rule_"))) {
             String sql = "select content, cust_id, cust_group_id, cust_user_id, create_id, create_date ,ext_1, ext_2, ext_3, ext_4, ext_5 from "+ HMetaDataDef.getTable(busiType,"")+" where type=? and id=? ";
             List<Map<String, Object>> list = jdbcTemplate.queryForList(sql, busiType, id);
             if (list.size() == 0) {
@@ -182,8 +182,8 @@ public class BgdFService implements BusiService {
                 jo.put("ext_5", m.get("ext_5"));
 
             sql = "UPDATE "+HMetaDataDef.getTable(busiType,"")+" SET ext_1 = '1', ext_date1 = NOW(), content=? WHERE id = ? AND type = ? AND IFNULL(ext_1,'') <>'1' ";
-            jdbcTemplate.update(sql, jo.toJSONString(), id, busiType);
-            serviceUtils.updateDataToES(BusiTypeEnum.BF.getType(), id.toString(), jo);
+           // jdbcTemplate.update(sql, jo.toJSONString(), id, busiType);
+            //serviceUtils.updateDataToES(BusiTypeEnum.BF.getType(), id.toString(), jo);
             //start to create xml
             String mainsql = "select content, cust_id, cust_group_id, cust_user_id, create_id, create_date ,ext_1, ext_2, ext_3, ext_4, ext_5 from "+ HMetaDataDef.getTable(BusiTypeEnum.BZ.getType(),"")+" where type=? and id=? ";
             list = jdbcTemplate.queryForList(mainsql, BusiTypeEnum.BZ.getType(), jo.getString("pid"));
