@@ -20,7 +20,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
@@ -76,9 +75,7 @@ public class ExportExcelService {
         }
 
         Workbook workbook = ExcelExportUtil.exportExcel(params, map);
-        try (ServletOutputStream outStream = response.getOutputStream()) {
-            workbook.write(outStream);
-        }
+        workbook.write(response.getOutputStream());
         //workbook.write(response.getOutputStream());
         LOG.info("导出:{}完成", templatePath);
     }
