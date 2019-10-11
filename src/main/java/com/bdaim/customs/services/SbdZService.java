@@ -241,7 +241,7 @@ public class SbdZService implements BusiService {
                             for (int j = 0; j < products.size(); j++) {
                                 product = (JSONObject) products.get(j);
                                 product.put("index", j + 1);
-                                product.put("main_bill_no", js.getString("main_bill_no"));
+                                product.put("main_bill_no", product.getString("ext_4"));
                             }
                             js.put("products", products);
 
