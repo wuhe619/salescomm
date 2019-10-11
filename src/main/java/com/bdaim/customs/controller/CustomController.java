@@ -102,7 +102,8 @@ public class CustomController extends BasicAction {
     public ResponseJson getMainDetailById(@PathVariable("id") String id, String type) {
         ResponseJson responseJson = new ResponseJson();
         try {
-            JSONObject json = customsService.getMainDetailById(id, type);
+            LoginUser user = opUser();
+            JSONObject json = customsService.getMainDetailById(user.getCustId(),id, type);
             responseJson.setMessage("SUCCESS");
             responseJson.setCode(200);
             responseJson.setData(json);
@@ -270,7 +271,7 @@ public class CustomController extends BasicAction {
             return responseJson;
         }
         try {
-            int status = customsService.uploadCardIdPic(f, id, type);
+            int status = customsService.uploadCardIdPic(f, id, type, opUser().getCustId());
             if (status == 1) {
                 responseJson.setCode(200);
                 responseJson.setMessage("成功");
@@ -379,7 +380,6 @@ public class CustomController extends BasicAction {
         }
         return responseJson;
     }*/
-
     @RequestMapping(value = "/exportExcel", method = RequestMethod.GET)
     public void exportExcel(int id, int type, HttpServletResponse response) {
         try {
@@ -391,12 +391,13 @@ public class CustomController extends BasicAction {
 
     /**
      * 近6个月的申报单数（按月统计）
+     *
      * @param request
      * @param stationId
      * @param custId
      * @return
      */
-    @RequestMapping(value = "/count/sbd/ym",method = RequestMethod.GET)
+    @RequestMapping(value = "/count/sbd/ym", method = RequestMethod.GET)
     public ResponseJson countSBD(HttpServletRequest request, String stationId, String custId) {
         ResponseJson responseJson = new ResponseJson();
         LoginUser user = opUser();
@@ -405,11 +406,11 @@ public class CustomController extends BasicAction {
             responseJson.setData(d);
             responseJson.setCode(200);
             responseJson.setMessage("SUCCESS");
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             responseJson.setCode(-1);
             responseJson.setMessage("查询失败");
-        }finally {
+        } finally {
             return responseJson;
         }
     }
@@ -417,12 +418,13 @@ public class CustomController extends BasicAction {
 
     /**
      * 最近的申报单数
+     *
      * @param request
      * @param stationId
      * @param custId
      * @return
      */
-    @RequestMapping(value = "/count/lastest/sbd",method = RequestMethod.GET)
+    @RequestMapping(value = "/count/lastest/sbd", method = RequestMethod.GET)
     public ResponseJson sbdH(HttpServletRequest request, String stationId, String custId) {
         ResponseJson responseJson = new ResponseJson();
         LoginUser user = opUser();
@@ -431,40 +433,40 @@ public class CustomController extends BasicAction {
             responseJson.setData(d);
             responseJson.setCode(200);
             responseJson.setMessage("SUCCESS");
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             responseJson.setCode(-1);
             responseJson.setMessage("查询失败");
-        }finally {
+        } finally {
             return responseJson;
         }
     }
 
     /**
      * 申报单回执
+     *
      * @param request
      * @param stationId
      * @param custId
      * @return
      */
-    @RequestMapping(value = "/count/hz/{busitype}",method = RequestMethod.GET)
-    public ResponseJson sbdHZCount(HttpServletRequest request,@PathVariable("busitype")String busitype, String stationId, String custId) {
+    @RequestMapping(value = "/count/hz/{busitype}", method = RequestMethod.GET)
+    public ResponseJson sbdHZCount(HttpServletRequest request, @PathVariable("busitype") String busitype, String stationId, String custId) {
         ResponseJson responseJson = new ResponseJson();
         LoginUser user = opUser();
         try {
-            List<Map<String, Object>> d = customsService.hzTotal(busitype,stationId, custId, user);
+            List<Map<String, Object>> d = customsService.hzTotal(busitype, stationId, custId, user);
             responseJson.setData(d);
             responseJson.setCode(200);
             responseJson.setMessage("SUCCESS");
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             responseJson.setCode(-1);
             responseJson.setMessage("查询失败");
-        }finally {
+        } finally {
             return responseJson;
         }
     }
-
 
 
 }

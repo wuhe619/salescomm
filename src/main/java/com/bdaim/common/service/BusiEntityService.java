@@ -1,11 +1,14 @@
 package com.bdaim.common.service;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.common.BusiMetaConfig;
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.common.util.spring.SpringContextHelper;
 import com.bdaim.customer.dao.CustomerDao;
+import com.bdaim.customs.entity.BusiTypeEnum;
 import com.bdaim.customs.entity.HMetaDataDef;
 import com.bdaim.customs.utils.ServiceUtils;
 import org.slf4j.Logger;
@@ -104,7 +107,7 @@ public class BusiEntityService {
      */
     public Page query(String cust_id, String cust_group_id, Long cust_user_id, String busiType, JSONObject params) throws Exception {
         Page p = new Page();
-        String stationId = params.getString("station_id");
+        String stationId = params.getString("stationId");
 
         List sqlParams = new ArrayList();
 
@@ -139,13 +142,7 @@ public class BusiEntityService {
                 if ("cust_id".equals(key)) {
                     sqlstr.append(" and cust_id=?");
                 } else if ("pid".equals(key)) {
-                    String tmpType = "";
-                    if (busiType.endsWith("_f")) {
-                        tmpType = busiType.replaceAll("_f", "_z");
-                    } else if (busiType.endsWith("_s")) {
-                        tmpType = busiType.replaceAll("_s", "_f");
-                    }
-                    sqlstr.append(" and ext_4=(SELECT ext_3 FROM " + HMetaDataDef.getTable(tmpType, "") + " WHERE id = ?)");
+                    sqlstr.append(" AND " + BusiMetaConfig.getFieldIndex(busiType, key) + "=(SELECT ext_3 FROM " + HMetaDataDef.getTable(BusiTypeEnum.getParentType(busiType), "") + " WHERE id = ?)");
                 } else if (key.startsWith("_c_")) {
                     sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(3) + "') like concat('%',?,'%')");
                 } else if (key.startsWith("_g_")) {
@@ -167,7 +164,7 @@ public class BusiEntityService {
                         sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(7) + "') >= ?");
                     }
                 } else {
-                    sqlstr.append(" and JSON_EXTRACT(content, '$." + key + "')=?");
+                    sqlstr.append(" and " + BusiMetaConfig.getFieldIndex(busiType, key) + "=?");
                 }
 
                 sqlParams.add(params.get(key));
@@ -193,6 +190,8 @@ public class BusiEntityService {
             pageSize = 1000;
 
         try {
+            logger.info("querySql:{}", sql + " limit " + (pageNum - 1) * pageSize + ", " + pageSize);
+            logger.info("queryParam:{}", JSON.toJSONString(sqlParams));
             List<Map<String, Object>> ds = jdbcTemplate.queryForList(sql + " limit " + (pageNum - 1) * pageSize + ", " + pageSize, sqlParams.toArray());
             String totalSql = "select count(0) from ( " + sql + " ) t ";
             List data = new ArrayList();
@@ -267,6 +266,7 @@ public class BusiEntityService {
             if (info.containsKey(sysKey))
                 info.remove(sysKey);
         }
+        String extData = info.toJSONString();
         for (String extKey : extKeys) {
             if (info.containsKey(extKey))
                 info.remove(extKey);
@@ -286,13 +286,13 @@ public class BusiEntityService {
 
                 if (jo.containsKey("_rule_"))
                     jo.remove("_rule_");
-
+                JSONObject jsonObject = JSON.parseObject(extData);
                 jdbcTemplate.update(sql1, id, busiType, info.toJSONString(), cust_id, cust_group_id, cust_user_id, cust_user_id
-                        , jo.containsKey("ext_1") ? info.getString("ext_1") : ""
-                        , jo.containsKey("ext_2") ? info.getString("ext_2") : ""
-                        , jo.containsKey("ext_3") ? info.getString("ext_3") : ""
-                        , jo.containsKey("ext_4") ? info.getString("ext_4") : ""
-                        , jo.containsKey("ext_5") ? info.getString("ext_5") : "");
+                        , jsonObject.containsKey("ext_1") ? jsonObject.getString("ext_1") : ""
+                        , jo.containsKey("ext_2") ? jo.getString("ext_2") : ""
+                        , jo.containsKey("ext_3") ? jo.getString("ext_3") : ""
+                        , jo.containsKey("ext_4") ? jo.getString("ext_4") : ""
+                        , jo.containsKey("ext_5") ? jo.getString("ext_5") : "");
             } catch (TouchException e) {
                 logger.warn("添加记录异常:[" + busiType + "]" + id, e);
                 throw e;
@@ -323,6 +323,10 @@ public class BusiEntityService {
 
             try {
                 jo = JSONObject.parseObject(content);
+                JSONObject jsonObject = JSON.parseObject(extData);
+                if (jsonObject.containsKey("ext_1")) {
+                    jo.put("ext_1", jsonObject.get("ext_1"));
+                }
                 Iterator keys = info.keySet().iterator();
                 while (keys.hasNext()) {
                     String key = (String) keys.next();

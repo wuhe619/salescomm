@@ -9,6 +9,7 @@ import com.bdaim.common.service.SequenceService;
 import com.bdaim.common.util.NumberConvertUtil;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.customs.entity.BusiTypeEnum;
+import com.bdaim.customs.entity.Constants;
 import com.bdaim.customs.entity.HBusiDataManager;
 import com.bdaim.customs.entity.HMetaDataDef;
 import com.bdaim.customs.utils.ServiceUtils;
@@ -36,7 +37,7 @@ public class SbdFService implements BusiService {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
-//    @Autowired
+    //    @Autowired
 //    private HBusiDataManagerDao hBusiDataManagerDao;
     @Autowired
     private ElasticSearchService elasticSearchService;
@@ -63,14 +64,13 @@ public class SbdFService implements BusiService {
             log.error("分单号不能为空");
             throw new TouchException("分单号不能为空");
         }
-        HBusiDataManager sbdzd = serviceUtils.getObjectByIdAndType(pid.longValue(), BusiTypeEnum.SZ.getType());
-        List<HBusiDataManager> list = serviceUtils.getDataList(BusiTypeEnum.SF.getType(), pid.longValue());
+        HBusiDataManager sbdzd = serviceUtils.getObjectByIdAndType(cust_id,pid.longValue(), BusiTypeEnum.SZ.getType());
+        List<HBusiDataManager> list = serviceUtils.listDataByPid(cust_id,BusiTypeEnum.SF.getType(), pid.longValue(),BusiTypeEnum.SZ.getType());
         if (list != null && list.size() > 0) {
             for (HBusiDataManager hBusiDataManager : list) {
-                JSONObject jsonObject = JSONObject.parseObject(hBusiDataManager.getContent());
-                if (billNo.equals(jsonObject.getString("bill_no"))) {
-                    log.error("分单号【" + billNo + "】在主单【" + pid + "】中已经存在");
-                    throw new TouchException("分单号【" + billNo + "】在主单【" + pid + "】中已经存在");
+                if(billNo.equals(hBusiDataManager.getExt_3())){
+                    log.error("分单号【" + billNo + "】在主单【" + sbdzd.getExt_3() + "】中已经存在");
+                    throw new TouchException("分单号【" + billNo + "】在主单【" + sbdzd.getExt_3() + "】中已经存在");
                 }
             }
         }
@@ -81,6 +81,9 @@ public class SbdFService implements BusiService {
         info.put("low_price_goods", 0);
         info.put("id", id);
         info.put("pid", pid);
+        info.put("ext_3",billNo);
+        info.put("ext_4",sbdzd.getExt_3());
+
         serviceUtils.addDataToES(id.toString(), busiType, info);
         JSONObject jsonObject = JSONObject.parseObject(sbdzd.getContent());
         if (info.containsKey("weight") && info.getString("weight") != null) {
@@ -97,11 +100,14 @@ public class SbdFService implements BusiService {
             value = jsonObject.getInteger("party_total") + value;
         }
         jsonObject.put("party_total", value);//分单总数
-
+        if (jsonObject.containsKey("single_batch_num")) {
+            value = jsonObject.getInteger("single_batch_num") + value;
+        }
+        jsonObject.put("single_batch_num", value);//分单总数
         //sbdzd.setContent(jsonObject.toJSONString());
         //hBusiDataManagerDao.saveOrUpdate(sbdzd);
-        String sql = "update "+HMetaDataDef.getTable(sbdzd.getType(),"")+" set content='"+jsonObject.toJSONString()+"'"+
-                " where id="+sbdzd.getId()+" and type='"+sbdzd.getType()+"'";
+        String sql = "update " + HMetaDataDef.getTable(sbdzd.getType(), "") + " set content='" + jsonObject.toJSONString() + "'" +
+                " where id=" + sbdzd.getId() + " and type='" + sbdzd.getType() + "'";
         jdbcTemplate.execute(sql);
         serviceUtils.updateDataToES(BusiTypeEnum.SZ.getType(), sbdzd.getId().toString(), jsonObject);
     }
@@ -111,7 +117,7 @@ public class SbdFService implements BusiService {
         // 身份核验
         if ("verification".equals(info.getString("_rule_"))) {
             serviceUtils.esTestData();
-            StringBuffer sql = new StringBuffer("select id, content from "+ HMetaDataDef.getTable(busiType,"")+" where type=?")
+            StringBuffer sql = new StringBuffer("select id, content from " + HMetaDataDef.getTable(busiType, "") + " where type=?")
                     .append(" and cust_id='").append(cust_id).append("'")
                     //.append(" and id =? AND (ext_7 IS NULL OR ext_7 = '' OR ext_7 = 2 )  ");
                     .append(" and id =?  ");
@@ -126,7 +132,7 @@ public class SbdFService implements BusiService {
             }
             Map map = list.get(0);
             if (map != null && map.size() > 0) {
-                String updateSql = "UPDATE "+HMetaDataDef.getTable(busiType,"")+" SET ext_7 = 0, content = ? WHERE id =? AND type =? ";
+                String updateSql = "UPDATE " + HMetaDataDef.getTable(busiType, "") + " SET ext_7 = 0, content = ? WHERE id =? AND type =? ";
                 // 身份核验待核验入队列
                 JSONObject input = new JSONObject();
                 JSONObject data = JSON.parseObject(String.valueOf(map.getOrDefault("content", "")));
@@ -151,7 +157,7 @@ public class SbdFService implements BusiService {
         } else if ("clear_verify".equals(info.getString("_rule_"))) {
             // 清空身份证件图片
             //List ids = info.getJSONArray("ids");
-            HBusiDataManager d = serviceUtils.getObjectByIdAndType(id, BusiTypeEnum.SF.getType());
+            HBusiDataManager d = serviceUtils.getObjectByIdAndType(cust_id,id, BusiTypeEnum.SF.getType());
             if (d != null) {
                 JSONObject jsonObject;
                 String picKey = "id_no_pic";
@@ -166,18 +172,18 @@ public class SbdFService implements BusiService {
                     info.put(picKey, "");
                     info.put("idcard_pic_flag", "0");
 //                    hBusiDataManagerDao.saveOrUpdate(d);
-                    String sql = "update "+HMetaDataDef.getTable(d.getType(),"")+" set " +
-                            " content='"+jsonObject.toJSONString()+"'"+
+                    String sql = "update " + HMetaDataDef.getTable(d.getType(), "") + " set " +
+                            " content='" + jsonObject.toJSONString() + "'" +
                             " ,ext_6='' " +
-                            " where id="+d.getId()+" and type='"+d.getType()+"'";
+                            " where id=" + d.getId() + " and type='" + d.getType() + "'";
                     jdbcTemplate.execute(sql);
                     elasticSearchService.update(d, d.getId());
-                    customsService.updateMainDanIdCardNumber(jsonObject.getIntValue("pid"));
+                    customsService.updateMainDanIdCardNumber(jsonObject.getIntValue("pid"),cust_id);
                 }
             }
 
         } else {
-            HBusiDataManager dbManager = serviceUtils.getObjectByIdAndType(id, busiType);
+            HBusiDataManager dbManager = serviceUtils.getObjectByIdAndType(cust_id,id, busiType);
             String content = dbManager.getContent();
             JSONObject json = JSONObject.parseObject(content);
             Iterator keys = info.keySet().iterator();
@@ -187,7 +193,7 @@ public class SbdFService implements BusiService {
             }
             //dbManager.setContent(json.toJSONString());
             serviceUtils.updateDataToES(busiType, id.toString(), json);
-            totalPartDanToMainDan(json.getInteger("pid"), BusiTypeEnum.SZ.getType(), id);
+            totalPartDanToMainDan(json.getLongValue("pid"), BusiTypeEnum.SZ.getType(), id, cust_id);
         }
     }
 
@@ -204,20 +210,29 @@ public class SbdFService implements BusiService {
             Exception {
         log.info("申报单分单id:{}开始删除,type:{}", id, busiType);
 //        String sql = "select id,type,content,ext_1,ext_2,ext_3,ext_4 from "+HMetaDataDef.getTable()+" where id=" + id + " and type='" + busiType + "'";
-        HBusiDataManager manager = serviceUtils.getObjectByIdAndType(id, busiType);//jdbcTemplate.queryForObject(sql, HBusiDataManager.class);
+        HBusiDataManager manager = serviceUtils.getObjectByIdAndType(cust_id,id, busiType);//jdbcTemplate.queryForObject(sql, HBusiDataManager.class);
         if (manager.getCust_id() == null || (!cust_id.equals(manager.getCust_id().toString()))) {
             throw new TouchException("无权删除");
         }
-        List<HBusiDataManager> list = serviceUtils.getDataList(BusiTypeEnum.SS.getType(), id);
-        for (HBusiDataManager manager2 : list) {
-            serviceUtils.deleteDatafromES(manager2.getType(), manager2.getId().toString());
-        }
-        serviceUtils.delDataListByPid(BusiTypeEnum.SS.getType(),id);
-        serviceUtils.deleteDatafromES(manager.getType(), manager.getId().toString());
-        JSONObject json = JSONObject.parseObject(manager.getContent());
-        Integer zid = json.getInteger("pid");
-        totalPartDanToMainDan(zid, BusiTypeEnum.SZ.getType(), id);
 
+        JSONObject json = JSONObject.parseObject(manager.getContent());
+        //List<HBusiDataManager> list = serviceUtils.getDataList(BusiTypeEnum.SS.getType(), id);
+        List<HBusiDataManager> list = serviceUtils.listSdByBillNo(cust_id, BusiTypeEnum.SS.getType(), json.getString("main_bill_no"), json.getString("bill_no"));
+        List<String> sdIds = new ArrayList<>();
+        for (HBusiDataManager manager2 : list) {
+            sdIds.add(String.valueOf(manager2.getId()));
+            //serviceUtils.deleteDatafromES(manager2.getType(), manager2.getId().toString());
+        }
+        /*serviceUtils.delDataListByPid(BusiTypeEnum.SS.getType(), id);
+        serviceUtils.deleteDatafromES(manager.getType(), manager.getId().toString());*/
+        // 批量删除数据库税单
+        serviceUtils.deleteByIds(cust_id, BusiTypeEnum.SS.getType(), sdIds);
+        // 批量删除es税单
+        elasticSearchService.bulkDeleteDocument(BusiTypeEnum.getEsIndex(BusiTypeEnum.SS.getType()), Constants.INDEX_TYPE, sdIds);
+        Integer zid = json.getInteger("pid");
+        totalPartDanToMainDan(json.getLongValue("pid"), BusiTypeEnum.SZ.getType(), id, cust_id);
+        // 更新主单身份证照片数量
+        customsService.updateMainDanIdCardNumber(zid,cust_id);
     }
 
     @Override
@@ -227,7 +242,7 @@ public class SbdFService implements BusiService {
         //查询主列表
         if ("main".equals(params.getString("_rule_"))) {
             sqlParams.clear();
-            StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from "+HMetaDataDef.getTable(busiType,"")+" where type=?");
+            StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(busiType, "") + " where type=?");
             if (!"all".equals(cust_id))
                 sqlstr.append(" and cust_id='").append(cust_id).append("'");
 
@@ -290,9 +305,9 @@ public class SbdFService implements BusiService {
      * @param type
      * @param id
      */
-    public void totalPartDanToMainDan(Integer zid, String type, Long id) {
+    public void totalPartDanToMainDan(long zid, String type, Long id, String custId) {
 
-        List<HBusiDataManager> data = serviceUtils.getDataList(BusiTypeEnum.SF.getType(), zid.longValue());
+        List<HBusiDataManager> data = serviceUtils.listDataByPid(custId, BusiTypeEnum.SF.getType(), zid, BusiTypeEnum.SZ.getType());
         Float weightTotal = 0f;
         Integer low_price_goods = 0;
         for (HBusiDataManager d : data) {
@@ -313,7 +328,7 @@ public class SbdFService implements BusiService {
         String sql = "";//"select id,type,content,ext_1,ext_2,ext_3,ext_4 from "+HMetaDataDef.getTable()+" where id=" + zid + " and type='" + type + "'";
         HBusiDataManager manager = null;
         try {
-            manager = serviceUtils.getObjectByIdAndType(NumberConvertUtil.parseLong(zid), type);
+            manager = serviceUtils.getObjectByIdAndType(custId,NumberConvertUtil.parseLong(zid), type);
         } catch (EmptyResultDataAccessException e) {
             log.warn("查询主单:{},type:{}失败", zid, type);
         }
@@ -328,9 +343,9 @@ public class SbdFService implements BusiService {
         }
         jsonObject.put("low_price_goods", s + low_price_goods);
         manager.setContent(jsonObject.toJSONString());
-        sql = " update "+HMetaDataDef.getTable(BusiTypeEnum.SZ.getType(),"")+" set content='" + jsonObject.toJSONString() + "' where id=" + zid + " and type='" + type + "'";
+        sql = " update " + HMetaDataDef.getTable(BusiTypeEnum.SZ.getType(), "") + " set content='" + jsonObject.toJSONString() + "' where id=" + zid + " and type='" + type + "'";
         jdbcTemplate.update(sql);
-        serviceUtils.updateDataToES(BusiTypeEnum.SZ.getType(), zid.toString(), jsonObject);
+        serviceUtils.updateDataToES(BusiTypeEnum.SZ.getType(), String.valueOf(zid), jsonObject);
 
     }
 

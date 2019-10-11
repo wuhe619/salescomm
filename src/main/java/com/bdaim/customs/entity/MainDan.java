@@ -12,7 +12,13 @@ public class MainDan {
     @JsonProperty(value = "I_E_FLAG")
     private String i_e_flag;
     @JsonProperty(value = "I_E_PORT")
+    /**
+     * 进出口岸
+     */
     private String i_e_port;
+    /**
+     * 进出口日期
+     */
     @JsonProperty(value = "I_E_DATE")
     private String i_e_date;
     @JsonProperty(value = "D_DATE")
@@ -132,8 +138,11 @@ public class MainDan {
     private String inspction_type;//   报检类型
     @JsonProperty(value = "SPLIT_LUGGAGE")
     private String split_luggage; //分运行李
+    /**
+     * 起运/运抵港
+     */
     @JsonProperty(value = "DEPART_ARRIVAL_PORT")
-    private String depart_arrival_port;//起运/运抵港
+    private String depart_arrival_port;
     @JsonProperty(value = "NOTE_S")
     private String note_S; //备注
     private String entrusted_unit;//委托单位

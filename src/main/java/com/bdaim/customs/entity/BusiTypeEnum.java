@@ -17,8 +17,14 @@ public enum BusiTypeEnum {
     ST("ST", "场站", "station"),
     BGD_HZ("BGD_HZ", "报关单-海关回执", "bgd_hz"),
     CD_HZ("CD_HZ", "舱单-海关回执", "cd_hz"),
-    TAX_MANAGE("TAX_MANAGE","纳税管理","tax_manage"),
-    PARAM_PROXY("PARAM_PROXY","地面代理参数","param_proxy");
+    TAX_MANAGE("TAX_MANAGE", "纳税管理", "tax_manage"),
+    PARAM_PROXY("PARAM_PROXY", "地面代理参数", "param_proxy"),
+    /**
+     * api
+     */
+    HY_PIC_Z("HY_PIC_Z", "行业画像-主批次", "hy_pic_z"),
+    HY_PIC_X("HY_PIC_X", "行业画像-批次详情", "hy_pic_x");
+
 
     private String key;
     private String name;
@@ -81,6 +87,16 @@ public enum BusiTypeEnum {
         return "";
     }
 
+    public static String getParentType(String busiType) {
+        String parentType = "";
+        if (busiType.endsWith("_f")) {
+            parentType = busiType.replaceAll("_f", "_z");
+        } else if (busiType.endsWith("_s")) {
+            parentType = busiType.replaceAll("_s", "_f");
+        }
+        return parentType;
+    }
+
     public String getKey() {
         return key;
     }
@@ -94,7 +110,7 @@ public enum BusiTypeEnum {
         return type;
     }
 
-    public static List<String> getTypeList(){
+    public static List<String> getTypeList() {
         List types = new ArrayList();
         for (BusiTypeEnum v : BusiTypeEnum.values()) {
             types.add(v.getType());

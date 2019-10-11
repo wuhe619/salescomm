@@ -3,6 +3,7 @@ package com.bdaim.customs.utils;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.batch.ResourceEnum;
+import com.bdaim.common.BusiMetaConfig;
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.service.ElasticSearchService;
 import com.bdaim.common.service.SequenceService;
@@ -130,8 +131,11 @@ public class ServiceUtils {
     }
 
 
-    public HBusiDataManager getObjectByIdAndType(Long id, String type) {
+    public HBusiDataManager getObjectByIdAndType(String cust_id,Long id, String type) {
         String sql = "select * from " + HMetaDataDef.getTable(type, "") + " where id=" + id + " and type='" + type + "'";
+        if(StringUtil.isNotEmpty(cust_id)) {
+            sql += " and cust_id='" + cust_id + "'";
+        }
         RowMapper<HBusiDataManager> managerRowMapper = new BeanPropertyRowMapper<>(HBusiDataManager.class);
         List<HBusiDataManager> list = jdbcTemplate.query(sql, managerRowMapper);
         if (list != null && list.size() > 0) {
@@ -141,20 +145,204 @@ public class ServiceUtils {
     }
 
     public void delDataListByPid(String type, Long pid) {
-        String sql = "delete from " + HMetaDataDef.getTable(type, "") + " where CASE WHEN JSON_VALID(content) THEN  JSON_EXTRACT(content, '$.pid')=" + pid + " ELSE null END or CASE WHEN JSON_VALID(content) THEN  JSON_EXTRACT(content, '$.pid')='" + pid + "' ELSE null END";
-        jdbcTemplate.execute(sql);
+        //String sql = "delete from " + HMetaDataDef.getTable(type, "") + " where CASE WHEN JSON_VALID(content) THEN  JSON_EXTRACT(content, '$.pid')=" + pid + " ELSE null END or CASE WHEN JSON_VALID(content) THEN  JSON_EXTRACT(content, '$.pid')='" + pid + "' ELSE null END";
+        String sql = "delete from " + HMetaDataDef.getTable(type, "") + " where " + BusiMetaConfig.getFieldIndex(type, "pid") + "=(SELECT ext_3 FROM " + HMetaDataDef.getTable(BusiTypeEnum.getParentType(type), "") + " WHERE id = ?) ";
+        jdbcTemplate.update(sql, pid);
+    }
+
+    /**
+     * 删除税单
+     *
+     * @param type
+     * @param mainBillNo
+     * @param billNo
+     * @param custId
+     */
+    public void deleteSListByBillNo(String custId, String type, String mainBillNo, String billNo) {
+        String sql = "delete from " + HMetaDataDef.getTable(type, "") + " where cust_id = ?  AND ext_2 = ? AND ext_4 = ? ";
+        jdbcTemplate.update(sql, custId, mainBillNo, billNo);
+    }
+
+    /**
+     * 根据多个ID删除税单
+     *
+     * @param custId
+     * @param type
+     * @param ids
+     */
+    public void deleteByIds(String custId, String type, List ids) {
+        if (ids == null || ids.size() == 0) {
+            log.warn("批量根据多个ID删除ids为空");
+            return;
+        }
+        String sql = "delete from " + HMetaDataDef.getTable(type, "") + " where cust_id = ?  AND id IN(" + SqlAppendUtil.sqlAppendWhereIn(ids) + ") ";
+        jdbcTemplate.update(sql, custId);
     }
 
     public List<HBusiDataManager> getDataList(String type, Long pid) {
-        String sql2 = "select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(type, "") + " where  type='" + type + "' and ( CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')=" + pid + " ELSE null END  or CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')='" + pid + "' ELSE null END)";
+        String sql2 = "select id, type, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(type, "") + " where  type='" + type + "' and " + BusiMetaConfig.getFieldIndex(type, "pid") + " = (SELECT ext_3 FROM " + HMetaDataDef.getTable(BusiTypeEnum.getParentType(type), "") + " WHERE id = ?) ";
         log.info("sql2=" + sql2);
        /* RowMapper<HBusiDataManager> managerRowMapper=new BeanPropertyRowMapper<>(HBusiDataManager.class);
         List<HBusiDataManager> list = jdbcTemplate.query(sql2,managerRowMapper);*/
 
-        List<Map<String, Object>> list2 = jdbcTemplate.queryForList(sql2);
+        List<Map<String, Object>> list2 = jdbcTemplate.queryForList(sql2, pid);
         log.info("list==" + list2);
         List<HBusiDataManager> list = JSON.parseArray(JSON.toJSONString(list2), HBusiDataManager.class);
         return list;
+    }
+
+    public List<HBusiDataManager> listDataByPid(String custId, String type, long pid, String pBusiType) {
+        StringBuffer sql = new StringBuffer();
+        sql.append("select id, type, content, cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(type, "") + " where cust_id = ? AND type=? AND ext_4 = (SELECT ext_3 FROM " + HMetaDataDef.getTable(pBusiType, "") + " WHERE id = ?) ");
+        log.info("查询分单sql:{}", sql);
+        List<Map<String, Object>> list = jdbcTemplate.queryForList(sql.toString(), custId, type, pid);
+        List<HBusiDataManager> result = JSON.parseArray(JSON.toJSONString(list), HBusiDataManager.class);
+        return result;
+    }
+
+    /**
+     * 查询税单列表
+     *
+     * @param custId
+     * @param type
+     * @param mainBillNo
+     * @param billNo
+     * @return
+     */
+    public List<HBusiDataManager> listSdByBillNo(String custId, String type, String mainBillNo, String billNo) {
+        StringBuffer sql = new StringBuffer();
+        sql.append("select id, type, content, cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(type, "") + " where cust_id = ? AND type=? AND ext_2 = ?  AND ext_4 = ?");
+        log.info("查询税单sql:{}", sql);
+        List<Map<String, Object>> list = jdbcTemplate.queryForList(sql.toString(), custId, type, mainBillNo, billNo);
+        List<HBusiDataManager> result = JSON.parseArray(JSON.toJSONString(list), HBusiDataManager.class);
+        return result;
+    }
+
+    /**
+     * 根据主单号和查询税单列表
+     *
+     * @param custId
+     * @param type
+     * @param mainBillNo
+     * @param partyNos
+     * @return
+     */
+    public List<JSONObject> listSdByBillNos(String custId, String type, String mainBillNo, List<String> partyNos, JSONObject param) {
+        if (partyNos == null || partyNos.size() == 0) {
+            return new ArrayList<>();
+        }
+        List sqlParams = new ArrayList();
+        StringBuffer sql = new StringBuffer();
+        sql.append("select id, type, content, cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(type, "") + " where type=? AND " + BusiMetaConfig.getFieldIndex(type, "main_bill_no") + " = ?  AND " + BusiMetaConfig.getFieldIndex(type, "pid") + " IN (" + SqlAppendUtil.sqlAppendWhereIn(partyNos) + ")");
+        if (!"all".equals(custId))
+            sql.append(" and cust_id='").append(custId).append("'");
+        sqlParams.add(type);
+        sqlParams.add(mainBillNo);
+
+        Iterator keys = param.keySet().iterator();
+        while (keys.hasNext()) {
+            String key = (String) keys.next();
+            if ("".equals(String.valueOf(param.get(key)))) continue;
+            if ("pageNum".equals(key) || "pageSize".equals(key) || "stationId".equals(key) || "cust_id".equals(key) || "_rule_".equals(key)) {
+                continue;
+            } else if (key.startsWith("_g_")) {
+                sql.append(" and " + BusiMetaConfig.getFieldIndex(type, key) + " > ?");
+            } else if (key.startsWith("_ge_")) {
+                sql.append(" and " + BusiMetaConfig.getFieldIndex(type, key) + " >= ?");
+            } else if (key.startsWith("_l_")) {
+                sql.append(" and " + BusiMetaConfig.getFieldIndex(type, key) + " < ?");
+            } else if (key.startsWith("_le_")) {
+                sql.append(" and " + BusiMetaConfig.getFieldIndex(type, key) + " <= ?");
+            } else if (key.startsWith("_eq_")) {
+                sql.append(" and " + BusiMetaConfig.getFieldIndex(type, key) + " = ?");
+            } else {
+                sql.append(" and " + BusiMetaConfig.getFieldIndex(type, key) + "=?");
+            }
+            sqlParams.add(param.get(key));
+        }
+        log.info("查询税单sql:{}", sql);
+        List<Map<String, Object>> list = jdbcTemplate.queryForList(sql.toString(), sqlParams.toArray());
+        //List<JSONObject> result = JSON.parseArray(JSON.toJSONString(list), JSONObject.class);
+        return JSON.parseArray(JSON.toJSONString(list), JSONObject.class);
+    }
+
+    /**
+     * 根据父级ID查询子单列表
+     *
+     * @param busiType
+     * @param cust_id
+     * @param pid
+     * @return
+     */
+    public List queryChildData(String busiType, String cust_id, String cust_group_id, long cust_user_id, Long pid, JSONObject param) {
+        List sqlParams = new ArrayList();
+        StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(busiType, "") + " where type=?");
+        if (!"all".equals(cust_id))
+            sqlstr.append(" and cust_id='").append(cust_id).append("'");
+
+        sqlParams.add(busiType);
+        Iterator keys = param.keySet().iterator();
+        while (keys.hasNext()) {
+            String key = (String) keys.next();
+            if ("".equals(String.valueOf(param.get(key)))) continue;
+            if ("pageNum".equals(key) || "pageSize".equals(key) || "stationId".equals(key) || "cust_id".equals(key) || "_rule_".equals(key)) {
+                continue;
+            } else if (key.startsWith("_g_")) {
+                sqlstr.append(" and " + BusiMetaConfig.getFieldIndex(busiType, key) + " > ?");
+            } else if (key.startsWith("_ge_")) {
+                sqlstr.append(" and " + BusiMetaConfig.getFieldIndex(busiType, key) + " >= ?");
+            } else if (key.startsWith("_l_")) {
+                sqlstr.append(" and " + BusiMetaConfig.getFieldIndex(busiType, key) + " < ?");
+            } else if (key.startsWith("_le_")) {
+                sqlstr.append(" and " + BusiMetaConfig.getFieldIndex(busiType, key) + " <= ?");
+            } else if (key.startsWith("_eq_")) {
+                sqlstr.append(" and " + BusiMetaConfig.getFieldIndex(busiType, key) + " = ?");
+            } else {
+                sqlstr.append(" and " + BusiMetaConfig.getFieldIndex(busiType, key) + "=?");
+            }
+            sqlParams.add(param.get(key));
+        }
+        sqlstr.append(" AND " + BusiMetaConfig.getFieldIndex(busiType, "pid") + "=(SELECT ext_3 FROM " + HMetaDataDef.getTable(BusiTypeEnum.getParentType(busiType), "") + " WHERE id = ?)");
+        sqlParams.add(pid);
+
+        List<Map<String, Object>> ds = jdbcTemplate.queryForList(sqlstr.toString(), sqlParams.toArray());
+        List data = new ArrayList();
+        for (int i = 0; i < ds.size(); i++) {
+            Map m = (Map) ds.get(i);
+            JSONObject jo = null;
+            try {
+                if (m.containsKey("content")) {
+                    jo = JSONObject.parseObject((String) m.get("content"));
+                    jo.put("id", m.get("id"));
+                    jo.put("cust_id", m.get("cust_id"));
+                    jo.put("cust_group_id", m.get("cust_group_id"));
+                    jo.put("cust_user_id", m.get("cust_user_id"));
+                    jo.put("create_id", m.get("create_id"));
+                    jo.put("create_date", m.get("create_date"));
+                    jo.put("update_id", m.get("update_id"));
+                    jo.put("update_date", m.get("update_date"));
+                    if (m.get("ext_1") != null && !"".equals(m.get("ext_1")))
+                        jo.put("ext_1", m.get("ext_1"));
+                    if (m.get("ext_2") != null && !"".equals(m.get("ext_2")))
+                        jo.put("ext_2", m.get("ext_2"));
+                    if (m.get("ext_3") != null && !"".equals(m.get("ext_3")))
+                        jo.put("ext_3", m.get("ext_3"));
+                    if (m.get("ext_4") != null && !"".equals(m.get("ext_4")))
+                        jo.put("ext_4", m.get("ext_4"));
+                    if (m.get("ext_5") != null && !"".equals(m.get("ext_5")))
+                        jo.put("ext_5", m.get("ext_5"));
+                } else
+                    jo = JSONObject.parseObject(JSONObject.toJSONString(m));
+            } catch (Exception e) {
+                log.error(e.getMessage());
+            }
+            if (jo == null) { //jo异常导致为空时，只填充id
+                jo = new JSONObject();
+                jo.put("id", m.get("id"));
+            }
+            data.add(jo);
+        }
+        return data;
     }
 
     /**
@@ -212,9 +400,10 @@ public class ServiceUtils {
      * @param idCardCheckStatus 1-身份证校验通过 2-无
      * @return
      */
-    public List<HBusiDataManager> listFDIdCard(int pid, String type, int idCardPhotoStatus, int idCardCheckStatus) {
-        StringBuilder hql = new StringBuilder("select * from " + HMetaDataDef.getTable(type, "") + " WHERE type = ? AND JSON_EXTRACT(content, '$.pid')=?  ");
-        // 有身份照片
+    public List<HBusiDataManager> listFDIdCard(int pid, String type, String pBusiType, int idCardPhotoStatus, int idCardCheckStatus) {
+        //StringBuilder hql = new StringBuilder("select * from " + HMetaDataDef.getTable(type, "") + " WHERE type = ? AND JSON_EXTRACT(content, '$.pid')=?  ");
+        StringBuilder hql = new StringBuilder("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(type, "") + " WHERE type = ? AND ext_4 = (SELECT ext_3 FROM " + HMetaDataDef.getTable(pBusiType, "") + " WHERE id = ?)  ");
+        // 有身份照片 AND ext_4 = (SELECT ext_3 FROM " + HMetaDataDef.getTable(pBusiType, "") + " WHERE id = ?)
         if (1 == idCardPhotoStatus) {
             hql.append(" AND ext_6 IS NOT NULL AND ext_6 <>'' ");
         } else if (2 == idCardPhotoStatus) {
@@ -226,7 +415,7 @@ public class ServiceUtils {
         } else if (2 == idCardCheckStatus) {
             hql.append(" AND (ext_7 IS NULL OR ext_7 ='' OR ext_7 =2) ");
         }
-        List<Map<String, Object>> list2 = jdbcTemplate.queryForList(hql.toString());
+        List<Map<String, Object>> list2 = jdbcTemplate.queryForList(hql.toString(), type, pid);
         List<HBusiDataManager> list = JSON.parseArray(JSON.toJSONString(list2), HBusiDataManager.class);
         return list;
     }
@@ -393,7 +582,7 @@ public class ServiceUtils {
             if (dic == null) {
                 continue;
             }
-            log.info("查询缓存字典数据type:[{}],code:[{}],字典数据:[{}]", key.toUpperCase(), jo.getString(key), dic);
+            //log.info("查询缓存字典数据type:[{}],code:[{}],字典数据:[{}]", key.toUpperCase(), jo.getString(key), dic);
             tmp.put(key + "_name", dic.getName_zh());
             tmp.put(key + "_name_en", dic.getName_en());
         }
@@ -424,6 +613,7 @@ public class ServiceUtils {
 
     /**
      * 根据类型获取资源缓存
+     *
      * @param resourceType
      * @return
      */
