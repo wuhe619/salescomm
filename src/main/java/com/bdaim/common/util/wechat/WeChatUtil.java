@@ -63,7 +63,7 @@ public class WeChatUtil {
             header.put("Content-Type", "application/json");
             logger.info("发送微信模板消息请求参数:{},accesstoken:{}", param, lastAccessToken.getAccessToken());
             String result = HttpUtil.httpPost("https://api.weixin.qq.com/cgi-bin/message/template/send?access_token=" + lastAccessToken.getAccessToken(), JSON.toJSONString(param), header);
-            logger.info("发送微信模板消息返回结果:", result);
+            logger.info("发送微信模板消息返回结果:{}", result);
             if (StringUtil.isNotEmpty(result) && JSON.parseObject(result).getIntValue("errcode") == 0) {
                 return true;
             }
