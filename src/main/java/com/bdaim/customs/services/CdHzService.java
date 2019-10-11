@@ -28,6 +28,7 @@ public class CdHzService implements BusiService {
 
     @Override
     public void insertInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) throws Exception {
+        log.info(info.toJSONString());
         info.put("ext_1",info.getString("status"));
         String xmlString=info.getString("xmlstring");
         Map map = serviceUtils.xmlToMap(xmlString);
