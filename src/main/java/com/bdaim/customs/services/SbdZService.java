@@ -848,13 +848,7 @@ public class SbdZService implements BusiService {
             }
             sqlParams.add(param.get(key));
         }
-        String tmpType = "";
-        if (busiType.endsWith("_f")) {
-            tmpType = busiType.replaceAll("_f", "_z");
-        } else if (busiType.endsWith("_s")) {
-            tmpType = busiType.replaceAll("_s", "_f");
-        }
-        sqlstr.append(" and " + BusiMetaConfig.getFieldIndex(busiType, "pid") + "=(SELECT ext_3 FROM " + HMetaDataDef.getTable(tmpType, "") + " WHERE id = ?)");
+        sqlstr.append(" and " + BusiMetaConfig.getFieldIndex(busiType, "pid") + "=(SELECT ext_3 FROM " + HMetaDataDef.getTable(BusiTypeEnum.getParentType(busiType), "") + " WHERE id = ?)");
         sqlParams.add(pid);
 
         List<Map<String, Object>> ds = jdbcTemplate.queryForList(sqlstr.toString(), sqlParams.toArray());

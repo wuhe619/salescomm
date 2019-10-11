@@ -21,10 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -66,20 +63,31 @@ public class ExportExcelService {
         }
         try {
             List list = (List) map.get("list");
-            LOG.info("导出list:{}", list != null ? list.size() : 0);
+            LOG.info("导出sheet1行数:{}", list != null ? list.size() : 0);
             List list1 = (List) map.get("list1");
-            LOG.info("导出list1:{}", list1 != null ? list1.size() : 0);
+            LOG.info("导出sheet2行数:{}", list1 != null ? list1.size() : 0);
             List list2 = (List) map.get("list2");
-            LOG.info("导出list2:{}", list2 != null ? list2.size() : 0);
+            LOG.info("导出sheet3行数:{}", list2 != null ? list2.size() : 0);
         } catch (Exception e) {
             e.printStackTrace();
         }
-
+        //写入本地临时文件中
+        String fileName = "C:\\Users\\Administrator\\Desktop\\" + System.currentTimeMillis() + ExcelTypeEnum.XLSX.getValue();
         Workbook workbook = ExcelExportUtil.exportExcel(params, map);
-        FileOutputStream fos = new FileOutputStream("/tmp/test.xlsx");
+        //workbook.write(response.getOutputStream());
+        FileOutputStream fos = new FileOutputStream(fileName);
         workbook.write(fos);
         fos.close();
-        //workbook.write(response.getOutputStream());
+
+        InputStream in = new BufferedInputStream(new FileInputStream(fileName), 4096);
+        OutputStream os = new BufferedOutputStream(response.getOutputStream());
+        byte[] bytes = new byte[4096];
+        int i = 0;
+        while ((i = in.read(bytes)) > 0) {
+            os.write(bytes, 0, i);
+        }
+        os.flush();
+        os.close();
         LOG.info("导出:{}完成", templatePath);
     }
 
