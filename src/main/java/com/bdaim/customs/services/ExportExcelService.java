@@ -96,7 +96,7 @@ public class ExportExcelService {
         String classPath = fileUrlEntity.getFileUrl();
         String pathF = File.separator;
         classPath = classPath.replace("/", pathF);
-        String templatePath = classPath + pathF + "tp" + pathF + param.getString("_rule_") + ".xls";
+        String templatePath = classPath + pathF + "tp" + pathF + param.getString("_rule_") + ".xlsx";
         //String templatePath = "tp/" + param.getString("_rule_") + ".xlsx";
         File file = new File(templatePath);
         LOG.info("excel模板文件路径:{},文件状态:{}", file.getPath(), file.exists());
@@ -105,7 +105,7 @@ public class ExportExcelService {
         //map.put("list", JavaBeanUtil.convertJsonObjectToMapList(list));
         map.put("list", list);
 
-        response.setHeader("Content-Disposition", "attachment; filename=" + System.currentTimeMillis() + ExcelTypeEnum.XLS.getValue());
+        response.setHeader("Content-Disposition", "attachment; filename=" + System.currentTimeMillis() + ExcelTypeEnum.XLSX.getValue());
         response.setContentType("application/vnd.ms-excel;charset=utf-8");
         switch (param.getString("_rule_")) {
             // 舱单导出txt
