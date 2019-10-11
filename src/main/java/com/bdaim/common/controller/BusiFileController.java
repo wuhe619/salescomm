@@ -98,7 +98,7 @@ public class BusiFileController extends BasicAction {
      */
     @ResponseBody
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
-    public ResponseInfo getInfo(@PathVariable(name = "id") Long id,  @RequestBody(required = false) String body,@PathVariable(name = "busiType") String busiType) {
+    public ResponseInfo doInfo(@PathVariable(name = "id") Long id,  @RequestBody(required = false) String body,@PathVariable(name = "busiType") String busiType) {
     	ResponseInfo resp = new ResponseInfo();
         JSONObject param = null;
         try {
@@ -115,7 +115,7 @@ public class BusiFileController extends BasicAction {
         	String cust_group_id = lu.getUserGroupId();
             Long cust_user_id = lu.getId();
         	
-        	JSONObject jo = busiFileService.getInfo(cust_id, cust_group_id, cust_user_id, busiType, id, param);
+        	JSONObject jo = busiFileService.doInfo(cust_id, cust_group_id, cust_user_id, busiType, id, param);
         	resp.setData(jo);
         } catch (Exception e) {
             logger.error("获取文件异常:"+id+" "+e.getMessage());

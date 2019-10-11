@@ -35,7 +35,7 @@ public class BusiFileService {
     /*
      * 按ID获取文件
      */
-    public JSONObject getInfo(String cust_id, String cust_group_id, long cust_user_id, String busiType, Long id, JSONObject param) throws Exception {
+    public JSONObject doInfo(String cust_id, String cust_group_id, long cust_user_id, String busiType, Long id, JSONObject param) throws Exception {
         JSONObject jo = null;
 
         String sql = "select content, cust_id, cust_group_id, cust_user_id, create_id, create_date, update_id, update_date,file_type,file_name,file_size,file_id,ext_1 from f_file where type=? and id=? ";
