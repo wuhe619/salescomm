@@ -223,7 +223,7 @@ public class ServiceUtils {
      * @param pid
      * @return
      */
-    public List queryChildData(String busiType, String cust_id, Long pid, JSONObject param) {
+    public List queryChildData(String busiType, String cust_id, String cust_group_id, long cust_user_id, Long pid, JSONObject param) {
         List sqlParams = new ArrayList();
         StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(busiType, "") + " where type=?");
         if (!"all".equals(cust_id))

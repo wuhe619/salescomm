@@ -157,7 +157,7 @@ public class CdZService implements BusiService {
                     .append(info.getString("depart_arrival_port")).append(split)
                     .append(info.getString("i_e_port")).append(split).append("\r\n");
             //分单数据
-            List<JSONObject> singles = queryChildData(BusiTypeEnum.CF.getType(), cust_id, cust_group_id, cust_user_id, id, info, param);
+            List<JSONObject> singles = serviceUtils.queryChildData(BusiTypeEnum.CF.getType(), cust_id, cust_group_id, cust_user_id, id, param);
             if (singles != null && singles.size() > 0) {
                 for (JSONObject jo : singles) {
                     content.append(jo.getString("bill_no")).append(split)

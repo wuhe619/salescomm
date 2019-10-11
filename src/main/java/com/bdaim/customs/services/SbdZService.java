@@ -196,7 +196,7 @@ public class SbdZService implements BusiService {
                 case "_export_low_product":
                     param.put("_ge_low_price_goods", 1);
                     //查询包含低价的分单列表
-                    List singles = serviceUtils.queryChildData(BusiTypeEnum.SF.getType(), cust_id, cust_group_id, cust_user_id, id, info, param);
+                    List singles = serviceUtils.queryChildData(BusiTypeEnum.SF.getType(), cust_id, cust_group_id, cust_user_id, id, param);
                     if (singles != null) {
                         param.remove("_ge_low_price_goods");
                         param.put("_eq_is_low_price", 1);
@@ -208,7 +208,7 @@ public class SbdZService implements BusiService {
                             js = (JSONObject) singles.get(i);
                             js.put("index", i + 1);
                             param.put("main_bill_no", js.getString("main_bill_no"));
-                            tmp = serviceUtils.queryChildData(BusiTypeEnum.SS.getType(), cust_id, cust_group_id, cust_user_id, js.getLong("id"), info, param);
+                            tmp = serviceUtils.queryChildData(BusiTypeEnum.SS.getType(), cust_id, cust_group_id, cust_user_id, js.getLong("id"), param);
                             if (tmp != null && tmp.size() > 0) {
                                 for (int j = 0; j < products.size(); j++) {
                                     JSONObject tmpS = (JSONObject) tmp.get(j);
@@ -227,7 +227,7 @@ public class SbdZService implements BusiService {
                 // 查询报检单,理货单下的分单和商品
                 case "_export_declaration_form":
                 case "_export_tally_form":
-                    singles = serviceUtils.queryChildData(BusiTypeEnum.SF.getType(), cust_id, cust_group_id, cust_user_id, id, info, param);
+                    singles = serviceUtils.queryChildData(BusiTypeEnum.SF.getType(), cust_id, cust_group_id, cust_user_id, id, param);
                     if (singles != null) {
                         info.put("singles", singles);
                         List products;
@@ -236,7 +236,7 @@ public class SbdZService implements BusiService {
                             js = (JSONObject) singles.get(i);
                             js.put("index", i + 1);
                             param.put("main_bill_no", js.getString("main_bill_no"));
-                            products = serviceUtils.queryChildData(BusiTypeEnum.SS.getType(), cust_id, cust_group_id, cust_user_id, js.getLong("id"), info, param);
+                            products = serviceUtils.queryChildData(BusiTypeEnum.SS.getType(), cust_id, cust_group_id, cust_user_id, js.getLong("id"), param);
                             for (int j = 0; j < products.size(); j++) {
                                 product = (JSONObject) products.get(j);
                                 product.put("index", j + 1);
@@ -249,7 +249,7 @@ public class SbdZService implements BusiService {
                     break;
                 case "_export_estimated_tax":
                     // 预估税单
-                    singles = serviceUtils.queryChildData(BusiTypeEnum.SF.getType(), cust_id, cust_group_id, cust_user_id, id, info, param);
+                    singles = serviceUtils.queryChildData(BusiTypeEnum.SF.getType(), cust_id, cust_group_id, cust_user_id, id, param);
                     if (singles != null) {
                         JSONObject js;
                         for (int i = 0; i < singles.size(); i++) {
@@ -306,7 +306,7 @@ public class SbdZService implements BusiService {
             //serviceUtils.deleteSListByBillNo(cust_id, BusiTypeEnum.SS.getType(), content.getString("main_bill_no"), content.getString("bill_no"));
         }
         // 批量删除数据库分单
-        serviceUtils.deleteByIds(cust_id,BusiTypeEnum.SF.getType(), fdIds);
+        serviceUtils.deleteByIds(cust_id, BusiTypeEnum.SF.getType(), fdIds);
         // 批量删除es分单
         elasticSearchService.bulkDeleteDocument(BusiTypeEnum.getEsIndex(BusiTypeEnum.SF.getType()), Constants.INDEX_TYPE, fdIds);
         // 批量删除数据库税单
