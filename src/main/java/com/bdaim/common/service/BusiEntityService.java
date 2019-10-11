@@ -30,7 +30,6 @@ import java.util.Map;
  * 通用业务实体服务
  */
 @Service
-@Transactional
 public class BusiEntityService {
     private static Logger logger = LoggerFactory.getLogger(BusiEntityService.class);
 
@@ -259,6 +258,7 @@ public class BusiEntityService {
     /*
      * 保存记录
      */
+    @Transactional
     public Long saveInfo(String cust_id, String cust_group_id, Long cust_user_id, String busiType, Long id, JSONObject info) throws Exception {
         String[] extKeys = new String[]{"ext_1", "ext_2", "ext_3", "ext_4", "ext_5"};
         String[] sysKeys = new String[]{"id", "cust_id", "create_id", "create_date"}; //系统数据字段名
@@ -380,6 +380,7 @@ public class BusiEntityService {
     /**
      * 删除记录
      */
+    @Transactional
     public void deleteInfo(String cust_id, String cust_group_id, Long cust_user_id, String busiType, Long id) throws Exception {
         String sql = "delete from " + HMetaDataDef.getTable(busiType, "") + " where type=? and cust_id=? and id=?";
         try {
