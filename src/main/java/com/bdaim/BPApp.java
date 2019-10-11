@@ -1,14 +1,5 @@
 package com.bdaim;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.AutoConfigurationPackage;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.web.servlet.ServletComponentScan;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
-//import org.springframework.security.web.access.AccessDeniedHandler;
-
 import com.bdaim.common.auth.AuthController;
 import com.bdaim.common.auth.service.TokenCacheService;
 import com.bdaim.common.db.HibernateConfig;
@@ -17,6 +8,12 @@ import com.bdaim.common.security.AuthExceptionHandler;
 import com.bdaim.common.security.SecurityConfig;
 import com.bdaim.common.security.TokenAuthenticationFilter;
 import com.bdaim.common.security.TokenAuthenticationProvider;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.web.servlet.ServletComponentScan;
+import org.springframework.context.annotation.Import;
+
+//import org.springframework.security.web.access.AccessDeniedHandler;
 
 /**
  * 启动类
@@ -26,6 +23,8 @@ import com.bdaim.common.security.TokenAuthenticationProvider;
 @ServletComponentScan(basePackages = "com.bdaim.common.controller")
 public class BPApp {
 	public static void main(String[] args) {
+		System.setProperty("org.apache.poi.util.POILogger","org.apache.poi.util.SystemOutLogger");
+		System.out.println(System.getProperty("org.apache.poi.util.POILogger"));
 		SpringApplication.run(BPApp.class , args);
 	}
 	
