@@ -72,10 +72,12 @@ public class ExportExcelService {
             e.printStackTrace();
         }
         //写入本地临时文件中
-        String fileName = "/tmp/" + System.currentTimeMillis() + templatePath.substring(templatePath.lastIndexOf(File.separator) + 1);
+        //String fileName = "/tmp/" + System.currentTimeMillis() + templatePath.substring(templatePath.lastIndexOf(File.separator) + 1);
         Workbook workbook = ExcelExportUtil.exportExcel(params, map);
-        //workbook.write(response.getOutputStream());
-        FileOutputStream fos = new FileOutputStream(fileName);
+        workbook.write(response.getOutputStream());
+        response.getOutputStream().flush();
+        response.getOutputStream().close();
+        /*FileOutputStream fos = new FileOutputStream(fileName);
         workbook.write(fos);
         fos.close();
         LOG.info("导出excel:{}本地磁盘写入成功", fileName);
@@ -92,7 +94,7 @@ public class ExportExcelService {
         LOG.info("导出excel:{}完成", fileName);
         File file = new File(fileName);
         boolean delete = file.delete();
-        LOG.info("删除excel:{}状态", delete);
+        LOG.info("删除excel:{}状态", delete);*/
     }
 
     public void exportExcel(int id, List<JSONObject> list, JSONObject param, HttpServletResponse response) throws IllegalAccessException, IOException {
@@ -148,7 +150,7 @@ public class ExportExcelService {
         }
     }
 
-    private void generateMainDan(List<JSONObject> list, Map<String, Object> map) {
+    private void generateMainDan0(List<JSONObject> list, Map<String, Object> map) {
         if (list != null && list.size() > 0) {
             List<Map<String, Object>> list_one = new ArrayList();
             List<Map<String, Object>> list_two = new ArrayList();
@@ -183,6 +185,50 @@ public class ExportExcelService {
                         sIndex++;
                         list_two.add(ssData);
                     }
+                }
+            }
+            map.put("list1", list_one);
+            map.put("list2", list_two);
+        }
+    }
+
+    private void generateMainDan(List<JSONObject> list, Map<String, Object> map) {
+        if (list != null && list.size() > 0) {
+            List<Map<String, Object>> list_one = new ArrayList();
+            List<Map<String, Object>> list_two = new ArrayList();
+            Map<String, Object> fdData, ssData;
+            JSONArray fdList, ssList;
+            int index = 1, fIndex = 1, sIndex = 1;
+            for (JSONObject m : list) {
+                if (!m.containsKey("index")) {
+                    m.put("index", index);
+                }
+                index++;
+                fdList = m.getJSONArray("singles");
+                if (fdList == null || fdList.size() == 0) {
+                    continue;
+                }
+
+                // 处理分单
+                for (int i = 0; i < fdList.size(); i++) {
+                    fdData = new HashMap<>();
+                    fdData.put("index", fIndex);
+                    fIndex++;
+                    fdData.putAll(fdList.getJSONObject(i));
+                    list_one.add(fdData);
+                    if (fdList.getJSONObject(i) == null) {
+                        continue;
+                    }
+                }
+
+                ssList = m.getJSONArray("products");
+                // 处理商品
+                for (int j = 0; j < ssList.size(); j++) {
+                    ssData = new HashMap<>();
+                    ssData.putAll(ssList.getJSONObject(j));
+                    ssData.put("index", sIndex);
+                    sIndex++;
+                    list_two.add(ssData);
                 }
             }
             map.put("list1", list_one);

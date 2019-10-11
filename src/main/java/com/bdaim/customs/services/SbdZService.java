@@ -197,29 +197,24 @@ public class SbdZService implements BusiService {
                     param.put("_ge_low_price_goods", 1);
                     //查询包含低价的分单列表
                     List singles = serviceUtils.queryChildData(BusiTypeEnum.SF.getType(), cust_id, cust_group_id, cust_user_id, id, param);
-                    if (singles != null) {
+                    if (singles != null && singles.size() > 0) {
                         param.remove("_ge_low_price_goods");
                         param.put("_eq_is_low_price", 1);
-                        List products = new ArrayList();
-                        List tmp;
+                        List partyBillNos = new ArrayList();
                         JSONObject js, product;
+                        String main_bill_no = "";
                         // 查询分单下的低价商品
                         for (int i = 0; i < singles.size(); i++) {
                             js = (JSONObject) singles.get(i);
                             js.put("index", i + 1);
-                            param.put("main_bill_no", js.getString("main_bill_no"));
-                            tmp = serviceUtils.queryChildData(BusiTypeEnum.SS.getType(), cust_id, cust_group_id, cust_user_id, js.getLong("id"), param);
-                            if (tmp != null && tmp.size() > 0) {
-                                for (int j = 0; j < products.size(); j++) {
-                                    JSONObject tmpS = (JSONObject) tmp.get(j);
-                                    tmpS.put("main_bill_no", js.getString("main_bill_no"));
-                                }
-                                products.addAll(tmp);
-                            }
+                            partyBillNos.add(js.getString("bill_no"));
+                            main_bill_no = js.getString("main_bill_no");
                         }
+                        List products = serviceUtils.listSdByBillNos(cust_id, BusiTypeEnum.SS.getType(), main_bill_no, partyBillNos, param);
                         for (int j = 0; j < products.size(); j++) {
                             product = (JSONObject) products.get(j);
                             product.put("index", j + 1);
+                            product.put("main_bill_no", main_bill_no);
                         }
                         info.put("singles", products);
                     }
@@ -230,21 +225,34 @@ public class SbdZService implements BusiService {
                     singles = serviceUtils.queryChildData(BusiTypeEnum.SF.getType(), cust_id, cust_group_id, cust_user_id, id, param);
                     if (singles != null) {
                         info.put("singles", singles);
-                        List products;
+                        //List products;
                         JSONObject js, product;
+                        String main_bill_no = "";
+                        List partyBillNos = new ArrayList();
                         for (int i = 0; i < singles.size(); i++) {
                             js = (JSONObject) singles.get(i);
                             js.put("index", i + 1);
-                            param.put("main_bill_no", js.getString("main_bill_no"));
+                            partyBillNos.add(js.getString("bill_no"));
+                            main_bill_no = js.getString("main_bill_no");
+
+                            /*param.put("main_bill_no", js.getString("main_bill_no"));
                             products = serviceUtils.queryChildData(BusiTypeEnum.SS.getType(), cust_id, cust_group_id, cust_user_id, js.getLong("id"), param);
                             for (int j = 0; j < products.size(); j++) {
                                 product = (JSONObject) products.get(j);
                                 product.put("index", j + 1);
                                 product.put("main_bill_no", product.getString("ext_4"));
                             }
-                            js.put("products", products);
+                            js.put("products", products);*/
 
                         }
+
+                        List products = serviceUtils.listSdByBillNos(cust_id, BusiTypeEnum.SS.getType(), main_bill_no, partyBillNos, param);
+                        for (int j = 0; j < products.size(); j++) {
+                            product = (JSONObject) products.get(j);
+                            product.put("index", j + 1);
+                            product.put("main_bill_no", main_bill_no);
+                        }
+                        info.put("products", products);
                     }
                     break;
                 case "_export_estimated_tax":
