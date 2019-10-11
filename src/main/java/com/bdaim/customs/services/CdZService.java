@@ -59,7 +59,7 @@ public class CdZService implements BusiService {
     public void insertInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) throws Exception {
         // TODO Auto-generated method stub
         if (StringUtil.isNotEmpty(info.getString("fromSbzId"))) {
-            HBusiDataManager h = serviceUtils.getObjectByIdAndType(info.getLong("fromSbzId"), BusiTypeEnum.SZ.getType());
+            HBusiDataManager h = serviceUtils.getObjectByIdAndType(cust_id,info.getLong("fromSbzId"), BusiTypeEnum.SZ.getType());
             if (h == null) {
                 throw new TouchException("数据不存在");
             }
@@ -124,7 +124,10 @@ public class CdZService implements BusiService {
     public void updateInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) throws Exception {
         // 提交至海关平台
           {
-            HBusiDataManager dbManager = serviceUtils.getObjectByIdAndType(id, busiType);
+            HBusiDataManager dbManager = serviceUtils.getObjectByIdAndType(cust_id,id, busiType);
+              if(dbManager==null){
+                  throw new TouchException("无权操作");
+              }
             String content = dbManager.getContent();
             JSONObject json = JSONObject.parseObject(content);
             Iterator keys = info.keySet().iterator();
@@ -274,7 +277,7 @@ public class CdZService implements BusiService {
 
     }
 
-
+    @Deprecated
     public void buildDanList(JSONObject info, Long id, List<HBusiDataManager> dataList, String custId, Long userId, HBusiDataManager h) throws Exception {
         HBusiDataManager CZ = new HBusiDataManager();
         CZ.setType(BusiTypeEnum.CZ.getType());

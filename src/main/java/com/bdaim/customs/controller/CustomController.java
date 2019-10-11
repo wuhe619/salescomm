@@ -102,7 +102,8 @@ public class CustomController extends BasicAction {
     public ResponseJson getMainDetailById(@PathVariable("id") String id, String type) {
         ResponseJson responseJson = new ResponseJson();
         try {
-            JSONObject json = customsService.getMainDetailById(id, type);
+            LoginUser user = opUser();
+            JSONObject json = customsService.getMainDetailById(user.getCustId(),id, type);
             responseJson.setMessage("SUCCESS");
             responseJson.setCode(200);
             responseJson.setData(json);

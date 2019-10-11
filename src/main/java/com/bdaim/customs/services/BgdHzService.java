@@ -21,7 +21,7 @@ public class BgdHzService implements BusiService {
 
     @Override
     public void insertInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) throws Exception {
-
+        info.put("ext_1",info.getString("status"));
     }
 
     @Override
@@ -32,7 +32,7 @@ public class BgdHzService implements BusiService {
     @Override
     public void getInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info, JSONObject param) {
         //通过报关单分单ID查询海关回执数据
-        HBusiDataManager dbManager = serviceUtils.getObjectByIdAndType(id, busiType);
+        HBusiDataManager dbManager = serviceUtils.getObjectByIdAndType(cust_id,id, busiType);
         String content = null;
         if (dbManager != null) {
             content = dbManager.getContent();

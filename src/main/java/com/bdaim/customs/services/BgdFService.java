@@ -66,14 +66,21 @@ public class BgdFService implements BusiService {
             log.error("分单号不能为空");
             throw new TouchException("分单号不能为空");
         }
-        HBusiDataManager sbdzd = serviceUtils.getObjectByIdAndType(pid.longValue(), BusiTypeEnum.BZ.getType());
-        List<HBusiDataManager> list = serviceUtils.getDataList(busiType, pid.longValue());
+        HBusiDataManager bgdzd = serviceUtils.getObjectByIdAndType(cust_id,pid.longValue(), BusiTypeEnum.BZ.getType());
+        if(bgdzd==null){
+            throw new TouchException("无权操作");
+        }
+        List<HBusiDataManager> list = serviceUtils.listDataByPid(cust_id,busiType, pid.longValue(),BusiTypeEnum.BZ.getType());
         if (list != null && list.size() > 0) {
             for (HBusiDataManager hBusiDataManager : list) {
-                JSONObject jsonObject = JSONObject.parseObject(hBusiDataManager.getContent());
+               /* JSONObject jsonObject = JSONObject.parseObject(hBusiDataManager.getContent());
                 if (billNo.equals(jsonObject.getString("bill_no"))) {
                     log.error("分单号【" + billNo + "】在主单【" + pid + "】中已经存在");
                     throw new TouchException("分单号【" + billNo + "】在主单【" + pid + "】中已经存在");
+                }*/
+                if(billNo.equals(hBusiDataManager.getExt_3())){
+                    log.error("分单号【" + billNo + "】在主单【" + bgdzd.getExt_3() + "】中已经存在");
+                    throw new TouchException("分单号【" + billNo + "】在主单【" + bgdzd.getExt_3() + "】中已经存在");
                 }
             }
         }
@@ -85,8 +92,10 @@ public class BgdFService implements BusiService {
         info.put("id", id);
         info.put("pid", pid);
         info.put("opt_type", "APD");
+        info.put("ext_3",billNo);
+        info.put("ext_4",bgdzd.getExt_3());
         serviceUtils.addDataToES(id.toString(), busiType, info);
-        JSONObject jsonObject = JSONObject.parseObject(sbdzd.getContent());
+        JSONObject jsonObject = JSONObject.parseObject(bgdzd.getContent());
         if (info.containsKey("weight") && info.getString("weight") != null) {
             if (jsonObject.containsKey("weight_total")) {
                 String weight_total = jsonObject.getString("weight_total");
@@ -102,16 +111,19 @@ public class BgdFService implements BusiService {
         }
         jsonObject.put("party_total", value);//分单总数
 
-        sbdzd.setContent(jsonObject.toJSONString());
-        hBusiDataManagerDao.saveOrUpdate(sbdzd);
-        serviceUtils.updateDataToES(BusiTypeEnum.BZ.getType(), sbdzd.getId().toString(), jsonObject);
+        bgdzd.setContent(jsonObject.toJSONString());
+        hBusiDataManagerDao.saveOrUpdate(bgdzd);
+        serviceUtils.updateDataToES(BusiTypeEnum.BZ.getType(), bgdzd.getId().toString(), jsonObject);
 
     }
 
     @Override
     public void updateInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) throws Exception {
         {
-            HBusiDataManager dbManager = serviceUtils.getObjectByIdAndType(id, busiType);
+            HBusiDataManager dbManager = serviceUtils.getObjectByIdAndType(cust_id,id, busiType);
+            if(dbManager==null){
+                throw new TouchException("无权操作");
+            }
             String content = dbManager.getContent();
             JSONObject json = JSONObject.parseObject(content);
             Iterator keys = info.keySet().iterator();
@@ -182,7 +194,7 @@ public class BgdFService implements BusiService {
         }else {
             // 查询报关单主单数据,合并到分单中
             long pid = info.getLong("pid");
-            HBusiDataManager dbManager = serviceUtils.getObjectByIdAndType(pid, BusiTypeEnum.BZ.getType());
+            HBusiDataManager dbManager = serviceUtils.getObjectByIdAndType(cust_id,pid, BusiTypeEnum.BZ.getType());
             String content = null;
             if (dbManager != null) {
                 content = dbManager.getContent();
@@ -216,7 +228,7 @@ public class BgdFService implements BusiService {
     @Override
     public void formatInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, JSONObject info) {
         //报关单主单赋值到分单中
-        HBusiDataManager bgdZ = serviceUtils.getObjectByIdAndType(info.getLongValue("pid"), BusiTypeEnum.BZ.getType());
+        HBusiDataManager bgdZ = serviceUtils.getObjectByIdAndType(cust_id,info.getLongValue("pid"), BusiTypeEnum.BZ.getType());
         if (bgdZ != null) {
             JSONObject jo = JSONObject.parseObject(bgdZ.getContent());
             Iterator keys = jo.keySet().iterator();

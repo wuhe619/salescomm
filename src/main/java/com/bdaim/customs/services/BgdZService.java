@@ -52,7 +52,7 @@ public class BgdZService implements BusiService {
     public void insertInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) throws Exception {
         // TODO Auto-generated method stub
         if (StringUtil.isNotEmpty(info.getString("fromSbzId"))) {
-            HBusiDataManager h = serviceUtils.getObjectByIdAndType(info.getLong("fromSbzId"), BusiTypeEnum.SZ.getType());
+            HBusiDataManager h = serviceUtils.getObjectByIdAndType(cust_id,info.getLong("fromSbzId"), BusiTypeEnum.SZ.getType());
             if (h == null) {
                 throw new TouchException("数据不存在");
             }
@@ -197,7 +197,10 @@ public class BgdZService implements BusiService {
                 serviceUtils.updateDataToES(BusiTypeEnum.BF.getType(), String.valueOf(m.get("id")), jo);
             }
         } else {
-            HBusiDataManager dbManager = serviceUtils.getObjectByIdAndType(id, busiType);
+            HBusiDataManager dbManager = serviceUtils.getObjectByIdAndType(cust_id,id, busiType);
+            if(dbManager==null){
+                throw new TouchException("无权操作");
+            }
             String content = dbManager.getContent();
             JSONObject json = JSONObject.parseObject(content);
             Iterator keys = info.keySet().iterator();
@@ -284,7 +287,7 @@ public class BgdZService implements BusiService {
 
     }
 
-
+    @Deprecated
     public void buildDanList(JSONObject info, Long id, List<HBusiDataManager> dataList, String custId, Long userId, HBusiDataManager h, String type) throws Exception {
         HBusiDataManager CZ = new HBusiDataManager();
         CZ.setType(BusiTypeEnum.BZ.getType());
