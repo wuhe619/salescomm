@@ -66,14 +66,18 @@ public class BgdFService implements BusiService {
             log.error("分单号不能为空");
             throw new TouchException("分单号不能为空");
         }
-        HBusiDataManager sbdzd = serviceUtils.getObjectByIdAndType(pid.longValue(), BusiTypeEnum.BZ.getType());
-        List<HBusiDataManager> list = serviceUtils.getDataList(busiType, pid.longValue());
+        HBusiDataManager bgdzd = serviceUtils.getObjectByIdAndType(pid.longValue(), BusiTypeEnum.BZ.getType());
+        List<HBusiDataManager> list = serviceUtils.listDataByPid(cust_id,busiType, pid.longValue(),BusiTypeEnum.BZ.getType());
         if (list != null && list.size() > 0) {
             for (HBusiDataManager hBusiDataManager : list) {
-                JSONObject jsonObject = JSONObject.parseObject(hBusiDataManager.getContent());
+               /* JSONObject jsonObject = JSONObject.parseObject(hBusiDataManager.getContent());
                 if (billNo.equals(jsonObject.getString("bill_no"))) {
                     log.error("分单号【" + billNo + "】在主单【" + pid + "】中已经存在");
                     throw new TouchException("分单号【" + billNo + "】在主单【" + pid + "】中已经存在");
+                }*/
+                if(billNo.equals(hBusiDataManager.getExt_3())){
+                    log.error("分单号【" + billNo + "】在主单【" + bgdzd.getExt_3() + "】中已经存在");
+                    throw new TouchException("分单号【" + billNo + "】在主单【" + bgdzd.getExt_3() + "】中已经存在");
                 }
             }
         }
@@ -85,8 +89,10 @@ public class BgdFService implements BusiService {
         info.put("id", id);
         info.put("pid", pid);
         info.put("opt_type", "APD");
+        info.put("ext_3",billNo);
+        info.put("ext_4",bgdzd.getExt_3());
         serviceUtils.addDataToES(id.toString(), busiType, info);
-        JSONObject jsonObject = JSONObject.parseObject(sbdzd.getContent());
+        JSONObject jsonObject = JSONObject.parseObject(bgdzd.getContent());
         if (info.containsKey("weight") && info.getString("weight") != null) {
             if (jsonObject.containsKey("weight_total")) {
                 String weight_total = jsonObject.getString("weight_total");
@@ -102,9 +108,9 @@ public class BgdFService implements BusiService {
         }
         jsonObject.put("party_total", value);//分单总数
 
-        sbdzd.setContent(jsonObject.toJSONString());
-        hBusiDataManagerDao.saveOrUpdate(sbdzd);
-        serviceUtils.updateDataToES(BusiTypeEnum.BZ.getType(), sbdzd.getId().toString(), jsonObject);
+        bgdzd.setContent(jsonObject.toJSONString());
+        hBusiDataManagerDao.saveOrUpdate(bgdzd);
+        serviceUtils.updateDataToES(BusiTypeEnum.BZ.getType(), bgdzd.getId().toString(), jsonObject);
 
     }
 
