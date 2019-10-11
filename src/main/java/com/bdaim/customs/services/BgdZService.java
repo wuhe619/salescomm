@@ -239,7 +239,7 @@ public class BgdZService implements BusiService {
                         JSONObject js, product;
                         for (int i = 0; i < singles.size(); i++) {
                             js = (JSONObject) singles.get(i);
-                            products = queryChildData(BusiTypeEnum.BS.getType(), cust_id, cust_group_id, cust_user_id, js.getLong("id"), info, param);
+                            products = serviceUtils.queryChildData(BusiTypeEnum.BS.getType(), cust_id, cust_group_id, cust_user_id, js.getLong("id"), param);
                             for (int j = 0; j < products.size(); j++) {
                                 product = (JSONObject) products.get(j);
                                 product.put("index", j + 1);

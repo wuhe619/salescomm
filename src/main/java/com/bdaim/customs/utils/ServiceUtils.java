@@ -3,6 +3,7 @@ package com.bdaim.customs.utils;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.batch.ResourceEnum;
+import com.bdaim.common.BusiMetaConfig;
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.service.ElasticSearchService;
 import com.bdaim.common.service.SequenceService;
@@ -141,8 +142,9 @@ public class ServiceUtils {
     }
 
     public void delDataListByPid(String type, Long pid) {
-        String sql = "delete from " + HMetaDataDef.getTable(type, "") + " where CASE WHEN JSON_VALID(content) THEN  JSON_EXTRACT(content, '$.pid')=" + pid + " ELSE null END or CASE WHEN JSON_VALID(content) THEN  JSON_EXTRACT(content, '$.pid')='" + pid + "' ELSE null END";
-        jdbcTemplate.execute(sql);
+        //String sql = "delete from " + HMetaDataDef.getTable(type, "") + " where CASE WHEN JSON_VALID(content) THEN  JSON_EXTRACT(content, '$.pid')=" + pid + " ELSE null END or CASE WHEN JSON_VALID(content) THEN  JSON_EXTRACT(content, '$.pid')='" + pid + "' ELSE null END";
+        String sql = "delete from " + HMetaDataDef.getTable(type, "") + " where " + BusiMetaConfig.getFieldIndex(type, "pid") + "=(SELECT ext_3 FROM " + HMetaDataDef.getTable(BusiTypeEnum.getParentType(type), "") + " WHERE id = ?) ";
+        jdbcTemplate.update(sql, pid);
     }
 
     /**
@@ -175,12 +177,12 @@ public class ServiceUtils {
     }
 
     public List<HBusiDataManager> getDataList(String type, Long pid) {
-        String sql2 = "select id, type, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(type, "") + " where  type='" + type + "' and ( CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')=" + pid + " ELSE null END  or CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')='" + pid + "' ELSE null END)";
+        String sql2 = "select id, type, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(type, "") + " where  type='" + type + "' and " + BusiMetaConfig.getFieldIndex(type, "pid") + " = (SELECT ext_3 FROM " + HMetaDataDef.getTable(BusiTypeEnum.getParentType(type), "") + " WHERE id = ?) ";
         log.info("sql2=" + sql2);
        /* RowMapper<HBusiDataManager> managerRowMapper=new BeanPropertyRowMapper<>(HBusiDataManager.class);
         List<HBusiDataManager> list = jdbcTemplate.query(sql2,managerRowMapper);*/
 
-        List<Map<String, Object>> list2 = jdbcTemplate.queryForList(sql2);
+        List<Map<String, Object>> list2 = jdbcTemplate.queryForList(sql2, pid);
         log.info("list==" + list2);
         List<HBusiDataManager> list = JSON.parseArray(JSON.toJSONString(list2), HBusiDataManager.class);
         return list;
@@ -211,6 +213,85 @@ public class ServiceUtils {
         List<Map<String, Object>> list = jdbcTemplate.queryForList(sql.toString(), custId, type, mainBillNo, billNo);
         List<HBusiDataManager> result = JSON.parseArray(JSON.toJSONString(list), HBusiDataManager.class);
         return result;
+    }
+
+    /**
+     * 根据父级ID查询子单列表
+     *
+     * @param busiType
+     * @param cust_id
+     * @param pid
+     * @return
+     */
+    public List queryChildData(String busiType, String cust_id, String cust_group_id, long cust_user_id, Long pid, JSONObject param) {
+        List sqlParams = new ArrayList();
+        StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(busiType, "") + " where type=?");
+        if (!"all".equals(cust_id))
+            sqlstr.append(" and cust_id='").append(cust_id).append("'");
+
+        sqlParams.add(busiType);
+        Iterator keys = param.keySet().iterator();
+        while (keys.hasNext()) {
+            String key = (String) keys.next();
+            if ("".equals(String.valueOf(param.get(key)))) continue;
+            if ("pageNum".equals(key) || "pageSize".equals(key) || "stationId".equals(key) || "cust_id".equals(key) || "_rule_".equals(key)) {
+                continue;
+            } else if (key.startsWith("_g_")) {
+                sqlstr.append(" and " + BusiMetaConfig.getFieldIndex(busiType, key) + " > ?");
+            } else if (key.startsWith("_ge_")) {
+                sqlstr.append(" and " + BusiMetaConfig.getFieldIndex(busiType, key) + " >= ?");
+            } else if (key.startsWith("_l_")) {
+                sqlstr.append(" and " + BusiMetaConfig.getFieldIndex(busiType, key) + " < ?");
+            } else if (key.startsWith("_le_")) {
+                sqlstr.append(" and " + BusiMetaConfig.getFieldIndex(busiType, key) + " <= ?");
+            } else if (key.startsWith("_eq_")) {
+                sqlstr.append(" and " + BusiMetaConfig.getFieldIndex(busiType, key) + " = ?");
+            } else {
+                sqlstr.append(" and " + BusiMetaConfig.getFieldIndex(busiType, key) + "=?");
+            }
+            sqlParams.add(param.get(key));
+        }
+        sqlstr.append(" AND " + BusiMetaConfig.getFieldIndex(busiType, "pid") + "=(SELECT ext_3 FROM " + HMetaDataDef.getTable(BusiTypeEnum.getParentType(busiType), "") + " WHERE id = ?)");
+        sqlParams.add(pid);
+
+        List<Map<String, Object>> ds = jdbcTemplate.queryForList(sqlstr.toString(), sqlParams.toArray());
+        List data = new ArrayList();
+        for (int i = 0; i < ds.size(); i++) {
+            Map m = (Map) ds.get(i);
+            JSONObject jo = null;
+            try {
+                if (m.containsKey("content")) {
+                    jo = JSONObject.parseObject((String) m.get("content"));
+                    jo.put("id", m.get("id"));
+                    jo.put("cust_id", m.get("cust_id"));
+                    jo.put("cust_group_id", m.get("cust_group_id"));
+                    jo.put("cust_user_id", m.get("cust_user_id"));
+                    jo.put("create_id", m.get("create_id"));
+                    jo.put("create_date", m.get("create_date"));
+                    jo.put("update_id", m.get("update_id"));
+                    jo.put("update_date", m.get("update_date"));
+                    if (m.get("ext_1") != null && !"".equals(m.get("ext_1")))
+                        jo.put("ext_1", m.get("ext_1"));
+                    if (m.get("ext_2") != null && !"".equals(m.get("ext_2")))
+                        jo.put("ext_2", m.get("ext_2"));
+                    if (m.get("ext_3") != null && !"".equals(m.get("ext_3")))
+                        jo.put("ext_3", m.get("ext_3"));
+                    if (m.get("ext_4") != null && !"".equals(m.get("ext_4")))
+                        jo.put("ext_4", m.get("ext_4"));
+                    if (m.get("ext_5") != null && !"".equals(m.get("ext_5")))
+                        jo.put("ext_5", m.get("ext_5"));
+                } else
+                    jo = JSONObject.parseObject(JSONObject.toJSONString(m));
+            } catch (Exception e) {
+                log.error(e.getMessage());
+            }
+            if (jo == null) { //jo异常导致为空时，只填充id
+                jo = new JSONObject();
+                jo.put("id", m.get("id"));
+            }
+            data.add(jo);
+        }
+        return data;
     }
 
     /**
@@ -450,7 +531,7 @@ public class ServiceUtils {
             if (dic == null) {
                 continue;
             }
-            log.info("查询缓存字典数据type:[{}],code:[{}],字典数据:[{}]", key.toUpperCase(), jo.getString(key), dic);
+            //log.info("查询缓存字典数据type:[{}],code:[{}],字典数据:[{}]", key.toUpperCase(), jo.getString(key), dic);
             tmp.put(key + "_name", dic.getName_zh());
             tmp.put(key + "_name_en", dic.getName_en());
         }

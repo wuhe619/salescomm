@@ -5,9 +5,11 @@ import com.bdaim.auth.LoginUser;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.controller.util.ResponseJson;
 import com.bdaim.customer.controller.CustomerAction;
+import com.bdaim.customer.entity.CustomerUserPropertyDO;
 import com.bdaim.customeruser.service.CustomerUserService;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -76,6 +78,28 @@ public class CustomerUserAction extends BasicAction {
             return JSON.toJSONString(responseJson);
         } catch (Exception e) {
             logger.error("查询客户公海已选字段:", e);
+            responseJson.setCode(-1);
+            responseJson.setMessage(e.getMessage());
+        }
+        return JSON.toJSONString(responseJson);
+    }
+
+    /**
+     * 保存或更新用户属性
+     *
+     * @param body
+     * @return
+     */
+    @RequestMapping(value = "/saveProperty", method = RequestMethod.POST)
+    @ResponseBody
+    public Object saveCustomerUserProperty(@RequestBody CustomerUserPropertyDO body) {
+        ResponseJson responseJson = new ResponseJson();
+        body.setUserId(String.valueOf(opUser().getId()));
+        try {
+            customerUserService.saveCustomerUserProperty(body);
+            responseJson.setCode(200);
+        } catch (Exception e) {
+            logger.error("保存或更新用户属性异常:", e);
             responseJson.setCode(-1);
             responseJson.setMessage(e.getMessage());
         }

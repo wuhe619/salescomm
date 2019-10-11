@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.auth.LoginUser;
+import com.bdaim.common.BusiMetaConfig;
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.service.ElasticSearchService;
@@ -1265,7 +1266,7 @@ public class CustomsService {
 
     public Integer countGoodsNumByPartId(String busiType, String id) {
         String _sql = "select content from " + HMetaDataDef.getTable(busiType, "") + " type='" + busiType + "' " +
-                " and (JSON_EXTRACT(content, '$.pid')='" + id + "' or JSON_EXTRACT(content, '$.pid')=" + id + ")";
+                " AND " + BusiMetaConfig.getFieldIndex(busiType, "pid") + "=(SELECT ext_3 FROM " + HMetaDataDef.getTable(BusiTypeEnum.getParentType(busiType), "") + " WHERE id = " + id + ")  ";
 
         return 0;
     }
