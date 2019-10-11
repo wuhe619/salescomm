@@ -450,11 +450,11 @@ public class BgdZService implements BusiService {
                     Long gid = sequenceService.getSeq(BusiTypeEnum.BS.getType());
                     good.setId(gid);
                     good.setCreateDate(new Date());
-                    JSONObject __content = JSON.parseObject(gp.getContent());
-                    __content.put("pid", hp.getId());
+                    JSONObject sdContent = JSON.parseObject(gp.getContent());
+                    sdContent.put("pid", hp.getId());
                     _content.put("index", index);
-                    _content.put("opt_type", "ADD");
-                    good.setContent(__content.toJSONString());
+                    sdContent.put("opt_type", "ADD");
+                    good.setContent(sdContent.toJSONString());
                     good.setType(BusiTypeEnum.BS.getType());
                     good.setCreateId(gp.getCreateId());
                     good.setCust_id(gp.getCust_id());

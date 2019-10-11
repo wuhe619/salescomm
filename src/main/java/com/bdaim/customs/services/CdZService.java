@@ -460,11 +460,11 @@ public class CdZService implements BusiService {
                     good.setId(gid);
                     good.setCreateId(userId);
                     good.setCreateDate(new Date());
-                    JSONObject __content = JSON.parseObject(gp.getContent());
-                    __content.put("pid", hm.getId());
+                    JSONObject sdContent = JSON.parseObject(gp.getContent());
+                    sdContent.put("pid", hm.getId());
                     _content.put("main_bill_no", _content.get("bill_no"));
-                    _content.put("opt_type", "ADD");
-                    good.setContent(__content.toJSONString());
+                    sdContent.put("opt_type", "ADD");
+                    good.setContent(sdContent.toJSONString());
                     good.setType(BusiTypeEnum.CS.getType());
                     good.setCreateId(gp.getCreateId());
                     good.setCust_id(gp.getCust_id());
