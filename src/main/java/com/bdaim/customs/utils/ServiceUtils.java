@@ -216,6 +216,85 @@ public class ServiceUtils {
     }
 
     /**
+     * 根据父级ID查询子单列表
+     *
+     * @param busiType
+     * @param cust_id
+     * @param pid
+     * @return
+     */
+    public List queryChildData(String busiType, String cust_id, Long pid, JSONObject param) {
+        List sqlParams = new ArrayList();
+        StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(busiType, "") + " where type=?");
+        if (!"all".equals(cust_id))
+            sqlstr.append(" and cust_id='").append(cust_id).append("'");
+
+        sqlParams.add(busiType);
+        Iterator keys = param.keySet().iterator();
+        while (keys.hasNext()) {
+            String key = (String) keys.next();
+            if ("".equals(String.valueOf(param.get(key)))) continue;
+            if ("pageNum".equals(key) || "pageSize".equals(key) || "stationId".equals(key) || "cust_id".equals(key) || "_rule_".equals(key)) {
+                continue;
+            } else if (key.startsWith("_g_")) {
+                sqlstr.append(" and " + BusiMetaConfig.getFieldIndex(busiType, key) + " > ?");
+            } else if (key.startsWith("_ge_")) {
+                sqlstr.append(" and " + BusiMetaConfig.getFieldIndex(busiType, key) + " >= ?");
+            } else if (key.startsWith("_l_")) {
+                sqlstr.append(" and " + BusiMetaConfig.getFieldIndex(busiType, key) + " < ?");
+            } else if (key.startsWith("_le_")) {
+                sqlstr.append(" and " + BusiMetaConfig.getFieldIndex(busiType, key) + " <= ?");
+            } else if (key.startsWith("_eq_")) {
+                sqlstr.append(" and " + BusiMetaConfig.getFieldIndex(busiType, key) + " = ?");
+            } else {
+                sqlstr.append(" and " + BusiMetaConfig.getFieldIndex(busiType, key) + "=?");
+            }
+            sqlParams.add(param.get(key));
+        }
+        sqlstr.append(" AND " + BusiMetaConfig.getFieldIndex(busiType, "pid") + "=(SELECT ext_3 FROM " + HMetaDataDef.getTable(BusiTypeEnum.getParentType(busiType), "") + " WHERE id = ?)");
+        sqlParams.add(pid);
+
+        List<Map<String, Object>> ds = jdbcTemplate.queryForList(sqlstr.toString(), sqlParams.toArray());
+        List data = new ArrayList();
+        for (int i = 0; i < ds.size(); i++) {
+            Map m = (Map) ds.get(i);
+            JSONObject jo = null;
+            try {
+                if (m.containsKey("content")) {
+                    jo = JSONObject.parseObject((String) m.get("content"));
+                    jo.put("id", m.get("id"));
+                    jo.put("cust_id", m.get("cust_id"));
+                    jo.put("cust_group_id", m.get("cust_group_id"));
+                    jo.put("cust_user_id", m.get("cust_user_id"));
+                    jo.put("create_id", m.get("create_id"));
+                    jo.put("create_date", m.get("create_date"));
+                    jo.put("update_id", m.get("update_id"));
+                    jo.put("update_date", m.get("update_date"));
+                    if (m.get("ext_1") != null && !"".equals(m.get("ext_1")))
+                        jo.put("ext_1", m.get("ext_1"));
+                    if (m.get("ext_2") != null && !"".equals(m.get("ext_2")))
+                        jo.put("ext_2", m.get("ext_2"));
+                    if (m.get("ext_3") != null && !"".equals(m.get("ext_3")))
+                        jo.put("ext_3", m.get("ext_3"));
+                    if (m.get("ext_4") != null && !"".equals(m.get("ext_4")))
+                        jo.put("ext_4", m.get("ext_4"));
+                    if (m.get("ext_5") != null && !"".equals(m.get("ext_5")))
+                        jo.put("ext_5", m.get("ext_5"));
+                } else
+                    jo = JSONObject.parseObject(JSONObject.toJSONString(m));
+            } catch (Exception e) {
+                log.error(e.getMessage());
+            }
+            if (jo == null) { //jo异常导致为空时，只填充id
+                jo = new JSONObject();
+                jo.put("id", m.get("id"));
+            }
+            data.add(jo);
+        }
+        return data;
+    }
+
+    /**
      * 根据父级单号查询子单列表
      *
      * @param custId
