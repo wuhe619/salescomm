@@ -126,13 +126,13 @@ public class CustomsService {
      *
      * @param id
      */
-    public JSONObject getMainDetailById(String id, String type) {
+    public JSONObject getMainDetailById(String cust_id,String id, String type) {
         JSONObject json = elasticSearchService.getDocumentById(Constants.SF_INFO_INDEX, "haiguan", id);
         if (json == null) {
             /*HBusiDataManager param = new HBusiDataManager();
             param.setId(NumberConvertUtil.parseLong(id));
             param.setType(type);*/
-            HBusiDataManager h = serviceUtils.getObjectByIdAndType(NumberConvertUtil.parseLong(id), type);
+            HBusiDataManager h = serviceUtils.getObjectByIdAndType(cust_id,NumberConvertUtil.parseLong(id), type);
             if (h != null && h.getContent() != null) {
                 json = JSON.parseObject(h.getContent());
             }
@@ -839,7 +839,7 @@ public class CustomsService {
                    /* HBusiDataManager param = new HBusiDataManager();
                     param.setId(NumberConvertUtil.parseLong(id));
                     param.setType(BusiTypeEnum.SF.getType());*/
-                    data = serviceUtils.getObjectByIdAndType(NumberConvertUtil.parseLong(id), BusiTypeEnum.SF.getType());
+                    data = serviceUtils.getObjectByIdAndType(custId,NumberConvertUtil.parseLong(id), BusiTypeEnum.SF.getType());
                     if (data != null) {
                         fdList.add(data);
                     }
@@ -888,10 +888,10 @@ public class CustomsService {
                 }
                 // 更新主单下分单的身份证照片数量
                 if (1 == type) {
-                    updateMainDanIdCardNumber(NumberConvertUtil.parseInt(id));
+                    updateMainDanIdCardNumber(NumberConvertUtil.parseInt(id),custId);
                 } else if (2 == type && data != null) {
                     JSONObject dfData = JSON.parseObject(data.getContent());
-                    updateMainDanIdCardNumber(dfData.getIntValue("pid"));
+                    updateMainDanIdCardNumber(dfData.getIntValue("pid"),custId);
                 }
                 code = 1;
             } else {
@@ -1069,17 +1069,17 @@ public class CustomsService {
      * @param mainId
      * @return
      */
-    public int updateMainDanIdCardNumber(long mainId) {
+    public int updateMainDanIdCardNumber(long mainId,String cust_id) {
         int idCardNumber = hBusiDataManagerDao.countMainDIdCardNum(mainId, BusiTypeEnum.SF.getType());
         log.info("开始更新主单:{}的身份证照片数量:{}", mainId, idCardNumber);
         int code = 0;
-        JSONObject mainDetail = getMainDetailById(String.valueOf(mainId), BusiTypeEnum.SZ.getType());
+        JSONObject mainDetail = getMainDetailById(cust_id,String.valueOf(mainId), BusiTypeEnum.SZ.getType());
         if (mainDetail != null && mainDetail.containsKey("id")) {
             mainDetail.put("id_card_pic_number", idCardNumber);
            /* HBusiDataManager param = new HBusiDataManager();
             param.setId(mainId);
             param.setType(BusiTypeEnum.SZ.getType());*/
-            HBusiDataManager mainD = serviceUtils.getObjectByIdAndType(mainId, BusiTypeEnum.SZ.getType());
+            HBusiDataManager mainD = serviceUtils.getObjectByIdAndType(cust_id,mainId, BusiTypeEnum.SZ.getType());
             if (mainD != null) {
                 StringBuffer sql = new StringBuffer("update " + HMetaDataDef.getTable(BusiTypeEnum.SZ.getType(), "") + " set update_date=now() ");
                 sql.append(",content=?  where type=? and cust_id=? and id=?");

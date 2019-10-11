@@ -107,7 +107,10 @@ public class BgdSService implements BusiService{
 		info.put("estimated_tax", estimated_tax);//预估税金
 		info.put("tax_rate", tax_rate);//税率
 		info.put("total_price",0);//价格合计
-		HBusiDataManager partH = serviceUtils.getObjectByIdAndType(pid.longValue(),BusiTypeEnum.BF.getType());
+		HBusiDataManager partH = serviceUtils.getObjectByIdAndType(cust_id,pid.longValue(),BusiTypeEnum.BF.getType());
+		if(partH==null){
+			throw new TouchException("无权操作");
+		}
 		List<HBusiDataManager> goodslist = serviceUtils.listSdByBillNo(cust_id,BusiTypeEnum.BS.getType(),partH.getExt_4(),billNo);
 
 		Integer index = 0;
@@ -148,7 +151,8 @@ public class BgdSService implements BusiService{
 
 		serviceUtils.updateDataToES(BusiTypeEnum.BF.getType(),pid.toString(),jsonObject);
 
-		HBusiDataManager zh = serviceUtils.getObjectByIdAndType(jsonObject.getLong("pid"), BusiTypeEnum.BZ.getType());
+		HBusiDataManager zh = serviceUtils.getObjectByIdAndType(cust_id,jsonObject.getLong("pid"), BusiTypeEnum.BZ.getType());
+
 		String zcontent = zh.getContent();
 		JSONObject jsonz = JSON.parseObject(zcontent);
 		Float weight_total = jsonz.getFloatValue("weight_total");
@@ -174,7 +178,7 @@ public class BgdSService implements BusiService{
 
 	@Override
 	public void updateInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) throws Exception {
-		HBusiDataManager dbManager = serviceUtils.getObjectByIdAndType(id,busiType);
+		HBusiDataManager dbManager = serviceUtils.getObjectByIdAndType(cust_id,id,busiType);
 		String content = dbManager.getContent();
 		JSONObject json = JSONObject.parseObject(content);
 		Iterator keys = info.keySet().iterator();
@@ -184,7 +188,7 @@ public class BgdSService implements BusiService{
 		}
 		serviceUtils.updateDataToES(busiType,id.toString(),json);
 
-		HBusiDataManager fmanager = serviceUtils.getObjectByIdAndType(json.getLong("pid"),BusiTypeEnum.BF.getType());
+		HBusiDataManager fmanager = serviceUtils.getObjectByIdAndType(cust_id,json.getLong("pid"),BusiTypeEnum.BF.getType());
 		String fcontent = fmanager.getContent();
 
 		JSONObject fjson = JSONObject.parseObject(fcontent);

@@ -131,8 +131,8 @@ public class ServiceUtils {
     }
 
 
-    public HBusiDataManager getObjectByIdAndType(Long id, String type) {
-        String sql = "select * from " + HMetaDataDef.getTable(type, "") + " where id=" + id + " and type='" + type + "'";
+    public HBusiDataManager getObjectByIdAndType(String cust_id,Long id, String type) {
+        String sql = "select * from " + HMetaDataDef.getTable(type, "") + " where id=" + id + " and type='" + type + "' and cust_id='"+cust_id+"'";
         RowMapper<HBusiDataManager> managerRowMapper = new BeanPropertyRowMapper<>(HBusiDataManager.class);
         List<HBusiDataManager> list = jdbcTemplate.query(sql, managerRowMapper);
         if (list != null && list.size() > 0) {

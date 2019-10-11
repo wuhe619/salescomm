@@ -1,6 +1,7 @@
 package com.bdaim.customs.services;
 
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.service.BusiService;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.customs.entity.HBusiDataManager;
@@ -31,9 +32,12 @@ public class CdHzService implements BusiService {
     }
 
     @Override
-    public void getInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info, JSONObject param) {
+    public void getInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info, JSONObject param) throws TouchException {
         //通过舱单主单ID查询海关回执数据
-        HBusiDataManager dbManager = serviceUtils.getObjectByIdAndType(id, busiType);
+        HBusiDataManager dbManager = serviceUtils.getObjectByIdAndType(cust_id,id, busiType);
+        if(dbManager==null){
+            throw new TouchException("无权操作");
+        }
         String content = null;
         if (dbManager != null) {
             content = dbManager.getContent();

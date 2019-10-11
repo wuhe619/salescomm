@@ -267,7 +267,7 @@ public class SbdZService implements BusiService {
 
     @Override
     public void deleteInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id) throws Exception {
-        HBusiDataManager manager = serviceUtils.getObjectByIdAndType(id, busiType);
+        HBusiDataManager manager = serviceUtils.getObjectByIdAndType(cust_id,id, busiType);
         if (manager == null) {
             throw new TouchException("主单已经删除");
         }
