@@ -156,7 +156,29 @@ public class ElasticSearchService {
         } catch (Exception e) {
             LOG.error("向ES中批量新增异常", e);
         }
-        LOG.info("向ES中批量新增:" + result);
+        LOG.info("向ES中批量新增返回结果:" + result);
+    }
+
+    /**
+     * 批量删除es
+     * @param indexName
+     * @param typeName
+     * @param list
+     */
+    public void bulkDeleteDocument(String indexName, String typeName, List<String> list) {
+        boolean result = false;
+        try {
+            Bulk.Builder bulk = new Bulk.Builder().defaultIndex(indexName).defaultType(typeName);
+            for (String id : list) {
+                Delete index = new Delete.Builder(id).build();
+                bulk.addAction(index);
+            }
+            BulkResult br = jestClient.execute(bulk.build());
+            result = br.isSucceeded();
+        } catch (Exception e) {
+            LOG.error("向ES中批量删除异常", e);
+        }
+        LOG.info("向ES中批量删除返回结果:" + result);
     }
 
     /**

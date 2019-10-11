@@ -63,8 +63,21 @@ public class ExportExcelService {
         if (sheetName != null && sheetName.length > 0) {
             params.setSheetName(sheetName);
         }
+        try {
+            List list = (List) map.get("list");
+            LOG.info("导出list:{}", list != null ? list.size() : 0);
+            List list1 = (List) map.get("list1");
+            LOG.info("导出list1:{}", list1 != null ? list1.size() : 0);
+            List list2 = (List) map.get("list2");
+            LOG.info("导出list2:{}", list2 != null ? list2.size() : 0);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         Workbook workbook = ExcelExportUtil.exportExcel(params, map);
         workbook.write(response.getOutputStream());
+        //workbook.write(response.getOutputStream());
+        LOG.info("导出:{}完成", templatePath);
     }
 
     public void exportExcel(int id, List<JSONObject> list, JSONObject param, HttpServletResponse response) throws IllegalAccessException, IOException {
@@ -83,7 +96,7 @@ public class ExportExcelService {
         String classPath = fileUrlEntity.getFileUrl();
         String pathF = File.separator;
         classPath = classPath.replace("/", pathF);
-        String templatePath = classPath + pathF + "tp" + pathF + param.getString("_rule_") + ".xlsx";
+        String templatePath = classPath + pathF + "tp" + pathF + param.getString("_rule_") + ".xls";
         //String templatePath = "tp/" + param.getString("_rule_") + ".xlsx";
         File file = new File(templatePath);
         LOG.info("excel模板文件路径:{},文件状态:{}", file.getPath(), file.exists());
@@ -92,7 +105,7 @@ public class ExportExcelService {
         //map.put("list", JavaBeanUtil.convertJsonObjectToMapList(list));
         map.put("list", list);
 
-        response.setHeader("Content-Disposition", "attachment; filename=" + System.currentTimeMillis() + ExcelTypeEnum.XLSX.getValue());
+        response.setHeader("Content-Disposition", "attachment; filename=" + System.currentTimeMillis() + ExcelTypeEnum.XLS.getValue());
         response.setContentType("application/vnd.ms-excel;charset=utf-8");
         switch (param.getString("_rule_")) {
             // 舱单导出txt

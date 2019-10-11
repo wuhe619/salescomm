@@ -9,6 +9,7 @@ import com.bdaim.common.service.SequenceService;
 import com.bdaim.common.util.NumberConvertUtil;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.customs.entity.BusiTypeEnum;
+import com.bdaim.customs.entity.Constants;
 import com.bdaim.customs.entity.HBusiDataManager;
 import com.bdaim.customs.entity.HMetaDataDef;
 import com.bdaim.customs.utils.ServiceUtils;
@@ -208,13 +209,21 @@ public class SbdFService implements BusiService {
         if (manager.getCust_id() == null || (!cust_id.equals(manager.getCust_id().toString()))) {
             throw new TouchException("无权删除");
         }
-        List<HBusiDataManager> list = serviceUtils.getDataList(BusiTypeEnum.SS.getType(), id);
-        for (HBusiDataManager manager2 : list) {
-            serviceUtils.deleteDatafromES(manager2.getType(), manager2.getId().toString());
-        }
-        serviceUtils.delDataListByPid(BusiTypeEnum.SS.getType(), id);
-        serviceUtils.deleteDatafromES(manager.getType(), manager.getId().toString());
+
         JSONObject json = JSONObject.parseObject(manager.getContent());
+        //List<HBusiDataManager> list = serviceUtils.getDataList(BusiTypeEnum.SS.getType(), id);
+        List<HBusiDataManager> list = serviceUtils.listSdByBillNo(cust_id, BusiTypeEnum.SS.getType(), json.getString("main_bill_no"), json.getString("bill_no"));
+        List<String> sdIds = new ArrayList<>();
+        for (HBusiDataManager manager2 : list) {
+            sdIds.add(String.valueOf(manager2.getId()));
+            //serviceUtils.deleteDatafromES(manager2.getType(), manager2.getId().toString());
+        }
+        /*serviceUtils.delDataListByPid(BusiTypeEnum.SS.getType(), id);
+        serviceUtils.deleteDatafromES(manager.getType(), manager.getId().toString());*/
+        // 批量删除数据库税单
+        serviceUtils.deleteByIds(cust_id, BusiTypeEnum.SS.getType(), sdIds);
+        // 批量删除es税单
+        elasticSearchService.bulkDeleteDocument(BusiTypeEnum.getEsIndex(BusiTypeEnum.SS.getType()), Constants.INDEX_TYPE, sdIds);
         Integer zid = json.getInteger("pid");
         totalPartDanToMainDan(json.getLongValue("pid"), BusiTypeEnum.SZ.getType(), id, cust_id);
 

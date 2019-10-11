@@ -145,9 +145,33 @@ public class ServiceUtils {
         jdbcTemplate.execute(sql);
     }
 
-    public void delDataListByPid0(String type, Long pid, String custId, String pBusiType) {
-        String sql = "delete from " + HMetaDataDef.getTable(type, "") + " where cust_id = ?  AND ext_4 = (SELECT ext_3 FROM " + HMetaDataDef.getTable(pBusiType, "") + " WHERE id = ?) ";
-        jdbcTemplate.update(sql, custId, pid);
+    /**
+     * 删除税单
+     *
+     * @param type
+     * @param mainBillNo
+     * @param billNo
+     * @param custId
+     */
+    public void deleteSListByBillNo(String custId, String type, String mainBillNo, String billNo) {
+        String sql = "delete from " + HMetaDataDef.getTable(type, "") + " where cust_id = ?  AND ext_2 = ? AND ext_4 = ? ";
+        jdbcTemplate.update(sql, custId, mainBillNo, billNo);
+    }
+
+    /**
+     * 根据多个ID删除税单
+     *
+     * @param custId
+     * @param type
+     * @param ids
+     */
+    public void deleteByIds(String custId, String type, List ids) {
+        if (ids == null || ids.size() == 0) {
+            log.warn("批量根据多个ID删除ids为空");
+            return;
+        }
+        String sql = "delete from " + HMetaDataDef.getTable(type, "") + " where cust_id = ?  AND id IN(" + SqlAppendUtil.sqlAppendWhereIn(ids) + ") ";
+        jdbcTemplate.update(sql, custId);
     }
 
     public List<HBusiDataManager> getDataList(String type, Long pid) {
@@ -167,6 +191,24 @@ public class ServiceUtils {
         sql.append("select id, type, content, cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(type, "") + " where cust_id = ? AND type=? AND ext_4 = (SELECT ext_3 FROM " + HMetaDataDef.getTable(pBusiType, "") + " WHERE id = ?) ");
         log.info("查询分单sql:{}", sql);
         List<Map<String, Object>> list = jdbcTemplate.queryForList(sql.toString(), custId, type, pid);
+        List<HBusiDataManager> result = JSON.parseArray(JSON.toJSONString(list), HBusiDataManager.class);
+        return result;
+    }
+
+    /**
+     * 查询税单列表
+     *
+     * @param custId
+     * @param type
+     * @param mainBillNo
+     * @param billNo
+     * @return
+     */
+    public List<HBusiDataManager> listSdByBillNo(String custId, String type, String mainBillNo, String billNo) {
+        StringBuffer sql = new StringBuffer();
+        sql.append("select id, type, content, cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(type, "") + " where cust_id = ? AND type=? AND ext_2 = ?  AND ext_4 = ?");
+        log.info("查询税单sql:{}", sql);
+        List<Map<String, Object>> list = jdbcTemplate.queryForList(sql.toString(), custId, type, mainBillNo, billNo);
         List<HBusiDataManager> result = JSON.parseArray(JSON.toJSONString(list), HBusiDataManager.class);
         return result;
     }
