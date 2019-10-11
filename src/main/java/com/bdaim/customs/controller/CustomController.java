@@ -8,6 +8,7 @@ import com.bdaim.common.controller.util.ResponseCommon;
 import com.bdaim.common.controller.util.ResponseJson;
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.exception.TouchException;
+import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.customs.dto.QueryDataParams;
 import com.bdaim.customs.entity.HDic;
 import com.bdaim.customs.entity.MainDan;
@@ -102,7 +103,8 @@ public class CustomController extends BasicAction {
     public ResponseJson getMainDetailById(@PathVariable("id") String id, String type) {
         ResponseJson responseJson = new ResponseJson();
         try {
-            JSONObject json = customsService.getMainDetailById(id, type);
+            LoginUser user = opUser();
+            JSONObject json = customsService.getMainDetailById(user.getCustId(),id, type);
             responseJson.setMessage("SUCCESS");
             responseJson.setCode(200);
             responseJson.setData(json);
@@ -251,7 +253,7 @@ public class CustomController extends BasicAction {
     }
 
     @RequestMapping(value = "/uploadCardIdPic", method = RequestMethod.POST)
-    public ResponseJson uploadCardIdPic(HttpServletRequest request, String id, Integer type) {
+    public ResponseInfo uploadCardIdPic(HttpServletRequest request, String id, Integer type) {
         CommonsMultipartResolver multipartResolver = new CommonsMultipartResolver(
                 request.getSession().getServletContext());
         MultipartFile f = null;
@@ -263,19 +265,19 @@ public class CustomController extends BasicAction {
                 break;
             }
         }
-        ResponseJson responseJson = new ResponseJson();
+        ResponseInfo resp = new ResponseInfo();
         if (f == null) {
-            responseJson.setCode(0);
-            responseJson.setMessage("文件为空");
-            return responseJson;
+            resp.setCode(-1);
+            resp.setMessage("文件为空");
+            return resp;
         }
         try {
             int status = customsService.uploadCardIdPic(f, id, type, opUser().getCustId());
             if (status == 1) {
-                responseJson.setCode(200);
-                responseJson.setMessage("成功");
+                resp.setCode(200);
+                resp.setMessage("成功");
             } else {
-                responseJson.setCode(status);
+                resp.setCode(status);
                 String msg = "文件异常";
                 if (status == -1) {
                     msg = "文件格式不正确";
@@ -288,14 +290,14 @@ public class CustomController extends BasicAction {
                 } else if (status == -5) {
                     msg = "文件为空";
                 }
-                responseJson.setMessage(msg);
+                resp.setMessage(msg);
             }
         } catch (TouchException e) {
             log.error("上传分单身份证照片异常", e);
-            responseJson.setCode(0);
-            responseJson.setMessage(e.getMessage());
+            resp.setCode(-1);
+            resp.setMessage(e.getMessage());
         }
-        return responseJson;
+        return resp;
     }
 
 

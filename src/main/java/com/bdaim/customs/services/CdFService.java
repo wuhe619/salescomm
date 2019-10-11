@@ -55,7 +55,7 @@ public class CdFService implements BusiService {
     @Override
     public void updateInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) throws Exception {
         // TODO Auto-generated method stub
-        HBusiDataManager fM = serviceUtils.getObjectByIdAndType(id, busiType);
+        HBusiDataManager fM = serviceUtils.getObjectByIdAndType(cust_id,id, busiType);
         if (fM == null) {
             throw new TouchException("仓单分单[" + id + "] 不存在");
         }
@@ -69,7 +69,7 @@ public class CdFService implements BusiService {
         serviceUtils.updateDataToES(busiType, id.toString(), json);
         List<HBusiDataManager> list = null;
         try {
-            list = serviceUtils.getDataList(busiType, json.getLong("pid"));
+            list = serviceUtils.listDataByParentBillNo(cust_id,busiType,fM.getExt_4());
         } catch (Exception e) {
             log.error("查询舱单分单异常", e);
             throw new Exception();
@@ -98,7 +98,10 @@ public class CdFService implements BusiService {
 
         }
         log.info("jieshu...");
-        HBusiDataManager cangdanz = serviceUtils.getObjectByIdAndType(json.getLong("pid"), BusiTypeEnum.CZ.getType());
+        HBusiDataManager cangdanz = serviceUtils.getObjectByIdAndType(cust_id,json.getLong("pid"), BusiTypeEnum.CZ.getType());
+        if(cangdanz==null){
+            throw new TouchException("无权操作");
+        }
         JSONObject superObj = JSONObject.parseObject(cangdanz.getContent());
         superObj.put("weight", weight);
         superObj.put("pack_no", packNo);

@@ -3,7 +3,6 @@ package com.bdaim.customs.services;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.bdaim.common.BusiMetaConfig;
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.service.BusiService;
@@ -151,7 +150,7 @@ public class SbdZService implements BusiService {
                     .append(" and (ext_7 IS NULL OR ext_7 = '' OR ext_7 = 2) ");
             //.append(" and JSON_EXTRACT(content, '$.pid')=?");
 
-            sql.append(" and ext_4=(SELECT ext_3 FROM " + HMetaDataDef.getTable(BusiTypeEnum.getParentType(busiType), "") + " WHERE id = ?)");
+            sql.append(" and ext_4=(SELECT ext_3 FROM " + HMetaDataDef.getTable(BusiTypeEnum.getParentType(BusiTypeEnum.SF.getType()), "") + " WHERE id = ?)");
 
             List sqlParams = new ArrayList();
             sqlParams.add(BusiTypeEnum.SF.getType());
@@ -197,29 +196,25 @@ public class SbdZService implements BusiService {
                 case "_export_low_product":
                     param.put("_ge_low_price_goods", 1);
                     //查询包含低价的分单列表
-                    List singles = queryChildData(BusiTypeEnum.SF.getType(), cust_id, cust_group_id, cust_user_id, id, info, param);
-                    if (singles != null) {
+                    List singles = serviceUtils.queryChildData(BusiTypeEnum.SF.getType(), cust_id, cust_group_id, cust_user_id, id, param);
+                    if (singles != null && singles.size() > 0) {
                         param.remove("_ge_low_price_goods");
                         param.put("_eq_is_low_price", 1);
-                        List products = new ArrayList();
-                        List tmp;
+                        List partyBillNos = new ArrayList();
                         JSONObject js, product;
+                        String main_bill_no = "";
                         // 查询分单下的低价商品
                         for (int i = 0; i < singles.size(); i++) {
                             js = (JSONObject) singles.get(i);
                             js.put("index", i + 1);
-                            tmp = queryChildData(BusiTypeEnum.SS.getType(), cust_id, cust_group_id, cust_user_id, js.getLong("id"), info, param);
-                            if (tmp != null && tmp.size() > 0) {
-                                for (int j = 0; j < products.size(); j++) {
-                                    JSONObject tmpS = (JSONObject) tmp.get(j);
-                                    tmpS.put("main_bill_no", js.getString("main_bill_no"));
-                                }
-                                products.addAll(tmp);
-                            }
+                            partyBillNos.add(js.getString("bill_no"));
+                            main_bill_no = js.getString("main_bill_no");
                         }
+                        List products = serviceUtils.listSdByBillNos(cust_id, BusiTypeEnum.SS.getType(), main_bill_no, partyBillNos, param);
                         for (int j = 0; j < products.size(); j++) {
                             product = (JSONObject) products.get(j);
                             product.put("index", j + 1);
+                            product.put("main_bill_no", main_bill_no);
                         }
                         info.put("singles", products);
                     }
@@ -227,28 +222,42 @@ public class SbdZService implements BusiService {
                 // 查询报检单,理货单下的分单和商品
                 case "_export_declaration_form":
                 case "_export_tally_form":
-                    singles = queryChildData(BusiTypeEnum.SF.getType(), cust_id, cust_group_id, cust_user_id, id, info, param);
+                    singles = serviceUtils.queryChildData(BusiTypeEnum.SF.getType(), cust_id, cust_group_id, cust_user_id, id, param);
                     if (singles != null) {
                         info.put("singles", singles);
-                        List products;
+                        //List products;
                         JSONObject js, product;
+                        String main_bill_no = "";
+                        List partyBillNos = new ArrayList();
                         for (int i = 0; i < singles.size(); i++) {
                             js = (JSONObject) singles.get(i);
                             js.put("index", i + 1);
-                            products = queryChildData(BusiTypeEnum.SS.getType(), cust_id, cust_group_id, cust_user_id, js.getLong("id"), info, param);
+                            partyBillNos.add(js.getString("bill_no"));
+                            main_bill_no = js.getString("main_bill_no");
+
+                            /*param.put("main_bill_no", js.getString("main_bill_no"));
+                            products = serviceUtils.queryChildData(BusiTypeEnum.SS.getType(), cust_id, cust_group_id, cust_user_id, js.getLong("id"), param);
                             for (int j = 0; j < products.size(); j++) {
                                 product = (JSONObject) products.get(j);
                                 product.put("index", j + 1);
-                                product.put("main_bill_no", js.getString("main_bill_no"));
+                                product.put("main_bill_no", product.getString("ext_4"));
                             }
-                            js.put("products", products);
+                            js.put("products", products);*/
 
                         }
+
+                        List products = serviceUtils.listSdByBillNos(cust_id, BusiTypeEnum.SS.getType(), main_bill_no, partyBillNos, param);
+                        for (int j = 0; j < products.size(); j++) {
+                            product = (JSONObject) products.get(j);
+                            product.put("index", j + 1);
+                            product.put("main_bill_no", main_bill_no);
+                        }
+                        info.put("products", products);
                     }
                     break;
                 case "_export_estimated_tax":
                     // 预估税单
-                    singles = queryChildData(BusiTypeEnum.SF.getType(), cust_id, cust_group_id, cust_user_id, id, info, param);
+                    singles = serviceUtils.queryChildData(BusiTypeEnum.SF.getType(), cust_id, cust_group_id, cust_user_id, id, param);
                     if (singles != null) {
                         JSONObject js;
                         for (int i = 0; i < singles.size(); i++) {
@@ -266,8 +275,10 @@ public class SbdZService implements BusiService {
 
     @Override
     public void deleteInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id) throws Exception {
-        HBusiDataManager manager = serviceUtils.getObjectByIdAndType(id, busiType);
-
+        HBusiDataManager manager = serviceUtils.getObjectByIdAndType(cust_id,id, busiType);
+        if (manager == null) {
+            throw new TouchException("主单已经删除");
+        }
         if ("Y".equals(manager.getExt_1()) || "Y".equals(manager.getExt_2())) {
             throw new TouchException("已经被提交，无法删除");
         }
@@ -285,20 +296,31 @@ public class SbdZService implements BusiService {
 
         List<HBusiDataManager> list = serviceUtils.listDataByPid(cust_id, BusiTypeEnum.SF.getType(), id, BusiTypeEnum.SZ.getType());
         JSONObject content;
+        List<String> fdIds = new ArrayList<>();
+        List<String> sdIds = new ArrayList<>();
+        List<HBusiDataManager> slist;
         for (HBusiDataManager hBusiDataManager : list) {
-            // 删除税单需要主单号+分单号确定唯一
+            //分单ID集合
+            fdIds.add(String.valueOf(hBusiDataManager.getId()));
             content = JSON.parseObject(hBusiDataManager.getContent());
-            List<HBusiDataManager> slist = serviceUtils.listSdByBillNo(cust_id, BusiTypeEnum.SS.getType(), content.getString("main_bill_no"), content.getString("bill_no"));
+            slist = serviceUtils.listSdByBillNo(cust_id, BusiTypeEnum.SS.getType(), content.getString("main_bill_no"), content.getString("bill_no"));
             for (HBusiDataManager shBusiDataManager : slist) {
-                serviceUtils.deleteDatafromES(BusiTypeEnum.SS.getType(), shBusiDataManager.getId().toString());
+                sdIds.add(String.valueOf(shBusiDataManager.getId()));
+                //serviceUtils.deleteDatafromES(BusiTypeEnum.SS.getType(), shBusiDataManager.getId().toString());
             }
-            serviceUtils.deleteDatafromES(BusiTypeEnum.SF.getType(), hBusiDataManager.getId().toString());
-            // 删除税单
-            serviceUtils.deleteSListByBillNo(cust_id, BusiTypeEnum.SS.getType(), content.getString("main_bill_no"), content.getString("bill_no"));
+            // 删除es税单
+            //serviceUtils.deleteDatafromES(BusiTypeEnum.SF.getType(), hBusiDataManager.getId().toString());
+            // 删除数据库税单
+            //serviceUtils.deleteSListByBillNo(cust_id, BusiTypeEnum.SS.getType(), content.getString("main_bill_no"), content.getString("bill_no"));
         }
-        // 删除分单
-        serviceUtils.delDataListByPid(BusiTypeEnum.SF.getType(), id);
-
+        // 批量删除数据库分单
+        serviceUtils.deleteByIds(cust_id, BusiTypeEnum.SF.getType(), fdIds);
+        // 批量删除es分单
+        elasticSearchService.bulkDeleteDocument(BusiTypeEnum.getEsIndex(BusiTypeEnum.SF.getType()), Constants.INDEX_TYPE, fdIds);
+        // 批量删除数据库税单
+        serviceUtils.deleteByIds(cust_id, BusiTypeEnum.SS.getType(), sdIds);
+        // 批量删除es税单
+        elasticSearchService.bulkDeleteDocument(BusiTypeEnum.getEsIndex(BusiTypeEnum.SS.getType()), Constants.INDEX_TYPE, sdIds);
     }
 
     @Override
@@ -533,7 +555,7 @@ public class SbdZService implements BusiService {
             json.put("check_status", "0");
             json.put("idcard_pic_flag", "0");
             json.put("pid", mainid);
-            JSONArray jsonArray = arrt.getJSONArray("mainGoodsName");
+            JSONArray jsonArray = arrt.getJSONArray("main_goods_name");
             String mainGoodsName = "";
             if (jsonArray != null && jsonArray.size() > 0) {
                 for (int i = 0; i < jsonArray.size(); i++) {
@@ -724,8 +746,8 @@ public class SbdZService implements BusiService {
                         } else {
                             arrt.put("low_price_goods", 1);
                         }
-                        arrt.put("main_goods_name", mainGoodsName);
                     }
+                    arrt.put("main_goods_name", mainGoodsName);
                     json.put("is_low_price", is_low_price);
                     float total_price = Float.valueOf(product.getDecl_total() == null || "".equals(product.getDecl_total()) ? "0" : product.getDecl_total());
                     json.put("duty_paid_price", duty_paid_price);//完税价格
@@ -771,16 +793,16 @@ public class SbdZService implements BusiService {
         String partynum = mainDan.getSingle_batch_num();
 
         List<PartyDan> list = mainDan.getSingles();
-        float weightTotal = 0;
+        Double weightTotal = 0d;
         for (PartyDan partyDan : list) {
             String WEIGHT = partyDan.getWeight();
             if (StringUtil.isEmpty(WEIGHT)) {
                 WEIGHT = "0";
             }
-            weightTotal += Float.valueOf(WEIGHT);
+            weightTotal += Double.valueOf(WEIGHT);
         }
 
-        info.put("weight_total", weightTotal);//总重量
+        info.put("weight_total", weightTotal.floatValue());//总重量
         info.put("party_total", list.size());//分单总数
 
         if (Integer.valueOf(partynum) < list.size()) {
@@ -791,98 +813,6 @@ public class SbdZService implements BusiService {
             info.put("over_warp", "正常");//正常
         }
 
-        //todo:低价商品暂时不处理
-        //System.out.println(jsonObject);
-
-//		return jsonObject;
-
     }
 
-    /**
-     * 查询分单和商品
-     *
-     * @param busiType
-     * @param cust_id
-     * @param cust_group_id
-     * @param cust_user_id
-     * @param pid
-     * @param info
-     * @return
-     */
-    private List queryChildData(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long pid, JSONObject info, JSONObject param) {
-        List sqlParams = new ArrayList();
-        StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(busiType, "") + " where type=?");
-        if (!"all".equals(cust_id))
-            sqlstr.append(" and cust_id='").append(cust_id).append("'");
-
-        sqlParams.add(busiType);
-        Iterator keys = param.keySet().iterator();
-        while (keys.hasNext()) {
-            String key = (String) keys.next();
-            if ("".equals(String.valueOf(param.get(key)))) continue;
-            if ("pageNum".equals(key) || "pageSize".equals(key) || "stationId".equals(key) || "cust_id".equals(key) || "_rule_".equals(key)) {
-                continue;
-            } else if (key.startsWith("_g_")) {
-                sqlstr.append(" and " + BusiMetaConfig.getFieldIndex(busiType, key) + " > ?");
-            } else if (key.startsWith("_ge_")) {
-                sqlstr.append(" and " + BusiMetaConfig.getFieldIndex(busiType, key) + " >= ?");
-            } else if (key.startsWith("_l_")) {
-                sqlstr.append(" and " + BusiMetaConfig.getFieldIndex(busiType, key) + " < ?");
-            } else if (key.startsWith("_le_")) {
-                sqlstr.append(" and " + BusiMetaConfig.getFieldIndex(busiType, key) + " <= ?");
-            } else if (key.startsWith("_eq_")) {
-                sqlstr.append(" and " + BusiMetaConfig.getFieldIndex(busiType, key) + " = ?");
-            } else {
-                sqlstr.append(" and " + BusiMetaConfig.getFieldIndex(busiType, key) + "=?");
-            }
-            sqlParams.add(param.get(key));
-        }
-        String tmpType = "";
-        if (busiType.endsWith("_f")) {
-            tmpType = busiType.replaceAll("_f", "_z");
-        } else if (busiType.endsWith("_s")) {
-            tmpType = busiType.replaceAll("_s", "_f");
-        }
-        sqlstr.append(" and " + BusiMetaConfig.getFieldIndex(busiType, "pid") + "=(SELECT ext_3 FROM " + HMetaDataDef.getTable(tmpType, "") + " WHERE id = ?)");
-        sqlParams.add(pid);
-
-        List<Map<String, Object>> ds = jdbcTemplate.queryForList(sqlstr.toString(), sqlParams.toArray());
-        List data = new ArrayList();
-        for (int i = 0; i < ds.size(); i++) {
-            Map m = (Map) ds.get(i);
-            JSONObject jo = null;
-            try {
-                if (m.containsKey("content")) {
-                    jo = JSONObject.parseObject((String) m.get("content"));
-                    jo.put("id", m.get("id"));
-                    jo.put("cust_id", m.get("cust_id"));
-                    jo.put("cust_group_id", m.get("cust_group_id"));
-                    jo.put("cust_user_id", m.get("cust_user_id"));
-                    jo.put("create_id", m.get("create_id"));
-                    jo.put("create_date", m.get("create_date"));
-                    jo.put("update_id", m.get("update_id"));
-                    jo.put("update_date", m.get("update_date"));
-                    if (m.get("ext_1") != null && !"".equals(m.get("ext_1")))
-                        jo.put("ext_1", m.get("ext_1"));
-                    if (m.get("ext_2") != null && !"".equals(m.get("ext_2")))
-                        jo.put("ext_2", m.get("ext_2"));
-                    if (m.get("ext_3") != null && !"".equals(m.get("ext_3")))
-                        jo.put("ext_3", m.get("ext_3"));
-                    if (m.get("ext_4") != null && !"".equals(m.get("ext_4")))
-                        jo.put("ext_4", m.get("ext_4"));
-                    if (m.get("ext_5") != null && !"".equals(m.get("ext_5")))
-                        jo.put("ext_5", m.get("ext_5"));
-                } else
-                    jo = JSONObject.parseObject(JSONObject.toJSONString(m));
-            } catch (Exception e) {
-                log.error(e.getMessage());
-            }
-            if (jo == null) { //jo异常导致为空时，只填充id
-                jo = new JSONObject();
-                jo.put("id", m.get("id"));
-            }
-            data.add(jo);
-        }
-        return data;
-    }
 }

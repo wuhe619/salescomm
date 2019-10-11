@@ -183,8 +183,10 @@ public class HypicZService implements BusiService {
 
     @Override
     public void deleteInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id) throws Exception {
-        HBusiDataManager manager = serviceUtils.getObjectByIdAndType(id, busiType);
-
+        HBusiDataManager manager = serviceUtils.getObjectByIdAndType(cust_id,id, busiType);
+        if(manager==null){
+            throw new TouchException("无权操作");
+        }
         if ("Y".equals(manager.getExt_1()) || "Y".equals(manager.getExt_2())) {
             throw new TouchException("已经被提交，无法删除");
         }

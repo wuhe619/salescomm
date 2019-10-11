@@ -99,7 +99,7 @@ public class SbdSService implements BusiService {
         serviceUtils.addDataToES(id.toString(), busiType, info);
 
 
-        HBusiDataManager partH = serviceUtils.getObjectByIdAndType(pid.longValue(), BusiTypeEnum.SF.getType());
+        HBusiDataManager partH = serviceUtils.getObjectByIdAndType(cust_id,pid.longValue(), BusiTypeEnum.SF.getType());
 
         String pcontent = partH.getContent();
         JSONObject jsonObject = JSON.parseObject(pcontent);
@@ -132,7 +132,7 @@ public class SbdSService implements BusiService {
 
         serviceUtils.updateDataToES(BusiTypeEnum.SF.getType(), pid.toString(), jsonObject);
 
-        HBusiDataManager zh = serviceUtils.getObjectByIdAndType(jsonObject.getLong("pid"), BusiTypeEnum.SZ.getType());
+        HBusiDataManager zh = serviceUtils.getObjectByIdAndType(cust_id,jsonObject.getLong("pid"), BusiTypeEnum.SZ.getType());
         String zcontent = zh.getContent();
         JSONObject jsonz = JSON.parseObject(zcontent);
         Float weight_total = jsonz.getFloatValue("weight_total");
@@ -158,7 +158,7 @@ public class SbdSService implements BusiService {
 
     @Override
     public void updateInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) throws Exception {
-        HBusiDataManager dbManager = serviceUtils.getObjectByIdAndType(id, busiType);
+        HBusiDataManager dbManager = serviceUtils.getObjectByIdAndType(cust_id,id, busiType);
         String content = dbManager.getContent();
         JSONObject json = JSONObject.parseObject(content);
         Iterator keys = info.keySet().iterator();
@@ -168,14 +168,14 @@ public class SbdSService implements BusiService {
         }
         serviceUtils.updateDataToES(busiType, id.toString(), json);
 
-        HBusiDataManager fmanager = serviceUtils.getObjectByIdAndType(json.getLong("pid"), BusiTypeEnum.SF.getType());
+        HBusiDataManager fmanager = serviceUtils.getObjectByIdAndType(cust_id,json.getLong("pid"), BusiTypeEnum.SF.getType());
         String fcontent = fmanager.getContent();
 
         JSONObject fjson = JSONObject.parseObject(fcontent);
 
-        List<HBusiDataManager> goodsList = serviceUtils.getDataList(BusiTypeEnum.SS.getType(), fmanager.getId().longValue());
-        float weight = 0;  //重量
-        float pack_NO = 0; //数量
+        List<HBusiDataManager> goodsList = serviceUtils.listSdByBillNo(cust_id,BusiTypeEnum.SS.getType(), fmanager.getExt_4(),fmanager.getExt_3());
+        Double weight = 0d;  //重量
+        Double pack_NO = 0d; //数量
         int lowPricegoods = 0; //低价商品数
         int is_low_price = 0;
         float festimated_tax = 0;//预估税金
@@ -226,7 +226,7 @@ public class SbdSService implements BusiService {
                 lowPricegoods++;
             }
         }
-        fjson.put("weight_total", weight);
+        fjson.put("weight_total", weight.floatValue());
         fjson.put("lowPricegoods", lowPricegoods);
         fjson.put("pack_no", pack_NO);
         fjson.put("estimated_tax", festimated_tax);
@@ -244,14 +244,14 @@ public class SbdSService implements BusiService {
     public void deleteInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id) {
         // TODO Auto-generated method stub
 
-        HBusiDataManager ph = serviceUtils.getObjectByIdAndType(id, busiType);
+        HBusiDataManager ph = serviceUtils.getObjectByIdAndType(cust_id,id, busiType);
         serviceUtils.deleteDatafromES(BusiTypeEnum.SS.getType(), id.toString());
         serviceUtils.delDataListByIdAndType(id, busiType);
         String pcontent = ph.getContent();
         JSONObject pjson = JSON.parseObject(pcontent);
 
         //获取分单信息，从分单中减去商品的重量等
-        HBusiDataManager parth = serviceUtils.getObjectByIdAndType(pjson.getLong("pid"), BusiTypeEnum.SF.getType());
+        HBusiDataManager parth = serviceUtils.getObjectByIdAndType(cust_id,pjson.getLong("pid"), BusiTypeEnum.SF.getType());
         String partcontent = parth.getContent();
         JSONObject partcontentJson = JSON.parseObject(partcontent);
 
@@ -277,7 +277,7 @@ public class SbdSService implements BusiService {
         serviceUtils.updateDataToES(BusiTypeEnum.SF.getType(), parth.getId().toString(), partcontentJson);
 
         //处理主单
-        HBusiDataManager zh = serviceUtils.getObjectByIdAndType(partcontentJson.getLong("pid"), BusiTypeEnum.SZ.getType());
+        HBusiDataManager zh = serviceUtils.getObjectByIdAndType(cust_id,partcontentJson.getLong("pid"), BusiTypeEnum.SZ.getType());
         String zcontent = zh.getContent();
         JSONObject jsonz = JSON.parseObject(zcontent);
         Float weight_total = jsonz.getFloatValue("weight_total");

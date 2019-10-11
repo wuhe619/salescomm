@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.auth.LoginUser;
+import com.bdaim.common.BusiMetaConfig;
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.service.ElasticSearchService;
@@ -125,13 +126,13 @@ public class CustomsService {
      *
      * @param id
      */
-    public JSONObject getMainDetailById(String id, String type) {
+    public JSONObject getMainDetailById(String cust_id, String id, String type) {
         JSONObject json = elasticSearchService.getDocumentById(Constants.SF_INFO_INDEX, "haiguan", id);
         if (json == null) {
             /*HBusiDataManager param = new HBusiDataManager();
             param.setId(NumberConvertUtil.parseLong(id));
             param.setType(type);*/
-            HBusiDataManager h = serviceUtils.getObjectByIdAndType(NumberConvertUtil.parseLong(id), type);
+            HBusiDataManager h = serviceUtils.getObjectByIdAndType(cust_id, NumberConvertUtil.parseLong(id), type);
             if (h != null && h.getContent() != null) {
                 json = JSON.parseObject(h.getContent());
             }
@@ -838,7 +839,7 @@ public class CustomsService {
                    /* HBusiDataManager param = new HBusiDataManager();
                     param.setId(NumberConvertUtil.parseLong(id));
                     param.setType(BusiTypeEnum.SF.getType());*/
-                    data = serviceUtils.getObjectByIdAndType(NumberConvertUtil.parseLong(id), BusiTypeEnum.SF.getType());
+                    data = serviceUtils.getObjectByIdAndType(custId, NumberConvertUtil.parseLong(id), BusiTypeEnum.SF.getType());
                     if (data != null) {
                         fdList.add(data);
                     }
@@ -847,6 +848,9 @@ public class CustomsService {
                 Map<String, String> map = new HashMap<>();
                 String objectId = "";
                 for (FileModel f : fileList) {
+                    if (StringUtil.isEmpty(f.getFileName())) {
+                        continue;
+                    }
                     objectId = uploadFileService.uploadFile(f.getFileInputstream(), BusinessEnum.CUSTOMS, false, f.getFileName());
                     map.put(f.getFileName().substring(0, f.getFileName().indexOf(".")), objectId);
                 }
@@ -863,10 +867,14 @@ public class CustomsService {
                     if (jsonObject != null) {
                         // 身份证照片存储对象ID
                         if (1 == type) {
-                            if (StringUtil.isEmpty(String.valueOf(map.get(jsonObject.getString("id_no"))))) {
+                            /*if (StringUtil.isEmpty(String.valueOf(map.get(jsonObject.getString("id_no"))))) {
                                 jsonObject.put("idcard_pic_flag", "0");
                                 jsonObject.put(picKey, "");
                             } else {
+                                jsonObject.put(picKey, map.get(jsonObject.getString("id_no")));
+                                jsonObject.put("idcard_pic_flag", "1");
+                            }*/
+                            if (StringUtil.isNotEmpty(String.valueOf(map.get(jsonObject.getString("id_no"))))) {
                                 jsonObject.put(picKey, map.get(jsonObject.getString("id_no")));
                                 jsonObject.put("idcard_pic_flag", "1");
                             }
@@ -883,10 +891,10 @@ public class CustomsService {
                 }
                 // 更新主单下分单的身份证照片数量
                 if (1 == type) {
-                    updateMainDanIdCardNumber(NumberConvertUtil.parseInt(id));
+                    updateMainDanIdCardNumber(NumberConvertUtil.parseInt(id), custId);
                 } else if (2 == type && data != null) {
                     JSONObject dfData = JSON.parseObject(data.getContent());
-                    updateMainDanIdCardNumber(dfData.getIntValue("pid"));
+                    updateMainDanIdCardNumber(dfData.getIntValue("pid"), custId);
                 }
                 code = 1;
             } else {
@@ -1064,23 +1072,24 @@ public class CustomsService {
      * @param mainId
      * @return
      */
-    public int updateMainDanIdCardNumber(long mainId) {
+    public int updateMainDanIdCardNumber(long mainId, String cust_id) {
         int idCardNumber = hBusiDataManagerDao.countMainDIdCardNum(mainId, BusiTypeEnum.SF.getType());
-        log.info("开始更新主单:{}的身份证照片数量:{}", mainId, idCardNumber);
         int code = 0;
-        JSONObject mainDetail = getMainDetailById(String.valueOf(mainId), BusiTypeEnum.SZ.getType());
+        JSONObject mainDetail = getMainDetailById(cust_id, String.valueOf(mainId), BusiTypeEnum.SZ.getType());
         if (mainDetail != null && mainDetail.containsKey("id")) {
+            log.info("开始更新主单:{}的身份证照片数量:{}", mainId, idCardNumber);
             mainDetail.put("id_card_pic_number", idCardNumber);
            /* HBusiDataManager param = new HBusiDataManager();
             param.setId(mainId);
             param.setType(BusiTypeEnum.SZ.getType());*/
-            HBusiDataManager mainD = serviceUtils.getObjectByIdAndType(mainId, BusiTypeEnum.SZ.getType());
+            HBusiDataManager mainD = serviceUtils.getObjectByIdAndType(cust_id, mainId, BusiTypeEnum.SZ.getType());
             if (mainD != null) {
                 StringBuffer sql = new StringBuffer("update " + HMetaDataDef.getTable(BusiTypeEnum.SZ.getType(), "") + " set update_date=now() ");
                 sql.append(",content=?  where type=? and cust_id=? and id=?");
                 mainD.setContent(mainDetail.toJSONString());
-                jdbcTemplate.update(sql.toString(), mainD.getContent(), BusiTypeEnum.SZ.getType(), mainD.getCust_id(), mainId);
+                int status = jdbcTemplate.update(sql.toString(), mainD.getContent(), BusiTypeEnum.SZ.getType(), mainD.getCust_id(), mainId);
                 updateDataToES(mainD, mainId);
+                log.info("更新主单:{}的身份证照片数量:{}结果:{}", mainId, idCardNumber, status);
             }
             code = 1;
         }
@@ -1261,7 +1270,7 @@ public class CustomsService {
 
     public Integer countGoodsNumByPartId(String busiType, String id) {
         String _sql = "select content from " + HMetaDataDef.getTable(busiType, "") + " type='" + busiType + "' " +
-                " and (JSON_EXTRACT(content, '$.pid')='" + id + "' or JSON_EXTRACT(content, '$.pid')=" + id + ")";
+                " AND " + BusiMetaConfig.getFieldIndex(busiType, "pid") + "=(SELECT ext_3 FROM " + HMetaDataDef.getTable(BusiTypeEnum.getParentType(busiType), "") + " WHERE id = " + id + ")  ";
 
         return 0;
     }

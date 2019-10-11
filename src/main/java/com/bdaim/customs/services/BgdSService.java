@@ -107,7 +107,12 @@ public class BgdSService implements BusiService{
 		info.put("estimated_tax", estimated_tax);//预估税金
 		info.put("tax_rate", tax_rate);//税率
 		info.put("total_price",0);//价格合计
-		List<HBusiDataManager> goodslist = serviceUtils.getDataList(BusiTypeEnum.BS.getType(),Long.valueOf(pid));
+		HBusiDataManager partH = serviceUtils.getObjectByIdAndType(cust_id,pid.longValue(),BusiTypeEnum.BF.getType());
+		if(partH==null){
+			throw new TouchException("无权操作");
+		}
+		List<HBusiDataManager> goodslist = serviceUtils.listSdByBillNo(cust_id,BusiTypeEnum.BS.getType(),partH.getExt_4(),billNo);
+
 		Integer index = 0;
 		for(HBusiDataManager m:goodslist){
 			String indexStr = m.getExt_5();
@@ -120,8 +125,6 @@ public class BgdSService implements BusiService{
 		index += 1;
 		info.put("index",index);
 		serviceUtils.addDataToES(id.toString(),busiType,info);
-
-		HBusiDataManager partH = serviceUtils.getObjectByIdAndType(pid.longValue(),BusiTypeEnum.BF.getType());
 
 		String pcontent = partH.getContent();
 		JSONObject jsonObject = JSON.parseObject(pcontent);
@@ -146,11 +149,10 @@ public class BgdSService implements BusiService{
 				" where id="+partH.getId()+" and type='"+partH.getType()+"'";
 		jdbcTemplate.update(sql);
 
-//		hBusiDataManagerDao.saveOrUpdate(partH);
-
 		serviceUtils.updateDataToES(BusiTypeEnum.BF.getType(),pid.toString(),jsonObject);
 
-		HBusiDataManager zh = serviceUtils.getObjectByIdAndType(jsonObject.getLong("pid"), BusiTypeEnum.BZ.getType());
+		HBusiDataManager zh = serviceUtils.getObjectByIdAndType(cust_id,jsonObject.getLong("pid"), BusiTypeEnum.BZ.getType());
+
 		String zcontent = zh.getContent();
 		JSONObject jsonz = JSON.parseObject(zcontent);
 		Float weight_total = jsonz.getFloatValue("weight_total");
@@ -170,14 +172,13 @@ public class BgdSService implements BusiService{
 				" where id="+zh.getId()+" and type='"+zh.getType()+"'";
 		jdbcTemplate.update(sql2);
 
-//		hBusiDataManagerDao.saveOrUpdate(zh);
 		serviceUtils.updateDataToES(BusiTypeEnum.BZ.getType(),zh.getId().toString(),jsonz);
 
 	}
 
 	@Override
 	public void updateInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) throws Exception {
-		HBusiDataManager dbManager = serviceUtils.getObjectByIdAndType(id,busiType);
+		HBusiDataManager dbManager = serviceUtils.getObjectByIdAndType(cust_id,id,busiType);
 		String content = dbManager.getContent();
 		JSONObject json = JSONObject.parseObject(content);
 		Iterator keys = info.keySet().iterator();
@@ -187,12 +188,12 @@ public class BgdSService implements BusiService{
 		}
 		serviceUtils.updateDataToES(busiType,id.toString(),json);
 
-		HBusiDataManager fmanager = serviceUtils.getObjectByIdAndType(id,busiType);
+		HBusiDataManager fmanager = serviceUtils.getObjectByIdAndType(cust_id,json.getLong("pid"),BusiTypeEnum.BF.getType());
 		String fcontent = fmanager.getContent();
 
 		JSONObject fjson = JSONObject.parseObject(fcontent);
 
-		List<HBusiDataManager> goodsList = serviceUtils.getDataList(BusiTypeEnum.BS.getType(),fjson.getLong("pid"));
+		List<HBusiDataManager> goodsList = serviceUtils.listSdByBillNo(cust_id,BusiTypeEnum.BS.getType(),fmanager.getExt_4(),dbManager.getExt_4());
 		float weight = 0;  //重量
 		float pack_NO = 0; //数量
 		int lowPricegoods = 0; //低价商品数
@@ -201,9 +202,9 @@ public class BgdSService implements BusiService{
 		for(HBusiDataManager m:goodsList){
 			JSONObject params = new JSONObject();
 			params.put("code", m.getExt_1());
-			float tax_rate=0;
-			float estimated_tax=0;
-			float duty_paid_price=0;
+			float tax_rate = 0;
+			float estimated_tax = 0;
+			float duty_paid_price = 0;
 			Page page = resourceService.query("", "duty_paid_rate",params);
 			if(page!=null && page.getTotal()>0){
 				List dataList = page.getData();
@@ -250,6 +251,11 @@ public class BgdSService implements BusiService{
 		fjson.put("pack_no",pack_NO);
 		fjson.put("estimated_tax",festimated_tax);
 		serviceUtils.updateDataToES(BusiTypeEnum.BF.getType(),fmanager.getId().toString(),fjson);
+
+		String sql2 = "update "+ HMetaDataDef.getTable(BusiTypeEnum.BF.getType(),"")+" set content='"+fjson.toJSONString()+"'"+
+				" where id="+fmanager.getId()+" and type='"+BusiTypeEnum.BF.getType()+"'";
+		jdbcTemplate.update(sql2);
+
 		serviceUtils.updateDataToES(BusiTypeEnum.BS.getType(),id.toString(),info);
 
 	}
