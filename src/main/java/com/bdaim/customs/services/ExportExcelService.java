@@ -76,7 +76,7 @@ public class ExportExcelService {
         }
 
         Workbook workbook = ExcelExportUtil.exportExcel(params, map);
-        FileOutputStream fos = new FileOutputStream("/tmp");
+        FileOutputStream fos = new FileOutputStream("/tmp/test.xlsx");
         workbook.write(fos);
         fos.close();
         //workbook.write(response.getOutputStream());
