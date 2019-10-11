@@ -184,7 +184,7 @@ public class SbdZService implements BusiService {
     }
 
     @Override
-    public void getInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info, JSONObject param) {
+    public void doInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info, JSONObject param) {
         if (StringUtil.isNotEmpty(param.getString("_rule_")) && param.getString("_rule_").startsWith("_export")) {
             //info.put("export_type", 2);
             switch (param.getString("_rule_")) {
@@ -201,7 +201,7 @@ public class SbdZService implements BusiService {
                         param.remove("_ge_low_price_goods");
                         param.put("_eq_is_low_price", 1);
                         List partyBillNos = new ArrayList();
-                        JSONObject js, product;
+                        JSONObject js, product, content;
                         String main_bill_no = "";
                         // 查询分单下的低价商品
                         for (int i = 0; i < singles.size(); i++) {
@@ -213,6 +213,8 @@ public class SbdZService implements BusiService {
                         List products = serviceUtils.listSdByBillNos(cust_id, BusiTypeEnum.SS.getType(), main_bill_no, partyBillNos, param);
                         for (int j = 0; j < products.size(); j++) {
                             product = (JSONObject) products.get(j);
+                            content = JSON.parseObject(product.getString("content"));
+                            product.putAll(content);
                             product.put("index", j + 1);
                             product.put("main_bill_no", main_bill_no);
                         }
@@ -226,7 +228,7 @@ public class SbdZService implements BusiService {
                     if (singles != null) {
                         info.put("singles", singles);
                         //List products;
-                        JSONObject js, product;
+                        JSONObject js, product, content;
                         String main_bill_no = "";
                         List partyBillNos = new ArrayList();
                         for (int i = 0; i < singles.size(); i++) {
@@ -249,6 +251,8 @@ public class SbdZService implements BusiService {
                         List products = serviceUtils.listSdByBillNos(cust_id, BusiTypeEnum.SS.getType(), main_bill_no, partyBillNos, param);
                         for (int j = 0; j < products.size(); j++) {
                             product = (JSONObject) products.get(j);
+                            content = JSON.parseObject(product.getString("content"));
+                            product.putAll(content);
                             product.put("index", j + 1);
                             product.put("main_bill_no", main_bill_no);
                         }
@@ -275,7 +279,7 @@ public class SbdZService implements BusiService {
 
     @Override
     public void deleteInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id) throws Exception {
-        HBusiDataManager manager = serviceUtils.getObjectByIdAndType(cust_id,id, busiType);
+        HBusiDataManager manager = serviceUtils.getObjectByIdAndType(cust_id, id, busiType);
         if (manager == null) {
             throw new TouchException("主单已经删除");
         }

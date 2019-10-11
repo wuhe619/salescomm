@@ -70,7 +70,8 @@ public class BusiFileService {
 
             //执行自定义单数据规则
             BusiService busiService = (BusiService) SpringContextHelper.getBean("busi_" + busiType);
-            busiService.getInfo(busiType, cust_id, cust_group_id, cust_user_id, id, jo, param);
+            if(busiService!=null)
+            	busiService.doInfo(busiType, cust_id, cust_group_id, cust_user_id, id, jo, param);
         } catch (Exception e) {
             logger.error(e.getMessage());
             throw new Exception("数据格式错误！");

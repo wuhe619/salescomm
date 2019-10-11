@@ -142,7 +142,7 @@ public class CdZService implements BusiService {
 
 
     @Override
-    public void getInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info, JSONObject param) throws TouchException {
+    public void doInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info, JSONObject param) throws TouchException {
         //舱单导出
         if (StringUtil.isNotEmpty(param.getString("_rule_")) && param.getString("_rule_").startsWith("_export")) {
             String split = "||";
@@ -460,10 +460,11 @@ public class CdZService implements BusiService {
                     good.setId(gid);
                     good.setCreateId(userId);
                     good.setCreateDate(new Date());
-                    JSONObject __content = JSON.parseObject(gp.getContent());
-                    __content.put("pid", hm.getId());
+                    JSONObject sdContent = JSON.parseObject(gp.getContent());
+                    sdContent.put("pid", hm.getId());
                     _content.put("main_bill_no", _content.get("bill_no"));
-                    good.setContent(__content.toJSONString());
+                    sdContent.put("opt_type", "ADD");
+                    good.setContent(sdContent.toJSONString());
                     good.setType(BusiTypeEnum.CS.getType());
                     good.setCreateId(gp.getCreateId());
                     good.setCust_id(gp.getCust_id());

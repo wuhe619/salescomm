@@ -40,7 +40,7 @@ public class BgdHzService implements BusiService {
     }
 
     @Override
-    public void getInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info, JSONObject param) {
+    public void doInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info, JSONObject param) {
         //通过报关单分单ID查询海关回执数据
         HBusiDataManager dbManager = serviceUtils.getObjectByIdAndType(cust_id,id, busiType);
         String content = null;

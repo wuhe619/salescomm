@@ -19,9 +19,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Resource;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -30,12 +28,11 @@ import java.util.Map;
  * 报关单.分单
  */
 @Service("busi_bgd_f")
-@Transactional
 public class BgdFService implements BusiService {
 
     private static Logger log = LoggerFactory.getLogger(BgdFService.class);
 
-    @Resource
+    @Autowired
     private JdbcTemplate jdbcTemplate;
 
     @Autowired
@@ -139,8 +136,9 @@ public class BgdFService implements BusiService {
 
     }
 
+
     @Override
-    public void getInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info, JSONObject param) throws Exception {
+    public void doInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info, JSONObject param) throws TouchException {
         // 提交至海关平台
         if ("HAIGUAN".equals(param.getString("_rule_"))) {
             String sql = "select content, cust_id, cust_group_id, cust_user_id, create_id, create_date ,ext_1, ext_2, ext_3, ext_4, ext_5 from "+ HMetaDataDef.getTable(busiType,"")+" where type=? and id=? ";
@@ -183,9 +181,9 @@ public class BgdFService implements BusiService {
             if (m.get("ext_5") != null && !"".equals(m.get("ext_5")))
                 jo.put("ext_5", m.get("ext_5"));
 
-            sql = "UPDATE "+HMetaDataDef.getTable(busiType,"")+" SET ext_1 = '1', ext_date1 = NOW(), content='"+jo.toJSONString()+"' WHERE id = "+id+" AND type = '"+busiType+"' AND IFNULL(ext_1,'') <>'1' ";
-            jdbcTemplate.update(sql);
-            serviceUtils.updateDataToES(BusiTypeEnum.BF.getType(), id.toString(), jo);
+            sql = "UPDATE "+HMetaDataDef.getTable(busiType,"")+" SET ext_1 = '1', ext_date1 = NOW(), content=? WHERE id = ? AND type = ? AND IFNULL(ext_1,'') <>'1' ";
+           // jdbcTemplate.update(sql, jo.toJSONString(), id, busiType);
+            //serviceUtils.updateDataToES(BusiTypeEnum.BF.getType(), id.toString(), jo);
             //start to create xml
             String mainsql = "select content, cust_id, cust_group_id, cust_user_id, create_id, create_date ,ext_1, ext_2, ext_3, ext_4, ext_5 from "+ HMetaDataDef.getTable(BusiTypeEnum.BZ.getType(),"")+" where type=? and id=? ";
             list = jdbcTemplate.queryForList(mainsql, BusiTypeEnum.BZ.getType(), jo.getString("pid"));
@@ -244,7 +242,6 @@ public class BgdFService implements BusiService {
         }
 
     }
-
 
 
 }
