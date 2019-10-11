@@ -22,7 +22,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -76,10 +75,10 @@ public class ExportExcelService {
         }
 
         Workbook workbook = ExcelExportUtil.exportExcel(params, map);
-        FileOutputStream fos = new FileOutputStream("/data/chengning/test.xlsx");
+        /*FileOutputStream fos = new FileOutputStream("/data/chengning/test.xlsx");
         workbook.write(fos);
-        fos.close();
-        //workbook.write(response.getOutputStream());
+        fos.close();*/
+        workbook.write(response.getOutputStream());
         LOG.info("导出:{}完成", templatePath);
     }
 
