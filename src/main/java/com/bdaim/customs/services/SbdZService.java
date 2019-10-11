@@ -529,7 +529,7 @@ public class SbdZService implements BusiService {
             json.put("check_status", "0");
             json.put("idcard_pic_flag", "0");
             json.put("pid", mainid);
-            JSONArray jsonArray = arrt.getJSONArray("mainGoodsName");
+            JSONArray jsonArray = arrt.getJSONArray("main_goods_name");
             String mainGoodsName = "";
             if (jsonArray != null && jsonArray.size() > 0) {
                 for (int i = 0; i < jsonArray.size(); i++) {
@@ -720,8 +720,8 @@ public class SbdZService implements BusiService {
                         } else {
                             arrt.put("low_price_goods", 1);
                         }
-                        arrt.put("main_goods_name", mainGoodsName);
                     }
+                    arrt.put("main_goods_name", mainGoodsName);
                     json.put("is_low_price", is_low_price);
                     float total_price = Float.valueOf(product.getDecl_total() == null || "".equals(product.getDecl_total()) ? "0" : product.getDecl_total());
                     json.put("duty_paid_price", duty_paid_price);//完税价格
