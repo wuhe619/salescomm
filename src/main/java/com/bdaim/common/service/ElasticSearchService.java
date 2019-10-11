@@ -146,6 +146,15 @@ public class ElasticSearchService {
     public void bulkInsertDocument(String indexName, String typeName, List list) {
         boolean result = false;
         try {
+            if (!isExistIndex(indexName, typeName)) {
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.APPLICATION_JSON);
+                JSONObject settings = JSON.parseObject("{\"settings\":{\"index.analysis.analyzer.default.type\":\"whitespace\"}}");
+                HttpEntity<JSONObject> entity = new HttpEntity<>(settings, headers);
+                ResponseEntity<JSONObject> resultEntity = restTemplate.exchange(ESUtil.getUrl(indexName, ""), HttpMethod.PUT, entity, JSONObject.class);
+                JSONObject resultEntityBody = resultEntity.getBody();
+                LOG.info("向es添加索引返回数据:[" + resultEntityBody + "]");
+            }
             Bulk.Builder bulk = new Bulk.Builder().defaultIndex(indexName).defaultType(typeName);
             for (Object obj : list) {
                 Index index = new Index.Builder(obj).build();
@@ -236,6 +245,15 @@ public class ElasticSearchService {
         JSONObject result = null;
         try {
             LOG.info("向es修改记录:index[" + index + "],type[" + type + "],id:[" + id + "],data:[" + jsonObject + "]");
+            if (!isExistIndex(index, type)) {
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.APPLICATION_JSON);
+                JSONObject settings = JSON.parseObject("{\"settings\":{\"index.analysis.analyzer.default.type\":\"whitespace\"}}");
+                HttpEntity<JSONObject> entity = new HttpEntity<>(settings, headers);
+                ResponseEntity<JSONObject> resultEntity = restTemplate.exchange(ESUtil.getUrl(index, ""), HttpMethod.PUT, entity, JSONObject.class);
+                result = resultEntity.getBody();
+                LOG.info("向es添加索引返回数据:[" + result + "]");
+            }
             JSONObject data = new JSONObject();
             data.put("doc", jsonObject);
             HttpHeaders headers = new HttpHeaders();
