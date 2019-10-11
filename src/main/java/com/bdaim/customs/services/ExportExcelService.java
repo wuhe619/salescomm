@@ -72,7 +72,7 @@ public class ExportExcelService {
             e.printStackTrace();
         }
         //写入本地临时文件中
-        String fileName = "/tmp/" + System.currentTimeMillis() + "_" + templatePath;
+        String fileName = "/tmp/" + System.currentTimeMillis() + templatePath.substring(templatePath.lastIndexOf(File.separator) + 1);
         Workbook workbook = ExcelExportUtil.exportExcel(params, map);
         //workbook.write(response.getOutputStream());
         FileOutputStream fos = new FileOutputStream(fileName);
