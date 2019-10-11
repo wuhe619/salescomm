@@ -13,7 +13,7 @@ import com.bdaim.customs.entity.BusiTypeEnum;
 import com.bdaim.customs.entity.HBusiDataManager;
 import com.bdaim.customs.entity.PartyDan;
 import com.bdaim.customs.utils.ServiceUtils;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,7 +75,7 @@ public class ExportExcelService {
             e.printStackTrace();
         }
 
-        XSSFWorkbook workbook = (XSSFWorkbook) ExcelExportUtil.exportExcel(params, map);
+        Workbook workbook = ExcelExportUtil.exportExcel(params, map);
         try (ServletOutputStream outStream = response.getOutputStream()) {
             workbook.write(outStream);
         }
@@ -99,7 +99,7 @@ public class ExportExcelService {
         String classPath = fileUrlEntity.getFileUrl();
         String pathF = File.separator;
         classPath = classPath.replace("/", pathF);
-        String templatePath = classPath + pathF + "tp" + pathF + param.getString("_rule_") + ".xlsx";
+        String templatePath = classPath + pathF + "tp" + pathF + param.getString("_rule_") + ".xls";
         //String templatePath = "tp/" + param.getString("_rule_") + ".xlsx";
         File file = new File(templatePath);
         LOG.info("excel模板文件路径:{},文件状态:{}", file.getPath(), file.exists());
@@ -108,7 +108,7 @@ public class ExportExcelService {
         //map.put("list", JavaBeanUtil.convertJsonObjectToMapList(list));
         map.put("list", list);
 
-        response.setHeader("Content-Disposition", "attachment; filename=" + System.currentTimeMillis() + ExcelTypeEnum.XLSX.getValue());
+        response.setHeader("Content-Disposition", "attachment; filename=" + System.currentTimeMillis() + ExcelTypeEnum.XLS.getValue());
         response.setContentType("application/vnd.ms-excel;charset=utf-8");
         switch (param.getString("_rule_")) {
             // 舱单导出txt
