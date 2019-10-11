@@ -848,6 +848,9 @@ public class CustomsService {
                 Map<String, String> map = new HashMap<>();
                 String objectId = "";
                 for (FileModel f : fileList) {
+                    if (StringUtil.isEmpty(f.getFileName())) {
+                        continue;
+                    }
                     objectId = uploadFileService.uploadFile(f.getFileInputstream(), BusinessEnum.CUSTOMS, false, f.getFileName());
                     map.put(f.getFileName().substring(0, f.getFileName().indexOf(".")), objectId);
                 }
