@@ -89,7 +89,8 @@ public class BusiEntityService {
 
             //执行自定义单数据规则
             BusiService busiService = (BusiService) SpringContextHelper.getBean("busi_" + busiType);
-            busiService.getInfo(busiType, cust_id, cust_group_id, cust_user_id, id, jo, param);
+            if(busiService!=null)
+            	busiService.doInfo(busiType, cust_id, cust_group_id, cust_user_id, id, jo, param);
             //查询场站和报关单位
             serviceUtils.getStationCustName(jo);
             // 查询字典数据

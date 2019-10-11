@@ -40,7 +40,7 @@ public class CdHzService implements BusiService {
     }
 
     @Override
-    public void getInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info, JSONObject param) throws TouchException {
+    public void doInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info, JSONObject param) throws TouchException {
         //通过舱单主单ID查询海关回执数据
         HBusiDataManager dbManager = serviceUtils.getObjectByIdAndType(cust_id,id, busiType);
         if(dbManager==null){
