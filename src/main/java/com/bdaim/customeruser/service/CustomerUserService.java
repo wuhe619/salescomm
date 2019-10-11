@@ -1478,4 +1478,26 @@ public class CustomerUserService {
         data.put("selected", list);
         return data;
     }
+
+    /**
+     * 保存或更新用户属性
+     * @param property
+     * @return
+     */
+    public int saveCustomerUserProperty(CustomerUserPropertyDO property) {
+        logger.info("开始更新用户属性,userId:" + property.getUserId() + ",propertyName:" + property.getPropertyName() + ",propertyValue:" + property.getPropertyValue());
+        CustomerUserPropertyDO cp = customerUserDao.getProperty(property.getUserId(), property.getPropertyName());
+        logger.info("用户原配置属性:" + cp);
+        if (cp == null) {
+            cp = new CustomerUserPropertyDO(property.getUserId(), property.getPropertyName(), property.getPropertyValue(), new Timestamp(System.currentTimeMillis()));
+        }
+        cp.setCreateTime(new Timestamp(System.currentTimeMillis()).toString());
+        cp.setPropertyValue(property.getPropertyValue());
+        try {
+            customerDao.saveOrUpdate(cp);
+            return 1;
+        } catch (Exception e) {
+            throw e;
+        }
+    }
 }
