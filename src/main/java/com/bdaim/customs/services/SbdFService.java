@@ -101,7 +101,7 @@ public class SbdFService implements BusiService {
         }
         jsonObject.put("party_total", value);//分单总数
         if (jsonObject.containsKey("single_batch_num")) {
-            value = jsonObject.getInteger("single_batch_num") + value;
+            value = jsonObject.getInteger("single_batch_num") + 1;
         }
         jsonObject.put("single_batch_num", value);//分单总数
         //sbdzd.setContent(jsonObject.toJSONString());
