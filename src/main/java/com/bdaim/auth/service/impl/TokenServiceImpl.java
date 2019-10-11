@@ -128,6 +128,7 @@ public class TokenServiceImpl implements TokenService {
                 userdetail.setUser_id(userdetail.getId().toString());
                 userdetail.setTokenid(userdetail.getTokenid());
                 userdetail.setDefaultUrl(defaultUrl);
+                userdetail.setStatus(u.getStatus().toString());
             } else {
                 logger.warn("username or password is error");
                 return new LoginUser("guest", "", new ArrayList<>(), "用户名密码错误", "401");

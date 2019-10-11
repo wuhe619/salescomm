@@ -357,22 +357,22 @@ public class CdZService implements BusiService {
     }
 
     public void buildDanList0(JSONObject info, Long id, List<HBusiDataManager> dataList, String custId, Long userId, HBusiDataManager h) throws Exception {
-        HBusiDataManager CZ = new HBusiDataManager();
-        CZ.setType(BusiTypeEnum.CZ.getType());
-        CZ.setId(id);
-        CZ.setCreateDate(new Date());
-        CZ.setCust_id(Long.valueOf(custId));
-        CZ.setCreateId(Long.valueOf(userId));
-        CZ.setExt_3(h.getExt_3());
-        CZ.setExt_1("0");//0 未发送 1，已发送
+        HBusiDataManager cz = new HBusiDataManager();
+        cz.setType(BusiTypeEnum.CZ.getType());
+        cz.setId(id);
+        cz.setCreateDate(new Date());
+        cz.setCust_id(Long.valueOf(custId));
+        cz.setCreateId(Long.valueOf(userId));
+        cz.setExt_3(h.getExt_3());
+        cz.setExt_1("0");//0 未发送 1，已发送
 
 
         JSONObject json = JSON.parseObject(h.getContent());
         json.put("create_id", userId);
         json.put("cust_id", custId);
-        json.put("type", CZ.getType());
-        json.put("create_date", CZ.getCreateDate());
-        json.put("send_status", CZ.getExt_1());
+        json.put("type", cz.getType());
+        json.put("create_date", cz.getCreateDate());
+        json.put("send_status", cz.getExt_1());
         json.put("commit_cangdan_status", "Y");
 
         JSONObject jon = JSON.parseObject(h.getContent());
@@ -394,8 +394,8 @@ public class CdZService implements BusiService {
         info.put("ext_3", h.getExt_3());
         info.put("ext_1", "0");
 //		String content = json.toJSONString();
-        CZ.setContent(info.toJSONString());
-        dataList.add(CZ);
+        cz.setContent(info.toJSONString());
+        dataList.add(cz);
         // 根据主单号查询申报单分单列表
         List<HBusiDataManager> parties = serviceUtils.listDataByParentBillNo(custId, BusiTypeEnum.SF.getType(), h.getExt_3());
         List<String> billNos = new ArrayList<>();
@@ -403,7 +403,9 @@ public class CdZService implements BusiService {
             billNos.add(hp.getExt_3());
         }
         // 查询所有分单下的税单
-        List<HBusiDataManager> goods = serviceUtils.listDataByParentBillNos(custId, BusiTypeEnum.SS.getType(), billNos);
+        //List<HBusiDataManager> goods = serviceUtils.listDataByParentBillNos(custId, BusiTypeEnum.SS.getType(), billNos);
+        List<JSONObject> jsonObjects = serviceUtils.listSdByBillNos(custId, BusiTypeEnum.SS.getType(), h.getExt_3(), billNos, new JSONObject());
+        List<HBusiDataManager> goods = JSON.parseArray(JSON.toJSONString(jsonObjects), HBusiDataManager.class);
         Map<Long, List> cache = new HashMap<>();
         JSONObject fd = null;
         List<HBusiDataManager> tmp;
@@ -465,6 +467,7 @@ public class CdZService implements BusiService {
                     good.setType(BusiTypeEnum.CS.getType());
                     good.setCreateId(gp.getCreateId());
                     good.setCust_id(gp.getCust_id());
+                    good.setExt_2(gp.getExt_2());
                     good.setExt_3(gp.getExt_3());
                     good.setExt_4(gp.getExt_4());
                     dataList.add(good);

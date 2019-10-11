@@ -52,7 +52,7 @@ public class BgdZService implements BusiService {
     public void insertInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) throws Exception {
         // TODO Auto-generated method stub
         if (StringUtil.isNotEmpty(info.getString("fromSbzId"))) {
-            HBusiDataManager h = serviceUtils.getObjectByIdAndType(cust_id,info.getLong("fromSbzId"), BusiTypeEnum.SZ.getType());
+            HBusiDataManager h = serviceUtils.getObjectByIdAndType(cust_id, info.getLong("fromSbzId"), BusiTypeEnum.SZ.getType());
             if (h == null) {
                 throw new TouchException("数据不存在");
             }
@@ -197,8 +197,8 @@ public class BgdZService implements BusiService {
                 serviceUtils.updateDataToES(BusiTypeEnum.BF.getType(), String.valueOf(m.get("id")), jo);
             }
         } else {
-            HBusiDataManager dbManager = serviceUtils.getObjectByIdAndType(cust_id,id, busiType);
-            if(dbManager==null){
+            HBusiDataManager dbManager = serviceUtils.getObjectByIdAndType(cust_id, id, busiType);
+            if (dbManager == null) {
                 throw new TouchException("无权操作");
             }
             String content = dbManager.getContent();
@@ -366,22 +366,22 @@ public class BgdZService implements BusiService {
     }
 
     public void buildDanList0(JSONObject info, Long id, List<HBusiDataManager> dataList, String custId, Long userId, HBusiDataManager h, String type) throws Exception {
-        HBusiDataManager CZ = new HBusiDataManager();
-        CZ.setType(BusiTypeEnum.BZ.getType());
-        CZ.setId(id);
-        CZ.setCreateDate(new Date());
-        CZ.setCust_id(Long.valueOf(custId));
-        CZ.setCreateId(Long.valueOf(userId));
-        CZ.setExt_3(h.getExt_3());
-        CZ.setExt_1("0");//未发送 1，已发送
+        HBusiDataManager bgdMain = new HBusiDataManager();
+        bgdMain.setType(BusiTypeEnum.BZ.getType());
+        bgdMain.setId(id);
+        bgdMain.setCreateDate(new Date());
+        bgdMain.setCust_id(Long.valueOf(custId));
+        bgdMain.setCreateId(Long.valueOf(userId));
+        bgdMain.setExt_3(h.getExt_3());
+        bgdMain.setExt_1("0");//未发送 1，已发送
 
 
         JSONObject json = JSON.parseObject(h.getContent());
         json.put("create_id", userId);
         json.put("cust_id", custId);
-        json.put("type", CZ.getType());
-        json.put("create_date", CZ.getCreateDate());
-        json.put("send_status", CZ.getExt_1());
+        json.put("type", bgdMain.getType());
+        json.put("create_date", bgdMain.getCreateDate());
+        json.put("send_status", bgdMain.getExt_1());
         json.put("commit_baodan_status", "Y");
 
         Iterator keys = json.keySet().iterator();
@@ -401,8 +401,8 @@ public class BgdZService implements BusiService {
                 + " ,ext_1='Y'"
                 + " where id=" + h.getId() + " and type='" + h.getType() + "'";
         jdbcTemplate.update(sql);
-        CZ.setContent(info.toJSONString());
-        dataList.add(CZ);
+        bgdMain.setContent(info.toJSONString());
+        dataList.add(bgdMain);
 
         /*List<HBusiDataManager> parties = serviceUtils.getDataList(BusiTypeEnum.SF.getType(), info.getLong("fromSbzId"));
         // 预先生成分单ID
@@ -426,7 +426,8 @@ public class BgdZService implements BusiService {
             billNos.add(hp.getExt_3());
         }
         // 查询所有分单下的税单
-        List<HBusiDataManager> goods = serviceUtils.listDataByParentBillNos(custId, BusiTypeEnum.SS.getType(), billNos);
+        List<JSONObject> jsonObjects = serviceUtils.listSdByBillNos(custId, BusiTypeEnum.SS.getType(), h.getExt_3(), billNos, new JSONObject());
+        List<HBusiDataManager> goods = JSON.parseArray(JSON.toJSONString(jsonObjects), HBusiDataManager.class);
         Map<Long, List> cache = new HashMap<>();
         JSONObject fd = null;
         List<HBusiDataManager> tmp;
@@ -474,6 +475,7 @@ public class BgdZService implements BusiService {
                     good.setType(BusiTypeEnum.BS.getType());
                     good.setCreateId(gp.getCreateId());
                     good.setCust_id(gp.getCust_id());
+                    good.setExt_2(gp.getExt_2());
                     good.setExt_3(gp.getExt_3());
                     good.setExt_4(gp.getExt_4());
                     good.setExt_5(String.valueOf(index));//商品序号
