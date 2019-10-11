@@ -531,7 +531,7 @@ public class ServiceUtils {
             if (dic == null) {
                 continue;
             }
-            log.info("查询缓存字典数据type:[{}],code:[{}],字典数据:[{}]", key.toUpperCase(), jo.getString(key), dic);
+            //log.info("查询缓存字典数据type:[{}],code:[{}],字典数据:[{}]", key.toUpperCase(), jo.getString(key), dic);
             tmp.put(key + "_name", dic.getName_zh());
             tmp.put(key + "_name_en", dic.getName_en());
         }
