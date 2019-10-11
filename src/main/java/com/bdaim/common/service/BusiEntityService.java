@@ -108,7 +108,8 @@ public class BusiEntityService {
     public Page query(String cust_id, String cust_group_id, Long cust_user_id, String busiType, JSONObject params) throws Exception {
         Page p = new Page();
         String stationId = params.getString("stationId");
-
+        String _orderby_= params.getString("_orderby_");
+        String _sort_ =params.getString("_sort_");
         List sqlParams = new ArrayList();
 
         BusiService busiService = (BusiService) SpringContextHelper.getBean("busi_" + busiType);
@@ -166,7 +167,9 @@ public class BusiEntityService {
                 } else {
                     sqlstr.append(" and " + BusiMetaConfig.getFieldIndex(busiType, key) + "=?");
                 }
-
+                if(StringUtil.isNotEmpty(_orderby_) && StringUtil.isNotEmpty(_sort_)){
+                    sqlstr.append(" order by ").append(_orderby_).append(" ").append(_sort_);
+                }
                 sqlParams.add(params.get(key));
             }
             sql = sqlstr.toString();
@@ -186,8 +189,8 @@ public class BusiEntityService {
             pageNum = 1;
         if (pageSize <= 0)
             pageSize = 10;
-        if (pageSize > 1000)
-            pageSize = 1000;
+        if (pageSize > 10000)
+            pageSize = 10000;
 
         try {
             logger.info("querySql:{}", sql + " limit " + (pageNum - 1) * pageSize + ", " + pageSize);
