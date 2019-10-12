@@ -239,11 +239,13 @@ public class BgdZService implements BusiService {
                             js.put("index", i + 1);
                             partyNo = js.getString("bill_no");
                             partyBillNos.add(partyNo);
-                            main_bill_no = js.getString("main_bill_no");
+                            main_bill_no = js.getString("ext_4");
                             js.putAll(info);
                             js.put("bill_no", partyNo);
                         }
                         List products = serviceUtils.listSdByBillNos(cust_id, BusiTypeEnum.BS.getType(), main_bill_no, partyBillNos, param);
+                        log.info("报关单：{}分单数量:{}", main_bill_no, singles);
+                        log.info("报关单：{}商品数量:{}", main_bill_no, products);
                         JSONObject content;
                         for (int j = 0; j < products.size(); j++) {
                             product = (JSONObject) products.get(j);
