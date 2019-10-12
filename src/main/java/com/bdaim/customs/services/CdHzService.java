@@ -2,22 +2,26 @@ package com.bdaim.customs.services;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.common.dao.FileDao;
 import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.service.BusiService;
+import com.bdaim.common.service.MongoFileService;
+import com.bdaim.common.service.SequenceService;
+import com.bdaim.common.util.BusinessEnum;
 import com.bdaim.common.util.ParseHzXml;
 import com.bdaim.common.util.StringUtil;
+import com.bdaim.customs.entity.BusiTypeEnum;
 import com.bdaim.customs.entity.HBusiDataManager;
+import com.bdaim.customs.entity.HMetaDataDef;
 import com.bdaim.customs.utils.ServiceUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Base64;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 舱单回执
@@ -32,7 +36,20 @@ public class CdHzService implements BusiService {
     private ServiceUtils serviceUtils;
 
     @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    @Autowired
     private ParseHzXml parseHzXml;
+
+    @Autowired
+    private SequenceService sequenceService;
+
+    @Autowired
+    private MongoFileService mongoFileService;
+
+    @Autowired
+    private FileDao fileDao;
+
 
     @Override
     public void insertInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) throws Exception {
@@ -43,9 +60,9 @@ public class CdHzService implements BusiService {
             throw new TouchException("舱单回执内容不能为空");
         }
         byte[] s = Base64.getDecoder().decode(xmlString);
-        handleHzInfo(new String (s),info);
+        handleHzInfo(cust_id,new String (s),info);
 
-        log.info("舱单回执：");
+        log.info("舱单回执处理完毕");
     }
 
     @Override
@@ -99,15 +116,43 @@ public class CdHzService implements BusiService {
      * 3.舱单回执状态等级写入消息表
      *
      */
-    public void handleHzInfo(String xmlstring,JSONObject info) throws Exception {
+    public void handleHzInfo(String custId,String xmlstring,JSONObject info) throws Exception {
         parseHzXml.parserCangdanHzXML(xmlstring,info);
         JSONObject envelopinfo = info.getJSONObject("envelopinfo");//信封消息
         JSONObject headData = info.getJSONObject("headData");//主单信息
         JSONArray array = info.getJSONArray("list");//分单信息
 
+        HBusiDataManager cangdan = serviceUtils.findZhudanByBillNo(custId, BusiTypeEnum.CZ.getType(),headData.getString("billno"));
+        String content = cangdan.getContent();
+        JSONObject jsonObject = JSONObject.parseObject(content);
+        jsonObject.put("commit_cangdan_status",headData.getString("rtnflag"));
+        cangdan.setExt_2(headData.getString("rtnflag"));
+//        cangdan.setContent(jsonObject.toJSONString());
+        String sql=" update "+ HMetaDataDef.getTable(BusiTypeEnum.CZ.getType(), "")+" set content='"+jsonObject.toJSONString()+"',ext_2='"+headData.getString("rtnflag")+"' where id="+cangdan.getId();
+        jdbcTemplate.update(sql);
 
-
-
+        //List<HBusiDataManager> list = serviceUtils.listDataByParentBillNo(custId,BusiTypeEnum.CF.getType(),headData.getString("billno"));
+        List<HBusiDataManager> list = new ArrayList<>();
+        for (int i=0;i<array.size();i++){
+            JSONObject json = array.getJSONObject(i);
+            HBusiDataManager b = new HBusiDataManager();
+            b.setCreateId(cangdan.getCreateId());
+            b.setCust_id(cangdan.getCust_id());
+            b.setType(BusiTypeEnum.CDF_HZ.getType());
+            b.setExt_3(json.getString("assbillno"));
+            b.setExt_4(json.getString("billno"));
+            b.setCreateDate(new Date());
+            b.setExt_1(json.getString("rtnflag"));
+            b.setContent(json.toJSONString());
+            Long fid = sequenceService.getSeq(BusiTypeEnum.CDF_HZ.getType());
+            b.setId(fid);
+            list.add(b);
+        }
+        if(list.size()>0){
+            serviceUtils.batchInsert(BusiTypeEnum.CDF_HZ.getType(),list);
+        }
+        String id = mongoFileService.saveData(xmlstring);
+        fileDao.save(envelopinfo.getString("message_id"),id, BusinessEnum.CUSTOMS,null,null);
     }
 
 

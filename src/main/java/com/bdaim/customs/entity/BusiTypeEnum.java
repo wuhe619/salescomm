@@ -17,6 +17,8 @@ public enum BusiTypeEnum {
     ST("ST", "场站", "station"),
     BGD_HZ("BGD_HZ", "报关单-海关回执", "bgd_hz"),
     CD_HZ("CD_HZ", "舱单-海关回执", "cd_hz"),
+    CDF_HZ("CDF_HZ", "舱单分单-海关回执", "cdf_hz"),
+
     TAX_MANAGE("TAX_MANAGE", "纳税管理", "tax_manage"),
     PARAM_PROXY("PARAM_PROXY", "地面代理参数", "param_proxy"),
     /**
