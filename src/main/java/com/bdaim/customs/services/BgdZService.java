@@ -69,16 +69,24 @@ public class BgdZService implements BusiService {
             int index = -1;
             List<JSONObject> fdData = new ArrayList();
             List<JSONObject> sData = new ArrayList();
+            JSONObject content, json;
+            HBusiDataManager dm;
             for (int i = 0; i < dataList.size(); i++) {
-                HBusiDataManager dm = dataList.get(i);
+                dm = dataList.get(i);
+                json = JSON.parseObject(JSON.toJSONString(dm));
+                content = JSON.parseObject(dm.getContent());
+                content.remove("products");
                 //serviceUtils.addDataToES(dm.getId().toString(), dm.getType(), JSON.parseObject(dm.getContent()));
                 if (dm.getType().equals(BusiTypeEnum.BZ.getType())) {
                     index = i;
                     serviceUtils.addDataToES(dm.getId().toString(), dm.getType(), JSON.parseObject(dm.getContent()));
                 } else if (dm.getType().equals(BusiTypeEnum.BF.getType())) {
-                    fdData.add(JSON.parseObject(dm.getContent()));
+                    json.putAll(content);
+                    fdData.add(json);
+                    //fdData.add(JSON.parseObject(dm.getContent()));
                 } else if (dm.getType().equals(BusiTypeEnum.BS.getType())) {
-                    sData.add(JSON.parseObject(dm.getContent()));
+                    json.putAll(content);
+                    sData.add(json);
                 }
             }
             if (fdData.size() > 0) {
@@ -223,7 +231,6 @@ public class BgdZService implements BusiService {
                     List singles = queryChildData(BusiTypeEnum.BF.getType(), cust_id, cust_group_id, cust_user_id, id, info, param);
 
                     if (singles != null) {
-                        info.put("singles", singles);
                         JSONObject js, product;
                         String main_bill_no = "";
                         List partyBillNos = new ArrayList();
@@ -232,6 +239,7 @@ public class BgdZService implements BusiService {
                             js.put("index", i + 1);
                             partyBillNos.add(js.getString("bill_no"));
                             main_bill_no = js.getString("main_bill_no");
+                            js.putAll(info);
                         }
                         List products = serviceUtils.listSdByBillNos(cust_id, BusiTypeEnum.BS.getType(), main_bill_no, partyBillNos, param);
                         JSONObject content;
@@ -240,9 +248,10 @@ public class BgdZService implements BusiService {
                             content = JSON.parseObject(product.getString("content"));
                             product.putAll(content);
                             product.put("index", j + 1);
-                            product.put("bill_no", product.getString("ext_4"));
+                            product.put("party_bill_no", product.getString("ext_4"));
                             product.put("main_bill_no", main_bill_no);
                         }
+                        info.put("singles", singles);
                         info.put("products", products);
                     }
             }

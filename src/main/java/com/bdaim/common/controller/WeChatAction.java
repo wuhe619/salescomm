@@ -37,8 +37,8 @@ public class WeChatAction extends BasicAction {
         weChatUtil.sendTempMsg("oFqgzwFGhEAqH-aRgI6YYJTti1oc", "BHAXK1_KvuS2tzbB5wZx_DUNuU8VJhbsP5nOrHjDtUI", "", "#FF0000", "{\"name\":{\"value\":\"开发人员\",\"color\":\"#173177\"},\"time\":{\"value\":\"2019-10-10 14:58:33\",\"color\":\"#173177\"},\"content\":{\"value\":\"test\",\"color\":\"#173177\"}}");
     }
 
-    @ResponseBody
-    @RequestMapping("/delIndex")
+    /*@ResponseBody
+    @RequestMapping("/delIndex")*/
     public void delIndex() {
         for (BusiTypeEnum v : BusiTypeEnum.values()) {
             deleteIndex(BusiTypeEnum.getEsIndex(v.getType()));

@@ -406,7 +406,7 @@ public class UploadAction extends BasicAction {
     @RequestMapping(value = "/pic/{fileName:.+}", method = RequestMethod.GET)
     public void pic(@PathVariable String fileName, HttpServletResponse response) {
         String userId = "0";
-        uploadDowloadService.downloadFile(response, userId, fileName, false);
+        uploadDowloadService.downloadFile(response, userId, fileName, true);
     }
 
     public static void main(String[] args) {

@@ -774,7 +774,7 @@ public class CustomsService {
 
     public Page getdicPageList(String dicType, Integer pageSize, Integer pageNo) {
         String sql = "select type,code,name_zh,name_en,`desc`,`status`,ext_1, ext_2, ext_3 from h_dic where type='" + dicType + "'";
-        Page page = hDicDao.sqlPageQueryByPageSize(sql, pageNo, pageSize);
+        Page page = hDicDao.sqlPageQuery(sql, pageNo, pageSize);
         return page;
     }
 
@@ -851,7 +851,7 @@ public class CustomsService {
                     if (StringUtil.isEmpty(f.getFileName())) {
                         continue;
                     }
-                    objectId = uploadFileService.uploadFile(f.getFileInputstream(), BusinessEnum.CUSTOMS, false, f.getFileName());
+                    objectId = uploadFileService.uploadFile(f.getFileInputstream(), BusinessEnum.CUSTOMS, true, f.getFileName());
                     map.put(f.getFileName().substring(0, f.getFileName().indexOf(".")), objectId);
                 }
                 // 上传身份证照片并且更新分单数据库和ES信息
