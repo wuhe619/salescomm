@@ -76,9 +76,13 @@ public class SbdZService implements BusiService {
                 HBusiDataManager mainData = null;
                 List<JSONObject> sfdData = new ArrayList();
                 List<JSONObject> ssData = new ArrayList();
+                JSONObject content, json;
+                HBusiDataManager hBusiDataManager;
                 for (int i = 0; i < list.size(); i++) {
-                    HBusiDataManager hBusiDataManager = list.get(i);
-                    JSONObject json = JSON.parseObject(hBusiDataManager.getContent());
+                    hBusiDataManager = list.get(i);
+                    json = JSON.parseObject(JSON.toJSONString(hBusiDataManager));
+                    content = JSON.parseObject(hBusiDataManager.getContent());
+                    content.remove("products");
                     if (BusiTypeEnum.SZ.getType().equals(hBusiDataManager.getType())) {
                         info.remove("singles");
                         hBusiDataManager.setContent(info.toJSONString());
@@ -86,9 +90,11 @@ public class SbdZService implements BusiService {
                         mainData = hBusiDataManager;
                     } else if (BusiTypeEnum.SF.getType().equals(hBusiDataManager.getType())) {
                         json.remove("products");
-                        hBusiDataManager.setContent(json.toJSONString());
+                        hBusiDataManager.setContent(content.toJSONString());
+                        json.putAll(content);
                         sfdData.add(json);
                     } else if (BusiTypeEnum.SS.getType().equals(hBusiDataManager.getType())) {
+                        json.putAll(content);
                         ssData.add(json);
                     }
                     //serviceUtils.addDataToES(hBusiDataManager.getId().toString(), hBusiDataManager.getType(), JSONObject.parseObject(hBusiDataManager.getContent()));

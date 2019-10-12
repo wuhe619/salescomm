@@ -69,16 +69,24 @@ public class BgdZService implements BusiService {
             int index = -1;
             List<JSONObject> fdData = new ArrayList();
             List<JSONObject> sData = new ArrayList();
+            JSONObject content, json;
+            HBusiDataManager dm;
             for (int i = 0; i < dataList.size(); i++) {
-                HBusiDataManager dm = dataList.get(i);
+                dm = dataList.get(i);
+                json = JSON.parseObject(JSON.toJSONString(dm));
+                content = JSON.parseObject(dm.getContent());
+                content.remove("products");
                 //serviceUtils.addDataToES(dm.getId().toString(), dm.getType(), JSON.parseObject(dm.getContent()));
                 if (dm.getType().equals(BusiTypeEnum.BZ.getType())) {
                     index = i;
                     serviceUtils.addDataToES(dm.getId().toString(), dm.getType(), JSON.parseObject(dm.getContent()));
                 } else if (dm.getType().equals(BusiTypeEnum.BF.getType())) {
-                    fdData.add(JSON.parseObject(dm.getContent()));
+                    json.putAll(content);
+                    fdData.add(json);
+                    //fdData.add(JSON.parseObject(dm.getContent()));
                 } else if (dm.getType().equals(BusiTypeEnum.BS.getType())) {
-                    sData.add(JSON.parseObject(dm.getContent()));
+                    json.putAll(content);
+                    sData.add(json);
                 }
             }
             if (fdData.size() > 0) {

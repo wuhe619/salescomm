@@ -143,7 +143,7 @@ public class ElasticSearchService {
      * @param list
      * @throws Exception
      */
-    public void bulkInsertDocument(String indexName, String typeName, List list) {
+    public void bulkInsertDocument(String indexName, String typeName, List<JSONObject> list) {
         boolean result = false;
         try {
             if (!isExistIndex(indexName, typeName)) {
@@ -156,8 +156,8 @@ public class ElasticSearchService {
                 LOG.info("向es添加索引返回数据:[" + resultEntityBody + "]");
             }
             Bulk.Builder bulk = new Bulk.Builder().defaultIndex(indexName).defaultType(typeName);
-            for (Object obj : list) {
-                Index index = new Index.Builder(obj).build();
+            for (JSONObject obj : list) {
+                Index index = new Index.Builder(obj).id(obj.getString("id")).build();
                 bulk.addAction(index);
             }
             BulkResult br = jestClient.execute(bulk.build());
