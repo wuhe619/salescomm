@@ -34,6 +34,7 @@ public class GetPdfConfiguration extends WebSecurityConfigurerAdapter {
                 "/institution/getInstitutionList", "/operlog/saveUserOperateLog", "/operlog/pageUserOperateLog",
                 "/dic/getApplyList", "/dic/getApplyDetail", "/dic/queryType", "/institution/applyRank",
                 "/dic/getLoanCost", "/dic/productApply", "/dic/listShowAdSpace", "/dic/getBrandList",
-                "/customerSea/xzCustomerSeaGetPhone", "/upload/pic/**", "/marketResource/getVoice0/**");
+                "/customerSea/xzCustomerSeaGetPhone", "/upload/pic/**", "/marketResource/getVoice0/**",
+                "/custuser/bindUserOpenId");
     }
 }

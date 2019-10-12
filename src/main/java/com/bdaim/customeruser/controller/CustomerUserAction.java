@@ -1,10 +1,16 @@
 package com.bdaim.customeruser.controller;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.bdaim.auth.LoginUser;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.controller.util.ResponseJson;
+import com.bdaim.common.response.ResponseInfo;
+import com.bdaim.common.util.CipherUtil;
+import com.bdaim.common.util.StringUtil;
+import com.bdaim.common.util.wechat.WeChatUtil;
 import com.bdaim.customer.controller.CustomerAction;
+import com.bdaim.customer.entity.CustomerUser;
 import com.bdaim.customer.entity.CustomerUserPropertyDO;
 import com.bdaim.customeruser.service.CustomerUserService;
 import org.apache.log4j.Logger;
@@ -26,6 +32,8 @@ public class CustomerUserAction extends BasicAction {
     private static Logger logger = Logger.getLogger(CustomerAction.class);
     @Resource
     CustomerUserService customerUserService;
+    @Resource
+    WeChatUtil weChatUtil;
 
     /**
      * @description 自定义显示字段列
@@ -82,6 +90,45 @@ public class CustomerUserAction extends BasicAction {
             responseJson.setMessage(e.getMessage());
         }
         return JSON.toJSONString(responseJson);
+    }
+
+
+    @RequestMapping(value = "/bindUserOpenId", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseInfo bindUserOpenId(@RequestBody JSONObject body) {
+        ResponseInfo responseJson = new ResponseInfo();
+        String username = body.getString("username");
+        String password = body.getString("password");
+        String code = body.getString("code");
+        if (StringUtil.isEmpty(username) || StringUtil.isEmpty(password)) {
+            responseJson.setCode(0);
+            responseJson.setMessage("用户名密码错误");
+            return responseJson;
+        }
+        //校验用户名密码
+        CustomerUser u = customerUserService.getUserByName(username);
+        String md5Password = CipherUtil.generatePassword(password);
+        if (u == null || !md5Password.equals(u.getPassword())) {
+            responseJson.setCode(0);
+            responseJson.setMessage("用户名密码错误");
+            return responseJson;
+        }
+        //获取微信用户openid
+        String openId = weChatUtil.getWeChatOpenId(code);
+        if (StringUtil.isEmpty(openId)) {
+            responseJson.setCode(0);
+            responseJson.setMessage("绑定失败");
+            return responseJson;
+        }
+        CustomerUserPropertyDO propertyDO = new CustomerUserPropertyDO();
+        propertyDO.setUserId(String.valueOf(u.getId()));
+        propertyDO.setPropertyValue(openId);
+        propertyDO.setPropertyName("openid");
+        customerUserService.saveCustomerUserProperty(propertyDO);
+        responseJson.setCode(1);
+        responseJson.setMessage("绑定成功");
+        return responseJson;
+
     }
 
     /**
