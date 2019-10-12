@@ -7,10 +7,7 @@ import com.bdaim.common.entity.HFilePK;
 import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.service.BusiService;
 import com.bdaim.common.service.MongoFileService;
-import com.bdaim.common.util.BusinessEnum;
-import com.bdaim.common.util.IDHelper;
-import com.bdaim.common.util.ParseHzXml;
-import com.bdaim.common.util.StringUtil;
+import com.bdaim.common.util.*;
 import com.bdaim.customs.entity.BusiTypeEnum;
 import com.bdaim.customs.entity.HBusiDataManager;
 import com.bdaim.customs.entity.HMetaDataDef;
@@ -21,7 +18,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
+import java.sql.Timestamp;
 import java.util.Base64;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
@@ -125,7 +124,11 @@ public class BgdHzService implements BusiService {
         json.put("entryid",EntryId==null?"":EntryId);
         json.put("send_status",data.getString("op_result"));
         json.put("ext_1",data.getString("op_result"));
-        json.put("decl_time",data.getString("op_time"));
+        String decltime = data.getString("op_time");
+        json.put("op_time",decltime);
+//        Timestamp tm = DateUtil.getTimestamp(CalendarUtil.parseDate(decltime,"yyyyMMddHHmmsszzz"),"yyyyMMddHHmmsszzz");
+        json.put("decl_time",new Date().getTime());
+
         String sql=" update "+ HMetaDataDef.getTable(BusiTypeEnum.BF.getType(), "")+" set content='"+json.toJSONString()+"' where id="+fendan.getId();
         jdbcTemplate.update(sql);
         String opresult=data.getString("op_result");

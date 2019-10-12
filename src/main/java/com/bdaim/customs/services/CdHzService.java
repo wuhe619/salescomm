@@ -8,6 +8,7 @@ import com.bdaim.common.service.BusiService;
 import com.bdaim.common.service.MongoFileService;
 import com.bdaim.common.service.SequenceService;
 import com.bdaim.common.util.BusinessEnum;
+import com.bdaim.common.util.DateUtil;
 import com.bdaim.common.util.ParseHzXml;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.customs.entity.BusiTypeEnum;
@@ -126,7 +127,8 @@ public class CdHzService implements BusiService {
         String content = cangdan.getContent();
         JSONObject jsonObject = JSONObject.parseObject(content);
         jsonObject.put("commit_cangdan_status",headData.getString("rtnflag"));
-        jsonObject.put("decl_time",headData.getString("entrydate"));
+        Date d=DateUtil.fmtStrToDate(headData.getString("entrydate"),"yyyyMMddHHmmss");
+        jsonObject.put("decl_time",d.getTime());
         cangdan.setExt_2(headData.getString("rtnflag"));
 //        cangdan.setContent(jsonObject.toJSONString());
         String sql=" update "+ HMetaDataDef.getTable(BusiTypeEnum.CZ.getType(), "")+" set content='"+jsonObject.toJSONString()+"',ext_2='"+headData.getString("rtnflag")+"' where id="+cangdan.getId();
