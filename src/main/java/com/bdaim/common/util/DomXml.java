@@ -2,6 +2,8 @@ package com.bdaim.common.util;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -10,8 +12,10 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.nio.charset.Charset;
 
 /**
  * 生成xml文件demo
@@ -19,9 +23,9 @@ import java.io.File;
 public class DomXml {
 
 
-    public static void main(String[] args) {
-        test();
-    }
+//    public static void main(String[] args) {
+//        test();
+//    }
 
     public  static void test(){
         Long start = System.currentTimeMillis();
@@ -79,4 +83,36 @@ public class DomXml {
             System.out.println("生成book1.xml失败");
         }
     }
+
+
+       public static String  xmlString="<Package>" +
+                "<EnvelopInfo>" +
+                "<version>1.0</version>" +
+                "<message_id>E0100000000000000000020062017030116002400000509609</message_id>" +
+                "<file_name>E0100000000000000000020062017030116002400000509609.EXP</file_name>" +
+                "<message_type>EXP312</message_type>" +
+                "<sender_id>E010000</sender_id>" +
+                "<receiver_id>000000000000002006</receiver_id>" +
+                "<send_time>2017-03-01T15:27:51</send_time>" +
+                "</EnvelopInfo>" +
+                "<DataInfo>" +
+                "<SignedData>" +
+                "<Data>" +
+                "<EXP312 xmlns=\"http://www.w3.org/2000/09/xmldsig#\">" +
+                "<ExpMftHead>" +
+                "<BillNo>BillNoBillNoBillNoBil20170301003</BillNo>" +
+                "<VoyageNo>VoNo20170301002</VoyageNo>" +
+                "<EntryDate>20170301152751</EntryDate>" +
+                "<RtnFlag>DY</RtnFlag>" +
+                "<Notes/>" +
+                "</ExpMftHead>" +
+                "</EXP312>" +
+                "</Data>" +
+                "<HashSign/>" +
+                "<SignerInfo/>" +
+                "</SignedData>" +
+                "</DataInfo>" +
+                "</Package>";
+
+
 }

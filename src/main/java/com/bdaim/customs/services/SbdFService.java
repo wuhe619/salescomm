@@ -144,6 +144,8 @@ public class SbdFService implements BusiService {
                 input.put("idCard", data.getString("id_no"));
                 JSONObject content = new JSONObject();
                 content.put("main_id", data.getLongValue("pid"));
+                // 主单号
+                content.put("main_bill_no", data.getString("main_bill_no"));
                 content.put("status", 0);
                 content.put("input", input);
                 serviceUtils.insertSFVerifyQueue(content.toJSONString(), NumberConvertUtil.parseLong(map.get("id")), cust_user_id, cust_id);

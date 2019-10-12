@@ -88,8 +88,8 @@ public class BusiEntityService {
 
             //执行自定义单数据规则
             BusiService busiService = (BusiService) SpringContextHelper.getBean("busi_" + busiType);
-            if(busiService!=null)
-            	busiService.doInfo(busiType, cust_id, cust_group_id, cust_user_id, id, jo, param);
+            if (busiService != null)
+                busiService.doInfo(busiType, cust_id, cust_group_id, cust_user_id, id, jo, param);
             //查询场站和报关单位
             serviceUtils.getStationCustName(jo);
             // 查询字典数据
@@ -108,8 +108,8 @@ public class BusiEntityService {
     public Page query(String cust_id, String cust_group_id, Long cust_user_id, String busiType, JSONObject params) throws Exception {
         Page p = new Page();
         String stationId = params.getString("stationId");
-        String _orderby_= params.getString("_orderby_");
-        String _sort_ =params.getString("_sort_");
+        String _orderby_ = params.getString("_orderby_");
+        String _sort_ = params.getString("_sort_");
         List sqlParams = new ArrayList();
 
         BusiService busiService = (BusiService) SpringContextHelper.getBean("busi_" + busiType);
@@ -138,7 +138,8 @@ public class BusiEntityService {
             while (keys.hasNext()) {
                 String key = (String) keys.next();
                 if (StringUtil.isEmpty(String.valueOf(params.get(key)))) continue;
-                if ("pageNum".equals(key) || "pageSize".equals(key) || "stationId".equals(key) || "cust_id".equals(key))
+                if ("pageNum".equals(key) || "pageSize".equals(key) || "stationId".equals(key)
+                        || "cust_id".equals(key) || "_sort_".equals(key) || "_orderby_".equals(key))
                     continue;
                 if ("cust_id".equals(key)) {
                     sqlstr.append(" and cust_id=?");
@@ -167,10 +168,10 @@ public class BusiEntityService {
                 } else {
                     sqlstr.append(" and " + BusiMetaConfig.getFieldIndex(busiType, key) + "=?");
                 }
-                if(StringUtil.isNotEmpty(_orderby_) && StringUtil.isNotEmpty(_sort_)){
-                    sqlstr.append(" order by ").append(_orderby_).append(" ").append(_sort_);
-                }
                 sqlParams.add(params.get(key));
+            }
+            if (StringUtil.isNotEmpty(_orderby_) && StringUtil.isNotEmpty(_sort_)) {
+                sqlstr.append(" order by ").append(_orderby_).append(" ").append(_sort_);
             }
             sql = sqlstr.toString();
         }

@@ -231,15 +231,17 @@ public class BgdZService implements BusiService {
                     List singles = queryChildData(BusiTypeEnum.BF.getType(), cust_id, cust_group_id, cust_user_id, id, info, param);
 
                     if (singles != null) {
-                        info.put("singles", singles);
                         JSONObject js, product;
-                        String main_bill_no = "";
+                        String main_bill_no = "", partyNo = "";
                         List partyBillNos = new ArrayList();
                         for (int i = 0; i < singles.size(); i++) {
                             js = (JSONObject) singles.get(i);
                             js.put("index", i + 1);
-                            partyBillNos.add(js.getString("bill_no"));
+                            partyNo = js.getString("bill_no");
+                            partyBillNos.add(partyNo);
                             main_bill_no = js.getString("main_bill_no");
+                            js.putAll(info);
+                            js.put("bill_no", partyNo);
                         }
                         List products = serviceUtils.listSdByBillNos(cust_id, BusiTypeEnum.BS.getType(), main_bill_no, partyBillNos, param);
                         JSONObject content;
@@ -251,6 +253,7 @@ public class BgdZService implements BusiService {
                             product.put("party_bill_no", product.getString("ext_4"));
                             product.put("main_bill_no", main_bill_no);
                         }
+                        info.put("singles", singles);
                         info.put("products", products);
                     }
             }
@@ -278,7 +281,7 @@ public class BgdZService implements BusiService {
     }
 
     @Deprecated
-    public void buildDanList(JSONObject info, Long id, List<HBusiDataManager> dataList, String custId, Long userId, HBusiDataManager h, String type) throws Exception {
+    public void buildDanList2(JSONObject info, Long id, List<HBusiDataManager> dataList, String custId, Long userId, HBusiDataManager h, String type) throws Exception {
         HBusiDataManager CZ = new HBusiDataManager();
         CZ.setType(BusiTypeEnum.BZ.getType());
         CZ.setId(id);
@@ -460,7 +463,7 @@ public class BgdZService implements BusiService {
                     good.setCreateDate(new Date());
                     JSONObject sdContent = JSON.parseObject(gp.getContent());
                     sdContent.put("pid", hp.getId());
-                    _content.put("index", index);
+                    sdContent.put("index", index);
                     sdContent.put("opt_type", "ADD");
                     good.setContent(sdContent.toJSONString());
                     good.setType(BusiTypeEnum.BS.getType());

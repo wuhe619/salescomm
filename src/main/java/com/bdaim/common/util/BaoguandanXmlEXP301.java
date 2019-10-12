@@ -130,10 +130,10 @@ public class BaoguandanXmlEXP301 {
         OpType.setTextContent(optype);//r
         EntryHead.appendChild(OpType);
         Element PreEntryId = document.createElement("PreEntryId");
-        PreEntryId.setTextContent("");
+        PreEntryId.setTextContent(json.containsKey("pre_input_code")?json.getString("pre_input_code"):"");
         EntryHead.appendChild(PreEntryId);
         Element EntryId = document.createElement("EntryId");
-        EntryId.setTextContent("");
+        EntryId.setTextContent(json.containsKey("entryid")?json.getString("entryid"):"");
         EntryHead.appendChild(EntryId);
 
         Element IEFlag = document.createElement("IEFlag");
