@@ -239,7 +239,7 @@ public class BgdZService implements BusiService {
                             js.put("index", i + 1);
                             partyNo = js.getString("bill_no");
                             partyBillNos.add(partyNo);
-                            main_bill_no = js.getString("main_bill_no");
+                            main_bill_no = js.getString("ext_4");
                             js.putAll(info);
                             js.put("bill_no", partyNo);
                         }
