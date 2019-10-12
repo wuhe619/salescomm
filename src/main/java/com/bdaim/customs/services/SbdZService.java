@@ -150,7 +150,7 @@ public class SbdZService implements BusiService {
     public void updateInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) {
         // 身份核验
         if ("verification".equals(info.getString("_rule_"))) {
-            serviceUtils.esTestData();
+            //serviceUtils.esTestData();
             StringBuffer sql = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(BusiTypeEnum.SF.getType(), "") + " where type=?")
                     .append(" and cust_id='").append(cust_id).append("'")
                     .append(" and (ext_7 IS NULL OR ext_7 = '' OR ext_7 = 2) ");
@@ -166,6 +166,8 @@ public class SbdZService implements BusiService {
             if (dfList != null && dfList.size() > 0) {
                 JSONObject content = new JSONObject();
                 content.put("main_id", id);
+                //主单号
+                content.put("main_bill_no", info.getString("ext_3"));
                 content.put("status", 0);
                 JSONObject input;
                 JSONObject data;
@@ -221,7 +223,7 @@ public class SbdZService implements BusiService {
                             product = (JSONObject) products.get(j);
                             content = JSON.parseObject(product.getString("content"));
                             product.putAll(content);
-                            product.put("index", j + 1);
+                            //product.put("index", j + 1);
                             product.put("main_bill_no", main_bill_no);
                             product.put("party_bill_no", product.getString("ext_4"));
                         }
@@ -249,7 +251,7 @@ public class SbdZService implements BusiService {
                             product = (JSONObject) products.get(j);
                             content = JSON.parseObject(product.getString("content"));
                             product.putAll(content);
-                            product.put("index", j + 1);
+                            //product.put("index", j + 1);
                             product.put("main_bill_no", main_bill_no);
                             product.put("party_bill_no", product.getString("ext_4"));
                         }
@@ -264,7 +266,7 @@ public class SbdZService implements BusiService {
                         JSONObject js;
                         for (int i = 0; i < singles.size(); i++) {
                             js = (JSONObject) singles.get(i);
-                            js.put("index", i + 1);
+                            //js.put("index", i + 1);
                             js.put("main_bill_no", js.getString("main_bill_no"));
                         }
                         info.put("singles", singles);

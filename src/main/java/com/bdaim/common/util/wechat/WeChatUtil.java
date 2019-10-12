@@ -8,7 +8,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -212,7 +211,7 @@ public class WeChatUtil {
         return millis;
     }
 
-    @PostConstruct
+    //@PostConstruct
     private void init() {
         if (!isStart) {
             isStart = true;
