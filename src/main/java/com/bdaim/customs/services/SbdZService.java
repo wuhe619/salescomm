@@ -545,6 +545,7 @@ public class SbdZService implements BusiService {
                     mainGoodsName += obj.getString("name") + "|" + obj.getString("name_en") + "|" + obj.getString("g_model");
                 }
             }
+            json.put("total_value",arrt.getString("total_value"));
             json.put("main_gname", mainGoodsName);
             json.put("low_price_goods", arrt.getString("low_price_goods"));
             if (info.containsKey("low_price_goods") && info.getInteger("low_price_goods") != null) {
@@ -661,6 +662,8 @@ public class SbdZService implements BusiService {
             List<Map<String, String>> mainGoodsName = new ArrayList<>();
             HBusiDataManager dataManager;
             arrt.put("low_price_goods", 0);
+            Double total_value = 0d;
+            arrt.put("total_value",total_value);
             for (Product product : pList) {
                 log.info("goods:" + product.getCode_ts());
                 try {
@@ -690,14 +693,6 @@ public class SbdZService implements BusiService {
                     float tax_rate = 0;
                     float estimated_tax = 0;
                     if (StringUtil.isNotEmpty(product.getCode_ts())) {
-                        /*Map<String, Object> duty_paid_rate;
-                        if (resource.get(product.getCode_ts()) == null) {
-                            duty_paid_rate = serviceUtils.getHResourceData("duty_paid_rate", product.getCode_ts());
-                            resource.put(product.getCode_ts(), duty_paid_rate);
-                        } else {
-                            duty_paid_rate = resource.get(product.getCode_ts());
-                        }*/
-
                         JSONObject contentObj = resource.get(product.getCode_ts());
                         if (contentObj != null && contentObj.containsKey("duty_price") && StringUtil.isNotEmpty(contentObj.getString("duty_price"))) {
                             duty_paid_price = contentObj.getFloat("duty_price");
@@ -731,14 +726,20 @@ public class SbdZService implements BusiService {
                     }
                     arrt.put("main_goods_name", mainGoodsName);
                     json.put("is_low_price", is_low_price);
-                    float total_price = Float.valueOf(product.getDecl_total() == null || "".equals(product.getDecl_total()) ? "0" : product.getDecl_total());
+                    String G_QTY=product.getG_qty();
+                    String decl_price=product.getDecl_price();
+                    json.put("total_price", 0);//价格合计
+                    if(StringUtil.isNotEmpty(G_QTY) && StringUtil.isNotEmpty(decl_price)){
+                        Double total_price = Integer.valueOf(G_QTY)*Double.valueOf(decl_price);
+                        json.put("total_price", total_price);//价格合计
+                        total_value+=total_price;
+                    }
+//                    float total_price = Float.valueOf(product.getDecl_total() == null || "".equals(product.getDecl_total()) ? "0" : product.getDecl_total());
                     json.put("duty_paid_price", duty_paid_price);//完税价格
                     json.put("estimated_tax", estimated_tax);//预估税金
                     json.put("tax_rate", tax_rate);//税率
-                    json.put("total_price", total_price);//价格合计
 
                     dataManager.setContent(json.toJSONString());
-
                     list.add(dataManager);
 
                 } catch (Exception e) {
