@@ -7,6 +7,7 @@ import com.mongodb.client.gridfs.model.GridFSFile;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.MongoDbFactory;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.gridfs.GridFsResource;
@@ -14,6 +15,7 @@ import org.springframework.data.mongodb.gridfs.GridFsTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,6 +33,9 @@ public class MongoFileService {
     private GridFsTemplate gridfsTemplate;
     @Autowired
     private MongoDbFactory mongoDbFactory;
+
+    @Autowired
+    private MongoTemplate mongoTemplate;
 
     /**
      * 根据文件名称查询文件
@@ -92,6 +97,11 @@ public class MongoFileService {
         InputStream inputStream = resource.getInputStream();
         byte[] f = getBytes(inputStream);
         return f;
+    }
+
+    public String saveData(String content){
+        String id = mongoTemplate.insert(content);
+        return id;
     }
 
     private byte[] getBytes(InputStream inputStream) throws Exception {
