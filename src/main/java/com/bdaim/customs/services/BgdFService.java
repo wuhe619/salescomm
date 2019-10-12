@@ -183,7 +183,7 @@ public class BgdFService implements BusiService {
             String mainsql = "select content, cust_id, cust_group_id, cust_user_id, create_id, create_date ,ext_1, ext_2, ext_3, ext_4, ext_5 from "+ HMetaDataDef.getTable(BusiTypeEnum.BZ.getType(),"")+" where type=? and id=? ";
             list = jdbcTemplate.queryForList(mainsql, BusiTypeEnum.BZ.getType(), jo.getString("pid"));
             Map<String,Object> mainMap = list.get(0);
-            List<HBusiDataManager> list2 = serviceUtils.listDataByParentBillNo(cust_id,BusiTypeEnum.BS.getType(),jo.getString("bill_no"));
+            List<HBusiDataManager> list2 = serviceUtils.listSdByBillNo(cust_id,BusiTypeEnum.BS.getType(),mainMap.get("ext_3").toString(),jo.getString("bill_no"));
             String xmlString = baoguandanXmlEXP301.createXml(mainMap,m,list2);
             info.put("xml",xmlString);
         }else {
