@@ -148,7 +148,7 @@ public class SbdFService implements BusiService {
                 content.put("main_bill_no", data.getString("main_bill_no"));
                 content.put("status", 0);
                 content.put("input", input);
-                serviceUtils.insertSFVerifyQueue(content.toJSONString(), NumberConvertUtil.parseLong(map.get("id")), cust_user_id, cust_id);
+                serviceUtils.insertSFVerifyQueue(content.toJSONString(), NumberConvertUtil.parseLong(map.get("id")), cust_user_id, cust_id, content.getString("main_bill_no"));
                 if (data != null) {
                     data.put("check_status", "0");
                     info.put("check_status", "0");
