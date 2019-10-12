@@ -233,7 +233,6 @@ public class SbdZService implements BusiService {
                 case "_export_tally_form":
                     singles = serviceUtils.queryChildData(BusiTypeEnum.SF.getType(), cust_id, cust_group_id, cust_user_id, id, param);
                     if (singles != null) {
-                        info.put("singles", singles);
                         //List products;
                         JSONObject js, product, content;
                         String main_bill_no = "";
@@ -254,6 +253,7 @@ public class SbdZService implements BusiService {
                             product.put("main_bill_no", main_bill_no);
                             product.put("party_bill_no", product.getString("ext_4"));
                         }
+                        info.put("singles", singles);
                         info.put("products", products);
                     }
                     break;

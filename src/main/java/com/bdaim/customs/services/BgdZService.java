@@ -231,7 +231,6 @@ public class BgdZService implements BusiService {
                     List singles = queryChildData(BusiTypeEnum.BF.getType(), cust_id, cust_group_id, cust_user_id, id, info, param);
 
                     if (singles != null) {
-                        info.put("singles", singles);
                         JSONObject js, product;
                         String main_bill_no = "";
                         List partyBillNos = new ArrayList();
@@ -240,6 +239,7 @@ public class BgdZService implements BusiService {
                             js.put("index", i + 1);
                             partyBillNos.add(js.getString("bill_no"));
                             main_bill_no = js.getString("main_bill_no");
+                            js.putAll(info);
                         }
                         List products = serviceUtils.listSdByBillNos(cust_id, BusiTypeEnum.BS.getType(), main_bill_no, partyBillNos, param);
                         JSONObject content;
@@ -251,6 +251,7 @@ public class BgdZService implements BusiService {
                             product.put("party_bill_no", product.getString("ext_4"));
                             product.put("main_bill_no", main_bill_no);
                         }
+                        info.put("singles", singles);
                         info.put("products", products);
                     }
             }
