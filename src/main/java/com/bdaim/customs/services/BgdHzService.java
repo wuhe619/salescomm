@@ -125,6 +125,7 @@ public class BgdHzService implements BusiService {
         json.put("entryid",EntryId==null?"":EntryId);
         json.put("send_status",data.getString("op_result"));
         json.put("ext_1",data.getString("op_result"));
+        json.put("decl_time",data.getString("op_time"));
         String sql=" update "+ HMetaDataDef.getTable(BusiTypeEnum.BF.getType(), "")+" set content='"+json.toJSONString()+"' where id="+fendan.getId();
         jdbcTemplate.update(sql);
         String opresult=data.getString("op_result");
