@@ -248,7 +248,7 @@ public class BgdZService implements BusiService {
                             content = JSON.parseObject(product.getString("content"));
                             product.putAll(content);
                             product.put("index", j + 1);
-                            product.put("bill_no", product.getString("ext_4"));
+                            product.put("party_bill_no", product.getString("ext_4"));
                             product.put("main_bill_no", main_bill_no);
                         }
                         info.put("products", products);
