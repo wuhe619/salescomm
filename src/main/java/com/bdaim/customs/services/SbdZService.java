@@ -418,6 +418,10 @@ public class SbdZService implements BusiService {
             info.put("ext_1", "N");
             info.put("ext_2", "N");
             info.put("ext_3", mainDan.getBill_no());
+            //身份核验成功数量
+            info.put("id_card_check_number", 0);
+            //身份图片数量
+            info.put("id_card_pic_number", 0);
             log.info("申报单主单:" + mainDan.getBill_no());
             // 构造分单和商品信息
             buildPartyDan(list, mainDan, userId, custId, mainid, info);
