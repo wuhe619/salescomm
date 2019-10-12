@@ -52,12 +52,12 @@ public class UploadFileService {
         try {
             String fileType = fileName.substring(fileName.lastIndexOf("."));
             String subFilePath = CipherUtil.encodeByMD5(businessEnum + fileName + System.currentTimeMillis());
-            String serviceId = businessEnum.getKey() + "_" + subFilePath;
+            String ext_1 = businessEnum.getKey() + "_" + subFilePath;
             // 保存文件到mongodb中
             if (saveMongoDb) {
-                logger.info("上传文件到mongo,serviceId:{},文件名称", serviceId, fileName);
-                String objectId = mongoFileService.saveFile(file, serviceId);
-                fileDao.save(serviceId, objectId, businessEnum, fileName, fileType);
+                logger.info("上传文件到mongo,serviceId:{},文件名称", ext_1, fileName);
+                String objectId = mongoFileService.saveFile(file, ext_1);
+                fileDao.save(ext_1, objectId, businessEnum, fileName, fileType.substring(fileType.length() - 1));
             }
             // 保存文件到磁盘
             String _filePath = File.separator + businessEnum.getKey() + File.separator + subFilePath;
@@ -65,7 +65,7 @@ public class UploadFileService {
             logger.info("上传文件路径:{}", savePath + fileType);
             File desFile = new File(savePath + fileType);
             FileUtils.copyInputStreamToFile(file.getInputStream(), desFile);
-            fileDao.save(serviceId, subFilePath, businessEnum, fileName, fileType);
+            fileDao.save(ext_1, subFilePath, businessEnum, fileName, fileType.substring(fileType.length() - 1));
             return subFilePath;
         } catch (IOException e) {
             logger.error("文件上传失败", e);
@@ -85,14 +85,14 @@ public class UploadFileService {
             // 保存文件到mongodb中
             if (saveMongoDb) {
                 String objectId = mongoFileService.saveFile(file, serviceId);
-                fileDao.save(serviceId, objectId, businessEnum, fileName, fileType);
+                fileDao.save(serviceId, objectId, businessEnum, fileName, fileType.substring(1));
             }
             // 保存文件到磁盘
             String _filePath = File.separator + businessEnum.getKey() + File.separator + subFilePath;
             String savePath = filePath + _filePath;
             File desFile = new File(savePath + fileType);
             FileUtils.copyInputStreamToFile(file, desFile);
-            fileDao.save(serviceId, subFilePath, businessEnum, fileName, fileType);
+            fileDao.save(serviceId, subFilePath, businessEnum, fileName, fileType.substring(1));
             return subFilePath;
         } catch (IOException e) {
             logger.error("文件上传失败", e);

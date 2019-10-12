@@ -851,7 +851,7 @@ public class CustomsService {
                     if (StringUtil.isEmpty(f.getFileName())) {
                         continue;
                     }
-                    objectId = uploadFileService.uploadFile(f.getFileInputstream(), BusinessEnum.CUSTOMS, false, f.getFileName());
+                    objectId = uploadFileService.uploadFile(f.getFileInputstream(), BusinessEnum.CUSTOMS, true, f.getFileName());
                     map.put(f.getFileName().substring(0, f.getFileName().indexOf(".")), objectId);
                 }
                 // 上传身份证照片并且更新分单数据库和ES信息
