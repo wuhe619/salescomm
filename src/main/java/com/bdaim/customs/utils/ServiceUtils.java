@@ -226,6 +226,43 @@ public class ServiceUtils {
     }
 
     /**
+     * 根据主单号、分单号，查询分单
+     * @param custId
+     * @param type
+     * @param mainBillNo
+     * @param billNo
+     * @return
+     */
+    public HBusiDataManager findFendanByBillNo(String custId, String type, String mainBillNo, String billNo) {
+        StringBuffer sql = new StringBuffer();
+        sql.append("select id, type, content, cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(type, "") + " where cust_id = ? AND type=? AND ext_4 = ?  AND ext_3 = ?");
+        log.info("查询分单sql:{}", sql);
+        List<Map<String, Object>> list = jdbcTemplate.queryForList(sql.toString(), custId, type, mainBillNo, billNo);
+        List<HBusiDataManager> result = JSON.parseArray(JSON.toJSONString(list), HBusiDataManager.class);
+        if(result!=null && result.size()>0){
+            return result.get(0);
+        }
+        return null;
+    }
+    /**
+     * 根据主单号查询主单
+     * @param custId
+     * @param type
+     * @param billNo
+     * @return
+     */
+    public HBusiDataManager findZhudanByBillNo(String custId, String type,String billNo) {
+        StringBuffer sql = new StringBuffer();
+        sql.append("select id, type, content, cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(type, "") + " where cust_id = ? AND type=? AND ext_3 = ?");
+        log.info("查询主单sql:{}", sql);
+        List<Map<String, Object>> list = jdbcTemplate.queryForList(sql.toString(), custId, type, billNo);
+        List<HBusiDataManager> result = JSON.parseArray(JSON.toJSONString(list), HBusiDataManager.class);
+        if(result!=null && result.size()>0){
+            return result.get(0);
+        }
+        return null;
+    }
+    /**
      * 根据主单号和查询税单列表
      *
      * @param custId
@@ -481,13 +518,13 @@ public class ServiceUtils {
      * @param userId
      * @param custId
      */
-    public void insertSFVerifyQueue(String content, long billId, long userId, String custId) {
+    public void insertSFVerifyQueue(String content, long billId, long userId, String custId, String batchId) {
         TResourceLog queue = new TResourceLog();
         queue.setCustId(custId);
         queue.setContent(content);
         queue.setBusiId(String.valueOf(billId));
         queue.setCustUserId(userId);
-        queue.setBatchId(CipherUtil.encodeByMD5(IDHelper.getID().toString()));
+        queue.setBatchId(batchId);
         queue.setCreateTime(new Timestamp(System.currentTimeMillis()));
         queue.setBusiType(1);
         queue.setSupplierId(SupplierEnum.ZAX.getSupplierId());

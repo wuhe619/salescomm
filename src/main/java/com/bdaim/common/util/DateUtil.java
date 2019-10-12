@@ -801,12 +801,15 @@ public class DateUtil {
     }
 
     public static void main(String[] args) {
-        System.out.println(secondToTime(121));
-        System.out.println(getPastNMonthDate(new Date(), "yyyyMM", -5));
-        System.out.println(fmtStrToDate("2019/02/24 00:00:00", "yyyy/MM/dd HH:mm:ss"));
+//        System.out.println(secondToTime(121));
+//        System.out.println(getPastNMonthDate(new Date(), "yyyyMM", -5));
+//        System.out.println(fmtStrToDate("20190224000000", "yyyyMMddHHmmss"));
+//
+//        Date d = DateUtil.fmtStrToDate("2019-02-12 12:23:49");
+//        Timestamp s = new Timestamp(d.getTime());
+//        System.out.println(s);
 
-        Date d = DateUtil.fmtStrToDate("2019-02-12 12:23:49");
-        Timestamp s = new Timestamp(d.getTime());
-        System.out.println(s);
+        String s2=DateUtil.fmtDateToStr(new Date(),"yyyyMMddHHmmssZZZ");
+        System.out.println(s2);
     }
 }

@@ -1,6 +1,8 @@
 package com.bdaim.common.util;
 
 import com.alibaba.fastjson.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -19,13 +21,14 @@ import java.util.Map;
 
 @Component
 public class CangdanXmlEXP311 {
+    private static Logger log = LoggerFactory.getLogger(CangdanXmlEXP311.class);
 /*
     public static void main(String[] args) {
         createXml();
     }
     */
 
-    public  String createXml(Map<String,Object> map, List<Map<String, Object>> dsList){
+    public  String createXml(Map<String,Object> map, List<Map<String, Object>> dsList) throws Exception {
         try {
             // 创建解析器工厂
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -65,14 +68,12 @@ public class CangdanXmlEXP311 {
             // 使用Transformer的transform()方法将DOM树转换成XML
             tf.transform(domSource, new StreamResult(bos));
             String xmlString = bos.toString();
-            System.out.println(xmlString);
+            log.info(xmlString);
             return xmlString;
-
         } catch (Exception e) {
             e.printStackTrace();
-            System.out.println("生成EXP311.xml失败");
+            throw new Exception("生成EXP311.xml失败",e);
         }
-        return null;
     }
 
     private  void createEnvelopInfoXML(Document document,Element envelopInfo){

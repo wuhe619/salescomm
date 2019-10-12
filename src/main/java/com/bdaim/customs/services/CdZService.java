@@ -151,7 +151,7 @@ public class CdZService implements BusiService {
 
 
     @Override
-    public void doInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info, JSONObject param) throws TouchException {
+    public void doInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info, JSONObject param) throws Exception {
         //舱单导出
         if (StringUtil.isNotEmpty(param.getString("_rule_")) && param.getString("_rule_").startsWith("_export")) {
             String split = "||";
@@ -229,7 +229,7 @@ public class CdZService implements BusiService {
             serviceUtils.updateDataToES(BusiTypeEnum.CZ.getType(), id.toString(), jo);
 
             //更新舱单分单信息
-            String selectSql = "select id, type, content, cust_id, cust_group_id, cust_user_id, create_id, create_date ,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(BusiTypeEnum.CF.getType(), "") + " WHERE ext_4=(SELECT ext_3 FROM " + HMetaDataDef.getTable(BusiTypeEnum.getParentType(busiType), "") + " WHERE id = ?) AND type = ? AND IFNULL(ext_1,'') <>'1' ";
+            String selectSql = "select id, type, content, cust_id, cust_group_id, cust_user_id, create_id, create_date ,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(BusiTypeEnum.CF.getType(), "") + " WHERE ext_4=(SELECT ext_3 FROM " + HMetaDataDef.getTable(BusiTypeEnum.CZ.getType(), "") + " WHERE id = ?) AND type = ? AND IFNULL(ext_1,'') <>'1' ";
             List<Map<String, Object>> ds = jdbcTemplate.queryForList(selectSql, id, BusiTypeEnum.CF.getType());
             String updateSql = " UPDATE " + HMetaDataDef.getTable(BusiTypeEnum.CF.getType(), "") + " SET ext_1 = '1', ext_date1 = NOW(), content=? WHERE id =? AND type = ? AND IFNULL(ext_1,'') <>'1' ";
             for (int i = 0; i < ds.size(); i++) {
@@ -258,10 +258,10 @@ public class CdZService implements BusiService {
                     jo.put("ext_5", m.get("ext_5"));
                 jdbcTemplate.update(updateSql, jo.toJSONString(), m.get("id"), BusiTypeEnum.CF.getType());
                 serviceUtils.updateDataToES(BusiTypeEnum.CF.getType(), String.valueOf(m.get("id")), jo);
-
             }
 
             //start to create xml file
+            log.info("舱单分单数："+ds.size());
             String xmlString = cangdanXmlEXP311.createXml(m, ds);
             info.put("xml",xmlString);
         }
@@ -343,7 +343,7 @@ public class CdZService implements BusiService {
             _content.put("main_bill_no", json.get("bill_no"));
             hm.setContent(_content.toJSONString());
             dataList.add(hm);
-            List<HBusiDataManager> goods = serviceUtils.getDataList(BusiTypeEnum.SS.getType(), hp.getId().longValue());
+            List<HBusiDataManager> goods = serviceUtils.listSdByBillNo(custId,BusiTypeEnum.SS.getType(), hp.getExt_4(),hp.getExt_3());
             for (HBusiDataManager gp : goods) {
                 HBusiDataManager good = new HBusiDataManager();
                 gp.setType(BusiTypeEnum.CS.getType());
@@ -464,14 +464,14 @@ public class CdZService implements BusiService {
             if (goodList != null) {
                 for (HBusiDataManager gp : goodList) {
                     good = new HBusiDataManager();
-                    gp.setType(BusiTypeEnum.CS.getType());
+                    //gp.setType(BusiTypeEnum.CS.getType());
                     Long gid = sequenceService.getSeq(BusiTypeEnum.CS.getType());
                     good.setId(gid);
                     good.setCreateId(userId);
                     good.setCreateDate(new Date());
                     JSONObject sdContent = JSON.parseObject(gp.getContent());
                     sdContent.put("pid", hm.getId());
-                    _content.put("main_bill_no", _content.get("bill_no"));
+                    sdContent.put("main_bill_no", _content.get("bill_no"));
                     sdContent.put("opt_type", "ADD");
                     good.setContent(sdContent.toJSONString());
                     good.setType(BusiTypeEnum.CS.getType());
