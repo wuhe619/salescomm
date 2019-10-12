@@ -232,14 +232,16 @@ public class BgdZService implements BusiService {
 
                     if (singles != null) {
                         JSONObject js, product;
-                        String main_bill_no = "";
+                        String main_bill_no = "", partyNo = "";
                         List partyBillNos = new ArrayList();
                         for (int i = 0; i < singles.size(); i++) {
                             js = (JSONObject) singles.get(i);
                             js.put("index", i + 1);
-                            partyBillNos.add(js.getString("bill_no"));
+                            partyNo = js.getString("bill_no");
+                            partyBillNos.add(partyNo);
                             main_bill_no = js.getString("main_bill_no");
                             js.putAll(info);
+                            js.put("bill_no", partyNo);
                         }
                         List products = serviceUtils.listSdByBillNos(cust_id, BusiTypeEnum.BS.getType(), main_bill_no, partyBillNos, param);
                         JSONObject content;
