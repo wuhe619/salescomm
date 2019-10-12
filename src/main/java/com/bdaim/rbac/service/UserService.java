@@ -255,7 +255,7 @@ public class UserService {
             sql.append(" and u.status = " + userDTO.getStatus());
         }
         sql.append(" and u.status!=2 ");
-        sql.append(" GROUP BY u.ID ORDER BY u.CREATE_TIME ");
+        sql.append(" GROUP BY u.ID ORDER BY u.CREATE_TIME DESC ");
         Page dataPage = userDao.sqlPageQuery(sql.toString(), page.getPageNum(), page.getPageSize());
         List<Map<String, Object>> data = dataPage.getData();
         //添加场站信息
