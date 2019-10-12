@@ -461,56 +461,6 @@ public class SbdZService implements BusiService {
         }
     }
 
-    public void buildSenbaodanFendan(PartyDan dan, List<HBusiDataManager> list, Long userId, String custId, String mainBillNo, Long mainid, JSONObject info) throws Exception {
-        try {
-            List<Product> pList = dan.getProducts();
-            Long id = sequenceService.getSeq(BusiTypeEnum.SF.getType());
-            JSONObject arrt = new JSONObject();
-            log.info("申报单分单:" + dan.getBill_no());
-            buildGoods(list, pList, userId, custId, id.toString(), arrt);
-            HBusiDataManager dataManager = new HBusiDataManager();
-            dataManager.setType(BusiTypeEnum.SF.getType());
-            dataManager.setCreateId(userId);
-            dataManager.setCust_id(Long.valueOf(custId));
-
-            dataManager.setId(id);
-            dataManager.setCreateDate(new Date());
-            dataManager.setExt_3(dan.getBill_no());//分单号
-            dataManager.setExt_4(dan.getMain_bill_no());//主单号
-
-            JSONObject json = buildPartyContent(dan);
-            json.put("type", BusiTypeEnum.SF.getType());
-            json.put("main_bill_no", mainBillNo);
-            json.put("create_date", dataManager.getCreateDate());
-            json.put("create_id", userId);
-            json.put("cust_id", custId);
-            json.put("check_status", "0");
-            json.put("idcard_pic_flag", "0");
-            json.put("pid", mainid);
-            JSONArray jsonArray = arrt.getJSONArray("mainGoodsName");
-            String mainGoodsName = "";
-            if (jsonArray != null && jsonArray.size() > 0) {
-                for (int i = 0; i < jsonArray.size(); i++) {
-                    JSONObject obj = jsonArray.getJSONObject(i);
-                    mainGoodsName += obj.getString("name") + "|" + obj.getString("name_en") + "|" + obj.getString("g_model");
-                }
-            }
-            json.put("main_gname", mainGoodsName);
-            json.put("low_price_goods", arrt.getString("low_price_goods"));
-            if (info.containsKey("low_price_goods") && info.getInteger("low_price_goods") != null) {
-                int low_price_goods = info.getInteger("low_price_goods");
-                info.put("low_price_goods", low_price_goods + arrt.getInteger("low_price_goods"));
-            } else {
-                info.put("low_price_goods", arrt.getString("low_price_goods"));
-            }
-            dataManager.setContent(json.toJSONString());
-
-            list.add(dataManager);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
 
     public void buildSBDFenDan(long id1, PartyDan dan, List<HBusiDataManager> list, Long userId, String custId, String mainBillNo, Long mainid, JSONObject info, Map<String, JSONObject> resource) throws Exception {
         try {
@@ -564,100 +514,6 @@ public class SbdZService implements BusiService {
         } catch (Exception e) {
             e.printStackTrace();
             log.error("build 分单ERROR：" + dan.getBill_no() + " " + e.getMessage());
-        }
-    }
-
-    /**
-     * 组装商品
-     *
-     * @param list
-     * @param pList
-     * @param
-     */
-    public void buildGoods(List<HBusiDataManager> list, List<Product> pList, Long userId, String custId, String pid, JSONObject arrt) throws Exception {
-        if (pList != null && pList.size() > 0) {
-            List<Map<String, String>> mainGoodsName = new ArrayList<>();
-            for (Product product : pList) {
-                log.info("goods_Code_ts:" + product.getCode_ts());
-                try {
-                    HBusiDataManager dataManager = new HBusiDataManager();
-                    dataManager.setType(BusiTypeEnum.SS.getType());
-                    dataManager.setCreateDate(new Date());
-                    dataManager.setCreateId(userId);
-                    Long id = sequenceService.getSeq(BusiTypeEnum.SS.getType());
-                    dataManager.setId(id);
-                    dataManager.setCust_id(Long.valueOf(custId));
-                    dataManager.setExt_3(product.getCode_ts());//商品编号
-                    dataManager.setExt_4(product.getBill_no());//分单号
-                    JSONObject json = buildGoodsContent(product);
-                    json.put("create_date", new Date());
-                    json.put("create_id", userId);
-                    json.put("cust_id", custId);
-                    json.put("pid", NumberConvertUtil.parseLong(pid));
-                    json.put("type", BusiTypeEnum.SS.getType());
-
-                    Float duty_paid_price = 0f;
-                    int is_low_price = 0;
-                    float tax_rate = 0;
-                    float estimated_tax = 0;
-                    if (StringUtil.isNotEmpty(product.getCode_ts())) {
-                        JSONObject params = new JSONObject();
-                        params.put("code", product.getCode_ts());
-                        Page page = resourceService.query("", "duty_paid_rate", params);
-                        if (page != null && page.getTotal() > 0) {
-                            List dataList = page.getData();
-                            Map<String, Object> d = (Map<String, Object>) dataList.get(0);
-                            JSONObject contentObj = JSON.parseObject(JSON.toJSONString(d));
-                            if (contentObj != null && contentObj.containsKey("duty_price") && StringUtil.isNotEmpty(contentObj.getString("duty_price"))) {
-                                duty_paid_price = contentObj.getFloat("duty_price");
-                                if (StringUtil.isNotEmpty(product.getDecl_price())) {
-                                    if (Float.valueOf(product.getDecl_price()) < duty_paid_price) {
-                                        is_low_price = 1;
-                                    }
-                                }
-                            }
-                            if (contentObj != null && null != contentObj.getString("tax_rate")) {
-                                tax_rate = contentObj.getFloatValue("tax_rate");
-                                estimated_tax = duty_paid_price * tax_rate;
-                            }
-                        }
-                    }
-                    if (mainGoodsName.size() < 3) {
-                        Map<String, String> smap = new HashMap<>();
-                        smap.put("name", product.getG_name() == null ? "" : product.getG_name());
-                        smap.put("name_en", product.getG_name_en() == null ? "" : product.getG_name_en());
-                        smap.put("g_model", product.getG_model() == null ? "" : product.getG_model());
-                        smap.put("price", product.getDecl_price() == null ? "0" : product.getDecl_price());
-                        mainGoodsName.add(smap);
-
-                    } else {
-
-                    }
-                    if (is_low_price == 1) {
-                        if (arrt.containsKey("low_price_goods")) {
-                            arrt.put("low_price_goods", arrt.getInteger("low_price_goods") + 1);
-                        } else {
-                            arrt.put("low_price_goods", 1);
-                        }
-                        arrt.put("main_goods_name", mainGoodsName);
-                    }
-                    json.put("is_low_price", is_low_price);
-                    float total_price = Float.valueOf(product.getDecl_total() == null || "".equals(product.getDecl_total()) ? "0" : product.getDecl_total());
-                    json.put("duty_paid_price", duty_paid_price);//完税价格
-                    json.put("estimated_tax", estimated_tax);//预估税金
-                    json.put("tax_rate", tax_rate);//税率
-                    json.put("total_price", total_price);//价格合计
-
-                    dataManager.setContent(json.toJSONString());
-
-                    list.add(dataManager);
-
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    log.error("生成商品信息 " + product.getCode_ts() + " 异常");
-                    throw new Exception("生成商品信息异常");
-                }
-            }
         }
     }
 
@@ -730,13 +586,13 @@ public class SbdZService implements BusiService {
                     }
                     arrt.put("main_goods_name", mainGoodsName);
                     json.put("is_low_price", is_low_price);
-                    String G_QTY=product.getG_qty();
+                    String G_QTY = product.getG_qty();
                     String decl_price=product.getDecl_price();
                     json.put("total_price", 0);//价格合计
                     if(StringUtil.isNotEmpty(G_QTY) && StringUtil.isNotEmpty(decl_price)){
-                        Double total_price = Integer.valueOf(G_QTY)*Double.valueOf(decl_price);
+                        Double total_price = Double.valueOf(G_QTY) * Double.valueOf(decl_price);
                         json.put("total_price", total_price);//价格合计
-                        total_value+=total_price;
+                        total_value += total_price;
                     }
 //                    float total_price = Float.valueOf(product.getDecl_total() == null || "".equals(product.getDecl_total()) ? "0" : product.getDecl_total());
                     json.put("duty_paid_price", duty_paid_price);//完税价格
