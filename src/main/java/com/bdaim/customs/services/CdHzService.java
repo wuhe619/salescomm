@@ -6,11 +6,14 @@ import com.bdaim.common.service.BusiService;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.customs.entity.HBusiDataManager;
 import com.bdaim.customs.utils.ServiceUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 舱单回执
@@ -19,11 +22,17 @@ import java.util.List;
 @Transactional
 public class CdHzService implements BusiService {
 
+    private static Logger log = LoggerFactory.getLogger(BgdHzService.class);
+
     private ServiceUtils serviceUtils;
 
     @Override
     public void insertInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) throws Exception {
-
+        log.info(info.toJSONString());
+        info.put("ext_1",info.getString("status"));
+        String xmlString=info.getString("xmlstring");
+        Map map = serviceUtils.xmlToMap(xmlString);
+        log.info("报关单回执："+map);
     }
 
     @Override
@@ -32,7 +41,7 @@ public class CdHzService implements BusiService {
     }
 
     @Override
-    public void getInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info, JSONObject param) throws TouchException {
+    public void doInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info, JSONObject param) throws TouchException {
         //通过舱单主单ID查询海关回执数据
         HBusiDataManager dbManager = serviceUtils.getObjectByIdAndType(cust_id,id, busiType);
         if(dbManager==null){

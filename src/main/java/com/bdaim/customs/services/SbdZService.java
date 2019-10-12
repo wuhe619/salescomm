@@ -76,9 +76,13 @@ public class SbdZService implements BusiService {
                 HBusiDataManager mainData = null;
                 List<JSONObject> sfdData = new ArrayList();
                 List<JSONObject> ssData = new ArrayList();
+                JSONObject content, json;
+                HBusiDataManager hBusiDataManager;
                 for (int i = 0; i < list.size(); i++) {
-                    HBusiDataManager hBusiDataManager = list.get(i);
-                    JSONObject json = JSON.parseObject(hBusiDataManager.getContent());
+                    hBusiDataManager = list.get(i);
+                    json = JSON.parseObject(JSON.toJSONString(hBusiDataManager));
+                    content = JSON.parseObject(hBusiDataManager.getContent());
+                    content.remove("products");
                     if (BusiTypeEnum.SZ.getType().equals(hBusiDataManager.getType())) {
                         info.remove("singles");
                         hBusiDataManager.setContent(info.toJSONString());
@@ -86,9 +90,11 @@ public class SbdZService implements BusiService {
                         mainData = hBusiDataManager;
                     } else if (BusiTypeEnum.SF.getType().equals(hBusiDataManager.getType())) {
                         json.remove("products");
-                        hBusiDataManager.setContent(json.toJSONString());
+                        hBusiDataManager.setContent(content.toJSONString());
+                        json.putAll(content);
                         sfdData.add(json);
                     } else if (BusiTypeEnum.SS.getType().equals(hBusiDataManager.getType())) {
+                        json.putAll(content);
                         ssData.add(json);
                     }
                     //serviceUtils.addDataToES(hBusiDataManager.getId().toString(), hBusiDataManager.getType(), JSONObject.parseObject(hBusiDataManager.getContent()));
@@ -184,7 +190,7 @@ public class SbdZService implements BusiService {
     }
 
     @Override
-    public void getInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info, JSONObject param) {
+    public void doInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info, JSONObject param) {
         if (StringUtil.isNotEmpty(param.getString("_rule_")) && param.getString("_rule_").startsWith("_export")) {
             //info.put("export_type", 2);
             switch (param.getString("_rule_")) {
@@ -201,7 +207,7 @@ public class SbdZService implements BusiService {
                         param.remove("_ge_low_price_goods");
                         param.put("_eq_is_low_price", 1);
                         List partyBillNos = new ArrayList();
-                        JSONObject js, product;
+                        JSONObject js, product, content;
                         String main_bill_no = "";
                         // 查询分单下的低价商品
                         for (int i = 0; i < singles.size(); i++) {
@@ -213,8 +219,11 @@ public class SbdZService implements BusiService {
                         List products = serviceUtils.listSdByBillNos(cust_id, BusiTypeEnum.SS.getType(), main_bill_no, partyBillNos, param);
                         for (int j = 0; j < products.size(); j++) {
                             product = (JSONObject) products.get(j);
+                            content = JSON.parseObject(product.getString("content"));
+                            product.putAll(content);
                             product.put("index", j + 1);
                             product.put("main_bill_no", main_bill_no);
+                            product.put("party_bill_no", product.getString("ext_4"));
                         }
                         info.put("singles", products);
                     }
@@ -226,7 +235,7 @@ public class SbdZService implements BusiService {
                     if (singles != null) {
                         info.put("singles", singles);
                         //List products;
-                        JSONObject js, product;
+                        JSONObject js, product, content;
                         String main_bill_no = "";
                         List partyBillNos = new ArrayList();
                         for (int i = 0; i < singles.size(); i++) {
@@ -234,23 +243,16 @@ public class SbdZService implements BusiService {
                             js.put("index", i + 1);
                             partyBillNos.add(js.getString("bill_no"));
                             main_bill_no = js.getString("main_bill_no");
-
-                            /*param.put("main_bill_no", js.getString("main_bill_no"));
-                            products = serviceUtils.queryChildData(BusiTypeEnum.SS.getType(), cust_id, cust_group_id, cust_user_id, js.getLong("id"), param);
-                            for (int j = 0; j < products.size(); j++) {
-                                product = (JSONObject) products.get(j);
-                                product.put("index", j + 1);
-                                product.put("main_bill_no", product.getString("ext_4"));
-                            }
-                            js.put("products", products);*/
-
                         }
 
                         List products = serviceUtils.listSdByBillNos(cust_id, BusiTypeEnum.SS.getType(), main_bill_no, partyBillNos, param);
                         for (int j = 0; j < products.size(); j++) {
                             product = (JSONObject) products.get(j);
+                            content = JSON.parseObject(product.getString("content"));
+                            product.putAll(content);
                             product.put("index", j + 1);
                             product.put("main_bill_no", main_bill_no);
+                            product.put("party_bill_no", product.getString("ext_4"));
                         }
                         info.put("products", products);
                     }
@@ -275,7 +277,7 @@ public class SbdZService implements BusiService {
 
     @Override
     public void deleteInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id) throws Exception {
-        HBusiDataManager manager = serviceUtils.getObjectByIdAndType(cust_id,id, busiType);
+        HBusiDataManager manager = serviceUtils.getObjectByIdAndType(cust_id, id, busiType);
         if (manager == null) {
             throw new TouchException("主单已经删除");
         }

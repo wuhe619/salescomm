@@ -52,7 +52,7 @@ public class BgdZService implements BusiService {
     public void insertInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) throws Exception {
         // TODO Auto-generated method stub
         if (StringUtil.isNotEmpty(info.getString("fromSbzId"))) {
-            HBusiDataManager h = serviceUtils.getObjectByIdAndType(cust_id,info.getLong("fromSbzId"), BusiTypeEnum.SZ.getType());
+            HBusiDataManager h = serviceUtils.getObjectByIdAndType(cust_id, info.getLong("fromSbzId"), BusiTypeEnum.SZ.getType());
             if (h == null) {
                 throw new TouchException("数据不存在");
             }
@@ -69,16 +69,24 @@ public class BgdZService implements BusiService {
             int index = -1;
             List<JSONObject> fdData = new ArrayList();
             List<JSONObject> sData = new ArrayList();
+            JSONObject content, json;
+            HBusiDataManager dm;
             for (int i = 0; i < dataList.size(); i++) {
-                HBusiDataManager dm = dataList.get(i);
+                dm = dataList.get(i);
+                json = JSON.parseObject(JSON.toJSONString(dm));
+                content = JSON.parseObject(dm.getContent());
+                content.remove("products");
                 //serviceUtils.addDataToES(dm.getId().toString(), dm.getType(), JSON.parseObject(dm.getContent()));
                 if (dm.getType().equals(BusiTypeEnum.BZ.getType())) {
                     index = i;
                     serviceUtils.addDataToES(dm.getId().toString(), dm.getType(), JSON.parseObject(dm.getContent()));
                 } else if (dm.getType().equals(BusiTypeEnum.BF.getType())) {
-                    fdData.add(JSON.parseObject(dm.getContent()));
+                    json.putAll(content);
+                    fdData.add(json);
+                    //fdData.add(JSON.parseObject(dm.getContent()));
                 } else if (dm.getType().equals(BusiTypeEnum.BS.getType())) {
-                    sData.add(JSON.parseObject(dm.getContent()));
+                    json.putAll(content);
+                    sData.add(json);
                 }
             }
             if (fdData.size() > 0) {
@@ -197,8 +205,8 @@ public class BgdZService implements BusiService {
                 serviceUtils.updateDataToES(BusiTypeEnum.BF.getType(), String.valueOf(m.get("id")), jo);
             }
         } else {
-            HBusiDataManager dbManager = serviceUtils.getObjectByIdAndType(cust_id,id, busiType);
-            if(dbManager==null){
+            HBusiDataManager dbManager = serviceUtils.getObjectByIdAndType(cust_id, id, busiType);
+            if (dbManager == null) {
                 throw new TouchException("无权操作");
             }
             String content = dbManager.getContent();
@@ -215,26 +223,12 @@ public class BgdZService implements BusiService {
 
 
     @Override
-    public void getInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info, JSONObject param) {
+    public void doInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info, JSONObject param) {
         if (StringUtil.isNotEmpty(param.getString("_rule_")) && param.getString("_rule_").startsWith("_export")) {
             info.put("export_type", 2);
             switch (param.getString("_rule_")) {
                 case "_export_bgd_z_main_data":
                     List singles = queryChildData(BusiTypeEnum.BF.getType(), cust_id, cust_group_id, cust_user_id, id, info, param);
-                    /*if (singles != null) {
-                        List products = new ArrayList();
-                        List tmp;
-                        JSONObject js;
-                        // 查询分单下的低价商品
-                        for (int i = 0; i < singles.size(); i++) {
-                            js = (JSONObject) singles.get(i);
-                            tmp = queryChildData(BusiTypeEnum.BS.getType(), cust_id, cust_group_id, cust_user_id, js.getLong("id"), info, param);
-                            if (tmp != null && tmp.size() > 0) {
-                                products.addAll(tmp);
-                            }
-                        }
-                        info.put("singles", products);
-                    }*/
 
                     if (singles != null) {
                         info.put("singles", singles);
@@ -246,19 +240,15 @@ public class BgdZService implements BusiService {
                             js.put("index", i + 1);
                             partyBillNos.add(js.getString("bill_no"));
                             main_bill_no = js.getString("main_bill_no");
-
-                           /* products = serviceUtils.queryChildData(BusiTypeEnum.BS.getType(), cust_id, cust_group_id, cust_user_id, js.getLong("id"), param);
-                            for (int j = 0; j < products.size(); j++) {
-                                product = (JSONObject) products.get(j);
-                                product.put("index", j + 1);
-                                product.put("main_bill_no", js.getString("main_bill_no"));
-                            }
-                            js.put("products", products);*/
                         }
                         List products = serviceUtils.listSdByBillNos(cust_id, BusiTypeEnum.BS.getType(), main_bill_no, partyBillNos, param);
+                        JSONObject content;
                         for (int j = 0; j < products.size(); j++) {
                             product = (JSONObject) products.get(j);
+                            content = JSON.parseObject(product.getString("content"));
+                            product.putAll(content);
                             product.put("index", j + 1);
+                            product.put("party_bill_no", product.getString("ext_4"));
                             product.put("main_bill_no", main_bill_no);
                         }
                         info.put("products", products);
@@ -366,22 +356,22 @@ public class BgdZService implements BusiService {
     }
 
     public void buildDanList0(JSONObject info, Long id, List<HBusiDataManager> dataList, String custId, Long userId, HBusiDataManager h, String type) throws Exception {
-        HBusiDataManager CZ = new HBusiDataManager();
-        CZ.setType(BusiTypeEnum.BZ.getType());
-        CZ.setId(id);
-        CZ.setCreateDate(new Date());
-        CZ.setCust_id(Long.valueOf(custId));
-        CZ.setCreateId(Long.valueOf(userId));
-        CZ.setExt_3(h.getExt_3());
-        CZ.setExt_1("0");//未发送 1，已发送
+        HBusiDataManager bgdMain = new HBusiDataManager();
+        bgdMain.setType(BusiTypeEnum.BZ.getType());
+        bgdMain.setId(id);
+        bgdMain.setCreateDate(new Date());
+        bgdMain.setCust_id(Long.valueOf(custId));
+        bgdMain.setCreateId(Long.valueOf(userId));
+        bgdMain.setExt_3(h.getExt_3());
+        bgdMain.setExt_1("0");//未发送 1，已发送
 
 
         JSONObject json = JSON.parseObject(h.getContent());
         json.put("create_id", userId);
         json.put("cust_id", custId);
-        json.put("type", CZ.getType());
-        json.put("create_date", CZ.getCreateDate());
-        json.put("send_status", CZ.getExt_1());
+        json.put("type", bgdMain.getType());
+        json.put("create_date", bgdMain.getCreateDate());
+        json.put("send_status", bgdMain.getExt_1());
         json.put("commit_baodan_status", "Y");
 
         Iterator keys = json.keySet().iterator();
@@ -401,8 +391,8 @@ public class BgdZService implements BusiService {
                 + " ,ext_1='Y'"
                 + " where id=" + h.getId() + " and type='" + h.getType() + "'";
         jdbcTemplate.update(sql);
-        CZ.setContent(info.toJSONString());
-        dataList.add(CZ);
+        bgdMain.setContent(info.toJSONString());
+        dataList.add(bgdMain);
 
         /*List<HBusiDataManager> parties = serviceUtils.getDataList(BusiTypeEnum.SF.getType(), info.getLong("fromSbzId"));
         // 预先生成分单ID
@@ -426,7 +416,8 @@ public class BgdZService implements BusiService {
             billNos.add(hp.getExt_3());
         }
         // 查询所有分单下的税单
-        List<HBusiDataManager> goods = serviceUtils.listDataByParentBillNos(custId, BusiTypeEnum.SS.getType(), billNos);
+        List<JSONObject> jsonObjects = serviceUtils.listSdByBillNos(custId, BusiTypeEnum.SS.getType(), h.getExt_3(), billNos, new JSONObject());
+        List<HBusiDataManager> goods = JSON.parseArray(JSON.toJSONString(jsonObjects), HBusiDataManager.class);
         Map<Long, List> cache = new HashMap<>();
         JSONObject fd = null;
         List<HBusiDataManager> tmp;
@@ -467,13 +458,15 @@ public class BgdZService implements BusiService {
                     Long gid = sequenceService.getSeq(BusiTypeEnum.BS.getType());
                     good.setId(gid);
                     good.setCreateDate(new Date());
-                    JSONObject __content = JSON.parseObject(gp.getContent());
-                    __content.put("pid", hp.getId());
+                    JSONObject sdContent = JSON.parseObject(gp.getContent());
+                    sdContent.put("pid", hp.getId());
                     _content.put("index", index);
-                    good.setContent(__content.toJSONString());
+                    sdContent.put("opt_type", "ADD");
+                    good.setContent(sdContent.toJSONString());
                     good.setType(BusiTypeEnum.BS.getType());
                     good.setCreateId(gp.getCreateId());
                     good.setCust_id(gp.getCust_id());
+                    good.setExt_2(gp.getExt_2());
                     good.setExt_3(gp.getExt_3());
                     good.setExt_4(gp.getExt_4());
                     good.setExt_5(String.valueOf(index));//商品序号

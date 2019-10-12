@@ -87,7 +87,7 @@ public class MongoFileService {
             return new byte[]{};
         }
         GridFSBucket bucket = GridFSBuckets.create(mongoDbFactory.getDb());
-        GridFSDownloadStream in = bucket.openDownloadStream(gridFSFile.getObjectId());
+        GridFSDownloadStream in = bucket.openDownloadStream(gridFSFile.getFilename());
         GridFsResource resource = new GridFsResource(gridFSFile, in);
         InputStream inputStream = resource.getInputStream();
         byte[] f = getBytes(inputStream);

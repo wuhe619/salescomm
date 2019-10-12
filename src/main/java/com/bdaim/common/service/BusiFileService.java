@@ -35,7 +35,7 @@ public class BusiFileService {
     /*
      * 按ID获取文件
      */
-    public JSONObject getInfo(String cust_id, String cust_group_id, long cust_user_id, String busiType, Long id, JSONObject param) throws Exception {
+    public JSONObject doInfo(String cust_id, String cust_group_id, long cust_user_id, String busiType, Long id, JSONObject param) throws Exception {
         JSONObject jo = null;
 
         String sql = "select content, cust_id, cust_group_id, cust_user_id, create_id, create_date, update_id, update_date,file_type,file_name,file_size,file_id,ext_1 from f_file where type=? and id=? ";
@@ -70,7 +70,8 @@ public class BusiFileService {
 
             //执行自定义单数据规则
             BusiService busiService = (BusiService) SpringContextHelper.getBean("busi_" + busiType);
-            busiService.getInfo(busiType, cust_id, cust_group_id, cust_user_id, id, jo, param);
+            if(busiService!=null)
+            	busiService.doInfo(busiType, cust_id, cust_group_id, cust_user_id, id, jo, param);
         } catch (Exception e) {
             logger.error(e.getMessage());
             throw new Exception("数据格式错误！");

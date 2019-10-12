@@ -16,6 +16,10 @@ import com.bdaim.resource.dao.SourceDao;
 import com.bdaim.resource.entity.MarketResourceEntity;
 import com.bdaim.supplier.dto.SupplierEnum;
 import io.searchbox.core.SearchResult;
+import net.sf.json.xml.XMLSerializer;
+import org.dom4j.Document;
+import org.dom4j.Element;
+import org.dom4j.io.SAXReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +30,9 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.sql.Timestamp;
 import java.util.*;
 
@@ -694,4 +701,73 @@ public class ServiceUtils {
         json.put("type", BusiTypeEnum.SF.getType());
         addDataToES("-1", BusiTypeEnum.SF.getType(), json);
     }
+
+    /**
+     * XML格式转为map格式
+     * @param xmlString
+     * @return
+     */
+    public static Map<String , String> xmlToMap(String xmlString) {
+
+        Map<String, String> map = new HashMap<String, String>();
+        try {
+            InputStream inputStream = null;
+            ByteArrayInputStream byteArrayInputStream2 = new ByteArrayInputStream(xmlString.getBytes(Charset.forName("UTF-8")));
+
+            inputStream = byteArrayInputStream2;
+            SAXReader reader = new SAXReader();
+            Document doc = reader.read(inputStream);
+            Element rootElement = doc.getRootElement();
+            List<Element> elements = rootElement.elements();
+            for (Element el : elements) {
+                map.put(el.getName(), el.getText());
+            }
+            inputStream.close();
+            System.out.println(map);
+            return map;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public static void xml2Json(String xml){
+        XMLSerializer xmlSerializer = new XMLSerializer();
+        String resutStr = xmlSerializer.read(xml).toString();
+        net.sf.json.JSONObject result = net.sf.json.JSONObject.fromObject(resutStr);
+
+        System.out.println(result);
+    }
+    public static void main(String[] args) {
+        String  xmlString="<Package>" +
+                "<EnvelopInfo>" +
+                "<version>1.0</version>" +
+                "<message_id>E0100000000000000000020062017030116002400000509609</message_id>" +
+                "<file_name>E0100000000000000000020062017030116002400000509609.EXP</file_name>" +
+                "<message_type>EXP312</message_type>" +
+                "<sender_id>E010000</sender_id>" +
+                "<receiver_id>000000000000002006</receiver_id>" +
+                "<send_time>2017-03-01T15:27:51</send_time>" +
+                "</EnvelopInfo>" +
+                "<DataInfo>" +
+                "<SignedData>" +
+                "<Data>" +
+                "<EXP312 xmlns=\"http://www.w3.org/2000/09/xmldsig#\">" +
+                "<ExpMftHead>" +
+                "<BillNo>BillNoBillNoBillNoBil20170301003</BillNo>" +
+                "<VoyageNo>VoNo20170301002</VoyageNo>" +
+                "<EntryDate>20170301152751</EntryDate>" +
+                "<RtnFlag>DY</RtnFlag>" +
+                "<Notes/>" +
+                "</ExpMftHead>" +
+                "</EXP312>" +
+                "</Data>" +
+                "<HashSign/>" +
+                "<SignerInfo/>" +
+                "</SignedData>" +
+                "</DataInfo>" +
+                "</Package>";
+        xml2Json(xmlString);
+    }
+
 }
