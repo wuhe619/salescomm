@@ -142,7 +142,7 @@ public class HBillService {
         try {
             StringBuffer querySql = new StringBuffer("SELECT id, busi_type busiType, cust_id custId, create_time createTime, IFNULL(amount / 100, 0)  unitPrice, content, IFNULL(amount / 100, 0) amount, IFNULL(prod_amount / 100, 0) prodAmount FROM t_resource_log WHERE 1=1");
             if (param.getMainId() != null) {
-                querySql.append(" AND batch_id =" + param.getMainId() + " ELSE null END");
+                querySql.append(" AND CASE WHEN JSON_VALID(content) THEN batch_id ='" + param.getMainId() + "' ELSE null END");
             }
             if (StringUtil.isNotEmpty(param.getTransactionId())) {
                 querySql.append(" AND id ='" + param.getTransactionId() + "'");
