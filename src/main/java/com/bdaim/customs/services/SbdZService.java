@@ -215,7 +215,8 @@ public class SbdZService implements BusiService {
                             js = (JSONObject) singles.get(i);
                             js.put("index", i + 1);
                             partyBillNos.add(js.getString("bill_no"));
-                            main_bill_no = js.getString("main_bill_no");
+                            main_bill_no = js.getString("ext_4");
+                            //main_bill_no = js.getString("main_bill_no");
                         }
                         List products = serviceUtils.listSdByBillNos(cust_id, BusiTypeEnum.SS.getType(), main_bill_no, partyBillNos, param);
                         for (int j = 0; j < products.size(); j++) {
@@ -242,7 +243,8 @@ public class SbdZService implements BusiService {
                             js = (JSONObject) singles.get(i);
                             js.put("index", i + 1);
                             partyBillNos.add(js.getString("bill_no"));
-                            main_bill_no = js.getString("main_bill_no");
+                            main_bill_no = js.getString("ext_4");
+                            //main_bill_no = js.getString("main_bill_no");
                         }
 
                         List products = serviceUtils.listSdByBillNos(cust_id, BusiTypeEnum.SS.getType(), main_bill_no, partyBillNos, param);
@@ -266,7 +268,7 @@ public class SbdZService implements BusiService {
                         for (int i = 0; i < singles.size(); i++) {
                             js = (JSONObject) singles.get(i);
                             //js.put("index", i + 1);
-                            js.put("main_bill_no", js.getString("main_bill_no"));
+                            js.put("main_bill_no", js.getString("ext_4"));
                         }
                         info.put("singles", singles);
                     }
