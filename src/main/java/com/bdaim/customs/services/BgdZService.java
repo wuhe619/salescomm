@@ -279,7 +279,7 @@ public class BgdZService implements BusiService {
     }
 
     @Deprecated
-    public void buildDanList(JSONObject info, Long id, List<HBusiDataManager> dataList, String custId, Long userId, HBusiDataManager h, String type) throws Exception {
+    public void buildDanList2(JSONObject info, Long id, List<HBusiDataManager> dataList, String custId, Long userId, HBusiDataManager h, String type) throws Exception {
         HBusiDataManager CZ = new HBusiDataManager();
         CZ.setType(BusiTypeEnum.BZ.getType());
         CZ.setId(id);

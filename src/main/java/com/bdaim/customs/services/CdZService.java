@@ -343,7 +343,7 @@ public class CdZService implements BusiService {
             _content.put("main_bill_no", json.get("bill_no"));
             hm.setContent(_content.toJSONString());
             dataList.add(hm);
-            List<HBusiDataManager> goods = serviceUtils.getDataList(BusiTypeEnum.SS.getType(), hp.getId().longValue());
+            List<HBusiDataManager> goods = serviceUtils.listSdByBillNo(custId,BusiTypeEnum.SS.getType(), hp.getExt_4(),hp.getExt_3());
             for (HBusiDataManager gp : goods) {
                 HBusiDataManager good = new HBusiDataManager();
                 gp.setType(BusiTypeEnum.CS.getType());
@@ -464,14 +464,14 @@ public class CdZService implements BusiService {
             if (goodList != null) {
                 for (HBusiDataManager gp : goodList) {
                     good = new HBusiDataManager();
-                    gp.setType(BusiTypeEnum.CS.getType());
+                    //gp.setType(BusiTypeEnum.CS.getType());
                     Long gid = sequenceService.getSeq(BusiTypeEnum.CS.getType());
                     good.setId(gid);
                     good.setCreateId(userId);
                     good.setCreateDate(new Date());
                     JSONObject sdContent = JSON.parseObject(gp.getContent());
                     sdContent.put("pid", hm.getId());
-                    _content.put("main_bill_no", _content.get("bill_no"));
+                    sdContent.put("main_bill_no", _content.get("bill_no"));
                     sdContent.put("opt_type", "ADD");
                     good.setContent(sdContent.toJSONString());
                     good.setType(BusiTypeEnum.CS.getType());

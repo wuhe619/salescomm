@@ -285,17 +285,6 @@ public class SbdZService implements BusiService {
             throw new TouchException("已经被提交，无法删除");
         }
 
-        /*List<HBusiDataManager> list = serviceUtils.getDataList(BusiTypeEnum.SF.getType(), id);
-        for (HBusiDataManager hBusiDataManager : list) {
-            List<HBusiDataManager> slist = serviceUtils.getDataList(BusiTypeEnum.SS.getType(), hBusiDataManager.getId().longValue());//所有税单
-            for (HBusiDataManager shBusiDataManager : slist) {
-                serviceUtils.deleteDatafromES(BusiTypeEnum.SS.getType(), shBusiDataManager.getId().toString());
-            }
-            serviceUtils.deleteDatafromES(BusiTypeEnum.SF.getType(), hBusiDataManager.getId().toString());
-            serviceUtils.delDataListByPid(BusiTypeEnum.SS.getType(), hBusiDataManager.getId().longValue());
-        }
-        serviceUtils.delDataListByPid(BusiTypeEnum.SF.getType(), id);*/
-
         List<HBusiDataManager> list = serviceUtils.listDataByPid(cust_id, BusiTypeEnum.SF.getType(), id, BusiTypeEnum.SZ.getType());
         JSONObject content;
         List<String> fdIds = new ArrayList<>();
@@ -450,15 +439,6 @@ public class SbdZService implements BusiService {
     public void buildPartyDan(List<HBusiDataManager> list, MainDan mainDan, Long userId, String custId, Long mainid, JSONObject info) throws Exception {
         List<PartyDan> partList = mainDan.getSingles();
         if (partList != null && partList.size() > 0) {
-            // 预先生成分单ID
-            /*long size = partList.size();
-            long maxId = sequenceService.getSeq(BusiTypeEnum.SF.getType(), size);
-            // 预先生成商品ID
-            long sSize = 0L;
-            for (PartyDan dan : partList) {
-                sSize += dan.getProducts().size();
-            }
-            long sMaxId = sequenceService.getSeq(BusiTypeEnum.SS.getType(), sSize);*/
             Map<String, JSONObject> resource = serviceUtils.getHResourceCacheData("duty_paid_rate");
             for (PartyDan dan : partList) {
                 if (StringUtil.isEmpty(dan.getMain_bill_no())) {
@@ -469,14 +449,6 @@ public class SbdZService implements BusiService {
                         p.setMain_bill_no(mainDan.getBill_no());
                     }
                 }
-                /*if (dan.getProducts() != null) {
-                    for (Product p : dan.getProducts()) {
-                        p.setId(String.valueOf(sMaxId - sSize));
-                        p.setMain_bill_no(mainDan.getBill_no());
-                        sSize--;
-                    }
-                }*/
-
                 buildSBDFenDan(0, dan, list, userId, custId, mainDan.getBill_no(), mainid, info, resource);
                 //size--;
             }
