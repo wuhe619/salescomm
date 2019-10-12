@@ -518,13 +518,13 @@ public class ServiceUtils {
      * @param userId
      * @param custId
      */
-    public void insertSFVerifyQueue(String content, long billId, long userId, String custId) {
+    public void insertSFVerifyQueue(String content, long billId, long userId, String custId, String batchId) {
         TResourceLog queue = new TResourceLog();
         queue.setCustId(custId);
         queue.setContent(content);
         queue.setBusiId(String.valueOf(billId));
         queue.setCustUserId(userId);
-        queue.setBatchId(CipherUtil.encodeByMD5(IDHelper.getID().toString()));
+        queue.setBatchId(batchId);
         queue.setCreateTime(new Timestamp(System.currentTimeMillis()));
         queue.setBusiType(1);
         queue.setSupplierId(SupplierEnum.ZAX.getSupplierId());

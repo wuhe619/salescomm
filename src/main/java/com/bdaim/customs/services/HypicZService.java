@@ -110,8 +110,10 @@ public class HypicZService implements BusiService {
                     data = JSON.parseObject(String.valueOf(m.getOrDefault("content", "")));
                     input.put("name", data.getString("receive_name"));
                     input.put("idCard", data.getString("id_no"));
+                    input.put("main_bill_no", info.getString("main_bill_no"));
+
                     content.put("input", input);
-                    serviceUtils.insertSFVerifyQueue(content.toJSONString(), NumberConvertUtil.parseLong(m.get("id")), cust_user_id, cust_id);
+                    serviceUtils.insertSFVerifyQueue(content.toJSONString(), NumberConvertUtil.parseLong(m.get("id")), cust_user_id, cust_id, info.getString("main_bill_no"));
                     if (data != null) {
                         data.put("check_status", "0");
                         jdbcTemplate.update(updateSql, data.toJSONString(), m.get("id"), BusiTypeEnum.SF.getType());
@@ -183,8 +185,8 @@ public class HypicZService implements BusiService {
 
     @Override
     public void deleteInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id) throws Exception {
-        HBusiDataManager manager = serviceUtils.getObjectByIdAndType(cust_id,id, busiType);
-        if(manager==null){
+        HBusiDataManager manager = serviceUtils.getObjectByIdAndType(cust_id, id, busiType);
+        if (manager == null) {
             throw new TouchException("无权操作");
         }
         if ("Y".equals(manager.getExt_1()) || "Y".equals(manager.getExt_2())) {
