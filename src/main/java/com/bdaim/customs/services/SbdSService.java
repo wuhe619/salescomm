@@ -94,7 +94,8 @@ public class SbdSService implements BusiService {
         info.put("duty_paid_price", duty_paid_price);//完税价格
         info.put("estimated_tax", estimated_tax);//预估税金
         info.put("tax_rate", tax_rate);//税率
-        info.put("total_price", 0);//价格合计
+        Double d = Double.valueOf(info.getString("g_qty")) * Double.valueOf(info.getString("decl_price"));
+        info.put("total_price", d);//价格合计
 
         serviceUtils.addDataToES(id.toString(), busiType, info);
 
@@ -117,7 +118,7 @@ public class SbdSService implements BusiService {
             pack_NO += Float.valueOf(info.getString("g_qty"));
         }
         jsonObject.put("weight", weight);
-        jsonObject.put("pack_no", pack_NO);
+        jsonObject.put("g_qty", pack_NO);
         Integer lowPricegoods = jsonObject.getInteger("low_price_goods");
         if (lowPricegoods == null) lowPricegoods = 0;
         jsonObject.put("low_price_goods", lowPricegoods + is_low_price);
@@ -175,7 +176,7 @@ public class SbdSService implements BusiService {
 
         List<HBusiDataManager> goodsList = serviceUtils.listSdByBillNo(cust_id,BusiTypeEnum.SS.getType(), fmanager.getExt_4(),fmanager.getExt_3());
         Double weight = 0d;  //重量
-        Double pack_NO = 0d; //数量
+        Double G_qty = 0d; //数量
         int lowPricegoods = 0; //低价商品数
         int is_low_price = 0;
         float festimated_tax = 0;//预估税金
@@ -208,13 +209,14 @@ public class SbdSService implements BusiService {
                 info.put("duty_paid_price", duty_paid_price);//完税价格
                 info.put("estimated_tax", estimated_tax);//预估税金
                 info.put("tax_rate", tax_rate);//税率
-                info.put("total_price", 0);//价格合计
+                Double total_price = Double.valueOf(info.getString("g_qty"))*Double.valueOf(info.getString("decl_price"));
+                info.put("total_price", total_price);//价格合计
             } else {
                 if (goods.containsKey("ggrosswt") && StringUtil.isNotEmpty(goods.getString("ggrosswt"))) {
                     weight += goods.getFloatValue("ggrosswt");
                 }
                 if (goods.containsKey("g_qty") && StringUtil.isNotEmpty(goods.getString("g_qty"))) {
-                    pack_NO += goods.getFloatValue("g_qty");
+                    G_qty += goods.getFloatValue("g_qty");
                 }
                 if (StringUtil.isNotEmpty(goods.getString("decl_price"))) {
                     if (Float.valueOf(goods.getString("decl_price")) < duty_paid_price) {
@@ -228,7 +230,7 @@ public class SbdSService implements BusiService {
         }
         fjson.put("weight_total", weight.floatValue());
         fjson.put("lowPricegoods", lowPricegoods);
-        fjson.put("pack_no", pack_NO);
+        fjson.put("g_gty", G_qty);
         fjson.put("estimated_tax", festimated_tax);
         serviceUtils.updateDataToES(BusiTypeEnum.SF.getType(), fmanager.getId().toString(), fjson);
         //serviceUtils.updateDataToES(BusiTypeEnum.SS.getType(),id.toString(),info);
