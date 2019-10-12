@@ -165,8 +165,6 @@ public class SbdZService implements BusiService {
             if (dfList != null && dfList.size() > 0) {
                 JSONObject content = new JSONObject();
                 content.put("main_id", id);
-                //主单号
-                content.put("main_bill_no", info.getString("ext_3"));
                 content.put("status", 0);
                 JSONObject input;
                 JSONObject data;
@@ -175,6 +173,8 @@ public class SbdZService implements BusiService {
                     input = new JSONObject();
                     // 身份核验待核验入队列
                     data = JSON.parseObject(String.valueOf(m.getOrDefault("content", "")));
+                    //主单号
+                    content.put("main_bill_no", data.getString("main_bill_no"));
                     input.put("name", data.getString("receive_name"));
                     input.put("idCard", data.getString("id_no"));
                     content.put("input", input);

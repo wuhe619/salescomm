@@ -110,10 +110,10 @@ public class HypicZService implements BusiService {
                     data = JSON.parseObject(String.valueOf(m.getOrDefault("content", "")));
                     input.put("name", data.getString("receive_name"));
                     input.put("idCard", data.getString("id_no"));
-                    input.put("main_bill_no", info.getString("main_bill_no"));
+                    content.put("main_bill_no", data.getString("main_bill_no"));
 
                     content.put("input", input);
-                    serviceUtils.insertSFVerifyQueue(content.toJSONString(), NumberConvertUtil.parseLong(m.get("id")), cust_user_id, cust_id, info.getString("main_bill_no"));
+                    serviceUtils.insertSFVerifyQueue(content.toJSONString(), NumberConvertUtil.parseLong(m.get("id")), cust_user_id, cust_id, content.getString("main_bill_no"));
                     if (data != null) {
                         data.put("check_status", "0");
                         jdbcTemplate.update(updateSql, data.toJSONString(), m.get("id"), BusiTypeEnum.SF.getType());
