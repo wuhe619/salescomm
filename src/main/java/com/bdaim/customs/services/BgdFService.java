@@ -73,11 +73,6 @@ public class BgdFService implements BusiService {
         List<HBusiDataManager> list = serviceUtils.listDataByPid(cust_id,busiType, pid.longValue(),BusiTypeEnum.BZ.getType());
         if (list != null && list.size() > 0) {
             for (HBusiDataManager hBusiDataManager : list) {
-               /* JSONObject jsonObject = JSONObject.parseObject(hBusiDataManager.getContent());
-                if (billNo.equals(jsonObject.getString("bill_no"))) {
-                    log.error("分单号【" + billNo + "】在主单【" + pid + "】中已经存在");
-                    throw new TouchException("分单号【" + billNo + "】在主单【" + pid + "】中已经存在");
-                }*/
                 if(billNo.equals(hBusiDataManager.getExt_3())){
                     log.error("分单号【" + billNo + "】在主单【" + bgdzd.getExt_3() + "】中已经存在");
                     throw new TouchException("分单号【" + billNo + "】在主单【" + bgdzd.getExt_3() + "】中已经存在");
