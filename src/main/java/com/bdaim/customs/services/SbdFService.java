@@ -195,7 +195,7 @@ public class SbdFService implements BusiService {
             }
             //dbManager.setContent(json.toJSONString());
             serviceUtils.updateDataToES(busiType, id.toString(), json);
-            totalPartDanToMainDan(json.getLongValue("pid"), BusiTypeEnum.SZ.getType(), id, cust_id);
+            totalPartDanToMainDan(json.getLongValue("pid"), BusiTypeEnum.SZ.getType(), id, cust_id,"update");
         }
     }
 
@@ -232,7 +232,7 @@ public class SbdFService implements BusiService {
         // 批量删除es税单
         elasticSearchService.bulkDeleteDocument(BusiTypeEnum.getEsIndex(BusiTypeEnum.SS.getType()), Constants.INDEX_TYPE, sdIds);
         Integer zid = json.getInteger("pid");
-        totalPartDanToMainDan(json.getLongValue("pid"), BusiTypeEnum.SZ.getType(), id, cust_id);
+        totalPartDanToMainDan(json.getLongValue("pid"), BusiTypeEnum.SZ.getType(), id, cust_id,"del");
         // 更新主单身份证照片数量
         json.put("id_no_pic", "");
         json.put("idcard_pic_flag", "0");
@@ -312,7 +312,7 @@ public class SbdFService implements BusiService {
      * @param type
      * @param id
      */
-    public void totalPartDanToMainDan(long zid, String type, Long id, String custId) {
+    public void totalPartDanToMainDan(long zid, String type, Long id, String custId,String optype) {
 
         List<HBusiDataManager> data = serviceUtils.listDataByPid(custId, BusiTypeEnum.SF.getType(), zid, BusiTypeEnum.SZ.getType());
         Float weightTotal = 0f;
@@ -343,7 +343,9 @@ public class SbdFService implements BusiService {
         String hcontent = manager.getContent();
         JSONObject jsonObject = JSONObject.parseObject(hcontent);
         jsonObject.put("weight_total", weightTotal);//总重量
-        jsonObject.put("party_total", data.size() - 1 < 0 ? 0 : data.size() - 1);//分单总数
+        if("del".equals(optype)) {
+            jsonObject.put("party_total", data.size() - 1 < 0 ? 0 : data.size() - 1);//分单总数
+        }
         Integer s = jsonObject.getInteger("low_price_goods");
         if (s == null) {
             s = 0;
