@@ -36,6 +36,11 @@ public class HBillService {
         if (StringUtil.isNotEmpty(param.getBillDate())) {
             querySql.append("AND create_time LIKE '" + param.getBillDate() + "%'");
         }
+        if (StringUtil.isNotEmpty(param.getStatus())) {
+            querySql.append(" AND JSON_EXTRACT(content, '$.status') =" + param.getStatus());
+        } else {
+            querySql.append(" AND JSON_EXTRACT(content, '$.status')>0");
+        }
         querySql.append(" GROUP BY batch_id,resource_id order by create_time desc ");
         Page data = customerDao.sqlPageQuery(querySql.toString(), param.getPageNum(), param.getPageSize());
         Map<String, Object> map = new HashMap<>();

@@ -147,6 +147,7 @@ public class TokenServiceImpl implements TokenService {
                         CustomerUserPropertyDO userProperty = customerUserDao.getProperty(String.valueOf(u.getId()), CustomerUserPropertyEnum.RESOURCE_MENU.getKey());
                         if (userProperty != null && StringUtil.isNotEmpty(userProperty.getPropertyValue())) {
                             userdetail.setResourceMenu(userProperty.getPropertyValue());
+                            userdetail.setStatus(u.getStatus().toString());
                             return userdetail;
                         }
                     }  else
@@ -218,10 +219,10 @@ public class TokenServiceImpl implements TokenService {
         // TODO Auto-generated method stub
         return null;
     }
-    
+
     public LoginUser opUser() {
         Token u = (LoginUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if(u instanceof LoginUser) 
+        if(u instanceof LoginUser)
         	return (LoginUser)u;
         else
             return new LoginUser(0L, "", "", null);

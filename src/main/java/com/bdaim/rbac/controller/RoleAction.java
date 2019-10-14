@@ -347,6 +347,7 @@ public class RoleAction extends BasicAction {
         net.sf.json.JSONObject result = new net.sf.json.JSONObject();
         if (flag) {
             result.put("result", true);
+            result.put("msg", "刪除成功");
         } else {
             result.put("result", false);
             result.put("msg", "现在的岗位正在被使用中，无法被删除");
