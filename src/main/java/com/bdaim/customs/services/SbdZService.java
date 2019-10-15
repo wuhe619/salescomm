@@ -146,14 +146,14 @@ public class SbdZService implements BusiService {
     }
 
     @Override
-    public void updateInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) {
+    public void updateInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) throws TouchException {
         // 身份核验
         if ("verification".equals(info.getString("_rule_"))) {
             //serviceUtils.esTestData();
             StringBuffer sql = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(BusiTypeEnum.SF.getType(), "") + " where type=?")
                     .append(" and cust_id='").append(cust_id).append("'")
-                    .append(" and (ext_7 IS NULL OR ext_7 = '' OR ext_7 = 2) ");
-            //.append(" and JSON_EXTRACT(content, '$.pid')=?");
+                    .append(" and (ext_7 IS NULL OR ext_7 = '' OR ext_7 = 2 OR JSON_EXTRACT(content, '$.check_status')='1') ");
+            //.append(" and JSON_EXTRACT(content, '$.check_status')=1");
 
             sql.append(" and ext_4=(SELECT ext_3 FROM " + HMetaDataDef.getTable(BusiTypeEnum.getParentType(BusiTypeEnum.SF.getType()), "") + " WHERE id = ?)");
 
@@ -162,6 +162,7 @@ public class SbdZService implements BusiService {
             sqlParams.add(id);
             // 根据主单查询待核验的分单列表
             List<Map<String, Object>> dfList = jdbcTemplate.queryForList(sql.toString(), sqlParams.toArray());
+            int failIdCardNum = 0;
             if (dfList != null && dfList.size() > 0) {
                 JSONObject content = new JSONObject();
                 content.put("main_id", id);
@@ -173,6 +174,14 @@ public class SbdZService implements BusiService {
                     input = new JSONObject();
                     // 身份核验待核验入队列
                     data = JSON.parseObject(String.valueOf(m.getOrDefault("content", "")));
+                    // 判断身份证是否合法
+                    if ("1".equals(data.getString("id_type"))) {
+                        if (StringUtil.isEmpty(data.getString("id_no"))) {
+                            failIdCardNum++;
+                        } else if (data.getString("id_no").length() != 18) {
+                            failIdCardNum++;
+                        }
+                    }
                     //主单号
                     content.put("main_bill_no", data.getString("main_bill_no"));
                     input.put("name", data.getString("receive_name"));
@@ -184,6 +193,13 @@ public class SbdZService implements BusiService {
                         jdbcTemplate.update(updateSql, data.toJSONString(), m.get("id"), BusiTypeEnum.SF.getType());
                     }
                 }
+                if (failIdCardNum > 0) {
+                    log.warn("申报单分单身份证号不合法[" + busiType + "]" + id);
+                    throw new TouchException("1000", "申报总数:" + dfList.size() + ",不合法数据总数:" + failIdCardNum);
+                    /*info.put("idCardNum", dfList.size());
+                    info.put("failIdCardNum", failIdCardNum);*/
+                }
+
             }
         } else {
             serviceUtils.updateDataToES(busiType, id.toString(), info);
