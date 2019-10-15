@@ -247,7 +247,7 @@ public class CdZService implements BusiService {
             if(iObj != null) {
                 String value = iObj.getPropertyValue();
                 JSONObject iJson = JSONObject.parseObject(value);
-                sendId = iJson.getString("send_id");
+                sendId = iJson.getString("sender_id");
             }
             log.info("send_id",sendId);
             customerInfo.put("send_id",sendId);
