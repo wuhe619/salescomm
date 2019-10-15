@@ -488,6 +488,23 @@ public class CustomerService {
                         customerDao.dealCustomerInfo(customerId, "station_id", vo.getStationId());
                     }
                 }
+                //海关企业属性信息
+                //货主单位名称
+                if (StringUtil.isNotEmpty(vo.getOwner_name())) {
+                    if (StringUtil.isNotEmpty(vo.getCustId())) {
+                        customerDao.dealCustomerInfo(vo.getCustId(), "owner_name", vo.getOwner_name());
+                    } else {
+                        customerDao.dealCustomerInfo(customerId, "owner_name", vo.getOwner_name());
+                    }
+                }
+                //申报单位代码
+                if (StringUtil.isNotEmpty(vo.getAgent_code())) {
+                    if (StringUtil.isNotEmpty(vo.getCustId())) {
+                        customerDao.dealCustomerInfo(vo.getCustId(), "agent_code", vo.getAgent_code());
+                    } else {
+                        customerDao.dealCustomerInfo(customerId, "agent_code", vo.getAgent_code());
+                    }
+                }
                 //创建企业id
                 if (StringUtil.isNotEmpty(vo.getCreateId())) {
                     if (StringUtil.isNotEmpty(vo.getCustId())) {
@@ -3787,6 +3804,14 @@ public class CustomerService {
                     customerUserPropertyDao.dealUserPropertyInfo(vo.getUserId(), "mobile_num", vo.getMobile());
                 } else {
                     customerUserPropertyDao.dealUserPropertyInfo(String.valueOf(userId), "mobile_num", vo.getMobile());
+                }
+            }
+            //报关员代码
+            if (StringUtil.isNotEmpty(vo.getDeclare_no())) {
+                if (StringUtil.isNotEmpty(vo.getUserId())) {
+                    customerUserPropertyDao.dealUserPropertyInfo(vo.getUserId(), "declare_no", vo.getDeclare_no());
+                } else {
+                    customerUserPropertyDao.dealUserPropertyInfo(String.valueOf(userId), "declare_no", vo.getDeclare_no());
                 }
             }
             if (StringUtil.isNotEmpty(vo.getResource())) {
