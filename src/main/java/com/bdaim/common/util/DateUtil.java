@@ -809,7 +809,8 @@ public class DateUtil {
 //        Timestamp s = new Timestamp(d.getTime());
 //        System.out.println(s);
 
-        String s2=DateUtil.fmtDateToStr(new Date(),"yyyyMMddHHmmssZZZ");
+        String s2=DateUtil.fmtDateToStr(new Date(),"yyyyMMddHHmmss");
         System.out.println(s2);
+
     }
 }

@@ -2,13 +2,20 @@ package com.bdaim.customs.services;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.service.BusiService;
 import com.bdaim.common.service.ElasticSearchService;
 import com.bdaim.common.service.SequenceService;
 import com.bdaim.common.util.BaoguandanXmlEXP301;
 import com.bdaim.common.util.StringUtil;
+import com.bdaim.common.util.page.PageList;
 import com.bdaim.customer.dao.CustomerDao;
+import com.bdaim.customer.dao.CustomerUserDao;
+import com.bdaim.customer.dto.CustomerRegistDTO;
+import com.bdaim.customer.entity.CustomerUser;
+import com.bdaim.customer.entity.CustomerUserPropertyDO;
+import com.bdaim.customer.service.CustomerService;
 import com.bdaim.customs.dao.HBusiDataManagerDao;
 import com.bdaim.customs.entity.BusiTypeEnum;
 import com.bdaim.customs.entity.HBusiDataManager;
@@ -52,6 +59,13 @@ public class BgdFService implements BusiService {
 
     @Autowired
     private BaoguandanXmlEXP301 baoguandanXmlEXP301;
+
+    @Autowired
+    private CustomerService customerService;
+
+    @Autowired
+    private CustomerUserDao customerUserDao;
+
 
     @Override
     public void insertInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) throws Exception {
@@ -182,7 +196,26 @@ public class BgdFService implements BusiService {
             list = jdbcTemplate.queryForList(mainsql, BusiTypeEnum.BZ.getType(), jo.getString("pid"));
             Map<String,Object> mainMap = list.get(0);
             List<HBusiDataManager> list2 = serviceUtils.listSdByBillNo(cust_id,BusiTypeEnum.BS.getType(),mainMap.get("ext_3").toString(),jo.getString("bill_no"));
-            String xmlString = baoguandanXmlEXP301.createXml(mainMap,m,list2);
+            Map<String,Object> customerInfo = getCustomerInfo(cust_id);
+            CustomerUserPropertyDO propertyDO = customerUserDao.getProperty(cust_user_id.toString(),"declare_no");
+            CustomerUserPropertyDO iObj = customerUserDao.getProperty(cust_user_id.toString(),"i");
+            String sendId="";
+            if(iObj != null) {
+                String value = iObj.getPropertyValue();
+                JSONObject iJson = JSONObject.parseObject(value);
+                sendId = iJson.getString("send_id");
+            }
+            customerInfo.put("send_id",sendId);
+            CustomerUser customerUser = customerUserDao.get(cust_user_id);
+            customerInfo.put("input_name","");
+            customerInfo.put("declare_no","");
+            if(customerUser!=null){
+                customerInfo.put("input_name",customerUser.getRealname());
+            }
+            if(propertyDO!=null){
+                customerInfo.put("declare_no",propertyDO.getPropertyValue());
+            }
+            String xmlString = baoguandanXmlEXP301.createXml(mainMap,m,list2,customerInfo);
             info.put("xml",xmlString);
 
             sql = "UPDATE "+HMetaDataDef.getTable(busiType,"")+" SET ext_1 = '1', ext_date1 = NOW(), content=? WHERE id = ? AND type = ? AND IFNULL(ext_1,'') <>'1' ";
@@ -241,5 +274,16 @@ public class BgdFService implements BusiService {
 
     }
 
+
+    private Map<String,Object> getCustomerInfo(String custId){
+        PageParam pageParam = new PageParam();
+        pageParam.setPageNum(1);
+        pageParam.setPageSize(1);
+        CustomerRegistDTO customerRegistDTO = new CustomerRegistDTO();
+        customerRegistDTO.setCustId(custId);
+        PageList pageList = customerService.getCustomerInfo(pageParam,customerRegistDTO);
+        List list = pageList.getList();
+        return (Map<String, Object>) list.get(0);
+    }
 
 }
