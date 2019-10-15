@@ -83,6 +83,7 @@ public class SbdFService implements BusiService {
         info.put("pid", pid);
         info.put("ext_3", billNo);
         info.put("ext_4", sbdzd.getExt_3());
+        info.put("mail_bill_no",sbdzd.getExt_3());
 
         serviceUtils.addDataToES(id.toString(), busiType, info);
         JSONObject jsonObject = JSONObject.parseObject(sbdzd.getContent());
