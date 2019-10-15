@@ -68,6 +68,7 @@ public class SbdZService implements BusiService {
         List<HBusiDataManager> list = new ArrayList<>();
         MainDan mainDan = JSON.parseObject(info.toJSONString(), MainDan.class);
         try {
+            // 构造主单 分单 税单数据
             buildMain(info, list, mainDan, cust_user_id, cust_id, station_idProperty.getPropertyValue(), id);
             log.info("has " + list.size() + " data");
             if (list != null && list.size() > 0) {
@@ -558,15 +559,18 @@ public class SbdZService implements BusiService {
             json.put("idcard_pic_flag", "0");
             json.put("pid", mainid);
             JSONArray jsonArray = arrt.getJSONArray("main_goods_name");
-            String mainGoodsName = "";
+            /*String mainGoodsName = "";
             if (jsonArray != null && jsonArray.size() > 0) {
                 for (int i = 0; i < jsonArray.size(); i++) {
                     JSONObject obj = jsonArray.getJSONObject(i);
                     mainGoodsName += obj.getString("name") + "|" + obj.getString("name_en") + "|" + obj.getString("g_model");
                 }
-            }
+            }*/
             json.put("total_value", arrt.getString("total_value"));
-            json.put("main_gname", mainGoodsName);
+            //json.put("main_gname", mainGoodsName);
+            // 计算主要货物
+            json.put("main_gname", serviceUtils.generateFDMainGName(pList));
+
             json.put("low_price_goods", arrt.getString("low_price_goods"));
             if (info.containsKey("low_price_goods") && info.getInteger("low_price_goods") != null) {
                 int low_price_goods = info.getInteger("low_price_goods");
@@ -585,7 +589,7 @@ public class SbdZService implements BusiService {
 
     public void buildGoods0(List<HBusiDataManager> list, List<Product> pList, Long userId, String custId, String pid, JSONObject arrt, Map<String, JSONObject> resource, String main_bill_no) throws Exception {
         if (pList != null && pList.size() > 0) {
-            List<Map<String, String>> mainGoodsName = new ArrayList<>();
+            //List<Map<String, String>> mainGoodsName = new ArrayList<>();
             HBusiDataManager dataManager;
             arrt.put("low_price_goods", 0);
             Double total_value = 0d;
@@ -634,7 +638,7 @@ public class SbdZService implements BusiService {
                         }
 
                     }
-                    if (mainGoodsName.size() < 3) {
+                    /*if (mainGoodsName.size() < 3) {
                         Map<String, String> smap = new HashMap<>();
                         smap.put("name", product.getG_name() == null ? "" : product.getG_name());
                         smap.put("name_en", product.getG_name_en() == null ? "" : product.getG_name_en());
@@ -642,7 +646,7 @@ public class SbdZService implements BusiService {
                         smap.put("price", product.getDecl_price() == null ? "0" : product.getDecl_price());
                         mainGoodsName.add(smap);
 
-                    }
+                    }*/
                     if (is_low_price == 1) {
                         if (arrt.containsKey("low_price_goods")) {
                             arrt.put("low_price_goods", arrt.getInteger("low_price_goods") + 1);
@@ -650,7 +654,7 @@ public class SbdZService implements BusiService {
                             arrt.put("low_price_goods", 1);
                         }
                     }
-                    arrt.put("main_goods_name", mainGoodsName);
+                    //arrt.put("main_goods_name", mainGoodsName);
                     json.put("is_low_price", is_low_price);
                     String G_QTY = product.getG_qty();
                     String decl_price = product.getDecl_price();
