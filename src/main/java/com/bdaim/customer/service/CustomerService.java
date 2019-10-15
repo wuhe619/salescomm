@@ -655,7 +655,7 @@ public class CustomerService {
                 "cjc.industry,cjc.salePerson,cjc.contactAddress,\n" +
                 "cjc.province,cjc.city,cjc.fixPrice,cjc.county,cjc.taxpayerId,\n" +
                 "cjc.bli_path AS bliPic,\n" +
-                "cjc.bank,cjc.bankAccount,cjc.stationId,\n" +
+                "cjc.bank,cjc.bankAccount,cjc.owner_name,cjc.agent_code,cjc.stationId,\n" +
                 "cjc.bank_account_certificate AS bankAccountPic\n" +
                 "FROM t_customer t1\n" +
                 "LEFT JOIN t_customer_user t2   ON t1.cust_id = t2.cust_id \n" +
@@ -674,7 +674,9 @@ public class CustomerService {
                 "\tmax(CASE property_name WHEN 'address_fix_price'   THEN property_value ELSE '' END ) fixPrice,\n" +
                 "\tmax(CASE property_name WHEN 'bli_path'   THEN property_value ELSE '' END ) bli_path,\n" +
                 "\tmax(CASE property_name WHEN 'bank'   THEN property_value ELSE '' END ) bank,\n" +
-                "\tmax(CASE property_name WHEN 'bank_account'   THEN property_value ELSE '' END ) bankAccount,\n" +
+                "\tmax(CASE property_name WHEN 'bli_path'   THEN property_value ELSE '' END ) bli_path,\n" +
+                "\tmax(CASE property_name WHEN 'owner_name'   THEN property_value ELSE '' END ) owner_name,\n" +
+                "\tmax(CASE property_name WHEN 'agent_code'   THEN property_value ELSE '' END ) agent_code,\n" +
                 "\tmax(CASE property_name WHEN 'bank_account_certificate'   THEN property_value ELSE '' END ) bank_account_certificate,\n" +
                 "\tmax(CASE property_name WHEN 'station_id'   THEN property_value ELSE '' END ) stationId,\n" +
                 "\tmax(CASE property_name WHEN 'create_id'   THEN property_value ELSE '' END ) createId,\n" +
