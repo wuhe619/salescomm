@@ -201,8 +201,8 @@ public class SbdZService implements BusiService {
                     info.put("failIdCardNum", failIdCardNum);*/
                 }
             }else{
-                log.warn("申报单分单校验中,请等待[" + busiType + "]" + id);
-                throw new TouchException("1000", "申报单分单校验中,请等待");
+                log.warn("申报单分单校验已完成[" + busiType + "]" + id);
+                throw new TouchException("1000", "申报单分单校验已完成");
             }
         } else {
             serviceUtils.updateDataToES(busiType, id.toString(), info);

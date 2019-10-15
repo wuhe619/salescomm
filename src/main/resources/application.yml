@@ -6,7 +6,7 @@ spring:
     driver-class-name: com.mysql.jdbc.Driver
     username: dev
     password: dev__807
-    url: jdbc:mysql://192.168.32.200/bp?characterEncoding=utf-8&useSSL=false&zeroDateTimeBehavior=convertToNull
+    url: jdbc:mysql://192.168.32.200/customs?characterEncoding=utf-8&useSSL=false&zeroDateTimeBehavior=convertToNull
     #url: jdbc:mysql://127.0.0.1/label?characterEncoding=utf-8&useSSL=false
     hikari:
       auto-commit: true

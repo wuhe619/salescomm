@@ -2,13 +2,20 @@ package com.bdaim.customs.services;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.service.BusiService;
 import com.bdaim.common.service.ElasticSearchService;
 import com.bdaim.common.service.SequenceService;
 import com.bdaim.common.util.CangdanXmlEXP311;
 import com.bdaim.common.util.StringUtil;
+import com.bdaim.common.util.page.PageList;
 import com.bdaim.customer.dao.CustomerDao;
+import com.bdaim.customer.dao.CustomerUserDao;
+import com.bdaim.customer.dto.CustomerRegistDTO;
+import com.bdaim.customer.entity.CustomerUser;
+import com.bdaim.customer.entity.CustomerUserPropertyDO;
+import com.bdaim.customer.service.CustomerService;
 import com.bdaim.customs.entity.BusiTypeEnum;
 import com.bdaim.customs.entity.Constants;
 import com.bdaim.customs.entity.HBusiDataManager;
@@ -31,13 +38,13 @@ import java.util.*;
 @Transactional
 public class CdZService implements BusiService {
 
-    private static Logger log = LoggerFactory.getLogger(BusiService.class);
+    private static Logger log = LoggerFactory.getLogger(CdZService.class);
 
     @Autowired
     private ElasticSearchService elasticSearchService;
 
     @Autowired
-    private CustomerDao customerDao;
+    private CustomerUserDao customerUserDao;
 
     @Resource
     private JdbcTemplate jdbcTemplate;
@@ -53,6 +60,9 @@ public class CdZService implements BusiService {
 
     @Autowired
     private CangdanXmlEXP311 cangdanXmlEXP311;
+
+    @Autowired
+    private CustomerService customerService;
 
 
     @Override
@@ -184,7 +194,7 @@ public class CdZService implements BusiService {
             }
             info.put("_export_cd_z_main_data", content);
         }else if ("HAIGUAN".equals(param.getString("_rule_"))) {
-            String sql = "select content, cust_id, cust_group_id, cust_user_id, create_id, create_date ,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(busiType, "") + " where type=? and id=? ";
+            String sql = "select id,content, cust_id, cust_group_id, cust_user_id, create_id, create_date ,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(busiType, "") + " where type=? and id=? ";
             List<Map<String, Object>> list = jdbcTemplate.queryForList(sql, busiType, id);
             if (list.size() == 0) {
                 log.warn("舱单主单数据不存在[" + busiType + "]" + id);
@@ -228,8 +238,32 @@ public class CdZService implements BusiService {
             String selectSql = "select id, type, content, cust_id, cust_group_id, cust_user_id, create_id, create_date ,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(BusiTypeEnum.CF.getType(), "") + " WHERE ext_4=(SELECT ext_3 FROM " + HMetaDataDef.getTable(BusiTypeEnum.CZ.getType(), "") + " WHERE id = ?) AND type = ? AND IFNULL(ext_1,'') <>'1' ";
             List<Map<String, Object>> ds = jdbcTemplate.queryForList(selectSql, id, BusiTypeEnum.CF.getType());
             //start to create xml file
+            log.info("starto to create xml file");
+            Map<String,Object> customerInfo = getCustomerInfo(cust_id);
+            log.info("getCustomerInfo 查询企业信息，"+customerInfo);
+            CustomerUserPropertyDO iObj = customerUserDao.getProperty(cust_user_id.toString(),"i");
+            log.info("CustomerUserPropertyDO",iObj);
+            String sendId="";
+            if(iObj != null) {
+                String value = iObj.getPropertyValue();
+                JSONObject iJson = JSONObject.parseObject(value);
+                sendId = iJson.getString("sender_id");
+            }
+            log.info("send_id",sendId);
+            customerInfo.put("send_id",sendId);
+            CustomerUser customerUser = customerUserDao.get(cust_user_id);
+            log.info("customerUser",customerUser);
+            CustomerUserPropertyDO propertyDO = customerUserDao.getProperty(cust_user_id.toString(),"declare_no");
+            customerInfo.put("input_name","");
+            customerInfo.put("declare_no","");
+            if(customerUser!=null){
+                customerInfo.put("input_name",customerUser.getRealname());
+            }
+            if(propertyDO!=null){
+                customerInfo.put("declare_no",propertyDO.getPropertyValue());
+            }
             log.info("舱单分单数："+ds.size());
-            String xmlString = cangdanXmlEXP311.createXml(m, ds);
+            String xmlString = cangdanXmlEXP311.createXml(m, ds,customerInfo);
             info.put("xml",xmlString);
 
             sql = "UPDATE " + HMetaDataDef.getTable(busiType, "") + " SET ext_1 = '1', ext_date1 = NOW(), content=? WHERE id = ?  AND type = ?  ";
@@ -575,4 +609,14 @@ public class CdZService implements BusiService {
     }
 
 
+    private Map<String,Object> getCustomerInfo(String custId){
+        PageParam pageParam = new PageParam();
+        pageParam.setPageNum(1);
+        pageParam.setPageSize(1);
+        CustomerRegistDTO customerRegistDTO = new CustomerRegistDTO();
+        customerRegistDTO.setCustId(custId);
+        PageList pageList = customerService.getCustomerInfo(pageParam,customerRegistDTO);
+        List list = pageList.getList();
+        return (Map<String, Object>) list.get(0);
+    }
 }
