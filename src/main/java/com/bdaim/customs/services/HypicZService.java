@@ -50,7 +50,7 @@ public class HypicZService implements BusiService {
     @Override
     public void insertInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) throws Exception {
         busiType = BusiTypeEnum.HY_PIC_X.getType();
-        String sql1 = "insert into " + HMetaDataDef.getTable(busiType, "") + "(id, type, content, cust_id, cust_group_id, cust_user_id, create_id, create_date, ext_1,ext_3, ext_4 ) value(?, ?, ?, ?, ?, ?, ?, now(), ?, ?, ?)";
+        String sql1 = "insert into " + HMetaDataDef.getTable(busiType, "") + "(id, type, content, cust_id, cust_group_id, cust_user_id, create_id, create_date, ext_2,ext_3, ext_4 ) value(?, ?, ?, ?, ?, ?, ?, now(), ?, ?, ?)";
         String batchId = info.getString("bill_no");
         String batchName = info.getString("batch_name");
         //查询批次详情数据
@@ -74,6 +74,7 @@ public class HypicZService implements BusiService {
             info.put("ext_5", batchName);
             //批次状态
             info.put("ext_2", 0);
+            info.put("status", 0);
             //批次id
             info.put("ext_3", batchId);
         }
