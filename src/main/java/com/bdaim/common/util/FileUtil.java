@@ -235,4 +235,22 @@ public class FileUtil {
         response.getOutputStream().write(content.getBytes("UTF-8"));
     }
 
+    /**
+     * 输入流转为字节数组
+     * @param ins
+     * @return
+     */
+    public static byte[] saveInsToByteArray(InputStream ins) {
+        byte[] buf = null;
+        try {
+            if (ins != null) {
+                //ins为InputStream流
+                buf = org.apache.commons.io.IOUtils.toByteArray(ins);
+            }
+        } catch (IOException e) {
+            LOG.error("输入流转为字节失败,{}", e);
+        }
+        return buf;
+    }
+
 }
