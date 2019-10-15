@@ -264,11 +264,60 @@ public class SbdZService implements BusiService {
                     // 预估税单
                     singles = serviceUtils.queryChildData(BusiTypeEnum.SF.getType(), cust_id, cust_group_id, cust_user_id, id, param);
                     if (singles != null) {
-                        JSONObject js;
+                        JSONObject js, product, content;
+                        String main_bill_no = "", billNo;
+                        List partyBillNos = new ArrayList();
+
                         for (int i = 0; i < singles.size(); i++) {
                             js = (JSONObject) singles.get(i);
                             //js.put("index", i + 1);
+                            partyBillNos.add(js.getString("bill_no"));
                             js.put("main_bill_no", js.getString("ext_4"));
+                            main_bill_no = js.getString("ext_4");
+                        }
+                        Map<String, List<JSONObject>> data = new HashMap<>();
+                        List<JSONObject> list;
+                        // 查询分单下的所有税单
+                        List products = serviceUtils.listSdByBillNos(cust_id, BusiTypeEnum.SS.getType(), main_bill_no, partyBillNos, param);
+                        for (int j = 0; j < products.size(); j++) {
+                            product = (JSONObject) products.get(j);
+                            content = JSON.parseObject(product.getString("content"));
+                            product.putAll(content);
+
+                            billNo = content.getString("bill_no");
+                            if (data.get(billNo) == null) {
+                                list = new ArrayList();
+                            } else {
+                                list = data.get(billNo);
+                            }
+                            list.add(content);
+                            data.put(content.getString("bill_no"), list);
+                        }
+                        JSONObject fdData;
+                        StringBuffer gName;
+                        String split = "|";
+                        double estimated_tax;
+                        for (int i = 0; i < singles.size(); i++) {
+                            gName = new StringBuffer();
+                            estimated_tax = 0.0;
+                            fdData = (JSONObject) singles.get(i);
+                            // 商品名称处理
+                            list = data.get(fdData.getString("bill_no"));
+                            if (list != null) {
+                                for (JSONObject fd : list) {
+                                    gName.append(fd.getString("g_name"))
+                                            .append(split)
+                                            .append(fd.getString("g_model"))
+                                            .append(split)
+                                            .append("(").append(fd.getString("g_qty")).append("*").append(fd.getString("decl_price")).append("),");
+                                    estimated_tax += fd.getDoubleValue("estimated_tax");
+                                }
+                            }
+                            fdData.put("g_name", gName.toString());
+                            // 件数统计
+                            fdData.put("pack_no", list != null ? list.size() : 0);
+                            // 预估税金统计
+                            fdData.put("estimated_tax", estimated_tax);
                         }
                         info.put("singles", singles);
                     }
