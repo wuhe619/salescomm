@@ -89,6 +89,7 @@ public class BgdFService implements BusiService {
         info.put("opt_type", "APD");
         info.put("ext_3",billNo);
         info.put("ext_4",bgdzd.getExt_3());
+        info.put("main_bill_no",bgdzd.getExt_3());
         serviceUtils.addDataToES(id.toString(), busiType, info);
         JSONObject jsonObject = JSONObject.parseObject(bgdzd.getContent());
         if (info.containsKey("weight") && info.getString("weight") != null) {
