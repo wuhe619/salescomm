@@ -89,6 +89,7 @@ public class BgdFService implements BusiService {
         info.put("opt_type", "APD");
         info.put("ext_3",billNo);
         info.put("ext_4",bgdzd.getExt_3());
+        info.put("main_bill_no",bgdzd.getExt_3());
         serviceUtils.addDataToES(id.toString(), busiType, info);
         JSONObject jsonObject = JSONObject.parseObject(bgdzd.getContent());
         if (info.containsKey("weight") && info.getString("weight") != null) {
@@ -176,9 +177,6 @@ public class BgdFService implements BusiService {
             if (m.get("ext_5") != null && !"".equals(m.get("ext_5")))
                 jo.put("ext_5", m.get("ext_5"));
 
-            sql = "UPDATE "+HMetaDataDef.getTable(busiType,"")+" SET ext_1 = '1', ext_date1 = NOW(), content=? WHERE id = ? AND type = ? AND IFNULL(ext_1,'') <>'1' ";
-            jdbcTemplate.update(sql, jo.toJSONString(), id, busiType);
-            serviceUtils.updateDataToES(BusiTypeEnum.BF.getType(), id.toString(), jo);
             //start to create xml
             String mainsql = "select content, cust_id, cust_group_id, cust_user_id, create_id, create_date ,ext_1, ext_2, ext_3, ext_4, ext_5 from "+ HMetaDataDef.getTable(BusiTypeEnum.BZ.getType(),"")+" where type=? and id=? ";
             list = jdbcTemplate.queryForList(mainsql, BusiTypeEnum.BZ.getType(), jo.getString("pid"));
@@ -186,6 +184,11 @@ public class BgdFService implements BusiService {
             List<HBusiDataManager> list2 = serviceUtils.listSdByBillNo(cust_id,BusiTypeEnum.BS.getType(),mainMap.get("ext_3").toString(),jo.getString("bill_no"));
             String xmlString = baoguandanXmlEXP301.createXml(mainMap,m,list2);
             info.put("xml",xmlString);
+
+            sql = "UPDATE "+HMetaDataDef.getTable(busiType,"")+" SET ext_1 = '1', ext_date1 = NOW(), content=? WHERE id = ? AND type = ? AND IFNULL(ext_1,'') <>'1' ";
+            jdbcTemplate.update(sql, jo.toJSONString(), id, busiType);
+            serviceUtils.updateDataToES(BusiTypeEnum.BF.getType(), id.toString(), jo);
+
         }else {
             // 查询报关单主单数据,合并到分单中
             long pid = info.getLong("pid");

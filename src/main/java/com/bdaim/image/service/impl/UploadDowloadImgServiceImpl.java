@@ -150,7 +150,7 @@ public class UploadDowloadImgServiceImpl implements UploadDowloadService {
         String pictureName = null;
         if (!file1.exists()) {
             try {
-                pictureName = uploadFileService.uploadFile(file, BusinessEnum.CUSTOMS, false);
+                pictureName = uploadFileService.uploadFile(file, BusinessEnum.CUSTOMS, true);
 
                 file1.getParentFile().mkdirs();
                 file1.createNewFile();
@@ -868,7 +868,7 @@ public class UploadDowloadImgServiceImpl implements UploadDowloadService {
                         //mongoFileService.saveFile(multiRequestFile, pictureName);
                         /*File localFile = new File(sPath);
                         file1.transferTo(localFile);*/
-                        pictureName = uploadFileService.uploadFile(multiRequestFile, BusinessEnum.ONLINE, false);
+                        pictureName = uploadFileService.uploadFile(multiRequestFile, BusinessEnum.ONLINE, true);
 
                         File desFile = new File(sPath);
                         FileUtils.copyInputStreamToFile(multiRequestFile.getInputStream(), desFile);
@@ -1169,6 +1169,10 @@ public class UploadDowloadImgServiceImpl implements UploadDowloadService {
             String fileType = fileInfo.getFileType();
             if (StringUtil.isEmpty(fileType)) {
                 fileType = fileInfo.getFileName().substring(fileInfo.getFileName().lastIndexOf("."));
+            } else {
+                if (fileType.indexOf(".") < 0) {
+                    fileType = "." + fileType;
+                }
             }
             file = new File(filePath + fileType);
             try (FileInputStream fis = new FileInputStream(file)) {

@@ -80,7 +80,7 @@ public class CustomerUserDao extends SimpleHibernateDao<CustomerUser, Serializab
 
     public List<CustomerUser> getAllByCustId(String custId) {
         CustomerUser cp = null;
-        String hql = "from CustomerUser m where m.cust_id=?";
+        String hql = "from CustomerUser m where m.cust_id=? and m.status!=2 ";
         List<CustomerUser> list = this.find(hql, custId);
         return list;
     }

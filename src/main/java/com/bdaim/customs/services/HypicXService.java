@@ -26,10 +26,10 @@ import java.util.*;
 /***
  * api批次
  */
-@Service("busi_hy_pic_z")
+@Service("busi_hy_pic_x")
 @Transactional
-public class HypicZService implements BusiService {
-    private static Logger log = LoggerFactory.getLogger(HypicZService.class);
+public class HypicXService implements BusiService {
+    private static Logger log = LoggerFactory.getLogger(HypicXService.class);
 
     @Autowired
     private CustomerDao customerDao;
@@ -55,18 +55,13 @@ public class HypicZService implements BusiService {
         String batchName = info.getString("batch_name");
         //查询批次详情数据
         String detailStr = info.getString("details");
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("status",0);
         if (StringUtil.isNotEmpty(detailStr)) {
             String details[] = detailStr.split(",");
             if (details.length > 0) {
                 for (int i = 0; i < details.length; i++) {
                     String detail = details[i];
                     id = sequenceService.getSeq(busiType);
-                    jsonObject.put("detailId",detail);
-                    jsonObject.put("custId",cust_id);
-                    jsonObject.put("batchId",batchId);
-                    jdbcTemplate.update(sql1, id, busiType, jsonObject.toJSONString(), cust_id, cust_group_id, cust_user_id, cust_user_id, 0, detail, batchId);
+                    jdbcTemplate.update(sql1, id, busiType, detail, cust_id, cust_group_id, cust_user_id, cust_user_id, 0, detail, batchId);
                 }
             }
             //构造住批次信息
@@ -213,18 +208,12 @@ public class HypicZService implements BusiService {
 
     @Override
     public String formatQuery(String busiType, String cust_id, String cust_group_id, Long cust_user_id, JSONObject params, List sqlParams) {
-        StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2 , ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(busiType, "") + " where type=?");
+        String _orderby_ = params.getString("_orderby_");
+        String _sort_ = params.getString("_sort_");
+        StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date,update_date,ext_1, ext_2 , ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(busiType, "") + " where type=?");
         if (!"all".equals(cust_id))
             sqlstr.append(" and cust_id='").append(cust_id).append("'");
         sqlParams.add(busiType);
-       /* String stationId = params.getString("stationId");
-       // 处理场站检索
-        if (StringUtil.isNotEmpty(stationId)) {
-            String stationSql = "SELECT cust_id FROM t_customer_property WHERE property_name='station_id' AND property_value = ?";
-            sqlstr.append(" and cust_id IN ( ").append(stationSql).append(" )");
-            sqlParams.add(stationId);
-        }*/
-
         Iterator keys = params.keySet().iterator();
         while (keys.hasNext()) {
             String key = (String) keys.next();
@@ -233,21 +222,18 @@ public class HypicZService implements BusiService {
                 continue;
             if ("cust_id".equals(key)) {
                 sqlstr.append(" and cust_id=?");
-            } else if ("batch_name".equals(key)) {
-                sqlstr.append(" and ext_5 like concat('%',?,'%')");
-            } else if (key.startsWith("_ge_")) {
-                sqlstr.append(" and  create_date >= ?");
-            } else if (key.startsWith("_le_")) {
-                sqlstr.append(" and create_date <= ?");
-            } else if ("bill_no".equals(key)) {
-                sqlstr.append(" and ext_3 = ?");
+            } else if ("batchId".equals(key)) {
+                sqlstr.append(" and ext_4 =?");
+            } else if ("detailId".equals(key)) {
+                sqlstr.append(" and ext_3 =?");
             } else if ("status".equals(key)) {
-                // 处理状态
-                sqlstr.append(" AND ext_2 =?");
+                sqlstr.append(" and ext_1 =?");
             } else continue;
             sqlParams.add(params.get(key));
         }
-        sqlstr.append(" ORDER BY create_date DESC, update_date DESC ");
+        if (StringUtil.isNotEmpty(_orderby_) && StringUtil.isNotEmpty(_sort_)) {
+            sqlstr.append(" ORDER BY ").append(_orderby_).append(" ").append(_sort_);
+        }
         return sqlstr.toString();
     }
 

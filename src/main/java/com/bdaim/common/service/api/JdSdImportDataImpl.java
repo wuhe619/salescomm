@@ -3,10 +3,10 @@ package com.bdaim.common.service.api;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.bdaim.common.util.redis.RedisUtil;
+import com.bdaim.common.service.PhoneService;
 import com.bdaim.common.util.LogUtil;
-import com.bdaim.common.util.MD5Util;
 import com.bdaim.common.util.StringUtil;
+import com.bdaim.common.util.redis.RedisUtil;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerLabelDao;
 import com.bdaim.customer.entity.CustomerLabel;
@@ -46,6 +46,9 @@ public class JdSdImportDataImpl {
 
     @Resource
     private RedisUtil redisUtil;
+
+    @Resource
+    private PhoneService phoneService;
 
     private final static String CUST_ID = "1903120348469162";
 
@@ -120,7 +123,8 @@ public class JdSdImportDataImpl {
             for (int i = 0; i < phones.size(); i++) {
                 phone = String.valueOf(phones.getJSONObject(i).get("phone"));
                 //手机号码通过c+手机号  进行MD5加密 作为id  同时存入u表
-                md5Phone = MD5Util.encode32Bit("c" + phone);
+                //md5Phone = MD5Util.encode32Bit("c" + phone);
+                md5Phone = phoneService.savePhoneToAPI(phone);
                 //自定义标签
                 JSONObject superData = new JSONObject();
                 //将数据存储进数据库
