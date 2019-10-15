@@ -38,7 +38,7 @@ import java.util.*;
 @Transactional
 public class CdZService implements BusiService {
 
-    private static Logger log = LoggerFactory.getLogger(BusiService.class);
+    private static Logger log = LoggerFactory.getLogger(CdZService.class);
 
     @Autowired
     private ElasticSearchService elasticSearchService;
@@ -238,16 +238,21 @@ public class CdZService implements BusiService {
             String selectSql = "select id, type, content, cust_id, cust_group_id, cust_user_id, create_id, create_date ,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(BusiTypeEnum.CF.getType(), "") + " WHERE ext_4=(SELECT ext_3 FROM " + HMetaDataDef.getTable(BusiTypeEnum.CZ.getType(), "") + " WHERE id = ?) AND type = ? AND IFNULL(ext_1,'') <>'1' ";
             List<Map<String, Object>> ds = jdbcTemplate.queryForList(selectSql, id, BusiTypeEnum.CF.getType());
             //start to create xml file
+            log.info("starto to create xml file");
             Map<String,Object> customerInfo = getCustomerInfo(cust_id);
+            log.info("getCustomerInfo 查询企业信息，"+customerInfo);
             CustomerUserPropertyDO iObj = customerUserDao.getProperty(cust_user_id.toString(),"i");
+            log.info("CustomerUserPropertyDO",iObj);
             String sendId="";
             if(iObj != null) {
                 String value = iObj.getPropertyValue();
                 JSONObject iJson = JSONObject.parseObject(value);
                 sendId = iJson.getString("send_id");
             }
+            log.info("send_id",sendId);
             customerInfo.put("send_id",sendId);
             CustomerUser customerUser = customerUserDao.get(cust_user_id);
+            log.info("customerUser",customerUser);
             CustomerUserPropertyDO propertyDO = customerUserDao.getProperty(cust_user_id.toString(),"declare_no");
             customerInfo.put("input_name","");
             customerInfo.put("declare_no","");
