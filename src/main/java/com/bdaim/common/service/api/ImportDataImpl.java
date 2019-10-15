@@ -3,10 +3,10 @@ package com.bdaim.common.service.api;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.bdaim.common.util.redis.RedisUtil;
+import com.bdaim.common.service.PhoneService;
 import com.bdaim.common.util.LogUtil;
-import com.bdaim.common.util.MD5Util;
 import com.bdaim.common.util.StringUtil;
+import com.bdaim.common.util.redis.RedisUtil;
 import com.bdaim.resource.dao.MarketResourceDao;
 import org.springframework.stereotype.Service;
 
@@ -29,6 +29,8 @@ public class ImportDataImpl {
     private MarketResourceDao marketResourceDao;
     @Resource
     private RedisUtil redisUtil;
+    @Resource
+    private PhoneService phoneService;
 
     public String execute(HttpServletRequest request) {
         int count = 0;
@@ -67,7 +69,8 @@ public class ImportDataImpl {
             for (int i = 0; i < maps.size(); i++) {
                 phone = String.valueOf(maps.getJSONObject(i).get("phone"));
                 //手机号码通过c+手机号  进行MD5加密 作为id  同时存入u表
-                md5Phone = MD5Util.encode32Bit("c" + phone);
+                //md5Phone = MD5Util.encode32Bit("c" + phone);
+                md5Phone = phoneService.savePhoneToAPI(phone);
                 //先判断手机号码是否存在 存在不插入
                 //list = marketResourceDao.sqlQuery("SELECT id FROM t_customer_group_list_" + groupId + " WHERE id ='" + md5Phone + "'");
                 String _phone = redisUtil.get(md5Phone);

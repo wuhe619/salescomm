@@ -3,6 +3,7 @@ package com.bdaim.common.service.api;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.common.service.PhoneService;
 import com.bdaim.common.util.redis.RedisUtil;
 import com.bdaim.common.util.*;
 import com.bdaim.customer.dao.CustomerDao;
@@ -43,6 +44,8 @@ public class ImportEncryptionDataImpl {
 
     @Resource
     private RedisUtil redisUtil;
+    @Resource
+    private PhoneService phoneService;
 
 
     //客户人群数据上限
@@ -135,7 +138,8 @@ public class ImportEncryptionDataImpl {
                 }
 
                 //手机号码通过c+手机号  进行MD5加密 作为id  同时存入u表
-                md5Phone = MD5Util.encode32Bit("c" + phone);
+                //md5Phone = MD5Util.encode32Bit("c" + phone);
+                md5Phone = phoneService.savePhoneToAPI(phone);
                 //自定义标签
                 JSONObject superData = new JSONObject();
                 //将数据存储进数据库

@@ -30,16 +30,16 @@ public class SaleAction extends BasicAction {
 
     static {
         // 提供给中科点击客户的接口
-        map.put("CustomGroupService", "com.bdaim.sale.service.apiservice.CustomGroupImpl");
-        map.put("ImportDataService", "com.bdaim.sale.service.apiservice.ImportDataImpl");
-        map.put("CallRecordService", "com.bdaim.sale.service.apiservice.CallRecordImpl");
+        map.put("CustomGroupService", "com.bdaim.common.service.api.CustomGroupImpl");
+        map.put("ImportDataService", "com.bdaim.common.service.api.ImportDataImpl");
+        map.put("CallRecordService", "com.bdaim.common.service.api.CallRecordImpl");
         // 提供给京东-尚德客户的接口
-        map.put("JdSdCustomGroupService", "com.bdaim.sale.service.apiservice.JdSdCustomGroupServiceImpl");
-        map.put("JdSdImportDataService", "com.bdaim.sale.service.apiservice.JdSdImportDataImpl");
-        map.put("JdSdCallRecordService", "com.bdaim.sale.service.apiservice.JdSdCallRecordImpl");
+        map.put("JdSdCustomGroupService", "com.bdaim.common.service.api.JdSdCustomGroupServiceImpl");
+        map.put("JdSdImportDataService", "com.bdaim.common.service.api.JdSdImportDataImpl");
+        map.put("JdSdCallRecordService", "com.bdaim.common.service.api.JdSdCallRecordImpl");
 
-        map.put("ImportEncryptionDataService", "com.bdaim.sale.service.apiservice.ImportEncryptionDataImpl");
-        map.put("CreateCustomGroupService", "com.bdaim.sale.service.apiservice.CustomGroupServiceImpl");
+        map.put("ImportEncryptionDataService", "com.bdaim.common.service.api.ImportEncryptionDataImpl");
+        map.put("CreateCustomGroupService", "com.bdaim.common.service.api.CustomGroupServiceImpl");
 
     }
 

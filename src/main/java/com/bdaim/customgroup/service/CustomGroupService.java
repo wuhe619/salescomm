@@ -5588,10 +5588,13 @@ public class CustomGroupService {
                     List<CGroupImportParam> data = new ArrayList<>();
                     CGroupImportParam param;
                     Map<String, String> u = new HashMap<>();
+                    String uid;
                     for (int i = 0; i < list.size(); i++) {
                         param = new CGroupImportParam();
                         param.setPhone(String.valueOf(list.get(i).get("phone")));
-                        param.setMd5Phone(MD5Util.encode32Bit("c" + param.getPhone()));
+                        // 调用API服务根据手机号生成uid
+                        uid = phoneService.savePhoneToAPI(param.getPhone());
+                        param.setMd5Phone(uid);
                         list.get(i).remove("phone");
                         param.setSuperData(JSON.toJSONString(list.get(i)));
                         param.setStatus(1);
