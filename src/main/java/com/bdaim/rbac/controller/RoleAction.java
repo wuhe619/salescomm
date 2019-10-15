@@ -350,7 +350,7 @@ public class RoleAction extends BasicAction {
             result.put("msg", "刪除成功");
         } else {
             result.put("result", false);
-            result.put("msg", "现在的岗位正在被使用中，无法被删除");
+            result.put("msg", "此岗位正在被使用，无法删除！");
         }
         return result.toString();
     }
