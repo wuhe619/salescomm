@@ -57,7 +57,7 @@ public class UploadFileService {
             if (saveMongoDb) {
                 logger.info("上传文件到mongo,serviceId:{},文件名称", ext_1, fileName);
                 String objectId = mongoFileService.saveFile(file, ext_1);
-                fileDao.save(ext_1, objectId, businessEnum, fileName, fileType.substring(fileType.length() - 1));
+                fileDao.save(ext_1, objectId, businessEnum, fileName, fileType.substring(1));
             }
             // 保存文件到磁盘
             String _filePath = File.separator + businessEnum.getKey() + File.separator + subFilePath;
@@ -65,7 +65,7 @@ public class UploadFileService {
             logger.info("上传文件路径:{}", savePath + fileType);
             File desFile = new File(savePath + fileType);
             FileUtils.copyInputStreamToFile(file.getInputStream(), desFile);
-            fileDao.save(ext_1, subFilePath, businessEnum, fileName, fileType.substring(fileType.length() - 1));
+            fileDao.save(ext_1, subFilePath, businessEnum, fileName, fileType.substring(1));
             return subFilePath;
         } catch (IOException e) {
             logger.error("文件上传失败", e);
