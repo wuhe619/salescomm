@@ -3,6 +3,8 @@ package com.bdaim.common.util;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.customs.entity.HBusiDataManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -16,18 +18,21 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
 @Component
 public class BaoguandanXmlEXP301 {
+
+    private static Logger log = LoggerFactory.getLogger(BaoguandanXmlEXP301.class);
 /*
     public static void main(String[] args) {
         createXml();
     }*/
 
 
-    public  String  createXml(Map<String,Object>mainMap,Map<String,Object> map, List<HBusiDataManager> ds){
+    public  String  createXml(Map<String,Object>mainMap,Map<String,Object> map, List<HBusiDataManager> ds,Map<String,Object>customerInfo){
         try {
             // 创建解析器工厂
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -39,12 +44,12 @@ public class BaoguandanXmlEXP301 {
             // 向bookstore根节点中添加子节点book
             Element EnvelopInfo = document.createElement("EnvelopInfo");
 
-            createEnvelopInfoXML(document,EnvelopInfo);
+            createEnvelopInfoXML(document,EnvelopInfo,customerInfo, String.valueOf(map.get("id")));
             Package.appendChild(EnvelopInfo);
 
             Element DataInfo = document.createElement("DataInfo");
 
-            createDataInfoXML(document,DataInfo,mainMap,map,ds);
+            createDataInfoXML(document,DataInfo,mainMap,map,ds,customerInfo);
 
             Package.appendChild(DataInfo);
             document.appendChild(Package);
@@ -77,7 +82,14 @@ public class BaoguandanXmlEXP301 {
         return null;
     }
 
-    private  void createEnvelopInfoXML(Document document,Element envelopInfo){
+    private  String getId11NO(String id){
+        while(id.length()<11){
+            id="0"+id;
+        }
+        return id;
+    }
+
+    private  void createEnvelopInfoXML(Document document,Element envelopInfo,Map<String,Object> custInfo,String id){
         Element version = document.createElement("version");
         Element message_id = document.createElement("message_id");
         Element file_name = document.createElement("file_name");
@@ -85,14 +97,16 @@ public class BaoguandanXmlEXP301 {
         Element sender_id = document.createElement("sender_id");
         Element receiver_id = document.createElement("receiver_id");
         Element send_time = document.createElement("send_time");
-
         version.setTextContent("1.0");
-        message_id.setTextContent("0000000000101E0100002012100112303000000000000");
-        file_name.setTextContent("0000000000101E0100002012100112303000000000000.EXP");
+        String dateStr=DateUtil.fmtDateToStr(new Date(),"yyyyMMddHHmmss");
+        String idstr = getId11NO(id);
+        String msg_id=custInfo.get("send_id").toString()+"E010000"+dateStr+idstr;
+        message_id.setTextContent(msg_id);
+        file_name.setTextContent(msg_id+".EXP");
         message_type.setTextContent("EXP301");
-        sender_id.setTextContent("000000000000002006");
+        sender_id.setTextContent((String) custInfo.get("send_id"));
         receiver_id.setTextContent("E010000");
-        send_time.setTextContent("2019-09-22T11:17:13");
+        send_time.setTextContent(dateStr);
 
         envelopInfo.appendChild(version);
         envelopInfo.appendChild(message_id);
@@ -103,7 +117,7 @@ public class BaoguandanXmlEXP301 {
         envelopInfo.appendChild(send_time);
     }
 
-    private void createDataInfoXML(Document document,Element DataInfo,Map<String,Object> mainMap,Map<String,Object>map ,List<HBusiDataManager>ds){
+    private void createDataInfoXML(Document document,Element DataInfo,Map<String,Object> mainMap,Map<String,Object>map ,List<HBusiDataManager>ds,Map<String,Object>customerInfo){
         Element SignedData = document.createElement("SignedData");
         Element Data = document.createElement("Data");
         Element EXP301 = document.createElementNS("http://www.chinaport.gov.cn/Exp","EXP301");
@@ -111,7 +125,7 @@ public class BaoguandanXmlEXP301 {
         JSONObject mainjson = JSONObject.parseObject(content);
         String partyContent = (String) map.get("content");
         JSONObject json = JSON.parseObject(partyContent);
-        createEntryHeadXML(document,EXP301,mainjson,json);
+        createEntryHeadXML(document,EXP301,mainjson,json,customerInfo);
         createEntryListXML(document,EXP301,ds);
         createEntryDocuXML(document,EXP301);
 
@@ -120,7 +134,7 @@ public class BaoguandanXmlEXP301 {
         DataInfo.appendChild(SignedData);
     }
 
-    private void createEntryHeadXML(Document document, Element EXP301, JSONObject mainJson,JSONObject json){
+    private void createEntryHeadXML(Document document, Element EXP301, JSONObject mainJson,JSONObject json,Map<String,Object>customerInfo){
         Element EntryHead = document.createElement("EntryHead");
         Element OpType = document.createElement("OpType");
         String optype = mainJson.getString("op_type");
@@ -169,16 +183,16 @@ public class BaoguandanXmlEXP301 {
         Element OwnerCode = document.createElement("OwnerCode");
         EntryHead.appendChild(OwnerCode);
         Element OwnerName = document.createElement("OwnerName");
-        OwnerName.setTextContent("货主单位名称");//r
+        OwnerName.setTextContent(mainJson.getString("shipper_unit_name"));//r
         EntryHead.appendChild(OwnerName);
         Element AgentType = document.createElement("AgentType");
         AgentType.setTextContent(mainJson.getString("agent_type"));  //0：企业；1：自然人
         EntryHead.appendChild(AgentType);
-        Element AgentCode = document.createElement("AgentCode");
-        AgentCode.setTextContent(mainJson.containsKey("s_c_code_shipper")?mainJson.getString("s_c_code_shipper"):""); //AgentType=0时必填
+        Element AgentCode = document.createElement("AgentCode");//申报单位代码
+        AgentCode.setTextContent((String) customerInfo.getOrDefault("s_c_code_shipper","")); //AgentType=0时必填
         EntryHead.appendChild(AgentCode);
-        Element AgentName = document.createElement("AgentName");
-        AgentName.setTextContent("AgentName AgentType=0时必填");//AgentType=0时必填
+        Element AgentName = document.createElement("AgentName");//申报单位名称
+        AgentName.setTextContent((String) customerInfo.getOrDefault("enterpriseName",""));//AgentType=0时必填
         EntryHead.appendChild(AgentName);
         Element ContrNo = document.createElement("ContrNo");
 
@@ -247,8 +261,8 @@ public class BaoguandanXmlEXP301 {
         DeclPort.setTextContent(mainJson.getString("decl_port"));  //r
         EntryHead.appendChild(DeclPort);
 
-        Element CoOwner = document.createElement("CoOwner");
-        CoOwner.setTextContent("");  //r
+        Element CoOwner = document.createElement("CoOwner");//经营单位性质
+        CoOwner.setTextContent(json.getString("s_c_busi_kinds"));  //r
         EntryHead.appendChild(CoOwner);
         /*Element MnlJgfFlag = document.createElement("MnlJgfFlag");
         MnlJgfFlag.setTextContent("");
@@ -262,22 +276,22 @@ public class BaoguandanXmlEXP301 {
         Element RelativeId = document.createElement("RelativeId");
         RelativeId.setTextContent("");
         EntryHead.appendChild(RelativeId);
-        Element TypistNo = document.createElement("TypistNo");
-        TypistNo.setTextContent("");
-        EntryHead.appendChild(TypistNo);
-        Element InputNo = document.createElement("InputNo");
-        InputNo.setTextContent("8800000026941");  //r
+//        Element TypistNo = document.createElement("TypistNo");
+//        TypistNo.setTextContent("");
+//        EntryHead.appendChild(TypistNo);
+        Element InputNo = document.createElement("InputNo");//录入人
+        InputNo.setTextContent(String.valueOf(customerInfo.getOrDefault("input_name","")));  //r
         EntryHead.appendChild(InputNo);
-        Element InputCompanyCo = document.createElement("InputCompanyCo");
-        InputCompanyCo.setTextContent("1111940112");  //r
+        Element InputCompanyCo = document.createElement("InputCompanyCo");//录入单位代码
+        InputCompanyCo.setTextContent((String) customerInfo.getOrDefault("s_c_code_shipper",""));  //r
         EntryHead.appendChild(InputCompanyCo);
-        Element InputCompanyName = document.createElement("InputCompanyName");
-        InputCompanyName.setTextContent("HSE华圣国际运输服务有限公司");  //r
+        Element InputCompanyName = document.createElement("InputCompanyName");//录入单位名称
+        InputCompanyName.setTextContent((String) customerInfo.getOrDefault("enterpriseName",""));  //r
         EntryHead.appendChild(InputCompanyName);
 //        Element PDate = document.createElement("PDate");
 //        EntryHead.appendChild(PDate);
-        Element DeclareNo = document.createElement("DeclareNo");
-        DeclareNo.setTextContent("daima");  //如果AgentType=1，必不填,否则必填
+        Element DeclareNo = document.createElement("DeclareNo");//报关员代码
+        DeclareNo.setTextContent((String) customerInfo.getOrDefault("declare_no",""));  //如果AgentType=1，必不填,否则必填
         EntryHead.appendChild(DeclareNo);
         Element CustomsField = document.createElement("CustomsField");
         CustomsField.setTextContent(mainJson.getString("wharf_ yard_code"));  //r

@@ -16,6 +16,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -28,7 +29,7 @@ public class CangdanXmlEXP311 {
     }
     */
 
-    public  String createXml(Map<String,Object> map, List<Map<String, Object>> dsList) throws Exception {
+    public  String createXml(Map<String,Object> map, List<Map<String, Object>> dsList,Map<String,Object> customerInfo) throws Exception {
         try {
             // 创建解析器工厂
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -40,11 +41,11 @@ public class CangdanXmlEXP311 {
             // 向bookstore根节点中添加子节点book
             Element EnvelopInfo = document.createElement("EnvelopInfo");
 
-            createEnvelopInfoXML(document,EnvelopInfo);
+            createEnvelopInfoXML(document,EnvelopInfo,customerInfo, String.valueOf(map.get("id")));
             Package.appendChild(EnvelopInfo);
             Element DataInfo = document.createElement("DataInfo");
 
-            createDataInfoXML(document,DataInfo,map,dsList);
+            createDataInfoXML(document,DataInfo,map,dsList,customerInfo);
 
             Package.appendChild(DataInfo);
             document.appendChild(Package);
@@ -76,7 +77,7 @@ public class CangdanXmlEXP311 {
         }
     }
 
-    private  void createEnvelopInfoXML(Document document,Element envelopInfo){
+    private  void createEnvelopInfoXML(Document document,Element envelopInfo,Map<String,Object>custInfo,String id){
         Element version = document.createElement("version");
         Element message_id = document.createElement("message_id");
         Element file_name = document.createElement("file_name");
@@ -86,12 +87,15 @@ public class CangdanXmlEXP311 {
         Element send_time = document.createElement("send_time");
 
         version.setTextContent("1.0");
-        message_id.setTextContent("0000000000101E0100002012100112303000000000000");
-        file_name.setTextContent("0000000000101E0100002012100112303000000000000.EXP");
+        String dateStr=DateUtil.fmtDateToStr(new Date(),"yyyyMMddHHmmss");
+        String idstr = getId11NO(id);
+        String msg_id=custInfo.get("send_id").toString()+"E010000"+dateStr+idstr;
+        message_id.setTextContent(msg_id);
+        file_name.setTextContent(msg_id+".EXP");
         message_type.setTextContent("EXP311");
-        sender_id.setTextContent("000000000000002006");
+        sender_id.setTextContent((String) custInfo.get("send_id"));
         receiver_id.setTextContent("E010000");
-        send_time.setTextContent("2019-09-22T11:17:13");
+        send_time.setTextContent(dateStr);
 
         envelopInfo.appendChild(version);
         envelopInfo.appendChild(message_id);
@@ -102,7 +106,7 @@ public class CangdanXmlEXP311 {
         envelopInfo.appendChild(send_time);
     }
 
-    private  void createDataInfoXML(Document document,Element DataInfo,Map<String,Object> m,List<Map<String, Object>> dsList){
+    private  void createDataInfoXML(Document document,Element DataInfo,Map<String,Object> m,List<Map<String, Object>> dsList,Map<String,Object>custInfo){
         Element SignedData = document.createElement("SignedData");
         Element Data = document.createElement("Data");
         Element EXP311 = document.createElementNS("http://www.chinaport.gov.cn/Exp","EXP311");
@@ -110,7 +114,7 @@ public class CangdanXmlEXP311 {
         String mainContent = (String) m.get("content");
         JSONObject json = JSONObject.parseObject(mainContent);
 
-        createEntryHeadXML(document,EXP311,json);
+        createEntryHeadXML(document,EXP311,json,custInfo);
         createExpMftListXML(document,EXP311,m.get("ext_3").toString(),json.getString("voyage_no"),dsList);
 
         Data.appendChild(EXP311);
@@ -118,7 +122,7 @@ public class CangdanXmlEXP311 {
         DataInfo.appendChild(SignedData);
     }
 
-    private  void createEntryHeadXML(Document document,Element EXP311,JSONObject json){
+    private  void createEntryHeadXML(Document document,Element EXP311,JSONObject json,Map<String,Object> custInfo){
 
         Element ExpMftHead = document.createElement("ExpMftHead");
         Element OpType = document.createElement("OpType");
@@ -176,20 +180,20 @@ public class CangdanXmlEXP311 {
         ExpMftHead.appendChild(TradeName);
 
         Element InputNo = document.createElement("InputNo");
-        InputNo.setTextContent("录入人卡号");//
+        InputNo.setTextContent((String) custInfo.get("declare_no"));//录入人卡号
         ExpMftHead.appendChild(InputNo);
 
         Element InputOpName = document.createElement("InputOpName");
-        InputOpName.setTextContent("录入人姓名");
+        InputOpName.setTextContent((String) custInfo.get("input_name"));//录入人姓名
         ExpMftHead.appendChild(InputOpName);
 
 
         Element InputCompanyCode = document.createElement("InputCompanyCode");
-        InputCompanyCode.setTextContent("录入单位代码");
+        InputCompanyCode.setTextContent((String) custInfo.getOrDefault("s_c_code_shipper",""));//录入单位代码
         ExpMftHead.appendChild(InputCompanyCode);
 
         Element InputCompanyName = document.createElement("InputCompanyName");
-        InputCompanyName.setTextContent("录入单位名称");
+        InputCompanyName.setTextContent((String) custInfo.getOrDefault("enterpriseName",""));//录入单位名称
         ExpMftHead.appendChild(InputCompanyName);
 
         EXP311.appendChild(ExpMftHead);
@@ -228,6 +232,13 @@ public class CangdanXmlEXP311 {
 
             exp311.appendChild(ExpMftList);
         }
+    }
+
+    private  String getId11NO(String id){
+        while(id.length()<11){
+            id="0"+id;
+        }
+        return id;
     }
 
 }

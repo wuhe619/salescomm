@@ -39,8 +39,6 @@ public class CdFService implements BusiService {
     @Autowired
     private SequenceService sequenceService;
 
-//    @Autowired
-//    private HBusiDataManagerDao hBusiDataManagerDao;
 
     @Autowired
     private ServiceUtils serviceUtils;
