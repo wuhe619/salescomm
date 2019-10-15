@@ -151,7 +151,7 @@ public class BgdFService implements BusiService {
     public void doInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info, JSONObject param) throws TouchException {
         // 提交至海关平台
         if ("HAIGUAN".equals(param.getString("_rule_"))) {
-            String sql = "select content, cust_id, cust_group_id, cust_user_id, create_id, create_date ,ext_1, ext_2, ext_3, ext_4, ext_5 from "+ HMetaDataDef.getTable(busiType,"")+" where type=? and id=? ";
+            String sql = "select id, content, cust_id, cust_group_id, cust_user_id, create_id, create_date ,ext_1, ext_2, ext_3, ext_4, ext_5 from "+ HMetaDataDef.getTable(busiType,"")+" where type=? and id=? ";
             List<Map<String, Object>> list = jdbcTemplate.queryForList(sql, busiType, id);
             if (list.size() == 0) {
                 log.warn("报关单分单数据不存在[" + busiType + "]" + id);
@@ -192,7 +192,7 @@ public class BgdFService implements BusiService {
                 jo.put("ext_5", m.get("ext_5"));
 
             //start to create xml
-            String mainsql = "select content, cust_id, cust_group_id, cust_user_id, create_id, create_date ,ext_1, ext_2, ext_3, ext_4, ext_5 from "+ HMetaDataDef.getTable(BusiTypeEnum.BZ.getType(),"")+" where type=? and id=? ";
+            String mainsql = "select id,content, cust_id, cust_group_id, cust_user_id, create_id, create_date ,ext_1, ext_2, ext_3, ext_4, ext_5 from "+ HMetaDataDef.getTable(BusiTypeEnum.BZ.getType(),"")+" where type=? and id=? ";
             list = jdbcTemplate.queryForList(mainsql, BusiTypeEnum.BZ.getType(), jo.getString("pid"));
             Map<String,Object> mainMap = list.get(0);
             List<HBusiDataManager> list2 = serviceUtils.listSdByBillNo(cust_id,BusiTypeEnum.BS.getType(),mainMap.get("ext_3").toString(),jo.getString("bill_no"));
@@ -203,7 +203,7 @@ public class BgdFService implements BusiService {
             if(iObj != null) {
                 String value = iObj.getPropertyValue();
                 JSONObject iJson = JSONObject.parseObject(value);
-                sendId = iJson.getString("send_id");
+                sendId = iJson.getString("sender_id");
             }
             customerInfo.put("send_id",sendId);
             CustomerUser customerUser = customerUserDao.get(cust_user_id);
