@@ -153,7 +153,7 @@ public class SbdZService implements BusiService {
             //serviceUtils.esTestData();
             StringBuffer sql = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(BusiTypeEnum.SF.getType(), "") + " where type=?")
                     .append(" and cust_id='").append(cust_id).append("'")
-                    .append(" and (ext_7 IS NULL OR ext_7 = '' OR ext_7 = 2 OR JSON_EXTRACT(content, '$.check_status')='1') ");
+                    .append(" and (ext_7 IS NULL OR ext_7 = '' OR JSON_EXTRACT(content, '$.check_status')='0') ");
             //.append(" and JSON_EXTRACT(content, '$.check_status')=1");
 
             sql.append(" and ext_4=(SELECT ext_3 FROM " + HMetaDataDef.getTable(BusiTypeEnum.getParentType(BusiTypeEnum.SF.getType()), "") + " WHERE id = ?)");
@@ -200,7 +200,9 @@ public class SbdZService implements BusiService {
                     /*info.put("idCardNum", dfList.size());
                     info.put("failIdCardNum", failIdCardNum);*/
                 }
-
+            }else{
+                log.warn("申报单分单校验中,请等待[" + busiType + "]" + id);
+                throw new TouchException("1000", "申报单分单校验中,请等待");
             }
         } else {
             serviceUtils.updateDataToES(busiType, id.toString(), info);
