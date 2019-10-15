@@ -40,7 +40,7 @@ public class BaoguandanXmlEXP301 {
             // 向bookstore根节点中添加子节点book
             Element EnvelopInfo = document.createElement("EnvelopInfo");
 
-            createEnvelopInfoXML(document,EnvelopInfo,customerInfo, (String) map.get("id"));
+            createEnvelopInfoXML(document,EnvelopInfo,customerInfo, String.valueOf(map.get("id")));
             Package.appendChild(EnvelopInfo);
 
             Element DataInfo = document.createElement("DataInfo");
@@ -276,7 +276,7 @@ public class BaoguandanXmlEXP301 {
 //        TypistNo.setTextContent("");
 //        EntryHead.appendChild(TypistNo);
         Element InputNo = document.createElement("InputNo");//录入人
-        InputNo.setTextContent((String) customerInfo.getOrDefault("input_name",""));  //r
+        InputNo.setTextContent(String.valueOf(customerInfo.getOrDefault("input_name","")));  //r
         EntryHead.appendChild(InputNo);
         Element InputCompanyCo = document.createElement("InputCompanyCo");//录入单位代码
         InputCompanyCo.setTextContent((String) customerInfo.getOrDefault("s_c_code_shipper",""));  //r

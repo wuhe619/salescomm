@@ -41,7 +41,7 @@ public class CangdanXmlEXP311 {
             // 向bookstore根节点中添加子节点book
             Element EnvelopInfo = document.createElement("EnvelopInfo");
 
-            createEnvelopInfoXML(document,EnvelopInfo,customerInfo, (String) map.get("id"));
+            createEnvelopInfoXML(document,EnvelopInfo,customerInfo, String.valueOf(map.get("id")));
             Package.appendChild(EnvelopInfo);
             Element DataInfo = document.createElement("DataInfo");
 
