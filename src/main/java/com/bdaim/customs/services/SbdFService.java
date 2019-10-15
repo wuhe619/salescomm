@@ -83,7 +83,7 @@ public class SbdFService implements BusiService {
         info.put("pid", pid);
         info.put("ext_3", billNo);
         info.put("ext_4", sbdzd.getExt_3());
-        info.put("mail_bill_no",sbdzd.getExt_3());
+        info.put("mail_bill_no", sbdzd.getExt_3());
 
         serviceUtils.addDataToES(id.toString(), busiType, info);
         JSONObject jsonObject = JSONObject.parseObject(sbdzd.getContent());
@@ -141,6 +141,14 @@ public class SbdFService implements BusiService {
                     log.warn("申报单分单已经核验[" + busiType + "]" + id);
                     throw new TouchException("1000", "申报单分单已经核验");
                 }
+                // 判断身份证是否合法
+                if ("1".equals(data.getString("id_type"))) {
+                    if (StringUtil.isEmpty(data.getString("id_no")) || data.getString("id_no").length() != 18) {
+                        log.warn("申报单分单身份证号不合法[" + busiType + "]" + id);
+                        throw new TouchException("1000", "申报单分单身份证号不合法");
+                    }
+                }
+
                 input.put("name", data.getString("receive_name"));
                 input.put("idCard", data.getString("id_no"));
                 JSONObject content = new JSONObject();
@@ -196,7 +204,7 @@ public class SbdFService implements BusiService {
             }
             //dbManager.setContent(json.toJSONString());
             serviceUtils.updateDataToES(busiType, id.toString(), json);
-            totalPartDanToMainDan(json.getLongValue("pid"), BusiTypeEnum.SZ.getType(), id, cust_id,"update");
+            totalPartDanToMainDan(json.getLongValue("pid"), BusiTypeEnum.SZ.getType(), id, cust_id, "update");
         }
     }
 
@@ -233,7 +241,7 @@ public class SbdFService implements BusiService {
         // 批量删除es税单
         elasticSearchService.bulkDeleteDocument(BusiTypeEnum.getEsIndex(BusiTypeEnum.SS.getType()), Constants.INDEX_TYPE, sdIds);
         Integer zid = json.getInteger("pid");
-        totalPartDanToMainDan(json.getLongValue("pid"), BusiTypeEnum.SZ.getType(), id, cust_id,"del");
+        totalPartDanToMainDan(json.getLongValue("pid"), BusiTypeEnum.SZ.getType(), id, cust_id, "del");
         // 更新主单身份证照片数量
         json.put("id_no_pic", "");
         json.put("idcard_pic_flag", "0");
@@ -313,7 +321,7 @@ public class SbdFService implements BusiService {
      * @param type
      * @param id
      */
-    public void totalPartDanToMainDan(long zid, String type, Long id, String custId,String optype) {
+    public void totalPartDanToMainDan(long zid, String type, Long id, String custId, String optype) {
 
         List<HBusiDataManager> data = serviceUtils.listDataByPid(custId, BusiTypeEnum.SF.getType(), zid, BusiTypeEnum.SZ.getType());
         Float weightTotal = 0f;
@@ -344,7 +352,7 @@ public class SbdFService implements BusiService {
         String hcontent = manager.getContent();
         JSONObject jsonObject = JSONObject.parseObject(hcontent);
         jsonObject.put("weight_total", weightTotal);//总重量
-        if("del".equals(optype)) {
+        if ("del".equals(optype)) {
             jsonObject.put("party_total", data.size() - 1 < 0 ? 0 : data.size() - 1);//分单总数
         }
         Integer s = jsonObject.getInteger("low_price_goods");

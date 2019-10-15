@@ -1006,6 +1006,52 @@ public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDao
         return p;
     }
 
+    public Page sqlPageQueryByPageSize0(String sql, int pageNum, int pageSize, final Object... values) {
+        if (pageNum <= 0) {
+            pageNum = 1;
+        }
+        if (pageSize < 0) {
+            pageSize = 100;
+        }
+        pageNum = (pageNum - 1) * pageSize;
+        int total = 0;
+        Page p = new Page();
+        StringBuilder totalSql = new StringBuilder();
+        totalSql.append("select count(*) count from (");
+        totalSql.append(sql);
+        totalSql.append(") as temp");
+
+        Session session = getSession();
+        Query query = session.createSQLQuery(totalSql.toString());
+        query.setResultTransformer(CriteriaSpecification.ALIAS_TO_ENTITY_MAP);
+        if (values != null) {
+            for (int i = 0; i < values.length; i++) {
+                query.setParameter(i, values[i]);
+            }
+        }
+        // 先查询total
+        List<Map<String, Object>> totalList = query.list();
+        if (totalList.size() > 0) {
+            total = NumberConvertUtil.parseInt(String.valueOf(totalList.get(0).get("count")));
+        }
+        p.setTotal(total);
+
+        //查询分页数据
+        query = session.createSQLQuery(sql);
+        query.setResultTransformer(CriteriaSpecification.ALIAS_TO_ENTITY_MAP);
+        // 先查询total
+        query.setFirstResult(pageNum);
+        query.setMaxResults(pageSize);
+        if (values != null) {
+            for (int i = 0; i < values.length; i++) {
+                query.setParameter(i, values[i]);
+            }
+        }
+        List rs = query.list();
+        p.setData(rs);
+        return p;
+    }
+
     public void batchSaveOrUpdate(final List entityList) {
         org.springframework.util.Assert.notNull(entityList, "entityList不能为空");
         for (Object entity : entityList) {

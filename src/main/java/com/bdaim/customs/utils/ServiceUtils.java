@@ -138,9 +138,9 @@ public class ServiceUtils {
     }
 
 
-    public HBusiDataManager getObjectByIdAndType(String cust_id,Long id, String type) {
+    public HBusiDataManager getObjectByIdAndType(String cust_id, Long id, String type) {
         String sql = "select * from " + HMetaDataDef.getTable(type, "") + " where id=" + id + " and type='" + type + "'";
-        if(StringUtil.isNotEmpty(cust_id)) {
+        if (StringUtil.isNotEmpty(cust_id)) {
             sql += " and cust_id='" + cust_id + "'";
         }
         RowMapper<HBusiDataManager> managerRowMapper = new BeanPropertyRowMapper<>(HBusiDataManager.class);
@@ -227,6 +227,7 @@ public class ServiceUtils {
 
     /**
      * 根据主单号、分单号，查询分单
+     *
      * @param custId
      * @param type
      * @param mainBillNo
@@ -239,29 +240,32 @@ public class ServiceUtils {
         log.info("查询分单sql:{}", sql);
         List<Map<String, Object>> list = jdbcTemplate.queryForList(sql.toString(), custId, type, mainBillNo, billNo);
         List<HBusiDataManager> result = JSON.parseArray(JSON.toJSONString(list), HBusiDataManager.class);
-        if(result!=null && result.size()>0){
+        if (result != null && result.size() > 0) {
             return result.get(0);
         }
         return null;
     }
+
     /**
      * 根据主单号查询主单
+     *
      * @param custId
      * @param type
      * @param billNo
      * @return
      */
-    public HBusiDataManager findZhudanByBillNo(String custId, String type,String billNo) {
+    public HBusiDataManager findZhudanByBillNo(String custId, String type, String billNo) {
         StringBuffer sql = new StringBuffer();
         sql.append("select id, type, content, cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(type, "") + " where cust_id = ? AND type=? AND ext_3 = ?");
         log.info("查询主单sql:{}", sql);
         List<Map<String, Object>> list = jdbcTemplate.queryForList(sql.toString(), custId, type, billNo);
         List<HBusiDataManager> result = JSON.parseArray(JSON.toJSONString(list), HBusiDataManager.class);
-        if(result!=null && result.size()>0){
+        if (result != null && result.size() > 0) {
             return result.get(0);
         }
         return null;
     }
+
     /**
      * 根据主单号和查询税单列表
      *
@@ -741,10 +745,11 @@ public class ServiceUtils {
 
     /**
      * XML格式转为map格式
+     *
      * @param xmlString
      * @return
      */
-    public static Map<String , String> xmlToMap(String xmlString) {
+    public static Map<String, String> xmlToMap(String xmlString) {
 
         Map<String, String> map = new HashMap<String, String>();
         try {
@@ -768,15 +773,52 @@ public class ServiceUtils {
         }
     }
 
-    public static void xml2Json(String xml){
+    public static void xml2Json(String xml) {
         XMLSerializer xmlSerializer = new XMLSerializer();
         String resutStr = xmlSerializer.read(xml).toString();
         net.sf.json.JSONObject result = net.sf.json.JSONObject.fromObject(resutStr);
 
         System.out.println(result);
     }
+
+    /**
+     * 根据税单列表计算主要货物
+     * 规则：
+     * 1、1个商品默认为主要货物
+     * 2、多个商品价格最高的为主要货物
+     * 3、价格都为0或者空第一个商品为主要货物
+     *
+     * @param list
+     * @return
+     */
+    public String generateFDMainGName(List<Product> list) {
+        String spilt = "|";
+        if (list == null || list.size() == 0) {
+            return "";
+        } else if (list.size() == 1) {
+            // 1个商品默认为主要货物名称
+            StringBuffer name = new StringBuffer();
+            name.append(list.get(0).getG_name())
+                    .append(spilt)
+                    .append(list.get(0).getG_name_en())
+                    .append(spilt)
+                    .append(list.get(0).getG_model());
+            return name.toString();
+        } else {
+            Optional<Product> result = list.stream().max(Comparator.comparingDouble(s -> NumberConvertUtil.parseInt(s.getG_qty()) * NumberConvertUtil.parseDouble(s.getDecl_price()))).filter(Objects::nonNull);
+            Product data = result.orElse(new Product());
+            StringBuffer name = new StringBuffer();
+            name.append(data.getG_name())
+                    .append(spilt)
+                    .append(data.getG_name_en())
+                    .append(spilt)
+                    .append(data.getG_model());
+            return name.toString();
+        }
+    }
+
     public static void main(String[] args) {
-        String  xmlString="<Package>" +
+        String xmlString = "<Package>" +
                 "<EnvelopInfo>" +
                 "<version>1.0</version>" +
                 "<message_id>E0100000000000000000020062017030116002400000509609</message_id>" +
