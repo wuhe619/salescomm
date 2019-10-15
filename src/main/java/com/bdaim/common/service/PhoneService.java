@@ -1,8 +1,9 @@
 package com.bdaim.common.service;
 
-import com.bdaim.common.util.redis.RedisUtil;
 import com.bdaim.common.util.ConstantsUtil;
 import com.bdaim.common.util.StringUtil;
+import com.bdaim.common.util.http.HttpUtil;
+import com.bdaim.common.util.redis.RedisUtil;
 import com.bdaim.customgroup.dao.CustomGroupDao;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -163,6 +164,61 @@ public class PhoneService {
             phoneNumber = "";
         }
         return phoneNumber;
+    }
+
+    /**
+     * 保存手机号至API服务
+     *
+     * @param phone
+     */
+    public String savePhoneToAPI(String phone) {
+        if (StringUtil.isEmpty(phone)) {
+            LOG.warn("保存手机号至API服务手机号不能为空:{}", phone);
+            return null;
+        }
+        String uid = null;
+        try {
+            uid = HttpUtil.httpPost("http://api.core:1010/pn/pnu?pn=" + phone.trim().replaceAll(" ", ""), "", null);
+        } catch (Exception e) {
+            LOG.error("保存手机号至API服务手机号:{}异常:{}", phone, e);
+        }
+        return uid;
+    }
+
+    /**
+     * 获取手机号从API服务
+     *
+     * @param uid
+     * @return
+     */
+    public String getPhoneFromAPI(String uid) {
+        if (StringUtil.isEmpty(uid)) {
+            LOG.warn("获取手机号API服务uid不能为空:{}", uid);
+            return null;
+        }
+        String phone = null;
+        try {
+            phone = HttpUtil.httpPost("http://api.core:1010/pn/upn?uid=" + uid.trim().replaceAll(" ", ""), "", null);
+        } catch (Exception e) {
+            LOG.error("保存手机号至API服务uid:{}异常:{}", uid, e);
+        }
+        return phone;
+    }
+
+    /**
+     * 批量保存手机号,返回uid
+     *
+     * @param map
+     * @return
+     */
+    public Map<String, String> batchSavePhone(Map<String, String> map) {
+        Map<String, String> data = new HashMap<>();
+        String uid;
+        for (Map.Entry<String, String> entry : map.entrySet()) {
+            uid = savePhoneToAPI(entry.getValue());
+            data.put(entry.getValue(), uid);
+        }
+        return data;
     }
 
     /*public static void main(String[] args) {
