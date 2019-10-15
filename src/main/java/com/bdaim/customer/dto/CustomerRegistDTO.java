@@ -71,6 +71,42 @@ public class CustomerRegistDTO implements Serializable {
      * 场站id
      */
     private String stationId;
+    /**
+     * 货主单位名称
+     */
+    private String owner_name;
+    /**
+     * 申报单位代码
+     */
+    private String agent_code;
+    /**
+     * 报关员代码
+     */
+    private String declare_no;
+
+    public String getDeclare_no() {
+        return declare_no;
+    }
+
+    public void setDeclare_no(String declare_no) {
+        this.declare_no = declare_no;
+    }
+
+    public String getOwner_name() {
+        return owner_name;
+    }
+
+    public void setOwner_name(String owner_name) {
+        this.owner_name = owner_name;
+    }
+
+    public String getAgent_code() {
+        return agent_code;
+    }
+
+    public void setAgent_code(String agent_code) {
+        this.agent_code = agent_code;
+    }
 
     public String getResource() {
         return resource;

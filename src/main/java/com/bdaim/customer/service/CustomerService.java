@@ -240,12 +240,13 @@ public class CustomerService {
 
 
         sql.append("  SELECT  CAST(s.id AS CHAR) id,cjc.resource,s.cust_id,s.user_type, s.account AS name,s.password AS PASSWORD,s.realname AS realname,cjc.cuc_minute seatMinute,\n" +
-                "s.status STATUS,cjc.mobile_num AS mobile_num,cjc.cuc_seat AS cuc_seat,cjc.xz_seat AS xz_seat FROM t_customer_user s\n" +
+                "s.status STATUS,cjc.mobile_num AS mobile_num,cjc.cuc_seat AS cuc_seat,cjc.declare_no,cjc.xz_seat AS xz_seat FROM t_customer_user s\n" +
                 " LEFT JOIN (SELECT user_id, \n" +
                 " MAX(CASE property_name WHEN 'mobile_num'  THEN property_value ELSE '' END ) mobile_num, \n" +
                 " MAX(CASE property_name WHEN 'cuc_seat'    THEN property_value ELSE '' END ) cuc_seat,\n" +
                 " MAX(CASE property_name WHEN 'xz_seat'    THEN property_value ELSE '' END ) xz_seat, \n" +
                 " MAX(CASE property_name WHEN 'cuc_minute'  THEN property_value ELSE '0' END ) cuc_minute, \n" +
+                " MAX(CASE property_name WHEN 'declare_no'  THEN property_value ELSE '0' END ) declare_no, \n" +
                 " MAX(CASE property_name WHEN 'resource'    THEN property_value ELSE '' END ) resource \n" +
                 " FROM t_customer_user_property p GROUP BY user_id \n" +
                 ") cjc ON s.id = cjc.user_id WHERE 1=1 AND user_type = 2  AND STATUS <> 2 ");
@@ -488,6 +489,23 @@ public class CustomerService {
                         customerDao.dealCustomerInfo(customerId, "station_id", vo.getStationId());
                     }
                 }
+                //海关企业属性信息
+                //货主单位名称
+                if (StringUtil.isNotEmpty(vo.getOwner_name())) {
+                    if (StringUtil.isNotEmpty(vo.getCustId())) {
+                        customerDao.dealCustomerInfo(vo.getCustId(), "owner_name", vo.getOwner_name());
+                    } else {
+                        customerDao.dealCustomerInfo(customerId, "owner_name", vo.getOwner_name());
+                    }
+                }
+                //申报单位代码
+                if (StringUtil.isNotEmpty(vo.getAgent_code())) {
+                    if (StringUtil.isNotEmpty(vo.getCustId())) {
+                        customerDao.dealCustomerInfo(vo.getCustId(), "agent_code", vo.getAgent_code());
+                    } else {
+                        customerDao.dealCustomerInfo(customerId, "agent_code", vo.getAgent_code());
+                    }
+                }
                 //创建企业id
                 if (StringUtil.isNotEmpty(vo.getCreateId())) {
                     if (StringUtil.isNotEmpty(vo.getCustId())) {
@@ -638,7 +656,7 @@ public class CustomerService {
                 "cjc.industry,cjc.salePerson,cjc.contactAddress,\n" +
                 "cjc.province,cjc.city,cjc.fixPrice,cjc.county,cjc.taxpayerId,\n" +
                 "cjc.bli_path AS bliPic,\n" +
-                "cjc.bank,cjc.bankAccount,cjc.stationId,\n" +
+                "cjc.bank,cjc.bankAccount,cjc.owner_name,cjc.agent_code,cjc.stationId,\n" +
                 "cjc.bank_account_certificate AS bankAccountPic\n" +
                 "FROM t_customer t1\n" +
                 "LEFT JOIN t_customer_user t2   ON t1.cust_id = t2.cust_id \n" +
@@ -658,6 +676,8 @@ public class CustomerService {
                 "\tmax(CASE property_name WHEN 'bli_path'   THEN property_value ELSE '' END ) bli_path,\n" +
                 "\tmax(CASE property_name WHEN 'bank'   THEN property_value ELSE '' END ) bank,\n" +
                 "\tmax(CASE property_name WHEN 'bank_account'   THEN property_value ELSE '' END ) bankAccount,\n" +
+                "\tmax(CASE property_name WHEN 'owner_name'   THEN property_value ELSE '' END ) owner_name,\n" +
+                "\tmax(CASE property_name WHEN 'agent_code'   THEN property_value ELSE '' END ) agent_code,\n" +
                 "\tmax(CASE property_name WHEN 'bank_account_certificate'   THEN property_value ELSE '' END ) bank_account_certificate,\n" +
                 "\tmax(CASE property_name WHEN 'station_id'   THEN property_value ELSE '' END ) stationId,\n" +
                 "\tmax(CASE property_name WHEN 'create_id'   THEN property_value ELSE '' END ) createId,\n" +
@@ -3787,6 +3807,14 @@ public class CustomerService {
                     customerUserPropertyDao.dealUserPropertyInfo(vo.getUserId(), "mobile_num", vo.getMobile());
                 } else {
                     customerUserPropertyDao.dealUserPropertyInfo(String.valueOf(userId), "mobile_num", vo.getMobile());
+                }
+            }
+            //报关员代码
+            if (StringUtil.isNotEmpty(vo.getDeclare_no())) {
+                if (StringUtil.isNotEmpty(vo.getUserId())) {
+                    customerUserPropertyDao.dealUserPropertyInfo(vo.getUserId(), "declare_no", vo.getDeclare_no());
+                } else {
+                    customerUserPropertyDao.dealUserPropertyInfo(String.valueOf(userId), "declare_no", vo.getDeclare_no());
                 }
             }
             if (StringUtil.isNotEmpty(vo.getResource())) {
