@@ -76,52 +76,28 @@ public class HypicXService implements BusiService {
 
     @Override
     public void updateInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) {
-        // 身份核验
-        if ("verification".equals(info.getString("_rule_"))) {
-            serviceUtils.esTestData();
-            StringBuffer sql = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(BusiTypeEnum.SF.getType(), "") + " where type=?")
-                    .append(" and cust_id='").append(cust_id).append("'")
-                    .append(" and (ext_7 IS NULL OR ext_7 = '' OR ext_7 = 2) ");
-            //.append(" and JSON_EXTRACT(content, '$.pid')=?");
-
-            String tmpType = "";
-            if (busiType.endsWith("_f")) {
-                tmpType = busiType.replaceAll("_f", "_z");
-            } else if (busiType.endsWith("_s")) {
-                tmpType = busiType.replaceAll("_s", "_f");
-            }
-            sql.append(" and ext_4=(SELECT ext_3 FROM " + HMetaDataDef.getTable(tmpType, "") + " WHERE id = ?)");
-
-            List sqlParams = new ArrayList();
-            sqlParams.add(BusiTypeEnum.SF.getType());
-            sqlParams.add(id);
-            // 根据主单查询待核验的分单列表
-            List<Map<String, Object>> dfList = jdbcTemplate.queryForList(sql.toString(), sqlParams.toArray());
-            if (dfList != null && dfList.size() > 0) {
-                JSONObject content = new JSONObject();
-                content.put("main_id", id);
-                content.put("status", 0);
-                JSONObject input;
-                JSONObject data;
-                String updateSql = "UPDATE " + HMetaDataDef.getTable(BusiTypeEnum.SF.getType(), "") + " SET ext_7 = 0, content = ? WHERE id =? AND type =? ";
-                for (Map<String, Object> m : dfList) {
-                    input = new JSONObject();
-                    // 身份核验待核验入队列
-                    data = JSON.parseObject(String.valueOf(m.getOrDefault("content", "")));
-                    input.put("name", data.getString("receive_name"));
-                    input.put("idCard", data.getString("id_no"));
-                    content.put("main_bill_no", data.getString("main_bill_no"));
-
-                    content.put("input", input);
-                    serviceUtils.insertSFVerifyQueue(content.toJSONString(), NumberConvertUtil.parseLong(m.get("id")), cust_user_id, cust_id, content.getString("main_bill_no"));
-                    if (data != null) {
-                        data.put("check_status", "0");
-                        jdbcTemplate.update(updateSql, data.toJSONString(), m.get("id"), BusiTypeEnum.SF.getType());
-                    }
+        String updateSql = "UPDATE " + HMetaDataDef.getTable(busiType, "") + " SET ext_2 = ?, content = ?, ext_5= ? WHERE id =? AND type =? AND cust_id =? ";
+        jdbcTemplate.update(updateSql, info.getInteger("status"), info.toJSONString(), info.getInteger("scoure"), id, busiType, cust_id);
+        //更新批次成功数量
+        int successNum = 0;
+        JSONObject jsonObject = new JSONObject();
+        if (info.getInteger("status") == 1) {
+            String querysql = "SELECT x.id,z.id mainId,z.ext_3,z.content FROM h_data_manager_hy_pic_x  x LEFT JOIN h_data_manager_hy_pic_z z ON x.ext_4 = z.ext_3 WHERE x.id = " + id;
+            List<Map<String, Object>> data = jdbcTemplate.queryForList(querysql);
+            if (data.size() > 0) {
+                String content = String.valueOf(data.get(0).get("content"));
+                log.info("查询批次的content信息是：" + content + "批次主键id是：" + id);
+                jsonObject = JSON.parseObject(content);
+                if (jsonObject != null) {
+                    successNum = jsonObject.getIntValue("successNum");
                 }
+                successNum += 1;
+                jsonObject.put("successNum", successNum);
+                int mainId = NumberConvertUtil.parseInt(data.get(0).get("mainId"));
+                log.info("更改成功状态数量的唯一id是：" +mainId + "核验成功数量是：" + successNum );
+                String updateMainSql = "UPDATE " + HMetaDataDef.getTable(BusiTypeEnum.HY_PIC_Z.getType(), "") + " SET  content = ? WHERE id =? AND type =? AND cust_id =? ";
+                jdbcTemplate.update(updateMainSql, new Object[]{jsonObject.toJSONString(),mainId,BusiTypeEnum.HY_PIC_Z.getType(),cust_id});
             }
-        } else {
-            serviceUtils.updateDataToES(busiType, id.toString(), info);
         }
     }
 
@@ -227,7 +203,7 @@ public class HypicXService implements BusiService {
             } else if ("detailId".equals(key)) {
                 sqlstr.append(" and ext_3 =?");
             } else if ("status".equals(key)) {
-                sqlstr.append(" and ext_1 =?");
+                sqlstr.append(" and ext_2 =?");
             } else continue;
             sqlParams.add(params.get(key));
         }

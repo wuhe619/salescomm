@@ -80,6 +80,24 @@ public class LoginUser extends Token {
      *前台菜单资源
      */
     private String resourceMenu;
+    /**
+     *意向行业
+     */
+    private String inten_industry;
+
+    /**
+     * api_token
+     * @return
+     */
+    private String api_token;
+
+    public String getApi_token() {
+        return api_token;
+    }
+
+    public void setApi_token(String api_token) {
+        this.api_token = api_token;
+    }
 
     public String getResourceMenu() {
         return resourceMenu;
@@ -121,6 +139,14 @@ public class LoginUser extends Token {
         if (custId == null)
             return "";
         return custId;
+    }
+
+    public String getInten_industry() {
+        return inten_industry;
+    }
+
+    public void setInten_industry(String inten_industry) {
+        this.inten_industry = inten_industry;
     }
 
     public Long getType() {
