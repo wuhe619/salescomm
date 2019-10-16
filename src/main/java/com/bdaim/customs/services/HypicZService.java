@@ -77,6 +77,9 @@ public class HypicZService implements BusiService {
             info.put("status", 0);
             //批次id
             info.put("ext_3", batchId);
+            //核验成功数量
+            info.put("successNum", 0);
+            info.put("create_date",System.currentTimeMillis());
         }
     }
 
@@ -169,42 +172,7 @@ public class HypicZService implements BusiService {
 
     @Override
     public String formatQuery(String busiType, String cust_id, String cust_group_id, Long cust_user_id, JSONObject params, List sqlParams) {
-        StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2 , ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(busiType, "") + " where type=?");
-        if (!"all".equals(cust_id))
-            sqlstr.append(" and cust_id='").append(cust_id).append("'");
-        sqlParams.add(busiType);
-       /* String stationId = params.getString("stationId");
-       // 处理场站检索
-        if (StringUtil.isNotEmpty(stationId)) {
-            String stationSql = "SELECT cust_id FROM t_customer_property WHERE property_name='station_id' AND property_value = ?";
-            sqlstr.append(" and cust_id IN ( ").append(stationSql).append(" )");
-            sqlParams.add(stationId);
-        }*/
-
-        Iterator keys = params.keySet().iterator();
-        while (keys.hasNext()) {
-            String key = (String) keys.next();
-            if (StringUtil.isEmpty(String.valueOf(params.get(key)))) continue;
-            if ("pageNum".equals(key) || "pageSize".equals(key) || "cust_id".equals(key))
-                continue;
-            if ("cust_id".equals(key)) {
-                sqlstr.append(" and cust_id=?");
-            } else if ("batch_name".equals(key)) {
-                sqlstr.append(" and ext_5 like concat('%',?,'%')");
-            } else if (key.startsWith("_ge_")) {
-                sqlstr.append(" and  create_date >= ?");
-            } else if (key.startsWith("_le_")) {
-                sqlstr.append(" and create_date <= ?");
-            } else if ("bill_no".equals(key)) {
-                sqlstr.append(" and ext_3 = ?");
-            } else if ("status".equals(key)) {
-                // 处理状态
-                sqlstr.append(" AND ext_2 =?");
-            } else continue;
-            sqlParams.add(params.get(key));
-        }
-        sqlstr.append(" ORDER BY create_date DESC, update_date DESC ");
-        return sqlstr.toString();
+        return null;
     }
 
     @Override
