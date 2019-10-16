@@ -12,7 +12,9 @@ import com.bdaim.common.util.StringUtil;
 import com.bdaim.common.util.page.PageList;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerUserDao;
+import com.bdaim.customer.dto.CustomerPropertyDTO;
 import com.bdaim.customer.dto.CustomerRegistDTO;
+import com.bdaim.customer.entity.CustomerProperty;
 import com.bdaim.customer.entity.CustomerUser;
 import com.bdaim.customer.entity.CustomerUserPropertyDO;
 import com.bdaim.customer.service.CustomerService;
@@ -198,14 +200,17 @@ public class BgdFService implements BusiService {
             List<HBusiDataManager> list2 = serviceUtils.listSdByBillNo(cust_id,BusiTypeEnum.BS.getType(),mainMap.get("ext_3").toString(),jo.getString("bill_no"));
             Map<String,Object> customerInfo = getCustomerInfo(cust_id);
             CustomerUserPropertyDO propertyDO = customerUserDao.getProperty(cust_user_id.toString(),"declare_no");
-            CustomerUserPropertyDO iObj = customerUserDao.getProperty(cust_user_id.toString(),"i");
+            CustomerProperty iObj = customerDao.getProperty(cust_id,"i");
             String sendId="";
+            log.info("userid="+cust_user_id+";custid="+cust_id);
+            log.info("iObj="+iObj);
             if(iObj != null) {
                 String value = iObj.getPropertyValue();
+                log.info("jJson="+value);
                 JSONObject iJson = JSONObject.parseObject(value);
                 sendId = iJson.getString("sender_id");
             }
-            customerInfo.put("send_id",sendId);
+            customerInfo.put("sender_id",sendId);
             CustomerUser customerUser = customerUserDao.get(cust_user_id);
             customerInfo.put("input_name","");
             customerInfo.put("declare_no","");
@@ -215,7 +220,7 @@ public class BgdFService implements BusiService {
             if(propertyDO!=null){
                 customerInfo.put("declare_no",propertyDO.getPropertyValue());
             }
-            log.info("分单 "+jo.getString("bill_no")+"; 商品量："+list2.size());
+            log.info("分单 "+m.get("ext_3")+"; 商品量："+list2.size());
             String xmlString = baoguandanXmlEXP301.createXml(mainMap,m,list2,customerInfo);
             info.put("xml",xmlString);
 
