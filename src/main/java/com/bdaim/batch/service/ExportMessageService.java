@@ -18,4 +18,12 @@ public interface ExportMessageService {
 
     void exportLostContactMessage(String labelListStr, String custId, String batchId, String realName, Long userId, String userType, String enterpriseId, String id, String idCard, String status, HttpServletResponse response,String rose) throws IOException;
 
+    /**
+     * 批次详情导出
+     * @param batchId
+     * @param status
+     * @param
+     * @param response
+     */
+    void exportDetailInfo(String batchId,String detailId, Integer status , HttpServletResponse response,String exportType,String custId) throws IOException, IllegalAccessException;
 }
