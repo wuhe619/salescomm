@@ -12,7 +12,9 @@ import com.bdaim.common.util.StringUtil;
 import com.bdaim.common.util.page.PageList;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerUserDao;
+import com.bdaim.customer.dto.CustomerPropertyDTO;
 import com.bdaim.customer.dto.CustomerRegistDTO;
+import com.bdaim.customer.entity.CustomerProperty;
 import com.bdaim.customer.entity.CustomerUser;
 import com.bdaim.customer.entity.CustomerUserPropertyDO;
 import com.bdaim.customer.service.CustomerService;
@@ -198,7 +200,7 @@ public class BgdFService implements BusiService {
             List<HBusiDataManager> list2 = serviceUtils.listSdByBillNo(cust_id,BusiTypeEnum.BS.getType(),mainMap.get("ext_3").toString(),jo.getString("bill_no"));
             Map<String,Object> customerInfo = getCustomerInfo(cust_id);
             CustomerUserPropertyDO propertyDO = customerUserDao.getProperty(cust_user_id.toString(),"declare_no");
-            CustomerUserPropertyDO iObj = customerUserDao.getProperty(cust_user_id.toString(),"i");
+            CustomerProperty iObj = customerDao.getProperty(cust_id,"i");
             String sendId="";
             log.info("userid="+cust_user_id+";custid="+cust_id);
             log.info("iObj="+iObj);

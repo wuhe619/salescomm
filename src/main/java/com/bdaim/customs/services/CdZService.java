@@ -13,6 +13,7 @@ import com.bdaim.common.util.page.PageList;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerUserDao;
 import com.bdaim.customer.dto.CustomerRegistDTO;
+import com.bdaim.customer.entity.CustomerProperty;
 import com.bdaim.customer.entity.CustomerUser;
 import com.bdaim.customer.entity.CustomerUserPropertyDO;
 import com.bdaim.customer.service.CustomerService;
@@ -51,6 +52,9 @@ public class CdZService implements BusiService {
 
     @Autowired
     private SequenceService sequenceService;
+
+    @Autowired
+    private CustomerDao customerDao;
 
 //    @Autowired
 //    private HBusiDataManagerDao hBusiDataManagerDao;
@@ -241,7 +245,7 @@ public class CdZService implements BusiService {
             log.info("starto to create xml file");
             Map<String,Object> customerInfo = getCustomerInfo(cust_id);
             log.info("getCustomerInfo 查询企业信息，"+customerInfo);
-            CustomerUserPropertyDO iObj = customerUserDao.getProperty(cust_user_id.toString(),"i");
+            CustomerProperty iObj = customerDao.getProperty(cust_id,"i");
             log.info("CustomerUserPropertyDO",iObj);
             String sendId="";
             if(iObj != null) {
