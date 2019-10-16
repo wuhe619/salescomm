@@ -10,7 +10,9 @@ package com.bdaim.customer.dto;
 public enum CustomerPropertyEnum {
     CALL_BACK_APP_ID("app_id", "双向呼叫appId"),
     MARKET_PROJECT_ID_PREFIX("marketProjectId_", "企业下关联项目的ID前缀"),
-    SERVICE_MODE("service_mode","服务权限");
+    SERVICE_MODE("service_mode","服务权限"),
+    INTEN_INDUCTRY("inten_industry","意向行业"),
+    API_TOKEN("api_token","TOKEN");
 
     private String key;
     private String name;
