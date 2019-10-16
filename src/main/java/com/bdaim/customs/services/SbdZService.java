@@ -663,6 +663,7 @@ public class SbdZService implements BusiService {
                     String G_QTY = product.getG_qty();
                     String decl_price = product.getDecl_price();
                     json.put("total_price", 0);
+                    json.put("decl_price",decl_price);//申报单价
                     //价格合计
                     if (StringUtil.isNotEmpty(G_QTY) && StringUtil.isNotEmpty(decl_price)) {
                         qty = new BigDecimal(G_QTY);
