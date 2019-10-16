@@ -1,7 +1,6 @@
 package com.bdaim.customs.services;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.service.BusiService;
@@ -22,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
 import java.util.*;
 
 /***
@@ -200,7 +200,7 @@ public class SbdZService implements BusiService {
                     /*info.put("idCardNum", dfList.size());
                     info.put("failIdCardNum", failIdCardNum);*/
                 }
-            }else{
+            } else {
                 log.warn("申报单分单校验已完成[" + busiType + "]" + id);
                 throw new TouchException("1000", "申报单分单校验已完成");
             }
@@ -524,14 +524,14 @@ public class SbdZService implements BusiService {
                         p.setMain_bill_no(mainDan.getBill_no());
                     }
                 }
-                buildSBDFenDan(0, dan, list, userId, custId, mainDan.getBill_no(), mainid, info, resource);
+                buildSBDFenDan(dan, list, userId, custId, mainDan.getBill_no(), mainid, info, resource);
                 //size--;
             }
         }
     }
 
 
-    public void buildSBDFenDan(long id1, PartyDan dan, List<HBusiDataManager> list, Long userId, String custId, String mainBillNo, Long mainid, JSONObject info, Map<String, JSONObject> resource) throws Exception {
+    public void buildSBDFenDan(PartyDan dan, List<HBusiDataManager> list, Long userId, String custId, String mainBillNo, Long mainid, JSONObject info, Map<String, JSONObject> resource) throws Exception {
         try {
             List<Product> pList = dan.getProducts();
             Long id = sequenceService.getSeq(BusiTypeEnum.SF.getType());
@@ -560,19 +560,20 @@ public class SbdZService implements BusiService {
             json.put("check_status", "0");
             json.put("idcard_pic_flag", "0");
             json.put("pid", mainid);
-            JSONArray jsonArray = arrt.getJSONArray("main_goods_name");
-            /*String mainGoodsName = "";
+            /*JSONArray jsonArray = arrt.getJSONArray("main_goods_name");
+            String mainGoodsName = "";
             if (jsonArray != null && jsonArray.size() > 0) {
                 for (int i = 0; i < jsonArray.size(); i++) {
                     JSONObject obj = jsonArray.getJSONObject(i);
                     mainGoodsName += obj.getString("name") + "|" + obj.getString("name_en") + "|" + obj.getString("g_model");
                 }
             }*/
+            // 分单总价
             json.put("total_value", arrt.getString("total_value"));
             //json.put("main_gname", mainGoodsName);
             // 计算主要货物
             json.put("main_gname", serviceUtils.generateFDMainGName(pList));
-
+            // 低价商品数量
             json.put("low_price_goods", arrt.getString("low_price_goods"));
             if (info.containsKey("low_price_goods") && info.getInteger("low_price_goods") != null) {
                 int low_price_goods = info.getInteger("low_price_goods");
@@ -594,8 +595,9 @@ public class SbdZService implements BusiService {
             //List<Map<String, String>> mainGoodsName = new ArrayList<>();
             HBusiDataManager dataManager;
             arrt.put("low_price_goods", 0);
-            Double total_value = 0d;
-            arrt.put("total_value", total_value);
+            Double totalValue = 0d;
+            BigDecimal qty = null;
+            BigDecimal multiply = null;
             for (Product product : pList) {
                 log.info("goods:" + product.getCode_ts());
                 try {
@@ -660,11 +662,15 @@ public class SbdZService implements BusiService {
                     json.put("is_low_price", is_low_price);
                     String G_QTY = product.getG_qty();
                     String decl_price = product.getDecl_price();
-                    json.put("total_price", 0);//价格合计
+                    json.put("total_price", 0);
+                    //价格合计
                     if (StringUtil.isNotEmpty(G_QTY) && StringUtil.isNotEmpty(decl_price)) {
-                        Double total_price = Double.valueOf(G_QTY) * Double.valueOf(decl_price);
-                        json.put("total_price", total_price);//价格合计
-                        total_value += total_price;
+                        qty = new BigDecimal(G_QTY);
+                        multiply = qty.multiply(new BigDecimal(decl_price));
+                        Double total_price = multiply.setScale(5, BigDecimal.ROUND_HALF_UP).doubleValue();
+                        //价格合计
+                        json.put("total_price", total_price);
+                        totalValue += total_price;
                     }
 //                    float total_price = Float.valueOf(product.getDecl_total() == null || "".equals(product.getDecl_total()) ? "0" : product.getDecl_total());
                     json.put("duty_paid_price", duty_paid_price);//完税价格
@@ -678,6 +684,7 @@ public class SbdZService implements BusiService {
                     log.error("生成商品信息 " + product.getCode_ts() + " 异常", e);
                 }
             }
+            arrt.put("total_value", totalValue);
         }
     }
 
