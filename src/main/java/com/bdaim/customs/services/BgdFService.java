@@ -215,6 +215,7 @@ public class BgdFService implements BusiService {
             if(propertyDO!=null){
                 customerInfo.put("declare_no",propertyDO.getPropertyValue());
             }
+            log.info("分单 "+jo.getString("bill_no")+"; 商品量："+list2.size());
             String xmlString = baoguandanXmlEXP301.createXml(mainMap,m,list2,customerInfo);
             info.put("xml",xmlString);
 
