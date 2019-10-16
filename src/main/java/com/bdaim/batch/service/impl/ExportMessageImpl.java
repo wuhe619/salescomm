@@ -2,6 +2,7 @@ package com.bdaim.batch.service.impl;
 
 import com.bdaim.batch.dao.BatchDetailDao;
 import com.bdaim.batch.service.ExportMessageService;
+import com.bdaim.common.util.ExcelUtil;
 import com.bdaim.common.util.StringUtil;
 import com.github.crab2died.ExcelUtils;
 import org.apache.commons.lang.StringEscapeUtils;
@@ -37,7 +38,7 @@ public class ExportMessageImpl implements ExportMessageService {
      * @date: 2018/9/11 9:25
      */
     @Override
-    public void exportLostContactMessage(String labelListStr, String custId, String batchId, String realname, Long userId, String userType, String enterpriseId, String id, String idCard, String status, HttpServletResponse response,String role) throws IOException {
+    public void exportLostContactMessage(String labelListStr, String custId, String batchId, String realname, Long userId, String userType, String enterpriseId, String id, String idCard, String status, HttpServletResponse response, String role) throws IOException {
         //处理自建属性添加集合信息
         List<String> optionValues = new ArrayList<>();
         List<String> labels = new ArrayList<>();
@@ -100,7 +101,7 @@ public class ExportMessageImpl implements ExportMessageService {
         sqlBuilder.append("  LEFT JOIN t_super_label t2 ON custG.id = t2.super_id AND t2.batch_id = '" + batchId + "'");
         sqlBuilder.append("  LEFT JOIN t_customer_label t3 ON t2.label_id = t3.label_id AND custG.batch_id = t4.batch_id");
         sqlBuilder.append(" where 1 = 1 ");
-        if (userType.equals("2") && "ROLE_CUSTOMER".equals(role) ) {
+        if (userType.equals("2") && "ROLE_CUSTOMER".equals(role)) {
             sqlBuilder.append("AND custG.user_id =" + userId);
         }
         if (StringUtil.isNotEmpty(id)) {
@@ -205,11 +206,11 @@ public class ExportMessageImpl implements ExportMessageService {
             rowList.add(column.get("super_name") != null ? column.get("super_name") : "");
             rowList.add(column.get("super_age") != null ? column.get("super_age") : "");
             /*rowList.add(column.get("super_sex") != null ? column.get("super_sex") : "");*/
-            if ("0".equals(String.valueOf(column.get("super_sex")))){
+            if ("0".equals(String.valueOf(column.get("super_sex")))) {
                 rowList.add("女");
-            }else if ("1".equals(String.valueOf(column.get("super_sex")))){
+            } else if ("1".equals(String.valueOf(column.get("super_sex")))) {
                 rowList.add("男");
-            }else {
+            } else {
                 rowList.add("");
             }
             rowList.add(column.get("super_telphone") != null ? column.get("super_telphone") : "");
@@ -238,6 +239,29 @@ public class ExportMessageImpl implements ExportMessageService {
             response.flushBuffer();
             outputStream.close();
         }
+    }
+
+    /**
+     * 批次详情导出
+     *
+     * @param batchId
+     * @param status
+     * @param response
+     */
+    @Override
+    public void exportDetailInfo(String batchId, String detailId, Integer status, HttpServletResponse response, String exportType,String custId) throws IOException, IllegalAccessException {
+        StringBuffer sb = new StringBuffer("SELECT content, cust_id, cust_group_id, cust_user_id, create_id, create_date ,ext_1, ext_2, ext_3 detailId, ext_4 batchId, ext_5 scoure from h_data_manager_hy_pic_x WHERE ext_4 = '" + batchId + "'");
+        if (status !=null) {
+            sb.append(" and ext_2 = " + status);
+        }
+        if (StringUtil.isNotEmpty(detailId)) {
+            sb.append(" and ext_3 = '" + detailId + "'");
+        }
+        if (StringUtil.isNotEmpty(custId)) {
+            sb.append(" and cust_id = '" + custId + "'");
+        }
+        List<Map<String, Object>> list = batchDetailDao.sqlQuery(sb.toString());
+        ExcelUtil.exportExcelByList(list, exportType, response);
     }
 
     /**

@@ -1,11 +1,14 @@
 package com.bdaim.batch.controller;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.bdaim.auth.LoginUser;
 import com.bdaim.batch.service.ExportMessageService;
 import com.bdaim.common.controller.BasicAction;
+import com.bdaim.common.response.ResponseInfo;
+import com.bdaim.common.response.ResponseInfoAssemble;
+import com.bdaim.common.util.StringUtil;
 import com.bdaim.smscenter.controller.SeatsMessageAction;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -45,5 +48,31 @@ public class ExportMessageAction extends BasicAction {
             logger.info("失联人员信息导出" + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    /**
+     * @description 批次详情信息导出
+     * @author:duanliying
+     * @method
+     * @date: 2018/9/11 8:56
+     */
+    @RequestMapping(value = "/detail", method = RequestMethod.GET)
+    @ResponseBody
+    public ResponseInfo ExportPersonMessage(String batchId, String detailId, Integer status, String exportType, HttpServletResponse response) {
+        try {
+            if (StringUtil.isEmpty(batchId) || StringUtil.isEmpty(exportType)){
+                return new ResponseInfoAssemble().failure(-1, "缺少必要参数");
+            }
+            String custId = "";
+            LoginUser lu = opUser();
+            if ("ROLE_CUSTOMER".equals(lu.getRole())) {
+                custId = lu.getCustId();
+            }
+            exportMessageService.exportDetailInfo(batchId, detailId, status, response, exportType,custId);
+        } catch (Exception e) {
+            logger.info("失联人员信息导出", e);
+            return new ResponseInfoAssemble().failure(-1, "批次详情信息导出失败");
+        }
+        return new ResponseInfoAssemble().success("批次详情信息导出成功");
     }
 }
