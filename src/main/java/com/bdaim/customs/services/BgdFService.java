@@ -200,6 +200,7 @@ public class BgdFService implements BusiService {
             CustomerUserPropertyDO propertyDO = customerUserDao.getProperty(cust_user_id.toString(),"declare_no");
             CustomerUserPropertyDO iObj = customerUserDao.getProperty(cust_user_id.toString(),"i");
             String sendId="";
+            log.info("userid="+cust_user_id+";custid="+cust_id);
             log.info("iObj="+iObj);
             if(iObj != null) {
                 String value = iObj.getPropertyValue();
