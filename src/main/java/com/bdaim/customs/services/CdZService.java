@@ -254,7 +254,7 @@ public class CdZService implements BusiService {
                 sendId = iJson.getString("sender_id");
             }
             log.info("sender_id",sendId);
-            customerInfo.put("send_id",sendId);
+            customerInfo.put("sender_id",sendId);
             CustomerUser customerUser = customerUserDao.get(cust_user_id);
             log.info("customerUser",customerUser);
             CustomerUserPropertyDO propertyDO = customerUserDao.getProperty(cust_user_id.toString(),"declare_no");
