@@ -210,7 +210,7 @@ public class BgdFService implements BusiService {
                 JSONObject iJson = JSONObject.parseObject(value);
                 sendId = iJson.getString("sender_id");
             }
-            customerInfo.put("send_id",sendId);
+            customerInfo.put("sender_id",sendId);
             CustomerUser customerUser = customerUserDao.get(cust_user_id);
             customerInfo.put("input_name","");
             customerInfo.put("declare_no","");
@@ -220,7 +220,7 @@ public class BgdFService implements BusiService {
             if(propertyDO!=null){
                 customerInfo.put("declare_no",propertyDO.getPropertyValue());
             }
-            log.info("分单 "+jo.getString("bill_no")+"; 商品量："+list2.size());
+            log.info("分单 "+m.get("ext_3")+"; 商品量："+list2.size());
             String xmlString = baoguandanXmlEXP301.createXml(mainMap,m,list2,customerInfo);
             info.put("xml",xmlString);
 

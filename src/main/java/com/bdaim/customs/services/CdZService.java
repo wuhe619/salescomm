@@ -253,7 +253,7 @@ public class CdZService implements BusiService {
                 JSONObject iJson = JSONObject.parseObject(value);
                 sendId = iJson.getString("sender_id");
             }
-            log.info("send_id",sendId);
+            log.info("sender_id",sendId);
             customerInfo.put("send_id",sendId);
             CustomerUser customerUser = customerUserDao.get(cust_user_id);
             log.info("customerUser",customerUser);
