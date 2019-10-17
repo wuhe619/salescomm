@@ -162,8 +162,8 @@ public class BgdFService implements BusiService {
             Map m = list.get(0);
 
             String cdContent = String.valueOf(m.get("content"));
-            if ("1".equals(String.valueOf(m.get("ext_1"))) && StringUtil.isNotEmpty(cdContent)
-                    && "1".equals(JSON.parseObject(cdContent).getString("send_status"))) {
+            if ("B1".equals(String.valueOf(m.get("ext_1"))) && StringUtil.isNotEmpty(cdContent)
+                    && "B1".equals(JSON.parseObject(cdContent).getString("send_status"))) {
                 log.warn("报关单分单:[" + id + "]已提交至海关");
                 throw new TouchException("报关单分单:[" + id + "]已提交至海关");
             }
@@ -208,10 +208,10 @@ public class BgdFService implements BusiService {
                 throw new TouchException("2000","生成xml报文出错");
             }
             // 更新报关单主单信息
-            jo.put("ext_1", "1");
-            jo.put("send_status", "1");
-            info.put("ext_1", "1");
-            info.put("send_status", "1");
+            jo.put("ext_1", "B1");
+            jo.put("send_status", "B1");
+            info.put("ext_1", "B1");
+            info.put("send_status", "B1");
             jo.put("id", m.get("id"));
             jo.put("cust_id", m.get("cust_id"));
             jo.put("cust_group_id", m.get("cust_group_id"));
@@ -231,7 +231,7 @@ public class BgdFService implements BusiService {
             if (m.get("ext_5") != null && !"".equals(m.get("ext_5")))
                 jo.put("ext_5", m.get("ext_5"));
 
-            sql = "UPDATE "+HMetaDataDef.getTable(busiType,"")+" SET ext_1 = '1', ext_date1 = NOW(), content=? WHERE id = ? AND type = ? AND IFNULL(ext_1,'') <>'1' ";
+            sql = "UPDATE "+HMetaDataDef.getTable(busiType,"")+" SET ext_1 = 'B1', ext_date1 = NOW(), content=? WHERE id = ? AND type = ? AND IFNULL(ext_1,'') <>'B1' ";
             jdbcTemplate.update(sql, jo.toJSONString(), id, busiType);
             serviceUtils.updateDataToES(BusiTypeEnum.BF.getType(), id.toString(), jo);
 

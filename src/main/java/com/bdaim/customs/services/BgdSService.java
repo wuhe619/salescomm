@@ -106,7 +106,8 @@ public class BgdSService implements BusiService{
 		info.put("duty_paid_price", duty_paid_price);//完税价格
 		info.put("estimated_tax", estimated_tax);//预估税金
 		info.put("tax_rate", tax_rate);//税率
-		info.put("total_price",0);//价格合计
+		Double total_price = Double.valueOf(info.getString("g_qty"))*Double.valueOf(info.getString("decl_price"));
+		info.put("total_price",total_price);//价格合计
 		HBusiDataManager partH = serviceUtils.getObjectByIdAndType(cust_id,pid.longValue(),BusiTypeEnum.BF.getType());
 		if(partH==null){
 			throw new TouchException("无权操作");
@@ -186,6 +187,11 @@ public class BgdSService implements BusiService{
 			String key = (String) keys.next();
 			json.put(key, info.get(key));
 		}
+		if(info.containsKey("decl_price") && info.containsKey("g_qty")){
+			Double total_price = Double.valueOf(info.getString("g_qty"))*Double.valueOf(info.getString("decl_price"));
+			info.put("total_price", total_price);//价格合计
+			json.put("total_price",total_price);
+		}
 		serviceUtils.updateDataToES(busiType,id.toString(),json);
 
 		HBusiDataManager fmanager = serviceUtils.getObjectByIdAndType(cust_id,json.getLong("pid"),BusiTypeEnum.BF.getType());
@@ -228,7 +234,8 @@ public class BgdSService implements BusiService{
 				info.put("duty_paid_price", duty_paid_price);//完税价格
 				info.put("estimated_tax", estimated_tax);//预估税金
 				info.put("tax_rate", tax_rate);//税率
-				info.put("total_price",0);//价格合计
+				Double total_price = Double.valueOf(info.getString("g_qty"))*Double.valueOf(info.getString("decl_price"));
+				info.put("total_price", total_price);//价格合计
 			}else{
 				if(goods.containsKey("ggrosswt") && StringUtil.isNotEmpty(goods.getString("ggrosswt"))){
 					weight += goods.getFloatValue("ggrosswt");
