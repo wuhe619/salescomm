@@ -441,7 +441,7 @@ public class BgdFService implements BusiService {
             String content = d.getContent();
             JSONObject json = JSONObject.parseObject(content);
             String gno = d.getExt_5();
-            String msg = "商品序号"+gno+" ";
+            String msg = "商品序号"+gno+"，缺失，";
 
             Boolean hasError = false;
 
@@ -489,7 +489,7 @@ public class BgdFService implements BusiService {
                 hasError = true;
             }
             if (!json.containsKey("g_name") || StringUtil.isEmpty(json.getString("ggrosswt"))) {
-                msg += "商品毛重,";
+                msg += "商品毛重";
                 hasError = true;
             }
 

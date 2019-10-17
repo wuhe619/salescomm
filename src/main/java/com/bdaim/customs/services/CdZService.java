@@ -725,7 +725,7 @@ public class CdZService implements BusiService {
             String billNo=json.getString("bill_no");
             Boolean hasError = false;
             String msg = "分运单 ";
-            msg += billNo;
+            msg += billNo+"，缺失，";
 
             if(!json.containsKey("main_gname") || StringUtil.isEmpty(json.getString("main_gname"))){
                 msg += "主要商品名称,";
