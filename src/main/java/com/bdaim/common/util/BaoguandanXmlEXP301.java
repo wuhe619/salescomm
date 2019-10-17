@@ -251,7 +251,7 @@ public class BaoguandanXmlEXP301 {
         NetWt.setTextContent(json.containsKey("weight")?json.getString("weight"):"");  //r
         EntryHead.appendChild(NetWt);
         Element WrapType = document.createElement("WrapType");
-        WrapType.setTextContent(mainJson.getString("wrap_type"));  //r
+        WrapType.setTextContent(mainJson.getString("wrap_class"));  //r
         EntryHead.appendChild(WrapType);
         Element NoteS = document.createElement("NoteS");
 
@@ -261,7 +261,7 @@ public class BaoguandanXmlEXP301 {
         EntryHead.appendChild(DeclPort);
 
         Element CoOwner = document.createElement("CoOwner");//经营单位性质
-        CoOwner.setTextContent(json.getString("s_c_busi_kinds"));  //r
+        CoOwner.setTextContent(json.getString("s_c_code_busi_unit"));  //r
         EntryHead.appendChild(CoOwner);
         /*Element MnlJgfFlag = document.createElement("MnlJgfFlag");
         MnlJgfFlag.setTextContent("");
@@ -293,7 +293,7 @@ public class BaoguandanXmlEXP301 {
         DeclareNo.setTextContent((String) customerInfo.getOrDefault("declare_no",""));  //如果AgentType=1，必不填,否则必填
         EntryHead.appendChild(DeclareNo);
         Element CustomsField = document.createElement("CustomsField");
-        CustomsField.setTextContent(mainJson.getString("wharf_yard_code"));  //r
+        CustomsField.setTextContent(mainJson.getString("warehouse_code"));  //r
         EntryHead.appendChild(CustomsField);
         /*Element SpecialFlag = document.createElement("SpecialFlag");
         EntryHead.appendChild(SpecialFlag);*/

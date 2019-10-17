@@ -343,7 +343,7 @@ public class BgdFService implements BusiService {
         if(StringUtil.isEmpty(mainjson.getString("agent_type"))){
             filedName += "," + BGDReportEnum.AgentType.getName();
         }
-        if(StringUtil.isEmpty(customerInfo.get("s_c_code_shipper")==null?"":customerInfo.get("s_c_code_shipper").toString())){
+        if(StringUtil.isEmpty(customerInfo.get("agent_code")==null?"":customerInfo.get("agent_code").toString())){
             filedName += "," + BGDReportEnum.AgentCode.getName();
         }
 
@@ -369,14 +369,14 @@ public class BgdFService implements BusiService {
         if(StringUtil.isEmpty(json.getString("weight"))){
             filedName += "," + BGDReportEnum.NetWt.getName();
         }
-        if(StringUtil.isEmpty(mainjson.getString("wrap_type"))){
+        if(StringUtil.isEmpty(mainjson.getString("wrap_class"))){
             filedName += "," + BGDReportEnum.WrapType.getName();
         }
         if(StringUtil.isEmpty(mainjson.getString("decl_port"))){
             filedName += "," + BGDReportEnum.DeclPort.getName();
         }
-        if(StringUtil.isEmpty(json.getString("s_c_busi_kinds"))){
-            filedName += "," + BGDReportEnum.CoOwner.getName();
+        if(StringUtil.isEmpty(json.getString("s_c_code_busi_unit"))){
+            filedName += "," + BGDReportEnum.CoOwner.getName();//经营单位性质，取经营单位编码第6位
         }
         if(StringUtil.isEmpty(customerInfo.getOrDefault("input_name","").toString())){
             filedName += "," + BGDReportEnum.InputNo.getName();
@@ -393,7 +393,7 @@ public class BgdFService implements BusiService {
         if(StringUtil.isEmpty(customerInfo.get("declare_no")==null?"":customerInfo.get("declare_no").toString())){
             filedName += "," + BGDReportEnum.DeclareNo.getName();
         }
-        if(StringUtil.isEmpty(mainjson.get("wharf_yard_code")==null?"":mainjson.get("wharf_yard_code").toString())){
+        if(StringUtil.isEmpty(mainjson.get("warehouse_code")==null?"":mainjson.get("warehouse_code").toString())){
             filedName += "," + BGDReportEnum.CustomsField.getName();
         }
         if(StringUtil.isEmpty(mainjson.get("send_name")==null?"":mainjson.get("send_name").toString())){
@@ -406,14 +406,14 @@ public class BgdFService implements BusiService {
         if(StringUtil.isEmpty(mainjson.get("send_country")==null?"":mainjson.get("send_country").toString())){
             filedName += "," + BGDReportEnum.SendCountry.getName();
         }
-        if(StringUtil.isEmpty(mainjson.get("send_city")==null?"":mainjson.get("send_city").toString())){
+        if(StringUtil.isEmpty(mainjson.get("send_city_en")==null?"":mainjson.get("send_city_en").toString())){
             filedName += "," + BGDReportEnum.SendCity.getName();
         }
         if(StringUtil.isEmpty(json.get("id_no")==null?"":json.get("id_no").toString())){
             filedName += "," + BGDReportEnum.SendId.getName();
         }
 
-        if(StringUtil.isEmpty(json.get("total_value")==null?"":json.get("total_value").toString())){
+        if(StringUtil.isEmpty(json.get("total_price")==null?"":json.get("total_price").toString())){
             filedName += "," + BGDReportEnum.TotalValue.getName();
         }
 
