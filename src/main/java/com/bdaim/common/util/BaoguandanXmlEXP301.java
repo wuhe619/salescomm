@@ -375,7 +375,7 @@ public class BaoguandanXmlEXP301 {
 //
 //            EntryList.appendChild(ExchangeRate);
             Element TradeTotal = document.createElement("TradeTotal");
-            TradeTotal.setTextContent(json.getString("trade_total"));
+            TradeTotal.setTextContent(json.getString("total_price"));
             EntryList.appendChild(TradeTotal);
             Element DeclPrice = document.createElement("DeclPrice");
             DeclPrice.setTextContent(json.containsKey("decl_price")?json.getString("decl_price"):"");

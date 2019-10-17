@@ -467,6 +467,7 @@ public class BgdZService implements BusiService {
                     sdContent.put("pid", hp.getId());
                     sdContent.put("index", index);
                     sdContent.put("opt_type", "ADD");
+                    sdContent.put("curr_code",_content.getString("curr_code"));
                     good.setContent(sdContent.toJSONString());
                     good.setType(BusiTypeEnum.BS.getType());
                     good.setCreateId(gp.getCreateId());
