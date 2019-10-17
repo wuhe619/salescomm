@@ -94,7 +94,10 @@ public class BusiEntityService {
             serviceUtils.getStationCustName(jo);
             // 查询字典数据
             serviceUtils.getHDicData(jo);
-        } catch (Exception e) {
+        }catch (TouchException e){
+            logger.error("数据格式错误！", e);
+            throw new TouchException(e.getCode(),e.getMessage());
+        }catch (Exception e) {
             logger.error("数据格式错误！", e);
             throw new Exception("数据格式错误！");
         }
