@@ -99,11 +99,11 @@ public class BaoguandanXmlEXP301 {
         version.setTextContent("1.0");
         String dateStr=DateUtil.fmtDateToStr(new Date(),"yyyyMMddHHmmss");
         String idstr = getId11NO(id);
-        String msg_id=custInfo.get("send_id").toString()+"E010000"+dateStr+idstr;
+        String msg_id = custInfo.get("sender_id").toString()+"E010000"+dateStr+idstr;
         message_id.setTextContent(msg_id);
         file_name.setTextContent(msg_id+".EXP");
         message_type.setTextContent("EXP301");
-        sender_id.setTextContent((String) custInfo.get("send_id"));
+        sender_id.setTextContent((String) custInfo.get("sender_id"));
         receiver_id.setTextContent("E010000");
         send_time.setTextContent(dateStr);
 
