@@ -382,7 +382,7 @@ public class BgdFService implements BusiService {
             filedName += "," + BGDReportEnum.InputNo.getName();
         }
 
-        if(StringUtil.isEmpty(customerInfo.get("s_c_code_shipper")==null?"":customerInfo.get("s_c_code_shipper").toString())){
+        if(StringUtil.isEmpty(customerInfo.get("agent_code")==null?"":customerInfo.get("agent_code").toString())){
             filedName += "," + BGDReportEnum.InputCompanyCo.getName();
         }
 

@@ -705,7 +705,7 @@ public class CdZService implements BusiService {
             filedName += "," + CDReportEnum.InputOpName.getName();
         }
 
-        if(StringUtil.isEmpty((String) customerInfo.get("s_c_code_shipper"))){
+        if(StringUtil.isEmpty((String) customerInfo.get("agent_code"))){
             filedName += "," + CDReportEnum.InputCompanyCode.getName();
         }
 
