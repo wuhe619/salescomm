@@ -188,7 +188,7 @@ public class BaoguandanXmlEXP301 {
         AgentType.setTextContent(mainJson.getString("agent_type"));  //0：企业；1：自然人
         EntryHead.appendChild(AgentType);
         Element AgentCode = document.createElement("AgentCode");//申报单位代码
-        AgentCode.setTextContent((String) customerInfo.getOrDefault("s_c_code_shipper","")); //AgentType=0时必填
+        AgentCode.setTextContent((String) customerInfo.getOrDefault("agent_code","")); //AgentType=0时必填
         EntryHead.appendChild(AgentCode);
         Element AgentName = document.createElement("AgentName");//申报单位名称
         AgentName.setTextContent((String) customerInfo.getOrDefault("enterpriseName",""));//AgentType=0时必填
