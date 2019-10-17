@@ -157,19 +157,57 @@ public class BgdFService implements BusiService {
             List<Map<String, Object>> list = jdbcTemplate.queryForList(sql, busiType, id);
             if (list.size() == 0) {
                 log.warn("报关单分单数据不存在[" + busiType + "]" + id);
-                throw new TouchException("1000", "报关单分单数据不存在");
+                throw new TouchException("2000", "报关单分单数据不存在");
             }
             Map m = list.get(0);
-            //Map m = jdbcTemplate.queryForMap(sql, busiType, id);
+
             String cdContent = String.valueOf(m.get("content"));
             if ("1".equals(String.valueOf(m.get("ext_1"))) && StringUtil.isNotEmpty(cdContent)
-                    && "1.".equals(JSON.parseObject(cdContent).getString("send_status"))) {
+                    && "1".equals(JSON.parseObject(cdContent).getString("send_status"))) {
                 log.warn("报关单分单:[" + id + "]已提交至海关");
                 throw new TouchException("报关单分单:[" + id + "]已提交至海关");
             }
             // 更新报关单主单信息
             String content = (String) m.get("content");
             JSONObject jo = JSONObject.parseObject(content);
+
+            //start to create xml
+            String mainsql = "select id,content, cust_id, cust_group_id, cust_user_id, create_id, create_date ,ext_1, ext_2, ext_3, ext_4, ext_5 from "+ HMetaDataDef.getTable(BusiTypeEnum.BZ.getType(),"")+" where type=? and id=? ";
+            list = jdbcTemplate.queryForList(mainsql, BusiTypeEnum.BZ.getType(), jo.getString("pid"));
+            Map<String,Object> mainMap = list.get(0);
+            List<HBusiDataManager> list2 = serviceUtils.listSdByBillNo(cust_id,BusiTypeEnum.BS.getType(),mainMap.get("ext_3").toString(),jo.getString("bill_no"));
+            Map<String,Object> customerInfo = getCustomerInfo(cust_id);
+            CustomerUserPropertyDO propertyDO = customerUserDao.getProperty(cust_user_id.toString(),"declare_no");
+            CustomerProperty iObj = customerDao.getProperty(cust_id,"i");
+            String sendId = "";
+            log.info("userid="+cust_user_id+";custid=" + cust_id);
+            log.info("iObj="+iObj);
+            if(iObj != null) {
+                String value = iObj.getPropertyValue();
+                log.info("jJson="+value);
+                JSONObject iJson = JSONObject.parseObject(value);
+                sendId = iJson.getString("sender_id");
+            }
+            customerInfo.put("sender_id",sendId);
+            CustomerUser customerUser = customerUserDao.get(cust_user_id);
+            customerInfo.put("input_name","");
+            customerInfo.put("declare_no","");
+            if(customerUser!=null){
+                customerInfo.put("input_name",customerUser.getRealname());
+            }
+            if(propertyDO!=null){
+                customerInfo.put("declare_no",propertyDO.getPropertyValue());
+            }
+            log.info("分单 "+m.get("ext_3")+"; 商品量："+list2.size());
+
+            bgdCheck(mainMap,m,list2,customerInfo);
+            String xmlString = baoguandanXmlEXP301.createXml(mainMap,m,list2,customerInfo);
+            log.info("xmlString:"+xmlString);
+            info.put("xml",xmlString);
+            if(StringUtil.isEmpty(xmlString)){
+                throw new TouchException("2000","生成xml报文出错");
+            }
+            // 更新报关单主单信息
             jo.put("ext_1", "1");
             jo.put("send_status", "1");
             info.put("ext_1", "1");
@@ -192,37 +230,6 @@ public class BgdFService implements BusiService {
                 jo.put("ext_4", m.get("ext_4"));
             if (m.get("ext_5") != null && !"".equals(m.get("ext_5")))
                 jo.put("ext_5", m.get("ext_5"));
-
-            //start to create xml
-            String mainsql = "select id,content, cust_id, cust_group_id, cust_user_id, create_id, create_date ,ext_1, ext_2, ext_3, ext_4, ext_5 from "+ HMetaDataDef.getTable(BusiTypeEnum.BZ.getType(),"")+" where type=? and id=? ";
-            list = jdbcTemplate.queryForList(mainsql, BusiTypeEnum.BZ.getType(), jo.getString("pid"));
-            Map<String,Object> mainMap = list.get(0);
-            List<HBusiDataManager> list2 = serviceUtils.listSdByBillNo(cust_id,BusiTypeEnum.BS.getType(),mainMap.get("ext_3").toString(),jo.getString("bill_no"));
-            Map<String,Object> customerInfo = getCustomerInfo(cust_id);
-            CustomerUserPropertyDO propertyDO = customerUserDao.getProperty(cust_user_id.toString(),"declare_no");
-            CustomerProperty iObj = customerDao.getProperty(cust_id,"i");
-            String sendId="";
-            log.info("userid="+cust_user_id+";custid="+cust_id);
-            log.info("iObj="+iObj);
-            if(iObj != null) {
-                String value = iObj.getPropertyValue();
-                log.info("jJson="+value);
-                JSONObject iJson = JSONObject.parseObject(value);
-                sendId = iJson.getString("sender_id");
-            }
-            customerInfo.put("sender_id",sendId);
-            CustomerUser customerUser = customerUserDao.get(cust_user_id);
-            customerInfo.put("input_name","");
-            customerInfo.put("declare_no","");
-            if(customerUser!=null){
-                customerInfo.put("input_name",customerUser.getRealname());
-            }
-            if(propertyDO!=null){
-                customerInfo.put("declare_no",propertyDO.getPropertyValue());
-            }
-            log.info("分单 "+m.get("ext_3")+"; 商品量："+list2.size());
-            String xmlString = baoguandanXmlEXP301.createXml(mainMap,m,list2,customerInfo);
-            info.put("xml",xmlString);
 
             sql = "UPDATE "+HMetaDataDef.getTable(busiType,"")+" SET ext_1 = '1', ext_date1 = NOW(), content=? WHERE id = ? AND type = ? AND IFNULL(ext_1,'') <>'1' ";
             jdbcTemplate.update(sql, jo.toJSONString(), id, busiType);
@@ -292,4 +299,316 @@ public class BgdFService implements BusiService {
         return (Map<String, Object>) list.get(0);
     }
 
+
+    private String bgdCheck(Map<String,Object> mainMap,Map<String,Object> map, List<HBusiDataManager> ds,Map<String,Object>customerInfo) throws TouchException {
+        if(!customerInfo.containsKey("sender_id") || null==customerInfo.get("sender_id") || "".equals(customerInfo.get("sender_id"))){
+                throw new TouchException("2001","核心字段sender_id缺失");
+        }
+        String bdmessage = "报单%s，缺失%s";
+        String filedName = "";
+        String content = (String) mainMap.get("content");
+        JSONObject mainjson = JSONObject.parseObject(content);
+        String partyContent = (String) map.get("content");
+        JSONObject json = JSON.parseObject(partyContent);
+        if(StringUtil.isEmpty(mainjson.getString("i_e_flag"))){
+            filedName += "," + BGDReportEnum.IEFlag.getName();
+        }
+        if(StringUtil.isEmpty(mainjson.getString("i_e_port"))){
+            filedName += "," + BGDReportEnum.IEPort.getName();
+        }
+        if(StringUtil.isEmpty(mainjson.getString("i_e_date"))){
+            filedName += "," + BGDReportEnum.IEDate.getName();
+        }
+        if(StringUtil.isEmpty(mainjson.getString("i_d_date"))){
+            filedName += "," + BGDReportEnum.DDate.getName();
+        }
+        if(StringUtil.isEmpty(mainjson.getString("depart_arrival_port"))){
+            filedName += "," + BGDReportEnum.DestinationPort.getName();
+        }
+        if(StringUtil.isEmpty(mainjson.getString("traf_name"))){
+            filedName += "," + BGDReportEnum.TrafName.getName();
+        }
+
+        if(StringUtil.isEmpty(mainjson.getString("voyage_no"))){
+            filedName += "," + BGDReportEnum.VoyageNo.getName();
+        }
+        if(StringUtil.isEmpty(mainjson.getString("traf_mode"))){
+            filedName += "," + BGDReportEnum.TrafMode.getName();
+        }
+        if(StringUtil.isEmpty(mainjson.getString("shipper_unit_name"))){
+            filedName += "," + BGDReportEnum.OwnerName.getName();
+        }
+        if(StringUtil.isEmpty(mainjson.getString("agent_type"))){
+            filedName += "," + BGDReportEnum.AgentType.getName();
+        }
+        if(StringUtil.isEmpty(customerInfo.get("s_c_code_shipper")==null?"":customerInfo.get("s_c_code_shipper").toString())){
+            filedName += "," + BGDReportEnum.AgentCode.getName();
+        }
+
+        if(StringUtil.isEmpty(customerInfo.get("enterpriseName")==null?"":customerInfo.get("enterpriseName").toString())){
+            filedName += "," + BGDReportEnum.AgentName.getName();
+        }
+
+        if(StringUtil.isEmpty(mainjson.getString("bill_no"))){
+            filedName += "," + BGDReportEnum.BillNo.getName();
+        }
+        if(StringUtil.isEmpty(json.getString("bill_no"))){
+            filedName += "," + BGDReportEnum.AssBillNo.getName();
+        }
+        if(StringUtil.isEmpty(mainjson.getString("trade_country"))){
+            filedName += "," + BGDReportEnum.TradeCountry.getName();
+        }
+        if(StringUtil.isEmpty(json.getString("pack_no"))){
+            filedName += "," + BGDReportEnum.PackNo.getName();
+        }
+        if(StringUtil.isEmpty(json.getString("weight"))){
+            filedName += "," + BGDReportEnum.GrossWt.getName();
+        }
+        if(StringUtil.isEmpty(json.getString("weight"))){
+            filedName += "," + BGDReportEnum.NetWt.getName();
+        }
+        if(StringUtil.isEmpty(mainjson.getString("wrap_type"))){
+            filedName += "," + BGDReportEnum.WrapType.getName();
+        }
+        if(StringUtil.isEmpty(mainjson.getString("decl_port"))){
+            filedName += "," + BGDReportEnum.DeclPort.getName();
+        }
+        if(StringUtil.isEmpty(json.getString("s_c_busi_kinds"))){
+            filedName += "," + BGDReportEnum.CoOwner.getName();
+        }
+        if(StringUtil.isEmpty(customerInfo.getOrDefault("input_name","").toString())){
+            filedName += "," + BGDReportEnum.InputNo.getName();
+        }
+
+        if(StringUtil.isEmpty(customerInfo.get("s_c_code_shipper")==null?"":customerInfo.get("s_c_code_shipper").toString())){
+            filedName += "," + BGDReportEnum.InputCompanyCo.getName();
+        }
+
+        if(StringUtil.isEmpty(customerInfo.get("enterpriseName")==null?"":customerInfo.get("enterpriseName").toString())){
+            filedName += "," + BGDReportEnum.InputCompanyName.getName();
+        }
+
+        if(StringUtil.isEmpty(customerInfo.get("declare_no")==null?"":customerInfo.get("declare_no").toString())){
+            filedName += "," + BGDReportEnum.DeclareNo.getName();
+        }
+        if(StringUtil.isEmpty(mainjson.get("wharf_yard_code")==null?"":mainjson.get("wharf_yard_code").toString())){
+            filedName += "," + BGDReportEnum.CustomsField.getName();
+        }
+        if(StringUtil.isEmpty(mainjson.get("send_name")==null?"":mainjson.get("send_name").toString())){
+            filedName += "," + BGDReportEnum.SendName.getName();
+        }
+        if(StringUtil.isEmpty(json.get("receive_name")==null?"":json.get("receive_name").toString())){
+            filedName += "," + BGDReportEnum.ReceiveName.getName();
+        }
+
+        if(StringUtil.isEmpty(mainjson.get("send_country")==null?"":mainjson.get("send_country").toString())){
+            filedName += "," + BGDReportEnum.SendCountry.getName();
+        }
+        if(StringUtil.isEmpty(mainjson.get("send_city")==null?"":mainjson.get("send_city").toString())){
+            filedName += "," + BGDReportEnum.SendCity.getName();
+        }
+        if(StringUtil.isEmpty(json.get("id_no")==null?"":json.get("id_no").toString())){
+            filedName += "," + BGDReportEnum.SendId.getName();
+        }
+
+        if(StringUtil.isEmpty(json.get("total_value")==null?"":json.get("total_value").toString())){
+            filedName += "," + BGDReportEnum.TotalValue.getName();
+        }
+
+        if(StringUtil.isEmpty(json.get("curr_code")==null?"":json.get("curr_code").toString())){
+            filedName += "," + BGDReportEnum.CurrCode.getName();
+        }
+        if(StringUtil.isEmpty(json.get("main_gname")==null?"":json.get("main_gname").toString())){
+            filedName += "," + BGDReportEnum.MainGName.getName();
+        }
+        if(StringUtil.isEmpty(mainjson.get("entry_type")==null?"":mainjson.get("entry_type").toString())){
+            filedName += "," + BGDReportEnum.EntryType.getName();
+        }
+        if(StringUtil.isEmpty(json.get("id_type")==null?"":json.get("id_type").toString())){
+            filedName += "," + BGDReportEnum.SendIdType.getName();
+        }
+
+        filedName = bgdsdCheck(ds,filedName);
+        if(StringUtil.isNotEmpty(filedName)){
+            String message = String.format(bdmessage,json.getString("bill_no"),filedName);
+            throw new TouchException("2000",message);
+        }
+
+        return "success";
+    }
+
+    private String bgdsdCheck(List<HBusiDataManager> ds,String filedName) {
+        String msg = "";
+        boolean allhasErr = false;
+        for (HBusiDataManager d : ds) {
+            String content = d.getContent();
+            JSONObject json = JSONObject.parseObject(content);
+            String gno = d.getExt_5();
+            Boolean hasError = false;
+            if (StringUtil.isEmpty(d.getExt_3())) {
+                hasError = true;
+                msg += "商品编号,";
+            }
+            if (!json.containsKey("g_name") || StringUtil.isEmpty(json.getString("g_name"))) {
+                msg += "商品名称,";
+                hasError = true;
+            }
+            if (!json.containsKey("g_name") || StringUtil.isEmpty(json.getString("g_model"))) {
+                msg += "商品规格、型号,";
+                hasError = true;
+            }
+            if (!json.containsKey("g_name") || StringUtil.isEmpty(json.getString("origin_country"))) {
+                msg += "产销国,";
+                hasError = true;
+            }
+            if (!json.containsKey("g_name") || StringUtil.isEmpty(json.getString("curr_code"))) {
+                msg += "成交币制,";
+                hasError = true;
+            }
+            if (!json.containsKey("g_name") || StringUtil.isEmpty(json.getString("trade_total"))) {
+                msg += "成交总价,";
+                hasError = true;
+            }
+            if (!json.containsKey("g_name") || StringUtil.isEmpty(json.getString("decl_price"))) {
+                msg += gno + ":" + "申报单价,";
+                hasError = true;
+            }
+            if (!json.containsKey("g_name") || StringUtil.isEmpty(json.getString("decl_total"))) {
+                msg += "申报总价,";
+            }
+            if (!json.containsKey("g_name") || StringUtil.isEmpty(json.getString("g_unit"))) {
+                msg += "申报计量单位,";
+                hasError = true;
+            }
+            if (!json.containsKey("g_name") || StringUtil.isEmpty(json.getString("qty_1"))) {
+                msg += "第一(法定)数量,";
+                hasError = true;
+            }
+            if (!json.containsKey("g_name") || StringUtil.isEmpty(json.getString("unit_1"))) {
+                msg += "第一(法定)计量单位,";
+                hasError = true;
+            }
+            if (!json.containsKey("g_name") || StringUtil.isEmpty(json.getString("ggrosswt"))) {
+                msg += "商品毛重,";
+                hasError = true;
+            }
+
+            if (!hasError) {
+                continue;
+            } else {
+                msg = "商品序号" + gno + msg + "</br>";
+                allhasErr = true;
+            }
+        }
+        if (allhasErr) {
+            filedName += "</br>" + msg;
+        }
+        return filedName;
+    }
+
+    /**
+     * 报关单报文必填字段枚举
+     */
+    public enum BGDReportEnum{
+        sender_id("sender_id","sender_id"),
+        PreEntryId("PreEntryId","数据中心统一编号"),
+        EntryId("EntryId","海关编号"),
+        IEFlag("IEFlag","进出口标志"),
+        IEPort("IEPort","进出口岸代码"),
+        IEDate("IEDate","进出口日期"),
+        DDate("DDate","申报时间"),
+        DestinationPort("DestinationPort","指运港(抵运港)"),
+        TrafName("TrafName","运输工具名称"),
+        VoyageNo("VoyageNo","运输工具航次(班)号"),
+        TrafMode("TrafMode","运输方式代码"),
+//        TradeCo("TradeCo","经营单位编号"),
+        OwnerName("OwnerName","货主单位名称"),
+        AgentType("AgentType","申报单位类别"),
+        AgentCode("AgentCode","申报单位代码"),
+        AgentName("AgentName","申报单位名称"),
+        BillNo("BillNo","总运单号"),
+        AssBillNo("AssBillNo","分运单号"),
+        TradeCountry("TradeCountry","贸易国别(起/抵运地)"),
+        PackNo("PackNo","件数"),
+        GrossWt("GrossWt","毛重"),
+        NetWt("NetWt","净重"),
+        WrapType("WrapType","包装种类"),
+        DeclPort("DeclPort","申报口岸代码"),
+        CoOwner("CoOwner","经营单位性质"),
+        InputNo("InputNo","录入人"),
+        InputCompanyCo("InputCompanyCo","录入单位代码"),
+        InputCompanyName("InputCompanyName","录入单位名称"),
+        DeclareNo("DeclareNo","报关员代码"),
+        CustomsField("CustomsField","码头/货场代码"),
+        SendName("SendName","发件人"),
+        ReceiveName("ReceiveName","收件人"),
+        SendCountry("SendCountry","发件人国别"),
+        SendCity("SendCity","发件人城市"),
+        SendId("SendId","收发件人证件号码"),
+        TotalValue("TotalValue","价值"),
+        CurrCode("CurrCode","币制"),
+        MainGName("MainGName","主要商品名称"),
+        EntryType("EntryType","报关类别"),
+        SendIdType("SendIdType","收发件人证件类型");
+
+        private String key;
+        private String name;
+
+        BGDReportEnum(String key, String name) {
+            this.key = key;
+            this.name = name;
+        }
+
+        public String getKey() {
+            return key;
+        }
+
+
+
+        public String getName() {
+            return name;
+        }
+
+
+    }
+
+    /**
+     * 报关单税单报文必填字段枚举
+     */
+    public enum BGDSDReportEnum{
+        CodeTS("CodeTS","商品编号"),
+        GName("GName","物品名称"),
+        GModel("GModel","商品规格、型号"),
+        OriginCountry("OriginCountry","产销国"),
+        TradeCurr("TradeCurr","成交币制"),
+        TradeTotal("TradeTotal","成交总价"),
+        DeclPrice("DeclPrice","申报单价"),
+        DeclTotal("DeclTotal","申报总价"),
+        GQty("GQty","申报数量"),
+        VoyageNo("VoyageNo","申报计量单位"),
+        GUnit("GUnit","运输方式代码"),
+        Qty1("Qty1","第一(法定)数量"),
+        Unit1("Unit1","第一(法定)计量单位"),
+        GGrossWt("GGrossWt","商品毛重");
+
+        private String key;
+        private String name;
+
+        BGDSDReportEnum(String key, String name) {
+            this.key = key;
+            this.name = name;
+        }
+
+        public String getKey() {
+            return key;
+        }
+
+
+
+        public String getName() {
+            return name;
+        }
+
+
+    }
 }
