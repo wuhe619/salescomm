@@ -1,6 +1,7 @@
 package com.bdaim.common.util;
 
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.common.exception.TouchException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -72,9 +73,9 @@ public class CangdanXmlEXP311 {
             log.info(xmlString);
             return xmlString;
         } catch (Exception e) {
-            e.printStackTrace();
-            throw new Exception("生成EXP311.xml失败",e);
+            log.error("生成EXP311.xml失败",e);
         }
+        return null;
     }
 
     private  void createEnvelopInfoXML(Document document,Element envelopInfo,Map<String,Object>custInfo,String id){
@@ -189,7 +190,7 @@ public class CangdanXmlEXP311 {
 
 
         Element InputCompanyCode = document.createElement("InputCompanyCode");
-        InputCompanyCode.setTextContent((String) custInfo.getOrDefault("s_c_code_shipper",""));//录入单位代码
+        InputCompanyCode.setTextContent((String) custInfo.getOrDefault("agent_code",""));//录入单位代码
         ExpMftHead.appendChild(InputCompanyCode);
 
         Element InputCompanyName = document.createElement("InputCompanyName");

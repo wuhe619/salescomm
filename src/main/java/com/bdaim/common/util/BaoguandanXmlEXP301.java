@@ -76,8 +76,7 @@ public class BaoguandanXmlEXP301 {
             System.out.println(xmlString);
             return xmlString;
         } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println("生成EXP301.xml失败");
+            log.error("生成EXP301.xml失败",e);
         }
         return null;
     }
@@ -100,11 +99,11 @@ public class BaoguandanXmlEXP301 {
         version.setTextContent("1.0");
         String dateStr=DateUtil.fmtDateToStr(new Date(),"yyyyMMddHHmmss");
         String idstr = getId11NO(id);
-        String msg_id=custInfo.get("send_id").toString()+"E010000"+dateStr+idstr;
+        String msg_id = custInfo.get("sender_id").toString()+"E010000"+dateStr+idstr;
         message_id.setTextContent(msg_id);
         file_name.setTextContent(msg_id+".EXP");
         message_type.setTextContent("EXP301");
-        sender_id.setTextContent((String) custInfo.get("send_id"));
+        sender_id.setTextContent((String) custInfo.get("sender_id"));
         receiver_id.setTextContent("E010000");
         send_time.setTextContent(dateStr);
 
@@ -189,7 +188,7 @@ public class BaoguandanXmlEXP301 {
         AgentType.setTextContent(mainJson.getString("agent_type"));  //0：企业；1：自然人
         EntryHead.appendChild(AgentType);
         Element AgentCode = document.createElement("AgentCode");//申报单位代码
-        AgentCode.setTextContent((String) customerInfo.getOrDefault("s_c_code_shipper","")); //AgentType=0时必填
+        AgentCode.setTextContent((String) customerInfo.getOrDefault("agent_code","")); //AgentType=0时必填
         EntryHead.appendChild(AgentCode);
         Element AgentName = document.createElement("AgentName");//申报单位名称
         AgentName.setTextContent((String) customerInfo.getOrDefault("enterpriseName",""));//AgentType=0时必填
@@ -252,7 +251,7 @@ public class BaoguandanXmlEXP301 {
         NetWt.setTextContent(json.containsKey("weight")?json.getString("weight"):"");  //r
         EntryHead.appendChild(NetWt);
         Element WrapType = document.createElement("WrapType");
-        WrapType.setTextContent(mainJson.getString("wrap_type"));  //r
+        WrapType.setTextContent(mainJson.getString("wrap_class"));  //r
         EntryHead.appendChild(WrapType);
         Element NoteS = document.createElement("NoteS");
 
@@ -262,7 +261,10 @@ public class BaoguandanXmlEXP301 {
         EntryHead.appendChild(DeclPort);
 
         Element CoOwner = document.createElement("CoOwner");//经营单位性质
-        CoOwner.setTextContent(json.getString("s_c_busi_kinds"));  //r
+        String unit = mainJson.getString("s_c_code_busi_unit");
+        unit = unit.substring(0,6);
+        unit = unit.substring(unit.length()-1);
+        CoOwner.setTextContent(unit);  //r
         EntryHead.appendChild(CoOwner);
         /*Element MnlJgfFlag = document.createElement("MnlJgfFlag");
         MnlJgfFlag.setTextContent("");
@@ -283,7 +285,7 @@ public class BaoguandanXmlEXP301 {
         InputNo.setTextContent(String.valueOf(customerInfo.getOrDefault("input_name","")));  //r
         EntryHead.appendChild(InputNo);
         Element InputCompanyCo = document.createElement("InputCompanyCo");//录入单位代码
-        InputCompanyCo.setTextContent((String) customerInfo.getOrDefault("s_c_code_shipper",""));  //r
+        InputCompanyCo.setTextContent((String) customerInfo.getOrDefault("agent_code",""));  //r
         EntryHead.appendChild(InputCompanyCo);
         Element InputCompanyName = document.createElement("InputCompanyName");//录入单位名称
         InputCompanyName.setTextContent((String) customerInfo.getOrDefault("enterpriseName",""));  //r
@@ -294,7 +296,7 @@ public class BaoguandanXmlEXP301 {
         DeclareNo.setTextContent((String) customerInfo.getOrDefault("declare_no",""));  //如果AgentType=1，必不填,否则必填
         EntryHead.appendChild(DeclareNo);
         Element CustomsField = document.createElement("CustomsField");
-        CustomsField.setTextContent(mainJson.getString("wharf_ yard_code"));  //r
+        CustomsField.setTextContent(mainJson.getString("warehouse_code"));  //r
         EntryHead.appendChild(CustomsField);
         /*Element SpecialFlag = document.createElement("SpecialFlag");
         EntryHead.appendChild(SpecialFlag);*/
@@ -311,7 +313,7 @@ public class BaoguandanXmlEXP301 {
         SendCountry.setTextContent(mainJson.getString("send_country"));  //r
         EntryHead.appendChild(SendCountry);
         Element SendCity = document.createElement("SendCity");
-        SendCity.setTextContent(mainJson.getString("send_city"));  //r
+        SendCity.setTextContent(mainJson.getString("send_city_en"));  //r
         EntryHead.appendChild(SendCity);
         Element SendId = document.createElement("SendId");
         SendId.setTextContent(json.getString("id_no"));  //r 收发件人证件号码
@@ -370,13 +372,13 @@ public class BaoguandanXmlEXP301 {
             OriginCountry.setTextContent(json.containsKey("origin_country")?json.getString("origin_country"):"");
             EntryList.appendChild(OriginCountry);
             Element TradeCurr = document.createElement("TradeCurr");
-            TradeCurr.setTextContent(json.containsKey("trade_curr")?json.getString("trade_curr"):"");
+            TradeCurr.setTextContent(json.containsKey("curr_code")?json.getString("curr_code"):"");
             EntryList.appendChild(TradeCurr);
 //            Element ExchangeRate = document.createElement("ExchangeRate");
 //
 //            EntryList.appendChild(ExchangeRate);
             Element TradeTotal = document.createElement("TradeTotal");
-            TradeTotal.setTextContent(json.getString("trade_total"));
+            TradeTotal.setTextContent(json.getString("total_price"));
             EntryList.appendChild(TradeTotal);
             Element DeclPrice = document.createElement("DeclPrice");
             DeclPrice.setTextContent(json.containsKey("decl_price")?json.getString("decl_price"):"");
@@ -397,10 +399,10 @@ public class BaoguandanXmlEXP301 {
             GUnit.setTextContent(json.containsKey("g_unit")?json.getString("g_unit"):"");
             EntryList.appendChild(GUnit);
             Element Qty1 = document.createElement("Qty1");
-            Qty1.setTextContent("");
+            Qty1.setTextContent(json.getString("qty_1"));
             EntryList.appendChild(Qty1);
             Element Unit1 = document.createElement("Unit1");
-            Unit1.setTextContent("");
+            Unit1.setTextContent(json.getString("unit_1"));
             EntryList.appendChild(Unit1);
             Element Qty2 = document.createElement("Qty2");
             Qty2.setTextContent("");

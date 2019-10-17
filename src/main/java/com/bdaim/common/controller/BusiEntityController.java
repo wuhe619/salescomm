@@ -160,7 +160,11 @@ public class BusiEntityController extends BasicAction {
             }
             resp.setData(jo);
         } catch (TouchException e) {
-            return new ResponseInfoAssemble().failure(-1, e.getMessage());
+            int code = -1;
+            if("2000".equals(e.getCode()) || "2001".equals(e.getCode())){
+                code = Integer.valueOf(e.getCode());
+            }
+            return new ResponseInfoAssemble().failure(code, e.getMessage());
         } catch (Exception e) {
             logger.error("获取记录异常:" + id, e);
             return new ResponseInfoAssemble().failure(-1, "查询记录异常[" + busiType + "]");

@@ -106,7 +106,8 @@ public class BgdSService implements BusiService{
 		info.put("duty_paid_price", duty_paid_price);//完税价格
 		info.put("estimated_tax", estimated_tax);//预估税金
 		info.put("tax_rate", tax_rate);//税率
-		info.put("total_price",0);//价格合计
+		Double total_price = Double.valueOf(info.getString("g_qty"))*Double.valueOf(info.getString("decl_price"));
+		info.put("total_price",total_price);//价格合计
 		HBusiDataManager partH = serviceUtils.getObjectByIdAndType(cust_id,pid.longValue(),BusiTypeEnum.BF.getType());
 		if(partH==null){
 			throw new TouchException("无权操作");
@@ -134,12 +135,12 @@ public class BgdSService implements BusiService{
 		if (info.containsKey("ggrosswt") && StringUtil.isNotEmpty(info.getString("ggrosswt"))) {
 			weight += Float.valueOf(info.getString("ggrosswt"));
 		}
-		if (pack_NO == null) pack_NO = 0f;
-		if (info.containsKey("g_qty") && StringUtil.isNotEmpty(info.getString("g_qty"))) {
-			pack_NO += Float.valueOf(info.getString("g_qty"));
-		}
+		//if (pack_NO == null) pack_NO = 0f;
+//		if (info.containsKey("g_qty") && StringUtil.isNotEmpty(info.getString("g_qty"))) {
+//			pack_NO += Float.valueOf(info.getString("g_qty"));
+//		}
 		jsonObject.put("weight", weight);
-		jsonObject.put("pack_no", pack_NO);
+//		jsonObject.put("pack_no", pack_NO);
 		Integer lowPricegoods = jsonObject.getInteger("low_price_goods");
 		if(lowPricegoods==null)lowPricegoods=0;
 		jsonObject.put("low_price_goods",lowPricegoods+is_low_price);
@@ -186,6 +187,11 @@ public class BgdSService implements BusiService{
 			String key = (String) keys.next();
 			json.put(key, info.get(key));
 		}
+		if(info.containsKey("decl_price") && info.containsKey("g_qty")){
+			Double total_price = Double.valueOf(info.getString("g_qty"))*Double.valueOf(info.getString("decl_price"));
+			info.put("total_price", total_price);//价格合计
+			json.put("total_price",total_price);
+		}
 		serviceUtils.updateDataToES(busiType,id.toString(),json);
 
 		HBusiDataManager fmanager = serviceUtils.getObjectByIdAndType(cust_id,json.getLong("pid"),BusiTypeEnum.BF.getType());
@@ -195,7 +201,7 @@ public class BgdSService implements BusiService{
 
 		List<HBusiDataManager> goodsList = serviceUtils.listSdByBillNo(cust_id,BusiTypeEnum.BS.getType(),fmanager.getExt_4(),dbManager.getExt_4());
 		float weight = 0;  //重量
-		float pack_NO = 0; //数量
+		//float pack_NO = 0; //数量
 		int lowPricegoods = 0; //低价商品数
 		int is_low_price = 0;
 		float festimated_tax = 0;//预估税金
@@ -228,14 +234,15 @@ public class BgdSService implements BusiService{
 				info.put("duty_paid_price", duty_paid_price);//完税价格
 				info.put("estimated_tax", estimated_tax);//预估税金
 				info.put("tax_rate", tax_rate);//税率
-				info.put("total_price",0);//价格合计
+				Double total_price = Double.valueOf(info.getString("g_qty"))*Double.valueOf(info.getString("decl_price"));
+				info.put("total_price", total_price);//价格合计
 			}else{
 				if(goods.containsKey("ggrosswt") && StringUtil.isNotEmpty(goods.getString("ggrosswt"))){
 					weight += goods.getFloatValue("ggrosswt");
 				}
-				if(goods.containsKey("g_qty") && StringUtil.isNotEmpty(goods.getString("g_qty"))){
-					pack_NO += goods.getFloatValue("g_qty");
-				}
+//				if(goods.containsKey("g_qty") && StringUtil.isNotEmpty(goods.getString("g_qty"))){
+//					pack_NO += goods.getFloatValue("g_qty");
+//				}
 				if(StringUtil.isNotEmpty(goods.getString("decl_price"))){
 					if(Float.valueOf(goods.getString("decl_price")) < duty_paid_price){
 						is_low_price = 1;
@@ -248,7 +255,7 @@ public class BgdSService implements BusiService{
 		}
 		fjson.put("weight_total",weight);
 		fjson.put("lowPricegoods",lowPricegoods);
-		fjson.put("pack_no",pack_NO);
+		//fjson.put("pack_no",pack_NO);
 		fjson.put("estimated_tax",festimated_tax);
 		serviceUtils.updateDataToES(BusiTypeEnum.BF.getType(),fmanager.getId().toString(),fjson);
 

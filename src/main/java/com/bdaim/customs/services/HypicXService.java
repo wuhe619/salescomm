@@ -86,13 +86,21 @@ public class HypicXService implements BusiService {
             List<Map<String, Object>> data = jdbcTemplate.queryForList(querysql);
             if (data.size() > 0) {
                 String content = String.valueOf(data.get(0).get("content"));
-                log.info("查询批次的content信息是：" + content + "批次主键id是：" + id);
+                String bathchId = String.valueOf(data.get(0).get("ext_3"));
+                log.info("查询批次的content信息是：" + content + "批次主键id是：" + id + "批次id是"+bathchId);
                 jsonObject = JSON.parseObject(content);
                 if (jsonObject != null) {
                     successNum = jsonObject.getIntValue("successNum");
                 }
                 successNum += 1;
                 jsonObject.put("successNum", successNum);
+
+                //如果批次详情处理中无数据需要更改批次为处理完成
+                String queryDetailsql = "SELECT COUNT(*) countNum FROM " + HMetaDataDef.getTable(busiType, "") + " WHERE ext_2 = 0 AND  ext_4 = ? AND cust_id = ? AND type = ?";
+                List<Map<String, Object>> detailData =jdbcTemplate.queryForList(queryDetailsql,bathchId,cust_id,busiType);
+                if (detailData.size()>0 && NumberConvertUtil.parseInt(detailData.get(0).get("countNum"))==0){
+                    jsonObject.put("status",1);
+                }
                 int mainId = NumberConvertUtil.parseInt(data.get(0).get("mainId"));
                 log.info("更改成功状态数量的唯一id是：" +mainId + "核验成功数量是：" + successNum );
                 String updateMainSql = "UPDATE " + HMetaDataDef.getTable(BusiTypeEnum.HY_PIC_Z.getType(), "") + " SET  content = ? WHERE id =? AND type =? AND cust_id =? ";

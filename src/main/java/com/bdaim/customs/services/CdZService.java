@@ -8,6 +8,7 @@ import com.bdaim.common.service.BusiService;
 import com.bdaim.common.service.ElasticSearchService;
 import com.bdaim.common.service.SequenceService;
 import com.bdaim.common.util.CangdanXmlEXP311;
+import com.bdaim.common.util.DateUtil;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.common.util.page.PageList;
 import com.bdaim.customer.dao.CustomerDao;
@@ -212,6 +213,7 @@ public class CdZService implements BusiService {
                 log.warn("舱单主单:[" + id + "]已提交至海关");
                 throw new TouchException("舱单主单:[" + id + "]已提交至海关");
             }
+
             // 更新舱单主单信息
             String content = (String) m.get("content");
             JSONObject jo = JSONObject.parseObject(content);
@@ -237,7 +239,9 @@ public class CdZService implements BusiService {
                 jo.put("ext_4", m.get("ext_4"));
             if (m.get("ext_5") != null && !"".equals(m.get("ext_5")))
                 jo.put("ext_5", m.get("ext_5"));
-
+            String d = DateUtil.fmtDateToStr(new Date(),"yyyy-MM-dd HH:mm:ss");
+            jo.put("decl_time",d);
+            info.put("decl_time",d);
             //更新舱单分单信息
             String selectSql = "select id, type, content, cust_id, cust_group_id, cust_user_id, create_id, create_date ,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(BusiTypeEnum.CF.getType(), "") + " WHERE ext_4=(SELECT ext_3 FROM " + HMetaDataDef.getTable(BusiTypeEnum.CZ.getType(), "") + " WHERE id = ?) AND type = ? AND IFNULL(ext_1,'') <>'1' ";
             List<Map<String, Object>> ds = jdbcTemplate.queryForList(selectSql, id, BusiTypeEnum.CF.getType());
@@ -247,7 +251,7 @@ public class CdZService implements BusiService {
             log.info("getCustomerInfo 查询企业信息，"+customerInfo);
             CustomerProperty iObj = customerDao.getProperty(cust_id,"i");
             log.info("CustomerUserPropertyDO",iObj);
-            String sendId="";
+            String sendId = "";
             if(iObj != null) {
                 String value = iObj.getPropertyValue();
                 JSONObject iJson = JSONObject.parseObject(value);
@@ -267,7 +271,13 @@ public class CdZService implements BusiService {
                 customerInfo.put("declare_no",propertyDO.getPropertyValue());
             }
             log.info("舱单分单数："+ds.size());
+
+            cdCheck(m,ds,customerInfo);
+
             String xmlString = cangdanXmlEXP311.createXml(m, ds,customerInfo);
+            if(StringUtil.isEmpty(xmlString)){
+                throw new TouchException("2000","生成舱单xml报文出错");
+            }
             info.put("xml",xmlString);
 
             sql = "UPDATE " + HMetaDataDef.getTable(busiType, "") + " SET ext_1 = '1', ext_date1 = NOW(), content=? WHERE id = ?  AND type = ?  ";
@@ -289,6 +299,7 @@ public class CdZService implements BusiService {
                 jo.put("create_date", m.get("create_date"));
                 jo.put("update_id", m.get("update_id"));
                 jo.put("update_date", m.get("update_date"));
+                jo.put("decl_time",d);
                 if (m.get("ext_1") != null && !"".equals(m.get("ext_1")))
                     jo.put("ext_1", m.get("ext_1"));
                 if (m.get("ext_2") != null && !"".equals(m.get("ext_2")))
@@ -622,5 +633,175 @@ public class CdZService implements BusiService {
         PageList pageList = customerService.getCustomerInfo(pageParam,customerRegistDTO);
         List list = pageList.getList();
         return (Map<String, Object>) list.get(0);
+    }
+
+
+    private String cdCheck(Map<String,Object> m, List<Map<String, Object>> dsList,Map<String,Object> customerInfo) throws TouchException {
+        if(!customerInfo.containsKey("sender_id") || null==customerInfo.get("sender_id") || "".equals(customerInfo.get("sender_id"))){
+            throw new TouchException("2001","核心字段sender_id缺失");
+        }
+        String bdmessage = "舱单%s，缺失%s";
+        String filedName = "";
+
+        String mainContent = (String) m.get("content");
+        JSONObject mainjson = JSONObject.parseObject(mainContent);
+
+        if(!mainjson.containsKey("bill_no") || StringUtil.isEmpty(mainjson.getString("bill_no"))){
+            filedName += "," + CDReportEnum.BillNo.getName();
+        }
+
+        if(!mainjson.containsKey("voyage_no") || StringUtil.isEmpty(mainjson.getString("voyage_no"))){
+            filedName += "," + CDReportEnum.VoyageNo.getName();
+        }
+
+        if(!mainjson.containsKey("i_e_flag") || StringUtil.isEmpty(mainjson.getString("i_e_flag"))){
+            filedName += "," + CDReportEnum.IEFlag.getName();
+        }
+
+        if(!mainjson.containsKey("traf_name") || StringUtil.isEmpty(mainjson.getString("traf_name"))){
+            filedName += "," + CDReportEnum.TrafCnName.getName();
+        }
+        if(!mainjson.containsKey("traf_name_en") || StringUtil.isEmpty(mainjson.getString("traf_name_en"))){
+            filedName += "," + CDReportEnum.TrafEnName.getName();
+        }
+        if(!mainjson.containsKey("gross_wt") || StringUtil.isEmpty(mainjson.getString("gross_wt"))){
+            filedName += "," + CDReportEnum.GrossWt.getName();
+        }
+
+        if(!mainjson.containsKey("pack_no") || StringUtil.isEmpty(mainjson.getString("pack_no"))){
+            filedName += "," + CDReportEnum.PackNo.getName();
+        }
+
+        if(!mainjson.containsKey("single_batch_num") || StringUtil.isEmpty(mainjson.getString("single_batch_num"))){
+            filedName += "," + CDReportEnum.BillNum.getName();
+        }
+        if(!mainjson.containsKey("traf_mode") || StringUtil.isEmpty(mainjson.getString("traf_mode"))){
+            filedName += "," + CDReportEnum.TrafMode.getName();
+        }
+        if(!mainjson.containsKey("i_e_date") || StringUtil.isEmpty(mainjson.getString("i_e_date"))){
+            filedName += "," + CDReportEnum.IEDate.getName();
+        }
+
+        if(!mainjson.containsKey("depart_arrival_port") || StringUtil.isEmpty(mainjson.getString("depart_arrival_port"))){
+            filedName += "," + CDReportEnum.DestinationPort.getName();
+        }
+
+        if(!mainjson.containsKey("i_e_port") || StringUtil.isEmpty(mainjson.getString("i_e_port"))){
+            filedName += "," + CDReportEnum.IEPort.getName();
+        }
+
+        if(StringUtil.isEmpty(mainjson.getString("s_c_code_busi_unit"))){
+            filedName += "," + CDReportEnum.TradeCo.getName();
+        }
+        if(StringUtil.isEmpty(mainjson.getString("business_unit_name"))){
+            filedName += "," + CDReportEnum.TradeName.getName();
+        }
+
+        if(StringUtil.isEmpty((String) customerInfo.get("declare_no"))){//录入人卡号
+            filedName += "," + CDReportEnum.InputNo.getName();
+        }
+
+        if(StringUtil.isEmpty((String) customerInfo.get("input_name"))){
+            filedName += "," + CDReportEnum.InputOpName.getName();
+        }
+
+        if(StringUtil.isEmpty((String) customerInfo.get("agent_code"))){
+            filedName += "," + CDReportEnum.InputCompanyCode.getName();
+        }
+
+        if(StringUtil.isEmpty((String) customerInfo.get("enterpriseName"))){
+            filedName += "," + CDReportEnum.InputCompanyName.getName();
+        }
+
+        filedName = cdfCheck(dsList,filedName);
+
+        if(StringUtil.isNotEmpty(filedName)){
+            String message = String.format(bdmessage,mainjson.getString("bill_no"),filedName);
+            throw new TouchException("2000",message);
+        }
+        return "success";
+    }
+
+    private String cdfCheck(List<Map<String, Object>> fdList,String filedName) {
+        for (Map<String, Object> m : fdList) {
+            String content = (String) m.get("content");
+            JSONObject json = JSONObject.parseObject(content);
+            String billNo=json.getString("bill_no");
+            Boolean hasError = false;
+            String msg = "分运单 ";
+            msg += billNo+"，缺失，";
+
+            if(!json.containsKey("main_gname") || StringUtil.isEmpty(json.getString("main_gname"))){
+                msg += "主要商品名称,";
+                hasError = true;
+            }
+            if(!json.containsKey("pack_no") || StringUtil.isEmpty(json.getString("pack_no"))){
+                msg += "件数,";
+                hasError = true;
+            }
+            if(!json.containsKey("weight") || StringUtil.isEmpty(json.getString("weight"))){
+                msg += "商品毛重,";
+                hasError = true;
+            }
+            if(!json.containsKey("total_value") || StringUtil.isEmpty(json.getString("total_value"))){
+                msg += "价值,";
+                hasError = true;
+            }
+            if(!json.containsKey("curr_code") || StringUtil.isEmpty(json.getString("curr_code"))){
+                msg += "成交币制 ";
+                hasError = true;
+            }
+
+            if (!hasError) {
+                continue;
+            } else {
+                filedName += "\n\r"+msg;
+            }
+        }
+        return filedName;
+    }
+
+
+    /**
+     * 舱单报文必填字段枚举
+     */
+    public enum CDReportEnum{
+        sender_id("sender_id","sender_id"),
+        BillNo("bill_no","总运单号"),
+        VoyageNo("voyage_no","运输工具航次(班)号"),
+        IEFlag("i_e_flag","进出口标志"),
+        TrafCnName("traf_name","运输工具中文名称"),
+        TrafEnName("traf_name_en","运输工具英文名称"),
+        GrossWt("gross_wt","毛重"),
+        PackNo("pack_no","件数"),
+        BillNum("single_batch_num","分运单数"),
+        TrafMode("traf_mode","运输方式代码"),
+        IEDate("i_e_date","进出口日期"),
+        DestinationPort("depart_arrival_port","指运港(抵运港)"),
+        IEPort("i_e_port","进出口岸代码"),
+        TradeCo("s_c_code_busi_unit","经营单位编号"),
+        TradeName("business_unit_name","经营单位名称"),
+        InputNo("declare_no","录入人卡号"),
+        InputOpName("input_name","录入人姓名"),
+        InputCompanyCode("s_c_code_shipper","录入单位代码"),
+        InputCompanyName("enterpriseName","录入单位名称");
+
+        private String key;
+        private String name;
+
+        CDReportEnum(String key, String name) {
+            this.key = key;
+            this.name = name;
+        }
+
+        public String getKey() {
+            return key;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+
     }
 }
