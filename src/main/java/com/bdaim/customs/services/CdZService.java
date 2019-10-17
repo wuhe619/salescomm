@@ -8,6 +8,7 @@ import com.bdaim.common.service.BusiService;
 import com.bdaim.common.service.ElasticSearchService;
 import com.bdaim.common.service.SequenceService;
 import com.bdaim.common.util.CangdanXmlEXP311;
+import com.bdaim.common.util.DateUtil;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.common.util.page.PageList;
 import com.bdaim.customer.dao.CustomerDao;
@@ -238,7 +239,9 @@ public class CdZService implements BusiService {
                 jo.put("ext_4", m.get("ext_4"));
             if (m.get("ext_5") != null && !"".equals(m.get("ext_5")))
                 jo.put("ext_5", m.get("ext_5"));
-
+            String d = DateUtil.fmtDateToStr(new Date(),"yyyy-MM-dd HH:mm:ss");
+            jo.put("decl_time",d);
+            info.put("decl_time",d);
             //更新舱单分单信息
             String selectSql = "select id, type, content, cust_id, cust_group_id, cust_user_id, create_id, create_date ,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(BusiTypeEnum.CF.getType(), "") + " WHERE ext_4=(SELECT ext_3 FROM " + HMetaDataDef.getTable(BusiTypeEnum.CZ.getType(), "") + " WHERE id = ?) AND type = ? AND IFNULL(ext_1,'') <>'1' ";
             List<Map<String, Object>> ds = jdbcTemplate.queryForList(selectSql, id, BusiTypeEnum.CF.getType());
@@ -248,7 +251,7 @@ public class CdZService implements BusiService {
             log.info("getCustomerInfo 查询企业信息，"+customerInfo);
             CustomerProperty iObj = customerDao.getProperty(cust_id,"i");
             log.info("CustomerUserPropertyDO",iObj);
-            String sendId="";
+            String sendId = "";
             if(iObj != null) {
                 String value = iObj.getPropertyValue();
                 JSONObject iJson = JSONObject.parseObject(value);
@@ -296,6 +299,7 @@ public class CdZService implements BusiService {
                 jo.put("create_date", m.get("create_date"));
                 jo.put("update_id", m.get("update_id"));
                 jo.put("update_date", m.get("update_date"));
+                jo.put("decl_time",d);
                 if (m.get("ext_1") != null && !"".equals(m.get("ext_1")))
                     jo.put("ext_1", m.get("ext_1"));
                 if (m.get("ext_2") != null && !"".equals(m.get("ext_2")))

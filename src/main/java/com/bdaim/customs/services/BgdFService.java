@@ -8,6 +8,7 @@ import com.bdaim.common.service.BusiService;
 import com.bdaim.common.service.ElasticSearchService;
 import com.bdaim.common.service.SequenceService;
 import com.bdaim.common.util.BaoguandanXmlEXP301;
+import com.bdaim.common.util.DateUtil;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.common.util.page.PageList;
 import com.bdaim.customer.dao.CustomerDao;
@@ -29,6 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -230,7 +232,9 @@ public class BgdFService implements BusiService {
                 jo.put("ext_4", m.get("ext_4"));
             if (m.get("ext_5") != null && !"".equals(m.get("ext_5")))
                 jo.put("ext_5", m.get("ext_5"));
-
+            String d = DateUtil.fmtDateToStr(new Date(),"yyyy-MM-dd HH:mm:ss");
+            jo.put("decl_time",d);
+            info.put("decl_time",d);
             sql = "UPDATE "+HMetaDataDef.getTable(busiType,"")+" SET ext_1 = 'B1', ext_date1 = NOW(), content=? WHERE id = ? AND type = ? AND IFNULL(ext_1,'') <>'B1' ";
             jdbcTemplate.update(sql, jo.toJSONString(), id, busiType);
             serviceUtils.updateDataToES(BusiTypeEnum.BF.getType(), id.toString(), jo);
