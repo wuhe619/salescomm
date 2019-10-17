@@ -108,17 +108,17 @@ public class SbdSService implements BusiService {
         info.put("ext_2", jsonObject.getString("main_bill_no"));
 
         Float weight = jsonObject.getFloatValue("weight");
-        Float pack_NO = jsonObject.getFloatValue("pack_no");
+        Float g_qty = jsonObject.getFloatValue("g_qty");
         if (weight == null) weight = 0f;
         if (info.containsKey("ggrosswt") && StringUtil.isNotEmpty(info.getString("ggrosswt"))) {
             weight += Float.valueOf(info.getString("ggrosswt"));
         }
-        if (pack_NO == null) pack_NO = 0f;
+        if (g_qty == null) g_qty = 0f;
         if (info.containsKey("g_qty") && StringUtil.isNotEmpty(info.getString("g_qty"))) {
-            pack_NO += Float.valueOf(info.getString("g_qty"));
+            g_qty += Float.valueOf(info.getString("g_qty"));
         }
         jsonObject.put("weight", weight);
-        jsonObject.put("g_qty", pack_NO);
+        jsonObject.put("g_qty", g_qty);
         Integer lowPricegoods = jsonObject.getInteger("low_price_goods");
         if (lowPricegoods == null) lowPricegoods = 0;
         jsonObject.put("low_price_goods", lowPricegoods + is_low_price);
@@ -258,24 +258,23 @@ public class SbdSService implements BusiService {
         JSONObject partcontentJson = JSON.parseObject(partcontent);
 
         Float weight = partcontentJson.getFloatValue("weight");
-        Float pack_NO = partcontentJson.getFloatValue("pack_no");
+        //Float pack_NO = partcontentJson.getFloatValue("pack_no");
         if (weight == null) weight = 0f;
         if (StringUtil.isNotEmpty(pjson.getString("ggrosswt"))) {
             weight -= Float.valueOf(pjson.getString("ggrosswt"));
         }
-        if (pack_NO == null) pack_NO = 0f;
-        if (StringUtil.isNotEmpty(pjson.getString("g_qty"))) {
-            pack_NO -= Float.valueOf(pjson.getString("g_qty"));
-        }
+        //if (pack_NO == null) pack_NO = 0f;
+       // if (StringUtil.isNotEmpty(pjson.getString("g_qty"))) {
+       //     pack_NO -= Float.valueOf(pjson.getString("g_qty"));
+       // }
         partcontentJson.put("weight", weight);
-        partcontentJson.put("pack_no", pack_NO);
+        //partcontentJson.put("pack_no", pack_NO);
         parth.setContent(partcontentJson.toJSONString());
 
         String sql = "update " + HMetaDataDef.getTable(parth.getType(), "") + " set content='" + partcontentJson.toJSONString() + "'" +
                 " where id=" + parth.getId() + " and type='" + parth.getType() + "'";
         jdbcTemplate.update(sql);
 
-//        hBusiDataManagerDao.saveOrUpdate(parth);
         serviceUtils.updateDataToES(BusiTypeEnum.SF.getType(), parth.getId().toString(), partcontentJson);
 
         //处理主单
@@ -293,7 +292,6 @@ public class SbdSService implements BusiService {
                 " where id=" + zh.getId() + " and type='" + zh.getType() + "'";
         jdbcTemplate.update(sql2);
 
-//        hBusiDataManagerDao.saveOrUpdate(zh);
         serviceUtils.updateDataToES(BusiTypeEnum.SZ.getType(), zh.getId().toString(), jsonz);
 
     }
