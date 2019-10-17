@@ -817,36 +817,5 @@ public class ServiceUtils {
         }
     }
 
-    public static void main(String[] args) {
-        String xmlString = "<Package>" +
-                "<EnvelopInfo>" +
-                "<version>1.0</version>" +
-                "<message_id>E0100000000000000000020062017030116002400000509609</message_id>" +
-                "<file_name>E0100000000000000000020062017030116002400000509609.EXP</file_name>" +
-                "<message_type>EXP312</message_type>" +
-                "<sender_id>E010000</sender_id>" +
-                "<receiver_id>000000000000002006</receiver_id>" +
-                "<send_time>2017-03-01T15:27:51</send_time>" +
-                "</EnvelopInfo>" +
-                "<DataInfo>" +
-                "<SignedData>" +
-                "<Data>" +
-                "<EXP312 xmlns=\"http://www.w3.org/2000/09/xmldsig#\">" +
-                "<ExpMftHead>" +
-                "<BillNo>BillNoBillNoBillNoBil20170301003</BillNo>" +
-                "<VoyageNo>VoNo20170301002</VoyageNo>" +
-                "<EntryDate>20170301152751</EntryDate>" +
-                "<RtnFlag>DY</RtnFlag>" +
-                "<Notes/>" +
-                "</ExpMftHead>" +
-                "</EXP312>" +
-                "</Data>" +
-                "<HashSign/>" +
-                "<SignerInfo/>" +
-                "</SignedData>" +
-                "</DataInfo>" +
-                "</Package>";
-        xml2Json(xmlString);
-    }
 
 }

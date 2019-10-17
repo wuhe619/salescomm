@@ -34,6 +34,7 @@ public class HDicUtil {
         put("use_to", "TO_USE");
         put("unit_1", "G_UNIT");
         put("unit_2", "G_UNIT");
+        put("origin_country","SEND_COUNTRY");
 
     }};
 
