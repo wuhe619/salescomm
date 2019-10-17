@@ -101,12 +101,17 @@ public class PartyDan {
     /**
      * 货主单位名称
      */
-    private String  shipper_unit_name;
+    private String shipper_unit_name;
 
     /**
      * 征免性质
      */
-    private String  tax_kinds;
+    private String tax_kinds;
+
+    /**
+     * 邮编
+     */
+    private String zip_code;
 
     public String getId() {
         return id;
@@ -370,5 +375,13 @@ public class PartyDan {
 
     public void setTax_kinds(String tax_kinds) {
         this.tax_kinds = tax_kinds;
+    }
+
+    public String getZip_code() {
+        return zip_code;
+    }
+
+    public void setZip_code(String zip_code) {
+        this.zip_code = zip_code;
     }
 }

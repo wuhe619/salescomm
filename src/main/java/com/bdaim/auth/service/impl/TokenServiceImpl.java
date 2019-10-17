@@ -142,7 +142,7 @@ public class TokenServiceImpl implements TokenService {
                 String tokenid = (String) name2token.get(username);
                 if (tokenid != null && !"".equals(tokenid)) {
                     userdetail = (LoginUser) tokenCacheService.getToken(tokenid);
-                    if (userdetail != null){
+                    if (userdetail != null) {
                         //前台用户权限信息
                         CustomerUserPropertyDO userProperty = customerUserDao.getProperty(String.valueOf(u.getId()), CustomerUserPropertyEnum.RESOURCE_MENU.getKey());
                         if (userProperty != null && StringUtil.isNotEmpty(userProperty.getPropertyValue())) {
@@ -150,7 +150,7 @@ public class TokenServiceImpl implements TokenService {
                             userdetail.setStatus(u.getStatus().toString());
                             return userdetail;
                         }
-                    }  else
+                    } else
                         name2token.remove(username);
                 }
 
@@ -224,14 +224,20 @@ public class TokenServiceImpl implements TokenService {
 
     @Override
     public Token removeToken(String username) {
-        // TODO Auto-generated method stub
+        String tokenid = (String) name2token.get(username);
+        // 移除token
+        name2token.remove(username);
+        if (tokenid != null && !"".equals(tokenid)) {
+            LoginUser token = (LoginUser) tokenCacheService.getToken(tokenid);
+            return token;
+        }
         return null;
     }
 
     public LoginUser opUser() {
         Token u = (LoginUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if(u instanceof LoginUser)
-        	return (LoginUser)u;
+        if (u instanceof LoginUser)
+            return (LoginUser) u;
         else
             return new LoginUser(0L, "", "", null);
     }

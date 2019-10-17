@@ -96,8 +96,6 @@ public class HypicZService implements BusiService {
 
     @Override
     public void updateInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) {
-        String updateSql = "UPDATE " + HMetaDataDef.getTable(busiType, "") + " SET ext_2 = ?, content = ? WHERE id =? AND type =? AND cust_id =? ";
-        jdbcTemplate.update(updateSql, info.getInteger("status"), info.toJSONString(), id, busiType,cust_id);
     }
 
     @Override
