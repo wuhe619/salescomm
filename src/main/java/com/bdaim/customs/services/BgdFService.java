@@ -282,9 +282,7 @@ public class BgdFService implements BusiService {
                     info.put(key, jo.get(key));
                 }
             }
-
         }
-
     }
 
 
@@ -438,13 +436,15 @@ public class BgdFService implements BusiService {
     }
 
     private String bgdsdCheck(List<HBusiDataManager> ds,String filedName) {
-        String msg = "";
-        boolean allhasErr = false;
+
         for (HBusiDataManager d : ds) {
             String content = d.getContent();
             JSONObject json = JSONObject.parseObject(content);
             String gno = d.getExt_5();
+            String msg = "商品序号"+gno+" ";
+
             Boolean hasError = false;
+
             if (StringUtil.isEmpty(d.getExt_3())) {
                 hasError = true;
                 msg += "商品编号,";
@@ -496,12 +496,8 @@ public class BgdFService implements BusiService {
             if (!hasError) {
                 continue;
             } else {
-                msg = "商品序号" + gno + msg + "</br>";
-                allhasErr = true;
+                filedName += "\r\n" + msg;
             }
-        }
-        if (allhasErr) {
-            filedName += "</br>" + msg;
         }
         return filedName;
     }
