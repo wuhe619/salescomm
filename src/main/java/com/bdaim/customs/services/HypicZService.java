@@ -85,7 +85,6 @@ public class HypicZService implements BusiService {
             //批次名称
             info.put("ext_5", batchName);
             //批次状态
-            info.put("ext_2", 0);
             info.put("status", 0);
             //批次id
             info.put("ext_3", batchId);
