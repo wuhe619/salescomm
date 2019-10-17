@@ -261,7 +261,7 @@ public class BaoguandanXmlEXP301 {
         EntryHead.appendChild(DeclPort);
 
         Element CoOwner = document.createElement("CoOwner");//经营单位性质
-        String unit = json.getString("s_c_code_busi_unit");
+        String unit = mainJson.getString("s_c_code_busi_unit");
         unit = unit.substring(0,6);
         unit = unit.substring(unit.length()-1);
         CoOwner.setTextContent(unit);  //r
