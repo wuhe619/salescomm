@@ -375,7 +375,8 @@ public class BgdFService implements BusiService {
         if(StringUtil.isEmpty(mainjson.getString("decl_port"))){
             filedName += "," + BGDReportEnum.DeclPort.getName();
         }
-        if(StringUtil.isEmpty(json.getString("s_c_code_busi_unit"))){
+        if(StringUtil.isEmpty(mainjson.getString("s_c_code_busi_unit"))
+                || mainjson.getString("s_c_code_busi_unit").length()<6){
             filedName += "," + BGDReportEnum.CoOwner.getName();//经营单位性质，取经营单位编码第6位
         }
         if(StringUtil.isEmpty(customerInfo.getOrDefault("input_name","").toString())){
@@ -413,7 +414,7 @@ public class BgdFService implements BusiService {
             filedName += "," + BGDReportEnum.SendId.getName();
         }
 
-        if(StringUtil.isEmpty(json.get("total_price")==null?"":json.get("total_price").toString())){
+        if(StringUtil.isEmpty(json.get("total_value")==null?"":json.get("total_value").toString())){
             filedName += "," + BGDReportEnum.TotalValue.getName();
         }
 
@@ -457,42 +458,42 @@ public class BgdFService implements BusiService {
                 msg += "商品名称,";
                 hasError = true;
             }
-            if (!json.containsKey("g_name") || StringUtil.isEmpty(json.getString("g_model"))) {
+            if (!json.containsKey("g_model") || StringUtil.isEmpty(json.getString("g_model"))) {
                 msg += "商品规格、型号,";
                 hasError = true;
             }
-            if (!json.containsKey("g_name") || StringUtil.isEmpty(json.getString("origin_country"))) {
+            if (!json.containsKey("origin_country") || StringUtil.isEmpty(json.getString("origin_country"))) {
                 msg += "产销国,";
                 hasError = true;
             }
-            if (!json.containsKey("g_name") || StringUtil.isEmpty(json.getString("curr_code"))) {
+            if (!json.containsKey("curr_code") || StringUtil.isEmpty(json.getString("curr_code"))) {
                 msg += "成交币制,";
                 hasError = true;
             }
-            if (!json.containsKey("g_name") || StringUtil.isEmpty(json.getString("trade_total"))) {
+            if (!json.containsKey("total_price") || StringUtil.isEmpty(json.getString("total_price"))) {
                 msg += "成交总价,";
                 hasError = true;
             }
-            if (!json.containsKey("g_name") || StringUtil.isEmpty(json.getString("decl_price"))) {
-                msg += gno + ":" + "申报单价,";
+            if (!json.containsKey("decl_price") || StringUtil.isEmpty(json.getString("decl_price"))) {
+                msg += "申报单价,";
                 hasError = true;
             }
-            if (!json.containsKey("g_name") || StringUtil.isEmpty(json.getString("decl_total"))) {
+            if (!json.containsKey("decl_total") || StringUtil.isEmpty(json.getString("decl_total"))) {
                 msg += "申报总价,";
             }
-            if (!json.containsKey("g_name") || StringUtil.isEmpty(json.getString("g_unit"))) {
+            if (!json.containsKey("g_unit") || StringUtil.isEmpty(json.getString("g_unit"))) {
                 msg += "申报计量单位,";
                 hasError = true;
             }
-            if (!json.containsKey("g_name") || StringUtil.isEmpty(json.getString("qty_1"))) {
+            if (!json.containsKey("qty_1") || StringUtil.isEmpty(json.getString("qty_1"))) {
                 msg += "第一(法定)数量,";
                 hasError = true;
             }
-            if (!json.containsKey("g_name") || StringUtil.isEmpty(json.getString("unit_1"))) {
+            if (!json.containsKey("unit_1") || StringUtil.isEmpty(json.getString("unit_1"))) {
                 msg += "第一(法定)计量单位,";
                 hasError = true;
             }
-            if (!json.containsKey("g_name") || StringUtil.isEmpty(json.getString("ggrosswt"))) {
+            if (!json.containsKey("ggrosswt") || StringUtil.isEmpty(json.getString("ggrosswt"))) {
                 msg += "商品毛重";
                 hasError = true;
             }

@@ -261,7 +261,10 @@ public class BaoguandanXmlEXP301 {
         EntryHead.appendChild(DeclPort);
 
         Element CoOwner = document.createElement("CoOwner");//经营单位性质
-        CoOwner.setTextContent(json.getString("s_c_code_busi_unit"));  //r
+        String unit = json.getString("s_c_code_busi_unit");
+        unit = unit.substring(0,6);
+        unit = unit.substring(unit.length()-1);
+        CoOwner.setTextContent(unit);  //r
         EntryHead.appendChild(CoOwner);
         /*Element MnlJgfFlag = document.createElement("MnlJgfFlag");
         MnlJgfFlag.setTextContent("");
