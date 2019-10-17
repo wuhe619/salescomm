@@ -11,6 +11,9 @@ import com.bdaim.common.service.SequenceService;
 import com.bdaim.common.util.NumberConvertUtil;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.dao.CustomerDao;
+import com.bdaim.customer.dao.CustomerUserDao;
+import com.bdaim.customer.entity.Customer;
+import com.bdaim.customer.entity.CustomerUser;
 import com.bdaim.customs.entity.*;
 import com.bdaim.customs.utils.ServiceUtils;
 import org.slf4j.Logger;
@@ -33,6 +36,8 @@ public class HypicZService implements BusiService {
 
     @Autowired
     private CustomerDao customerDao;
+    @Autowired
+    private CustomerUserDao customerUserDao;
 
     @Resource
     private JdbcTemplate jdbcTemplate;
@@ -70,6 +75,13 @@ public class HypicZService implements BusiService {
                 }
             }
             //构造住批次信息
+            //根据企业id查询企业账号和企业名称
+            String enterpriseName = customerDao.getEnterpriseName(cust_id);
+            CustomerUser custUser = customerUserDao.selectPropertyByType(1,cust_id );
+            if (custUser!=null){
+                info.put("account", custUser.getAccount());
+            }
+            info.put("custName", enterpriseName);
             //批次名称
             info.put("ext_5", batchName);
             //批次状态
