@@ -22,7 +22,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.annotation.Resource;
 import java.util.Map;
-import java.util.UUID;
 
 /*
  * C端用户
@@ -120,9 +119,9 @@ public class CustomerUserAction extends BasicAction {
         //获取微信用户openid
         String openId = weChatUtil.getWeChatOpenId(code);
         // 模拟绑定成功
-        if (StringUtil.isEmpty(openId)) {
+       /* if (StringUtil.isEmpty(openId)) {
             openId = CipherUtil.encodeByMD5(UUID.randomUUID().toString());
-        }
+        }*/
         if (StringUtil.isEmpty(openId)) {
             responseJson.setMessage("绑定失败");
             return responseJson;
