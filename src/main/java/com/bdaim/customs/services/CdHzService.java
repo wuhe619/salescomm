@@ -154,8 +154,8 @@ public class CdHzService implements BusiService {
         if(list.size()>0){
             serviceUtils.batchInsert(BusiTypeEnum.CDF_HZ.getType(),list);
         }
-        String id = mongoFileService.saveData(xmlstring);
-        fileDao.save(envelopinfo.getString("message_id"),id, BusinessEnum.CUSTOMS,null,null);
+       /* String id = mongoFileService.saveData(xmlstring);
+        fileDao.save(envelopinfo.getString("message_id"),id, BusinessEnum.CUSTOMS,null,null);*/
     }
 
 
