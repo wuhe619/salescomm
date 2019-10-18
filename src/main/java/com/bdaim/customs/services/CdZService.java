@@ -519,8 +519,7 @@ public class CdZService implements BusiService {
                 weight = "0";
             }
             weightTotal += Float.valueOf(weight);
-            hm.setContent(_content.toJSONString());
-            dataList.add(hm);
+            Float fdWeightTotal = 0f;
             goodList = cache.get(hp.getId());
             if (goodList != null) {
                 for (HBusiDataManager gp : goodList) {
@@ -534,6 +533,13 @@ public class CdZService implements BusiService {
                     sdContent.put("pid", hm.getId());
                     sdContent.put("main_bill_no", _content.get("bill_no"));
                     sdContent.put("opt_type", "ADD");
+                    // 分单重量（公斤）=分单所有商品毛重
+                    String ggrosswt = sdContent.getString("ggrosswt");
+                    if (StringUtil.isEmpty(ggrosswt)) {
+                        ggrosswt = "0";
+                    }
+                    fdWeightTotal += Float.valueOf(ggrosswt);
+
                     good.setContent(sdContent.toJSONString());
                     good.setType(BusiTypeEnum.CS.getType());
                     good.setCreateId(gp.getCreateId());
@@ -545,7 +551,9 @@ public class CdZService implements BusiService {
                     //sSize--;
                 }
             }
-
+            _content.put("weight", fdWeightTotal);
+            hm.setContent(_content.toJSONString());
+            dataList.add(hm);
             //size--;
         }
         jon.put("pack_no", pack_no);
