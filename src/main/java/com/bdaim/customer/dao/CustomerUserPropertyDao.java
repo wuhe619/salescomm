@@ -5,12 +5,9 @@ import com.bdaim.callcenter.dto.SeatInfoDto;
 import com.bdaim.common.dao.SimpleHibernateDao;
 import com.bdaim.common.util.DateUtil;
 import com.bdaim.common.util.StringUtil;
-import com.bdaim.customer.entity.CustomerProperty;
 import com.bdaim.customer.entity.CustomerUserPropertyDO;
-
 import org.springframework.stereotype.Component;
 
-import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
 
@@ -64,6 +61,7 @@ public class CustomerUserPropertyDao extends SimpleHibernateDao<CustomerUserProp
         logger.info("获取坐席信息" + seatInfoDto.toString() + "userid是：" + userId);
         return seatInfoDto;
     }
+
     public CustomerUserPropertyDO getProperty(String userId, String propertyName) {
         CustomerUserPropertyDO cp = null;
         String hql = "from CustomerUserPropertyDO m where m.userId=? and m.propertyName=?";
@@ -95,5 +93,14 @@ public class CustomerUserPropertyDao extends SimpleHibernateDao<CustomerUserProp
         }
         this.saveOrUpdate(propertyInfo);
         return success;
+    }
+
+    public CustomerUserPropertyDO getPropertyByName(String propertyName, String propertyValue) {
+        CustomerUserPropertyDO cp = null;
+        String hql = "from CustomerUserPropertyDO m where m.propertyName=? and m.propertyValue=?";
+        List<CustomerUserPropertyDO> list = this.find(hql, propertyName, propertyValue);
+        if (list.size() > 0)
+            cp =  list.get(0);
+        return cp;
     }
 }
