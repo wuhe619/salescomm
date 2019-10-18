@@ -124,6 +124,9 @@ public class CdHzService implements BusiService {
         JSONArray array = info.getJSONArray("list");//分单信息
 
         HBusiDataManager cangdan = serviceUtils.findZhudanByBillNo(custId, BusiTypeEnum.CZ.getType(),headData.getString("billno"));
+        if(cangdan==null){
+            throw new TouchException();
+        }
         String content = cangdan.getContent();
         JSONObject jsonObject = JSONObject.parseObject(content);
         jsonObject.put("commit_cangdan_status",headData.getString("rtnflag"));
@@ -134,7 +137,6 @@ public class CdHzService implements BusiService {
         String sql=" update "+ HMetaDataDef.getTable(BusiTypeEnum.CZ.getType(), "")+" set content='"+jsonObject.toJSONString()+"',ext_2='"+headData.getString("rtnflag")+"' where id="+cangdan.getId();
         jdbcTemplate.update(sql);
 
-        //List<HBusiDataManager> list = serviceUtils.listDataByParentBillNo(custId,BusiTypeEnum.CF.getType(),headData.getString("billno"));
         List<HBusiDataManager> list = new ArrayList<>();
         for (int i=0;i<array.size();i++){
             JSONObject json = array.getJSONObject(i);

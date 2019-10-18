@@ -112,7 +112,7 @@ public class BgdHzService implements BusiService {
         parseHzXml.parserBaoguandanHzXML(xmlstring,info);
         JSONObject envelopinfo = info.getJSONObject("envelopinfo");//信封消息
         JSONObject data = info.getJSONObject("data");//分单信息
-        info.remove("xmlstring");
+//        info.remove("xmlstring");
         info.put("ext_4",data.getString("billno"));//主单号
         info.put("ext_3",data.getString("ass_billno"));//分单号
         String EntryId = data.getString("entryid");//海关编码
@@ -132,12 +132,13 @@ public class BgdHzService implements BusiService {
         json.put("ext_1",data.getString("op_result"));
         String op_time = data.getString("op_time");
         json.put("op_time",op_time);
+
 //        Timestamp tm = DateUtil.getTimestamp(CalendarUtil.parseDate(decltime,"yyyyMMddHHmmsszzz"),"yyyyMMddHHmmsszzz");
         //json.put("decl_time",new Date().getTime());
 
         String sql=" update "+ HMetaDataDef.getTable(BusiTypeEnum.BF.getType(), "")+" set content='"+json.toJSONString()+"' where id="+fendan.getId();
         jdbcTemplate.update(sql);
-        String opresult=data.getString("op_result");
+        String opresult = data.getString("op_result");
         if("03".equals(opresult)
                 || "04".equals(opresult)
                 || "05".equals(opresult)
