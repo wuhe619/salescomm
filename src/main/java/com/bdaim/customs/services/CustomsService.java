@@ -1245,7 +1245,7 @@ public class CustomsService {
 
 
     public List<Map<String, Object>> hzTotal(String type, String stationId, String custId, LoginUser lu) {
-        StringBuffer sql = new StringBuffer("select ext_1 status,count(0)num from " + HMetaDataDef.getTable(type, "") + " where type='" + type + "'");
+        StringBuffer sql = new StringBuffer("select ext_2 as status,count(0)num from " + HMetaDataDef.getTable(type, "") + " where type='" + type + "'");
         if (!"ROLE_USER".equals(lu.getAuth())) {
             custId = lu.getCustId();
             sql.append(" and cust_id='" + custId + "'");
