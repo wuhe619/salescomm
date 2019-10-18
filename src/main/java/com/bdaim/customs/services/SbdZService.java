@@ -681,6 +681,7 @@ public class SbdZService implements BusiService {
                         Double total_price = multiply.setScale(5, BigDecimal.ROUND_HALF_UP).doubleValue();
                         //价格合计
                         json.put("total_price", total_price);
+                        json.put("decl_total",total_price);
                         totalValue += total_price;
                     }
 //                    float total_price = Float.valueOf(product.getDecl_total() == null || "".equals(product.getDecl_total()) ? "0" : product.getDecl_total());
