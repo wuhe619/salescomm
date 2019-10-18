@@ -806,7 +806,7 @@ public class ServiceUtils {
             return name.toString();
         } else {
             Optional<Product> result = list.stream().filter(Objects::nonNull).filter(s -> StringUtil.isNotEmpty(s.getG_qty()) && StringUtil.isNotEmpty(s.getDecl_price()))
-                    .max(Comparator.comparingDouble(s -> NumberConvertUtil.parseInt(s.getG_qty()) * NumberConvertUtil.parseDouble(s.getDecl_price())));
+                    .max(Comparator.comparingDouble(s -> NumberConvertUtil.parseDouble(s.getG_qty()) * NumberConvertUtil.parseDouble(s.getDecl_price())));
             Product data = result.orElse(new Product());
             StringBuffer name = new StringBuffer();
             name.append(data.getG_name())
