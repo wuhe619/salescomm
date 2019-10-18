@@ -36,12 +36,12 @@ public class WeChatUtil {
      * 微信分配的appID
      */
     //@Value("${app.id}")
-    private String appId = "wx665fb599d9d40b51";
+    private String appId = "wx12e1240c54bd8347";
     /**
      * 微信分配的appsecret
      */
     //@Value("${app.secrect}")
-    private String appSecret = "011c20df61c85b6fcd825c8a346b76e5";
+    private String appSecret = "12987e4fb2dff526f28fcb042d1fb648";
 
     private long lastRunTime;
 
@@ -74,13 +74,15 @@ public class WeChatUtil {
 
     /**
      * 获取openid
+     *
      * @param code
      * @return
      */
     public String getWeChatOpenId(String code) {
         String url = "https://api.weixin.qq.com/sns/oauth2/access_token?appid=APPID&secret=SECRET&code=CODE&grant_type=authorization_code";
-        String uri = url.replace("APPID",
-                this.getAppId()).replace("CODE", code);
+        String uri = url.replace("APPID", this.getAppId())
+                .replace("SECRET", this.getAppSecret())
+                .replace("CODE", code);
         logger.info("获取微信openid请求url:{}", uri);
         String result = HttpUtil.httpGet(uri, null, null);
         logger.info("获取微信openid返回结果:{}", result);
