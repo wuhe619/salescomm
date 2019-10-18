@@ -98,8 +98,8 @@ public class CustomerUserAction extends BasicAction {
     }
 
 
-    @RequestMapping(value = "/bindUserOpenId", method = RequestMethod.POST)
-    @ResponseBody
+   /* @RequestMapping(value = "/bindUserOpenId", method = RequestMethod.POST)
+    @ResponseBody*/
     public ResponseInfo bindUserOpenId(@RequestBody JSONObject body) {
         ResponseInfo responseJson = new ResponseInfo();
         responseJson.setCode(0);
