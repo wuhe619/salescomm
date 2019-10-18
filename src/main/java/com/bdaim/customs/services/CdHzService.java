@@ -133,6 +133,7 @@ public class CdHzService implements BusiService {
         //Date d=DateUtil.fmtStrToDate(headData.getString("entrydate"),"yyyyMMddHHmmss");
 //        jsonObject.put("decl_time",d.getTime());
         cangdan.setExt_2(headData.getString("rtnflag"));
+        info.put("ext_3",headData.getString("billno"));
 //        cangdan.setContent(jsonObject.toJSONString());
         String sql=" update "+ HMetaDataDef.getTable(BusiTypeEnum.CZ.getType(), "")+" set content='"+jsonObject.toJSONString()+"',ext_2='"+headData.getString("rtnflag")+"' where id="+cangdan.getId();
         jdbcTemplate.update(sql);
