@@ -129,7 +129,7 @@ public class CdHzService implements BusiService {
         }
         String content = cangdan.getContent();
         JSONObject jsonObject = JSONObject.parseObject(content);
-        jsonObject.put("commit_cangdan_status",headData.getString("rtnflag"));
+        jsonObject.put("send_status",headData.getString("rtnflag"));
         //Date d=DateUtil.fmtStrToDate(headData.getString("entrydate"),"yyyyMMddHHmmss");
 //        jsonObject.put("decl_time",d.getTime());
         cangdan.setExt_2(headData.getString("rtnflag"));
