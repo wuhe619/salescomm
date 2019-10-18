@@ -155,71 +155,8 @@ public class TokenServiceImpl implements TokenService {
                 if (!bindStatus) {
                     return new LoginUser("guest", "", new ArrayList<>(), "绑定失败", "401");
                 }
-                // 寻找登录账号已有的token
-                String tokenid = (String) name2token.get(username);
-                if (tokenid != null && !"".equals(tokenid)) {
-                    userdetail = (LoginUser) tokenCacheService.getToken(tokenid);
-                    if (userdetail != null) {
-                        return userdetail;
-                    } else
-                        name2token.remove(username);
-                }
-                if (1 == u.getStatus()) {
-                    auths.add(new SimpleGrantedAuthority("USER_FREEZE"));
-                } else if (3 == u.getStatus()) {
-                    auths.add(new SimpleGrantedAuthority("USER_NOT_EXIST"));
-                } else if (0 == u.getStatus()) {
-                    //user_type: 1=管理员 2=普通员工
-                    auths.add(new SimpleGrantedAuthority("ROLE_CUSTOMER"));
-                }
-                userdetail = new LoginUser(u.getId(), u.getAccount(), CipherUtil.encodeByMD5(u.getId() + "" + System.currentTimeMillis()), auths);
-                userdetail.setCustId(u.getCust_id());
-                userdetail.setId(u.getId());
-                userdetail.setUserType(String.valueOf(u.getUserType()));
-                userdetail.setRole(auths.size() > 0 ? auths.toArray()[0].toString() : "");
-
-                userdetail.setStatus(u.getStatus().toString());
-                userdetail.setStateCode("200");
-                userdetail.setMsg("SUCCESS");
-                userdetail.setAuth(userdetail.getAuthorities().toArray()[0].toString());
-                userdetail.setUserName(userdetail.getUsername());
-                userdetail.setUser_id(userdetail.getId().toString());
-                // 处理服务权限
-                userdetail.setServiceMode(ServiceModeEnum.MARKET_TASK.getCode());
-                CustomerPropertyDTO cpd = customerService.getCustomerProperty(u.getCust_id(), CustomerPropertyEnum.SERVICE_MODE.getKey());
-                if (cpd != null && StringUtil.isNotEmpty(cpd.getPropertyValue())) {
-                    userdetail.setServiceMode(cpd.getPropertyValue());
-                }
-                CustomerPropertyDTO industry = customerService.getCustomerProperty(u.getCust_id(), CustomerPropertyEnum.INTEN_INDUCTRY.getKey());
-                if (industry != null && StringUtil.isNotEmpty(industry.getPropertyValue())) {
-                    userdetail.setInten_industry(industry.getPropertyValue());
-                }
-                CustomerPropertyDTO apiToken = customerService.getCustomerProperty(u.getCust_id(), CustomerPropertyEnum.API_TOKEN.getKey());
-                if (apiToken != null && StringUtil.isNotEmpty(apiToken.getPropertyValue())) {
-                    userdetail.setApi_token(apiToken.getPropertyValue());
-                }
-                //前台用户权限信息
-                CustomerUserPropertyDO userProperty = customerUserDao.getProperty(String.valueOf(u.getId()), CustomerUserPropertyEnum.RESOURCE_MENU.getKey());
-                if (userProperty != null && StringUtil.isNotEmpty(userProperty.getPropertyValue())) {
-                    userdetail.setResourceMenu(userProperty.getPropertyValue());
-                }
-                CustomerUserPropertyDO mobile_num = customerUserDao.getProperty(u.getId().toString(), "mobile_num");
-                if (mobile_num != null && StringUtil.isNotEmpty(mobile_num.getPropertyValue())) {
-                    userdetail.setMobile_num(mobile_num.getPropertyValue());
-                } else {
-                    userdetail.setMobile_num("");
-                }
-                // 查询用户组信息
-                CustomerUserGroupRelDTO cug = customerUserDao.getCustomerUserGroupByUserId(u.getId());
-                userdetail.setUserGroupId("");
-                userdetail.setUserGroupRole("");
-                userdetail.setJobMarketId("");
-                if (cug != null) {
-                    userdetail.setUserGroupId(cug.getGroupId());
-                    userdetail.setUserGroupRole(String.valueOf(cug.getType()));
-                    userdetail.setJobMarketId(cug.getJobMarketId());
-                }
-
+                // 组装用户数据(分组等信息)
+                getUserData(u, username, auths);
             } else {
                 logger.warn("username or password is error");
                 return new LoginUser("guest", "", new ArrayList<>(), "用户名密码错误", "401");
@@ -237,71 +174,8 @@ public class TokenServiceImpl implements TokenService {
             }
             CustomerUser u = customerService.getUserByName(customerUserDao.getLoginName(userProper.getUserId()));
             if (u != null) {
-                // 寻找登录账号已有的token
-                String tokenid = (String) name2token.get(username);
-                if (tokenid != null && !"".equals(tokenid)) {
-                    userdetail = (LoginUser) tokenCacheService.getToken(tokenid);
-                    if (userdetail != null) {
-                        return userdetail;
-                    } else
-                        name2token.remove(username);
-                }
-                if (1 == u.getStatus()) {
-                    auths.add(new SimpleGrantedAuthority("USER_FREEZE"));
-                } else if (3 == u.getStatus()) {
-                    auths.add(new SimpleGrantedAuthority("USER_NOT_EXIST"));
-                } else if (0 == u.getStatus()) {
-                    //user_type: 1=管理员 2=普通员工
-                    auths.add(new SimpleGrantedAuthority("ROLE_CUSTOMER"));
-                }
-                userdetail = new LoginUser(u.getId(), u.getAccount(), CipherUtil.encodeByMD5(u.getId() + "" + System.currentTimeMillis()), auths);
-                userdetail.setCustId(u.getCust_id());
-                userdetail.setId(u.getId());
-                userdetail.setUserType(String.valueOf(u.getUserType()));
-                userdetail.setRole(auths.size() > 0 ? auths.toArray()[0].toString() : "");
-
-                userdetail.setStatus(u.getStatus().toString());
-                userdetail.setStateCode("200");
-                userdetail.setMsg("SUCCESS");
-                userdetail.setAuth(userdetail.getAuthorities().toArray()[0].toString());
-                userdetail.setUserName(userdetail.getUsername());
-                userdetail.setUser_id(userdetail.getId().toString());
-                // 处理服务权限
-                userdetail.setServiceMode(ServiceModeEnum.MARKET_TASK.getCode());
-                CustomerPropertyDTO cpd = customerService.getCustomerProperty(u.getCust_id(), CustomerPropertyEnum.SERVICE_MODE.getKey());
-                if (cpd != null && StringUtil.isNotEmpty(cpd.getPropertyValue())) {
-                    userdetail.setServiceMode(cpd.getPropertyValue());
-                }
-                CustomerPropertyDTO industry = customerService.getCustomerProperty(u.getCust_id(), CustomerPropertyEnum.INTEN_INDUCTRY.getKey());
-                if (industry != null && StringUtil.isNotEmpty(industry.getPropertyValue())) {
-                    userdetail.setInten_industry(industry.getPropertyValue());
-                }
-                CustomerPropertyDTO apiToken = customerService.getCustomerProperty(u.getCust_id(), CustomerPropertyEnum.API_TOKEN.getKey());
-                if (apiToken != null && StringUtil.isNotEmpty(apiToken.getPropertyValue())) {
-                    userdetail.setApi_token(apiToken.getPropertyValue());
-                }
-                //前台用户权限信息
-                CustomerUserPropertyDO userProperty = customerUserDao.getProperty(String.valueOf(u.getId()), CustomerUserPropertyEnum.RESOURCE_MENU.getKey());
-                if (userProperty != null && StringUtil.isNotEmpty(userProperty.getPropertyValue())) {
-                    userdetail.setResourceMenu(userProperty.getPropertyValue());
-                }
-                CustomerUserPropertyDO mobile_num = customerUserDao.getProperty(u.getId().toString(), "mobile_num");
-                if (mobile_num != null && StringUtil.isNotEmpty(mobile_num.getPropertyValue())) {
-                    userdetail.setMobile_num(mobile_num.getPropertyValue());
-                } else {
-                    userdetail.setMobile_num("");
-                }
-                // 查询用户组信息
-                CustomerUserGroupRelDTO cug = customerUserDao.getCustomerUserGroupByUserId(u.getId());
-                userdetail.setUserGroupId("");
-                userdetail.setUserGroupRole("");
-                userdetail.setJobMarketId("");
-                if (cug != null) {
-                    userdetail.setUserGroupId(cug.getGroupId());
-                    userdetail.setUserGroupRole(String.valueOf(cug.getType()));
-                    userdetail.setJobMarketId(cug.getJobMarketId());
-                }
-
+                // 组装用户数据(分组等信息)
+                getUserData(u, username, auths);
             } else {
                 logger.warn("username or password is error");
                 return new LoginUser("guest", "", new ArrayList<>(), "用户名密码错误", "401");
@@ -413,5 +287,82 @@ public class TokenServiceImpl implements TokenService {
             return (LoginUser) u;
         else
             return new LoginUser(0L, "", "", null);
+    }
+
+    /**
+     * 组装用户数据
+     *
+     * @param u
+     * @param username
+     * @param auths
+     * @return
+     */
+    public LoginUser getUserData(CustomerUser u, String username, List<GrantedAuthority> auths) {
+        // 寻找登录账号已有的token
+        LoginUser userdetail = null;
+        String tokenid = (String) name2token.get(username);
+        if (tokenid != null && !"".equals(tokenid)) {
+            userdetail = (LoginUser) tokenCacheService.getToken(tokenid);
+            if (userdetail != null) {
+                return userdetail;
+            } else
+                name2token.remove(username);
+        }
+        if (1 == u.getStatus()) {
+            auths.add(new SimpleGrantedAuthority("USER_FREEZE"));
+        } else if (3 == u.getStatus()) {
+            auths.add(new SimpleGrantedAuthority("USER_NOT_EXIST"));
+        } else if (0 == u.getStatus()) {
+            //user_type: 1=管理员 2=普通员工
+            auths.add(new SimpleGrantedAuthority("ROLE_CUSTOMER"));
+        }
+        userdetail = new LoginUser(u.getId(), u.getAccount(), CipherUtil.encodeByMD5(u.getId() + "" + System.currentTimeMillis()), auths);
+        userdetail.setCustId(u.getCust_id());
+        userdetail.setId(u.getId());
+        userdetail.setUserType(String.valueOf(u.getUserType()));
+        userdetail.setRole(auths.size() > 0 ? auths.toArray()[0].toString() : "");
+
+        userdetail.setStatus(u.getStatus().toString());
+        userdetail.setStateCode("200");
+        userdetail.setMsg("SUCCESS");
+        userdetail.setAuth(userdetail.getAuthorities().toArray()[0].toString());
+        userdetail.setUserName(userdetail.getUsername());
+        userdetail.setUser_id(userdetail.getId().toString());
+        // 处理服务权限
+        userdetail.setServiceMode(ServiceModeEnum.MARKET_TASK.getCode());
+        CustomerPropertyDTO cpd = customerService.getCustomerProperty(u.getCust_id(), CustomerPropertyEnum.SERVICE_MODE.getKey());
+        if (cpd != null && StringUtil.isNotEmpty(cpd.getPropertyValue())) {
+            userdetail.setServiceMode(cpd.getPropertyValue());
+        }
+        CustomerPropertyDTO industry = customerService.getCustomerProperty(u.getCust_id(), CustomerPropertyEnum.INTEN_INDUCTRY.getKey());
+        if (industry != null && StringUtil.isNotEmpty(industry.getPropertyValue())) {
+            userdetail.setInten_industry(industry.getPropertyValue());
+        }
+        CustomerPropertyDTO apiToken = customerService.getCustomerProperty(u.getCust_id(), CustomerPropertyEnum.API_TOKEN.getKey());
+        if (apiToken != null && StringUtil.isNotEmpty(apiToken.getPropertyValue())) {
+            userdetail.setApi_token(apiToken.getPropertyValue());
+        }
+        //前台用户权限信息
+        CustomerUserPropertyDO userProperty = customerUserDao.getProperty(String.valueOf(u.getId()), CustomerUserPropertyEnum.RESOURCE_MENU.getKey());
+        if (userProperty != null && StringUtil.isNotEmpty(userProperty.getPropertyValue())) {
+            userdetail.setResourceMenu(userProperty.getPropertyValue());
+        }
+        CustomerUserPropertyDO mobile_num = customerUserDao.getProperty(u.getId().toString(), "mobile_num");
+        if (mobile_num != null && StringUtil.isNotEmpty(mobile_num.getPropertyValue())) {
+            userdetail.setMobile_num(mobile_num.getPropertyValue());
+        } else {
+            userdetail.setMobile_num("");
+        }
+        // 查询用户组信息
+        CustomerUserGroupRelDTO cug = customerUserDao.getCustomerUserGroupByUserId(u.getId());
+        userdetail.setUserGroupId("");
+        userdetail.setUserGroupRole("");
+        userdetail.setJobMarketId("");
+        if (cug != null) {
+            userdetail.setUserGroupId(cug.getGroupId());
+            userdetail.setUserGroupRole(String.valueOf(cug.getType()));
+            userdetail.setJobMarketId(cug.getJobMarketId());
+        }
+        return userdetail;
     }
 }
