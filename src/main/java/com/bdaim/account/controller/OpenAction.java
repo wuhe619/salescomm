@@ -609,8 +609,9 @@ public class OpenAction extends BasicAction {
      *     "time":"" 检查结束时间
      * }
      */
+//    @AuthPassport(validate = false)
     @RequestMapping(value = "/customs/terminal/check",method = RequestMethod.POST)
-    public JSONObject customsCheckResult(@RequestBody String queryParams){
+    public JSONObject customsCheckResult(@RequestBody(required = false) String queryParams){
         log.info("customsCheckResult:"+queryParams);
         JSONObject result = new JSONObject();
         if(StringUtil.isEmpty(queryParams)){
@@ -619,14 +620,19 @@ public class OpenAction extends BasicAction {
             return result;
         }else {
             JSONObject json= JSON.parseObject(queryParams);
-            if(!json.containsKey("id") || StringUtil.isEmpty(json.getString("id"))){
+            if(!json.containsKey("main_bill_no") || StringUtil.isEmpty(json.getString("main_bill_no"))){
                 result.put("code",0);
-                result.put("msg","无效参数");
+                result.put("msg","主运单号无效");
+                return result;
+            }
+            if(!json.containsKey("bill_no") || StringUtil.isEmpty(json.getString("bill_no"))){
+                result.put("code",0);
+                result.put("msg","分运单号无效");
                 return result;
             }
             if(!json.containsKey("code") || StringUtil.isEmpty(json.getString("code"))){
                 result.put("code",0);
-                result.put("msg","无效参数");
+                result.put("msg","检查结果无效");
                 return result;
             }
         }

@@ -14,6 +14,8 @@ import com.bdaim.customer.entity.CustomerUser;
 import com.bdaim.customer.entity.CustomerUserPropertyDO;
 import com.bdaim.customeruser.service.CustomerUserService;
 import org.apache.log4j.Logger;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,7 +23,10 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /*
  * C端用户
@@ -93,15 +98,15 @@ public class CustomerUserAction extends BasicAction {
     }
 
 
-    @RequestMapping(value = "/bindUserOpenId", method = RequestMethod.POST)
-    @ResponseBody
+   /* @RequestMapping(value = "/bindUserOpenId", method = RequestMethod.POST)
+    @ResponseBody*/
     public ResponseInfo bindUserOpenId(@RequestBody JSONObject body) {
         ResponseInfo responseJson = new ResponseInfo();
+        responseJson.setCode(0);
         String username = body.getString("username");
         String password = body.getString("password");
         String code = body.getString("code");
         if (StringUtil.isEmpty(username) || StringUtil.isEmpty(password)) {
-            responseJson.setCode(0);
             responseJson.setMessage("用户名密码错误");
             return responseJson;
         }
@@ -109,23 +114,46 @@ public class CustomerUserAction extends BasicAction {
         CustomerUser u = customerUserService.getUserByName(username);
         String md5Password = CipherUtil.generatePassword(password);
         if (u == null || !md5Password.equals(u.getPassword())) {
-            responseJson.setCode(0);
             responseJson.setMessage("用户名密码错误");
             return responseJson;
         }
+        List<GrantedAuthority> auths = new ArrayList<>();
+        if (1 == u.getStatus()) {
+            responseJson.setMessage("用户已冻结");
+            return responseJson;
+        } else if (0 == u.getStatus()) {
+            //user_type: 1=管理员 2=普通员工
+            auths.add(new SimpleGrantedAuthority("ROLE_CUSTOMER"));
+        }
         //获取微信用户openid
         String openId = weChatUtil.getWeChatOpenId(code);
+        // 模拟绑定成功
         if (StringUtil.isEmpty(openId)) {
-            responseJson.setCode(0);
+            openId = CipherUtil.encodeByMD5(UUID.randomUUID().toString());
+        }
+        if (StringUtil.isEmpty(openId)) {
             responseJson.setMessage("绑定失败");
             return responseJson;
         }
         CustomerUserPropertyDO propertyDO = new CustomerUserPropertyDO();
         propertyDO.setUserId(String.valueOf(u.getId()));
-        propertyDO.setPropertyValue(openId);
         propertyDO.setPropertyName("openid");
+        propertyDO.setPropertyValue(openId);
         customerUserService.saveCustomerUserProperty(propertyDO);
-        responseJson.setCode(1);
+        // 用户信息
+        LoginUser loginUser = new LoginUser(u.getId(), u.getAccount(), CipherUtil.encodeByMD5(u.getId() + "" + System.currentTimeMillis()), auths);
+        loginUser.setCustId(u.getCust_id());
+        loginUser.setId(u.getId());
+        loginUser.setUserType(String.valueOf(u.getUserType()));
+        loginUser.setRole(auths.size() > 0 ? auths.toArray()[0].toString() : "");
+        loginUser.setStatus(u.getStatus().toString());
+        loginUser.setStateCode("200");
+        loginUser.setMsg("SUCCESS");
+        loginUser.setAuth(loginUser.getAuthorities().toArray()[0].toString());
+        loginUser.setUserName(loginUser.getUsername());
+        loginUser.setUser_id(loginUser.getId().toString());
+        responseJson.setData(loginUser);
+        responseJson.setCode(200);
         responseJson.setMessage("绑定成功");
         return responseJson;
 
