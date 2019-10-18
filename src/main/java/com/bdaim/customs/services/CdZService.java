@@ -31,6 +31,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
 import java.util.*;
 
 /***
@@ -519,7 +520,11 @@ public class CdZService implements BusiService {
                 weight = "0";
             }
             weightTotal += Float.valueOf(weight);
+
             Float fdWeightTotal = 0f;
+            double total_value = 0.0;
+            BigDecimal qty = null;
+            BigDecimal multiply = null;
             goodList = cache.get(hp.getId());
             if (goodList != null) {
                 for (HBusiDataManager gp : goodList) {
@@ -539,7 +544,18 @@ public class CdZService implements BusiService {
                         ggrosswt = "0";
                     }
                     fdWeightTotal += Float.valueOf(ggrosswt);
-
+                    //主单价值合计
+                    String G_QTY = sdContent.getString("g_qty");
+                    String decl_price = sdContent.getString("decl_price");
+                    if (StringUtil.isNotEmpty(G_QTY) && StringUtil.isNotEmpty(decl_price)) {
+                        qty = new BigDecimal(G_QTY);
+                        multiply = qty.multiply(new BigDecimal(decl_price));
+                        Double total_price = multiply.setScale(5, BigDecimal.ROUND_HALF_UP).doubleValue();
+                        //价格合计
+                        json.put("total_price", total_price);
+                        json.put("decl_total", total_price);
+                        total_value += total_price;
+                    }
                     good.setContent(sdContent.toJSONString());
                     good.setType(BusiTypeEnum.CS.getType());
                     good.setCreateId(gp.getCreateId());
@@ -551,6 +567,7 @@ public class CdZService implements BusiService {
                     //sSize--;
                 }
             }
+            _content.put("total_value", total_value);
             _content.put("weight", fdWeightTotal);
             hm.setContent(_content.toJSONString());
             dataList.add(hm);
