@@ -611,7 +611,7 @@ public class OpenAction extends BasicAction {
      */
 //    @AuthPassport(validate = false)
     @RequestMapping(value = "/customs/terminal/check",method = RequestMethod.POST)
-    public JSONObject customsCheckResult(@RequestBody String queryParams){
+    public JSONObject customsCheckResult(@RequestBody(required = false) String queryParams){
         log.info("customsCheckResult:"+queryParams);
         JSONObject result = new JSONObject();
         if(StringUtil.isEmpty(queryParams)){
