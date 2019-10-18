@@ -495,6 +495,7 @@ public class CdZService implements BusiService {
         long sMaxId = sequenceService.getSeq(BusiTypeEnum.CS.getType(), sSize);*/
         List<HBusiDataManager> goodList = null;
         HBusiDataManager hm, good;
+        int pack_no = 0;
         for (HBusiDataManager hp : parties) {
             hm = new HBusiDataManager();
             hm.setType(BusiTypeEnum.CF.getType());
@@ -509,7 +510,8 @@ public class CdZService implements BusiService {
             JSONObject _content = JSON.parseObject(hp.getContent());
             _content.put("pid", id);
             _content.put("main_bill_no", json.get("bill_no"));
-            _content.put("party_total", goodList != null ? goodList.size() : 0);
+            // 舱单总件数=分运单件数和
+            pack_no += _content.getIntValue("pack_no");
             hm.setContent(_content.toJSONString());
             dataList.add(hm);
             goodList = cache.get(hp.getId());
@@ -539,6 +541,8 @@ public class CdZService implements BusiService {
 
             //size--;
         }
+        jon.put("pack_no", pack_no);
+        h.setContent(jon.toJSONString());
     }
 
     /**
