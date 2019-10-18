@@ -77,13 +77,15 @@ public class HypicXService implements BusiService {
     @Override
     public void updateInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) {
         String updateSql = "UPDATE " + HMetaDataDef.getTable(busiType, "") + " SET ext_2 = ?, content = ?, ext_5= ? WHERE id =? AND type =? AND cust_id =? AND ext_2 = 0 ";
-        int updateNum = jdbcTemplate.update(updateSql, info.getInteger("status"), info.toJSONString(), info.getInteger("scoure"), id, busiType, cust_id);
-        if (info.getInteger("status") == 1 && updateNum>0) {
-            String updateNumSql = "UPDATE " + HMetaDataDef.getTable(BusiTypeEnum.HY_PIC_Z.getType(), "")
-                    + " set content = JSON_SET(content, '$.successNum', JSON_EXTRACT(content, '$.successNum') + ?), " +
-                    " content = JSON_SET ( content, '$.status', cast( JSON_EXTRACT (content, '$.number') <= JSON_EXTRACT (content, '$.successNum') AS SIGNED INTEGER ))" +
-                    " where ext_3 =(SELECT ext_4 from h_data_manager_hy_pic_x WHERE id = ? AND  ext_2=1 AND type =? AND cust_id =?)";
-            jdbcTemplate.update(updateNumSql, new Object[]{1, id, BusiTypeEnum.HY_PIC_X.getType(), cust_id});
+        if (info.getInteger("status") == 1) {
+            int updateNum = jdbcTemplate.update(updateSql, info.getInteger("status"), info.toJSONString(), info.getInteger("scoure"), id, busiType, cust_id);
+            if (updateNum > 0) {
+                String updateNumSql = "UPDATE " + HMetaDataDef.getTable(BusiTypeEnum.HY_PIC_Z.getType(), "")
+                        + " set content = JSON_SET(content, '$.successNum', JSON_EXTRACT(content, '$.successNum') + ?), " +
+                        " content = JSON_SET ( content, '$.status', cast( JSON_EXTRACT (content, '$.number') <= JSON_EXTRACT (content, '$.successNum') AS SIGNED INTEGER ))" +
+                        " where ext_3 =(SELECT ext_4 from h_data_manager_hy_pic_x WHERE id = ? AND  ext_2=1 AND type =? AND cust_id =?)";
+                jdbcTemplate.update(updateNumSql, new Object[]{1, id, BusiTypeEnum.HY_PIC_X.getType(), cust_id});
+            }
         }
     }
 
