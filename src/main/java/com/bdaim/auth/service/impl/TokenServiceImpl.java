@@ -12,6 +12,7 @@ import com.bdaim.customer.dto.*;
 import com.bdaim.customer.entity.CustomerUser;
 import com.bdaim.customer.entity.CustomerUserPropertyDO;
 import com.bdaim.customer.service.CustomerService;
+import com.bdaim.customeruser.service.CustomerUserService;
 import com.bdaim.rbac.dao.RoleDao;
 import com.bdaim.rbac.dto.ResourceDTO;
 import com.bdaim.rbac.entity.UserDO;
@@ -46,6 +47,8 @@ public class TokenServiceImpl implements TokenService {
     private ResourceService resourceService;
     @Resource
     private CustomerUserDao customerUserDao;
+    @Resource
+    private CustomerUserService customerUserService;
 
     private static Map name2token = new HashMap();
 
@@ -129,6 +132,88 @@ public class TokenServiceImpl implements TokenService {
                 userdetail.setTokenid(userdetail.getTokenid());
                 userdetail.setDefaultUrl(defaultUrl);
                 userdetail.setStatus(u.getStatus().toString());
+            } else {
+                logger.warn("username or password is error");
+                return new LoginUser("guest", "", new ArrayList<>(), "用户名密码错误", "401");
+            }
+        } else if (username.startsWith("wx.")) {
+            // 微信绑定+登录
+            CustomerUser u = customerService.getUserByName(username.substring(3));
+            String userPwd = password.substring(password.indexOf(".") + 1);
+            String code = password.substring(0, password.indexOf("."));
+            String md5Password = CipherUtil.generatePassword(userPwd);
+            if (u != null && md5Password.equals(u.getPassword())) {
+                logger.info("微信绑定用户:" + u.getAccount() + "状态:" + u.getStatus());
+                // 绑定微信
+                boolean bindStatus = customerUserService.saveBindWx(String.valueOf(u.getId()), code);
+                if (!bindStatus) {
+                    return new LoginUser("guest", "", new ArrayList<>(), "绑定失败", "401");
+                }
+                // 寻找登录账号已有的token
+                String tokenid = (String) name2token.get(username);
+                if (tokenid != null && !"".equals(tokenid)) {
+                    userdetail = (LoginUser) tokenCacheService.getToken(tokenid);
+                    if (userdetail != null) {
+                        return userdetail;
+                    } else
+                        name2token.remove(username);
+                }
+                if (1 == u.getStatus()) {
+                    auths.add(new SimpleGrantedAuthority("USER_FREEZE"));
+                } else if (3 == u.getStatus()) {
+                    auths.add(new SimpleGrantedAuthority("USER_NOT_EXIST"));
+                } else if (0 == u.getStatus()) {
+                    //user_type: 1=管理员 2=普通员工
+                    auths.add(new SimpleGrantedAuthority("ROLE_CUSTOMER"));
+                }
+                userdetail = new LoginUser(u.getId(), u.getAccount(), CipherUtil.encodeByMD5(u.getId() + "" + System.currentTimeMillis()), auths);
+                userdetail.setCustId(u.getCust_id());
+                userdetail.setId(u.getId());
+                userdetail.setUserType(String.valueOf(u.getUserType()));
+                userdetail.setRole(auths.size() > 0 ? auths.toArray()[0].toString() : "");
+
+                userdetail.setStatus(u.getStatus().toString());
+                userdetail.setStateCode("200");
+                userdetail.setMsg("SUCCESS");
+                userdetail.setAuth(userdetail.getAuthorities().toArray()[0].toString());
+                userdetail.setUserName(userdetail.getUsername());
+                userdetail.setUser_id(userdetail.getId().toString());
+                // 处理服务权限
+                userdetail.setServiceMode(ServiceModeEnum.MARKET_TASK.getCode());
+                CustomerPropertyDTO cpd = customerService.getCustomerProperty(u.getCust_id(), CustomerPropertyEnum.SERVICE_MODE.getKey());
+                if (cpd != null && StringUtil.isNotEmpty(cpd.getPropertyValue())) {
+                    userdetail.setServiceMode(cpd.getPropertyValue());
+                }
+                CustomerPropertyDTO industry = customerService.getCustomerProperty(u.getCust_id(), CustomerPropertyEnum.INTEN_INDUCTRY.getKey());
+                if (industry != null && StringUtil.isNotEmpty(industry.getPropertyValue())) {
+                    userdetail.setInten_industry(industry.getPropertyValue());
+                }
+                CustomerPropertyDTO apiToken = customerService.getCustomerProperty(u.getCust_id(), CustomerPropertyEnum.API_TOKEN.getKey());
+                if (apiToken != null && StringUtil.isNotEmpty(apiToken.getPropertyValue())) {
+                    userdetail.setApi_token(apiToken.getPropertyValue());
+                }
+                //前台用户权限信息
+                CustomerUserPropertyDO userProperty = customerUserDao.getProperty(String.valueOf(u.getId()), CustomerUserPropertyEnum.RESOURCE_MENU.getKey());
+                if (userProperty != null && StringUtil.isNotEmpty(userProperty.getPropertyValue())) {
+                    userdetail.setResourceMenu(userProperty.getPropertyValue());
+                }
+                CustomerUserPropertyDO mobile_num = customerUserDao.getProperty(u.getId().toString(), "mobile_num");
+                if (mobile_num != null && StringUtil.isNotEmpty(mobile_num.getPropertyValue())) {
+                    userdetail.setMobile_num(mobile_num.getPropertyValue());
+                } else {
+                    userdetail.setMobile_num("");
+                }
+                // 查询用户组信息
+                CustomerUserGroupRelDTO cug = customerUserDao.getCustomerUserGroupByUserId(u.getId());
+                userdetail.setUserGroupId("");
+                userdetail.setUserGroupRole("");
+                userdetail.setJobMarketId("");
+                if (cug != null) {
+                    userdetail.setUserGroupId(cug.getGroupId());
+                    userdetail.setUserGroupRole(String.valueOf(cug.getType()));
+                    userdetail.setJobMarketId(cug.getJobMarketId());
+                }
+
             } else {
                 logger.warn("username or password is error");
                 return new LoginUser("guest", "", new ArrayList<>(), "用户名密码错误", "401");
