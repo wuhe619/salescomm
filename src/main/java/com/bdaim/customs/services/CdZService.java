@@ -514,7 +514,7 @@ public class CdZService implements BusiService {
             // 舱单总件数=分运单件数和
             pack_no += _content.getIntValue("pack_no");
             //总重量
-            String weight = json.getString("weight");
+            String weight = _content.getString("weight");
             if (StringUtil.isEmpty(weight)) {
                 weight = "0";
             }
