@@ -79,7 +79,6 @@ public class HypicXService implements BusiService {
         String updateSql = "UPDATE " + HMetaDataDef.getTable(busiType, "") + " SET ext_2 = ?, content = ?, ext_5= ? WHERE id =? AND type =? AND cust_id =? ";
         jdbcTemplate.update(updateSql, info.getInteger("status"), info.toJSONString(), info.getInteger("scoure"), id, busiType, cust_id);
         //更新批次成功数量
-        int successNum = 0;
         JSONObject jsonObject = new JSONObject();
         //if (info.getInteger("status") == 1) {
         String querysql = "SELECT x.id,z.id mainId,z.ext_3,z.content FROM h_data_manager_hy_pic_x  x LEFT JOIN h_data_manager_hy_pic_z z ON x.ext_4 = z.ext_3 WHERE x.id = " + id;
@@ -100,7 +99,7 @@ public class HypicXService implements BusiService {
                 jsonObject.put("status", 1);
             }
             int mainId = NumberConvertUtil.parseInt(data.get(0).get("mainId"));
-            log.info("更改成功状态数量的唯一id是：" + mainId + "核验成功数量是：" + successNum);
+            log.info("更改成功状态数量的唯一id是：" + mainId + "更改批次信息是" + jsonObject.toJSONString());
             String updateMainSql = "UPDATE " + HMetaDataDef.getTable(BusiTypeEnum.HY_PIC_Z.getType(), "") + " SET  content = ? WHERE id =? AND type =? AND cust_id =? ";
             jdbcTemplate.update(updateMainSql, new Object[]{jsonObject.toJSONString(), mainId, BusiTypeEnum.HY_PIC_Z.getType(), cust_id});
         }
