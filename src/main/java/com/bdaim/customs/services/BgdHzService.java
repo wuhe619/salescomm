@@ -124,10 +124,10 @@ public class BgdHzService implements BusiService {
         json.put("entryid",EntryId==null?"":EntryId);
         json.put("send_status",data.getString("op_result"));
         json.put("ext_1",data.getString("op_result"));
-        String decltime = data.getString("op_time");
-        json.put("op_time",decltime);
+        String op_time = data.getString("op_time");
+        json.put("op_time",op_time);
 //        Timestamp tm = DateUtil.getTimestamp(CalendarUtil.parseDate(decltime,"yyyyMMddHHmmsszzz"),"yyyyMMddHHmmsszzz");
-        json.put("decl_time",new Date().getTime());
+        //json.put("decl_time",new Date().getTime());
 
         String sql=" update "+ HMetaDataDef.getTable(BusiTypeEnum.BF.getType(), "")+" set content='"+json.toJSONString()+"' where id="+fendan.getId();
         jdbcTemplate.update(sql);

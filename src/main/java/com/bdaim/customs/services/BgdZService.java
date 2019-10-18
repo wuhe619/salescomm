@@ -291,7 +291,7 @@ public class BgdZService implements BusiService {
         CZ.setCust_id(Long.valueOf(custId));
         CZ.setCreateId(Long.valueOf(userId));
         CZ.setExt_3(h.getExt_3());
-        CZ.setExt_1("0");//未发送 1，已发送
+        CZ.setExt_1("B0");//B0未发送 B1，已发送
 
 
         JSONObject json = JSON.parseObject(h.getContent());
@@ -308,7 +308,7 @@ public class BgdZService implements BusiService {
             info.put(key, json.get(key));
         }
         info.put("ext_3", h.getExt_3());
-        info.put("ext_1", "0");
+        info.put("ext_1", "B0");
 
         JSONObject jon = JSON.parseObject(h.getContent());
         jon.put("commit_baodan_status", "Y");
@@ -368,7 +368,7 @@ public class BgdZService implements BusiService {
         bgdMain.setCust_id(Long.valueOf(custId));
         bgdMain.setCreateId(Long.valueOf(userId));
         bgdMain.setExt_3(h.getExt_3());
-        bgdMain.setExt_1("0");//未发送 1，已发送
+        bgdMain.setExt_1("B0");//未发送 1，已发送
 
 
         JSONObject json = JSON.parseObject(h.getContent());
@@ -385,7 +385,7 @@ public class BgdZService implements BusiService {
             info.put(key, json.get(key));
         }
         info.put("ext_3", h.getExt_3());
-        info.put("ext_1", "0");
+        info.put("ext_1", "B0");
 
         JSONObject jon = JSON.parseObject(h.getContent());
         jon.put("commit_baodan_status", "Y");
@@ -467,6 +467,7 @@ public class BgdZService implements BusiService {
                     sdContent.put("pid", hp.getId());
                     sdContent.put("index", index);
                     sdContent.put("opt_type", "ADD");
+                    sdContent.put("curr_code",_content.getString("curr_code"));
                     good.setContent(sdContent.toJSONString());
                     good.setType(BusiTypeEnum.BS.getType());
                     good.setCreateId(gp.getCreateId());

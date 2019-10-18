@@ -190,7 +190,7 @@ public class CangdanXmlEXP311 {
 
 
         Element InputCompanyCode = document.createElement("InputCompanyCode");
-        InputCompanyCode.setTextContent((String) custInfo.getOrDefault("s_c_code_shipper",""));//录入单位代码
+        InputCompanyCode.setTextContent((String) custInfo.getOrDefault("agent_code",""));//录入单位代码
         ExpMftHead.appendChild(InputCompanyCode);
 
         Element InputCompanyName = document.createElement("InputCompanyName");

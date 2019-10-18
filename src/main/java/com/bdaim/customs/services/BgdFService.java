@@ -8,6 +8,7 @@ import com.bdaim.common.service.BusiService;
 import com.bdaim.common.service.ElasticSearchService;
 import com.bdaim.common.service.SequenceService;
 import com.bdaim.common.util.BaoguandanXmlEXP301;
+import com.bdaim.common.util.DateUtil;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.common.util.page.PageList;
 import com.bdaim.customer.dao.CustomerDao;
@@ -29,6 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -162,8 +164,8 @@ public class BgdFService implements BusiService {
             Map m = list.get(0);
 
             String cdContent = String.valueOf(m.get("content"));
-            if ("1".equals(String.valueOf(m.get("ext_1"))) && StringUtil.isNotEmpty(cdContent)
-                    && "1".equals(JSON.parseObject(cdContent).getString("send_status"))) {
+            if ("B1".equals(String.valueOf(m.get("ext_1"))) && StringUtil.isNotEmpty(cdContent)
+                    && "B1".equals(JSON.parseObject(cdContent).getString("send_status"))) {
                 log.warn("报关单分单:[" + id + "]已提交至海关");
                 throw new TouchException("报关单分单:[" + id + "]已提交至海关");
             }
@@ -208,10 +210,10 @@ public class BgdFService implements BusiService {
                 throw new TouchException("2000","生成xml报文出错");
             }
             // 更新报关单主单信息
-            jo.put("ext_1", "1");
-            jo.put("send_status", "1");
-            info.put("ext_1", "1");
-            info.put("send_status", "1");
+            jo.put("ext_1", "B1");
+            jo.put("send_status", "B1");
+            info.put("ext_1", "B1");
+            info.put("send_status", "B1");
             jo.put("id", m.get("id"));
             jo.put("cust_id", m.get("cust_id"));
             jo.put("cust_group_id", m.get("cust_group_id"));
@@ -230,8 +232,10 @@ public class BgdFService implements BusiService {
                 jo.put("ext_4", m.get("ext_4"));
             if (m.get("ext_5") != null && !"".equals(m.get("ext_5")))
                 jo.put("ext_5", m.get("ext_5"));
-
-            sql = "UPDATE "+HMetaDataDef.getTable(busiType,"")+" SET ext_1 = '1', ext_date1 = NOW(), content=? WHERE id = ? AND type = ? AND IFNULL(ext_1,'') <>'1' ";
+            String d = DateUtil.fmtDateToStr(new Date(),"yyyy-MM-dd HH:mm:ss");
+            jo.put("decl_time",d);
+            info.put("decl_time",d);
+            sql = "UPDATE "+HMetaDataDef.getTable(busiType,"")+" SET ext_1 = 'B1', ext_date1 = NOW(), content=? WHERE id = ? AND type = ? AND IFNULL(ext_1,'') <>'B1' ";
             jdbcTemplate.update(sql, jo.toJSONString(), id, busiType);
             serviceUtils.updateDataToES(BusiTypeEnum.BF.getType(), id.toString(), jo);
 
@@ -339,7 +343,7 @@ public class BgdFService implements BusiService {
         if(StringUtil.isEmpty(mainjson.getString("agent_type"))){
             filedName += "," + BGDReportEnum.AgentType.getName();
         }
-        if(StringUtil.isEmpty(customerInfo.get("s_c_code_shipper")==null?"":customerInfo.get("s_c_code_shipper").toString())){
+        if(StringUtil.isEmpty(customerInfo.get("agent_code")==null?"":customerInfo.get("agent_code").toString())){
             filedName += "," + BGDReportEnum.AgentCode.getName();
         }
 
@@ -365,20 +369,21 @@ public class BgdFService implements BusiService {
         if(StringUtil.isEmpty(json.getString("weight"))){
             filedName += "," + BGDReportEnum.NetWt.getName();
         }
-        if(StringUtil.isEmpty(mainjson.getString("wrap_type"))){
+        if(StringUtil.isEmpty(mainjson.getString("wrap_class"))){
             filedName += "," + BGDReportEnum.WrapType.getName();
         }
         if(StringUtil.isEmpty(mainjson.getString("decl_port"))){
             filedName += "," + BGDReportEnum.DeclPort.getName();
         }
-        if(StringUtil.isEmpty(json.getString("s_c_busi_kinds"))){
-            filedName += "," + BGDReportEnum.CoOwner.getName();
+        if(StringUtil.isEmpty(mainjson.getString("s_c_code_busi_unit"))
+                || mainjson.getString("s_c_code_busi_unit").length()<6){
+            filedName += "," + BGDReportEnum.CoOwner.getName();//经营单位性质，取经营单位编码第6位
         }
         if(StringUtil.isEmpty(customerInfo.getOrDefault("input_name","").toString())){
             filedName += "," + BGDReportEnum.InputNo.getName();
         }
 
-        if(StringUtil.isEmpty(customerInfo.get("s_c_code_shipper")==null?"":customerInfo.get("s_c_code_shipper").toString())){
+        if(StringUtil.isEmpty(customerInfo.get("agent_code")==null?"":customerInfo.get("agent_code").toString())){
             filedName += "," + BGDReportEnum.InputCompanyCo.getName();
         }
 
@@ -389,7 +394,7 @@ public class BgdFService implements BusiService {
         if(StringUtil.isEmpty(customerInfo.get("declare_no")==null?"":customerInfo.get("declare_no").toString())){
             filedName += "," + BGDReportEnum.DeclareNo.getName();
         }
-        if(StringUtil.isEmpty(mainjson.get("wharf_yard_code")==null?"":mainjson.get("wharf_yard_code").toString())){
+        if(StringUtil.isEmpty(mainjson.get("warehouse_code")==null?"":mainjson.get("warehouse_code").toString())){
             filedName += "," + BGDReportEnum.CustomsField.getName();
         }
         if(StringUtil.isEmpty(mainjson.get("send_name")==null?"":mainjson.get("send_name").toString())){
@@ -402,7 +407,7 @@ public class BgdFService implements BusiService {
         if(StringUtil.isEmpty(mainjson.get("send_country")==null?"":mainjson.get("send_country").toString())){
             filedName += "," + BGDReportEnum.SendCountry.getName();
         }
-        if(StringUtil.isEmpty(mainjson.get("send_city")==null?"":mainjson.get("send_city").toString())){
+        if(StringUtil.isEmpty(mainjson.get("send_city_en")==null?"":mainjson.get("send_city_en").toString())){
             filedName += "," + BGDReportEnum.SendCity.getName();
         }
         if(StringUtil.isEmpty(json.get("id_no")==null?"":json.get("id_no").toString())){
@@ -441,7 +446,7 @@ public class BgdFService implements BusiService {
             String content = d.getContent();
             JSONObject json = JSONObject.parseObject(content);
             String gno = d.getExt_5();
-            String msg = "商品序号"+gno+" ";
+            String msg = "商品序号"+gno+"，缺失，";
 
             Boolean hasError = false;
 
@@ -453,43 +458,43 @@ public class BgdFService implements BusiService {
                 msg += "商品名称,";
                 hasError = true;
             }
-            if (!json.containsKey("g_name") || StringUtil.isEmpty(json.getString("g_model"))) {
+            if (!json.containsKey("g_model") || StringUtil.isEmpty(json.getString("g_model"))) {
                 msg += "商品规格、型号,";
                 hasError = true;
             }
-            if (!json.containsKey("g_name") || StringUtil.isEmpty(json.getString("origin_country"))) {
+            if (!json.containsKey("origin_country") || StringUtil.isEmpty(json.getString("origin_country"))) {
                 msg += "产销国,";
                 hasError = true;
             }
-            if (!json.containsKey("g_name") || StringUtil.isEmpty(json.getString("curr_code"))) {
+            if (!json.containsKey("curr_code") || StringUtil.isEmpty(json.getString("curr_code"))) {
                 msg += "成交币制,";
                 hasError = true;
             }
-            if (!json.containsKey("g_name") || StringUtil.isEmpty(json.getString("trade_total"))) {
+            if (!json.containsKey("total_price") || StringUtil.isEmpty(json.getString("total_price"))) {
                 msg += "成交总价,";
                 hasError = true;
             }
-            if (!json.containsKey("g_name") || StringUtil.isEmpty(json.getString("decl_price"))) {
-                msg += gno + ":" + "申报单价,";
+            if (!json.containsKey("decl_price") || StringUtil.isEmpty(json.getString("decl_price"))) {
+                msg += "申报单价,";
                 hasError = true;
             }
-            if (!json.containsKey("g_name") || StringUtil.isEmpty(json.getString("decl_total"))) {
+            if (!json.containsKey("decl_total") || StringUtil.isEmpty(json.getString("decl_total"))) {
                 msg += "申报总价,";
             }
-            if (!json.containsKey("g_name") || StringUtil.isEmpty(json.getString("g_unit"))) {
+            if (!json.containsKey("g_unit") || StringUtil.isEmpty(json.getString("g_unit"))) {
                 msg += "申报计量单位,";
                 hasError = true;
             }
-            if (!json.containsKey("g_name") || StringUtil.isEmpty(json.getString("qty_1"))) {
+            if (!json.containsKey("qty_1") || StringUtil.isEmpty(json.getString("qty_1"))) {
                 msg += "第一(法定)数量,";
                 hasError = true;
             }
-            if (!json.containsKey("g_name") || StringUtil.isEmpty(json.getString("unit_1"))) {
+            if (!json.containsKey("unit_1") || StringUtil.isEmpty(json.getString("unit_1"))) {
                 msg += "第一(法定)计量单位,";
                 hasError = true;
             }
-            if (!json.containsKey("g_name") || StringUtil.isEmpty(json.getString("ggrosswt"))) {
-                msg += "商品毛重,";
+            if (!json.containsKey("ggrosswt") || StringUtil.isEmpty(json.getString("ggrosswt"))) {
+                msg += "商品毛重";
                 hasError = true;
             }
 
