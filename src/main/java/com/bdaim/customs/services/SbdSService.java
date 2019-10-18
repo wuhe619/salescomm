@@ -96,6 +96,7 @@ public class SbdSService implements BusiService {
         info.put("tax_rate", tax_rate);//税率
         Double d = Double.valueOf(info.getString("g_qty")) * Double.valueOf(info.getString("decl_price"));
         info.put("total_price", d);//价格合计
+        info.put("decl_total",d);
 
         serviceUtils.addDataToES(id.toString(), busiType, info);
 
@@ -211,6 +212,7 @@ public class SbdSService implements BusiService {
                 info.put("tax_rate", tax_rate);//税率
                 Double total_price = Double.valueOf(info.getString("g_qty"))*Double.valueOf(info.getString("decl_price"));
                 info.put("total_price", total_price);//价格合计
+                info.put("decl_total",total_price);
             } else {
                 if (goods.containsKey("ggrosswt") && StringUtil.isNotEmpty(goods.getString("ggrosswt"))) {
                     weight += goods.getFloatValue("ggrosswt");
