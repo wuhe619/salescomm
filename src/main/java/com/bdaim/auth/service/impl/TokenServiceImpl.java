@@ -271,14 +271,12 @@ public class TokenServiceImpl implements TokenService {
 
     @Override
     public Token removeToken(String username) {
-        String tokenid = (String) name2token.get(username);
-        // 移除token
+        // 移除缓存token
         name2token.remove(username);
-        if (tokenid != null && !"".equals(tokenid)) {
-            LoginUser token = (LoginUser) tokenCacheService.getToken(tokenid);
-            return token;
-        }
-        return null;
+        // 移除token
+        LoginUser token = (LoginUser) tokenCacheService.getToken(opUser().getTokenid());
+
+        return token;
     }
 
     public LoginUser opUser() {
