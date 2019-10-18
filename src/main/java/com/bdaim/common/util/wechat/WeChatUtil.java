@@ -74,13 +74,15 @@ public class WeChatUtil {
 
     /**
      * 获取openid
+     *
      * @param code
      * @return
      */
     public String getWeChatOpenId(String code) {
         String url = "https://api.weixin.qq.com/sns/oauth2/access_token?appid=APPID&secret=SECRET&code=CODE&grant_type=authorization_code";
-        String uri = url.replace("APPID",
-                this.getAppId()).replace("CODE", code);
+        String uri = url.replace("APPID", this.getAppId())
+                .replace("SECRET", this.getAppSecret())
+                .replace("CODE", code);
         logger.info("获取微信openid请求url:{}", uri);
         String result = HttpUtil.httpGet(uri, null, null);
         logger.info("获取微信openid返回结果:{}", result);

@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.annotation.Resource;
 import java.util.Map;
+import java.util.UUID;
 
 /*
  * C端用户
@@ -97,11 +98,11 @@ public class CustomerUserAction extends BasicAction {
     @ResponseBody
     public ResponseInfo bindUserOpenId(@RequestBody JSONObject body) {
         ResponseInfo responseJson = new ResponseInfo();
+        responseJson.setCode(0);
         String username = body.getString("username");
         String password = body.getString("password");
         String code = body.getString("code");
         if (StringUtil.isEmpty(username) || StringUtil.isEmpty(password)) {
-            responseJson.setCode(0);
             responseJson.setMessage("用户名密码错误");
             return responseJson;
         }
@@ -109,23 +110,29 @@ public class CustomerUserAction extends BasicAction {
         CustomerUser u = customerUserService.getUserByName(username);
         String md5Password = CipherUtil.generatePassword(password);
         if (u == null || !md5Password.equals(u.getPassword())) {
-            responseJson.setCode(0);
             responseJson.setMessage("用户名密码错误");
+            return responseJson;
+        }
+        if (1 == u.getStatus()) {
+            responseJson.setMessage("用户已冻结");
             return responseJson;
         }
         //获取微信用户openid
         String openId = weChatUtil.getWeChatOpenId(code);
+        // 模拟绑定成功
         if (StringUtil.isEmpty(openId)) {
-            responseJson.setCode(0);
+            openId = CipherUtil.encodeByMD5(UUID.randomUUID().toString());
+        }
+        if (StringUtil.isEmpty(openId)) {
             responseJson.setMessage("绑定失败");
             return responseJson;
         }
         CustomerUserPropertyDO propertyDO = new CustomerUserPropertyDO();
         propertyDO.setUserId(String.valueOf(u.getId()));
-        propertyDO.setPropertyValue(openId);
         propertyDO.setPropertyName("openid");
+        propertyDO.setPropertyValue(openId);
         customerUserService.saveCustomerUserProperty(propertyDO);
-        responseJson.setCode(1);
+        responseJson.setCode(200);
         responseJson.setMessage("绑定成功");
         return responseJson;
 
