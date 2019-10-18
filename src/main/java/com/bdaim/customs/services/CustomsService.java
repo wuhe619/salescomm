@@ -1261,7 +1261,7 @@ public class CustomsService {
         String end = DateUtil.fmtDateToStr(DatesUtil.getEndDayOfWeek(), "yyyy-MM-dd");
         sql.append(" and create_date>='").append(begin).append("' and create_date<='").append(end).append("'");
         sql.append("group by status");
-
+        log.info("hz count:"+sql.toString());
         List<Map<String, Object>> data = jdbcTemplate.queryForList(sql.toString());
         return data;
 

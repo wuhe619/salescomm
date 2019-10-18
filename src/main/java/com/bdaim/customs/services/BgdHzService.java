@@ -130,6 +130,7 @@ public class BgdHzService implements BusiService {
         json.put("entryid",EntryId==null?"":EntryId);
         json.put("send_status",data.getString("op_result"));
         json.put("ext_1",data.getString("op_result"));
+        info.put("ext_1",data.getString("op_result"));
         String op_time = data.getString("op_time");
         json.put("op_time",op_time);
 
