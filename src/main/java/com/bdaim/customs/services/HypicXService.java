@@ -79,38 +79,23 @@ public class HypicXService implements BusiService {
         String updateSql = "UPDATE " + HMetaDataDef.getTable(busiType, "") + " SET ext_2 = ?, content = ?, ext_5= ? WHERE id =? AND type =? AND cust_id =? ";
         jdbcTemplate.update(updateSql, info.getInteger("status"), info.toJSONString(), info.getInteger("scoure"), id, busiType, cust_id);
         //更新批次成功数量
-        int successNum = 0;
-        String bathchId = "";
-        JSONObject jsonObject = new JSONObject();
+        String batchId = "";
         if (info.getInteger("status") == 1) {
-            String querysql = "SELECT x.id,z.id mainId,z.ext_3,z.content FROM h_data_manager_hy_pic_x  x LEFT JOIN h_data_manager_hy_pic_z z ON x.ext_4 = z.ext_3 WHERE x.id = " + id;
+            String querysql = "SELECT x.id,z.id mainId,z.ext_3 batchId,z.content FROM h_data_manager_hy_pic_z z LEFT JOIN h_data_manager_hy_pic_x x  ON x.ext_4 = z.ext_3 WHERE x.id = " + id;
             List<Map<String, Object>> data = jdbcTemplate.queryForList(querysql);
             if (data.size() > 0) {
                 String content = String.valueOf(data.get(0).get("content"));
-                bathchId = String.valueOf(data.get(0).get("ext_3"));
-                log.info("查询批次的content信息是：" + content + "批次主键id是：" + id + "批次id是" + bathchId);
-                jsonObject = JSON.parseObject(content);
-                if (jsonObject != null) {
-                    successNum = jsonObject.getIntValue("successNum");
-                }
-                successNum += 1;
-                jsonObject.put("successNum", successNum);
+                batchId = String.valueOf(data.get(0).get("batchId"));
+                log.info("查询批次的content信息是：" + content + "批次详情主键id是：" + id + "批次id是：" + batchId);
+                String updateNumSql = "update h_data_manager_hy_pic_z set content = JSON_SET(content, '$.successNum', JSON_EXTRACT(content, '$.successNum') + ?) where ext_3 = ?  AND type =? AND cust_id =?";
+                jdbcTemplate.update(updateNumSql, new Object[]{1, batchId, BusiTypeEnum.HY_PIC_Z.getType(), cust_id});
             }
-            //如果批次详情处理中无数据需要更改批次为处理完成
-            String queryDetailsql = "SELECT COUNT(*) countNum FROM " + HMetaDataDef.getTable(busiType, "") + " WHERE ext_2 = 0 AND  ext_4 = ? AND cust_id = ? AND type = ?";
-            List<Map<String, Object>> detailData = jdbcTemplate.queryForList(queryDetailsql, bathchId, cust_id, busiType);
-            if (detailData.size() > 0 && NumberConvertUtil.parseInt(detailData.get(0).get("countNum")) == 0) {
-                jsonObject.put("status", 1);
-            }
-            int mainId = NumberConvertUtil.parseInt(data.get(0).get("mainId"));
-            log.info("更改成功状态数量的唯一id是：" + mainId + "核验成功数量是：" + successNum);
-            String updateMainSql = "UPDATE " + HMetaDataDef.getTable(BusiTypeEnum.HY_PIC_Z.getType(), "") + " SET  content = ? WHERE id =? AND type =? AND cust_id =? ";
-            jdbcTemplate.update(updateMainSql, new Object[]{jsonObject.toJSONString(), mainId, BusiTypeEnum.HY_PIC_Z.getType(), cust_id});
         }
     }
 
     @Override
-    public void doInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info, JSONObject param) {
+    public void doInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long
+            id, JSONObject info, JSONObject param) {
         if (StringUtil.isNotEmpty(param.getString("_rule_")) && param.getString("_rule_").startsWith("_export")) {
             //info.put("export_type", 2);
             switch (param.getString("_rule_")) {
@@ -168,7 +153,8 @@ public class HypicXService implements BusiService {
     }
 
     @Override
-    public void deleteInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id) throws Exception {
+    public void deleteInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id) throws
+            Exception {
         HBusiDataManager manager = serviceUtils.getObjectByIdAndType(cust_id, id, busiType);
         if (manager == null) {
             throw new TouchException("无权操作");
@@ -191,7 +177,8 @@ public class HypicXService implements BusiService {
     }
 
     @Override
-    public String formatQuery(String busiType, String cust_id, String cust_group_id, Long cust_user_id, JSONObject params, List sqlParams) {
+    public String formatQuery(String busiType, String cust_id, String cust_group_id, Long cust_user_id, JSONObject
+            params, List sqlParams) {
         String _orderby_ = params.getString("_orderby_");
         String _sort_ = params.getString("_sort_");
         StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date,update_date,ext_1, ext_2 , ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(busiType, "") + " where type=?");
@@ -222,13 +209,15 @@ public class HypicXService implements BusiService {
     }
 
     @Override
-    public void formatInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, JSONObject info) {
+    public void formatInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, JSONObject
+            info) {
         // TODO Auto-generated method stub
 
     }
 
 
-    public void buildMain(JSONObject info, List<HBusiDataManager> list, MainDan mainDan, Long userId, String custId, String station_id, Long mainid) throws Exception {
+    public void buildMain(JSONObject info, List<HBusiDataManager> list, MainDan mainDan, Long userId, String
+            custId, String station_id, Long mainid) throws Exception {
         try {
             HBusiDataManager dataManager = new HBusiDataManager();
             dataManager.setCreateId(userId);
@@ -267,7 +256,8 @@ public class HypicXService implements BusiService {
      * @param mainDan
      * @param
      */
-    public void buildPartyDan(List<HBusiDataManager> list, MainDan mainDan, Long userId, String custId, Long mainid, JSONObject info) throws Exception {
+    public void buildPartyDan(List<HBusiDataManager> list, MainDan mainDan, Long userId, String custId, Long
+            mainid, JSONObject info) throws Exception {
         List<PartyDan> partList = mainDan.getSingles();
         if (partList != null && partList.size() > 0) {
             // 预先生成分单ID
@@ -303,7 +293,8 @@ public class HypicXService implements BusiService {
         }
     }
 
-    public void buildSenbaodanFendan(PartyDan dan, List<HBusiDataManager> list, Long userId, String custId, String mainBillNo, Long mainid, JSONObject info) throws Exception {
+    public void buildSenbaodanFendan(PartyDan dan, List<HBusiDataManager> list, Long userId, String
+            custId, String mainBillNo, Long mainid, JSONObject info) throws Exception {
         try {
             List<Product> pList = dan.getProducts();
             Long id = sequenceService.getSeq(BusiTypeEnum.SF.getType());
@@ -354,7 +345,8 @@ public class HypicXService implements BusiService {
     }
 
 
-    public void buildSBDFenDan(long id1, PartyDan dan, List<HBusiDataManager> list, Long userId, String custId, String mainBillNo, Long mainid, JSONObject info, Map<String, JSONObject> resource) throws Exception {
+    public void buildSBDFenDan(long id1, PartyDan dan, List<HBusiDataManager> list, Long userId, String
+            custId, String mainBillNo, Long mainid, JSONObject info, Map<String, JSONObject> resource) throws Exception {
         try {
             List<Product> pList = dan.getProducts();
             Long id = sequenceService.getSeq(BusiTypeEnum.SF.getType());
@@ -415,7 +407,8 @@ public class HypicXService implements BusiService {
      * @param pList
      * @param
      */
-    public void buildGoods(List<HBusiDataManager> list, List<Product> pList, Long userId, String custId, String pid, JSONObject arrt) throws Exception {
+    public void buildGoods(List<HBusiDataManager> list, List<Product> pList, Long userId, String
+            custId, String pid, JSONObject arrt) throws Exception {
         if (pList != null && pList.size() > 0) {
             List<Map<String, String>> mainGoodsName = new ArrayList<>();
             for (Product product : pList) {
@@ -502,7 +495,8 @@ public class HypicXService implements BusiService {
         }
     }
 
-    public void buildGoods0(List<HBusiDataManager> list, List<Product> pList, Long userId, String custId, String pid, JSONObject arrt, Map<String, JSONObject> resource) throws Exception {
+    public void buildGoods0(List<HBusiDataManager> list, List<Product> pList, Long userId, String
+            custId, String pid, JSONObject arrt, Map<String, JSONObject> resource) throws Exception {
         if (pList != null && pList.size() > 0) {
             List<Map<String, String>> mainGoodsName = new ArrayList<>();
             HBusiDataManager dataManager;
@@ -654,7 +648,8 @@ public class HypicXService implements BusiService {
      * @param info
      * @return
      */
-    private List queryChildData(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long pid, JSONObject info, JSONObject param) {
+    private List queryChildData(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long
+            pid, JSONObject info, JSONObject param) {
         List sqlParams = new ArrayList();
         StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(busiType, "") + " where type=?");
         if (!"all".equals(cust_id))
