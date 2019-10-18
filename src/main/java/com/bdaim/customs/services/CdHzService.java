@@ -124,17 +124,20 @@ public class CdHzService implements BusiService {
         JSONArray array = info.getJSONArray("list");//分单信息
 
         HBusiDataManager cangdan = serviceUtils.findZhudanByBillNo(custId, BusiTypeEnum.CZ.getType(),headData.getString("billno"));
+        if(cangdan==null){
+            throw new TouchException();
+        }
         String content = cangdan.getContent();
         JSONObject jsonObject = JSONObject.parseObject(content);
         jsonObject.put("commit_cangdan_status",headData.getString("rtnflag"));
         //Date d=DateUtil.fmtStrToDate(headData.getString("entrydate"),"yyyyMMddHHmmss");
 //        jsonObject.put("decl_time",d.getTime());
         cangdan.setExt_2(headData.getString("rtnflag"));
+        info.put("ext_3",headData.getString("billno"));
 //        cangdan.setContent(jsonObject.toJSONString());
         String sql=" update "+ HMetaDataDef.getTable(BusiTypeEnum.CZ.getType(), "")+" set content='"+jsonObject.toJSONString()+"',ext_2='"+headData.getString("rtnflag")+"' where id="+cangdan.getId();
         jdbcTemplate.update(sql);
 
-        //List<HBusiDataManager> list = serviceUtils.listDataByParentBillNo(custId,BusiTypeEnum.CF.getType(),headData.getString("billno"));
         List<HBusiDataManager> list = new ArrayList<>();
         for (int i=0;i<array.size();i++){
             JSONObject json = array.getJSONObject(i);
@@ -154,8 +157,8 @@ public class CdHzService implements BusiService {
         if(list.size()>0){
             serviceUtils.batchInsert(BusiTypeEnum.CDF_HZ.getType(),list);
         }
-        String id = mongoFileService.saveData(xmlstring);
-        fileDao.save(envelopinfo.getString("message_id"),id, BusinessEnum.CUSTOMS,null,null);
+       /* String id = mongoFileService.saveData(xmlstring);
+        fileDao.save(envelopinfo.getString("message_id"),id, BusinessEnum.CUSTOMS,null,null);*/
     }
 
 

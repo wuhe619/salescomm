@@ -112,12 +112,18 @@ public class BgdHzService implements BusiService {
         parseHzXml.parserBaoguandanHzXML(xmlstring,info);
         JSONObject envelopinfo = info.getJSONObject("envelopinfo");//信封消息
         JSONObject data = info.getJSONObject("data");//分单信息
-        info.remove("xmlstring");
+//        info.remove("xmlstring");
         info.put("ext_4",data.getString("billno"));//主单号
         info.put("ext_3",data.getString("ass_billno"));//分单号
         String EntryId = data.getString("entryid");//海关编码
         String PreEntryId = data.getString("pre_entryid");//预录入号
+
         HBusiDataManager fendan = serviceUtils.findFendanByBillNo(custId, BusiTypeEnum.BF.getType(),data.getString("billno"),data.getString("ass_billno"));
+
+        if(fendan==null){
+            throw new TouchException("分单【"+data.getString("billno")+"-"+data.getString("ass_billno")+"】不存在");
+        }
+
         String content = fendan.getContent();
         JSONObject json = JSONObject.parseObject(content);
         json.put("pre_input_code",PreEntryId==null?"":PreEntryId);
@@ -126,12 +132,13 @@ public class BgdHzService implements BusiService {
         json.put("ext_1",data.getString("op_result"));
         String op_time = data.getString("op_time");
         json.put("op_time",op_time);
+
 //        Timestamp tm = DateUtil.getTimestamp(CalendarUtil.parseDate(decltime,"yyyyMMddHHmmsszzz"),"yyyyMMddHHmmsszzz");
         //json.put("decl_time",new Date().getTime());
 
         String sql=" update "+ HMetaDataDef.getTable(BusiTypeEnum.BF.getType(), "")+" set content='"+json.toJSONString()+"' where id="+fendan.getId();
         jdbcTemplate.update(sql);
-        String opresult=data.getString("op_result");
+        String opresult = data.getString("op_result");
         if("03".equals(opresult)
                 || "04".equals(opresult)
                 || "05".equals(opresult)
@@ -149,11 +156,19 @@ public class BgdHzService implements BusiService {
         sql="insert into h_customer_msg(`cust_id`,`cust_user_id`,`content`,`create_time`,`status`,`level`,`msg_type`)" +
                 "values ('"+custId+"',"+fendan.getCust_user_id()+",'"+msg.toJSONString()+"',now(),0,1,'"+BusiTypeEnum.BGD_HZ.getType()+"')";
 
-        jdbcTemplate.update(sql);
+          jdbcTemplate.update(sql);
         }
 
-        String id = mongoFileService.saveData(xmlstring);
-        fileDao.save(envelopinfo.getString("message_id"),id, BusinessEnum.CUSTOMS,null,null);
+        JSONObject json2=new JSONObject();
+        json2.put("data",xmlstring);
+        json2.put("message_id",envelopinfo.getString("message_id"));
+        json2.put("type",BusiTypeEnum.BGD_HZ.getType());
+        json2.put("pre_entryid",info.getString("pre_entryid"));
+        json2.put("optime",data.getString("op_time"));
+
+//        String id = mongoFileService.saveData(json2.toJSONString());
+
+//        fileDao.save(envelopinfo.getString("message_id"),id, BusinessEnum.CUSTOMS,null,null);
     }
 
 }

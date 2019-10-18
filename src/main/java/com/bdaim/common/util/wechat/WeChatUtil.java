@@ -36,12 +36,12 @@ public class WeChatUtil {
      * 微信分配的appID
      */
     //@Value("${app.id}")
-    private String appId = "wx665fb599d9d40b51";
+    private String appId = "wx12e1240c54bd8347";
     /**
      * 微信分配的appsecret
      */
     //@Value("${app.secrect}")
-    private String appSecret = "011c20df61c85b6fcd825c8a346b76e5";
+    private String appSecret = "12987e4fb2dff526f28fcb042d1fb648";
 
     private long lastRunTime;
 
