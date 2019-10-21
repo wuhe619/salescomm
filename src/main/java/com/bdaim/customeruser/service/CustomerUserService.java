@@ -18,6 +18,7 @@ import com.bdaim.common.util.*;
 import com.bdaim.common.util.wechat.WeChatUtil;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerUserDao;
+import com.bdaim.customer.dao.CustomerUserPropertyDao;
 import com.bdaim.customer.dto.CustomerRegistDTO;
 import com.bdaim.customer.dto.CustomerShowRowEnum;
 import com.bdaim.customer.dto.CustomerUserDTO;
@@ -81,6 +82,9 @@ public class CustomerUserService {
 
     @Resource
     private WeChatUtil weChatUtil;
+
+    @Resource
+    private CustomerUserPropertyDao customerUserPropertyDao;
 
 
     /**
@@ -1508,6 +1512,7 @@ public class CustomerUserService {
 
     /**
      * 用户绑定微信
+     *
      * @param userId
      * @param code
      * @return
@@ -1517,13 +1522,24 @@ public class CustomerUserService {
         String openId = weChatUtil.getWeChatOpenId(code);
         logger.info("用户ID:{},code:{},获取到的openId:{}", userId, code, openId);
         // 模拟绑定成功
-       /* if (StringUtil.isEmpty(openId)) {
+        /*if (StringUtil.isEmpty(openId)) {
             openId = CipherUtil.encodeByMD5(UUID.randomUUID().toString());
         }*/
         if (StringUtil.isEmpty(openId)) {
             logger.warn("用户ID:{},code:{},openId:[{}]为空,绑定失败", userId, code, openId);
             return false;
         }
+        // 清空之前的绑定关系
+        List<CustomerUserPropertyDO> list = customerUserPropertyDao.getPropertyListByName("openid", openId);
+        if (list != null && list.size() > 0) {
+            for (CustomerUserPropertyDO propertyDO : list) {
+                if (!propertyDO.getUserId().equals(userId)) {
+                    propertyDO.setPropertyValue("");
+                    customerUserPropertyDao.saveOrUpdate(propertyDO);
+                }
+            }
+        }
+
         CustomerUserPropertyDO propertyDO = new CustomerUserPropertyDO();
         propertyDO.setUserId(userId);
         propertyDO.setPropertyName("openid");

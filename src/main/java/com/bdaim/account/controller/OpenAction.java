@@ -10,16 +10,19 @@ import com.bdaim.callcenter.dto.RecordVoiceQueryParam;
 import com.bdaim.common.annotation.CacheAnnotation;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.dto.Page;
+import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.common.util.AuthPassport;
 import com.bdaim.common.util.IDHelper;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.entity.CustomerUser;
+import com.bdaim.customs.services.CustomsService;
 import com.bdaim.resource.service.MarketResourceService;
 import com.bdaim.template.dto.TemplateParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.bind.annotation.*;
 
@@ -46,6 +49,9 @@ public class OpenAction extends BasicAction {
     private MarketResourceService marketResourceService;
     @Resource
     private BatchDetailDao batchDetailDao;
+
+    @Autowired
+    private CustomsService customsService;
 
     /**
      * 账户余额查询
@@ -619,28 +625,34 @@ public class OpenAction extends BasicAction {
             result.put("msg","无效参数");
             return result;
         }else {
-            JSONObject json= JSON.parseObject(queryParams);
-            if(!json.containsKey("main_bill_no") || StringUtil.isEmpty(json.getString("main_bill_no"))){
-                result.put("code",0);
-                result.put("msg","主运单号无效");
+            JSONObject json = JSON.parseObject(queryParams);
+            if (!json.containsKey("main_bill_no") || StringUtil.isEmpty(json.getString("main_bill_no"))) {
+                result.put("code", 0);
+                result.put("msg", "主运单号无效");
                 return result;
             }
-            if(!json.containsKey("bill_no") || StringUtil.isEmpty(json.getString("bill_no"))){
-                result.put("code",0);
-                result.put("msg","分运单号无效");
+            if (!json.containsKey("bill_no") || StringUtil.isEmpty(json.getString("bill_no"))) {
+                result.put("code", 0);
+                result.put("msg", "分运单号无效");
                 return result;
             }
-            if(!json.containsKey("code") || StringUtil.isEmpty(json.getString("code"))){
-                result.put("code",0);
-                result.put("msg","检查结果无效");
+            if (!json.containsKey("code") || StringUtil.isEmpty(json.getString("code"))) {
+                result.put("code", 0);
+                result.put("msg", "检查结果无效");
                 return result;
             }
+
+            try {
+                customsService.saveCZInfo(json);
+            } catch (TouchException e) {
+                result.put("code", 0);
+                result.put("msg", "单号不存在");
+                return result;
+            }
+            result.put("code", 200);
+            result.put("msg", "成功");
+            return result;
         }
-
-        result.put("code",200);
-        result.put("msg","成功");
-        return result;
-
     }
 }
 

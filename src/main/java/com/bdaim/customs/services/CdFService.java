@@ -102,7 +102,7 @@ public class CdFService implements BusiService {
         }
         JSONObject superObj = JSONObject.parseObject(cangdanz.getContent());
         superObj.put("weight", weight);
-        superObj.put("pack_no", packNo);
+        superObj.put("total_pack_no", packNo);
         cangdanz.setContent(superObj.toJSONString());
         String sql = "update "+ HMetaDataDef.getTable(cangdanz.getType(),"")+" set " +
                 " content='"+superObj.toJSONString()+"'"+
