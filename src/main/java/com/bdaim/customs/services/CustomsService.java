@@ -1284,15 +1284,20 @@ public class CustomsService {
         msg.put("code",data.getString("code"));
         msg.put("msg",data.getString("msg"));
         msg.put("type","CHANGZHAN");
-        String s="select id,cust_id,cust_user_id from h_data_manager_bgd_f where ext_4='"+data.getString("main_bill_no")+"' and ext_3='"+data.getString("bill_no")+"'";
+        String s = "select id,content,cust_id,cust_user_id from h_data_manager_bgd_f where ext_4='"+data.getString("main_bill_no")+"' and ext_3='"+data.getString("bill_no")+"'";
 
         RowMapper<HBusiDataManager> managerRowMapper = new BeanPropertyRowMapper<>(HBusiDataManager.class);
         List<HBusiDataManager> list = jdbcTemplate.query(s, managerRowMapper);
         HBusiDataManager hBusiDataManager = null;
+        JSONObject json = null;
         if (list != null && list.size() > 0) {
             hBusiDataManager = list.get(0);
+            json = JSONObject.parseObject(hBusiDataManager.getContent());
+            json.put("changzhan_status",data.getString("code"));
         }
         if(hBusiDataManager!=null){
+            String updateSql = " update "+ HMetaDataDef.getTable(BusiTypeEnum.BF.getType(), "")+" set content='"+json.toJSONString()+"',ext_2='"+data.getString("code")+"' where id="+hBusiDataManager.getId();
+            jdbcTemplate.update(updateSql);
             String sql = "insert into h_customer_msg(`cust_id`,`cust_user_id`,`content`,`create_time`,`status`,`level`,`msg_type`)" +
                     "values ('"+hBusiDataManager.getCust_id()+"',"+hBusiDataManager.getCust_user_id()+",'"+msg.toJSONString()+"',now(),0,1,'CHANGZHAN')";
 
