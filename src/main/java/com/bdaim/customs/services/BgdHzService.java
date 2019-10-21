@@ -128,18 +128,19 @@ public class BgdHzService implements BusiService {
         JSONObject json = JSONObject.parseObject(content);
         json.put("pre_input_code",PreEntryId==null?"":PreEntryId);
         json.put("entryid",EntryId==null?"":EntryId);
-        json.put("send_status",data.getString("op_result"));
-        json.put("ext_1",data.getString("op_result"));
-        info.put("ext_2",data.getString("op_result"));
+        String opresult = data.getString("op_result");
+        json.put("send_status",opresult);
+        json.put("ext_1",opresult);
+        info.put("ext_2",opresult);
         String op_time = data.getString("op_time");
         json.put("op_time",op_time);
 
 //        Timestamp tm = DateUtil.getTimestamp(CalendarUtil.parseDate(decltime,"yyyyMMddHHmmsszzz"),"yyyyMMddHHmmsszzz");
         //json.put("decl_time",new Date().getTime());
 
-        String sql=" update "+ HMetaDataDef.getTable(BusiTypeEnum.BF.getType(), "")+" set content='"+json.toJSONString()+"' where id="+fendan.getId();
+        String sql=" update "+ HMetaDataDef.getTable(BusiTypeEnum.BF.getType(), "")+" set content='"+json.toJSONString()+"',ext_1='"+opresult+"' where id="+fendan.getId();
         jdbcTemplate.update(sql);
-        String opresult = data.getString("op_result");
+
         if("03".equals(opresult)
                 || "04".equals(opresult)
                 || "05".equals(opresult)

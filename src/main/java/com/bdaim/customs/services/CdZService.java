@@ -498,7 +498,7 @@ public class CdZService implements BusiService {
             JSONObject _content = JSON.parseObject(hp.getContent());
             _content.put("pid", id);
             _content.put("main_bill_no", json.get("bill_no"));
-            // 舱单总件数=分运单件数和
+            // 舱单总分单件数=分运单件数和
             pack_no += _content.getIntValue("pack_no");
 
             Float fdWeightTotal = 0f;
@@ -552,7 +552,7 @@ public class CdZService implements BusiService {
             dataList.add(hm);
             weightTotal += fdWeightTotal;
         }
-        info.put("pack_no", pack_no);
+        info.put("total_pack_no", pack_no);
         info.put("weight_total", weightTotal);
         cz.setContent(info.toJSONString());
         dataList.add(cz);
