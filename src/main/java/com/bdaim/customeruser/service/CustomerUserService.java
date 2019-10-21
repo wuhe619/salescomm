@@ -1544,6 +1544,7 @@ public class CustomerUserService {
         propertyDO.setUserId(userId);
         propertyDO.setPropertyName("openid");
         propertyDO.setPropertyValue(openId);
+        propertyDO.setCreateTime(String.valueOf(new Timestamp(System.currentTimeMillis())));
         customerUserDao.saveOrUpdate(propertyDO);
         return true;
     }
