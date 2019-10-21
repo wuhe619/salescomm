@@ -103,4 +103,11 @@ public class CustomerUserPropertyDao extends SimpleHibernateDao<CustomerUserProp
             cp =  list.get(0);
         return cp;
     }
+
+    public List<CustomerUserPropertyDO> getPropertyListByName(String propertyName, String propertyValue) {
+        CustomerUserPropertyDO cp = null;
+        String hql = "from CustomerUserPropertyDO m where m.propertyName=? and m.propertyValue=?";
+        List<CustomerUserPropertyDO> list = this.find(hql, propertyName, propertyValue);
+        return list;
+    }
 }
