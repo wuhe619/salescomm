@@ -156,7 +156,7 @@ public class TokenServiceImpl implements TokenService {
                     return new LoginUser("guest", "", new ArrayList<>(), "绑定失败", "401");
                 }
                 // 组装用户数据(分组等信息)
-                getUserData(u, username, auths);
+                userdetail = getUserData(u, username, auths);
             } else {
                 logger.warn("username or password is error");
                 return new LoginUser("guest", "", new ArrayList<>(), "用户名密码错误", "401");
@@ -175,7 +175,7 @@ public class TokenServiceImpl implements TokenService {
             CustomerUser u = customerService.getUserByName(customerUserDao.getLoginName(userProper.getUserId()));
             if (u != null) {
                 // 组装用户数据(分组等信息)
-                getUserData(u, username, auths);
+                userdetail = getUserData(u, username, auths);
             } else {
                 logger.warn("username or password is error");
                 return new LoginUser("guest", "", new ArrayList<>(), "用户名密码错误", "401");
