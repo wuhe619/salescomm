@@ -133,7 +133,7 @@ public class SbdFService implements BusiService {
             }
             Map map = list.get(0);
             if (map != null && map.size() > 0) {
-                String updateSql = "UPDATE " + HMetaDataDef.getTable(busiType, "") + " SET ext_7 = 0, content = ? WHERE id =? AND type =? ";
+                String updateSql = "UPDATE " + HMetaDataDef.getTable(busiType, "") + " SET ext_7 = 3, content = ? WHERE id =? AND type =? ";
                 // 身份核验待核验入队列
                 JSONObject input = new JSONObject();
                 JSONObject data = JSON.parseObject(String.valueOf(map.getOrDefault("content", "")));
@@ -159,8 +159,8 @@ public class SbdFService implements BusiService {
                 content.put("input", input);
                 serviceUtils.insertSFVerifyQueue(content.toJSONString(), NumberConvertUtil.parseLong(map.get("id")), cust_user_id, cust_id, content.getString("main_bill_no"));
                 if (data != null) {
-                    data.put("check_status", "0");
-                    info.put("check_status", "0");
+                    data.put("check_status", "3");
+                    info.put("check_status", "3");
                     jdbcTemplate.update(updateSql, data.toJSONString(), map.get("id"), busiType);
                 }
             }
