@@ -800,9 +800,9 @@ public class ServiceUtils {
             StringBuffer name = new StringBuffer();
             name.append(list.get(0).getG_name())
                     .append(spilt)
-                    .append(list.get(0).getG_name_en())
-                    .append(spilt)
-                    .append(list.get(0).getG_model());
+                    .append(list.get(0).getG_name_en());
+                   /* .append(spilt)
+                    .append(list.get(0).getG_model());*/
             return name.toString();
         } else {
             Optional<Product> result = list.stream().filter(Objects::nonNull).filter(s -> StringUtil.isNotEmpty(s.getG_qty()) && StringUtil.isNotEmpty(s.getDecl_price()))
@@ -811,9 +811,9 @@ public class ServiceUtils {
             StringBuffer name = new StringBuffer();
             name.append(data.getG_name())
                     .append(spilt)
-                    .append(data.getG_name_en())
-                    .append(spilt)
-                    .append(data.getG_model());
+                    .append(data.getG_name_en());
+                   /* .append(spilt)
+                    .append(data.getG_model());*/
             return name.toString();
         }
     }
