@@ -31,7 +31,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -1275,6 +1277,30 @@ public class CustomsService {
         return 0;
     }
 
+    public void saveCZInfo(JSONObject data) throws TouchException {
+        JSONObject msg=new JSONObject();
+        msg.put("time",DateUtil.fmtDateToStr(new Date(),"yyyy-MM-dd HH:mm:ss"));
+        msg.put("link_billno",data.getString("main_bill_no")+"-"+data.getString("bill_no"));
+        msg.put("code",data.getString("code"));
+        msg.put("msg",data.getString("msg"));
+        msg.put("type","CHANGZHAN");
+        String s="select id,cust_id,cust_user_id from h_data_manager_bgd_f where ext_4='"+data.getString("main_bill_no")+"' and ext_3='"+data.getString("bill_no")+"'";
+
+        RowMapper<HBusiDataManager> managerRowMapper = new BeanPropertyRowMapper<>(HBusiDataManager.class);
+        List<HBusiDataManager> list = jdbcTemplate.query(s, managerRowMapper);
+        HBusiDataManager hBusiDataManager = null;
+        if (list != null && list.size() > 0) {
+            hBusiDataManager = list.get(0);
+        }
+        if(hBusiDataManager!=null){
+            String sql = "insert into h_customer_msg(`cust_id`,`cust_user_id`,`content`,`create_time`,`status`,`level`,`msg_type`)" +
+                    "values ('"+hBusiDataManager.getCust_id()+"',"+hBusiDataManager.getCust_user_id()+",'"+msg.toJSONString()+"',now(),0,1,'CHANGZHAN')";
+
+            jdbcTemplate.update(sql);
+        }else{
+            throw new TouchException("单号不存在");
+        }
+    }
 
 }
 
