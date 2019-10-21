@@ -170,7 +170,7 @@ public class SbdZService implements BusiService {
                 content.put("status", 0);
                 JSONObject input;
                 JSONObject data;
-                String updateSql = "UPDATE " + HMetaDataDef.getTable(BusiTypeEnum.SF.getType(), "") + " SET ext_7 = 0, content = ? WHERE id =? AND type =? ";
+                String updateSql = "UPDATE " + HMetaDataDef.getTable(BusiTypeEnum.SF.getType(), "") + " SET ext_7 = 3, content = ? WHERE id =? AND type =? ";
                 for (Map<String, Object> m : dfList) {
                     input = new JSONObject();
                     // 身份核验待核验入队列
@@ -190,7 +190,7 @@ public class SbdZService implements BusiService {
                     content.put("input", input);
                     serviceUtils.insertSFVerifyQueue(content.toJSONString(), NumberConvertUtil.parseLong(m.get("id")), cust_user_id, cust_id, content.getString("main_bill_no"));
                     if (data != null) {
-                        data.put("check_status", "0");
+                        data.put("check_status", "3");
                         jdbcTemplate.update(updateSql, data.toJSONString(), m.get("id"), BusiTypeEnum.SF.getType());
                     }
                 }
