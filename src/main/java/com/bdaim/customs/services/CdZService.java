@@ -455,8 +455,7 @@ public class CdZService implements BusiService {
         info.put("ext_3", h.getExt_3());
         info.put("ext_1", "0");
 //		String content = json.toJSONString();
-        cz.setContent(info.toJSONString());
-        dataList.add(cz);
+
         // 根据主单号查询申报单分单列表
         List<HBusiDataManager> parties = serviceUtils.listDataByParentBillNo(custId, BusiTypeEnum.SF.getType(), h.getExt_3());
         List<String> billNos = new ArrayList<>();
@@ -481,19 +480,6 @@ public class CdZService implements BusiService {
                 cache.put(fd.getLong("pid"), tmp);
             }
         }
-        // 预先生成分单ID
-       /* long size = parties.size();
-        long maxId = sequenceService.getSeq(BusiTypeEnum.CF.getType(), size);*/
-
-        // 预先生成商品ID
-        //long sSize = 0L;
-       /* Map<Long, List> cache = new HashMap<>();
-        for (HBusiDataManager hp : parties) {
-            List<HBusiDataManager> goods = serviceUtils.listDataByParentBillNo(custId, BusiTypeEnum.SS.getType(), hp.getExt_4() + "," + hp.getExt_3());
-            cache.put(hp.getId(), goods);
-            sSize += goods.size();
-        }
-        long sMaxId = sequenceService.getSeq(BusiTypeEnum.CS.getType(), sSize);*/
         List<HBusiDataManager> goodList = null;
         HBusiDataManager hm, good;
         int pack_no = 0;
@@ -514,12 +500,6 @@ public class CdZService implements BusiService {
             _content.put("main_bill_no", json.get("bill_no"));
             // 舱单总件数=分运单件数和
             pack_no += _content.getIntValue("pack_no");
-            //总重量
-            String weight = _content.getString("weight");
-            if (StringUtil.isEmpty(weight)) {
-                weight = "0";
-            }
-            weightTotal += Float.valueOf(weight);
 
             Float fdWeightTotal = 0f;
             double total_value = 0.0;
@@ -534,29 +514,27 @@ public class CdZService implements BusiService {
                     good.setId(gid);
                     good.setCreateId(userId);
                     good.setCreateDate(new Date());
-                    JSONObject sdContent = JSON.parseObject(gp.getContent());
-                    sdContent.put("pid", hm.getId());
-                    sdContent.put("main_bill_no", _content.get("bill_no"));
-                    sdContent.put("opt_type", "ADD");
+                    JSONObject productContent = JSON.parseObject(gp.getContent());
+                    productContent.put("pid", hm.getId());
+                    productContent.put("main_bill_no", _content.get("bill_no"));
+                    productContent.put("opt_type", "ADD");
                     // 分单重量（公斤）=分单所有商品毛重
-                    String ggrosswt = sdContent.getString("ggrosswt");
+                    String ggrosswt = productContent.getString("ggrosswt");
                     if (StringUtil.isEmpty(ggrosswt)) {
                         ggrosswt = "0";
                     }
                     fdWeightTotal += Float.valueOf(ggrosswt);
-                    //主单价值合计
-                    String G_QTY = sdContent.getString("g_qty");
-                    String decl_price = sdContent.getString("decl_price");
+                    String G_QTY = productContent.getString("g_qty");
+                    String decl_price = productContent.getString("decl_price");
                     if (StringUtil.isNotEmpty(G_QTY) && StringUtil.isNotEmpty(decl_price)) {
                         qty = new BigDecimal(G_QTY);
                         multiply = qty.multiply(new BigDecimal(decl_price));
                         Double total_price = multiply.setScale(5, BigDecimal.ROUND_HALF_UP).doubleValue();
-                        //价格合计
-                        json.put("total_price", total_price);
-                        json.put("decl_total", total_price);
+                        //税单价格合计
+                        productContent.put("total_price", total_price);
                         total_value += total_price;
                     }
-                    good.setContent(sdContent.toJSONString());
+                    good.setContent(productContent.toJSONString());
                     good.setType(BusiTypeEnum.CS.getType());
                     good.setCreateId(gp.getCreateId());
                     good.setCust_id(gp.getCust_id());
@@ -564,17 +542,20 @@ public class CdZService implements BusiService {
                     good.setExt_3(gp.getExt_3());
                     good.setExt_4(gp.getExt_4());
                     dataList.add(good);
-                    //sSize--;
                 }
             }
+            // 分单价值
             _content.put("total_value", total_value);
+            // 分单重量
             _content.put("weight", fdWeightTotal);
             hm.setContent(_content.toJSONString());
             dataList.add(hm);
-            //size--;
+            weightTotal += fdWeightTotal;
         }
-        jon.put("pack_no", pack_no);
-        jon.put("weight_total", weightTotal);
+        info.put("pack_no", pack_no);
+        info.put("weight_total", weightTotal);
+        cz.setContent(info.toJSONString());
+        dataList.add(cz);
         h.setContent(jon.toJSONString());
     }
 
