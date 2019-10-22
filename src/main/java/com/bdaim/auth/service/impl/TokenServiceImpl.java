@@ -1,5 +1,6 @@
 package com.bdaim.auth.service.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.bdaim.auth.LoginUser;
 import com.bdaim.common.auth.Token;
 import com.bdaim.common.auth.service.TokenCacheService;
@@ -156,7 +157,7 @@ public class TokenServiceImpl implements TokenService {
                     return new LoginUser("guest", "", new ArrayList<>(), "绑定失败", "401");
                 }
                 // 组装用户数据(分组等信息)
-                userdetail = getUserData(u, username, auths);
+                userdetail = getUserData(u, u.getAccount(), auths);
             } else {
                 logger.warn("username or password is error");
                 return new LoginUser("guest", "", new ArrayList<>(), "用户名密码错误", "401");
@@ -164,18 +165,20 @@ public class TokenServiceImpl implements TokenService {
         } else if ("wx".equals(username)) {
             // 微信code登录,username固定为wx,password为微信的code
             String openId = weChatUtil.getWeChatOpenId(password);
+            logger.info("微信code登录openId:{},code:{}", openId, password);
             //openId = "2f39c1632fff7219a508b4ef9d14f870";
             if (StringUtil.isEmpty(openId)) {
                 return new LoginUser("guest", "", new ArrayList<>(), "未查询到绑定用户", "401");
             }
             CustomerUserPropertyDO userProper = customerUserPropertyDao.getPropertyByName("openid", openId);
+            logger.info("微信code登录openId:{},code:{},用户属性数据:{}", openId, password, JSON.toJSONString(userProper));
             if (userProper == null) {
                 return new LoginUser("guest", "", new ArrayList<>(), "未查询到绑定用户", "401");
             }
             CustomerUser u = customerService.getUserByName(customerUserDao.getLoginName(userProper.getUserId()));
             if (u != null) {
                 // 组装用户数据(分组等信息)
-                userdetail = getUserData(u, username, auths);
+                userdetail = getUserData(u, u.getAccount(), auths);
             } else {
                 logger.warn("username or password is error");
                 return new LoginUser("guest", "", new ArrayList<>(), "用户名密码错误", "401");

@@ -59,7 +59,7 @@ public class SbdZService implements BusiService {
             throw new TouchException("未配置场站信息");
         }
         String billno = info.getString("bill_no");
-        String sql = "select id from " + HMetaDataDef.getTable(busiType, "") + " where  type='" + busiType + "' and JSON_EXTRACT(content, '$.ext_3')='" + billno + "'";
+        String sql = "select id from " + HMetaDataDef.getTable(busiType, "") + " where type='" + busiType + "' and ext_3 = '" + billno + "'";
         List<Map<String, Object>> countList = jdbcTemplate.queryForList(sql);
         if (countList != null && countList.size() > 0) {
             throw new TouchException("此主单已经申报");
@@ -681,7 +681,7 @@ public class SbdZService implements BusiService {
                         Double total_price = multiply.setScale(5, BigDecimal.ROUND_HALF_UP).doubleValue();
                         //价格合计
                         json.put("total_price", total_price);
-                        json.put("decl_total",total_price);
+                        json.put("decl_total", total_price);
                         totalValue += total_price;
                     }
 //                    float total_price = Float.valueOf(product.getDecl_total() == null || "".equals(product.getDecl_total()) ? "0" : product.getDecl_total());
@@ -696,7 +696,7 @@ public class SbdZService implements BusiService {
                     log.error("生成商品信息 " + product.getCode_ts() + " 异常", e);
                 }
             }
-            arrt.put("total_value", totalValue);
+            arrt.put("total_value", totalValue.floatValue());
             arrt.put("estimated_tax_total", fdEstimatedTax);
         }
     }

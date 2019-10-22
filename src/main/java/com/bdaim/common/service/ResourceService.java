@@ -103,6 +103,7 @@ public class ResourceService {
                 }
                 sqlParams.add(params.get(key));
             }
+            sqlstr.append(" order by JSON_EXTRACT(content, '$.status'), create_date desc ");
             sql = sqlstr.toString();
         }
 
