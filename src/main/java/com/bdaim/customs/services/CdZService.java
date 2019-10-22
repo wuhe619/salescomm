@@ -483,7 +483,7 @@ public class CdZService implements BusiService {
         List<HBusiDataManager> goodList = null;
         HBusiDataManager hm, good;
         int pack_no = 0;
-        Float weightTotal = 0f;
+        Double weightTotal = 0.0;
         for (HBusiDataManager hp : parties) {
             hm = new HBusiDataManager();
             hm.setType(BusiTypeEnum.CF.getType());
@@ -501,7 +501,7 @@ public class CdZService implements BusiService {
             // 舱单总分单件数=分运单件数和
             pack_no += _content.getIntValue("pack_no");
 
-            Float fdWeightTotal = 0f;
+            Double fdWeightTotal = 0.0;
             double total_value = 0.0;
             BigDecimal qty = null;
             BigDecimal multiply = null;
@@ -547,13 +547,13 @@ public class CdZService implements BusiService {
             // 分单价值
             _content.put("total_value", total_value);
             // 分单重量
-            _content.put("weight", fdWeightTotal);
+            _content.put("weight", fdWeightTotal.floatValue());
             hm.setContent(_content.toJSONString());
             dataList.add(hm);
             weightTotal += fdWeightTotal;
         }
         info.put("total_pack_no", pack_no);
-        info.put("weight_total", weightTotal);
+        info.put("weight_total", weightTotal.floatValue());
         cz.setContent(info.toJSONString());
         dataList.add(cz);
         h.setContent(jon.toJSONString());
