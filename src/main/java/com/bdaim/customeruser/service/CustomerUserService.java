@@ -1540,11 +1540,11 @@ public class CustomerUserService {
             }
         }
 
-        CustomerUserPropertyDO propertyDO = new CustomerUserPropertyDO();
-        propertyDO.setUserId(userId);
-        propertyDO.setPropertyName("openid");
+        CustomerUserPropertyDO propertyDO = customerUserPropertyDao.getProperty(userId, "openid");
+        if (propertyDO == null) {
+            propertyDO = new CustomerUserPropertyDO(userId, "openid", openId, String.valueOf(new Timestamp(System.currentTimeMillis())));
+        }
         propertyDO.setPropertyValue(openId);
-        propertyDO.setCreateTime(String.valueOf(new Timestamp(System.currentTimeMillis())));
         customerUserDao.saveOrUpdate(propertyDO);
         return true;
     }
