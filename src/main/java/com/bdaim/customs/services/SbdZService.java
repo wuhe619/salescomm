@@ -696,7 +696,7 @@ public class SbdZService implements BusiService {
                     log.error("生成商品信息 " + product.getCode_ts() + " 异常", e);
                 }
             }
-            arrt.put("total_value", totalValue);
+            arrt.put("total_value", totalValue.floatValue());
             arrt.put("estimated_tax_total", fdEstimatedTax);
         }
     }
