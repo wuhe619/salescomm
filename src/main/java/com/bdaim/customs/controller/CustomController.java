@@ -209,7 +209,7 @@ public class CustomController extends BasicAction {
      * @return
      */
     @RequestMapping(value = "page/diclist", method = RequestMethod.GET)
-    public ResponseJson getdicPageList(String type, Integer pageSize, Integer pageNum) {
+    public ResponseJson getdicPageList(String type, Integer pageSize, Integer pageNum,String propertyName) {
         ResponseJson responseJson = new ResponseJson();
         if (type == null || pageNum == null || pageSize == null) {
             responseJson.setCode(-1);
@@ -217,7 +217,7 @@ public class CustomController extends BasicAction {
             return responseJson;
         }
         try {
-            Page page = customsService.getdicPageList(type, pageSize, pageNum);
+            Page page = customsService.getdicPageList(type, pageSize, pageNum,propertyName);
             responseJson.setData(page);
             responseJson.setCode(200);
             responseJson.setMessage("SUCCESS");
