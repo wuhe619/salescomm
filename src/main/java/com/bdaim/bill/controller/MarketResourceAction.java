@@ -638,6 +638,30 @@ public class MarketResourceAction extends BasicAction {
         }
     }
 
+    /**
+     * @description 联通话单推送接口V1
+     * @author:duanliying
+     * @method
+     * @date: 2018/12/5 19:15
+     */
+    @RequestMapping(value = "/unicomCallBackV1", method = RequestMethod.POST)
+    public void getCallBackInfov1(@RequestBody CallBackInfoParam callBackInfoParam, HttpServletResponse response) {
+        LOG.info("获取失联修复联通呼叫中心话单推送开始,推送数据是" + callBackInfoParam.toString());
+        //处理返回数据进行DB操作
+        try {
+            response.setContentType("application/json");
+            int i = marketResourceService.callBackInfoV1(callBackInfoParam);
+            if (i > 0) {
+                PrintWriter printWriter = response.getWriter();
+                printWriter.print("{\"code\":\"0\"}");
+                printWriter.flush();
+                response.flushBuffer();
+                return;
+            }
+        } catch (Exception e) {
+            LOG.error("获取失联修复联通呼叫中心话单异常" + e);
+        }
+    }
 
     /**
      * @description 联通录音推送接口

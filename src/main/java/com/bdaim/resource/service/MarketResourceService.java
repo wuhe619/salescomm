@@ -2104,6 +2104,190 @@ public class MarketResourceService {
         return flag;
     }
 
+
+    /**
+     * @description 话单推送信息存储
+     * @author:duanliying
+     * @method
+     * @date: 2018/12/6 10:26
+     */
+    public int callBackInfoV1(CallBackInfoParam callBackInfoParam) throws Exception {
+        String updateTouchLogSql = "UPDATE t_touch_voice_log SET amount=?,summ_minute=?,prod_amount=? ,resource_id=? WHERE callSid = ?";
+        String updateTouchSql = "UPDATE t_touch_voice_log set status =? WHERE callSid =?";
+        String queryTouchSql = "SELECT touch_id touchId ,cust_id custId,user_id userId,superid superId ,batch_id batchId FROM t_touch_voice_log WHERE callSid=?";
+        String queryCallInfoSql = "SELECT callSid,Calledduration FROM t_callback_info WHERE callSid=?";
+        String insertCallbackInfoSql = "insert into t_callback_info(callSid, appId, flag, Callercaller, Callerstarttime, Callerendtime, Callerduration, CallerringingBeginTime, CallerringingEndTime, " +
+                "Calledcaller, Calledstarttime, Calledendtime, Calledduration, CalledringingBeginTime, CalledringingEndTime, recordurl, userData, userId, superId) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+        int flag = 0, callTime = 0;
+        BigDecimal bigDecimal, sourceCallAmount = null;
+        String userId = null, batchId = null, supplierId = null, custId = null, touchId = null, appId = "unicom";
+        //扣除企业分钟数
+        int summMinute = 0;
+        //扣除企业金额
+        int summAmount = 0;
+        //扣除供应商金额
+        int prodAmount = 0;
+        //企业通话单价
+        int saleCustPrice = 0;
+        //供應商通话单价
+        int saleSupPrice = 0;
+
+        //获取话单返回的type 和通话时长
+        //0：通话未完成  1：通话完成 2：通话失败
+        String type = callBackInfoParam.getType();
+        //通话时长
+        String callDuration = callBackInfoParam.getCallDuration();
+        //通话唯一标识  对应数据库的callSid
+        String callSid = callBackInfoParam.getUuid();
+        LOG.info("联通推送的callSid是：" + callSid + "返回数据是：" + String.valueOf(callBackInfoParam));
+        //根据callsid查询touch——log信息
+        LOG.info("查询呼叫记录SQL:" + queryTouchSql);
+        List<Map<String, Object>> touchMaps = marketResourceDao.sqlQuery(queryTouchSql, callSid);
+        if (touchMaps.size() > 0) {
+            userId = String.valueOf(touchMaps.get(0).get("userId"));
+            batchId = String.valueOf(touchMaps.get(0).get("batchId"));
+            supplierId = String.valueOf(touchMaps.get(0).get("superId"));
+            custId = String.valueOf(touchMaps.get(0).get("custId"));
+            touchId = String.valueOf(touchMaps.get(0).get("touchId"));
+            //判断回调表数据是否已经更新,避免重复扣费（查询回调表数据是否存在）
+            List<Map<String, Object>> callInfoMaps = marketResourceDao.sqlQuery(queryCallInfoSql, callSid);
+            String resourceId = null;
+            MarketResourceEntity marketResourceEntity = sourceDao.getResourceId(SupplierEnum.CUC.getSupplierId(), ResourceEnum.CALL.getType());
+            if (marketResourceEntity != null) {
+                resourceId = String.valueOf(marketResourceEntity.getResourceId());
+                LOG.info("资源id是:" + resourceId);
+            }
+            //判断通话是否成功
+            if (callInfoMaps.size() == 0) {
+                if (StringUtil.isNotEmpty(type) && StringUtil.isNotEmpty(callDuration) && Integer.parseInt(type) == 1 && Integer.parseInt(callDuration) > 0) {
+                    // 更新通话日志表的通话状态为成功
+                    marketResourceDao.executeUpdateSQL(updateTouchSql, 1001, callSid);
+                    bigDecimal = new BigDecimal((double) Integer.parseInt(callDuration) / 60);
+                    callTime = bigDecimal.setScale(0, RoundingMode.CEILING).intValue();
+                    LOG.info("通话分钟数:" + callTime);
+                    //查询企业通话费用
+                    ResourcesPriceDto resourcesPriceDto = customerDao.getCustResourceMessageById(resourceId, custId);
+                    if (resourcesPriceDto != null && StringUtil.isNotEmpty(resourcesPriceDto.getCallPrice())) {
+                        String seatPrice = resourcesPriceDto.getCallPrice();
+                        //元转分
+                        saleCustPrice = NumberConvertUtil.transformtionCent(Double.parseDouble(seatPrice));
+                    }
+                    //获取坐席基本信息
+                    SeatInfoDto seatInfoDto = customerUserPropertyDao.getSeatMessageById(resourceId, userId, SupplierEnum.CUC.getSupplierId());
+                    //企业分钟数
+                    int custMinute = seatInfoDto.getSeatCustMinute();
+                    //供应商分钟数
+                    int supMinute = seatInfoDto.getSeatSupMinute();
+                    if (StringUtil.isNotEmpty(userId)) {
+                        //查询坐席剩余分钟数
+                        LOG.info("坐席:" + userId + "剩余分钟数:" + seatInfoDto.getSeatCustMinute());
+                        //通话剩余分钟大于0
+                        if (custMinute > 0) {
+                            // 通话剩余分钟大于等于通话分钟
+                            if (custMinute >= callTime) {
+                                LOG.info("坐席执行只扣除分钟数:" + userId + "扣除后剩余分钟数:" + String.valueOf(custMinute - callTime));
+                                transactionDao.updateSeatMinute(userId, callTime);
+                                summMinute = callTime;
+                                //更新通话记录表
+                            } else {
+                                summMinute = custMinute;
+                                LOG.info("坐席执行扣除分钟数和通话计费:" + userId + "扣除分钟数:" + callTime + ",减去分钟数后通话时长:" + (callTime - custMinute));
+                                transactionDao.updateSeatMinute(userId, custMinute);
+                                //通话扣费金额
+                                summAmount = saleCustPrice * (callTime - custMinute);
+                                //summAmount = transactionDao.querySeatsMoney(custId, SEAT_ONE_MINUTE_PRICE_KEY, callTime - custMinute);
+                                LOG.info("联通坐席扣费开始从账户customerId:" + custId + "余额扣款,sale_price:" + summAmount);
+                                transactionDao.accountDeductionsDev(custId, new BigDecimal(summAmount));
+                            }
+                        } else {
+                            //不扣分钟数   直接扣除费用
+                            LOG.info("坐席执行只扣除通话计费:" + userId + "通话时长:" + callTime);
+                            summAmount = saleCustPrice * callTime;
+                            //summAmount = transactionDao.querySeatsMoney(custId, SEAT_ONE_MINUTE_PRICE_KEY, callTime);
+                            transactionDao.accountDeductionsDev(custId, new BigDecimal(summAmount));
+                        }
+                    }
+                    // 供应商扣费
+                    ResourcesPriceDto resourcesSupPriceDto = null;
+                    if (StringUtil.isNotEmpty(resourceId)) {
+                        resourcesSupPriceDto = supplierDao.getSupResourceMessageById(Integer.parseInt(resourceId), null);
+                    }
+                    if (resourcesSupPriceDto != null && StringUtil.isNotEmpty(resourcesSupPriceDto.getCallPrice())) {
+                        String supPrice = resourcesSupPriceDto.getCallPrice();
+                        //元转分
+                        saleSupPrice = NumberConvertUtil.transformtionCent(Double.parseDouble(supPrice));
+                    }
+                    if (StringUtil.isNotEmpty(custId)) {
+                        //通话剩余分钟大于0
+                        if (supMinute > 0) {
+                            // 通话剩余分钟大于等于通话分钟
+                            if (supMinute >= callTime) {
+                                LOG.info("供应商只扣除分钟数:" + userId + "扣除后剩余分钟数:" + String.valueOf(supMinute - callTime));
+                                sourceDao.accountSupplierMinuts(resourceId, SupplierEnum.CUC.getSupplierId(), callTime, userId);
+                                prodAmount = 0;
+                            } else {
+                                LOG.info("供应商执行扣除分钟数和通话计费:" + userId + "扣除分钟数:" + supMinute + ",减去分钟数后通话时长:" + (callTime - supMinute));
+                                //先扣除分钟数
+                                sourceDao.accountSupplierMinuts(resourceId, SupplierEnum.CUC.getSupplierId(), supMinute, userId);
+                                //扣除通话费用
+                                sourceCallAmount = new BigDecimal(saleSupPrice * (callTime - supMinute));
+                                sourceDao.supplierAccountDuctions(SupplierEnum.CUC.getSupplierId(), sourceCallAmount);
+                            }
+                        } else {
+                            sourceCallAmount = new BigDecimal(saleSupPrice * callTime);
+                            LOG.info("供应商执行只扣除通话计费:" + userId + "通话时长:" + callTime);
+                            sourceDao.supplierAccountDuctions(SupplierEnum.CUC.getSupplierId(), sourceCallAmount);
+                        }
+                    }
+                    //更新log表（企业扣费和供应商扣费）
+                    if (sourceCallAmount != null) {
+                        prodAmount = sourceCallAmount.intValue();
+                    }
+                    int i = sourceDao.executeUpdateSQL(updateTouchLogSql, new Object[]{summAmount, summMinute, prodAmount, resourceId, callSid});
+                    LOG.info("callSid是:" + callSid + "更新数量是:" + i);
+                } else {
+                    LOG.info("外呼状态失败");
+                    marketResourceDao.executeUpdateSQL(updateTouchSql, 1002, callSid);
+                }
+
+                //处理时间保存回调记录信息
+                String startTime = callBackInfoParam.getStartTime();
+                String endTime = callBackInfoParam.getEndTime();
+                //String recordUrl = callBackInfoParam.getRecordUrl();
+                if (StringUtil.isNotEmpty(startTime)) {
+                    startTime = startTime.replaceAll("-", "/");
+                }
+                if (StringUtil.isNotEmpty(endTime)) {
+                    endTime = endTime.replaceAll("-", "/");
+                }
+                //保存回调记录表通话历史参数
+                /*LOG.info("transactionDao" + transactionDao);
+                if (StringUtil.isNotEmpty(recordUrl) && !"null".equals(recordUrl)) {
+                    recordUrl = recordUrl.replaceAll(".wav", ".mp3");
+                }*/
+                flag = transactionDao.executeUpdateSQL(insertCallbackInfoSql, new Object[]{callSid, appId, 1,
+                        callBackInfoParam.getLocalUrl(),
+                        startTime, endTime,
+                        callDuration, null, null,
+                        callBackInfoParam.getRemoteUrl(),
+                        startTime, endTime,
+                        callDuration, null, null,
+                        null,
+                        callSid, userId,
+                        supplierId});
+                if (flag > 0) {
+                    LOG.info("联通外呼插入数据库记录(条):" + flag);
+                }
+            } else {
+                LOG.info("callSid是" + callSid + "联通外呼回调记录已经存在");
+            }
+        } else {
+            LOG.info("未查询到该条记录回调数据是:" + callBackInfoParam.toString());
+        }
+
+        return flag;
+    }
+
     /**
      * 联通录音文件推送
      *

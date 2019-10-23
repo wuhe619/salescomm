@@ -46,7 +46,7 @@ import java.util.Map;
  */
 @Service("callCenterService")
 @Transactional
-public class CallCenterService{
+public class CallCenterService {
     private static Logger LOG = LoggerFactory.getLogger(CallCenterService.class);
     @Resource
     private SeatsService seatsService;
@@ -64,7 +64,7 @@ public class CallCenterService{
         //System.out.println(new CallCenterService().unicomDeleteMainNum("5b5badd5ee20615d:LTBD2018090701:BJHKK_zx1", "1", "", "LTBD2018090701", "CC48qcueeWmuGzLP9G9o8", "111111"));
     }
 
-    
+
     public Map<String, Object> getCallCenterConfigData(String customerId, String userId) {
         Map<String, String> enterpriseMessage = seatsService.getEnterpriseMessage(customerId, "cuc");
         if (enterpriseMessage != null) {
@@ -84,7 +84,7 @@ public class CallCenterService{
         return null;
     }
 
-    
+
     public Map<String, Object> getCallCenterConfigDataV1(String customerId, String userId, String resourceId) {
         ResourcesPriceDto resourcesPriceDto = null;
         try {
@@ -111,7 +111,7 @@ public class CallCenterService{
         return result;
     }
 
-    
+
     public Map<String, Object> getXzConfigData(String custId, String userId, String resourceId) {
         ResourcesPriceDto resourcesPriceDto = null;
         try {
@@ -137,7 +137,7 @@ public class CallCenterService{
         return result;
     }
 
-    
+
     public Map<String, Object> unicomSeatLogin(String entId, String userId, String userPwd, String tel, int type) {
         Map<String, String> params = new HashMap<>();
         if (StringUtil.isEmpty(entId)) {
@@ -164,7 +164,7 @@ public class CallCenterService{
         return null;
     }
 
-    
+
     public Map<String, Object> unicomSeatLogout(String entId, String userId) {
         Map<String, String> params = new HashMap<>();
         params.put("entId", entId);
@@ -183,7 +183,7 @@ public class CallCenterService{
         return null;
     }
 
-    
+
     public Map<String, Object> unicomAgentReset(String entId, String userId) {
         Map<String, String> params = new HashMap<>();
         params.put("entId", entId);
@@ -202,7 +202,7 @@ public class CallCenterService{
         return null;
     }
 
-    
+
     public Map<String, Object> unicomSeatMakeCallEx(String entId, String userId, String activityId, String provideId, String customerId, String showNumber) {
         Map<String, String> params = new HashMap<>();
         if (StringUtil.isEmpty(entId)) {
@@ -232,7 +232,7 @@ public class CallCenterService{
         return null;
     }
 
-    
+
     public Map<String, Object> unicomGetSeatStatus(String entId, String userId) {
         Map<String, String> params = new HashMap<>();
         if (StringUtil.isEmpty(entId)) {
@@ -256,7 +256,6 @@ public class CallCenterService{
     }
 
 
-    
     public Map<String, Object> unicomSeatHangUp(String entId, String userId, String uuid) {
         Map<String, String> params = new HashMap<>();
         params.put("entId", entId);
@@ -276,7 +275,7 @@ public class CallCenterService{
         return null;
     }
 
-    
+
     public Map<String, Object> unicomGetCallData(String uuid, String callStatus, String callReply, String entId, String activityId, String entPassword) {
         Map<String, String> params = new HashMap<>();
         params.put("uuid", uuid);
@@ -306,7 +305,7 @@ public class CallCenterService{
         return null;
     }
 
-    
+
     public Map<String, Object> unicomRecordByRequestId(String uuid, String entId) {
         Map<String, String> params = new HashMap<>();
         params.put("uuid", uuid);
@@ -325,7 +324,7 @@ public class CallCenterService{
         return null;
     }
 
-    
+
     public Map<String, Object> unicomAddSeatAccount(String entId, String userId, String userName, String password) {
         Map<String, String> params = new HashMap<>();
         params.put("entId", entId);
@@ -346,7 +345,7 @@ public class CallCenterService{
         return null;
     }
 
-    
+
     public Map<String, Object> unicomUpdateSeatPasswd(String entId, String userId, String password) {
         Map<String, String> params = new HashMap<>();
         params.put("entId", entId);
@@ -366,7 +365,7 @@ public class CallCenterService{
         return null;
     }
 
-    
+
     public Map<String, Object> unicomExtensionRegister(String entId, String tel, int type) {
         Map<String, String> params = new HashMap<>();
         params.put("entId", entId);
@@ -386,7 +385,7 @@ public class CallCenterService{
         return null;
     }
 
-    
+
     public Map<String, Object> unicomSendMessageData(UnicomSendSmsParam unicomSendSmsParam) {
         Map<String, String> params = new HashMap<>();
         params.put("entId", unicomSendSmsParam.getEntId());
@@ -413,7 +412,7 @@ public class CallCenterService{
         return null;
     }
 
-    
+
     public Map<String, Object> unicomExtensionDelete(String entId, String extension) {
         Map<String, String> params = new HashMap<>();
         params.put("entId", entId);
@@ -507,7 +506,7 @@ public class CallCenterService{
             param.setAppid(appId);
         } /*else if (cp != null && StringUtil.isNotEmpty(cp.getPropertyValue())) {
             param.setAppid(cp.getPropertyValue());
-        } */else {
+        } */ else {
             param.setAppid(SaleApiUtil.ONLINE_CALL_BACK_APP_ID);
         }
         LOG.info("调用双向回呼接口请求数据:" + JSON.toJSONString(param));
@@ -517,15 +516,10 @@ public class CallCenterService{
     }
 
     /**
-     * 联通坐席外呼接口V2
-     * @param entId
-     * @param customerId
-     * @param callerNumber
-     * @param showNumber
-     * @param key
-     * @return
+     * 联通坐席外呼接口v1
+     * data_id 联通返回唯一id    callerNumber 主叫号码   showNumber   外显号（不传默认从企业外显号码池随机一个外显号码 key加密私钥
      */
-    public Map<String, Object> unicomSeatMakeCallExV2(String entId, String customerId, String callerNumber, String showNumber,String key) {
+    public Map<String, Object> unicomSeatMakeCallExV1(String entId, String customerId, String entPassWord, String callerNumber, String showNumber, String key) {
         Map<String, String> params = new HashMap<>();
         params.put("dataId", customerId);
         params.put("callerNumber", callerNumber);
@@ -534,17 +528,20 @@ public class CallCenterService{
         try {
             Map<String, Object> headers = new HashMap<>(16);
             //获取请求token
-            String token= unicomGetToken("111111", entId);
+            if (StringUtil.isEmpty(entPassWord)) {
+                entPassWord = "111111";
+            }
+            String token = unicomGetToken(entPassWord, entId);
             //签名处理
             DateFormat df = new SimpleDateFormat("yyyyMMddHHmmssSSS");
-            String sysTime =df.format(new Date());
-            String parmToken=token+sysTime;
+            String sysTime = df.format(new Date());
+            String parmToken = token + sysTime;
             LOG.info("加密数据是:" + parmToken);
             String sgin = encryptThreeDESECB(URLEncoder.encode(parmToken, "UTF-8"), key);
             LOG.info("加密结果是:" + sgin);
             headers.put("Sig", sgin);
             headers.put("Content-Type", "application/json;charset=utf-8");
-            LOG.info("联通坐席外呼参数:" + params.toString());
+            LOG.info("联通外呼接口请求地址是：" + UNICOM_BASE_URL_V1 + "call/makeCall/" + entId + " 联通坐席外呼参数:" + params.toString());
             result = HttpUtil.httpPost(UNICOM_BASE_URL_V1 + "call/makeCall/" + entId, params, null);
             LOG.info("联通坐席外呼返回:" + result);
             if (StringUtil.isNotEmpty(result)) {
@@ -557,9 +554,57 @@ public class CallCenterService{
         return null;
     }
 
+    /**
+     * 联通短信接口v1
+     *
+     * @desc:联通短信触达 wordId 话术码  variableOne  变量标识1  variableTwo 变量标识2 variableThree 变量标识3 variableFour 变量标识4 dataList 发送短信加密手机号集合 key加密私钥
+     */
+    public Map<String, Object> unicomSeatMakeSmsV1(UnicomSendSmsParam unicomSendSmsParam) {
+        String entId = unicomSendSmsParam.getEntId();
+        String key = unicomSendSmsParam.getKey();
+        LOG.info("联通短信触达企业id是:" + entId + "密钥是：" + key);
+        Map<String, String> params = new HashMap<>();
+        params.put("wordId", unicomSendSmsParam.getWordId());
+        params.put("dataId", unicomSendSmsParam.getCustomerId());
+        params.put("variableOne", unicomSendSmsParam.getVariableOne());
+        params.put("variableTwo", unicomSendSmsParam.getVariableThree());
+        params.put("variableThree", unicomSendSmsParam.getVariableThree());
+        params.put("variableFour", unicomSendSmsParam.getVariableFour());
+        params.put("variableFive", unicomSendSmsParam.getVariableFive());
+        String result;
+        try {
+            Map<String, Object> headers = new HashMap<>(16);
+            //获取请求token
+            String entPassWord = "";
+            if (StringUtil.isEmpty(unicomSendSmsParam.getEntPassWord())) {
+                entPassWord = "111111";
+            }
+            String token = unicomGetToken(entPassWord, entId);
+            //签名处理
+            DateFormat df = new SimpleDateFormat("yyyyMMddHHmmssSSS");
+            String sysTime = df.format(new Date());
+            String parmToken = token + sysTime;
+            LOG.info("加密数据是:" + parmToken);
+            String sgin = encryptThreeDESECB(URLEncoder.encode(parmToken, "UTF-8"), key);
+            LOG.info("加密结果是:" + sgin);
+            headers.put("Sig", sgin);
+            headers.put("Content-Type", "application/json;charset=utf-8");
+            LOG.info("联通短信触达接口请求地址是：" + UNICOM_BASE_URL_V1 + "msg/sendMsg/" + entId + " 联通短信触达参数:" + params.toString());
+            result = HttpUtil.httpPost(UNICOM_BASE_URL_V1 + "msg/sendMsg/" + entId, params, null);
+            LOG.info("联通短信触达结果返回:" + result);
+            if (StringUtil.isNotEmpty(result)) {
+                return JSON.parseObject(result, Map.class);
+            }
+        } catch (Exception e) {
+            LOG.error("联通短信触达失败:", e);
+            throw new RuntimeException("联通短信触达异常", e);
+        }
+        return null;
+    }
 
     /**
      * 获取企业登录token
+     *
      * @param entPassword
      * @param entId
      * @return
@@ -571,8 +616,8 @@ public class CallCenterService{
         try {
             Map<String, Object> headers = new HashMap<>();
             headers.put("Content-Type", "application/json;charset=utf-8");
-            LOG.info("联通获取token参数:" + params.toString());
-            result = HttpUtil.httpPost(UNICOM_BASE_URL_V1 + "login/getToken/"+entId, params, headers);
+            LOG.info("联通获取token请求地址是：" + UNICOM_BASE_URL_V1 + "login/getToken/" + entId + "联通获取token参数:" + params.toString());
+            result = HttpUtil.httpPost(UNICOM_BASE_URL_V1 + "login/getToken/" + entId, params, headers);
             //result = "{ \"code\": \"000\", \"msg\": \"success\", \"data\": { \"token\": \"eyJ0eXAiOiJKV1\" } }";
             LOG.info("联通获取token联通返回结果:" + result);
             if (StringUtil.isNotEmpty(result)) {
@@ -582,7 +627,7 @@ public class CallCenterService{
                     String token = jsonObject.getJSONObject("data").getString("token");
                     LOG.info("联通获取token:" + token);
                     return token;
-                }else {
+                } else {
                     LOG.warn("联通获取token失败:");
                     return "";
                 }
@@ -593,8 +638,10 @@ public class CallCenterService{
         }
         return null;
     }
+
     /**
      * token加密流程
+     *
      * @param src
      * @param key
      * @return
@@ -614,8 +661,10 @@ public class CallCenterService{
         return encoder.encode(b).replaceAll("\r", "").replaceAll("\n", "");
 
     }
+
     /**
      * token解密流程
+     *
      * @param
      * @param key
      * @return
