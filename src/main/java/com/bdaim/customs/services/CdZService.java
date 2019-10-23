@@ -483,7 +483,7 @@ public class CdZService implements BusiService {
         List<HBusiDataManager> goodList = null;
         HBusiDataManager hm, good;
         int pack_no = 0;
-        Float weightTotal = 0f;
+        Double weightTotal = 0d;
         for (HBusiDataManager hp : parties) {
             hm = new HBusiDataManager();
             hm.setType(BusiTypeEnum.CF.getType());
@@ -501,8 +501,8 @@ public class CdZService implements BusiService {
             // 舱单总分单件数=分运单件数和
             pack_no += _content.getIntValue("pack_no");
 
-            Float fdWeightTotal = 0f;
-            double total_value = 0.0;
+            Double fdWeightTotal = 0.0;
+            Double total_value = 0.0;
             BigDecimal qty = null;
             BigDecimal multiply = null;
             goodList = cache.get(hp.getId());
@@ -523,13 +523,13 @@ public class CdZService implements BusiService {
                     if (StringUtil.isEmpty(ggrosswt)) {
                         ggrosswt = "0";
                     }
-                    fdWeightTotal += Float.valueOf(ggrosswt);
+                    fdWeightTotal += Double.valueOf(ggrosswt);
                     String G_QTY = productContent.getString("g_qty");
                     String decl_price = productContent.getString("decl_price");
                     if (StringUtil.isNotEmpty(G_QTY) && StringUtil.isNotEmpty(decl_price)) {
                         qty = new BigDecimal(G_QTY);
                         multiply = qty.multiply(new BigDecimal(decl_price));
-                        Double total_price = multiply.setScale(5, BigDecimal.ROUND_HALF_UP).doubleValue();
+                        float total_price = multiply.setScale(5, BigDecimal.ROUND_HALF_UP).floatValue();
                         //税单价格合计
                         productContent.put("total_price", total_price);
                         total_value += total_price;
@@ -545,15 +545,20 @@ public class CdZService implements BusiService {
                 }
             }
             // 分单价值
-            _content.put("total_value", total_value);
+            _content.put("total_value", total_value.floatValue());
             // 分单重量
-            _content.put("weight", fdWeightTotal);
+            _content.put("weight", fdWeightTotal.floatValue());
             hm.setContent(_content.toJSONString());
             dataList.add(hm);
-            weightTotal += fdWeightTotal;
+            /*String weight = _content.getString("weight");
+            if (StringUtil.isEmpty(weight)) {
+                weight = "0";
+            }
+            weightTotal += Double.valueOf(weight);*/
+            //weightTotal += fdWeightTotal;
         }
         info.put("total_pack_no", pack_no);
-        info.put("weight_total", weightTotal);
+        //info.put("weight_total", weightTotal.floatValue());
         cz.setContent(info.toJSONString());
         dataList.add(cz);
         h.setContent(jon.toJSONString());
