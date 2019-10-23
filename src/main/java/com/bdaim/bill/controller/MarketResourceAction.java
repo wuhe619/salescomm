@@ -638,6 +638,30 @@ public class MarketResourceAction extends BasicAction {
         }
     }
 
+    /**
+     * @description 联通话单推送接口V1
+     * @author:duanliying
+     * @method
+     * @date: 2018/12/5 19:15
+     */
+    @RequestMapping(value = "/callBack/call", method = RequestMethod.POST)
+    public void getCallBackInfov1(@RequestBody CallBackInfoParam callBackInfoParam, HttpServletResponse response) {
+        LOG.info("获取失联修复联通呼叫中心话单V1推送开始,推送数据是" + callBackInfoParam.toString());
+        //处理返回数据进行DB操作
+        try {
+            response.setContentType("application/json");
+            int i = marketResourceService.callBackInfoV1(callBackInfoParam);
+            if (i > 0) {
+                PrintWriter printWriter = response.getWriter();
+                printWriter.print("{\"code\":\"0\"}");
+                printWriter.flush();
+                response.flushBuffer();
+                return;
+            }
+        } catch (Exception e) {
+            LOG.error("获取失联修复联通呼叫中心话单异常" + e);
+        }
+    }
 
     /**
      * @description 联通录音推送接口
@@ -664,6 +688,55 @@ public class MarketResourceAction extends BasicAction {
         }
     }
 
+    /**
+     * @description 联通录音推送接口V1
+     * @author:duanliying
+     * @method
+     * @date: 2018/12/5 19:15
+     */
+    @RequestMapping(value = "/callBack/record", method = RequestMethod.POST)
+    public void getUnicomRecordV1(@RequestBody JSONObject param, HttpServletResponse response) {
+        LOG.info("获取失联修复联通呼叫中心录音文件V1推送数据是" + param.toString());
+        //处理返回数据进行DB操作
+        try {
+            String result = marketResourceService.getUnicomRecordfileV1(param);
+            if ("0".equals(result)) {
+                response.setContentType("application/json");
+                PrintWriter printWriter = response.getWriter();
+                printWriter.print("{\"code\":\"0\"}");
+                printWriter.flush();
+                response.flushBuffer();
+                return;
+            }
+        } catch (Exception e) {
+            LOG.error("获取失联修复联通录音获取异常" + e);
+        }
+    }
+
+    /**
+     * @description 联通短信状态推送
+     * @author:duanliying
+     * @method
+     * @date: 2018/12/5 19:15
+     */
+    @RequestMapping(value = "/callBack/sms", method = RequestMethod.POST)
+    public void getUnicomSmsStautsV1(@RequestBody JSONObject param, HttpServletResponse response) {
+        LOG.info("联通短信状态V1推送数据是" + param.toString());
+        //处理返回数据进行DB操作
+        try {
+            String result = marketResourceService.getUnicomSmsStatusV1(param);
+            if ("0".equals(result)) {
+                response.setContentType("application/json");
+                PrintWriter printWriter = response.getWriter();
+                printWriter.print("{\"code\":\"0\"}");
+                printWriter.flush();
+                response.flushBuffer();
+                return;
+            }
+        } catch (Exception e) {
+            LOG.error("获取失联修复联通录音获取异常" + e);
+        }
+    }
 
     //后台 触达记录导出
     @RequestMapping(value = "/exportreach", method = RequestMethod.GET, produces = "application/vnd.ms-excel;charset=UTF-8")

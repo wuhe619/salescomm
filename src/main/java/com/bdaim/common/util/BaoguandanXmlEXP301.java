@@ -182,7 +182,7 @@ public class BaoguandanXmlEXP301 {
         Element OwnerCode = document.createElement("OwnerCode");
         EntryHead.appendChild(OwnerCode);
         Element OwnerName = document.createElement("OwnerName");
-        OwnerName.setTextContent(mainJson.getString("shipper_unit_name"));//r
+        OwnerName.setTextContent(json.getString("receive_name"));//r 货主单位名称取收件人名称
         EntryHead.appendChild(OwnerName);
         Element AgentType = document.createElement("AgentType");
         AgentType.setTextContent(mainJson.getString("agent_type"));  //0：企业；1：自然人
@@ -260,8 +260,8 @@ public class BaoguandanXmlEXP301 {
         DeclPort.setTextContent(mainJson.getString("decl_port"));  //r
         EntryHead.appendChild(DeclPort);
 
-        Element CoOwner = document.createElement("CoOwner");//经营单位性质
-        String unit = mainJson.getString("s_c_code_busi_unit");
+        Element CoOwner = document.createElement("CoOwner");//经营单位性质,取报关单位代码
+        String unit = (String) customerInfo.getOrDefault("agent_code","");
         unit = unit.substring(0,6);
         unit = unit.substring(unit.length()-1);
         CoOwner.setTextContent(unit);  //r

@@ -6,10 +6,14 @@ package com.bdaim.bill.dto;
  * @description 话单推送
  */
 public class CallBackInfoParam {
-    //呼叫流水
+    //老版本呼叫流水
     private String requestId;
-    //呼叫流水（通话的唯一标识）
+    //老版本呼叫流水（通话的唯一标识）
     private String sessionId;
+    //呼叫流水（通话的唯一标识）V1
+    private String uuid;
+    //呼叫中心流水 v1
+    private String callId;
     //坐席分机
     private String localUrl;
     //客户电话
@@ -36,6 +40,22 @@ public class CallBackInfoParam {
     private String accredit;
     //录音地址（企业类型为0不含此字段）
     private String recordUrl;
+
+    public String getUuid() {
+        return uuid;
+    }
+
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
+    }
+
+    public String getCallId() {
+        return callId;
+    }
+
+    public void setCallId(String callId) {
+        this.callId = callId;
+    }
 
     public CallBackInfoParam() {
     }

@@ -6,18 +6,56 @@ package com.bdaim.callcenter.dto;
  * @description
  */
 public class UnicomSendSmsParam {
-
+    /**
+     * 联通测企业id
+     */
     private String entId;
+    /**
+     * 联通测密钥
+     */
+    private String key;
+    /**
+     * 联通测企业密码
+     */
+    private String entPassWord;
     private String userId;
     private String activityId;
     private String provideId;
     private String customerId;
+    /**
+     * 话术码
+     */
+    private String wordId;
     private String messageCode;
     private String variableOne;
     private String variableTwo;
     private String variableThree;
     private String variableFour;
     private String variableFive;
+
+    public String getKey() {
+        return key;
+    }
+
+    public void setKey(String key) {
+        this.key = key;
+    }
+
+    public String getWordId() {
+        return wordId;
+    }
+
+    public void setWordId(String wordId) {
+        this.wordId = wordId;
+    }
+
+    public String getEntPassWord() {
+        return entPassWord;
+    }
+
+    public void setEntPassWord(String entPassWord) {
+        this.entPassWord = entPassWord;
+    }
 
     public String getEntId() {
         return entId;

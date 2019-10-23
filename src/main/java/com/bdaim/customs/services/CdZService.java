@@ -483,7 +483,7 @@ public class CdZService implements BusiService {
         List<HBusiDataManager> goodList = null;
         HBusiDataManager hm, good;
         int pack_no = 0;
-        Double weightTotal = 0.0;
+        Double weightTotal = 0d;
         for (HBusiDataManager hp : parties) {
             hm = new HBusiDataManager();
             hm.setType(BusiTypeEnum.CF.getType());
@@ -523,7 +523,7 @@ public class CdZService implements BusiService {
                     if (StringUtil.isEmpty(ggrosswt)) {
                         ggrosswt = "0";
                     }
-                    fdWeightTotal += Float.valueOf(ggrosswt);
+                    fdWeightTotal += Double.valueOf(ggrosswt);
                     String G_QTY = productContent.getString("g_qty");
                     String decl_price = productContent.getString("decl_price");
                     if (StringUtil.isNotEmpty(G_QTY) && StringUtil.isNotEmpty(decl_price)) {
@@ -550,10 +550,15 @@ public class CdZService implements BusiService {
             _content.put("weight", fdWeightTotal.floatValue());
             hm.setContent(_content.toJSONString());
             dataList.add(hm);
-            weightTotal += fdWeightTotal;
+            /*String weight = _content.getString("weight");
+            if (StringUtil.isEmpty(weight)) {
+                weight = "0";
+            }
+            weightTotal += Double.valueOf(weight);*/
+            //weightTotal += fdWeightTotal;
         }
         info.put("total_pack_no", pack_no);
-        info.put("weight_total", weightTotal.floatValue());
+        //info.put("weight_total", weightTotal.floatValue());
         cz.setContent(info.toJSONString());
         dataList.add(cz);
         h.setContent(jon.toJSONString());
@@ -709,10 +714,10 @@ public class CdZService implements BusiService {
             filedName += "," + CDReportEnum.IEPort.getName();
         }
 
-        if (StringUtil.isEmpty(mainjson.getString("s_c_code_busi_unit"))) {
+        if (StringUtil.isEmpty((String) customerInfo.get("agent_code"))) {
             filedName += "," + CDReportEnum.TradeCo.getName();
         }
-        if (StringUtil.isEmpty(mainjson.getString("business_unit_name"))) {
+        if (StringUtil.isEmpty((String) customerInfo.get("enterpriseName"))) {
             filedName += "," + CDReportEnum.TradeName.getName();
         }
 
