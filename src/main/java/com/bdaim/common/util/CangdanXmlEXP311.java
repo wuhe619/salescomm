@@ -174,10 +174,10 @@ public class CangdanXmlEXP311 {
         IEPort.setTextContent(json.getString("i_e_port"));
         ExpMftHead.appendChild(IEPort);
         Element TradeCo = document.createElement("TradeCo");
-        TradeCo.setTextContent(json.getString("s_c_code_busi_unit"));//r
+        TradeCo.setTextContent(custInfo.get("agent_code")==null?"":custInfo.get("agent_code").toString());//r
         ExpMftHead.appendChild(TradeCo);
         Element TradeName = document.createElement("TradeName");
-        TradeName.setTextContent(json.getString("business_unit_name"));
+        TradeName.setTextContent((String) custInfo.get("enterpriseName"));
         ExpMftHead.appendChild(TradeName);
 
         Element InputNo = document.createElement("InputNo");
