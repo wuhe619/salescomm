@@ -602,6 +602,46 @@ public class CallCenterService {
         return null;
     }
 
+
+    /** V1
+     * 设置中间号接口
+     * dataId 数据id  callerNumber 主叫号码   showNumber   外显号（不传默认从企业外显号码池随机一个外显号码 key加密私钥
+     */
+    public Map<String, Object> unicomSetMiddleNumV1(String entId, String customerId, String entPassWord, String callerNumber, String showNumber, String key) {
+        Map<String, String> params = new HashMap<>();
+        params.put("dataId", customerId);
+        params.put("callerNumber", callerNumber);
+        params.put("showNumber", showNumber);
+        String result;
+        try {
+            Map<String, Object> headers = new HashMap<>(16);
+            //获取请求token
+            if (StringUtil.isEmpty(entPassWord)) {
+                entPassWord = "111111";
+            }
+            String token = unicomGetToken(entPassWord, entId);
+            //签名处理
+            DateFormat df = new SimpleDateFormat("yyyyMMddHHmmssSSS");
+            String sysTime = df.format(new Date());
+            String parmToken = token + sysTime;
+            LOG.info("加密数据是:" + parmToken);
+            String sgin = encryptThreeDESECB(URLEncoder.encode(parmToken, "UTF-8"), key);
+            LOG.info("加密结果是:" + sgin);
+            headers.put("Sig", sgin);
+            headers.put("Content-Type", "application/json;charset=utf-8");
+            LOG.info("联通设置中间号接口请求地址是：" + UNICOM_BASE_URL_V1 + "singleCall/ambSetNumber/" + entId + " 设置中间号参数:" + params.toString());
+            result = HttpUtil.httpPost(UNICOM_BASE_URL_V1 + "singleCall/ambSetNumber/" + entId, params, null);
+            LOG.info("联通设置中间号返回:" + result);
+            if (StringUtil.isNotEmpty(result)) {
+                return JSON.parseObject(result, Map.class);
+            }
+        } catch (Exception e) {
+            LOG.error("联通设置中间号失败:", e);
+            throw new RuntimeException("联通设置中间号异常", e);
+        }
+        return null;
+    }
+
     /**
      * 获取企业登录token
      *
