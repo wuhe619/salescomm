@@ -2332,6 +2332,65 @@ public class MarketResourceService {
     }
 
 
+    /**
+     * 联通录音文件推送V1
+     *
+     * @param
+     */
+
+    public String getUnicomRecordfileV1(JSONObject param) throws Exception {
+        LOG.info("开始获取联通录音文件callSid是" + param.getString("uuid"));
+        LOG.info("联通推送录音接口参数" + param.toString());
+        String callSid = param.getString("uuid");
+        String code = "1";
+        String queryTouchSql = "SELECT touch_id touchId ,cust_id custId,user_id userId,superid superId ,batch_id batchId FROM t_touch_voice_log WHERE callSid=?";
+        //根据callSid 查询是否存在通过话记录
+        List<Map<String, Object>> logList = marketResourceDao.sqlQuery(queryTouchSql, callSid);
+        if (logList.size() > 0) {
+            String querySql = "SELECT recordurl from t_callback_info WHERE callSid = ? AND recordurl is not null";
+           /* //将录音地址保存到录音拉取对接表中sql
+            String insertSql = "INSERT INTO t_record_queue (callSid,recordUrl) VALUES(?,?)";
+            String querySql = "SELECT * FROM t_record_queue WHERE callSid = ?";*/
+            //获取录音文件地址
+            String recordUrl = param.getString("recordUrl");
+            LOG.info("录音文件地址:" + recordUrl);
+            if (StringUtil.isNotEmpty(recordUrl) && recordUrl.contains("htt")) {
+              /*  //查询当前录音队列表中是否存在根据callSid，不存在直接插入   存在返回code=0，联通不在推送
+                List<Map<String, Object>> maps = marketResourceDao.sqlQuery(querySql, callSid);
+                LOG.info("查询当前录音队列表中是否存在sql:" + querySql);*/
+                List<Map<String, Object>> maps = marketResourceDao.sqlQuery(querySql, callSid);
+                LOG.info("查询当前录音队列表中是否存在sql:" + querySql);
+                if (maps != null && maps.size() > 0) {
+                    //说明已经存在返回code=0，联通不进行再次推送
+                    LOG.info("callSid是:" + callSid + "已经存在");
+                    code = "0";
+                } else {
+                    //保存录音文件
+                    String voiceFilePath = FileUtil.savePhoneRecordFileReturnPath(recordUrl, String.valueOf(logList.get(0).get("user_id")));
+                    if (StringUtil.isNotEmpty(voiceFilePath)) {
+                        LOG.info("开始进行录音文件转换:" + voiceFilePath);
+                        try {
+                            // 文件转换
+                            FileUtil.wavToMp3(voiceFilePath, voiceFilePath.replaceAll(".wav", ".mp3"));
+                        } catch (Exception e) {
+                            LOG.error("录音文件转换失败:", e);
+                        }
+                    }
+                    //更改回调表录音地址
+                    String updateUrlSql = "UPDATE t_callback_info SET recordurl = ? WHERE callSid = ?";
+                    int i = marketResourceDao.executeUpdateSQL(updateUrlSql, recordUrl, callSid);
+                    LOG.info("更新回调表数量:" + i);
+                    if (i > 0) {
+                        code = "0";
+                    }
+                }
+            }
+        } else {
+            LOG.info("未查询到该条记录回调数据是:" + param);
+        }
+        return code;
+    }
+
     public Object exportreach(String cust_id, Long userid, String user_type, String superId, String realName, String createTimeStart, String createTimeEnd, String enterpriseId, String batchId, int touchStatus, String enterpriseName, HttpServletResponse response) {
         Map<String, Object> resultMap = new HashMap<>();
         try {

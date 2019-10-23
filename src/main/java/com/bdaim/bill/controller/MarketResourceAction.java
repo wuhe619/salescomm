@@ -646,7 +646,7 @@ public class MarketResourceAction extends BasicAction {
      */
     @RequestMapping(value = "/unicomCallBackV1", method = RequestMethod.POST)
     public void getCallBackInfov1(@RequestBody CallBackInfoParam callBackInfoParam, HttpServletResponse response) {
-        LOG.info("获取失联修复联通呼叫中心话单推送开始,推送数据是" + callBackInfoParam.toString());
+        LOG.info("获取失联修复联通呼叫中心话单V1推送开始,推送数据是" + callBackInfoParam.toString());
         //处理返回数据进行DB操作
         try {
             response.setContentType("application/json");
@@ -688,6 +688,30 @@ public class MarketResourceAction extends BasicAction {
         }
     }
 
+    /**
+     * @description 联通录音推送接口V1
+     * @author:duanliying
+     * @method
+     * @date: 2018/12/5 19:15
+     */
+    @RequestMapping(value = "/unicomRecordV1", method = RequestMethod.POST)
+    public void getUnicomRecordV1(@RequestBody JSONObject param, HttpServletResponse response) {
+        LOG.info("获取失联修复联通呼叫中心录音文件V1推送数据是" + param.toString());
+        //处理返回数据进行DB操作
+        try {
+            String result = marketResourceService.getUnicomRecordfileV1(param);
+            if ("0".equals(result)) {
+                response.setContentType("application/json");
+                PrintWriter printWriter = response.getWriter();
+                printWriter.print("{\"code\":\"0\"}");
+                printWriter.flush();
+                response.flushBuffer();
+                return;
+            }
+        } catch (Exception e) {
+            LOG.error("获取失联修复联通录音获取异常" + e);
+        }
+    }
 
     //后台 触达记录导出
     @RequestMapping(value = "/exportreach", method = RequestMethod.GET, produces = "application/vnd.ms-excel;charset=UTF-8")
