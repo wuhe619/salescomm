@@ -111,6 +111,9 @@ public class MarketResourceService {
     private final static String SMS_SEND_REMARK_SPLIT = "{}";
     //发送类型
     private final static String TYPE_CODE = "2";
+    //状态
+    private final static int SUCCESS = 1001;
+    private final static int FAIL = 1002;
     /**
      * 联通包月分钟数配置key
      */
@@ -2390,6 +2393,71 @@ public class MarketResourceService {
         }
         return code;
     }
+
+
+    /**
+     * 联通录音文件推送V1
+     *
+     * @param
+     */
+
+    public String getUnicomSmsStatusV1(JSONObject param) {
+        LOG.info("开始获取联通短信记录的request_id是" + param.getString("contactId"));
+        LOG.info("联通推送短信状态接口参数" + param.toString());
+        try {
+            String requestId = param.getString("contactId");
+            String batchId = param.getString("cont");
+            String sendStatus = param.getString("isContactSuccess");
+            String code = "1";
+            String queryTouchSql = "SELECT touch_id touchId ,resource_id resourceId,cust_id custId,user_id userId,superid superId ,batch_id batchId FROM t_touch_sms_log WHERE request_id=? and batch_id = ? and status = 1000";
+            //根据callSid 查询是否存在短信记录
+            int status = 1002, amount = 0, prodAmount = 0;
+            List<Map<String, Object>> logList = marketResourceDao.sqlQuery(queryTouchSql, requestId, batchId);
+            if (logList.size() > 0) {
+                LOG.info("短信发送状态是：" + sendStatus + "唯一id是：" + requestId);
+                if ("1".equals(sendStatus)) {
+                    String resourceId = String.valueOf(logList.get(0).get("resourceId"));
+                    String custId = String.valueOf(logList.get(0).get("custId"));
+                    //短信发送成功进行扣费
+                    status = SUCCESS;
+                    //发送成功后进行企业和供应商进行扣费
+                    ResourcesPriceDto resourcesPriceDto = customerDao.getCustResourceMessageById(resourceId, custId);
+                    String custSmsPrice = resourcesPriceDto.getSmsPrice();
+                    BigDecimal custSmsAmount = null;
+                    if (StringUtil.isNotEmpty(custSmsPrice)) {
+                        custSmsAmount = new BigDecimal(custSmsPrice).multiply(new BigDecimal(100));
+                    }
+                    LOG.info("短信扣费客户:" + custId + ",开始扣费,金额:" + custSmsAmount);
+                    boolean accountDeductionStatus = customerDao.accountDeductions(custId, custSmsAmount);
+                    LOG.info("短信扣费客户:" + custId + ",扣费状态:" + accountDeductionStatus + "扣费金额是：" + custSmsAmount);
+
+                    //获取供应商短信价格
+                    String supSmsPrice = "";
+                    if (StringUtil.isNotEmpty(resourceId)) {
+                        ResourcesPriceDto supResourceMessageById = supplierDao.getSupResourceMessageById(Integer.parseInt(resourceId), null);
+                        supSmsPrice = supResourceMessageById.getSmsPrice();
+                    }
+                    //供应商扣费需要转换为分进行扣减
+                    if (StringUtil.isNotEmpty(supSmsPrice)) {
+                        BigDecimal sourceSmsAmount = new BigDecimal(supSmsPrice).multiply(new BigDecimal(100));
+                        Boolean sourceSmsDeductionStatus = sourceDao.supplierAccountDuctions(SupplierEnum.CUC.getSupplierId(), sourceSmsAmount);
+                        LOG.info("短信扣费供应商:" + custId + "短信扣费状态:" + sourceSmsDeductionStatus + "扣费金额是：" + sourceSmsAmount);
+                    }
+                }
+                String updateSql = "UPDATE t_touch_sms_log SET amount=?,prod_amount=?,`status` =?,send_data = ? WHERE request_id = ? and batch_id =? and send_status = 1001";
+                //更改短信状态记录
+                LOG.info("更改批次状态唯一id是：" + requestId + "发送状态是：" + status + "客户消费金额是：" + amount + "供应商成本价是：" + prodAmount);
+                int updateNum = marketResourceDao.executeUpdateSQL(updateSql, amount, prodAmount, status, param.toJSONString(), requestId, batchId);
+                if (updateNum > 0) {
+                    code = "0";
+                }
+            }
+            return code;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
 
     public Object exportreach(String cust_id, Long userid, String user_type, String superId, String realName, String createTimeStart, String createTimeEnd, String enterpriseId, String batchId, int touchStatus, String enterpriseName, HttpServletResponse response) {
         Map<String, Object> resultMap = new HashMap<>();
