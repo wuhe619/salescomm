@@ -644,7 +644,7 @@ public class MarketResourceAction extends BasicAction {
      * @method
      * @date: 2018/12/5 19:15
      */
-    @RequestMapping(value = "/callPushV1", method = RequestMethod.POST)
+    @RequestMapping(value = "/callBack/call", method = RequestMethod.POST)
     public void getCallBackInfov1(@RequestBody CallBackInfoParam callBackInfoParam, HttpServletResponse response) {
         LOG.info("获取失联修复联通呼叫中心话单V1推送开始,推送数据是" + callBackInfoParam.toString());
         //处理返回数据进行DB操作
@@ -694,7 +694,7 @@ public class MarketResourceAction extends BasicAction {
      * @method
      * @date: 2018/12/5 19:15
      */
-    @RequestMapping(value = "/recordPushV1", method = RequestMethod.POST)
+    @RequestMapping(value = "/callBack/record", method = RequestMethod.POST)
     public void getUnicomRecordV1(@RequestBody JSONObject param, HttpServletResponse response) {
         LOG.info("获取失联修复联通呼叫中心录音文件V1推送数据是" + param.toString());
         //处理返回数据进行DB操作
@@ -719,7 +719,7 @@ public class MarketResourceAction extends BasicAction {
      * @method
      * @date: 2018/12/5 19:15
      */
-    @RequestMapping(value = "/smsPushV1", method = RequestMethod.POST)
+    @RequestMapping(value = "/callBack/sms", method = RequestMethod.POST)
     public void getUnicomSmsStautsV1(@RequestBody JSONObject param, HttpServletResponse response) {
         LOG.info("联通短信状态V1推送数据是" + param.toString());
         //处理返回数据进行DB操作
