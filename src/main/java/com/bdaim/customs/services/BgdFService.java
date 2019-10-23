@@ -337,9 +337,9 @@ public class BgdFService implements BusiService {
         if(StringUtil.isEmpty(mainjson.getString("traf_mode"))){
             filedName += "," + BGDReportEnum.TrafMode.getName();
         }
-        if(StringUtil.isEmpty(mainjson.getString("shipper_unit_name"))){
-            filedName += "," + BGDReportEnum.OwnerName.getName();
-        }
+//        if(StringUtil.isEmpty(mainjson.getString("shipper_unit_name"))){
+//            filedName += "," + BGDReportEnum.OwnerName.getName();
+//        }
         if(StringUtil.isEmpty(mainjson.getString("agent_type"))){
             filedName += "," + BGDReportEnum.AgentType.getName();
         }
@@ -375,9 +375,9 @@ public class BgdFService implements BusiService {
         if(StringUtil.isEmpty(mainjson.getString("decl_port"))){
             filedName += "," + BGDReportEnum.DeclPort.getName();
         }
-        if(StringUtil.isEmpty(mainjson.getString("s_c_code_busi_unit"))
-                || mainjson.getString("s_c_code_busi_unit").length()<6){
-            filedName += "," + BGDReportEnum.CoOwner.getName();//经营单位性质，取经营单位编码第6位
+        if(customerInfo.get("agent_code")==null
+                || customerInfo.get("agent_code").toString().length()<6){
+            filedName += "," + BGDReportEnum.CoOwner.getName();//经营单位性质，取报关单位编码第6位
         }
         if(StringUtil.isEmpty(customerInfo.getOrDefault("input_name","").toString())){
             filedName += "," + BGDReportEnum.InputNo.getName();
