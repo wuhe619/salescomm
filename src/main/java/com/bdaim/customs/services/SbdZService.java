@@ -54,13 +54,14 @@ public class SbdZService implements BusiService {
     public void insertInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) throws Exception {
         CustomerProperty station_idProperty = customerDao.getProperty(cust_id, "station_id");
         if (station_idProperty == null || StringUtil.isEmpty(station_idProperty.getPropertyValue())) {
-            log.error("未配置场站信息");
+            log.warn("custId:{}未配置场站信息", cust_id);
             throw new TouchException("未配置场站信息");
         }
         String billno = info.getString("bill_no");
         String sql = "select id from " + HMetaDataDef.getTable(busiType, "") + " where type='" + busiType + "' and ext_3 = '" + billno + "'";
         List<Map<String, Object>> countList = jdbcTemplate.queryForList(sql);
         if (countList != null && countList.size() > 0) {
+            log.warn("主单:{}已经申报", billno);
             throw new TouchException("此主单已经申报");
         }
         log.info("申报单主单号:{}开始插入:{}", billno, System.currentTimeMillis());
