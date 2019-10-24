@@ -503,7 +503,7 @@ public class BatchListServiceImpl implements BatchListService {
         String kehuId = null, certifyMd5 = null, lalel_one = null, label_two = null, label_three = null;
         if (batchDetailList.size() > 0) {
             for (int i = 0; i < batchDetailList.size(); i++) {
-                String touchId = Long.toString(IDHelper.getTransactionId());
+                String touchId = String.valueOf(UUID.randomUUID()).replaceAll("-","");
                 BatchDetail batchDetail = batchDetailList.get(i);
                 if (batchDetail != null) {
                     kehuId = batchDetail.getEnterpriseId();
