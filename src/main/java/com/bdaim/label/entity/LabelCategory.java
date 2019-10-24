@@ -56,10 +56,6 @@ public class LabelCategory {
 	@Column(name = "is_leaf")
 	private Integer isLeaf;
 
-	@OneToMany(mappedBy = "labelCategory", fetch = FetchType.LAZY)
-	private List<UserLabelCategory> userLabelCategoryLs;
-
-
 	public Integer getId() {
 		return id;
 	}
@@ -194,15 +190,6 @@ public class LabelCategory {
 
 	public void setIsLeaf(Integer isLeaf) {
 		this.isLeaf = isLeaf;
-	}
-
-	public List<UserLabelCategory> getUserLabelCategoryLs() {
-		return userLabelCategoryLs;
-	}
-
-	public void setUserLabelCategoryLs(
-			List<UserLabelCategory> userLabelCategoryLs) {
-		this.userLabelCategoryLs = userLabelCategoryLs;
 	}
 
 }
