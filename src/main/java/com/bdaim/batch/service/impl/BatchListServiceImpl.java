@@ -1,6 +1,7 @@
 package com.bdaim.batch.service.impl;
 
 import com.bdaim.batch.ResourceEnum;
+import com.bdaim.batch.controller.BatchAction;
 import com.bdaim.batch.dao.BatchDao;
 import com.bdaim.batch.dao.BatchDetailDao;
 import com.bdaim.batch.dao.BatchLogDao;
@@ -77,7 +78,7 @@ public class BatchListServiceImpl implements BatchListService {
      * @method
      * @date: 2019/4/8 10:39
      */
-    public Map<String, Object> uploadBatchFile(MultipartFile file, String batchname, String repairMode, int certifyType, String channel, String compId, Long optUser, String optUserName) throws Exception {
+    public Map<String, Object> uploadBatchFile(MultipartFile file, String batchname, String repairStrategy, int certifyType, String channel, String compId, Long optUser, String optUserName) throws Exception {
         Map<String, Object> resultMap = new HashMap<>();
         List<String> channels = null;
         int type = 0;
@@ -268,7 +269,7 @@ public class BatchListServiceImpl implements BatchListService {
                         resultMap.put("_message", "录入企业自带id数据不能重复，上传失败！");
                         return resultMap;
                     } else {
-                        batchListService.saveBatch(batchname, uploadNum, repairMode, compId, batchId, certifyType, channelall);
+                        batchListService.saveBatch(batchname, uploadNum, repairStrategy, compId, batchId, certifyType, channelall);
                     }
                         /*String errorCode = batchService.sendtofile(certlist,custuserIdlist,repairMode,batchId);
                 if(errorCode.equals("00")){
@@ -531,35 +532,17 @@ public class BatchListServiceImpl implements BatchListService {
 
 
     @Override
-    public void saveBatch(String batchname, int uploadNum, String repairMode, String compId, String batchId,
+    public void saveBatch(String batchname, int uploadNum, String repairStrategy, String compId, String batchId,
                           int certifyType, String channel) throws Exception {
-        int channels = Integer.parseInt(channel.toString());
+        int channels = Integer.parseInt(channel);
         String compName = "";
         Customer customer = customerDao.findUniqueBy("custId", compId);
         if (customer != null) {
             compName = customer.getEnterpriseName();
         }
-        /*BatchListEntity batchListEntity = new BatchListEntity();
-        batchListEntity.setBatchName(batchname);//批次名称
-        batchListEntity.setCertifyType(certifyType);//身份证
-        batchListEntity.setChannel(channels);//联通
-        batchListEntity.setId(batchId);//批次id
-        batchListEntity.setCompId(compId);//企业id
-        batchListEntity.setCompName(compName);
-        batchListEntity.setUploadTime((new Timestamp(new Date().getTime())));//修复时间
-        batchListEntity.setStatus(2);//匹配中
-        batchListEntity.setUploadNum(uploadNum);
-        batchListEntity.setRepairStrategy("2");
-        batchListEntity.setRepairMode(repairMode);*/
-
-
-        StringBuilder sqlBuilder = new StringBuilder("INSERT INTO nl_batch(batch_name,certify_type,channel,id,comp_id,comp_name,upload_time,status,upload_num,repair_strategy,repair_mode,cuc_received) values(?,?,?,?,?,?,?,?,?,?,?,?)");
-        batchDetailDao.executeUpdateSQL(sqlBuilder.toString(), batchname, certifyType, channels, batchId, compId, compName, (new Timestamp(new Date().getTime())), 2, uploadNum, "2", repairMode, 0);
-
-
-/*
-        batchListDao.save(batchListEntity);*/
-        LOG.info("修复文件上传成功，插入批次表： 企业ID:" + compId + "\t批次ID:" + batchId + "\t批次名称：" + batchname + "\t上传数量:" + uploadNum + "\t修复模式：" + repairMode);
+        StringBuilder sqlBuilder = new StringBuilder("INSERT INTO nl_batch(batch_name,certify_type,channel,id,comp_id,comp_name,upload_time,status,upload_num,repair_strategy,cuc_received) values(?,?,?,?,?,?,?,?,?,?,?)");
+        batchDetailDao.executeUpdateSQL(sqlBuilder.toString(), batchname, certifyType, channels, batchId, compId, compName, (new Timestamp(new Date().getTime())), 2, uploadNum, repairStrategy, 0);
+        LOG.info("修复文件上传成功，插入批次表： 企业ID:" + compId + "\t批次ID:" + batchId + "\t批次名称：" + batchname + "\t上传数量:" + uploadNum + "\t修复模式：" + repairStrategy);
 
     }
 

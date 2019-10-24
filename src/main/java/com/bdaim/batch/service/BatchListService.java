@@ -56,7 +56,7 @@ public interface BatchListService {
 
     void saveBatchDetailList(List<BatchDetail> batchDetailList, String channelall, String resourceId, int certifyType, String batchId, Long operUserId, String operName);
 
-    void saveBatch(String batchname, int uploadNum, String repairMode, String compId, String batchId, int certifyType, String channl) throws Exception;
+    void saveBatch(String batchname, int uploadNum, String repairStrategy, String compId, String batchId, int certifyType, String channl) throws Exception;
 
     void cucIsreceive(String batchId, int cucIsReceived) throws Exception;
 
