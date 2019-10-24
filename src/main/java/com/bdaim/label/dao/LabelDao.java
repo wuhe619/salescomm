@@ -2,12 +2,13 @@ package com.bdaim.label.dao;
 
 
 import com.bdaim.common.dao.SimpleHibernateDao;
-import com.bdaim.common.util.SqlKeywordUtils;
 import com.bdaim.label.dto.CategoryType;
 import com.bdaim.label.dto.QueryType;
 import com.bdaim.label.entity.DataNode;
 import com.bdaim.label.entity.LabelInfo;
 import com.bdaim.rbac.dto.UserDTO;
+import com.bdaim.util.SqlKeywordUtils;
+
 import org.springframework.stereotype.Component;
 
 import java.io.Serializable;

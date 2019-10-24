@@ -3,10 +3,11 @@ package com.bdaim.common.service.api;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.service.PhoneService;
-import com.bdaim.common.util.DateUtil;
-import com.bdaim.common.util.LogUtil;
-import com.bdaim.common.util.StringUtil;
 import com.bdaim.resource.dao.MarketResourceDao;
+import com.bdaim.util.DateUtil;
+import com.bdaim.util.LogUtil;
+import com.bdaim.util.StringUtil;
+
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;

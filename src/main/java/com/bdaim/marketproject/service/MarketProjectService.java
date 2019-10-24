@@ -10,7 +10,6 @@ import com.bdaim.callcenter.common.CallUtil;
 import com.bdaim.callcenter.common.PhoneAreaUtil;
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.service.PhoneService;
-import com.bdaim.common.util.*;
 import com.bdaim.common.util.excel.ExcelAfterWriteHandlerImpl;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerLabelDao;
@@ -39,6 +38,8 @@ import com.bdaim.markettask.entity.MarketTask;
 import com.bdaim.rbac.dto.UserQueryParam;
 import com.bdaim.template.dao.MarketTemplateDao;
 import com.bdaim.template.entity.MarketTemplate;
+import com.bdaim.util.*;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;

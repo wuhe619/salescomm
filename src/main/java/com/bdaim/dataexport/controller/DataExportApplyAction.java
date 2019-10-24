@@ -3,11 +3,12 @@ package com.bdaim.dataexport.controller;
 import com.alibaba.fastjson.JSON;
 import com.bdaim.common.annotation.CacheAnnotation;
 import com.bdaim.common.controller.BasicAction;
-import com.bdaim.common.util.Constant;
 import com.bdaim.dataexport.entity.DataExportApply;
 import com.bdaim.dataexport.service.DataExportApplyService;
 import com.bdaim.label.entity.LabelAudit;
 import com.bdaim.label.service.LabelAuditService;
+import com.bdaim.util.Constant;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;

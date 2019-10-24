@@ -2,8 +2,8 @@ package com.bdaim.batch.service.impl;
 
 import com.bdaim.batch.dao.BatchDetailDao;
 import com.bdaim.batch.service.ExportMessageService;
-import com.bdaim.common.util.ExcelUtil;
-import com.bdaim.common.util.StringUtil;
+import com.bdaim.util.ExcelUtil;
+import com.bdaim.util.StringUtil;
 import com.github.crab2died.ExcelUtils;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.slf4j.Logger;
@@ -276,7 +276,7 @@ public class ExportMessageImpl implements ExportMessageService {
                 .append("  LEFT JOIN t_customer_label t2")
                 .append("  ON t1.label_id = t2.label_id")
                 .append("  WHERE 1=1  AND t2.status =1")
-                .append("  and  t1.super_id  IN (" + com.bdaim.common.util.SqlAppendUtil.sqlAppendWhereIn(superIds) + " )")
+                .append("  and  t1.super_id  IN (" + com.bdaim.util.SqlAppendUtil.sqlAppendWhereIn(superIds) + " )")
                 .append("  AND  t1.batch_id = ?");
         List<Map<String, Object>> list = batchDetailDao.sqlQuery(sb.toString(), batchId);
         return list;

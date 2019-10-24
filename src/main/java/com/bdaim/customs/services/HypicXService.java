@@ -8,11 +8,12 @@ import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.service.BusiService;
 import com.bdaim.common.service.ResourceService;
 import com.bdaim.common.service.SequenceService;
-import com.bdaim.common.util.NumberConvertUtil;
-import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customs.entity.*;
 import com.bdaim.customs.utils.ServiceUtils;
+import com.bdaim.util.NumberConvertUtil;
+import com.bdaim.util.StringUtil;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

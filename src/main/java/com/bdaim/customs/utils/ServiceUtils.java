@@ -7,7 +7,6 @@ import com.bdaim.common.BusiMetaConfig;
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.service.ElasticSearchService;
 import com.bdaim.common.service.SequenceService;
-import com.bdaim.common.util.*;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.entity.Customer;
 import com.bdaim.customer.entity.CustomerProperty;
@@ -15,6 +14,8 @@ import com.bdaim.customs.entity.*;
 import com.bdaim.resource.dao.SourceDao;
 import com.bdaim.resource.entity.MarketResourceEntity;
 import com.bdaim.supplier.dto.SupplierEnum;
+import com.bdaim.util.*;
+
 import io.searchbox.core.SearchResult;
 import net.sf.json.xml.XMLSerializer;
 import org.dom4j.Document;

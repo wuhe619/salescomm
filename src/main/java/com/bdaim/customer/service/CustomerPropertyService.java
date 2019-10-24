@@ -1,11 +1,8 @@
 package com.bdaim.customer.service;
 
 import com.bdaim.common.dto.PageParam;
-import com.bdaim.common.util.DateUtil;
-import com.bdaim.common.util.IDHelper;
-import com.bdaim.common.util.StringUtil;
-import com.bdaim.common.util.page.PageList;
-import com.bdaim.common.util.page.Pagination;
+import com.bdaim.common.page.PageList;
+import com.bdaim.common.page.Pagination;
 import com.bdaim.customer.controller.CustomerPropertyAction;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerLabelDao;
@@ -14,6 +11,10 @@ import com.bdaim.customer.entity.CustomerProperty;
 import com.bdaim.customer.entity.CustomerPropertyParam;
 import com.bdaim.supplier.dao.SupplierDao;
 import com.bdaim.supplier.entity.SupplierEntity;
+import com.bdaim.util.DateUtil;
+import com.bdaim.util.IDHelper;
+import com.bdaim.util.StringUtil;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;

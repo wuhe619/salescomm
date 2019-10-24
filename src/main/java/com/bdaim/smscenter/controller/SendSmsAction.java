@@ -7,9 +7,10 @@ import com.bdaim.callcenter.dto.SeatPropertyDTO;
 import com.bdaim.callcenter.dto.SeatsInfo;
 import com.bdaim.common.annotation.CacheAnnotation;
 import com.bdaim.common.controller.BasicAction;
-import com.bdaim.common.util.StringUtil;
 import com.bdaim.smscenter.dto.CallBackSmsDTO;
 import com.bdaim.smscenter.service.SendSmsService;
+import com.bdaim.util.StringUtil;
+
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;

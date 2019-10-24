@@ -13,14 +13,15 @@ import com.bdaim.common.dto.Page;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.exception.ParamException;
 import com.bdaim.common.exception.TouchException;
-import com.bdaim.common.util.NumberConvertUtil;
-import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.dto.CustomerUserDTO;
 import com.bdaim.markettask.dto.MarketTaskDTO;
 import com.bdaim.markettask.dto.MarketTaskListParam;
 import com.bdaim.markettask.dto.MarketTaskParam;
 import com.bdaim.markettask.service.MarketTaskService;
 import com.bdaim.rbac.dto.RoleEnum;
+import com.bdaim.util.NumberConvertUtil;
+import com.bdaim.util.StringUtil;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;

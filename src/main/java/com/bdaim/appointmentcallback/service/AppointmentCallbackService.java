@@ -6,14 +6,15 @@ import com.bdaim.appointmentcallback.dto.AppointmentCallbackQueryParam;
 import com.bdaim.appointmentcallback.entity.AppointmentCallback;
 import com.bdaim.appointmentcallback.vo.AppointmentCallbackVO;
 import com.bdaim.common.dto.Page;
-import com.bdaim.common.util.ConstantsUtil;
-import com.bdaim.common.util.NumberConvertUtil;
-import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.dao.CustomerUserDao;
 import com.bdaim.customgroup.dao.CustomGroupDao;
 import com.bdaim.customgroup.entity.CustomGroup;
 import com.bdaim.markettask.dao.MarketTaskDao;
 import com.bdaim.markettask.entity.MarketTask;
+import com.bdaim.util.ConstantsUtil;
+import com.bdaim.util.NumberConvertUtil;
+import com.bdaim.util.StringUtil;
+
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Service;
 

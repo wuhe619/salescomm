@@ -3,7 +3,7 @@ package com.bdaim.batch.service;
 import com.bdaim.batch.entity.BatchDetail;
 import com.bdaim.batch.entity.BatchListParam;
 import com.bdaim.common.dto.PageParam;
-import com.bdaim.common.util.page.PageList;
+import com.bdaim.common.page.PageList;
 
 import java.util.List;
 import java.util.Map;

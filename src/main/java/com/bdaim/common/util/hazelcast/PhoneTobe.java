@@ -1,7 +1,7 @@
 package com.bdaim.common.util.hazelcast;
 
 
-import com.bdaim.common.util.PropertiesUtil;
+import com.bdaim.util.PropertiesUtil;
 
 /**
  * 获取Hazelcast服务器

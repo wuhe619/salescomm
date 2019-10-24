@@ -2,7 +2,7 @@ package com.bdaim.price.service;
 
 import com.bdaim.bill.dto.CustomerBillQueryParam;
 import com.bdaim.common.dto.PageParam;
-import com.bdaim.common.util.page.PageList;
+import com.bdaim.common.page.PageList;
 import com.bdaim.customer.entity.CustomerProperty;
 import com.bdaim.price.dto.SalePriceDTO;
 

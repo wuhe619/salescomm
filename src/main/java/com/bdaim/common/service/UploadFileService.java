@@ -2,9 +2,10 @@ package com.bdaim.common.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.dao.FileDao;
-import com.bdaim.common.util.BusinessEnum;
-import com.bdaim.common.util.CipherUtil;
-import com.bdaim.common.util.FileUtil;
+import com.bdaim.util.BusinessEnum;
+import com.bdaim.util.CipherUtil;
+import com.bdaim.util.FileUtil;
+
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

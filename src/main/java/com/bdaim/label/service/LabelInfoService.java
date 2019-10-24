@@ -3,8 +3,6 @@ package com.bdaim.label.service;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.bdaim.common.util.Constant;
-import com.bdaim.common.util.StringHelper;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerLabelDao;
 import com.bdaim.label.dao.IndustryLabelDao;
@@ -17,6 +15,9 @@ import com.bdaim.label.dto.QueryType;
 import com.bdaim.label.entity.*;
 import com.bdaim.rbac.dto.UserDTO;
 import com.bdaim.rbac.service.UserService;
+import com.bdaim.util.Constant;
+import com.bdaim.util.StringHelper;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.Criteria;

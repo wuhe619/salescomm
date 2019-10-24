@@ -5,11 +5,12 @@ import com.alibaba.fastjson.JSONObject;
 import com.bdaim.auth.LoginUser;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.dto.Page;
-import com.bdaim.common.util.StringUtil;
 import com.bdaim.rbac.DataFromEnum;
 import com.bdaim.rbac.dto.DeptDTO;
 import com.bdaim.rbac.service.DeptService;
 import com.bdaim.rbac.vo.DeptInfo;
+import com.bdaim.util.StringUtil;
+
 import net.sf.json.JSONArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

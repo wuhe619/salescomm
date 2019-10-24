@@ -1,10 +1,10 @@
 package com.bdaim.common.util.OperLog;
 
 
-import com.bdaim.common.util.PropertiesUtil;
 import com.bdaim.log.entity.OperLog;
 import com.bdaim.log.entity.UserOperLog;
 import com.bdaim.log.thread.UserOperLogRunnable;
+import com.bdaim.util.PropertiesUtil;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;

@@ -1,9 +1,10 @@
 package com.bdaim.industry.service;
 
 import com.bdaim.common.exception.TouchException;
-import com.bdaim.common.util.DateUtil;
 import com.bdaim.industry.dao.CustomerIndustryPoolDao;
 import com.bdaim.industry.entity.CustIndustryDO;
+import com.bdaim.util.DateUtil;
+
 import org.apache.commons.lang.StringEscapeUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;

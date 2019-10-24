@@ -5,11 +5,12 @@ import com.alibaba.fastjson.JSONObject;
 import com.bdaim.batch.dao.BatchDetailDao;
 import com.bdaim.batch.express.ZopClient;
 import com.bdaim.batch.express.ZopPublicRequest;
-import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.entity.CustomerProperty;
 import com.bdaim.resource.dao.SourceDao;
 import com.bdaim.resource.service.MarketResourceService;
+import com.bdaim.util.StringUtil;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

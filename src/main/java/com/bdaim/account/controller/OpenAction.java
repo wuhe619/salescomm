@@ -13,13 +13,14 @@ import com.bdaim.common.dto.Page;
 import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
-import com.bdaim.common.util.AuthPassport;
-import com.bdaim.common.util.IDHelper;
-import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.entity.CustomerUser;
 import com.bdaim.customs.services.CustomsService;
 import com.bdaim.resource.service.MarketResourceService;
 import com.bdaim.template.dto.TemplateParam;
+import com.bdaim.util.AuthPassport;
+import com.bdaim.util.IDHelper;
+import com.bdaim.util.StringUtil;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

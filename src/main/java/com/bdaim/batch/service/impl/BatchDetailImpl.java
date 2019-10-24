@@ -5,9 +5,9 @@ import com.alibaba.fastjson.JSONObject;
 import com.bdaim.batch.dto.DetailQueryParam;
 import com.bdaim.batch.service.BatchDetaiService;
 import com.bdaim.common.dto.PageParam;
-import com.bdaim.common.util.StringUtil;
-import com.bdaim.common.util.page.PageList;
-import com.bdaim.common.util.page.Pagination;
+import com.bdaim.common.page.PageList;
+import com.bdaim.common.page.Pagination;
+import com.bdaim.util.StringUtil;
 
 import org.apache.commons.lang.StringEscapeUtils;
 import org.springframework.jdbc.core.JdbcTemplate;

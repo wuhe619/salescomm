@@ -1,10 +1,11 @@
 package com.bdaim.customer.dao;
 
 import com.bdaim.common.dao.SimpleHibernateDao;
-import com.bdaim.common.util.NumberConvertUtil;
-import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.dto.CustomerLabelDTO;
 import com.bdaim.customer.entity.CustomerLabel;
+import com.bdaim.util.NumberConvertUtil;
+import com.bdaim.util.StringUtil;
+
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;

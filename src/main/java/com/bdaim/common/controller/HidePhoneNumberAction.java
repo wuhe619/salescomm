@@ -2,7 +2,8 @@ package com.bdaim.common.controller;
 
 import com.bdaim.common.annotation.CacheAnnotation;
 import com.bdaim.common.service.api.HidePhoneNumberImpl;
-import com.bdaim.common.util.LogUtil;
+import com.bdaim.util.LogUtil;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;

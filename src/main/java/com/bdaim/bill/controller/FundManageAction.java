@@ -7,8 +7,9 @@ import com.bdaim.common.controller.util.ResponseJson;
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.exception.ParamException;
-import com.bdaim.common.util.StringUtil;
 import com.bdaim.customeruser.service.UserGroupService;
+import com.bdaim.util.StringUtil;
+
 import org.apache.log4j.Logger;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.RequestMapping;

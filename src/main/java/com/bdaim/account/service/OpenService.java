@@ -15,11 +15,6 @@ import com.bdaim.callcenter.service.impl.CallCenterService;
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
-import com.bdaim.common.util.CipherUtil;
-import com.bdaim.common.util.IDHelper;
-import com.bdaim.common.util.StringHelper;
-import com.bdaim.common.util.StringUtil;
-import com.bdaim.common.util.http.HttpUtil;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerUserDao;
 import com.bdaim.customer.entity.Customer;
@@ -36,6 +31,12 @@ import com.bdaim.supplier.dto.SupplierEnum;
 import com.bdaim.supplier.service.SupplierService;
 import com.bdaim.template.dao.MarketTemplateDao;
 import com.bdaim.template.entity.MarketTemplate;
+import com.bdaim.util.CipherUtil;
+import com.bdaim.util.IDHelper;
+import com.bdaim.util.StringHelper;
+import com.bdaim.util.StringUtil;
+import com.bdaim.util.http.HttpUtil;
+
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import org.apache.commons.io.IOUtils;
@@ -50,6 +51,10 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
+
+import static com.bdaim.util.JwtUtil.generToken;
+import static com.bdaim.util.JwtUtil.verifyToken;
+
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -60,9 +65,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static com.bdaim.common.util.JwtUtil.generToken;
-import static com.bdaim.common.util.JwtUtil.verifyToken;
 
 //import io.jsonwebtoken.Claims;
 //import io.jsonwebtoken.ExpiredJwtException;
