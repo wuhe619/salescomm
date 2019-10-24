@@ -51,8 +51,6 @@ public class SbdZService implements BusiService {
     @Autowired
     ElasticSearchService elasticSearchService;
 
-
-    @Override
     public void insertInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) throws Exception {
         CustomerProperty station_idProperty = customerDao.getProperty(cust_id, "station_id");
         if (station_idProperty == null || StringUtil.isEmpty(station_idProperty.getPropertyValue())) {
@@ -166,6 +164,12 @@ public class SbdZService implements BusiService {
             List<Map<String, Object>> dfList = jdbcTemplate.queryForList(sql.toString(), sqlParams.toArray());
             int failIdCardNum = 0;
             if (dfList != null && dfList.size() > 0) {
+                // 判断余额
+                boolean amountStatus = serviceUtils.checkBatchIdCardAmount(cust_id, dfList.size());
+                if (!amountStatus) {
+                    log.warn("申报单核验余额不足[" + busiType + "]" + id);
+                    throw new TouchException("1001", "余额不足");
+                }
                 JSONObject content = new JSONObject();
                 content.put("main_id", id);
                 content.put("status", 0);

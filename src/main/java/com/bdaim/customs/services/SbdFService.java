@@ -142,6 +142,12 @@ public class SbdFService implements BusiService {
                     log.warn("申报单分单已经核验[" + busiType + "]" + id);
                     throw new TouchException("1000", "申报单分单已经核验");
                 }
+                // 判断余额
+                boolean amountStatus = serviceUtils.checkBatchIdCardAmount(cust_id, 1);
+                if (!amountStatus) {
+                    log.warn("申报单核验余额不足[" + busiType + "]" + id);
+                    throw new TouchException("1001", "余额不足");
+                }
                 // 判断身份证是否合法
                 if ("1".equals(data.getString("id_type"))) {
                     if (StringUtil.isEmpty(data.getString("id_no")) || data.getString("id_no").length() != 18) {

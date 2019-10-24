@@ -839,6 +839,36 @@ public class MarketResourceService {
         return judge;
     }
 
+    /**
+     * 判断企业账户余额是否存在或大于0厘
+     * @param cust_id
+     * @return
+     */
+    public boolean judRemainAmount0(String cust_id) {
+        boolean judge = false;
+        try {
+            judge = true;
+            CustomerProperty customerProperty = customerDao.getProperty(cust_id, "remain_amount");
+            if (customerProperty == null) {
+                judge = false;
+            } else {
+                if (StringUtil.isEmpty(customerProperty.getPropertyValue())) {
+                    judge = false;
+                } else {
+                    double remain_amount = NumberConvertUtil.changeY2L(customerProperty.getPropertyValue());
+                    // 标准价格1厘
+                    if (remain_amount <= 0) {
+                        // 余额不足
+                        judge = false;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            LOG.error("获取余额失败,", e);
+        }
+        return judge;
+    }
+
     public synchronized void saveCallCenterVoiceLogTask() {
         saveCallCenterVoiceLog("LTBD2018090701", "111111");
     }

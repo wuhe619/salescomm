@@ -128,6 +128,17 @@ public class NumberConvertUtil {
     }
 
     /**
+     * 元转换为分(只取2位小数)
+     *
+     * @param value
+     * @return
+     */
+    public static int transformtionCent(Object value) {
+        BigDecimal bigDecimal = new BigDecimal(String.valueOf(value)).multiply(new BigDecimal(100)).setScale(2, BigDecimal.ROUND_DOWN);
+        return bigDecimal.intValue();
+    }
+
+    /**
      * 分转换为元(只取2位小数)
      *
      * @param value
