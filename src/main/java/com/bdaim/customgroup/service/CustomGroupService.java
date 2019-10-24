@@ -5361,8 +5361,8 @@ public class CustomGroupService {
                     log.info("创建导入客群成功,开始异步处理数据,ID:" + id);
                     try {
                         CustomGroupService cgs = (CustomGroupService) SpringContextHelper.getBean("customGroupService");
-                        int code = cgs.handleCustGroupImportData(String.valueOf(id), custId, customGroupDao, customerDao, customerLabelDao, jdbcTemplate, redisUtil);
-                        log.info("导入客户群数据ID:" + id + "更改状态成功,status:" + status);
+                        int code = cgs.handleCustGroupImportData(String.valueOf(id), custId, customGroupDao, customerDao, customerLabelDao, jdbcTemplate, redisUtil, phoneService);
+                        log.info("导入客户群数据ID:" + id + "更改状态成功,status:" + code);
                     } catch (Exception e) {
                         log.error("异步处理导入客群异常,", e);
                     }
@@ -5440,7 +5440,7 @@ public class CustomGroupService {
                     try {
                         CustomGroupService cgs = (CustomGroupService) SpringContextHelper.getBean("customGroupService");
                         int code = cgs.handleCustGroupImportData(String.valueOf(id), custId, customGroupDao, customerDao, customerLabelDao, jdbcTemplate, redisUtil, phoneService);
-                        log.info("导入客户群数据ID:" + id + "更改状态成功,status:" + status);
+                        log.info("导入客户群数据ID:" + id + "更改状态成功,status:" + code);
                     } catch (Exception e) {
                         log.error("异步处理导入客群异常,", e);
                     }
