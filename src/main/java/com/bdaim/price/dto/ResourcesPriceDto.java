@@ -29,6 +29,10 @@ public class ResourcesPriceDto {
     //案件id
     private String activityId;
     private String callCenterId;
+    /**
+     * 企业密码
+     */
+    private String entPassWord;
     private String apparentNumber;
     private String resourceId;
     private String resourceType;
@@ -41,11 +45,20 @@ public class ResourcesPriceDto {
     private String ifHalfMonth;
     private String partnerName;
     private String supplierId;
+
     public ResourcesPriceDto() {
     }
 
     public String getSupplierId() {
         return supplierId;
+    }
+
+    public String getEntPassWord() {
+        return entPassWord;
+    }
+
+    public void setEntPassWord(String entPassWord) {
+        this.entPassWord = entPassWord;
     }
 
     public void setSupplierId(String supplierId) {

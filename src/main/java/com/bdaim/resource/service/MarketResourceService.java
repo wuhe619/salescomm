@@ -527,9 +527,9 @@ public class MarketResourceService {
     }
 
     /**
-     * 2.2.0坐席外呼V1版本
+     * 坐席外呼
      */
-    public Map<String, Object> seatMakeCallExV1(String custId, String userId, String idCard, String batchId, String resourceId) {
+    public Map<String, Object> seatMakeCallEx(String custId, String userId, String idCard, String batchId, String resourceId) {
         LOG.info("获取联通坐席参数:custId" + custId + "userId" + userId + "idCard" + idCard + "batchId" + batchId);
         Map<String, Object> data = new HashMap<>();
         int code = 0;
@@ -654,6 +654,93 @@ public class MarketResourceService {
         data.put("activity_id", activityId);
         data.put("enterprise_id", enterpriseId);
         // }
+        return data;
+    }
+
+    /**
+     * 坐席外呼V1版本
+     */
+    public Map<String, Object> seatMakeCallExV1(String custId, String userId, String idCard, String batchId, String resourceId) {
+        LOG.info("获取联通坐席参数:custId" + custId + "userId" + userId + "idCard" + idCard + "batchId" + batchId);
+        Map<String, Object> data = new HashMap<>();
+        int code = 0;
+        String activityId = null, enterpriseId = null, apparentNumber = null, msg = "失败";
+        LOG.info("联通外呼资源id是:" + resourceId);
+        Map<String, Object> callCenterConfigData = callCenterService.getCallCenterConfigDataV1(custId, userId, resourceId);
+        LOG.info("获取外呼配置信息是：" + String.valueOf(callCenterConfigData));
+        if ((callCenterConfigData.get("mainNumber")) != null && (callCenterConfigData.get("apparentNumber")) != null) {
+            String workNum = String.valueOf(callCenterConfigData.get("mainNumber"));
+            LOG.info("坐席外呼使用的主叫号码是:" + workNum);
+            List<Map<String, Object>> batchDetail = marketResourceDao.sqlQuery("SELECT * FROM nl_batch_detail WHERE batch_id = ? AND id = ?", batchId, idCard);
+            //查询外显号码
+            List<Map<String, Object>> apparentNumberList = marketResourceDao.sqlQuery("SELECT * FROM nl_batch WHERE id = ?", batchId);
+            if (batchDetail.size() > 0) {
+                activityId = String.valueOf(batchDetail.get(0).get("activity_id"));
+                enterpriseId = String.valueOf(batchDetail.get(0).get("enterprise_id"));
+                if (apparentNumberList.size() > 0) {
+                    apparentNumber = String.valueOf(apparentNumberList.get(0).get("apparent_number"));
+                    LOG.info("批次下配置的外线号码是" + apparentNumber);
+                }
+                if (!"".equals(apparentNumber) && StringUtil.isNotEmpty(apparentNumber) && !"null".equals(apparentNumber)) {
+                    List<String> apparentsList = Arrays.asList(apparentNumber.split(","));
+                    if (apparentsList.size() > 0) {
+                        Random random = new Random();
+                        int n = random.nextInt(apparentsList.size());
+                        apparentNumber = apparentsList.get(n);
+                        LOG.info("联通外呼使用的批次下的外显号码是" + apparentNumber);
+                    }
+                } else {
+                    if (callCenterConfigData.size() > 0 && callCenterConfigData.get("apparentNumber") != null) {
+                        apparentNumber = String.valueOf(callCenterConfigData.get("apparentNumber"));
+                        String[] apparentByCust = apparentNumber.split(",");
+                        if (apparentByCust.length > 0) {
+                            List<String> apparentList = Arrays.asList(apparentNumber.split(","));
+                            Random random = new Random();
+                            int n = random.nextInt(apparentList.size());
+                            apparentNumber = apparentList.get(n);
+                            LOG.info("联通外呼使用的外显号码是" + apparentNumber);
+                        }
+                    }
+                }
+                String callCenterId = String.valueOf(callCenterConfigData.get("callCenterId"));
+                String entPassWord = String.valueOf(callCenterConfigData.get("entPassWord"));
+                //根据企业id查询密钥
+                String key = "";
+                CustomerProperty customerPro = customerDao.getProperty(custId, "key");
+                if (customerPro != null) {
+                    key = customerPro.getPropertyValue();
+                }
+                //调用联通外呼接口
+                LOG.info("坐席外呼接收请求參數:entId是" + callCenterId + "数据id是：" + String.valueOf(batchDetail.get(0).get("id")) + "企业密码：" + entPassWord + "主叫号：" + workNum + "外显号码是： " + apparentNumber + "密钥：" + key);
+                Map<String, Object> result = UnicomUtil.unicomSeatMakeCall(callCenterId, String.valueOf(batchDetail.get(0).get("id")), entPassWord, workNum, apparentNumber, key);
+                LOG.info("调用外呼返回结果:" + result.toString());
+                if (result != null && "01000".equals(String.valueOf(result.get("code")))) {
+                    String returnData = String.valueOf(result.get("data"));
+                    JSONObject jsonObject = JSON.parseObject(returnData);
+                    if (jsonObject != null) {
+                        result.put("callId", jsonObject.getString("callId"));
+                    }
+                    result.put("activity_id", activityId);
+                    result.put("enterprise_id", enterpriseId);
+                    result.put("code", 1);
+                    return result;
+                } else {
+                    LOG.error("调用外呼失败,结果:" + result.toString());
+                    code = 0;
+                    msg = "呼叫失败";
+                }
+            } else {
+                code = 0;
+                msg = "读取失联人信息失败";
+            }
+        } else {
+            code = 0;
+            msg = "配置信息错误!";
+        }
+        data.put("code", code);
+        data.put("msg", msg);
+        data.put("activity_id", activityId);
+        data.put("enterprise_id", enterpriseId);
         return data;
     }
 
@@ -3176,7 +3263,7 @@ public class MarketResourceService {
         BatchDetail batchDetail = batchDao.getBatchDetail(id, batchId);
         int resource = batchDetail.getResourceId();
         LOG.info("批次详情下的资源id是：" + resource);
-        //根据资源id查询该资源使用的外呼资源
+        //根据资源id查询该资源使用的外呼资源(sql入库)
         int callResourceId = 0, xzResourceId = 0, cmcResourceId = 0;
         ResourcePropertyEntity callConfig = sourceDao.getResourceProperty(String.valueOf(resource), "call_config");
         if (callConfig != null) {
@@ -3220,7 +3307,7 @@ public class MarketResourceService {
 
             if (callResult != null) {
                 LOG.info("调用外呼返回数据:" + callResult.toString());
-                callId = String.valueOf(callResult.get("uuid"));
+                callId = String.valueOf(callResult.get("callId"));
                 activityId = String.valueOf(callResult.get("activity_id"));
                 enterpriseId = String.valueOf(callResult.get("enterprise_id"));
                 // 成功

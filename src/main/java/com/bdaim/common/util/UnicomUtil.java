@@ -31,11 +31,12 @@ public class UnicomUtil {
 
     /**
      * 联通坐席外呼接口v1
-     * data_id 联通返回唯一id    callerNumber 主叫号码   showNumber   外显号（不传默认从企业外显号码池随机一个外显号码 key加密私钥
+     * dataId 联通返回唯一id    callerNumber 主叫号码   showNumber   外显号（不传默认从企业外显号码池随机一个外显号码 key加密私钥
      */
-    public Map<String, Object> unicomSeatMakeCallEx(String entId, String customerId, String entPassWord, String callerNumber, String showNumber, String key) {
+    public static Map<String, Object> unicomSeatMakeCall(String entId, String dataId, String entPassWord, String callerNumber, String showNumber, String key) {
+        LOG.info("坐席外呼接收參數:entId是" + entId + "数据id是：" + dataId + "企业密码：" + entPassWord + "主叫号：" + callerNumber + "外显号码是： " + showNumber + "密钥：" + key);
         Map<String, String> params = new HashMap<>();
-        params.put("dataId", customerId);
+        params.put("dataId", dataId);
         params.put("callerNumber", callerNumber);
         params.put("showNumber", showNumber);
         String result;
@@ -46,6 +47,7 @@ public class UnicomUtil {
                 entPassWord = "111111";
             }
             String token = unicomGetToken(entPassWord, entId);
+            //String token = "1111";
             //签名处理
             DateFormat df = new SimpleDateFormat("yyyyMMddHHmmssSSS");
             String sysTime = df.format(new Date());
@@ -57,6 +59,7 @@ public class UnicomUtil {
             headers.put("Content-Type", "application/json;charset=utf-8");
             LOG.info("联通外呼接口请求地址是：" + UNICOM_BASE_URL_V1 + "call/makeCall/" + entId + " 联通坐席外呼参数:" + params.toString());
             result = HttpUtil.httpPost(UNICOM_BASE_URL_V1 + "call/makeCall/" + entId, params, null);
+            //result="{\"msg\":\"success\",\"code\":\"01000\",\"data\":{\"callId\":\"1539516627199289711\",\"msg\":\"呼叫成功\",\"code\":\"000\",\"uuid\":\"01539516627199289733\",\"callNum\":\"1/600\",\"todayCallNum\":\"1/30\",\"monthCallNum\":\"1/90\"}}";
             LOG.info("联通坐席外呼返回:" + result);
             if (StringUtil.isNotEmpty(result)) {
                 return JSON.parseObject(result, Map.class);
@@ -73,7 +76,7 @@ public class UnicomUtil {
      *
      * @desc:联通短信触达 wordId 话术码  variableOne  变量标识1  variableTwo 变量标识2 variableThree 变量标识3 variableFour 变量标识4 dataList 发送短信加密手机号集合 key加密私钥
      */
-    public Map<String, Object> unicomSeatMakeSms(UnicomSendSmsParam unicomSendSmsParam) {
+    public static Map<String, Object> unicomSeatMakeSms(UnicomSendSmsParam unicomSendSmsParam) {
         String entId = unicomSendSmsParam.getEntId();
         String key = unicomSendSmsParam.getKey();
         LOG.info("联通短信触达企业id是:" + entId + "密钥是：" + key);
@@ -121,7 +124,7 @@ public class UnicomUtil {
      * 设置中间号接口
      * dataId 数据id  callerNumber 主叫号码   showNumber   外显号（不传默认从企业外显号码池随机一个外显号码 key加密私钥
      */
-    public Map<String, Object> unicomSetMiddleNum(String entId, String customerId, String entPassWord, String callerNumber, String showNumber, String key) {
+    public static Map<String, Object> unicomSetMiddleNum(String entId, String customerId, String entPassWord, String callerNumber, String showNumber, String key) {
         Map<String, String> params = new HashMap<>();
         params.put("dataId", customerId);
         params.put("callerNumber", callerNumber);
@@ -163,7 +166,7 @@ public class UnicomUtil {
      * @param entId
      * @return
      */
-    public String unicomGetToken(String entPassword, String entId) {
+    public static String unicomGetToken(String entPassword, String entId) {
         Map<String, String> params = new HashMap<>();
         params.put("entPassword", entPassword);
         String result;

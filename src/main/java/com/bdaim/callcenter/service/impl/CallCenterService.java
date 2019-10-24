@@ -96,6 +96,7 @@ public class CallCenterService {
         if (resourcesPriceDto != null) {
             result.put("callCenterId", resourcesPriceDto.getCallCenterId());
             result.put("apparentNumber", resourcesPriceDto.getApparentNumber());
+            result.put("entPassWord", resourcesPriceDto.getEntPassWord());
         }
         return result;
     }
