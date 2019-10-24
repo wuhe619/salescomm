@@ -94,12 +94,6 @@ public class IndustryPoolAction extends BasicAction {
     public String getLabelDetailById(HttpServletRequest request, Integer id) {
         LabelInfo label = labelInfoService.get(id);
         Map<String, Object> map = super.commonService.getLabelMap(label);
-        String hql = "from LabelCover t where t.label.id=" + label.getId();
-        List<LabelCover> covers = industryPoolDao.createQuery(hql).list();
-        if (null != covers && covers.size() > 0) {
-            map.put("customerNum", covers.get(0).getCoverNum());
-            map.put("total", covers.get(0).getTotal());
-        }
 
         return JSON.toJSONString(map);
     }

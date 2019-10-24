@@ -6,7 +6,6 @@ import com.bdaim.common.spring.SpringContextHelper;
 import com.bdaim.customer.dao.CustomerUserDao;
 import com.bdaim.customgroup.entity.CustomGroup;
 import com.bdaim.dataexport.entity.DataExportApply;
-import com.bdaim.label.dao.CustomerLabelAndCategoryDao;
 import com.bdaim.label.dao.LabelCategoryDao;
 import com.bdaim.label.dao.LabelInfoDao;
 import com.bdaim.label.entity.*;
@@ -451,25 +450,7 @@ public class CommonService {
         Map<String, Object> labelMap = new HashMap<String, Object>();
         Integer id = group.getId();
         try {
-            List<Object> ids = ((CustomerLabelAndCategoryDao) SpringContextHelper.getBean("customerLabelAndCategoryDao")).createQuery("select labelInfo.id from CustomerLabelAndCategory where customerGroup.id=?", id).list();
-            if (null != ids && ids.size() > 0) {
-                LabelInfoDao lidao = (LabelInfoDao) SpringContextHelper.getBean("labelInfoDao");
-                Query query = lidao.createQuery("From LabelInfo where id in(:ids)");
-                query.setParameterList("ids", ids);
-                List<LabelInfo> labels = query.list();
-                for (LabelInfo label : labels) {
-                    String path = label.getPath();
-                    if (labelMap.containsKey(path)) {
-                        StringBuffer labelNames = (StringBuffer) labelMap.get(path);
-                        labelNames.append("," + label.getLabelName());
-                    } else {
-                        StringBuffer labelNames = new StringBuffer();
-                        labelNames.append(label.getLabelName());
-                        labelMap.put(path, labelNames);
-                    }
-
-                }
-            }
+            
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -551,48 +532,7 @@ public class CommonService {
         label.setLevel(parentLabel.getLevel() + 1);
         return label;
     }
-
-    public static List<Map<String, Object>> getLabelTaskMapList(
-            List<LabelTask> tasks) {
-        List<Map<String, Object>> mapList = new ArrayList<Map<String, Object>>();
-        for (LabelTask task : tasks) {
-            mapList.add(getLabelTaskMap(task));
-        }
-        return mapList;
-    }
-
-    public static List<Map<String, Object>> getLabelTaskWithLabelInfoMapList(
-            List<Object[]> tasks) {
-        List<Map<String, Object>> mapList = new ArrayList<Map<String, Object>>();
-        for (Object[] task : tasks) {
-            Map<String, Object> map = getLabelTaskMap((LabelTask) task[0]);
-            getLabelInfoMap(map, (LabelInfo) task[1]);
-            mapList.add(map);
-        }
-        return mapList;
-    }
-
-    public static Map<String, Object> getLabelTaskMap(LabelTask task) {
-        Map<String, Object> map = new HashMap<String, Object>();
-        map.put("id", task.getId());
-        map.put("lid", task.getLid());
-        map.put("labelPath", task.getLabelPath());
-        Integer status = task.getTaskStatus();
-        if (null == status) {
-            map.put("taskStatus", null);
-        } else {
-            map.put("taskStatus", status);
-            map.put("taskStatusCn", Constant.TASK_MAP.get(status));
-        }
-        Date updateTime = task.getUpdateTime();
-        if (null != updateTime) {
-            map.put("updateTime", CalendarUtil.getDateString(updateTime,
-                    CalendarUtil.SHORT_DATE_FORMAT));
-        }
-        map.put("updateUsers", task.getUpdateUsers());
-        return map;
-    }
-
+    
     public static void getLabelInfoMap(Map<String, Object> map, LabelInfo linfo) {
         map.put("id", linfo.getId());
         map.put("LabelId", linfo.getLabelId());
@@ -603,8 +543,7 @@ public class CommonService {
      * @param apply
      * @return
      */
-    public static Map<String, Object> getDataExportApplyMap(
-            DataExportApply apply) {
+    public static Map<String, Object> getDataExportApplyMap(DataExportApply apply) {
         Map<String, Object> map = new HashMap<String, Object>();
         map.put("id", apply.getId());
         map.put("applyReason", apply.getApplyReason());

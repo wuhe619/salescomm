@@ -10,7 +10,6 @@ import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.filter.FiledFilter;
 import com.bdaim.customgroup.service.CustomGroupService;
 import com.bdaim.dataexport.service.DataPermissionService;
-import com.bdaim.label.dao.LabelCoverDao;
 import com.bdaim.label.dto.Label;
 import com.bdaim.label.dto.LabelGroup;
 import com.bdaim.label.dto.QueryParam;
@@ -41,8 +40,6 @@ public class LabelAction extends BasicAction {
     private LabelInfoService labelInfoService;
     @Resource
     private LabelCategoryService labelCategoryService;
-    @Resource
-    private LabelCoverDao labelCoverDao;
     @Resource
     private DataPermissionService dataPermissionService;
     @Resource
@@ -82,12 +79,6 @@ public class LabelAction extends BasicAction {
     public String getLabelDetailById(HttpServletRequest request, Integer id) {
         LabelInfo label = labelInfoService.getLabelById(id);
         Map<String, Object> map = super.commonService.getLabelMap(label);
-        String hql = "from LabelCover t where t.label.id=" + label.getId();
-        List<LabelCover> covers = labelCoverDao.createQuery(hql).list();
-        if (null != covers && covers.size() > 0) {
-            map.put("customerNum", covers.get(0).getCoverNum());
-            map.put("total", covers.get(0).getTotal());
-        }
 
         return JSON.toJSONString(map);
     }
