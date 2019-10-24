@@ -61,6 +61,9 @@ public class BusiMetaConfig {
                 || BusiTypeEnum.CDF_HZ.getType().equals(type))
                 && "main_bill_no".equals(field)) {
             newField = "ext_4";
+        } else if ((BusiTypeEnum.CZ.getType().equals(type))
+                && "main_bill_no".equals(field)) {
+            newField = "ext_3";
         } else if ("cust_id".equals(field) || "cust_user_id".equals(field) || "cust_group_id".equals(field)) {
             newField = field;
         } else if (field.startsWith("_g_")) {

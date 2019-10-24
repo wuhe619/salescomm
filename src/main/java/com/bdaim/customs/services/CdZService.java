@@ -714,10 +714,10 @@ public class CdZService implements BusiService {
             filedName += "," + CDReportEnum.IEPort.getName();
         }
 
-        if (StringUtil.isEmpty(mainjson.getString("s_c_code_busi_unit"))) {
+        if (StringUtil.isEmpty((String) customerInfo.get("agent_code"))) {
             filedName += "," + CDReportEnum.TradeCo.getName();
         }
-        if (StringUtil.isEmpty(mainjson.getString("business_unit_name"))) {
+        if (StringUtil.isEmpty((String) customerInfo.get("enterpriseName"))) {
             filedName += "," + CDReportEnum.TradeName.getName();
         }
 
