@@ -5361,8 +5361,8 @@ public class CustomGroupService {
                     log.info("创建导入客群成功,开始异步处理数据,ID:" + id);
                     try {
                         CustomGroupService cgs = (CustomGroupService) SpringContextHelper.getBean("customGroupService");
-                        int code = cgs.handleCustGroupImportData(String.valueOf(id), custId, customGroupDao, customerDao, customerLabelDao, jdbcTemplate, redisUtil);
-                        log.info("导入客户群数据ID:" + id + "更改状态成功,status:" + status);
+                        int code = cgs.handleCustGroupImportData(String.valueOf(id), custId, customGroupDao, customerDao, customerLabelDao, jdbcTemplate, redisUtil, phoneService);
+                        log.info("导入客户群数据ID:" + id + "更改状态成功,status:" + code);
                     } catch (Exception e) {
                         log.error("异步处理导入客群异常,", e);
                     }
@@ -5439,8 +5439,8 @@ public class CustomGroupService {
                     log.info("创建导入客群成功,开始异步处理数据,ID:" + id);
                     try {
                         CustomGroupService cgs = (CustomGroupService) SpringContextHelper.getBean("customGroupService");
-                        int code = cgs.handleCustGroupImportData(String.valueOf(id), custId, customGroupDao, customerDao, customerLabelDao, jdbcTemplate, redisUtil);
-                        log.info("导入客户群数据ID:" + id + "更改状态成功,status:" + status);
+                        int code = cgs.handleCustGroupImportData(String.valueOf(id), custId, customGroupDao, customerDao, customerLabelDao, jdbcTemplate, redisUtil, phoneService);
+                        log.info("导入客户群数据ID:" + id + "更改状态成功,status:" + code);
                     } catch (Exception e) {
                         log.error("异步处理导入客群异常,", e);
                     }
@@ -5516,7 +5516,7 @@ public class CustomGroupService {
      * @return
      */
     private int handleCustGroupImportData(String custGroupId, String custId, CustomGroupDao
-            customGroupDao, CustomerDao customerDao, CustomerLabelDao customerLabelDao, JdbcTemplate jdbcTemplate, RedisUtil redisUtil) {
+            customGroupDao, CustomerDao customerDao, CustomerLabelDao customerLabelDao, JdbcTemplate jdbcTemplate, RedisUtil redisUtil, PhoneService phoneService) {
         CustomerGroupProperty uploadFilePath = customGroupDao.getProperty(NumberConvertUtil.parseInt(custGroupId), "uploadFilePath");
         if (uploadFilePath == null) {
             log.warn("导入客户群ID:" + custGroupId + "未查询到文件路径");
@@ -5588,10 +5588,13 @@ public class CustomGroupService {
                     List<CGroupImportParam> data = new ArrayList<>();
                     CGroupImportParam param;
                     Map<String, String> u = new HashMap<>();
+                    String uid;
                     for (int i = 0; i < list.size(); i++) {
                         param = new CGroupImportParam();
                         param.setPhone(String.valueOf(list.get(i).get("phone")));
-                        param.setMd5Phone(MD5Util.encode32Bit("c" + param.getPhone()));
+                        // 调用API服务根据手机号生成uid
+                        uid = phoneService.savePhoneToAPI(param.getPhone());
+                        param.setMd5Phone(uid);
                         list.get(i).remove("phone");
                         param.setSuperData(JSON.toJSONString(list.get(i)));
                         param.setStatus(1);
