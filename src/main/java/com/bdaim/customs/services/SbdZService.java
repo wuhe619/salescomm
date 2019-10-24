@@ -211,6 +211,13 @@ public class SbdZService implements BusiService {
                 throw new TouchException("1000", "申报单没有需要核验的分单数据");
             }
         } else {
+            String billNo = info.getString("bill_no");
+            String sql = "select id from " + HMetaDataDef.getTable(busiType, "") + " where type=? and ext_3 = ? AND id <>? ";
+            List<Map<String, Object>> countList = jdbcTemplate.queryForList(sql, busiType, billNo, id);
+            if (countList != null && countList.size() > 0) {
+                log.warn("主单号:{}已经存在", billNo);
+                throw new TouchException("主单号:" + billNo + "已经存在");
+            }
             serviceUtils.updateDataToES(busiType, id.toString(), info);
         }
     }
