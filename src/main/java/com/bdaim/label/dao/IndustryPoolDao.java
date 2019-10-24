@@ -1,11 +1,12 @@
 package com.bdaim.label.dao;
 
 import com.bdaim.common.dao.SimpleHibernateDao;
-import com.bdaim.common.util.NumberConvertUtil;
 import com.bdaim.label.entity.IndustryPool;
 import com.bdaim.resource.entity.MarketResourceEntity;
 import com.bdaim.supplier.dto.SupplierDTO;
 import com.bdaim.supplier.entity.SupplierEntity;
+import com.bdaim.util.NumberConvertUtil;
+
 import org.springframework.stereotype.Component;
 
 import java.io.Serializable;

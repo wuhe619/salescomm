@@ -1,10 +1,10 @@
 package com.bdaim.common.dao;
 
-import com.bdaim.common.util.Constant;
-import com.bdaim.common.util.NumberConvertUtil;
-import com.bdaim.common.util.ReflectionUtils;
-import com.bdaim.common.util.StringHelper;
 import com.bdaim.common.dto.Page;
+import com.bdaim.util.Constant;
+import com.bdaim.util.NumberConvertUtil;
+import com.bdaim.util.ReflectionUtils;
+import com.bdaim.util.StringHelper;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

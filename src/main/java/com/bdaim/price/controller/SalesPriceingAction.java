@@ -6,10 +6,10 @@ import com.bdaim.auth.LoginUser;
 import com.bdaim.bill.dto.CustomerBillQueryParam;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.dto.PageParam;
-import com.bdaim.common.util.Constant;
-import com.bdaim.common.util.page.PageList;
+import com.bdaim.common.page.PageList;
 import com.bdaim.price.dto.SalePriceDTO;
 import com.bdaim.price.service.SalePriceService;
+import com.bdaim.util.Constant;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -7,12 +7,13 @@ import com.bdaim.common.service.BusiService;
 import com.bdaim.common.service.ElasticSearchService;
 import com.bdaim.common.service.ResourceService;
 import com.bdaim.common.service.SequenceService;
-import com.bdaim.common.util.NumberConvertUtil;
-import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.entity.CustomerProperty;
 import com.bdaim.customs.entity.*;
 import com.bdaim.customs.utils.ServiceUtils;
+import com.bdaim.util.NumberConvertUtil;
+import com.bdaim.util.StringUtil;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,18 +51,17 @@ public class SbdZService implements BusiService {
     @Autowired
     ElasticSearchService elasticSearchService;
 
-
-    @Override
     public void insertInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) throws Exception {
         CustomerProperty station_idProperty = customerDao.getProperty(cust_id, "station_id");
         if (station_idProperty == null || StringUtil.isEmpty(station_idProperty.getPropertyValue())) {
-            log.error("未配置场站信息");
+            log.warn("custId:{}未配置场站信息", cust_id);
             throw new TouchException("未配置场站信息");
         }
         String billno = info.getString("bill_no");
         String sql = "select id from " + HMetaDataDef.getTable(busiType, "") + " where type='" + busiType + "' and ext_3 = '" + billno + "'";
         List<Map<String, Object>> countList = jdbcTemplate.queryForList(sql);
         if (countList != null && countList.size() > 0) {
+            log.warn("主单:{}已经申报", billno);
             throw new TouchException("此主单已经申报");
         }
         log.info("申报单主单号:{}开始插入:{}", billno, System.currentTimeMillis());
@@ -165,6 +165,12 @@ public class SbdZService implements BusiService {
             List<Map<String, Object>> dfList = jdbcTemplate.queryForList(sql.toString(), sqlParams.toArray());
             int failIdCardNum = 0;
             if (dfList != null && dfList.size() > 0) {
+                // 判断余额
+                boolean amountStatus = serviceUtils.checkBatchIdCardAmount(cust_id, dfList.size());
+                if (!amountStatus) {
+                    log.warn("申报单核验余额不足[" + busiType + "]" + id);
+                    throw new TouchException("1001", "资金不足无法核验,请充值");
+                }
                 JSONObject content = new JSONObject();
                 content.put("main_id", id);
                 content.put("status", 0);
@@ -205,6 +211,13 @@ public class SbdZService implements BusiService {
                 throw new TouchException("1000", "申报单没有需要核验的分单数据");
             }
         } else {
+            String billNo = info.getString("bill_no");
+            String sql = "select id from " + HMetaDataDef.getTable(busiType, "") + " where type=? and ext_3 = ? AND id <>? ";
+            List<Map<String, Object>> countList = jdbcTemplate.queryForList(sql, busiType, billNo, id);
+            if (countList != null && countList.size() > 0) {
+                log.warn("主单号:{}已经存在", billNo);
+                //throw new TouchException("主单号:" + billNo + "已经存在");
+            }
             serviceUtils.updateDataToES(busiType, id.toString(), info);
         }
     }

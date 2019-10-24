@@ -2,6 +2,8 @@ package com.bdaim.batch.controller;
 
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
+import com.bdaim.util.StringUtil;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.alibaba.fastjson.JSONObject;
@@ -9,7 +11,6 @@ import com.bdaim.auth.LoginUser;
 import com.bdaim.batch.entity.BatchSendToFile;
 import com.bdaim.batch.service.impl.PackingService;
 import com.bdaim.common.controller.BasicAction;
-import com.bdaim.common.util.StringUtil;
 
 import org.springframework.web.bind.annotation.*;
 

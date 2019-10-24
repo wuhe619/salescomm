@@ -1,7 +1,7 @@
 package com.bdaim.log.util;
 
-import com.bdaim.common.util.PropertiesUtil;
 import com.bdaim.log.entity.SuperDataOperLog;
+import com.bdaim.util.PropertiesUtil;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;

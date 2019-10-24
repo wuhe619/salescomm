@@ -4,8 +4,6 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.callcenter.dto.*;
 import com.bdaim.callcenter.util.XzCallCenterUtil;
-import com.bdaim.common.util.NumberConvertUtil;
-import com.bdaim.common.util.StringUtil;
 import com.bdaim.customersea.dao.CustomerSeaDao;
 import com.bdaim.customersea.entity.CustomerSea;
 import com.bdaim.customersea.entity.CustomerSeaProperty;
@@ -14,6 +12,9 @@ import com.bdaim.markettask.entity.MarketTask;
 import com.bdaim.markettask.entity.MarketTaskProperty;
 import com.bdaim.resource.dao.MarketResourceDao;
 import com.bdaim.resource.entity.ResourcePropertyEntity;
+import com.bdaim.util.NumberConvertUtil;
+import com.bdaim.util.StringUtil;
+
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

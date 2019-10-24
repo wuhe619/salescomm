@@ -2,14 +2,15 @@ package com.bdaim.rbac.service;
 
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.dto.PageParam;
-import com.bdaim.common.util.*;
-import com.bdaim.common.util.page.PageList;
-import com.bdaim.common.util.page.Pagination;
+import com.bdaim.common.page.PageList;
+import com.bdaim.common.page.Pagination;
 import com.bdaim.rbac.dao.DeptDao;
 import com.bdaim.rbac.dto.DeptDTO;
 import com.bdaim.rbac.entity.DeptEntity;
 import com.bdaim.rbac.entity.RoleEntity;
 import com.bdaim.rbac.vo.DeptInfo;
+import com.bdaim.util.*;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

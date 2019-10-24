@@ -2,12 +2,12 @@ package com.bdaim.marketproject.dao;
 
 
 import com.bdaim.common.dao.SimpleHibernateDao;
-import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.dto.CustomerPropertyEnum;
 import com.bdaim.marketproject.dto.MarketProjectDTO;
 import com.bdaim.marketproject.dto.MarketProjectParam;
 import com.bdaim.marketproject.entity.MarketProject;
 import com.bdaim.marketproject.entity.MarketProjectProperty;
+import com.bdaim.util.StringUtil;
 import com.bdaim.common.dto.Page;
 import org.springframework.stereotype.Component;
 

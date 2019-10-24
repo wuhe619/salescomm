@@ -1,9 +1,10 @@
 package com.bdaim.pay.service;
 
-import com.bdaim.common.util.RegularUtil;
 import com.bdaim.order.entity.OrderDO;
 import com.bdaim.pay.dao.AlipayDao;
 import com.bdaim.resource.entity.MarketResourceEntity;
+import com.bdaim.util.RegularUtil;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.jdbc.core.JdbcTemplate;

@@ -3,13 +3,14 @@ package com.bdaim.label.service;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.bdaim.common.util.CalendarUtil;
-import com.bdaim.common.util.Constant;
-import com.bdaim.common.util.http.HttpUtil;
-import com.bdaim.common.util.StringHelper;
 import com.bdaim.customgroup.entity.CustomGroup;
 import com.bdaim.customgroup.service.CustomGroupService;
 import com.bdaim.label.entity.LabelInfo;
+import com.bdaim.util.CalendarUtil;
+import com.bdaim.util.Constant;
+import com.bdaim.util.StringHelper;
+import com.bdaim.util.http.HttpUtil;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;

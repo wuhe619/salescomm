@@ -8,10 +8,10 @@ import com.bdaim.callcenter.dto.SeatsMessageParam;
 import com.bdaim.callcenter.service.impl.SeatsService;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.dto.PageParam;
-import com.bdaim.common.util.StringUtil;
-import com.bdaim.common.util.page.PageList;
+import com.bdaim.common.page.PageList;
 import com.bdaim.customer.dto.CustomerRegistDTO;
 import com.bdaim.customer.entity.CustomerUserPropertyDO;
+import com.bdaim.util.StringUtil;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -18,12 +18,10 @@ import com.bdaim.callcenter.dto.*;
 import com.bdaim.callcenter.service.impl.CallCenterService;
 import com.bdaim.callcenter.service.impl.SeatsService;
 import com.bdaim.common.dto.PageParam;
+import com.bdaim.common.page.PageList;
+import com.bdaim.common.page.Pagination;
 import com.bdaim.common.service.PhoneService;
-import com.bdaim.common.util.*;
 import com.bdaim.common.util.ftp.SFTPChannel;
-import com.bdaim.common.util.http.HttpUtil;
-import com.bdaim.common.util.page.PageList;
-import com.bdaim.common.util.page.Pagination;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerLabelDao;
 import com.bdaim.customer.dao.CustomerUserDao;
@@ -62,6 +60,8 @@ import com.bdaim.template.dao.MarketTemplateDao;
 import com.bdaim.template.dto.MarketTemplateDTO;
 import com.bdaim.template.dto.TemplateParam;
 import com.bdaim.template.entity.MarketTemplate;
+import com.bdaim.util.*;
+import com.bdaim.util.http.HttpUtil;
 import com.github.crab2died.ExcelUtils;
 import com.jcraft.jsch.ChannelSftp;
 import org.apache.commons.codec.binary.Base64;
@@ -915,6 +915,36 @@ public class MarketResourceService {
                     // 标准价格
                     Integer priceStand = 500;
                     if (remain_amount < priceStand) {
+                        // 余额不足
+                        judge = false;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            LOG.error("获取余额失败,", e);
+        }
+        return judge;
+    }
+
+    /**
+     * 判断企业账户余额是否存在或大于0厘
+     * @param cust_id
+     * @return
+     */
+    public boolean judRemainAmount0(String cust_id) {
+        boolean judge = false;
+        try {
+            judge = true;
+            CustomerProperty customerProperty = customerDao.getProperty(cust_id, "remain_amount");
+            if (customerProperty == null) {
+                judge = false;
+            } else {
+                if (StringUtil.isEmpty(customerProperty.getPropertyValue())) {
+                    judge = false;
+                } else {
+                    double remain_amount = NumberConvertUtil.changeY2L(customerProperty.getPropertyValue());
+                    // 标准价格1厘
+                    if (remain_amount <= 0) {
                         // 余额不足
                         judge = false;
                     }

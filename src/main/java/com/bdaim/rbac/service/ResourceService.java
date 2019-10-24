@@ -3,11 +3,12 @@ package com.bdaim.rbac.service;
 
 import com.bdaim.common.helper.JDBCHelper;
 import com.bdaim.common.helper.SQLHelper;
-import com.bdaim.common.util.IDHelper;
-import com.bdaim.common.util.NumberConvertUtil;
 import com.bdaim.rbac.dao.ResourceDao;
 import com.bdaim.rbac.dao.UserDao;
 import com.bdaim.rbac.dto.*;
+import com.bdaim.util.IDHelper;
+import com.bdaim.util.NumberConvertUtil;
+
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringUtils;

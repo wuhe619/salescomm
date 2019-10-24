@@ -1,7 +1,7 @@
 package com.bdaim.common.dto;
 
 
-import com.bdaim.common.util.PropertiesUtil;
+import com.bdaim.util.PropertiesUtil;
 
 /**
  * 字典类型

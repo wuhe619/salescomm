@@ -5,8 +5,9 @@ import com.bdaim.batch.service.ExportMessageService;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
-import com.bdaim.common.util.StringUtil;
 import com.bdaim.smscenter.controller.SeatsMessageAction;
+import com.bdaim.util.StringUtil;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;

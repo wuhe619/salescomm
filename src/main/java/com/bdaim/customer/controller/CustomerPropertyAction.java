@@ -6,11 +6,12 @@ import com.bdaim.auth.LoginUser;
 import com.bdaim.common.annotation.CacheAnnotation;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.dto.PageParam;
-import com.bdaim.common.util.StringUtil;
-import com.bdaim.common.util.page.PageList;
+import com.bdaim.common.page.PageList;
 import com.bdaim.customer.entity.CustomerProperty;
 import com.bdaim.customer.entity.CustomerPropertyParam;
 import com.bdaim.customer.service.CustomerPropertyService;
+import com.bdaim.util.StringUtil;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;

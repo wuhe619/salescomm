@@ -1,9 +1,10 @@
 package com.bdaim.common;
 
-import com.bdaim.common.util.AuthPassport;
-import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.entity.CustomerUser;
 import com.bdaim.customer.service.CustomerService;
+import com.bdaim.util.AuthPassport;
+import com.bdaim.util.StringUtil;
+
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
@@ -18,10 +19,11 @@ import org.springframework.web.servlet.HandlerInterceptor;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import static com.bdaim.util.JwtUtil.verifyToken;
+
 import java.io.IOException;
 import java.io.PrintWriter;
-
-import static com.bdaim.common.util.JwtUtil.verifyToken;
 
 /**
  * @author yanls@bdaim.com

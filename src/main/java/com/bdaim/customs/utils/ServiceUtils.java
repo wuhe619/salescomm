@@ -7,14 +7,18 @@ import com.bdaim.common.BusiMetaConfig;
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.service.ElasticSearchService;
 import com.bdaim.common.service.SequenceService;
-import com.bdaim.common.util.*;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.entity.Customer;
 import com.bdaim.customer.entity.CustomerProperty;
 import com.bdaim.customs.entity.*;
+import com.bdaim.resource.dao.MarketResourceDao;
 import com.bdaim.resource.dao.SourceDao;
 import com.bdaim.resource.entity.MarketResourceEntity;
+import com.bdaim.resource.entity.ResourcePropertyEntity;
+import com.bdaim.resource.service.MarketResourceService;
 import com.bdaim.supplier.dto.SupplierEnum;
+import com.bdaim.util.*;
+
 import io.searchbox.core.SearchResult;
 import net.sf.json.xml.XMLSerializer;
 import org.dom4j.Document;
@@ -32,6 +36,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.nio.charset.Charset;
 import java.sql.Timestamp;
 import java.util.*;
@@ -56,6 +61,11 @@ public class ServiceUtils {
     private HDicUtil dicUtil;
     @Autowired
     private CustomerDao customerDao;
+    @Autowired
+    private MarketResourceService marketResourceService;
+
+    @Autowired
+    private MarketResourceDao marketResourceDao;
 
     public void addDataToES(String id, String type, JSONObject content) {
         if (type.equals(BusiTypeEnum.SZ.getType())) {
@@ -816,6 +826,55 @@ public class ServiceUtils {
                     .append(data.getG_model());*/
             return name.toString();
         }
+    }
+
+    /**
+     * 核验身份证信息金额判断
+     * @param custId
+     * @param quantity
+     * @return
+     */
+    public boolean checkBatchIdCardAmount(String custId, int quantity) {
+        MarketResourceEntity mr = sourceDao.getResourceId(SupplierEnum.ZAX.getSupplierId(), ResourceEnum.CHECK_IDCARD.getType());
+        String resourceId = null;
+        if (mr != null) {
+            resourceId = String.valueOf(mr.getResourceId());
+        }
+        //判断余额是否充足
+        boolean custBalance = marketResourceService.judRemainAmount0(custId);
+        if (!custBalance) {
+            log.warn("企业id:{}余额不足无法核验", custId);
+            return false;
+        }
+        int custCheckPrice = -1;
+        //根据企业id查询销售定价
+        CustomerProperty custConfigPrice = customerDao.getProperty(custId, resourceId + "_config");
+        if (custConfigPrice != null && StringUtil.isNotEmpty(custConfigPrice.getPropertyValue())) {
+            //将销售定价元转为厘
+            custCheckPrice = NumberConvertUtil.changeY2L(custConfigPrice.getPropertyValue());
+            log.info("企业id:{}未配置销售定价,使用的是资源成本价:{}厘", custId, custCheckPrice);
+        } else {
+            //查询供应商成本价
+            ResourcePropertyEntity resourceProperty = marketResourceDao.getProperty(resourceId, "price_config");
+            if (resourceProperty != null && StringUtil.isNotEmpty(resourceProperty.getPropertyValue())) {
+                custCheckPrice = NumberConvertUtil.changeY2L(resourceProperty.getPropertyValue());
+                log.warn("企业id:{}未配置销售定价,使用的是资源成本价:{}厘", custId, custCheckPrice);
+            } else {
+                log.warn("企业id:{}未配置销售定价", custId);
+                return false;
+            }
+        }
+
+        //计算批量核验身份需要的金额
+        BigDecimal price = new BigDecimal(String.valueOf(custCheckPrice));
+        price = price.multiply(new BigDecimal(quantity));
+        // 账户余额
+        CustomerProperty remainAmount = customerDao.getProperty(custId, "remain_amount");
+        BigDecimal amount = new BigDecimal(remainAmount.getPropertyValue());
+        if (amount.multiply(new BigDecimal(1000)).subtract(price).compareTo(new BigDecimal(0)) < 0) {
+            return false;
+        }
+        return true;
     }
 
 

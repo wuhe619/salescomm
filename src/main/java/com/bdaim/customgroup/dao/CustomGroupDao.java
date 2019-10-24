@@ -1,12 +1,13 @@
 package com.bdaim.customgroup.dao;
 
 import com.bdaim.common.dao.SimpleHibernateDao;
-import com.bdaim.common.util.ConstantsUtil;
-import com.bdaim.common.util.NumberConvertUtil;
-import com.bdaim.common.util.StringUtil;
 import com.bdaim.customgroup.dto.CustomGroupDTO;
 import com.bdaim.customgroup.entity.CustomGroup;
 import com.bdaim.customgroup.entity.CustomerGroupProperty;
+import com.bdaim.util.ConstantsUtil;
+import com.bdaim.util.NumberConvertUtil;
+import com.bdaim.util.StringUtil;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;

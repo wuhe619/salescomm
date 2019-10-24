@@ -7,9 +7,6 @@ import com.bdaim.auth.LoginUser;
 import com.bdaim.common.annotation.CacheAnnotation;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.filter.FiledFilter;
-import com.bdaim.common.util.AuthPassport;
-import com.bdaim.common.util.Constant;
-import com.bdaim.common.util.StringUtil;
 import com.bdaim.dataexport.service.DataPermissionService;
 import com.bdaim.industry.dto.IndustryLabelsDTO;
 import com.bdaim.industry.dto.IndustryPoolDTO;
@@ -24,6 +21,10 @@ import com.bdaim.label.entity.*;
 import com.bdaim.label.service.LabelAuditService;
 import com.bdaim.label.service.LabelCategoryService;
 import com.bdaim.label.service.LabelInfoService;
+import com.bdaim.util.AuthPassport;
+import com.bdaim.util.Constant;
+import com.bdaim.util.StringUtil;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 

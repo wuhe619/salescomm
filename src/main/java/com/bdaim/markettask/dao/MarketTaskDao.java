@@ -1,12 +1,13 @@
 package com.bdaim.markettask.dao;
 
 import com.bdaim.common.dao.SimpleHibernateDao;
-import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.dto.CustomerUserDTO;
 import com.bdaim.customgroup.entity.CustomGroup;
 import com.bdaim.markettask.entity.MarketTask;
 import com.bdaim.markettask.entity.MarketTaskProperty;
 import com.bdaim.markettask.entity.MarketTaskUserRel;
+import com.bdaim.util.StringUtil;
+
 import org.springframework.stereotype.Component;
 
 import java.util.List;

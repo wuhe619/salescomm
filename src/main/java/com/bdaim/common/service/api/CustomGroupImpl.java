@@ -1,10 +1,11 @@
 package com.bdaim.common.service.api;
 
 import com.alibaba.fastjson.JSONObject;
-import com.bdaim.common.util.IDHelper;
-import com.bdaim.common.util.LogUtil;
 import com.bdaim.customgroup.dao.CustomGroupDao;
 import com.bdaim.customgroup.entity.CustomGroup;
+import com.bdaim.util.IDHelper;
+import com.bdaim.util.LogUtil;
+
 import org.hibernate.HibernateException;
 import org.springframework.stereotype.Service;
 

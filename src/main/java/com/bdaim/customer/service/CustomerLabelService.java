@@ -6,7 +6,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.bdaim.auth.LoginUser;
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.exception.TouchException;
-import com.bdaim.common.util.*;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerLabelDao;
 import com.bdaim.customer.dao.CustomerUserDao;
@@ -18,6 +17,8 @@ import com.bdaim.customgroup.entity.CustomerGroupProperty;
 import com.bdaim.marketproject.dao.MarketProjectDao;
 import com.bdaim.marketproject.entity.MarketProject;
 import com.bdaim.markettask.dao.MarketTaskDao;
+import com.bdaim.util.*;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

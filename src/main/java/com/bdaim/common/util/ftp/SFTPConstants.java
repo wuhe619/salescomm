@@ -1,7 +1,7 @@
 package com.bdaim.common.util.ftp;
 
 
-import com.bdaim.common.util.PropertiesUtil;
+import com.bdaim.util.PropertiesUtil;
 
 public class SFTPConstants {
 	public static final String SFTP_REQ_HOST = PropertiesUtil.getStringValue("host");

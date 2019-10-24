@@ -3,10 +3,11 @@ package com.bdaim.pay.controller;
 import com.alibaba.fastjson.JSON;
 import com.bdaim.common.annotation.CacheAnnotation;
 import com.bdaim.common.controller.BasicAction;
-import com.bdaim.common.util.IDHelper;
 import com.bdaim.pay.config.AlipayConfig;
 import com.bdaim.pay.service.AlipayService;
 import com.bdaim.pay.util.AlipaySubmit;
+import com.bdaim.util.IDHelper;
+
 import net.sf.json.JSONObject;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

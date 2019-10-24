@@ -2,7 +2,7 @@ package com.bdaim.common.util.spring;
 
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 
-import com.bdaim.common.util.DESUtils;
+import com.bdaim.util.DESUtils;
 
 public class EncryptPropertyPlaceholderConfigurer extends PropertyPlaceholderConfigurer {
 private String[] encryptPropNames = { "jdbc.user", "jdbc.pass" };

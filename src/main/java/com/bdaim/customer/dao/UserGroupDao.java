@@ -1,8 +1,8 @@
 package com.bdaim.customer.dao;
 
 import com.bdaim.common.dao.SimpleHibernateDao;
-import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.entity.CustomerUserGroup;
+import com.bdaim.util.StringUtil;
 import com.bdaim.common.dto.Page;
 import org.springframework.stereotype.Component;
 

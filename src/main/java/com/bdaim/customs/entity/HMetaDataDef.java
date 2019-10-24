@@ -1,9 +1,10 @@
 package com.bdaim.customs.entity;
 
 
-import com.bdaim.common.util.StringUtil;
-
 import javax.persistence.*;
+
+import com.bdaim.util.StringUtil;
+
 import java.io.Serializable;
 import java.util.Date;
 

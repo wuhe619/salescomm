@@ -1,13 +1,14 @@
 package com.bdaim.rbac.dao;
 
 import com.bdaim.common.dao.SimpleHibernateDao;
-import com.bdaim.common.util.DateUtil;
-import com.bdaim.common.util.IDHelper;
 import com.bdaim.rbac.dto.ManagerType;
 import com.bdaim.rbac.dto.RoleDTO;
 import com.bdaim.rbac.dto.RolesResourceDto;
 import com.bdaim.rbac.dto.UserDTO;
 import com.bdaim.rbac.entity.RoleEntity;
+import com.bdaim.util.DateUtil;
+import com.bdaim.util.IDHelper;
+
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Component;
 

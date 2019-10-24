@@ -6,13 +6,14 @@ import com.bdaim.auth.LoginUser;
 import com.bdaim.common.annotation.CacheAnnotation;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.exception.TouchException;
-import com.bdaim.common.util.IDHelper;
 import com.bdaim.customgroup.service.CustomGroupService;
 import com.bdaim.emailcenter.dto.MailBean;
 import com.bdaim.emailcenter.service.SendMailService;
 import com.bdaim.emailcenter.util.MailUtil;
 import com.bdaim.resource.dto.MarketResourceLogDTO;
 import com.bdaim.resource.service.MarketResourceService;
+import com.bdaim.util.IDHelper;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;

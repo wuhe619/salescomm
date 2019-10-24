@@ -2,7 +2,8 @@ package com.bdaim.common.dao;
 
 import com.bdaim.common.entity.Dic;
 import com.bdaim.common.entity.DicProperty;
-import com.bdaim.common.util.StringUtil;
+import com.bdaim.util.StringUtil;
+
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;

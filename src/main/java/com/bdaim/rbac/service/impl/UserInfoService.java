@@ -1,9 +1,6 @@
 package com.bdaim.rbac.service.impl;
 
 import com.bdaim.common.exception.TouchException;
-import com.bdaim.common.util.CipherUtil;
-import com.bdaim.common.util.LogUtil;
-import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerUserDao;
 import com.bdaim.customer.entity.CustomerUser;
@@ -11,6 +8,10 @@ import com.bdaim.customer.entity.CustomerUserPropertyDO;
 import com.bdaim.rbac.dao.UserInfoDao;
 import com.bdaim.rbac.dto.UserQueryParam;
 import com.bdaim.rbac.entity.UserDO;
+import com.bdaim.util.CipherUtil;
+import com.bdaim.util.LogUtil;
+import com.bdaim.util.StringUtil;
+
 import org.apache.commons.lang.StringEscapeUtils;
 import org.hibernate.transform.Transformers;
 import org.springframework.jdbc.core.JdbcTemplate;

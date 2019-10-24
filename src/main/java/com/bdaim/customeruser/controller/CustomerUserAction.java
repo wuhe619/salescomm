@@ -6,13 +6,14 @@ import com.bdaim.auth.LoginUser;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.controller.util.ResponseJson;
 import com.bdaim.common.response.ResponseInfo;
-import com.bdaim.common.util.CipherUtil;
-import com.bdaim.common.util.StringUtil;
-import com.bdaim.common.util.wechat.WeChatUtil;
 import com.bdaim.customer.controller.CustomerAction;
 import com.bdaim.customer.entity.CustomerUser;
 import com.bdaim.customer.entity.CustomerUserPropertyDO;
 import com.bdaim.customeruser.service.CustomerUserService;
+import com.bdaim.util.CipherUtil;
+import com.bdaim.util.StringUtil;
+import com.bdaim.util.wechat.WeChatUtil;
+
 import org.apache.log4j.Logger;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

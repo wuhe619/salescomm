@@ -4,8 +4,6 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.dao.SimpleHibernateDao;
 import com.bdaim.common.exception.TouchException;
-import com.bdaim.common.util.ConstantsUtil;
-import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.entity.CustomerProperty;
 import com.bdaim.resource.entity.MarketResourceEntity;
@@ -13,6 +11,8 @@ import com.bdaim.resource.entity.ResourcePropertyEntity;
 import com.bdaim.resource.entity.SourcePropertyEntity;
 import com.bdaim.supplier.entity.SupplierPropertyEntity;
 import com.bdaim.template.entity.MarketTemplate;
+import com.bdaim.util.ConstantsUtil;
+import com.bdaim.util.StringUtil;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

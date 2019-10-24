@@ -6,8 +6,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.bdaim.batch.entity.BatchListEntity;
 import com.bdaim.common.dao.SimpleHibernateDao;
 import com.bdaim.common.exception.TouchException;
-import com.bdaim.common.util.NumberConvertUtil;
-import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.dto.ApparentNumberQueryParam;
 import com.bdaim.customer.dto.CustomerDTO;
 import com.bdaim.customer.entity.ApparentNumber;
@@ -17,6 +15,9 @@ import com.bdaim.customgroup.dto.CGroupImportParam;
 import com.bdaim.price.dto.ResourcesPriceDto;
 import com.bdaim.common.dto.Page;
 import com.bdaim.resource.entity.MarketResourceEntity;
+import com.bdaim.util.NumberConvertUtil;
+import com.bdaim.util.StringUtil;
+
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.stereotype.Component;
 

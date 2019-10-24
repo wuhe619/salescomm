@@ -3,7 +3,6 @@ package com.bdaim.order.service;
 
 import com.bdaim.auth.LoginUser;
 import com.bdaim.common.exception.TouchException;
-import com.bdaim.common.util.*;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerUserDao;
 import com.bdaim.customeruser.service.UserGroupService;
@@ -15,6 +14,8 @@ import com.bdaim.marketproject.entity.MarketProject;
 import com.bdaim.markettask.dao.MarketTaskDao;
 import com.bdaim.order.dao.OrderDao;
 import com.bdaim.order.dto.MarketRsOrderQueryParam;
+import com.bdaim.util.*;
+
 import org.apache.commons.lang.StringEscapeUtils;
 import org.hibernate.transform.Transformers;
 import org.slf4j.Logger;
