@@ -2288,9 +2288,9 @@ public class MarketResourceService {
                     //查询企业通话费用
                     ResourcesPriceDto resourcesPriceDto = customerDao.getCustResourceMessageById(resourceId, custId);
                     if (resourcesPriceDto != null && StringUtil.isNotEmpty(resourcesPriceDto.getCallPrice())) {
-                        String seatPrice = resourcesPriceDto.getCallPrice();
+                        String callPrice = resourcesPriceDto.getCallPrice();
                         //元转分
-                        saleCustPrice = NumberConvertUtil.transformtionCent(Double.parseDouble(seatPrice));
+                        saleCustPrice = NumberConvertUtil.transformtionCent(Double.parseDouble(callPrice));
                     }
                     //获取坐席基本信息
                     SeatInfoDto seatInfoDto = customerUserPropertyDao.getSeatMessageById(resourceId, userId, SupplierEnum.CUC.getSupplierId());
@@ -2315,7 +2315,6 @@ public class MarketResourceService {
                                 transactionDao.updateSeatMinute(userId, custMinute);
                                 //通话扣费金额
                                 summAmount = saleCustPrice * (callTime - custMinute);
-                                //summAmount = transactionDao.querySeatsMoney(custId, SEAT_ONE_MINUTE_PRICE_KEY, callTime - custMinute);
                                 LOG.info("联通坐席扣费开始从账户customerId:" + custId + "余额扣款,sale_price:" + summAmount);
                                 transactionDao.accountDeductionsDev(custId, new BigDecimal(summAmount));
                             }
@@ -2323,7 +2322,6 @@ public class MarketResourceService {
                             //不扣分钟数   直接扣除费用
                             LOG.info("坐席执行只扣除通话计费:" + userId + "通话时长:" + callTime);
                             summAmount = saleCustPrice * callTime;
-                            //summAmount = transactionDao.querySeatsMoney(custId, SEAT_ONE_MINUTE_PRICE_KEY, callTime);
                             transactionDao.accountDeductionsDev(custId, new BigDecimal(summAmount));
                         }
                     }
@@ -2380,11 +2378,6 @@ public class MarketResourceService {
                 if (StringUtil.isNotEmpty(endTime)) {
                     endTime = endTime.replaceAll("-", "/");
                 }
-                //保存回调记录表通话历史参数
-                /*LOG.info("transactionDao" + transactionDao);
-                if (StringUtil.isNotEmpty(recordUrl) && !"null".equals(recordUrl)) {
-                    recordUrl = recordUrl.replaceAll(".wav", ".mp3");
-                }*/
                 flag = transactionDao.executeUpdateSQL(insertCallbackInfoSql, new Object[]{callSid, appId, 1,
                         callBackInfoParam.getLocalUrl(),
                         startTime, endTime,
