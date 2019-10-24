@@ -4,7 +4,8 @@ import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.service.BusiService;
 import com.bdaim.common.service.SequenceService;
-import com.bdaim.common.util.spring.SpringContextHelper;
+import com.bdaim.common.spring.SpringContextHelper;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

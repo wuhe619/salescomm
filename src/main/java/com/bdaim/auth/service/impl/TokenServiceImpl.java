@@ -11,7 +11,7 @@ import com.bdaim.customer.dto.*;
 import com.bdaim.customer.entity.CustomerUser;
 import com.bdaim.customer.entity.CustomerUserPropertyDO;
 import com.bdaim.customer.service.CustomerService;
-import com.bdaim.customeruser.service.CustomerUserService;
+import com.bdaim.customer.user.service.CustomerUserService;
 import com.bdaim.rbac.dao.RoleDao;
 import com.bdaim.rbac.dto.ResourceDTO;
 import com.bdaim.rbac.entity.UserDO;

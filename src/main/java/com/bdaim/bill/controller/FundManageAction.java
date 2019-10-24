@@ -7,7 +7,7 @@ import com.bdaim.common.controller.util.ResponseJson;
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.exception.ParamException;
-import com.bdaim.customeruser.service.UserGroupService;
+import com.bdaim.customer.user.service.UserGroupService;
 import com.bdaim.util.StringUtil;
 
 import org.apache.log4j.Logger;

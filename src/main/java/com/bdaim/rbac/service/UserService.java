@@ -7,7 +7,7 @@ import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.helper.JDBCHelper;
 import com.bdaim.common.service.DaoService;
-import com.bdaim.common.util.spring.ConfigPropertiesHolder;
+import com.bdaim.common.spring.ConfigPropertiesHolder;
 import com.bdaim.customs.dao.StationDao;
 import com.bdaim.customs.entity.Station;
 import com.bdaim.rbac.DataFromEnum;

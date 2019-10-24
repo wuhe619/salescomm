@@ -2,7 +2,6 @@ package com.bdaim.bill.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.bdaim.account.dao.TransactionDao;
 import com.bdaim.batch.ResourceEnum;
 import com.bdaim.batch.TransactionEnum;
 import com.bdaim.bill.dto.BillDetailQueryParam;
@@ -11,6 +10,7 @@ import com.bdaim.bill.dto.SupplierBillQueryParam;
 import com.bdaim.bill.service.BillService;
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.dto.PageParam;
+import com.bdaim.customer.account.dao.TransactionDao;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.entity.Customer;
 import com.bdaim.order.dao.OrderDao;

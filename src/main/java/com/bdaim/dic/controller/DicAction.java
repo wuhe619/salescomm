@@ -12,8 +12,8 @@ import com.bdaim.common.entity.DicProperty;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.dic.service.DicService;
-import com.bdaim.fund.dto.SearchPropertyDTO;
-import com.bdaim.fund.entity.FundProductApply;
+import com.bdaim.supplier.fund.dto.SearchPropertyDTO;
+import com.bdaim.supplier.fund.entity.FundProductApply;
 import com.bdaim.util.StringUtil;
 
 import org.slf4j.Logger;

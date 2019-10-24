@@ -1,8 +1,8 @@
 package com.bdaim.rbac.service;
 
 import com.alibaba.fastjson.JSONObject;
-import com.bdaim.account.dao.AccountDao;
-import com.bdaim.account.entity.AccountDO;
+import com.bdaim.customer.account.dao.AccountDao;
+import com.bdaim.customer.account.entity.AccountDO;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.EnterpriseDao;
 import com.bdaim.customer.entity.Customer;

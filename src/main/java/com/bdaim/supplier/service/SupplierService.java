@@ -19,7 +19,7 @@ import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerUserDao;
 import com.bdaim.customer.entity.CustomerProperty;
 import com.bdaim.customer.entity.CustomerUser;
-import com.bdaim.customeruser.service.UserGroupService;
+import com.bdaim.customer.user.service.UserGroupService;
 import com.bdaim.customgroup.dto.CustomerGrpOrdParam;
 import com.bdaim.customgroup.service.CustomGroupService;
 import com.bdaim.industry.dto.MarketResourceTypeEnum;

@@ -40,8 +40,6 @@ public class LabelInfoService {
     @Resource
     private LabelInfoDao labelInfoDao;
     @Resource
-    private LabelAuditService labelAuditService;
-    @Resource
     private UserService userService;
     @Resource
     private LabelCategoryService labelCategoryServiceImpl;
@@ -229,52 +227,6 @@ public class LabelInfoService {
 
     public LabelInfo getLabelById(Integer id) {
         return labelInfoDao.get(id);
-    }
-
-    /**
-     * 新增基础标签 1.新增基础标签的同时要修改标签状态为申请中 2.在审核系统中录入标签的申请信息
-     */
-    public synchronized Integer addBaseLabel(LabelInfo label) {
-        String hql = "select max(labelId) as label_id from LabelInfo where level=? and parent.id=?";
-        Object maxLabelId = null;
-        if (label.getParentCategory() == null) {
-            maxLabelId = labelInfoDao.findUnique(hql, label.getLevel(), label.getParent().getId());
-            if (null == maxLabelId)
-                maxLabelId = label.getParent().getLabelId() + "00001";
-        } else {
-            hql += " and parentCategory.id=?";
-            maxLabelId = labelInfoDao.findUnique(hql, label.getLevel(), label.getParent().getId(), label.getParentCategory().getCategoryId());
-            if (null == maxLabelId) {
-                if (label.getLevel().equals(3)) {
-                    maxLabelId = label.getParent().getLabelId() + label.getParentCategory().getCategoryId() + "00001";
-                } else if (label.getLevel().equals(4)) {
-                    maxLabelId = label.getParent().getLabelId() + "00001";
-                }
-            }
-        }
-        if (null == maxLabelId)
-            throw new NullPointerException("无法生成label_id");
-        Long labelId = Long.parseLong(maxLabelId.toString()) + 1;
-        label.setLabelId(Long.toString(labelId));
-        Integer lid = (Integer) labelInfoDao.saveReturnPk(label);
-        //下面是增加审批信息
-        LabelAudit audit = new LabelAudit();
-        audit.setName(label.getLabelName());
-        audit.setStatus(Constant.AUDITING);
-        //添加审批类型和申请类型
-        if (label.getType().equals(Constant.LABLE_TYPE_CATEGORY)) {
-            audit.setApplyType(Constant.APPLY_TYPE_CATEGORY_CREATE);
-            audit.setAuditType(Constant.AUDIT_TYPE_CATEGORY);
-        } else {
-            audit.setApplyType(Constant.APPLY_TYPE_BASELABEL_CREATE);
-            audit.setAuditType(Constant.AUDIT_TYPE_LABEL);
-        }
-        audit.setApplyUser(userService.getUserById((long) label.getCreateUid()));
-        audit.setAid(lid);
-        audit.setLastFlag(Constant.AUDIT_LAST_FLAG_YES);
-        audit = labelAuditService.getLabelAudit(audit, null);
-        labelAuditService.addAuditInfo(audit);
-        return lid;
     }
 
     /**
@@ -671,48 +623,6 @@ public class LabelInfoService {
             result = getLabelTree(list);
         }
         return result;
-    }
-
-    public synchronized Integer addSignatureLabel(LabelInfo label, Integer cycle) {
-        LabelCover cover = new LabelCover();
-        String labelId = StringHelper.generatorKeyByParentAndLevel(label
-                .getParent().getLabelId(), label.getParent().getChildren()
-                .size() + 1, label.getLevel());
-        label.setLabelId(labelId);
-        try {
-            String str = labelInterfaceService.previewSignatureLabel(label, null == cycle ? Integer.valueOf(0) : cycle);
-            JSONObject json = JSONObject.parseObject(str);
-            if (json.getIntValue("isSuccess") == 0) {
-                log.error("标签预览失败！" + json.getString("_message"));
-                throw new RuntimeException("标签预览失败！");
-            }
-            Long count = json.getJSONObject("data").getLong("count");
-            Long total = json.getJSONObject("data").getLong("total");
-            label.setCustomerNum(count);
-            label.setTotal(total);
-            cover.setCoverNum(count);
-            cover.setTotal(total);
-            cover.setCycle(cycle == null ? 0 : cycle);
-            // }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        Integer lid = (Integer) labelInfoDao.saveReturnPk(label);
-        cover.setLabel(label);
-        labelCoverDao.save(cover);
-        label.setStatus(Constant.AUDITING); // 新增标签状态默认为审核中
-        LabelAudit audit = new LabelAudit();
-        audit.setName(label.getLabelName());
-        audit.setStatus(Constant.AUDITING);
-        audit.setApplyType(Constant.APPLY_TYPE_SIGNATURE_CREATE);
-        audit.setAuditType(Constant.AUDIT_TYPE_SIGNATURE);
-        audit.setApplyUser(userService.getUserById((long) label.getCreateUid()));
-        audit.setAid(lid);
-        audit.setLastFlag(Constant.AUDIT_LAST_FLAG_YES);
-        audit = labelAuditService.getLabelAudit(audit, null);
-        labelAuditService.addAuditInfo(audit);
-        return lid;
     }
 
     public LabelInfo getLabelInfoByParentAndName(LabelInfo parent, String name) {

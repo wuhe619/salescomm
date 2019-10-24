@@ -1,7 +1,8 @@
 package com.bdaim.open.controller;
 
 import com.alibaba.fastjson.JSONObject;
-import com.bdaim.account.service.OpenService;
+import com.bdaim.customer.account.service.OpenService;
+
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;

@@ -1,12 +1,12 @@
 package com.bdaim.resource.util;
 
 
-import com.bdaim.common.util.spring.ConfigPropertiesHolder;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import com.bdaim.common.spring.ConfigPropertiesHolder;
 
 /**
  * 

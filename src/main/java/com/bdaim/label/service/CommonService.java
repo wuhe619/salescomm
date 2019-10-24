@@ -2,7 +2,7 @@ package com.bdaim.label.service;
 
 import com.alibaba.fastjson.JSON;
 import com.bdaim.common.service.InitService;
-import com.bdaim.common.util.spring.SpringContextHelper;
+import com.bdaim.common.spring.SpringContextHelper;
 import com.bdaim.customer.dao.CustomerUserDao;
 import com.bdaim.customgroup.entity.CustomGroup;
 import com.bdaim.dataexport.entity.DataExportApply;
@@ -253,130 +253,6 @@ public class CommonService {
         return map;
 
     }
-
-    /**
-     * 将审核列表转换成map列表形式
-     *
-     * @param audits
-     * @return
-     */
-    public static List<Map<String, Object>> getAuditMapList(
-            List<LabelAudit> audits) {
-        List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
-        for (LabelAudit audit : audits) {
-            list.add(getAuditMap(audit));
-        }
-        return list;
-    }
-
-    /**
-     * 将单条的审核记录转换为map格式
-     *
-     * @param audit
-     * @return
-     */
-    public static Map<String, Object> getAuditMap(LabelAudit audit) {
-        Map<String, Object> map = new HashMap<String, Object>();
-        map.put("id", audit.getId());
-        map.put("aid", audit.getAid());
-        map.put("name", audit.getName());
-        Integer auditType = audit.getAuditType();
-        if (null != auditType) {
-            map.put("auditType", auditType);
-            map.put("auditTypeCn", Constant.AUDIT_TYPE_MAP.get(auditType));
-        }
-        Integer applyType = audit.getApplyType();
-        if (null != applyType) {
-            map.put("applyType", applyType);
-            map.put("applyTypeCn", Constant.APPLY_TYPE_MAP.get(applyType));
-        }
-        Integer status = audit.getStatus();
-        if (null != status) {
-            map.put("status", status);
-            map.put("statusCn", Constant.STATUS_MAP.get(status));
-        }
-
-        String offlineMsg = audit.getOfflineMsg();
-        if (null != offlineMsg) {
-            map.put("offlineMsg", offlineMsg);
-        }
-        String auditMsg = audit.getAuditMsg();
-        if (null != auditMsg) {
-            map.put("auditMsg", auditMsg);
-        }
-        User devUser = audit.getDevUser();
-        if (null != devUser) {
-            map.put("devUserName", devUser.getName());
-        }
-        Integer auditResult = audit.getAuditResult();
-        if (null != auditResult) {
-            map.put("auditResult", auditResult);
-        }
-        User auditUser = audit.getAuditUser();
-        if (null != auditUser) {
-            map.put("auditUserName", auditUser.getName());
-        }
-        try {
-            User applyUser = audit.getApplyUser();
-            if (null != applyUser) {
-                map.put("applyUserName", applyUser.getName());
-            }
-        } catch (Exception e) {
-            map.put("applyUserName", "--");
-        }
-        Date auditTime = audit.getAuditTime();
-        if (null != auditTime) {
-            map.put("auditTime", CalendarUtil.getDateString(auditTime,
-                    CalendarUtil.SHORT_DATE_FORMAT));
-        }
-        Date applyTime = audit.getApplyTime();
-        if (null != applyTime) {
-            map.put("applyTime", CalendarUtil.getDateString(applyTime,
-                    CalendarUtil.SHORT_DATE_FORMAT));
-        }
-        map.put("availably", audit.getAvailably());
-        return map;
-    }
-
-    /**
-     * 根据标签结果集获取标签树
-     *
-     * @return
-     */
-//	public static String getTreeJsonString(List<LabelInfo> list) {
-//		Map<Integer, List<Entity2Tree>> arrayListMap = new HashMap<Integer, List<Entity2Tree>>();
-//		for (LabelInfo e : list) {
-//			Entity2Tree e2t = new Entity2Tree();
-//			e2t.setId(e.getId());
-//			String uri = e.getUri();
-//			String[] ids = uri.split("/");
-//			Integer fatherId = Integer.parseInt(ids[ids.length - 1]);
-//			if (arrayListMap.get(fatherId) == null) {
-//				List<Entity2Tree> list0 = new ArrayList<Entity2Tree>();
-//				list0.add(e2t);
-//				arrayListMap.put(fatherId, list0);
-//			} else {
-//				List<Entity2Tree> valueList = arrayListMap.get(fatherId);
-//				valueList.add(e2t);
-//				arrayListMap.put(fatherId, valueList);
-//			}
-//		}
-//		for (Map.Entry<Integer, List<Entity2Tree>> entry : arrayListMap
-//				.entrySet()) {
-//			List<Entity2Tree> smallTreeList = new ArrayList<Entity2Tree>();
-//			smallTreeList = entry.getValue();
-//			int nodeListSize = smallTreeList.size();
-//			for (int i = 0; i < nodeListSize; i++) {
-//				Integer findID = smallTreeList.get(i).getId();
-//				List<Entity2Tree> findList = arrayListMap.get(findID);
-//				smallTreeList.get(i).setChildren(findList);
-//			}
-//		}
-//		List<Entity2Tree> rootNodeList = arrayListMap.get(0);
-//
-//		JSONArray jsonArray = JSONArray.fromObject(rootNodeList);
-//		return jsonArray.toString();
-//	}
 
     public static class Entity2Tree {
         private Integer id;

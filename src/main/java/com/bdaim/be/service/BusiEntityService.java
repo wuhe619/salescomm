@@ -7,7 +7,7 @@ import com.bdaim.common.dto.Page;
 import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.service.BusiService;
 import com.bdaim.common.service.SequenceService;
-import com.bdaim.common.util.spring.SpringContextHelper;
+import com.bdaim.common.spring.SpringContextHelper;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customs.entity.BusiTypeEnum;
 import com.bdaim.customs.entity.HMetaDataDef;

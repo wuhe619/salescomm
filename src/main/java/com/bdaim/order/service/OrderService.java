@@ -5,7 +5,7 @@ import com.bdaim.auth.LoginUser;
 import com.bdaim.common.exception.TouchException;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerUserDao;
-import com.bdaim.customeruser.service.UserGroupService;
+import com.bdaim.customer.user.service.UserGroupService;
 import com.bdaim.customgroup.dao.CustomGroupDao;
 import com.bdaim.customgroup.dto.CustomerGrpOrdParam;
 import com.bdaim.customgroup.service.CustomGroupService;

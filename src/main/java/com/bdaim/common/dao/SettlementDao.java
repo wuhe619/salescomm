@@ -1,8 +1,9 @@
 package com.bdaim.common.dao;
 
-import com.bdaim.fund.entity.Settlement;
-import com.bdaim.fund.entity.SettlementProperty;
 import org.springframework.stereotype.Component;
+
+import com.bdaim.supplier.fund.entity.Settlement;
+import com.bdaim.supplier.fund.entity.SettlementProperty;
 
 import java.util.List;
 

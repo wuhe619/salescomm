@@ -7,7 +7,7 @@ import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.controller.util.ResponseJson;
 import com.bdaim.common.exception.ParamException;
 import com.bdaim.customer.dto.CustomerUserGroupDTO;
-import com.bdaim.customeruser.service.CustomerUserGroupService;
+import com.bdaim.customer.user.service.CustomerUserGroupService;
 import com.bdaim.marketproject.entity.MarketProjectProperty;
 import com.bdaim.marketproject.service.MarketProjectService;
 import com.bdaim.template.entity.MarketTemplate;
