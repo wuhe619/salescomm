@@ -146,7 +146,7 @@ public class SbdFService implements BusiService {
                 boolean amountStatus = serviceUtils.checkBatchIdCardAmount(cust_id, 1);
                 if (!amountStatus) {
                     log.warn("申报单核验余额不足[" + busiType + "]" + id);
-                    throw new TouchException("1001", "余额不足");
+                    throw new TouchException("1001", "资金不足无法核验,请充值");
                 }
                 // 判断身份证是否合法
                 if ("1".equals(data.getString("id_type"))) {

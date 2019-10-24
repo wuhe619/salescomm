@@ -169,7 +169,7 @@ public class SbdZService implements BusiService {
                 boolean amountStatus = serviceUtils.checkBatchIdCardAmount(cust_id, dfList.size());
                 if (!amountStatus) {
                     log.warn("申报单核验余额不足[" + busiType + "]" + id);
-                    throw new TouchException("1001", "余额不足");
+                    throw new TouchException("1001", "资金不足无法核验,请充值");
                 }
                 JSONObject content = new JSONObject();
                 content.put("main_id", id);
@@ -216,7 +216,7 @@ public class SbdZService implements BusiService {
             List<Map<String, Object>> countList = jdbcTemplate.queryForList(sql, busiType, billNo, id);
             if (countList != null && countList.size() > 0) {
                 log.warn("主单号:{}已经存在", billNo);
-                throw new TouchException("主单号:" + billNo + "已经存在");
+                //throw new TouchException("主单号:" + billNo + "已经存在");
             }
             serviceUtils.updateDataToES(busiType, id.toString(), info);
         }
