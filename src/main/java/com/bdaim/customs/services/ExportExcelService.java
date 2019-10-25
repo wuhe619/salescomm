@@ -145,9 +145,14 @@ public class ExportExcelService {
                 generateMainDan(list, map);
                 export(templatePath, map, sheetName, response);
                 break;
+            case "_export_verification_result":
+                sheetName = new String[]{"身份核验结果"};
+                generateMainDan(list, map);
+                export(templatePath, map, sheetName, response);
+                break;
             default:
                 LOG.warn("导出未找到匹配规则");
-                return;
+                break;
         }
     }
 
@@ -223,13 +228,15 @@ public class ExportExcelService {
                 }
 
                 ssList = m.getJSONArray("products");
-                // 处理商品
-                for (int j = 0; j < ssList.size(); j++) {
-                    ssData = new HashMap<>();
-                    ssData.putAll(ssList.getJSONObject(j));
-                    ssData.put("index", sIndex);
-                    sIndex++;
-                    list_two.add(ssData);
+                if (ssList != null && ssList.size() > 0) {
+                    // 处理商品
+                    for (int j = 0; j < ssList.size(); j++) {
+                        ssData = new HashMap<>();
+                        ssData.putAll(ssList.getJSONObject(j));
+                        ssData.put("index", sIndex);
+                        sIndex++;
+                        list_two.add(ssData);
+                    }
                 }
             }
             map.put("list1", list_one);
@@ -260,6 +267,13 @@ public class ExportExcelService {
         }
     }
 
+    /**
+     * 导出身份图片为空或者身份校验状态
+     *
+     * @param id
+     * @param type
+     * @param response
+     */
     private void exportIdCard(int id, int type, HttpServletResponse response) {
         LOG.info("开始导出分单身份图片缺失,主单:{}", id);
         List<HBusiDataManager> list = new ArrayList<>();

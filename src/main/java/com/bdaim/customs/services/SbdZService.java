@@ -226,16 +226,25 @@ public class SbdZService implements BusiService {
     public void doInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info, JSONObject param) {
         if (StringUtil.isNotEmpty(param.getString("_rule_")) && param.getString("_rule_").startsWith("_export")) {
             //info.put("export_type", 2);
+            List singles;
             switch (param.getString("_rule_")) {
-                case "_export_v_photo":
-                case "_export_v_nopass":
-                    //info.put("export_type", 1);
+                case "_export_verification_result":
+                    // 核验通过
+                    param.put("check_status", "1");
+                    singles = serviceUtils.queryChildData(BusiTypeEnum.SF.getType(), cust_id, cust_group_id, cust_user_id, id, param);
+                    if (singles == null) {
+                        singles = new ArrayList();
+                    }
+                    // 核验未通过
+                    param.put("check_status", "2");
+                    singles.addAll(serviceUtils.queryChildData(BusiTypeEnum.SF.getType(), cust_id, cust_group_id, cust_user_id, id, param));
+                    info.put("singles", singles);
                     break;
                 // 低价商品
                 case "_export_low_product":
                     param.put("_ge_low_price_goods", 1);
                     //查询包含低价的分单列表
-                    List singles = serviceUtils.queryChildData(BusiTypeEnum.SF.getType(), cust_id, cust_group_id, cust_user_id, id, param);
+                    singles = serviceUtils.queryChildData(BusiTypeEnum.SF.getType(), cust_id, cust_group_id, cust_user_id, id, param);
                     if (singles != null && singles.size() > 0) {
                         param.remove("_ge_low_price_goods");
                         param.put("_eq_is_low_price", 1);
@@ -353,6 +362,8 @@ public class SbdZService implements BusiService {
                         }
                         info.put("singles", singles);
                     }
+                    break;
+                default:
                     break;
             }
 
