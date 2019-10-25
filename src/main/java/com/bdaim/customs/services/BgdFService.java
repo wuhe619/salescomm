@@ -432,11 +432,11 @@ public class BgdFService implements BusiService {
             filedName += "," + BGDReportEnum.SendIdType.getName();
         }
 
-        if(StringUtil.isEmpty(json.get("send_address")==null?"":json.get("send_address").toString())){
+        if(StringUtil.isEmpty(mainjson.get("send_address")==null?"":mainjson.get("send_address").toString())){
             filedName += "," + BGDReportEnum.SendAddress.getName();
         }
 
-        if(StringUtil.isEmpty(json.get("send_tel")==null?"":json.get("send_tel").toString())){
+        if(StringUtil.isEmpty(mainjson.get("send_tel")==null?"":mainjson.get("send_tel").toString())){
             filedName += "," + BGDReportEnum.SendTelNo.getName();
         }
 
@@ -456,20 +456,20 @@ public class BgdFService implements BusiService {
             filedName += "," + BGDReportEnum.ReceiveCity.getName();
         }
 
-        if(StringUtil.isEmpty(json.get("stop_address_en")==null?"":json.get("stop_address_en").toString())){
+        if(StringUtil.isEmpty(mainjson.get("stop_address_en")==null?"":mainjson.get("stop_address_en").toString())){
             filedName += "," + BGDReportEnum.StopCityEn.getName();
         }
 
-        if(StringUtil.isEmpty(json.get("send_name_en")==null?"":json.get("send_name_en").toString())){
+        if(StringUtil.isEmpty(mainjson.get("send_name_en")==null?"":mainjson.get("send_name_en").toString())){
             filedName += "," + BGDReportEnum.SendNameEn.getName();
         }
 
-        if(StringUtil.isEmpty(json.get("send_address_en")==null?"":json.get("send_address_en").toString())){
+        if(StringUtil.isEmpty(mainjson.get("send_address_en")==null?"":mainjson.get("send_address_en").toString())){
             filedName += "," + BGDReportEnum.SendAddressEn.getName();
         }
 
 
-        if(StringUtil.isEmpty(json.get("send_city_en")==null?"":json.get("send_city_en").toString())){
+        if(StringUtil.isEmpty(mainjson.get("send_city_en")==null?"":mainjson.get("send_city_en").toString())){
             filedName += "," + BGDReportEnum.SendCityEn.getName();
         }
 
@@ -624,8 +624,8 @@ public class BgdFService implements BusiService {
         ReceiveTelNo("ReceiveTelNo","收件人号码"),
         ReceiveCountry("ReceiveCountry","收件人国别"),
         ReceiveCity("ReceiveCity","收件人城市"),
-        StopCityEn("SendAddress","英文经停城市"),
-        SendNameEn("SendAddress","发件人英文名称"),
+        StopCityEn("StopCityEn","英文经停城市"),
+        SendNameEn("SendNameEn","发件人英文名称"),
         SendAddressEn("SendAddressEn","英文发件人地址"),
         SendCityEn("SendCityEn","英文发件人城市"),
         ReceiveAddressEn("ReceiveAddressEn","英文收件人地址"),
