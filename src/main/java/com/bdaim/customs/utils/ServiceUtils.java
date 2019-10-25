@@ -806,30 +806,39 @@ public class ServiceUtils {
      * @param list
      * @return
      */
-    public String generateFDMainGName(List<Product> list) {
+    public Map<String,String> generateFDMainGName(List<Product> list) {
         String spilt = "|";
+        Map<String,String> resultmap = new HashMap<>();
         if (list == null || list.size() == 0) {
-            return "";
+            return resultmap;
         } else if (list.size() == 1) {
             // 1个商品默认为主要货物名称
             StringBuffer name = new StringBuffer();
-            name.append(list.get(0).getG_name())
-                    .append(spilt)
-                    .append(list.get(0).getG_name_en());
+            StringBuffer name_en = new StringBuffer();
+            name.append(list.get(0).getG_name());
+            name_en.append(list.get(0).getG_name_en());
+            //.append(spilt)
+            //.append(list.get(0).getG_name_en());
                    /* .append(spilt)
                     .append(list.get(0).getG_model());*/
-            return name.toString();
+            resultmap.put("name",name.toString());
+            resultmap.put("name_en",name_en.toString());
+            return resultmap;
         } else {
             Optional<Product> result = list.stream().filter(Objects::nonNull).filter(s -> StringUtil.isNotEmpty(s.getG_qty()) && StringUtil.isNotEmpty(s.getDecl_price()))
                     .max(Comparator.comparingDouble(s -> NumberConvertUtil.parseDouble(s.getG_qty()) * NumberConvertUtil.parseDouble(s.getDecl_price())));
             Product data = result.orElse(new Product());
             StringBuffer name = new StringBuffer();
+            StringBuffer name_en = new StringBuffer();
             name.append(data.getG_name())
-                    .append(spilt)
-                    .append(data.getG_name_en());
+                    .append(spilt);
+            //.append(data.getG_name_en());
                    /* .append(spilt)
                     .append(data.getG_model());*/
-            return name.toString();
+            name_en.append(data.getG_name_en()).append(spilt);
+            resultmap.put("name",name.toString());
+            resultmap.put("name_en",name_en.toString());
+            return resultmap;
         }
     }
 
