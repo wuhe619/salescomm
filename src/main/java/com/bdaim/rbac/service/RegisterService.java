@@ -1,12 +1,8 @@
 package com.bdaim.rbac.service;
 
 import com.alibaba.fastjson.JSONObject;
-import com.bdaim.account.dao.AccountDao;
-import com.bdaim.account.entity.AccountDO;
-import com.bdaim.common.util.CipherUtil;
-import com.bdaim.common.util.Constant;
-import com.bdaim.common.util.DateUtil;
-import com.bdaim.common.util.IDHelper;
+import com.bdaim.customer.account.dao.AccountDao;
+import com.bdaim.customer.account.entity.AccountDO;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.EnterpriseDao;
 import com.bdaim.customer.entity.Customer;
@@ -17,6 +13,11 @@ import com.bdaim.rbac.dao.RegisterDao;
 import com.bdaim.rbac.dao.UserDao;
 import com.bdaim.rbac.dao.UserRoleRelDao;
 import com.bdaim.rbac.dto.RegisterDTO;
+import com.bdaim.util.CipherUtil;
+import com.bdaim.util.Constant;
+import com.bdaim.util.DateUtil;
+import com.bdaim.util.IDHelper;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;

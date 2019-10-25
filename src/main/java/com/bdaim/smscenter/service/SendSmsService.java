@@ -7,8 +7,6 @@ import com.bdaim.auth.LoginUser;
 import com.bdaim.auth.entity.UserVerificationCode;
 import com.bdaim.auth.service.UserVerificationCodeService;
 import com.bdaim.common.service.PhoneService;
-import com.bdaim.common.util.*;
-import com.bdaim.common.util.http.HttpUtil;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.entity.CustomerProperty;
 import com.bdaim.customgroup.service.CustomGroupService;
@@ -26,6 +24,9 @@ import com.bdaim.supplier.dao.SupplierDao;
 import com.bdaim.template.dao.MarketTemplateDao;
 import com.bdaim.template.dto.MarketTemplateDTO;
 import com.bdaim.template.entity.MarketTemplate;
+import com.bdaim.util.*;
+import com.bdaim.util.http.HttpUtil;
+
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -3,12 +3,9 @@ package com.bdaim.label.service;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.bdaim.common.util.Constant;
-import com.bdaim.common.util.StringHelper;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerLabelDao;
 import com.bdaim.label.dao.IndustryLabelDao;
-import com.bdaim.label.dao.LabelCoverDao;
 import com.bdaim.label.dao.LabelDao;
 import com.bdaim.label.dao.LabelInfoDao;
 import com.bdaim.label.dto.CategoryType;
@@ -17,6 +14,9 @@ import com.bdaim.label.dto.QueryType;
 import com.bdaim.label.entity.*;
 import com.bdaim.rbac.dto.UserDTO;
 import com.bdaim.rbac.service.UserService;
+import com.bdaim.util.Constant;
+import com.bdaim.util.StringHelper;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.Criteria;
@@ -39,15 +39,11 @@ public class LabelInfoService {
     @Resource
     private LabelInfoDao labelInfoDao;
     @Resource
-    private LabelAuditService labelAuditService;
-    @Resource
     private UserService userService;
     @Resource
     private LabelCategoryService labelCategoryServiceImpl;
     @Resource
     private RestTemplate restTemplate;
-    @Resource
-    private LabelCoverDao labelCoverDao;
     @Resource
     private LabelInterfaceService labelInterfaceService;
     @Resource
@@ -231,52 +227,6 @@ public class LabelInfoService {
     }
 
     /**
-     * 新增基础标签 1.新增基础标签的同时要修改标签状态为申请中 2.在审核系统中录入标签的申请信息
-     */
-    public synchronized Integer addBaseLabel(LabelInfo label) {
-        String hql = "select max(labelId) as label_id from LabelInfo where level=? and parent.id=?";
-        Object maxLabelId = null;
-        if (label.getParentCategory() == null) {
-            maxLabelId = labelInfoDao.findUnique(hql, label.getLevel(), label.getParent().getId());
-            if (null == maxLabelId)
-                maxLabelId = label.getParent().getLabelId() + "00001";
-        } else {
-            hql += " and parentCategory.id=?";
-            maxLabelId = labelInfoDao.findUnique(hql, label.getLevel(), label.getParent().getId(), label.getParentCategory().getCategoryId());
-            if (null == maxLabelId) {
-                if (label.getLevel().equals(3)) {
-                    maxLabelId = label.getParent().getLabelId() + label.getParentCategory().getCategoryId() + "00001";
-                } else if (label.getLevel().equals(4)) {
-                    maxLabelId = label.getParent().getLabelId() + "00001";
-                }
-            }
-        }
-        if (null == maxLabelId)
-            throw new NullPointerException("无法生成label_id");
-        Long labelId = Long.parseLong(maxLabelId.toString()) + 1;
-        label.setLabelId(Long.toString(labelId));
-        Integer lid = (Integer) labelInfoDao.saveReturnPk(label);
-        //下面是增加审批信息
-        LabelAudit audit = new LabelAudit();
-        audit.setName(label.getLabelName());
-        audit.setStatus(Constant.AUDITING);
-        //添加审批类型和申请类型
-        if (label.getType().equals(Constant.LABLE_TYPE_CATEGORY)) {
-            audit.setApplyType(Constant.APPLY_TYPE_CATEGORY_CREATE);
-            audit.setAuditType(Constant.AUDIT_TYPE_CATEGORY);
-        } else {
-            audit.setApplyType(Constant.APPLY_TYPE_BASELABEL_CREATE);
-            audit.setAuditType(Constant.AUDIT_TYPE_LABEL);
-        }
-        audit.setApplyUser(userService.getUserById((long) label.getCreateUid()));
-        audit.setAid(lid);
-        audit.setLastFlag(Constant.AUDIT_LAST_FLAG_YES);
-        audit = labelAuditService.getLabelAudit(audit, null);
-        labelAuditService.addAuditInfo(audit);
-        return lid;
-    }
-
-    /**
      * 标签信息的模糊搜索 根据标签名称 、规则、部门等条件 返回结果结合[{},{}]
      */
     public List<Map<String, Object>> getLabels(Map<String, Object> map, Map<String, Object> likeMap) {
@@ -340,91 +290,6 @@ public class LabelInfoService {
     }
 
     /**
-     * 获取品类类型的数据
-     */
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    private List<Map<String, Object>> getChildrenByCategory(List<DataNode> nodes, List<Integer> cateList, LabelInfo label) {
-        for (DataNode node : nodes) {
-            List<DataNode> children = node.getChildren();
-            if (null != children) {
-                for (DataNode n : children) {
-                    cateList.add(Integer.valueOf(n.getId().toString()));
-                }
-            }
-            cateList.add(Integer.valueOf(node.getId().toString()));
-        }
-        List<Map<String, Object>> categoryTree = CommonService.getDataNodeMapList(nodes);
-        //查询指定一级分类下对应品类的覆盖信息
-        if (cateList.size() > 0) {
-            List<Map<String, Object>> covers = labelCoverDao
-                    .createQuery(
-                            "select new map(label.id as labelId,category.id as categoryId,coverNum as num,total as total ) from LabelCover where label.id=(:label) and category.id in(:cateList)")
-                    .setParameter("label", label.getId())
-                    .setParameterList("cateList", cateList).list();
-
-            Map<String, String> coverMap = new HashMap<String, String>();
-            for (Map<String, Object> map : covers) {
-                String labelID = map.get("labelId") == null ? null : map.get(
-                        "labelId").toString();
-                String categoryID = map.get("categoryId") == null ? null : map.get(
-                        "categoryId").toString();
-                String num = map.get("num") == null ? "0" : map.get("num")
-                        .toString();
-                String total = map.get("total") == null ? "0" : map.get("total")
-                        .toString();
-                if (null == labelID)
-                    continue;
-                if (null == categoryID) {
-                    coverMap.put(labelID, num + "_" + total);
-                } else {
-                    coverMap.put(labelID + "_" + categoryID, num + "_" + total);
-                }
-            }
-            for (Map<String, Object> map : categoryTree) {
-                List<Map<String, Object>> children = (List<Map<String, Object>>) map.get("children");
-                // 待删除children
-                List<Map<String, Object>> delete = new ArrayList<Map<String, Object>>();
-                String cid = map.get("categoryId") == null ? null : map.get("categoryId").toString();
-
-                String key = label.getId() + "_" + cid;
-                String value = coverMap.get(key);
-                if (null != value) {
-                    String[] vArr = value.split("_");
-                    map.put("customerNum", vArr[0]);
-                    map.put("total", vArr[1]);
-                    map.put("viewStatus", Constant.VIEW_STATUS_ONLINE);
-                    map.put("statusCn", Constant.ONLINE_CN);
-                } else {
-                    map.put("customerNum", 0);
-                    map.put("total", 0);
-                    map.put("viewStatus", Constant.VIEW_STATUS_ONLINE);
-                    map.put("statusCn", Constant.ONLINE_CN);
-                }
-                if (null != children) {
-                    for (Map<String, Object> m : children) {
-                        String c = m.get("categoryId").toString();
-                        String k = label.getId() + "_" + c;
-                        String v = coverMap.get(k);
-                        if (null != v) {
-                            String[] vArr = v.split("_");
-                            m.put("customerNum", vArr[0]);
-                            m.put("total", vArr[1]);
-                            m.put("viewStatus", Constant.VIEW_STATUS_ONLINE);
-                            m.put("statusCn", Constant.ONLINE_CN);
-                        } else {
-                            m.put("customerNum", 0);
-                            m.put("total", 0);
-                            m.put("viewStatus", Constant.VIEW_STATUS_ONLINE);
-                            m.put("statusCn", Constant.ONLINE_CN);
-                        }
-                    }
-                }
-            }
-        }
-        return categoryTree;
-    }
-
-    /**
      * 获取标签覆盖信息
      */
     @SuppressWarnings("unchecked")
@@ -442,9 +307,6 @@ public class LabelInfoService {
             labelMap.put(lab.getId(), lab);
         }
         //根据标签id和标签周期查询标签覆盖用户数
-        String queryHQL = "select new map(label.id as labelId,category.id as categoryId,coverNum as num,total as total )  from LabelCover t where t.cycle=:cycle and t.label.id in(:lids)";
-        if (lids.size() > 0)
-            covers = labelCoverDao.createQuery(queryHQL).setParameterList("lids", lids).setParameter("cycle", cycle).list();
         List<LabelInfo> labs = new ArrayList<LabelInfo>();
         for (Map<String, Object> cover : covers) {
             if (labelMap.containsKey(cover.get("labelId")))
@@ -452,12 +314,6 @@ public class LabelInfoService {
         }
         return labs;
     }
-
-    private List<Map<String, Object>> getLbelCovers(List<Integer> lids, Integer cycle) {
-        String queryHQL = "select new map(label.id as labelId,category.id as categoryId,coverNum as num,total as total )  from LabelCover t where t.cycle=:cycle and t.label.id in(:lids)";
-        return labelCoverDao.createQuery(queryHQL).setParameterList("lids", lids).setParameter("cycle", cycle).list();
-    }
-
 
     private void addCoverNum(List<Map<String, Object>> tree,
                              List<Map<String, Object>> covers, String labelId) {
@@ -670,48 +526,6 @@ public class LabelInfoService {
             result = getLabelTree(list);
         }
         return result;
-    }
-
-    public synchronized Integer addSignatureLabel(LabelInfo label, Integer cycle) {
-        LabelCover cover = new LabelCover();
-        String labelId = StringHelper.generatorKeyByParentAndLevel(label
-                .getParent().getLabelId(), label.getParent().getChildren()
-                .size() + 1, label.getLevel());
-        label.setLabelId(labelId);
-        try {
-            String str = labelInterfaceService.previewSignatureLabel(label, null == cycle ? Integer.valueOf(0) : cycle);
-            JSONObject json = JSONObject.parseObject(str);
-            if (json.getIntValue("isSuccess") == 0) {
-                log.error("标签预览失败！" + json.getString("_message"));
-                throw new RuntimeException("标签预览失败！");
-            }
-            Long count = json.getJSONObject("data").getLong("count");
-            Long total = json.getJSONObject("data").getLong("total");
-            label.setCustomerNum(count);
-            label.setTotal(total);
-            cover.setCoverNum(count);
-            cover.setTotal(total);
-            cover.setCycle(cycle == null ? 0 : cycle);
-            // }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        Integer lid = (Integer) labelInfoDao.saveReturnPk(label);
-        cover.setLabel(label);
-        labelCoverDao.save(cover);
-        label.setStatus(Constant.AUDITING); // 新增标签状态默认为审核中
-        LabelAudit audit = new LabelAudit();
-        audit.setName(label.getLabelName());
-        audit.setStatus(Constant.AUDITING);
-        audit.setApplyType(Constant.APPLY_TYPE_SIGNATURE_CREATE);
-        audit.setAuditType(Constant.AUDIT_TYPE_SIGNATURE);
-        audit.setApplyUser(userService.getUserById((long) label.getCreateUid()));
-        audit.setAid(lid);
-        audit.setLastFlag(Constant.AUDIT_LAST_FLAG_YES);
-        audit = labelAuditService.getLabelAudit(audit, null);
-        labelAuditService.addAuditInfo(audit);
-        return lid;
     }
 
     public LabelInfo getLabelInfoByParentAndName(LabelInfo parent, String name) {

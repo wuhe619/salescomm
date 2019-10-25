@@ -6,8 +6,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.bdaim.callcenter.dto.SeatCallCenterConfig;
 import com.bdaim.callcenter.dto.SeatsInfo;
 import com.bdaim.callcenter.dto.UnicomSendSmsParam;
-import com.bdaim.common.util.*;
-import com.bdaim.common.util.http.HttpUtil;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dto.CustomerPropertyEnum;
 import com.bdaim.customer.entity.CustomerProperty;
@@ -17,6 +15,9 @@ import com.bdaim.resource.dto.CallBackParam;
 import com.bdaim.resource.entity.MarketResourceEntity;
 import com.bdaim.resource.entity.ResourcePropertyEntity;
 import com.bdaim.resource.service.MarketResourceService;
+import com.bdaim.util.*;
+import com.bdaim.util.http.HttpUtil;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -96,6 +97,7 @@ public class CallCenterService {
         if (resourcesPriceDto != null) {
             result.put("callCenterId", resourcesPriceDto.getCallCenterId());
             result.put("apparentNumber", resourcesPriceDto.getApparentNumber());
+            result.put("entPassWord", resourcesPriceDto.getEntPassWord());
         }
         return result;
     }

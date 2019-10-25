@@ -1,8 +1,9 @@
 package com.bdaim.common.dao;
 
 import com.bdaim.common.entity.HFile;
-import com.bdaim.common.util.BusinessEnum;
-import com.bdaim.common.util.IDHelper;
+import com.bdaim.util.BusinessEnum;
+import com.bdaim.util.IDHelper;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;

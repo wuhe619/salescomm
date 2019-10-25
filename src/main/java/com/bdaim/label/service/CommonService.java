@@ -2,18 +2,18 @@ package com.bdaim.label.service;
 
 import com.alibaba.fastjson.JSON;
 import com.bdaim.common.service.InitService;
-import com.bdaim.common.util.CalendarUtil;
-import com.bdaim.common.util.Constant;
-import com.bdaim.common.util.DateUtil;
-import com.bdaim.common.util.spring.SpringContextHelper;
+import com.bdaim.common.spring.SpringContextHelper;
 import com.bdaim.customer.dao.CustomerUserDao;
 import com.bdaim.customgroup.entity.CustomGroup;
 import com.bdaim.dataexport.entity.DataExportApply;
-import com.bdaim.label.dao.CustomerLabelAndCategoryDao;
 import com.bdaim.label.dao.LabelCategoryDao;
 import com.bdaim.label.dao.LabelInfoDao;
 import com.bdaim.label.entity.*;
 import com.bdaim.rbac.entity.User;
+import com.bdaim.util.CalendarUtil;
+import com.bdaim.util.Constant;
+import com.bdaim.util.DateUtil;
+
 import org.hibernate.Query;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -253,130 +253,6 @@ public class CommonService {
 
     }
 
-    /**
-     * 将审核列表转换成map列表形式
-     *
-     * @param audits
-     * @return
-     */
-    public static List<Map<String, Object>> getAuditMapList(
-            List<LabelAudit> audits) {
-        List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
-        for (LabelAudit audit : audits) {
-            list.add(getAuditMap(audit));
-        }
-        return list;
-    }
-
-    /**
-     * 将单条的审核记录转换为map格式
-     *
-     * @param audit
-     * @return
-     */
-    public static Map<String, Object> getAuditMap(LabelAudit audit) {
-        Map<String, Object> map = new HashMap<String, Object>();
-        map.put("id", audit.getId());
-        map.put("aid", audit.getAid());
-        map.put("name", audit.getName());
-        Integer auditType = audit.getAuditType();
-        if (null != auditType) {
-            map.put("auditType", auditType);
-            map.put("auditTypeCn", Constant.AUDIT_TYPE_MAP.get(auditType));
-        }
-        Integer applyType = audit.getApplyType();
-        if (null != applyType) {
-            map.put("applyType", applyType);
-            map.put("applyTypeCn", Constant.APPLY_TYPE_MAP.get(applyType));
-        }
-        Integer status = audit.getStatus();
-        if (null != status) {
-            map.put("status", status);
-            map.put("statusCn", Constant.STATUS_MAP.get(status));
-        }
-
-        String offlineMsg = audit.getOfflineMsg();
-        if (null != offlineMsg) {
-            map.put("offlineMsg", offlineMsg);
-        }
-        String auditMsg = audit.getAuditMsg();
-        if (null != auditMsg) {
-            map.put("auditMsg", auditMsg);
-        }
-        User devUser = audit.getDevUser();
-        if (null != devUser) {
-            map.put("devUserName", devUser.getName());
-        }
-        Integer auditResult = audit.getAuditResult();
-        if (null != auditResult) {
-            map.put("auditResult", auditResult);
-        }
-        User auditUser = audit.getAuditUser();
-        if (null != auditUser) {
-            map.put("auditUserName", auditUser.getName());
-        }
-        try {
-            User applyUser = audit.getApplyUser();
-            if (null != applyUser) {
-                map.put("applyUserName", applyUser.getName());
-            }
-        } catch (Exception e) {
-            map.put("applyUserName", "--");
-        }
-        Date auditTime = audit.getAuditTime();
-        if (null != auditTime) {
-            map.put("auditTime", CalendarUtil.getDateString(auditTime,
-                    CalendarUtil.SHORT_DATE_FORMAT));
-        }
-        Date applyTime = audit.getApplyTime();
-        if (null != applyTime) {
-            map.put("applyTime", CalendarUtil.getDateString(applyTime,
-                    CalendarUtil.SHORT_DATE_FORMAT));
-        }
-        map.put("availably", audit.getAvailably());
-        return map;
-    }
-
-    /**
-     * 根据标签结果集获取标签树
-     *
-     * @return
-     */
-//	public static String getTreeJsonString(List<LabelInfo> list) {
-//		Map<Integer, List<Entity2Tree>> arrayListMap = new HashMap<Integer, List<Entity2Tree>>();
-//		for (LabelInfo e : list) {
-//			Entity2Tree e2t = new Entity2Tree();
-//			e2t.setId(e.getId());
-//			String uri = e.getUri();
-//			String[] ids = uri.split("/");
-//			Integer fatherId = Integer.parseInt(ids[ids.length - 1]);
-//			if (arrayListMap.get(fatherId) == null) {
-//				List<Entity2Tree> list0 = new ArrayList<Entity2Tree>();
-//				list0.add(e2t);
-//				arrayListMap.put(fatherId, list0);
-//			} else {
-//				List<Entity2Tree> valueList = arrayListMap.get(fatherId);
-//				valueList.add(e2t);
-//				arrayListMap.put(fatherId, valueList);
-//			}
-//		}
-//		for (Map.Entry<Integer, List<Entity2Tree>> entry : arrayListMap
-//				.entrySet()) {
-//			List<Entity2Tree> smallTreeList = new ArrayList<Entity2Tree>();
-//			smallTreeList = entry.getValue();
-//			int nodeListSize = smallTreeList.size();
-//			for (int i = 0; i < nodeListSize; i++) {
-//				Integer findID = smallTreeList.get(i).getId();
-//				List<Entity2Tree> findList = arrayListMap.get(findID);
-//				smallTreeList.get(i).setChildren(findList);
-//			}
-//		}
-//		List<Entity2Tree> rootNodeList = arrayListMap.get(0);
-//
-//		JSONArray jsonArray = JSONArray.fromObject(rootNodeList);
-//		return jsonArray.toString();
-//	}
-
     public static class Entity2Tree {
         private Integer id;
         private String labelId;
@@ -574,25 +450,7 @@ public class CommonService {
         Map<String, Object> labelMap = new HashMap<String, Object>();
         Integer id = group.getId();
         try {
-            List<Object> ids = ((CustomerLabelAndCategoryDao) SpringContextHelper.getBean("customerLabelAndCategoryDao")).createQuery("select labelInfo.id from CustomerLabelAndCategory where customerGroup.id=?", id).list();
-            if (null != ids && ids.size() > 0) {
-                LabelInfoDao lidao = (LabelInfoDao) SpringContextHelper.getBean("labelInfoDao");
-                Query query = lidao.createQuery("From LabelInfo where id in(:ids)");
-                query.setParameterList("ids", ids);
-                List<LabelInfo> labels = query.list();
-                for (LabelInfo label : labels) {
-                    String path = label.getPath();
-                    if (labelMap.containsKey(path)) {
-                        StringBuffer labelNames = (StringBuffer) labelMap.get(path);
-                        labelNames.append("," + label.getLabelName());
-                    } else {
-                        StringBuffer labelNames = new StringBuffer();
-                        labelNames.append(label.getLabelName());
-                        labelMap.put(path, labelNames);
-                    }
-
-                }
-            }
+            
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -674,48 +532,7 @@ public class CommonService {
         label.setLevel(parentLabel.getLevel() + 1);
         return label;
     }
-
-    public static List<Map<String, Object>> getLabelTaskMapList(
-            List<LabelTask> tasks) {
-        List<Map<String, Object>> mapList = new ArrayList<Map<String, Object>>();
-        for (LabelTask task : tasks) {
-            mapList.add(getLabelTaskMap(task));
-        }
-        return mapList;
-    }
-
-    public static List<Map<String, Object>> getLabelTaskWithLabelInfoMapList(
-            List<Object[]> tasks) {
-        List<Map<String, Object>> mapList = new ArrayList<Map<String, Object>>();
-        for (Object[] task : tasks) {
-            Map<String, Object> map = getLabelTaskMap((LabelTask) task[0]);
-            getLabelInfoMap(map, (LabelInfo) task[1]);
-            mapList.add(map);
-        }
-        return mapList;
-    }
-
-    public static Map<String, Object> getLabelTaskMap(LabelTask task) {
-        Map<String, Object> map = new HashMap<String, Object>();
-        map.put("id", task.getId());
-        map.put("lid", task.getLid());
-        map.put("labelPath", task.getLabelPath());
-        Integer status = task.getTaskStatus();
-        if (null == status) {
-            map.put("taskStatus", null);
-        } else {
-            map.put("taskStatus", status);
-            map.put("taskStatusCn", Constant.TASK_MAP.get(status));
-        }
-        Date updateTime = task.getUpdateTime();
-        if (null != updateTime) {
-            map.put("updateTime", CalendarUtil.getDateString(updateTime,
-                    CalendarUtil.SHORT_DATE_FORMAT));
-        }
-        map.put("updateUsers", task.getUpdateUsers());
-        return map;
-    }
-
+    
     public static void getLabelInfoMap(Map<String, Object> map, LabelInfo linfo) {
         map.put("id", linfo.getId());
         map.put("LabelId", linfo.getLabelId());
@@ -726,8 +543,7 @@ public class CommonService {
      * @param apply
      * @return
      */
-    public static Map<String, Object> getDataExportApplyMap(
-            DataExportApply apply) {
+    public static Map<String, Object> getDataExportApplyMap(DataExportApply apply) {
         Map<String, Object> map = new HashMap<String, Object>();
         map.put("id", apply.getId());
         map.put("applyReason", apply.getApplyReason());

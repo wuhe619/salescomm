@@ -11,8 +11,6 @@ import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
-import com.bdaim.common.util.NumberConvertUtil;
-import com.bdaim.common.util.StringUtil;
 import com.bdaim.rbac.dto.*;
 import com.bdaim.rbac.service.DeptService;
 import com.bdaim.rbac.service.ResourceService;
@@ -20,6 +18,9 @@ import com.bdaim.rbac.service.RoleService;
 import com.bdaim.rbac.vo.DeptInfo;
 import com.bdaim.rbac.vo.QueryDataParam;
 import com.bdaim.rbac.vo.RoleInfo;
+import com.bdaim.util.NumberConvertUtil;
+import com.bdaim.util.StringUtil;
+
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

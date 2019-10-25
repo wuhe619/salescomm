@@ -7,14 +7,18 @@ import com.bdaim.common.BusiMetaConfig;
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.service.ElasticSearchService;
 import com.bdaim.common.service.SequenceService;
-import com.bdaim.common.util.*;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.entity.Customer;
 import com.bdaim.customer.entity.CustomerProperty;
 import com.bdaim.customs.entity.*;
+import com.bdaim.resource.dao.MarketResourceDao;
 import com.bdaim.resource.dao.SourceDao;
 import com.bdaim.resource.entity.MarketResourceEntity;
+import com.bdaim.resource.entity.ResourcePropertyEntity;
+import com.bdaim.resource.service.MarketResourceService;
 import com.bdaim.supplier.dto.SupplierEnum;
+import com.bdaim.util.*;
+
 import io.searchbox.core.SearchResult;
 import net.sf.json.xml.XMLSerializer;
 import org.dom4j.Document;
@@ -32,6 +36,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.nio.charset.Charset;
 import java.sql.Timestamp;
 import java.util.*;
@@ -56,6 +61,11 @@ public class ServiceUtils {
     private HDicUtil dicUtil;
     @Autowired
     private CustomerDao customerDao;
+    @Autowired
+    private MarketResourceService marketResourceService;
+
+    @Autowired
+    private MarketResourceDao marketResourceDao;
 
     public void addDataToES(String id, String type, JSONObject content) {
         if (type.equals(BusiTypeEnum.SZ.getType())) {
@@ -450,20 +460,25 @@ public class ServiceUtils {
      */
     public List<HBusiDataManager> listFDIdCard(int pid, String type, String pBusiType, int idCardPhotoStatus, int idCardCheckStatus) {
         //StringBuilder hql = new StringBuilder("select * from " + HMetaDataDef.getTable(type, "") + " WHERE type = ? AND JSON_EXTRACT(content, '$.pid')=?  ");
-        StringBuilder hql = new StringBuilder("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(type, "") + " WHERE type = ? AND ext_4 = (SELECT ext_3 FROM " + HMetaDataDef.getTable(pBusiType, "") + " WHERE id = ?)  ");
+        StringBuilder sql = new StringBuilder("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(type, "") + " WHERE type = ? AND ext_4 = (SELECT ext_3 FROM " + HMetaDataDef.getTable(pBusiType, "") + " WHERE id = ?)  ");
         // 有身份照片 AND ext_4 = (SELECT ext_3 FROM " + HMetaDataDef.getTable(pBusiType, "") + " WHERE id = ?)
         if (1 == idCardPhotoStatus) {
-            hql.append(" AND ext_6 IS NOT NULL AND ext_6 <>'' ");
+            //hql.append(" AND ext_6 IS NOT NULL AND ext_6 <>'' ");
+            sql.append(" AND ").append(BusiMetaConfig.getFieldIndex(type, "idcard_pic_flag")).append(" ='1' ");
         } else if (2 == idCardPhotoStatus) {
-            hql.append(" AND (ext_6 IS NULL OR ext_6 ='') ");
+            //hql.append(" AND (ext_6 IS NULL OR ext_6 ='') ");
+            sql.append(" AND ").append(BusiMetaConfig.getFieldIndex(type, "idcard_pic_flag")).append(" ='0' ");
         }
         //身份核验结果通过
         if (1 == idCardCheckStatus) {
-            hql.append(" AND ext_7 = 1 ");
+            //sql.append(" AND ext_7 = 1 ");
+            sql.append(" AND ").append(BusiMetaConfig.getFieldIndex(type, "check_status")).append(" ='1' ");
         } else if (2 == idCardCheckStatus) {
-            hql.append(" AND (ext_7 IS NULL OR ext_7 ='' OR ext_7 =2) ");
+            // 身份核验未通过
+            //sql.append(" AND (ext_7 IS NULL OR ext_7 ='' OR ext_7 =2) ");
+            sql.append(" AND ").append(BusiMetaConfig.getFieldIndex(type, "check_status")).append(" ='2' ");
         }
-        List<Map<String, Object>> list2 = jdbcTemplate.queryForList(hql.toString(), type, pid);
+        List<Map<String, Object>> list2 = jdbcTemplate.queryForList(sql.toString(), type, pid);
         List<HBusiDataManager> list = JSON.parseArray(JSON.toJSONString(list2), HBusiDataManager.class);
         return list;
     }
@@ -791,31 +806,90 @@ public class ServiceUtils {
      * @param list
      * @return
      */
-    public String generateFDMainGName(List<Product> list) {
+    public Map<String,String> generateFDMainGName(List<Product> list) {
         String spilt = "|";
+        Map<String,String> resultmap = new HashMap<>();
         if (list == null || list.size() == 0) {
-            return "";
+            return resultmap;
         } else if (list.size() == 1) {
             // 1个商品默认为主要货物名称
             StringBuffer name = new StringBuffer();
-            name.append(list.get(0).getG_name())
-                    .append(spilt)
-                    .append(list.get(0).getG_name_en());
+            StringBuffer name_en = new StringBuffer();
+            name.append(list.get(0).getG_name());
+            name_en.append(list.get(0).getG_name_en());
+            //.append(spilt)
+            //.append(list.get(0).getG_name_en());
                    /* .append(spilt)
                     .append(list.get(0).getG_model());*/
-            return name.toString();
+            resultmap.put("name",name.toString());
+            resultmap.put("name_en",name_en.toString());
+            return resultmap;
         } else {
             Optional<Product> result = list.stream().filter(Objects::nonNull).filter(s -> StringUtil.isNotEmpty(s.getG_qty()) && StringUtil.isNotEmpty(s.getDecl_price()))
                     .max(Comparator.comparingDouble(s -> NumberConvertUtil.parseDouble(s.getG_qty()) * NumberConvertUtil.parseDouble(s.getDecl_price())));
             Product data = result.orElse(new Product());
             StringBuffer name = new StringBuffer();
+            StringBuffer name_en = new StringBuffer();
             name.append(data.getG_name())
-                    .append(spilt)
-                    .append(data.getG_name_en());
+                    .append(spilt);
+            //.append(data.getG_name_en());
                    /* .append(spilt)
                     .append(data.getG_model());*/
-            return name.toString();
+            name_en.append(data.getG_name_en()).append(spilt);
+            resultmap.put("name",name.toString());
+            resultmap.put("name_en",name_en.toString());
+            return resultmap;
         }
+    }
+
+    /**
+     * 核验身份证信息金额判断
+     *
+     * @param custId
+     * @param quantity
+     * @return
+     */
+    public boolean checkBatchIdCardAmount(String custId, int quantity) {
+        MarketResourceEntity mr = sourceDao.getResourceId(SupplierEnum.ZAX.getSupplierId(), ResourceEnum.CHECK_IDCARD.getType());
+        String resourceId = null;
+        if (mr != null) {
+            resourceId = String.valueOf(mr.getResourceId());
+        }
+        //判断余额是否充足
+        boolean custBalance = marketResourceService.judRemainAmount0(custId);
+        if (!custBalance) {
+            log.warn("企业id:{}余额不足无法核验", custId);
+            return false;
+        }
+        int custCheckPrice = -1;
+        //根据企业id查询销售定价
+        CustomerProperty custConfigPrice = customerDao.getProperty(custId, resourceId + "_config");
+        if (custConfigPrice != null && StringUtil.isNotEmpty(custConfigPrice.getPropertyValue())) {
+            //将销售定价元转为厘
+            custCheckPrice = NumberConvertUtil.changeY2L(custConfigPrice.getPropertyValue());
+            log.info("企业id:{}未配置销售定价,使用的是资源成本价:{}厘", custId, custCheckPrice);
+        } else {
+            //查询供应商成本价
+            ResourcePropertyEntity resourceProperty = marketResourceDao.getProperty(resourceId, "price_config");
+            if (resourceProperty != null && StringUtil.isNotEmpty(resourceProperty.getPropertyValue())) {
+                custCheckPrice = NumberConvertUtil.changeY2L(resourceProperty.getPropertyValue());
+                log.warn("企业id:{}未配置销售定价,使用的是资源成本价:{}厘", custId, custCheckPrice);
+            } else {
+                log.warn("企业id:{}未配置销售定价", custId);
+                return false;
+            }
+        }
+
+        //计算批量核验身份需要的金额
+        BigDecimal price = new BigDecimal(String.valueOf(custCheckPrice));
+        price = price.multiply(new BigDecimal(quantity));
+        // 账户余额
+        CustomerProperty remainAmount = customerDao.getProperty(custId, "remain_amount");
+        BigDecimal amount = new BigDecimal(remainAmount.getPropertyValue());
+        if (amount.multiply(new BigDecimal(1000)).subtract(price).compareTo(new BigDecimal(0)) < 0) {
+            return false;
+        }
+        return true;
     }
 
 

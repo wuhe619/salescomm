@@ -7,7 +7,7 @@ import com.bdaim.batch.service.BatchListService;
 import com.bdaim.common.annotation.CacheAnnotation;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.dto.PageParam;
-import com.bdaim.common.util.page.PageList;
+import com.bdaim.common.page.PageList;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;

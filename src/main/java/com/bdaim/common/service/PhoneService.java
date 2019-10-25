@@ -1,10 +1,11 @@
 package com.bdaim.common.service;
 
-import com.bdaim.common.util.ConstantsUtil;
-import com.bdaim.common.util.StringUtil;
-import com.bdaim.common.util.http.HttpUtil;
-import com.bdaim.common.util.redis.RedisUtil;
 import com.bdaim.customgroup.dao.CustomGroupDao;
+import com.bdaim.util.ConstantsUtil;
+import com.bdaim.util.StringUtil;
+import com.bdaim.util.http.HttpUtil;
+import com.bdaim.util.redis.RedisUtil;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;

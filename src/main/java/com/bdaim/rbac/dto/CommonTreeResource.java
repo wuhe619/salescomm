@@ -1,11 +1,11 @@
 package com.bdaim.rbac.dto;
 
-import com.bdaim.common.util.DateUtil;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+
+import com.bdaim.util.DateUtil;
 
 /**这个是针对原型一个ORM映射，通用型的记录，没有在指定的类型上有一些特殊化的功能
  */

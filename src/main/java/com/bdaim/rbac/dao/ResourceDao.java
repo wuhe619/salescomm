@@ -2,8 +2,9 @@ package com.bdaim.rbac.dao;
 
 import com.bdaim.common.dao.SimpleHibernateDao;
 import com.bdaim.common.helper.SQLHelper;
-import com.bdaim.common.util.IDHelper;
 import com.bdaim.rbac.dto.*;
+import com.bdaim.util.IDHelper;
+
 import org.springframework.stereotype.Component;
 
 import java.io.Serializable;

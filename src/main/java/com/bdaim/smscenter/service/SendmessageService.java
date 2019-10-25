@@ -3,7 +3,7 @@ package com.bdaim.smscenter.service;
 import com.bdaim.batch.dto.ExpressLog;
 import com.bdaim.batch.entity.SenderInfo;
 import com.bdaim.common.dto.PageParam;
-import com.bdaim.common.util.page.PageList;
+import com.bdaim.common.page.PageList;
 
 import javax.servlet.http.HttpServletResponse;
 import java.util.List;

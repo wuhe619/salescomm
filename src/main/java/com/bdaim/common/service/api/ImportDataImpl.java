@@ -4,10 +4,11 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.service.PhoneService;
-import com.bdaim.common.util.LogUtil;
-import com.bdaim.common.util.StringUtil;
-import com.bdaim.common.util.redis.RedisUtil;
 import com.bdaim.resource.dao.MarketResourceDao;
+import com.bdaim.util.LogUtil;
+import com.bdaim.util.StringUtil;
+import com.bdaim.util.redis.RedisUtil;
+
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;

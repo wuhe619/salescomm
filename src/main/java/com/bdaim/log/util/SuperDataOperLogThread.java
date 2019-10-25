@@ -1,7 +1,7 @@
 package com.bdaim.log.util;
 
 
-import com.bdaim.common.util.spring.SpringContextHelper;
+import com.bdaim.common.spring.SpringContextHelper;
 import com.bdaim.customersea.service.CustomerSeaService;
 import com.bdaim.log.entity.SuperDataOperLog;
 import org.slf4j.Logger;

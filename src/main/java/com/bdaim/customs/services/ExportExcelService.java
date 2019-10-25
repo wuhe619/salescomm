@@ -6,13 +6,14 @@ import com.alibaba.excel.support.ExcelTypeEnum;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.bdaim.common.util.FileUrlEntity;
-import com.bdaim.common.util.excel.EasyExcelUtil;
 import com.bdaim.customs.dto.excel.IdCardNoVerify;
 import com.bdaim.customs.entity.BusiTypeEnum;
 import com.bdaim.customs.entity.HBusiDataManager;
 import com.bdaim.customs.entity.PartyDan;
 import com.bdaim.customs.utils.ServiceUtils;
+import com.bdaim.util.FileUrlEntity;
+import com.bdaim.util.excel.EasyExcelUtil;
+
 import org.apache.poi.ss.usermodel.Workbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -144,9 +145,14 @@ public class ExportExcelService {
                 generateMainDan(list, map);
                 export(templatePath, map, sheetName, response);
                 break;
+            case "_export_verification_result":
+                sheetName = new String[]{"身份核验结果"};
+                generateMainDan(list, map);
+                export(templatePath, map, sheetName, response);
+                break;
             default:
                 LOG.warn("导出未找到匹配规则");
-                return;
+                break;
         }
     }
 
@@ -222,13 +228,15 @@ public class ExportExcelService {
                 }
 
                 ssList = m.getJSONArray("products");
-                // 处理商品
-                for (int j = 0; j < ssList.size(); j++) {
-                    ssData = new HashMap<>();
-                    ssData.putAll(ssList.getJSONObject(j));
-                    ssData.put("index", sIndex);
-                    sIndex++;
-                    list_two.add(ssData);
+                if (ssList != null && ssList.size() > 0) {
+                    // 处理商品
+                    for (int j = 0; j < ssList.size(); j++) {
+                        ssData = new HashMap<>();
+                        ssData.putAll(ssList.getJSONObject(j));
+                        ssData.put("index", sIndex);
+                        sIndex++;
+                        list_two.add(ssData);
+                    }
                 }
             }
             map.put("list1", list_one);
@@ -259,6 +267,13 @@ public class ExportExcelService {
         }
     }
 
+    /**
+     * 导出身份图片为空或者身份校验状态
+     *
+     * @param id
+     * @param type
+     * @param response
+     */
     private void exportIdCard(int id, int type, HttpServletResponse response) {
         LOG.info("开始导出分单身份图片缺失,主单:{}", id);
         List<HBusiDataManager> list = new ArrayList<>();

@@ -5,9 +5,10 @@ import com.bdaim.common.dao.FileDao;
 import com.bdaim.common.entity.HFile;
 import com.bdaim.common.service.MongoFileService;
 import com.bdaim.common.service.UploadFileService;
-import com.bdaim.common.util.*;
 import com.bdaim.image.service.UploadDowloadService;
 import com.bdaim.resource.service.MarketResourceService;
+import com.bdaim.util.*;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.tomcat.util.http.fileupload.FileItem;

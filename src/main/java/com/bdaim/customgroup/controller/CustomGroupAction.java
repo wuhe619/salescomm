@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.serializer.SerializerFeature;
-import com.bdaim.account.dto.RemainSourceDTO;
 import com.bdaim.auth.LoginUser;
 import com.bdaim.callcenter.dto.XfPullPhoneDTO;
 import com.bdaim.callcenter.dto.XzPullPhoneDTO;
@@ -17,10 +16,7 @@ import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.exception.ParamException;
 import com.bdaim.common.filter.FiledFilter;
 import com.bdaim.common.service.PhoneService;
-import com.bdaim.common.util.AuthPassport;
-import com.bdaim.common.util.Constant;
-import com.bdaim.common.util.NumberConvertUtil;
-import com.bdaim.common.util.StringUtil;
+import com.bdaim.customer.account.dto.RemainSourceDTO;
 import com.bdaim.customersea.service.CustomerSeaService;
 import com.bdaim.customgroup.dto.CustomerGroupAddDTO;
 import com.bdaim.customgroup.dto.CustomerGroupParamDTO;
@@ -30,15 +26,18 @@ import com.bdaim.customgroup.service.CustomGroupService;
 import com.bdaim.industry.dto.IndustryPoolPriceDTO;
 import com.bdaim.industry.service.IndustryPoolService;
 import com.bdaim.label.dto.QueryParam;
-import com.bdaim.label.entity.LabelAudit;
 import com.bdaim.label.service.CommonService;
-import com.bdaim.label.service.LabelAuditService;
 import com.bdaim.label.service.LabelInfoService;
 import com.bdaim.marketproject.service.MarketProjectService;
 import com.bdaim.markettask.service.MarketTaskService;
 import com.bdaim.rbac.dto.UserQueryParam;
 import com.bdaim.rbac.entity.User;
 import com.bdaim.resource.service.MarketResourceService;
+import com.bdaim.util.AuthPassport;
+import com.bdaim.util.Constant;
+import com.bdaim.util.NumberConvertUtil;
+import com.bdaim.util.StringUtil;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -79,8 +78,6 @@ public class CustomGroupAction extends BasicAction {
     @Resource
     private LabelInfoService labelInfoService;
     @Resource
-    private LabelAuditService labelAuditService;
-    @Resource
     private JdbcTemplate jdbcTemplate;
     @Resource
     private MarketResourceService marketResourceService;
@@ -111,9 +108,6 @@ public class CustomGroupAction extends BasicAction {
     public String getCustomGroupById(HttpServletRequest request, Integer id) {
         CustomGroup custom = customGroupService.getCustomGroupById(id);
         Map<String, Object> map = commonService.getCustomGroupMap(custom);
-
-        //operation log
-//        super.operlog(request, (Integer) map.get("id"));
 
         return JSON.toJSONString(map);
     }
@@ -159,16 +153,11 @@ public class CustomGroupAction extends BasicAction {
                 map.put("status", status);
             }
         }
-        List<CustomGroup> groups = customGroupService.getListByCondition(map,
-                likeMap, page);
-        Integer count = customGroupService.getCountByCondition(map, likeMap,
-                null);
+        List<CustomGroup> groups = customGroupService.getListByCondition(map,likeMap, page);
+        Integer count = customGroupService.getCountByCondition(map, likeMap,null);
         Map<String, Object> resultMap = new HashMap<String, Object>();
         resultMap.put("total", count);
         resultMap.put("stores", commonService.getCustomGroupMapList(groups));
-
-        //operation log,循环吧所有查询的CUSTOMERGROUP都插进来
-//        super.operlog(request, -1);
 
         return JSON.toJSONString(resultMap, new FiledFilter());
     }
@@ -188,20 +177,8 @@ public class CustomGroupAction extends BasicAction {
         customGroup.setUpdateUserId(lu.getId().toString());
         customGroup.setEnterpriseName(lu.getEnterpriseName());
         Integer id = customGroupService.addCustomGroup(customGroup);
-        LabelAudit audit = new LabelAudit();
-        audit.setAid(id);
-        audit.setApplyType(Constant.APPLY_TYPE_CUSTOM_GROUP_CREATE);
-        audit.setApplyUser(opUser().getUser());
-        audit.setAuditType(Constant.AUDIT_TYPE_GROUP);
-        audit.setAuditUser(opUser().getUser());
-        audit.setName(customGroup.getName());
-        audit.setStatus(Constant.AUDITING);
-        audit = labelAuditService.getLabelAudit(audit, null);
-        labelAuditService.addAuditInfo(audit);
-        resultMap.put("id", id);
 
-        //operation logs
-//        super.operlog(request, id);
+        resultMap.put("id", id);
 
         return JSON.toJSONString(resultMap);
     }
@@ -260,13 +237,8 @@ public class CustomGroupAction extends BasicAction {
     public String getMicroscopicPictureList(HttpServletRequest request, Integer customGroupId, Page page,
                                             String queryType, String key) {
         Map<String, Object> result = new HashMap<String, Object>();
-        Map<String, Object> map = customGroupService
-                .getUserGroupGid(customGroupId, page.getStart(),
-                        page.getLimit(), queryType, key);
+        Map<String, Object> map = customGroupService.getUserGroupGid(customGroupId, page.getStart(),page.getLimit(), queryType, key);
         result.putAll(map);
-
-        //operation log
-//        super.operlog(request, customGroupId);
 
         return JSON.toJSONString(result);
     }
@@ -297,12 +269,10 @@ public class CustomGroupAction extends BasicAction {
     @RequestMapping("/applyDownloadUserProfileByGroup")
     public String applyDownloadUserProfileByGroup(Integer groupId) {
         Map<String, Object> resultMap = new HashMap<String, Object>();
-        int status = customGroupService
-                .applyDownloadUserProfileByGroup(groupId);
+        int status = customGroupService.applyDownloadUserProfileByGroup(groupId);
         if (status == Constant.DOWNLOAD_APPLY) {
             resultMap.put("downloadStatus", status);
-            resultMap.put("downloadStatusCn",
-                    Constant.DOWNLOAD_STATUS.get(status));
+            resultMap.put("downloadStatusCn", Constant.DOWNLOAD_STATUS.get(status));
             return JSON.toJSONString(resultMap);
         } else {
             throw new RuntimeException("用户群下载状态异常！");
@@ -342,19 +312,13 @@ public class CustomGroupAction extends BasicAction {
             group.setDownloadStatus(Constant.DOWNLOAD_NOTAPPLY);
             customGroupService.updateCustomGroup(group);
             log.error("用户群" + group.getName() + "下载异常，请重新申请下载！");
-            model.addAttribute("message", "用户群" + group.getName()
-                    + "下载异常，请重新申请下载！");
+            model.addAttribute("message", "用户群" + group.getName() + "下载异常，请重新申请下载！");
             model.addAttribute("dir", "error");
             return "error";
         } else {
             response.setHeader("Content-Type", "application/vnd.ms-excel");
             try {
-                response.setHeader(
-                        "Content-Disposition",
-                        "attachment;filename="
-                                + URLEncoder.encode(group.getName(), "utf-8").replace("+", "%20")
-                                + ".zip");
-
+                response.setHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(group.getName(), "utf-8").replace("+", "%20") + ".zip");
             } catch (UnsupportedEncodingException e) {
                 e.printStackTrace();
             }
@@ -383,25 +347,7 @@ public class CustomGroupAction extends BasicAction {
                 e.printStackTrace();
             }
         }
-//		InputStream is = null;
-//		try {
-//			is = new FileInputStream(f);
-//			long l = Files.copy(Paths.get(filePath), response.getOutputStream());
-//			System.out.println(l);
-//			group.setDownloadStatus(Constant.DOWNLOAD_NOTAPPLY);
-//			customGroupService.updateCustomGroup(group);
-//		} catch (FileNotFoundException e1) {
-//			e1.printStackTrace();
-//		} catch (IOException e) {
-//			e.printStackTrace();
-//		} finally {
-//			try {
-//				if (is != null)
-//					is.close();
-//			} catch (IOException e) {
-//				e.printStackTrace();
-//			}
-//		}
+
         return null;
     }
 
@@ -414,7 +360,7 @@ public class CustomGroupAction extends BasicAction {
             CustomGroup customGroup = customGroupService.getCustomGroupById(groupId);
             Map<String, Object> map = commonService.getCustomGroupMap(customGroup);
             Map<String, Long> mapg = customGroupService.previewByGroupCondition(customGroup.getName(), customGroup.getCycle(), customGroup.getGroupCondition());
-//            super.operlog(request, (null != customGroup.getId()) ? customGroup.getId() : -1);
+
             resultMap.putAll(map);
             resultMap.putAll(mapg);
         } catch (Exception e) {
@@ -424,14 +370,6 @@ public class CustomGroupAction extends BasicAction {
     }
 
     Float a;
-
-    @ResponseBody
-    @RequestMapping("/test1")
-    public String test1() {
-
-        System.out.println(a.doubleValue());
-        return "success";
-    }
 
     /**
      * 查询剩余可购买量
@@ -533,24 +471,10 @@ public class CustomGroupAction extends BasicAction {
         customGroupDTO.setCreateUserId(lu.getId().toString());
         customGroupDTO.setUpdateUserId(lu.getId().toString());
         resultMap.put("data", JSONObject.toJSON(customGroupService.addCustomGroupV1(customGroupDTO)));
-        //operation logs
-//		super.operlog(request, id);
+
         return JSON.toJSONString(resultMap);
     }
 
-    /**
-     * 回调测试
-     *
-     * @return
-     * @throws TouchException
-     */
-//	@ResponseBody
-//	@CacheAnnotation
-//	@RequestMapping("/callBackCustomGroup")
-//	public String callBackCustomGroup(String orderId) throws TouchException {
-//		customGroupService.addCustomGroupData(orderId);
-//		return JSON.toJSONString("完成");
-//	}
 
     /**
      * 客户群用户列表

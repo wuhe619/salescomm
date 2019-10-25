@@ -2,8 +2,9 @@ package com.bdaim.common.service.api;
 
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.service.PhoneService;
-import com.bdaim.common.util.LogUtil;
-import com.bdaim.common.util.StringUtil;
+import com.bdaim.util.LogUtil;
+import com.bdaim.util.StringUtil;
+
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 

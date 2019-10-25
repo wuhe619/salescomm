@@ -5,22 +5,23 @@ import com.bdaim.auth.LoginUser;
 import com.bdaim.common.auth.Token;
 import com.bdaim.common.auth.service.TokenCacheService;
 import com.bdaim.common.auth.service.TokenService;
-import com.bdaim.common.util.CipherUtil;
-import com.bdaim.common.util.NumberConvertUtil;
-import com.bdaim.common.util.StringUtil;
-import com.bdaim.common.util.wechat.WeChatUtil;
 import com.bdaim.customer.dao.CustomerUserDao;
 import com.bdaim.customer.dao.CustomerUserPropertyDao;
 import com.bdaim.customer.dto.*;
 import com.bdaim.customer.entity.CustomerUser;
 import com.bdaim.customer.entity.CustomerUserPropertyDO;
 import com.bdaim.customer.service.CustomerService;
-import com.bdaim.customeruser.service.CustomerUserService;
+import com.bdaim.customer.user.service.CustomerUserService;
 import com.bdaim.rbac.dao.RoleDao;
 import com.bdaim.rbac.dto.ResourceDTO;
 import com.bdaim.rbac.entity.UserDO;
 import com.bdaim.rbac.service.ResourceService;
 import com.bdaim.rbac.service.impl.UserInfoService;
+import com.bdaim.util.CipherUtil;
+import com.bdaim.util.NumberConvertUtil;
+import com.bdaim.util.StringUtil;
+import com.bdaim.util.wechat.WeChatUtil;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.GrantedAuthority;
@@ -157,7 +158,7 @@ public class TokenServiceImpl implements TokenService {
                     return new LoginUser("guest", "", new ArrayList<>(), "绑定失败", "401");
                 }
                 // 组装用户数据(分组等信息)
-                userdetail = getUserData(u, u.getAccount(), auths);
+                userdetail = getUserData(u, username, auths);
             } else {
                 logger.warn("username or password is error");
                 return new LoginUser("guest", "", new ArrayList<>(), "用户名密码错误", "401");
@@ -178,7 +179,8 @@ public class TokenServiceImpl implements TokenService {
             CustomerUser u = customerService.getUserByName(customerUserDao.getLoginName(userProper.getUserId()));
             if (u != null) {
                 // 组装用户数据(分组等信息)
-                userdetail = getUserData(u, u.getAccount(), auths);
+                username = u.getAccount();
+                userdetail = getUserData(u, username, auths);
             } else {
                 logger.warn("username or password is error");
                 return new LoginUser("guest", "", new ArrayList<>(), "用户名密码错误", "401");
@@ -301,13 +303,14 @@ public class TokenServiceImpl implements TokenService {
     public LoginUser getUserData(CustomerUser u, String username, List<GrantedAuthority> auths) {
         // 寻找登录账号已有的token
         LoginUser userdetail = null;
-        String tokenid = (String) name2token.get(username);
-        if (tokenid != null && !"".equals(tokenid)) {
-            userdetail = (LoginUser) tokenCacheService.getToken(tokenid);
-            if (userdetail != null) {
-                return userdetail;
-            } else
-                name2token.remove(username);
+        String tokenId = (String) name2token.get(username);
+        // 读取token缓存
+        if (StringUtil.isNotEmpty(tokenId) && tokenCacheService.getToken(tokenId) == null) {
+            name2token.remove(username);
+            tokenId = null;
+        }
+        if (StringUtil.isEmpty(tokenId)) {
+            tokenId = CipherUtil.encodeByMD5(u.getId() + "" + System.currentTimeMillis());
         }
         if (1 == u.getStatus()) {
             auths.add(new SimpleGrantedAuthority("USER_FREEZE"));
@@ -317,7 +320,7 @@ public class TokenServiceImpl implements TokenService {
             //user_type: 1=管理员 2=普通员工
             auths.add(new SimpleGrantedAuthority("ROLE_CUSTOMER"));
         }
-        userdetail = new LoginUser(u.getId(), u.getAccount(), CipherUtil.encodeByMD5(u.getId() + "" + System.currentTimeMillis()), auths);
+        userdetail = new LoginUser(u.getId(), u.getAccount(), tokenId, auths);
         userdetail.setCustId(u.getCust_id());
         userdetail.setId(u.getId());
         userdetail.setUserType(String.valueOf(u.getUserType()));

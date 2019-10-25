@@ -1,6 +1,6 @@
 package com.bdaim.log.thread;
 
-import com.bdaim.common.util.spring.SpringContextHelper;
+import com.bdaim.common.spring.SpringContextHelper;
 import com.bdaim.log.entity.UserOperLog;
 import com.bdaim.log.service.OperLogService;
 import org.apache.log4j.Logger;

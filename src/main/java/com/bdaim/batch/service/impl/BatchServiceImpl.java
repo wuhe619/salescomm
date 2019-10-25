@@ -3,7 +3,7 @@ package com.bdaim.batch.service.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.batch.entity.BatchSendToFileResp;
 import com.bdaim.batch.service.BatchService;
-import com.bdaim.common.util.StringUtil;
+import com.bdaim.util.StringUtil;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

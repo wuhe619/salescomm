@@ -6,9 +6,9 @@ import com.alibaba.fastjson.JSONObject;
 import com.bdaim.batch.dto.DetailQueryParam;
 import com.bdaim.batch.service.BatchDetaiService;
 import com.bdaim.common.controller.BasicAction;
+import com.bdaim.common.page.PageList;
 import com.bdaim.common.response.ResponseInfoAssemble;
-import com.bdaim.common.util.StringUtil;
-import com.bdaim.common.util.page.PageList;
+import com.bdaim.util.StringUtil;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;

@@ -1,8 +1,9 @@
 package com.bdaim.log.dao;
 
 import com.bdaim.common.dao.SimpleHibernateDao;
-import com.bdaim.common.util.StringUtil;
 import com.bdaim.log.dto.SuperDataOperLogQuery;
+import com.bdaim.util.StringUtil;
+
 import org.springframework.stereotype.Component;
 import com.bdaim.common.dto.Page;
 

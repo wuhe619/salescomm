@@ -2,8 +2,8 @@ package com.bdaim.emailcenter.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.exception.TouchException;
-import com.bdaim.common.util.hazelcast.PhoneTobe;
-import com.bdaim.common.util.hazelcast.ToBeRegisterDB;
+import com.bdaim.common.hazelcast.PhoneTobe;
+import com.bdaim.common.hazelcast.ToBeRegisterDB;
 import com.bdaim.emailcenter.dto.MailBean;
 import com.bdaim.emailcenter.util.MailUtil;
 import org.apache.commons.logging.Log;

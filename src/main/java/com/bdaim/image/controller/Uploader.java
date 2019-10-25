@@ -1,9 +1,9 @@
 package com.bdaim.image.controller;
 
 import com.bdaim.common.controller.BasicAction;
-import com.bdaim.common.util.ConfigUtil;
-import com.bdaim.common.util.PropertiesUtil;
-import com.bdaim.common.util.ftp.SFTPChannel;
+import com.bdaim.util.ConfigUtil;
+import com.bdaim.util.PropertiesUtil;
+import com.bdaim.util.ftp.SFTPChannel;
 import com.jcraft.jsch.ChannelSftp;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.fileupload.FileItemIterator;

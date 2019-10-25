@@ -8,7 +8,7 @@ import com.bdaim.batch.dto.TouchInfoDTO;
 import com.bdaim.batch.service.LostContactService;
 import com.bdaim.common.annotation.CacheAnnotation;
 import com.bdaim.common.controller.BasicAction;
-import com.bdaim.common.util.StringUtil;
+import com.bdaim.util.StringUtil;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -84,7 +84,7 @@ public class LostContactAction extends BasicAction {
                 labelId = labelIdArray.getJSONObject(i).getString("labelId");
                 optionValue = labelIdArray.getJSONObject(i).getString("optionValue");
                 // 插入客户购买资源用户标签表
-                String idSuper = Long.toString(com.bdaim.common.util.IDHelper.getID());
+                String idSuper = Long.toString(com.bdaim.util.IDHelper.getID());
                 //添加用户选择的自建属性信息
                 lostContactService.insertSuperLable(idSuper, id, labelId, batchId, optionValue);
             }
@@ -92,7 +92,7 @@ public class LostContactAction extends BasicAction {
         //如果voice_info_id存在，数据存在做更新，否则做插入
         String voiceInfoId = jsonO.getString("voice_info_id");
         if (voiceInfoId == null || "".equals(voiceInfoId)) {
-            voiceInfoId = com.bdaim.common.util.IDHelper.getID().toString();
+            voiceInfoId = com.bdaim.util.IDHelper.getID().toString();
         }
         TouchInfoDTO touchInfoDTO = new TouchInfoDTO();
         touchInfoDTO.setVoice_info_id(voiceInfoId);

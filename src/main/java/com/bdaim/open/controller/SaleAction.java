@@ -1,8 +1,9 @@
 package com.bdaim.open.controller;
 
 import com.bdaim.common.controller.BasicAction;
-import com.bdaim.common.util.LogUtil;
-import com.bdaim.common.util.spring.SpringContextHelper;
+import com.bdaim.common.spring.SpringContextHelper;
+import com.bdaim.util.LogUtil;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 

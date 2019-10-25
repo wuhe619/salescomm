@@ -148,9 +148,35 @@ public class MarketResourceLogDTO implements Serializable {
     private String marketTaskId;
 
     /**
+     * 接口请求状态
+     */
+    private Integer sendStatus;
+
+    public Integer getSendStatus() {
+        return sendStatus;
+    }
+
+    public void setSendStatus(Integer sendStatus) {
+        this.sendStatus = sendStatus;
+    }
+
+    /**
      * 公海ID
      */
+
     private String customerSeaId;
+
+    /**
+     * 接口请求返回的唯一id
+     */
+    private String requestId;
+    public String getRequestId() {
+        return requestId;
+    }
+
+    public void setRequestId(String requestId) {
+        this.requestId = requestId;
+    }
 
     public String getCallBackData() {
         return callBackData;

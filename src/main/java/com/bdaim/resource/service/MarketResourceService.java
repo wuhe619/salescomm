@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
-import com.bdaim.account.dao.TransactionDao;
 import com.bdaim.auth.LoginUser;
 import com.bdaim.batch.ResourceEnum;
 import com.bdaim.batch.TransactionEnum;
@@ -18,12 +17,10 @@ import com.bdaim.callcenter.dto.*;
 import com.bdaim.callcenter.service.impl.CallCenterService;
 import com.bdaim.callcenter.service.impl.SeatsService;
 import com.bdaim.common.dto.PageParam;
+import com.bdaim.common.page.PageList;
+import com.bdaim.common.page.Pagination;
 import com.bdaim.common.service.PhoneService;
-import com.bdaim.common.util.*;
-import com.bdaim.common.util.ftp.SFTPChannel;
-import com.bdaim.common.util.http.HttpUtil;
-import com.bdaim.common.util.page.PageList;
-import com.bdaim.common.util.page.Pagination;
+import com.bdaim.customer.account.dao.TransactionDao;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerLabelDao;
 import com.bdaim.customer.dao.CustomerUserDao;
@@ -62,6 +59,9 @@ import com.bdaim.template.dao.MarketTemplateDao;
 import com.bdaim.template.dto.MarketTemplateDTO;
 import com.bdaim.template.dto.TemplateParam;
 import com.bdaim.template.entity.MarketTemplate;
+import com.bdaim.util.*;
+import com.bdaim.util.ftp.SFTPChannel;
+import com.bdaim.util.http.HttpUtil;
 import com.github.crab2died.ExcelUtils;
 import com.jcraft.jsch.ChannelSftp;
 import org.apache.commons.codec.binary.Base64;
@@ -328,7 +328,7 @@ public class MarketResourceService {
             sql.append("'" + dto.getResourceId() + "')");
         } else if ("2".equals(type_code)) {
             sql.append(
-                    "insert  into t_touch_sms_log (touch_id,cust_id,user_id,remark,create_time,status,sms_content,superId, batch_id, activity_id, channel, enterprise_id,amount,prod_amount,resource_id,send_data ) values ( ");
+                    "insert  into t_touch_sms_log (touch_id,cust_id,user_id,remark,create_time,status,sms_content,superId, batch_id, activity_id, channel, enterprise_id,amount,prod_amount,resource_id,request_id,send_status,send_data) values ( ");
             sql.append("'" + dto.getTouch_id() + "',");
             sql.append("'" + dto.getCust_id() + "',");
             sql.append("'" + dto.getUser_id() + "',");
@@ -344,6 +344,8 @@ public class MarketResourceService {
             sql.append("'" + dto.getAmount() + "',");
             sql.append("'" + dto.getProdAmount() + "',");
             sql.append("'" + dto.getResourceId() + "',");
+            sql.append("'" + dto.getRequestId() + "',");
+            sql.append(dto.getSendStatus() + ",");
             sql.append("'" + dto.getCallBackData() + "')");
             return jdbcTemplate.update(sql.toString());
         } else if ("3".equals(type_code)) {
@@ -527,9 +529,9 @@ public class MarketResourceService {
     }
 
     /**
-     * 2.2.0坐席外呼V1版本
+     * 坐席外呼
      */
-    public Map<String, Object> seatMakeCallExV1(String custId, String userId, String idCard, String batchId, String resourceId) {
+    public Map<String, Object> seatMakeCallEx(String custId, String userId, String idCard, String batchId, String resourceId) {
         LOG.info("获取联通坐席参数:custId" + custId + "userId" + userId + "idCard" + idCard + "batchId" + batchId);
         Map<String, Object> data = new HashMap<>();
         int code = 0;
@@ -654,6 +656,93 @@ public class MarketResourceService {
         data.put("activity_id", activityId);
         data.put("enterprise_id", enterpriseId);
         // }
+        return data;
+    }
+
+    /**
+     * 坐席外呼V1版本
+     */
+    public Map<String, Object> seatMakeCallExV1(String custId, String userId, String idCard, String batchId, String resourceId) {
+        LOG.info("获取联通坐席参数:custId" + custId + "userId" + userId + "idCard" + idCard + "batchId" + batchId);
+        Map<String, Object> data = new HashMap<>();
+        int code = 0;
+        String activityId = null, enterpriseId = null, apparentNumber = null, msg = "失败";
+        LOG.info("联通外呼资源id是:" + resourceId);
+        Map<String, Object> callCenterConfigData = callCenterService.getCallCenterConfigDataV1(custId, userId, resourceId);
+        LOG.info("获取外呼配置信息是：" + String.valueOf(callCenterConfigData));
+        if ((callCenterConfigData.get("mainNumber")) != null && (callCenterConfigData.get("apparentNumber")) != null) {
+            String workNum = String.valueOf(callCenterConfigData.get("mainNumber"));
+            LOG.info("坐席外呼使用的主叫号码是:" + workNum);
+            List<Map<String, Object>> batchDetail = marketResourceDao.sqlQuery("SELECT * FROM nl_batch_detail WHERE batch_id = ? AND id = ?", batchId, idCard);
+            //查询外显号码
+            List<Map<String, Object>> apparentNumberList = marketResourceDao.sqlQuery("SELECT * FROM nl_batch WHERE id = ?", batchId);
+            if (batchDetail.size() > 0) {
+                activityId = String.valueOf(batchDetail.get(0).get("activity_id"));
+                enterpriseId = String.valueOf(batchDetail.get(0).get("enterprise_id"));
+                if (apparentNumberList.size() > 0) {
+                    apparentNumber = String.valueOf(apparentNumberList.get(0).get("apparent_number"));
+                    LOG.info("批次下配置的外线号码是" + apparentNumber);
+                }
+                if (!"".equals(apparentNumber) && StringUtil.isNotEmpty(apparentNumber) && !"null".equals(apparentNumber)) {
+                    List<String> apparentsList = Arrays.asList(apparentNumber.split(","));
+                    if (apparentsList.size() > 0) {
+                        Random random = new Random();
+                        int n = random.nextInt(apparentsList.size());
+                        apparentNumber = apparentsList.get(n);
+                        LOG.info("联通外呼使用的批次下的外显号码是" + apparentNumber);
+                    }
+                } else {
+                    if (callCenterConfigData.size() > 0 && callCenterConfigData.get("apparentNumber") != null) {
+                        apparentNumber = String.valueOf(callCenterConfigData.get("apparentNumber"));
+                        String[] apparentByCust = apparentNumber.split(",");
+                        if (apparentByCust.length > 0) {
+                            List<String> apparentList = Arrays.asList(apparentNumber.split(","));
+                            Random random = new Random();
+                            int n = random.nextInt(apparentList.size());
+                            apparentNumber = apparentList.get(n);
+                            LOG.info("联通外呼使用的外显号码是" + apparentNumber);
+                        }
+                    }
+                }
+                String callCenterId = String.valueOf(callCenterConfigData.get("callCenterId"));
+                String entPassWord = String.valueOf(callCenterConfigData.get("entPassWord"));
+                //根据企业id查询密钥
+                String key = "";
+                CustomerProperty customerPro = customerDao.getProperty(custId, "key");
+                if (customerPro != null) {
+                    key = customerPro.getPropertyValue();
+                }
+                //调用联通外呼接口
+                LOG.info("坐席外呼接收请求參數:entId是" + callCenterId + "数据id是：" + String.valueOf(batchDetail.get(0).get("id")) + "企业密码：" + entPassWord + "主叫号：" + workNum + "外显号码是： " + apparentNumber + "密钥：" + key);
+                Map<String, Object> result = UnicomUtil.unicomSeatMakeCall(callCenterId, String.valueOf(batchDetail.get(0).get("id")), entPassWord, workNum, apparentNumber, key);
+                LOG.info("调用外呼返回结果:" + result.toString());
+                if (result != null && "01000".equals(String.valueOf(result.get("code")))) {
+                    String returnData = String.valueOf(result.get("data"));
+                    JSONObject jsonObject = JSON.parseObject(returnData);
+                    if (jsonObject != null) {
+                        result.put("callId", jsonObject.getString("callId"));
+                    }
+                    result.put("activity_id", activityId);
+                    result.put("enterprise_id", enterpriseId);
+                    result.put("code", 1);
+                    return result;
+                } else {
+                    LOG.error("调用外呼失败,结果:" + result.toString());
+                    code = 0;
+                    msg = "呼叫失败";
+                }
+            } else {
+                code = 0;
+                msg = "读取失联人信息失败";
+            }
+        } else {
+            code = 0;
+            msg = "配置信息错误!";
+        }
+        data.put("code", code);
+        data.put("msg", msg);
+        data.put("activity_id", activityId);
+        data.put("enterprise_id", enterpriseId);
         return data;
     }
 
@@ -813,6 +902,170 @@ public class MarketResourceService {
     }
 
 
+    /**
+     * 发送短信接口V1
+     *
+     * @return
+     */
+    public Map<String, Object> sendBatchSmsV1(String variables, String custId, String userId, int templateId, String batchId, String customerIds, int typeCode, int channel) throws Exception {
+        Map<String, Object> map = new HashMap<>();
+        String resourceId = null, resourceIdCall = null;
+        ResourcesPriceDto resourcesCallDto = null;
+        int sendSuccessCount = 0;
+        MarketResourceLogDTO marketResourceLogDTO = new MarketResourceLogDTO();
+        //查询resourceId
+        MarketResourceEntity marketResourceEntity = sourceDao.getResourceId(SupplierEnum.CUC.getSupplierId(), ResourceEnum.SMS.getType());
+        if (marketResourceEntity != null) {
+            resourceId = String.valueOf(marketResourceEntity.getResourceId());
+            marketResourceLogDTO.setResourceId(marketResourceEntity.getResourceId());
+            LOG.info("发送短信资源id是:" + resourceId);
+        }
+        // 判断企业是否配置短信资源
+        ResourcesPriceDto resourcesPriceDto = customerDao.getCustResourceMessageById(resourceId, custId);
+        if (resourcesPriceDto == null) {
+            map.put("msg", "短信资源未配置,无法发送短信");
+            map.put("code", 0);
+            return map;
+        }
+        if (StringUtil.isEmpty(resourcesPriceDto.getSmsPrice())) {
+            map.put("msg", "未设置定价,无法发送短信");
+            map.put("code", 0);
+            return map;
+        }
+        //查询企业呼叫中心id，产品设置将企业外呼id放在外呼资源了，新接口需要使用，后期产品原型需要重新设计
+        MarketResourceEntity callResourceEntity = sourceDao.getResourceId(SupplierEnum.CUC.getSupplierId(), ResourceEnum.CALL.getType());
+        if (callResourceEntity != null) {
+            resourceIdCall = String.valueOf(callResourceEntity.getResourceId());
+            resourcesCallDto = customerDao.getCustResourceMessageById(resourceIdCall, custId);
+            if (StringUtil.isEmpty(resourcesCallDto.getCallCenterId())) {
+                map.put("msg", "未设置呼叫中心id,无法发送短信");
+                map.put("code", 0);
+                return map;
+            }
+        }
+        // 判断是余额是否充足
+        boolean judge = false;
+        judge = marketResourceService.judRemainAmount(custId);
+        if (!judge) {
+            map.put("msg", "余额不足");
+            map.put("code", 0);
+            return map;
+        }
+        MarketTemplate marketTemplate = sourceDao.getMarketTemplate(templateId, typeCode, custId);
+        if (marketTemplate == null) {
+            map.put("msg", "短信模板未配置,无法发送短信");
+            map.put("code", 0);
+            return map;
+        }
+        BatchDetail batchDetail;
+        //发送短信参数类
+        UnicomSendSmsParam unicomSendSmsParam = new UnicomSendSmsParam();
+        String userName, batchName, templateName, custName;
+        StringBuffer remark;
+        //构造占位符
+        List<String> variableList = null;
+        if (variables != null && variables.contains(",")) {
+            variableList = Arrays.asList(variables.split(","));
+        }
+        if (variableList != null) {
+            unicomSendSmsParam.setVariableOne(variableList.size() > 0 ? variableList.get(0) : "");
+            unicomSendSmsParam.setVariableTwo(variableList.size() > 1 ? variableList.get(1) : "");
+            unicomSendSmsParam.setVariableThree(variableList.size() > 2 ? variableList.get(2) : "");
+            unicomSendSmsParam.setVariableFour(variableList.size() > 3 ? variableList.get(3) : "");
+            unicomSendSmsParam.setVariableFive(variableList.size() > 4 ? variableList.get(4) : "");
+        }
+        if (resourcesCallDto != null) {
+            unicomSendSmsParam.setEntId(resourcesCallDto.getCallCenterId());
+            // 由于系统没有地方配置企业密码 现在给默认值，后期页面需要加企业密码配置项
+            String entPassWord = resourcesCallDto.getEntPassWord();
+            if (StringUtil.isEmpty(unicomSendSmsParam.getEntPassWord())) {
+                entPassWord = "111111";
+            }
+            unicomSendSmsParam.setEntPassWord(entPassWord);
+        }
+        CustomerProperty customerPro = customerDao.getProperty(custId, "key");
+        //查询企业密钥
+        if (customerPro != null) {
+            unicomSendSmsParam.setKey(customerPro.getPropertyValue());
+        }
+        //联通模板id
+        unicomSendSmsParam.setWordId(marketTemplate.getTemplateCode());
+        String[] customerIdList = customerIds.split(",");
+        for (String id : customerIdList) {
+            batchDetail = batchDetailDao.getBatchDetail(id, batchId);
+            if (batchDetail != null) {
+                unicomSendSmsParam.setDataId(id);
+                LOG.info("联通发送短信接口 请求参数是" + unicomSendSmsParam.toString());
+                Map<String, Object> sendResult = UnicomUtil.unicomSeatMakeSms(unicomSendSmsParam);
+                LOG.info("联通短信发送结果:" + sendResult);
+
+                //设置短信实际发送状态为1000 是未处理的状态  需要状态推送后更新此字段  1001 发送成功 1002 发送失败
+                marketResourceLogDTO.setStatus(1000);
+                //短信提交给联通状态1001成功  1002失败
+                int sendStatus = 1002;
+                if (sendResult != null) {
+                    if ("02000".equals(sendResult.get("code"))) {
+                        sendSuccessCount++;
+                        sendStatus = 1001;
+                    } else {
+                        sendStatus = 1002;
+                        //如果短信提交失败直接将发送状态设置为失败
+                        marketResourceLogDTO.setStatus(sendStatus);
+                    }
+                    //获取联通返回的contactId 短信流水号
+                    JSONObject returnJson = JSON.parseObject(String.valueOf(sendResult.get("data")));
+                    if (returnJson != null) {
+                        marketResourceLogDTO.setRequestId(returnJson.getString("contactId"));
+                    }
+                }
+                marketResourceLogDTO.setTouch_id(Long.toString(IDHelper.getTransactionId()));
+                marketResourceLogDTO.setType_code("2");
+                marketResourceLogDTO.setSendStatus(sendStatus);
+                marketResourceLogDTO.setResname("sms");
+                marketResourceLogDTO.setUser_id(NumberConvertUtil.parseLong(userId));
+                marketResourceLogDTO.setCust_id(custId);
+                marketResourceLogDTO.setSuperId(id);
+                marketResourceLogDTO.setBatchId(batchId);
+                marketResourceLogDTO.setChannel(channel);
+                marketResourceLogDTO.setActivityId(batchDetail.getActivityId());
+                marketResourceLogDTO.setEnterpriseId(batchDetail.getEnterpriseId());
+                marketResourceLogDTO.setSms_content(marketTemplate.getMouldContent());
+                marketResourceLogDTO.setCallBackData(sendResult.toString());
+                marketResourceLogDTO.setAmount(0);
+                marketResourceLogDTO.setProdAmount(0);
+                // 拼装备注字段 操作人名;批次名称;模板名称;企业名称
+                userName = customerUserDao.getName(userId);
+                custName = customerDao.getEnterpriseName(custId);
+                templateName = marketTemplate.getTitle();
+                batchName = batchDao.getBatchName(batchId);
+
+                remark = new StringBuffer();
+                remark.append(userName);
+                remark.append(SMS_SEND_REMARK_SPLIT);
+                remark.append(batchName);
+                remark.append(SMS_SEND_REMARK_SPLIT);
+                remark.append(templateName);
+                remark.append(SMS_SEND_REMARK_SPLIT);
+                remark.append(custName);
+                marketResourceLogDTO.setRemark(remark.toString());
+                this.insertLog(marketResourceLogDTO);
+
+            } else {
+                map.put("msg", "客户信息不存在，短信发送失败");
+                map.put("code", 0);
+                return map;
+            }
+        }
+        if (sendSuccessCount > 0) {
+            map.put("msg", "短信发送成功");
+            map.put("code", 1);
+        }else {
+            map.put("msg", "短信发送失败");
+            map.put("code",0);
+        }
+        return map;
+    }
+
     public boolean judRemainAmount(String cust_id) {
         boolean judge = false;
         try {
@@ -828,6 +1081,37 @@ public class MarketResourceService {
                     // 标准价格
                     Integer priceStand = 500;
                     if (remain_amount < priceStand) {
+                        // 余额不足
+                        judge = false;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            LOG.error("获取余额失败,", e);
+        }
+        return judge;
+    }
+
+    /**
+     * 判断企业账户余额是否存在或大于0厘
+     *
+     * @param cust_id
+     * @return
+     */
+    public boolean judRemainAmount0(String cust_id) {
+        boolean judge = false;
+        try {
+            judge = true;
+            CustomerProperty customerProperty = customerDao.getProperty(cust_id, "remain_amount");
+            if (customerProperty == null) {
+                judge = false;
+            } else {
+                if (StringUtil.isEmpty(customerProperty.getPropertyValue())) {
+                    judge = false;
+                } else {
+                    double remain_amount = NumberConvertUtil.changeY2L(customerProperty.getPropertyValue());
+                    // 标准价格1厘
+                    if (remain_amount <= 0) {
                         // 余额不足
                         judge = false;
                     }
@@ -2171,9 +2455,9 @@ public class MarketResourceService {
                     //查询企业通话费用
                     ResourcesPriceDto resourcesPriceDto = customerDao.getCustResourceMessageById(resourceId, custId);
                     if (resourcesPriceDto != null && StringUtil.isNotEmpty(resourcesPriceDto.getCallPrice())) {
-                        String seatPrice = resourcesPriceDto.getCallPrice();
+                        String callPrice = resourcesPriceDto.getCallPrice();
                         //元转分
-                        saleCustPrice = NumberConvertUtil.transformtionCent(Double.parseDouble(seatPrice));
+                        saleCustPrice = NumberConvertUtil.transformtionCent(Double.parseDouble(callPrice));
                     }
                     //获取坐席基本信息
                     SeatInfoDto seatInfoDto = customerUserPropertyDao.getSeatMessageById(resourceId, userId, SupplierEnum.CUC.getSupplierId());
@@ -2198,7 +2482,6 @@ public class MarketResourceService {
                                 transactionDao.updateSeatMinute(userId, custMinute);
                                 //通话扣费金额
                                 summAmount = saleCustPrice * (callTime - custMinute);
-                                //summAmount = transactionDao.querySeatsMoney(custId, SEAT_ONE_MINUTE_PRICE_KEY, callTime - custMinute);
                                 LOG.info("联通坐席扣费开始从账户customerId:" + custId + "余额扣款,sale_price:" + summAmount);
                                 transactionDao.accountDeductionsDev(custId, new BigDecimal(summAmount));
                             }
@@ -2206,7 +2489,6 @@ public class MarketResourceService {
                             //不扣分钟数   直接扣除费用
                             LOG.info("坐席执行只扣除通话计费:" + userId + "通话时长:" + callTime);
                             summAmount = saleCustPrice * callTime;
-                            //summAmount = transactionDao.querySeatsMoney(custId, SEAT_ONE_MINUTE_PRICE_KEY, callTime);
                             transactionDao.accountDeductionsDev(custId, new BigDecimal(summAmount));
                         }
                     }
@@ -2263,11 +2545,6 @@ public class MarketResourceService {
                 if (StringUtil.isNotEmpty(endTime)) {
                     endTime = endTime.replaceAll("-", "/");
                 }
-                //保存回调记录表通话历史参数
-                /*LOG.info("transactionDao" + transactionDao);
-                if (StringUtil.isNotEmpty(recordUrl) && !"null".equals(recordUrl)) {
-                    recordUrl = recordUrl.replaceAll(".wav", ".mp3");
-                }*/
                 flag = transactionDao.executeUpdateSQL(insertCallbackInfoSql, new Object[]{callSid, appId, 1,
                         callBackInfoParam.getLocalUrl(),
                         startTime, endTime,
@@ -3176,7 +3453,7 @@ public class MarketResourceService {
         BatchDetail batchDetail = batchDao.getBatchDetail(id, batchId);
         int resource = batchDetail.getResourceId();
         LOG.info("批次详情下的资源id是：" + resource);
-        //根据资源id查询该资源使用的外呼资源
+        //根据资源id查询该资源使用的外呼资源(sql入库)
         int callResourceId = 0, xzResourceId = 0, cmcResourceId = 0;
         ResourcePropertyEntity callConfig = sourceDao.getResourceProperty(String.valueOf(resource), "call_config");
         if (callConfig != null) {
@@ -3220,7 +3497,7 @@ public class MarketResourceService {
 
             if (callResult != null) {
                 LOG.info("调用外呼返回数据:" + callResult.toString());
-                callId = String.valueOf(callResult.get("uuid"));
+                callId = String.valueOf(callResult.get("callId"));
                 activityId = String.valueOf(callResult.get("activity_id"));
                 enterpriseId = String.valueOf(callResult.get("enterprise_id"));
                 // 成功

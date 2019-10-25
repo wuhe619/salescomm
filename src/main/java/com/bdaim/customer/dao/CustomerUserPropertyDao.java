@@ -3,9 +3,10 @@ package com.bdaim.customer.dao;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.callcenter.dto.SeatInfoDto;
 import com.bdaim.common.dao.SimpleHibernateDao;
-import com.bdaim.common.util.DateUtil;
-import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.entity.CustomerUserPropertyDO;
+import com.bdaim.util.DateUtil;
+import com.bdaim.util.StringUtil;
+
 import org.springframework.stereotype.Component;
 
 import java.util.Date;

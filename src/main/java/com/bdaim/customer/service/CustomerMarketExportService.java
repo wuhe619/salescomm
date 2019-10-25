@@ -1,9 +1,10 @@
 package com.bdaim.customer.service;
 
-import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.dao.CustomerMarketExportDao;
 import com.bdaim.customer.dto.CustomerMarketExport;
 import com.bdaim.customer.entity.CustomerMarketExportDO;
+import com.bdaim.util.StringUtil;
+
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 

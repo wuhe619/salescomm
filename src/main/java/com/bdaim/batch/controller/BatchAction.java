@@ -7,12 +7,13 @@ import com.bdaim.batch.dto.ImportErr;
 import com.bdaim.batch.service.BatchService;
 import com.bdaim.batch.service.impl.BatchListServiceImpl;
 import com.bdaim.common.controller.BasicAction;
-import com.bdaim.common.util.DateUtil;
-import com.bdaim.common.util.FileUrlEntity;
-import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.service.CustomerService;
 import com.bdaim.price.service.SalePriceService;
 import com.bdaim.resource.service.MarketResourceService;
+import com.bdaim.util.DateUtil;
+import com.bdaim.util.FileUrlEntity;
+import com.bdaim.util.StringUtil;
+
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
@@ -60,172 +61,11 @@ public class BatchAction extends BasicAction {
      */
     @RequestMapping("/upload")
     @ResponseBody
-    public String BatchuploadParse(@RequestParam(value = "file") MultipartFile file, String batchname, String repairMode, int certifyType, String channel) {
-  /*      Map<String, Object> resultMap = new HashMap<>();
-        String compId = opUser().getCustId();
-        Map<String, String> salePricemap = salePriceService.SalePrice(compId, channel, certifyType);
-        logger.info("企业客户设置销售定价判断:" + salePricemap.get("code") + "\tmessage:" + salePricemap.get("message"));
-        if (salePricemap.get("code").equals("1")) {
-            resultMap.put("code", "006");
-            resultMap.put("_message", "未设置销售定价，请联系管理员！");
-            return JSON.toJSONString(resultMap);
-        }
-        try {
-            String propertyValue = null;
-            List<String> channels = Arrays.asList(channel.split(","));
-            if (channels.size() > 0) {
-                for (int index = 0; index < channels.size(); index++) {
-                    String channelall = channels.get(index);
-                    //得到上传文件的输入流
-                    InputStream is = null;
-                    Workbook xs = null;
-                    OutputStream os = null;
-                    ImportErr im = new ImportErr();
-                    List<ImportErr> importErd = new ArrayList<>(0);
-                    if (file == null) {
-                        im.setErrCount("上传文件不能为空");
-                        importErd.add(im);
-                        returnError(JSONObject.toJSONString(importErd));
-                    }
-                    //本地
-                    //String classPath = new BatchAction().getClass().getResource("/").getPath();
-                    //服务器
-                    String classPath = "/data/upload/";
-                    String fileName = file.getOriginalFilename();
-                    File localFile = null;
-                    //文件名加上时间戳
-                    String batchId = String.valueOf(System.currentTimeMillis());
-                    if (fileName.matches("^.+\\.(?i)(xlsx)$")) {
-                        classPath += batchId + ".xlsx";
-                        //得到目标文件对象
-                        localFile = new File(classPath);
-                        file.transferTo(localFile);
-                    } else {
-                        classPath += batchId + ".xlx";
-                        //得到目标文件对象
-                        localFile = new File(classPath);
-                        file.transferTo(localFile);
-                    }
-
-                    xs = new XSSFWorkbook(localFile);
-                    Sheet sheet = xs.getSheetAt(0);
-                    int lastRowNum = sheet.getLastRowNum();
-
-                    LinkedList<String> certlist = new LinkedList<>();
-                    LinkedList<String> custuserIdlist = new LinkedList<>();
-                    Boolean repeatIdCardStatus = false;
-                    Boolean repeateEntrpriseIdStatus = false;
-                    int uploadNum = 0;//弃用lastRowNum 防止其他空白行点击后产生空字符串数据
-                    for (int i = 1; i <= lastRowNum; i++) {
-                        Row row = sheet.getRow(i);
-                        String certifyMd5 = "", kehuId = "", label_one = "", label_two = "", label_three = "";
-                        if (row != null) {
-                            short lastCellNum = row.getLastCellNum();
-                            for (int j = 0; j < lastCellNum; j++) {
-                                Cell cell = row.getCell(j);
-                                if (cell != null && cell.getCellType() != HSSFCell.CELL_TYPE_BLANK) {
-                                    cell.setCellType(HSSFCell.CELL_TYPE_STRING);
-                                    switch (j) {
-                                        case 0:
-                                            certlist.add(cell.getStringCellValue().trim());
-                                            certifyMd5 = cell.getStringCellValue().trim();
-                                            break;
-                                        case 1:
-                                            custuserIdlist.add(cell.getStringCellValue().trim());
-                                            kehuId = cell.getStringCellValue().trim();
-                                            break;
-                                        case 2:
-                                            certlist.add(cell.getStringCellValue().trim());
-                                            label_one = cell.getStringCellValue().trim();
-                                            break;
-                                        case 3:
-                                            custuserIdlist.add(cell.getStringCellValue().trim());
-                                            label_two = cell.getStringCellValue().trim();
-                                            break;
-                                        case 4:
-                                            custuserIdlist.add(cell.getStringCellValue().trim());
-                                            label_three = cell.getStringCellValue().trim();
-                                            break;
-                                    }
-                                }
-                            }
-
-                            if (StringUtil.isNotEmpty(certifyMd5) && StringUtil.isNotEmpty(kehuId)) {
-                                uploadNum += 1;
-                                batchListService.saveBatchDetail(certifyMd5, kehuId, batchId, label_one, label_two, label_three, channelall, certifyType);
-                                batchListService.saveBatchLog(certifyMd5, kehuId, batchId, opUser().getId(), opUser().getName());
-                            }
-                        }
-                    }
-                    repeatIdCardStatus = batchService.repeatIdCardStatus(batchId);
-                    repeateEntrpriseIdStatus = batchService.repeateEntrpriseIdStatus(batchId);
-
-                    Double remainAmount = customerService.getRemainMoney(opUser().getCustId()) / 100;
-                    if (channelall.equals("2")) {
-                        propertyValue = "cuc";
-                    }
-                    if (channelall.equals("3")) {
-                        propertyValue = "ctc";
-                    }
-                    if (channelall.equals("4")) {
-                        propertyValue = "cmc";
-                    }
-                    CustomerPropertyDO customerProperty = customerDao.getProperty(opUser().getCustId(), propertyValue + "_fix_price");
-                    Double useAmount = null;
-                    if (customerProperty != null) {
-                        if (StringUtil.isNotEmpty(customerProperty.getPropertyValue())) {
-                            //获取修复中的上传数量
-                            int uploadOnFixNum = batchService.uploadNumGet(compId);
-                            Double cucFixPrice = Double.valueOf(customerProperty.getPropertyValue()) / 100;
-                            useAmount = (uploadNum + uploadOnFixNum) * 0.5 * cucFixPrice;
-                            logger.info("联通修复扣费销售定价:" + cucFixPrice.toString() + "\t账户余额为：" + remainAmount.toString() + "\t本地修复所需费用：" + useAmount.toString() + "\t本次上传数量：" + uploadNum + "\t正在修复中的数量：" + uploadOnFixNum);
-                        }
-                    }
-
-                    if (useAmount != null && (useAmount > remainAmount)) {
-                        resultMap.put("code", "002");
-                        resultMap.put("_message", "账户余额不足，上传失败！");
-                        return JSON.toJSONString(resultMap);
-                    } else if (uploadNum > 1000) {
-                        resultMap.put("code", "003");
-                        resultMap.put("_message", "上传数据超过1000条记录，上传失败！");
-                        return JSON.toJSONString(resultMap);
-                    } else if (repeatIdCardStatus) {
-                        resultMap.put("code", "004");
-                        resultMap.put("_message", "录入身份证加密数据不能重复，上传失败！");
-                        return JSON.toJSONString(resultMap);
-                    } else if (repeateEntrpriseIdStatus) {
-                        resultMap.put("code", "005");
-                        resultMap.put("_message", "录入企业自带id数据不能重复，上传失败！");
-                        return JSON.toJSONString(resultMap);
-                    } else {
-                        batchListService.saveBatch(batchname, uploadNum, repairMode, compId, batchId, certifyType, channelall);
-                *//*String errorCode = batchService.sendtofile(certlist,custuserIdlist,repairMode,batchId);
-                if(errorCode.equals("00")){
-                    batchListService.saveBatch(batchname,uploadNum,repairMode,compId,batchId);
-                }else {
-                    throw new RuntimeException("联通接口异常，请稍后再试！");
-                }*//*
-                        resultMap.put("code", "000");
-                        resultMap.put("_message", "失联修复文件上传成功！");
-
-                    }
-                }
-                return JSON.toJSONString(resultMap);
-            }
-        } catch (Exception e) {
-            logger.error("失联修复文件上传失败！\t" + e.getMessage());
-            resultMap.put("code", "001");
-            resultMap.put("_message", "失联修复文件上传失败！");
-            return JSON.toJSONString(resultMap);
-
-        }
-        return null;
-    }*/
+    public String BatchuploadParse(@RequestParam(value = "file") MultipartFile file, String batchname, String repairStrategy, int certifyType, String channel) {
         String compId = opUser().getCustId();
         Map<String, Object> resultMap = null;
         try {
-            resultMap = batchListService.uploadBatchFile(file, batchname, repairMode, certifyType, channel, compId, opUser().getId(), opUser().getName());
+            resultMap = batchListService.uploadBatchFile(file, batchname, repairStrategy, certifyType, channel, compId, opUser().getId(), opUser().getName());
         } catch (Exception e) {
             logger.error("失联修复文件上传失败！\t" + e.getMessage());
             resultMap.put("code", "001");

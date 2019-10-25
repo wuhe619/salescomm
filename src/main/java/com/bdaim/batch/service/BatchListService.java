@@ -3,7 +3,7 @@ package com.bdaim.batch.service;
 import com.bdaim.batch.entity.BatchDetail;
 import com.bdaim.batch.entity.BatchListParam;
 import com.bdaim.common.dto.PageParam;
-import com.bdaim.common.util.page.PageList;
+import com.bdaim.common.page.PageList;
 
 import java.util.List;
 import java.util.Map;
@@ -56,7 +56,7 @@ public interface BatchListService {
 
     void saveBatchDetailList(List<BatchDetail> batchDetailList, String channelall, String resourceId, int certifyType, String batchId, Long operUserId, String operName);
 
-    void saveBatch(String batchname, int uploadNum, String repairMode, String compId, String batchId, int certifyType, String channl) throws Exception;
+    void saveBatch(String batchname, int uploadNum, String repairStrategy, String compId, String batchId, int certifyType, String channl) throws Exception;
 
     void cucIsreceive(String batchId, int cucIsReceived) throws Exception;
 

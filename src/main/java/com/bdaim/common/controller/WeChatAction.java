@@ -1,8 +1,9 @@
 package com.bdaim.common.controller;
 
 
-import com.bdaim.common.util.wechat.WeChatUtil;
 import com.bdaim.customs.entity.BusiTypeEnum;
+import com.bdaim.util.wechat.WeChatUtil;
+
 import io.searchbox.client.JestClient;
 import io.searchbox.client.JestResult;
 import io.searchbox.indices.DeleteIndex;

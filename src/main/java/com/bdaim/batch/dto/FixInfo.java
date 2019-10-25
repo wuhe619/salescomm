@@ -2,7 +2,7 @@ package com.bdaim.batch.dto;
 
 import java.util.List;
 
-import com.bdaim.account.dto.Fixentity;
+import com.bdaim.customer.account.dto.Fixentity;
 
 /**
  * @author yanls@bdaim.com

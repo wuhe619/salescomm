@@ -4,9 +4,10 @@ import com.bdaim.appointmentcallback.dto.AppointmentCallbackQueryParam;
 import com.bdaim.appointmentcallback.entity.AppointmentCallback;
 import com.bdaim.common.dao.SimpleHibernateDao;
 import com.bdaim.common.dto.Page;
-import com.bdaim.common.util.NumberConvertUtil;
-import com.bdaim.common.util.SqlAppendUtil;
-import com.bdaim.common.util.StringUtil;
+import com.bdaim.util.NumberConvertUtil;
+import com.bdaim.util.SqlAppendUtil;
+import com.bdaim.util.StringUtil;
+
 import org.springframework.stereotype.Component;
 
 import java.io.Serializable;

@@ -6,10 +6,6 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.auth.LoginUser;
 import com.bdaim.common.service.InitService;
-import com.bdaim.common.util.Constant;
-import com.bdaim.common.util.NumberConvertUtil;
-import com.bdaim.common.util.StringHelper;
-import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.entity.CustomerProperty;
 import com.bdaim.industry.dto.IndustryLabelsDTO;
@@ -21,13 +17,17 @@ import com.bdaim.label.dto.CategoryType;
 import com.bdaim.label.dto.QueryType;
 import com.bdaim.label.entity.*;
 import com.bdaim.label.service.CommonService;
-import com.bdaim.label.service.LabelAuditService;
 import com.bdaim.label.service.LabelCategoryService;
 import com.bdaim.label.service.LabelInterfaceService;
 import com.bdaim.rbac.dto.UserDTO;
 import com.bdaim.rbac.service.UserService;
 import com.bdaim.resource.dao.MarketResourceDao;
 import com.bdaim.resource.entity.ResourcePropertyEntity;
+import com.bdaim.util.Constant;
+import com.bdaim.util.NumberConvertUtil;
+import com.bdaim.util.StringHelper;
+import com.bdaim.util.StringUtil;
+
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
@@ -61,15 +61,11 @@ public class IndustryPoolService {
     private IndustryInfoDao industryInfoDao;
 
     @Resource
-    private LabelAuditService labelAuditService;
-    @Resource
     private UserService userService;
     @Resource
     private LabelCategoryService labelCategoryServiceImpl;
     @Resource
     private RestTemplate restTemplate;
-    @Resource
-    private LabelCoverDao labelCoverDao;
     @Resource
     private LabelInterfaceService labelInterfaceService;
     @Resource
@@ -170,53 +166,6 @@ public class IndustryPoolService {
         return labelList;
     }
 
-
-    /**
-     * 新增基础标签 1.新增基础标签的同时要修改标签状态为申请中 2.在审核系统中录入标签的申请信息
-     */
-    public synchronized Integer addBaseLabel(LabelInfo label) {
-        String hql = "select max(labelId) as label_id from LabelInfo where level=? and parent.id=?";
-        Object maxLabelId = null;
-        if (label.getParentCategory() == null) {
-            maxLabelId = industryPoolDao.findUnique(hql, label.getLevel(), label.getParent().getId());
-            if (null == maxLabelId)
-                maxLabelId = label.getParent().getLabelId() + "00001";
-        } else {
-            hql += " and parentCategory.id=?";
-            maxLabelId = industryPoolDao.findUnique(hql, label.getLevel(), label.getParent().getId(), label.getParentCategory().getCategoryId());
-            if (null == maxLabelId) {
-                if (label.getLevel().equals(3)) {
-                    maxLabelId = label.getParent().getLabelId() + label.getParentCategory().getCategoryId() + "00001";
-                } else if (label.getLevel().equals(4)) {
-                    maxLabelId = label.getParent().getLabelId() + "00001";
-                }
-            }
-        }
-        if (null == maxLabelId)
-            throw new NullPointerException("无法生成label_id");
-        Long labelId = Long.parseLong(maxLabelId.toString()) + 1;
-        label.setLabelId(Long.toString(labelId));
-        Integer lid = (Integer) labelInfoDao.saveReturnPk(label);
-        //下面是增加审批信息
-        LabelAudit audit = new LabelAudit();
-        audit.setName(label.getLabelName());
-        audit.setStatus(Constant.AUDITING);
-        //添加审批类型和申请类型
-        if (label.getType().equals(Constant.LABLE_TYPE_CATEGORY)) {
-            audit.setApplyType(Constant.APPLY_TYPE_CATEGORY_CREATE);
-            audit.setAuditType(Constant.AUDIT_TYPE_CATEGORY);
-        } else {
-            audit.setApplyType(Constant.APPLY_TYPE_BASELABEL_CREATE);
-            audit.setAuditType(Constant.AUDIT_TYPE_LABEL);
-        }
-        audit.setApplyUser(userService.getUserById((long) label.getCreateUid()));
-        audit.setAid(lid);
-        audit.setLastFlag(Constant.AUDIT_LAST_FLAG_YES);
-        audit = labelAuditService.getLabelAudit(audit, null);
-        labelAuditService.addAuditInfo(audit);
-        return lid;
-    }
-
     /**
      * 标签信息的模糊搜索 根据标签名称 、规则、部门等条件 返回结果结合[{},{}]
      */
@@ -255,10 +204,7 @@ public class IndustryPoolService {
         if (null == firstLabel.getDataFormat()
                 || firstLabel.getDataFormat().equals(-1)) {
             //处理普通数据类型的情况
-            hql = "SELECT t.* FROM ( SELECT id,label_id,label_name,parent_id,uri,`level`,`status`FROM label_info  t where attr_id is null and level<4 and availably =1  and  (( uri like '/"
-                    + firstLid + "/%' )) ";
-			/*List<LabelInfo> list = industryPoolDao.getHqlQuery(hql, map, orLikeMap, andLikeMap,
-					"level asc").list();*/
+            hql = "SELECT t.* FROM ( SELECT id,label_id,label_name,parent_id,uri,`level`,`status`FROM label_info  t where attr_id is null and level<4 and availably =1  and  (( uri like '/" + firstLid + "/%' )) ";
             hql += " AND STATUS = 3 )t  LEFT JOIN t_industry_label b ON t.label_id = b.label_id and b.industry_pool_id=" + map.get("poolId") + " AND b.`STATUS`=1  WHERE b.label_id IS NOT NULL OR t. LEVEL < 3 ";
             //查询权限
             List<LabelInfo> list = new ArrayList<LabelInfo>();
@@ -320,76 +266,7 @@ public class IndustryPoolService {
         }
         List<Map<String, Object>> categoryTree = CommonService.getDataNodeMapList(nodes);
         //查询指定一级分类下对应品类的覆盖信息
-        if (cateList.size() > 0) {
-            List<Map<String, Object>> covers = labelCoverDao
-                    .createQuery(
-                            "select new map(label.id as labelId,category.id as categoryId,coverNum as num,total as total ) from LabelCover where label.id=(:label) and category.id in(:cateList)")
-                    .setParameter("label", label.getId())
-                    .setParameterList("cateList", cateList).list();
-            //将用户覆盖信息补充到返回结果,不存在的覆盖信息不进行返回
-            //			addCoverNum(categoryTree, covers, label.getId().toString());
-
-            Map<String, String> coverMap = new HashMap<String, String>();
-            for (Map<String, Object> map : covers) {
-                String labelID = map.get("labelId") == null ? null : map.get(
-                        "labelId").toString();
-                String categoryID = map.get("categoryId") == null ? null : map.get(
-                        "categoryId").toString();
-                String num = map.get("num") == null ? "0" : map.get("num")
-                        .toString();
-                String total = map.get("total") == null ? "0" : map.get("total")
-                        .toString();
-                if (null == labelID)
-                    continue;
-                if (null == categoryID) {
-                    coverMap.put(labelID, num + "_" + total);
-                } else {
-                    coverMap.put(labelID + "_" + categoryID, num + "_" + total);
-                }
-            }
-            for (Map<String, Object> map : categoryTree) {
-                List<Map<String, Object>> children = (List<Map<String, Object>>) map
-                        .get("children");
-                // 待删除children
-                List<Map<String, Object>> delete = new ArrayList<Map<String, Object>>();
-                String cid = map.get("categoryId") == null ? null : map.get(
-                        "categoryId").toString();
-
-                String key = label.getId() + "_" + cid;
-                String value = coverMap.get(key);
-                if (null != value) {
-                    String[] vArr = value.split("_");
-                    map.put("customerNum", vArr[0]);
-                    map.put("total", vArr[1]);
-                    map.put("viewStatus", Constant.VIEW_STATUS_ONLINE);
-                    map.put("statusCn", Constant.ONLINE_CN);
-                } else {
-                    map.put("customerNum", 0);
-                    map.put("total", 0);
-                    map.put("viewStatus", Constant.VIEW_STATUS_ONLINE);
-                    map.put("statusCn", Constant.ONLINE_CN);
-                }
-                if (null != children) {
-                    for (Map<String, Object> m : children) {
-                        String c = m.get("categoryId").toString();
-                        String k = label.getId() + "_" + c;
-                        String v = coverMap.get(k);
-                        if (null != v) {
-                            String[] vArr = v.split("_");
-                            m.put("customerNum", vArr[0]);
-                            m.put("total", vArr[1]);
-                            m.put("viewStatus", Constant.VIEW_STATUS_ONLINE);
-                            m.put("statusCn", Constant.ONLINE_CN);
-                        } else {
-                            m.put("customerNum", 0);
-                            m.put("total", 0);
-                            m.put("viewStatus", Constant.VIEW_STATUS_ONLINE);
-                            m.put("statusCn", Constant.ONLINE_CN);
-                        }
-                    }
-                }
-            }
-        }
+        
         return categoryTree;
     }
 
@@ -411,20 +288,12 @@ public class IndustryPoolService {
             labelMap.put(lab.getId(), lab);
         }
         //根据标签id和标签周期查询标签覆盖用户数
-        String queryHQL = "select new map(label.id as labelId,category.id as categoryId,coverNum as num,total as total )  from LabelCover t where t.cycle=:cycle and t.label.id in(:lids)";
-        if (lids.size() > 0)
-            covers = labelCoverDao.createQuery(queryHQL).setParameterList("lids", lids).setParameter("cycle", cycle).list();
         List<LabelInfo> labs = new ArrayList<LabelInfo>();
         for (Map<String, Object> cover : covers) {
             if (labelMap.containsKey(cover.get("labelId")))
                 labs.add(labelMap.get(cover.get("labelId")));
         }
         return labs;
-    }
-
-    private List<Map<String, Object>> getLbelCovers(List<Integer> lids, Integer cycle) {
-        String queryHQL = "select new map(label.id as labelId,category.id as categoryId,coverNum as num,total as total )  from LabelCover t where t.cycle=:cycle and t.label.id in(:lids)";
-        return labelCoverDao.createQuery(queryHQL).setParameterList("lids", lids).setParameter("cycle", cycle).list();
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -512,9 +381,7 @@ public class IndustryPoolService {
             }
         }
         List<Map<String, Object>> covers = new ArrayList<Map<String, Object>>();
-        //		result = getSearchLabelTree(getLabelCoverInfo(labels,covers,cycle));
 
-        //==================================================================
         List<Integer> lids = new ArrayList<Integer>();
         Map<Integer, LabelInfo> labelMap = new HashMap<Integer, LabelInfo>();
         lids.add(label.getId());
@@ -529,8 +396,6 @@ public class IndustryPoolService {
             lids.add(lab.getId());
             labelMap.put(lab.getId(), lab);
         }
-        if (null != lids && lids.size() > 0)
-            covers = getLbelCovers(lids, cycle);
 
         List<LabelInfo> labs = new ArrayList<LabelInfo>();
         for (Map<String, Object> cover : covers) {
@@ -549,14 +414,10 @@ public class IndustryPoolService {
                              List<Map<String, Object>> covers, String labelId) {
         Map<String, String> coverMap = new HashMap<String, String>();
         for (Map<String, Object> map : covers) {
-            String labelID = map.get("labelId") == null ? null : map.get(
-                    "labelId").toString();
-            String categoryID = map.get("categoryId") == null ? null : map.get(
-                    "categoryId").toString();
-            String num = map.get("num") == null ? "0" : map.get("num")
-                    .toString();
-            String total = map.get("total") == null ? "0" : map.get("total")
-                    .toString();
+            String labelID = map.get("labelId") == null ? null : map.get("labelId").toString();
+            String categoryID = map.get("categoryId") == null ? null : map.get("categoryId").toString();
+            String num = map.get("num") == null ? "0" : map.get("num").toString();
+            String total = map.get("total") == null ? "0" : map.get("total").toString();
             if (null == labelID)
                 continue;
             if (null == categoryID) {
@@ -566,12 +427,10 @@ public class IndustryPoolService {
             }
         }
         for (Map<String, Object> map : tree) {
-            List<Map<String, Object>> children = (List<Map<String, Object>>) map
-                    .get("children");
+            List<Map<String, Object>> children = (List<Map<String, Object>>) map.get("children");
             // 待删除children
             List<Map<String, Object>> delete = new ArrayList<Map<String, Object>>();
-            String cid = map.get("categoryId") == null ? null : map.get(
-                    "categoryId").toString();
+            String cid = map.get("categoryId") == null ? null : map.get("categoryId").toString();
             if (null == cid) {
                 String key = map.get("id").toString();
                 String value = coverMap.get(key);
@@ -637,9 +496,7 @@ public class IndustryPoolService {
 
     @SuppressWarnings("unchecked")
     public List<Map<String, Object>> getTreeByLevel(Integer pid, Integer level) {
-        List<LabelInfo> list = industryPoolDao.createQuery(
-                "from LabelInfo where availably=1 and status=3 and level<=?",
-                level).list();
+        List<LabelInfo> list = industryPoolDao.createQuery("from LabelInfo where availably=1 and status=3 and level<=?", level).list();
         List<Map<String, Object>> result = getLabelTree(list);
         return result;
     }
@@ -653,13 +510,9 @@ public class IndustryPoolService {
 
     public List<Map<String, Object>> getAllLabelsByCategoryId(Integer categoryId) {
         List<Map<String, Object>> result = new ArrayList<Map<String, Object>>();
-        List<Map<String, Object>> list = industryPoolDao
-                .createQuery(
-                        "select new map(id as id,labelName) from LabelInfo where availably =1 and parentCategory.id=?",
-                        categoryId).list();
+        List<Map<String, Object>> list = industryPoolDao.createQuery("select new map(id as id,labelName) from LabelInfo where availably =1 and parentCategory.id=?", categoryId).list();
         for (Map<String, Object> m : list) {
-            m.put("children",
-                    getChildrenById(Integer.parseInt(m.get("id").toString())));
+            m.put("children", getChildrenById(Integer.parseInt(m.get("id").toString())));
             result.add(m);
         }
         return result;
@@ -668,8 +521,7 @@ public class IndustryPoolService {
     @SuppressWarnings("unchecked")
 
     public List<LabelInfo> getAllLabels() {
-        List<LabelInfo> labels = industryPoolDao.createQuery(
-                "from LabelInfo where availably=1").list();
+        List<LabelInfo> labels = industryPoolDao.createQuery("from LabelInfo where availably=1").list();
         return labels;
     }
 
@@ -941,52 +793,8 @@ public class IndustryPoolService {
     }
 
 
-    public synchronized Integer addSignatureLabel(LabelInfo label, Integer cycle) {
-        LabelCover cover = new LabelCover();
-        String labelId = StringHelper.generatorKeyByParentAndLevel(label
-                .getParent().getLabelId(), label.getParent().getChildren()
-                .size() + 1, label.getLevel());
-        label.setLabelId(labelId);
-        try {
-            String str = labelInterfaceService.previewSignatureLabel(label, null == cycle ? Integer.valueOf(0) : cycle);
-            JSONObject json = JSONObject.parseObject(str);
-            if (json.getIntValue("isSuccess") == 0) {
-                log.error("标签预览失败！" + json.getString("_message"));
-                throw new RuntimeException("标签预览失败！");
-            }
-            Long count = json.getJSONObject("data").getLong("count");
-            Long total = json.getJSONObject("data").getLong("total");
-            label.setCustomerNum(count);
-            label.setTotal(total);
-            cover.setCoverNum(count);
-            cover.setTotal(total);
-            cover.setCycle(cycle == null ? 0 : cycle);
-            // }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        Integer lid = (Integer) labelInfoDao.saveReturnPk(label);
-        cover.setLabel(label);
-        labelCoverDao.save(cover);
-        label.setStatus(Constant.AUDITING); // 新增标签状态默认为审核中
-        LabelAudit audit = new LabelAudit();
-        audit.setName(label.getLabelName());
-        audit.setStatus(Constant.AUDITING);
-        audit.setApplyType(Constant.APPLY_TYPE_SIGNATURE_CREATE);
-        audit.setAuditType(Constant.AUDIT_TYPE_SIGNATURE);
-        audit.setApplyUser(userService.getUserById((long) label.getCreateUid()));
-        audit.setAid(lid);
-        audit.setLastFlag(Constant.AUDIT_LAST_FLAG_YES);
-        audit = labelAuditService.getLabelAudit(audit, null);
-        labelAuditService.addAuditInfo(audit);
-        return lid;
-    }
-
-
     public LabelInfo getLabelInfoByParentAndName(LabelInfo parent, String name) {
-        Criteria c = industryPoolDao.createCriteria(Restrictions.eq("parent",
-                parent));
+        Criteria c = industryPoolDao.createCriteria(Restrictions.eq("parent", parent));
         c.add(Restrictions.eq("labelName", name));
         LabelInfo label = null;
         List<LabelInfo> list = (List<LabelInfo>) c.list();

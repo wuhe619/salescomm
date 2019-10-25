@@ -13,7 +13,6 @@ import com.bdaim.common.exception.ParamException;
 import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.service.ElasticSearchService;
 import com.bdaim.common.service.PhoneService;
-import com.bdaim.common.util.*;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerUserDao;
 import com.bdaim.customer.dto.CustomerUserDTO;
@@ -41,6 +40,8 @@ import com.bdaim.marketproject.service.MarketProjectService;
 import com.bdaim.resource.dao.MarketResourceDao;
 import com.bdaim.resource.dto.MarketResourceDTO;
 import com.bdaim.resource.entity.ResourcePropertyEntity;
+import com.bdaim.util.*;
+
 import org.hibernate.HibernateException;
 import org.hibernate.exception.SQLGrammarException;
 import org.slf4j.Logger;

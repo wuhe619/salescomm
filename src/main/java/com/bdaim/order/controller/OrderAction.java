@@ -4,11 +4,12 @@ import com.alibaba.fastjson.JSONObject;
 import com.bdaim.auth.LoginUser;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.exception.TouchException;
-import com.bdaim.common.util.StringUtil;
 import com.bdaim.customgroup.dto.CustomerGrpOrdParam;
 import com.bdaim.customgroup.service.CustomGroupService;
 import com.bdaim.order.dto.MarketRsOrderQueryParam;
 import com.bdaim.order.service.OrderService;
+import com.bdaim.util.StringUtil;
+
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;

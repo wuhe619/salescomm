@@ -2,9 +2,10 @@ package com.bdaim.customs.services;
 
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.service.BusiService;
-import com.bdaim.common.util.StringUtil;
 import com.bdaim.customs.entity.HBusiDataManager;
 import com.bdaim.customs.utils.ServiceUtils;
+import com.bdaim.util.StringUtil;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

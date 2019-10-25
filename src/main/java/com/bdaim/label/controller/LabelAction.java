@@ -8,20 +8,19 @@ import com.bdaim.auth.LoginUser;
 import com.bdaim.common.annotation.CacheAnnotation;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.filter.FiledFilter;
-import com.bdaim.common.util.AuthPassport;
-import com.bdaim.common.util.Constant;
-import com.bdaim.common.util.StringUtil;
 import com.bdaim.customgroup.service.CustomGroupService;
 import com.bdaim.dataexport.service.DataPermissionService;
-import com.bdaim.label.dao.LabelCoverDao;
 import com.bdaim.label.dto.Label;
 import com.bdaim.label.dto.LabelGroup;
 import com.bdaim.label.dto.QueryParam;
 import com.bdaim.label.dto.QueryType;
 import com.bdaim.label.entity.*;
-import com.bdaim.label.service.LabelAuditService;
 import com.bdaim.label.service.LabelCategoryService;
 import com.bdaim.label.service.LabelInfoService;
+import com.bdaim.util.AuthPassport;
+import com.bdaim.util.Constant;
+import com.bdaim.util.StringUtil;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -40,11 +39,7 @@ public class LabelAction extends BasicAction {
     @Resource
     private LabelInfoService labelInfoService;
     @Resource
-    private LabelAuditService labelAuditService;
-    @Resource
     private LabelCategoryService labelCategoryService;
-    @Resource
-    private LabelCoverDao labelCoverDao;
     @Resource
     private DataPermissionService dataPermissionService;
     @Resource
@@ -80,27 +75,10 @@ public class LabelAction extends BasicAction {
 
     @ResponseBody
     @CacheAnnotation
-    @RequestMapping(value = "{id}", method = RequestMethod.DELETE)
-    public String deleteLabelById(@PathVariable Integer id) {
-        LabelInfo label = labelInfoService.getLabelById(id);
-        return JSON.toJSONString(label.getChildren(), new FiledFilter());
-    }
-
-    @ResponseBody
-    @CacheAnnotation
     @RequestMapping("/getLabelDetailById")
     public String getLabelDetailById(HttpServletRequest request, Integer id) {
         LabelInfo label = labelInfoService.getLabelById(id);
         Map<String, Object> map = super.commonService.getLabelMap(label);
-        String hql = "from LabelCover t where t.label.id=" + label.getId();
-        List<LabelCover> covers = labelCoverDao.createQuery(hql).list();
-        if (null != covers && covers.size() > 0) {
-            map.put("customerNum", covers.get(0).getCoverNum());
-            map.put("total", covers.get(0).getTotal());
-        }
-
-        //operation log
-//		super.operlog(request, label.getId());
 
         return JSON.toJSONString(map);
     }
@@ -173,14 +151,6 @@ public class LabelAction extends BasicAction {
     @CacheAnnotation
     public String getChildrenById(Integer id, String status, Integer cycle
             , HttpServletRequest request, String queryType, String queryKey, Integer type, Integer categoryFlag, Boolean isLogAvailably) {
-//		Integer id = labelInfo.getId();
-//		Integer status = labelInfo.getStatus();
-//		if (id==null || id==0)
-//			return null;
-//
-//		List<Label> labels = labelInfoService.values(id, "3");
-//
-//		return JSON.toJSONString(labels);
 
         if (id == null || id == 0)
             return null;
@@ -204,158 +174,17 @@ public class LabelAction extends BasicAction {
         List<Label> labels = labelInfoService.children(null, id, status, cycle, queryType, queryKey, type, categoryFlag, isLogAvailably);
 
         return JSON.toJSONString(labels);
-
-
     }
 
     @ResponseBody
     @RequestMapping("/getChildrenByIdAndLevel")
     @CacheAnnotation
     public String getChildrenByIdAndLevel(Integer pid, Integer level) {
-        List<Map<String, Object>> list = labelInfoService
-                .getChildrenByIdAndLevel(pid, level);
+        List<Map<String, Object>> list = labelInfoService.getChildrenByIdAndLevel(pid, level);
         JSONObject json = new JSONObject();
         json.put("stores", list);
         return json.toJSONString();
     }
-
-    @ResponseBody
-    @RequestMapping("/addBaseLabelInfo")
-    @CacheAnnotation
-    public String addBaseLabelInfo(LabelInfo label, HttpServletRequest request) {
-        String parentId = request.getParameter("parentId");
-        String labelName = label.getLabelName();
-        String cateId = request.getParameter("parentCategory.id");
-        if (null == parentId)
-            throw new NullPointerException("标签分类不允许为空");
-        boolean isExist = labelInfoService.isExistLabelName(
-                Integer.valueOf(parentId), labelName);
-        if (!isExist)
-            throw new RuntimeException("标签名称重复,请确认");
-        Map<String, Object> map = new HashMap<String, Object>();
-        try {
-            if (null != cateId && (!cateId.isEmpty())) {
-                LabelCategory cate = labelCategoryService
-                        .loadLabelCategoryById(Integer.valueOf(cateId));
-                label.setParentCategory(cate);
-            }
-            Date date = new Date();
-            LabelInfo parentLabel = labelInfoService.getLabelById(Integer
-                    .valueOf(parentId));
-            label.setParent(parentLabel);
-            label.setPath(parentLabel.getPath() + parentLabel.getLabelName()
-                    + "/");
-            label.setUri(parentLabel.getUri() + parentLabel.getId() + "/");
-            label.setCreateTime(date);
-            label.setUpdateTime(date);
-            label.setAvailably(Constant.AVAILABLY);
-            label.setCreateUid(opUser().getId());
-            label.setLabelCreateUser(opUser().getUser());
-            label.setLabelUpdateUser(opUser().getUser());
-            label.setLevel(parentLabel.getLevel() + 1);
-            label.setStatus(Constant.AUDITING);
-            Integer lid = labelInfoService.addBaseLabel(label);
-            map.put("labelId", lid);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return JSON.toJSONString(map);
-    }
-
-    @ResponseBody
-    @RequestMapping(value = "/updateBaseLabelInfo", method = RequestMethod.POST)
-    @CacheAnnotation
-    public String updateBaseLabelInfo(LabelInfo label, boolean isNameChanged, String parentId) {
-        if (null == parentId)
-            throw new NullPointerException("标签分类不允许为空");
-        if (isNameChanged) {
-            boolean isExist = labelInfoService.isExistLabelName(
-                    Integer.valueOf(parentId), label.getLabelName());
-            if (!isExist)
-                throw new RuntimeException("标签名称重复,请确认");
-        }
-        LabelInfo labelInfo = labelInfoService.getLabelById(label.getId());
-        labelInfo.setLabelName(label.getLabelName());
-        labelInfo.setBusinessMean(label.getBusinessMean());
-        labelInfo.setLabelRule(label.getLabelRule());
-        labelInfo.setLabelUpdateUser(opUser().getUser());
-        labelInfo.setUpdateTime(new Date());
-        labelInfoService.updateLabelInfo(labelInfo);
-        return "{}";
-    }
-
-    @ResponseBody
-    @RequestMapping("/addSignatureLabelInfo")
-    @CacheAnnotation
-    public String addSignatureLabelInfo(HttpServletRequest request, LabelInfo label, QueryParam params) {
-        String parentId = request.getParameter("parentId");
-        if (null == parentId)
-            throw new NullPointerException("组合标签分类不允许为空");
-        String labelName = label.getLabelName();
-        boolean isExist = labelInfoService.isExistLabelName(
-                Integer.valueOf(parentId), labelName);
-        if (!isExist)
-            throw new RuntimeException("标签名称重复,请确认");
-        Map<String, Object> map = new HashMap<String, Object>();
-        try {
-            Date date = new Date();
-            LabelInfo parentLabel = labelInfoService.getLabelById(Integer
-                    .valueOf(parentId));
-            label.setType(Constant.LABLE_TYPE_SIGNATURE);
-            label.setParent(parentLabel);
-            label.setPath(parentLabel.getPath() + parentLabel.getLabelName()
-                    + "/");
-            label.setUri(parentLabel.getUri() + parentLabel.getId() + "/");
-            label.setCreateTime(date);
-            label.setUpdateTime(date);
-            label.setAvailably(Constant.AVAILABLY);
-            label.setCreateUid(opUser().getId());
-            label.setLabelUpdateUser(opUser().getUser());
-            label.setLevel(parentLabel.getLevel() + 1);
-            label.setLabelCreateUser(opUser().getUser());
-            String ids = label.getIds();
-            JSONArray arr = JSON.parseArray(ids);
-            List<LabelInfo> labels = new ArrayList<LabelInfo>();
-            for (int i = 0; i < arr.size(); i++) {
-                labels.add(labelInfoService.get(arr.getInteger(i)));
-            }
-            label.setSignatures(labels);
-            Integer cycle = params.getCycle();
-            Integer lid = labelInfoService.addSignatureLabel(label, cycle);
-            map.put("labelId", lid);
-            map.put("_message", "组合标签保存成功");
-            //operation log
-//			super.operlog(request, lid);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return JSON.toJSONString(map);
-    }
-
-    @ResponseBody
-    @RequestMapping("/offlineLabel")
-    @CacheAnnotation
-    public String offlineBaseLabel(LabelAudit audit) {
-        Map<String, Object> map = new HashMap<String, Object>();
-        try {
-            audit.setApplyUser(opUser().getUser());
-            if (audit.getApplyType().equals(
-                    Constant.APPLY_TYPE_SIGNATURE_OFFLINE)) {
-                audit.setAuditType(Constant.AUDIT_TYPE_SIGNATURE);
-            } else {
-                audit.setAuditType(Constant.AUDIT_TYPE_LABEL);
-            }
-            audit.setAvailably(Constant.AVAILABLY);
-            audit.setStatus(Constant.AUDITING);
-            audit = labelAuditService.getLabelAudit(audit, null);
-            labelAuditService.addAuditInfo(audit);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return JSON.toJSONString(map);
-    }
-
 
     @ResponseBody
     @CacheAnnotation
@@ -364,8 +193,7 @@ public class LabelAction extends BasicAction {
         try {
             JSONObject result = new JSONObject();
             // 如果周期不存在，默认设置为0
-            Map<String, Object> map = labelInfoService.previewSignatureLabel(
-                    cycle == null ? Integer.valueOf(0) : cycle, label);
+            Map<String, Object> map = labelInfoService.previewSignatureLabel(cycle == null ? Integer.valueOf(0) : cycle, label);
             if (map == null) {
                 result.put("code", 300);
                 result.put("_message", "组合标签预览失败！");
@@ -409,8 +237,7 @@ public class LabelAction extends BasicAction {
         return JSON.toJSONString(idList);
     }
 
-    private List<Map<String, Object>> getLabelTreeWithPermission(
-            List<Map<String, Object>> mapList) {
+    private List<Map<String, Object>> getLabelTreeWithPermission(List<Map<String, Object>> mapList) {
         List<DataNode> lst = dataPermissionService.getLabelList(opUser().getId(), 1, null, QueryType.PRIVILEGE);
         for (Iterator it = mapList.iterator(); it.hasNext(); ) {
             Map<String, Object> map = (Map<String, Object>) it.next();
@@ -493,7 +320,7 @@ public class LabelAction extends BasicAction {
         String queryKey = params.getKey();
         String mineFlag = request.getParameter("mine");
         Integer categoryFlag = params.getCategoryFlag();
-//		UserManager manager = new UserManagerImpl();
+
         Map<String, Object> orLikeMap = new HashMap<String, Object>();
         if (null != queryKey && (!queryKey.isEmpty())) {
             if (null == queryType) {
@@ -523,12 +350,6 @@ public class LabelAction extends BasicAction {
                 map.put("parentCategory.id", labelInfo.getParentCategory()
                         .getId());
             }
-            // if(orLikeMap.isEmpty()){
-            // andLikeMap.put("uri",label.getUri()+label.getId()+"/");
-            // }else{
-            // andLikeMap.put("uri",label.getUri()+label.getId()+"/");
-            // }
-            // andLikeMap.put("uri",label.getUri()+label.getId()+"/");
             if (null == categoryFlag || categoryFlag == 0) {
                 map.put(Constant.FILTER_KEY_PREFIX + "id", label.getId());
             }
@@ -544,9 +365,6 @@ public class LabelAction extends BasicAction {
         }
         JSONObject json = new JSONObject();
         json.put("stores", list);
-
-        //operation log
-//		super.operlog(request, list);
 
         return json.toString();
     }

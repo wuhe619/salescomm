@@ -8,11 +8,12 @@ import com.bdaim.common.dao.SettlementDao;
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.entity.Dic;
 import com.bdaim.common.entity.DicProperty;
-import com.bdaim.fund.entity.Settlement;
-import com.bdaim.fund.entity.SettlementProperty;
-import com.bdaim.common.util.*;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.rbac.dao.UserDao;
+import com.bdaim.supplier.fund.entity.Settlement;
+import com.bdaim.supplier.fund.entity.SettlementProperty;
+import com.bdaim.util.*;
+
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Service;
 

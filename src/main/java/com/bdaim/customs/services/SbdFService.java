@@ -6,13 +6,14 @@ import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.service.BusiService;
 import com.bdaim.common.service.ElasticSearchService;
 import com.bdaim.common.service.SequenceService;
-import com.bdaim.common.util.NumberConvertUtil;
-import com.bdaim.common.util.StringUtil;
 import com.bdaim.customs.entity.BusiTypeEnum;
 import com.bdaim.customs.entity.Constants;
 import com.bdaim.customs.entity.HBusiDataManager;
 import com.bdaim.customs.entity.HMetaDataDef;
 import com.bdaim.customs.utils.ServiceUtils;
+import com.bdaim.util.NumberConvertUtil;
+import com.bdaim.util.StringUtil;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -140,6 +141,12 @@ public class SbdFService implements BusiService {
                 if (data != null && !"0".equals(data.getString("check_status"))) {
                     log.warn("申报单分单已经核验[" + busiType + "]" + id);
                     throw new TouchException("1000", "申报单分单已经核验");
+                }
+                // 判断余额
+                boolean amountStatus = serviceUtils.checkBatchIdCardAmount(cust_id, 1);
+                if (!amountStatus) {
+                    log.warn("申报单核验余额不足[" + busiType + "]" + id);
+                    throw new TouchException("1001", "资金不足无法核验,请充值");
                 }
                 // 判断身份证是否合法
                 if ("1".equals(data.getString("id_type"))) {

@@ -1,14 +1,15 @@
 package com.bdaim.customersea.dao;
 
 import com.bdaim.common.dao.SimpleHibernateDao;
-import com.bdaim.common.util.SqlAppendUtil;
-import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.dao.CustomerUserDao;
 import com.bdaim.customer.dto.CustomerUserGroupRelDTO;
 import com.bdaim.customersea.dto.CustomerSeaParam;
 import com.bdaim.common.dto.Page;
 import com.bdaim.customersea.entity.CustomerSea;
 import com.bdaim.customersea.entity.CustomerSeaProperty;
+import com.bdaim.util.SqlAppendUtil;
+import com.bdaim.util.StringUtil;
+
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;

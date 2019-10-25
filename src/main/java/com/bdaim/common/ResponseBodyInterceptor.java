@@ -4,8 +4,9 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.exception.TouchException;
-import com.bdaim.common.util.PropertiesUtil;
-import com.bdaim.common.util.StringUtil;
+import com.bdaim.util.PropertiesUtil;
+import com.bdaim.util.StringUtil;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.aspectj.lang.JoinPoint;

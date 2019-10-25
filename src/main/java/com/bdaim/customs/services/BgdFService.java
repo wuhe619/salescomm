@@ -4,13 +4,10 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.exception.TouchException;
+import com.bdaim.common.page.PageList;
 import com.bdaim.common.service.BusiService;
 import com.bdaim.common.service.ElasticSearchService;
 import com.bdaim.common.service.SequenceService;
-import com.bdaim.common.util.BaoguandanXmlEXP301;
-import com.bdaim.common.util.DateUtil;
-import com.bdaim.common.util.StringUtil;
-import com.bdaim.common.util.page.PageList;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerUserDao;
 import com.bdaim.customer.dto.CustomerPropertyDTO;
@@ -24,6 +21,10 @@ import com.bdaim.customs.entity.BusiTypeEnum;
 import com.bdaim.customs.entity.HBusiDataManager;
 import com.bdaim.customs.entity.HMetaDataDef;
 import com.bdaim.customs.utils.ServiceUtils;
+import com.bdaim.util.BaoguandanXmlEXP301;
+import com.bdaim.util.DateUtil;
+import com.bdaim.util.StringUtil;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -431,6 +432,67 @@ public class BgdFService implements BusiService {
             filedName += "," + BGDReportEnum.SendIdType.getName();
         }
 
+        if(StringUtil.isEmpty(mainjson.get("send_address")==null?"":mainjson.get("send_address").toString())){
+            filedName += "," + BGDReportEnum.SendAddress.getName();
+        }
+
+        if(StringUtil.isEmpty(mainjson.get("send_tel")==null?"":mainjson.get("send_tel").toString())){
+            filedName += "," + BGDReportEnum.SendTelNo.getName();
+        }
+
+        if(StringUtil.isEmpty(json.get("receive_address")==null?"":json.get("receive_address").toString())){
+            filedName += "," + BGDReportEnum.ReceiveAddress.getName();
+        }
+
+        if(StringUtil.isEmpty(json.get("receive_tel")==null?"":json.get("receive_tel").toString())){
+            filedName += "," + BGDReportEnum.ReceiveTelNo.getName();
+        }
+
+        if(StringUtil.isEmpty(json.get("receive_country")==null?"":json.get("receive_country").toString())){
+            filedName += "," + BGDReportEnum.ReceiveCountry.getName();
+        }
+
+        if(StringUtil.isEmpty(json.get("receive_city")==null?"":json.get("receive_city").toString())){
+            filedName += "," + BGDReportEnum.ReceiveCity.getName();
+        }
+
+        if(StringUtil.isEmpty(mainjson.get("stop_address_en")==null?"":mainjson.get("stop_address_en").toString())){
+            filedName += "," + BGDReportEnum.StopCityEn.getName();
+        }
+
+        if(StringUtil.isEmpty(mainjson.get("send_name_en")==null?"":mainjson.get("send_name_en").toString())){
+            filedName += "," + BGDReportEnum.SendNameEn.getName();
+        }
+
+        if(StringUtil.isEmpty(mainjson.get("send_address_en")==null?"":mainjson.get("send_address_en").toString())){
+            filedName += "," + BGDReportEnum.SendAddressEn.getName();
+        }
+
+
+        if(StringUtil.isEmpty(mainjson.get("send_city_en")==null?"":mainjson.get("send_city_en").toString())){
+            filedName += "," + BGDReportEnum.SendCityEn.getName();
+        }
+
+        /*if(StringUtil.isEmpty(json.get("receive_address_en")==null?"":json.get("receive_address_en").toString())){
+            filedName += "," + BGDReportEnum.ReceiveAddressEn.getName();
+        }*/
+
+        if(StringUtil.isEmpty(mainjson.get("wrap_wood")==null?"":mainjson.get("wrap_wood").toString())){
+            filedName += "," + BGDReportEnum.WoodWrap.getName();
+        }
+
+        if(StringUtil.isEmpty(json.get("main_gname_en")==null?"":json.get("main_gname_en").toString())){
+            filedName += "," + BGDReportEnum.MainGNameEn.getName();
+        }
+
+        if(StringUtil.isEmpty(mainjson.get("is_old")==null?"":mainjson.get("is_old").toString())){
+            filedName += "," + BGDReportEnum.GoodsUsed.getName();
+        }
+
+        if(StringUtil.isEmpty(mainjson.get("l_t_trans")==null?"":mainjson.get("l_t_trans").toString())){
+            filedName += "," + BGDReportEnum.LowTempTrans.getName();
+        }
+
         filedName = bgdsdCheck(ds,filedName);
         if(StringUtil.isNotEmpty(filedName)){
             String message = String.format(bdmessage,json.getString("bill_no"),filedName);
@@ -498,6 +560,11 @@ public class BgdFService implements BusiService {
                 hasError = true;
             }
 
+            if (!json.containsKey("g_name_en") || StringUtil.isEmpty(json.getString("g_name_en"))) {
+                msg += "商品英文名称";
+                hasError = true;
+            }
+
             if (!hasError) {
                 continue;
             } else {
@@ -550,7 +617,23 @@ public class BgdFService implements BusiService {
         CurrCode("CurrCode","币制"),
         MainGName("MainGName","主要商品名称"),
         EntryType("EntryType","报关类别"),
-        SendIdType("SendIdType","收发件人证件类型");
+        SendIdType("SendIdType","收发件人证件类型"),
+        SendAddress("SendAddress","发件人地址"),
+        SendTelNo("SendTelNo","发件人号码"),
+        ReceiveAddress("ReceiveAddress","收件人地址"),
+        ReceiveTelNo("ReceiveTelNo","收件人号码"),
+        ReceiveCountry("ReceiveCountry","收件人国别"),
+        ReceiveCity("ReceiveCity","收件人城市"),
+        StopCityEn("StopCityEn","英文经停城市"),
+        SendNameEn("SendNameEn","发件人英文名称"),
+        SendAddressEn("SendAddressEn","英文发件人地址"),
+        SendCityEn("SendCityEn","英文发件人城市"),
+        ReceiveAddressEn("ReceiveAddressEn","英文收件人地址"),
+        WoodWrap("WoodWrap","是否含木质包装"),
+        MainGNameEn("MainGNameEn","主要货物英文名称"),
+        GoodsUsed("GoodsUsed","是否为旧物品"),
+        LowTempTrans("LowTempTrans","是否为低温运输")
+        ;
 
         private String key;
         private String name;

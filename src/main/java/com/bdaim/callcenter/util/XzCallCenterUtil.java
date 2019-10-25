@@ -3,8 +3,9 @@ package com.bdaim.callcenter.util;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.callcenter.dto.*;
-import com.bdaim.common.util.JavaBeanUtil;
-import com.bdaim.common.util.SaleApiUtil;
+import com.bdaim.util.JavaBeanUtil;
+import com.bdaim.util.SaleApiUtil;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

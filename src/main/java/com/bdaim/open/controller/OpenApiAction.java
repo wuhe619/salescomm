@@ -8,7 +8,6 @@ import com.bdaim.callcenter.service.impl.CallCenterService;
 import com.bdaim.callcenter.service.impl.SeatsService;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.service.PhoneService;
-import com.bdaim.common.util.*;
 import com.bdaim.customer.dto.ApparentNumberDTO;
 import com.bdaim.customer.dto.ApparentNumberQueryParam;
 import com.bdaim.customer.dto.CustomerPropertyDTO;
@@ -22,6 +21,8 @@ import com.bdaim.resource.service.MarketResourceService;
 import com.bdaim.smscenter.service.SendSmsService;
 import com.bdaim.template.dto.MarketTemplateDTO;
 import com.bdaim.template.entity.MarketTemplate;
+import com.bdaim.util.*;
+
 import org.apache.log4j.Logger;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.RequestMapping;

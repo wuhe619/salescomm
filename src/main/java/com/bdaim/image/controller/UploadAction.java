@@ -6,10 +6,11 @@ import com.bdaim.batch.service.BatchService;
 import com.bdaim.callcenter.dto.RecordVoiceQueryParam;
 import com.bdaim.common.annotation.CacheAnnotation;
 import com.bdaim.common.controller.BasicAction;
-import com.bdaim.common.util.*;
 import com.bdaim.customer.dao.CustomerUserDao;
 import com.bdaim.image.service.impl.UploadDowloadImgServiceImpl;
 import com.bdaim.resource.service.MarketResourceService;
+import com.bdaim.util.*;
+
 import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

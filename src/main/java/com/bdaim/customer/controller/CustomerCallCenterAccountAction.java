@@ -5,9 +5,10 @@ import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.annotation.ValidatePermission;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.exception.ParamException;
-import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.entity.CustomerCallCenterAccount;
 import com.bdaim.customer.service.CustomerCallCenterAccountService;
+import com.bdaim.util.StringUtil;
+
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;

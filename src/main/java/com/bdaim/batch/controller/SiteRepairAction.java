@@ -10,7 +10,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.bdaim.batch.dto.ExpressLog;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.dto.PageParam;
-import com.bdaim.common.util.page.PageList;
+import com.bdaim.common.page.PageList;
 import com.bdaim.smscenter.service.SendmessageService;
 
 import org.springframework.stereotype.Controller;
