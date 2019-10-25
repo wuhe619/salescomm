@@ -477,7 +477,7 @@ public class BgdFService implements BusiService {
             filedName += "," + BGDReportEnum.ReceiveAddressEn.getName();
         }*/
 
-        if(StringUtil.isEmpty(json.get("wrap_wood")==null?"":json.get("wrap_wood").toString())){
+        if(StringUtil.isEmpty(mainjson.get("wrap_wood")==null?"":mainjson.get("wrap_wood").toString())){
             filedName += "," + BGDReportEnum.WoodWrap.getName();
         }
 
@@ -485,11 +485,11 @@ public class BgdFService implements BusiService {
             filedName += "," + BGDReportEnum.MainGNameEn.getName();
         }
 
-        if(StringUtil.isEmpty(json.get("is_old")==null?"":json.get("is_old").toString())){
+        if(StringUtil.isEmpty(mainjson.get("is_old")==null?"":mainjson.get("is_old").toString())){
             filedName += "," + BGDReportEnum.GoodsUsed.getName();
         }
 
-        if(StringUtil.isEmpty(json.get("l_t_trans")==null?"":json.get("l_t_trans").toString())){
+        if(StringUtil.isEmpty(mainjson.get("l_t_trans")==null?"":mainjson.get("l_t_trans").toString())){
             filedName += "," + BGDReportEnum.LowTempTrans.getName();
         }
 

@@ -386,18 +386,18 @@ public class BaoguandanXmlEXP301 {
         ReceiveAddressEn.setTextContent(json.getString("receive_address_en"));//英文收件人地址,出口抵运地为非港、澳、台地区的必填
         EntryHead.appendChild(ReceiveAddressEn);
         Element WoodWrap = document.createElement("WoodWrap");//r
-        WoodWrap.setTextContent(json.getString("wrap_wood"));//是否含木质包装 必填0：不含；  1：含有
+        WoodWrap.setTextContent(mainJson.getString("wrap_wood"));//是否含木质包装 必填0：不含；  1：含有
         EntryHead.appendChild(WoodWrap);
         Element MainGNameEn = document.createElement("MainGNameEn");//r
         MainGNameEn.setTextContent(json.getString("main_gname_en"));//主要货物英文名称   必填
         EntryHead.appendChild(MainGNameEn);
 
         Element GoodsUsed = document.createElement("GoodsUsed");//r
-        GoodsUsed.setTextContent(json.getString("is_good"));//是否为旧物品   必填0：否；  1：是
+        GoodsUsed.setTextContent(mainJson.getString("is_old"));//是否为旧物品   必填0：否；  1：是
         EntryHead.appendChild(GoodsUsed);
 
         Element LowTempTrans = document.createElement("LowTempTrans");//r
-        LowTempTrans.setTextContent(json.getString("l_t_trans"));//是否为低温运输  必填0：否；  1：是
+        LowTempTrans.setTextContent(mainJson.getString("l_t_trans"));//是否为低温运输  必填0：否；  1：是
         EntryHead.appendChild(LowTempTrans);
 
         EXP301.appendChild(EntryHead);
