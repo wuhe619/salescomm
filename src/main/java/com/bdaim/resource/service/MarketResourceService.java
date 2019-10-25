@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
-import com.bdaim.customer.account.dao.TransactionDao;
 import com.bdaim.auth.LoginUser;
 import com.bdaim.batch.ResourceEnum;
 import com.bdaim.batch.TransactionEnum;
@@ -21,7 +20,7 @@ import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.page.PageList;
 import com.bdaim.common.page.Pagination;
 import com.bdaim.common.service.PhoneService;
-import com.bdaim.util.ftp.SFTPChannel;
+import com.bdaim.customer.account.dao.TransactionDao;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerLabelDao;
 import com.bdaim.customer.dao.CustomerUserDao;
@@ -61,6 +60,7 @@ import com.bdaim.template.dto.MarketTemplateDTO;
 import com.bdaim.template.dto.TemplateParam;
 import com.bdaim.template.entity.MarketTemplate;
 import com.bdaim.util.*;
+import com.bdaim.util.ftp.SFTPChannel;
 import com.bdaim.util.http.HttpUtil;
 import com.github.crab2died.ExcelUtils;
 import com.jcraft.jsch.ChannelSftp;
@@ -328,7 +328,7 @@ public class MarketResourceService {
             sql.append("'" + dto.getResourceId() + "')");
         } else if ("2".equals(type_code)) {
             sql.append(
-                    "insert  into t_touch_sms_log (touch_id,cust_id,user_id,remark,create_time,status,sms_content,superId, batch_id, activity_id, channel, enterprise_id,amount,prod_amount,resource_id,send_data ) values ( ");
+                    "insert  into t_touch_sms_log (touch_id,cust_id,user_id,remark,create_time,status,sms_content,superId, batch_id, activity_id, channel, enterprise_id,amount,prod_amount,resource_id,request_id,send_status,send_data) values ( ");
             sql.append("'" + dto.getTouch_id() + "',");
             sql.append("'" + dto.getCust_id() + "',");
             sql.append("'" + dto.getUser_id() + "',");
@@ -344,6 +344,8 @@ public class MarketResourceService {
             sql.append("'" + dto.getAmount() + "',");
             sql.append("'" + dto.getProdAmount() + "',");
             sql.append("'" + dto.getResourceId() + "',");
+            sql.append("'" + dto.getRequestId() + "',");
+            sql.append(dto.getSendStatus() + ",");
             sql.append("'" + dto.getCallBackData() + "')");
             return jdbcTemplate.update(sql.toString());
         } else if ("3".equals(type_code)) {
@@ -900,6 +902,167 @@ public class MarketResourceService {
     }
 
 
+    /**
+     * 发送短信接口V1
+     *
+     * @return
+     */
+    public Map<String, Object> sendBatchSmsV1(String variables, String custId, String userId, int templateId, String batchId, String customerIds, int typeCode, int channel) throws Exception {
+        Map<String, Object> map = new HashMap<>();
+        String resourceId = null, resourceIdCall = null;
+        ResourcesPriceDto resourcesCallDto = null;
+        int sendSuccessCount = 0;
+        MarketResourceLogDTO marketResourceLogDTO = new MarketResourceLogDTO();
+        //查询resourceId
+        MarketResourceEntity marketResourceEntity = sourceDao.getResourceId(SupplierEnum.CUC.getSupplierId(), ResourceEnum.SMS.getType());
+        if (marketResourceEntity != null) {
+            resourceId = String.valueOf(marketResourceEntity.getResourceId());
+            marketResourceLogDTO.setResourceId(marketResourceEntity.getResourceId());
+            LOG.info("发送短信资源id是:" + resourceId);
+        }
+        // 判断企业是否配置短信资源
+        ResourcesPriceDto resourcesPriceDto = customerDao.getCustResourceMessageById(resourceId, custId);
+        if (resourcesPriceDto == null) {
+            map.put("msg", "短信资源未配置,无法发送短信");
+            map.put("code", 0);
+            return map;
+        }
+        if (StringUtil.isEmpty(resourcesPriceDto.getSmsPrice())) {
+            map.put("msg", "未设置定价,无法发送短信");
+            map.put("code", 0);
+            return map;
+        }
+        //查询企业呼叫中心id，产品设置将企业外呼id放在外呼资源了，新接口需要使用，后期产品原型需要重新设计
+        MarketResourceEntity callResourceEntity = sourceDao.getResourceId(SupplierEnum.CUC.getSupplierId(), ResourceEnum.CALL.getType());
+        if (callResourceEntity != null) {
+            resourceIdCall = String.valueOf(callResourceEntity.getResourceId());
+            resourcesCallDto = customerDao.getCustResourceMessageById(resourceIdCall, custId);
+            if (StringUtil.isEmpty(resourcesCallDto.getCallCenterId())) {
+                map.put("msg", "未设置呼叫中心id,无法发送短信");
+                map.put("code", 0);
+                return map;
+            }
+        }
+        // 判断是余额是否充足
+        boolean judge = false;
+        judge = marketResourceService.judRemainAmount(custId);
+        if (!judge) {
+            map.put("msg", "余额不足");
+            map.put("code", 0);
+            return map;
+        }
+        MarketTemplate marketTemplate = sourceDao.getMarketTemplate(templateId, typeCode, custId);
+        if (marketTemplate == null) {
+            map.put("msg", "短信模板未配置,无法发送短信");
+            map.put("code", 0);
+            return map;
+        }
+        BatchDetail batchDetail;
+        //发送短信参数类
+        UnicomSendSmsParam unicomSendSmsParam = new UnicomSendSmsParam();
+        String userName, batchName, templateName, custName;
+        StringBuffer remark;
+        //构造占位符
+        List<String> variableList = null;
+        if (variables != null && variables.contains(",")) {
+            variableList = Arrays.asList(variables.split(","));
+        }
+        if (variableList != null) {
+            unicomSendSmsParam.setVariableOne(variableList.size() > 0 ? variableList.get(0) : "");
+            unicomSendSmsParam.setVariableTwo(variableList.size() > 1 ? variableList.get(1) : "");
+            unicomSendSmsParam.setVariableThree(variableList.size() > 2 ? variableList.get(2) : "");
+            unicomSendSmsParam.setVariableFour(variableList.size() > 3 ? variableList.get(3) : "");
+            unicomSendSmsParam.setVariableFive(variableList.size() > 4 ? variableList.get(4) : "");
+        }
+        if (resourcesCallDto != null) {
+            unicomSendSmsParam.setEntId(resourcesCallDto.getCallCenterId());
+            // 由于系统没有地方配置企业密码 现在给默认值，后期页面需要加企业密码配置项
+            String entPassWord = resourcesCallDto.getEntPassWord();
+            if (StringUtil.isEmpty(unicomSendSmsParam.getEntPassWord())) {
+                entPassWord = "111111";
+            }
+            unicomSendSmsParam.setEntPassWord(entPassWord);
+        }
+        CustomerProperty customerPro = customerDao.getProperty(custId, "key");
+        //查询企业密钥
+        if (customerPro != null) {
+            unicomSendSmsParam.setKey(customerPro.getPropertyValue());
+        }
+        //联通模板id
+        unicomSendSmsParam.setWordId(marketTemplate.getTemplateCode());
+        String[] customerIdList = customerIds.split(",");
+        for (String id : customerIdList) {
+            batchDetail = batchDetailDao.getBatchDetail(id, batchId);
+            if (batchDetail != null) {
+                unicomSendSmsParam.setDataId(id);
+                LOG.info("联通发送短信接口 请求参数是" + unicomSendSmsParam.toString());
+                Map<String, Object> sendResult = UnicomUtil.unicomSeatMakeSms(unicomSendSmsParam);
+                LOG.info("联通短信发送结果:" + sendResult);
+
+                //设置短信实际发送状态为1000 是未处理的状态  需要状态推送后更新此字段  1001 发送成功 1002 发送失败
+                marketResourceLogDTO.setStatus(1000);
+                //短信提交给联通状态1001成功  1002失败
+                int sendStatus = 1000;
+                if (sendResult != null) {
+                    if ("02000".equals(sendResult.get("code"))) {
+                        sendSuccessCount++;
+                        sendStatus = 1001;
+                    } else {
+                        sendStatus = 1002;
+                        //如果短信提交失败直接将发送状态设置为失败
+                        marketResourceLogDTO.setStatus(sendStatus);
+                    }
+                    //获取联通返回的contactId 短信流水号
+                    JSONObject returnJson = JSON.parseObject(String.valueOf(sendResult.get("data")));
+                    if (returnJson != null) {
+                        marketResourceLogDTO.setRequestId(returnJson.getString("contactId"));
+                    }
+                }
+                marketResourceLogDTO.setTouch_id(Long.toString(IDHelper.getTransactionId()));
+                marketResourceLogDTO.setType_code("2");
+                marketResourceLogDTO.setSendStatus(sendStatus);
+                marketResourceLogDTO.setResname("sms");
+                marketResourceLogDTO.setUser_id(NumberConvertUtil.parseLong(userId));
+                marketResourceLogDTO.setCust_id(custId);
+                marketResourceLogDTO.setSuperId(id);
+                marketResourceLogDTO.setBatchId(batchId);
+                marketResourceLogDTO.setChannel(channel);
+                marketResourceLogDTO.setActivityId(batchDetail.getActivityId());
+                marketResourceLogDTO.setEnterpriseId(batchDetail.getEnterpriseId());
+                marketResourceLogDTO.setSms_content(marketTemplate.getMouldContent());
+                marketResourceLogDTO.setCallBackData(sendResult.toString());
+                marketResourceLogDTO.setAmount(0);
+                marketResourceLogDTO.setProdAmount(0);
+                // 拼装备注字段 操作人名;批次名称;模板名称;企业名称
+                userName = customerUserDao.getName(userId);
+                custName = customerDao.getEnterpriseName(custId);
+                templateName = marketTemplate.getTitle();
+                batchName = batchDao.getBatchName(batchId);
+
+                remark = new StringBuffer();
+                remark.append(userName);
+                remark.append(SMS_SEND_REMARK_SPLIT);
+                remark.append(batchName);
+                remark.append(SMS_SEND_REMARK_SPLIT);
+                remark.append(templateName);
+                remark.append(SMS_SEND_REMARK_SPLIT);
+                remark.append(custName);
+                marketResourceLogDTO.setRemark(remark.toString());
+                this.insertLog(marketResourceLogDTO);
+
+            } else {
+                map.put("msg", "客户信息不存在，短信发送失败");
+                map.put("code", 0);
+                return map;
+            }
+        }
+        if (sendSuccessCount > 0) {
+            map.put("msg", "短信发送成功");
+            map.put("code", 1);
+        }
+        return map;
+    }
+
     public boolean judRemainAmount(String cust_id) {
         boolean judge = false;
         try {
@@ -928,6 +1091,7 @@ public class MarketResourceService {
 
     /**
      * 判断企业账户余额是否存在或大于0厘
+     *
      * @param cust_id
      * @return
      */

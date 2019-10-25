@@ -33,6 +33,10 @@ public class UnicomSendSmsParam {
      */
     private String exeNo;
     /**
+     * 数据id 联通修复返回的唯一标识
+     */
+    private String dataId;
+    /**
      * 发送短信数据集合
      */
     private List<String> dataList;
@@ -42,6 +46,14 @@ public class UnicomSendSmsParam {
     private String variableThree;
     private String variableFour;
     private String variableFive;
+
+    public String getDataId() {
+        return dataId;
+    }
+
+    public void setDataId(String dataId) {
+        this.dataId = dataId;
+    }
 
     public List<String> getDataList() {
         return dataList;

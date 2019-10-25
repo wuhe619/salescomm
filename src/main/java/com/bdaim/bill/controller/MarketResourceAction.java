@@ -292,7 +292,7 @@ public class MarketResourceAction extends BasicAction {
                 json.put("data", map);
                 return json.toJSONString();
             }
-            map = marketResourceService.sendBatchSms(variables, custId, String.valueOf(userId), Integer.parseInt(templateId), batchId, customerIds, 1, 2);
+            map = marketResourceService.sendBatchSmsV1(variables, custId, String.valueOf(userId), Integer.parseInt(templateId), batchId, customerIds, 1, 2);
         } catch (Exception e) {
             LOG.error("发送短信异常" + e);
         }

@@ -78,12 +78,13 @@ public class UnicomUtil {
      * @desc:联通短信触达 wordId 话术码  variableOne  变量标识1  variableTwo 变量标识2 variableThree 变量标识3 variableFour 变量标识4 dataList 发送短信加密手机号集合 key加密私钥
      */
     public static Map<String, Object> unicomSeatMakeSms(UnicomSendSmsParam unicomSendSmsParam) {
+        LOG.info("联通坐席短信接口 请求参数是" + unicomSendSmsParam.toString());
         String entId = unicomSendSmsParam.getEntId();
         String key = unicomSendSmsParam.getKey();
         LOG.info("联通短信触达企业id是:" + entId + "密钥是：" + key);
         Map<String, String> params = new HashMap<>();
         params.put("wordId", unicomSendSmsParam.getWordId());
-        params.put("dataId", unicomSendSmsParam.getCustomerId());
+        params.put("dataId", unicomSendSmsParam.getDataId());
         params.put("variableOne", unicomSendSmsParam.getVariableOne());
         params.put("variableTwo", unicomSendSmsParam.getVariableThree());
         params.put("variableThree", unicomSendSmsParam.getVariableThree());
@@ -93,11 +94,7 @@ public class UnicomUtil {
         try {
             Map<String, Object> headers = new HashMap<>(16);
             //获取请求token
-            String entPassWord = "";
-            if (StringUtil.isEmpty(unicomSendSmsParam.getEntPassWord())) {
-                entPassWord = "111111";
-            }
-            String token = unicomGetToken(entPassWord, entId);
+            String token = unicomGetToken(unicomSendSmsParam.getEntPassWord(), entId);
             //签名处理
             DateFormat df = new SimpleDateFormat("yyyyMMddHHmmssSSS");
             String sysTime = df.format(new Date());
@@ -109,6 +106,7 @@ public class UnicomUtil {
             headers.put("Content-Type", "application/json;charset=utf-8");
             LOG.info("联通短信触达接口请求地址是：" + UNICOM_BASE_URL_V1 + "msg/sendMsg/" + entId + " 联通短信触达参数:" + params.toString());
             result = HttpUtil.httpPost(UNICOM_BASE_URL_V1 + "msg/sendMsg/" + entId, params, headers);
+            //result = "{\"msg\":\"success\",\"code\":\"02000\",\"data\":{\"msgNum\":\"1/10\",\"todayMsgNum\":\"1/3\",\"contactId\":\"09092049461013989641\",\"monthMsgNum\":\"1/5\"}}";
             LOG.info("联通短信触达结果返回:" + result);
             if (StringUtil.isNotEmpty(result)) {
                 return JSON.parseObject(result, Map.class);
