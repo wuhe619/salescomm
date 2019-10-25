@@ -156,10 +156,10 @@ public class BaoguandanXmlEXP301 {
         IEPort.setTextContent(mainJson.getString("i_e_port"));//r
         EntryHead.appendChild(IEPort);
         Element IEDate = document.createElement("IEDate");
-        IEDate.setTextContent(mainJson.getString("i_e_date"));//r
+        IEDate.setTextContent(mainJson.getString("i_e_date").replace("-",""));//r
         EntryHead.appendChild(IEDate);
         Element DDate = document.createElement("DDate");
-        DDate.setTextContent(mainJson.getString("i_d_date"));//r
+        DDate.setTextContent(mainJson.getString("i_d_date").replace("-",""));//r
         EntryHead.appendChild(DDate);
         Element DestinationPort = document.createElement("DestinationPort");
         DestinationPort.setTextContent(mainJson.getString("depart_arrival_port")); //r
@@ -484,7 +484,7 @@ public class BaoguandanXmlEXP301 {
             EntryList.appendChild(OriginCity);
 
             Element GNameEn = document.createElement("GNameEn");//r
-            MName.setTextContent(json.getString("g_name_en"));
+            GNameEn.setTextContent(json.getString("g_name_en"));
             EntryList.appendChild(GNameEn);
 
             exp301.appendChild(EntryList);
