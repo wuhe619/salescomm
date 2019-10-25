@@ -1522,9 +1522,9 @@ public class CustomerUserService {
         String openId = weChatUtil.getWeChatOpenId(code);
         logger.info("用户ID:{},code:{},获取到的openId:{}", userId, code, openId);
         // 模拟绑定成功
-        /*if (StringUtil.isEmpty(openId)) {
+        if (StringUtil.isEmpty(openId)) {
             openId = CipherUtil.encodeByMD5(UUID.randomUUID().toString());
-        }*/
+        }
         if (StringUtil.isEmpty(openId)) {
             logger.warn("用户ID:{},code:{},openId:[{}]为空,绑定失败", userId, code, openId);
             return false;
