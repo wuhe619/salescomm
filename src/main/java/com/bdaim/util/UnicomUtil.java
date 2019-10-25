@@ -59,7 +59,7 @@ public class UnicomUtil {
             headers.put("Sig", sgin);
             headers.put("Content-Type", "application/json;charset=utf-8");
             LOG.info("联通外呼接口请求地址是：" + UNICOM_BASE_URL_V1 + "call/makeCall/" + entId + " 联通坐席外呼参数:" + params.toString());
-            result = HttpUtil.httpPost(UNICOM_BASE_URL_V1 + "call/makeCall/" + entId, params, null);
+            result = HttpUtil.httpPost(UNICOM_BASE_URL_V1 + "call/makeCall/" + entId, params, headers);
             //result="{\"msg\":\"success\",\"code\":\"01000\",\"data\":{\"callId\":\"1539516627199289711\",\"msg\":\"呼叫成功\",\"code\":\"000\",\"uuid\":\"01539516627199289733\",\"callNum\":\"1/600\",\"todayCallNum\":\"1/30\",\"monthCallNum\":\"1/90\"}}";
             LOG.info("联通坐席外呼返回:" + result);
             if (StringUtil.isNotEmpty(result)) {
@@ -73,7 +73,7 @@ public class UnicomUtil {
     }
 
     /**
-     * 联通短信接口v1
+     * 联通坐席短信接口v1
      *
      * @desc:联通短信触达 wordId 话术码  variableOne  变量标识1  variableTwo 变量标识2 variableThree 变量标识3 variableFour 变量标识4 dataList 发送短信加密手机号集合 key加密私钥
      */
@@ -108,7 +108,7 @@ public class UnicomUtil {
             headers.put("Sig", sgin);
             headers.put("Content-Type", "application/json;charset=utf-8");
             LOG.info("联通短信触达接口请求地址是：" + UNICOM_BASE_URL_V1 + "msg/sendMsg/" + entId + " 联通短信触达参数:" + params.toString());
-            result = HttpUtil.httpPost(UNICOM_BASE_URL_V1 + "msg/sendMsg/" + entId, params, null);
+            result = HttpUtil.httpPost(UNICOM_BASE_URL_V1 + "msg/sendMsg/" + entId, params, headers);
             LOG.info("联通短信触达结果返回:" + result);
             if (StringUtil.isNotEmpty(result)) {
                 return JSON.parseObject(result, Map.class);
@@ -120,6 +120,55 @@ public class UnicomUtil {
         return null;
     }
 
+
+    /**
+     * 联通短信接口v1
+     *
+     * @desc:联通短信触达 wordId 话术码  variableOne  变量标识1  variableTwo 变量标识2 variableThree 变量标识3 variableFour 变量标识4 dataList 发送短信加密手机号集合 key加密私钥
+     */
+    public static Map<String, Object> unicomSendSms(UnicomSendSmsParam unicomSendSmsParam) {
+        String entId = unicomSendSmsParam.getEntId();
+        String key = unicomSendSmsParam.getKey();
+        LOG.info("联通短信触达企业id是:" + entId + "密钥是：" + key);
+        Map<String, String> params = new HashMap<>();
+        params.put("wordId", unicomSendSmsParam.getWordId());
+        params.put("exeNo", unicomSendSmsParam.getExeNo());
+        params.put("variableOne", unicomSendSmsParam.getVariableOne());
+        params.put("variableTwo", unicomSendSmsParam.getVariableThree());
+        params.put("variableThree", unicomSendSmsParam.getVariableThree());
+        params.put("variableFour", unicomSendSmsParam.getVariableFour());
+        params.put("variableFive", unicomSendSmsParam.getVariableFive());
+        params.put("dataList", unicomSendSmsParam.getDataList().toString());
+        String result;
+        try {
+            Map<String, Object> headers = new HashMap<>(16);
+            //获取请求token
+            String entPassWord = "";
+            if (StringUtil.isEmpty(unicomSendSmsParam.getEntPassWord())) {
+                entPassWord = "111111";
+            }
+            String token = unicomGetToken(entPassWord, entId);
+            //签名处理
+            DateFormat df = new SimpleDateFormat("yyyyMMddHHmmssSSS");
+            String sysTime = df.format(new Date());
+            String parmToken = token + sysTime;
+            LOG.info("加密数据是:" + parmToken);
+            String sgin = encryptThreeDESECB(URLEncoder.encode(parmToken, "UTF-8"), key);
+            LOG.info("加密结果是:" + sgin);
+            headers.put("Sig", sgin);
+            headers.put("Content-Type", "application/json;charset=utf-8");
+            LOG.info("联通短信触达接口请求地址是：" + UNICOM_BASE_URL_V1 + "msg/sendTelMsg/" + entId + " 联通短信触达参数:" + params.toString());
+            result = HttpUtil.httpPost(UNICOM_BASE_URL_V1 + "msg/sendTelMsg/" + entId, params, headers);
+            LOG.info("联通短信触达结果返回:" + result);
+            if (StringUtil.isNotEmpty(result)) {
+                return JSON.parseObject(result, Map.class);
+            }
+        } catch (Exception e) {
+            LOG.error("联通短信触达失败:", e);
+            throw new RuntimeException("联通短信触达异常", e);
+        }
+        return null;
+    }
 
     /**
      * 设置中间号接口
@@ -148,7 +197,7 @@ public class UnicomUtil {
             headers.put("Sig", sgin);
             headers.put("Content-Type", "application/json;charset=utf-8");
             LOG.info("联通设置中间号接口请求地址是：" + UNICOM_BASE_URL_V1 + "singleCall/ambSetNumber/" + entId + " 设置中间号参数:" + params.toString());
-            result = HttpUtil.httpPost(UNICOM_BASE_URL_V1 + "singleCall/ambSetNumber/" + entId, params, null);
+            result = HttpUtil.httpPost(UNICOM_BASE_URL_V1 + "singleCall/ambSetNumber/" + entId, params, headers);
             LOG.info("联通设置中间号返回:" + result);
             if (StringUtil.isNotEmpty(result)) {
                 return JSON.parseObject(result, Map.class);

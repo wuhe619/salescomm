@@ -1,5 +1,7 @@
 package com.bdaim.callcenter.dto;
 
+import java.util.List;
+
 /**
  * @author chengning@salescomm.net
  * @date 2018/9/14
@@ -26,12 +28,36 @@ public class UnicomSendSmsParam {
      * 话术码
      */
     private String wordId;
+    /**
+     * 扩展位
+     */
+    private String exeNo;
+    /**
+     * 发送短信数据集合
+     */
+    private List<String> dataList;
     private String messageCode;
     private String variableOne;
     private String variableTwo;
     private String variableThree;
     private String variableFour;
     private String variableFive;
+
+    public List<String> getDataList() {
+        return dataList;
+    }
+
+    public void setDataList(List<String> dataList) {
+        this.dataList = dataList;
+    }
+
+    public String getExeNo() {
+        return exeNo;
+    }
+
+    public void setExeNo(String exeNo) {
+        this.exeNo = exeNo;
+    }
 
     public String getKey() {
         return key;
