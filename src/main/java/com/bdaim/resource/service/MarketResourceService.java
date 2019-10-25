@@ -1002,7 +1002,7 @@ public class MarketResourceService {
                 //设置短信实际发送状态为1000 是未处理的状态  需要状态推送后更新此字段  1001 发送成功 1002 发送失败
                 marketResourceLogDTO.setStatus(1000);
                 //短信提交给联通状态1001成功  1002失败
-                int sendStatus = 1000;
+                int sendStatus = 1002;
                 if (sendResult != null) {
                     if ("02000".equals(sendResult.get("code"))) {
                         sendSuccessCount++;
@@ -1059,6 +1059,9 @@ public class MarketResourceService {
         if (sendSuccessCount > 0) {
             map.put("msg", "短信发送成功");
             map.put("code", 1);
+        }else {
+            map.put("msg", "短信发送失败");
+            map.put("code",0);
         }
         return map;
     }
