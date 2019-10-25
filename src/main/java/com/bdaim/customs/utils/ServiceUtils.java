@@ -460,20 +460,25 @@ public class ServiceUtils {
      */
     public List<HBusiDataManager> listFDIdCard(int pid, String type, String pBusiType, int idCardPhotoStatus, int idCardCheckStatus) {
         //StringBuilder hql = new StringBuilder("select * from " + HMetaDataDef.getTable(type, "") + " WHERE type = ? AND JSON_EXTRACT(content, '$.pid')=?  ");
-        StringBuilder hql = new StringBuilder("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(type, "") + " WHERE type = ? AND ext_4 = (SELECT ext_3 FROM " + HMetaDataDef.getTable(pBusiType, "") + " WHERE id = ?)  ");
+        StringBuilder sql = new StringBuilder("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(type, "") + " WHERE type = ? AND ext_4 = (SELECT ext_3 FROM " + HMetaDataDef.getTable(pBusiType, "") + " WHERE id = ?)  ");
         // 有身份照片 AND ext_4 = (SELECT ext_3 FROM " + HMetaDataDef.getTable(pBusiType, "") + " WHERE id = ?)
         if (1 == idCardPhotoStatus) {
-            hql.append(" AND ext_6 IS NOT NULL AND ext_6 <>'' ");
+            //hql.append(" AND ext_6 IS NOT NULL AND ext_6 <>'' ");
+            sql.append(" AND ").append(BusiMetaConfig.getFieldIndex(type, "idcard_pic_flag")).append(" ='1' ");
         } else if (2 == idCardPhotoStatus) {
-            hql.append(" AND (ext_6 IS NULL OR ext_6 ='') ");
+            //hql.append(" AND (ext_6 IS NULL OR ext_6 ='') ");
+            sql.append(" AND ").append(BusiMetaConfig.getFieldIndex(type, "idcard_pic_flag")).append(" ='0' ");
         }
         //身份核验结果通过
         if (1 == idCardCheckStatus) {
-            hql.append(" AND ext_7 = 1 ");
+            //sql.append(" AND ext_7 = 1 ");
+            sql.append(" AND ").append(BusiMetaConfig.getFieldIndex(type, "check_status")).append(" ='1' ");
         } else if (2 == idCardCheckStatus) {
-            hql.append(" AND (ext_7 IS NULL OR ext_7 ='' OR ext_7 =2) ");
+            // 身份核验未通过
+            //sql.append(" AND (ext_7 IS NULL OR ext_7 ='' OR ext_7 =2) ");
+            sql.append(" AND ").append(BusiMetaConfig.getFieldIndex(type, "check_status")).append(" ='2' ");
         }
-        List<Map<String, Object>> list2 = jdbcTemplate.queryForList(hql.toString(), type, pid);
+        List<Map<String, Object>> list2 = jdbcTemplate.queryForList(sql.toString(), type, pid);
         List<HBusiDataManager> list = JSON.parseArray(JSON.toJSONString(list2), HBusiDataManager.class);
         return list;
     }
@@ -830,6 +835,7 @@ public class ServiceUtils {
 
     /**
      * 核验身份证信息金额判断
+     *
      * @param custId
      * @param quantity
      * @return
