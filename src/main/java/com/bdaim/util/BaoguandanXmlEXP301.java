@@ -356,7 +356,10 @@ public class BaoguandanXmlEXP301 {
         SendTelNo.setTextContent(mainJson.getString("send_tel"));//发件人号码 仅能填写阿拉伯数字、“-”（短横线）、“∣”3种字符，均为半角字符。“-”（短横线）用于区号-座机号-分机号的分隔；“∣”用于两个不同号码之间的分隔
         EntryHead.appendChild(SendTelNo);
         Element ReceiveAddress = document.createElement("ReceiveAddress");//r
-        ReceiveAddress.setTextContent(json.getString("receive_address"));//收件人地址 进口必填，出口抵运地为港、澳、台地区的必填。只填写区县、街道级别及以下详细地址
+        String r_city = json.getString("receive_city");
+        String r_address = json.getString("receive_address");
+        String address = r_address.replace(r_city,"");
+        ReceiveAddress.setTextContent(address);//收件人地址 进口必填，出口抵运地为港、澳、台地区的必填。只填写区县、街道级别及以下详细地址
         EntryHead.appendChild(ReceiveAddress);
         Element ReceiveTelNo = document.createElement("ReceiveTelNo");//r
         ReceiveTelNo.setTextContent(json.getString("receive_tel"));//收件人号码 必填，仅能填写阿拉伯数字、“-”（短横线）、“∣”3种字符，均为半角字符。“-”（短横线）用于区号-座机号-分机号的分隔；“∣”用于两个不同号码之间的分隔
