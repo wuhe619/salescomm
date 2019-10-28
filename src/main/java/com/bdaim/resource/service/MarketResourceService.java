@@ -1059,9 +1059,9 @@ public class MarketResourceService {
         if (sendSuccessCount > 0) {
             map.put("msg", "短信发送成功");
             map.put("code", 1);
-        }else {
+        } else {
             map.put("msg", "短信发送失败");
-            map.put("code",0);
+            map.put("code", 0);
         }
         return map;
     }
@@ -2673,23 +2673,25 @@ public class MarketResourceService {
 
 
     /**
-     * 联通录音文件推送V1
+     * 联通短信状态推送V1
      *
      * @param
      */
 
     public String getUnicomSmsStatusV1(JSONObject param) {
+        //String smsData = "{\"contactId\": \"0629171330100000000083\",\"isContactSuccess\": \"1 \",  \"contactCode\": \"0\",  \"contactDate\": \"1561989012030\",”cont”:”2354”}";
         LOG.info("开始获取联通短信记录的request_id是" + param.getString("contactId"));
         LOG.info("联通推送短信状态接口参数" + param.toString());
         try {
             String requestId = param.getString("contactId");
-            String batchId = param.getString("cont");
+            //isContactSuccess 是否发送成功: 0:失败 1:成功
             String sendStatus = param.getString("isContactSuccess");
             String code = "1";
-            String queryTouchSql = "SELECT touch_id touchId ,resource_id resourceId,cust_id custId,user_id userId,superid superId ,batch_id batchId FROM t_touch_sms_log WHERE request_id=? and batch_id = ? and status = 1000";
+            String queryTouchSql = "SELECT touch_id touchId ,resource_id resourceId,cust_id custId,user_id userId,superid superId ,batch_id batchId FROM t_touch_sms_log WHERE request_id=? and status = 1000";
             //根据callSid 查询是否存在短信记录
-            int status = 1002, amount = 0, prodAmount = 0;
-            List<Map<String, Object>> logList = marketResourceDao.sqlQuery(queryTouchSql, requestId, batchId);
+            int status = 1002;
+            List<Map<String, Object>> logList = marketResourceDao.sqlQuery(queryTouchSql, requestId);
+            BigDecimal sourceSmsAmount =  new BigDecimal(0), custSmsAmount =  new BigDecimal(0);
             if (logList.size() > 0) {
                 LOG.info("短信发送状态是：" + sendStatus + "唯一id是：" + requestId);
                 if ("1".equals(sendStatus)) {
@@ -2700,7 +2702,6 @@ public class MarketResourceService {
                     //发送成功后进行企业和供应商进行扣费
                     ResourcesPriceDto resourcesPriceDto = customerDao.getCustResourceMessageById(resourceId, custId);
                     String custSmsPrice = resourcesPriceDto.getSmsPrice();
-                    BigDecimal custSmsAmount = null;
                     if (StringUtil.isNotEmpty(custSmsPrice)) {
                         custSmsAmount = new BigDecimal(custSmsPrice).multiply(new BigDecimal(100));
                     }
@@ -2709,25 +2710,29 @@ public class MarketResourceService {
                     LOG.info("短信扣费客户:" + custId + ",扣费状态:" + accountDeductionStatus + "扣费金额是：" + custSmsAmount);
 
                     //获取供应商短信价格
-                    String supSmsPrice = "";
+                    String supSmsPrice = "0";
                     if (StringUtil.isNotEmpty(resourceId)) {
                         ResourcesPriceDto supResourceMessageById = supplierDao.getSupResourceMessageById(Integer.parseInt(resourceId), null);
-                        supSmsPrice = supResourceMessageById.getSmsPrice();
+                        if (supResourceMessageById != null) {
+                            supSmsPrice = supResourceMessageById.getSmsPrice();
+                        }
                     }
                     //供应商扣费需要转换为分进行扣减
                     if (StringUtil.isNotEmpty(supSmsPrice)) {
-                        BigDecimal sourceSmsAmount = new BigDecimal(supSmsPrice).multiply(new BigDecimal(100));
+                        sourceSmsAmount = new BigDecimal(supSmsPrice).multiply(new BigDecimal(100));
                         Boolean sourceSmsDeductionStatus = sourceDao.supplierAccountDuctions(SupplierEnum.CUC.getSupplierId(), sourceSmsAmount);
                         LOG.info("短信扣费供应商:" + custId + "短信扣费状态:" + sourceSmsDeductionStatus + "扣费金额是：" + sourceSmsAmount);
                     }
                 }
-                String updateSql = "UPDATE t_touch_sms_log SET amount=?,prod_amount=?,`status` =?,send_data = ? WHERE request_id = ? and batch_id =? and send_status = 1001";
+                String updateSql = "UPDATE t_touch_sms_log SET amount=?,prod_amount=?,`status` =?,send_data = ? WHERE request_id = ?";
                 //更改短信状态记录
-                LOG.info("更改批次状态唯一id是：" + requestId + "发送状态是：" + status + "客户消费金额是：" + amount + "供应商成本价是：" + prodAmount);
-                int updateNum = marketResourceDao.executeUpdateSQL(updateSql, amount, prodAmount, status, param.toJSONString(), requestId, batchId);
+                LOG.info("更改批次状态唯一id是：" + requestId + "发送状态是：" + status + "客户消费金额是：" + custSmsAmount.intValue() + "供应商成本价是：" + sourceSmsAmount.intValue());
+                int updateNum = marketResourceDao.executeUpdateSQL(updateSql, custSmsAmount.intValue(), sourceSmsAmount.intValue(), status, param.toJSONString(), requestId);
                 if (updateNum > 0) {
                     code = "0";
                 }
+            } else {
+                LOG.info("短信推送唯一标识是" + requestId + "的短信记录不存在");
             }
             return code;
         } catch (Exception e) {
