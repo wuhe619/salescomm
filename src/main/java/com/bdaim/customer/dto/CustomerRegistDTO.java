@@ -55,6 +55,11 @@ public class CustomerRegistDTO implements Serializable {
     private String resource;
     private String createId;
 
+    /**
+     * 营销类型:1-B2C营销  2-B2B营销
+     */
+    private String marketingType;
+
     public String getCreateId() {
         return createId;
     }
@@ -419,5 +424,13 @@ public class CustomerRegistDTO implements Serializable {
 
     public void setIndustryId(String industryId) {
         this.industryId = industryId;
+    }
+
+    public String getMarketingType() {
+        return marketingType;
+    }
+
+    public void setMarketingType(String marketingType) {
+        this.marketingType = marketingType;
     }
 }

@@ -261,6 +261,8 @@ public class CustomerUserService {
 
         // 结算类型
         customerUserDao.saveOrUpdate(new CustomerUserPropertyDO(String.valueOf(cu.getId()), "settlement_type", "1", new Timestamp(System.currentTimeMillis())));
+        // 营销类型:1-B2C营销  2-B2B营销
+        customerDao.saveOrUpdate(new CustomerProperty(customerId, "marketingType", value.getMarketingType()));
 //        //创建企业信息
 //        EnterpriseDO enterpriseDO = new EnterpriseDO();
 //        enterpriseDO.setCustId(customerId);
