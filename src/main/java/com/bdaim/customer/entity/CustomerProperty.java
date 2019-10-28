@@ -74,5 +74,13 @@ public class CustomerProperty {
 		this.custId = custId;
 	}
 
-
+    @Override
+    public String toString() {
+        return "CustomerProperty{" +
+                "custId='" + custId + '\'' +
+                ", propertyName='" + propertyName + '\'' +
+                ", propertyValue='" + propertyValue + '\'' +
+                ", createTime=" + createTime +
+                '}';
+    }
 }

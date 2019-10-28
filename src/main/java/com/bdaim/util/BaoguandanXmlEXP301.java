@@ -282,7 +282,7 @@ public class BaoguandanXmlEXP301 {
 //        TypistNo.setTextContent("");
 //        EntryHead.appendChild(TypistNo);
         Element InputNo = document.createElement("InputNo");//录入人
-        InputNo.setTextContent(String.valueOf(customerInfo.getOrDefault("input_name","")));  //r
+        InputNo.setTextContent(String.valueOf(customerInfo.getOrDefault("input_no","")));  //r
         EntryHead.appendChild(InputNo);
         Element InputCompanyCo = document.createElement("InputCompanyCo");//录入单位代码
         InputCompanyCo.setTextContent((String) customerInfo.getOrDefault("agent_code",""));  //r
@@ -296,7 +296,8 @@ public class BaoguandanXmlEXP301 {
         DeclareNo.setTextContent((String) customerInfo.getOrDefault("declare_no",""));  //如果AgentType=1，必不填,否则必填
         EntryHead.appendChild(DeclareNo);
         Element CustomsField = document.createElement("CustomsField");
-        CustomsField.setTextContent(mainJson.getString("warehouse_code"));  //r
+        String customsField = mainJson.containsKey("warehouse_code")?mainJson.getString("warehouse_code"):"";
+        CustomsField.setTextContent(customsField);
         EntryHead.appendChild(CustomsField);
         /*Element SpecialFlag = document.createElement("SpecialFlag");
         EntryHead.appendChild(SpecialFlag);*/

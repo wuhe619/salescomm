@@ -241,13 +241,14 @@ public class CustomerService {
 
 
         sql.append("  SELECT  CAST(s.id AS CHAR) id,cjc.resource,s.cust_id,s.user_type, s.account AS name,s.password AS PASSWORD,s.realname AS realname,cjc.cuc_minute seatMinute,\n" +
-                "s.status STATUS,cjc.mobile_num AS mobile_num,cjc.cuc_seat AS cuc_seat,cjc.declare_no,cjc.xz_seat AS xz_seat FROM t_customer_user s\n" +
+                "s.status STATUS,cjc.mobile_num AS mobile_num,cjc.cuc_seat AS cuc_seat,cjc.declare_no,cjc.input_no,cjc.xz_seat AS xz_seat FROM t_customer_user s\n" +
                 " LEFT JOIN (SELECT user_id, \n" +
                 " MAX(CASE property_name WHEN 'mobile_num'  THEN property_value ELSE '' END ) mobile_num, \n" +
                 " MAX(CASE property_name WHEN 'cuc_seat'    THEN property_value ELSE '' END ) cuc_seat,\n" +
                 " MAX(CASE property_name WHEN 'xz_seat'    THEN property_value ELSE '' END ) xz_seat, \n" +
                 " MAX(CASE property_name WHEN 'cuc_minute'  THEN property_value ELSE '0' END ) cuc_minute, \n" +
                 " MAX(CASE property_name WHEN 'declare_no'  THEN property_value ELSE '0' END ) declare_no, \n" +
+                " MAX(CASE property_name WHEN 'input_no'  THEN property_value ELSE '0' END ) input_no, \n" +
                 " MAX(CASE property_name WHEN 'resource'    THEN property_value ELSE '' END ) resource \n" +
                 " FROM t_customer_user_property p GROUP BY user_id \n" +
                 ") cjc ON s.id = cjc.user_id WHERE 1=1 AND user_type = 2  AND STATUS <> 2 ");
@@ -320,7 +321,7 @@ public class CustomerService {
                     }
                     customerUserDao.saveOrUpdate(customerUserDO);
                 } else {
-                    if (StringUtil.isNotEmpty(vo.getName())){
+                    if (StringUtil.isNotEmpty(vo.getName())) {
                         CustomerUser user = customerUserDao.getUserByAccount(vo.getName());
                         if (user != null) return code = "001";
                         customerUserDO = new CustomerUser();
@@ -804,7 +805,7 @@ public class CustomerService {
         }
         if (StringUtil.isNotEmpty(customerRegistDTO.getCreateId())) {
             sqlBuilder.append(" AND cjc.createId ='" + customerRegistDTO.getCreateId() + "'");
-        }else {
+        } else {
             //过滤客户自己创建的企业
             sqlBuilder.append(" AND cjc.createId =''");
         }
@@ -1416,6 +1417,13 @@ public class CustomerService {
         if (StringUtil.isNotEmpty(param.getCallCenterType())) {
             hql.append(" AND m.custId IN (SELECT custId FROM CustomerProperty WHERE propertyName ='call_config' AND propertyValue LIKE ? ) ");
             values.add("%\"type\":\"" + param.getCallCenterType() + "\"%");
+        }
+
+        // 处理营销类型
+        if (StringUtil.isNotEmpty(param.getMarketingType())) {
+            hql.append(" AND m.custId IN (SELECT custId FROM CustomerProperty WHERE propertyName =? AND propertyValue = ? ) ");
+            values.add(CustomerPropertyEnum.MARKET_TYPE.getKey());
+            values.add(param.getMarketingType());
         }
 
         if ("ROLE_USER".equals(lu.getRole())) {
@@ -3435,7 +3443,7 @@ public class CustomerService {
         logger.info("开始查询客户属性,custId:" + custId + ",propertyName:" + propertyName);
         CustomerProperty cp = customerDao.getProperty(custId, propertyName);
         if (cp != null) {
-            logger.info("客户属性配置:" + cp);
+            logger.info("客户属性配置:{}", cp);
             return new CustomerPropertyDTO(cp);
         }
         return null;
@@ -3816,6 +3824,14 @@ public class CustomerService {
                     customerUserPropertyDao.dealUserPropertyInfo(vo.getUserId(), "declare_no", vo.getDeclare_no());
                 } else {
                     customerUserPropertyDao.dealUserPropertyInfo(String.valueOf(userId), "declare_no", vo.getDeclare_no());
+                }
+            }
+            //IC卡号
+            if (StringUtil.isNotEmpty(vo.getInput_no())) {
+                if (StringUtil.isNotEmpty(vo.getUserId())) {
+                    customerUserPropertyDao.dealUserPropertyInfo(vo.getUserId(), "input_no", vo.getInput_no());
+                } else {
+                    customerUserPropertyDao.dealUserPropertyInfo(String.valueOf(userId), "input_no", vo.getInput_no());
                 }
             }
             if (StringUtil.isNotEmpty(vo.getResource())) {
