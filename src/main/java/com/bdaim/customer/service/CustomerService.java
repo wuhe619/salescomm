@@ -320,7 +320,7 @@ public class CustomerService {
                     }
                     customerUserDao.saveOrUpdate(customerUserDO);
                 } else {
-                    if (StringUtil.isNotEmpty(vo.getName())){
+                    if (StringUtil.isNotEmpty(vo.getName())) {
                         CustomerUser user = customerUserDao.getUserByAccount(vo.getName());
                         if (user != null) return code = "001";
                         customerUserDO = new CustomerUser();
@@ -804,7 +804,7 @@ public class CustomerService {
         }
         if (StringUtil.isNotEmpty(customerRegistDTO.getCreateId())) {
             sqlBuilder.append(" AND cjc.createId ='" + customerRegistDTO.getCreateId() + "'");
-        }else {
+        } else {
             //过滤客户自己创建的企业
             sqlBuilder.append(" AND cjc.createId =''");
         }
@@ -1416,6 +1416,12 @@ public class CustomerService {
         if (StringUtil.isNotEmpty(param.getCallCenterType())) {
             hql.append(" AND m.custId IN (SELECT custId FROM CustomerProperty WHERE propertyName ='call_config' AND propertyValue LIKE ? ) ");
             values.add("%\"type\":\"" + param.getCallCenterType() + "\"%");
+        }
+
+        // 处理营销类型
+        if (StringUtil.isNotEmpty(param.getMarketingType())) {
+            hql.append(" AND m.custId IN (SELECT custId FROM CustomerProperty WHERE propertyName ='marketingType' AND propertyValue = ? ) ");
+            values.add(param.getMarketingType());
         }
 
         if ("ROLE_USER".equals(lu.getRole())) {
