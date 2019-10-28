@@ -12,7 +12,8 @@ public enum CustomerPropertyEnum {
     MARKET_PROJECT_ID_PREFIX("marketProjectId_", "企业下关联项目的ID前缀"),
     SERVICE_MODE("service_mode","服务权限"),
     INTEN_INDUCTRY("inten_industry","意向行业"),
-    API_TOKEN("api_token","TOKEN");
+    API_TOKEN("api_token","TOKEN"),
+    MARKET_TYPE("marketing_type","营销类型");
 
     private String key;
     private String name;

@@ -1420,7 +1420,8 @@ public class CustomerService {
 
         // 处理营销类型
         if (StringUtil.isNotEmpty(param.getMarketingType())) {
-            hql.append(" AND m.custId IN (SELECT custId FROM CustomerProperty WHERE propertyName ='marketingType' AND propertyValue = ? ) ");
+            hql.append(" AND m.custId IN (SELECT custId FROM CustomerProperty WHERE propertyName =? AND propertyValue = ? ) ");
+            values.add(CustomerPropertyEnum.MARKET_TYPE.getKey());
             values.add(param.getMarketingType());
         }
 
@@ -3441,7 +3442,7 @@ public class CustomerService {
         logger.info("开始查询客户属性,custId:" + custId + ",propertyName:" + propertyName);
         CustomerProperty cp = customerDao.getProperty(custId, propertyName);
         if (cp != null) {
-            logger.info("客户属性配置:" + cp);
+            logger.info("客户属性配置:{}", cp);
             return new CustomerPropertyDTO(cp);
         }
         return null;

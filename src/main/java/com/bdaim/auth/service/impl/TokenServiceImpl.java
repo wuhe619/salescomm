@@ -262,6 +262,12 @@ public class TokenServiceImpl implements TokenService {
                     userdetail.setUserGroupRole(String.valueOf(cug.getType()));
                     userdetail.setJobMarketId(cug.getJobMarketId());
                 }
+                // 处理客户营销类型
+                userdetail.setMarketingType(MarketTypeEnum.B2C.getCode());
+                CustomerPropertyDTO marketingType = customerService.getCustomerProperty(u.getCust_id(), CustomerPropertyEnum.MARKET_TYPE.getKey());
+                if (marketingType != null && StringUtil.isNotEmpty(marketingType.getPropertyValue())) {
+                    userdetail.setMarketingType(NumberConvertUtil.parseInt(marketingType.getPropertyValue()));
+                }
 
             } else {
                 logger.warn("username or password is error");
@@ -366,6 +372,12 @@ public class TokenServiceImpl implements TokenService {
             userdetail.setUserGroupId(cug.getGroupId());
             userdetail.setUserGroupRole(String.valueOf(cug.getType()));
             userdetail.setJobMarketId(cug.getJobMarketId());
+        }
+        // 处理客户营销类型
+        userdetail.setMarketingType(MarketTypeEnum.B2C.getCode());
+        CustomerPropertyDTO marketingType = customerService.getCustomerProperty(u.getCust_id(), CustomerPropertyEnum.MARKET_TYPE.getKey());
+        if (marketingType != null && StringUtil.isNotEmpty(marketingType.getPropertyValue())) {
+            userdetail.setMarketingType(NumberConvertUtil.parseInt(marketingType.getPropertyValue()));
         }
         return userdetail;
     }

@@ -91,6 +91,11 @@ public class LoginUser extends Token {
      */
     private String api_token;
 
+    /**
+     * 营销类型:1-B2C营销  2-B2B营销
+     */
+    private Integer marketingType;
+
     public String getApi_token() {
         return api_token;
     }
@@ -343,5 +348,13 @@ public class LoginUser extends Token {
 
     public void setServiceMode(String serviceMode) {
         this.serviceMode = serviceMode;
+    }
+
+    public Integer getMarketingType() {
+        return marketingType;
+    }
+
+    public void setMarketingType(Integer marketingType) {
+        this.marketingType = marketingType;
     }
 }

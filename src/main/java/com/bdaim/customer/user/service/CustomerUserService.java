@@ -17,10 +17,7 @@ import com.bdaim.common.exception.TouchException;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerUserDao;
 import com.bdaim.customer.dao.CustomerUserPropertyDao;
-import com.bdaim.customer.dto.CustomerRegistDTO;
-import com.bdaim.customer.dto.CustomerShowRowEnum;
-import com.bdaim.customer.dto.CustomerUserDTO;
-import com.bdaim.customer.dto.CustomerUserGroupRelDTO;
+import com.bdaim.customer.dto.*;
 import com.bdaim.customer.entity.Customer;
 import com.bdaim.customer.entity.CustomerProperty;
 import com.bdaim.customer.entity.CustomerUser;
@@ -262,7 +259,7 @@ public class CustomerUserService {
         // 结算类型
         customerUserDao.saveOrUpdate(new CustomerUserPropertyDO(String.valueOf(cu.getId()), "settlement_type", "1", new Timestamp(System.currentTimeMillis())));
         // 营销类型:1-B2C营销  2-B2B营销
-        customerDao.saveOrUpdate(new CustomerProperty(customerId, "marketingType", value.getMarketingType()));
+        customerDao.saveOrUpdate(new CustomerProperty(customerId, CustomerPropertyEnum.MARKET_TYPE.getKey(), String.valueOf(value.getMarketingType())));
 //        //创建企业信息
 //        EnterpriseDO enterpriseDO = new EnterpriseDO();
 //        enterpriseDO.setCustId(customerId);
