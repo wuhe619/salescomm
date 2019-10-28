@@ -181,6 +181,7 @@ public class BgdFService implements BusiService {
             List<HBusiDataManager> list2 = serviceUtils.listSdByBillNo(cust_id,BusiTypeEnum.BS.getType(),mainMap.get("ext_3").toString(),jo.getString("bill_no"));
             Map<String,Object> customerInfo = getCustomerInfo(cust_id);
             CustomerUserPropertyDO propertyDO = customerUserDao.getProperty(cust_user_id.toString(),"declare_no");
+            CustomerUserPropertyDO input_noDO = customerUserDao.getProperty(cust_user_id.toString(),"input_no");
             CustomerProperty iObj = customerDao.getProperty(cust_id,"i");
             String sendId = "";
             log.info("userid="+cust_user_id+";custid=" + cust_id);
@@ -192,11 +193,11 @@ public class BgdFService implements BusiService {
                 sendId = iJson.getString("sender_id");
             }
             customerInfo.put("sender_id",sendId);
-            CustomerUser customerUser = customerUserDao.get(cust_user_id);
-            customerInfo.put("input_name","");
+            //CustomerUser customerUser = customerUserDao.get(cust_user_id);
+            customerInfo.put("input_no","");
             customerInfo.put("declare_no","");
-            if(customerUser!=null){
-                customerInfo.put("input_name",customerUser.getRealname());
+            if(input_noDO!=null){
+                customerInfo.put("input_no",input_noDO.getPropertyValue());
             }
             if(propertyDO!=null){
                 customerInfo.put("declare_no",propertyDO.getPropertyValue());
@@ -380,7 +381,7 @@ public class BgdFService implements BusiService {
                 || customerInfo.get("agent_code").toString().length()<6){
             filedName += "," + BGDReportEnum.CoOwner.getName();//经营单位性质，取报关单位编码第6位
         }
-        if(StringUtil.isEmpty(customerInfo.getOrDefault("input_name","").toString())){
+        if(StringUtil.isEmpty(customerInfo.getOrDefault("input_no","").toString())){
             filedName += "," + BGDReportEnum.InputNo.getName();
         }
 

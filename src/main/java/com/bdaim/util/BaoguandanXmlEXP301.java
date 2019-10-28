@@ -282,7 +282,7 @@ public class BaoguandanXmlEXP301 {
 //        TypistNo.setTextContent("");
 //        EntryHead.appendChild(TypistNo);
         Element InputNo = document.createElement("InputNo");//录入人
-        InputNo.setTextContent(String.valueOf(customerInfo.getOrDefault("input_name","")));  //r
+        InputNo.setTextContent(String.valueOf(customerInfo.getOrDefault("input_no","")));  //r
         EntryHead.appendChild(InputNo);
         Element InputCompanyCo = document.createElement("InputCompanyCo");//录入单位代码
         InputCompanyCo.setTextContent((String) customerInfo.getOrDefault("agent_code",""));  //r
