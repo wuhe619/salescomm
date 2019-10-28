@@ -89,6 +89,19 @@ public class CustomerRegistDTO implements Serializable {
      */
     private String declare_no;
 
+    /**
+     * IC卡号
+     */
+    private String input_no;
+
+    public String getInput_no() {
+        return input_no;
+    }
+
+    public void setInput_no(String input_no) {
+        this.input_no = input_no;
+    }
+
     public String getDeclare_no() {
         return declare_no;
     }

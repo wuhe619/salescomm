@@ -248,6 +248,7 @@ public class CustomerService {
                 " MAX(CASE property_name WHEN 'xz_seat'    THEN property_value ELSE '' END ) xz_seat, \n" +
                 " MAX(CASE property_name WHEN 'cuc_minute'  THEN property_value ELSE '0' END ) cuc_minute, \n" +
                 " MAX(CASE property_name WHEN 'declare_no'  THEN property_value ELSE '0' END ) declare_no, \n" +
+                " MAX(CASE property_name WHEN 'input_no'  THEN property_value ELSE '0' END ) input_no, \n" +
                 " MAX(CASE property_name WHEN 'resource'    THEN property_value ELSE '' END ) resource \n" +
                 " FROM t_customer_user_property p GROUP BY user_id \n" +
                 ") cjc ON s.id = cjc.user_id WHERE 1=1 AND user_type = 2  AND STATUS <> 2 ");
@@ -3823,6 +3824,14 @@ public class CustomerService {
                     customerUserPropertyDao.dealUserPropertyInfo(vo.getUserId(), "declare_no", vo.getDeclare_no());
                 } else {
                     customerUserPropertyDao.dealUserPropertyInfo(String.valueOf(userId), "declare_no", vo.getDeclare_no());
+                }
+            }
+            //IC卡号
+            if (StringUtil.isNotEmpty(vo.getInput_no())) {
+                if (StringUtil.isNotEmpty(vo.getUserId())) {
+                    customerUserPropertyDao.dealUserPropertyInfo(vo.getUserId(), "input_no", vo.getInput_no());
+                } else {
+                    customerUserPropertyDao.dealUserPropertyInfo(String.valueOf(userId), "input_no", vo.getInput_no());
                 }
             }
             if (StringUtil.isNotEmpty(vo.getResource())) {
