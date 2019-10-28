@@ -598,7 +598,10 @@ public class SbdZService implements BusiService {
             json.put("estimated_tax", arrt.getString("estimated_tax_total"));
             //json.put("main_gname", mainGoodsName);
             // 计算主要货物
-            json.put("main_gname", serviceUtils.generateFDMainGName(pList));
+            Map<String,String> main_map = serviceUtils.generateFDMainGName(pList);
+            json.put("main_gname", main_map.get("name"));
+            json.put("main_gname_en", main_map.get("name_en"));
+
             // 低价商品数量
             json.put("low_price_goods", arrt.getString("low_price_goods"));
             if (info.containsKey("low_price_goods") && info.getInteger("low_price_goods") != null) {

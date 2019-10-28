@@ -156,10 +156,10 @@ public class BaoguandanXmlEXP301 {
         IEPort.setTextContent(mainJson.getString("i_e_port"));//r
         EntryHead.appendChild(IEPort);
         Element IEDate = document.createElement("IEDate");
-        IEDate.setTextContent(mainJson.getString("i_e_date"));//r
+        IEDate.setTextContent(mainJson.getString("i_e_date").replace("-",""));//r
         EntryHead.appendChild(IEDate);
         Element DDate = document.createElement("DDate");
-        DDate.setTextContent(mainJson.getString("i_d_date"));//r
+        DDate.setTextContent(mainJson.getString("i_d_date").replace("-",""));//r
         EntryHead.appendChild(DDate);
         Element DestinationPort = document.createElement("DestinationPort");
         DestinationPort.setTextContent(mainJson.getString("depart_arrival_port")); //r
@@ -339,6 +339,69 @@ public class BaoguandanXmlEXP301 {
         Element SendIdType = document.createElement("SendIdType");
         SendIdType.setTextContent(json.getString("id_type"));  //收发件人证件类型,B类必填
         EntryHead.appendChild(SendIdType);
+        Element TradeScc = document.createElement("TradeScc");
+        TradeScc.setTextContent("");//收发货人统一社会信用代码
+        EntryHead.appendChild(TradeScc);
+
+        Element OwnerScc = document.createElement("OwnerScc");
+        OwnerScc.setTextContent("");//货主单位统一社会信用代码
+        EntryHead.appendChild(OwnerScc);
+        Element AgentScc = document.createElement("AgentScc");
+        AgentScc.setTextContent("");//申报单位统一社会信用代码
+        EntryHead.appendChild(AgentScc);
+        Element SendAddress = document.createElement("SendAddress");
+        SendAddress.setTextContent(mainJson.getString("send_address"));//发件人地址 出口必填，进口起运地为港、澳、台的地区必填。只填写区县、街道级别及以下详细地址
+        EntryHead.appendChild(SendAddress);
+        Element SendTelNo = document.createElement("SendTelNo");//r
+        SendTelNo.setTextContent(mainJson.getString("send_tel"));//发件人号码 仅能填写阿拉伯数字、“-”（短横线）、“∣”3种字符，均为半角字符。“-”（短横线）用于区号-座机号-分机号的分隔；“∣”用于两个不同号码之间的分隔
+        EntryHead.appendChild(SendTelNo);
+        Element ReceiveAddress = document.createElement("ReceiveAddress");//r
+        String r_city = json.getString("receive_city");
+        String r_address = json.getString("receive_address");
+        String address = r_address.replace(r_city,"");
+        ReceiveAddress.setTextContent(address);//收件人地址 进口必填，出口抵运地为港、澳、台地区的必填。只填写区县、街道级别及以下详细地址
+        EntryHead.appendChild(ReceiveAddress);
+        Element ReceiveTelNo = document.createElement("ReceiveTelNo");//r
+        ReceiveTelNo.setTextContent(json.getString("receive_tel"));//收件人号码 必填，仅能填写阿拉伯数字、“-”（短横线）、“∣”3种字符，均为半角字符。“-”（短横线）用于区号-座机号-分机号的分隔；“∣”用于两个不同号码之间的分隔
+        EntryHead.appendChild(ReceiveTelNo);
+        Element ReceiveCountry = document.createElement("ReceiveCountry");//r
+        ReceiveCountry.setTextContent("142");//收件人国别 进口只能是中国，且不能修改
+        EntryHead.appendChild(ReceiveCountry);
+        Element ReceiveCity = document.createElement("ReceiveCity");//r
+        ReceiveCity.setTextContent(json.getString("receive_city"));//收件人城市
+        EntryHead.appendChild(ReceiveCity);
+        Element StopCityEn = document.createElement("StopCityEn");//r
+        StopCityEn.setTextContent(mainJson.getString("stop_address_en"));//英文经停城市  进口必填，仅限英文及符号，没有填“n”或“N”
+        EntryHead.appendChild(StopCityEn);
+        Element SendNameEn = document.createElement("SendNameEn");//r
+        SendNameEn.setTextContent(mainJson.getString("send_name_en"));//英文发件人  进口必填
+        EntryHead.appendChild(SendNameEn);
+        Element SendAddressEn = document.createElement("SendAddressEn");//r
+        SendAddressEn.setTextContent(mainJson.getString("send_address_en"));//英文发件人地址  进口为非港、澳、台地区的必填，只填写区县、街道级别及以下详细地址
+        EntryHead.appendChild(SendAddressEn);
+        Element SendCityEn = document.createElement("SendCityEn");//r
+        SendCityEn.setTextContent(mainJson.getString("send_city_en"));//英文发件人城市进口必填,必须包含英文或拼音，可包含符号
+        EntryHead.appendChild(SendCityEn);
+        Element ReceiveNameEn = document.createElement("ReceiveNameEn");//
+        ReceiveNameEn.setTextContent("");//英文收件人 出口必填
+        EntryHead.appendChild(ReceiveNameEn);
+        Element ReceiveAddressEn = document.createElement("ReceiveAddressEn");//
+        ReceiveAddressEn.setTextContent(json.getString("receive_address_en"));//英文收件人地址,出口抵运地为非港、澳、台地区的必填
+        EntryHead.appendChild(ReceiveAddressEn);
+        Element WoodWrap = document.createElement("WoodWrap");//r
+        WoodWrap.setTextContent(mainJson.getString("wrap_wood"));//是否含木质包装 必填0：不含；  1：含有
+        EntryHead.appendChild(WoodWrap);
+        Element MainGNameEn = document.createElement("MainGNameEn");//r
+        MainGNameEn.setTextContent(json.getString("main_gname_en"));//主要货物英文名称   必填
+        EntryHead.appendChild(MainGNameEn);
+
+        Element GoodsUsed = document.createElement("GoodsUsed");//r
+        GoodsUsed.setTextContent(mainJson.getString("is_old"));//是否为旧物品   必填0：否；  1：是
+        EntryHead.appendChild(GoodsUsed);
+
+        Element LowTempTrans = document.createElement("LowTempTrans");//r
+        LowTempTrans.setTextContent(mainJson.getString("l_t_trans"));//是否为低温运输  必填0：否；  1：是
+        EntryHead.appendChild(LowTempTrans);
 
         EXP301.appendChild(EntryHead);
     }
@@ -410,12 +473,22 @@ public class BaoguandanXmlEXP301 {
             Element Unit2 = document.createElement("Unit2");
             Unit2.setTextContent("");
             EntryList.appendChild(Unit2);
-            /*Element ClassMark = document.createElement("ClassMark");
-            ClassMark.setTextContent("");
-            EntryList.appendChild(ClassMark);*/
+
             Element GGrossWt = document.createElement("GGrossWt");
             GGrossWt.setTextContent(json.getString("ggrosswt"));
             EntryList.appendChild(GGrossWt);
+
+            Element MName = document.createElement("MName");//生产厂商
+            MName.setTextContent("");
+            EntryList.appendChild(MName);
+
+            Element OriginCity = document.createElement("OriginCity");//产销城市
+            OriginCity.setTextContent("");
+            EntryList.appendChild(OriginCity);
+
+            Element GNameEn = document.createElement("GNameEn");//r
+            GNameEn.setTextContent(json.getString("g_name_en"));
+            EntryList.appendChild(GNameEn);
 
             exp301.appendChild(EntryList);
         }
