@@ -79,4 +79,22 @@ public class CallUtil {
     private static String generateRecordUrl(String monthYear, String touchId, String fileType) {
         return monthYear + touchId + "." + fileType;
     }
+
+    /**
+     * 获取通话审核状态名称
+     * @param clueAuditStatus
+     * @return
+     */
+    public static String getClueAuditStatusName(String clueAuditStatus) {
+        switch (clueAuditStatus) {
+            case "0":
+                return "待审核";
+            case "1":
+                return "审核成功";
+            case "2":
+                return "审核失败";
+            default:
+                return "";
+        }
+    }
 }

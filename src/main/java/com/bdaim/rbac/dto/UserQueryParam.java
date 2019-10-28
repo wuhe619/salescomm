@@ -19,6 +19,10 @@ public class UserQueryParam {
      * 1 呼叫中心 2-双呼
      */
     private String callCenterType;
+    /**
+     * 营销类型:1-B2C营销  2-B2B营销
+     */
+    private String marketingType;
 
 
     public String getEnterpriseName() {
@@ -115,5 +119,13 @@ public class UserQueryParam {
 
     public void setCallCenterType(String callCenterType) {
         this.callCenterType = callCenterType;
+    }
+
+    public String getMarketingType() {
+        return marketingType;
+    }
+
+    public void setMarketingType(String marketingType) {
+        this.marketingType = marketingType;
     }
 }
