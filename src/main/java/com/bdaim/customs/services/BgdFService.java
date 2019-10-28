@@ -395,9 +395,9 @@ public class BgdFService implements BusiService {
         if(StringUtil.isEmpty(customerInfo.get("declare_no")==null?"":customerInfo.get("declare_no").toString())){
             filedName += "," + BGDReportEnum.DeclareNo.getName();
         }
-        if(StringUtil.isEmpty(mainjson.get("warehouse_code")==null?"":mainjson.get("warehouse_code").toString())){
+        /*if(StringUtil.isEmpty(mainjson.get("warehouse_code")==null?"":mainjson.get("warehouse_code").toString())){
             filedName += "," + BGDReportEnum.CustomsField.getName();
-        }
+        }*/
         if(StringUtil.isEmpty(mainjson.get("send_name")==null?"":mainjson.get("send_name").toString())){
             filedName += "," + BGDReportEnum.SendName.getName();
         }
