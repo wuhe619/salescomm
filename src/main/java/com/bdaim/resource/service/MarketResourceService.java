@@ -2691,7 +2691,7 @@ public class MarketResourceService {
             //根据callSid 查询是否存在短信记录
             int status = 1002;
             List<Map<String, Object>> logList = marketResourceDao.sqlQuery(queryTouchSql, requestId);
-            BigDecimal sourceSmsAmount =  new BigDecimal(0), custSmsAmount =  new BigDecimal(0);
+            BigDecimal sourceSmsAmount = new BigDecimal(0), custSmsAmount = new BigDecimal(0);
             if (logList.size() > 0) {
                 LOG.info("短信发送状态是：" + sendStatus + "唯一id是：" + requestId);
                 if ("1".equals(sendStatus)) {
@@ -7801,6 +7801,24 @@ public class MarketResourceService {
         return false;
     }
 
+    /**
+     * 通话记录审核
+     * @param touchIds
+     * @param intentStatus
+     * @param time
+     * @param clueAuditReason
+     * @return
+     */
+    public boolean saveVoiceIntention(List<String> touchIds, int intentStatus, String time, String clueAuditReason) {
+        LOG.info("开始更新人工审核意向度,touchIds:" + JSON.toJSONString(touchIds) + ",intentStatus:" + intentStatus + ",time:" + time);
+        int updateCount = marketResourceDao.batchVoiceIntentStatus(touchIds, intentStatus, LocalDateTime.parse(time, DFT).format(YYYYMM), clueAuditReason);
+        LOG.info("人工审核意向度更新成功条数:" + updateCount);
+        if (updateCount > 0) {
+            return true;
+        }
+        return false;
+    }
+
     public boolean saveBatchVoiceIntention(VoiceLogQueryParam param) {
         LOG.info("开始批量更新人工审核意向度,param:" + param);
         CustomerUser user = null;
@@ -7819,6 +7837,36 @@ public class MarketResourceService {
         }
 
         int updateCount = marketResourceDao.batchVoiceIntentStatus(param, LocalDateTime.parse(param.getEndTime(), DFT).format(YYYYMM));
+        LOG.info("人工审核意向度更新成功条数:" + updateCount);
+        if (updateCount > 0) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 根据检索条件批量审核通话记录
+     * @param param
+     * @return
+     */
+    public boolean saveBatchVoiceIntention0(VoiceLogQueryParam param) {
+        LOG.info("开始批量更新人工审核意向度,param:" + param);
+        CustomerUser user = null;
+        if (StringUtil.isNotEmpty(param.getUserName())) {
+            user = this.customerUserDao.getCustomerUserByName(param.getUserName().trim());
+            if (user == null) {
+                // 穿透查询一次登陆名称
+                user = this.customerUserDao.getCustomerUserByLoginName(param.getUserName().trim());
+            }
+            if (user == null) {
+                LOG.warn("批量更新人工审核用户未查询到,user:" + user + ",userName:" + param.getUserName());
+                return false;
+            } else {
+                param.setUserId(String.valueOf(user.getId()));
+            }
+        }
+
+        int updateCount = marketResourceDao.batchVoiceIntentStatus0(param, LocalDateTime.parse(param.getEndTime(), DFT).format(YYYYMM));
         LOG.info("人工审核意向度更新成功条数:" + updateCount);
         if (updateCount > 0) {
             return true;
