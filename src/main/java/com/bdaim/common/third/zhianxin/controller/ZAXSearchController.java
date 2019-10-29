@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
  * @date 2019-10-29 11:41
  */
 @RestController
-@RequestMapping("/zhianxin")
+@RequestMapping("/zhianxin/{busiType}")
 public class ZAXSearchController extends BasicAction {
 
     private static Logger logger = LoggerFactory.getLogger(ZAXSearchController.class);
@@ -24,7 +24,7 @@ public class ZAXSearchController extends BasicAction {
     @Autowired
     SearchListService searchListService;
 
-    @PostMapping(value = "/{busiType}/all")
+    @PostMapping(value = "/all")
     public ResponseInfo pageSearch(@RequestBody(required = false) String body, @PathVariable(name = "busiType") String busiType) {
         ResponseInfo resp = new ResponseInfo();
         JSONObject params = null;
@@ -38,6 +38,20 @@ public class ZAXSearchController extends BasicAction {
         BaseResult baseResult = null;
         try {
             baseResult = searchListService.pageSearch(opUser().getCustId(), opUser().getUserGroupId(), opUser().getId(), busiType, params);
+        } catch (Exception e) {
+            logger.error("查询记录异常,", e);
+            return new ResponseInfoAssemble().failure(-1, "查询记录异常[" + busiType + "]");
+        }
+        resp.setData(baseResult.getData());
+        return resp;
+    }
+
+    @GetMapping(value = "/{id}")
+    public ResponseInfo getInfo(@PathVariable(name = "id") String id, @PathVariable(name = "busiType") String busiType) {
+        ResponseInfo resp = new ResponseInfo();
+        BaseResult baseResult = null;
+        try {
+            baseResult = searchListService.getCompanyDetail(id, "", busiType);
         } catch (Exception e) {
             logger.error("查询记录异常,", e);
             return new ResponseInfoAssemble().failure(-1, "查询记录异常[" + busiType + "]");
