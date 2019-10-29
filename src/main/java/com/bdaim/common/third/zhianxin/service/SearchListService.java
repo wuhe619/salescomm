@@ -78,7 +78,7 @@ public class SearchListService {
         Map<String, Object> headers = new HashMap<>();
         headers.put("Authorization", TOKEN);
         JSONObject params = new JSONObject();
-        params.put("entName", entName);
+        //params.put("entName", entName);
         params.put("companyId", companyId);
         LOG.info("企业详情查询参数:{}", params);
         String result = HttpUtil.httpPost(API_URL2.replace("{busiType}", BUSI_TYPE.get(busiType)), params.toJSONString(), headers);
