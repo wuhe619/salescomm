@@ -24,8 +24,6 @@ public class SearchListService {
 
     private final static String API_URL = "https://api.bdaim.com/{busiType}/pub";
 
-    private final static String API_URL2 = "http://172.17.117.47:10000/{busiType}";
-
     private static final String TOKEN = "Bearer df35eaea4360348832eea2a2ec9f76c70ea9c82b";
 
     private static final Map<String, String> BUSI_TYPE = new HashMap() {{
@@ -36,7 +34,7 @@ public class SearchListService {
         put("5", "B1005_test");
         put("6", "B1006_test");
 
-        put("101", "zhianxindetails/BasicBusinessInformation");
+        put("101", "C1001_test");
         put("102", "B1002_test");
         put("103", "B1003_test");
         put("104", "B1004_test");
@@ -81,7 +79,7 @@ public class SearchListService {
         //params.put("entName", entName);
         params.put("companyId", companyId);
         LOG.info("企业详情查询参数:{}", params);
-        String result = HttpUtil.httpPost(API_URL2.replace("{busiType}", BUSI_TYPE.get(busiType)), params.toJSONString(), headers);
+        String result = HttpUtil.httpPost(API_URL.replace("{busiType}", BUSI_TYPE.get(busiType)), params.toJSONString(), headers);
         LOG.info("企业详情查询接口返回:{}", result);
         return JSON.parseObject(result, BaseResult.class);
     }
