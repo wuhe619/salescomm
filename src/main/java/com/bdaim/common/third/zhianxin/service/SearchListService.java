@@ -4,6 +4,8 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.third.zhianxin.dto.BaseResult;
 import com.bdaim.util.http.HttpUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,6 +19,8 @@ import java.util.Map;
 @Service
 @Transactional
 public class SearchListService {
+
+    private static Logger LOG = LoggerFactory.getLogger(SearchListService.class);
 
     private final static String API_URL = "https://api.bdaim.com/{busiType}/pub";
 
@@ -55,15 +59,18 @@ public class SearchListService {
         params.put("pageNo", params.getLongValue("pageNum"));
         Map<String, Object> headers = new HashMap<>();
         headers.put("Authorization", TOKEN);
+        LOG.info("企业列表查询参数:{}", params);
         String result = HttpUtil.httpPost(API_URL.replace("{busiType}", BUSI_TYPE.get(busiType)), params.toJSONString(), headers);
+        LOG.info("企业列表查询接口返回:{}", result);
         return JSON.parseObject(result, BaseResult.class);
     }
 
     /**
      * 企业详情
+     *
      * @param companyId 企业ID
-     * @param entName 企业名称
-     * @param busiType 业务类型
+     * @param entName   企业名称
+     * @param busiType  业务类型
      * @return
      * @throws Exception
      */
@@ -73,7 +80,9 @@ public class SearchListService {
         JSONObject params = new JSONObject();
         params.put("entName", entName);
         params.put("companyId", companyId);
+        LOG.info("企业详情查询参数:{}", params);
         String result = HttpUtil.httpPost(API_URL2.replace("{busiType}", BUSI_TYPE.get(busiType)), params.toJSONString(), headers);
+        LOG.info("企业详情查询接口返回:{}", result);
         return JSON.parseObject(result, BaseResult.class);
     }
 }
