@@ -1,6 +1,7 @@
 package com.bdaim.common.third.zhianxin.service;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.third.zhianxin.dto.BaseResult;
 import com.bdaim.util.http.HttpUtil;
@@ -60,7 +61,18 @@ public class SearchListService {
         LOG.info("企业列表查询参数:{}", params);
         String result = HttpUtil.httpPost(API_URL.replace("{busiType}", BUSI_TYPE.get(busiType)), params.toJSONString(), headers);
         LOG.info("企业列表查询接口返回:{}", result);
-        return JSON.parseObject(result, BaseResult.class);
+        BaseResult baseResult = JSON.parseObject(result, BaseResult.class);
+        // TODO 处理企业领取标志
+        if (baseResult != null && baseResult.getData() != null) {
+            JSONObject data = (JSONObject) baseResult.getData();
+            JSONArray list = data.getJSONArray("list");
+            if (list != null && list.size() > 0) {
+                for (int i = 0; i < list.size(); i++) {
+                    list.getJSONObject(i).put("_receivingStatus", 2);
+                }
+            }
+        }
+        return baseResult;
     }
 
     /**
