@@ -20,9 +20,10 @@ import com.bdaim.customer.dao.CustomerUserDao;
 import com.bdaim.customer.entity.Customer;
 import com.bdaim.customer.entity.CustomerProperty;
 import com.bdaim.customer.service.CustomerService;
-import com.bdaim.price.dto.ResourcesPriceDto;
 import com.bdaim.resource.dao.SourceDao;
 import com.bdaim.resource.entity.MarketResourceEntity;
+import com.bdaim.resource.price.dto.ResourcesPriceDto;
+
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;

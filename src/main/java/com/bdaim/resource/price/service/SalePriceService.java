@@ -1,10 +1,10 @@
-package com.bdaim.price.service;
+package com.bdaim.resource.price.service;
 
 import com.bdaim.bill.dto.CustomerBillQueryParam;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.page.PageList;
 import com.bdaim.customer.entity.CustomerProperty;
-import com.bdaim.price.dto.SalePriceDTO;
+import com.bdaim.resource.price.dto.SalePriceDTO;
 
 import java.util.List;
 import java.util.Map;

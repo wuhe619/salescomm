@@ -8,7 +8,7 @@ import com.bdaim.batch.service.BatchService;
 import com.bdaim.batch.service.impl.BatchListServiceImpl;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.customer.service.CustomerService;
-import com.bdaim.price.service.SalePriceService;
+import com.bdaim.resource.price.service.SalePriceService;
 import com.bdaim.resource.service.MarketResourceService;
 import com.bdaim.util.DateUtil;
 import com.bdaim.util.FileUrlEntity;
