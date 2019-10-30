@@ -154,7 +154,7 @@ public class CangdanXmlEXP311 {
         GrossWt.setTextContent(json.getString("gross_wt"));//r
         ExpMftHead.appendChild(GrossWt);
         Element PackNo = document.createElement("PackNo");
-        PackNo.setTextContent(json.getString("pack_no")); //r
+        PackNo.setTextContent(json.getString("total_pack_no")); //r
         ExpMftHead.appendChild(PackNo);
 
         Element BillNum = document.createElement("BillNum");
