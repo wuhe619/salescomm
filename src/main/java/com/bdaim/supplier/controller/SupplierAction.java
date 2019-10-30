@@ -23,10 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
@@ -330,6 +327,22 @@ public class SupplierAction extends BasicAction {
             LOG.error("查询资源列表失败,", e);
         }
         return returnJsonData(marketResourceDTOList);
+    }
+
+    @PostMapping(value = "/pageResource")
+    @ResponseBody
+    @ValidatePermission(role = "admin,ROLE_USER")
+    public String pageResource(@Valid PageParam page, BindingResult error, String type) {
+        if (error.hasFieldErrors()) {
+            return getErrors(error);
+        }
+        Page pageData = null;
+        try {
+            pageData = supplierService.pageResource(type, page.getPageNum(), page.getPageSize());
+        } catch (Exception e) {
+            LOG.error("查询资源列表失败,", e);
+        }
+        return returnJsonData(getPageData(pageData));
     }
 
     @RequestMapping(value = "/page", method = RequestMethod.POST)

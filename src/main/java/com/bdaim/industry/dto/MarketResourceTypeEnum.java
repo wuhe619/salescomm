@@ -15,8 +15,8 @@ public enum MarketResourceTypeEnum {
     LABEL(4, "data_config"),
     SEATS(5, "seat_config"),
     APPARENT_NUMBER(6, "apparent_config"),
-    B2B_PRICE(7, "b2b_price"),
-    B2B_RESOURCE(8, "b2b_resource");
+    B2B_PRICE(7, "b2b_price_config"),
+    B2B_RESOURCE(8, "b2b_resource_config");
     private int type;
     private String propertyName;
 

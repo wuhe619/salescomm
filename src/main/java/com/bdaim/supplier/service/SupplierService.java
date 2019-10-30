@@ -783,6 +783,9 @@ public class SupplierService {
                 marketResource = marketResourceDao.getMarketResource(jsonObject.getInteger("resourceId"));
                 if (marketResource != null) {
                     marketResource.setResname(jsonObject.getString("name"));
+                    if (jsonObject.containsKey("status")) {
+                        marketResource.setStatus(jsonObject.getIntValue("status"));
+                    }
                     marketResourceDao.saveOrUpdate(marketResource);
                 }
 
@@ -792,7 +795,11 @@ public class SupplierService {
                 marketResource.setResname(jsonObject.getString("name"));
                 marketResource.setTypeCode(type);
                 marketResource.setCreateTime(new Timestamp(System.currentTimeMillis()));
-                marketResource.setStatus(1);
+                if (jsonObject.containsKey("status")) {
+                    marketResource.setStatus(jsonObject.getIntValue("status"));
+                } else {
+                    marketResource.setStatus(1);
+                }
                 marketResourceId = (int) marketResourceDao.saveReturnPk(marketResource);
                 marketResourceProperty = new ResourcePropertyEntity(marketResourceId, "price_config", jsonObject.toJSONString(), new Timestamp(System.currentTimeMillis()));
                 marketResourceDao.saveOrUpdate(marketResourceProperty);
@@ -1091,6 +1098,7 @@ public class SupplierService {
                 marketResourceProperty = marketResourceDao.getProperty(String.valueOf(m.getResourceId()), "price_config");
                 if (marketResourceProperty != null) {
                     jsonObject = JSONObject.parseObject(marketResourceProperty.getPropertyValue());
+                    m.setResourceProperty(jsonObject.toJSONString());
                     if (jsonObject != null) {
                         m.setChargingType(jsonObject.getInteger("type"));
                     }
@@ -1099,6 +1107,39 @@ public class SupplierService {
             }
         }
         return result;
+    }
+
+    /**
+     * 根据类型分页查询资源
+     * @param type
+     * @param pageNum
+     * @param pageSize
+     * @return Page
+     */
+    public Page pageResource(String type, int pageNum, int pageSize) {
+        Page page = marketResourceDao.pageMarketResource(type, pageNum, pageSize);
+        ResourcePropertyEntity marketResourceProperty;
+        JSONObject jsonObject;
+        SupplierEntity supplierDO;
+        List<MarketResourceDTO> result = new ArrayList<>();
+        MarketResourceDTO m = null;
+        for (int i = 0; i < page.getData().size(); i++) {
+            m = (MarketResourceDTO) page.getData().get(i);
+            supplierDO = supplierDao.getSupplier(NumberConvertUtil.parseInt(m.getSupplierId()));
+            if (supplierDO != null && supplierDO.getStatus() != null && 1 == supplierDO.getStatus()) {
+                m.setSupplierName(supplierDO.getName());
+                marketResourceProperty = marketResourceDao.getProperty(String.valueOf(m.getResourceId()), "price_config");
+                if (marketResourceProperty != null) {
+                    jsonObject = JSONObject.parseObject(marketResourceProperty.getPropertyValue());
+                    m.setResourceProperty(jsonObject.toJSONString());
+                    if (jsonObject != null) {
+                        m.setChargingType(jsonObject.getInteger("type"));
+                    }
+                }
+                result.add(m);
+            }
+        }
+        return page;
     }
 
     public JSONObject listVoiceResourceByType(String type) throws Exception {
