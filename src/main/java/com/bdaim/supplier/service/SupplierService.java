@@ -743,7 +743,7 @@ public class SupplierService {
                                 marketResource = new MarketResourceEntity();
                                 marketResource.setSupplierId(String.valueOf(supplierId));
                                 marketResource.setResname(jsonArray.getJSONObject(index).getString("name"));
-                                marketResource.setTypeCode(jsonArray.getJSONObject(index).getInteger("type"));
+                                marketResource.setTypeCode(jsonArray.getJSONObject(index).getInteger("busiType"));
                                 marketResource.setCreateTime(new Timestamp(System.currentTimeMillis()));
                                 marketResource.setStatus(1);
                                 marketResourceId = (int) marketResourceDao.saveReturnPk(marketResource);
@@ -868,7 +868,7 @@ public class SupplierService {
                             for (int i = 0; i < jsonArray.size(); i++) {
                                 jsonArray.getJSONObject(i).put("key", key);
                             }
-                            handleResourceList(jsonArray, String.valueOf(supplierDTO.getSupplierId()), jsonArray.getJSONObject(0).getIntValue("type"), dbResourceCode);
+                            handleResourceList(jsonArray, String.valueOf(supplierDTO.getSupplierId()), jsonArray.getJSONObject(0).getIntValue("busiType"), dbResourceCode);
                         }
                     }
                 }
