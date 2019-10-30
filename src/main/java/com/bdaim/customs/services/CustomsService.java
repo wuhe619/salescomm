@@ -1282,9 +1282,11 @@ public class CustomsService {
 
     public void saveCZInfo(JSONObject data) throws TouchException {
         JSONObject msg=new JSONObject();
-        msg.put("time",DateUtil.fmtDateToStr(new Date(),"yyyy-MM-dd HH:mm:ss"));
-        msg.put("link_billno",data.getString("main_bill_no")+"-"+data.getString("bill_no"));
+        msg.put("op_time",DateUtil.fmtDateToStr(new Date(),"yyyy-MM-dd HH:mm:ss"));
+        msg.put("main_bill_no",data.getString("main_bill_no"));
+        msg.put("bill_no",data.getString("bill_no"));
         msg.put("code",data.getString("code"));
+        msg.put("op_result",data.getString("msg"));
         msg.put("msg",data.getString("msg"));
         msg.put("type","CHANGZHAN");
         String s = "select id,content,cust_id,cust_user_id from h_data_manager_bgd_f where ext_4='"+data.getString("main_bill_no")+"' and ext_3='"+data.getString("bill_no")+"'";
