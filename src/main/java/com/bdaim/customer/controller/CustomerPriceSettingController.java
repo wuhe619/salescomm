@@ -29,6 +29,9 @@ public class CustomerPriceSettingController extends BasicAction {
 
     @PostMapping("/updatePrice")
     public ResponseInfo updatePrice(@RequestBody PriceDTO priceDto) {
+        if (StringUtil.isEmpty(priceDto.getCustId())) {
+            return new ResponseInfoAssemble().failure(-1, "企业ID不能为空");
+        }
         ResponseInfo resp = new ResponseInfo();
         if (!"admin".equals(opUser().getRole()) ) {
             return new ResponseInfoAssemble().failure(-1, "当前用户不能修改售价");
