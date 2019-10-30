@@ -728,6 +728,34 @@ public class SupplierService {
                     }
                 }
             }
+            // 处理资源
+            if (supplierDTO.getResourceConfig() != null) {
+                Iterator keys = supplierDTO.getResourceConfig().keySet().iterator();
+                while (keys.hasNext()) {
+                    String key = (String) keys.next();
+                    if (key.endsWith("_config")) {
+                        jsonArray = JSON.parseArray(String.valueOf(supplierDTO.getResourceConfig().get(key)));
+                        if (jsonArray == null || jsonArray.size() == 0) {
+                            continue;
+                        }
+                        for (int index = 0; index < jsonArray.size(); index++) {
+                            if (jsonArray.getJSONObject(index) != null) {
+                                marketResource = new MarketResourceEntity();
+                                marketResource.setSupplierId(String.valueOf(supplierId));
+                                marketResource.setResname(jsonArray.getJSONObject(index).getString("name"));
+                                marketResource.setTypeCode(jsonArray.getJSONObject(index).getInteger("type"));
+                                marketResource.setCreateTime(new Timestamp(System.currentTimeMillis()));
+                                marketResource.setStatus(1);
+                                marketResourceId = (int) marketResourceDao.saveReturnPk(marketResource);
+
+                                jsonArray.getJSONObject(index).put("key", key);
+                                marketResourceProperty = new ResourcePropertyEntity(marketResourceId, "price_config", String.valueOf(jsonArray.getJSONObject(index)), new Timestamp(System.currentTimeMillis()));
+                                marketResourceDao.saveOrUpdate(marketResourceProperty);
+                            }
+                        }
+                    }
+                }
+            }
             return 1;
         } else {
             throw new RuntimeException("供应商保存异常");
@@ -743,7 +771,13 @@ public class SupplierService {
             jsonObject = jsonArray.getJSONObject(index);
             if (jsonObject.get("resourceId") != null) {
                 marketResourceId = jsonArray.getJSONObject(index).getInteger("resourceId");
-                marketResourceProperty = new ResourcePropertyEntity(marketResourceId, "price_config", jsonObject.toJSONString(), new Timestamp(System.currentTimeMillis()));
+                marketResourceProperty = marketResourceDao.getProperty(String.valueOf(marketResourceId), "price_config");
+                if (marketResourceProperty == null) {
+                    marketResourceProperty = new ResourcePropertyEntity(marketResourceId, "price_config", jsonObject.toJSONString(), new Timestamp(System.currentTimeMillis()));
+                } else {
+                    marketResourceProperty.setPropertyValue(jsonObject.toJSONString());
+                    marketResourceProperty.setCreateTime(new Timestamp(System.currentTimeMillis()));
+                }
                 marketResourceDao.saveOrUpdate(marketResourceProperty);
                 dbResourceCodes.remove(marketResourceId);
                 marketResource = marketResourceDao.getMarketResource(jsonObject.getInteger("resourceId"));
@@ -822,6 +856,22 @@ public class SupplierService {
             if (StringUtil.isNotEmpty(supplierDTO.getSmsConfig())) {
                 jsonArray = JSON.parseArray(supplierDTO.getSmsConfig());
                 handleResourceList(jsonArray, String.valueOf(supplierDTO.getSupplierId()), MarketResourceTypeEnum.SMS.getType(), dbResourceCode);
+            }
+            // 处理资源
+            if (supplierDTO.getResourceConfig() != null) {
+                Iterator keys = supplierDTO.getResourceConfig().keySet().iterator();
+                while (keys.hasNext()) {
+                    String key = (String) keys.next();
+                    if (key.endsWith("_config") && StringUtil.isNotEmpty(String.valueOf(supplierDTO.getResourceConfig().get(key)))) {
+                        jsonArray = JSON.parseArray(String.valueOf(supplierDTO.getResourceConfig().get(key)));
+                        if (jsonArray != null && jsonArray.size() > 0) {
+                            for (int i = 0; i < jsonArray.size(); i++) {
+                                jsonArray.getJSONObject(i).put("key", key);
+                            }
+                            handleResourceList(jsonArray, String.valueOf(supplierDTO.getSupplierId()), jsonArray.getJSONObject(0).getIntValue("type"), dbResourceCode);
+                        }
+                    }
+                }
             }
             if (dbResourceCode.size() > 0) {
                 for (Integer resourceId : dbResourceCode) {
@@ -908,6 +958,105 @@ public class SupplierService {
             result.setServiceResource(serviceResource);
         }
         return result;
+    }
+
+    /**
+     * 查询单个供应商以及资源配置详情
+     *
+     * @param supplierId
+     * @return
+     */
+    public JSONObject selectSupplierAndResourceProperty0(String supplierId) {
+        if (StringUtil.isEmpty(supplierId)) {
+            throw new RuntimeException("supplierId不能为空");
+        }
+        JSONObject data = new JSONObject();
+        SupplierEntity supplierDO = supplierDao.get(NumberConvertUtil.parseInt(supplierId));
+        SupplierDTO result = new SupplierDTO(supplierDO);
+        if (result != null && result.getSupplierId() != null) {
+            String serviceResource = "";
+            // 查询通话营销资源
+            List<MarketResourceDTO> voiceMarketResourceList = marketResourceDao.listMarketResourceBySupplierIdAndType(String.valueOf(result.getSupplierId()), MarketResourceTypeEnum.CALL.getType());
+            if (voiceMarketResourceList.size() > 0) {
+                serviceResource += MarketResourceTypeEnum.CALL.getType() + ",";
+                JSONObject jsonObject;
+                JSONArray jsonArray = new JSONArray();
+                for (MarketResourceDTO m : voiceMarketResourceList) {
+                    if (StringUtil.isNotEmpty(m.getResourceProperty())) {
+                        jsonObject = JSON.parseObject(m.getResourceProperty());
+                        if (!jsonObject.containsKey("call_center_config")) {
+                            jsonObject.put("call_center_config", "{}");
+                        }
+                        jsonObject.put("resourceId", m.getResourceId());
+                        jsonArray.add(jsonObject);
+                    }
+                }
+                if (jsonArray.size() > 0) {
+                    result.setCallConfig(jsonArray.toJSONString());
+                }
+
+            }
+            // 查询短信营销资源
+            List<MarketResourceDTO> smsMarketResourceList = marketResourceDao.listMarketResourceBySupplierIdAndType(String.valueOf(result.getSupplierId()), MarketResourceTypeEnum.SMS.getType());
+            if (smsMarketResourceList.size() > 0) {
+                serviceResource += MarketResourceTypeEnum.SMS.getType() + ",";
+                JSONObject jsonObject;
+                JSONArray jsonArray = new JSONArray();
+                for (MarketResourceDTO m : smsMarketResourceList) {
+                    if (StringUtil.isNotEmpty(m.getResourceProperty())) {
+                        jsonObject = JSON.parseObject(m.getResourceProperty());
+                        jsonObject.put("resourceId", m.getResourceId());
+                        jsonArray.add(jsonObject);
+                    }
+                }
+                if (jsonArray.size() > 0) {
+                    result.setSmsConfig(jsonArray.toJSONString());
+                }
+            }
+            // 查询标签营销资源
+            List<MarketResourceDTO> labelMarketResourceList = marketResourceDao.listMarketResourceBySupplierIdAndType(String.valueOf(result.getSupplierId()), MarketResourceTypeEnum.LABEL.getType());
+            if (labelMarketResourceList.size() > 0) {
+                serviceResource += MarketResourceTypeEnum.LABEL.getType() + ",";
+                JSONObject jsonObject;
+                JSONArray jsonArray = new JSONArray();
+                for (MarketResourceDTO m : labelMarketResourceList) {
+                    if (StringUtil.isNotEmpty(m.getResourceProperty())) {
+                        jsonObject = JSON.parseObject(m.getResourceProperty());
+                        jsonObject.put("resourceId", m.getResourceId());
+                        jsonArray.add(jsonObject);
+                    }
+                }
+                if (jsonArray.size() > 0) {
+                    result.setDataConfig(jsonArray.toJSONString());
+                }
+            }
+
+            List<MarketResourceDTO> list = marketResourceDao.listMarketResourceBySupplierId(String.valueOf(result.getSupplierId()));
+            Set<Integer> types = new HashSet<>();
+            if (list != null && list.size() > 0) {
+                JSONObject jsonObject = null;
+                JSONArray jsonArray = null;
+                for (int i = 0; i < list.size(); i++) {
+                    jsonObject = JSON.parseObject(list.get(i).getResourceProperty());
+                    if (jsonObject.containsKey("key") && jsonObject.getString("key").endsWith("_config")) {
+                        if (data.get(jsonObject.getString("key")) == null) {
+                            jsonArray = new JSONArray();
+                        } else {
+                            jsonArray = JSON.parseArray(data.getString(jsonObject.getString("key")));
+                        }
+                        types.add(list.get(i).getTypeCode());
+                        jsonObject.put("resourceId", list.get(i).getResourceId());
+                        jsonArray.add(jsonObject);
+                        data.put(jsonObject.getString("key"), jsonArray.toJSONString());
+                    }
+                }
+            }
+            serviceResource += StringUtils.join(types.toArray(), ",");
+            // 所使用的营销资源
+            result.setServiceResource(serviceResource);
+        }
+        data.putAll(JSON.parseObject(JSON.toJSONString(result)));
+        return data;
     }
 
     /**
