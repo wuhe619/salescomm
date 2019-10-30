@@ -31,10 +31,11 @@ public class CustomerPriceSettingService {
     }
 
     public String updatePrice(PriceDTO priceDto) {
-        Pattern pattern = Pattern.compile("-?[0-9]+\\.?[0-9]*");
+        Pattern pattern = Pattern.compile("^[1-9]\\d*$");
+
         Matcher isNum = pattern.matcher(priceDto.getPrice());
         if (!isNum.matches()) {
-            throw new ParamException("设置售价必须为数字");
+            throw new ParamException("设置售价必须为正数");
         }
         CustomerProperty property =
                 customerPropertyRepository.findByCustIdAndPropertyName(priceDto.getCustId(), "31_config");

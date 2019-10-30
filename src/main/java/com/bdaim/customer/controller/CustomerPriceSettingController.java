@@ -30,7 +30,7 @@ public class CustomerPriceSettingController extends BasicAction {
     @PostMapping("/updatePrice")
     public ResponseInfo updatePrice(@RequestBody PriceDTO priceDto) {
         ResponseInfo resp = new ResponseInfo();
-        if (!"admin".equals(opUser().getRole()) || !"ROLE_USER".equals(opUser().getRole())) {
+        if (!"admin".equals(opUser().getRole()) ) {
             return new ResponseInfoAssemble().failure(-1, "当前用户不能修改售价");
         }
         resp.setData(customerPriceSettingService.updatePrice(priceDto));
