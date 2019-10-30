@@ -1,4 +1,4 @@
-package com.bdaim.price.entity;
+package com.bdaim.resource.price.entity;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
