@@ -20,7 +20,7 @@ public class CustomerPriceSettingService {
         CustomerProperty property =
                 customerPropertyRepository.findByCustIdAndPropertyName(custId, "10000_config");
         if (property == null) {
-            savePrice(custId);
+            property = savePrice(custId);
         }
         Map<String, Object> map = new HashMap<>();
         map.put("code", 200);
@@ -39,7 +39,7 @@ public class CustomerPriceSettingService {
         customerPropertyRepository.save(property);
         map.put("code", 200);
         map.put("propertyValue", property.getPropertyValue());
-         return JSON.toJSONString(map);
+        return JSON.toJSONString(map);
     }
 
     public CustomerProperty savePrice(String custId) {
