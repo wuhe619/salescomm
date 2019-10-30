@@ -1,4 +1,4 @@
-package com.bdaim.price.service.impl;
+package com.bdaim.resource.price.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.bill.dto.CustomerBillQueryParam;
@@ -8,9 +8,9 @@ import com.bdaim.common.page.Pagination;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerUserDao;
 import com.bdaim.customer.entity.CustomerProperty;
-import com.bdaim.price.dto.SalePriceDTO;
-import com.bdaim.price.service.SalePriceService;
 import com.bdaim.resource.dao.SourceDao;
+import com.bdaim.resource.price.dto.SalePriceDTO;
+import com.bdaim.resource.price.service.SalePriceService;
 import com.bdaim.resource.service.MarketResourceService;
 import com.bdaim.supplier.dto.SupplierEnum;
 import com.bdaim.util.ConstantsUtil;

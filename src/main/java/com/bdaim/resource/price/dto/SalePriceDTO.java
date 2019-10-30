@@ -1,4 +1,4 @@
-package com.bdaim.price.dto;
+package com.bdaim.resource.price.dto;
 
 import java.io.Serializable;
 

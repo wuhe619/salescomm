@@ -1,4 +1,4 @@
-package com.bdaim.price.controller;
+package com.bdaim.resource.price.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
@@ -7,8 +7,8 @@ import com.bdaim.bill.dto.CustomerBillQueryParam;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.page.PageList;
-import com.bdaim.price.dto.SalePriceDTO;
-import com.bdaim.price.service.SalePriceService;
+import com.bdaim.resource.price.dto.SalePriceDTO;
+import com.bdaim.resource.price.service.SalePriceService;
 import com.bdaim.util.Constant;
 
 import org.slf4j.Logger;
