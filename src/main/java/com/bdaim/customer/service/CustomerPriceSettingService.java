@@ -1,6 +1,7 @@
 package com.bdaim.customer.service;
 
 import com.alibaba.fastjson.JSON;
+import com.bdaim.common.exception.ParamException;
 import com.bdaim.customer.dao.CustomerPropertyRepository;
 import com.bdaim.customer.dto.PriceDTO;
 import com.bdaim.customer.entity.CustomerProperty;
@@ -11,6 +12,8 @@ import java.sql.Timestamp;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 public class CustomerPriceSettingService {
@@ -29,9 +32,15 @@ public class CustomerPriceSettingService {
         return JSON.toJSONString(map);
     }
 
-    public String updatePrice(PriceDTO priceDto) {
+    public String updatePrice(PriceDTO priceDto)  {
+        Pattern pattern = Pattern.compile("-?[0-9]+\\.?[0-9]*");
+        Matcher isNum = pattern.matcher(priceDto.getPrice());
+        System.err.println(!isNum.matches());
+        if(!isNum.matches()){
+            throw new ParamException("设置售价必须为数字");
+        }
         CustomerProperty property =
-                customerPropertyRepository.findByCustIdAndPropertyName(priceDto.getCustId(), "10000_config");
+                customerPropertyRepository.findByCustIdAndPropertyName(priceDto.getCustId(), "31_config");
         if (property == null) {
             property = savePrice(priceDto.getCustId());
         }

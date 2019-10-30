@@ -19,7 +19,7 @@ public class CustomerPriceSettingController extends BasicAction {
     }
 
     @PostMapping("/updatePrice")
-    public String updatePrice(@RequestBody PriceDTO priceDto){
+    public String updatePrice(@RequestBody PriceDTO priceDto) {
         return  customerPriceSettingService.updatePrice(priceDto);
     }
 }
