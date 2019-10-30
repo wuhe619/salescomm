@@ -16,7 +16,11 @@ public class CustomerPriceSettingController extends BasicAction {
 
     @Autowired
     private CustomerPriceSettingService customerPriceSettingService;
-
+    /*
+     *
+     * 后台 售价设置-查看售价
+     *
+     * */
     @GetMapping("/queryPrice")
     public ResponseInfo queryPrice(String custId) {
         ResponseInfo resp = new ResponseInfo();
@@ -26,7 +30,11 @@ public class CustomerPriceSettingController extends BasicAction {
         resp.setData(customerPriceSettingService.queryPrice(custId));
         return resp;
     }
-
+    /*
+     *
+     * 后台 售价设置-设置售价
+     *
+     * */
     @PostMapping("/updatePrice")
     public ResponseInfo updatePrice(@RequestBody PriceDTO priceDto) {
         if (StringUtil.isEmpty(priceDto.getCustId())) {

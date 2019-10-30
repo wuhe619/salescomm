@@ -51,7 +51,7 @@ public class CustomerPriceSettingService {
         CustomerProperty property = new CustomerProperty();
         property.setCustId(custId);
         property.setPropertyName("10000_config");
-        property.setPropertyValue("0");
+        property.setPropertyValue("");
         property.setCreateTime(new Timestamp(new Date().getTime()));
         customerPropertyRepository.save(property);
 
