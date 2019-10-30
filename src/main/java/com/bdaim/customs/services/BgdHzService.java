@@ -20,10 +20,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
-import java.util.Base64;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /**
  * 报关单回执
@@ -151,8 +148,10 @@ public class BgdHzService implements BusiService {
                 || "20".equals(opresult)){
         JSONObject msg=new JSONObject();
         msg.put("op_time",data.getString("op_time"));
-        msg.put("link_billno",data.getString("billno")+"-"+data.getString("ass_billno"));
+        msg.put("main_bill_no",data.getString("billno"));
+        msg.put("bill_no",data.getString("ass_billno"));
         msg.put("op_result",data.getString("op_result"));
+        msg.put("msg",statsMap.get(opresult));
         msg.put("notes",data.getString("notes"));
         msg.put("type",BusiTypeEnum.BGD_HZ.getType());
 
@@ -174,4 +173,16 @@ public class BgdHzService implements BusiService {
 //        fileDao.save(envelopinfo.getString("message_id"),id, BusinessEnum.CUSTOMS,null,null);
     }
 
+    public static Map<String,String> statsMap = new HashMap<>();
+
+    static{
+        statsMap.put("03","转人工审核");
+        statsMap.put("04","请提交纸面单据");
+        statsMap.put("05","查验");
+        statsMap.put("06","扣留");
+        statsMap.put("07","没收");
+        statsMap.put("19","查验后扣留");
+        statsMap.put("20","查验后退单");
+
+    }
 }
