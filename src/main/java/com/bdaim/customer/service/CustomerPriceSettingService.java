@@ -22,7 +22,7 @@ public class CustomerPriceSettingService {
 
     public PriceDTO queryPrice(String custId) {
         CustomerProperty property =
-                customerPropertyRepository.findByCustIdAndPropertyName(custId, "10000_config");
+                customerPropertyRepository.findByCustIdAndPropertyName(custId, "31_config");
         if (property == null) {
             property = savePrice(custId);
         }
@@ -31,11 +31,11 @@ public class CustomerPriceSettingService {
     }
 
     public String updatePrice(PriceDTO priceDto) {
-        Pattern pattern = Pattern.compile("^[1-9]\\d*$");
+        Pattern pattern = Pattern.compile("-?[0-9]+\\.?[0-9]*");
 
         Matcher isNum = pattern.matcher(priceDto.getPrice());
         if (!isNum.matches()) {
-            throw new ParamException("设置售价必须为正数");
+            throw new ParamException("设置售价必须为数字");
         }
         CustomerProperty property =
                 customerPropertyRepository.findByCustIdAndPropertyName(priceDto.getCustId(), "31_config");
@@ -50,7 +50,7 @@ public class CustomerPriceSettingService {
     public CustomerProperty savePrice(String custId) {
         CustomerProperty property = new CustomerProperty();
         property.setCustId(custId);
-        property.setPropertyName("10000_config");
+        property.setPropertyName("31_config");
         property.setPropertyValue("");
         property.setCreateTime(new Timestamp(new Date().getTime()));
         customerPropertyRepository.save(property);
