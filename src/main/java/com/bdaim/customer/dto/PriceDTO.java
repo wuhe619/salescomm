@@ -1,5 +1,7 @@
 package com.bdaim.customer.dto;
 
+import com.bdaim.customer.entity.CustomerProperty;
+
 public class PriceDTO
 {
     private String custId;
@@ -19,5 +21,14 @@ public class PriceDTO
 
     public void setPrice(String price) {
         this.price = price;
+    }
+
+    public PriceDTO() {
+    }
+
+    public PriceDTO(   CustomerProperty property) {
+
+        this.custId = property.getCustId();
+        this.price = property.getPropertyValue();
     }
 }

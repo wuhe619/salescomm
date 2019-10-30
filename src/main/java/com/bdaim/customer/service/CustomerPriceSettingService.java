@@ -20,23 +20,20 @@ public class CustomerPriceSettingService {
     @Autowired
     private CustomerPropertyRepository customerPropertyRepository;
 
-    public String queryPrice(String custId) {
+    public PriceDTO queryPrice(String custId) {
         CustomerProperty property =
                 customerPropertyRepository.findByCustIdAndPropertyName(custId, "10000_config");
         if (property == null) {
             property = savePrice(custId);
         }
-        Map<String, Object> map = new HashMap<>();
-        map.put("code", 200);
-        map.put("propertyValue", property.getPropertyValue());
-        return JSON.toJSONString(map);
+        PriceDTO priceDto = new PriceDTO(property);
+        return priceDto;
     }
 
-    public String updatePrice(PriceDTO priceDto)  {
+    public String updatePrice(PriceDTO priceDto) {
         Pattern pattern = Pattern.compile("-?[0-9]+\\.?[0-9]*");
         Matcher isNum = pattern.matcher(priceDto.getPrice());
-        System.err.println(!isNum.matches());
-        if(!isNum.matches()){
+        if (!isNum.matches()) {
             throw new ParamException("设置售价必须为数字");
         }
         CustomerProperty property =
@@ -45,11 +42,8 @@ public class CustomerPriceSettingService {
             property = savePrice(priceDto.getCustId());
         }
         property.setPropertyValue(priceDto.getPrice());
-        Map<String, Object> map = new HashMap<>();
         customerPropertyRepository.save(property);
-        map.put("code", 200);
-        map.put("propertyValue", property.getPropertyValue());
-        return JSON.toJSONString(map);
+        return "";
     }
 
     public CustomerProperty savePrice(String custId) {
