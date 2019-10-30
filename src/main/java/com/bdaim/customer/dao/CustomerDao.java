@@ -12,9 +12,9 @@ import com.bdaim.customer.entity.ApparentNumber;
 import com.bdaim.customer.entity.Customer;
 import com.bdaim.customer.entity.CustomerProperty;
 import com.bdaim.customgroup.dto.CGroupImportParam;
-import com.bdaim.price.dto.ResourcesPriceDto;
 import com.bdaim.common.dto.Page;
 import com.bdaim.resource.entity.MarketResourceEntity;
+import com.bdaim.resource.price.dto.ResourcesPriceDto;
 import com.bdaim.util.NumberConvertUtil;
 import com.bdaim.util.StringUtil;
 

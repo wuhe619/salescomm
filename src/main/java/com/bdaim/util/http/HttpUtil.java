@@ -54,6 +54,13 @@ public class HttpUtil {
 
     private static final Logger log = LoggerFactory.getLogger(HttpUtil.class);
 
+    /**
+     * 请求方式POST Content-Type=application/json
+     * @param strUrl
+     * @param strReq
+     * @return
+     * @throws Exception
+     */
     private static String httpPost(String strUrl, String strReq) throws Exception {
         URL url = new URL(strUrl);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -82,6 +89,14 @@ public class HttpUtil {
         return httpsPost(strUrl, strReq, null);
     }
 
+    /**
+     * https请求方式POST Content-Type=application/json,带authorization请求头
+     * @param strUrl
+     * @param strReq
+     * @param authorization
+     * @return
+     * @throws Exception
+     */
     public static String httpsPost(String strUrl, String strReq, String authorization) throws Exception {
         if (strUrl.startsWith("http://"))
             return httpPost(strUrl, strReq);
@@ -335,7 +350,7 @@ public class HttpUtil {
     }
 
     /**
-     * 使用重试超时机制的post请求
+     * 使用重试超时机制的post请求返回流
      *
      * @param url  请求的地址
      * @param args 请求的参数
@@ -594,6 +609,14 @@ public class HttpUtil {
         return result;
     }
 
+    /**
+     * 请求方式POST Content-Type=application/json,可以自定义header参数
+     * @param strUrl
+     * @param strReq
+     * @param headers
+     * @return
+     * @throws Exception
+     */
     public static String httpPost(String strUrl, String strReq, Map<String, Object> headers) throws Exception {
         org.apache.http.client.HttpClient httpClient;
         HttpPost httpPost;
@@ -635,7 +658,15 @@ public class HttpUtil {
         return result;
     }
 
-
+    /**
+     * 请求方式POST Content-Type=application/json,可以自定义header参数
+     * @param strUrl
+     * @param strReq
+     * @param headers
+     * @param timeout 超时时间
+     * @return
+     * @throws Exception
+     */
     public static String httpPost(String strUrl, String strReq, Map<String, Object> headers, int timeout) throws Exception {
         org.apache.http.client.HttpClient httpClient;
         HttpPost httpPost;
@@ -677,6 +708,14 @@ public class HttpUtil {
         return result;
     }
 
+    /**
+     * 请求方式POST 可以自定义header参数
+     * @param strUrl
+     * @param params
+     * @param headers
+     * @return
+     * @throws Exception
+     */
     public static String httpPost(String strUrl, Map<String, String> params, Map<String, Object> headers) throws Exception {
         org.apache.http.client.HttpClient httpClient;
         HttpPost httpPost;
