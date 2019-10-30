@@ -1,16 +1,11 @@
 package com.bdaim.customer.controller;
 
 import com.bdaim.common.controller.BasicAction;
+import com.bdaim.customer.dto.PriceDTO;
 import com.bdaim.customer.service.CustomerPriceSettingService;
-import com.bdaim.util.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/priceSetting")
@@ -23,8 +18,8 @@ public class CustomerPriceSettingController extends BasicAction {
         return  customerPriceSettingService.queryPrice(custId);
     }
 
-    @PutMapping("/updatePrice")
-    public String updatePrice(String custId,String price){
-        return  customerPriceSettingService.updatePrice(custId,price);
+    @PostMapping("/updatePrice")
+    public String updatePrice(@RequestBody PriceDTO priceDto){
+        return  customerPriceSettingService.updatePrice(priceDto);
     }
 }

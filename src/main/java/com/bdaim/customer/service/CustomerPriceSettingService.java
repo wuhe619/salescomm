@@ -2,6 +2,7 @@ package com.bdaim.customer.service;
 
 import com.alibaba.fastjson.JSON;
 import com.bdaim.customer.dao.CustomerPropertyRepository;
+import com.bdaim.customer.dto.PriceDTO;
 import com.bdaim.customer.entity.CustomerProperty;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -28,13 +29,13 @@ public class CustomerPriceSettingService {
         return JSON.toJSONString(map);
     }
 
-    public String updatePrice(String custId, String price) {
+    public String updatePrice(PriceDTO priceDto) {
         CustomerProperty property =
-                customerPropertyRepository.findByCustIdAndPropertyName(custId, "10000_config");
+                customerPropertyRepository.findByCustIdAndPropertyName(priceDto.getCustId(), "10000_config");
         if (property == null) {
-            property = savePrice(custId);
+            property = savePrice(priceDto.getCustId());
         }
-        property.setPropertyValue(price);
+        property.setPropertyValue(priceDto.getPrice());
         Map<String, Object> map = new HashMap<>();
         customerPropertyRepository.save(property);
         map.put("code", 200);
