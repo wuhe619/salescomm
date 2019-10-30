@@ -33,10 +33,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 供应商
@@ -241,8 +238,15 @@ public class SupplierAction extends BasicAction {
     @RequestMapping(value = "/save", method = RequestMethod.POST)
     @ResponseBody
     @ValidatePermission(role = "admin,ROLE_USER")
-    public Object saveSupplier(@RequestBody SupplierDTO supplierDTO) {
+    public Object saveSupplier(@RequestBody String body) {
         int code = 0;
+        SupplierDTO supplierDTO = null;
+        try {
+            supplierDTO = JSONObject.parseObject(body, SupplierDTO.class);
+            supplierDTO.setResourceConfig(JSONObject.parseObject(body));
+        } catch (Exception e) {
+            return new ResponseInfoAssemble().failure(-1, "供应商保存参数异常");
+        }
         try {
             if (supplierDTO.getSupplierId() == null) {
                 code = supplierService.saveSupplier(supplierDTO);
@@ -262,9 +266,9 @@ public class SupplierAction extends BasicAction {
     @ResponseBody
     @ValidatePermission(role = "admin,ROLE_USER")
     public String selectSupplier(String supplierId) {
-        SupplierDTO supplierDTO = null;
+        JSONObject supplierDTO = null;
         try {
-            supplierDTO = supplierService.selectSupplierAndResourceProperty(supplierId);
+            supplierDTO = supplierService.selectSupplierAndResourceProperty0(supplierId);
         } catch (Exception e) {
             LOG.error("查询单个供应商详情失败,", e);
         }
@@ -301,8 +305,8 @@ public class SupplierAction extends BasicAction {
         try {
             LoginUser lu = opUser();
             if (lu == null) return null;
-            if("ROLE_CUSTOMER".equals(lu.getRole())){
-                custId=lu.getCustId();
+            if ("ROLE_CUSTOMER".equals(lu.getRole())) {
+                custId = lu.getCustId();
             }
             if (StringUtil.isEmpty(custId)) {
                 result = supplierService.listVoiceResourceByType("1");

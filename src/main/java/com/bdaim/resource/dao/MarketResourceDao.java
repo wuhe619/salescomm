@@ -281,8 +281,13 @@ public class MarketResourceDao extends SimpleHibernateDao<MarketResourceEntity, 
         List<MarketResourceDTO> result = new ArrayList<>();
         if (list.size() > 0) {
             MarketResourceDTO marketResourceDTO;
+            ResourcePropertyEntity property;
             for (int i = 0; i < list.size(); i++) {
                 marketResourceDTO = new MarketResourceDTO(list.get(i));
+                if (marketResourceDTO != null && marketResourceDTO.getResourceId() != null) {
+                    property = getProperty(String.valueOf(marketResourceDTO.getResourceId()), "price_config");
+                    marketResourceDTO.setResourceProperty(property != null ? property.getPropertyValue() : "{}");
+                }
                 result.add(marketResourceDTO);
             }
         }
