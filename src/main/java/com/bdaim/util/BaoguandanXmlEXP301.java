@@ -248,7 +248,7 @@ public class BaoguandanXmlEXP301 {
         GrossWt.setTextContent(json.getString("weight"));  //r
         EntryHead.appendChild(GrossWt);
         Element NetWt = document.createElement("NetWt");
-        NetWt.setTextContent(json.containsKey("weight")?json.getString("weight"):"");  //r
+        NetWt.setTextContent(json.containsKey("net_weight")?json.getString("net_weight"):"");  //r
         EntryHead.appendChild(NetWt);
         Element WrapType = document.createElement("WrapType");
         WrapType.setTextContent(mainJson.getString("wrap_class"));  //r
@@ -261,10 +261,10 @@ public class BaoguandanXmlEXP301 {
         EntryHead.appendChild(DeclPort);
 
         Element CoOwner = document.createElement("CoOwner");//经营单位性质,取报关单位代码
-        String unit = (String) customerInfo.getOrDefault("agent_code","");
+       /* String unit = (String) customerInfo.getOrDefault("agent_code","");
         unit = unit.substring(0,6);
         unit = unit.substring(unit.length()-1);
-        CoOwner.setTextContent(unit);  //r
+        CoOwner.setTextContent(unit);  //r*/
         EntryHead.appendChild(CoOwner);
         /*Element MnlJgfFlag = document.createElement("MnlJgfFlag");
         MnlJgfFlag.setTextContent("");

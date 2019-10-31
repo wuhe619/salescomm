@@ -377,10 +377,10 @@ public class BgdFService implements BusiService {
         if(StringUtil.isEmpty(mainjson.getString("decl_port"))){
             filedName += "," + BGDReportEnum.DeclPort.getName();
         }
-        if(customerInfo.get("agent_code")==null
+        /*if(customerInfo.get("agent_code")==null
                 || customerInfo.get("agent_code").toString().length()<6){
             filedName += "," + BGDReportEnum.CoOwner.getName();//经营单位性质，取报关单位编码第6位
-        }
+        }*/
         if(StringUtil.isEmpty(customerInfo.getOrDefault("input_no","").toString())){
             filedName += "," + BGDReportEnum.InputNo.getName();
         }
