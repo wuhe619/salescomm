@@ -181,7 +181,7 @@ public class CangdanXmlEXP311 {
         ExpMftHead.appendChild(TradeName);
 
         Element InputNo = document.createElement("InputNo");
-        InputNo.setTextContent((String) custInfo.get("declare_no"));//录入人卡号
+        InputNo.setTextContent((String) custInfo.get("input_no"));//录入人卡号
         ExpMftHead.appendChild(InputNo);
 
         Element InputOpName = document.createElement("InputOpName");

@@ -193,7 +193,7 @@ public class SbdSService implements BusiService {
                 List dataList = page.getData();
                 Map<String, Object> d = (Map<String, Object>) dataList.get(0);
                 JSONObject contentObj = JSON.parseObject(JSON.toJSONString(d));
-                duty_paid_price = contentObj.getFloatValue("duty_price");
+                duty_paid_price = contentObj.containsKey("duty_price")?contentObj.getFloatValue("duty_price"):0;
 
                 tax_rate = contentObj.getFloatValue("tax_rate");
                 estimated_tax = duty_paid_price * tax_rate;
@@ -216,7 +216,7 @@ public class SbdSService implements BusiService {
                 info.put("decl_total",total_price);
             } else {
                 if (goods.containsKey("ggrosswt") && StringUtil.isNotEmpty(goods.getString("ggrosswt"))) {
-                    weight += goods.getFloatValue("ggrosswt");
+                    weight += goods.containsKey("ggrosswt")?goods.getFloatValue("ggrosswt"):0;
                 }
                 if (goods.containsKey("g_qty") && StringUtil.isNotEmpty(goods.getString("g_qty"))) {
                     G_qty += goods.getFloatValue("g_qty");
@@ -231,7 +231,7 @@ public class SbdSService implements BusiService {
                 lowPricegoods++;
             }
         }
-        fjson.put("weight_total", weight.floatValue());
+        fjson.put("weight_total", weight==null?0:weight.floatValue());
         fjson.put("lowPricegoods", lowPricegoods);
         fjson.put("g_gty", G_qty);
         fjson.put("estimated_tax", festimated_tax);

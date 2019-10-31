@@ -722,7 +722,7 @@ public class CdZService implements BusiService {
             filedName += "," + CDReportEnum.TradeName.getName();
         }
 
-        if (StringUtil.isEmpty((String) customerInfo.get("declare_no"))) {//录入人卡号
+        if (StringUtil.isEmpty((String) customerInfo.get("input_no"))) {//录入人卡号
             filedName += "," + CDReportEnum.InputNo.getName();
         }
 
