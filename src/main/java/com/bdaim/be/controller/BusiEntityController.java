@@ -95,10 +95,14 @@ public class BusiEntityController extends BasicAction {
 
         try {
             LoginUser lu = opUser();
-            if (lu.getCustId() == null || "".equals(lu.getCustId()))
+            String cust_id = lu.getCustId();
+            if (StringUtil.isEmpty(cust_id) && StringUtil.isNotEmpty(info.getString("cust_id"))) {
+                // 运营后台传参客户ID处理
+                cust_id = info.getString("cust_id");
+            }
+            if (StringUtil.isEmpty(cust_id))
                 return new ResponseInfoAssemble().failure(-1, "无归属企业，不能保存记录:[" + busiType + "]");
 
-            String cust_id = lu.getCustId();
             String cust_group_id = lu.getUserGroupId();
             Long cust_user_id = lu.getId();
 
@@ -163,7 +167,7 @@ public class BusiEntityController extends BasicAction {
             resp.setData(jo);
         } catch (TouchException e) {
             int code = -1;
-            if("2000".equals(e.getCode()) || "2001".equals(e.getCode())){
+            if ("2000".equals(e.getCode()) || "2001".equals(e.getCode())) {
                 code = Integer.valueOf(e.getCode());
             }
             return new ResponseInfoAssemble().failure(code, e.getMessage());

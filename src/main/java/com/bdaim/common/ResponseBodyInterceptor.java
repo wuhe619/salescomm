@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.exception.TouchException;
+import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.util.PropertiesUtil;
 import com.bdaim.util.StringUtil;
 
@@ -81,7 +82,9 @@ public class ResponseBodyInterceptor {
             className = pjp.getTarget().getClass().getSimpleName();
 
             Object o = pjp.proceed();
-
+            if(o instanceof ResponseInfo){
+                return o;
+            }
             if (o != null) {
                 String str = null;
                 if (o instanceof String) {
