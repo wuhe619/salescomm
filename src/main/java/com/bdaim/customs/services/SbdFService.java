@@ -215,7 +215,7 @@ public class SbdFService implements BusiService {
             }
             //dbManager.setContent(json.toJSONString());
             serviceUtils.updateDataToES(busiType, id.toString(), json);
-            totalPartDanToMainDan(json.getLongValue("pid"), BusiTypeEnum.SZ.getType(), id, cust_id, "update");
+            totalPartDanToMainDan(json.getLongValue("pid"), BusiTypeEnum.SZ.getType(), id, cust_id, "update",info);
         }
     }
 
@@ -252,7 +252,7 @@ public class SbdFService implements BusiService {
         // 批量删除es税单
         elasticSearchService.bulkDeleteDocument(BusiTypeEnum.getEsIndex(BusiTypeEnum.SS.getType()), Constants.INDEX_TYPE, sdIds);
         Integer zid = json.getInteger("pid");
-        totalPartDanToMainDan(json.getLongValue("pid"), BusiTypeEnum.SZ.getType(), id, cust_id, "del");
+        totalPartDanToMainDan(json.getLongValue("pid"), BusiTypeEnum.SZ.getType(), id, cust_id, "del",null);
         // 更新主单身份证照片数量
         json.put("id_no_pic", "");
         json.put("idcard_pic_flag", "0");
@@ -332,14 +332,15 @@ public class SbdFService implements BusiService {
      * @param type
      * @param id
      */
-    public void totalPartDanToMainDan(long zid, String type, Long id, String custId, String optype) {
+    public void totalPartDanToMainDan(long zid, String type, Long id, String custId, String optype,JSONObject info) {
 
         List<HBusiDataManager> data = serviceUtils.listDataByPid(custId, BusiTypeEnum.SF.getType(), zid, BusiTypeEnum.SZ.getType());
-        Float weightTotal = 0f;
+        Double weightTotal = 0d;
         Integer low_price_goods = 0;
         for (HBusiDataManager d : data) {
-            if (d.getId() == id.intValue()) continue;
-
+            if("del".equals(optype)){
+                if (d.getId() == id.intValue())continue;
+            }
             String content = d.getContent();
             JSONObject json = JSONObject.parseObject(content);
             Integer s = json.getInteger("low_price_goods");
@@ -349,7 +350,16 @@ public class SbdFService implements BusiService {
             if (StringUtil.isEmpty(WEIGHT)) {
                 WEIGHT = "0";
             }
-            weightTotal += Float.valueOf(WEIGHT);
+            if("update".equals(optype)){
+                if (d.getId() == id.intValue()){
+                    if (StringUtil.isEmpty(WEIGHT)) {
+                        WEIGHT = "0";
+                    }else {
+                        WEIGHT = info.getString("weight");
+                    }
+                }
+            }
+            weightTotal += Double.valueOf(WEIGHT);
         }
 
         String sql = "";//"select id,type,content,ext_1,ext_2,ext_3,ext_4 from "+HMetaDataDef.getTable()+" where id=" + zid + " and type='" + type + "'";
