@@ -314,7 +314,7 @@ public class BaoguandanXmlEXP301 {
         SendCountry.setTextContent(mainJson.getString("send_country"));  //r
         EntryHead.appendChild(SendCountry);
         Element SendCity = document.createElement("SendCity");
-        SendCity.setTextContent(mainJson.getString("send_city_en"));  //r
+//        SendCity.setTextContent(mainJson.getString("send_city"));  //
         EntryHead.appendChild(SendCity);
         Element SendId = document.createElement("SendId");
         SendId.setTextContent(json.getString("id_no"));  //r 收发件人证件号码
