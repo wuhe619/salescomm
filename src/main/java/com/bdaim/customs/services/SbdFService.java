@@ -22,6 +22,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -335,7 +336,7 @@ public class SbdFService implements BusiService {
     public void totalPartDanToMainDan(long zid, String type, Long id, String custId, String optype,JSONObject info) {
 
         List<HBusiDataManager> data = serviceUtils.listDataByPid(custId, BusiTypeEnum.SF.getType(), zid, BusiTypeEnum.SZ.getType());
-        Double weightTotal = 0d;
+        BigDecimal weightTotal = BigDecimal.ZERO;
         Integer low_price_goods = 0;
         for (HBusiDataManager d : data) {
             if("del".equals(optype)){
@@ -359,7 +360,7 @@ public class SbdFService implements BusiService {
                     }
                 }
             }
-            weightTotal += Double.valueOf(WEIGHT);
+            weightTotal = weightTotal.add(new BigDecimal(WEIGHT));
         }
 
         String sql = "";//"select id,type,content,ext_1,ext_2,ext_3,ext_4 from "+HMetaDataDef.getTable()+" where id=" + zid + " and type='" + type + "'";
@@ -372,7 +373,7 @@ public class SbdFService implements BusiService {
 
         String hcontent = manager.getContent();
         JSONObject jsonObject = JSONObject.parseObject(hcontent);
-        jsonObject.put("weight_total", weightTotal);//总重量
+        jsonObject.put("weight_total", weightTotal.toString());//总重量
         if ("del".equals(optype)) {
             jsonObject.put("party_total", data.size() - 1 < 0 ? 0 : data.size() - 1);//分单总数
         }
