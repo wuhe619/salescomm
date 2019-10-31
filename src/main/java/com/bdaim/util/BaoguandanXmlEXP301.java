@@ -165,7 +165,7 @@ public class BaoguandanXmlEXP301 {
         DestinationPort.setTextContent(mainJson.getString("depart_arrival_port")); //r
         EntryHead.appendChild(DestinationPort);
         Element TrafName = document.createElement("TrafName");
-        TrafName.setTextContent(mainJson.getString("traf_name"));//r
+        TrafName.setTextContent(mainJson.getString("trans_traf_name"));//r 转关运输工具
         EntryHead.appendChild(TrafName);
         Element VoyageNo = document.createElement("VoyageNo");
         VoyageNo.setTextContent(mainJson.getString("voyage_no"));//r
