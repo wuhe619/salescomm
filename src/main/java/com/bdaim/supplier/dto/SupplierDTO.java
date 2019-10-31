@@ -3,6 +3,7 @@ package com.bdaim.supplier.dto;
 import com.bdaim.supplier.entity.SupplierEntity;
 
 import java.sql.Timestamp;
+import java.util.Map;
 
 /**
  * @author wangxx
@@ -54,6 +55,7 @@ public class SupplierDTO {
 
     private String smsConfig;
 
+    private Map<String, Object> resourceConfig;
 
     /**
      * 授信额度(元)
@@ -167,6 +169,7 @@ public class SupplierDTO {
     public void setType(String type) {
         this.type = type;
     }
+
     public String getRelationResource() {
         return RelationResource;
     }
@@ -239,6 +242,14 @@ public class SupplierDTO {
         this.creditAmount = creditAmount;
     }
 
+    public Map<String, Object> getResourceConfig() {
+        return resourceConfig;
+    }
+
+    public void setResourceConfig(Map<String, Object> resourceConfig) {
+        this.resourceConfig = resourceConfig;
+    }
+
     @Override
     public String toString() {
         return "SupplierDTO{" +
@@ -253,7 +264,6 @@ public class SupplierDTO {
                 ", RelationResource='" + RelationResource + '\'' +
                 ", type='" + type + '\'' +
                 ", settlementType=" + settlementType +
-                ", settlementType=" + settlementType +
                 ", contactPerson='" + contactPerson + '\'' +
                 ", contactPosition='" + contactPosition + '\'' +
                 ", contactPhone='" + contactPhone + '\'' +
@@ -261,6 +271,7 @@ public class SupplierDTO {
                 ", dataConfig='" + dataConfig + '\'' +
                 ", callConfig='" + callConfig + '\'' +
                 ", smsConfig='" + smsConfig + '\'' +
+                ", resourceConfig=" + resourceConfig +
                 ", creditAmount='" + creditAmount + '\'' +
                 '}';
     }

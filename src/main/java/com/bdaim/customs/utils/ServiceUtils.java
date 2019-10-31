@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.bdaim.batch.ResourceEnum;
 import com.bdaim.common.BusiMetaConfig;
 import com.bdaim.common.dto.Page;
+import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.service.ElasticSearchService;
 import com.bdaim.common.service.SequenceService;
 import com.bdaim.customer.dao.CustomerDao;
@@ -14,11 +15,11 @@ import com.bdaim.customs.entity.*;
 import com.bdaim.resource.dao.MarketResourceDao;
 import com.bdaim.resource.dao.SourceDao;
 import com.bdaim.resource.entity.MarketResourceEntity;
-import com.bdaim.resource.entity.ResourcePropertyEntity;
 import com.bdaim.resource.service.MarketResourceService;
 import com.bdaim.supplier.dto.SupplierEnum;
-import com.bdaim.util.*;
-
+import com.bdaim.util.NumberConvertUtil;
+import com.bdaim.util.SqlAppendUtil;
+import com.bdaim.util.StringUtil;
 import io.searchbox.core.SearchResult;
 import net.sf.json.xml.XMLSerializer;
 import org.dom4j.Document;
@@ -806,9 +807,9 @@ public class ServiceUtils {
      * @param list
      * @return
      */
-    public Map<String,String> generateFDMainGName(List<Product> list) {
+    public Map<String, String> generateFDMainGName(List<Product> list) {
         String spilt = "|";
-        Map<String,String> resultmap = new HashMap<>();
+        Map<String, String> resultmap = new HashMap<>();
         if (list == null || list.size() == 0) {
             return resultmap;
         } else if (list.size() == 1) {
@@ -821,8 +822,8 @@ public class ServiceUtils {
             //.append(list.get(0).getG_name_en());
                    /* .append(spilt)
                     .append(list.get(0).getG_model());*/
-            resultmap.put("name",name.toString());
-            resultmap.put("name_en",name_en.toString());
+            resultmap.put("name", name.toString());
+            resultmap.put("name_en", name_en.toString());
             return resultmap;
         } else {
             Optional<Product> result = list.stream().filter(Objects::nonNull).filter(s -> StringUtil.isNotEmpty(s.getG_qty()) && StringUtil.isNotEmpty(s.getDecl_price()))
@@ -836,8 +837,8 @@ public class ServiceUtils {
                    /* .append(spilt)
                     .append(data.getG_model());*/
             name_en.append(data.getG_name_en()).append(spilt);
-            resultmap.put("name",name.toString());
-            resultmap.put("name_en",name_en.toString());
+            resultmap.put("name", name.toString());
+            resultmap.put("name_en", name_en.toString());
             return resultmap;
         }
     }
@@ -849,7 +850,7 @@ public class ServiceUtils {
      * @param quantity
      * @return
      */
-    public boolean checkBatchIdCardAmount(String custId, int quantity) {
+    public boolean checkBatchIdCardAmount(String custId, int quantity) throws TouchException {
         MarketResourceEntity mr = sourceDao.getResourceId(SupplierEnum.ZAX.getSupplierId(), ResourceEnum.CHECK_IDCARD.getType());
         String resourceId = null;
         if (mr != null) {
@@ -869,7 +870,9 @@ public class ServiceUtils {
             custCheckPrice = NumberConvertUtil.changeY2L(custConfigPrice.getPropertyValue());
             log.info("企业id:{}未配置销售定价,使用的是资源成本价:{}厘", custId, custCheckPrice);
         } else {
-            //查询供应商成本价
+            log.warn("企业id:{}未配置销售定价", custId);
+            throw new TouchException("1001", "未配置销售定价");
+            /*//查询供应商成本价
             ResourcePropertyEntity resourceProperty = marketResourceDao.getProperty(resourceId, "price_config");
             if (resourceProperty != null && StringUtil.isNotEmpty(resourceProperty.getPropertyValue())) {
                 custCheckPrice = NumberConvertUtil.changeY2L(resourceProperty.getPropertyValue());
@@ -877,7 +880,7 @@ public class ServiceUtils {
             } else {
                 log.warn("企业id:{}未配置销售定价", custId);
                 return false;
-            }
+            }*/
         }
 
         //计算批量核验身份需要的金额

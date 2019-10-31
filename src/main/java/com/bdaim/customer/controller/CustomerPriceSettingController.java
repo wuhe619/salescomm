@@ -16,7 +16,11 @@ public class CustomerPriceSettingController extends BasicAction {
 
     @Autowired
     private CustomerPriceSettingService customerPriceSettingService;
-
+    /*
+     *
+     * 后台 售价设置-查看售价
+     *
+     * */
     @GetMapping("/queryPrice")
     public ResponseInfo queryPrice(String custId) {
         ResponseInfo resp = new ResponseInfo();
@@ -26,9 +30,16 @@ public class CustomerPriceSettingController extends BasicAction {
         resp.setData(customerPriceSettingService.queryPrice(custId));
         return resp;
     }
-
+    /*
+     *
+     * 后台 售价设置-设置售价
+     *
+     * */
     @PostMapping("/updatePrice")
     public ResponseInfo updatePrice(@RequestBody PriceDTO priceDto) {
+        if (StringUtil.isEmpty(priceDto.getCustId())) {
+            return new ResponseInfoAssemble().failure(-1, "企业ID不能为空");
+        }
         ResponseInfo resp = new ResponseInfo();
         if (!"admin".equals(opUser().getRole()) ) {
             return new ResponseInfoAssemble().failure(-1, "当前用户不能修改售价");
