@@ -175,7 +175,7 @@ public class SbdSService implements BusiService {
         String fcontent = fmanager.getContent();
 
         JSONObject fjson = JSONObject.parseObject(fcontent);
-
+        System.out.println("jsoncontent====="+fjson);
         List<HBusiDataManager> goodsList = serviceUtils.listSdByBillNo(cust_id,BusiTypeEnum.SS.getType(), fmanager.getExt_4(),fmanager.getExt_3());
         Double weight = 0d;  //重量
         Double G_qty = 0d; //数量
@@ -231,6 +231,7 @@ public class SbdSService implements BusiService {
                 lowPricegoods++;
             }
         }
+        log.info("weight_total=========="+weight);
         fjson.put("weight_total", weight==null?0:weight.floatValue());
         fjson.put("lowPricegoods", lowPricegoods);
         fjson.put("g_gty", G_qty);
