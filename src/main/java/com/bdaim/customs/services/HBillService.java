@@ -99,7 +99,7 @@ public class HBillService {
             if (StringUtil.isNotEmpty(param.getEndTime())) {
                 querySql.append(" AND create_time <='" + param.getEndTime() + "'");
             }
-
+            querySql.append(" order by create_time desc");
             page = customerDao.sqlPageQuery(querySql.toString(), param.getPageNum(), param.getPageSize());
             if (page != null) {
                 List<Map<String, Object>> list = page.getData();
