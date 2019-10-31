@@ -263,14 +263,14 @@ public class CdZService implements BusiService {
             customerInfo.put("sender_id", sendId);
             CustomerUser customerUser = customerUserDao.get(cust_user_id);
             log.info("customerUser", customerUser);
-            CustomerUserPropertyDO propertyDO = customerUserDao.getProperty(cust_user_id.toString(), "declare_no");
+            CustomerUserPropertyDO propertyDO = customerUserDao.getProperty(cust_user_id.toString(), "input_no");
             customerInfo.put("input_name", "");
-            customerInfo.put("declare_no", "");
+            customerInfo.put("input_no", "");
             if (customerUser != null) {
                 customerInfo.put("input_name", customerUser.getRealname());
             }
             if (propertyDO != null) {
-                customerInfo.put("declare_no", propertyDO.getPropertyValue());
+                customerInfo.put("input_no", propertyDO.getPropertyValue());
             }
             log.info("舱单分单数：" + ds.size());
 
@@ -722,7 +722,7 @@ public class CdZService implements BusiService {
             filedName += "," + CDReportEnum.TradeName.getName();
         }
 
-        if (StringUtil.isEmpty((String) customerInfo.get("declare_no"))) {//录入人卡号
+        if (StringUtil.isEmpty((String) customerInfo.get("input_no"))) {//录入人卡号
             filedName += "," + CDReportEnum.InputNo.getName();
         }
 
@@ -806,7 +806,7 @@ public class CdZService implements BusiService {
         IEPort("i_e_port", "进出口岸代码"),
         TradeCo("s_c_code_busi_unit", "经营单位编号"),
         TradeName("business_unit_name", "经营单位名称"),
-        InputNo("declare_no", "录入人卡号"),
+        InputNo("input_no", "录入人卡号"),
         InputOpName("input_name", "录入人姓名"),
         InputCompanyCode("s_c_code_shipper", "录入单位代码"),
         InputCompanyName("enterpriseName", "录入单位名称");

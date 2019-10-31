@@ -126,7 +126,7 @@ public class BaoguandanXmlEXP301 {
         JSONObject json = JSON.parseObject(partyContent);
         createEntryHeadXML(document,EXP301,mainjson,json,customerInfo);
         createEntryListXML(document,EXP301,ds);
-        createEntryDocuXML(document,EXP301);
+//        createEntryDocuXML(document,EXP301);
 
         Data.appendChild(EXP301);
         SignedData.appendChild(Data);
@@ -248,7 +248,7 @@ public class BaoguandanXmlEXP301 {
         GrossWt.setTextContent(json.getString("weight"));  //r
         EntryHead.appendChild(GrossWt);
         Element NetWt = document.createElement("NetWt");
-        NetWt.setTextContent(json.containsKey("weight")?json.getString("weight"):"");  //r
+        NetWt.setTextContent(json.containsKey("net_weight")?json.getString("net_weight"):"");  //r
         EntryHead.appendChild(NetWt);
         Element WrapType = document.createElement("WrapType");
         WrapType.setTextContent(mainJson.getString("wrap_class"));  //r
@@ -261,10 +261,10 @@ public class BaoguandanXmlEXP301 {
         EntryHead.appendChild(DeclPort);
 
         Element CoOwner = document.createElement("CoOwner");//经营单位性质,取报关单位代码
-        String unit = (String) customerInfo.getOrDefault("agent_code","");
+       /* String unit = (String) customerInfo.getOrDefault("agent_code","");
         unit = unit.substring(0,6);
         unit = unit.substring(unit.length()-1);
-        CoOwner.setTextContent(unit);  //r
+        CoOwner.setTextContent(unit);  //r*/
         EntryHead.appendChild(CoOwner);
         /*Element MnlJgfFlag = document.createElement("MnlJgfFlag");
         MnlJgfFlag.setTextContent("");
@@ -463,10 +463,10 @@ public class BaoguandanXmlEXP301 {
             GUnit.setTextContent(json.containsKey("g_unit")?json.getString("g_unit"):"");
             EntryList.appendChild(GUnit);
             Element Qty1 = document.createElement("Qty1");
-            Qty1.setTextContent(json.getString("qty_1"));
+//            Qty1.setTextContent(json.getString("qty_1"));
             EntryList.appendChild(Qty1);
             Element Unit1 = document.createElement("Unit1");
-            Unit1.setTextContent(json.getString("unit_1"));
+//            Unit1.setTextContent(json.getString("unit_1"));
             EntryList.appendChild(Unit1);
             Element Qty2 = document.createElement("Qty2");
             Qty2.setTextContent("");
