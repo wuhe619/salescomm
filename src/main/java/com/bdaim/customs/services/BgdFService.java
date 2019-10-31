@@ -548,14 +548,14 @@ public class BgdFService implements BusiService {
                 msg += "申报计量单位,";
                 hasError = true;
             }
-            if (!json.containsKey("qty_1") || StringUtil.isEmpty(json.getString("qty_1"))) {
+           /* if (!json.containsKey("qty_1") || StringUtil.isEmpty(json.getString("qty_1"))) {
                 msg += "第一(法定)数量,";
                 hasError = true;
             }
             if (!json.containsKey("unit_1") || StringUtil.isEmpty(json.getString("unit_1"))) {
                 msg += "第一(法定)计量单位,";
                 hasError = true;
-            }
+            }*/
             if (!json.containsKey("ggrosswt") || StringUtil.isEmpty(json.getString("ggrosswt"))) {
                 msg += "商品毛重";
                 hasError = true;

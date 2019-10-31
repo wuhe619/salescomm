@@ -126,7 +126,7 @@ public class BaoguandanXmlEXP301 {
         JSONObject json = JSON.parseObject(partyContent);
         createEntryHeadXML(document,EXP301,mainjson,json,customerInfo);
         createEntryListXML(document,EXP301,ds);
-        createEntryDocuXML(document,EXP301);
+//        createEntryDocuXML(document,EXP301);
 
         Data.appendChild(EXP301);
         SignedData.appendChild(Data);
@@ -463,10 +463,10 @@ public class BaoguandanXmlEXP301 {
             GUnit.setTextContent(json.containsKey("g_unit")?json.getString("g_unit"):"");
             EntryList.appendChild(GUnit);
             Element Qty1 = document.createElement("Qty1");
-            Qty1.setTextContent(json.getString("qty_1"));
+//            Qty1.setTextContent(json.getString("qty_1"));
             EntryList.appendChild(Qty1);
             Element Unit1 = document.createElement("Unit1");
-            Unit1.setTextContent(json.getString("unit_1"));
+//            Unit1.setTextContent(json.getString("unit_1"));
             EntryList.appendChild(Unit1);
             Element Qty2 = document.createElement("Qty2");
             Qty2.setTextContent("");
