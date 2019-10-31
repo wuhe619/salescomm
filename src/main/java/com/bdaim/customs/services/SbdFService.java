@@ -137,9 +137,14 @@ public class SbdFService implements BusiService {
                 // 身份核验待核验入队列
                 JSONObject input = new JSONObject();
                 JSONObject data = JSON.parseObject(String.valueOf(map.getOrDefault("content", "")));
-                if (data != null && !"0".equals(data.getString("check_status"))) {
-                    log.warn("申报单分单已经核验[" + busiType + "]" + id);
-                    throw new TouchException("1000", "申报单分单已经核验");
+                if (data != null) {
+                    if ("1".equals(data.getString("check_status"))) {
+                        log.warn("申报单分单已经核验通过[" + busiType + "]" + id);
+                        throw new TouchException("1000", "申报单分单已经核验通过");
+                    } else if ("3".equals(data.getString("check_status"))) {
+                        log.warn("申报单分单正在核验中[" + busiType + "]" + id);
+                        throw new TouchException("1000", "申报单分单正在核验中");
+                    }
                 }
                 // 判断余额
                 boolean amountStatus = serviceUtils.checkBatchIdCardAmount(cust_id, 1);
