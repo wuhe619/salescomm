@@ -25,8 +25,11 @@ public enum BusiTypeEnum {
      * api
      */
     HY_PIC_Z("HY_PIC_Z", "行业画像-主批次", "hy_pic_z"),
-    HY_PIC_X("HY_PIC_X", "行业画像-批次详情", "hy_pic_x");
-
+    HY_PIC_X("HY_PIC_X", "行业画像-批次详情", "hy_pic_x"),
+    /**
+     * 企业套餐
+     */
+    B2B_TC("B2B_TCB", "B2B企业套餐", "b2b_tcb");
 
     private String key;
     private String name;
