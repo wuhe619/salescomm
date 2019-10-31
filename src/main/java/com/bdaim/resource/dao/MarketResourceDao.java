@@ -281,8 +281,13 @@ public class MarketResourceDao extends SimpleHibernateDao<MarketResourceEntity, 
         List<MarketResourceDTO> result = new ArrayList<>();
         if (list.size() > 0) {
             MarketResourceDTO marketResourceDTO;
+            ResourcePropertyEntity property;
             for (int i = 0; i < list.size(); i++) {
                 marketResourceDTO = new MarketResourceDTO(list.get(i));
+                if (marketResourceDTO != null && marketResourceDTO.getResourceId() != null) {
+                    property = getProperty(String.valueOf(marketResourceDTO.getResourceId()), "price_config");
+                    marketResourceDTO.setResourceProperty(property != null ? property.getPropertyValue() : "{}");
+                }
                 result.add(marketResourceDTO);
             }
         }
@@ -306,6 +311,34 @@ public class MarketResourceDao extends SimpleHibernateDao<MarketResourceEntity, 
             }
         }
         return result;
+    }
+
+    /**
+     * 根据类型分页查询资源
+     * @param type
+     * @param pageNum
+     * @param pageSize
+     * @return Page
+     */
+    public Page pageMarketResource(String type, int pageNum, int pageSize) {
+        StringBuilder hql = new StringBuilder();
+        List<Object> param = new ArrayList<>();
+        hql.append(" from MarketResourceEntity m where 1=1");
+        if (StringUtil.isNotEmpty(type)) {
+            hql.append(" AND m.typeCode = " + type);
+        }
+        hql.append(" ORDER BY create_time ASC");
+        Page page = this.page(hql.toString(), param, pageNum, pageSize);
+        List<MarketResourceDTO> result = new ArrayList<>();
+        if (page != null) {
+            MarketResourceDTO marketResourceDTO;
+            for (int i = 0; i < page.getData().size(); i++) {
+                marketResourceDTO = new MarketResourceDTO((MarketResourceEntity) page.getData().get(i));
+                result.add(marketResourceDTO);
+            }
+        }
+        page.setData(result);
+        return page;
     }
 
     /**
@@ -378,6 +411,7 @@ public class MarketResourceDao extends SimpleHibernateDao<MarketResourceEntity, 
 
     /**
      * 根据检索条件批量审核通话记录
+     *
      * @param param
      * @param yearMonth
      * @return

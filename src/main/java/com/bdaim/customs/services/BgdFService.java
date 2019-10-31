@@ -329,7 +329,7 @@ public class BgdFService implements BusiService {
         if(StringUtil.isEmpty(mainjson.getString("depart_arrival_port"))){
             filedName += "," + BGDReportEnum.DestinationPort.getName();
         }
-        if(StringUtil.isEmpty(mainjson.getString("traf_name"))){
+        if(StringUtil.isEmpty(mainjson.getString("trans_traf_name"))){
             filedName += "," + BGDReportEnum.TrafName.getName();
         }
 

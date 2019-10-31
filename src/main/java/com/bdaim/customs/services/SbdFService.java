@@ -118,7 +118,6 @@ public class SbdFService implements BusiService {
     public void updateInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) throws TouchException {
         // 身份核验
         if ("verification".equals(info.getString("_rule_"))) {
-            serviceUtils.esTestData();
             StringBuffer sql = new StringBuffer("select id, content from " + HMetaDataDef.getTable(busiType, "") + " where type=?")
                     .append(" and cust_id='").append(cust_id).append("'")
                     //.append(" and id =? AND (ext_7 IS NULL OR ext_7 = '' OR ext_7 = 2 )  ");
