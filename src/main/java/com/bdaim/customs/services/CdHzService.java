@@ -141,6 +141,7 @@ public class CdHzService implements BusiService {
         jdbcTemplate.update(sql);
 
         List<HBusiDataManager> list = new ArrayList<>();
+        String main_bill_no = "";
         for (int i=0;i<array.size();i++){
             JSONObject json = array.getJSONObject(i);
             HBusiDataManager b = new HBusiDataManager();
@@ -149,6 +150,7 @@ public class CdHzService implements BusiService {
             b.setType(BusiTypeEnum.CDF_HZ.getType());
             b.setExt_3(json.getString("assbillno"));
             b.setExt_4(json.getString("billno"));
+            main_bill_no = b.getExt_4();
             b.setCreateDate(new Date());
             b.setExt_2(json.getString("rtnflag"));
             b.setContent(json.toJSONString());
@@ -159,9 +161,67 @@ public class CdHzService implements BusiService {
         if(list.size()>0){
             serviceUtils.batchInsert(BusiTypeEnum.CDF_HZ.getType(),list);
         }
+
+        if(StringUtil.isNotEmpty(main_bill_no)) {
+            Handle handle = new Handle(main_bill_no,array);
+            Thread th = new Thread(handle);
+            th.start();
+        }
+
        /* String id = mongoFileService.saveData(xmlstring);
         fileDao.save(envelopinfo.getString("message_id"),id, BusinessEnum.CUSTOMS,null,null);*/
     }
 
+
+
+
+    class Handle implements Runnable{
+        private  String main_bill_no;
+        private JSONArray array;
+
+        public Handle(String main_bill_no,JSONArray array){
+            this.array=array;
+            this.main_bill_no=main_bill_no;
+        }
+
+        @Override
+        public void run() {
+            log.info("start to cangdan fendan huizhi status");
+            handlecdFdStatus(this.main_bill_no,this.array);
+        }
+
+
+        private List<HBusiDataManager> handleCdFd(String main_bill_no){
+            List<HBusiDataManager> list = serviceUtils.listFdByBillNo(BusiTypeEnum.CF.getType(),main_bill_no);
+            return list;
+        }
+
+        public void handlecdFdStatus(String main_bill_no,JSONArray array){
+            List<HBusiDataManager> list = handleCdFd(main_bill_no);
+            List<HBusiDataManager> tmpList = new ArrayList<>();
+            for (int i=0;i<array.size();i++){
+                JSONObject json = array.getJSONObject(i);
+                String assbillno = json.getString("assbillno");
+                String rtnflag = json.getString("rtnflag");
+                String billno = json.getString("billno");
+                for(HBusiDataManager d:list){
+                    if(d.getExt_3().equals(assbillno) && d.getExt_4().equals(billno)){
+                        String content = d.getContent();
+                        JSONObject obj = JSONObject.parseObject(content);
+                        obj.put("send_status",rtnflag);
+                        d.setContent(obj.toJSONString());
+                        tmpList.add(d);
+                        break;
+                    }
+                }
+                if(tmpList.size()>0){
+                    for(HBusiDataManager h:tmpList) {
+                        String sql2 = "update " + HMetaDataDef.getTable(BusiTypeEnum.CF.getType(), "") + " set content='"+h.getContent()+ "' where id="+h.getId();
+                        jdbcTemplate.update(sql2);
+                    }
+                }
+            }
+        }
+    }
 
 }

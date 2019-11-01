@@ -237,6 +237,21 @@ public class ServiceUtils {
     }
 
     /**
+     * 查询所有分单
+     * @param type
+     * @param mainBillNo
+     * @return
+     */
+    public List<HBusiDataManager> listFdByBillNo(String type, String mainBillNo) {
+        StringBuffer sql = new StringBuffer();
+        sql.append("select id, type, content, cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(type, "") + " where type=?  AND ext_4 = ?");
+        log.info("查询税单sql:{}", sql);
+        List<Map<String, Object>> list = jdbcTemplate.queryForList(sql.toString(), type, mainBillNo);
+        List<HBusiDataManager> result = JSON.parseArray(JSON.toJSONString(list), HBusiDataManager.class);
+        return result;
+    }
+
+    /**
      * 根据主单号、分单号，查询分单
      *
      * @param custId
