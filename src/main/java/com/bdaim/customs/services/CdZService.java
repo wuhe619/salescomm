@@ -209,12 +209,12 @@ public class CdZService implements BusiService {
             }
             Map m = list.get(0);
             //Map m  = jdbcTemplate.queryForMap(sql, busiType, id);
-            String cdContent = String.valueOf(m.get("content"));
+           /* String cdContent = String.valueOf(m.get("content"));
             if ("1".equals(String.valueOf(m.get("ext_1"))) && StringUtil.isNotEmpty(cdContent)
                     && "1".equals(JSON.parseObject(cdContent).getString("send_status"))) {
                 log.warn("舱单主单:[" + id + "]已提交至海关");
                 throw new TouchException("舱单主单:[" + id + "]已提交至海关");
-            }
+            }*/
 
             // 更新舱单主单信息
             String content = (String) m.get("content");

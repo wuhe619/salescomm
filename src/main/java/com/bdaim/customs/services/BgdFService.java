@@ -10,10 +10,8 @@ import com.bdaim.common.service.ElasticSearchService;
 import com.bdaim.common.service.SequenceService;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerUserDao;
-import com.bdaim.customer.dto.CustomerPropertyDTO;
 import com.bdaim.customer.dto.CustomerRegistDTO;
 import com.bdaim.customer.entity.CustomerProperty;
-import com.bdaim.customer.entity.CustomerUser;
 import com.bdaim.customer.entity.CustomerUserPropertyDO;
 import com.bdaim.customer.service.CustomerService;
 import com.bdaim.customs.dao.HBusiDataManagerDao;
@@ -24,7 +22,6 @@ import com.bdaim.customs.utils.ServiceUtils;
 import com.bdaim.util.BaoguandanXmlEXP301;
 import com.bdaim.util.DateUtil;
 import com.bdaim.util.StringUtil;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -164,12 +161,12 @@ public class BgdFService implements BusiService {
             }
             Map m = list.get(0);
 
-            String cdContent = String.valueOf(m.get("content"));
+            /*String cdContent = String.valueOf(m.get("content"));
             if ("B1".equals(String.valueOf(m.get("ext_1"))) && StringUtil.isNotEmpty(cdContent)
                     && "B1".equals(JSON.parseObject(cdContent).getString("send_status"))) {
                 log.warn("报关单分单:[" + id + "]已提交至海关");
                 throw new TouchException("报关单分单:[" + id + "]已提交至海关");
-            }
+            }*/
             // 更新报关单主单信息
             String content = (String) m.get("content");
             JSONObject jo = JSONObject.parseObject(content);
