@@ -1,9 +1,9 @@
 package com.bdaim.customs.services;
 
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.be.service.BusiEntityService;
 import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.service.BusiService;
-import com.bdaim.common.spring.SpringContextHelper;
 import com.bdaim.util.ParseHzXml;
 import com.bdaim.util.StringUtil;
 import org.apache.commons.codec.binary.Base64;
@@ -27,12 +27,14 @@ public class HgHzService implements BusiService {
     private static Logger log = LoggerFactory.getLogger(HgHzService.class);
 
     private static final Map<String, String> HZ_SERVICE = new HashMap() {{
-        put("EXP302", "busi_bgd_hz");
-        put("EXP312", "busi_cd_hz");
+        put("EXP302", "bgd_hz");
+        put("EXP312", "cd_hz");
     }};
 
     @Autowired
     private ParseHzXml parseHzXml;
+    @Autowired
+    BusiEntityService busiService;
 
 
     @Override
@@ -49,9 +51,9 @@ public class HgHzService implements BusiService {
             log.warn("海关回执messageType未找到对应定义,messageType:{},内容:{}", messageType, xml);
             throw new TouchException("海关回执messageType未找到对应定义");
         }
+
         // 根据消息类型处理报关单和舱单回执
-        BusiService busiService = (BusiService) SpringContextHelper.getBean(HZ_SERVICE.get(messageType));
-        busiService.insertInfo(busiType, cust_id, cust_group_id, cust_user_id, id, info);
+        busiService.saveInfo(cust_id, cust_group_id, cust_user_id, HZ_SERVICE.get(messageType), 0L, info);
         log.info("海关回执处理完毕,messageType:{},内容:{}", messageType, xml);
 
     }
@@ -81,6 +83,6 @@ public class HgHzService implements BusiService {
     }
 
     public static void main(String[] args) {
-        System.out.println(Base64.encodeBase64String("<?xml version=\"1.0\" encoding=\"UTF-8\"?><Package><EnvelopInfo><version>1.0</version><message_id>E010000DXPESW00002132802019110100284107303304013</message_id><file_name>E010000DXPESW00002132802019110100284107303304013.EXP</file_name><message_type>EXP302</message_type><sender_id>E010000</sender_id><receiver_id>DXPESW0000213280</receiver_id><send_time>2019-11-01T00:28:39</send_time></EnvelopInfo><DataInfo><SignedData><Data><EXP302><EntryHead><PreEntryId>201900001507083001</PreEntryId><OpType>ADD</OpType><BillNo>18066181220</BillNo><AssBillNo>YTG000161301146</AssBillNo><IEFlag>I</IEFlag><EntryId></EntryId><OpTime>20191101002839995</OpTime><OpResult>D0</OpResult><Notes></Notes></EntryHead></EXP302></Data><HashSign></HashSign><SignerInfo></SignerInfo></SignedData></DataInfo></Package>".getBytes()));
+        System.out.println(Base64.encodeBase64String("<?xml version=\"1.0\" encoding=\"UTF-8\"?><Package><EnvelopInfo><version>1.0</version><message_id>E010000DXPESW00002132802019110100284107303304013</message_id><file_name>E010000DXPESW00002132802019110100284107303304013.EXP</file_name><message_type>EXP302</message_type><sender_id>E010000</sender_id><receiver_id>DXPESW0000213280</receiver_id><send_time>2019-11-01T00:28:39</send_time></EnvelopInfo><DataInfo><SignedData><Data><EXP302><EntryHead><PreEntryId>201900001507083001</PreEntryId><OpType>ADD</OpType><BillNo>897765azc11117</BillNo><AssBillNo>G00593691690</AssBillNo><IEFlag>I</IEFlag><EntryId></EntryId><OpTime>20191101002839995</OpTime><OpResult>D0</OpResult><Notes></Notes></EntryHead></EXP302></Data><HashSign></HashSign><SignerInfo></SignerInfo></SignedData></DataInfo></Package>".getBytes()));
     }
 }
