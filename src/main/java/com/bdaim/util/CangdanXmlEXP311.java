@@ -165,7 +165,7 @@ public class CangdanXmlEXP311 {
         ExpMftHead.appendChild(TrafMode);
 
         Element IEDate = document.createElement("IEDate");
-        IEDate.setTextContent(json.getString("i_e_date"));
+        IEDate.setTextContent(json.getString("i_e_date").replace("-",""));
         ExpMftHead.appendChild(IEDate);
         Element DestinationPort = document.createElement("DestinationPort");
         DestinationPort.setTextContent(json.getString("depart_arrival_port"));

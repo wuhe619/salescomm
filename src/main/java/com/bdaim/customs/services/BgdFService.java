@@ -10,10 +10,8 @@ import com.bdaim.common.service.ElasticSearchService;
 import com.bdaim.common.service.SequenceService;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerUserDao;
-import com.bdaim.customer.dto.CustomerPropertyDTO;
 import com.bdaim.customer.dto.CustomerRegistDTO;
 import com.bdaim.customer.entity.CustomerProperty;
-import com.bdaim.customer.entity.CustomerUser;
 import com.bdaim.customer.entity.CustomerUserPropertyDO;
 import com.bdaim.customer.service.CustomerService;
 import com.bdaim.customs.dao.HBusiDataManagerDao;
@@ -24,7 +22,6 @@ import com.bdaim.customs.utils.ServiceUtils;
 import com.bdaim.util.BaoguandanXmlEXP301;
 import com.bdaim.util.DateUtil;
 import com.bdaim.util.StringUtil;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
