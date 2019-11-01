@@ -161,12 +161,12 @@ public class BgdFService implements BusiService {
             }
             Map m = list.get(0);
 
-            /*String cdContent = String.valueOf(m.get("content"));
+            String cdContent = String.valueOf(m.get("content"));
             if ("B1".equals(String.valueOf(m.get("ext_1"))) && StringUtil.isNotEmpty(cdContent)
                     && "B1".equals(JSON.parseObject(cdContent).getString("send_status"))) {
                 log.warn("报关单分单:[" + id + "]已提交至海关");
                 throw new TouchException("报关单分单:[" + id + "]已提交至海关");
-            }*/
+            }
             // 更新报关单主单信息
             String content = (String) m.get("content");
             JSONObject jo = JSONObject.parseObject(content);
