@@ -26,7 +26,7 @@ public class HgHzService implements BusiService {
 
     private static Logger log = LoggerFactory.getLogger(HgHzService.class);
 
-    public static final Map<String, String> service = new HashMap() {{
+    private static final Map<String, String> HZ_SERVICE = new HashMap() {{
         put("EXP302", "busi_bgd_hz");
         put("EXP312", "busi_cd_hz");
     }};
@@ -45,12 +45,12 @@ public class HgHzService implements BusiService {
         }
         String xml = new String(Base64.decodeBase64(xmlString), "UTF-8");
         String messageType = parseHzXml.getMessageTypeByXml(xml);
-        if (StringUtil.isEmpty(service.get(messageType))) {
+        if (StringUtil.isEmpty(HZ_SERVICE.get(messageType))) {
             log.warn("海关回执messageType未找到对应定义,messageType:{},内容:{}", messageType, xml);
             throw new TouchException("海关回执messageType未找到对应定义");
         }
         // 根据消息类型处理报关单和舱单回执
-        BusiService busiService = (BusiService) SpringContextHelper.getBean(service.get(messageType));
+        BusiService busiService = (BusiService) SpringContextHelper.getBean(HZ_SERVICE.get(messageType));
         busiService.insertInfo(busiType, cust_id, cust_group_id, cust_user_id, id, info);
         log.info("海关回执处理完毕,messageType:{},内容:{}", messageType, xml);
 
