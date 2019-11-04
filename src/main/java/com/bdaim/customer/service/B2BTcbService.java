@@ -8,6 +8,7 @@ import com.bdaim.common.service.ElasticSearchService;
 import com.bdaim.common.service.ResourceService;
 import com.bdaim.common.service.SequenceService;
 import com.bdaim.customer.dao.CustomerDao;
+import com.bdaim.customs.entity.BusiTypeEnum;
 import com.bdaim.customs.entity.HMetaDataDef;
 import com.bdaim.customs.utils.ServiceUtils;
 import org.slf4j.Logger;
@@ -49,11 +50,14 @@ public class B2BTcbService implements BusiService {
     ElasticSearchService elasticSearchService;
 
     public void insertInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) throws Exception {
-        String sql = "select id from " + HMetaDataDef.getTable(busiType, "") + " where type=? and cust_id = ? and ext_4 = 1 ";
+        String sql = "select id,content from " + HMetaDataDef.getTable(busiType, "") + " where type=? and cust_id = ? and ext_4 = 1 ";
         List<Map<String, Object>> countList = jdbcTemplate.queryForList(sql, busiType, cust_id);
         if (countList != null && countList.size() > 0) {
-            LOG.warn("当前还有有效的套餐:{}不能再开通新的套餐", JSON.toJSONString(countList));
-            throw new TouchException("当前还有有效的套餐,不能再开通新的套餐");
+            JSONObject jsonObject = JSON.parseObject(String.valueOf(countList.get(0).get("content")));
+            if (jsonObject.getLongValue("remain_num") > 0L) {
+                LOG.warn("当前还有有效的套餐:{}不能再开通新的套餐", JSON.toJSONString(countList));
+                throw new TouchException("当前还有有效的套餐,不能再开通新的套餐");
+            }
         }
         info.put("ext_2", info.getString("name"));
         info.put("ext_3", info.getString("type"));
@@ -85,7 +89,20 @@ public class B2BTcbService implements BusiService {
     @Override
     public void formatInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, JSONObject info) {
         // TODO Auto-generated method stub
+    }
 
+    /**
+     * 获取企业B2B套餐包剩余量(只有1个套餐包有效)
+     * @param custId
+     * @return
+     */
+    public long getB2BTcbQuantity(String custId) {
+        String sql = "select id,content from " + HMetaDataDef.getTable(BusiTypeEnum.B2B_TC.getType(), "") + " where type=? and cust_id = ? and ext_4 = 1 ";
+        List<Map<String, Object>> list = jdbcTemplate.queryForList(sql, BusiTypeEnum.B2B_TC.getType(), custId);
+        if (list == null || list.size() == 0) {
+            return 0L;
+        }
+        return JSON.parseObject(String.valueOf(list.get(0).get("content"))).getLongValue("remain_num");
     }
 
 }

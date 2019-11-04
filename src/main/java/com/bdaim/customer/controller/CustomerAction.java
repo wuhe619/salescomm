@@ -28,6 +28,7 @@ import com.bdaim.customer.entity.ApparentNumber;
 import com.bdaim.customer.entity.CustomerProperty;
 import com.bdaim.customer.entity.CustomerUser;
 import com.bdaim.customer.entity.CustomerUserPropertyDO;
+import com.bdaim.customer.service.B2BTcbService;
 import com.bdaim.customer.service.CustomerService;
 import com.bdaim.customer.user.dto.UserCallConfigDTO;
 import com.bdaim.customer.user.service.CustomerUserService;
@@ -94,6 +95,8 @@ public class CustomerAction extends BasicAction {
     private CustomerSeaService customerSeaService;
     @Resource
     private TokenCacheService tokenCacheService;
+    @Resource
+    private B2BTcbService b2BTcbService;
 
     private static Map name2token = new HashMap();
 
@@ -1979,6 +1982,24 @@ public class CustomerAction extends BasicAction {
             responseJson.setMessage("success");
         } catch (Exception e) {
             e.printStackTrace();
+            responseJson.setCode(-1);
+            responseJson.setMessage(e.getMessage());
+        }
+        return JSON.toJSONString(responseJson);
+
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "/getB2BTcbQuantity", method = RequestMethod.GET)
+    public String getB2BTcbQuantity(String custId) {
+        ResponseInfo responseJson = new ResponseInfo();
+        try {
+            if(!isBackendUser()){
+                custId = opUser().getCustId();
+            }
+            long quantity = b2BTcbService.getB2BTcbQuantity(custId);
+            responseJson.setData(quantity);
+        } catch (Exception e) {
             responseJson.setCode(-1);
             responseJson.setMessage(e.getMessage());
         }
