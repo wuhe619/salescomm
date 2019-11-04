@@ -73,6 +73,7 @@ public class SearchListService {
         put("1036", "C1036_test");
         put("1037", "C1037_test");
         put("1038", "C1038_test");
+        put("1039", "C1039_test");
     }};
 
     /**
