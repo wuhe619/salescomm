@@ -5376,7 +5376,7 @@ public class CustomGroupService {
                     log.info("创建导入客群成功,开始异步处理数据,ID:" + id);
                     try {
                         CustomGroupService cgs = (CustomGroupService) SpringContextHelper.getBean("customGroupService");
-                        int code = cgs.handleCustGroupImportData(String.valueOf(id), custId, customGroupDao, customerDao, customerLabelDao, jdbcTemplate, redisUtil);
+                        int code = cgs.handleCustGroupImportData(String.valueOf(id), custId, customGroupDao, customerDao, customerLabelDao, jdbcTemplate, redisUtil, phoneService);
                         log.info("导入客户群数据ID:" + id + "更改状态成功,status:" + status);
                     } catch (Exception e) {
                         log.error("异步处理导入客群异常,", e);
@@ -5454,7 +5454,7 @@ public class CustomGroupService {
                     log.info("创建导入客群成功,开始异步处理数据,ID:" + id);
                     try {
                         CustomGroupService cgs = (CustomGroupService) SpringContextHelper.getBean("customGroupService");
-                        int code = cgs.handleCustGroupImportData(String.valueOf(id), custId, customGroupDao, customerDao, customerLabelDao, jdbcTemplate, redisUtil);
+                        int code = cgs.handleCustGroupImportData(String.valueOf(id), custId, customGroupDao, customerDao, customerLabelDao, jdbcTemplate, redisUtil, phoneService);
                         log.info("导入客户群数据ID:" + id + "更改状态成功,status:" + status);
                     } catch (Exception e) {
                         log.error("异步处理导入客群异常,", e);
@@ -5531,7 +5531,7 @@ public class CustomGroupService {
      * @return
      */
     private int handleCustGroupImportData(String custGroupId, String custId, CustomGroupDao
-            customGroupDao, CustomerDao customerDao, CustomerLabelDao customerLabelDao, JdbcTemplate jdbcTemplate, RedisUtil redisUtil) {
+            customGroupDao, CustomerDao customerDao, CustomerLabelDao customerLabelDao, JdbcTemplate jdbcTemplate, RedisUtil redisUtil, PhoneService phoneService) {
         CustomerGroupProperty uploadFilePath = customGroupDao.getProperty(NumberConvertUtil.parseInt(custGroupId), "uploadFilePath");
         if (uploadFilePath == null) {
             log.warn("导入客户群ID:" + custGroupId + "未查询到文件路径");

@@ -30,7 +30,11 @@ public enum BusiTypeEnum {
     /**
      * 企业套餐
      */
-    B2B_TC("B2B_TCB", "B2B企业套餐", "b2b_tcb");
+    B2B_TC("B2B_TCB", "B2B企业套餐", "b2b_tcb"),
+    /**
+     * 企业套餐领取记录
+     */
+    B2B_TC_LOG("B2B_TC_LOG", "B2B企业套餐", "b2b_tcb_log");
 
     private String key;
     private String name;
