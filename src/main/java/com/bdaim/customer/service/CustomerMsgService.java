@@ -30,7 +30,7 @@ public class CustomerMsgService {
     public ContentPage getCustomerMsgList(Integer pageNum, Integer pageSize) {
         Sort sort = new Sort(Sort.Direction.DESC, "createTime");
         Pageable pageable = new PageRequest(pageNum - 1, pageSize, sort);
-        String sql = "select m.cust_id as custId,m.cust_user_id as custUserId,m.create_time as createTime,m.msg_type as msgType," +
+        String sql = "select m.id as id ,m.cust_id as custId,m.cust_user_id as custUserId,m.create_time as createTime,m.msg_type as msgType," +
                 "t.enterprise_name as custName from h_customer_msg m left join t_customer t on m.cust_id=t.cust_id order by m.create_time asc limit "+(pageNum-1)*pageSize+","+pageSize;
         List<ContentData> list = jdbcTemplate.query(sql,
                 new BeanPropertyRowMapper<>(ContentData.class));
