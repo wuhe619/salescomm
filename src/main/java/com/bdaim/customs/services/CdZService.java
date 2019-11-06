@@ -427,7 +427,7 @@ public class CdZService implements BusiService {
         cz.setCreateId(Long.valueOf(userId));
         cz.setExt_3(h.getExt_3());
         cz.setExt_1("0");//0 未发送 1，已发送
-
+        cz.setCust_user_id(userId.toString());
 
         JSONObject json = JSON.parseObject(h.getContent());
         json.put("create_id", userId);
@@ -484,7 +484,6 @@ public class CdZService implements BusiService {
         List<HBusiDataManager> goodList = null;
         HBusiDataManager hm, good;
         int pack_no = 0;
-        Double weightTotal = 0d;
         for (HBusiDataManager hp : parties) {
             hm = new HBusiDataManager();
             hm.setType(BusiTypeEnum.CF.getType());
@@ -496,6 +495,7 @@ public class CdZService implements BusiService {
             hm.setExt_4(hp.getExt_4());
             hm.setCreateId(hp.getCreateId());
             hm.setCust_id(hp.getCust_id());
+            hm.setCust_user_id(hp.getCreateId().toString());
             JSONObject _content = JSON.parseObject(hp.getContent());
             _content.put("pid", id);
             _content.put("main_bill_no", json.get("bill_no"));
@@ -513,8 +513,9 @@ public class CdZService implements BusiService {
                     //gp.setType(BusiTypeEnum.CS.getType());
                     Long gid = sequenceService.getSeq(BusiTypeEnum.CS.getType());
                     good.setId(gid);
-                    good.setCreateId(userId);
+                    good.setCreateId(gp.getCreateId());
                     good.setCreateDate(new Date());
+                    good.setCust_user_id(gp.getCreateId().toString());
                     JSONObject productContent = JSON.parseObject(gp.getContent());
                     productContent.put("pid", hm.getId());
                     productContent.put("main_bill_no", _content.get("bill_no"));

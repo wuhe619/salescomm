@@ -453,7 +453,7 @@ public class BgdZService implements BusiService {
             hm.setExt_4(hp.getExt_4());
             hm.setCreateId(hp.getCreateId());
             hm.setCust_id(hp.getCust_id());
-            hm.setCust_user_id(userId.toString());
+            hm.setCust_user_id(hp.getCreateId().toString());
             JSONObject _content = JSON.parseObject(hp.getContent());
             _content.put("pid", id);
             hm.setContent(_content.toJSONString());
@@ -476,7 +476,7 @@ public class BgdZService implements BusiService {
                     good.setType(BusiTypeEnum.BS.getType());
                     good.setCreateId(gp.getCreateId());
                     good.setCust_id(gp.getCust_id());
-                    good.setCust_user_id(userId.toString());
+                    good.setCust_user_id(gp.getCreateId().toString());
                     good.setExt_2(gp.getExt_2());
                     good.setExt_3(gp.getExt_3());
                     good.setExt_4(gp.getExt_4());
