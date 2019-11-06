@@ -4,9 +4,11 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.third.zhianxin.dto.BaseResult;
+import com.bdaim.customer.service.B2BTcbLogService;
 import com.bdaim.util.http.HttpUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -73,7 +75,11 @@ public class SearchListService {
         put("1036", "C1036_test");
         put("1037", "C1037_test");
         put("1038", "C1038_test");
+        put("1039", "C1039_test");
     }};
+
+    @Autowired
+    B2BTcbLogService b2BTcbLogService;
 
     /**
      * 智侒信列表检索
@@ -94,13 +100,13 @@ public class SearchListService {
         String result = HttpUtil.httpPost(API_URL.replace("{busiType}", BUSI_TYPE.get(busiType)), params.toJSONString(), headers);
         LOG.info("企业列表查询接口返回:{}", result);
         BaseResult baseResult = JSON.parseObject(result, BaseResult.class);
-        // TODO 处理企业领取标志
+        // 处理企业领取标志
         if (baseResult != null && baseResult.getData() != null) {
             JSONObject data = (JSONObject) baseResult.getData();
             JSONArray list = data.getJSONArray("list");
             if (list != null && list.size() > 0) {
                 for (int i = 0; i < list.size(); i++) {
-                    list.getJSONObject(i).put("_receivingStatus", 2);
+                    list.getJSONObject(i).put("_receivingStatus", b2BTcbLogService.checkClueGetStatus(custId, list.getJSONObject(i).getString("id")) ? 1 : 2);
                 }
             }
         }

@@ -774,10 +774,10 @@ public class CustomsService {
     }
 
 
-    public Page getdicPageList(String dicType, Integer pageSize, Integer pageNo,String name) {
+    public Page getdicPageList(String dicType, Integer pageSize, Integer pageNo, String name) {
         String sql = "select type,code,name_zh,name_en,`desc`,`status`,ext_1, ext_2, ext_3 from h_dic where type='" + dicType + "'";
-        if (StringUtil.isNotEmpty(name)){
-            sql+=" and name_zh like '%"+name+"%'";
+        if (StringUtil.isNotEmpty(name)) {
+            sql += " and name_zh like '%" + name + "%'";
         }
         Page page = hDicDao.sqlPageQueryByPageSize0(sql, pageNo, pageSize);
         return page;
@@ -1266,7 +1266,7 @@ public class CustomsService {
         String end = DateUtil.fmtDateToStr(DatesUtil.getEndDayOfWeek(), "yyyy-MM-dd");
         sql.append(" and create_date>='").append(begin).append("' and create_date<='").append(end).append("'");
         sql.append("group by status");
-        log.info("hz count:"+sql.toString());
+        log.info("hz count:" + sql.toString());
         List<Map<String, Object>> data = jdbcTemplate.queryForList(sql.toString());
         return data;
 
@@ -1281,15 +1281,15 @@ public class CustomsService {
     }
 
     public void saveCZInfo(JSONObject data) throws TouchException {
-        JSONObject msg=new JSONObject();
-        msg.put("op_time",DateUtil.fmtDateToStr(new Date(),"yyyy-MM-dd HH:mm:ss"));
-        msg.put("main_bill_no",data.getString("main_bill_no"));
-        msg.put("bill_no",data.getString("bill_no"));
-        msg.put("code",data.getString("code"));
-        msg.put("op_result",data.getString("msg"));
-        msg.put("msg",data.getString("msg"));
-        msg.put("type","CHANGZHAN");
-        String s = "select id,content,cust_id,cust_user_id from h_data_manager_bgd_f where ext_4='"+data.getString("main_bill_no")+"' and ext_3='"+data.getString("bill_no")+"'";
+        JSONObject msg = new JSONObject();
+        msg.put("op_time", DateUtil.fmtDateToStr(new Date(), "yyyy-MM-dd HH:mm:ss"));
+        msg.put("main_bill_no", data.getString("main_bill_no"));
+        msg.put("bill_no", data.getString("bill_no"));
+        msg.put("code", data.getString("code"));
+        msg.put("op_result", data.getString("msg"));
+        msg.put("msg", data.getString("msg"));
+        msg.put("type", "CHANGZHAN");
+        String s = "select id,content,cust_id,cust_user_id from h_data_manager_bgd_f where ext_4='" + data.getString("main_bill_no") + "' and ext_3='" + data.getString("bill_no") + "'";
 
         RowMapper<HBusiDataManager> managerRowMapper = new BeanPropertyRowMapper<>(HBusiDataManager.class);
         List<HBusiDataManager> list = jdbcTemplate.query(s, managerRowMapper);
@@ -1298,16 +1298,19 @@ public class CustomsService {
         if (list != null && list.size() > 0) {
             hBusiDataManager = list.get(0);
             json = JSONObject.parseObject(hBusiDataManager.getContent());
-            json.put("changzhan_status",data.getString("code"));
+            json.put("changzhan_status", data.getString("code"));
         }
-        if(hBusiDataManager!=null){
-            String updateSql = " update "+ HMetaDataDef.getTable(BusiTypeEnum.BF.getType(), "")+" set content='"+json.toJSONString()+"',ext_2='"+data.getString("code")+"' where id="+hBusiDataManager.getId();
+        if (hBusiDataManager != null) {
+            String updateSql = " update " + HMetaDataDef.getTable(BusiTypeEnum.BF.getType(), "") + " set content='" + json.toJSONString() + "',ext_2='" + data.getString("code") + "' where id=" + hBusiDataManager.getId();
             jdbcTemplate.update(updateSql);
-            String sql = "insert into h_customer_msg(`cust_id`,`cust_user_id`,`content`,`create_time`,`status`,`level`,`msg_type`)" +
-                    "values ('"+hBusiDataManager.getCust_id()+"',"+hBusiDataManager.getCust_user_id()+",'"+msg.toJSONString()+"',now(),0,1,'CHANGZHAN')";
 
-            jdbcTemplate.update(sql);
-        }else{
+            if ("-1".equals(data.getString("code"))) {
+                String sql = "insert into h_customer_msg(`cust_id`,`cust_user_id`,`content`,`create_time`,`status`,`level`,`msg_type`)" +
+                    "values ('" + hBusiDataManager.getCust_id() + "'," + hBusiDataManager.getCust_user_id() + ",'" + msg.toJSONString() + "',now(),0,4,'CHANGZHAN')";
+                jdbcTemplate.update(sql);
+            }
+
+        } else {
             throw new TouchException("单号不存在");
         }
     }

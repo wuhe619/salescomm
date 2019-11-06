@@ -711,7 +711,7 @@ public class CdZService implements BusiService {
             filedName += "," + CDReportEnum.DestinationPort.getName();
         }
 
-        if (!mainjson.containsKey("i_e_port") || StringUtil.isEmpty(mainjson.getString("i_e_port"))) {
+        if (!mainjson.containsKey("decl_port") || StringUtil.isEmpty(mainjson.getString("decl_port"))) {//进出口岸取申报地海关的值
             filedName += "," + CDReportEnum.IEPort.getName();
         }
 
@@ -803,7 +803,7 @@ public class CdZService implements BusiService {
         TrafMode("traf_mode", "运输方式代码"),
         IEDate("i_e_date", "进出口日期"),
         DestinationPort("depart_arrival_port", "指运港(抵运港)"),
-        IEPort("i_e_port", "进出口岸代码"),
+        IEPort("i_e_port", "申报地海关"),//
         TradeCo("s_c_code_busi_unit", "经营单位编号"),
         TradeName("business_unit_name", "经营单位名称"),
         InputNo("input_no", "录入人卡号"),
