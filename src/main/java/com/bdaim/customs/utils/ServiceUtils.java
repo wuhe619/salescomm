@@ -431,9 +431,14 @@ public class ServiceUtils {
         StringBuffer sql = new StringBuffer();
         sql.append("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(type, "") + " where cust_id = ? AND type=? AND ext_4 = ?");
         log.info("查询分单sql:{}", sql);
-        List<Map<String, Object>> list = jdbcTemplate.queryForList(sql.toString(), custId, type, pBillNo);
+        /*List<Map<String, Object>> list = jdbcTemplate.queryForList(sql.toString(), custId, type, pBillNo);
         List<HBusiDataManager> result = JSON.parseArray(JSON.toJSONString(list), HBusiDataManager.class);
-        return result;
+*/
+        RowMapper<HBusiDataManager> managerRowMapper=new BeanPropertyRowMapper<>(HBusiDataManager.class);
+        Object[] args=new Object[]{custId,type,pBillNo};
+        List<HBusiDataManager> list = jdbcTemplate.query(sql.toString(),args,managerRowMapper);
+
+        return list;
     }
 
     public List<HBusiDataManager> listDataByParentBillNos(String custId, String type, List<String> pBillNos) {
