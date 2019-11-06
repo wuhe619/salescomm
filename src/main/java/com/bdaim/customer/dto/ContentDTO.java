@@ -1,8 +1,5 @@
 package com.bdaim.customer.dto;
 
-import com.bdaim.customer.entity.CustomerMsg;
-import org.joda.time.DateTime;
-
 import java.util.Date;
 
 public class ContentDTO {
