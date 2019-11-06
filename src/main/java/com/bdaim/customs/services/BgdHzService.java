@@ -132,6 +132,7 @@ public class BgdHzService implements BusiService {
         info.put("ext_2",opresult);
         String op_time = data.getString("op_time");
         json.put("op_time",op_time);
+        info.put("ext_5",op_time);
 
 //        Timestamp tm = DateUtil.getTimestamp(CalendarUtil.parseDate(decltime,"yyyyMMddHHmmsszzz"),"yyyyMMddHHmmsszzz");
         //json.put("decl_time",new Date().getTime());
