@@ -46,6 +46,15 @@ public class ExpressController extends BasicAction {
         return resp;
     }
 
+//    public ResponseInfo queryExpressOrderList(){
+//
+//        ResponseInfo resp = new ResponseInfo();
+//        LoginUser lu = tokenService.opUser();
+//
+//
+//        return null;
+//    }
+
     /**
      * 获取快递订单信息（打印面单）
      *

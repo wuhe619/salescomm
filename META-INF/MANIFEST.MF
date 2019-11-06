@@ -1,0 +1,69 @@
+Manifest-Version: 1.0
+Class-Path: joda-time-2.10.2.jar 058.spring-data-jpa-2.1.9.RELEASE.jar
+  008.hibernate-validator-6.0.17.Final.jar 036.reactive-streams-1.0.2.
+ jar 043.spring-boot-2.1.6.RELEASE.jar 011.jackson-core-2.9.9.jar 004.
+ classmate-1.4.0.jar 063.spring-jdbc-5.1.8.RELEASE.jar 069.tomcat-embe
+ d-el-9.0.21.jar commons-lang-2.5.jar 054.spring-context-5.1.8.RELEASE
+ .jar fastjson-1.2.3.jar netty-3.9.9.Final.jar axiom_1.2.11.wso2v9.jar
+  020.javax.persistence-api-2.2.jar ognl-3.2.6.jar 006.hibernate-commo
+ ns-annotations-5.0.1.Final.jar 032.netty-common-4.1.36.Final.jar 061.
+ spring-expression-5.1.8.RELEASE.jar bdaim.base-2.0.jar json-lib-2.4-j
+ dk15.jar 033.netty-handler-4.1.36.Final.jar jjwt-0.7.0.jar lucene-joi
+ n-5.5.0.jar 057.spring-data-commons-2.1.9.RELEASE.jar 014.jackson-dat
+ atype-jsr310-2.9.9.jar snakeyaml-1.23.jar metadata-extractor-2.11.0.j
+ ar 077.log4j-1.2.17.jar 002.aspectjweaver-1.9.4.jar commons-collectio
+ ns-3.2.1.jar 037.reactor-core-3.2.10.RELEASE.jar 035.netty-transport-
+ 4.1.36.Final.jar poi-ooxml-schemas-4.0.0.jar commons-codec-1.10.jar c
+ ommons-collections4-4.1.jar 024.jul-to-slf4j-1.7.26.jar cas-client-co
+ re-3.2.1.jar lucene-core-5.5.0.jar 030.netty-buffer-4.1.36.Final.jar 
+ 050.spring-boot-starter-json-2.1.6.RELEASE.jar compress-lzf-1.0.2.jar
+  018.javax.activation-api-1.2.0.jar gson-2.8.5.jar serializer-1.1.jar
+  053.spring-boot-starter-web-2.1.6.RELEASE.jar 079.hibernate-jpa-2.1-
+ api-1.0.0.Final.jar 070.tomcat-embed-websocket-9.0.21.jar 052.spring-
+ boot-starter-tomcat-2.1.6.RELEASE.jar zxing-core-3.4.0.jar 007.hibern
+ ate-core-5.0.12.Final.jar 048.spring-boot-starter-data-redis-2.1.6.RE
+ LEASE.jar httpmime-4.3.6.jar 019.javax.annotation-api-1.3.2.jar 022.j
+ axb-api-2.3.1.jar easypoi-base-4.1.0.jar 015.jackson-module-parameter
+ -names-2.9.9.jar poi-ooxml-4.0.0.jar 005.dom4j-2.1.1.jar jaxb-api-2.3
+ .1.jar 034.netty-resolver-4.1.36.Final.jar 072.mysql-connector-java-5
+ .1.41.jar httpclient-4.5.9.jar lucene-queries-5.5.0.jar 028.logback-c
+ lassic-1.2.3.jar easypoi-annotation-4.1.0.jar lucene-spatial3d-5.5.0.
+ jar 040.spring-aop-5.1.8.RELEASE.jar lucene-analyzers-common-5.5.0.ja
+ r 009.HikariCP-3.2.0.jar httpcore-nio-4.4.12.jar 078.hibernate-entity
+ manager-5.0.12.Final.jar asm-util-4.2.jar 075.spring-security-oauth2-
+ 2.1.0.RELEASE.jar Excel4J-2.1.4-Final2.jar 013.jackson-datatype-jdk8-
+ 2.9.9.jar jackson-dataformat-smile-2.9.9.jar lucene-grouping-5.5.0.ja
+ r 073.spring-security-config-5.1.5.RELEASE.jar 017.javassist-3.23.2-G
+ A.jar 062.spring-jcl-5.1.8.RELEASE.jar 082.mongo-java-driver-3.9.1.ja
+ r lucene-spatial-5.5.0.jar 003.byte-buddy-1.9.13.jar 021.javax.transa
+ ction-api-1.3.jar poi-4.0.0.jar 059.spring-data-keyvalue-2.1.9.RELEAS
+ E.jar 074.spring-security-core-5.1.5.RELEASE.jar 060.spring-data-redi
+ s-2.1.9.RELEASE.jar lucene-backward-codecs-5.5.0.jar xmlbeans-3.1.0.j
+ ar 023.jboss-logging-3.3.2.Final.jar jest-common-5.3.3.jar 041.spring
+ -aspects-5.1.8.RELEASE.jar 064.spring-oxm-5.1.8.RELEASE.jar lucene-qu
+ eryparser-5.5.0.jar 027.log4j-to-slf4j-2.11.2.jar 068.tomcat-embed-co
+ re-9.0.21.jar 067.spring-webmvc-5.1.8.RELEASE.jar 001.antlr-2.7.7.jar
+  httpcore-4.4.12.jar commons-io-2.2.jar lucene-memory-5.5.0.jar lucen
+ e-suggest-5.5.0.jar 076.spring-security-web-5.1.5.RELEASE.jar hazelca
+ st-all-3.7.2.jar 039.snakeyaml-1.23.jar 066.spring-web-5.1.8.RELEASE.
+ jar 031.netty-codec-4.1.36.Final.jar 038.slf4j-api-1.7.26.jar 049.spr
+ ing-boot-starter-jdbc-2.1.6.RELEASE.jar jsr166e-1.1.0.jar 071.validat
+ ion-api-2.0.1.Final.jar 045.spring-boot-starter-2.1.6.RELEASE.jar cgl
+ ib-3.1.jar 042.spring-beans-5.1.8.RELEASE.jar 016.jandex-2.0.5.Final.
+ jar 051.spring-boot-starter-logging-2.1.6.RELEASE.jar 065.spring-tx-5
+ .1.8.RELEASE.jar commons-httpclient-3.1.jar easypoi-web-4.1.0.jar 025
+ .lettuce-core-5.1.7.RELEASE.jar lucene-misc-5.5.0.jar lucene-highligh
+ ter-5.5.0.jar ezmorph-1.0.6.jar 063.spring-orm-5.1.8.RELEASE.jar comm
+ ons-compress-1.19.jar easyexcel-1.1.2-beta5.jar jsch-0.1.50.jar guava
+ -21.0.jar commons-fileupload-1.3.1.jar 044.spring-boot-autoconfigure-
+ 2.1.6.RELEASE.jar httpasyncclient-4.1.4.jar commons-beanutils-1.8.0.j
+ ar 026.log4j-api-2.11.2.jar 081.spring-data-mongodb-2.1.6.RELEASE.jar
+  commons-lang3-3.7.jar jest-5.3.3.jar 080.spring-boot-starter-data-mo
+ ngodb-2.1.6.RELEASE.jar hppc-0.7.1.jar 047.spring-boot-starter-data-j
+ pa-2.1.6.RELEASE.jar 012.jackson-databind-2.9.9.jar 046.spring-boot-s
+ tarter-aop-2.1.6.RELEASE.jar 056.spring-core-5.1.8.RELEASE.jar 010.ja
+ ckson-annotations-2.9.0.jar 055.spring-context-support-5.1.8.RELEASE.
+ jar commons-net-3.3.jar asm-4.2.jar elasticsearch-2.3.3.jar t-digest-
+ 3.1.jar 029.logback-core-1.2.3.jar lucene-sandbox-5.5.0.jar
+Main-Class: com.bdaim.BPApp
+

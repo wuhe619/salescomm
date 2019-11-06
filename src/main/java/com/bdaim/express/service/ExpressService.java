@@ -388,5 +388,13 @@ public class ExpressService {
         }
     }
 
+
+//    public String queryExpressOrderList(LoginUser lu) {
+//        String user_id = lu.getUser_id();
+//        String sql = "select * from h_data_manager_express_order where cust_user_id = " + "'" + user_id + "'";
+//
+////jdbcTemplate.query();
+//        return null;
+//    }
 }
 
