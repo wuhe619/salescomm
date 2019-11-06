@@ -443,6 +443,7 @@ public class BgdZService implements BusiService {
         List<HBusiDataManager> goodList;
         HBusiDataManager good, hm;
         for (HBusiDataManager hp : parties) {
+            log.info("fendan: "+JSONObject.toJSONString(hp));
             hm = new HBusiDataManager();
             hm.setType(BusiTypeEnum.BF.getType());
             hm.setCreateDate(new Date());
