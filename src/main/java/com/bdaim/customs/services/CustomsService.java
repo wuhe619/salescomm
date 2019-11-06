@@ -1303,10 +1303,10 @@ public class CustomsService {
         if (hBusiDataManager != null) {
             String updateSql = " update " + HMetaDataDef.getTable(BusiTypeEnum.BF.getType(), "") + " set content='" + json.toJSONString() + "',ext_2='" + data.getString("code") + "' where id=" + hBusiDataManager.getId();
             jdbcTemplate.update(updateSql);
-            String sql = "insert into h_customer_msg(`cust_id`,`cust_user_id`,`content`,`create_time`,`status`,`level`,`msg_type`)" +
-                    "values ('" + hBusiDataManager.getCust_id() + "'," + hBusiDataManager.getCust_user_id() + ",'" + msg.toJSONString() + "',now(),0,1,'CHANGZHAN')";
 
             if ("-1".equals(data.getString("code"))) {
+                String sql = "insert into h_customer_msg(`cust_id`,`cust_user_id`,`content`,`create_time`,`status`,`level`,`msg_type`)" +
+                    "values ('" + hBusiDataManager.getCust_id() + "'," + hBusiDataManager.getCust_user_id() + ",'" + msg.toJSONString() + "',now(),0,4,'CHANGZHAN')";
                 jdbcTemplate.update(sql);
             }
 
