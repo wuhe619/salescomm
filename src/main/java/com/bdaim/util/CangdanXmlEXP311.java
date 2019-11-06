@@ -171,7 +171,7 @@ public class CangdanXmlEXP311 {
         DestinationPort.setTextContent(json.getString("depart_arrival_port"));
         ExpMftHead.appendChild(DestinationPort);
         Element IEPort = document.createElement("IEPort");
-        IEPort.setTextContent(json.getString("i_e_port"));
+        IEPort.setTextContent(json.getString("decl_port"));
         ExpMftHead.appendChild(IEPort);
         Element TradeCo = document.createElement("TradeCo");
         TradeCo.setTextContent(custInfo.get("agent_code")==null?"":custInfo.get("agent_code").toString());//r
