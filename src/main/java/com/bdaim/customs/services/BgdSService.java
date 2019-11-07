@@ -217,9 +217,12 @@ public class BgdSService implements BusiService{
 				List dataList = page.getData();
 				Map<String ,Object> d = (Map<String, Object>) dataList.get(0);
 				JSONObject contentObj = JSON.parseObject(JSON.toJSONString(d));
-				duty_paid_price = contentObj.getFloatValue("duty_price");
-
-				tax_rate = contentObj.getFloatValue("tax_rate");
+				if(contentObj.containsKey("duty_price") && StringUtil.isNotEmpty(contentObj.getString("duty_price"))){
+					duty_paid_price = contentObj.getFloatValue("duty_price");
+				}
+				if(contentObj.containsKey("tax_rate") && StringUtil.isNotEmpty(contentObj.getString("tax_rate"))) {
+					tax_rate = contentObj.getFloatValue("tax_rate");
+				}
 				estimated_tax = duty_paid_price*tax_rate;
 				festimated_tax += estimated_tax;
 			}
