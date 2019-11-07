@@ -237,6 +237,7 @@ public class BgdFService implements BusiService {
             jo.put("ext_6",cust_user_id);
             info.put("ext_6",cust_user_id);//ext_6 点击申报的人
             sql = "UPDATE "+HMetaDataDef.getTable(busiType,"")+" SET ext_1 = 'B1',ext_6='"+cust_user_id+"', ext_date1 = NOW(), content=? WHERE id = ? AND type = ? AND IFNULL(ext_1,'') <>'B1' ";
+            log.info("提交至海关updatesql："+sql);
             jdbcTemplate.update(sql, jo.toJSONString(), id, busiType);
             serviceUtils.updateDataToES(BusiTypeEnum.BF.getType(), id.toString(), jo);
 
