@@ -40,11 +40,11 @@ public class CustomerMsgService {
         return contentPage;
     }
 
-    public Content getCustomerMsgById(int id) {
+    public String getCustomerMsgById(int id) {
         CustomerMsg customerMsg = customerMsgRepository.findById(id);
-        String contentStr = customerMsg.getContent();
-        Content content = JSON.parseObject(contentStr, Content.class);
-        return content;
+//        String contentStr = customerMsg.getContent();
+//        Content content = JSON.parseObject(contentStr, Content.class);
+        return customerMsg.getContent();
     }
 
     public String updateCustomerMsg() {
@@ -55,7 +55,7 @@ public class CustomerMsgService {
                 entity.setLevel(4);
             }
             return entity;
-        }).filter(entity->entity.getLevel()==4).collect(Collectors.toList());
+        }).filter(entity -> entity.getLevel() == 4).collect(Collectors.toList());
         customerMsgRepository.saveAll(collectList);
         return "Success";
     }

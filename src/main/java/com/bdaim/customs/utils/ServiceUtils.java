@@ -262,7 +262,7 @@ public class ServiceUtils {
      */
     public HBusiDataManager findFendanByBillNo(String custId, String type, String mainBillNo, String billNo) {
         StringBuffer sql = new StringBuffer();
-        sql.append("select id, type, content, cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(type, "") + " where cust_id = ? AND type=? AND ext_4 = ?  AND ext_3 = ?");
+        sql.append("select id, type, content, cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5,ext_6 from " + HMetaDataDef.getTable(type, "") + " where cust_id = ? AND type=? AND ext_4 = ?  AND ext_3 = ?");
         log.info("查询分单sql:{}", sql);
         List<Map<String, Object>> list = jdbcTemplate.queryForList(sql.toString(), custId, type, mainBillNo, billNo);
         List<HBusiDataManager> result = JSON.parseArray(JSON.toJSONString(list), HBusiDataManager.class);
@@ -338,6 +338,49 @@ public class ServiceUtils {
         List<Map<String, Object>> list = jdbcTemplate.queryForList(sql.toString(), sqlParams.toArray());
         //List<JSONObject> result = JSON.parseArray(JSON.toJSONString(list), JSONObject.class);
         return JSON.parseArray(JSON.toJSONString(list), JSONObject.class);
+    }
+
+
+    public List<HBusiDataManager> listSdByBillNo(String custId, String type, String mainBillNo, List<String> partyNos, JSONObject param) {
+        if (partyNos == null || partyNos.size() == 0) {
+            return new ArrayList<>();
+        }
+        List sqlParams = new ArrayList();
+        StringBuffer sql = new StringBuffer();
+        sql.append("select id, type, content, cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(type, "") + " where type=? AND " + BusiMetaConfig.getFieldIndex(type, "main_bill_no") + " = ?  AND " + BusiMetaConfig.getFieldIndex(type, "pid") + " IN (" + SqlAppendUtil.sqlAppendWhereIn(partyNos) + ")");
+        if (!"all".equals(custId))
+            sql.append(" and cust_id='").append(custId).append("'");
+        sqlParams.add(type);
+        sqlParams.add(mainBillNo);
+
+        Iterator keys = param.keySet().iterator();
+        while (keys.hasNext()) {
+            String key = (String) keys.next();
+            if ("".equals(String.valueOf(param.get(key)))) continue;
+            if ("pageNum".equals(key) || "pageSize".equals(key) || "stationId".equals(key) || "cust_id".equals(key) || "_rule_".equals(key)) {
+                continue;
+            } else if (key.startsWith("_g_")) {
+                sql.append(" and " + BusiMetaConfig.getFieldIndex(type, key) + " > ?");
+            } else if (key.startsWith("_ge_")) {
+                sql.append(" and " + BusiMetaConfig.getFieldIndex(type, key) + " >= ?");
+            } else if (key.startsWith("_l_")) {
+                sql.append(" and " + BusiMetaConfig.getFieldIndex(type, key) + " < ?");
+            } else if (key.startsWith("_le_")) {
+                sql.append(" and " + BusiMetaConfig.getFieldIndex(type, key) + " <= ?");
+            } else if (key.startsWith("_eq_")) {
+                sql.append(" and " + BusiMetaConfig.getFieldIndex(type, key) + " = ?");
+            } else {
+                sql.append(" and " + BusiMetaConfig.getFieldIndex(type, key) + "=?");
+            }
+            sqlParams.add(param.get(key));
+        }
+        log.info("查询税单sql:{}", sql);
+        Object [] s = sqlParams.toArray();
+
+        RowMapper<HBusiDataManager> managerRowMapper=new BeanPropertyRowMapper<>(HBusiDataManager.class);
+        List<HBusiDataManager> list = jdbcTemplate.query(sql.toString(),s,managerRowMapper);
+//        List<Map<String, Object>> list = jdbcTemplate.query(sql.toString(), sqlParams.toArray(),);
+        return list;
     }
 
     /**
@@ -431,9 +474,14 @@ public class ServiceUtils {
         StringBuffer sql = new StringBuffer();
         sql.append("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(type, "") + " where cust_id = ? AND type=? AND ext_4 = ?");
         log.info("查询分单sql:{}", sql);
-        List<Map<String, Object>> list = jdbcTemplate.queryForList(sql.toString(), custId, type, pBillNo);
+        /*List<Map<String, Object>> list = jdbcTemplate.queryForList(sql.toString(), custId, type, pBillNo);
         List<HBusiDataManager> result = JSON.parseArray(JSON.toJSONString(list), HBusiDataManager.class);
-        return result;
+*/
+        RowMapper<HBusiDataManager> managerRowMapper=new BeanPropertyRowMapper<>(HBusiDataManager.class);
+        Object[] args=new Object[]{custId,type,pBillNo};
+        List<HBusiDataManager> list = jdbcTemplate.query(sql.toString(),args,managerRowMapper);
+
+        return list;
     }
 
     public List<HBusiDataManager> listDataByParentBillNos(String custId, String type, List<String> pBillNos) {

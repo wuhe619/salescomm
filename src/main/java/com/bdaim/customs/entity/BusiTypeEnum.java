@@ -34,7 +34,11 @@ public enum BusiTypeEnum {
     /**
      * 企业套餐领取记录
      */
-    B2B_TC_LOG("B2B_TC_LOG", "B2B企业套餐", "b2b_tcb_log");
+    B2B_TC_LOG("B2B_TC_LOG", "B2B企业套餐", "b2b_tcb_log"),
+
+    EXPRESS_ORDER("EXPRESS_ORDER","快递订单","express_order"),
+
+    EXPRESS_TRAJECTORY("EXPRESS_TRAJECTORY","快递轨迹","express_trajectory");
 
     private String key;
     private String name;

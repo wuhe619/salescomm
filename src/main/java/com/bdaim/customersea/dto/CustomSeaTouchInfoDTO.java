@@ -40,6 +40,12 @@ public class CustomSeaTouchInfoDTO implements Serializable {
      */
     private String invalidReason;
 
+    private String regLocation;
+    private String regCapital;
+    private String regTime;
+    private String regStatus;
+    private Integer entPersonNum;
+
     public CustomSeaTouchInfoDTO() {
         super();
     }
@@ -258,6 +264,46 @@ public class CustomSeaTouchInfoDTO implements Serializable {
         this.invalidReason = invalidReason;
     }
 
+    public String getRegLocation() {
+        return regLocation;
+    }
+
+    public void setRegLocation(String regLocation) {
+        this.regLocation = regLocation;
+    }
+
+    public String getRegCapital() {
+        return regCapital;
+    }
+
+    public void setRegCapital(String regCapital) {
+        this.regCapital = regCapital;
+    }
+
+    public String getRegTime() {
+        return regTime;
+    }
+
+    public void setRegTime(String regTime) {
+        this.regTime = regTime;
+    }
+
+    public String getRegStatus() {
+        return regStatus;
+    }
+
+    public void setRegStatus(String regStatus) {
+        this.regStatus = regStatus;
+    }
+
+    public Integer getEntPersonNum() {
+        return entPersonNum;
+    }
+
+    public void setEntPersonNum(Integer entPersonNum) {
+        this.entPersonNum = entPersonNum;
+    }
+
     @Override
     public String toString() {
         return "CustomSeaTouchInfoDTO{" +
@@ -282,6 +328,11 @@ public class CustomSeaTouchInfoDTO implements Serializable {
                 ", qq='" + qq + '\'' +
                 ", followStatus='" + followStatus + '\'' +
                 ", invalidReason='" + invalidReason + '\'' +
+                ", regLocation='" + regLocation + '\'' +
+                ", regCapital='" + regCapital + '\'' +
+                ", regTime='" + regTime + '\'' +
+                ", regStatus='" + regStatus + '\'' +
+                ", entPersonNum=" + entPersonNum +
                 '}';
     }
 }

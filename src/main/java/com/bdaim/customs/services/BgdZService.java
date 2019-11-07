@@ -352,6 +352,7 @@ public class BgdZService implements BusiService {
                 good.setType(BusiTypeEnum.BS.getType());
                 good.setCreateId(gp.getCreateId());
                 good.setCust_id(gp.getCust_id());
+                good.setCust_user_id(userId.toString());
                 good.setExt_3(gp.getExt_3());
                 good.setExt_4(gp.getExt_4());
                 good.setExt_5(String.valueOf(index));//商品序号
@@ -370,6 +371,7 @@ public class BgdZService implements BusiService {
         bgdMain.setCreateId(Long.valueOf(userId));
         bgdMain.setExt_3(h.getExt_3());
         bgdMain.setExt_1("B0");//未发送 1，已发送
+        bgdMain.setCust_user_id(userId.toString());
 
 
         JSONObject json = JSON.parseObject(h.getContent());
@@ -422,8 +424,7 @@ public class BgdZService implements BusiService {
             billNos.add(hp.getExt_3());
         }
         // 查询所有分单下的税单
-        List<JSONObject> jsonObjects = serviceUtils.listSdByBillNos(custId, BusiTypeEnum.SS.getType(), h.getExt_3(), billNos, new JSONObject());
-        List<HBusiDataManager> goods = JSON.parseArray(JSON.toJSONString(jsonObjects), HBusiDataManager.class);
+        List<HBusiDataManager> goods = serviceUtils.listSdByBillNo(custId, BusiTypeEnum.SS.getType(), h.getExt_3(), billNos, new JSONObject());
         Map<Long, List> cache = new HashMap<>();
         JSONObject fd = null;
         List<HBusiDataManager> tmp;
@@ -441,6 +442,7 @@ public class BgdZService implements BusiService {
         List<HBusiDataManager> goodList;
         HBusiDataManager good, hm;
         for (HBusiDataManager hp : parties) {
+            log.info("fendan: "+JSONObject.toJSONString(hp));
             hm = new HBusiDataManager();
             hm.setType(BusiTypeEnum.BF.getType());
             hm.setCreateDate(new Date());
@@ -451,6 +453,7 @@ public class BgdZService implements BusiService {
             hm.setExt_4(hp.getExt_4());
             hm.setCreateId(hp.getCreateId());
             hm.setCust_id(hp.getCust_id());
+            hm.setCust_user_id(hp.getCreateId().toString());
             JSONObject _content = JSON.parseObject(hp.getContent());
             _content.put("pid", id);
             hm.setContent(_content.toJSONString());
@@ -473,6 +476,7 @@ public class BgdZService implements BusiService {
                     good.setType(BusiTypeEnum.BS.getType());
                     good.setCreateId(gp.getCreateId());
                     good.setCust_id(gp.getCust_id());
+                    good.setCust_user_id(gp.getCreateId().toString());
                     good.setExt_2(gp.getExt_2());
                     good.setExt_3(gp.getExt_3());
                     good.setExt_4(gp.getExt_4());
