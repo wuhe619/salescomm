@@ -1468,7 +1468,7 @@ public class MarketTaskService {
             String labelDataLikeValue = "成功";
             StringBuffer sql = new StringBuffer();
             // 获取邀约成功,拨打电话成功用户的通话记录
-            sql.append("SELECT voice.touch_id touchId, voice.user_id, voice.customer_group_id, voice.market_task_id, voice.superid, voice.recordurl, ")
+            sql.append("SELECT voice.touch_id touchId, voice.user_id, voice.customer_group_id, voice.market_task_id, voice.superid, voice.recordurl, voice.clue_audit_status, voice.clue_audit_reason, ")
                     .append(" voice.create_time, voice.callSid, t.super_data, t.super_age, t.super_name, t.super_sex, ")
                     .append(" t.remark phonearea, t.super_telphone, t.super_phone, t.super_address_province_city, t.super_address_street, t.intent_level ")
                     .append(" FROM " + ConstantsUtil.TOUCH_VOICE_TABLE_PREFIX + nowMonth + " voice ")
@@ -1577,6 +1577,10 @@ public class MarketTaskService {
                     if (marketTask.getTaskType() != null && 3 == marketTask.getTaskType().intValue()) {
                         columnList.add(String.valueOf(row.get("intent_level")));
                     }
+                    // 通话审核状态
+                    columnList.add(CallUtil.getClueAuditStatusName(String.valueOf(row.get("clue_audit_status"))));
+                    // 通话审核失败原因
+                    columnList.add(String.valueOf(row.get("clue_audit_reason")));
                     data.add(columnList);
                 }
             }
@@ -1788,6 +1792,8 @@ public class MarketTaskService {
         headNames.add("时间");
         headNames.add("录音");
         headNames.add("意向度");
+        headNames.add("人工审核");
+        headNames.add("审核失败原因");
 
         for (CustomerLabelDTO map : labels) {
             if (StringUtil.isNotEmpty(map.getLabelName())) {
@@ -1837,6 +1843,14 @@ public class MarketTaskService {
 
         head = new ArrayList<>();
         head.add("录音");
+        headers.add(head);
+
+        head = new ArrayList<>();
+        head.add("人工审核");
+        headers.add(head);
+
+        head = new ArrayList<>();
+        head.add("审核失败原因");
         headers.add(head);
         return headers;
     }

@@ -3461,7 +3461,9 @@ public class MarketResourceAction extends BasicAction {
         if (touchIds == null || (touchIds != null && touchIds.size() == 0)) {
             throw new ParamException("touchIds参数不能为空");
         }
-        boolean result = marketResourceService.saveVoiceIntention(touchIds, intentStatus, endTime);
+        // 审核失败原因
+        String clueAuditReason = param.getString("reason");
+        boolean result = marketResourceService.saveVoiceIntention(touchIds, intentStatus, endTime, clueAuditReason);
         if (result) {
             return returnSuccess();
         }
@@ -3492,7 +3494,13 @@ public class MarketResourceAction extends BasicAction {
         if (StringUtil.isEmpty(param.getCustomerGroupId())) {
             throw new ParamException("customerGroupId参数不能为空");
         }
-        boolean result = marketResourceService.saveBatchVoiceIntention(param);
+        UserQueryParam userQueryParam = getUserQueryParam();
+        param.setCustId(userQueryParam.getCustId());
+        param.setUserId(userQueryParam.getUserId());
+        param.setUserType(userQueryParam.getUserType());
+        param.setUserGroupRole(userQueryParam.getUserGroupRole());
+        param.setUserGroupId(userQueryParam.getUserGroupId());
+        boolean result = marketResourceService.saveBatchVoiceIntention0(param);
         if (result) {
             return returnSuccess();
         }

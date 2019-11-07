@@ -72,7 +72,7 @@ public class TokenServiceImpl implements TokenService {
             UserDO u = userInfoService.getUserByName(username.substring(8));
             if (u != null && CipherUtil.generatePassword(password).equals(u.getPassword())) {
                 List<Map<String, Object>> roleInfo = roleDao.getRoleInfoByUserId(String.valueOf(u.getId()));
-                if (roleInfo != null && roleInfo.size() > 0) {
+                if (roleInfo != null && roleInfo.size() > 0 && roleInfo.get(0).get("type") != null) {
                     type = NumberConvertUtil.parseLong(String.valueOf(roleInfo.get(0).get("type")));
                 }
                 //寻找登录账号已有的token, 需重构
