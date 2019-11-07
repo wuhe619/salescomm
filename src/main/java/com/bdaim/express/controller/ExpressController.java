@@ -11,7 +11,6 @@ import com.bdaim.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -37,7 +36,7 @@ public class ExpressController extends BasicAction {
         logger.info("订单详情:渠道类型:" + orderData.getTradeNoType());
         ResponseInfo resp = new ResponseInfo();
         LoginUser lu = tokenService.opUser();
-        Object o = expressService.expressOeder(orderData,lu);
+        Object o = expressService.expressOeder(orderData, lu);
 
         if (o == null) {
             return new ResponseInfoAssemble().failure(-1, "快递订单创建失败");
@@ -45,15 +44,6 @@ public class ExpressController extends BasicAction {
         resp.setData(o);
         return resp;
     }
-
-//    public ResponseInfo queryExpressOrderList(){
-//
-//        ResponseInfo resp = new ResponseInfo();
-//        LoginUser lu = tokenService.opUser();
-//
-//
-//        return null;
-//    }
 
     /**
      * 获取快递订单信息（打印面单）
@@ -63,6 +53,7 @@ public class ExpressController extends BasicAction {
     @PostMapping("/order/data")
     public ResponseInfo getExpressOrderData(@RequestBody ExpressOrderData orderData) {
         ResponseInfo resp = new ResponseInfo();
+
         if (StringUtil.isNotEmpty(orderData.getTxLogisticID())) {
             return new ResponseInfoAssemble().failure(-1, "快递订单号不能为空");
         }
@@ -83,12 +74,16 @@ public class ExpressController extends BasicAction {
      */
     @GetMapping("/trajectory/{tradeNoType}")
     public ResponseInfo queryTrajectory(String number, @PathVariable int tradeNoType) {
+
         if (StringUtil.isEmpty(number)) {
             return new ResponseInfoAssemble().failure(-1, "运单号不能为空");
         }
         logger.info("运单号:" + number);
         ResponseInfo resp = new ResponseInfo();
-        Object o = expressService.queryTrajectory(number, tradeNoType);
+        LoginUser lu = tokenService.opUser();
+//        String custId = "1909180815300000";
+        String custId=lu.getCustId();
+        Object o = expressService.queryTrajectory(number, tradeNoType, custId);
         if (o == null) {
             return new ResponseInfoAssemble().failure(-1, "快递轨迹查询失败");
         }

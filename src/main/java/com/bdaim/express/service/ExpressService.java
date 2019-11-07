@@ -9,6 +9,7 @@ import com.bdaim.common.service.SequenceService;
 import com.bdaim.common.spring.SpringContextHelper;
 import com.bdaim.customs.entity.HMetaDataDef;
 import com.bdaim.express.dto.ExpressOrderData;
+import com.bdaim.express.dto.ExpressType;
 import com.bdaim.express.dto.Items;
 import com.bdaim.express.dto.Param;
 import com.bdaim.express.dto.yto.*;
@@ -28,6 +29,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
@@ -44,7 +46,7 @@ public class ExpressService {
     private JdbcTemplate jdbcTemplate;
 
     private static Logger logger = LoggerFactory.getLogger(ExpressService.class);
-    SimpleDateFormat smft = new SimpleDateFormat("YYYY-MM-dd  HH:mm:ss ");
+    SimpleDateFormat smft = new SimpleDateFormat("YYYY-M-d H:m:ss");
 
     //根据渠道区分快递公司
     public String expressOeder(ExpressOrderData orderData, LoginUser lu) {
@@ -81,14 +83,25 @@ public class ExpressService {
         }
 
         ElectronOrderResponse ytoResponse = null;
-        YTO requestOrder = new YTO(orderData);
+        String custId = lu.getCustId();
+//        String custId = "1909180815300000";
+        if (StringUtil.isEmpty(custId)) {
+            throw new ParamException("当前用户不允许创建订单");
+        }
+        String sql1 = "select property_value from t_customer_property  where cust_id=? and property_name= ?";
+        Map data;
+        data = jdbcTemplate.queryForMap(sql1, custId, "yto_config");
+        if (data.size() == 0) {
+            throw new ParamException("当前用户不允许创建订单");
+        }
+        JSONObject json = JSONObject.parseObject(data.get("property_value").toString());
+        YTO requestOrder = new YTO(json.getString("customer_id"), orderData.getTxLogisticID(), orderData.getOrderType(), orderData.getServiceType());
         requestOrder.setSender(new YTOSender(orderData.getSender()));
         requestOrder.setReceiver(new YTOReceiver(orderData.getReceiver()));
         String clientId = requestOrder.getClientID();
         int clientIDNum = clientId.length();
         String randomStr = getRandomStringByLength(63 - clientIDNum);
         requestOrder.setTxLogisticID(requestOrder.getClientID() + randomStr);
-//        requestOrder.setTxLogisticID("K21000119x1S0clq7XPYMqTIo3FyZzC2mw8Wy8yknLaAzH8b1Bdqu3LB1-pn4Ub8");
 
         String txLogisticID = requestOrder.getTxLogisticID();
         String sql = "select id,type,content,ext_1,ext_2 from h_data_manager_express_order where ext_2 =" + "'" + txLogisticID + "'";
@@ -98,7 +111,7 @@ public class ExpressService {
         }
         List<Items> itemList = orderData.getItemList();
 
-        String result = null;
+        String result;
         Map<String, Object> headers = new HashMap<>();
         headers.put("Content-Type", "application/x-www-form-urlencoded;charset=utf-8");
         StringBuilder xmlBuilder = new StringBuilder();
@@ -155,7 +168,7 @@ public class ExpressService {
         xmlBuilder.append("    </items>");
         xmlBuilder.append("</RequestOrder>");
         try {
-
+            ExpressType expressType = ExpressType.getExpressTypeByCode("zto");
             MessageDigest messagedigest = MessageDigest.getInstance("MD5");
             messagedigest.update((xmlBuilder.toString() + "u2Z1F7Fh").getBytes("UTF-8"));
             byte[] abyte0 = messagedigest.digest();
@@ -163,8 +176,7 @@ public class ExpressService {
             String parameter = "logistics_interface=" + URLEncoder.encode(xmlBuilder.toString(), "UTF-8")
                     + "&data_digest=" + URLEncoder.encode(data_digest, "UTF-8")
                     + "&clientId=" + URLEncoder.encode(clientId, "UTF-8");
-//            result = HttpUtil.httpPost("http://service.yto56.net.cn/overseaOrderServlet", parameter, headers);
-            result = HttpUtil.httpPost("http://58.32.246.71:8000/overseaOrderServlet", parameter, headers);
+            result = HttpUtil.httpPost(expressType.getOrderUrl(), parameter, headers);
             logger.info(result);
             XStream xStream = new XStream(new DomDriver());
             xStream.alias("Response", ElectronOrderResponse.class);
@@ -175,8 +187,7 @@ public class ExpressService {
 
             ytoResponse.setItemsList(itemList);
             Map<String, String> map = new HashMap<>();
-            saveExpreeOder(lu.getCustId(), lu.getUserGroupId(), Long.valueOf(lu.getUser_id()), "express_order", 0L, JSONObject.parseObject(JSONObject.toJSON(ytoResponse).toString()));
-            saveExpressTrajectory(lu.getCustId(), lu.getUserGroupId(), Long.valueOf(lu.getUser_id()), "express_trajectory", 0L, JSONObject.parseObject("{}"), ytoResponse.getMailNo(), ytoResponse.getTxLogisticID());
+            saveExpreeOder(custId, lu.getUserGroupId(), Long.valueOf(lu.getUser_id()), "express_order", 0L, JSONObject.parseObject(JSONObject.toJSON(ytoResponse).toString()), expressType);
             return ytoResponse.getMailNo();
 
         } catch (Exception e) {
@@ -215,10 +226,10 @@ public class ExpressService {
         return sb.toString() + random.nextInt(9);
     }
 
-    public Object queryTrajectory(String number, int tradeNoType) {
+    public Object queryTrajectory(String number, int tradeNoType, String custId) {
         switch (tradeNoType) {
             case 0:
-                return queryYTOTrajectory(number);
+                return queryYTOTrajectory(number, custId);
             case 1:
                 return "";
 
@@ -228,65 +239,78 @@ public class ExpressService {
     }
 
     //圆通快递轨迹
-    public YTOTrajectory queryYTOTrajectory(String number) {
-        if (StringUtil.isEmpty(number)) {
-            throw new ParamException("订单号不能为空");
+    public String queryYTOTrajectory(String number, String custId) {
+        String sql1 = "select property_value from t_customer_property  where cust_id=? and property_name= ?";
+        Map data;
+
+        data = jdbcTemplate.queryForMap(sql1, custId, "yto_config");
+        if (data.size() == 0) {
+            throw new ParamException("查询失败");
         }
+
+        JSONObject json = JSONObject.parseObject(data.get("property_value").toString());
         Param param = new Param();
         param.setNumber(number);
-        YTOTrajectory trajectory = new YTOTrajectory();
-        trajectory.setApp_key("rVQWLC");
-        trajectory.setUser_id("zhangm");
-        trajectory.setParam(param);
+        param.setWaybillNos(number);
 
-        String format = smft.format(new Date());
-        trajectory.setTimestamp(format);
+        String app_key = json.getString("app_key");
+        String user_id = json.getString("user_id");
+        String format = "JSON";
+        String method = json.getString("method_name");
+        String secret_key = json.getString("secret_key");
+        String dateTime = smft.format(new Date());
         Map<String, Object> headers = new HashMap<>();
         headers.put("content-type", "application/x-www-form-urlencoded");
-
-        Map<String, String> map = new HashMap<>();
-
         String result;
         try {
-            String sign = encryptSignForOpen(trajectory.getApp_key(), trajectory.getFormat(), trajectory.getMethod(),
-                    trajectory.getTimestamp(), trajectory.getUser_id(), trajectory.getV(), trajectory.getVersion(), "123456");
+            String sign = encryptSignForOpen(app_key, format, method, dateTime, user_id, "1.01",
+                    null, secret_key);
+            Map<String, String> map = new HashMap<>();
             map.put("sign", sign);
-            map.put("app_key", trajectory.getApp_key());
+            map.put("app_key", app_key);
             map.put("format", "JSON");
-            map.put("method", trajectory.getMethod());
-            map.put("timestamp", trajectory.getTimestamp());
-            map.put("user_id", trajectory.getUser_id());
-            map.put("v", trajectory.getV());
-            map.put("version", trajectory.getVersion());
-            map.put("param", JSON.toJSONString(trajectory.getParam()));
-            result = HttpUtil.httpPost("http://gwmarketinginterface.yto.net.cn:7000/standard", map, headers);
-            TrajectoryResponse response = JSON.parseObject(result, TrajectoryResponse.class);
-            if (!"1001".equals(response.getCode())) {
-                logger.info(String.format("错误码:%s,错误内容:%s", response.getCode(), response.getReason()));
-                return null;
-            }
+            map.put("method", method);
+            map.put("timestamp", dateTime);
+            map.put("user_id", user_id);
+            map.put("v", "1.01");
+            map.put("param", JSON.toJSONString(param));
+            String date = paramsToQueryStringUrlencoded(map);
+            ExpressType expressType = ExpressType.getExpressTypeByCode("zto");
+            result = HttpUtil.httpPost(expressType.getRajectoryUrl(), date, headers);
+            System.err.println(result);
+            return result;
         } catch (Exception e) {
             logger.info("报错信息:" + e.getCause());
         }
-        return trajectory;
+        return null;
     }
 
-    public static String encryptSignForOpen(String appKey, String format, String method,
-                                            String timestamp, String userId, String v, String version, String secret) {
+    public static String paramsToQueryStringUrlencoded(Map<String, String> params) {
+        return params.entrySet().stream().map(e -> {
+            try {
+                return e.getKey() + "=" + URLEncoder.encode(e.getValue(), "UTF-8");
+            } catch (UnsupportedEncodingException e1) {
+                return e.getValue();
+            }
+        }).collect(Collectors.joining("&"));
+    }
+
+    public static String encryptSignForOpen(String appKey, String format, String method, String timestamp,
+                                            String userId, String v, String version, String secret) {
         String sign = "";
         try {
             StringBuffer stringBuffer = new StringBuffer(secret);
-            stringBuffer = stringBuffer.append("app_key").append(appKey)
-                    .append("format").append(format)
-                    .append("method").append(method)
-                    .append("timestamp").append(timestamp)
-                    .append("user_id").append(userId);
+            stringBuffer = stringBuffer.append("app_key").append(appKey).append("format").append(format)
+                    .append("method").append(method).append("timestamp").append(timestamp).append("user_id")
+                    .append(userId);
             if (StringUtil.isEmpty(version)) {
                 stringBuffer.append("v").append(v);
             } else {
-                stringBuffer.append(version).append(version);
+                stringBuffer.append("version").append(version);
             }
-            byte[] signByte = MessageDigest.getInstance("MD5").digest(stringBuffer.toString().getBytes("UTF-8"));
+            MessageDigest messagedigest = MessageDigest.getInstance("MD5");
+            messagedigest.update((stringBuffer.toString()).getBytes("UTF-8"));
+            byte[] signByte = messagedigest.digest();
 
             int i;
             StringBuffer buf = new StringBuffer("");
@@ -300,10 +324,8 @@ public class ExpressService {
             }
             sign = buf.toString().toUpperCase();
         } catch (Throwable e) {
-            logger.error("generator sign for openplat fail.e:{}.", e.toString());
             sign = "ERROR";
         }
-        logger.info("generator sign for openplat end.generate sign : {} .", sign);
         return sign;
     }
 
@@ -327,7 +349,7 @@ public class ExpressService {
         ztoRequest.setPartner("test");
         ztoRequest.setVerify("ZTO123");
         parameters.put("data", JSON.toJSONString(ztoRequest));
-        String strToDigest = paramsToQueryString(parameters) + key;
+        String strToDigest = paramsToQueryStringUrlencoded(parameters) + key;
         String result;
         try {
             MessageDigest md = MessageDigest.getInstance("MD5");
@@ -344,30 +366,24 @@ public class ExpressService {
         return null;
     }
 
-    public static String paramsToQueryString(Map<String, String> params) {
-        return params.entrySet().stream().map(e -> e.getKey() + "=" + e.getValue()).collect(Collectors.joining("&"));
-    }
-
-    //订单轨迹
-    public void saveExpressTrajectory(String cust_id, String cust_group_id, Long cust_user_id, String busiType, Long id, JSONObject params, String mailNo, String txLogisticID) throws Exception {
-        if (id == 0 || id == null) {
-            id = sequenceService.getSeq(busiType);
+    //存储订单轨迹
+    public void saveExpressTrajectory(String cust_id, String cust_group_id, Long cust_user_id, String busiType, Long id, JSONObject params, String mailNo, String txLogisticID, String expressType) throws Exception {
             try {
                 BusiService busiService = (BusiService) SpringContextHelper.getBean("busi_" + busiType);
                 busiService.insertInfo(busiType, cust_id, cust_group_id, cust_user_id, id, params);
                 String sql1 = "insert into " + HMetaDataDef.getTable(busiType, "") + "(id, type, content, cust_id, cust_group_id, cust_user_id, create_id, create_date, ext_1, ext_2, ext_3, ext_4, ext_5 ) value(?, ?, ?, ?, ?, ?, ?, now(), ?, ?, ?, ?, ?)";
+               System.err.equals(id);
                 jdbcTemplate.update(sql1, id, busiType, params.toJSONString(), cust_id, cust_group_id, cust_user_id, cust_user_id
-                        , mailNo, txLogisticID, "", "", "");
+                        , mailNo, txLogisticID, expressType, "0", "");
             } catch (Exception e) {
                 logger.error("插入数据异常:[" + busiType + "]", e);
                 throw new Exception("插入数据异常:[" + busiType + "]");
             }
-        }
 
     }
 
-    //订单
-    public void saveExpreeOder(String cust_id, String cust_group_id, Long cust_user_id, String busiType, Long id, JSONObject params) throws Exception {
+    //存储订单
+    public void saveExpreeOder(String cust_id, String cust_group_id, Long cust_user_id, String busiType, Long id, JSONObject params, ExpressType expressType) throws Exception {
         if (id == 0 || id == null) {
             id = sequenceService.getSeq(busiType);
             try {
@@ -377,9 +393,10 @@ public class ExpressService {
                 jdbcTemplate.update(sql1, id, busiType, params.toJSONString(), cust_id, cust_group_id, cust_user_id, cust_user_id
                         , params.containsKey("mailNo") ? params.getString("mailNo") : ""
                         , params.containsKey("txLogisticID") ? params.getString("txLogisticID") : ""
-                        , params.containsKey("ext_3") ? params.getString("ext_3") : ""
-                        , params.containsKey("ext_4") ? params.getString("ext_4") : ""
-                        , params.containsKey("ext_5") ? params.getString("ext_5") : "");
+                        , expressType.getExpressCode()//快递类型
+                        , "0"
+                        , expressType.getExpressName());
+                saveExpressTrajectory(cust_id, cust_group_id, cust_user_id, "express_trajectory", id, JSONObject.parseObject("[]"),params.getString("mailNo") ,  params.getString("txLogisticID") , "yto");
 
             } catch (Exception e) {
                 logger.error("插入数据异常:[" + busiType + "]", e);
@@ -388,13 +405,5 @@ public class ExpressService {
         }
     }
 
-
-//    public String queryExpressOrderList(LoginUser lu) {
-//        String user_id = lu.getUser_id();
-//        String sql = "select * from h_data_manager_express_order where cust_user_id = " + "'" + user_id + "'";
-//
-////jdbcTemplate.query();
-//        return null;
-//    }
 }
 

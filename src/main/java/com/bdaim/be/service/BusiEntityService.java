@@ -13,7 +13,7 @@ import com.bdaim.customs.entity.BusiTypeEnum;
 import com.bdaim.customs.entity.HMetaDataDef;
 import com.bdaim.customs.utils.ServiceUtils;
 import com.bdaim.util.StringUtil;
-
+import net.sf.json.JSONArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,38 +69,47 @@ public class BusiEntityService {
             return jo;
         String content = (String) data.get("content");
         try {
-            jo = JSONObject.parseObject(content);
-            jo.put("id", id);
-            jo.put("cust_id", data.get("cust_id"));
-            jo.put("cust_group_id", data.get("cust_group_id"));
-            jo.put("cust_user_id", data.get("cust_user_id"));
-            jo.put("create_id", data.get("create_id"));
-            jo.put("create_date", data.get("create_date"));
-            jo.put("update_id", data.get("update_id"));
-            jo.put("update_date", data.get("update_date"));
-            if (data.get("ext_1") != null && !"".equals(data.get("ext_1")))
-                jo.put("ext_1", data.get("ext_1"));
-            if (data.get("ext_2") != null && !"".equals(data.get("ext_2")))
-                jo.put("ext_2", data.get("ext_2"));
-            if (data.get("ext_3") != null && !"".equals(data.get("ext_3")))
-                jo.put("ext_3", data.get("ext_3"));
-            if (data.get("ext_4") != null && !"".equals(data.get("ext_4")))
-                jo.put("ext_4", data.get("ext_4"));
-            if (data.get("ext_5") != null && !"".equals(data.get("ext_5")))
-                jo.put("ext_5", data.get("ext_5"));
+            if ("express_trajectory".equals(busiType)) {
+                JSONArray jsonarray = JSONArray.fromObject(content);
+                for (int i = 0; i < jsonarray.size(); i++) {
+                    net.sf.json.JSONObject jsonObject = jsonarray.getJSONObject(i);
+                    String upload_time = jsonObject.getString("upload_Time");
+                    jo.put(upload_time, jsonarray.get(i));
+                }
+            } else {
+                jo = JSONObject.parseObject(content);
+                jo.put("id", id);
+                jo.put("cust_id", data.get("cust_id"));
+                jo.put("cust_group_id", data.get("cust_group_id"));
+                jo.put("cust_user_id", data.get("cust_user_id"));
+                jo.put("create_id", data.get("create_id"));
+                jo.put("create_date", data.get("create_date"));
+                jo.put("update_id", data.get("update_id"));
+                jo.put("update_date", data.get("update_date"));
+                if (data.get("ext_1") != null && !"".equals(data.get("ext_1")))
+                    jo.put("ext_1", data.get("ext_1"));
+                if (data.get("ext_2") != null && !"".equals(data.get("ext_2")))
+                    jo.put("ext_2", data.get("ext_2"));
+                if (data.get("ext_3") != null && !"".equals(data.get("ext_3")))
+                    jo.put("ext_3", data.get("ext_3"));
+                if (data.get("ext_4") != null && !"".equals(data.get("ext_4")))
+                    jo.put("ext_4", data.get("ext_4"));
+                if (data.get("ext_5") != null && !"".equals(data.get("ext_5")))
+                    jo.put("ext_5", data.get("ext_5"));
 
-            //执行自定义单数据规则
-            BusiService busiService = (BusiService) SpringContextHelper.getBean("busi_" + busiType);
-            if (busiService != null)
-                busiService.doInfo(busiType, cust_id, cust_group_id, cust_user_id, id, jo, param);
-            //查询场站和报关单位
-            serviceUtils.getStationCustName(jo);
-            // 查询字典数据
-            serviceUtils.getHDicData(jo);
-        }catch (TouchException e){
+                //执行自定义单数据规则
+                BusiService busiService = (BusiService) SpringContextHelper.getBean("busi_" + busiType);
+                if (busiService != null)
+                    busiService.doInfo(busiType, cust_id, cust_group_id, cust_user_id, id, jo, param);
+                //查询场站和报关单位
+                serviceUtils.getStationCustName(jo);
+                // 查询字典数据
+                serviceUtils.getHDicData(jo);
+            }
+        } catch (TouchException e) {
             logger.error("数据格式错误！", e);
-            throw new TouchException(e.getCode(),e.getMessage());
-        }catch (Exception e) {
+            throw new TouchException(e.getCode(), e.getMessage());
+        } catch (Exception e) {
             logger.error("数据格式错误！", e);
             throw new Exception("数据格式错误！");
         }
