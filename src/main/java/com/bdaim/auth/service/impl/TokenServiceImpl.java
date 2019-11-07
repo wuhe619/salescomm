@@ -143,8 +143,16 @@ public class TokenServiceImpl implements TokenService {
                 String tokenid = (String) name2token.get(username);
                 if (tokenid != null && !"".equals(tokenid)) {
                     userdetail = (LoginUser) tokenCacheService.getToken(tokenid);
-                    if (userdetail != null)
+                    if (userdetail != null){
+                        // 查询用户组信息
+                        CustomerUserGroupRelDTO cug = customerUserDao.getCustomerUserGroupByUserId(u.getId());
+                        if (cug != null) {
+                            userdetail.setUserGroupId(cug.getGroupId());
+                            userdetail.setUserGroupRole(String.valueOf(cug.getType()));
+                            userdetail.setJobMarketId(cug.getJobMarketId());
+                        }
                         return userdetail;
+                    }
                     else
                         name2token.remove(username);
                 }
