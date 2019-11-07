@@ -1468,7 +1468,7 @@ public class MarketTaskService {
             String labelDataLikeValue = "成功";
             StringBuffer sql = new StringBuffer();
             // 获取邀约成功,拨打电话成功用户的通话记录
-            sql.append("SELECT voice.touch_id touchId, voice.user_id, voice.customer_group_id, voice.market_task_id, voice.superid, voice.recordurl, voice.clue_audit_status, voice.clue_audit_reason, ")
+            sql.append("SELECT voice.touch_id touchId, voice.user_id, voice.customer_group_id, voice.market_task_id, voice.superid, voice.recordurl, voice.clue_audit_status, IFNULL(voice.clue_audit_reason, ''), ")
                     .append(" voice.create_time, voice.callSid, t.super_data, t.super_age, t.super_name, t.super_sex, ")
                     .append(" t.remark phonearea, t.super_telphone, t.super_phone, t.super_address_province_city, t.super_address_street, t.intent_level ")
                     .append(" FROM " + ConstantsUtil.TOUCH_VOICE_TABLE_PREFIX + nowMonth + " voice ")
