@@ -18,14 +18,14 @@ public class YTO {
     public YTO() {
     }
 
-    public YTO(ExpressOrderData data) {
+    public YTO(String clientID, String txLogisticID, int orderType, long serviceType) {
         this.clientID = "K21000119";
         this.logisticProviderID = "YTO";
         this.customerId = this.clientID;
-        this.txLogisticID = data.getTxLogisticID();
+        this.txLogisticID = txLogisticID;
         this.tradeNo = this.customerId;
-        this.orderType = data.getOrderType();
-        this.serviceType = data.getServiceType();
+        this.orderType = orderType;
+        this.serviceType = serviceType;
     }
 
     public String getClientID() {
