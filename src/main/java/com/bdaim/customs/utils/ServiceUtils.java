@@ -262,7 +262,7 @@ public class ServiceUtils {
      */
     public HBusiDataManager findFendanByBillNo(String custId, String type, String mainBillNo, String billNo) {
         StringBuffer sql = new StringBuffer();
-        sql.append("select id, type, content, cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(type, "") + " where cust_id = ? AND type=? AND ext_4 = ?  AND ext_3 = ?");
+        sql.append("select id, type, content, cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5,ext_6 from " + HMetaDataDef.getTable(type, "") + " where cust_id = ? AND type=? AND ext_4 = ?  AND ext_3 = ?");
         log.info("查询分单sql:{}", sql);
         List<Map<String, Object>> list = jdbcTemplate.queryForList(sql.toString(), custId, type, mainBillNo, billNo);
         List<HBusiDataManager> result = JSON.parseArray(JSON.toJSONString(list), HBusiDataManager.class);

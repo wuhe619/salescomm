@@ -282,11 +282,11 @@ public class CdZService implements BusiService {
             }
             info.put("xml", xmlString);
 
-            sql = "UPDATE " + HMetaDataDef.getTable(busiType, "") + " SET ext_1 = '1', ext_date1 = NOW(), content=? WHERE id = ?  AND type = ?  ";
+            sql = "UPDATE " + HMetaDataDef.getTable(busiType, "") + " SET ext_1 = '1', ext_date1 = NOW(), content=?,ext_6='"+cust_user_id+"' WHERE id = ?  AND type = ?  ";
             jdbcTemplate.update(sql, jo.toJSONString(), id, busiType);
             serviceUtils.updateDataToES(BusiTypeEnum.CZ.getType(), id.toString(), jo);
 
-            String updateSql = " UPDATE " + HMetaDataDef.getTable(BusiTypeEnum.CF.getType(), "") + " SET ext_1 = '1', ext_date1 = NOW(), content=? WHERE id =? AND type = ? AND IFNULL(ext_1,'') <>'1' ";
+            String updateSql = " UPDATE " + HMetaDataDef.getTable(BusiTypeEnum.CF.getType(), "") + " SET ext_1 = '1',ext_6='"+cust_user_id+"', ext_date1 = NOW(), content=? WHERE id =? AND type = ? AND IFNULL(ext_1,'') <>'1' ";
             for (int i = 0; i < ds.size(); i++) {
                 m = ds.get(i);
                 content = (String) m.get("content");

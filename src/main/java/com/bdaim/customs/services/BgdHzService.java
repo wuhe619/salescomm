@@ -157,7 +157,7 @@ public class BgdHzService implements BusiService {
         msg.put("type",BusiTypeEnum.BGD_HZ.getType());
 
         sql="insert into h_customer_msg(`cust_id`,`cust_user_id`,`content`,`create_time`,`status`,`level`,`msg_type`)" +
-                "values ('"+custId+"',"+fendan.getCust_user_id()+",'"+msg.toJSONString()+"',now(),0,4,'"+BusiTypeEnum.BGD_HZ.getType()+"')";
+                "values ('"+custId+"',"+fendan.getExt_6()+",'"+msg.toJSONString()+"',now(),0,4,'"+BusiTypeEnum.BGD_HZ.getType()+"')";
 
           jdbcTemplate.update(sql);
         }
