@@ -55,7 +55,7 @@ public class B2BTcbLogService implements BusiService {
     }
 
     /**
-     * 判断企业是否领取过这个线索
+     * 判断企业是否领取过该线索
      *
      * @param cust_id
      * @param companyId

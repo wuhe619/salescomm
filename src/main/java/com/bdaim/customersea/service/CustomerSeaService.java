@@ -132,6 +132,17 @@ public class CustomerSeaService {
         put("company", "SYS005");
         put("followStatus", "SYS007");
         put("invalidReason", "SYS006");
+
+        // 注册地址
+        put("regLocation", "SYS009");
+        // 注册资金
+        put("regCapital", "SYS010");
+        // 注册时间
+        put("regTime", "SYS011");
+        // 经营状态
+        put("regStatus", "SYS012");
+        // 企业联系人数量
+        put("entPersonNum", "SYS013");
     }};
 
     /**

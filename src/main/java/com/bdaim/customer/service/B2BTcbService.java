@@ -17,6 +17,7 @@ import com.bdaim.customersea.service.CustomerSeaService;
 import com.bdaim.customs.entity.BusiTypeEnum;
 import com.bdaim.customs.entity.HMetaDataDef;
 import com.bdaim.customs.utils.ServiceUtils;
+import com.bdaim.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,6 +65,8 @@ public class B2BTcbService implements BusiService {
     private CustomerSeaService seaService;
     @Autowired
     private BusiEntityService busiEntityService;
+    @Autowired
+    private B2BTcbLogService b2BTcbLogService;
 
     public void insertInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) throws Exception {
         String sql = "select id,content from " + HMetaDataDef.getTable(busiType, "") + " where type=? and cust_id = ? and ext_4 = 1 ";
@@ -176,6 +179,9 @@ public class B2BTcbService implements BusiService {
             JSONArray list = data.getJSONArray("list");
             if (list != null && list.size() > 0) {
                 for (int i = 0; i < list.size(); i++) {
+                    if ("1".equals(list.getJSONObject(i).getString("_receivingStatus"))) {
+                        continue;
+                    }
                     companyIds.add(list.getJSONObject(i).getString("id"));
                 }
             }
@@ -185,37 +191,56 @@ public class B2BTcbService implements BusiService {
         }
         // 查询企业在使用的套餐包
         JSONObject useB2BTcb = getUseB2BTcb(custId);
+        if (useB2BTcb == null) {
+            throw new TouchException("企业无可用套餐包");
+        }
 
         CustomSeaTouchInfoDTO dto = null;
-        BaseResult companyDetail = null;
-        JSONObject data = null;
+        BaseResult companyDetail = null, companyContact;
+        JSONObject detailData = null, contactData = null;
         String entName = "", companyId = "";
         JSONObject log;
         for (String id : companyIds) {
+            // 判断企业是否领取过该线索
+            boolean s = b2BTcbLogService.checkClueGetStatus(custId, id);
+            if (s) {
+                LOG.warn("客户:{},企业ID:{}已经领取过", custId, id);
+                continue;
+            }
             // 查询企业名称
             companyDetail = searchListService.getCompanyDetail(id, "", "1001");
-            data = (JSONObject) companyDetail.getData();
-            entName = data.getString("entName");
-            companyId = data.getString("id");
+            detailData = (JSONObject) companyDetail.getData();
+            entName = detailData.getString("entName");
+            companyId = detailData.getString("id");
             // 查询企业联系方式
-            companyDetail = searchListService.getCompanyDetail(id, "", "1039");
-            data = (JSONObject) companyDetail.getData();
-            dto = new CustomSeaTouchInfoDTO("", custId, String.valueOf(userId), "", "",
-                    "", "", "", data.getString("phoneNumber"),
-                    "", "", "",
-                    seaId, superData, "", "", "", "",
-                    "", "", entName);
-            // 保存线索
-            int status = seaService.addClueData0(dto, seaType);
-            log = new JSONObject();
-            // 客户ID+B2B数据企业ID
-            log.put("ext_1", companyId);
-            // 套餐包ID
-            log.put("tcbId", useB2BTcb.getString("id"));
-            // 用户ID
-            log.put("userId", userId);
-            log.put("content", JSON.toJSON(dto));
-            busiEntityService.saveInfo(custId, "", userId, BusiTypeEnum.B2B_TC_LOG.getType(), 0L, log);
+            companyContact = searchListService.getCompanyDetail(id, "", "1039");
+            contactData = (JSONObject) companyContact.getData();
+            if (contactData.getJSONArray("phoneNumber") != null) {
+                for (int i = 0; i < contactData.getJSONArray("phoneNumber").size(); i++) {
+                    dto = new CustomSeaTouchInfoDTO("", custId, String.valueOf(userId), "", "",
+                            "", "", "", contactData.getJSONArray("phoneNumber").getString(i),
+                            "", "", "",
+                            seaId, superData, "", "", "", "",
+                            "", "", entName);
+                    dto.setRegLocation(detailData.getString("regLocation"));
+                    dto.setRegCapital(detailData.getString("regCap"));
+                    dto.setRegStatus(detailData.getString("entStatus"));
+                    dto.setRegTime(detailData.getString("fromTime"));
+                    dto.setEntPersonNum(contactData.getJSONArray("phoneNumber").size());
+                    // 保存线索
+                    int status = seaService.addClueData0(dto, seaType);
+                    log = new JSONObject();
+                    // 客户ID+B2B数据企业ID
+                    log.put("ext_1", companyId);
+                    // 套餐包ID
+                    log.put("tcbId", useB2BTcb.getString("id"));
+                    // 用户ID
+                    log.put("userId", userId);
+                    log.put("content", JSON.toJSON(dto));
+                    busiEntityService.saveInfo(custId, "", userId, BusiTypeEnum.B2B_TC_LOG.getType(), 0L, log);
+                }
+            }
+
         }
         return 0;
     }
