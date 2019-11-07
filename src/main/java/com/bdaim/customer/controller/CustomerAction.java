@@ -1633,6 +1633,12 @@ public class CustomerAction extends BasicAction {
     public String saveOrUpdateApparentNumber(@RequestBody ApparentNumber model) {
         int code = 0;
         try {
+            if (StringUtil.isNotEmpty(model.getApparentNumber())) {
+                model.setApparentNumber(model.getApparentNumber().trim().replaceAll(" ", ""));
+            }
+            if (StringUtil.isNotEmpty(model.getAreaCode())) {
+                model.setAreaCode(model.getAreaCode().trim().replaceAll(" ", ""));
+            }
             code = customerService.saveApparentNumber(model);
         } catch (Exception e) {
             logger.error("保存企业外显号失败,参数:" + model, e);
