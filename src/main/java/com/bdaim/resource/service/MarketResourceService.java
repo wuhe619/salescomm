@@ -4622,7 +4622,7 @@ public class MarketResourceService {
             }
 
             sb.append("select voicLog.touch_id touchId, voicLog.callSid, voicLog.superid,voicLog.create_time create_time,voicLog.status, CAST(voicLog.user_id AS CHAR) user_id,voicLog.remark,")
-                    .append(" voicLog.call_data, voicLog.recordurl, voicLog.clue_audit_status auditingStatus, voicLog.market_task_id marketTaskId")
+                    .append(" voicLog.call_data, voicLog.recordurl, voicLog.clue_audit_status auditingStatus, voicLog.market_task_id marketTaskId, voicLog.clue_audit_reason reason ")
                     .append("  from " + monthTableName + " voicLog ");
             // 处理自建属性搜索
             if (StringUtil.isNotEmpty(custProperty) && StringUtil.isNotEmpty(marketTaskId) && !"[]".equals(custProperty)) {
