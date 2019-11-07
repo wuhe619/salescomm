@@ -4142,10 +4142,10 @@ public class MarketResourceService {
                 if (user != null) {
                     sb.append(" AND (voicLog.user_id = '" + user.getId() + "' OR voicLog.call_data LIKE '%level%')");
                 }
-                // 处理人工审核搜索条件
-                if (StringUtil.isNotEmpty(auditingStatus)) {
-                    sb.append(" AND voicLog.clue_audit_status = " + auditingStatus);
-                }
+            }
+            // 处理人工审核搜索条件
+            if (StringUtil.isNotEmpty(auditingStatus)) {
+                sb.append(" AND voicLog.clue_audit_status = " + auditingStatus);
             }
             // 处理组长权限
             if (UserService.OPERATOR_USER_TYPE.equals(userQueryParam.getUserType())) {
