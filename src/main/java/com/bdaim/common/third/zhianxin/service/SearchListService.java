@@ -93,13 +93,7 @@ public class SearchListService {
      * @throws Exception
      */
     public BaseResult pageSearch(String custId, String custGroupId, Long custUserId, String busiType, JSONObject params) throws Exception {
-        params.put("pageNo", params.getLongValue("pageNum"));
-        Map<String, Object> headers = new HashMap<>();
-        headers.put("Authorization", TOKEN);
-        LOG.info("企业列表查询参数:{}", params);
-        String result = HttpUtil.httpPost(API_URL.replace("{busiType}", BUSI_TYPE.get(busiType)), params.toJSONString(), headers);
-        LOG.info("企业列表查询接口返回:{}", result);
-        BaseResult baseResult = JSON.parseObject(result, BaseResult.class);
+        BaseResult baseResult = pageSearch(custId, custGroupId, custUserId, busiType, params);
         // 处理企业领取标志
         if (baseResult != null && baseResult.getData() != null) {
             JSONObject data = (JSONObject) baseResult.getData();
@@ -110,6 +104,17 @@ public class SearchListService {
                 }
             }
         }
+        return baseResult;
+    }
+
+    public BaseResult pageSearchIds(String custId, String custGroupId, Long custUserId, String busiType, JSONObject params) throws Exception {
+        params.put("pageNo", params.getLongValue("pageNum"));
+        Map<String, Object> headers = new HashMap<>();
+        headers.put("Authorization", TOKEN);
+        LOG.info("企业列表查询参数:{}", params);
+        String result = HttpUtil.httpPost(API_URL.replace("{busiType}", BUSI_TYPE.get(busiType)), params.toJSONString(), headers, 30000);
+        LOG.info("企业列表查询接口返回:{}", result);
+        BaseResult baseResult = JSON.parseObject(result, BaseResult.class);
         return baseResult;
     }
 
@@ -129,7 +134,7 @@ public class SearchListService {
         //params.put("entName", entName);
         params.put("companyId", companyId);
         LOG.info("企业详情查询参数:{}", params);
-        String result = HttpUtil.httpPost(API_URL.replace("{busiType}", BUSI_TYPE.get(busiType)), params.toJSONString(), headers);
+        String result = HttpUtil.httpPost(API_URL.replace("{busiType}", BUSI_TYPE.get(busiType)), params.toJSONString(), headers,30000);
         LOG.info("企业详情查询接口返回:{}", result);
         return JSON.parseObject(result, BaseResult.class);
     }

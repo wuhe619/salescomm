@@ -164,35 +164,45 @@ public class B2BTcbService implements BusiService {
         if ((companyIds != null && companyIds.size() > quantity) || getNumber > quantity) {
             throw new TouchException("套餐余量不足");
         }
+        // 查询企业在使用的套餐包
+        JSONObject useB2BTcb = getUseB2BTcb(custId);
+        if (useB2BTcb == null) {
+            throw new TouchException("企业无可用套餐包");
+        }
+
         Map<String, Object> superData = new HashMap(16) {{
             put("SYS007", "未跟进");
         }};
         // 指定数量
         if (mode == 2) {
-            companyIds = new ArrayList<>(16);
-            param.put("pageNo", 0);
-            param.put("pageSize", companyIds.size() * 2);
-            //领取，返回id
+            //领取，只返回id
             param.put("fieldType", false);
-            BaseResult baseResult = searchListService.pageSearch(custId, "", userId, busiType, param);
-            JSONObject data = (JSONObject) baseResult.getData();
-            JSONArray list = data.getJSONArray("list");
-            if (list != null && list.size() > 0) {
-                for (int i = 0; i < list.size(); i++) {
-                    if ("1".equals(list.getJSONObject(i).getString("_receivingStatus"))) {
-                        continue;
+            companyIds = new ArrayList<>(16);
+            long pageNo = 0L, pageSize = getNumber * 2;
+            while (getNumber > companyIds.size()) {
+                param.put("pageNo", pageNo);
+                param.put("pageSize", pageSize);
+                BaseResult baseResult = searchListService.pageSearchIds(custId, "", userId, busiType, param);
+                JSONObject data = (JSONObject) baseResult.getData();
+                JSONArray list = data.getJSONArray("list");
+                if (list != null && list.size() > 0) {
+                    for (int i = 0; i < list.size(); i++) {
+                        // 已经领取过不可重复领取
+                        if ("1".equals(b2BTcbLogService.checkClueGetStatus(custId, list.getString(i)))) {
+                            continue;
+                        }
+                        if (getNumber > companyIds.size()) {
+                            companyIds.add(list.getString(i));
+                        } else {
+                            break;
+                        }
                     }
-                    companyIds.add(list.getJSONObject(i).getString("id"));
                 }
+                pageNo++;
             }
         }
         if (companyIds.size() == 0) {
             throw new TouchException("未查询到匹配企业数据");
-        }
-        // 查询企业在使用的套餐包
-        JSONObject useB2BTcb = getUseB2BTcb(custId);
-        if (useB2BTcb == null) {
-            throw new TouchException("企业无可用套餐包");
         }
 
         CustomSeaTouchInfoDTO dto = null;
