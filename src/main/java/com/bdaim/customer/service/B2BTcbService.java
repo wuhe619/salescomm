@@ -240,12 +240,14 @@ public class B2BTcbService implements BusiService {
                     // 保存线索
                     int status = seaService.addClueData0(dto, seaType);
                     log = new JSONObject();
-                    // 客户ID+B2B数据企业ID
+                    // B2B数据企业ID
                     log.put("ext_1", companyId);
-                    // 套餐包ID
+                    // 套餐包ID 扩展字段2
                     log.put("tcbId", useB2BTcb.getString("id"));
-                    // 用户ID
+                    // 用户ID 扩展字段3
                     log.put("userId", userId);
+                    // 线索ID 扩展字段4
+                    log.put("superId", dto.getSuper_id());
                     log.put("content", JSON.toJSON(dto));
                     busiEntityService.saveInfo(custId, "", userId, BusiTypeEnum.B2B_TC_LOG.getType(), 0L, log);
                 }
