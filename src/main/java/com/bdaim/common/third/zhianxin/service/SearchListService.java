@@ -100,7 +100,7 @@ public class SearchListService {
             JSONArray list = data.getJSONArray("list");
             if (list != null && list.size() > 0) {
                 for (int i = 0; i < list.size(); i++) {
-                    list.getJSONObject(i).put("_receivingStatus", b2BTcbLogService.checkClueGetStatus(custId, list.getJSONObject(i).getString("id")) ? 1 : 2);
+                    list.getJSONObject(i).put("_receivingStatus", b2BTcbLogService.checkClueGetStatus(custId, list.getJSONObject(i).getString("id")));
                 }
             }
         }

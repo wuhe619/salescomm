@@ -26,10 +26,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 /***
  * B2B企业套餐包管理
@@ -169,30 +168,60 @@ public class B2BTcbService implements BusiService {
         if (useB2BTcb == null) {
             throw new TouchException("企业无可用套餐包");
         }
+        LocalDateTime eTime = LocalDateTime.parse(useB2BTcb.getString("e_time"), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        if (eTime.isBefore(LocalDateTime.now())) {
+            throw new TouchException("企业套餐已过期");
+        }
 
         Map<String, Object> superData = new HashMap(16) {{
             put("SYS007", "未跟进");
         }};
-        // 指定数量
-        if (mode == 2) {
+
+        CustomSeaTouchInfoDTO dto = null;
+        BaseResult companyDetail = null, companyContact;
+        JSONObject detailData = null, contactData = null;
+        String entName = "", companyId = "";
+        JSONObject log;
+        Map<String, JSONObject> data = new HashMap(16);
+        if (mode == 1) {
+            for (String id : companyIds) {
+                // 查询企业名称
+                companyDetail = searchListService.getCompanyDetail(id, "", "1001");
+                detailData = (JSONObject) companyDetail.getData();
+                // 查询企业联系方式
+                companyContact = searchListService.getCompanyDetail(id, "", "1039");
+                contactData = (JSONObject) companyContact.getData();
+                contactData.putAll(detailData);
+                data.put(id, contactData);
+            }
+            // 指定数量
+        } else if (mode == 2) {
             //领取，只返回id
             param.put("fieldType", false);
-            companyIds = new ArrayList<>(16);
-            long pageNo = 0L, pageSize = getNumber * 2;
-            while (getNumber > companyIds.size()) {
-                param.put("pageNo", pageNo);
+            long pageNo = 0L, pageSize = getNumber * 5;
+            while (getNumber > data.size()) {
+                param.put("pageNum", pageNo);
                 param.put("pageSize", pageSize);
                 BaseResult baseResult = searchListService.pageSearchIds(custId, "", userId, busiType, param);
-                JSONObject data = (JSONObject) baseResult.getData();
-                JSONArray list = data.getJSONArray("list");
+                JSONObject resultData = (JSONObject) baseResult.getData();
+                JSONArray list = resultData.getJSONArray("list");
                 if (list != null && list.size() > 0) {
                     for (int i = 0; i < list.size(); i++) {
                         // 已经领取过不可重复领取
-                        if ("1".equals(b2BTcbLogService.checkClueGetStatus(custId, list.getString(i)))) {
+                        if (b2BTcbLogService.checkClueGetStatus(custId, list.getString(i))) {
                             continue;
                         }
-                        if (getNumber > companyIds.size()) {
-                            companyIds.add(list.getString(i));
+                        if (getNumber > data.size()) {
+                            companyContact = searchListService.getCompanyDetail(list.getString(i), "", "1039");
+                            contactData = (JSONObject) companyContact.getData();
+                            if (contactData == null || contactData.size() == 0) {
+                                continue;
+                            }
+                            // 查询企业名称
+                            companyDetail = searchListService.getCompanyDetail(list.getString(i), "", "1001");
+                            detailData = (JSONObject) companyDetail.getData();
+                            contactData.putAll(detailData);
+                            data.put(list.getString(i), contactData);
                         } else {
                             break;
                         }
@@ -201,34 +230,19 @@ public class B2BTcbService implements BusiService {
                 pageNo++;
             }
         }
-        if (companyIds.size() == 0) {
+        if (data.size() == 0) {
             throw new TouchException("未查询到匹配企业数据");
         }
 
-        CustomSeaTouchInfoDTO dto = null;
-        BaseResult companyDetail = null, companyContact;
-        JSONObject detailData = null, contactData = null;
-        String entName = "", companyId = "";
-        JSONObject log;
-        for (String id : companyIds) {
-            // 判断企业是否领取过该线索
-            boolean s = b2BTcbLogService.checkClueGetStatus(custId, id);
-            if (s) {
-                LOG.warn("客户:{},企业ID:{}已经领取过", custId, id);
-                continue;
-            }
-            // 查询企业名称
-            companyDetail = searchListService.getCompanyDetail(id, "", "1001");
-            detailData = (JSONObject) companyDetail.getData();
-            entName = detailData.getString("entName");
-            companyId = detailData.getString("id");
-            // 查询企业联系方式
-            companyContact = searchListService.getCompanyDetail(id, "", "1039");
-            contactData = (JSONObject) companyContact.getData();
-            if (contactData.getJSONArray("phoneNumber") != null) {
-                for (int i = 0; i < contactData.getJSONArray("phoneNumber").size(); i++) {
+        String batchId = UUID.randomUUID().toString().replaceAll("-", "");
+        Iterator keys = data.entrySet().iterator();
+        while (keys.hasNext()) {
+            String key = (String) keys.next();
+            JSONArray pNumbers = data.get(key).getJSONArray("phoneNumber");
+            if (pNumbers != null) {
+                for (int i = 0; i < pNumbers.size(); i++) {
                     dto = new CustomSeaTouchInfoDTO("", custId, String.valueOf(userId), "", "",
-                            "", "", "", contactData.getJSONArray("phoneNumber").getString(i),
+                            "", "", "", pNumbers.getString(i),
                             "", "", "",
                             seaId, superData, "", "", "", "",
                             "", "", entName);
@@ -236,7 +250,7 @@ public class B2BTcbService implements BusiService {
                     dto.setRegCapital(detailData.getString("regCap"));
                     dto.setRegStatus(detailData.getString("entStatus"));
                     dto.setRegTime(detailData.getString("fromTime"));
-                    dto.setEntPersonNum(contactData.getJSONArray("phoneNumber").size());
+                    dto.setEntPersonNum(pNumbers.size());
                     // 保存线索
                     int status = seaService.addClueData0(dto, seaType);
                     log = new JSONObject();
@@ -244,8 +258,8 @@ public class B2BTcbService implements BusiService {
                     log.put("ext_1", companyId);
                     // 套餐包ID 扩展字段2
                     log.put("tcbId", useB2BTcb.getString("id"));
-                    // 用户ID 扩展字段3
-                    log.put("userId", userId);
+                    // 领取批次ID 扩展字段3
+                    log.put("batchId", batchId);
                     // 线索ID 扩展字段4
                     log.put("superId", dto.getSuper_id());
                     log.put("content", JSON.toJSON(dto));
