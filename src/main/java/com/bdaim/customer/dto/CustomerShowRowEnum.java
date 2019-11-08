@@ -43,7 +43,8 @@ public enum CustomerShowRowEnum {
     REG_CAPITAL("regCapital", "注册资金"),
     REG_TIME("regTime", "注册时间"),
     REG_STATUS("regStatus", "经营状态"),
-    ENT_PERSON_NUM("entPersonNum", "企业联系人数量");
+    ENT_PERSON_NUM("entPersonNum", "企业联系人数量"),
+    ENT_ID("entId", "企业ID");
 
 
     private String key;

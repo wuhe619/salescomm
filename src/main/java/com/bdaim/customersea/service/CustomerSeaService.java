@@ -143,6 +143,8 @@ public class CustomerSeaService {
         put("regStatus", "SYS012");
         // 企业联系人数量
         put("entPersonNum", "SYS013");
+        // 企业ID
+        put("entId", "SYS014");
     }};
 
     /**

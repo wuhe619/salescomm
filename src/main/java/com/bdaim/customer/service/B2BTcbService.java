@@ -107,7 +107,7 @@ public class B2BTcbService implements BusiService {
 
         if (!"all".equals(cust_id))
             sqlstr.append(" and cust_id='").append(cust_id).append("'");
-        if(StringUtil.isNotEmpty(name)){
+        if (StringUtil.isNotEmpty(name)) {
             sqlstr.append(" and content->'$.name'='").append(name).append("'");
         }
         return sqlstr.toString();
@@ -214,29 +214,30 @@ public class B2BTcbService implements BusiService {
                 BaseResult baseResult = searchListService.pageSearchIds(custId, "", userId, busiType, param);
                 JSONObject resultData = (JSONObject) baseResult.getData();
                 JSONArray list = resultData.getJSONArray("list");
-                if (list != null && list.size() > 0) {
-                    for (int i = 0; i < list.size(); i++) {
-                        // 已经领取过不可重复领取
-                        if (b2BTcbLogService.checkClueGetStatus(custId, list.getString(i))) {
+                pageNo++;
+                if (list == null || list.size() == 0) {
+                    continue;
+                }
+                for (int i = 0; i < list.size(); i++) {
+                    // 已经领取过不可重复领取
+                    if (b2BTcbLogService.checkClueGetStatus(custId, list.getString(i))) {
+                        continue;
+                    }
+                    if (getNumber > data.size()) {
+                        companyContact = searchListService.getCompanyDetail(list.getString(i), "", "1039");
+                        contactData = (JSONObject) companyContact.getData();
+                        if (contactData == null || contactData.size() == 0) {
                             continue;
                         }
-                        if (getNumber > data.size()) {
-                            companyContact = searchListService.getCompanyDetail(list.getString(i), "", "1039");
-                            contactData = (JSONObject) companyContact.getData();
-                            if (contactData == null || contactData.size() == 0) {
-                                continue;
-                            }
-                            // 查询企业名称
-                            companyDetail = searchListService.getCompanyDetail(list.getString(i), "", "1001");
-                            detailData = (JSONObject) companyDetail.getData();
-                            contactData.putAll(detailData);
-                            data.put(list.getString(i), contactData);
-                        } else {
-                            break;
-                        }
+                        // 查询企业名称
+                        companyDetail = searchListService.getCompanyDetail(list.getString(i), "", "1001");
+                        detailData = (JSONObject) companyDetail.getData();
+                        contactData.putAll(detailData);
+                        data.put(list.getString(i), contactData);
+                    } else {
+                        break;
                     }
                 }
-                pageNo++;
             }
         }
         if (data.size() == 0) {
@@ -255,6 +256,7 @@ public class B2BTcbService implements BusiService {
                             "", "", "",
                             seaId, superData, "", "", "", "",
                             "", "", entName);
+                    dto.setEntId(key);
                     dto.setRegLocation(detailData.getString("regLocation"));
                     dto.setRegCapital(detailData.getString("regCap"));
                     dto.setRegStatus(detailData.getString("entStatus"));

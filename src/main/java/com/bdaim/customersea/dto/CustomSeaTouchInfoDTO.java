@@ -40,6 +40,7 @@ public class CustomSeaTouchInfoDTO implements Serializable {
      */
     private String invalidReason;
 
+    private String entId;
     private String regLocation;
     private String regCapital;
     private String regTime;
@@ -304,35 +305,11 @@ public class CustomSeaTouchInfoDTO implements Serializable {
         this.entPersonNum = entPersonNum;
     }
 
-    @Override
-    public String toString() {
-        return "CustomSeaTouchInfoDTO{" +
-                "voice_info_id='" + voice_info_id + '\'' +
-                ", cust_id='" + cust_id + '\'' +
-                ", user_id='" + user_id + '\'' +
-                ", cust_group_id='" + cust_group_id + '\'' +
-                ", super_id='" + super_id + '\'' +
-                ", super_name='" + super_name + '\'' +
-                ", super_age='" + super_age + '\'' +
-                ", super_sex='" + super_sex + '\'' +
-                ", super_telphone='" + super_telphone + '\'' +
-                ", super_phone='" + super_phone + '\'' +
-                ", super_address_province_city='" + super_address_province_city + '\'' +
-                ", super_address_street='" + super_address_street + '\'' +
-                ", customerSeaId='" + customerSeaId + '\'' +
-                ", superData=" + superData +
-                ", email='" + email + '\'' +
-                ", profession='" + profession + '\'' +
-                ", weChat='" + weChat + '\'' +
-                ", company='" + company + '\'' +
-                ", qq='" + qq + '\'' +
-                ", followStatus='" + followStatus + '\'' +
-                ", invalidReason='" + invalidReason + '\'' +
-                ", regLocation='" + regLocation + '\'' +
-                ", regCapital='" + regCapital + '\'' +
-                ", regTime='" + regTime + '\'' +
-                ", regStatus='" + regStatus + '\'' +
-                ", entPersonNum=" + entPersonNum +
-                '}';
+    public String getEntId() {
+        return entId;
+    }
+
+    public void setEntId(String entId) {
+        this.entId = entId;
     }
 }
