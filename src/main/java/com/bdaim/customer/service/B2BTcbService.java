@@ -4,6 +4,8 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.be.service.BusiEntityService;
+import com.bdaim.bill.dto.TransactionTypeEnum;
+import com.bdaim.bill.service.TransactionService;
 import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.service.BusiService;
 import com.bdaim.common.service.ElasticSearchService;
@@ -17,6 +19,10 @@ import com.bdaim.customersea.service.CustomerSeaService;
 import com.bdaim.customs.entity.BusiTypeEnum;
 import com.bdaim.customs.entity.HMetaDataDef;
 import com.bdaim.customs.utils.ServiceUtils;
+import com.bdaim.resource.dao.MarketResourceDao;
+import com.bdaim.resource.entity.ResourcePropertyEntity;
+import com.bdaim.resource.service.MarketResourceService;
+import com.bdaim.util.NumberConvertUtil;
 import com.bdaim.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,34 +45,38 @@ import java.util.*;
 public class B2BTcbService implements BusiService {
     private static Logger LOG = LoggerFactory.getLogger(B2BTcbService.class);
 
-    @Autowired
-    private CustomerDao customerDao;
-
     @Resource
     private JdbcTemplate jdbcTemplate;
-
-    @Autowired
-    private SequenceService sequenceService;
-
-    @Autowired
-    private ResourceService resourceService;
-
-    @Autowired
-    private ServiceUtils serviceUtils;
-
     @Autowired
     ElasticSearchService elasticSearchService;
-
     @Autowired
     private SearchListService searchListService;
-
     @Autowired
     private CustomerSeaService seaService;
     @Autowired
     private BusiEntityService busiEntityService;
     @Autowired
     private B2BTcbLogService b2BTcbLogService;
+    @Autowired
+    private MarketResourceService marketResourceService;
+    @Autowired
+    private CustomerService customerService;
+    @Autowired
+    private TransactionService transactionService;
+    @Autowired
+    private MarketResourceDao marketResourceDao;
 
+    /**
+     * 企业开通B2B套餐
+     *
+     * @param busiType
+     * @param cust_id
+     * @param cust_group_id
+     * @param cust_user_id
+     * @param id
+     * @param info
+     * @throws Exception
+     */
     public void insertInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) throws Exception {
         String sql = "select id,content from " + HMetaDataDef.getTable(busiType, "") + " where type=? and cust_id = ? and ext_4 = 1 ";
         List<Map<String, Object>> countList = jdbcTemplate.queryForList(sql, busiType, cust_id);
@@ -77,9 +87,72 @@ public class B2BTcbService implements BusiService {
                 throw new TouchException("当前还有有效的套餐,不能再开通新的套餐");
             }
         }
-        info.put("ext_2", info.getString("name"));
-        info.put("ext_3", info.getString("type"));
-        info.put("ext_4", info.getString("status"));
+        // 企业余额判断
+        boolean b = marketResourceService.judRemainAmount0(cust_id);
+        if (!b) {
+            LOG.warn("客户:{}余额不足", cust_id);
+            throw new TouchException("客户余额不足");
+        }
+        // 根据资源ID查询供应商计费配置
+        ResourcePropertyEntity m = marketResourceDao.getProperty(info.getString("resource_id"), "price_config");
+        if (m != null && StringUtil.isNotEmpty(m.getPropertyValue())) {
+            JSONObject priceConfig = JSON.parseObject(m.getPropertyValue());
+            // 查询套餐包配置
+            m = marketResourceDao.getProperty(priceConfig.getString("tcb_id"), "price_config");
+            JSONObject tcbConfig = JSON.parseObject(m.getPropertyValue());
+            // 企业余额和套餐价格判断
+            Double remainMoney = customerService.getRemainMoney(cust_id);
+            if (remainMoney < tcbConfig.getDoubleValue("price")) {
+                LOG.warn("客户:{}开通套餐失败,套餐(资源)ID:{},余额:{}", cust_id, info.getString("resource_id"), remainMoney);
+                throw new TouchException("客户余额不足");
+            }
+            info.put("ext_2", tcbConfig.getString("name"));
+            info.put("ext_3", tcbConfig.getString("type"));
+            info.put("ext_4", 1);
+            // 基础 定制套餐 供应商 客户扣费
+            if ("1".equals(tcbConfig.getString("type")) || "2".equals(tcbConfig.getString("type"))) {
+                tcOpenDeduction(info.getString("resource_id"), tcbConfig.getString("name"), tcbConfig.getString("price"), tcbConfig.getIntValue("total"), cust_id, cust_user_id);
+            }
+        } else {
+            LOG.warn("套餐包:{}无效", info.getString("resource_id"));
+            throw new TouchException("套餐包无效");
+        }
+    }
+
+    /**
+     * 套餐包企业和供应商扣费
+     *
+     * @param resourceId
+     * @param resName
+     * @param price
+     * @param total
+     * @param custId
+     * @param userId
+     * @return
+     * @throws Exception
+     */
+    private int tcOpenDeduction(String resourceId, String resName, String price, int total, String custId, long userId) throws Exception {
+        // 套餐客户售价(厘)
+        int custNumberPrice = NumberConvertUtil.changeY2L(price);
+        // 套餐供应商售价(厘)
+        int supplierNumberPrice = 0;
+        // 查询供应商B2B套餐扣费类型
+        ResourcePropertyEntity m = marketResourceDao.getProperty(resourceId, "price_config");
+        JSONObject config = new JSONObject();
+        if (m != null && StringUtil.isNotEmpty(m.getPropertyValue())) {
+            config = JSON.parseObject(m.getPropertyValue());
+            if (config.getIntValue("type") == 1) {
+                // 按条扣费
+                supplierNumberPrice = NumberConvertUtil.changeY2L(config.getString("price")) * total;
+            } else if (config.getIntValue("type") == 2) {
+                // 收入分成(套餐价格*收入百分比)
+                supplierNumberPrice = NumberConvertUtil.changeY2L(NumberConvertUtil.parseDouble(price) * config.getDoubleValue("price"));
+            }
+        }
+        LOG.info("客户:{}套餐包开通开始扣费,客户金额:{},供应商金额:{},套餐配置信息:{}", custId, custNumberPrice, supplierNumberPrice, config);
+        int status = transactionService.customerSupplierDeduction(custId, TransactionTypeEnum.B2B_TC_DEDUCTION.getType(),
+                custNumberPrice, supplierNumberPrice, resourceId, resName, String.valueOf(userId));
+        return status;
     }
 
     @Override
@@ -164,6 +237,9 @@ public class B2BTcbService implements BusiService {
      * @throws Exception
      */
     public int doClueDataToSea(String custId, long userId, int seaType, int mode, String seaId, List<String> companyIds, long getNumber, String busiType, JSONObject param) throws Exception {
+        if (getNumber > 500) {
+            throw new TouchException("领取上限为500");
+        }
         // 判断套餐余量
         long quantity = getB2BTcbQuantity(custId);
         if (quantity == 0) {
@@ -207,7 +283,7 @@ public class B2BTcbService implements BusiService {
         } else if (mode == 2) {
             //领取，只返回id
             param.put("fieldType", false);
-            long pageNo = 0L, pageSize = getNumber * 5;
+            long pageNo = 0L, pageSize = getNumber * 2;
             while (getNumber > data.size()) {
                 param.put("pageNum", pageNo);
                 param.put("pageSize", pageSize);
