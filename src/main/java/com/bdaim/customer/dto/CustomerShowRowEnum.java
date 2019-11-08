@@ -38,7 +38,13 @@ public enum CustomerShowRowEnum {
     LAST_CALL_STATUS("last_call_status", "最近一次的呼叫结果"),
     INTENT_LEVEL("intent_level", "意向度"),
     LAST_CALL_TIME("last_call_time", "最后呼叫时间"),
-    USER_ID("realname", "当前责任人");
+    USER_ID("realname", "当前责任人"),
+    REG_LOCATION("regLocation", "注册地址"),
+    REG_CAPITAL("regCapital", "注册资金"),
+    REG_TIME("regTime", "注册时间"),
+    REG_STATUS("regStatus", "经营状态"),
+    ENT_PERSON_NUM("entPersonNum", "企业联系人数量");
+
 
     private String key;
     private String value;
