@@ -682,10 +682,10 @@ public class CustomerSeaAction extends BasicAction {
             param.setCustId(opUser().getCustId());
             // 查询公海线索
             if (param.getSeaType() == null || param.getSeaType() == 1) {
-                data = seaService.pageClueData(param);
+                data = seaService.pagePublicClue(param);
             } else if (param.getSeaType() == 2) {
                 // 查询私海线索
-                data = seaService.pagePrivateClueData(param);
+                data = seaService.pagePrivateClue(param);
             }
             responseJson.setCode(200);
         } catch (Exception e) {
