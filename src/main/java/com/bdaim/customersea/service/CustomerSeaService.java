@@ -3112,6 +3112,139 @@ public class CustomerSeaService {
         }
         return data;
     }
+    /**
+     * 公海线索详情列表
+     *
+     * @param param
+     * @return
+     */
+    public Page pageClueData(CustomerSeaSearch param) {
+        Page page;
+        StringBuffer sb = new StringBuffer();
+        CustomerSea customerSea = customerSeaDao.get(NumberConvertUtil.parseLong(param.getSeaId()));
+        sb.append(" select custG.id, custG.user_id, custG.status, custG.call_count callCount, DATE_FORMAT(custG.last_call_time,'%Y-%m-%d %H:%i:%s') lastCallTime, custG.intent_level intentLevel,");
+        sb.append(" custG.super_name, custG.super_age, custG.super_sex, custG.super_telphone, custG.super_phone, custG.super_address_province_city, custG.super_address_street, custG.super_data, ");
+        sb.append(" custG.batch_id, custG.last_call_status, custG.data_source, DATE_FORMAT(custG.user_get_time,'%Y-%m-%d %H:%i:%s') user_get_time, DATE_FORMAT(custG.create_time,'%Y-%m-%d %H:%i:%s') create_time, custG.pre_user_id, custG.last_called_duration, DATE_FORMAT(custG.last_mark_time,'%Y-%m-%d %H:%i:%s') last_mark_time, ");
+        sb.append(" custG.call_success_count, custG.call_fail_count, custG.sms_success_count ,custG.super_data -> '$.SYS014 ' as custType");
+        sb.append("  from " + ConstantsUtil.SEA_TABLE_PREFIX + param.getSeaId() + " custG ");
+        sb.append(" where 1=1 ");
+        if (StringUtil.isNotEmpty(param.getSuperId())) {
+            sb.append(" and custG.id = '" + param.getSuperId() + "'");
+        }
+        if (StringUtil.isNotEmpty(param.getSuperName())) {
+            sb.append(" and custG.super_name LIKE '%" + param.getSuperName() + "%'");
+        }
+        if (StringUtil.isNotEmpty(param.getSuperPhone())) {
+            sb.append(" and custG.super_phone = '" + param.getSuperPhone() + "'");
+        }
+        if (StringUtil.isNotEmpty(param.getSuperTelphone())) {
+            sb.append(" and custG.super_telphone = '" + param.getSuperTelphone() + "'");
+        }
+        if (StringUtil.isNotEmpty(param.getLastUserName())) {
+            sb.append(" and custG.pre_user_id IN(SELECT id from t_customer_user WHERE AND cust_id = '" + param.getCustId() + "' realname LIKE '%" + param.getLastUserName() + "%') ");
+        }
+        if (param.getDataSource() != null) {
+            sb.append(" and custG.data_source =" + param.getDataSource());
+        }
+        if (StringUtil.isNotEmpty(param.getBatchId())) {
+            sb.append(" and custG.batch_id =" + param.getBatchId());
+        }
+        if (StringUtil.isNotEmpty(param.getAddStartTime()) && StringUtil.isNotEmpty(param.getAddEndTime())) {
+            sb.append(" and custG.create_time BETWEEN " + param.getAddStartTime() + " AND " + param.getAddEndTime());
+        } else if (StringUtil.isNotEmpty(param.getAddStartTime())) {
+            sb.append(" and custG.create_time >= " + param.getAddStartTime());
+        } else if (StringUtil.isNotEmpty(param.getAddEndTime())) {
+            sb.append(" and custG.create_time <= " + param.getAddEndTime());
+        }
+
+        if (StringUtil.isNotEmpty(param.getCallStartTime()) && StringUtil.isNotEmpty(param.getCallEndTime())) {
+            sb.append(" and custG.last_call_time BETWEEN " + param.getCallStartTime() + " AND " + param.getCallEndTime());
+        } else if (StringUtil.isNotEmpty(param.getCallStartTime())) {
+            sb.append(" and custG.last_call_time >= " + param.getCallStartTime());
+        } else if (StringUtil.isNotEmpty(param.getCallEndTime())) {
+            sb.append(" and custG.last_call_time <= " + param.getCallEndTime());
+        }
+
+        if (StringUtil.isNotEmpty(param.getLastCallResult())) {
+            sb.append(" and custG.last_call_status = '" + param.getLastCallResult() + "'");
+        }
+        if (StringUtil.isNotEmpty(param.getIntentLevel())) {
+            sb.append(" and custG.intent_level = '" + param.getIntentLevel() + "'");
+        }
+        if (param.getCalledDuration() != null) {
+            if (param.getCalledDuration() == 1) {
+                sb.append(" AND custG.last_called_duration<=3");
+            } else if (param.getCalledDuration() == 2) {
+                sb.append(" AND custG.last_called_duration>3 AND voicLog.last_called_duration<=6");
+            } else if (param.getCalledDuration() == 3) {
+                sb.append(" AND custG.last_called_duration>6 AND voicLog.last_called_duration<=12");
+            } else if (param.getCalledDuration() == 4) {
+                sb.append(" AND custG.last_called_duration>12 AND voicLog.last_called_duration<=30");
+            } else if (param.getCalledDuration() == 5) {
+                sb.append(" AND custG.last_called_duration>30 AND voicLog.last_called_duration<=60");
+            } else if (param.getCalledDuration() == 6) {
+                sb.append(" AND custG.last_called_duration>60");
+            }
+        }
+        if ("2".equals(param.getUserType())) {
+            // 普通员工只能查看无负责人的线索
+            sb.append(" AND custG.user_id IS NULL ");
+        }
+
+        // 查询所有自建属性
+        Map<String, CustomerLabel> cacheLabel = labelService.getCacheCustomAndSystemLabel(param.getCustId());
+        if (StringUtil.isNotEmpty(param.getLabelProperty())) {
+            JSONObject jsonObject;
+            String labelId, optionValue, likeValue;
+            JSONArray custProperty = JSON.parseArray(param.getLabelProperty());
+            for (int i = 0; i < custProperty.size(); i++) {
+                jsonObject = custProperty.getJSONObject(i);
+                if (jsonObject != null) {
+                    labelId = jsonObject.getString("labelId");
+                    optionValue = jsonObject.getString("optionValue");
+
+                    if ("createTime".equals(labelId)) {
+                        likeValue = "'$.SYS011' >= " + "'" + param.getCreateTime() + "'";
+                    } else if ("endTime".equals(labelId)) {
+                        likeValue = "'$.SYS011' <= " + "'" + param.getEndTime() + "'";
+                    } else if ("regCapital".equals(labelId)) {
+                        likeValue = "'$.SYS010' between  " + param.getRegCapitalMin() + " and " + param.getRegCapitalMax();
+                    } else {
+                        // 文本和多选支持模糊搜索
+                        if (cacheLabel.get(labelId) != null && cacheLabel.get(labelId).getType() != null
+                                && (cacheLabel.get(labelId).getType() == 1 || cacheLabel.get(labelId).getType() == 3)) {
+                            likeValue = "'$." + labelId + "' like " + "'%" + optionValue + "%'";
+                        } else {
+                            likeValue = "'$." + labelId + "' like " + "'%" + optionValue + "%'";
+                        }
+                    }
+
+                    sb.append(" AND custG.super_data -> " + likeValue + " ");
+                }
+            }
+        }
+        //sb.append(" AND custG.status<>2 ");
+        sb.append(" AND custG.status =1 ");
+        // 1-未呼通 2-已呼通
+        if ("1".equals(param.getCallStatus())) {
+            sb.append(" AND (custG.last_call_status <> '1001' OR custG.last_call_status IS NOT NULL)");
+        } else if ("2".equals(param.getCallStatus())) {
+            sb.append(" AND custG.last_call_status = '1001' ");
+        }
+        sb.append(" ORDER BY custG.create_time ,custType DESC ");
+        try {
+            page = customerSeaDao.sqlPageQuery0(sb.toString(), param.getPageNum(), param.getPageSize());
+        } catch (Exception e) {
+            LOG.error("查询公海线索列表失败,", e);
+            return new Page();
+        }
+        if (page != null && page.getData() != null) {
+            // 处理自建属性和基本信息
+            handleClueData(page.getData(), cacheLabel, customerSea);
+        }
+
+        return page;
+    }
 
 
 }
