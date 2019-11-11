@@ -3112,6 +3112,7 @@ public class CustomerSeaService {
         }
         return data;
     }
+
     /**
      * 公海线索详情列表
      *
@@ -3231,7 +3232,7 @@ public class CustomerSeaService {
         } else if ("2".equals(param.getCallStatus())) {
             sb.append(" AND custG.last_call_status = '1001' ");
         }
-        sb.append(" ORDER BY custG.create_time ,custType DESC ");
+        sb.append("GROUP By custType ORDER BY custG.create_time  DESC ");
         try {
             page = customerSeaDao.sqlPageQuery0(sb.toString(), param.getPageNum(), param.getPageSize());
         } catch (Exception e) {
@@ -3244,6 +3245,24 @@ public class CustomerSeaService {
         }
 
         return page;
+    }
+
+    public int updateClueStatus(CustomerSeaSearch param) {
+        // 根据指定条件删除线索
+        StringBuilder sql = new StringBuilder()
+                .append("UPDATE ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(param.getSeaId())
+                .append(" custG SET custG.status = 2 WHERE custG.super_data -> '$.SYS014' = '")
+                .append(param.getCustType()).append("'");
+        StringBuilder logSql = new StringBuilder()
+                .append("INSERT INTO ").append(ConstantsUtil.CUSTOMER_OPER_LOG_TABLE_PREFIX).append("( `user_id`, `list_id`, `customer_sea_id`, `customer_group_id`, `event_type`, `create_time`, reason, remark) ")
+                .append("( SELECT ").append(param.getUserId()).append(" ,id,").append(param.getSeaId()).append(",batch_id,").append(8).append(",'").append(new Timestamp(System.currentTimeMillis())).append("' ,? ,? ")
+                .append(" FROM ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(param.getSeaId())
+                .append(" custG  WHERE custG.super_data -> '$.SYS014' = '")
+                .append(param.getCustType()).append("' limit 1 )");
+        // 保存转交记录
+        customerSeaDao.executeUpdateSQL(logSql.toString(), param.getBackReason(), param.getBackRemark());
+        int status = customerSeaDao.executeUpdateSQL(sql.toString());
+        return status;
     }
 
 

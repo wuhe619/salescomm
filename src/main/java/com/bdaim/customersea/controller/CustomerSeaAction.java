@@ -699,5 +699,38 @@ public class CustomerSeaAction extends BasicAction {
         return responseJson;
     }
 
+    /**
+     * 公海线索状态修改(批量)
+     *
+     * @param jsonObject
+     * @return
+     */
+    @RequestMapping(value = "/updateClueStatus/list", method = RequestMethod.POST)
+    public ResponseJson updateClueListStatus(@RequestBody JSONObject jsonObject) {
+        ResponseJson responseJson = new ResponseJson();
+        CustomerSeaSearch param = JSON.parseObject(jsonObject.toJSONString(), CustomerSeaSearch.class);
+        if (StringUtil.isEmpty(param.getSeaId())) {
+            responseJson.setData("参数异常");
+            responseJson.setCode(-1);
+            return responseJson;
+        }
+//        int operate = jsonObject.getIntValue("operate");
+        int data = 0;
+        try {
+            param.setUserId(opUser().getId());
+            param.setUserType(opUser().getUserType());
+            param.setUserGroupRole(opUser().getUserGroupRole());
+            param.setUserGroupId(opUser().getUserGroupId());
+            param.setCustId(opUser().getCustId());
+            data = seaService.updateClueStatus(param);
+            responseJson.setCode(200);
+        } catch (Exception e) {
+            LOG.error("公海线索状态修改异常,", e);
+            responseJson.setCode(-1);
+        }
+        responseJson.setData(data);
+        return responseJson;
+    }
+
 
 }
