@@ -275,7 +275,7 @@ public class ExpressService {
             map.put("v", "1.01");
             map.put("param", JSON.toJSONString(param));
             String date = paramsToQueryStringUrlencoded(map);
-            ExpressType expressType = ExpressType.getExpressTypeByCode("zto");
+            ExpressType expressType = ExpressType.getExpressTypeByCode("yto");
             result = HttpUtil.httpPost(expressType.getRajectoryUrl(), date, headers);
             System.err.println(result);
             return result;
