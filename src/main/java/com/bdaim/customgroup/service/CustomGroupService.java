@@ -2757,9 +2757,11 @@ public class CustomGroupService {
 
             // 查询用户呼叫数
             StringBuffer sqlSb = new StringBuffer();
+            StringBuffer whereSql = new StringBuffer();
+            StringBuffer totalSql = new StringBuffer();
             sqlSb.append(" SELECT customer_group_id, user_id, IFNULL(SUM(caller_sum),0) caller_sum,IFNULL(SUM(called_sum),0) called_sum, IFNULL(SUM(order_sum),0) order_sum, " +
-                    "IFNULL(SUM(called_duration),0) called_duration FROM stat_c_g_u_d WHERE stat_time BETWEEN ? AND ? AND customer_group_id = ?");
-
+                    "IFNULL(SUM(called_duration),0) called_duration, call_amount/1000 callAmount, call_prod_amount/1000 callProdAmount FROM stat_c_g_u_d WHERE stat_time BETWEEN ? AND ? AND customer_group_id = ?");
+            totalSql.append("SELECT IFNULL(SUM(call_amount),0)/1000 totalCallAmount, IFNULL(SUM(call_prod_amount),0)/1000 totalCallProdAmount FROM stat_c_g_u_d WHERE stat_time BETWEEN ? AND ? AND customer_group_id = ? ");
             Page page;
 
             //管理员查全部
@@ -2775,27 +2777,31 @@ public class CustomGroupService {
                         // 分配责任人操作
                         if (userIds.size() > 0) {
                             if (3 == taskType) {
-                                sqlSb.append(" AND (user_id IN(" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ") ");
+                                whereSql.append(" AND (user_id IN(" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ") ");
                             } else {
-                                sqlSb.append(" AND user_id IN(" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ") ");
+                                whereSql.append(" AND user_id IN(" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ") ");
                             }
                         }
                     } else {
                         // 处理组长下没有员工的情况,只查询自己的通话记录
                         if (3 == taskType) {
-                            sqlSb.append(" AND (user_id = '" + userQueryParam.getUserId() + "')");
+                            whereSql.append(" AND (user_id = '" + userQueryParam.getUserId() + "')");
                         } else {
-                            sqlSb.append(" AND user_id = '" + userQueryParam.getUserId() + "'");
+                            whereSql.append(" AND user_id = '" + userQueryParam.getUserId() + "'");
                         }
                     }
                 } else {
                     if (3 == taskType) {
-                        sqlSb.append(" AND (user_id = '" + userQueryParam.getUserId() + "')");
+                        whereSql.append(" AND (user_id = '" + userQueryParam.getUserId() + "')");
                     } else {
-                        sqlSb.append(" AND user_id = '" + userQueryParam.getUserId() + "'");
+                        whereSql.append(" AND user_id = '" + userQueryParam.getUserId() + "'");
                     }
                 }
             }
+            whereSql.append(" AND user_id <>'' ");
+            sqlSb.append(whereSql);
+            totalSql.append(whereSql);
+
             sqlSb.append(" GROUP BY user_id ");
             page = this.customerGroupListDao.sqlPageQuery0(sqlSb.toString(), userQueryParam.getPageNum(), userQueryParam.getPageSize(), startTime, endTime, customerGroupId);
 
@@ -2817,6 +2823,14 @@ public class CustomGroupService {
             data.put("calledSum", calledSum);
             // 成功量
             data.put("successSum", successSum);
+            // 计算通话费用总和
+            data.put("totalCallAmount", 0);
+            data.put("totalCallProdAmount", 0);
+            List<Map<String, Object>> totalValue = marketTaskDao.sqlQuery(totalSql.toString(), startTime, endTime, customerGroupId);
+            if (totalValue != null && totalValue.size() > 0) {
+                data.put("totalCallAmount", totalValue.get(0).get("totalCallAmount"));
+                data.put("totalCallProdAmount", totalValue.get(0).get("totalCallProdAmount"));
+            }
         } catch (Exception e) {
             log.error("获取客户群:" + customerGroupId + "统计分析异常,", e);
         }

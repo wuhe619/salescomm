@@ -1561,7 +1561,7 @@ public class MarketTaskService {
                     columnList.add(String.valueOf(row.get("customer_group_id")));
                     columnList.add(String.valueOf(row.get("market_task_id")));
                     // 普通员工取消手机号表头
-                    if(!CustomerUserTypeEnum.STAFF_USER.getType().equals(loginUser.getUserType())){
+                    if (!CustomerUserTypeEnum.STAFF_USER.getType().equals(loginUser.getUserType())) {
                         columnList.add(PhoneAreaUtil.replacePhone(phoneMap.get(String.valueOf(row.get("superid")))));
                     }
                     //归属地
@@ -1765,6 +1765,7 @@ public class MarketTaskService {
 
     /**
      * 获取导出成功单excel表头,普通员工不导出手机号表头
+     *
      * @param user
      * @param marketProjectId
      * @return
@@ -1779,7 +1780,7 @@ public class MarketTaskService {
         headNames.add("客户群ID");
         headNames.add("营销任务ID");
         // 普通员工取消手机号表头
-        if(!CustomerUserTypeEnum.STAFF_USER.getType().equals(user.getUserType())){
+        if (!CustomerUserTypeEnum.STAFF_USER.getType().equals(user.getUserType())) {
             headNames.add("手机号");
         }
         headNames.add("归属地");
@@ -1813,7 +1814,7 @@ public class MarketTaskService {
         head.add("营销任务ID");
         headers.add(head);
         // 普通员工取消手机号表头
-        if(!CustomerUserTypeEnum.STAFF_USER.getType().equals(user.getUserType())){
+        if (!CustomerUserTypeEnum.STAFF_USER.getType().equals(user.getUserType())) {
             head = new ArrayList<>();
             head.add("手机号");
             headers.add(head);
@@ -2503,7 +2504,9 @@ public class MarketTaskService {
         data.put("calledSum", 0);
         // 成功量
         data.put("successSum", 0);
-
+        // 客户通话费用合计
+        data.put("totalCallAmount", 0);
+        data.put("totalCallProdAmount", 0);
         try {
             if (StringUtil.isEmpty(marketTaskId)) {
                 LOG.warn("marketTaskId参数异常");
@@ -2554,8 +2557,11 @@ public class MarketTaskService {
 
             // 查询用户呼叫数
             StringBuffer sqlSb = new StringBuffer();
+            StringBuffer whereSql = new StringBuffer();
+            StringBuffer totalSql = new StringBuffer();
             sqlSb.append(" SELECT customer_group_id, user_id, IFNULL(SUM(caller_sum),0) caller_sum,IFNULL(SUM(called_sum),0) called_sum, IFNULL(SUM(order_sum),0) order_sum, " +
-                    " IFNULL(SUM(called_duration),0) called_duration FROM stat_c_g_u_d WHERE stat_time BETWEEN ? AND ? AND customer_group_id = ? AND market_task_id = ?");
+                    " IFNULL(SUM(called_duration),0) called_duration, call_amount/1000 callAmount, call_prod_amount/1000 callProdAmount FROM stat_c_g_u_d WHERE stat_time BETWEEN ? AND ? AND customer_group_id = ? AND market_task_id = ?");
+            totalSql.append("SELECT IFNULL(SUM(call_amount),0)/1000 totalCallAmount, IFNULL(SUM(call_prod_amount),0)/1000 totalCallProdAmount FROM stat_c_g_u_d WHERE stat_time BETWEEN ? AND ? AND customer_group_id = ? AND market_task_id = ? ");
             Page page;
             //管理员查全部
             if ("2".equals(userQueryParam.getUserType())) {
@@ -2570,24 +2576,24 @@ public class MarketTaskService {
                         // 分配责任人操作
                         if (userIds.size() > 0) {
                             if (3 == taskType) {
-                                sqlSb.append(" AND (user_id IN(" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ") ");
+                                whereSql.append(" AND (user_id IN(" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ") ");
                             } else {
-                                sqlSb.append(" AND user_id IN(" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ") ");
+                                whereSql.append(" AND user_id IN(" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ") ");
                             }
                         }
                     } else {
                         // 处理组长下没有员工的情况,只查询自己的通话记录
                         if (3 == taskType) {
-                            sqlSb.append(" AND (user_id = '" + userQueryParam.getUserId() + "')");
+                            whereSql.append(" AND (user_id = '" + userQueryParam.getUserId() + "')");
                         } else {
-                            sqlSb.append(" AND user_id = '" + userQueryParam.getUserId() + "'");
+                            whereSql.append(" AND user_id = '" + userQueryParam.getUserId() + "'");
                         }
                     }
                 } else {
                     if (3 == taskType) {
-                        sqlSb.append(" AND (user_id = '" + userQueryParam.getUserId() + "')");
+                        whereSql.append(" AND (user_id = '" + userQueryParam.getUserId() + "')");
                     } else {
-                        sqlSb.append(" AND user_id = '" + userQueryParam.getUserId() + "'");
+                        whereSql.append(" AND user_id = '" + userQueryParam.getUserId() + "'");
                     }
                 }
             }
@@ -2597,9 +2603,11 @@ public class MarketTaskService {
                 if (userIds == null || userIds.size() == 0) {
                     return data;
                 }
-                sqlSb.append(" AND user_id IN(" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ") ");
+                whereSql.append(" AND user_id IN(" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ") ");
             }
-            sqlSb.append(" AND user_id <>'' ");
+            whereSql.append(" AND user_id <>'' ");
+            sqlSb.append(whereSql);
+            totalSql.append(whereSql);
             sqlSb.append(" GROUP BY user_id ");
             // 呼叫量,接通量,未通量, 成单量
             long calledSum = 0L, successSum = 0L;
@@ -2618,6 +2626,12 @@ public class MarketTaskService {
             data.put("list", page.getData());
             data.put("total", page.getTotal());
             data.put("calledSum", calledSum);
+            // 计算通话费用总和
+            List<Map<String, Object>> totalValue = marketTaskDao.sqlQuery(totalSql.toString(), startTime, endTime, marketTask.getCustomerGroupId(), marketTaskId);
+            if (totalValue != null && totalValue.size() > 0) {
+                data.put("totalCallAmount", totalValue.get(0).get("totalCallAmount"));
+                data.put("totalCallProdAmount", totalValue.get(0).get("totalCallProdAmount"));
+            }
         } catch (Exception e) {
             LOG.error("获取营销任务:" + marketTaskId + "统计分析异常,", e);
         }
