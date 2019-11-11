@@ -95,6 +95,7 @@ public class ExpressService {
             throw new ParamException("当前用户不允许创建订单");
         }
         JSONObject json = JSONObject.parseObject(data.get("property_value").toString());
+        String orderUrl = json.getString("orderUrl");
         YTO requestOrder = new YTO(json.getString("customer_id"), orderData.getTxLogisticID(), orderData.getOrderType(), orderData.getServiceType());
         requestOrder.setSender(new YTOSender(orderData.getSender()));
         requestOrder.setReceiver(new YTOReceiver(orderData.getReceiver()));
@@ -168,7 +169,6 @@ public class ExpressService {
         xmlBuilder.append("    </items>");
         xmlBuilder.append("</RequestOrder>");
         try {
-            ExpressType expressType = ExpressType.getExpressTypeByCode("zto");
             MessageDigest messagedigest = MessageDigest.getInstance("MD5");
             messagedigest.update((xmlBuilder.toString() + "u2Z1F7Fh").getBytes("UTF-8"));
             byte[] abyte0 = messagedigest.digest();
@@ -176,7 +176,7 @@ public class ExpressService {
             String parameter = "logistics_interface=" + URLEncoder.encode(xmlBuilder.toString(), "UTF-8")
                     + "&data_digest=" + URLEncoder.encode(data_digest, "UTF-8")
                     + "&clientId=" + URLEncoder.encode(clientId, "UTF-8");
-            result = HttpUtil.httpPost(expressType.getOrderUrl(), parameter, headers);
+            result = HttpUtil.httpPost(orderUrl, parameter, headers);
             logger.info(result);
             XStream xStream = new XStream(new DomDriver());
             xStream.alias("Response", ElectronOrderResponse.class);
@@ -187,7 +187,8 @@ public class ExpressService {
 
             ytoResponse.setItemsList(itemList);
             Map<String, String> map = new HashMap<>();
-            saveExpreeOder(custId, lu.getUserGroupId(), Long.valueOf(lu.getUser_id()), "express_order", 0L, JSONObject.parseObject(JSONObject.toJSON(ytoResponse).toString()), expressType);
+            saveExpreeOder(custId, lu.getUserGroupId(), Long.valueOf(lu.getUser_id()), "express_order",
+                    0L, JSONObject.parseObject(JSONObject.toJSON(ytoResponse).toString()),   ExpressType.getExpressTypeByCode("yto"));
             return ytoResponse.getMailNo();
 
         } catch (Exception e) {
@@ -258,6 +259,7 @@ public class ExpressService {
         String format = "JSON";
         String method = json.getString("method_name");
         String secret_key = json.getString("secret_key");
+        String rajectoryUrl = json.getString("rajectoryUrl");
         String dateTime = smft.format(new Date());
         Map<String, Object> headers = new HashMap<>();
         headers.put("content-type", "application/x-www-form-urlencoded");
@@ -275,8 +277,7 @@ public class ExpressService {
             map.put("v", "1.01");
             map.put("param", JSON.toJSONString(param));
             String date = paramsToQueryStringUrlencoded(map);
-            ExpressType expressType = ExpressType.getExpressTypeByCode("yto");
-            result = HttpUtil.httpPost(expressType.getRajectoryUrl(), date, headers);
+            result = HttpUtil.httpPost(rajectoryUrl, date, headers);
             System.err.println(result);
             return result;
         } catch (Exception e) {

@@ -126,8 +126,15 @@ public class CustomerSeaSearch {
     private String endTime;
     private String regCapitalMax;
     private String regCapitalMin;
+    private String custType;
 
+    public String getCustType() {
+        return custType;
+    }
 
+    public void setCustType(String custType) {
+        this.custType = custType;
+    }
 
     public String getRegCapitalMax() {
         return regCapitalMax;
