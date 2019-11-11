@@ -1109,7 +1109,7 @@ public class MarketResourceService {
                 if (StringUtil.isEmpty(customerProperty.getPropertyValue())) {
                     judge = false;
                 } else {
-                    double remain_amount = NumberConvertUtil.changeY2L(customerProperty.getPropertyValue());
+                    double remain_amount = NumberConvertUtil.parseDouble(customerProperty.getPropertyValue());
                     // 标准价格1厘
                     if (remain_amount <= 0) {
                         // 余额不足

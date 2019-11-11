@@ -113,7 +113,7 @@ public class TransactionService {
             StringBuilder sqlSumAmount = new StringBuilder("SELECT SUM(t.amount) as sumAmount FROM stat_bill_month c where 1=1 ");
             sqlAppendFuc(sqlSumAmount, customerId, type, startTime, params);
             logger.debug(sqlSumAmount.toString());
-            int sumAmount = (Integer)jdbcTemplate.queryForMap(sqlSumAmount.toString()).get("sumAmount");
+            int sumAmount = (Integer) jdbcTemplate.queryForMap(sqlSumAmount.toString()).get("sumAmount");
             //分转化为元
             if (type == 1) {//充值
                 sumamountIn = Float.valueOf(String.valueOf(sumAmount)) / 100;
@@ -128,7 +128,7 @@ public class TransactionService {
             StringBuilder sqlSumAmount = new StringBuilder("SELECT SUM(c.prod_amount) as sumAmount FROM stat_bill_month c where 1=1 ");
             sqlAppendFuc(sqlSumAmount, customerId, 1, startTime, params);
             logger.debug(sqlSumAmount.toString());
-            int sumIn = (Integer)jdbcTemplate.queryForMap(sqlSumAmount.toString()).get("sumAmount");
+            int sumIn = (Integer) jdbcTemplate.queryForMap(sqlSumAmount.toString()).get("sumAmount");
             //分转化为元
             sumamountIn = Float.valueOf(String.valueOf(sumIn)) / 100;
             ret.put("sumamountIn", sumamountIn);
@@ -136,7 +136,7 @@ public class TransactionService {
             StringBuilder sqlSumAmount1 = new StringBuilder("SELECT SUM(c.prod_amount) as sumAmount FROM stat_bill_month c where 1=1 ");
             sqlAppendFucCopy(sqlSumAmount1, customerId, 1, startTime, params);
             logger.debug(sqlSumAmount1.toString());
-            int sumOut = (Integer)jdbcTemplate.queryForMap(sqlSumAmount1.toString()).get("sumAmount");
+            int sumOut = (Integer) jdbcTemplate.queryForMap(sqlSumAmount1.toString()).get("sumAmount");
             //分转化为元
             sumamountOut = Float.valueOf(String.valueOf(sumOut)) / 100;
             ret.put("sumamountOut", sumamountOut);
@@ -144,7 +144,7 @@ public class TransactionService {
             StringBuilder sqlSumAmount2 = new StringBuilder("SELECT SUM(c.prod_amount) as sumAmount FROM stat_bill_month c where 1=1 ");
             sqlAppendFucCopy(sqlSumAmount2, customerId, 1, startTime, params);
             logger.debug(sqlSumAmount2.toString());
-            int sumOut = (Integer)jdbcTemplate.queryForMap(sqlSumAmount2.toString()).get("sumAmount");
+            int sumOut = (Integer) jdbcTemplate.queryForMap(sqlSumAmount2.toString()).get("sumAmount");
             //分转化为元
             sumamountOut = Float.valueOf(String.valueOf(sumOut)) / 100;
             ret.put("sumamountOut", sumamountOut);
@@ -655,12 +655,12 @@ public class TransactionService {
     /**
      * 坐席扣费
      *
-     * @param custId 客户ID
-     * @param amount 客户价格
+     * @param custId     客户ID
+     * @param amount     客户价格
      * @param prodAmount 供应商价格
      * @param resourceId 资源ID
      * @param remark
-     * @param userId 坐席ID
+     * @param userId     坐席ID
      * @return
      * @throws Exception
      */
@@ -699,6 +699,7 @@ public class TransactionService {
 
     /**
      * 客户和供应商资源扣费
+     *
      * @param custId
      * @param type
      * @param amount
@@ -710,7 +711,7 @@ public class TransactionService {
      * @throws Exception
      */
     public int customerSupplierDeduction(String custId, int type, int amount, int prodAmount, String resourceId, String remark, String userId) throws Exception {
-        logger.info("短信扣费参数,custId:" + custId + ",amount:" + amount + ",prodAmount:" + prodAmount + ",resourceId:" + resourceId);
+        logger.info("扣费参数,custId:" + custId + ",amount:" + amount + ",prodAmount:" + prodAmount + ",resourceId:" + resourceId);
         String nowYearMonth = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMM"));
         // 创建交易记录年月分表
         StringBuilder sql = new StringBuilder();
@@ -719,17 +720,6 @@ public class TransactionService {
         sql.append(" like t_transaction");
         transactionDao.executeUpdateSQL(sql.toString());
 
-        sql.setLength(0);
-        sql.append("insert into t_transaction_");
-        sql.append(nowYearMonth);
-        sql.append(" (transaction_id, cust_id, type, pay_mode, amount, remark, create_time, resource_id, user_id, prod_amount)values(?,?,?,?,?,?,?,?,?,?)");
-        String transactionId = Long.toString(IDHelper.getTransactionId());
-        if (StringUtil.isEmpty(userId)) {
-            userId = "-1";
-        }
-
-        int status = transactionDao.executeUpdateSQL(sql.toString(), transactionId, custId, type,
-                1, amount, remark, new Timestamp(System.currentTimeMillis()), resourceId, userId, prodAmount);
         //扣除客户费用
         customerDao.accountDeductions(custId, new BigDecimal(amount));
         //扣除供应商费用
@@ -739,6 +729,18 @@ public class TransactionService {
             supplierId = String.valueOf(marketResource.get(0).get("supplier_id"));
         }
         supplierDao.supplierAccountDeductions(supplierId, new BigDecimal(prodAmount));
+
+        sql.setLength(0);
+        sql.append("insert into t_transaction_");
+        sql.append(nowYearMonth);
+        sql.append(" (transaction_id, cust_id, type, pay_mode, amount, remark, create_time, resource_id, user_id, prod_amount,supplier_id)values(?,?,?,?,?,?,?,?,?,?,?)");
+        String transactionId = Long.toString(IDHelper.getTransactionId());
+        if (StringUtil.isEmpty(userId)) {
+            userId = "-1";
+        }
+        // 记录账单
+        int status = transactionDao.executeUpdateSQL(sql.toString(), transactionId, custId, type,
+                1, amount, remark, new Timestamp(System.currentTimeMillis()), resourceId, userId, prodAmount, supplierId);
         return status;
     }
 

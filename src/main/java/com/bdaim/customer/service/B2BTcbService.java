@@ -93,25 +93,29 @@ public class B2BTcbService implements BusiService {
             LOG.warn("客户:{}余额不足", cust_id);
             throw new TouchException("客户余额不足");
         }
-        // 根据资源ID查询供应商计费配置
+        // 根据套餐包配置
         ResourcePropertyEntity m = marketResourceDao.getProperty(info.getString("resource_id"), "price_config");
         if (m != null && StringUtil.isNotEmpty(m.getPropertyValue())) {
-            JSONObject priceConfig = JSON.parseObject(m.getPropertyValue());
-            // 查询套餐包配置
-            m = marketResourceDao.getProperty(priceConfig.getString("tcb_id"), "price_config");
             JSONObject tcbConfig = JSON.parseObject(m.getPropertyValue());
             // 企业余额和套餐价格判断
             Double remainMoney = customerService.getRemainMoney(cust_id);
-            if (remainMoney < tcbConfig.getDoubleValue("price")) {
+            if (remainMoney < NumberConvertUtil.changeY2L(tcbConfig.getDoubleValue("price"))) {
                 LOG.warn("客户:{}开通套餐失败,套餐(资源)ID:{},余额:{}", cust_id, info.getString("resource_id"), remainMoney);
                 throw new TouchException("客户余额不足");
+            }
+
+            // 查询供应商售价配置配置
+            m = marketResourceDao.getProperty(tcbConfig.getString("price_res_id"), "price_config");
+            if (m == null) {
+                LOG.warn("查询套餐包配置异常,套餐包ID:{}", tcbConfig.getString("price_res_id"));
+                throw new TouchException("查询套餐包配置异常");
             }
             info.put("ext_2", tcbConfig.getString("name"));
             info.put("ext_3", tcbConfig.getString("type"));
             info.put("ext_4", 1);
             // 基础 定制套餐 供应商 客户扣费
             if ("1".equals(tcbConfig.getString("type")) || "2".equals(tcbConfig.getString("type"))) {
-                tcOpenDeduction(info.getString("resource_id"), tcbConfig.getString("name"), tcbConfig.getString("price"), tcbConfig.getIntValue("total"), cust_id, cust_user_id);
+                tcOpenDeduction(tcbConfig.getString("price_res_id"), tcbConfig.getString("name"), tcbConfig.getString("price"), tcbConfig.getIntValue("total"), cust_id, cust_user_id);
             }
         } else {
             LOG.warn("套餐包:{}无效", info.getString("resource_id"));
