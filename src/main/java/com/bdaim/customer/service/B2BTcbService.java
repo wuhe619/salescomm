@@ -262,9 +262,8 @@ public class B2BTcbService implements BusiService {
             throw new TouchException("企业套餐已过期");
         }
 
-        Map<String, Object> superData = new HashMap(16) {{
-            put("SYS007", "未跟进");
-        }};
+        Map<String, Object> superData = new HashMap(16);
+        superData.put("SYS007", "未跟进");
 
         CustomSeaTouchInfoDTO dto = null;
         BaseResult companyDetail = null, companyContact;
@@ -355,11 +354,28 @@ public class B2BTcbService implements BusiService {
                     log.put("superId", dto.getSuper_id());
                     log.put("content", JSON.toJSON(dto));
                     busiEntityService.saveInfo(custId, "", userId, BusiTypeEnum.B2B_TC_LOG.getType(), 0L, log);
+                    // 更新套餐余量和消耗量
+                    updateTbRemain(useB2BTcb.getLong("id"), 1, BusiTypeEnum.B2B_TC.getType());
                 }
             }
 
         }
         return 0;
+    }
+
+    /**
+     * 更新套餐余量和消耗量
+     *
+     * @param id
+     * @param consumerNum
+     * @param busiType
+     */
+    private void updateTbRemain(long id, int consumerNum, String busiType) {
+        String updateNumSql = "UPDATE " + HMetaDataDef.getTable(busiType, "")
+                + " set content = JSON_SET(content, '$.consum_num', JSON_EXTRACT(content, '$.consum_num') + ?), " +
+                " content = JSON_SET ( content, '$.remain_num', JSON_EXTRACT(content, '$.remain_num') - ? )" +
+                " where id = ? ";
+        jdbcTemplate.update(updateNumSql, id, consumerNum);
     }
 
 }
