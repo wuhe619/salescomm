@@ -122,6 +122,45 @@ public class CustomerSeaSearch {
      */
     private Integer seaType;
 
+    private String createTime;
+    private String endTime;
+    private String regCapitalMax;
+    private String regCapitalMin;
+
+
+
+    public String getRegCapitalMax() {
+        return regCapitalMax;
+    }
+
+    public void setRegCapitalMax(String regCapitalMax) {
+        this.regCapitalMax = regCapitalMax;
+    }
+
+    public String getRegCapitalMin() {
+        return regCapitalMin;
+    }
+
+    public void setRegCapitalMin(String regCapitalMin) {
+        this.regCapitalMin = regCapitalMin;
+    }
+
+    public String getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(String createTime) {
+        this.createTime = createTime;
+    }
+
+    public String getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(String endTime) {
+        this.endTime = endTime;
+    }
+
     public Integer getPageNum() {
         return pageNum;
     }
