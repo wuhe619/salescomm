@@ -178,7 +178,7 @@ public class SbdSService implements BusiService {
         JSONObject fjson = JSONObject.parseObject(fcontent);
         System.out.println("jsoncontent====="+fjson);
         List<HBusiDataManager> goodsList = serviceUtils.listSdByBillNo(cust_id,BusiTypeEnum.SS.getType(), fmanager.getExt_4(),fmanager.getExt_3());
-        Double weight = 0d;  //重量
+        Double weight_total = 0d;  //重量
         Double G_qty = 0d; //数量
         int lowPricegoods = 0; //低价商品数
         int is_low_price = 0;
@@ -217,7 +217,7 @@ public class SbdSService implements BusiService {
                 info.put("decl_total",total_price);
             } else {
                 if (goods.containsKey("ggrosswt") && StringUtil.isNotEmpty(goods.getString("ggrosswt"))) {
-                    weight += goods.containsKey("ggrosswt")?goods.getFloatValue("ggrosswt"):0;
+                    weight_total += goods.containsKey("ggrosswt")?goods.getFloatValue("ggrosswt"):0;
                 }
                 if (goods.containsKey("g_qty") && StringUtil.isNotEmpty(goods.getString("g_qty"))) {
                     G_qty += goods.getFloatValue("g_qty");
@@ -232,8 +232,8 @@ public class SbdSService implements BusiService {
                 lowPricegoods++;
             }
         }
-        log.info("weight_total=========="+weight);
-        fjson.put("weight_total", weight==null?0:weight.floatValue());
+        log.info("weight_total=========="+weight_total);
+        fjson.put("weight_total", weight_total==null?0:weight_total.floatValue());
         fjson.put("lowPricegoods", lowPricegoods);
         fjson.put("g_gty", G_qty);
         fjson.put("estimated_tax", festimated_tax);
@@ -262,17 +262,17 @@ public class SbdSService implements BusiService {
         String partcontent = parth.getContent();
         JSONObject partcontentJson = JSON.parseObject(partcontent);
 
-        Float weight = partcontentJson.getFloatValue("weight");
+        //Float weight = partcontentJson.getFloatValue("weight");
         //Float pack_NO = partcontentJson.getFloatValue("pack_no");
-        if (weight == null) weight = 0f;
-        if (StringUtil.isNotEmpty(pjson.getString("ggrosswt"))) {
-            weight -= Float.valueOf(pjson.getString("ggrosswt"));
-        }
+        //if (weight == null) weight = 0f;
+        //if (StringUtil.isNotEmpty(pjson.getString("ggrosswt"))) {
+          //  weight -= Float.valueOf(pjson.getString("ggrosswt"));
+//        }
         //if (pack_NO == null) pack_NO = 0f;
        // if (StringUtil.isNotEmpty(pjson.getString("g_qty"))) {
        //     pack_NO -= Float.valueOf(pjson.getString("g_qty"));
        // }
-        partcontentJson.put("weight", weight);
+//        partcontentJson.put("weight", weight);
         //partcontentJson.put("pack_no", pack_NO);
         parth.setContent(partcontentJson.toJSONString());
 
