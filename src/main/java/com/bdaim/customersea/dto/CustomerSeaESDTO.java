@@ -58,6 +58,7 @@ public class CustomerSeaESDTO {
      */
     private String invalidReason;
 
+    private String entId;
     private String regLocation;
     private String regCapital;
     private String regTime;
@@ -383,5 +384,13 @@ public class CustomerSeaESDTO {
 
     public void setEntPersonNum(Integer entPersonNum) {
         this.entPersonNum = entPersonNum;
+    }
+
+    public String getEntId() {
+        return entId;
+    }
+
+    public void setEntId(String entId) {
+        this.entId = entId;
     }
 }

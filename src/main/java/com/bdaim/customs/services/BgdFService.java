@@ -368,7 +368,7 @@ public class BgdFService implements BusiService {
         if(StringUtil.isEmpty(json.getString("weight"))){
             filedName += "," + BGDReportEnum.GrossWt.getName();
         }
-        if(StringUtil.isEmpty(json.getString("weight"))){
+        if(StringUtil.isEmpty(json.getString("net_weight"))){
             filedName += "," + BGDReportEnum.NetWt.getName();
         }
         if(StringUtil.isEmpty(mainjson.getString("wrap_class"))){

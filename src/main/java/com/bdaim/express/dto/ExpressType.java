@@ -2,7 +2,7 @@ package com.bdaim.express.dto;
 
 public enum ExpressType {
 
-    ZTO(0, "zto", "圆通","http://114.80.61.11:8020/CommonOrderModeBPlusServlet","http://gwmarketinginterface.yto.net.cn:7000/standard");
+    YTO(0, "yto", "圆通","http://114.80.61.11:8020/CommonOrderModeBPlusServlet","http://gwmarketinginterface.yto.net.cn:7000/standard");
 
     int type;
     String expressCode;

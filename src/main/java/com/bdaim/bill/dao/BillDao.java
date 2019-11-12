@@ -65,6 +65,7 @@ public class BillDao extends SimpleHibernateDao {
             case BALANCE_DEDUCTION:
             case SEAT_DEDUCTION:
             case APPARENT_NUM_DEDUCTION:
+            case B2B_TC_DEDUCTION:
                 page = pageTransactionLog("", custId, resourceId, orderNo, startTime, endTime, type, pageNum, pageSize);
                 break;
             // 短信扣费记录
@@ -96,6 +97,7 @@ public class BillDao extends SimpleHibernateDao {
 
     /**
      * 统计客户消费总金额
+     *
      * @param custId
      * @param startTime
      * @param endTime
@@ -106,15 +108,16 @@ public class BillDao extends SimpleHibernateDao {
      * @param resourceId
      * @return
      */
-    public Map<String,Object> statCustomerBillAmount(String custId, String startTime, String endTime, String orderNo, int type, int pageNum, int pageSize, String resourceId) {
+    public Map<String, Object> statCustomerBillAmount(String custId, String startTime, String endTime, String orderNo, int type, int pageNum, int pageSize, String resourceId) {
         TransactionTypeEnum transactionTypeEnum = TransactionTypeEnum.getType(type);
-        Map<String,Object> data = null;
+        Map<String, Object> data = null;
         switch (transactionTypeEnum) {
             // 统一查询交易表记录
             case BALANCE_RECHARGE:
             case BALANCE_DEDUCTION:
             case SEAT_DEDUCTION:
             case APPARENT_NUM_DEDUCTION:
+            case B2B_TC_DEDUCTION:
                 data = statTransactionAmount("", custId, resourceId, orderNo, startTime, endTime, type, pageNum, pageSize);
                 break;
             // 短信扣费记录
@@ -143,6 +146,7 @@ public class BillDao extends SimpleHibernateDao {
             case BALANCE_DEDUCTION:
             case SEAT_DEDUCTION:
             case APPARENT_NUM_DEDUCTION:
+            case B2B_TC_DEDUCTION:
                 page = pageTransactionLog(supplierId, custId, resourceId, orderNo, startTime, endTime, type, pageNum, pageSize);
                 break;
             // 短信扣费记录
@@ -167,6 +171,7 @@ public class BillDao extends SimpleHibernateDao {
 
     /**
      * 统计供应商消费总金额
+     *
      * @param supplierId
      * @param resourceId
      * @param type
@@ -178,15 +183,16 @@ public class BillDao extends SimpleHibernateDao {
      * @param pageSize
      * @return
      */
-    public Map<String,Object> statSupplierBillAmount(String supplierId, String resourceId, int type, String orderNo, String custId, String startTime, String endTime, int pageNum, int pageSize) {
+    public Map<String, Object> statSupplierBillAmount(String supplierId, String resourceId, int type, String orderNo, String custId, String startTime, String endTime, int pageNum, int pageSize) {
         TransactionTypeEnum transactionTypeEnum = TransactionTypeEnum.getType(type);
-        Map<String,Object> data = null;
+        Map<String, Object> data = null;
         switch (transactionTypeEnum) {
             // 统一查询交易表记录
             case BALANCE_RECHARGE:
             case BALANCE_DEDUCTION:
             case SEAT_DEDUCTION:
             case APPARENT_NUM_DEDUCTION:
+            case B2B_TC_DEDUCTION:
                 data = statTransactionAmount(supplierId, custId, resourceId, orderNo, startTime, endTime, type, pageNum, pageSize);
                 break;
             // 短信扣费记录
@@ -216,6 +222,7 @@ public class BillDao extends SimpleHibernateDao {
             case BALANCE_DEDUCTION:
             case SEAT_DEDUCTION:
             case APPARENT_NUM_DEDUCTION:
+            case B2B_TC_DEDUCTION:
                 list = listTransactionLog("", custId, "", orderNo, startTime, endTime, type);
                 break;
             // 短信扣费记录
@@ -244,6 +251,7 @@ public class BillDao extends SimpleHibernateDao {
             case BALANCE_DEDUCTION:
             case SEAT_DEDUCTION:
             case APPARENT_NUM_DEDUCTION:
+            case B2B_TC_DEDUCTION:
                 page = listTransactionLog(supplierId, custId, resourceId, orderNo, startTime, endTime, type);
                 break;
             // 短信扣费记录
@@ -540,6 +548,7 @@ public class BillDao extends SimpleHibernateDao {
 
     /**
      * 统计数据提取客户消费总金额和供应商总金额
+     *
      * @param supplierId
      * @param custId
      * @param resourceId

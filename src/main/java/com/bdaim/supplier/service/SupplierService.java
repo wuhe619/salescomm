@@ -1111,6 +1111,7 @@ public class SupplierService {
 
     /**
      * 根据类型分页查询资源
+     *
      * @param type
      * @param pageNum
      * @param pageSize
@@ -1258,6 +1259,9 @@ public class SupplierService {
             MarketResourceDTO dto = new MarketResourceDTO();
             dto.setResourceId(resourceId);
             MarketResourceEntity resource = marketResourceDao.get(resourceId);
+            if (resource == null) {
+                return;
+            }
             dto.setResname(resource.getResname());
             dto.setSupplierId(resource.getSupplierId());
             dto.setChargingType(json.getInteger("type"));

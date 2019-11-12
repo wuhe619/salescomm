@@ -653,5 +653,84 @@ public class CustomerSeaAction extends BasicAction {
         }
         return returnJsonData(data);
     }
+    public String page3(){
+
+
+        return null;
+    }
+    /**
+     * 公海内线索分页
+     *
+     * @param param
+     * @param error
+     * @return
+     */
+    @RequestMapping(value = "/pageClue/{seaId}", method = RequestMethod.POST)
+    @CacheAnnotation
+    public ResponseJson pageClueById(@RequestBody @Valid CustomerSeaSearch param, BindingResult error) {
+        ResponseJson responseJson = new ResponseJson();
+        if (error.hasFieldErrors()) {
+            responseJson.setData(getErrors(error));
+            return responseJson;
+        }
+        Page data = null;
+        try {
+            param.setUserId(opUser().getId());
+            param.setUserType(opUser().getUserType());
+            param.setUserGroupRole(opUser().getUserGroupRole());
+            param.setUserGroupId(opUser().getUserGroupId());
+            param.setCustId(opUser().getCustId());
+            // 查询公海线索
+            if (param.getSeaType() == null || param.getSeaType() == 1) {
+                data = seaService.pagePublicClue(param);
+            } else if (param.getSeaType() == 2) {
+                // 查询私海线索
+                data = seaService.pagePrivateClue(param);
+            }
+            responseJson.setCode(200);
+        } catch (Exception e) {
+            responseJson.setCode(-1);
+            LOG.error("查询公海详情列表异常,", e);
+        }
+        if (data == null) {
+            data = new Page();
+        }
+        responseJson.setData(getPageData(data));
+        return responseJson;
+    }
+
+    /**
+     * 公海线索状态修改(批量)
+     *
+     * @param jsonObject
+     * @return
+     */
+    @RequestMapping(value = "/updateClueStatus/list", method = RequestMethod.POST)
+    public ResponseJson updateClueListStatus(@RequestBody JSONObject jsonObject) {
+        ResponseJson responseJson = new ResponseJson();
+        CustomerSeaSearch param = JSON.parseObject(jsonObject.toJSONString(), CustomerSeaSearch.class);
+        if (StringUtil.isEmpty(param.getSeaId())) {
+            responseJson.setData("参数异常");
+            responseJson.setCode(-1);
+            return responseJson;
+        }
+//        int operate = jsonObject.getIntValue("operate");
+        int data = 0;
+        try {
+            param.setUserId(opUser().getId());
+            param.setUserType(opUser().getUserType());
+            param.setUserGroupRole(opUser().getUserGroupRole());
+            param.setUserGroupId(opUser().getUserGroupId());
+            param.setCustId(opUser().getCustId());
+            data = seaService.updateClueStatus(param);
+            responseJson.setCode(200);
+        } catch (Exception e) {
+            LOG.error("公海线索状态修改异常,", e);
+            responseJson.setCode(-1);
+        }
+        responseJson.setData(data);
+        return responseJson;
+    }
+
 
 }
