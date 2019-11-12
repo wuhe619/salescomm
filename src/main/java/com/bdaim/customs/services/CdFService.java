@@ -81,18 +81,18 @@ public class CdFService implements BusiService {
                 if (info.containsKey("pack_no") && StringUtil.isNotEmpty(info.getString("pack_no"))) {
                     packNo += info.getInteger("pack_no");
                 }
-                if (info.containsKey("weight") && StringUtil.isNotEmpty(info.getString("weight"))) {
-                    weight += info.getFloatValue("weight");
-                }
+//                if (info.containsKey("weight") && StringUtil.isNotEmpty(info.getString("weight"))) {
+//                    weight += info.getFloatValue("weight");
+//                }
             } else {
                 if (json2.containsKey("pack_no") && StringUtil.isNotEmpty("pack_no")) {
                     System.out.println("pack_no: " + json2.getString("pack_no"));
                     packNo += json2.getInteger("pack_no");
                 }
-                if (json2.containsKey("weight_total") && StringUtil.isNotEmpty(json2.getString("weight_total"))) {
-                    System.out.println("weight_total: " + json2.getString("weight_total"));
-                    weight += json2.getFloatValue("weight_total");
-                }
+//                if (json2.containsKey("weight_total") && StringUtil.isNotEmpty(json2.getString("weight_total"))) {
+//                    System.out.println("weight_total: " + json2.getString("weight_total"));
+//                    weight += json2.getFloatValue("weight_total");
+//                }
             }
 
         }
@@ -102,7 +102,7 @@ public class CdFService implements BusiService {
             throw new TouchException("无权操作");
         }
         JSONObject superObj = JSONObject.parseObject(cangdanz.getContent());
-        superObj.put("weight", weight);
+//        superObj.put("weight", weight);
         superObj.put("total_pack_no", packNo);
         cangdanz.setContent(superObj.toJSONString());
         String sql = "update "+ HMetaDataDef.getTable(cangdanz.getType(),"")+" set " +

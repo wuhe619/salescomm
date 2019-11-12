@@ -109,17 +109,18 @@ public class SbdSService implements BusiService {
         // 税单存入主单号
         info.put("ext_2", jsonObject.getString("main_bill_no"));
 
-        Float weight = jsonObject.getFloatValue("weight");
+        //Float weight = jsonObject.getFloatValue("weight");
+        //if (weight == null) weight = 0f;
+        //if (info.containsKey("ggrosswt") && StringUtil.isNotEmpty(info.getString("ggrosswt"))) {
+        //    weight += Float.valueOf(info.getString("ggrosswt"));
+       // }
+        //jsonObject.put("weight", weight);
+
         Float g_qty = jsonObject.getFloatValue("g_qty");
-        if (weight == null) weight = 0f;
-        if (info.containsKey("ggrosswt") && StringUtil.isNotEmpty(info.getString("ggrosswt"))) {
-            weight += Float.valueOf(info.getString("ggrosswt"));
-        }
         if (g_qty == null) g_qty = 0f;
         if (info.containsKey("g_qty") && StringUtil.isNotEmpty(info.getString("g_qty"))) {
             g_qty += Float.valueOf(info.getString("g_qty"));
         }
-        jsonObject.put("weight", weight);
         jsonObject.put("g_qty", g_qty);
         Integer lowPricegoods = jsonObject.getInteger("low_price_goods");
         if (lowPricegoods == null) lowPricegoods = 0;
