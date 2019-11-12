@@ -878,7 +878,7 @@ public class CustomerAction extends BasicAction {
     public String getUserList(@Valid PageParam page, BindingResult error, String name, String realName,
                               String userGroupId, String groupRoleType, String custId, String uid, String seatId,
                               String endAccount, String endSeatId, String callType, String callChannel, String jobId,
-                              String queryall, String userType, String projectId, String status) {
+                              String queryall, String userType, String projectId, String status, String notGroupRoleType) {
         LoginUser lu = opUser();
         // 员工不能看团队管理
         if ("2".equals(lu.getUserType()) && "2".equals(lu.getUserGroupRole())) {
@@ -897,7 +897,8 @@ public class CustomerAction extends BasicAction {
             customerId = custId;
         }
         return customerUserService.getUser_V1(page.getPageNum(), page.getPageSize(), customerId, name, realName,
-                opUser(), userGroupId, groupRoleType, uid, seatId, endAccount, endSeatId, callType, callChannel, jobId, userType, projectId, status);
+                opUser(), userGroupId, groupRoleType, uid, seatId, endAccount, endSeatId, callType, callChannel,
+                jobId, userType, projectId, status, notGroupRoleType);
     }
 
     /*@ResponseBody
