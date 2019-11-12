@@ -501,7 +501,7 @@ public class CdZService implements BusiService {
             // 舱单总分单件数=分运单件数和
             pack_no += _content.getIntValue("pack_no");
 
-            Double fdWeightTotal = 0.0;
+           // Double fdWeightTotal = 0.0;
             Double total_value = 0.0;
             BigDecimal qty = null;
             BigDecimal multiply = null;
@@ -520,11 +520,11 @@ public class CdZService implements BusiService {
                     productContent.put("main_bill_no", _content.get("bill_no"));
                     productContent.put("opt_type", "ADD");
                     // 分单重量（公斤）=分单所有商品毛重
-                    String ggrosswt = productContent.getString("ggrosswt");
-                    if (StringUtil.isEmpty(ggrosswt)) {
-                        ggrosswt = "0";
-                    }
-                    fdWeightTotal += Double.valueOf(ggrosswt);
+//                    String ggrosswt = productContent.getString("ggrosswt");
+//                    if (StringUtil.isEmpty(ggrosswt)) {
+//                        ggrosswt = "0";
+//                    }
+                   // fdWeightTotal += Double.valueOf(ggrosswt);
                     String G_QTY = productContent.getString("g_qty");
                     String decl_price = productContent.getString("decl_price");
                     if (StringUtil.isNotEmpty(G_QTY) && StringUtil.isNotEmpty(decl_price)) {
