@@ -2936,6 +2936,17 @@ public class MarketResourceAction extends BasicAction {
                 json.put("data", map);
             }
             message = json.toJSONString();
+        }else if (5 == type) {
+            JSONArray peopleAssignedList = jsonO.getJSONArray("assignedlist");
+            Integer custGroupId = jsonO.getInteger("custGroupId");
+            String intentLevel = jsonO.getString("intentLevel");
+            String marketTaskId = jsonO.getString("marketTaskId");
+            for (int i = 0; i < peopleAssignedList.size(); i++) {
+                JSONObject jsonObject2 = peopleAssignedList.getJSONObject(i);
+                Integer number = jsonObject2.getInteger("number");
+                String userId = jsonObject2.getString("userId");
+                message = marketResourceService.updateAssignedManyByCount(number, custGroupId, ruleType, userId, opUser().getId(), intentLevel, marketTaskId);
+            }
         }
         resultMap.put("message", message);
         return JSONObject.toJSON(resultMap);
