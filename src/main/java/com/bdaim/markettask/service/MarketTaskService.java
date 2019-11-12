@@ -1142,7 +1142,7 @@ public class MarketTaskService {
                     // 分配责任人操作
                     if (userIds.size() > 0) {
                         if ("distribution".equals(action)) {
-                            sb.append(" AND (user.id IN(" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ") OR custG.status= 1)");
+                            sb.append(" AND (user.id IN(" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ") AND custG.status= 0)");
                         } else {
                             sb.append(" AND user.id IN(" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ")");
                         }
