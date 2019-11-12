@@ -286,7 +286,7 @@ public class B2BTcbService implements BusiService {
         } else if (mode == 2) {
             //领取，只返回id
             param.put("fieldType", false);
-            long pageNo = 0L, pageSize = getNumber * 2;
+            long pageNo = 0L, pageSize = 1000;
             while (getNumber > data.size()) {
                 param.put("pageNum", pageNo);
                 param.put("pageSize", pageSize);
@@ -324,9 +324,10 @@ public class B2BTcbService implements BusiService {
         }
 
         String batchId = UUID.randomUUID().toString().replaceAll("-", "");
-        Iterator keys = data.entrySet().iterator();
+        Iterator keys = data.keySet().iterator();
+        int consumeNum = 0;
         while (keys.hasNext()) {
-            String key = (String) keys.next();
+            String key = String.valueOf(keys.next());
             JSONArray pNumbers = data.get(key).getJSONArray("phoneNumber");
             if (pNumbers != null) {
                 for (int i = 0; i < pNumbers.size(); i++) {
@@ -345,7 +346,7 @@ public class B2BTcbService implements BusiService {
                     int status = seaService.addClueData0(dto, seaType);
                     log = new JSONObject();
                     // B2B数据企业ID
-                    log.put("ext_1", companyId);
+                    log.put("ext_1", key);
                     // 套餐包ID 扩展字段2
                     log.put("tcbId", useB2BTcb.getString("id"));
                     // 领取批次ID 扩展字段3
@@ -354,12 +355,12 @@ public class B2BTcbService implements BusiService {
                     log.put("superId", dto.getSuper_id());
                     log.put("content", JSON.toJSON(dto));
                     busiEntityService.saveInfo(custId, "", userId, BusiTypeEnum.B2B_TC_LOG.getType(), 0L, log);
-                    // 更新套餐余量和消耗量
-                    updateTbRemain(useB2BTcb.getLong("id"), 1, BusiTypeEnum.B2B_TC.getType());
                 }
+                consumeNum++;
             }
-
         }
+        // 更新套餐余量和消耗量
+        updateTbRemain(useB2BTcb.getLong("id"), consumeNum, BusiTypeEnum.B2B_TC.getType());
         return 0;
     }
 
@@ -372,10 +373,10 @@ public class B2BTcbService implements BusiService {
      */
     private void updateTbRemain(long id, int consumerNum, String busiType) {
         String updateNumSql = "UPDATE " + HMetaDataDef.getTable(busiType, "")
-                + " set content = JSON_SET(content, '$.consum_num', JSON_EXTRACT(content, '$.consum_num') + ?), " +
+                + " set content = JSON_SET(content, '$.consume_num', JSON_EXTRACT(content, '$.consume_num') + ?), " +
                 " content = JSON_SET ( content, '$.remain_num', JSON_EXTRACT(content, '$.remain_num') - ? )" +
                 " where id = ? ";
-        jdbcTemplate.update(updateNumSql, id, consumerNum);
+        jdbcTemplate.update(updateNumSql, consumerNum, consumerNum, id);
     }
 
 }
