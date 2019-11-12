@@ -1053,7 +1053,7 @@ public class MarketProjectService {
             StringBuffer whereSql = new StringBuffer();
             StringBuffer totalSql = new StringBuffer();
             sqlSb.append(" SELECT customer_group_id, user_id, IFNULL(SUM(caller_sum),0) caller_sum,IFNULL(SUM(called_sum),0) called_sum, IFNULL(SUM(order_sum),0) order_sum, " +
-                    "IFNULL(SUM(called_duration),0) called_duration, call_amount/1000 callAmount, call_prod_amount/1000 callProdAmount FROM stat_c_g_u_d WHERE stat_time BETWEEN ? AND ? AND customer_group_id IN (" + SqlAppendUtil.sqlAppendWhereIn(cgIds) + ")");
+                    "IFNULL(SUM(called_duration),0) called_duration, IFNULL(SUM(call_amount),0)/1000 callAmount, IFNULL(SUM(call_prod_amount),0)/1000 callProdAmount FROM stat_c_g_u_d WHERE stat_time BETWEEN ? AND ? AND customer_group_id IN (" + SqlAppendUtil.sqlAppendWhereIn(cgIds) + ")");
             totalSql.append("SELECT IFNULL(SUM(call_amount),0)/1000 totalCallAmount, IFNULL(SUM(call_prod_amount),0)/1000 totalCallProdAmount FROM stat_c_g_u_d WHERE stat_time BETWEEN ? AND ? AND customer_group_id IN (" + SqlAppendUtil.sqlAppendWhereIn(cgIds) + ")");
             Page page;
             // 处理组长权限
@@ -2712,7 +2712,7 @@ public class MarketProjectService {
             // 查询用户呼叫数
             sqlSb = new StringBuffer();
             sqlSb.append(" SELECT customer_group_id,market_task_id, user_id, IFNULL(SUM(caller_sum),0) caller_sum,IFNULL(SUM(called_sum),0) called_sum, IFNULL(SUM(order_sum),0) order_sum, " +
-                    "IFNULL(SUM(called_duration),0) called_duration, call_amount/1000 callAmount, call_prod_amount/1000 callProdAmount FROM stat_c_g_u_d WHERE stat_time BETWEEN ? AND ? AND customer_group_id IN(" + SqlAppendUtil.sqlAppendWhereIn(cgIds) + ")");
+                    "IFNULL(SUM(called_duration),0) called_duration, IFNULL(SUM(call_amount),0)/1000 callAmount, IFNULL(SUM(call_prod_amount),0)/1000 callProdAmount FROM stat_c_g_u_d WHERE stat_time BETWEEN ? AND ? AND customer_group_id IN(" + SqlAppendUtil.sqlAppendWhereIn(cgIds) + ")");
             //管理员查全部
             if ("2".equals(userQueryParam.getUserType())) {
                 // 组长查整个组的外呼统计
