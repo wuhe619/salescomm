@@ -280,7 +280,7 @@ public class BusiEntityService {
      */
     @Transactional
     public Long saveInfo(String cust_id, String cust_group_id, Long cust_user_id, String busiType, Long id, JSONObject info) throws Exception {
-        String[] extKeys = new String[]{"ext_1", "ext_2", "ext_3", "ext_4", "ext_5"};
+        String[] extKeys = new String[]{"ext_1", "ext_2", "ext_3", "ext_4", "ext_5", "cust_user_id"};
         String[] sysKeys = new String[]{"id", "cust_id", "create_id", "create_date"}; //系统数据字段名
         for (String sysKey : sysKeys) {
             if (info.containsKey(sysKey))
