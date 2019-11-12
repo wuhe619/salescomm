@@ -1064,9 +1064,11 @@ public class MarketProjectService {
 
             // 查询用户呼叫数
             StringBuffer sqlSb = new StringBuffer();
+            StringBuffer whereSql = new StringBuffer();
+            StringBuffer totalSql = new StringBuffer();
             sqlSb.append(" SELECT customer_group_id, user_id, IFNULL(SUM(caller_sum),0) caller_sum,IFNULL(SUM(called_sum),0) called_sum, IFNULL(SUM(order_sum),0) order_sum, " +
-                    "IFNULL(SUM(called_duration),0) called_duration FROM stat_c_g_u_d WHERE stat_time BETWEEN ? AND ? AND customer_group_id IN (" + SqlAppendUtil.sqlAppendWhereIn(cgIds) + ")");
-
+                    "IFNULL(SUM(called_duration),0) called_duration, IFNULL(SUM(call_amount),0)/1000 callAmount, IFNULL(SUM(call_prod_amount),0)/1000 callProdAmount FROM stat_c_g_u_d WHERE stat_time BETWEEN ? AND ? AND customer_group_id IN (" + SqlAppendUtil.sqlAppendWhereIn(cgIds) + ")");
+            totalSql.append("SELECT IFNULL(SUM(call_amount),0)/1000 totalCallAmount, IFNULL(SUM(call_prod_amount),0)/1000 totalCallProdAmount FROM stat_c_g_u_d WHERE stat_time BETWEEN ? AND ? AND customer_group_id IN (" + SqlAppendUtil.sqlAppendWhereIn(cgIds) + ")");
             Page page;
             // 处理组长权限
             if ("2".equals(userQueryParam.getUserType())) {
@@ -1080,16 +1082,20 @@ public class MarketProjectService {
                         }
                         // 分配责任人操作
                         if (userIds.size() > 0) {
-                            sqlSb.append(" AND user_id IN(" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ") ");
+                            whereSql.append(" AND user_id IN(" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ") ");
                         }
                     } else {
                         // 处理组长下没有员工的情况,只查询自己的通话记录
-                        sqlSb.append(" AND user_id = '" + userQueryParam.getUserId() + "'");
+                        whereSql.append(" AND user_id = '" + userQueryParam.getUserId() + "'");
                     }
                 } else {
-                    sqlSb.append(" AND user_id = '" + userQueryParam.getUserId() + "'");
+                    whereSql.append(" AND user_id = '" + userQueryParam.getUserId() + "'");
                 }
             }
+
+            whereSql.append(" AND user_id <>'' ");
+            sqlSb.append(whereSql);
+            totalSql.append(whereSql);
             sqlSb.append(" GROUP BY user_id ");
             page = this.marketProjectDao.sqlPageQuery0(sqlSb.toString(), userQueryParam.getPageNum(), userQueryParam.getPageSize(), startTime, endTime);
 
@@ -1111,6 +1117,14 @@ public class MarketProjectService {
             data.put("calledSum", calledSum);
             // 成功量
             data.put("successSum", successSum);
+            // 计算通话费用总和
+            data.put("totalCallAmount", 0);
+            data.put("totalCallProdAmount", 0);
+            List<Map<String, Object>> totalValue = marketTaskDao.sqlQuery(totalSql.toString(), startTime, endTime);
+            if (totalValue != null && totalValue.size() > 0) {
+                data.put("totalCallAmount", totalValue.get(0).get("totalCallAmount"));
+                data.put("totalCallProdAmount", totalValue.get(0).get("totalCallProdAmount"));
+            }
         } catch (Exception e) {
             LOG.error("获取项目:" + marketProjectId + "统计分析异常,", e);
         }
@@ -1806,7 +1820,16 @@ public class MarketProjectService {
         }
     }
 
-
+    /**
+     * 导出项目通话统计数据excel
+     * @param timeType
+     * @param marketProjectId
+     * @param userQueryParam
+     * @param startTime
+     * @param endTime
+     * @param response
+     * @param workPlaceId
+     */
     public void exportMarketProjectCallData0(int timeType, String marketProjectId, UserQueryParam userQueryParam, String startTime, String endTime, HttpServletResponse response, String workPlaceId) {
         if (StringUtil.isEmpty(marketProjectId)) {
             LOG.warn("marketProjectId参数异常");
@@ -2188,6 +2211,607 @@ public class MarketProjectService {
             } else {
                 columnList.add(String.valueOf(NumberConvertUtil.divNumber(userDuration, userCalledSum)) + "%");
             }
+            data.add(columnList);
+            sheet = new Sheet(sheetNum, 0);
+            sheetNum++;
+            sheet.setHead(headers);
+            sheet.setSheetName("员工统计");
+            sheetMergeIndex.put("员工统计", 2);
+            sheetMergeName.put("员工统计", "汇总");
+            writer.write0(data, sheet);
+
+            // 处理自建属性标记数据
+            Map<Object, Object> singleLabel = customerLabelService.getCustomAndSystemLabel(userQueryParam.getCustId());
+
+            // 查询自建属性标记数据
+            StringBuilder superSql = new StringBuilder();
+            superSql.append("SELECT customer_group_id, market_task_id, label_id, GROUP_CONCAT(option_value) option_value, GROUP_CONCAT(tag_sum) tag_sum, IFNULL(SUM(tag_sum),0) sum FROM stat_u_label_data WHERE customer_group_id IN(" + SqlAppendUtil.sqlAppendWhereIn(cgIds) + ") AND stat_time BETWEEN ? AND ? ");
+            // 处理根据职场检索条件
+            if (StringUtil.isNotEmpty(workPlaceId)) {
+                List<String> userIds = customerUserDao.listUserIdByWorkPlaceId(workPlaceId);
+                if (userIds == null || userIds.size() == 0) {
+                    userIds = new ArrayList<>();
+                    userIds.add("-1");
+                }
+                superSql.append(" AND user_id IN(" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ") ");
+            }
+            superSql.append(" GROUP BY label_id, customer_group_id, market_task_id ");
+            List<Map<String, Object>> labelList = customGroupDao.sqlQuery(superSql.toString(), startTime, endTime);
+            String optionValue, tagSum, percent;
+            long sum;
+            String[] options, tags;
+            Map<Object, List<Map<String, Object>>> labelData = new HashMap<>();
+            List labelL;
+
+            for (Map<String, Object> map : labelList) {
+                if (labelData.get(map.get("label_id")) == null) {
+                    labelL = new ArrayList();
+                } else {
+                    labelL = labelData.get(map.get("label_id"));
+                }
+                labelL.add(map);
+                labelData.put(map.get("label_id"), labelL);
+            }
+            Map<String, Integer> optionValueMap;
+            Map<String, Long> labelCount;
+            Set<String> labelSheetName = new HashSet<>();
+            int tagSums;
+            for (Map.Entry<Object, List<Map<String, Object>>> l : labelData.entrySet()) {
+                tagSums = 0;
+                labelCount = new HashMap<>();
+                data = new ArrayList<>();
+                headers = new ArrayList<>();
+
+                head = new ArrayList<>();
+                head.add("任务ID");
+                headers.add(head);
+
+                head = new ArrayList<>();
+                head.add("客户群ID");
+                headers.add(head);
+
+                head = new ArrayList<>();
+                head.add(String.valueOf(singleLabel.get(l.getKey())));
+                headers.add(head);
+
+                head = new ArrayList<>();
+                head.add("数量");
+                headers.add(head);
+
+                head = new ArrayList<>();
+                head.add("占比");
+                headers.add(head);
+
+                for (Map<String, Object> k : l.getValue()) {
+                    optionValueMap = new HashMap<>();
+                    optionValue = String.valueOf(k.get("option_value"));
+                    tagSum = String.valueOf(k.get("tag_sum"));
+                    // 单个自建属性标记总数
+                    sum = NumberConvertUtil.parseLong(k.get("sum"));
+                    tagSums += sum;
+                    if (StringUtil.isNotEmpty(optionValue) && StringUtil.isNotEmpty(tagSum)) {
+                        options = optionValue.split(",");
+                        tags = tagSum.split(",");
+                        for (int i = 0; i < options.length; i++) {
+                            if (optionValueMap.get(options[i]) != null) {
+                                optionValueMap.put(options[i], optionValueMap.get(options[i]) + NumberConvertUtil.parseInt(tags[i]));
+                            } else {
+                                optionValueMap.put(options[i], NumberConvertUtil.parseInt(tags[i]));
+                            }
+                        }
+                        for (Map.Entry<String, Integer> v : optionValueMap.entrySet()) {
+                            percent = NumberConvertUtil.getPercent(NumberConvertUtil.parseLong(v.getValue()), sum);
+                            columnList = new ArrayList<>();
+                            columnList.add(String.valueOf(k.get("market_task_id")));
+                            columnList.add(String.valueOf(k.get("customer_group_id")));
+                            columnList.add(v.getKey());
+                            columnList.add(String.valueOf(v.getValue()));
+                            columnList.add(percent + "%");
+                            data.add(columnList);
+                            if (labelCount.get(v.getKey()) == null) {
+                                labelCount.put(v.getKey(), NumberConvertUtil.parseLong(v.getValue()));
+                            } else {
+                                labelCount.put(v.getKey(), labelCount.get(v.getKey()) + NumberConvertUtil.parseLong(v.getValue()));
+                            }
+                        }
+                    }
+                }
+                for (Map.Entry<String, Long> k : labelCount.entrySet()) {
+                    columnList = new ArrayList<>();
+                    columnList.add("汇总");
+                    columnList.add("");
+                    columnList.add(k.getKey());
+                    columnList.add(String.valueOf(k.getValue()));
+                    columnList.add(NumberConvertUtil.getPercent(k.getValue(), tagSums) + "%");
+                    data.add(columnList);
+                }
+
+                sheet = new Sheet(sheetNum, 0);
+                sheetNum++;
+                sheet.setHead(headers);
+                // Sheet已经存在
+                if (labelSheetName.contains(String.valueOf(singleLabel.get(l.getKey())))) {
+                    sheet.setSheetName(String.valueOf(singleLabel.get(l.getKey())) + l.getKey());
+                    sheetMergeIndex.put(String.valueOf(singleLabel.get(l.getKey())) + l.getKey(), 1);
+                    sheetMergeName.put(String.valueOf(singleLabel.get(l.getKey())) + l.getKey(), "汇总");
+                } else {
+                    sheet.setSheetName(String.valueOf(singleLabel.get(l.getKey())));
+                    sheetMergeIndex.put(String.valueOf(singleLabel.get(l.getKey())), 1);
+                    sheetMergeName.put(String.valueOf(singleLabel.get(l.getKey())), "汇总");
+                }
+                labelSheetName.add(String.valueOf(singleLabel.get(l.getKey())));
+
+                writer.write0(data, sheet);
+            }
+            // 通话时长分布统计
+            data = new ArrayList<>();
+            headers = new ArrayList<>();
+            heads = new String[]{"任务ID", "客户群ID", "1-3秒", "4-6秒", "7-12秒", "13-30秒", "31-60秒", "60秒以上"};
+            for (String h : heads) {
+                head = new ArrayList<>();
+                head.add(h);
+                headers.add(head);
+            }
+            if (statList.size() > 0) {
+                for (int i = 0; i < statList.size(); i++) {
+                    // 通话时长范围统计
+                    durationType1 = NumberConvertUtil.parseLong(statList.get(i).getOrDefault("durationType1", 0));
+                    durationType2 = NumberConvertUtil.parseLong(statList.get(i).getOrDefault("durationType2", 0));
+                    durationType3 = NumberConvertUtil.parseLong(statList.get(i).getOrDefault("durationType3", 0));
+                    durationType4 = NumberConvertUtil.parseLong(statList.get(i).getOrDefault("durationType4", 0));
+                    durationType5 = NumberConvertUtil.parseLong(statList.get(i).getOrDefault("durationType5", 0));
+                    durationType6 = NumberConvertUtil.parseLong(statList.get(i).getOrDefault("durationType6", 0));
+
+                    // 通话时长范围统计
+                    durationType1S += durationType1;
+                    durationType2S += durationType2;
+                    durationType3S += durationType3;
+                    durationType4S += durationType4;
+                    durationType5S += durationType5;
+                    durationType6S += durationType6;
+
+                    //构造数据
+                    columnList = new ArrayList<>();
+                    columnList.add(String.valueOf(statList.get(i).get("market_task_id")));
+                    columnList.add(String.valueOf(statList.get(i).get("customer_group_id")));
+                    columnList.add(String.valueOf(durationType1));
+                    columnList.add(String.valueOf(durationType2));
+                    columnList.add(String.valueOf(durationType3));
+                    columnList.add(String.valueOf(durationType4));
+                    columnList.add(String.valueOf(durationType5));
+                    columnList.add(String.valueOf(durationType6));
+                    data.add(columnList);
+                }
+            }
+
+            //构造数据
+            columnList = new ArrayList<>();
+            columnList.add("汇总");
+            columnList.add(String.valueOf(""));
+            columnList.add(String.valueOf(durationType1S));
+            columnList.add(String.valueOf(durationType2S));
+            columnList.add(String.valueOf(durationType3S));
+            columnList.add(String.valueOf(durationType4S));
+            columnList.add(String.valueOf(durationType5S));
+            columnList.add(String.valueOf(durationType6S));
+            data.add(columnList);
+
+            sheet = new Sheet(sheetNum, 0);
+            sheetNum++;
+            sheet.setHead(headers);
+            sheet.setSheetName("通话时长分布统计");
+            sheetMergeIndex.put("通话时长分布统计", 1);
+            sheetMergeName.put("通话时长分布统计", "汇总");
+            writer.write0(data, sheet);
+
+            writer.finish();
+        } catch (Exception e) {
+            LOG.error("导出项目:[" + marketProjectId + "]统计分析异常,", e);
+        }
+    }
+
+    /**
+     * 导出项目通话统计数据excel
+     * @param _rule_ =callAmount导出表头带通话费用列
+     * @param timeType
+     * @param marketProjectId
+     * @param userQueryParam
+     * @param startTime
+     * @param endTime
+     * @param response
+     * @param workPlaceId
+     */
+    public void exportMarketProjectCallData0(String _rule_, int timeType, String marketProjectId, UserQueryParam userQueryParam, String startTime, String endTime, HttpServletResponse response, String workPlaceId) {
+        if (StringUtil.isEmpty(marketProjectId)) {
+            LOG.warn("marketProjectId参数异常");
+            return;
+        }
+        MarketProject marketProject = marketProjectDao.selectMarketProject(NumberConvertUtil.parseInt(marketProjectId));
+        if (marketProject == null) {
+            LOG.warn("项目:[" + marketProjectId + "]不存在");
+            return;
+        }
+        try (OutputStream outputStream = response.getOutputStream()) {
+            CustomGroup param = new CustomGroup();
+            param.setMarketProjectId(NumberConvertUtil.parseInt(marketProjectId));
+            param.setCustId(userQueryParam.getCustId());
+            List<CustomGroupDTO> cgList = customGroupDao.listCustomGroup(param);
+            if (cgList == null || cgList.size() == 0) {
+                LOG.warn("项目:" + marketProjectId + "无客群");
+                return;
+            }
+            List<String> cgIds = new ArrayList<>();
+            for (CustomGroupDTO dto : cgList) {
+                cgIds.add(String.valueOf(dto.getId()));
+            }
+            LocalDateTime localStartDateTime, localEndDateTime;
+            // 按天查询
+            if (1 == timeType) {
+                // 处理时间
+                if (StringUtil.isNotEmpty(startTime) && StringUtil.isNotEmpty(endTime)) {
+                    localStartDateTime = LocalDateTime.parse(startTime, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+                    localEndDateTime = LocalDateTime.parse(endTime, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+                } else {
+                    LOG.warn("查询营销任务统计分析时间参数错误,startTime:" + startTime + ",endTime:" + endTime);
+                    return;
+                }
+            } else {
+                // 查询当前时间1天的统计分析
+                localStartDateTime = LocalDateTime.of(LocalDate.now(), LocalTime.MIN);
+                localEndDateTime = LocalDateTime.of(LocalDate.now(), LocalTime.MAX);
+            }
+            // 处理查询开始和结束时间
+            startTime = localStartDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd 00:00:00"));
+            endTime = localEndDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd 23:59:59"));
+
+            // 计算呼叫总数
+            StringBuffer sqlSb = new StringBuffer();
+            sqlSb.append("SELECT customer_group_id, market_task_id, IFNULL(SUM(caller_sum),0) caller_sum, IFNULL(SUM(called_sum),0) called_sum, " +
+                    " IFNULL(SUM(busy_sum),0) busy_sum, IFNULL(SUM(no_service_area_sum),0) no_service_area_sum, IFNULL(SUM(phone_overdue_sum),0) phone_overdue_sum, " +
+                    " IFNULL(SUM(phone_shutdown_sum),0) phone_shutdown_sum, IFNULL(SUM(space_phone_sum),0) space_phone_sum, IFNULL(SUM(other_sum),0) other_sum, " +
+                    " IFNULL(SUM(order_sum),0) order_sum, IFNULL(SUM(called_duration_type1),0) durationType1, IFNULL(SUM(called_duration_type2),0) durationType2, IFNULL(SUM(called_duration_type3),0) durationType3, IFNULL(SUM(called_duration_type4),0) durationType4, " +
+                    " IFNULL(SUM(called_duration_type5),0) durationType5, IFNULL(SUM(called_duration_type6),0) durationType6, count(distinct(user_id)) callSeatSum FROM stat_c_g_u_d WHERE stat_time BETWEEN ? AND ? AND customer_group_id IN (" + SqlAppendUtil.sqlAppendWhereIn(cgIds) + ")");
+
+            List<Map<String, Object>> statList;
+            // 通话记录查询用户权限
+            Set voiceUserIds = new HashSet();
+            //管理员查全部
+            if ("2".equals(userQueryParam.getUserType())) {
+                // 组长查整个组的外呼统计
+                if ("1".equals(userQueryParam.getUserGroupRole())) {
+                    List<CustomerUserDTO> customerUserDTOList = customerUserDao.listSelectCustomerUserByUserGroupId(userQueryParam.getUserGroupId(), userQueryParam.getCustId());
+                    Set<String> userIds = new HashSet<>();
+                    if (customerUserDTOList.size() > 0) {
+                        for (CustomerUserDTO customerUserDTO : customerUserDTOList) {
+                            userIds.add(customerUserDTO.getId());
+                            voiceUserIds.add(customerUserDTO.getId());
+                        }
+                        // 分配责任人操作
+                        if (userIds.size() > 0) {
+                            sqlSb.append(" AND user_id IN(" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ") ");
+                        }
+                    } else {
+                        // 处理组长下没有员工的情况,只查询自己的通话记录
+                        sqlSb.append(" AND user_id = '" + userQueryParam.getUserId() + "'");
+                        voiceUserIds.add(userQueryParam.getUserId());
+                    }
+                } else {
+                    sqlSb.append(" AND user_id = '" + userQueryParam.getUserId() + "'");
+                    voiceUserIds.add(userQueryParam.getUserId());
+                }
+            }
+            // 处理根据职场检索条件
+            if (StringUtil.isNotEmpty(workPlaceId)) {
+                List<String> userIds = customerUserDao.listUserIdByWorkPlaceId(workPlaceId);
+                if (userIds == null || userIds.size() == 0) {
+                    userIds = new ArrayList<>();
+                    userIds.add("-1");
+                }
+                sqlSb.append(" AND user_id IN(" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ") ");
+            }
+            Map<String, Integer> sheetMergeIndex = new HashMap<>();
+            Map<String, String> sheetMergeName = new HashMap<>();
+            String fileName = "项目统计数据-" + marketProjectId + "-" + System.currentTimeMillis();
+            final String fileType = ".xlsx";
+            response.setHeader("Content-Disposition", "attachment; filename=" + new String((fileName).getBytes("gb2312"), "ISO-8859-1") + fileType);
+            response.setContentType("application/vnd.ms-excel;charset=utf-8");
+            ExcelWriter writer = new ExcelWriter(null, outputStream, ExcelTypeEnum.XLSX, true, new ExcelAfterWriteHandlerImpl(sheetMergeIndex, sheetMergeName));
+            int sheetNum = 1;
+            List<List<String>> data, dataSheetTwo, headers;
+            List<String> columnList, head;
+
+            data = new ArrayList<>();
+            dataSheetTwo = new ArrayList<>();
+            headers = new ArrayList<>();
+
+            String[] heads = new String[]{"项目名称", "时间", "任务ID", "客户群ID", "参与员工数", "呼叫量", "接通量", "未通量", "成功量", "接通率", "成功率"};
+            for (String h : heads) {
+                head = new ArrayList<>();
+                head.add(h);
+                headers.add(head);
+            }
+            statList = this.marketProjectDao.sqlQuery(sqlSb.toString(), startTime, endTime);
+            // 呼叫量,接通量,未通量, 成单量
+            long callSum = 0L, calledSum = 0L, failSum = 0L, successSum = 0L, busySum = 0L, callSeatSum = 0L,
+                    noServiceSum = 0L, phoneOverdueSum = 0L, phoneShutdownSum = 0L, spacePhoneSum = 0L, otherSum = 0L, durationType1 = 0L, durationType2 = 0L, durationType3 = 0L, durationType4 = 0L, durationType5 = 0L, durationType6 = 0L;
+            long callSumS = 0L, calledSumS = 0L, failSumS = 0L, successSumS = 0L, busySumS = 0L, callSeatSumS = 0L,
+                    noServiceSumS = 0L, phoneOverdueSumS = 0L, phoneShutdownSumS = 0L, spacePhoneSumS = 0L, otherSumS = 0L, durationType1S = 0L, durationType2S = 0L, durationType3S = 0L, durationType4S = 0L, durationType5S = 0L, durationType6S = 0L;
+            if (statList.size() > 0) {
+                for (int i = 0; i < statList.size(); i++) {
+                    callSum = NumberConvertUtil.parseLong(statList.get(i).get("caller_sum"));
+                    calledSum = NumberConvertUtil.parseLong(statList.get(i).get("called_sum"));
+                    busySum = NumberConvertUtil.parseLong(statList.get(i).get("busy_sum"));
+                    noServiceSum = NumberConvertUtil.parseLong(statList.get(i).get("no_service_area_sum"));
+                    phoneOverdueSum = NumberConvertUtil.parseLong(statList.get(i).get("phone_overdue_sum"));
+                    phoneShutdownSum = NumberConvertUtil.parseLong(statList.get(i).get("phone_shutdown_sum"));
+                    spacePhoneSum = NumberConvertUtil.parseLong(statList.get(i).get("space_phone_sum"));
+                    otherSum = NumberConvertUtil.parseLong(statList.get(i).get("other_sum"));
+                    failSum = busySum + noServiceSum + phoneOverdueSum + phoneShutdownSum + spacePhoneSum + otherSum;
+                    successSum = NumberConvertUtil.parseLong(statList.get(i).get("order_sum"));
+                    callSeatSum = NumberConvertUtil.parseLong(statList.get(i).get("callSeatSum"));
+
+                    callSumS += callSum;
+                    calledSumS += calledSum;
+                    busySumS += busySumS;
+                    noServiceSumS += noServiceSum;
+                    phoneOverdueSumS += phoneOverdueSum;
+                    phoneShutdownSumS += phoneShutdownSum;
+                    spacePhoneSumS += spacePhoneSum;
+                    otherSumS += otherSum;
+                    failSumS += failSum;
+                    successSumS += successSum;
+                    callSeatSumS += callSeatSum;
+
+                    //构造数据
+                    columnList = new ArrayList<>();
+                    //项目名称
+                    columnList.add(marketProject.getName());
+                    //时间
+                    columnList.add(startTime + "-" + endTime);
+                    //任务ID
+                    columnList.add(String.valueOf(statList.get(i).get("market_task_id")));
+                    //客群ID
+                    columnList.add(String.valueOf(statList.get(i).get("customer_group_id")));
+
+                    //参与员工数
+                    columnList.add(String.valueOf(callSeatSum));
+                    //呼叫量
+                    columnList.add(String.valueOf(callSum));
+                    //接通量
+                    columnList.add(String.valueOf(calledSum));
+                    //未通量
+                    columnList.add(String.valueOf(failSum));
+                    //成功量
+                    columnList.add(String.valueOf(successSum));
+                    //接通率
+                    if (NumberConvertUtil.parseLong(callSum) == 0) {
+                        columnList.add(String.valueOf(0));
+                    } else {
+                        columnList.add(String.valueOf(NumberConvertUtil.getPercent(calledSum, callSum)));
+                    }
+                    //成功率
+                    if (NumberConvertUtil.parseLong(calledSum) == 0) {
+                        columnList.add(String.valueOf(0));
+                    } else {
+                        columnList.add(String.valueOf(NumberConvertUtil.getPercent(successSum, calledSum)));
+                    }
+                    data.add(columnList);
+
+                    //构造未通号码统计数据
+                    columnList = new ArrayList<>();
+                    //任务ID
+                    columnList.add(String.valueOf(statList.get(i).get("market_task_id")));
+                    //客群ID
+                    columnList.add(String.valueOf(statList.get(i).get("customer_group_id")));
+                    columnList.add(String.valueOf(failSum));
+                    columnList.add(String.valueOf(busySum));
+                    columnList.add(String.valueOf(noServiceSum));
+                    columnList.add(String.valueOf(phoneOverdueSum));
+                    columnList.add(String.valueOf(phoneShutdownSum));
+                    columnList.add(String.valueOf(spacePhoneSum));
+                    columnList.add(String.valueOf(otherSum));
+                    dataSheetTwo.add(columnList);
+
+                    //构造未通号码占比数据
+                    columnList = new ArrayList<>();
+                    //任务ID
+                    columnList.add(String.valueOf(statList.get(i).get("market_task_id")));
+                    //客群ID
+                    columnList.add(String.valueOf(statList.get(i).get("customer_group_id")));
+                    columnList.add(NumberConvertUtil.parseLong(callSum) > 0 ? String.valueOf(NumberConvertUtil.getPercent(failSum, callSum)) + "%" : "0%");
+                    columnList.add(NumberConvertUtil.parseLong(callSum) > 0 ? String.valueOf(NumberConvertUtil.getPercent(busySum, callSum)) + "%" : "0%");
+                    columnList.add(NumberConvertUtil.parseLong(callSum) > 0 ? String.valueOf(NumberConvertUtil.getPercent(noServiceSum, callSum)) + "%" : "0%");
+                    columnList.add(NumberConvertUtil.parseLong(callSum) > 0 ? String.valueOf(NumberConvertUtil.getPercent(phoneOverdueSum, callSum)) + "%" : "0%");
+                    columnList.add(NumberConvertUtil.parseLong(callSum) > 0 ? String.valueOf(NumberConvertUtil.getPercent(phoneShutdownSum, callSum)) + "%" : "0%");
+                    columnList.add(NumberConvertUtil.parseLong(callSum) > 0 ? String.valueOf(NumberConvertUtil.getPercent(spacePhoneSum, callSum)) + "%" : "0%");
+                    columnList.add(NumberConvertUtil.parseLong(callSum) > 0 ? String.valueOf(NumberConvertUtil.getPercent(otherSum, callSum)) + "%" : "0%");
+                    dataSheetTwo.add(columnList);
+                }
+            }
+
+            columnList = new ArrayList<>();
+            columnList.add("汇总");
+            columnList.add("");
+            columnList.add("");
+            columnList.add("");
+            //参与坐席数
+            columnList.add(String.valueOf(callSeatSumS));
+            //呼叫量
+            columnList.add(String.valueOf(callSumS));
+            //接通量
+            columnList.add(String.valueOf(calledSumS));
+            //未通量
+            columnList.add(String.valueOf(failSumS));
+            //成功量
+            columnList.add(String.valueOf(successSumS));
+            //接通率
+            if (NumberConvertUtil.parseLong(callSumS) == 0) {
+                columnList.add(String.valueOf(0) + "%");
+            } else {
+                columnList.add(String.valueOf(NumberConvertUtil.getPercent(calledSumS, callSumS)) + "%");
+            }
+            //成功率
+            if (NumberConvertUtil.parseLong(calledSumS) == 0) {
+                columnList.add(String.valueOf(0) + "%");
+            } else {
+                columnList.add(String.valueOf(NumberConvertUtil.getPercent(successSumS, calledSumS)) + "%");
+            }
+            data.add(columnList);
+            sheetMergeIndex.put("外呼数据统计", 3);
+            sheetMergeName.put("外呼数据统计", "汇总");
+            Sheet sheet = new Sheet(sheetNum, 0);
+            sheetNum++;
+            sheet.setHead(headers);
+            sheet.setSheetName("外呼数据统计");
+            writer.write0(data, sheet);
+
+            // 构造未接通号码统计
+            headers = new ArrayList<>();
+            heads = new String[]{"任务ID", "客户群ID", "未通总量", "用户忙", "不在服务区", "停机", "关机", "空号", "其他"};
+            for (String h : heads) {
+                head = new ArrayList<>();
+                head.add(h);
+                headers.add(head);
+            }
+            //构造数量数据
+            columnList = new ArrayList<>();
+            columnList.add("汇总");
+            columnList.add("");
+            columnList.add(String.valueOf(failSumS));
+            columnList.add(String.valueOf(busySumS));
+            columnList.add(String.valueOf(noServiceSumS));
+            columnList.add(String.valueOf(phoneOverdueSumS));
+            columnList.add(String.valueOf(phoneShutdownSumS));
+            columnList.add(String.valueOf(spacePhoneSumS));
+            columnList.add(String.valueOf(otherSumS));
+            dataSheetTwo.add(columnList);
+
+            //构造占比数据
+            columnList = new ArrayList<>();
+            columnList.add("汇总");
+            columnList.add("");
+            columnList.add(NumberConvertUtil.parseLong(callSumS) > 0 ? String.valueOf(NumberConvertUtil.getPercent(failSumS, callSumS)) + "%" : "0%");
+            columnList.add(NumberConvertUtil.parseLong(callSumS) > 0 ? String.valueOf(NumberConvertUtil.getPercent(busySumS, callSumS)) + "%" : "0%");
+            columnList.add(NumberConvertUtil.parseLong(callSumS) > 0 ? String.valueOf(NumberConvertUtil.getPercent(noServiceSumS, callSumS)) + "%" : "0%");
+            columnList.add(NumberConvertUtil.parseLong(callSumS) > 0 ? String.valueOf(NumberConvertUtil.getPercent(phoneOverdueSumS, callSumS)) + "%" : "0%");
+            columnList.add(NumberConvertUtil.parseLong(callSumS) > 0 ? String.valueOf(NumberConvertUtil.getPercent(phoneShutdownSumS, callSumS)) + "%" : "0%");
+            columnList.add(NumberConvertUtil.parseLong(callSumS) > 0 ? String.valueOf(NumberConvertUtil.getPercent(spacePhoneSumS, callSumS)) + "%" : "0%");
+            columnList.add(NumberConvertUtil.parseLong(callSumS) > 0 ? String.valueOf(NumberConvertUtil.getPercent(otherSumS, callSumS)) + "%" : "0%");
+            dataSheetTwo.add(columnList);
+
+            sheet = new Sheet(sheetNum, 0);
+            sheetNum++;
+            sheet.setHead(headers);
+            sheet.setSheetName("未接通号码统计");
+            sheetMergeIndex.put("未接通号码统计", 1);
+            sheetMergeName.put("未接通号码统计", "汇总");
+            writer.write0(dataSheetTwo, sheet);
+
+            //　构造用户呼叫列表数据
+            data = new ArrayList<>();
+            headers = new ArrayList<>();
+            heads = new String[]{"任务ID", "客户群ID", "员工", "接通数", "成功数", "成功率", "总通话时长", "平均通话时长"};
+            for (String h : heads) {
+                head = new ArrayList<>();
+                head.add(h);
+                headers.add(head);
+            }
+            // 通话费用导出
+            if ("callAmount".equals(_rule_)) {
+                head = new ArrayList<>();
+                head.add("通话费用(元)");
+                headers.add(head);
+            }
+
+            // 查询用户呼叫数
+            sqlSb = new StringBuffer();
+            sqlSb.append(" SELECT customer_group_id,market_task_id, user_id, IFNULL(SUM(caller_sum),0) caller_sum,IFNULL(SUM(called_sum),0) called_sum, IFNULL(SUM(order_sum),0) order_sum, " +
+                    "IFNULL(SUM(called_duration),0) called_duration, IFNULL(SUM(call_amount),0)/1000 callAmount, IFNULL(SUM(call_prod_amount),0)/1000 callProdAmount FROM stat_c_g_u_d WHERE stat_time BETWEEN ? AND ? AND customer_group_id IN(" + SqlAppendUtil.sqlAppendWhereIn(cgIds) + ")");
+            //管理员查全部
+            if ("2".equals(userQueryParam.getUserType())) {
+                // 组长查整个组的外呼统计
+                if ("1".equals(userQueryParam.getUserGroupRole())) {
+                    List<CustomerUserDTO> customerUserDTOList = customerUserDao.listSelectCustomerUserByUserGroupId(userQueryParam.getUserGroupId(), userQueryParam.getCustId());
+                    Set<String> userIds = new HashSet<>();
+                    if (customerUserDTOList.size() > 0) {
+                        for (CustomerUserDTO customerUserDTO : customerUserDTOList) {
+                            userIds.add(customerUserDTO.getId());
+                        }
+                        // 分配责任人操作
+                        if (userIds.size() > 0) {
+                            sqlSb.append(" AND user_id IN(" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ") ");
+
+                        }
+                    } else {
+                        // 处理组长下没有员工的情况,只查询自己的通话记录
+                        sqlSb.append(" AND user_id = '" + userQueryParam.getUserId() + "'");
+                    }
+                } else {
+                    sqlSb.append(" AND user_id = '" + userQueryParam.getUserId() + "'");
+
+                }
+            }
+            // 处理根据职场检索条件
+            if (StringUtil.isNotEmpty(workPlaceId)) {
+                List<String> userIds = customerUserDao.listUserIdByWorkPlaceId(workPlaceId);
+                if (userIds == null || userIds.size() == 0) {
+                    userIds = new ArrayList<>();
+                    userIds.add("-1");
+                }
+                sqlSb.append(" AND user_id IN(" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ") ");
+            }
+            sqlSb.append(" GROUP BY user_id ");
+            List<Map<String, Object>> list = this.marketProjectDao.sqlQuery(sqlSb.toString(), startTime, endTime);
+
+            Map<String, Object> m;
+            long userCalledSum = 0L, userOrderSum = 0L, userDuration = 0L;
+            double callAmount = 0.0;
+            for (int i = 0; i < list.size(); i++) {
+                m = list.get(i);
+                m.put("userName", customerUserDao.getLoginName(String.valueOf(m.get("user_id"))));
+                columnList = new ArrayList<>();
+                columnList.add(String.valueOf(m.get("customer_group_id")));
+                columnList.add(String.valueOf(m.get("market_task_id")));
+                columnList.add(String.valueOf(m.get("userName")));
+                columnList.add(String.valueOf(m.get("called_sum")));
+                userCalledSum += NumberConvertUtil.parseLong(m.get("called_sum"));
+                columnList.add(String.valueOf(m.get("order_sum")));
+                userOrderSum += NumberConvertUtil.parseLong(m.get("order_sum"));
+                if (NumberConvertUtil.parseLong(m.get("called_sum")) == 0) {
+                    columnList.add("0%");
+                } else {
+                    columnList.add(String.valueOf(NumberConvertUtil.getPercent(NumberConvertUtil.parseLong(m.get("order_sum")), NumberConvertUtil.parseLong(m.get("called_sum")))) + "%");
+                }
+                columnList.add(String.valueOf(m.get("called_duration")));
+                userDuration += NumberConvertUtil.parseLong(m.get("called_duration"));
+                if (NumberConvertUtil.parseLong(m.get("called_sum")) == 0) {
+                    columnList.add("0%");
+                } else {
+                    columnList.add(String.valueOf(NumberConvertUtil.divNumber(NumberConvertUtil.parseLong(m.get("called_duration")), NumberConvertUtil.parseLong(m.get("called_sum")))) + "%");
+                }
+                columnList.add(String.valueOf(m.get("callAmount")));
+                callAmount += NumberConvertUtil.parseDouble(String.valueOf(m.get("callAmount")));
+                data.add(columnList);
+
+            }
+            columnList = new ArrayList<>();
+            columnList.add("汇总");
+            columnList.add("");
+            columnList.add("");
+            columnList.add(String.valueOf(userCalledSum));
+            columnList.add(String.valueOf(userOrderSum));
+            if (calledSum == 0) {
+                columnList.add("0%");
+            } else {
+                columnList.add(String.valueOf(NumberConvertUtil.getPercent(userOrderSum, calledSum) + "%"));
+            }
+            columnList.add(String.valueOf(userDuration));
+            if (userDuration == 0) {
+                columnList.add("0%");
+            } else {
+                columnList.add(String.valueOf(NumberConvertUtil.divNumber(userDuration, userCalledSum)) + "%");
+            }
+            columnList.add(String.valueOf(callAmount));
             data.add(columnList);
             sheet = new Sheet(sheetNum, 0);
             sheetNum++;
