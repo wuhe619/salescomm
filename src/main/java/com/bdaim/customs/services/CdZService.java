@@ -548,7 +548,7 @@ public class CdZService implements BusiService {
             // 分单价值
             _content.put("total_value", total_value.floatValue());
             // 分单重量
-            _content.put("weight", fdWeightTotal.floatValue());
+            //_content.put("weight", fdWeightTotal.floatValue());
             hm.setContent(_content.toJSONString());
             dataList.add(hm);
             /*String weight = _content.getString("weight");
