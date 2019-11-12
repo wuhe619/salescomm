@@ -181,4 +181,29 @@ public class CustomerUserAction extends BasicAction {
         }
         return JSON.toJSONString(responseJson);
     }
+    /**
+     * @description 查询客户公海已选字段
+     * @author:duanliying
+     * @method
+     * @date: 2019/7/9 10:08
+     */
+    @RequestMapping(value = "/getShowRow1", method = RequestMethod.GET)
+    @ResponseBody
+    public Object getShowRowByUser1(String id) {
+        ResponseJson responseJson = new ResponseJson();
+        LoginUser lu = opUser();
+        Long userId = lu.getId();
+        logger.info("操作用户是：" + userId);
+        try {
+            Map<String, Object> showRowByUser = customerUserService.getShowRowByUser1(id, userId);
+            responseJson.setData(showRowByUser);
+            responseJson.setCode(200);
+            return JSON.toJSONString(responseJson);
+        } catch (Exception e) {
+            logger.error("查询客户公海已选字段:", e);
+            responseJson.setCode(-1);
+            responseJson.setMessage(e.getMessage());
+        }
+        return JSON.toJSONString(responseJson);
+    }
 }

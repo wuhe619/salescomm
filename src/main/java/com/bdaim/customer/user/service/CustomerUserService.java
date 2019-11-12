@@ -1547,5 +1547,42 @@ public class CustomerUserService {
         customerUserDao.saveOrUpdate(propertyDO);
         return true;
     }
+    public Map<String, Object> getShowRowByUser1(String id, Long userId) throws Exception {
+        Map<String, Object> data = new HashMap<>();
+        logger.info("公海id是：" + id + "userId是：" + userId);
+        //查询所有自定义列
+        List<Map<String, Object>> unselectedList = CustomerShowRowEnum1.getAllRow();
+        //添加用户已经选择的自定义列
+        List<Object> list = new ArrayList<>();
+        CustomerUserPropertyDO customerUserProperty = customerUserDao.getProperty(String.valueOf(userId), id + "_row");
+        if (customerUserProperty != null && StringUtil.isNotEmpty(customerUserProperty.getPropertyValue())) {
+            String propertyValue = customerUserProperty.getPropertyValue();
+            logger.info("userId是：" + userId + "\n已经选择的展示字段是：" + propertyValue);
+            for (int i = 0; i < unselectedList.size(); i++) {
+                String key = String.valueOf(unselectedList.get(i).get("key"));
+                if (propertyValue.contains(key)) {
+                    list.add(unselectedList.get(i));
+                }
+            }
+        } else {
+            HashMap<Object, Object> map = new HashMap<>();
+            map.put("key", CustomerShowRowEnum1.NAME.getKey());
+            map.put("value", CustomerShowRowEnum1.NAME.getValue());
+            list.add(map);
+            map = new HashMap<>();
+            map.put("key", CustomerShowRowEnum1.ID.getKey());
+            map.put("value", CustomerShowRowEnum.ID.getValue());
+            list.add(map);
+            map = new HashMap<>();
+            map.put("key", CustomerShowRowEnum1.PHONE.getKey());
+            map.put("value", CustomerShowRowEnum1.PHONE.getValue());
+            list.add(map);
+        }
+        unselectedList.removeAll(list);
+        data.put("unselected", unselectedList);
+        data.put("selected", list);
+        return data;
+    }
+
 
 }
