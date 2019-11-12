@@ -2738,7 +2738,8 @@ public class CustomerSeaService {
         String yearMonth = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMM"));
         StringBuilder sql = new StringBuilder();
         sql.append(" SELECT user_id,superid,super_data,create_time FROM ")
-                .append(ConstantsUtil.SUPPERDATA_LOG_TABLE_PREFIX).append(yearMonth).append(" WHERE 1=1 ");
+//                .append(ConstantsUtil.SUPPERDATA_LOG_TABLE_PREFIX).append(yearMonth).append(" WHERE 1=1 ");
+                .append(ConstantsUtil.SUPPERDATA_LOG_TABLE_PREFIX).append("201909").append(" WHERE 1=1 ");
         if (StringUtil.isNotEmpty(superId)) {
             sql.append(" AND superid = '").append(superId).append("' ");
         }
