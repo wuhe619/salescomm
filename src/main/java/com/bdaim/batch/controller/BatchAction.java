@@ -220,7 +220,7 @@ public class BatchAction extends BasicAction {
                             short lastCellNum = row.getLastCellNum();
                             for (int j = 0; j < lastCellNum; j++) {
                                 Cell cell = row.getCell(j);
-                                if (cell != null && cell.getCellType() != HSSFCell.CELL_TYPE_BLANK) {
+                                if (cell != null && cell.getCellType() != CellType.BLANK) {
                                     cell.setCellType(CellType.STRING);
                                     switch (j) {
                                         case 0:
