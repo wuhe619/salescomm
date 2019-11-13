@@ -655,5 +655,23 @@ public class OpenAction extends BasicAction {
             return result;
         }
     }
+
+    /**
+     * 同步报关单状态
+     * @return
+     */
+    @GetMapping("/synchzStatus")
+    public String synchzStatus(){
+        JSONObject result = new JSONObject();
+        try {
+            customsService.synchzStatus();
+            result.put("code",200);
+        }catch (Exception e){
+            e.printStackTrace();
+            result.put("code", -1);
+            result.put("msg",e.getMessage());
+        }
+        return result.toJSONString();
+    }
 }
 
