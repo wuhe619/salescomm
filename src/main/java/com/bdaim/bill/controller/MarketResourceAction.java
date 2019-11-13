@@ -3553,6 +3553,65 @@ public class MarketResourceAction extends BasicAction {
         }
         return JSON.toJSONString(responseJson);
     }
+
+
+    /**
+     * 查询通话记录(企业名称查询)
+     *
+     * @param pageParam
+     * @param error
+     * @param superId
+     * @param customerGroupId
+     * @param realName
+     * @param createTimeStart
+     * @param createTimeEnd
+     * @param remark
+     * @param callStatus
+     * @param intentLevel
+     * @param auditingStatus
+     * @param marketTaskId
+     * @return
+     */
+    @RequestMapping(value = "/queryRecordVoicelogV3", method = RequestMethod.GET)
+    @ResponseBody
+    @CacheAnnotation
+    public String queryRecordVoicelogV3(@Valid PageParam pageParam, BindingResult error, String superId, String customerGroupId, String realName, String createTimeStart,
+                                        String createTimeEnd, String remark, String callStatus, String intentLevel, String auditingStatus,
+                                        String marketTaskId, String calledDuration, String labelProperty, String seaId, String group_id,String custName) {
+        if (error.hasErrors()) {
+            return getErrors(error);
+        }
+        JSONObject json = new JSONObject();
+        Map<Object, Object> map = new HashMap<>();
+        UserQueryParam userQueryParam = getUserQueryParam();
+        userQueryParam.setPageNum(pageParam.getPageNum());
+        userQueryParam.setPageSize(pageParam.getPageSize());
+        // 通话时长范围检索
+        int duration = 0;
+        if (StringUtil.isNotEmpty(calledDuration)) {
+            duration = NumberConvertUtil.parseInt(calledDuration);
+        }
+        Page page = null;
+        if (StringUtil.isEmpty(customerGroupId)) {
+            customerGroupId = group_id;
+        }
+        try {
+            page = marketResourceService.queryRecordVoiceLogV3(userQueryParam, customerGroupId, superId, realName, createTimeStart,
+                    createTimeEnd, remark, callStatus, intentLevel, auditingStatus, marketTaskId, duration, labelProperty, seaId,custName);
+        } catch (Exception e) {
+            page = new Page();
+            LOG.error("查询通话记录分页失败,", e);
+        }
+        map.put("data", page.getData());
+        map.put("total", page.getTotal());
+        // 录音路径
+        String audioUrl = ConfigUtil.getInstance().get("audio_server_url") + "/";
+        map.put("audioUrl", audioUrl);
+        json.put("data", map);
+        return json.toJSONString();
+
+    }
+
 }
 
 

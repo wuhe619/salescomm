@@ -8227,5 +8227,289 @@ public class MarketResourceService {
         LOG.warn("根据触达ID未找到通话录音文件,userId:" + userId + ",filePath:" + filePath);
         return null;
     }
+    /**
+     * 通话记录接口(企业名称查询)
+     *
+     * @param userQueryParam
+     * @param customerGroupId
+     * @param superId
+     * @param realName
+     * @param createTimeStart
+     * @param createTimeEnd
+     * @param remark
+     * @param callStatus
+     * @param level
+     * @param auditingStatus
+     * @return
+     */
+    public com.bdaim.common.dto.Page queryRecordVoiceLogV3(UserQueryParam userQueryParam, String customerGroupId, String superId, String realName,
+                                                           String createTimeStart, String createTimeEnd, String remark, String callStatus, String level,
+                                                           String auditingStatus, String marketTaskId, int calledDuration, String custProperty, String seaId,String custName) {
+        com.bdaim.common.dto.Page page = null;
+        int taskType = -1;
+        try {
+            StringBuffer sb = new StringBuffer();
+            LocalDate endTime = LocalDate.now();
+            // 开始时间和结束时间为空时默认查当天
+            if (StringUtil.isEmpty(createTimeStart)) {
+                createTimeStart = LocalDateTime.of(LocalDate.now(), LocalTime.MIN).format(YYYYMMDDHHMMSS);
+            }
+            if (StringUtil.isEmpty(createTimeEnd)) {
+                createTimeEnd = LocalDateTime.of(LocalDate.now(), LocalTime.MAX).format(YYYYMMDDHHMMSS);
+            } else {
+                endTime = LocalDate.parse(createTimeEnd, YYYYMMDDHHMMSS);
+            }
 
+            // 检查通话记录月表是否存在
+            marketResourceDao.createVoiceLogTableNotExist(endTime.format(YYYYMM));
+
+            String monthTableName = ConstantsUtil.TOUCH_VOICE_TABLE_PREFIX + endTime.format(YYYYMM);
+            // 处理任务类型
+            MarketTask marketTask = null;
+            if (StringUtil.isNotEmpty(marketTaskId)) {
+                marketTask = marketTaskDao.get(marketTaskId);
+                if (marketTask != null && marketTask.getTaskType() != null) {
+                    taskType = marketTask.getTaskType();
+                }
+            }
+            if (marketTask == null) {
+                marketTask = new MarketTask();
+            }
+
+            sb.append("select voicLog.touch_id touchId, voicLog.callSid, voicLog.superid,voicLog.create_time create_time,voicLog.status, CAST(voicLog.user_id AS CHAR) user_id,voicLog.remark,")
+                    .append(" voicLog.call_data, voicLog.recordurl, voicLog.clue_audit_status auditingStatus, voicLog.market_task_id marketTaskId, voicLog.clue_audit_reason reason ,cust.enterprise_name custName")
+                    .append("  from " + monthTableName + " voicLog ")
+                    .append(" left join t_customer cust on voicLog.cust_id=cust.cust_id ");
+            // 处理自建属性搜索
+            if (StringUtil.isNotEmpty(custProperty) && StringUtil.isNotEmpty(marketTaskId) && !"[]".equals(custProperty)) {
+                // 查询所有自建属性
+                List<CustomerLabel> customerLabels = customerLabelDao.listCustomerLabel(marketTask.getCustId());
+                Map<String, CustomerLabel> cacheLabel = new HashMap<>();
+                for (CustomerLabel c : customerLabels) {
+                    cacheLabel.put(c.getLabelId(), c);
+                }
+                sb.append(" INNER JOIN " + ConstantsUtil.MARKET_TASK_TABLE_PREFIX + marketTaskId + " t2 ON t2.id = voicLog.superid ");
+                JSONObject jsonObject;
+                String labelId, optionValue, likeValue;
+                JSONArray jsonArray = JSON.parseArray(custProperty);
+                for (int i = 0; i < jsonArray.size(); i++) {
+                    jsonObject = jsonArray.getJSONObject(i);
+                    if (jsonObject != null) {
+                        labelId = jsonObject.getString("labelId");
+                        optionValue = jsonObject.getString("optionValue");
+                        // 文本和多选支持模糊搜索
+                        if (cacheLabel.get(labelId) != null && cacheLabel.get(labelId).getType() != null
+                                && (cacheLabel.get(labelId).getType() == 1 || cacheLabel.get(labelId).getType() == 3)) {
+                            likeValue = "%\"" + labelId + "\":\"%" + optionValue + "%";
+                        } else {
+                            likeValue = "%\"" + labelId + "\":\"" + optionValue + "\"%";
+                        }
+                        sb.append(" AND t2.super_data LIKE '" + likeValue + "' ");
+                    }
+                }
+            }
+
+            sb.append(" WHERE 1=1");
+            if ("-1".equals(userQueryParam.getCustId())) {
+                sb.append(" AND voicLog.cust_id IS NOT NULL ");
+            } else {
+                sb.append(" AND voicLog.cust_id='" + userQueryParam.getCustId() + "'");
+            }
+            // 处理根据登陆账号或者用户姓名搜索
+            CustomerUser user = null;
+            if (StringUtil.isNotEmpty(realName)) {
+                user = this.customerUserDao.getCustomerUserByName(realName.trim());
+                if (user != null) {
+                    sb.append(" AND  voicLog.user_id = '" + user.getId() + "'");
+                } else {
+                    // 穿透查询一次登陆名称
+                    user = this.customerUserDao.getCustomerUserByLoginName(realName.trim());
+                    if (user != null) {
+                        sb.append(" AND  voicLog.user_id = '" + user.getId() + "'");
+                    } else {
+                        return new com.bdaim.common.dto.Page();
+                    }
+                }
+            }
+            if (StringUtil.isNotEmpty(customerGroupId)) {
+                sb.append(" AND voicLog.customer_group_id =" + customerGroupId.trim());
+            }
+            if (StringUtil.isNotEmpty(remark)) {
+                sb.append(" AND voicLog.remark LIKE '%" + remark.trim() + "%'");
+            }
+            if (StringUtil.isNotEmpty(superId)) {
+                sb.append(" AND voicLog.superid='" + superId.trim() + "'");
+            }
+            if (StringUtil.isNotEmpty(marketTaskId)) {
+                sb.append(" AND voicLog.market_task_id='" + marketTaskId.trim() + "'");
+            }
+            if(StringUtil.isNotEmpty(custName)){
+                sb.append(" AND cust.enterprise_name like '%"+ custName + "%'");
+            }
+            //　处理通话状态查询
+            if (StringUtil.isNotEmpty(callStatus)) {
+                // 成功
+                if ("1".equals(callStatus)) {
+                    sb.append(" AND voicLog.status = 1001");
+                    //失败
+                } else if ("2".equals(callStatus)) {
+                    sb.append(" AND voicLog.status = 1002");
+                } else {
+                    sb.append(" AND voicLog.status = " + CallStatusEnum.getByType(NumberConvertUtil.parseInt(callStatus)).getStatus());
+                }
+            }
+            // 处理开始和结束数据搜索
+            if (StringUtil.isNotEmpty(createTimeStart) && StringUtil.isNotEmpty(createTimeEnd)) {
+                sb.append(" AND voicLog.create_time BETWEEN '" + createTimeStart + "' and '" + createTimeEnd + "' ");
+            } else {
+                if (StringUtil.isNotEmpty(createTimeStart)) {
+                    sb.append(" AND voicLog.create_time > '" + createTimeStart + "'");
+                }
+                if (StringUtil.isNotEmpty(createTimeEnd)) {
+                    sb.append(" AND voicLog.create_time < '" + createTimeEnd + "'");
+                }
+            }
+            //type 0 查詢全部   1查詢<=3  2、3s-6s 3.6s-12s  4.12s-30s 5.30s-60s 6.>60s
+            if (calledDuration == 1) {
+                sb.append(" AND voicLog.called_duration<=3");
+            } else if (calledDuration == 2) {
+                sb.append(" AND voicLog.called_duration>3 AND voicLog.called_duration<=6");
+            } else if (calledDuration == 3) {
+                sb.append(" AND voicLog.called_duration>6 AND voicLog.called_duration<=12");
+            } else if (calledDuration == 4) {
+                sb.append(" AND voicLog.called_duration>12 AND voicLog.called_duration<=30");
+            } else if (calledDuration == 5) {
+                sb.append(" AND voicLog.called_duration>30 AND voicLog.called_duration<=60");
+            } else if (calledDuration == 6) {
+                sb.append(" AND voicLog.called_duration>60");
+            }
+            // 处理机器人外呼任务营销记录
+            if (3 == taskType) {
+                // 处理机器人外呼的意向度
+                if (StringUtil.isNotEmpty(level)) {
+                    String levelLike = "\"level\":\"" + level + "\"";
+                    sb.append(" AND voicLog.call_data LIKE '%" + levelLike + "%'");
+                }
+                // 处理按照操作人搜索营销记录时机器人外呼任务记录可以搜到
+                if (user != null) {
+                    sb.append(" AND (voicLog.user_id = '" + user.getId() + "' OR voicLog.call_data LIKE '%level%')");
+                }
+                // 处理人工审核搜索条件
+                if (StringUtil.isNotEmpty(auditingStatus)) {
+                    sb.append(" AND voicLog.clue_audit_status = " + auditingStatus);
+                }
+            }
+            // 处理组长权限
+            if (UserService.OPERATOR_USER_TYPE.equals(userQueryParam.getUserType())) {
+                // 组长查组员列表
+                if ("1".equals(userQueryParam.getUserGroupRole())) {
+                    List<CustomerUserDTO> customerUserDTOList = customerUserDao.listSelectCustomerUserByUserGroupId(userQueryParam.getUserGroupId(), userQueryParam.getCustId());
+                    // 处理组长下有员工的情况
+                    if (customerUserDTOList.size() > 0) {
+                        Set<String> userIds = new HashSet<>();
+                        for (CustomerUserDTO customerUserDTO : customerUserDTOList) {
+                            userIds.add(customerUserDTO.getId());
+                        }
+                        if (userIds.size() > 0) {
+                            if (3 == taskType) {
+                                sb.append(" AND (voicLog.user_id IN(" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ") OR voicLog.call_data LIKE '%level%')");
+                            } else {
+                                sb.append(" AND voicLog.user_id IN(" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ")");
+                            }
+                        }
+                    } else {
+                        // 处理组长下没有员工的情况,只查询自己的通话记录
+                        if (3 == taskType) {
+                            sb.append(" AND (voicLog.user_id = '" + userQueryParam.getUserId() + "' OR voicLog.call_data LIKE '%level%')");
+                        } else {
+                            sb.append(" AND voicLog.user_id = '" + userQueryParam.getUserId() + "'");
+                        }
+                    }
+                } else {
+                    if (3 == taskType) {
+                        sb.append(" AND (voicLog.user_id = '" + userQueryParam.getUserId() + "' OR voicLog.call_data LIKE '%level%')");
+                    } else {
+                        sb.append(" AND voicLog.user_id = '" + userQueryParam.getUserId() + "'");
+                    }
+                }
+            }
+            // 根据公海ID查询通话记录
+            if (StringUtil.isNotEmpty(seaId)) {
+                sb.append(" AND voicLog.customer_sea_id = '" + seaId + "'");
+            }
+            sb.append(" order by voicLog.create_time DESC");
+            page = this.marketResourceDao.sqlPageQuery0(sb.toString(), userQueryParam.getPageNum(), userQueryParam.getPageSize());
+            CustomerUser customerUser;
+            if (page.getData() != null && page.getData().size() > 0) {
+                //处理用户信息和录音文件
+                String monthYear = endTime.format(YYYYMM);
+                VoiceLogCallDataDTO voiceLogCallDataDTO;
+                MarketTask task;
+                List<Map<String, Object>> list = page.getData();
+                for (Map<String, Object> map : list) {
+                    if (StringUtil.isNotEmpty(String.valueOf(map.get("create_time")))) {
+                        monthYear = LocalDateTime.parse(String.valueOf(map.get("create_time")), DatetimeUtils.DATE_TIME_FORMATTER_SSS).format(DatetimeUtils.YYYY_MM);
+                    }
+                    map.put("recordurl", CallUtil.generateRecordNameToMp3(monthYear, map.get("touchId")));
+                    // 处理通话call_data json数据
+                    if (map.get("call_data") != null) {
+                        voiceLogCallDataDTO = JSON.parseObject(String.valueOf(map.get("call_data")), VoiceLogCallDataDTO.class);
+                        if (voiceLogCallDataDTO != null) {
+                            // 处理通话时长
+                            if (StringUtil.isNotEmpty(voiceLogCallDataDTO.getCalledDuration())
+                                    && !"null".equals(voiceLogCallDataDTO.getCalledDuration())) {
+                                map.put("Callerduration", voiceLogCallDataDTO.getCalledDuration());
+                            } else {
+                                map.put("Callerduration", "");
+                            }
+                            // 处理机器人外呼的意向度
+                            if (3 == taskType) {
+                                map.put("intentLevel", voiceLogCallDataDTO.getLevel());
+                            } else {
+                                map.put("intentLevel", "");
+                            }
+                        }
+                    }
+                    // 处理机器人外呼的操作人为robot+机器人id
+                    if (3 == taskType) {
+                        customerUser = customerUserDao.get(NumberConvertUtil.parseLong(String.valueOf(map.get("user_id"))));
+                        if (customerUser == null) {
+                            if (map.get("user_id") == null) {
+                                map.put("name", "");
+                                map.put("realname", "");
+                            } else {
+                                if ("0".equals(String.valueOf(map.get("user_id")))) {
+                                    map.put("name", "");
+                                    map.put("realname", "");
+                                } else {
+                                    map.put("name", "robot" + map.get("user_id"));
+                                    map.put("realname", "robot" + map.get("user_id"));
+                                }
+                            }
+                        } else {
+                            map.put("name", customerUser.getAccount());
+                            map.put("realname", customerUser.getAccount());
+                        }
+                    } else {
+                        map.put("name", customerUserDao.getLoginName(String.valueOf(map.get("user_id"))));
+                        map.put("realname", customerUserDao.getLoginName(String.valueOf(map.get("user_id"))));
+                    }
+                    // 处理呼叫中心外呼无意向度
+                    if (map.get("intentLevel") == null) {
+                        map.put("intentLevel", "");
+                    }
+                    //不返回通话自定义json字段
+                    map.remove("call_data");
+                    // 营销任务名称处理
+                    if (map.get("marketTaskId") != null) {
+                        task = marketTaskDao.get(String.valueOf(map.get("marketTaskId")));
+                        map.put("marketTaskName", task != null ? task.getName() : "");
+                    }
+                }
+            }
+        } catch (Exception e) {
+            LOG.error("查询通话记录失败,", e);
+        }
+        return page;
+    }
 }
