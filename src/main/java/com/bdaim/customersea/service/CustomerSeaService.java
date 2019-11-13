@@ -3138,10 +3138,10 @@ public class CustomerSeaService {
             LOG.info("创建导入客群成功,开始异步处理数据,公海ID:" + seaId);
             try {
                 CustomerSeaService css = (CustomerSeaService) SpringContextHelper.getBean("customerSeaService");
-              /*  int code = css.asyncHandleImportData(seaId, finalCgId, custId, userId, userType, customGroupDao,
+                int code = css.asyncHandleImportData(seaId, finalCgId, custId, userId, userType, customGroupDao,
                         customerDao, customerLabelDao, jdbcTemplate, redisUtil, phoneService, fileName,
                         headerList, excelDefaultLabels, customerSeaDao);
-                LOG.info("导入公海ID:" + seaId + "更改状态成功,status:" + code);*/
+                LOG.info("导入公海ID:" + seaId + "更改状态成功,status:" + code);
             } catch (Exception e) {
                 LOG.error("异步处理导入公海数据异常,", e);
             }
@@ -3517,5 +3517,161 @@ public class CustomerSeaService {
         customerSeaDao.executeUpdateSQL(logSql.toString(), param.getBackReason(), param.getBackRemark());
         int status = customerSeaDao.executeUpdateSQL(sql.toString());
         return status;
+    }
+
+    /**
+     * 导入线索到私海
+     * @param seaId
+     * @param custGroupId
+     * @param custId
+     * @param userId
+     * @param userType
+     * @param customGroupDao
+     * @param customerDao
+     * @param customerLabelDao
+     * @param jdbcTemplate
+     * @param redisUtil
+     * @param phoneService
+     * @param uploadFileName
+     * @param headers
+     * @param defaultField
+     * @param customerSeaDao
+     * @return
+     */
+    private int asyncHandleImportData(long seaId, String custGroupId, String custId, long userId, String userType, CustomGroupDao
+            customGroupDao, CustomerDao customerDao, CustomerLabelDao customerLabelDao, JdbcTemplate jdbcTemplate,
+                                      RedisUtil redisUtil, PhoneService phoneService, String uploadFileName,
+                                      List<String> headers, Map<String, String> defaultField, CustomerSeaDao customerSeaDao) {
+        LOG.info("导入客户群ID:" + custGroupId + "勾选的表头:" + headers.toString());
+        // 读取excel表头,获取对应关系
+        String filePath = ConstantsUtil.CGROUP_IMPORT_FILE_PATH + uploadFileName;
+        LOG.info("导入客户群ID:" + custGroupId + "文件路径:" + filePath);
+        try (InputStream inputStream = new FileInputStream(filePath)) {
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            byte[] buffer = new byte[1024];
+            int len;
+            while ((len = inputStream.read(buffer)) > -1) {
+                outputStream.write(buffer, 0, len);
+            }
+            outputStream.flush();
+            // excel所有表头
+            List<String> excelHeads = (List<String>) ExcelUtil.readHeaders(new ByteArrayInputStream(outputStream.toByteArray()), new Sheet(1), false);
+            Map<Integer, String> headName = new HashMap<>();
+            Map<Integer, String> labelId = new HashMap<>();
+            if (excelHeads != null) {
+                CustomerLabel cl;
+                for (int i = 0; i < excelHeads.size(); i++) {
+                    // excel中的表头在勾选的表头中
+                    if (!headers.contains(excelHeads.get(i))) {
+                        continue;
+                    }
+                    headName.put(i, excelHeads.get(i));
+                    cl = customerLabelDao.getCustomerLabelByName(excelHeads.get(i), custId);
+                    if (cl != null) {
+                        labelId.put(i, cl.getLabelId());
+                    }
+                }
+                List<Map<String, Object>> list = new ArrayList<>();
+                List<Object> excelData = ExcelUtil.readExcel(new ByteArrayInputStream(outputStream.toByteArray()), new Sheet(1), false);
+                List<Object> row;
+                Map<String, Object> rowData;
+
+                JSONArray jsonArray = new JSONArray();
+                JSONObject jsonObject = null;
+                // 从第2行开始读取,忽略表头
+                for (int i = 1; i < excelData.size(); i++) {
+                    row = (List<Object>) excelData.get(i);
+                    // 获取每个单元格
+                    rowData = new HashMap<>();
+                    jsonObject = new JSONObject();
+                    for (int j = 0; j < row.size(); j++) {
+                        String key = defaultField.get(headName.get(j));
+                        if (StringUtil.isNotEmpty(key)) {
+                            jsonObject.put(key, row.get(j));
+                        }
+                        if (headName.get(j) == null) {
+                            continue;
+                        }
+                        if ("手机号".equals(headName.get(j))) {
+                            rowData.put("phone", row.get(j));
+                        } else {
+                            rowData.put(labelId.get(j), row.get(j));
+                        }
+                    }
+                    list.add(rowData);
+                    jsonArray.add(jsonObject);
+                }
+                //保存数据
+                if (list.size() > 0) {
+                    Map<String, String> superIdData = new HashMap<>();
+                    Map<String, Map> superData = new HashMap<>();
+                    List<CGroupImportParam> data = new ArrayList<>();
+                    CGroupImportParam param;
+                    Map<String, String> u = new HashMap<>();
+                    String uid;
+                    for (int i = 0; i < list.size(); i++) {
+                        param = new CGroupImportParam();
+                        param.setPhone(String.valueOf(list.get(i).get("phone")));
+                        // 调用API服务根据手机号生成uid
+                        uid = phoneService.savePhoneToAPI(param.getPhone());
+                        if (StringUtil.isEmpty(uid)) {
+                            uid = MD5Util.encode32Bit("c" + param.getPhone());
+                        }
+                        param.setMd5Phone(uid);
+                        superIdData.put(param.getPhone(), param.getMd5Phone());
+                        list.get(i).remove("phone");
+                        param.setSuperData(JSON.toJSONString(list.get(i)));
+                        superData.put(param.getPhone(), list.get(i));
+                        param.setStatus(1);
+                        data.add(param);
+                        u.put(param.getMd5Phone(), param.getPhone());
+                    }
+                    boolean uCount = redisUtil.batchSet(u);
+                    LOG.info("导入客户群数据ID:" + custGroupId + ",u表插入数量:" + uCount);
+                    int gCount = customerDao.insertBatchDataGroupData(custGroupId, data);
+                    LOG.info("导入客户群数据ID:" + custGroupId + ",客户群表插入数量:" + gCount);
+
+                    // 批量导入私海
+                    List<SeaImportDataParam> seaData = JSON.parseArray(jsonArray.toJSONString(), SeaImportDataParam.class);
+                    String user_id = String.valueOf(userId);
+                    int distStatus = 0;
+                    if ("1".equals(userType)) {
+                        user_id = null;
+                        distStatus = 1;
+                    }
+                    for (SeaImportDataParam s : seaData) {
+                        s.setSuper_id(superIdData.get(s.getSuper_phone()));
+                        s.setUser_id(user_id);
+                        s.setStatus(distStatus);
+                        if (superData.get(s.getSuper_phone()) != null) {
+                            s.setSuperData(superData.get(s.getSuper_phone()));
+                        } else {
+                            s.setSuperData(new HashMap<>());
+                        }
+                        s.getSuperData().put("SYS007", "未跟进");
+                    }
+                    customerSeaDao.insertBatchDataData(seaId, seaData);
+
+                    if (uCount) {
+                        LOG.info("导入客户群数据ID:" + custGroupId + "成功");
+                        // 更改客户群状态
+                        CustomGroup cg = customGroupDao.get(NumberConvertUtil.parseInt(custGroupId));
+                        if (cg != null) {
+                            // 处理完成
+                            long userCount = customGroupDao.getCustomerGroupListDataCount(NumberConvertUtil.parseInt(custGroupId));
+                            int status = jdbcTemplate.update("UPDATE customer_group SET user_count =  ?, quantity = ?,  status = ?, industry_pool_name=?, amount=0  WHERE id = ?", userCount, userCount, 1, "", custGroupId);
+                            LOG.info("导入客户群数据ID:" + custGroupId + "更改状态成功,status:" + status + ",数量:" + userCount);
+                        }
+                        return 1;
+                    }
+                }
+            } else {
+                LOG.warn("导入客户群ID:" + custGroupId + "读取excel为空," + JSON.toJSONString(excelHeads));
+                return 0;
+            }
+        } catch (Exception e) {
+            LOG.error("导入客户群ID:" + custGroupId + "异常,", e);
+        }
+        return 0;
     }
 }
