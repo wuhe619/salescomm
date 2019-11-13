@@ -332,7 +332,11 @@ public class BaoguandanXmlEXP301 {
         ChannelEr.setTextContent("");
         EntryHead.appendChild(ChannelEr);*/
         Element MainGName = document.createElement("MainGName");
-        MainGName.setTextContent(json.getString("main_gname"));  //r
+        String gname = json.getString("main_gname");
+        if(gname.endsWith("|")){
+            gname = gname.replace("|","");
+        }
+        MainGName.setTextContent(gname);  //r
         EntryHead.appendChild(MainGName);
         Element EntryType = document.createElement("EntryType");
         EntryType.setTextContent(mainJson.getString("entry_type"));  //r
