@@ -2927,12 +2927,12 @@ public class CustomerSeaService {
                 .append("  from " + ConstantsUtil.SEA_TABLE_PREFIX + customerSea.getId() + " custG ")
                 .append(" where pull_status = 0 ")
                 .append(" ORDER BY custG.n_id ASC ")
-                .append("  LIMIT ?,? ");
+                .append("  LIMIT ? ");
 
         List<Map<String, Object>> phones = null;
         StringBuffer content = new StringBuffer();
         try {
-            phones = this.customerSeaDao.sqlQuery(sb.toString(), taskPhoneIndex, pageSize);
+            phones = this.customerSeaDao.sqlQuery(sb.toString(), pageSize);
             if (phones == null || phones.size() == 0) {
                 result.setResult(2);
                 return result;
@@ -3031,7 +3031,7 @@ public class CustomerSeaService {
             LOG.warn("公海ID:[" + customerSea.getId() + "],记录的index:" + phoneIndex + ",拉取的index:" + pageNum);
             pageNum = phoneIndex;
         }
-        sb.append(" LIMIT " + pageNum + "," + pageSize);
+        sb.append(" LIMIT " + pageSize);
 
         List<Map<String, Object>> ids = null;
         List<XzPullPhoneDTO> phoneList = new ArrayList<>();
