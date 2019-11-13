@@ -1,5 +1,6 @@
 package com.bdaim.customersea.service;
 
+import com.alibaba.excel.metadata.Sheet;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -13,7 +14,11 @@ import com.bdaim.common.exception.ParamException;
 import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.service.ElasticSearchService;
 import com.bdaim.common.service.PhoneService;
+import com.bdaim.common.util.*;
+import com.bdaim.common.util.redis.RedisUtil;
+import com.bdaim.common.util.spring.SpringContextHelper;
 import com.bdaim.customer.dao.CustomerDao;
+import com.bdaim.customer.dao.CustomerLabelDao;
 import com.bdaim.customer.dao.CustomerUserDao;
 import com.bdaim.customer.dto.CustomerUserDTO;
 import com.bdaim.customer.entity.CustomerLabel;
@@ -27,6 +32,7 @@ import com.bdaim.customersea.dto.*;
 import com.bdaim.customersea.entity.CustomerSea;
 import com.bdaim.customersea.entity.CustomerSeaProperty;
 import com.bdaim.customgroup.dao.CustomGroupDao;
+import com.bdaim.customgroup.dto.CGroupImportParam;
 import com.bdaim.customgroup.entity.CustomGroup;
 import com.bdaim.log.dao.SuperDataOperLogDao;
 import com.bdaim.log.dto.SuperDataOperLogDTO;
@@ -52,6 +58,10 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import javax.transaction.Transactional;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.sql.Timestamp;
 import java.text.MessageFormat;
 import java.time.LocalDate;
@@ -121,6 +131,11 @@ public class CustomerSeaService {
     @Resource
     private SuperDataOperLogDao superDataOperLogDao;
 
+    @Resource
+    private CustomerLabelDao customerLabelDao;
+    @Resource
+    private RedisUtil redisUtil;
+
     /**
      * 默认需要转为super_data的字段名称
      */
@@ -145,6 +160,29 @@ public class CustomerSeaService {
         put("entPersonNum", "SYS013");
         // 企业ID
         put("entId", "SYS014");
+    }};
+
+    private Map<String, String> excelDefaultLabels = new HashMap() {{
+        put("qq", "SYS002");
+        put("QQ", "SYS002");
+        put("email", "SYS003");
+        put("EMAIL", "SYS003");
+        put("weChat", "SYS001");
+        put("微信", "SYS001");
+        put("职业", "SYS004");
+        put("公司", "SYS005");
+        put("跟进状态", "SYS007");
+        put("无效原因", "SYS006");
+        put("姓名", "super_name");
+        put("年龄", "super_age");
+        put("性别", "super_sex");
+        put("手机", "super_phone");
+        put("手机号", "super_phone");
+        put("电话", "super_telphone");
+        put("电话号码", "super_telphone");
+        put("邮箱", "SYS003");
+        put("省市", "super_address_province_city");
+        put("地址", "super_address_street");
     }};
 
     /**
@@ -332,6 +370,51 @@ public class CustomerSeaService {
                 LOG.error("创建公海默认客群明细表失败,", e);
             }
         }
+    }
+
+    private String createDefaultClueCGroup0(long customerSeaId, String customerSeaName, String custId) {
+        CustomerSeaProperty csp = customerSeaDao.getProperty(String.valueOf(customerSeaId), "defaultClueCgId");
+        if (csp != null) {
+            LOG.warn("公海:" + customerSeaId + ",默认线索客群已经存在,客群ID:" + csp.getPropertyValue());
+            return null;
+        }
+        CustomerSea customerSea = customerSeaDao.get(customerSeaId);
+        //插入订单表
+        StringBuffer insertOrder = new StringBuffer();
+        String orderId = String.valueOf(IDHelper.getTransactionId());
+        insertOrder.append("INSERT INTO t_order (`order_id`, `cust_id`, `order_type`, `create_time`,  `remarks`, `amount`, order_state, `cost_price`) ");
+        insertOrder.append(" VALUES ('" + orderId + "','" + custId + "','1','" + new Timestamp(System.currentTimeMillis()) + "','客户群创建','0','2','0')");
+        int b = customGroupDao.executeUpdateSQL(insertOrder.toString());
+        LOG.info("创建公海默认客群存入order表状态:" + b);
+        CustomGroup cg = new CustomGroup();
+        cg.setName(customerSeaName);
+        cg.setDesc(customerSeaName);
+        cg.setOrderId(orderId);
+        cg.setStatus(6);
+        cg.setUserCount(0L);
+        cg.setQuantity(0);
+        cg.setCustId(custId);
+        cg.setCreateTime(new Timestamp(System.currentTimeMillis()));
+        if (customerSea != null) {
+            cg.setMarketProjectId(customerSea.getMarketProjectId());
+        }
+        LOG.info("创建公海默认客群插入customer_group表的数据:" + cg);
+        int id = (int) customGroupDao.saveReturnPk(cg);
+        LOG.info("创建公海默认客群返回主键id是:" + id);
+        if (id > 0) {
+            // 创建客群明细表
+            try {
+                int status = customGroupDao.createCgDataTable(id);
+                LOG.info("创建公海默认客群明细表状态:" + status);
+                // 保存默认客群
+                csp = new CustomerSeaProperty(customerSeaId, "defaultClueCgId", String.valueOf(id), new Timestamp(System.currentTimeMillis()));
+                customerSeaDao.saveOrUpdate(csp);
+                return String.valueOf(id);
+            } catch (HibernateException e) {
+                LOG.error("创建公海默认客群明细表失败,", e);
+            }
+        }
+        return null;
     }
 
     /**
@@ -2497,85 +2580,6 @@ public class CustomerSeaService {
     }
 
     /**
-     * 添加线索
-     *
-     * @param dto
-     * @param seaType 1-添加到公海 2-添加到私海
-     * @return
-     */
-    public int addClueData0(CustomSeaTouchInfoDTO dto, int seaType) {
-        // 处理qq 微信等默认自建属性值
-        handleDefaultLabelValue(dto);
-        StringBuffer sql = new StringBuffer();
-        int status = 0;
-        try {
-            // 查询公海下默认客群
-            CustomerSeaProperty csp = customerSeaDao.getProperty(dto.getCustomerSeaId(), "defaultClueCgId");
-            if (csp == null) {
-                LOG.warn("公海:" + dto.getCustomerSeaId() + ",默认线索客群不存在");
-            } else {
-                dto.setCust_group_id(csp.getPropertyValue());
-            }
-            String superId = phoneService.savePhoneToAPI(dto.getSuper_telphone());
-            if (StringUtil.isEmpty(superId)) {
-                superId = MD5Util.encode32Bit("c" + dto.getSuper_telphone());
-            }
-            dto.setSuper_id(superId);
-            CustomerUser user = customerUserDao.get(NumberConvertUtil.parseLong(dto.getUser_id()));
-            int dataStatus = 1;
-            // 组长和员工数据状态为已分配
-            if (2 == user.getUserType()) {
-                dataStatus = 0;
-            } else {
-                // 超管和项目管理员数据状态为未分配
-                dto.setUser_id(null);
-            }
-            // 添加至公海责任人为空
-            if (1 == seaType) {
-                dto.setUser_id(null);
-            }
-            LOG.info("开始保存添加线索个人信息:" + ConstantsUtil.CUSTOMER_GROUP_TABLE_PREFIX + dto.getCust_group_id() + ",数据:" + dto.toString());
-            try {
-                customGroupDao.createCgDataTable(NumberConvertUtil.parseInt(dto.getCust_group_id()));
-            } catch (HibernateException e) {
-                LOG.error("创建用户群表失败,id:" + dto.getCust_group_id(), e);
-            }
-            List<Map<String, Object>> list = customerDao.sqlQuery("SELECT id FROM " + ConstantsUtil.CUSTOMER_GROUP_TABLE_PREFIX + dto.getCust_group_id() + " WHERE id= ?", superId);
-            if (list.size() > 0) {
-                LOG.warn("客群ID:[" + dto.getCust_group_id() + "]添加线索ID:[" + superId + "]已经存在");
-                return -1;
-            }
-
-            sql.append(" INSERT INTO " + ConstantsUtil.CUSTOMER_GROUP_TABLE_PREFIX + dto.getCust_group_id())
-                    .append(" (id, user_id, status, `super_name`, `super_age`, `super_sex`, `super_telphone`, `super_phone`, `super_address_province_city`, `super_address_street`, `super_data`,update_time) ")
-                    .append(" VALUES(?,?,?,?,?,?,?,?,?,?,?,?) ");
-            this.customerSeaDao.executeUpdateSQL(sql.toString(), superId, dto.getUser_id(), dataStatus, dto.getSuper_name(), dto.getSuper_age(),
-                    dto.getSuper_sex(), dto.getSuper_telphone(), dto.getSuper_phone(),
-                    dto.getSuper_address_province_city(), dto.getSuper_address_street(), JSON.toJSONString(dto.getSuperData()), new Timestamp(System.currentTimeMillis()));
-
-            sql = new StringBuffer();
-            sql.append(" INSERT INTO " + ConstantsUtil.SEA_TABLE_PREFIX + dto.getCustomerSeaId())
-                    .append(" (id, user_id, status, `super_name`, `super_age`, `super_sex`, `super_telphone`, `super_phone`, `super_address_province_city`, `super_address_street`, `super_data`, batch_id, data_source,create_time) ")
-                    .append(" VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?) ");
-            this.customerSeaDao.executeUpdateSQL(sql.toString(), superId, dto.getUser_id(), dataStatus, dto.getSuper_name(), dto.getSuper_age(),
-                    dto.getSuper_sex(), dto.getSuper_telphone(), dto.getSuper_phone(),
-                    dto.getSuper_address_province_city(), dto.getSuper_address_street(), JSON.toJSONString(dto.getSuperData()), dto.getCust_group_id(), 3, new Timestamp(System.currentTimeMillis()));
-            // 保存标记信息到es中
-            CustomerSeaESDTO esData = new CustomerSeaESDTO(dto);
-            esData.setSuper_data(JSON.toJSONString(dto.getSuperData()));
-            //es暂时取消
-            //saveClueInfoToES(esData);
-            // 保存到redis中号码对应关系
-            phoneService.setValueByIdFromRedis(superId, dto.getSuper_telphone());
-            status = 1;
-        } catch (Exception e) {
-            status = 0;
-            LOG.error("保存添加线索个人信息" + ConstantsUtil.CUSTOMER_GROUP_TABLE_PREFIX + dto.getCust_group_id() + "失败", e);
-        }
-        return status;
-    }
-
-    /**
      * 保存公海转交记录
      *
      * @param log
@@ -3113,6 +3117,75 @@ public class CustomerSeaService {
         return data;
     }
 
+    public int saveImportData(String custId, long userId, String userType, long seaId, String fileName, JSONArray headers) {
+        // 查询公海下默认客群
+        CustomerSeaProperty csp = customerSeaDao.getProperty(String.valueOf(seaId), "defaultClueCgId");
+        String cgId = null;
+        if (csp == null) {
+            LOG.warn("公海:{},默认线索客群不存在,开始创建", seaId);
+            cgId = createDefaultClueCGroup0(seaId, "公海默认客群", custId);
+        } else {
+            cgId = csp.getPropertyValue();
+        }
+        if (StringUtil.isEmpty(cgId)) {
+            LOG.warn("公海:{},默认线索客群不存在", seaId);
+            return -1;
+        }
+        List<String> headerList = JSONObject.parseArray(headers.toJSONString(), String.class);
+        // 异步处理客户群数据
+        String finalCgId = cgId;
+        new Thread(() -> {
+            LOG.info("创建导入客群成功,开始异步处理数据,公海ID:" + seaId);
+            try {
+                CustomerSeaService css = (CustomerSeaService) SpringContextHelper.getBean("customerSeaService");
+                int code = css.asyncHandleImportData(seaId, finalCgId, custId, userId, userType, customGroupDao,
+                        customerDao, customerLabelDao, jdbcTemplate, redisUtil, phoneService, fileName,
+                        headerList, excelDefaultLabels, customerSeaDao);
+                LOG.info("导入公海ID:" + seaId + "更改状态成功,status:" + code);
+            } catch (Exception e) {
+                LOG.error("异步处理导入公海数据异常,", e);
+            }
+        }).start();
+        return 1;
+    }
+
+    private int asyncHandleImportData(long seaId, String custGroupId, String custId, long userId, String userType, CustomGroupDao
+            customGroupDao, CustomerDao customerDao, CustomerLabelDao customerLabelDao, JdbcTemplate jdbcTemplate,
+                                      RedisUtil redisUtil, PhoneService phoneService, String uploadFileName,
+                                      List<String> headers, Map<String, String> defaultField, CustomerSeaDao customerSeaDao) {
+        LOG.info("导入客户群ID:" + custGroupId + "勾选的表头:" + headers.toString());
+        // 读取excel表头,获取对应关系
+        String filePath = ConstantsUtil.CGROUP_IMPORT_FILE_PATH + uploadFileName;
+        LOG.info("导入客户群ID:" + custGroupId + "文件路径:" + filePath);
+        try (InputStream inputStream = new FileInputStream(filePath)) {
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            byte[] buffer = new byte[1024];
+            int len;
+            while ((len = inputStream.read(buffer)) > -1) {
+                outputStream.write(buffer, 0, len);
+            }
+            outputStream.flush();
+            // excel所有表头
+            List<String> excelHeads = (List<String>) ExcelUtil.readHeaders(new ByteArrayInputStream(outputStream.toByteArray()), new Sheet(1), false);
+            Map<Integer, String> headName = new HashMap<>();
+            Map<Integer, String> labelId = new HashMap<>();
+            if (excelHeads != null) {
+                CustomerLabel cl;
+                for (int i = 0; i < excelHeads.size(); i++) {
+                    // excel中的表头在勾选的表头中
+                    if (!headers.contains(excelHeads.get(i))) {
+                        continue;
+                    }
+                    headName.put(i, excelHeads.get(i));
+                    cl = customerLabelDao.getCustomerLabelByName(excelHeads.get(i), custId);
+                    if (cl != null) {
+                        labelId.put(i, cl.getLabelId());
+                    }
+                }
+                List<Map<String, Object>> list = new ArrayList<>();
+                List<Object> excelData = ExcelUtil.readExcel(new ByteArrayInputStream(outputStream.toByteArray()), new Sheet(1), false);
+                List<Object> row;
+                Map<String, Object> rowData;
     /**
      * 公海线索详情列表
      *
@@ -3484,4 +3557,102 @@ public class CustomerSeaService {
     }
 
 
+                JSONArray jsonArray = new JSONArray();
+                JSONObject jsonObject = null;
+                // 从第2行开始读取,忽略表头
+                for (int i = 1; i < excelData.size(); i++) {
+                    row = (List<Object>) excelData.get(i);
+                    // 获取每个单元格
+                    rowData = new HashMap<>();
+                    jsonObject = new JSONObject();
+                    for (int j = 0; j < row.size(); j++) {
+                        String key = defaultField.get(headName.get(j));
+                        if (StringUtil.isNotEmpty(key)) {
+                            jsonObject.put(key, row.get(j));
+                        }
+                        if (headName.get(j) == null) {
+                            continue;
+                        }
+                        if ("手机号".equals(headName.get(j))) {
+                            rowData.put("phone", row.get(j));
+                        } else {
+                            rowData.put(labelId.get(j), row.get(j));
+                        }
+                    }
+                    list.add(rowData);
+                    jsonArray.add(jsonObject);
+                }
+                //保存数据
+                if (list.size() > 0) {
+                    Map<String, String> superIdData = new HashMap<>();
+                    Map<String, Map> superData = new HashMap<>();
+                    List<CGroupImportParam> data = new ArrayList<>();
+                    CGroupImportParam param;
+                    Map<String, String> u = new HashMap<>();
+                    String uid;
+                    for (int i = 0; i < list.size(); i++) {
+                        param = new CGroupImportParam();
+                        param.setPhone(String.valueOf(list.get(i).get("phone")));
+                        // 调用API服务根据手机号生成uid
+                        uid = phoneService.savePhoneToAPI(param.getPhone());
+                        if (StringUtil.isEmpty(uid)) {
+                            uid = MD5Util.encode32Bit("c" + param.getPhone());
+                        }
+                        param.setMd5Phone(uid);
+                        superIdData.put(param.getPhone(), param.getMd5Phone());
+                        list.get(i).remove("phone");
+                        param.setSuperData(JSON.toJSONString(list.get(i)));
+                        superData.put(param.getPhone(), list.get(i));
+                        param.setStatus(1);
+                        data.add(param);
+                        u.put(param.getMd5Phone(), param.getPhone());
+                    }
+                    boolean uCount = redisUtil.batchSet(u);
+                    LOG.info("导入客户群数据ID:" + custGroupId + ",u表插入数量:" + uCount);
+                    int gCount = customerDao.insertBatchDataGroupData(custGroupId, data);
+                    LOG.info("导入客户群数据ID:" + custGroupId + ",客户群表插入数量:" + gCount);
+
+                    // 批量导入私海
+                    List<SeaImportDataParam> seaData = JSON.parseArray(jsonArray.toJSONString(), SeaImportDataParam.class);
+                    String user_id = String.valueOf(userId);
+                    int distStatus = 0;
+                    if ("1".equals(userType)) {
+                        user_id = null;
+                        distStatus = 1;
+                    }
+                    for (SeaImportDataParam s : seaData) {
+                        s.setSuper_id(superIdData.get(s.getSuper_phone()));
+                        s.setUser_id(user_id);
+                        s.setStatus(distStatus);
+                        if (superData.get(s.getSuper_phone()) != null) {
+                            s.setSuperData(superData.get(s.getSuper_phone()));
+                        } else {
+                            s.setSuperData(new HashMap<>());
+                        }
+                        s.getSuperData().put("SYS007", "未跟进");
+                    }
+                    customerSeaDao.insertBatchDataData(seaId, seaData);
+
+                    if (uCount) {
+                        LOG.info("导入客户群数据ID:" + custGroupId + "成功");
+                        // 更改客户群状态
+                        CustomGroup cg = customGroupDao.get(NumberConvertUtil.parseInt(custGroupId));
+                        if (cg != null) {
+                            // 处理完成
+                            long userCount = customGroupDao.getCustomerGroupListDataCount(NumberConvertUtil.parseInt(custGroupId));
+                            int status = jdbcTemplate.update("UPDATE customer_group SET user_count =  ?, quantity = ?,  status = ?, industry_pool_name=?, amount=0  WHERE id = ?", userCount, userCount, 1, "", custGroupId);
+                            LOG.info("导入客户群数据ID:" + custGroupId + "更改状态成功,status:" + status + ",数量:" + userCount);
+                        }
+                        return 1;
+                    }
+                }
+            } else {
+                LOG.warn("导入客户群ID:" + custGroupId + "读取excel为空," + JSON.toJSONString(excelHeads));
+                return 0;
+            }
+        } catch (Exception e) {
+            LOG.error("导入客户群ID:" + custGroupId + "异常,", e);
+        }
+        return 0;
+    }
 }

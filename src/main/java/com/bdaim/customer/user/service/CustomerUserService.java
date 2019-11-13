@@ -821,7 +821,7 @@ public class CustomerUserService {
     public String getUser_V1(Integer pageNum, Integer pageSize, String customerId, String startAccount, String realName,
                              LoginUser loginUser, String userGroupId, String groupRoleType, String uid,
                              String startSeatId, String endAccount, String endSeatId, String callType, String callChannel,
-                             String jobId, String userType, String projectId, String status) {
+                             String jobId, String userType, String projectId, String status, String notGroupRoleType) {
         if (StringUtil.isEmpty(userType)) {
             userType = "2";
         }
@@ -863,6 +863,9 @@ public class CustomerUserService {
                         if (StringUtil.isNotEmpty(groupRoleType)) {
                             sql.append(" AND id IN (SELECT cast(user_id AS signed) FROM t_customer_user_group_rel rel WHERE rel.status = 1 AND rel.type = " + groupRoleType + " AND rel.group_id IN(SELECT id FROM t_customer_user_group WHERE STATUS =1 AND cust_id = '" + customerId + "'))");
                         }
+                        if (StringUtil.isNotEmpty(notGroupRoleType)) {
+                            sql.append(" AND id NOT IN (SELECT cast(user_id AS signed) FROM t_customer_user_group_rel rel WHERE rel.status = 1 AND rel.type = " + notGroupRoleType + " AND rel.group_id IN(SELECT id FROM t_customer_user_group WHERE STATUS =1 AND cust_id = '" + customerId + "'))");
+                        }
                     }
                 }
             } else {
@@ -874,6 +877,9 @@ public class CustomerUserService {
                         sql.append(" AND id IN (SELECT cast(user_id AS signed) FROM t_customer_user_group_rel rel WHERE rel.status = 1 AND rel.type = " + groupRoleType + " AND rel.group_id = '" + customerUserGroupRelDTO.getGroupId() + "')");
                     } else {
                         sql.append(" AND id IN (SELECT cast(user_id AS signed) FROM t_customer_user_group_rel rel WHERE rel.status = 1 AND rel.group_id = '" + customerUserGroupRelDTO.getGroupId() + "')");
+                    }
+                    if (StringUtil.isNotEmpty(notGroupRoleType)) {
+                        sql.append(" AND id NOT IN (SELECT cast(user_id AS signed) FROM t_customer_user_group_rel rel WHERE rel.status = 1 AND rel.type = " + notGroupRoleType + " AND rel.group_id IN(SELECT id FROM t_customer_user_group WHERE STATUS =1 AND cust_id = '" + customerId + "'))");
                     }
                 }
             }
