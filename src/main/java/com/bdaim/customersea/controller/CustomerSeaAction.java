@@ -653,4 +653,23 @@ public class CustomerSeaAction extends BasicAction {
         return returnJsonData(data);
     }
 
+    @RequestMapping(value = "/saveImportClueData", method = RequestMethod.POST)
+    @ResponseBody
+    public String saveImportClueData(@RequestBody JSONObject jsonObject) {
+        String fileName = jsonObject.getString("fileName");
+        long seaId = jsonObject.getLong("seaId");
+        JSONArray headers = jsonObject.getJSONArray("headers");
+        int status = seaService.saveImportData(opUser().getCustId(), opUser().getId(), opUser().getUserType(), seaId, fileName, headers);
+        ResponseJson responseJson = new ResponseJson();
+        Map<String, Object> resultMap = new HashMap<String, Object>();
+        if (status == 1) {
+            resultMap.put("code", 1);
+            resultMap.put("message", "成功");
+        } else {
+            resultMap.put("code", status);
+            resultMap.put("message", "失败");
+        }
+        responseJson.setData(resultMap);
+        return JSON.toJSONString(responseJson);
+    }
 }

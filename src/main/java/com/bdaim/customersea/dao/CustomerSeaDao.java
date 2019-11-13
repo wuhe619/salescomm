@@ -1,17 +1,27 @@
 package com.bdaim.customersea.dao;
 
+import com.alibaba.fastjson.JSON;
 import com.bdaim.common.dao.SimpleHibernateDao;
+import com.bdaim.common.util.ConstantsUtil;
 import com.bdaim.common.util.SqlAppendUtil;
 import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.dao.CustomerUserDao;
 import com.bdaim.customer.dto.CustomerUserGroupRelDTO;
+import com.bdaim.customersea.dto.CustomSeaTouchInfoDTO;
 import com.bdaim.customersea.dto.CustomerSeaParam;
 import com.bdaim.common.dto.Page;
+import com.bdaim.customersea.dto.SeaImportDataParam;
 import com.bdaim.customersea.entity.CustomerSea;
 import com.bdaim.customersea.entity.CustomerSeaProperty;
+import com.bdaim.customgroup.dto.CGroupImportParam;
+import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -175,4 +185,43 @@ public class CustomerSeaDao extends SimpleHibernateDao<CustomerSea, Long> {
         return cp;
     }
 
+    /**
+     * 批量保存客户群数据表数据
+     *
+     * @param seaId
+     * @param list
+     * @return
+     * @throws Exception
+     */
+    public int insertBatchDataData(long seaId, List<SeaImportDataParam> list) {
+        StringBuffer sql = new StringBuffer();
+        sql.append(" INSERT INTO " + ConstantsUtil.SEA_TABLE_PREFIX + seaId)
+                .append(" (id, user_id, status, `super_name`, `super_age`, `super_sex`, `super_telphone`, `super_phone`, `super_address_province_city`, `super_address_street`, `super_data`,update_time) ")
+                .append(" SELECT ?,?,?,?,?,?,?,?,?,?,?,? FROM DUAL WHERE NOT EXISTS(SELECT id FROM " + ConstantsUtil.SEA_TABLE_PREFIX + seaId + " WHERE id = ? ) ");
+        Timestamp updateTime = new Timestamp(System.currentTimeMillis());
+        int[] status = jdbcTemplate.batchUpdate(sql.toString(), new BatchPreparedStatementSetter() {
+            @Override
+            public void setValues(PreparedStatement preparedStatement, int i) throws SQLException {
+                preparedStatement.setString(1, list.get(i).getSuper_id());
+                preparedStatement.setString(2, list.get(i).getUser_id());
+                preparedStatement.setInt(3, list.get(i).getStatus());
+                preparedStatement.setString(4, list.get(i).getSuper_name());
+                preparedStatement.setString(5, list.get(i).getSuper_age());
+                preparedStatement.setString(6, list.get(i).getSuper_sex());
+                preparedStatement.setString(7, list.get(i).getSuper_telphone());
+                preparedStatement.setString(8, list.get(i).getSuper_phone());
+                preparedStatement.setString(9, list.get(i).getSuper_address_province_city());
+                preparedStatement.setString(10, list.get(i).getSuper_address_street());
+                preparedStatement.setString(11, JSON.toJSONString(list.get(i).getSuperData()));
+                preparedStatement.setTimestamp(12, updateTime);
+                preparedStatement.setString(13, list.get(i).getSuper_id());
+            }
+
+            @Override
+            public int getBatchSize() {
+                return list.size();
+            }
+        });
+        return status.length;
+    }
 }
