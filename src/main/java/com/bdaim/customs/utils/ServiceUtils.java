@@ -894,14 +894,21 @@ public class ServiceUtils {
             Product data = result.orElse(new Product());
             StringBuffer name = new StringBuffer();
             StringBuffer name_en = new StringBuffer();
-            name.append(data.getG_name())
-                    .append(spilt);
+            name.append(data.getG_name()).append(spilt);
             //.append(data.getG_name_en());
                    /* .append(spilt)
                     .append(data.getG_model());*/
             name_en.append(data.getG_name_en()).append(spilt);
-            resultmap.put("name", name.toString());
-            resultmap.put("name_en", name_en.toString());
+            String _name = name.toString();
+            if(_name.endsWith(spilt)){
+                _name=_name.replace(spilt,"");
+            }
+            String _name_en = name_en.toString();
+            if(_name_en.endsWith(spilt)){
+                _name_en=_name_en.replace(spilt,"");
+            }
+            resultmap.put("name", _name);
+            resultmap.put("name_en", _name_en);
             return resultmap;
         }
     }

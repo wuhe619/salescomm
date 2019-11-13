@@ -922,19 +922,32 @@ public class CustomGroupAction extends BasicAction {
      * @param response
      */
     @RequestMapping(value = "/exportCustomerGroupCallData", method = RequestMethod.GET)
-    public void exportCustomerGroupCallData(String customerGroupId, String marketTaskId, String startTime, String endTime, String timeType, String workPlaceId, String marketProjectId, HttpServletResponse response, String seaId) {
+    public void exportCustomerGroupCallData(String customerGroupId, String marketTaskId, String startTime, String endTime, String timeType, String workPlaceId,
+                                            String marketProjectId, HttpServletResponse response, String seaId, String _rule_) {
         int type = 0;
         if (StringUtil.isNotEmpty(timeType)) {
             type = Integer.parseInt(timeType);
         }
         UserQueryParam userQueryParam = getUserQueryParam();
         if (StringUtil.isNotEmpty(marketTaskId)) {
-            marketTaskService.exportMarketTaskCallData0(type, marketTaskId, userQueryParam, startTime, endTime, response, workPlaceId);
+            if (StringUtil.isNotEmpty(_rule_)) {
+                marketTaskService.exportMarketTaskCallData0(_rule_, type, marketTaskId, userQueryParam, startTime, endTime, response, workPlaceId);
+            } else {
+                marketTaskService.exportMarketTaskCallData0(type, marketTaskId, userQueryParam, startTime, endTime, response, workPlaceId);
+            }
         } else if (StringUtil.isNotEmpty(customerGroupId)) {
-            customGroupService.exportCustomerGroupCallData(type, customerGroupId, userQueryParam, startTime, endTime, response);
+            if (StringUtil.isNotEmpty(_rule_)) {
+                customGroupService.exportCustomerGroupCallData(_rule_, type, customerGroupId, userQueryParam, startTime, endTime, response);
+            } else {
+                customGroupService.exportCustomerGroupCallData(type, customerGroupId, userQueryParam, startTime, endTime, response);
+            }
         } else if (StringUtil.isNotEmpty(marketProjectId)) {
             userQueryParam.setCustId(opUser().getCustId());
-            marketProjectService.exportMarketProjectCallData0(type, marketProjectId, userQueryParam, startTime, endTime, response, workPlaceId);
+            if (StringUtil.isNotEmpty(_rule_)) {
+                marketProjectService.exportMarketProjectCallData0(_rule_, type, marketProjectId, userQueryParam, startTime, endTime, response, workPlaceId);
+            } else {
+                marketProjectService.exportMarketProjectCallData0(type, marketProjectId, userQueryParam, startTime, endTime, response, workPlaceId);
+            }
         }
 
     }
@@ -1364,7 +1377,7 @@ public class CustomGroupAction extends BasicAction {
             response.getWriter().write(json.toJSONString());
         } catch (Exception e) {
             e.printStackTrace();
-            log.error("创建客户群异常",e);
+            log.error("创建客户群异常", e);
             json.put("errorDesc", "05");
             try {
                 response.getWriter().write(json.toJSONString());

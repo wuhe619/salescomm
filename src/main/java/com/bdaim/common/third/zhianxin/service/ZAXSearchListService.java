@@ -3,16 +3,20 @@ package com.bdaim.common.third.zhianxin.service;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.common.service.PhoneService;
 import com.bdaim.common.third.zhianxin.dto.BaseResult;
 import com.bdaim.customer.service.B2BTcbLogService;
+import com.bdaim.util.StringUtil;
 import com.bdaim.util.http.HttpUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -21,9 +25,9 @@ import java.util.Map;
  */
 @Service
 @Transactional
-public class SearchListService {
+public class ZAXSearchListService {
 
-    private static Logger LOG = LoggerFactory.getLogger(SearchListService.class);
+    private static Logger LOG = LoggerFactory.getLogger(ZAXSearchListService.class);
 
     private final static String API_URL = "https://api.bdaim.com/{busiType}/pub";
 
@@ -81,6 +85,12 @@ public class SearchListService {
     @Autowired
     B2BTcbLogService b2BTcbLogService;
 
+    @Autowired
+    PhoneService phoneService;
+
+    @Autowired
+    JdbcTemplate jdbcTemplate;
+
     /**
      * 智侒信列表检索
      *
@@ -134,8 +144,53 @@ public class SearchListService {
         //params.put("entName", entName);
         params.put("companyId", companyId);
         LOG.info("企业详情查询参数:{}", params);
-        String result = HttpUtil.httpPost(API_URL.replace("{busiType}", BUSI_TYPE.get(busiType)), params.toJSONString(), headers,30000);
+        String result = HttpUtil.httpPost(API_URL.replace("{busiType}", BUSI_TYPE.get(busiType)), params.toJSONString(), headers, 30000);
         LOG.info("企业详情查询接口返回:{}", result);
         return JSON.parseObject(result, BaseResult.class);
+    }
+
+    /**
+     * 企业详情
+     *
+     * @param companyId 企业ID
+     * @param entName   企业名称
+     * @param busiType  业务类型
+     * @return
+     * @throws Exception
+     */
+    public BaseResult getCompanyDetail(String companyId, String entName, String busiType, long seaId) throws Exception {
+        BaseResult baseResult = getCompanyDetail(companyId, entName, busiType);
+        if (baseResult != null && seaId > 0) {
+            //处理公司联系方式是否有意向
+            handleClueFollowStatus(seaId, (JSONObject) baseResult.getData());
+        }
+        return baseResult;
+    }
+
+    /**
+     * 处理公司联系方式是否有意向
+     *
+     * @param seaId
+     * @param data
+     */
+    private void handleClueFollowStatus(long seaId, JSONObject data) {
+        if (data.containsKey("phoneNumber") && data.getJSONArray("phoneNumber") != null
+                && data.getJSONArray("phoneNumber").size() > 0) {
+            JSONArray phoneNumber = data.getJSONArray("phoneNumber");
+            String sql = "SELECT id from t_customer_sea_list_11 WHERE JSON_EXTRACT(super_data, '$.SYS007') = ? AND id = ?";
+            JSONArray clueFollowStatus = new JSONArray();
+            JSONObject jsonObject = null;
+            String uid = "";
+            List<Map<String, Object>> id = null;
+            for (int i = 0; i < phoneNumber.size(); i++) {
+                jsonObject = new JSONObject();
+                uid = phoneService.savePhoneToAPI(phoneNumber.getString(i));
+                id = jdbcTemplate.queryForList(sql, "意向线索", uid);
+                jsonObject.put("phone", phoneNumber.getString(i));
+                jsonObject.put("status", id == null || id.size() == 0 ? false : true);
+                clueFollowStatus.add(jsonObject);
+            }
+            data.put("clueFollowStatus", clueFollowStatus);
+        }
     }
 }

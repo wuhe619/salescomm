@@ -17,6 +17,9 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -216,7 +219,11 @@ public class CangdanXmlEXP311 {
             VoyageNo.setTextContent(VoyageNoStr);
             ExpMftList.appendChild(VoyageNo);
             Element MainGName = document.createElement("MainGName");
-            MainGName.setTextContent(json.getString("main_gname"));
+            String gname = json.getString("main_gname");
+            if(gname.endsWith("|")){
+                gname = gname.replace("|","");
+            }
+            MainGName.setTextContent(gname);
             ExpMftList.appendChild(MainGName);
             Element PackNo = document.createElement("PackNo");
             PackNo.setTextContent(json.getString("pack_no"));
@@ -225,7 +232,11 @@ public class CangdanXmlEXP311 {
             GrossWt.setTextContent(json.getString("weight"));
             ExpMftList.appendChild(GrossWt);
             Element TradeTotal = document.createElement("TradeTotal");
-            TradeTotal.setTextContent(json.containsKey("total_value")?json.getString("total_value"):"");
+            String total_value=json.containsKey("total_value")?json.getString("total_value"):"";
+            if(StringUtil.isNotEmpty(total_value)) {
+                BigDecimal b=new BigDecimal(total_value).setScale(2, RoundingMode.HALF_UP);
+                TradeTotal.setTextContent(b.toPlainString());
+            }
             ExpMftList.appendChild(TradeTotal);
             Element TradeCurr = document.createElement("TradeCurr");
             TradeCurr.setTextContent(json.containsKey("curr_code")?json.getString("curr_code"):"");
@@ -240,6 +251,12 @@ public class CangdanXmlEXP311 {
             id="0"+id;
         }
         return id;
+    }
+
+    public static void main(String[] args) {
+        String total_value="123.3";
+        BigDecimal b=new BigDecimal(total_value).setScale(2, RoundingMode.HALF_UP);
+        System.out.println(b.toPlainString());
     }
 
 }

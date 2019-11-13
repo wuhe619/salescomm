@@ -5,7 +5,9 @@ import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.common.third.zhianxin.dto.BaseResult;
-import com.bdaim.common.third.zhianxin.service.SearchListService;
+import com.bdaim.common.third.zhianxin.service.ZAXSearchListService;
+import com.bdaim.util.NumberConvertUtil;
+import com.bdaim.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +24,7 @@ public class ZAXSearchController extends BasicAction {
     private static Logger logger = LoggerFactory.getLogger(ZAXSearchController.class);
 
     @Autowired
-    SearchListService searchListService;
+    ZAXSearchListService searchListService;
 
     @PostMapping(value = "/all")
     public ResponseInfo pageSearch(@RequestBody(required = false) String body, @PathVariable(name = "busiType") String busiType) {
@@ -47,11 +49,15 @@ public class ZAXSearchController extends BasicAction {
     }
 
     @GetMapping(value = "/{id}")
-    public ResponseInfo getInfo(@PathVariable(name = "id") String id, @PathVariable(name = "busiType") String busiType) {
+    public ResponseInfo getInfo(@PathVariable(name = "id") String id, @PathVariable(name = "busiType") String busiType, String seaId) {
         ResponseInfo resp = new ResponseInfo();
         BaseResult baseResult = null;
         try {
-            baseResult = searchListService.getCompanyDetail(id, "", busiType);
+            long sId = 0L;
+            if (StringUtil.isNotEmpty(seaId)) {
+                sId = NumberConvertUtil.parseLong(seaId);
+            }
+            baseResult = searchListService.getCompanyDetail(id, "", busiType, sId);
         } catch (Exception e) {
             logger.error("查询记录异常,", e);
             return new ResponseInfoAssemble().failure(-1, "查询记录异常[" + busiType + "]");
