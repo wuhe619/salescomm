@@ -1315,5 +1315,37 @@ public class CustomsService {
         }
     }
 
+    /**
+     * 手动同步回执状态到报关单分单（只同步已提交的）
+     */
+    public void synchzStatus(){
+        String sql1 = "select * from h_data_manager_bgd_f where ext_1='B1'";
+        RowMapper<HBusiDataManager> managerRowMapper = new BeanPropertyRowMapper<>(HBusiDataManager.class);
+        List<HBusiDataManager> list = jdbcTemplate.query(sql1, managerRowMapper);
+        for(HBusiDataManager hb:list){
+            try {
+                String sql2 = "select * from h_data_manager_bgd_hz where ext_3='" + hb.getExt_3() + "' and ext_4='" + hb.getExt_4() + "' order by create_date desc limit 1 ";
+                RowMapper<HBusiDataManager> managerRowMapper2 = new BeanPropertyRowMapper<>(HBusiDataManager.class);
+                List<HBusiDataManager> list2 = jdbcTemplate.query(sql2, managerRowMapper2);
+                if (list2 != null && list2.size() > 0) {
+                    HBusiDataManager hz = list2.get(0);
+                    if (hb.getExt_1() != null && hz.getExt_2() != null && (!hb.getExt_1().equals(hz.getExt_2()))) {
+                        String content = hb.getContent();
+                        JSONObject json = JSONObject.parseObject(content);
+                        json.put("send_status", hz.getExt_2());
+
+                        String sql = "update h_data_manager_bgd_f set content='" + json.toJSONString() + "',ext_1='" + hz.getExt_2() + "' where ext_3='" + hb.getExt_3() + "' and ext_4='" + hb.getExt_4() + "'";
+
+                        jdbcTemplate.update(sql);
+                    }
+                }
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+        }
+
+
+    }
+
 }
 
