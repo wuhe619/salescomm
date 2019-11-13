@@ -223,9 +223,10 @@ public class ParseHzXml {
                 for (int j = 0; j < properties.getLength(); j++) {
                     Node property = properties.item(j);
                     String nodeName = property.getNodeName();
+
                     if (nodeName.equals("PreEntryId")) {
-                        String PreEntryId = property.getFirstChild().getNodeValue();
-                        log.info("PreEntryId=" + PreEntryId);
+                        String PreEntryId = property.getFirstChild()==null?"":property.getFirstChild().getNodeValue();
+                        log.info("PreEntryId=" + PreEntryId == null ? "" : PreEntryId);
                         headData.put("pre_entryid", PreEntryId);
                     } else if (nodeName.equals("OpType")) {
                         String OpType = property.getFirstChild().getNodeValue();
