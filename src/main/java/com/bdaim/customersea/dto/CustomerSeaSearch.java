@@ -127,6 +127,24 @@ public class CustomerSeaSearch {
     private String regCapitalMax;
     private String regCapitalMin;
     private String custType;
+    private String custName;
+    private String  regStatus;
+
+    public String getRegStatus() {
+        return regStatus;
+    }
+
+    public void setRegStatus(String regStatus) {
+        this.regStatus = regStatus;
+    }
+
+    public String getCustName() {
+        return custName;
+    }
+
+    public void setCustName(String custName) {
+        this.custName = custName;
+    }
 
     public String getCustType() {
         return custType;

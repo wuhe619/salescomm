@@ -7305,10 +7305,11 @@ public class MarketResourceService {
 
     /**
      * 根据指定数量变更负责人
+     *
      * @param count
      * @param custGroupId
      * @param type
-     * @param condition 新负责人
+     * @param condition    新负责人
      * @param leaderUserId 当前负责人
      * @param intentLevel
      * @param marketTaskId
@@ -7849,6 +7850,7 @@ public class MarketResourceService {
 
     /**
      * 通话记录审核
+     *
      * @param touchIds
      * @param intentStatus
      * @param time
@@ -7892,6 +7894,7 @@ public class MarketResourceService {
 
     /**
      * 根据检索条件批量审核通话记录
+     *
      * @param param
      * @return
      */
@@ -8227,6 +8230,7 @@ public class MarketResourceService {
         LOG.warn("根据触达ID未找到通话录音文件,userId:" + userId + ",filePath:" + filePath);
         return null;
     }
+
     /**
      * 通话记录接口(企业名称查询)
      *
@@ -8244,7 +8248,7 @@ public class MarketResourceService {
      */
     public com.bdaim.common.dto.Page queryRecordVoiceLogV3(UserQueryParam userQueryParam, String customerGroupId, String superId, String realName,
                                                            String createTimeStart, String createTimeEnd, String remark, String callStatus, String level,
-                                                           String auditingStatus, String marketTaskId, int calledDuration, String custProperty, String seaId,String custName) {
+                                                           String auditingStatus, String marketTaskId, int calledDuration, String custProperty, String seaId, String custName) {
         com.bdaim.common.dto.Page page = null;
         int taskType = -1;
         try {
@@ -8300,11 +8304,11 @@ public class MarketResourceService {
                         // 文本和多选支持模糊搜索
                         if (cacheLabel.get(labelId) != null && cacheLabel.get(labelId).getType() != null
                                 && (cacheLabel.get(labelId).getType() == 1 || cacheLabel.get(labelId).getType() == 3)) {
-                            likeValue = "%\"" + labelId + "\":\"%" + optionValue + "%";
+                            likeValue = "'$." + labelId + "'" + "like '%" + optionValue + "%'";
                         } else {
-                            likeValue = "%\"" + labelId + "\":\"" + optionValue + "\"%";
+                            likeValue = "'$." + labelId + "'" + "like '%" + optionValue + "%'";
                         }
-                        sb.append(" AND t2.super_data LIKE '" + likeValue + "' ");
+                        sb.append(" AND t2.super_data -> " + likeValue + " ");
                     }
                 }
             }
@@ -8343,8 +8347,8 @@ public class MarketResourceService {
             if (StringUtil.isNotEmpty(marketTaskId)) {
                 sb.append(" AND voicLog.market_task_id='" + marketTaskId.trim() + "'");
             }
-            if(StringUtil.isNotEmpty(custName)){
-                sb.append(" AND cust.enterprise_name like '%"+ custName + "%'");
+            if (StringUtil.isNotEmpty(custName)) {
+                sb.append(" AND cust.enterprise_name like '%" + custName + "%'");
             }
             //　处理通话状态查询
             if (StringUtil.isNotEmpty(callStatus)) {
