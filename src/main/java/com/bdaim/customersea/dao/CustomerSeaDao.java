@@ -1,8 +1,7 @@
 package com.bdaim.customersea.dao;
 
+import com.alibaba.fastjson.JSON;
 import com.bdaim.common.dao.SimpleHibernateDao;
-import com.bdaim.common.util.SqlAppendUtil;
-import com.bdaim.common.util.StringUtil;
 import com.bdaim.customer.dao.CustomerUserDao;
 import com.bdaim.customer.dto.CustomerUserGroupRelDTO;
 import com.bdaim.customersea.dto.CustomerSeaParam;
@@ -11,6 +10,7 @@ import com.bdaim.customersea.dto.SeaImportDataParam;
 import com.bdaim.customersea.entity.CustomerSea;
 import com.bdaim.customersea.entity.CustomerSeaProperty;
 import com.bdaim.customgroup.dto.CGroupImportParam;
+import com.bdaim.util.ConstantsUtil;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import com.bdaim.util.SqlAppendUtil;
 import com.bdaim.util.StringUtil;

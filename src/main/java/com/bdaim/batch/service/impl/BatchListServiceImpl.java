@@ -24,6 +24,7 @@ import com.bdaim.resource.dao.SourceDao;
 import com.bdaim.resource.entity.MarketResourceEntity;
 import com.bdaim.resource.price.dto.ResourcesPriceDto;
 
+import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
@@ -177,7 +178,7 @@ public class BatchListServiceImpl implements BatchListService {
                         short lastCellNum = row.getLastCellNum();
                         for (int j = 0; j < lastCellNum; j++) {
                             Cell cell = row.getCell(j);
-                            if (cell != null && cell.getCellType() != CellType.BLANK) {
+                            if (cell != null && cell.getCellType() != HSSFCell.CELL_TYPE_BLANK) {
                                 cell.setCellType(CellType.STRING);
                                 switch (j) {
                                     case 0:
