@@ -9,16 +9,12 @@ import com.bdaim.bill.service.TransactionService;
 import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.service.BusiService;
 import com.bdaim.common.service.ElasticSearchService;
-import com.bdaim.common.service.ResourceService;
-import com.bdaim.common.service.SequenceService;
 import com.bdaim.common.third.zhianxin.dto.BaseResult;
-import com.bdaim.common.third.zhianxin.service.SearchListService;
-import com.bdaim.customer.dao.CustomerDao;
+import com.bdaim.common.third.zhianxin.service.ZAXSearchListService;
 import com.bdaim.customersea.dto.CustomSeaTouchInfoDTO;
 import com.bdaim.customersea.service.CustomerSeaService;
 import com.bdaim.customs.entity.BusiTypeEnum;
 import com.bdaim.customs.entity.HMetaDataDef;
-import com.bdaim.customs.utils.ServiceUtils;
 import com.bdaim.resource.dao.MarketResourceDao;
 import com.bdaim.resource.entity.ResourcePropertyEntity;
 import com.bdaim.resource.service.MarketResourceService;
@@ -50,7 +46,7 @@ public class B2BTcbService implements BusiService {
     @Autowired
     ElasticSearchService elasticSearchService;
     @Autowired
-    private SearchListService searchListService;
+    private ZAXSearchListService searchListService;
     @Autowired
     private CustomerSeaService seaService;
     @Autowired

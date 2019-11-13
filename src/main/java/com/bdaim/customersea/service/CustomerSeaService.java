@@ -138,7 +138,7 @@ public class CustomerSeaService {
     /**
      * 默认需要转为super_data的字段名称
      */
-    private Map<String, String> defaultLabels = new HashMap() {{
+    public static Map<String, String> defaultLabels = new HashMap() {{
         put("qq", "SYS002");
         put("email", "SYS003");
         put("profession", "SYS004");
