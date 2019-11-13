@@ -343,7 +343,7 @@ public class B2BTcbService implements BusiService {
                     dto.setRegTime(detailData.getString("fromTime"));
                     dto.setEntPersonNum(pNumbers.size());
                     // 保存线索
-                    int status = seaService.addClueData0(dto);
+                    int status = seaService.addClueData0(dto, seaType);
                     log = new JSONObject();
                     // B2B数据企业ID
                     log.put("ext_1", key);

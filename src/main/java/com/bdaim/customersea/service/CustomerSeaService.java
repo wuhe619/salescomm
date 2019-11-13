@@ -3674,4 +3674,83 @@ public class CustomerSeaService {
         }
         return 0;
     }
+    /**
+     * 添加线索
+     *
+     * @param dto
+     * @param seaType 1-添加到公海 2-添加到私海
+     * @return
+     */
+    public int addClueData0(CustomSeaTouchInfoDTO dto, int seaType) {
+        // 处理qq 微信等默认自建属性值
+        handleDefaultLabelValue(dto);
+        StringBuffer sql = new StringBuffer();
+        int status = 0;
+        try {
+            // 查询公海下默认客群
+            CustomerSeaProperty csp = customerSeaDao.getProperty(dto.getCustomerSeaId(), "defaultClueCgId");
+            if (csp == null) {
+                LOG.warn("公海:" + dto.getCustomerSeaId() + ",默认线索客群不存在");
+            } else {
+                dto.setCust_group_id(csp.getPropertyValue());
+            }
+            String superId = phoneService.savePhoneToAPI(dto.getSuper_telphone());
+            if (StringUtil.isEmpty(superId)) {
+                superId = MD5Util.encode32Bit("c" + dto.getSuper_telphone());
+            }
+            dto.setSuper_id(superId);
+            CustomerUser user = customerUserDao.get(NumberConvertUtil.parseLong(dto.getUser_id()));
+            int dataStatus = 1;
+            // 组长和员工数据状态为已分配
+            if (2 == user.getUserType()) {
+                dataStatus = 0;
+            } else {
+                // 超管和项目管理员数据状态为未分配
+                dto.setUser_id(null);
+            }
+            // 添加至公海责任人为空
+            if (1 == seaType) {
+                dto.setUser_id(null);
+            }
+            LOG.info("开始保存添加线索个人信息:" + ConstantsUtil.CUSTOMER_GROUP_TABLE_PREFIX + dto.getCust_group_id() + ",数据:" + dto.toString());
+            try {
+                customGroupDao.createCgDataTable(NumberConvertUtil.parseInt(dto.getCust_group_id()));
+            } catch (HibernateException e) {
+                LOG.error("创建用户群表失败,id:" + dto.getCust_group_id(), e);
+            }
+            List<Map<String, Object>> list = customerDao.sqlQuery("SELECT id FROM " + ConstantsUtil.CUSTOMER_GROUP_TABLE_PREFIX + dto.getCust_group_id() + " WHERE id= ?", superId);
+            if (list.size() > 0) {
+                LOG.warn("客群ID:[" + dto.getCust_group_id() + "]添加线索ID:[" + superId + "]已经存在");
+                return -1;
+            }
+
+            sql.append(" INSERT INTO " + ConstantsUtil.CUSTOMER_GROUP_TABLE_PREFIX + dto.getCust_group_id())
+                    .append(" (id, user_id, status, `super_name`, `super_age`, `super_sex`, `super_telphone`, `super_phone`, `super_address_province_city`, `super_address_street`, `super_data`,update_time) ")
+                    .append(" VALUES(?,?,?,?,?,?,?,?,?,?,?,?) ");
+            this.customerSeaDao.executeUpdateSQL(sql.toString(), superId, dto.getUser_id(), dataStatus, dto.getSuper_name(), dto.getSuper_age(),
+                    dto.getSuper_sex(), dto.getSuper_telphone(), dto.getSuper_phone(),
+                    dto.getSuper_address_province_city(), dto.getSuper_address_street(), JSON.toJSONString(dto.getSuperData()), new Timestamp(System.currentTimeMillis()));
+
+            sql = new StringBuffer();
+            sql.append(" INSERT INTO " + ConstantsUtil.SEA_TABLE_PREFIX + dto.getCustomerSeaId())
+                    .append(" (id, user_id, status, `super_name`, `super_age`, `super_sex`, `super_telphone`, `super_phone`, `super_address_province_city`, `super_address_street`, `super_data`, batch_id, data_source,create_time) ")
+                    .append(" VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?) ");
+            this.customerSeaDao.executeUpdateSQL(sql.toString(), superId, dto.getUser_id(), dataStatus, dto.getSuper_name(), dto.getSuper_age(),
+                    dto.getSuper_sex(), dto.getSuper_telphone(), dto.getSuper_phone(),
+                    dto.getSuper_address_province_city(), dto.getSuper_address_street(), JSON.toJSONString(dto.getSuperData()), dto.getCust_group_id(), 3, new Timestamp(System.currentTimeMillis()));
+            // 保存标记信息到es中
+            CustomerSeaESDTO esData = new CustomerSeaESDTO(dto);
+            esData.setSuper_data(JSON.toJSONString(dto.getSuperData()));
+            //es暂时取消
+            //saveClueInfoToES(esData);
+            // 保存到redis中号码对应关系
+            phoneService.setValueByIdFromRedis(superId, dto.getSuper_telphone());
+            status = 1;
+        } catch (Exception e) {
+            status = 0;
+            LOG.error("保存添加线索个人信息" + ConstantsUtil.CUSTOMER_GROUP_TABLE_PREFIX + dto.getCust_group_id() + "失败", e);
+        }
+        return status;
+    }
+
 }
