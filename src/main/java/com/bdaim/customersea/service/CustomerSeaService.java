@@ -164,6 +164,7 @@ public class CustomerSeaService {
     private Map<String, String> excelDefaultLabels = new HashMap() {{
         put("qq", "SYS002");
         put("QQ", "SYS002");
+        put("QQ号", "SYS002");
         put("email", "SYS003");
         put("EMAIL", "SYS003");
         put("weChat", "SYS001");
@@ -175,10 +176,10 @@ public class CustomerSeaService {
         put("姓名", "super_name");
         put("年龄", "super_age");
         put("性别", "super_sex");
-        put("手机", "super_phone");
-        put("手机号", "super_phone");
-        put("电话", "super_telphone");
-        put("电话号码", "super_telphone");
+        put("手机", "super_telphone");
+        put("手机号", "super_telphone");
+        put("电话", "super_phone");
+        put("电话号码", "super_phone");
         put("邮箱", "SYS003");
         put("省市", "super_address_province_city");
         put("地址", "super_address_street");
@@ -3650,7 +3651,7 @@ public class CustomerSeaService {
                         distStatus = 1;
                     }
                     for (SeaImportDataParam s : seaData) {
-                        s.setSuper_id(superIdData.get(s.getSuper_phone()));
+                        s.setSuper_id(superIdData.get(s.getSuper_telphone()));
                         s.setUser_id(user_id);
                         s.setStatus(distStatus);
                         if (superData.get(s.getSuper_phone()) != null) {
