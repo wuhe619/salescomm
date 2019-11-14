@@ -38,9 +38,9 @@ public class HBillService {
             querySql.append("AND create_time LIKE '" + param.getBillDate() + "%'");
         }
         if (StringUtil.isNotEmpty(param.getStatus())) {
-            querySql.append(" AND JSON_EXTRACT(content, '$.status') =" + param.getStatus());
+            querySql.append(" AND JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$.status') =" + param.getStatus());
         } else {
-            querySql.append(" AND JSON_EXTRACT(content, '$.status')>0");
+            querySql.append(" AND JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$.status')>0");
         }
         querySql.append(" GROUP BY batch_id,resource_id order by create_time desc ");
         Page data = customerDao.sqlPageQuery(querySql.toString(), param.getPageNum(), param.getPageSize());
@@ -89,9 +89,9 @@ public class HBillService {
                 querySql.append(" AND id ='" + param.getTransactionId() + "'");
             }
             if (StringUtil.isNotEmpty(param.getStatus())) {
-                querySql.append(" AND JSON_EXTRACT(content, '$.status') =" + param.getStatus());
+                querySql.append(" AND JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$.status') =" + param.getStatus());
             } else {
-                querySql.append(" AND JSON_EXTRACT(content, '$.status')>0");
+                querySql.append(" AND JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$.status')>0");
             }
             if (StringUtil.isNotEmpty(param.getStartTime())) {
                 querySql.append(" AND create_time >= '" + param.getStartTime() + "'");
@@ -154,9 +154,9 @@ public class HBillService {
                 querySql.append(" AND id ='" + param.getTransactionId() + "'");
             }
             if (StringUtil.isNotEmpty(param.getStatus())) {
-                querySql.append(" AND CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.status') =" + param.getStatus() + " ELSE null END ");
+                querySql.append(" AND CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$.status') =" + param.getStatus() + " ELSE null END ");
             } else {
-                querySql.append(" AND CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.status')>0" + " ELSE null END");
+                querySql.append(" AND CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$.status')>0" + " ELSE null END");
             }
             if (StringUtil.isNotEmpty(param.getStartTime())) {
                 querySql.append(" AND create_time >= '" + param.getStartTime() + "'");

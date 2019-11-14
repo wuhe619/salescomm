@@ -1182,7 +1182,7 @@ public class CustomsService {
             sql.append(" and cust_id='" + custId + "'");
         } else {
             if (StringUtil.isNotEmpty(stationId)) {
-                sql.append(" and JSON_EXTRACT(content, '$.station_id')='" + stationId + "')");
+                sql.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$.station_id')='" + stationId + "')");
             }
             if (StringUtil.isNotEmpty(custId)) {
                 sql.append(" and cust_id='" + custId + "'");
@@ -1201,7 +1201,7 @@ public class CustomsService {
             sql.append(" and cust_id='" + custId + "'");
         } else {
             if (StringUtil.isNotEmpty(stationId)) {
-                sql.append(" and JSON_EXTRACT(content, '$.station_id')='" + stationId + "')");
+                sql.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$.station_id')='" + stationId + "')");
             }
             if (StringUtil.isNotEmpty(custId)) {
                 sql.append(" and cust_id='" + custId + "'");
@@ -1256,7 +1256,7 @@ public class CustomsService {
             sql.append(" and cust_id='" + custId + "'");
         } else {
             if (StringUtil.isNotEmpty(stationId)) {
-                sql.append(" and JSON_EXTRACT(content, '$.station_id')='" + stationId + "')");
+                sql.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$.station_id')='" + stationId + "')");
             }
             if (StringUtil.isNotEmpty(custId)) {
                 sql.append(" and cust_id='" + custId + "'");

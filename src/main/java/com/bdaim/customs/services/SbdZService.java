@@ -153,7 +153,7 @@ public class SbdZService implements BusiService {
             //serviceUtils.esTestData();
             StringBuffer sql = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(BusiTypeEnum.SF.getType(), "") + " where type=?")
                     .append(" and cust_id='").append(cust_id).append("'")
-                    .append(" and (ext_7 IS NULL OR ext_7 = '' OR JSON_EXTRACT(content, '$.check_status')='0') ");
+                    .append(" and (ext_7 IS NULL OR ext_7 = '' OR JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$.check_status')='0') ");
             //.append(" and JSON_EXTRACT(content, '$.check_status')=1");
 
             sql.append(" and ext_4=(SELECT ext_3 FROM " + HMetaDataDef.getTable(BusiTypeEnum.getParentType(BusiTypeEnum.SF.getType()), "") + " WHERE id = ?)");
@@ -437,43 +437,43 @@ public class SbdZService implements BusiService {
             } else if (key.equals("bill_no")) {
                 sqlstr.append(" and ext_3 = ? ");
             } else if (key.startsWith("_c_")) {
-                sqlstr.append(" and JSON_EXTRACT(REPLACE(content,'\t', ''), '$." + key.substring(3) + "') like concat('%',?,'%')");
+                sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key.substring(3) + "') like concat('%',?,'%')");
             } else if (key.startsWith("_g_")) {
-                sqlstr.append(" and JSON_EXTRACT(REPLACE(content,'\t', ''), '$." + key.substring(3) + "') > ?");
+                sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key.substring(3) + "') > ?");
             } else if (key.startsWith("_ge_")) {
-                sqlstr.append(" and JSON_EXTRACT(REPLACE(content,'\t', ''), '$." + key.substring(4) + "') >= ?");
+                sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key.substring(4) + "') >= ?");
             } else if (key.startsWith("_l_")) {
-                sqlstr.append(" and JSON_EXTRACT(REPLACE(content,'\t', ''), '$." + key.substring(3) + "') < ?");
+                sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key.substring(3) + "') < ?");
             } else if (key.startsWith("_le_")) {
-                sqlstr.append(" and JSON_EXTRACT(REPLACE(content,'\t', ''), '$." + key.substring(4) + "') <= ?");
+                sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key.substring(4) + "') <= ?");
             } else if (key.startsWith("_range_")) {
                 if ("0".equals(String.valueOf(params.get(key)))) {
-                    sqlstr.append(" and ( JSON_EXTRACT(REPLACE(content,'\t', ''), '$." + key.substring(7) + "') <= ?")
-                            .append(" OR JSON_EXTRACT(REPLACE(content,'\t', ''), '$." + key.substring(7) + "') = '' ")
-                            .append(" OR JSON_EXTRACT(REPLACE(content,'\t', ''), '$." + key.substring(7) + "') IS NULL ) ");
+                    sqlstr.append(" and ( JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key.substring(7) + "') <= ?")
+                            .append(" OR JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key.substring(7) + "') = '' ")
+                            .append(" OR JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key.substring(7) + "') IS NULL ) ");
                 } else {
-                    sqlstr.append(" and JSON_EXTRACT(REPLACE(content,'\t', ''), '$." + key.substring(7) + "') >= ?");
+                    sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key.substring(7) + "') >= ?");
                 }
             } else if ("commit_status".equals(key)) {
                 // 提交记录特殊处理
                 if ("1".equals(String.valueOf(params.get(key)))) {
                     //  未提交
-                    sqlstr.append(" AND ( JSON_EXTRACT(REPLACE(content,'\t', ''), '$.commit_cangdan_status') = 'N' OR JSON_EXTRACT(REPLACE(content,'\t', ''), '$.commit_cangdan_status') = '' )  ")
-                            .append(" AND ( JSON_EXTRACT(REPLACE(content,'\t', ''), '$.commit_baodan_status') = 'N' OR JSON_EXTRACT(REPLACE(content,'\t', ''), '$.commit_baodan_status') = '' )  ");
+                    sqlstr.append(" AND ( JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$.commit_cangdan_status') = 'N' OR JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$.commit_cangdan_status') = '' )  ")
+                            .append(" AND ( JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$.commit_baodan_status') = 'N' OR JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$.commit_baodan_status') = '' )  ");
                 } else if ("2".equals(String.valueOf(params.get(key)))) {
                     //  舱单已提交
-                    sqlstr.append(" AND JSON_EXTRACT(REPLACE(content,'\t', ''), '$.commit_cangdan_status') = 'Y' ");
+                    sqlstr.append(" AND JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$.commit_cangdan_status') = 'Y' ");
                 } else if ("3".equals(String.valueOf(params.get(key)))) {
                     //  报单已提交
-                    sqlstr.append(" AND JSON_EXTRACT(REPLACE(content,'\t', ''), '$.commit_baodan_status') = 'Y' ");
+                    sqlstr.append(" AND JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$.commit_baodan_status') = 'Y' ");
                 } else if ("4".equals(String.valueOf(params.get(key)))) {
                     //  舱单 报单都提交
-                    sqlstr.append(" AND ( JSON_EXTRACT(REPLACE(content,'\t', ''), '$.commit_cangdan_status') = 'Y' AND JSON_EXTRACT(REPLACE(content,'\t', ''), '$.commit_baodan_status') = 'Y' ) ");
+                    sqlstr.append(" AND ( JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$.commit_cangdan_status') = 'Y' AND JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$.commit_baodan_status') = 'Y' ) ");
                 }
                 continue;
 
             } else {
-                sqlstr.append(" and JSON_EXTRACT(REPLACE(content,'\t', ''), '$." + key + "')=?");
+                sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key + "')=?");
             }
 
             sqlParams.add(params.get(key));
