@@ -352,7 +352,7 @@ public class SbdZService implements BusiService {
                                             .append(split)
                                             .append("(").append(fd.getString("g_qty")).append("*").append(fd.getString("decl_price")).append("),");
                                     //estimated_tax += fd.getDoubleValue("estimated_tax");
-                                    estimated_tax.add(new BigDecimal(fd.getString("estimated_tax")));
+                                    estimated_tax = estimated_tax.add(new BigDecimal(fd.getString("estimated_tax")));
                                 }
                             }
                             fdData.put("g_name", gName.toString());
