@@ -3660,10 +3660,11 @@ public class CustomerSeaService {
                         }
                         s.getSuperData().put("SYS007", "未跟进");
                     }
-                    customerSeaDao.insertBatchDataData(seaId, seaData);
-
+                    LOG.info("导入公海ID:{},明细表插入数据大小:{}", seaId, seaData);
+                    int seaCount = customerSeaDao.insertBatchDataData(seaId, seaData);
+                    LOG.info("导入公海ID:{},插入数量返回结果:{}", seaId, seaCount);
                     if (uCount) {
-                        LOG.info("导入客户群数据ID:" + custGroupId + "成功");
+                        LOG.info("导入客户群ID:" + custGroupId + "成功");
                         // 更改客户群状态
                         CustomGroup cg = customGroupDao.get(NumberConvertUtil.parseInt(custGroupId));
                         if (cg != null) {
