@@ -67,17 +67,17 @@ public class BusiMetaConfig {
         } else if ("cust_id".equals(field) || "cust_user_id".equals(field) || "cust_group_id".equals(field)) {
             newField = field;
         } else if (field.startsWith("_g_")) {
-            newField = "JSON_EXTRACT(content, '$." + field.substring(3) + "') ";
+            newField = "JSON_EXTRACT(REPLACE(content,'\t', ''), '$." + field.substring(3) + "') ";
         } else if (field.startsWith("_ge_")) {
-            newField = "JSON_EXTRACT(content, '$." + field.substring(4) + "') ";
+            newField = "JSON_EXTRACT(REPLACE(content,'\t', ''), '$." + field.substring(4) + "') ";
         } else if (field.startsWith("_l_")) {
-            newField = "JSON_EXTRACT(content, '$." + field.substring(3) + "') ";
+            newField = "JSON_EXTRACT(REPLACE(content,'\t', ''), '$." + field.substring(3) + "') ";
         } else if (field.startsWith("_le_")) {
-            newField = "JSON_EXTRACT(content, '$." + field.substring(4) + "') ";
+            newField = "JSON_EXTRACT(REPLACE(content,'\t', ''), '$." + field.substring(4) + "') ";
         } else if (field.startsWith("_eq_")) {
-            newField = "JSON_EXTRACT(content, '$." + field.substring(4) + "') ";
+            newField = "JSON_EXTRACT(REPLACE(content,'\t', ''), '$." + field.substring(4) + "') ";
         } else {
-            newField = "JSON_EXTRACT(content, '$." + field + "')";
+            newField = "JSON_EXTRACT(REPLACE(content,'\t', ''), '$." + field + "')";
         }
 
         return newField;
