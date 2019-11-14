@@ -426,7 +426,8 @@ public class CdZService implements BusiService {
         cz.setCust_id(Long.valueOf(custId));
         cz.setCreateId(Long.valueOf(userId));
         cz.setExt_3(h.getExt_3());
-        cz.setExt_1("0");//0 未发送 1，已发送
+        String sendStatus = "0";
+        cz.setExt_1(sendStatus);//0 未发送 1，已发送
         cz.setCust_user_id(userId.toString());
 
         JSONObject json = JSON.parseObject(h.getContent());
@@ -489,6 +490,8 @@ public class CdZService implements BusiService {
             hm.setCreateDate(new Date());
             Long fid = sequenceService.getSeq(BusiTypeEnum.CF.getType());
             hm.setId(fid);
+            hp.setExt_1(sendStatus);
+            hm.setExt_1(hp.getExt_1());
             hm.setExt_2(hp.getExt_2());
             hm.setExt_3(hp.getExt_3());
             hm.setExt_4(hp.getExt_4());
@@ -498,6 +501,7 @@ public class CdZService implements BusiService {
             JSONObject _content = JSON.parseObject(hp.getContent());
             _content.put("pid", id);
             _content.put("main_bill_no", json.get("bill_no"));
+            _content.put("send_status", sendStatus);
             // 舱单总分单件数=分运单件数和
             pack_no += _content.getIntValue("pack_no");
 
