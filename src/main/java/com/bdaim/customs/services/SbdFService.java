@@ -285,13 +285,13 @@ public class SbdFService implements BusiService {
                 if ("cust_id".equals(key)) {
                     sqlstr.append(" and cust_id=?");
                 } else if (key.endsWith(".c")) {
-                    sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(0, key.length() - 2) + "') like '%?%'");
+                    sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key.substring(0, key.length() - 2) + "') like '%?%'");
                 } else if (key.endsWith(".start")) {
-                    sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(0, key.length() - 6) + "') >= ?");
+                    sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key.substring(0, key.length() - 6) + "') >= ?");
                 } else if (key.endsWith(".end")) {
-                    sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(0, key.length() - 6) + "') <= ?");
+                    sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key.substring(0, key.length() - 6) + "') <= ?");
                 } else {
-                    sqlstr.append(" and JSON_EXTRACT(content, '$." + key + "')=?");
+                    sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key + "')=?");
                 }
 
                 sqlParams.add(params.get(key));

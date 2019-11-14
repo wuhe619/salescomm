@@ -495,17 +495,17 @@ public class BgdZService implements BusiService {
             if ("cust_id".equals(key)) {
                 sqlstr.append(" and cust_id=?");
             } else if (key.startsWith("_g_")) {
-                sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(3) + "') > ?");
+                sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key.substring(3) + "') > ?");
             } else if (key.startsWith("_ge_")) {
-                sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(4) + "') >= ?");
+                sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key.substring(4) + "') >= ?");
             } else if (key.startsWith("_l_")) {
-                sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(3) + "') < ?");
+                sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key.substring(3) + "') < ?");
             } else if (key.startsWith("_le_")) {
-                sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(4) + "') <= ?");
+                sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key.substring(4) + "') <= ?");
             } else if (key.startsWith("_eq_")) {
-                sqlstr.append(" and JSON_EXTRACT(content, '$." + key.substring(4) + "') = ?");
+                sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key.substring(4) + "') = ?");
             } else {
-                sqlstr.append(" and JSON_EXTRACT(content, '$." + key + "')=?");
+                sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key + "')=?");
             }
             sqlParams.add(param.get(key));
         }
