@@ -3230,47 +3230,44 @@ public class CustomerSeaService {
 
         // 查询所有自建属性
         Map<String, CustomerLabel> cacheLabel = labelService.getCacheCustomAndSystemLabel(param.getCustId());
-//        if (StringUtil.isNotEmpty(param.getLabelProperty())) {
-//            JSONObject jsonObject;
-//            String labelId, optionValue, likeValue;
-//            JSONArray custProperty = JSON.parseArray(param.getLabelProperty());
-//            for (int i = 0; i < custProperty.size(); i++) {
-//                jsonObject = custProperty.getJSONObject(i);
-//                if (jsonObject != null) {
-//                    labelId = jsonObject.getString("labelId");
-//                    optionValue = jsonObject.getString("optionValue");
-//
-//
-//                        // 文本和多选支持模糊搜索
-//                        if (cacheLabel.get(labelId) != null && cacheLabel.get(labelId).getType() != null
-//                                && (cacheLabel.get(labelId).getType() == 1 || cacheLabel.get(labelId).getType() == 3)) {
-//                            likeValue = "'$." + labelId + "' like " + "'%" + optionValue + "%'";
-//                        } else {
-//                            likeValue = "'$." + labelId + "' like " + "'%" + optionValue + "%'";
-//                        }
-//
-//
-//                    sb.append(" AND custG.super_data -> " + likeValue + " ");
-//                }
-//            }
-//        }
+        if (StringUtil.isNotEmpty(param.getLabelProperty())) {
+            JSONObject jsonObject;
+            String labelId, optionValue, likeValue;
+            JSONArray custProperty = JSON.parseArray(param.getLabelProperty());
+            for (int i = 0; i < custProperty.size(); i++) {
+                jsonObject = custProperty.getJSONObject(i);
+                if (jsonObject != null) {
+                    labelId = jsonObject.getString("labelId");
+                    optionValue = jsonObject.getString("optionValue");
+                    String key = excelDefaultLabels.get(labelId);
+                    // 文本和多选支持模糊搜索
+                    if (cacheLabel.get(labelId) != null && cacheLabel.get(labelId).getType() != null
+                            && (cacheLabel.get(labelId).getType() == 1 || cacheLabel.get(labelId).getType() == 3)) {
+                        likeValue = "'$." + key + "' like " + "'%" + optionValue + "%'";
+                    } else {
+                        likeValue = "'$." + key + "' like " + "'%" + optionValue + "%'";
+                    }
+                    sb.append(" AND custG.super_data -> " + likeValue + " ");
+                }
+            }
+        }
         if (StringUtil.isNotEmpty(param.getCustName())) {
             sb.append(" AND custG.super_data -> " + "'$.SYS005' like " + "'%" + param.getCustName() + "%'" + " ");
         }
         if (StringUtil.isNotEmpty(param.getRegCapitalMin()) || StringUtil.isNotEmpty(param.getRegCapitalMax())) {
             sb.append(" AND custG.super_data -> '$.SYS010' BETWEEN ");
             sb.append(param.getRegCapitalMin() == null ? 0 : param.getRegCapitalMin());
-            sb.append(" AND " );
+            sb.append(" AND ");
             sb.append(param.getRegCapitalMax() == null ? 0 : param.getRegCapitalMax());
         }
         if (StringUtil.isNotEmpty(param.getCreateTime())) {
-            sb.append(" AND custG.super_data -> " + "'$.SYS011' >= " + "'" + param.getCreateTime() + "'" + " ");
+            sb.append(" AND custG.super_data -> " + "'$.SYS011' >= " + "'" + param.getCreateTime() + "'");
         }
         if (StringUtil.isNotEmpty(param.getEndTime())) {
-            sb.append(" AND custG.super_data -> " + "'$.SYS011' >= " + "'" + param.getEndTime() + "'" + " ");
+            sb.append(" AND custG.super_data -> " + "'$.SYS011' >= " + "'" + param.getEndTime() + "'");
         }
         if (StringUtil.isNotEmpty(param.getRegStatus())) {
-            sb.append(" AND custG.super_data -> " + "'$.SYS012' = " + "'" + param.getRegStatus() + "'" + " ");
+            sb.append(" AND custG.super_data -> " + "'$.SYS012' like " + "'%" + param.getRegStatus() + "%'");
         }
         //sb.append(" AND custG.status<>2 ");
         sb.append(" AND custG.status =1 ");
@@ -3294,6 +3291,7 @@ public class CustomerSeaService {
 
         return page;
     }
+
     /**
      * 私海线索列表
      *
@@ -3533,6 +3531,7 @@ public class CustomerSeaService {
 
     /**
      * 导入线索到私海
+     *
      * @param seaId
      * @param custGroupId
      * @param custId
@@ -3686,6 +3685,7 @@ public class CustomerSeaService {
         }
         return 0;
     }
+
     /**
      * 添加线索
      *
