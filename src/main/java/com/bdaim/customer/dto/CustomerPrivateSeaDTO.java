@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public enum CustomerShowRowEnum1 {
+public enum CustomerPrivateSeaDTO {
     NAME("super_name", "姓名"),
     SEX("super_sex", "性别"),
     AGE("super_age", "年龄"),
@@ -41,7 +41,7 @@ public enum CustomerShowRowEnum1 {
     private String key;
     private String value;
 
-    CustomerShowRowEnum1(String key, String value) {
+    CustomerPrivateSeaDTO(String key, String value) {
         this.key = key;
         this.value = value;
     }
@@ -63,7 +63,7 @@ public enum CustomerShowRowEnum1 {
     }
 
     public static String getValue(String key) {
-        for (CustomerShowRowEnum1 s : CustomerShowRowEnum1.values()) {
+        for (CustomerPrivateSeaDTO s : CustomerPrivateSeaDTO.values()) {
             if (s.key.equals(key)) {
                 return s.getValue();
             }
@@ -73,7 +73,7 @@ public enum CustomerShowRowEnum1 {
 
     public static List<Map<String, Object>> getAllRow() {
         List<Map<String, Object>> list = new ArrayList<>();
-        for (CustomerShowRowEnum1 s : CustomerShowRowEnum1.values()) {
+        for (CustomerPrivateSeaDTO s : CustomerPrivateSeaDTO.values()) {
             Map<String, Object> map = new HashMap<>();
             map.put("key", s.getKey());
             map.put("value", s.getValue());
@@ -82,5 +82,4 @@ public enum CustomerShowRowEnum1 {
         return list;
     }
 
-
-    }
+}

@@ -99,8 +99,8 @@ public class CustomerUserAction extends BasicAction {
     }
 
 
-   /* @RequestMapping(value = "/bindUserOpenId", method = RequestMethod.POST)
-    @ResponseBody*/
+    /* @RequestMapping(value = "/bindUserOpenId", method = RequestMethod.POST)
+     @ResponseBody*/
     public ResponseInfo bindUserOpenId(@RequestBody JSONObject body) {
         ResponseInfo responseJson = new ResponseInfo();
         responseJson.setCode(0);
@@ -181,6 +181,7 @@ public class CustomerUserAction extends BasicAction {
         }
         return JSON.toJSONString(responseJson);
     }
+
     /**
      * @description 查询客户公海已选字段
      * @author:duanliying
@@ -189,13 +190,20 @@ public class CustomerUserAction extends BasicAction {
      */
     @RequestMapping(value = "/getShowRow1", method = RequestMethod.GET)
     @ResponseBody
-    public Object getShowRowByUser1(String id) {
+    public Object getShowRowByUser1(String id, Integer custSeaType) {
         ResponseJson responseJson = new ResponseJson();
         LoginUser lu = opUser();
         Long userId = lu.getId();
         logger.info("操作用户是：" + userId);
         try {
-            Map<String, Object> showRowByUser = customerUserService.getShowRowByUser1(id, userId);
+            Map<String, Object> showRowByUser;
+            if (custSeaType == null || custSeaType == 1) {
+                //公海
+                showRowByUser     = customerUserService.getShowRowByUserPublicSea(id, userId);
+            }else{
+                //私海
+                showRowByUser     = customerUserService.getShowRowByUserPrivateSea(id, userId);
+            }
             responseJson.setData(showRowByUser);
             responseJson.setCode(200);
             return JSON.toJSONString(responseJson);
