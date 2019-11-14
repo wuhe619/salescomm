@@ -199,10 +199,10 @@ public class CustomerUserAction extends BasicAction {
             Map<String, Object> showRowByUser;
             if (custSeaType == null || custSeaType == 1) {
                 //公海
-                showRowByUser     = customerUserService.getShowRowByUserPublicSea(id, userId);
-            }else{
+                showRowByUser = customerUserService.getShowRowByUserPublicSea(id, userId);
+            } else {
                 //私海
-                showRowByUser     = customerUserService.getShowRowByUserPrivateSea(id, userId);
+                showRowByUser = customerUserService.getShowRowByUserPrivateSea(id, userId);
             }
             responseJson.setData(showRowByUser);
             responseJson.setCode(200);
