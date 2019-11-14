@@ -184,7 +184,7 @@ public class SbdSService implements BusiService {
         float festimated_tax = 0;//预估税金
         for (HBusiDataManager m : goodsList) {
             JSONObject params = new JSONObject();
-            params.put("code", m.getExt_1());
+            params.put("code", m.getExt_3());
             float tax_rate = 0;
             float estimated_tax = 0;
             float duty_paid_price = 0;
