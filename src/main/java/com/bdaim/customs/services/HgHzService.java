@@ -44,20 +44,21 @@ public class HgHzService implements BusiService {
         info.put("ext_1", info.getString("status"));
         String xmlString = info.getString("xmlstring");
         if (StringUtil.isEmpty(xmlString)) {
-            throw new TouchException("海关回执内容不能为空");
+            log.warn("海关回执内容不能为空:{}", xmlString);
+            return;
         }
         String xml = new String(Base64.decodeBase64(xmlString), "UTF-8");
         log.info("海关回执xml:{}", xml);
         String messageType = parseHzXml.getMessageTypeByXml(xml);
         if (StringUtil.isEmpty(HZ_SERVICE.get(messageType))) {
             log.warn("海关回执messageType未找到对应定义,messageType:{},内容:{}", messageType, xml);
-            throw new TouchException("海关回执messageType未找到对应定义");
+            return;
+        } else {
+            info.put("hz_type", HZ_SERVICE.get(messageType));
+            // 根据消息类型处理报关单和舱单回执
+            busiService.saveInfo(cust_id, cust_group_id, cust_user_id, HZ_SERVICE.get(messageType), 0L, info);
+            log.info("海关回执处理完毕,messageType:{},回执类型:{}", messageType, HZ_SERVICE.get(messageType));
         }
-        info.put("hz_type", HZ_SERVICE.get(messageType));
-        // 根据消息类型处理报关单和舱单回执
-        busiService.saveInfo(cust_id, cust_group_id, cust_user_id, HZ_SERVICE.get(messageType), 0L, info);
-        log.info("海关回执处理完毕,messageType:{},回执类型:{}", messageType, HZ_SERVICE.get(messageType));
-
     }
 
     @Override
@@ -90,13 +91,14 @@ public class HgHzService implements BusiService {
 
         System.out.println(new String(bytes));
     }
-    public static  byte[] readFromByteFile(String pathname) throws IOException {
+
+    public static byte[] readFromByteFile(String pathname) throws IOException {
         File filename = new File(pathname);
         BufferedInputStream in = new BufferedInputStream(new FileInputStream(filename));
         ByteArrayOutputStream out = new ByteArrayOutputStream(1024);
         byte[] temp = new byte[1024];
         int size = 0;
-        while((size = in.read(temp)) != -1){
+        while ((size = in.read(temp)) != -1) {
             out.write(temp, 0, size);
         }
         in.close();
