@@ -221,11 +221,11 @@ public class SbdSService implements BusiService {
             } else {
                 if (goods.containsKey("ggrosswt") && StringUtil.isNotEmpty(goods.getString("ggrosswt"))) {
                     //weight_total += goods.containsKey("ggrosswt")?goods.getFloatValue("ggrosswt"):0;
-                    weight_total.add(new BigDecimal(goods.containsKey("ggrosswt") ? goods.getFloatValue("ggrosswt") : 0));
+                    weight_total = weight_total.add(new BigDecimal(goods.containsKey("ggrosswt") ? goods.getFloatValue("ggrosswt") : 0));
                 }
                 if (goods.containsKey("g_qty") && StringUtil.isNotEmpty(goods.getString("g_qty"))) {
                     //G_qty += goods.getFloatValue("g_qty");
-                    G_qty.add(new BigDecimal(goods.getFloatValue("g_qty")));
+                    G_qty = G_qty.add(new BigDecimal(goods.getFloatValue("g_qty")));
                 }
                 if (StringUtil.isNotEmpty(goods.getString("decl_price"))) {
                     if (Float.valueOf(goods.getString("decl_price")) < duty_paid_price) {

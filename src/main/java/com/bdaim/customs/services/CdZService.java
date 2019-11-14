@@ -533,7 +533,7 @@ public class CdZService implements BusiService {
                         //float total_price = multiply.setScale(5, BigDecimal.ROUND_HALF_UP).floatValue();
                         //税单价格合计
                         productContent.put("total_price", multiply.setScale(5, BigDecimal.ROUND_HALF_UP).floatValue());
-                        total_value.add(multiply.setScale(5, BigDecimal.ROUND_HALF_UP));
+                        total_value = total_value.add(multiply.setScale(5, BigDecimal.ROUND_HALF_UP));
                     }
                     good.setContent(productContent.toJSONString());
                     good.setType(BusiTypeEnum.CS.getType());
