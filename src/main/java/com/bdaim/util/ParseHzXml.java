@@ -95,19 +95,23 @@ public class ParseHzXml {
                     Node property = properties.item(j);
                     String nodeName = property.getNodeName();
                     if (nodeName.equals("BillNo")) {
-                        String BillNo = property.getFirstChild().getNodeValue();
+                        String BillNo = property.getFirstChild()==null?"":property.getFirstChild().getNodeValue();
                         log.info("BillNo=" + BillNo);
                         headData.put("billno", BillNo);
                     } else if (nodeName.equals("VoyageNo")) {
-                        String VoyageNo = property.getFirstChild().getNodeValue();
+                        String VoyageNo = property.getFirstChild()==null?"":property.getFirstChild().getNodeValue();
                         log.info("VoyageNo=" + VoyageNo);
                         headData.put("voyageno", VoyageNo);
                     } else if (nodeName.equals("EntryDate")) {
-                        String EntryDate = property.getFirstChild().getNodeValue();
-                        log.info("EntryDate=" + EntryDate);
-                        headData.put("entrydate", EntryDate);
+                        String EntryDate = "";
+                        Node EntryDateNode = property.getFirstChild();
+                        if(EntryDateNode!=null) {
+                            EntryDate = EntryDateNode.getNodeValue();
+                        }
+                            log.info("EntryDate=" + EntryDate);
+                            headData.put("entrydate", EntryDate);
                     } else if (nodeName.equals("RtnFlag")) {
-                        String RtnFlag = property.getFirstChild().getNodeValue();
+                        String RtnFlag = property.getFirstChild()==null?"":property.getFirstChild().getNodeValue();
                         log.info("RtnFlag=" + RtnFlag);
                         headData.put("rtnflag", RtnFlag);
                     } else if (nodeName.equals("Notes")) {
@@ -125,42 +129,45 @@ public class ParseHzXml {
             info.put("headData", headData);
             JSONArray array = new JSONArray();
             NodeList ExpMftList = rootElement.getElementsByTagName("ExpMftList");
-            for (int i = 0; i < ExpMftList.getLength(); i++) {
-                Node d = ExpMftList.item(i);
-                //String phoneName = ((Element)type).getAttribute("name");
-                NodeList properties = d.getChildNodes();
-                JSONObject item = new JSONObject();
-                for (int j = 0; j < properties.getLength(); j++) {
-                    Node property = properties.item(j);
-                    String nodeName = property.getNodeName();
-                    if (nodeName.equals("BillNo")) {
-                        String BillNo = property.getFirstChild().getNodeValue();
-                        log.info("BillNo=" + BillNo);
-                        item.put("billno", BillNo);
-                    } else if (nodeName.equals("AssBillNo")) {
-                        String AssBillNo = property.getFirstChild().getNodeValue();
-                        log.info("AssBillNo=" + AssBillNo);
-                        item.put("assbillno", AssBillNo);
-                    } else if (nodeName.equals("EntryDate")) {
-                        String EntryDate = property.getFirstChild().getNodeValue();
-                        log.info("EntryDate=" + EntryDate);
-                        item.put("entrydate", EntryDate);
-                    } else if (nodeName.equals("RtnFlag")) {
-                        String RtnFlag = property.getFirstChild().getNodeValue();
-                        log.info("RtnFlag=" + RtnFlag);
-                        item.put("rtnflag", RtnFlag);
-                    } else if (nodeName.equals("Notes")) {
-                        String Notes = "";
-                        try {
-                            Notes = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
-                            log.info("Notes=" + Notes);
-                        }catch (Exception e){
-                            log.error("notes 取值错误："+Notes);
-                        }
+            if(ExpMftList!=null && ExpMftList.getLength()>0) {
+                for (int i = 0; i < ExpMftList.getLength(); i++) {
+                    Node d = ExpMftList.item(i);
+                    //String phoneName = ((Element)type).getAttribute("name");
+                    NodeList properties = d.getChildNodes();
+                    JSONObject item = new JSONObject();
+                    for (int j = 0; j < properties.getLength(); j++) {
+                        Node property = properties.item(j);
+                        String nodeName = property.getNodeName();
+                        if (nodeName.equals("BillNo")) {
+                            String BillNo = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
+                            log.info("BillNo=" + BillNo);
+                            item.put("billno", BillNo);
+                        } else if (nodeName.equals("AssBillNo")) {
+                            String AssBillNo = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
+                            log.info("AssBillNo=" + AssBillNo);
+                            item.put("assbillno", AssBillNo);
+                        } else if (nodeName.equals("EntryDate")) {
+                            String EntryDate = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
+                            log.info("EntryDate=" + EntryDate);
+                            item.put("entrydate", EntryDate);
+                        } else if (nodeName.equals("RtnFlag")) {
+                            String RtnFlag = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
+                            log.info("RtnFlag=" + RtnFlag);
+                            item.put("rtnflag", RtnFlag);
+                        } else if (nodeName.equals("Notes")) {
+                            String Notes = "";
+                            try {
+                                Notes = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
+                                log.info("Notes=" + Notes);
+                            } catch (Exception e) {
+                                log.error("notes 取值错误：" + Notes);
+                            }
                             item.put("notes", Notes);
+                        }
+
                     }
+                    array.add(item);
                 }
-                array.add(item);
             }
             info.put("list", array);
         } catch (Exception e) {
