@@ -3239,13 +3239,12 @@ public class CustomerSeaService {
                 if (jsonObject != null) {
                     labelId = jsonObject.getString("labelId");
                     optionValue = jsonObject.getString("optionValue");
-                    String key = excelDefaultLabels.get(labelId);
                     // 文本和多选支持模糊搜索
                     if (cacheLabel.get(labelId) != null && cacheLabel.get(labelId).getType() != null
                             && (cacheLabel.get(labelId).getType() == 1 || cacheLabel.get(labelId).getType() == 3)) {
-                        likeValue = "'$." + key + "' like " + "'%" + optionValue + "%'";
+                        likeValue = "'$." + labelId + "' like " + "'%" + optionValue + "%'";
                     } else {
-                        likeValue = "'$." + key + "' like " + "'%" + optionValue + "%'";
+                        likeValue = "'$." + labelId + "' like " + "'%" + optionValue + "%'";
                     }
                     sb.append(" AND custG.super_data -> " + likeValue + " ");
                 }
