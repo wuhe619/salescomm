@@ -128,9 +128,8 @@ public class SbdSService implements BusiService {
         partH.setContent(jsonObject.toJSONString());
 
 
-        String sql = "update " + HMetaDataDef.getTable(partH.getType(), "") + " set content='" + jsonObject.toJSONString() + "'" +
-                " where id=" + partH.getId() + " and type='" + partH.getType() + "'";
-        jdbcTemplate.update(sql);
+        String sql = "update " + HMetaDataDef.getTable(partH.getType(), "") + " set content=? where id=" + partH.getId() + " and type='" + partH.getType() + "'";
+        jdbcTemplate.update(sql, jsonObject.toJSONString());
 
 //        hBusiDataManagerDao.saveOrUpdate(partH);
 
@@ -152,9 +151,9 @@ public class SbdSService implements BusiService {
 
         zh.setContent(jsonz.toJSONString());
 
-        String sql2 = "update " + HMetaDataDef.getTable(zh.getType(), "") + " set content='" + jsonz.toJSONString() + "'" +
+        String sql2 = "update " + HMetaDataDef.getTable(zh.getType(), "") + " set content=? " +
                 " where id=" + zh.getId() + " and type='" + zh.getType() + "'";
-        jdbcTemplate.update(sql2);
+        jdbcTemplate.update(sql2,jsonz.toJSONString() );
 //        hBusiDataManagerDao.saveOrUpdate(zh);
         serviceUtils.updateDataToES(BusiTypeEnum.SZ.getType(), zh.getId().toString(), jsonz);
 
@@ -276,9 +275,9 @@ public class SbdSService implements BusiService {
         //partcontentJson.put("pack_no", pack_NO);
         parth.setContent(partcontentJson.toJSONString());
 
-        String sql = "update " + HMetaDataDef.getTable(parth.getType(), "") + " set content='" + partcontentJson.toJSONString() + "'" +
+        String sql = "update " + HMetaDataDef.getTable(parth.getType(), "") + " set content=? " +
                 " where id=" + parth.getId() + " and type='" + parth.getType() + "'";
-        jdbcTemplate.update(sql);
+        jdbcTemplate.update(sql,partcontentJson.toJSONString());
 
         serviceUtils.updateDataToES(BusiTypeEnum.SF.getType(), parth.getId().toString(), partcontentJson);
 
@@ -293,9 +292,9 @@ public class SbdSService implements BusiService {
         jsonz.put("weight_total", weight_total);
         zh.setContent(jsonz.toJSONString());
 
-        String sql2 = "update " + HMetaDataDef.getTable(zh.getType(), "") + " set content='" + jsonz.toJSONString() + "'" +
+        String sql2 = "update " + HMetaDataDef.getTable(zh.getType(), "") + " set content=?" +
                 " where id=" + zh.getId() + " and type='" + zh.getType() + "'";
-        jdbcTemplate.update(sql2);
+        jdbcTemplate.update(sql2,jsonz.toJSONString());
 
         serviceUtils.updateDataToES(BusiTypeEnum.SZ.getType(), zh.getId().toString(), jsonz);
 

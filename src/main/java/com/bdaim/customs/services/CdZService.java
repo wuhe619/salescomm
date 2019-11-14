@@ -365,10 +365,10 @@ public class CdZService implements BusiService {
         h.setContent(jon.toJSONString());
 //        dataList.add(h);
 
-        String sql = "update " + HMetaDataDef.getTable(h.getType(), "") + " set content='" + jon.toJSONString() + "'"
+        String sql = "update " + HMetaDataDef.getTable(h.getType(), "") + " set content=? "
                 + " ,ext_2='Y'"
                 + " where id=" + h.getId() + " and type='" + h.getType() + "'";
-        jdbcTemplate.update(sql);
+        jdbcTemplate.update(sql,jon.toJSONString());
 
         Iterator keys = json.keySet().iterator();
         while (keys.hasNext()) {
@@ -443,10 +443,10 @@ public class CdZService implements BusiService {
         h.setContent(jon.toJSONString());
 //        dataList.add(h);
 
-        String sql = "update " + HMetaDataDef.getTable(h.getType(), "") + " set content='" + jon.toJSONString() + "'"
+        String sql = "update " + HMetaDataDef.getTable(h.getType(), "") + " set content=?"
                 + " ,ext_2='Y'"
                 + " where id=" + h.getId() + " and type='" + h.getType() + "'";
-        jdbcTemplate.update(sql);
+        jdbcTemplate.update(sql,jon.toJSONString());
 
         Iterator keys = json.keySet().iterator();
         while (keys.hasNext()) {

@@ -147,9 +147,9 @@ public class BgdSService implements BusiService{
 		jsonObject.put("low_price_goods",lowPricegoods+is_low_price);
 		partH.setContent(jsonObject.toJSONString());
 
-		String sql = "update "+ HMetaDataDef.getTable(partH.getType(),"")+" set content='"+jsonObject.toJSONString()+"'"+
+		String sql = "update "+ HMetaDataDef.getTable(partH.getType(),"")+" set content=? "+
 				" where id="+partH.getId()+" and type='"+partH.getType()+"'";
-		jdbcTemplate.update(sql);
+		jdbcTemplate.update(sql,jsonObject.toJSONString());
 
 		serviceUtils.updateDataToES(BusiTypeEnum.BF.getType(),pid.toString(),jsonObject);
 
@@ -170,9 +170,9 @@ public class BgdSService implements BusiService{
 
 		zh.setContent(jsonz.toJSONString());
 
-		String sql2 = "update "+ HMetaDataDef.getTable(zh.getType(),"")+" set content='"+jsonz.toJSONString()+"'"+
+		String sql2 = "update "+ HMetaDataDef.getTable(zh.getType(),"")+" set content=? "+
 				" where id="+zh.getId()+" and type='"+zh.getType()+"'";
-		jdbcTemplate.update(sql2);
+		jdbcTemplate.update(sql2,jsonz.toJSONString());
 
 		serviceUtils.updateDataToES(BusiTypeEnum.BZ.getType(),zh.getId().toString(),jsonz);
 
@@ -263,9 +263,9 @@ public class BgdSService implements BusiService{
 		fjson.put("estimated_tax",festimated_tax);
 		serviceUtils.updateDataToES(BusiTypeEnum.BF.getType(),fmanager.getId().toString(),fjson);
 
-		String sql2 = "update "+ HMetaDataDef.getTable(BusiTypeEnum.BF.getType(),"")+" set content='"+fjson.toJSONString()+"'"+
+		String sql2 = "update "+ HMetaDataDef.getTable(BusiTypeEnum.BF.getType(),"")+" set content=? "+
 				" where id="+fmanager.getId()+" and type='"+BusiTypeEnum.BF.getType()+"'";
-		jdbcTemplate.update(sql2);
+		jdbcTemplate.update(sql2,fjson.toJSONString());
 
 		serviceUtils.updateDataToES(BusiTypeEnum.BS.getType(),id.toString(),info);
 

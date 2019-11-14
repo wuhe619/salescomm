@@ -316,10 +316,10 @@ public class BgdZService implements BusiService {
         h.setExt_1("Y");
         h.setContent(jon.toJSONString());
 //        dataList.add(h);
-        String sql = "update " + HMetaDataDef.getTable(h.getType(), "") + " set content='" + jon.toJSONString() + "'"
+        String sql = "update " + HMetaDataDef.getTable(h.getType(), "") + " set content=? "
                 + " ,ext_1='Y'"
                 + " where id=" + h.getId() + " and type='" + h.getType() + "'";
-        jdbcTemplate.update(sql);
+        jdbcTemplate.update(sql,jon.toJSONString());
         CZ.setContent(info.toJSONString());
         dataList.add(CZ);
         List<HBusiDataManager> parties = serviceUtils.getDataList(BusiTypeEnum.SF.getType(), info.getLong("fromSbzId"));
@@ -395,10 +395,10 @@ public class BgdZService implements BusiService {
         h.setExt_1("Y");
         h.setContent(jon.toJSONString());
 //        dataList.add(h);
-        String sql = "update " + HMetaDataDef.getTable(h.getType(), "") + " set content='" + jon.toJSONString() + "'"
+        String sql = "update " + HMetaDataDef.getTable(h.getType(), "") + " set content=? "
                 + " ,ext_1='Y'"
                 + " where id=" + h.getId() + " and type='" + h.getType() + "'";
-        jdbcTemplate.update(sql);
+        jdbcTemplate.update(sql,jon.toJSONString());
         bgdMain.setContent(info.toJSONString());
         dataList.add(bgdMain);
 

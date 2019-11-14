@@ -109,9 +109,9 @@ public class SbdFService implements BusiService {
         jsonObject.put("single_batch_num", value);//分单总数
         //sbdzd.setContent(jsonObject.toJSONString());
         //hBusiDataManagerDao.saveOrUpdate(sbdzd);
-        String sql = "update " + HMetaDataDef.getTable(sbdzd.getType(), "") + " set content='" + jsonObject.toJSONString() + "'" +
+        String sql = "update " + HMetaDataDef.getTable(sbdzd.getType(), "") + " set content=?" +
                 " where id=" + sbdzd.getId() + " and type='" + sbdzd.getType() + "'";
-        jdbcTemplate.execute(sql);
+        jdbcTemplate.update(sql,jsonObject.toJSONString());
         serviceUtils.updateDataToES(BusiTypeEnum.SZ.getType(), sbdzd.getId().toString(), jsonObject);
     }
 
@@ -196,10 +196,10 @@ public class SbdFService implements BusiService {
                     info.put("idcard_pic_flag", "0");
 //                    hBusiDataManagerDao.saveOrUpdate(d);
                     String sql = "update " + HMetaDataDef.getTable(d.getType(), "") + " set " +
-                            " content='" + jsonObject.toJSONString() + "'" +
+                            " content=? " +
                             " ,ext_6='' " +
                             " where id=" + d.getId() + " and type='" + d.getType() + "'";
-                    jdbcTemplate.execute(sql);
+                    jdbcTemplate.update(sql,jsonObject.toJSONString());
                     elasticSearchService.update(d, d.getId());
                     customsService.updateMainDanIdCardNumber(jsonObject.getIntValue("pid"), cust_id);
                 }
@@ -383,8 +383,8 @@ public class SbdFService implements BusiService {
         }
         jsonObject.put("low_price_goods", s + low_price_goods);
         manager.setContent(jsonObject.toJSONString());
-        sql = " update " + HMetaDataDef.getTable(BusiTypeEnum.SZ.getType(), "") + " set content='" + jsonObject.toJSONString() + "' where id=" + zid + " and type='" + type + "'";
-        jdbcTemplate.update(sql);
+        sql = " update " + HMetaDataDef.getTable(BusiTypeEnum.SZ.getType(), "") + " set content=? where id=" + zid + " and type='" + type + "'";
+        jdbcTemplate.update(sql,jsonObject.toJSONString());
         serviceUtils.updateDataToES(BusiTypeEnum.SZ.getType(), String.valueOf(zid), jsonObject);
 
     }
