@@ -1306,7 +1306,7 @@ public class CustomsService {
 
             if ("-1".equals(data.getString("code"))) {
                 String sql = "insert into h_customer_msg(`cust_id`,`cust_user_id`,`content`,`create_time`,`status`,`level`,`msg_type`)" +
-                    "values ('" + hBusiDataManager.getCust_id() + "'," + hBusiDataManager.getExt_6() + ",'" + msg.toJSONString() + "',now(),0,4,'CHANGZHAN')";
+                        "values ('" + hBusiDataManager.getCust_id() + "'," + hBusiDataManager.getExt_6() + ",'" + msg.toJSONString() + "',now(),0,4,'CHANGZHAN')";
                 jdbcTemplate.update(sql);
             }
 
@@ -1318,11 +1318,11 @@ public class CustomsService {
     /**
      * 手动同步回执状态到报关单分单（只同步已提交的）
      */
-    public void synchzStatus(){
+    public void synchzStatus() {
         String sql1 = "select * from h_data_manager_bgd_f where ext_1='B1'";
         RowMapper<HBusiDataManager> managerRowMapper = new BeanPropertyRowMapper<>(HBusiDataManager.class);
         List<HBusiDataManager> list = jdbcTemplate.query(sql1, managerRowMapper);
-        for(HBusiDataManager hb:list){
+        for (HBusiDataManager hb : list) {
             try {
                 String sql2 = "select * from h_data_manager_bgd_hz where ext_3='" + hb.getExt_3() + "' and ext_4='" + hb.getExt_4() + "' order by create_date desc limit 1 ";
                 RowMapper<HBusiDataManager> managerRowMapper2 = new BeanPropertyRowMapper<>(HBusiDataManager.class);
@@ -1334,12 +1334,12 @@ public class CustomsService {
                         JSONObject json = JSONObject.parseObject(content);
                         json.put("send_status", hz.getExt_2());
 
-                        String sql = "update h_data_manager_bgd_f set content='" + json.toJSONString() + "',ext_1='" + hz.getExt_2() + "' where ext_3='" + hb.getExt_3() + "' and ext_4='" + hb.getExt_4() + "'";
+                        String sql = "update h_data_manager_bgd_f set content=? ,ext_1=? where ext_3=? and ext_4=?";
 
-                        jdbcTemplate.update(sql);
+                        jdbcTemplate.update(sql, json.toJSONString(), hz.getExt_2(), hb.getExt_3(), hb.getExt_4());
                     }
                 }
-            }catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
