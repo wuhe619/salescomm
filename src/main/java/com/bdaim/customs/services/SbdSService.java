@@ -156,7 +156,7 @@ public class SbdSService implements BusiService {
 
         String sql2 = "update " + HMetaDataDef.getTable(zh.getType(), "") + " set content=? " +
                 " where id=" + zh.getId() + " and type='" + zh.getType() + "'";
-        jdbcTemplate.update(sql2,jsonz.toJSONString() );
+        jdbcTemplate.update(sql2,jsonz.toJSONString());
 //        hBusiDataManagerDao.saveOrUpdate(zh);
         serviceUtils.updateDataToES(BusiTypeEnum.SZ.getType(), zh.getId().toString(), jsonz);
 
