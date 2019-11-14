@@ -1609,7 +1609,8 @@ public class CustomerUserService {
                     list.add(unselectedList.get(i));
                 }
             }
-        } else {
+        }
+        if (list.size() == 0) {
             HashMap<Object, Object> map = new HashMap<>();
             map.put("key", CustomerPrivateSeaDTO.NAME.getKey());
             map.put("value", CustomerPrivateSeaDTO.NAME.getValue());
