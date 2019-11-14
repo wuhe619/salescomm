@@ -56,7 +56,7 @@ public class HgHzService implements BusiService {
         info.put("hz_type", HZ_SERVICE.get(messageType));
         // 根据消息类型处理报关单和舱单回执
         busiService.saveInfo(cust_id, cust_group_id, cust_user_id, HZ_SERVICE.get(messageType), 0L, info);
-        log.info("海关回执处理完毕,messageType:{},内容:{}", messageType, xml);
+        log.info("海关回执处理完毕,messageType:{},回执类型:{}", messageType, HZ_SERVICE.get(messageType));
 
     }
 
