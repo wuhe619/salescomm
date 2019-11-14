@@ -1571,7 +1571,8 @@ public class CustomerUserService {
                     list.add(unselectedList.get(i));
                 }
             }
-        } else {
+        }
+        if (list.size() == 0) {
             HashMap<Object, Object> map = new HashMap<>();
             map.put("key", CustomerPublicSeaDTO.CUST_NAME.getKey());
             map.put("value", CustomerPublicSeaDTO.CUST_NAME.getValue());
