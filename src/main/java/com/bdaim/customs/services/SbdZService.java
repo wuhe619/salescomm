@@ -13,6 +13,7 @@ import com.bdaim.customs.entity.*;
 import com.bdaim.customs.utils.ServiceUtils;
 import com.bdaim.util.NumberConvertUtil;
 import com.bdaim.util.StringUtil;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -336,11 +337,10 @@ public class SbdZService implements BusiService {
                         JSONObject fdData;
                         StringBuffer gName;
                         String split = "|";
-                        //double estimated_tax;
-                        BigDecimal estimated_tax = null;
+                        double estimated_tax;
                         for (int i = 0; i < singles.size(); i++) {
                             gName = new StringBuffer();
-                            estimated_tax = new BigDecimal(0.0);
+                            estimated_tax = 0.0;
                             fdData = (JSONObject) singles.get(i);
                             // 商品名称处理
                             list = data.get(fdData.getString("bill_no"));
@@ -351,15 +351,14 @@ public class SbdZService implements BusiService {
                                             .append(fd.getString("g_model"))
                                             .append(split)
                                             .append("(").append(fd.getString("g_qty")).append("*").append(fd.getString("decl_price")).append("),");
-                                    //estimated_tax += fd.getDoubleValue("estimated_tax");
-                                    estimated_tax = estimated_tax.add(new BigDecimal(fd.getString("estimated_tax")));
+                                    estimated_tax += fd.getDoubleValue("estimated_tax");
                                 }
                             }
                             fdData.put("g_name", gName.toString());
                             // 件数统计
                             fdData.put("pack_no", list != null ? list.size() : 0);
                             // 预估税金统计
-                            fdData.put("estimated_tax", estimated_tax.doubleValue());
+                            fdData.put("estimated_tax", estimated_tax);
                         }
                         info.put("singles", singles);
                     }
@@ -599,7 +598,7 @@ public class SbdZService implements BusiService {
             json.put("estimated_tax", arrt.getString("estimated_tax_total"));
             //json.put("main_gname", mainGoodsName);
             // 计算主要货物
-            Map<String, String> main_map = serviceUtils.generateFDMainGName(pList);
+            Map<String,String> main_map = serviceUtils.generateFDMainGName(pList);
             json.put("main_gname", main_map.get("name"));
             json.put("main_gname_en", main_map.get("name_en"));
 
@@ -627,11 +626,11 @@ public class SbdZService implements BusiService {
             arrt.put("low_price_goods", 0);
             //分单预估税金总计
             arrt.put("estimated_tax_total", 0);
-            BigDecimal totalValue = new BigDecimal(0);
+            Double totalValue = 0d;
             BigDecimal qty = null;
             BigDecimal multiply = null;
             //分单预估税金总计
-            BigDecimal fdEstimatedTax = new BigDecimal(0);
+            Double fdEstimatedTax = 0.0;
             for (Product product : pList) {
                 log.info("goods:" + product.getCode_ts());
                 try {
@@ -676,8 +675,7 @@ public class SbdZService implements BusiService {
                             // 分单预估税金总计
                             BigDecimal taxBigDecimal = new BigDecimal(contentObj.getString("tax_rate"));
                             BigDecimal taxMultiply = taxBigDecimal.multiply(new BigDecimal(String.valueOf(duty_paid_price)));
-                            //fdEstimatedTax += taxMultiply.setScale(5, BigDecimal.ROUND_HALF_UP).doubleValue();
-                            fdEstimatedTax = fdEstimatedTax.add(taxMultiply);
+                            fdEstimatedTax += taxMultiply.setScale(5, BigDecimal.ROUND_HALF_UP).doubleValue();
                         }
 
                     }
@@ -707,11 +705,11 @@ public class SbdZService implements BusiService {
                     if (StringUtil.isNotEmpty(G_QTY) && StringUtil.isNotEmpty(decl_price)) {
                         qty = new BigDecimal(G_QTY);
                         multiply = qty.multiply(new BigDecimal(decl_price));
-                        //Double total_price = multiply.setScale(5, BigDecimal.ROUND_HALF_UP).doubleValue();
+                        Double total_price = multiply.setScale(5, BigDecimal.ROUND_HALF_UP).doubleValue();
                         //价格合计
-                        json.put("total_price", multiply.doubleValue());
-                        json.put("decl_total", multiply.doubleValue());
-                        totalValue = totalValue.add(multiply);
+                        json.put("total_price", total_price);
+                        json.put("decl_total", total_price);
+                        totalValue += total_price;
                     }
 //                    float total_price = Float.valueOf(product.getDecl_total() == null || "".equals(product.getDecl_total()) ? "0" : product.getDecl_total());
                     json.put("duty_paid_price", duty_paid_price);//完税价格
@@ -725,8 +723,8 @@ public class SbdZService implements BusiService {
                     log.error("生成商品信息 " + product.getCode_ts() + " 异常", e);
                 }
             }
-            arrt.put("total_value", totalValue.doubleValue());
-            arrt.put("estimated_tax_total", fdEstimatedTax.setScale(5, BigDecimal.ROUND_HALF_UP).doubleValue());
+            arrt.put("total_value", totalValue.floatValue());
+            arrt.put("estimated_tax_total", fdEstimatedTax);
         }
     }
 
@@ -757,14 +755,13 @@ public class SbdZService implements BusiService {
         String partynum = mainDan.getSingle_batch_num();
 
         List<PartyDan> list = mainDan.getSingles();
-        BigDecimal weightTotal = new BigDecimal(0);
+        Double weightTotal = 0d;
         for (PartyDan partyDan : list) {
             String WEIGHT = partyDan.getWeight();
             if (StringUtil.isEmpty(WEIGHT)) {
                 WEIGHT = "0";
             }
-            //weightTotal += Double.valueOf(WEIGHT);
-            weightTotal = weightTotal.add(new BigDecimal(WEIGHT));
+            weightTotal += Double.valueOf(WEIGHT);
         }
 
         info.put("weight_total", weightTotal.floatValue());//总重量

@@ -10,7 +10,6 @@ import com.bdaim.customs.entity.BusiTypeEnum;
 import com.bdaim.customs.entity.HBusiDataManager;
 import com.bdaim.customs.entity.HMetaDataDef;
 import com.bdaim.customs.utils.ServiceUtils;
-import com.bdaim.util.BigDecimalUtil;
 import com.bdaim.util.StringUtil;
 
 import org.slf4j.Logger;
@@ -20,7 +19,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -97,10 +95,9 @@ public class SbdSService implements BusiService {
         info.put("duty_paid_price", duty_paid_price);//完税价格
         info.put("estimated_tax", estimated_tax);//预估税金
         info.put("tax_rate", tax_rate);//税率
-        //Double d = Double.valueOf(info.getString("g_qty")) * Double.valueOf(info.getString("decl_price"));
-        BigDecimal d = BigDecimalUtil.mul(info.getString("g_qty"), info.getString("decl_price"));
-        info.put("total_price", d.doubleValue());//价格合计
-        info.put("decl_total",d.doubleValue());
+        Double d = Double.valueOf(info.getString("g_qty")) * Double.valueOf(info.getString("decl_price"));
+        info.put("total_price", d);//价格合计
+        info.put("decl_total",d);
 
         serviceUtils.addDataToES(id.toString(), busiType, info);
 
@@ -156,7 +153,7 @@ public class SbdSService implements BusiService {
 
         String sql2 = "update " + HMetaDataDef.getTable(zh.getType(), "") + " set content=? " +
                 " where id=" + zh.getId() + " and type='" + zh.getType() + "'";
-        jdbcTemplate.update(sql2,jsonz.toJSONString());
+        jdbcTemplate.update(sql2,jsonz.toJSONString() );
 //        hBusiDataManagerDao.saveOrUpdate(zh);
         serviceUtils.updateDataToES(BusiTypeEnum.SZ.getType(), zh.getId().toString(), jsonz);
 
@@ -180,8 +177,8 @@ public class SbdSService implements BusiService {
         JSONObject fjson = JSONObject.parseObject(fcontent);
         System.out.println("jsoncontent====="+fjson);
         List<HBusiDataManager> goodsList = serviceUtils.listSdByBillNo(cust_id,BusiTypeEnum.SS.getType(), fmanager.getExt_4(),fmanager.getExt_3());
-        BigDecimal weight_total = new BigDecimal(0);  //重量
-        BigDecimal G_qty = new BigDecimal(0); //数量
+        Double weight_total = 0d;  //重量
+        Double G_qty = 0d; //数量
         int lowPricegoods = 0; //低价商品数
         int is_low_price = 0;
         float festimated_tax = 0;//预估税金
@@ -214,18 +211,15 @@ public class SbdSService implements BusiService {
                 info.put("duty_paid_price", duty_paid_price);//完税价格
                 info.put("estimated_tax", estimated_tax);//预估税金
                 info.put("tax_rate", tax_rate);//税率
-                //Double total_price = Double.valueOf(info.getString("g_qty"))*Double.valueOf(info.getString("decl_price"));
-                BigDecimal total_price = BigDecimalUtil.mul(info.getString("g_qty"), info.getString("decl_price"));
-                info.put("total_price", total_price.doubleValue());//价格合计
-                info.put("decl_total",total_price.doubleValue());
+                Double total_price = Double.valueOf(info.getString("g_qty"))*Double.valueOf(info.getString("decl_price"));
+                info.put("total_price", total_price);//价格合计
+                info.put("decl_total",total_price);
             } else {
                 if (goods.containsKey("ggrosswt") && StringUtil.isNotEmpty(goods.getString("ggrosswt"))) {
-                    //weight_total += goods.containsKey("ggrosswt")?goods.getFloatValue("ggrosswt"):0;
-                    weight_total = weight_total.add(new BigDecimal(goods.containsKey("ggrosswt") ? goods.getFloatValue("ggrosswt") : 0));
+                    weight_total += goods.containsKey("ggrosswt")?goods.getFloatValue("ggrosswt"):0;
                 }
                 if (goods.containsKey("g_qty") && StringUtil.isNotEmpty(goods.getString("g_qty"))) {
-                    //G_qty += goods.getFloatValue("g_qty");
-                    G_qty = G_qty.add(new BigDecimal(goods.getFloatValue("g_qty")));
+                    G_qty += goods.getFloatValue("g_qty");
                 }
                 if (StringUtil.isNotEmpty(goods.getString("decl_price"))) {
                     if (Float.valueOf(goods.getString("decl_price")) < duty_paid_price) {
