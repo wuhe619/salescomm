@@ -164,6 +164,7 @@ public class CustomerSeaService {
     private Map<String, String> excelDefaultLabels = new HashMap() {{
         put("qq", "SYS002");
         put("QQ", "SYS002");
+        put("QQ号", "SYS002");
         put("email", "SYS003");
         put("EMAIL", "SYS003");
         put("weChat", "SYS001");
@@ -175,10 +176,10 @@ public class CustomerSeaService {
         put("姓名", "super_name");
         put("年龄", "super_age");
         put("性别", "super_sex");
-        put("手机", "super_phone");
-        put("手机号", "super_phone");
-        put("电话", "super_telphone");
-        put("电话号码", "super_telphone");
+        put("手机", "super_telphone");
+        put("手机号", "super_telphone");
+        put("电话", "super_phone");
+        put("电话号码", "super_phone");
         put("邮箱", "SYS003");
         put("省市", "super_address_province_city");
         put("地址", "super_address_street");
@@ -3230,47 +3231,43 @@ public class CustomerSeaService {
 
         // 查询所有自建属性
         Map<String, CustomerLabel> cacheLabel = labelService.getCacheCustomAndSystemLabel(param.getCustId());
-//        if (StringUtil.isNotEmpty(param.getLabelProperty())) {
-//            JSONObject jsonObject;
-//            String labelId, optionValue, likeValue;
-//            JSONArray custProperty = JSON.parseArray(param.getLabelProperty());
-//            for (int i = 0; i < custProperty.size(); i++) {
-//                jsonObject = custProperty.getJSONObject(i);
-//                if (jsonObject != null) {
-//                    labelId = jsonObject.getString("labelId");
-//                    optionValue = jsonObject.getString("optionValue");
-//
-//
-//                        // 文本和多选支持模糊搜索
-//                        if (cacheLabel.get(labelId) != null && cacheLabel.get(labelId).getType() != null
-//                                && (cacheLabel.get(labelId).getType() == 1 || cacheLabel.get(labelId).getType() == 3)) {
-//                            likeValue = "'$." + labelId + "' like " + "'%" + optionValue + "%'";
-//                        } else {
-//                            likeValue = "'$." + labelId + "' like " + "'%" + optionValue + "%'";
-//                        }
-//
-//
-//                    sb.append(" AND custG.super_data -> " + likeValue + " ");
-//                }
-//            }
-//        }
+        if (StringUtil.isNotEmpty(param.getLabelProperty())) {
+            JSONObject jsonObject;
+            String labelId, optionValue, likeValue;
+            JSONArray custProperty = JSON.parseArray(param.getLabelProperty());
+            for (int i = 0; i < custProperty.size(); i++) {
+                jsonObject = custProperty.getJSONObject(i);
+                if (jsonObject != null) {
+                    labelId = jsonObject.getString("labelId");
+                    optionValue = jsonObject.getString("optionValue");
+                    // 文本和多选支持模糊搜索
+                    if (cacheLabel.get(labelId) != null && cacheLabel.get(labelId).getType() != null
+                            && (cacheLabel.get(labelId).getType() == 1 || cacheLabel.get(labelId).getType() == 3)) {
+                        likeValue = "'$." + labelId + "' like " + "'%" + optionValue + "%'";
+                    } else {
+                        likeValue = "'$." + labelId + "' like " + "'%" + optionValue + "%'";
+                    }
+                    sb.append(" AND custG.super_data -> " + likeValue + " ");
+                }
+            }
+        }
         if (StringUtil.isNotEmpty(param.getCustName())) {
-            sb.append(" AND custG.super_data -> " + "'$.SYS009' like " + "'%" + param.getCustName() + "%'" + " ");
+            sb.append(" AND custG.super_data -> " + "'$.SYS005' like " + "'%" + param.getCustName() + "%'" + " ");
         }
         if (StringUtil.isNotEmpty(param.getRegCapitalMin()) || StringUtil.isNotEmpty(param.getRegCapitalMax())) {
             sb.append(" AND custG.super_data -> '$.SYS010' BETWEEN ");
             sb.append(param.getRegCapitalMin() == null ? 0 : param.getRegCapitalMin());
-            sb.append(" AND " );
+            sb.append(" AND ");
             sb.append(param.getRegCapitalMax() == null ? 0 : param.getRegCapitalMax());
         }
         if (StringUtil.isNotEmpty(param.getCreateTime())) {
-            sb.append(" AND custG.super_data -> " + "'$.SYS011' >= " + "'" + param.getCreateTime() + "'" + " ");
+            sb.append(" AND custG.super_data -> " + "'$.SYS011' >= " + "'" + param.getCreateTime() + "'");
         }
         if (StringUtil.isNotEmpty(param.getEndTime())) {
-            sb.append(" AND custG.super_data -> " + "'$.SYS011' >= " + "'" + param.getEndTime() + "'" + " ");
+            sb.append(" AND custG.super_data -> " + "'$.SYS011' >= " + "'" + param.getEndTime() + "'");
         }
         if (StringUtil.isNotEmpty(param.getRegStatus())) {
-            sb.append(" AND custG.super_data -> " + "'$.SYS012' = " + "'" + param.getRegStatus() + "'" + " ");
+            sb.append(" AND custG.super_data -> " + "'$.SYS012' like " + "'%" + param.getRegStatus() + "%'");
         }
         //sb.append(" AND custG.status<>2 ");
         sb.append(" AND custG.status =1 ");
@@ -3294,6 +3291,7 @@ public class CustomerSeaService {
 
         return page;
     }
+
     /**
      * 私海线索列表
      *
@@ -3308,7 +3306,7 @@ public class CustomerSeaService {
         sb.append(" select custG.id, custG.user_id, custG.status, custG.call_count callCount, DATE_FORMAT(custG.last_call_time,'%Y-%m-%d %H:%i:%s') lastCallTime, custG.intent_level intentLevel,");
         sb.append(" custG.super_name, custG.super_age, custG.super_sex, custG.super_telphone, custG.super_phone, custG.super_address_province_city, custG.super_address_street, custG.super_data, ");
         sb.append(" custG.batch_id, custG.last_call_status, custG.data_source, DATE_FORMAT(custG.user_get_time,'%Y-%m-%d %H:%i:%s') user_get_time, DATE_FORMAT(custG.create_time,'%Y-%m-%d %H:%i:%s') create_time, custG.pre_user_id, custG.last_called_duration, DATE_FORMAT(custG.last_mark_time,'%Y-%m-%d %H:%i:%s') last_mark_time, ");
-        sb.append(" custG.call_success_count, custG.call_fail_count, custG.sms_success_count,custG.super_data -> '$.SYS014' as custType");
+        sb.append(" custG.call_success_count, custG.call_fail_count, custG.sms_success_count,custG.super_data -> '$.SYS014' as custType ");
         sb.append("  from " + ConstantsUtil.SEA_TABLE_PREFIX + param.getSeaId() + " custG ");
         sb.append(" where 1=1 ");
         if (StringUtil.isNotEmpty(param.getSuperId())) {
@@ -3533,6 +3531,7 @@ public class CustomerSeaService {
 
     /**
      * 导入线索到私海
+     *
      * @param seaId
      * @param custGroupId
      * @param custId
@@ -3652,7 +3651,7 @@ public class CustomerSeaService {
                         distStatus = 1;
                     }
                     for (SeaImportDataParam s : seaData) {
-                        s.setSuper_id(superIdData.get(s.getSuper_phone()));
+                        s.setSuper_id(superIdData.get(s.getSuper_telphone()));
                         s.setUser_id(user_id);
                         s.setStatus(distStatus);
                         if (superData.get(s.getSuper_phone()) != null) {
@@ -3662,10 +3661,11 @@ public class CustomerSeaService {
                         }
                         s.getSuperData().put("SYS007", "未跟进");
                     }
-                    customerSeaDao.insertBatchDataData(seaId, seaData);
-
+                    LOG.info("导入公海ID:{},明细表插入数据大小:{}", seaId, seaData);
+                    int seaCount = customerSeaDao.insertBatchDataData(seaId, seaData);
+                    LOG.info("导入公海ID:{},插入数量返回结果:{}", seaId, seaCount);
                     if (uCount) {
-                        LOG.info("导入客户群数据ID:" + custGroupId + "成功");
+                        LOG.info("导入客户群ID:" + custGroupId + "成功");
                         // 更改客户群状态
                         CustomGroup cg = customGroupDao.get(NumberConvertUtil.parseInt(custGroupId));
                         if (cg != null) {
@@ -3686,6 +3686,7 @@ public class CustomerSeaService {
         }
         return 0;
     }
+
     /**
      * 添加线索
      *

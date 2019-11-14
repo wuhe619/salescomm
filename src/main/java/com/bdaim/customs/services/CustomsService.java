@@ -1301,13 +1301,13 @@ public class CustomsService {
             json.put("changzhan_status", data.getString("code"));
         }
         if (hBusiDataManager != null) {
-            String updateSql = " update " + HMetaDataDef.getTable(BusiTypeEnum.BF.getType(), "") + " set content='" + json.toJSONString() + "',ext_2='" + data.getString("code") + "' where id=" + hBusiDataManager.getId();
-            jdbcTemplate.update(updateSql);
+            String updateSql = " update " + HMetaDataDef.getTable(BusiTypeEnum.BF.getType(), "") + " set content=? ,ext_2='" + data.getString("code") + "' where id=" + hBusiDataManager.getId();
+            jdbcTemplate.update(updateSql, json.toJSONString());
 
             if ("-1".equals(data.getString("code"))) {
                 String sql = "insert into h_customer_msg(`cust_id`,`cust_user_id`,`content`,`create_time`,`status`,`level`,`msg_type`)" +
-                    "values ('" + hBusiDataManager.getCust_id() + "'," + hBusiDataManager.getExt_6() + ",'" + msg.toJSONString() + "',now(),0,4,'CHANGZHAN')";
-                jdbcTemplate.update(sql);
+                    "values ('" + hBusiDataManager.getCust_id() + "'," + hBusiDataManager.getExt_6() + ",? ,now(),0,4,'CHANGZHAN')";
+                jdbcTemplate.update(sql, msg.toJSONString());
             }
 
         } else {
@@ -1334,9 +1334,9 @@ public class CustomsService {
                         JSONObject json = JSONObject.parseObject(content);
                         json.put("send_status", hz.getExt_2());
 
-                        String sql = "update h_data_manager_bgd_f set content='" + json.toJSONString() + "',ext_1='" + hz.getExt_2() + "' where ext_3='" + hb.getExt_3() + "' and ext_4='" + hb.getExt_4() + "'";
+                        String sql = "update h_data_manager_bgd_f set content=? ,ext_1='" + hz.getExt_2() + "' where ext_3='" + hb.getExt_3() + "' and ext_4='" + hb.getExt_4() + "'";
 
-                        jdbcTemplate.update(sql);
+                        jdbcTemplate.update(sql, json.toJSONString());
                     }
                 }
             }catch (Exception e){

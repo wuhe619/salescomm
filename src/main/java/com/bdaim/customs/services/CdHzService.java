@@ -56,13 +56,13 @@ public class CdHzService implements BusiService {
     @Override
     public void insertInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) throws Exception {
         log.info(info.toJSONString());
-        info.put("ext_1",info.getString("status"));
-        String xmlString=info.getString("xmlstring");
-        if(StringUtil.isEmpty(xmlString)){
+        info.put("ext_1", info.getString("status"));
+        String xmlString = info.getString("xmlstring");
+        if (StringUtil.isEmpty(xmlString)) {
             throw new TouchException("舱单回执内容不能为空");
         }
         byte[] s = Base64.getDecoder().decode(xmlString);
-        handleHzInfo(cust_id,new String (s),info);
+        handleHzInfo(cust_id, new String(s), info);
 
         log.info("舱单回执处理完毕");
     }
@@ -75,8 +75,8 @@ public class CdHzService implements BusiService {
     @Override
     public void doInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info, JSONObject param) throws TouchException {
         //通过舱单主单ID查询海关回执数据
-        HBusiDataManager dbManager = serviceUtils.getObjectByIdAndType(cust_id,id, busiType);
-        if(dbManager==null){
+        HBusiDataManager dbManager = serviceUtils.getObjectByIdAndType(cust_id, id, busiType);
+        if (dbManager == null) {
             throw new TouchException("无权操作");
         }
         String content = null;
@@ -116,33 +116,32 @@ public class CdHzService implements BusiService {
      * 1.解析回执到回执表，把xml文件解析成json，存入回执表，字段: 主单号，分单号，备注
      * 2.回写回执状态到舱单主单，舱单分单
      * 3.舱单回执状态等级写入消息表
-     *
      */
-    public void handleHzInfo(String custId,String xmlstring,JSONObject info) throws Exception {
-        parseHzXml.parserCangdanHzXML(xmlstring,info);
+    public void handleHzInfo(String custId, String xmlstring, JSONObject info) throws Exception {
+        parseHzXml.parserCangdanHzXML(xmlstring, info);
         JSONObject envelopinfo = info.getJSONObject("envelopinfo");//信封消息
         JSONObject headData = info.getJSONObject("headData");//主单信息
         JSONArray array = info.getJSONArray("list");//分单信息
 
-        HBusiDataManager cangdan = serviceUtils.findZhudanByBillNo(custId, BusiTypeEnum.CZ.getType(),headData.getString("billno"));
-        if(cangdan==null){
+        HBusiDataManager cangdan = serviceUtils.findZhudanByBillNo(custId, BusiTypeEnum.CZ.getType(), headData.getString("billno"));
+        if (cangdan == null) {
             throw new TouchException();
         }
         String content = cangdan.getContent();
         JSONObject jsonObject = JSONObject.parseObject(content);
-        jsonObject.put("send_status",headData.getString("rtnflag"));
+        jsonObject.put("send_status", headData.getString("rtnflag"));
         //Date d=DateUtil.fmtStrToDate(headData.getString("entrydate"),"yyyyMMddHHmmss");
 //        jsonObject.put("decl_time",d.getTime());
         cangdan.setExt_2(headData.getString("rtnflag"));
-        info.put("ext_3",headData.getString("billno"));
-        info.put("ext_2",headData.getString("rtnflag"));
+        info.put("ext_3", headData.getString("billno"));
+        info.put("ext_2", headData.getString("rtnflag"));
 //        cangdan.setContent(jsonObject.toJSONString());
-        String sql=" update "+ HMetaDataDef.getTable(BusiTypeEnum.CZ.getType(), "")+" set content='"+jsonObject.toJSONString()+"',ext_2='"+headData.getString("rtnflag")+"' where id="+cangdan.getId();
-        jdbcTemplate.update(sql);
+        String sql = " update " + HMetaDataDef.getTable(BusiTypeEnum.CZ.getType(), "") + " set content=?,ext_2=? where id=" + cangdan.getId();
+        jdbcTemplate.update(sql, jsonObject.toJSONString(), headData.getString("rtnflag"));
 
         List<HBusiDataManager> list = new ArrayList<>();
         String main_bill_no = "";
-        for (int i=0;i<array.size();i++){
+        for (int i = 0; i < array.size(); i++) {
             JSONObject json = array.getJSONObject(i);
             HBusiDataManager b = new HBusiDataManager();
             b.setCreateId(cangdan.getCreateId());
@@ -158,12 +157,12 @@ public class CdHzService implements BusiService {
             b.setId(fid);
             list.add(b);
         }
-        if(list.size()>0){
-            serviceUtils.batchInsert(BusiTypeEnum.CDF_HZ.getType(),list);
+        if (list.size() > 0) {
+            serviceUtils.batchInsert(BusiTypeEnum.CDF_HZ.getType(), list);
         }
 
-        if(StringUtil.isNotEmpty(main_bill_no)) {
-            Handle handle = new Handle(main_bill_no,array);
+        if (StringUtil.isNotEmpty(main_bill_no)) {
+            Handle handle = new Handle(main_bill_no, array);
             Thread th = new Thread(handle);
             th.start();
         }
@@ -173,51 +172,49 @@ public class CdHzService implements BusiService {
     }
 
 
-
-
-    class Handle implements Runnable{
-        private  String main_bill_no;
+    class Handle implements Runnable {
+        private String main_bill_no;
         private JSONArray array;
 
-        public Handle(String main_bill_no,JSONArray array){
-            this.array=array;
-            this.main_bill_no=main_bill_no;
+        public Handle(String main_bill_no, JSONArray array) {
+            this.array = array;
+            this.main_bill_no = main_bill_no;
         }
 
         @Override
         public void run() {
             log.info("start to cangdan fendan huizhi status");
-            handlecdFdStatus(this.main_bill_no,this.array);
+            handlecdFdStatus(this.main_bill_no, this.array);
         }
 
 
-        private List<HBusiDataManager> handleCdFd(String main_bill_no){
-            List<HBusiDataManager> list = serviceUtils.listFdByBillNo(BusiTypeEnum.CF.getType(),main_bill_no);
+        private List<HBusiDataManager> handleCdFd(String main_bill_no) {
+            List<HBusiDataManager> list = serviceUtils.listFdByBillNo(BusiTypeEnum.CF.getType(), main_bill_no);
             return list;
         }
 
-        public void handlecdFdStatus(String main_bill_no,JSONArray array){
+        public void handlecdFdStatus(String main_bill_no, JSONArray array) {
             List<HBusiDataManager> list = handleCdFd(main_bill_no);
             List<HBusiDataManager> tmpList = new ArrayList<>();
-            for (int i=0;i<array.size();i++){
+            for (int i = 0; i < array.size(); i++) {
                 JSONObject json = array.getJSONObject(i);
                 String assbillno = json.getString("assbillno");
                 String rtnflag = json.getString("rtnflag");
                 String billno = json.getString("billno");
-                for(HBusiDataManager d:list){
-                    if(d.getExt_3().equals(assbillno) && d.getExt_4().equals(billno)){
+                for (HBusiDataManager d : list) {
+                    if (d.getExt_3().equals(assbillno) && d.getExt_4().equals(billno)) {
                         String content = d.getContent();
                         JSONObject obj = JSONObject.parseObject(content);
-                        obj.put("send_status",rtnflag);
+                        obj.put("send_status", rtnflag);
                         d.setContent(obj.toJSONString());
                         tmpList.add(d);
                         break;
                     }
                 }
-                if(tmpList.size()>0){
-                    for(HBusiDataManager h:tmpList) {
-                        String sql2 = "update " + HMetaDataDef.getTable(BusiTypeEnum.CF.getType(), "") + " set content='"+h.getContent()+ "' where id="+h.getId();
-                        jdbcTemplate.update(sql2);
+                if (tmpList.size() > 0) {
+                    for (HBusiDataManager h : tmpList) {
+                        String sql2 = "update " + HMetaDataDef.getTable(BusiTypeEnum.CF.getType(), "") + " set content=? where id=" + h.getId();
+                        jdbcTemplate.update(sql2, h.getContent());
                     }
                 }
             }

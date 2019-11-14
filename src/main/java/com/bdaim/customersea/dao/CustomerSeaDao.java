@@ -94,18 +94,20 @@ public class CustomerSeaDao extends SimpleHibernateDao<CustomerSea, Long> {
             hql.append(" AND m.status = 1 ");
             CustomerUserGroupRelDTO group = customerUserDao.getCustomerUserGroupByUserId(param.getUserId());
             hql.append(" AND FIND_IN_SET(?,(SELECT propertyValue from MarketProjectProperty WHERE marketProjectId = m.marketProjectId)) >0 ");
-            if (StringUtil.isNotEmpty(param.getType()) && "2".equals(param.getType())) {
-                hql.append(" AND (m.taskType = 2 OR m.taskType = 1 OR (m.taskType = 3 AND m.id = (SELECT customerSeaId from CustomerSeaProperty WHERE customerSeaId = m.id AND propertyName=? AND propertyValue = ?)))");
+            if ("2".equals(param.getType())) {
+                //hql.append(" AND (m.taskType = 2 OR m.taskType = 1 OR (m.taskType = 3 AND m.id = (SELECT customerSeaId from CustomerSeaProperty WHERE customerSeaId = m.id AND propertyName=? AND propertyValue = ?)))");
+                hql.append(" AND (m.taskType = 2 OR m.taskType = 1 OR m.taskType = 3 )");
             } else {
-                hql.append(" AND (m.taskType = 2 OR (m.taskType = 3 AND m.id = (SELECT customerSeaId from CustomerSeaProperty WHERE customerSeaId = m.id AND propertyName=? AND propertyValue = ?)))");
+                //hql.append(" AND (m.taskType = 2 OR (m.taskType = 3 AND m.id = (SELECT customerSeaId from CustomerSeaProperty WHERE customerSeaId = m.id AND propertyName=? AND propertyValue = ?)))");
+                hql.append(" AND (m.taskType = 2 OR m.taskType = 3 )");
             }
             if (group != null) {
                 params.add(group.getGroupId());
             } else {
                 params.add("");
             }
-            params.add("isPersonFollow");
-            params.add("1");
+            //params.add("isPersonFollow");
+            //params.add("1");
         }
         hql.append(" ORDER BY m.createTime DESC ");
         return this.page(hql.toString(), params, pageNum, pageSize);

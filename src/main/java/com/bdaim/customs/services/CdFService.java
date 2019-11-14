@@ -106,9 +106,9 @@ public class CdFService implements BusiService {
         superObj.put("total_pack_no", packNo);
         cangdanz.setContent(superObj.toJSONString());
         String sql = "update "+ HMetaDataDef.getTable(cangdanz.getType(),"")+" set " +
-                " content='"+superObj.toJSONString()+"'"+
+                " content=? "+
                 " where id="+cangdanz.getId()+" and type='"+cangdanz.getType()+"'";
-        jdbcTemplate.update(sql);
+        jdbcTemplate.update(sql,superObj.toJSONString());
         //hBusiDataManagerDao.saveOrUpdate(cangdanz);
 
         serviceUtils.updateDataToES(BusiTypeEnum.CZ.getType(), cangdanz.getId().toString(), superObj);

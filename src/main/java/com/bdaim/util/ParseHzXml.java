@@ -111,8 +111,13 @@ public class ParseHzXml {
                         log.info("RtnFlag=" + RtnFlag);
                         headData.put("rtnflag", RtnFlag);
                     } else if (nodeName.equals("Notes")) {
-                        String Notes = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
-                        log.info("Notes=" + Notes == null ? "" : Notes);
+                        String Notes = "";
+                        try {
+                            Notes = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
+                            log.info("Notes=" + Notes == null ? "" : Notes);
+                        }catch (Exception e){
+                            log.error("备注取值错误："+e.getMessage());
+                        }
                         headData.put("notes", Notes);
                     }
                 }
@@ -145,9 +150,14 @@ public class ParseHzXml {
                         log.info("RtnFlag=" + RtnFlag);
                         item.put("rtnflag", RtnFlag);
                     } else if (nodeName.equals("Notes")) {
-                        String Notes = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
-                        log.info("Notes=" + Notes);
-                        item.put("notes", Notes);
+                        String Notes = "";
+                        try {
+                            Notes = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
+                            log.info("Notes=" + Notes);
+                        }catch (Exception e){
+                            log.error("notes 取值错误："+Notes);
+                        }
+                            item.put("notes", Notes);
                     }
                 }
                 array.add(item);
@@ -257,8 +267,13 @@ public class ParseHzXml {
                         log.info("OpResult=" + OpResult == null ? "" : OpResult);
                         headData.put("op_result", OpResult);
                     } else if (nodeName.equals("Notes")) {
-                        String Notes = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
-                        log.info("Notes=" + Notes == null ? "" : Notes);
+                        String Notes = "";
+                        try {
+                            Notes = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
+                            log.info("Notes=" + Notes == null ? "" : Notes);
+                        }catch (Exception e){
+                            log.error("notes 取值错误："+Notes);
+                        }
                         headData.put("notes", Notes);
                     }
                 }

@@ -316,10 +316,10 @@ public class BgdZService implements BusiService {
         h.setExt_1("Y");
         h.setContent(jon.toJSONString());
 //        dataList.add(h);
-        String sql = "update " + HMetaDataDef.getTable(h.getType(), "") + " set content='" + jon.toJSONString() + "'"
+        String sql = "update " + HMetaDataDef.getTable(h.getType(), "") + " set content=? "
                 + " ,ext_1='Y'"
                 + " where id=" + h.getId() + " and type='" + h.getType() + "'";
-        jdbcTemplate.update(sql);
+        jdbcTemplate.update(sql,jon.toJSONString());
         CZ.setContent(info.toJSONString());
         dataList.add(CZ);
         List<HBusiDataManager> parties = serviceUtils.getDataList(BusiTypeEnum.SF.getType(), info.getLong("fromSbzId"));
@@ -370,7 +370,8 @@ public class BgdZService implements BusiService {
         bgdMain.setCust_id(Long.valueOf(custId));
         bgdMain.setCreateId(Long.valueOf(userId));
         bgdMain.setExt_3(h.getExt_3());
-        bgdMain.setExt_1("B0");//未发送 1，已发送
+        String sendStatus = "B0";
+        bgdMain.setExt_1(sendStatus);//未发送 1，已发送
         bgdMain.setCust_user_id(userId.toString());
 
 
@@ -388,34 +389,19 @@ public class BgdZService implements BusiService {
             info.put(key, json.get(key));
         }
         info.put("ext_3", h.getExt_3());
-        info.put("ext_1", "B0");
+        info.put("ext_1", sendStatus);
 
         JSONObject jon = JSON.parseObject(h.getContent());
         jon.put("commit_baodan_status", "Y");
         h.setExt_1("Y");
         h.setContent(jon.toJSONString());
 //        dataList.add(h);
-        String sql = "update " + HMetaDataDef.getTable(h.getType(), "") + " set content='" + jon.toJSONString() + "'"
+        String sql = "update " + HMetaDataDef.getTable(h.getType(), "") + " set content=? "
                 + " ,ext_1='Y'"
                 + " where id=" + h.getId() + " and type='" + h.getType() + "'";
-        jdbcTemplate.update(sql);
+        jdbcTemplate.update(sql,jon.toJSONString());
         bgdMain.setContent(info.toJSONString());
         dataList.add(bgdMain);
-
-        /*List<HBusiDataManager> parties = serviceUtils.getDataList(BusiTypeEnum.SF.getType(), info.getLong("fromSbzId"));
-        // 预先生成分单ID
-        long size = parties.size();
-        long maxId = sequenceService.getSeq(BusiTypeEnum.BF.getType(), size);
-
-        // 预先生成商品ID
-        long sSize = 0L;
-        Map<Long, List> cache = new HashMap<>();
-        for (HBusiDataManager hp : parties) {
-            List<HBusiDataManager> goods = serviceUtils.getDataList(BusiTypeEnum.SS.getType(), hp.getId().longValue());
-            cache.put(hp.getId(), goods);
-            sSize += goods.size();
-        }
-        long sMaxId = sequenceService.getSeq(BusiTypeEnum.BS.getType(), sSize);*/
 
         // 根据主单号查询申报单分单列表
         List<HBusiDataManager> parties = serviceUtils.listDataByParentBillNo(custId, BusiTypeEnum.SF.getType(), h.getExt_3());
@@ -448,6 +434,8 @@ public class BgdZService implements BusiService {
             hm.setCreateDate(new Date());
             Long fid = sequenceService.getSeq(BusiTypeEnum.BF.getType());
             hm.setId(fid);
+            hp.setExt_1(sendStatus);
+            hm.setExt_1(hp.getExt_1());
             hm.setExt_2(hp.getExt_2());
             hm.setExt_3(hp.getExt_3());
             hm.setExt_4(hp.getExt_4());
@@ -456,6 +444,7 @@ public class BgdZService implements BusiService {
             hm.setCust_user_id(hp.getCreateId().toString());
             JSONObject _content = JSON.parseObject(hp.getContent());
             _content.put("pid", id);
+            _content.put("send_status", sendStatus);
             hm.setContent(_content.toJSONString());
             dataList.add(hm);
             goodList = cache.get(hp.getId());

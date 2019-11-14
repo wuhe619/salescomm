@@ -1553,11 +1553,12 @@ public class CustomerUserService {
         customerUserDao.saveOrUpdate(propertyDO);
         return true;
     }
-    public Map<String, Object> getShowRowByUser1(String id, Long userId) throws Exception {
+
+    public Map<String, Object> getShowRowByUserPublicSea(String id, Long userId) throws Exception {
         Map<String, Object> data = new HashMap<>();
         logger.info("公海id是：" + id + "userId是：" + userId);
         //查询所有自定义列
-        List<Map<String, Object>> unselectedList = CustomerShowRowEnum1.getAllRow();
+        List<Map<String, Object>> unselectedList = CustomerPublicSeaDTO.getAllRow();
         //添加用户已经选择的自定义列
         List<Object> list = new ArrayList<>();
         CustomerUserPropertyDO customerUserProperty = customerUserDao.getProperty(String.valueOf(userId), id + "_row");
@@ -1570,18 +1571,19 @@ public class CustomerUserService {
                     list.add(unselectedList.get(i));
                 }
             }
-        } else {
+        }
+        if (list.size() == 0) {
             HashMap<Object, Object> map = new HashMap<>();
-            map.put("key", CustomerShowRowEnum1.NAME.getKey());
-            map.put("value", CustomerShowRowEnum1.NAME.getValue());
+            map.put("key", CustomerPublicSeaDTO.CUST_NAME.getKey());
+            map.put("value", CustomerPublicSeaDTO.CUST_NAME.getValue());
             list.add(map);
             map = new HashMap<>();
-            map.put("key", CustomerShowRowEnum1.ID.getKey());
-            map.put("value", CustomerShowRowEnum.ID.getValue());
+            map.put("key", CustomerPublicSeaDTO.REG_TIME.getKey());
+            map.put("value", CustomerPublicSeaDTO.REG_TIME.getValue());
             list.add(map);
             map = new HashMap<>();
-            map.put("key", CustomerShowRowEnum1.PHONE.getKey());
-            map.put("value", CustomerShowRowEnum1.PHONE.getValue());
+            map.put("key", CustomerPublicSeaDTO.REG_STATUS.getKey());
+            map.put("value", CustomerPublicSeaDTO.REG_STATUS.getValue());
             list.add(map);
         }
         unselectedList.removeAll(list);
@@ -1590,5 +1592,42 @@ public class CustomerUserService {
         return data;
     }
 
+    public Map<String, Object> getShowRowByUserPrivateSea(String id, Long userId) throws Exception {
+        Map<String, Object> data = new HashMap<>();
+        logger.info("公海id是：" + id + "userId是：" + userId);
+        //查询所有自定义列
+        List<Map<String, Object>> unselectedList = CustomerPrivateSeaDTO.getAllRow();
+        //添加用户已经选择的自定义列
+        List<Object> list = new ArrayList<>();
+        CustomerUserPropertyDO customerUserProperty = customerUserDao.getProperty(String.valueOf(userId), id + "_row");
+        if (customerUserProperty != null && StringUtil.isNotEmpty(customerUserProperty.getPropertyValue())) {
+            String propertyValue = customerUserProperty.getPropertyValue();
+            logger.info("userId是：" + userId + "\n已经选择的展示字段是：" + propertyValue);
+            for (int i = 0; i < unselectedList.size(); i++) {
+                String key = String.valueOf(unselectedList.get(i).get("key"));
+                if (propertyValue.contains(key)) {
+                    list.add(unselectedList.get(i));
+                }
+            }
+        }
+        if (list.size() == 0) {
+            HashMap<Object, Object> map = new HashMap<>();
+            map.put("key", CustomerPrivateSeaDTO.NAME.getKey());
+            map.put("value", CustomerPrivateSeaDTO.NAME.getValue());
+            list.add(map);
+            map = new HashMap<>();
+            map.put("key", CustomerPrivateSeaDTO.ID.getKey());
+            map.put("value", CustomerPrivateSeaDTO.ID.getValue());
+            list.add(map);
+            map = new HashMap<>();
+            map.put("key", CustomerPrivateSeaDTO.PHONE.getKey());
+            map.put("value", CustomerPrivateSeaDTO.PHONE.getValue());
+            list.add(map);
+        }
+        unselectedList.removeAll(list);
+        data.put("unselected", unselectedList);
+        data.put("selected", list);
+        return data;
+    }
 
 }

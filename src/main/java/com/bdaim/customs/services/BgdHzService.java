@@ -137,8 +137,8 @@ public class BgdHzService implements BusiService {
 //        Timestamp tm = DateUtil.getTimestamp(CalendarUtil.parseDate(decltime,"yyyyMMddHHmmsszzz"),"yyyyMMddHHmmsszzz");
         //json.put("decl_time",new Date().getTime());
 
-        String sql=" update "+ HMetaDataDef.getTable(BusiTypeEnum.BF.getType(), "")+" set content='"+json.toJSONString()+"',ext_1='"+opresult+"' where id="+fendan.getId();
-        jdbcTemplate.update(sql);
+        String sql=" update "+ HMetaDataDef.getTable(BusiTypeEnum.BF.getType(), "")+" set content=?,ext_1=? where id="+fendan.getId();
+        jdbcTemplate.update(sql,json.toJSONString(),opresult);
 
         if("03".equals(opresult)
                 || "04".equals(opresult)
@@ -157,9 +157,9 @@ public class BgdHzService implements BusiService {
         msg.put("type",BusiTypeEnum.BGD_HZ.getType());
 
         sql="insert into h_customer_msg(`cust_id`,`cust_user_id`,`content`,`create_time`,`status`,`level`,`msg_type`)" +
-                "values ('"+custId+"',"+fendan.getExt_6()+",'"+msg.toJSONString()+"',now(),0,4,'"+BusiTypeEnum.BGD_HZ.getType()+"')";
+                "values ('"+custId+"',"+fendan.getExt_6()+",? ,now(),0,4,'"+BusiTypeEnum.BGD_HZ.getType()+"')";
 
-          jdbcTemplate.update(sql);
+          jdbcTemplate.update(sql, msg.toJSONString());
         }
 
         JSONObject json2=new JSONObject();
