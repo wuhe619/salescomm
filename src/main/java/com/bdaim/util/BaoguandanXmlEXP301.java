@@ -18,6 +18,8 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -146,7 +148,7 @@ public class BaoguandanXmlEXP301 {
         PreEntryId.setTextContent(json.containsKey("pre_input_code")?json.getString("pre_input_code"):"");
         EntryHead.appendChild(PreEntryId);
         Element EntryId = document.createElement("EntryId");
-        EntryId.setTextContent(json.containsKey("entryid")?json.getString("entryid"):"");
+        EntryId.setTextContent(json.containsKey("entryid")?json.getString("entryid").trim():"");
         EntryHead.appendChild(EntryId);
 
         Element IEFlag = document.createElement("IEFlag");
@@ -165,13 +167,13 @@ public class BaoguandanXmlEXP301 {
         DestinationPort.setTextContent(mainJson.getString("depart_arrival_port")); //r
         EntryHead.appendChild(DestinationPort);
         Element TrafName = document.createElement("TrafName");
-        TrafName.setTextContent(mainJson.getString("trans_traf_name"));//r 转关运输工具
+        TrafName.setTextContent(mainJson.getString("trans_traf_name").trim());//r 转关运输工具
         EntryHead.appendChild(TrafName);
         Element VoyageNo = document.createElement("VoyageNo");
-        VoyageNo.setTextContent(mainJson.getString("voyage_no"));//r
+        VoyageNo.setTextContent(mainJson.getString("voyage_no").trim());//r
         EntryHead.appendChild(VoyageNo);
         Element TrafMode = document.createElement("TrafMode");
-        TrafMode.setTextContent(mainJson.getString("traf_mode"));//r
+        TrafMode.setTextContent(mainJson.getString("traf_mode").trim());//r
         EntryHead.appendChild(TrafMode);
         Element TradeCo = document.createElement("TradeCo");
         EntryHead.appendChild(TradeCo);
@@ -182,10 +184,10 @@ public class BaoguandanXmlEXP301 {
         Element OwnerCode = document.createElement("OwnerCode");
         EntryHead.appendChild(OwnerCode);
         Element OwnerName = document.createElement("OwnerName");
-        OwnerName.setTextContent(json.getString("receive_name"));//r 货主单位名称取收件人名称
+        OwnerName.setTextContent(json.getString("receive_name").trim());//r 货主单位名称取收件人名称
         EntryHead.appendChild(OwnerName);
         Element AgentType = document.createElement("AgentType");
-        AgentType.setTextContent(mainJson.getString("agent_type"));  //0：企业；1：自然人
+        AgentType.setTextContent(mainJson.getString("agent_type").trim());  //0：企业；1：自然人
         EntryHead.appendChild(AgentType);
         Element AgentCode = document.createElement("AgentCode");//申报单位代码
         AgentCode.setTextContent((String) customerInfo.getOrDefault("agent_code","")); //AgentType=0时必填
@@ -197,10 +199,10 @@ public class BaoguandanXmlEXP301 {
 
         EntryHead.appendChild(ContrNo);
         Element BillNo = document.createElement("BillNo");
-        BillNo.setTextContent(mainJson.getString("bill_no")); //r 总运单号
+        BillNo.setTextContent(mainJson.getString("bill_no").trim()); //r 总运单号
         EntryHead.appendChild(BillNo);
         Element AssBillNo = document.createElement("AssBillNo");
-        AssBillNo.setTextContent(json.getString("bill_no")); //r  分运单号
+        AssBillNo.setTextContent(json.getString("bill_no").trim()); //r  分运单号
         EntryHead.appendChild(AssBillNo);
         Element TradeCountry = document.createElement("TradeCountry");
         TradeCountry.setTextContent(mainJson.getString("trade_country"));  //r
@@ -242,16 +244,25 @@ public class BaoguandanXmlEXP301 {
 //        OtherRate.setTextContent("1.2");
         EntryHead.appendChild(OtherRate);
         Element PackNo = document.createElement("PackNo");
-        PackNo.setTextContent(json.getString("pack_no"));  //r
+        PackNo.setTextContent(json.getString("pack_no").trim());  //r
         EntryHead.appendChild(PackNo);
         Element GrossWt = document.createElement("GrossWt");
-        GrossWt.setTextContent(json.getString("weight"));  //r
+        String weight = json.getString("weight").trim();
+        if(StringUtil.isNotEmpty(weight)) {
+            BigDecimal b = new BigDecimal(weight).setScale(5, RoundingMode.HALF_UP);
+            GrossWt.setTextContent(b.toPlainString());//r
+        }
         EntryHead.appendChild(GrossWt);
         Element NetWt = document.createElement("NetWt");
-        NetWt.setTextContent(json.containsKey("net_weight")?json.getString("net_weight"):"");  //r
+        String net_weight = json.getString("net_weight").trim();
+        if(StringUtil.isNotEmpty(net_weight)) {
+            BigDecimal b = new BigDecimal(net_weight).setScale(5, RoundingMode.HALF_UP);
+            NetWt.setTextContent(b.toPlainString());//r
+        }
+//        NetWt.setTextContent(json.containsKey("net_weight")?json.getString("net_weight").trim():"");  //r
         EntryHead.appendChild(NetWt);
         Element WrapType = document.createElement("WrapType");
-        WrapType.setTextContent(mainJson.getString("wrap_class"));  //r
+        WrapType.setTextContent(mainJson.getString("wrap_class").trim());  //r
         EntryHead.appendChild(WrapType);
         Element NoteS = document.createElement("NoteS");
 
@@ -285,7 +296,7 @@ public class BaoguandanXmlEXP301 {
         InputNo.setTextContent(String.valueOf(customerInfo.getOrDefault("input_no","")));  //r
         EntryHead.appendChild(InputNo);
         Element InputCompanyCo = document.createElement("InputCompanyCo");//录入单位代码
-        InputCompanyCo.setTextContent((String) customerInfo.getOrDefault("agent_code",""));  //r
+        InputCompanyCo.setTextContent((String) ((String) customerInfo.getOrDefault("agent_code","")).trim());  //r
         EntryHead.appendChild(InputCompanyCo);
         Element InputCompanyName = document.createElement("InputCompanyName");//录入单位名称
         InputCompanyName.setTextContent((String) customerInfo.getOrDefault("enterpriseName",""));  //r
@@ -305,25 +316,25 @@ public class BaoguandanXmlEXP301 {
 
         EntryHead.appendChild(KjId);
         Element SendName = document.createElement("SendName");
-        SendName.setTextContent(mainJson.getString("send_name")); //r
+        SendName.setTextContent(mainJson.getString("send_name").trim()); //r
         EntryHead.appendChild(SendName);
         Element ReceiveName = document.createElement("ReceiveName");
-        ReceiveName.setTextContent(json.getString("receive_name"));  //r
+        ReceiveName.setTextContent(json.getString("receive_name").trim());  //r
         EntryHead.appendChild(ReceiveName);
         Element SendCountry = document.createElement("SendCountry");
-        SendCountry.setTextContent(mainJson.getString("send_country"));  //r
+        SendCountry.setTextContent(mainJson.getString("send_country").trim());  //r
         EntryHead.appendChild(SendCountry);
         Element SendCity = document.createElement("SendCity");
 //        SendCity.setTextContent(mainJson.getString("send_city"));  //
         EntryHead.appendChild(SendCity);
         Element SendId = document.createElement("SendId");
-        SendId.setTextContent(json.getString("id_no"));  //r 收发件人证件号码
+        SendId.setTextContent(json.getString("id_no").trim());  //r 收发件人证件号码
         EntryHead.appendChild(SendId);
         Element TotalValue = document.createElement("TotalValue");
-        TotalValue.setTextContent(json.getString("total_value"));  //r 价值 DECIMAL(19, 4)
+        TotalValue.setTextContent(json.getString("total_value").trim());  //r 价值 DECIMAL(19, 4)
         EntryHead.appendChild(TotalValue);
         Element CurrCode = document.createElement("CurrCode");
-        CurrCode.setTextContent(json.getString("curr_code"));  //r
+        CurrCode.setTextContent(json.getString("curr_code").trim());  //r
         EntryHead.appendChild(CurrCode);
         /*Element ReceiveDate = document.createElement("ReceiveDate");
         ReceiveDate.setTextContent("");
@@ -339,7 +350,7 @@ public class BaoguandanXmlEXP301 {
         MainGName.setTextContent(gname);  //r
         EntryHead.appendChild(MainGName);
         Element EntryType = document.createElement("EntryType");
-        EntryType.setTextContent(mainJson.getString("entry_type"));  //r
+        EntryType.setTextContent(mainJson.getString("entry_type").trim());  //r
         EntryHead.appendChild(EntryType);
         Element SendIdType = document.createElement("SendIdType");
         SendIdType.setTextContent(json.getString("id_type"));  //收发件人证件类型,B类必填
@@ -358,7 +369,7 @@ public class BaoguandanXmlEXP301 {
         SendAddress.setTextContent(mainJson.getString("send_address"));//发件人地址 出口必填，进口起运地为港、澳、台的地区必填。只填写区县、街道级别及以下详细地址
         EntryHead.appendChild(SendAddress);
         Element SendTelNo = document.createElement("SendTelNo");//r
-        SendTelNo.setTextContent(mainJson.getString("send_tel"));//发件人号码 仅能填写阿拉伯数字、“-”（短横线）、“∣”3种字符，均为半角字符。“-”（短横线）用于区号-座机号-分机号的分隔；“∣”用于两个不同号码之间的分隔
+        SendTelNo.setTextContent(mainJson.getString("send_tel").trim());//发件人号码 仅能填写阿拉伯数字、“-”（短横线）、“∣”3种字符，均为半角字符。“-”（短横线）用于区号-座机号-分机号的分隔；“∣”用于两个不同号码之间的分隔
         EntryHead.appendChild(SendTelNo);
         Element ReceiveAddress = document.createElement("ReceiveAddress");//r
         String r_city = json.getString("receive_city");
@@ -367,7 +378,7 @@ public class BaoguandanXmlEXP301 {
         ReceiveAddress.setTextContent(address);//收件人地址 进口必填，出口抵运地为港、澳、台地区的必填。只填写区县、街道级别及以下详细地址
         EntryHead.appendChild(ReceiveAddress);
         Element ReceiveTelNo = document.createElement("ReceiveTelNo");//r
-        ReceiveTelNo.setTextContent(json.getString("receive_tel"));//收件人号码 必填，仅能填写阿拉伯数字、“-”（短横线）、“∣”3种字符，均为半角字符。“-”（短横线）用于区号-座机号-分机号的分隔；“∣”用于两个不同号码之间的分隔
+        ReceiveTelNo.setTextContent(json.getString("receive_tel").trim());//收件人号码 必填，仅能填写阿拉伯数字、“-”（短横线）、“∣”3种字符，均为半角字符。“-”（短横线）用于区号-座机号-分机号的分隔；“∣”用于两个不同号码之间的分隔
         EntryHead.appendChild(ReceiveTelNo);
         Element ReceiveCountry = document.createElement("ReceiveCountry");//r
         ReceiveCountry.setTextContent("142");//收件人国别 进口只能是中国，且不能修改
