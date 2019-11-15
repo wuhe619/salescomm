@@ -733,7 +733,7 @@ public class SbdZService implements BusiService {
                 }
             }
             arrt.put("total_value", totalValue.doubleValue());
-            arrt.put("estimated_tax_total", fdEstimatedTax.setScale(5, BigDecimal.ROUND_HALF_UP).doubleValue());
+            arrt.put("estimated_tax_total", fdEstimatedTax.setScale(5, BigDecimal.ROUND_DOWN).doubleValue());
         }
     }
 
