@@ -337,10 +337,11 @@ public class SbdZService implements BusiService {
                         JSONObject fdData;
                         StringBuffer gName;
                         String split = "|";
-                        double estimated_tax;
+                        //double estimated_tax;
+                        BigDecimal estimated_tax = null;
                         for (int i = 0; i < singles.size(); i++) {
                             gName = new StringBuffer();
-                            estimated_tax = 0.0;
+                            estimated_tax = new BigDecimal(0.0);
                             fdData = (JSONObject) singles.get(i);
                             // 商品名称处理
                             list = data.get(fdData.getString("bill_no"));
@@ -351,14 +352,15 @@ public class SbdZService implements BusiService {
                                             .append(fd.getString("g_model"))
                                             .append(split)
                                             .append("(").append(fd.getString("g_qty")).append("*").append(fd.getString("decl_price")).append("),");
-                                    estimated_tax += fd.getDoubleValue("estimated_tax");
+                                    //estimated_tax += fd.getDoubleValue("estimated_tax");
+                                    estimated_tax.add(new BigDecimal(fd.getString("estimated_tax")));
                                 }
                             }
                             fdData.put("g_name", gName.toString());
                             // 件数统计
                             fdData.put("pack_no", list != null ? list.size() : 0);
                             // 预估税金统计
-                            fdData.put("estimated_tax", estimated_tax);
+                            fdData.put("estimated_tax", estimated_tax.doubleValue());
                         }
                         info.put("singles", singles);
                     }
@@ -626,11 +628,11 @@ public class SbdZService implements BusiService {
             arrt.put("low_price_goods", 0);
             //分单预估税金总计
             arrt.put("estimated_tax_total", 0);
-            Double totalValue = 0d;
+            BigDecimal totalValue = new BigDecimal(0);
             BigDecimal qty = null;
             BigDecimal multiply = null;
             //分单预估税金总计
-            Double fdEstimatedTax = 0.0;
+            BigDecimal fdEstimatedTax = new BigDecimal(0);
             for (Product product : pList) {
                 log.info("goods:" + product.getCode_ts());
                 try {
@@ -675,7 +677,8 @@ public class SbdZService implements BusiService {
                             // 分单预估税金总计
                             BigDecimal taxBigDecimal = new BigDecimal(contentObj.getString("tax_rate"));
                             BigDecimal taxMultiply = taxBigDecimal.multiply(new BigDecimal(String.valueOf(duty_paid_price)));
-                            fdEstimatedTax += taxMultiply.setScale(5, BigDecimal.ROUND_HALF_UP).doubleValue();
+                            //fdEstimatedTax += taxMultiply.setScale(5, BigDecimal.ROUND_HALF_UP).doubleValue();
+                            fdEstimatedTax = fdEstimatedTax.add(taxMultiply);
                         }
 
                     }
@@ -705,11 +708,11 @@ public class SbdZService implements BusiService {
                     if (StringUtil.isNotEmpty(G_QTY) && StringUtil.isNotEmpty(decl_price)) {
                         qty = new BigDecimal(G_QTY);
                         multiply = qty.multiply(new BigDecimal(decl_price));
-                        Double total_price = multiply.setScale(5, BigDecimal.ROUND_HALF_UP).doubleValue();
+                        //Double total_price = multiply.setScale(5, BigDecimal.ROUND_HALF_UP).doubleValue();
                         //价格合计
-                        json.put("total_price", total_price);
-                        json.put("decl_total", total_price);
-                        totalValue += total_price;
+                        json.put("total_price", multiply.doubleValue());
+                        json.put("decl_total", multiply.doubleValue());
+                        totalValue = totalValue.add(multiply);
                     }
 //                    float total_price = Float.valueOf(product.getDecl_total() == null || "".equals(product.getDecl_total()) ? "0" : product.getDecl_total());
                     json.put("duty_paid_price", duty_paid_price);//完税价格
@@ -723,8 +726,8 @@ public class SbdZService implements BusiService {
                     log.error("生成商品信息 " + product.getCode_ts() + " 异常", e);
                 }
             }
-            arrt.put("total_value", totalValue.floatValue());
-            arrt.put("estimated_tax_total", fdEstimatedTax);
+            arrt.put("total_value", totalValue.doubleValue());
+            arrt.put("estimated_tax_total", fdEstimatedTax.setScale(5, BigDecimal.ROUND_HALF_UP).doubleValue());
         }
     }
 
@@ -755,13 +758,14 @@ public class SbdZService implements BusiService {
         String partynum = mainDan.getSingle_batch_num();
 
         List<PartyDan> list = mainDan.getSingles();
-        Double weightTotal = 0d;
+        BigDecimal weightTotal = new BigDecimal(0);
         for (PartyDan partyDan : list) {
             String WEIGHT = partyDan.getWeight();
             if (StringUtil.isEmpty(WEIGHT)) {
                 WEIGHT = "0";
             }
-            weightTotal += Double.valueOf(WEIGHT);
+            //weightTotal += Double.valueOf(WEIGHT);
+            weightTotal.add(new BigDecimal(WEIGHT));
         }
 
         info.put("weight_total", weightTotal.floatValue());//总重量
