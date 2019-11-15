@@ -79,8 +79,8 @@ public class B2BTcbService implements BusiService {
         if (countList != null && countList.size() > 0) {
             JSONObject jsonObject = JSON.parseObject(String.valueOf(countList.get(0).get("content")));
             if (jsonObject.getLongValue("remain_num") > 0L) {
-                LOG.warn("当前还有有效的套餐:{}不能再开通新的套餐", JSON.toJSONString(countList));
-                throw new TouchException("当前还有有效的套餐,不能再开通新的套餐");
+                LOG.warn("当前套餐有效:{}不能再开通新的套餐", JSON.toJSONString(countList));
+                throw new TouchException("当前套餐有效,不能再开通新的套餐");
             }
         }
         // 企业余额判断
@@ -260,100 +260,48 @@ public class B2BTcbService implements BusiService {
 
         Map<String, Object> superData = new HashMap(16);
         superData.put("SYS007", "未跟进");
-
         CustomSeaTouchInfoDTO dto = null;
-        BaseResult companyDetail = null, companyContact;
-        JSONObject detailData = null, contactData = null;
-        String entName = "", companyId = "";
-        JSONObject log;
         Map<String, JSONObject> data = new HashMap(16);
+        // 指定企业ID领取方式
         if (mode == 1) {
-            for (String id : companyIds) {
-                // 查询企业名称
-                companyDetail = searchListService.getCompanyDetail(id, "", "1001");
-                detailData = (JSONObject) companyDetail.getData();
-                // 查询企业联系方式
-                companyContact = searchListService.getCompanyDetail(id, "", "1039");
-                contactData = (JSONObject) companyContact.getData();
-                contactData.putAll(detailData);
-                data.put(id, contactData);
-            }
+            data = doClueDataToSeaByIds(companyIds, custId);
             // 指定数量
         } else if (mode == 2) {
             //领取，只返回id
-            param.put("fieldType", false);
-            long pageNo = 0L, pageSize = 1000;
-            while (getNumber > data.size()) {
-                param.put("pageNum", pageNo);
-                param.put("pageSize", pageSize);
-                BaseResult baseResult = searchListService.pageSearchIds(custId, "", userId, busiType, param);
-                JSONObject resultData = (JSONObject) baseResult.getData();
-                JSONArray list = resultData.getJSONArray("list");
-                pageNo++;
-                if (list == null || list.size() == 0) {
-                    continue;
-                }
-                for (int i = 0; i < list.size(); i++) {
-                    // 已经领取过不可重复领取
-                    if (b2BTcbLogService.checkClueGetStatus(custId, list.getString(i))) {
-                        continue;
-                    }
-                    if (getNumber > data.size()) {
-                        companyContact = searchListService.getCompanyDetail(list.getString(i), "", "1039");
-                        contactData = (JSONObject) companyContact.getData();
-                        if (contactData == null || contactData.size() == 0) {
-                            continue;
-                        }
-                        // 查询企业名称
-                        companyDetail = searchListService.getCompanyDetail(list.getString(i), "", "1001");
-                        detailData = (JSONObject) companyDetail.getData();
-                        contactData.putAll(detailData);
-                        data.put(list.getString(i), contactData);
-                    } else {
-                        break;
-                    }
-                }
-            }
+            data = doClueDataToSeaByNumber(param, getNumber, custId, userId, busiType);
         }
         if (data.size() == 0) {
             throw new TouchException("未查询到匹配企业数据");
         }
-
         String batchId = UUID.randomUUID().toString().replaceAll("-", "");
         Iterator keys = data.keySet().iterator();
         int consumeNum = 0;
         while (keys.hasNext()) {
-            String key = String.valueOf(keys.next());
-            JSONArray pNumbers = data.get(key).getJSONArray("phoneNumber");
-            if (pNumbers != null) {
-                for (int i = 0; i < pNumbers.size(); i++) {
-                    dto = new CustomSeaTouchInfoDTO("", custId, String.valueOf(userId), "", "",
-                            "", "", "", pNumbers.getString(i),
-                            "", "", "",
-                            seaId, superData, "", "", "", "",
-                            "", "", entName);
-                    dto.setEntId(key);
-                    dto.setRegLocation(detailData.getString("regLocation"));
-                    dto.setRegCapital(detailData.getString("regCap"));
-                    dto.setRegStatus(detailData.getString("entStatus"));
-                    dto.setRegTime(detailData.getString("fromTime"));
-                    dto.setEntPersonNum(pNumbers.size());
-                    // 保存线索
-                    int status = seaService.addClueData0(dto, seaType);
-                    log = new JSONObject();
-                    // B2B数据企业ID
-                    log.put("ext_1", key);
-                    // 套餐包ID 扩展字段2
-                    log.put("tcbId", useB2BTcb.getString("id"));
-                    // 领取批次ID 扩展字段3
-                    log.put("batchId", batchId);
-                    // 线索ID 扩展字段4
-                    log.put("superId", dto.getSuper_id());
-                    log.put("content", JSON.toJSON(dto));
-                    busiEntityService.saveInfo(custId, "", userId, BusiTypeEnum.B2B_TC_LOG.getType(), 0L, log);
-                }
-                consumeNum++;
+            String entId = String.valueOf(keys.next());
+            JSONArray pNumbers = data.get(entId).getJSONArray("phoneNumber");
+            if (pNumbers == null || pNumbers.size() == 0) {
+                continue;
             }
+            for (int i = 0; i < pNumbers.size(); i++) {
+                if (StringUtil.isEmpty(pNumbers.getString(i))) {
+                    LOG.info("B2B企业ID:{}手机号为空:{}", entId, pNumbers.getString(i));
+                    continue;
+                }
+                dto = new CustomSeaTouchInfoDTO("", custId, String.valueOf(userId), "", "",
+                        "", "", "", pNumbers.getString(i),
+                        "", "", "",
+                        seaId, superData, "", "", "", "",
+                        "", "", data.get(entId).getString("entName"),
+                        entId, data.get(entId).getString("regLocation"), data.get(entId).getString("regCap"),
+                        data.get(entId).getString("entStatus"), data.get(entId).getString("fromTime"), pNumbers.size());
+                // 保存线索
+                int status = seaService.addClueData0(dto, seaType);
+                LOG.info("B2B套餐领取线索状态:{},seaType:{},data:{}", status, seaType, JSON.toJSONString(dto));
+                // 保存领取记录
+                saveTcbClueDataLog(custId, userId, batchId, entId, useB2BTcb.getString("id"), dto.getSuper_id(), JSON.toJSONString(dto));
+            }
+            consumeNum++;
+
         }
         // 更新套餐余量和消耗量
         updateTbRemain(useB2BTcb.getLong("id"), consumeNum, BusiTypeEnum.B2B_TC.getType());
@@ -374,5 +322,132 @@ public class B2BTcbService implements BusiService {
                 " where id = ? ";
         jdbcTemplate.update(updateNumSql, consumerNum, consumerNum, id);
     }
+
+    /**
+     * 保存B2B套餐领取记录
+     *
+     * @param custId
+     * @param userId
+     * @param batchId
+     * @param entId
+     * @param tcbId
+     * @param superId
+     * @param content
+     */
+    private void saveTcbClueDataLog(String custId, long userId, String batchId, String entId, String tcbId, String superId, String content) {
+        JSONObject log = new JSONObject();
+        // B2B数据企业ID
+        log.put("ext_1", entId);
+        // 套餐包ID 扩展字段2
+        log.put("tcbId", tcbId);
+        // 领取批次ID 扩展字段3
+        log.put("batchId", batchId);
+        // 线索ID 扩展字段4
+        log.put("superId", superId);
+        log.put("content", content);
+        try {
+            busiEntityService.saveInfo(custId, "", userId, BusiTypeEnum.B2B_TC_LOG.getType(), 0L, log);
+        } catch (Exception e) {
+            LOG.warn("保存B2B领取记录失败", e);
+        }
+    }
+
+    /**
+     * 根据指定数量领取B2B线索
+     *
+     * @param param
+     * @param getNumber
+     * @param custId
+     * @param userId
+     * @param busiType
+     */
+    public Map<String, JSONObject> doClueDataToSeaByNumber(JSONObject param, long getNumber, String custId, long userId, String busiType) {
+        Map<String, JSONObject> data = new HashMap<>();
+        BaseResult companyContact, companyDetail, baseResult;
+        JSONObject contactData, detailData, resultData;
+        JSONArray list;
+        //领取，只返回id
+        param.put("fieldType", false);
+        long pageNo = 0L, pageSize = 1000;
+        while (getNumber > data.size()) {
+            param.put("pageNum", pageNo);
+            param.put("pageSize", pageSize);
+            try {
+                baseResult = searchListService.pageSearchIds(custId, "", userId, busiType, param);
+                resultData = (JSONObject) baseResult.getData();
+                list = resultData.getJSONArray("list");
+                pageNo++;
+                if (list == null || list.size() == 0) {
+                    continue;
+                }
+                for (int i = 0; i < list.size(); i++) {
+                    // 已经领取过不可重复领取
+                    if (b2BTcbLogService.checkClueGetStatus(custId, list.getString(i))) {
+                        LOG.info("客户:{},B2B企业ID:{}已经领取过", custId, list.getString(i));
+                        continue;
+                    }
+                    if (getNumber > data.size()) {
+                        // 查询联系方式
+                        companyContact = searchListService.getCompanyDetail(list.getString(i), "", "1039");
+                        contactData = (JSONObject) companyContact.getData();
+                        if (contactData == null || contactData.size() == 0 ||
+                                contactData.getJSONArray("phoneNumber") == null ||
+                                contactData.getJSONArray("phoneNumber").size() == 0) {
+                            continue;
+                        }
+                        // 查询企业名称
+                        companyDetail = searchListService.getCompanyDetail(list.getString(i), "", "1001");
+                        detailData = (JSONObject) companyDetail.getData();
+                        contactData.putAll(detailData);
+                        data.put(list.getString(i), contactData);
+                    } else {
+                        break;
+                    }
+                }
+            } catch (Exception e) {
+                LOG.warn("客户指定数量领取B2B套餐异常", e);
+            }
+        }
+        return data;
+    }
+
+    /**
+     * 根据指定企业ID领取B2B线索
+     *
+     * @param companyIds
+     * @param custId
+     * @return
+     */
+    public Map<String, JSONObject> doClueDataToSeaByIds(List<String> companyIds, String custId) {
+        Map<String, JSONObject> data = new HashMap<>();
+        BaseResult companyContact, companyDetail;
+        JSONObject contactData, detailData;
+        for (String id : companyIds) {
+            // 已经领取过不可重复领取
+            if (b2BTcbLogService.checkClueGetStatus(custId, id)) {
+                LOG.info("客户:{},B2B企业ID:{}已经领取过", custId, id);
+                continue;
+            }
+            // 查询企业联系方式
+            try {
+                companyContact = searchListService.getCompanyDetail(id, "", "1039");
+                contactData = (JSONObject) companyContact.getData();
+                if (contactData == null || contactData.size() == 0 ||
+                        contactData.getJSONArray("phoneNumber") == null ||
+                        contactData.getJSONArray("phoneNumber").size() == 0) {
+                    continue;
+                }
+                // 查询企业名称
+                companyDetail = searchListService.getCompanyDetail(id, "", "1001");
+                detailData = (JSONObject) companyDetail.getData();
+                contactData.putAll(detailData);
+                data.put(id, contactData);
+            } catch (Exception e) {
+                LOG.warn("客户指定Id领取B2B套餐异常", e);
+            }
+        }
+        return data;
+    }
+
 
 }
