@@ -549,6 +549,19 @@ public class SbdZService implements BusiService {
                 if (dan.getProducts() != null) {
                     for (Product p : dan.getProducts()) {
                         p.setMain_bill_no(mainDan.getBill_no());
+                        // 处理保留5位小数
+                        if(StringUtil.isNotEmpty(p.getGgrosswt())){
+                            BigDecimal v = BigDecimalUtil.roundingValue(new BigDecimal(p.getGgrosswt()), BigDecimal.ROUND_DOWN, 5);
+                            p.setGgrosswt(String.valueOf(v.doubleValue()));
+                        }
+                        if(StringUtil.isNotEmpty(p.getG_qty())){
+                            BigDecimal v = BigDecimalUtil.roundingValue(new BigDecimal(p.getG_qty()), BigDecimal.ROUND_DOWN, 5);
+                            p.setG_qty(String.valueOf(v.doubleValue()));
+                        }
+                        if(StringUtil.isNotEmpty(p.getQty_1())){
+                            BigDecimal v = BigDecimalUtil.roundingValue(new BigDecimal(p.getQty_1()), BigDecimal.ROUND_DOWN, 5);
+                            p.setQty_1(String.valueOf(v.doubleValue()));
+                        }
                     }
                 }
                 //weight保留5位小数
@@ -556,6 +569,7 @@ public class SbdZService implements BusiService {
                     BigDecimal v = BigDecimalUtil.roundingValue(new BigDecimal(dan.getWeight()), BigDecimal.ROUND_DOWN, 5);
                     dan.setWeight(String.valueOf(v.doubleValue()));
                 }
+
                 buildSBDFenDan(dan, list, userId, custId, mainDan.getBill_no(), mainid, info, resource);
                 //size--;
             }
