@@ -11,6 +11,7 @@ import com.bdaim.customs.entity.Constants;
 import com.bdaim.customs.entity.HBusiDataManager;
 import com.bdaim.customs.entity.HMetaDataDef;
 import com.bdaim.customs.utils.ServiceUtils;
+import com.bdaim.util.BigDecimalUtil;
 import com.bdaim.util.NumberConvertUtil;
 import com.bdaim.util.StringUtil;
 
@@ -111,7 +112,7 @@ public class SbdFService implements BusiService {
         //hBusiDataManagerDao.saveOrUpdate(sbdzd);
         String sql = "update " + HMetaDataDef.getTable(sbdzd.getType(), "") + " set content=?" +
                 " where id=" + sbdzd.getId() + " and type='" + sbdzd.getType() + "'";
-        jdbcTemplate.update(sql,jsonObject.toJSONString());
+        jdbcTemplate.update(sql, jsonObject.toJSONString());
         serviceUtils.updateDataToES(BusiTypeEnum.SZ.getType(), sbdzd.getId().toString(), jsonObject);
     }
 
@@ -199,7 +200,7 @@ public class SbdFService implements BusiService {
                             " content=? " +
                             " ,ext_6='' " +
                             " where id=" + d.getId() + " and type='" + d.getType() + "'";
-                    jdbcTemplate.update(sql,jsonObject.toJSONString());
+                    jdbcTemplate.update(sql, jsonObject.toJSONString());
                     elasticSearchService.update(d, d.getId());
                     customsService.updateMainDanIdCardNumber(jsonObject.getIntValue("pid"), cust_id);
                 }
@@ -216,7 +217,7 @@ public class SbdFService implements BusiService {
             }
             //dbManager.setContent(json.toJSONString());
             serviceUtils.updateDataToES(busiType, id.toString(), json);
-            totalPartDanToMainDan(json.getLongValue("pid"), BusiTypeEnum.SZ.getType(), id, cust_id, "update",info);
+            totalPartDanToMainDan(json.getLongValue("pid"), BusiTypeEnum.SZ.getType(), id, cust_id, "update", info);
         }
     }
 
@@ -253,7 +254,7 @@ public class SbdFService implements BusiService {
         // 批量删除es税单
         elasticSearchService.bulkDeleteDocument(BusiTypeEnum.getEsIndex(BusiTypeEnum.SS.getType()), Constants.INDEX_TYPE, sdIds);
         Integer zid = json.getInteger("pid");
-        totalPartDanToMainDan(json.getLongValue("pid"), BusiTypeEnum.SZ.getType(), id, cust_id, "del",null);
+        totalPartDanToMainDan(json.getLongValue("pid"), BusiTypeEnum.SZ.getType(), id, cust_id, "del", null);
         // 更新主单身份证照片数量
         json.put("id_no_pic", "");
         json.put("idcard_pic_flag", "0");
@@ -333,14 +334,14 @@ public class SbdFService implements BusiService {
      * @param type
      * @param id
      */
-    public void totalPartDanToMainDan(long zid, String type, Long id, String custId, String optype,JSONObject info) {
+    public void totalPartDanToMainDan(long zid, String type, Long id, String custId, String optype, JSONObject info) {
 
         List<HBusiDataManager> data = serviceUtils.listDataByPid(custId, BusiTypeEnum.SF.getType(), zid, BusiTypeEnum.SZ.getType());
         BigDecimal weightTotal = BigDecimal.ZERO;
         Integer low_price_goods = 0;
         for (HBusiDataManager d : data) {
-            if("del".equals(optype)){
-                if (d.getId() == id.intValue())continue;
+            if ("del".equals(optype)) {
+                if (d.getId() == id.intValue()) continue;
             }
             String content = d.getContent();
             JSONObject json = JSONObject.parseObject(content);
@@ -351,11 +352,11 @@ public class SbdFService implements BusiService {
             if (StringUtil.isEmpty(WEIGHT)) {
                 WEIGHT = "0";
             }
-            if("update".equals(optype)){
-                if (d.getId() == id.intValue()){
+            if ("update".equals(optype)) {
+                if (d.getId() == id.intValue()) {
                     if (StringUtil.isEmpty(WEIGHT)) {
                         WEIGHT = "0";
-                    }else {
+                    } else {
                         WEIGHT = info.getString("weight");
                     }
                 }
@@ -373,7 +374,8 @@ public class SbdFService implements BusiService {
 
         String hcontent = manager.getContent();
         JSONObject jsonObject = JSONObject.parseObject(hcontent);
-        jsonObject.put("weight_total", weightTotal.toString());//总重量
+        weightTotal = BigDecimalUtil.roundingValue(weightTotal, BigDecimal.ROUND_DOWN, 5);
+        jsonObject.put("weight_total", weightTotal.doubleValue());//总重量
         if ("del".equals(optype)) {
             jsonObject.put("party_total", data.size() - 1 < 0 ? 0 : data.size() - 1);//分单总数
         }
@@ -384,7 +386,7 @@ public class SbdFService implements BusiService {
         jsonObject.put("low_price_goods", s + low_price_goods);
         manager.setContent(jsonObject.toJSONString());
         sql = " update " + HMetaDataDef.getTable(BusiTypeEnum.SZ.getType(), "") + " set content=? where id=" + zid + " and type='" + type + "'";
-        jdbcTemplate.update(sql,jsonObject.toJSONString());
+        jdbcTemplate.update(sql, jsonObject.toJSONString());
         serviceUtils.updateDataToES(BusiTypeEnum.SZ.getType(), String.valueOf(zid), jsonObject);
 
     }
