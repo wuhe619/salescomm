@@ -11,6 +11,7 @@ import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.entity.CustomerProperty;
 import com.bdaim.customs.entity.*;
 import com.bdaim.customs.utils.ServiceUtils;
+import com.bdaim.util.BigDecimalUtil;
 import com.bdaim.util.NumberConvertUtil;
 import com.bdaim.util.StringUtil;
 
@@ -353,7 +354,7 @@ public class SbdZService implements BusiService {
                                             .append(split)
                                             .append("(").append(fd.getString("g_qty")).append("*").append(fd.getString("decl_price")).append("),");
                                     //estimated_tax += fd.getDoubleValue("estimated_tax");
-                                    estimated_tax.add(new BigDecimal(fd.getString("estimated_tax")));
+                                    estimated_tax = estimated_tax.add(new BigDecimal(fd.getString("estimated_tax")));
                                 }
                             }
                             fdData.put("g_name", gName.toString());
@@ -550,6 +551,11 @@ public class SbdZService implements BusiService {
                         p.setMain_bill_no(mainDan.getBill_no());
                     }
                 }
+                //weight保留5位小数
+                if(StringUtil.isNotEmpty(dan.getWeight())){
+                    BigDecimal v = BigDecimalUtil.roundingValue(new BigDecimal(dan.getWeight()), BigDecimal.ROUND_DOWN, 5);
+                    dan.setWeight(String.valueOf(v.doubleValue()));
+                }
                 buildSBDFenDan(dan, list, userId, custId, mainDan.getBill_no(), mainid, info, resource);
                 //size--;
             }
@@ -600,7 +606,7 @@ public class SbdZService implements BusiService {
             json.put("estimated_tax", arrt.getString("estimated_tax_total"));
             //json.put("main_gname", mainGoodsName);
             // 计算主要货物
-            Map<String,String> main_map = serviceUtils.generateFDMainGName(pList);
+            Map<String, String> main_map = serviceUtils.generateFDMainGName(pList);
             json.put("main_gname", main_map.get("name"));
             json.put("main_gname_en", main_map.get("name_en"));
 
@@ -765,10 +771,11 @@ public class SbdZService implements BusiService {
                 WEIGHT = "0";
             }
             //weightTotal += Double.valueOf(WEIGHT);
-            weightTotal.add(new BigDecimal(WEIGHT));
+            weightTotal = weightTotal.add(new BigDecimal(WEIGHT));
         }
-
-        info.put("weight_total", weightTotal.floatValue());//总重量
+        weightTotal = BigDecimalUtil.roundingValue(weightTotal, BigDecimal.ROUND_DOWN, 5);
+        //总重量
+        info.put("weight_total", weightTotal.doubleValue());
         info.put("party_total", list.size());//分单总数
 
         if (Integer.valueOf(partynum) < list.size()) {

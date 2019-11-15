@@ -13,6 +13,18 @@ public class BigDecimalUtil {
     private static final int DEF_DIV_SCALE = 10;
 
     /**
+     * 保存N位小数
+     * @param value
+     * @param roundingMode
+     * @param newScale
+     * @return
+     */
+    public static BigDecimal roundingValue(BigDecimal value, int roundingMode, int newScale) {
+        value = value.setScale(newScale, roundingMode);
+        return value;
+    }
+
+    /**
      * 提供精确的加法运算。
      *
      * @param v1 被加数
