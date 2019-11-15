@@ -174,7 +174,7 @@ public class B2BTcbService implements BusiService {
 
     @Override
     public String formatQuery(String busiType, String cust_id, String cust_group_id, Long cust_user_id, JSONObject params, List sqlParams) {
-        StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5,update_date from "
+        StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5  from "
                 + HMetaDataDef.getTable(busiType, "") + " where type='").append(busiType).append("'");
         String name = params.getString("name");
 
