@@ -16,6 +16,7 @@ import com.bdaim.customersea.service.CustomerSeaService;
 import com.bdaim.customs.entity.BusiTypeEnum;
 import com.bdaim.customs.entity.HMetaDataDef;
 import com.bdaim.resource.dao.MarketResourceDao;
+import com.bdaim.resource.entity.MarketResourceEntity;
 import com.bdaim.resource.entity.ResourcePropertyEntity;
 import com.bdaim.resource.service.MarketResourceService;
 import com.bdaim.util.NumberConvertUtil;
@@ -132,6 +133,11 @@ public class B2BTcbService implements BusiService {
      * @throws Exception
      */
     private int tcOpenDeduction(String resourceId, String resName, String price, int total, String custId, long userId) throws Exception {
+        MarketResourceEntity resourceEntity = marketResourceDao.get(NumberConvertUtil.parseInt(resourceId));
+        if (resourceEntity == null || resourceEntity.getStatus() != 1) {
+            LOG.warn("供应商资源:{}无效", resourceEntity);
+            throw new TouchException("所选供应商资源无效");
+        }
         // 套餐客户售价(厘)
         int custNumberPrice = NumberConvertUtil.changeY2L(price);
         // 套餐供应商售价(厘)
