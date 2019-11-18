@@ -115,6 +115,7 @@ public class SupplierDao extends SimpleHibernateDao<SupplierEntity, Integer> {
         }
         return resourcesPriceDto;
     }
+
     /**
      * @description 获取供应商属性信息
      * @author:duanliying
@@ -167,7 +168,7 @@ public class SupplierDao extends SimpleHibernateDao<SupplierEntity, Integer> {
         this.saveOrUpdate(marketResource);
     }
 
-    public Page pageSupplier(int pageIndex, int pageSize, String supplierName, String supplierId, String supplierType) {
+    public Page pageSupplier(int pageIndex, int pageSize, String supplierName, String supplierId, String supplierType, int status) {
         StringBuffer hql = new StringBuffer("FROM SupplierEntity m WHERE 1=1 ");
         List<Object> params = new ArrayList<>();
         if (StringUtil.isNotEmpty(supplierName)) {
@@ -181,6 +182,10 @@ public class SupplierDao extends SimpleHibernateDao<SupplierEntity, Integer> {
         if (StringUtil.isNotEmpty(supplierType)) {
             hql.append(" AND m.supplierId IN(SELECT supplierId FROM MarketResourceEntity WHERE typeCode = ?)");
             params.add(Integer.parseInt(supplierType));
+        }
+        if (status > 0) {
+            hql.append(" AND m.status = ?");
+            params.add(status);
         }
         hql.append(" ORDER BY m.createTime DESC");
         Page page = this.page(hql.toString(), params, pageIndex, pageSize);

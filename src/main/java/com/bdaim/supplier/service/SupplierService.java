@@ -1349,8 +1349,8 @@ public class SupplierService {
         return 1;
     }
 
-    public Page pageSupplier(int pageIndex, int pageSize, String supplierName, String supplierId, String supplierType) {
-        Page page = supplierDao.pageSupplier(pageIndex, pageSize, supplierName, supplierId, supplierType);
+    public Page pageSupplier(int pageIndex, int pageSize, String supplierName, String supplierId, String supplierType, int status) {
+        Page page = supplierDao.pageSupplier(pageIndex, pageSize, supplierName, supplierId, supplierType, status);
         if (page.getData() != null && page.getData().size() > 0) {
             SupplierEntity supplierDO;
             List<MarketResourceDTO> marketResourceDTOList;
@@ -1449,10 +1449,10 @@ public class SupplierService {
     }
 
 
-    public Map<String, Object> listSupplierMonthBill(String yearMonth, int pageIndex, int pageSize, String supplierName, String supplierId, String supplierType) {
+    public Map<String, Object> listSupplierMonthBill(String yearMonth, int pageIndex, int pageSize, String supplierName, String supplierId, String supplierType, int status) {
         Map<String, Object> result = new HashMap<>();
         double sumAmount = 0.0;
-        Page page = supplierDao.pageSupplier(pageIndex, pageSize, supplierName, supplierId, supplierType);
+        Page page = supplierDao.pageSupplier(pageIndex, pageSize, supplierName, supplierId, supplierType, status);
         List<Map<String, Object>> list = new ArrayList<>();
         if (page != null && page.getData() != null && page.getData().size() > 0) {
             SupplierEntity supplierDO;

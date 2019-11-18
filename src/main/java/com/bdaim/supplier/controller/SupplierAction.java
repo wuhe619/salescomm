@@ -348,13 +348,13 @@ public class SupplierAction extends BasicAction {
     @RequestMapping(value = "/page", method = RequestMethod.POST)
     @ResponseBody
     @ValidatePermission(role = "admin,ROLE_USER")
-    public String page(@Valid PageParam page, BindingResult error, String supplierId, String supplierName, String supplierType) {
+    public String page(@Valid PageParam page, BindingResult error, String supplierId, String supplierName, String supplierType, Integer status) {
         if (error.hasFieldErrors()) {
             return getErrors(error);
         }
         Page pageData = null;
         try {
-            pageData = supplierService.pageSupplier(page.getPageNum(), page.getPageSize(), supplierName, supplierId, supplierType);
+            pageData = supplierService.pageSupplier(page.getPageNum(), page.getPageSize(), supplierName, supplierId, supplierType, status);
         } catch (Exception e) {
             LOG.error("查询单个供应商详情失败,", e);
         }
@@ -393,7 +393,7 @@ public class SupplierAction extends BasicAction {
     @RequestMapping(value = "/listMonthBill", method = RequestMethod.POST)
     @ResponseBody
     @ValidatePermission(role = "admin,ROLE_USER")
-    public String page(@Valid PageParam page, BindingResult error, String yearMonth, String supplierId, String supplierName, String supplierType) {
+    public String page(@Valid PageParam page, BindingResult error, String yearMonth, String supplierId, String supplierName, String supplierType, Integer status) {
         if (error.hasFieldErrors()) {
             return getErrors(error);
         }
@@ -402,7 +402,7 @@ public class SupplierAction extends BasicAction {
         }
         Map<String, Object> data = null;
         try {
-            data = supplierService.listSupplierMonthBill(yearMonth, page.getPageNum(), page.getPageSize(), supplierName, supplierId, supplierType);
+            data = supplierService.listSupplierMonthBill(yearMonth, page.getPageNum(), page.getPageSize(), supplierName, supplierId, supplierType, status);
         } catch (Exception e) {
             LOG.error("查询供应商月账单失败,", e);
         }
