@@ -3,6 +3,7 @@ package com.bdaim.resource.dao;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.common.BusiMetaConfig;
 import com.bdaim.common.dao.SimpleHibernateDao;
 import com.bdaim.common.dto.Page;
 import com.bdaim.customer.dao.CustomerLabelDao;
@@ -12,6 +13,8 @@ import com.bdaim.customer.entity.CustomerLabel;
 import com.bdaim.customer.entity.CustomerUser;
 import com.bdaim.customersea.dao.CustomerSeaDao;
 import com.bdaim.customersea.entity.CustomerSea;
+import com.bdaim.customs.entity.BusiTypeEnum;
+import com.bdaim.customs.entity.HMetaDataDef;
 import com.bdaim.markettask.dao.MarketTaskDao;
 import com.bdaim.markettask.entity.MarketTask;
 import com.bdaim.rbac.service.UserService;
@@ -314,7 +317,113 @@ public class MarketResourceDao extends SimpleHibernateDao<MarketResourceEntity, 
     }
 
     /**
+     * 根据条件检索资源列表
+     *
+     * @param supplierId
+     * @param type
+     * @param param
+     * @return
+     */
+    public List<MarketResourceDTO> listMarketResource(String supplierId, int type, JSONObject param) {
+        StringBuilder hql = new StringBuilder();
+        List<Object> wheres = new ArrayList<>();
+        hql.append(" from MarketResourceEntity m where 1=1");
+        if (StringUtil.isNotEmpty(supplierId)) {
+            hql.append(" AND m.supplierId = ? ");
+            wheres.add(supplierId);
+        }
+        if (type > 0) {
+            hql.append(" AND m.typeCode = ? ");
+            wheres.add(type);
+        }
+        if (param.getInteger("status") != null && param.getInteger("status") > 0) {
+            hql.append(" AND m.status = ? ");
+            wheres.add(param.getInteger("status"));
+        }
+        Iterator keys = param.keySet().iterator();
+        while (keys.hasNext()) {
+            String key = (String) keys.next();
+            if (StringUtil.isEmpty(String.valueOf(param.get(key)))) continue;
+            if ("pageNum".equals(key) || "pageSize".equals(key) || "supplierId".equals(key)
+                    || "type".equals(key) || "custId".equals(key) || "_sort_".equals(key)
+                    || "_orderby_".equals(key) || "status".equals(key) || "busiType".equals(key))
+                continue;
+
+            hql.append(" AND m.resourceId IN(SELECT resourceId FROM ResourcePropertyEntity WHERE JSON_EXTRACT(property_value, '$." + key + "') = ?) ");
+            wheres.add(param.get(key));
+        }
+
+        hql.append(" ORDER BY create_time ASC");
+        List<MarketResourceEntity> list = this.find(hql.toString(), wheres);
+        List<MarketResourceDTO> result = new ArrayList<>();
+        if (list.size() > 0) {
+            MarketResourceDTO marketResourceDTO;
+            for (int i = 0; i < list.size(); i++) {
+                marketResourceDTO = new MarketResourceDTO(list.get(i));
+                result.add(marketResourceDTO);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * 分页根据条件检索资源
+     *
+     * @param pageNum
+     * @param pageSize
+     * @param supplierId
+     * @param type
+     * @param param
+     * @return
+     */
+    public Page pageMarketResource(int pageNum, int pageSize, String supplierId, int type, JSONObject param) {
+        StringBuilder hql = new StringBuilder();
+        List<Object> wheres = new ArrayList<>();
+        hql.append(" from MarketResourceEntity m where 1=1");
+        if (StringUtil.isNotEmpty(supplierId)) {
+            hql.append(" AND m.supplierId = ? ");
+            wheres.add(supplierId);
+        }
+        if (type > 0) {
+            hql.append(" AND m.typeCode = ? ");
+            wheres.add(type);
+        }
+        if (param.getInteger("status") != null && param.getInteger("status") > 0) {
+            hql.append(" AND m.status = ? ");
+            wheres.add(param.getInteger("status"));
+        }
+        Iterator keys = param.keySet().iterator();
+        while (keys.hasNext()) {
+            String key = (String) keys.next();
+            if (StringUtil.isEmpty(String.valueOf(param.get(key)))) continue;
+            if ("pageNum".equals(key) || "pageSize".equals(key) || "supplierId".equals(key)
+                    || "type".equals(key) || "custId".equals(key) || "_sort_".equals(key)
+                    || "_orderby_".equals(key) || "status".equals(key) || "busiType".equals(key))
+                continue;
+
+            hql.append(" AND m.resourceId IN(SELECT resourceId FROM ResourcePropertyEntity WHERE JSON_EXTRACT(property_value, '$." + key + "') = ?) ");
+            wheres.add(param.get(key));
+        }
+
+        hql.append(" ORDER BY create_time ASC");
+        Page page = this.page(hql.toString(), wheres, pageNum, pageSize);
+        List<MarketResourceDTO> result = new ArrayList<>();
+        if (page.getData().size() > 0) {
+            MarketResourceDTO marketResourceDTO;
+            MarketResourceEntity entity;
+            for (int i = 0; i < page.getData().size(); i++) {
+                entity = (MarketResourceEntity) page.getData().get(i);
+                marketResourceDTO = new MarketResourceDTO(entity);
+                result.add(marketResourceDTO);
+            }
+        }
+        page.setData(result);
+        return page;
+    }
+
+    /**
      * 根据类型分页查询资源
+     *
      * @param type
      * @param pageNum
      * @param pageSize
