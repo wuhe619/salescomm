@@ -2742,8 +2742,7 @@ public class CustomerSeaService {
         String yearMonth = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMM"));
         StringBuilder sql = new StringBuilder();
         sql.append(" SELECT user_id,superid,super_data,create_time FROM ")
-//                .append(ConstantsUtil.SUPPERDATA_LOG_TABLE_PREFIX).append(yearMonth).append(" WHERE 1=1 ");
-                .append(ConstantsUtil.SUPPERDATA_LOG_TABLE_PREFIX).append("201909").append(" WHERE 1=1 ");
+                .append(ConstantsUtil.SUPPERDATA_LOG_TABLE_PREFIX).append(yearMonth).append(" WHERE 1=1 ");
         if (StringUtil.isNotEmpty(superId)) {
             sql.append(" AND superid = '").append(superId).append("' ");
         }
@@ -3532,7 +3531,7 @@ public class CustomerSeaService {
             sql.append("'" + custType + "' ");
             sql.append("or");
         }
-        sql.delete(sql.lastIndexOf("or"),sql.length());
+        sql.delete(sql.lastIndexOf("or"), sql.length());
         // 保存转交记录
         StringBuilder logSql = new StringBuilder()
                 .append("INSERT INTO ").append(ConstantsUtil.CUSTOMER_OPER_LOG_TABLE_PREFIX).append(" (`user_id`, `list_id`, `customer_sea_id`, `customer_group_id`, `event_type`,  `create_time`,reason,remark) ")
