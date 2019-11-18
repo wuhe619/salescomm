@@ -3526,27 +3526,36 @@ public class CustomerSeaService {
         StringBuilder sql = new StringBuilder()
                 .append("UPDATE ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(param.getSeaId())
                 .append(" custG SET custG.status = 2 WHERE 1=1 and ");
+//        for (String custType : split) {
+//            sql.append(" super_data ->'$.SYS014' =");
+//            sql.append("'" + custType + "' ");
+//            sql.append("or");
+//        }
+//        sql.delete(sql.lastIndexOf("or"), sql.length());
+        StringBuffer stb = new StringBuffer();
         for (String custType : split) {
-            sql.append(" super_data ->'$.SYS014' =");
-            sql.append("'" + custType + "' ");
-            sql.append("or");
+            stb.append("'\"");
+            stb.append(custType);
+            stb.append("\"',");
         }
-        sql.delete(sql.lastIndexOf("or"), sql.length());
+        stb.deleteCharAt(stb.length() - 1);
+        sql.append(" super_data ->'$.SYS014' in (" + stb.toString() + ")");
         // 保存转交记录
         StringBuilder logSql = new StringBuilder()
                 .append("INSERT INTO ").append(ConstantsUtil.CUSTOMER_OPER_LOG_TABLE_PREFIX).append(" (`user_id`, `list_id`, `customer_sea_id`, `customer_group_id`, `event_type`,  `create_time`,reason,remark) ")
                 .append("( SELECT ?, id, ?, batch_id, ?, ?, ?, ? ")
                 .append(" FROM ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(param.getSeaId()).append(" WHERE status <> 2 ");
-        for (String custType : split) {
-            logSql.append(" or  super_data ->'$.SYS014' =")
-                    .append("'" + custType + "'");
-        }
-        logSql.append(" limit 1)");
+
         //员工只能处理负责人为自己的数据
         if ("2".equals(param.getUserType())) {
             sql.append(" AND user_id = ").append(param.getUserId());
             logSql.append(" AND user_id = ").append(param.getUserId());
         }
+        //        for (String custType : split) {
+//            logSql.append(" or  super_data ->'$.SYS014' =")
+//                    .append("'" + custType + "'");
+//        }
+        logSql.append(" and  super_data ->'$.SYS014' in (" + stb.toString() + ") limit 1 )");
         // 保存转交记录
         customerSeaDao.executeUpdateSQL(logSql.toString(), param.getUserId(), param.getSeaId(), 8,
                 new Timestamp(System.currentTimeMillis()), param.getBackReason().isEmpty() ? null : param.getBackReason(), param.getBackRemark().isEmpty() ? null : param.getBackRemark());
