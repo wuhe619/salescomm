@@ -104,7 +104,7 @@ public class CustomController extends BasicAction {
         ResponseJson responseJson = new ResponseJson();
         try {
             LoginUser user = opUser();
-            JSONObject json = customsService.getMainDetailById(user.getCustId(),id, type);
+            JSONObject json = customsService.getMainDetailById(user.getCustId(), id, type);
             responseJson.setMessage("SUCCESS");
             responseJson.setCode(200);
             responseJson.setData(json);
@@ -209,7 +209,7 @@ public class CustomController extends BasicAction {
      * @return
      */
     @RequestMapping(value = "page/diclist", method = RequestMethod.GET)
-    public ResponseJson getdicPageList(String type, Integer pageSize, Integer pageNum,String propertyName) {
+    public ResponseJson getdicPageList(String type, Integer pageSize, Integer pageNum, String propertyName) {
         ResponseJson responseJson = new ResponseJson();
         if (type == null || pageNum == null || pageSize == null) {
             responseJson.setCode(-1);
@@ -217,7 +217,35 @@ public class CustomController extends BasicAction {
             return responseJson;
         }
         try {
-            Page page = customsService.getdicPageList(type, pageSize, pageNum,propertyName);
+            Page page = customsService.getdicPageList(type, pageSize, pageNum, propertyName);
+            responseJson.setData(page);
+            responseJson.setCode(200);
+            responseJson.setMessage("SUCCESS");
+        } catch (Exception e) {
+            e.printStackTrace();
+            responseJson.setCode(-1);
+            responseJson.setMessage(e.getMessage());
+        }
+        return responseJson;
+    }
+
+    /**
+     * 字典分页
+     * @param pageSize
+     * @param pageNum
+     * @param param
+     * @return
+     */
+    @RequestMapping(value = "/pageDic", method = RequestMethod.POST)
+    public ResponseJson pageDic(Integer pageSize, Integer pageNum, HDic param) {
+        ResponseJson responseJson = new ResponseJson();
+        if (pageNum == null || pageSize == null) {
+            responseJson.setCode(-1);
+            responseJson.setMessage("参数错误");
+            return responseJson;
+        }
+        try {
+            Page page = customsService.pageDic(pageNum, pageSize, param);
             responseJson.setData(page);
             responseJson.setCode(200);
             responseJson.setMessage("SUCCESS");

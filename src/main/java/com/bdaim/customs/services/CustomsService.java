@@ -783,6 +783,29 @@ public class CustomsService {
         return page;
     }
 
+    /**
+     * 字典分页
+     *
+     * @param pageNo
+     * @param pageSize
+     * @param param
+     * @return
+     */
+    public Page pageDic(int pageNo, int pageSize, HDic param) {
+        String sql = "select type,code,name_zh,name_en,`desc`,`status`,ext_1, ext_2, ext_3 from h_dic where 1=1 ";
+        if (StringUtil.isNotEmpty(param.getType())) {
+            sql += " and type='" + param.getType() + "'";
+        }
+        if (StringUtil.isNotEmpty(param.getName_zh())) {
+            sql += " and name_zh like '%" + param.getName_zh() + "%'";
+        }
+        if (StringUtil.isNotEmpty(param.getP_code())) {
+            sql += " and p_code = '" + param.getP_code() + "'";
+        }
+        Page page = hDicDao.sqlPageQueryByPageSize0(sql, pageNo, pageSize);
+        return page;
+    }
+
 
     public void saveDic(HDic hdic) {
         if (StringUtil.isEmpty(hdic.getStatus())) {
@@ -1306,7 +1329,7 @@ public class CustomsService {
 
             if ("-1".equals(data.getString("code"))) {
                 String sql = "insert into h_customer_msg(`cust_id`,`cust_user_id`,`content`,`create_time`,`status`,`level`,`msg_type`)" +
-                    "values ('" + hBusiDataManager.getCust_id() + "'," + hBusiDataManager.getExt_6() + ",? ,now(),0,4,'CHANGZHAN')";
+                        "values ('" + hBusiDataManager.getCust_id() + "'," + hBusiDataManager.getExt_6() + ",? ,now(),0,4,'CHANGZHAN')";
                 jdbcTemplate.update(sql, msg.toJSONString());
             }
 
@@ -1318,11 +1341,11 @@ public class CustomsService {
     /**
      * 手动同步回执状态到报关单分单（只同步已提交的）
      */
-    public void synchzStatus(){
+    public void synchzStatus() {
         String sql1 = "select * from h_data_manager_bgd_f where ext_1='B1'";
         RowMapper<HBusiDataManager> managerRowMapper = new BeanPropertyRowMapper<>(HBusiDataManager.class);
         List<HBusiDataManager> list = jdbcTemplate.query(sql1, managerRowMapper);
-        for(HBusiDataManager hb:list){
+        for (HBusiDataManager hb : list) {
             try {
                 String sql2 = "select * from h_data_manager_bgd_hz where ext_3='" + hb.getExt_3() + "' and ext_4='" + hb.getExt_4() + "' order by create_date desc limit 1 ";
                 RowMapper<HBusiDataManager> managerRowMapper2 = new BeanPropertyRowMapper<>(HBusiDataManager.class);
@@ -1339,7 +1362,7 @@ public class CustomsService {
                         jdbcTemplate.update(sql, json.toJSONString());
                     }
                 }
-            }catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
