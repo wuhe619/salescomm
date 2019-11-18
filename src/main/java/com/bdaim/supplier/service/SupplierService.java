@@ -1365,12 +1365,17 @@ public class SupplierService {
                     supplierDTO = new SupplierDTO(supplierDO);
                     marketResourceDTOList = marketResourceDao.listMarketResourceBySupplierId(String.valueOf(supplierDO.getSupplierId()));
                     for (MarketResourceDTO dto : marketResourceDTOList) {
+                        if (dto == null || dto.getTypeCode() == null) {
+                            continue;
+                        }
                         if (1 == dto.getTypeCode()) {
                             resourceType.add("呼叫线路");
                         } else if (2 == dto.getTypeCode()) {
                             resourceType.add("短信");
                         } else if (4 == dto.getTypeCode()) {
                             resourceType.add("数据");
+                        } else if (8 == dto.getTypeCode()) {
+                            resourceType.add("B2B数据");
                         }
                     }
                     if (resourceType.size() > 0) {

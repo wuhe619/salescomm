@@ -653,11 +653,13 @@ public class CustomerSeaAction extends BasicAction {
         }
         return returnJsonData(data);
     }
-    public String page3(){
+
+    public String page3() {
 
 
         return null;
     }
+
     /**
      * 公海内线索分页
      *
@@ -714,7 +716,12 @@ public class CustomerSeaAction extends BasicAction {
             responseJson.setCode(-1);
             return responseJson;
         }
-//        int operate = jsonObject.getIntValue("operate");
+        if (StringUtil.isEmpty(param.getCustType())) {
+            responseJson.setData("企业id不能为空");
+            responseJson.setCode(-1);
+            return responseJson;
+        }
+        int operate = jsonObject.getIntValue("operate");
         int data = 0;
         try {
             param.setUserId(opUser().getId());
@@ -722,7 +729,7 @@ public class CustomerSeaAction extends BasicAction {
             param.setUserGroupRole(opUser().getUserGroupRole());
             param.setUserGroupId(opUser().getUserGroupId());
             param.setCustId(opUser().getCustId());
-            data = seaService.updateClueStatus(param);
+            data = seaService.batchDeleteClue(param, operate);
             responseJson.setCode(200);
         } catch (Exception e) {
             LOG.error("公海线索状态修改异常,", e);

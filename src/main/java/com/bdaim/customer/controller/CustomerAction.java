@@ -2008,6 +2008,10 @@ public class CustomerAction extends BasicAction {
 
     }
 
+    /**
+     * @param param
+     * @return
+     */
     @ResponseBody
     @RequestMapping(value = "/getClueDataToSea", method = RequestMethod.POST)
     public String getClueDataToSea(@RequestBody JSONObject param) {
@@ -2019,6 +2023,7 @@ public class CustomerAction extends BasicAction {
                     "1", param);
             responseJson.setData(quantity);
         } catch (Exception e) {
+            logger.error("企业B2B套餐领取至公海/私海失败,", e);
             responseJson.setCode(-1);
             responseJson.setMessage(e.getMessage());
         }

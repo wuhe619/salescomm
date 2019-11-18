@@ -506,7 +506,7 @@ public class CdZService implements BusiService {
             pack_no += _content.getIntValue("pack_no");
 
            // Double fdWeightTotal = 0.0;
-            Double total_value = 0.0;
+            BigDecimal total_value = new BigDecimal(0);
             BigDecimal qty = null;
             BigDecimal multiply = null;
             goodList = cache.get(hp.getId());
@@ -534,10 +534,10 @@ public class CdZService implements BusiService {
                     if (StringUtil.isNotEmpty(G_QTY) && StringUtil.isNotEmpty(decl_price)) {
                         qty = new BigDecimal(G_QTY);
                         multiply = qty.multiply(new BigDecimal(decl_price));
-                        float total_price = multiply.setScale(5, BigDecimal.ROUND_HALF_UP).floatValue();
+                        //float total_price = multiply.setScale(5, BigDecimal.ROUND_HALF_UP).floatValue();
                         //税单价格合计
-                        productContent.put("total_price", total_price);
-                        total_value += total_price;
+                        productContent.put("total_price", multiply.setScale(5, BigDecimal.ROUND_DOWN).doubleValue());
+                        total_value = total_value.add(multiply.setScale(5, BigDecimal.ROUND_DOWN));
                     }
                     good.setContent(productContent.toJSONString());
                     good.setType(BusiTypeEnum.CS.getType());

@@ -229,7 +229,11 @@ public class CangdanXmlEXP311 {
             PackNo.setTextContent(json.getString("pack_no"));
             ExpMftList.appendChild(PackNo);
             Element GrossWt = document.createElement("GrossWt");
-            GrossWt.setTextContent(json.getString("weight"));
+            String weight = json.getString("weight");
+            if(StringUtil.isNotEmpty(weight)) {
+                BigDecimal b = new BigDecimal(weight).setScale(5, RoundingMode.HALF_UP);
+                GrossWt.setTextContent(b.toPlainString());
+            }
             ExpMftList.appendChild(GrossWt);
             Element TradeTotal = document.createElement("TradeTotal");
             String total_value=json.containsKey("total_value")?json.getString("total_value"):"";
@@ -254,9 +258,10 @@ public class CangdanXmlEXP311 {
     }
 
     public static void main(String[] args) {
-        String total_value="123.3";
+        /*String total_value="123.3";
         BigDecimal b=new BigDecimal(total_value).setScale(2, RoundingMode.HALF_UP);
-        System.out.println(b.toPlainString());
+        System.out.println(b.toPlainString());*/
+        System.out.println("撒反对".trim().length());
     }
 
 }

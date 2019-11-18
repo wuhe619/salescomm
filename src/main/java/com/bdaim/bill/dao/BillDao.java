@@ -80,7 +80,9 @@ public class BillDao extends SimpleHibernateDao {
             case LABEL_DEDUCTION:
                 page = pageLabelDataTransactionLog("", custId, "", orderNo, startTime, endTime, pageNum, pageSize);
                 break;
-
+            default:
+                page = pageTransactionLog("", custId, resourceId, orderNo, startTime, endTime, type, pageNum, pageSize);
+                break;
         }
         if (page == null) {
             page = new Page();
@@ -160,6 +162,9 @@ public class BillDao extends SimpleHibernateDao {
             //客户群(数据)扣费记录
             case LABEL_DEDUCTION:
                 page = pageLabelDataTransactionLog(supplierId, custId, resourceId, orderNo, startTime, endTime, pageNum, pageSize);
+                break;
+            default:
+                page = pageTransactionLog(supplierId, custId, resourceId, orderNo, startTime, endTime, type, pageNum, pageSize);
                 break;
 
         }

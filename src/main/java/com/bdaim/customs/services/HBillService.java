@@ -47,12 +47,12 @@ public class HBillService {
         Map<String, Object> map = new HashMap<>();
         if (data != null) {
             List<Map<String, Object>> list = data.getData();
-            double custSumAmount = 0;
+            BigDecimal custSumAmount = new BigDecimal(0);
             for (int i = 0; i < list.size(); i++) {
                 logger.info("企业消费金额是：" + String.valueOf(list.get(i).get("amount")) + "成本费用是：" + String.valueOf(list.get(i).get("prodAmount")));
                 String profitAmount = new BigDecimal(String.valueOf(list.get(i).get("amount"))).subtract(new BigDecimal(String.valueOf(list.get(i).get("prodAmount")))).setScale(2, BigDecimal.ROUND_DOWN).toString();
                 list.get(i).put("profitAmount", profitAmount);
-                custSumAmount += new BigDecimal(String.valueOf(list.get(i).get("amount"))).doubleValue();
+                custSumAmount = custSumAmount.add(new BigDecimal(String.valueOf(list.get(i).get("amount"))));
                 //根据批次id查询企业名称
                 String custId = String.valueOf(list.get(i).get("custId"));
                 String enterpriseName = customerDao.getEnterpriseName(custId);
@@ -63,7 +63,7 @@ public class HBillService {
                     list.get(i).put("mainId", jsonObject.getString("main_bill_no"));
                 }
             }
-            map.put("custSumAmount", custSumAmount);
+            map.put("custSumAmount", custSumAmount.doubleValue());
             map.put("data", data.getData());
             map.put("total", data.getTotal());
         }

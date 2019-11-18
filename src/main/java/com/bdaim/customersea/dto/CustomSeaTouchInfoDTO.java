@@ -97,6 +97,41 @@ public class CustomSeaTouchInfoDTO implements Serializable {
         this.invalidReason = invalidReason;
     }
 
+    public CustomSeaTouchInfoDTO(String voice_info_id, String cust_id, String user_id, String cust_group_id, String super_id,
+                                 String super_name, String super_age, String super_sex, String super_telphone, String super_phone,
+                                 String super_address_province_city, String super_address_street, String customerSeaId,
+                                 Map<String, Object> superData, String qq, String email, String profession, String weChat, String followStatus, String invalidReason, String company,
+                                 String entId, String regLocation, String regCapital, String regStatus, String regTime, Integer entPersonNum) {
+        super();
+        this.voice_info_id = voice_info_id;
+        this.cust_id = cust_id;
+        this.user_id = user_id;
+        this.cust_group_id = cust_group_id;
+        this.super_id = super_id;
+        this.super_name = super_name;
+        this.super_age = super_age;
+        this.super_sex = super_sex;
+        this.super_telphone = super_telphone;
+        this.super_phone = super_phone;
+        this.super_address_province_city = super_address_province_city;
+        this.super_address_street = super_address_street;
+        this.customerSeaId = customerSeaId;
+        this.superData = superData;
+        this.email = email;
+        this.profession = profession;
+        this.weChat = weChat;
+        this.company = company;
+        this.qq = qq;
+        this.followStatus = followStatus;
+        this.invalidReason = invalidReason;
+        this.entId = entId;
+        this.regLocation = regLocation;
+        this.regCapital = regCapital;
+        this.regStatus = regStatus;
+        this.regTime = regTime;
+        this.entPersonNum = entPersonNum;
+    }
+
     public String getVoice_info_id() {
         return voice_info_id;
     }

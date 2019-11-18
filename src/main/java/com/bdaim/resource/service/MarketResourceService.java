@@ -41,10 +41,7 @@ import com.bdaim.rbac.dto.UserQueryParam;
 import com.bdaim.rbac.service.UserService;
 import com.bdaim.resource.dao.MarketResourceDao;
 import com.bdaim.resource.dao.SourceDao;
-import com.bdaim.resource.dto.CallBackParam;
-import com.bdaim.resource.dto.MarketResourceLogDTO;
-import com.bdaim.resource.dto.PeopleAssignedDTO;
-import com.bdaim.resource.dto.VoiceLogQueryParam;
+import com.bdaim.resource.dto.*;
 import com.bdaim.resource.entity.MarketResourceEntity;
 import com.bdaim.resource.entity.ResourcePropertyEntity;
 import com.bdaim.resource.price.dto.ResourcesPriceDto;
@@ -54,6 +51,7 @@ import com.bdaim.smscenter.service.SendSmsService;
 import com.bdaim.supplier.dao.SupplierDao;
 import com.bdaim.supplier.dto.SupplierEnum;
 import com.bdaim.supplier.dto.SupplierListParam;
+import com.bdaim.supplier.entity.SupplierEntity;
 import com.bdaim.supplier.entity.SupplierPropertyEntity;
 import com.bdaim.template.dao.MarketTemplateDao;
 import com.bdaim.template.dto.MarketTemplateDTO;
@@ -8515,5 +8513,35 @@ public class MarketResourceService {
             LOG.error("查询通话记录失败,", e);
         }
         return page;
+    }
+
+    /**
+     * 根据条件检索资源列表
+     * @param custId
+     * @param param
+     * @return
+     */
+    public List<MarketResourceDTO> listResource(String custId, JSONObject param) {
+        List<MarketResourceDTO> list = marketResourceDao.listMarketResource(param.getString("supplierId"), param.getIntValue("busiType"), param);
+        ResourcePropertyEntity marketResourceProperty;
+        JSONObject jsonObject;
+        SupplierEntity supplierDO;
+        List<MarketResourceDTO> result = new ArrayList<>();
+        for (MarketResourceDTO m : list) {
+            supplierDO = supplierDao.getSupplier(NumberConvertUtil.parseInt(m.getSupplierId()));
+            if (supplierDO != null && supplierDO.getStatus() != null && 1 == supplierDO.getStatus()) {
+                m.setSupplierName(supplierDO.getName());
+                marketResourceProperty = marketResourceDao.getProperty(String.valueOf(m.getResourceId()), "price_config");
+                if (marketResourceProperty != null) {
+                    jsonObject = JSONObject.parseObject(marketResourceProperty.getPropertyValue());
+                    m.setResourceProperty(jsonObject.toJSONString());
+                    if (jsonObject != null) {
+                        m.setChargingType(jsonObject.getInteger("type"));
+                    }
+                }
+                result.add(m);
+            }
+        }
+        return result;
     }
 }
