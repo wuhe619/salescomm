@@ -259,6 +259,29 @@ public class SupplierAction extends BasicAction {
         return returnError();
     }
 
+    @RequestMapping(value = "/saveResource", method = RequestMethod.POST)
+    @ResponseBody
+    @ValidatePermission(role = "admin,ROLE_USER")
+    public Object saveResource(@RequestBody String body) {
+        int code = 0;
+        SupplierDTO supplierDTO = null;
+        try {
+            supplierDTO = JSONObject.parseObject(body, SupplierDTO.class);
+            supplierDTO.setResourceConfig(JSONObject.parseObject(body));
+        } catch (Exception e) {
+            return new ResponseInfoAssemble().failure(-1, "供应商保存参数异常");
+        }
+        try {
+            code = supplierService.saveResConfig(supplierDTO);
+        } catch (Exception e) {
+            LOG.error("保存供应商失败,", e);
+        }
+        if (1 == code) {
+            return returnSuccess();
+        }
+        return returnError();
+    }
+
     @RequestMapping(value = "/selectSupplier", method = RequestMethod.GET)
     @ResponseBody
     @ValidatePermission(role = "admin,ROLE_USER")
@@ -348,13 +371,13 @@ public class SupplierAction extends BasicAction {
     @RequestMapping(value = "/page", method = RequestMethod.POST)
     @ResponseBody
     @ValidatePermission(role = "admin,ROLE_USER")
-    public String page(@Valid PageParam page, BindingResult error, String supplierId, String supplierName, String supplierType, Integer status) {
+    public String page(@Valid PageParam page, BindingResult error, String supplierId, String supplierName, String supplierType, String status) {
         if (error.hasFieldErrors()) {
             return getErrors(error);
         }
         Page pageData = null;
         try {
-            pageData = supplierService.pageSupplier(page.getPageNum(), page.getPageSize(), supplierName, supplierId, supplierType, status);
+            pageData = supplierService.pageSupplier(page.getPageNum(), page.getPageSize(), supplierName, supplierId, supplierType, NumberConvertUtil.parseInt(status));
         } catch (Exception e) {
             LOG.error("查询单个供应商详情失败,", e);
         }
@@ -393,7 +416,7 @@ public class SupplierAction extends BasicAction {
     @RequestMapping(value = "/listMonthBill", method = RequestMethod.POST)
     @ResponseBody
     @ValidatePermission(role = "admin,ROLE_USER")
-    public String page(@Valid PageParam page, BindingResult error, String yearMonth, String supplierId, String supplierName, String supplierType, Integer status) {
+    public String page(@Valid PageParam page, BindingResult error, String yearMonth, String supplierId, String supplierName, String supplierType, String status) {
         if (error.hasFieldErrors()) {
             return getErrors(error);
         }
@@ -402,7 +425,7 @@ public class SupplierAction extends BasicAction {
         }
         Map<String, Object> data = null;
         try {
-            data = supplierService.listSupplierMonthBill(yearMonth, page.getPageNum(), page.getPageSize(), supplierName, supplierId, supplierType, status);
+            data = supplierService.listSupplierMonthBill(yearMonth, page.getPageNum(), page.getPageSize(), supplierName, supplierId, supplierType, NumberConvertUtil.parseInt(status));
         } catch (Exception e) {
             LOG.error("查询供应商月账单失败,", e);
         }
