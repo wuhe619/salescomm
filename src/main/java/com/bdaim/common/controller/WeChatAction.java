@@ -60,6 +60,12 @@ public class WeChatAction extends BasicAction {
     @ResponseBody
     @RequestMapping("/test")
     public void test(String pwd, String entId, String key) throws Exception {
-        UnicomUtil.test(pwd, entId, key);
+        UnicomUtil.getEntActivityAll(pwd, entId, key);
+    }
+
+    @ResponseBody
+    @RequestMapping("/test1")
+    public void test1(String activityId, String entId, String key) throws Exception {
+        UnicomUtil.getEntActivityResult(activityId, entId, key);
     }
 }
