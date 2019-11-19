@@ -37,6 +37,13 @@ public class BaoguandanXmlEXP301 {
 
     public String createXml(Map<String, Object> mainMap, Map<String, Object> map, List<HBusiDataManager> ds, Map<String, Object> customerInfo) {
         try {
+            String partyContent = (String) map.get("content");
+            JSONObject json = JSON.parseObject(partyContent);
+            if (StringUtil.isEmpty(json.getString("send_name")) || StringUtil.isEmpty(json.getString("send_address")) || StringUtil.isEmpty(json.getString("send_tel"))
+                    || StringUtil.isEmpty(json.getString("send_name_en")) || StringUtil.isEmpty("send_address_en") || StringUtil.isEmpty(json.getString("send_city_en"))
+                    || StringUtil.isEmpty(json.getString("send_country"))) {
+                return null;
+            }
             // 创建解析器工厂
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             DocumentBuilder db = factory.newDocumentBuilder();
@@ -124,13 +131,9 @@ public class BaoguandanXmlEXP301 {
         Element SignedData = document.createElement("SignedData");
         Element Data = document.createElement("Data");
         Element EXP301 = document.createElementNS("http://www.chinaport.gov.cn/Exp", "EXP301");
-        String content = (String) map.get("content");
+        String content = (String) mainMap.get("content");
         JSONObject mainjson = JSONObject.parseObject(content);
-        if (StringUtil.isEmpty(mainjson.getString("send_name")) || StringUtil.isEmpty(mainjson.getString("send_address")) || StringUtil.isEmpty(mainjson.getString("send_tel"))
-                || StringUtil.isEmpty(mainjson.getString("send_name_en")) || StringUtil.isEmpty("send_address_en") || StringUtil.isEmpty(mainjson.getString("send_city_en"))
-                || StringUtil.isEmpty(mainjson.getString("send_country"))) {
-            throw new TouchException("报文生成失败");
-        }
+
         String partyContent = (String) map.get("content");
         JSONObject json = JSON.parseObject(partyContent);
         createEntryHeadXML(document, EXP301, mainjson, json, customerInfo);
