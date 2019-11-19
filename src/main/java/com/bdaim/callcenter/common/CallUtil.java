@@ -90,9 +90,9 @@ public class CallUtil {
             case "0":
                 return "待审核";
             case "1":
-                return "审核成功";
-            case "2":
                 return "审核失败";
+            case "2":
+                return "审核成功";
             default:
                 return "";
         }
