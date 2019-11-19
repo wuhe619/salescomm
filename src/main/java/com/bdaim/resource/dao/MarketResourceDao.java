@@ -345,7 +345,7 @@ public class MarketResourceDao extends SimpleHibernateDao<MarketResourceEntity, 
             String key = (String) keys.next();
             if (StringUtil.isEmpty(String.valueOf(param.get(key)))) continue;
             if ("pageNum".equals(key) || "pageSize".equals(key) || "supplierId".equals(key)
-                    || "type".equals(key) || "custId".equals(key) || "_sort_".equals(key)
+                    || "custId".equals(key) || "_sort_".equals(key)
                     || "_orderby_".equals(key) || "status".equals(key) || "busiType".equals(key))
                 continue;
 
