@@ -764,10 +764,11 @@ public class SupplierService {
 
     /**
      * 单独保存资源
+     *
      * @param supplierDTO
      * @return
      */
-    public int saveResConfig(SupplierDTO supplierDTO){
+    public int saveResConfig(SupplierDTO supplierDTO) {
         // 处理资源
         if (supplierDTO.getResourceConfig() != null) {
             Iterator keys = supplierDTO.getResourceConfig().keySet().iterator();
@@ -785,13 +786,20 @@ public class SupplierService {
                     for (int index = 0; index < jsonArray.size(); index++) {
                         if (jsonArray.getJSONObject(index) != null) {
                             marketResource = new MarketResourceEntity();
+                            marketResourceId = jsonArray.getJSONObject(index).getIntValue("resourceId");
+                            if (marketResourceId > 0) {
+                                marketResource = marketResourceDao.get(marketResourceId);
+                            }
                             marketResource.setSupplierId(String.valueOf(supplierDTO.getSupplierId()));
                             marketResource.setResname(jsonArray.getJSONObject(index).getString("name"));
                             marketResource.setTypeCode(jsonArray.getJSONObject(index).getInteger("busiType"));
-                            marketResource.setCreateTime(new Timestamp(System.currentTimeMillis()));
-                            marketResource.setStatus(1);
-                            marketResourceId = (int) marketResourceDao.saveReturnPk(marketResource);
-
+                            marketResource.setStatus(jsonArray.getJSONObject(index).getInteger("status"));
+                            if (marketResourceId == 0) {
+                                marketResource.setCreateTime(new Timestamp(System.currentTimeMillis()));
+                                marketResourceId = (int) marketResourceDao.saveReturnPk(marketResource);
+                            } else {
+                                marketResourceDao.saveOrUpdate(marketResource);
+                            }
                             jsonArray.getJSONObject(index).put("key", key);
                             marketResourceProperty = new ResourcePropertyEntity(marketResourceId, "price_config", String.valueOf(jsonArray.getJSONObject(index)), new Timestamp(System.currentTimeMillis()));
                             marketResourceDao.saveOrUpdate(marketResourceProperty);
