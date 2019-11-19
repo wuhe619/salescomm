@@ -37,13 +37,6 @@ public class BaoguandanXmlEXP301 {
 
     public String createXml(Map<String, Object> mainMap, Map<String, Object> map, List<HBusiDataManager> ds, Map<String, Object> customerInfo) {
         try {
-            String partyContent = (String) map.get("content");
-            JSONObject json = JSON.parseObject(partyContent);
-            if (StringUtil.isEmpty(json.getString("send_name")) || StringUtil.isEmpty(json.getString("send_address")) || StringUtil.isEmpty(json.getString("send_tel"))
-                    || StringUtil.isEmpty(json.getString("send_name_en")) || StringUtil.isEmpty("send_address_en") || StringUtil.isEmpty(json.getString("send_city_en"))
-                    || StringUtil.isEmpty(json.getString("send_country"))) {
-                return null;
-            }
             // 创建解析器工厂
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             DocumentBuilder db = factory.newDocumentBuilder();

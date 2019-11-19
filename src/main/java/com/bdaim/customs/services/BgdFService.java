@@ -470,7 +470,7 @@ public class BgdFService implements BusiService {
         }
 
 
-        if(StringUtil.isEmpty(mainjson.get("send_city_en")==null?"":mainjson.get("send_city_en").toString())){
+        if(StringUtil.isEmpty(json.get("send_city_en")==null?"":json.get("send_city_en").toString())){
             filedName += "," + BGDReportEnum.SendCityEn.getName();
         }
 
