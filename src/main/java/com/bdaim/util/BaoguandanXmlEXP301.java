@@ -124,7 +124,7 @@ public class BaoguandanXmlEXP301 {
         Element SignedData = document.createElement("SignedData");
         Element Data = document.createElement("Data");
         Element EXP301 = document.createElementNS("http://www.chinaport.gov.cn/Exp", "EXP301");
-        String content = (String) mainMap.get("content");
+        String content = (String) map.get("content");
         JSONObject mainjson = JSONObject.parseObject(content);
         if (StringUtil.isEmpty(mainjson.getString("send_name")) || StringUtil.isEmpty(mainjson.getString("send_address")) || StringUtil.isEmpty(mainjson.getString("send_tel"))
                 || StringUtil.isEmpty(mainjson.getString("send_name_en")) || StringUtil.isEmpty("send_address_en") || StringUtil.isEmpty(mainjson.getString("send_city_en"))
