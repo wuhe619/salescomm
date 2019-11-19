@@ -326,13 +326,13 @@ public class BaoguandanXmlEXP301 {
 
         EntryHead.appendChild(KjId);
         Element SendName = document.createElement("SendName");
-        SendName.setTextContent(mainJson.getString("send_name").trim()); //r
+        SendName.setTextContent(json.getString("send_name").trim()); //r
         EntryHead.appendChild(SendName);
         Element ReceiveName = document.createElement("ReceiveName");
         ReceiveName.setTextContent(json.getString("receive_name").trim());  //r
         EntryHead.appendChild(ReceiveName);
         Element SendCountry = document.createElement("SendCountry");
-        SendCountry.setTextContent(mainJson.getString("send_country").trim());  //r
+        SendCountry.setTextContent(json.getString("send_country").trim());  //r
         EntryHead.appendChild(SendCountry);
         Element SendCity = document.createElement("SendCity");
 //        SendCity.setTextContent(mainJson.getString("send_city"));  //
@@ -376,10 +376,10 @@ public class BaoguandanXmlEXP301 {
         AgentScc.setTextContent("");//申报单位统一社会信用代码
         EntryHead.appendChild(AgentScc);
         Element SendAddress = document.createElement("SendAddress");
-        SendAddress.setTextContent(mainJson.getString("send_address"));//发件人地址 出口必填，进口起运地为港、澳、台的地区必填。只填写区县、街道级别及以下详细地址
+        SendAddress.setTextContent(json.getString("send_address"));//发件人地址 出口必填，进口起运地为港、澳、台的地区必填。只填写区县、街道级别及以下详细地址
         EntryHead.appendChild(SendAddress);
         Element SendTelNo = document.createElement("SendTelNo");//r
-        SendTelNo.setTextContent(mainJson.getString("send_tel").trim());//发件人号码 仅能填写阿拉伯数字、“-”（短横线）、“∣”3种字符，均为半角字符。“-”（短横线）用于区号-座机号-分机号的分隔；“∣”用于两个不同号码之间的分隔
+        SendTelNo.setTextContent(json.getString("send_tel").trim());//发件人号码 仅能填写阿拉伯数字、“-”（短横线）、“∣”3种字符，均为半角字符。“-”（短横线）用于区号-座机号-分机号的分隔；“∣”用于两个不同号码之间的分隔
         EntryHead.appendChild(SendTelNo);
         Element ReceiveAddress = document.createElement("ReceiveAddress");//r
         String r_city = json.getString("receive_city");
@@ -400,13 +400,13 @@ public class BaoguandanXmlEXP301 {
         StopCityEn.setTextContent(mainJson.getString("stop_address_en"));//英文经停城市  进口必填，仅限英文及符号，没有填“n”或“N”
         EntryHead.appendChild(StopCityEn);
         Element SendNameEn = document.createElement("SendNameEn");//r
-        SendNameEn.setTextContent(mainJson.getString("send_name_en"));//英文发件人  进口必填
+        SendNameEn.setTextContent(json.getString("send_name_en"));//英文发件人  进口必填
         EntryHead.appendChild(SendNameEn);
         Element SendAddressEn = document.createElement("SendAddressEn");//r
-        SendAddressEn.setTextContent(mainJson.getString("send_address_en"));//英文发件人地址  进口为非港、澳、台地区的必填，只填写区县、街道级别及以下详细地址
+        SendAddressEn.setTextContent(json.getString("send_address_en"));//英文发件人地址  进口为非港、澳、台地区的必填，只填写区县、街道级别及以下详细地址
         EntryHead.appendChild(SendAddressEn);
         Element SendCityEn = document.createElement("SendCityEn");//r
-        SendCityEn.setTextContent(mainJson.getString("send_city_en"));//英文发件人城市进口必填,必须包含英文或拼音，可包含符号
+        SendCityEn.setTextContent(json.getString("send_city_en"));//英文发件人城市进口必填,必须包含英文或拼音，可包含符号
         EntryHead.appendChild(SendCityEn);
         Element ReceiveNameEn = document.createElement("ReceiveNameEn");//
         ReceiveNameEn.setTextContent("");//英文收件人 出口必填
