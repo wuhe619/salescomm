@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.callcenter.dto.UnicomSendSmsParam;
 import com.bdaim.util.http.HttpUtil;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sun.misc.BASE64Decoder;
@@ -14,7 +13,6 @@ import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.DESedeKeySpec;
-import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -31,8 +29,15 @@ public class UnicomUtil {
     private static Logger LOG = LoggerFactory.getLogger(UnicomUtil.class);
     private final static String UNICOM_BASE_URL_V1 = "http://120.52.23.243:10080/sdyxinterface/20190426/";
 
+    public static void main(String[] args) throws Exception {
+        //UnicomUtil.getEntActivityAll("Bq2.g_mp4", "D1HMFW", "UkzesbWEmdTIgywsacIIboam");
+        UnicomUtil.getEntActivityResult("C201911051642007894_12985", "Bq2.g_mp4", "D1HMFW", "UkzesbWEmdTIgywsacIIboam");
+        unicomSeatMakeCall("D1HMFW", "C201911051642007894_12985", "Bq2.g_mp4", "18630016545", "", "UkzesbWEmdTIgywsacIIboam");
+    }
+
     /**
      * 获取企业所有活动接口
+     *
      * @param pwd
      * @param entId
      * @param key
@@ -42,37 +47,38 @@ public class UnicomUtil {
     public static JSONObject getEntActivityAll(String pwd, String entId, String key) throws Exception {
         //获取token,加密获取sign
         String sign = getSign(pwd, entId, key);
-        LOG.info("sign:" + sign);
         Map<String, Object> headers = new HashMap<>(16);
         headers.put("Sig", sign);
         headers.put("Content-Type", "application/json;charset=utf-8");
         Map<String, String> params = new HashMap<>();
         params.put("entPassword", pwd);
-        LOG.info("联通接口请求地址是：" + UNICOM_BASE_URL_V1 + "activity/getEntActivityAll/" + entId + ",参数:" + params.toString());
-        String result = HttpUtil.httpPost(UNICOM_BASE_URL_V1 + "activity/getEntActivityAll/" + entId, params, headers);
-        LOG.info("联通结果返回:" + result);
+        LOG.info("获取企业所有活动接口参数:" + UNICOM_BASE_URL_V1 + "activity/getEntActivityAll/" + entId + ",参数:" + params.toString());
+        String result = HttpUtil.httpPost(UNICOM_BASE_URL_V1 + "activity/getEntActivityAll/" + entId, JSON.toJSONString(params), headers, 5000);
+        LOG.info("获取企业所有活动接口返回:" + result);
         return JSON.parseObject(result);
     }
 
     /**
      * 获取失联修复匹配结果接口
-     * @param activityId
+     *
+     * @param dataId
+     * @param pwd
      * @param entId
      * @param key
      * @return
      * @throws Exception
      */
-    public static JSONObject getEntActivityResult(String activityId, String entId, String key) throws Exception {
+    public static JSONObject getEntActivityResult(String dataId, String pwd, String entId, String key) throws Exception {
         //获取token,加密获取sign
-        String sign = getSign(activityId, entId, key);
+        String sign = getSign(pwd, entId, key);
         LOG.info("sign:" + sign);
         Map<String, Object> headers = new HashMap<>(16);
         headers.put("Sig", sign);
         headers.put("Content-Type", "application/json;charset=utf-8");
         Map<String, String> params = new HashMap<>();
-        params.put("activity_id", activityId);
-        LOG.info("联通接口请求地址是：" + UNICOM_BASE_URL_V1 + "shortUrl/bindShortLink/" + entId + ",参数:" + params.toString());
-        String result = HttpUtil.httpPost(UNICOM_BASE_URL_V1 + "shortUrl/bindShortLink/" + entId, params, headers);
+        params.put("dataId", dataId);
+        LOG.info("联通接口请求地址是：" + UNICOM_BASE_URL_V1 + "activity/getDataDetail/" + entId + ",参数:" + params.toString());
+        String result = HttpUtil.httpPost(UNICOM_BASE_URL_V1 + "activity/getDataDetail/" + entId, JSON.toJSONString(params), headers, 5000);
         LOG.info("联通结果返回:" + result);
         return JSON.parseObject(result);
     }
@@ -106,7 +112,7 @@ public class UnicomUtil {
             headers.put("Sig", sgin);
             headers.put("Content-Type", "application/json;charset=utf-8");
             LOG.info("联通外呼接口请求地址是：" + UNICOM_BASE_URL_V1 + "call/makeCall/" + entId + " 联通坐席外呼参数:" + params.toString());
-            result = HttpUtil.httpPost(UNICOM_BASE_URL_V1 + "call/makeCall/" + entId, params, headers);
+            result = HttpUtil.httpPost(UNICOM_BASE_URL_V1 + "call/makeCall/" + entId, JSON.toJSONString(params), headers, 5000);
             //result="{\"msg\":\"success\",\"code\":\"01000\",\"data\":{\"callId\":\"1539516627199289711\",\"msg\":\"呼叫成功\",\"code\":\"000\",\"uuid\":\"01539516627199289733\",\"callNum\":\"1/600\",\"todayCallNum\":\"1/30\",\"monthCallNum\":\"1/90\"}}";
             LOG.info("联通坐席外呼返回:" + result);
             if (StringUtil.isNotEmpty(result)) {
@@ -152,7 +158,7 @@ public class UnicomUtil {
             headers.put("Sig", sgin);
             headers.put("Content-Type", "application/json;charset=utf-8");
             LOG.info("联通短信触达接口请求地址是：" + UNICOM_BASE_URL_V1 + "msg/sendMsg/" + entId + " 联通短信触达参数:" + params.toString());
-            result = HttpUtil.httpPost(UNICOM_BASE_URL_V1 + "msg/sendMsg/" + entId, params, headers);
+            result = HttpUtil.httpPost(UNICOM_BASE_URL_V1 + "msg/sendMsg/" + entId, JSON.toJSONString(params), headers, 5000);
             //result = "{\"msg\":\"success\",\"code\":\"02000\",\"data\":{\"msgNum\":\"1/10\",\"todayMsgNum\":\"1/3\",\"contactId\":\"09092049461013989641\",\"monthMsgNum\":\"1/5\"}}";
             LOG.info("联通短信触达结果返回:" + result);
             if (StringUtil.isNotEmpty(result)) {
@@ -203,7 +209,7 @@ public class UnicomUtil {
             headers.put("Sig", sgin);
             headers.put("Content-Type", "application/json;charset=utf-8");
             LOG.info("联通短信触达接口请求地址是：" + UNICOM_BASE_URL_V1 + "msg/sendTelMsg/" + entId + " 联通短信触达参数:" + params.toString());
-            result = HttpUtil.httpPost(UNICOM_BASE_URL_V1 + "msg/sendTelMsg/" + entId, params, headers);
+            result = HttpUtil.httpPost(UNICOM_BASE_URL_V1 + "msg/sendTelMsg/" + entId, JSON.toJSONString(params), headers, 5000);
             LOG.info("联通短信触达结果返回:" + result);
             if (StringUtil.isNotEmpty(result)) {
                 return JSON.parseObject(result, Map.class);
@@ -242,7 +248,7 @@ public class UnicomUtil {
             headers.put("Sig", sgin);
             headers.put("Content-Type", "application/json;charset=utf-8");
             LOG.info("联通设置中间号接口请求地址是：" + UNICOM_BASE_URL_V1 + "singleCall/ambSetNumber/" + entId + " 设置中间号参数:" + params.toString());
-            result = HttpUtil.httpPost(UNICOM_BASE_URL_V1 + "singleCall/ambSetNumber/" + entId, params, headers);
+            result = HttpUtil.httpPost(UNICOM_BASE_URL_V1 + "singleCall/ambSetNumber/" + entId, JSON.toJSONString(params), headers, 5000);
             LOG.info("联通设置中间号返回:" + result);
             if (StringUtil.isNotEmpty(result)) {
                 return JSON.parseObject(result, Map.class);
@@ -255,31 +261,7 @@ public class UnicomUtil {
     }
 
     private static String getSign(String entPassword, String entId, String key) {
-        Map<String, String> params = new HashMap<>();
-        params.put("entPassword", entPassword);
-        String result;
-        String token = null;
-        try {
-            Map<String, Object> headers = new HashMap<>();
-            headers.put("Content-Type", "application/json;charset=utf-8");
-            LOG.info("联通获取token请求地址是：" + UNICOM_BASE_URL_V1 + "login/getToken/" + entId + "联通获取token参数:" + params.toString());
-            result = HttpUtil.httpPost(UNICOM_BASE_URL_V1 + "login/getToken/" + entId, params, headers);
-            //result = "{ \"code\": \"000\", \"msg\": \"success\", \"data\": { \"token\": \"eyJ0eXAiOiJKV1\" } }";
-            LOG.info("联通获取token联通返回结果:" + result);
-            if (StringUtil.isNotEmpty(result)) {
-                JSONObject jsonObject = JSON.parseObject(result);
-                String code = jsonObject.getString("code");
-                if ("000".equals(code)) {
-                    token = jsonObject.getJSONObject("data").getString("token");
-                    LOG.info("联通获取token:" + token);
-                } else {
-                    LOG.warn("联通获取token失败:");
-                }
-            }
-        } catch (Exception e) {
-            LOG.error("联通获取token参数失败:", e);
-            throw new RuntimeException("联通获取token失败", e);
-        }
+        String token = unicomGetToken(entPassword, entId);
         //签名处理
         DateFormat df = new SimpleDateFormat("yyyyMMddHHmmssSSS");
         String sysTime = df.format(new Date());
@@ -310,13 +292,13 @@ public class UnicomUtil {
             Map<String, Object> headers = new HashMap<>();
             headers.put("Content-Type", "application/json;charset=utf-8");
             LOG.info("联通获取token请求地址是：" + UNICOM_BASE_URL_V1 + "login/getToken/" + entId + "联通获取token参数:" + params.toString());
-            result = HttpUtil.httpPost(UNICOM_BASE_URL_V1 + "login/getToken/" + entId, params, headers);
+            result = HttpUtil.httpPost(UNICOM_BASE_URL_V1 + "login/getToken/" + entId, JSON.toJSONString(params), headers, 5000);
             //result = "{ \"code\": \"000\", \"msg\": \"success\", \"data\": { \"token\": \"eyJ0eXAiOiJKV1\" } }";
             LOG.info("联通获取token联通返回结果:" + result);
             if (StringUtil.isNotEmpty(result)) {
                 JSONObject jsonObject = JSON.parseObject(result);
                 String code = jsonObject.getString("code");
-                if ("000".equals(code)) {
+                if ("09000".equals(code)) {
                     String token = jsonObject.getJSONObject("data").getString("token");
                     LOG.info("联通获取token:" + token);
                     return token;
