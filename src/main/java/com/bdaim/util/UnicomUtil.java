@@ -14,6 +14,7 @@ import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.DESedeKeySpec;
+import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -29,6 +30,26 @@ import java.util.Map;
 public class UnicomUtil {
     private static Logger LOG = LoggerFactory.getLogger(UnicomUtil.class);
     private final static String UNICOM_BASE_URL_V1 = "http://120.52.23.243:10080/sdyxinterface/20190426/";
+
+    public static void test(String pwd, String entId, String key) throws Exception {
+        String token = unicomGetToken(pwd, entId);
+        //签名处理
+        DateFormat df = new SimpleDateFormat("yyyyMMddHHmmssSSS");
+        String sysTime = df.format(new Date());
+        String parmToken = token + sysTime;
+        LOG.info("token:" + parmToken);
+        String sgin = encryptThreeDESECB(URLEncoder.encode(parmToken, "UTF-8"), key);
+        LOG.info("sign:" + sgin);
+
+        Map<String, Object> headers = new HashMap<>(16);
+        headers.put("Sig", sgin);
+        headers.put("Content-Type", "application/json;charset=utf-8");
+        Map<String, String> params = new HashMap<>();
+        params.put("entPassword", pwd);
+        LOG.info("联通接口请求地址是：" + UNICOM_BASE_URL_V1 + "activity/getEntActivityAll/" + entId + ",参数:" + params.toString());
+        String result = HttpUtil.httpPost(UNICOM_BASE_URL_V1 + "activity/getEntActivityAll/" + entId, params, headers);
+        LOG.info("联通结果返回:" + result);
+    }
 
     /**
      * 联通坐席外呼接口v1
