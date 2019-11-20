@@ -31,7 +31,7 @@ public class UnicomUtil {
 
     public static void main(String[] args) throws Exception {
         //UnicomUtil.getEntActivityAll("Bq2.g_mp4", "D1HMFW", "UkzesbWEmdTIgywsacIIboam");
-        UnicomUtil.getEntActivityResult("C201911051642007894_12985", "Bq2.g_mp4", "D1HMFW", "UkzesbWEmdTIgywsacIIboam");
+        UnicomUtil.getEntActivityResult("SJYXDD191021002472", "Bq2.g_mp4", "D1HMFW", "UkzesbWEmdTIgywsacIIboam");
         unicomSeatMakeCall("D1HMFW", "C201911051642007894_12985", "Bq2.g_mp4", "18630016545", "", "UkzesbWEmdTIgywsacIIboam");
     }
 
@@ -76,9 +76,9 @@ public class UnicomUtil {
         headers.put("Sig", sign);
         headers.put("Content-Type", "application/json;charset=utf-8");
         Map<String, String> params = new HashMap<>();
-        params.put("dataId", dataId);
-        LOG.info("联通接口请求地址是：" + UNICOM_BASE_URL_V1 + "activity/getDataDetail/" + entId + ",参数:" + params.toString());
-        String result = HttpUtil.httpPost(UNICOM_BASE_URL_V1 + "activity/getDataDetail/" + entId, JSON.toJSONString(params), headers, 5000);
+        params.put("activity_id", dataId);
+        LOG.info("联通接口请求地址是：" + UNICOM_BASE_URL_V1 + "shortUrl/bindShortLink/" + entId + ",参数:" + params.toString());
+        String result = HttpUtil.httpPost(UNICOM_BASE_URL_V1 + "shortUrl/bindShortLink/" + entId, JSON.toJSONString(params), headers, 5000);
         LOG.info("联通结果返回:" + result);
         return JSON.parseObject(result);
     }

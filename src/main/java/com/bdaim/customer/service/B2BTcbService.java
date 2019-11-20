@@ -375,8 +375,7 @@ public class B2BTcbService implements BusiService {
         BaseResult companyContact, companyDetail, baseResult;
         JSONObject contactData, detailData, resultData;
         JSONArray list;
-        //领取，只返回id
-        param.put("fieldType", false);
+
         long pageNo = 0L, pageSize = 1000;
         while (getNumber > data.size()) {
             param.put("pageNum", pageNo);
