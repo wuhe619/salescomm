@@ -7,7 +7,7 @@ import java.util.Map;
 
 public enum CustomerPublicSeaDTO {
 
-    CUST_NAME("cust_name", "企业名称"),
+    CUST_NAME("company", "企业名称"),
     REG_LOCATION("regLocation", "注册地址"),
     REG_CAPITAL("regCapital", "注册资金"),
     REG_TIME("regTime", "注册时间"),
@@ -21,10 +21,10 @@ public enum CustomerPublicSeaDTO {
     PRE_USER_ID("pre_user_id", "前负责人"),
     CALL_COUNT("callCount", "致电次数"),
     SMS_SUCCESS_COUNT("sms_success_count", "短信营销次数"),
-    INVALIDREASON("invalidReason", "退回公海原因"),
+    INVALIDREASON("SYS006", "退回公海原因"),
     LAST_CALL_STATUS("last_call_status", "最近一次的呼叫结果"),
-    INTENT_LEVEL("intent_level", "意向度"),
-    LAST_CALL_TIME("last_call_time", "最后呼叫时间"),
+    INTENT_LEVEL("intentLevel", "意向度"),
+    LAST_CALL_TIME("lastCallTime", "最后呼叫时间"),
     USER_ID("realname", "当前责任人");
     private String key;
     private String value;
