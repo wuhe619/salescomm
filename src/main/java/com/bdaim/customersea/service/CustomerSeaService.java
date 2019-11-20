@@ -4036,7 +4036,22 @@ public class CustomerSeaService {
             }
         }
         if (StringUtil.isNotEmpty(param.getCustName())) {
-            appSql.append(" AND custG.lsuper_data ->'SYS014' = '").append(param.getCustName()).append("'");
+            appSql.append(" AND custG.super_data -> " + "'$.SYS005' like " + "'%" + param.getCustName() + "%'" + " ");
+        }
+        if (StringUtil.isNotEmpty(param.getRegCapitalMin()) || StringUtil.isNotEmpty(param.getRegCapitalMax())) {
+            appSql.append(" AND custG.super_data -> '$.SYS010' BETWEEN ");
+            appSql.append(param.getRegCapitalMin() == null ? 0 : param.getRegCapitalMin());
+            appSql.append(" AND ");
+            appSql.append(param.getRegCapitalMax() == null ? 0 : param.getRegCapitalMax());
+        }
+        if (StringUtil.isNotEmpty(param.getCreateTime())) {
+            appSql.append(" AND custG.super_data -> " + "'$.SYS011' >= " + "'" + param.getCreateTime() + "'");
+        }
+        if (StringUtil.isNotEmpty(param.getEndTime())) {
+            appSql.append(" AND custG.super_data -> " + "'$.SYS011' >= " + "'" + param.getEndTime() + "'");
+        }
+        if (StringUtil.isNotEmpty(param.getRegStatus())) {
+            appSql.append(" AND custG.super_data -> " + "'$.SYS012' like " + "'%" + param.getRegStatus() + "%'");
         }
         appSql.append(" LIMIT ? ");
         int count = 0;
