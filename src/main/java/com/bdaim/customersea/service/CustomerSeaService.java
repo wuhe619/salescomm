@@ -1365,72 +1365,6 @@ public class CustomerSeaService {
             }*/
         }
     }
-    /**
-     * 处理线索superData和基础信息
-     *
-     * @param list
-     * @param cacheLabel
-     * @param customerSea
-     */
-    private void handleClueData1(List<Map<String, Object>> list, Map<String, CustomerLabel> cacheLabel, CustomerSea customerSea) {
-        Map<String, Object> map, superData, labelData;
-        List<Map<String, Object>> labelList;
-        CustomerUser user;
-        boolean protectStatus = customerService.getProtectStatusByCust(2, customerSea.getCustId());
-        CustomerLabel label;
-        for (int i = 0; i < list.size(); i++) {
-            map = list.get(i);
-            if (map == null) continue;
-            // 处理自建属性数据
-            if (map.get("super_data") != null
-                    && StringUtil.isNotEmpty(String.valueOf(map.get("super_data")))) {
-                labelList = new ArrayList<>();
-                superData = JSON.parseObject(String.valueOf(map.get("super_data")), Map.class);
-                if (superData != null && superData.size() > 0) {
-                    for (Map.Entry<String, Object> key : superData.entrySet()) {
-                        labelData = new HashMap<>();
-                        label = cacheLabel.get(key.getKey());
-                        labelData.put("id", key.getKey());
-                        labelData.put("name", "");
-                        labelData.put("type", 0);
-                        labelData.put("value", key.getValue());
-                        if (label != null) {
-                            labelData.put("name", label.getLabelName());
-                            labelData.put("type", label.getType());
-                            labelData.put("value", key.getValue());
-                            if (label.getType() != null && 1 != label.getType()) {
-                                labelData.put("value", String.valueOf(key.getValue()).split(","));
-                            }
-                        }
-                        labelList.add(labelData);
-                    }
-                    map.put("labelList", labelList);
-                }
-            }
-            // 查询用户真实姓名
-            map.put("realname", "");
-            if (map.get("user_id") != null) {
-                user = customerUserDao.get(Long.parseLong(String.valueOf(map.get("user_id"))));
-                if (user != null) {
-                    map.put("realname", user.getAccount());
-                    map.put("user_id", String.valueOf(user.getId()));
-                }
-                map.put("user_id", String.valueOf(map.get("user_id")));
-            }
-            // 处理意向度为空的情况
-            if (map.get("intentLevel") == null) {
-                map.put("intentLevel", "");
-            }
-            // 解析super_data中qq 微信等属性
-            getDefaultLabelValue(map);
-            map.remove("super_data");
-            map.put("protectStatus", protectStatus);
-            // 处理手机号
-          /*  if (protectStatus) {
-                map.put("super_telphone", phoneService.hidePhone(String.valueOf(map.get("super_telphone"))));
-            }*/
-        }
-    }
 
     /**
      * 批量根据身份ID删除线索(status=2)
@@ -3228,7 +3162,7 @@ public class CustomerSeaService {
         sb.append(" select custG.id, custG.user_id, custG.status, custG.call_count callCount, DATE_FORMAT(custG.last_call_time,'%Y-%m-%d %H:%i:%s') lastCallTime, custG.intent_level intentLevel,");
         sb.append(" custG.super_name, custG.super_age, custG.super_sex, custG.super_telphone, custG.super_phone, custG.super_address_province_city, custG.super_address_street, custG.super_data, ");
         sb.append(" custG.batch_id, custG.last_call_status, custG.data_source, DATE_FORMAT(custG.user_get_time,'%Y-%m-%d %H:%i:%s') user_get_time, DATE_FORMAT(custG.create_time,'%Y-%m-%d %H:%i:%s') create_time, custG.pre_user_id, custG.last_called_duration, DATE_FORMAT(custG.last_mark_time,'%Y-%m-%d %H:%i:%s') last_mark_time, ");
-        sb.append(" custG.call_success_count, custG.call_fail_count, custG.sms_success_count ");
+        sb.append(" custG.call_success_count, custG.call_fail_count, custG.sms_success_count ,custG.super_data -> '$.SYS014 ' as custType");
         sb.append("  from " + ConstantsUtil.SEA_TABLE_PREFIX + param.getSeaId() + " custG ");
         sb.append(" where 1=1 ");
         if (StringUtil.isNotEmpty(param.getSuperId())) {
@@ -3342,7 +3276,7 @@ public class CustomerSeaService {
         } else if ("2".equals(param.getCallStatus())) {
             sb.append(" AND custG.last_call_status = '1001' ");
         }
-        sb.append("GROUP By custG.super_data -> '$.SYS014 ' ORDER BY custG.create_time  DESC ");
+        sb.append("GROUP By custType ORDER BY custG.create_time  DESC ");
         try {
             page = customerSeaDao.sqlPageQuery0(sb.toString(), param.getPageNum(), param.getPageSize());
         } catch (Exception e) {
@@ -3351,7 +3285,7 @@ public class CustomerSeaService {
         }
         if (page != null && page.getData() != null) {
             // 处理自建属性和基本信息
-            handleClueData1(page.getData(), cacheLabel, customerSea);
+            handleClueData(page.getData(), cacheLabel, customerSea);
         }
 
         return page;
@@ -3972,6 +3906,206 @@ public class CustomerSeaService {
         customerSeaDao.executeUpdateSQL(logSql.toString() + appSql.toString(), param.getBackReason(), param.getBackRemark());
         int status = customerSeaDao.executeUpdateSQL(sql.toString() + appSql.toString());
         return status;
+    }
+
+    /**
+     * 线索分配
+     *
+     * @param param
+     * @param operate
+     * @param assignedList
+     * @return
+     * @throws TouchException
+     */
+    public int distributionClue1(CustomerSeaSearch param, int operate, JSONArray assignedList) throws TouchException {
+        // 判断坐席渠道和公海呼叫渠道是否一致
+        if (operate != 3) {
+            CustomerSeaProperty csp = customerSeaDao.getProperty(param.getSeaId(), "callChannel");
+            if (csp == null || StringUtil.isEmpty(csp.getPropertyValue())) {
+                throw new TouchException("-1", "请先配置公海呼叫渠道");
+            }
+            // 判断坐席呼叫渠道和公海呼叫渠道是否相同
+            CustomerUserPropertyDO cp = customerUserDao.getProperty(param.getUserIds().get(0), "call_channel");
+            if (!Objects.equals(csp.getPropertyValue(), cp.getPropertyValue())) {
+                throw new TouchException("-1", "坐席呼叫渠道与公海不一致,不可领取");
+            }
+        }
+
+        // 单一负责人分配线索|手动领取所选
+        if (1 == operate) {
+            StringBuffer sql = new StringBuffer();
+            sql.append("select id from " + ConstantsUtil.SEA_TABLE_PREFIX + param.getSeaId() + " custG where 'SYS014' = '" + param.getCustType() + "'");
+            jdbcTemplate.queryForList(sql.toString()).stream().forEach(map -> {
+                Iterator<String> iterator = map.keySet().iterator();
+                if (iterator.hasNext()) {
+                    String key = iterator.next();
+                    param.getSuperIds().add(map.get(key).toString());
+                }
+            });
+            return singleDistributionClue1(param.getSeaId(), param.getUserIds().get(0), param.getSuperIds());
+        } else if (2 == operate) {
+            // 坐席根据检索条件批量领取线索
+            return batchReceiveClue(param, param.getUserIds().get(0));
+        } else if (3 == operate) {
+            //根据检索条件批量给多人快速分配线索
+            return batchDistributionClue1(param, assignedList);
+        } else if (4 == operate) {
+            //坐席指定数量领取线索
+            return getReceiveClueByNumber(param.getSeaId(), param.getUserIds().get(0), param.getGetClueNumber());
+        }
+        return 0;
+    }
+
+    /**
+     * 根据检索条件批量给多人快速分配线索
+     *
+     * @param param
+     * @param assignedList
+     * @return
+     */
+    private int batchDistributionClue1(CustomerSeaSearch param, JSONArray assignedList) throws TouchException {
+        StringBuilder sql = new StringBuilder()
+                .append("UPDATE ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(param.getSeaId())
+                .append(" custG SET custG.status = 0, user_id = ?, user_get_time = ?  WHERE custG.status = 1 ");
+        StringBuilder appSql = new StringBuilder();
+        if (StringUtil.isNotEmpty(param.getSuperId())) {
+            appSql.append(" and custG.id = '" + param.getSuperId() + "'");
+        }
+        if (StringUtil.isNotEmpty(param.getSuperName())) {
+            appSql.append(" and custG.super_name = '%" + param.getSuperName() + "%'");
+        }
+        if (StringUtil.isNotEmpty(param.getSuperPhone())) {
+            appSql.append(" and custG.super_phone = '" + param.getSuperPhone() + "'");
+        }
+        if (StringUtil.isNotEmpty(param.getSuperTelphone())) {
+            appSql.append(" and custG.super_telphone = '" + param.getSuperTelphone() + "'");
+        }
+        if (StringUtil.isNotEmpty(param.getLastUserName())) {
+            appSql.append(" and custG.pre_user_id IN(SELECT id from t_customer_user WHERE AND cust_id = '" + param.getCustId() + "' realname LIKE '%" + param.getLastUserName() + "%') ");
+        }
+        if (param.getDataSource() != null) {
+            appSql.append(" and custG.data_source =" + param.getDataSource());
+        }
+        if (StringUtil.isNotEmpty(param.getBatchId())) {
+            appSql.append(" and custG.batch_id =" + param.getBatchId());
+        }
+        if (StringUtil.isNotEmpty(param.getAddStartTime()) && StringUtil.isNotEmpty(param.getAddEndTime())) {
+            appSql.append(" and custG.create_time BETWEEN " + param.getAddStartTime() + " AND " + param.getAddEndTime());
+        } else if (StringUtil.isNotEmpty(param.getAddStartTime())) {
+            appSql.append(" and custG.create_time >= " + param.getAddStartTime());
+        } else if (StringUtil.isNotEmpty(param.getAddEndTime())) {
+            appSql.append(" and custG.create_time <= " + param.getAddEndTime());
+        }
+
+        if (StringUtil.isNotEmpty(param.getCallStartTime()) && StringUtil.isNotEmpty(param.getCallEndTime())) {
+            appSql.append(" and custG.last_call_time BETWEEN " + param.getCallStartTime() + " AND " + param.getCallEndTime());
+        } else if (StringUtil.isNotEmpty(param.getCallStartTime())) {
+            appSql.append(" and custG.last_call_time >= " + param.getCallStartTime());
+        } else if (StringUtil.isNotEmpty(param.getCallEndTime())) {
+            appSql.append(" and custG.last_call_time <= " + param.getCallEndTime());
+        }
+
+        if (StringUtil.isNotEmpty(param.getLastCallResult())) {
+            appSql.append(" and custG.last_call_status = '" + param.getLastCallResult() + "'");
+        }
+        if (StringUtil.isNotEmpty(param.getIntentLevel())) {
+            appSql.append(" and custG.intent_level = '" + param.getIntentLevel() + "'");
+        }
+        if (param.getCalledDuration() != null) {
+            if (param.getCalledDuration() == 1) {
+                appSql.append(" AND custG.last_called_duration<=3");
+            } else if (param.getCalledDuration() == 2) {
+                appSql.append(" AND custG.last_called_duration>3 AND voicLog.last_called_duration<=6");
+            } else if (param.getCalledDuration() == 3) {
+                appSql.append(" AND custG.last_called_duration>6 AND voicLog.last_called_duration<=12");
+            } else if (param.getCalledDuration() == 4) {
+                appSql.append(" AND custG.last_called_duration>12 AND voicLog.last_called_duration<=30");
+            } else if (param.getCalledDuration() == 5) {
+                appSql.append(" AND custG.last_called_duration>30 AND voicLog.last_called_duration<=60");
+            } else if (param.getCalledDuration() == 6) {
+                appSql.append(" AND custG.last_called_duration>60");
+            }
+        }
+        if (StringUtil.isNotEmpty(param.getCustName())) {
+            appSql.append(" AND custG.lsuper_data ->'SYS014' = '").append(param.getCustName()).append("'");
+        }
+        appSql.append(" LIMIT ? ");
+        int count = 0;
+        // 处理多个负责人拆分多个线索分配
+        long quantity = 0, number = 0;
+        String userId;
+        Timestamp time = new Timestamp(System.currentTimeMillis());
+        StringBuilder logSql = new StringBuilder()
+                .append("INSERT INTO ").append(ConstantsUtil.CUSTOMER_OPER_LOG_TABLE_PREFIX).append(" (`user_id`, `list_id`, `customer_sea_id`, `customer_group_id`, `event_type`,  `create_time`) ")
+                .append(" SELECT ? ,id,").append(param.getSeaId()).append(",batch_id,").append(5).append(",'").append(new Timestamp(System.currentTimeMillis())).append("'")
+                .append(" FROM ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(param.getSeaId()).append(" custG WHERE status = 1 ");
+        for (int i = 0; i < assignedList.size(); i++) {
+            userId = assignedList.getJSONObject(i).getString("userId");
+            number = assignedList.getJSONObject(i).getInteger("number");
+            try {
+                quantity = getUserReceivableQuantity(param.getSeaId(), userId);
+            } catch (TouchException e) {
+                LOG.error("批量快速分配线索异常,fromUserId:" + userId + ",number:" + number, e);
+            }
+            if (quantity != -1) {
+                //-1表示可无限制领取
+                if (quantity == 0) {
+                    LOG.warn("fromUserId:[" + userId + "],number:[" + number + "]当天领取线索已达上限,quantity:" + quantity);
+                    continue;
+                } else if (quantity < number) {
+                    LOG.warn("fromUserId:[" + userId + "],number:[" + number + "]可分配数量不足");
+                    continue;
+                }
+            }
+            customerSeaDao.executeUpdateSQL(logSql.toString() + appSql.toString(), userId, number);
+            count += customerSeaDao.executeUpdateSQL(sql.toString() + appSql.toString(), userId, time, number);
+        }
+        return count;
+    }
+
+    /**
+     * 单一负责人分配线索
+     *
+     * @param seaId
+     * @param userId
+     * @param superIds
+     * @return
+     * @throws TouchException
+     */
+    private int singleDistributionClue1(String seaId, String userId, List<String> superIds) throws
+            TouchException {
+        LOG.info("分配的userId是：" + userId);
+
+        if (superIds == null || superIds.size() == 0) {
+            throw new TouchException("-1", "superIds必填");
+        }
+        long quantity = getUserReceivableQuantity(seaId, userId);
+        List<String> tempList = new ArrayList<>();
+        boolean limit = false;
+        if (quantity == 0) {
+            throw new TouchException("-1", "当天领取线索已达上限");
+        } else {
+            tempList.addAll(superIds);
+            if (quantity < superIds.size()) {
+                limit = true;
+            }
+        }
+        StringBuilder logSql = new StringBuilder()
+                .append("INSERT INTO ").append(ConstantsUtil.CUSTOMER_OPER_LOG_TABLE_PREFIX).append(" (`user_id`, `list_id`, `customer_sea_id`, `customer_group_id`, `event_type`,  `create_time`) ")
+                .append(" SELECT ").append(userId).append(" ,id,").append(seaId).append(",batch_id,").append(5).append(",'").append(new Timestamp(System.currentTimeMillis())).append("'")
+                .append(" FROM ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(seaId).append(" WHERE status = 1 AND id IN (").append(SqlAppendUtil.sqlAppendWhereIn(tempList)).append(")");
+        StringBuilder sql = new StringBuilder()
+                .append("UPDATE ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(seaId)
+                //.append(" SET status = 0, user_id = ?, user_get_time = ? WHERE status = 1 AND id IN (").append(SqlAppendUtil.sqlAppendWhereIn(tempList)).append(")");
+                .append(" SET status = 0, user_id = ?, user_get_time = ? WHERE id IN (").append(SqlAppendUtil.sqlAppendWhereIn(tempList)).append(")");
+
+        if (limit && quantity >= 0) {
+            sql.append(" LIMIT ").append(quantity);
+            logSql.append(" LIMIT ").append(quantity);
+        }
+        // 保存转交记录
+        customerSeaDao.executeUpdateSQL(logSql.toString());
+        return customerSeaDao.executeUpdateSQL(sql.toString(), userId, new Timestamp(System.currentTimeMillis()));
     }
 
 }
