@@ -1365,6 +1365,72 @@ public class CustomerSeaService {
             }*/
         }
     }
+    /**
+     * 处理线索superData和基础信息
+     *
+     * @param list
+     * @param cacheLabel
+     * @param customerSea
+     */
+    private void handleClueData1(List<Map<String, Object>> list, Map<String, CustomerLabel> cacheLabel, CustomerSea customerSea) {
+        Map<String, Object> map, superData, labelData;
+        List<Map<String, Object>> labelList;
+        CustomerUser user;
+        boolean protectStatus = customerService.getProtectStatusByCust(2, customerSea.getCustId());
+        CustomerLabel label;
+        for (int i = 0; i < list.size(); i++) {
+            map = list.get(i);
+            if (map == null) continue;
+            // 处理自建属性数据
+            if (map.get("super_data") != null
+                    && StringUtil.isNotEmpty(String.valueOf(map.get("super_data")))) {
+                labelList = new ArrayList<>();
+                superData = JSON.parseObject(String.valueOf(map.get("super_data")), Map.class);
+                if (superData != null && superData.size() > 0) {
+                    for (Map.Entry<String, Object> key : superData.entrySet()) {
+                        labelData = new HashMap<>();
+                        label = cacheLabel.get(key.getKey());
+                        labelData.put("id", key.getKey());
+                        labelData.put("name", "");
+                        labelData.put("type", 0);
+                        labelData.put("value", key.getValue());
+                        if (label != null) {
+                            labelData.put("name", label.getLabelName());
+                            labelData.put("type", label.getType());
+                            labelData.put("value", key.getValue());
+                            if (label.getType() != null && 1 != label.getType()) {
+                                labelData.put("value", String.valueOf(key.getValue()).split(","));
+                            }
+                        }
+                        labelList.add(labelData);
+                    }
+                    map.put("labelList", labelList);
+                }
+            }
+            // 查询用户真实姓名
+            map.put("realname", "");
+            if (map.get("user_id") != null) {
+                user = customerUserDao.get(Long.parseLong(String.valueOf(map.get("user_id"))));
+                if (user != null) {
+                    map.put("realname", user.getAccount());
+                    map.put("user_id", String.valueOf(user.getId()));
+                }
+                map.put("user_id", String.valueOf(map.get("user_id")));
+            }
+            // 处理意向度为空的情况
+            if (map.get("intentLevel") == null) {
+                map.put("intentLevel", "");
+            }
+            // 解析super_data中qq 微信等属性
+            getDefaultLabelValue(map);
+            map.remove("super_data");
+            map.put("protectStatus", protectStatus);
+            // 处理手机号
+          /*  if (protectStatus) {
+                map.put("super_telphone", phoneService.hidePhone(String.valueOf(map.get("super_telphone"))));
+            }*/
+        }
+    }
 
     /**
      * 批量根据身份ID删除线索(status=2)
@@ -3162,7 +3228,7 @@ public class CustomerSeaService {
         sb.append(" select custG.id, custG.user_id, custG.status, custG.call_count callCount, DATE_FORMAT(custG.last_call_time,'%Y-%m-%d %H:%i:%s') lastCallTime, custG.intent_level intentLevel,");
         sb.append(" custG.super_name, custG.super_age, custG.super_sex, custG.super_telphone, custG.super_phone, custG.super_address_province_city, custG.super_address_street, custG.super_data, ");
         sb.append(" custG.batch_id, custG.last_call_status, custG.data_source, DATE_FORMAT(custG.user_get_time,'%Y-%m-%d %H:%i:%s') user_get_time, DATE_FORMAT(custG.create_time,'%Y-%m-%d %H:%i:%s') create_time, custG.pre_user_id, custG.last_called_duration, DATE_FORMAT(custG.last_mark_time,'%Y-%m-%d %H:%i:%s') last_mark_time, ");
-        sb.append(" custG.call_success_count, custG.call_fail_count, custG.sms_success_count ,custG.super_data -> '$.SYS014 ' as custType");
+        sb.append(" custG.call_success_count, custG.call_fail_count, custG.sms_success_count ,custG.super_data -> '$.SYS014 ' as custType ");
         sb.append("  from " + ConstantsUtil.SEA_TABLE_PREFIX + param.getSeaId() + " custG ");
         sb.append(" where 1=1 ");
         if (StringUtil.isNotEmpty(param.getSuperId())) {
@@ -3285,7 +3351,7 @@ public class CustomerSeaService {
         }
         if (page != null && page.getData() != null) {
             // 处理自建属性和基本信息
-            handleClueData(page.getData(), cacheLabel, customerSea);
+            handleClueData1(page.getData(), cacheLabel, customerSea);
         }
 
         return page;
