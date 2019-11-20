@@ -3933,8 +3933,17 @@ public class CustomerSeaService {
 
         // 单一负责人分配线索|手动领取所选
         if (1 == operate) {
+            String[] split = param.getCustType().split(",");
+            // 根据指定条件删除线索
+            StringBuffer stb = new StringBuffer();
+            for (String custType : split) {
+                stb.append("'\"");
+                stb.append(custType);
+                stb.append("\"',");
+            }
+            stb.deleteCharAt(stb.length() - 1);
             StringBuffer sql = new StringBuffer();
-            sql.append("select id from " + ConstantsUtil.SEA_TABLE_PREFIX + param.getSeaId() + " custG where 'SYS014' = '" + param.getCustType() + "'");
+            sql.append("select id from " + ConstantsUtil.SEA_TABLE_PREFIX + param.getSeaId() + " custG where 'SYS014' in ( " + stb + ")");
             jdbcTemplate.queryForList(sql.toString()).stream().forEach(map -> {
                 Iterator<String> iterator = map.keySet().iterator();
                 if (iterator.hasNext()) {
