@@ -2803,7 +2803,8 @@ public class CustomGroupService {
             if (StringUtil.isNotEmpty(userQueryParam.getWorkPlaceId())) {
                 List<String> userIds = customerUserDao.listUserIdByWorkPlaceId(userQueryParam.getWorkPlaceId());
                 if (userIds == null || userIds.size() == 0) {
-                    return data;
+                    userIds = new ArrayList<>();
+                    userIds.add("-1");
                 }
                 whereSql.append(" AND user_id IN(" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ") ");
             }
