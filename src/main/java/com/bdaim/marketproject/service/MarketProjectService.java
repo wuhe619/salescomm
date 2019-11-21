@@ -1093,7 +1093,14 @@ public class MarketProjectService {
                     whereSql.append(" AND user_id = '" + userQueryParam.getUserId() + "'");
                 }
             }
-
+            // 处理根据职场检索条件
+            if (StringUtil.isNotEmpty(userQueryParam.getWorkPlaceId())) {
+                List<String> userIds = customerUserDao.listUserIdByWorkPlaceId(userQueryParam.getWorkPlaceId());
+                if (userIds == null || userIds.size() == 0) {
+                    return data;
+                }
+                whereSql.append(" AND user_id IN(" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ") ");
+            }
             whereSql.append(" AND user_id <>'' ");
             sqlSb.append(whereSql);
             totalSql.append(whereSql);
@@ -1823,6 +1830,7 @@ public class MarketProjectService {
 
     /**
      * 导出项目通话统计数据excel
+     *
      * @param timeType
      * @param marketProjectId
      * @param userQueryParam
@@ -2413,7 +2421,8 @@ public class MarketProjectService {
 
     /**
      * 导出项目通话统计数据excel
-     * @param _rule_ =callAmount导出表头带通话费用列
+     *
+     * @param _rule_          =callAmount导出表头带通话费用列
      * @param timeType
      * @param marketProjectId
      * @param userQueryParam

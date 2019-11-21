@@ -24,6 +24,8 @@ public class UserQueryParam {
      */
     private String marketingType;
 
+    private String workPlaceId;
+
 
     public String getEnterpriseName() {
         return enterpriseName;
@@ -127,5 +129,13 @@ public class UserQueryParam {
 
     public void setMarketingType(String marketingType) {
         this.marketingType = marketingType;
+    }
+
+    public String getWorkPlaceId() {
+        return workPlaceId;
+    }
+
+    public void setWorkPlaceId(String workPlaceId) {
+        this.workPlaceId = workPlaceId;
     }
 }
