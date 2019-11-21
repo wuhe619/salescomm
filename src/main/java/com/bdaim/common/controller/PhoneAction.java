@@ -57,6 +57,8 @@ public class PhoneAction extends BasicAction {
             reason = "taskid不能为空:" + taskid;
             LOG.warn("taskid不能为空:" + taskid);
         } else {
+            taskid = taskid.trim();
+            type = type.trim();
             list = new ArrayList<>();
             int pageNum = 0;
             int pageSize = 10;
@@ -126,6 +128,8 @@ public class PhoneAction extends BasicAction {
             reason = "cId不能为空:" + cId;
             LOG.warn("cId不能为空:" + cId);
         } else {
+            cId = cId.trim();
+            type = type.trim();
             list = new ArrayList<>();
             int pageNum = 0;
             int pageSize = 10;
