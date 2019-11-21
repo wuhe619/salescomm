@@ -2187,5 +2187,144 @@ public class SupplierService {
         }
         return data;
     }
+    public int saveSupplier1(SupplierDTO supplierDTO) {
+        if (supplierDTO == null) {
+            throw new RuntimeException("supplierDTO参数异常");
+        }
+        SupplierEntity supplierDO = new SupplierEntity();
+        supplierDO.setName(supplierDTO.getName());
+        supplierDO.setSettlementType(supplierDTO.getSettlementType());
+        supplierDO.setContactPerson(supplierDTO.getContactPerson());
+        supplierDO.setContactPhone(supplierDTO.getContactPhone());
+        supplierDO.setContactPosition(supplierDTO.getContactPosition());
+        supplierDO.setStatus(1);
+        supplierDO.setCreateTime(new Timestamp(System.currentTimeMillis()));
+        int supplierId = (int) supplierDao.saveReturnPk(supplierDO);
+        if (supplierId > 0) {
+            // 处理授信额度supplierDao
+            if (supplierDTO.getSettlementType() != null && 2 == supplierDTO.getSettlementType()) {
+                SupplierPropertyEntity creditAmountProperty = new SupplierPropertyEntity(String.valueOf(supplierId), "creditAmount", supplierDTO.getCreditAmount(), new Timestamp(System.currentTimeMillis()));
+                supplierDao.saveOrUpdate(creditAmountProperty);
+            }
+            MarketResourceEntity marketResource;
+            ResourcePropertyEntity marketResourceProperty;
+            int marketResourceId;
+            JSONArray jsonArray;
+            // 处理标签资源
+            if (StringUtil.isNotEmpty(supplierDTO.getDataConfig())) {
+                jsonArray = JSON.parseArray(supplierDTO.getDataConfig());
+                for (int index = 0; index < jsonArray.size(); index++) {
+                    if (jsonArray.getJSONObject(index) != null) {
+                        marketResource = new MarketResourceEntity();
+                        marketResource.setSupplierId(String.valueOf(supplierId));
+                        marketResource.setResname(jsonArray.getJSONObject(index).getString("name"));
+                        marketResource.setTypeCode(MarketResourceTypeEnum.LABEL.getType());
+                        marketResource.setCreateTime(new Timestamp(System.currentTimeMillis()));
+                        marketResource.setStatus(1);
+                        marketResourceId = (int) marketResourceDao.saveReturnPk(marketResource);
+
+                        marketResourceProperty = new ResourcePropertyEntity(marketResourceId, "price_config", String.valueOf(jsonArray.getJSONObject(index)), new Timestamp(System.currentTimeMillis()));
+                        marketResourceDao.saveOrUpdate(marketResourceProperty);
+                    }
+
+                }
+            }
+            // 处理通话资源
+            if (StringUtil.isNotEmpty(supplierDTO.getCallConfig())) {
+                jsonArray = JSON.parseArray(supplierDTO.getCallConfig());
+                JSONObject jsonObject;
+                for (int index = 0; index < jsonArray.size(); index++) {
+                    if (jsonArray.getJSONObject(index) != null) {
+                        jsonObject = jsonArray.getJSONObject(index);
+                        marketResource = new MarketResourceEntity();
+                        marketResource.setSupplierId(String.valueOf(supplierId));
+                        marketResource.setResname(jsonArray.getJSONObject(index).getString("name"));
+                        marketResource.setTypeCode(MarketResourceTypeEnum.CALL.getType());
+                        marketResource.setCreateTime(new Timestamp(System.currentTimeMillis()));
+                        marketResource.setStatus(1);
+                        marketResourceId = (int) marketResourceDao.saveReturnPk(marketResource);
+                        jsonObject.put("resourceId", marketResourceId);
+                        marketResourceProperty = new ResourcePropertyEntity(marketResourceId, "price_config", String.valueOf(jsonArray.getJSONObject(index)), new Timestamp(System.currentTimeMillis()));
+                        marketResourceDao.saveOrUpdate(marketResourceProperty);
+                        // 处理坐席和外显资源
+                        jsonObject.put("callResourceId", marketResourceId);
+                        marketResource = new MarketResourceEntity();
+                        marketResource.setSupplierId(String.valueOf(supplierId));
+                        marketResource.setResname(jsonArray.getJSONObject(index).getString("name"));
+                        marketResource.setTypeCode(MarketResourceTypeEnum.SEATS.getType());
+                        marketResource.setCreateTime(new Timestamp(System.currentTimeMillis()));
+                        marketResource.setStatus(1);
+                        marketResourceId = (int) marketResourceDao.saveReturnPk(marketResource);
+
+                        jsonObject.put("resourceId", marketResourceId);
+                        marketResourceProperty = new ResourcePropertyEntity(marketResourceId, "price_config", String.valueOf(jsonObject), new Timestamp(System.currentTimeMillis()));
+                        marketResourceDao.saveOrUpdate(marketResourceProperty);
+
+                        marketResource = new MarketResourceEntity();
+                        marketResource.setSupplierId(String.valueOf(supplierId));
+                        marketResource.setResname(jsonArray.getJSONObject(index).getString("name"));
+                        marketResource.setTypeCode(MarketResourceTypeEnum.APPARENT_NUMBER.getType());
+                        marketResource.setCreateTime(new Timestamp(System.currentTimeMillis()));
+                        marketResource.setStatus(1);
+                        marketResourceId = (int) marketResourceDao.saveReturnPk(marketResource);
+                        jsonObject.put("resourceId", marketResourceId);
+                        marketResourceProperty = new ResourcePropertyEntity(marketResourceId, "price_config", String.valueOf(jsonObject), new Timestamp(System.currentTimeMillis()));
+                        marketResourceDao.saveOrUpdate(marketResourceProperty);
+                    }
+                }
+            }
+            // 处理短信资源
+            if (StringUtil.isNotEmpty(supplierDTO.getSmsConfig())) {
+                jsonArray = JSON.parseArray(supplierDTO.getSmsConfig());
+                for (int index = 0; index < jsonArray.size(); index++) {
+                    if (jsonArray.getJSONObject(index) != null) {
+                        marketResource = new MarketResourceEntity();
+                        marketResource.setSupplierId(String.valueOf(supplierId));
+                        marketResource.setResname(jsonArray.getJSONObject(index).getString("name"));
+                        marketResource.setTypeCode(MarketResourceTypeEnum.SMS.getType());
+                        marketResource.setCreateTime(new Timestamp(System.currentTimeMillis()));
+                        marketResource.setStatus(1);
+                        marketResourceId = (int) marketResourceDao.saveReturnPk(marketResource);
+
+                        marketResourceProperty = new ResourcePropertyEntity(marketResourceId, "price_config", String.valueOf(jsonArray.getJSONObject(index)), new Timestamp(System.currentTimeMillis()));
+                        marketResourceDao.saveOrUpdate(marketResourceProperty);
+                    }
+                }
+            }
+            // 处理资源
+            if (supplierDTO.getResourceConfig() != null) {
+                Iterator keys = supplierDTO.getResourceConfig().keySet().iterator();
+                while (keys.hasNext()) {
+                    String key = (String) keys.next();
+                    if (key.endsWith("_config")) {
+                        jsonArray = JSON.parseArray(String.valueOf(supplierDTO.getResourceConfig().get(key)));
+                        if (jsonArray == null || jsonArray.size() == 0) {
+                            continue;
+                        }
+                        for (int index = 0; index < jsonArray.size(); index++) {
+                            if (jsonArray.getJSONObject(index) != null) {
+                                marketResource = new MarketResourceEntity();
+                                marketResource.setSupplierId(String.valueOf(supplierId));
+                                marketResource.setResname(jsonArray.getJSONObject(index).getString("name"));
+                                marketResource.setTypeCode(jsonArray.getJSONObject(index).getInteger("busiType"));
+                                marketResource.setCreateTime(new Timestamp(System.currentTimeMillis()));
+                                marketResource.setStatus(1);
+                                marketResourceId = (int) marketResourceDao.saveReturnPk(marketResource);
+
+                                jsonArray.getJSONObject(index).put("key", key);
+                                marketResourceProperty = new ResourcePropertyEntity(marketResourceId, "price_config", String.valueOf(jsonArray.getJSONObject(index)), new Timestamp(System.currentTimeMillis()));
+                                marketResourceDao.saveOrUpdate(marketResourceProperty);
+                            }
+                        }
+                    }
+                }
+            }
+            return supplierId;
+        } else {
+            throw new RuntimeException("供应商保存异常");
+        }
+    }
+
+
 }
 

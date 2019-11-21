@@ -613,4 +613,30 @@ public class SupplierAction extends BasicAction {
         return returnJsonData(list);
     }
 
+    @RequestMapping(value = "/info/{id}", method = RequestMethod.POST)
+    @ResponseBody
+    @ValidatePermission(role = "admin,ROLE_USER")
+    public ResponseInfo saveSupplier(@RequestBody String body, @PathVariable(name = "id", required = false) Long id) {
+        ResponseInfo resp = new ResponseInfo();
+        SupplierDTO supplierDTO = null;
+        try {
+            supplierDTO = JSONObject.parseObject(body, SupplierDTO.class);
+            supplierDTO.setResourceConfig(JSONObject.parseObject(body));
+        } catch (Exception e) {
+            return new ResponseInfoAssemble().failure(-1, "供应商保存参数异常");
+        }
+        try {
+            if (id == null || id == 0) {
+                resp.setData(supplierService.saveSupplier1(supplierDTO));
+            } else {
+                resp.setData(supplierService.updateSupplierPrice(supplierDTO));
+            }
+        } catch (Exception e) {
+            LOG.error("保存供应商失败,", e);
+        }
+
+        return resp;
+    }
+
+
 }
