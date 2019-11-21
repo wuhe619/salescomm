@@ -399,17 +399,17 @@ public class BgdFService implements BusiService {
         /*if(StringUtil.isEmpty(mainjson.get("warehouse_code")==null?"":mainjson.get("warehouse_code").toString())){
             filedName += "," + BGDReportEnum.CustomsField.getName();
         }*/
-        if(StringUtil.isEmpty(mainjson.get("send_name")==null?"":mainjson.get("send_name").toString())){
+        if(StringUtil.isEmpty(json.get("send_name")==null?"":json.get("send_name").toString())){
             filedName += "," + BGDReportEnum.SendName.getName();
         }
         if(StringUtil.isEmpty(json.get("receive_name")==null?"":json.get("receive_name").toString())){
             filedName += "," + BGDReportEnum.ReceiveName.getName();
         }
 
-        if(StringUtil.isEmpty(mainjson.get("send_country")==null?"":mainjson.get("send_country").toString())){
+        if(StringUtil.isEmpty(json.get("send_country")==null?"":json.get("send_country").toString())){
             filedName += "," + BGDReportEnum.SendCountry.getName();
         }
-        if(StringUtil.isEmpty(mainjson.get("send_city_en")==null?"":mainjson.get("send_city_en").toString())){
+        if(StringUtil.isEmpty(json.get("send_city_en")==null?"":json.get("send_city_en").toString())){
             filedName += "," + BGDReportEnum.SendCity.getName();
         }
         if(StringUtil.isEmpty(json.get("id_no")==null?"":json.get("id_no").toString())){
@@ -433,11 +433,11 @@ public class BgdFService implements BusiService {
             filedName += "," + BGDReportEnum.SendIdType.getName();
         }
 
-        if(StringUtil.isEmpty(mainjson.get("send_address")==null?"":mainjson.get("send_address").toString())){
+        if(StringUtil.isEmpty(json.get("send_address")==null?"":json.get("send_address").toString())){
             filedName += "," + BGDReportEnum.SendAddress.getName();
         }
 
-        if(StringUtil.isEmpty(mainjson.get("send_tel")==null?"":mainjson.get("send_tel").toString())){
+        if(StringUtil.isEmpty(json.get("send_tel")==null?"":json.get("send_tel").toString())){
             filedName += "," + BGDReportEnum.SendTelNo.getName();
         }
 
@@ -461,16 +461,16 @@ public class BgdFService implements BusiService {
             filedName += "," + BGDReportEnum.StopCityEn.getName();
         }
 
-        if(StringUtil.isEmpty(mainjson.get("send_name_en")==null?"":mainjson.get("send_name_en").toString())){
+        if(StringUtil.isEmpty(json.get("send_name_en")==null?"":json.get("send_name_en").toString())){
             filedName += "," + BGDReportEnum.SendNameEn.getName();
         }
 
-        if(StringUtil.isEmpty(mainjson.get("send_address_en")==null?"":mainjson.get("send_address_en").toString())){
+        if(StringUtil.isEmpty(json.get("send_address_en")==null?"":json.get("send_address_en").toString())){
             filedName += "," + BGDReportEnum.SendAddressEn.getName();
         }
 
 
-        if(StringUtil.isEmpty(mainjson.get("send_city_en")==null?"":mainjson.get("send_city_en").toString())){
+        if(StringUtil.isEmpty(json.get("send_city_en")==null?"":json.get("send_city_en").toString())){
             filedName += "," + BGDReportEnum.SendCityEn.getName();
         }
 

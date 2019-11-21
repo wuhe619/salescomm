@@ -2799,6 +2799,16 @@ public class CustomGroupService {
                     }
                 }
             }
+            // 处理根据职场检索条件
+            if (StringUtil.isNotEmpty(userQueryParam.getWorkPlaceId())) {
+                List<String> userIds = customerUserDao.listUserIdByWorkPlaceId(userQueryParam.getWorkPlaceId());
+                if (userIds == null || userIds.size() == 0) {
+                    userIds = new ArrayList<>();
+                    userIds.add("-1");
+                }
+                whereSql.append(" AND user_id IN(" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ") ");
+            }
+
             whereSql.append(" AND user_id <>'' ");
             sqlSb.append(whereSql);
             totalSql.append(whereSql);

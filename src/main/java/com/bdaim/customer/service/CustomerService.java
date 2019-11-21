@@ -1421,9 +1421,14 @@ public class CustomerService {
 
         // 处理营销类型
         if (StringUtil.isNotEmpty(param.getMarketingType())) {
-            hql.append(" AND m.custId IN (SELECT custId FROM CustomerProperty WHERE propertyName =? AND propertyValue = ? ) ");
             values.add(CustomerPropertyEnum.MARKET_TYPE.getKey());
-            values.add(param.getMarketingType());
+            if (String.valueOf(MarketTypeEnum.B2C.getCode()).equals(param.getMarketingType())) {
+                hql.append(" AND m.custId NOT IN (SELECT custId FROM CustomerProperty WHERE propertyName =? AND propertyValue = ? ) ");
+                values.add(String.valueOf(MarketTypeEnum.B2B.getCode()));
+            } else {
+                hql.append(" AND m.custId IN (SELECT custId FROM CustomerProperty WHERE propertyName =? AND propertyValue = ? ) ");
+                values.add(param.getMarketingType());
+            }
         }
 
         if ("ROLE_USER".equals(lu.getRole())) {

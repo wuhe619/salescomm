@@ -642,10 +642,10 @@ public class SbdZService implements BusiService {
     }
 
     public void buildGoods0(List<HBusiDataManager> list, List<Product> pList, Long userId, String custId, String pid, JSONObject arrt, Map<String, JSONObject> resource, String main_bill_no) throws Exception {
+        arrt.put("low_price_goods", 0);
         if (pList != null && pList.size() > 0) {
             //List<Map<String, String>> mainGoodsName = new ArrayList<>();
             HBusiDataManager dataManager;
-            arrt.put("low_price_goods", 0);
             //分单预估税金总计
             arrt.put("estimated_tax_total", 0);
             BigDecimal totalValue = new BigDecimal(0);

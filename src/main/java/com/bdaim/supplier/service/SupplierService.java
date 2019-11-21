@@ -762,6 +762,55 @@ public class SupplierService {
         }
     }
 
+    /**
+     * 单独保存资源
+     *
+     * @param supplierDTO
+     * @return
+     */
+    public int saveResConfig(SupplierDTO supplierDTO) {
+        // 处理资源
+        if (supplierDTO.getResourceConfig() != null) {
+            Iterator keys = supplierDTO.getResourceConfig().keySet().iterator();
+            JSONArray jsonArray;
+            while (keys.hasNext()) {
+                String key = (String) keys.next();
+                if (key.endsWith("_config")) {
+                    jsonArray = JSON.parseArray(String.valueOf(supplierDTO.getResourceConfig().get(key)));
+                    if (jsonArray == null || jsonArray.size() == 0) {
+                        continue;
+                    }
+                    MarketResourceEntity marketResource;
+                    int marketResourceId;
+                    ResourcePropertyEntity marketResourceProperty;
+                    for (int index = 0; index < jsonArray.size(); index++) {
+                        if (jsonArray.getJSONObject(index) != null) {
+                            marketResource = new MarketResourceEntity();
+                            marketResourceId = jsonArray.getJSONObject(index).getIntValue("resourceId");
+                            if (marketResourceId > 0) {
+                                marketResource = marketResourceDao.get(marketResourceId);
+                            }
+                            marketResource.setSupplierId(String.valueOf(supplierDTO.getSupplierId()));
+                            marketResource.setResname(jsonArray.getJSONObject(index).getString("name"));
+                            marketResource.setTypeCode(jsonArray.getJSONObject(index).getInteger("busiType"));
+                            marketResource.setStatus(jsonArray.getJSONObject(index).getInteger("status"));
+                            if (marketResourceId == 0) {
+                                marketResource.setCreateTime(new Timestamp(System.currentTimeMillis()));
+                                marketResourceId = (int) marketResourceDao.saveReturnPk(marketResource);
+                            } else {
+                                marketResourceDao.saveOrUpdate(marketResource);
+                            }
+                            jsonArray.getJSONObject(index).put("key", key);
+                            marketResourceProperty = new ResourcePropertyEntity(marketResourceId, "price_config", String.valueOf(jsonArray.getJSONObject(index)), new Timestamp(System.currentTimeMillis()));
+                            marketResourceDao.saveOrUpdate(marketResourceProperty);
+                        }
+                    }
+                }
+            }
+        }
+        return 1;
+    }
+
     private void handleResourceList(JSONArray jsonArray, String supplierId, int type, Set<Integer> dbResourceCodes) {
         JSONObject jsonObject;
         int marketResourceId;
@@ -1349,8 +1398,8 @@ public class SupplierService {
         return 1;
     }
 
-    public Page pageSupplier(int pageIndex, int pageSize, String supplierName, String supplierId, String supplierType) {
-        Page page = supplierDao.pageSupplier(pageIndex, pageSize, supplierName, supplierId, supplierType);
+    public Page pageSupplier(int pageIndex, int pageSize, String supplierName, String supplierId, String supplierType, int status) {
+        Page page = supplierDao.pageSupplier(pageIndex, pageSize, supplierName, supplierId, supplierType, status);
         if (page.getData() != null && page.getData().size() > 0) {
             SupplierEntity supplierDO;
             List<MarketResourceDTO> marketResourceDTOList;
@@ -1449,10 +1498,10 @@ public class SupplierService {
     }
 
 
-    public Map<String, Object> listSupplierMonthBill(String yearMonth, int pageIndex, int pageSize, String supplierName, String supplierId, String supplierType) {
+    public Map<String, Object> listSupplierMonthBill(String yearMonth, int pageIndex, int pageSize, String supplierName, String supplierId, String supplierType, int status) {
         Map<String, Object> result = new HashMap<>();
         double sumAmount = 0.0;
-        Page page = supplierDao.pageSupplier(pageIndex, pageSize, supplierName, supplierId, supplierType);
+        Page page = supplierDao.pageSupplier(pageIndex, pageSize, supplierName, supplierId, supplierType, status);
         List<Map<String, Object>> list = new ArrayList<>();
         if (page != null && page.getData() != null && page.getData().size() > 0) {
             SupplierEntity supplierDO;

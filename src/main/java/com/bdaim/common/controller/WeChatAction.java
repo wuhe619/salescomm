@@ -2,6 +2,7 @@ package com.bdaim.common.controller;
 
 
 import com.bdaim.customs.entity.BusiTypeEnum;
+import com.bdaim.util.UnicomUtil;
 import com.bdaim.util.wechat.WeChatUtil;
 
 import io.searchbox.client.JestClient;
@@ -55,5 +56,4 @@ public class WeChatAction extends BasicAction {
         }
         return true;
     }
-
 }

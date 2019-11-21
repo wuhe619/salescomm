@@ -103,9 +103,15 @@ public class ZAXSearchListService {
      * @throws Exception
      */
     public BaseResult pageSearch(String custId, String custGroupId, Long custUserId, String busiType, JSONObject params) throws Exception {
-        BaseResult baseResult = pageSearch(custId, custGroupId, custUserId, busiType, params);
+        params.put("pageNo", params.getLongValue("pageNum"));
+        Map<String, Object> headers = new HashMap<>();
+        headers.put("Authorization", TOKEN);
+        LOG.info("企业列表查询参数:{}", params);
+        String result = HttpUtil.httpPost(API_URL.replace("{busiType}", BUSI_TYPE.get(busiType)), params.toJSONString(), headers,15000);
+        LOG.info("企业列表查询接口返回:{}", result);
+        BaseResult baseResult = JSON.parseObject(result, BaseResult.class);
         // 处理企业领取标志
-        if (baseResult != null && baseResult.getData() != null) {
+        if (baseResult != null && baseResult.getData() != null && !params.containsKey("fieldType")) {
             JSONObject data = (JSONObject) baseResult.getData();
             JSONArray list = data.getJSONArray("list");
             if (list != null && list.size() > 0) {
@@ -117,14 +123,21 @@ public class ZAXSearchListService {
         return baseResult;
     }
 
+    /**
+     * 检索列表 只返回企业ID
+     *
+     * @param custId
+     * @param custGroupId
+     * @param custUserId
+     * @param busiType
+     * @param params
+     * @return
+     * @throws Exception
+     */
     public BaseResult pageSearchIds(String custId, String custGroupId, Long custUserId, String busiType, JSONObject params) throws Exception {
-        params.put("pageNo", params.getLongValue("pageNum"));
-        Map<String, Object> headers = new HashMap<>();
-        headers.put("Authorization", TOKEN);
-        LOG.info("企业列表查询参数:{}", params);
-        String result = HttpUtil.httpPost(API_URL.replace("{busiType}", BUSI_TYPE.get(busiType)), params.toJSONString(), headers, 30000);
-        LOG.info("企业列表查询接口返回:{}", result);
-        BaseResult baseResult = JSON.parseObject(result, BaseResult.class);
+        //领取，只返回id
+        params.put("fieldType", false);
+        BaseResult baseResult = pageSearch(custId, custGroupId, custUserId, busiType, params);
         return baseResult;
     }
 

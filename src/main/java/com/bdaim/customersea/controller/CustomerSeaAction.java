@@ -759,4 +759,59 @@ public class CustomerSeaAction extends BasicAction {
         responseJson.setData(resultMap);
         return JSON.toJSONString(responseJson);
     }
+
+    /**
+     * 线索分配
+     *
+     * @param jsonObject
+     * @return
+     */
+    @RequestMapping(value = "/distributionClue1", method = RequestMethod.POST)
+    public ResponseJson distributionClue1(@RequestBody JSONObject jsonObject) {
+        ResponseJson responseJson = new ResponseJson();
+        Integer operate = jsonObject.getInteger("operate");
+        if (operate == null) {
+            responseJson.setData("operate参数必填");
+            responseJson.setCode(-1);
+            return responseJson;
+        }
+        CustomerSeaSearch param = JSON.parseObject(jsonObject.toJSONString(), CustomerSeaSearch.class);
+        if (StringUtil.isEmpty(param.getSeaId())) {
+            responseJson.setData("seaId参数必填");
+            responseJson.setCode(-1);
+        }
+        if (param.getUserIds() == null || param.getUserIds().size() == 0) {
+            responseJson.setData("userIds参数必填");
+            responseJson.setCode(-1);
+        }
+        // 员工和组长领取线索处理
+        if ("2".equals(opUser().getUserType())) {
+            List<String> userIds = new ArrayList<>();
+            userIds.add(String.valueOf(opUser().getId()));
+            param.setUserIds(userIds);
+        }
+        // 快速分配时用户和数量数组
+        JSONArray assignedList = jsonObject.getJSONArray("assignedlist");
+        int data = 0;
+        try {
+            param.setUserId(opUser().getId());
+            param.setUserType(opUser().getUserType());
+            param.setUserGroupRole(opUser().getUserGroupRole());
+            param.setUserGroupId(opUser().getUserGroupId());
+            param.setCustId(opUser().getCustId());
+            // 同步操作
+            synchronized (this) {
+                data = seaService.distributionClue1(param, operate, assignedList);
+            }
+            responseJson.setCode(200);
+        } catch (TouchException e) {
+            responseJson.setCode(-1);
+            responseJson.setMessage(e.getErrMsg());
+            LOG.error("线索分配异常,", e);
+        }
+        responseJson.setData(data);
+        return responseJson;
+    }
+
+
 }

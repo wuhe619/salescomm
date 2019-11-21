@@ -891,6 +891,7 @@ public class CustomGroupAction extends BasicAction {
             type = Integer.parseInt(timeType);
         }
         UserQueryParam userQueryParam = getUserQueryParam();
+        userQueryParam.setWorkPlaceId(workPlaceId);
         userQueryParam.setPageSize(page.getPageSize());
         userQueryParam.setPageNum(page.getPageNum());
         Map<String, Object> marketData = null;

@@ -1,7 +1,15 @@
 package com.bdaim.common.service;
 
+import com.bdaim.callcenter.dto.XzPullPhoneDTO;
+import com.bdaim.customersea.dao.CustomerSeaDao;
+import com.bdaim.customersea.entity.CustomerSea;
 import com.bdaim.customgroup.dao.CustomGroupDao;
+import com.bdaim.customgroup.dao.CustomerGroupListDao;
+import com.bdaim.customgroup.entity.CustomGroup;
+import com.bdaim.markettask.dao.MarketTaskDao;
+import com.bdaim.markettask.entity.MarketTask;
 import com.bdaim.util.ConstantsUtil;
+import com.bdaim.util.NumberConvertUtil;
 import com.bdaim.util.StringUtil;
 import com.bdaim.util.http.HttpUtil;
 import com.bdaim.util.redis.RedisUtil;
@@ -12,10 +20,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import javax.transaction.Transactional;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author chengning@salescomm.net
@@ -36,6 +41,12 @@ public class PhoneService {
 
     @Resource
     private CustomGroupDao customGroupDao;
+
+    @Resource
+    private MarketTaskDao marketTaskDao;
+
+    @Resource
+    private CustomerSeaDao customerSeaDao;
 
     @Resource
     private RedisUtil redisUtil;
@@ -221,6 +232,227 @@ public class PhoneService {
         }
         return data;
     }
+
+    /**
+     * 根据第三方任务ID拉取号码
+     *
+     * @param type     1-公海 2-客群 3-营销任务
+     * @param taskId
+     * @param pageNum
+     * @param pageSize
+     * @return
+     */
+    public List<XzPullPhoneDTO> pagePhoneByTaskId(int type, String taskId, Integer pageNum, Integer pageSize) {
+        LOG.info("拉取号码任务ID:" + taskId + ",拉取手机号,pageNum:" + pageNum + ",pageSize:" + pageSize);
+        String sId = "";
+        int phoneIndex = -1;
+        String table = "", cgId = "";
+        CustomerSea customerSea = null;
+        CustomGroup customGroup = null;
+        MarketTask marketTask = null;
+        // 公海
+        if (type == 1) {
+            customerSea = customerSeaDao.getCustomerSeaByTaskId(taskId);
+            if (customerSea != null) {
+                sId = customerSea.getId().toString();
+                if (customerSea.getTaskPhoneIndex() != null) {
+                    phoneIndex = customerSea.getTaskPhoneIndex();
+                }
+                table = ConstantsUtil.SEA_TABLE_PREFIX;
+            }
+        } else if (type == 2) {
+            // 客群
+            customGroup = customGroupDao.getCustomGroupByTaskId(taskId);
+            if (customGroup != null) {
+                sId = customGroup.getId().toString();
+                cgId = sId;
+                if (customGroup.getTaskPhoneIndex() != null) {
+                    phoneIndex = customGroup.getTaskPhoneIndex();
+                }
+                table = ConstantsUtil.CUSTOMER_GROUP_TABLE_PREFIX;
+            }
+        } else if (type == 3) {
+            // 营销任务
+            marketTask = marketTaskDao.getMarketTaskByTaskId(taskId);
+            if (marketTask != null) {
+                cgId = marketTask.getCustomerGroupId().toString();
+                sId = marketTask.getId();
+                if (marketTask.getTaskPhoneIndex() != null) {
+                    phoneIndex = marketTask.getTaskPhoneIndex();
+                }
+                table = ConstantsUtil.MARKET_TASK_TABLE_PREFIX;
+            }
+        } else {
+            LOG.warn("拉取号码无对应类型:{}", type);
+            return new ArrayList<>();
+        }
+        if (StringUtil.isEmpty(sId) || StringUtil.isEmpty(table)) {
+            LOG.warn("拉取号码未查询到记录type:{},sId:{}", type, sId);
+            return new ArrayList<>();
+        }
+        LOG.info("拉取号码:" + sId + ",phoneIndex:" + phoneIndex);
+        StringBuffer sb = new StringBuffer();
+        sb.append("select custG.id, custG.batch_id from ").append(table).append(sId).append(" custG ORDER BY custG.n_id ASC ");
+        // 如果记录的号码index大于拉取的index,则从记录号码的index开始拉取,防止重复拨打
+        if (phoneIndex > pageNum) {
+            LOG.warn("拉取号码:" + sId + ",记录的index:" + phoneIndex + ",拉取的index:" + pageNum);
+            pageNum = phoneIndex;
+        }
+        sb.append(" LIMIT " + pageNum + "," + pageSize);
+
+        List<Map<String, Object>> ids;
+        List<XzPullPhoneDTO> phoneList = new ArrayList<>();
+        try {
+            ids = customGroupDao.sqlQuery(sb.toString());
+            if (ids == null || ids.size() == 0) {
+                LOG.info("拉取号码:" + sId + ",手机号拉取完成,phoneIndex:" + phoneIndex);
+                return phoneList;
+            }
+            phoneIndex += ids.size();
+            String phone;
+            for (Map<String, Object> id : ids) {
+                if (id != null) {
+                    if (type == 1) {
+                        cgId = String.valueOf(id.get("batch_id"));
+                    }
+                    phone = getPhoneBySuperId(String.valueOf(id.get("id")));
+                    phoneList.add(new XzPullPhoneDTO(phone, String.valueOf(id.get("id"))));
+                    //保存客群和手机号对应的身份ID到redis
+                    setCGroupDataToRedis(cgId, String.valueOf(id.get("id")), phone);
+                    if (type == 1) {
+                        setCGroupDataToRedis(String.valueOf(customerSea.getId()), String.valueOf(id.get("id")), phone);
+                    }
+                }
+            }
+            if (type == 1) {
+                customerSea.setTaskPhoneIndex(phoneIndex);
+                customerSeaDao.update(customerSea);
+            } else if (type == 2) {
+                // 客群
+                customGroup.setTaskPhoneIndex(phoneIndex);
+                customGroupDao.update(customGroup);
+            } else if (type == 3) {
+                // 营销任务
+                marketTask.setTaskPhoneIndex(phoneIndex);
+                marketTaskDao.update(marketTask);
+            }
+        } catch (Exception e) {
+            LOG.error(sId + "拉取手机号失败,", e);
+            phoneList = new ArrayList<>();
+        }
+        return phoneList;
+    }
+
+    /**
+     * 根据ID拉取号码
+     *
+     * @param type     1-公海 2-客群 3-营销任务
+     * @param cId
+     * @param pageNum
+     * @param pageSize
+     * @return
+     */
+    public List<XzPullPhoneDTO> pagePhoneById(int type, String cId, Integer pageNum, Integer pageSize) {
+        LOG.info("拉取号码任务ID:" + cId + ",拉取手机号,pageNum:" + pageNum + ",pageSize:" + pageSize);
+        String sId = "";
+        int phoneIndex = -1;
+        String table = "", cgId = "";
+        CustomerSea customerSea = null;
+        CustomGroup customGroup = null;
+        MarketTask marketTask = null;
+        // 公海
+        if (type == 1) {
+            customerSea = customerSeaDao.get(NumberConvertUtil.parseLong(cId));
+            if (customerSea != null) {
+                sId = customerSea.getId().toString();
+                if (customerSea.getTaskPhoneIndex() != null) {
+                    phoneIndex = customerSea.getTaskPhoneIndex();
+                }
+                table = ConstantsUtil.SEA_TABLE_PREFIX;
+            }
+        } else if (type == 2) {
+            // 客群
+            customGroup = customGroupDao.get(NumberConvertUtil.parseInt(cId));
+            if (customGroup != null) {
+                sId = customGroup.getId().toString();
+                cgId = sId;
+                if (customGroup.getTaskPhoneIndex() != null) {
+                    phoneIndex = customGroup.getTaskPhoneIndex();
+                }
+                table = ConstantsUtil.CUSTOMER_GROUP_TABLE_PREFIX;
+            }
+        } else if (type == 3) {
+            // 营销任务
+            marketTask = marketTaskDao.get(cId);
+            if (marketTask != null) {
+                cgId = marketTask.getCustomerGroupId().toString();
+                sId = marketTask.getId();
+                if (marketTask.getTaskPhoneIndex() != null) {
+                    phoneIndex = marketTask.getTaskPhoneIndex();
+                }
+                table = ConstantsUtil.MARKET_TASK_TABLE_PREFIX;
+            }
+        } else {
+            LOG.warn("拉取号码无对应类型:{}", type);
+            return new ArrayList<>();
+        }
+        if (StringUtil.isEmpty(sId) || StringUtil.isEmpty(table)) {
+            LOG.warn("拉取号码未查询到记录type:{},sId:{}", type, sId);
+            return new ArrayList<>();
+        }
+        LOG.info("拉取号码:" + sId + ",phoneIndex:" + phoneIndex);
+        StringBuffer sb = new StringBuffer();
+        sb.append("select custG.id, custG.batch_id from ").append(table).append(sId).append(" custG ORDER BY custG.n_id ASC ");
+        // 如果记录的号码index大于拉取的index,则从记录号码的index开始拉取,防止重复拨打
+        if (phoneIndex > pageNum) {
+            LOG.warn("拉取号码:" + sId + ",记录的index:" + phoneIndex + ",拉取的index:" + pageNum);
+            pageNum = phoneIndex;
+        }
+        sb.append(" LIMIT " + pageNum + "," + pageSize);
+
+        List<Map<String, Object>> ids;
+        List<XzPullPhoneDTO> phoneList = new ArrayList<>();
+        try {
+            ids = customGroupDao.sqlQuery(sb.toString());
+            if (ids == null || ids.size() == 0) {
+                LOG.info("拉取号码:" + sId + ",手机号拉取完成,phoneIndex:" + phoneIndex);
+                return phoneList;
+            }
+            phoneIndex += ids.size();
+            String phone;
+            for (Map<String, Object> id : ids) {
+                if (id != null) {
+                    if (type == 1) {
+                        cgId = String.valueOf(id.get("batch_id"));
+                    }
+                    phone = getPhoneBySuperId(String.valueOf(id.get("id")));
+                    phoneList.add(new XzPullPhoneDTO(phone, String.valueOf(id.get("id"))));
+                    //保存客群和手机号对应的身份ID到redis
+                    setCGroupDataToRedis(cgId, String.valueOf(id.get("id")), phone);
+                    if (type == 1) {
+                        setCGroupDataToRedis(String.valueOf(customerSea.getId()), String.valueOf(id.get("id")), phone);
+                    }
+                }
+            }
+            if (type == 1) {
+                customerSea.setTaskPhoneIndex(phoneIndex);
+                customerSeaDao.update(customerSea);
+            } else if (type == 2) {
+                // 客群
+                customGroup.setTaskPhoneIndex(phoneIndex);
+                customGroupDao.update(customGroup);
+            } else if (type == 3) {
+                // 营销任务
+                marketTask.setTaskPhoneIndex(phoneIndex);
+                marketTaskDao.update(marketTask);
+            }
+        } catch (Exception e) {
+            LOG.error(sId + "拉取手机号失败,", e);
+            phoneList = new ArrayList<>();
+        }
+        return phoneList;
+    }
+
 
     /*public static void main(String[] args) {
         PhoneService phoneService = new PhoneService();

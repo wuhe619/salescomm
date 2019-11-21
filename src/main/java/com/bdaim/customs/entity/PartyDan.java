@@ -113,6 +113,77 @@ public class PartyDan {
      */
     private String zip_code;
 
+    @JsonProperty(value = "SEND_NAME")
+    private String send_name;
+    @JsonProperty(value = "SEND_ADDRESS")
+    private String send_address;
+    @JsonProperty(value = "SEND_TEL")
+    private long send_tel;
+    @JsonProperty(value = "SEND_NAME_EN")
+    private String send_name_en;
+    @JsonProperty(value = "SEND_ADDRESS_EN")
+    private String send_address_en;
+    @JsonProperty(value = "SEND_CITY_EN")
+    private String send_city_en;
+    @JsonProperty(value = "SEND_COUNTRY")
+    private String send_country;
+
+    public String getSend_name() {
+        return send_name;
+    }
+
+    public void setSend_name(String send_name) {
+        this.send_name = send_name;
+    }
+
+    public String getSend_address() {
+        return send_address;
+    }
+
+    public void setSend_address(String send_address) {
+        this.send_address = send_address;
+    }
+
+    public long getSend_tel() {
+        return send_tel;
+    }
+
+    public void setSend_tel(long send_tel) {
+        this.send_tel = send_tel;
+    }
+
+    public String getSend_name_en() {
+        return send_name_en;
+    }
+
+    public void setSend_name_en(String send_name_en) {
+        this.send_name_en = send_name_en;
+    }
+
+    public String getSend_address_en() {
+        return send_address_en;
+    }
+
+    public void setSend_address_en(String send_address_en) {
+        this.send_address_en = send_address_en;
+    }
+
+    public String getSend_city_en() {
+        return send_city_en;
+    }
+
+    public void setSend_city_en(String send_city_en) {
+        this.send_city_en = send_city_en;
+    }
+
+    public String getSend_country() {
+        return send_country;
+    }
+
+    public void setSend_country(String send_country) {
+        this.send_country = send_country;
+    }
+
     public String getId() {
         return id;
     }

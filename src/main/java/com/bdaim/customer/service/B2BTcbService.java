@@ -183,7 +183,10 @@ public class B2BTcbService implements BusiService {
         StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5  from "
                 + HMetaDataDef.getTable(busiType, "") + " where type='").append(busiType).append("'");
         String name = params.getString("name");
-
+        Integer type = params.getInteger("type");
+        if (type != null) {
+            sqlstr.append(" and ext_3 = ").append(type);
+        }
         if (!"all".equals(cust_id))
             sqlstr.append(" and cust_id='").append(cust_id).append("'");
         if (StringUtil.isNotEmpty(name)) {
@@ -372,8 +375,7 @@ public class B2BTcbService implements BusiService {
         BaseResult companyContact, companyDetail, baseResult;
         JSONObject contactData, detailData, resultData;
         JSONArray list;
-        //领取，只返回id
-        param.put("fieldType", false);
+
         long pageNo = 0L, pageSize = 1000;
         while (getNumber > data.size()) {
             param.put("pageNum", pageNo);
