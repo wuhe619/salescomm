@@ -180,8 +180,8 @@ public class SbdSService implements BusiService {
         JSONObject fjson = JSONObject.parseObject(fcontent);
         System.out.println("jsoncontent====="+fjson);
         List<HBusiDataManager> goodsList = serviceUtils.listSdByBillNo(cust_id,BusiTypeEnum.SS.getType(), fmanager.getExt_4(),fmanager.getExt_3());
-        BigDecimal weight_total = new BigDecimal(0);  //重量
-        BigDecimal G_qty = new BigDecimal(0); //数量
+        BigDecimal weight_total = new BigDecimal("0");  //重量
+        BigDecimal G_qty = new BigDecimal("0"); //数量
         int lowPricegoods = 0; //低价商品数
         int is_low_price = 0;
         float festimated_tax = 0;//预估税金

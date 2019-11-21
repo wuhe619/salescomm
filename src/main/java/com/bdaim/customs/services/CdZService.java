@@ -506,7 +506,7 @@ public class CdZService implements BusiService {
             pack_no += _content.getIntValue("pack_no");
 
            // Double fdWeightTotal = 0.0;
-            BigDecimal total_value = new BigDecimal(0);
+            BigDecimal total_value = new BigDecimal("0");
             BigDecimal qty = null;
             BigDecimal multiply = null;
             goodList = cache.get(hp.getId());
