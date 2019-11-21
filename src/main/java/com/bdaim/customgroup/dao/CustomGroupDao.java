@@ -7,7 +7,6 @@ import com.bdaim.customgroup.entity.CustomerGroupProperty;
 import com.bdaim.util.ConstantsUtil;
 import com.bdaim.util.NumberConvertUtil;
 import com.bdaim.util.StringUtil;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -166,5 +165,20 @@ public class CustomGroupDao extends SimpleHibernateDao<CustomGroup, Serializable
             return NumberConvertUtil.parseLong(list.get(0).get("count"));
         }
         return 0L;
+    }
+
+    /**
+     * 根据第三方任务ID查询单个客群(按照创建时间倒叙获取第一条)
+     *
+     * @param taskId
+     * @return
+     */
+    public CustomGroup getCustomGroupByTaskId(String taskId) {
+        CustomGroup cp = null;
+        String hql = "from CustomGroup m where m.taskId=? ORDER BY m.createTime DESC";
+        List<CustomGroup> list = this.find(hql, taskId);
+        if (list.size() > 0)
+            cp = list.get(0);
+        return cp;
     }
 }
