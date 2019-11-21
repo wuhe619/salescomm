@@ -85,7 +85,7 @@ public class PhoneAction extends BasicAction {
                         continue;
                     }
                     data = new HashMap<>();
-                    data.put("id", pageNum + i + 1);
+                    data.put("id", String.valueOf(pageNum + i + 1));
                     data.put("phone", phones.get(i).getPhone().split(","));
                     data.put("param", phones.get(i).getParam());
                     list.add(data);
@@ -156,7 +156,7 @@ public class PhoneAction extends BasicAction {
                         continue;
                     }
                     data = new HashMap<>();
-                    data.put("id", pageNum + i + 1);
+                    data.put("id", String.valueOf(pageNum + i + 1));
                     data.put("phone", phones.get(i).getPhone().split(","));
                     data.put("param", phones.get(i).getParam());
                     list.add(data);
