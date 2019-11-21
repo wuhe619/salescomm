@@ -1,22 +1,17 @@
-package com.bdaim.common.controller;
+package com.bdaim.online.controller;
 
 
 import com.alibaba.fastjson.JSON;
 import com.bdaim.callcenter.dto.XzPullPhoneDTO;
+import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.service.PhoneService;
-import com.bdaim.customs.entity.BusiTypeEnum;
 import com.bdaim.util.NumberConvertUtil;
 import com.bdaim.util.StringUtil;
-import com.bdaim.util.wechat.WeChatUtil;
-import io.searchbox.client.JestClient;
-import io.searchbox.client.JestResult;
-import io.searchbox.indices.DeleteIndex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.annotation.Resource;
 import javax.servlet.ServletOutputStream;
@@ -28,7 +23,7 @@ import java.util.List;
 import java.util.Map;
 
 @Controller
-@RequestMapping("/phone")
+@RequestMapping("/open/phone")
 public class PhoneAction extends BasicAction {
 
     public static final Logger LOG = LoggerFactory.getLogger(PhoneAction.class);
