@@ -107,7 +107,7 @@ public class ZAXSearchListService {
         Map<String, Object> headers = new HashMap<>();
         headers.put("Authorization", TOKEN);
         LOG.info("企业列表查询参数:{}", params);
-        String result = HttpUtil.httpPost(API_URL.replace("{busiType}", BUSI_TYPE.get(busiType)), params.toJSONString(), headers,15000);
+        String result = HttpUtil.httpPost(API_URL.replace("{busiType}", BUSI_TYPE.get(busiType)), params.toJSONString(), headers, 15000);
         LOG.info("企业列表查询接口返回:{}", result);
         BaseResult baseResult = JSON.parseObject(result, BaseResult.class);
         // 处理企业领取标志
@@ -156,7 +156,7 @@ public class ZAXSearchListService {
         JSONObject params = new JSONObject();
         //params.put("entName", entName);
         params.put("companyId", companyId);
-        LOG.info("企业详情查询参数:{}", params);
+        LOG.info("企业详情地址:{},查询参数:{}", API_URL.replace("{busiType}", BUSI_TYPE.get(busiType)), params);
         String result = HttpUtil.httpPost(API_URL.replace("{busiType}", BUSI_TYPE.get(busiType)), params.toJSONString(), headers, 30000);
         LOG.info("企业详情查询接口返回:{}", result);
         return JSON.parseObject(result, BaseResult.class);
