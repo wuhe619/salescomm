@@ -262,7 +262,7 @@ public class B2BTcbService implements BusiService {
         if (useB2BTcb == null) {
             throw new TouchException("企业无可用套餐包");
         }
-        LocalDateTime eTime = LocalDateTime.parse(useB2BTcb.getString("e_time"), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        LocalDateTime eTime = LocalDateTime.parse(useB2BTcb.getString("s_time"), DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss")).plusMonths(useB2BTcb.getLongValue("effective_month"));
         if (eTime.isBefore(LocalDateTime.now())) {
             throw new TouchException("企业套餐已过期");
         }
