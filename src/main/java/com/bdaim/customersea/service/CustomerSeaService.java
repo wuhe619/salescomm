@@ -3943,15 +3943,13 @@ public class CustomerSeaService {
             stb.deleteCharAt(stb.length() - 1);
             StringBuffer sql = new StringBuffer();
             sql.append("select id from " + ConstantsUtil.SEA_TABLE_PREFIX + param.getSeaId() + " custG where 'SYS014' in ( " + stb + ")");
+            List<String> list = new ArrayList<>();
             jdbcTemplate.queryForList(sql.toString()).stream().forEach(map -> {
-                Iterator<String> iterator = map.keySet().iterator();
-                if (iterator.hasNext()) {
-                    String key = iterator.next();
-                    LOG.info(map.get(key).toString());
-                    param.getSuperIds().add(map.get(key).toString());
-                }
+                LOG.info(map.get("id").toString());
+                list.add(map.get("id").toString());
             });
-            LOG.info(param.getSuperIds().size() + "");
+            LOG.info(list.size() + "");
+            param.setSuperIds(list);
             return singleDistributionClue1(param.getSeaId(), param.getUserIds().get(0), param.getSuperIds());
         } else if (2 == operate) {
             // 坐席根据检索条件批量领取线索
