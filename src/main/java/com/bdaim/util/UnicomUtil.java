@@ -1,8 +1,10 @@
 package com.bdaim.util;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.callcenter.dto.UnicomSendSmsParam;
+import com.bdaim.customgroup.dto.UnicomCustomGroupDataDTO;
 import com.bdaim.util.http.HttpUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,9 +18,7 @@ import javax.crypto.spec.DESedeKeySpec;
 import java.net.URLEncoder;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author duanliying
@@ -27,12 +27,113 @@ import java.util.Map;
  */
 public class UnicomUtil {
     private static Logger LOG = LoggerFactory.getLogger(UnicomUtil.class);
+
     private final static String UNICOM_BASE_URL_V1 = "http://120.52.23.243:10080/sdyxinterface/20190426/";
 
     public static void main(String[] args) throws Exception {
-        //UnicomUtil.getEntActivityAll("Bq2.g_mp4", "D1HMFW", "UkzesbWEmdTIgywsacIIboam");
-        UnicomUtil.getEntActivityResult("SJYXDD191021002472", "Bq2.g_mp4", "D1HMFW", "UkzesbWEmdTIgywsacIIboam");
-        unicomSeatMakeCall("D1HMFW", "C201911051642007894_12985", "Bq2.g_mp4", "18630016545", "", "UkzesbWEmdTIgywsacIIboam");
+        UnicomUtil.getEntActivityAll("Bq2.g_mp4", "D1HMFW", "UkzesbWEmdTIgywsacIIboam");
+        String fileUrl = getActivityFileUrlByName("Bq2.g_mp4", "D1HMFW", "UkzesbWEmdTIgywsacIIboam", "品创邦1次外呼1105");
+        LOG.warn("获取活动文件url:{}", fileUrl);
+        //UnicomUtil.getEntActivityResult("SJYXDD191021002472", "Bq2.g_mp4", "D1HMFW", "UkzesbWEmdTIgywsacIIboam");
+        //unicomSeatMakeCall("D1HMFW", "C201911051642007894_12985", "Bq2.g_mp4", "18630016545", "", "UkzesbWEmdTIgywsacIIboam");
+        //handleActivityFile("http://120.52.23.243:10080/voice/group1/M00/41/15/Cr8TfV3BNe7RQEIAAAAUN6qGHL8263.txt", "", "");
+    }
+
+    public static String getActivityFileUrlByName(String pwd, String entId, String key, String activityName) throws Exception {
+        if (StringUtil.isEmpty(activityName)) {
+            LOG.warn("获取活动文件url,活动名称不能为空");
+            return "";
+        }
+        JSONObject result = getEntActivityAll(pwd, entId, key);
+        if (result != null && "03000".equals(result.getString("code"))) {
+            JSONArray jsonArray = result.getJSONObject("data").getJSONArray("resultList");
+            for (int i = 0; i < jsonArray.size(); i++) {
+                if (jsonArray.getJSONObject(i).getString("ACTIVITY_NAME").equals(activityName)) {
+                    LOG.info("活动名称:{},活动文件地址:{}", activityName, jsonArray.getJSONObject(i).getString("FASTDFS_URL"));
+                    return jsonArray.getJSONObject(i).getString("FASTDFS_URL");
+                }
+            }
+        }
+        return "";
+    }
+
+    /**
+     * 通过活动文件地址获取联通活动文件内容,转为导入客群的数据格式
+     *
+     * @param url
+     * @param custId
+     * @param customGroupId
+     * @return
+     */
+    public static List<UnicomCustomGroupDataDTO> handleActivityFile(String url, String custId, String customGroupId) {
+        List<UnicomCustomGroupDataDTO> data = new ArrayList();
+        String content = HttpUtil.httpGet(url, null, null);
+        LOG.info("获取活动文件url:{},custId:{},customGroupId:{},返回数据:{}", url, custId, customGroupId, content);
+        if (StringUtil.isEmpty(content)) {
+            return new ArrayList<>();
+        }
+        String[] c = content.split("\r\n");
+        if (c.length == 0) {
+            return new ArrayList<>();
+        }
+        int length = c.length;
+        String[] line;
+        String activityId, dataId, activityName = c[0].split("\t")[0];
+        for (int i = 1; i < length; i++) {
+            line = c[i].split("\t");
+            activityId = line[0];
+            dataId = line[1];
+            data.add(new UnicomCustomGroupDataDTO(activityId, activityName, customGroupId, dataId));
+        }
+        return data;
+    }
+
+    /**
+     * 用户注册接口(增加主叫号)
+     *
+     * @param pwd
+     * @param entId
+     * @param key
+     * @param extensionNumber
+     * @return
+     * @throws Exception
+     */
+    public static JSONObject registerUserExtension(String pwd, String entId, String key, String extensionNumber) throws Exception {
+        //获取token,加密获取sign
+        String sign = getSign(pwd, entId, key);
+        Map<String, Object> headers = new HashMap<>(16);
+        headers.put("Sig", sign);
+        headers.put("Content-Type", "application/json;charset=utf-8");
+        Map<String, String> params = new HashMap<>();
+        params.put("extension", extensionNumber);
+        LOG.info("用户注册(主叫号)接口参数:" + UNICOM_BASE_URL_V1 + "user/registerUser" + entId + ",参数:" + params.toString());
+        String result = HttpUtil.httpPost(UNICOM_BASE_URL_V1 + "user/registerUser" + entId, JSON.toJSONString(params), headers, 5000);
+        LOG.info("用户注册(主叫号)接口返回:" + result);
+        return JSON.parseObject(result);
+    }
+
+    /**
+     * 用户移除接口(删除主叫号)
+     *
+     * @param pwd
+     * @param entId
+     * @param key
+     * @param extensionNumber
+     * @return
+     * @throws Exception
+     */
+    public static JSONObject failureUserExtension(String pwd, String entId, String key, String extensionNumber) throws Exception {
+        //获取token,加密获取sign
+        String sign = getSign(pwd, entId, key);
+        Map<String, Object> headers = new HashMap<>(16);
+        headers.put("Sig", sign);
+        headers.put("Content-Type", "application/json;charset=utf-8");
+        Map<String, String> params = new HashMap<>();
+        params.put("extension", extensionNumber);
+        LOG.info("用户失效(主叫号)接口参数:" + UNICOM_BASE_URL_V1 + "user/failureUser" + entId + ",参数:" + params.toString());
+        String result = HttpUtil.httpPost(UNICOM_BASE_URL_V1 + "user/failureUser" + entId, JSON.toJSONString(params), headers, 5000);
+        LOG.info("用户失效(主叫号)接口返回:" + result);
+        return JSON.parseObject(result);
     }
 
     /**
@@ -323,15 +424,12 @@ public class UnicomUtil {
      * @throws Exception
      */
     private static String encryptThreeDESECB(final String src, final String key) throws Exception {
-
         final DESedeKeySpec dks = new DESedeKeySpec(key.getBytes("UTF-8"));
         final SecretKeyFactory keyFactory = SecretKeyFactory.getInstance("DESede");
         final SecretKey securekey = keyFactory.generateSecret(dks);
-
         final Cipher cipher = Cipher.getInstance("DESede/ECB/PKCS5Padding");
         cipher.init(Cipher.ENCRYPT_MODE, securekey);
         final byte[] b = cipher.doFinal(src.getBytes());
-
         final BASE64Encoder encoder = new BASE64Encoder();
         return encoder.encode(b).replaceAll("\r", "").replaceAll("\n", "");
 
