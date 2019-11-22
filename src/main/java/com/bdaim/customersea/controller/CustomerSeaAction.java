@@ -721,8 +721,7 @@ public class CustomerSeaAction extends BasicAction {
             responseJson.setCode(-1);
             return responseJson;
         }
-        int operate = jsonObject.getIntValue("operate");
-        System.err.println(operate);
+        String operate = jsonObject.getString("operate");
         int data = 0;
         try {
             param.setUserId(opUser().getId());

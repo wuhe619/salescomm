@@ -3509,15 +3509,12 @@ public class CustomerSeaService {
         return page;
     }
 
-    public int batchDeleteClue(CustomerSeaSearch param, int operate) {
-        if (operate == 1) {
+    public int batchDeleteClue(CustomerSeaSearch param, String operate) {
+        if (StringUtil.isEmpty(operate) || "1".equals(operate)) {
             return updateClueStatus(param);
-        }
-        if (2 == operate) {
+        } else {
             return batchDeleteClueByCondition1(param);
         }
-        System.err.println("------");
-        return 0;
     }
 
 
