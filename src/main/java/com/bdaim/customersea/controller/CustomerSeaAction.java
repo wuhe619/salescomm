@@ -709,6 +709,7 @@ public class CustomerSeaAction extends BasicAction {
      */
     @RequestMapping(value = "/updateClueStatus/list", method = RequestMethod.POST)
     public ResponseJson updateClueListStatus(@RequestBody JSONObject jsonObject) {
+        System.err.println("开始");
         ResponseJson responseJson = new ResponseJson();
         CustomerSeaSearch param = JSON.parseObject(jsonObject.toJSONString(), CustomerSeaSearch.class);
         if (StringUtil.isEmpty(param.getSeaId())) {
