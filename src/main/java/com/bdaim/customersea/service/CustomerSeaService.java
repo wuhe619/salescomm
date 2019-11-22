@@ -3509,9 +3509,8 @@ public class CustomerSeaService {
         return page;
     }
 
-    public int batchDeleteClue(CustomerSeaSearch param, String operate) {
-        LOG.info(operate);
-        if (StringUtil.isEmpty(operate) || "1".equals(operate)) {
+    public int batchDeleteClue(CustomerSeaSearch param, int operate) {
+        if (operate == 1) {
             return updateClueStatus(param);
         } else {
             return batchDeleteClueByCondition1(param);
