@@ -1,7 +1,11 @@
 package com.bdaim.customer.service;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.auth.LoginUser;
+import com.bdaim.common.dto.PageParam;
+import com.bdaim.common.page.PageList;
+import com.bdaim.common.page.Pagination;
 import com.bdaim.customer.dao.AmApplicationDao;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerUserDao;
@@ -19,6 +23,7 @@ import javax.annotation.Resource;
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.Map;
 
 @Service
 public class CustomerAppService {
@@ -32,12 +37,12 @@ public class CustomerAppService {
     @Resource
     AmApplicationDao amApplicationDao;
 
-    public synchronized String registerOrUpdateCustomer(CustomerRegistDTO vo, String id, LoginUser lu) throws Exception {
+    public synchronized String registerOrUpdateCustomer(CustomerRegistDTO vo, LoginUser lu) throws Exception {
         String code = "000";
         //编辑或创建客户
         CustomerUser customerUserDO;
         String customerId = IDHelper.getID().toString();
-        if (StringUtil.isNotEmpty(id)) {
+        if (StringUtil.isNotEmpty(vo.getUserId())) {
             customerUserDO = customerUserDao.findUniqueBy("id", Long.valueOf(vo.getUserId()));
             customerUserDO.setRealname(vo.getRealName());
             if (StringUtil.isNotEmpty(vo.getName())) {
@@ -243,9 +248,68 @@ public class CustomerAppService {
         AmApplicationEntity entity = new AmApplicationEntity();
         entity.setCreateBy(lu.getName());
         entity.setCreateTime(new Timestamp(System.currentTimeMillis()));
-        entity.setStatus("0");
-        entity.setName(vo.getEnterpriseName());
+        entity.setStatus("APPROVED");
+        entity.setName("DefaultApplication");
+        entity.setTier("Unlimited");
 
         return (int) amApplicationDao.saveReturnPk(entity);
+    }
+
+
+    public PageList getUser(PageParam page, String customerId, String account,String name,String contactPerson,String salePerson) {
+        JSONObject json = new JSONObject();
+        StringBuffer sql = new StringBuffer();
+
+
+        sql.append("  SELECT  CAST(s.id AS CHAR) id,cjc.resource,s.cust_id,s.user_type, s.account AS name,s.password AS PASSWORD,s.realname AS realname,cjc.cuc_minute seatMinute,\n" +
+                "s.status STATUS,cjc.mobile_num AS mobile_num,cjc.cuc_seat AS cuc_seat,cjc.declare_no,cjc.input_no,cjc.xz_seat AS xz_seat FROM t_customer_user s\n" +
+                " LEFT JOIN (SELECT user_id, \n" +
+                " MAX(CASE property_name WHEN 'mobile_num'  THEN property_value ELSE '' END ) mobile_num, \n" +
+                " MAX(CASE property_name WHEN 'cuc_seat'    THEN property_value ELSE '' END ) cuc_seat,\n" +
+                " MAX(CASE property_name WHEN 'xz_seat'    THEN property_value ELSE '' END ) xz_seat, \n" +
+                " MAX(CASE property_name WHEN 'cuc_minute'  THEN property_value ELSE '0' END ) cuc_minute, \n" +
+                " MAX(CASE property_name WHEN 'declare_no'  THEN property_value ELSE '0' END ) declare_no, \n" +
+                " MAX(CASE property_name WHEN 'input_no'  THEN property_value ELSE '0' END ) input_no, \n" +
+                " MAX(CASE property_name WHEN 'resource'    THEN property_value ELSE '' END ) resource \n" +
+                " FROM t_customer_user_property p GROUP BY user_id \n" +
+                ") cjc ON s.id = cjc.user_id WHERE 1=1 AND user_type = 2  AND STATUS <> 2 ");
+        sql.append(" AND cust_id = '" + customerId + "'");
+        if (null != name && !"".equals(name)) {
+            sql.append(" AND s.account like '%" + name + "%'");
+        }
+//        if (null != realName && !"".equals(realName)) {
+//            sql.append(" AND s.realname like '%" + realName + "%'");
+//        }
+//        if (null != mobileNum && !"".equals(mobileNum)) {
+//            sql.append(" AND cjc.mobile_num like '%" + mobileNum + "%'");
+//        }
+
+        PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
+
+        if (list != null && list.getList() != null && list.getList().size() > 0) {
+            Map<String, Object> map;
+            for (int i = 0; i < list.getList().size(); i++) {
+                map = (Map) list.getList().get(i);
+                if (map != null && map.get("cuc_seat") != null) {
+                    String cuc_seat = String.valueOf(map.get("cuc_seat"));
+                    com.alibaba.fastjson.JSONObject json1 = JSON.parseObject(cuc_seat);
+                    if (json1 != null) {
+                        String mainNumber = json1.getString("mainNumber");
+                        map.put("cucMainNumber", mainNumber);
+                    }
+                }
+                if (map != null && map.get("xz_seat") != null) {
+                    String cmc_seat = String.valueOf(map.get("xz_seat"));
+                    com.alibaba.fastjson.JSONObject json1 = JSON.parseObject(cmc_seat);
+                    if (json1 != null) {
+                        String mainNumber1 = json1.getString("mainNumber");
+                        map.put("xzMainNumber", mainNumber1);
+                    }
+                }
+            }
+        }
+
+        return list;
+
     }
 }

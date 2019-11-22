@@ -4100,9 +4100,6 @@ public class CustomerSeaService {
             TouchException {
         LOG.info("分配的userId是：" + userId);
 
-        if (superIds == null || superIds.size() == 0) {
-            throw new TouchException("-1", "superIds必填");
-        }
         long quantity = getUserReceivableQuantity(seaId, userId);
         List<String> tempList = new ArrayList<>();
         boolean limit = false;
