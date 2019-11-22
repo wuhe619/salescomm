@@ -137,7 +137,10 @@ public class PhoneService {
      * @return
      */
     private String getValueByIdFromRedis(String id) {
-        String phone = redisUtil.get(id);
+        String phone = getPhoneFromAPI(id);
+        if (StringUtil.isEmpty(phone)) {
+            phone = redisUtil.get(id);
+        }
         return phone;
     }
 
@@ -212,7 +215,7 @@ public class PhoneService {
         try {
             phone = HttpUtil.httpPost("http://api.core:1010/pn/upn?uid=" + uid.trim().replaceAll(" ", ""), "", null);
         } catch (Exception e) {
-            LOG.error("保存手机号至API服务uid:{}异常:{}", uid, e);
+            LOG.error("获取手机号从API服务uid:{}异常:{}", uid, e);
         }
         return phone;
     }
