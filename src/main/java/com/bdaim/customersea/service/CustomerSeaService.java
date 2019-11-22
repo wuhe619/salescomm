@@ -4123,6 +4123,7 @@ public class CustomerSeaService {
             sql.append(" LIMIT ").append(quantity);
             logSql.append(" LIMIT ").append(quantity);
         }
+        LOG.info(logSql.toString());
         // 保存转交记录
         customerSeaDao.executeUpdateSQL(logSql.toString());
         return customerSeaDao.executeUpdateSQL(sql.toString(), userId, new Timestamp(System.currentTimeMillis()));
