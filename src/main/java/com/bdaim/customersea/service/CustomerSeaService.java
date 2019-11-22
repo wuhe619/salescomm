@@ -3533,12 +3533,12 @@ public class CustomerSeaService {
 //        sql.delete(sql.lastIndexOf("or"), sql.length());
         StringBuffer stb = new StringBuffer();
         for (String custType : split) {
-            stb.append("'\"");
+            stb.append("'");
             stb.append(custType);
-            stb.append("\"',");
+            stb.append("',");
         }
         stb.deleteCharAt(stb.length() - 1);
-        sql.append(" super_data ->'$.SYS014' in (" + stb.toString() + ")");
+        sql.append(" custG.super_data ->'$.SYS014' in (" + stb.toString() + ")");
         LOG.info(sql.toString());
         // 保存转交记录
         StringBuilder logSql = new StringBuilder()
@@ -3937,9 +3937,9 @@ public class CustomerSeaService {
             // 根据指定条件删除线索
             StringBuffer stb = new StringBuffer();
             for (String custType : split) {
-                stb.append("'\"");
+                stb.append("'");
                 stb.append(custType);
-                stb.append("\"',");
+                stb.append("',");
             }
             stb.deleteCharAt(stb.length() - 1);
             StringBuffer sql = new StringBuffer();
