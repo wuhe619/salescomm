@@ -776,10 +776,6 @@ public class CustomerSeaAction extends BasicAction {
             return responseJson;
         }
         CustomerSeaSearch param = JSON.parseObject(jsonObject.toJSONString(), CustomerSeaSearch.class);
-        if (StringUtil.isEmpty(param.getSeaId())) {
-            responseJson.setData("seaId参数必填");
-            responseJson.setCode(-1);
-        }
         if (param.getUserIds() == null || param.getUserIds().size() == 0) {
             responseJson.setData("userIds参数必填");
             responseJson.setCode(-1);
