@@ -3947,9 +3947,11 @@ public class CustomerSeaService {
                 Iterator<String> iterator = map.keySet().iterator();
                 if (iterator.hasNext()) {
                     String key = iterator.next();
+                    LOG.info(map.get(key).toString());
                     param.getSuperIds().add(map.get(key).toString());
                 }
             });
+            LOG.info(param.getSuperIds().size() + "");
             return singleDistributionClue1(param.getSeaId(), param.getUserIds().get(0), param.getSuperIds());
         } else if (2 == operate) {
             // 坐席根据检索条件批量领取线索
