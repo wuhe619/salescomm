@@ -3516,6 +3516,7 @@ public class CustomerSeaService {
         if (2 == operate) {
             return batchDeleteClueByCondition1(param);
         }
+        System.err.println("------");
         return 0;
     }
 
@@ -3540,7 +3541,6 @@ public class CustomerSeaService {
         }
         stb.deleteCharAt(stb.length() - 1);
         sql.append(" super_data ->'$.SYS014' in (" + stb.toString() + ")");
-        System.out.println(sql);
         // 保存转交记录
         StringBuilder logSql = new StringBuilder()
                 .append("INSERT INTO ").append(ConstantsUtil.CUSTOMER_OPER_LOG_TABLE_PREFIX).append(" (`user_id`, `list_id`, `customer_sea_id`, `customer_group_id`, `event_type`,  `create_time`,reason,remark) ")
