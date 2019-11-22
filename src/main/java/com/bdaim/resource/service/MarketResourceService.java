@@ -8544,4 +8544,16 @@ public class MarketResourceService {
         }
         return result;
     }
+    public int saveMarketResource(String name, Integer supplierId, String price, Integer type) {
+        String sql = "INSERT into t_market_resource(supplier_id,type_code,resname,sale_price) VALUES(?,?,?,?)";
+        jdbcTemplate.update(sql, new Object[]{supplierId, type, name, price});
+        return jdbcTemplate.update(sql, new Object[]{supplierId, type, name, price});
+    }
+    public int updateMarketResource(String name, Integer supplierId, String price, Integer type,Integer resource_id){
+        String sql = "UPDATE t_market_resource SET supplier_id=?,type_code=?,resname=?,sale_price=?  WHERE resource_id=?";
+        return jdbcTemplate.update(sql, new Object[]{supplierId, type, name, price,resource_id});
+    }
+
+
+
 }

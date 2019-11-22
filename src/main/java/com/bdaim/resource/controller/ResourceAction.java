@@ -13,6 +13,7 @@ import com.bdaim.resource.dto.MarketResourceDTO;
 import com.bdaim.resource.service.MarketResourceService;
 import com.bdaim.resource.util.ResourceTypeHelper;
 import com.bdaim.resource.util.TreeJsonFormat;
+import com.bdaim.util.StringUtil;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.slf4j.Logger;
@@ -31,7 +32,7 @@ import java.util.Map;
  * @date 2019/8/6
  * @description
  */
-@Controller
+@RestController
 @RequestMapping("/resource")
 public class ResourceAction extends BasicAction {
     @Resource
@@ -188,4 +189,35 @@ public class ResourceAction extends BasicAction {
         return returnJsonData(marketResourceDTOList);
     }
 
+    @PostMapping("/info/{resourceId}")
+    public ResponseInfo save1(@RequestBody(required = false) String RequestBody, @PathVariable(name = "resourceId") Integer resourceId) {
+        ModelAndView view = new ModelAndView("index.jsp");
+        ResponseInfo resp = new ResponseInfo();
+        com.alibaba.fastjson.JSONObject info = null;
+        try {
+            if (RequestBody == null || "".equals(RequestBody))
+                RequestBody = "{}";
+
+            info = com.alibaba.fastjson.JSONObject.parseObject(RequestBody);
+        } catch (Exception e) {
+            return new ResponseInfoAssemble().failure(-1, "记录解析异常:[" + RequestBody + "]");
+        }
+        if (StringUtil.isEmpty(info.getString("name"))) return new ResponseInfoAssemble().failure(-1, "资源名称不能为空");
+        if (info.getInteger("supplierId") == null || info.getInteger("supplierId") == 0)
+            return new ResponseInfoAssemble().failure(-1, "供应商不能为空");
+        if (info.getInteger("type") == null || info.getInteger("type") == 0)
+            return new ResponseInfoAssemble().failure(-1, "资源类型不能为空");
+        try {
+            if (resourceId == null || resourceId == 0) {
+                resp.setData(marketResourceService.saveMarketResource(info.getString("name"), info.getInteger("supplierId"), info.getString("price"), info.getInteger("type")));
+            } else {
+                resp.setData(marketResourceService.updateMarketResource(info.getString("name"), info.getInteger("supplierId"), info.getString("price"), info.getInteger("type"), resourceId));
+            }
+        } catch (Exception e) {
+            return new ResponseInfoAssemble().failure(-1, "资源更新失败");
+        }
+//    	OperlogAppender.operlog(request, user, this.pageName, -1);
+
+        return resp;
+    }
 }

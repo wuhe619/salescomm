@@ -39,7 +39,7 @@ import java.util.*;
  * @date 2019/2/28
  * @description
  */
-@Controller
+@RestController
 @RequestMapping("/supplier")
 public class SupplierAction extends BasicAction {
     public static final Logger LOG = LoggerFactory.getLogger(SupplierAction.class);
@@ -613,10 +613,15 @@ public class SupplierAction extends BasicAction {
         return returnJsonData(list);
     }
 
-    @RequestMapping(value = "/info/{id}", method = RequestMethod.POST)
-    @ResponseBody
-    @ValidatePermission(role = "admin,ROLE_USER")
-    public ResponseInfo saveSupplier(@RequestBody String body, @PathVariable(name = "id", required = false) Long id) {
+    /**
+     * 供应商保存及修改
+     *
+     * @param body
+     * @param id
+     * @return
+     */
+    @PostMapping("/info/{id}")
+    public ResponseInfo saveSupplier(@RequestBody String body, @PathVariable(name = "id", required = false) Integer id) {
         ResponseInfo resp = new ResponseInfo();
         SupplierDTO supplierDTO = null;
         try {
@@ -629,10 +634,12 @@ public class SupplierAction extends BasicAction {
             if (id == null || id == 0) {
                 resp.setData(supplierService.saveSupplier1(supplierDTO));
             } else {
-                resp.setData(supplierService.updateSupplierPrice(supplierDTO));
+                supplierDTO.setSupplierId(id);
+                resp.setData(supplierService.updateSupplierPrice1(supplierDTO));
             }
         } catch (Exception e) {
             LOG.error("保存供应商失败,", e);
+            return new ResponseInfoAssemble().failure(-1, "供应商保存参数异常");
         }
 
         return resp;
