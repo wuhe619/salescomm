@@ -59,7 +59,10 @@ public class PhoneService {
      * @return
      */
     public String getPhoneBySuperId(String id) {
-        String phone = getValueByIdFromRedis(id);
+        String phone = getPhoneFromAPI(id);
+        if (StringUtil.isEmpty(phone)) {
+            phone = getValueByIdFromRedis(id);
+        }
         if (StringUtil.isEmpty(phone)) {
             List<Map<String, Object>> phoneList = this.customGroupDao.sqlQuery(PHONE_SQL, id);
             if (phoneList.size() > 0) {
@@ -123,8 +126,8 @@ public class PhoneService {
         Map<String, Object> phoneMap = new HashMap<>();
         if (ids.size() > 0) {
             for (String u : ids) {
-                // phoneMap.put(u, getPhoneBySuperId(u));
-                phoneMap.put(u, getValueByIdFromRedis(u));
+                phoneMap.put(u, getPhoneBySuperId(u));
+                //phoneMap.put(u, getValueByIdFromRedis(u));
             }
         }
         return phoneMap;
@@ -137,11 +140,8 @@ public class PhoneService {
      * @return
      */
     private String getValueByIdFromRedis(String id) {
-        String phone = getPhoneFromAPI(id);
-        if (StringUtil.isEmpty(phone)) {
-            phone = redisUtil.get(id);
-        }
-        return phone;
+        String value = redisUtil.get(id);
+        return value;
     }
 
     /**
