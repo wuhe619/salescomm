@@ -3948,7 +3948,8 @@ public class CustomerSeaService {
                 LOG.info(map.get("id").toString());
                 list.add(map.get("id").toString());
             });
-            LOG.info(list.size() + "");
+            LOG.info(sql.toString());
+            LOG.info(list.size()+"");
             param.setSuperIds(list);
             return singleDistributionClue1(param.getSeaId(), param.getUserIds().get(0), param.getSuperIds());
         } else if (2 == operate) {
