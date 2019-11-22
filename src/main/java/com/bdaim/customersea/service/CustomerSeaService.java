@@ -3558,7 +3558,7 @@ public class CustomerSeaService {
         logSql.append(" and  super_data ->'$.SYS014' in (" + stb.toString() + ") limit 1 )");
         // 保存转交记录
         customerSeaDao.executeUpdateSQL(logSql.toString(), param.getUserId(), param.getSeaId(), 8,
-                new Timestamp(System.currentTimeMillis()), param.getBackReason().isEmpty() ? null : param.getBackReason(), param.getBackRemark().isEmpty() ? null : param.getBackRemark());
+                new Timestamp(System.currentTimeMillis()), StringUtil.isEmpty(param.getBackReason()) ? null : param.getBackReason(), StringUtil.isEmpty(param.getBackRemark()) ? null : param.getBackRemark());
         int status = customerSeaDao.executeUpdateSQL(sql.toString());
         return status;
     }
