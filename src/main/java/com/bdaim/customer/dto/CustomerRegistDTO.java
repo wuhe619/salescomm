@@ -93,6 +93,56 @@ public class CustomerRegistDTO implements Serializable {
      * IC卡号
      */
     private String input_no;
+    /**
+     * 行业画像
+     */
+    private String industryPicture;
+
+    /**
+     * 所属品牌
+     */
+    private String brand;
+    /**
+     * ip白名单
+     */
+    private String whiteIps;
+
+    /**
+     * 余额预警
+     */
+    private String balance_warning_config;
+
+    public String getBalance_warning_config() {
+        return balance_warning_config;
+    }
+
+    public void setBalance_warning_config(String balance_warning_config) {
+        this.balance_warning_config = balance_warning_config;
+    }
+
+    public String getWhiteIps() {
+        return whiteIps;
+    }
+
+    public void setWhiteIps(String whiteIps) {
+        this.whiteIps = whiteIps;
+    }
+
+    public String getBrand() {
+        return brand;
+    }
+
+    public void setBrand(String brand) {
+        this.brand = brand;
+    }
+
+    public String getIndustryPicture() {
+        return industryPicture;
+    }
+
+    public void setIndustryPicture(String industryPicture) {
+        this.industryPicture = industryPicture;
+    }
 
     public String getInput_no() {
         return input_no;
