@@ -1090,7 +1090,7 @@ public class UserAction extends BasicAction {
         String oldPwd = param.getString("oldPassword");
         String newPwd = param.getString("newPassword");
         int pwdLevel = param.getIntValue("pwdLevel");
-
+        logger.info("用户:{}修改密码oldPassword:{},newPassword:{}", opUser().getId(), oldPwd, newPwd);
         // 记录操作日志
         super.operlog(opUser().getId(), "用户修改密码oldPassword:" + oldPwd + ",newPassword:" + newPwd);
         userInfoService.updateCustomerUserPwd(opUser().getId(), oldPwd, newPwd, pwdLevel);
