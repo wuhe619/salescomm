@@ -377,7 +377,7 @@ public class SupplierAction extends BasicAction {
         }
         Page pageData = null;
         try {
-            pageData = supplierService.pageSupplier(page.getPageNum(), page.getPageSize(), supplierName, supplierId, supplierType, NumberConvertUtil.parseInt(status));
+            pageData = supplierService.pageSupplier(page.getPageNum(), page.getPageSize(), supplierName, supplierId, supplierType, StringUtil.isNotEmpty(status) ? NumberConvertUtil.parseInt(status) : 0);
         } catch (Exception e) {
             LOG.error("查询单个供应商详情失败,", e);
         }
