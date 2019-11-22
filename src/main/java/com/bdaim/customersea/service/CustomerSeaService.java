@@ -3936,20 +3936,17 @@ public class CustomerSeaService {
             // 根据指定条件删除线索
             StringBuffer stb = new StringBuffer();
             for (String custType : split) {
-                stb.append("'");
+                stb.append("'\"");
                 stb.append(custType);
-                stb.append("',");
+                stb.append("\"',");
             }
             stb.deleteCharAt(stb.length() - 1);
             StringBuffer sql = new StringBuffer();
             sql.append("select id from " + ConstantsUtil.SEA_TABLE_PREFIX + param.getSeaId() + " custG  where custG.super_data -> '$.SYS014' in ( " + stb + ")");
             List<String> list = new ArrayList<>();
             jdbcTemplate.queryForList(sql.toString()).stream().forEach(map -> {
-                LOG.info(map.get("id").toString());
                 list.add(map.get("id").toString());
             });
-            LOG.info(sql.toString());
-            LOG.info(list.size()+"");
             param.setSuperIds(list);
             return singleDistributionClue1(param.getSeaId(), param.getUserIds().get(0), param.getSuperIds());
         } else if (2 == operate) {
