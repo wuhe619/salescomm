@@ -3942,7 +3942,7 @@ public class CustomerSeaService {
             }
             stb.deleteCharAt(stb.length() - 1);
             StringBuffer sql = new StringBuffer();
-            sql.append("select id from " + ConstantsUtil.SEA_TABLE_PREFIX + param.getSeaId() + " custG  where '$.SYS014' in ( " + stb + ")");
+            sql.append("select id from " + ConstantsUtil.SEA_TABLE_PREFIX + param.getSeaId() + " custG  where custG.super_data -> '$.SYS014' in ( " + stb + ")");
             List<String> list = new ArrayList<>();
             jdbcTemplate.queryForList(sql.toString()).stream().forEach(map -> {
                 LOG.info(map.get("id").toString());
