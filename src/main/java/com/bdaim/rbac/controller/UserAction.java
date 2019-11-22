@@ -1090,6 +1090,9 @@ public class UserAction extends BasicAction {
         String oldPwd = param.getString("oldPassword");
         String newPwd = param.getString("newPassword");
         int pwdLevel = param.getIntValue("pwdLevel");
+
+        // 记录操作日志
+        super.operlog(opUser().getId(), "用户修改密码oldPassword:" + oldPwd + ",newPassword:" + newPwd);
         userInfoService.updateCustomerUserPwd(opUser().getId(), oldPwd, newPwd, pwdLevel);
         return com.alibaba.fastjson.JSONObject.toJSON(resultMap);
     }

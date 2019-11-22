@@ -643,7 +643,7 @@ public class BasicAction {
                 LoginUser user = opUser();
                 if (null != user) {
                     entity.setOper_uid(user.getId());
-                    entity.setOper_uname(user.getName());
+                    entity.setOper_uname(user.getUserName());
                 }
                 entity.setOper_object_id((int)objectid);
                 entity.setOper_page_name(pageName);
