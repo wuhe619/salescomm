@@ -3514,11 +3514,31 @@ public class CustomerSeaService {
     }
 
     public int batchDeleteClue(CustomerSeaSearch param, int operate) {
-        if (operate == 1) {
+        if (1 == operate) {
             return updateClueStatus(param);
-        } else {
+        } else if (2 == operate) {
+            //根据指定条件删除线索
             return batchDeleteClueByCondition1(param);
+        } else if (3 == operate) {
+            // 指定ID退回公海
+            return batchClueBackToSea(param.getUserId(), param.getUserType(), param.getSeaId(), param.getSuperIds(), param.getBackReason(), param.getBackRemark());
+        } else if (4 == operate) {
+            //指定搜索条件退回公海
+            return batchClueBackToSeaByCondition(param);
+        } else if (5 == operate) {
+            // 指定身份ID转交线索
+            return batchClueTransfer(param.getUserId(), param.getClueToUserId(), param.getUserType(), param.getSeaId(), param.getSuperIds());
+        } else if (6 == operate) {
+            // 指定搜索条件转交线索
+            return batchClueTransferByCondition(param);
+        } else if (7 == operate) {
+            // 指定身份ID变更跟进状态
+            return batchClueFollowStatus(param.getUserId(), param.getToFollowStatus(), param.getToFollowValue(), param.getUserType(), param.getSeaId(), param.getSuperIds());
+        } else if (8 == operate) {
+            // 指定搜索条件变更跟进状态
+            return batchClueFollowStatusByCondition(param);
         }
+        return 0;
     }
 
 
