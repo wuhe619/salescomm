@@ -3305,8 +3305,9 @@ public class CustomerSeaService {
         sb.append(" select custG.id, custG.user_id, custG.status, custG.call_count callCount, DATE_FORMAT(custG.last_call_time,'%Y-%m-%d %H:%i:%s') lastCallTime, custG.intent_level intentLevel,");
         sb.append(" custG.super_name, custG.super_age, custG.super_sex, custG.super_telphone, custG.super_phone, custG.super_address_province_city, custG.super_address_street, custG.super_data, ");
         sb.append(" custG.batch_id, custG.last_call_status, custG.data_source, DATE_FORMAT(custG.user_get_time,'%Y-%m-%d %H:%i:%s') user_get_time, DATE_FORMAT(custG.create_time,'%Y-%m-%d %H:%i:%s') create_time, custG.pre_user_id, custG.last_called_duration, DATE_FORMAT(custG.last_mark_time,'%Y-%m-%d %H:%i:%s') last_mark_time, ");
-        sb.append(" custG.call_success_count, custG.call_fail_count, custG.sms_success_count,custG.super_data -> '$.SYS014' as custType ");
+        sb.append(" custG.call_success_count, custG.call_fail_count, custG.sms_success_count,custG.super_data -> '$.SYS014' as custType ,user.realname ");
         sb.append("  from " + ConstantsUtil.SEA_TABLE_PREFIX + param.getSeaId() + " custG ");
+        sb.append(" left join t_customer_user user on custG.user_id = user.id ");
         sb.append(" where 1=1 ");
         if (StringUtil.isNotEmpty(param.getSuperId())) {
             sb.append(" and custG.id = '" + param.getSuperId() + "'");
@@ -3322,6 +3323,9 @@ public class CustomerSeaService {
         }
         if (StringUtil.isNotEmpty(param.getLastUserName())) {
             sb.append(" and custG.pre_user_id IN(SELECT id from t_customer_user WHERE AND cust_id = '" + param.getCustId() + "' realname LIKE '%" + param.getLastUserName() + "%') ");
+        }
+        if (StringUtil.isNotEmpty(param.getRealName())) {
+            sb.append(" and user.realname ='").append(param.getRealName()).append("' ");
         }
         if (param.getDataSource() != null) {
             sb.append(" and custG.data_source =" + param.getDataSource());

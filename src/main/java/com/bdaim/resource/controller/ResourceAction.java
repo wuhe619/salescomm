@@ -220,4 +220,15 @@ public class ResourceAction extends BasicAction {
 
         return resp;
     }
+
+    @PostMapping(value = "/infos")
+    public ResponseInfo listResource1(@RequestBody com.alibaba.fastjson.JSONObject param) {
+        ResponseInfo resp = new ResponseInfo();
+        try {
+            resp.setData(marketResourceService.listResource1(opUser().getCustId(), param));
+        } catch (Exception e) {
+            logger.error("查询资源列表失败,", e);
+        }
+        return resp;
+    }
 }
