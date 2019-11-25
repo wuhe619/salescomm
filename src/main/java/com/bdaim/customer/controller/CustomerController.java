@@ -8,6 +8,7 @@ import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.customer.dto.CustomerRegistDTO;
 import com.bdaim.customer.service.CustomerAppService;
+import com.bdaim.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
@@ -62,6 +63,17 @@ public class CustomerController extends BasicAction {
         ResponseInfo resp = new ResponseInfo();
         String customerId = opUser().getCustId();
         resp.setData(customerAppService.getUser(page, customerId, account, name, contactPerson, salePerson));
+        return resp;
+    }
+
+    @DeleteMapping("/info/{custId}")
+    public ResponseInfo delete(@PathVariable(name = "custId") String id) {
+        ResponseInfo resp = new ResponseInfo();
+        String userid = opUser().getUserid();
+        if(StringUtil.isEmpty(id)){
+            return new ResponseInfoAssemble().failure(-1, "企业id为空");
+        }
+        resp.setData(customerAppService.delCust(Long.valueOf(id)));
         return resp;
     }
 

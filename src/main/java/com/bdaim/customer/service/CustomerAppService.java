@@ -308,37 +308,40 @@ public class CustomerAppService {
 
         PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
 
-        if (list != null && list.getList() != null && list.getList().size() > 0) {
-            Map<String, Object> map;
-            for (int i = 0; i < list.getList().size(); i++) {
-                map = (Map) list.getList().get(i);
-                if (map != null && map.get("cuc_seat") != null) {
-                    String cuc_seat = String.valueOf(map.get("cuc_seat"));
-                    com.alibaba.fastjson.JSONObject json1 = JSON.parseObject(cuc_seat);
-                    if (json1 != null) {
-                        String mainNumber = json1.getString("mainNumber");
-                        map.put("cucMainNumber", mainNumber);
-                    }
-                }
-                if (map != null && map.get("xz_seat") != null) {
-                    String cmc_seat = String.valueOf(map.get("xz_seat"));
-                    com.alibaba.fastjson.JSONObject json1 = JSON.parseObject(cmc_seat);
-                    if (json1 != null) {
-                        String mainNumber1 = json1.getString("mainNumber");
-                        map.put("xzMainNumber", mainNumber1);
-                    }
-                }
-                if (map != null && map.get("xz_seat") != null) {
-                    String cmc_seat = String.valueOf(map.get("xz_seat"));
-                    com.alibaba.fastjson.JSONObject json1 = JSON.parseObject(cmc_seat);
-                    if (json1 != null) {
-                        String mainNumber1 = json1.getString("mainNumber");
-                        map.put("xzMainNumber", mainNumber1);
-                    }
-                }
-            }
-        }
+//        if (list != null && list.getList() != null && list.getList().size() > 0) {
+//            Map<String, Object> map;
+//            for (int i = 0; i < list.getList().size(); i++) {
+//                map = (Map) list.getList().get(i);
+//                if (map != null && map.get("cuc_seat") != null) {
+//                    String cuc_seat = String.valueOf(map.get("cuc_seat"));
+//                    com.alibaba.fastjson.JSONObject json1 = JSON.parseObject(cuc_seat);
+//                    if (json1 != null) {
+//                        String mainNumber = json1.getString("mainNumber");
+//                        map.put("cucMainNumber", mainNumber);
+//                    }
+//                }
+//                if (map != null && map.get("xz_seat") != null) {
+//                    String cmc_seat = String.valueOf(map.get("xz_seat"));
+//                    com.alibaba.fastjson.JSONObject json1 = JSON.parseObject(cmc_seat);
+//                    if (json1 != null) {
+//                        String mainNumber1 = json1.getString("mainNumber");
+//                        map.put("xzMainNumber", mainNumber1);
+//                    }
+//                }
+//                if (map != null && map.get("xz_seat") != null) {
+//                    String cmc_seat = String.valueOf(map.get("xz_seat"));
+//                    com.alibaba.fastjson.JSONObject json1 = JSON.parseObject(cmc_seat);
+//                    if (json1 != null) {
+//                        String mainNumber1 = json1.getString("mainNumber");
+//                        map.put("xzMainNumber", mainNumber1);
+//                    }
+//                }
+//            }
+//        }
         return list;
     }
 
+    public int delCust(long custId){
+        return  1;
+    }
 }
