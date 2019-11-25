@@ -94,7 +94,7 @@ public class CustomerSeaAction extends BasicAction {
         param.setCustId(opUser().getCustId());
         param.setUserId(opUser().getId());
         param.setUserType(opUser().getUserType());
-        Page page = seaService.page(param, param.getPageNum(), param.getPageSize());
+        Page page = seaService.pagePublic(param, param.getPageNum(), param.getPageSize());
         responseJson.setData(getPageData(page));
         responseJson.setCode(200);
         return responseJson;
@@ -810,6 +810,5 @@ public class CustomerSeaAction extends BasicAction {
         responseJson.setData(data);
         return responseJson;
     }
-
 
 }

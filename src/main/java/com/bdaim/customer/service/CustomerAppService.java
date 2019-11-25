@@ -261,8 +261,11 @@ public class CustomerAppService {
         StringBuffer sql = new StringBuffer();
 
 
-        sql.append("  SELECT  CAST(s.id AS CHAR) id,cjc.resource,s.cust_id,s.user_type, s.account AS name,s.password AS PASSWORD,s.realname AS realname,cjc.cuc_minute seatMinute,\n" +
-                "s.status STATUS,cjc.mobile_num AS mobile_num,cjc.cuc_seat AS cuc_seat,cjc.declare_no,cjc.input_no,cjc.xz_seat AS xz_seat FROM t_customer_user s\n" +
+        sql.append("  SELECT  CAST(s.id AS CHAR) id,cjc.resource,s.cust_id,s.user_type, s.account AS adminAccount,s.password AS PASSWORD,s.realname AS realname,cjc.cuc_minute seatMinute,\n" +
+                "s.status as STATUS,cjc.mobile_num AS mobile_num,cjc.cuc_seat AS cuc_seat,cjc.declare_no,cjc.input_no,cjc.xz_seat AS xz_seat ,tc.title as title, cjc.user_id as suerId ," +
+                "pro.province as province ,pro.city as city,pro.country as country,pro.taxPayerId as taxPayerId,pro.bliPath as bliPath,pro.bank as bank,pro.bankAccount as bankAccount,\n" +
+                "pro.bankAccountCertificate as bankAccountCertificate,pro.industry as industry,pro.salePerson as salePerson,pro.address as address,pro.brand as brand,pro.station_id as stationId,pro.api_token as apiToken" +
+                " FROM t_customer_user s\n" +
                 " LEFT JOIN (SELECT user_id, \n" +
                 " MAX(CASE property_name WHEN 'mobile_num'  THEN property_value ELSE '' END ) mobile_num, \n" +
                 " MAX(CASE property_name WHEN 'cuc_seat'    THEN property_value ELSE '' END ) cuc_seat,\n" +
@@ -272,8 +275,27 @@ public class CustomerAppService {
                 " MAX(CASE property_name WHEN 'input_no'  THEN property_value ELSE '0' END ) input_no, \n" +
                 " MAX(CASE property_name WHEN 'resource'    THEN property_value ELSE '' END ) resource \n" +
                 " FROM t_customer_user_property p GROUP BY user_id \n" +
-                ") cjc ON s.id = cjc.user_id WHERE 1=1 AND user_type = 2  AND STATUS <> 2 ");
-        sql.append(" AND cust_id = '" + customerId + "'");
+                ") cjc ON s.id = cjc.user_id LEFT JOIN  t_customer tc ON s.cust_id=tc.cust_id " +
+                "LEFT JOIN (SELECT cust_id,\n" +
+                " MAX(CASE property_name WHEN 'province'    THEN property_value ELSE '' END ) province, \n" +
+                " MAX(CASE property_name WHEN 'city'    THEN property_value ELSE '' END ) city, \n" +
+                " MAX(CASE property_name WHEN 'country'    THEN property_value ELSE '' END ) country, \n" +
+                " MAX(CASE property_name WHEN 'taxpayer_id'    THEN property_value ELSE '' END  )taxPayerId, \n" +
+                "MAX( CASE property_name WHEN 'bli_path'    THEN property_value ELSE '' END  )bliPath, \n" +
+                " MAX(CASE property_name WHEN 'bank'    THEN property_value ELSE '' END ) bank, \n" +
+                "MAX(CASE property_name WHEN 'bank_account'    THEN property_value ELSE '' END ) bankAccount, \n" +
+                " MAX(CASE property_name WHEN 'bank_account_certificate'    THEN property_value ELSE '' END ) bankAccountCertificate, \n" +
+                " MAX(CASE property_name WHEN 'industry'    THEN property_value ELSE '' END  )industry, \n" +
+                " MAX(CASE property_name WHEN 'sale_person'    THEN property_value ELSE '' END ) salePerson, \n" +
+                "MAX( CASE property_name WHEN 'reg_address'    THEN property_value ELSE ''END ) address, \n" +
+                " MAX(CASE property_name WHEN 'brand'    THEN property_value ELSE '' END ) brand,\n" +
+                " MAX(CASE property_name WHEN 'station_id'  THEN property_value ELSE '' END ) station_id, \n" +
+                " MAX(CASE property_name WHEN 'api_token'  THEN property_value ELSE '' END ) api_token \n" +
+                "FROM t_customer_property  )pro ON s.cust_id=pro.cust_id " +
+                "WHERE 1=1 AND user_type = 2  AND s.STATUS <> 2 ");
+        if (StringUtil.isNotEmpty(customerId)) {
+            sql.append(" AND cust_id = '" + customerId + "'");
+        }
         if (null != name && !"".equals(name)) {
             sql.append(" AND s.account like '%" + name + "%'");
         }
@@ -286,30 +308,40 @@ public class CustomerAppService {
 
         PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
 
-        if (list != null && list.getList() != null && list.getList().size() > 0) {
-            Map<String, Object> map;
-            for (int i = 0; i < list.getList().size(); i++) {
-                map = (Map) list.getList().get(i);
-                if (map != null && map.get("cuc_seat") != null) {
-                    String cuc_seat = String.valueOf(map.get("cuc_seat"));
-                    com.alibaba.fastjson.JSONObject json1 = JSON.parseObject(cuc_seat);
-                    if (json1 != null) {
-                        String mainNumber = json1.getString("mainNumber");
-                        map.put("cucMainNumber", mainNumber);
-                    }
-                }
-                if (map != null && map.get("xz_seat") != null) {
-                    String cmc_seat = String.valueOf(map.get("xz_seat"));
-                    com.alibaba.fastjson.JSONObject json1 = JSON.parseObject(cmc_seat);
-                    if (json1 != null) {
-                        String mainNumber1 = json1.getString("mainNumber");
-                        map.put("xzMainNumber", mainNumber1);
-                    }
-                }
-            }
-        }
-
+//        if (list != null && list.getList() != null && list.getList().size() > 0) {
+//            Map<String, Object> map;
+//            for (int i = 0; i < list.getList().size(); i++) {
+//                map = (Map) list.getList().get(i);
+//                if (map != null && map.get("cuc_seat") != null) {
+//                    String cuc_seat = String.valueOf(map.get("cuc_seat"));
+//                    com.alibaba.fastjson.JSONObject json1 = JSON.parseObject(cuc_seat);
+//                    if (json1 != null) {
+//                        String mainNumber = json1.getString("mainNumber");
+//                        map.put("cucMainNumber", mainNumber);
+//                    }
+//                }
+//                if (map != null && map.get("xz_seat") != null) {
+//                    String cmc_seat = String.valueOf(map.get("xz_seat"));
+//                    com.alibaba.fastjson.JSONObject json1 = JSON.parseObject(cmc_seat);
+//                    if (json1 != null) {
+//                        String mainNumber1 = json1.getString("mainNumber");
+//                        map.put("xzMainNumber", mainNumber1);
+//                    }
+//                }
+//                if (map != null && map.get("xz_seat") != null) {
+//                    String cmc_seat = String.valueOf(map.get("xz_seat"));
+//                    com.alibaba.fastjson.JSONObject json1 = JSON.parseObject(cmc_seat);
+//                    if (json1 != null) {
+//                        String mainNumber1 = json1.getString("mainNumber");
+//                        map.put("xzMainNumber", mainNumber1);
+//                    }
+//                }
+//            }
+//        }
         return list;
+    }
 
+    public int delCust(long custId){
+        return  1;
     }
 }
