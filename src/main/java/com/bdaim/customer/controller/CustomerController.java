@@ -48,11 +48,20 @@ public class CustomerController extends BasicAction {
 
     }
 
+    /**
+     * 查询企业客户列表
+     * @param page
+     * @param account
+     * @param name
+     * @param contactPerson
+     * @param salePerson
+     * @return
+     */
     @PostMapping("/infos")
-    public ResponseInfo queryList(@Valid PageParam page, String account, String name, String contactPerson, String salePerson) {
+    public ResponseInfo queryList(@RequestBody @Valid PageParam page, String account, String name, String contactPerson, String salePerson) {
         ResponseInfo resp = new ResponseInfo();
         String customerId = opUser().getCustId();
-        customerAppService.getUser(page, customerId, account, name, contactPerson, salePerson);
+        resp.setData(customerAppService.getUser(page, customerId, account, name, contactPerson, salePerson));
         return resp;
     }
 

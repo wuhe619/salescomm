@@ -3268,8 +3268,8 @@ public class CustomerSeaService {
         if (StringUtil.isNotEmpty(param.getRegStatus())) {
             sb.append(" AND custG.super_data -> " + "'$.SYS012' like " + "'%" + param.getRegStatus() + "%'");
         }
-        //sb.append(" AND custG.status<>2 ");
-        sb.append(" AND custG.status =1 ");
+        sb.append(" AND custG.status<>2 ");
+//        sb.append(" AND custG.status =1 ");
         // 1-未呼通 2-已呼通
         if ("1".equals(param.getCallStatus())) {
             sb.append(" AND (custG.last_call_status <> '1001' OR custG.last_call_status IS NOT NULL)");
