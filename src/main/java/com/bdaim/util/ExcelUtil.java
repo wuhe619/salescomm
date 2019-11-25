@@ -8,21 +8,23 @@ import com.alibaba.excel.event.AnalysisEventListener;
 import com.alibaba.excel.metadata.Sheet;
 import com.alibaba.excel.support.ExcelTypeEnum;
 import org.apache.poi.EmptyFileException;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.poifs.filesystem.FileMagic;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 /**
  * @author chengning@salescomm.net
@@ -221,5 +223,112 @@ public class ExcelUtil {
         }
 
         return list;
+    }
+
+    /**
+     * 读取excel按照sheet分组返回
+     *
+     * @param file
+     * @return
+     * @throws IOException
+     */
+    public static Map readExcel(MultipartFile file) throws IOException {
+        Workbook workBook = getWorkBook(file);
+        // 循环工作表Sheet
+        Map data = new HashMap();
+        List sheetData;
+        Map row;
+        for (int numSheet = 0; numSheet < workBook.getNumberOfSheets(); numSheet++) {
+            sheetData = new ArrayList();
+            Map head = new HashMap();
+            List headers = (List) ExcelUtil.readHeaders(file.getInputStream(), new Sheet(numSheet + 1), true);
+            for (int i = 0; i < headers.size(); i++) {
+                head.put(i, headers.get(i));
+            }
+            List<Object> excelData = ExcelUtil.readExcel(file.getInputStream(), new Sheet(numSheet + 1), true);
+            for (int i = 1; i < excelData.size(); i++) {
+                List list = (List) excelData.get(i);
+                row = new HashMap();
+                for (Object value : head.values()) {
+                    row.put(value, "");
+                }
+                boolean success = false;
+                for (int j = 0; j < list.size(); j++) {
+                    if (StringUtil.isNotEmpty(String.valueOf(list.get(j)))) {
+                        success = true;
+                    }
+                    if (String.valueOf(head.get(j)).endsWith("日期") && StringUtil.isNotEmpty(String.valueOf(list.get(j)))) {
+                        row.put(head.get(j), getPOIDate(false, NumberConvertUtil.parseDouble(String.valueOf(list.get(j)))));
+                    } else {
+                        row.put(head.get(j), list.get(j));
+                    }
+                }
+                if (success) {
+                    sheetData.add(row);
+                }
+            }
+            data.put("sheet" + (numSheet + 1), sheetData);
+        }
+        return data;
+    }
+
+    public static String getPOIDate(boolean use1904windowing, double value) {
+        int wholeDays = (int) Math.floor(value);
+        int millisecondsInDay = (int) ((value - (double) wholeDays) * 8.64E7D + 0.5D);
+        Calendar calendar = new GregorianCalendar();
+        short startYear = 1900;
+        byte dayAdjust = -1;
+        if (use1904windowing) {
+            startYear = 1904;
+            dayAdjust = 1;
+        } else if (wholeDays < 61) {
+            dayAdjust = 0;
+        }
+        calendar.set(startYear, 0, wholeDays + dayAdjust, 0, 0, 0);
+        calendar.set(Calendar.MILLISECOND, millisecondsInDay);
+        if (calendar.get(Calendar.MILLISECOND) == 0) {
+            calendar.clear(Calendar.MILLISECOND);
+        }
+        Date date = calendar.getTime();
+        SimpleDateFormat s = new SimpleDateFormat("yyyy-MM-dd");
+        return s.format(date);
+    }
+
+    /**
+     * 得到Workbook对象
+     *
+     * @param file
+     * @return
+     * @throws IOException
+     */
+    public static Workbook getWorkBook(File file) throws IOException {
+        InputStream is = new FileInputStream(file);
+        Workbook hssfWorkbook = null;
+        try {
+            hssfWorkbook = new HSSFWorkbook(is);
+        } catch (Exception ex) {
+            is = new FileInputStream(file);
+            hssfWorkbook = new XSSFWorkbook(is);
+        }
+        return hssfWorkbook;
+    }
+
+    /**
+     * 得到Workbook对象
+     *
+     * @param file
+     * @return
+     * @throws IOException
+     */
+    public static Workbook getWorkBook(MultipartFile file) throws IOException {
+        InputStream is = file.getInputStream();
+        Workbook hssfWorkbook = null;
+        try {
+            hssfWorkbook = new HSSFWorkbook(is);
+        } catch (Exception ex) {
+            is = file.getInputStream();
+            hssfWorkbook = new XSSFWorkbook(is);
+        }
+        return hssfWorkbook;
     }
 }
