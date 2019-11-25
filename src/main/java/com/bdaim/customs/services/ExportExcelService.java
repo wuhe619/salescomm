@@ -151,7 +151,9 @@ public class ExportExcelService {
                 export(templatePath, map, sheetName, response);
                 break;
             default:
-                LOG.warn("导出未找到匹配规则");
+                sheetName = new String[]{"主单", "分单", "税单"};
+                generateMainDan(list, map);
+                export(templatePath, map, sheetName, response);
                 break;
         }
     }

@@ -225,13 +225,19 @@ public class BgdZService implements BusiService {
 
     @Override
     public void doInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info, JSONObject param) {
-        if (StringUtil.isNotEmpty(param.getString("_rule_")) && param.getString("_rule_").startsWith("_export")) {
+        if (StringUtil.isNotEmpty(param.getString("_rule_"))
+                && param.getString("_rule_").startsWith("_export")) {
             info.put("export_type", 2);
             switch (param.getString("_rule_")) {
                 case "_export_bgd_z_main_data":
+                case "_export_bgd_data_return":
+                    // 只查询退单
+                    if ("_export_bgd_data_return".equals(param.getString("_rule_"))) {
+                        param.put("send_status", "00");
+                    }
                     List singles = queryChildData(BusiTypeEnum.BF.getType(), cust_id, cust_group_id, cust_user_id, id, info, param);
 
-                    if (singles != null) {
+                    if (singles != null && singles.size() > 0) {
                         JSONObject js, product;
                         String main_bill_no = "", partyNo = "";
                         List partyBillNos = new ArrayList();
@@ -319,7 +325,7 @@ public class BgdZService implements BusiService {
         String sql = "update " + HMetaDataDef.getTable(h.getType(), "") + " set content=? "
                 + " ,ext_1='Y'"
                 + " where id=" + h.getId() + " and type='" + h.getType() + "'";
-        jdbcTemplate.update(sql,jon.toJSONString());
+        jdbcTemplate.update(sql, jon.toJSONString());
         CZ.setContent(info.toJSONString());
         dataList.add(CZ);
         List<HBusiDataManager> parties = serviceUtils.getDataList(BusiTypeEnum.SF.getType(), info.getLong("fromSbzId"));
@@ -399,7 +405,7 @@ public class BgdZService implements BusiService {
         String sql = "update " + HMetaDataDef.getTable(h.getType(), "") + " set content=? "
                 + " ,ext_1='Y'"
                 + " where id=" + h.getId() + " and type='" + h.getType() + "'";
-        jdbcTemplate.update(sql,jon.toJSONString());
+        jdbcTemplate.update(sql, jon.toJSONString());
         bgdMain.setContent(info.toJSONString());
         dataList.add(bgdMain);
 
@@ -428,7 +434,7 @@ public class BgdZService implements BusiService {
         List<HBusiDataManager> goodList;
         HBusiDataManager good, hm;
         for (HBusiDataManager hp : parties) {
-            log.info("fendan: "+JSONObject.toJSONString(hp));
+            log.info("fendan: " + JSONObject.toJSONString(hp));
             hm = new HBusiDataManager();
             hm.setType(BusiTypeEnum.BF.getType());
             hm.setCreateDate(new Date());
@@ -460,7 +466,7 @@ public class BgdZService implements BusiService {
                     sdContent.put("pid", hp.getId());
                     sdContent.put("index", index);
                     sdContent.put("opt_type", "ADD");
-                    sdContent.put("curr_code",_content.getString("curr_code"));
+                    sdContent.put("curr_code", _content.getString("curr_code"));
                     good.setContent(sdContent.toJSONString());
                     good.setType(BusiTypeEnum.BS.getType());
                     good.setCreateId(gp.getCreateId());
