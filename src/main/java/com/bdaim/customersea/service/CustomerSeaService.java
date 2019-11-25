@@ -3499,7 +3499,7 @@ public class CustomerSeaService {
                 return new Page();
             }
         }
-        sb.append("GROUP BY custType  ORDER BY custG.create_time DESC ");
+        sb.append(" ORDER BY custG.create_time DESC ");
         try {
             page = customerSeaDao.sqlPageQueryByPageSize(sb.toString(), param.getPageNum(), param.getPageSize());
         } catch (Exception e) {
