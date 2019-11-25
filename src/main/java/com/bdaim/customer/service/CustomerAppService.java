@@ -71,7 +71,7 @@ public class CustomerAppService {
         }
 
         Customer customer;
-        if (StringUtil.isNotEmpty(vo.getCustId())) {
+        if (StringUtil.isNotEmpty(vo.getCustId()) && !"0".equals(vo.getCustId())) {
             //更新 客户信息
             customer = customerDao.findUniqueBy("custId", vo.getCustId());
             customer.setRealName(vo.getRealName());
@@ -256,7 +256,7 @@ public class CustomerAppService {
     }
 
 
-    public PageList getUser(PageParam page, String customerId, String account,String name,String contactPerson,String salePerson) {
+    public PageList getUser(PageParam page, String customerId, String account, String name, String contactPerson, String salePerson) {
         JSONObject json = new JSONObject();
         StringBuffer sql = new StringBuffer();
 

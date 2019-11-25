@@ -49,10 +49,10 @@ public class CustomerController extends BasicAction {
     }
 
     @PostMapping("/infos")
-    public ResponseInfo queryList(@Valid PageParam page,String account,String name,String contactPerson,String salePerson) {
+    public ResponseInfo queryList(@Valid PageParam page, String account, String name, String contactPerson, String salePerson) {
         ResponseInfo resp = new ResponseInfo();
         String customerId = opUser().getCustId();
-        customerAppService.getUser(page,customerId,account,name,contactPerson,salePerson);
+        customerAppService.getUser(page, customerId, account, name, contactPerson, salePerson);
         return resp;
     }
 
