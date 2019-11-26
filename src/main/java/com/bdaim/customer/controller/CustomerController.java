@@ -51,6 +51,7 @@ public class CustomerController extends BasicAction {
 
     /**
      * 查询企业客户列表
+     *
      * @param page
      * @param account
      * @param name
@@ -67,14 +68,33 @@ public class CustomerController extends BasicAction {
     }
 
     @DeleteMapping("/info/{custId}")
-    public ResponseInfo delete(@PathVariable(name = "custId") String id) {
+    public ResponseInfo delete(@PathVariable(name = "custId") String id) throws Exception {
         ResponseInfo resp = new ResponseInfo();
-        String userid = opUser().getUserid();
-        if(StringUtil.isEmpty(id)){
+        if (StringUtil.isEmpty(id)) {
             return new ResponseInfoAssemble().failure(-1, "企业id为空");
         }
         resp.setData(customerAppService.delCust(Long.valueOf(id)));
         return resp;
+    }
+
+    /**
+     * @Title: regist
+     * @Description: 查看企业客户详情
+     */
+    @GetMapping(value = "/info/{custId}")
+    public ResponseInfo query(@RequestBody CustomerRegistDTO customerRegistDTO, @PathVariable(name = "custId") String id) {
+        ResponseInfo resp = new ResponseInfo();
+        try {
+            if (StringUtil.isEmpty(id) || "0".equals(id)) {
+                return new ResponseInfoAssemble().failure(-1, "企业id错误");
+            }
+            resp.setData(customerAppService.queryByCust(id));
+            return resp;
+        } catch (Exception e) {
+            logger.error("企业查询失败", e);
+            return new ResponseInfoAssemble().failure(-1, "企业查询失败");
+        }
+
     }
 
 }

@@ -23,6 +23,7 @@ import javax.annotation.Resource;
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -37,7 +38,7 @@ public class CustomerAppService {
     @Resource
     AmApplicationDao amApplicationDao;
 
-    public synchronized String registerOrUpdateCustomer(CustomerRegistDTO vo, LoginUser lu) throws Exception {
+    public synchronized String registerOrUpdateCustomer(CustomerRegistDTO vo, LoginUser lu) {
         String code = "000";
         //编辑或创建客户
         CustomerUser customerUserDO;
@@ -341,7 +342,91 @@ public class CustomerAppService {
         return list;
     }
 
-    public int delCust(long custId){
-        return  1;
+    public long delCust(long custId) throws Exception {
+        Customer customer = customerDao.findUniqueBy("id", custId);
+        if (customer == null || customer.getStatus() == 3) {
+            throw new Exception("custId:[" + custId + "]已删除,或不存在");
+        }
+        customer.setStatus(3);
+        customer.setModifyTime(DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss));
+        customerDao.update(customer);
+        return custId;
     }
+
+    public CustomerRegistDTO queryByCust(String custId) throws Exception {
+
+        CustomerRegistDTO vo = new CustomerRegistDTO();
+
+        Customer customer = customerDao.findUniqueBy("custId", custId);
+        if (customer == null) {
+            throw new Exception("custId:" + custId + "不存在");
+        }
+        vo.setRealName(customer.getRealName());
+        vo.setTitle(customer.getTitle());
+        vo.setCustId(custId);
+        vo.setEnterpriseName(customer.getEnterpriseName());
+
+        String sql = "select cust_id,property_name,property_value from t_customer_property";
+
+        List<Map<String, Object>> propertyList = jdbcTemplate.queryForList(sql);
+        for (Map<String, Object> map : propertyList) {
+            switch (map.get("property_name").toString()) {
+                case "province":
+                    vo.setProvince(map.get("property_value").toString());
+                    break;
+                case "city":
+                    vo.setCity(map.get("property_value").toString());
+                case "county":
+                    vo.setCountry(map.get("property_value").toString());
+                case "whiteIps":
+                    vo.setWhiteIps(map.get("property_value").toString());
+                    break;
+                case "taxpayer_id":
+                    vo.setTaxPayerId(map.get("property_value").toString());
+                    break;
+                case "bli_path":
+                    vo.setBliPath(map.get("property_value").toString());
+                    break;
+                case "bank":
+                    vo.setBank(map.get("property_value").toString());
+                    break;
+                case "bank_account":
+                    vo.setBankAccount(map.get("property_value").toString());
+                    break;
+                case "bank_account_certificate":
+                    vo.setBankAccountCertificate(map.get("property_value").toString());
+                    break;
+                case "sale_person":
+                    vo.setAddress(map.get("property_value").toString());
+                    break;
+                case "reg_address":
+                    vo.setSalePerson(map.get("property_value").toString());
+                    break;
+                case "mobile":
+                    vo.setMobile(map.get("property_value").toString());
+                    break;
+                case "brand":
+                    vo.setBrand(map.get("property_value").toString());
+                    break;
+                case "mobile_num":
+                    vo.setMobile(map.get("property_value").toString());
+                    break;
+                case "create_id":
+                    vo.setCreateId(map.get("property_value").toString());
+                    break;
+                case "warning_money":
+                    vo.setWarning_money(map.get("property_value").toString());
+                    break;
+                case "short_msg_link":
+                    vo.setShort_msg_link(map.get("property_value").toString());
+                    break;
+                case "email_link":
+                    vo.setEmail_link(map.get("property_value").toString());
+                    break;
+            }
+        }
+
+        return vo;
+    }
+
 }

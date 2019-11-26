@@ -112,6 +112,35 @@ public class CustomerRegistDTO implements Serializable {
      */
     private String balance_warning_config;
 
+    private String warning_money;
+    private String email_link;
+    private String short_msg_link;
+
+    public String getEmail_link() {
+        return email_link;
+    }
+
+    public void setEmail_link(String email_link) {
+        this.email_link = email_link;
+    }
+
+    public String getShort_msg_link() {
+        return short_msg_link;
+    }
+
+    public void setShort_msg_link(String short_msg_link) {
+        this.short_msg_link = short_msg_link;
+    }
+
+    public String getWarning_money() {
+
+        return warning_money;
+    }
+
+    public void setWarning_money(String warning_money) {
+        this.warning_money = warning_money;
+    }
+
     public String getBalance_warning_config() {
         return balance_warning_config;
     }
