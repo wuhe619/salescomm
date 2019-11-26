@@ -7,6 +7,7 @@ import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.customer.dto.CustomerRegistDTO;
+import com.bdaim.customer.dto.Deposit;
 import com.bdaim.customer.service.CustomerAppService;
 import com.bdaim.util.StringUtil;
 import org.slf4j.Logger;
@@ -95,6 +96,18 @@ public class CustomerController extends BasicAction {
             return new ResponseInfoAssemble().failure(-1, "企业查询失败");
         }
 
+    }
+
+    @PostMapping("/deposit/{custId}")
+    public ResponseInfo saveDeposit(@RequestBody @Valid Deposit deposit, @PathVariable(name = "custId") String id) {
+        ResponseInfo resp = new ResponseInfo();
+        String user_id = opUser().getUser_id();
+        if (StringUtil.isEmpty(id) || "0".equals(id)) {
+            return new ResponseInfoAssemble().failure(-1, "企业id错误");
+        }
+        resp.setData(customerAppService.saveDeposit(deposit, id, user_id));
+
+        return resp;
     }
 
 }

@@ -10,8 +10,10 @@ import com.bdaim.customer.dao.AmApplicationDao;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerUserDao;
 import com.bdaim.customer.dto.CustomerRegistDTO;
+import com.bdaim.customer.dto.Deposit;
 import com.bdaim.customer.entity.AmApplicationEntity;
 import com.bdaim.customer.entity.Customer;
+import com.bdaim.customer.entity.CustomerProperty;
 import com.bdaim.customer.entity.CustomerUser;
 import com.bdaim.util.*;
 import org.slf4j.Logger;
@@ -427,6 +429,26 @@ public class CustomerAppService {
         }
 
         return vo;
+    }
+
+    public int saveDeposit(Deposit deposit, String id, String userId) {
+        int pre_money, money;
+
+        CustomerProperty customerProperty = customerDao.getProperty(id, "remain_amount");
+        if (customerProperty == null) {
+            pre_money = 0;
+            money = Integer.valueOf(deposit.getMoney()).intValue();
+            customerDao.dealCustomerInfo(id, "remain_amount", String.valueOf(money * 10000));
+        } else {
+            pre_money = Integer.valueOf(customerProperty.getPropertyValue()).intValue();
+            money = Integer.valueOf(deposit.getMoney()).intValue();
+            customerDao.dealCustomerInfo(id, "remain_amount", String.valueOf((pre_money + money) *
+                    10000));
+        }
+        String sql = "INSERT INTO am_pay (SUBSCRIBER_ID,MONEY,PAY_TIME,pay_certificate,pre_money) VALUE (?,?,?,?,?) ";
+
+        jdbcTemplate.update(sql, userId, money,DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss),deposit.getPicId(),pre_money);
+        return 0;
     }
 
 }
