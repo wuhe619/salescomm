@@ -14,7 +14,10 @@ import com.bdaim.customer.entity.AmApplicationEntity;
 import com.bdaim.customer.entity.Customer;
 import com.bdaim.customer.entity.CustomerProperty;
 import com.bdaim.customer.entity.CustomerUser;
-import com.bdaim.util.*;
+import com.bdaim.util.Constant;
+import com.bdaim.util.DateUtil;
+import com.bdaim.util.IDHelper;
+import com.bdaim.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -36,38 +39,11 @@ public class CustomerAppService {
     @Resource
     AmApplicationDao amApplicationDao;
 
+
     public synchronized String registerOrUpdateCustomer(CustomerRegistDTO vo, LoginUser lu) {
         String code = "000";
         //编辑或创建客户
-        CustomerUser customerUserDO;
         String customerId = IDHelper.getID().toString();
-        if (StringUtil.isNotEmpty(vo.getUserId())) {
-            customerUserDO = customerUserDao.findUniqueBy("id", Long.valueOf(vo.getUserId()));
-            customerUserDO.setRealname(vo.getRealName());
-            if (StringUtil.isNotEmpty(vo.getName())) {
-                customerUserDO.setAccount(vo.getName());
-            }
-            if (StringUtil.isNotEmpty(vo.getPassword())) {
-                customerUserDO.setPassword(CipherUtil.generatePassword(vo.getPassword()));
-            }
-            customerUserDao.saveOrUpdate(customerUserDO);
-        } else {
-            if (StringUtil.isNotEmpty(vo.getName())) {
-                CustomerUser user = customerUserDao.getUserByAccount(vo.getName());
-                if (user != null) return code = "001";
-                customerUserDO = new CustomerUser();
-                //1企业客户 2 操作员
-                customerUserDO.setUserType(1);
-                customerUserDO.setId(IDHelper.getUserID());
-                customerUserDO.setCust_id(customerId);
-                customerUserDO.setAccount(vo.getName());
-                customerUserDO.setPassword(CipherUtil.generatePassword(vo.getPassword()));
-                customerUserDO.setRealname(vo.getRealName());
-                customerUserDO.setStatus(Constant.USER_ACTIVE_STATUS);
-                customerUserDao.saveOrUpdate(customerUserDO);
-                saveAmApplication(vo, lu);
-            }
-        }
 
         Customer customer;
         if (StringUtil.isNotEmpty(vo.getCustId()) && !"0".equals(vo.getCustId())) {
@@ -89,7 +65,7 @@ public class CustomerAppService {
             customer.setCreateTime(DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss));
         }
         customerDao.saveOrUpdate(customer);
-
+        saveAmApplication(vo, lu);
 
         //创建企业附加属性信息
         if (StringUtil.isNotEmpty(vo.getProvince())) {
@@ -208,15 +184,7 @@ public class CustomerAppService {
                 customerDao.dealCustomerInfo(customerId, "reg_address", vo.getAddress());
             }
         }
-        //联系人电话
-        if (StringUtil.isNotEmpty(vo.getMobile())) {
-            if (StringUtil.isNotEmpty(vo.getCustId())) {
-                customerDao.dealCustomerInfo(vo.getCustId(), "mobile", vo.getMobile());
-            } else {
-                customerDao.dealCustomerInfo(customerId, "mobile", vo.getMobile());
-            }
 
-        }
         if (StringUtil.isNotEmpty(vo.getBrand())) {
             if (StringUtil.isNotEmpty(vo.getCustId())) {
                 customerDao.dealCustomerInfo(vo.getCustId(), "brand", vo.getBrand());
@@ -260,10 +228,10 @@ public class CustomerAppService {
         StringBuffer sql = new StringBuffer();
 
 
-        sql.append("  SELECT  CAST(s.id AS CHAR) id,cjc.resource,s.cust_id,s.user_type, s.account AS adminAccount,s.password AS PASSWORD,s.realname AS realname,cjc.cuc_minute seatMinute,\n" +
-                "s.status as STATUS,cjc.mobile_num AS mobile_num,cjc.cuc_seat AS cuc_seat,cjc.declare_no,cjc.input_no,cjc.xz_seat AS xz_seat ,tc.title as title, cjc.user_id as suerId ," +
+        sql.append("  SELECT  CAST(s.id AS CHAR) id,s.cust_id,s.user_type, s.account AS account,s.password AS PASSWORD,s.realname AS contactPerson,cjc.cuc_minute seatMinute,\n" +
+                "s.status as STATUS,cjc.mobile_num AS mobile_num,cjc.cuc_seat AS cuc_seat,cjc.declare_no,cjc.input_no,cjc.xz_seat AS xz_seat ,tc.title as title,tc.enterprise_name as name, cjc.user_id as suerId ," +
                 "pro.province as province ,pro.city as city,pro.country as country,pro.taxPayerId as taxPayerId,pro.bliPath as bliPath,pro.bank as bank,pro.bankAccount as bankAccount,\n" +
-                "pro.bankAccountCertificate as bankAccountCertificate,pro.industry as industry,pro.salePerson as salePerson,pro.address as address,pro.brand as brand,pro.station_id as stationId,pro.api_token as apiToken" +
+                "pro.bankAccountCertificate as bankAccountCertificate,pro.industry as industry,pro.salePerson as salePerson,pro.address as address,pro.brand as brand,pro.station_id as stationId,pro.api_token as apiToken,pro.remain_amount as remainAmount,pro.used_amount as userAmount" +
                 " FROM t_customer_user s\n" +
                 " LEFT JOIN (SELECT user_id, \n" +
                 " MAX(CASE property_name WHEN 'mobile_num'  THEN property_value ELSE '' END ) mobile_num, \n" +
@@ -271,8 +239,8 @@ public class CustomerAppService {
                 " MAX(CASE property_name WHEN 'xz_seat'    THEN property_value ELSE '' END ) xz_seat, \n" +
                 " MAX(CASE property_name WHEN 'cuc_minute'  THEN property_value ELSE '0' END ) cuc_minute, \n" +
                 " MAX(CASE property_name WHEN 'declare_no'  THEN property_value ELSE '0' END ) declare_no, \n" +
-                " MAX(CASE property_name WHEN 'input_no'  THEN property_value ELSE '0' END ) input_no, \n" +
-                " MAX(CASE property_name WHEN 'resource'    THEN property_value ELSE '' END ) resource \n" +
+                " MAX(CASE property_name WHEN 'input_no'  THEN property_value ELSE '0' END ) input_no \n" +
+//                " MAX(CASE property_name WHEN 'resource'    THEN property_value ELSE '' END ) resource \n" +
                 " FROM t_customer_user_property p GROUP BY user_id \n" +
                 ") cjc ON s.id = cjc.user_id LEFT JOIN  t_customer tc ON s.cust_id=tc.cust_id " +
                 "LEFT JOIN (SELECT cust_id,\n" +
@@ -280,63 +248,31 @@ public class CustomerAppService {
                 " MAX(CASE property_name WHEN 'city'    THEN property_value ELSE '' END ) city, \n" +
                 " MAX(CASE property_name WHEN 'country'    THEN property_value ELSE '' END ) country, \n" +
                 " MAX(CASE property_name WHEN 'taxpayer_id'    THEN property_value ELSE '' END  )taxPayerId, \n" +
-                "MAX( CASE property_name WHEN 'bli_path'    THEN property_value ELSE '' END  )bliPath, \n" +
+                " MAX( CASE property_name WHEN 'bli_path'    THEN property_value ELSE '' END  )bliPath, \n" +
                 " MAX(CASE property_name WHEN 'bank'    THEN property_value ELSE '' END ) bank, \n" +
-                "MAX(CASE property_name WHEN 'bank_account'    THEN property_value ELSE '' END ) bankAccount, \n" +
+                " MAX(CASE property_name WHEN 'bank_account'    THEN property_value ELSE '' END ) bankAccount, \n" +
                 " MAX(CASE property_name WHEN 'bank_account_certificate'    THEN property_value ELSE '' END ) bankAccountCertificate, \n" +
                 " MAX(CASE property_name WHEN 'industry'    THEN property_value ELSE '' END  )industry, \n" +
                 " MAX(CASE property_name WHEN 'sale_person'    THEN property_value ELSE '' END ) salePerson, \n" +
-                "MAX( CASE property_name WHEN 'reg_address'    THEN property_value ELSE ''END ) address, \n" +
+                " MAX( CASE property_name WHEN 'reg_address'    THEN property_value ELSE ''END ) address, \n" +
                 " MAX(CASE property_name WHEN 'brand'    THEN property_value ELSE '' END ) brand,\n" +
                 " MAX(CASE property_name WHEN 'station_id'  THEN property_value ELSE '' END ) station_id, \n" +
-                " MAX(CASE property_name WHEN 'api_token'  THEN property_value ELSE '' END ) api_token \n" +
+                " MAX(CASE property_name WHEN 'api_token'  THEN property_value ELSE '' END ) api_token ,\n" +
+                " MAX(CASE property_name WHEN 'remain_amount'  THEN property_value ELSE '' END ) remain_amount ,\n" +
+                " MAX(CASE property_name WHEN 'used_amount'  THEN property_value ELSE '' END ) used_amount \n" +
                 "FROM t_customer_property  )pro ON s.cust_id=pro.cust_id " +
                 "WHERE 1=1 AND user_type = 2  AND s.STATUS <> 2 ");
-        if (StringUtil.isNotEmpty(customerId)) {
-            sql.append(" AND cust_id = '" + customerId + "'");
+        if (StringUtil.isNotEmpty(account)) {
+            sql.append(" AND s.account = '" + account + "'");
         }
-        if (null != name && !"".equals(name)) {
-            sql.append(" AND s.account like '%" + name + "%'");
+        if (StringUtil.isNotEmpty(contactPerson)) {
+            sql.append(" AND s.realname = '" + contactPerson + "'");
         }
-//        if (null != realName && !"".equals(realName)) {
-//            sql.append(" AND s.realname like '%" + realName + "%'");
-//        }
-//        if (null != mobileNum && !"".equals(mobileNum)) {
-//            sql.append(" AND cjc.mobile_num like '%" + mobileNum + "%'");
-//        }
+        if (StringUtil.isNotEmpty(name)) {
+            sql.append(" AND tc.enterprise_name like '%" + name + "%'");
+        }
 
         PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
-
-//        if (list != null && list.getList() != null && list.getList().size() > 0) {
-//            Map<String, Object> map;
-//            for (int i = 0; i < list.getList().size(); i++) {
-//                map = (Map) list.getList().get(i);
-//                if (map != null && map.get("cuc_seat") != null) {
-//                    String cuc_seat = String.valueOf(map.get("cuc_seat"));
-//                    com.alibaba.fastjson.JSONObject json1 = JSON.parseObject(cuc_seat);
-//                    if (json1 != null) {
-//                        String mainNumber = json1.getString("mainNumber");
-//                        map.put("cucMainNumber", mainNumber);
-//                    }
-//                }
-//                if (map != null && map.get("xz_seat") != null) {
-//                    String cmc_seat = String.valueOf(map.get("xz_seat"));
-//                    com.alibaba.fastjson.JSONObject json1 = JSON.parseObject(cmc_seat);
-//                    if (json1 != null) {
-//                        String mainNumber1 = json1.getString("mainNumber");
-//                        map.put("xzMainNumber", mainNumber1);
-//                    }
-//                }
-//                if (map != null && map.get("xz_seat") != null) {
-//                    String cmc_seat = String.valueOf(map.get("xz_seat"));
-//                    com.alibaba.fastjson.JSONObject json1 = JSON.parseObject(cmc_seat);
-//                    if (json1 != null) {
-//                        String mainNumber1 = json1.getString("mainNumber");
-//                        map.put("xzMainNumber", mainNumber1);
-//                    }
-//                }
-//            }
-//        }
         return list;
     }
 
@@ -451,7 +387,7 @@ public class CustomerAppService {
 
     public Map<String, Object> depositList(PageParam page, String custId) {
         Map<String, Object> map = new HashMap<>();
-        String sql = "select cust_id,property_name,property_value from t_customer_property where cust_id=?";
+        String sql = "select cust_id,property_name,property_value from t_customer_property   where cust_id=?";
 
         List<Map<String, Object>> propertyList = jdbcTemplate.queryForList(sql, custId);
         propertyList.stream().forEach(m -> {
