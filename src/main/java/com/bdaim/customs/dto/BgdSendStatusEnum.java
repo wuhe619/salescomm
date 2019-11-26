@@ -7,7 +7,8 @@ package com.bdaim.customs.dto;
 public enum BgdSendStatusEnum {
 
     B0("B0","未申报"),
-    BACK("00","退单");
+    BACK("00","退单"),
+    _25("25","退单未申报");
 
     private String code;
     private String name;

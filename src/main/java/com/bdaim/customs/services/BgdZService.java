@@ -607,11 +607,11 @@ public class BgdZService implements BusiService {
             String fdBillNo = singles.get(i).getString("bill_no");
             if (d.get(fdBillNo) != null) {
                 singles.get(i).putAll(d.get(fdBillNo));
-                singles.get(i).put("send_status", BgdSendStatusEnum.B0.getCode());
-                singles.get(i).put("ext_1", BgdSendStatusEnum.B0.getCode());
+                singles.get(i).put("send_status", BgdSendStatusEnum._25.getCode());
+                singles.get(i).put("ext_1", BgdSendStatusEnum._25.getCode());
                 // xml文件名称后缀,用于区分正常和异常再次申报生成的文件
                 singles.get(i).put("fileSuffix", "_F");
-                jdbcTemplate.update(updateSql, BgdSendStatusEnum.B0.getCode(), singles.get(i).toJSONString(), singles.get(i).getString("id"), BusiTypeEnum.BF.getType(), sendStatus);
+                jdbcTemplate.update(updateSql, BgdSendStatusEnum._25.getCode(), singles.get(i).toJSONString(), singles.get(i).getString("id"), BusiTypeEnum.BF.getType(), sendStatus);
                 serviceUtils.updateDataToES(BusiTypeEnum.BF.getType(), singles.get(i).getString("id"), singles.get(i));
             }
         }
