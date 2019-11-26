@@ -58,8 +58,11 @@ public class MainDan {
     private String pack_no;     //件数
     @JsonProperty(value = "GROSS_WT")
     private String gross_wt;    //主单毛重
+    /**
+     * 主单计费重量/申报重量
+     */
     @JsonProperty(value = "CHARGE_WT")
-    private String charge_wt;   //主单计费重量
+    private String charge_wt;
     @JsonProperty(value = "SINGLE_BATCH_NUM")
     private String single_batch_num;    //分单数量
     @JsonProperty(value = "PRODUCT_NUM")
