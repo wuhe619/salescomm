@@ -39,6 +39,15 @@ public class UnicomUtil {
         //handleActivityFile("http://120.52.23.243:10080/voice/group1/M00/41/15/Cr8TfV3BNe7RQEIAAAAUN6qGHL8263.txt", "", "");
     }
 
+    /**
+     * 通过获取名称获取文件地址
+     * @param pwd
+     * @param entId
+     * @param key
+     * @param activityName
+     * @return
+     * @throws Exception
+     */
     public static String getActivityFileUrlByName(String pwd, String entId, String key, String activityName) throws Exception {
         if (StringUtil.isEmpty(activityName)) {
             LOG.warn("获取活动文件url,活动名称不能为空");
