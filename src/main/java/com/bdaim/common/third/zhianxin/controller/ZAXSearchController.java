@@ -48,16 +48,24 @@ public class ZAXSearchController extends BasicAction {
         return resp;
     }
 
-    @GetMapping(value = "/{id}")
-    public ResponseInfo getInfo(@PathVariable(name = "id") String id, @PathVariable(name = "busiType") String busiType, String seaId) {
+    @PostMapping(value = "/{id}")
+    public ResponseInfo getInfo(@PathVariable(name = "id") String id, @PathVariable(name = "busiType") String busiType, @RequestBody(required = false) String body) {
         ResponseInfo resp = new ResponseInfo();
         BaseResult baseResult = null;
+        JSONObject param = null;
+        try {
+            if (body == null || "".equals(body))
+                body = "{}";
+            param = JSONObject.parseObject(body);
+        } catch (Exception e) {
+            return new ResponseInfoAssemble().failure(-1, "记录解析异常:[" + busiType + "]");
+        }
         try {
             long sId = 0L;
-            if (StringUtil.isNotEmpty(seaId)) {
-                sId = NumberConvertUtil.parseLong(seaId);
+            if (StringUtil.isNotEmpty(param.getString("seaId"))) {
+                sId = param.getLongValue("seaId");
             }
-            baseResult = searchListService.getCompanyDetail(id, "", busiType, sId);
+            baseResult = searchListService.getCompanyDetail(id, param, busiType, sId);
         } catch (Exception e) {
             logger.error("查询记录异常,", e);
             return new ResponseInfoAssemble().failure(-1, "查询记录异常[" + busiType + "]");
