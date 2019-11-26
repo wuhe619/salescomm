@@ -16,8 +16,6 @@ import com.bdaim.util.StringUtil;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.List;
 
 @Service
 public class NewCustomerUserService {
@@ -80,9 +78,20 @@ public class NewCustomerUserService {
 
     }
 
-    public Page getCustomerUserList(PageParam page, String custId,JSONObject info) {
-        Page pageData = customerUserDao.pagePropertyByType(page.getPageNum(), page.getPageSize(), Constant.USER_ACTIVE_STATUS, custId,info);
+    public Page getCustomerUserList(PageParam page, String custId, JSONObject info) {
+        Page pageData = customerUserDao.pagePropertyByType(page.getPageNum(), page.getPageSize(), Constant.USER_ACTIVE_STATUS, custId, info);
         return pageData;
     }
+
+    public int delCustomerUserById(String custId, String userId) throws Exception {
+        CustomerUser customerUser = customerUserDao.selectPropertyById(Long.valueOf(userId), custId, 1);
+        if (customerUser == null) {
+            throw new Exception("企业id:[" + custId + "],用户" + userId + "不存在");
+        }
+        customerUser.setStatus(1);
+        customerUserDao.update(customerUser);
+        return 1;
+    }
+
 
 }

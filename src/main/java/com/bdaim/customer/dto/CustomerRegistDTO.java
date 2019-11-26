@@ -116,6 +116,15 @@ public class CustomerRegistDTO implements Serializable {
     private String email_link;
     private String short_msg_link;
     private String api_token;
+    private String industryPictureValue;
+
+    public String getIndustryPictureValue() {
+        return industryPictureValue;
+    }
+
+    public void setIndustryPictureValue(String industryPictureValue) {
+        this.industryPictureValue = industryPictureValue;
+    }
 
     public String getApi_token() {
         return api_token;

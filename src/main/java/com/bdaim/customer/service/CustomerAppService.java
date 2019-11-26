@@ -24,6 +24,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.*;
 
@@ -63,9 +64,11 @@ public class CustomerAppService {
             customer.setEnterpriseName(vo.getEnterpriseName());
             customer.setStatus(Constant.USER_ACTIVE_STATUS);
             customer.setCreateTime(DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss));
+            vo.setCustId(customerId);
+            saveAmApplication(vo, lu);
         }
         customerDao.saveOrUpdate(customer);
-        saveAmApplication(vo, lu);
+
 
         //创建企业附加属性信息
         if (StringUtil.isNotEmpty(vo.getProvince())) {
@@ -144,13 +147,9 @@ public class CustomerAppService {
         }
         if (StringUtil.isNotEmpty(vo.getIndustryPicture())) {
             String custid = customerId;
-            if (StringUtil.isNotEmpty(vo.getCustId())) custid = vo.getCustId();
-            JSONObject jsonObject = JSONObject.parseObject(vo.getIndustryPicture());
-            Iterator<String> iterator = jsonObject.keySet().iterator();
-            while (iterator.hasNext()) {
-                String key = iterator.next();
-                customerDao.dealCustomerInfo(custid, key, jsonObject.getString(key));
-            }
+            if (StringUtil.isNotEmpty(vo.getCustId()) && !"0".equals(vo.getCustId())) custid = vo.getCustId();
+            customerDao.dealCustomerInfo(custid, "industry_picture", vo.getIndustryPicture());
+            customerDao.dealCustomerInfo(custid, "industry_picture_value", vo.getIndustryPictureValue());
         }
         //预警
         if (StringUtil.isNotEmpty(vo.getBalance_warning_config())) {
@@ -207,7 +206,7 @@ public class CustomerAppService {
             }
         }
 
-        return code;
+        return customerId;
     }
 
     public int saveAmApplication(CustomerRegistDTO vo, LoginUser lu) {
@@ -218,7 +217,7 @@ public class CustomerAppService {
         entity.setStatus("APPROVED");
         entity.setName("DefaultApplication");
         entity.setTier("Unlimited");
-
+        entity.setSubscriberId(Integer.valueOf(vo.getCustId()));
         return (int) amApplicationDao.saveReturnPk(entity);
     }
 
@@ -360,6 +359,12 @@ public class CustomerAppService {
                 case "api_token":
                     vo.setApi_token(map.get("property_value").toString());
                     break;
+                case "industry_picture":
+                    vo.setIndustryPicture(map.get("industry_picture").toString());
+                    break;
+                case "industry_picture_value":
+                    vo.setIndustryPictureValue(map.get("industry_picture_value").toString());
+                    break;
             }
         }
 
@@ -434,7 +439,7 @@ public class CustomerAppService {
         });
         Customer customer = customerDao.get(custId);
         map.put("depositList", depositList);
-        map.put("custName", customer.getEnterpriseName());
+        map.put("custName", customer.getEnterpriseName() == null ? "" : customer.getEnterpriseName());
         return map;
     }
 

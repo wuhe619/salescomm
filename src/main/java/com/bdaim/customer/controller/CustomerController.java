@@ -32,6 +32,7 @@ public class CustomerController extends BasicAction {
      */
     @RequestMapping(value = "/info/{custId}", method = RequestMethod.POST)
     public ResponseInfo info(@RequestBody CustomerRegistDTO customerRegistDTO, @PathVariable(name = "custId") String id) {
+        ResponseInfo resp = new ResponseInfo();
         try {
             LoginUser lu = opUser();
             if (!"ROLE_USER".equals(lu.getRole()) && !"admin".equals(lu.getRole())) {
@@ -43,7 +44,8 @@ public class CustomerController extends BasicAction {
             if ("001".equals(code)) {
                 return new ResponseInfoAssemble().failure(-1, customerRegistDTO.getName() + "账号已经存在");
             }
-            return new ResponseInfoAssemble().success(null);
+            resp.setData(code);
+            return resp;
         } catch (Exception e) {
             logger.error("创建企业信息异常", e);
             return new ResponseInfoAssemble().failure(-1, "创建企业失败");

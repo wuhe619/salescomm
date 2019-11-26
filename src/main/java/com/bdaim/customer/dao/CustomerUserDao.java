@@ -594,4 +594,13 @@ public class CustomerUserDao extends SimpleHibernateDao<CustomerUser, Serializab
         return this.page(sql.toString(), params, pageNum, pageSize);
     }
 
+    public CustomerUser selectPropertyById(long userId, String custId, int status) {
+        CustomerUser cp = null;
+        String hql = "from CustomerUser m where m.id=? and m.cust_id=? and m.status <>?";
+        List<CustomerUser> list = this.find(hql, userId, custId, status);
+        if (list.size() > 0)
+            cp = (CustomerUser) list.get(0);
+        return cp;
+    }
+
 }
