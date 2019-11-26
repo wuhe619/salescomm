@@ -1,6 +1,5 @@
 package com.bdaim.customer.service;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.auth.LoginUser;
 import com.bdaim.common.dto.PageParam;
@@ -497,7 +496,9 @@ public class CustomerAppService {
             deposit.setRealname(m.get("realname") == null ? "" : m.get("realname").toString());
             depositList.add(deposit);
         });
+        Customer customer = customerDao.get(custId);
         map.put("depositList", depositList);
+        map.put("custName", customer.getEnterpriseName());
         return map;
     }
 
