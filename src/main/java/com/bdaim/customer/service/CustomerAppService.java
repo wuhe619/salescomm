@@ -23,10 +23,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.sql.Timestamp;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 public class CustomerAppService {
@@ -368,9 +365,9 @@ public class CustomerAppService {
         vo.setCustId(custId);
         vo.setEnterpriseName(customer.getEnterpriseName());
 
-        String sql = "select cust_id,property_name,property_value from t_customer_property";
+        String sql = "select cust_id,property_name,property_value from t_customer_property where cust_id=?";
 
-        List<Map<String, Object>> propertyList = jdbcTemplate.queryForList(sql);
+        List<Map<String, Object>> propertyList = jdbcTemplate.queryForList(sql, custId);
         for (Map<String, Object> map : propertyList) {
             switch (map.get("property_name").toString()) {
                 case "province":
@@ -425,6 +422,9 @@ public class CustomerAppService {
                 case "email_link":
                     vo.setEmail_link(map.get("property_value").toString());
                     break;
+                case "api_token":
+                    vo.setApi_token(map.get("property_value").toString());
+                    break;
             }
         }
 
@@ -437,18 +437,68 @@ public class CustomerAppService {
         CustomerProperty customerProperty = customerDao.getProperty(id, "remain_amount");
         if (customerProperty == null) {
             pre_money = 0;
-            money = Integer.valueOf(deposit.getMoney()).intValue();
-            customerDao.dealCustomerInfo(id, "remain_amount", String.valueOf(money * 10000));
+            money = Integer.valueOf(deposit.getMoney()).intValue() * 10000;
+            customerDao.dealCustomerInfo(id, "remain_amount", String.valueOf(money));
         } else {
             pre_money = Integer.valueOf(customerProperty.getPropertyValue()).intValue();
-            money = Integer.valueOf(deposit.getMoney()).intValue();
-            customerDao.dealCustomerInfo(id, "remain_amount", String.valueOf((pre_money + money) *
-                    10000));
+            money = Integer.valueOf(deposit.getMoney()).intValue() * 10000;
+            customerDao.dealCustomerInfo(id, "remain_amount", String.valueOf((pre_money + money)));
         }
-        String sql = "INSERT INTO am_pay (SUBSCRIBER_ID,MONEY,PAY_TIME,pay_certificate,pre_money) VALUE (?,?,?,?,?) ";
+        String sql = "INSERT INTO am_pay (SUBSCRIBER_ID,MONEY,PAY_TIME,pay_certificate,pre_money,user_id) VALUE (?,?,?,?,?,?) ";
 
-        jdbcTemplate.update(sql, userId, money,DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss),deposit.getPicId(),pre_money);
+        jdbcTemplate.update(sql, id, money, DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss), deposit.getPicId(), pre_money, userId);
         return 0;
+    }
+
+    public Map<String, Object> depositList(PageParam page, String custId) {
+        Map<String, Object> map = new HashMap<>();
+        String sql = "select cust_id,property_name,property_value from t_customer_property where cust_id=?";
+
+        List<Map<String, Object>> propertyList = jdbcTemplate.queryForList(sql, custId);
+        propertyList.stream().forEach(m -> {
+            switch (m.get("property_name").toString()) {
+                case "bank_account":
+                    map.put("bank_account", m.get("property_value"));
+                    break;
+                case "remain_amount":
+                    map.put("remain_amount", Integer.valueOf(m.get("property_value").toString()).intValue() / 10000);
+                    break;
+            }
+        });
+        int pageNum = 1;
+        int pageSize = 10;
+        try {
+            pageNum = page.getPageNum();
+        } catch (Exception e) {
+        }
+        try {
+            pageSize = page.getPageSize();
+        } catch (Exception e) {
+        }
+        if (pageNum <= 0)
+            pageNum = 1;
+        if (pageSize <= 0)
+            pageSize = 10;
+        if (pageSize > 10000)
+            pageSize = 10000;
+
+        String sql1 = "select pay.pay_id,pay.SUBSCRIBER_ID,pay.MONEY,pay.PAY_TIME,pay.pay_certificate,pay.pre_money,pay.user_id ,u.realname as realname from am_pay pay left join  t_customer_user u  on pay.user_id=u.id  where SUBSCRIBER_ID=? order by pay_time";
+        List<Map<String, Object>> payList = jdbcTemplate.queryForList(sql1 + " limit " + (pageNum - 1) * pageSize + ", " + pageSize, custId);
+        List<Deposit> depositList = new ArrayList<>();
+        payList.stream().forEach(m -> {
+            Deposit deposit = new Deposit();
+            deposit.setCustId(m.get("SUBSCRIBER_ID").toString());
+            deposit.setMoney(Integer.valueOf(m.get("MONEY").toString()).intValue() / 10000 + "");
+            deposit.setPayTime(m.get("PAY_TIME").toString());
+            deposit.setId(Integer.valueOf(m.get("pay_id").toString()));
+            deposit.setPicId(m.get("pay_certificate").toString());
+            deposit.setPreMoney(Integer.valueOf(m.get("pre_money").toString()).intValue() / 10000 + "");
+            deposit.setUserId(m.get("user_id").toString());
+            deposit.setRealname(m.get("realname") == null ? "" : m.get("realname").toString());
+            depositList.add(deposit);
+        });
+        map.put("depositList", depositList);
+        return map;
     }
 
 }

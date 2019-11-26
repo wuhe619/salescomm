@@ -1,5 +1,6 @@
 package com.bdaim.customer.controller;
 
+import com.alibaba.fastjson.JSONObject;
 import com.bdaim.auth.LoginUser;
 import com.bdaim.common.annotation.CacheAnnotation;
 import com.bdaim.common.controller.BasicAction;
@@ -107,6 +108,28 @@ public class CustomerController extends BasicAction {
         }
         resp.setData(customerAppService.saveDeposit(deposit, id, user_id));
 
+        return resp;
+    }
+
+    @PostMapping("/deposits")
+    public ResponseInfo deposits(@RequestBody(required = false) String body) {
+        PageParam page = new PageParam();
+        ResponseInfo resp = new ResponseInfo();
+        JSONObject info = null;
+        try {
+            if (body == null || "".equals(body))
+                body = "{}";
+
+            info = JSONObject.parseObject(body);
+        } catch (Exception e) {
+            return new ResponseInfoAssemble().failure(-1, "记录解析异常:");
+        }
+        if (StringUtil.isEmpty(info.get("custId").toString())) {
+            return new ResponseInfoAssemble().failure(-1, "企业id错误");
+        }
+        page.setPageSize(info.getInteger("pageSize") == null ? 0 : info.getIntValue("pageSize"));
+        page.setPageNum(info.getInteger("pageNum") == null ? 10 : info.getIntValue("pageNum"));
+        resp.setData(customerAppService.depositList(page, info.get("custId").toString()));
         return resp;
     }
 
