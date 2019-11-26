@@ -250,6 +250,10 @@ public class BgdZService implements BusiService {
                             js.putAll(info);
                             js.put("bill_no", partyNo);
                         }
+                        // 报关单税单无申报状态字段
+                        if ("_export_bgd_data_return".equals(param.getString("_rule_"))) {
+                            param.remove("send_status");
+                        }
                         List products = serviceUtils.listSdByBillNos(cust_id, BusiTypeEnum.BS.getType(), main_bill_no, partyBillNos, param);
                         log.info("报关单：{}分单数量:{}", main_bill_no, singles);
                         log.info("报关单：{}商品数量:{}", main_bill_no, products);
