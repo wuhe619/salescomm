@@ -136,11 +136,11 @@ public class PhoneService {
     /**
      * 从redis中通过id获取手机号
      *
-     * @param id
+     * @param key
      * @return
      */
-    private String getValueByIdFromRedis(String id) {
-        String value = redisUtil.get(id);
+    private String getValueByIdFromRedis(String key) {
+        String value = redisUtil.get(key);
         return value;
     }
 

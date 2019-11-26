@@ -162,6 +162,17 @@ public class ZAXSearchListService {
         return JSON.parseObject(result, BaseResult.class);
     }
 
+    public BaseResult getCompanyDetail(String companyId, String busiType, JSONObject params) throws Exception {
+        Map<String, Object> headers = new HashMap<>();
+        headers.put("Authorization", TOKEN);
+        //params.put("entName", entName);
+        params.put("companyId", companyId);
+        LOG.info("企业详情地址:{},查询参数:{}", API_URL.replace("{busiType}", BUSI_TYPE.get(busiType)), params);
+        String result = HttpUtil.httpPost(API_URL.replace("{busiType}", BUSI_TYPE.get(busiType)), params.toJSONString(), headers, 30000);
+        LOG.info("企业详情查询接口返回:{}", result);
+        return JSON.parseObject(result, BaseResult.class);
+    }
+
     /**
      * 企业详情
      *
@@ -173,6 +184,16 @@ public class ZAXSearchListService {
      */
     public BaseResult getCompanyDetail(String companyId, String entName, String busiType, long seaId) throws Exception {
         BaseResult baseResult = getCompanyDetail(companyId, entName, busiType);
+        if (baseResult != null && seaId > 0) {
+            //处理公司联系方式是否有意向
+            handleClueFollowStatus(seaId, (JSONObject) baseResult.getData());
+        }
+        return baseResult;
+    }
+
+    public BaseResult getCompanyDetail(String companyId, JSONObject param, String busiType, long seaId) throws Exception {
+        param.put("pageNo", param.getLongValue("pageNum"));
+        BaseResult baseResult = getCompanyDetail(companyId, busiType, param);
         if (baseResult != null && seaId > 0) {
             //处理公司联系方式是否有意向
             handleClueFollowStatus(seaId, (JSONObject) baseResult.getData());

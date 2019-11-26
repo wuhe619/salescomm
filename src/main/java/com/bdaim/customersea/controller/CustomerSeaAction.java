@@ -94,7 +94,7 @@ public class CustomerSeaAction extends BasicAction {
         param.setCustId(opUser().getCustId());
         param.setUserId(opUser().getId());
         param.setUserType(opUser().getUserType());
-        Page page = seaService.page(param, param.getPageNum(), param.getPageSize());
+        Page page = seaService.pagePublic(param, param.getPageNum(), param.getPageSize());
         responseJson.setData(getPageData(page));
         responseJson.setCode(200);
         return responseJson;
@@ -709,6 +709,7 @@ public class CustomerSeaAction extends BasicAction {
      */
     @RequestMapping(value = "/updateClueStatus/list", method = RequestMethod.POST)
     public ResponseJson updateClueListStatus(@RequestBody JSONObject jsonObject) {
+        LOG.info("开始调用");
         ResponseJson responseJson = new ResponseJson();
         CustomerSeaSearch param = JSON.parseObject(jsonObject.toJSONString(), CustomerSeaSearch.class);
         if (StringUtil.isEmpty(param.getSeaId())) {
@@ -721,7 +722,7 @@ public class CustomerSeaAction extends BasicAction {
             responseJson.setCode(-1);
             return responseJson;
         }
-        String operate = jsonObject.getString("operate");
+        int operate = jsonObject.getInteger("operate");
         int data = 0;
         try {
             param.setUserId(opUser().getId());
@@ -809,6 +810,5 @@ public class CustomerSeaAction extends BasicAction {
         responseJson.setData(data);
         return responseJson;
     }
-
 
 }

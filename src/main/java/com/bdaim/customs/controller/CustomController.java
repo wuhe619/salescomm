@@ -14,6 +14,7 @@ import com.bdaim.customs.entity.HDic;
 import com.bdaim.customs.entity.MainDan;
 import com.bdaim.customs.services.CustomsService;
 import com.bdaim.customs.services.ExportExcelService;
+import com.bdaim.util.ExcelUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -231,6 +232,7 @@ public class CustomController extends BasicAction {
 
     /**
      * 字典分页
+     *
      * @param pageSize
      * @param pageNum
      * @param param
@@ -490,6 +492,29 @@ public class CustomController extends BasicAction {
             responseJson.setMessage("SUCCESS");
         } catch (Exception e) {
             e.printStackTrace();
+            responseJson.setCode(-1);
+            responseJson.setMessage("查询失败");
+        } finally {
+            return responseJson;
+        }
+    }
+
+    @RequestMapping(value = "/readExcel", method = RequestMethod.POST)
+    public ResponseJson readExcel(HttpServletRequest request) {
+        ResponseJson responseJson = new ResponseJson();
+        try {
+            Map data = null;
+            MultipartHttpServletRequest multiRequest = (MultipartHttpServletRequest) request;
+            Iterator<String> iter = multiRequest.getFileNames();
+            while (iter.hasNext()) {
+                MultipartFile multiRequestFile = multiRequest.getFile(iter.next());
+                data = ExcelUtil.readExcel(multiRequestFile);
+                break;
+            }
+            responseJson.setData(data);
+            responseJson.setCode(200);
+            responseJson.setMessage("SUCCESS");
+        } catch (Exception e) {
             responseJson.setCode(-1);
             responseJson.setMessage("查询失败");
         } finally {

@@ -7,20 +7,20 @@ import com.bdaim.common.service.BusiService;
 import com.bdaim.common.service.ElasticSearchService;
 import com.bdaim.common.service.SequenceService;
 import com.bdaim.customer.dao.CustomerDao;
-import com.bdaim.customs.entity.BusiTypeEnum;
-import com.bdaim.customs.entity.Constants;
-import com.bdaim.customs.entity.HBusiDataManager;
-import com.bdaim.customs.entity.HMetaDataDef;
+import com.bdaim.customs.dto.BgdSendStatusEnum;
+import com.bdaim.customs.entity.*;
 import com.bdaim.customs.utils.ServiceUtils;
+import com.bdaim.util.BigDecimalUtil;
 import com.bdaim.util.StringUtil;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
 import java.util.*;
 
 /***
@@ -205,6 +205,9 @@ public class BgdZService implements BusiService {
                 jdbcTemplate.update(updateSql, jo.toJSONString(), m.get("id"), BusiTypeEnum.BF.getType());
                 serviceUtils.updateDataToES(BusiTypeEnum.BF.getType(), String.valueOf(m.get("id")), jo);
             }
+        } else if ("bgd_data_abnormal_handle".equals(info.getString("_rule_"))) {
+            // 处理异常报关单,更新报关单信息
+            handleAbnormalDan(busiType, cust_id, cust_group_id, cust_user_id, id, info);
         } else {
             HBusiDataManager dbManager = serviceUtils.getObjectByIdAndType(cust_id, id, busiType);
             if (dbManager == null) {
@@ -225,13 +228,19 @@ public class BgdZService implements BusiService {
 
     @Override
     public void doInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info, JSONObject param) {
-        if (StringUtil.isNotEmpty(param.getString("_rule_")) && param.getString("_rule_").startsWith("_export")) {
+        if (StringUtil.isNotEmpty(param.getString("_rule_"))
+                && param.getString("_rule_").startsWith("_export")) {
             info.put("export_type", 2);
             switch (param.getString("_rule_")) {
                 case "_export_bgd_z_main_data":
+                case "_export_bgd_data_return":
+                    // 只查询退单
+                    if ("_export_bgd_data_return".equals(param.getString("_rule_"))) {
+                        param.put("send_status", "00");
+                    }
                     List singles = queryChildData(BusiTypeEnum.BF.getType(), cust_id, cust_group_id, cust_user_id, id, info, param);
 
-                    if (singles != null) {
+                    if (singles != null && singles.size() > 0) {
                         JSONObject js, product;
                         String main_bill_no = "", partyNo = "";
                         List partyBillNos = new ArrayList();
@@ -243,6 +252,10 @@ public class BgdZService implements BusiService {
                             main_bill_no = js.getString("ext_4");
                             js.putAll(info);
                             js.put("bill_no", partyNo);
+                        }
+                        // 报关单税单无申报状态字段
+                        if ("_export_bgd_data_return".equals(param.getString("_rule_"))) {
+                            param.remove("send_status");
                         }
                         List products = serviceUtils.listSdByBillNos(cust_id, BusiTypeEnum.BS.getType(), main_bill_no, partyBillNos, param);
                         log.info("报关单：{}分单数量:{}", main_bill_no, singles);
@@ -319,7 +332,7 @@ public class BgdZService implements BusiService {
         String sql = "update " + HMetaDataDef.getTable(h.getType(), "") + " set content=? "
                 + " ,ext_1='Y'"
                 + " where id=" + h.getId() + " and type='" + h.getType() + "'";
-        jdbcTemplate.update(sql,jon.toJSONString());
+        jdbcTemplate.update(sql, jon.toJSONString());
         CZ.setContent(info.toJSONString());
         dataList.add(CZ);
         List<HBusiDataManager> parties = serviceUtils.getDataList(BusiTypeEnum.SF.getType(), info.getLong("fromSbzId"));
@@ -399,7 +412,7 @@ public class BgdZService implements BusiService {
         String sql = "update " + HMetaDataDef.getTable(h.getType(), "") + " set content=? "
                 + " ,ext_1='Y'"
                 + " where id=" + h.getId() + " and type='" + h.getType() + "'";
-        jdbcTemplate.update(sql,jon.toJSONString());
+        jdbcTemplate.update(sql, jon.toJSONString());
         bgdMain.setContent(info.toJSONString());
         dataList.add(bgdMain);
 
@@ -428,7 +441,7 @@ public class BgdZService implements BusiService {
         List<HBusiDataManager> goodList;
         HBusiDataManager good, hm;
         for (HBusiDataManager hp : parties) {
-            log.info("fendan: "+JSONObject.toJSONString(hp));
+            log.info("fendan: " + JSONObject.toJSONString(hp));
             hm = new HBusiDataManager();
             hm.setType(BusiTypeEnum.BF.getType());
             hm.setCreateDate(new Date());
@@ -460,7 +473,7 @@ public class BgdZService implements BusiService {
                     sdContent.put("pid", hp.getId());
                     sdContent.put("index", index);
                     sdContent.put("opt_type", "ADD");
-                    sdContent.put("curr_code",_content.getString("curr_code"));
+                    sdContent.put("curr_code", _content.getString("curr_code"));
                     good.setContent(sdContent.toJSONString());
                     good.setType(BusiTypeEnum.BS.getType());
                     good.setCreateId(gp.getCreateId());
@@ -552,6 +565,94 @@ public class BgdZService implements BusiService {
             data.add(jo);
         }
         return data;
+    }
+
+    /**
+     * @param busiType
+     * @param cust_id
+     * @param cust_group_id
+     * @param cust_user_id
+     * @param id
+     * @param info
+     * @throws Exception
+     */
+    private void handleAbnormalDan(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) throws Exception {
+        //处理异常报关单
+        String sendStatus = info.getString("send_status");
+        if (StringUtil.isEmpty(sendStatus)) {
+            log.warn("报关单{}申报状态字段不能为空", id);
+            throw new TouchException("申报状态字段不能为空");
+        }
+        MainDan mainDan = JSON.parseObject(info.toJSONString(), MainDan.class);
+        List<PartyDan> fdList = mainDan.getSingles();
+        if (fdList == null || fdList.size() == 0) {
+            log.warn("报关单主单:{},申报状态:{}异常报关单分单为空", id, sendStatus);
+            return;
+        }
+        Map<String, JSONObject> d = new HashMap();
+        for (PartyDan f : fdList) {
+            d.put(f.getBill_no(), JSON.parseObject(JSON.toJSONString(f)));
+        }
+        JSONObject param = new JSONObject();
+        param.put("send_status", sendStatus);
+        // 按照send_status查询分单列表
+        List<JSONObject> singles = queryChildData(BusiTypeEnum.BF.getType(), cust_id, cust_group_id, cust_user_id, id, info, param);
+        if (singles == null || singles.size() == 0) {
+            log.warn("报关单主单:{},申报状态:{}未查询到异常报关单分单", id, sendStatus);
+            return;
+        }
+        // 更新分单信息
+        String updateSql = " UPDATE " + HMetaDataDef.getTable(BusiTypeEnum.BF.getType(), "") + " SET ext_1 = ?, ext_date1 = NOW(), content=? WHERE id=? AND type = ? AND ext_1 =? ";
+        for (int i = 0; i < singles.size(); i++) {
+            String fdBillNo = singles.get(i).getString("bill_no");
+            if (d.get(fdBillNo) != null) {
+                singles.get(i).putAll(d.get(fdBillNo));
+                singles.get(i).put("send_status", BgdSendStatusEnum._25.getCode());
+                singles.get(i).put("ext_1", BgdSendStatusEnum._25.getCode());
+                // xml文件名称后缀,用于区分正常和异常再次申报生成的文件
+                singles.get(i).put("fileSuffix", "_F");
+                jdbcTemplate.update(updateSql, BgdSendStatusEnum._25.getCode(), singles.get(i).toJSONString(), singles.get(i).getString("id"), BusiTypeEnum.BF.getType(), sendStatus);
+                serviceUtils.updateDataToES(BusiTypeEnum.BF.getType(), singles.get(i).getString("id"), singles.get(i));
+            }
+        }
+        // 统计报关单主单重量
+        totalMainDanWeightTotal(id, cust_id);
+    }
+
+    /**
+     * 统计报关单主单重量
+     *
+     * @param zid
+     * @param custId
+     */
+    public void totalMainDanWeightTotal(long zid, String custId) {
+        List<HBusiDataManager> data = serviceUtils.listDataByPid(custId, BusiTypeEnum.BF.getType(), zid, BusiTypeEnum.BZ.getType());
+        BigDecimal weightTotal = new BigDecimal("0.0");
+        for (HBusiDataManager d : data) {
+            String content = d.getContent();
+            JSONObject json = JSONObject.parseObject(content);
+            String weight = json.getString("weight");
+            if (StringUtil.isEmpty(weight)) {
+                weight = "0";
+            }
+            weightTotal = weightTotal.add(new BigDecimal(weight));
+        }
+        HBusiDataManager manager = null;
+        try {
+            manager = serviceUtils.getObjectByIdAndType(custId, zid, BusiTypeEnum.BZ.getType());
+        } catch (EmptyResultDataAccessException e) {
+            log.warn("查询主单:{},type:{}失败", zid, BusiTypeEnum.BZ.getType());
+        }
+        String hcontent = manager.getContent();
+        JSONObject jsonObject = JSONObject.parseObject(hcontent);
+        weightTotal = BigDecimalUtil.roundingValue(weightTotal, BigDecimal.ROUND_DOWN, 5);
+        //总重量
+        jsonObject.put("weight_total", weightTotal.doubleValue());
+        manager.setContent(jsonObject.toJSONString());
+        String sql = " update " + HMetaDataDef.getTable(BusiTypeEnum.BZ.getType(), "") + " set content=? where id=?  and type=?";
+        jdbcTemplate.update(sql, jsonObject.toJSONString(), zid, BusiTypeEnum.BZ.getType());
+        serviceUtils.updateDataToES(BusiTypeEnum.BZ.getType(), String.valueOf(zid), jsonObject);
+
     }
 
 }

@@ -1,5 +1,6 @@
 package com.bdaim.customer.controller;
 
+import com.alibaba.fastjson.JSONObject;
 import com.bdaim.auth.LoginUser;
 import com.bdaim.common.annotation.CacheAnnotation;
 import com.bdaim.common.controller.BasicAction;
@@ -7,7 +8,9 @@ import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.customer.dto.CustomerRegistDTO;
+import com.bdaim.customer.dto.Deposit;
 import com.bdaim.customer.service.CustomerAppService;
+import com.bdaim.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
@@ -48,11 +51,85 @@ public class CustomerController extends BasicAction {
 
     }
 
+    /**
+     * 查询企业客户列表
+     *
+     * @param page
+     * @param account
+     * @param name
+     * @param contactPerson
+     * @param salePerson
+     * @return
+     */
     @PostMapping("/infos")
-    public ResponseInfo queryList(@Valid PageParam page,String account,String name,String contactPerson,String salePerson) {
+    public ResponseInfo queryList(@RequestBody @Valid PageParam page, String account, String name, String contactPerson, String salePerson) {
         ResponseInfo resp = new ResponseInfo();
         String customerId = opUser().getCustId();
-        customerAppService.getUser(page,customerId,account,name,contactPerson,salePerson);
+        resp.setData(customerAppService.getUser(page, customerId, account, name, contactPerson, salePerson));
+        return resp;
+    }
+
+    @DeleteMapping("/info/{custId}")
+    public ResponseInfo delete(@PathVariable(name = "custId") String id) throws Exception {
+        ResponseInfo resp = new ResponseInfo();
+        if (StringUtil.isEmpty(id)) {
+            return new ResponseInfoAssemble().failure(-1, "企业id为空");
+        }
+        resp.setData(customerAppService.delCust(Long.valueOf(id)));
+        return resp;
+    }
+
+    /**
+     * @Title: regist
+     * @Description: 查看企业客户详情
+     */
+    @GetMapping(value = "/info/{custId}")
+    public ResponseInfo query(@RequestBody CustomerRegistDTO customerRegistDTO, @PathVariable(name = "custId") String id) {
+        ResponseInfo resp = new ResponseInfo();
+        try {
+            if (StringUtil.isEmpty(id) || "0".equals(id)) {
+                return new ResponseInfoAssemble().failure(-1, "企业id错误");
+            }
+            resp.setData(customerAppService.queryByCust(id));
+            return resp;
+        } catch (Exception e) {
+            logger.error("企业查询失败", e);
+            return new ResponseInfoAssemble().failure(-1, "企业查询失败");
+        }
+
+    }
+
+    @PostMapping("/deposit/{custId}")
+    public ResponseInfo saveDeposit(@RequestBody @Valid Deposit deposit, @PathVariable(name = "custId") String id) {
+        ResponseInfo resp = new ResponseInfo();
+        String user_id = opUser().getUser_id();
+        if (StringUtil.isEmpty(id) || "0".equals(id)) {
+            return new ResponseInfoAssemble().failure(-1, "企业id错误");
+        }
+        resp.setData(customerAppService.saveDeposit(deposit, id, user_id));
+
+        return resp;
+    }
+
+    @PostMapping("/deposits")
+    public ResponseInfo deposits(@RequestBody(required = false) String body) {
+        PageParam page = new PageParam();
+        ResponseInfo resp = new ResponseInfo();
+        JSONObject info = null;
+        try {
+            if (body == null || "".equals(body))
+                body = "{}";
+
+            info = JSONObject.parseObject(body);
+        } catch (Exception e) {
+            return new ResponseInfoAssemble().failure(-1, "记录解析异常:");
+        }
+        if (StringUtil.isEmpty(info.get("custId").toString())) {
+            return new ResponseInfoAssemble().failure(-1, "企业id错误");
+        }
+        page.setPageSize(info.getInteger("pageSize") == null ? 0 : info.getIntValue("pageSize"));
+        page.setPageNum(info.getInteger("pageNum") == null ? 10 : info.getIntValue("pageNum"));
+        resp.setData(customerAppService.depositList(page, info.get("custId").toString()));
         return resp;
     }
 

@@ -226,4 +226,5 @@ public class CustomerSeaDao extends SimpleHibernateDao<CustomerSea, Long> {
         });
         return status.length;
     }
+
 }
