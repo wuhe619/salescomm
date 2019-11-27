@@ -367,10 +367,10 @@ public class CustomerAppService {
                     vo.setEmail_link(map.get("property_value").toString());
                     break;
                 case "industry_picture":
-                    vo.setIndustryPicture(map.get("industry_picture").toString());
+                    vo.setIndustryPicture(map.get("property_value").toString());
                     break;
                 case "industry_picture_value":
-                    vo.setIndustryPictureValue(map.get("industry_picture_value").toString());
+                    vo.setIndustryPictureValue(map.get("property_value").toString());
                     break;
             }
         }
