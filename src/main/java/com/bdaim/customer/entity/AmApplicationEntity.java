@@ -14,7 +14,7 @@ public class AmApplicationEntity implements Serializable {
     @Column(name = "NAME")
     private String name;
     @Column(name = "SUBSCRIBER_ID")
-    private int subscriberId;
+    private long subscriberId;
     @Column(name = "APPLICATION_TIER")
     private String tier;
     @Column(name = "CALLBACK_URL")
@@ -52,11 +52,11 @@ public class AmApplicationEntity implements Serializable {
         this.name = name;
     }
 
-    public int getSubscriberId() {
+    public long getSubscriberId() {
         return subscriberId;
     }
 
-    public void setSubscriberId(int subscriberId) {
+    public void setSubscriberId(long subscriberId) {
         this.subscriberId = subscriberId;
     }
 

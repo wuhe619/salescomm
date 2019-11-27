@@ -3,6 +3,7 @@ package com.bdaim.supplier.dao;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.dao.SimpleHibernateDao;
 import com.bdaim.common.dto.Page;
+import com.bdaim.customer.entity.CustomerProperty;
 import com.bdaim.resource.dto.MarketResourceLogDTO;
 import com.bdaim.resource.entity.MarketResourceEntity;
 import com.bdaim.resource.entity.ResourcePropertyEntity;
@@ -19,6 +20,7 @@ import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -275,4 +277,21 @@ public class SupplierDao extends SimpleHibernateDao<SupplierEntity, Integer> {
         return this.find(sql.toString());
     }
 
+    /**
+     * 企业属性编辑与新增
+     */
+    public void dealCustomerInfo(String supplierId, String propertyName, String propertyValue) {
+        SupplierPropertyEntity propertyInfo = this.getProperty(supplierId, propertyName);
+        if (propertyInfo == null) {
+            propertyInfo = new SupplierPropertyEntity();
+            propertyInfo.setCreateTime(new Timestamp(new Date().getTime()));
+            propertyInfo.setSupplierId(supplierId);
+            propertyInfo.setPropertyValue(propertyValue);
+            logger.info(supplierId + " 属性不存在，新建该属性" + "\tpropertyName:" + propertyName + "\tpropertyValue:" + propertyValue);
+            propertyInfo.setPropertyName(propertyName);
+        } else {
+            propertyInfo.setPropertyValue(propertyValue);
+        }
+        this.saveOrUpdate(propertyInfo);
+    }
 }

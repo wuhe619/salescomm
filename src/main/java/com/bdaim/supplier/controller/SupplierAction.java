@@ -5,6 +5,7 @@ import com.bdaim.auth.LoginUser;
 import com.bdaim.bill.dto.CustomerBillQueryParam;
 import com.bdaim.common.annotation.ValidatePermission;
 import com.bdaim.common.controller.BasicAction;
+import com.bdaim.common.dto.Deposit;
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.exception.ParamException;
@@ -18,10 +19,8 @@ import com.bdaim.supplier.dto.SupplierDTO;
 import com.bdaim.supplier.service.SupplierService;
 import com.bdaim.util.NumberConvertUtil;
 import com.bdaim.util.StringUtil;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,7 +29,10 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 供应商
@@ -695,10 +697,11 @@ public class SupplierAction extends BasicAction {
         return resp;
     }
 
-    public ResponseInfo supplierDeposit(){
+    @PostMapping("/deposit/{supplierId}")
+    public ResponseInfo supplierDeposit(@PathVariable(name = "supplierId", required = false) Integer id,@Valid Deposit deposit) {
         ResponseInfo resp = new ResponseInfo();
 
-        return null;
+        return resp;
     }
 
 

@@ -13,6 +13,7 @@ import com.bdaim.bill.dto.CustomerBillQueryParam;
 import com.bdaim.bill.dto.TransactionTypeEnum;
 import com.bdaim.bill.service.TransactionService;
 import com.bdaim.callcenter.dto.CustomCallConfigDTO;
+import com.bdaim.common.dto.Deposit;
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.customer.dao.CustomerDao;
@@ -43,6 +44,7 @@ import com.bdaim.util.StringUtil;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -80,6 +82,9 @@ public class SupplierService {
     private MarketResourceDao marketResourceDao;
     @Resource
     private TransactionService transactionService;
+
+    @Resource
+    private JdbcTemplate jdbcTemplate;
 
     public List<Map<String, Object>> listNoloseAllSupplier() {
         List<Map<String, Object>> result = new ArrayList<>();
@@ -2268,7 +2273,39 @@ public class SupplierService {
         }).collect(Collectors.toList());
 
     }
+//    public int saveDeposit(com.bdaim.customer.dto.Deposit deposit, String id, String userId) {
+//        int pre_money, money;
+//
+//        CustomerProperty customerProperty = customerDao.getProperty(id, "remain_amount");
+//        if (customerProperty == null) {
+//            pre_money = 0;
+//            money = Integer.valueOf(deposit.getMoney()).intValue() * 10000;
+//            customerDao.dealCustomerInfo(id, "remain_amount", String.valueOf(money));
+//        } else {
+//            pre_money = Integer.valueOf(customerProperty.getPropertyValue()).intValue();
+//            money = Integer.valueOf(deposit.getMoney()).intValue() * 10000;
+//            customerDao.dealCustomerInfo(id, "remain_amount", String.valueOf((pre_money + money)));
+//        }
+//        String sql = "INSERT INTO am_pay (SUBSCRIBER_ID,MONEY,PAY_TIME,pay_certificate,pre_money,user_id) VALUE (?,?,?,?,?,?) ";
+//
+//        jdbcTemplate.update(sql, id, money, DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss), deposit.getPicId(), pre_money, userId);
+//        return 0;
+//    }
 
+    public int supplierDeposit(Deposit deposit) {
+        int pre_money;
+        int money = Integer.valueOf(deposit.getMoney()).intValue() * 10000;
+        SupplierPropertyEntity supplierPropertyEntity = supplierDao.getProperty(String.valueOf(deposit.getId()), "remain_amount");
+        if (supplierPropertyEntity == null) {
+            pre_money = 0;
+            supplierDao.dealCustomerInfo(String.valueOf(deposit.getId()), "remain_amount", deposit.getMoney());
+        } else {
+            pre_money = Integer.valueOf(supplierPropertyEntity.getPropertyValue()).intValue() * 10000;
+            supplierDao.dealCustomerInfo(String.valueOf(deposit.getId()), "remain_amount", String.valueOf((pre_money + money)));
+        }
+
+        return 1;
+    }
 
 }
 
