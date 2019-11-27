@@ -79,6 +79,8 @@ public class ZAXSearchListService {
         put("1037", "C1037_test");
         put("1038", "C1038_test");
         put("1039", "C1039_test");
+        put("1040", "C1040_test");
+        put("1041", "C1041_test");
     }};
 
     @Autowired
