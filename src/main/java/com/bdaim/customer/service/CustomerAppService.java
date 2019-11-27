@@ -351,9 +351,9 @@ public class CustomerAppService {
                 case "brand":
                     vo.setBrand(map.get("property_value").toString());
                     break;
-                case "mobile_num":
-                    vo.setMobile(map.get("property_value").toString());
-                    break;
+//                case "mobile_num":
+//                    vo.setMobile(map.get("property_value").toString());
+//                    break;
                 case "create_id":
                     vo.setCreateId(map.get("property_value").toString());
                     break;
@@ -368,7 +368,9 @@ public class CustomerAppService {
                     break;
                 case "industry_picture":
                 case "inten_industry":
-                    vo.setIntenIndustry(map.get("property_value").toString());
+                    if(map.get("property_value")==null) {
+                        vo.setIntenIndustry(map.get("property_value").toString());
+                    }
                     break;
                 case "industry_picture_value":
                     vo.setIndustryPictureValue(map.get("property_value").toString());
