@@ -96,7 +96,7 @@ public class CustomerRegistDTO implements Serializable {
     /**
      * 行业画像
      */
-    private String industryPicture;
+    private String intenIndustry;
 
     /**
      * 所属品牌
@@ -183,12 +183,12 @@ public class CustomerRegistDTO implements Serializable {
         this.brand = brand;
     }
 
-    public String getIndustryPicture() {
-        return industryPicture;
+    public String getIntenIndustry() {
+        return intenIndustry;
     }
 
-    public void setIndustryPicture(String industryPicture) {
-        this.industryPicture = industryPicture;
+    public void setIntenIndustry(String intenIndustry) {
+        this.intenIndustry = intenIndustry;
     }
 
     public String getInput_no() {

@@ -152,12 +152,12 @@ public class CustomerAppService {
                 customerDao.dealCustomerInfo(customerId, "industry", vo.getIndustry());
             }
         }
-        if (StringUtil.isNotEmpty(vo.getIndustryPicture())) {
+        if (StringUtil.isNotEmpty(vo.getIntenIndustry())) {
             if (StringUtil.isNotEmpty(vo.getCustId())) {
-                customerDao.dealCustomerInfo(vo.getCustId(), "industry_picture", vo.getIndustryPicture());
+                customerDao.dealCustomerInfo(vo.getCustId(), "inten_industry", vo.getIntenIndustry());
                 customerDao.dealCustomerInfo(vo.getCustId(), "industry_picture_value", vo.getIndustryPictureValue());
             } else {
-                customerDao.dealCustomerInfo(customerId, "industry_picture", vo.getIndustryPicture());
+                customerDao.dealCustomerInfo(customerId, "inten_industry", vo.getIntenIndustry());
                 customerDao.dealCustomerInfo(customerId, "industry_picture_value", vo.getIndustryPictureValue());
             }
         }
@@ -367,7 +367,8 @@ public class CustomerAppService {
                     vo.setEmail_link(map.get("property_value").toString());
                     break;
                 case "industry_picture":
-                    vo.setIndustryPicture(map.get("property_value").toString());
+                case "inten_industry":
+                    vo.setIntenIndustry(map.get("property_value").toString());
                     break;
                 case "industry_picture_value":
                     vo.setIndustryPictureValue(map.get("property_value").toString());
