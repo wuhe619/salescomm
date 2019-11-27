@@ -27,6 +27,7 @@ import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class CustomerAppService {
@@ -232,45 +233,11 @@ public class CustomerAppService {
     }
 
 
-    public PageList getUser(PageParam page, String customerId, String account, String name, String contactPerson, String salePerson) {
+    public Object getUser(PageParam page, String customerId, String account, String name, String contactPerson, String salePerson) {
         StringBuffer sql = new StringBuffer();
-
-
-        sql.append("  SELECT  CAST(s.id AS CHAR) id,s.cust_id,s.user_type, s.account AS account,s.password AS PASSWORD,s.realname AS contactPerson,cjc.cuc_minute seatMinute,\n" +
-                "s.status as STATUS,cjc.mobile_num AS mobile_num,cjc.cuc_seat AS cuc_seat,cjc.declare_no,cjc.input_no,cjc.xz_seat AS xz_seat ,tc.title as title,tc.enterprise_name as name, cjc.user_id as suerId ," +
-                "pro.province as province ,pro.city as city,pro.country as country,pro.taxPayerId as taxPayerId,pro.bliPath as bliPath,pro.bank as bank,pro.bankAccount as bankAccount,\n" +
-                "pro.bankAccountCertificate as bankAccountCertificate,pro.industry as industry,pro.salePerson as salePerson,pro.address as address,pro.brand as brand,pro.station_id as stationId,pro.api_token as apiToken,pro.remain_amount as remainAmount,pro.used_amount as userAmount,pro.mobile" +
-                " FROM t_customer_user s\n" +
-                " LEFT JOIN (SELECT user_id, \n" +
-                " MAX(CASE property_name WHEN 'mobile_num'  THEN property_value ELSE '' END ) mobile_num, \n" +
-                " MAX(CASE property_name WHEN 'cuc_seat'    THEN property_value ELSE '' END ) cuc_seat,\n" +
-                " MAX(CASE property_name WHEN 'xz_seat'    THEN property_value ELSE '' END ) xz_seat, \n" +
-                " MAX(CASE property_name WHEN 'cuc_minute'  THEN property_value ELSE '0' END ) cuc_minute, \n" +
-                " MAX(CASE property_name WHEN 'declare_no'  THEN property_value ELSE '0' END ) declare_no, \n" +
-                " MAX(CASE property_name WHEN 'input_no'  THEN property_value ELSE '0' END ) input_no \n" +
-//                " MAX(CASE property_name WHEN 'resource'    THEN property_value ELSE '' END ) resource \n" +
-                " FROM t_customer_user_property p GROUP BY user_id \n" +
-                ") cjc ON s.id = cjc.user_id LEFT JOIN  t_customer tc ON s.cust_id=tc.cust_id " +
-                "LEFT JOIN (SELECT cust_id,\n" +
-                " MAX(CASE property_name WHEN 'province'    THEN property_value ELSE '' END ) province, \n" +
-                " MAX(CASE property_name WHEN 'mobile'    THEN property_value ELSE '' END ) mobile, \n" +
-                " MAX(CASE property_name WHEN 'city'    THEN property_value ELSE '' END ) city, \n" +
-                " MAX(CASE property_name WHEN 'country'    THEN property_value ELSE '' END ) country, \n" +
-                " MAX(CASE property_name WHEN 'taxpayer_id'    THEN property_value ELSE '' END  )taxPayerId, \n" +
-                " MAX( CASE property_name WHEN 'bli_path'    THEN property_value ELSE '' END  )bliPath, \n" +
-                " MAX(CASE property_name WHEN 'bank'    THEN property_value ELSE '' END ) bank, \n" +
-                " MAX(CASE property_name WHEN 'bank_account'    THEN property_value ELSE '' END ) bankAccount, \n" +
-                " MAX(CASE property_name WHEN 'bank_account_certificate'    THEN property_value ELSE '' END ) bankAccountCertificate, \n" +
-                " MAX(CASE property_name WHEN 'industry'    THEN property_value ELSE '' END  )industry, \n" +
-                " MAX(CASE property_name WHEN 'sale_person'    THEN property_value ELSE '' END ) salePerson, \n" +
-                " MAX( CASE property_name WHEN 'reg_address'    THEN property_value ELSE ''END ) address, \n" +
-                " MAX(CASE property_name WHEN 'brand'    THEN property_value ELSE '' END ) brand,\n" +
-                " MAX(CASE property_name WHEN 'station_id'  THEN property_value ELSE '' END ) station_id, \n" +
-                " MAX(CASE property_name WHEN 'api_token'  THEN property_value ELSE '' END ) api_token ,\n" +
-                " MAX(CASE property_name WHEN 'remain_amount'  THEN property_value ELSE '' END ) remain_amount ,\n" +
-                " MAX(CASE property_name WHEN 'used_amount'  THEN property_value ELSE '' END ) used_amount \n" +
-                "FROM t_customer_property  )pro ON s.cust_id=pro.cust_id " +
-                "WHERE 1=1  AND s.STATUS <> 2 ");
+        sql.append("SELECT  CAST(s.id AS CHAR) id,s.cust_id,s.user_type, s.account AS account,s.password AS PASSWORD,s.realname AS contactPerson,tc.title as title,tc.enterprise_name as name" +
+                " FROM t_customer_user s LEFT JOIN t_customer tc ON s.cust_id=tc.cust_id  " +
+                " WHERE 1=1  AND s.STATUS <> 2");
         if (StringUtil.isNotEmpty(account)) {
             sql.append(" AND s.account = '" + account + "'");
         }
@@ -282,7 +249,23 @@ public class CustomerAppService {
         }
 
         PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
-        return list;
+        return list.getList().stream().map(m -> {
+            Map map = (Map) m;
+
+            if (StringUtil.isEmpty(map.get("cust_id").toString())) {
+                return map;
+            }
+            String cust_id = map.get("cust_id").toString();
+            CustomerProperty mobile = customerDao.getProperty(cust_id, "mobile");
+            if (mobile != null) {
+                map.put("mobile", mobile.getPropertyValue());
+            }
+            CustomerProperty sale_person = customerDao.getProperty(cust_id, "sale_person");
+            if (sale_person != null) {
+                map.put("sale_person", sale_person.getPropertyValue());
+            }
+            return map;
+        }).collect(Collectors.toList());
     }
 
     public long delCust(long custId) throws Exception {
