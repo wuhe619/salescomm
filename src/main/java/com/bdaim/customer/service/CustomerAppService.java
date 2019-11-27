@@ -233,7 +233,7 @@ public class CustomerAppService {
     }
 
 
-    public Object getUser(PageParam page, String customerId, String account, String name, String contactPerson, String salePerson) {
+    public Map<String ,Object> getUser(PageParam page, String customerId, String account, String name, String contactPerson, String salePerson) {
         StringBuffer sql = new StringBuffer();
         sql.append("SELECT  CAST(s.id AS CHAR) id,s.cust_id,s.user_type, s.account AS account,s.password AS PASSWORD,s.realname AS contactPerson,tc.title as title,tc.enterprise_name as name" +
                 " FROM t_customer_user s LEFT JOIN t_customer tc ON s.cust_id=tc.cust_id  " +
@@ -249,7 +249,7 @@ public class CustomerAppService {
         }
 
         PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
-        return list.getList().stream().map(m -> {
+        Object collect = list.getList().stream().map(m -> {
             Map map = (Map) m;
 
             if (StringUtil.isEmpty(map.get("cust_id").toString())) {
@@ -266,6 +266,10 @@ public class CustomerAppService {
             }
             return map;
         }).collect(Collectors.toList());
+        Map<String ,Object> map=new HashMap<>();
+        map.put("data",collect);
+        map.put("total",list.getTotal());
+        return map;
     }
 
     public long delCust(long custId) throws Exception {
