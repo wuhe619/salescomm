@@ -4322,7 +4322,7 @@ public class CustomerSeaService {
             CustomerUser user;
             List<CustomerSeaProperty> properties;
             List<Map<String, Object>> stat;
-            String statSql = "SELECT COUNT(status=0 OR null) sumCount,IFNULL(COUNT(super_data like ''%\"SYS007\":\"未跟进\"%'' AND status = 0 OR null),0) AS noFollowSum, IFNULL(COUNT(`status` = 1 OR null),0) AS clueSurplusSum, IFNULL(COUNT(`call_fail_count` >= 1 OR null),0) AS failCallSum FROM " + ConstantsUtil.SEA_TABLE_PREFIX + "{0} WHERE 1=1 '";
+            String statSql = "SELECT COUNT(status=0 OR null) sumCount,IFNULL(COUNT(super_data->>'$.SYS007' like '%未跟进%' AND status = 0 OR null),0) AS noFollowSum, IFNULL(COUNT(`status` = 1 OR null),0) AS clueSurplusSum, IFNULL(COUNT(`call_fail_count` >= 1 OR null),0) AS failCallSum,(count(distinct super_data->'$.SYS014')) as custType  FROM " + ConstantsUtil.SEA_TABLE_PREFIX + "{0} WHERE 1=1  ";
             MarketProjectProperty executionGroup;
             StringBuilder userGroupName;
             CustomerUserGroup customerUserGroup;
