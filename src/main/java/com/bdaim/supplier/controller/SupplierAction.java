@@ -645,6 +645,12 @@ public class SupplierAction extends BasicAction {
         return resp;
     }
 
+    /**
+     * 查询供应商详情
+     *
+     * @param id
+     * @return
+     */
     @GetMapping("/info/{id}")
     public ResponseInfo getSupplierById(@PathVariable(name = "id", required = false) Integer id) {
         ResponseInfo resp = new ResponseInfo();
@@ -660,15 +666,39 @@ public class SupplierAction extends BasicAction {
         return resp;
     }
 
+    /**
+     * 查询供应商列表
+     *
+     * @param
+     * @return
+     */
     @PostMapping("/info")
-    public ResponseInfo getSupplierList(@Valid PageParam page) {
+    public ResponseInfo getSupplierList(@RequestBody(required = false) String body) {
+        PageParam page = new PageParam();
         ResponseInfo resp = new ResponseInfo();
+        JSONObject info = null;
         try {
-            resp.setData(supplierService.getSupplierList(page));
+            if (body == null || "".equals(body))
+                body = "{}";
+
+            info = JSONObject.parseObject(body);
+        } catch (Exception e) {
+            return new ResponseInfoAssemble().failure(-1, "记录解析异常:");
+        }
+        try {
+            page.setPageSize(info.getInteger("pageSize") == null ? 0 : info.getIntValue("pageSize"));
+            page.setPageNum(info.getInteger("pageNum") == null ? 10 : info.getIntValue("pageNum"));
+            resp.setData(supplierService.getSupplierList(page, info.getString("name")));
         } catch (Exception e) {
             LOG.info(e.toString());
         }
         return resp;
+    }
+
+    public ResponseInfo supplierDeposit(){
+        ResponseInfo resp = new ResponseInfo();
+
+        return null;
     }
 
 
