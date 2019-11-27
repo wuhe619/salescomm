@@ -48,6 +48,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
+import javax.validation.Valid;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.math.BigDecimal;
@@ -60,6 +61,7 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author duanliying
@@ -2210,6 +2212,9 @@ public class SupplierService {
             throw new RuntimeException("supplierDTO参数异常");
         }
         SupplierEntity supplierDO = supplierDao.get(supplierDTO.getSupplierId());
+        if (supplierDO == null) {
+            throw new RuntimeException(supplierDTO.getSupplierId() + "供应商不存在");
+        }
         supplierDO.setName(supplierDTO.getName());
         supplierDO.setSettlementType(supplierDTO.getSettlementType());
         supplierDO.setContactPerson(supplierDTO.getContactPerson());
@@ -2218,11 +2223,49 @@ public class SupplierService {
         supplierDO.setStatus(1);
         try {
             supplierDao.saveOrUpdate(supplierDO);
-        }catch (Exception e){
+        } catch (Exception e) {
             throw new RuntimeException("供应商修改异常");
         }
 
         return supplierDTO;
     }
+
+    public SupplierDTO getSupplierById(int id) {
+
+        SupplierEntity supplierDO = supplierDao.get(id);
+        if (supplierDO == null) {
+            throw new RuntimeException(id + "供应商不存在");
+        }
+        SupplierDTO supplierDTO = new SupplierDTO();
+        supplierDTO.setName(supplierDO.getName());
+        supplierDTO.setSettlementType(supplierDO.getSettlementType());
+        supplierDTO.setContactPerson(StringUtil.isEmpty(supplierDO.getContactPerson()) ? "" : supplierDO.getContactPerson());
+        supplierDTO.setContactPhone(StringUtil.isEmpty(supplierDO.getContactPhone()) ? "" : supplierDO.getContactPhone());
+        supplierDTO.setContactPosition(StringUtil.isEmpty(supplierDO.getContactPosition()) ? "" : supplierDO.getContactPosition());
+        supplierDTO.setStatus(supplierDO.getStatus());
+        supplierDTO.setCreateTime(supplierDO.getCreateTime());
+        return supplierDTO;
+    }
+
+    public List<SupplierDTO> getSupplierList(PageParam page) {
+        List<SupplierEntity> supplierList = supplierDao.fingByAll(page.getPageNum(), page.getPageSize());
+        if (supplierList.size() == 0) {
+            return new ArrayList<>();
+        }
+        return supplierList.stream().map(supplierDO -> {
+            SupplierDTO supplierDTO = new SupplierDTO();
+            supplierDTO.setName(supplierDO.getName());
+            supplierDTO.setSettlementType(supplierDO.getSettlementType());
+            supplierDTO.setContactPerson(StringUtil.isEmpty(supplierDO.getContactPerson()) ? "" : supplierDO.getContactPerson());
+            supplierDTO.setContactPhone(StringUtil.isEmpty(supplierDO.getContactPhone()) ? "" : supplierDO.getContactPhone());
+            supplierDTO.setContactPosition(StringUtil.isEmpty(supplierDO.getContactPosition()) ? "" : supplierDO.getContactPosition());
+            supplierDTO.setStatus(supplierDO.getStatus());
+            supplierDTO.setCreateTime(supplierDO.getCreateTime());
+            return supplierDTO;
+        }).collect(Collectors.toList());
+
+    }
+
+
 }
 
