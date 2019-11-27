@@ -265,9 +265,14 @@ public class SupplierDao extends SimpleHibernateDao<SupplierEntity, Integer> {
         return false;
     }
 
-    public List<SupplierEntity> fingByAll(int pageNum, int pageSize) {
-        String hql = "from SupplierEntity m where m.status=1 limit " + pageNum * pageSize + "," + pageSize;
-        return this.find(hql);
+    public List<SupplierEntity> fingByAll(int pageNum, int pageSize, String name) {
+        StringBuffer sql = new StringBuffer();
+        sql.append("from SupplierEntity m where m.status=1 ");
+        if (StringUtil.isNotEmpty(name)) {
+            sql.append(" and  m.name like '%" + name + "%'");
+        }
+        sql.append(" limit ").append(pageNum * pageSize + "," + pageSize);
+        return this.find(sql.toString());
     }
 
 }

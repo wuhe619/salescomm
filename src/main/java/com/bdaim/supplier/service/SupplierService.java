@@ -2247,12 +2247,13 @@ public class SupplierService {
         return supplierDTO;
     }
 
-    public List<SupplierDTO> getSupplierList(PageParam page) {
-        List<SupplierEntity> supplierList = supplierDao.fingByAll(page.getPageNum(), page.getPageSize());
+    public List<SupplierDTO> getSupplierList(PageParam page, String name) {
+        List<SupplierEntity> supplierList = supplierDao.fingByAll(page.getPageNum(), page.getPageSize(), name);
         if (supplierList.size() == 0) {
             return new ArrayList<>();
         }
         return supplierList.stream().map(supplierDO -> {
+
             SupplierDTO supplierDTO = new SupplierDTO();
             supplierDTO.setName(supplierDO.getName());
             supplierDTO.setSettlementType(supplierDO.getSettlementType());
@@ -2261,6 +2262,8 @@ public class SupplierService {
             supplierDTO.setContactPosition(StringUtil.isEmpty(supplierDO.getContactPosition()) ? "" : supplierDO.getContactPosition());
             supplierDTO.setStatus(supplierDO.getStatus());
             supplierDTO.setCreateTime(supplierDO.getCreateTime());
+            supplierDTO.setBalance(0);
+            supplierDTO.setConsumption(0);
             return supplierDTO;
         }).collect(Collectors.toList());
 

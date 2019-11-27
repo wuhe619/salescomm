@@ -62,6 +62,25 @@ public class SupplierDTO {
      */
     private String creditAmount;
 
+    private int balance;//余额
+    private int consumption;//消费
+
+    public int getBalance() {
+        return balance;
+    }
+
+    public void setBalance(int balance) {
+        this.balance = balance;
+    }
+
+    public int getConsumption() {
+        return consumption;
+    }
+
+    public void setConsumption(int consumption) {
+        this.consumption = consumption;
+    }
+
     public SupplierDTO(Integer supplierId, String name, String person, String phone, String position, Integer status, Timestamp createTime, String config, String type, Integer settlementType) {
         this.supplierId = supplierId;
         this.name = name;

@@ -217,7 +217,6 @@ public class CustomerAppService {
         entity.setStatus("APPROVED");
         entity.setName("DefaultApplication");
         entity.setTier("Unlimited");
-        System.err.println(vo.getCustId());
         entity.setSubscriberId(Integer.valueOf(vo.getCustId()));
         return (int) amApplicationDao.saveReturnPk(entity);
     }

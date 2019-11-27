@@ -799,7 +799,6 @@ public class CustomerSeaService {
                     String enterpriseName = customerDao.getEnterpriseName(custId);
                     dto.setCustName(enterpriseName);
                 }
-
                 // 查询所属项目
                 marketProject = marketProjectDao.selectMarketProject(dto.getMarketProjectId());
                 dto.setMarketProjectName("");
@@ -867,7 +866,6 @@ public class CustomerSeaService {
                             appSql.append(" AND user_id = '" + param.getUserId() + "' ");
                         }
                     }
-                    System.err.println("kaishi1");
                     stat = customerSeaDao.sqlQuery(MessageFormat.format(statSql, String.valueOf(customerSea.getId())));
                     dto.setClueSurplusSum(NumberConvertUtil.parseLong(stat.get(0).get("clueSurplusSum")));
                     dto.setFailCallSum(NumberConvertUtil.parseLong(stat.get(0).get("failCallSum")));
@@ -882,7 +880,6 @@ public class CustomerSeaService {
                     dto.setTotalSum(0L);
                     dto.setNoFollowSum(0L);
                 }
-                System.err.println("kaishi2");
                 // 处理项目执行组
                 executionGroup = marketProjectDao.getProperty(String.valueOf(dto.getMarketProjectId()), "executionGroup");
                 if (executionGroup != null && StringUtil.isNotEmpty(executionGroup.getPropertyValue())) {
@@ -896,8 +893,7 @@ public class CustomerSeaService {
                     }
                     dto.setUserGroupName(userGroupName.deleteCharAt(userGroupName.length() - 1).toString());
                 }
-                System.err.println("kaishi3");
-                System.err.println(param.getCustId());
+
                 // 处理项目管理员
                 projectManager = projectService.getProjectManager(param.getCustId());
                 if (projectManager != null && projectManager.size() > 0) {
@@ -3308,7 +3304,7 @@ public class CustomerSeaService {
         sb.append(" select custG.id, custG.user_id, custG.status, custG.call_count callCount, DATE_FORMAT(custG.last_call_time,'%Y-%m-%d %H:%i:%s') lastCallTime, custG.intent_level intentLevel,");
         sb.append(" custG.super_name, custG.super_age, custG.super_sex, custG.super_telphone, custG.super_phone, custG.super_address_province_city, custG.super_address_street, custG.super_data, ");
         sb.append(" custG.batch_id, custG.last_call_status, custG.data_source, DATE_FORMAT(custG.user_get_time,'%Y-%m-%d %H:%i:%s') user_get_time, DATE_FORMAT(custG.create_time,'%Y-%m-%d %H:%i:%s') create_time, custG.pre_user_id, custG.last_called_duration, DATE_FORMAT(custG.last_mark_time,'%Y-%m-%d %H:%i:%s') last_mark_time, ");
-        sb.append(" custG.call_success_count, custG.call_fail_count, custG.sms_success_count,custG.super_data -> '$.SYS014' as custType ,user.realname ");
+        sb.append(" custG.call_success_count, custG.call_fail_count, custG.sms_success_count,custG.super_data -> '$.SYS014' as custType ,user.realname,user.cust_id as custId ");
         sb.append("  from " + ConstantsUtil.SEA_TABLE_PREFIX + param.getSeaId() + " custG ");
         sb.append(" left join t_customer_user user on custG.user_id = user.id ");
         sb.append(" where 1=1 ");
@@ -4326,7 +4322,7 @@ public class CustomerSeaService {
             CustomerUser user;
             List<CustomerSeaProperty> properties;
             List<Map<String, Object>> stat;
-            String statSql = "SELECT COUNT(status=0 OR null) sumCount,IFNULL(COUNT(super_data->>'$.SYS007' like '%未跟进%' AND status = 0 OR null),0) AS noFollowSum, IFNULL(COUNT(`status` = 1 OR null),0) AS clueSurplusSum, IFNULL(COUNT(`call_fail_count` >= 1 OR null),0) AS failCallSum,(count(distinct super_data->'$.SYS014')) as custType  FROM " + ConstantsUtil.SEA_TABLE_PREFIX + "{0} WHERE 1=1  ";
+            String statSql = "SELECT COUNT(status=0 OR null) sumCount,IFNULL(COUNT(super_data->>'\'$.SYS007\'' like '\'%未跟进%\'' AND status = 0 OR null),0) AS noFollowSum, IFNULL(COUNT(`status` = 1 OR null),0) AS clueSurplusSum, IFNULL(COUNT(`call_fail_count` >= 1 OR null),0) AS failCallSum,(count(distinct super_data->'\'$.SYS014\'')) as custType  FROM " + ConstantsUtil.SEA_TABLE_PREFIX + "{0} WHERE 1=1  ";
             MarketProjectProperty executionGroup;
             StringBuilder userGroupName;
             CustomerUserGroup customerUserGroup;
@@ -4347,10 +4343,12 @@ public class CustomerSeaService {
                     dto.setMarketProjectName(marketProject.getName());
                 }
                 // 处理公海属性
+
                 properties = customerSeaDao.listProperty(String.valueOf(customerSea.getId()));
                 dto.setProperty(new HashMap<>(16));
                 if (properties != null && properties.size() > 0) {
                     LOG.info("开始处理property。。。");
+                    LOG.info("公海id："+customerSea.getId());
                     JSONObject xzinfo = getXZChannelInfo(properties);
                     LOG.info("xzinfo..." + (xzinfo == null ? "" : xzinfo.toJSONString()));
                     for (CustomerSeaProperty p : properties) {
@@ -4408,14 +4406,18 @@ public class CustomerSeaService {
                         }
                     }
                     appSql.append(" group by super_data->>'$.SYS014' ");
-                    System.err.println(statSql);
                     stat = customerSeaDao.sqlQuery(MessageFormat.format(statSql, String.valueOf(customerSea.getId())));
                     dto.setClueSurplusSum(NumberConvertUtil.parseLong(stat.get(0).get("clueSurplusSum")));
                     dto.setFailCallSum(NumberConvertUtil.parseLong(stat.get(0).get("failCallSum")));
                     // 查询私海未跟进线索量和线索总量
                     stat = customerSeaDao.sqlQuery(MessageFormat.format(statSql, String.valueOf(customerSea.getId())) + appSql.toString());
-                    dto.setTotalSum(NumberConvertUtil.parseLong(stat.get(0).get("custType")));
-                    dto.setNoFollowSum(NumberConvertUtil.parseLong(stat.get(0).get("noFollowSum")));
+                    if(stat.size()>0){
+                        dto.setTotalSum(NumberConvertUtil.parseLong(stat.get(0).get("custType")));
+                        dto.setNoFollowSum(NumberConvertUtil.parseLong(stat.get(0).get("noFollowSum")));
+                    }else{
+                        dto.setTotalSum(NumberConvertUtil.parseLong(0));
+                        dto.setNoFollowSum(NumberConvertUtil.parseLong(0));
+                    }
                 } catch (SQLGrammarException e) {
                     LOG.error("查询线索余量和累计未通量异常,公海ID:" + customerSea.getId(), e);
                     dto.setClueSurplusSum(0L);
@@ -4438,6 +4440,7 @@ public class CustomerSeaService {
                 }
 
                 // 处理项目管理员
+
                 projectManager = projectService.getProjectManager(param.getCustId());
                 if (projectManager != null && projectManager.size() > 0) {
                     for (Map<String, Object> map : projectManager) {
@@ -4445,6 +4448,7 @@ public class CustomerSeaService {
                         List<String> projectIdList = Arrays.asList(projectIds.split(","));
                         projectIdList.remove(",");
                         if (projectIdList.contains(String.valueOf(dto.getMarketProjectId()))) {
+
                             user = customerUserDao.get(NumberConvertUtil.parseLong(map.get("user_id")));
                             if (user != null) {
                                 dto.setProjectUserId(String.valueOf(user.getId()));
