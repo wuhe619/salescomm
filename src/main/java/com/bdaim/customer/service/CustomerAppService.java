@@ -78,7 +78,7 @@ public class CustomerAppService {
                 customerDao.dealCustomerInfo(customerId, "province", vo.getProvince());
             }
         }
-        if(StringUtil.isNotEmpty(vo.getMobile())){
+        if (StringUtil.isNotEmpty(vo.getMobile())) {
             if (StringUtil.isNotEmpty(vo.getCustId())) {
                 customerDao.dealCustomerInfo(vo.getCustId(), "mobile", vo.getProvince());
             } else {
@@ -153,10 +153,13 @@ public class CustomerAppService {
             }
         }
         if (StringUtil.isNotEmpty(vo.getIndustryPicture())) {
-            String custid = customerId;
-            if (StringUtil.isNotEmpty(vo.getCustId()) && !"0".equals(vo.getCustId())) custid = vo.getCustId();
-            customerDao.dealCustomerInfo(custid, "industry_picture", vo.getIndustryPicture());
-            customerDao.dealCustomerInfo(custid, "industry_picture_value", vo.getIndustryPictureValue());
+            if (StringUtil.isNotEmpty(vo.getCustId())) {
+                customerDao.dealCustomerInfo(vo.getCustId(), "industry_picture", vo.getIndustryPicture());
+                customerDao.dealCustomerInfo(vo.getCustId(), "industry_picture_value", vo.getIndustryPictureValue());
+            } else {
+                customerDao.dealCustomerInfo(customerId, "industry_picture", vo.getIndustryPicture());
+                customerDao.dealCustomerInfo(customerId, "industry_picture_value", vo.getIndustryPictureValue());
+            }
         }
         //预警
         if (StringUtil.isNotEmpty(vo.getBalance_warning_config())) {
@@ -362,9 +365,6 @@ public class CustomerAppService {
                     break;
                 case "email_link":
                     vo.setEmail_link(map.get("property_value").toString());
-                    break;
-                case "api_token":
-                    vo.setApi_token(map.get("property_value").toString());
                     break;
                 case "industry_picture":
                     vo.setIndustryPicture(map.get("industry_picture").toString());
