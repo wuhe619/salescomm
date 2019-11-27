@@ -729,4 +729,16 @@ public class SupplierAction extends BasicAction {
         resp.setData(supplierService.depositList(page, info.get("supplierId").toString()));
         return resp;
     }
+
+    @DeleteMapping("/deposit/{supplierId}")
+    public ResponseInfo delSupplierById(@PathVariable(name = "supplierId", required = false) Integer id) {
+        ResponseInfo resp = new ResponseInfo();
+        if (id == null || id == 0) {
+            return new ResponseInfoAssemble().failure(-1, "供应商id异常");
+        }
+        String userId = opUser().getUser_id();
+//        resp.setData(supplierService.supplierDeposit(deposit, userId));
+        return resp;
+    }
+
 }

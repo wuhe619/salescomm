@@ -250,6 +250,7 @@ public class CustomerAppService {
                 ") cjc ON s.id = cjc.user_id LEFT JOIN  t_customer tc ON s.cust_id=tc.cust_id " +
                 "LEFT JOIN (SELECT cust_id,\n" +
                 " MAX(CASE property_name WHEN 'province'    THEN property_value ELSE '' END ) province, \n" +
+                " MAX(CASE property_name WHEN 'mobile_num'    THEN property_value ELSE '' END ) mobile, \n" +
                 " MAX(CASE property_name WHEN 'city'    THEN property_value ELSE '' END ) city, \n" +
                 " MAX(CASE property_name WHEN 'country'    THEN property_value ELSE '' END ) country, \n" +
                 " MAX(CASE property_name WHEN 'taxpayer_id'    THEN property_value ELSE '' END  )taxPayerId, \n" +
@@ -262,7 +263,6 @@ public class CustomerAppService {
                 " MAX( CASE property_name WHEN 'reg_address'    THEN property_value ELSE ''END ) address, \n" +
                 " MAX(CASE property_name WHEN 'brand'    THEN property_value ELSE '' END ) brand,\n" +
                 " MAX(CASE property_name WHEN 'station_id'  THEN property_value ELSE '' END ) station_id, \n" +
-                " MAX(CASE property_name WHEN 'mobile'  THEN property_value ELSE '' END ) mobile, \n" +
                 " MAX(CASE property_name WHEN 'api_token'  THEN property_value ELSE '' END ) api_token ,\n" +
                 " MAX(CASE property_name WHEN 'remain_amount'  THEN property_value ELSE '' END ) remain_amount ,\n" +
                 " MAX(CASE property_name WHEN 'used_amount'  THEN property_value ELSE '' END ) used_amount \n" +

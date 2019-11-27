@@ -39,7 +39,9 @@ public class CustomerController extends BasicAction {
                 //前台创建的createId是当前登陆企业id
                 customerRegistDTO.setCreateId(lu.getCustId());
             }
-            customerRegistDTO.setCustId(id);
+            if(!"0".equals(id)){
+                customerRegistDTO.setCustId(id);
+            }
             String code = customerAppService.registerOrUpdateCustomer(customerRegistDTO, lu);
             if ("001".equals(code)) {
                 return new ResponseInfoAssemble().failure(-1, customerRegistDTO.getName() + "账号已经存在");

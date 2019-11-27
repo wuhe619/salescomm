@@ -2344,5 +2344,16 @@ public class SupplierService {
         return map;
     }
 
+    public int delSupplierById(String supplierId){
+
+        SupplierEntity supplierEntity = supplierDao.get(Integer.valueOf(supplierId));
+        if(supplierEntity==null){
+            
+        }
+
+
+        return 1;
+    }
+
 }
 
