@@ -203,9 +203,9 @@ public class CustomerAppService {
 
         }
         if (StringUtil.isNotEmpty(vo.getCustId())) {
-            customerDao.dealCustomerInfo(vo.getCustId(), "mobile_num", vo.getMobile());
+            customerDao.dealCustomerInfo(vo.getCustId(), "mobile", vo.getMobile());
         } else {
-            customerDao.dealCustomerInfo(customerId, "mobile_num", vo.getMobile());
+            customerDao.dealCustomerInfo(customerId, "mobile", vo.getMobile());
         }
         //创建企业id
         if (StringUtil.isNotEmpty(vo.getCreateId())) {
@@ -253,7 +253,7 @@ public class CustomerAppService {
                 ") cjc ON s.id = cjc.user_id LEFT JOIN  t_customer tc ON s.cust_id=tc.cust_id " +
                 "LEFT JOIN (SELECT cust_id,\n" +
                 " MAX(CASE property_name WHEN 'province'    THEN property_value ELSE '' END ) province, \n" +
-                " MAX(CASE property_name WHEN 'mobile_num'    THEN property_value ELSE '' END ) mobile, \n" +
+                " MAX(CASE property_name WHEN 'mobile'    THEN property_value ELSE '' END ) mobile, \n" +
                 " MAX(CASE property_name WHEN 'city'    THEN property_value ELSE '' END ) city, \n" +
                 " MAX(CASE property_name WHEN 'country'    THEN property_value ELSE '' END ) country, \n" +
                 " MAX(CASE property_name WHEN 'taxpayer_id'    THEN property_value ELSE '' END  )taxPayerId, \n" +
