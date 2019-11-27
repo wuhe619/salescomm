@@ -1,4 +1,4 @@
-package com.bdaim.appointmentcallback.dto;
+package com.bdaim.online.appointmentcallback.dto;
 
 /**
  *  预约回拨

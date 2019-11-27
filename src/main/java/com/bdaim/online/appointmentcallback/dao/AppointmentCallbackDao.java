@@ -1,7 +1,7 @@
-package com.bdaim.appointmentcallback.dao;
+package com.bdaim.online.appointmentcallback.dao;
 
-import com.bdaim.appointmentcallback.dto.AppointmentCallbackQueryParam;
-import com.bdaim.appointmentcallback.entity.AppointmentCallback;
+import com.bdaim.online.appointmentcallback.dto.AppointmentCallbackQueryParam;
+import com.bdaim.online.appointmentcallback.entity.AppointmentCallback;
 import com.bdaim.common.dao.SimpleHibernateDao;
 import com.bdaim.common.dto.Page;
 import com.bdaim.util.NumberConvertUtil;

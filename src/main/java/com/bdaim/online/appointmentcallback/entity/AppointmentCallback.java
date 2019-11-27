@@ -1,4 +1,4 @@
-package com.bdaim.appointmentcallback.entity;
+package com.bdaim.online.appointmentcallback.entity;
 
 import javax.persistence.*;
 import java.sql.Timestamp;

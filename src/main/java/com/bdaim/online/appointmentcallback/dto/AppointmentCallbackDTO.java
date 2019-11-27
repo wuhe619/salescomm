@@ -1,6 +1,6 @@
-package com.bdaim.appointmentcallback.dto;
+package com.bdaim.online.appointmentcallback.dto;
 
-import com.bdaim.appointmentcallback.entity.AppointmentCallback;
+import com.bdaim.online.appointmentcallback.entity.AppointmentCallback;
 
 import java.sql.Timestamp;
 

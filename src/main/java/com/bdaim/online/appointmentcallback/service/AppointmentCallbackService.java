@@ -1,10 +1,10 @@
-package com.bdaim.appointmentcallback.service;
+package com.bdaim.online.appointmentcallback.service;
 
-import com.bdaim.appointmentcallback.dao.AppointmentCallbackDao;
-import com.bdaim.appointmentcallback.dto.AppointmentCallbackDTO;
-import com.bdaim.appointmentcallback.dto.AppointmentCallbackQueryParam;
-import com.bdaim.appointmentcallback.entity.AppointmentCallback;
-import com.bdaim.appointmentcallback.vo.AppointmentCallbackVO;
+import com.bdaim.online.appointmentcallback.dao.AppointmentCallbackDao;
+import com.bdaim.online.appointmentcallback.dto.AppointmentCallbackDTO;
+import com.bdaim.online.appointmentcallback.dto.AppointmentCallbackQueryParam;
+import com.bdaim.online.appointmentcallback.entity.AppointmentCallback;
+import com.bdaim.online.appointmentcallback.vo.AppointmentCallbackVO;
 import com.bdaim.common.dto.Page;
 import com.bdaim.customer.dao.CustomerUserDao;
 import com.bdaim.customgroup.dao.CustomGroupDao;

@@ -1,9 +1,9 @@
-package com.bdaim.appointmentcallback.controller;
+package com.bdaim.online.appointmentcallback.controller;
 
 import com.alibaba.fastjson.JSONObject;
-import com.bdaim.appointmentcallback.dto.AppointmentCallbackQueryParam;
-import com.bdaim.appointmentcallback.service.AppointmentCallbackService;
-import com.bdaim.appointmentcallback.vo.AppointmentCallbackVO;
+import com.bdaim.online.appointmentcallback.dto.AppointmentCallbackQueryParam;
+import com.bdaim.online.appointmentcallback.service.AppointmentCallbackService;
+import com.bdaim.online.appointmentcallback.vo.AppointmentCallbackVO;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.controller.util.ResponseCommon;
 import com.bdaim.common.controller.util.ResponseJson;
