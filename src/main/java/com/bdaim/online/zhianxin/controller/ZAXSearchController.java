@@ -1,12 +1,11 @@
-package com.bdaim.common.third.zhianxin.controller;
+package com.bdaim.online.zhianxin.controller;
 
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
-import com.bdaim.common.third.zhianxin.dto.BaseResult;
-import com.bdaim.common.third.zhianxin.service.ZAXSearchListService;
-import com.bdaim.util.NumberConvertUtil;
+import com.bdaim.online.zhianxin.dto.BaseResult;
+import com.bdaim.online.zhianxin.service.ZAXSearchListService;
 import com.bdaim.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

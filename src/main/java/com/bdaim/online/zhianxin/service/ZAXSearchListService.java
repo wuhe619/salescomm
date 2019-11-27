@@ -1,12 +1,11 @@
-package com.bdaim.common.third.zhianxin.service;
+package com.bdaim.online.zhianxin.service;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.service.PhoneService;
-import com.bdaim.common.third.zhianxin.dto.BaseResult;
+import com.bdaim.online.zhianxin.dto.BaseResult;
 import com.bdaim.customer.service.B2BTcbLogService;
-import com.bdaim.util.StringUtil;
 import com.bdaim.util.http.HttpUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -1,4 +1,4 @@
-package com.bdaim.common.third.zhianxin.dto;
+package com.bdaim.online.zhianxin.dto;
 
 /**
  * @author chengning@salescomm.net
