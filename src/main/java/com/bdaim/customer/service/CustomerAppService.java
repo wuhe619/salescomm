@@ -366,11 +366,9 @@ public class CustomerAppService {
                 case "email_link":
                     vo.setEmail_link(map.get("property_value").toString());
                     break;
-                case "industry_picture":
+//                case "industry_picture":
                 case "inten_industry":
-                    if(map.get("property_value")==null) {
-                        vo.setIntenIndustry(map.get("property_value").toString());
-                    }
+                    vo.setIntenIndustry(map.get("property_value")==null?"":map.getOrDefault("property_value","").toString());
                     break;
                 case "industry_picture_value":
                     vo.setIndustryPictureValue(map.get("property_value").toString());
