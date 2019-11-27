@@ -11,6 +11,7 @@ import com.bdaim.customs.dto.BgdSendStatusEnum;
 import com.bdaim.customs.entity.*;
 import com.bdaim.customs.utils.ServiceUtils;
 import com.bdaim.util.BigDecimalUtil;
+import com.bdaim.util.NumberConvertUtil;
 import com.bdaim.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -576,7 +577,7 @@ public class BgdZService implements BusiService {
      * @param info
      * @throws Exception
      */
-    private void handleAbnormalDan(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) throws Exception {
+    public void handleAbnormalDan(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) throws Exception {
         //处理异常报关单
         String sendStatus = info.getString("send_status");
         if (StringUtil.isEmpty(sendStatus)) {
@@ -589,6 +590,13 @@ public class BgdZService implements BusiService {
             log.warn("报关单主单:{},申报状态:{}异常报关单分单为空", id, sendStatus);
             return;
         }
+        String sql = "select id, type, content, cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(BusiTypeEnum.BZ.getType(), "") + " where cust_id = ? AND type=? AND ext_3 = ? ";
+        List<Map<String, Object>> list = jdbcTemplate.queryForList(sql, cust_id, BusiTypeEnum.BZ.getType(), mainDan.getBill_no());
+        if (list == null || list.size() == 0) {
+            log.warn("未查询到报关单主单:{}", mainDan.getBill_no());
+            throw new TouchException("未查询到报关单主单");
+        }
+        id = NumberConvertUtil.parseLong(list.get(0).get("id"));
         Map<String, JSONObject> d = new HashMap();
         for (PartyDan f : fdList) {
             d.put(f.getBill_no(), JSON.parseObject(JSON.toJSONString(f)));

@@ -9,12 +9,15 @@ import com.bdaim.common.controller.util.ResponseJson;
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.response.ResponseInfo;
+import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.customs.dto.QueryDataParams;
 import com.bdaim.customs.entity.HDic;
 import com.bdaim.customs.entity.MainDan;
+import com.bdaim.customs.services.BgdZService;
 import com.bdaim.customs.services.CustomsService;
 import com.bdaim.customs.services.ExportExcelService;
 import com.bdaim.util.ExcelUtil;
+import com.bdaim.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +43,10 @@ public class CustomController extends BasicAction {
 
     @Autowired
     private ExportExcelService exportExcelService;
+
+    @Autowired
+    private BgdZService bgdZService;
+
 
     /**
      * 保存数据
@@ -520,6 +527,53 @@ public class CustomController extends BasicAction {
         } finally {
             return responseJson;
         }
+    }
+
+    /**
+     *
+     * @param id
+     * @param body
+     * @param busiType
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping(value = "/import/{busiType}", method = RequestMethod.POST)
+    public ResponseInfo saveInfo(@PathVariable(name = "id", required = false) Long id, @RequestBody(required = false) String body, @PathVariable(name = "busiType") String busiType) {
+        ResponseInfo resp = new ResponseInfo();
+        JSONObject info = null;
+        try {
+            if (body == null || "".equals(body))
+                body = "{}";
+
+            info = JSONObject.parseObject(body);
+        } catch (Exception e) {
+            return new ResponseInfoAssemble().failure(-1, "记录解析异常:[" + busiType + "]");
+        }
+        try {
+            LoginUser lu = opUser();
+            String cust_id = lu.getCustId();
+            if (StringUtil.isEmpty(cust_id) && StringUtil.isNotEmpty(info.getString("cust_id"))) {
+                // 运营后台传参客户ID处理
+                cust_id = info.getString("cust_id");
+            }
+            if (StringUtil.isEmpty(cust_id))
+                return new ResponseInfoAssemble().failure(-1, "无归属企业，不能保存记录:[" + busiType + "]");
+
+            String cust_group_id = lu.getUserGroupId();
+            Long cust_user_id = lu.getId();
+            String rule = info.getString("_rule_");
+            // 处理导入报关单退单
+            if ("bgd_data_abnormal_handle".equals(rule)) {
+                bgdZService.handleAbnormalDan(busiType, cust_id, cust_group_id, cust_user_id, id, info);
+            }
+            resp.setData(id);
+        } catch (TouchException e) {
+            return new ResponseInfoAssemble().failure(-1, e.getMessage());
+        } catch (Exception e) {
+            log.error("保存记录异常:", e);
+            return new ResponseInfoAssemble().failure(-1, "保存记录异常:[" + busiType + "]");
+        }
+        return resp;
     }
 
 
