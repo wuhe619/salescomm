@@ -262,7 +262,7 @@ public class CustomerAppService {
             }
             CustomerProperty sale_person = customerDao.getProperty(cust_id, "sale_person");
             if (sale_person != null) {
-                map.put("sale_person", sale_person.getPropertyValue());
+                map.put("salePerson", sale_person.getPropertyValue());
             }
             return map;
         }).collect(Collectors.toList());
