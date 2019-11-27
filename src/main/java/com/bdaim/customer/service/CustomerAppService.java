@@ -78,6 +78,13 @@ public class CustomerAppService {
                 customerDao.dealCustomerInfo(customerId, "province", vo.getProvince());
             }
         }
+        if(StringUtil.isNotEmpty(vo.getMobile())){
+            if (StringUtil.isNotEmpty(vo.getCustId())) {
+                customerDao.dealCustomerInfo(vo.getCustId(), "mobile", vo.getProvince());
+            } else {
+                customerDao.dealCustomerInfo(customerId, "mobile", vo.getProvince());
+            }
+        }
         if (StringUtil.isNotEmpty(vo.getCity())) {
             if (StringUtil.isNotEmpty(vo.getCustId())) {
                 customerDao.dealCustomerInfo(vo.getCustId(), "city", vo.getCity());
@@ -169,7 +176,7 @@ public class CustomerAppService {
         }
         //销售负责人
         //if (StringUtil.isNotEmpty(vo.getSalePerson())) {
-        if (StringUtil.isNotEmpty(vo.getCustId())) {
+        if (StringUtil.isNotEmpty(vo.getSalePerson())) {
             customerDao.dealCustomerInfo(vo.getCustId(), "sale_person", vo.getSalePerson());
         } else {
             customerDao.dealCustomerInfo(customerId, "sale_person", vo.getSalePerson());
@@ -229,7 +236,7 @@ public class CustomerAppService {
         sql.append("  SELECT  CAST(s.id AS CHAR) id,s.cust_id,s.user_type, s.account AS account,s.password AS PASSWORD,s.realname AS contactPerson,cjc.cuc_minute seatMinute,\n" +
                 "s.status as STATUS,cjc.mobile_num AS mobile_num,cjc.cuc_seat AS cuc_seat,cjc.declare_no,cjc.input_no,cjc.xz_seat AS xz_seat ,tc.title as title,tc.enterprise_name as name, cjc.user_id as suerId ," +
                 "pro.province as province ,pro.city as city,pro.country as country,pro.taxPayerId as taxPayerId,pro.bliPath as bliPath,pro.bank as bank,pro.bankAccount as bankAccount,\n" +
-                "pro.bankAccountCertificate as bankAccountCertificate,pro.industry as industry,pro.salePerson as salePerson,pro.address as address,pro.brand as brand,pro.station_id as stationId,pro.api_token as apiToken,pro.remain_amount as remainAmount,pro.used_amount as userAmount" +
+                "pro.bankAccountCertificate as bankAccountCertificate,pro.industry as industry,pro.salePerson as salePerson,pro.address as address,pro.brand as brand,pro.station_id as stationId,pro.api_token as apiToken,pro.remain_amount as remainAmount,pro.used_amount as userAmount,pro.mobile" +
                 " FROM t_customer_user s\n" +
                 " LEFT JOIN (SELECT user_id, \n" +
                 " MAX(CASE property_name WHEN 'mobile_num'  THEN property_value ELSE '' END ) mobile_num, \n" +
@@ -255,6 +262,7 @@ public class CustomerAppService {
                 " MAX( CASE property_name WHEN 'reg_address'    THEN property_value ELSE ''END ) address, \n" +
                 " MAX(CASE property_name WHEN 'brand'    THEN property_value ELSE '' END ) brand,\n" +
                 " MAX(CASE property_name WHEN 'station_id'  THEN property_value ELSE '' END ) station_id, \n" +
+                " MAX(CASE property_name WHEN 'mobile'  THEN property_value ELSE '' END ) mobile, \n" +
                 " MAX(CASE property_name WHEN 'api_token'  THEN property_value ELSE '' END ) api_token ,\n" +
                 " MAX(CASE property_name WHEN 'remain_amount'  THEN property_value ELSE '' END ) remain_amount ,\n" +
                 " MAX(CASE property_name WHEN 'used_amount'  THEN property_value ELSE '' END ) used_amount \n" +
