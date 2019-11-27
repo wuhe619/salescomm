@@ -18,6 +18,7 @@ import com.bdaim.common.dto.Page;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerUserDao;
+import com.bdaim.customer.entity.Customer;
 import com.bdaim.customer.entity.CustomerProperty;
 import com.bdaim.customer.entity.CustomerUser;
 import com.bdaim.customer.user.service.UserGroupService;
@@ -2273,26 +2274,8 @@ public class SupplierService {
         }).collect(Collectors.toList());
 
     }
-//    public int saveDeposit(com.bdaim.customer.dto.Deposit deposit, String id, String userId) {
-//        int pre_money, money;
-//
-//        CustomerProperty customerProperty = customerDao.getProperty(id, "remain_amount");
-//        if (customerProperty == null) {
-//            pre_money = 0;
-//            money = Integer.valueOf(deposit.getMoney()).intValue() * 10000;
-//            customerDao.dealCustomerInfo(id, "remain_amount", String.valueOf(money));
-//        } else {
-//            pre_money = Integer.valueOf(customerProperty.getPropertyValue()).intValue();
-//            money = Integer.valueOf(deposit.getMoney()).intValue() * 10000;
-//            customerDao.dealCustomerInfo(id, "remain_amount", String.valueOf((pre_money + money)));
-//        }
-//        String sql = "INSERT INTO am_pay (SUBSCRIBER_ID,MONEY,PAY_TIME,pay_certificate,pre_money,user_id) VALUE (?,?,?,?,?,?) ";
-//
-//        jdbcTemplate.update(sql, id, money, DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss), deposit.getPicId(), pre_money, userId);
-//        return 0;
-//    }
 
-    public int supplierDeposit(Deposit deposit) {
+    public int supplierDeposit(Deposit deposit, String userId) {
         int pre_money;
         int money = Integer.valueOf(deposit.getMoney()).intValue() * 10000;
         SupplierPropertyEntity supplierPropertyEntity = supplierDao.getProperty(String.valueOf(deposit.getId()), "remain_amount");
@@ -2303,8 +2286,62 @@ public class SupplierService {
             pre_money = Integer.valueOf(supplierPropertyEntity.getPropertyValue()).intValue() * 10000;
             supplierDao.dealCustomerInfo(String.valueOf(deposit.getId()), "remain_amount", String.valueOf((pre_money + money)));
         }
-
+        String sql = "INSERT INTO supplier_pay (SUBSCRIBER_ID,MONEY,PAY_TIME,pay_certificate,pre_money,user_id) VALUE (?,?,?,?,?,?) ";
+        jdbcTemplate.update(sql, deposit.getId(), money, DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss), deposit.getRepaidVoucher(), pre_money, userId);
         return 1;
+    }
+
+    public Map<String, Object> depositList(PageParam page, String supplierId) {
+        Map<String, Object> map = new HashMap<>();
+        String sql = "select supplier_id,property_name,property_value from t_supplier_property   where supplier_id=?";
+
+        List<Map<String, Object>> propertyList = jdbcTemplate.queryForList(sql, supplierId);
+        propertyList.stream().forEach(m -> {
+            switch (m.get("property_name").toString()) {
+                case "bank_account":
+                    map.put("bank_account", m.get("property_value"));
+                    break;
+                case "remain_amount":
+                    map.put("remain_amount", Integer.valueOf(m.get("property_value").toString()).intValue() / 10000);
+                    break;
+            }
+        });
+        int pageNum = 1;
+        int pageSize = 10;
+        try {
+            pageNum = page.getPageNum();
+        } catch (Exception e) {
+        }
+        try {
+            pageSize = page.getPageSize();
+        } catch (Exception e) {
+        }
+        if (pageNum <= 0)
+            pageNum = 1;
+        if (pageSize <= 0)
+            pageSize = 10;
+        if (pageSize > 10000)
+            pageSize = 10000;
+
+        String sql1 = "select pay.pay_id,pay.SUBSCRIBER_ID,pay.MONEY,pay.PAY_TIME,pay.pay_certificate,pay.pre_money,pay.user_id ,u.realname as realname from supplier_pay pay left join  t_customer_user u  on pay.user_id=u.id  where SUBSCRIBER_ID=? order by pay_time";
+        List<Map<String, Object>> payList = jdbcTemplate.queryForList(sql1 + " limit " + (pageNum - 1) * pageSize + ", " + pageSize, supplierId);
+        List<com.bdaim.customer.dto.Deposit> depositList = new ArrayList<>();
+        payList.stream().forEach(m -> {
+            com.bdaim.customer.dto.Deposit deposit = new com.bdaim.customer.dto.Deposit();
+            deposit.setCustId(m.get("SUBSCRIBER_ID").toString());
+            deposit.setMoney(Integer.valueOf(m.get("MONEY").toString()).intValue() / 10000 + "");
+            deposit.setPayTime(m.get("PAY_TIME").toString());
+            deposit.setId(Integer.valueOf(m.get("pay_id").toString()));
+            deposit.setPicId(m.get("pay_certificate").toString());
+            deposit.setPreMoney(Integer.valueOf(m.get("pre_money").toString()).intValue() / 10000 + "");
+            deposit.setUserId(m.get("user_id").toString());
+            deposit.setRealname(m.get("realname") == null ? "" : m.get("realname").toString());
+            depositList.add(deposit);
+        });
+        SupplierEntity supplierEntity = supplierDao.get(Integer.valueOf(supplierId));
+        map.put("depositList", depositList);
+        map.put("custName", supplierEntity.getName() == null ? "" : supplierEntity.getName());
+        return map;
     }
 
 }

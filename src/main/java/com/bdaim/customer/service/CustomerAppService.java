@@ -223,26 +223,12 @@ public class CustomerAppService {
 
 
     public PageList getUser(PageParam page, String customerId, String account, String name, String contactPerson, String salePerson) {
-        JSONObject json = new JSONObject();
         StringBuffer sql = new StringBuffer();
-
-
-        sql.append("  SELECT  CAST(s.id AS CHAR) id,s.cust_id,s.user_type, s.account AS account,s.password AS PASSWORD,s.realname AS contactPerson,cjc.cuc_minute seatMinute,\n" +
-                "s.status as STATUS,cjc.mobile_num AS mobile_num,cjc.cuc_seat AS cuc_seat,cjc.declare_no,cjc.input_no,cjc.xz_seat AS xz_seat ,tc.title as title,tc.enterprise_name as name, cjc.user_id as suerId ," +
-                "pro.province as province ,pro.city as city,pro.country as country,pro.taxPayerId as taxPayerId,pro.bliPath as bliPath,pro.bank as bank,pro.bankAccount as bankAccount,\n" +
-                "pro.bankAccountCertificate as bankAccountCertificate,pro.industry as industry,pro.salePerson as salePerson,pro.address as address,pro.brand as brand,pro.station_id as stationId,pro.api_token as apiToken,pro.remain_amount as remainAmount,pro.used_amount as userAmount" +
-                " FROM t_customer_user s\n" +
-                " LEFT JOIN (SELECT user_id, \n" +
-                " MAX(CASE property_name WHEN 'mobile_num'  THEN property_value ELSE '' END ) mobile_num, \n" +
-                " MAX(CASE property_name WHEN 'cuc_seat'    THEN property_value ELSE '' END ) cuc_seat,\n" +
-                " MAX(CASE property_name WHEN 'xz_seat'    THEN property_value ELSE '' END ) xz_seat, \n" +
-                " MAX(CASE property_name WHEN 'cuc_minute'  THEN property_value ELSE '0' END ) cuc_minute, \n" +
-                " MAX(CASE property_name WHEN 'declare_no'  THEN property_value ELSE '0' END ) declare_no, \n" +
-                " MAX(CASE property_name WHEN 'input_no'  THEN property_value ELSE '0' END ) input_no \n" +
-//                " MAX(CASE property_name WHEN 'resource'    THEN property_value ELSE '' END ) resource \n" +
-                " FROM t_customer_user_property p GROUP BY user_id \n" +
-                ") cjc ON s.id = cjc.user_id LEFT JOIN  t_customer tc ON s.cust_id=tc.cust_id " +
-                "LEFT JOIN (SELECT cust_id,\n" +
+        sql.append("select tc.realname,tc.title as title,tc.enterprise_name as name,pro.province as province ,pro.city as city,pro.country as country,pro.taxPayerId as taxPayerId," +
+                "pro.bliPath as bliPath,pro.bank as bank,pro.bankAccount as bankAccount,pro.bankAccountCertificate as bankAccountCertificate,pro.industry as industry," +
+                "pro.salePerson as salePerson,pro.address as address,pro.brand as brand,pro.station_id as stationId,pro.api_token as apiToken," +
+                "pro.remain_amount as remainAmount,pro.used_amount as userAmount" +
+                "from  t_customer tc left join(SELECT cust_id,\n" +
                 " MAX(CASE property_name WHEN 'province'    THEN property_value ELSE '' END ) province, \n" +
                 " MAX(CASE property_name WHEN 'city'    THEN property_value ELSE '' END ) city, \n" +
                 " MAX(CASE property_name WHEN 'country'    THEN property_value ELSE '' END ) country, \n" +
@@ -259,13 +245,13 @@ public class CustomerAppService {
                 " MAX(CASE property_name WHEN 'api_token'  THEN property_value ELSE '' END ) api_token ,\n" +
                 " MAX(CASE property_name WHEN 'remain_amount'  THEN property_value ELSE '' END ) remain_amount ,\n" +
                 " MAX(CASE property_name WHEN 'used_amount'  THEN property_value ELSE '' END ) used_amount \n" +
-                "FROM t_customer_property  )pro ON s.cust_id=pro.cust_id " +
-                "WHERE 1=1 AND user_type = 2  AND s.STATUS <> 2 ");
-        if (StringUtil.isNotEmpty(account)) {
-            sql.append(" AND s.account = '" + account + "'");
-        }
+                "FROM t_customer_property  )pro ON tc.cust_id=pro.cust_id where tc.status =0"
+        );
+//        if (StringUtil.isNotEmpty(account)) {
+//            sql.append(" AND s.account = '" + account + "'");
+//        }
         if (StringUtil.isNotEmpty(contactPerson)) {
-            sql.append(" AND s.realname = '" + contactPerson + "'");
+            sql.append(" AND tc.realname = '" + contactPerson + "'");
         }
         if (StringUtil.isNotEmpty(name)) {
             sql.append(" AND tc.enterprise_name like '%" + name + "%'");

@@ -698,11 +698,35 @@ public class SupplierAction extends BasicAction {
     }
 
     @PostMapping("/deposit/{supplierId}")
-    public ResponseInfo supplierDeposit(@PathVariable(name = "supplierId", required = false) Integer id,@Valid Deposit deposit) {
+    public ResponseInfo supplierDeposit(@PathVariable(name = "supplierId", required = false) Integer id, @Valid Deposit deposit) {
         ResponseInfo resp = new ResponseInfo();
-
+        if (id == null || id == 0) {
+            return new ResponseInfoAssemble().failure(-1, "供应商id异常");
+        }
+        String userId = opUser().getUser_id();
+        resp.setData(supplierService.supplierDeposit(deposit, userId));
         return resp;
     }
 
 
+    @PostMapping("/deposit")
+    public ResponseInfo supplierDepositList(@RequestBody(required = false) String body) {
+        ResponseInfo resp = new ResponseInfo();
+        PageParam page = new PageParam();
+        JSONObject info = null;
+        try {
+            if (body == null || "".equals(body))
+                body = "{}";
+            info = JSONObject.parseObject(body);
+        } catch (Exception e) {
+            return new ResponseInfoAssemble().failure(-1, "记录解析异常:");
+        }
+        if (StringUtil.isEmpty(info.get("supplierId").toString())) {
+            return new ResponseInfoAssemble().failure(-1, "企业id错误");
+        }
+        page.setPageSize(info.getInteger("pageSize") == null ? 0 : info.getIntValue("pageSize"));
+        page.setPageNum(info.getInteger("pageNum") == null ? 10 : info.getIntValue("pageNum"));
+        resp.setData(supplierService.depositList(page, info.get("supplierId").toString()));
+        return resp;
+    }
 }
