@@ -867,6 +867,7 @@ public class CustomerSeaService {
                             appSql.append(" AND user_id = '" + param.getUserId() + "' ");
                         }
                     }
+                    System.err.println("kaishi1");
                     stat = customerSeaDao.sqlQuery(MessageFormat.format(statSql, String.valueOf(customerSea.getId())));
                     dto.setClueSurplusSum(NumberConvertUtil.parseLong(stat.get(0).get("clueSurplusSum")));
                     dto.setFailCallSum(NumberConvertUtil.parseLong(stat.get(0).get("failCallSum")));
@@ -881,6 +882,7 @@ public class CustomerSeaService {
                     dto.setTotalSum(0L);
                     dto.setNoFollowSum(0L);
                 }
+                System.err.println("kaishi2");
                 // 处理项目执行组
                 executionGroup = marketProjectDao.getProperty(String.valueOf(dto.getMarketProjectId()), "executionGroup");
                 if (executionGroup != null && StringUtil.isNotEmpty(executionGroup.getPropertyValue())) {
@@ -894,7 +896,8 @@ public class CustomerSeaService {
                     }
                     dto.setUserGroupName(userGroupName.deleteCharAt(userGroupName.length() - 1).toString());
                 }
-
+                System.err.println("kaishi3");
+                System.err.println(param.getCustId());
                 // 处理项目管理员
                 projectManager = projectService.getProjectManager(param.getCustId());
                 if (projectManager != null && projectManager.size() > 0) {
@@ -4303,7 +4306,8 @@ public class CustomerSeaService {
         }
         return page;
     }
-/**
+
+    /**
      * 公海分页
      *
      * @param param
