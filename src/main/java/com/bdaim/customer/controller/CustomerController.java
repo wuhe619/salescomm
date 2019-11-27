@@ -88,7 +88,7 @@ public class CustomerController extends BasicAction {
      * @Description: 查看企业客户详情
      */
     @GetMapping(value = "/info/{custId}")
-    public ResponseInfo query(@RequestBody CustomerRegistDTO customerRegistDTO, @PathVariable(name = "custId") String id) {
+    public ResponseInfo query(@PathVariable(name = "custId") String id) {
         ResponseInfo resp = new ResponseInfo();
         try {
             if (StringUtil.isEmpty(id) || "0".equals(id)) {
