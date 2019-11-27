@@ -645,5 +645,31 @@ public class SupplierAction extends BasicAction {
         return resp;
     }
 
+    @GetMapping("/info/{id}")
+    public ResponseInfo getSupplierById(@PathVariable(name = "id", required = false) Integer id) {
+        ResponseInfo resp = new ResponseInfo();
+        if (id == 0 || id == null) {
+            return new ResponseInfoAssemble().failure(-1, "供应商id错误");
+        }
+        try {
+            resp.setData(supplierService.getSupplierById(id.intValue()));
+        } catch (Exception e) {
+            return new ResponseInfoAssemble().failure(-1, id + "供应商不存在");
+        }
+
+        return resp;
+    }
+
+    @PostMapping("/info")
+    public ResponseInfo getSupplierList(@Valid PageParam page) {
+        ResponseInfo resp = new ResponseInfo();
+        try {
+            resp.setData(supplierService.getSupplierList(page));
+        } catch (Exception e) {
+            LOG.info(e.toString());
+        }
+        return resp;
+    }
+
 
 }
