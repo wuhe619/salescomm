@@ -1616,6 +1616,10 @@ public class CustomerUserService {
         }
         if (list.size() == 0) {
             HashMap<Object, Object> map = new HashMap<>();
+            map.put("key", CustomerPrivateSeaDTO.COMPANY.getKey());
+            map.put("value", CustomerPrivateSeaDTO.COMPANY.getValue());
+            list.add(map);
+            map = new HashMap<>();
             map.put("key", CustomerPrivateSeaDTO.NAME.getKey());
             map.put("value", CustomerPrivateSeaDTO.NAME.getValue());
             list.add(map);
