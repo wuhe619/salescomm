@@ -2,6 +2,7 @@ package com.bdaim.customer.account.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.auth.LoginUser;
 import com.bdaim.batch.TransactionEnum;
 import com.bdaim.bill.dto.CustomerBillQueryParam;
 import com.bdaim.bill.service.TransactionService;
@@ -93,7 +94,7 @@ public class AccountService {
      * @param param
      * @return
      */
-    public Boolean changeBalance(CustomerBillQueryParam param) {
+    public Boolean changeBalance(CustomerBillQueryParam param, LoginUser loginUser) {
         String custId = param.getCustomerId();
         double amount = param.getAmount();
         String path = param.getPath();
@@ -152,7 +153,7 @@ public class AccountService {
                     transactionId = param.getTransactionId();
                 }
                 // 保存交易记录根据supplierId查询resourceId
-                transactionService.saveTransactionLog(custId, type, moneySale.intValue(), payMode, supplierId, remark, userId, path, transactionId, 0, null);
+                transactionService.saveTransactionLog(custId, type, moneySale.intValue(), payMode, supplierId, remark, loginUser.getId(), path, transactionId, 0, null);
             } catch (Exception e) {
                 logger.error(custId + " 保存交易记录失败,", e);
             }
