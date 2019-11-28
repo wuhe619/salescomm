@@ -400,41 +400,43 @@ public class CustomerAppService {
                     break;
             }
         });
-        int pageNum = 1;
-        int pageSize = 10;
-        try {
-            pageNum = page.getPageNum();
-        } catch (Exception e) {
-        }
-        try {
-            pageSize = page.getPageSize();
-        } catch (Exception e) {
-        }
-        if (pageNum <= 0)
-            pageNum = 1;
-        if (pageSize <= 0)
-            pageSize = 10;
-        if (pageSize > 10000)
-            pageSize = 10000;
 
-        String sql1 = "select pay.pay_id,pay.SUBSCRIBER_ID,pay.MONEY,pay.PAY_TIME,pay.pay_certificate,pay.pre_money,pay.user_id ,u.realname as realname from am_pay pay left join  t_customer_user u  on pay.user_id=u.id  where SUBSCRIBER_ID=? order by pay_time";
-        List<Map<String, Object>> payList = jdbcTemplate.queryForList(sql1 + " limit " + (pageNum - 1) * pageSize + ", " + pageSize, custId);
+        String sql1 = "select pay.pay_id,pay.SUBSCRIBER_ID,pay.MONEY,pay.PAY_TIME,pay.pay_certificate,pay.pre_money,pay.user_id ,u.realname as realname from am_pay pay left join  t_customer_user u  on pay.user_id=u.id  where SUBSCRIBER_ID = " + custId + " order by pay_time";
+        PageList list = new Pagination().getPageData(sql1, null, page, jdbcTemplate);
         List<Deposit> depositList = new ArrayList<>();
-        payList.stream().forEach(m -> {
+        list.getList().stream().forEach(m -> {
+            Map depositMap = (Map) m;
             Deposit deposit = new Deposit();
-            deposit.setCustId(m.get("SUBSCRIBER_ID").toString());
-            deposit.setMoney(Integer.valueOf(m.get("MONEY").toString()).intValue() / 10000 + "");
-            deposit.setPayTime(m.get("PAY_TIME").toString());
-            deposit.setId(Integer.valueOf(m.get("pay_id").toString()));
-            deposit.setPicId(m.get("pay_certificate").toString());
-            deposit.setPreMoney(Integer.valueOf(m.get("pre_money").toString()).intValue() / 10000 + "");
-            deposit.setUserId(m.get("user_id").toString());
-            deposit.setRealname(m.get("realname") == null ? "" : m.get("realname").toString());
+            if (depositMap.get("SUBSCRIBER_ID") != null) {
+                deposit.setCustId(depositMap.get("SUBSCRIBER_ID").toString());
+            }
+            if (depositMap.get("MONEY") != null) {
+                deposit.setMoney(Integer.valueOf(depositMap.get("MONEY").toString()).intValue() / 10000 + "");
+            }
+            if (depositMap.get("PAY_TIME") != null) {
+                deposit.setPayTime(depositMap.get("PAY_TIME").toString());
+            }
+            if (depositMap.get("pay_id") != null) {
+                deposit.setId(Integer.valueOf(depositMap.get("pay_id").toString()));
+            }
+            if (depositMap.get("pay_certificate") != null) {
+                deposit.setPicId(depositMap.get("pay_certificate").toString());
+            }
+            if (depositMap.get("pre_money") != null) {
+                deposit.setPreMoney(Integer.valueOf(depositMap.get("pre_money").toString()).intValue() / 10000 + "");
+            }
+            if (depositMap.get("user_id") != null) {
+                deposit.setUserId(depositMap.get("user_id").toString());
+            }
+            if (depositMap.get("realname") != null) {
+                deposit.setRealname(depositMap.get("realname").toString());
+            }
             depositList.add(deposit);
         });
         Customer customer = customerDao.get(custId);
         map.put("depositList", depositList);
         map.put("custName", customer.getEnterpriseName() == null ? "" : customer.getEnterpriseName());
+        map.put("total", list.getTotal());
         return map;
     }
 
