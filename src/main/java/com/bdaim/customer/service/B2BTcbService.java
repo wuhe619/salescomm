@@ -379,13 +379,24 @@ public class B2BTcbService implements BusiService {
      * @param userId
      * @param busiType
      */
-    public Map<String, JSONObject> doClueDataToSeaByNumber(JSONObject param, long getNumber, String custId, long userId, String busiType) throws TouchException {
+    public Map<String, JSONObject> doClueDataToSeaByNumber(JSONObject param, long getNumber, String custId, long userId, String busiType) throws Exception {
         Map<String, JSONObject> data = new HashMap<>();
         BaseResult baseResult, companyContact;
         JSONObject resultData, contactData;
         JSONArray list;
-        Random random = new Random();
-        long pageNo = random.nextInt((int) getNumber * 1000), pageSize = getNumber * 2;
+       /* Random random = new Random();
+        long pageNo = random.nextInt((int) getNumber), pageSize = getNumber * 5;*/
+        // 预查询数据
+        baseResult = searchListService.pageSearch(custId, "", userId, busiType, param);
+        resultData = (JSONObject) baseResult.getData();
+        if (resultData != null || "100".equals(baseResult.getCode())) {
+            if (getNumber > resultData.getLongValue("total")) {
+                LOG.warn("领取数据大于可用线索");
+                throw new TouchException("领取数据大于可用线索");
+            }
+        }
+
+        long pageNo = 1, pageSize = getNumber * 5;
         while (getNumber > data.size()) {
             param.put("pageNum", pageNo);
             param.put("pageSize", pageSize);
