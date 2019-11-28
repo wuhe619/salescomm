@@ -2020,7 +2020,7 @@ public class CustomerAction extends BasicAction {
             long quantity = b2BTcbService.doClueDataToSea(opUser().getCustId(), opUser().getId(), param.getIntValue("seaType"),
                     param.getIntValue("mode"), param.getString("seaId"), (List<String>) param.get("companyIds"),
                     param.getIntValue("number"),
-                    "1", param);
+                    param.getString("busiType"), param);
             responseJson.setData(quantity);
         } catch (Exception e) {
             logger.error("企业B2B套餐领取至公海/私海失败,", e);

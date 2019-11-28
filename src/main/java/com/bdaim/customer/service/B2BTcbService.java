@@ -302,7 +302,7 @@ public class B2BTcbService implements BusiService {
                         seaId, superData, "", "", "", "",
                         "", "", data.get(entId).getString("entName"),
                         entId, data.get(entId).getString("regLocation"), data.get(entId).getString("regCap"),
-                        data.get(entId).getString("entStatus"), data.get(entId).getString("fromTime"), pNumbers.size());
+                        data.get(entId).getString("entStatus"), data.get(entId).getString("6estiblishTime"), pNumbers.size());
                 // 保存线索
                 int status = seaService.addClueData0(dto, seaType);
                 LOG.info("B2B套餐领取线索状态:{},seaType:{},data:{}", status, seaType, JSON.toJSONString(dto));
@@ -370,33 +370,55 @@ public class B2BTcbService implements BusiService {
      * @param userId
      * @param busiType
      */
-    public Map<String, JSONObject> doClueDataToSeaByNumber(JSONObject param, long getNumber, String custId, long userId, String busiType) {
+    public Map<String, JSONObject> doClueDataToSeaByNumber(JSONObject param, long getNumber, String custId, long userId, String busiType) throws TouchException {
         Map<String, JSONObject> data = new HashMap<>();
-        BaseResult companyContact, companyDetail, baseResult;
-        JSONObject contactData, detailData, resultData;
+        BaseResult baseResult, companyContact;
+        JSONObject resultData, contactData;
         JSONArray list;
-
-        long pageNo = 0L, pageSize = 1000;
+        Random random = new Random();
+        long pageNo = random.nextInt((int) getNumber / 2), pageSize = getNumber * 2;
         while (getNumber > data.size()) {
             param.put("pageNum", pageNo);
             param.put("pageSize", pageSize);
             try {
-                baseResult = searchListService.pageSearchIds(custId, "", userId, busiType, param);
+                baseResult = searchListService.pageSearch(custId, "", userId, busiType, param);
                 resultData = (JSONObject) baseResult.getData();
+                if (resultData == null || !"100".equals(baseResult.getCode())) {
+                    LOG.warn("领取线索异常:{}", resultData);
+                    throw new TouchException("领取线索异常");
+                }
                 list = resultData.getJSONArray("list");
                 pageNo++;
                 if (list == null || list.size() == 0) {
                     continue;
                 }
+                String id = null;
                 for (int i = 0; i < list.size(); i++) {
+                    /*if (list.getJSONObject(i).getIntValue("list") == 0) {
+                        continue;
+                    }*/
+                    id = list.getJSONObject(i).getString("id");
                     // 已经领取过不可重复领取
-                    if (b2BTcbLogService.checkClueGetStatus(custId, list.getString(i))) {
-                        LOG.info("客户:{},B2B企业ID:{}已经领取过", custId, list.getString(i));
+                    if (b2BTcbLogService.checkClueGetStatus(custId, id)) {
+                        LOG.info("客户:{},B2B企业ID:{}已经领取过", custId, id);
+                        continue;
+                    }
+                    companyContact = searchListService.getCompanyDetail(id, "", "1039");
+                    contactData = (JSONObject) companyContact.getData();
+                    if (contactData == null || contactData.size() == 0 ||
+                            contactData.getJSONArray("phoneNumber") == null ||
+                            contactData.getJSONArray("phoneNumber").size() == 0) {
                         continue;
                     }
                     if (getNumber > data.size()) {
+                        contactData.putAll(list.getJSONObject(i));
+                        data.put(id, contactData);
+                    } else {
+                        break;
+                    }
+                   /* if (getNumber > data.size()) {
                         // 查询联系方式
-                        companyContact = searchListService.getCompanyDetail(list.getString(i), "", "1039");
+                        companyContact = searchListService.getCompanyDetail(id, "", "1039");
                         contactData = (JSONObject) companyContact.getData();
                         if (contactData == null || contactData.size() == 0 ||
                                 contactData.getJSONArray("phoneNumber") == null ||
@@ -404,16 +426,17 @@ public class B2BTcbService implements BusiService {
                             continue;
                         }
                         // 查询企业名称
-                        companyDetail = searchListService.getCompanyDetail(list.getString(i), "", "1001");
+                        companyDetail = searchListService.getCompanyDetail(id, "", "1001");
                         detailData = (JSONObject) companyDetail.getData();
                         contactData.putAll(detailData);
-                        data.put(list.getString(i), contactData);
+                        data.put(id, contactData);
                     } else {
                         break;
-                    }
+                    }*/
                 }
             } catch (Exception e) {
                 LOG.warn("客户指定数量领取B2B套餐异常", e);
+                throw new TouchException("指定数量领取B2B套餐异常");
             }
         }
         return data;
