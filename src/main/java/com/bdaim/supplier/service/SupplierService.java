@@ -2255,30 +2255,27 @@ public class SupplierService {
     }
 
     public Map<String, Object> getSupplierList(PageParam page, String name) {
-        List<SupplierEntity> supplierList = supplierDao.fingByAll(page.getPageNum(), page.getPageSize(), name);
+        Page page1 = supplierDao.fingByAll(page.getPageNum(), page.getPageSize(), name);
         Map<String, Object> map = new HashMap<>();
-        if (supplierList.size() == 0) {
-            map.put("total", 0);
-            map.put("list", new ArrayList<>());
+        if (page1.getData().size() == 0) {
             return map;
         }
-        String sql = "Select count(*) from t_supplier where status=1";
-        Integer total = jdbcTemplate.queryForObject(sql, Integer.class);
-        map.put("total", total);
-        List<SupplierDTO> list = supplierList.stream().map(supplierDO -> {
-            SupplierDTO supplierDTO = new SupplierDTO();
-            supplierDTO.setName(supplierDO.getName());
-            supplierDTO.setSettlementType(supplierDO.getSettlementType());
-            supplierDTO.setContactPerson(StringUtil.isEmpty(supplierDO.getContactPerson()) ? "" : supplierDO.getContactPerson());
-            supplierDTO.setContactPhone(StringUtil.isEmpty(supplierDO.getContactPhone()) ? "" : supplierDO.getContactPhone());
-            supplierDTO.setContactPosition(StringUtil.isEmpty(supplierDO.getContactPosition()) ? "" : supplierDO.getContactPosition());
-            supplierDTO.setStatus(supplierDO.getStatus());
-            supplierDTO.setCreateTime(supplierDO.getCreateTime());
-            supplierDTO.setBalance(0);
-            supplierDTO.setConsumption(0);
-            return supplierDTO;
+        map.put("total", page1.getTotal());
+        Object collect = page1.getData().stream().map(m -> {
+            Map map1 = (Map) m;
+            Map<String, Object> supplierDTOMap = new HashMap<>();
+            supplierDTOMap.put("name", map1.get("name"));
+            supplierDTOMap.put("settlementType", map1.get("settlement_type"));
+            supplierDTOMap.put("contactPerson", map1.get("contact_person"));
+            supplierDTOMap.put("contactPhone", map1.get("contact_phone"));
+            supplierDTOMap.put("contactPosition", map1.get("contact_position"));
+            supplierDTOMap.put("status", map1.get("status"));
+            supplierDTOMap.put("createTime", map1.get("create_time"));
+            supplierDTOMap.put("balance", 0);
+            supplierDTOMap.put("consumption", 0);
+            return supplierDTOMap;
         }).collect(Collectors.toList());
-        map.put("list", list);
+        map.put("list", collect);
         return map;
 
     }
