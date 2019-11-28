@@ -300,6 +300,10 @@ public class CustomerAppService {
 
         List<Map<String, Object>> propertyList = jdbcTemplate.queryForList(sql, custId);
         for (Map<String, Object> map : propertyList) {
+            JSONObject json = new JSONObject();
+            json.put("warning_money", "");
+            json.put("short_msg_link", "");
+            json.put("email_link", "");
             switch (map.get("property_name").toString()) {
                 case "province":
                     vo.setProvince(map.get("property_value").toString());
@@ -338,29 +342,29 @@ public class CustomerAppService {
                 case "brand":
                     vo.setBrand(map.get("property_value").toString());
                     break;
-//                case "mobile_num":
-//                    vo.setMobile(map.get("property_value").toString());
-//                    break;
                 case "create_id":
                     vo.setCreateId(map.get("property_value").toString());
                     break;
                 case "warning_money":
-                    vo.setWarning_money(map.get("property_value").toString());
+                    json.put("warning_money", map.get("property_value"));
                     break;
                 case "short_msg_link":
-                    vo.setShort_msg_link(map.get("property_value").toString());
+                    json.put("short_msg_link", map.get("property_value"));
                     break;
                 case "email_link":
-                    vo.setEmail_link(map.get("property_value").toString());
+                    json.put("email_link", map.get("property_value"));
                     break;
-//                case "industry_picture":
                 case "inten_industry":
                     vo.setIntenIndustry(map.get("property_value") == null ? "" : map.getOrDefault("property_value", "").toString());
                     break;
                 case "industry_picture_value":
                     vo.setIndustryPictureValue(map.get("property_value").toString());
                     break;
+                case "industry":
+                    vo.setIndustry(map.get("industry") == null ? "" : map.get("industry").toString());
+                    break;
             }
+            vo.setBalance_warning_config(json.toString());
         }
 
         return vo;
