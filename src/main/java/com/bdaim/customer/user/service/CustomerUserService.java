@@ -1474,6 +1474,10 @@ public class CustomerUserService {
             }
         } else {
             HashMap<Object, Object> map = new HashMap<>();
+            map.put("key", CustomerShowRowEnum.COMPANY.getKey());
+            map.put("value", CustomerShowRowEnum.COMPANY.getValue());
+            list.add(map);
+            map = new HashMap<>();
             map.put("key", CustomerShowRowEnum.NAME.getKey());
             map.put("value", CustomerShowRowEnum.NAME.getValue());
             list.add(map);
