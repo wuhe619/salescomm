@@ -39,7 +39,7 @@ public class CustomerController extends BasicAction {
                 //前台创建的createId是当前登陆企业id
                 customerRegistDTO.setCreateId(lu.getCustId());
             }
-            if(!"0".equals(id)){
+            if (!"0".equals(id)) {
                 customerRegistDTO.setCustId(id);
             }
             String code = customerAppService.registerOrUpdateCustomer(customerRegistDTO, lu);
@@ -58,18 +58,24 @@ public class CustomerController extends BasicAction {
     /**
      * 查询企业客户列表
      *
-     * @param page
-     * @param account
-     * @param name
-     * @param contactPerson
-     * @param salePerson
      * @return
      */
     @PostMapping("/infos")
-    public ResponseInfo queryList(@RequestBody @Valid PageParam page, String account, String name, String contactPerson, String salePerson) {
+    public ResponseInfo queryList(@RequestBody(required = false) String body) {
+        PageParam page = new PageParam();
         ResponseInfo resp = new ResponseInfo();
-        String customerId = opUser().getCustId();
-        resp.setData(customerAppService.getUser(page, customerId, account, name, contactPerson, salePerson));
+        JSONObject info = null;
+        try {
+            if (body == null || "".equals(body))
+                body = "{}";
+
+            info = JSONObject.parseObject(body);
+        } catch (Exception e) {
+            return new ResponseInfoAssemble().failure(-1, "记录解析异常:");
+        }
+        page.setPageSize(info.getInteger("pageSize") == null ? 0 : info.getIntValue("pageSize"));
+        page.setPageNum(info.getInteger("pageNum") == null ? 10 : info.getIntValue("pageNum"));
+        resp.setData(customerAppService.getUser(page, info.getString("customerId"), info.getString("account"), info.getString("name"), info.getString("contactPerson"), info.getString("salePerson")));
         return resp;
     }
 

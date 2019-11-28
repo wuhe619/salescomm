@@ -106,7 +106,13 @@ public class ApiService {
         if (StringUtil.isNotEmpty(apiData.getTransportHttp())) {
             apiDao.dealCustomerInfo(String.valueOf(apiId), "transport_http", apiData.getTransportHttp());
         }
-
+        //是否启用限流
+        if (StringUtil.isNotEmpty(apiData.getToggleThrottle())) {
+            apiDao.dealCustomerInfo(String.valueOf(apiId), "toggle_throttle", apiData.getToggleThrottle());
+        }
+        if (apiData.getProductionTps() != 0) {
+            apiDao.dealCustomerInfo(String.valueOf(apiId), "production_tps", String.valueOf(apiData.getProductionTps()));
+        }
 
         return apiId;
     }

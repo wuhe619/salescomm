@@ -237,7 +237,7 @@ public class CustomerAppService {
             sql.append(" AND s.account = '" + account + "'");
         }
         if (StringUtil.isNotEmpty(contactPerson)) {
-            sql.append(" AND s.realname = '" + contactPerson + "'");
+            sql.append(" AND s.realname like '%" + contactPerson + "%'");
         }
         if (StringUtil.isNotEmpty(name)) {
             sql.append(" AND tc.enterprise_name like '%" + name + "%'");
