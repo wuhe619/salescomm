@@ -26,7 +26,6 @@ public class ApiService {
     private ApiUrlMappingDao apiUrlMappingDao;
 
 
-
     public int saveApiProperty(ApiData apiData, String apiId, LoginUser lu) throws Exception {
         Map<String, Object> map = new HashMap<>();
         if (StringUtil.isEmpty(apiId) || "0".equals(apiId)) {
@@ -56,12 +55,27 @@ public class ApiService {
             map.put("apiId", id);
         }
 
-        if(apiData.getUrlMappingId()==0){
-            ApiUrlMappingEntity entity=new ApiUrlMappingEntity();
+        if (apiData.getUrlMappingId() == 0) {
+            ApiUrlMappingEntity entity = new ApiUrlMappingEntity();
             entity.setApiId(Integer.valueOf(map.get("apiId").toString()));
-
+            entity.setHttpMethod(apiData.getTransportHttp());
+            entity.setAuthScheme("Any");
+            entity.setThrottlingTier("Unlimited");
+            entity.setUrlPattern(apiData.getProductionendpoints());
+            apiUrlMappingDao.saveReturnPk(entity);
+        } else {
+            ApiUrlMappingEntity entity = apiUrlMappingDao.getApiUrlMapping(apiData.getUrlMappingId());
+            if (entity == null) {
+                throw new Exception("ApiUrl不存在");
+            }
+            entity.setHttpMethod(apiData.getTransportHttp());
+            entity.setUrlPattern(apiData.getProductionendpoints());
             apiUrlMappingDao.saveReturnPk(entity);
         }
+        if(StringUtil.isNotEmpty(apiData.getVisibility())){
+
+        }
+
 
 //        String sql ="INSERT INTO am_api_property (api_id,property_name,property_value,create_time) VALUE (?,?,?,?)";
 //        jdbcTemplate.update(sql,id,key,value,new Timestamp(System.currentTimeMillis()));

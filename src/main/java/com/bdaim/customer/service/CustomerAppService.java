@@ -247,7 +247,7 @@ public class CustomerAppService {
         if (StringUtil.isNotEmpty(name)) {
             sql.append(" AND tc.enterprise_name like '%" + name + "%'");
         }
-
+        sql.append(" order by s.create_time desc");
         PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
         Object collect = list.getList().stream().map(m -> {
             Map map = (Map) m;
@@ -346,12 +346,15 @@ public class CustomerAppService {
                     vo.setCreateId(map.get("property_value").toString());
                     break;
                 case "warning_money":
+                    logger.info("warning_money:"+map.get("property_value") + "");
                     json.put("warning_money", map.get("property_value"));
                     break;
                 case "short_msg_link":
+                    logger.info("short_msg_link:"+map.get("property_value") + "");
                     json.put("short_msg_link", map.get("property_value"));
                     break;
                 case "email_link":
+                    logger.info("email_link:"+map.get("property_value") + "");
                     json.put("email_link", map.get("property_value"));
                     break;
                 case "inten_industry":
