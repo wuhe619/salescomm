@@ -116,7 +116,13 @@ public class B2BTcbService implements BusiService {
             info.put("e_time", eTime.format(DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss")));
             // 基础 定制套餐 供应商 客户扣费
             if ("1".equals(tcbConfig.getString("type")) || "2".equals(tcbConfig.getString("type"))) {
-                tcOpenDeduction(tcbConfig.getString("price_res_id"), tcbConfig.getString("name"), tcbConfig.getString("price"), tcbConfig.getIntValue("total"), cust_id, cust_user_id);
+                String name = "";
+                if (tcbConfig.getIntValue("type") == 1) {
+                    name = "(标准套餐)";
+                } else if (tcbConfig.getIntValue("type") == 2) {
+                    name = "(定制套餐)";
+                }
+                tcOpenDeduction(tcbConfig.getString("price_res_id"), tcbConfig.getString("name") + name, tcbConfig.getString("price"), tcbConfig.getIntValue("total"), cust_id, cust_user_id);
             }
         } else {
             LOG.warn("套餐包:{}无效", info.getString("resource_id"));
