@@ -13,6 +13,11 @@ public class ApiService {
 
 
     public int saveApiProperty(int id,String key,String value){
+
+        if(id==0){
+
+        }
+
         String sql ="INSERT INTO am_api_property (api_id,property_name,property_value,create_time) VALUE (?,?,?,?)";
         jdbcTemplate.update(sql,id,key,value,new Timestamp(System.currentTimeMillis()));
         return 1;
