@@ -165,9 +165,9 @@ public class CustomerAppService {
         //预警
         if (StringUtil.isNotEmpty(vo.getBalance_warning_config())) {
             if (StringUtil.isNotEmpty(vo.getCustId())) {
-                customerDao.dealCustomerInfo(vo.getCustId(), "balance_warning_config", vo.getIndustry());
+                customerDao.dealCustomerInfo(vo.getCustId(), "balance_warning_config", vo.getBalance_warning_config());
             } else {
-                customerDao.dealCustomerInfo(customerId, "balance_warning_config", vo.getIndustry());
+                customerDao.dealCustomerInfo(customerId, "balance_warning_config", vo.getBalance_warning_config());
             }
         }
         //销售负责人
