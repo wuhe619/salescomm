@@ -2203,9 +2203,10 @@ public class SupplierService {
         SupplierEntity supplierDO = new SupplierEntity();
         supplierDO.setName(supplierDTO.getName());
         supplierDO.setSettlementType(supplierDTO.getSettlementType());
-        supplierDO.setContactPerson(supplierDTO.getContactPerson());
+//        supplierDO.setContactPerson(supplierDTO.getContactPerson());
         supplierDO.setContactPhone(supplierDTO.getContactPhone());
         supplierDO.setContactPosition(supplierDTO.getContactPosition());
+        supplierDO.setType(5);
         supplierDO.setStatus(1);
         supplierDO.setCreateTime(new Timestamp(System.currentTimeMillis()));
         int supplierId = (int) supplierDao.saveReturnPk(supplierDO);
@@ -2226,7 +2227,7 @@ public class SupplierService {
         supplierDO.setContactPerson(supplierDTO.getContactPerson());
         supplierDO.setContactPhone(supplierDTO.getContactPhone());
         supplierDO.setContactPosition(supplierDTO.getContactPosition());
-        supplierDO.setStatus(1);
+        supplierDO.setStatus(2);
         try {
             supplierDao.saveOrUpdate(supplierDO);
         } catch (Exception e) {
@@ -2253,13 +2254,18 @@ public class SupplierService {
         return supplierDTO;
     }
 
-    public List<SupplierDTO> getSupplierList(PageParam page, String name) {
+    public Map<String, Object> getSupplierList(PageParam page, String name) {
         List<SupplierEntity> supplierList = supplierDao.fingByAll(page.getPageNum(), page.getPageSize(), name);
+        Map<String, Object> map = new HashMap<>();
         if (supplierList.size() == 0) {
-            return new ArrayList<>();
+            map.put("total", 0);
+            map.put("list", new ArrayList<>());
+            return map;
         }
-        return supplierList.stream().map(supplierDO -> {
-
+        String sql = "Select count(*) from t_supplier where status=1";
+        Integer total = jdbcTemplate.queryForObject(sql, Integer.class);
+        map.put("total", total);
+        List<SupplierDTO> list = supplierList.stream().map(supplierDO -> {
             SupplierDTO supplierDTO = new SupplierDTO();
             supplierDTO.setName(supplierDO.getName());
             supplierDTO.setSettlementType(supplierDO.getSettlementType());
@@ -2272,6 +2278,8 @@ public class SupplierService {
             supplierDTO.setConsumption(0);
             return supplierDTO;
         }).collect(Collectors.toList());
+        map.put("list", list);
+        return map;
 
     }
 
