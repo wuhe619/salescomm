@@ -179,7 +179,7 @@ public class ResourceAction extends BasicAction {
     @PostMapping(value = "/all")
     @ResponseBody
     @ValidatePermission(role = "admin,ROLE_USER")
-    public String listResource(@RequestBody com.alibaba.fastjson.JSONObject param) {
+    public String listResource1(@RequestBody com.alibaba.fastjson.JSONObject param) {
         List<MarketResourceDTO> marketResourceDTOList = null;
         try {
             marketResourceDTOList = marketResourceService.listResource(opUser().getCustId(), param);
@@ -222,12 +222,27 @@ public class ResourceAction extends BasicAction {
     }
 
     @PostMapping(value = "/infos")
-    public ResponseInfo listResource1(@RequestBody com.alibaba.fastjson.JSONObject param) {
+    public ResponseInfo listResource(@RequestBody com.alibaba.fastjson.JSONObject param) {
         ResponseInfo resp = new ResponseInfo();
         try {
             resp.setData(marketResourceService.listResource1(opUser().getCustId(), param));
         } catch (Exception e) {
             logger.error("查询资源列表失败,", e);
+        }
+        return resp;
+    }
+
+    @GetMapping(value = "/info/{id}")
+    public ResponseInfo getResourceById(@PathVariable(name = "id") Integer id) {
+        ResponseInfo resp = new ResponseInfo();
+        if (id == null || id == 0) {
+            return new ResponseInfoAssemble().failure(-1, "资源类型不能为空");
+        }
+        try {
+            resp.setData(marketResourceService.getResourceById(id));
+        } catch (Exception e) {
+            logger.error("查询资源列表失败,", e);
+            return new ResponseInfoAssemble().failure(-1, "查询资源列表失败");
         }
         return resp;
     }

@@ -8544,9 +8544,8 @@ public class MarketResourceService {
     }
 
     public int saveMarketResource(String name, Integer supplierId, String price, Integer type) {
-        String sql = "INSERT into t_market_resource(supplier_id,type_code,resname,sale_price) VALUES(?,?,?,?)";
-        jdbcTemplate.update(sql, new Object[]{supplierId, type, name, price});
-        return jdbcTemplate.update(sql, new Object[]{supplierId, type, name, price});
+        String sql = "INSERT into t_market_resource(supplier_id,type_code,resname,sale_price,create_time) VALUES(?,?,?,?,?)";
+        return jdbcTemplate.update(sql, new Object[]{supplierId, type, name, price, DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss)});
     }
 
     public int updateMarketResource(String name, Integer supplierId, String price, Integer type, Integer resource_id) {
@@ -8573,5 +8572,21 @@ public class MarketResourceService {
         return marketResourceDao.listMarketResource1(pageNum, pageSize, param.getString("supplierId"), param.getIntValue("busiType"), param);
     }
 
+
+    public Map<String, Object> getResourceById(int resourceId) throws Exception {
+        MarketResourceEntity marketResource = marketResourceDao.getMarketResource(resourceId);
+        if (marketResource == null) {
+            throw new Exception("资源" + resourceId + "不存在");
+        }
+        Map<String, Object> map = new HashMap<>();
+        map.put("resourceId", marketResource.getResourceId());
+        map.put("name", marketResource.getResname());
+        map.put("supplierId", marketResource.getSupplierId());
+        map.put("price", marketResource.getSalePrice());
+        map.put("type", marketResource.getTypeCode());
+        map.put("createTime", marketResource.getCreateTime());
+
+        return map;
+    }
 
 }
