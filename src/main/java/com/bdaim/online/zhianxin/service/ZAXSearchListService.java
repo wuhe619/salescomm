@@ -6,6 +6,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.service.PhoneService;
 import com.bdaim.online.zhianxin.dto.BaseResult;
 import com.bdaim.customer.service.B2BTcbLogService;
+import com.bdaim.util.StringUtil;
 import com.bdaim.util.http.HttpUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -109,6 +110,9 @@ public class ZAXSearchListService {
         headers.put("Authorization", TOKEN);
         LOG.info("企业列表查询参数:{}", params);
         String result = HttpUtil.httpPost(API_URL.replace("{busiType}", BUSI_TYPE.get(busiType)), params.toJSONString(), headers, 15000);
+        if(StringUtil.isEmpty(result)){
+            result = "{}";
+        }
         LOG.info("企业列表查询接口返回:{}", result);
         BaseResult baseResult = JSON.parseObject(result, BaseResult.class);
         // 处理企业领取标志

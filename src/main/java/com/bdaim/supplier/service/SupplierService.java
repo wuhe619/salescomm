@@ -2206,6 +2206,7 @@ public class SupplierService {
         supplierDO.setContactPerson(supplierDTO.getContactPerson());
         supplierDO.setContactPhone(supplierDTO.getContactPhone());
         supplierDO.setContactPosition(supplierDTO.getContactPosition());
+        supplierDO.setType(5);
         supplierDO.setStatus(1);
         supplierDO.setCreateTime(new Timestamp(System.currentTimeMillis()));
         int supplierId = (int) supplierDao.saveReturnPk(supplierDO);
@@ -2226,7 +2227,7 @@ public class SupplierService {
         supplierDO.setContactPerson(supplierDTO.getContactPerson());
         supplierDO.setContactPhone(supplierDTO.getContactPhone());
         supplierDO.setContactPosition(supplierDTO.getContactPosition());
-        supplierDO.setStatus(1);
+        supplierDO.setStatus(2);
         try {
             supplierDao.saveOrUpdate(supplierDO);
         } catch (Exception e) {
@@ -2253,25 +2254,34 @@ public class SupplierService {
         return supplierDTO;
     }
 
-    public List<SupplierDTO> getSupplierList(PageParam page, String name) {
-        List<SupplierEntity> supplierList = supplierDao.fingByAll(page.getPageNum(), page.getPageSize(), name);
-        if (supplierList.size() == 0) {
-            return new ArrayList<>();
-        }
-        return supplierList.stream().map(supplierDO -> {
+    public Map<String, Object> getSupplierList(PageParam page, String name) {
 
-            SupplierDTO supplierDTO = new SupplierDTO();
-            supplierDTO.setName(supplierDO.getName());
-            supplierDTO.setSettlementType(supplierDO.getSettlementType());
-            supplierDTO.setContactPerson(StringUtil.isEmpty(supplierDO.getContactPerson()) ? "" : supplierDO.getContactPerson());
-            supplierDTO.setContactPhone(StringUtil.isEmpty(supplierDO.getContactPhone()) ? "" : supplierDO.getContactPhone());
-            supplierDTO.setContactPosition(StringUtil.isEmpty(supplierDO.getContactPosition()) ? "" : supplierDO.getContactPosition());
-            supplierDTO.setStatus(supplierDO.getStatus());
-            supplierDTO.setCreateTime(supplierDO.getCreateTime());
-            supplierDTO.setBalance(0);
-            supplierDTO.setConsumption(0);
-            return supplierDTO;
+        StringBuffer sql = new StringBuffer();
+        sql.append("select supplier_id,name,settlement_type,contact_person,contact_phone,contact_position,status,create_time from t_supplier where status =1 ");
+        if (StringUtil.isNotEmpty(name)) {
+            sql.append(" and name like '%" + name + "%'");
+        }
+        sql.append(" order by create_time desc");
+        PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
+        Map<String, Object> map = new HashMap<>();
+        map.put("total", list.getTotal());
+        Object collect = list.getList().stream().map(m -> {
+            Map map1 = (Map) m;
+            Map<String, Object> supplierDTOMap = new HashMap<>();
+            supplierDTOMap.put("name", map1.get("name"));
+            supplierDTOMap.put("settlementType", map1.get("settlement_type"));
+            supplierDTOMap.put("contactPerson", map1.get("contact_person"));
+            supplierDTOMap.put("contactPhone", map1.get("contact_phone"));
+            supplierDTOMap.put("contactPosition", map1.get("contact_position"));
+            supplierDTOMap.put("status", map1.get("status"));
+            supplierDTOMap.put("createTime", map1.get("create_time"));
+            supplierDTOMap.put("balance", 0);
+            supplierDTOMap.put("consumption", 0);
+            supplierDTOMap.put("supplierId",map1.get("supplier_id"));
+            return supplierDTOMap;
         }).collect(Collectors.toList());
+        map.put("list", collect);
+        return map;
 
     }
 

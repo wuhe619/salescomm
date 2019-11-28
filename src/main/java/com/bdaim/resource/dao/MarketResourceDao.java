@@ -735,6 +735,10 @@ public class MarketResourceDao extends SimpleHibernateDao<MarketResourceEntity, 
             hql.append(" AND m.status = ? ");
             wheres.add(param.getInteger("status"));
         }
+        if(StringUtil.isNotEmpty(param.getString("name"))){
+            hql.append(" AND m.resname like '% ? %'");
+            wheres.add(param.getString("name"));
+        }
         Iterator keys = param.keySet().iterator();
         while (keys.hasNext()) {
             String key = (String) keys.next();
