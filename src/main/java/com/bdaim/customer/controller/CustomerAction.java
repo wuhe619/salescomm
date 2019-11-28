@@ -2025,7 +2025,7 @@ public class CustomerAction extends BasicAction {
         } catch (Exception e) {
             logger.error("企业B2B套餐领取至公海/私海失败,", e);
             responseJson.setCode(-1);
-            responseJson.setMessage(e.getMessage());
+            responseJson.setMessage("企业B2B套餐领取至公海/私海失败");
         }
         return JSON.toJSONString(responseJson);
 
