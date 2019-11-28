@@ -214,7 +214,7 @@ public class AccountService {
         if(StringUtil.isNotEmpty(queryParam.getRealname().trim())){
             String sql = "select id from t_user where name like '%"+queryParam.getRealname()+"%'";
             ids = jdbcTemplate.queryForList(sql,Long.class);
-            if(ids==null || ids.size()==0)return null;
+            if(ids==null || ids.size()==0)return new PageList();
         }
 
         StringBuilder sqlBuilder = new StringBuilder("SELECT t.type,t.create_time,t.transaction_id,t.amount/100 as amount ,cu.realname," +
