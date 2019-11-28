@@ -29,6 +29,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -155,7 +156,8 @@ public class B2BTcbService implements BusiService {
                 supplierNumberPrice = NumberConvertUtil.changeY2L(config.getString("price")) * total;
             } else if (config.getIntValue("type") == 2) {
                 // 收入分成(套餐价格*收入百分比)
-                supplierNumberPrice = NumberConvertUtil.changeY2L(NumberConvertUtil.parseDouble(price) * config.getDoubleValue("price"));
+                BigDecimal bigDecimal = new BigDecimal(config.getString("price")).divide(new BigDecimal("100"));
+                supplierNumberPrice = NumberConvertUtil.changeY2L(NumberConvertUtil.parseDouble(price) * bigDecimal.doubleValue());
             }
         }
         LOG.info("客户:{}套餐包开通开始扣费,客户金额:{},供应商金额:{},套餐配置信息:{}", custId, custNumberPrice, supplierNumberPrice, config);
