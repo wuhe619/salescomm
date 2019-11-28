@@ -607,16 +607,24 @@ public class BgdZService implements BusiService {
         for (PartyDan f : fdList) {
             d.put(f.getBill_no(), JSON.parseObject(JSON.toJSONString(f)));
         }
-        JSONObject param = new JSONObject();
-        param.put("send_status", sendStatus);
-        // 按照send_status查询分单列表
-        List<JSONObject> singles = queryChildData(BusiTypeEnum.BF.getType(), cust_id, cust_group_id, cust_user_id, id, info, param);
-        if (singles == null || singles.size() == 0) {
-            log.warn("报关单主单:{},申报状态:{}未查询到异常报关单分单", id, sendStatus);
-            return;
+        List<JSONObject> singles = new ArrayList<>();
+        String[] wheres = sendStatus.split(",");
+        for (String where : wheres) {
+            JSONObject param = new JSONObject();
+            param.put("send_status", where);
+            // 按照send_status查询分单列表
+            List<JSONObject> tmpList = queryChildData(BusiTypeEnum.BF.getType(), cust_id, cust_group_id, cust_user_id, id, info, param);
+            /*if (singles == null || singles.size() == 0) {
+                log.warn("报关单主单:{},申报状态:{}未查询到异常报关单分单", id, sendStatus);
+                return;
+            }*/
+            if (tmpList != null && tmpList.size() > 0) {
+                singles.addAll(tmpList);
+            }
         }
+
         // 更新分单信息
-        String updateSql = " UPDATE " + HMetaDataDef.getTable(BusiTypeEnum.BF.getType(), "") + " SET ext_1 = ?, ext_date1 = NOW(), content=? WHERE id=? AND type = ? AND ext_1 =? ";
+        String updateSql = " UPDATE " + HMetaDataDef.getTable(BusiTypeEnum.BF.getType(), "") + " SET ext_1 = ?, ext_date1 = NOW(), content=? WHERE id=? AND type = ? ";
         for (int i = 0; i < singles.size(); i++) {
             String fdBillNo = singles.get(i).getString("bill_no");
             if (d.get(fdBillNo) != null) {
@@ -625,7 +633,7 @@ public class BgdZService implements BusiService {
                 singles.get(i).put("ext_1", BgdSendStatusEnum._25.getCode());
                 // xml文件名称后缀,用于区分正常和异常再次申报生成的文件
                 singles.get(i).put("fileSuffix", "_F");
-                jdbcTemplate.update(updateSql, BgdSendStatusEnum._25.getCode(), singles.get(i).toJSONString(), singles.get(i).getString("id"), BusiTypeEnum.BF.getType(), sendStatus);
+                jdbcTemplate.update(updateSql, BgdSendStatusEnum._25.getCode(), singles.get(i).toJSONString(), singles.get(i).getString("id"), BusiTypeEnum.BF.getType());
                 serviceUtils.updateDataToES(BusiTypeEnum.BF.getType(), singles.get(i).getString("id"), singles.get(i));
             }
         }
