@@ -598,7 +598,6 @@ public class CustomController extends BasicAction {
             }
             if (StringUtil.isEmpty(cust_id))
                 return new ResponseInfoAssemble().failure(-1, "无归属企业，不能保存记录:[" + busiType + "]");
-
             String cust_group_id = lu.getUserGroupId();
             Long cust_user_id = lu.getId();
             // 处理导入报关单退单
