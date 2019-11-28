@@ -195,6 +195,7 @@ public class B2BTcbService implements BusiService {
         if (StringUtil.isNotEmpty(name)) {
             sqlstr.append(" and content->'$.name'='").append(name).append("'");
         }
+        sqlstr.append(" ORDER BY create_date DESC ");
         return sqlstr.toString();
     }
 
