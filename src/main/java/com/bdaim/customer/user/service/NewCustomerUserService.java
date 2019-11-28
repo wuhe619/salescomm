@@ -49,7 +49,7 @@ public class NewCustomerUserService {
                 customerUserDO.setPassword(CipherUtil.generatePassword(vo.getPassword()));
                 customerUserDO.setRealname(vo.getRealName());
                 customerUserDO.setStatus(Constant.USER_ACTIVE_STATUS);
-                customerUserDO.setCreateTime(DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss));
+                customerUserDO.setCreateTime(String.valueOf(DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss)));
                 customerUserDao.saveOrUpdate(customerUserDO);
 
             }
