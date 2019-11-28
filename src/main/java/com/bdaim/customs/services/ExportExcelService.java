@@ -122,6 +122,10 @@ public class ExportExcelService {
         Map<String, Object> map = new HashMap<>();
         //map.put("list", JavaBeanUtil.convertJsonObjectToMapList(list));
         map.put("list", list);
+        if (list == null || list.size() == 0) {
+            LOG.info("导出excel为空:{}", param);
+            return;
+        }
 
         response.setHeader("Content-Disposition", "attachment; filename=" + System.currentTimeMillis() + ExcelTypeEnum.XLSX.getValue());
         response.setContentType("application/vnd.ms-excel;charset=utf-8");

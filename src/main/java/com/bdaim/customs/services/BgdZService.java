@@ -2,6 +2,7 @@ package com.bdaim.customs.services;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.common.BusiMetaConfig;
 import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.service.BusiService;
 import com.bdaim.common.service.ElasticSearchService;
@@ -21,6 +22,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
 
@@ -49,6 +52,9 @@ public class BgdZService implements BusiService {
 
     @Autowired
     private ServiceUtils serviceUtils;
+
+    @Autowired
+    private ExportExcelService exportExcelService;
 
     @Override
     public void insertInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) throws Exception {
@@ -661,6 +667,80 @@ public class BgdZService implements BusiService {
         jdbcTemplate.update(sql, jsonObject.toJSONString(), zid, BusiTypeEnum.BZ.getType());
         serviceUtils.updateDataToES(BusiTypeEnum.BZ.getType(), String.valueOf(zid), jsonObject);
 
+    }
+
+    /**
+     * 导出excel
+     *
+     * @param response
+     * @param cust_id
+     * @param cust_group_id
+     * @param cust_user_id
+     * @param id
+     * @param param
+     */
+    public void export(HttpServletResponse response, String cust_id, String cust_group_id, Long cust_user_id, Long id, String key, String value, String rule) {
+        HBusiDataManager manager = serviceUtils.getObjectByIdAndType(cust_id, id, BusiTypeEnum.BZ.getType());
+        if (manager == null) {
+            return;
+        }
+        JSONObject info = JSONObject.parseObject(manager.getContent());
+        List singles = new ArrayList(), products = new ArrayList();
+        String[] wheres = value.split(",");
+        JSONObject params;
+        for (String where : wheres) {
+            params = new JSONObject();
+            params.put(key, where);
+            List list = queryChildData(BusiTypeEnum.BF.getType(), cust_id, cust_group_id, cust_user_id, id, info, params);
+            if (list != null) {
+                singles.addAll(list);
+                if (singles != null && singles.size() > 0) {
+                    JSONObject js, product;
+                    String main_bill_no = "", partyNo = "";
+                    List partyBillNos = new ArrayList();
+                    for (int i = 0; i < singles.size(); i++) {
+                        js = (JSONObject) singles.get(i);
+                        js.put("index", i + 1);
+                        partyNo = js.getString("bill_no");
+                        partyBillNos.add(partyNo);
+                        main_bill_no = js.getString("ext_4");
+                        js.putAll(info);
+                        js.put("bill_no", partyNo);
+                    }
+                    // 报关单税单无申报状态字段
+                    params.remove(key);
+                    List proList = serviceUtils.listSdByBillNos(cust_id, BusiTypeEnum.BS.getType(), main_bill_no, partyBillNos, params);
+                    if (proList == null || proList.size() == 0) {
+                        continue;
+                    }
+                    products.addAll(proList);
+                    log.info("报关单：{}分单数量:{}", main_bill_no, list);
+                    log.info("报关单：{}商品数量:{}", main_bill_no, proList);
+                    JSONObject content;
+                    for (int j = 0; j < products.size(); j++) {
+                        product = (JSONObject) products.get(j);
+                        content = JSON.parseObject(product.getString("content"));
+                        product.putAll(content);
+                        product.put("index", j + 1);
+                        product.put("party_bill_no", product.getString("ext_4"));
+                        product.put("main_bill_no", main_bill_no);
+                    }
+                }
+            }
+        }
+        info.put("singles", singles);
+        info.put("products", products);
+        List<JSONObject> list = new ArrayList();
+        list.add(info);
+        try {
+            JSONObject _rule = new JSONObject();
+            _rule.put("_rule_", rule);
+            exportExcelService.exportExcel(info.getIntValue("id"), list, _rule, response);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 }
