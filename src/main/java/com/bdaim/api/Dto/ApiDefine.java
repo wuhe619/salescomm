@@ -1,12 +1,10 @@
 package com.bdaim.api.Dto;
 
-import java.util.List;
-
 public class ApiDefine {
     private String resource_url_pattern;
     private String request_method;
     private String description;
-    private List<ApiParam> params;
+    private String params;
 
     public String getResource_url_pattern() {
         return resource_url_pattern;
@@ -32,11 +30,11 @@ public class ApiDefine {
         this.description = description;
     }
 
-    public List<ApiParam> getParams() {
+    public String getParams() {
         return params;
     }
 
-    public void setParams(List<ApiParam> params) {
+    public void setParams(String params) {
         this.params = params;
     }
 }

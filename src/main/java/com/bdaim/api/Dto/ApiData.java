@@ -12,7 +12,7 @@ public class ApiData {
     private String description;
     private String tags;
     private String endpointType;
-    private  String productionendpoints;
+    private String productionendpoints;
     private String defaultVersion;
     private String tier;
     private String transportHttp;
@@ -21,8 +21,17 @@ public class ApiData {
     private String responseCache;
     private List<ApiResource> resourceList;
     private ApiDefine apiDefine;
+    private String rsIds;
 
     private int urlMappingId;
+
+    public String getRsIds() {
+        return rsIds;
+    }
+
+    public void setRsIds(String rsIds) {
+        this.rsIds = rsIds;
+    }
 
     public int getUrlMappingId() {
         return urlMappingId;
