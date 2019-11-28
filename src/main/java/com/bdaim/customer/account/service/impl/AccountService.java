@@ -211,7 +211,7 @@ public class AccountService {
     public PageList pageListRecords(PageParam page, CustomerBillQueryParam queryParam) {
         // 如果没有传开始时间
         StringBuilder sqlBuilder = new StringBuilder("SELECT t.type,t.create_time,t.transaction_id,t.amount/100 as amount ,cu.realname," +
-                "t.cust_id,t.certificate,t.remark from t_transaction_bill t \n" +
+                "t.cust_id,t.certificate,t.user_id,t.remark from t_transaction_bill t \n" +
                 "LEFT JOIN t_customer_user cu on t.cust_id=cu.cust_id\n" +
                 " where 1=1 and cu.user_type=1");
         if (StringUtil.isNotEmpty(queryParam.getCustomerId())) {
