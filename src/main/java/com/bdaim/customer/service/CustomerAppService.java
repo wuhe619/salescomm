@@ -164,26 +164,20 @@ public class CustomerAppService {
         }
         //预警
         if (StringUtil.isNotEmpty(vo.getBalance_warning_config())) {
-            String custid = customerId;
-            if (StringUtil.isNotEmpty(vo.getCustId())) custid = vo.getCustId();
-            JSONObject jsonObject = JSONObject.parseObject(vo.getBalance_warning_config());
-            String warning_money = jsonObject.getString("warning_money");
-            if (StringUtil.isNotEmpty(warning_money)) {
-                customerDao.dealCustomerInfo(custid, "warning_money", warning_money);
-            }
-            if (StringUtil.isNotEmpty(jsonObject.getString("email_link"))) {
-                customerDao.dealCustomerInfo(custid, "email_link", jsonObject.getString("email_link"));
-            }
-            if (StringUtil.isNotEmpty(jsonObject.getString("short_msg_link"))) {
-                customerDao.dealCustomerInfo(custid, "short_msg_link", jsonObject.getString("short_msg_link"));
+            if (StringUtil.isNotEmpty(vo.getCustId())) {
+                customerDao.dealCustomerInfo(vo.getCustId(), "balance_warning_config", vo.getIndustry());
+            } else {
+                customerDao.dealCustomerInfo(customerId, "balance_warning_config", vo.getIndustry());
             }
         }
         //销售负责人
         //if (StringUtil.isNotEmpty(vo.getSalePerson())) {
         if (StringUtil.isNotEmpty(vo.getSalePerson())) {
-            customerDao.dealCustomerInfo(vo.getCustId(), "sale_person", vo.getSalePerson());
-        } else {
-            customerDao.dealCustomerInfo(customerId, "sale_person", vo.getSalePerson());
+            if (StringUtil.isNotEmpty(vo.getCustId())) {
+                customerDao.dealCustomerInfo(vo.getCustId(), "sale_person", vo.getSalePerson());
+            } else {
+                customerDao.dealCustomerInfo(customerId, "sale_person", vo.getSalePerson());
+            }
         }
         // }
         //企业注册详细街道地址
@@ -300,77 +294,70 @@ public class CustomerAppService {
 
         List<Map<String, Object>> propertyList = jdbcTemplate.queryForList(sql, custId);
         for (Map<String, Object> map : propertyList) {
-            JSONObject json = new JSONObject();
-            json.put("warning_money", "");
-            json.put("short_msg_link", "");
-            json.put("email_link", "");
+            String property_value = ObjectFormStr(map.get("property_value"));
             switch (map.get("property_name").toString()) {
                 case "province":
-                    vo.setProvince(map.get("property_value").toString());
+                    vo.setProvince(property_value);
                     break;
                 case "city":
-                    vo.setCity(map.get("property_value").toString());
+                    vo.setCity(property_value);
                 case "county":
-                    vo.setCountry(map.get("property_value").toString());
+                    vo.setCountry(property_value);
                 case "whiteIps":
-                    vo.setWhiteIps(map.get("property_value").toString());
+                    vo.setWhiteIps(property_value);
                     break;
                 case "taxpayer_id":
-                    vo.setTaxPayerId(map.get("property_value").toString());
+                    vo.setTaxPayerId(property_value);
                     break;
                 case "bli_path":
-                    vo.setBliPath(map.get("property_value").toString());
+                    vo.setBliPath(property_value);
                     break;
                 case "bank":
-                    vo.setBank(map.get("property_value").toString());
+                    vo.setBank(property_value);
                     break;
                 case "bank_account":
-                    vo.setBankAccount(map.get("property_value").toString());
+                    vo.setBankAccount(property_value);
                     break;
                 case "bank_account_certificate":
-                    vo.setBankAccountCertificate(map.get("property_value").toString());
+                    vo.setBankAccountCertificate(property_value);
                     break;
                 case "sale_person":
-                    vo.setAddress(map.get("property_value").toString());
+                    vo.setAddress(property_value);
                     break;
                 case "reg_address":
-                    vo.setSalePerson(map.get("property_value").toString());
+                    vo.setSalePerson(property_value);
                     break;
                 case "mobile":
-                    vo.setMobile(map.get("property_value").toString());
+                    vo.setMobile(property_value);
                     break;
                 case "brand":
-                    vo.setBrand(map.get("property_value").toString());
+                    vo.setBrand(property_value);
                     break;
                 case "create_id":
-                    vo.setCreateId(map.get("property_value").toString());
+                    vo.setCreateId(property_value);
                     break;
-                case "warning_money":
-                    logger.info("warning_money:"+map.get("property_value") + "");
-                    json.put("warning_money", map.get("property_value"));
-                    break;
-                case "short_msg_link":
-                    logger.info("short_msg_link:"+map.get("property_value") + "");
-                    json.put("short_msg_link", map.get("property_value"));
-                    break;
-                case "email_link":
-                    logger.info("email_link:"+map.get("property_value") + "");
-                    json.put("email_link", map.get("property_value"));
+                case "balance_warning_config":
+                    vo.setBalance_warning_config(property_value);
                     break;
                 case "inten_industry":
-                    vo.setIntenIndustry(map.get("property_value") == null ? "" : map.getOrDefault("property_value", "").toString());
+                    vo.setIntenIndustry(property_value);
                     break;
                 case "industry_picture_value":
-                    vo.setIndustryPictureValue(map.get("property_value").toString());
+                    vo.setIndustryPictureValue(property_value);
                     break;
                 case "industry":
-                    vo.setIndustry(map.get("property_value").toString());
+                    vo.setIndustry(property_value);
                     break;
             }
-            vo.setBalance_warning_config(json.toString());
         }
-
         return vo;
+    }
+
+    public String ObjectFormStr(Object obj) {
+        if (obj != null) {
+            return obj.toString();
+        }
+        return "";
     }
 
     public int saveDeposit(Deposit deposit, String id, String userId) {

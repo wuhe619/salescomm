@@ -7,7 +7,7 @@ import java.sql.Timestamp;
 
 @Entity
 @Table(name = "t_customer_property")
-@IdClass(CustomerPropertyPK.class)
+@IdClass(ApiPropertyPK.class)
 public class ApiProperty {
     @Id
     @Column(name = "api_id")
