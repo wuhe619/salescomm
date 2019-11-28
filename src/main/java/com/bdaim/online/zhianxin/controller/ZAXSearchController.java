@@ -44,6 +44,7 @@ public class ZAXSearchController extends BasicAction {
             return new ResponseInfoAssemble().failure(-1, "查询记录异常[" + busiType + "]");
         }
         resp.setData(baseResult.getData());
+        resp.setData(baseResult.getMessage());
         return resp;
     }
 
