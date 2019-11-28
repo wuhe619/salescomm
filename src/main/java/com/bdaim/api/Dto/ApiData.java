@@ -22,6 +22,16 @@ public class ApiData {
     private List<ApiResource> resourceList;
     private ApiDefine apiDefine;
 
+    private int urlMappingId;
+
+    public int getUrlMappingId() {
+        return urlMappingId;
+    }
+
+    public void setUrlMappingId(int urlMappingId) {
+        this.urlMappingId = urlMappingId;
+    }
+
     public String getApiName() {
         return apiName;
     }
