@@ -2255,13 +2255,17 @@ public class SupplierService {
     }
 
     public Map<String, Object> getSupplierList(PageParam page, String name) {
-        Page page1 = supplierDao.fingByAll(page.getPageNum(), page.getPageSize(), name);
-        Map<String, Object> map = new HashMap<>();
-        if (page1.getData().size() == 0) {
-            return map;
+
+        StringBuffer sql = new StringBuffer();
+        sql.append("select name,settlement_type,contact_person,contact_phone,contact_position,status,create_time from t_supplier where status =1 ");
+        if (StringUtil.isNotEmpty(name)) {
+            sql.append(" and name like '%" + name + "%'");
         }
-        map.put("total", page1.getTotal());
-        Object collect = page1.getData().stream().map(m -> {
+        sql.append(" order by create_time desc");
+        PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
+        Map<String, Object> map = new HashMap<>();
+        map.put("total", list.getTotal());
+        Object collect = list.getList().stream().map(m -> {
             Map map1 = (Map) m;
             Map<String, Object> supplierDTOMap = new HashMap<>();
             supplierDTOMap.put("name", map1.get("name"));
