@@ -679,13 +679,14 @@ public class BgdZService implements BusiService {
 
     /**
      * 导出excel
-     *
      * @param response
      * @param cust_id
      * @param cust_group_id
      * @param cust_user_id
      * @param id
-     * @param param
+     * @param key
+     * @param value
+     * @param rule
      */
     public void export(HttpServletResponse response, String cust_id, String cust_group_id, Long cust_user_id, Long id, String key, String value, String rule) {
         HBusiDataManager manager = serviceUtils.getObjectByIdAndType(cust_id, id, BusiTypeEnum.BZ.getType());
@@ -736,6 +737,11 @@ public class BgdZService implements BusiService {
                 }
             }
         }
+        if (singles.size() == 0) {
+            log.info("报关单主单:{}分单数量为0:{}", id, singles);
+            return;
+        }
+
         info.put("singles", singles);
         info.put("products", products);
         List<JSONObject> list = new ArrayList();
