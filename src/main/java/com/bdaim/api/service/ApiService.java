@@ -158,7 +158,10 @@ public class ApiService {
         return (int) apiDao.saveReturnPk(entity);
     }
 
-    public String apis() {
+    public String apis(int pageSize, int pageNum) {
+
+
+
 
 
         return null;

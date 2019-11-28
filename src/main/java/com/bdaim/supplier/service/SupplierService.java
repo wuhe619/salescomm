@@ -2203,9 +2203,10 @@ public class SupplierService {
         SupplierEntity supplierDO = new SupplierEntity();
         supplierDO.setName(supplierDTO.getName());
         supplierDO.setSettlementType(supplierDTO.getSettlementType());
-        supplierDO.setContactPerson(supplierDTO.getContactPerson());
+//        supplierDO.setContactPerson(supplierDTO.getContactPerson());
         supplierDO.setContactPhone(supplierDTO.getContactPhone());
         supplierDO.setContactPosition(supplierDTO.getContactPosition());
+        supplierDO.setType(5);
         supplierDO.setStatus(1);
         supplierDO.setCreateTime(new Timestamp(System.currentTimeMillis()));
         int supplierId = (int) supplierDao.saveReturnPk(supplierDO);
@@ -2226,7 +2227,7 @@ public class SupplierService {
         supplierDO.setContactPerson(supplierDTO.getContactPerson());
         supplierDO.setContactPhone(supplierDTO.getContactPhone());
         supplierDO.setContactPosition(supplierDTO.getContactPosition());
-        supplierDO.setStatus(1);
+        supplierDO.setStatus(2);
         try {
             supplierDao.saveOrUpdate(supplierDO);
         } catch (Exception e) {
