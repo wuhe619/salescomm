@@ -2258,6 +2258,8 @@ public class SupplierService {
         List<SupplierEntity> supplierList = supplierDao.fingByAll(page.getPageNum(), page.getPageSize(), name);
         Map<String, Object> map = new HashMap<>();
         if (supplierList.size() == 0) {
+            map.put("total", 0);
+            map.put("list", new ArrayList<>());
             return map;
         }
         String sql = "Select count(*) from t_supplier where status=1";
