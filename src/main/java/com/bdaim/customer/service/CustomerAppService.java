@@ -361,7 +361,8 @@ public class CustomerAppService {
                     vo.setIndustryPictureValue(map.get("property_value").toString());
                     break;
                 case "industry":
-                    vo.setIndustry(map.get("industry").toString());
+                    vo.setIndustry(map.get("property_value").toString());
+                    break;
             }
             vo.setBalance_warning_config(json.toString());
         }
