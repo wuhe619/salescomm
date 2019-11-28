@@ -233,7 +233,7 @@ public class CustomerAppService {
     }
 
 
-    public Map<String ,Object> getUser(PageParam page, String customerId, String account, String name, String contactPerson, String salePerson) {
+    public Map<String, Object> getUser(PageParam page, String customerId, String account, String name, String contactPerson, String salePerson) {
         StringBuffer sql = new StringBuffer();
         sql.append("SELECT  CAST(s.id AS CHAR) id,s.cust_id,s.user_type, s.account AS account,s.password AS PASSWORD,s.realname AS contactPerson,tc.title as title,tc.enterprise_name as name" +
                 " FROM t_customer_user s LEFT JOIN t_customer tc ON s.cust_id=tc.cust_id  " +
@@ -266,9 +266,9 @@ public class CustomerAppService {
             }
             return map;
         }).collect(Collectors.toList());
-        Map<String ,Object> map=new HashMap<>();
-        map.put("data",collect);
-        map.put("total",list.getTotal());
+        Map<String, Object> map = new HashMap<>();
+        map.put("data", collect);
+        map.put("total", list.getTotal());
         return map;
     }
 
@@ -355,7 +355,7 @@ public class CustomerAppService {
                     break;
 //                case "industry_picture":
                 case "inten_industry":
-                    vo.setIntenIndustry(map.get("property_value")==null?"":map.getOrDefault("property_value","").toString());
+                    vo.setIntenIndustry(map.get("property_value") == null ? "" : map.getOrDefault("property_value", "").toString());
                     break;
                 case "industry_picture_value":
                     vo.setIndustryPictureValue(map.get("property_value").toString());
@@ -381,7 +381,7 @@ public class CustomerAppService {
         }
         String sql = "INSERT INTO am_pay (SUBSCRIBER_ID,MONEY,PAY_TIME,pay_certificate,pre_money,user_id) VALUE (?,?,?,?,?,?) ";
 
-        jdbcTemplate.update(sql, id, money, DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss), deposit.getPicId(), pre_money, userId);
+        jdbcTemplate.update(sql, Long.valueOf(id), money, DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss), deposit.getPicId(), pre_money, userId);
         return 0;
     }
 
