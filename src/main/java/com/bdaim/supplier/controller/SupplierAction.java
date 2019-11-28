@@ -698,12 +698,13 @@ public class SupplierAction extends BasicAction {
     }
 
     @PostMapping("/deposit/{supplierId}")
-    public ResponseInfo supplierDeposit(@PathVariable(name = "supplierId", required = false) Integer id, @Valid Deposit deposit) {
+    public ResponseInfo supplierDeposit(@PathVariable(name = "supplierId", required = false) String id, @RequestBody @Valid Deposit deposit) {
         ResponseInfo resp = new ResponseInfo();
-        if (id == null || id == 0) {
+        if (StringUtil.isEmpty(id) || "0".equals(id)) {
             return new ResponseInfoAssemble().failure(-1, "供应商id异常");
         }
         String userId = opUser().getUser_id();
+        deposit.setId(Long.valueOf(id));
         resp.setData(supplierService.supplierDeposit(deposit, userId));
         return resp;
     }
@@ -731,13 +732,19 @@ public class SupplierAction extends BasicAction {
     }
 
     @DeleteMapping("/deposit/{supplierId}")
-    public ResponseInfo delSupplierById(@PathVariable(name = "supplierId", required = false) Integer id) {
+    public ResponseInfo delSupplierById(@PathVariable(name = "supplierId", required = false) String id) {
         ResponseInfo resp = new ResponseInfo();
-        if (id == null || id == 0) {
+        if (StringUtil.isEmpty(id) || "0".equals(id)) {
             return new ResponseInfoAssemble().failure(-1, "供应商id异常");
         }
         String userId = opUser().getUser_id();
-//        resp.setData(supplierService.supplierDeposit(deposit, userId));
+
+        try {
+            resp.setData(supplierService.delSupplierById(id));
+        } catch (Exception e) {
+            LOG.info(e.toString());
+            return new ResponseInfoAssemble().failure(-1, "供应商删除失败");
+        }
         return resp;
     }
 

@@ -16,9 +16,10 @@ import com.bdaim.callcenter.dto.CustomCallConfigDTO;
 import com.bdaim.common.dto.Deposit;
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.dto.PageParam;
+import com.bdaim.common.page.PageList;
+import com.bdaim.common.page.Pagination;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerUserDao;
-import com.bdaim.customer.entity.Customer;
 import com.bdaim.customer.entity.CustomerProperty;
 import com.bdaim.customer.entity.CustomerUser;
 import com.bdaim.customer.user.service.UserGroupService;
@@ -41,7 +42,6 @@ import com.bdaim.supplier.entity.SupplierPropertyEntity;
 import com.bdaim.util.DateUtil;
 import com.bdaim.util.NumberConvertUtil;
 import com.bdaim.util.StringUtil;
-
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,9 +51,9 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
-import javax.validation.Valid;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.Timestamp;
@@ -2306,53 +2306,53 @@ public class SupplierService {
                     break;
             }
         });
-        int pageNum = 1;
-        int pageSize = 10;
-        try {
-            pageNum = page.getPageNum();
-        } catch (Exception e) {
-        }
-        try {
-            pageSize = page.getPageSize();
-        } catch (Exception e) {
-        }
-        if (pageNum <= 0)
-            pageNum = 1;
-        if (pageSize <= 0)
-            pageSize = 10;
-        if (pageSize > 10000)
-            pageSize = 10000;
 
-        String sql1 = "select pay.pay_id,pay.SUBSCRIBER_ID,pay.MONEY,pay.PAY_TIME,pay.pay_certificate,pay.pre_money,pay.user_id ,u.realname as realname from supplier_pay pay left join  t_customer_user u  on pay.user_id=u.id  where SUBSCRIBER_ID=? order by pay_time";
-        List<Map<String, Object>> payList = jdbcTemplate.queryForList(sql1 + " limit " + (pageNum - 1) * pageSize + ", " + pageSize, supplierId);
+        String sql1 = "select pay.pay_id,pay.SUBSCRIBER_ID,pay.MONEY,pay.PAY_TIME,pay.pay_certificate,pay.pre_money,pay.user_id ,u.realname as realname from supplier_pay pay left join  t_customer_user u  on pay.user_id=u.id  where SUBSCRIBER_ID = " + supplierId + " order by pay_time";
+        PageList list = new Pagination().getPageData(sql1, null, page, jdbcTemplate);
         List<com.bdaim.customer.dto.Deposit> depositList = new ArrayList<>();
-        payList.stream().forEach(m -> {
+        list.getList().stream().forEach(m -> {
             com.bdaim.customer.dto.Deposit deposit = new com.bdaim.customer.dto.Deposit();
-            deposit.setCustId(m.get("SUBSCRIBER_ID").toString());
-            deposit.setMoney(Integer.valueOf(m.get("MONEY").toString()).intValue() / 10000 + "");
-            deposit.setPayTime(m.get("PAY_TIME").toString());
-            deposit.setId(Integer.valueOf(m.get("pay_id").toString()));
-            deposit.setPicId(m.get("pay_certificate").toString());
-            deposit.setPreMoney(Integer.valueOf(m.get("pre_money").toString()).intValue() / 10000 + "");
-            deposit.setUserId(m.get("user_id").toString());
-            deposit.setRealname(m.get("realname") == null ? "" : m.get("realname").toString());
+            Map depositMap = (Map) m;
+            if (depositMap.get("SUBSCRIBER_ID") != null) {
+                deposit.setCustId(depositMap.get("SUBSCRIBER_ID").toString());
+            }
+            if (depositMap.get("MONEY") != null) {
+                deposit.setMoney(Integer.valueOf(depositMap.get("MONEY").toString()).intValue() / 10000 + "");
+            }
+            if (depositMap.get("PAY_TIME") != null) {
+                deposit.setPayTime(depositMap.get("PAY_TIME").toString());
+            }
+            if (depositMap.get("pay_id") != null) {
+                deposit.setId(Integer.valueOf(depositMap.get("pay_id").toString()));
+            }
+            if (depositMap.get("pay_certificate") != null) {
+                deposit.setPicId(depositMap.get("pay_certificate").toString());
+            }
+            if (depositMap.get("pre_money") != null) {
+                deposit.setPreMoney(Integer.valueOf(depositMap.get("pre_money").toString()).intValue() / 10000 + "");
+            }
+            if (depositMap.get("user_id") != null) {
+                deposit.setPreMoney(depositMap.get("user_id").toString());
+            }
+            if (depositMap.get("realname") != null) {
+                deposit.setPreMoney(depositMap.get("realname").toString());
+            }
             depositList.add(deposit);
         });
         SupplierEntity supplierEntity = supplierDao.get(Integer.valueOf(supplierId));
         map.put("depositList", depositList);
         map.put("custName", supplierEntity.getName() == null ? "" : supplierEntity.getName());
+        map.put("total", list.getTotal());
         return map;
     }
 
-    public int delSupplierById(String supplierId){
+    public int delSupplierById(String supplierId) throws Exception {
 
-        SupplierEntity supplierEntity = supplierDao.get(Integer.valueOf(supplierId));
-        if(supplierEntity==null){
-            
-        }
-
-
-        return 1;
+        SupplierEntity supplierEntity = supplierDao.getSupplier(Integer.valueOf(supplierId));
+        if (supplierEntity == null) throw new Exception("供应商不存在或已被删除");
+        supplierEntity.setStatus(2);
+        int pk = (int) supplierDao.saveReturnPk(supplierEntity);
+        return pk;
     }
 
 }
