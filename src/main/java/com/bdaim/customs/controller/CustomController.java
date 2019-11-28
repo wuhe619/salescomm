@@ -581,24 +581,15 @@ public class CustomController extends BasicAction {
      * @param busiType
      * @return
      */
-    @RequestMapping(value = "/exportExcel/{busiType}/{id}", method = RequestMethod.POST)
-    public ResponseInfo export(@PathVariable(name = "id", required = false) Long id, @RequestBody(required = false) String body, @PathVariable(name = "busiType") String busiType, HttpServletResponse response) {
+    @RequestMapping(value = "/exportExcel/{busiType}/{id}", method = RequestMethod.GET)
+    public ResponseInfo export(HttpServletResponse response, @PathVariable(name = "id", required = false) Long id, String custId, @PathVariable(name = "busiType") String busiType, String key, String value, String _rule_) {
         ResponseInfo resp = new ResponseInfo();
-        JSONObject info = null;
-        try {
-            if (body == null || "".equals(body))
-                body = "{}";
-
-            info = JSONObject.parseObject(body);
-        } catch (Exception e) {
-            return new ResponseInfoAssemble().failure(-1, "记录解析异常:[" + busiType + "]");
-        }
         try {
             LoginUser lu = opUser();
             String cust_id = lu.getCustId();
-            if (StringUtil.isEmpty(cust_id) && StringUtil.isNotEmpty(info.getString("cust_id"))) {
+            if (StringUtil.isEmpty(cust_id) && StringUtil.isNotEmpty(custId)) {
                 // 运营后台传参客户ID处理
-                cust_id = info.getString("cust_id");
+                cust_id = custId;
             }
             if (StringUtil.isEmpty(cust_id))
                 return new ResponseInfoAssemble().failure(-1, "无归属企业，不能保存记录:[" + busiType + "]");
@@ -607,7 +598,7 @@ public class CustomController extends BasicAction {
             Long cust_user_id = lu.getId();
             // 处理导入报关单退单
             if ("bgd_z".equals(busiType)) {
-                bgdZService.export(response, cust_id, cust_group_id, cust_user_id, id, info.getString("key"), info.getString("value"), info.getString("_rule_"));
+                bgdZService.export(response, cust_id, cust_group_id, cust_user_id, id, key, value, _rule_);
                 return null;
             }
             resp.setData(id);
