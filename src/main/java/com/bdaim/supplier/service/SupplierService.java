@@ -2253,13 +2253,16 @@ public class SupplierService {
         return supplierDTO;
     }
 
-    public List<SupplierDTO> getSupplierList(PageParam page, String name) {
+    public Map<String, Object> getSupplierList(PageParam page, String name) {
         List<SupplierEntity> supplierList = supplierDao.fingByAll(page.getPageNum(), page.getPageSize(), name);
+        Map<String, Object> map = new HashMap<>();
         if (supplierList.size() == 0) {
-            return new ArrayList<>();
+            return map;
         }
-        return supplierList.stream().map(supplierDO -> {
-
+        String sql = "Select count(*) from t_supplier where status=1";
+        Integer total = jdbcTemplate.queryForObject(sql, Integer.class);
+        map.put("total", total);
+        List<SupplierDTO> list = supplierList.stream().map(supplierDO -> {
             SupplierDTO supplierDTO = new SupplierDTO();
             supplierDTO.setName(supplierDO.getName());
             supplierDTO.setSettlementType(supplierDO.getSettlementType());
@@ -2272,6 +2275,8 @@ public class SupplierService {
             supplierDTO.setConsumption(0);
             return supplierDTO;
         }).collect(Collectors.toList());
+        map.put("list", list);
+        return map;
 
     }
 
