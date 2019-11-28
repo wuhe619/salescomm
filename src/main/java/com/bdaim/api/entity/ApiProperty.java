@@ -1,12 +1,10 @@
 package com.bdaim.api.entity;
 
-import com.bdaim.customer.entity.CustomerPropertyPK;
-
 import javax.persistence.*;
 import java.sql.Timestamp;
 
 @Entity
-@Table(name = "t_customer_property")
+@Table(name = "am_api_property")
 @IdClass(ApiPropertyPK.class)
 public class ApiProperty {
     @Id
