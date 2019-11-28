@@ -20,6 +20,7 @@ import com.bdaim.common.page.PageList;
 import com.bdaim.common.page.Pagination;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerUserDao;
+import com.bdaim.customer.dto.MarketTypeEnum;
 import com.bdaim.customer.entity.CustomerProperty;
 import com.bdaim.customer.entity.CustomerUser;
 import com.bdaim.customer.user.service.UserGroupService;
@@ -1431,7 +1432,7 @@ public class SupplierService {
                             resourceType.add("短信");
                         } else if (4 == dto.getTypeCode()) {
                             resourceType.add("数据");
-                        } else if (8 == dto.getTypeCode()) {
+                        } else if (MarketResourceTypeEnum.B2B_PRICE.getType() == dto.getTypeCode()) {
                             resourceType.add("B2B数据");
                         }
                     }
