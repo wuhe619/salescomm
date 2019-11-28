@@ -122,6 +122,10 @@ public class ExportExcelService {
         Map<String, Object> map = new HashMap<>();
         //map.put("list", JavaBeanUtil.convertJsonObjectToMapList(list));
         map.put("list", list);
+        if (list == null || list.size() == 0) {
+            LOG.info("导出excel为空:{}", param);
+            return;
+        }
 
         response.setHeader("Content-Disposition", "attachment; filename=" + System.currentTimeMillis() + ExcelTypeEnum.XLSX.getValue());
         response.setContentType("application/vnd.ms-excel;charset=utf-8");
@@ -151,7 +155,15 @@ public class ExportExcelService {
                 export(templatePath, map, sheetName, response);
                 break;
             default:
-                LOG.warn("导出未找到匹配规则");
+                sheetName = new String[]{"主单", "分单", "税单"};
+                generateMainDan(list, map);
+                if (map.get("list1") != null) {
+                    List list1 = (List) map.get("list1");
+                    if (list1.size() == 0) {
+                        map.put("list", null);
+                    }
+                }
+                export(templatePath, map, sheetName, response);
                 break;
         }
     }

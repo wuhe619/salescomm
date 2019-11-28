@@ -59,7 +59,10 @@ public class PhoneService {
      * @return
      */
     public String getPhoneBySuperId(String id) {
-        String phone = getValueByIdFromRedis(id);
+        String phone = getPhoneFromAPI(id);
+        if (StringUtil.isEmpty(phone)) {
+            phone = getValueByIdFromRedis(id);
+        }
         if (StringUtil.isEmpty(phone)) {
             List<Map<String, Object>> phoneList = this.customGroupDao.sqlQuery(PHONE_SQL, id);
             if (phoneList.size() > 0) {
@@ -123,8 +126,8 @@ public class PhoneService {
         Map<String, Object> phoneMap = new HashMap<>();
         if (ids.size() > 0) {
             for (String u : ids) {
-                // phoneMap.put(u, getPhoneBySuperId(u));
-                phoneMap.put(u, getValueByIdFromRedis(u));
+                phoneMap.put(u, getPhoneBySuperId(u));
+                //phoneMap.put(u, getValueByIdFromRedis(u));
             }
         }
         return phoneMap;
@@ -133,12 +136,12 @@ public class PhoneService {
     /**
      * 从redis中通过id获取手机号
      *
-     * @param id
+     * @param key
      * @return
      */
-    private String getValueByIdFromRedis(String id) {
-        String phone = redisUtil.get(id);
-        return phone;
+    private String getValueByIdFromRedis(String key) {
+        String value = redisUtil.get(key);
+        return value;
     }
 
     /**
@@ -190,7 +193,7 @@ public class PhoneService {
         }
         String uid = null;
         try {
-            uid = HttpUtil.httpPost("http://api.core:1010/pn/pnu?pn=" + phone.trim().replaceAll(" ", ""), "", null);
+            uid = HttpUtil.httpPost("http://api.core:1010/pn/pnu?pn=" + phone.trim().replaceAll(" ", ""), "", null, 3000);
         } catch (Exception e) {
             LOG.error("保存手机号至API服务手机号:{}异常:{}", phone, e);
         }
@@ -210,9 +213,9 @@ public class PhoneService {
         }
         String phone = null;
         try {
-            phone = HttpUtil.httpPost("http://api.core:1010/pn/upn?uid=" + uid.trim().replaceAll(" ", ""), "", null);
+            phone = HttpUtil.httpPost("http://api.core:1010/pn/upn?uid=" + uid.trim().replaceAll(" ", ""), "", null, 3000);
         } catch (Exception e) {
-            LOG.error("保存手机号至API服务uid:{}异常:{}", uid, e);
+            LOG.error("获取手机号从API服务uid:{}异常:{}", uid, e);
         }
         return phone;
     }

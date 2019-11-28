@@ -337,7 +337,7 @@ public class SbdFService implements BusiService {
     public void totalPartDanToMainDan(long zid, String type, Long id, String custId, String optype, JSONObject info) {
 
         List<HBusiDataManager> data = serviceUtils.listDataByPid(custId, BusiTypeEnum.SF.getType(), zid, BusiTypeEnum.SZ.getType());
-        BigDecimal weightTotal = BigDecimal.ZERO;
+        BigDecimal weightTotal = new BigDecimal("0.0");
         Integer low_price_goods = 0;
         for (HBusiDataManager d : data) {
             if ("del".equals(optype)) {

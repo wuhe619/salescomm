@@ -1,5 +1,6 @@
 package com.bdaim.customer.dao;
 
+import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.dao.SimpleHibernateDao;
 import com.bdaim.common.dto.Page;
 import com.bdaim.customer.dto.CustomerUserDTO;
@@ -564,4 +565,42 @@ public class CustomerUserDao extends SimpleHibernateDao<CustomerUser, Serializab
         }
         return ids;
     }
+
+    /**
+     * 企业用户分页
+     *
+     * @param pageNum
+     * @param pageSize
+     * @param status
+     * @param custId
+     * @return
+     */
+    public Page pagePropertyByType(int pageNum, int pageSize, int status, String custId, JSONObject info) {
+        List<Object> params = new ArrayList<>();
+        StringBuffer sql = new StringBuffer();
+        sql.append(" from CustomerUser m where  ");
+        sql.append(" m.status= " + status);
+        sql.append(" and m.cust_id= '" + custId + "'");
+        if (StringUtil.isNotEmpty(info.getString("uId"))) {
+            sql.append(" and m.id = " + info.getInteger("uId"));
+        }
+        if (StringUtil.isNotEmpty(info.getString("account"))) {
+            sql.append(" and m.account = '" + info.getString("account") + "'");
+        }
+        if (StringUtil.isNotEmpty(info.getString("realName"))) {
+            sql.append(" and m.realname like '%" + info.getString("realName") + "%'");
+        }
+        sql.append(" order by m.createTime DESC");
+        return this.page(sql.toString(), params, pageNum, pageSize);
+    }
+
+    public CustomerUser selectPropertyById(long userId, String custId, int status) {
+        CustomerUser cp = null;
+        String hql = "from CustomerUser m where m.id=? and m.cust_id=? and m.status <>?";
+        List<CustomerUser> list = this.find(hql, userId, custId, status);
+        if (list.size() > 0)
+            cp = (CustomerUser) list.get(0);
+        return cp;
+    }
+
 }

@@ -166,7 +166,7 @@ public class AccountAction extends BasicAction {
                 if (opUser().getId() != null) {
                     param.setUserId(opUser().getId());
                 }
-                accountService.changeBalance(param);
+                accountService.changeBalance(param,opUser());
                 return new ResponseInfoAssemble().success(null);
             }
         } catch (Exception e) {

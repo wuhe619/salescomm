@@ -3,6 +3,7 @@ package com.bdaim.api.controller;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
+import com.bdaim.api.Dto.ApiData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -38,7 +39,7 @@ public class ApiController {
 	 * Save Api
 	 **/
     @PostMapping("/info/{apiId}")
-    public ResponseInfo saveApi(@RequestBody JSONObject params, @PathVariable(name = "apiId") String apiId) {
+    public ResponseInfo saveApi(@RequestBody ApiData apiData, @PathVariable(name = "apiId") String apiId) {
     	ResponseInfo info = new ResponseInfo();
     	
     	LoginUser lu = tokenService.opUser();

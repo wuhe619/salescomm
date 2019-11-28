@@ -85,7 +85,7 @@ public class SeatsService {
      * @method 渠道/供应商 0-联通 1-移动 2-电信
      * @date: 2018/9/19 17:58
      */
-    
+
     public void updateMainMessage(List<SeatsMessageParam> seatsList) throws Exception {
         String channelProperty = null;
         ArrayList<String> channelList = new ArrayList<>();
@@ -480,7 +480,7 @@ public class SeatsService {
      * @method
      * @date: 2018/9/27 13:40
      */
-    
+
     public int updateSeatMessage(SeatsInfo seatsInfo) {
         //1-讯众 2-联通 3-电信 4-移动
         String channel = seatsInfo.getChannel();
@@ -563,7 +563,7 @@ public class SeatsService {
         return update;
     }
 
-    
+
     public String updatePlatformMessage(SeatsInfo seatsInfo) {
         String phoneNum = seatsInfo.getPhoneNum();
         String userId = seatsInfo.getUserId();
@@ -611,7 +611,7 @@ public class SeatsService {
      * @param customerRegistDTO
      * @return
      */
-    
+
     public PageList getCustomerInfo(PageParam page, CustomerRegistDTO customerRegistDTO) {
         StringBuilder sqlBuilder = new StringBuilder("SELECT\n" +
                 "\tt1.cust_id AS custId,\n" +
@@ -665,7 +665,7 @@ public class SeatsService {
      * @param
      * @return
      */
-    
+
     public Map<String, Object> getSeatsMessage(String custId, Integer pageNum, Integer pageSize) {
         //前台传的是页数 需要转化成起始值
         Integer start = (pageNum - 1) * pageSize;
@@ -683,7 +683,7 @@ public class SeatsService {
         hql.append(" and userType='2' ");
         hql.append(" ORDER BY m.createTime desc ");
         com.bdaim.common.dto.Page page = customerUserDao.page(hql.toString(), values, start, pageSize);
-        logger.info("企业ID "+custId+"查询结果是"+page.toString());
+        logger.info("企业ID " + custId + "查询结果是" + page.toString());
         channelList = customerDao.getProperty(custId, "channel");
         if (page.getData() != null && page.getData().size() > 0) {
             List<CustomerUser> customerUserList = page.getData();
@@ -701,7 +701,7 @@ public class SeatsService {
                     if (channels.size() > 0) {
                         for (int j = 0; j < channels.size(); j++) {
                             SupplierEnum callIdPropertyName = SupplierEnum.getCallIdPropertyName(channels.get(j));
-                            if (callIdPropertyName!=null){
+                            if (callIdPropertyName != null) {
                                 channelProperty = callIdPropertyName.getSeatName();
                                 //根据userid获取坐席信息
                                 CustomerUserPropertyDO userProperty = customerUserDao.getProperty(String.valueOf(id), channelProperty);
@@ -755,7 +755,7 @@ public class SeatsService {
      * @method
      * @date: 2018/9/21 10:51
      */
-    
+
     public void updateSeatsStatus(String id, int status, String channel, String custId) throws Exception {
         //根据id和属性名查询seats_status
         List<CustomerUser> customerUserDO = customerUserDao.findBy("id", Long.valueOf(id));
@@ -873,7 +873,7 @@ public class SeatsService {
      * @method
      * @date: 2018/10/22 18:04
      */
-    
+
     public Object getChannelList(String custId) {
         HashMap<String, Object> map = new HashMap<>();
         //查询枚举类查找所有渠道信息
@@ -918,7 +918,7 @@ public class SeatsService {
      * @method
      * @date: 2018/10/24 13:58
      */
-    
+
     public Map<String, Object> getApparentNum(String batchId, String cust_id) {
         HashMap<String, Object> map = new HashMap<>();
         List<String> apparentbycustId = null;
@@ -960,7 +960,7 @@ public class SeatsService {
      * @author:duanliying
      * @date: 2018/10/24 14:54
      */
-    
+
     public void updateApparentNum(String batchId, String apparentNums) throws Exception {
         //根据批次查询对象
         BatchListEntity batchListEntity = batchListDao.findUniqueBy("id", batchId);
@@ -974,7 +974,7 @@ public class SeatsService {
      * @method
      * @date: 2018/11/2 14:03
      */
-    
+
     public int checkAccount(String account, String seatId) {
         int code = 0;
         if (account != null && !account.equals("")) {
@@ -993,7 +993,7 @@ public class SeatsService {
         return code;
     }
 
-    
+
     public List<CustomerUserPropertyDO> getUserAllProperty(String userId) {
         return customerUserDao.getAllProperty(userId);
     }
@@ -1133,7 +1133,7 @@ public class SeatsService {
      * @method
      * @date: 2018/11/20 16:02
      */
-    
+
     public Map<String, String> getExtensionNum(String seatAccount, String cust_id, String channel) {
         Map<String, String> resultmap = new HashMap<>();
         String channelProperty = null;
@@ -1184,7 +1184,7 @@ public class SeatsService {
         return resultmap;
     }
 
-    
+
     public int updateCallerID(SeatsMessageParam seatsMessageParam, String custId) {
         List<SeatsInfo> list = seatsMessageParam.getSeatsInfoList();
         String UserId = list.get(0).getUserId();
@@ -1319,7 +1319,7 @@ public class SeatsService {
         }
         if (StringUtil.isNotEmpty(resourceId)) {
             ResourcesPriceDto custResourcesPriceDto = customerDao.getCustResourceMessageById(resourceId, custId);
-            if (custResourcesPriceDto == null || (custResourcesPriceDto.getSeatPrice()!=null && NumberConvertUtil.parseInt(custResourcesPriceDto.getSeatPrice())<0)) {
+            if (custResourcesPriceDto == null || (custResourcesPriceDto.getSeatPrice() != null && NumberConvertUtil.parseInt(custResourcesPriceDto.getSeatPrice()) < 0)) {
                 resultMap.put("result", "0");
                 resultMap.put("_message", "坐席添加失败，坐席未设置销售定价");
                 return resultMap;
@@ -1927,6 +1927,9 @@ public class SeatsService {
                 } else if (2 == type) {
                     //单独处理双呼
                     seatConfig.setCallCenterType("twoCall");
+                } else if (4 == type) {
+                    //联通双呼
+                    seatConfig.setCallCenterType("unicomTwoCall");
                 }
                 return seatConfig;
             } else {

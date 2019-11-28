@@ -5,6 +5,7 @@ import com.bdaim.auth.LoginUser;
 import com.bdaim.bill.dto.CustomerBillQueryParam;
 import com.bdaim.common.annotation.ValidatePermission;
 import com.bdaim.common.controller.BasicAction;
+import com.bdaim.common.dto.Deposit;
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.exception.ParamException;
@@ -18,10 +19,8 @@ import com.bdaim.supplier.dto.SupplierDTO;
 import com.bdaim.supplier.service.SupplierService;
 import com.bdaim.util.NumberConvertUtil;
 import com.bdaim.util.StringUtil;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,7 +29,10 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 供应商
@@ -39,7 +41,7 @@ import java.util.*;
  * @date 2019/2/28
  * @description
  */
-@Controller
+@RestController
 @RequestMapping("/supplier")
 public class SupplierAction extends BasicAction {
     public static final Logger LOG = LoggerFactory.getLogger(SupplierAction.class);
@@ -377,7 +379,7 @@ public class SupplierAction extends BasicAction {
         }
         Page pageData = null;
         try {
-            pageData = supplierService.pageSupplier(page.getPageNum(), page.getPageSize(), supplierName, supplierId, supplierType, NumberConvertUtil.parseInt(status));
+            pageData = supplierService.pageSupplier(page.getPageNum(), page.getPageSize(), supplierName, supplierId, supplierType, StringUtil.isNotEmpty(status) ? NumberConvertUtil.parseInt(status) : 0);
         } catch (Exception e) {
             LOG.error("查询单个供应商详情失败,", e);
         }
@@ -611,6 +613,139 @@ public class SupplierAction extends BasicAction {
         }
         List<String> list = supplierService.statSupplierDayData(userId, type, supplierId, yearMonth);
         return returnJsonData(list);
+    }
+
+    /**
+     * 供应商保存及修改
+     *
+     * @param body
+     * @param id
+     * @return
+     */
+    @PostMapping("/info/{id}")
+    public ResponseInfo saveSupplier(@RequestBody String body, @PathVariable(name = "id", required = false) Integer id) {
+        ResponseInfo resp = new ResponseInfo();
+        SupplierDTO supplierDTO = null;
+        try {
+            supplierDTO = JSONObject.parseObject(body, SupplierDTO.class);
+            supplierDTO.setResourceConfig(JSONObject.parseObject(body));
+        } catch (Exception e) {
+            return new ResponseInfoAssemble().failure(-1, "供应商保存参数异常");
+        }
+        try {
+            if (id == null || id == 0) {
+                resp.setData(supplierService.saveSupplier1(supplierDTO));
+            } else {
+                supplierDTO.setSupplierId(id);
+                resp.setData(supplierService.updateSupplierPrice1(supplierDTO));
+            }
+        } catch (Exception e) {
+            LOG.error("保存供应商失败,", e);
+            return new ResponseInfoAssemble().failure(-1, "供应商保存参数异常");
+        }
+
+        return resp;
+    }
+
+    /**
+     * 查询供应商详情
+     *
+     * @param id
+     * @return
+     */
+    @GetMapping("/info/{id}")
+    public ResponseInfo getSupplierById(@PathVariable(name = "id", required = false) Integer id) {
+        ResponseInfo resp = new ResponseInfo();
+        if (id == 0 || id == null) {
+            return new ResponseInfoAssemble().failure(-1, "供应商id错误");
+        }
+        try {
+            resp.setData(supplierService.getSupplierById(id.intValue()));
+        } catch (Exception e) {
+            return new ResponseInfoAssemble().failure(-1, id + "供应商不存在");
+        }
+
+        return resp;
+    }
+
+    /**
+     * 查询供应商列表
+     *
+     * @param
+     * @return
+     */
+    @PostMapping("/info")
+    public ResponseInfo getSupplierList(@RequestBody(required = false) String body) {
+        PageParam page = new PageParam();
+        ResponseInfo resp = new ResponseInfo();
+        JSONObject info = null;
+        try {
+            if (body == null || "".equals(body))
+                body = "{}";
+
+            info = JSONObject.parseObject(body);
+        } catch (Exception e) {
+            return new ResponseInfoAssemble().failure(-1, "记录解析异常:");
+        }
+        try {
+            page.setPageSize(info.getInteger("pageSize") == null ? 0 : info.getIntValue("pageSize"));
+            page.setPageNum(info.getInteger("pageNum") == null ? 10 : info.getIntValue("pageNum"));
+            resp.setData(supplierService.getSupplierList(page, info.getString("name")));
+        } catch (Exception e) {
+            LOG.info(e.toString());
+        }
+        return resp;
+    }
+
+    @PostMapping("/deposit/{supplierId}")
+    public ResponseInfo supplierDeposit(@PathVariable(name = "supplierId", required = false) String id, @RequestBody @Valid Deposit deposit) {
+        ResponseInfo resp = new ResponseInfo();
+        if (StringUtil.isEmpty(id) || "0".equals(id)) {
+            return new ResponseInfoAssemble().failure(-1, "供应商id异常");
+        }
+        String userId = opUser().getUser_id();
+        deposit.setId(Long.valueOf(id));
+        resp.setData(supplierService.supplierDeposit(deposit, userId));
+        return resp;
+    }
+
+
+    @PostMapping("/deposit")
+    public ResponseInfo supplierDepositList(@RequestBody(required = false) String body) {
+        ResponseInfo resp = new ResponseInfo();
+        PageParam page = new PageParam();
+        JSONObject info = null;
+        try {
+            if (body == null || "".equals(body))
+                body = "{}";
+            info = JSONObject.parseObject(body);
+        } catch (Exception e) {
+            return new ResponseInfoAssemble().failure(-1, "记录解析异常:");
+        }
+        if (StringUtil.isEmpty(info.get("supplierId").toString())) {
+            return new ResponseInfoAssemble().failure(-1, "企业id错误");
+        }
+        page.setPageSize(info.getInteger("pageSize") == null ? 0 : info.getIntValue("pageSize"));
+        page.setPageNum(info.getInteger("pageNum") == null ? 10 : info.getIntValue("pageNum"));
+        resp.setData(supplierService.depositList(page, info.get("supplierId").toString()));
+        return resp;
+    }
+
+    @DeleteMapping("/deposit/{supplierId}")
+    public ResponseInfo delSupplierById(@PathVariable(name = "supplierId", required = false) String id) {
+        ResponseInfo resp = new ResponseInfo();
+        if (StringUtil.isEmpty(id) || "0".equals(id)) {
+            return new ResponseInfoAssemble().failure(-1, "供应商id异常");
+        }
+        String userId = opUser().getUser_id();
+
+        try {
+            resp.setData(supplierService.delSupplierById(id));
+        } catch (Exception e) {
+            LOG.info(e.toString());
+            return new ResponseInfoAssemble().failure(-1, "供应商删除失败");
+        }
+        return resp;
     }
 
 }

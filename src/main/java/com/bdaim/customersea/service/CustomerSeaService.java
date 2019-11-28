@@ -786,7 +786,7 @@ public class CustomerSeaService {
             CustomerUser user;
             List<CustomerSeaProperty> properties;
             List<Map<String, Object>> stat;
-            String statSql = "SELECT COUNT(status=0 OR null) sumCount,IFNULL(COUNT(super_data like ''%\"SYS007\":\"未跟进\"%'' AND status = 0 OR null),0) AS noFollowSum, IFNULL(COUNT(`status` = 1 OR null),0) AS clueSurplusSum, IFNULL(COUNT(`call_fail_count` >= 1 OR null),0) AS failCallSum FROM " + ConstantsUtil.SEA_TABLE_PREFIX + "{0} WHERE 1=1 ";
+            String statSql = "SELECT COUNT(status=0 OR null) sumCount,IFNULL(COUNT(super_data like ''%\"SYS007\":\"未跟进\"%'' AND status = 0 OR null),0) AS noFollowSum, IFNULL(COUNT(`status` = 1 OR null),0) AS clueSurplusSum, IFNULL(COUNT(`call_fail_count` >= 1 OR null),0) AS failCallSum FROM " + ConstantsUtil.SEA_TABLE_PREFIX + "{0} WHERE 1=1 '";
             MarketProjectProperty executionGroup;
             StringBuilder userGroupName;
             CustomerUserGroup customerUserGroup;
@@ -799,7 +799,6 @@ public class CustomerSeaService {
                     String enterpriseName = customerDao.getEnterpriseName(custId);
                     dto.setCustName(enterpriseName);
                 }
-
                 // 查询所属项目
                 marketProject = marketProjectDao.selectMarketProject(dto.getMarketProjectId());
                 dto.setMarketProjectName("");
@@ -3268,7 +3267,7 @@ public class CustomerSeaService {
         if (StringUtil.isNotEmpty(param.getRegStatus())) {
             sb.append(" AND custG.super_data -> " + "'$.SYS012' like " + "'%" + param.getRegStatus() + "%'");
         }
-        //sb.append(" AND custG.status<>2 ");
+//        sb.append(" AND custG.status<>2 ");
         sb.append(" AND custG.status =1 ");
         // 1-未呼通 2-已呼通
         if ("1".equals(param.getCallStatus())) {
@@ -3305,8 +3304,9 @@ public class CustomerSeaService {
         sb.append(" select custG.id, custG.user_id, custG.status, custG.call_count callCount, DATE_FORMAT(custG.last_call_time,'%Y-%m-%d %H:%i:%s') lastCallTime, custG.intent_level intentLevel,");
         sb.append(" custG.super_name, custG.super_age, custG.super_sex, custG.super_telphone, custG.super_phone, custG.super_address_province_city, custG.super_address_street, custG.super_data, ");
         sb.append(" custG.batch_id, custG.last_call_status, custG.data_source, DATE_FORMAT(custG.user_get_time,'%Y-%m-%d %H:%i:%s') user_get_time, DATE_FORMAT(custG.create_time,'%Y-%m-%d %H:%i:%s') create_time, custG.pre_user_id, custG.last_called_duration, DATE_FORMAT(custG.last_mark_time,'%Y-%m-%d %H:%i:%s') last_mark_time, ");
-        sb.append(" custG.call_success_count, custG.call_fail_count, custG.sms_success_count,custG.super_data -> '$.SYS014' as custType ");
+        sb.append(" custG.call_success_count, custG.call_fail_count, custG.sms_success_count,custG.super_data -> '$.SYS014' as custType ,user.realname,user.cust_id as custId ");
         sb.append("  from " + ConstantsUtil.SEA_TABLE_PREFIX + param.getSeaId() + " custG ");
+        sb.append(" left join t_customer_user user on custG.user_id = user.id ");
         sb.append(" where 1=1 ");
         if (StringUtil.isNotEmpty(param.getSuperId())) {
             sb.append(" and custG.id = '" + param.getSuperId() + "'");
@@ -3322,6 +3322,9 @@ public class CustomerSeaService {
         }
         if (StringUtil.isNotEmpty(param.getLastUserName())) {
             sb.append(" and custG.pre_user_id IN(SELECT id from t_customer_user WHERE AND cust_id = '" + param.getCustId() + "' realname LIKE '%" + param.getLastUserName() + "%') ");
+        }
+        if (StringUtil.isNotEmpty(param.getRealName())) {
+            sb.append(" and user.realname ='").append(param.getRealName()).append("' ");
         }
         if (param.getDataSource() != null) {
             sb.append(" and custG.data_source =" + param.getDataSource());
@@ -3495,7 +3498,7 @@ public class CustomerSeaService {
                 return new Page();
             }
         }
-        sb.append("GROUP BY custType  ORDER BY custG.create_time DESC ");
+        sb.append(" ORDER BY custG.create_time DESC ");
         try {
             page = customerSeaDao.sqlPageQueryByPageSize(sb.toString(), param.getPageNum(), param.getPageSize());
         } catch (Exception e) {
@@ -3510,11 +3513,29 @@ public class CustomerSeaService {
     }
 
     public int batchDeleteClue(CustomerSeaSearch param, int operate) {
-        if (operate == 1) {
+        if (1 == operate) {
             return updateClueStatus(param);
-        }
-        if (2 == operate) {
+        } else if (2 == operate) {
+            //根据指定条件删除线索
             return batchDeleteClueByCondition1(param);
+        } else if (3 == operate) {
+            // 指定ID退回公海
+            return batchClueBackToSea(param.getUserId(), param.getUserType(), param.getSeaId(), param.getSuperIds(), param.getBackReason(), param.getBackRemark());
+        } else if (4 == operate) {
+            //指定搜索条件退回公海
+            return batchClueBackToSeaByCondition(param);
+        } else if (5 == operate) {
+            // 指定身份ID转交线索
+            return batchClueTransfer(param.getUserId(), param.getClueToUserId(), param.getUserType(), param.getSeaId(), param.getSuperIds());
+        } else if (6 == operate) {
+            // 指定搜索条件转交线索
+            return batchClueTransferByCondition(param);
+        } else if (7 == operate) {
+            // 指定身份ID变更跟进状态
+            return batchClueFollowStatus(param.getUserId(), param.getToFollowStatus(), param.getToFollowValue(), param.getUserType(), param.getSeaId(), param.getSuperIds());
+        } else if (8 == operate) {
+            // 指定搜索条件变更跟进状态
+            return batchClueFollowStatusByCondition(param);
         }
         return 0;
     }
@@ -3534,12 +3555,13 @@ public class CustomerSeaService {
 //        sql.delete(sql.lastIndexOf("or"), sql.length());
         StringBuffer stb = new StringBuffer();
         for (String custType : split) {
-            stb.append("'\"");
+            stb.append("'");
             stb.append(custType);
-            stb.append("\"',");
+            stb.append("',");
         }
         stb.deleteCharAt(stb.length() - 1);
-        sql.append(" super_data ->'$.SYS014' in (" + stb.toString() + ")");
+        sql.append(" custG.super_data ->>'$.SYS014' in (" + stb.toString() + ")");
+        LOG.info(sql.toString());
         // 保存转交记录
         StringBuilder logSql = new StringBuilder()
                 .append("INSERT INTO ").append(ConstantsUtil.CUSTOMER_OPER_LOG_TABLE_PREFIX).append(" (`user_id`, `list_id`, `customer_sea_id`, `customer_group_id`, `event_type`,  `create_time`,reason,remark) ")
@@ -3558,7 +3580,7 @@ public class CustomerSeaService {
         logSql.append(" and  super_data ->'$.SYS014' in (" + stb.toString() + ") limit 1 )");
         // 保存转交记录
         customerSeaDao.executeUpdateSQL(logSql.toString(), param.getUserId(), param.getSeaId(), 8,
-                new Timestamp(System.currentTimeMillis()), param.getBackReason().isEmpty() ? null : param.getBackReason(), param.getBackRemark().isEmpty() ? null : param.getBackRemark());
+                new Timestamp(System.currentTimeMillis()), StringUtil.isEmpty(param.getBackReason()) ? null : param.getBackReason(), StringUtil.isEmpty(param.getBackRemark()) ? null : param.getBackRemark());
         int status = customerSeaDao.executeUpdateSQL(sql.toString());
         return status;
     }
@@ -3937,20 +3959,18 @@ public class CustomerSeaService {
             // 根据指定条件删除线索
             StringBuffer stb = new StringBuffer();
             for (String custType : split) {
-                stb.append("'\"");
+                stb.append("'");
                 stb.append(custType);
-                stb.append("\"',");
+                stb.append("',");
             }
             stb.deleteCharAt(stb.length() - 1);
             StringBuffer sql = new StringBuffer();
-            sql.append("select id from " + ConstantsUtil.SEA_TABLE_PREFIX + param.getSeaId() + " custG where 'SYS014' in ( " + stb + ")");
+            sql.append("select id from " + ConstantsUtil.SEA_TABLE_PREFIX + param.getSeaId() + " custG  where custG.super_data ->> '$.SYS014' in ( " + stb + ")");
+            List<String> list = new ArrayList<>();
             jdbcTemplate.queryForList(sql.toString()).stream().forEach(map -> {
-                Iterator<String> iterator = map.keySet().iterator();
-                if (iterator.hasNext()) {
-                    String key = iterator.next();
-                    param.getSuperIds().add(map.get(key).toString());
-                }
+                list.add(map.get("id").toString());
             });
+            param.setSuperIds(list);
             return singleDistributionClue1(param.getSeaId(), param.getUserIds().get(0), param.getSuperIds());
         } else if (2 == operate) {
             // 坐席根据检索条件批量领取线索
@@ -4100,9 +4120,6 @@ public class CustomerSeaService {
             TouchException {
         LOG.info("分配的userId是：" + userId);
 
-        if (superIds == null || superIds.size() == 0) {
-            throw new TouchException("-1", "superIds必填");
-        }
         long quantity = getUserReceivableQuantity(seaId, userId);
         List<String> tempList = new ArrayList<>();
         boolean limit = false;
@@ -4127,9 +4144,324 @@ public class CustomerSeaService {
             sql.append(" LIMIT ").append(quantity);
             logSql.append(" LIMIT ").append(quantity);
         }
+        LOG.info(logSql.toString());
         // 保存转交记录
         customerSeaDao.executeUpdateSQL(logSql.toString());
         return customerSeaDao.executeUpdateSQL(sql.toString(), userId, new Timestamp(System.currentTimeMillis()));
     }
 
+    /**
+     * 公海分页
+     *
+     * @param param
+     * @param pageNum
+     * @param pageSize
+     * @return
+     */
+    public Page page1(CustomerSeaParam param, int pageNum, int pageSize) {
+        Page page = customerSeaDao.pageCustomerSea(param, pageNum, pageSize);
+        if (page.getData() != null && page.getData().size() > 0) {
+            List<CustomerSeaDTO> list = new ArrayList<>();
+            CustomerSea customerSea;
+            CustomerSeaDTO dto;
+            MarketProject marketProject;
+            List<Map<String, Object>> projectManager;
+            CustomerUser user;
+            List<CustomerSeaProperty> properties;
+            List<Map<String, Object>> stat;
+            String statSql = "SELECT COUNT(status=0 OR null) sumCount,IFNULL(COUNT(super_data like ''%\"SYS007\":\"未跟进\"%'' AND status = 0 OR null),0) AS noFollowSum, IFNULL(COUNT(`status` = 1 OR null),0) AS clueSurplusSum, IFNULL(COUNT(`call_fail_count` >= 1 OR null),0) AS failCallSum FROM " + ConstantsUtil.SEA_TABLE_PREFIX + "{0} WHERE 1=1  ";
+            MarketProjectProperty executionGroup;
+            StringBuilder userGroupName;
+            CustomerUserGroup customerUserGroup;
+            for (int i = 0; i < page.getData().size(); i++) {
+                customerSea = (CustomerSea) page.getData().get(i);
+                dto = new CustomerSeaDTO(customerSea);
+                //根据企业id查询企业名称
+                String custId = customerSea.getCustId();
+                if (StringUtil.isNotEmpty(custId)) {
+                    String enterpriseName = customerDao.getEnterpriseName(custId);
+                    dto.setCustName(enterpriseName);
+                }
+
+                // 查询所属项目
+                marketProject = marketProjectDao.selectMarketProject(dto.getMarketProjectId());
+                dto.setMarketProjectName("");
+                if (marketProject != null) {
+                    dto.setMarketProjectName(marketProject.getName());
+                }
+                // 处理公海属性
+                properties = customerSeaDao.listProperty(String.valueOf(customerSea.getId()));
+                dto.setProperty(new HashMap<>(16));
+                if (properties != null && properties.size() > 0) {
+                    LOG.info("开始处理property。。。");
+                    JSONObject xzinfo = getXZChannelInfo(properties);
+                    LOG.info("xzinfo..." + (xzinfo == null ? "" : xzinfo.toJSONString()));
+                    for (CustomerSeaProperty p : properties) {
+                        LOG.info("getPropertyName:" + p.getPropertyName() + ";v=" + p.getPropertyValue());
+                        //LOG.info("callChannel".equals(p.getPropertyName()));
+                        if ("xzTaskConfig".equals(p.getPropertyName())) {
+                            String v = p.getPropertyValue();
+                            LOG.info("vvvv==" + v);
+                            JSONObject xzConfig = JSON.parseObject(v);
+                            if (xzinfo != null) {
+                                xzConfig.put("callCenterId", xzinfo.getString("callCenterId"));
+                                xzConfig.put("call_center_account", xzinfo.getString("call_center_account"));
+                                xzConfig.put("call_center_pwd", xzinfo.getString("call_center_pwd"));
+                            }
+                            dto.getProperty().put(p.getPropertyName(), xzConfig.toJSONString());
+                        } else {
+                            dto.getProperty().put(p.getPropertyName(), p.getPropertyValue());
+                        }
+                    }
+                }
+                // 判断是否为讯众自动任务
+                dto.getProperty().put("callCenterType", "0");
+                if (dto.getTaskType() != null && 1 == dto.getTaskType()) {
+                    // 添加讯众自动外呼任务
+                    CustomerSeaProperty property = customerSeaDao.getProperty(dto.getId(), "callChannel");
+                    if (property != null) {
+                        ResourcePropertyEntity mrp = marketResourceDao.getProperty(property.getPropertyValue(), "price_config");
+                        if (mrp != null && StringUtil.isNotEmpty(mrp.getPropertyValue())) {
+                            JSONObject callCenterConfig = JSON.parseObject(mrp.getPropertyValue());
+                            dto.getProperty().put("callCenterType", callCenterConfig.getString("call_center_type"));
+                        }
+                    }
+                }
+                // 处理线索余量和累计未通量
+                try {
+                    StringBuilder appSql = new StringBuilder();
+                    if ("2".equals(param.getUserType())) {
+                        // 组长查组员列表
+                        if ("1".equals(param.getUserGroupRole())) {
+                            List<CustomerUserDTO> customerUserDTOList = customerUserDao.listSelectCustomerUserByUserGroupId(param.getUserGroupId(), param.getCustId());
+                            Set<String> userIds = new HashSet<>();
+                            if (customerUserDTOList.size() > 0) {
+                                for (CustomerUserDTO customerUserDTO : customerUserDTOList) {
+                                    userIds.add(customerUserDTO.getId());
+                                }
+                                // 分配责任人操作
+                                if (userIds.size() > 0) {
+                                    appSql.append(" AND user_id IN(" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ") ");
+                                }
+                            } else {
+                                appSql.append(" AND user_id = '" + param.getUserId() + "' ");
+                            }
+                        } else {
+                            appSql.append(" AND user_id = '" + param.getUserId() + "' ");
+                        }
+                    }
+                    appSql.append(" group by super_data->>'$.SYS014' ");
+                    stat = customerSeaDao.sqlQuery(MessageFormat.format(statSql, String.valueOf(customerSea.getId())));
+                    dto.setClueSurplusSum(NumberConvertUtil.parseLong(stat.get(0).get("clueSurplusSum")));
+                    dto.setFailCallSum(NumberConvertUtil.parseLong(stat.get(0).get("failCallSum")));
+                    // 查询私海未跟进线索量和线索总量
+                    stat = customerSeaDao.sqlQuery(MessageFormat.format(statSql, String.valueOf(customerSea.getId())) + appSql.toString());
+                    dto.setTotalSum(NumberConvertUtil.parseLong(stat.get(0).get("sumCount")));
+                    dto.setNoFollowSum(NumberConvertUtil.parseLong(stat.get(0).get("noFollowSum")));
+                } catch (SQLGrammarException e) {
+                    LOG.error("查询线索余量和累计未通量异常,公海ID:" + customerSea.getId(), e);
+                    dto.setClueSurplusSum(0L);
+                    dto.setFailCallSum(0L);
+                    dto.setTotalSum(0L);
+                    dto.setNoFollowSum(0L);
+                }
+                // 处理项目执行组
+                executionGroup = marketProjectDao.getProperty(String.valueOf(dto.getMarketProjectId()), "executionGroup");
+                if (executionGroup != null && StringUtil.isNotEmpty(executionGroup.getPropertyValue())) {
+                    dto.setUserGroupId(executionGroup.getPropertyValue());
+                    userGroupName = new StringBuilder();
+                    for (String groupId : executionGroup.getPropertyValue().split(",")) {
+                        customerUserGroup = customerUserDao.getCustomerUserGroup(groupId);
+                        if (customerUserGroup != null) {
+                            userGroupName.append(customerUserGroup.getName()).append(",");
+                        }
+                    }
+                    dto.setUserGroupName(userGroupName.deleteCharAt(userGroupName.length() - 1).toString());
+                }
+
+                // 处理项目管理员
+                projectManager = projectService.getProjectManager(param.getCustId());
+                if (projectManager != null && projectManager.size() > 0) {
+                    for (Map<String, Object> map : projectManager) {
+                        String projectIds = (String) map.get("property_value");
+                        List<String> projectIdList = Arrays.asList(projectIds.split(","));
+                        projectIdList.remove(",");
+                        if (projectIdList.contains(String.valueOf(dto.getMarketProjectId()))) {
+                            user = customerUserDao.get(NumberConvertUtil.parseLong(map.get("user_id")));
+                            if (user != null) {
+                                dto.setProjectUserId(String.valueOf(user.getId()));
+                                dto.setProjectUserName(user.getAccount());
+                            }
+                            break;
+                        }
+                    }
+                }
+                list.add(dto);
+            }
+            page.setData(list);
+        }
+        return page;
+    }
+
+    /**
+     * 公海分页
+     *
+     * @param param
+     * @param pageNum
+     * @param pageSize
+     * @return
+     */
+    public Page pagePublic(CustomerSeaParam param, int pageNum, int pageSize) {
+        Page page = customerSeaDao.pageCustomerSea(param, pageNum, pageSize);
+        if (page.getData() != null && page.getData().size() > 0) {
+            List<CustomerSeaDTO> list = new ArrayList<>();
+            CustomerSea customerSea;
+            CustomerSeaDTO dto;
+            MarketProject marketProject;
+            List<Map<String, Object>> projectManager;
+            CustomerUser user;
+            List<CustomerSeaProperty> properties;
+            List<Map<String, Object>> stat;
+            String statSql = "SELECT COUNT(status=0 OR null) sumCount,IFNULL(COUNT(super_data->>'\'$.SYS007\'' like '\'%未跟进%\'' AND status = 0 OR null),0) AS noFollowSum, IFNULL(COUNT(`status` = 1 OR null),0) AS clueSurplusSum, IFNULL(COUNT(`call_fail_count` >= 1 OR null),0) AS failCallSum,(count(distinct super_data->'\'$.SYS014\'')) as custType  FROM " + ConstantsUtil.SEA_TABLE_PREFIX + "{0} WHERE 1=1  ";
+            MarketProjectProperty executionGroup;
+            StringBuilder userGroupName;
+            CustomerUserGroup customerUserGroup;
+            for (int i = 0; i < page.getData().size(); i++) {
+                customerSea = (CustomerSea) page.getData().get(i);
+                dto = new CustomerSeaDTO(customerSea);
+                //根据企业id查询企业名称
+                String custId = customerSea.getCustId();
+                if (StringUtil.isNotEmpty(custId)) {
+                    String enterpriseName = customerDao.getEnterpriseName(custId);
+                    dto.setCustName(enterpriseName);
+                }
+
+                // 查询所属项目
+                marketProject = marketProjectDao.selectMarketProject(dto.getMarketProjectId());
+                dto.setMarketProjectName("");
+                if (marketProject != null) {
+                    dto.setMarketProjectName(marketProject.getName());
+                }
+                // 处理公海属性
+
+                properties = customerSeaDao.listProperty(String.valueOf(customerSea.getId()));
+                dto.setProperty(new HashMap<>(16));
+                if (properties != null && properties.size() > 0) {
+                    LOG.info("开始处理property。。。");
+                    LOG.info("公海id："+customerSea.getId());
+                    JSONObject xzinfo = getXZChannelInfo(properties);
+                    LOG.info("xzinfo..." + (xzinfo == null ? "" : xzinfo.toJSONString()));
+                    for (CustomerSeaProperty p : properties) {
+                        LOG.info("getPropertyName:" + p.getPropertyName() + ";v=" + p.getPropertyValue());
+                        //LOG.info("callChannel".equals(p.getPropertyName()));
+                        if ("xzTaskConfig".equals(p.getPropertyName())) {
+                            String v = p.getPropertyValue();
+                            LOG.info("vvvv==" + v);
+                            JSONObject xzConfig = JSON.parseObject(v);
+                            if (xzinfo != null) {
+                                xzConfig.put("callCenterId", xzinfo.getString("callCenterId"));
+                                xzConfig.put("call_center_account", xzinfo.getString("call_center_account"));
+                                xzConfig.put("call_center_pwd", xzinfo.getString("call_center_pwd"));
+                            }
+                            dto.getProperty().put(p.getPropertyName(), xzConfig.toJSONString());
+                        } else {
+                            dto.getProperty().put(p.getPropertyName(), p.getPropertyValue());
+                        }
+                    }
+                }
+                // 判断是否为讯众自动任务
+                dto.getProperty().put("callCenterType", "0");
+                if (dto.getTaskType() != null && 1 == dto.getTaskType()) {
+                    // 添加讯众自动外呼任务
+                    CustomerSeaProperty property = customerSeaDao.getProperty(dto.getId(), "callChannel");
+                    if (property != null) {
+                        ResourcePropertyEntity mrp = marketResourceDao.getProperty(property.getPropertyValue(), "price_config");
+                        if (mrp != null && StringUtil.isNotEmpty(mrp.getPropertyValue())) {
+                            JSONObject callCenterConfig = JSON.parseObject(mrp.getPropertyValue());
+                            dto.getProperty().put("callCenterType", callCenterConfig.getString("call_center_type"));
+                        }
+                    }
+                }
+                // 处理线索余量和累计未通量
+                try {
+                    StringBuilder appSql = new StringBuilder();
+                    if ("2".equals(param.getUserType())) {
+                        // 组长查组员列表
+                        if ("1".equals(param.getUserGroupRole())) {
+                            List<CustomerUserDTO> customerUserDTOList = customerUserDao.listSelectCustomerUserByUserGroupId(param.getUserGroupId(), param.getCustId());
+                            Set<String> userIds = new HashSet<>();
+                            if (customerUserDTOList.size() > 0) {
+                                for (CustomerUserDTO customerUserDTO : customerUserDTOList) {
+                                    userIds.add(customerUserDTO.getId());
+                                }
+                                // 分配责任人操作
+                                if (userIds.size() > 0) {
+                                    appSql.append(" AND user_id IN(" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ") ");
+                                }
+                            } else {
+                                appSql.append(" AND user_id = '" + param.getUserId() + "' ");
+                            }
+                        } else {
+                            appSql.append(" AND user_id = '" + param.getUserId() + "' ");
+                        }
+                    }
+                    appSql.append(" group by super_data->>'$.SYS014' ");
+                    stat = customerSeaDao.sqlQuery(MessageFormat.format(statSql, String.valueOf(customerSea.getId())));
+                    dto.setClueSurplusSum(NumberConvertUtil.parseLong(stat.get(0).get("clueSurplusSum")));
+                    dto.setFailCallSum(NumberConvertUtil.parseLong(stat.get(0).get("failCallSum")));
+                    // 查询私海未跟进线索量和线索总量
+                    stat = customerSeaDao.sqlQuery(MessageFormat.format(statSql, String.valueOf(customerSea.getId())) + appSql.toString());
+                    if(stat.size()>0){
+                        dto.setTotalSum(NumberConvertUtil.parseLong(stat.get(0).get("custType")));
+                        dto.setNoFollowSum(NumberConvertUtil.parseLong(stat.get(0).get("noFollowSum")));
+                    }else{
+                        dto.setTotalSum(NumberConvertUtil.parseLong(0));
+                        dto.setNoFollowSum(NumberConvertUtil.parseLong(0));
+                    }
+                } catch (SQLGrammarException e) {
+                    LOG.error("查询线索余量和累计未通量异常,公海ID:" + customerSea.getId(), e);
+                    dto.setClueSurplusSum(0L);
+                    dto.setFailCallSum(0L);
+                    dto.setTotalSum(0L);
+                    dto.setNoFollowSum(0L);
+                }
+                // 处理项目执行组
+                executionGroup = marketProjectDao.getProperty(String.valueOf(dto.getMarketProjectId()), "executionGroup");
+                if (executionGroup != null && StringUtil.isNotEmpty(executionGroup.getPropertyValue())) {
+                    dto.setUserGroupId(executionGroup.getPropertyValue());
+                    userGroupName = new StringBuilder();
+                    for (String groupId : executionGroup.getPropertyValue().split(",")) {
+                        customerUserGroup = customerUserDao.getCustomerUserGroup(groupId);
+                        if (customerUserGroup != null) {
+                            userGroupName.append(customerUserGroup.getName()).append(",");
+                        }
+                    }
+                    dto.setUserGroupName(userGroupName.deleteCharAt(userGroupName.length() - 1).toString());
+                }
+
+                // 处理项目管理员
+
+                projectManager = projectService.getProjectManager(param.getCustId());
+                if (projectManager != null && projectManager.size() > 0) {
+                    for (Map<String, Object> map : projectManager) {
+                        String projectIds = (String) map.get("property_value");
+                        List<String> projectIdList = Arrays.asList(projectIds.split(","));
+                        projectIdList.remove(",");
+                        if (projectIdList.contains(String.valueOf(dto.getMarketProjectId()))) {
+
+                            user = customerUserDao.get(NumberConvertUtil.parseLong(map.get("user_id")));
+                            if (user != null) {
+                                dto.setProjectUserId(String.valueOf(user.getId()));
+                                dto.setProjectUserName(user.getAccount());
+                            }
+                            break;
+                        }
+                    }
+                }
+                list.add(dto);
+            }
+            page.setData(list);
+        }
+        return page;
+    }
 }

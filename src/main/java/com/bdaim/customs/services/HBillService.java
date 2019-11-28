@@ -47,7 +47,7 @@ public class HBillService {
         Map<String, Object> map = new HashMap<>();
         if (data != null) {
             List<Map<String, Object>> list = data.getData();
-            BigDecimal custSumAmount = new BigDecimal(0);
+            BigDecimal custSumAmount = new BigDecimal("0");
             for (int i = 0; i < list.size(); i++) {
                 logger.info("企业消费金额是：" + String.valueOf(list.get(i).get("amount")) + "成本费用是：" + String.valueOf(list.get(i).get("prodAmount")));
                 String profitAmount = new BigDecimal(String.valueOf(list.get(i).get("amount"))).subtract(new BigDecimal(String.valueOf(list.get(i).get("prodAmount")))).setScale(2, BigDecimal.ROUND_DOWN).toString();

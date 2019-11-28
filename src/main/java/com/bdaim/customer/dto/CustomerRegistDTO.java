@@ -93,6 +93,103 @@ public class CustomerRegistDTO implements Serializable {
      * IC卡号
      */
     private String input_no;
+    /**
+     * 行业画像
+     */
+    private String intenIndustry;
+
+    /**
+     * 所属品牌
+     */
+    private String brand;
+    /**
+     * ip白名单
+     */
+    private String whiteIps;
+
+    /**
+     * 余额预警
+     */
+    private String balance_warning_config;
+
+    private String warning_money;
+    private String email_link;
+    private String short_msg_link;
+    private String api_token;
+    private String industryPictureValue;
+
+    public String getIndustryPictureValue() {
+        return industryPictureValue;
+    }
+
+    public void setIndustryPictureValue(String industryPictureValue) {
+        this.industryPictureValue = industryPictureValue;
+    }
+
+    public String getApi_token() {
+        return api_token;
+    }
+
+    public void setApi_token(String api_token) {
+        this.api_token = api_token;
+    }
+
+    public String getEmail_link() {
+        return email_link;
+    }
+
+    public void setEmail_link(String email_link) {
+        this.email_link = email_link;
+    }
+
+    public String getShort_msg_link() {
+        return short_msg_link;
+    }
+
+    public void setShort_msg_link(String short_msg_link) {
+        this.short_msg_link = short_msg_link;
+    }
+
+    public String getWarning_money() {
+
+        return warning_money;
+    }
+
+    public void setWarning_money(String warning_money) {
+        this.warning_money = warning_money;
+    }
+
+    public String getBalance_warning_config() {
+        return balance_warning_config;
+    }
+
+    public void setBalance_warning_config(String balance_warning_config) {
+        this.balance_warning_config = balance_warning_config;
+    }
+
+    public String getWhiteIps() {
+        return whiteIps;
+    }
+
+    public void setWhiteIps(String whiteIps) {
+        this.whiteIps = whiteIps;
+    }
+
+    public String getBrand() {
+        return brand;
+    }
+
+    public void setBrand(String brand) {
+        this.brand = brand;
+    }
+
+    public String getIntenIndustry() {
+        return intenIndustry;
+    }
+
+    public void setIntenIndustry(String intenIndustry) {
+        this.intenIndustry = intenIndustry;
+    }
 
     public String getInput_no() {
         return input_no;

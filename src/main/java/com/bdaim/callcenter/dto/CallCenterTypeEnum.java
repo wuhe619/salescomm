@@ -11,7 +11,8 @@ public enum CallCenterTypeEnum {
 
     XF(1, "xf"),
     XZ_CC(2, "xz"),
-    XZ_SH(3, "xz_sh");
+    XZ_SH(3, "xz_sh"),
+    UNICOM_SH(4, "unicom_sh");
 
     private int type;
 

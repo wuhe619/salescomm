@@ -342,7 +342,7 @@ public class SbdZService implements BusiService {
                         BigDecimal estimated_tax = null;
                         for (int i = 0; i < singles.size(); i++) {
                             gName = new StringBuffer();
-                            estimated_tax = new BigDecimal(0.0);
+                            estimated_tax = new BigDecimal("0.0");
                             fdData = (JSONObject) singles.get(i);
                             // 商品名称处理
                             list = data.get(fdData.getString("bill_no"));
@@ -648,11 +648,11 @@ public class SbdZService implements BusiService {
             HBusiDataManager dataManager;
             //分单预估税金总计
             arrt.put("estimated_tax_total", 0);
-            BigDecimal totalValue = new BigDecimal(0);
+            BigDecimal totalValue = new BigDecimal("0");
             BigDecimal qty = null;
             BigDecimal multiply = null;
             //分单预估税金总计
-            BigDecimal fdEstimatedTax = new BigDecimal(0);
+            BigDecimal fdEstimatedTax = new BigDecimal("0");
             for (Product product : pList) {
                 log.info("goods:" + product.getCode_ts());
                 try {
@@ -778,7 +778,7 @@ public class SbdZService implements BusiService {
         String partynum = mainDan.getSingle_batch_num();
 
         List<PartyDan> list = mainDan.getSingles();
-        BigDecimal weightTotal = new BigDecimal(0);
+        BigDecimal weightTotal = new BigDecimal("0");
         for (PartyDan partyDan : list) {
             String WEIGHT = partyDan.getWeight();
             if (StringUtil.isEmpty(WEIGHT)) {

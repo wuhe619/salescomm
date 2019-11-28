@@ -16,6 +16,7 @@ import com.bdaim.callcenter.common.CallUtil;
 import com.bdaim.callcenter.dto.*;
 import com.bdaim.callcenter.service.impl.CallCenterService;
 import com.bdaim.callcenter.service.impl.SeatsService;
+import com.bdaim.common.dto.Page;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.page.PageList;
 import com.bdaim.common.page.Pagination;
@@ -8517,6 +8518,7 @@ public class MarketResourceService {
 
     /**
      * 根据条件检索资源列表
+     *
      * @param custId
      * @param param
      * @return
@@ -8533,15 +8535,58 @@ public class MarketResourceService {
                 m.setSupplierName(supplierDO.getName());
                 marketResourceProperty = marketResourceDao.getProperty(String.valueOf(m.getResourceId()), "price_config");
                 if (marketResourceProperty != null) {
-                    jsonObject = JSONObject.parseObject(marketResourceProperty.getPropertyValue());
-                    m.setResourceProperty(jsonObject.toJSONString());
-                    if (jsonObject != null) {
-                        m.setChargingType(jsonObject.getInteger("type"));
-                    }
+                    m.setResourceProperty(marketResourceProperty.getPropertyValue());
                 }
                 result.add(m);
             }
         }
         return result;
     }
+
+    public int saveMarketResource(String name, Integer supplierId, String price, Integer type) {
+        String sql = "INSERT into t_market_resource(supplier_id,type_code,resname,sale_price,create_time) VALUES(?,?,?,?,?)";
+        return jdbcTemplate.update(sql, new Object[]{supplierId, type, name, price, DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss)});
+    }
+
+    public int updateMarketResource(String name, Integer supplierId, String price, Integer type, Integer resource_id) {
+        String sql = "UPDATE t_market_resource SET supplier_id=?,type_code=?,resname=?,sale_price=?  WHERE resource_id=?";
+        return jdbcTemplate.update(sql, new Object[]{supplierId, type, name, price, resource_id});
+    }
+
+
+    /**
+     * 根据条件检索资源列表
+     *
+     * @param custId
+     * @param param
+     * @return
+     */
+    public Page listResource1(String custId, JSONObject param) {
+        //  int pageNum, int pageSize, String supplierId, int type, JSONObject param
+        int pageNum = 0;
+        int pageSize = 0;
+        if (StringUtil.isNotEmpty(param.getString("pageNum")))
+            pageNum = param.getInteger("pageNum");
+        if (StringUtil.isNotEmpty(param.getString("pageSize")))
+            pageSize = param.getInteger("pageSize");
+        return marketResourceDao.listMarketResource1(pageNum, pageSize, param.getString("supplierId"), param.getIntValue("busiType"), param);
+    }
+
+
+    public Map<String, Object> getResourceById(int resourceId) throws Exception {
+        MarketResourceEntity marketResource = marketResourceDao.getMarketResource(resourceId);
+        if (marketResource == null) {
+            throw new Exception("资源" + resourceId + "不存在");
+        }
+        Map<String, Object> map = new HashMap<>();
+        map.put("resourceId", marketResource.getResourceId());
+        map.put("name", marketResource.getResname());
+        map.put("supplierId", marketResource.getSupplierId());
+        map.put("price", marketResource.getSalePrice());
+        map.put("type", marketResource.getTypeCode());
+        map.put("createTime", marketResource.getCreateTime());
+
+        return map;
+    }
+
 }

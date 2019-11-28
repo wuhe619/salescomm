@@ -13,8 +13,11 @@ import com.bdaim.bill.dto.CustomerBillQueryParam;
 import com.bdaim.bill.dto.TransactionTypeEnum;
 import com.bdaim.bill.service.TransactionService;
 import com.bdaim.callcenter.dto.CustomCallConfigDTO;
+import com.bdaim.common.dto.Deposit;
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.dto.PageParam;
+import com.bdaim.common.page.PageList;
+import com.bdaim.common.page.Pagination;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerUserDao;
 import com.bdaim.customer.entity.CustomerProperty;
@@ -39,10 +42,10 @@ import com.bdaim.supplier.entity.SupplierPropertyEntity;
 import com.bdaim.util.DateUtil;
 import com.bdaim.util.NumberConvertUtil;
 import com.bdaim.util.StringUtil;
-
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -50,6 +53,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.Timestamp;
@@ -60,6 +64,7 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author duanliying
@@ -78,6 +83,9 @@ public class SupplierService {
     private MarketResourceDao marketResourceDao;
     @Resource
     private TransactionService transactionService;
+
+    @Resource
+    private JdbcTemplate jdbcTemplate;
 
     public List<Map<String, Object>> listNoloseAllSupplier() {
         List<Map<String, Object>> result = new ArrayList<>();
@@ -2187,5 +2195,165 @@ public class SupplierService {
         }
         return data;
     }
+
+    public int saveSupplier1(SupplierDTO supplierDTO) {
+        if (supplierDTO == null) {
+            throw new RuntimeException("supplierDTO参数异常");
+        }
+        SupplierEntity supplierDO = new SupplierEntity();
+        supplierDO.setName(supplierDTO.getName());
+        supplierDO.setSettlementType(supplierDTO.getSettlementType());
+        supplierDO.setContactPerson(supplierDTO.getContactPerson());
+        supplierDO.setContactPhone(supplierDTO.getContactPhone());
+        supplierDO.setContactPosition(supplierDTO.getContactPosition());
+        supplierDO.setStatus(1);
+        supplierDO.setCreateTime(new Timestamp(System.currentTimeMillis()));
+        int supplierId = (int) supplierDao.saveReturnPk(supplierDO);
+        if (supplierId == 0) throw new RuntimeException("供应商保存异常");
+        return supplierId;
+    }
+
+    public SupplierDTO updateSupplierPrice1(SupplierDTO supplierDTO) {
+        if (supplierDTO == null) {
+            throw new RuntimeException("supplierDTO参数异常");
+        }
+        SupplierEntity supplierDO = supplierDao.get(supplierDTO.getSupplierId());
+        if (supplierDO == null) {
+            throw new RuntimeException(supplierDTO.getSupplierId() + "供应商不存在");
+        }
+        supplierDO.setName(supplierDTO.getName());
+        supplierDO.setSettlementType(supplierDTO.getSettlementType());
+        supplierDO.setContactPerson(supplierDTO.getContactPerson());
+        supplierDO.setContactPhone(supplierDTO.getContactPhone());
+        supplierDO.setContactPosition(supplierDTO.getContactPosition());
+        supplierDO.setStatus(1);
+        try {
+            supplierDao.saveOrUpdate(supplierDO);
+        } catch (Exception e) {
+            throw new RuntimeException("供应商修改异常");
+        }
+
+        return supplierDTO;
+    }
+
+    public SupplierDTO getSupplierById(int id) {
+
+        SupplierEntity supplierDO = supplierDao.get(id);
+        if (supplierDO == null) {
+            throw new RuntimeException(id + "供应商不存在");
+        }
+        SupplierDTO supplierDTO = new SupplierDTO();
+        supplierDTO.setName(supplierDO.getName());
+        supplierDTO.setSettlementType(supplierDO.getSettlementType());
+        supplierDTO.setContactPerson(StringUtil.isEmpty(supplierDO.getContactPerson()) ? "" : supplierDO.getContactPerson());
+        supplierDTO.setContactPhone(StringUtil.isEmpty(supplierDO.getContactPhone()) ? "" : supplierDO.getContactPhone());
+        supplierDTO.setContactPosition(StringUtil.isEmpty(supplierDO.getContactPosition()) ? "" : supplierDO.getContactPosition());
+        supplierDTO.setStatus(supplierDO.getStatus());
+        supplierDTO.setCreateTime(supplierDO.getCreateTime());
+        return supplierDTO;
+    }
+
+    public List<SupplierDTO> getSupplierList(PageParam page, String name) {
+        List<SupplierEntity> supplierList = supplierDao.fingByAll(page.getPageNum(), page.getPageSize(), name);
+        if (supplierList.size() == 0) {
+            return new ArrayList<>();
+        }
+        return supplierList.stream().map(supplierDO -> {
+
+            SupplierDTO supplierDTO = new SupplierDTO();
+            supplierDTO.setName(supplierDO.getName());
+            supplierDTO.setSettlementType(supplierDO.getSettlementType());
+            supplierDTO.setContactPerson(StringUtil.isEmpty(supplierDO.getContactPerson()) ? "" : supplierDO.getContactPerson());
+            supplierDTO.setContactPhone(StringUtil.isEmpty(supplierDO.getContactPhone()) ? "" : supplierDO.getContactPhone());
+            supplierDTO.setContactPosition(StringUtil.isEmpty(supplierDO.getContactPosition()) ? "" : supplierDO.getContactPosition());
+            supplierDTO.setStatus(supplierDO.getStatus());
+            supplierDTO.setCreateTime(supplierDO.getCreateTime());
+            supplierDTO.setBalance(0);
+            supplierDTO.setConsumption(0);
+            return supplierDTO;
+        }).collect(Collectors.toList());
+
+    }
+
+    public int supplierDeposit(Deposit deposit, String userId) {
+        int pre_money;
+        int money = Integer.valueOf(deposit.getMoney()).intValue() * 10000;
+        SupplierPropertyEntity supplierPropertyEntity = supplierDao.getProperty(String.valueOf(deposit.getId()), "remain_amount");
+        if (supplierPropertyEntity == null) {
+            pre_money = 0;
+            supplierDao.dealCustomerInfo(String.valueOf(deposit.getId()), "remain_amount", deposit.getMoney());
+        } else {
+            pre_money = Integer.valueOf(supplierPropertyEntity.getPropertyValue()).intValue() * 10000;
+            supplierDao.dealCustomerInfo(String.valueOf(deposit.getId()), "remain_amount", String.valueOf((pre_money + money)));
+        }
+        String sql = "INSERT INTO supplier_pay (SUBSCRIBER_ID,MONEY,PAY_TIME,pay_certificate,pre_money,user_id) VALUE (?,?,?,?,?,?) ";
+        jdbcTemplate.update(sql, deposit.getId(), money, DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss), deposit.getRepaidVoucher(), pre_money, userId);
+        return 1;
+    }
+
+    public Map<String, Object> depositList(PageParam page, String supplierId) {
+        Map<String, Object> map = new HashMap<>();
+        String sql = "select supplier_id,property_name,property_value from t_supplier_property   where supplier_id=?";
+
+        List<Map<String, Object>> propertyList = jdbcTemplate.queryForList(sql, supplierId);
+        propertyList.stream().forEach(m -> {
+            switch (m.get("property_name").toString()) {
+                case "bank_account":
+                    map.put("bank_account", m.get("property_value"));
+                    break;
+                case "remain_amount":
+                    map.put("remain_amount", Integer.valueOf(m.get("property_value").toString()).intValue() / 10000);
+                    break;
+            }
+        });
+
+        String sql1 = "select pay.pay_id,pay.SUBSCRIBER_ID,pay.MONEY,pay.PAY_TIME,pay.pay_certificate,pay.pre_money,pay.user_id ,u.realname as realname from supplier_pay pay left join  t_customer_user u  on pay.user_id=u.id  where SUBSCRIBER_ID = " + supplierId + " order by pay_time";
+        PageList list = new Pagination().getPageData(sql1, null, page, jdbcTemplate);
+        List<com.bdaim.customer.dto.Deposit> depositList = new ArrayList<>();
+        list.getList().stream().forEach(m -> {
+            com.bdaim.customer.dto.Deposit deposit = new com.bdaim.customer.dto.Deposit();
+            Map depositMap = (Map) m;
+            if (depositMap.get("SUBSCRIBER_ID") != null) {
+                deposit.setCustId(depositMap.get("SUBSCRIBER_ID").toString());
+            }
+            if (depositMap.get("MONEY") != null) {
+                deposit.setMoney(Integer.valueOf(depositMap.get("MONEY").toString()).intValue() / 10000 + "");
+            }
+            if (depositMap.get("PAY_TIME") != null) {
+                deposit.setPayTime(depositMap.get("PAY_TIME").toString());
+            }
+            if (depositMap.get("pay_id") != null) {
+                deposit.setId(Integer.valueOf(depositMap.get("pay_id").toString()));
+            }
+            if (depositMap.get("pay_certificate") != null) {
+                deposit.setPicId(depositMap.get("pay_certificate").toString());
+            }
+            if (depositMap.get("pre_money") != null) {
+                deposit.setPreMoney(Integer.valueOf(depositMap.get("pre_money").toString()).intValue() / 10000 + "");
+            }
+            if (depositMap.get("user_id") != null) {
+                deposit.setPreMoney(depositMap.get("user_id").toString());
+            }
+            if (depositMap.get("realname") != null) {
+                deposit.setPreMoney(depositMap.get("realname").toString());
+            }
+            depositList.add(deposit);
+        });
+        SupplierEntity supplierEntity = supplierDao.get(Integer.valueOf(supplierId));
+        map.put("depositList", depositList);
+        map.put("custName", supplierEntity.getName() == null ? "" : supplierEntity.getName());
+        map.put("total", list.getTotal());
+        return map;
+    }
+
+    public int delSupplierById(String supplierId) throws Exception {
+
+        SupplierEntity supplierEntity = supplierDao.getSupplier(Integer.valueOf(supplierId));
+        if (supplierEntity == null) throw new Exception("供应商不存在或已被删除");
+        supplierEntity.setStatus(2);
+        int pk = (int) supplierDao.saveReturnPk(supplierEntity);
+        return pk;
+    }
+
 }
 

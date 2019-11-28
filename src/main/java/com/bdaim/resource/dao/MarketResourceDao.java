@@ -710,5 +710,59 @@ public class MarketResourceDao extends SimpleHibernateDao<MarketResourceEntity, 
         }
         return this.executeUpdateSQL(sql.toString(), param.getIntentStatus(), param.getCustomerGroupId(), param.getMarketTaskId(), param.getStartTime(), param.getEndTime());
     }
+
+    /**
+     * 根据条件检索资源列表
+     *
+     * @param supplierId
+     * @param type
+     * @param param
+     * @return
+     */
+    public Page listMarketResource1(int pageNum,int  pageSize,String supplierId, int type, JSONObject param) {
+        StringBuilder hql = new StringBuilder();
+        List<Object> wheres = new ArrayList<>();
+        hql.append(" from MarketResourceEntity m where 1=1");
+        if (StringUtil.isNotEmpty(supplierId)) {
+            hql.append(" AND m.supplierId = ? ");
+            wheres.add(supplierId);
+        }
+        if (type > 0) {
+            hql.append(" AND m.typeCode = ? ");
+            wheres.add(type);
+        }
+        if (param.getInteger("status") != null && param.getInteger("status") > 0) {
+            hql.append(" AND m.status = ? ");
+            wheres.add(param.getInteger("status"));
+        }
+        Iterator keys = param.keySet().iterator();
+        while (keys.hasNext()) {
+            String key = (String) keys.next();
+            if (StringUtil.isEmpty(String.valueOf(param.get(key)))) continue;
+            if ("pageNum".equals(key) || "pageSize".equals(key) || "supplierId".equals(key)
+                    || "custId".equals(key) || "_sort_".equals(key)
+                    || "_orderby_".equals(key) || "status".equals(key) || "busiType".equals(key))
+                continue;
+
+            hql.append(" AND m.resourceId IN(SELECT resourceId FROM ResourcePropertyEntity WHERE JSON_EXTRACT(property_value, '$." + key + "') = ?) ");
+            wheres.add(param.get(key));
+        }
+
+        hql.append(" ORDER BY create_time ASC");
+        Page page = this.page(hql.toString(), wheres, pageNum, pageSize);
+        List<MarketResourceDTO> result = new ArrayList<>();
+        if (page.getData().size() > 0) {
+            MarketResourceDTO marketResourceDTO;
+            MarketResourceEntity entity;
+            for (int i = 0; i < page.getData().size(); i++) {
+                entity = (MarketResourceEntity) page.getData().get(i);
+                marketResourceDTO = new MarketResourceDTO(entity);
+                result.add(marketResourceDTO);
+            }
+        }
+        page.setData(result);
+        return page;
+    }
+
 }
 
