@@ -576,9 +576,14 @@ public class CustomController extends BasicAction {
     }
 
     /**
+     * 按条件导出excel
+     * @param response
      * @param id
-     * @param body
+     * @param custId
      * @param busiType
+     * @param key
+     * @param value
+     * @param _rule_
      * @return
      */
     @RequestMapping(value = "/exportExcel/{busiType}/{id}", method = RequestMethod.GET)
