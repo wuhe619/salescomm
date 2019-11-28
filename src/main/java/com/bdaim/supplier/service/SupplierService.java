@@ -2203,7 +2203,7 @@ public class SupplierService {
         SupplierEntity supplierDO = new SupplierEntity();
         supplierDO.setName(supplierDTO.getName());
         supplierDO.setSettlementType(supplierDTO.getSettlementType());
-//        supplierDO.setContactPerson(supplierDTO.getContactPerson());
+        supplierDO.setContactPerson(supplierDTO.getContactPerson());
         supplierDO.setContactPhone(supplierDTO.getContactPhone());
         supplierDO.setContactPosition(supplierDTO.getContactPosition());
         supplierDO.setType(5);
@@ -2257,7 +2257,7 @@ public class SupplierService {
     public Map<String, Object> getSupplierList(PageParam page, String name) {
 
         StringBuffer sql = new StringBuffer();
-        sql.append("select name,settlement_type,contact_person,contact_phone,contact_position,status,create_time from t_supplier where status =1 ");
+        sql.append("select supplier_id,name,settlement_type,contact_person,contact_phone,contact_position,status,create_time from t_supplier where status =1 ");
         if (StringUtil.isNotEmpty(name)) {
             sql.append(" and name like '%" + name + "%'");
         }
@@ -2277,6 +2277,7 @@ public class SupplierService {
             supplierDTOMap.put("createTime", map1.get("create_time"));
             supplierDTOMap.put("balance", 0);
             supplierDTOMap.put("consumption", 0);
+            supplierDTOMap.put("supplierId",map1.get("supplier_id"));
             return supplierDTOMap;
         }).collect(Collectors.toList());
         map.put("list", collect);
