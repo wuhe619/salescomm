@@ -4,6 +4,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import java.util.Date;
 
 /**
  * @author duanliying
@@ -33,7 +34,7 @@ public class CustomerUser {
     @Column(name = "user_type")
     private Integer userType;
     @Column(name = "create_time")
-    private String createTime;
+    private Date createTime;
     //企业联系人
     @Column(name = "realname")
     private String realname;
@@ -94,11 +95,11 @@ public class CustomerUser {
         this.userType = userType;
     }
 
-    public String getCreateTime() {
+    public Date getCreateTime() {
         return createTime;
     }
 
-    public void setCreateTime(String createTime) {
+    public void setCreateTime(Date createTime) {
         this.createTime = createTime;
     }
 

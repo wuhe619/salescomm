@@ -59,7 +59,10 @@ public class ApiService {
         if(apiData.getUrlMappingId()==0){
             ApiUrlMappingEntity entity=new ApiUrlMappingEntity();
             entity.setApiId(Integer.valueOf(map.get("apiId").toString()));
-
+            entity.setHttpMethod(apiData.getTransportHttp());
+            entity.setAuthScheme("Any");
+            entity.setThrottlingTier("Unlimited");
+            entity.setUrlPattern(apiData.getProductionendpoints());
             apiUrlMappingDao.saveReturnPk(entity);
         }
 

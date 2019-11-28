@@ -9,13 +9,12 @@ import com.bdaim.customer.dao.CustomerUserDao;
 import com.bdaim.customer.dto.CustomerRegistDTO;
 import com.bdaim.customer.entity.CustomerProperty;
 import com.bdaim.customer.entity.CustomerUser;
-import com.bdaim.util.CipherUtil;
-import com.bdaim.util.Constant;
-import com.bdaim.util.IDHelper;
-import com.bdaim.util.StringUtil;
+import com.bdaim.util.*;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.sql.Timestamp;
+import java.util.Date;
 
 @Service
 public class NewCustomerUserService {
@@ -50,6 +49,7 @@ public class NewCustomerUserService {
                 customerUserDO.setPassword(CipherUtil.generatePassword(vo.getPassword()));
                 customerUserDO.setRealname(vo.getRealName());
                 customerUserDO.setStatus(Constant.USER_ACTIVE_STATUS);
+                customerUserDO.setCreateTime(DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss));
                 customerUserDao.saveOrUpdate(customerUserDO);
 
             }

@@ -247,7 +247,7 @@ public class CustomerAppService {
         if (StringUtil.isNotEmpty(name)) {
             sql.append(" AND tc.enterprise_name like '%" + name + "%'");
         }
-
+        sql.append(" order by s.create_time desc");
         PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
         Object collect = list.getList().stream().map(m -> {
             Map map = (Map) m;
