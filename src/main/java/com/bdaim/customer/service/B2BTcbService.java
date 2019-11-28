@@ -29,6 +29,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -115,7 +116,13 @@ public class B2BTcbService implements BusiService {
             info.put("e_time", eTime.format(DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss")));
             // 基础 定制套餐 供应商 客户扣费
             if ("1".equals(tcbConfig.getString("type")) || "2".equals(tcbConfig.getString("type"))) {
-                tcOpenDeduction(tcbConfig.getString("price_res_id"), tcbConfig.getString("name"), tcbConfig.getString("price"), tcbConfig.getIntValue("total"), cust_id, cust_user_id);
+                String name = "";
+                if (tcbConfig.getIntValue("type") == 1) {
+                    name = "(标准套餐)";
+                } else if (tcbConfig.getIntValue("type") == 2) {
+                    name = "(定制套餐)";
+                }
+                tcOpenDeduction(tcbConfig.getString("price_res_id"), tcbConfig.getString("name") + name, tcbConfig.getString("price"), tcbConfig.getIntValue("total"), cust_id, cust_user_id);
             }
         } else {
             LOG.warn("套餐包:{}无效", info.getString("resource_id"));
@@ -155,7 +162,8 @@ public class B2BTcbService implements BusiService {
                 supplierNumberPrice = NumberConvertUtil.changeY2L(config.getString("price")) * total;
             } else if (config.getIntValue("type") == 2) {
                 // 收入分成(套餐价格*收入百分比)
-                supplierNumberPrice = NumberConvertUtil.changeY2L(NumberConvertUtil.parseDouble(price) * config.getDoubleValue("price"));
+                BigDecimal bigDecimal = new BigDecimal(config.getString("price")).divide(new BigDecimal("100"));
+                supplierNumberPrice = NumberConvertUtil.changeY2L(NumberConvertUtil.parseDouble(price) * bigDecimal.doubleValue());
             }
         }
         LOG.info("客户:{}套餐包开通开始扣费,客户金额:{},供应商金额:{},套餐配置信息:{}", custId, custNumberPrice, supplierNumberPrice, config);
@@ -195,6 +203,7 @@ public class B2BTcbService implements BusiService {
         if (StringUtil.isNotEmpty(name)) {
             sqlstr.append(" and content->'$.name'='").append(name).append("'");
         }
+        sqlstr.append(" ORDER BY create_date DESC ");
         return sqlstr.toString();
     }
 
@@ -265,6 +274,11 @@ public class B2BTcbService implements BusiService {
         if (useB2BTcb == null) {
             throw new TouchException("企业无可用套餐包");
         }
+        LocalDateTime sTime = LocalDateTime.parse(useB2BTcb.getString("s_time"), DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss"));
+        if (sTime.isAfter(LocalDateTime.now())) {
+            throw new TouchException("企业套餐未到开始时间");
+        }
+
         LocalDateTime eTime = LocalDateTime.parse(useB2BTcb.getString("s_time"), DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss")).plusMonths(useB2BTcb.getLongValue("effective_month"));
         if (eTime.isBefore(LocalDateTime.now())) {
             throw new TouchException("企业套餐已过期");
@@ -373,13 +387,24 @@ public class B2BTcbService implements BusiService {
      * @param userId
      * @param busiType
      */
-    public Map<String, JSONObject> doClueDataToSeaByNumber(JSONObject param, long getNumber, String custId, long userId, String busiType) throws TouchException {
+    public Map<String, JSONObject> doClueDataToSeaByNumber(JSONObject param, long getNumber, String custId, long userId, String busiType) throws Exception {
         Map<String, JSONObject> data = new HashMap<>();
         BaseResult baseResult, companyContact;
         JSONObject resultData, contactData;
         JSONArray list;
-        Random random = new Random();
-        long pageNo = random.nextInt((int) getNumber * 1000), pageSize = getNumber * 2;
+       /* Random random = new Random();
+        long pageNo = random.nextInt((int) getNumber), pageSize = getNumber * 5;*/
+        // 预查询数据
+        baseResult = searchListService.pageSearch(custId, "", userId, busiType, param);
+        resultData = (JSONObject) baseResult.getData();
+        if (resultData != null || "100".equals(baseResult.getCode())) {
+            if (getNumber > resultData.getLongValue("total")) {
+                LOG.warn("领取数据大于可用线索");
+                throw new TouchException("领取数据大于可用线索");
+            }
+        }
+
+        long pageNo = 1, pageSize = getNumber * 5;
         while (getNumber > data.size()) {
             param.put("pageNum", pageNo);
             param.put("pageSize", pageSize);

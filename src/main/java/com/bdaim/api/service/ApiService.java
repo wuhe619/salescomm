@@ -28,7 +28,6 @@ public class ApiService {
 
 
     public int saveApiProperty(ApiData apiData, String id, LoginUser lu) throws Exception {
-        Map<String, Object> map = new HashMap<>();
         int apiId;
         if (StringUtil.isEmpty(id) || "0".equals(id)) {
             ApiEntity entity = new ApiEntity();
@@ -41,7 +40,6 @@ public class ApiService {
             entity.setProvider(lu.getUserName());
             entity.setStatus(0);
             apiId = (int) apiDao.saveReturnPk(entity);
-            map.put("apiId", id);
         } else {
             ApiEntity entity = apiDao.getApi(Integer.valueOf(id));
             if (entity == null) {
@@ -54,13 +52,12 @@ public class ApiService {
             entity.setUpdateTime(new Timestamp(System.currentTimeMillis()));
             entity.setUpdateBy(lu.getUserName());
             apiId = (int) apiDao.saveReturnPk(entity);
-            map.put("apiId", id);
         }
         ApiDefine apiDefine = apiData.getApiDefine();
         if (apiData.getUrlMappingId() == 0) {
             ApiUrlMappingEntity entity = new ApiUrlMappingEntity();
 
-            entity.setApiId(Integer.valueOf(map.get("apiId").toString()));
+            entity.setApiId(apiId);
             entity.setHttpMethod(apiDefine.getRequest_method());
             entity.setAuthScheme("Any");
             entity.setThrottlingTier("Unlimited");
@@ -110,11 +107,64 @@ public class ApiService {
         if (StringUtil.isNotEmpty(apiData.getToggleThrottle())) {
             apiDao.dealCustomerInfo(String.valueOf(apiId), "toggle_throttle", apiData.getToggleThrottle());
         }
+        //最大限制数
         if (apiData.getProductionTps() != 0) {
             apiDao.dealCustomerInfo(String.valueOf(apiId), "production_tps", String.valueOf(apiData.getProductionTps()));
         }
-
+        //是否启用缓存
+        if (StringUtil.isNotEmpty(apiData.getResponseCache())) {
+            apiDao.dealCustomerInfo(String.valueOf(apiId), "response_cache", apiData.getResponseCache());
+        }
+        //url
+        if (StringUtil.isNotEmpty(apiDefine.getResource_url_pattern())) {
+            apiDao.dealCustomerInfo(String.valueOf(apiId), "resource_url_pattern", apiDefine.getResource_url_pattern());
+        }
+        //请求方式
+        if (StringUtil.isNotEmpty(apiDefine.getRequest_method())) {
+            apiDao.dealCustomerInfo(String.valueOf(apiId), "request_method", apiDefine.getRequest_method());
+        }
+        //描述，说明
+        if (StringUtil.isNotEmpty(apiDefine.getDescription())) {
+            apiDao.dealCustomerInfo(String.valueOf(apiId), "description", apiDefine.getDescription());
+        }
+        if (StringUtil.isNotEmpty(apiDefine.getParams())) {
+            apiDao.dealCustomerInfo(String.valueOf(apiId), "params", apiDefine.getParams());
+        }
+        if (StringUtil.isNotEmpty(apiData.getRsIds())) {
+            apiDao.dealCustomerInfo(String.valueOf(apiId), "rsIds", apiData.getRsIds());
+        }
         return apiId;
+    }
+
+    public int updateStatusApiById(String apiId, LoginUser lu, int status) throws Exception {
+
+        ApiEntity entity = apiDao.getApi(Integer.valueOf(apiId));
+        if (entity == null) {
+            throw new Exception("api不存在");
+        }
+        entity.setUpdateTime(new Timestamp(System.currentTimeMillis()));
+        entity.setUpdateBy(lu.getUserName());
+        switch (status) {
+            case 0:
+                entity.setStatus(ApiEntity.API_FOUND);
+                break;
+            case 1:
+                entity.setStatus(ApiEntity.API_OFFLINE);
+                break;
+            case 2:
+                entity.setStatus(ApiEntity.API_RELEASE);
+                break;
+        }
+        return (int) apiDao.saveReturnPk(entity);
+    }
+
+    public String apis(int pageSize, int pageNum) {
+
+
+
+
+
+        return null;
     }
 
 }

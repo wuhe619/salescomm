@@ -674,7 +674,7 @@ public class SupplierAction extends BasicAction {
      * @param
      * @return
      */
-    @PostMapping("/info")
+    @PostMapping("/infos")
     public ResponseInfo getSupplierList(@RequestBody(required = false) String body) {
         PageParam page = new PageParam();
         ResponseInfo resp = new ResponseInfo();

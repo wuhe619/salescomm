@@ -602,10 +602,18 @@ public class BgdZService implements BusiService {
             log.warn("未查询到报关单主单:{}", mainDan.getBill_no());
             throw new TouchException("未查询到报关单主单");
         }
+
         id = NumberConvertUtil.parseLong(list.get(0).get("id"));
         Map<String, JSONObject> d = new HashMap();
+        String[] extKeys = new String[]{"total_value", "maingname"};
+        JSONObject jsonObject;
         for (PartyDan f : fdList) {
-            d.put(f.getBill_no(), JSON.parseObject(JSON.toJSONString(f)));
+            jsonObject = JSON.parseObject(JSON.toJSONString(f));
+            for (String sysKey : extKeys) {
+                if (jsonObject.containsKey(sysKey))
+                    jsonObject.remove(sysKey);
+            }
+            d.put(f.getBill_no(), jsonObject);
         }
         List<JSONObject> singles = new ArrayList<>();
         String[] wheres = sendStatus.split(",");
@@ -679,13 +687,14 @@ public class BgdZService implements BusiService {
 
     /**
      * 导出excel
-     *
      * @param response
      * @param cust_id
      * @param cust_group_id
      * @param cust_user_id
      * @param id
-     * @param param
+     * @param key
+     * @param value
+     * @param rule
      */
     public void export(HttpServletResponse response, String cust_id, String cust_group_id, Long cust_user_id, Long id, String key, String value, String rule) {
         HBusiDataManager manager = serviceUtils.getObjectByIdAndType(cust_id, id, BusiTypeEnum.BZ.getType());
@@ -736,6 +745,11 @@ public class BgdZService implements BusiService {
                 }
             }
         }
+        if (singles.size() == 0) {
+            log.info("报关单主单:{}分单数量为0:{}", id, singles);
+            return;
+        }
+
         info.put("singles", singles);
         info.put("products", products);
         List<JSONObject> list = new ArrayList();

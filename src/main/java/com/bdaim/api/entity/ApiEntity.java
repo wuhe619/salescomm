@@ -5,10 +5,13 @@ import java.io.Serializable;
 import java.util.Date;
 
 @Entity
-@Table(name="am_api")
+@Table(name = "am_api")
 public class ApiEntity implements Serializable {
+    public static final Integer API_RELEASE = 2;//发布
+    public static final Integer API_OFFLINE = 1;//下线
+    public static final Integer API_FOUND = 0;//创建
     @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "API_ID")
     private int apiId;
     @Column(name = "API_PROVIDER")

@@ -2022,10 +2022,14 @@ public class CustomerAction extends BasicAction {
                     param.getIntValue("number"),
                     param.getString("busiType"), param);
             responseJson.setData(quantity);
-        } catch (Exception e) {
+        } catch (TouchException e) {
             logger.error("企业B2B套餐领取至公海/私海失败,", e);
             responseJson.setCode(-1);
             responseJson.setMessage(e.getMessage());
+        }catch (Exception e) {
+            logger.error("企业B2B套餐领取至公海/私海失败,", e);
+            responseJson.setCode(-1);
+            responseJson.setMessage("企业B2B套餐领取至公海/私海失败");
         }
         return JSON.toJSONString(responseJson);
 
