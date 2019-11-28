@@ -379,7 +379,7 @@ public class B2BTcbService implements BusiService {
         JSONObject resultData, contactData;
         JSONArray list;
         Random random = new Random();
-        long pageNo = random.nextInt((int) getNumber / 2), pageSize = getNumber * 2;
+        long pageNo = random.nextInt((int) getNumber * 1000), pageSize = getNumber * 2;
         while (getNumber > data.size()) {
             param.put("pageNum", pageNo);
             param.put("pageSize", pageSize);
