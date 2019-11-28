@@ -29,7 +29,7 @@ public class ApiService {
             entity.setCreateTime(new Timestamp(System.currentTimeMillis()));
             entity.setContext(apiData.getContext());
             entity.setContextTexplate(apiData.getContextTemplate());
-            entity.setCreateBy(lu.getName());
+            entity.setCreateBy(lu.getName());customerSea
             entity.setName(apiData.getApiName());
             entity.setVersion(apiData.getApiVersion());
             entity.setProvider(lu.getName());
