@@ -26,9 +26,10 @@ public class ApiService {
     private ApiUrlMappingDao apiUrlMappingDao;
 
 
-    public int saveApiProperty(ApiData apiData, String apiId, LoginUser lu) throws Exception {
+    public int saveApiProperty(ApiData apiData, String id, LoginUser lu) throws Exception {
         Map<String, Object> map = new HashMap<>();
-        if (StringUtil.isEmpty(apiId) || "0".equals(apiId)) {
+        int apiId;
+        if (StringUtil.isEmpty(id) || "0".equals(id)) {
             ApiEntity entity = new ApiEntity();
             entity.setCreateTime(new Timestamp(System.currentTimeMillis()));
             entity.setContext(apiData.getContext());
@@ -38,10 +39,10 @@ public class ApiService {
             entity.setVersion(apiData.getApiVersion());
             entity.setProvider(lu.getUserName());
             entity.setStatus(0);
-            int id = (int) apiDao.saveReturnPk(entity);
+            apiId = (int) apiDao.saveReturnPk(entity);
             map.put("apiId", id);
         } else {
-            ApiEntity entity = apiDao.getApi(Integer.valueOf(apiId));
+            ApiEntity entity = apiDao.getApi(Integer.valueOf(id));
             if (entity == null) {
                 throw new Exception("API不存在");
             }
@@ -51,7 +52,7 @@ public class ApiService {
             entity.setVersion(apiData.getApiVersion());
             entity.setUpdateTime(new Timestamp(System.currentTimeMillis()));
             entity.setUpdateBy(lu.getUserName());
-            int id = (int) apiDao.saveReturnPk(entity);
+            apiId = (int) apiDao.saveReturnPk(entity);
             map.put("apiId", id);
         }
 
@@ -72,8 +73,8 @@ public class ApiService {
             entity.setUrlPattern(apiData.getProductionendpoints());
             apiUrlMappingDao.saveReturnPk(entity);
         }
-        if(StringUtil.isNotEmpty(apiData.getVisibility())){
-
+        if (StringUtil.isNotEmpty(apiData.getVisibility())) {
+//apiDao.dealCustomerInfo(apiId);
         }
 
 
