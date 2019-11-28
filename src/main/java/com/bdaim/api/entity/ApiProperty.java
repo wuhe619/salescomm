@@ -11,7 +11,7 @@ import java.sql.Timestamp;
 public class ApiProperty {
     @Id
     @Column(name = "api_id")
-    private String api_id;
+    private String apiId;
     //属性名
     @Id
     @Column(name = "property_name")
@@ -23,12 +23,12 @@ public class ApiProperty {
     @Column(name = "create_time")
     private Timestamp createTime;
 
-    public String getApi_id() {
-        return api_id;
+    public String getApiId() {
+        return apiId;
     }
 
-    public void setApi_id(String api_id) {
-        this.api_id = api_id;
+    public void setApiId(String apiId) {
+        this.apiId = apiId;
     }
 
     public String getPropertyName() {

@@ -1,6 +1,7 @@
 package com.bdaim.api.dao;
 
 import com.bdaim.api.entity.ApiEntity;
+import com.bdaim.api.entity.ApiProperty;
 import com.bdaim.common.dao.SimpleHibernateDao;
 import com.bdaim.customer.entity.CustomerProperty;
 import com.bdaim.supplier.entity.SupplierEntity;
@@ -21,17 +22,18 @@ public class ApiDao extends SimpleHibernateDao<ApiEntity, Integer> {
         }
         return null;
     }
+
     /**
      * 企业属性编辑与新增
      */
-    public void dealCustomerInfo(String custId, String propertyName, String propertyValue) {
-        CustomerProperty propertyInfo = this.getProperty(custId, propertyName);
+    public void dealCustomerInfo(String apiId, String propertyName, String propertyValue) {
+        ApiProperty propertyInfo = this.getProperty(apiId, propertyName);
         if (propertyInfo == null) {
-            propertyInfo = new CustomerProperty();
+            propertyInfo = new ApiProperty();
             propertyInfo.setCreateTime(new Timestamp(new Date().getTime()));
-            propertyInfo.setCustId(custId);
+            propertyInfo.setApiId(apiId);
             propertyInfo.setPropertyValue(propertyValue);
-            logger.info(custId + " 属性不存在，新建该属性" + "\tpropertyName:" + propertyName + "\tpropertyValue:" + propertyValue);
+            logger.info(apiId + " 属性不存在，新建该属性" + "\tpropertyName:" + propertyName + "\tpropertyValue:" + propertyValue);
             propertyInfo.setPropertyName(propertyName);
         } else {
             propertyInfo.setPropertyValue(propertyValue);
@@ -39,12 +41,12 @@ public class ApiDao extends SimpleHibernateDao<ApiEntity, Integer> {
         this.saveOrUpdate(propertyInfo);
     }
 
-    public CustomerProperty getProperty(String custId, String propertyName) {
-        CustomerProperty cp = null;
-        String hql = "from CustomerProperty m where m.custId=? and m.propertyName=?";
-        List<CustomerProperty> list = this.find(hql, custId, propertyName);
+    public ApiProperty getProperty(String apiId, String propertyName) {
+        ApiProperty cp = null;
+        String hql = "from ApiProperty m where m.apiId=? and m.propertyName=?";
+        List<ApiProperty> list = this.find(hql, apiId, propertyName);
         if (list.size() > 0)
-            cp = (CustomerProperty) list.get(0);
+            cp = (ApiProperty) list.get(0);
         return cp;
     }
 
