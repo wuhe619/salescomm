@@ -301,6 +301,9 @@ public class CustomerAppService {
         List<Map<String, Object>> propertyList = jdbcTemplate.queryForList(sql, custId);
         for (Map<String, Object> map : propertyList) {
             JSONObject json = new JSONObject();
+            json.put("warning_money", "");
+            json.put("short_msg_link", "");
+            json.put("email_link", "");
             switch (map.get("property_name").toString()) {
                 case "province":
                     vo.setProvince(map.get("property_value").toString());
