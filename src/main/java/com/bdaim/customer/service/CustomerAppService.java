@@ -233,6 +233,7 @@ public class CustomerAppService {
                 " FROM t_customer_user s LEFT JOIN t_customer tc ON s.cust_id=tc.cust_id  " +
                 " WHERE 1=1  AND s.STATUS <> 2");
         if (StringUtil.isNotEmpty(account)) {
+            logger.info(account);
             sql.append(" AND s.account = '" + account + "'");
         }
         if (StringUtil.isNotEmpty(contactPerson)) {
