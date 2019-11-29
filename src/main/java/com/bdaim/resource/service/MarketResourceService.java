@@ -8551,7 +8551,7 @@ public class MarketResourceService {
     }
 
     public int updateMarketResource(String name, Integer supplierId, String price, Integer type, Integer resource_id) {
-        
+
         String sql1 = "REPLACE  into t_market_resource(resource_id,supplier_id,type_code,resname,sale_price,create_time) VALUES(?,?,?,?,?,?)";
         int update = jdbcTemplate.update(sql1, new Object[]{resource_id, supplierId, type, name, price, DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss)});
 
@@ -8578,10 +8578,12 @@ public class MarketResourceService {
         List dataList = new ArrayList();
         page.getData().stream().forEach(m -> {
             Map dataMap = (Map) m;
-            if (!dataMap.containsKey("salePrice")) ;
-            dataMap.put("salePrice", 0);
-            if (!dataMap.containsKey("resname")) ;
-            dataMap.put("resname", "");
+            if (!dataMap.containsKey("salePrice"))
+                dataMap.put("salePrice", 0);
+            if (!dataMap.containsKey("resname"))
+                dataMap.put("resname", "");
+            if (!dataMap.containsKey("apiName"))
+                dataMap.put("apiName", "");
             dataList.add(dataMap);
         });
         page.setData(dataList);
@@ -8599,9 +8601,10 @@ public class MarketResourceService {
         map.put("resourceId", marketResource.getResourceId());
         map.put("name", marketResource.getResname());
         map.put("supplierId", marketResource.getSupplierId());
-        map.put("price", marketResource.getSalePrice());
+        map.put("salePrice", marketResource.getSalePrice());
         map.put("type", marketResource.getTypeCode());
         map.put("createTime", marketResource.getCreateTime());
+        map.put("apiName", "");
 
         return map;
     }
