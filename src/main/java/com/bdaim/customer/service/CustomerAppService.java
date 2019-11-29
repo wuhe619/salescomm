@@ -214,7 +214,7 @@ public class CustomerAppService {
         return customerId;
     }
 
-    public int saveAmApplication(CustomerRegistDTO vo, LoginUser lu) {
+    public void saveAmApplication(CustomerRegistDTO vo, LoginUser lu) {
 
         AmApplicationEntity entity = new AmApplicationEntity();
         entity.setCreateBy(lu.getName());
@@ -223,7 +223,7 @@ public class CustomerAppService {
         entity.setName("DefaultApplication");
         entity.setTier("Unlimited");
         entity.setSubscriberId(Long.valueOf(vo.getCustId()));
-        return (int) amApplicationDao.saveReturnPk(entity);
+        amApplicationDao.saveOrUpdate(entity);
     }
 
 
