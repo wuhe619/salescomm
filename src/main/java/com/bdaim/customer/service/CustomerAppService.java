@@ -215,7 +215,6 @@ public class CustomerAppService {
     }
 
     public void saveAmApplication(CustomerRegistDTO vo, LoginUser lu) {
-
         AmApplicationEntity entity = new AmApplicationEntity();
         entity.setCreateBy(lu.getName());
         entity.setCreateTime(new Timestamp(System.currentTimeMillis()));
