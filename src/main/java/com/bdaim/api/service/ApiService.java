@@ -1,5 +1,6 @@
 package com.bdaim.api.service;
 
+import com.alibaba.fastjson.JSONObject;
 import com.bdaim.api.Dto.ApiData;
 import com.bdaim.api.Dto.ApiDefine;
 import com.bdaim.api.dao.ApiDao;
@@ -7,7 +8,11 @@ import com.bdaim.api.dao.ApiUrlMappingDao;
 import com.bdaim.api.entity.ApiEntity;
 import com.bdaim.api.entity.ApiUrlMappingEntity;
 import com.bdaim.auth.LoginUser;
+import com.bdaim.common.dto.PageParam;
+import com.bdaim.common.page.PageList;
+import com.bdaim.common.page.Pagination;
 import com.bdaim.util.StringUtil;
+import org.apache.commons.collections.map.HashedMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -16,6 +21,7 @@ import javax.annotation.Resource;
 import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class ApiService {
@@ -158,11 +164,35 @@ public class ApiService {
         return (int) apiDao.saveReturnPk(entity);
     }
 
-    public String apis(int pageSize, int pageNum) {
+    public Map<String, Object> apis(PageParam page, JSONObject params) {
+        StringBuffer sql = new StringBuffer();
+        sql.append(" select API_ID as apiId,API_NAME as apiName,CONTEXT as context,CREATED_BY as createdBy from am_api where 1=1 ");
+        if (StringUtil.isNotEmpty(params.getString("apiName"))) {
+            sql.append(" and API_NAME like '%" + params.getString("apiName") + "%'");
+        }
+        if (params.getInteger("status") != null) {
+            sql.append(" and API_NAME status =" + params.getInteger("status"));
+        }
+        sql.append(" order by CREATED_TIME desc");
+        PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
+        Map<String, Object> map = new HashMap<>();
+        Object collect = list.getList().stream().map(m -> {
+            Map dataMap = (Map) m;
+            dataMap.put("subscribeNum", 0);
+            return dataMap;
+        }).collect(Collectors.toList());
+        map.put("list", collect);
+        map.put("total", list.getTotal());
+        return map;
+    }
 
-
-
-
+    public String getApiById(int apiId) throws Exception {
+        ApiEntity apiEntity = apiDao.getApi(apiId);
+        if (apiEntity == null) {
+            throw new Exception("api:" + apiId + "不存在");
+        }
+        Map<String, Object> map = new HashedMap();
+//        map.put();
 
         return null;
     }

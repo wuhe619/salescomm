@@ -32,7 +32,7 @@ public class ApiController {
         PageParam page = new PageParam();
         page.setPageSize(params.getInteger("pageSize") == null ? 0 : params.getIntValue("pageSize"));
         page.setPageNum(params.getInteger("pageNum") == null ? 10 : params.getIntValue("pageNum"));
-
+        resp.setData(apiService.apis(page, params));
         return resp;
     }
 
