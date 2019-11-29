@@ -58,10 +58,17 @@ public class ApiController {
      * Get Api
      **/
     @GetMapping("/info/{apiId}")
-    public ResponseInfo getApi(@PathVariable(name = "apiId") String apiId) {
+    public ResponseInfo getApi(@PathVariable(name = "apiId") Integer apiId) {
         ResponseInfo info = new ResponseInfo();
-
-
+        if (apiId == null || apiId == 0) {
+            return new ResponseInfoAssemble().failure(-1, "Api创建失败:");
+        }
+        try {
+            apiService.getApiById(apiId);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseInfoAssemble().failure(-1, "查询异常:");
+        }
         return info;
     }
 

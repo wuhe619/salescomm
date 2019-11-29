@@ -8566,28 +8566,37 @@ public class MarketResourceService {
      * @param param
      * @return
      */
-    public Page listResource1(String custId, JSONObject param) {
-        //  int pageNum, int pageSize, String supplierId, int type, JSONObject param
-        int pageNum = 0;
-        int pageSize = 10;
-        if (StringUtil.isNotEmpty(param.getString("pageNum")))
-            pageNum = param.getInteger("pageNum");
-        if (StringUtil.isNotEmpty(param.getString("pageSize")))
-            pageSize = param.getInteger("pageSize");
-        Page page = marketResourceDao.listMarketResource1(pageNum, pageSize, param.getString("supplierId"), param.getIntValue("busiType"), param);
+    public Map<String, Object> listResource1(PageParam page, JSONObject param) {
+
         List dataList = new ArrayList();
-        page.getData().stream().forEach(m -> {
-            MarketResourceDTO dataMap = (MarketResourceDTO) m;
-            if (dataMap.getSalePrice() == null)
-                dataMap.setSalePrice(0);
-            if (dataMap.getResname() == null)
-                dataMap.setResname("");
-            if (dataMap.getApiName() == null)
-                dataMap.setApiName("");
+        StringBuffer sql = new StringBuffer();
+        Map<String, Object> map = new HashMap<>();
+        sql.append("select re.resource_id as resourceId, re.supplier_id as supplierId , re.resname as resname , re.type_code as typeCode, re.sale_price as salePrice , re.create_time as createTime");
+        sql.append(", su.name as supplierName from t_market_resource re left join t_supplier su on re.supplier_id=su.supplier_id where re.status=1");
+
+        if (StringUtil.isNotEmpty(param.getString("supplierId"))) {
+            sql.append(" and re.supplier_id =" + param.getString("supplierId"));
+        }
+        if (StringUtil.isNotEmpty(param.getString("resname"))) {
+            sql.append(" and re.resname like '%" + param.getString("resname") + "%'");
+        }
+        if (StringUtil.isNotEmpty(param.getString("resourceId"))) {
+            sql.append(" and re.resource_id =" + param.getInteger("resourceId"));
+        }
+        PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
+        list.getList().stream().forEach(m -> {
+            Map dataMap = (Map) m;
+            if (!dataMap.containsKey("salePrice"))
+                dataMap.put("salePrice", 0);
+            if (!dataMap.containsKey("resname"))
+                dataMap.put("resname", "");
+            if (!dataMap.containsKey("apiName"))
+                dataMap.put("apiName","");
             dataList.add(dataMap);
         });
-        page.setData(dataList);
-        return page;
+        map.put("total", list.getTotal());
+        map.put("data", dataList);
+        return map;
     }
 
 

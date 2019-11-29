@@ -11,8 +11,8 @@ import com.bdaim.auth.LoginUser;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.page.PageList;
 import com.bdaim.common.page.Pagination;
+import com.bdaim.customer.service.CustomerAppService;
 import com.bdaim.util.StringUtil;
-import org.apache.commons.collections.map.HashedMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.sql.Timestamp;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -31,6 +32,8 @@ public class ApiService {
     private ApiDao apiDao;
     @Autowired
     private ApiUrlMappingDao apiUrlMappingDao;
+    @Autowired
+    private CustomerAppService customerAppService;
 
 
     public int saveApiProperty(ApiData apiData, String id, LoginUser lu) throws Exception {
@@ -186,15 +189,71 @@ public class ApiService {
         return map;
     }
 
-    public String getApiById(int apiId) throws Exception {
+    public ApiData getApiById(int apiId) throws Exception {
         ApiEntity apiEntity = apiDao.getApi(apiId);
         if (apiEntity == null) {
             throw new Exception("api:" + apiId + "不存在");
         }
-        Map<String, Object> map = new HashedMap();
-//        map.put();
+        String sql = " select  property_name,property_value from am_api_property where api_id = ?";
+        List<Map<String, Object>> propertyList = jdbcTemplate.queryForList(sql, apiEntity.getApiId());
+        ApiData vo = new ApiData();
+        ApiDefine apiDefine = new ApiDefine();
+        propertyList.stream().forEach(map -> {
+            String property_value = customerAppService.ObjectFormStr(map.get("property_value"));
+            switch (map.get("property_name").toString()) {
+                case "visibility":
+                    vo.setVisibility(property_value);
+                    break;
+                case "api_thumb":
+                    vo.setApiThumb(property_value);
+                    break;
+                case "tages":
+                    vo.setTags(property_value);
+                    break;
+                case "endpoint_type":
+                    vo.setEndpointType(property_value);
+                    break;
+                case "productionendpoints":
+                    vo.setProductionendpoints(property_value);
+                    break;
+                case "default_version":
+                    vo.setDefaultVersion(property_value);
+                    break;
+                case "tier":
+                    vo.setTier(property_value);
+                    break;
+                case "transport_http":
+                    vo.setTransportHttp(property_value);
+                    break;
+                case "toggle_throttle":
+                    vo.setToggleThrottle(property_value);
+                    break;
+                case "production_tps":
+                    vo.setProductionTps(Integer.valueOf(property_value));
+                    break;
+                case "response_cache":
+                    vo.setResponseCache(property_value);
+                    break;
+                case "resource_url_pattern":
+                    apiDefine.setResource_url_pattern(property_value);
+                    break;
+                case "request_method":
+                    apiDefine.setRequest_method(property_value);
+                    break;
+                case "description":
+                    apiDefine.setDescription(property_value);
+                    break;
+                case "params":
+                    apiDefine.setParams(property_value);
+                    break;
+                case "rsIds":
+                    vo.setRsIds(property_value);
+                    break;
+            }
+        });
+        vo.setApiDefine(apiDefine);
 
-        return null;
+        return vo;
     }
 
 }
