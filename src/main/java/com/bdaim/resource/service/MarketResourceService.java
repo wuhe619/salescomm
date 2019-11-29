@@ -8551,6 +8551,7 @@ public class MarketResourceService {
     }
 
     public int updateMarketResource(String name, Integer supplierId, String price, Integer type, Integer resource_id) {
+        
         String sql1 = "REPLACE  into t_market_resource(resource_id,supplier_id,type_code,resname,sale_price,create_time) VALUES(?,?,?,?,?,?)";
         int update = jdbcTemplate.update(sql1, new Object[]{resource_id, supplierId, type, name, price, DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss)});
 
