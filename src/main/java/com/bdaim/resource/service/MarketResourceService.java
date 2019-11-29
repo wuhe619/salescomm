@@ -8562,7 +8562,7 @@ public class MarketResourceService {
     /**
      * 根据条件检索资源列表
      *
-     * @param custId
+     * @param
      * @param param
      * @return
      */
@@ -8572,8 +8572,8 @@ public class MarketResourceService {
         StringBuffer sql = new StringBuffer();
         Map<String, Object> map = new HashMap<>();
         sql.append("select re.resource_id as resourceId, re.supplier_id as supplierId , re.resname as resname , re.type_code as typeCode, re.sale_price as salePrice , re.create_time as createTime");
-        sql.append(", su.name as supplierName from t_market_resource re left join t_supplier su on re.supplier_id=su.supplier_id where re.status=1");
-
+        sql.append(",su.name as supplierName ");
+        sql.append(" from t_market_resource re left join t_supplier su on re.supplier_id=su.supplier_id where 1=1");
         if (StringUtil.isNotEmpty(param.getString("supplierId"))) {
             sql.append(" and re.supplier_id =" + param.getString("supplierId"));
         }
