@@ -4,6 +4,7 @@ import com.bdaim.auth.LoginUser;
 import com.bdaim.common.annotation.ValidatePermission;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.controller.util.ActionStates;
+import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.rbac.dto.AbstractTreeResource;
@@ -209,9 +210,9 @@ public class ResourceAction extends BasicAction {
             return new ResponseInfoAssemble().failure(-1, "资源类型不能为空");
         try {
             if (resourceId == null || resourceId == 0) {
-                resp.setData(marketResourceService.saveMarketResource(info.getString("name"), info.getInteger("supplierId"), info.getString("price"), info.getInteger("type")));
+                resp.setData(marketResourceService.saveMarketResource(info.getString("name"), info.getInteger("supplierId"), info.getString("salePrice"), info.getInteger("type")));
             } else {
-                resp.setData(marketResourceService.updateMarketResource(info.getString("name"), info.getInteger("supplierId"), info.getString("price"), info.getInteger("type"), resourceId));
+                resp.setData(marketResourceService.updateMarketResource(info.getString("name"), info.getInteger("supplierId"), info.getString("salePrice"), info.getInteger("type"), resourceId));
             }
         } catch (Exception e) {
             return new ResponseInfoAssemble().failure(-1, "资源更新失败");
@@ -224,8 +225,17 @@ public class ResourceAction extends BasicAction {
     @PostMapping(value = "/infos")
     public ResponseInfo listResource(@RequestBody com.alibaba.fastjson.JSONObject param) {
         ResponseInfo resp = new ResponseInfo();
+        PageParam page = new PageParam();
         try {
-            resp.setData(marketResourceService.listResource1(opUser().getCustId(), param));
+            int pageNum = 0;
+            int pageSize = 10;
+            if (StringUtil.isNotEmpty(param.getString("pageNum")))
+                pageNum = param.getInteger("pageNum");
+            if (StringUtil.isNotEmpty(param.getString("pageSize")))
+                pageSize = param.getInteger("pageSize");
+            page.setPageNum(pageNum);
+            page.setPageSize(pageSize);
+            resp.setData(marketResourceService.listResource1(page, param));
         } catch (Exception e) {
             logger.error("查询资源列表失败,", e);
         }

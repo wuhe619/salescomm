@@ -15,7 +15,7 @@ import java.util.List;
 public class ApiDao extends SimpleHibernateDao<ApiEntity, Integer> {
 
     public ApiEntity getApi(int apiId) {
-        String hql = "from ApiEntity m where m.apiId=? AND m.status = 0";
+        String hql = "from ApiEntity m where m.apiId=?";
         List<ApiEntity> list = this.find(hql, apiId);
         if (list.size() > 0) {
             return list.get(0);

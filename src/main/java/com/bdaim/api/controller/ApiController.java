@@ -32,7 +32,7 @@ public class ApiController {
         PageParam page = new PageParam();
         page.setPageSize(params.getInteger("pageSize") == null ? 0 : params.getIntValue("pageSize"));
         page.setPageNum(params.getInteger("pageNum") == null ? 10 : params.getIntValue("pageNum"));
-
+        resp.setData(apiService.apis(page, params));
         return resp;
     }
 
@@ -58,11 +58,18 @@ public class ApiController {
      * Get Api
      **/
     @GetMapping("/info/{apiId}")
-    public ResponseInfo getApi(@PathVariable(name = "apiId") String apiId) {
-        ResponseInfo info = new ResponseInfo();
-
-
-        return info;
+    public ResponseInfo getApi(@PathVariable(name = "apiId") Integer apiId) {
+        ResponseInfo resp = new ResponseInfo();
+        if (apiId == null || apiId == 0) {
+            return new ResponseInfoAssemble().failure(-1, "Api创建失败:");
+        }
+        try {
+            resp.setData(apiService.getApiById(apiId));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseInfoAssemble().failure(-1, "查询异常:");
+        }
+        return resp;
     }
 
     /**
@@ -71,9 +78,6 @@ public class ApiController {
     @DeleteMapping("/info/{apiId}")
     public ResponseInfo deleteApi(@PathVariable(name = "apiId") String apiId, int status) {
         ResponseInfo resp = new ResponseInfo();
-        if (StringUtil.isEmpty(apiId) || "0".equals(apiId)) {
-            return new ResponseInfoAssemble().failure(-1, "Api删除失败:失败原因apiId无效");
-        }
         LoginUser lu = tokenService.opUser();
         try {
             apiService.updateStatusApiById(apiId, lu, status);
