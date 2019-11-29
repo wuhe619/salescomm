@@ -1474,10 +1474,6 @@ public class CustomerUserService {
             }
         } else {
             HashMap<Object, Object> map = new HashMap<>();
-            map.put("key", CustomerShowRowEnum.COMPANY.getKey());
-            map.put("value", CustomerShowRowEnum.COMPANY.getValue());
-            list.add(map);
-            map = new HashMap<>();
             map.put("key", CustomerShowRowEnum.NAME.getKey());
             map.put("value", CustomerShowRowEnum.NAME.getValue());
             list.add(map);
@@ -1578,6 +1574,10 @@ public class CustomerUserService {
         }
         if (list.size() == 0) {
             HashMap<Object, Object> map = new HashMap<>();
+            map.put("key", CustomerShowRowEnum.COMPANY.getKey());
+            map.put("value", CustomerShowRowEnum.COMPANY.getValue());
+            list.add(map);
+            map = new HashMap<>();
             map.put("key", CustomerPublicSeaDTO.CUST_NAME.getKey());
             map.put("value", CustomerPublicSeaDTO.CUST_NAME.getValue());
             list.add(map);

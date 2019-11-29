@@ -84,6 +84,16 @@ public class MarketResourceDTO {
      */
     private Integer callCenterType;
 
+    private String apiName;
+
+    public String getApiName() {
+        return apiName;
+    }
+
+    public void setApiName(String apiName) {
+        this.apiName = apiName;
+    }
+
     public MarketResourceDTO() {
     }
 

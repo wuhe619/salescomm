@@ -95,6 +95,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.bdaim.common.exception.BpExceptionHandler.log;
+
 /**
  * @author yanls@bdaim.com
  * @Description: 营销资源service服务实现类
@@ -8549,12 +8551,9 @@ public class MarketResourceService {
     }
 
     public int updateMarketResource(String name, Integer supplierId, String price, Integer type, Integer resource_id) {
-        String sql = "UPDATE t_market_resource SET supplier_id=?,type_code=?,resname=?,sale_price=?  WHERE resource_id=?";
-        int update = jdbcTemplate.update(sql, new Object[]{supplierId, type, name, price, resource_id});
-        if (update == 0) {
-          String   sql1 = "INSERT into t_market_resource(resource_id,supplier_id,type_code,resname,sale_price,create_time) VALUES(?,?,?,?,?,?)";
-            update = jdbcTemplate.update(sql1, new Object[]{resource_id,supplierId, type, name, price, DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss)});
-        }
+
+        String sql1 = "REPLACE  into t_market_resource(resource_id,supplier_id,type_code,resname,sale_price,create_time) VALUES(?,?,?,?,?,?)";
+        int update = jdbcTemplate.update(sql1, new Object[]{resource_id, supplierId, type, name, price, DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss)});
 
         return update;
     }
@@ -8563,34 +8562,58 @@ public class MarketResourceService {
     /**
      * 根据条件检索资源列表
      *
-     * @param custId
+     * @param
      * @param param
      * @return
      */
-    public Page listResource1(String custId, JSONObject param) {
-        //  int pageNum, int pageSize, String supplierId, int type, JSONObject param
-        int pageNum = 0;
-        int pageSize = 10;
-        if (StringUtil.isNotEmpty(param.getString("pageNum")))
-            pageNum = param.getInteger("pageNum");
-        if (StringUtil.isNotEmpty(param.getString("pageSize")))
-            pageSize = param.getInteger("pageSize");
-        return marketResourceDao.listMarketResource1(pageNum, pageSize, param.getString("supplierId"), param.getIntValue("busiType"), param);
+    public Map<String, Object> listResource1(PageParam page, JSONObject param) {
+
+        List dataList = new ArrayList();
+        StringBuffer sql = new StringBuffer();
+        Map<String, Object> map = new HashMap<>();
+        sql.append("select re.resource_id as resourceId, re.supplier_id as supplierId , re.resname as resname , re.type_code as typeCode, re.sale_price as salePrice , re.create_time as createTime");
+        sql.append(",su.name as supplierName ");
+        sql.append(" from t_market_resource re left join t_supplier su on re.supplier_id=su.supplier_id where 1=1");
+        if (StringUtil.isNotEmpty(param.getString("supplierId"))) {
+            sql.append(" and re.supplier_id =" + param.getString("supplierId"));
+        }
+        if (StringUtil.isNotEmpty(param.getString("resname"))) {
+            sql.append(" and re.resname like '%" + param.getString("resname") + "%'");
+        }
+        if (StringUtil.isNotEmpty(param.getString("resourceId"))) {
+            sql.append(" and re.resource_id =" + param.getInteger("resourceId"));
+        }
+        PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
+        list.getList().stream().forEach(m -> {
+            Map dataMap = (Map) m;
+            if (!dataMap.containsKey("salePrice"))
+                dataMap.put("salePrice", 0);
+            if (!dataMap.containsKey("resname"))
+                dataMap.put("resname", "");
+            if (!dataMap.containsKey("apiName"))
+                dataMap.put("apiName","");
+            dataList.add(dataMap);
+        });
+        map.put("total", list.getTotal());
+        map.put("data", dataList);
+        return map;
     }
 
 
     public Map<String, Object> getResourceById(int resourceId) throws Exception {
         MarketResourceEntity marketResource = marketResourceDao.getMarketResource(resourceId);
         if (marketResource == null) {
+            log.info("资源" + resourceId + "不存在");
             throw new Exception("资源" + resourceId + "不存在");
         }
         Map<String, Object> map = new HashMap<>();
         map.put("resourceId", marketResource.getResourceId());
         map.put("name", marketResource.getResname());
         map.put("supplierId", marketResource.getSupplierId());
-        map.put("price", marketResource.getSalePrice());
+        map.put("salePrice", marketResource.getSalePrice());
         map.put("type", marketResource.getTypeCode());
         map.put("createTime", marketResource.getCreateTime());
+        map.put("apiName", "");
 
         return map;
     }
