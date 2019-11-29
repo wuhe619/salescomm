@@ -8577,13 +8577,13 @@ public class MarketResourceService {
         Page page = marketResourceDao.listMarketResource1(pageNum, pageSize, param.getString("supplierId"), param.getIntValue("busiType"), param);
         List dataList = new ArrayList();
         page.getData().stream().forEach(m -> {
-            Map dataMap = (Map) m;
-            if (!dataMap.containsKey("salePrice"))
-                dataMap.put("salePrice", 0);
-            if (!dataMap.containsKey("resname"))
-                dataMap.put("resname", "");
-            if (!dataMap.containsKey("apiName"))
-                dataMap.put("apiName", "");
+            MarketResourceDTO dataMap = (MarketResourceDTO) m;
+            if (dataMap.getSalePrice() == null)
+                dataMap.setSalePrice(0);
+            if (dataMap.getResname() == null)
+                dataMap.setResname("");
+            if (dataMap.getApiName() == null)
+                dataMap.setApiName("");
             dataList.add(dataMap);
         });
         page.setData(dataList);
