@@ -8550,7 +8550,13 @@ public class MarketResourceService {
 
     public int updateMarketResource(String name, Integer supplierId, String price, Integer type, Integer resource_id) {
         String sql = "UPDATE t_market_resource SET supplier_id=?,type_code=?,resname=?,sale_price=?  WHERE resource_id=?";
-        return jdbcTemplate.update(sql, new Object[]{supplierId, type, name, price, resource_id});
+        int update = jdbcTemplate.update(sql, new Object[]{supplierId, type, name, price, resource_id});
+        if (update == 0) {
+          String   sql1 = "INSERT into t_market_resource(resource_id,supplier_id,type_code,resname,sale_price,create_time) VALUES(?,?,?,?,?,?)";
+            update = jdbcTemplate.update(sql1, new Object[]{resource_id,supplierId, type, name, price, DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss)});
+        }
+
+        return update;
     }
 
 
@@ -8564,7 +8570,7 @@ public class MarketResourceService {
     public Page listResource1(String custId, JSONObject param) {
         //  int pageNum, int pageSize, String supplierId, int type, JSONObject param
         int pageNum = 0;
-        int pageSize = 0;
+        int pageSize = 10;
         if (StringUtil.isNotEmpty(param.getString("pageNum")))
             pageNum = param.getInteger("pageNum");
         if (StringUtil.isNotEmpty(param.getString("pageSize")))

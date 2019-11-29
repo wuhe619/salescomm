@@ -719,7 +719,7 @@ public class MarketResourceDao extends SimpleHibernateDao<MarketResourceEntity, 
      * @param param
      * @return
      */
-    public Page listMarketResource1(int pageNum,int  pageSize,String supplierId, int type, JSONObject param) {
+    public Page listMarketResource1(int pageNum, int pageSize, String supplierId, int type, JSONObject param) {
         StringBuilder hql = new StringBuilder();
         List<Object> wheres = new ArrayList<>();
         hql.append(" from MarketResourceEntity m where 1=1");
@@ -735,21 +735,12 @@ public class MarketResourceDao extends SimpleHibernateDao<MarketResourceEntity, 
             hql.append(" AND m.status = ? ");
             wheres.add(param.getInteger("status"));
         }
-        if(StringUtil.isNotEmpty(param.getString("name"))){
-            hql.append(" AND m.resname like '% ? %'");
-            wheres.add(param.getString("name"));
+        if (StringUtil.isNotEmpty(param.getString("name"))) {
+            hql.append(" AND m.resname like '%" + param.getString("name") + "%'");
         }
-        Iterator keys = param.keySet().iterator();
-        while (keys.hasNext()) {
-            String key = (String) keys.next();
-            if (StringUtil.isEmpty(String.valueOf(param.get(key)))) continue;
-            if ("pageNum".equals(key) || "pageSize".equals(key) || "supplierId".equals(key)
-                    || "custId".equals(key) || "_sort_".equals(key)
-                    || "_orderby_".equals(key) || "status".equals(key) || "busiType".equals(key))
-                continue;
-
-            hql.append(" AND m.resourceId IN(SELECT resourceId FROM ResourcePropertyEntity WHERE JSON_EXTRACT(property_value, '$." + key + "') = ?) ");
-            wheres.add(param.get(key));
+        if (StringUtil.isNotEmpty(param.getString("resourceId"))) {
+            hql.append(" AND m.resourceId = ?");
+            wheres.add(param.getString("resourceId"));
         }
 
         hql.append(" ORDER BY create_time ASC");
