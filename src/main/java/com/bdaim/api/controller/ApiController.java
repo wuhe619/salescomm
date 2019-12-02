@@ -95,9 +95,17 @@ public class ApiController {
     @PostMapping("/subscription/{apiId}")
     public ResponseInfo subApi(@RequestBody JSONObject params, @PathVariable(name = "apiId") String apiId) {
         ResponseInfo info = new ResponseInfo();
+        if (StringUtil.isEmpty(params.getString("custId"))) {
+            return new ResponseInfoAssemble().failure(-1, "企业id不能为空");
+        }
 
         LoginUser lu = tokenService.opUser();
-
+        try {
+            info.setData(apiService.subApi(params, apiId, lu));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseInfoAssemble().failure(-1, "订阅失败");
+        }
         return info;
     }
 
@@ -105,11 +113,18 @@ public class ApiController {
      * No Subscribe Api
      **/
     @DeleteMapping("/subscription/{apiId}")
-    public ResponseInfo subApi(@PathVariable(name = "apiId") String apiId) {
+    public ResponseInfo subApiUpdate(@RequestBody JSONObject params, @PathVariable(name = "apiId") String apiId) {
         ResponseInfo info = new ResponseInfo();
-
+        if (StringUtil.isEmpty(params.getString("custId"))) {
+            return new ResponseInfoAssemble().failure(-1, "企业id不能为空");
+        }
         LoginUser lu = tokenService.opUser();
-
+        try {
+            info.setData(apiService.subApiUpdate(params, apiId, lu));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseInfoAssemble().failure(-1, "取消订阅失败");
+        }
         return info;
     }
 
@@ -119,9 +134,36 @@ public class ApiController {
     @PostMapping("/price/{apiId}")
     public ResponseInfo priceApi(@RequestBody JSONObject params, @PathVariable(name = "apiId") String apiId) {
         ResponseInfo info = new ResponseInfo();
-
+        if (StringUtil.isEmpty(params.getString("price"))) {
+            return new ResponseInfoAssemble().failure(-1, "价格不能为空");
+        }
         LoginUser lu = tokenService.opUser();
-
+        try {
+            info.setData(apiService.priceApi(params, apiId, lu));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseInfoAssemble().failure(-1, "销售定价设置失败");
+        }
         return info;
     }
+
+    /**
+     * api列表（已订阅、未订阅）
+     **/
+    @PostMapping("/subscribe/api")
+    public ResponseInfo subApiList(@RequestBody JSONObject params) {
+        ResponseInfo info = new ResponseInfo();
+        LoginUser lu = tokenService.opUser();
+        PageParam page = new PageParam();
+        try {
+            page.setPageSize(params.getInteger("pageSize") == null ? 0 : params.getIntValue("pageSize"));
+            page.setPageNum(params.getInteger("pageNum") == null ? 10 : params.getIntValue("pageNum"));
+            info.setData(apiService.subApiNoSubscribeList(page, params.getString("custId"), params.getString("apiName")));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseInfoAssemble().failure(-1, "获取列表失败");
+        }
+        return info;
+    }
+
 }

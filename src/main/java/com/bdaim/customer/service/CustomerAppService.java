@@ -66,7 +66,7 @@ public class CustomerAppService {
             customer.setStatus(Constant.USER_ACTIVE_STATUS);
             customer.setCreateTime(DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss));
             vo.setCustId(customerId);
-            saveAmApplication(vo, lu);
+            saveAmApplication(vo, lu,customerId);
         }
         customerDao.saveOrUpdate(customer);
 
@@ -214,14 +214,14 @@ public class CustomerAppService {
         return customerId;
     }
 
-    public void saveAmApplication(CustomerRegistDTO vo, LoginUser lu) {
+    public void saveAmApplication(CustomerRegistDTO vo, LoginUser lu,String customerId) {
         AmApplicationEntity entity = new AmApplicationEntity();
         entity.setCreateBy(lu.getName());
         entity.setCreateTime(new Timestamp(System.currentTimeMillis()));
         entity.setStatus("APPROVED");
         entity.setName("DefaultApplication");
         entity.setTier("Unlimited");
-        entity.setSubscriberId(Long.valueOf(vo.getCustId()));
+        entity.setSubscriberId(Long.valueOf(customerId));
         amApplicationDao.saveOrUpdate(entity);
     }
 
