@@ -150,17 +150,20 @@ public class ApiController {
     /**
      * api列表（已订阅、未订阅）
      **/
-    @PostMapping("/subscribe/api")
+    @PostMapping("/subscribe")
     public ResponseInfo subApiList(@RequestBody JSONObject params) {
         ResponseInfo info = new ResponseInfo();
         LoginUser lu = tokenService.opUser();
         PageParam page = new PageParam();
+        if (StringUtil.isEmpty(params.getString("custId"))) {
+            return new ResponseInfoAssemble().failure(-1, "企业id不能为空");
+        }
         try {
             page.setPageSize(params.getInteger("pageSize") == null ? 0 : params.getIntValue("pageSize"));
             page.setPageNum(params.getInteger("pageNum") == null ? 10 : params.getIntValue("pageNum"));
-            if(params.getString("code").equals("Subscribe")){
+            if (StringUtil.isNotEmpty(params.getString("code")) && params.getString("code").equals("Subscribe")) {
                 info.setData(apiService.subApiSubscribeList(page, params.getString("custId"), params.getString("apiName")));
-            }else{
+            } else {
                 info.setData(apiService.subApiNoSubscribeList(page, params.getString("custId"), params.getString("apiName")));
             }
 
