@@ -158,7 +158,12 @@ public class ApiController {
         try {
             page.setPageSize(params.getInteger("pageSize") == null ? 0 : params.getIntValue("pageSize"));
             page.setPageNum(params.getInteger("pageNum") == null ? 10 : params.getIntValue("pageNum"));
-            info.setData(apiService.subApiNoSubscribeList(page, params.getString("custId"), params.getString("apiName")));
+            if(params.getString("code").equals("Subscribe")){
+                info.setData(apiService.subApiSubscribeList(page, params.getString("custId"), params.getString("apiName")));
+            }else{
+                info.setData(apiService.subApiNoSubscribeList(page, params.getString("custId"), params.getString("apiName")));
+            }
+
         } catch (Exception e) {
             e.printStackTrace();
             return new ResponseInfoAssemble().failure(-1, "获取列表失败");

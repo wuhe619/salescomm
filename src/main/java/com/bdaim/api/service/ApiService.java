@@ -61,6 +61,7 @@ public class ApiService {
             entity.setProvider(lu.getUserName());
             entity.setStatus(0);
             apiId = (int) apiDao.saveReturnPk(entity);
+            apiDao.dealCustomerInfo(String.valueOf(apiId), "status", "0");
         } else {
             ApiEntity entity = apiDao.getApi(Integer.valueOf(id));
             if (entity == null) {
@@ -154,34 +155,35 @@ public class ApiService {
         if (StringUtil.isNotEmpty(apiData.getRsIds())) {
             apiDao.dealCustomerInfo(String.valueOf(apiId), "rsIds", apiData.getRsIds());
         }
+
         return apiId;
     }
 
     public int updateStatusApiById(String apiId, LoginUser lu, int status) throws Exception {
-
-        ApiEntity entity = apiDao.getApi(Integer.valueOf(apiId));
-        if (entity == null) {
-            throw new Exception("api不存在");
-        }
-        entity.setUpdateTime(new Timestamp(System.currentTimeMillis()));
-        entity.setUpdateBy(lu.getUserName());
-        switch (status) {
-            case 0:
-                entity.setStatus(ApiEntity.API_FOUND);
-                break;
-            case 1:
-                entity.setStatus(ApiEntity.API_OFFLINE);
-                break;
-            case 2:
-                entity.setStatus(ApiEntity.API_RELEASE);
-                break;
-        }
-        return (int) apiDao.saveReturnPk(entity);
+        apiDao.dealCustomerInfo(String.valueOf(apiId), "status", String.valueOf(status));
+//        ApiEntity entity = apiDao.getApi(Integer.valueOf(apiId));
+//        if (entity == null) {
+//            throw new Exception("api不存在");
+//        }
+//        entity.setUpdateTime(new Timestamp(System.currentTimeMillis()));
+//        entity.setUpdateBy(lu.getUserName());
+//        switch (status) {
+//            case 0:
+//                entity.setStatus(ApiEntity.API_FOUND);
+//                break;
+//            case 1:
+//                entity.setStatus(ApiEntity.API_OFFLINE);
+//                break;
+//            case 2:
+//                entity.setStatus(ApiEntity.API_RELEASE);
+//                break;
+//        }(int) apiDao.saveReturnPk(entity)
+        return 1;
     }
 
     public Map<String, Object> apis(PageParam page, JSONObject params) {
         StringBuffer sql = new StringBuffer();
-        sql.append(" select API_ID as apiId,API_NAME as apiName,CONTEXT as context,CREATED_BY as createdBy ,status from am_api where 1=1 ");
+        sql.append(" select API_ID as apiId,API_NAME as apiName,CONTEXT as context,CREATED_BY as createdBy  from am_api where 1=1 ");
         if (StringUtil.isNotEmpty(params.getString("apiName"))) {
             sql.append(" and API_NAME like '%" + params.getString("apiName") + "%'");
         }
@@ -193,6 +195,11 @@ public class ApiService {
         Map<String, Object> map = new HashMap<>();
         Object collect = list.getList().stream().map(m -> {
             Map dataMap = (Map) m;
+            String apiId = dataMap.get("apiId").toString();
+            ApiProperty status = apiDao.getProperty(apiId, "status");
+            if (status == null) {
+                dataMap.put("status", 0);
+            }
             dataMap.put("subscribeNum", 0);
             return dataMap;
         }).collect(Collectors.toList());
@@ -337,6 +344,54 @@ public class ApiService {
         sql.append(" from am_api api left join am_subscription sub  on  api.API_ID=sub.API_ID");
         sql.append(" where api.API_ID not in");
         sql.append(" (select API_ID from customs.am_subscription where APPLICATION_ID = " + amApplicationEntity.getId() + " and SUBS_CREATE_STATE = 'SUBSCRIBE')");
+        if (StringUtil.isNotEmpty(apiName)) {
+            sql.append(" and api.API_NAME like '%" + apiName + "%'");
+        }
+        page.setSort("api.CREATED_TIME");
+        page.setDir("desc");
+        PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
+        Object collect = list.getList().stream().map(m -> {
+            Map map = (Map) m;
+            map.put("suppliers", "");
+            map.put("resourceIds", "");
+            ApiProperty property = apiDao.getProperty(map.get("apiId").toString(), "rsIds");
+            if (property == null) return map;
+            String propertyValue = property.getPropertyValue();
+            JSONArray jsonArray = JSONArray.parseArray(propertyValue);
+            List relist = new ArrayList<>();
+            List<Integer> sulist = new ArrayList<>();
+            jsonArray.stream().forEach(p -> {
+                Map pmap = (Map) p;
+                Object rsIds = pmap.get("rsId");
+                Object supplierIds = pmap.get("supplierId");
+                relist.add(rsIds);
+                if (supplierIds != null) {
+                    sulist.add(Integer.parseInt(supplierIds + "".trim()));
+                }
+            });
+            List<SupplierEntity> suppliers = null;
+            if (sulist.size() > 0) {
+                suppliers = supplierDao.getSuppliers(sulist);
+            }
+            map.put("suppliers", suppliers);
+            map.put("resourceIds", relist);
+            return map;
+        }).collect(Collectors.toList());
+        Map map = new HashMap();
+        map.put("data", collect);
+        map.put("total", list.getTotal());
+        return map;
+    }
+
+    public Map<String, Object> subApiSubscribeList(PageParam page, String custId, String apiName) throws Exception {
+        AmApplicationEntity amApplicationEntity = amApplicationDao.getByCustId(custId);
+        if (amApplicationEntity == null) {
+            throw new Exception("企业不存在");
+        }
+        StringBuffer sql = new StringBuffer();
+        sql.append(" select sub.APPLICATION_ID ,api.API_ID as apiId,api.API_NAME as apiName,sub.SUBS_CREATE_STATE as subCreateState,sub.CREATED_TIME as createTime");
+        sql.append(" from am_api api left join am_subscription sub  on  api.API_ID=sub.API_ID");
+        sql.append(" where sub.SUBS_CREATE_STATE = 'SUBSCRIBE'");
         if (StringUtil.isNotEmpty(apiName)) {
             sql.append(" and api.API_NAME like '%" + apiName + "%'");
         }
