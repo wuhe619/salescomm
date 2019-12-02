@@ -1247,6 +1247,38 @@ public class SupplierService {
     }
 
     /**
+     * 获取客户配置的通话资源
+     *
+     * @param custId
+     * @return
+     */
+    public JSONObject getCustomerCallPriceConfig0(String custId) {
+        CustomerProperty voiceCustomerProperty = customerDao.getProperty(custId, MarketResourceTypeEnum.CALL.getPropertyName());
+        JSONObject jsonObject = new JSONObject();
+        List<MarketResourceDTO> call2way = new ArrayList<>(), unicomCall2way = new ArrayList<>();
+        List<MarketResourceDTO> callCenter = new ArrayList<>();
+        String config = voiceCustomerProperty.getPropertyValue();
+        if (voiceCustomerProperty != null && StringUtil.isNotEmpty(config)) {
+            if (config.startsWith("[")) {
+                JSONArray array = JSON.parseArray(config);
+                for (int i = 0; i < array.size(); i++) {
+                    JSONObject json = array.getJSONObject(i);
+                    if (json.containsKey("status") && json.getInteger("status") == 1) {
+                        buildCallConfig(json, callCenter, call2way, unicomCall2way);
+                    }
+                }
+            } else if (config.startsWith("{")) {
+                JSONObject json = JSON.parseObject(config);
+                buildCallConfig(json, callCenter, call2way, unicomCall2way);
+            }
+        }
+        jsonObject.put("call2way", call2way);
+        jsonObject.put("callCenter", callCenter);
+        jsonObject.put("unicomCall2way", unicomCall2way);
+        return jsonObject;
+    }
+
+    /**
      * 获取客户呼叫配置
      *
      * @param custId
@@ -1257,7 +1289,7 @@ public class SupplierService {
         CustomerProperty voiceCustomerProperty = customerDao.getProperty(custId, MarketResourceTypeEnum.CALL.getPropertyName());
         CustomCallConfigDTO data = new CustomCallConfigDTO();
         List<MarketResourceDTO> list = new ArrayList<>();
-        List<MarketResourceDTO> call2way = new ArrayList<>();
+        List<MarketResourceDTO> call2way = new ArrayList<>(), unicomCall2way = new ArrayList<>();
         List<MarketResourceDTO> callCenter = new ArrayList<>();
         List<MarketResourceDTO> robot = new ArrayList<>();
         MarketResourceDTO dto;
@@ -1293,12 +1325,15 @@ public class SupplierService {
                 call2way.add(s);
             } else if (s.getChargingType().intValue() == 3) {
                 robot.add(s);
+            } else if (s.getChargingType().intValue() == 4) {
+                unicomCall2way.add(s);
             }
         }
         if (type == null) {
             data.setCallCenter(callCenter);
             data.setCall2way(call2way);
             data.setRobot(robot);
+            data.setUnicomCall2way(unicomCall2way);
         } else {
             if (type == 1) {
                 data.setCallCenter(callCenter);
@@ -1306,6 +1341,8 @@ public class SupplierService {
                 data.setCall2way(call2way);
             } else if (type == 3) {
                 data.setRobot(robot);
+            } else if (type == 4) {
+                data.setUnicomCall2way(unicomCall2way);
             }
         }
         return data;
@@ -1329,6 +1366,31 @@ public class SupplierService {
                 callCenter.add(dto);
             } else if ("2".equals(json.getString("type"))) {
                 call2way.add(dto);
+            }
+        }
+    }
+
+    private void buildCallConfig(JSONObject json, List<MarketResourceDTO> callCenter, List<MarketResourceDTO> call2way,
+                                 List<MarketResourceDTO> unicomCall2way) {
+        if (json.containsKey("resourceId") && StringUtil.isNotEmpty(json.getString("resourceId"))) {
+            Integer resourceId = json.getInteger("resourceId");
+            MarketResourceDTO dto = new MarketResourceDTO();
+            dto.setResourceId(resourceId);
+            MarketResourceEntity resource = marketResourceDao.get(resourceId);
+            if (resource == null) {
+                return;
+            }
+            dto.setResname(resource.getResname());
+            dto.setSupplierId(resource.getSupplierId());
+            dto.setChargingType(json.getInteger("type"));
+            SupplierEntity supplierDO = supplierDao.getSupplier(NumberConvertUtil.parseInt(resource.getSupplierId()));
+            dto.setSupplierName(supplierDO.getName());
+            if ("1".equals(json.getString("type")) || "3".equals(json.getString("type"))) {
+                callCenter.add(dto);
+            } else if ("2".equals(json.getString("type"))) {
+                call2way.add(dto);
+            } else if ("4".equals(json.getString("type"))) {
+                unicomCall2way.add(dto);
             }
         }
     }
@@ -2278,7 +2340,7 @@ public class SupplierService {
             supplierDTOMap.put("createTime", map1.get("create_time"));
             supplierDTOMap.put("balance", 0);
             supplierDTOMap.put("consumption", 0);
-            supplierDTOMap.put("supplierId",map1.get("supplier_id"));
+            supplierDTOMap.put("supplierId", map1.get("supplier_id"));
             return supplierDTOMap;
         }).collect(Collectors.toList());
         map.put("list", collect);
