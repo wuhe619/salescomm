@@ -171,6 +171,7 @@ public class CustomerSeaService {
         put("微信", "SYS001");
         put("职业", "SYS004");
         put("公司", "SYS005");
+        put("所在公司", "SYS005");
         put("跟进状态", "SYS007");
         put("无效原因", "SYS006");
         put("姓名", "super_name");
@@ -3264,7 +3265,7 @@ public class CustomerSeaService {
         if (StringUtil.isNotEmpty(param.getRegStatus())) {
             sb.append(" AND custG.super_data -> " + "'$.SYS012' like " + "'%" + param.getRegStatus() + "%'");
         }
-        if(StringUtil.isNotEmpty(param.getCustName())){
+        if (StringUtil.isNotEmpty(param.getCustName())) {
             sb.append(" AND custG.super_data -> " + "'$.SYS005' like " + "'%" + param.getCustName() + "%'");
         }
 //        sb.append(" AND custG.status<>2 ");
@@ -3661,6 +3662,8 @@ public class CustomerSeaService {
                         }
                         if ("手机号".equals(headName.get(j))) {
                             rowData.put("phone", row.get(j));
+                        } else if (defaultField.get(headName.get(j)) != null) {
+                            rowData.put(defaultField.get(headName.get(j)), row.get(j));
                         } else {
                             rowData.put(labelId.get(j), row.get(j));
                         }
@@ -3710,8 +3713,8 @@ public class CustomerSeaService {
                         s.setSuper_id(superIdData.get(s.getSuper_telphone()));
                         s.setUser_id(user_id);
                         s.setStatus(distStatus);
-                        if (superData.get(s.getSuper_phone()) != null) {
-                            s.setSuperData(superData.get(s.getSuper_phone()));
+                        if (superData.get(s.getSuper_telphone()) != null) {
+                            s.setSuperData(superData.get(s.getSuper_telphone()));
                         } else {
                             s.setSuperData(new HashMap<>());
                         }
@@ -4348,7 +4351,7 @@ public class CustomerSeaService {
                 dto.setProperty(new HashMap<>(16));
                 if (properties != null && properties.size() > 0) {
                     LOG.info("开始处理property。。。");
-                    LOG.info("公海id："+customerSea.getId());
+                    LOG.info("公海id：" + customerSea.getId());
                     JSONObject xzinfo = getXZChannelInfo(properties);
                     LOG.info("xzinfo..." + (xzinfo == null ? "" : xzinfo.toJSONString()));
                     for (CustomerSeaProperty p : properties) {
@@ -4411,10 +4414,10 @@ public class CustomerSeaService {
                     dto.setFailCallSum(NumberConvertUtil.parseLong(stat.get(0).get("failCallSum")));
                     // 查询私海未跟进线索量和线索总量
                     stat = customerSeaDao.sqlQuery(MessageFormat.format(statSql, String.valueOf(customerSea.getId())) + appSql.toString());
-                    if(stat.size()>0){
+                    if (stat.size() > 0) {
                         dto.setTotalSum(NumberConvertUtil.parseLong(stat.get(0).get("custType")));
                         dto.setNoFollowSum(NumberConvertUtil.parseLong(stat.get(0).get("noFollowSum")));
-                    }else{
+                    } else {
                         dto.setTotalSum(NumberConvertUtil.parseLong(0));
                         dto.setNoFollowSum(NumberConvertUtil.parseLong(0));
                     }
