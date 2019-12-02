@@ -8583,6 +8583,7 @@ public class MarketResourceService {
         if (StringUtil.isNotEmpty(param.getString("resourceId"))) {
             sql.append(" and re.resource_id =" + param.getInteger("resourceId"));
         }
+        sql.append(" order by re.create_time desc");
         PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
         list.getList().stream().forEach(m -> {
             Map dataMap = (Map) m;

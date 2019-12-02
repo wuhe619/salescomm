@@ -134,7 +134,7 @@ public class CustomerController extends BasicAction {
         } catch (Exception e) {
             return new ResponseInfoAssemble().failure(-1, "记录解析异常:");
         }
-        if (StringUtil.isEmpty(info.get("custId").toString())) {
+        if (StringUtil.isEmpty(info.getString("custId"))) {
             return new ResponseInfoAssemble().failure(-1, "企业id错误");
         }
         page.setPageSize(info.getInteger("pageSize") == null ? 0 : info.getIntValue("pageSize"));

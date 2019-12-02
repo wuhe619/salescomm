@@ -3249,9 +3249,6 @@ public class CustomerSeaService {
                 }
             }
         }
-        if (StringUtil.isNotEmpty(param.getCustName())) {
-            sb.append(" AND custG.super_data -> " + "'$.SYS005' like " + "'%" + param.getCustName() + "%'" + " ");
-        }
         if (StringUtil.isNotEmpty(param.getRegCapitalMin()) || StringUtil.isNotEmpty(param.getRegCapitalMax())) {
             sb.append(" AND custG.super_data -> '$.SYS010' BETWEEN ");
             sb.append(param.getRegCapitalMin() == null ? 0 : param.getRegCapitalMin());
@@ -3266,6 +3263,9 @@ public class CustomerSeaService {
         }
         if (StringUtil.isNotEmpty(param.getRegStatus())) {
             sb.append(" AND custG.super_data -> " + "'$.SYS012' like " + "'%" + param.getRegStatus() + "%'");
+        }
+        if(StringUtil.isNotEmpty(param.getCustName())){
+            sb.append(" AND custG.super_data -> " + "'$.SYS005' like " + "'%" + param.getCustName() + "%'");
         }
 //        sb.append(" AND custG.status<>2 ");
         sb.append(" AND custG.status =1 ");
