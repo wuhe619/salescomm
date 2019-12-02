@@ -292,6 +292,9 @@ public class CustomerUserService {
         String custId = userDTO.getCustomerId();
         String userName = userDTO.getUserName();
         String realName = userDTO.getRealName();
+        if (StringUtil.isEmpty(realName)) {
+            realName = userName;
+        }
         String password = userDTO.getPassword();
         //String appId = userDTO.getAppId();
 //        String callCenterId = userDTO.getCallCenterId();
@@ -387,6 +390,11 @@ public class CustomerUserService {
             CustomerUserPropertyDO title = new CustomerUserPropertyDO(cu.getId().toString(), "title", userDTO.getTitle(), new Timestamp(System.currentTimeMillis()));
             if ("2".equals(userType.toString())) {
                 CustomerUserPropertyDO work_num = new CustomerUserPropertyDO(cu.getId().toString(), "work_num", userDTO.getWorkNum(), new Timestamp(System.currentTimeMillis()));
+                //添加员工配置双呼默认审核通过
+                if (StringUtil.isNotEmpty(userDTO.getWorkNum())) {
+                    CustomerUserPropertyDO work_num_status = new CustomerUserPropertyDO(cu.getId().toString(), "work_num_status", "1", new Timestamp(System.currentTimeMillis()));
+                    list.add(work_num_status);
+                }
                 CustomerUserPropertyDO seats_account = new CustomerUserPropertyDO(cu.getId().toString(), "seats_account", userDTO.getSeatsAccount(), new Timestamp(System.currentTimeMillis()));
                 CustomerUserPropertyDO seats_password = new CustomerUserPropertyDO(cu.getId().toString(), "seats_password", userDTO.getSeatsPassword(), new Timestamp(System.currentTimeMillis()));
                 CustomerUserPropertyDO extension_number = new CustomerUserPropertyDO(cu.getId().toString(), "extension_number", userDTO.getExtensionNumber(), new Timestamp(System.currentTimeMillis()));
@@ -398,6 +406,7 @@ public class CustomerUserService {
                     list.add(add_agent_method);
                 }
                 list.add(work_num);
+
                 list.add(seats_account);
                 list.add(seats_password);
                 list.add(extension_number);
