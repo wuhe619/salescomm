@@ -36,6 +36,16 @@ public class ApiEntity implements Serializable {
     private Integer listPrice;
     @Column(name = "TELECO_PRICE")
     private Integer telecoPrice;
+    @Column(name = "status")
+    private int status = 0;
+
+    public int getStatus() {
+        return status;
+    }
+
+    public void setStatus(int status) {
+        this.status = status;
+    }
 
     public int getApiId() {
         return apiId;
