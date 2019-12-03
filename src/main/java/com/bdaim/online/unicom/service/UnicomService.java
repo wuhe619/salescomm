@@ -148,13 +148,12 @@ public class UnicomService {
             LOG.error("联通接口添加主叫号码异常", e);
         }
         // 成功
-        if (jsonObject != null && "08000".equals(jsonObject.getString("code"))) {
+        /*if (jsonObject != null && "08000".equals(jsonObject.getString("code"))) {
             result.put("code", 1);
             result.put("msg", jsonObject.getString("msg"));
-            return result;
-        }
-        result.put("msg", jsonObject.getString("msg"));
-        return result;
+            return jsonObject;
+        }*/
+        return jsonObject;
     }
 
     /**
@@ -185,13 +184,13 @@ public class UnicomService {
             LOG.error("联通接口删除主叫号码异常", e);
         }
         // 成功
-        if (jsonObject != null && "08000".equals(jsonObject.getString("code"))) {
+        /*if (jsonObject != null && "08000".equals(jsonObject.getString("code"))) {
             result.put("code", 1);
             result.put("msg", jsonObject.getString("msg"));
             return result;
         }
-        result.put("msg", jsonObject.getString("msg"));
-        return result;
+        result.put("msg", jsonObject.getString("msg"));*/
+        return jsonObject;
     }
 
     /**
