@@ -218,7 +218,7 @@ public class ApiService {
         }
         String sql = " select  property_name,property_value from am_api_property where api_id = ?";
         List<Map<String, Object>> propertyList = jdbcTemplate.queryForList(sql, apiEntity.getApiId());
-        ApiData vo = new ApiData();
+        ApiData vo = new ApiData(apiEntity);
         ApiDefine apiDefine = new ApiDefine();
         propertyList.stream().forEach(map -> {
             String property_value = customerAppService.ObjectFormStr(map.get("property_value"));

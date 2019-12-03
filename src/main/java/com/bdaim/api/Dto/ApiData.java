@@ -1,5 +1,7 @@
 package com.bdaim.api.Dto;
 
+import com.bdaim.api.entity.ApiEntity;
+
 import java.util.List;
 
 public class ApiData {
@@ -25,6 +27,27 @@ public class ApiData {
 
     private int urlMappingId;
     private String status;
+    private int apiId;
+
+    public ApiData() {
+    }
+
+    public ApiData(ApiEntity entity) {
+        this.apiName = entity.getName();
+        this.context = entity.getContext();
+        this.contextTemplate = entity.getContextTexplate();
+        this.apiId = entity.getApiId();
+        this.apiVersion=entity.getVersion();
+
+    }
+
+    public int getApiId() {
+        return apiId;
+    }
+
+    public void setApiId(int apiId) {
+        this.apiId = apiId;
+    }
 
     public String getStatus() {
         return status;
