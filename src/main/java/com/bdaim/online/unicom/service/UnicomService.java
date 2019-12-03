@@ -83,10 +83,9 @@ public class UnicomService {
     }
 
     /**
-     *
      * @param userId
      * @param account
-     * @param status 1-冻结 0-开启
+     * @param status  1-冻结 0-开启
      * @return
      */
     public JSONObject saveUpdateUserExtensionByUserId(String userId, String account, int status) {
@@ -128,9 +127,8 @@ public class UnicomService {
      * @param custId
      * @param extensionNumber
      * @return
-     * @throws Exception
      */
-    public JSONObject addUserExtension(String custId, String extensionNumber) throws Exception {
+    public JSONObject addUserExtension(String custId, String extensionNumber) {
         JSONObject result = new JSONObject();
         result.put("code", -1);
         //获取token,加密获取sign
@@ -143,7 +141,12 @@ public class UnicomService {
         String pwd = config.getString("entPassword");
         String entId = config.getString("entId");
         String key = config.getString("entKey");
-        JSONObject jsonObject = UnicomUtil.registerUserExtension(pwd, entId, key, extensionNumber);
+        JSONObject jsonObject = null;
+        try {
+            jsonObject = UnicomUtil.registerUserExtension(pwd, entId, key, extensionNumber);
+        } catch (Exception e) {
+            LOG.error("联通接口添加主叫号码异常", e);
+        }
         // 成功
         if (jsonObject != null && "08000".equals(jsonObject.getString("code"))) {
             result.put("code", 1);
@@ -162,7 +165,7 @@ public class UnicomService {
      * @return
      * @throws Exception
      */
-    public JSONObject deleteUserExtension(String custId, String extensionNumber) throws Exception {
+    public JSONObject deleteUserExtension(String custId, String extensionNumber) {
         JSONObject result = new JSONObject();
         result.put("code", -1);
         //获取token,加密获取sign
@@ -175,7 +178,12 @@ public class UnicomService {
         String pwd = config.getString("entPassword");
         String entId = config.getString("entId");
         String key = config.getString("entKey");
-        JSONObject jsonObject = UnicomUtil.failureUserExtension(pwd, entId, key, extensionNumber);
+        JSONObject jsonObject = null;
+        try {
+            jsonObject = UnicomUtil.failureUserExtension(pwd, entId, key, extensionNumber);
+        } catch (Exception e) {
+            LOG.error("联通接口删除主叫号码异常", e);
+        }
         // 成功
         if (jsonObject != null && "08000".equals(jsonObject.getString("code"))) {
             result.put("code", 1);
