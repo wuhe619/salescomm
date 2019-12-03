@@ -59,7 +59,6 @@ public class ApiService {
             entity.setName(apiData.getApiName());
             entity.setVersion(apiData.getApiVersion());
             entity.setProvider(lu.getUserName());
-            entity.setStatus(0);
             apiId = (int) apiDao.saveReturnPk(entity);
             apiDao.dealCustomerInfo(String.valueOf(apiId), "status", "0");
         } else {
@@ -434,6 +433,18 @@ public class ApiService {
         map.put("data", collect);
         map.put("total", list.getTotal());
         return map;
+    }
+
+
+    public String subApiLogs(String busiTime, JSONObject params, PageParam page) {
+
+        StringBuffer sql = new StringBuffer();
+        //客户调用记录
+        sql.append(" select api.API_ID as apiId, api.API_NAME as apiName, que.RESPONSE_BODY as body, count(api.API_ID) as countNum,sum(log.CHARGE) as cost");
+        sql.append(" from am_api api left join rs_log_" + busiTime + " log on log.API_ID= api.API_ID");
+        sql.append(" left join api_queue que on que.ID=log.API_LOG_ID");
+        sql.append(" ");
+        return null;
     }
 
 
