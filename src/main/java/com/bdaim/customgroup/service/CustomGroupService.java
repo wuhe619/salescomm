@@ -6849,5 +6849,28 @@ public class CustomGroupService {
         }
         return page;
     }
+
+    /**
+     * 保存或者更新客群属性
+     *
+     * @param property
+     * @return
+     */
+    public int saveCGroupProperty(CustomerGroupProperty property) {
+        log.info("开始更新客群属性,customerGroupId:" + property.getCustomerGroupId() + ",propertyName:" + property.getPropertyName() + ",propertyValue:" + property.getPropertyValue());
+        CustomerGroupProperty cp = customGroupDao.getProperty(property.getCustomerGroupId(), property.getPropertyName());
+        log.info("客群原配置属性:" + cp);
+        if (cp == null) {
+            cp = new CustomerGroupProperty(property.getCustomerGroupId(), property.getPropertyName(), property.getPropertyValue(), new Timestamp(System.currentTimeMillis()));
+        }
+        cp.setCreateTime(new Timestamp(System.currentTimeMillis()));
+        cp.setPropertyValue(property.getPropertyValue());
+        try {
+            customGroupDao.saveOrUpdate(cp);
+            return 1;
+        } catch (Exception e) {
+            throw e;
+        }
+    }
 }
 

@@ -22,6 +22,7 @@ import com.bdaim.customgroup.dto.CustomerGroupAddDTO;
 import com.bdaim.customgroup.dto.CustomerGroupParamDTO;
 import com.bdaim.customgroup.dto.CustomerGrpOrdParam;
 import com.bdaim.customgroup.entity.CustomGroup;
+import com.bdaim.customgroup.entity.CustomerGroupProperty;
 import com.bdaim.customgroup.service.CustomGroupService;
 import com.bdaim.industry.dto.IndustryPoolPriceDTO;
 import com.bdaim.industry.service.IndustryPoolService;
@@ -37,7 +38,6 @@ import com.bdaim.util.AuthPassport;
 import com.bdaim.util.Constant;
 import com.bdaim.util.NumberConvertUtil;
 import com.bdaim.util.StringUtil;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -1408,6 +1408,29 @@ public class CustomGroupAction extends BasicAction {
             } catch (IOException e1) {
                 e1.printStackTrace();
             }
+        }
+    }
+
+    /**
+     * 保存/更新客群属性
+     *
+     * @param param
+     * @return
+     */
+    @RequestMapping(value = "/saveCGroupProperty", method = RequestMethod.POST)
+    @ResponseBody
+    public String saveCustomerGroupProperty(@RequestBody CustomerGroupProperty param) {
+        int code = 0;
+        try {
+            code = customGroupService.saveCGroupProperty(param);
+        } catch (Exception e) {
+            log.error("保存客群属性失败,参数:" + param, e);
+            code = 0;
+        }
+        if (code == 1) {
+            return returnSuccess();
+        } else {
+            return returnError();
         }
     }
 }
