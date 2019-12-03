@@ -59,6 +59,8 @@ public class ApiService {
             entity.setName(apiData.getApiName());
             entity.setVersion(apiData.getApiVersion());
             entity.setProvider(lu.getUserName());
+            entity.setUpdateTime(new Timestamp(System.currentTimeMillis()));
+            entity.setUpdateBy(lu.getUserName());
             apiId = (int) apiDao.saveReturnPk(entity);
             apiDao.dealCustomerInfo(String.valueOf(apiId), "status", "0");
         } else {
@@ -435,16 +437,33 @@ public class ApiService {
         return map;
     }
 
-
-    public String subApiLogs(String busiTime, JSONObject params, PageParam page) {
-
+    //客户调用记录
+    public PageList subApiLogs(JSONObject params, PageParam page) {
         StringBuffer sql = new StringBuffer();
-        //客户调用记录
-        sql.append(" select api.API_ID as apiId, api.API_NAME as apiName, que.RESPONSE_BODY as body, count(api.API_ID) as countNum,sum(log.CHARGE) as cost");
-        sql.append(" from am_api api left join rs_log_" + busiTime + " log on log.API_ID= api.API_ID");
+        sql.append(" select api.API_ID as apiId, api.API_NAME as apiName, que.RESPONSE_BODY as body, count(api.API_ID) as countNum,round(log.CHARGE/10000) as charge,que.SERVICE_TIME as serviceTime");
+        sql.append(" from am_api api left join rs_log_" + params.getString("callMonth") + " log on log.API_ID= api.API_ID");
         sql.append(" left join api_queue que on que.ID=log.API_LOG_ID");
-        sql.append(" ");
-        return null;
+        sql.append(" where 1=1");
+        if (StringUtil.isNotEmpty(params.getString("apiName"))) {
+            sql.append(" and api.API_NAME like '%" + params.getString("apiName") + "%'");
+        }
+        sql.append(" group by log.API_ID");
+        PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
+        return list;
+    }
+
+    //资源调用记录
+    public PageList resApiLogs(JSONObject params, PageParam page) {
+        StringBuffer sql = new StringBuffer();
+        sql.append(" select log.RS_ID as rsId,res.resname as resname, api.API_NAME as apiName,que.USER_NAME as userName," +
+                " que.SERVICE_TIME as serviceTime,que.RESPONSE_TIME as responseTime,round(log.CHARGE/10000) as charge,que.RESPONSE_BODY as body");
+        sql.append(" from rs_log_" + params.getString("callMonth") + " log left join t_market_resource res on log.RS_ID=res.resource_id");
+        sql.append(" left join am_api api on api.API_ID = log.API_ID ");
+        sql.append(" left join api_queue que on que.ID=log.API_LOG_ID");
+        sql.append(" where log.RS_ID = "+params.getLong("resourceId"));
+
+        PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
+        return list;
     }
 
 
