@@ -36,7 +36,7 @@ public class ApiEntity implements Serializable {
     private Integer listPrice;
     @Column(name = "TELECO_PRICE")
     private Integer telecoPrice;
-    @Column(name = "status")
+//    @Column(name = "status")
     private int status = 0;
 
     public int getStatus() {

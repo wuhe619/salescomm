@@ -22,7 +22,7 @@ public class ApiData {
     private int productionTps;
     private String responseCache;
     private List<ApiResource> resourceList;
-    private ApiDefine apiDefine;
+    private ApiDefine api_define;
     private String rsIds;
 
     private int urlMappingId;
@@ -209,11 +209,11 @@ public class ApiData {
         this.resourceList = resourceList;
     }
 
-    public ApiDefine getApiDefine() {
-        return apiDefine;
+    public ApiDefine getApi_define() {
+        return api_define;
     }
 
-    public void setApiDefine(ApiDefine apiDefine) {
-        this.apiDefine = apiDefine;
+    public void setApi_define(ApiDefine api_define) {
+        this.api_define = api_define;
     }
 }

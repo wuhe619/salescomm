@@ -76,7 +76,7 @@ public class ApiService {
             entity.setUpdateBy(lu.getUserName());
             apiId = (int) apiDao.saveReturnPk(entity);
         }
-        ApiDefine apiDefine = apiData.getApiDefine();
+        ApiDefine apiDefine = apiData.getApi_define();
         if (apiData.getUrlMappingId() == 0) {
             ApiUrlMappingEntity entity = new ApiUrlMappingEntity();
 
@@ -276,7 +276,7 @@ public class ApiService {
                     break;
             }
         });
-        vo.setApiDefine(apiDefine);
+        vo.setApi_define(apiDefine);
 
         return vo;
     }
