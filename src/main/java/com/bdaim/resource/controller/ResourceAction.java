@@ -1,5 +1,6 @@
 package com.bdaim.resource.controller;
 
+import com.bdaim.api.service.ApiService;
 import com.bdaim.auth.LoginUser;
 import com.bdaim.common.annotation.ValidatePermission;
 import com.bdaim.common.controller.BasicAction;
@@ -19,7 +20,7 @@ import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Controller;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -38,6 +39,10 @@ import java.util.Map;
 public class ResourceAction extends BasicAction {
     @Resource
     MarketResourceService marketResourceService;
+
+    @Autowired
+    ApiService apiService;
+
     public static final Logger logger = LoggerFactory.getLogger(ResourceAction.class);
 
     /**
@@ -254,6 +259,24 @@ public class ResourceAction extends BasicAction {
             logger.error("查询资源列表失败,", e);
             return new ResponseInfoAssemble().failure(-1, "查询资源列表失败");
         }
+        return resp;
+    }
+
+    @PostMapping("/logs")
+    public ResponseInfo subApiLogs(@RequestBody com.alibaba.fastjson.JSONObject params) {
+        ResponseInfo resp = new ResponseInfo();
+        PageParam page = new PageParam();
+        if (StringUtil.isEmpty(params.getString("callMonth"))) {
+            return new ResponseInfoAssemble().failure(-1, "查询时间不能为空");
+        }
+        page.setPageSize(params.getInteger("pageSize") == null ? 0 : params.getIntValue("pageSize"));
+        page.setPageNum(params.getInteger("pageNum") == null ? 10 : params.getIntValue("pageNum"));
+        if (StringUtil.isNotEmpty(params.getString("type")) && "sub".equals(params.getString("type"))) {
+            resp.setData(apiService.subApiLogs(params, page));
+        } else {
+            resp.setData(apiService.resApiLogs(params, page));
+        }
+
         return resp;
     }
 }
