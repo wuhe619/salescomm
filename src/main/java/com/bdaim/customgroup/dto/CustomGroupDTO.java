@@ -4,6 +4,7 @@ import com.bdaim.customgroup.entity.CustomGroup;
 
 import java.sql.Timestamp;
 import java.util.Date;
+import java.util.Map;
 
 
 public class CustomGroupDTO {
@@ -51,6 +52,7 @@ public class CustomGroupDTO {
      */
     private Integer marketProjectId;
     private String marketProjectName;
+    private Map properties;
 
     public CustomGroupDTO() {
 
@@ -368,6 +370,14 @@ public class CustomGroupDTO {
 
     public void setMarketProjectName(String marketProjectName) {
         this.marketProjectName = marketProjectName;
+    }
+
+    public Map getProperties() {
+        return properties;
+    }
+
+    public void setProperties(Map properties) {
+        this.properties = properties;
     }
 }
 

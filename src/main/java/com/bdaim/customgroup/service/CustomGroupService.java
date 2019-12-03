@@ -171,7 +171,7 @@ public class CustomGroupService {
 
     public Page page(String customer_group_id, String cust_id, String user_id, Integer pageNum, Integer pageSize,
                      String id, String name, Integer status, String callType, String dateStart, String dateEnd,
-                     String enterpriseName, String marketProjectId) {
+                     String enterpriseName, String marketProjectId, String propertyName, String propertyValue) {
         StringBuffer hql = new StringBuffer("from CustomGroup m where 1=1");
         List values = new ArrayList();
         if (null != customer_group_id && !"".equals(customer_group_id)) {
@@ -213,6 +213,11 @@ public class CustomGroupService {
             hql.append(" and m.custId IN (SELECT id FROM Customer WHERE enterpriseName LIKE ?)");
             values.add("%" + enterpriseName + "%");
         }
+        if (StringUtil.isNotEmpty(propertyName) && StringUtil.isNotEmpty(propertyValue)) {
+            hql.append(" and m.id IN (SELECT customerGroupId FROM CustomerGroupProperty WHERE propertyName = ? AND propertyValue = ? )");
+            values.add(propertyName);
+            values.add(propertyValue);
+        }
         hql.append(" ORDER BY m.createTime desc ");
         Page page = customGroupDao.page(hql.toString(), values, pageNum, pageSize);
         if (page.getData() != null && page.getData().size() > 0) {
@@ -221,6 +226,7 @@ public class CustomGroupService {
             Customer customer;
             List data = new ArrayList();
             MarketProject marketProject;
+            List<CustomerGroupProperty> properties;
             for (int i = 0; i < page.getData().size(); i++) {
                 customGroup = (CustomGroup) page.getData().get(i);
                 customGroupDTO = new CustomGroupDTO(customGroup);
@@ -241,6 +247,15 @@ public class CustomGroupService {
                     } else {
                         customGroupDTO.setMarketProjectName("");
                     }
+                }
+                // 查询客群属性
+                properties = customGroupDao.listProperty(customGroupDTO.getId());
+                if (properties != null && properties.size() > 0) {
+                    Map m = new HashMap();
+                    for (CustomerGroupProperty p : properties) {
+                        m.put(p.getPropertyName(), p.getPropertyValue());
+                    }
+                    customGroupDTO.setProperties(m);
                 }
                 data.add(customGroupDTO);
             }
@@ -1025,6 +1040,7 @@ public class CustomGroupService {
 
     /**
      * 创建客群,数据状态为处理中,支付状态为已支付
+     *
      * @param customGroupDTO
      * @return
      */
@@ -1071,6 +1087,15 @@ public class CustomGroupService {
             // 处理联通平台活动名称字段
             if (StringUtil.isNotEmpty(customGroupDTO.getUnicomActivityName())) {
                 CustomerGroupProperty cgp = new CustomerGroupProperty(id, "unicomActivityName", customGroupDTO.getUnicomActivityName(), new Timestamp(System.currentTimeMillis()));
+                customGroupDao.saveOrUpdate(cgp);
+                // 数据渠道为联通
+                cgp = new CustomerGroupProperty(id, "dataChannel", "unicom", new Timestamp(System.currentTimeMillis()));
+                customGroupDao.saveOrUpdate(cgp);
+                // 拉取时间为空
+                cgp = new CustomerGroupProperty(id, "pullTime", "", new Timestamp(System.currentTimeMillis()));
+                customGroupDao.saveOrUpdate(cgp);
+                // 拉取状态为拉取中
+                cgp = new CustomerGroupProperty(id, "pullStatus", "1", new Timestamp(System.currentTimeMillis()));
                 customGroupDao.saveOrUpdate(cgp);
             }
             return 1;

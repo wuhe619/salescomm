@@ -512,14 +512,14 @@ public class CustomGroupAction extends BasicAction {
     @RequestMapping("/getCustomGroup")
     public String getCustomGroup(String customer_group_id, Integer pageNum, Integer pageSize, String id,
                                  String customer_name, Integer states, String callType, String dateStart, String dateEnd,
-                                 String enterprise_name, String marketProjectId) {
+                                 String enterprise_name, String marketProjectId, String propertyName, String propertyValue) {
         LoginUser u = opUser();
         String cust_id = u.getCustId();
         String user_id = u.getId().toString();
         JSONObject json = new JSONObject();
 
         Page p = customGroupService.page(customer_group_id, cust_id, user_id, pageNum, pageSize,
-                id, customer_name, states, callType, dateStart, dateEnd, enterprise_name, marketProjectId);
+                id, customer_name, states, callType, dateStart, dateEnd, enterprise_name, marketProjectId, propertyName, propertyValue);
 
         json.put("data", p);
         return json.toJSONString();
