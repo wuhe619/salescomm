@@ -1024,6 +1024,61 @@ public class CustomGroupService {
     }
 
     /**
+     * 创建客群,数据状态为处理中,支付状态为已支付
+     * @param customGroupDTO
+     * @return
+     */
+    public int saveCustomGroup(CustomerGroupAddDTO customGroupDTO) {
+        String orderId = String.valueOf(IDHelper.getTransactionId());
+        StringBuffer insertOrder = new StringBuffer();
+        insertOrder.append("INSERT INTO  t_order (`order_id`, `cust_id`, `order_type`, `create_time`,  `remarks`, `amount`, `order_state`, `cost_price`) ");
+        insertOrder.append(" VALUES ('" + orderId + "','" + customGroupDTO.getCustId() + "','1','" + new Timestamp(System.currentTimeMillis()) + "','导入客户群创建','0','2','0')");
+        int status = customGroupDao.executeUpdateSQL(insertOrder.toString());
+        LogUtil.info("导入客户群创建订单表状态:" + status);
+        if (status == 0) {
+            return 0;
+        }
+        CustomGroup cg = new CustomGroup();
+        cg.setName(customGroupDTO.getName());
+        cg.setDesc("导入客户群创建");
+        cg.setOrderId(orderId);
+        cg.setMarketProjectId(NumberConvertUtil.parseInt(customGroupDTO.getMarketProjectId()));
+        cg.setStatus(3);
+        cg.setDataSource(customGroupDTO.getDataSource());
+        cg.setCustId(customGroupDTO.getCustId());
+        cg.setCreateTime(new Timestamp(System.currentTimeMillis()));
+        cg.setGroupCondition("[{\"symbol\":0,\"leafs\":[{\"name\":\"4\",\"id\":\"87\"}],\"type\":1,\"labelId\":\"84\",\"parentName\":\"家庭人口数\",\"path\":\"人口统计学/基本信息/家庭人口数\"}]");
+        cg.setIndustryPoolId(customGroupDTO.getIndustryPoolId());
+        cg.setIndustryPoolName(customGroupDTO.getIndustryPoolName());
+        log.info("导入客户群插入customer_group表的数据:" + cg);
+        int id = (int) customGroupDao.saveReturnPk(cg);
+        if (id > 0) {
+            StringBuffer sb = new StringBuffer();
+            sb.append(" create table IF NOT EXISTS t_customer_group_list_");
+            sb.append(id);
+            sb.append(" like t_customer_group_list");
+            try {
+                customGroupDao.executeUpdateSQL(sb.toString());
+            } catch (HibernateException e) {
+                log.error("创建用户群表失败,id:" + id, e);
+            }
+
+            // 保存客户群触达方式
+            if (StringUtil.isNotEmpty(customGroupDTO.getTouchMode())) {
+                CustomerGroupProperty cgp = new CustomerGroupProperty(id, "touchMode", customGroupDTO.getTouchMode(), new Timestamp(System.currentTimeMillis()));
+                customGroupDao.saveOrUpdate(cgp);
+            }
+            // 处理联通平台活动名称字段
+            if (StringUtil.isNotEmpty(customGroupDTO.getUnicomActivityName())) {
+                CustomerGroupProperty cgp = new CustomerGroupProperty(id, "unicomActivityName", customGroupDTO.getUnicomActivityName(), new Timestamp(System.currentTimeMillis()));
+                customGroupDao.saveOrUpdate(cgp);
+            }
+            return 1;
+        }
+        return 0;
+    }
+
+    /**
      * 生成大数据平台自动提取数据文件
      *
      * @param groupId   客群ID
@@ -3353,7 +3408,8 @@ public class CustomGroupService {
 
     /**
      * 导出客群通话统计数据excel
-     * @param _rule_  =callAmount导出表头带通话费用列
+     *
+     * @param _rule_          =callAmount导出表头带通话费用列
      * @param timeType
      * @param customerGroupId
      * @param userQueryParam

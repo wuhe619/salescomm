@@ -153,8 +153,8 @@ public class CustomGroupAction extends BasicAction {
                 map.put("status", status);
             }
         }
-        List<CustomGroup> groups = customGroupService.getListByCondition(map,likeMap, page);
-        Integer count = customGroupService.getCountByCondition(map, likeMap,null);
+        List<CustomGroup> groups = customGroupService.getListByCondition(map, likeMap, page);
+        Integer count = customGroupService.getCountByCondition(map, likeMap, null);
         Map<String, Object> resultMap = new HashMap<String, Object>();
         resultMap.put("total", count);
         resultMap.put("stores", commonService.getCustomGroupMapList(groups));
@@ -237,7 +237,7 @@ public class CustomGroupAction extends BasicAction {
     public String getMicroscopicPictureList(HttpServletRequest request, Integer customGroupId, Page page,
                                             String queryType, String key) {
         Map<String, Object> result = new HashMap<String, Object>();
-        Map<String, Object> map = customGroupService.getUserGroupGid(customGroupId, page.getStart(),page.getLimit(), queryType, key);
+        Map<String, Object> map = customGroupService.getUserGroupGid(customGroupId, page.getStart(), page.getLimit(), queryType, key);
         result.putAll(map);
 
         return JSON.toJSONString(result);
@@ -471,6 +471,29 @@ public class CustomGroupAction extends BasicAction {
         customGroupDTO.setCreateUserId(lu.getId().toString());
         customGroupDTO.setUpdateUserId(lu.getId().toString());
         resultMap.put("data", JSONObject.toJSON(customGroupService.addCustomGroupV1(customGroupDTO)));
+
+        return JSON.toJSONString(resultMap);
+    }
+
+    /**
+     * 创建客群,数据状态为处理中,支付状态为已支付
+     *
+     * @param customGroupDTO
+     * @return
+     * @throws Exception
+     */
+    @ResponseBody
+    @CacheAnnotation
+    @RequestMapping(value = "/saveCustomGroup0", method = RequestMethod.POST)
+    public String saveCustomGroup0(@RequestBody CustomerGroupAddDTO customGroupDTO) {
+        LoginUser lu = opUser();
+        Map<String, Object> resultMap = new HashMap<String, Object>();
+        if (StringUtil.isEmpty(customGroupDTO.getCustId())) {
+            customGroupDTO.setCustId(lu.getCustId());
+        }
+        customGroupDTO.setCreateUserId(lu.getId().toString());
+        customGroupDTO.setUpdateUserId(lu.getId().toString());
+        resultMap.put("data", JSONObject.toJSON(customGroupService.saveCustomGroup(customGroupDTO)));
 
         return JSON.toJSONString(resultMap);
     }
