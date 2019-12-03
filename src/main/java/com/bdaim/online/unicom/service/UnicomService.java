@@ -3,13 +3,16 @@ package com.bdaim.online.unicom.service;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.callcenter.dto.CallTypeParamEnum;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerUserDao;
 import com.bdaim.customer.entity.CustomerProperty;
+import com.bdaim.customer.entity.CustomerUser;
 import com.bdaim.customer.entity.CustomerUserPropertyDO;
 import com.bdaim.resource.dao.MarketResourceDao;
 import com.bdaim.resource.entity.MarketResourceEntity;
 import com.bdaim.resource.entity.ResourcePropertyEntity;
+import com.bdaim.util.NumberConvertUtil;
 import com.bdaim.util.StringUtil;
 import com.bdaim.util.UnicomUtil;
 import org.slf4j.Logger;
@@ -80,6 +83,46 @@ public class UnicomService {
     }
 
     /**
+     *
+     * @param userId
+     * @param account
+     * @param status 1-冻结 0-开启
+     * @return
+     */
+    public JSONObject saveUpdateUserExtensionByUserId(String userId, String account, int status) {
+        JSONObject result = new JSONObject();
+        result.put("code", -1);
+        CustomerUser user = null;
+        if (StringUtil.isNotEmpty(userId)) {
+            user = customerUserDao.get(NumberConvertUtil.parseLong(userId));
+        } else if (StringUtil.isNotEmpty(account)) {
+            user = customerUserDao.getCustomerUserByLoginName(account);
+        }
+        JSONObject jsonObject = null;
+        if (user != null) {
+            //当账号有效时处理
+            CustomerUserPropertyDO callType = customerUserDao.getProperty(user.getId().toString(), "call_type");
+            CustomerUserPropertyDO work_num = customerUserDao.getProperty(user.getId().toString(), "work_num");
+            // 联通双呼添加主叫号码
+            if (callType != null && work_num != null && CallTypeParamEnum.UNICOM_CALL2_WAY.getPropertyName().equals(callType.getPropertyValue())) {
+                try {
+                    if (1 == status) {
+                        // 冻结
+                        jsonObject = deleteUserExtension(user.getCust_id(), work_num.getPropertyValue());
+                    } else if (0 == status) {
+                        // 开启
+                        jsonObject = addUserExtension(user.getCust_id(), work_num.getPropertyValue());
+                    }
+                } catch (Exception e) {
+                    LOG.error("添加/删除联通主叫号码异常", e);
+                }
+            }
+        }
+        return jsonObject;
+    }
+
+
+    /**
      * 通过联通接口添加主叫号码
      *
      * @param custId
@@ -145,6 +188,7 @@ public class UnicomService {
 
     /**
      * 联通坐席外呼接口
+     *
      * @param custId
      * @param userId
      * @param dataId

@@ -622,24 +622,12 @@ public class CustomerUserService {
         sb.append(" where  account= ? and cust_id='" + custId + "'");
 
         int code = jdbcTemplate.update(sb.toString(), new Object[]{status, userName});
-        CustomerUser user = customerUserDao.getCustomerUserByLoginName(userName);
-        if (user != null) {//当账号有效时处理
-            CustomerUserPropertyDO callType = customerUserDao.getProperty(user.getId().toString(), "call_type");
-            CustomerUserPropertyDO work_num = customerUserDao.getProperty(user.getId().toString(), "work_num");
-            // 联通双呼添加主叫号码
-            if (callType != null && work_num != null && CallTypeParamEnum.UNICOM_CALL2_WAY.getPropertyName().equals(callType.getPropertyValue())) {
-                try {
-                    if (1 == status) {
-                        // 冻结
-                        unicomService.deleteUserExtension(user.getCust_id(), work_num.getPropertyValue());
-                    } else if (0 == status) {
-                        // 开启
-                        unicomService.addUserExtension(user.getCust_id(), work_num.getPropertyValue());
-                    }
-                } catch (Exception e) {
-                    logger.error("添加/删除联通主叫号码异常", e);
-                }
-            }
+        if (1 == status) {
+            // 冻结
+            unicomService.saveUpdateUserExtensionByUserId("", userName, 1);
+        } else if (0 == status) {
+            // 开启
+            unicomService.saveUpdateUserExtensionByUserId("", userName, 0);
         }
         /*CustomerUser user = customerUserDao.getCustomerUserByLoginName(userName);
 

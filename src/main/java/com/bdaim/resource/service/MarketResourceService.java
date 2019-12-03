@@ -16,7 +16,6 @@ import com.bdaim.callcenter.common.CallUtil;
 import com.bdaim.callcenter.dto.*;
 import com.bdaim.callcenter.service.impl.CallCenterService;
 import com.bdaim.callcenter.service.impl.SeatsService;
-import com.bdaim.common.dto.Page;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.page.PageList;
 import com.bdaim.common.page.Pagination;
@@ -37,6 +36,7 @@ import com.bdaim.marketproject.dao.MarketProjectDao;
 import com.bdaim.marketproject.entity.MarketProject;
 import com.bdaim.markettask.dao.MarketTaskDao;
 import com.bdaim.markettask.entity.MarketTask;
+import com.bdaim.online.unicom.service.UnicomService;
 import com.bdaim.rbac.dao.UserDao;
 import com.bdaim.rbac.dto.UserQueryParam;
 import com.bdaim.rbac.service.UserService;
@@ -156,6 +156,8 @@ public class MarketResourceService {
     private CustomerUserPropertyDao customerUserPropertyDao;
     @Resource
     private SupplierDao supplierDao;
+    @Resource
+    private UnicomService unicomService;
 
 
     public PageList querySmsHistory(PageParam page, SmsqueryParam smsqueryParm) {
@@ -4908,6 +4910,8 @@ public class MarketResourceService {
             if (status.equals("1")) {
                 work_num_status.setPropertyValue("1");
                 this.marketResourceDao.saveOrUpdate(work_num_status);
+                // 审核通话添加联通主叫号码
+                unicomService.saveUpdateUserExtensionByUserId(userid, "", 0);
                 map.put("code", "0");
                 map.put("messa", "成功");
             } else if (status.equals("2")) {
@@ -8592,7 +8596,7 @@ public class MarketResourceService {
             if (!dataMap.containsKey("resname"))
                 dataMap.put("resname", "");
             if (!dataMap.containsKey("apiName"))
-                dataMap.put("apiName","");
+                dataMap.put("apiName", "");
             dataList.add(dataMap);
         });
         map.put("total", list.getTotal());
