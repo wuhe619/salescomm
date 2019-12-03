@@ -28,7 +28,7 @@ import java.util.*;
 public class UnicomUtil {
     private static Logger LOG = LoggerFactory.getLogger(UnicomUtil.class);
 
-    private final static String UNICOM_BASE_URL_V1 = "http://120.52.23.243:10080/sdyxinterface/20190426/";
+    private final static String UNICOM_BASE_URL_V1 = "";
 
     public static void main(String[] args) throws Exception {
         UnicomUtil.getEntActivityAll("Bq2.g_mp4", "D1HMFW", "UkzesbWEmdTIgywsacIIboam");
@@ -197,7 +197,7 @@ public class UnicomUtil {
      * 联通坐席外呼接口v1
      * dataId 联通返回唯一id    callerNumber 主叫号码   showNumber   外显号（不传默认从企业外显号码池随机一个外显号码 key加密私钥
      */
-    public static Map<String, Object> unicomSeatMakeCall(String entId, String dataId, String entPassWord, String callerNumber, String showNumber, String key) {
+    public static JSONObject unicomSeatMakeCall(String entId, String dataId, String entPassWord, String callerNumber, String showNumber, String key) {
         LOG.info("坐席外呼接收參數:entId是" + entId + "数据id是：" + dataId + "企业密码：" + entPassWord + "主叫号：" + callerNumber + "外显号码是： " + showNumber + "密钥：" + key);
         Map<String, String> params = new HashMap<>();
         params.put("dataId", dataId);
@@ -226,7 +226,7 @@ public class UnicomUtil {
             //result="{\"msg\":\"success\",\"code\":\"01000\",\"data\":{\"callId\":\"1539516627199289711\",\"msg\":\"呼叫成功\",\"code\":\"000\",\"uuid\":\"01539516627199289733\",\"callNum\":\"1/600\",\"todayCallNum\":\"1/30\",\"monthCallNum\":\"1/90\"}}";
             LOG.info("联通坐席外呼返回:" + result);
             if (StringUtil.isNotEmpty(result)) {
-                return JSON.parseObject(result, Map.class);
+                return JSON.parseObject(result);
             }
         } catch (Exception e) {
             LOG.error("联通坐席外呼失败:", e);
