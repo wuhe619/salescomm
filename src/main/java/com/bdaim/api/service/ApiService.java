@@ -200,7 +200,9 @@ public class ApiService {
             if (status == null) {
                 dataMap.put("status", 0);
             }
-            dataMap.put("subscribeNum", 0);
+            String countSql = "select count(*) from am_subscription where API_ID=" + Integer.valueOf(apiId) + " and SUBS_CREATE_STATE='SUBSCRIBE'";
+            Integer count = jdbcTemplate.queryForObject(countSql, Integer.class);
+            dataMap.put("subscribeNum", count);
             return dataMap;
         }).collect(Collectors.toList());
         map.put("list", collect);
@@ -267,6 +269,9 @@ public class ApiService {
                     break;
                 case "rsIds":
                     vo.setRsIds(property_value);
+                    break;
+                case "status":
+                    vo.setStatus(property_value);
                     break;
             }
         });
@@ -430,4 +435,6 @@ public class ApiService {
         map.put("total", list.getTotal());
         return map;
     }
+
+
 }
