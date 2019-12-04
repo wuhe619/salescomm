@@ -51,6 +51,11 @@ public class ApiService {
     public int saveApiProperty(ApiData apiData, String id, LoginUser lu) throws Exception {
         int apiId;
         if (StringUtil.isEmpty(id) || "0".equals(id)) {
+            String context = apiData.getContext();
+            String apiVersion = context.substring(context.lastIndexOf("/") + 1);
+            String contextTexplate = context.substring(0, context.lastIndexOf("/"));
+            apiData.setApiVersion(apiVersion);
+            apiData.setContextTemplate(contextTexplate);
             ApiEntity entity = new ApiEntity();
             entity.setCreateTime(new Timestamp(System.currentTimeMillis()));
             entity.setContext(apiData.getContext());
@@ -398,7 +403,7 @@ public class ApiService {
         if (StringUtil.isNotEmpty(apiName)) {
             sql.append(" and api.API_NAME = '" + apiName + "'");
         }
-        if(StringUtil.isNotEmpty(custId)){
+        if (StringUtil.isNotEmpty(custId)) {
             sql.append(" and cus.cust_id = '" + custId + "'");
         }
         page.setSort("api.CREATED_TIME");
@@ -412,8 +417,8 @@ public class ApiService {
             if (property == null) return map;
             String propertyValue = property.getPropertyValue();
             JSONArray jsonArray = JSONArray.parseArray(propertyValue);
-            List relist = new ArrayList<>();
-            List<Integer> sulist = new ArrayList<>();
+            List relist = new ArrayList();
+            List sulist = new ArrayList();
             jsonArray.stream().forEach(p -> {
                 Map pmap = (Map) p;
                 Object rsIds = pmap.get("rsId");
@@ -429,7 +434,7 @@ public class ApiService {
             }
             map.put("suppliers", suppliers);
             map.put("resourceId", relist);
-            map.put("priceType","单一定价");
+            map.put("priceType", "单一定价");
             return map;
         }).collect(Collectors.toList());
         Map map = new HashMap();
