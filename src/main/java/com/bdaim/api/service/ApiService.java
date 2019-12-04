@@ -349,6 +349,7 @@ public class ApiService {
         if (amApplicationEntity == null) {
             throw new Exception("企业不存在");
         }
+        logger.info(amApplicationEntity.getId()+"");
         StringBuffer sql = new StringBuffer();
         sql.append(" select sub.APPLICATION_ID ,api.API_ID as apiId,api.API_NAME as apiName,sub.SUBS_CREATE_STATE as subCreateState,sub.CREATED_TIME as createTime");
         sql.append(" from am_api api left join am_subscription sub  on  api.API_ID=sub.API_ID");
@@ -359,7 +360,7 @@ public class ApiService {
         }
         page.setSort("api.CREATED_TIME");
         page.setDir("desc");
-
+        logger.info(sql.toString());
         PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
         logger.info(list.toString());
         Object collect = list.getList().stream().map(m -> {
