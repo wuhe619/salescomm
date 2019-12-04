@@ -298,17 +298,17 @@ public class ApiService {
 
     public int subApi(JSONObject params, String apiId, LoginUser lu) {
         try {
-        AmApplicationEntity amApplicationEntity = amApplicationDao.getByCustId(params.getString("custId"));
-        if (amApplicationEntity == null) {
-            throw new Exception("企业不存在");
-        }
-        ApiEntity apiEntity = apiDao.getApi(Integer.valueOf(apiId));
-        if (apiEntity == null) {
-            throw new Exception("API不存在");
-        }
-        SubscriptionEntity subEntity = subscriptionDao.getById(apiEntity.getApiId(), amApplicationEntity.getId());
-        logger.info("订阅主键：" + subEntity.getId());
-        int subscriptionId;
+            AmApplicationEntity amApplicationEntity = amApplicationDao.getByCustId(params.getString("custId"));
+            if (amApplicationEntity == null) {
+                throw new Exception("企业不存在");
+            }
+            ApiEntity apiEntity = apiDao.getApi(Integer.valueOf(apiId));
+            if (apiEntity == null) {
+                throw new Exception("API不存在");
+            }
+            SubscriptionEntity subEntity = subscriptionDao.getById(apiEntity.getApiId(), amApplicationEntity.getId());
+            logger.info("订阅主键：" + subEntity.getId());
+            int subscriptionId;
 
             if (subEntity == null) {
 //            subEntity = new SubscriptionEntity();
@@ -330,9 +330,8 @@ public class ApiService {
                     PreparedStatement ps = con.prepareStatement(subSql, Statement.RETURN_GENERATED_KEYS);
                     return ps;
                 };
-
+                logger.info(subSql);
                 jdbcTemplate.update(preparedStatementCreator, keyHolder);
-
 
                 subscriptionId = keyHolder.getKey().intValue();
                 String sql = "REPLACE INTO am_subcription_charge(SUBSCRIPTION_ID,CHARGE_ID,EFFECTIVE_DATE,EXPIRE_DATE,START_VOLUME,TIER_VOLUME,CREATE_TIME,CREATE_BY,UPDATE_TIME,UPDATE_BY) " +
