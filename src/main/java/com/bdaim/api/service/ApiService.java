@@ -25,9 +25,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.PreparedStatementCreator;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.sql.PreparedStatement;
+import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -150,6 +155,9 @@ public class ApiService {
         //url
         if (StringUtil.isNotEmpty(apiDefine.getResource_url_pattern())) {
             apiDao.dealCustomerInfo(String.valueOf(apiId), "resource_url_pattern", apiDefine.getResource_url_pattern());
+        }
+        if(StringUtil.isNotEmpty(apiData.getDescription())){
+            apiDao.dealCustomerInfo(String.valueOf(apiId), "descriptionw", apiDefine.getDescription());
         }
         //请求方式
         if (StringUtil.isNotEmpty(apiDefine.getRequest_method())) {
@@ -277,6 +285,9 @@ public class ApiService {
                 case "rsIds":
                     vo.setRsIds(property_value);
                     break;
+                case "descriptionw":
+                    vo.setDescription(property_value);
+                    break;
             }
         });
         vo.setApi_define(apiDefine);
@@ -297,18 +308,27 @@ public class ApiService {
         SubscriptionEntity subEntity = subscriptionDao.getById(apiEntity.getApiId(), amApplicationEntity.getId());
         int subscriptionId;
         if (subEntity == null) {
-            subEntity = new SubscriptionEntity();
-            subEntity.setLastAccessed(new Timestamp(System.currentTimeMillis()));
-            subEntity.setCreatedTime(new Timestamp(System.currentTimeMillis()));
-            subEntity.setCreatedBy(lu.getUserName());
-            subEntity.setSubStatus("BLOCKED");
-            subEntity.setApiId(apiEntity.getApiId());
-            subEntity.setApplicationId(amApplicationEntity.getId());
-            subEntity.setSubsCreateState("SUBSCRIBE");
-            subscriptionId = (int) subscriptionDao.saveReturnPk(subEntity);
+//            subEntity = new SubscriptionEntity();
+//            subEntity.setLastAccessed(new Timestamp(System.currentTimeMillis()));
+//            subEntity.setCreatedTime(new Timestamp(System.currentTimeMillis()));
+//            subEntity.setCreatedBy(lu.getUserName());
+//            subEntity.setSubStatus("BLOCKED");
+//            subEntity.setApiId(apiEntity.getApiId());
+//            subEntity.setApplicationId(amApplicationEntity.getId());
+//            subEntity.setSubsCreateState("SUBSCRIBE");
+
             Calendar calendar = Calendar.getInstance();
             calendar.add(Calendar.DATE, 365 * 100);
-
+            String subSql=" insert into am_subscription (CREATED_BY,CREATED_TIME,API_ID,LAST_ACCESSED,SUB_STATUS,SUBS_CREATE_STATE,APPLICATION_ID,UPDATED_TIME) " +
+                    "values('"+lu.getUserName()+"','"+new Timestamp(System.currentTimeMillis())+"',"+apiEntity.getApiId()+",'"+new Timestamp(System.currentTimeMillis())+
+                    "','BLOCKED','SUBSCRIBE',"+amApplicationEntity.getId()+",'"+new Timestamp(System.currentTimeMillis())+"')";
+            KeyHolder keyHolder = new GeneratedKeyHolder();
+            PreparedStatementCreator preparedStatementCreator = con -> {
+                PreparedStatement ps = con.prepareStatement(subSql, Statement.RETURN_GENERATED_KEYS);
+                return ps;
+            };
+            jdbcTemplate.update(preparedStatementCreator, keyHolder);
+            subscriptionId = keyHolder.getKey().intValue();
             String sql = "REPLACE INTO am_subcription_charge(SUBSCRIPTION_ID,CHARGE_ID,EFFECTIVE_DATE,EXPIRE_DATE,START_VOLUME,TIER_VOLUME,CREATE_TIME,CREATE_BY,UPDATE_TIME,UPDATE_BY) " +
                     "VALUES (?,?,?,?,?,?,?,?,?,?)";
             jdbcTemplate.update(sql, new Object[]{subscriptionId, 1, new Timestamp(System.currentTimeMillis()), calendar.getTime(), 0, 100000, new Timestamp(System.currentTimeMillis()), lu.getUserName(), new Timestamp(System.currentTimeMillis()), lu.getUserName()});
@@ -363,7 +383,6 @@ public class ApiService {
         }
         page.setSort("api.CREATED_TIME");
         page.setDir("desc");
-        logger.info(sql.toString());
         PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
         Object collect = list.getList().stream().map(m -> {
             Map map = (Map) m;
