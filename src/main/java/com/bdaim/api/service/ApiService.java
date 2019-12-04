@@ -310,14 +310,14 @@ public class ApiService {
                 logger.info("API不存在");
                 throw new Exception("API不存在");
             }
-            SubscriptionEntity subEntity = subscriptionDao.getById(apiEntity.getApiId(), amApplicationEntity.getId());
-//            String subSql1="select SUBSCRIPTION_ID as id  from am_subscription where APPLICATION_ID="+amApplicationEntity.getId() +" and API_ID = "+apiEntity.getApiId();
+//            SubscriptionEntity subEntity = subscriptionDao.getById(apiEntity.getApiId(), amApplicationEntity.getId());
+            String subSql1="select SUBSCRIPTION_ID as id  from am_subscription where APPLICATION_ID="+amApplicationEntity.getId() +" and API_ID = "+apiEntity.getApiId();
 //            SubscriptionEntity subEntity = jdbcTemplate.queryForObject(subSql1, SubscriptionEntity.class);
-            logger.info("订阅主键：" + subEntity.getId());
-
+            List<Map<String, Object>> list = jdbcTemplate.queryForList(subSql1);
             int subscriptionId;
 
-            if (subEntity == null) {
+            if (list.size()==0) {
+                logger.info("新增");
 //            subEntity = new SubscriptionEntity();
 //            subEntity.setLastAccessed(new Timestamp(System.currentTimeMillis()));
 //            subEntity.setCreatedTime(new Timestamp(System.currentTimeMillis()));
@@ -346,9 +346,9 @@ public class ApiService {
                 jdbcTemplate.update(sql, new Object[]{subscriptionId, 1, new Timestamp(System.currentTimeMillis()), calendar.getTime(), 0, 100000, new Timestamp(System.currentTimeMillis()), lu.getUserName(), new Timestamp(System.currentTimeMillis()), lu.getUserName()});
 
             } else {
+                subscriptionId = Integer.valueOf(list.get(0).get("id").toString());
                 String sql = "update am_subscription  set SUBS_CREATE_STATE=? ,UPDATED_BY=? ,UPDATED_TIME=? where SUBSCRIPTION_ID=? ";
-                jdbcTemplate.update(sql, new Object[]{"SUBSCRIBE", lu.getUserName(), new Timestamp(System.currentTimeMillis()), subEntity.getId()});
-                subscriptionId = subEntity.getId();
+                jdbcTemplate.update(sql, new Object[]{"SUBSCRIBE", lu.getUserName(), new Timestamp(System.currentTimeMillis()), subscriptionId});
             }
             return subscriptionId;
         } catch (Exception e) {
