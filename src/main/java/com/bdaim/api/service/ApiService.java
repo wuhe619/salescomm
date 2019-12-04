@@ -310,8 +310,9 @@ public class ApiService {
                 logger.info("API不存在");
                 throw new Exception("API不存在");
             }
-            String subSql1="select SUBSCRIPTION_ID   from am_subscription where APPLICATION_ID="+amApplicationEntity.getId() +" and API_ID = "+apiEntity.getApiId();
-            SubscriptionEntity subEntity = jdbcTemplate.queryForObject(subSql1, SubscriptionEntity.class);
+            SubscriptionEntity subEntity = subscriptionDao.getById(apiEntity.getApiId(), amApplicationEntity.getId());
+//            String subSql1="select SUBSCRIPTION_ID as id  from am_subscription where APPLICATION_ID="+amApplicationEntity.getId() +" and API_ID = "+apiEntity.getApiId();
+//            SubscriptionEntity subEntity = jdbcTemplate.queryForObject(subSql1, SubscriptionEntity.class);
             logger.info("订阅主键：" + subEntity.getId());
             int subscriptionId;
 
@@ -351,6 +352,7 @@ public class ApiService {
             return subscriptionId;
         } catch (Exception e) {
             logger.info("错误信息："+e);
+            e.printStackTrace();
         }
         return 0;
     }
