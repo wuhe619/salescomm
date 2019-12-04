@@ -156,7 +156,7 @@ public class ApiService {
         if (StringUtil.isNotEmpty(apiDefine.getResource_url_pattern())) {
             apiDao.dealCustomerInfo(String.valueOf(apiId), "resource_url_pattern", apiDefine.getResource_url_pattern());
         }
-        if(StringUtil.isNotEmpty(apiData.getDescription())){
+        if (StringUtil.isNotEmpty(apiData.getDescription())) {
             apiDao.dealCustomerInfo(String.valueOf(apiId), "descriptionw", apiDefine.getDescription());
         }
         //请求方式
@@ -302,11 +302,11 @@ public class ApiService {
             throw new Exception("企业不存在");
         }
         ApiEntity apiEntity = apiDao.getApi(Integer.valueOf(apiId));
-        if(apiEntity==null){
+        if (apiEntity == null) {
             throw new Exception("API不存在");
         }
         SubscriptionEntity subEntity = subscriptionDao.getById(apiEntity.getApiId(), amApplicationEntity.getId());
-        logger.info("订阅主键："+subEntity.getId());
+        logger.info("订阅主键：" + subEntity.getId());
         int subscriptionId;
         if (subEntity == null) {
 //            subEntity = new SubscriptionEntity();
@@ -320,27 +320,32 @@ public class ApiService {
 
             Calendar calendar = Calendar.getInstance();
             calendar.add(Calendar.DATE, 365 * 100);
-            String subSql=" insert into am_subscription (CREATED_BY,CREATED_TIME,API_ID,LAST_ACCESSED,SUB_STATUS,SUBS_CREATE_STATE,APPLICATION_ID,UPDATED_TIME) " +
-                    "values('"+lu.getUserName()+"','"+new Timestamp(System.currentTimeMillis())+"',"+apiEntity.getApiId()+",'"+new Timestamp(System.currentTimeMillis())+
-                    "','BLOCKED','SUBSCRIBE',"+amApplicationEntity.getId()+",'"+new Timestamp(System.currentTimeMillis())+"')";
+            String subSql = " insert into am_subscription (CREATED_BY,CREATED_TIME,API_ID,LAST_ACCESSED,SUB_STATUS,SUBS_CREATE_STATE,APPLICATION_ID,UPDATED_TIME) " +
+                    "values('" + lu.getUserName() + "','" + new Timestamp(System.currentTimeMillis()) + "'," + apiEntity.getApiId() + ",'" + new Timestamp(System.currentTimeMillis()) +
+                    "','BLOCKED','SUBSCRIBE'," + amApplicationEntity.getId() + ",'" + new Timestamp(System.currentTimeMillis()) + "')";
             KeyHolder keyHolder = new GeneratedKeyHolder();
             PreparedStatementCreator preparedStatementCreator = con -> {
                 PreparedStatement ps = con.prepareStatement(subSql, Statement.RETURN_GENERATED_KEYS);
                 return ps;
             };
-            jdbcTemplate.update(preparedStatementCreator, keyHolder);
+            try {
+                jdbcTemplate.update(preparedStatementCreator, keyHolder);
+            } catch (Exception e) {
+                logger.info(e.getMessage());
+            }
+
             subscriptionId = keyHolder.getKey().intValue();
             String sql = "REPLACE INTO am_subcription_charge(SUBSCRIPTION_ID,CHARGE_ID,EFFECTIVE_DATE,EXPIRE_DATE,START_VOLUME,TIER_VOLUME,CREATE_TIME,CREATE_BY,UPDATE_TIME,UPDATE_BY) " +
                     "VALUES (?,?,?,?,?,?,?,?,?,?)";
             jdbcTemplate.update(sql, new Object[]{subscriptionId, 1, new Timestamp(System.currentTimeMillis()), calendar.getTime(), 0, 100000, new Timestamp(System.currentTimeMillis()), lu.getUserName(), new Timestamp(System.currentTimeMillis()), lu.getUserName()});
 
         } else {
-            String sql ="update am_subscription  set SUBS_CREATE_STATE=? ,UPDATED_BY=? ,UPDATED_TIME=? where SUBSCRIPTION_ID=? ";
-            jdbcTemplate.update(sql,new Object[]{"SUBSCRIBE",lu.getUserName(),new Timestamp(System.currentTimeMillis()),subEntity.getId()});
+            String sql = "update am_subscription  set SUBS_CREATE_STATE=? ,UPDATED_BY=? ,UPDATED_TIME=? where SUBSCRIPTION_ID=? ";
+            jdbcTemplate.update(sql, new Object[]{"SUBSCRIBE", lu.getUserName(), new Timestamp(System.currentTimeMillis()), subEntity.getId()});
             subscriptionId = subEntity.getId();
         }
 
-         return subscriptionId;
+        return subscriptionId;
     }
 
     public int subApiUpdate(JSONObject params, String apiId, LoginUser lu) throws Exception {
@@ -407,7 +412,7 @@ public class ApiService {
             if (rsIds.length() > 0) rsIds.deleteCharAt(rsIds.length() - 1);
 
             StringBuffer suppliers = new StringBuffer();
-            if(sulist.size()>0){
+            if (sulist.size() > 0) {
                 supplierDao.getSuppliers(sulist).stream().forEach(e -> {
                     suppliers.append(e.getName()).append(",");
                 });
