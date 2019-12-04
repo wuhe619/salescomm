@@ -10,10 +10,10 @@ import java.util.List;
 @Component
 public class SubscriptionDao extends SimpleHibernateDao<SubscriptionEntity, Integer> {
 
-    public SubscriptionEntity getById(String apiId, int applicationId) {
+    public SubscriptionEntity getById(int apiId, int applicationId) {
         SubscriptionEntity cp = null;
         String hql = "from SubscriptionEntity m where m.apiId=? and m.applicationId=?";
-        List<SubscriptionEntity> list = this.find(hql, Integer.valueOf(apiId), applicationId);
+        List<SubscriptionEntity> list = this.find(hql, apiId, applicationId);
         if (list.size() > 0)
             cp = (SubscriptionEntity) list.get(0);
         return cp;

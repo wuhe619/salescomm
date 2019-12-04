@@ -290,7 +290,11 @@ public class ApiService {
         if (amApplicationEntity == null) {
             throw new Exception("企业不存在");
         }
-        SubscriptionEntity subEntity = subscriptionDao.getById(apiId, amApplicationEntity.getId());
+        ApiEntity apiEntity = apiDao.getApi(Integer.valueOf(apiId));
+        if(apiEntity==null){
+            throw new Exception("API不存在");
+        }
+        SubscriptionEntity subEntity = subscriptionDao.getById(apiEntity.getApiId(), amApplicationEntity.getId());
         int subscriptionId;
         if (subEntity == null) {
             subEntity = new SubscriptionEntity();
@@ -298,7 +302,7 @@ public class ApiService {
             subEntity.setCreatedTime(new Timestamp(System.currentTimeMillis()));
             subEntity.setCreatedBy(lu.getUserName());
             subEntity.setSubStatus("BLOCKED");
-            subEntity.setApiId(Integer.valueOf(apiId));
+            subEntity.setApiId(apiEntity.getApiId());
             subEntity.setApplicationId(amApplicationEntity.getId());
             subEntity.setSubsCreateState("SUBSCRIBE");
             subscriptionId = (int) subscriptionDao.saveReturnPk(subEntity);
@@ -324,7 +328,7 @@ public class ApiService {
         if (amApplicationEntity == null) {
             throw new Exception("企业不存在");
         }
-        SubscriptionEntity entity = subscriptionDao.getById(apiId, amApplicationEntity.getId());
+        SubscriptionEntity entity = subscriptionDao.getById(Integer.valueOf(apiId), amApplicationEntity.getId());
         entity.setSubsCreateState("UNSUBSCRIBE");
         entity.setUpdatedBy(lu.getUserName());
         entity.setUpdatedTime(new Timestamp(System.currentTimeMillis()));
@@ -337,7 +341,7 @@ public class ApiService {
         if (amApplicationEntity == null) {
             throw new Exception("企业不存在");
         }
-        SubscriptionEntity entity = subscriptionDao.getById(apiId, amApplicationEntity.getId());
+        SubscriptionEntity entity = subscriptionDao.getById(Integer.valueOf(apiId), amApplicationEntity.getId());
         String sql = "update am_subcription_charge set unit_price=?,UPDATE_BY=?,UPDATE_TIME=? where SUBSCRIPTION_ID=?";
         jdbcTemplate.update(sql, new Object[]{params.getInteger("price") * 10000, lu.getUserName(), new Timestamp(System.currentTimeMillis()), entity.getId()});
         return 1;
@@ -349,7 +353,7 @@ public class ApiService {
         if (amApplicationEntity == null) {
             throw new Exception("企业不存在");
         }
-        logger.info(amApplicationEntity.getId()+"");
+        logger.info(amApplicationEntity.getId() + "");
         StringBuffer sql = new StringBuffer();
         sql.append(" select sub.APPLICATION_ID ,api.API_ID as apiId,api.API_NAME as apiName,sub.SUBS_CREATE_STATE as subCreateState,sub.CREATED_TIME as createTime");
         sql.append(" from am_api api left join am_subscription sub  on  api.API_ID=sub.API_ID");
@@ -364,30 +368,32 @@ public class ApiService {
         PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
         Object collect = list.getList().stream().map(m -> {
             Map map = (Map) m;
-            map.put("suppliers", "");
-            map.put("resourceIds", "");
+            map.put("realName", "");
+            map.put("resourceId", "");
             map.put("subCreateState", "UNSUBSCRIBE");
             ApiProperty property = apiDao.getProperty(map.get("apiId").toString(), "rsIds");
             if (property == null) return map;
             String propertyValue = property.getPropertyValue();
             JSONArray jsonArray = JSONArray.parseArray(propertyValue);
-            List relist = new ArrayList<>();
+            StringBuffer rsIds = new StringBuffer();
             List<Integer> sulist = new ArrayList<>();
             jsonArray.stream().forEach(p -> {
                 Map pmap = (Map) p;
-                Object rsIds = pmap.get("rsId");
+                rsIds.append(pmap.get("rsId")).append(",");
                 Object supplierIds = pmap.get("supplierId");
-                relist.add(rsIds);
                 if (supplierIds != null) {
                     sulist.add(Integer.parseInt(supplierIds + "".trim()));
                 }
             });
-            List<SupplierEntity> suppliers = null;
-            if (sulist.size() > 0) {
-                suppliers = supplierDao.getSuppliers(sulist);
-            }
-            map.put("suppliers", suppliers);
-            map.put("resourceIds", relist);
+            if (rsIds.length() > 0) rsIds.deleteCharAt(rsIds.length() - 1);
+
+            StringBuffer suppliers = new StringBuffer();
+//            supplierDao.getSuppliers(sulist).stream().forEach(e -> {
+//                suppliers.append(e.getName()).append(",");
+//            });
+            if (suppliers.length() > 0) rsIds.deleteCharAt(suppliers.length() - 1);
+            map.put("realName", suppliers);
+            map.put("resourceId", rsIds);
             return map;
         }).collect(Collectors.toList());
         Map map = new HashMap();
@@ -418,29 +424,31 @@ public class ApiService {
         PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
         Object collect = list.getList().stream().map(m -> {
             Map map = (Map) m;
-            map.put("suppliers", "");
+            map.put("realName", "");
             map.put("resourceId", "");
             ApiProperty property = apiDao.getProperty(map.get("apiId").toString(), "rsIds");
             if (property == null) return map;
             String propertyValue = property.getPropertyValue();
             JSONArray jsonArray = JSONArray.parseArray(propertyValue);
-            List relist = new ArrayList();
             List sulist = new ArrayList();
+            StringBuffer rsIds = new StringBuffer();
             jsonArray.stream().forEach(p -> {
                 Map pmap = (Map) p;
-                Object rsIds = pmap.get("rsId");
+                rsIds.append(pmap.get("rsId")).append(",");
                 Object supplierIds = pmap.get("supplierId");
-                relist.add(rsIds);
                 if (supplierIds != null) {
                     sulist.add(Integer.parseInt(supplierIds + "".trim()));
                 }
             });
-            List<SupplierEntity> suppliers = null;
-            if (sulist.size() > 0) {
-                suppliers = supplierDao.getSuppliers(sulist);
-            }
-            map.put("suppliers", suppliers);
-            map.put("resourceId", relist);
+            if (rsIds.length() > 0) rsIds.deleteCharAt(rsIds.length() - 1);
+
+            StringBuffer suppliers = new StringBuffer();
+//            supplierDao.getSuppliers(sulist).stream().forEach(e -> {
+//                suppliers.append(e.getName()).append(",");
+//            });
+            if (suppliers.length() > 0) rsIds.deleteCharAt(suppliers.length() - 1);
+            map.put("realName", suppliers);
+            map.put("resourceId", rsIds);
             map.put("priceType", "单一定价");
             return map;
         }).collect(Collectors.toList());
