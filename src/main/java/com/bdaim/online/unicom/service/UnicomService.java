@@ -215,7 +215,7 @@ public class UnicomService {
         }
         // 查询用户主叫号码 work_num work_num_status
         CustomerUserPropertyDO work_num_status = customerUserDao.getProperty(String.valueOf(userId), "work_num_status");
-        if (!"1".equals(work_num_status)) {
+        if (work_num_status == null || !"1".equals(work_num_status.getPropertyValue())) {
             LOG.warn("custId:{},userId:{}主叫号码审核状态异常", custId, userId);
             result.put("msg", "用户主叫号码审核状态异常");
             return result;
