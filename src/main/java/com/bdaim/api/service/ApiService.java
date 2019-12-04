@@ -61,6 +61,7 @@ public class ApiService {
             entity.setProvider(lu.getUserName());
             entity.setUpdateTime(new Timestamp(System.currentTimeMillis()));
             entity.setUpdateBy(lu.getUserName());
+            entity.setStatus(0);
             apiId = (int) apiDao.saveReturnPk(entity);
             apiDao.dealCustomerInfo(String.valueOf(apiId), "status", "0");
         } else {
@@ -161,35 +162,36 @@ public class ApiService {
     }
 
     public int updateStatusApiById(String apiId, LoginUser lu, int status) throws Exception {
-        apiDao.dealCustomerInfo(String.valueOf(apiId), "status", String.valueOf(status));
-//        ApiEntity entity = apiDao.getApi(Integer.valueOf(apiId));
-//        if (entity == null) {
-//            throw new Exception("api不存在");
-//        }
-//        entity.setUpdateTime(new Timestamp(System.currentTimeMillis()));
-//        entity.setUpdateBy(lu.getUserName());
-//        switch (status) {
-//            case 0:
-//                entity.setStatus(ApiEntity.API_FOUND);
-//                break;
-//            case 1:
-//                entity.setStatus(ApiEntity.API_OFFLINE);
-//                break;
-//            case 2:
-//                entity.setStatus(ApiEntity.API_RELEASE);
-//                break;
-//        }(int) apiDao.saveReturnPk(entity)
+//        apiDao.dealCustomerInfo(String.valueOf(apiId), "status", String.valueOf(status));
+        ApiEntity entity = apiDao.getApi(Integer.valueOf(apiId));
+        if (entity == null) {
+            throw new Exception("api不存在");
+        }
+        entity.setUpdateTime(new Timestamp(System.currentTimeMillis()));
+        entity.setUpdateBy(lu.getUserName());
+        switch (status) {
+            case 0:
+                entity.setStatus(ApiEntity.API_FOUND);
+                break;
+            case 1:
+                entity.setStatus(ApiEntity.API_OFFLINE);
+                break;
+            case 2:
+                entity.setStatus(ApiEntity.API_RELEASE);
+                break;
+        }
+        apiDao.update(entity);
         return 1;
     }
 
     public Map<String, Object> apis(PageParam page, JSONObject params) {
         StringBuffer sql = new StringBuffer();
-        sql.append(" select API_ID as apiId,API_NAME as apiName,CONTEXT as context,CREATED_BY as createdBy  from am_api where 1=1 ");
+        sql.append(" select API_ID as apiId,API_NAME as apiName,CONTEXT as context,CREATED_BY as createdBy,status   from am_api where 1=1 ");
         if (StringUtil.isNotEmpty(params.getString("apiName"))) {
             sql.append(" and API_NAME like '%" + params.getString("apiName") + "%'");
         }
         if (params.getInteger("status") != null) {
-            sql.append(" and API_NAME status =" + params.getInteger("status"));
+            sql.append(" and status =" + params.getInteger("status"));
         }
         sql.append(" order by CREATED_TIME desc");
         PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
@@ -197,12 +199,6 @@ public class ApiService {
         Object collect = list.getList().stream().map(m -> {
             Map dataMap = (Map) m;
             String apiId = dataMap.get("apiId").toString();
-            ApiProperty status = apiDao.getProperty(apiId, "status");
-            if (status == null) {
-                dataMap.put("status", 0);
-            }else{
-                dataMap.put("status", status);
-            }
             String countSql = "select count(*) from am_subscription where API_ID=" + Integer.valueOf(apiId) + " and SUBS_CREATE_STATE='SUBSCRIBE'";
             Integer count = jdbcTemplate.queryForObject(countSql, Integer.class);
             dataMap.put("subscribeNum", count);
@@ -272,9 +268,6 @@ public class ApiService {
                     break;
                 case "rsIds":
                     vo.setRsIds(property_value);
-                    break;
-                case "status":
-                    vo.setStatus(property_value);
                     break;
             }
         });
@@ -462,7 +455,7 @@ public class ApiService {
         sql.append(" from rs_log_" + params.getString("callMonth") + " log left join t_market_resource res on log.RS_ID=res.resource_id");
         sql.append(" left join am_api api on api.API_ID = log.API_ID ");
         sql.append(" left join api_queue que on que.ID=log.API_LOG_ID");
-        sql.append(" where log.RS_ID = "+params.getLong("resourceId"));
+        sql.append(" where log.RS_ID = " + params.getLong("resourceId"));
 
         PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
         return list;

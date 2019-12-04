@@ -82,7 +82,7 @@ public class ApiController {
         try {
             apiService.updateStatusApiById(apiId, lu, status);
         } catch (Exception e) {
-            return new ResponseInfoAssemble().failure(-1, "Api删除失败:失败原因apiId不存在");
+            return new ResponseInfoAssemble().failure(-1, "Api删除失败:失败原因API不存在");
         }
 
         return resp;

@@ -38,6 +38,7 @@ public class ApiData {
         this.contextTemplate = entity.getContextTexplate();
         this.apiId = entity.getApiId();
         this.apiVersion=entity.getVersion();
+        this.status=String.valueOf(entity.getStatus());
 
     }
 
