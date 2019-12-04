@@ -9,6 +9,8 @@ import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.util.StringUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,6 +19,7 @@ import javax.annotation.Resource;
 @RestController
 @RequestMapping("/api")
 public class ApiController {
+    private static Logger logger = LoggerFactory.getLogger(ApiController.class);
     @Resource
     private TokenServiceImpl tokenService;
 
@@ -103,7 +106,7 @@ public class ApiController {
         try {
             info.setData(apiService.subApi(params, apiId, lu));
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.info(e.getMessage());
             return new ResponseInfoAssemble().failure(-1, "订阅失败");
         }
         return info;
