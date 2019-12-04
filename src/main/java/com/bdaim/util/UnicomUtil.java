@@ -40,7 +40,7 @@ public class UnicomUtil {
     }
 
     /**
-     * 通过获取名称获取文件地址
+     * 通过名称获取文件地址
      * @param pwd
      * @param entId
      * @param key
