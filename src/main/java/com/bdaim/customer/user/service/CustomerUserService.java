@@ -755,6 +755,9 @@ public class CustomerUserService {
                         if (work_num == null)
                             work_num = new CustomerUserPropertyDO(Id, "work_num", "", new Timestamp(System.currentTimeMillis()));
                         work_num.setPropertyValue(userDTO.getWorkNum());
+                        //添加员工配置双呼默认审核通过
+                        CustomerUserPropertyDO work_num_status = new CustomerUserPropertyDO(cu.getId().toString(), "work_num_status", "1", new Timestamp(System.currentTimeMillis()));
+                        list.add(work_num_status);
                         list.add(work_num);
                         // 添加联通主叫号码
                         unicomService.addUserExtension(cu.getCust_id(), userDTO.getWorkNum());
