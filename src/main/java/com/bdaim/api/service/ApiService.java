@@ -200,6 +200,8 @@ public class ApiService {
             ApiProperty status = apiDao.getProperty(apiId, "status");
             if (status == null) {
                 dataMap.put("status", 0);
+            }else{
+                dataMap.put("status", status);
             }
             String countSql = "select count(*) from am_subscription where API_ID=" + Integer.valueOf(apiId) + " and SUBS_CREATE_STATE='SUBSCRIBE'";
             Integer count = jdbcTemplate.queryForObject(countSql, Integer.class);
