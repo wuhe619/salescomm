@@ -300,6 +300,7 @@ public class ApiService {
         try {
             AmApplicationEntity amApplicationEntity = amApplicationDao.getByCustId(params.getString("custId"));
             if (amApplicationEntity == null) {
+                logger.info("企业不存在");
                 throw new Exception("企业不存在");
             }
             ApiEntity apiEntity = apiDao.getApi(Integer.valueOf(apiId));
