@@ -304,6 +304,7 @@ public class ApiService {
                 throw new Exception("企业不存在");
             }
             logger.info("APIID:" + apiId);
+            logger.info("applicationId:" + amApplicationEntity.getId());
             ApiEntity apiEntity = apiDao.getApi(Integer.valueOf(apiId));
             if (apiEntity == null) {
                 logger.info("API不存在");
@@ -348,7 +349,7 @@ public class ApiService {
             }
             return subscriptionId;
         } catch (Exception e) {
-            logger.info(e.getMessage());
+            logger.info("错误信息："+e.getMessage());
         }
         return 0;
     }
