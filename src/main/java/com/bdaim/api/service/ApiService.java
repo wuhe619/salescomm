@@ -385,16 +385,21 @@ public class ApiService {
     }
 
     public Map<String, Object> subApiSubscribeList(PageParam page, String custId, String apiName) throws Exception {
-        AmApplicationEntity amApplicationEntity = amApplicationDao.getByCustId(custId);
-        if (amApplicationEntity == null) {
-            throw new Exception("企业不存在");
-        }
+//        AmApplicationEntity amApplicationEntity = amApplicationDao.getByCustId(custId);
+//        if (amApplicationEntity == null) {
+//            throw new Exception("企业不存在");
+//        }
         StringBuffer sql = new StringBuffer();
-        sql.append(" select sub.APPLICATION_ID ,api.API_ID as apiId,api.API_NAME as apiName,sub.SUBS_CREATE_STATE as subCreateState,sub.CREATED_TIME as createTime");
+        sql.append(" select sub.APPLICATION_ID ,api.API_ID as apiId,api.API_NAME as apiName,sub.SUBS_CREATE_STATE as subCreateState,sub.CREATED_TIME as createTime,cus.real_name as realName,cus.cust_id as custId");
         sql.append(" from am_api api left join am_subscription sub  on  api.API_ID=sub.API_ID");
+        sql.append(" left join am_application app on  app.APPLICATION_ID = sub.APPLICATION_ID");
+        sql.append(" left join t_customer cus on cus.cust_id=app.SUBSCRIBER_ID");
         sql.append(" where sub.SUBS_CREATE_STATE = 'SUBSCRIBE'");
         if (StringUtil.isNotEmpty(apiName)) {
-            sql.append(" and api.API_NAME like '%" + apiName + "%'");
+            sql.append(" and api.API_NAME = '" + apiName + "'");
+        }
+        if(StringUtil.isNotEmpty(custId)){
+            sql.append(" and cus.cust_id = '" + custId + "'");
         }
         page.setSort("api.CREATED_TIME");
         page.setDir("desc");
@@ -402,7 +407,7 @@ public class ApiService {
         Object collect = list.getList().stream().map(m -> {
             Map map = (Map) m;
             map.put("suppliers", "");
-            map.put("resourceIds", "");
+            map.put("resourceId", "");
             ApiProperty property = apiDao.getProperty(map.get("apiId").toString(), "rsIds");
             if (property == null) return map;
             String propertyValue = property.getPropertyValue();
@@ -423,7 +428,8 @@ public class ApiService {
                 suppliers = supplierDao.getSuppliers(sulist);
             }
             map.put("suppliers", suppliers);
-            map.put("resourceIds", relist);
+            map.put("resourceId", relist);
+            map.put("priceType","单一定价");
             return map;
         }).collect(Collectors.toList());
         Map map = new HashMap();
