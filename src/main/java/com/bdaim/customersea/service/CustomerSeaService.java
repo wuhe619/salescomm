@@ -1514,7 +1514,8 @@ public class CustomerSeaService {
         // 指定ID退回公海
         StringBuilder sql = new StringBuilder()
                 .append("UPDATE ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(seaId)
-                .append(" SET status = 1, pre_user_id = user_id, user_id = NULL, super_data = '{\"SYS007\":\"未跟进\"}' WHERE status = 0  AND id IN (").append(SqlAppendUtil.sqlAppendWhereIn(superIds)).append(")");
+                //.append(" SET status = 1, pre_user_id = user_id, user_id = NULL, super_data = '{\"SYS007\":\"未跟进\"}' WHERE status = 0  AND id IN (").append(SqlAppendUtil.sqlAppendWhereIn(superIds)).append(")");
+                .append(" SET status = 1, pre_user_id = user_id, user_id = NULL, super_data = JSON_SET(super_data, '$.SYS007', '未跟进') WHERE status = 0  AND id IN (").append(SqlAppendUtil.sqlAppendWhereIn(superIds)).append(")");
         StringBuilder logSql = new StringBuilder()
                 .append("INSERT INTO ").append(ConstantsUtil.CUSTOMER_OPER_LOG_TABLE_PREFIX).append(" (`user_id`, `list_id`, `customer_sea_id`, `customer_group_id`, `event_type`, object_code, `create_time`,reason,remark ) ")
                 .append(" SELECT ").append(userId).append(" ,id,").append(seaId).append(",batch_id,").append(7).append(", user_id ,'").append(new Timestamp(System.currentTimeMillis())).append("'").append(" ,? ,? ")
@@ -1539,7 +1540,8 @@ public class CustomerSeaService {
         // 指定搜索条件退回公海
         StringBuilder sql = new StringBuilder()
                 .append("UPDATE ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(param.getSeaId())
-                .append(" SET status = 1, pre_user_id = user_id ,user_id = NULL, super_data = '{\"SYS007\":\"未跟进\"}'  WHERE status = 0 ");
+                //.append(" SET status = 1, pre_user_id = user_id ,user_id = NULL, super_data = '{\"SYS007\":\"未跟进\"}'  WHERE status = 0 ");
+                .append(" SET status = 1, pre_user_id = user_id ,user_id = NULL, super_data = JSON_SET(super_data, '$.SYS007', '未跟进') WHERE status = 0 ");
         StringBuilder logSql = new StringBuilder()
                 .append("INSERT INTO ").append(ConstantsUtil.CUSTOMER_OPER_LOG_TABLE_PREFIX).append(" (`user_id`, `list_id`, `customer_sea_id`, `customer_group_id`, `event_type`, object_code, `create_time`, reason, remark) ")
                 .append(" SELECT ").append(param.getUserId()).append(" ,id,").append(param.getSeaId()).append(",batch_id,").append(7).append(", user_id ,").append(new Timestamp(System.currentTimeMillis())).append(" ,?,? ")
@@ -1654,7 +1656,8 @@ public class CustomerSeaService {
         // 指定身份ID转交线索
         StringBuilder sql = new StringBuilder()
                 .append("UPDATE ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(seaId)
-                .append(" SET pre_user_id = user_id, user_id = ? ,status = 0, super_data = '{\"SYS007\":\"未跟进\"}' WHERE id IN (").append(SqlAppendUtil.sqlAppendWhereIn(superIds)).append(")");
+                //.append(" SET pre_user_id = user_id, user_id = ? ,status = 0, super_data = '{\"SYS007\":\"未跟进\"}' WHERE id IN (").append(SqlAppendUtil.sqlAppendWhereIn(superIds)).append(")");
+                .append(" SET pre_user_id = user_id, user_id = ? ,status = 0, super_data = JSON_SET(super_data, '$.SYS007', '未跟进') WHERE id IN (").append(SqlAppendUtil.sqlAppendWhereIn(superIds)).append(")");
         StringBuilder logSql = new StringBuilder()
                 .append("INSERT INTO ").append(ConstantsUtil.CUSTOMER_OPER_LOG_TABLE_PREFIX).append(" (`user_id`, `list_id`, `customer_sea_id`, `customer_group_id`, `event_type`, object_code, `create_time`) ")
                 .append(" SELECT ").append(fromUserId).append(" ,id,").append(seaId).append(",batch_id,").append(6).append(", ? ,'").append(new Timestamp(System.currentTimeMillis())).append("'")
@@ -1679,7 +1682,8 @@ public class CustomerSeaService {
         // 指定搜索条件转交线索
         StringBuilder sql = new StringBuilder()
                 .append("UPDATE ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(param.getSeaId())
-                .append(" SET pre_user_id = user_id ,user_id = ?, super_data = '{\"SYS007\":\"未跟进\"}' WHERE 1=1 ");
+                //.append(" SET pre_user_id = user_id ,user_id = ?, super_data = '{\"SYS007\":\"未跟进\"}' WHERE 1=1 ");
+                .append(" SET pre_user_id = user_id ,user_id = ?, super_data = JSON_SET(super_data, '$.SYS007', '未跟进') WHERE 1=1 ");
         StringBuilder logSql = new StringBuilder()
                 .append("INSERT INTO ").append(ConstantsUtil.CUSTOMER_OPER_LOG_TABLE_PREFIX).append("( `user_id`, `list_id`, `customer_sea_id`, `customer_group_id`, `event_type`, object_code, `create_time`) ")
                 .append(" SELECT ").append(param.getUserId()).append(" ,id,").append(param.getSeaId()).append(",batch_id,").append(6).append(", ? ,").append(new Timestamp(System.currentTimeMillis()))
