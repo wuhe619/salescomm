@@ -21,11 +21,18 @@ import com.bdaim.customer.service.CustomerAppService;
 import com.bdaim.supplier.dao.SupplierDao;
 import com.bdaim.supplier.entity.SupplierEntity;
 import com.bdaim.util.StringUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.PreparedStatementCreator;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.sql.PreparedStatement;
+import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -47,10 +54,16 @@ public class ApiService {
     @Resource
     private SupplierDao supplierDao;
 
+    private static Logger logger = LoggerFactory.getLogger(ApiService.class);
 
     public int saveApiProperty(ApiData apiData, String id, LoginUser lu) throws Exception {
         int apiId;
         if (StringUtil.isEmpty(id) || "0".equals(id)) {
+            String context = apiData.getContext();
+            String apiVersion = context.substring(context.lastIndexOf("/") + 1);
+            String contextTexplate = context.substring(0, context.lastIndexOf("/"));
+            apiData.setApiVersion(apiVersion);
+            apiData.setContextTemplate(contextTexplate);
             ApiEntity entity = new ApiEntity();
             entity.setCreateTime(new Timestamp(System.currentTimeMillis()));
             entity.setContext(apiData.getContext());
@@ -142,6 +155,9 @@ public class ApiService {
         //url
         if (StringUtil.isNotEmpty(apiDefine.getResource_url_pattern())) {
             apiDao.dealCustomerInfo(String.valueOf(apiId), "resource_url_pattern", apiDefine.getResource_url_pattern());
+        }
+        if(StringUtil.isNotEmpty(apiData.getDescription())){
+            apiDao.dealCustomerInfo(String.valueOf(apiId), "descriptionw", apiDefine.getDescription());
         }
         //请求方式
         if (StringUtil.isNotEmpty(apiDefine.getRequest_method())) {
@@ -269,6 +285,9 @@ public class ApiService {
                 case "rsIds":
                     vo.setRsIds(property_value);
                     break;
+                case "descriptionw":
+                    vo.setDescription(property_value);
+                    break;
             }
         });
         vo.setApi_define(apiDefine);
@@ -282,33 +301,46 @@ public class ApiService {
         if (amApplicationEntity == null) {
             throw new Exception("企业不存在");
         }
-        SubscriptionEntity subEntity = subscriptionDao.getById(apiId, amApplicationEntity.getId());
+        ApiEntity apiEntity = apiDao.getApi(Integer.valueOf(apiId));
+        if(apiEntity==null){
+            throw new Exception("API不存在");
+        }
+        SubscriptionEntity subEntity = subscriptionDao.getById(apiEntity.getApiId(), amApplicationEntity.getId());
+        logger.info("订阅主键："+subEntity.getId());
         int subscriptionId;
         if (subEntity == null) {
-            subEntity = new SubscriptionEntity();
-            subEntity.setLastAccessed(new Timestamp(System.currentTimeMillis()));
-            subEntity.setCreatedTime(new Timestamp(System.currentTimeMillis()));
-            subEntity.setCreatedBy(lu.getUserName());
-            subEntity.setSubStatus("BLOCKED");
-            subEntity.setApiId(Integer.valueOf(apiId));
-            subEntity.setApplicationId(amApplicationEntity.getId());
-            subEntity.setSubsCreateState("SUBSCRIBE");
-            subscriptionId = (int) subscriptionDao.saveReturnPk(subEntity);
+//            subEntity = new SubscriptionEntity();
+//            subEntity.setLastAccessed(new Timestamp(System.currentTimeMillis()));
+//            subEntity.setCreatedTime(new Timestamp(System.currentTimeMillis()));
+//            subEntity.setCreatedBy(lu.getUserName());
+//            subEntity.setSubStatus("BLOCKED");
+//            subEntity.setApiId(apiEntity.getApiId());
+//            subEntity.setApplicationId(amApplicationEntity.getId());
+//            subEntity.setSubsCreateState("SUBSCRIBE");
+
+            Calendar calendar = Calendar.getInstance();
+            calendar.add(Calendar.DATE, 365 * 100);
+            String subSql=" insert into am_subscription (CREATED_BY,CREATED_TIME,API_ID,LAST_ACCESSED,SUB_STATUS,SUBS_CREATE_STATE,APPLICATION_ID,UPDATED_TIME) " +
+                    "values('"+lu.getUserName()+"','"+new Timestamp(System.currentTimeMillis())+"',"+apiEntity.getApiId()+",'"+new Timestamp(System.currentTimeMillis())+
+                    "','BLOCKED','SUBSCRIBE',"+amApplicationEntity.getId()+",'"+new Timestamp(System.currentTimeMillis())+"')";
+            KeyHolder keyHolder = new GeneratedKeyHolder();
+            PreparedStatementCreator preparedStatementCreator = con -> {
+                PreparedStatement ps = con.prepareStatement(subSql, Statement.RETURN_GENERATED_KEYS);
+                return ps;
+            };
+            jdbcTemplate.update(preparedStatementCreator, keyHolder);
+            subscriptionId = keyHolder.getKey().intValue();
+            String sql = "REPLACE INTO am_subcription_charge(SUBSCRIPTION_ID,CHARGE_ID,EFFECTIVE_DATE,EXPIRE_DATE,START_VOLUME,TIER_VOLUME,CREATE_TIME,CREATE_BY,UPDATE_TIME,UPDATE_BY) " +
+                    "VALUES (?,?,?,?,?,?,?,?,?,?)";
+            jdbcTemplate.update(sql, new Object[]{subscriptionId, 1, new Timestamp(System.currentTimeMillis()), calendar.getTime(), 0, 100000, new Timestamp(System.currentTimeMillis()), lu.getUserName(), new Timestamp(System.currentTimeMillis()), lu.getUserName()});
+
         } else {
-            subEntity.setUpdatedTime(new Timestamp(System.currentTimeMillis()));
-            subEntity.setUpdatedBy(lu.getUserName());
-            subEntity.setSubsCreateState("SUBSCRIBE");
-            subscriptionDao.update(subEntity);
+            String sql ="update am_subscription  set SUBS_CREATE_STATE=? ,UPDATED_BY=? ,UPDATED_TIME=? where SUBSCRIPTION_ID=? ";
+            jdbcTemplate.update(sql,new Object[]{"SUBSCRIBE",lu.getUserName(),new Timestamp(System.currentTimeMillis()),subEntity.getId()});
             subscriptionId = subEntity.getId();
         }
 
-        Calendar calendar = Calendar.getInstance();
-        calendar.add(Calendar.DATE, 365 * 100);
-
-        String sql = "REPLACE INTO am_subcription_charge(SUBSCRIPTION_ID,CHARGE_ID,EFFECTIVE_DATE,EXPIRE_DATE,START_VOLUME,TIER_VOLUME,CREATE_TIME,CREATE_BY,UPDATE_TIME,UPDATE_BY) " +
-                "VALUES (?,?,?,?,?,?,?,?,?,?)";
-        jdbcTemplate.update(sql, new Object[]{subscriptionId, 1, new Timestamp(System.currentTimeMillis()), calendar.getTime(), 0, 100000, new Timestamp(System.currentTimeMillis()), lu.getUserName(), new Timestamp(System.currentTimeMillis()), lu.getUserName()});
-        return subscriptionId;
+         return subscriptionId;
     }
 
     public int subApiUpdate(JSONObject params, String apiId, LoginUser lu) throws Exception {
@@ -316,7 +348,7 @@ public class ApiService {
         if (amApplicationEntity == null) {
             throw new Exception("企业不存在");
         }
-        SubscriptionEntity entity = subscriptionDao.getById(apiId, amApplicationEntity.getId());
+        SubscriptionEntity entity = subscriptionDao.getById(Integer.valueOf(apiId), amApplicationEntity.getId());
         entity.setSubsCreateState("UNSUBSCRIBE");
         entity.setUpdatedBy(lu.getUserName());
         entity.setUpdatedTime(new Timestamp(System.currentTimeMillis()));
@@ -329,22 +361,24 @@ public class ApiService {
         if (amApplicationEntity == null) {
             throw new Exception("企业不存在");
         }
-        SubscriptionEntity entity = subscriptionDao.getById(apiId, amApplicationEntity.getId());
+        SubscriptionEntity entity = subscriptionDao.getById(Integer.valueOf(apiId), amApplicationEntity.getId());
         String sql = "update am_subcription_charge set unit_price=?,UPDATE_BY=?,UPDATE_TIME=? where SUBSCRIPTION_ID=?";
         jdbcTemplate.update(sql, new Object[]{params.getInteger("price") * 10000, lu.getUserName(), new Timestamp(System.currentTimeMillis()), entity.getId()});
         return 1;
     }
 
     public Map<String, Object> subApiNoSubscribeList(PageParam page, String custId, String apiName) throws Exception {
+        logger.info("开始获取未订阅列表");
         AmApplicationEntity amApplicationEntity = amApplicationDao.getByCustId(custId);
         if (amApplicationEntity == null) {
             throw new Exception("企业不存在");
         }
+        logger.info(amApplicationEntity.getId() + "");
         StringBuffer sql = new StringBuffer();
         sql.append(" select sub.APPLICATION_ID ,api.API_ID as apiId,api.API_NAME as apiName,sub.SUBS_CREATE_STATE as subCreateState,sub.CREATED_TIME as createTime");
         sql.append(" from am_api api left join am_subscription sub  on  api.API_ID=sub.API_ID");
         sql.append(" where api.API_ID not in");
-        sql.append(" (select API_ID from customs.am_subscription where APPLICATION_ID = " + amApplicationEntity.getId() + " and SUBS_CREATE_STATE = 'SUBSCRIBE')");
+        sql.append(" (select API_ID from am_subscription where APPLICATION_ID = " + amApplicationEntity.getId() + " and SUBS_CREATE_STATE = 'SUBSCRIBE')");
         if (StringUtil.isNotEmpty(apiName)) {
             sql.append(" and api.API_NAME like '%" + apiName + "%'");
         }
@@ -353,29 +387,34 @@ public class ApiService {
         PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
         Object collect = list.getList().stream().map(m -> {
             Map map = (Map) m;
-            map.put("suppliers", "");
-            map.put("resourceIds", "");
+            map.put("realName", "");
+            map.put("resourceId", "");
+            map.put("subCreateState", "UNSUBSCRIBE");
             ApiProperty property = apiDao.getProperty(map.get("apiId").toString(), "rsIds");
             if (property == null) return map;
             String propertyValue = property.getPropertyValue();
             JSONArray jsonArray = JSONArray.parseArray(propertyValue);
-            List relist = new ArrayList<>();
+            StringBuffer rsIds = new StringBuffer();
             List<Integer> sulist = new ArrayList<>();
             jsonArray.stream().forEach(p -> {
                 Map pmap = (Map) p;
-                Object rsIds = pmap.get("rsId");
+                rsIds.append(pmap.get("rsId")).append(",");
                 Object supplierIds = pmap.get("supplierId");
-                relist.add(rsIds);
                 if (supplierIds != null) {
                     sulist.add(Integer.parseInt(supplierIds + "".trim()));
                 }
             });
-            List<SupplierEntity> suppliers = null;
-            if (sulist.size() > 0) {
-                suppliers = supplierDao.getSuppliers(sulist);
+            if (rsIds.length() > 0) rsIds.deleteCharAt(rsIds.length() - 1);
+
+            StringBuffer suppliers = new StringBuffer();
+            if(sulist.size()>0){
+                supplierDao.getSuppliers(sulist).stream().forEach(e -> {
+                    suppliers.append(e.getName()).append(",");
+                });
             }
-            map.put("suppliers", suppliers);
-            map.put("resourceIds", relist);
+            if (suppliers.length() > 0) rsIds.deleteCharAt(suppliers.length() - 1);
+            map.put("realName", suppliers);
+            map.put("resourceId", rsIds);
             return map;
         }).collect(Collectors.toList());
         Map map = new HashMap();
@@ -398,7 +437,7 @@ public class ApiService {
         if (StringUtil.isNotEmpty(apiName)) {
             sql.append(" and api.API_NAME = '" + apiName + "'");
         }
-        if(StringUtil.isNotEmpty(custId)){
+        if (StringUtil.isNotEmpty(custId)) {
             sql.append(" and cus.cust_id = '" + custId + "'");
         }
         page.setSort("api.CREATED_TIME");
@@ -406,30 +445,33 @@ public class ApiService {
         PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
         Object collect = list.getList().stream().map(m -> {
             Map map = (Map) m;
-            map.put("suppliers", "");
+            map.put("realName", "");
             map.put("resourceId", "");
             ApiProperty property = apiDao.getProperty(map.get("apiId").toString(), "rsIds");
             if (property == null) return map;
             String propertyValue = property.getPropertyValue();
             JSONArray jsonArray = JSONArray.parseArray(propertyValue);
-            List relist = new ArrayList<>();
-            List<Integer> sulist = new ArrayList<>();
+            List sulist = new ArrayList();
+            StringBuffer rsIds = new StringBuffer();
             jsonArray.stream().forEach(p -> {
                 Map pmap = (Map) p;
-                Object rsIds = pmap.get("rsId");
+                rsIds.append(pmap.get("rsId")).append(",");
                 Object supplierIds = pmap.get("supplierId");
-                relist.add(rsIds);
                 if (supplierIds != null) {
                     sulist.add(Integer.parseInt(supplierIds + "".trim()));
                 }
             });
-            List<SupplierEntity> suppliers = null;
-            if (sulist.size() > 0) {
-                suppliers = supplierDao.getSuppliers(sulist);
-            }
-            map.put("suppliers", suppliers);
-            map.put("resourceId", relist);
-            map.put("priceType","单一定价");
+            if (rsIds.length() > 0) rsIds.deleteCharAt(rsIds.length() - 1);
+
+            StringBuffer suppliers = new StringBuffer();
+            List<SupplierEntity> suppliersList = supplierDao.getSuppliers(sulist);
+            suppliersList.stream().forEach(e -> {
+                suppliers.append(e.getName()).append(",");
+            });
+            if (suppliers.length() > 0) rsIds.deleteCharAt(suppliers.length() - 1);
+            map.put("realName", suppliers);
+            map.put("resourceId", rsIds);
+            map.put("priceType", "单一定价");
             return map;
         }).collect(Collectors.toList());
         Map map = new HashMap();

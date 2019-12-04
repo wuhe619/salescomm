@@ -299,9 +299,9 @@ public class SupplierDao extends SimpleHibernateDao<SupplierEntity, Integer> {
      *
      * @return
      */
-    public List<SupplierEntity> getSuppliers(List suppliers) {
+    public List<SupplierEntity> getSuppliers(List<Integer> suppliers) {
         SupplierEntity cp = null;
-        String hql = "from SupplierEntity m where m.supplierId in ? ";
+        String hql = "from SupplierEntity m where m.supplierId in  ? ";
         List<SupplierEntity> list = this.find(hql, suppliers);
         return list;
     }
