@@ -349,7 +349,7 @@ public class ApiService {
             }
             return subscriptionId;
         } catch (Exception e) {
-            logger.info("错误信息："+e.getMessage());
+            logger.info("错误信息："+e);
         }
         return 0;
     }
