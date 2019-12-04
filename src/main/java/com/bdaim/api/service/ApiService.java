@@ -306,6 +306,7 @@ public class ApiService {
             throw new Exception("API不存在");
         }
         SubscriptionEntity subEntity = subscriptionDao.getById(apiEntity.getApiId(), amApplicationEntity.getId());
+        logger.info("订阅主键："+subEntity.getId());
         int subscriptionId;
         if (subEntity == null) {
 //            subEntity = new SubscriptionEntity();
@@ -334,7 +335,7 @@ public class ApiService {
             jdbcTemplate.update(sql, new Object[]{subscriptionId, 1, new Timestamp(System.currentTimeMillis()), calendar.getTime(), 0, 100000, new Timestamp(System.currentTimeMillis()), lu.getUserName(), new Timestamp(System.currentTimeMillis()), lu.getUserName()});
 
         } else {
-            String sql ="update am_subcription  set SUBS_CREATE_STATE=? ,UPDATED_BY=? ,UPDATED_TIME=? where SUBSCRIPTION_ID=? ";
+            String sql ="update am_subscription  set SUBS_CREATE_STATE=? ,UPDATED_BY=? ,UPDATED_TIME=? where SUBSCRIPTION_ID=? ";
             jdbcTemplate.update(sql,new Object[]{"SUBSCRIBE",lu.getUserName(),new Timestamp(System.currentTimeMillis()),subEntity.getId()});
             subscriptionId = subEntity.getId();
         }
