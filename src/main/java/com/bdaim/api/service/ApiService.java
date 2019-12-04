@@ -314,6 +314,7 @@ public class ApiService {
 //            String subSql1="select SUBSCRIPTION_ID as id  from am_subscription where APPLICATION_ID="+amApplicationEntity.getId() +" and API_ID = "+apiEntity.getApiId();
 //            SubscriptionEntity subEntity = jdbcTemplate.queryForObject(subSql1, SubscriptionEntity.class);
             logger.info("订阅主键：" + subEntity.getId());
+
             int subscriptionId;
 
             if (subEntity == null) {
@@ -352,7 +353,6 @@ public class ApiService {
             return subscriptionId;
         } catch (Exception e) {
             logger.info("错误信息："+e);
-            e.printStackTrace();
         }
         return 0;
     }

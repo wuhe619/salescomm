@@ -13,9 +13,13 @@ public class SubscriptionDao extends SimpleHibernateDao<SubscriptionEntity, Inte
     public SubscriptionEntity getById(int apiId, int applicationId) {
         SubscriptionEntity cp = null;
         String hql = "from SubscriptionEntity m where m.apiId=? and m.applicationId=?";
+        try{
         List<SubscriptionEntity> list = this.find(hql, apiId, applicationId);
         if (list.size() > 0)
             cp = (SubscriptionEntity) list.get(0);
         return cp;
+        }catch (Exception e){
+            return null;
+        }
     }
 }
