@@ -354,7 +354,7 @@ public class ApiService {
         sql.append(" select sub.APPLICATION_ID ,api.API_ID as apiId,api.API_NAME as apiName,sub.SUBS_CREATE_STATE as subCreateState,sub.CREATED_TIME as createTime");
         sql.append(" from am_api api left join am_subscription sub  on  api.API_ID=sub.API_ID");
         sql.append(" where api.API_ID not in");
-        sql.append(" (select API_ID from customs.am_subscription where APPLICATION_ID = " + amApplicationEntity.getId() + " and SUBS_CREATE_STATE = 'SUBSCRIBE')");
+        sql.append(" (select API_ID from am_subscription where APPLICATION_ID = " + amApplicationEntity.getId() + " and SUBS_CREATE_STATE = 'SUBSCRIBE')");
         if (StringUtil.isNotEmpty(apiName)) {
             sql.append(" and api.API_NAME like '%" + apiName + "%'");
         }
@@ -362,7 +362,6 @@ public class ApiService {
         page.setDir("desc");
         logger.info(sql.toString());
         PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
-        logger.info(list.toString());
         Object collect = list.getList().stream().map(m -> {
             Map map = (Map) m;
             map.put("suppliers", "");
