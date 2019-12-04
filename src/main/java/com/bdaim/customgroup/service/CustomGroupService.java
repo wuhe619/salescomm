@@ -171,7 +171,7 @@ public class CustomGroupService {
 
     public Page page(String customer_group_id, String cust_id, String user_id, Integer pageNum, Integer pageSize,
                      String id, String name, Integer status, String callType, String dateStart, String dateEnd,
-                     String enterpriseName, String marketProjectId, String propertyName, String propertyValue) {
+                     String enterpriseName, String marketProjectId, CGroupSearchParam param) {
         StringBuffer hql = new StringBuffer("from CustomGroup m where 1=1");
         List values = new ArrayList();
         if (null != customer_group_id && !"".equals(customer_group_id)) {
@@ -213,10 +213,20 @@ public class CustomGroupService {
             hql.append(" and m.custId IN (SELECT id FROM Customer WHERE enterpriseName LIKE ?)");
             values.add("%" + enterpriseName + "%");
         }
-        if (StringUtil.isNotEmpty(propertyName) && StringUtil.isNotEmpty(propertyValue)) {
+        if (StringUtil.isNotEmpty(param.getPropertyName()) && StringUtil.isNotEmpty(param.getPropertyValue())) {
             hql.append(" and m.id IN (SELECT customerGroupId FROM CustomerGroupProperty WHERE propertyName = ? AND propertyValue = ? )");
-            values.add(propertyName);
-            values.add(propertyValue);
+            values.add(param.getPropertyName());
+            values.add(param.getPropertyValue());
+        }
+        if (StringUtil.isNotEmpty(param.getUnicomActivityName())) {
+            hql.append(" and m.id IN (SELECT customerGroupId FROM CustomerGroupProperty WHERE propertyName = ? AND propertyValue = ? )");
+            values.add("unicomActivityName");
+            values.add(param.getUnicomActivityName());
+        }
+        if (StringUtil.isNotEmpty(param.getPullStatus())) {
+            hql.append(" and m.id IN (SELECT customerGroupId FROM CustomerGroupProperty WHERE propertyName = ? AND propertyValue = ? )");
+            values.add("pullStatus");
+            values.add(param.getPullStatus());
         }
         hql.append(" ORDER BY m.createTime desc ");
         Page page = customGroupDao.page(hql.toString(), values, pageNum, pageSize);

@@ -18,6 +18,7 @@ import com.bdaim.common.filter.FiledFilter;
 import com.bdaim.common.service.PhoneService;
 import com.bdaim.customer.account.dto.RemainSourceDTO;
 import com.bdaim.customersea.service.CustomerSeaService;
+import com.bdaim.customgroup.dto.CGroupSearchParam;
 import com.bdaim.customgroup.dto.CustomerGroupAddDTO;
 import com.bdaim.customgroup.dto.CustomerGroupParamDTO;
 import com.bdaim.customgroup.dto.CustomerGrpOrdParam;
@@ -512,14 +513,14 @@ public class CustomGroupAction extends BasicAction {
     @RequestMapping("/getCustomGroup")
     public String getCustomGroup(String customer_group_id, Integer pageNum, Integer pageSize, String id,
                                  String customer_name, Integer states, String callType, String dateStart, String dateEnd,
-                                 String enterprise_name, String marketProjectId, String propertyName, String propertyValue) {
+                                 String enterprise_name, String marketProjectId, CGroupSearchParam param) {
         LoginUser u = opUser();
         String cust_id = u.getCustId();
         String user_id = u.getId().toString();
         JSONObject json = new JSONObject();
 
         Page p = customGroupService.page(customer_group_id, cust_id, user_id, pageNum, pageSize,
-                id, customer_name, states, callType, dateStart, dateEnd, enterprise_name, marketProjectId, propertyName, propertyValue);
+                id, customer_name, states, callType, dateStart, dateEnd, enterprise_name, marketProjectId, param);
 
         json.put("data", p);
         return json.toJSONString();
