@@ -155,9 +155,6 @@ public class ApiController {
         ResponseInfo info = new ResponseInfo();
         LoginUser lu = tokenService.opUser();
         PageParam page = new PageParam();
-        if (StringUtil.isEmpty(params.getString("custId"))) {
-            return new ResponseInfoAssemble().failure(-1, "企业id不能为空");
-        }
         try {
             page.setPageSize(params.getInteger("pageSize") == null ? 0 : params.getIntValue("pageSize"));
             page.setPageNum(params.getInteger("pageNum") == null ? 10 : params.getIntValue("pageNum"));
