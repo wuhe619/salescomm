@@ -306,21 +306,20 @@ public class ApiService {
             subEntity.setApplicationId(amApplicationEntity.getId());
             subEntity.setSubsCreateState("SUBSCRIBE");
             subscriptionId = (int) subscriptionDao.saveReturnPk(subEntity);
+            Calendar calendar = Calendar.getInstance();
+            calendar.add(Calendar.DATE, 365 * 100);
+
+            String sql = "REPLACE INTO am_subcription_charge(SUBSCRIPTION_ID,CHARGE_ID,EFFECTIVE_DATE,EXPIRE_DATE,START_VOLUME,TIER_VOLUME,CREATE_TIME,CREATE_BY,UPDATE_TIME,UPDATE_BY) " +
+                    "VALUES (?,?,?,?,?,?,?,?,?,?)";
+            jdbcTemplate.update(sql, new Object[]{subscriptionId, 1, new Timestamp(System.currentTimeMillis()), calendar.getTime(), 0, 100000, new Timestamp(System.currentTimeMillis()), lu.getUserName(), new Timestamp(System.currentTimeMillis()), lu.getUserName()});
+
         } else {
-            subEntity.setUpdatedTime(new Timestamp(System.currentTimeMillis()));
-            subEntity.setUpdatedBy(lu.getUserName());
-            subEntity.setSubsCreateState("SUBSCRIBE");
-            subscriptionDao.update(subEntity);
+            String sql ="update am_subcription  set SUBS_CREATE_STATE=? ,UPDATED_BY=? ,UPDATED_TIME=? where SUBSCRIPTION_ID=? ";
+            jdbcTemplate.update(sql,new Object[]{"SUBSCRIBE",lu.getUserName(),new Timestamp(System.currentTimeMillis()),subEntity.getId()});
             subscriptionId = subEntity.getId();
         }
 
-        Calendar calendar = Calendar.getInstance();
-        calendar.add(Calendar.DATE, 365 * 100);
-
-        String sql = "REPLACE INTO am_subcription_charge(SUBSCRIPTION_ID,CHARGE_ID,EFFECTIVE_DATE,EXPIRE_DATE,START_VOLUME,TIER_VOLUME,CREATE_TIME,CREATE_BY,UPDATE_TIME,UPDATE_BY) " +
-                "VALUES (?,?,?,?,?,?,?,?,?,?)";
-        jdbcTemplate.update(sql, new Object[]{subscriptionId, 1, new Timestamp(System.currentTimeMillis()), calendar.getTime(), 0, 100000, new Timestamp(System.currentTimeMillis()), lu.getUserName(), new Timestamp(System.currentTimeMillis()), lu.getUserName()});
-        return subscriptionId;
+         return subscriptionId;
     }
 
     public int subApiUpdate(JSONObject params, String apiId, LoginUser lu) throws Exception {
@@ -388,9 +387,11 @@ public class ApiService {
             if (rsIds.length() > 0) rsIds.deleteCharAt(rsIds.length() - 1);
 
             StringBuffer suppliers = new StringBuffer();
-//            supplierDao.getSuppliers(sulist).stream().forEach(e -> {
-//                suppliers.append(e.getName()).append(",");
-//            });
+            if(sulist.size()>0){
+                supplierDao.getSuppliers(sulist).stream().forEach(e -> {
+                    suppliers.append(e.getName()).append(",");
+                });
+            }
             if (suppliers.length() > 0) rsIds.deleteCharAt(suppliers.length() - 1);
             map.put("realName", suppliers);
             map.put("resourceId", rsIds);
@@ -443,9 +444,10 @@ public class ApiService {
             if (rsIds.length() > 0) rsIds.deleteCharAt(rsIds.length() - 1);
 
             StringBuffer suppliers = new StringBuffer();
-//            supplierDao.getSuppliers(sulist).stream().forEach(e -> {
-//                suppliers.append(e.getName()).append(",");
-//            });
+            List<SupplierEntity> suppliersList = supplierDao.getSuppliers(sulist);
+            suppliersList.stream().forEach(e -> {
+                suppliers.append(e.getName()).append(",");
+            });
             if (suppliers.length() > 0) rsIds.deleteCharAt(suppliers.length() - 1);
             map.put("realName", suppliers);
             map.put("resourceId", rsIds);
