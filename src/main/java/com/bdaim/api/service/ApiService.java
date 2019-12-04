@@ -359,12 +359,14 @@ public class ApiService {
         }
         page.setSort("api.CREATED_TIME");
         page.setDir("desc");
-        logger.info(sql.toString());
+
         PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
+        logger.info(list.toString());
         Object collect = list.getList().stream().map(m -> {
             Map map = (Map) m;
             map.put("suppliers", "");
             map.put("resourceIds", "");
+            map.put("subCreateState", "UNSUBSCRIBE");
             ApiProperty property = apiDao.getProperty(map.get("apiId").toString(), "rsIds");
             if (property == null) return map;
             String propertyValue = property.getPropertyValue();
