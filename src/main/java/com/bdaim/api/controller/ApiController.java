@@ -101,7 +101,7 @@ public class ApiController {
         if (StringUtil.isEmpty(params.getString("custId"))) {
             return new ResponseInfoAssemble().failure(-1, "企业id不能为空");
         }
-
+        logger.info("开始订阅");
         LoginUser lu = tokenService.opUser();
         try {
             info.setData(apiService.subApi(params, apiId, lu));
