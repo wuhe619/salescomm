@@ -21,6 +21,8 @@ import com.bdaim.customer.service.CustomerAppService;
 import com.bdaim.supplier.dao.SupplierDao;
 import com.bdaim.supplier.entity.SupplierEntity;
 import com.bdaim.util.StringUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -47,6 +49,7 @@ public class ApiService {
     @Resource
     private SupplierDao supplierDao;
 
+    private static Logger logger = LoggerFactory.getLogger(ApiService.class);
 
     public int saveApiProperty(ApiData apiData, String id, LoginUser lu) throws Exception {
         int apiId;
@@ -341,6 +344,7 @@ public class ApiService {
     }
 
     public Map<String, Object> subApiNoSubscribeList(PageParam page, String custId, String apiName) throws Exception {
+        logger.info("开始获取未订阅列表");
         AmApplicationEntity amApplicationEntity = amApplicationDao.getByCustId(custId);
         if (amApplicationEntity == null) {
             throw new Exception("企业不存在");
@@ -355,6 +359,7 @@ public class ApiService {
         }
         page.setSort("api.CREATED_TIME");
         page.setDir("desc");
+        logger.info(sql.toString());
         PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
         Object collect = list.getList().stream().map(m -> {
             Map map = (Map) m;
