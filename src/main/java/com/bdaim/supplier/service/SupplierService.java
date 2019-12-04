@@ -1204,7 +1204,7 @@ public class SupplierService {
     public JSONObject listVoiceResourceByType(String type) throws Exception {
         List<MarketResourceDTO> list = listResource(type);
         JSONObject jsonObject = new JSONObject();
-        List<MarketResourceDTO> call2way = new ArrayList<>();
+        List<MarketResourceDTO> call2way = new ArrayList<>(), unicomCall2way = new ArrayList();
         List<MarketResourceDTO> callCenter = new ArrayList<>();
         if (list != null && !list.isEmpty()) {
             for (MarketResourceDTO dto : list) {
@@ -1212,10 +1212,13 @@ public class SupplierService {
                     callCenter.add(dto);
                 } else if ("2".equals(dto.getChargingType())) {//双呼
                     call2way.add(dto);
+                }else if ("4".equals(dto.getChargingType())) {//双呼
+                    unicomCall2way.add(dto);
                 }
             }
             jsonObject.put("call2way", call2way);
             jsonObject.put("callCenter", callCenter);
+            jsonObject.put("unicomCall2way", unicomCall2way);
         }
         return jsonObject;
     }

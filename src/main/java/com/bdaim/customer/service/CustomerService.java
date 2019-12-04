@@ -3472,7 +3472,7 @@ public class CustomerService {
             MarketResourceDTO marketResourceDTO = null;
             try {
                 // 读取客户下有效的呼叫线路渠道
-                JSONObject jsonObject = supplierService.getCustomerCallPriceConfig(custId);
+                JSONObject jsonObject = supplierService.getCustomerCallPriceConfig0(custId);
                 List<MarketResourceDTO> callResList = new ArrayList<>();
 
                 List<MarketResourceDTO> call2way = (List<MarketResourceDTO>) jsonObject.get("call2way");
@@ -3482,6 +3482,10 @@ public class CustomerService {
                 List<MarketResourceDTO> callCenter = (List<MarketResourceDTO>) jsonObject.get("callCenter");
                 if (callCenter != null || callCenter.size() >= 0) {
                     callResList.addAll(callCenter);
+                }
+                List<MarketResourceDTO> unicomCall2way = (List<MarketResourceDTO>) jsonObject.get("unicomCall2way");
+                if (unicomCall2way != null && unicomCall2way.size() >= 0) {
+                    callResList.addAll(unicomCall2way);
                 }
                 for (MarketResourceDTO m : callResList) {
                     marketResourceDTO = m;
