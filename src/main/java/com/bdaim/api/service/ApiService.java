@@ -303,8 +303,10 @@ public class ApiService {
                 logger.info("企业不存在");
                 throw new Exception("企业不存在");
             }
+            logger.info("APIID:" + apiId);
             ApiEntity apiEntity = apiDao.getApi(Integer.valueOf(apiId));
             if (apiEntity == null) {
+                logger.info("API不存在");
                 throw new Exception("API不存在");
             }
             SubscriptionEntity subEntity = subscriptionDao.getById(apiEntity.getApiId(), amApplicationEntity.getId());
