@@ -3,6 +3,7 @@ package com.bdaim.online.unicom.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.bill.dto.CallBackInfoParam;
 import com.bdaim.callcenter.service.impl.SeatsService;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.customer.service.CustomerService;
@@ -15,16 +16,19 @@ import com.bdaim.util.NumberConvertUtil;
 import com.bdaim.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletResponse;
+import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/unicom")
+@RequestMapping
 public class UnicomAction extends BasicAction {
 
     public static final Logger LOG = LoggerFactory.getLogger(UnicomAction.class);
@@ -48,7 +52,7 @@ public class UnicomAction extends BasicAction {
      * @param seaId
      * @return
      */
-    @RequestMapping(value = "/markCall", method = RequestMethod.POST)
+    @RequestMapping(value = "/unicom/markCall", method = RequestMethod.POST)
     public String useMarketResource(String superidlist, String customerGroupId, String marketTaskId, String seaId) {
         String touchId = opUser().getId() + IDHelper.getTouchId().toString();
         Map<Object, Object> map = new HashMap<>();
@@ -147,5 +151,43 @@ public class UnicomAction extends BasicAction {
         map.put("message", message);
         json.put("data", map);
         return json.toJSONString();
+    }
+
+    @RequestMapping(value = "/open/unicom/callBack", method = RequestMethod.POST)
+    public void updateCallRecord(@RequestBody CallBackInfoParam callBackInfoParam, HttpServletResponse response) {
+        LOG.info("精准营销联通通话记录推送数据:{}", callBackInfoParam.toString());
+        try {
+            response.setContentType("application/json;charset=utf-8");
+            int i = unicomService.updateCallRecord(callBackInfoParam);
+            PrintWriter printWriter = response.getWriter();
+            if (i > 0) {
+                printWriter.print("{\"code\":\"0\"}");
+            } else {
+                printWriter.print("{\"code\":\"-1\",\"msg\":\"失败\"}");
+            }
+            printWriter.flush();
+            response.flushBuffer();
+        } catch (Exception e) {
+            LOG.error("获取联通呼叫中心话单异常" + e);
+        }
+    }
+
+    @RequestMapping(value = "/open/unicom/recordCallBack", method = RequestMethod.POST)
+    public void saveCallRecordFile(@RequestBody JSONObject param, HttpServletResponse response) {
+        LOG.info("精准营销联通录音文件推送数据:{}", param);
+        response.setContentType("application/json;charset=utf-8");
+        try {
+            int result = unicomService.saveCallRecordFile(param);
+            PrintWriter printWriter = response.getWriter();
+            if (0 == result) {
+                printWriter.print("{\"code\":\"0\"}");
+            } else {
+                printWriter.print("{\"code\":\"-1\",\"msg\":\"失败\"}");
+            }
+            printWriter.flush();
+            response.flushBuffer();
+        } catch (Exception e) {
+            LOG.error("获取联通录音获取异常" + e);
+        }
     }
 }
