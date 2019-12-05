@@ -8592,6 +8592,9 @@ public class MarketResourceService {
         }
         sql.append(" order by re.create_time desc");
         PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
+
+
+
         list.getList().stream().forEach(m -> {
             Map dataMap = (Map) m;
             if (!dataMap.containsKey("salePrice")) {
@@ -8599,7 +8602,6 @@ public class MarketResourceService {
             } else {
                 dataMap.put("salePrice", Double.valueOf(dataMap.get("salePrice").toString()) / 10000);
             }
-
             if (!dataMap.containsKey("resname"))
                 dataMap.put("resname", "");
             if (!dataMap.containsKey("apiName"))

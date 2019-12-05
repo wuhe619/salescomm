@@ -393,6 +393,7 @@ public class ApiService {
         sql.append(" from am_api api left join am_subscription sub  on  api.API_ID=sub.API_ID");
         sql.append(" where api.API_ID not in");
         sql.append(" (select API_ID from am_subscription where APPLICATION_ID = " + amApplicationEntity.getId() + " and SUBS_CREATE_STATE = 'SUBSCRIBE')");
+        sql.append(" and api.status=2");
         if (StringUtil.isNotEmpty(apiName)) {
             sql.append(" and api.API_NAME  = '" + apiName + "'");
         }
