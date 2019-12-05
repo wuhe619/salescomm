@@ -479,7 +479,10 @@ public class ApiService {
                 if (rsIds.length() > 0) rsIds.deleteCharAt(rsIds.length() - 1);
 
                 StringBuffer suppliers = new StringBuffer();
-                List<SupplierEntity> suppliersList = supplierDao.getSuppliers(sulist);
+                List<SupplierEntity> suppliersList=new ArrayList<>();
+                if(sulist.size()>0){
+                    suppliersList = supplierDao.getSuppliers(sulist);
+                }
                 suppliersList.stream().forEach(e -> {
                     suppliers.append(e.getName()).append(",");
                 });
