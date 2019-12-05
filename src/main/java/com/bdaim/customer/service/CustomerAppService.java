@@ -361,17 +361,19 @@ public class CustomerAppService {
     }
 
     public int saveDeposit(Deposit deposit, String id, String userId) {
-        int pre_money, money;
-
+        BigDecimal b = new BigDecimal(10000);
+        BigDecimal pre_money;
+//        int money = Integer.valueOf((Double.valueOf(deposit.getMoney())* 10000) + "".trim()).intValue();
+        BigDecimal bigDecimal = BigDecimal.valueOf(Double.valueOf(deposit.getMoney()));
+        BigDecimal money = bigDecimal.multiply(b);
         CustomerProperty customerProperty = customerDao.getProperty(id, "remain_amount");
         if (customerProperty == null) {
-            pre_money = 0;
-            money = Integer.valueOf(deposit.getMoney()).intValue() * 10000;
+            pre_money = new BigDecimal(0);
             customerDao.dealCustomerInfo(id, "remain_amount", String.valueOf(money));
         } else {
-            pre_money = Integer.valueOf(customerProperty.getPropertyValue()).intValue();
-            money = Integer.valueOf(deposit.getMoney()).intValue() * 10000;
-            customerDao.dealCustomerInfo(id, "remain_amount", String.valueOf((pre_money + money)));
+            BigDecimal bigDecimal1 = new BigDecimal(Double.valueOf(customerProperty.getPropertyValue()));
+            pre_money = bigDecimal1.subtract(b);
+            customerDao.dealCustomerInfo(id, "remain_amount", String.valueOf(pre_money.add(money).intValue()));
         }
         String sql = "INSERT INTO am_pay (SUBSCRIBER_ID,MONEY,PAY_TIME,pay_certificate,pre_money,user_id) VALUE (?,?,?,?,?,?) ";
 

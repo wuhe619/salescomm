@@ -2364,7 +2364,7 @@ public class SupplierService {
                 supplierDTOMap.put("balance", 0);
                 supplierDTOMap.put("consumption", 0);
                 supplierDTOMap.put("supplierId", map1.get("supplier_id"));
-                supplierDTOMap.put("apiNum",propertyMap.containsValue(map1.get("supplier_id")) ?propertyMap.get(map1.get("supplier_id")).size():0);
+                supplierDTOMap.put("apiNum", propertyMap.containsValue(map1.get("supplier_id")) ? propertyMap.get(map1.get("supplier_id")).size() : 0);
                 return supplierDTOMap;
             }).collect(Collectors.toList());
             map.put("list", collect);
@@ -2373,28 +2373,33 @@ public class SupplierService {
         } catch (Exception e) {
             log.info(e.getMessage());
         }
-      return null;
+        return null;
     }
 
     public int supplierDeposit(Deposit deposit, String userId) {
-        int pre_money;
-        int money = Integer.valueOf(deposit.getMoney()).intValue() * 10000;
+        BigDecimal b = new BigDecimal(10000);
+        BigDecimal pre_money;
+//        int money = Integer.valueOf((Double.valueOf(deposit.getMoney())* 10000) + "".trim()).intValue();
+        BigDecimal bigDecimal = BigDecimal.valueOf(Double.valueOf(deposit.getMoney()));
+        BigDecimal money = bigDecimal.multiply(b);
         SupplierPropertyEntity supplierPropertyEntity = supplierDao.getProperty(String.valueOf(deposit.getId()), "remain_amount");
         if (supplierPropertyEntity == null) {
-            pre_money = 0;
-            supplierDao.dealCustomerInfo(String.valueOf(deposit.getId()), "remain_amount", deposit.getMoney());
+            pre_money = new BigDecimal(0);
+            supplierDao.dealCustomerInfo(String.valueOf(deposit.getId()), "remain_amount", String.valueOf(money));
         } else {
-            pre_money = Integer.valueOf(supplierPropertyEntity.getPropertyValue()).intValue() * 10000;
-            supplierDao.dealCustomerInfo(String.valueOf(deposit.getId()), "remain_amount", String.valueOf((pre_money + money)));
+            BigDecimal bigDecimal1 = new BigDecimal(Double.valueOf(supplierPropertyEntity.getPropertyValue()));
+            pre_money = bigDecimal1.subtract(b);
+            supplierDao.dealCustomerInfo(String.valueOf(deposit.getId()), "remain_amount", String.valueOf(pre_money.add(money).intValue()));
         }
+        log.info(pre_money.intValue() + "");
         String sql = "INSERT INTO supplier_pay (SUBSCRIBER_ID,MONEY,PAY_TIME,pay_certificate,pre_money,user_id) VALUE (?,?,?,?,?,?) ";
-        jdbcTemplate.update(sql, deposit.getId(), money, DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss), deposit.getRepaidVoucher(), pre_money, userId);
+        jdbcTemplate.update(sql, deposit.getId(), money.intValue(), DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss), deposit.getRepaidVoucher(), pre_money.intValue(), userId);
         return 1;
     }
 
     public Map<String, Object> depositList(PageParam page, String supplierId) {
         Map<String, Object> map = new HashMap<>();
-        String sql = "select supplier_id,property_name,property_value from t_supplier_property   where supplier_id=?";
+        String sql = "select supplier_id,property_name,property_value from t_supplier_property   where supplier_id=?  ";
 
         List<Map<String, Object>> propertyList = jdbcTemplate.queryForList(sql, supplierId);
         propertyList.stream().forEach(m -> {
@@ -2403,12 +2408,14 @@ public class SupplierService {
                     map.put("bank_account", m.get("property_value"));
                     break;
                 case "remain_amount":
-                    map.put("remain_amount", Integer.valueOf(m.get("property_value").toString()).intValue() / 10000);
+                    map.put("remain_amount", Double.valueOf(m.get("property_value").toString()).intValue() / 10000);
                     break;
             }
         });
 
-        String sql1 = "select pay.pay_id,pay.SUBSCRIBER_ID,pay.MONEY,pay.PAY_TIME,pay.pay_certificate,pay.pre_money,pay.user_id ,u.realname as realname from supplier_pay pay left join  t_customer_user u  on pay.user_id=u.id  where SUBSCRIBER_ID = " + supplierId + " order by pay_time";
+        String sql1 = "select pay.pay_id,pay.SUBSCRIBER_ID,pay.MONEY,pay.PAY_TIME,pay.pay_certificate,pay.pre_money,pay.user_id ,u.realname as realname from supplier_pay pay left join  t_customer_user u  on pay.user_id=u.id  where SUBSCRIBER_ID = " + supplierId;
+        page.setSort("pay.PAY_TIME");
+        page.setDir(" desc");
         PageList list = new Pagination().getPageData(sql1, null, page, jdbcTemplate);
         List<com.bdaim.customer.dto.Deposit> depositList = new ArrayList<>();
         list.getList().stream().forEach(m -> {
@@ -2418,7 +2425,7 @@ public class SupplierService {
                 deposit.setCustId(depositMap.get("SUBSCRIBER_ID").toString());
             }
             if (depositMap.get("MONEY") != null) {
-                deposit.setMoney(Integer.valueOf(depositMap.get("MONEY").toString()).intValue() / 10000 + "");
+                deposit.setMoney(Double.valueOf(depositMap.get("MONEY").toString()).intValue() / 10000 + "");
             }
             if (depositMap.get("PAY_TIME") != null) {
                 deposit.setPayTime(depositMap.get("PAY_TIME").toString());
@@ -2430,7 +2437,7 @@ public class SupplierService {
                 deposit.setPicId(depositMap.get("pay_certificate").toString());
             }
             if (depositMap.get("pre_money") != null) {
-                deposit.setPreMoney(Integer.valueOf(depositMap.get("pre_money").toString()).intValue() / 10000 + "");
+                deposit.setPreMoney(Double.valueOf(depositMap.get("pre_money").toString()).intValue() / 10000 + "");
             }
             if (depositMap.get("user_id") != null) {
                 deposit.setPreMoney(depositMap.get("user_id").toString());
