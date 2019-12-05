@@ -394,7 +394,7 @@ public class ApiService {
         sql.append(" where api.API_ID not in");
         sql.append(" (select API_ID from am_subscription where APPLICATION_ID = " + amApplicationEntity.getId() + " and SUBS_CREATE_STATE = 'SUBSCRIBE')");
         if (StringUtil.isNotEmpty(apiName)) {
-            sql.append(" and api.API_NAME like '%" + apiName + "%'");
+            sql.append(" and api.API_NAME  = '" + apiName + "'");
         }
         page.setSort("api.CREATED_TIME");
         page.setDir("desc");
@@ -456,42 +456,47 @@ public class ApiService {
         }
         page.setSort("api.CREATED_TIME");
         page.setDir("desc");
-        PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
-        Object collect = list.getList().stream().map(m -> {
-            Map map = (Map) m;
-            map.put("realName", "");
-            map.put("resourceId", "");
-            ApiProperty property = apiDao.getProperty(map.get("apiId").toString(), "rsIds");
-            if (property == null) return map;
-            String propertyValue = property.getPropertyValue();
-            JSONArray jsonArray = JSONArray.parseArray(propertyValue);
-            List sulist = new ArrayList();
-            StringBuffer rsIds = new StringBuffer();
-            jsonArray.stream().forEach(p -> {
-                Map pmap = (Map) p;
-                rsIds.append(pmap.get("rsId")).append(",");
-                Object supplierIds = pmap.get("supplierId");
-                if (supplierIds != null) {
-                    sulist.add(Integer.parseInt(supplierIds + "".trim()));
-                }
-            });
-            if (rsIds.length() > 0) rsIds.deleteCharAt(rsIds.length() - 1);
+        try {
+            PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
+            Object collect = list.getList().stream().map(m -> {
+                Map map = (Map) m;
+                map.put("realName", "");
+                map.put("resourceId", "");
+                ApiProperty property = apiDao.getProperty(map.get("apiId").toString(), "rsIds");
+                if (property == null) return map;
+                String propertyValue = property.getPropertyValue();
+                JSONArray jsonArray = JSONArray.parseArray(propertyValue);
+                List sulist = new ArrayList();
+                StringBuffer rsIds = new StringBuffer();
+                jsonArray.stream().forEach(p -> {
+                    Map pmap = (Map) p;
+                    rsIds.append(pmap.get("rsId")).append(",");
+                    Object supplierIds = pmap.get("supplierId");
+                    if (supplierIds != null) {
+                        sulist.add(Integer.parseInt(supplierIds + "".trim()));
+                    }
+                });
+                if (rsIds.length() > 0) rsIds.deleteCharAt(rsIds.length() - 1);
 
-            StringBuffer suppliers = new StringBuffer();
-            List<SupplierEntity> suppliersList = supplierDao.getSuppliers(sulist);
-            suppliersList.stream().forEach(e -> {
-                suppliers.append(e.getName()).append(",");
-            });
-            if (suppliers.length() > 0) rsIds.deleteCharAt(suppliers.length() - 1);
-            map.put("realName", suppliers);
-            map.put("resourceId", rsIds);
-            map.put("priceType", "单一定价");
+                StringBuffer suppliers = new StringBuffer();
+                List<SupplierEntity> suppliersList = supplierDao.getSuppliers(sulist);
+                suppliersList.stream().forEach(e -> {
+                    suppliers.append(e.getName()).append(",");
+                });
+                if (suppliers.length() > 0) rsIds.deleteCharAt(suppliers.length() - 1);
+                map.put("realName", suppliers);
+                map.put("resourceId", rsIds);
+                map.put("priceType", "单一定价");
+                return map;
+            }).collect(Collectors.toList());
+            Map map = new HashMap();
+            map.put("data", collect);
+            map.put("total", list.getTotal());
             return map;
-        }).collect(Collectors.toList());
-        Map map = new HashMap();
-        map.put("data", collect);
-        map.put("total", list.getTotal());
-        return map;
+        } catch (Exception e) {
+            logger.info("错误信息：" + e.getMessage());
+        }
+        return null;
     }
 
     //客户调用记录
