@@ -30,7 +30,7 @@ public class CreateXML {
 
     @Autowired
     private ApiDao apiDao;
-    @Value("${file.api_xml_path}")
+    @Value("${file.api_xml_path: #{null}}")
     private String apiXmlPath;
 
     public int createXML(String apiId) {
