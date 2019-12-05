@@ -2344,6 +2344,7 @@ public class SupplierService {
                     Arrays.stream(jsonObject.getString("supplier").split(",")).forEach(reid -> {
                         if (!propertyMap.containsKey(Integer.valueOf(pro.getApiId()))) {
                             propertyMap.put(Integer.valueOf(reid), new ArrayList<String>());
+                            log.info("reid" + reid);
                         }
                         propertyMap.get(Integer.valueOf(reid)).add(pro.getApiId());
                         propertyMap.put(Integer.valueOf(reid), propertyMap.get(Integer.valueOf(reid)));
@@ -2364,6 +2365,7 @@ public class SupplierService {
                 supplierDTOMap.put("balance", 0);
                 supplierDTOMap.put("consumption", 0);
                 supplierDTOMap.put("supplierId", map1.get("supplier_id"));
+                log.info(map1.get("supplier_id").toString());
                 supplierDTOMap.put("apiNum", propertyMap.containsValue(Integer.valueOf(map1.get("supplier_id").toString())) ? propertyMap.get(Integer.valueOf(map1.get("supplier_id").toString())).size() : 0);
                 return supplierDTOMap;
             }).collect(Collectors.toList());
@@ -2391,8 +2393,8 @@ public class SupplierService {
             pre_money = bigDecimal1.subtract(b);
             supplierDao.dealCustomerInfo(String.valueOf(deposit.getId()), "remain_amount", String.valueOf(pre_money.add(money).intValue()));
         }
-        log.info("id:"+deposit.getId());
-        log.info("id prc_money:"+String.valueOf(pre_money.add(money).intValue()));
+        log.info("id:" + deposit.getId());
+        log.info("id prc_money:" + String.valueOf(pre_money.add(money).intValue()));
         String sql = "INSERT INTO supplier_pay (SUBSCRIBER_ID,MONEY,PAY_TIME,pay_certificate,pre_money,user_id) VALUE (?,?,?,?,?,?) ";
         jdbcTemplate.update(sql, deposit.getId(), money.intValue(), DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss), deposit.getRepaidVoucher(), pre_money.intValue(), userId);
         return 1;
