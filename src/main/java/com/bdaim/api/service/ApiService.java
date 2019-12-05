@@ -396,7 +396,7 @@ public class ApiService {
         if (StringUtil.isNotEmpty(apiName)) {
             sql.append(" and api.API_NAME  = '" + apiName + "'");
         }
-        page.setSort("api.CREATED_TIME");
+        page.setSort("sub.CREATE_TIME");
         page.setDir("desc");
         PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
         Object collect = list.getList().stream().map(m -> {
@@ -413,7 +413,7 @@ public class ApiService {
             jsonArray.stream().forEach(p -> {
                 Map pmap = (Map) p;
                 rsIds.append(pmap.get("rsId")).append(",");
-                Object supplierIds = pmap.get("supplier");
+                Object supplierIds = pmap.get("supplierID");
                 if (supplierIds != null) {
                     sulist.add(Integer.parseInt(supplierIds + "".trim()));
                 }
@@ -454,7 +454,7 @@ public class ApiService {
         if (StringUtil.isNotEmpty(custId)) {
             sql.append(" and cus.cust_id = '" + custId + "'");
         }
-        page.setSort("api.CREATED_TIME");
+        page.setSort("sub.CREATE_TIME");
         page.setDir("desc");
         try {
             PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
@@ -471,7 +471,7 @@ public class ApiService {
                 jsonArray.stream().forEach(p -> {
                     Map pmap = (Map) p;
                     rsIds.append(pmap.get("rsId")).append(",");
-                    Object supplierIds = pmap.get("supplier");
+                    Object supplierIds = pmap.get("supplierID");
                     if (supplierIds != null) {
                         sulist.add(Integer.parseInt(supplierIds + "".trim()));
                     }
