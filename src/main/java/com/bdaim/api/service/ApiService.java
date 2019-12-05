@@ -432,7 +432,7 @@ public class ApiService {
                 });
                 suppliers.deleteCharAt(suppliers.length() - 1);
             }
-            if (suppliers.length() > 0) rsIds.deleteCharAt(suppliers.length() - 1);
+//            if (suppliers.length() > 0) rsIds.deleteCharAt(suppliers.length() - 1);
             map.put("realName", suppliers);
             map.put("resourceId", rsIds);
             return map;
