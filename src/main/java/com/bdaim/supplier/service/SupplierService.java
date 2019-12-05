@@ -2342,7 +2342,7 @@ public class SupplierService {
                 JSONArray.parseArray(pro.getPropertyValue()).stream().forEach(e -> {
                     JSONObject jsonObject = JSONObject.parseObject(e.toString());
                     Arrays.stream(jsonObject.getString("supplier").split(",")).forEach(reid -> {
-                        if (!propertyMap.containsKey(Integer.valueOf(reid))) {
+                        if (!propertyMap.containsKey(Integer.valueOf(pro.getApiId()))) {
                             propertyMap.put(Integer.valueOf(reid), new ArrayList<String>());
                         }
                         propertyMap.get(Integer.valueOf(reid)).add(pro.getApiId());
@@ -2364,7 +2364,7 @@ public class SupplierService {
                 supplierDTOMap.put("balance", 0);
                 supplierDTOMap.put("consumption", 0);
                 supplierDTOMap.put("supplierId", map1.get("supplier_id"));
-                supplierDTOMap.put("apiNum", propertyMap.containsValue(map1.get("supplier_id")) ? propertyMap.get(map1.get("supplier_id")).size() : 0);
+                supplierDTOMap.put("apiNum", propertyMap.containsValue(Integer.valueOf(map1.get("supplier_id").toString())) ? propertyMap.get(Integer.valueOf(map1.get("supplier_id").toString())).size() : 0);
                 return supplierDTOMap;
             }).collect(Collectors.toList());
             map.put("list", collect);
