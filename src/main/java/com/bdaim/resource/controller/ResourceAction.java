@@ -294,7 +294,7 @@ public class ResourceAction extends BasicAction {
 
 
     @GetMapping(value = "/logs")
-    public ResponseInfo doInfo(String callMonth,String type, HttpServletResponse response) {
+    public ResponseInfo doInfo(String callMonth,String type,String _rule_, HttpServletResponse response) {
         ResponseInfo resp = new ResponseInfo();
         com.alibaba.fastjson.JSONObject params=new com.alibaba.fastjson.JSONObject ();
         PageParam page = new PageParam();
@@ -305,6 +305,7 @@ public class ResourceAction extends BasicAction {
         page.setPageNum(10000000);
         params.put("type",type);
         params.put("callMonth",callMonth);
+        params.put("_rule_",_rule_);
         try {
             PageList pageList = null;
             if (StringUtil.isNotEmpty(type) && "sub".equals(type)) {

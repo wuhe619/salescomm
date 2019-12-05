@@ -197,8 +197,8 @@ public class ApiService {
                 break;
             case 2:
                 int xml = createXML.createXML(apiId);
-                if(xml==-1){
-                   throw  new Exception("发布失败");
+                if (xml == -1) {
+                    throw new Exception("发布失败");
                 }
                 entity.setStatus(ApiEntity.API_RELEASE);
                 break;
@@ -424,8 +424,10 @@ public class ApiService {
 
             StringBuffer suppliers = new StringBuffer();
             if (sulist.length() > 0) {
+                logger.info("sulist" + sulist.toString());
                 sulist.deleteCharAt(sulist.length() - 1);
                 supplierDao.getSuppliers(sulist.toString()).stream().forEach(name -> {
+                    logger.info("name:" + name.toString());
                     suppliers.append(name).append(",");
                 });
                 suppliers.deleteCharAt(suppliers.length() - 1);
