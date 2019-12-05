@@ -319,7 +319,7 @@ public class B2BTcbService implements BusiService {
                         seaId, superData, "", "", "", "",
                         "", "", data.get(entId).getString("entName"),
                         entId, data.get(entId).getString("regLocation"), data.get(entId).getString("regCap"),
-                        data.get(entId).getString("entStatus"), data.get(entId).getString("6estiblishTime"), pNumbers.size());
+                        data.get(entId).getString("entStatus"), data.get(entId).getString("estiblishTime"), pNumbers.size());
                 // 保存线索
                 int status = seaService.addClueData0(dto, seaType);
                 LOG.info("B2B套餐领取线索状态:{},seaType:{},data:{}", status, seaType, JSON.toJSONString(dto));
