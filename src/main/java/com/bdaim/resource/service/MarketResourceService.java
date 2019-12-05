@@ -8605,7 +8605,9 @@ public class MarketResourceService {
         rsIds.stream().forEach(pro -> {
             JSONArray.parseArray(pro.getPropertyValue()).stream().forEach(e -> {
                 JSONObject jsonObject = JSONObject.parseObject(e.toString());
+                log.info("1111:"+e.toString());
                 Arrays.stream(jsonObject.getString("rsId").split(",")).forEach(reid -> {
+                    log.info("2222:"+reid);
                     if (!propertyMap.containsKey(Integer.valueOf(reid))) {
                         propertyMap.put(Integer.valueOf(reid), new ArrayList<String>());
                     }
