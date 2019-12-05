@@ -3261,10 +3261,10 @@ public class CustomerSeaService {
             sb.append(param.getRegCapitalMax() == null ? 0 : param.getRegCapitalMax());
         }
         if (StringUtil.isNotEmpty(param.getCreateTime())) {
-            sb.append(" AND custG.super_data -> " + "'$.SYS011' >= " + "'" + param.getCreateTime() + "'");
+            sb.append(" AND custG.super_data -> " + "'$.SYS011' >= " + "'" + param.getCreateTime().replace("/","-") + "'");
         }
         if (StringUtil.isNotEmpty(param.getEndTime())) {
-            sb.append(" AND custG.super_data -> " + "'$.SYS011' >= " + "'" + param.getEndTime() + "'");
+            sb.append(" AND custG.super_data -> " + "'$.SYS011' >= " + "'" + param.getEndTime().replace("/","-") + "'");
         }
         if (StringUtil.isNotEmpty(param.getRegStatus())) {
             sb.append(" AND custG.super_data -> " + "'$.SYS012' like " + "'%" + param.getRegStatus() + "%'");
@@ -3451,6 +3451,24 @@ public class CustomerSeaService {
                     sb.append(" AND custG.super_data -> " + likeValue + " ");
                 }
             }
+        }
+        if (StringUtil.isNotEmpty(param.getRegCapitalMin()) || StringUtil.isNotEmpty(param.getRegCapitalMax())) {
+            sb.append(" AND custG.super_data -> '$.SYS010' BETWEEN ");
+            sb.append(param.getRegCapitalMin() == null ? 0 : param.getRegCapitalMin());
+            sb.append(" AND ");
+            sb.append(param.getRegCapitalMax() == null ? 0 : param.getRegCapitalMax());
+        }
+        if (StringUtil.isNotEmpty(param.getCreateTime())) {
+            sb.append(" AND custG.super_data -> " + "'$.SYS011' >= " + "'" + param.getCreateTime().replace("/","-") + "'");
+        }
+        if (StringUtil.isNotEmpty(param.getEndTime())) {
+            sb.append(" AND custG.super_data -> " + "'$.SYS011' >= " + "'" + param.getEndTime().replace("/","-") + "'");
+        }
+        if (StringUtil.isNotEmpty(param.getRegStatus())) {
+            sb.append(" AND custG.super_data -> " + "'$.SYS012' like " + "'%" + param.getRegStatus() + "%'");
+        }
+        if (StringUtil.isNotEmpty(param.getCustName())) {
+            sb.append(" AND custG.super_data -> " + "'$.SYS005' like " + "'%" + param.getCustName() + "%'");
         }
 
         sb.append(" AND custG.status<>2 ");
