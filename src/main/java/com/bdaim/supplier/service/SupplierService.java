@@ -2365,7 +2365,7 @@ public class SupplierService {
                 supplierDTOMap.put("balance", 0);
                 supplierDTOMap.put("consumption", 0);
                 supplierDTOMap.put("supplierId", map1.get("supplier_id"));
-                supplierDTOMap.put("apiNum", propertyMap.containsValue(Integer.valueOf(map1.get("supplier_id").toString())) ? propertyMap.get(Integer.valueOf(map1.get("supplier_id").toString())).size() : 0);
+                supplierDTOMap.put("apiNum", propertyMap.containsKey(Integer.valueOf(map1.get("supplier_id").toString())) ? propertyMap.get(Integer.valueOf(map1.get("supplier_id").toString())).size() : 0);
                 return supplierDTOMap;
             }).collect(Collectors.toList());
             map.put("list", collect);

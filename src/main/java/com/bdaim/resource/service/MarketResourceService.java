@@ -4,6 +4,9 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.api.dao.ApiDao;
+import com.bdaim.api.entity.ApiEntity;
+import com.bdaim.api.entity.ApiProperty;
 import com.bdaim.auth.LoginUser;
 import com.bdaim.batch.ResourceEnum;
 import com.bdaim.batch.TransactionEnum;
@@ -69,6 +72,7 @@ import org.apache.commons.lang.StringEscapeUtils;
 import org.hibernate.transform.Transformers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -158,6 +162,8 @@ public class MarketResourceService {
     private SupplierDao supplierDao;
     @Resource
     private UnicomService unicomService;
+    @Autowired
+    private ApiDao apiDao;
 
 
     public PageList querySmsHistory(PageParam page, SmsqueryParam smsqueryParm) {
@@ -8592,11 +8598,33 @@ public class MarketResourceService {
         }
         sql.append(" order by re.create_time desc");
         PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
+        List<ApiProperty> rsIds = apiDao.getPropertyAll("rsIds");
 
+        Map<Integer, List<String>> propertyMap = new HashMap<>();
 
+        rsIds.stream().forEach(pro -> {
+            JSONArray.parseArray(pro.getPropertyValue()).stream().forEach(e -> {
+                JSONObject jsonObject = JSONObject.parseObject(e.toString());
+                Arrays.stream(jsonObject.getString("rsId").split(",")).forEach(reid -> {
+                    if (!propertyMap.containsKey(Integer.valueOf(pro.getApiId()))) {
+                        propertyMap.put(Integer.valueOf(reid), new ArrayList<String>());
+                    }
+                    List<String> apiIds = propertyMap.get(Integer.valueOf(reid));
+                    apiIds.add(pro.getApiId());
+                    propertyMap.put(Integer.valueOf(reid), apiIds);
+                });
+            });
+        });
 
         list.getList().stream().forEach(m -> {
             Map dataMap = (Map) m;
+            Integer resourceId = Integer.valueOf(dataMap.get("resourceId").toString());
+            StringBuffer apiName = new StringBuffer();
+            propertyMap.get(resourceId).stream().forEach(apiId -> {
+                ApiEntity apiEntity = apiDao.get(Integer.valueOf(apiId));
+                apiName.append(apiEntity.getName()).append(",");
+            });
+            apiName.deleteCharAt(apiName.length() - 1);
             if (!dataMap.containsKey("salePrice")) {
                 dataMap.put("salePrice", 0);
             } else {
@@ -8604,8 +8632,8 @@ public class MarketResourceService {
             }
             if (!dataMap.containsKey("resname"))
                 dataMap.put("resname", "");
-            if (!dataMap.containsKey("apiName"))
-                dataMap.put("apiName", "");
+
+            dataMap.put("apiName", apiName);
             dataList.add(dataMap);
         });
         map.put("total", list.getTotal());
