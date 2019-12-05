@@ -97,9 +97,14 @@ public class UnicomAction extends BasicAction {
             json.put("data", map);
             return json.toJSONString();
         }
-        boolean success = false;
         // 联通外呼
-        JSONObject callResult = unicomService.unicomSeatMakeCall(opUser().getCustId(), opUser().getId(), superId, showNumber);
+        JSONObject callResult = null;
+        try {
+            callResult = unicomService.unicomSeatMakeCall(opUser().getCustId(), opUser().getId(), superId, showNumber);
+        } catch (Exception e) {
+            LOG.error("联通外呼异常,", e);
+            callResult = new JSONObject();
+        }
         // {"msg":"success","code":"01000","data":{"callId":"1539516627199289733","msg":"呼叫成功","code":"000","uuid":"01539516627199289733","callNum":"1/600","todayCallNum":"1/30","monthCallNum":"1/90"}}
         LOG.info("调用联通双呼接口返回:{}", callResult);
         // 更新通话次数(客戶群和公海的)

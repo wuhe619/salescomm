@@ -2216,6 +2216,7 @@ public class CustomerService {
                 ApparentNumberQueryParam m = new ApparentNumberQueryParam();
                 m.setCustId(custId);
                 m.setStatus(1);
+                m.setCallChannel(resourceId);
                 List<ApparentNumberDTO> numberList = listApparentNumber(m);
                 if (numberList.size() == 0) {
                     logger.warn("客户:" + custId + ",渠道ID:" + resourceId + ",未添加外显号");
@@ -2243,6 +2244,7 @@ public class CustomerService {
                 ApparentNumberQueryParam m = new ApparentNumberQueryParam();
                 m.setCustId(custId);
                 m.setStatus(1);
+                m.setCallChannel(resourceId);
                 List<ApparentNumberDTO> numberList = listApparentNumber(m);
                 if (numberList.size() == 0) {
                     logger.warn("客户:" + custId + ",渠道ID:" + resourceId + ",未添加外显号");
