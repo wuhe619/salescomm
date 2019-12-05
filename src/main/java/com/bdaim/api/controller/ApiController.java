@@ -176,6 +176,7 @@ public class ApiController {
             }
 
         } catch (Exception e) {
+            logger.info(e.getMessage());
             e.printStackTrace();
             return new ResponseInfoAssemble().failure(-1, "获取列表失败");
         }

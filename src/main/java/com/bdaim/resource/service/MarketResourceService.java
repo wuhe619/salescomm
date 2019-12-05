@@ -8611,7 +8611,7 @@ public class MarketResourceService {
                     if (!propertyMap.containsKey(reid)) {
                         propertyMap.put(reid, new ArrayList<String>());
                     }
-                    List<String> apiIds = propertyMap.get(Integer.valueOf(reid));
+                    List<String> apiIds = propertyMap.get(reid);
                     apiIds.add(pro.getApiId());
                     propertyMap.put(reid, apiIds);
                 });
