@@ -8555,9 +8555,11 @@ public class MarketResourceService {
     }
 
     public int updateMarketResource(String name, Integer supplierId, String price, Integer type, Integer resource_id) {
-
+        int price1 = 0;
+        BigDecimal b1 = new BigDecimal(10000);
+        BigDecimal b2 = new BigDecimal(Double.valueOf(price));
         String sql1 = "REPLACE  into t_market_resource(resource_id,supplier_id,type_code,resname,sale_price,create_time) VALUES(?,?,?,?,?,?)";
-        int update = jdbcTemplate.update(sql1, new Object[]{resource_id, supplierId, type, name, price, DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss)});
+        int update = jdbcTemplate.update(sql1, new Object[]{resource_id, supplierId, type, name, b1.subtract(b2).intValue(), DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss)});
 
         return update;
     }
@@ -8591,8 +8593,12 @@ public class MarketResourceService {
         PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
         list.getList().stream().forEach(m -> {
             Map dataMap = (Map) m;
-            if (!dataMap.containsKey("salePrice"))
+            if (!dataMap.containsKey("salePrice")) {
                 dataMap.put("salePrice", 0);
+            } else {
+                dataMap.put("salePrice", Double.valueOf(dataMap.get("salePrice").toString()) / 10000);
+            }
+
             if (!dataMap.containsKey("resname"))
                 dataMap.put("resname", "");
             if (!dataMap.containsKey("apiName"))

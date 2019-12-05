@@ -2391,7 +2391,8 @@ public class SupplierService {
             pre_money = bigDecimal1.subtract(b);
             supplierDao.dealCustomerInfo(String.valueOf(deposit.getId()), "remain_amount", String.valueOf(pre_money.add(money).intValue()));
         }
-        log.info(pre_money.intValue() + "");
+        log.info("id:"+deposit.getId());
+        log.info("id prc_money:"+String.valueOf(pre_money.add(money).intValue()));
         String sql = "INSERT INTO supplier_pay (SUBSCRIBER_ID,MONEY,PAY_TIME,pay_certificate,pre_money,user_id) VALUE (?,?,?,?,?,?) ";
         jdbcTemplate.update(sql, deposit.getId(), money.intValue(), DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss), deposit.getRepaidVoucher(), pre_money.intValue(), userId);
         return 1;
