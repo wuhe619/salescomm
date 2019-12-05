@@ -299,10 +299,10 @@ public class SupplierDao extends SimpleHibernateDao<SupplierEntity, Integer> {
      *
      * @return
      */
-    public List<SupplierEntity> getSuppliers(List<Integer> suppliers) {
+    public List<String> getSuppliers(String suppliers) {
         SupplierEntity cp = null;
-        String hql = "from SupplierEntity m where m.supplierId in  ? ";
-        List<SupplierEntity> list = this.find(hql, suppliers);
+        String sql = "select name from t_supplier where supplier_id in (" + suppliers + ")";
+        List<String> list = jdbcTemplate.queryForList(sql, String.class);
         return list;
     }
 }
