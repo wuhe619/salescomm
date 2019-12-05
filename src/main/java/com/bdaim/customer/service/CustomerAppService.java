@@ -228,7 +228,7 @@ public class CustomerAppService {
 
     public Map<String, Object> getUser(PageParam page, String customerId, String account, String name, String contactPerson, String salePerson) {
         StringBuffer sql = new StringBuffer();
-        sql.append("SELECT  CAST(s.id AS CHAR) id,s.cust_id as custId,s.user_type, s.account AS account,s.password AS PASSWORD,s.realname AS contactPerson,tc.title as title,tc.enterprise_name as name" +
+        sql.append("SELECT  CAST(s.id AS CHAR) id,s.cust_id as custId,s.user_type, s.account AS account,s.password AS PASSWORD,tc.realname AS contactPerson,tc.title as title,tc.enterprise_name as name" +
                 " FROM t_customer_user s LEFT JOIN t_customer tc ON s.cust_id=tc.cust_id  " +
                 " WHERE 1=1  AND s.STATUS <> 2");
         if (StringUtil.isNotEmpty(account)) {
@@ -236,7 +236,7 @@ public class CustomerAppService {
             sql.append(" AND s.account = '" + account + "'");
         }
         if (StringUtil.isNotEmpty(contactPerson)) {
-            sql.append(" AND s.realname like '%" + contactPerson + "%'");
+            sql.append(" AND tc.realname like '%" + contactPerson + "%'");
         }
         if (StringUtil.isNotEmpty(name)) {
             sql.append(" AND tc.enterprise_name like '%" + name + "%'");
