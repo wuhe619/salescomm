@@ -228,7 +228,7 @@ public class CustomerAppService {
 
     public Map<String, Object> getUser(PageParam page, String customerId, String account, String name, String contactPerson, String salePerson) {
         StringBuffer sql = new StringBuffer();
-        sql.append("SELECT  CAST(s.id AS CHAR) id,s.cust_id,s.user_type, s.account AS account,s.password AS PASSWORD,s.realname AS contactPerson,tc.title as title,tc.enterprise_name as name" +
+        sql.append("SELECT  CAST(s.id AS CHAR) id,s.cust_id as custId,s.user_type, s.account AS account,s.password AS PASSWORD,s.realname AS contactPerson,tc.title as title,tc.enterprise_name as name" +
                 " FROM t_customer_user s LEFT JOIN t_customer tc ON s.cust_id=tc.cust_id  " +
                 " WHERE 1=1  AND s.STATUS <> 2");
         if (StringUtil.isNotEmpty(account)) {
@@ -246,10 +246,10 @@ public class CustomerAppService {
         Object collect = list.getList().stream().map(m -> {
             Map map = (Map) m;
 
-            if (StringUtil.isEmpty(map.get("cust_id").toString())) {
+            if (StringUtil.isEmpty(map.get("custId").toString())) {
                 return map;
             }
-            String cust_id = map.get("cust_id").toString();
+            String cust_id = map.get("custId").toString();
             CustomerProperty mobile = customerDao.getProperty(cust_id, "mobile");
             if (mobile != null) {
                 map.put("mobile", mobile.getPropertyValue());
@@ -260,11 +260,11 @@ public class CustomerAppService {
             }
             CustomerProperty remain_amount = customerDao.getProperty(cust_id, "remain_amount");
             CustomerProperty used_amount = customerDao.getProperty(cust_id, "used_amount");
-            if(remain_amount!=null){
-                map.put("remainAmount", StringUtil.isEmpty(sale_person.getPropertyValue())?"0":String.valueOf(Integer.valueOf(sale_person.getPropertyValue())/10000));
+            if (remain_amount != null) {
+                map.put("remainAmount", StringUtil.isEmpty(sale_person.getPropertyValue()) ? "0" : StringUtil.isNumeric(sale_person.getPropertyValue()) ? "0" : String.valueOf(Integer.valueOf(sale_person.getPropertyValue()) / 10000));
             }
-            if(used_amount!=null){
-                map.put("userAmount", StringUtil.isEmpty(sale_person.getPropertyValue())?"0":String.valueOf(Integer.valueOf(sale_person.getPropertyValue())/10000));
+            if (used_amount != null) {
+                map.put("userAmount", StringUtil.isEmpty(sale_person.getPropertyValue()) ? "0" : String.valueOf(Integer.valueOf(sale_person.getPropertyValue()) / 10000));
             }
             return map;
         }).collect(Collectors.toList());
