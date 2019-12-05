@@ -154,7 +154,7 @@ public class UnicomAction extends BasicAction {
     }
 
     @RequestMapping(value = "/open/unicom/callBack", method = RequestMethod.POST)
-    public void updateCallRecord(@RequestBody String body, HttpServletResponse response) {
+    public void updateCallRecord(@RequestBody(required = false) String body, HttpServletResponse response) {
         response.setContentType("application/json;charset=utf-8");
         try {
             PrintWriter printWriter = response.getWriter();
@@ -178,7 +178,7 @@ public class UnicomAction extends BasicAction {
     }
 
     @RequestMapping(value = "/open/unicom/recordCallBack", method = RequestMethod.POST)
-    public void saveCallRecordFile(@RequestBody String body, HttpServletResponse response) {
+    public void saveCallRecordFile(@RequestBody(required = false) String body, HttpServletResponse response) {
         response.setContentType("application/json;charset=utf-8");
         try {
             PrintWriter printWriter = response.getWriter();
