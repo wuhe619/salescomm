@@ -154,12 +154,17 @@ public class UnicomAction extends BasicAction {
     }
 
     @RequestMapping(value = "/open/unicom/callBack", method = RequestMethod.POST)
-    public void updateCallRecord(@RequestBody CallBackInfoParam callBackInfoParam, HttpServletResponse response) {
-        LOG.info("精准营销联通通话记录推送数据:{}", callBackInfoParam.toString());
+    public void updateCallRecord(@RequestBody String body, HttpServletResponse response) {
+        response.setContentType("application/json;charset=utf-8");
         try {
-            response.setContentType("application/json;charset=utf-8");
-            int i = unicomService.updateCallRecord(callBackInfoParam);
             PrintWriter printWriter = response.getWriter();
+            if (StringUtil.isEmpty(body)) {
+                printWriter.print("{\"code\":\"-1\",\"msg\":\"请求参数为空\"}");
+                return;
+            }
+            CallBackInfoParam callBackInfoParam = JSON.parseObject(body, CallBackInfoParam.class);
+            LOG.info("精准营销联通通话记录推送数据:{}", callBackInfoParam.toString());
+            int i = unicomService.updateCallRecord(callBackInfoParam);
             if (i > 0) {
                 printWriter.print("{\"code\":\"0\"}");
             } else {
@@ -173,12 +178,17 @@ public class UnicomAction extends BasicAction {
     }
 
     @RequestMapping(value = "/open/unicom/recordCallBack", method = RequestMethod.POST)
-    public void saveCallRecordFile(@RequestBody JSONObject param, HttpServletResponse response) {
-        LOG.info("精准营销联通录音文件推送数据:{}", param);
+    public void saveCallRecordFile(@RequestBody String body, HttpServletResponse response) {
         response.setContentType("application/json;charset=utf-8");
         try {
-            int result = unicomService.saveCallRecordFile(param);
             PrintWriter printWriter = response.getWriter();
+            if (StringUtil.isEmpty(body)) {
+                printWriter.print("{\"code\":\"-1\",\"msg\":\"请求参数为空\"}");
+                return;
+            }
+            JSONObject param = JSON.parseObject(body);
+            LOG.info("精准营销联通录音文件推送数据:{}", param);
+            int result = unicomService.saveCallRecordFile(param);
             if (0 == result) {
                 printWriter.print("{\"code\":\"0\"}");
             } else {
