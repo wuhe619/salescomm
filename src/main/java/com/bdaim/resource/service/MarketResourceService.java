@@ -8600,7 +8600,7 @@ public class MarketResourceService {
         PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
         List<ApiProperty> rsIds = apiDao.getPropertyAll("rsIds");
 
-        Map<Integer, List<String>> propertyMap = new HashMap<>();
+        Map<String, List<String>> propertyMap = new HashMap<>();
 
         rsIds.stream().forEach(pro -> {
             JSONArray.parseArray(pro.getPropertyValue()).stream().forEach(e -> {
@@ -8608,21 +8608,20 @@ public class MarketResourceService {
                 log.info("1111:"+e.toString());
                 Arrays.stream(jsonObject.getString("rsId").split(",")).forEach(reid -> {
                     log.info("2222:"+reid);
-                    if (!propertyMap.containsKey(Integer.valueOf(reid))) {
-                        propertyMap.put(Integer.valueOf(reid), new ArrayList<String>());
+                    if (!propertyMap.containsKey(reid)) {
+                        propertyMap.put(reid, new ArrayList<String>());
                     }
                     List<String> apiIds = propertyMap.get(Integer.valueOf(reid));
                     apiIds.add(pro.getApiId());
-                    propertyMap.put(Integer.valueOf(reid), apiIds);
+                    propertyMap.put(reid, apiIds);
                 });
             });
         });
 
         list.getList().stream().forEach(m -> {
             Map dataMap = (Map) m;
-            Integer resourceId = Integer.valueOf(dataMap.get("resourceId").toString());
             StringBuffer apiName = new StringBuffer();
-            propertyMap.get(resourceId).stream().forEach(apiId -> {
+            propertyMap.get(dataMap.get("resourceId").toString()).stream().forEach(apiId -> {
                 ApiEntity apiEntity = apiDao.get(Integer.valueOf(apiId));
                 apiName.append(apiEntity.getName()).append(",");
             });
