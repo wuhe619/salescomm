@@ -30,10 +30,11 @@ public class CreateXML {
     @Autowired
     private ApiDao apiDao;
 
-    public void createXML(String apiId) {
+    public int createXML(String apiId) {
         ApiEntity entity = apiDao.getApi(Integer.valueOf(apiId));
         DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
         DocumentBuilder builder;
+        logger.info("apiEntity:" + entity.toString());
         try {
             builder = documentBuilderFactory.newDocumentBuilder();
             Document document = builder.newDocument();
@@ -45,8 +46,10 @@ public class CreateXML {
             api.setAttribute("version-type", "context");
             Element resource = document.createElement("resource");
             ApiProperty request_method = apiDao.getProperty(apiId, "request_method");
+            logger.info("request_method:" + request_method.getPropertyValue());
             resource.setAttribute("methods", request_method.getPropertyValue());
             ApiProperty resource_url_pattern = apiDao.getProperty(apiId, "resource_url_pattern");
+            logger.info("resource_url_pattern:" + resource_url_pattern.getPropertyValue());
             resource.setAttribute("url-mapping", resource_url_pattern.getPropertyValue());
             resource.setAttribute("faultSequence", "fault");
             Element inSequence = document.createElement("inSequence");
@@ -70,7 +73,9 @@ public class CreateXML {
             Element endpoint = document.createElement("endpoint");
             Element http = document.createElement("http");
             endpoint.setAttribute("name", entity.getName() + "_APIproductionEndpoint_0");
-            http.setAttribute("uri-template", "http://sdsfd/resource");
+            ApiProperty productionendpoints = apiDao.getProperty(apiId, "productionendpoints");
+            logger.info("productionendpoints:" + productionendpoints.getPropertyValue());
+            http.setAttribute("uri-template", productionendpoints.getPropertyValue());
             endpoint.appendChild(http);
             send.appendChild(endpoint);
             then.appendChild(property);
@@ -155,8 +160,9 @@ public class CreateXML {
             // TODO: handle exception
             logger.info(e.getMessage());
             logger.info("xml文件生成失败");
+            return -1;
         }
-
+        return 1;
 
     }
 }

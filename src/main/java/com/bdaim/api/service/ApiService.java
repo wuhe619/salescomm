@@ -196,7 +196,10 @@ public class ApiService {
                 entity.setStatus(ApiEntity.API_OFFLINE);
                 break;
             case 2:
-                createXML.createXML(apiId);
+                int xml = createXML.createXML(apiId);
+                if(xml==-1){
+                   throw  new Exception("发布失败");
+                }
                 entity.setStatus(ApiEntity.API_RELEASE);
                 break;
         }
