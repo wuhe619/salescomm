@@ -1574,6 +1574,167 @@ public class CustomerService {
 //        return map;
     }
 
+    /**
+     * 查询所有用户(不分页)
+     * @param param
+     * @param lu
+     * @return
+     */
+    public List<CustomerDTO> getUsersByCondition0(UserQueryParam param, LoginUser lu) {
+        StringBuffer hql = new StringBuffer("from Customer m where 1=1 and brand_id is null");
+        List values = new ArrayList();
+        if (StringUtil.isNotEmpty(param.getEnterpriseName())) {
+            hql.append(" and m.enterpriseName like ?");
+            values.add("%" + param.getEnterpriseName() + "%");
+        }
+        if (StringUtil.isNotEmpty(param.getStatus())) {
+            hql.append(" and m.status = ?");
+            values.add(Integer.parseInt(param.getStatus()));
+        }
+        // 处理用户ID搜索条件
+        if (StringUtil.isNotEmpty(param.getUserId())) {
+            CustomerUser customerUser = customerUserDao.get(Long.parseLong(param.getUserId()));
+            if (customerUser != null) {
+                hql.append(" and m.custId = ?");
+                values.add(customerUser.getCust_id());
+            } else {
+                return new ArrayList<>();
+            }
+        }
+        // 处理用户名称搜索条件(不支持模糊搜索)
+        if (StringUtil.isNotEmpty(param.getUserName())) {
+            CustomerUser customerUser = customerUserDao.getCustomerUserByLoginName(param.getUserName());
+            if (customerUser != null) {
+                hql.append(" and m.custId = ?");
+                values.add(customerUser.getCust_id());
+            } else {
+                return new ArrayList<>();
+            }
+        }
+        // 处理呼叫类型搜索
+        if (StringUtil.isNotEmpty(param.getCallCenterType())) {
+            hql.append(" AND m.custId IN (SELECT custId FROM CustomerProperty WHERE propertyName ='call_config' AND propertyValue LIKE ? ) ");
+            values.add("%\"type\":\"" + param.getCallCenterType() + "\"%");
+        }
+
+        // 处理营销类型
+        if (StringUtil.isNotEmpty(param.getMarketingType())) {
+            values.add(CustomerPropertyEnum.MARKET_TYPE.getKey());
+            if (String.valueOf(MarketTypeEnum.B2C.getCode()).equals(param.getMarketingType())) {
+                hql.append(" AND m.custId NOT IN (SELECT custId FROM CustomerProperty WHERE propertyName =? AND propertyValue = ? ) ");
+                values.add(String.valueOf(MarketTypeEnum.B2B.getCode()));
+            } else {
+                hql.append(" AND m.custId IN (SELECT custId FROM CustomerProperty WHERE propertyName =? AND propertyValue = ? ) ");
+                values.add(param.getMarketingType());
+            }
+        }
+
+        if ("ROLE_USER".equals(lu.getRole())) {
+            String custIdsStr = userGroupService.getCustomerIdByuId(lu.getId().toString());
+            if (StringUtil.isNotEmpty(custIdsStr)) {
+                hql.append("and m.custId in(" + custIdsStr + ")");
+            }
+        }
+        hql.append(" order by m.createTime DESC ");
+        List<Customer> p = customerDao.find(hql.toString(), values);
+        List data = new ArrayList();
+        List<CustomerUser> us;
+        Customer cust;
+        CustomerDTO cd;
+        CustomerUserPropertyDO mobileNum;
+        CustomerProperty enterpriseAddress, bliNumber, bliPic, taxPayerNum, taxPic, bankName,
+                bankAccount, bankAccountPic, settlementType, creditAmountProperty, callConfig, apparentNumberRule, apparentNumber;
+        CustomerUser u;
+        JSONObject callConfigProperty;
+        ApparentNumberQueryParam apparentNumberQuery;
+        List<ApparentNumber> apparentNumbers;
+        for (int i = 0; i < p.size(); i++) {
+            cust = (Customer) p.get(i);
+            cd = new CustomerDTO(cust);
+
+            enterpriseAddress = customerDao.getProperty(cust.getCustId(), "reg_address");
+            bliNumber = customerDao.getProperty(cust.getCustId(), "bli_number");
+            bliPic = customerDao.getProperty(cust.getCustId(), "bli_path");
+            taxPayerNum = customerDao.getProperty(cust.getCustId(), "taxPayerNum");
+            taxPic = customerDao.getProperty(cust.getCustId(), "taxpayer_certificate_path");
+            bankName = customerDao.getProperty(cust.getCustId(), "bankName");
+            bankAccount = customerDao.getProperty(cust.getCustId(), "bankAccount");
+            bankAccountPic = customerDao.getProperty(cust.getCustId(), "bank_account_certificate");
+            CustomerProperty serviceMode = customerDao.getProperty(cust.getCustId(), "service_mode");
+            if (enterpriseAddress != null) cd.setEnterpriseAddress(enterpriseAddress.getPropertyValue());
+            if (bliNumber != null) cd.setBliNumber(bliNumber.getPropertyValue());
+            if (bliPic != null)
+                cd.setBliPic(ConfigUtil.getInstance().get("pic_server_url") + "/" + cust.getCustId() + "/'" + bliPic.getPropertyValue());
+            if (taxPayerNum != null) cd.setTaxPayerNum(taxPayerNum.getPropertyValue());
+            if (taxPic != null)
+                cd.setTaxPic(ConfigUtil.getInstance().get("pic_server_url") + "/" + cust.getCustId() + "/'" + taxPic.getPropertyValue());
+            if (bankName != null) cd.setBankName(bankName.getPropertyValue());
+            if (bankAccount != null) cd.setBankAccount(bankAccount.getPropertyValue());
+            if (bankAccountPic != null)
+                cd.setBankAccountPic(ConfigUtil.getInstance().get("pic_server_url") + "/" + cust.getCustId() + "/'" + bankAccountPic.getPropertyValue());
+
+            us = customerUserDao.find("from CustomerUser m where m.cust_id='" + cust.getCustId() + "' and m.userType='1'");
+            if (us.size() > 0) {
+                u = us.get(0);
+                cd.setUserId(u.getId().toString());
+                cd.setUsername(u.getAccount());
+                mobileNum = customerUserDao.getProperty(u.getId().toString(), "mobile_num");
+                cd.setMobileNum(mobileNum == null ? "" : mobileNum.getPropertyValue());
+            }
+            // 结算类型
+            settlementType = customerDao.getProperty(cust.getCustId(), "settlement_type");
+            if (settlementType != null && StringUtil.isNotEmpty(settlementType.getPropertyValue())) {
+                cd.setSettlementType(NumberConvertUtil.parseInt(settlementType.getPropertyValue()));
+                //查询授信额度
+                if (cd.getSettlementType() != null && 2 == cd.getSettlementType()) {
+                    creditAmountProperty = customerDao.getProperty(cust.getCustId(), "creditAmount");
+                    cd.setCreditAmount(creditAmountProperty != null ? creditAmountProperty.getPropertyValue() : "");
+                }
+            }
+
+            callConfig = customerDao.getProperty(cust.getCustId(), "call_config");
+            if (callConfig != null && StringUtil.isNotEmpty(callConfig.getPropertyValue())) {
+                Object object = JSON.parse(callConfig.getPropertyValue());
+                // 兼容之前的数据格式
+                JSONObject jsonObject;
+                JSONArray callConfigs = null;
+                if (object instanceof JSONObject) {
+                    jsonObject = (JSONObject) object;
+                    callConfigs = new JSONArray();
+                    callConfigs.add(jsonObject);
+                } else if (object instanceof JSONArray) {
+                    callConfigs = (JSONArray) object;
+                }
+                if (callConfigs != null && callConfigs.size() > 0) {
+                    cd.setCallType(callConfigs.getJSONObject(0).getInteger("type"));
+                }
+            }
+
+            // 查询有效外显个数
+            apparentNumberQuery = new ApparentNumberQueryParam();
+            apparentNumberQuery.setCustId(cust.getCustId());
+            apparentNumberQuery.setStatus(1);
+            apparentNumberQuery.setStopStatus(1);
+            apparentNumbers = customerDao.listApparentNumber(apparentNumberQuery);
+            cd.setApparentNumberNum(apparentNumbers.size());
+            if (serviceMode != null && StringUtil.isNotEmpty(serviceMode.getPropertyValue())) {
+                cd.setServiceMode(serviceMode.getPropertyValue());
+            }
+            // 外显使用规则
+            apparentNumberRule = customerDao.getProperty(cust.getCustId(), "apparent_number_rule");
+            if (apparentNumberRule != null && StringUtil.isNotEmpty(apparentNumberRule.getPropertyValue())) {
+                cd.setApparentNumberRule(apparentNumberRule.getPropertyValue());
+            }
+            // 指定的外显号
+            apparentNumber = customerDao.getProperty(cust.getCustId(), "apparent_number");
+            if (apparentNumber != null && StringUtil.isNotEmpty(apparentNumber.getPropertyValue())) {
+                cd.setApparentNumber(apparentNumber.getPropertyValue());
+            }
+            data.add(cd);
+        }
+        return data;
+    }
+
     public Customer getUserByEnterpriseName(String enterpriseName) {
         return customerDao.findUniqueBy("enterpriseName", enterpriseName);
     }
