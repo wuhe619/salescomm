@@ -245,7 +245,6 @@ public class CustomerAppService {
         PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
         Object collect = list.getList().stream().map(m -> {
             Map map = (Map) m;
-
             if (StringUtil.isEmpty(map.get("custId").toString())) {
                 return map;
             }
@@ -261,7 +260,7 @@ public class CustomerAppService {
             CustomerProperty remain_amount = customerDao.getProperty(cust_id, "remain_amount");
             CustomerProperty used_amount = customerDao.getProperty(cust_id, "used_amount");
             if (remain_amount != null) {
-                map.put("remainAmount", StringUtil.isEmpty(sale_person.getPropertyValue()) ? "0" : StringUtil.isNumeric(sale_person.getPropertyValue()) ? "0" : String.valueOf(Integer.valueOf(sale_person.getPropertyValue()) / 10000));
+                map.put("remainAmount", StringUtil.isEmpty(sale_person.getPropertyValue()) ? "0" : StringUtil.isNumeric(sale_person.getPropertyValue()) ?  String.valueOf(Integer.valueOf(sale_person.getPropertyValue()) / 10000):"0");
             }
             if (used_amount != null) {
                 map.put("userAmount", StringUtil.isEmpty(sale_person.getPropertyValue()) ? "0" : String.valueOf(Integer.valueOf(sale_person.getPropertyValue()) / 10000));
