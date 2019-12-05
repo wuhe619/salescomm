@@ -6,6 +6,8 @@ import com.alibaba.excel.support.ExcelTypeEnum;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.api.dao.ApiDao;
+import com.bdaim.api.entity.ApiProperty;
 import com.bdaim.batch.ResourceEnum;
 import com.bdaim.batch.TransactionEnum;
 import com.bdaim.bill.dao.BillDao;
@@ -46,6 +48,7 @@ import com.bdaim.util.StringUtil;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -84,7 +87,8 @@ public class SupplierService {
     private MarketResourceDao marketResourceDao;
     @Resource
     private TransactionService transactionService;
-
+    @Autowired
+    private ApiDao apiDao;
     @Resource
     private JdbcTemplate jdbcTemplate;
 
@@ -1212,7 +1216,7 @@ public class SupplierService {
                     callCenter.add(dto);
                 } else if ("2".equals(dto.getChargingType())) {//双呼
                     call2way.add(dto);
-                }else if ("4".equals(dto.getChargingType())) {//双呼
+                } else if ("4".equals(dto.getChargingType())) {//双呼
                     unicomCall2way.add(dto);
                 }
             }
@@ -2321,34 +2325,55 @@ public class SupplierService {
     }
 
     public Map<String, Object> getSupplierList(PageParam page, String name) {
+        try {
+            StringBuffer sql = new StringBuffer();
+            sql.append("select supplier_id,name,settlement_type,contact_person,contact_phone,contact_position,status,create_time from t_supplier where status =1 ");
+            if (StringUtil.isNotEmpty(name)) {
+                sql.append(" and name like '%" + name + "%'");
+            }
+            sql.append(" order by create_time desc");
+            PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
+            Map<String, Object> map = new HashMap<>();
+            List<ApiProperty> rsIds = apiDao.getPropertyAll("rsIds");
 
-        StringBuffer sql = new StringBuffer();
-        sql.append("select supplier_id,name,settlement_type,contact_person,contact_phone,contact_position,status,create_time from t_supplier where status =1 ");
-        if (StringUtil.isNotEmpty(name)) {
-            sql.append(" and name like '%" + name + "%'");
+            Map<Integer, List<String>> propertyMap = new HashMap<>();
+
+            rsIds.stream().forEach(pro -> {
+                JSONArray.parseArray(pro.getPropertyValue()).stream().forEach(e -> {
+                    JSONObject jsonObject = JSONObject.parseObject(e.toString());
+                    Arrays.stream(jsonObject.getString("supplier").split(",")).forEach(reid -> {
+                        if (!propertyMap.containsKey(Integer.valueOf(reid))) {
+                            propertyMap.put(Integer.valueOf(reid), new ArrayList<String>());
+                        }
+                        propertyMap.get(Integer.valueOf(reid)).add(pro.getApiId());
+                        propertyMap.put(Integer.valueOf(reid), propertyMap.get(Integer.valueOf(reid)));
+                    });
+                });
+            });
+            map.put("total", list.getTotal());
+            Object collect = list.getList().stream().map(m -> {
+                Map map1 = (Map) m;
+                Map<String, Object> supplierDTOMap = new HashMap<>();
+                supplierDTOMap.put("name", map1.get("name"));
+                supplierDTOMap.put("settlementType", map1.get("settlement_type"));
+                supplierDTOMap.put("contactPerson", map1.get("contact_person"));
+                supplierDTOMap.put("contactPhone", map1.get("contact_phone"));
+                supplierDTOMap.put("contactPosition", map1.get("contact_position"));
+                supplierDTOMap.put("status", map1.get("status"));
+                supplierDTOMap.put("createTime", map1.get("create_time"));
+                supplierDTOMap.put("balance", 0);
+                supplierDTOMap.put("consumption", 0);
+                supplierDTOMap.put("supplierId", map1.get("supplier_id"));
+                supplierDTOMap.put("apiNum",propertyMap.containsValue(map1.get("supplier_id")) ?propertyMap.get(map1.get("supplier_id")).size():0);
+                return supplierDTOMap;
+            }).collect(Collectors.toList());
+            map.put("list", collect);
+            return map;
+
+        } catch (Exception e) {
+            log.info(e.getMessage());
         }
-        sql.append(" order by create_time desc");
-        PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
-        Map<String, Object> map = new HashMap<>();
-        map.put("total", list.getTotal());
-        Object collect = list.getList().stream().map(m -> {
-            Map map1 = (Map) m;
-            Map<String, Object> supplierDTOMap = new HashMap<>();
-            supplierDTOMap.put("name", map1.get("name"));
-            supplierDTOMap.put("settlementType", map1.get("settlement_type"));
-            supplierDTOMap.put("contactPerson", map1.get("contact_person"));
-            supplierDTOMap.put("contactPhone", map1.get("contact_phone"));
-            supplierDTOMap.put("contactPosition", map1.get("contact_position"));
-            supplierDTOMap.put("status", map1.get("status"));
-            supplierDTOMap.put("createTime", map1.get("create_time"));
-            supplierDTOMap.put("balance", 0);
-            supplierDTOMap.put("consumption", 0);
-            supplierDTOMap.put("supplierId", map1.get("supplier_id"));
-            return supplierDTOMap;
-        }).collect(Collectors.toList());
-        map.put("list", collect);
-        return map;
-
+      return null;
     }
 
     public int supplierDeposit(Deposit deposit, String userId) {

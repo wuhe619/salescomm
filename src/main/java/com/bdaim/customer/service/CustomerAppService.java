@@ -66,7 +66,7 @@ public class CustomerAppService {
             customer.setStatus(Constant.USER_ACTIVE_STATUS);
             customer.setCreateTime(DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss));
             vo.setCustId(customerId);
-            saveAmApplication(vo, lu,customerId);
+            saveAmApplication(vo, lu, customerId);
         }
         customerDao.saveOrUpdate(customer);
 
@@ -214,7 +214,7 @@ public class CustomerAppService {
         return customerId;
     }
 
-    public void saveAmApplication(CustomerRegistDTO vo, LoginUser lu,String customerId) {
+    public void saveAmApplication(CustomerRegistDTO vo, LoginUser lu, String customerId) {
         AmApplicationEntity entity = new AmApplicationEntity();
         entity.setCreateBy(lu.getName());
         entity.setCreateTime(new Timestamp(System.currentTimeMillis()));
@@ -424,6 +424,9 @@ public class CustomerAppService {
             }
             if (depositMap.get("realname") != null) {
                 deposit.setRealname(depositMap.get("realname").toString());
+            }
+            if (depositMap.get("account") != null) {
+                deposit.setAccount(depositMap.get("account").toString());
             }
             depositList.add(deposit);
         });

@@ -1,13 +1,17 @@
 package com.bdaim.resource.controller;
 
+import com.alibaba.fastjson.JSON;
 import com.bdaim.api.service.ApiService;
 import com.bdaim.auth.LoginUser;
 import com.bdaim.common.annotation.ValidatePermission;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.controller.util.ActionStates;
 import com.bdaim.common.dto.PageParam;
+import com.bdaim.common.exception.TouchException;
+import com.bdaim.common.page.PageList;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
+import com.bdaim.customs.services.ExportExcelService;
 import com.bdaim.rbac.dto.AbstractTreeResource;
 import com.bdaim.rbac.dto.CommonTreeResource;
 import com.bdaim.rbac.service.ResourceService;
@@ -15,8 +19,10 @@ import com.bdaim.resource.dto.MarketResourceDTO;
 import com.bdaim.resource.service.MarketResourceService;
 import com.bdaim.resource.util.ResourceTypeHelper;
 import com.bdaim.resource.util.TreeJsonFormat;
+import com.bdaim.util.FileUtil;
 import com.bdaim.util.StringUtil;
 import net.sf.json.JSONArray;
+import net.sf.json.JSONFunction;
 import net.sf.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,6 +32,9 @@ import org.springframework.web.servlet.ModelAndView;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -42,6 +51,9 @@ public class ResourceAction extends BasicAction {
 
     @Autowired
     ApiService apiService;
+
+    @Autowired
+    private ExportExcelService exportExcelService;
 
     public static final Logger logger = LoggerFactory.getLogger(ResourceAction.class);
 
@@ -279,4 +291,38 @@ public class ResourceAction extends BasicAction {
 
         return resp;
     }
+
+
+    @GetMapping(value = "/logs")
+    public ResponseInfo doInfo(String callMonth,String type, HttpServletResponse response) {
+        ResponseInfo resp = new ResponseInfo();
+        com.alibaba.fastjson.JSONObject params=new com.alibaba.fastjson.JSONObject ();
+        PageParam page = new PageParam();
+        if (StringUtil.isEmpty(callMonth)) {
+            return new ResponseInfoAssemble().failure(-1, "查询时间不能为空");
+        }
+        page.setPageSize(0);
+        page.setPageNum(10000000);
+        params.put("type",type);
+        params.put("callMonth",callMonth);
+        try {
+            PageList pageList = null;
+            if (StringUtil.isNotEmpty(type) && "sub".equals(type)) {
+                pageList = apiService.subApiLogs(params, page);
+            } else {
+                pageList = apiService.resApiLogs(params, page);
+            }
+            if (pageList.getList().size() == 0) {
+                exportExcelService.exportExcel(0, new ArrayList<>(), params, response);
+            }
+            exportExcelService.exportExcel(0, pageList.getList(), params, response);
+            resp.setData(pageList);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return resp;
+    }
 }
+
