@@ -409,22 +409,22 @@ public class ApiService {
             String propertyValue = property.getPropertyValue();
             JSONArray jsonArray = JSONArray.parseArray(propertyValue);
             StringBuffer rsIds = new StringBuffer();
-            List<Integer> sulist = new ArrayList<>();
+            StringBuffer sulist = new StringBuffer();
             jsonArray.stream().forEach(p -> {
                 Map pmap = (Map) p;
                 rsIds.append(pmap.get("rsId")).append(",");
-                Object supplierIds = pmap.get("supplierID");
-                if (supplierIds != null) {
-                    sulist.add(Integer.parseInt(supplierIds + "".trim()));
-                }
+                Object supplierIds = pmap.get("supplier");
+                sulist.append(supplierIds).append(",");
             });
             if (rsIds.length() > 0) rsIds.deleteCharAt(rsIds.length() - 1);
 
             StringBuffer suppliers = new StringBuffer();
-            if (sulist.size() > 0) {
-                supplierDao.getSuppliers(sulist).stream().forEach(e -> {
-                    suppliers.append(e.getName()).append(",");
+            if (sulist.length() > 0) {
+                sulist.deleteCharAt(sulist.length() - 1);
+                supplierDao.getSuppliers(sulist.toString()).stream().forEach(name -> {
+                    suppliers.append(name).append(",");
                 });
+                suppliers.deleteCharAt(suppliers.length() - 1);
             }
             if (suppliers.length() > 0) rsIds.deleteCharAt(suppliers.length() - 1);
             map.put("realName", suppliers);
@@ -466,27 +466,23 @@ public class ApiService {
                 if (property == null) return map;
                 String propertyValue = property.getPropertyValue();
                 JSONArray jsonArray = JSONArray.parseArray(propertyValue);
-                List sulist = new ArrayList();
+                StringBuffer sulist = new StringBuffer();
                 StringBuffer rsIds = new StringBuffer();
                 jsonArray.stream().forEach(p -> {
                     Map pmap = (Map) p;
                     rsIds.append(pmap.get("rsId")).append(",");
-                    Object supplierIds = pmap.get("supplierID");
-                    if (supplierIds != null) {
-                        sulist.add(Integer.parseInt(supplierIds + "".trim()));
-                    }
+                    Object supplierIds = pmap.get("supplier");
+                    sulist.append(supplierIds).append(",");
                 });
                 if (rsIds.length() > 0) rsIds.deleteCharAt(rsIds.length() - 1);
-
                 StringBuffer suppliers = new StringBuffer();
-                List<SupplierEntity> suppliersList=new ArrayList<>();
-                if(sulist.size()>0){
-                    suppliersList = supplierDao.getSuppliers(sulist);
+                if (sulist.length() > 0) {
+                    sulist.deleteCharAt(sulist.length() - 1);
+                    supplierDao.getSuppliers(sulist.toString()).stream().forEach(name -> {
+                        suppliers.append(name).append(",");
+                    });
+                    suppliers.deleteCharAt(suppliers.length() - 1);
                 }
-                suppliersList.stream().forEach(e -> {
-                    suppliers.append(e.getName()).append(",");
-                });
-                if (suppliers.length() > 0) rsIds.deleteCharAt(suppliers.length() - 1);
                 map.put("realName", suppliers);
                 map.put("resourceId", rsIds);
                 map.put("priceType", "单一定价");
