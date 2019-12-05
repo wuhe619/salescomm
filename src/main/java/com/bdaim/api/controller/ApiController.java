@@ -106,8 +106,9 @@ public class ApiController {
         try {
             info.setData(apiService.subApi(params, apiId, lu));
         } catch (Exception e) {
-            logger.info(e.getMessage());
+            logger.info("错误信息："+e.getMessage());
             info.setCode(-1);
+            info.setMessage(e.getMessage());
 //            return new ResponseInfoAssemble().failure(-1, "订阅失败");
         }
         return info;

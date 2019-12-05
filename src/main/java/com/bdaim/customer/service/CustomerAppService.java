@@ -395,7 +395,7 @@ public class CustomerAppService {
             }
         });
 
-        String sql1 = "select pay.pay_id,pay.SUBSCRIBER_ID,pay.MONEY,pay.PAY_TIME,pay.pay_certificate,pay.pre_money,pay.user_id ,u.realname as realname from am_pay pay left join  t_customer_user u  on pay.user_id=u.id  where SUBSCRIBER_ID = " + custId + " order by pay_time";
+        String sql1 = "select pay.pay_id,pay.SUBSCRIBER_ID,pay.MONEY,pay.PAY_TIME,pay.pay_certificate,pay.pre_money,pay.user_id ,u.account as account from am_pay pay left join  t_customer_user u  on pay.user_id=u.id  where SUBSCRIBER_ID = " + custId + " order by pay_time";
         PageList list = new Pagination().getPageData(sql1, null, page, jdbcTemplate);
         List<Deposit> depositList = new ArrayList<>();
         list.getList().stream().forEach(m -> {
