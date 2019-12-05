@@ -105,12 +105,13 @@ public class ExportExcelService {
             exportIdCardExcel(id, param.getString("_rule_"), response);
             return;
         }
-        if (list != null) {
-            exportExcelByTemplate(list, param, response);
-        }
         if (list != null && id == 0) {
             exportExcelResourceLog(list, param, response);
         }
+        if (list != null) {
+            exportExcelByTemplate(list, param, response);
+        }
+
     }
 
     private void exportExcelResourceLog(List<JSONObject> list, JSONObject param, HttpServletResponse response)throws IllegalAccessException, IOException {
@@ -118,7 +119,7 @@ public class ExportExcelService {
         String classPath = fileUrlEntity.getFileUrl();
         String pathF = File.separator;
         classPath = classPath.replace("/", pathF);
-        String templatePath = classPath + pathF + "tp" + pathF + new Timestamp(System.currentTimeMillis())+ ".xlsx";
+        String templatePath = classPath + pathF + "tp" + pathF +param.getString("_rule_")+ ".xlsx";
         //String templatePath = "tp/" + param.getString("_rule_") + ".xlsx";
         File file = new File(templatePath);
         LOG.info("excel模板文件路径:{},文件状态:{}", file.getPath(), file.exists());

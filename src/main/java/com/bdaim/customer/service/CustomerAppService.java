@@ -260,7 +260,7 @@ public class CustomerAppService {
             CustomerProperty remain_amount = customerDao.getProperty(cust_id, "remain_amount");
             CustomerProperty used_amount = customerDao.getProperty(cust_id, "used_amount");
             if (remain_amount != null) {
-                map.put("remainAmount", StringUtil.isEmpty(sale_person.getPropertyValue()) ? "0" : StringUtil.isNumeric(remain_amount.getPropertyValue()) ?  String.valueOf(Integer.valueOf(remain_amount.getPropertyValue()) / 10000):"0");
+                map.put("remainAmount", StringUtil.isEmpty(sale_person.getPropertyValue()) ? "0" : StringUtil.isNumeric(remain_amount.getPropertyValue()) ? String.valueOf(Integer.valueOf(remain_amount.getPropertyValue()) / 10000) : "0");
             }
             if (used_amount != null) {
                 map.put("userAmount", StringUtil.isEmpty(sale_person.getPropertyValue()) ? "0" : String.valueOf(Integer.valueOf(used_amount.getPropertyValue()) / 10000));
@@ -404,7 +404,9 @@ public class CustomerAppService {
             }
         });
 
-        String sql1 = "select pay.pay_id,pay.SUBSCRIBER_ID,pay.MONEY,pay.PAY_TIME,pay.pay_certificate,pay.pre_money,pay.user_id ,u.account as account from am_pay pay left join  t_customer_user u  on pay.user_id=u.id  where SUBSCRIBER_ID = " + custId + " order by pay_time";
+        String sql1 = "select pay.pay_id,pay.SUBSCRIBER_ID,pay.MONEY,pay.PAY_TIME,pay.pay_certificate,pay.pre_money,pay.user_id ,u.account as account from am_pay pay left join  t_customer_user u  on pay.user_id=u.id  where SUBSCRIBER_ID = " + custId;
+        page.setSort("pay.pay_time");
+        page.setDir(" desc");
         PageList list = new Pagination().getPageData(sql1, null, page, jdbcTemplate);
         List<Deposit> depositList = new ArrayList<>();
         list.getList().stream().forEach(m -> {

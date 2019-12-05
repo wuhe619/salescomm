@@ -19,6 +19,7 @@ import com.bdaim.api.entity.ApiProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -29,11 +30,14 @@ public class CreateXML {
 
     @Autowired
     private ApiDao apiDao;
+    @Value("${file.api_xml_path: #{null}}")
+    private String apiXmlPath;
 
-    public void createXML(String apiId) {
+    public int createXML(String apiId) {
         ApiEntity entity = apiDao.getApi(Integer.valueOf(apiId));
         DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
         DocumentBuilder builder;
+        logger.info("apiEntity:" + entity.toString());
         try {
             builder = documentBuilderFactory.newDocumentBuilder();
             Document document = builder.newDocument();
@@ -46,8 +50,7 @@ public class CreateXML {
             Element resource = document.createElement("resource");
             ApiProperty request_method = apiDao.getProperty(apiId, "request_method");
             resource.setAttribute("methods", request_method.getPropertyValue());
-            ApiProperty resource_url_pattern = apiDao.getProperty(apiId, "resource_url_pattern");
-            resource.setAttribute("url-mapping", resource_url_pattern.getPropertyValue());
+            resource.setAttribute("url-mapping", entity.getContext());
             resource.setAttribute("faultSequence", "fault");
             Element inSequence = document.createElement("inSequence");
             Element cache = document.createElement("cache");
@@ -70,7 +73,8 @@ public class CreateXML {
             Element endpoint = document.createElement("endpoint");
             Element http = document.createElement("http");
             endpoint.setAttribute("name", entity.getName() + "_APIproductionEndpoint_0");
-            http.setAttribute("uri-template", "http://sdsfd/resource");
+            ApiProperty productionendpoints = apiDao.getProperty(apiId, "productionendpoints");
+            http.setAttribute("uri-template", productionendpoints.getPropertyValue());
             endpoint.appendChild(http);
             send.appendChild(endpoint);
             then.appendChild(property);
@@ -145,7 +149,7 @@ public class CreateXML {
             TransformerFactory transformerFactory = TransformerFactory.newInstance();
             Transformer transformer = transformerFactory.newTransformer();
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-            transformer.transform(new DOMSource(document), new StreamResult(new File(entity.getName() + "Xml.xml")));
+            transformer.transform(new DOMSource(document), new StreamResult(new File(apiXmlPath + entity.getName() + "Xml.xml")));
 
             // 将document中的信息转换为字符串输出到控制台中
             StringWriter stringWriter = new StringWriter();
@@ -155,8 +159,9 @@ public class CreateXML {
             // TODO: handle exception
             logger.info(e.getMessage());
             logger.info("xml文件生成失败");
+            return -1;
         }
-
+        return 1;
 
     }
 }
