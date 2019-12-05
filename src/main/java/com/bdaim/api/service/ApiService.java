@@ -413,7 +413,7 @@ public class ApiService {
             jsonArray.stream().forEach(p -> {
                 Map pmap = (Map) p;
                 rsIds.append(pmap.get("rsId")).append(",");
-                Object supplierIds = pmap.get("supplierId");
+                Object supplierIds = pmap.get("supplier");
                 if (supplierIds != null) {
                     sulist.add(Integer.parseInt(supplierIds + "".trim()));
                 }
@@ -471,7 +471,7 @@ public class ApiService {
                 jsonArray.stream().forEach(p -> {
                     Map pmap = (Map) p;
                     rsIds.append(pmap.get("rsId")).append(",");
-                    Object supplierIds = pmap.get("supplierId");
+                    Object supplierIds = pmap.get("supplier");
                     if (supplierIds != null) {
                         sulist.add(Integer.parseInt(supplierIds + "".trim()));
                     }
