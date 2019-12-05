@@ -8626,8 +8626,8 @@ public class MarketResourceService {
                     ApiEntity apiEntity = apiDao.get(Integer.valueOf(apiId));
                     apiName.append(apiEntity.getName()).append(",");
                 });
+                apiName.deleteCharAt(apiName.length() - 1);
             }
-            apiName.deleteCharAt(apiName.length() - 1);
             if (!dataMap.containsKey("salePrice")) {
                 dataMap.put("salePrice", 0);
             } else {
