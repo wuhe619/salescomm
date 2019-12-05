@@ -241,8 +241,8 @@ public class CustomGroupService {
                 customGroup = (CustomGroup) page.getData().get(i);
                 customGroupDTO = new CustomGroupDTO(customGroup);
                 if (customGroupDTO != null) {
-                    if (customGroupDTO.getAmount() != null) {
-                        customGroupDTO.setAmount(BigDecimalUtil.div(customGroupDTO.getAmount().toString(), String.valueOf(1000), 2).intValue());
+                    if (StringUtil.isNotEmpty(customGroupDTO.getAmount())) {
+                        customGroupDTO.setAmount(BigDecimalUtil.div(customGroupDTO.getAmount().toString(), String.valueOf(1000), 5).doubleValue() + "");
                     }
                     if (customGroup.getCustId() != null && !"".equals(customGroup.getCustId())) {
                         customer = customerDao.get(customGroup.getCustId());

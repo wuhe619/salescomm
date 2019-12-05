@@ -37,7 +37,7 @@ public class CustomGroupDTO {
     private Integer industryPoolId;
     private String industryPoolName;
     private String orderId;
-    private Integer amount;
+    private String amount;
     private Integer quantity;
     private String remark;
     private String groupSource;
@@ -73,7 +73,7 @@ public class CustomGroupDTO {
         this.enterpriseName = cg.getEnterpriseName();
         this.industryPoolId = cg.getIndustryPoolId();
         this.industryPoolName = cg.getIndustryPoolName();
-        this.amount = cg.getAmount();
+        this.amount = String.valueOf(cg.getAmount());
         this.quantity = cg.getQuantity();
         this.taskId = cg.getTaskId();
         this.taskPhoneIndex = cg.getTaskPhoneIndex();
@@ -284,11 +284,11 @@ public class CustomGroupDTO {
         this.orderId = orderId;
     }
 
-    public Integer getAmount() {
+    public String getAmount() {
         return amount;
     }
 
-    public void setAmount(Integer amount) {
+    public void setAmount(String amount) {
         this.amount = amount;
     }
 
