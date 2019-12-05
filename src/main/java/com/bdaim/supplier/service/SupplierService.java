@@ -2293,7 +2293,7 @@ public class SupplierService {
         supplierDO.setContactPerson(supplierDTO.getContactPerson());
         supplierDO.setContactPhone(supplierDTO.getContactPhone());
         supplierDO.setContactPosition(supplierDTO.getContactPosition());
-        supplierDO.setStatus(2);
+//        supplierDO.setStatus(2);
         try {
             supplierDao.saveOrUpdate(supplierDO);
         } catch (Exception e) {
