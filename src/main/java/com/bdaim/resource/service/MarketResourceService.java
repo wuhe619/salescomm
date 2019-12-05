@@ -8555,13 +8555,12 @@ public class MarketResourceService {
     }
 
     public int updateMarketResource(String name, Integer supplierId, String price, Integer type, Integer resource_id) {
-        int price1 = 0;
         BigDecimal b1 = new BigDecimal(10000);
+        log.info("save monye:" + Double.valueOf(price));
         BigDecimal b2 = new BigDecimal(Double.valueOf(price));
         String sql1 = "REPLACE  into t_market_resource(resource_id,supplier_id,type_code,resname,sale_price,create_time) VALUES(?,?,?,?,?,?)";
-        int update = jdbcTemplate.update(sql1, new Object[]{resource_id, supplierId, type, name, b1.subtract(b2).intValue(), DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss)});
-
-        log.info("save money:" + b1.subtract(b2).intValue());
+        int update = jdbcTemplate.update(sql1, new Object[]{resource_id, supplierId, type, name, b2.subtract(b1).intValue(), DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss)});
+        log.info("save money:" + b2.subtract(b1).intValue());
         return update;
     }
 
