@@ -13,8 +13,12 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 import com.bdaim.api.Dto.ApiData;
+import com.bdaim.api.dao.ApiDao;
+import com.bdaim.api.entity.ApiEntity;
+import com.bdaim.api.entity.ApiProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -23,7 +27,11 @@ import org.w3c.dom.Element;
 public class CreateXML {
     public static final Logger logger = LoggerFactory.getLogger(CreateXML.class);
 
-    public void createXML(ApiData apiData) {
+    @Autowired
+    private ApiDao apiDao;
+
+    public void createXML(String apiId) {
+        ApiEntity entity = apiDao.getApi(Integer.valueOf(apiId));
         DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
         DocumentBuilder builder;
         try {
@@ -31,13 +39,15 @@ public class CreateXML {
             Document document = builder.newDocument();
             Element api = document.createElement("api");
             api.setAttribute("xmlns", "http://ws.apache.org/ns/synapse");
-            api.setAttribute("name", apiData.getApiName());
-            api.setAttribute("context", apiData.getContext());
-            api.setAttribute("version", apiData.getApiVersion());
+            api.setAttribute("name", entity.getName());
+            api.setAttribute("context", entity.getContext());
+            api.setAttribute("version", entity.getVersion());
             api.setAttribute("version-type", "context");
             Element resource = document.createElement("resource");
-            resource.setAttribute("methods", "GET");
-            resource.setAttribute("url-mapping", "/http://localhost:6006/test/addressPost");
+            ApiProperty request_method = apiDao.getProperty(apiId, "request_method");
+            resource.setAttribute("methods", request_method.getPropertyValue());
+            ApiProperty resource_url_pattern = apiDao.getProperty(apiId, "resource_url_pattern");
+            resource.setAttribute("url-mapping", resource_url_pattern.getPropertyValue());
             resource.setAttribute("faultSequence", "fault");
             Element inSequence = document.createElement("inSequence");
             Element cache = document.createElement("cache");
@@ -59,7 +69,7 @@ public class CreateXML {
             Element send = document.createElement("send");
             Element endpoint = document.createElement("endpoint");
             Element http = document.createElement("http");
-            endpoint.setAttribute("name", "opt--测106_APIproductionEndpoint_0");
+            endpoint.setAttribute("name", entity.getName() + "_APIproductionEndpoint_0");
             http.setAttribute("uri-template", "http://sdsfd/resource");
             endpoint.appendChild(http);
             send.appendChild(endpoint);
@@ -135,7 +145,7 @@ public class CreateXML {
             TransformerFactory transformerFactory = TransformerFactory.newInstance();
             Transformer transformer = transformerFactory.newTransformer();
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-            transformer.transform(new DOMSource(document), new StreamResult(new File("newXml.xml")));
+            transformer.transform(new DOMSource(document), new StreamResult(new File(entity.getName() + "Xml.xml")));
 
             // 将document中的信息转换为字符串输出到控制台中
             StringWriter stringWriter = new StringWriter();

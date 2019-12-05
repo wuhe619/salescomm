@@ -54,6 +54,9 @@ public class ApiService {
     @Resource
     private SupplierDao supplierDao;
 
+    @Resource
+    private CreateXML createXML;
+
     private static Logger logger = LoggerFactory.getLogger(ApiService.class);
 
     public int saveApiProperty(ApiData apiData, String id, LoginUser lu) throws Exception {
@@ -193,6 +196,7 @@ public class ApiService {
                 entity.setStatus(ApiEntity.API_OFFLINE);
                 break;
             case 2:
+                createXML.createXML(apiId);
                 entity.setStatus(ApiEntity.API_RELEASE);
                 break;
         }
