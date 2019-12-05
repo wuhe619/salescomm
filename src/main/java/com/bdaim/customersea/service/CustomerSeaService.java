@@ -3193,9 +3193,9 @@ public class CustomerSeaService {
         if (StringUtil.isNotEmpty(param.getAddStartTime()) && StringUtil.isNotEmpty(param.getAddEndTime())) {
             sb.append(" and custG.create_time BETWEEN " + param.getAddStartTime() + " AND " + param.getAddEndTime());
         } else if (StringUtil.isNotEmpty(param.getAddStartTime())) {
-            sb.append(" and custG.create_time >= " + param.getAddStartTime());
+            sb.append(" and custG.create_time >= " + param.getAddStartTime().replace("/","-"));
         } else if (StringUtil.isNotEmpty(param.getAddEndTime())) {
-            sb.append(" and custG.create_time <= " + param.getAddEndTime());
+            sb.append(" and custG.create_time <= " + param.getAddEndTime().replace("/","-"));
         }
 
         if (StringUtil.isNotEmpty(param.getCallStartTime()) && StringUtil.isNotEmpty(param.getCallEndTime())) {
@@ -3340,9 +3340,9 @@ public class CustomerSeaService {
         if (StringUtil.isNotEmpty(param.getAddStartTime()) && StringUtil.isNotEmpty(param.getAddEndTime())) {
             sb.append(" and custG.create_time BETWEEN " + param.getAddStartTime() + " AND " + param.getAddEndTime());
         } else if (StringUtil.isNotEmpty(param.getAddStartTime())) {
-            sb.append(" and custG.create_time >= " + param.getAddStartTime());
+            sb.append(" and custG.create_time >= " + param.getAddStartTime().replace("/","-"));
         } else if (StringUtil.isNotEmpty(param.getAddEndTime())) {
-            sb.append(" and custG.create_time <= " + param.getAddEndTime());
+            sb.append(" and custG.create_time <= " + param.getAddEndTime().replace("/","-"));
         }
 
         if (StringUtil.isNotEmpty(param.getCallStartTime()) && StringUtil.isNotEmpty(param.getCallEndTime())) {
