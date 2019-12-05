@@ -345,7 +345,7 @@ public class ApiService {
             jdbcTemplate.update(preparedStatementCreator, keyHolder);
 
             subscriptionId = keyHolder.getKey().intValue();
-            String sql = "REPLACE INTO am_subcription_charge(SUBSCRIPTION_ID,CHARGE_ID,EFFECTIVE_DATE,EXPIRE_DATE,START_VOLUME,TIER_VOLUME,CREATE_TIME,CREATE_BY,UPDATE_TIME,UPDATE_BY) " +
+            String sql = "REPLACE INTO am_subscription_charge(SUBSCRIPTION_ID,CHARGE_ID,EFFECTIVE_DATE,EXPIRE_DATE,START_VOLUME,TIER_VOLUME,CREATE_TIME,CREATE_BY,UPDATE_TIME,UPDATE_BY) " +
                     "VALUES (?,?,?,?,?,?,?,?,?,?)";
             jdbcTemplate.update(sql, new Object[]{subscriptionId, 1, new Timestamp(System.currentTimeMillis()), calendar.getTime(), 0, 100000, new Timestamp(System.currentTimeMillis()), lu.getUserName(), new Timestamp(System.currentTimeMillis()), lu.getUserName()});
 
@@ -376,7 +376,7 @@ public class ApiService {
             throw new Exception("企业不存在");
         }
         SubscriptionEntity entity = subscriptionDao.getById(Integer.valueOf(apiId), amApplicationEntity.getId());
-        String sql = "update am_subcription_charge set unit_price=?,UPDATE_BY=?,UPDATE_TIME=? where SUBSCRIPTION_ID=?";
+        String sql = "update am_subscription_charge set unit_price=?,UPDATE_BY=?,UPDATE_TIME=? where SUBSCRIPTION_ID=?";
         jdbcTemplate.update(sql, new Object[]{params.getInteger("price") * 10000, lu.getUserName(), new Timestamp(System.currentTimeMillis()), entity.getId()});
         return 1;
     }
