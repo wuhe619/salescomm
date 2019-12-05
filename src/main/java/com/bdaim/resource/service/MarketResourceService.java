@@ -8621,10 +8621,12 @@ public class MarketResourceService {
         list.getList().stream().forEach(m -> {
             Map dataMap = (Map) m;
             StringBuffer apiName = new StringBuffer();
-            propertyMap.get(dataMap.get("resourceId").toString()).stream().forEach(apiId -> {
-                ApiEntity apiEntity = apiDao.get(Integer.valueOf(apiId));
-                apiName.append(apiEntity.getName()).append(",");
-            });
+            if(propertyMap.containsKey(dataMap.get("resourceId").toString())){
+                propertyMap.get(dataMap.get("resourceId").toString()).stream().forEach(apiId -> {
+                    ApiEntity apiEntity = apiDao.get(Integer.valueOf(apiId));
+                    apiName.append(apiEntity.getName()).append(",");
+                });
+            }
             apiName.deleteCharAt(apiName.length() - 1);
             if (!dataMap.containsKey("salePrice")) {
                 dataMap.put("salePrice", 0);
