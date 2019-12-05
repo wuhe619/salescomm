@@ -107,7 +107,8 @@ public class ApiController {
             info.setData(apiService.subApi(params, apiId, lu));
         } catch (Exception e) {
             logger.info(e.getMessage());
-            return new ResponseInfoAssemble().failure(-1, "订阅失败");
+            info.setCode(-1);
+//            return new ResponseInfoAssemble().failure(-1, "订阅失败");
         }
         return info;
     }

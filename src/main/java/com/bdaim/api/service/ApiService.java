@@ -296,28 +296,29 @@ public class ApiService {
     }
 
 
-    public int subApi(JSONObject params, String apiId, LoginUser lu) {
-        try {
-            AmApplicationEntity amApplicationEntity = amApplicationDao.getByCustId(params.getString("custId"));
-            if (amApplicationEntity == null) {
-                logger.info("企业不存在");
-                throw new Exception("企业不存在");
-            }
-            logger.info("APIID:" + apiId);
-            logger.info("applicationId:" + amApplicationEntity.getId());
-            ApiEntity apiEntity = apiDao.getApi(Integer.valueOf(apiId));
-            if (apiEntity == null) {
-                logger.info("API不存在");
-                throw new Exception("API不存在");
-            }
+    public int subApi(JSONObject params, String apiId, LoginUser lu) throws Exception {
+        AmApplicationEntity amApplicationEntity = amApplicationDao.getByCustId(params.getString("custId"));
+        if (amApplicationEntity == null) {
+            logger.info("企业不存在");
+            throw new Exception("企业不存在");
+        }
+        ApiEntity apiEntity = apiDao.getApi(Integer.valueOf(apiId));
+        if (apiEntity == null) {
+            logger.info("API不存在");
+            throw new Exception("API不存在");
+        }
+        if (apiEntity.getStatus() != 2) {
+            logger.info("非发布状态不可订阅");
+            throw new Exception("非发布状态不可订阅");
+        }
 //            SubscriptionEntity subEntity = subscriptionDao.getById(apiEntity.getApiId(), amApplicationEntity.getId());
-            String subSql1="select SUBSCRIPTION_ID as id  from am_subscription where APPLICATION_ID="+amApplicationEntity.getId() +" and API_ID = "+apiEntity.getApiId();
+        String subSql1 = "select SUBSCRIPTION_ID as id  from am_subscription where APPLICATION_ID=" + amApplicationEntity.getId() + " and API_ID = " + apiEntity.getApiId();
 //            SubscriptionEntity subEntity = jdbcTemplate.queryForObject(subSql1, SubscriptionEntity.class);
-            List<Map<String, Object>> list = jdbcTemplate.queryForList(subSql1);
-            int subscriptionId;
+        List<Map<String, Object>> list = jdbcTemplate.queryForList(subSql1);
+        int subscriptionId;
 
-            if (list.size()==0) {
-                logger.info("新增");
+        if (list.size() == 0) {
+            logger.info("新增");
 //            subEntity = new SubscriptionEntity();
 //            subEntity.setLastAccessed(new Timestamp(System.currentTimeMillis()));
 //            subEntity.setCreatedTime(new Timestamp(System.currentTimeMillis()));
@@ -327,34 +328,29 @@ public class ApiService {
 //            subEntity.setApplicationId(amApplicationEntity.getId());
 //            subEntity.setSubsCreateState("SUBSCRIBE");
 
-                Calendar calendar = Calendar.getInstance();
-                calendar.add(Calendar.DATE, 365 * 100);
-                String subSql = " insert into am_subscription (CREATED_BY,CREATED_TIME,API_ID,LAST_ACCESSED,SUB_STATUS,SUBS_CREATE_STATE,APPLICATION_ID,UPDATED_TIME) " +
-                        "values('" + lu.getUserName() + "','" + new Timestamp(System.currentTimeMillis()) + "'," + apiEntity.getApiId() + ",'" + new Timestamp(System.currentTimeMillis()) +
-                        "','BLOCKED','SUBSCRIBE'," + amApplicationEntity.getId() + ",'" + new Timestamp(System.currentTimeMillis()) + "')";
-                KeyHolder keyHolder = new GeneratedKeyHolder();
-                PreparedStatementCreator preparedStatementCreator = con -> {
-                    PreparedStatement ps = con.prepareStatement(subSql, Statement.RETURN_GENERATED_KEYS);
-                    return ps;
-                };
-                logger.info(subSql);
-                jdbcTemplate.update(preparedStatementCreator, keyHolder);
+            Calendar calendar = Calendar.getInstance();
+            calendar.add(Calendar.DATE, 365 * 100);
+            String subSql = " insert into am_subscription (CREATED_BY,CREATED_TIME,API_ID,LAST_ACCESSED,SUB_STATUS,SUBS_CREATE_STATE,APPLICATION_ID,UPDATED_TIME) " +
+                    "values('" + lu.getUserName() + "','" + new Timestamp(System.currentTimeMillis()) + "'," + apiEntity.getApiId() + ",'" + new Timestamp(System.currentTimeMillis()) +
+                    "','BLOCKED','SUBSCRIBE'," + amApplicationEntity.getId() + ",'" + new Timestamp(System.currentTimeMillis()) + "')";
+            KeyHolder keyHolder = new GeneratedKeyHolder();
+            PreparedStatementCreator preparedStatementCreator = con -> {
+                PreparedStatement ps = con.prepareStatement(subSql, Statement.RETURN_GENERATED_KEYS);
+                return ps;
+            };
+            jdbcTemplate.update(preparedStatementCreator, keyHolder);
 
-                subscriptionId = keyHolder.getKey().intValue();
-                String sql = "REPLACE INTO am_subcription_charge(SUBSCRIPTION_ID,CHARGE_ID,EFFECTIVE_DATE,EXPIRE_DATE,START_VOLUME,TIER_VOLUME,CREATE_TIME,CREATE_BY,UPDATE_TIME,UPDATE_BY) " +
-                        "VALUES (?,?,?,?,?,?,?,?,?,?)";
-                jdbcTemplate.update(sql, new Object[]{subscriptionId, 1, new Timestamp(System.currentTimeMillis()), calendar.getTime(), 0, 100000, new Timestamp(System.currentTimeMillis()), lu.getUserName(), new Timestamp(System.currentTimeMillis()), lu.getUserName()});
+            subscriptionId = keyHolder.getKey().intValue();
+            String sql = "REPLACE INTO am_subcription_charge(SUBSCRIPTION_ID,CHARGE_ID,EFFECTIVE_DATE,EXPIRE_DATE,START_VOLUME,TIER_VOLUME,CREATE_TIME,CREATE_BY,UPDATE_TIME,UPDATE_BY) " +
+                    "VALUES (?,?,?,?,?,?,?,?,?,?)";
+            jdbcTemplate.update(sql, new Object[]{subscriptionId, 1, new Timestamp(System.currentTimeMillis()), calendar.getTime(), 0, 100000, new Timestamp(System.currentTimeMillis()), lu.getUserName(), new Timestamp(System.currentTimeMillis()), lu.getUserName()});
 
-            } else {
-                subscriptionId = Integer.valueOf(list.get(0).get("id").toString());
-                String sql = "update am_subscription  set SUBS_CREATE_STATE=? ,UPDATED_BY=? ,UPDATED_TIME=? where SUBSCRIPTION_ID=? ";
-                jdbcTemplate.update(sql, new Object[]{"SUBSCRIBE", lu.getUserName(), new Timestamp(System.currentTimeMillis()), subscriptionId});
-            }
-            return subscriptionId;
-        } catch (Exception e) {
-            logger.info("错误信息："+e);
+        } else {
+            subscriptionId = Integer.valueOf(list.get(0).get("id").toString());
+            String sql = "update am_subscription  set SUBS_CREATE_STATE=? ,UPDATED_BY=? ,UPDATED_TIME=? where SUBSCRIPTION_ID=? ";
+            jdbcTemplate.update(sql, new Object[]{"SUBSCRIBE", lu.getUserName(), new Timestamp(System.currentTimeMillis()), subscriptionId});
         }
-        return 0;
+        return subscriptionId;
     }
 
     public int subApiUpdate(JSONObject params, String apiId, LoginUser lu) throws Exception {
