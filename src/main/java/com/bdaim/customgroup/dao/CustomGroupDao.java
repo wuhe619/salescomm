@@ -31,6 +31,18 @@ public class CustomGroupDao extends SimpleHibernateDao<CustomGroup, Serializable
         return cp;
     }
 
+    /**
+     * 查询客群所有属性
+     * @param customerGroupId
+     * @return
+     */
+    public List<CustomerGroupProperty> listProperty(int customerGroupId) {
+        CustomerGroupProperty cp = null;
+        String hql = "from CustomerGroupProperty m where m.customerGroupId=?";
+        List<CustomerGroupProperty> list = this.find(hql, customerGroupId);
+        return list;
+    }
+
     public CustomerGroupProperty getProperty(String propertyName, String propertyValue) {
         CustomerGroupProperty cp = null;
         String hql = " FROM CustomerGroupProperty m WHERE m.propertyName = ? AND m.propertyValue = ? ";

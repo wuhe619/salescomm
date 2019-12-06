@@ -1802,17 +1802,21 @@ public class SeatsService {
             resourceId = cup.getPropertyValue();
             CustomerUserPropertyDO callType = customerUserDao.getProperty(userId, CustomerUserPropertyEnum.CALL_TYPE.getKey());
             if (callType != null && StringUtil.isNotEmpty(callType.getPropertyValue())) {
-                JSONObject jsonObject = supplierService.getCustomerCallPriceConfig(custId);
+                JSONObject jsonObject = supplierService.getCustomerCallPriceConfig0(custId);
                 logger.info("客户配置的渠道:" + jsonObject);
                 List<MarketResourceDTO> callResList = new ArrayList<>();
 
                 List<MarketResourceDTO> call2way = (List<MarketResourceDTO>) jsonObject.get("call2way");
-                if (call2way != null || call2way.size() >= 0) {
+                if (call2way != null && call2way.size() >= 0) {
                     callResList.addAll(call2way);
                 }
                 List<MarketResourceDTO> callCenter = (List<MarketResourceDTO>) jsonObject.get("callCenter");
-                if (callCenter != null || callCenter.size() >= 0) {
+                if (callCenter != null && callCenter.size() >= 0) {
                     callResList.addAll(callCenter);
+                }
+                List<MarketResourceDTO> unicomCall2way = (List<MarketResourceDTO>) jsonObject.get("unicomCall2way");
+                if (unicomCall2way != null && unicomCall2way.size() >= 0) {
+                    callResList.addAll(unicomCall2way);
                 }
                 for (MarketResourceDTO m : callResList) {
                     // 判断坐席配置的呼叫渠道客户有没有进行配置

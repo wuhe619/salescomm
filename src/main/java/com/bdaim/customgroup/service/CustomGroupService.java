@@ -171,7 +171,7 @@ public class CustomGroupService {
 
     public Page page(String customer_group_id, String cust_id, String user_id, Integer pageNum, Integer pageSize,
                      String id, String name, Integer status, String callType, String dateStart, String dateEnd,
-                     String enterpriseName, String marketProjectId) {
+                     String enterpriseName, String marketProjectId, CGroupSearchParam param) {
         StringBuffer hql = new StringBuffer("from CustomGroup m where 1=1");
         List values = new ArrayList();
         if (null != customer_group_id && !"".equals(customer_group_id)) {
@@ -213,6 +213,21 @@ public class CustomGroupService {
             hql.append(" and m.custId IN (SELECT id FROM Customer WHERE enterpriseName LIKE ?)");
             values.add("%" + enterpriseName + "%");
         }
+        if (StringUtil.isNotEmpty(param.getPropertyName()) && StringUtil.isNotEmpty(param.getPropertyValue())) {
+            hql.append(" and m.id IN (SELECT customerGroupId FROM CustomerGroupProperty WHERE propertyName = ? AND propertyValue = ? )");
+            values.add(param.getPropertyName());
+            values.add(param.getPropertyValue());
+        }
+        if (StringUtil.isNotEmpty(param.getUnicomActivityName())) {
+            hql.append(" and m.id IN (SELECT customerGroupId FROM CustomerGroupProperty WHERE propertyName = ? AND propertyValue = ? )");
+            values.add("unicomActivityName");
+            values.add(param.getUnicomActivityName());
+        }
+        if (StringUtil.isNotEmpty(param.getPullStatus())) {
+            hql.append(" and m.id IN (SELECT customerGroupId FROM CustomerGroupProperty WHERE propertyName = ? AND propertyValue = ? )");
+            values.add("pullStatus");
+            values.add(param.getPullStatus());
+        }
         hql.append(" ORDER BY m.createTime desc ");
         Page page = customGroupDao.page(hql.toString(), values, pageNum, pageSize);
         if (page.getData() != null && page.getData().size() > 0) {
@@ -221,10 +236,16 @@ public class CustomGroupService {
             Customer customer;
             List data = new ArrayList();
             MarketProject marketProject;
+            List<CustomerGroupProperty> properties;
             for (int i = 0; i < page.getData().size(); i++) {
                 customGroup = (CustomGroup) page.getData().get(i);
                 customGroupDTO = new CustomGroupDTO(customGroup);
                 if (customGroupDTO != null) {
+                    if (StringUtil.isNotEmpty(customGroupDTO.getAmount())) {
+                        customGroupDTO.setAmount(BigDecimalUtil.div(customGroupDTO.getAmount().toString(), String.valueOf(1000), 5).doubleValue() + "");
+                    } else {
+                        customGroupDTO.setAmount("0.0");
+                    }
                     if (customGroup.getCustId() != null && !"".equals(customGroup.getCustId())) {
                         customer = customerDao.get(customGroup.getCustId());
                         customGroupDTO.setEnterpriseName(customer == null ? "" : customer.getEnterpriseName());
@@ -241,6 +262,15 @@ public class CustomGroupService {
                     } else {
                         customGroupDTO.setMarketProjectName("");
                     }
+                }
+                // 查询客群属性
+                properties = customGroupDao.listProperty(customGroupDTO.getId());
+                if (properties != null && properties.size() > 0) {
+                    Map m = new HashMap();
+                    for (CustomerGroupProperty p : properties) {
+                        m.put(p.getPropertyName(), p.getPropertyValue());
+                    }
+                    customGroupDTO.setProperties(m);
                 }
                 data.add(customGroupDTO);
             }
@@ -1021,6 +1051,71 @@ public class CustomGroupService {
         Map<String, Object> resultMap = orderService.queryCustomerOrdDetail(customGroupDTO.getCustId(), orderId);
         resultMap.put("orderId", orderId);
         return resultMap;
+    }
+
+    /**
+     * 创建客群,数据状态为处理中,支付状态为已支付
+     *
+     * @param customGroupDTO
+     * @return
+     */
+    public int saveCustomGroup(CustomerGroupAddDTO customGroupDTO) {
+        String orderId = String.valueOf(IDHelper.getTransactionId());
+        StringBuffer insertOrder = new StringBuffer();
+        insertOrder.append("INSERT INTO  t_order (`order_id`, `cust_id`, `order_type`, `create_time`,  `remarks`, `amount`, `order_state`, `cost_price`) ");
+        insertOrder.append(" VALUES ('" + orderId + "','" + customGroupDTO.getCustId() + "','1','" + new Timestamp(System.currentTimeMillis()) + "','导入客户群创建','0','2','0')");
+        int status = customGroupDao.executeUpdateSQL(insertOrder.toString());
+        LogUtil.info("导入客户群创建订单表状态:" + status);
+        if (status == 0) {
+            return 0;
+        }
+        CustomGroup cg = new CustomGroup();
+        cg.setName(customGroupDTO.getName());
+        cg.setDesc("导入客户群创建");
+        cg.setOrderId(orderId);
+        cg.setMarketProjectId(NumberConvertUtil.parseInt(customGroupDTO.getMarketProjectId()));
+        cg.setStatus(3);
+        cg.setDataSource(customGroupDTO.getDataSource());
+        cg.setCustId(customGroupDTO.getCustId());
+        cg.setCreateTime(new Timestamp(System.currentTimeMillis()));
+        cg.setGroupCondition("[{\"symbol\":0,\"leafs\":[{\"name\":\"4\",\"id\":\"87\"}],\"type\":1,\"labelId\":\"84\",\"parentName\":\"家庭人口数\",\"path\":\"人口统计学/基本信息/家庭人口数\"}]");
+        cg.setIndustryPoolId(customGroupDTO.getIndustryPoolId());
+        cg.setIndustryPoolName(customGroupDTO.getIndustryPoolName());
+        log.info("导入客户群插入customer_group表的数据:" + cg);
+        int id = (int) customGroupDao.saveReturnPk(cg);
+        if (id > 0) {
+            StringBuffer sb = new StringBuffer();
+            sb.append(" create table IF NOT EXISTS t_customer_group_list_");
+            sb.append(id);
+            sb.append(" like t_customer_group_list");
+            try {
+                customGroupDao.executeUpdateSQL(sb.toString());
+            } catch (HibernateException e) {
+                log.error("创建用户群表失败,id:" + id, e);
+            }
+
+            // 保存客户群触达方式
+            if (StringUtil.isNotEmpty(customGroupDTO.getTouchMode())) {
+                CustomerGroupProperty cgp = new CustomerGroupProperty(id, "touchMode", customGroupDTO.getTouchMode(), new Timestamp(System.currentTimeMillis()));
+                customGroupDao.saveOrUpdate(cgp);
+            }
+            // 处理联通平台活动名称字段
+            if (StringUtil.isNotEmpty(customGroupDTO.getUnicomActivityName())) {
+                CustomerGroupProperty cgp = new CustomerGroupProperty(id, "unicomActivityName", customGroupDTO.getUnicomActivityName(), new Timestamp(System.currentTimeMillis()));
+                customGroupDao.saveOrUpdate(cgp);
+                // 数据渠道为联通
+                cgp = new CustomerGroupProperty(id, "dataChannel", "unicom", new Timestamp(System.currentTimeMillis()));
+                customGroupDao.saveOrUpdate(cgp);
+                // 拉取时间为空
+                cgp = new CustomerGroupProperty(id, "pullTime", "", new Timestamp(System.currentTimeMillis()));
+                customGroupDao.saveOrUpdate(cgp);
+                // 拉取状态为拉取中
+                cgp = new CustomerGroupProperty(id, "pullStatus", "1", new Timestamp(System.currentTimeMillis()));
+                customGroupDao.saveOrUpdate(cgp);
+            }
+            return 1;
+        }
+        return 0;
     }
 
     /**
@@ -3353,7 +3448,8 @@ public class CustomGroupService {
 
     /**
      * 导出客群通话统计数据excel
-     * @param _rule_  =callAmount导出表头带通话费用列
+     *
+     * @param _rule_          =callAmount导出表头带通话费用列
      * @param timeType
      * @param customerGroupId
      * @param userQueryParam
@@ -6767,6 +6863,29 @@ public class CustomGroupService {
             }
         }
         return page;
+    }
+
+    /**
+     * 保存或者更新客群属性
+     *
+     * @param property
+     * @return
+     */
+    public int saveCGroupProperty(CustomerGroupProperty property) {
+        log.info("开始更新客群属性,customerGroupId:" + property.getCustomerGroupId() + ",propertyName:" + property.getPropertyName() + ",propertyValue:" + property.getPropertyValue());
+        CustomerGroupProperty cp = customGroupDao.getProperty(property.getCustomerGroupId(), property.getPropertyName());
+        log.info("客群原配置属性:" + cp);
+        if (cp == null) {
+            cp = new CustomerGroupProperty(property.getCustomerGroupId(), property.getPropertyName(), property.getPropertyValue(), new Timestamp(System.currentTimeMillis()));
+        }
+        cp.setCreateTime(new Timestamp(System.currentTimeMillis()));
+        cp.setPropertyValue(property.getPropertyValue());
+        try {
+            customGroupDao.saveOrUpdate(cp);
+            return 1;
+        } catch (Exception e) {
+            throw e;
+        }
     }
 }
 

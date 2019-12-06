@@ -29,18 +29,21 @@ public class UnicomUtil {
     private static Logger LOG = LoggerFactory.getLogger(UnicomUtil.class);
 
     private final static String UNICOM_BASE_URL_V1 = "http://120.52.23.243:10080/sdyxinterface/20190426/";
+    //private final static String UNICOM_BASE_URL_V1 = "";
 
     public static void main(String[] args) throws Exception {
-        UnicomUtil.getEntActivityAll("Bq2.g_mp4", "D1HMFW", "UkzesbWEmdTIgywsacIIboam");
-        String fileUrl = getActivityFileUrlByName("Bq2.g_mp4", "D1HMFW", "UkzesbWEmdTIgywsacIIboam", "品创邦1次外呼1105");
-        LOG.warn("获取活动文件url:{}", fileUrl);
+        //JSONObject jsonObject = registerUserExtension("Bq2.g_mp4", "D1HMFW", "UkzesbWEmdTIgywsacIIboam", "18630016545");
+        //LOG.warn("添加联通主叫号码返回:{}", jsonObject);
+        //UnicomUtil.getEntActivityAll("Bq2.g_mp4", "D1HMFW", "UkzesbWEmdTIgywsacIIboam");
+        //String fileUrl = getActivityFileUrlByName("Bq2.g_mp4", "D1HMFW", "UkzesbWEmdTIgywsacIIboam", "品创邦1次外呼1105");
+        //LOG.warn("获取活动文件url:{}", fileUrl);
         //UnicomUtil.getEntActivityResult("SJYXDD191021002472", "Bq2.g_mp4", "D1HMFW", "UkzesbWEmdTIgywsacIIboam");
         //unicomSeatMakeCall("D1HMFW", "C201911051642007894_12985", "Bq2.g_mp4", "18630016545", "", "UkzesbWEmdTIgywsacIIboam");
         //handleActivityFile("http://120.52.23.243:10080/voice/group1/M00/41/15/Cr8TfV3BNe7RQEIAAAAUN6qGHL8263.txt", "", "");
     }
 
     /**
-     * 通过获取名称获取文件地址
+     * 通过名称获取文件地址
      * @param pwd
      * @param entId
      * @param key
@@ -107,7 +110,7 @@ public class UnicomUtil {
      * @return
      * @throws Exception
      */
-    public static JSONObject registerUserExtension(String pwd, String entId, String key, String extensionNumber) throws Exception {
+    /*public static JSONObject registerUserExtension(String pwd, String entId, String key, String extensionNumber) throws Exception {
         //获取token,加密获取sign
         String sign = getSign(pwd, entId, key);
         Map<String, Object> headers = new HashMap<>(16);
@@ -115,12 +118,12 @@ public class UnicomUtil {
         headers.put("Content-Type", "application/json;charset=utf-8");
         Map<String, String> params = new HashMap<>();
         params.put("extension", extensionNumber);
-        LOG.info("用户注册(主叫号)接口参数:" + UNICOM_BASE_URL_V1 + "user/registerUser" + entId + ",参数:" + params.toString());
-        String result = HttpUtil.httpPost(UNICOM_BASE_URL_V1 + "user/registerUser" + entId, JSON.toJSONString(params), headers, 5000);
+        LOG.info("用户注册(主叫号)接口参数:" + UNICOM_BASE_URL_V1 + "user/registerUser/" + entId + ",参数:" + params.toString());
+        String result = HttpUtil.httpPost(UNICOM_BASE_URL_V1 + "user/registerUser/" + entId, JSON.toJSONString(params), headers, 5000);
         LOG.info("用户注册(主叫号)接口返回:" + result);
         return JSON.parseObject(result);
     }
-
+*/
     /**
      * 用户移除接口(删除主叫号)
      *
@@ -131,7 +134,7 @@ public class UnicomUtil {
      * @return
      * @throws Exception
      */
-    public static JSONObject failureUserExtension(String pwd, String entId, String key, String extensionNumber) throws Exception {
+   /* public static JSONObject failureUserExtension(String pwd, String entId, String key, String extensionNumber) throws Exception {
         //获取token,加密获取sign
         String sign = getSign(pwd, entId, key);
         Map<String, Object> headers = new HashMap<>(16);
@@ -139,11 +142,11 @@ public class UnicomUtil {
         headers.put("Content-Type", "application/json;charset=utf-8");
         Map<String, String> params = new HashMap<>();
         params.put("extension", extensionNumber);
-        LOG.info("用户失效(主叫号)接口参数:" + UNICOM_BASE_URL_V1 + "user/failureUser" + entId + ",参数:" + params.toString());
-        String result = HttpUtil.httpPost(UNICOM_BASE_URL_V1 + "user/failureUser" + entId, JSON.toJSONString(params), headers, 5000);
+        LOG.info("用户失效(主叫号)接口参数:" + UNICOM_BASE_URL_V1 + "user/failureUser/" + entId + ",参数:" + params.toString());
+        String result = HttpUtil.httpPost(UNICOM_BASE_URL_V1 + "user/failureUser/" + entId, JSON.toJSONString(params), headers, 5000);
         LOG.info("用户失效(主叫号)接口返回:" + result);
         return JSON.parseObject(result);
-    }
+    }*/
 
     /**
      * 获取企业所有活动接口
@@ -197,8 +200,8 @@ public class UnicomUtil {
      * 联通坐席外呼接口v1
      * dataId 联通返回唯一id    callerNumber 主叫号码   showNumber   外显号（不传默认从企业外显号码池随机一个外显号码 key加密私钥
      */
-    public static Map<String, Object> unicomSeatMakeCall(String entId, String dataId, String entPassWord, String callerNumber, String showNumber, String key) {
-        LOG.info("坐席外呼接收參數:entId是" + entId + "数据id是：" + dataId + "企业密码：" + entPassWord + "主叫号：" + callerNumber + "外显号码是： " + showNumber + "密钥：" + key);
+    public static JSONObject unicomSeatMakeCall(String entId, String dataId, String entPassWord, String callerNumber, String showNumber, String key) {
+        LOG.info("坐席外呼接收参数:entId是" + entId + "数据id是：" + dataId + "企业密码：" + entPassWord + "主叫号：" + callerNumber + "外显号码是： " + showNumber + "密钥：" + key);
         Map<String, String> params = new HashMap<>();
         params.put("dataId", dataId);
         params.put("callerNumber", callerNumber);
@@ -226,7 +229,7 @@ public class UnicomUtil {
             //result="{\"msg\":\"success\",\"code\":\"01000\",\"data\":{\"callId\":\"1539516627199289711\",\"msg\":\"呼叫成功\",\"code\":\"000\",\"uuid\":\"01539516627199289733\",\"callNum\":\"1/600\",\"todayCallNum\":\"1/30\",\"monthCallNum\":\"1/90\"}}";
             LOG.info("联通坐席外呼返回:" + result);
             if (StringUtil.isNotEmpty(result)) {
-                return JSON.parseObject(result, Map.class);
+                return JSON.parseObject(result);
             }
         } catch (Exception e) {
             LOG.error("联通坐席外呼失败:", e);

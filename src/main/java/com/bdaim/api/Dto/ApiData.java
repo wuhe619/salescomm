@@ -1,5 +1,7 @@
 package com.bdaim.api.Dto;
 
+import com.bdaim.api.entity.ApiEntity;
+
 import java.util.List;
 
 public class ApiData {
@@ -20,10 +22,41 @@ public class ApiData {
     private int productionTps;
     private String responseCache;
     private List<ApiResource> resourceList;
-    private ApiDefine apiDefine;
+    private ApiDefine api_define;
     private String rsIds;
 
     private int urlMappingId;
+    private String status;
+    private int apiId;
+
+    public ApiData() {
+    }
+
+    public ApiData(ApiEntity entity) {
+        this.apiName = entity.getName();
+        this.context = entity.getContext();
+        this.contextTemplate = entity.getContextTexplate();
+        this.apiId = entity.getApiId();
+        this.apiVersion=entity.getVersion();
+        this.status=String.valueOf(entity.getStatus());
+
+    }
+
+    public int getApiId() {
+        return apiId;
+    }
+
+    public void setApiId(int apiId) {
+        this.apiId = apiId;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
 
     public String getRsIds() {
         return rsIds;
@@ -177,11 +210,11 @@ public class ApiData {
         this.resourceList = resourceList;
     }
 
-    public ApiDefine getApiDefine() {
-        return apiDefine;
+    public ApiDefine getApi_define() {
+        return api_define;
     }
 
-    public void setApiDefine(ApiDefine apiDefine) {
-        this.apiDefine = apiDefine;
+    public void setApi_define(ApiDefine api_define) {
+        this.api_define = api_define;
     }
 }

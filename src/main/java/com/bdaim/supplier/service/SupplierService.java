@@ -6,6 +6,8 @@ import com.alibaba.excel.support.ExcelTypeEnum;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.api.dao.ApiDao;
+import com.bdaim.api.entity.ApiProperty;
 import com.bdaim.batch.ResourceEnum;
 import com.bdaim.batch.TransactionEnum;
 import com.bdaim.bill.dao.BillDao;
@@ -46,6 +48,7 @@ import com.bdaim.util.StringUtil;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -84,7 +87,8 @@ public class SupplierService {
     private MarketResourceDao marketResourceDao;
     @Resource
     private TransactionService transactionService;
-
+    @Autowired
+    private ApiDao apiDao;
     @Resource
     private JdbcTemplate jdbcTemplate;
 
@@ -1204,7 +1208,7 @@ public class SupplierService {
     public JSONObject listVoiceResourceByType(String type) throws Exception {
         List<MarketResourceDTO> list = listResource(type);
         JSONObject jsonObject = new JSONObject();
-        List<MarketResourceDTO> call2way = new ArrayList<>();
+        List<MarketResourceDTO> call2way = new ArrayList<>(), unicomCall2way = new ArrayList();
         List<MarketResourceDTO> callCenter = new ArrayList<>();
         if (list != null && !list.isEmpty()) {
             for (MarketResourceDTO dto : list) {
@@ -1212,10 +1216,13 @@ public class SupplierService {
                     callCenter.add(dto);
                 } else if ("2".equals(dto.getChargingType())) {//双呼
                     call2way.add(dto);
+                } else if ("4".equals(dto.getChargingType())) {//双呼
+                    unicomCall2way.add(dto);
                 }
             }
             jsonObject.put("call2way", call2way);
             jsonObject.put("callCenter", callCenter);
+            jsonObject.put("unicomCall2way", unicomCall2way);
         }
         return jsonObject;
     }
@@ -1247,6 +1254,38 @@ public class SupplierService {
     }
 
     /**
+     * 获取客户配置的通话资源
+     *
+     * @param custId
+     * @return
+     */
+    public JSONObject getCustomerCallPriceConfig0(String custId) {
+        CustomerProperty voiceCustomerProperty = customerDao.getProperty(custId, MarketResourceTypeEnum.CALL.getPropertyName());
+        JSONObject jsonObject = new JSONObject();
+        List<MarketResourceDTO> call2way = new ArrayList<>(), unicomCall2way = new ArrayList<>();
+        List<MarketResourceDTO> callCenter = new ArrayList<>();
+        String config = voiceCustomerProperty.getPropertyValue();
+        if (voiceCustomerProperty != null && StringUtil.isNotEmpty(config)) {
+            if (config.startsWith("[")) {
+                JSONArray array = JSON.parseArray(config);
+                for (int i = 0; i < array.size(); i++) {
+                    JSONObject json = array.getJSONObject(i);
+                    if (json.containsKey("status") && json.getInteger("status") == 1) {
+                        buildCallConfig(json, callCenter, call2way, unicomCall2way);
+                    }
+                }
+            } else if (config.startsWith("{")) {
+                JSONObject json = JSON.parseObject(config);
+                buildCallConfig(json, callCenter, call2way, unicomCall2way);
+            }
+        }
+        jsonObject.put("call2way", call2way);
+        jsonObject.put("callCenter", callCenter);
+        jsonObject.put("unicomCall2way", unicomCall2way);
+        return jsonObject;
+    }
+
+    /**
      * 获取客户呼叫配置
      *
      * @param custId
@@ -1257,7 +1296,7 @@ public class SupplierService {
         CustomerProperty voiceCustomerProperty = customerDao.getProperty(custId, MarketResourceTypeEnum.CALL.getPropertyName());
         CustomCallConfigDTO data = new CustomCallConfigDTO();
         List<MarketResourceDTO> list = new ArrayList<>();
-        List<MarketResourceDTO> call2way = new ArrayList<>();
+        List<MarketResourceDTO> call2way = new ArrayList<>(), unicomCall2way = new ArrayList<>();
         List<MarketResourceDTO> callCenter = new ArrayList<>();
         List<MarketResourceDTO> robot = new ArrayList<>();
         MarketResourceDTO dto;
@@ -1293,12 +1332,15 @@ public class SupplierService {
                 call2way.add(s);
             } else if (s.getChargingType().intValue() == 3) {
                 robot.add(s);
+            } else if (s.getChargingType().intValue() == 4) {
+                unicomCall2way.add(s);
             }
         }
         if (type == null) {
             data.setCallCenter(callCenter);
             data.setCall2way(call2way);
             data.setRobot(robot);
+            data.setUnicomCall2way(unicomCall2way);
         } else {
             if (type == 1) {
                 data.setCallCenter(callCenter);
@@ -1306,6 +1348,8 @@ public class SupplierService {
                 data.setCall2way(call2way);
             } else if (type == 3) {
                 data.setRobot(robot);
+            } else if (type == 4) {
+                data.setUnicomCall2way(unicomCall2way);
             }
         }
         return data;
@@ -1329,6 +1373,31 @@ public class SupplierService {
                 callCenter.add(dto);
             } else if ("2".equals(json.getString("type"))) {
                 call2way.add(dto);
+            }
+        }
+    }
+
+    private void buildCallConfig(JSONObject json, List<MarketResourceDTO> callCenter, List<MarketResourceDTO> call2way,
+                                 List<MarketResourceDTO> unicomCall2way) {
+        if (json.containsKey("resourceId") && StringUtil.isNotEmpty(json.getString("resourceId"))) {
+            Integer resourceId = json.getInteger("resourceId");
+            MarketResourceDTO dto = new MarketResourceDTO();
+            dto.setResourceId(resourceId);
+            MarketResourceEntity resource = marketResourceDao.get(resourceId);
+            if (resource == null) {
+                return;
+            }
+            dto.setResname(resource.getResname());
+            dto.setSupplierId(resource.getSupplierId());
+            dto.setChargingType(json.getInteger("type"));
+            SupplierEntity supplierDO = supplierDao.getSupplier(NumberConvertUtil.parseInt(resource.getSupplierId()));
+            dto.setSupplierName(supplierDO.getName());
+            if ("1".equals(json.getString("type")) || "3".equals(json.getString("type"))) {
+                callCenter.add(dto);
+            } else if ("2".equals(json.getString("type"))) {
+                call2way.add(dto);
+            } else if ("4".equals(json.getString("type"))) {
+                unicomCall2way.add(dto);
             }
         }
     }
@@ -2228,7 +2297,7 @@ public class SupplierService {
         supplierDO.setContactPerson(supplierDTO.getContactPerson());
         supplierDO.setContactPhone(supplierDTO.getContactPhone());
         supplierDO.setContactPosition(supplierDTO.getContactPosition());
-        supplierDO.setStatus(2);
+//        supplierDO.setStatus(2);
         try {
             supplierDao.saveOrUpdate(supplierDO);
         } catch (Exception e) {
@@ -2256,47 +2325,80 @@ public class SupplierService {
     }
 
     public Map<String, Object> getSupplierList(PageParam page, String name) {
+        try {
+            StringBuffer sql = new StringBuffer();
+            sql.append("select supplier_id,name,settlement_type,contact_person,contact_phone,contact_position,status,create_time from t_supplier where status =1 ");
+            if (StringUtil.isNotEmpty(name)) {
+                sql.append(" and name like '%" + name + "%'");
+            }
+            sql.append(" order by create_time desc");
+            PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
+            Map<String, Object> map = new HashMap<>();
+            List<ApiProperty> rsIds = apiDao.getPropertyAll("rsIds");
 
-        StringBuffer sql = new StringBuffer();
-        sql.append("select supplier_id,name,settlement_type,contact_person,contact_phone,contact_position,status,create_time from t_supplier where status =1 ");
-        if (StringUtil.isNotEmpty(name)) {
-            sql.append(" and name like '%" + name + "%'");
+            Map<Integer, List<String>> propertyMap = new HashMap<>();
+
+            rsIds.stream().forEach(pro -> {
+                JSONArray.parseArray(pro.getPropertyValue()).stream().forEach(e -> {
+                    JSONObject jsonObject = JSONObject.parseObject(e.toString());
+                    Arrays.stream(jsonObject.getString("supplier").split(",")).forEach(reid -> {
+                        if (!propertyMap.containsKey(Integer.valueOf(reid))) {
+                            propertyMap.put(Integer.valueOf(reid), new ArrayList<String>());
+                        }
+                        List<String> apiIds = propertyMap.get(Integer.valueOf(reid));
+                        apiIds.add(pro.getApiId());
+                        propertyMap.put(Integer.valueOf(reid), apiIds);
+                    });
+                });
+            });
+            map.put("total", list.getTotal());
+            Object collect = list.getList().stream().map(m -> {
+                Map map1 = (Map) m;
+                Map<String, Object> supplierDTOMap = new HashMap<>();
+                supplierDTOMap.put("name", map1.get("name"));
+                supplierDTOMap.put("settlementType", map1.get("settlement_type"));
+                supplierDTOMap.put("contactPerson", map1.get("contact_person"));
+                supplierDTOMap.put("contactPhone", map1.get("contact_phone"));
+                supplierDTOMap.put("contactPosition", map1.get("contact_position"));
+                supplierDTOMap.put("status", map1.get("status"));
+                supplierDTOMap.put("createTime", map1.get("create_time"));
+                supplierDTOMap.put("supplierId", map1.get("supplier_id"));
+                SupplierPropertyEntity remain_amount = supplierDao.getProperty(map1.get("supplier_id").toString(), "remain_amount");
+                SupplierPropertyEntity used_amount = supplierDao.getProperty(map1.get("supplier_id").toString(), "used_amount");
+                supplierDTOMap.put("balance", remain_amount == null ? 0 : Integer.valueOf(remain_amount.getPropertyValue())/10000);
+                supplierDTOMap.put("consumption", used_amount == null ? 0 : Integer.valueOf(used_amount.getPropertyValue())/10000);
+                supplierDTOMap.put("apiNum", propertyMap.containsKey(Integer.valueOf(map1.get("supplier_id").toString())) ? propertyMap.get(Integer.valueOf(map1.get("supplier_id").toString())).size() : 0);
+                return supplierDTOMap;
+            }).collect(Collectors.toList());
+            map.put("list", collect);
+            return map;
+
+        } catch (Exception e) {
+            log.info(e.getMessage());
         }
-        sql.append(" order by create_time desc");
-        PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
-        Map<String, Object> map = new HashMap<>();
-        map.put("total", list.getTotal());
-        Object collect = list.getList().stream().map(m -> {
-            Map map1 = (Map) m;
-            Map<String, Object> supplierDTOMap = new HashMap<>();
-            supplierDTOMap.put("name", map1.get("name"));
-            supplierDTOMap.put("settlementType", map1.get("settlement_type"));
-            supplierDTOMap.put("contactPerson", map1.get("contact_person"));
-            supplierDTOMap.put("contactPhone", map1.get("contact_phone"));
-            supplierDTOMap.put("contactPosition", map1.get("contact_position"));
-            supplierDTOMap.put("status", map1.get("status"));
-            supplierDTOMap.put("createTime", map1.get("create_time"));
-            supplierDTOMap.put("balance", 0);
-            supplierDTOMap.put("consumption", 0);
-            supplierDTOMap.put("supplierId",map1.get("supplier_id"));
-            return supplierDTOMap;
-        }).collect(Collectors.toList());
-        map.put("list", collect);
-        return map;
-
+        return null;
     }
 
     public int supplierDeposit(Deposit deposit, String userId) {
-        int pre_money;
-        int money = Integer.valueOf(deposit.getMoney()).intValue() * 10000;
+//        BigDecimal b = new BigDecimal(10000);
+//        BigDecimal pre_money;
+//        int money = Integer.valueOf((Double.valueOf(deposit.getMoney())* 10000) + "".trim()).intValue();
+        int pre_money = 0;
+        int money = Integer.valueOf(deposit.getMoney()) * 10000;
+
+//        BigDecimal bigDecimal = BigDecimal.valueOf(Double.valueOf(deposit.getMoney()));
+//        BigDecimal money = bigDecimal.multiply(b);
         SupplierPropertyEntity supplierPropertyEntity = supplierDao.getProperty(String.valueOf(deposit.getId()), "remain_amount");
         if (supplierPropertyEntity == null) {
-            pre_money = 0;
-            supplierDao.dealCustomerInfo(String.valueOf(deposit.getId()), "remain_amount", deposit.getMoney());
+//            pre_money = new BigDecimal(0);
+            supplierDao.dealCustomerInfo(String.valueOf(deposit.getId()), "remain_amount", String.valueOf(money));
         } else {
-            pre_money = Integer.valueOf(supplierPropertyEntity.getPropertyValue()).intValue() * 10000;
-            supplierDao.dealCustomerInfo(String.valueOf(deposit.getId()), "remain_amount", String.valueOf((pre_money + money)));
+//            BigDecimal bigDecimal1 = new BigDecimal(Double.valueOf(supplierPropertyEntity.getPropertyValue()));
+            pre_money = Integer.valueOf(supplierPropertyEntity.getPropertyValue());
+            supplierDao.dealCustomerInfo(String.valueOf(deposit.getId()), "remain_amount", String.valueOf(pre_money + money));
         }
+        log.info("id:" + deposit.getId());
+        log.info("id prc_money:" + String.valueOf(pre_money + money));
         String sql = "INSERT INTO supplier_pay (SUBSCRIBER_ID,MONEY,PAY_TIME,pay_certificate,pre_money,user_id) VALUE (?,?,?,?,?,?) ";
         jdbcTemplate.update(sql, deposit.getId(), money, DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss), deposit.getRepaidVoucher(), pre_money, userId);
         return 1;
@@ -2304,7 +2406,7 @@ public class SupplierService {
 
     public Map<String, Object> depositList(PageParam page, String supplierId) {
         Map<String, Object> map = new HashMap<>();
-        String sql = "select supplier_id,property_name,property_value from t_supplier_property   where supplier_id=?";
+        String sql = "select supplier_id,property_name,property_value from t_supplier_property   where supplier_id=?  ";
 
         List<Map<String, Object>> propertyList = jdbcTemplate.queryForList(sql, supplierId);
         propertyList.stream().forEach(m -> {
@@ -2313,12 +2415,14 @@ public class SupplierService {
                     map.put("bank_account", m.get("property_value"));
                     break;
                 case "remain_amount":
-                    map.put("remain_amount", Integer.valueOf(m.get("property_value").toString()).intValue() / 10000);
+                    map.put("remain_amount", Double.valueOf(m.get("property_value").toString()).intValue() / 10000);
                     break;
             }
         });
 
-        String sql1 = "select pay.pay_id,pay.SUBSCRIBER_ID,pay.MONEY,pay.PAY_TIME,pay.pay_certificate,pay.pre_money,pay.user_id ,u.realname as realname from supplier_pay pay left join  t_customer_user u  on pay.user_id=u.id  where SUBSCRIBER_ID = " + supplierId + " order by pay_time";
+        String sql1 = "select pay.pay_id,pay.SUBSCRIBER_ID,pay.MONEY,pay.PAY_TIME,pay.pay_certificate,pay.pre_money as pre_money ,u.REALNAME as realname ,u.name as account from supplier_pay pay left join  t_user u  on pay.user_id=u.id  where SUBSCRIBER_ID = " + supplierId;
+        page.setSort("pay.PAY_TIME");
+        page.setDir(" desc");
         PageList list = new Pagination().getPageData(sql1, null, page, jdbcTemplate);
         List<com.bdaim.customer.dto.Deposit> depositList = new ArrayList<>();
         list.getList().stream().forEach(m -> {
@@ -2328,7 +2432,7 @@ public class SupplierService {
                 deposit.setCustId(depositMap.get("SUBSCRIBER_ID").toString());
             }
             if (depositMap.get("MONEY") != null) {
-                deposit.setMoney(Integer.valueOf(depositMap.get("MONEY").toString()).intValue() / 10000 + "");
+                deposit.setMoney(Double.valueOf(depositMap.get("MONEY").toString()).intValue() / 10000 + "");
             }
             if (depositMap.get("PAY_TIME") != null) {
                 deposit.setPayTime(depositMap.get("PAY_TIME").toString());
@@ -2340,13 +2444,16 @@ public class SupplierService {
                 deposit.setPicId(depositMap.get("pay_certificate").toString());
             }
             if (depositMap.get("pre_money") != null) {
-                deposit.setPreMoney(Integer.valueOf(depositMap.get("pre_money").toString()).intValue() / 10000 + "");
+                deposit.setPreMoney(Double.valueOf(depositMap.get("pre_money").toString()).intValue() / 10000 + "");
             }
             if (depositMap.get("user_id") != null) {
                 deposit.setPreMoney(depositMap.get("user_id").toString());
             }
             if (depositMap.get("realname") != null) {
-                deposit.setPreMoney(depositMap.get("realname").toString());
+                deposit.setRealname(depositMap.get("realname").toString());
+            }
+            if (depositMap.get("account") != null) {
+                deposit.setAccount(depositMap.get("account").toString());
             }
             depositList.add(deposit);
         });

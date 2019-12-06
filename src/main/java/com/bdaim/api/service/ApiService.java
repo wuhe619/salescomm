@@ -1,24 +1,39 @@
 package com.bdaim.api.service;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.api.Dto.ApiData;
 import com.bdaim.api.Dto.ApiDefine;
 import com.bdaim.api.dao.ApiDao;
 import com.bdaim.api.dao.ApiUrlMappingDao;
+import com.bdaim.api.dao.SubscriptionDao;
 import com.bdaim.api.entity.ApiEntity;
+import com.bdaim.api.entity.ApiProperty;
 import com.bdaim.api.entity.ApiUrlMappingEntity;
+import com.bdaim.api.entity.SubscriptionEntity;
 import com.bdaim.auth.LoginUser;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.page.PageList;
 import com.bdaim.common.page.Pagination;
+import com.bdaim.customer.dao.AmApplicationDao;
+import com.bdaim.customer.entity.AmApplicationEntity;
 import com.bdaim.customer.service.CustomerAppService;
+import com.bdaim.supplier.dao.SupplierDao;
 import com.bdaim.util.StringUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.PreparedStatementCreator;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.sql.PreparedStatement;
+import java.sql.Statement;
 import java.sql.Timestamp;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,11 +49,26 @@ public class ApiService {
     private ApiUrlMappingDao apiUrlMappingDao;
     @Autowired
     private CustomerAppService customerAppService;
+    @Resource
+    private AmApplicationDao amApplicationDao;
+    @Resource
+    private SubscriptionDao subscriptionDao;
+    @Resource
+    private SupplierDao supplierDao;
 
+    @Resource
+    private CreateXML createXML;
+
+    private static Logger logger = LoggerFactory.getLogger(ApiService.class);
 
     public int saveApiProperty(ApiData apiData, String id, LoginUser lu) throws Exception {
         int apiId;
         if (StringUtil.isEmpty(id) || "0".equals(id)) {
+            String context = apiData.getContext();
+            String apiVersion = context.substring(context.lastIndexOf("/") + 1);
+            String contextTexplate = context.substring(0, context.lastIndexOf("/"));
+            apiData.setApiVersion(apiVersion);
+            apiData.setContextTemplate(contextTexplate);
             ApiEntity entity = new ApiEntity();
             entity.setCreateTime(new Timestamp(System.currentTimeMillis()));
             entity.setContext(apiData.getContext());
@@ -47,8 +77,11 @@ public class ApiService {
             entity.setName(apiData.getApiName());
             entity.setVersion(apiData.getApiVersion());
             entity.setProvider(lu.getUserName());
+            entity.setUpdateTime(new Timestamp(System.currentTimeMillis()));
+            entity.setUpdateBy(lu.getUserName());
             entity.setStatus(0);
             apiId = (int) apiDao.saveReturnPk(entity);
+            apiDao.dealCustomerInfo(String.valueOf(apiId), "status", "0");
         } else {
             ApiEntity entity = apiDao.getApi(Integer.valueOf(id));
             if (entity == null) {
@@ -62,7 +95,7 @@ public class ApiService {
             entity.setUpdateBy(lu.getUserName());
             apiId = (int) apiDao.saveReturnPk(entity);
         }
-        ApiDefine apiDefine = apiData.getApiDefine();
+        ApiDefine apiDefine = apiData.getApi_define();
         if (apiData.getUrlMappingId() == 0) {
             ApiUrlMappingEntity entity = new ApiUrlMappingEntity();
 
@@ -128,6 +161,9 @@ public class ApiService {
         if (StringUtil.isNotEmpty(apiDefine.getResource_url_pattern())) {
             apiDao.dealCustomerInfo(String.valueOf(apiId), "resource_url_pattern", apiDefine.getResource_url_pattern());
         }
+        if (StringUtil.isNotEmpty(apiData.getDescription())) {
+            apiDao.dealCustomerInfo(String.valueOf(apiId), "descriptionw", apiDefine.getDescription());
+        }
         //请求方式
         if (StringUtil.isNotEmpty(apiDefine.getRequest_method())) {
             apiDao.dealCustomerInfo(String.valueOf(apiId), "request_method", apiDefine.getRequest_method());
@@ -142,11 +178,12 @@ public class ApiService {
         if (StringUtil.isNotEmpty(apiData.getRsIds())) {
             apiDao.dealCustomerInfo(String.valueOf(apiId), "rsIds", apiData.getRsIds());
         }
+
         return apiId;
     }
 
     public int updateStatusApiById(String apiId, LoginUser lu, int status) throws Exception {
-
+//        apiDao.dealCustomerInfo(String.valueOf(apiId), "status", String.valueOf(status));
         ApiEntity entity = apiDao.getApi(Integer.valueOf(apiId));
         if (entity == null) {
             throw new Exception("api不存在");
@@ -161,27 +198,35 @@ public class ApiService {
                 entity.setStatus(ApiEntity.API_OFFLINE);
                 break;
             case 2:
+                int xml = createXML.createXML(apiId);
+                if (xml == -1) {
+                    throw new Exception("发布失败");
+                }
                 entity.setStatus(ApiEntity.API_RELEASE);
                 break;
         }
-        return (int) apiDao.saveReturnPk(entity);
+        apiDao.update(entity);
+        return 1;
     }
 
     public Map<String, Object> apis(PageParam page, JSONObject params) {
         StringBuffer sql = new StringBuffer();
-        sql.append(" select API_ID as apiId,API_NAME as apiName,CONTEXT as context,CREATED_BY as createdBy from am_api where 1=1 ");
+        sql.append(" select API_ID as apiId,API_NAME as apiName,CONTEXT as context,CREATED_BY as createdBy,status   from am_api where 1=1 ");
         if (StringUtil.isNotEmpty(params.getString("apiName"))) {
             sql.append(" and API_NAME like '%" + params.getString("apiName") + "%'");
         }
         if (params.getInteger("status") != null) {
-            sql.append(" and API_NAME status =" + params.getInteger("status"));
+            sql.append(" and status =" + params.getInteger("status"));
         }
         sql.append(" order by CREATED_TIME desc");
         PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
         Map<String, Object> map = new HashMap<>();
         Object collect = list.getList().stream().map(m -> {
             Map dataMap = (Map) m;
-            dataMap.put("subscribeNum", 0);
+            String apiId = dataMap.get("apiId").toString();
+            String countSql = "select count(*) from am_subscription where API_ID=" + Integer.valueOf(apiId) + " and SUBS_CREATE_STATE='SUBSCRIBE'";
+            Integer count = jdbcTemplate.queryForObject(countSql, Integer.class);
+            dataMap.put("subscribeNum", count);
             return dataMap;
         }).collect(Collectors.toList());
         map.put("list", collect);
@@ -196,7 +241,7 @@ public class ApiService {
         }
         String sql = " select  property_name,property_value from am_api_property where api_id = ?";
         List<Map<String, Object>> propertyList = jdbcTemplate.queryForList(sql, apiEntity.getApiId());
-        ApiData vo = new ApiData();
+        ApiData vo = new ApiData(apiEntity);
         ApiDefine apiDefine = new ApiDefine();
         propertyList.stream().forEach(map -> {
             String property_value = customerAppService.ObjectFormStr(map.get("property_value"));
@@ -249,11 +294,243 @@ public class ApiService {
                 case "rsIds":
                     vo.setRsIds(property_value);
                     break;
+                case "descriptionw":
+                    vo.setDescription(property_value);
+                    break;
             }
         });
-        vo.setApiDefine(apiDefine);
+        vo.setApi_define(apiDefine);
 
         return vo;
     }
+
+
+    public int subApi(JSONObject params, String apiId, LoginUser lu) throws Exception {
+        AmApplicationEntity amApplicationEntity = amApplicationDao.getByCustId(params.getString("custId"));
+        if (amApplicationEntity == null) {
+            logger.info("企业不存在");
+            throw new Exception("企业不存在");
+        }
+        ApiEntity apiEntity = apiDao.getApi(Integer.valueOf(apiId));
+        if (apiEntity == null) {
+            logger.info("API不存在");
+            throw new Exception("API不存在");
+        }
+        if (apiEntity.getStatus() != 2) {
+            logger.info("非发布状态不可订阅");
+            throw new Exception("非发布状态不可订阅");
+        }
+//            SubscriptionEntity subEntity = subscriptionDao.getById(apiEntity.getApiId(), amApplicationEntity.getId());
+        String subSql1 = "select SUBSCRIPTION_ID as id  from am_subscription where APPLICATION_ID=" + amApplicationEntity.getId() + " and API_ID = " + apiEntity.getApiId();
+//            SubscriptionEntity subEntity = jdbcTemplate.queryForObject(subSql1, SubscriptionEntity.class);
+        List<Map<String, Object>> list = jdbcTemplate.queryForList(subSql1);
+        int subscriptionId;
+
+        if (list.size() == 0) {
+            logger.info("新增");
+//            subEntity = new SubscriptionEntity();
+//            subEntity.setLastAccessed(new Timestamp(System.currentTimeMillis()));
+//            subEntity.setCreatedTime(new Timestamp(System.currentTimeMillis()));
+//            subEntity.setCreatedBy(lu.getUserName());
+//            subEntity.setSubStatus("BLOCKED");
+//            subEntity.setApiId(apiEntity.getApiId());
+//            subEntity.setApplicationId(amApplicationEntity.getId());
+//            subEntity.setSubsCreateState("SUBSCRIBE");
+
+            Calendar calendar = Calendar.getInstance();
+            calendar.add(Calendar.DATE, 365 * 100);
+            String subSql = " insert into am_subscription (CREATED_BY,CREATED_TIME,API_ID,LAST_ACCESSED,SUB_STATUS,SUBS_CREATE_STATE,APPLICATION_ID,UPDATED_TIME) " +
+                    "values('" + lu.getUserName() + "','" + new Timestamp(System.currentTimeMillis()) + "'," + apiEntity.getApiId() + ",'" + new Timestamp(System.currentTimeMillis()) +
+                    "','BLOCKED','SUBSCRIBE'," + amApplicationEntity.getId() + ",'" + new Timestamp(System.currentTimeMillis()) + "')";
+            KeyHolder keyHolder = new GeneratedKeyHolder();
+            PreparedStatementCreator preparedStatementCreator = con -> {
+                PreparedStatement ps = con.prepareStatement(subSql, Statement.RETURN_GENERATED_KEYS);
+                return ps;
+            };
+            jdbcTemplate.update(preparedStatementCreator, keyHolder);
+
+            subscriptionId = keyHolder.getKey().intValue();
+            String sql = "REPLACE INTO am_subscription_charge(SUBSCRIPTION_ID,CHARGE_ID,EFFECTIVE_DATE,EXPIRE_DATE,START_VOLUME,TIER_VOLUME,CREATE_TIME,CREATE_BY,UPDATE_TIME,UPDATE_BY) " +
+                    "VALUES (?,?,?,?,?,?,?,?,?,?)";
+            jdbcTemplate.update(sql, new Object[]{subscriptionId, 1, new Timestamp(System.currentTimeMillis()), calendar.getTime(), 0, 100000, new Timestamp(System.currentTimeMillis()), lu.getUserName(), new Timestamp(System.currentTimeMillis()), lu.getUserName()});
+
+        } else {
+            subscriptionId = Integer.valueOf(list.get(0).get("id").toString());
+            String sql = "update am_subscription  set SUBS_CREATE_STATE=? ,UPDATED_BY=? ,UPDATED_TIME=? where SUBSCRIPTION_ID=? ";
+            jdbcTemplate.update(sql, new Object[]{"SUBSCRIBE", lu.getUserName(), new Timestamp(System.currentTimeMillis()), subscriptionId});
+        }
+        return subscriptionId;
+    }
+
+    public int subApiUpdate(JSONObject params, String apiId, LoginUser lu) throws Exception {
+        AmApplicationEntity amApplicationEntity = amApplicationDao.getByCustId(params.getString("custId"));
+        if (amApplicationEntity == null) {
+            throw new Exception("企业不存在");
+        }
+        SubscriptionEntity entity = subscriptionDao.getById(Integer.valueOf(apiId), amApplicationEntity.getId());
+        entity.setSubsCreateState("UNSUBSCRIBE");
+        entity.setUpdatedBy(lu.getUserName());
+        entity.setUpdatedTime(new Timestamp(System.currentTimeMillis()));
+        subscriptionDao.update(entity);
+        return 1;
+    }
+
+    public int priceApi(JSONObject params, String apiId, LoginUser lu) throws Exception {
+        AmApplicationEntity amApplicationEntity = amApplicationDao.getByCustId(params.getString("custId"));
+        if (amApplicationEntity == null) {
+            throw new Exception("企业不存在");
+        }
+        SubscriptionEntity entity = subscriptionDao.getById(Integer.valueOf(apiId), amApplicationEntity.getId());
+        String sql = "update am_subscription_charge set unit_price=?,UPDATE_BY=?,UPDATE_TIME=? where SUBSCRIPTION_ID=?";
+        jdbcTemplate.update(sql, new Object[]{params.getInteger("price") * 10000, lu.getUserName(), new Timestamp(System.currentTimeMillis()), entity.getId()});
+        return 1;
+    }
+
+    public Map<String, Object> subApiNoSubscribeList(PageParam page, String custId, String apiName) throws Exception {
+        logger.info("开始获取未订阅列表");
+        AmApplicationEntity amApplicationEntity = amApplicationDao.getByCustId(custId);
+        if (amApplicationEntity == null) {
+            throw new Exception("企业不存在");
+        }
+        StringBuffer sql = new StringBuffer();
+        sql.append(" select sub.APPLICATION_ID ,api.API_ID as apiId,api.API_NAME as apiName,sub.SUBS_CREATE_STATE as subCreateState,sub.CREATED_TIME as createTime");
+        sql.append(" from am_api api left join am_subscription sub  on  api.API_ID=sub.API_ID");
+        sql.append(" where api.API_ID not in");
+        sql.append(" (select API_ID from am_subscription where APPLICATION_ID = " + amApplicationEntity.getId() + " and SUBS_CREATE_STATE = 'SUBSCRIBE')");
+//        sql.append(" and api.status=2");
+        if (StringUtil.isNotEmpty(apiName)) {
+            sql.append(" and api.API_NAME  = '" + apiName + "'");
+        }
+        page.setSort("api.CREATED_TIME");
+        page.setDir("desc");
+        PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
+        Object collect = list.getList().stream().map(m -> {
+            Map map = (Map) m;
+            map.put("realName", "");
+            map.put("resourceId", "");
+            map.put("subCreateState", "UNSUBSCRIBE");
+            ApiProperty property = apiDao.getProperty(map.get("apiId").toString(), "rsIds");
+            if (property == null) return map;
+            String propertyValue = property.getPropertyValue();
+            JSONArray jsonArray = JSONArray.parseArray(propertyValue);
+            StringBuffer rsIds = new StringBuffer();
+            StringBuffer sulist = new StringBuffer();
+            jsonArray.stream().forEach(p -> {
+                Map pmap = (Map) p;
+                rsIds.append(pmap.get("rsId")).append(",");
+                Object supplierIds = pmap.get("supplier");
+                sulist.append(supplierIds).append(",");
+            });
+            if (rsIds.length() > 0) rsIds.deleteCharAt(rsIds.length() - 1);
+
+            StringBuffer suppliers = new StringBuffer();
+            if (sulist.length() > 0) {
+                sulist.deleteCharAt(sulist.length() - 1);
+                supplierDao.getSuppliers(sulist.toString()).stream().forEach(name -> {
+                    suppliers.append(name).append(",");
+                });
+                suppliers.deleteCharAt(suppliers.length() - 1);
+            }
+//            if (suppliers.length() > 0) rsIds.deleteCharAt(suppliers.length() - 1);
+            map.put("realName", suppliers);
+            map.put("resourceId", rsIds);
+            return map;
+        }).collect(Collectors.toList());
+        Map map = new HashMap();
+        map.put("data", collect);
+        map.put("total", list.getTotal());
+        return map;
+    }
+
+    public Map<String, Object> subApiSubscribeList(PageParam page, String custId, String apiName) throws Exception {
+//        AmApplicationEntity amApplicationEntity = amApplicationDao.getByCustId(custId);
+//        if (amApplicationEntity == null) {
+//            throw new Exception("企业不存在");
+//        }
+        StringBuffer sql = new StringBuffer();
+        sql.append(" select sub.APPLICATION_ID ,api.API_ID as apiId,api.API_NAME as apiName,sub.SUBS_CREATE_STATE as subCreateState,sub.CREATED_TIME as createTime,cus.real_name as realName,cus.cust_id as custId");
+        sql.append(" from am_api api left join am_subscription sub  on  api.API_ID=sub.API_ID");
+        sql.append(" left join am_application app on  app.APPLICATION_ID = sub.APPLICATION_ID");
+        sql.append(" left join t_customer cus on cus.cust_id=app.SUBSCRIBER_ID");
+        sql.append(" where sub.SUBS_CREATE_STATE = 'SUBSCRIBE'");
+        if (StringUtil.isNotEmpty(apiName)) {
+            sql.append(" and api.API_NAME = '" + apiName + "'");
+        }
+        if (StringUtil.isNotEmpty(custId)) {
+            sql.append(" and cus.cust_id = '" + custId + "'");
+        }
+        page.setSort("sub.CREATED_TIME");
+        page.setDir("desc");
+        try {
+            PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
+            Object collect = list.getList().stream().map(m -> {
+                Map map = (Map) m;
+                map.put("realName", "");
+                map.put("resourceId", "");
+                ApiProperty property = apiDao.getProperty(map.get("apiId").toString(), "rsIds");
+                if (property == null) return map;
+                String propertyValue = property.getPropertyValue();
+                JSONArray jsonArray = JSONArray.parseArray(propertyValue);
+                StringBuffer sulist = new StringBuffer();
+                StringBuffer rsIds = new StringBuffer();
+                jsonArray.stream().forEach(p -> {
+                    Map pmap = (Map) p;
+                    rsIds.append(pmap.get("rsId")).append(",");
+                    Object supplierIds = pmap.get("supplier");
+                    sulist.append(supplierIds).append(",");
+                });
+                if (rsIds.length() > 0) rsIds.deleteCharAt(rsIds.length() - 1);
+                StringBuffer suppliers = new StringBuffer();
+                if (sulist.length() > 0) {
+                    sulist.deleteCharAt(sulist.length() - 1);
+                    supplierDao.getSuppliers(sulist.toString()).stream().forEach(name -> {
+                        suppliers.append(name).append(",");
+                    });
+                    suppliers.deleteCharAt(suppliers.length() - 1);
+                }
+                map.put("realName", suppliers);
+                map.put("resourceId", rsIds);
+                map.put("priceType", "单一定价");
+                return map;
+            }).collect(Collectors.toList());
+            Map map = new HashMap();
+            map.put("data", collect);
+            map.put("total", list.getTotal());
+            return map;
+        } catch (Exception e) {
+            logger.info("错误信息：" + e.getMessage());
+        }
+        return null;
+    }
+
+    //客户调用记录
+    public PageList subApiLogs(JSONObject params, PageParam page) {
+        StringBuffer sql = new StringBuffer();
+        sql.append(" select api.API_ID as apiId, api.API_NAME as apiName, que.RESPONSE_BODY as body, count(api.API_ID) as countNum,round(log.CHARGE/10000) as charge,que.SERVICE_TIME as serviceTime");
+        sql.append(" from am_api api left join rs_log_" + params.getString("callMonth") + " log on log.API_ID= api.API_ID");
+        sql.append(" left join api_queue que on que.ID=log.API_LOG_ID");
+        sql.append(" where 1=1");
+        if (StringUtil.isNotEmpty(params.getString("apiName"))) {
+            sql.append(" and api.API_NAME like '%" + params.getString("apiName") + "%'");
+        }
+        sql.append(" group by log.API_ID");
+        PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
+        return list;
+    }
+
+    //资源调用记录
+    public PageList resApiLogs(JSONObject params, PageParam page) {
+        StringBuffer sql = new StringBuffer();
+        sql.append(" select log.RS_ID as rsId,res.resname as resname, api.API_NAME as apiName,que.USER_NAME as userName," +
+                " que.SERVICE_TIME as serviceTime,que.RESPONSE_TIME as responseTime,round(log.CHARGE/10000) as charge,que.RESPONSE_BODY as body");
+        sql.append(" from rs_log_" + params.getString("callMonth") + " log left join t_market_resource res on log.RS_ID=res.resource_id");
+        sql.append(" left join am_api api on api.API_ID = log.API_ID ");
+        sql.append(" left join api_queue que on que.ID=log.API_LOG_ID");
+        sql.append(" where log.RS_ID = " + params.getLong("resourceId"));
+
+        PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
+        return list;
+    }
+
 
 }

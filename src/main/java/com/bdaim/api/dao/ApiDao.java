@@ -50,4 +50,11 @@ public class ApiDao extends SimpleHibernateDao<ApiEntity, Integer> {
         return cp;
     }
 
+    public List<ApiProperty> getPropertyAll(String propertyName) {
+        ApiProperty cp = null;
+        String hql = "from ApiProperty m where m.propertyName=?";
+        List<ApiProperty> list = this.find(hql,  propertyName);
+        return list;
+    }
+
 }

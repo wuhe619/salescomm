@@ -6,6 +6,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.bdaim.auth.LoginUser;
 import com.bdaim.bill.service.TransactionService;
 import com.bdaim.callcenter.dto.CallPriceConfig;
+import com.bdaim.callcenter.dto.CallTypeParamEnum;
 import com.bdaim.callcenter.dto.XzCallcenterSeatParam;
 import com.bdaim.callcenter.dto.XzCompanyCallcenterParam;
 import com.bdaim.callcenter.service.impl.SeatsService;
@@ -26,6 +27,7 @@ import com.bdaim.customer.user.dto.UserCallConfigDTO;
 import com.bdaim.industry.dto.MarketResourceTypeEnum;
 import com.bdaim.label.dto.LabelDataPriceConfig;
 import com.bdaim.marketproject.entity.MarketProject;
+import com.bdaim.online.unicom.service.UnicomService;
 import com.bdaim.rbac.dao.UserDao;
 import com.bdaim.resource.dao.MarketResourceDao;
 import com.bdaim.resource.entity.MarketResourceEntity;
@@ -82,6 +84,9 @@ public class CustomerUserService {
 
     @Resource
     private CustomerUserPropertyDao customerUserPropertyDao;
+
+    @Resource
+    private UnicomService unicomService;
 
 
     /**
@@ -292,6 +297,9 @@ public class CustomerUserService {
         String custId = userDTO.getCustomerId();
         String userName = userDTO.getUserName();
         String realName = userDTO.getRealName();
+        if (StringUtil.isEmpty(realName)) {
+            realName = userName;
+        }
         String password = userDTO.getPassword();
         //String appId = userDTO.getAppId();
 //        String callCenterId = userDTO.getCallCenterId();
@@ -387,6 +395,11 @@ public class CustomerUserService {
             CustomerUserPropertyDO title = new CustomerUserPropertyDO(cu.getId().toString(), "title", userDTO.getTitle(), new Timestamp(System.currentTimeMillis()));
             if ("2".equals(userType.toString())) {
                 CustomerUserPropertyDO work_num = new CustomerUserPropertyDO(cu.getId().toString(), "work_num", userDTO.getWorkNum(), new Timestamp(System.currentTimeMillis()));
+                //添加员工配置双呼默认审核通过
+                if (StringUtil.isNotEmpty(userDTO.getWorkNum())) {
+                    CustomerUserPropertyDO work_num_status = new CustomerUserPropertyDO(cu.getId().toString(), "work_num_status", "1", new Timestamp(System.currentTimeMillis()));
+                    list.add(work_num_status);
+                }
                 CustomerUserPropertyDO seats_account = new CustomerUserPropertyDO(cu.getId().toString(), "seats_account", userDTO.getSeatsAccount(), new Timestamp(System.currentTimeMillis()));
                 CustomerUserPropertyDO seats_password = new CustomerUserPropertyDO(cu.getId().toString(), "seats_password", userDTO.getSeatsPassword(), new Timestamp(System.currentTimeMillis()));
                 CustomerUserPropertyDO extension_number = new CustomerUserPropertyDO(cu.getId().toString(), "extension_number", userDTO.getExtensionNumber(), new Timestamp(System.currentTimeMillis()));
@@ -398,6 +411,7 @@ public class CustomerUserService {
                     list.add(add_agent_method);
                 }
                 list.add(work_num);
+
                 list.add(seats_account);
                 list.add(seats_password);
                 list.add(extension_number);
@@ -603,6 +617,13 @@ public class CustomerUserService {
         sb.append(" where  account= ? and cust_id='" + custId + "'");
 
         int code = jdbcTemplate.update(sb.toString(), new Object[]{status, userName});
+        /*if (1 == status) {
+            // 冻结
+            unicomService.saveUpdateUserExtensionByUserId("", userName, 1);
+        } else if (0 == status) {
+            // 开启
+            unicomService.saveUpdateUserExtensionByUserId("", userName, 0);
+        }*/
         /*CustomerUser user = customerUserDao.getCustomerUserByLoginName(userName);
 
         if(user!=null && user.getStatus()==0){//当账号有效时处理
@@ -723,7 +744,21 @@ public class CustomerUserService {
                         list.add(work_num);
                     }
                     //todo: 删除呼叫中心配置
+                } else if (CallTypeParamEnum.UNICOM_CALL2_WAY.getPropertyName().equals(userDTO.getCallType())) {// 设置双呼号
+                    if (userDTO.getWorkNum() != null) {
+                        CustomerUserPropertyDO work_num = customerUserDao.getProperty(Id, "work_num");
+                        if (work_num == null)
+                            work_num = new CustomerUserPropertyDO(Id, "work_num", "", new Timestamp(System.currentTimeMillis()));
+                        work_num.setPropertyValue(userDTO.getWorkNum());
+                        //添加员工配置双呼默认审核通过
+                        CustomerUserPropertyDO work_num_status = new CustomerUserPropertyDO(cu.getId().toString(), "work_num_status", "1", new Timestamp(System.currentTimeMillis()));
+                        list.add(work_num_status);
+                        list.add(work_num);
+                       /* // 添加联通主叫号码
+                        unicomService.addUserExtension(cu.getCust_id(), userDTO.getWorkNum());*/
+                    }
                 }
+
                 if (StringUtil.isNotEmpty(userDTO.getCallType())) {
                     CustomerUserPropertyDO call_type = customerUserDao.getProperty(Id, "call_type");
                     if (call_type == null) {

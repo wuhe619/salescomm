@@ -18,10 +18,12 @@ import com.bdaim.common.filter.FiledFilter;
 import com.bdaim.common.service.PhoneService;
 import com.bdaim.customer.account.dto.RemainSourceDTO;
 import com.bdaim.customersea.service.CustomerSeaService;
+import com.bdaim.customgroup.dto.CGroupSearchParam;
 import com.bdaim.customgroup.dto.CustomerGroupAddDTO;
 import com.bdaim.customgroup.dto.CustomerGroupParamDTO;
 import com.bdaim.customgroup.dto.CustomerGrpOrdParam;
 import com.bdaim.customgroup.entity.CustomGroup;
+import com.bdaim.customgroup.entity.CustomerGroupProperty;
 import com.bdaim.customgroup.service.CustomGroupService;
 import com.bdaim.industry.dto.IndustryPoolPriceDTO;
 import com.bdaim.industry.service.IndustryPoolService;
@@ -37,7 +39,6 @@ import com.bdaim.util.AuthPassport;
 import com.bdaim.util.Constant;
 import com.bdaim.util.NumberConvertUtil;
 import com.bdaim.util.StringUtil;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -153,8 +154,8 @@ public class CustomGroupAction extends BasicAction {
                 map.put("status", status);
             }
         }
-        List<CustomGroup> groups = customGroupService.getListByCondition(map,likeMap, page);
-        Integer count = customGroupService.getCountByCondition(map, likeMap,null);
+        List<CustomGroup> groups = customGroupService.getListByCondition(map, likeMap, page);
+        Integer count = customGroupService.getCountByCondition(map, likeMap, null);
         Map<String, Object> resultMap = new HashMap<String, Object>();
         resultMap.put("total", count);
         resultMap.put("stores", commonService.getCustomGroupMapList(groups));
@@ -237,7 +238,7 @@ public class CustomGroupAction extends BasicAction {
     public String getMicroscopicPictureList(HttpServletRequest request, Integer customGroupId, Page page,
                                             String queryType, String key) {
         Map<String, Object> result = new HashMap<String, Object>();
-        Map<String, Object> map = customGroupService.getUserGroupGid(customGroupId, page.getStart(),page.getLimit(), queryType, key);
+        Map<String, Object> map = customGroupService.getUserGroupGid(customGroupId, page.getStart(), page.getLimit(), queryType, key);
         result.putAll(map);
 
         return JSON.toJSONString(result);
@@ -475,6 +476,29 @@ public class CustomGroupAction extends BasicAction {
         return JSON.toJSONString(resultMap);
     }
 
+    /**
+     * 创建客群,数据状态为处理中,支付状态为已支付
+     *
+     * @param customGroupDTO
+     * @return
+     * @throws Exception
+     */
+    @ResponseBody
+    @CacheAnnotation
+    @RequestMapping(value = "/saveCustomGroup0", method = RequestMethod.POST)
+    public String saveCustomGroup0(@RequestBody CustomerGroupAddDTO customGroupDTO) {
+        LoginUser lu = opUser();
+        Map<String, Object> resultMap = new HashMap<String, Object>();
+        if (StringUtil.isEmpty(customGroupDTO.getCustId())) {
+            customGroupDTO.setCustId(lu.getCustId());
+        }
+        customGroupDTO.setCreateUserId(lu.getId().toString());
+        customGroupDTO.setUpdateUserId(lu.getId().toString());
+        resultMap.put("data", JSONObject.toJSON(customGroupService.saveCustomGroup(customGroupDTO)));
+
+        return JSON.toJSONString(resultMap);
+    }
+
 
     /**
      * 客户群用户列表
@@ -489,14 +513,14 @@ public class CustomGroupAction extends BasicAction {
     @RequestMapping("/getCustomGroup")
     public String getCustomGroup(String customer_group_id, Integer pageNum, Integer pageSize, String id,
                                  String customer_name, Integer states, String callType, String dateStart, String dateEnd,
-                                 String enterprise_name, String marketProjectId) {
+                                 String enterprise_name, String marketProjectId, CGroupSearchParam param) {
         LoginUser u = opUser();
         String cust_id = u.getCustId();
         String user_id = u.getId().toString();
         JSONObject json = new JSONObject();
 
         Page p = customGroupService.page(customer_group_id, cust_id, user_id, pageNum, pageSize,
-                id, customer_name, states, callType, dateStart, dateEnd, enterprise_name, marketProjectId);
+                id, customer_name, states, callType, dateStart, dateEnd, enterprise_name, marketProjectId, param);
 
         json.put("data", p);
         return json.toJSONString();
@@ -1385,6 +1409,29 @@ public class CustomGroupAction extends BasicAction {
             } catch (IOException e1) {
                 e1.printStackTrace();
             }
+        }
+    }
+
+    /**
+     * 保存/更新客群属性
+     *
+     * @param param
+     * @return
+     */
+    @RequestMapping(value = "/saveCGroupProperty", method = RequestMethod.POST)
+    @ResponseBody
+    public String saveCustomerGroupProperty(@RequestBody CustomerGroupProperty param) {
+        int code = 0;
+        try {
+            code = customGroupService.saveCGroupProperty(param);
+        } catch (Exception e) {
+            log.error("保存客群属性失败,参数:" + param, e);
+            code = 0;
+        }
+        if (code == 1) {
+            return returnSuccess();
+        } else {
+            return returnError();
         }
     }
 }

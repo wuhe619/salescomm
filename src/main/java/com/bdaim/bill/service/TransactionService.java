@@ -1,7 +1,10 @@
 package com.bdaim.bill.service;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.bdaim.batch.TransactionEnum;
+import com.bdaim.bill.dto.SeatCallDeductionResult;
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.page.PageList;
@@ -743,6 +746,373 @@ public class TransactionService {
                 1, amount, remark, new Timestamp(System.currentTimeMillis()), resourceId, userId, prodAmount, supplierId);
         return status;
     }
+
+    public JSONObject selectCustCallConfig(String custId) throws Exception {
+        StringBuffer sql = new StringBuffer();
+        sql.append(" SELECT property_value FROM t_customer_property WHERE property_name='call_config' AND cust_id = ? ");
+        List<Map<String, Object>> list = transactionDao.sqlQuery(sql.toString(), custId);
+        if (list.size() > 0) {
+            Map<String, Object> config = list.get(0);
+            JSONObject jsonObject = null;
+            String configs = String.valueOf(config.get("property_value"));
+            Object object = JSON.parse(configs);
+            if (object instanceof JSONObject) {
+                jsonObject = (JSONObject) object;
+            } else if (object instanceof JSONArray) {
+                jsonObject = ((JSONArray) object).getJSONObject(0);
+            }
+            return jsonObject;
+        }
+        logger.warn("客户ID:" + custId + "未配置通话资源!");
+        return null;
+    }
+
+    /**
+     * 根据客户ID和资源ID查询客户通话售价
+     *
+     * @param custId
+     * @param resourceId
+     * @return
+     * @throws Exception
+     */
+    public JSONObject selectCustCallConfig(String custId, String resourceId) throws Exception {
+        StringBuffer sql = new StringBuffer();
+        sql.append(" SELECT property_value FROM t_customer_property WHERE property_name='call_config' AND cust_id = ? ");
+        List<Map<String, Object>> list = transactionDao.sqlQuery(sql.toString(), custId);
+        if (list.size() > 0) {
+            Map<String, Object> custConfig = list.get(0);
+            String configs = String.valueOf(custConfig.get("property_value"));
+            JSONArray jsonArray = JSON.parseArray(configs);
+            JSONObject jsonObject;
+            for (int i = 0; i < jsonArray.size(); i++) {
+                jsonObject = jsonArray.getJSONObject(i);
+                if (StringUtil.isNotEmpty(resourceId) && resourceId.equals(jsonObject.getString("resourceId"))) {
+                    logger.info("客户ID:" + custId + ",资源ID:" + resourceId + "配置的通话资源:" + jsonObject);
+                    return jsonObject;
+                }
+            }
+        }
+        logger.warn("客户ID:" + custId + ",资源ID:" + resourceId + "未配置通话资源!");
+        return null;
+    }
+
+    /**
+     * 根据资源ID获取供应商通话定价
+     *
+     * @param resourceId
+     * @return
+     * @throws Exception
+     */
+    public JSONObject selectSupplierCallConfig(String resourceId) throws Exception {
+        StringBuffer sql = new StringBuffer();
+        sql.append(" SELECT t2.property_value FROM t_market_resource t1 JOIN t_market_resource_property t2 ON t1.resource_id = t2.resource_id ");
+        sql.append(" WHERE t1.`status` = 1 AND t2.property_name='price_config' AND t1.resource_id=?");
+        List<Map<String, Object>> list = transactionDao.sqlQuery(sql.toString(), resourceId);
+        if (list.size() > 0) {
+            Map<String, Object> resourceConfig = list.get(0);
+            String config = String.valueOf(resourceConfig.get("property_value"));
+            JSONObject jsonObject = JSON.parseObject(config);
+            logger.info("资源ID:" + resourceId + "配置的通话资源:" + jsonObject);
+            return jsonObject;
+        }
+        logger.warn("资源ID:" + resourceId + "未配置通话资源!");
+        return null;
+    }
+
+    /**
+     * 客户坐席剩余包月分钟数
+     *
+     * @param userId
+     * @param resourceId
+     * @return
+     * @throws Exception
+     */
+    public int selectCustSeatSurplusMinute(String userId, String resourceId) throws Exception {
+        String sql = "SELECT property_value FROM t_customer_user_property WHERE user_id = ? AND property_name = ?";
+        List<Map<String, Object>> seatSurplusMinuteList = transactionDao.sqlQuery(sql, userId, "cust_" + resourceId + "_minute");
+        if (seatSurplusMinuteList != null && seatSurplusMinuteList.size() > 0 && StringUtil.isNotEmpty(String.valueOf(seatSurplusMinuteList.get(0).get("property_value")))) {
+            return Integer.parseInt(String.valueOf(seatSurplusMinuteList.get(0).get("property_value")));
+        }
+        return 0;
+    }
+    /**
+     * 供应商坐席剩余包月分钟数
+     *
+     * @param userId
+     * @param resourceId
+     * @return
+     * @throws Exception
+     */
+    public int selectSupplierSeatSurplusMinute(String userId, String resourceId) throws Exception {
+        String sql = "SELECT property_value FROM t_customer_user_property WHERE user_id = ? AND property_name = ?";
+        List<Map<String, Object>> seatSurplusMinuteList = transactionDao.sqlQuery(sql, userId, "supplier_" + resourceId + "_minute");
+        if (seatSurplusMinuteList != null && seatSurplusMinuteList.size() > 0 && StringUtil.isNotEmpty(String.valueOf(seatSurplusMinuteList.get(0).get("property_value")))) {
+            return Integer.parseInt(String.valueOf(seatSurplusMinuteList.get(0).get("property_value")));
+        }
+        return 0;
+    }
+
+    /**
+     * 扣除坐席的剩余分钟数
+     *
+     * @param userId
+     * @param resourceId
+     * @param minute
+     * @param propertyName
+     * @return
+     * @throws Exception
+     */
+    private int updateSeatSurplusMinute(String userId, String resourceId, long minute, String propertyName) throws Exception {
+        // 客户坐席扣费分钟数
+        logger.info("坐席:" + userId + ",propertyName:" + propertyName + "侧扣除分钟数:" + minute);
+        String sql = "SELECT property_value FROM t_customer_user_property WHERE user_id = ? AND property_name = ?";
+        List<Map<String, Object>> seatSurplusMinuteList = transactionDao.sqlQuery(sql, userId, propertyName);
+        int seatSurplusMinute = 0;
+        if (seatSurplusMinuteList != null && seatSurplusMinuteList.size() > 0 && StringUtil.isNotEmpty(String.valueOf(seatSurplusMinuteList.get(0).get("property_value")))) {
+            seatSurplusMinute = Integer.parseInt(String.valueOf(seatSurplusMinuteList.get(0).get("property_value")));
+        }
+        if (seatSurplusMinute <= 0) {
+            logger.warn("坐席:" + userId + ",propertyName:" + propertyName + "侧剩余分钟数为:" + seatSurplusMinute);
+            return 0;
+        }
+        String updateSql = "UPDATE t_customer_user_property SET property_value=? WHERE user_id = ? AND property_name = ?";
+        logger.info("坐席:" + userId + ",propertyName:" + propertyName + "侧剩余分钟数:" + (seatSurplusMinute - minute));
+        int code = transactionDao.executeUpdateSQL(updateSql, seatSurplusMinute - minute, userId, propertyName);
+        logger.info("坐席:" + userId + ",propertyName:" + propertyName + "侧剩余分钟数状态:" + code);
+        return code;
+    }
+
+
+    public SeatCallDeductionResult seatCallDeduction(String userId, String custId, String resourceId, int provinceCallType, int callMinute) throws Exception {
+        JSONObject custCallPriceConfig = this.selectCustCallConfig(custId);
+        if (custCallPriceConfig == null) {
+            throw new RuntimeException("客户ID:" + custId + "通话定价未配置!");
+        }
+        int custSeatSurplusMinute, supplierSeatSurplusMinute, custCallMinutePrice, supplierCallMinutePrice;
+        JSONObject supplierCallConfig;
+        if (custCallPriceConfig != null) {
+            // 查询供应商通话配置
+            supplierCallConfig = this.selectSupplierCallConfig(resourceId);
+            // 查询企业下的坐席剩余分钟数
+            custSeatSurplusMinute = this.selectCustSeatSurplusMinute(userId, resourceId);
+            // 查询供应商下的坐席剩余分钟数
+            supplierSeatSurplusMinute = this.selectSupplierSeatSurplusMinute(userId, resourceId);
+            logger.info("坐席:" + userId + "客户侧剩余分钟数:" + custSeatSurplusMinute);
+            logger.info("坐席:" + userId + "供应商侧剩余分钟数:" + supplierSeatSurplusMinute);
+        } else {
+            logger.warn("客户ID:" + custId + "通话价格未配置!");
+            throw new RuntimeException("客户ID:" + custId + "通话价格未配置!");
+        }
+        SeatCallDeductionResult result = new SeatCallDeductionResult();
+        //客户通话扣费
+        if (custSeatSurplusMinute > 0) {
+            String propertyName = "cust_" + resourceId + "_minute";
+            // 通话剩余分钟大于等于通话分钟
+            if (custSeatSurplusMinute >= callMinute) {
+                logger.info("客户坐席执行只扣除分钟数:" + userId + "扣除后剩余分钟数:" + (custSeatSurplusMinute - callMinute));
+                updateSeatSurplusMinute(userId, resourceId, callMinute, propertyName);
+                result.setSummMinute(callMinute);
+            } else {
+                result.setSummMinute(custSeatSurplusMinute);
+                // 减去剩余分钟数之后的扣费分钟数
+                int tmpSurplusMinute = callMinute - custSeatSurplusMinute;
+                updateSeatSurplusMinute(userId, resourceId, custSeatSurplusMinute, propertyName);
+                logger.info("客户坐席执行扣除分钟数和通话计费:" + userId + "扣除分钟数:" + custSeatSurplusMinute + ",减去分钟数后剩余通话时长:" + tmpSurplusMinute);
+                // 查询客户通话费用
+                custCallMinutePrice = NumberConvertUtil.changeY2L(custCallPriceConfig.getDoubleValue("call_price"));
+                int tmpCustAmount = custCallMinutePrice * tmpSurplusMinute;
+                //扣除通话时长费用
+                customerDao.accountDeductions(custId, new BigDecimal(tmpCustAmount));
+                result.setCustAmount(tmpCustAmount);
+            }
+        } else {
+            custCallMinutePrice = NumberConvertUtil.changeY2L(custCallPriceConfig.getDoubleValue("call_price"));
+            //扣除通话时长费用
+            int tmpCustAmount = custCallMinutePrice * callMinute;
+            customerDao.accountDeductions(custId, new BigDecimal(tmpCustAmount));
+            result.setCustAmount(tmpCustAmount);
+        }
+
+        //供应商通话扣费
+        if (supplierSeatSurplusMinute > 0) {
+            String propertyName = "supplier_" + resourceId + "_minute";
+            // 通话剩余分钟大于等于通话分钟
+            if (supplierSeatSurplusMinute >= callMinute) {
+                logger.info("供应商坐席执行只扣除分钟数:" + userId + "扣除后剩余分钟数:" + (supplierSeatSurplusMinute - callMinute));
+                updateSeatSurplusMinute(userId, resourceId, callMinute, propertyName);
+                result.setSummMinute(callMinute);
+            } else {
+                result.setSummMinute(supplierSeatSurplusMinute);
+                // 减去剩余分钟数之后的扣费分钟数
+                int tmpSurplusMinute = callMinute - supplierSeatSurplusMinute;
+                updateSeatSurplusMinute(userId, resourceId, supplierSeatSurplusMinute, propertyName);
+                logger.info("供应商坐席执行扣除分钟数和通话计费:" + userId + "扣除分钟数:" + supplierSeatSurplusMinute + ",减去分钟数后通话时长:" + tmpSurplusMinute);
+
+                // 通用分钟费用
+                supplierCallMinutePrice = NumberConvertUtil.changeY2L(supplierCallConfig.getDoubleValue("call_price"));
+                // 查询是否配置了本省通话费用
+                String provincePriceConfig = "";
+                if (provinceCallType == 1) {
+                    provincePriceConfig = String.valueOf(supplierCallConfig.get("province_price"));
+                    if (StringUtil.isNotEmpty(provincePriceConfig)) {
+                        supplierCallMinutePrice = NumberConvertUtil.changeY2L(Double.parseDouble(provincePriceConfig.split(",")[0]));
+                    }
+                } else if (provinceCallType == 2) {
+                    // 外省通话
+                    provincePriceConfig = String.valueOf(supplierCallConfig.get("province_price"));
+                    if (StringUtil.isNotEmpty(provincePriceConfig)) {
+                        supplierCallMinutePrice = NumberConvertUtil.changeY2L(Double.parseDouble(provincePriceConfig.split(",")[1]));
+                    }
+                }
+
+                int tmpProdAmount = supplierCallMinutePrice * tmpSurplusMinute;
+                //扣除通话时长费用
+                supplierDao.supplierAccountDeductions(String.valueOf(custCallPriceConfig.get("supplierId")), new BigDecimal(tmpProdAmount));
+                result.setProdAmount(tmpProdAmount);
+            }
+        } else {
+            supplierCallMinutePrice = NumberConvertUtil.changeY2L(supplierCallConfig.getDoubleValue("call_price"));
+            // 本省通话
+            String provincePriceConfig = "";
+            if (provinceCallType == 1) {
+                provincePriceConfig = String.valueOf(supplierCallConfig.get("province_price"));
+                if (StringUtil.isNotEmpty(provincePriceConfig) && provincePriceConfig.split(",").length == 2) {
+                    supplierCallMinutePrice = NumberConvertUtil.changeY2L(NumberConvertUtil.parseDouble(provincePriceConfig.split(",")[0]));
+                } else {
+                    throw new RuntimeException("资源:" + resourceId + "省份通话配置信息错误,provincePriceConfig:" + provincePriceConfig);
+                }
+            } else if (provinceCallType == 2) {
+                // 外省通话
+                provincePriceConfig = String.valueOf(supplierCallConfig.get("province_price"));
+                if (StringUtil.isNotEmpty(provincePriceConfig) && provincePriceConfig.split(",").length == 2) {
+                    supplierCallMinutePrice = NumberConvertUtil.changeY2L(NumberConvertUtil.parseDouble(provincePriceConfig.split(",")[1]));
+                } else {
+                    throw new RuntimeException("资源:" + resourceId + "省份通话配置信息错误,provincePriceConfig:" + provincePriceConfig);
+                }
+            }
+            int tmpProdAmount = supplierCallMinutePrice * callMinute;
+            //扣除通话时长费用
+            supplierDao.supplierAccountDeductions(String.valueOf(custCallPriceConfig.get("supplierId")), new BigDecimal(tmpProdAmount));
+            result.setProdAmount(tmpProdAmount);
+        }
+        return result;
+    }
+
+    public SeatCallDeductionResult seatCallDeduction0(String userId, String custId, String resourceId, int provinceCallType, int callMinute) throws Exception {
+        JSONObject custCallPriceConfig = this.selectCustCallConfig(custId, resourceId);
+        if (custCallPriceConfig == null) {
+            throw new RuntimeException("客户ID:" + custId + "通话定价未配置!");
+        }
+        int custSeatSurplusMinute, supplierSeatSurplusMinute, custCallMinutePrice, supplierCallMinutePrice;
+        JSONObject supplierCallConfig;
+        if (custCallPriceConfig != null) {
+            // 查询供应商通话配置
+            supplierCallConfig = this.selectSupplierCallConfig(resourceId);
+            // 查询企业下的坐席剩余分钟数
+            custSeatSurplusMinute = this.selectCustSeatSurplusMinute(userId, resourceId);
+            // 查询供应商下的坐席剩余分钟数
+            supplierSeatSurplusMinute = this.selectSupplierSeatSurplusMinute(userId, resourceId);
+            logger.info("坐席:" + userId + ",客户侧剩余分钟数:" + custSeatSurplusMinute);
+            logger.info("坐席:" + userId + ",供应商侧剩余分钟数:" + supplierSeatSurplusMinute);
+        } else {
+            logger.warn("客户ID:" + custId + "通话价格未配置!");
+            throw new RuntimeException("客户ID:" + custId + ",通话价格未配置!");
+        }
+        SeatCallDeductionResult result = new SeatCallDeductionResult();
+        //客户通话扣费
+        if (custSeatSurplusMinute > 0) {
+            String propertyName = "cust_" + resourceId + "_minute";
+            // 通话剩余分钟大于等于通话分钟
+            if (custSeatSurplusMinute >= callMinute) {
+                logger.info("客户坐席执行只扣除分钟数:" + userId + "扣除后剩余分钟数:" + (custSeatSurplusMinute - callMinute));
+                updateSeatSurplusMinute(userId, resourceId, callMinute, propertyName);
+                result.setSummMinute(callMinute);
+            } else {
+                result.setSummMinute(custSeatSurplusMinute);
+                // 减去剩余分钟数之后的扣费分钟数
+                int tmpSurplusMinute = callMinute - custSeatSurplusMinute;
+                updateSeatSurplusMinute(userId, resourceId, custSeatSurplusMinute, propertyName);
+                logger.info("客户坐席执行扣除分钟数和通话计费:" + userId + "扣除分钟数:" + custSeatSurplusMinute + ",减去分钟数后剩余通话时长:" + tmpSurplusMinute);
+                // 查询客户通话费用
+                custCallMinutePrice = NumberConvertUtil.changeY2L(custCallPriceConfig.getDoubleValue("call_price"));
+                int tmpCustAmount = custCallMinutePrice * tmpSurplusMinute;
+                //扣除通话时长费用
+                customerDao.accountDeductions(custId, new BigDecimal(tmpCustAmount));
+                result.setCustAmount(tmpCustAmount);
+            }
+        } else {
+            custCallMinutePrice = NumberConvertUtil.changeY2L(custCallPriceConfig.getDoubleValue("call_price"));
+            //扣除通话时长费用
+            int tmpCustAmount = custCallMinutePrice * callMinute;
+            customerDao.accountDeductions(custId, new BigDecimal(tmpCustAmount));
+            result.setCustAmount(tmpCustAmount);
+        }
+
+        //供应商通话扣费
+        if (supplierSeatSurplusMinute > 0) {
+            String propertyName = "supplier_" + resourceId + "_minute";
+            // 通话剩余分钟大于等于通话分钟
+            if (supplierSeatSurplusMinute >= callMinute) {
+                logger.info("供应商坐席执行只扣除分钟数:" + userId + "扣除后剩余分钟数:" + (supplierSeatSurplusMinute - callMinute));
+                updateSeatSurplusMinute(userId, resourceId, callMinute, propertyName);
+                result.setSummMinute(callMinute);
+            } else {
+                result.setSummMinute(supplierSeatSurplusMinute);
+                // 减去剩余分钟数之后的扣费分钟数
+                int tmpSurplusMinute = callMinute - supplierSeatSurplusMinute;
+                updateSeatSurplusMinute(userId, resourceId, supplierSeatSurplusMinute, propertyName);
+                logger.info("供应商坐席执行扣除分钟数和通话计费:" + userId + "扣除分钟数:" + supplierSeatSurplusMinute + ",减去分钟数后通话时长:" + tmpSurplusMinute);
+
+                // 通用分钟费用
+                supplierCallMinutePrice = NumberConvertUtil.changeY2L(supplierCallConfig.getDoubleValue("call_price"));
+                // 查询是否配置了本省通话费用
+                String provincePriceConfig = "";
+                if (provinceCallType == 1) {
+                    provincePriceConfig = String.valueOf(supplierCallConfig.get("province_price"));
+                    if (StringUtil.isNotEmpty(provincePriceConfig)) {
+                        supplierCallMinutePrice = NumberConvertUtil.changeY2L(Double.parseDouble(provincePriceConfig.split(",")[0]));
+                    }
+                } else if (provinceCallType == 2) {
+                    // 外省通话
+                    provincePriceConfig = String.valueOf(supplierCallConfig.get("province_price"));
+                    if (StringUtil.isNotEmpty(provincePriceConfig)) {
+                        supplierCallMinutePrice = NumberConvertUtil.changeY2L(Double.parseDouble(provincePriceConfig.split(",")[1]));
+                    }
+                }
+
+                int tmpProdAmount = supplierCallMinutePrice * tmpSurplusMinute;
+                //扣除通话时长费用
+                supplierDao.supplierAccountDeductions(String.valueOf(custCallPriceConfig.get("supplierId")), new BigDecimal(tmpProdAmount));
+                result.setProdAmount(tmpProdAmount);
+            }
+        } else {
+            supplierCallMinutePrice = NumberConvertUtil.changeY2L(supplierCallConfig.getDoubleValue("call_price"));
+            // 本省通话
+            String provincePriceConfig = "";
+            if (provinceCallType == 1) {
+                provincePriceConfig = String.valueOf(supplierCallConfig.get("province_price"));
+                if (StringUtil.isNotEmpty(provincePriceConfig) && provincePriceConfig.split(",").length == 2) {
+                    supplierCallMinutePrice = NumberConvertUtil.changeY2L(NumberConvertUtil.parseDouble(provincePriceConfig.split(",")[0]));
+                } else {
+                    throw new RuntimeException("资源:" + resourceId + "省份通话配置信息错误,provincePriceConfig:" + provincePriceConfig);
+                }
+            } else if (provinceCallType == 2) {
+                // 外省通话
+                provincePriceConfig = String.valueOf(supplierCallConfig.get("province_price"));
+                if (StringUtil.isNotEmpty(provincePriceConfig) && provincePriceConfig.split(",").length == 2) {
+                    supplierCallMinutePrice = NumberConvertUtil.changeY2L(NumberConvertUtil.parseDouble(provincePriceConfig.split(",")[1]));
+                } else {
+                    throw new RuntimeException("资源:" + resourceId + "省份通话配置信息错误,provincePriceConfig:" + provincePriceConfig);
+                }
+            }
+            int tmpProdAmount = supplierCallMinutePrice * callMinute;
+            //扣除通话时长费用
+            supplierDao.supplierAccountDeductions(String.valueOf(custCallPriceConfig.get("supplierId")), new BigDecimal(tmpProdAmount));
+            result.setProdAmount(tmpProdAmount);
+        }
+        return result;
+    }
+
 
 }
 

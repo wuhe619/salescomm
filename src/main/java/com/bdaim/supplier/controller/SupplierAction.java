@@ -333,7 +333,7 @@ public class SupplierAction extends BasicAction {
             if (StringUtil.isEmpty(custId)) {
                 result = supplierService.listVoiceResourceByType("1");
             } else {
-                result = supplierService.getCustomerCallPriceConfig(custId);
+                result = supplierService.getCustomerCallPriceConfig0(custId);
             }
         } catch (Exception e) {
             LOG.error("查询资源列表失败,", e);

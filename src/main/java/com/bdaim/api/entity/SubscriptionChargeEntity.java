@@ -4,10 +4,9 @@ import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Date;
 
-@Entity
-@Table(name = "am_subcription_charge")
+//@Entity
+//@Table(name = "am_subcription_charge")
 public class SubscriptionChargeEntity implements Serializable {
-    @Id
     @Column(name = "SUBSCRIPTION_ID")
     private int id;
 

@@ -8,7 +8,7 @@ import java.util.Date;
 @Table(name = "am_application")
 public class AmApplicationEntity implements Serializable {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "APPLICATION_ID")
     private int id;
     @Column(name = "NAME")

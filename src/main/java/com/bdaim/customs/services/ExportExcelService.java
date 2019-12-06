@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -104,8 +105,41 @@ public class ExportExcelService {
             exportIdCardExcel(id, param.getString("_rule_"), response);
             return;
         }
+        if (list != null && id == 0) {
+            exportExcelResourceLog(list, param, response);
+        }
         if (list != null) {
             exportExcelByTemplate(list, param, response);
+        }
+
+    }
+
+    private void exportExcelResourceLog(List<JSONObject> list, JSONObject param, HttpServletResponse response)throws IllegalAccessException, IOException {
+        // 生成workbook 并导出
+        String classPath = fileUrlEntity.getFileUrl();
+        String pathF = File.separator;
+        classPath = classPath.replace("/", pathF);
+        String templatePath = classPath + pathF + "tp" + pathF +param.getString("_rule_")+ ".xlsx";
+        //String templatePath = "tp/" + param.getString("_rule_") + ".xlsx";
+        File file = new File(templatePath);
+        LOG.info("excel模板文件路径:{},文件状态:{}", file.getPath(), file.exists());
+        LOG.info("开始导出excel:{}", templatePath);
+        Map<String, Object> map = new HashMap<>();
+        //map.put("list", JavaBeanUtil.convertJsonObjectToMapList(list));
+        map.put("list", list);
+        if (list == null || list.size() == 0) {
+            LOG.info("导出excel为空:{}", param);
+            return;
+        }
+        response.setHeader("Content-Disposition", "attachment; filename=" + System.currentTimeMillis() + ExcelTypeEnum.XLSX.getValue());
+        response.setContentType("application/vnd.ms-excel;charset=utf-8");
+        switch (param.getString("type")) {
+            case "sub":
+                export(templatePath, map, null, response);
+                break;
+            case "res":
+                export(templatePath, map, null, response);
+                break;
         }
     }
 

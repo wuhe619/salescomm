@@ -171,6 +171,7 @@ public class CustomerSeaService {
         put("微信", "SYS001");
         put("职业", "SYS004");
         put("公司", "SYS005");
+        put("所在公司", "SYS005");
         put("跟进状态", "SYS007");
         put("无效原因", "SYS006");
         put("姓名", "super_name");
@@ -1513,7 +1514,8 @@ public class CustomerSeaService {
         // 指定ID退回公海
         StringBuilder sql = new StringBuilder()
                 .append("UPDATE ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(seaId)
-                .append(" SET status = 1, pre_user_id = user_id, user_id = NULL, super_data = '{\"SYS007\":\"未跟进\"}' WHERE status = 0  AND id IN (").append(SqlAppendUtil.sqlAppendWhereIn(superIds)).append(")");
+                //.append(" SET status = 1, pre_user_id = user_id, user_id = NULL, super_data = '{\"SYS007\":\"未跟进\"}' WHERE status = 0  AND id IN (").append(SqlAppendUtil.sqlAppendWhereIn(superIds)).append(")");
+                .append(" SET status = 1, pre_user_id = user_id, user_id = NULL, super_data = JSON_SET(super_data, '$.SYS007', '未跟进') WHERE status = 0  AND id IN (").append(SqlAppendUtil.sqlAppendWhereIn(superIds)).append(")");
         StringBuilder logSql = new StringBuilder()
                 .append("INSERT INTO ").append(ConstantsUtil.CUSTOMER_OPER_LOG_TABLE_PREFIX).append(" (`user_id`, `list_id`, `customer_sea_id`, `customer_group_id`, `event_type`, object_code, `create_time`,reason,remark ) ")
                 .append(" SELECT ").append(userId).append(" ,id,").append(seaId).append(",batch_id,").append(7).append(", user_id ,'").append(new Timestamp(System.currentTimeMillis())).append("'").append(" ,? ,? ")
@@ -1538,7 +1540,8 @@ public class CustomerSeaService {
         // 指定搜索条件退回公海
         StringBuilder sql = new StringBuilder()
                 .append("UPDATE ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(param.getSeaId())
-                .append(" SET status = 1, pre_user_id = user_id ,user_id = NULL, super_data = '{\"SYS007\":\"未跟进\"}'  WHERE status = 0 ");
+                //.append(" SET status = 1, pre_user_id = user_id ,user_id = NULL, super_data = '{\"SYS007\":\"未跟进\"}'  WHERE status = 0 ");
+                .append(" SET status = 1, pre_user_id = user_id ,user_id = NULL, super_data = JSON_SET(super_data, '$.SYS007', '未跟进') WHERE status = 0 ");
         StringBuilder logSql = new StringBuilder()
                 .append("INSERT INTO ").append(ConstantsUtil.CUSTOMER_OPER_LOG_TABLE_PREFIX).append(" (`user_id`, `list_id`, `customer_sea_id`, `customer_group_id`, `event_type`, object_code, `create_time`, reason, remark) ")
                 .append(" SELECT ").append(param.getUserId()).append(" ,id,").append(param.getSeaId()).append(",batch_id,").append(7).append(", user_id ,").append(new Timestamp(System.currentTimeMillis())).append(" ,?,? ")
@@ -1653,7 +1656,8 @@ public class CustomerSeaService {
         // 指定身份ID转交线索
         StringBuilder sql = new StringBuilder()
                 .append("UPDATE ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(seaId)
-                .append(" SET pre_user_id = user_id, user_id = ? ,status = 0, super_data = '{\"SYS007\":\"未跟进\"}' WHERE id IN (").append(SqlAppendUtil.sqlAppendWhereIn(superIds)).append(")");
+                //.append(" SET pre_user_id = user_id, user_id = ? ,status = 0, super_data = '{\"SYS007\":\"未跟进\"}' WHERE id IN (").append(SqlAppendUtil.sqlAppendWhereIn(superIds)).append(")");
+                .append(" SET pre_user_id = user_id, user_id = ? ,status = 0, super_data = JSON_SET(super_data, '$.SYS007', '未跟进') WHERE id IN (").append(SqlAppendUtil.sqlAppendWhereIn(superIds)).append(")");
         StringBuilder logSql = new StringBuilder()
                 .append("INSERT INTO ").append(ConstantsUtil.CUSTOMER_OPER_LOG_TABLE_PREFIX).append(" (`user_id`, `list_id`, `customer_sea_id`, `customer_group_id`, `event_type`, object_code, `create_time`) ")
                 .append(" SELECT ").append(fromUserId).append(" ,id,").append(seaId).append(",batch_id,").append(6).append(", ? ,'").append(new Timestamp(System.currentTimeMillis())).append("'")
@@ -1678,7 +1682,8 @@ public class CustomerSeaService {
         // 指定搜索条件转交线索
         StringBuilder sql = new StringBuilder()
                 .append("UPDATE ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(param.getSeaId())
-                .append(" SET pre_user_id = user_id ,user_id = ?, super_data = '{\"SYS007\":\"未跟进\"}' WHERE 1=1 ");
+                //.append(" SET pre_user_id = user_id ,user_id = ?, super_data = '{\"SYS007\":\"未跟进\"}' WHERE 1=1 ");
+                .append(" SET pre_user_id = user_id ,user_id = ?, super_data = JSON_SET(super_data, '$.SYS007', '未跟进') WHERE 1=1 ");
         StringBuilder logSql = new StringBuilder()
                 .append("INSERT INTO ").append(ConstantsUtil.CUSTOMER_OPER_LOG_TABLE_PREFIX).append("( `user_id`, `list_id`, `customer_sea_id`, `customer_group_id`, `event_type`, object_code, `create_time`) ")
                 .append(" SELECT ").append(param.getUserId()).append(" ,id,").append(param.getSeaId()).append(",batch_id,").append(6).append(", ? ,").append(new Timestamp(System.currentTimeMillis()))
@@ -3188,9 +3193,9 @@ public class CustomerSeaService {
         if (StringUtil.isNotEmpty(param.getAddStartTime()) && StringUtil.isNotEmpty(param.getAddEndTime())) {
             sb.append(" and custG.create_time BETWEEN " + param.getAddStartTime() + " AND " + param.getAddEndTime());
         } else if (StringUtil.isNotEmpty(param.getAddStartTime())) {
-            sb.append(" and custG.create_time >= " + param.getAddStartTime());
+            sb.append(" and custG.create_time >= " + param.getAddStartTime().replace("/","-"));
         } else if (StringUtil.isNotEmpty(param.getAddEndTime())) {
-            sb.append(" and custG.create_time <= " + param.getAddEndTime());
+            sb.append(" and custG.create_time <= " + param.getAddEndTime().replace("/","-"));
         }
 
         if (StringUtil.isNotEmpty(param.getCallStartTime()) && StringUtil.isNotEmpty(param.getCallEndTime())) {
@@ -3249,9 +3254,6 @@ public class CustomerSeaService {
                 }
             }
         }
-        if (StringUtil.isNotEmpty(param.getCustName())) {
-            sb.append(" AND custG.super_data -> " + "'$.SYS005' like " + "'%" + param.getCustName() + "%'" + " ");
-        }
         if (StringUtil.isNotEmpty(param.getRegCapitalMin()) || StringUtil.isNotEmpty(param.getRegCapitalMax())) {
             sb.append(" AND custG.super_data -> '$.SYS010' BETWEEN ");
             sb.append(param.getRegCapitalMin() == null ? 0 : param.getRegCapitalMin());
@@ -3259,13 +3261,16 @@ public class CustomerSeaService {
             sb.append(param.getRegCapitalMax() == null ? 0 : param.getRegCapitalMax());
         }
         if (StringUtil.isNotEmpty(param.getCreateTime())) {
-            sb.append(" AND custG.super_data -> " + "'$.SYS011' >= " + "'" + param.getCreateTime() + "'");
+            sb.append(" AND custG.super_data -> " + "'$.SYS011' >= " + "'" + param.getCreateTime().replace("/","-") + "'");
         }
         if (StringUtil.isNotEmpty(param.getEndTime())) {
-            sb.append(" AND custG.super_data -> " + "'$.SYS011' >= " + "'" + param.getEndTime() + "'");
+            sb.append(" AND custG.super_data -> " + "'$.SYS011' <= " + "'" + param.getEndTime().replace("/","-") + "'");
         }
         if (StringUtil.isNotEmpty(param.getRegStatus())) {
             sb.append(" AND custG.super_data -> " + "'$.SYS012' like " + "'%" + param.getRegStatus() + "%'");
+        }
+        if (StringUtil.isNotEmpty(param.getCustName())) {
+            sb.append(" AND custG.super_data -> " + "'$.SYS005' like " + "'%" + param.getCustName() + "%'");
         }
 //        sb.append(" AND custG.status<>2 ");
         sb.append(" AND custG.status =1 ");
@@ -3335,9 +3340,9 @@ public class CustomerSeaService {
         if (StringUtil.isNotEmpty(param.getAddStartTime()) && StringUtil.isNotEmpty(param.getAddEndTime())) {
             sb.append(" and custG.create_time BETWEEN " + param.getAddStartTime() + " AND " + param.getAddEndTime());
         } else if (StringUtil.isNotEmpty(param.getAddStartTime())) {
-            sb.append(" and custG.create_time >= " + param.getAddStartTime());
+            sb.append(" and custG.create_time >= " + param.getAddStartTime().replace("/","-"));
         } else if (StringUtil.isNotEmpty(param.getAddEndTime())) {
-            sb.append(" and custG.create_time <= " + param.getAddEndTime());
+            sb.append(" and custG.create_time <= " + param.getAddEndTime().replace("/","-"));
         }
 
         if (StringUtil.isNotEmpty(param.getCallStartTime()) && StringUtil.isNotEmpty(param.getCallEndTime())) {
@@ -3446,6 +3451,24 @@ public class CustomerSeaService {
                     sb.append(" AND custG.super_data -> " + likeValue + " ");
                 }
             }
+        }
+        if (StringUtil.isNotEmpty(param.getRegCapitalMin()) || StringUtil.isNotEmpty(param.getRegCapitalMax())) {
+            sb.append(" AND custG.super_data -> '$.SYS010' BETWEEN ");
+            sb.append(param.getRegCapitalMin() == null ? 0 : param.getRegCapitalMin());
+            sb.append(" AND ");
+            sb.append(param.getRegCapitalMax() == null ? 0 : param.getRegCapitalMax());
+        }
+        if (StringUtil.isNotEmpty(param.getCreateTime())) {
+            sb.append(" AND custG.super_data -> " + "'$.SYS011' >= " + "'" + param.getCreateTime().replace("/","-") + "'");
+        }
+        if (StringUtil.isNotEmpty(param.getEndTime())) {
+            sb.append(" AND custG.super_data -> " + "'$.SYS011' <= " + "'" + param.getEndTime().replace("/","-") + "'");
+        }
+        if (StringUtil.isNotEmpty(param.getRegStatus())) {
+            sb.append(" AND custG.super_data -> " + "'$.SYS012' like " + "'%" + param.getRegStatus() + "%'");
+        }
+        if (StringUtil.isNotEmpty(param.getCustName())) {
+            sb.append(" AND custG.super_data -> " + "'$.SYS005' like " + "'%" + param.getCustName() + "%'");
         }
 
         sb.append(" AND custG.status<>2 ");
@@ -3661,6 +3684,8 @@ public class CustomerSeaService {
                         }
                         if ("手机号".equals(headName.get(j))) {
                             rowData.put("phone", row.get(j));
+                        } else if (defaultField.get(headName.get(j)) != null) {
+                            rowData.put(defaultField.get(headName.get(j)), row.get(j));
                         } else {
                             rowData.put(labelId.get(j), row.get(j));
                         }
@@ -3710,8 +3735,8 @@ public class CustomerSeaService {
                         s.setSuper_id(superIdData.get(s.getSuper_telphone()));
                         s.setUser_id(user_id);
                         s.setStatus(distStatus);
-                        if (superData.get(s.getSuper_phone()) != null) {
-                            s.setSuperData(superData.get(s.getSuper_phone()));
+                        if (superData.get(s.getSuper_telphone()) != null) {
+                            s.setSuperData(superData.get(s.getSuper_telphone()));
                         } else {
                             s.setSuperData(new HashMap<>());
                         }
@@ -4068,7 +4093,7 @@ public class CustomerSeaService {
             appSql.append(" AND custG.super_data -> " + "'$.SYS011' >= " + "'" + param.getCreateTime() + "'");
         }
         if (StringUtil.isNotEmpty(param.getEndTime())) {
-            appSql.append(" AND custG.super_data -> " + "'$.SYS011' >= " + "'" + param.getEndTime() + "'");
+            appSql.append(" AND custG.super_data -> " + "'$.SYS011' <= " + "'" + param.getEndTime() + "'");
         }
         if (StringUtil.isNotEmpty(param.getRegStatus())) {
             appSql.append(" AND custG.super_data -> " + "'$.SYS012' like " + "'%" + param.getRegStatus() + "%'");
@@ -4348,7 +4373,7 @@ public class CustomerSeaService {
                 dto.setProperty(new HashMap<>(16));
                 if (properties != null && properties.size() > 0) {
                     LOG.info("开始处理property。。。");
-                    LOG.info("公海id："+customerSea.getId());
+                    LOG.info("公海id：" + customerSea.getId());
                     JSONObject xzinfo = getXZChannelInfo(properties);
                     LOG.info("xzinfo..." + (xzinfo == null ? "" : xzinfo.toJSONString()));
                     for (CustomerSeaProperty p : properties) {
@@ -4411,10 +4436,10 @@ public class CustomerSeaService {
                     dto.setFailCallSum(NumberConvertUtil.parseLong(stat.get(0).get("failCallSum")));
                     // 查询私海未跟进线索量和线索总量
                     stat = customerSeaDao.sqlQuery(MessageFormat.format(statSql, String.valueOf(customerSea.getId())) + appSql.toString());
-                    if(stat.size()>0){
+                    if (stat.size() > 0) {
                         dto.setTotalSum(NumberConvertUtil.parseLong(stat.get(0).get("custType")));
                         dto.setNoFollowSum(NumberConvertUtil.parseLong(stat.get(0).get("noFollowSum")));
-                    }else{
+                    } else {
                         dto.setTotalSum(NumberConvertUtil.parseLong(0));
                         dto.setNoFollowSum(NumberConvertUtil.parseLong(0));
                     }

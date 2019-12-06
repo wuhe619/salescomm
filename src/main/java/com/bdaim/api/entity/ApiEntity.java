@@ -36,14 +36,8 @@ public class ApiEntity implements Serializable {
     private Integer listPrice;
     @Column(name = "TELECO_PRICE")
     private Integer telecoPrice;
-    @Column(name = "supplier_id")
-    private int supplier;
-    @Column(name = "supplier_cost")
-    private int supplierCost;
-    @Column(name = "supplier_cost_rule")
-    private String supplierCostrule;
-    @Column(name = "status")
-    private int status;
+//    @Column(name = "status")
+    private int status = 0;
 
     public int getStatus() {
         return status;
@@ -149,27 +143,4 @@ public class ApiEntity implements Serializable {
         this.telecoPrice = telecoPrice;
     }
 
-    public int getSupplier() {
-        return supplier;
-    }
-
-    public void setSupplier(int supplier) {
-        this.supplier = supplier;
-    }
-
-    public int getSupplierCost() {
-        return supplierCost;
-    }
-
-    public void setSupplierCost(int supplierCost) {
-        this.supplierCost = supplierCost;
-    }
-
-    public String getSupplierCostrule() {
-        return supplierCostrule;
-    }
-
-    public void setSupplierCostrule(String supplierCostrule) {
-        this.supplierCostrule = supplierCostrule;
-    }
 }

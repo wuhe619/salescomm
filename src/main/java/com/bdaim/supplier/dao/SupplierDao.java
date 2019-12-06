@@ -293,4 +293,16 @@ public class SupplierDao extends SimpleHibernateDao<SupplierEntity, Integer> {
         }
         this.saveOrUpdate(propertyInfo);
     }
+
+    /**
+     * 查询供应商集合信息
+     *
+     * @return
+     */
+    public List<String> getSuppliers(String suppliers) {
+        SupplierEntity cp = null;
+        String sql = "select name from t_supplier where supplier_id in (" + suppliers + ")";
+        List<String> list = jdbcTemplate.queryForList(sql, String.class);
+        return list;
+    }
 }

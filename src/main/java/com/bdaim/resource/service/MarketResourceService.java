@@ -4,6 +4,9 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.api.dao.ApiDao;
+import com.bdaim.api.entity.ApiEntity;
+import com.bdaim.api.entity.ApiProperty;
 import com.bdaim.auth.LoginUser;
 import com.bdaim.batch.ResourceEnum;
 import com.bdaim.batch.TransactionEnum;
@@ -16,7 +19,6 @@ import com.bdaim.callcenter.common.CallUtil;
 import com.bdaim.callcenter.dto.*;
 import com.bdaim.callcenter.service.impl.CallCenterService;
 import com.bdaim.callcenter.service.impl.SeatsService;
-import com.bdaim.common.dto.Page;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.page.PageList;
 import com.bdaim.common.page.Pagination;
@@ -37,6 +39,7 @@ import com.bdaim.marketproject.dao.MarketProjectDao;
 import com.bdaim.marketproject.entity.MarketProject;
 import com.bdaim.markettask.dao.MarketTaskDao;
 import com.bdaim.markettask.entity.MarketTask;
+import com.bdaim.online.unicom.service.UnicomService;
 import com.bdaim.rbac.dao.UserDao;
 import com.bdaim.rbac.dto.UserQueryParam;
 import com.bdaim.rbac.service.UserService;
@@ -69,6 +72,7 @@ import org.apache.commons.lang.StringEscapeUtils;
 import org.hibernate.transform.Transformers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -156,6 +160,10 @@ public class MarketResourceService {
     private CustomerUserPropertyDao customerUserPropertyDao;
     @Resource
     private SupplierDao supplierDao;
+    @Resource
+    private UnicomService unicomService;
+    @Autowired
+    private ApiDao apiDao;
 
 
     public PageList querySmsHistory(PageParam page, SmsqueryParam smsqueryParm) {
@@ -4908,6 +4916,8 @@ public class MarketResourceService {
             if (status.equals("1")) {
                 work_num_status.setPropertyValue("1");
                 this.marketResourceDao.saveOrUpdate(work_num_status);
+               /* // 审核通话添加联通主叫号码
+                unicomService.saveUpdateUserExtensionByUserId(userid, "", 0);*/
                 map.put("code", "0");
                 map.put("messa", "成功");
             } else if (status.equals("2")) {
@@ -8550,11 +8560,26 @@ public class MarketResourceService {
         return jdbcTemplate.update(sql, new Object[]{supplierId, type, name, price, DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss)});
     }
 
-    public int updateMarketResource(String name, Integer supplierId, String price, Integer type, Integer resource_id) {
+    public int updateMarketResource(String _c_, String name, Integer supplierId, String price, Integer type, Integer resource_id) throws Exception {
+        double price1 = 0.0;
+        StringUtil.isNotEmpty(price);
+        price1 = Double.valueOf(price);
+        price1 = price1 * 10000;
+        String sql = "select resource_id,create_time from t_market_resource where resource_id=" + resource_id;
+        List<Map<String, Object>> maps = jdbcTemplate.queryForList(sql);
+        Object createTime = DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss);
 
-        String sql1 = "REPLACE  into t_market_resource(resource_id,supplier_id,type_code,resname,sale_price,create_time) VALUES(?,?,?,?,?,?)";
-        int update = jdbcTemplate.update(sql1, new Object[]{resource_id, supplierId, type, name, price, DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss)});
-
+        if (maps.size() > 0) {
+            Map<String, Object> map = maps.get(0);
+            createTime = map.get("create_time");
+        }
+        String sql1;
+        int update;
+        if (!"update".equals(_c_)) {
+            if (maps.size() > 0) throw new Exception("资源已存在");
+        }
+        sql1 = "REPLACE  into t_market_resource(resource_id,supplier_id,type_code,resname,sale_price,create_time) VALUES(?,?,?,?,?,?)";
+        update = jdbcTemplate.update(sql1, new Object[]{resource_id, supplierId, type, name, Double.valueOf(price1).intValue(), createTime});
         return update;
     }
 
@@ -8583,15 +8608,47 @@ public class MarketResourceService {
         if (StringUtil.isNotEmpty(param.getString("resourceId"))) {
             sql.append(" and re.resource_id =" + param.getInteger("resourceId"));
         }
+        sql.append(" order by re.create_time desc");
         PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
+        List<ApiProperty> rsIds = apiDao.getPropertyAll("rsIds");
+
+        Map<String, List<String>> propertyMap = new HashMap<>();
+
+        rsIds.stream().forEach(pro -> {
+            JSONArray.parseArray(pro.getPropertyValue()).stream().forEach(e -> {
+                JSONObject jsonObject = JSONObject.parseObject(e.toString());
+                if (StringUtil.isNotEmpty(jsonObject.getString("rsId"))) {
+                    Arrays.stream(jsonObject.getString("rsId").split(",")).forEach(reid -> {
+                        if (!propertyMap.containsKey(reid)) {
+                            propertyMap.put(reid, new ArrayList<String>());
+                        }
+                        List<String> apiIds = propertyMap.get(reid);
+                        apiIds.add(pro.getApiId());
+                        propertyMap.put(reid, apiIds);
+                    });
+                }
+            });
+        });
+
         list.getList().stream().forEach(m -> {
             Map dataMap = (Map) m;
-            if (!dataMap.containsKey("salePrice"))
+            StringBuffer apiName = new StringBuffer();
+            if (propertyMap.containsKey(dataMap.get("resourceId").toString())) {
+                propertyMap.get(dataMap.get("resourceId").toString()).stream().forEach(apiId -> {
+                    ApiEntity apiEntity = apiDao.get(Integer.valueOf(apiId));
+                    apiName.append(apiEntity.getName()).append(",");
+                });
+                apiName.deleteCharAt(apiName.length() - 1);
+            }
+            if (!dataMap.containsKey("salePrice")) {
                 dataMap.put("salePrice", 0);
+            } else {
+                dataMap.put("salePrice", Double.valueOf(dataMap.get("salePrice").toString()) / 10000);
+            }
             if (!dataMap.containsKey("resname"))
                 dataMap.put("resname", "");
-            if (!dataMap.containsKey("apiName"))
-                dataMap.put("apiName","");
+
+            dataMap.put("apiName", apiName);
             dataList.add(dataMap);
         });
         map.put("total", list.getTotal());

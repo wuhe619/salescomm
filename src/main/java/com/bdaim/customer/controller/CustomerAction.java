@@ -672,6 +672,15 @@ public class CustomerAction extends BasicAction {
         return JSONObject.toJSON(customerService.getUsersByCondition(param, opUser()));
     }
 
+    @RequestMapping(value = "/queryAll", method = RequestMethod.GET)
+    @ResponseBody
+    public Object queryAll(UserQueryParam param) throws Exception {
+        List data = customerService.getUsersByCondition0(param, opUser());
+        Map<String, Object> map = new HashMap<>();
+        map.put("data", data);
+        return JSONObject.toJSON(map);
+    }
+
     @RequestMapping(value = "/update0", method = RequestMethod.POST)
     @ResponseBody
     public Object updateCustomer(@RequestBody CustomerInfoVO customerInfoVO) throws Exception {

@@ -77,7 +77,7 @@ public class FileUtil {
             if (StringUtil.isNotEmpty(recordUrl) && StringUtil.isNotEmpty(userId)) {
                 String fileName = recordUrl.substring(recordUrl.lastIndexOf("/"));
                 String filePath = AUDIO_FILE_PATH + userId;
-                LOG.info("保存通话记录录音文件路径:" + "filePath" + filePath);
+                LOG.info("保存通话记录录音文件路径:" + filePath);
                 File file = new File(filePath);
                 if (!file.exists()) {
                     file.mkdirs();

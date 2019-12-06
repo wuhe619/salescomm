@@ -66,7 +66,7 @@ public class CustomerAppService {
             customer.setStatus(Constant.USER_ACTIVE_STATUS);
             customer.setCreateTime(DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss));
             vo.setCustId(customerId);
-            saveAmApplication(vo, lu);
+            saveAmApplication(vo, lu, customerId);
         }
         customerDao.saveOrUpdate(customer);
 
@@ -214,22 +214,21 @@ public class CustomerAppService {
         return customerId;
     }
 
-    public int saveAmApplication(CustomerRegistDTO vo, LoginUser lu) {
-
+    public void saveAmApplication(CustomerRegistDTO vo, LoginUser lu, String customerId) {
         AmApplicationEntity entity = new AmApplicationEntity();
         entity.setCreateBy(lu.getName());
         entity.setCreateTime(new Timestamp(System.currentTimeMillis()));
         entity.setStatus("APPROVED");
         entity.setName("DefaultApplication");
         entity.setTier("Unlimited");
-        entity.setSubscriberId(Long.valueOf(vo.getCustId()));
-        return (int) amApplicationDao.saveReturnPk(entity);
+        entity.setSubscriberId(Long.valueOf(customerId));
+        amApplicationDao.saveOrUpdate(entity);
     }
 
 
     public Map<String, Object> getUser(PageParam page, String customerId, String account, String name, String contactPerson, String salePerson) {
         StringBuffer sql = new StringBuffer();
-        sql.append("SELECT  CAST(s.id AS CHAR) id,s.cust_id,s.user_type, s.account AS account,s.password AS PASSWORD,s.realname AS contactPerson,tc.title as title,tc.enterprise_name as name" +
+        sql.append("SELECT  CAST(s.id AS CHAR) id,s.cust_id as custId,s.user_type, s.account AS account,s.password AS PASSWORD,tc.real_name AS contactPerson,tc.title as title,tc.enterprise_name as name" +
                 " FROM t_customer_user s LEFT JOIN t_customer tc ON s.cust_id=tc.cust_id  " +
                 " WHERE 1=1  AND s.STATUS <> 2");
         if (StringUtil.isNotEmpty(account)) {
@@ -237,7 +236,7 @@ public class CustomerAppService {
             sql.append(" AND s.account = '" + account + "'");
         }
         if (StringUtil.isNotEmpty(contactPerson)) {
-            sql.append(" AND s.realname like '%" + contactPerson + "%'");
+            sql.append(" AND tc.real_name like '%" + contactPerson + "%'");
         }
         if (StringUtil.isNotEmpty(name)) {
             sql.append(" AND tc.enterprise_name like '%" + name + "%'");
@@ -246,11 +245,10 @@ public class CustomerAppService {
         PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
         Object collect = list.getList().stream().map(m -> {
             Map map = (Map) m;
-
-            if (StringUtil.isEmpty(map.get("cust_id").toString())) {
+            if (StringUtil.isEmpty(map.get("custId").toString())) {
                 return map;
             }
-            String cust_id = map.get("cust_id").toString();
+            String cust_id = map.get("custId").toString();
             CustomerProperty mobile = customerDao.getProperty(cust_id, "mobile");
             if (mobile != null) {
                 map.put("mobile", mobile.getPropertyValue());
@@ -258,6 +256,14 @@ public class CustomerAppService {
             CustomerProperty sale_person = customerDao.getProperty(cust_id, "sale_person");
             if (sale_person != null) {
                 map.put("salePerson", sale_person.getPropertyValue());
+            }
+            CustomerProperty remain_amount = customerDao.getProperty(cust_id, "remain_amount");
+            CustomerProperty used_amount = customerDao.getProperty(cust_id, "used_amount");
+            if (remain_amount != null) {
+                map.put("remainAmount", StringUtil.isEmpty(sale_person.getPropertyValue()) ? "0" : StringUtil.isNumeric(remain_amount.getPropertyValue()) ? String.valueOf(Integer.valueOf(remain_amount.getPropertyValue()) / 10000) : "0");
+            }
+            if (used_amount != null) {
+                map.put("userAmount", StringUtil.isEmpty(sale_person.getPropertyValue()) ? "0" : String.valueOf(Integer.valueOf(used_amount.getPropertyValue()) / 10000));
             }
             return map;
         }).collect(Collectors.toList());
@@ -362,17 +368,20 @@ public class CustomerAppService {
     }
 
     public int saveDeposit(Deposit deposit, String id, String userId) {
-        int pre_money, money;
-
+//        BigDecimal b = new BigDecimal(10000);
+//        BigDecimal pre_money;
+////        int money = Integer.valueOf((Double.valueOf(deposit.getMoney())* 10000) + "".trim()).intValue();
+//        BigDecimal bigDecimal = BigDecimal.valueOf(Double.valueOf(deposit.getMoney()));
+//        BigDecimal money = bigDecimal.multiply(b);
+        int money = Integer.valueOf(deposit.getMoney()) * 10000;
+        int pre_money = 0;
         CustomerProperty customerProperty = customerDao.getProperty(id, "remain_amount");
         if (customerProperty == null) {
-            pre_money = 0;
-            money = Integer.valueOf(deposit.getMoney()).intValue() * 10000;
             customerDao.dealCustomerInfo(id, "remain_amount", String.valueOf(money));
         } else {
-            pre_money = Integer.valueOf(customerProperty.getPropertyValue()).intValue();
-            money = Integer.valueOf(deposit.getMoney()).intValue() * 10000;
-            customerDao.dealCustomerInfo(id, "remain_amount", String.valueOf((pre_money + money)));
+//            BigDecimal bigDecimal1 = new BigDecimal(Double.valueOf(customerProperty.getPropertyValue()));
+            pre_money = Integer.valueOf(customerProperty.getPropertyValue());
+            customerDao.dealCustomerInfo(id, "remain_amount", String.valueOf(pre_money + money));
         }
         String sql = "INSERT INTO am_pay (SUBSCRIBER_ID,MONEY,PAY_TIME,pay_certificate,pre_money,user_id) VALUE (?,?,?,?,?,?) ";
 
@@ -396,7 +405,9 @@ public class CustomerAppService {
             }
         });
 
-        String sql1 = "select pay.pay_id,pay.SUBSCRIBER_ID,pay.MONEY,pay.PAY_TIME,pay.pay_certificate,pay.pre_money,pay.user_id ,u.realname as realname from am_pay pay left join  t_customer_user u  on pay.user_id=u.id  where SUBSCRIBER_ID = " + custId + " order by pay_time";
+        String sql1 = "select pay.pay_id,pay.SUBSCRIBER_ID,pay.MONEY,pay.PAY_TIME,pay.pay_certificate,pay.pre_money,pay.user_id ,u.name as account from am_pay pay left join  t_user u  on pay.user_id=u.id  where SUBSCRIBER_ID = " + custId;
+        page.setSort("pay.pay_time");
+        page.setDir(" desc");
         PageList list = new Pagination().getPageData(sql1, null, page, jdbcTemplate);
         List<Deposit> depositList = new ArrayList<>();
         list.getList().stream().forEach(m -> {
@@ -425,6 +436,9 @@ public class CustomerAppService {
             }
             if (depositMap.get("realname") != null) {
                 deposit.setRealname(depositMap.get("realname").toString());
+            }
+            if (depositMap.get("account") != null) {
+                deposit.setAccount(depositMap.get("account").toString());
             }
             depositList.add(deposit);
         });

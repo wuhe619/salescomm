@@ -6,17 +6,26 @@ import com.bdaim.api.service.ApiService;
 import com.bdaim.auth.LoginUser;
 import com.bdaim.auth.service.impl.TokenServiceImpl;
 import com.bdaim.common.dto.PageParam;
+import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
+import com.bdaim.customs.services.ExportExcelService;
+import com.bdaim.util.FileUtil;
 import com.bdaim.util.StringUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletResponse;
+import java.util.ArrayList;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api")
 public class ApiController {
+    private static Logger logger = LoggerFactory.getLogger(ApiController.class);
     @Resource
     private TokenServiceImpl tokenService;
 
@@ -82,7 +91,7 @@ public class ApiController {
         try {
             apiService.updateStatusApiById(apiId, lu, status);
         } catch (Exception e) {
-            return new ResponseInfoAssemble().failure(-1, "Api删除失败:失败原因apiId不存在");
+            return new ResponseInfoAssemble().failure(-1, "Api删除失败:失败原因API不存在");
         }
 
         return resp;
@@ -95,9 +104,19 @@ public class ApiController {
     @PostMapping("/subscription/{apiId}")
     public ResponseInfo subApi(@RequestBody JSONObject params, @PathVariable(name = "apiId") String apiId) {
         ResponseInfo info = new ResponseInfo();
-
+        if (StringUtil.isEmpty(params.getString("custId"))) {
+            return new ResponseInfoAssemble().failure(-1, "企业id不能为空");
+        }
+        logger.info("开始订阅");
         LoginUser lu = tokenService.opUser();
-
+        try {
+            info.setData(apiService.subApi(params, apiId, lu));
+        } catch (Exception e) {
+            logger.info("错误信息："+e.getMessage());
+            info.setCode(-1);
+            info.setMessage(e.getMessage());
+//            return new ResponseInfoAssemble().failure(-1, "订阅失败");
+        }
         return info;
     }
 
@@ -105,11 +124,18 @@ public class ApiController {
      * No Subscribe Api
      **/
     @DeleteMapping("/subscription/{apiId}")
-    public ResponseInfo subApi(@PathVariable(name = "apiId") String apiId) {
+    public ResponseInfo subApiUpdate(@RequestBody JSONObject params, @PathVariable(name = "apiId") String apiId) {
         ResponseInfo info = new ResponseInfo();
-
+        if (StringUtil.isEmpty(params.getString("custId"))) {
+            return new ResponseInfoAssemble().failure(-1, "企业id不能为空");
+        }
         LoginUser lu = tokenService.opUser();
-
+        try {
+            info.setData(apiService.subApiUpdate(params, apiId, lu));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseInfoAssemble().failure(-1, "取消订阅失败");
+        }
         return info;
     }
 
@@ -119,9 +145,42 @@ public class ApiController {
     @PostMapping("/price/{apiId}")
     public ResponseInfo priceApi(@RequestBody JSONObject params, @PathVariable(name = "apiId") String apiId) {
         ResponseInfo info = new ResponseInfo();
-
+        if (StringUtil.isEmpty(params.getString("price"))) {
+            return new ResponseInfoAssemble().failure(-1, "价格不能为空");
+        }
         LoginUser lu = tokenService.opUser();
-
+        try {
+            info.setData(apiService.priceApi(params, apiId, lu));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseInfoAssemble().failure(-1, "销售定价设置失败");
+        }
         return info;
     }
+
+    /**
+     * api列表（已订阅、未订阅）
+     **/
+    @PostMapping("/subscribe")
+    public ResponseInfo subApiList(@RequestBody JSONObject params) {
+        ResponseInfo info = new ResponseInfo();
+        LoginUser lu = tokenService.opUser();
+        PageParam page = new PageParam();
+        try {
+            page.setPageSize(params.getInteger("pageSize") == null ? 0 : params.getIntValue("pageSize"));
+            page.setPageNum(params.getInteger("pageNum") == null ? 10 : params.getIntValue("pageNum"));
+            if (StringUtil.isNotEmpty(params.getString("code")) && params.getString("code").equals("Subscribe")) {
+                info.setData(apiService.subApiSubscribeList(page, params.getString("custId"), params.getString("apiName")));
+            } else {
+                info.setData(apiService.subApiNoSubscribeList(page, params.getString("custId"), params.getString("apiName")));
+            }
+
+        } catch (Exception e) {
+            logger.info(e.getMessage());
+            e.printStackTrace();
+            return new ResponseInfoAssemble().failure(-1, "获取列表失败");
+        }
+        return info;
+    }
+
 }

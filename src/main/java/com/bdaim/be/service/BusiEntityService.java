@@ -14,6 +14,7 @@ import com.bdaim.customs.entity.HMetaDataDef;
 import com.bdaim.customs.utils.ServiceUtils;
 import com.bdaim.util.StringUtil;
 import net.sf.json.JSONArray;
+import org.apache.commons.lang.time.StopWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -121,6 +122,9 @@ public class BusiEntityService {
      * 查询记录
      */
     public Page query(String cust_id, String cust_group_id, Long cust_user_id, String busiType, JSONObject params) throws Exception {
+        org.apache.commons.lang.time.StopWatch stopwatch = new StopWatch();
+        stopwatch.start();
+        logger.info("开始计时：");
         Page p = new Page();
         String stationId = params.getString("stationId");
         String _orderby_ = params.getString("_orderby_");
@@ -208,10 +212,17 @@ public class BusiEntityService {
         if (pageSize > 10000)
             pageSize = 10000;
 
+        stopwatch.split();
+        logger.info("buildSql,"+stopwatch.getSplitTime()+","+stopwatch.toSplitString());
+
         try {
             logger.info("querySql:{}", sql + " limit " + (pageNum - 1) * pageSize + ", " + pageSize);
             logger.info("queryParam:{}", JSON.toJSONString(sqlParams));
+
+            logger.info("开始查询...");
             List<Map<String, Object>> ds = jdbcTemplate.queryForList(sql + " limit " + (pageNum - 1) * pageSize + ", " + pageSize, sqlParams.toArray());
+            stopwatch.split();
+            logger.info("查询耗时:"+stopwatch.getSplitTime()+","+stopwatch.toSplitString());
             String totalSql = "select count(0) from ( " + sql + " ) t ";
             List data = new ArrayList();
             for (int i = 0; i < ds.size(); i++) {
@@ -252,7 +263,8 @@ public class BusiEntityService {
                     // 查询字典数据
                     serviceUtils.getHDicData(jo);
                 }
-
+                stopwatch.split();
+                logger.info("查询耗时2:"+stopwatch.getSplitTime()+","+stopwatch.toSplitString());
                 try {
                     //执行自定义查询结果格式化
                     busiService.formatInfo(busiType, cust_id, cust_group_id, cust_user_id, jo);
@@ -262,16 +274,22 @@ public class BusiEntityService {
 
                 data.add(jo);
             }
+            stopwatch.split();
+            logger.info("处理数据:"+stopwatch.getSplitTime()+","+stopwatch.toSplitString());
             p.setData(data);
             int total = jdbcTemplate.queryForObject(totalSql, sqlParams.toArray(), Integer.class);
             p.setTotal(total);
             p.setPerPageCount(pageSize);
             p.setStart((pageNum - 1) * pageSize + 1);
+            stopwatch.split();
+            logger.info("处理数据2:"+stopwatch.getSplitTime()+","+stopwatch.toSplitString());
         } catch (Exception e) {
             logger.error("查询异常:[" + busiType + "]", e);
             throw new Exception("查询异常:[" + busiType + "]");
         }
-
+        stopwatch.split();
+        logger.info("处理数据end:"+stopwatch.getSplitTime()+","+stopwatch.toSplitString());
+        stopwatch.stop();
         return p;
     }
 

@@ -64,8 +64,11 @@ public class IndustryPoolAction extends BasicAction {
     @ResponseBody
     @RequestMapping("/listIndustryPoolByCustomerId")
     @CacheAnnotation
-    public String getIndustryPool() {
+    public String getIndustryPool(String custId) {
         String customerId = opUser().getCustId();
+        if (isBackendUser() && StringUtil.isNotEmpty(custId)) {
+            customerId = custId;
+        }
         JSONObject json = industryPoolService.getIndustryPoolV1(customerId);
         return json.toJSONString();
     }
@@ -401,7 +404,7 @@ public class IndustryPoolAction extends BasicAction {
                 labelLength = labelIds.size();
             }
             // (2).保存名字和描述在行业标签池中，并且返回存入的ID
-            induPoolId = industryPoolService.addIndustryPoolInfoV1(name, description, labelLength, operator, resourceId,autoExtraction);
+            induPoolId = industryPoolService.addIndustryPoolInfoV1(name, description, labelLength, operator, resourceId, autoExtraction);
             if (allIndustryStatus) {
                 // -1标识全部行业
                 industryPoolService.addIndustryInfoRel(induPoolId, -1);
@@ -474,7 +477,7 @@ public class IndustryPoolAction extends BasicAction {
      * @return
      */
     @ResponseBody
-    @RequestMapping(value = "/updateIndustryPoolStatus", method = {RequestMethod.PUT,RequestMethod.POST})
+    @RequestMapping(value = "/updateIndustryPoolStatus", method = {RequestMethod.PUT, RequestMethod.POST})
     @CacheAnnotation
     public String updateIndustryPoolStatus(Integer industryPoolId, Integer status) {
         return industryPoolService.updateIndustryPoolStatus(industryPoolId, status);
@@ -569,7 +572,7 @@ public class IndustryPoolAction extends BasicAction {
      * @return
      */
     @ResponseBody
-    @RequestMapping(value = "/updateLabelSalePrice", method = {RequestMethod.PUT,RequestMethod.POST})
+    @RequestMapping(value = "/updateLabelSalePrice", method = {RequestMethod.PUT, RequestMethod.POST})
     @CacheAnnotation
     public String updateLabelSalePrice(Integer priceId, float price) {
 
@@ -685,15 +688,16 @@ public class IndustryPoolAction extends BasicAction {
 
     /**
      * 查询指定标签池下的标签定义
+     *
      * @param poolId
      */
     @AuthPassport
     @RequestMapping(value = "/labels", method = RequestMethod.GET)
-    public void getPoolLabels(String poolId, HttpServletResponse response){
-        JSONObject result=new JSONObject();
+    public void getPoolLabels(String poolId, HttpServletResponse response) {
+        JSONObject result = new JSONObject();
         response.setContentType("application/json; charset=utf-8");
-        if(StringUtil.isEmpty(poolId)){
-            result.put("errorDesc","02");
+        if (StringUtil.isEmpty(poolId)) {
+            result.put("errorDesc", "02");
             try {
                 response.getWriter().write(result.toJSONString());
             } catch (IOException e) {
@@ -701,9 +705,9 @@ public class IndustryPoolAction extends BasicAction {
             }
             return;
         }
-        LoginUser lu=opUser();
-        if(lu==null || StringUtil.isEmpty(lu.getCustId())){
-            result.put("errorDesc","04");
+        LoginUser lu = opUser();
+        if (lu == null || StringUtil.isEmpty(lu.getCustId())) {
+            result.put("errorDesc", "04");
             try {
                 response.getWriter().write(result.toJSONString());
             } catch (IOException e) {
@@ -713,10 +717,10 @@ public class IndustryPoolAction extends BasicAction {
         }
         String custId = lu.getCustId();
         try {
-            result = industryPoolService.getPoolLabels(poolId,custId);
+            result = industryPoolService.getPoolLabels(poolId, custId);
         } catch (Exception e) {
             e.printStackTrace();
-            result.put("errorDesc","05");
+            result.put("errorDesc", "05");
         }
         try {
             response.getWriter().write(result.toJSONString());

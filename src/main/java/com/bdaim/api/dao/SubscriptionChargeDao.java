@@ -4,6 +4,6 @@ import com.bdaim.api.entity.SubscriptionChargeEntity;
 import com.bdaim.common.dao.SimpleHibernateDao;
 import org.springframework.stereotype.Component;
 
-@Component
+//@Component
 public class SubscriptionChargeDao extends SimpleHibernateDao<SubscriptionChargeEntity, Integer> {
 }
