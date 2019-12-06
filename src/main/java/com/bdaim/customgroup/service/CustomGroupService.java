@@ -243,6 +243,8 @@ public class CustomGroupService {
                 if (customGroupDTO != null) {
                     if (StringUtil.isNotEmpty(customGroupDTO.getAmount())) {
                         customGroupDTO.setAmount(BigDecimalUtil.div(customGroupDTO.getAmount().toString(), String.valueOf(1000), 5).doubleValue() + "");
+                    } else {
+                        customGroupDTO.setAmount("0.0");
                     }
                     if (customGroup.getCustId() != null && !"".equals(customGroup.getCustId())) {
                         customer = customerDao.get(customGroup.getCustId());
