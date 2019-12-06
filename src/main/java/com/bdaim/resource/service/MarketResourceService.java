@@ -8571,7 +8571,7 @@ public class MarketResourceService {
         List<Map<String, Object>> maps = jdbcTemplate.queryForList(sql);
         if (maps.size() > 0) {
             Map<String, Object> map = maps.get(0);
-            createtime = map.get(create_time);
+            createtime = map.get("create_time");
         }
         String sql1 = "REPLACE  into t_market_resource(resource_id,supplier_id,type_code,resname,sale_price,create_time) VALUES(?,?,?,?,?,?)";
 
