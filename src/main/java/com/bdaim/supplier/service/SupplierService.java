@@ -2362,9 +2362,11 @@ public class SupplierService {
                 supplierDTOMap.put("contactPosition", map1.get("contact_position"));
                 supplierDTOMap.put("status", map1.get("status"));
                 supplierDTOMap.put("createTime", map1.get("create_time"));
-                supplierDTOMap.put("balance", 0);
-                supplierDTOMap.put("consumption", 0);
                 supplierDTOMap.put("supplierId", map1.get("supplier_id"));
+                SupplierPropertyEntity remain_amount = supplierDao.getProperty(map1.get("supplier_id").toString(), "remain_amount");
+                SupplierPropertyEntity used_amount = supplierDao.getProperty(map1.get("supplier_id").toString(), "used_amount");
+                supplierDTOMap.put("balance", remain_amount == null ? 0 : remain_amount.getPropertyValue());
+                supplierDTOMap.put("consumption", used_amount == null ? 0 : used_amount.getPropertyValue());
                 supplierDTOMap.put("apiNum", propertyMap.containsKey(Integer.valueOf(map1.get("supplier_id").toString())) ? propertyMap.get(Integer.valueOf(map1.get("supplier_id").toString())).size() : 0);
                 return supplierDTOMap;
             }).collect(Collectors.toList());
@@ -2418,7 +2420,7 @@ public class SupplierService {
             }
         });
 
-        String sql1 = "select pay.pay_id,pay.SUBSCRIBER_ID,pay.MONEY,pay.PAY_TIME,pay.pay_certificate,pay.pre_money,u.realname as realname from supplier_pay pay left join  t_customer_user u  on pay.user_id=u.id  where SUBSCRIBER_ID = " + supplierId;
+        String sql1 = "select pay.pay_id,pay.SUBSCRIBER_ID,pay.MONEY,pay.PAY_TIME,pay.pay_certificate,pay.pre_money,u.name as realname from supplier_pay pay left join  t_user u  on pay.user_id=u.id  where SUBSCRIBER_ID = " + supplierId;
         page.setSort("pay.PAY_TIME");
         page.setDir(" desc");
         PageList list = new Pagination().getPageData(sql1, null, page, jdbcTemplate);
