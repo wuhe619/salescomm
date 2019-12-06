@@ -342,7 +342,28 @@ public class UnicomService {
         if (logList.size() > 0) {
             //获取录音文件地址
             String recordUrl = param.getString("recordUrl");
-            //保存录音文件
+            //将录音地址保存到录音拉取对接表中sql
+            String insertSql = "INSERT INTO t_record_queue (callSid,recordUrl) VALUES(?,?)";
+            String querySql = "SELECT * FROM t_record_queue WHERE callSid = ?";
+            //获取录音文件地址
+            LOG.info("录音文件地址:" + recordUrl);
+            if (StringUtil.isNotEmpty(recordUrl) && recordUrl.contains("htt")) {
+                //查询当前录音队列表中是否存在根据callSid，不存在直接插入   存在返回code=0，联通不在推送
+                List<Map<String, Object>> maps = marketResourceDao.sqlQuery(querySql, callSid);
+                LOG.info("查询当前录音队列表中是否存在sql:" + querySql);
+                if (maps != null && maps.size() > 0) {
+                    //说明已经存在返回code=0，联通不进行再次推送
+                    LOG.info("callSid是:" + callSid + "已经存在");
+                    code = 0;
+                } else {
+                    int i = marketResourceDao.executeUpdateSQL(insertSql, callSid, recordUrl);
+                    LOG.info("插入数据库数量:" + i);
+                    if (i > 0) {
+                        code = 0;
+                    }
+                }
+            }
+           /* //保存录音文件
             String voiceFilePath = FileUtil.savePhoneRecordFileReturnPath(recordUrl, String.valueOf(logList.get(0).get("userId")));
             if (StringUtil.isNotEmpty(voiceFilePath)) {
                 LOG.info("开始进行录音文件转换:" + voiceFilePath);
@@ -366,7 +387,7 @@ public class UnicomService {
             LOG.info("更新通话记录表callId:{},状态:{}", callSid, i);
             if (i > 0) {
                 code = 0;
-            }
+            }*/
         } else {
             LOG.info("未查询到通话记录,uuid:{}", callSid);
         }
