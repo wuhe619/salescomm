@@ -2342,7 +2342,7 @@ public class SupplierService {
                 JSONArray.parseArray(pro.getPropertyValue()).stream().forEach(e -> {
                     JSONObject jsonObject = JSONObject.parseObject(e.toString());
                     Arrays.stream(jsonObject.getString("supplier").split(",")).forEach(reid -> {
-                        if (!propertyMap.containsKey(Integer.valueOf(pro.getApiId()))) {
+                        if (!propertyMap.containsKey(Integer.valueOf(reid))) {
                             propertyMap.put(Integer.valueOf(reid), new ArrayList<String>());
                         }
                         List<String> apiIds = propertyMap.get(Integer.valueOf(reid));
