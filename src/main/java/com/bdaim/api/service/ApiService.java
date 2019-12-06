@@ -448,10 +448,11 @@ public class ApiService {
 //            throw new Exception("企业不存在");
 //        }
         StringBuffer sql = new StringBuffer();
-        sql.append(" select sub.APPLICATION_ID ,api.API_ID as apiId,api.API_NAME as apiName,sub.SUBS_CREATE_STATE as subCreateState,sub.CREATED_TIME as createTime,cus.real_name as realName,cus.cust_id as custId");
+        sql.append(" select sub.APPLICATION_ID ,api.API_ID as apiId,api.API_NAME as apiName,sub.SUBS_CREATE_STATE as subCreateState,sub.CREATED_TIME as createTime,cus.real_name as realName,cus.cust_id as custId,ch.unit_price as price");
         sql.append(" from am_api api left join am_subscription sub  on  api.API_ID=sub.API_ID");
         sql.append(" left join am_application app on  app.APPLICATION_ID = sub.APPLICATION_ID");
         sql.append(" left join t_customer cus on cus.cust_id=app.SUBSCRIBER_ID");
+        sql.append(" left join am_subscription_charge ch on ch.SUBSCRIPTION_ID= sub.SUBSCRIPTION_ID");
         sql.append(" where sub.SUBS_CREATE_STATE = 'SUBSCRIBE'");
         if (StringUtil.isNotEmpty(apiName)) {
             sql.append(" and api.API_NAME = '" + apiName + "'");
@@ -488,6 +489,9 @@ public class ApiService {
                     });
                     suppliers.deleteCharAt(suppliers.length() - 1);
                 }
+                int price = 0;
+                if (map.get("price") != null) price = Integer.valueOf(map.get("price").toString()) / 10000;
+                map.put("price", price);
                 map.put("realName", suppliers);
                 map.put("resourceId", rsIds);
                 map.put("priceType", "单一定价");
