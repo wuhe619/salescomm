@@ -19,6 +19,7 @@ import com.bdaim.callcenter.common.CallUtil;
 import com.bdaim.callcenter.dto.*;
 import com.bdaim.callcenter.service.impl.CallCenterService;
 import com.bdaim.callcenter.service.impl.SeatsService;
+import com.bdaim.common.dto.Page;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.page.PageList;
 import com.bdaim.common.page.Pagination;
@@ -31,6 +32,8 @@ import com.bdaim.customer.dao.CustomerUserPropertyDao;
 import com.bdaim.customer.dto.CustomerUserDTO;
 import com.bdaim.customer.entity.*;
 import com.bdaim.customer.service.CustomerService;
+import com.bdaim.customersea.dao.CustomerSeaDao;
+import com.bdaim.customersea.entity.CustomerSea;
 import com.bdaim.customgroup.dao.CustomGroupDao;
 import com.bdaim.customgroup.dto.CustomerGrpOrdParam;
 import com.bdaim.customgroup.entity.CustomGroup;
@@ -3780,6 +3783,8 @@ public class MarketResourceService {
     private MarketProjectDao marketProjectDao;
     @Resource
     private CustomerLabelDao customerLabelDao;
+    @Resource
+    private CustomerSeaDao customerSeaDao;
 
 
     public List<Map<String, Object>> queryMarketResource(String cust_id) {
@@ -4598,7 +4603,7 @@ public class MarketResourceService {
      */
     public com.bdaim.common.dto.Page queryRecordVoiceLogV4(UserQueryParam userQueryParam, String customerGroupId, String superId, String realName,
                                                            String createTimeStart, String createTimeEnd, String remark, String callStatus, String level,
-                                                           String auditingStatus, String marketTaskId, int calledDuration, String custProperty, String seaId) {
+                                                           String auditingStatus, String marketTaskId, int calledDuration, String custProperty, String seaId, String b2bEntName) {
         com.bdaim.common.dto.Page page = null;
         int taskType = -1;
         try {
@@ -4630,9 +4635,15 @@ public class MarketResourceService {
                 marketTask = new MarketTask();
             }
 
-            sb.append("select voicLog.touch_id touchId, voicLog.callSid, voicLog.superid,voicLog.create_time create_time,voicLog.status, CAST(voicLog.user_id AS CHAR) user_id,voicLog.remark,")
-                    .append(" voicLog.call_data, voicLog.recordurl, voicLog.clue_audit_status auditingStatus, voicLog.market_task_id marketTaskId, voicLog.clue_audit_reason reason ")
-                    .append("  from " + monthTableName + " voicLog ");
+            sb.append("select voicLog.touch_id touchId, voicLog.callSid, voicLog.superid, voicLog.create_time create_time,voicLog.status, CAST(voicLog.user_id AS CHAR) user_id,voicLog.remark,")
+                    .append(" voicLog.call_data, voicLog.recordurl, voicLog.clue_audit_status auditingStatus, voicLog.market_task_id marketTaskId, voicLog.clue_audit_reason reason ");
+            if (StringUtil.isNotEmpty(seaId)) {
+                sb.append(" , CAST(t2.super_data->>'$.SYS005' AS CHAR) AS custName ");
+            }
+            sb.append(" from " + monthTableName + " voicLog ");
+            if (StringUtil.isNotEmpty(seaId)) {
+                sb.append(" INNER JOIN " + ConstantsUtil.SEA_TABLE_PREFIX + seaId + " t2 ON t2.id = voicLog.superid ");
+            }
             // 处理自建属性搜索
             if (StringUtil.isNotEmpty(custProperty) && StringUtil.isNotEmpty(marketTaskId) && !"[]".equals(custProperty)) {
                 // 查询所有自建属性
@@ -4661,7 +4672,36 @@ public class MarketResourceService {
                     }
                 }
             }
-
+            if (StringUtil.isNotEmpty(custProperty) && StringUtil.isNotEmpty(seaId) && !"[]".equals(custProperty)) {
+                // 查询所有自建属性
+                CustomerSea customerSea = customerSeaDao.get(NumberConvertUtil.parseLong(seaId));
+                if (customerSea == null) {
+                    return new Page();
+                }
+                List<CustomerLabel> customerLabels = customerLabelDao.listCustomerLabel(customerSea.getCustId());
+                Map<String, CustomerLabel> cacheLabel = new HashMap<>();
+                for (CustomerLabel c : customerLabels) {
+                    cacheLabel.put(c.getLabelId(), c);
+                }
+                JSONObject jsonObject;
+                String labelId, optionValue, likeValue;
+                JSONArray jsonArray = JSON.parseArray(custProperty);
+                for (int i = 0; i < jsonArray.size(); i++) {
+                    jsonObject = jsonArray.getJSONObject(i);
+                    if (jsonObject != null) {
+                        labelId = jsonObject.getString("labelId");
+                        optionValue = jsonObject.getString("optionValue");
+                        // 文本和多选支持模糊搜索
+                        if (cacheLabel.get(labelId) != null && cacheLabel.get(labelId).getType() != null
+                                && (cacheLabel.get(labelId).getType() == 1 || cacheLabel.get(labelId).getType() == 3)) {
+                            likeValue = "%\"" + labelId + "\":\"%" + optionValue + "%";
+                        } else {
+                            likeValue = "%\"" + labelId + "\":\"" + optionValue + "\"%";
+                        }
+                        sb.append(" AND t2.super_data LIKE '" + likeValue + "' ");
+                    }
+                }
+            }
             sb.append(" WHERE 1=1");
             if ("-1".equals(userQueryParam.getCustId())) {
                 sb.append(" AND voicLog.cust_id IS NOT NULL ");
@@ -4673,7 +4713,7 @@ public class MarketResourceService {
             if (StringUtil.isNotEmpty(realName)) {
                 user = this.customerUserDao.getCustomerUserByName(realName.trim());
                 if (user != null) {
-                    sb.append(" AND  voicLog.user_id = '" + user.getId() + "'");
+                    sb.append(" AND voicLog.user_id = '" + user.getId() + "'");
                 } else {
                     // 穿透查询一次登陆名称
                     user = this.customerUserDao.getCustomerUserByLoginName(realName.trim());

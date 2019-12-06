@@ -1116,7 +1116,7 @@ public class MarketResourceAction extends BasicAction {
     @CacheAnnotation
     public String queryRecordVoicelogV2(@Valid PageParam pageParam, BindingResult error, String superId, String customerGroupId, String realName, String createTimeStart,
                                         String createTimeEnd, String remark, String callStatus, String intentLevel, String auditingStatus,
-                                        String marketTaskId, String calledDuration, String labelProperty, String seaId, String group_id) {
+                                        String marketTaskId, String calledDuration, String labelProperty, String seaId, String group_id, String custName) {
         if (error.hasErrors()) {
             return getErrors(error);
         }
@@ -1136,7 +1136,7 @@ public class MarketResourceAction extends BasicAction {
         }
         try {
             page = marketResourceService.queryRecordVoiceLogV4(userQueryParam, customerGroupId, superId, realName, createTimeStart,
-                    createTimeEnd, remark, callStatus, intentLevel, auditingStatus, marketTaskId, duration, labelProperty, seaId);
+                    createTimeEnd, remark, callStatus, intentLevel, auditingStatus, marketTaskId, duration, labelProperty, seaId, custName);
         } catch (Exception e) {
             page = new Page();
             LOG.error("查询通话记录分页失败,", e);

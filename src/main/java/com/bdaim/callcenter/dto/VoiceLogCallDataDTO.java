@@ -19,6 +19,9 @@ public class VoiceLogCallDataDTO {
     private String recordUrl;
     private String level = "";
 
+    public VoiceLogCallDataDTO() {
+    }
+
     public VoiceLogCallDataDTO(String caller, String callerStartTime, String callerEndTime, String callerDuration, String called, String calledStartTime, String calledEndTime, String calledDuration, String duration, String recordUrl, String level) {
         this.caller = caller;
         this.callerStartTime = callerStartTime;
