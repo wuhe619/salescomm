@@ -7771,6 +7771,23 @@ public class MarketResourceService {
         }
     }
 
+    /**
+     * 更新营销任务通话次数
+     * @param marketTaskId
+     * @param superId
+     * @return
+     */
+    public int updateMarketTaskCallCount(String marketTaskId, String superId) {
+        try {
+            String nowTime = LocalDateTime.of(LocalDate.now(), LocalTime.now()).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            String sql = "UPDATE " + ConstantsUtil.MARKET_TASK_TABLE_PREFIX + marketTaskId + " SET call_count = IFNULL(call_count,0) +1 , last_call_time = ? WHERE id =?";
+            return this.marketResourceDao.executeUpdateSQL(sql, nowTime, superId);
+        } catch (Exception e) {
+            LOG.error("更新客户群通话次数异常", e);
+            return 0;
+        }
+    }
+
 
     public String getMarketResourceList() {
         StringBuffer sb = new StringBuffer();

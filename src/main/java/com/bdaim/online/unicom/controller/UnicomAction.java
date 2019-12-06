@@ -8,6 +8,7 @@ import com.bdaim.callcenter.service.impl.SeatsService;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.customer.service.CustomerService;
 import com.bdaim.customersea.service.CustomerSeaService;
+import com.bdaim.markettask.service.MarketTaskService;
 import com.bdaim.online.unicom.service.UnicomService;
 import com.bdaim.resource.dto.MarketResourceLogDTO;
 import com.bdaim.resource.service.MarketResourceService;
@@ -42,6 +43,8 @@ public class UnicomAction extends BasicAction {
     private CustomerService customerService;
     @Resource
     private UnicomService unicomService;
+    @Resource
+    private MarketTaskService marketTaskService;
 
     /**
      * 联通外呼
@@ -119,6 +122,10 @@ public class UnicomAction extends BasicAction {
         if (StringUtil.isNotEmpty(seaId)) {
             LOG.info("公海id是：" + seaId);
             marketResourceService.updateSeaCallCount(seaId, superId);
+        }
+        if (StringUtil.isNotEmpty(marketTaskId)) {
+            LOG.info("营销任务ID：" + marketTaskId);
+            marketResourceService.updateMarketTaskCallCount(marketTaskId, superId);
         }
         MarketResourceLogDTO dto = new MarketResourceLogDTO(touchId, opUser().getCustId(), opUser().getId(), "1",
                 "voice", "", "", 1002, "", "", superId, null, "", "", null, null);
