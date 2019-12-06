@@ -3498,7 +3498,7 @@ public class CustomerSeaService {
         }
         // 接通次数
         if (param.getCallSuccessCount() != null) {
-            if (param.getCallCount() < 8) {
+            if (param.getCallSuccessCount() < 8) {
                 sb.append(" and custG.call_success_count = '" + param.getCallSuccessCount() + "'");
             } else {
                 sb.append(" and custG.call_success_count >= '" + param.getCallSuccessCount() + "'");
