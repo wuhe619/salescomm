@@ -8565,7 +8565,6 @@ public class MarketResourceService {
         StringUtil.isNotEmpty(price);
         price1 = Double.valueOf(price);
         price1 = price1 * 10000;
-//        BigDecimal b2 = new BigDecimal(Double.valueOf(price));
         String sql = "select resource_id,create_time from t_market_resource where resource_id=" + resource_id;
         List<Map<String, Object>> maps = jdbcTemplate.queryForList(sql);
         Object createTime = DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss);
@@ -8576,14 +8575,11 @@ public class MarketResourceService {
         }
         String sql1;
         int update;
-        if ("update".equals(_c_)) {
-            sql1 = "REPLACE  into t_market_resource(resource_id,supplier_id,type_code,resname,sale_price) VALUES(?,?,?,?,?)";
-            update = jdbcTemplate.update(sql1, new Object[]{resource_id, supplierId, type, name, Double.valueOf(price1).intValue()});
-        } else {
+        if (!"update".equals(_c_)) {
             if (maps.size() > 0) throw new Exception("资源已存在");
-            sql1 = "REPLACE  into t_market_resource(resource_id,supplier_id,type_code,resname,sale_price,create_time) VALUES(?,?,?,?,?,?)";
-            update = jdbcTemplate.update(sql1, new Object[]{resource_id, supplierId, type, name, Double.valueOf(price1).intValue(), createTime});
         }
+        sql1 = "REPLACE  into t_market_resource(resource_id,supplier_id,type_code,resname,sale_price,create_time) VALUES(?,?,?,?,?,?)";
+        update = jdbcTemplate.update(sql1, new Object[]{resource_id, supplierId, type, name, Double.valueOf(price1).intValue(), createTime});
         return update;
     }
 

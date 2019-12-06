@@ -19,7 +19,6 @@ import com.bdaim.customer.dao.AmApplicationDao;
 import com.bdaim.customer.entity.AmApplicationEntity;
 import com.bdaim.customer.service.CustomerAppService;
 import com.bdaim.supplier.dao.SupplierDao;
-import com.bdaim.supplier.entity.SupplierEntity;
 import com.bdaim.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +33,10 @@ import javax.annotation.Resource;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -390,7 +392,6 @@ public class ApiService {
         if (amApplicationEntity == null) {
             throw new Exception("企业不存在");
         }
-        logger.info(amApplicationEntity.getId() + "");
         StringBuffer sql = new StringBuffer();
         sql.append(" select sub.APPLICATION_ID ,api.API_ID as apiId,api.API_NAME as apiName,sub.SUBS_CREATE_STATE as subCreateState,sub.CREATED_TIME as createTime");
         sql.append(" from am_api api left join am_subscription sub  on  api.API_ID=sub.API_ID");
@@ -424,10 +425,8 @@ public class ApiService {
 
             StringBuffer suppliers = new StringBuffer();
             if (sulist.length() > 0) {
-                logger.info("sulist" + sulist.toString());
                 sulist.deleteCharAt(sulist.length() - 1);
                 supplierDao.getSuppliers(sulist.toString()).stream().forEach(name -> {
-                    logger.info("name:" + name.toString());
                     suppliers.append(name).append(",");
                 });
                 suppliers.deleteCharAt(suppliers.length() - 1);
