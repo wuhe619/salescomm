@@ -33,10 +33,7 @@ import javax.annotation.Resource;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.sql.Timestamp;
-import java.util.Calendar;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -397,7 +394,7 @@ public class ApiService {
         sql.append(" from am_api api left join am_subscription sub  on  api.API_ID=sub.API_ID");
         sql.append(" where api.API_ID not in");
         sql.append(" (select API_ID from am_subscription where APPLICATION_ID = " + amApplicationEntity.getId() + " and SUBS_CREATE_STATE = 'SUBSCRIBE')");
-//        sql.append(" and api.status=2");
+        sql.append(" and api.status=2");
         if (StringUtil.isNotEmpty(apiName)) {
             sql.append(" and api.API_NAME  = '" + apiName + "'");
         }
@@ -448,10 +445,11 @@ public class ApiService {
 //            throw new Exception("企业不存在");
 //        }
         StringBuffer sql = new StringBuffer();
-        sql.append(" select sub.APPLICATION_ID ,api.API_ID as apiId,api.API_NAME as apiName,sub.SUBS_CREATE_STATE as subCreateState,sub.CREATED_TIME as createTime,cus.real_name as realName,cus.cust_id as custId");
+        sql.append(" select sub.APPLICATION_ID ,api.API_ID as apiId,api.API_NAME as apiName,sub.SUBS_CREATE_STATE as subCreateState,sub.CREATED_TIME as createTime,cus.real_name as realName,cus.cust_id as custId,ch.unit_price as price");
         sql.append(" from am_api api left join am_subscription sub  on  api.API_ID=sub.API_ID");
         sql.append(" left join am_application app on  app.APPLICATION_ID = sub.APPLICATION_ID");
         sql.append(" left join t_customer cus on cus.cust_id=app.SUBSCRIBER_ID");
+        sql.append(" left join am_subscription_charge ch on ch.SUBSCRIPTION_ID= sub.SUBSCRIPTION_ID");
         sql.append(" where sub.SUBS_CREATE_STATE = 'SUBSCRIBE'");
         if (StringUtil.isNotEmpty(apiName)) {
             sql.append(" and api.API_NAME = '" + apiName + "'");
@@ -488,6 +486,9 @@ public class ApiService {
                     });
                     suppliers.deleteCharAt(suppliers.length() - 1);
                 }
+                int price = 0;
+                if (map.get("price") != null) price = Integer.valueOf(map.get("price").toString()) / 10000;
+                map.put("price", price);
                 map.put("realName", suppliers);
                 map.put("resourceId", rsIds);
                 map.put("priceType", "单一定价");
@@ -506,8 +507,9 @@ public class ApiService {
     //客户调用记录
     public PageList subApiLogs(JSONObject params, PageParam page) {
         StringBuffer sql = new StringBuffer();
-        sql.append(" select api.API_ID as apiId, api.API_NAME as apiName, que.RESPONSE_BODY as body, count(api.API_ID) as countNum,round(log.CHARGE/10000) as charge,que.SERVICE_TIME as serviceTime");
-        sql.append(" from am_api api left join rs_log_" + params.getString("callMonth") + " log on log.API_ID= api.API_ID");
+        //, count(api.API_ID) as countNum
+        sql.append(" select api.API_ID as apiId, api.API_NAME as apiName, que.RESPONSE_BODY as body,round(log.CHARGE/10000) as charge,que.SERVICE_TIME as serviceTime");
+        sql.append(" from rs_log_" + params.getString("callMonth") + " log left  am_api api  on  log.API_ID =api.API_ID");
         sql.append(" left join api_queue que on que.ID=log.API_LOG_ID");
         sql.append(" where 1=1");
         if (StringUtil.isNotEmpty(params.getString("apiName"))) {
@@ -515,6 +517,19 @@ public class ApiService {
         }
         sql.append(" group by log.API_ID");
         PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
+        List list1=new ArrayList();
+        list.getList().stream().forEach(m->{
+            Map map=(Map)m;
+            Object apiId = map.get("apiId");
+            map.put("countNum",0);
+            if(apiId!=null){
+                String sql1="select count(*) from  rs_log_" + params.getString("callMonth") +"where API_ID="+Integer.valueOf(apiId.toString());
+                Integer unt = jdbcTemplate.queryForObject(sql1, Integer.class);
+                map.put("countNum",unt);
+            }
+            list1.add(map);
+        });
+        list.setList(list1);
         return list;
     }
 

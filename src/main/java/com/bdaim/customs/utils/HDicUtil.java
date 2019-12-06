@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,7 +46,7 @@ public class HDicUtil {
     @Autowired
     private HDicDao hDicDao;
 
-    private void init() {
+    public void init() {
         LOG.info("开始初始化缓存字典数据时间:[{}]", System.currentTimeMillis());
         List<HDic> list = hDicDao.listHDic();
         for (HDic dic : list) {
@@ -98,7 +99,7 @@ public class HDicUtil {
         DIC_CACHE.put(type + split + code, dic);
     }
 
-    public HDic getCache(String type, String code) {
+    public HDic getCache0(String type, String code) {
         HDic dic = null;
         if ("code_ts".equals(type.toLowerCase())) {
             dic = getHResource(type, code);
@@ -112,4 +113,18 @@ public class HDicUtil {
         return dic;*/
         return dic;
     }
+    public HDic getCache(String type, String code) {
+        HDic dic = null;
+        if ("code_ts".equals(type.toLowerCase())) {
+            dic = getHResource(type, code);
+        } else {
+            if (KEY_ALIAS.containsKey(type.toLowerCase())) {
+                type = KEY_ALIAS.get(type.toLowerCase());
+            }
+            dic = hDicDao.getDic(type, code);
+        }
+        dic = DIC_CACHE.get(type + split + code);
+        return dic;
+    }
+
 }

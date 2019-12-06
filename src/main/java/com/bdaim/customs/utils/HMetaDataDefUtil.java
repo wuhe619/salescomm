@@ -15,6 +15,8 @@ public class HMetaDataDefUtil {
     private static Logger log = LoggerFactory.getLogger(HMetaDataDefUtil.class);
     @Autowired
     private JdbcTemplate jdbcTemplate;
+    @Autowired
+    private HDicUtil hDicUtil;
 
 
     @PostConstruct
@@ -27,6 +29,8 @@ public class HMetaDataDefUtil {
                 jdbcTemplate.execute(sql);
             }
             log.info("create table finish");
+            log.info("init dic data");
+            hDicUtil.init();
         } catch (Exception e) {
             log.error("创建h_data_manager_异常",e);
         }

@@ -2341,14 +2341,16 @@ public class SupplierService {
             rsIds.stream().forEach(pro -> {
                 JSONArray.parseArray(pro.getPropertyValue()).stream().forEach(e -> {
                     JSONObject jsonObject = JSONObject.parseObject(e.toString());
-                    Arrays.stream(jsonObject.getString("supplier").split(",")).forEach(reid -> {
-                        if (!propertyMap.containsKey(Integer.valueOf(reid))) {
-                            propertyMap.put(Integer.valueOf(reid), new ArrayList<String>());
-                        }
-                        List<String> apiIds = propertyMap.get(Integer.valueOf(reid));
-                        apiIds.add(pro.getApiId());
-                        propertyMap.put(Integer.valueOf(reid), apiIds);
-                    });
+                    if (StringUtil.isNotEmpty(jsonObject.getString("supplier"))) {
+                        Arrays.stream(jsonObject.getString("supplier").split(",")).forEach(reid -> {
+                            if (!propertyMap.containsKey(Integer.valueOf(reid))) {
+                                propertyMap.put(Integer.valueOf(reid), new ArrayList<String>());
+                            }
+                            List<String> apiIds = propertyMap.get(Integer.valueOf(reid));
+                            apiIds.add(pro.getApiId());
+                            propertyMap.put(Integer.valueOf(reid), apiIds);
+                        });
+                    }
                 });
             });
             map.put("total", list.getTotal());
@@ -2365,8 +2367,8 @@ public class SupplierService {
                 supplierDTOMap.put("supplierId", map1.get("supplier_id"));
                 SupplierPropertyEntity remain_amount = supplierDao.getProperty(map1.get("supplier_id").toString(), "remain_amount");
                 SupplierPropertyEntity used_amount = supplierDao.getProperty(map1.get("supplier_id").toString(), "used_amount");
-                supplierDTOMap.put("balance", remain_amount == null ? 0 : Integer.valueOf(remain_amount.getPropertyValue())/10000);
-                supplierDTOMap.put("consumption", used_amount == null ? 0 : Integer.valueOf(used_amount.getPropertyValue())/10000);
+                supplierDTOMap.put("balance", remain_amount == null ? 0 : Integer.valueOf(remain_amount.getPropertyValue()) / 10000);
+                supplierDTOMap.put("consumption", used_amount == null ? 0 : Integer.valueOf(used_amount.getPropertyValue()) / 10000);
                 supplierDTOMap.put("apiNum", propertyMap.containsKey(Integer.valueOf(map1.get("supplier_id").toString())) ? propertyMap.get(Integer.valueOf(map1.get("supplier_id").toString())).size() : 0);
                 return supplierDTOMap;
             }).collect(Collectors.toList());
