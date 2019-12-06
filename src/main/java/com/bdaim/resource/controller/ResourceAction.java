@@ -229,10 +229,11 @@ public class ResourceAction extends BasicAction {
             if (resourceId == null || resourceId == 0) {
                 resp.setData(marketResourceService.saveMarketResource(info.getString("name"), info.getInteger("supplierId"), info.getString("salePrice"), info.getInteger("type")));
             } else {
-                resp.setData(marketResourceService.updateMarketResource(info.getString("name"), info.getInteger("supplierId"), info.getString("salePrice"), info.getInteger("type"), resourceId));
+                resp.setData(marketResourceService.updateMarketResource(info.getString("_c_"),info.getString("name"), info.getInteger("supplierId"), info.getString("salePrice"), info.getInteger("type"), resourceId));
             }
         } catch (Exception e) {
-            return new ResponseInfoAssemble().failure(-1, "资源更新失败");
+            resp.setMessage(e.getMessage());
+            resp.setCode(-1);
         }
 //    	OperlogAppender.operlog(request, user, this.pageName, -1);
 
