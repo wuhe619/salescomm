@@ -8567,16 +8567,15 @@ public class MarketResourceService {
         price1 = price1 * 10000;
 //        BigDecimal b2 = new BigDecimal(Double.valueOf(price));
         String sql = "select resource_id,create_time from t_market_resource where resource_id=" + resource_id;
-        Object createtime = DateUtil.getTimestamp(new Date(System.currentTimeMillis());
         List<Map<String, Object>> maps = jdbcTemplate.queryForList(sql);
-        if (maps.size() > 0) {
+        Object createTime=DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss);
+        if(maps.size()>0){
             Map<String, Object> map = maps.get(0);
-            createtime = map.get("create_time");
+            createTime=  map.get("create_time");
         }
         String sql1 = "REPLACE  into t_market_resource(resource_id,supplier_id,type_code,resname,sale_price,create_time) VALUES(?,?,?,?,?,?)";
 
-        int update = jdbcTemplate.update(sql1, new Object[]{resource_id, supplierId, type, name, Double.valueOf(price1).intValue(), createtime, DateUtil.YYYY_MM_DD_HH_mm_ss)})
-        ;
+        int update = jdbcTemplate.update(sql1, new Object[]{resource_id, supplierId, type, name, Double.valueOf(price1).intValue(),createTime });
         return update;
     }
 
