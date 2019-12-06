@@ -2450,7 +2450,10 @@ public class SupplierService {
                 deposit.setPreMoney(depositMap.get("user_id").toString());
             }
             if (depositMap.get("realname") != null) {
-                deposit.setPreMoney(depositMap.get("realname").toString());
+                deposit.setRealname(depositMap.get("realname").toString());
+            }
+            if (depositMap.get("account") != null) {
+                deposit.setAccount(depositMap.get("account").toString());
             }
             depositList.add(deposit);
         });

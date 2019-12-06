@@ -8560,7 +8560,7 @@ public class MarketResourceService {
         return jdbcTemplate.update(sql, new Object[]{supplierId, type, name, price, DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss)});
     }
 
-    public int updateMarketResource(String _c_,String name, Integer supplierId, String price, Integer type, Integer resource_id) throws Exception {
+    public int updateMarketResource(String _c_, String name, Integer supplierId, String price, Integer type, Integer resource_id) throws Exception {
         double price1 = 0.0;
         StringUtil.isNotEmpty(price);
         price1 = Double.valueOf(price);
@@ -8568,17 +8568,22 @@ public class MarketResourceService {
 //        BigDecimal b2 = new BigDecimal(Double.valueOf(price));
         String sql = "select resource_id,create_time from t_market_resource where resource_id=" + resource_id;
         List<Map<String, Object>> maps = jdbcTemplate.queryForList(sql);
-        Object createTime=DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss);
+        Object createTime = DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss);
 
-        if(maps.size()>0){
+        if (maps.size() > 0) {
             Map<String, Object> map = maps.get(0);
-            createTime=  map.get("create_time");
+            createTime = map.get("create_time");
         }
-        String sql1 = "REPLACE  into t_market_resource(resource_id,supplier_id,type_code,resname,sale_price,create_time) VALUES(?,?,?,?,?,?)";
-        if(!"update".equals(_c_)){
-            if(maps.size()>0)throw  new Exception("资源已存在");
+        String sql1;
+        int update;
+        if ("update".equals(_c_)) {
+            sql1 = "REPLACE  into t_market_resource(resource_id,supplier_id,type_code,resname,sale_price) VALUES(?,?,?,?,?)";
+            update = jdbcTemplate.update(sql1, new Object[]{resource_id, supplierId, type, name, Double.valueOf(price1).intValue()});
+        } else {
+            if (maps.size() > 0) throw new Exception("资源已存在");
+            sql1 = "REPLACE  into t_market_resource(resource_id,supplier_id,type_code,resname,sale_price,create_time) VALUES(?,?,?,?,?,?)";
+            update = jdbcTemplate.update(sql1, new Object[]{resource_id, supplierId, type, name, Double.valueOf(price1).intValue(), createTime});
         }
-        int  update=   jdbcTemplate.update(sql1, new Object[]{resource_id, supplierId, type, name, Double.valueOf(price1).intValue(),createTime });
         return update;
     }
 
