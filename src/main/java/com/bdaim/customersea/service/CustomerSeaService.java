@@ -3264,7 +3264,7 @@ public class CustomerSeaService {
             sb.append(" AND custG.super_data -> " + "'$.SYS011' >= " + "'" + param.getCreateTime().replace("/","-") + "'");
         }
         if (StringUtil.isNotEmpty(param.getEndTime())) {
-            sb.append(" AND custG.super_data -> " + "'$.SYS011' >= " + "'" + param.getEndTime().replace("/","-") + "'");
+            sb.append(" AND custG.super_data -> " + "'$.SYS011' <= " + "'" + param.getEndTime().replace("/","-") + "'");
         }
         if (StringUtil.isNotEmpty(param.getRegStatus())) {
             sb.append(" AND custG.super_data -> " + "'$.SYS012' like " + "'%" + param.getRegStatus() + "%'");
@@ -3462,7 +3462,7 @@ public class CustomerSeaService {
             sb.append(" AND custG.super_data -> " + "'$.SYS011' >= " + "'" + param.getCreateTime().replace("/","-") + "'");
         }
         if (StringUtil.isNotEmpty(param.getEndTime())) {
-            sb.append(" AND custG.super_data -> " + "'$.SYS011' >= " + "'" + param.getEndTime().replace("/","-") + "'");
+            sb.append(" AND custG.super_data -> " + "'$.SYS011' <= " + "'" + param.getEndTime().replace("/","-") + "'");
         }
         if (StringUtil.isNotEmpty(param.getRegStatus())) {
             sb.append(" AND custG.super_data -> " + "'$.SYS012' like " + "'%" + param.getRegStatus() + "%'");
@@ -4093,7 +4093,7 @@ public class CustomerSeaService {
             appSql.append(" AND custG.super_data -> " + "'$.SYS011' >= " + "'" + param.getCreateTime() + "'");
         }
         if (StringUtil.isNotEmpty(param.getEndTime())) {
-            appSql.append(" AND custG.super_data -> " + "'$.SYS011' >= " + "'" + param.getEndTime() + "'");
+            appSql.append(" AND custG.super_data -> " + "'$.SYS011' <= " + "'" + param.getEndTime() + "'");
         }
         if (StringUtil.isNotEmpty(param.getRegStatus())) {
             appSql.append(" AND custG.super_data -> " + "'$.SYS012' like " + "'%" + param.getRegStatus() + "%'");
