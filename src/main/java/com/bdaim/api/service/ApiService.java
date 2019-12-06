@@ -33,10 +33,7 @@ import javax.annotation.Resource;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.sql.Timestamp;
-import java.util.Calendar;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -510,8 +507,9 @@ public class ApiService {
     //客户调用记录
     public PageList subApiLogs(JSONObject params, PageParam page) {
         StringBuffer sql = new StringBuffer();
-        sql.append(" select api.API_ID as apiId, api.API_NAME as apiName, que.RESPONSE_BODY as body, count(api.API_ID) as countNum,round(log.CHARGE/10000) as charge,que.SERVICE_TIME as serviceTime");
-        sql.append(" from am_api api left join rs_log_" + params.getString("callMonth") + " log on log.API_ID= api.API_ID");
+        //, count(api.API_ID) as countNum
+        sql.append(" select api.API_ID as apiId, api.API_NAME as apiName, que.RESPONSE_BODY as body,round(log.CHARGE/10000) as charge,que.SERVICE_TIME as serviceTime");
+        sql.append(" from rs_log_" + params.getString("callMonth") + " log left  am_api api  on  log.API_ID =api.API_ID");
         sql.append(" left join api_queue que on que.ID=log.API_LOG_ID");
         sql.append(" where 1=1");
         if (StringUtil.isNotEmpty(params.getString("apiName"))) {
@@ -519,6 +517,19 @@ public class ApiService {
         }
         sql.append(" group by log.API_ID");
         PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
+        List list1=new ArrayList();
+        list.getList().stream().forEach(m->{
+            Map map=(Map)m;
+            Object apiId = map.get("apiId");
+            map.put("countNum",0);
+            if(apiId!=null){
+                String sql1="select count(*) from  rs_log_" + params.getString("callMonth") +"where API_ID="+Integer.valueOf(apiId.toString());
+                Integer unt = jdbcTemplate.queryForObject(sql1, Integer.class);
+                map.put("countNum",unt);
+            }
+            list1.add(map);
+        });
+        list.setList(list1);
         return list;
     }
 
