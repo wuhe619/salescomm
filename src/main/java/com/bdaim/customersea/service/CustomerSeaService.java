@@ -3191,19 +3191,19 @@ public class CustomerSeaService {
             sb.append(" and custG.batch_id =" + param.getBatchId());
         }
         if (StringUtil.isNotEmpty(param.getAddStartTime()) && StringUtil.isNotEmpty(param.getAddEndTime())) {
-            sb.append(" and custG.create_time BETWEEN " + param.getAddStartTime() + " AND " + param.getAddEndTime());
+            sb.append(" and custG.create_time BETWEEN '" + param.getAddStartTime() + "' AND '" + param.getAddEndTime()+"'");
         } else if (StringUtil.isNotEmpty(param.getAddStartTime())) {
-            sb.append(" and custG.create_time >= " + param.getAddStartTime().replace("/","-"));
+            sb.append(" and custG.create_time >= '" + param.getAddStartTime().replace("/","-")+"'");
         } else if (StringUtil.isNotEmpty(param.getAddEndTime())) {
-            sb.append(" and custG.create_time <= " + param.getAddEndTime().replace("/","-"));
+            sb.append(" and custG.create_time <= '" + param.getAddEndTime().replace("/","-")+"'");
         }
 
         if (StringUtil.isNotEmpty(param.getCallStartTime()) && StringUtil.isNotEmpty(param.getCallEndTime())) {
-            sb.append(" and custG.last_call_time BETWEEN " + param.getCallStartTime() + " AND " + param.getCallEndTime());
+            sb.append(" and custG.last_call_time BETWEEN '" + param.getCallStartTime() + "' AND '" + param.getCallEndTime()+"'");
         } else if (StringUtil.isNotEmpty(param.getCallStartTime())) {
-            sb.append(" and custG.last_call_time >= " + param.getCallStartTime());
+            sb.append(" and custG.last_call_time >= '" + param.getCallStartTime()+"'");
         } else if (StringUtil.isNotEmpty(param.getCallEndTime())) {
-            sb.append(" and custG.last_call_time <= " + param.getCallEndTime());
+            sb.append(" and custG.last_call_time <= '" + param.getCallEndTime()+"'");
         }
 
         if (StringUtil.isNotEmpty(param.getLastCallResult())) {
@@ -3338,35 +3338,35 @@ public class CustomerSeaService {
             sb.append(" and custG.batch_id =" + param.getBatchId());
         }
         if (StringUtil.isNotEmpty(param.getAddStartTime()) && StringUtil.isNotEmpty(param.getAddEndTime())) {
-            sb.append(" and custG.create_time BETWEEN " + param.getAddStartTime() + " AND " + param.getAddEndTime());
+            sb.append(" and custG.create_time BETWEEN '" + param.getAddStartTime() + "' AND '" + param.getAddEndTime()+"'");
         } else if (StringUtil.isNotEmpty(param.getAddStartTime())) {
-            sb.append(" and custG.create_time >= " + param.getAddStartTime().replace("/","-"));
+            sb.append(" and custG.create_time >= '" + param.getAddStartTime().replace("/","-")+"'");
         } else if (StringUtil.isNotEmpty(param.getAddEndTime())) {
-            sb.append(" and custG.create_time <= " + param.getAddEndTime().replace("/","-"));
+            sb.append(" and custG.create_time <= '" + param.getAddEndTime().replace("/","-")+"'");
         }
 
         if (StringUtil.isNotEmpty(param.getCallStartTime()) && StringUtil.isNotEmpty(param.getCallEndTime())) {
-            sb.append(" and custG.last_call_time BETWEEN " + param.getCallStartTime() + " AND " + param.getCallEndTime());
+            sb.append(" and custG.last_call_time BETWEEN '" + param.getCallStartTime() + "' AND '" + param.getCallEndTime()+"'");
         } else if (StringUtil.isNotEmpty(param.getCallStartTime())) {
-            sb.append(" and custG.last_call_time >= " + param.getCallStartTime());
+            sb.append(" and custG.last_call_time >= '" + param.getCallStartTime()+"'");
         } else if (StringUtil.isNotEmpty(param.getCallEndTime())) {
-            sb.append(" and custG.last_call_time <= " + param.getCallEndTime());
+            sb.append(" and custG.last_call_time <= '" + param.getCallEndTime()+"'");
         }
 
         if (StringUtil.isNotEmpty(param.getUserGetStartTime()) && StringUtil.isNotEmpty(param.getUserGetEndTime())) {
-            sb.append(" and custG.user_get_time BETWEEN " + param.getUserGetStartTime() + " AND " + param.getUserGetEndTime());
+            sb.append(" and custG.user_get_time BETWEEN '" + param.getUserGetStartTime() + "' AND '" + param.getUserGetEndTime()+"'");
         } else if (StringUtil.isNotEmpty(param.getUserGetStartTime())) {
-            sb.append(" and custG.user_get_time >= " + param.getUserGetStartTime());
+            sb.append(" and custG.user_get_time >= '" + param.getUserGetStartTime()+"'");
         } else if (StringUtil.isNotEmpty(param.getUserGetEndTime())) {
-            sb.append(" and custG.user_get_time <= " + param.getUserGetEndTime());
+            sb.append(" and custG.user_get_time <= '" + param.getUserGetEndTime()+"'");
         }
 
         if (StringUtil.isNotEmpty(param.getLastMarkStartTime()) && StringUtil.isNotEmpty(param.getLastMarkEndTime())) {
-            sb.append(" and custG.last_mark_time BETWEEN " + param.getLastMarkStartTime() + " AND " + param.getLastMarkEndTime());
+            sb.append(" and custG.last_mark_time BETWEEN '" + param.getLastMarkStartTime() + "' AND '" + param.getLastMarkEndTime()+"'");
         } else if (StringUtil.isNotEmpty(param.getLastMarkStartTime())) {
-            sb.append(" and custG.last_mark_time >= " + param.getLastMarkStartTime());
+            sb.append(" and custG.last_mark_time >= '" + param.getLastMarkStartTime()+"'");
         } else if (StringUtil.isNotEmpty(param.getLastMarkEndTime())) {
-            sb.append(" and custG.last_mark_time <= " + param.getLastMarkEndTime());
+            sb.append(" and custG.last_mark_time <= '" + param.getLastMarkEndTime()+"'");
         }
 
         if (StringUtil.isNotEmpty(param.getLastCallResult())) {
