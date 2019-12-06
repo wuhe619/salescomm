@@ -8617,16 +8617,16 @@ public class MarketResourceService {
         rsIds.stream().forEach(pro -> {
             JSONArray.parseArray(pro.getPropertyValue()).stream().forEach(e -> {
                 JSONObject jsonObject = JSONObject.parseObject(e.toString());
-                log.info("1111:" + e.toString());
-                Arrays.stream(jsonObject.getString("rsId").split(",")).forEach(reid -> {
-                    log.info("2222:" + reid);
-                    if (!propertyMap.containsKey(reid)) {
-                        propertyMap.put(reid, new ArrayList<String>());
-                    }
-                    List<String> apiIds = propertyMap.get(reid);
-                    apiIds.add(pro.getApiId());
-                    propertyMap.put(reid, apiIds);
-                });
+                if (StringUtil.isNotEmpty(jsonObject.getString("rsId"))) {
+                    Arrays.stream(jsonObject.getString("rsId").split(",")).forEach(reid -> {
+                        if (!propertyMap.containsKey(reid)) {
+                            propertyMap.put(reid, new ArrayList<String>());
+                        }
+                        List<String> apiIds = propertyMap.get(reid);
+                        apiIds.add(pro.getApiId());
+                        propertyMap.put(reid, apiIds);
+                    });
+                }
             });
         });
 
