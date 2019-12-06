@@ -405,7 +405,7 @@ public class CustomerAppService {
             }
         });
 
-        String sql1 = "select pay.pay_id,pay.SUBSCRIBER_ID,pay.MONEY,pay.PAY_TIME,pay.pay_certificate,pay.pre_money,pay.user_id ,u.account as account from am_pay pay left join  t_customer_user u  on pay.user_id=u.id  where SUBSCRIBER_ID = " + custId;
+        String sql1 = "select pay.pay_id,pay.SUBSCRIBER_ID,pay.MONEY,pay.PAY_TIME,pay.pay_certificate,pay.pre_money,pay.user_id ,u.name as account from am_pay pay left join  t_user u  on pay.user_id=u.id  where SUBSCRIBER_ID = " + custId;
         page.setSort("pay.pay_time");
         page.setDir(" desc");
         PageList list = new Pagination().getPageData(sql1, null, page, jdbcTemplate);
