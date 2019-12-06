@@ -400,7 +400,7 @@ public class ApiService {
         if (StringUtil.isNotEmpty(apiName)) {
             sql.append(" and api.API_NAME  = '" + apiName + "'");
         }
-        page.setSort("sub.CREATED_TIME");
+        page.setSort("api.CREATED_TIME");
         page.setDir("desc");
         PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
         Object collect = list.getList().stream().map(m -> {
