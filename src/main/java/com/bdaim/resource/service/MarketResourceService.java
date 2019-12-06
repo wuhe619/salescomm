@@ -8565,9 +8565,17 @@ public class MarketResourceService {
         StringUtil.isNotEmpty(price);
         price1 = Double.valueOf(price);
         price1 = price1 * 10000;
-        BigDecimal b2 = new BigDecimal(Double.valueOf(price));
+//        BigDecimal b2 = new BigDecimal(Double.valueOf(price));
+        String sql = "select resource_id,create_time from t_market_resource where resource_id=" + resource_id;
+        List<Map<String, Object>> maps = jdbcTemplate.queryForList(sql);
+        Object createTime=DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss);
+        if(maps.size()>0){
+            Map<String, Object> map = maps.get(0);
+            createTime=  map.get("create_time");
+        }
         String sql1 = "REPLACE  into t_market_resource(resource_id,supplier_id,type_code,resname,sale_price,create_time) VALUES(?,?,?,?,?,?)";
-        int update = jdbcTemplate.update(sql1, new Object[]{resource_id, supplierId, type, name, Double.valueOf(price1).intValue(), DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss)});
+
+        int update = jdbcTemplate.update(sql1, new Object[]{resource_id, supplierId, type, name, Double.valueOf(price1).intValue(),createTime });
         return update;
     }
 
@@ -8605,9 +8613,9 @@ public class MarketResourceService {
         rsIds.stream().forEach(pro -> {
             JSONArray.parseArray(pro.getPropertyValue()).stream().forEach(e -> {
                 JSONObject jsonObject = JSONObject.parseObject(e.toString());
-                log.info("1111:"+e.toString());
+                log.info("1111:" + e.toString());
                 Arrays.stream(jsonObject.getString("rsId").split(",")).forEach(reid -> {
-                    log.info("2222:"+reid);
+                    log.info("2222:" + reid);
                     if (!propertyMap.containsKey(reid)) {
                         propertyMap.put(reid, new ArrayList<String>());
                     }
@@ -8621,7 +8629,7 @@ public class MarketResourceService {
         list.getList().stream().forEach(m -> {
             Map dataMap = (Map) m;
             StringBuffer apiName = new StringBuffer();
-            if(propertyMap.containsKey(dataMap.get("resourceId").toString())){
+            if (propertyMap.containsKey(dataMap.get("resourceId").toString())) {
                 propertyMap.get(dataMap.get("resourceId").toString()).stream().forEach(apiId -> {
                     ApiEntity apiEntity = apiDao.get(Integer.valueOf(apiId));
                     apiName.append(apiEntity.getName()).append(",");
