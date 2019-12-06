@@ -84,10 +84,7 @@ public class UnicomAction extends BasicAction {
             }
         }
         if (StringUtil.isEmpty(showNumber)) {
-            map.put("message", "未申请外显号码");
-            map.put("code", "1006");
-            json.put("data", map);
-            return json.toJSONString();
+            LOG.warn("联通外呼:{}外显为空", resourceId);
         }
         // 判断是余额是否充足
         boolean amountStatus = marketResourceService.judRemainAmount(opUser().getCustId());
