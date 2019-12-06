@@ -2378,24 +2378,27 @@ public class SupplierService {
     }
 
     public int supplierDeposit(Deposit deposit, String userId) {
-        BigDecimal b = new BigDecimal(10000);
-        BigDecimal pre_money;
+//        BigDecimal b = new BigDecimal(10000);
+//        BigDecimal pre_money;
 //        int money = Integer.valueOf((Double.valueOf(deposit.getMoney())* 10000) + "".trim()).intValue();
-        BigDecimal bigDecimal = BigDecimal.valueOf(Double.valueOf(deposit.getMoney()));
-        BigDecimal money = bigDecimal.multiply(b);
+        int pre_money = 0;
+        int money = Integer.valueOf(deposit.getMoney()) * 10000;
+
+//        BigDecimal bigDecimal = BigDecimal.valueOf(Double.valueOf(deposit.getMoney()));
+//        BigDecimal money = bigDecimal.multiply(b);
         SupplierPropertyEntity supplierPropertyEntity = supplierDao.getProperty(String.valueOf(deposit.getId()), "remain_amount");
         if (supplierPropertyEntity == null) {
-            pre_money = new BigDecimal(0);
+//            pre_money = new BigDecimal(0);
             supplierDao.dealCustomerInfo(String.valueOf(deposit.getId()), "remain_amount", String.valueOf(money));
         } else {
-            BigDecimal bigDecimal1 = new BigDecimal(Double.valueOf(supplierPropertyEntity.getPropertyValue()));
-            pre_money = bigDecimal1.subtract(b);
-            supplierDao.dealCustomerInfo(String.valueOf(deposit.getId()), "remain_amount", String.valueOf(pre_money.add(money).intValue()));
+//            BigDecimal bigDecimal1 = new BigDecimal(Double.valueOf(supplierPropertyEntity.getPropertyValue()));
+            pre_money = Integer.valueOf(supplierPropertyEntity.getPropertyValue());
+            supplierDao.dealCustomerInfo(String.valueOf(deposit.getId()), "remain_amount", String.valueOf(pre_money + money));
         }
         log.info("id:" + deposit.getId());
-        log.info("id prc_money:" + String.valueOf(pre_money.add(money).intValue()));
+        log.info("id prc_money:" + String.valueOf(pre_money + money));
         String sql = "INSERT INTO supplier_pay (SUBSCRIBER_ID,MONEY,PAY_TIME,pay_certificate,pre_money,user_id) VALUE (?,?,?,?,?,?) ";
-        jdbcTemplate.update(sql, deposit.getId(), money.intValue(), DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss), deposit.getRepaidVoucher(), pre_money.intValue(), userId);
+        jdbcTemplate.update(sql, deposit.getId(), money, DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss), deposit.getRepaidVoucher(), pre_money, userId);
         return 1;
     }
 
