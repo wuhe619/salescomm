@@ -201,7 +201,7 @@ public class UnicomUtil {
      * dataId 联通返回唯一id    callerNumber 主叫号码   showNumber   外显号（不传默认从企业外显号码池随机一个外显号码 key加密私钥
      */
     public static JSONObject unicomSeatMakeCall(String entId, String dataId, String entPassWord, String callerNumber, String showNumber, String key) {
-        LOG.info("坐席外呼接收參數:entId是" + entId + "数据id是：" + dataId + "企业密码：" + entPassWord + "主叫号：" + callerNumber + "外显号码是： " + showNumber + "密钥：" + key);
+        LOG.info("坐席外呼接收参数:entId是" + entId + "数据id是：" + dataId + "企业密码：" + entPassWord + "主叫号：" + callerNumber + "外显号码是： " + showNumber + "密钥：" + key);
         Map<String, String> params = new HashMap<>();
         params.put("dataId", dataId);
         params.put("callerNumber", callerNumber);

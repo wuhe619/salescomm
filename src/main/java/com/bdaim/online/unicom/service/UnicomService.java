@@ -241,9 +241,9 @@ public class UnicomService {
             return result;
         }
 
-        String pwd = config.getString("entPassword");
-        String entId = config.getString("entId");
-        String key = config.getString("entKey");
+        String pwd = config.getJSONObject("call_center_config").getString("entPassword");
+        String entId = config.getJSONObject("call_center_config").getString("entId");
+        String key = config.getJSONObject("call_center_config").getString("entKey");
         JSONObject jsonObject = UnicomUtil.unicomSeatMakeCall(entId, dataId, pwd, work_num.getPropertyValue(), showNumber, key);
         return jsonObject;
     }
