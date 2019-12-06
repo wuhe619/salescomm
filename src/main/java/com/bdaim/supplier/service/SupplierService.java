@@ -2365,8 +2365,8 @@ public class SupplierService {
                 supplierDTOMap.put("supplierId", map1.get("supplier_id"));
                 SupplierPropertyEntity remain_amount = supplierDao.getProperty(map1.get("supplier_id").toString(), "remain_amount");
                 SupplierPropertyEntity used_amount = supplierDao.getProperty(map1.get("supplier_id").toString(), "used_amount");
-                supplierDTOMap.put("balance", remain_amount == null ? 0 : remain_amount.getPropertyValue());
-                supplierDTOMap.put("consumption", used_amount == null ? 0 : used_amount.getPropertyValue());
+                supplierDTOMap.put("balance", remain_amount == null ? 0 : Integer.valueOf(remain_amount.getPropertyValue())/10000);
+                supplierDTOMap.put("consumption", used_amount == null ? 0 : Integer.valueOf(used_amount.getPropertyValue())/10000);
                 supplierDTOMap.put("apiNum", propertyMap.containsKey(Integer.valueOf(map1.get("supplier_id").toString())) ? propertyMap.get(Integer.valueOf(map1.get("supplier_id").toString())).size() : 0);
                 return supplierDTOMap;
             }).collect(Collectors.toList());
