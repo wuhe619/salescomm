@@ -46,7 +46,7 @@ public class HDicUtil {
     @Autowired
     private HDicDao hDicDao;
 
-    @PostConstruct
+    //@PostConstruct
     private void init() {
         LOG.info("开始初始化缓存字典数据时间:[{}]", System.currentTimeMillis());
         List<HDic> list = hDicDao.listHDic();
