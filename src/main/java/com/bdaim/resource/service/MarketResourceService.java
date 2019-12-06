@@ -4638,7 +4638,7 @@ public class MarketResourceService {
             sb.append("select voicLog.touch_id touchId, voicLog.callSid, voicLog.superid, voicLog.create_time create_time,voicLog.status, CAST(voicLog.user_id AS CHAR) user_id,voicLog.remark,")
                     .append(" voicLog.call_data, voicLog.recordurl, voicLog.clue_audit_status auditingStatus, voicLog.market_task_id marketTaskId, voicLog.clue_audit_reason reason ");
             if (StringUtil.isNotEmpty(seaId)) {
-                sb.append(" , CAST(t2.super_data->>'$.SYS005' AS CHAR) AS custName ");
+                sb.append(" , t2.super_data  ");
             }
             sb.append(" from " + monthTableName + " voicLog ");
             if (StringUtil.isNotEmpty(seaId)) {
@@ -4894,6 +4894,11 @@ public class MarketResourceService {
                     if (map.get("marketTaskId") != null) {
                         task = marketTaskDao.get(String.valueOf(map.get("marketTaskId")));
                         map.put("marketTaskName", task != null ? task.getName() : "");
+                    }
+                    map.put("custName", "");
+                    if (map.containsKey("super_data") && StringUtil.isNotEmpty(String.valueOf(map.get("super_data")))) {
+                        JSONObject superData = JSON.parseObject(String.valueOf(map.get("super_data")));
+                        map.put("custName", superData.getString("SYS005"));
                     }
                 }
             }
