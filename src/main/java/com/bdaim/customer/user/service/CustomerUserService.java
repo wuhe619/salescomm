@@ -439,11 +439,6 @@ public class CustomerUserService {
 
             if ("2".equals(userType.toString())) {
                 seatMonthDeduction(custId, "", userDTO.getId());
-                // 联通双呼添加主叫号
-                if (CallTypeParamEnum.UNICOM_CALL2_WAY.getPropertyName().equals(callType)
-                        && StringUtil.isNotEmpty(userDTO.getWorkNum())) {
-                    unicomService.addUserExtension(custId, userDTO.getWorkNum());
-                }
             }
         } catch (Exception e) {
             logger.error("保存操作员出错:", e);
@@ -622,13 +617,13 @@ public class CustomerUserService {
         sb.append(" where  account= ? and cust_id='" + custId + "'");
 
         int code = jdbcTemplate.update(sb.toString(), new Object[]{status, userName});
-        if (1 == status) {
+        /*if (1 == status) {
             // 冻结
             unicomService.saveUpdateUserExtensionByUserId("", userName, 1);
         } else if (0 == status) {
             // 开启
             unicomService.saveUpdateUserExtensionByUserId("", userName, 0);
-        }
+        }*/
         /*CustomerUser user = customerUserDao.getCustomerUserByLoginName(userName);
 
         if(user!=null && user.getStatus()==0){//当账号有效时处理
@@ -759,8 +754,8 @@ public class CustomerUserService {
                         CustomerUserPropertyDO work_num_status = new CustomerUserPropertyDO(cu.getId().toString(), "work_num_status", "1", new Timestamp(System.currentTimeMillis()));
                         list.add(work_num_status);
                         list.add(work_num);
-                        // 添加联通主叫号码
-                        unicomService.addUserExtension(cu.getCust_id(), userDTO.getWorkNum());
+                       /* // 添加联通主叫号码
+                        unicomService.addUserExtension(cu.getCust_id(), userDTO.getWorkNum());*/
                     }
                 }
 

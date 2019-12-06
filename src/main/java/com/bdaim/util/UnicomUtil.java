@@ -28,12 +28,15 @@ import java.util.*;
 public class UnicomUtil {
     private static Logger LOG = LoggerFactory.getLogger(UnicomUtil.class);
 
-    private final static String UNICOM_BASE_URL_V1 = "";
+    private final static String UNICOM_BASE_URL_V1 = "http://120.52.23.243:10080/sdyxinterface/20190426/";
+    //private final static String UNICOM_BASE_URL_V1 = "";
 
     public static void main(String[] args) throws Exception {
-        UnicomUtil.getEntActivityAll("Bq2.g_mp4", "D1HMFW", "UkzesbWEmdTIgywsacIIboam");
-        String fileUrl = getActivityFileUrlByName("Bq2.g_mp4", "D1HMFW", "UkzesbWEmdTIgywsacIIboam", "品创邦1次外呼1105");
-        LOG.warn("获取活动文件url:{}", fileUrl);
+        //JSONObject jsonObject = registerUserExtension("Bq2.g_mp4", "D1HMFW", "UkzesbWEmdTIgywsacIIboam", "18630016545");
+        //LOG.warn("添加联通主叫号码返回:{}", jsonObject);
+        //UnicomUtil.getEntActivityAll("Bq2.g_mp4", "D1HMFW", "UkzesbWEmdTIgywsacIIboam");
+        //String fileUrl = getActivityFileUrlByName("Bq2.g_mp4", "D1HMFW", "UkzesbWEmdTIgywsacIIboam", "品创邦1次外呼1105");
+        //LOG.warn("获取活动文件url:{}", fileUrl);
         //UnicomUtil.getEntActivityResult("SJYXDD191021002472", "Bq2.g_mp4", "D1HMFW", "UkzesbWEmdTIgywsacIIboam");
         //unicomSeatMakeCall("D1HMFW", "C201911051642007894_12985", "Bq2.g_mp4", "18630016545", "", "UkzesbWEmdTIgywsacIIboam");
         //handleActivityFile("http://120.52.23.243:10080/voice/group1/M00/41/15/Cr8TfV3BNe7RQEIAAAAUN6qGHL8263.txt", "", "");
@@ -107,7 +110,7 @@ public class UnicomUtil {
      * @return
      * @throws Exception
      */
-    public static JSONObject registerUserExtension(String pwd, String entId, String key, String extensionNumber) throws Exception {
+    /*public static JSONObject registerUserExtension(String pwd, String entId, String key, String extensionNumber) throws Exception {
         //获取token,加密获取sign
         String sign = getSign(pwd, entId, key);
         Map<String, Object> headers = new HashMap<>(16);
@@ -115,12 +118,12 @@ public class UnicomUtil {
         headers.put("Content-Type", "application/json;charset=utf-8");
         Map<String, String> params = new HashMap<>();
         params.put("extension", extensionNumber);
-        LOG.info("用户注册(主叫号)接口参数:" + UNICOM_BASE_URL_V1 + "user/registerUser" + entId + ",参数:" + params.toString());
-        String result = HttpUtil.httpPost(UNICOM_BASE_URL_V1 + "user/registerUser" + entId, JSON.toJSONString(params), headers, 5000);
+        LOG.info("用户注册(主叫号)接口参数:" + UNICOM_BASE_URL_V1 + "user/registerUser/" + entId + ",参数:" + params.toString());
+        String result = HttpUtil.httpPost(UNICOM_BASE_URL_V1 + "user/registerUser/" + entId, JSON.toJSONString(params), headers, 5000);
         LOG.info("用户注册(主叫号)接口返回:" + result);
         return JSON.parseObject(result);
     }
-
+*/
     /**
      * 用户移除接口(删除主叫号)
      *
@@ -131,7 +134,7 @@ public class UnicomUtil {
      * @return
      * @throws Exception
      */
-    public static JSONObject failureUserExtension(String pwd, String entId, String key, String extensionNumber) throws Exception {
+   /* public static JSONObject failureUserExtension(String pwd, String entId, String key, String extensionNumber) throws Exception {
         //获取token,加密获取sign
         String sign = getSign(pwd, entId, key);
         Map<String, Object> headers = new HashMap<>(16);
@@ -139,11 +142,11 @@ public class UnicomUtil {
         headers.put("Content-Type", "application/json;charset=utf-8");
         Map<String, String> params = new HashMap<>();
         params.put("extension", extensionNumber);
-        LOG.info("用户失效(主叫号)接口参数:" + UNICOM_BASE_URL_V1 + "user/failureUser" + entId + ",参数:" + params.toString());
-        String result = HttpUtil.httpPost(UNICOM_BASE_URL_V1 + "user/failureUser" + entId, JSON.toJSONString(params), headers, 5000);
+        LOG.info("用户失效(主叫号)接口参数:" + UNICOM_BASE_URL_V1 + "user/failureUser/" + entId + ",参数:" + params.toString());
+        String result = HttpUtil.httpPost(UNICOM_BASE_URL_V1 + "user/failureUser/" + entId, JSON.toJSONString(params), headers, 5000);
         LOG.info("用户失效(主叫号)接口返回:" + result);
         return JSON.parseObject(result);
-    }
+    }*/
 
     /**
      * 获取企业所有活动接口

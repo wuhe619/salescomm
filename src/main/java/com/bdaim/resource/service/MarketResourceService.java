@@ -4916,8 +4916,8 @@ public class MarketResourceService {
             if (status.equals("1")) {
                 work_num_status.setPropertyValue("1");
                 this.marketResourceDao.saveOrUpdate(work_num_status);
-                // 审核通话添加联通主叫号码
-                unicomService.saveUpdateUserExtensionByUserId(userid, "", 0);
+               /* // 审核通话添加联通主叫号码
+                unicomService.saveUpdateUserExtensionByUserId(userid, "", 0);*/
                 map.put("code", "0");
                 map.put("messa", "成功");
             } else if (status.equals("2")) {
