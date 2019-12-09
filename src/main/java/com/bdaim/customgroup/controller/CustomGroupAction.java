@@ -746,7 +746,8 @@ public class CustomGroupAction extends BasicAction {
                         }
                         data = new HashMap<>();
                         data.put("id", phones.get(i).getId());
-                        data.put("phone", phones.get(i).getPhone().split(","));
+                        //data.put("phone", phones.get(i).getPhone().split(","));
+                        data.put("phone", phones.get(i).getPhone());
                         data.put("param", phones.get(i).getParam());
                         //data.put("isend", "false");
                         data.put("encrypt", "false");
