@@ -229,7 +229,7 @@ public class ResourceAction extends BasicAction {
             if (resourceId == null || resourceId == 0) {
                 resp.setData(marketResourceService.saveMarketResource(info.getString("name"), info.getInteger("supplierId"), info.getString("salePrice"), info.getInteger("type")));
             } else {
-                resp.setData(marketResourceService.updateMarketResource(info.getString("_c_"),info.getString("name"), info.getInteger("supplierId"), info.getString("salePrice"), info.getInteger("type"), resourceId));
+                resp.setData(marketResourceService.updateMarketResource(info.getString("_c_"), info.getString("name"), info.getInteger("supplierId"), info.getString("salePrice"), info.getInteger("type"), resourceId));
             }
         } catch (Exception e) {
             resp.setMessage(e.getMessage());
@@ -292,21 +292,23 @@ public class ResourceAction extends BasicAction {
 
         return resp;
     }
-
+/*
+导出
+ */
 
     @GetMapping(value = "/logs")
-    public ResponseInfo doInfo(String callMonth,String type,String _rule_, HttpServletResponse response) {
+    public ResponseInfo doInfo(String callMonth, String type, String _rule_, HttpServletResponse response) {
         ResponseInfo resp = new ResponseInfo();
-        com.alibaba.fastjson.JSONObject params=new com.alibaba.fastjson.JSONObject ();
+        com.alibaba.fastjson.JSONObject params = new com.alibaba.fastjson.JSONObject();
         PageParam page = new PageParam();
         if (StringUtil.isEmpty(callMonth)) {
             return new ResponseInfoAssemble().failure(-1, "查询时间不能为空");
         }
         page.setPageSize(0);
         page.setPageNum(10000000);
-        params.put("type",type);
-        params.put("callMonth",callMonth);
-        params.put("_rule_",_rule_);
+        params.put("type", type);
+        params.put("callMonth", callMonth);
+        params.put("_rule_", _rule_);
         try {
             PageList pageList = null;
             if (StringUtil.isNotEmpty(type) && "sub".equals(type)) {
