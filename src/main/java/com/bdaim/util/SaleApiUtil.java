@@ -128,7 +128,8 @@ public class SaleApiUtil {
     /**
      * 呼叫中心api地址
      */
-    public static final String CALL_CENTER_API = "http://api.salescomm.net:8017";
+    //public static final String CALL_CENTER_API = "http://api.salescomm.net:8017";
+    public static final String CALL_CENTER_API = "http://api.salescomm.net:8021/";
 
     /**
      * 讯众外呼pdf版地址

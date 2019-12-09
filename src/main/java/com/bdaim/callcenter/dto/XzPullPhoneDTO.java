@@ -7,6 +7,7 @@ package com.bdaim.callcenter.dto;
  */
 public class XzPullPhoneDTO {
 
+    private String id;
     private String phone;
     private String param;
 
@@ -14,6 +15,12 @@ public class XzPullPhoneDTO {
     }
 
     public XzPullPhoneDTO(String phone, String param) {
+        this.phone = phone;
+        this.param = param;
+    }
+
+    public XzPullPhoneDTO(String id, String phone, String param) {
+        this.id = id;
         this.phone = phone;
         this.param = param;
     }
@@ -34,10 +41,19 @@ public class XzPullPhoneDTO {
         this.param = param;
     }
 
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
     @Override
     public String toString() {
         return "XzPullPhoneDTO{" +
-                "phone='" + phone + '\'' +
+                "id='" + id + '\'' +
+                ", phone='" + phone + '\'' +
                 ", param='" + param + '\'' +
                 '}';
     }

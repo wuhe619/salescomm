@@ -386,7 +386,8 @@ public class MarketTaskService {
         // 添加讯众自动外呼任务
         LocalDateTime taskStartTime = LocalDateTime.ofEpochSecond(param.getTaskCreateTime() / 1000, 0, ZoneOffset.ofHours(8));
         LocalDateTime taskEndTime = LocalDateTime.ofEpochSecond(param.getTaskEndTime() / 1000, 0, ZoneOffset.ofHours(8));
-        int maxConcurrentNumber = xzCallCenterService.queryMaxCallOutNumber(callCenterId);
+        //int maxConcurrentNumber = xzCallCenterService.queryMaxCallOutNumber(callCenterId);
+        int maxConcurrentNumber = 50;
         LOG.info("讯众企业ID:" + callCenterId + ",最大并发数:" + maxConcurrentNumber);
         Map<String, Object> result = xzCallCenterService.addAutoTask(param.getName() + param.getId(), taskStartTime, taskEndTime, param.getApparentNumber(),
                 NumberConvertUtil.parseInt(param.getCallSpeed()), NumberConvertUtil.parseInt(param.getCallCount()), callCenterId, maxConcurrentNumber);

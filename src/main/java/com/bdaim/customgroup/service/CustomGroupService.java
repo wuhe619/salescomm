@@ -2097,7 +2097,7 @@ public class CustomGroupService {
             return new ArrayList<>();
         }
         int phoneIndex = marketTask.getTaskPhoneIndex();
-        log.info("营销任务marketTaskId:" + marketTask.getId() + ",phoneIndexdex:" + phoneIndex);
+        log.info("营销任务marketTaskId:" + marketTask.getId() + ",phoneIndex:" + phoneIndex);
 
         StringBuffer sb = new StringBuffer();
         sb.append("select custG.id ");
@@ -2110,7 +2110,7 @@ public class CustomGroupService {
             log.warn("营销任务marketTaskId:" + marketTask.getId() + ",记录的index:" + phoneIndex + ",拉取的index:" + pageNum);
             pageNum = phoneIndex;
         }
-        sb.append("  LIMIT " + pageNum + "," + pageSize);
+        sb.append(" LIMIT " + pageNum + "," + pageSize);
 
         List<Map<String, Object>> ids;
         List<XzPullPhoneDTO> phoneList = new ArrayList<>();
@@ -2127,6 +2127,47 @@ public class CustomGroupService {
                 if (id != null) {
                     phone = phoneService.getPhoneBySuperId(String.valueOf(id.get("id")));
                     phoneList.add(new XzPullPhoneDTO(phone, String.valueOf(id.get("id"))));
+                    //保存客群和手机号对应的身份ID到redis
+                    phoneService.setCGroupDataToRedis(String.valueOf(marketTask.getCustomerGroupId()), String.valueOf(id.get("id")), phone);
+                }
+            }
+            marketTask.setTaskPhoneIndex(phoneIndex);
+            marketTaskDao.update(marketTask);
+        } catch (Exception e) {
+            log.error("查询营销任务:" + marketTask.getId() + "拉取手机号失败,", e);
+            phoneList = new ArrayList<>();
+        }
+        return phoneList;
+    }
+
+    public List<XzPullPhoneDTO> pageMarketTaskPhoneByTaskId(String taskId, int count) {
+        log.info("第三方任务ID:{},拉取手机号,count:{}", taskId, count);
+        MarketTask marketTask = marketTaskDao.getMarketTaskByTaskId(taskId);
+        if (marketTask == null) {
+            return new ArrayList<>();
+        }
+        int phoneIndex = marketTask.getTaskPhoneIndex();
+        log.info("营销任务marketTaskId:{},phoneIndex:{}", marketTask.getId(), phoneIndex);
+
+        StringBuffer sb = new StringBuffer();
+        sb.append("select custG.id ");
+        sb.append("  from " + ConstantsUtil.MARKET_TASK_TABLE_PREFIX + marketTask.getId() + " custG ");
+        sb.append(" ORDER BY custG.n_id ASC LIMIT ?, ? ");
+
+        List<Map<String, Object>> ids;
+        List<XzPullPhoneDTO> phoneList = new ArrayList<>();
+        try {
+            ids = customGroupDao.sqlQuery(sb.toString(), phoneIndex, count);
+            if (ids == null || ids.size() == 0) {
+                log.info("营销任务marketTaskId:" + marketTask.getId() + ",手机号拉取完成,phoneIndex:" + phoneIndex);
+                return phoneList;
+            }
+            phoneIndex += ids.size();
+            String phone;
+            for (Map<String, Object> id : ids) {
+                if (id != null) {
+                    phone = phoneService.getPhoneBySuperId(String.valueOf(id.get("id")));
+                    phoneList.add(new XzPullPhoneDTO(String.valueOf(id.get("id")), phone, String.valueOf(id.get("id"))));
                     //保存客群和手机号对应的身份ID到redis
                     phoneService.setCGroupDataToRedis(String.valueOf(marketTask.getCustomerGroupId()), String.valueOf(id.get("id")), phone);
                 }

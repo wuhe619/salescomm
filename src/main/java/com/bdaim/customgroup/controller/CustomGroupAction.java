@@ -718,23 +718,25 @@ public class CustomGroupAction extends BasicAction {
                 resp.put("data", data);
             } else if ("number".equals(action)) {
                 list = new ArrayList<>();
-                int pageNum = 0;
+                //int pageNum = 0;
                 int pageSize = 10;
                 // uuid为空则起始页为0
-                if (StringUtil.isNotEmpty(id)) {
+                /*if (StringUtil.isNotEmpty(id)) {
                     pageNum = NumberConvertUtil.parseInt(id);
-                }
+                }*/
                 if (StringUtil.isNotEmpty(count)) {
                     pageSize = NumberConvertUtil.parseInt(count);
                 }
                 // 获取手机号和随路参数
-                List<XzPullPhoneDTO> phones = customGroupService.pageMarketTaskPhoneByTaskId(taskId, pageNum, pageSize);
+                //List<XzPullPhoneDTO> phones = customGroupService.pageMarketTaskPhoneByTaskId(taskId, pageNum, pageSize);
+                List<XzPullPhoneDTO> phones = customGroupService.pageMarketTaskPhoneByTaskId(taskId, pageSize);
                 if (phones == null || phones.size() == 0) {
                     data = new HashMap<>();
                     data.put("id", "");
                     data.put("phone", "");
                     data.put("param", "");
-                    data.put("isend", "false");
+                    data.put("encrypt", "false");
+                    data.put("isfinish", "false");
                     list.add(data);
                     resp.put("data", list);
                 } else {
@@ -743,10 +745,13 @@ public class CustomGroupAction extends BasicAction {
                             continue;
                         }
                         data = new HashMap<>();
-                        data.put("id", pageNum + i + 1);
-                        data.put("phone", phones.get(i).getPhone().split(","));
+                        data.put("id", phones.get(i).getId());
+                        //data.put("phone", phones.get(i).getPhone().split(","));
+                        data.put("phone", phones.get(i).getPhone());
                         data.put("param", phones.get(i).getParam());
-                        data.put("isend", "false");
+                        //data.put("isend", "false");
+                        data.put("encrypt", "false");
+                        data.put("isfinish", "false");
                         list.add(data);
                     }
                     resp.put("data", list);

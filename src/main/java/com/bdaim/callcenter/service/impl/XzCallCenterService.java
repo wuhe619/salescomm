@@ -71,7 +71,8 @@ public class XzCallCenterService {
         // 添加讯众自动外呼任务
         LocalDateTime taskStartTime = LocalDateTime.ofEpochSecond(startTime, 0, ZoneOffset.ofHours(8));
         LocalDateTime taskEndTime = LocalDateTime.ofEpochSecond(endTime, 0, ZoneOffset.ofHours(8));
-        int maxConcurrentNumber = queryMaxCallOutNumber(callCenterId);
+        //int maxConcurrentNumber = queryMaxCallOutNumber(callCenterId);
+        int maxConcurrentNumber = 50;
         LOG.info("讯众企业ID:" + callCenterId + ",最大并发数:" + maxConcurrentNumber);
         Map<String, Object> result = addAutoTask(name, taskStartTime, taskEndTime, apparentNumber,
                 callSpeed, callCount, callCenterId, maxConcurrentNumber);
