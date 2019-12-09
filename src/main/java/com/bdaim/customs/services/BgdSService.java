@@ -13,6 +13,7 @@ import com.bdaim.customs.entity.BusiTypeEnum;
 import com.bdaim.customs.entity.HBusiDataManager;
 import com.bdaim.customs.entity.HMetaDataDef;
 import com.bdaim.customs.utils.ServiceUtils;
+import com.bdaim.util.BigDecimalUtil;
 import com.bdaim.util.StringUtil;
 
 import org.slf4j.Logger;
@@ -22,6 +23,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -79,9 +81,9 @@ public class BgdSService implements BusiService{
 		info.put("ext_3",code_ts);
 		info.put("ext_4",billNo);
         info.put("opt_type","APD");
-		float duty_paid_price = 0;
-		float estimated_tax = 0;
-		float tax_rate = 0;
+		BigDecimal duty_paid_price = BigDecimal.ZERO;
+		BigDecimal estimated_tax = BigDecimal.ZERO;
+		BigDecimal tax_rate = BigDecimal.ZERO;
 		int is_low_price = 0;
 
 
@@ -93,22 +95,23 @@ public class BgdSService implements BusiService{
 				List dataList = page.getData();
 				Map<String ,Object> d = (Map<String, Object>) dataList.get(0);
 				JSONObject contentObj = JSON.parseObject(JSON.toJSONString(d));
-				duty_paid_price = contentObj.getFloatValue("duty_price");
+				duty_paid_price = BigDecimal.valueOf(contentObj.getFloatValue("duty_price"));
 				if(StringUtil.isNotEmpty(info.getString("decl_price"))){
-					if(Float.valueOf(info.getString("decl_price")) < duty_paid_price){
+					if(BigDecimal.valueOf(Float.valueOf(info.getString("decl_price"))) .compareTo(duty_paid_price)<0){
 						is_low_price = 1;
 					}
 				}
-				tax_rate = contentObj.getFloatValue("tax_rate");
-				estimated_tax = duty_paid_price*tax_rate;
+				tax_rate = BigDecimal.valueOf(contentObj.getFloatValue("tax_rate"));
+				estimated_tax = duty_paid_price.multiply(tax_rate);
 			}
 		}
 		info.put("is_low_price",is_low_price);
-		info.put("duty_paid_price", duty_paid_price);//完税价格
-		info.put("estimated_tax", estimated_tax);//预估税金
-		info.put("tax_rate", tax_rate);//税率
-		Double total_price = Double.valueOf(info.getString("g_qty"))*Double.valueOf(info.getString("decl_price"));
-		info.put("total_price",total_price);//价格合计
+		info.put("duty_paid_price", duty_paid_price.doubleValue());//完税价格
+		info.put("estimated_tax", estimated_tax.doubleValue());//预估税金
+		info.put("tax_rate", tax_rate.doubleValue());//税率
+//		Double total_price = Double.valueOf(info.getString("g_qty"))*Double.valueOf(info.getString("decl_price"));
+		BigDecimal total_price = BigDecimalUtil.mul(info.getString("g_qty"), info.getString("decl_price"));
+		info.put("total_price",total_price.doubleValue());//价格合计
 		HBusiDataManager partH = serviceUtils.getObjectByIdAndType(cust_id,pid.longValue(),BusiTypeEnum.BF.getType());
 		if(partH==null){
 			throw new TouchException("无权操作");
@@ -157,16 +160,16 @@ public class BgdSService implements BusiService{
 
 		String zcontent = zh.getContent();
 		JSONObject jsonz = JSON.parseObject(zcontent);
-		Float weight_total = jsonz.getFloatValue("weight_total");
+		BigDecimal weight_total = BigDecimal.valueOf(jsonz.getFloatValue("weight_total"));
 		Integer lowPricegoodsz = jsonObject.getInteger("low_price_goods");
 		if(lowPricegoodsz == null)lowPricegoodsz = 0;
 		jsonz.put("low_price_goods",lowPricegoodsz + is_low_price);
 
-		if (weight_total == null) weight_total = 0f;
+		if (weight_total == null) weight_total = BigDecimal.ZERO;
 		if(StringUtil.isNotEmpty(info.getString("ggrosswt"))){
-			weight_total+=Float.valueOf(info.getString("ggrosswt"));
+			weight_total = weight_total.add(BigDecimal.valueOf(info.getFloatValue("ggrosswt")));
 		}
-		jsonz.put("weight_total", weight_total);
+		jsonz.put("weight_total", weight_total.doubleValue());
 
 		zh.setContent(jsonz.toJSONString());
 
@@ -189,9 +192,10 @@ public class BgdSService implements BusiService{
 			json.put(key, info.get(key));
 		}
 		if(info.containsKey("decl_price") && info.containsKey("g_qty")){
-			Double total_price = Double.valueOf(info.getString("g_qty"))*Double.valueOf(info.getString("decl_price"));
-			info.put("total_price", total_price);//价格合计
-			json.put("total_price",total_price);
+			BigDecimal total_price = BigDecimalUtil.mul(info.getString("g_qty"), info.getString("decl_price"));
+//			Double total_price = Double.valueOf(info.getString("g_qty"))*Double.valueOf(info.getString("decl_price"));
+			info.put("total_price", total_price.doubleValue());//价格合计
+			json.put("total_price",total_price.doubleValue());
 		}
 		serviceUtils.updateDataToES(busiType,id.toString(),json);
 
@@ -201,54 +205,55 @@ public class BgdSService implements BusiService{
 		JSONObject fjson = JSONObject.parseObject(fcontent);
 
 		List<HBusiDataManager> goodsList = serviceUtils.listSdByBillNo(cust_id,BusiTypeEnum.BS.getType(),fmanager.getExt_4(),dbManager.getExt_4());
-		float weight = 0;  //重量
+		BigDecimal weight = BigDecimal.ZERO;  //重量
 		//float pack_NO = 0; //数量
 		int lowPricegoods = 0; //低价商品数
 		int is_low_price = 0;
-		float festimated_tax = 0;//预估税金
+		BigDecimal festimated_tax = BigDecimal.ZERO;//预估税金
 		for(HBusiDataManager m:goodsList){
 			JSONObject params = new JSONObject();
 			params.put("code", m.getExt_3());
-			float tax_rate = 0;
-			float estimated_tax = 0;
-			float duty_paid_price = 0;
+			BigDecimal tax_rate = BigDecimal.ZERO;
+			BigDecimal estimated_tax = BigDecimal.ZERO;
+			BigDecimal duty_paid_price = BigDecimal.ZERO;
 			Page page = resourceService.query("", "duty_paid_rate",params);
 			if(page!=null && page.getTotal()>0){
 				List dataList = page.getData();
 				Map<String ,Object> d = (Map<String, Object>) dataList.get(0);
 				JSONObject contentObj = JSON.parseObject(JSON.toJSONString(d));
 				if(contentObj.containsKey("duty_price") && StringUtil.isNotEmpty(contentObj.getString("duty_price"))){
-					duty_paid_price = contentObj.getFloatValue("duty_price");
+					duty_paid_price = BigDecimal.valueOf(contentObj.getFloatValue("duty_price"));
 				}
 				if(contentObj.containsKey("tax_rate") && StringUtil.isNotEmpty(contentObj.getString("tax_rate"))) {
-					tax_rate = contentObj.getFloatValue("tax_rate");
+					tax_rate = BigDecimal.valueOf(contentObj.getFloatValue("tax_rate"));
 				}
-				estimated_tax = duty_paid_price*tax_rate;
-				festimated_tax += estimated_tax;
+				estimated_tax = duty_paid_price.multiply(tax_rate);
+				festimated_tax = festimated_tax.add(estimated_tax);
 			}
 
 			JSONObject goods = JSONObject.parseObject(m.getContent());
 			if(m.getId()==id.intValue()){
 				if(StringUtil.isNotEmpty(info.getString("decl_price"))){
-					if(Float.valueOf(info.getString("decl_price")) < duty_paid_price){
+					if(BigDecimal.valueOf(info.getFloatValue("decl_price")).compareTo(duty_paid_price)<0){
 						is_low_price = 1;
 					}
 				}
 				info.put("is_low_price",is_low_price);
-				info.put("duty_paid_price", duty_paid_price);//完税价格
-				info.put("estimated_tax", estimated_tax);//预估税金
-				info.put("tax_rate", tax_rate);//税率
-				Double total_price = Double.valueOf(info.getString("g_qty"))*Double.valueOf(info.getString("decl_price"));
-				info.put("total_price", total_price);//价格合计
+				info.put("duty_paid_price", duty_paid_price.doubleValue());//完税价格
+				info.put("estimated_tax", estimated_tax.doubleValue());//预估税金
+				info.put("tax_rate", tax_rate.doubleValue());//税率
+//				Double total_price = Double.valueOf(info.getString("g_qty"))*Double.valueOf(info.getString("decl_price"));
+				BigDecimal total_price = BigDecimalUtil.mul(info.getString("g_qty"), info.getString("decl_price"));
+				info.put("total_price", total_price.doubleValue());//价格合计
 			}else{
 				if(goods.containsKey("ggrosswt") && StringUtil.isNotEmpty(goods.getString("ggrosswt"))){
-					weight += goods.getFloatValue("ggrosswt");
+					weight = weight.add(BigDecimal.valueOf(goods.getFloatValue("ggrosswt")));
 				}
 //				if(goods.containsKey("g_qty") && StringUtil.isNotEmpty(goods.getString("g_qty"))){
 //					pack_NO += goods.getFloatValue("g_qty");
 //				}
 				if(StringUtil.isNotEmpty(goods.getString("decl_price"))){
-					if(Float.valueOf(goods.getString("decl_price")) < duty_paid_price){
+					if(BigDecimal.valueOf(Float.valueOf(goods.getString("decl_price"))) .compareTo(duty_paid_price)<0){
 						is_low_price = 1;
 					}
 				}
@@ -257,10 +262,10 @@ public class BgdSService implements BusiService{
 				lowPricegoods++;
 			}
 		}
-		fjson.put("weight_total",weight);
+		fjson.put("weight_total",weight.doubleValue());
 		fjson.put("lowPricegoods",lowPricegoods);
 		//fjson.put("pack_no",pack_NO);
-		fjson.put("estimated_tax",festimated_tax);
+		fjson.put("estimated_tax",festimated_tax.doubleValue());
 		serviceUtils.updateDataToES(BusiTypeEnum.BF.getType(),fmanager.getId().toString(),fjson);
 
 		String sql2 = "update "+ HMetaDataDef.getTable(BusiTypeEnum.BF.getType(),"")+" set content=? "+
