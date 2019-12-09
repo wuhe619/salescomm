@@ -509,7 +509,7 @@ public class ApiService {
         StringBuffer sql = new StringBuffer();
         //, count(api.API_ID) as countNum
         sql.append(" select api.API_ID as apiId, api.API_NAME as apiName, que.RESPONSE_BODY as body,round(log.CHARGE/10000) as charge,que.SERVICE_TIME as serviceTime");
-        sql.append(" from rs_log_" + params.getString("callMonth") + " log left  am_api api  on  log.API_ID =api.API_ID");
+        sql.append(" from rs_log_" + params.getString("callMonth") + " log left join am_api api  on  log.API_ID =api.API_ID");
         sql.append(" left join api_queue que on que.ID=log.API_LOG_ID");
         sql.append(" where 1=1");
         if (StringUtil.isNotEmpty(params.getString("apiName"))) {
@@ -523,7 +523,7 @@ public class ApiService {
             Object apiId = map.get("apiId");
             map.put("countNum",0);
             if(apiId!=null){
-                String sql1="select count(*) from  rs_log_" + params.getString("callMonth") +"where API_ID="+Integer.valueOf(apiId.toString());
+                String sql1="select count(*) from  rs_log_" + params.getString("callMonth") +" where API_ID="+Integer.valueOf(apiId.toString());
                 Integer unt = jdbcTemplate.queryForObject(sql1, Integer.class);
                 map.put("countNum",unt);
             }
