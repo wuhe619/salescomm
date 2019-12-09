@@ -260,7 +260,7 @@ public class CustomerAppService {
             CustomerProperty remain_amount = customerDao.getProperty(cust_id, "remain_amount");
             CustomerProperty used_amount = customerDao.getProperty(cust_id, "used_amount");
             if (remain_amount != null) {
-                map.put("remainAmount", StringUtil.isEmpty(sale_person.getPropertyValue()) ? "0" : StringUtil.isNumeric(remain_amount.getPropertyValue()) ? String.valueOf(Integer.valueOf(remain_amount.getPropertyValue()) / 10000) : "0");
+                map.put("remainAmount", StringUtil.isEmpty(sale_person.getPropertyValue()) ? "0" : String.valueOf(Integer.valueOf(remain_amount.getPropertyValue()) / 10000));
             }
             if (used_amount != null) {
                 map.put("userAmount", StringUtil.isEmpty(sale_person.getPropertyValue()) ? "0" : String.valueOf(Integer.valueOf(used_amount.getPropertyValue()) / 10000));

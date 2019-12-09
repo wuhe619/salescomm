@@ -15,6 +15,6 @@ public interface BusiService {
 
 	public void deleteInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id) throws Exception;
 	
-	public String formatQuery(String busiType, String cust_id, String cust_group_id, Long cust_user_id, JSONObject params, List sqlParams);
+	public String formatQuery(String busiType, String cust_id, String cust_group_id, Long cust_user_id, JSONObject params, List sqlParams) throws Exception;
 	public void formatInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, JSONObject info) ;
 }
