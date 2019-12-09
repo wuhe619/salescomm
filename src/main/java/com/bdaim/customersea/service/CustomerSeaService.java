@@ -3080,6 +3080,69 @@ public class CustomerSeaService {
     }
 
     /**
+     * 讯众自动外呼拉取号码
+     * @param taskId
+     * @param count
+     * @return
+     */
+    public List<XzPullPhoneDTO> pagePhonesToXz(String taskId, int count) {
+        LOG.info("第三方任务ID:[{}],拉取手机号,count:{}", taskId, count);
+        CustomerSea customerSea = customerSeaDao.getCustomerSeaByTaskId(taskId);
+        if (customerSea == null) {
+            return new ArrayList<>();
+        }
+        int phoneIndex = customerSea.getTaskPhoneIndex();
+        LOG.info("公海ID:[" + customerSea.getId() + "],phoneIndex:" + phoneIndex);
+
+        StringBuffer sb = new StringBuffer();
+        sb.append("SELECT id, batch_id ");
+        sb.append(" FROM " + ConstantsUtil.SEA_TABLE_PREFIX + customerSea.getId());
+        sb.append(" WHERE pull_status = 0 ");
+        sb.append(" ORDER BY n_id ASC LIMIT ? ");
+
+        List<Map<String, Object>> ids = null;
+        List<XzPullPhoneDTO> phoneList = new ArrayList<>();
+        int phoneSize = 0;
+        try {
+            ids = customerSeaDao.sqlQuery(sb.toString(), count);
+            if (ids == null || ids.size() == 0) {
+                LOG.info("公海ID:[" + customerSea.getId() + "],手机号拉取完成,phoneIndex:" + phoneIndex);
+                return phoneList;
+            }
+            phoneSize = ids.size();
+            phoneIndex += ids.size();
+            String phone;
+            for (Map<String, Object> id : ids) {
+                if (id != null) {
+                    phone = phoneService.getPhoneBySuperId(String.valueOf(id.get("id")));
+                    phoneList.add(new XzPullPhoneDTO(String.valueOf(id.get("id")), phone, String.valueOf(id.get("id"))));
+                    //保存客群和手机号对应的身份ID到redis
+                    phoneService.setCGroupDataToRedis(String.valueOf(id.get("batch_id")), String.valueOf(id.get("id")), phone);
+                    phoneService.setCGroupDataToRedis(String.valueOf(customerSea.getId()), String.valueOf(id.get("id")), phone);
+                }
+            }
+            customerSea.setTaskPhoneIndex(phoneIndex);
+            customerSeaDao.update(customerSea);
+        } catch (Exception e) {
+            LOG.error("公海ID:[" + customerSea.getId() + "]拉取手机号失败,", e);
+            phoneList = new ArrayList<>();
+            // 拉号标志位重置
+            customerSea.setTaskPhoneIndex(phoneIndex - phoneSize);
+            customerSeaDao.update(customerSea);
+        }
+        if (phoneList != null && phoneList.size() > 0) {
+            // 更新拉号标识
+            String sql = "UPDATE " + ConstantsUtil.SEA_TABLE_PREFIX + customerSea.getId() + " SET pull_status = ? WHERE id = ? ";
+            for (Map<String, Object> id : ids) {
+                if (id != null && id.get("id") != null) {
+                    customerSeaDao.executeUpdateSQL(sql, 1, id.get("id"));
+                }
+            }
+        }
+        return phoneList;
+    }
+
+    /**
      * 查询公海线索
      *
      * @param seaId
@@ -3191,19 +3254,19 @@ public class CustomerSeaService {
             sb.append(" and custG.batch_id =" + param.getBatchId());
         }
         if (StringUtil.isNotEmpty(param.getAddStartTime()) && StringUtil.isNotEmpty(param.getAddEndTime())) {
-            sb.append(" and custG.create_time BETWEEN '" + param.getAddStartTime() + "' AND '" + param.getAddEndTime()+"'");
+            sb.append(" and custG.create_time BETWEEN '" + param.getAddStartTime() + "' AND '" + param.getAddEndTime() + "'");
         } else if (StringUtil.isNotEmpty(param.getAddStartTime())) {
-            sb.append(" and custG.create_time >= '" + param.getAddStartTime().replace("/","-")+"'");
+            sb.append(" and custG.create_time >= '" + param.getAddStartTime().replace("/", "-") + "'");
         } else if (StringUtil.isNotEmpty(param.getAddEndTime())) {
-            sb.append(" and custG.create_time <= '" + param.getAddEndTime().replace("/","-")+"'");
+            sb.append(" and custG.create_time <= '" + param.getAddEndTime().replace("/", "-") + "'");
         }
 
         if (StringUtil.isNotEmpty(param.getCallStartTime()) && StringUtil.isNotEmpty(param.getCallEndTime())) {
-            sb.append(" and custG.last_call_time BETWEEN '" + param.getCallStartTime() + "' AND '" + param.getCallEndTime()+"'");
+            sb.append(" and custG.last_call_time BETWEEN '" + param.getCallStartTime() + "' AND '" + param.getCallEndTime() + "'");
         } else if (StringUtil.isNotEmpty(param.getCallStartTime())) {
-            sb.append(" and custG.last_call_time >= '" + param.getCallStartTime()+"'");
+            sb.append(" and custG.last_call_time >= '" + param.getCallStartTime() + "'");
         } else if (StringUtil.isNotEmpty(param.getCallEndTime())) {
-            sb.append(" and custG.last_call_time <= '" + param.getCallEndTime()+"'");
+            sb.append(" and custG.last_call_time <= '" + param.getCallEndTime() + "'");
         }
 
         if (StringUtil.isNotEmpty(param.getLastCallResult())) {
@@ -3261,10 +3324,10 @@ public class CustomerSeaService {
             sb.append(param.getRegCapitalMax() == null ? 0 : param.getRegCapitalMax());
         }
         if (StringUtil.isNotEmpty(param.getCreateTime())) {
-            sb.append(" AND custG.super_data -> " + "'$.SYS011' >= " + "'" + param.getCreateTime().replace("/","-") + "'");
+            sb.append(" AND custG.super_data -> " + "'$.SYS011' >= " + "'" + param.getCreateTime().replace("/", "-") + "'");
         }
         if (StringUtil.isNotEmpty(param.getEndTime())) {
-            sb.append(" AND custG.super_data -> " + "'$.SYS011' <= " + "'" + param.getEndTime().replace("/","-") + "'");
+            sb.append(" AND custG.super_data -> " + "'$.SYS011' <= " + "'" + param.getEndTime().replace("/", "-") + "'");
         }
         if (StringUtil.isNotEmpty(param.getRegStatus())) {
             sb.append(" AND custG.super_data -> " + "'$.SYS012' like " + "'%" + param.getRegStatus() + "%'");
@@ -3338,35 +3401,35 @@ public class CustomerSeaService {
             sb.append(" and custG.batch_id =" + param.getBatchId());
         }
         if (StringUtil.isNotEmpty(param.getAddStartTime()) && StringUtil.isNotEmpty(param.getAddEndTime())) {
-            sb.append(" and custG.create_time BETWEEN '" + param.getAddStartTime() + "' AND '" + param.getAddEndTime()+"'");
+            sb.append(" and custG.create_time BETWEEN '" + param.getAddStartTime() + "' AND '" + param.getAddEndTime() + "'");
         } else if (StringUtil.isNotEmpty(param.getAddStartTime())) {
-            sb.append(" and custG.create_time >= '" + param.getAddStartTime().replace("/","-")+"'");
+            sb.append(" and custG.create_time >= '" + param.getAddStartTime().replace("/", "-") + "'");
         } else if (StringUtil.isNotEmpty(param.getAddEndTime())) {
-            sb.append(" and custG.create_time <= '" + param.getAddEndTime().replace("/","-")+"'");
+            sb.append(" and custG.create_time <= '" + param.getAddEndTime().replace("/", "-") + "'");
         }
 
         if (StringUtil.isNotEmpty(param.getCallStartTime()) && StringUtil.isNotEmpty(param.getCallEndTime())) {
-            sb.append(" and custG.last_call_time BETWEEN '" + param.getCallStartTime() + "' AND '" + param.getCallEndTime()+"'");
+            sb.append(" and custG.last_call_time BETWEEN '" + param.getCallStartTime() + "' AND '" + param.getCallEndTime() + "'");
         } else if (StringUtil.isNotEmpty(param.getCallStartTime())) {
-            sb.append(" and custG.last_call_time >= '" + param.getCallStartTime()+"'");
+            sb.append(" and custG.last_call_time >= '" + param.getCallStartTime() + "'");
         } else if (StringUtil.isNotEmpty(param.getCallEndTime())) {
-            sb.append(" and custG.last_call_time <= '" + param.getCallEndTime()+"'");
+            sb.append(" and custG.last_call_time <= '" + param.getCallEndTime() + "'");
         }
 
         if (StringUtil.isNotEmpty(param.getUserGetStartTime()) && StringUtil.isNotEmpty(param.getUserGetEndTime())) {
-            sb.append(" and custG.user_get_time BETWEEN '" + param.getUserGetStartTime() + "' AND '" + param.getUserGetEndTime()+"'");
+            sb.append(" and custG.user_get_time BETWEEN '" + param.getUserGetStartTime() + "' AND '" + param.getUserGetEndTime() + "'");
         } else if (StringUtil.isNotEmpty(param.getUserGetStartTime())) {
-            sb.append(" and custG.user_get_time >= '" + param.getUserGetStartTime()+"'");
+            sb.append(" and custG.user_get_time >= '" + param.getUserGetStartTime() + "'");
         } else if (StringUtil.isNotEmpty(param.getUserGetEndTime())) {
-            sb.append(" and custG.user_get_time <= '" + param.getUserGetEndTime()+"'");
+            sb.append(" and custG.user_get_time <= '" + param.getUserGetEndTime() + "'");
         }
 
         if (StringUtil.isNotEmpty(param.getLastMarkStartTime()) && StringUtil.isNotEmpty(param.getLastMarkEndTime())) {
-            sb.append(" and custG.last_mark_time BETWEEN '" + param.getLastMarkStartTime() + "' AND '" + param.getLastMarkEndTime()+"'");
+            sb.append(" and custG.last_mark_time BETWEEN '" + param.getLastMarkStartTime() + "' AND '" + param.getLastMarkEndTime() + "'");
         } else if (StringUtil.isNotEmpty(param.getLastMarkStartTime())) {
-            sb.append(" and custG.last_mark_time >= '" + param.getLastMarkStartTime()+"'");
+            sb.append(" and custG.last_mark_time >= '" + param.getLastMarkStartTime() + "'");
         } else if (StringUtil.isNotEmpty(param.getLastMarkEndTime())) {
-            sb.append(" and custG.last_mark_time <= '" + param.getLastMarkEndTime()+"'");
+            sb.append(" and custG.last_mark_time <= '" + param.getLastMarkEndTime() + "'");
         }
 
         if (StringUtil.isNotEmpty(param.getLastCallResult())) {
@@ -3459,10 +3522,10 @@ public class CustomerSeaService {
             sb.append(param.getRegCapitalMax() == null ? 0 : param.getRegCapitalMax());
         }
         if (StringUtil.isNotEmpty(param.getCreateTime())) {
-            sb.append(" AND custG.super_data -> " + "'$.SYS011' >= " + "'" + param.getCreateTime().replace("/","-") + "'");
+            sb.append(" AND custG.super_data -> " + "'$.SYS011' >= " + "'" + param.getCreateTime().replace("/", "-") + "'");
         }
         if (StringUtil.isNotEmpty(param.getEndTime())) {
-            sb.append(" AND custG.super_data -> " + "'$.SYS011' <= " + "'" + param.getEndTime().replace("/","-") + "'");
+            sb.append(" AND custG.super_data -> " + "'$.SYS011' <= " + "'" + param.getEndTime().replace("/", "-") + "'");
         }
         if (StringUtil.isNotEmpty(param.getRegStatus())) {
             sb.append(" AND custG.super_data -> " + "'$.SYS012' like " + "'%" + param.getRegStatus() + "%'");
