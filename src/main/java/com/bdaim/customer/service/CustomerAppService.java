@@ -245,6 +245,7 @@ public class CustomerAppService {
         PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
         Object collect = list.getList().stream().map(m -> {
             Map map = (Map) m;
+            logger.info("Map:{" + map + "}");
             if (StringUtil.isEmpty(map.get("custId").toString())) {
                 return map;
             }
@@ -260,6 +261,7 @@ public class CustomerAppService {
             CustomerProperty remain_amount = customerDao.getProperty(cust_id, "remain_amount");
             CustomerProperty used_amount = customerDao.getProperty(cust_id, "used_amount");
             if (remain_amount != null) {
+                logger.info("remain_amount:{"+remain_amount+"}");
                 map.put("remainAmount", StringUtil.isEmpty(remain_amount.getPropertyValue()) ? "0" : String.valueOf(Integer.valueOf(remain_amount.getPropertyValue()) / 10000));
             }
             if (used_amount != null) {
