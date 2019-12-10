@@ -54,7 +54,8 @@ public class BusiEntityService {
      */
     public JSONObject doInfo(String cust_id, String cust_group_id, Long cust_user_id, String busiType, Long id, JSONObject param) throws Exception {
         JSONObject jo = new JSONObject();
-
+        logger.info("开始");
+        long startTime = System.currentTimeMillis();
         String sql = "select content, cust_id, cust_group_id, cust_user_id, create_id, create_date ,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(busiType, "") + " where type=? and id=? ";
         if (!"all".equals(cust_id))
             sql += " and cust_id='" + cust_id + "'";
@@ -119,6 +120,9 @@ public class BusiEntityService {
         } catch (Exception e) {
             logger.error("数据格式错误！", e);
             throw new Exception("数据格式错误！");
+        }finally {
+            long endTime = System.currentTimeMillis();
+            logger.info("校验耗时:" + (endTime - startTime));
         }
 
         return jo;

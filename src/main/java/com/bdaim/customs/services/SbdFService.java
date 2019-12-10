@@ -227,17 +227,7 @@ public class SbdFService implements BusiService {
             id, JSONObject info, JSONObject param) throws TouchException {
         // TODO Auto-generated method stub
         if ("SBDCHECK".equals(param.getString("_rule_"))) {
-            log.info("开始校验");
-            long startTime = System.currentTimeMillis();
-            try {
                 sbdfCheck(id);
-            } catch (TouchException e) {
-                throw new TouchException(e.getMessage());
-            } finally {
-                long endTime = System.currentTimeMillis();
-                log.info("校验耗时:" + (endTime - startTime));
-            }
-
         }
 
     }
