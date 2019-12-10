@@ -43,7 +43,7 @@ public class OperLogAction extends BasicAction {
     @Resource
     private OperLogService operlogserv;
     @Resource
-    private TokenCacheService tokenCacheService;
+    private TokenCacheService<LoginUser> tokenCacheService;
 
 
     public OperLogAction() {
@@ -113,9 +113,9 @@ public class OperLogAction extends BasicAction {
      */
     @ResponseBody
     @RequestMapping(value = "/saveUserOperateLog", method = RequestMethod.POST)
-    public String saveUserOperateLog(UserOperLog entity) {
+    public String saveUserOperateLog(UserOperLog entity) throws Exception{
         long userId = 0L;
-        LoginUser userDetail = (LoginUser) tokenCacheService.getToken(request.getHeader("Authorization"));
+        LoginUser userDetail = tokenCacheService.getToken(request.getHeader("Authorization"), LoginUser.class);
         if (userDetail == null) {
             LOG.warn("未获取到当前登录用户类型失败,默认为前台用户");
         } else {
@@ -136,11 +136,11 @@ public class OperLogAction extends BasicAction {
      */
     @ResponseBody
     @RequestMapping(value = "/pageUserOperateLog", method = RequestMethod.POST)
-    public String pageUserOperateLog(@Valid PageParam pageParam, BindingResult error, UserOperLogDTO entity) {
+    public String pageUserOperateLog(@Valid PageParam pageParam, BindingResult error, UserOperLogDTO entity) throws Exception{
         if (error.hasErrors()) {
             return getErrors(error);
         }
-        LoginUser userDetail = (LoginUser) tokenCacheService.getToken(request.getHeader("Authorization"));
+        LoginUser userDetail = tokenCacheService.getToken(request.getHeader("Authorization"), LoginUser.class);
         boolean groupBy = false;
         int beforeMonth = 0;
         // 未获取到用户ID则按照请求ip查询

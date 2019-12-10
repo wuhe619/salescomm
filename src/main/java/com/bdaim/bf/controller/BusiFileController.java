@@ -48,7 +48,7 @@ public class BusiFileController extends BasicAction {
         	Long cust_user_id = lu.getId();
         	if(cust_id==null || "".equals(cust_id))
         		cust_id="-1";
-        	if(lu.getAuthorities().contains("admin") || lu.getAuthorities().contains("ROLE_USER"))
+        	if(lu.getAuths().contains("admin") || lu.getAuths().contains("ROLE_USER"))
         		cust_id="all";
         	
         	resp.setData(busiFileService.query(cust_id, cust_group_id, cust_user_id, busiType, params));

@@ -242,28 +242,34 @@ public class CustomerAppService {
             sql.append(" AND tc.enterprise_name like '%" + name + "%'");
         }
         sql.append(" order by s.create_time desc");
+        logger.info("sql:{" + sql + "}");
         PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
         Object collect = list.getList().stream().map(m -> {
             Map map = (Map) m;
+            logger.info("Map:{" + map + "}");
             if (StringUtil.isEmpty(map.get("custId").toString())) {
                 return map;
             }
             String cust_id = map.get("custId").toString();
             CustomerProperty mobile = customerDao.getProperty(cust_id, "mobile");
             if (mobile != null) {
+                logger.info("mobile:{"+mobile+"}");
                 map.put("mobile", mobile.getPropertyValue());
             }
             CustomerProperty sale_person = customerDao.getProperty(cust_id, "sale_person");
             if (sale_person != null) {
+                logger.info("sale_person:{"+sale_person+"}");
                 map.put("salePerson", sale_person.getPropertyValue());
             }
             CustomerProperty remain_amount = customerDao.getProperty(cust_id, "remain_amount");
             CustomerProperty used_amount = customerDao.getProperty(cust_id, "used_amount");
             if (remain_amount != null) {
-                map.put("remainAmount", StringUtil.isEmpty(sale_person.getPropertyValue()) ? "0" : String.valueOf(Integer.valueOf(remain_amount.getPropertyValue()) / 10000));
+                logger.info("remain_amount:{"+remain_amount+"}");
+                map.put("remainAmount", StringUtil.isEmpty(remain_amount.getPropertyValue()) ? "0" : String.valueOf(Integer.valueOf(remain_amount.getPropertyValue()) / 10000));
             }
             if (used_amount != null) {
-                map.put("userAmount", StringUtil.isEmpty(sale_person.getPropertyValue()) ? "0" : String.valueOf(Integer.valueOf(used_amount.getPropertyValue()) / 10000));
+                logger.info("used_amount:{"+used_amount+"}");
+                map.put("userAmount", StringUtil.isEmpty(used_amount.getPropertyValue()) ? "0" : String.valueOf(Integer.valueOf(used_amount.getPropertyValue()) / 10000));
             }
             return map;
         }).collect(Collectors.toList());
