@@ -279,6 +279,7 @@ public class ExportExcelService {
                     for (int j = 0; j < ssList.size(); j++) {
                         ssData = new HashMap<>();
                         ssData.putAll(ssList.getJSONObject(j));
+                        ssData.putAll(m);
                         ssData.put("index", sIndex);
                         sIndex++;
                         list_two.add(ssData);

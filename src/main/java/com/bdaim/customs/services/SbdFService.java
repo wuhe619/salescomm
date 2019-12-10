@@ -224,8 +224,11 @@ public class SbdFService implements BusiService {
 
     @Override
     public void doInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long
-            id, JSONObject info, JSONObject param) {
+            id, JSONObject info, JSONObject param) throws TouchException {
         // TODO Auto-generated method stub
+        if ("SBDCHECK".equals(param.getString("_rule_"))) {
+            sbdfCheck(id);
+        }
 
     }
 
@@ -315,9 +318,6 @@ public class SbdFService implements BusiService {
 
             }
             return sqlstr.toString();
-        } else if ("SBDCHECK".equals(params.getString("_rule_"))) {
-            sbdfCheck(params.getInteger("id"));
-            return "1";
         }
         return null;
     }
@@ -397,12 +397,12 @@ public class SbdFService implements BusiService {
     /*
     校验
      */
-    public synchronized int sbdfCheck(long id) throws Exception {
+    public synchronized int sbdfCheck(long id) throws TouchException {
         String sql1 = "select ext_3,content from h_data_manager_sbd_f where id = " + id;
 
         List<Map<String, Object>> list = jdbcTemplate.queryForList(sql1);
         if (list.size() == 0) {
-            throw new Exception("分单:[" + id + "],不存在");
+            throw new TouchException("2000", "分单:[" + id + "],不存在");
         }
         Object ext_3 = list.get(0).get("ext_3");
         Object content = list.get(0).get("content");
@@ -410,15 +410,15 @@ public class SbdFService implements BusiService {
         double weight = jsonObject.getDoubleValue("weight");//毛重
         double net_weight = jsonObject.getDoubleValue("net_weight");//净重
         if (net_weight > weight) {
-            throw new Exception("分单:[" + id + "],净重大于毛重");
+            throw new TouchException("2000", "分单:[" + id + "],净重大于毛重");
         }
         String sql = "select sum(content->'$.ggrosswt'*100) from h_data_manager_sbd_s where ext_4 = '" + ext_3 + "'";
         Double d = jdbcTemplate.queryForObject(sql, Double.class) / 100;
         if (weight >= d + 1) {
-            throw new Exception("分单:[" + id + "],毛重大于商品重量之和一公斤");
+            throw new TouchException("2000", "分单:[" + id + "],毛重大于商品重量之和一公斤");
         }
         if (d > weight) {
-            throw new Exception("分单:[" + id + "],商品重量之和大于分单的毛重");
+            throw new TouchException("2000", "分单:[" + id + "],商品重量之和大于分单的毛重");
         }
 
         return 1;
