@@ -339,20 +339,21 @@ public class ServiceUtils {
         }
         log.info("查询税单sql:{}", sql);
         List<Map<String, Object>> list = jdbcTemplate.queryForList(sql.toString(), sqlParams.toArray());
-        list.parallelStream().map(map->{
-           if( map.containsKey("content")){
-               JSONObject content = JSON.parseObject(map.get("content").toString());
-               content.put("receive_tel",map.containsKey("receive_tel")?map.get("receive_tel"):"");
-               content.put("receive_address",map.containsKey("receive_address")?map.get("receive_address"):"");
-               content.put("receive_name",map.containsKey("receive_name")?map.get("receive_name"):"");
-               content.put("id_type",map.containsKey("id_type")?map.get("id_type"):"");
-               content.put("id_no",map.containsKey("id_no")?map.get("id_no"):"");
-           }
+        List<Map<String, Object>> collect = list.parallelStream().map(map -> {
+            if (map.containsKey("content")) {
+                JSONObject content = JSON.parseObject(map.get("content").toString());
+                content.put("receive_tel", map.containsKey("receive_tel") ? map.get("receive_tel") : "");
+                content.put("receive_address", map.containsKey("receive_address") ? map.get("receive_address") : "");
+                content.put("receive_name", map.containsKey("receive_name") ? map.get("receive_name") : "");
+                content.put("id_type", map.containsKey("id_type") ? map.get("id_type") : "");
+                content.put("id_no", map.containsKey("id_no") ? map.get("id_no") : "");
+                map.put("content", content);
+            }
 
-            return null;
+            return map;
         }).collect(Collectors.toList());
         //List<JSONObject> result = JSON.parseArray(JSON.toJSONString(list), JSONObject.class);
-        return JSON.parseArray(JSON.toJSONString(list), JSONObject.class);
+        return JSON.parseArray(JSON.toJSONString(collect), JSONObject.class);
     }
     /**
      * 根据主单号和查询税单列表
