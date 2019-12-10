@@ -309,10 +309,10 @@ public class ServiceUtils {
         List sqlParams = new ArrayList();
         StringBuffer sql = new StringBuffer();
         sql.append("select s.id, s.type, s.content, s.cust_id, s.create_id, s.create_date,s.ext_1, s.ext_2, s.ext_3, s.ext_4, s.ext_5 ,f.content->'$.receive_tel',f.content->'$.id_type',f.content->'id_no',f.content->'$.receive_name',f.content->'$.receive_address' from " + HMetaDataDef.getTable(type, "") +
-                "f left join "+ HMetaDataDef.getTable(type, "")+" f on s.ext_4= f.ext_3" +
-                " where type=? AND " + BusiMetaConfig.getFieldIndex(type, "main_bill_no") + " = ?  AND " + BusiMetaConfig.getFieldIndex(type, "pid") + " IN (" + SqlAppendUtil.sqlAppendWhereIn(partyNos) + ")");
+                " s left join "+ HMetaDataDef.getTable(type, "")+" f on s.ext_4= f.ext_3" +
+                " where s.type=? AND s." + BusiMetaConfig.getFieldIndex(type, "main_bill_no") + " = ?  AND s." + BusiMetaConfig.getFieldIndex(type, "pid") + " IN (" + SqlAppendUtil.sqlAppendWhereIn(partyNos) + ")");
         if (!"all".equals(custId))
-            sql.append(" and cust_id='").append(custId).append("'");
+            sql.append(" and s.cust_id='").append(custId).append("'");
         sqlParams.add(type);
         sqlParams.add(mainBillNo);
 
@@ -323,17 +323,17 @@ public class ServiceUtils {
             if ("pageNum".equals(key) || "pageSize".equals(key) || "stationId".equals(key) || "cust_id".equals(key) || "_rule_".equals(key)) {
                 continue;
             } else if (key.startsWith("_g_")) {
-                sql.append(" and " + BusiMetaConfig.getFieldIndex(type, key) + " > ?");
+                sql.append(" and s." + BusiMetaConfig.getFieldIndex(type, key) + " > ?");
             } else if (key.startsWith("_ge_")) {
-                sql.append(" and " + BusiMetaConfig.getFieldIndex(type, key) + " >= ?");
+                sql.append(" and s." + BusiMetaConfig.getFieldIndex(type, key) + " >= ?");
             } else if (key.startsWith("_l_")) {
-                sql.append(" and " + BusiMetaConfig.getFieldIndex(type, key) + " < ?");
+                sql.append(" and s." + BusiMetaConfig.getFieldIndex(type, key) + " < ?");
             } else if (key.startsWith("_le_")) {
-                sql.append(" and " + BusiMetaConfig.getFieldIndex(type, key) + " <= ?");
+                sql.append(" and s." + BusiMetaConfig.getFieldIndex(type, key) + " <= ?");
             } else if (key.startsWith("_eq_")) {
-                sql.append(" and " + BusiMetaConfig.getFieldIndex(type, key) + " = ?");
+                sql.append(" and s." + BusiMetaConfig.getFieldIndex(type, key) + " = ?");
             } else {
-                sql.append(" and " + BusiMetaConfig.getFieldIndex(type, key) + "=?");
+                sql.append(" and s." + BusiMetaConfig.getFieldIndex(type, key) + "=?");
             }
             sqlParams.add(param.get(key));
         }
