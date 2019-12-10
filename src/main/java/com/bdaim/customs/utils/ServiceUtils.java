@@ -352,6 +352,7 @@ public class ServiceUtils {
 
             return map;
         }).collect(Collectors.toList());
+        log.info("bgd：{"+collect.toString()+"}");
         //List<JSONObject> result = JSON.parseArray(JSON.toJSONString(list), JSONObject.class);
         return JSON.parseArray(JSON.toJSONString(collect), JSONObject.class);
     }
