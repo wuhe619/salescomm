@@ -102,10 +102,13 @@ public class BusiEntityService {
                 BusiService busiService = (BusiService) SpringContextHelper.getBean("busi_" + busiType);
                 if (busiService != null)
                     busiService.doInfo(busiType, cust_id, cust_group_id, cust_user_id, id, jo, param);
-                //查询场站和报关单位
-                serviceUtils.getStationCustName(jo);
-                // 查询字典数据
-                serviceUtils.getHDicData(jo);
+                if (!"SBDCHECK".equals(param.getString("_rule_"))) {
+                    //查询场站和报关单位
+                    serviceUtils.getStationCustName(jo);
+                    // 查询字典数据
+                    serviceUtils.getHDicData(jo);
+                }
+
             }
         } catch (TouchException e) {
             logger.error("数据格式错误！", e);

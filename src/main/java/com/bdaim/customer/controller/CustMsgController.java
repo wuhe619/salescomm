@@ -1,7 +1,7 @@
 package com.bdaim.customer.controller;
 
-import javax.annotation.Resource;
 
+import com.bdaim.common.controller.BasicAction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,13 +10,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.auth.LoginUser;
-import com.bdaim.auth.service.impl.TokenServiceImpl;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.customer.service.CustMsgService;
@@ -27,13 +25,11 @@ import com.bdaim.customer.service.CustMsgService;
  */
 @RestController
 @RequestMapping("/customer/msg")
-public class CustMsgController {
+public class CustMsgController extends BasicAction {
 	private static Logger logger = LoggerFactory.getLogger(CustMsgController.class);
 			
 	@Autowired
 	private CustMsgService custMsgService;
-	@Resource
-	private TokenServiceImpl tokenService;
 	
 	
 	@PostMapping(value = "/all")
@@ -50,7 +46,7 @@ public class CustMsgController {
     	}
     	
     	try {
-        	LoginUser lu = tokenService.opUser();
+        	LoginUser lu = opUser();
         	String cust_id = lu.getCustId();
         	String cust_group_id = lu.getUserGroupId();
         	String cust_user_id = lu.getUser_id();
@@ -79,7 +75,7 @@ public class CustMsgController {
     	ResponseInfo resp = new ResponseInfo();
     	
         try {
-        	LoginUser lu = tokenService.opUser();
+        	LoginUser lu = opUser();
         	String cust_id = lu.getCustId();
         	String cust_group_id = lu.getUserGroupId();
         	String cust_user_id = lu.getUser_id();
