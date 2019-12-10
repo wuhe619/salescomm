@@ -413,6 +413,7 @@ public class SbdFService implements BusiService {
         JSONObject jsonObject = JSON.parseObject(content.toString());
         double weight = jsonObject.getDoubleValue("weight");//毛重
         double net_weight = jsonObject.getDoubleValue("net_weight");//净重
+        System.err.println("净重:"+net_weight);
         if (net_weight > weight) {
             throw new TouchException("2000", "分单:[" + id + "],净重大于毛重");
         }
@@ -421,6 +422,9 @@ public class SbdFService implements BusiService {
         if (weight >= d + 1) {
             throw new TouchException("2000", "分单:[" + id + "],毛重大于商品重量之和一公斤");
         }
+        System.err.println("商品重量:"+d);
+        System.err.println("毛重:"+weight);
+
         if (d > weight) {
             throw new TouchException("2000", "分单:[" + id + "],商品重量之和大于分单的毛重");
         }
