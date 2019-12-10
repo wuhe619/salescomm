@@ -86,7 +86,7 @@ public class UserAction extends BasicAction {
     @Resource
     private CustomerService customerService;
     @Resource
-    private TokenCacheService tokenCacheService;
+    private TokenCacheService<LoginUser> tokenCacheService;
 
     @RequestMapping(value = "/identify/check", method = RequestMethod.GET)
     @ResponseBody
@@ -279,7 +279,7 @@ public class UserAction extends BasicAction {
     @ResponseBody
     @RequestMapping(value = "/token", method = RequestMethod.POST)
     @CacheAnnotation
-    public String token(String username, String password, String code, String authorize) {
+    public String token(String username, String password, String code, String authorize) throws Exception{
         ResponseResult responseResult = new ResponseResult();
         responseResult.setStateCode("401");  //login fail
         if (username == null || password == null || "".equals(username) || "".equals(password)) {
@@ -314,7 +314,7 @@ public class UserAction extends BasicAction {
                 }
             }
 
-            userdetail = new LoginUser(u.getId(), u.getName(), CipherUtil.encodeByMD5(u.getId() + "" + System.currentTimeMillis()), auths);
+            userdetail = new LoginUser(u.getId(), u.getName(), CipherUtil.encodeByMD5(u.getId() + "" + System.currentTimeMillis()));
             userdetail.setCustId("0");
             userdetail.setId(u.getId());
             userdetail.setUserType(String.valueOf(1));
@@ -325,7 +325,7 @@ public class UserAction extends BasicAction {
 
             responseResult.setStateCode("200");
             responseResult.setMsg("SUCCESS");
-            responseResult.setAuth(userdetail.getAuthorities().toArray()[0].toString());
+            responseResult.setAuth(userdetail.getAuths().size()>0?userdetail.getAuths().get(0):"");
             responseResult.setUserName(userdetail.getUsername());
             responseResult.setCustId(userdetail.getCustId());
             responseResult.setUserType(userdetail.getUserType());

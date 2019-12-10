@@ -48,8 +48,6 @@ import com.bdaim.util.StringUtil;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -94,7 +92,7 @@ public class CustomerAction extends BasicAction {
     @Resource
     private CustomerSeaService customerSeaService;
     @Resource
-    private TokenCacheService tokenCacheService;
+    private TokenCacheService<LoginUser> tokenCacheService;
     @Resource
     private B2BTcbService b2BTcbService;
 
@@ -403,7 +401,7 @@ public class CustomerAction extends BasicAction {
     @ResponseBody
     @RequestMapping(value = "/token", method = RequestMethod.POST)
     @CacheAnnotation
-    public String token(String username, String password, String code) {
+    public String token(String username, String password, String code) throws Exception{
         ResponseResult responseResult = new ResponseResult();
         responseResult.setStateCode("401");  //login fail
         if (username == null || password == null || "".equals(username) || "".equals(password)) {
@@ -412,29 +410,29 @@ public class CustomerAction extends BasicAction {
         }
 
         CustomerUser u = customerUserService.getUserByName(username);
-        List<GrantedAuthority> auths = new ArrayList<GrantedAuthority>();
         LoginUser userdetail = null;
 
         if (u != null && CipherUtil.generatePassword(password).equals(u.getPassword())) {
             //寻找登录账号已有的token, 需重构
             String tokenid = (String) name2token.get(username);
             if (tokenid != null && !"".equals(tokenid)) {
-                userdetail = (LoginUser) tokenCacheService.getToken(tokenid);
-            }
-
-            if (1 == u.getStatus()) {
-                auths.add(new SimpleGrantedAuthority("USER_FREEZE"));
-            } else if (3 == u.getStatus()) {
-                auths.add(new SimpleGrantedAuthority("USER_NOT_EXIST"));
-            } else if (0 == u.getStatus()) {
-                //user_type: 1=管理员 2=普通员工 3=项目管理员
-                auths.add(new SimpleGrantedAuthority("ROLE_CUSTOMER"));
+                userdetail = tokenCacheService.getToken(tokenid, LoginUser.class);
             }
 
             if (userdetail == null) {
                 name2token.remove(username);
-                userdetail = new LoginUser(u.getId(), u.getAccount(), CipherUtil.encodeByMD5(u.getId() + "" + System.currentTimeMillis()), auths);
+                userdetail = new LoginUser(u.getId(), u.getAccount(), CipherUtil.encodeByMD5(u.getId() + "" + System.currentTimeMillis()));
             }
+
+            if (1 == u.getStatus()) {
+            	userdetail.addAuth("USER_FREEZE");
+            } else if (3 == u.getStatus()) {
+            	userdetail.addAuth("USER_NOT_EXIST");
+            } else if (0 == u.getStatus()) {
+                //user_type: 1=管理员 2=普通员工 3=项目管理员
+            	userdetail.addAuth("ROLE_CUSTOMER");
+            }
+            
             userdetail.setCustId(u.getCust_id());
             userdetail.setId(u.getId());
             userdetail.setUserType(String.valueOf(u.getUserType()));
@@ -458,7 +456,7 @@ public class CustomerAction extends BasicAction {
             responseResult.setStatus(u.getStatus().toString());
             responseResult.setStateCode("200");
             responseResult.setMsg("SUCCESS");
-            responseResult.setAuth(userdetail.getAuthorities().toArray()[0].toString());
+            responseResult.setAuth(userdetail.getAuths().size()>0 ? userdetail.getAuths().get(0):"");
             responseResult.setUserName(userdetail.getUsername());
             responseResult.setCustId(userdetail.getCustId());
             responseResult.setUserType(userdetail.getUserType());
@@ -484,7 +482,7 @@ public class CustomerAction extends BasicAction {
     @RequestMapping(value = "/m/login", method = RequestMethod.POST)
     @CacheAnnotation
     public String login(String username, String password, String realName, String code, String type,
-                        String client, String area, String channel, String registerSource, String touchType) {
+                        String client, String area, String channel, String registerSource, String touchType) throws Exception{
         ResponseResult responseResult = new ResponseResult();
         responseResult.setStateCode("401");
         if (StringUtil.isEmpty(username) || StringUtil.isEmpty(code) || StringUtil.isEmpty(type)) {
@@ -503,7 +501,6 @@ public class CustomerAction extends BasicAction {
             // 保存用户
             u = customerUserService.saveCustomerUser(username, "", "0", 1, realName, username, client, area, channel, registerSource, touchType);
         }
-        List<GrantedAuthority> auth = new ArrayList<>();
         LoginUser userDetail = null;
         if (u != null) {
             // 更新realName
@@ -516,19 +513,21 @@ public class CustomerAction extends BasicAction {
             //寻找登录账号已有的token, 需重构
             String tokenid = (String) name2token.get(username);
             if (tokenid != null && !"".equals(tokenid)) {
-                userDetail = (LoginUser) tokenCacheService.getToken(tokenid);
+                userDetail = tokenCacheService.getToken(tokenid, LoginUser.class);
             }
-            if (1 == u.getStatus()) {
-                auth.add(new SimpleGrantedAuthority("USER_FREEZE"));
-            } else if (3 == u.getStatus()) {
-                auth.add(new SimpleGrantedAuthority("USER_NOT_EXIST"));
-            } else if (0 == u.getStatus()) {
-                auth.add(new SimpleGrantedAuthority("ROLE_CUSTOMER"));
-            }
+            
             if (userDetail == null) {
                 name2token.remove(username);
-                userDetail = new LoginUser(u.getId(), u.getAccount(), CipherUtil.encodeByMD5(u.getId() + "" + System.currentTimeMillis()), auth);
+                userDetail = new LoginUser(u.getId(), u.getAccount(), CipherUtil.encodeByMD5(u.getId() + "" + System.currentTimeMillis()));
             }
+            if (1 == u.getStatus()) {
+            	userDetail.addAuth("USER_FREEZE");
+            } else if (3 == u.getStatus()) {
+            	userDetail.addAuth("USER_NOT_EXIST");
+            } else if (0 == u.getStatus()) {
+            	userDetail.addAuth("ROLE_CUSTOMER");
+            }
+            
             userDetail.setCustId(u.getCust_id());
             userDetail.setId(u.getId());
             userDetail.setUserType(String.valueOf(u.getUserType()));
@@ -551,7 +550,7 @@ public class CustomerAction extends BasicAction {
             responseResult.setStatus(u.getStatus().toString());
             responseResult.setStateCode("200");
             responseResult.setMsg("SUCCESS");
-            responseResult.setAuth(userDetail.getAuthorities().toArray()[0].toString());
+            responseResult.setAuth(userDetail.getAuths().size()>0 ? userDetail.getAuths().get(0):"");
             responseResult.setUserName(userDetail.getUsername());
             responseResult.setCustId(userDetail.getCustId());
             responseResult.setUserType(userDetail.getUserType());
