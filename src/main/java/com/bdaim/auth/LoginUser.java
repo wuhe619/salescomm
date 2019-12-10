@@ -11,8 +11,8 @@ import java.util.Collection;
  */
 public class LoginUser extends Token {
 	public LoginUser() {
-		
-	}
+        super();
+    }
 	public LoginUser(Long userid, String username, String tokenid) {
         this.id = userid;
         this.userName=username;
