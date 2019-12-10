@@ -309,7 +309,7 @@ public class ServiceUtils {
         List sqlParams = new ArrayList();
         StringBuffer sql = new StringBuffer();
         sql.append("select s.id, s.type, s.content, s.cust_id, s.create_id, s.create_date,s.ext_1, s.ext_2, s.ext_3, s.ext_4, s.ext_5 ,f.content->'$.receive_tel',f.content->'$.id_type',f.content->'id_no',f.content->'$.receive_name',f.content->'$.receive_address' from " + HMetaDataDef.getTable(type, "") +
-                " s left join "+ HMetaDataDef.getTable(type, "")+" f on s.ext_4= f.ext_3" +
+                " s left join "+ HMetaDataDef.getTable(type1, "")+" f on s.ext_4= f.ext_3" +
                 " where s.type=? AND s." + BusiMetaConfig.getFieldIndex(type, "main_bill_no") + " = ?  AND s." + BusiMetaConfig.getFieldIndex(type, "pid") + " IN (" + SqlAppendUtil.sqlAppendWhereIn(partyNos) + ")");
         if (!"all".equals(custId))
             sql.append(" and s.cust_id='").append(custId).append("'");
@@ -352,7 +352,6 @@ public class ServiceUtils {
 
             return map;
         }).collect(Collectors.toList());
-        log.info("bgd：{"+collect.toString()+"}");
         //List<JSONObject> result = JSON.parseArray(JSON.toJSONString(list), JSONObject.class);
         return JSON.parseArray(JSON.toJSONString(collect), JSONObject.class);
     }
