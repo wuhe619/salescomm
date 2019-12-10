@@ -242,6 +242,7 @@ public class CustomerAppService {
             sql.append(" AND tc.enterprise_name like '%" + name + "%'");
         }
         sql.append(" order by s.create_time desc");
+        logger.info("sql:{" + sql + "}");
         PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
         Object collect = list.getList().stream().map(m -> {
             Map map = (Map) m;
@@ -252,10 +253,12 @@ public class CustomerAppService {
             String cust_id = map.get("custId").toString();
             CustomerProperty mobile = customerDao.getProperty(cust_id, "mobile");
             if (mobile != null) {
+                logger.info("mobile:{"+mobile+"}");
                 map.put("mobile", mobile.getPropertyValue());
             }
             CustomerProperty sale_person = customerDao.getProperty(cust_id, "sale_person");
             if (sale_person != null) {
+                logger.info("sale_person:{"+sale_person+"}");
                 map.put("salePerson", sale_person.getPropertyValue());
             }
             CustomerProperty remain_amount = customerDao.getProperty(cust_id, "remain_amount");
@@ -265,6 +268,7 @@ public class CustomerAppService {
                 map.put("remainAmount", StringUtil.isEmpty(remain_amount.getPropertyValue()) ? "0" : String.valueOf(Integer.valueOf(remain_amount.getPropertyValue()) / 10000));
             }
             if (used_amount != null) {
+                logger.info("used_amount:{"+used_amount+"}");
                 map.put("userAmount", StringUtil.isEmpty(used_amount.getPropertyValue()) ? "0" : String.valueOf(Integer.valueOf(used_amount.getPropertyValue()) / 10000));
             }
             return map;
