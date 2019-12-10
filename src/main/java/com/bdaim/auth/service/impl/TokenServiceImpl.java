@@ -298,7 +298,7 @@ public class TokenServiceImpl implements TokenService {
      *
      * @param u
      * @param username
-     * @param auths
+     * @param
      * @return
      */
     public LoginUser getUserData(CustomerUser u, String username) {

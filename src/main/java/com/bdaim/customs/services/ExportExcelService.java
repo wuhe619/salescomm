@@ -180,7 +180,7 @@ public class ExportExcelService {
                 break;
             case "_export_bgd_z_main_data":
                 sheetName = new String[]{"报关单表头", "报关单商品"};
-                generateMainDan0(list, map);
+                generateMainDan(list, map);
                 export(templatePath, map, sheetName, response);
                 break;
             case "_export_verification_result":
@@ -233,7 +233,6 @@ public class ExportExcelService {
                     for (int j = 0; j < ssList.size(); j++) {
                         ssData = new HashMap<>();
                         ssData.putAll(ssList.getJSONObject(j));
-                        ssData.putAll(fdList.getJSONObject(i));
                         ssData.put("index", sIndex);
                         sIndex++;
                         list_two.add(ssData);
