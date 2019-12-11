@@ -227,7 +227,7 @@ public class SbdFService implements BusiService {
             id, JSONObject info, JSONObject param) throws TouchException {
         // TODO Auto-generated method stub
         if ("SBDCHECK".equals(param.getString("_rule_"))) {
-            sbdfCheck(id,param.getString("main_bill_no"));
+            sbdfCheck(id, param.getString("main_bill_no"));
         }
 
     }
@@ -397,7 +397,7 @@ public class SbdFService implements BusiService {
     /*
     校验
      */
-    public synchronized int sbdfCheck(long id,String pid) throws TouchException {
+    public synchronized int sbdfCheck(long id, String pid) throws TouchException {
         long startTime = System.currentTimeMillis();
         try {
 
@@ -418,8 +418,14 @@ public class SbdFService implements BusiService {
                 throw new TouchException("2000", "分单:[" + ext_3 + "],净重大于毛重");
             }
 //            long endTime1 = System.currentTimeMillis();
-            String sql = "select sum(content->'$.ggrosswt'*100) from h_data_manager_sbd_s where ext_4 = '" + ext_3 + "' and ext_2 = '"+pid +"'";
-            Double d = jdbcTemplate.queryForObject(sql, Double.class) / 100;
+            log.info("sbdz Id:{" + pid + "}");
+            String sql = "select sum(content->'$.ggrosswt'*100) from h_data_manager_sbd_s where ext_4 = '" + ext_3 + "' and ext_2 = '" + pid + "'";
+            Double d = jdbcTemplate.queryForObject(sql, Double.class);
+            if (d == null) {
+                d = 0.0;
+            } else {
+                d = d / 100;
+            }
 //            long endTime2 = System.currentTimeMillis();
 //            log.info("校验耗时：" + (endTime2 - endTime1));
 //            String sql2 = "select content->'$.ggrosswt' from h_data_manager_sbd_s where ext_4 = '" + ext_3 + "'";
