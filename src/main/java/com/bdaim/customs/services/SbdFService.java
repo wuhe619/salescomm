@@ -418,6 +418,7 @@ public class SbdFService implements BusiService {
                 throw new TouchException("2000", "分单:[" + ext_3 + "],净重大于毛重");
             }
 //            long endTime1 = System.currentTimeMillis();
+            log.info("主单号:{" + ext_2 + "}");
             String sql = "select sum(content->'$.ggrosswt'*100) from h_data_manager_sbd_s where ext_4 = '" + ext_3 + "' and ext_2 = '" + ext_2 + "'";
             Double d = jdbcTemplate.queryForObject(sql, Double.class);
             if (d == null) {
@@ -431,11 +432,12 @@ public class SbdFService implements BusiService {
 //            List<Map<String, Object>> maps = jdbcTemplate.queryForList(sql2);
 //            long endTime3 = System.currentTimeMillis();
 //            log.info("校验耗时：" + (endTime3 - endTime2));
+            log.info("商品重量:" + d);
+            log.info("毛重:" + weight);
             if (weight >= d + 1) {
                 throw new TouchException("2000", "分单:[" + ext_3 + "],毛重大于商品重量之和一公斤");
             }
-            log.info("商品重量:" + d);
-            log.info("毛重:" + weight);
+
             if (d > weight) {
                 throw new TouchException("2000", "分单:[" + ext_3 + "],商品重量之和大于分单的毛重");
             }
