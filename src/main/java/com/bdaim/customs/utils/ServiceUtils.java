@@ -308,9 +308,11 @@ public class ServiceUtils {
         }
         List sqlParams = new ArrayList();
         StringBuffer sql = new StringBuffer();
-        sql.append("select s.id, s.type, s.content, s.cust_id, s.create_id, s.create_date,s.ext_1, s.ext_2, s.ext_3, s.ext_4, s.ext_5 ,f.content->'$.receive_tel' as receive_tel ,f.content->'$.id_type' as id_type,f.content->'$.id_no' as id_no,f.content->'$.receive_name' as receive_name,f.content->'$.receive_address' as receive_address from " + HMetaDataDef.getTable(type, "") +
-                " s left join "+ HMetaDataDef.getTable(type1, "")+" f on s.ext_4= f.ext_3" +
-                " where s.type=? AND s." + BusiMetaConfig.getFieldIndex(type, "main_bill_no") + " = ?  AND s." + BusiMetaConfig.getFieldIndex(type, "pid") + " IN (" + SqlAppendUtil.sqlAppendWhereIn(partyNos) + ")");
+//        sql.append("select s.id, s.type, s.content, s.cust_id, s.create_id, s.create_date,s.ext_1, s.ext_2, s.ext_3, s.ext_4, s.ext_5 ,f.content->'$.receive_tel' as receive_tel ,f.content->'$.id_type' as id_type,f.content->'$.id_no' as id_no,f.content->'$.receive_name' as receive_name,f.content->'$.receive_address' as receive_address from " + HMetaDataDef.getTable(type, "") +
+//                " s left join "+ HMetaDataDef.getTable(type1, "")+" f on s.ext_4= f.ext_3" +
+//                " where s.type=? AND s." + BusiMetaConfig.getFieldIndex(type, "main_bill_no") + " = ?  AND s." + BusiMetaConfig.getFieldIndex(type, "pid") + " IN (" + SqlAppendUtil.sqlAppendWhereIn(partyNos) + ")");
+        sql.append("select id, type, content, cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(type, "") + " where type=? AND " + BusiMetaConfig.getFieldIndex(type, "main_bill_no") + " = ?  AND " + BusiMetaConfig.getFieldIndex(type, "pid") + " IN (" + SqlAppendUtil.sqlAppendWhereIn(partyNos) + ")");
+
         if (!"all".equals(custId))
             sql.append(" and s.cust_id='").append(custId).append("'");
         sqlParams.add(type);
@@ -339,21 +341,21 @@ public class ServiceUtils {
         }
         log.info("查询税单sql:{}", sql);
         List<Map<String, Object>> list = jdbcTemplate.queryForList(sql.toString(), sqlParams.toArray());
-        List<Map<String, Object>> collect = list.parallelStream().map(map -> {
-            if (map.containsKey("content")) {
-                JSONObject content = JSON.parseObject(map.get("content").toString());
-                content.put("receive_tel", map.containsKey("receive_tel") ? map.get("receive_tel") : "");
-                content.put("receive_address", map.containsKey("receive_address") ? map.get("receive_address") : "");
-                content.put("receive_name", map.containsKey("receive_name") ? map.get("receive_name") : "");
-                content.put("id_type", map.containsKey("id_type") ? map.get("id_type") : "");
-                content.put("id_no", map.containsKey("id_no") ? map.get("id_no") : "");
-                map.put("content", content);
-            }
-
-            return map;
-        }).collect(Collectors.toList());
+//        List<Map<String, Object>> collect = list.parallelStream().map(map -> {
+//            if (map.containsKey("content")) {
+//                JSONObject content = JSON.parseObject(map.get("content").toString());
+//                content.put("receive_tel", map.containsKey("receive_tel") ? map.get("receive_tel") : "");
+//                content.put("receive_address", map.containsKey("receive_address") ? map.get("receive_address") : "");
+//                content.put("receive_name", map.containsKey("receive_name") ? map.get("receive_name") : "");
+//                content.put("id_type", map.containsKey("id_type") ? map.get("id_type") : "");
+//                content.put("id_no", map.containsKey("id_no") ? map.get("id_no") : "");
+//                map.put("content", content);
+//            }
+//
+//            return map;
+//        }).collect(Collectors.toList());
         //List<JSONObject> result = JSON.parseArray(JSON.toJSONString(list), JSONObject.class);
-        return JSON.parseArray(JSON.toJSONString(collect), JSONObject.class);
+        return JSON.parseArray(JSON.toJSONString(list), JSONObject.class);
     }
     /**
      * 根据主单号和查询税单列表
