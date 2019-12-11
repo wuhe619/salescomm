@@ -405,7 +405,7 @@ public class SbdFService implements BusiService {
             throw new TouchException("2000", "分单:[" + id + "],不存在");
         }
         Object ext_3 = list.get(0).get("ext_3");
-        Object ext_4 = list.get(0).get("ext_3");
+        Object ext_4 = list.get(0).get("ext_4");
         Object content = list.get(0).get("content");
         JSONObject jsonObject = JSON.parseObject(content.toString());
         double weight = jsonObject.getDoubleValue("weight");//毛重
