@@ -157,8 +157,9 @@ public class CreateXML {
             logger.info("生产xml,路径:" + apiXmlPath + entity.getName() + "Xml.xml");
         } catch (Exception e) {
             // TODO: handle exception
-            logger.info(e.getMessage());
-            logger.info("xml文件生成失败");
+            e.printStackTrace();
+            logger.error(e.getMessage());
+            logger.error("xml文件生成失败");
             return -1;
         }
         return 1;
