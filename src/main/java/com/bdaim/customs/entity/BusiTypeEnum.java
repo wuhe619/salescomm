@@ -20,7 +20,8 @@ public enum BusiTypeEnum {
     CDF_HZ("CDF_HZ", "舱单分单-海关回执", "cdf_hz"),
     HG_HZ("HG_HZ", "海关回执", "hg_hz"),
 
-    TAX_MANAGE("TAX_MANAGE", "纳税管理", "tax_manage"),
+    TAX_MANAGE("TAX_MANAGE", "纳税汇总", "tax_manage"),
+    TAX_DETAIL("TAX_DETAIL", "纳税详情", "tax_detail"),
     PARAM_PROXY("PARAM_PROXY", "地面代理参数", "param_proxy"),
     /**
      * api

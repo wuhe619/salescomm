@@ -30,6 +30,8 @@ public class HgHzService implements BusiService {
     private static final Map<String, String> HZ_SERVICE = new HashMap() {{
         put("EXP302", "bgd_hz");
         put("EXP312", "cd_hz");
+        put("EXP310", "tax_detail");
+        put("EXP306", "tax_manage");
     }};
 
     @Autowired
