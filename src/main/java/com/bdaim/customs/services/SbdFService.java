@@ -227,7 +227,7 @@ public class SbdFService implements BusiService {
             id, JSONObject info, JSONObject param) throws TouchException {
         // TODO Auto-generated method stub
         if ("SBDCHECK".equals(param.getString("_rule_"))) {
-            sbdfCheck(id, param.getString("main_bill_no"));
+            sbdfCheck(id);
         }
 
     }
@@ -397,18 +397,18 @@ public class SbdFService implements BusiService {
     /*
     校验
      */
-    public synchronized int sbdfCheck(long id, String pid) throws TouchException {
+    public synchronized int sbdfCheck(long id) throws TouchException {
         long startTime = System.currentTimeMillis();
         try {
 
-            String sql1 = "select ext_3,ext_4,content from h_data_manager_sbd_f where id = " + id;
+            String sql1 = "select ext_2,ext_3,ext_4,content from h_data_manager_sbd_f where id = " + id;
 
             List<Map<String, Object>> list = jdbcTemplate.queryForList(sql1);
             if (list.size() == 0) {
                 throw new TouchException("2000", "分单:[" + id + "],不存在");
             }
             Object ext_3 = list.get(0).get("ext_3");
-//            Object ext_4 = list.get(0).get("ext_4");
+            Object ext_2 = list.get(0).get("ext_2");
             Object content = list.get(0).get("content");
             JSONObject jsonObject = JSON.parseObject(content.toString());
             double weight = jsonObject.getDoubleValue("weight");//毛重
@@ -418,8 +418,7 @@ public class SbdFService implements BusiService {
                 throw new TouchException("2000", "分单:[" + ext_3 + "],净重大于毛重");
             }
 //            long endTime1 = System.currentTimeMillis();
-            log.info("sbdz Id:{" + pid + "}");
-            String sql = "select sum(content->'$.ggrosswt'*100) from h_data_manager_sbd_s where ext_4 = '" + ext_3 + "' and ext_2 = '" + pid + "'";
+            String sql = "select sum(content->'$.ggrosswt'*100) from h_data_manager_sbd_s where ext_4 = '" + ext_3 + "' and ext_2 = '" + ext_2 + "'";
             Double d = jdbcTemplate.queryForObject(sql, Double.class);
             if (d == null) {
                 d = 0.0;

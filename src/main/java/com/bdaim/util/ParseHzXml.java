@@ -538,11 +538,11 @@ public class ParseHzXml {
                         String RealNcad = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
                         log.info("RealNcad=" + RealNcad == null ? "" : RealNcad);
                         headData.put("real_ncad", RealNcad);
-                    }else if (nodeName.equals("EntryDuty")) {
+                    } else if (nodeName.equals("EntryDuty")) {
                         String EntryDuty = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
                         log.info("EntryDuty=" + EntryDuty == null ? "" : EntryDuty);
                         headData.put("entry_duty", EntryDuty);
-                    }else if (nodeName.equals("Data")) {
+                    } else if (nodeName.equals("Data")) {
                         String Data = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
                         log.info("Data=" + Data == null ? "" : Data);
                         headData.put("data", Data);
@@ -643,38 +643,82 @@ public class ParseHzXml {
                         String PayerCode = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
                         log.info("PayerCode=" + PayerCode == null ? "" : PayerCode);
                         headData.put("payer_code", PayerCode);
-                    } else if (nodeName.equals("OpTime")) {
-                        String OpTime = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
-                        log.info("OpTime=" + OpTime == null ? "" : OpTime);
-                        headData.put("op_time", OpTime);
-                    } else if (nodeName.equals("RealReg")) {
-                        String RealReg = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
-                        log.info("RealReg=" + RealReg == null ? "" : RealReg);
-                        headData.put("real_reg", RealReg);
-                    } else if (nodeName.equals("RealAnti")) {
-                        String RealAnti = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
-                        log.info("RealAnti=" + RealAnti == null ? "" : RealAnti);
-                        headData.put("real_anti", RealAnti);
-                    } else if (nodeName.equals("RealRsv1")) {
-                        String RealRsv1 = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
-                        log.info("RealRsv1=" + RealRsv1 == null ? "" : RealRsv1);
-                        headData.put("real_rsv1", RealRsv1);
-                    } else if (nodeName.equals("RealRsv2")) {
-                        String RealRsv2 = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
-                        log.info("RealRsv2=" + RealRsv2 == null ? "" : RealRsv2);
-                        headData.put("real_rsv2", RealRsv2);
-                    } else if (nodeName.equals("RealNcad")) {
-                        String RealNcad = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
-                        log.info("RealNcad=" + RealNcad == null ? "" : RealNcad);
-                        headData.put("real_ncad", RealNcad);
-                    }else if (nodeName.equals("EntryDuty")) {
-                        String EntryDuty = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
-                        log.info("EntryDuty=" + EntryDuty == null ? "" : EntryDuty);
-                        headData.put("entry_duty", EntryDuty);
-                    }else if (nodeName.equals("Data")) {
-                        String Data = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
-                        log.info("Data=" + Data == null ? "" : Data);
-                        headData.put("data", Data);
+                    } else if (nodeName.equals("PayerCode")) {
+                        String PayerCode = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
+                        log.info("PayerCode=" + PayerCode == null ? "" : PayerCode);
+                        headData.put("payer_code", PayerCode);
+                    } else if (nodeName.equals("PayerName")) {
+                        String PayerName = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
+                        log.info("PayerName=" + PayerName == null ? "" : PayerName);
+                        headData.put("payer_name", PayerName);
+                    } else if (nodeName.equals("OwnerCode")) {
+                        String OwnerCode = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
+                        log.info("OwnerCode=" + OwnerCode == null ? "" : OwnerCode);
+                        headData.put("owner_code", OwnerCode);
+                    } else if (nodeName.equals("OwnerName")) {
+                        String OwnerName = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
+                        log.info("OwnerName=" + OwnerName == null ? "" : OwnerName);
+                        headData.put("owner_name", OwnerName);
+                    } else if (nodeName.equals("TradeCode")) {
+                        String TradeCode = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
+                        log.info("TradeCode=" + TradeCode == null ? "" : TradeCode);
+                        headData.put("trade_code", TradeCode);
+                    } else if (nodeName.equals("TradeName")) {
+                        String TradeName = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
+                        log.info("TradeName=" + TradeName == null ? "" : TradeName);
+                        headData.put("trade_name", TradeName);
+                    } else if (nodeName.equals("AgentCode")) {
+                        String AgentCode = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
+                        log.info("AgentCode=" + AgentCode == null ? "" : AgentCode);
+                        headData.put("agent_code", AgentCode);
+                    } else if (nodeName.equals("AgentName")) {
+                        String AgentName = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
+                        log.info("AgentName=" + AgentName == null ? "" : AgentName);
+                        headData.put("agent_name", AgentName);
+                    } else if (nodeName.equals("DDate")) {
+                        String DDate = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
+                        log.info("DDate=" + DDate == null ? "" : DDate);
+                        headData.put("d_date", DDate);
+                    } else if (nodeName.equals("PayerScc")) {
+                        String PayerScc = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
+                        log.info("PayerScc=" + PayerScc == null ? "" : PayerScc);
+                        headData.put("payer_scc", PayerScc);
+                    } else if (nodeName.equals("DutyFormHead")) {
+                        String DutyFormHead = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
+                        log.info("DutyFormHead=" + DutyFormHead == null ? "" : DutyFormHead);
+                        headData.put("duty_form_head", DutyFormHead);
+                    } else if (nodeName.equals("TaxID")) {
+                        String TaxID = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
+                        log.info("TaxID=" + TaxID == null ? "" : TaxID);
+                        headData.put("tax_id", TaxID);
+                    } else if (nodeName.equals("DelayMark")) {
+                        String DelayMark = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
+                        log.info("DelayMark=" + DelayMark == null ? "" : DelayMark);
+                        headData.put("delay_mark", DelayMark);
+                    } else if (nodeName.equals("DutyFlag")) {
+                        String DutyFlag = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
+                        log.info("DutyFlag=" + DutyFlag == null ? "" : DutyFlag);
+                        headData.put("duty_flag", DutyFlag);
+                    } else if (nodeName.equals("DutyFlagNote")) {
+                        String DutyFlagNote = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
+                        log.info("DutyFlagNote=" + DutyFlagNote == null ? "" : DutyFlagNote);
+                        headData.put("duty_flag_note", DutyFlagNote);
+                    } else if (nodeName.equals("TaxType")) {
+                        String TaxType = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
+                        log.info("TaxType=" + TaxType == null ? "" : TaxType);
+                        headData.put("tax_type", TaxType);
+                    } else if (nodeName.equals("RealTax")) {
+                        String RealTax = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
+                        log.info("RealTax=" + RealTax == null ? "" : RealTax);
+                        headData.put("real_tax", RealTax);
+                    } else if (nodeName.equals("PLimit")) {
+                        String PLimit = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
+                        log.info("PLimit=" + PLimit == null ? "" : PLimit);
+                        headData.put("p_limit", PLimit);
+                    } else if (nodeName.equals("GenDate")) {
+                        String GenDate = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
+                        log.info("GenDate=" + GenDate == null ? "" : GenDate);
+                        headData.put("gen_date", GenDate);
                     }
                 }
             }
