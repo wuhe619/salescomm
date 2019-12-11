@@ -92,27 +92,27 @@ public class BusiEntityController extends BasicAction {
             return new ResponseInfoAssemble().failure(-1, "记录解析异常:[" + busiType + "]");
         }
 
-            try {
-                LoginUser lu = opUser();
-                String cust_id = lu.getCustId();
-                if (StringUtil.isEmpty(cust_id) && StringUtil.isNotEmpty(info.getString("cust_id"))) {
-                    // 运营后台传参客户ID处理
-                    cust_id = info.getString("cust_id");
-                }
-                if (StringUtil.isEmpty(cust_id))
-                    return new ResponseInfoAssemble().failure(-1, "无归属企业，不能保存记录:[" + busiType + "]");
-
-                String cust_group_id = lu.getUserGroupId();
-                Long cust_user_id = lu.getId();
-
-                id = busiEntityService.saveInfo(cust_id, cust_group_id, cust_user_id, busiType, id, info);
-                resp.setData(id);
-            } catch (TouchException e) {
-                return new ResponseInfoAssemble().failure(-1, e.getMessage());
-            } catch (Exception e) {
-                logger.error("保存记录异常:", e);
-                return new ResponseInfoAssemble().failure(-1, "保存记录异常:[" + busiType + "]");
+        try {
+            LoginUser lu = opUser();
+            String cust_id = lu.getCustId();
+            if (StringUtil.isEmpty(cust_id) && StringUtil.isNotEmpty(info.getString("cust_id"))) {
+                // 运营后台传参客户ID处理
+                cust_id = info.getString("cust_id");
             }
+            if (StringUtil.isEmpty(cust_id))
+                return new ResponseInfoAssemble().failure(-1, "无归属企业，不能保存记录:[" + busiType + "]");
+
+            String cust_group_id = lu.getUserGroupId();
+            Long cust_user_id = lu.getId();
+
+            id = busiEntityService.saveInfo(cust_id, cust_group_id, cust_user_id, busiType, id, info);
+            resp.setData(id);
+        } catch (TouchException e) {
+            return new ResponseInfoAssemble().failure(-1, e.getMessage());
+        } catch (Exception e) {
+            logger.error("保存记录异常:", e);
+            return new ResponseInfoAssemble().failure(-1, "保存记录异常:[" + busiType + "]");
+        }
 
 
         return resp;
@@ -129,7 +129,7 @@ public class BusiEntityController extends BasicAction {
         try {
             if (body == null || "".equals(body))
                 body = "{}";
-
+            logger.info("开始调用："+body);
             param = JSONObject.parseObject(body);
             if (!param.containsKey("_rule_")) {
                 param.put("_rule_", rule);
@@ -145,6 +145,7 @@ public class BusiEntityController extends BasicAction {
             }
             String cust_group_id = lu.getUserGroupId();
             Long cust_user_id = lu.getId();
+
             JSONObject jo = busiEntityService.doInfo(cust_id, cust_group_id, cust_user_id, busiType, id, param);
             // 导出直接下载文件
             if (StringUtil.isNotEmpty(param.getString("_rule_")) && param.getString("_rule_").startsWith("_export_")) {
