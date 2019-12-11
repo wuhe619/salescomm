@@ -149,6 +149,8 @@ public class CreateXML {
             TransformerFactory transformerFactory = TransformerFactory.newInstance();
             Transformer transformer = transformerFactory.newTransformer();
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+            boolean b = apiXmlPath.endsWith("/");
+            if (!b) apiXmlPath += "/";
             transformer.transform(new DOMSource(document), new StreamResult(new File(apiXmlPath + entity.getName() + "Xml.xml")));
             // 将document中的信息转换为字符串输出到控制台中
             StringWriter stringWriter = new StringWriter();
