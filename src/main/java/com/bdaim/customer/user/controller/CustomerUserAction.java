@@ -15,8 +15,6 @@ import com.bdaim.util.StringUtil;
 import com.bdaim.util.wechat.WeChatUtil;
 
 import org.apache.log4j.Logger;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -118,14 +116,7 @@ public class CustomerUserAction extends BasicAction {
             responseJson.setMessage("用户名密码错误");
             return responseJson;
         }
-        List<GrantedAuthority> auths = new ArrayList<>();
-        if (1 == u.getStatus()) {
-            responseJson.setMessage("用户已冻结");
-            return responseJson;
-        } else if (0 == u.getStatus()) {
-            //user_type: 1=管理员 2=普通员工
-            auths.add(new SimpleGrantedAuthority("ROLE_CUSTOMER"));
-        }
+
         //获取微信用户openid
         String openId = weChatUtil.getWeChatOpenId(code);
         // 模拟绑定成功
@@ -142,15 +133,23 @@ public class CustomerUserAction extends BasicAction {
         propertyDO.setPropertyValue(openId);
         customerUserService.saveCustomerUserProperty(propertyDO);
         // 用户信息
-        LoginUser loginUser = new LoginUser(u.getId(), u.getAccount(), CipherUtil.encodeByMD5(u.getId() + "" + System.currentTimeMillis()), auths);
+        LoginUser loginUser = new LoginUser(u.getId(), u.getAccount(), CipherUtil.encodeByMD5(u.getId() + "" + System.currentTimeMillis()));
+        if (1 == u.getStatus()) {
+            responseJson.setMessage("用户已冻结");
+            return responseJson;
+        } else if (0 == u.getStatus()) {
+            //user_type: 1=管理员 2=普通员工
+            loginUser.addAuth("ROLE_CUSTOMER");
+        }
+        
         loginUser.setCustId(u.getCust_id());
         loginUser.setId(u.getId());
         loginUser.setUserType(String.valueOf(u.getUserType()));
-        loginUser.setRole(auths.size() > 0 ? auths.toArray()[0].toString() : "");
+        loginUser.setRole(loginUser.getAuths().size() > 0 ? loginUser.getAuths().get(0).toString() : "");
         loginUser.setStatus(u.getStatus().toString());
         loginUser.setStateCode("200");
         loginUser.setMsg("SUCCESS");
-        loginUser.setAuth(loginUser.getAuthorities().toArray()[0].toString());
+        loginUser.setAuth(loginUser.getAuths().size()>0? loginUser.getAuths().get(0):"");
         loginUser.setUserName(loginUser.getUsername());
         loginUser.setUser_id(loginUser.getId().toString());
         responseJson.setData(loginUser);

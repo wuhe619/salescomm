@@ -49,8 +49,9 @@ public class CreateXML {
             api.setAttribute("version-type", "context");
             Element resource = document.createElement("resource");
             ApiProperty request_method = apiDao.getProperty(apiId, "request_method");
+            ApiProperty productionendpoints = apiDao.getProperty(apiId, "productionendpoints");
             resource.setAttribute("methods", request_method.getPropertyValue());
-            resource.setAttribute("url-mapping", entity.getContext());
+            resource.setAttribute("url-mapping", "/");
             resource.setAttribute("faultSequence", "fault");
             Element inSequence = document.createElement("inSequence");
             Element cache = document.createElement("cache");
@@ -73,7 +74,7 @@ public class CreateXML {
             Element endpoint = document.createElement("endpoint");
             Element http = document.createElement("http");
             endpoint.setAttribute("name", entity.getName() + "_APIproductionEndpoint_0");
-            ApiProperty productionendpoints = apiDao.getProperty(apiId, "productionendpoints");
+
             http.setAttribute("uri-template", productionendpoints.getPropertyValue());
             endpoint.appendChild(http);
             send.appendChild(endpoint);
@@ -149,16 +150,19 @@ public class CreateXML {
             TransformerFactory transformerFactory = TransformerFactory.newInstance();
             Transformer transformer = transformerFactory.newTransformer();
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+            boolean b = apiXmlPath.endsWith("/");
+            if (!b) apiXmlPath += "/";
             transformer.transform(new DOMSource(document), new StreamResult(new File(apiXmlPath + entity.getName() + "Xml.xml")));
-
             // 将document中的信息转换为字符串输出到控制台中
             StringWriter stringWriter = new StringWriter();
             transformer.transform(new DOMSource(document), new StreamResult(stringWriter));
-
+            logger.info("xml:{" + stringWriter.toString() + "}");
+            logger.info("生产xml,路径:" + apiXmlPath + entity.getName() + "Xml.xml");
         } catch (Exception e) {
             // TODO: handle exception
-            logger.info(e.getMessage());
-            logger.info("xml文件生成失败");
+            e.printStackTrace();
+            logger.error(e.getMessage());
+            logger.error("xml文件生成失败");
             return -1;
         }
         return 1;

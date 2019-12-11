@@ -1,7 +1,6 @@
 package com.bdaim.express.controller;
 
 import com.bdaim.auth.LoginUser;
-import com.bdaim.auth.service.impl.TokenServiceImpl;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
@@ -22,8 +21,6 @@ public class ExpressController extends BasicAction {
     private static Logger logger = LoggerFactory.getLogger(ExpressController.class);
     @Autowired
     private ExpressService expressService;
-    @Resource
-    private TokenServiceImpl tokenService;
 
     /**
      * 快递面单下单
@@ -35,7 +32,7 @@ public class ExpressController extends BasicAction {
     public ResponseInfo expressOrder(@Valid @RequestBody ExpressOrderData orderData) {
         logger.info("订单详情:渠道类型:" + orderData.getTradeNoType());
         ResponseInfo resp = new ResponseInfo();
-        LoginUser lu = tokenService.opUser();
+        LoginUser lu = opUser();
         Object o = expressService.expressOeder(orderData, lu);
 
         if (o == null) {
@@ -80,7 +77,7 @@ public class ExpressController extends BasicAction {
         }
         logger.info("运单号:" + number);
         ResponseInfo resp = new ResponseInfo();
-        LoginUser lu = tokenService.opUser();
+        LoginUser lu = opUser();
 //        String custId = "1909180815300000";
         String custId=lu.getCustId();
         Object o = expressService.queryTrajectory(number, tradeNoType, custId);

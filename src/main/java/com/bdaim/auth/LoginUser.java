@@ -10,23 +10,28 @@ import java.util.Collection;
  *
  */
 public class LoginUser extends Token {
-    public LoginUser(Long userid, String username, String tokenid, Collection<? extends GrantedAuthority> authorities) {
-        super(username, tokenid, authorities);
+	public LoginUser() {
+        super();
+    }
+	public LoginUser(Long userid, String username, String tokenid) {
         this.id = userid;
-
+        this.userName=username;
         this.stateCode = "200";
         this.msg = "SUCCESS";
-        this.auth = authorities.toArray()[0].toString();
         this.user_id = String.valueOf(userid);
         this.id = userid;
         this.tokenid = tokenid;
-        this.tokentime = tokentime;
+        super.setUsername(username);
+        super.setTokenid(tokenid);
     }
 
-    public LoginUser(String username, String tokenid, Collection<? extends GrantedAuthority> authorities, String msg, String stateCode) {
-        super(username, tokenid, authorities);
+	public LoginUser(String username, String tokenid, String msg, String stateCode) {
         this.msg = msg;
         this.stateCode = stateCode;
+        this.userName = username;
+        this.tokenid = tokenid;
+        super.setUsername(username);
+        super.setTokenid(tokenid);
     }
 
     private User user;

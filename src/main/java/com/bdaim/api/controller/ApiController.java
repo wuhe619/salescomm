@@ -4,30 +4,20 @@ import com.alibaba.fastjson.JSONObject;
 import com.bdaim.api.Dto.ApiData;
 import com.bdaim.api.service.ApiService;
 import com.bdaim.auth.LoginUser;
-import com.bdaim.auth.service.impl.TokenServiceImpl;
+import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.dto.PageParam;
-import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
-import com.bdaim.customs.services.ExportExcelService;
-import com.bdaim.util.FileUtil;
 import com.bdaim.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletResponse;
-import java.util.ArrayList;
-import java.util.List;
-
 @RestController
 @RequestMapping("/api")
-public class ApiController {
+public class ApiController extends BasicAction {
     private static Logger logger = LoggerFactory.getLogger(ApiController.class);
-    @Resource
-    private TokenServiceImpl tokenService;
 
     @Autowired
     private ApiService apiService;
@@ -51,8 +41,7 @@ public class ApiController {
     @PostMapping("/info/{apiId}")
     public ResponseInfo saveApi(@RequestBody ApiData apiData, @PathVariable(name = "apiId") String apiId) {
         ResponseInfo resp = new ResponseInfo();
-
-        LoginUser lu = tokenService.opUser();
+        LoginUser lu = opUser();
         try {
             resp.setData(apiService.saveApiProperty(apiData, apiId, lu));
         } catch (Exception e) {
@@ -87,7 +76,7 @@ public class ApiController {
     @DeleteMapping("/info/{apiId}")
     public ResponseInfo deleteApi(@PathVariable(name = "apiId") String apiId, int status) {
         ResponseInfo resp = new ResponseInfo();
-        LoginUser lu = tokenService.opUser();
+        LoginUser lu = opUser();
         try {
             apiService.updateStatusApiById(apiId, lu, status);
         } catch (Exception e) {
@@ -108,7 +97,7 @@ public class ApiController {
             return new ResponseInfoAssemble().failure(-1, "企业id不能为空");
         }
         logger.info("开始订阅");
-        LoginUser lu = tokenService.opUser();
+        LoginUser lu = opUser();
         try {
             info.setData(apiService.subApi(params, apiId, lu));
         } catch (Exception e) {
@@ -129,7 +118,7 @@ public class ApiController {
         if (StringUtil.isEmpty(params.getString("custId"))) {
             return new ResponseInfoAssemble().failure(-1, "企业id不能为空");
         }
-        LoginUser lu = tokenService.opUser();
+        LoginUser lu = opUser();
         try {
             info.setData(apiService.subApiUpdate(params, apiId, lu));
         } catch (Exception e) {
@@ -148,7 +137,7 @@ public class ApiController {
         if (StringUtil.isEmpty(params.getString("price"))) {
             return new ResponseInfoAssemble().failure(-1, "价格不能为空");
         }
-        LoginUser lu = tokenService.opUser();
+        LoginUser lu = opUser();
         try {
             info.setData(apiService.priceApi(params, apiId, lu));
         } catch (Exception e) {
@@ -164,7 +153,7 @@ public class ApiController {
     @PostMapping("/subscribe")
     public ResponseInfo subApiList(@RequestBody JSONObject params) {
         ResponseInfo info = new ResponseInfo();
-        LoginUser lu = tokenService.opUser();
+        LoginUser lu = opUser();
         PageParam page = new PageParam();
         try {
             page.setPageSize(params.getInteger("pageSize") == null ? 0 : params.getIntValue("pageSize"));

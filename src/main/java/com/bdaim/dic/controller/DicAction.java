@@ -40,7 +40,7 @@ public class DicAction extends BasicAction {
     private DicService dicService;
 
     @Resource
-    private TokenCacheService tokenCacheService;
+    private TokenCacheService<LoginUser> tokenCacheService;
 
    /**
      * 根据id查询字典表信息
@@ -180,7 +180,7 @@ public class DicAction extends BasicAction {
             FundProductApply fundOrder = new FundProductApply();
             fundOrder.setApplyValue(body.toJSONString());
             long userId = 0L;
-            LoginUser userDetail = (LoginUser) tokenCacheService.getToken(request.getHeader("Authorization"));
+            LoginUser userDetail = tokenCacheService.getToken(request.getHeader("Authorization"), LoginUser.class);
             if (userDetail != null) {
                 userId = userDetail.getId();
             }
