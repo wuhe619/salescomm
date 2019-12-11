@@ -49,8 +49,9 @@ public class CreateXML {
             api.setAttribute("version-type", "context");
             Element resource = document.createElement("resource");
             ApiProperty request_method = apiDao.getProperty(apiId, "request_method");
+            ApiProperty productionendpoints = apiDao.getProperty(apiId, "productionendpoints");
             resource.setAttribute("methods", request_method.getPropertyValue());
-            resource.setAttribute("url-mapping", entity.getContext());
+            resource.setAttribute("url-mapping", "/");
             resource.setAttribute("faultSequence", "fault");
             Element inSequence = document.createElement("inSequence");
             Element cache = document.createElement("cache");
@@ -73,7 +74,7 @@ public class CreateXML {
             Element endpoint = document.createElement("endpoint");
             Element http = document.createElement("http");
             endpoint.setAttribute("name", entity.getName() + "_APIproductionEndpoint_0");
-            ApiProperty productionendpoints = apiDao.getProperty(apiId, "productionendpoints");
+
             http.setAttribute("uri-template", productionendpoints.getPropertyValue());
             endpoint.appendChild(http);
             send.appendChild(endpoint);
