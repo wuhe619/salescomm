@@ -227,7 +227,7 @@ public class SbdFService implements BusiService {
             id, JSONObject info, JSONObject param) throws TouchException {
         // TODO Auto-generated method stub
         if ("SBDCHECK".equals(param.getString("_rule_"))) {
-                sbdfCheck(id);
+            sbdfCheck(id);
         }
 
     }
@@ -398,32 +398,40 @@ public class SbdFService implements BusiService {
     校验
      */
     public synchronized int sbdfCheck(long id) throws TouchException {
-        String sql1 = "select ext_3,ext_4,content from h_data_manager_sbd_f where id = " + id;
+        long startTime = System.currentTimeMillis();
+        try {
 
-        List<Map<String, Object>> list = jdbcTemplate.queryForList(sql1);
-        if (list.size() == 0) {
-            throw new TouchException("2000", "分单:[" + id + "],不存在");
+            String sql1 = "select ext_3,ext_4,content from h_data_manager_sbd_f where id = " + id;
+
+            List<Map<String, Object>> list = jdbcTemplate.queryForList(sql1);
+            if (list.size() == 0) {
+                throw new TouchException("2000", "分单:[" + id + "],不存在");
+            }
+            Object ext_3 = list.get(0).get("ext_3");
+            Object ext_4 = list.get(0).get("ext_4");
+            Object content = list.get(0).get("content");
+            JSONObject jsonObject = JSON.parseObject(content.toString());
+            double weight = jsonObject.getDoubleValue("weight");//毛重
+            double net_weight = jsonObject.getDoubleValue("net_weight");//净重
+            log.info("净重:" + net_weight);
+            if (net_weight > weight) {
+                throw new TouchException("2000", "分单:[" + ext_4 + "],净重大于毛重");
+            }
+            String sql = "select sum(content->'$.ggrosswt'*100) from h_data_manager_sbd_s where ext_4 = '" + ext_3 + "'";
+            Double d = jdbcTemplate.queryForObject(sql, Double.class) / 100;
+            if (weight >= d + 1) {
+                throw new TouchException("2000", "分单:[" + ext_4 + "],毛重大于商品重量之和一公斤");
+            }
+            log.info("商品重量:" + d);
+            log.info("毛重:" + weight);
+            if (d > weight) {
+                throw new TouchException("2000", "分单:[" + ext_4 + "],商品重量之和大于分单的毛重");
+            }
+        } finally {
+            long endTime = System.currentTimeMillis();
+            log.info("校验耗时："+(endTime-startTime));
         }
-        Object ext_3 = list.get(0).get("ext_3");
-        Object ext_4 = list.get(0).get("ext_4");
-        Object content = list.get(0).get("content");
-        JSONObject jsonObject = JSON.parseObject(content.toString());
-        double weight = jsonObject.getDoubleValue("weight");//毛重
-        double net_weight = jsonObject.getDoubleValue("net_weight");//净重
-        log.info("净重:" + net_weight);
-        if (net_weight > weight) {
-            throw new TouchException("2000", "分单:[" + ext_4 + "],净重大于毛重");
-        }
-        String sql = "select sum(content->'$.ggrosswt'*100) from h_data_manager_sbd_s where ext_4 = '" + ext_3 + "'";
-        Double d = jdbcTemplate.queryForObject(sql, Double.class) / 100;
-        if (weight >= d + 1) {
-            throw new TouchException("2000", "分单:[" + ext_4 + "],毛重大于商品重量之和一公斤");
-        }
-        log.info("商品重量:" + d);
-        log.info("毛重:" + weight);
-        if (d > weight) {
-            throw new TouchException("2000", "分单:[" + ext_4 + "],商品重量之和大于分单的毛重");
-        }
+
 
         return 1;
     }
