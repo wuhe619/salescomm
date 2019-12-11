@@ -1406,7 +1406,7 @@ public class CustomerSeaService {
                 .append(" custG SET custG.status = 2 WHERE custG.status <>2 ");
         StringBuilder logSql = new StringBuilder()
                 .append("INSERT INTO ").append(ConstantsUtil.CUSTOMER_OPER_LOG_TABLE_PREFIX).append("( `user_id`, `list_id`, `customer_sea_id`, `customer_group_id`, `event_type`, `create_time`, reason, remark) ")
-                .append(" SELECT ").append(param.getUserId()).append(" ,id,").append(param.getSeaId()).append(",batch_id,").append(8).append(",").append(new Timestamp(System.currentTimeMillis())).append(" ,? ,? ")
+                .append(" SELECT ").append(param.getUserId()).append(" ,id,").append(param.getSeaId()).append(",batch_id,").append(8).append(",? ,? ,? ")
                 .append(" FROM ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(param.getSeaId()).append(" custG WHERE custG.status <>2 ");
         StringBuilder appSql = new StringBuilder();
         if (StringUtil.isNotEmpty(param.getSuperId())) {
@@ -1496,7 +1496,7 @@ public class CustomerSeaService {
             appSql.append(" AND custG.super_data LIKE '" + likeValue + "' ");
         }
         // 保存转交记录
-        customerSeaDao.executeUpdateSQL(logSql.toString() + appSql.toString(), param.getBackReason(), param.getBackRemark());
+        customerSeaDao.executeUpdateSQL(logSql.toString() + appSql.toString(), new Timestamp(System.currentTimeMillis()), param.getBackReason(), param.getBackRemark());
         int status = customerSeaDao.executeUpdateSQL(sql.toString() + appSql.toString());
         return status;
     }
@@ -1686,8 +1686,8 @@ public class CustomerSeaService {
                 .append(" SET pre_user_id = user_id ,user_id = ?, super_data = JSON_SET(super_data, '$.SYS007', '未跟进') WHERE 1=1 ");
         StringBuilder logSql = new StringBuilder()
                 .append("INSERT INTO ").append(ConstantsUtil.CUSTOMER_OPER_LOG_TABLE_PREFIX).append("( `user_id`, `list_id`, `customer_sea_id`, `customer_group_id`, `event_type`, object_code, `create_time`) ")
-                .append(" SELECT ").append(param.getUserId()).append(" ,id,").append(param.getSeaId()).append(",batch_id,").append(6).append(", ? ,").append(new Timestamp(System.currentTimeMillis()))
-                .append(" FROM ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(param.getSeaId()).append(" WHERE status = 0 ");
+                .append(" SELECT ").append(param.getUserId()).append(" ,id,").append(param.getSeaId()).append(",batch_id,").append(6).append(", ? ,'").append(new Timestamp(System.currentTimeMillis()))
+                .append("' FROM ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(param.getSeaId()).append(" WHERE status = 0 ");
         StringBuilder appSql = new StringBuilder();
         //员工只能处理负责人为自己的数据
         if ("2".equals(param.getUserType())) {
@@ -3081,6 +3081,7 @@ public class CustomerSeaService {
 
     /**
      * 讯众自动外呼拉取号码
+     *
      * @param taskId
      * @param count
      * @return
