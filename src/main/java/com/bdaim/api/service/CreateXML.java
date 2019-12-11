@@ -150,15 +150,16 @@ public class CreateXML {
             Transformer transformer = transformerFactory.newTransformer();
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
             transformer.transform(new DOMSource(document), new StreamResult(new File(apiXmlPath + entity.getName() + "Xml.xml")));
-
             // 将document中的信息转换为字符串输出到控制台中
             StringWriter stringWriter = new StringWriter();
             transformer.transform(new DOMSource(document), new StreamResult(stringWriter));
-
+            logger.info("xml:{" + stringWriter.toString() + "}");
+            logger.info("生产xml,路径:" + apiXmlPath + entity.getName() + "Xml.xml");
         } catch (Exception e) {
             // TODO: handle exception
-            logger.info(e.getMessage());
-            logger.info("xml文件生成失败");
+            e.printStackTrace();
+            logger.error(e.getMessage());
+            logger.error("xml文件生成失败");
             return -1;
         }
         return 1;

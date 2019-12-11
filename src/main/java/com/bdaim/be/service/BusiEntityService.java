@@ -54,11 +54,15 @@ public class BusiEntityService {
      */
     public JSONObject doInfo(String cust_id, String cust_group_id, Long cust_user_id, String busiType, Long id, JSONObject param) throws Exception {
         JSONObject jo = new JSONObject();
-
+        logger.info("开始");
+        long startTime = System.currentTimeMillis();
         String sql = "select content, cust_id, cust_group_id, cust_user_id, create_id, create_date ,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(busiType, "") + " where type=? and id=? ";
         if (!"all".equals(cust_id))
             sql += " and cust_id='" + cust_id + "'";
 
+        if (StringUtil.isNotEmpty(param.getString("send_status"))) {
+            sql += " and ext_1 = '" + param.getString("send_status") + "'";
+        }
         Map data = null;
         try {
             data = jdbcTemplate.queryForMap(sql, busiType, id);
@@ -97,18 +101,19 @@ public class BusiEntityService {
                     jo.put("ext_4", data.get("ext_4"));
                 if (data.get("ext_5") != null && !"".equals(data.get("ext_5")))
                     jo.put("ext_5", data.get("ext_5"));
-
+                long endTime1 = System.currentTimeMillis();
+                logger.info("查询耗时:" + (endTime1 - startTime));
                 //执行自定义单数据规则
                 BusiService busiService = (BusiService) SpringContextHelper.getBean("busi_" + busiType);
                 if (busiService != null)
                     busiService.doInfo(busiType, cust_id, cust_group_id, cust_user_id, id, jo, param);
+                long endTime2 = System.currentTimeMillis();
                 if (!"SBDCHECK".equals(param.getString("_rule_"))) {
                     //查询场站和报关单位
                     serviceUtils.getStationCustName(jo);
                     // 查询字典数据
                     serviceUtils.getHDicData(jo);
                 }
-
             }
         } catch (TouchException e) {
             logger.error("数据格式错误！", e);
@@ -116,6 +121,9 @@ public class BusiEntityService {
         } catch (Exception e) {
             logger.error("数据格式错误！", e);
             throw new Exception("数据格式错误！");
+        }finally {
+            long endTime = System.currentTimeMillis();
+            logger.info("耗时:" + (endTime - startTime));
         }
 
         return jo;
