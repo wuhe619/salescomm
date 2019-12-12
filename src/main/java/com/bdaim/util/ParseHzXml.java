@@ -531,10 +531,6 @@ public class ParseHzXml {
                         String RealNcad = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
                         log.info("RealNcad=" + RealNcad == null ? "" : RealNcad);
                         headData.put("real_ncad", RealNcad);
-                    } else if (nodeName.equals("EntryDuty")) {
-                        String EntryDuty = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
-                        log.info("EntryDuty=" + EntryDuty == null ? "" : EntryDuty);
-                        headData.put("entry_duty", EntryDuty);
                     } else if (nodeName.equals("Data")) {
                         String Data = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
                         log.info("Data=" + Data == null ? "" : Data);

@@ -28,6 +28,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.DoubleStream;
 
 /***
  * 申报单.分单
@@ -401,8 +403,6 @@ public class SbdFService implements BusiService {
         long startTime = System.currentTimeMillis();
 
         String sql1 = "select ext_4,ext_3,ext_4,content from h_data_manager_sbd_f where id = " + id;
-        long startTime1 = System.currentTimeMillis();
-        log.info("查詢分單耗時：" + (startTime1 - startTime));
         List<Map<String, Object>> list = jdbcTemplate.queryForList(sql1);
         if (list.size() == 0) {
             throw new TouchException("2000", "分单:[" + id + "],不存在");
@@ -417,17 +417,17 @@ public class SbdFService implements BusiService {
         if (net_weight > weight) {
             throw new TouchException("2000", "分单:[" + ext_3 + "],净重大于毛重");
         }
-        long endTime1 = System.currentTimeMillis();
         log.info("主单号:{" + ext_4 + "}");
-        String sql = "select sum(content->'$.ggrosswt'*100) from h_data_manager_sbd_s where ext_4 = '" + ext_3 + "' and ext_2 = '" + ext_4 + "'";
-        long endTime2 = System.currentTimeMillis();
-        Double d = jdbcTemplate.queryForObject(sql, Double.class);
-        if (d == null) {
-            d = 0.0;
-        } else {
-            d = d / 100;
+        String sql = "select content from h_data_manager_sbd_s where ext_4 = '" + ext_3 + "' and ext_2 = '" + ext_4 + "'";
+        List<Map<String, Object>> maps = jdbcTemplate.queryForList(sql);
+        DoubleStream ggrosswt = maps.parallelStream().map(m -> {
+            JSONObject contentJson = JSONObject.parseObject(m.get("content").toString());
+            return  contentJson.getDouble("ggrosswt");
+        }).mapToDouble(value -> value);
+        Double d = 0.0;
+        if (ggrosswt != null) {
+            d = ggrosswt.sum();
         }
-        log.info("获取税单商品总重量耗时：" + (endTime2 - endTime1));
 //            String sql2 = "select content->'$.ggrosswt' from h_data_manager_sbd_s where ext_4 = '" + ext_3 + "'";
 //            List<Map<String, Object>> maps = jdbcTemplate.queryForList(sql2);
 //            long endTime3 = System.currentTimeMillis();
