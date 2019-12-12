@@ -1,5 +1,6 @@
 package com.bdaim.customs.services;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.service.BusiService;
@@ -74,11 +75,16 @@ public class TaxManageService implements BusiService {
     public void handleHzInfo(String custId, String xmlstring, JSONObject info, Long id) throws Exception {
 
         parseHzXml.parserTaxManageXML(xmlstring, info);
+        JSONObject envelopData = info.getJSONObject("envelopinfo");//分单信息
         JSONObject data = info.getJSONObject("data");//分单信息
+        JSONArray dutyjsonList =  info.getJSONArray("dutyjson");//分单信息
+        JSONObject entryjson = info.getJSONObject("entryjson");//分单信息
         info.clear();
+        info.putAll(envelopData);
         info.putAll(data);
-        info.put("ext_2", data.get("billno"));
-        info.put("ext_3", data.get("ass_billno"));
+        info.putAll(entryjson);
+        info.put("dutyjson",dutyjsonList);
+
 //        String sql = "insert into h_data_manager_tax_detail (id,type,content,cust_id,create_date,ext_1,ext_2) " +
 //                "value(" + id + ",'" + BusiTypeEnum.TAX_DETAIL.getType() + "','" + data.toJSONString() + "','" + custId + "',now(),'" + data.getString("billno") + "','" + data.getString("ass_billno") + "')";
 //        jdbcTemplate.update(sql);

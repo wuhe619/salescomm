@@ -417,27 +417,26 @@ public class SbdFService implements BusiService {
             if (net_weight > weight) {
                 throw new TouchException("2000", "分单:[" + ext_3 + "],净重大于毛重");
             }
-//            long endTime1 = System.currentTimeMillis();
+            long endTime1 = System.currentTimeMillis();
             log.info("主单号:{" + ext_4 + "}");
             String sql = "select sum(content->'$.ggrosswt'*100) from h_data_manager_sbd_s where ext_4 = '" + ext_3 + "' and ext_2 = '" + ext_4 + "'";
+            long endTime2 = System.currentTimeMillis();
             Double d = jdbcTemplate.queryForObject(sql, Double.class);
             if (d == null) {
                 d = 0.0;
             } else {
                 d = d / 100;
             }
-//            long endTime2 = System.currentTimeMillis();
-//            log.info("校验耗时：" + (endTime2 - endTime1));
+            log.info("获取税单商品总重量：" + (endTime2 - endTime1));
 //            String sql2 = "select content->'$.ggrosswt' from h_data_manager_sbd_s where ext_4 = '" + ext_3 + "'";
 //            List<Map<String, Object>> maps = jdbcTemplate.queryForList(sql2);
 //            long endTime3 = System.currentTimeMillis();
-//            log.info("校验耗时：" + (endTime3 - endTime2));
+//            log.info("校验耗时2：" + (endTime3 - endTime2));
             log.info("商品重量:" + d);
             log.info("毛重:" + weight);
             if (weight >= d + 1) {
                 throw new TouchException("2000", "分单:[" + ext_3 + "],毛重大于商品重量之和一公斤");
             }
-
             if (d > weight) {
                 throw new TouchException("2000", "分单:[" + ext_3 + "],商品重量之和大于分单的毛重");
             }

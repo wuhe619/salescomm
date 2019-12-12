@@ -22,7 +22,8 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.*;
-import java.util.Base64;
+import java.util.ArrayList;
+import java.util.List;
 
 
 @Component
@@ -417,15 +418,7 @@ public class ParseHzXml {
 //        //parserCangdanHzXML(xml);
 //    }
 //
-//    public static void main(String[] args) {
-//        String str = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
-//                "<Package><EnvelopInfo><version>1.0</version><message_id>E010000DXPESW00002132802019103123503207303096367</message_id><file_name>E010000DXPESW00002132802019103123503207303096367.EXP</file_name><message_type>EXP310</message_type><sender_id>E010000</sender_id><receiver_id>DXPESW0000213280</receiver_id><send_time>2019-10-31T23:50:27</send_time></EnvelopInfo><DataInfo><SignedData><Data><EXP302><EntryHead><PreEntryId></PreEntryId><OpType>ADD</OpType><BillNo>18066181220</BillNo><AssBillNo>YTG000161495400</AssBillNo><IEFlag>I</IEFlag><EntryId></EntryId><OpTime>20191031235027008</OpTime><OpResult>D1</OpResult><Notes>1111</Notes></EntryHead></EXP302></Data><HashSign></HashSign><SignerInfo></SignerInfo></SignedData></DataInfo></Package>";
-//        try {
-//            parserTaxDetailXML(str, new JSONObject());
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//    }
+
 
     /**
      * 解析纳税单详情
@@ -679,53 +672,126 @@ public class ParseHzXml {
                         String DDate = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
                         log.info("DDate=" + DDate == null ? "" : DDate);
                         headData.put("d_date", DDate);
-                    } else if (nodeName.equals("PayerScc")) {
-                        String PayerScc = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
-                        log.info("PayerScc=" + PayerScc == null ? "" : PayerScc);
-                        headData.put("payer_scc", PayerScc);
-                    } else if (nodeName.equals("DutyFormHead")) {
-                        String DutyFormHead = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
-                        log.info("DutyFormHead=" + DutyFormHead == null ? "" : DutyFormHead);
-                        headData.put("duty_form_head", DutyFormHead);
-                    } else if (nodeName.equals("TaxID")) {
-                        String TaxID = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
-                        log.info("TaxID=" + TaxID == null ? "" : TaxID);
-                        headData.put("tax_id", TaxID);
-                    } else if (nodeName.equals("DelayMark")) {
-                        String DelayMark = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
-                        log.info("DelayMark=" + DelayMark == null ? "" : DelayMark);
-                        headData.put("delay_mark", DelayMark);
-                    } else if (nodeName.equals("DutyFlag")) {
-                        String DutyFlag = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
-                        log.info("DutyFlag=" + DutyFlag == null ? "" : DutyFlag);
-                        headData.put("duty_flag", DutyFlag);
-                    } else if (nodeName.equals("DutyFlagNote")) {
-                        String DutyFlagNote = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
-                        log.info("DutyFlagNote=" + DutyFlagNote == null ? "" : DutyFlagNote);
-                        headData.put("duty_flag_note", DutyFlagNote);
-                    } else if (nodeName.equals("TaxType")) {
-                        String TaxType = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
-                        log.info("TaxType=" + TaxType == null ? "" : TaxType);
-                        headData.put("tax_type", TaxType);
-                    } else if (nodeName.equals("RealTax")) {
-                        String RealTax = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
-                        log.info("RealTax=" + RealTax == null ? "" : RealTax);
-                        headData.put("real_tax", RealTax);
-                    } else if (nodeName.equals("PLimit")) {
-                        String PLimit = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
-                        log.info("PLimit=" + PLimit == null ? "" : PLimit);
-                        headData.put("p_limit", PLimit);
-                    } else if (nodeName.equals("GenDate")) {
-                        String GenDate = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
-                        log.info("GenDate=" + GenDate == null ? "" : GenDate);
-                        headData.put("gen_date", GenDate);
                     }
                 }
             }
             info.put("data", headData);
+
+            List list = new ArrayList();
+            NodeList dutyFormList = rootElement.getElementsByTagName("DutyFormList");
+            for (int i = 0; i < dutyFormList.getLength(); i++) {
+                Node d = dutyFormList.item(i);
+                NodeList properties = d.getChildNodes();
+                JSONObject dutyjson = new JSONObject();
+                for (int j = 0; j < properties.getLength(); j++) {
+                    Node property = properties.item(j);
+                    String nodeName = property.getNodeName();
+                    if (nodeName.equals("TaxID")) {
+                        String TaxID = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
+                        log.info("TaxID=" + TaxID == null ? "" : TaxID);
+                        dutyjson.put("tax_id", TaxID);
+                    } else if (nodeName.equals("DelayMark")) {
+                        String DelayMark = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
+                        log.info("DelayMark=" + DelayMark == null ? "" : DelayMark);
+                        dutyjson.put("delay_mark", DelayMark);
+                    } else if (nodeName.equals("DutyFlag")) {
+                        String DutyFlag = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
+                        log.info("DutyFlag=" + DutyFlag == null ? "" : DutyFlag);
+                        dutyjson.put("duty_flag", DutyFlag);
+                    } else if (nodeName.equals("DutyFlagNote")) {
+                        String DutyFlagNote = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
+                        log.info("DutyFlagNote=" + DutyFlagNote == null ? "" : DutyFlagNote);
+                        dutyjson.put("duty_flag_note", DutyFlagNote);
+                    } else if (nodeName.equals("TaxType")) {
+                        String TaxType = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
+                        log.info("TaxType=" + TaxType == null ? "" : TaxType);
+                        dutyjson.put("tax_type", TaxType);
+                    } else if (nodeName.equals("RealTax")) {
+                        String RealTax = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
+                        log.info("RealTax=" + RealTax == null ? "" : RealTax);
+                        dutyjson.put("real_tax", RealTax);
+                    } else if (nodeName.equals("PLimit")) {
+                        String PLimit = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
+                        log.info("PLimit=" + PLimit == null ? "" : PLimit);
+                        dutyjson.put("p_limit", PLimit);
+                    } else if (nodeName.equals("GenDate")) {
+                        String GenDate = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
+                        log.info("GenDate=" + GenDate == null ? "" : GenDate);
+                        dutyjson.put("gen_date", GenDate);
+                    }
+                }
+                list.add(dutyjson);
+            }
+            info.put("dutyjson", list);
+            JSONObject entryJson = new JSONObject();
+            NodeList entryList = rootElement.getElementsByTagName("EntryList");
+            for (int i = 0; i < entryList.getLength(); i++) {
+                Node d = entryList.item(i);
+                NodeList properties = d.getChildNodes();
+                for (int j = 0; j < properties.getLength(); j++) {
+                    Node property = properties.item(j);
+                    String nodeName = property.getNodeName();
+                    if (nodeName.equals("EntryId")) {
+                        String EntryId = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
+                        log.info("EntryId=" + EntryId == null ? "" : EntryId);
+                        entryJson.put("entry_id", EntryId);
+                    } else if (nodeName.equals("GNo")) {
+                        String GNo = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
+                        log.info("GNo=" + GNo == null ? "" : GNo);
+                        entryJson.put("g_no", GNo);
+                    } else if (nodeName.equals("CodeTS")) {
+                        String CodeTS = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
+                        log.info("CodeTS=" + CodeTS == null ? "" : CodeTS);
+                        entryJson.put("code_ts", CodeTS);
+                    } else if (nodeName.equals("GName")) {
+                        String GName = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
+                        log.info("GName=" + GName == null ? "" : GName);
+                        entryJson.put("g_name", GName);
+                    } else if (nodeName.equals("RealDuty")) {
+                        String RealDuty = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
+                        log.info("RealDuty=" + RealDuty == null ? "" : RealDuty);
+                        entryJson.put("real_duty", RealDuty);
+                    } else if (nodeName.equals("RealTax")) {
+                        String RealTax = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
+                        log.info("RealTax=" + RealTax == null ? "" : RealTax);
+                        entryJson.put("real_tax", RealTax);
+                    } else if (nodeName.equals("RealReg")) {
+                        String RealReg = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
+                        log.info("RealReg=" + RealReg == null ? "" : RealReg);
+                        entryJson.put("real_reg", RealReg);
+                    } else if (nodeName.equals("RealAnti")) {
+                        String RealAnti = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
+                        log.info("RealAnti=" + RealAnti == null ? "" : RealAnti);
+                        entryJson.put("real_anti", RealAnti);
+                    } else if (nodeName.equals("RealRsv1")) {
+                        String RealRsv1 = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
+                        log.info("RealRsv1=" + RealRsv1 == null ? "" : RealRsv1);
+                        entryJson.put("real_rsv1", RealRsv1);
+                    } else if (nodeName.equals("RealRsv2")) {
+                        String RealRsv2 = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
+                        log.info("RealRsv2=" + RealRsv2 == null ? "" : RealRsv2);
+                        entryJson.put("real_rsv2", RealRsv2);
+                    } else if (nodeName.equals("RealNcad")) {
+                        String RealNcad = property.getFirstChild() == null ? "" : property.getFirstChild().getNodeValue();
+                        log.info("RealNcad=" + RealNcad == null ? "" : RealNcad);
+                        entryJson.put("real_ncad", RealNcad);
+                    }
+                }
+            }
+            info.put("entryjson", entryJson);
+
         } catch (Exception e) {
             log.info("解析纳税单汇总回执失败", e);
             throw new Exception("解析纳税单汇总回执失败");
+        }
+    }
+
+    public static void main(String[] args) {
+        String str="<?xml version=\"1.0\" encoding=\"UTF-8\"?><Package><EnvelopInfo><version>1.0</version><message_id>E01000000000000001012012100917121300000000212</message_id><file_name>E01000000000000001012012100917121300000000212.EXP</file_name><message_type>EXP306</message_type><sender_id>E010000</sender_id><receiver_id>0000000000101</receiver_id><send_time>2012-10-08T16:24:30</send_time></EnvelopInfo><DataInfo><SignedData><Data><EXP306><DutyFormHead><OpType>1</OpType><TaxEntryId>010020129500000133</TaxEntryId><DutyFormFlag>K</DutyFormFlag><IEPort>0100</IEPort><DeclPort>0100</DeclPort><PayerCode>1105910159</PayerCode><PayerName>东方口岸</PayerName><OwnerCode>1105910159</OwnerCode><OwnerName>东方口岸</OwnerName><TradeCode>1105910159</TradeCode><TradeName>东方口岸</TradeName><AgentCode>1105910159</AgentCode><AgentName>东方口岸</AgentName><DDate>20121008162433</DDate></DutyFormHead><DutyFormList><TaxID>1</TaxID><DelayMark>0</DelayMark><DutyFlag>-</DutyFlag><DutyFlagNote/><TaxType>A</TaxType><RealTax>59854.55</RealTax><PLimit/><GenDate>20121008162433</GenDate></DutyFormList><DutyFormList><TaxID>2</TaxID><DelayMark>0</DelayMark><DutyFlag>-</DutyFlag><DutyFlagNote/><TaxType>L</TaxType><RealTax>94969.21</RealTax><PLimit/><GenDate>20121008162433</GenDate></DutyFormList><EntryList><EntryId>010020129500000138</EntryId><GNo>57673362</GNo><CodeTS>0406100000</CodeTS><GName>文火乳酪</GName><RealDuty>59854.55</RealDuty><RealTax>94969.21</RealTax><RealReg>0</RealReg><RealAnti>0</RealAnti><RealRsv1>0</RealRsv1><RealRsv2>0</RealRsv2><RealNcad>0</RealNcad></EntryList></EXP306></Data><HashSign/><SignerInfo/></SignedData></DataInfo></Package>";
+        try {
+            parserTaxManageXML(str, new JSONObject());
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }
