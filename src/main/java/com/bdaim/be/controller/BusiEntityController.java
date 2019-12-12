@@ -123,7 +123,7 @@ public class BusiEntityController extends BasicAction {
      */
     @ResponseBody
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
-    public ResponseInfo doInfo(@PathVariable(name = "id") Long id, @RequestBody(required = false) String body, @PathVariable(name = "busiType") String busiType, @RequestParam(name = "_rule_", required = false) String rule, HttpServletResponse response) {
+    public ResponseInfo doInfo(@PathVariable(name = "id") Long id, @RequestBody(required = false) String body, @PathVariable(name = "busiType") String busiType, @RequestParam(name = "_rule_", required = false) String rule,String send_status,HttpServletResponse response) {
         ResponseInfo resp = new ResponseInfo();
         JSONObject param = null;
         try {
@@ -131,6 +131,7 @@ public class BusiEntityController extends BasicAction {
                 body = "{}";
             logger.info("开始调用："+body);
             param = JSONObject.parseObject(body);
+            param.put("send_status",send_status);
             if (!param.containsKey("_rule_")) {
                 param.put("_rule_", rule);
             }
