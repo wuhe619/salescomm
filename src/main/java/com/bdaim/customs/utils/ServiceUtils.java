@@ -294,6 +294,81 @@ public class ServiceUtils {
         return null;
     }
 
+    /**
+     * 根据主单号和查询税单列表
+     *
+     * @param custId
+     * @param type
+     * @param mainBillNo
+     * @param partyNos
+     * @return
+     */
+    public List<JSONObject> listSdByBillNos1(String custId, String type, String type1, String mainBillNo, List<String> partyNos, JSONObject param) {
+        if (partyNos == null || partyNos.size() == 0) {
+            return new ArrayList<>();
+        }
+        List sqlParams = new ArrayList();
+        StringBuffer sql = new StringBuffer();
+//        sql.append("select s.id, s.type, s.content, s.cust_id, s.create_id, s.create_date,s.ext_1, s.ext_2, s.ext_3, s.ext_4, s.ext_5 ,f.content->'$.receive_tel' as receive_tel ,f.content->'$.id_type' as id_type,f.content->'$.id_no' as id_no,f.content->'$.receive_name' as receive_name,f.content->'$.receive_address' as receive_address from " + HMetaDataDef.getTable(type, "") +
+//                " s left join "+ HMetaDataDef.getTable(type1, "")+" f on s.ext_4= f.ext_3" +
+//                " where s.type=? AND s." + BusiMetaConfig.getFieldIndex(type, "main_bill_no") + " = ?  AND s." + BusiMetaConfig.getFieldIndex(type, "pid") + " IN (" + SqlAppendUtil.sqlAppendWhereIn(partyNos) + ")");
+        sql.append("select id, type, content, cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(type, "") + " where type=? AND " + BusiMetaConfig.getFieldIndex(type, "main_bill_no") + " = ?  AND " + BusiMetaConfig.getFieldIndex(type, "pid") + " IN (" + SqlAppendUtil.sqlAppendWhereIn(partyNos) + ")");
+
+        if (!"all".equals(custId))
+            sql.append(" and cust_id='").append(custId).append("'");
+        sqlParams.add(type);
+        sqlParams.add(mainBillNo);
+
+        Iterator keys = param.keySet().iterator();
+        while (keys.hasNext()) {
+            String key = (String) keys.next();
+            if ("".equals(String.valueOf(param.get(key)))) continue;
+            if ("pageNum".equals(key) || "pageSize".equals(key) || "stationId".equals(key) || "cust_id".equals(key) || "_rule_".equals(key)) {
+                continue;
+            } else if (key.startsWith("_g_")) {
+                sql.append(" and " + BusiMetaConfig.getFieldIndex(type, key) + " > ?");
+            } else if (key.startsWith("_ge_")) {
+                sql.append(" and " + BusiMetaConfig.getFieldIndex(type, key) + " >= ?");
+            } else if (key.startsWith("_l_")) {
+                sql.append(" and " + BusiMetaConfig.getFieldIndex(type, key) + " < ?");
+            } else if (key.startsWith("_le_")) {
+                sql.append(" and " + BusiMetaConfig.getFieldIndex(type, key) + " <= ?");
+            } else if (key.startsWith("_eq_")) {
+                sql.append(" and " + BusiMetaConfig.getFieldIndex(type, key) + " = ?");
+            } else {
+                sql.append(" and " + BusiMetaConfig.getFieldIndex(type, key) + "=?");
+            }
+            sqlParams.add(param.get(key));
+        }
+        log.info("查询税单sql:{}", sql);
+        List<Map<String, Object>> list = jdbcTemplate.queryForList(sql.toString(), sqlParams.toArray());
+        List<String> ext_4List = list.parallelStream().map(map -> map.get("ext_4").toString()).distinct().collect(Collectors.toList());
+        String sql1 = "select f.ext_3,f.content->'$.receive_tel' as receive_tel ,f.content->'$.id_type' as id_type,f.content->'$.id_no' as id_no,f.content->'$.receive_name' as receive_name,f.content->'$.receive_address' as receive_address from " + HMetaDataDef.getTable(type1, "") + " f where f.ext_3 in (" + SqlAppendUtil.sqlAppendWhereIn(ext_4List) + ")";
+        Map<String, Map> map1 = new HashMap();
+        jdbcTemplate.queryForList(sql1).stream().forEach(m -> {
+            map1.put(m.get("ext_3").toString(), m);
+        });
+
+        List<Map<String, Object>> collect = list.parallelStream().map(map -> {
+            Object ext_4 = map.get("ext_4");
+            if (map.containsKey("content")) {
+                JSONObject content = JSON.parseObject(map.get("content") + "");
+                if (map1.containsKey(ext_4)) {
+                    Map ext_4Map = (Map) map1.get(ext_4);
+                    content.put("receive_tel", ext_4Map.containsKey("receive_tel") ? ext_4Map.get("receive_tel") : "");
+                    content.put("receive_address", ext_4Map.containsKey("receive_address") ? ext_4Map.get("receive_address") : "");
+                    content.put("receive_name", ext_4Map.containsKey("receive_name") ? ext_4Map.get("receive_name") : "");
+                    content.put("id_type", ext_4Map.containsKey("id_type") ? ext_4Map.get("id_type") : "");
+                    content.put("id_no", ext_4Map.containsKey("id_no") ? ext_4Map.get("id_no") : "");
+                    map.put("content", content);
+                }
+            }
+
+            return map;
+        }).collect(Collectors.toList());
+//        List<JSONObject> result = JSON.parseArray(JSON.toJSONString(list), JSONObject.class);
+        return JSON.parseArray(JSON.toJSONString(collect), JSONObject.class);
+    }
 
     /**
      * 根据主单号和查询税单列表

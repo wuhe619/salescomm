@@ -265,7 +265,12 @@ public class BgdZService implements BusiService {
                             param.remove("send_status");
                         }
                         List products;
-                        products = serviceUtils.listSdByBillNos(cust_id, BusiTypeEnum.BS.getType(), main_bill_no, partyBillNos, param);
+                        if ("_export_bgd_z_main_data".equals(param.getString("_rule_"))) {
+                            products = serviceUtils.listSdByBillNos1(cust_id, BusiTypeEnum.BS.getType(), BusiTypeEnum.BF.getType(), main_bill_no, partyBillNos, param);
+                        } else {
+                            products = serviceUtils.listSdByBillNos(cust_id, BusiTypeEnum.BS.getType(), main_bill_no, partyBillNos, param);
+                        }
+
                         log.info("报关单：{}分单数量:{}", main_bill_no, singles);
                         log.info("报关单：{}商品数量:{}", main_bill_no, products);
                         JSONObject content;
@@ -276,11 +281,11 @@ public class BgdZService implements BusiService {
                             product.put("index", j + 1);
                             product.put("party_bill_no", product.getString("ext_4"));
                             product.put("main_bill_no", main_bill_no);
-                            content.put("receive_tel", product.containsKey("receive_tel") ? product.get("receive_tel") : "");
-                            content.put("receive_address", product.containsKey("receive_address") ? product.get("receive_address") : "");
-                            content.put("receive_name", product.containsKey("receive_name") ? product.get("receive_name") : "");
-                            content.put("id_type", product.containsKey("id_type") ? product.get("id_type") : "");
-                            content.put("id_no", product.containsKey("id_no") ? product.get("id_no") : "");
+//                            product.put("receive_tel", js.containsKey("receive_tel") ? js.get("receive_tel") : "");
+//                            product.put("receive_address", js.containsKey("receive_address") ? js.get("receive_address") : "");
+//                            product.put("receive_name", js.containsKey("receive_name") ? js.get("receive_name") : "");
+//                            product.put("id_type", js.containsKey("id_type") ? js.get("id_type") : "");
+//                            product.put("id_no", js.containsKey("id_no") ? js.get("id_no") : "");
                         }
                         info.put("singles", singles);
                         info.put("products", products);
