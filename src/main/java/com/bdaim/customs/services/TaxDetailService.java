@@ -84,17 +84,17 @@ public class TaxDetailService implements BusiService {
             sqlstr.append(" and cust.cust_id = " + params.getLong("cust_id"));
         }
         if (StringUtil.isNotEmpty(params.getString("billno"))) {
-            sqlstr.append(" and det.content->'&.billno'= '" + params.getString("billno") + "'");
+            sqlstr.append(" and det.ext_2 = '" + params.getString("billno") + "'");
         }
         if (StringUtil.isNotEmpty(params.getString("ass_billno"))) {
-            sqlstr.append(" and det.content->'&.ass_billno'= '" + params.getString("ass_billno") + "'");
+            sqlstr.append(" and det.ext_3 = '" + params.getString("ass_billno") + "'");
         }
         if (StringUtil.isNotEmpty(params.getString("create_time")) && StringUtil.isNotEmpty(params.getString("end_time"))) {
             Long create_time = params.getLong("create_time");
             Long end_time = params.getLong("end_time");
             sqlstr.append(" and det.create_time between " + fm.format(new Date(create_time)) + " and " + fm.format(new Date(end_time)));
         }
-        if(StringUtil.isNotEmpty(params.getString("op_create_time"))&&StringUtil.isNotEmpty(params.getString("op_end_time"))){
+        if (StringUtil.isNotEmpty(params.getString("op_create_time")) && StringUtil.isNotEmpty(params.getString("op_end_time"))) {
             Long create_time = params.getLong("op_create_time");
             Long end_time = params.getLong("op_end_time");
             sqlstr.append(" and det.content->>'$.op_time' between " + formatter.format(new Date(create_time)) + " and " + formatter.format(new Date(end_time)));
@@ -121,7 +121,7 @@ public class TaxDetailService implements BusiService {
         parseHzXml.parserTaxDetailXML(xmlstring, info);
         JSONObject data = info.getJSONObject("data");//分单信息
 //        JSONObject envelopInfo = info.getJSONObject("EnvelopInfo");//分单信息
-        info.clear();
+//        info.clear();
         info.putAll(data);
 //        info.putAll(envelopInfo);
         info.put("ext_2", data.get("billno"));

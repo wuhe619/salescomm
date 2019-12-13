@@ -74,12 +74,12 @@ public class TaxManageService implements BusiService {
         if (StringUtil.isNotEmpty(params.getString("cust_id"))) {
             sqlstr.append(" and cust.cust_id = " + params.getLong("cust_id"));
         }
-        if (StringUtil.isNotEmpty(params.getString("billno"))) {
-            sqlstr.append(" and det.content->'&.billno'= '" + params.getString("billno") + "'");
-        }
-        if (StringUtil.isNotEmpty(params.getString("ass_billno"))) {
-            sqlstr.append(" and det.content->'&.ass_billno'= '" + params.getString("ass_billno") + "'");
-        }
+//        if (StringUtil.isNotEmpty(params.getString("billno"))) {
+//            sqlstr.append(" and det.content->'&.billno'= '" + params.getString("billno") + "'");
+//        }
+//        if (StringUtil.isNotEmpty(params.getString("ass_billno"))) {
+//            sqlstr.append(" and det.content->'&.ass_billno'= '" + params.getString("ass_billno") + "'");
+//        }
         if (StringUtil.isNotEmpty(params.getString("create_time")) && StringUtil.isNotEmpty(params.getString("end_time"))) {
             Long create_time = params.getLong("create_time");
             Long end_time = params.getLong("end_time");
@@ -118,7 +118,7 @@ public class TaxManageService implements BusiService {
         JSONObject data = info.getJSONObject("data");//分单信息
         JSONArray dutyjsonList = info.getJSONArray("dutyjson");//分单信息
         JSONObject entryjson = info.getJSONObject("entryjson");//分单信息
-        info.clear();
+//        info.clear();
         info.putAll(envelopData);
         info.putAll(data);
         info.putAll(entryjson);
