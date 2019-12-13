@@ -131,9 +131,12 @@ public class BusiEntityController extends BasicAction {
                 body = "{}";
             logger.info("开始调用："+body);
             param = JSONObject.parseObject(body);
-            param.put("send_status",send_status);
+
             if (!param.containsKey("_rule_")) {
                 param.put("_rule_", rule);
+            }
+            if(StringUtil.isNotEmpty(send_status)){
+                param.put("send_status",send_status);
             }
         } catch (Exception e) {
             return new ResponseInfoAssemble().failure(-1, "记录解析异常:[" + busiType + "]");

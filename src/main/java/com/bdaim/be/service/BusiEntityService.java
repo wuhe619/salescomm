@@ -62,7 +62,9 @@ public class BusiEntityService {
 
         if (StringUtil.isNotEmpty(param.getString("send_status"))) {
             sql += " and ext_1 = '" + param.getString("send_status") + "'";
+            param.remove("send_status");
         }
+
         Map data = null;
         try {
             data = jdbcTemplate.queryForMap(sql, busiType, id);
@@ -121,7 +123,7 @@ public class BusiEntityService {
         } catch (Exception e) {
             logger.error("数据格式错误！", e);
             throw new Exception("数据格式错误！");
-        }finally {
+        } finally {
             long endTime = System.currentTimeMillis();
             logger.info("耗时:" + (endTime - startTime));
         }
