@@ -265,10 +265,10 @@ public class BgdZService implements BusiService {
                             param.remove("send_status");
                         }
                         List products;
-                        if("_export_bgd_z_main_data".equals(param.getString("_rule_"))){
-                            products = serviceUtils.listSdByBillNos1(cust_id, BusiTypeEnum.BS.getType(),BusiTypeEnum.BF.getType(), main_bill_no, partyBillNos, param);
-                        }else{
-                             products = serviceUtils.listSdByBillNos(cust_id, BusiTypeEnum.BS.getType(), main_bill_no, partyBillNos, param);
+                        if ("_export_bgd_z_main_data".equals(param.getString("_rule_"))) {
+                            products = serviceUtils.listSdByBillNos1(cust_id, BusiTypeEnum.BS.getType(), BusiTypeEnum.BF.getType(), main_bill_no, partyBillNos, param);
+                        } else {
+                            products = serviceUtils.listSdByBillNos(cust_id, BusiTypeEnum.BS.getType(), main_bill_no, partyBillNos, param);
                         }
 
                         log.info("报关单：{}分单数量:{}", main_bill_no, singles);
@@ -539,7 +539,7 @@ public class BgdZService implements BusiService {
         sqlstr.append(" and ext_4=(SELECT ext_3 FROM " + HMetaDataDef.getTable(BusiTypeEnum.getParentType(busiType), "") + " WHERE id = ?)");
         //sqlParams.add(pid);
         sqlParams.add(pid);
-
+        log.info("Sql:" + sqlstr.toString());
         List<Map<String, Object>> ds = jdbcTemplate.queryForList(sqlstr.toString(), sqlParams.toArray());
         List data = new ArrayList();
         for (int i = 0; i < ds.size(); i++) {
@@ -693,6 +693,7 @@ public class BgdZService implements BusiService {
 
     /**
      * 导出excel
+     *
      * @param response
      * @param cust_id
      * @param cust_group_id

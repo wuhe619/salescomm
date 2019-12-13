@@ -58,7 +58,6 @@ public class ExportExcelService {
     private ServiceUtils serviceUtils;
 
     private void export(String templatePath, Map<String, Object> map, String[] sheetName, HttpServletResponse response) throws IOException {
-        LOG.info("导出数据：{"+map.toString()+"}");
         // 加载模板
         TemplateExportParams params = new TemplateExportParams(templatePath, true);
         if (sheetName != null && sheetName.length > 0) {

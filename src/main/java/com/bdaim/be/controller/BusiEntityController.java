@@ -164,7 +164,6 @@ public class BusiEntityController extends BasicAction {
                     // 多sheet导出
                     list.add(jo);
                 }
-                logger.info("param:{"+param+"}");
                 exportExcelService.exportExcel(jo.getIntValue("id"), list, param, response);
                 return null;
             }
