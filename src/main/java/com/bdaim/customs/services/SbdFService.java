@@ -229,7 +229,7 @@ public class SbdFService implements BusiService {
             id, JSONObject info, JSONObject param) throws TouchException {
         // TODO Auto-generated method stub
         if ("SBDCHECK".equals(param.getString("_rule_"))) {
-            sbdfCheck(id,cust_id);
+            sbdfCheck(id,cust_id,param);
         }
 
     }
@@ -399,7 +399,7 @@ public class SbdFService implements BusiService {
     /*
     校验
      */
-    public synchronized int sbdfCheck(long id,String cust_id) throws TouchException {
+    public int sbdfCheck(long id,String cust_id,JSONObject param) throws TouchException {
         long startTime = System.currentTimeMillis();
 
         String sql1 = "select ext_3,ext_4,content from h_data_manager_sbd_f where id = " + id;
@@ -418,15 +418,18 @@ public class SbdFService implements BusiService {
             throw new TouchException("2000", "分单:[" + ext_3 + "],净重大于毛重");
         }
         log.info("主单号:{" + ext_4 + "}");
+        long startTime1 = System.currentTimeMillis();
         String sql = "select content from h_data_manager_sbd_s where ext_4 = '" + ext_3 + "' " +
                 "and ext_2 = '" + ext_4 + "' and type='sbd_s' and cust_id='"+cust_id+"'";
         List<Map<String, Object>> maps = jdbcTemplate.queryForList(sql);
-
+        long startTime2 = System.currentTimeMillis();
+        log.info("查询税单耗时："+(startTime2-startTime1));
         DoubleStream ggrosswt = maps.parallelStream().map(m -> {
             JSONObject contentJson = JSONObject.parseObject(m.get("content").toString());
             return  contentJson.getDouble("ggrosswt");
         }).mapToDouble(value -> value);
-
+        long startTime3 = System.currentTimeMillis();
+        log.info("获取税单总重量耗时："+(startTime3-startTime2));
         Double d = 0.0;
 
         if (ggrosswt != null) {
