@@ -533,6 +533,7 @@ public class BgdZService implements BusiService {
             } else {
                 sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key + "')=?");
             }
+            log.info("key:{" + key + "}");
             sqlParams.add(param.get(key));
         }
         //sqlstr.append(" and ( CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')=? ELSE null END  or CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')=? ELSE null END)");
@@ -540,7 +541,6 @@ public class BgdZService implements BusiService {
         //sqlParams.add(pid);
         sqlParams.add(pid);
         log.info("Sql:" + sqlstr.toString());
-        log.info("sqlParams:" + sqlParams.toArray());
         List<Map<String, Object>> ds = jdbcTemplate.queryForList(sqlstr.toString(), sqlParams.toArray());
         List data = new ArrayList();
         for (int i = 0; i < ds.size(); i++) {
