@@ -229,7 +229,7 @@ public class SbdFService implements BusiService {
             id, JSONObject info, JSONObject param) throws TouchException {
         // TODO Auto-generated method stub
         if ("SBDCHECK".equals(param.getString("_rule_"))) {
-            sbdfCheck(id);
+            sbdfCheck(id,cust_id);
         }
 
     }
@@ -399,10 +399,10 @@ public class SbdFService implements BusiService {
     /*
     校验
      */
-    public synchronized int sbdfCheck(long id) throws TouchException {
+    public synchronized int sbdfCheck(long id,String cust_id) throws TouchException {
         long startTime = System.currentTimeMillis();
 
-        String sql1 = "select ext_4,ext_3,ext_4,content from h_data_manager_sbd_f where id = " + id;
+        String sql1 = "select ext_3,ext_4,content from h_data_manager_sbd_f where id = " + id;
         List<Map<String, Object>> list = jdbcTemplate.queryForList(sql1);
         if (list.size() == 0) {
             throw new TouchException("2000", "分单:[" + id + "],不存在");
@@ -418,13 +418,17 @@ public class SbdFService implements BusiService {
             throw new TouchException("2000", "分单:[" + ext_3 + "],净重大于毛重");
         }
         log.info("主单号:{" + ext_4 + "}");
-        String sql = "select content from h_data_manager_sbd_s where ext_4 = '" + ext_3 + "' and ext_2 = '" + ext_4 + "'";
+        String sql = "select content from h_data_manager_sbd_s where ext_4 = '" + ext_3 + "' " +
+                "and ext_2 = '" + ext_4 + "' and type='sbd_s' and cust_id='"+cust_id+"'";
         List<Map<String, Object>> maps = jdbcTemplate.queryForList(sql);
+
         DoubleStream ggrosswt = maps.parallelStream().map(m -> {
             JSONObject contentJson = JSONObject.parseObject(m.get("content").toString());
             return  contentJson.getDouble("ggrosswt");
         }).mapToDouble(value -> value);
+
         Double d = 0.0;
+
         if (ggrosswt != null) {
             d = ggrosswt.sum();
         }
