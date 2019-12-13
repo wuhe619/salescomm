@@ -91,10 +91,10 @@ public class TaxManageService implements BusiService {
             sqlstr.append(" and det.content->>'$.op_time' between " + formatter.format(new Date(create_time)) + " and " + formatter.format(new Date(end_time)));
         }
         if (StringUtil.isNotEmpty(params.getString("payer_name"))) {
-            sqlstr.append(" and det.content->'&.payer_name' like '%" + params.getString("payer_name") + "%'");
+            sqlstr.append(" and det.content->'$.payer_name' like '%" + params.getString("payer_name") + "%'");
         }
         if (StringUtil.isNotEmpty(params.getString("owner_name"))) {
-            sqlstr.append(" and det.content->'&.owner_name' like '%" + params.getString("owner_name") + "%'");
+            sqlstr.append(" and det.content->'$.owner_name' like '%" + params.getString("owner_name") + "%'");
         }
         return sqlstr.toString();
     }
@@ -123,7 +123,7 @@ public class TaxManageService implements BusiService {
         info.putAll(data);
         info.putAll(entryjson);
         info.put("dutyjson", dutyjsonList);
-
+        info.put("ext_5", data.get("op_time"));
 //        String sql = "insert into h_data_manager_tax_detail (id,type,content,cust_id,create_date,ext_1,ext_2) " +
 //                "value(" + id + ",'" + BusiTypeEnum.TAX_DETAIL.getType() + "','" + data.toJSONString() + "','" + custId + "',now(),'" + data.getString("billno") + "','" + data.getString("ass_billno") + "')";
 //        jdbcTemplate.update(sql);
