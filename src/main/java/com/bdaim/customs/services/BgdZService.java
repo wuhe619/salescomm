@@ -540,6 +540,7 @@ public class BgdZService implements BusiService {
         //sqlParams.add(pid);
         sqlParams.add(pid);
         log.info("Sql:" + sqlstr.toString());
+        log.info("sqlParams:" + sqlParams.toArray());
         List<Map<String, Object>> ds = jdbcTemplate.queryForList(sqlstr.toString(), sqlParams.toArray());
         List data = new ArrayList();
         for (int i = 0; i < ds.size(); i++) {
