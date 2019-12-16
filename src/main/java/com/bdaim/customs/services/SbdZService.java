@@ -15,6 +15,7 @@ import com.bdaim.util.BigDecimalUtil;
 import com.bdaim.util.NumberConvertUtil;
 import com.bdaim.util.StringUtil;
 
+import io.datakernel.serializer.StringFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +26,8 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.DoubleStream;
 
 /***
  * 申报单.主单
@@ -414,78 +417,83 @@ public class SbdZService implements BusiService {
 
     @Override
     public String formatQuery(String busiType, String cust_id, String cust_group_id, Long cust_user_id, JSONObject params, List sqlParams) {
-        StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(busiType, "") + " where type=?");
-        String _orderby_ = params.getString("_orderby_");
-        String _sort_ = params.getString("_sort_");
-        if (!"all".equals(cust_id))
-            sqlstr.append(" and cust_id='").append(cust_id).append("'");
-        sqlParams.add(busiType);
-        String stationId = params.getString("stationId");
-        // 处理场站检索
-        if (StringUtil.isNotEmpty(stationId)) {
-            String stationSql = "SELECT cust_id FROM t_customer_property WHERE property_name='station_id' AND property_value = ?";
-            sqlstr.append(" and cust_id IN ( ").append(stationSql).append(" )");
-            sqlParams.add(stationId);
-        }
-
-        Iterator keys = params.keySet().iterator();
-        while (keys.hasNext()) {
-            String key = (String) keys.next();
-            if (StringUtil.isEmpty(String.valueOf(params.get(key)))) continue;
-            if ("pageNum".equals(key) || "pageSize".equals(key) || "stationId".equals(key) || "cust_id".equals(key)
-                    || "cust_id".equals(key) || "_sort_".equals(key) || "_orderby_".equals(key))
-                continue;
-            if ("cust_id".equals(key)) {
-                sqlstr.append(" and cust_id=?");
-            } else if (key.equals("bill_no")) {
-                sqlstr.append(" and ext_3 = ? ");
-            } else if (key.startsWith("_c_")) {
-                sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key.substring(3) + "') like concat('%',?,'%')");
-            } else if (key.startsWith("_g_")) {
-                sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key.substring(3) + "') > ?");
-            } else if (key.startsWith("_ge_")) {
-                sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key.substring(4) + "') >= ?");
-            } else if (key.startsWith("_l_")) {
-                sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key.substring(3) + "') < ?");
-            } else if (key.startsWith("_le_")) {
-                sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key.substring(4) + "') <= ?");
-            } else if (key.startsWith("_range_")) {
-                if ("0".equals(String.valueOf(params.get(key)))) {
-                    sqlstr.append(" and ( JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key.substring(7) + "') <= ?")
-                            .append(" OR JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key.substring(7) + "') = '' ")
-                            .append(" OR JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key.substring(7) + "') IS NULL ) ");
-                } else {
-                    sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key.substring(7) + "') >= ?");
-                }
-            } else if ("commit_status".equals(key)) {
-                // 提交记录特殊处理
-                if ("1".equals(String.valueOf(params.get(key)))) {
-                    //  未提交
-                    sqlstr.append(" AND ( JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$.commit_cangdan_status') = 'N' OR JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$.commit_cangdan_status') = '' )  ")
-                            .append(" AND ( JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$.commit_baodan_status') = 'N' OR JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$.commit_baodan_status') = '' )  ");
-                } else if ("2".equals(String.valueOf(params.get(key)))) {
-                    //  舱单已提交
-                    sqlstr.append(" AND JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$.commit_cangdan_status') = 'Y' ");
-                } else if ("3".equals(String.valueOf(params.get(key)))) {
-                    //  报单已提交
-                    sqlstr.append(" AND JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$.commit_baodan_status') = 'Y' ");
-                } else if ("4".equals(String.valueOf(params.get(key)))) {
-                    //  舱单 报单都提交
-                    sqlstr.append(" AND ( JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$.commit_cangdan_status') = 'Y' AND JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$.commit_baodan_status') = 'Y' ) ");
-                }
-                continue;
-
-            } else {
-                sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key + "')=?");
+        if (StringUtil.isEmpty(params.getString("_rule_")) && !"SBDCHECK".equals(params.getString("_rule_"))) {
+            StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(busiType, "") + " where type=?");
+            String _orderby_ = params.getString("_orderby_");
+            String _sort_ = params.getString("_sort_");
+            if (!"all".equals(cust_id))
+                sqlstr.append(" and cust_id='").append(cust_id).append("'");
+            sqlParams.add(busiType);
+            String stationId = params.getString("stationId");
+            // 处理场站检索
+            if (StringUtil.isNotEmpty(stationId)) {
+                String stationSql = "SELECT cust_id FROM t_customer_property WHERE property_name='station_id' AND property_value = ?";
+                sqlstr.append(" and cust_id IN ( ").append(stationSql).append(" )");
+                sqlParams.add(stationId);
             }
 
-            sqlParams.add(params.get(key));
+            Iterator keys = params.keySet().iterator();
+            while (keys.hasNext()) {
+                String key = (String) keys.next();
+                if (StringUtil.isEmpty(String.valueOf(params.get(key)))) continue;
+                if ("pageNum".equals(key) || "pageSize".equals(key) || "stationId".equals(key) || "cust_id".equals(key)
+                        || "cust_id".equals(key) || "_sort_".equals(key) || "_orderby_".equals(key))
+                    continue;
+                if ("cust_id".equals(key)) {
+                    sqlstr.append(" and cust_id=?");
+                } else if (key.equals("bill_no")) {
+                    sqlstr.append(" and ext_3 = ? ");
+                } else if (key.startsWith("_c_")) {
+                    sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key.substring(3) + "') like concat('%',?,'%')");
+                } else if (key.startsWith("_g_")) {
+                    sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key.substring(3) + "') > ?");
+                } else if (key.startsWith("_ge_")) {
+                    sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key.substring(4) + "') >= ?");
+                } else if (key.startsWith("_l_")) {
+                    sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key.substring(3) + "') < ?");
+                } else if (key.startsWith("_le_")) {
+                    sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key.substring(4) + "') <= ?");
+                } else if (key.startsWith("_range_")) {
+                    if ("0".equals(String.valueOf(params.get(key)))) {
+                        sqlstr.append(" and ( JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key.substring(7) + "') <= ?")
+                                .append(" OR JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key.substring(7) + "') = '' ")
+                                .append(" OR JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key.substring(7) + "') IS NULL ) ");
+                    } else {
+                        sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key.substring(7) + "') >= ?");
+                    }
+                } else if ("commit_status".equals(key)) {
+                    // 提交记录特殊处理
+                    if ("1".equals(String.valueOf(params.get(key)))) {
+                        //  未提交
+                        sqlstr.append(" AND ( JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$.commit_cangdan_status') = 'N' OR JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$.commit_cangdan_status') = '' )  ")
+                                .append(" AND ( JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$.commit_baodan_status') = 'N' OR JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$.commit_baodan_status') = '' )  ");
+                    } else if ("2".equals(String.valueOf(params.get(key)))) {
+                        //  舱单已提交
+                        sqlstr.append(" AND JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$.commit_cangdan_status') = 'Y' ");
+                    } else if ("3".equals(String.valueOf(params.get(key)))) {
+                        //  报单已提交
+                        sqlstr.append(" AND JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$.commit_baodan_status') = 'Y' ");
+                    } else if ("4".equals(String.valueOf(params.get(key)))) {
+                        //  舱单 报单都提交
+                        sqlstr.append(" AND ( JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$.commit_cangdan_status') = 'Y' AND JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$.commit_baodan_status') = 'Y' ) ");
+                    }
+                    continue;
+
+                } else {
+                    sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key + "')=?");
+                }
+
+                sqlParams.add(params.get(key));
+            }
+            //sqlstr.append(" ORDER BY create_date DESC, update_date DESC ");
+            if (StringUtil.isNotEmpty(_orderby_) && StringUtil.isNotEmpty(_sort_)) {
+                sqlstr.append(" ORDER BY ").append(_orderby_).append(" ").append(_sort_);
+            }
+
+            return sqlstr.toString();
+        } else {
+            return sbdfCheck(params.getLong("id"), cust_id).toString();
         }
-        //sqlstr.append(" ORDER BY create_date DESC, update_date DESC ");
-        if (StringUtil.isNotEmpty(_orderby_) && StringUtil.isNotEmpty(_sort_)) {
-            sqlstr.append(" ORDER BY ").append(_orderby_).append(" ").append(_sort_);
-        }
-        return sqlstr.toString();
     }
 
     @Override
@@ -550,22 +558,22 @@ public class SbdZService implements BusiService {
                     for (Product p : dan.getProducts()) {
                         p.setMain_bill_no(mainDan.getBill_no());
                         // 处理保留5位小数
-                        if(StringUtil.isNotEmpty(p.getGgrosswt())){
+                        if (StringUtil.isNotEmpty(p.getGgrosswt())) {
                             BigDecimal v = BigDecimalUtil.roundingValue(new BigDecimal(p.getGgrosswt()), BigDecimal.ROUND_DOWN, 5);
                             p.setGgrosswt(String.valueOf(v.doubleValue()));
                         }
-                        if(StringUtil.isNotEmpty(p.getG_qty())){
+                        if (StringUtil.isNotEmpty(p.getG_qty())) {
                             BigDecimal v = BigDecimalUtil.roundingValue(new BigDecimal(p.getG_qty()), BigDecimal.ROUND_DOWN, 5);
                             p.setG_qty(String.valueOf(v.doubleValue()));
                         }
-                        if(StringUtil.isNotEmpty(p.getQty_1())){
+                        if (StringUtil.isNotEmpty(p.getQty_1())) {
                             BigDecimal v = BigDecimalUtil.roundingValue(new BigDecimal(p.getQty_1()), BigDecimal.ROUND_DOWN, 5);
                             p.setQty_1(String.valueOf(v.doubleValue()));
                         }
                     }
                 }
                 //weight保留5位小数
-                if(StringUtil.isNotEmpty(dan.getWeight())){
+                if (StringUtil.isNotEmpty(dan.getWeight())) {
                     BigDecimal v = BigDecimalUtil.roundingValue(new BigDecimal(dan.getWeight()), BigDecimal.ROUND_DOWN, 5);
                     dan.setWeight(String.valueOf(v.doubleValue()));
                 }
@@ -800,6 +808,71 @@ public class SbdZService implements BusiService {
             info.put("over_warp", "正常");//正常
         }
 
+    }
+
+
+    /*
+    校验
+     */
+    public List<Map> sbdfCheck(long id, String cust_id) {
+        long startTime = System.currentTimeMillis();
+
+        String sql = "select ext_3 from h_data_manager_sbd_z where id = " + id;
+        List<Map<String, Object>> list = jdbcTemplate.queryForList(sql);
+        Map<String, Object> stringObjectMap = list.get(0);
+        String sql1 = "select content,ext_3 from h_data_manager_sbd_f where ext_4='" + stringObjectMap.get("ext_3") + "' and cust_id='" + cust_id + "'";
+        List<Map<String, Object>> list1 = jdbcTemplate.queryForList(sql1);
+        String sql2 = "select content,ext_4 from h_data_manager_sbd_s where ext_2='" + stringObjectMap.get("ext_3") + "' and cust_id='" + cust_id + "'";
+        List<Map<String, Object>> list2 = jdbcTemplate.queryForList(sql2);
+
+        Map<String, Double> sbdsMap = new HashMap<>();
+        list2.stream().forEach(m -> {
+            Map map = (Map) m;
+            if (!sbdsMap.containsKey(map.get("ext_4").toString())) {
+                sbdsMap.put(map.get("ext_4").toString(), 0.0);
+            }
+            Double sbdsDouble = sbdsMap.get(map.get("ext_4").toString());
+            Object content = map.get("content");
+            JSONObject jsonObject = JSON.parseObject(content.toString());
+            Double ggrosswt = jsonObject.getDouble("ggrosswt");
+            sbdsDouble += ggrosswt;
+            sbdsMap.put(map.get("ext_4").toString(), sbdsDouble);
+        });
+        List<Map> dataList = list1.parallelStream().map(m -> {
+            Map dataMap = new HashMap();
+            dataMap.put("code", 1);
+            String str;
+            Map map = (Map) m;
+            Object ext_3 = map.get("ext_3");
+            dataMap.put("bill_no", ext_3);
+            Object content = map.get("content");
+            JSONObject jsonObject = JSON.parseObject(content.toString());
+            double weight = jsonObject.getDoubleValue("weight");//毛重
+            double net_weight = jsonObject.getDoubleValue("net_weight");//净重
+            if (net_weight > weight) {
+                dataMap.put("code", 2000);
+                dataMap.put("message", "分单:[" + ext_3 + "],净重大于毛重");
+                return dataMap;
+            }
+            Double d = 0.0;
+            if (sbdsMap.containsKey(ext_3.toString())) d = sbdsMap.get(ext_3.toString());
+            if (weight >= d + 1) {
+                dataMap.put("code", 2000);
+                dataMap.put("message", "分单:[" + ext_3 + "],毛重大于商品重量之和一公斤");
+                return dataMap;
+            }
+            if (d > weight) {
+                dataMap.put("code", 2000);
+                dataMap.put("message", "分单:[" + ext_3 + "],商品重量之和大于分单的毛重");
+                return dataMap;
+            }
+            return dataMap;
+        }).collect(Collectors.toList());
+
+        long endTime = System.currentTimeMillis();
+        log.info("校验耗时：" + (endTime - startTime));
+
+        return dataList;
     }
 
 }

@@ -8,6 +8,7 @@ import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.customs.services.ExportExcelService;
+import com.bdaim.customs.services.SbdZService;
 import com.bdaim.util.FileUtil;
 import com.bdaim.util.StringUtil;
 
@@ -123,20 +124,20 @@ public class BusiEntityController extends BasicAction {
      */
     @ResponseBody
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
-    public ResponseInfo doInfo(@PathVariable(name = "id") Long id, @RequestBody(required = false) String body, @PathVariable(name = "busiType") String busiType, @RequestParam(name = "_rule_", required = false) String rule,String send_status,HttpServletResponse response) {
+    public ResponseInfo doInfo(@PathVariable(name = "id") Long id, @RequestBody(required = false) String body, @PathVariable(name = "busiType") String busiType, @RequestParam(name = "_rule_", required = false) String rule, String send_status, HttpServletResponse response) {
         ResponseInfo resp = new ResponseInfo();
         JSONObject param = null;
         try {
             if (body == null || "".equals(body))
                 body = "{}";
-            logger.info("开始调用："+body);
+            logger.info("开始调用：" + body);
             param = JSONObject.parseObject(body);
 
             if (!param.containsKey("_rule_")) {
                 param.put("_rule_", rule);
             }
-            if(StringUtil.isNotEmpty(send_status)){
-                param.put("send_status",send_status);
+            if (StringUtil.isNotEmpty(send_status)) {
+                param.put("send_status", send_status);
             }
         } catch (Exception e) {
             return new ResponseInfoAssemble().failure(-1, "记录解析异常:[" + busiType + "]");
@@ -210,4 +211,14 @@ public class BusiEntityController extends BasicAction {
         return resp;
     }
 
+    @Autowired
+    SbdZService sbdZService;
+
+    @GetMapping("/check/{id}")
+    public ResponseInfo sbdfCheck(@PathVariable(name = "id") Long id, @PathVariable(name = "busiType") String busiType) {
+        ResponseInfo resp = new ResponseInfo();
+        LoginUser lu = opUser();
+        resp.setData(sbdZService.sbdfCheck(id, lu.getCustId()));
+        return resp;
+    }
 }
