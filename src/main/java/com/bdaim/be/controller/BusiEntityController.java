@@ -215,7 +215,7 @@ public class BusiEntityController extends BasicAction {
     SbdZService sbdZService;
 
     @GetMapping("/check/{id}")
-    public ResponseInfo sbdfCheck(@PathVariable(name = "id") Long id, @PathVariable(name = "busiType") String busiType) {
+    public ResponseInfo sbdfCheck(@PathVariable(name = "id") String id, @PathVariable(name = "busiType") String busiType) {
         ResponseInfo resp = new ResponseInfo();
         LoginUser lu = opUser();
         resp.setData(sbdZService.sbdfCheck(id, lu.getCustId()));

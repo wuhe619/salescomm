@@ -83,7 +83,7 @@ public class TaxManageService implements BusiService {
         if (StringUtil.isNotEmpty(params.getString("create_time")) && StringUtil.isNotEmpty(params.getString("end_time"))) {
             Long create_time = params.getLong("create_time");
             Long end_time = params.getLong("end_time");
-            sqlstr.append(" and det.create_time between " + fm.format(new Date(create_time)) + " and " + fm.format(new Date(end_time)));
+            sqlstr.append(" and det.create_date between '" + fm.format(new Date(create_time)) + "' and '" + fm.format(new Date(end_time))+"'");
         }
         if (StringUtil.isNotEmpty(params.getString("op_create_time")) && StringUtil.isNotEmpty(params.getString("op_end_time"))) {
             Long create_time = params.getLong("op_create_time");

@@ -814,15 +814,15 @@ public class SbdZService implements BusiService {
     /*
     校验
      */
-    public List<Map> sbdfCheck(long id, String cust_id) {
+    public List<Map> sbdfCheck(String id, String cust_id) {
         long startTime = System.currentTimeMillis();
 
-        String sql = "select ext_3 from h_data_manager_sbd_z where id = " + id;
-        List<Map<String, Object>> list = jdbcTemplate.queryForList(sql);
-        Map<String, Object> stringObjectMap = list.get(0);
-        String sql1 = "select content,ext_3 from h_data_manager_sbd_f where ext_4='" + stringObjectMap.get("ext_3") + "' and cust_id='" + cust_id + "'";
+//        String sql = "select ext_3 from h_data_manager_sbd_z where id = " + id;
+//        List<Map<String, Object>> list = jdbcTemplate.queryForList(sql);
+//        Map<String, Object> stringObjectMap = list.get(0);
+        String sql1 = "select content,ext_3 from h_data_manager_sbd_f where ext_4='" + id + "' and cust_id='" + cust_id + "'";
         List<Map<String, Object>> list1 = jdbcTemplate.queryForList(sql1);
-        String sql2 = "select content,ext_4 from h_data_manager_sbd_s where ext_2='" + stringObjectMap.get("ext_3") + "' and cust_id='" + cust_id + "'";
+        String sql2 = "select content,ext_4 from h_data_manager_sbd_s where ext_2='" + id + "' and cust_id='" + cust_id + "'";
         List<Map<String, Object>> list2 = jdbcTemplate.queryForList(sql2);
 
         Map<String, Double> sbdsMap = new HashMap<>();
