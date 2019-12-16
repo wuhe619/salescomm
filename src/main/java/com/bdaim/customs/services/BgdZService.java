@@ -260,46 +260,45 @@ public class BgdZService implements BusiService {
                             main_bill_no = js.getString("ext_4");
                             js.putAll(info);
                             js.put("bill_no", partyNo);
-
-                            // 报关单税单无申报状态字段
-                            if ("_export_bgd_data_return".equals(param.getString("_rule_"))) {
-                                param.remove("send_status");
-                            }
-                            List products;
-//                        if ("_export_bgd_z_main_data".equals(param.getString("_rule_")) || "_export_bgd_z_main_data_inspection".equals(param.getString("_rule_"))) {
-//                            products = serviceUtils.listSdByBillNos1(cust_id, BusiTypeEnum.BS.getType(), BusiTypeEnum.BF.getType(), main_bill_no, partyBillNos, param);
-//                        } else {
-                            products = serviceUtils.listSdByBillNos(cust_id, BusiTypeEnum.BS.getType(), main_bill_no, partyBillNos, param);
-//                        }
-
-                            log.info("报关单：{}分单数量:{}", main_bill_no, singles);
-                            log.info("报关单：{}商品数量:{}", main_bill_no, products);
-                            JSONObject content;
-                            for (int j = 0; j < products.size(); j++) {
-                                product = (JSONObject) products.get(j);
-                                content = JSON.parseObject(product.getString("content"));
-                                product.putAll(content);
-                                product.put("index", j + 1);
-                                product.put("party_bill_no", product.getString("ext_4"));
-                                product.put("main_bill_no", main_bill_no);
-                                product.put("receive_tel", js.containsKey("receive_tel") ? js.get("receive_tel") : "");
-                                product.put("receive_address", js.containsKey("receive_address") ? js.get("receive_address") : "");
-                                product.put("receive_name", js.containsKey("receive_name") ? js.get("receive_name") : "");
-                                product.put("id_type", js.containsKey("id_type") ? js.get("id_type") : "");
-                                product.put("id_no", js.containsKey("id_no") ? js.get("id_no") : "");
-                            }
-                            info.put("singles", singles);
-//                            info.put("products", products);
-                            if (!info.containsKey("products")) {
-                                info.put("products", products);
-                            } else {
-                                JSONObject products1 = JSON.parseObject(info.getString("products"));
-                                products1.putAll(product);
-                                info.put("products", products1);
-                            }
-
-
                         }
+                        // 报关单税单无申报状态字段
+                        if ("_export_bgd_data_return".equals(param.getString("_rule_"))) {
+                            param.remove("send_status");
+                        }
+                        List products;
+                        if ("_export_bgd_z_main_data".equals(param.getString("_rule_")) || "_export_bgd_z_main_data_inspection".equals(param.getString("_rule_"))) {
+                            products = serviceUtils.listSdByBillNos1(cust_id, BusiTypeEnum.BS.getType(), BusiTypeEnum.BF.getType(), main_bill_no, partyBillNos, param);
+                        } else {
+                            products = serviceUtils.listSdByBillNos(cust_id, BusiTypeEnum.BS.getType(), main_bill_no, partyBillNos, param);
+                        }
+
+                        log.info("报关单：{}分单数量:{}", main_bill_no, singles);
+                        log.info("报关单：{}商品数量:{}", main_bill_no, products);
+                        JSONObject content;
+                        for (int j = 0; j < products.size(); j++) {
+                            product = (JSONObject) products.get(j);
+                            content = JSON.parseObject(product.getString("content"));
+                            product.putAll(content);
+                            product.put("index", j + 1);
+                            product.put("party_bill_no", product.getString("ext_4"));
+                            product.put("main_bill_no", main_bill_no);
+//                                product.put("receive_tel", js.containsKey("receive_tel") ? js.get("receive_tel") : "");
+//                                product.put("receive_address", js.containsKey("receive_address") ? js.get("receive_address") : "");
+//                                product.put("receive_name", js.containsKey("receive_name") ? js.get("receive_name") : "");
+//                                product.put("id_type", js.containsKey("id_type") ? js.get("id_type") : "");
+//                                product.put("id_no", js.containsKey("id_no") ? js.get("id_no") : "");
+                        }
+                        info.put("singles", singles);
+                        info.put("products", products);
+//                            if (!info.containsKey("products")) {
+//                                info.put("products", products);
+//                            } else {
+//                                JSONObject products1 = JSON.parseObject(info.getString("products"));
+//                                products1.putAll(product);
+//                                info.put("products", products1);
+//                            }
+
+
                     }
             }
 
