@@ -261,6 +261,7 @@ public class BgdZService implements BusiService {
                             js.putAll(info);
                             js.put("bill_no", partyNo);
                         }
+                        log.info("bill_no:{" + partyBillNos.toString() + "}");
                         // 报关单税单无申报状态字段
                         if ("_export_bgd_data_return".equals(param.getString("_rule_"))) {
                             param.remove("send_status");
