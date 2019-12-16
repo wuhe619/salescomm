@@ -493,7 +493,7 @@ public class SbdZService implements BusiService {
 
             return sqlstr.toString();
         }else{
-            CheckData checkData = sbdfCheck(params.getString("main_bill_no"), busiType);
+            CheckData checkData = sbdfCheck(params.getString("main_bill_no"), cust_id);
             return JSON.toJSONString(checkData);
         }
     }
