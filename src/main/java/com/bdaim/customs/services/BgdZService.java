@@ -240,6 +240,7 @@ public class BgdZService implements BusiService {
             info.put("export_type", 2);
             switch (param.getString("_rule_")) {
                 case "_export_bgd_z_main_data":
+                case "_export_bgd_z_main_data_inspection":
                 case "_export_bgd_data_return":
                     // 只查询退单
                     if ("_export_bgd_data_return".equals(param.getString("_rule_"))) {
@@ -265,11 +266,11 @@ public class BgdZService implements BusiService {
                             param.remove("send_status");
                         }
                         List products;
-//                        if ("_export_bgd_z_main_data".equals(param.getString("_rule_"))||"_export_bgd_z_main_data_inspection".equals(param.getString("_rule_"))) {
+                        if ("_export_bgd_z_main_data".equals(param.getString("_rule_"))||"_export_bgd_z_main_data_inspection".equals(param.getString("_rule_"))) {
                             products = serviceUtils.listSdByBillNos1(cust_id, BusiTypeEnum.BS.getType(), BusiTypeEnum.BF.getType(), main_bill_no, partyBillNos, param);
-//                        } else {
-//                            products = serviceUtils.listSdByBillNos(cust_id, BusiTypeEnum.BS.getType(), main_bill_no, partyBillNos, param);
-//                        }
+                        } else {
+                            products = serviceUtils.listSdByBillNos(cust_id, BusiTypeEnum.BS.getType(), main_bill_no, partyBillNos, param);
+                        }
 
                         log.info("报关单：{}分单数量:{}", main_bill_no, singles);
                         log.info("报关单：{}商品数量:{}", main_bill_no, products);

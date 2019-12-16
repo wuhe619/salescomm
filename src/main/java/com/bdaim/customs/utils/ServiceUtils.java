@@ -367,7 +367,6 @@ public class ServiceUtils {
 
             return map;
         }).collect(Collectors.toList());
-        log.info("data:{" + JSON.toJSONString(collect) + "}");
 //        List<JSONObject> result = JSON.parseArray(JSON.toJSONString(list), JSONObject.class);
         return JSON.parseArray(JSON.toJSONString(collect), JSONObject.class);
     }
