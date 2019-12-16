@@ -178,6 +178,11 @@ public class ExportExcelService {
                 generateMainDan(list, map);
                 export(templatePath, map, sheetName, response);
                 break;
+            case "_export_bgd_z_main_data_inspection":
+                sheetName = new String[]{"查验报关单表头", "查验报关单商品"};
+                generateMainDan(list, map);
+                export(templatePath, map, sheetName, response);
+                break;
             case "_export_bgd_z_main_data":
                 sheetName = new String[]{"报关单表头", "报关单商品"};
                 generateMainDan(list, map);
