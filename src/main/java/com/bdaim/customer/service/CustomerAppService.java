@@ -455,4 +455,8 @@ public class CustomerAppService {
         return map;
     }
 
+    public List apps(String customerId) {
+    	List data = jdbcTemplate.queryForList("select name,application_id as appId,access_token as token,VALIDITY_PERIOD as tokenPeriod,date_format(TOKEN_TIME_CREATED,'%Y-%m-%d %H:%i:%s') as tokenTime from am_application=?", customerId);
+    	return data;
+    }
 }

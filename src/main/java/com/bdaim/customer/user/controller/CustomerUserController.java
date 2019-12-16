@@ -101,4 +101,16 @@ public class CustomerUserController extends BasicAction {
         }
         return resp;
     }
+
+    @PutMapping("/{uId}")
+    public ResponseInfo updateUserPassWord(@PathVariable(name = "uId") String id, String password) {
+        ResponseInfo resp = new ResponseInfo();
+        try {
+            resp.setData(customerUserService.updateUserPassword(id, password));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return resp;
+    }
+
 }

@@ -93,5 +93,15 @@ public class NewCustomerUserService {
         return 1;
     }
 
+    public int updateUserPassword(String Id, String password) throws Exception {
+        CustomerUser customerUserDO = customerUserDao.findUniqueBy("id", Long.valueOf(Id));
+        if (customerUserDO == null) {
+            throw new Exception("用户" + Id + "不存在");
+        }
+        customerUserDO.setPassword(CipherUtil.generatePassword(password));
+        customerUserDao.update(customerUserDO);
+        return 1;
+    }
+
 
 }

@@ -28,6 +28,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.DoubleStream;
 
 /***
  * 申报单.分单
@@ -227,7 +229,7 @@ public class SbdFService implements BusiService {
             id, JSONObject info, JSONObject param) throws TouchException {
         // TODO Auto-generated method stub
         if ("SBDCHECK".equals(param.getString("_rule_"))) {
-            sbdfCheck(id);
+            sbdfCheck(id,cust_id,param);
         }
 
     }
@@ -397,48 +399,57 @@ public class SbdFService implements BusiService {
     /*
     校验
      */
-    public synchronized int sbdfCheck(long id) throws TouchException {
+    public int sbdfCheck(long id,String cust_id,JSONObject param) throws TouchException {
         long startTime = System.currentTimeMillis();
-        try {
 
-            String sql1 = "select ext_3,ext_4,content from h_data_manager_sbd_f where id = " + id;
+        String sql1 = "select ext_3,ext_4,content from h_data_manager_sbd_f where id = " + id;
+        List<Map<String, Object>> list = jdbcTemplate.queryForList(sql1);
+        if (list.size() == 0) {
+            throw new TouchException("2000", "分单:[" + id + "],不存在");
+        }
+        Object ext_3 = list.get(0).get("ext_3");
+        Object ext_4 = list.get(0).get("ext_4");
+        Object content = list.get(0).get("content");
+        JSONObject jsonObject = JSON.parseObject(content.toString());
+        double weight = jsonObject.getDoubleValue("weight");//毛重
+        double net_weight = jsonObject.getDoubleValue("net_weight");//净重
+        log.info("净重:" + net_weight);
+        if (net_weight > weight) {
+            throw new TouchException("2000", "分单:[" + ext_3 + "],净重大于毛重");
+        }
+        log.info("主单号:{" + ext_4 + "}");
+        long startTime1 = System.currentTimeMillis();
+        String sql = "select content from h_data_manager_sbd_s where ext_4 = '" + ext_3 + "' " +
+                "and ext_2 = '" + ext_4 + "' and type='sbd_s' and cust_id='"+cust_id+"'";
+        List<Map<String, Object>> maps = jdbcTemplate.queryForList(sql);
+        long startTime2 = System.currentTimeMillis();
+        log.info("查询税单耗时："+(startTime2-startTime1));
+        DoubleStream ggrosswt = maps.parallelStream().map(m -> {
+            JSONObject contentJson = JSONObject.parseObject(m.get("content").toString());
+            return  contentJson.getDouble("ggrosswt");
+        }).mapToDouble(value -> value);
+        long startTime3 = System.currentTimeMillis();
+        log.info("获取税单总重量耗时："+(startTime3-startTime2));
+        Double d = 0.0;
 
-            List<Map<String, Object>> list = jdbcTemplate.queryForList(sql1);
-            if (list.size() == 0) {
-                throw new TouchException("2000", "分单:[" + id + "],不存在");
-            }
-            Object ext_3 = list.get(0).get("ext_3");
-            Object ext_4 = list.get(0).get("ext_4");
-            Object content = list.get(0).get("content");
-            JSONObject jsonObject = JSON.parseObject(content.toString());
-            double weight = jsonObject.getDoubleValue("weight");//毛重
-            double net_weight = jsonObject.getDoubleValue("net_weight");//净重
-            log.info("净重:" + net_weight);
-            if (net_weight > weight) {
-                throw new TouchException("2000", "分单:[" + ext_4 + "],净重大于毛重");
-            }
-            long endTime1 = System.currentTimeMillis();
-            String sql = "select sum(content->'$.ggrosswt'*100) from h_data_manager_sbd_s where ext_4 = '" + ext_3 + "'";
-            Double d = jdbcTemplate.queryForObject(sql, Double.class) / 100;
-            long endTime2 = System.currentTimeMillis();
-            log.info("校验耗时：" + (endTime2 - endTime1));
-            String sql2 = "select content->'$.ggrosswt' from h_data_manager_sbd_s where ext_4 = '" + ext_3 + "'";
-            List<Map<String, Object>> maps = jdbcTemplate.queryForList(sql2);
-            long endTime3 = System.currentTimeMillis();
-            log.info("校验耗时：" + (endTime3 - endTime2));
-            if (weight >= d + 1) {
-                throw new TouchException("2000", "分单:[" + ext_4 + "],毛重大于商品重量之和一公斤");
-            }
-            log.info("商品重量:" + d);
-            log.info("毛重:" + weight);
-            if (d > weight) {
-                throw new TouchException("2000", "分单:[" + ext_4 + "],商品重量之和大于分单的毛重");
-            }
-        } finally {
-            long endTime = System.currentTimeMillis();
-            log.info("校验耗时：" + (endTime - startTime));
+        if (ggrosswt != null) {
+            d = ggrosswt.sum();
+        }
+//            String sql2 = "select content->'$.ggrosswt' from h_data_manager_sbd_s where ext_4 = '" + ext_3 + "'";
+//            List<Map<String, Object>> maps = jdbcTemplate.queryForList(sql2);
+//            long endTime3 = System.currentTimeMillis();
+//            log.info("校验耗时2：" + (endTime3 - endTime2));
+        log.info("商品重量:" + d);
+        log.info("毛重:" + weight);
+        if (weight >= d + 1) {
+            throw new TouchException("2000", "分单:[" + ext_3 + "],毛重大于商品重量之和一公斤");
+        }
+        if (d > weight) {
+            throw new TouchException("2000", "分单:[" + ext_3 + "],商品重量之和大于分单的毛重");
         }
 
+        long endTime = System.currentTimeMillis();
+        log.info("校验耗时：" + (endTime - startTime));
 
         return 1;
     }

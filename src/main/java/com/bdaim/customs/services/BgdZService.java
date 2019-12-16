@@ -240,15 +240,16 @@ public class BgdZService implements BusiService {
             info.put("export_type", 2);
             switch (param.getString("_rule_")) {
                 case "_export_bgd_z_main_data":
+                case "_export_bgd_z_main_data_inspection":
                 case "_export_bgd_data_return":
                     // 只查询退单
                     if ("_export_bgd_data_return".equals(param.getString("_rule_"))) {
                         param.put("send_status", "00");
                     }
                     List singles = queryChildData(BusiTypeEnum.BF.getType(), cust_id, cust_group_id, cust_user_id, id, info, param);
-
+                    log.info("分单:" + singles.size());
                     if (singles != null && singles.size() > 0) {
-                        JSONObject js, product;
+                        JSONObject js, product = null;
                         String main_bill_no = "", partyNo = "";
                         List partyBillNos = new ArrayList();
                         for (int i = 0; i < singles.size(); i++) {
@@ -260,15 +261,16 @@ public class BgdZService implements BusiService {
                             js.putAll(info);
                             js.put("bill_no", partyNo);
                         }
+                        log.info("bill_no:{" + partyBillNos.toString() + "}");
                         // 报关单税单无申报状态字段
                         if ("_export_bgd_data_return".equals(param.getString("_rule_"))) {
                             param.remove("send_status");
                         }
                         List products;
-                        if("_export_bgd_z_main_data".equals(param.getString("_rule_"))){
-                            products = serviceUtils.listSdByBillNos1(cust_id, BusiTypeEnum.BS.getType(),BusiTypeEnum.BF.getType(), main_bill_no, partyBillNos, param);
-                        }else{
-                             products = serviceUtils.listSdByBillNos(cust_id, BusiTypeEnum.BS.getType(), main_bill_no, partyBillNos, param);
+                        if ("_export_bgd_z_main_data".equals(param.getString("_rule_")) || "_export_bgd_z_main_data_inspection".equals(param.getString("_rule_"))) {
+                            products = serviceUtils.listSdByBillNos1(cust_id, BusiTypeEnum.BS.getType(), BusiTypeEnum.BF.getType(), main_bill_no, partyBillNos, param);
+                        } else {
+                            products = serviceUtils.listSdByBillNos(cust_id, BusiTypeEnum.BS.getType(), main_bill_no, partyBillNos, param);
                         }
 
                         log.info("报关单：{}分单数量:{}", main_bill_no, singles);
@@ -281,9 +283,23 @@ public class BgdZService implements BusiService {
                             product.put("index", j + 1);
                             product.put("party_bill_no", product.getString("ext_4"));
                             product.put("main_bill_no", main_bill_no);
+//                                product.put("receive_tel", js.containsKey("receive_tel") ? js.get("receive_tel") : "");
+//                                product.put("receive_address", js.containsKey("receive_address") ? js.get("receive_address") : "");
+//                                product.put("receive_name", js.containsKey("receive_name") ? js.get("receive_name") : "");
+//                                product.put("id_type", js.containsKey("id_type") ? js.get("id_type") : "");
+//                                product.put("id_no", js.containsKey("id_no") ? js.get("id_no") : "");
                         }
                         info.put("singles", singles);
                         info.put("products", products);
+//                            if (!info.containsKey("products")) {
+//                                info.put("products", products);
+//                            } else {
+//                                JSONObject products1 = JSON.parseObject(info.getString("products"));
+//                                products1.putAll(product);
+//                                info.put("products", products1);
+//                            }
+
+
                     }
             }
 
@@ -530,16 +546,19 @@ public class BgdZService implements BusiService {
                 sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key.substring(4) + "') <= ?");
             } else if (key.startsWith("_eq_")) {
                 sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key.substring(4) + "') = ?");
+            } else if ("send_status".equals(key)) {
+                sqlstr.append(" and ext_1=?");
             } else {
                 sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key + "')=?");
             }
+            log.info("key:{" + param.get(key) + "}");
             sqlParams.add(param.get(key));
         }
         //sqlstr.append(" and ( CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')=? ELSE null END  or CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')=? ELSE null END)");
         sqlstr.append(" and ext_4=(SELECT ext_3 FROM " + HMetaDataDef.getTable(BusiTypeEnum.getParentType(busiType), "") + " WHERE id = ?)");
         //sqlParams.add(pid);
         sqlParams.add(pid);
-
+        log.info("bgdz::" + sqlstr.toString() + ";param=" + sqlParams.toArray());
         List<Map<String, Object>> ds = jdbcTemplate.queryForList(sqlstr.toString(), sqlParams.toArray());
         List data = new ArrayList();
         for (int i = 0; i < ds.size(); i++) {
@@ -693,6 +712,7 @@ public class BgdZService implements BusiService {
 
     /**
      * 导出excel
+     *
      * @param response
      * @param cust_id
      * @param cust_group_id

@@ -1827,7 +1827,7 @@ public class CustomGroupService {
             log.error("根据客户或营销任务ID,身份ID获取用户信息异常,", e);
         }
         map = new HashMap<>();
-        map.put("selLabel", "[]");
+        map.put("selLabel", new ArrayList<>());
         return map;
     }
 
