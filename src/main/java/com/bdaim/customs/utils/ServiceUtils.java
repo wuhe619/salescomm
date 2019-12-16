@@ -396,7 +396,7 @@ public class ServiceUtils {
         while (keys.hasNext()) {
             String key = (String) keys.next();
             if ("".equals(String.valueOf(param.get(key)))) continue;
-            if ("pageNum".equals(key) || "pageSize".equals(key) || "stationId".equals(key) || "cust_id".equals(key) || "_rule_".equals(key)) {
+            if ("pageNum".equals(key) || "pageSize".equals(key) || "stationId".equals(key) || "cust_id".equals(key) || "_rule_".equals(key) || "send_status".equals(key)) {
                 continue;
             } else if (key.startsWith("_g_")) {
                 sql.append(" and " + BusiMetaConfig.getFieldIndex(type, key) + " > ?");
