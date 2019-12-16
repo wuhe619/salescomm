@@ -265,7 +265,7 @@ public class BgdZService implements BusiService {
                             param.remove("send_status");
                         }
                         List products;
-                        if ("_export_bgd_z_main_data".equals(param.getString("_rule_"))) {
+                        if ("_export_bgd_z_main_data".equals(param.getString("_rule_"))||"_export_bgd_z_main_data_inspection".equals(param.getString("_rule_"))) {
                             products = serviceUtils.listSdByBillNos1(cust_id, BusiTypeEnum.BS.getType(), BusiTypeEnum.BF.getType(), main_bill_no, partyBillNos, param);
                         } else {
                             products = serviceUtils.listSdByBillNos(cust_id, BusiTypeEnum.BS.getType(), main_bill_no, partyBillNos, param);
