@@ -247,7 +247,7 @@ public class BgdZService implements BusiService {
                         param.put("send_status", "00");
                     }
                     List singles = queryChildData(BusiTypeEnum.BF.getType(), cust_id, cust_group_id, cust_user_id, id, info, param);
-
+                    log.info("分单:" + singles.size());
                     if (singles != null && singles.size() > 0) {
                         JSONObject js, product;
                         String main_bill_no = "", partyNo = "";
@@ -541,7 +541,7 @@ public class BgdZService implements BusiService {
             } else {
                 sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key + "')=?");
             }
-            log.info("key:{" + key + "}");
+            log.info("key:{" + param.get(key) + "}");
             sqlParams.add(param.get(key));
         }
         //sqlstr.append(" and ( CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')=? ELSE null END  or CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(content, '$.pid')=? ELSE null END)");
