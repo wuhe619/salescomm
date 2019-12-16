@@ -835,7 +835,8 @@ public class SbdZService implements BusiService {
             JSONObject jsonObject = JSON.parseObject(content.toString());
             Double ggrosswt = jsonObject.getDouble("ggrosswt");
             sbdsDouble += ggrosswt;
-            sbdsMap.put(map.get("ext_4").toString(), sbdsDouble);
+            BigDecimal b = new BigDecimal(sbdsDouble);
+            sbdsMap.put(map.get("ext_4").toString(),  b.setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue());
         });
         CheckData cd = new CheckData();
         List<String> errList = new ArrayList<>();
