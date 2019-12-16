@@ -147,7 +147,7 @@ public class BusiEntityService {
         try {
             //执行自定义查询sql
             sql = busiService.formatQuery(busiType, cust_id, cust_group_id, cust_user_id, params, sqlParams);
-            if (!sql.startsWith("select") && StringUtil.isNotEmpty(sql)) {
+            if (StringUtil.isNotEmpty(sql) && !sql.startsWith("select")) {
                 Page page = new Page();
                 List list = new ArrayList();
                 list.add(sql);
