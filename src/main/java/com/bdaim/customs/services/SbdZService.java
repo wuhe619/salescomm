@@ -2,6 +2,7 @@ package com.bdaim.customs.services;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.api.entity.CheckData;
 import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.service.BusiService;
 import com.bdaim.common.service.ElasticSearchService;
@@ -812,7 +813,7 @@ public class SbdZService implements BusiService {
     /*
     校验
      */
-    public List<Map> sbdfCheck(String id, String cust_id) {
+    public CheckData sbdfCheck(String id, String cust_id) {
         long startTime = System.currentTimeMillis();
 
 //        String sql = "select ext_3 from h_data_manager_sbd_z where id = " + id;
@@ -836,7 +837,9 @@ public class SbdZService implements BusiService {
             sbdsDouble += ggrosswt;
             sbdsMap.put(map.get("ext_4").toString(), sbdsDouble);
         });
-        List<Map> dataList = list1.parallelStream().map(m -> {
+        CheckData cd = new CheckData();
+        List<String> errList = new ArrayList<>();
+        list1.parallelStream().forEach(m -> {
             Map dataMap = new HashMap();
             dataMap.put("code", 1);
             String str;
@@ -847,32 +850,26 @@ public class SbdZService implements BusiService {
             JSONObject jsonObject = JSON.parseObject(content.toString());
             double weight = jsonObject.getDoubleValue("weight");//毛重
             double net_weight = jsonObject.getDoubleValue("net_weight");//净重
-            if (net_weight > weight) {
-                dataMap.put("code", 2000);
-                dataMap.put("message", "分单:[" + ext_3 + "],净重大于毛重");
-                return dataMap;
-            }
             Double d = 0.0;
             if (sbdsMap.containsKey(ext_3.toString())) d = sbdsMap.get(ext_3.toString());
-            if (weight >= d + 1) {
-                dataMap.put("code", 2000);
-                dataMap.put("message", "分单:[" + ext_3 + "],毛重大于商品重量之和一公斤");
-                return dataMap;
-            }
-            if (d > weight) {
+            if (net_weight > weight) {
+                errList.add("分单:[" + ext_3 + "],净重大于毛重");
+            } else if (weight >= d + 1) {
+                errList.add("分单:[" + ext_3 + "],毛重大于商品重量之和一公斤");
+            } else if (d > weight) {
                 log.info("毛重：" + weight);
                 log.info("重量：" + d);
-                dataMap.put("code", 2000);
-                dataMap.put("message", "分单:[" + ext_3 + "],商品重量之和大于分单的毛重");
-                return dataMap;
+                errList.add("分单:[" + ext_3 + "],商品重量之和大于分单的毛重");
             }
-            return dataMap;
-        }).collect(Collectors.toList());
-
+        });
+        cd.setErrLsit(errList);
+        cd.setCount(list1.size());
+        cd.setErrCount(errList.size());
+        cd.setSucCount(list1.size() - errList.size());
         long endTime = System.currentTimeMillis();
         log.info("校验耗时：" + (endTime - startTime));
 
-        return dataList;
+        return cd;
     }
 
 }

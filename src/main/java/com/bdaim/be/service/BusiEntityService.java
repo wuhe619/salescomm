@@ -11,6 +11,7 @@ import com.bdaim.common.spring.SpringContextHelper;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customs.entity.BusiTypeEnum;
 import com.bdaim.customs.entity.HMetaDataDef;
+import com.bdaim.customs.services.SbdZService;
 import com.bdaim.customs.utils.ServiceUtils;
 import com.bdaim.util.StringUtil;
 import net.sf.json.JSONArray;
@@ -451,5 +452,12 @@ public class BusiEntityService {
         }
     }
 
+    @Autowired
+    SbdZService sbdZService;
+
+    public Object check(String id, String busiType) {
+//        BusiService busiService = (BusiService) SpringContextHelper.getBean("busi_" + busiType);
+        return sbdZService.sbdfCheck(id, busiType);
+    }
 
 }
