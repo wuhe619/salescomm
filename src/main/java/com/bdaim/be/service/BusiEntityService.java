@@ -456,12 +456,5 @@ public class BusiEntityService {
         }
     }
 
-    @Autowired
-    SbdZService sbdZService;
-
-    public Object check(String id, String busiType) {
-//        BusiService busiService = (BusiService) SpringContextHelper.getBean("busi_" + busiType);
-        return sbdZService.sbdfCheck(id, busiType);
-    }
 
 }

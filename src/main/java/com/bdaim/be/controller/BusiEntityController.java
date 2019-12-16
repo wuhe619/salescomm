@@ -211,12 +211,4 @@ public class BusiEntityController extends BasicAction {
         return resp;
     }
 
-
-    @PostMapping("/check/{id}")
-    public ResponseInfo check(@PathVariable(name = "id") String id, @PathVariable(name = "busiType") String busiType) {
-        ResponseInfo resp = new ResponseInfo();
-        LoginUser lu = opUser();
-        resp.setData(busiEntityService.check(id, lu.getCustId()));
-        return resp;
-    }
 }

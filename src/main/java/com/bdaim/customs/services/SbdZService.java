@@ -492,7 +492,7 @@ public class SbdZService implements BusiService {
             }
 
             return sqlstr.toString();
-        }else{
+        } else {
             CheckData checkData = sbdfCheck(params.getString("main_bill_no"), cust_id);
             return JSON.toJSONString(checkData);
         }
@@ -839,7 +839,7 @@ public class SbdZService implements BusiService {
             Double ggrosswt = jsonObject.getDouble("ggrosswt");
             sbdsDouble += ggrosswt;
             BigDecimal b = new BigDecimal(sbdsDouble);
-            sbdsMap.put(map.get("ext_4").toString(),  b.setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue());
+            sbdsMap.put(map.get("ext_4").toString(), b.setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue());
         });
         CheckData cd = new CheckData();
         List<String> errList = new ArrayList<>();
@@ -853,7 +853,11 @@ public class SbdZService implements BusiService {
             Object content = map.get("content");
             JSONObject jsonObject = JSON.parseObject(content.toString());
             double weight = jsonObject.getDoubleValue("weight");//毛重
+            BigDecimal b = new BigDecimal(weight);
+            weight = b.setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
             double net_weight = jsonObject.getDoubleValue("net_weight");//净重
+            BigDecimal n = new BigDecimal(net_weight);
+            net_weight = n.setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
             Double d = 0.0;
             if (sbdsMap.containsKey(ext_3.toString())) d = sbdsMap.get(ext_3.toString());
             if (net_weight > weight) {
@@ -861,8 +865,6 @@ public class SbdZService implements BusiService {
             } else if (weight >= d + 1) {
                 errList.add("分单:[" + ext_3 + "],毛重大于商品重量之和一公斤");
             } else if (d > weight) {
-                log.info("毛重：" + weight);
-                log.info("重量：" + d);
                 errList.add("分单:[" + ext_3 + "],商品重量之和大于分单的毛重");
             }
         });
