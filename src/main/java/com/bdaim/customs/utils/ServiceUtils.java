@@ -343,7 +343,7 @@ public class ServiceUtils {
         log.info("查询税单sql:{}", sql);
         List<Map<String, Object>> list = jdbcTemplate.queryForList(sql.toString(), sqlParams.toArray());
         List<String> ext_4List = list.parallelStream().map(map -> map.get("ext_4").toString()).distinct().collect(Collectors.toList());
-        String sql1 = "select f.ext_3,fcontent from " + HMetaDataDef.getTable(type1, "") + " f where f.ext_3 in (" + SqlAppendUtil.sqlAppendWhereIn(ext_4List) + ")";
+        String sql1 = "select f.ext_3,f.content from " + HMetaDataDef.getTable(type1, "") + " f where f.ext_3 in (" + SqlAppendUtil.sqlAppendWhereIn(ext_4List) + ")";
         Map<String, Map> map1 = new HashMap();
         jdbcTemplate.queryForList(sql1).stream().forEach(m -> {
             map1.put(m.get("ext_3").toString(), m);
