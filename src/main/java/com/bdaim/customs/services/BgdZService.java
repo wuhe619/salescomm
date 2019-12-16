@@ -266,7 +266,7 @@ public class BgdZService implements BusiService {
                             param.remove("send_status");
                         }
                         List products;
-                        if ("_export_bgd_z_main_data".equals(param.getString("_rule_"))||"_export_bgd_z_main_data_inspection".equals(param.getString("_rule_"))) {
+                        if ("_export_bgd_z_main_data".equals(param.getString("_rule_")) || "_export_bgd_z_main_data_inspection".equals(param.getString("_rule_"))) {
                             products = serviceUtils.listSdByBillNos1(cust_id, BusiTypeEnum.BS.getType(), BusiTypeEnum.BF.getType(), main_bill_no, partyBillNos, param);
                         } else {
                             products = serviceUtils.listSdByBillNos(cust_id, BusiTypeEnum.BS.getType(), main_bill_no, partyBillNos, param);
@@ -522,7 +522,7 @@ public class BgdZService implements BusiService {
         while (keys.hasNext()) {
             String key = (String) keys.next();
             if ("".equals(String.valueOf(param.get(key)))) continue;
-            if ("pageNum".equals(key) || "pageSize".equals(key) || "stationId".equals(key) || "cust_id".equals(key) || "_rule_".equals(key)||"send_status".equals(key))
+            if ("pageNum".equals(key) || "pageSize".equals(key) || "stationId".equals(key) || "cust_id".equals(key) || "_rule_".equals(key))
                 continue;
             if ("cust_id".equals(key)) {
                 sqlstr.append(" and cust_id=?");
@@ -536,6 +536,8 @@ public class BgdZService implements BusiService {
                 sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key.substring(4) + "') <= ?");
             } else if (key.startsWith("_eq_")) {
                 sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key.substring(4) + "') = ?");
+            } else if ("send_status".equals(key)) {
+                sqlstr.append(" and ext_1=?");
             } else {
                 sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key + "')=?");
             }
@@ -545,7 +547,7 @@ public class BgdZService implements BusiService {
         sqlstr.append(" and ext_4=(SELECT ext_3 FROM " + HMetaDataDef.getTable(BusiTypeEnum.getParentType(busiType), "") + " WHERE id = ?)");
         //sqlParams.add(pid);
         sqlParams.add(pid);
-        log.info("bgdz::"+ sqlstr.toString()+";param="+sqlParams.toArray());
+        log.info("bgdz::" + sqlstr.toString() + ";param=" + sqlParams.toArray());
         List<Map<String, Object>> ds = jdbcTemplate.queryForList(sqlstr.toString(), sqlParams.toArray());
         List data = new ArrayList();
         for (int i = 0; i < ds.size(); i++) {

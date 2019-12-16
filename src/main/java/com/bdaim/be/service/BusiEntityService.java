@@ -58,10 +58,6 @@ public class BusiEntityService {
         if (!"all".equals(cust_id))
             sql += " and cust_id='" + cust_id + "'";
 
-        if (StringUtil.isNotEmpty(param.getString("send_status"))) {
-            sql += " and ext_1 = '" + param.getString("send_status") + "'";
-            param.remove("send_status");
-        }
 
         Map data = null;
         try {
