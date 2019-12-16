@@ -26,10 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 通用业务实体服务
@@ -150,6 +147,13 @@ public class BusiEntityService {
         try {
             //执行自定义查询sql
             sql = busiService.formatQuery(busiType, cust_id, cust_group_id, cust_user_id, params, sqlParams);
+            if (!sql.startsWith("select")) {
+                Page page = new Page();
+                List list = new ArrayList();
+                list.add(sql);
+                page.setData(list);
+                return page;
+            }
             if ("1".equals(sql)) return null;
         } catch (Exception e) {
             logger.error("查询条件自定义解析异常:[" + busiType + "]", e);
