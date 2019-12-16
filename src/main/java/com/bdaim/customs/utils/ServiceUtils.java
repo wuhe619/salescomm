@@ -343,7 +343,7 @@ public class ServiceUtils {
         log.info("查询税单sql:{}", sql);
         List<Map<String, Object>> list = jdbcTemplate.queryForList(sql.toString(), sqlParams.toArray());
         List<String> ext_4List = list.parallelStream().map(map -> map.get("ext_4").toString()).distinct().collect(Collectors.toList());
-        String sql1 = "select f.ext_3,f.content->'$.receive_tel' as receive_tel ,f.content->'$.id_type' as id_type,f.content->'$.id_no' as id_no,f.content->'$.receive_name' as receive_name,f.content->'$.receive_address' as receive_address from " + HMetaDataDef.getTable(type1, "") + " f where f.ext_3 in (" + SqlAppendUtil.sqlAppendWhereIn(ext_4List) + ")";
+        String sql1 = "select f.ext_3,fcontent from " + HMetaDataDef.getTable(type1, "") + " f where f.ext_3 in (" + SqlAppendUtil.sqlAppendWhereIn(ext_4List) + ")";
         Map<String, Map> map1 = new HashMap();
         jdbcTemplate.queryForList(sql1).stream().forEach(m -> {
             map1.put(m.get("ext_3").toString(), m);
@@ -352,14 +352,15 @@ public class ServiceUtils {
         List<Map<String, Object>> collect = list.parallelStream().map(map -> {
             Object ext_4 = map.get("ext_4");
             if (map.containsKey("content")) {
-                JSONObject content = JSON.parseObject(map.get("content") + "");
+                JSONObject content = JSON.parseObject(map.get("content").toString());
                 if (map1.containsKey(ext_4)) {
                     Map ext_4Map = (Map) map1.get(ext_4);
-                    content.put("receive_tel", ext_4Map.containsKey("receive_tel") ? ext_4Map.get("receive_tel") : "");
-                    content.put("receive_address", ext_4Map.containsKey("receive_address") ? ext_4Map.get("receive_address") : "");
-                    content.put("receive_name", ext_4Map.containsKey("receive_name") ? ext_4Map.get("receive_name") : "");
-                    content.put("id_type", ext_4Map.containsKey("id_type") ? ext_4Map.get("id_type") : "");
-                    content.put("id_no", ext_4Map.containsKey("id_no") ? ext_4Map.get("id_no") : "");
+                    JSONObject content1 = JSON.parseObject(ext_4Map.get("content").toString());
+                    content.put("receive_tel", content1.get("receive_tel"));
+                    content.put("receive_address", content1.get("receive_address"));
+                    content.put("receive_name", content1.get("receive_name"));
+                    content.put("id_type", content1.get("id_type"));
+                    content.put("id_no", content1.get("id_no"));
                     map.put("content", content);
                 }
             }
