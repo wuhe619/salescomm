@@ -545,6 +545,7 @@ public class BgdZService implements BusiService {
         sqlstr.append(" and ext_4=(SELECT ext_3 FROM " + HMetaDataDef.getTable(BusiTypeEnum.getParentType(busiType), "") + " WHERE id = ?)");
         //sqlParams.add(pid);
         sqlParams.add(pid);
+        log.info("bgdz::"+ sqlstr.toString()+";param="+sqlParams.toArray());
         List<Map<String, Object>> ds = jdbcTemplate.queryForList(sqlstr.toString(), sqlParams.toArray());
         List data = new ArrayList();
         for (int i = 0; i < ds.size(); i++) {
