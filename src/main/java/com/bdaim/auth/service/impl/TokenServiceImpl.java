@@ -28,6 +28,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -36,6 +38,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Service
 public class TokenServiceImpl implements TokenService {
@@ -59,12 +62,7 @@ public class TokenServiceImpl implements TokenService {
     private WeChatUtil weChatUtil;
     @Resource
     private CustomerUserPropertyDao customerUserPropertyDao;
-    protected HttpServletRequest request;
-    
-    @Resource
-    public void setRequest(HttpServletRequest request) {
-        this.request = request;
-    }
+
     private static Map name2token = new HashMap();
 
     public static Map listTokens() {
@@ -293,6 +291,7 @@ public class TokenServiceImpl implements TokenService {
     }
 
     public LoginUser opUser() {
+    	HttpServletRequest request = ((ServletRequestAttributes)Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
     	String authorization = request.getHeader("Authorization");
     	
     	if(authorization!=null && !"".equals(authorization)) {
