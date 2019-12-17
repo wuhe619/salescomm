@@ -84,7 +84,7 @@ public class CustomerInfoAction extends BasicAction {
      */
     @GetMapping(value = "/info/{customerId}")
     public String info(@PathVariable String customerId) throws Exception{
-    	LoginUser lu = tokenService.opUser();
+    	LoginUser lu = opUser();
     	if(lu==null || lu.getAuths()==null || !lu.getAuths().contains("admin"))
     		throw new Exception("no auth");
     	 
@@ -95,7 +95,7 @@ public class CustomerInfoAction extends BasicAction {
     
     @GetMapping(value = "/info/{customerId}/app")
     public String app(@PathVariable String customerId) throws Exception{
-    	LoginUser lu = tokenService.opUser();
+    	LoginUser lu = opUser();
     	if(lu==null || lu.getAuths()==null || !lu.getAuths().contains("admin"))
     		throw new Exception("no auth");
     		
