@@ -379,7 +379,7 @@ public class ApiService {
         }
         SubscriptionEntity entity = subscriptionDao.getById(Integer.valueOf(apiId), amApplicationEntity.getId());
         String sql = "update am_subscription_charge set unit_price=?,UPDATE_BY=?,UPDATE_TIME=? where SUBSCRIPTION_ID=?";
-        jdbcTemplate.update(sql, new Object[]{params.getInteger("price") * 10000, lu.getUserName(), new Timestamp(System.currentTimeMillis()), entity.getId()});
+        jdbcTemplate.update(sql, new Object[]{params.getDoubleValue("price") * 10000, lu.getUserName(), new Timestamp(System.currentTimeMillis()), entity.getId()});
         return 1;
     }
 
@@ -486,8 +486,8 @@ public class ApiService {
                     });
                     suppliers.deleteCharAt(suppliers.length() - 1);
                 }
-                int price = 0;
-                if (map.get("price") != null) price = Integer.valueOf(map.get("price").toString()) / 10000;
+                Double price = 0.0;
+                if (map.get("price") != null) price = Double.valueOf(map.get("price").toString()) / 10000;
                 map.put("price", price);
                 map.put("realName", suppliers);
                 map.put("resourceId", rsIds);

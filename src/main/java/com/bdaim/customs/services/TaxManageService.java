@@ -2,6 +2,7 @@ package com.bdaim.customs.services;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.auth.LoginUser;
 import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.service.BusiService;
 import com.bdaim.customs.entity.HMetaDataDef;
@@ -71,8 +72,8 @@ public class TaxManageService implements BusiService {
         if (StringUtil.isNotEmpty(params.getString("station_id"))) {
             sqlstr.append(" and re.id = " + params.getLong("station_id"));
         }
-        if (StringUtil.isNotEmpty(params.getString("cust_id"))) {
-            sqlstr.append(" and cust.cust_id = " + params.getLong("cust_id"));
+        if (StringUtil.isNotEmpty(cust_id) && !"all".equals(cust_id)) {
+            sqlstr.append(" and cust.cust_id = " + cust_id);
         }
 //        if (StringUtil.isNotEmpty(params.getString("billno"))) {
 //            sqlstr.append(" and det.content->'&.billno'= '" + params.getString("billno") + "'");
@@ -83,7 +84,7 @@ public class TaxManageService implements BusiService {
         if (StringUtil.isNotEmpty(params.getString("create_time")) && StringUtil.isNotEmpty(params.getString("end_time"))) {
             Long create_time = params.getLong("create_time");
             Long end_time = params.getLong("end_time");
-            sqlstr.append(" and det.create_date between '" + fm.format(new Date(create_time)) + "' and '" + fm.format(new Date(end_time))+"'");
+            sqlstr.append(" and det.create_date between '" + fm.format(new Date(create_time)) + "' and '" + fm.format(new Date(end_time)) + "'");
         }
         if (StringUtil.isNotEmpty(params.getString("op_create_time")) && StringUtil.isNotEmpty(params.getString("op_end_time"))) {
             Long create_time = params.getLong("op_create_time");

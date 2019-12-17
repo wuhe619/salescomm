@@ -28,12 +28,17 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Service
 public class TokenServiceImpl implements TokenService {
@@ -286,11 +291,15 @@ public class TokenServiceImpl implements TokenService {
     }
 
     public LoginUser opUser() {
-        Token u = (LoginUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (u instanceof LoginUser)
-            return (LoginUser) u;
-        else
-            return new LoginUser(0L, "", "");
+    	HttpServletRequest request = ((ServletRequestAttributes)Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
+    	String authorization = request.getHeader("Authorization");
+    	
+    	if(authorization!=null && !"".equals(authorization)) {
+    		LoginUser u = tokenCacheService.getToken(authorization, LoginUser.class);
+    		if(u!=null)
+    			return u;
+    	}
+        return new LoginUser(0L, "", "");
     }
 
     /**

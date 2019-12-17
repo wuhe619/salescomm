@@ -345,7 +345,7 @@ public class BusiEntityService {
                         , jo.containsKey("ext_2") ? jo.getString("ext_2") : ""
                         , jo.containsKey("ext_3") ? jo.getString("ext_3") : ""
                         , jo.containsKey("ext_4") ? jo.getString("ext_4") : ""
-                        , jsonObject.containsKey("ext_5") ? jsonObject.getString("ext_5") : "");
+                        , info.containsKey("ext_5") ? info.getString("ext_5") : "");
             } catch (TouchException e) {
                 logger.warn("添加记录异常:[" + busiType + "]" + id, e);
                 throw e;
