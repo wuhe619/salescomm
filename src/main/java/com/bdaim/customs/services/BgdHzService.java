@@ -135,10 +135,12 @@ public class BgdHzService implements BusiService {
         json.put("op_time", op_time);
         info.put("ext_5", op_time);
         if (sbdHzMap != null) {
-            Long ext_5 = Long.valueOf(sbdHzMap.get("ext_5").toString());
+            JSONObject content1 = JSONObject.parseObject(sbdHzMap.get("content").toString());
+            Long ext_5 = content1.getLong("op_time");
             Long aLong = Long.valueOf(op_time);
-            if(ext_5>aLong){
-                JSONObject content1 = JSONObject.parseObject(sbdHzMap.get("content").toString());
+            log.info("ext_5:" + ext_5);
+            log.info("aLong:" + aLong);
+            if (ext_5 > aLong) {
                 json.put("send_status", content1.getString("op_result"));
                 json.put("ext_1", content1.getString("op_result"));
                 info.put("ext_2", content1.getString("op_result"));
