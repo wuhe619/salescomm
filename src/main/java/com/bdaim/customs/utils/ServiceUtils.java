@@ -1045,6 +1045,8 @@ public class ServiceUtils {
 
     public Map getSbdHz(String billno, String ass_billno) {
         String sql = "select content,ext_5 from h_data_manager_bgd_hz where  type='bgd_hz' and ext_3='" + ass_billno + "' and ext_4='" + billno + "' order by ext_5 desc";
+
+        log.info("回执查询sql:"+sql);
         List<Map<String, Object>> maps = jdbcTemplate.queryForList(sql);
         if (maps.size() > 0) {
             return maps.get(0);
