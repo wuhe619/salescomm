@@ -5,6 +5,8 @@ import com.google.gson.GsonBuilder;
 import io.searchbox.client.JestClient;
 import io.searchbox.client.JestClientFactory;
 import io.searchbox.client.config.HttpClientConfig;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -12,14 +14,15 @@ import org.springframework.context.annotation.Configuration;
 public class InitElasticSearchConfig {
 
     private JestClient client;
-
+    @Value("${es.rest:localhost}")
+    private String es_rest = null;
     @Bean
     public JestClient jestClient() {
         return client;
     }
 
     public InitElasticSearchConfig(){
-        client = getClientConfig(AppConfig.getEs_rest()) ;
+        client = getClientConfig(es_rest) ;
     }
 
     public JestClient getClientConfig(String esUrl){
