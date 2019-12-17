@@ -31,7 +31,7 @@ public class CustomerController extends BasicAction {
      * @Description: 保存企业客户
      */
     @RequestMapping(value = "/info/{custId}", method = RequestMethod.POST)
-    public ResponseInfo info(@RequestBody CustomerRegistDTO customerRegistDTO, @PathVariable(name = "custId") String id) {
+    public ResponseInfo info(@RequestBody CustomerRegistDTO customerRegistDTO, @PathVariable(name = "custId") Long id) {
         ResponseInfo resp = new ResponseInfo();
         try {
             LoginUser lu = opUser();
@@ -39,8 +39,8 @@ public class CustomerController extends BasicAction {
                 //前台创建的createId是当前登陆企业id
                 customerRegistDTO.setCreateId(lu.getCustId());
             }
-            if (!"0".equals(id)) {
-                customerRegistDTO.setCustId(id);
+            if (0L != id) {
+                customerRegistDTO.setCustId(String.valueOf(id));
             }
             String code = customerAppService.registerOrUpdateCustomer(customerRegistDTO, lu);
             if ("001".equals(code)) {
