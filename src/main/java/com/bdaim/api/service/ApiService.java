@@ -379,7 +379,7 @@ public class ApiService {
         }
         SubscriptionEntity entity = subscriptionDao.getById(Integer.valueOf(apiId), amApplicationEntity.getId());
         String sql = "update am_subscription_charge set unit_price=?,UPDATE_BY=?,UPDATE_TIME=? where SUBSCRIPTION_ID=?";
-        jdbcTemplate.update(sql, new Object[]{params.getDouble("price") * 10000, lu.getUserName(), new Timestamp(System.currentTimeMillis()), entity.getId()});
+        jdbcTemplate.update(sql, new Object[]{params.getDoubleValue("price") * 10000, lu.getUserName(), new Timestamp(System.currentTimeMillis()), entity.getId()});
         return 1;
     }
 
