@@ -81,7 +81,7 @@ public class TaxDetailService implements BusiService {
             sqlstr.append(" and re.id = " + params.getLong("station_id"));
         }
         if (StringUtil.isNotEmpty(cust_id)) {
-            sqlstr.append(" and cust.cust_id = " + params.getLong("cust_id"));
+            sqlstr.append(" and cust.cust_id = " +cust_id);
         }
         if (StringUtil.isNotEmpty(params.getString("billno"))) {
             sqlstr.append(" and det.ext_2 = '" + params.getString("billno") + "'");
