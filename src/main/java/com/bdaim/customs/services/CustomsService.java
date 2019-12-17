@@ -1219,7 +1219,7 @@ public class CustomsService {
 
     public Map<String, Object> sbdLastestTotal(String stationId, String custId, LoginUser lu) {
         StringBuffer sql = new StringBuffer("select id,content,ext_3 from  " + HMetaDataDef.getTable(BusiTypeEnum.SZ.getType(), "") + " where type='" + BusiTypeEnum.SZ.getType() + "' ");
-        if (!"ROLE_USER".equals(lu.getAuth())) {
+        if (!"ROLE_USER".equals(lu.getRole()) && !"admin".equals(lu.getRole())) {
             custId = lu.getCustId();
             sql.append(" and cust_id='" + custId + "'");
         } else {
