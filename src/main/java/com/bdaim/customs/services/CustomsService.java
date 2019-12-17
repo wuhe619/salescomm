@@ -1200,7 +1200,7 @@ public class CustomsService {
 
     public List<Map<String, Object>> countSBDNumByMonth(String stationId, String custId, LoginUser lu) {
         StringBuffer sql = new StringBuffer(" select DATE_FORMAT(create_date,'%Y%m') mon,count(0) num from " + HMetaDataDef.getTable(BusiTypeEnum.SZ.getType(), "") + " where type='" + BusiTypeEnum.SZ.getType() + "' ");
-        if (!"ROLE_USER".equals(lu.getAuth())) {
+        if (!"ROLE_USER".equals(lu.getRole()) && !"admin".equals(lu.getRole())) {
             custId = lu.getCustId();
             sql.append(" and cust_id='" + custId + "'");
         } else {
