@@ -1,5 +1,7 @@
 package com.bdaim.util;
 
+import com.bdaim.AppConfig;
+
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
@@ -106,15 +108,15 @@ public class ESUtil {
 
     public static String getUrl() {
         int cycle = 0;
-        String es_rest = PropertiesUtil.getStringValue("es.rest");
-        String esIndexName = PropertiesUtil.getStringValue("ds.es.index." + cycle);
-        String esTypeName = PropertiesUtil.getStringValue("ds.es.type." + cycle);
+        String es_rest = AppConfig.getEs_rest();
+        String esIndexName = AppConfig.getDs_es_index_0();
+        String esTypeName = AppConfig.getDs_es_type_0();
         String url = es_rest + "/" + esIndexName + "/" + esTypeName + "/";
         return url;
     }
 
     public static String getUrl(String index, String type) {
-        String es_rest = PropertiesUtil.getStringValue("es.rest");
+        String es_rest = AppConfig.getEs_rest();
         String url = es_rest + "/" + index + "/" + type + "/";
         return url;
     }

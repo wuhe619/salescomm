@@ -1,7 +1,7 @@
 package com.bdaim.common.dto;
 
 
-import com.bdaim.util.PropertiesUtil;
+import com.bdaim.AppConfig;
 
 /**
  * 字典类型
@@ -12,20 +12,20 @@ import com.bdaim.util.PropertiesUtil;
  */
 public enum DicTypeEnum {
     A("A", "品牌", ""),
-    B("B", "贷款", PropertiesUtil.getStringValue("finance.h5.host") + "/#/loanDetail?id="),
+    B("B", "贷款", AppConfig.getFinance_h5_host() + "/#/loanDetail?id="),
     C("C", "活动", ""),
     E("E", "广告位", ""),
     F("F", "广告", ""),
-    G("G", "信用卡", PropertiesUtil.getStringValue("finance.h5.host") + "/#/creditDetail?id="),
-    H("H", "理财", PropertiesUtil.getStringValue("finance.h5.host") + "/#/moneyDetail?id="),
+    G("G", "信用卡", AppConfig.getFinance_h5_host() + "/#/creditDetail?id="),
+    H("H", "理财", AppConfig.getFinance_h5_host() + "/#/moneyDetail?id="),
     I("I", "渠道", ""),
-    J("J", "活动页", PropertiesUtil.getStringValue("finance.h5.host") + "/#/activity?id="),
+    J("J", "活动页", AppConfig.getFinance_h5_host() + "/#/activity?id="),
     K("K", "推广活动", "");
 
     private String id;
     private String name;
     private String url;
-
+    
     DicTypeEnum(String id, String name, String url) {
         this.id = id;
         this.name = name;

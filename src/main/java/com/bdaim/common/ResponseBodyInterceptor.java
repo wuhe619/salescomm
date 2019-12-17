@@ -3,9 +3,9 @@ package com.bdaim.common;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.AppConfig;
 import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.response.ResponseInfo;
-import com.bdaim.util.PropertiesUtil;
 import com.bdaim.util.StringUtil;
 
 import org.apache.commons.logging.Log;
@@ -26,7 +26,7 @@ public class ResponseBodyInterceptor {
 
     private static final Log log = LogFactory.getLog("Response");
 
-    private static final String APP_NAME = PropertiesUtil.getStringValue("app");
+    private static final String APP_NAME = AppConfig.getApp();
 
     @Pointcut("@annotation(org.springframework.web.bind.annotation.ResponseBody)")
     private void pointCutMethod() {

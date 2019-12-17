@@ -1,5 +1,6 @@
 package com.bdaim.util;
 
+import com.bdaim.AppConfig;
 import com.google.gson.GsonBuilder;
 import io.searchbox.client.JestClient;
 import io.searchbox.client.JestClientFactory;
@@ -18,7 +19,7 @@ public class InitElasticSearchConfig {
     }
 
     public InitElasticSearchConfig(){
-        client = getClientConfig(PropertiesUtil.getStringValue("es.rest")) ;
+        client = getClientConfig(AppConfig.getEs_rest()) ;
     }
 
     public JestClient getClientConfig(String esUrl){

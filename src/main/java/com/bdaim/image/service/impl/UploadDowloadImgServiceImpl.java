@@ -1,6 +1,7 @@
 package com.bdaim.image.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.AppConfig;
 import com.bdaim.common.dao.FileDao;
 import com.bdaim.common.entity.HFile;
 import com.bdaim.common.service.MongoFileService;
@@ -68,7 +69,7 @@ public class UploadDowloadImgServiceImpl implements UploadDowloadService {
         logger.info("上传图片-->>>" + userid);
         pictureName = CipherUtil.generatePassword(pictureName);
         logger.info("上传图片名称---->>" + pictureName);
-        //String savePath = PropertiesUtil.getStringValue("location") + userId;
+
         String classPath = "/data/upload/";
         String savePath = classPath + userid;
 
@@ -471,7 +472,7 @@ public class UploadDowloadImgServiceImpl implements UploadDowloadService {
     }
 
     public String uploadFile(HttpServletRequest request, String custId) {
-        String savePath = PropertiesUtil.getStringValue("location") + custId + File.separator;
+        String savePath = AppConfig.getLocation() + custId + File.separator;
         File filePath = new File(savePath);
         // 判断上传文件的保存目录是否存在
         if (!filePath.exists() && !filePath.isDirectory()) {
@@ -842,7 +843,7 @@ public class UploadDowloadImgServiceImpl implements UploadDowloadService {
         logger.info("上传图片-->>>" + userid);
         pictureName = CipherUtil.generatePassword(pictureName);
         logger.info("上传图片名称---->>" + pictureName);
-        String savePath = PropertiesUtil.getStringValue("location") + userid + File.separator;
+        String savePath = AppConfig.getLocation() + userid + File.separator;
         File filePath = new File(savePath);
         // 判断上传文件的保存目录是否存在
         if (!filePath.exists() && !filePath.isDirectory()) {
@@ -1132,7 +1133,7 @@ public class UploadDowloadImgServiceImpl implements UploadDowloadService {
             return;
         }
         //兼容原来图片
-        String filePath = PropertiesUtil.getStringValue("location") + File.separator + userId + File.separator + fileId;
+        String filePath = AppConfig.getLocation() + File.separator + userId + File.separator + fileId;
         File file = new File(filePath);
         try (FileInputStream fis = new FileInputStream(file)) {
             if (file.exists()) {
@@ -1143,7 +1144,7 @@ public class UploadDowloadImgServiceImpl implements UploadDowloadService {
             logger.warn("获取location文件异常" + e.getMessage());
         }
 
-        filePath = PropertiesUtil.getStringValue("file.file_path") + File.separator + userId + File.separator + fileId;
+        filePath = AppConfig.getFile_path() + File.separator + userId + File.separator + fileId;
         file = new File(filePath);
         try (FileInputStream fis = new FileInputStream(file)) {
             if (file.exists()) {
@@ -1166,7 +1167,7 @@ public class UploadDowloadImgServiceImpl implements UploadDowloadService {
         // 查询数据库对应文件磁盘位置
         HFile fileInfo = fileDao.selectByServiceId(fileId);
         if (fileInfo != null) {
-            filePath = PropertiesUtil.getStringValue("file.file_path") + File.separator + fileInfo.getExt1().replaceAll("_", Matcher.quoteReplacement(File.separator));
+            filePath = AppConfig.getFile_path() + File.separator + fileInfo.getExt1().replaceAll("_", Matcher.quoteReplacement(File.separator));
             String fileType = fileInfo.getFileType();
             if (StringUtil.isEmpty(fileType)) {
                 fileType = fileInfo.getFileName().substring(fileInfo.getFileName().lastIndexOf("."));
@@ -1183,7 +1184,7 @@ public class UploadDowloadImgServiceImpl implements UploadDowloadService {
                 }
             } catch (Exception e) {
                 logger.warn("获取file.file_path-2文件异常" + e.getMessage());
-                filePath = PropertiesUtil.getStringValue("location") + File.separator + fileInfo.getExt1().replaceAll("_", Matcher.quoteReplacement(File.separator));
+                filePath = AppConfig.getLocation() + File.separator + fileInfo.getExt1().replaceAll("_", Matcher.quoteReplacement(File.separator));
                 file = new File(filePath + fileType);
                 try (FileInputStream fis = new FileInputStream(file)) {
                     if (file.exists()) {

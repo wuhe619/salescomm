@@ -1,7 +1,7 @@
 package com.bdaim.common.hazelcast;
 
 
-import com.bdaim.util.PropertiesUtil;
+import com.bdaim.AppConfig;
 
 /**
  * 获取Hazelcast服务器
@@ -13,7 +13,7 @@ public class PhoneTobe {
         if (tobe == null) {    
             synchronized (PhoneTobe.class) {    
                if (tobe == null) {    
-            	   tobe = new ToBeRegisterDB(PropertiesUtil.getStringValue("hazelcast_HOST"));
+            	   tobe = new ToBeRegisterDB(AppConfig.getHazelcast_HOST());
                }    
             }    
         }    

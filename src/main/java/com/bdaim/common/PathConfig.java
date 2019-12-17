@@ -8,7 +8,7 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import com.bdaim.util.PropertiesUtil;
+import com.bdaim.AppConfig;
 
 import java.util.Properties;
 
@@ -23,7 +23,7 @@ import java.util.Properties;
 public class PathConfig implements WebMvcConfigurer {
     protected static final Properties PROPERTIES = new Properties(System.getProperties());
 
-    private static final String APP_NAME = PropertiesUtil.getStringValue("app");
+    private static final String APP_NAME = AppConfig.getApp();
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {

@@ -3,6 +3,8 @@ package com.bdaim.util;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.bdaim.AppConfig;
+
 public class ConstantsUtil {
     //-----------mysql business info-----------
     public final static String MYSQL_LABEL_CONFIG_TABLE_NAME = "label_config";
@@ -184,12 +186,12 @@ public class ConstantsUtil {
     /**
      * 讯众自动外呼拉取号码URL
      */
-    public final static String XZ_AUTO_TASK_PHONE_URL = PropertiesUtil.getStringValue("online.host") + "/customgroup/xzTaskGetPhone";
+    public final static String XZ_AUTO_TASK_PHONE_URL = AppConfig.getOnline_host() + "/customgroup/xzTaskGetPhone";
 
     /**
      * 讯众-公海自动外呼拉取号码URL
      */
-    public final static String XZ_SEA_AUTO_TASK_PHONE_URL = PropertiesUtil.getStringValue("online.host") + "/customerSea/xzCustomerSeaGetPhone";
+    public final static String XZ_SEA_AUTO_TASK_PHONE_URL = AppConfig.getOnline_host() + "/customerSea/xzCustomerSeaGetPhone";
 
     /**
      * 讯众API系统渠道ID

@@ -3,6 +3,7 @@ package com.bdaim.dic.service;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.AppConfig;
 import com.bdaim.auth.LoginUser;
 import com.bdaim.common.dao.DicDao;
 import com.bdaim.common.dao.DicTypeDao;
@@ -1112,7 +1113,7 @@ public class DicService {
         String url = DicTypeEnum.J.getUrl() + id;
         String fileType = "jpg";
         String fileName = CipherUtil.generatePassword(String.valueOf(id));
-        String savePath = PropertiesUtil.getStringValue("location") + "0" + File.separator + fileName + "." + fileType;
+        String savePath = AppConfig.getLocation() + "0" + File.separator + fileName + "." + fileType;
         try {
             QRCodeUtil.writeQrCodeToFile(url, 300, 300, savePath, fileType);
             // 保存活动地址

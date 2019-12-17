@@ -24,6 +24,7 @@ import org.springframework.context.annotation.Import;
 public class BPApp {
 	public static void main(String[] args) {
 		SpringApplication.run(BPApp.class , args);
+		System.out.println(AppConfig.getYtx_spuid());
 	}
 	
 	

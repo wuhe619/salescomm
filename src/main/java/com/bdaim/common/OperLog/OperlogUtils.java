@@ -1,10 +1,10 @@
 package com.bdaim.common.OperLog;
 
 
+import com.bdaim.AppConfig;
 import com.bdaim.log.entity.OperLog;
 import com.bdaim.log.entity.UserOperLog;
 import com.bdaim.log.thread.UserOperLogRunnable;
-import com.bdaim.util.PropertiesUtil;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -18,9 +18,9 @@ public class OperlogUtils {
     public synchronized static OperlogUtils getInstance() {
         if (null == olutils) {
             //read config from file
-            int queueSize = PropertiesUtil.getIntegerValue("oper_log_queue_size", 1000);
-            int threadNum = PropertiesUtil.getIntegerValue("oper_log_thread_num", 2);
-            int insertTimeoutMs = PropertiesUtil.getIntegerValue("oper_log_insert_timeout", 1000);
+            int queueSize = AppConfig.getOper_log_queue_size();
+            int threadNum = AppConfig.getOper_log_thread_num();
+            int insertTimeoutMs = AppConfig.getOper_log_insert_timeout();
             olutils = new OperlogUtils(queueSize, threadNum, insertTimeoutMs);
         }
         return olutils;
@@ -33,7 +33,7 @@ public class OperlogUtils {
     private ThreadPoolExecutor userLogExecutor;
 
     public static boolean isEnable() {
-        return PropertiesUtil.getBooleanValue("is_enable_oper_log", false);
+        return AppConfig.getIs_enable_oper_log();
     }
 
     private OperlogUtils(int queueSize, int threadNum, int insertTimeoutMs) {

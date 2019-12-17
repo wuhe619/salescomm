@@ -2,6 +2,7 @@ package com.bdaim.common.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.AppConfig;
 import com.bdaim.auth.LoginUser;
 import com.bdaim.common.OperLog.OperlogUtils;
 import com.bdaim.common.auth.Token;
@@ -16,7 +17,6 @@ import com.bdaim.rbac.dto.UserQueryParam;
 import com.bdaim.rbac.entity.User;
 import com.bdaim.rbac.service.UserService;
 import com.bdaim.util.CalendarUtil;
-import com.bdaim.util.PropertiesUtil;
 import com.bdaim.util.StringUtil;
 
 import org.slf4j.Logger;
@@ -199,7 +199,7 @@ public class BasicAction {
         }
 
         contextMap.put("projectPath", request.getContextPath());
-        contextMap.put("restPath", PropertiesUtil.getStringValue("restPath"));
+        contextMap.put("restPath", AppConfig.getRestPath());
         Calendar cale = Calendar.getInstance();
         cale.set(Calendar.MONTH, cale.get(Calendar.MONTH) - 1);
         contextMap.put("hisTime", CalendarUtil.getDateString(cale, CalendarUtil.SHORT_DATE_FORMAT));

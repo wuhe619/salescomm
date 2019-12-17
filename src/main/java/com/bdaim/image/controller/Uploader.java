@@ -1,8 +1,8 @@
 package com.bdaim.image.controller;
 
+import com.bdaim.AppConfig;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.util.ConfigUtil;
-import com.bdaim.util.PropertiesUtil;
 import com.bdaim.util.ftp.SFTPChannel;
 import com.jcraft.jsch.ChannelSftp;
 import org.apache.commons.codec.binary.Base64;
@@ -72,7 +72,7 @@ public class Uploader extends BasicAction {
         }
         //获取路径
         String picUrl = ConfigUtil.getInstance().get("pic_server_url") + "/";
-        String upload = PropertiesUtil.getStringValue("location");
+        String upload = AppConfig.getLocation();
         DiskFileItemFactory dff = new DiskFileItemFactory();
         //String savePath = this.getFolder(this.savePath);
         dff.setRepository(new File(savePath));
@@ -104,9 +104,9 @@ public class Uploader extends BasicAction {
                     //UE中只会处理单张上传，完成后即退出
                     // ftp同步图片
                     String src = upload + savePath + "/" + fileName; //  本地文件名
-                    String dst = PropertiesUtil.getStringValue("destpath") + savePath + "/" + fileName; // 目标文件名
+                    String dst = AppConfig.getDestpath() + savePath + "/" + fileName; // 目标文件名
                     SFTPChannel channel = new SFTPChannel();
-                    ChannelSftp chSftp = channel.getChannel(PropertiesUtil.getStringValue("location") + savePath + "/", 60000);
+                    ChannelSftp chSftp = channel.getChannel(AppConfig.getLocation() + savePath + "/", 60000);
                     chSftp.put(src, dst, ChannelSftp.OVERWRITE); // 代码段2sPath
                     chSftp.quit();
                     channel.closeChannel();
