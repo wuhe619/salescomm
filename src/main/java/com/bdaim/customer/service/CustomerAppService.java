@@ -456,4 +456,17 @@ public class CustomerAppService {
     	List data = jdbcTemplate.queryForList("select name,application_id as appId,access_token as token,VALIDITY_PERIOD as tokenPeriod,date_format(TOKEN_TIME_CREATED,'%Y-%m-%d %H:%i:%s') as tokenTime from am_application where SUBSCRIBER_ID=? ", customerId);
     	return data;
     }
+    public Map getApp(String appId) {
+    	Map app = null;
+    	List<Map<String,Object>> data = jdbcTemplate.queryForList("select name,subscriber_id as cusotmerId,access_token as token,VALIDITY_PERIOD as tokenPeriod,date_format(TOKEN_TIME_CREATED,'%Y-%m-%d %H:%i:%s') as tokenTime from am_application where application_id=? ", appId);
+    	if(data.size()>0)
+    		app = data.get(0);
+    	return app;
+    }
+    public String reAppToken(String appId) {
+    	String token = UUID.randomUUID().toString();
+    	jdbcTemplate.update("update am_application set access_token=? where appId=?", token, appId);
+    	
+    	return token;
+    }
 }

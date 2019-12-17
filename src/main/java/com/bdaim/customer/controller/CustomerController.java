@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
@@ -122,6 +123,29 @@ public class CustomerController extends BasicAction {
     	List data = this.customerAppService.apps(customerId);
     	
         return data;
+    }
+    
+    @PostMapping(value = "/info/{customerId}/app/{appId}/token")
+    @ResponseBody
+    public Map newAppToken(@PathVariable(name = "customerId") String customerId,@PathVariable(name = "appId") String appId) throws Exception{
+    	LoginUser lu = opUser();
+    	if(lu==null || lu.getAuths()==null || !lu.getAuths().contains("admin"))
+    		throw new Exception("no auth");
+    	if(customerId==null || "".equals(customerId))
+    		throw new Exception("no customer");
+    	if(appId==null || "".equals(appId))
+    		throw new Exception("no app");
+    	
+    	Map	app = customerAppService.getApp(appId);
+    	if(app==null)
+    		throw new Exception("error app");
+    	if(!customerId.equals(app.get("customerId")))
+    		throw new Exception("error customer and app");
+    	
+        String newToken = customerAppService.reAppToken(appId);
+        app.put("token", newToken);
+    	
+        return app;
     }
 
     @PostMapping("/deposit/{custId}")
