@@ -99,7 +99,7 @@ public class ExportExcelService {
         LOG.info("删除excel:{}状态", delete);*/
     }
 
-    public void exportExcel(int id, List<JSONObject> list, JSONObject param, HttpServletResponse response) throws IllegalAccessException, IOException {
+    public void exportExcel(int id, List<JSONObject> list, JSONObject param, HttpServletResponse response) throws Exception {
         if ("_export_v_photo".equals(param.getString("_rule_"))
                 || "_export_v_nopass".equals(param.getString("_rule_"))) {
             exportIdCardExcel(id, param.getString("_rule_"), response);
@@ -143,7 +143,7 @@ public class ExportExcelService {
         }
     }
 
-    private void exportExcelByTemplate(List<JSONObject> list, JSONObject param, HttpServletResponse response) throws IllegalAccessException, IOException {
+    private void exportExcelByTemplate(List<JSONObject> list, JSONObject param, HttpServletResponse response) throws Exception {
         // 生成workbook 并导出
         String classPath = fileUrlEntity.getFileUrl();
         String pathF = File.separator;
@@ -158,7 +158,7 @@ public class ExportExcelService {
         map.put("list", list);
         if (list == null || list.size() == 0) {
             LOG.info("导出excel为空:{}", param);
-            return;
+            throw  new Exception("");
         }
 
         response.setHeader("Content-Disposition", "attachment; filename=" + System.currentTimeMillis() + ExcelTypeEnum.XLSX.getValue());
