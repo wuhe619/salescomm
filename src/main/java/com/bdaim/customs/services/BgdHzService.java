@@ -48,13 +48,13 @@ public class BgdHzService implements BusiService {
     @Override
     public void insertInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) throws Exception {
         log.info(info.toJSONString());
-        info.put("ext_1",info.getString("status"));
-        String xmlString=info.getString("xmlstring");
-        if(StringUtil.isEmpty(xmlString)){
+        info.put("ext_1", info.getString("status"));
+        String xmlString = info.getString("xmlstring");
+        if (StringUtil.isEmpty(xmlString)) {
             throw new TouchException("报关单回执内容不能为空");
         }
         byte[] s = Base64.getDecoder().decode(xmlString);
-        handleHzInfo(cust_id,new String(s),info);
+        handleHzInfo(cust_id, new String(s), info);
         log.info("报关单回执处理完毕");
     }
 
@@ -66,7 +66,7 @@ public class BgdHzService implements BusiService {
     @Override
     public void doInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info, JSONObject param) {
         //通过报关单分单ID查询海关回执数据
-        HBusiDataManager dbManager = serviceUtils.getObjectByIdAndType(cust_id,id, busiType);
+        HBusiDataManager dbManager = serviceUtils.getObjectByIdAndType(cust_id, id, busiType);
         String content = null;
         if (dbManager != null) {
             content = dbManager.getContent();
@@ -106,84 +106,94 @@ public class BgdHzService implements BusiService {
      * 3.按回执状态等级写入消息表
      * 4.源字符串写入mongodb
      */
-    public void handleHzInfo(String custId,String xmlstring,JSONObject info) throws Exception {
-        parseHzXml.parserBaoguandanHzXML(xmlstring,info);
+    public void handleHzInfo(String custId, String xmlstring, JSONObject info) throws Exception {
+        parseHzXml.parserBaoguandanHzXML(xmlstring, info);
         JSONObject envelopinfo = info.getJSONObject("envelopinfo");//信封消息
         JSONObject data = info.getJSONObject("data");//分单信息
 //        info.remove("xmlstring");
-        info.put("ext_4",data.getString("billno"));//主单号
-        info.put("ext_3",data.getString("ass_billno"));//分单号
+        info.put("ext_4", data.getString("billno"));//主单号
+        info.put("ext_3", data.getString("ass_billno"));//分单号
         String EntryId = data.getString("entryid");//海关编码
         String PreEntryId = data.getString("pre_entryid");//预录入号
 
-        HBusiDataManager fendan = serviceUtils.findFendanByBillNo(custId, BusiTypeEnum.BF.getType(),data.getString("billno"),data.getString("ass_billno"));
+        HBusiDataManager fendan = serviceUtils.findFendanByBillNo(custId, BusiTypeEnum.BF.getType(), data.getString("billno"), data.getString("ass_billno"));
 
-        if(fendan==null){
-            throw new TouchException("分单【"+data.getString("billno")+"-"+data.getString("ass_billno")+"】不存在");
+        if (fendan == null) {
+            throw new TouchException("分单【" + data.getString("billno") + "-" + data.getString("ass_billno") + "】不存在");
         }
+        Map sbdHzMap = serviceUtils.getSbdHz(data.getString("billno"), data.getString("ass_billno"));
 
         String content = fendan.getContent();
         JSONObject json = JSONObject.parseObject(content);
-        json.put("pre_input_code",PreEntryId==null?"":PreEntryId);
-        json.put("entryid",EntryId==null?"":EntryId);
+        json.put("pre_input_code", PreEntryId == null ? "" : PreEntryId);
+        json.put("entryid", EntryId == null ? "" : EntryId);
         String opresult = data.getString("op_result");
-        json.put("send_status",opresult);
-        json.put("ext_1",opresult);
-        info.put("ext_2",opresult);
+        json.put("send_status", opresult);
+        json.put("ext_1", opresult);
+        info.put("ext_2", opresult);
         String op_time = data.getString("op_time");
-        json.put("op_time",op_time);
-        info.put("ext_5",op_time);
-
+        json.put("op_time", op_time);
+        info.put("ext_5", op_time);
+        if (sbdHzMap != null) {
+            Long ext_5 = Long.valueOf(sbdHzMap.get("ext_5").toString());
+            Long aLong = Long.valueOf(op_time);
+            if(ext_5>aLong){
+                JSONObject content1 = JSONObject.parseObject(sbdHzMap.get("content").toString());
+                json.put("send_status", content1.getString("op_result"));
+                json.put("ext_1", content1.getString("op_result"));
+                info.put("ext_2", content1.getString("op_result"));
+            }
+        }
 //        Timestamp tm = DateUtil.getTimestamp(CalendarUtil.parseDate(decltime,"yyyyMMddHHmmsszzz"),"yyyyMMddHHmmsszzz");
         //json.put("decl_time",new Date().getTime());
 
-        String sql=" update "+ HMetaDataDef.getTable(BusiTypeEnum.BF.getType(), "")+" set content=?,ext_1=? where id="+fendan.getId();
-        jdbcTemplate.update(sql,json.toJSONString(),opresult);
+        String sql = " update " + HMetaDataDef.getTable(BusiTypeEnum.BF.getType(), "") + " set content=?,ext_1=? where id=" + fendan.getId();
+        jdbcTemplate.update(sql, json.toJSONString(), opresult);
 
-        if("03".equals(opresult)
+        if ("03".equals(opresult)
                 || "04".equals(opresult)
                 || "05".equals(opresult)
                 || "06".equals(opresult)
                 || "07".equals(opresult)
                 || "19".equals(opresult)
-                || "20".equals(opresult)){
-        JSONObject msg=new JSONObject();
-        msg.put("op_time",data.getString("op_time"));
-        msg.put("main_bill_no",data.getString("billno"));
-        msg.put("bill_no",data.getString("ass_billno"));
-        msg.put("op_result",data.getString("op_result"));
-        msg.put("msg",statsMap.get(opresult));
-        msg.put("notes",data.getString("notes"));
-        msg.put("type",BusiTypeEnum.BGD_HZ.getType());
+                || "20".equals(opresult)) {
+            JSONObject msg = new JSONObject();
+            msg.put("op_time", data.getString("op_time"));
+            msg.put("main_bill_no", data.getString("billno"));
+            msg.put("bill_no", data.getString("ass_billno"));
+            msg.put("op_result", data.getString("op_result"));
+            msg.put("msg", statsMap.get(opresult));
+            msg.put("notes", data.getString("notes"));
+            msg.put("type", BusiTypeEnum.BGD_HZ.getType());
 
-        sql="insert into h_customer_msg(`cust_id`,`cust_user_id`,`content`,`create_time`,`status`,`level`,`msg_type`)" +
-                "values ('"+custId+"',"+fendan.getExt_6()+",? ,now(),0,4,'"+BusiTypeEnum.BGD_HZ.getType()+"')";
+            sql = "insert into h_customer_msg(`cust_id`,`cust_user_id`,`content`,`create_time`,`status`,`level`,`msg_type`)" +
+                    "values ('" + custId + "'," + fendan.getExt_6() + ",? ,now(),0,4,'" + BusiTypeEnum.BGD_HZ.getType() + "')";
 
-          jdbcTemplate.update(sql, msg.toJSONString());
+            jdbcTemplate.update(sql, msg.toJSONString());
         }
 
-        JSONObject json2=new JSONObject();
-        json2.put("data",xmlstring);
-        json2.put("message_id",envelopinfo.getString("message_id"));
-        json2.put("type",BusiTypeEnum.BGD_HZ.getType());
-        json2.put("pre_entryid",info.getString("pre_entryid"));
-        json2.put("optime",data.getString("op_time"));
+        JSONObject json2 = new JSONObject();
+        json2.put("data", xmlstring);
+        json2.put("message_id", envelopinfo.getString("message_id"));
+        json2.put("type", BusiTypeEnum.BGD_HZ.getType());
+        json2.put("pre_entryid", info.getString("pre_entryid"));
+        json2.put("optime", data.getString("op_time"));
 
 //        String id = mongoFileService.saveData(json2.toJSONString());
 
 //        fileDao.save(envelopinfo.getString("message_id"),id, BusinessEnum.CUSTOMS,null,null);
     }
 
-    public static Map<String,String> statsMap = new HashMap<>();
+    public static Map<String, String> statsMap = new HashMap<>();
 
-    static{
-        statsMap.put("03","转人工审核");
-        statsMap.put("04","请提交纸面单据");
-        statsMap.put("05","查验");
-        statsMap.put("06","扣留");
-        statsMap.put("07","没收");
-        statsMap.put("19","查验后扣留");
-        statsMap.put("20","查验后退单");
+    static {
+        statsMap.put("03", "转人工审核");
+        statsMap.put("04", "请提交纸面单据");
+        statsMap.put("05", "查验");
+        statsMap.put("06", "扣留");
+        statsMap.put("07", "没收");
+        statsMap.put("19", "查验后扣留");
+        statsMap.put("20", "查验后退单");
 
     }
 }

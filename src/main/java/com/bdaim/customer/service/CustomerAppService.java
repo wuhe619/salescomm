@@ -1,6 +1,5 @@
 package com.bdaim.customer.service;
 
-import com.alibaba.fastjson.JSONObject;
 import com.bdaim.auth.LoginUser;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.page.PageList;
@@ -13,7 +12,6 @@ import com.bdaim.customer.dto.Deposit;
 import com.bdaim.customer.entity.AmApplicationEntity;
 import com.bdaim.customer.entity.Customer;
 import com.bdaim.customer.entity.CustomerProperty;
-import com.bdaim.customer.entity.CustomerUser;
 import com.bdaim.util.Constant;
 import com.bdaim.util.DateUtil;
 import com.bdaim.util.IDHelper;
@@ -24,7 +22,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.*;
 import java.util.stream.Collectors;
