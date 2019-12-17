@@ -15,6 +15,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 import javax.annotation.Resource;
 import javax.validation.Valid;
 
@@ -107,6 +109,19 @@ public class CustomerController extends BasicAction {
             return new ResponseInfoAssemble().failure(-1, "企业查询失败");
         }
 
+    }
+    
+    
+    @GetMapping(value = "/info/{customerId}/app")
+    @ResponseBody
+    public List app(@PathVariable(name = "customerId") String customerId) throws Exception{
+    	LoginUser lu = opUser();
+    	if(lu==null || lu.getAuths()==null || !lu.getAuths().contains("admin"))
+    		throw new Exception("no auth");
+    		
+    	List data = this.customerAppService.apps(customerId);
+    	
+        return data;
     }
 
     @PostMapping("/deposit/{custId}")
