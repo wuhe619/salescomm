@@ -292,7 +292,7 @@ public class ExportExcelService {
             }
             map.put("list1", list_one);
             map.put("list2", list_two);
-        }else {
+        } else {
             throw new IOException();
         }
     }
