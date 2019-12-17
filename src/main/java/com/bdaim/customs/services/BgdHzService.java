@@ -121,31 +121,34 @@ public class BgdHzService implements BusiService {
         if (fendan == null) {
             throw new TouchException("分单【" + data.getString("billno") + "-" + data.getString("ass_billno") + "】不存在");
         }
-        Map sbdHzMap = serviceUtils.getSbdHz(data.getString("billno"), data.getString("ass_billno"));
+//        Map sbdHzMap = serviceUtils.getSbdHz(data.getString("billno"), data.getString("ass_billno"));
 
         String content = fendan.getContent();
         JSONObject json = JSONObject.parseObject(content);
         json.put("pre_input_code", PreEntryId == null ? "" : PreEntryId);
         json.put("entryid", EntryId == null ? "" : EntryId);
         String opresult = data.getString("op_result");
-        json.put("send_status", opresult);
-        json.put("ext_1", opresult);
-        info.put("ext_2", opresult);
-        String op_time = data.getString("op_time");
-        json.put("op_time", op_time);
-        info.put("ext_5", op_time);
-        if (sbdHzMap != null) {
-            JSONObject content1 = JSONObject.parseObject(sbdHzMap.get("content").toString());
-            Long ext_5 = content1.getLong("ext_5");
-            Long aLong = Long.valueOf(op_time);
-            log.info("ext_5:" + ext_5);
-            log.info("aLong:" + aLong);
-            if (ext_5 > aLong) {
-                json.put("send_status", content1.getString("op_result"));
-                json.put("ext_1", content1.getString("op_result"));
-                info.put("ext_2", content1.getString("op_result"));
-            }
+        Long op_timeF = json.getLong("op_time");
+        Long op_time = data.getLong("op_time");
+        log.info("op_timeF:" + op_timeF);
+        log.info("op_time:" + op_time);
+        if (op_time > op_timeF) {
+            json.put("send_status", opresult);
+            json.put("ext_1", opresult);
         }
+        info.put("ext_2", opresult);
+//        json.put("op_time", op_time);
+        info.put("ext_5", op_time);
+//        if (sbdHzMap != null) {
+//            JSONObject content1 = JSONObject.parseObject(sbdHzMap.get("content").toString());
+//            Long ext_5 = content1.getLong("ext_5");
+//            Long aLong = Long.valueOf(op_time);
+//            if (ext_5 > aLong) {
+//                json.put("send_status", content1.getString("op_result"));
+//                json.put("ext_1", content1.getString("op_result"));
+//                info.put("ext_2", content1.getString("op_result"));
+//            }
+//        }
 //        Timestamp tm = DateUtil.getTimestamp(CalendarUtil.parseDate(decltime,"yyyyMMddHHmmsszzz"),"yyyyMMddHHmmsszzz");
         //json.put("decl_time",new Date().getTime());
 
