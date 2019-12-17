@@ -249,7 +249,7 @@ public class ExportExcelService {
         }
     }
 
-    private void generateMainDan(List<JSONObject> list, Map<String, Object> map) {
+    private void generateMainDan(List<JSONObject> list, Map<String, Object> map) throws IOException {
         if (list != null && list.size() > 0) {
             List<Map<String, Object>> list_one = new ArrayList();
             List<Map<String, Object>> list_two = new ArrayList();
@@ -292,6 +292,8 @@ public class ExportExcelService {
             }
             map.put("list1", list_one);
             map.put("list2", list_two);
+        }else {
+            throw new IOException();
         }
     }
 
