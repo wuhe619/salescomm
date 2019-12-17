@@ -486,8 +486,8 @@ public class ApiService {
                     });
                     suppliers.deleteCharAt(suppliers.length() - 1);
                 }
-                int price = 0;
-                if (map.get("price") != null) price = Integer.valueOf(map.get("price").toString()) / 10000;
+                Double price = 0.0;
+                if (map.get("price") != null) price = Double.valueOf(map.get("price").toString()) / 10000;
                 map.put("price", price);
                 map.put("realName", suppliers);
                 map.put("resourceId", rsIds);
