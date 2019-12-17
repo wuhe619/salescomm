@@ -30,6 +30,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -57,7 +59,12 @@ public class TokenServiceImpl implements TokenService {
     private WeChatUtil weChatUtil;
     @Resource
     private CustomerUserPropertyDao customerUserPropertyDao;
-
+    protected HttpServletRequest request;
+    
+    @Resource
+    public void setRequest(HttpServletRequest request) {
+        this.request = request;
+    }
     private static Map name2token = new HashMap();
 
     public static Map listTokens() {
@@ -286,11 +293,14 @@ public class TokenServiceImpl implements TokenService {
     }
 
     public LoginUser opUser() {
-        Token u = (LoginUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (u instanceof LoginUser)
-            return (LoginUser) u;
-        else
-            return new LoginUser(0L, "", "");
+    	String authorization = request.getHeader("Authorization");
+    	
+    	if(authorization!=null && !"".equals(authorization)) {
+    		LoginUser u = tokenCacheService.getToken(authorization, LoginUser.class);
+    		if(u!=null)
+    			return u;
+    	}
+        return new LoginUser(0L, "", "");
     }
 
     /**
