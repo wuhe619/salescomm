@@ -83,25 +83,27 @@ public class CustomerInfoAction extends BasicAction {
     /**
      */
     @GetMapping(value = "/info/{customerId}")
-    public String info(@PathVariable String customerId) throws Exception{
+    @ResponseBody
+    public CustomerDTO info(@PathVariable String customerId) throws Exception{
     	LoginUser lu = opUser();
     	if(lu==null || lu.getAuths()==null || !lu.getAuths().contains("admin"))
     		throw new Exception("no auth");
     	 
     	CustomerDTO data = this.customerService.getCustomerInfoById(customerId);
     		 
-        return JSON.toJSONString(data);
+        return data;
     }
     
     @GetMapping(value = "/info/{customerId}/app")
-    public String app(@PathVariable String customerId) throws Exception{
+    @ResponseBody
+    public List app(@PathVariable String customerId) throws Exception{
     	LoginUser lu = opUser();
     	if(lu==null || lu.getAuths()==null || !lu.getAuths().contains("admin"))
     		throw new Exception("no auth");
     		
     	List data = this.customerAppService.apps(customerId);
     	
-        return JSON.toJSONString(data);
+        return data;
     }
 
 
