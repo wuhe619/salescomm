@@ -15,6 +15,7 @@ import com.bdaim.customer.entity.CustomerProperty;
 import com.bdaim.util.Constant;
 import com.bdaim.util.DateUtil;
 import com.bdaim.util.IDHelper;
+import com.bdaim.util.MD5Util;
 import com.bdaim.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -464,7 +465,7 @@ public class CustomerAppService {
     	return app;
     }
     public String reAppToken(String appId) {
-    	String token = UUID.randomUUID().toString().replace("-", "");
+    	String token = MD5Util.encode32Bit(UUID.randomUUID().toString());
     	jdbcTemplate.update("update am_application set access_token=? where application_id=?", token, appId);
     	
     	return token;
