@@ -139,9 +139,10 @@ public class CustomerController extends BasicAction {
     	Map	app = customerAppService.getApp(appId);
     	if(app==null)
     		throw new Exception("error app");
-    	if(!customerId.equals(app.get("customerId")))
+    	if(!customerId.equals(app.get("customerId"))) {
+    		logger.warn(customerId+" "+app.get("customerId"));
     		throw new Exception("error customer and app");
-    	
+    	}
         String newToken = customerAppService.reAppToken(appId);
         app.put("token", newToken);
     	
