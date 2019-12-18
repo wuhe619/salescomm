@@ -36,6 +36,11 @@ public class ApiEntity implements Serializable {
     private Integer listPrice;
     @Column(name = "TELECO_PRICE")
     private Integer telecoPrice;
+    @Column(name = "http_method")
+    private String httpMethod;
+    @Column(name = "endpoint_url")
+    private String endpointUrl;
+    
 //    @Column(name = "status")
     private int status = 0;
 
@@ -142,5 +147,21 @@ public class ApiEntity implements Serializable {
     public void setTelecoPrice(Integer telecoPrice) {
         this.telecoPrice = telecoPrice;
     }
+
+	public String getHttpMethod() {
+		return httpMethod;
+	}
+
+	public void setHttpMethod(String httpMethod) {
+		this.httpMethod = httpMethod;
+	}
+
+	public String getEndpointUrl() {
+		return endpointUrl;
+	}
+
+	public void setEndpointUrl(String endpointUrl) {
+		this.endpointUrl = endpointUrl;
+	}
 
 }

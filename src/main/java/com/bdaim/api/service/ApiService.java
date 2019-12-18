@@ -60,6 +60,7 @@ public class ApiService {
 
     public int saveApiProperty(ApiData apiData, String id, LoginUser lu) throws Exception {
         int apiId;
+        ApiDefine apiDefine = apiData.getApi_define();
         if (StringUtil.isEmpty(id) || "0".equals(id)) {
             String context = apiData.getContext();
             String apiVersion = context.substring(context.lastIndexOf("/") + 1);
@@ -77,6 +78,8 @@ public class ApiService {
             entity.setUpdateTime(new Timestamp(System.currentTimeMillis()));
             entity.setUpdateBy(lu.getUserName());
             entity.setStatus(0);
+            entity.setHttpMethod(apiDefine.getRequest_method());
+            entity.setEndpointUrl(apiData.getProductionendpoints());
             apiId = (int) apiDao.saveReturnPk(entity);
             apiDao.dealCustomerInfo(String.valueOf(apiId), "status", "0");
         } else {
@@ -90,9 +93,11 @@ public class ApiService {
             entity.setVersion(apiData.getApiVersion());
             entity.setUpdateTime(new Timestamp(System.currentTimeMillis()));
             entity.setUpdateBy(lu.getUserName());
+            entity.setHttpMethod(apiDefine.getRequest_method());
+            entity.setEndpointUrl(apiData.getProductionendpoints());
             apiId = (int) apiDao.saveReturnPk(entity);
         }
-        ApiDefine apiDefine = apiData.getApi_define();
+        
         if (apiData.getUrlMappingId() == 0) {
             ApiUrlMappingEntity entity = new ApiUrlMappingEntity();
 
