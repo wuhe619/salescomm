@@ -292,10 +292,13 @@ public class ResourceAction extends BasicAction {
 
         return resp;
     }
-/*
-导出
- */
 
+//    public static void main(String[] args) {
+//        doInfo("201912","sub,","_export_sub_api_logs");
+//    }
+    /*
+    导出
+     */
     @GetMapping(value = "/logs")
     public ResponseInfo doInfo(String callMonth, String type, String _rule_, HttpServletResponse response) {
         ResponseInfo resp = new ResponseInfo();
