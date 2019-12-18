@@ -465,7 +465,7 @@ public class CustomerAppService {
     }
     public String reAppToken(String appId) {
     	String token = UUID.randomUUID().toString();
-    	jdbcTemplate.update("update am_application set access_token=? where appId=?", token, appId);
+    	jdbcTemplate.update("update am_application set access_token=? where application_id=?", token, appId);
     	
     	return token;
     }
