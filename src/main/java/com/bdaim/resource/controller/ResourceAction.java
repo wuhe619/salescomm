@@ -247,9 +247,9 @@ public class ResourceAction extends BasicAction {
         try {
             int pageNum = 0;
             int pageSize = 10;
-            if (StringUtil.isNotEmpty(param.getString("pageNum")))
+            if (param.containsKey("pageNum"))
                 pageNum = param.getInteger("pageNum");
-            if (StringUtil.isNotEmpty(param.getString("pageSize")))
+            if (param.containsKey("pageSize"))
                 pageSize = param.getInteger("pageSize");
             page.setPageNum(pageNum);
             page.setPageSize(pageSize);
@@ -282,9 +282,9 @@ public class ResourceAction extends BasicAction {
         if (StringUtil.isEmpty(params.getString("callMonth"))) {
             return new ResponseInfoAssemble().failure(-1, "查询时间不能为空");
         }
-        page.setPageSize(params.getInteger("pageSize") == null ? 0 : params.getIntValue("pageSize"));
-        page.setPageNum(params.getInteger("pageNum") == null ? 10 : params.getIntValue("pageNum"));
-        if (StringUtil.isNotEmpty(params.getString("type")) && "sub".equals(params.getString("type"))) {
+        page.setPageSize(params.containsKey("pageSize") ? 0 : params.getIntValue("pageSize"));
+        page.setPageNum(params.containsKey("pageNum") ? 10 : params.getIntValue("pageNum"));
+        if (params.containsKey("type") && "sub".equals(params.getString("type"))) {
             resp.setData(apiService.subApiLogs(params, page));
         } else {
             resp.setData(apiService.resApiLogs(params, page));

@@ -209,10 +209,10 @@ public class ApiService {
     public Map<String, Object> apis(PageParam page, JSONObject params) {
         StringBuffer sql = new StringBuffer();
         sql.append(" select API_ID as apiId,API_NAME as apiName,CONTEXT as context,CREATED_BY as createdBy,status   from am_api where 1=1 ");
-        if (StringUtil.isNotEmpty(params.getString("apiName"))) {
+        if (params.containsKey("apiName")) {
             sql.append(" and API_NAME like '%" + params.getString("apiName") + "%'");
         }
-        if (params.getInteger("status") != null) {
+        if (params.containsKey("status")) {
             sql.append(" and status =" + params.getInteger("status"));
         }
         sql.append(" order by CREATED_TIME desc");
@@ -512,7 +512,7 @@ public class ApiService {
         sql.append(" from rs_log_" + params.getString("callMonth") + " log left join am_api api  on  log.API_ID =api.API_ID");
         sql.append(" left join api_queue que on que.ID=log.API_LOG_ID");
         sql.append(" where 1=1");
-        if (StringUtil.isNotEmpty(params.getString("apiName"))) {
+        if (params.containsKey("apiName")) {
             sql.append(" and api.API_NAME like '%" + params.getString("apiName") + "%'");
         }
         sql.append(" group by log.API_ID");
