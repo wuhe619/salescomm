@@ -2422,7 +2422,7 @@ public class SupplierService {
             }
         });
 
-        String sql1 = "select pay.pay_id,pay.SUBSCRIBER_ID,pay.MONEY,pay.PAY_TIME,pay.pay_certificate,pay.pre_money as pre_money ,u.REALNAME as realname ,u.name as account from supplier_pay pay left join  t_user u  on pay.user_id=u.id  where SUBSCRIBER_ID = " + supplierId;
+        String sql1 = "select pay.pay_id,pay.supplier_id as SUBSCRIBER_ID,pay.MONEY,pay.PAY_TIME,pay.pay_certificate,pay.pre_money as pre_money ,u.REALNAME as realname ,u.name as account from supplier_pay pay left join  t_user u  on pay.user_id=u.id  where SUBSCRIBER_ID = " + supplierId;
         page.setSort("pay.PAY_TIME");
         page.setDir(" desc");
         PageList list = new Pagination().getPageData(sql1, null, page, jdbcTemplate);
