@@ -470,4 +470,8 @@ public class CustomerAppService {
     	
     	return token;
     }
+    public List subscriptions(String appId) {
+    	String sql = "select b.api_id as apiId,b.api_name as apiName,b.context,b.http_method as httpMethod,endpoint_url as endpointUrl,endpoint_type as endpointType,b.status as apiStatus, a.sub_status as subStatus,a.subs_create_state as subsCreateState,a.allowed_domains as allowedDomains  from am_subscription a join am_api b on a.api_id=b.api_id where APPLICATION_ID=?";
+    	return jdbcTemplate.queryForList(sql, appId);
+    }
 }

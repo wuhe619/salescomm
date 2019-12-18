@@ -113,7 +113,7 @@ public class CustomerController extends BasicAction {
     }
     
     
-    @GetMapping(value = "/info/{customerId}/app")
+    @PostMapping(value = "/info/{customerId}/app")
     @ResponseBody
     public List app(@PathVariable(name = "customerId") String customerId) throws Exception{
     	LoginUser lu = opUser();
@@ -123,6 +123,24 @@ public class CustomerController extends BasicAction {
     	List data = this.customerAppService.apps(customerId);
     	
         return data;
+    }
+    @GetMapping(value = "/info/{customerId}/app/{appId}")
+    @ResponseBody
+    public Map app(@PathVariable(name = "customerId") String customerId,@PathVariable(name = "appId") String appId) throws Exception{
+    	LoginUser lu = opUser();
+    	if(lu==null || lu.getAuths()==null || !lu.getAuths().contains("admin"))
+    		throw new Exception("no auth");
+    		
+    	Map app = this.customerAppService.getApp(appId);
+    	if(app==null)
+    		throw new Exception("error app");
+    	if(!customerId.equals(String.valueOf(app.get("customerId")))) {
+    		logger.warn(customerId+":"+app.get("customerId"));
+    		throw new Exception("error customer and app");
+    	}
+    	app.put("subscriptions", customerAppService.subscriptions(appId));
+    	
+        return app;
     }
     
     @PostMapping(value = "/info/{customerId}/app/{appId}/token")
