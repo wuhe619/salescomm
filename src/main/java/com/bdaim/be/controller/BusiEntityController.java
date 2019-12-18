@@ -152,7 +152,6 @@ public class BusiEntityController extends BasicAction {
             Long cust_user_id = lu.getId();
 
             JSONObject jo = busiEntityService.doInfo(cust_id, cust_group_id, cust_user_id, busiType, id, param);
-            logger.info("jo:{" + jo + "}");
             // 导出直接下载文件
             if (StringUtil.isNotEmpty(param.getString("_rule_")) && param.getString("_rule_").startsWith("_export_")) {
                 List list = new ArrayList();
