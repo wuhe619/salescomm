@@ -291,7 +291,7 @@ public class TokenServiceImpl implements TokenService {
     }
 
     public LoginUser opUser() {
-    	HttpServletRequest request = ((ServletRequestAttributes)Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
+    	HttpServletRequest request = ((ServletRequestAttributes)RequestContextHolder.currentRequestAttributes()).getRequest();
     	String authorization = request.getHeader("Authorization");
     	
     	if(authorization!=null && !"".equals(authorization)) {

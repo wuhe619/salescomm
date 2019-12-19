@@ -15,6 +15,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+import java.util.Map;
+
 import javax.annotation.Resource;
 import javax.validation.Valid;
 
@@ -107,6 +110,61 @@ public class CustomerController extends BasicAction {
             return new ResponseInfoAssemble().failure(-1, "企业查询失败");
         }
 
+    }
+    
+    
+    @PostMapping(value = "/info/{customerId}/app")
+    @ResponseBody
+    public List app(@PathVariable(name = "customerId") String customerId) throws Exception{
+    	LoginUser lu = opUser();
+    	if(lu==null || lu.getAuths()==null || !lu.getAuths().contains("admin"))
+    		throw new Exception("no auth");
+    		
+    	List data = this.customerAppService.apps(customerId);
+    	
+        return data;
+    }
+    @GetMapping(value = "/info/{customerId}/app/{appId}")
+    @ResponseBody
+    public Map app(@PathVariable(name = "customerId") String customerId,@PathVariable(name = "appId") String appId) throws Exception{
+    	LoginUser lu = opUser();
+    	if(lu==null || lu.getAuths()==null || !lu.getAuths().contains("admin"))
+    		throw new Exception("no auth");
+    		
+    	Map app = this.customerAppService.getApp(appId);
+    	if(app==null)
+    		throw new Exception("error app");
+    	if(!customerId.equals(String.valueOf(app.get("customerId")))) {
+    		logger.warn(customerId+":"+app.get("customerId"));
+    		throw new Exception("error customer and app");
+    	}
+    	app.put("subscriptions", customerAppService.subscriptions(appId));
+    	
+        return app;
+    }
+    
+    @PostMapping(value = "/info/{customerId}/app/{appId}/token")
+    @ResponseBody
+    public Map newAppToken(@PathVariable(name = "customerId") String customerId,@PathVariable(name = "appId") String appId) throws Exception{
+    	LoginUser lu = opUser();
+    	if(lu==null || lu.getAuths()==null || !lu.getAuths().contains("admin"))
+    		throw new Exception("no auth");
+    	if(customerId==null || "".equals(customerId))
+    		throw new Exception("no customer");
+    	if(appId==null || "".equals(appId))
+    		throw new Exception("no app");
+    	
+    	Map	app = customerAppService.getApp(appId);
+    	if(app==null)
+    		throw new Exception("error app");
+    	if(!customerId.equals(String.valueOf(app.get("customerId")))) {
+    		logger.warn(customerId+":"+app.get("customerId"));
+    		throw new Exception("error customer and app");
+    	}
+        String newToken = customerAppService.reAppToken(appId);
+        app.put("token", newToken);
+    	
+        return app;
     }
 
     @PostMapping("/deposit/{custId}")

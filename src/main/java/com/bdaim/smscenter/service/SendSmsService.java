@@ -3,6 +3,7 @@ package com.bdaim.smscenter.service;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.AppConfig;
 import com.bdaim.auth.LoginUser;
 import com.bdaim.auth.entity.UserVerificationCode;
 import com.bdaim.auth.service.UserVerificationCodeService;
@@ -336,8 +337,8 @@ public class SendSmsService{
         smsParam.setMobile(phone);
         smsParam.setTemplateId(templateId);
         smsParam.setDatas(Arrays.asList(templateValue.split(",")));
-        smsParam.setSpuid(PropertiesUtil.getStringValue("ytx.spuid"));
-        smsParam.setSppwd(PropertiesUtil.getStringValue("ytx.sppwd"));
+        smsParam.setSpuid(AppConfig.getYtx_spuid());
+        smsParam.setSppwd(AppConfig.getYtx_sppwd());
         String result = SaleApiUtil.sendSms(JSON.toJSONString(smsParam), SaleApiUtil.ENV);
         LogUtil.info("模板ID:" + smsParam.getTemplateId() + "----手机号：" + smsParam.getMobile());
         //短信

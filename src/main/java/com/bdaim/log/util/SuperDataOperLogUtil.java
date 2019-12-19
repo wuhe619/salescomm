@@ -1,7 +1,7 @@
 package com.bdaim.log.util;
 
+import com.bdaim.AppConfig;
 import com.bdaim.log.entity.SuperDataOperLog;
-import com.bdaim.util.PropertiesUtil;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -19,8 +19,8 @@ public class SuperDataOperLogUtil {
 
     public synchronized static SuperDataOperLogUtil getInstance() {
         if (null == instance) {
-            int queueSize = PropertiesUtil.getIntegerValue("oper_log_queue_size", 1000);
-            int threadNum = PropertiesUtil.getIntegerValue("oper_log_thread_num", 2);
+            int queueSize = AppConfig.getOper_log_queue_size();
+            int threadNum = AppConfig.getOper_log_thread_num();
             instance = new SuperDataOperLogUtil(queueSize, threadNum);
         }
         return instance;
@@ -30,7 +30,7 @@ public class SuperDataOperLogUtil {
     private ThreadPoolExecutor executor = null;
 
     public static boolean isEnable() {
-        return PropertiesUtil.getBooleanValue("is_enable_oper_log", false);
+        return AppConfig.getIs_enable_oper_log();
     }
 
     private SuperDataOperLogUtil(int queueSize, int threadNum) {

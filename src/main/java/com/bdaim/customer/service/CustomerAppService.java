@@ -15,6 +15,7 @@ import com.bdaim.customer.entity.CustomerProperty;
 import com.bdaim.util.Constant;
 import com.bdaim.util.DateUtil;
 import com.bdaim.util.IDHelper;
+import com.bdaim.util.MD5Util;
 import com.bdaim.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -455,5 +456,22 @@ public class CustomerAppService {
     public List apps(String customerId) {
     	List data = jdbcTemplate.queryForList("select name,application_id as appId,access_token as token,VALIDITY_PERIOD as tokenPeriod,date_format(TOKEN_TIME_CREATED,'%Y-%m-%d %H:%i:%s') as tokenTime from am_application where SUBSCRIBER_ID=? ", customerId);
     	return data;
+    }
+    public Map getApp(String appId) {
+    	Map app = null;
+    	List<Map<String,Object>> data = jdbcTemplate.queryForList("select name,subscriber_id as customerId,access_token as token,VALIDITY_PERIOD as tokenPeriod,date_format(TOKEN_TIME_CREATED,'%Y-%m-%d %H:%i:%s') as tokenTime from am_application where application_id=? ", appId);
+    	if(data.size()>0)
+    		app = data.get(0);
+    	return app;
+    }
+    public String reAppToken(String appId) {
+    	String token = MD5Util.encode32Bit(UUID.randomUUID().toString());
+    	jdbcTemplate.update("update am_application set access_token=? where application_id=?", token, appId);
+    	
+    	return token;
+    }
+    public List subscriptions(String appId) {
+    	String sql = "select b.api_id as apiId,b.api_name as apiName,b.context,b.http_method as httpMethod,endpoint_url as endpointUrl,endpoint_type as endpointType,b.status as apiStatus, a.sub_status as subStatus,a.subs_create_state as subsCreateState,a.allowed_domains as allowedDomains  from am_subscription a join am_api b on a.api_id=b.api_id where APPLICATION_ID=?";
+    	return jdbcTemplate.queryForList(sql, appId);
     }
 }

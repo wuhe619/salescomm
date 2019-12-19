@@ -27,10 +27,12 @@ public class ApiController extends BasicAction {
      **/
     @PostMapping("/infos")
     public ResponseInfo apis(@RequestBody JSONObject params) {
+    	LoginUser lu = opUser();
+    	
         ResponseInfo resp = new ResponseInfo();
         PageParam page = new PageParam();
-        page.setPageSize(params.getInteger("pageSize") == null ? 0 : params.getIntValue("pageSize"));
-        page.setPageNum(params.getInteger("pageNum") == null ? 10 : params.getIntValue("pageNum"));
+        page.setPageSize(params.containsKey("pageSize") ? 0 : params.getIntValue("pageSize"));
+        page.setPageNum(params.containsKey("pageNum") ? 10 : params.getIntValue("pageNum"));
         resp.setData(apiService.apis(page, params));
         return resp;
     }
@@ -39,9 +41,12 @@ public class ApiController extends BasicAction {
      * Save Api
      **/
     @PostMapping("/info/{apiId}")
-    public ResponseInfo saveApi(@RequestBody ApiData apiData, @PathVariable(name = "apiId") String apiId) {
+    public ResponseInfo saveApi(@RequestBody ApiData apiData, @PathVariable(name = "apiId") String apiId) throws Exception{
+    	LoginUser lu = opUser();
+    	if(lu==null || lu.getAuths()==null || !lu.getAuths().contains("admin"))
+    		throw new Exception("no auth");
+    	
         ResponseInfo resp = new ResponseInfo();
-        LoginUser lu = opUser();
         try {
             resp.setData(apiService.saveApiProperty(apiData, apiId, lu));
         } catch (Exception e) {
@@ -57,6 +62,8 @@ public class ApiController extends BasicAction {
      **/
     @GetMapping("/info/{apiId}")
     public ResponseInfo getApi(@PathVariable(name = "apiId") Integer apiId) {
+    	LoginUser lu = opUser();
+
         ResponseInfo resp = new ResponseInfo();
         if (apiId == null || apiId == 0) {
             return new ResponseInfoAssemble().failure(-1, "Api创建失败:");
@@ -74,9 +81,12 @@ public class ApiController extends BasicAction {
      * Delete Api
      **/
     @DeleteMapping("/info/{apiId}")
-    public ResponseInfo deleteApi(@PathVariable(name = "apiId") String apiId, int status) {
+    public ResponseInfo deleteApi(@PathVariable(name = "apiId") String apiId, int status) throws Exception{
+    	LoginUser lu = opUser();
+    	if(lu==null || lu.getAuths()==null || !lu.getAuths().contains("admin"))
+    		throw new Exception("no auth");
+    	
         ResponseInfo resp = new ResponseInfo();
-        LoginUser lu = opUser();
         try {
             apiService.updateStatusApiById(apiId, lu, status);
         } catch (Exception e) {
@@ -91,13 +101,16 @@ public class ApiController extends BasicAction {
      * Subscribe Api
      **/
     @PostMapping("/subscription/{apiId}")
-    public ResponseInfo subApi(@RequestBody JSONObject params, @PathVariable(name = "apiId") String apiId) {
+    public ResponseInfo subApi(@RequestBody JSONObject params, @PathVariable(name = "apiId") String apiId) throws Exception{
+    	LoginUser lu = opUser();
+    	if(lu==null || lu.getAuths()==null || !lu.getAuths().contains("admin"))
+    		throw new Exception("no auth");
+    	
         ResponseInfo info = new ResponseInfo();
-        if (StringUtil.isEmpty(params.getString("custId"))) {
+        if (!params.containsKey("custId")) {
             return new ResponseInfoAssemble().failure(-1, "企业id不能为空");
         }
         logger.info("开始订阅");
-        LoginUser lu = opUser();
         try {
             info.setData(apiService.subApi(params, apiId, lu));
         } catch (Exception e) {
@@ -113,12 +126,15 @@ public class ApiController extends BasicAction {
      * No Subscribe Api
      **/
     @DeleteMapping("/subscription/{apiId}")
-    public ResponseInfo subApiUpdate(@RequestBody JSONObject params, @PathVariable(name = "apiId") String apiId) {
+    public ResponseInfo subApiUpdate(@RequestBody JSONObject params, @PathVariable(name = "apiId") String apiId) throws Exception{
+    	LoginUser lu = opUser();
+    	if(lu==null || lu.getAuths()==null || !lu.getAuths().contains("admin"))
+    		throw new Exception("no auth");
+    	
         ResponseInfo info = new ResponseInfo();
-        if (StringUtil.isEmpty(params.getString("custId"))) {
+        if (!params.containsKey("custId")) {
             return new ResponseInfoAssemble().failure(-1, "企业id不能为空");
         }
-        LoginUser lu = opUser();
         try {
             info.setData(apiService.subApiUpdate(params, apiId, lu));
         } catch (Exception e) {
@@ -132,12 +148,15 @@ public class ApiController extends BasicAction {
      * Set Api Price
      **/
     @PostMapping("/price/{apiId}")
-    public ResponseInfo priceApi(@RequestBody JSONObject params, @PathVariable(name = "apiId") String apiId) {
+    public ResponseInfo priceApi(@RequestBody JSONObject params, @PathVariable(name = "apiId") String apiId) throws Exception{
+    	LoginUser lu = opUser();
+    	if(lu==null || lu.getAuths()==null || !lu.getAuths().contains("admin"))
+    		throw new Exception("no auth");
+    	
         ResponseInfo info = new ResponseInfo();
-        if (StringUtil.isEmpty(params.getString("price"))) {
+        if (!params.containsKey("price")) {
             return new ResponseInfoAssemble().failure(-1, "价格不能为空");
         }
-        LoginUser lu = opUser();
         try {
             info.setData(apiService.priceApi(params, apiId, lu));
         } catch (Exception e) {
@@ -151,17 +170,26 @@ public class ApiController extends BasicAction {
      * api列表（已订阅、未订阅）
      **/
     @PostMapping("/subscribe")
-    public ResponseInfo subApiList(@RequestBody JSONObject params) {
+    public ResponseInfo subApiList(@RequestBody JSONObject params)throws Exception {
+    	LoginUser lu = opUser();
+    	if(lu==null || lu.getAuths()==null || !lu.getAuths().contains("admin"))
+    		throw new Exception("no auth");
+    	
         ResponseInfo info = new ResponseInfo();
-        LoginUser lu = opUser();
         PageParam page = new PageParam();
         try {
-            page.setPageSize(params.getInteger("pageSize") == null ? 0 : params.getIntValue("pageSize"));
-            page.setPageNum(params.getInteger("pageNum") == null ? 10 : params.getIntValue("pageNum"));
-            if (StringUtil.isNotEmpty(params.getString("code")) && params.getString("code").equals("Subscribe")) {
-                info.setData(apiService.subApiSubscribeList(page, params.getString("custId"), params.getString("apiName")));
+        	String custId = null;
+        	String apiName = null;
+        	if(params.containsKey("custId"))
+        		custId = params.getString("custId");
+        	if(params.containsKey("apiName"))
+        		apiName = params.getString("apiName");
+        	page.setPageSize(!params.containsKey("pageSize") ? 0 : params.getIntValue("pageSize"));
+            page.setPageNum(!params.containsKey("pageNum") ? 10 : params.getIntValue("pageNum"));
+            if (params.containsKey("code") && params.getString("code").equals("Subscribe")) {
+                info.setData(apiService.subApiSubscribeList(page, custId, apiName));
             } else {
-                info.setData(apiService.subApiNoSubscribeList(page, params.getString("custId"), params.getString("apiName")));
+                info.setData(apiService.subApiNoSubscribeList(page, custId, apiName));
             }
 
         } catch (Exception e) {

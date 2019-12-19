@@ -7,6 +7,8 @@ import com.alibaba.excel.context.AnalysisContext;
 import com.alibaba.excel.event.AnalysisEventListener;
 import com.alibaba.excel.metadata.Sheet;
 import com.alibaba.excel.support.ExcelTypeEnum;
+import com.bdaim.AppConfig;
+
 import org.apache.poi.EmptyFileException;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
@@ -187,7 +189,7 @@ public class ExcelUtil {
      */
     public static void exportExcelByList(List list, String templateName, HttpServletResponse response) throws IOException, IllegalAccessException {
         //String classPath = new FileUrlEntity().getFileUrl();
-        String classPath = PropertiesUtil.getStringValue("file.file_path");
+        String classPath = AppConfig.getFile_path();
         String pathF = File.separator;
         classPath = classPath.replace("/", pathF);
         String templatePath = classPath + pathF + "tp" + pathF + templateName + ".xlsx";

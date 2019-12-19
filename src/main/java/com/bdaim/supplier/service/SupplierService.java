@@ -2401,7 +2401,7 @@ public class SupplierService {
         }
         log.info("id:" + deposit.getId());
         log.info("id prc_money:" + String.valueOf(pre_money + money));
-        String sql = "INSERT INTO supplier_pay (SUBSCRIBER_ID,MONEY,PAY_TIME,pay_certificate,pre_money,user_id) VALUE (?,?,?,?,?,?) ";
+        String sql = "INSERT INTO supplier_pay (supplier_id,MONEY,PAY_TIME,pay_certificate,pre_money,user_id) VALUE (?,?,?,?,?,?) ";
         jdbcTemplate.update(sql, deposit.getId(), money, DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss), deposit.getRepaidVoucher(), pre_money, userId);
         return 1;
     }
@@ -2422,7 +2422,7 @@ public class SupplierService {
             }
         });
 
-        String sql1 = "select pay.pay_id,pay.SUBSCRIBER_ID,pay.MONEY,pay.PAY_TIME,pay.pay_certificate,pay.pre_money as pre_money ,u.REALNAME as realname ,u.name as account from supplier_pay pay left join  t_user u  on pay.user_id=u.id  where SUBSCRIBER_ID = " + supplierId;
+        String sql1 = "select pay.pay_id,pay.supplier_id as SUBSCRIBER_ID,pay.MONEY,pay.PAY_TIME,pay.pay_certificate,pay.pre_money as pre_money ,u.REALNAME as realname ,u.name as account from supplier_pay pay left join  t_user u  on pay.user_id=u.id  where SUBSCRIBER_ID = " + supplierId;
         page.setSort("pay.PAY_TIME");
         page.setDir(" desc");
         PageList list = new Pagination().getPageData(sql1, null, page, jdbcTemplate);

@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.AppConfig;
 import com.bdaim.api.dao.ApiDao;
 import com.bdaim.api.entity.ApiEntity;
 import com.bdaim.api.entity.ApiProperty;
@@ -1222,7 +1223,7 @@ public class MarketResourceService {
         if (StringUtil.isNotEmpty(recordUrl) && !"NoTapes".equals(recordUrl)) {
             if (StringUtil.isNotEmpty(recordUrl) && StringUtil.isNotEmpty(userId)) {
                 String fileName = recordUrl.substring(recordUrl.lastIndexOf("/"));
-                String filePath = PropertiesUtil.getStringValue("audiolocation") + userId;
+                String filePath = AppConfig.getAudiolocation() + userId;
                 File file = new File(filePath);
                 if (!file.exists()) {
                     LOG.info("录音文件夹不存在,开始创建:" + filePath);
@@ -3597,7 +3598,7 @@ public class MarketResourceService {
         ByteArrayInputStream hBaseInputStream = null;
         try {
             // 查询本地磁盘的录音文件
-            String filePath = PropertiesUtil.getStringValue("audiolocation") + userId + File.separator + fileName;
+            String filePath = AppConfig.getAudiolocation() + userId + File.separator + fileName;
             File file = new File(filePath);
             if (file.exists()) {
                 fis = new FileInputStream(file);
@@ -3618,7 +3619,7 @@ public class MarketResourceService {
                 Map<String, Object> param = new HashMap<>();
                 Map<String, Object> headers = new HashMap<>();
                 headers.put("Accept", "application/json");
-                String result = HttpUtil.httpGet(PropertiesUtil.getStringValue("hbase_audio_url") + fileName + "/f1:file", param, headers);
+                String result = HttpUtil.httpGet(AppConfig.getHbase_audio_url() + fileName + "/f1:file", param, headers);
 
 //                String result = HttpUtil.httpGet("http://ds4:1111/voice/" + fileName + "/f1:file", param, headers);
                 if (StringUtil.isNotEmpty(result)) {
@@ -3682,7 +3683,7 @@ public class MarketResourceService {
         ByteArrayInputStream hBaseInputStream = null;
         try {
             // 查询本地磁盘的录音文件
-            String filePath = PropertiesUtil.getStringValue("audiolocation") + userId + File.separator + fileName;
+            String filePath = AppConfig.getAudiolocation() + userId + File.separator + fileName;
             File file = new File(filePath);
             if (file.exists()) {
                 fis = new FileInputStream(file);
@@ -3694,7 +3695,7 @@ public class MarketResourceService {
                 Map<String, Object> param = new HashMap<>();
                 Map<String, Object> headers = new HashMap<>();
                 headers.put("Accept", "application/json");
-                String result = HttpUtil.httpGet(PropertiesUtil.getStringValue("hbase_audio_url") + fileName + "/f1:file", param, headers);
+                String result = HttpUtil.httpGet(AppConfig.getHbase_audio_url() + fileName + "/f1:file", param, headers);
                 if (StringUtil.isNotEmpty(result)) {
                     LOG.info("开始解析HBase返回的录音文件,userId:" + userId + ",fileName:" + fileName);
                     String base64Str = null;
@@ -5486,7 +5487,7 @@ public class MarketResourceService {
                             System.out.println("下载音频时暂停10秒异常");
                         }
                         String fileName = Threadrecordurl.substring(Threadrecordurl.lastIndexOf("/"));
-                        String filePath = PropertiesUtil.getStringValue("audiolocation") + ThreaduserId;
+                        String filePath = AppConfig.getAudiolocation() + ThreaduserId;
                         File file = new File(filePath);
                         if (!file.exists()) {
                             file.mkdir();
@@ -5495,7 +5496,7 @@ public class MarketResourceService {
                         if (flag) {
                             //做音频同步
                             String src = filePath + File.separator + fileName; // 本地文件名
-                            String dst = PropertiesUtil.getStringValue("destaudiolocation") + ThreaduserId + File.separator + fileName; // 目标文件名
+                            String dst = AppConfig.getDestaudiolocation() + ThreaduserId + File.separator + fileName; // 目标文件名
                             SFTPChannel channel = new SFTPChannel();
                             try {
 
@@ -8032,7 +8033,7 @@ public class MarketResourceService {
             }
 
             // 查询本地磁盘的录音文件
-            String filePath = PropertiesUtil.getStringValue("audiolocation") + userId + File.separator + fileName;
+            String filePath = AppConfig.getAudiolocation() + userId + File.separator + fileName;
             File file = new File(filePath);
             if (file.exists()) {
                 fis = new FileInputStream(file);
@@ -8053,7 +8054,7 @@ public class MarketResourceService {
                 Map<String, Object> param = new HashMap<>();
                 Map<String, Object> headers = new HashMap<>();
                 headers.put("Accept", "application/json");
-                String result = HttpUtil.httpGet(PropertiesUtil.getStringValue("hbase_audio_url") + fileName + "/f1:file", param, headers);
+                String result = HttpUtil.httpGet(AppConfig.getHbase_audio_url() + fileName + "/f1:file", param, headers);
                 if (StringUtil.isNotEmpty(result)) {
                     LOG.info("开始解析HBase返回的录音文件,userId:" + userId + ",fileName:" + fileName);
                     String base64Str = null;
@@ -8213,7 +8214,7 @@ public class MarketResourceService {
             return null;
         }
         String fileName = recordUrl.substring(recordUrl.lastIndexOf("/") + 1);
-        String filePath = PropertiesUtil.getStringValue("audiolocation") + userId + File.separator + fileName;
+        String filePath = AppConfig.getAudiolocation() + userId + File.separator + fileName;
         LOG.info("根据触达ID查询通话录音,userId:" + userId + ",filePath:" + filePath);
         FileInputStream fis = null;
         InputStream ins = null;
@@ -8270,7 +8271,7 @@ public class MarketResourceService {
             return null;
         }
         String fileName = recordUrl.substring(recordUrl.lastIndexOf("/") + 1);
-        String filePath = PropertiesUtil.getStringValue("audiolocation") + userId + File.separator + fileName;
+        String filePath = AppConfig.getAudiolocation() + userId + File.separator + fileName;
         LOG.info("根据触达ID查询通话录音,userId:" + userId + ",filePath:" + filePath);
         FileInputStream fis = null;
         InputStream ins = null;

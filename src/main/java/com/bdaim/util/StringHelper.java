@@ -20,6 +20,8 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.codec.digest.DigestUtils;
 
+import com.bdaim.AppConfig;
+
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
@@ -1219,8 +1221,7 @@ public class StringHelper {
 			Integer sequence, Integer level) {
 		if (parentId == null || sequence == null || level == null || level < 1)
 			return null;
-		String[] KeyGeneratorRule = PropertiesUtil.getStringValue(
-				"KeyGeneratorRule").split(",");
+		String[] KeyGeneratorRule = AppConfig.getKeyGeneratorRule().split(",");
 		if (KeyGeneratorRule.length < level)
 			return null;
 		int len = Integer.parseInt(KeyGeneratorRule[level - 1]);

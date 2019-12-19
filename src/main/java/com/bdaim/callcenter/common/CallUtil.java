@@ -4,8 +4,8 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.AppConfig;
 import com.bdaim.util.ConfigUtil;
-import com.bdaim.util.PropertiesUtil;
 import com.bdaim.util.http.HttpUtil;
 
 import org.slf4j.Logger;
@@ -34,7 +34,7 @@ public class CallUtil {
         Map<String, Object> param = new HashMap<>();
         Map<String, Object> headers = new HashMap<>();
         headers.put("Accept", "application/json");
-        String result = HttpUtil.httpGet(PropertiesUtil.getStringValue("hbase_audio_url") + fileName + "/f1:file", param, headers);
+        String result = HttpUtil.httpGet(AppConfig.getHbase_audio_url() + fileName + "/f1:file", param, headers);
         String base64Str = null;
         JSONObject jsonObject = null;
         try {

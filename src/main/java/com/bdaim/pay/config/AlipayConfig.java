@@ -1,6 +1,6 @@
 package com.bdaim.pay.config;
 
-import com.bdaim.util.PropertiesUtil;
+import com.bdaim.AppConfig;
 
 public class AlipayConfig {
 	
@@ -16,10 +16,10 @@ public class AlipayConfig {
     public static String key = "hn9fv1etx1hdk440zgvwij41e24ctxk2";    						   
 
 	// 服务器异步通知页面路径  需http://格式的完整路径，不能加?id=123这类自定义参数，必须外网可以正常访问(http://商户网址/create_direct_pay_by_user-JAVA-UTF-8)
-	public static String notify_url = PropertiesUtil.getStringValue("zfb_HOST")+"/retuNotifyUrl/notifypayapi.htm";
+	public static String notify_url = AppConfig.getZfb_HOST()+"/retuNotifyUrl/notifypayapi.htm";
 
 	// 页面跳转同步通知页面路径 需http://格式的完整路径，不能加?id=123这类自定义参数，必须外网可以正常访问(http://商户网址/create_direct_pay_by_user-JAVA-UTF-8)
-	public static String return_url = PropertiesUtil.getStringValue("zfb_HOST")+"/returnUrl/returnpayapi.htm";
+	public static String return_url = AppConfig.getZfb_HOST()+"/returnUrl/returnpayapi.htm";
 	
 
 	// 签名方式

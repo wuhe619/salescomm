@@ -181,6 +181,8 @@ public class ExportExcelService {
             case "_export_bgd_z_main_data_inspection":
                 sheetName = new String[]{"查验报关单表头", "查验报关单商品"};
                 generateMainDan(list, map);
+                List list1 = (List) map.get("list1");
+                if(list1.size()==0)throw new IOException();
                 export(templatePath, map, sheetName, response);
                 break;
             case "_export_bgd_z_main_data":
@@ -197,8 +199,8 @@ public class ExportExcelService {
                 sheetName = new String[]{"主单", "分单", "税单"};
                 generateMainDan(list, map);
                 if (map.get("list1") != null) {
-                    List list1 = (List) map.get("list1");
-                    if (list1.size() == 0) {
+                    List lis = (List) map.get("list1");
+                    if (lis.size() == 0) {
                         map.put("list", null);
                     }
                 }
