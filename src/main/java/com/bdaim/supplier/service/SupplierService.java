@@ -2401,7 +2401,7 @@ public class SupplierService {
         }
         log.info("id:" + deposit.getId());
         log.info("id prc_money:" + String.valueOf(pre_money + money));
-        String sql = "INSERT INTO supplier_pay (SUBSCRIBER_ID,MONEY,PAY_TIME,pay_certificate,pre_money,user_id) VALUE (?,?,?,?,?,?) ";
+        String sql = "INSERT INTO supplier_pay (supplier_id,MONEY,PAY_TIME,pay_certificate,pre_money,user_id) VALUE (?,?,?,?,?,?) ";
         jdbcTemplate.update(sql, deposit.getId(), money, DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss), deposit.getRepaidVoucher(), pre_money, userId);
         return 1;
     }
