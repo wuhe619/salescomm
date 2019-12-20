@@ -128,8 +128,8 @@ public class BgdHzService implements BusiService {
         json.put("pre_input_code", PreEntryId == null ? "" : PreEntryId);
         json.put("entryid", EntryId == null ? "" : EntryId);
         String opresult = data.getString("op_result");
-        Long op_timeF = json.getLong("op_time");
-        Long op_time = data.getLong("op_time");
+        Long op_timeF = json.getLongValue("op_time");
+        Long op_time = data.getLongValue("op_time");
         log.info("op_timeF:" + op_timeF);
         log.info("op_time:" + op_time);
         if (op_time > op_timeF) {

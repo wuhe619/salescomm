@@ -60,6 +60,7 @@ public class ApiService {
 
     public int saveApiProperty(ApiData apiData, String id, LoginUser lu) throws Exception {
         int apiId;
+        ApiDefine apiDefine = apiData.getApi_define();
         if (StringUtil.isEmpty(id) || "0".equals(id)) {
             String context = apiData.getContext();
             String apiVersion = context.substring(context.lastIndexOf("/") + 1);
@@ -77,6 +78,8 @@ public class ApiService {
             entity.setUpdateTime(new Timestamp(System.currentTimeMillis()));
             entity.setUpdateBy(lu.getUserName());
             entity.setStatus(0);
+            entity.setHttpMethod(apiDefine.getRequest_method());
+            entity.setEndpointUrl(apiData.getProductionendpoints());
             apiId = (int) apiDao.saveReturnPk(entity);
             apiDao.dealCustomerInfo(String.valueOf(apiId), "status", "0");
         } else {
@@ -90,9 +93,11 @@ public class ApiService {
             entity.setVersion(apiData.getApiVersion());
             entity.setUpdateTime(new Timestamp(System.currentTimeMillis()));
             entity.setUpdateBy(lu.getUserName());
+            entity.setHttpMethod(apiDefine.getRequest_method());
+            entity.setEndpointUrl(apiData.getProductionendpoints());
             apiId = (int) apiDao.saveReturnPk(entity);
         }
-        ApiDefine apiDefine = apiData.getApi_define();
+        
         if (apiData.getUrlMappingId() == 0) {
             ApiUrlMappingEntity entity = new ApiUrlMappingEntity();
 
@@ -209,10 +214,10 @@ public class ApiService {
     public Map<String, Object> apis(PageParam page, JSONObject params) {
         StringBuffer sql = new StringBuffer();
         sql.append(" select API_ID as apiId,API_NAME as apiName,CONTEXT as context,CREATED_BY as createdBy,status   from am_api where 1=1 ");
-        if (StringUtil.isNotEmpty(params.getString("apiName"))) {
+        if (params.containsKey("apiName")) {
             sql.append(" and API_NAME like '%" + params.getString("apiName") + "%'");
         }
-        if (params.getInteger("status") != null) {
+        if (params.containsKey("status")) {
             sql.append(" and status =" + params.getInteger("status"));
         }
         sql.append(" order by CREATED_TIME desc");
@@ -512,7 +517,7 @@ public class ApiService {
         sql.append(" from rs_log_" + params.getString("callMonth") + " log left join am_api api  on  log.API_ID =api.API_ID");
         sql.append(" left join api_queue que on que.ID=log.API_LOG_ID");
         sql.append(" where 1=1");
-        if (StringUtil.isNotEmpty(params.getString("apiName"))) {
+        if (params.containsKey("apiName")) {
             sql.append(" and api.API_NAME like '%" + params.getString("apiName") + "%'");
         }
         sql.append(" group by log.API_ID");

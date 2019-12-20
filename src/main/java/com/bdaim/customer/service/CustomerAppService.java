@@ -15,6 +15,7 @@ import com.bdaim.customer.entity.CustomerProperty;
 import com.bdaim.util.Constant;
 import com.bdaim.util.DateUtil;
 import com.bdaim.util.IDHelper;
+import com.bdaim.util.MD5Util;
 import com.bdaim.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -464,9 +465,13 @@ public class CustomerAppService {
     	return app;
     }
     public String reAppToken(String appId) {
-    	String token = UUID.randomUUID().toString();
-    	jdbcTemplate.update("update am_application set access_token=? where appId=?", token, appId);
+    	String token = MD5Util.encode32Bit(UUID.randomUUID().toString());
+    	jdbcTemplate.update("update am_application set access_token=? where application_id=?", token, appId);
     	
     	return token;
+    }
+    public List subscriptions(String appId) {
+    	String sql = "select b.api_id as apiId,b.api_name as apiName,b.context,b.http_method as httpMethod,endpoint_url as endpointUrl,endpoint_type as endpointType,b.status as apiStatus, a.sub_status as subStatus,a.subs_create_state as subsCreateState,a.allowed_domains as allowedDomains  from am_subscription a join am_api b on a.api_id=b.api_id where APPLICATION_ID=?";
+    	return jdbcTemplate.queryForList(sql, appId);
     }
 }
