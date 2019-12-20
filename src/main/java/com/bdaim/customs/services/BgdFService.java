@@ -152,7 +152,7 @@ public class BgdFService implements BusiService {
     public void doInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info, JSONObject param) throws TouchException {
         // 提交至海关平台
         if ("HAIGUAN".equals(param.getString("_rule_"))) {
-            log.info("申报报关单次数:{}",d);
+            log.info("申报报关单次数:{}", d);
             String sql = "select id, content, cust_id, cust_group_id, cust_user_id, create_id, create_date ,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(busiType, "") + " where type=? and id=? ";
             List<Map<String, Object>> list = jdbcTemplate.queryForList(sql, busiType, id);
             if (list.size() == 0) {
@@ -164,8 +164,8 @@ public class BgdFService implements BusiService {
             String cdContent = String.valueOf(m.get("content"));
             if ("B1".equals(String.valueOf(m.get("ext_1"))) && StringUtil.isNotEmpty(cdContent)
                     && "B1".equals(JSON.parseObject(cdContent).getString("send_status"))) {
-                log.warn("报关单分单:[" + id + "]已提交至海关");
-                throw new TouchException("报关单分单:[" + id + "]已提交至海关");
+                log.warn("报关单分单:[" + m.get("ext_3") + "]已提交至海关");
+                throw new TouchException("报关单分单:[" + m.get("ext_3") + "]已提交至海关");
             }
             // 更新报关单主单信息
             String content = (String) m.get("content");
