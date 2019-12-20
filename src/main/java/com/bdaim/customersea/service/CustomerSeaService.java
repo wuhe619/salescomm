@@ -3254,19 +3254,23 @@ public class CustomerSeaService {
         if (StringUtil.isNotEmpty(param.getBatchId())) {
             sb.append(" and custG.batch_id =" + param.getBatchId());
         }
-        if (StringUtil.isNotEmpty(param.getAddStartTime()) && StringUtil.isNotEmpty(param.getAddEndTime())) {
-            sb.append(" and custG.create_time BETWEEN '" + param.getAddStartTime() + "' AND '" + param.getAddEndTime() + "'");
-        } else if (StringUtil.isNotEmpty(param.getAddStartTime())) {
+//        if (StringUtil.isNotEmpty(param.getAddStartTime()) && StringUtil.isNotEmpty(param.getAddEndTime())) {
+//            sb.append(" and custG.create_time BETWEEN '" + param.getAddStartTime() + "' AND '" + param.getAddEndTime() + "'");
+//        } else
+        if (StringUtil.isNotEmpty(param.getAddStartTime())) {
             sb.append(" and custG.create_time >= '" + param.getAddStartTime().replace("/", "-") + "'");
-        } else if (StringUtil.isNotEmpty(param.getAddEndTime())) {
+        }
+        if (StringUtil.isNotEmpty(param.getAddEndTime())) {
             sb.append(" and custG.create_time <= '" + param.getAddEndTime().replace("/", "-") + "'");
         }
 
-        if (StringUtil.isNotEmpty(param.getCallStartTime()) && StringUtil.isNotEmpty(param.getCallEndTime())) {
-            sb.append(" and custG.last_call_time BETWEEN '" + param.getCallStartTime() + "' AND '" + param.getCallEndTime() + "'");
-        } else if (StringUtil.isNotEmpty(param.getCallStartTime())) {
+//        if (StringUtil.isNotEmpty(param.getCallStartTime()) && StringUtil.isNotEmpty(param.getCallEndTime())) {
+//            sb.append(" and custG.last_call_time BETWEEN '" + param.getCallStartTime() + "' AND '" + param.getCallEndTime() + "'");
+//        } else
+        if (StringUtil.isNotEmpty(param.getCallStartTime())) {
             sb.append(" and custG.last_call_time >= '" + param.getCallStartTime() + "'");
-        } else if (StringUtil.isNotEmpty(param.getCallEndTime())) {
+        }
+        if (StringUtil.isNotEmpty(param.getCallEndTime())) {
             sb.append(" and custG.last_call_time <= '" + param.getCallEndTime() + "'");
         }
 
@@ -3401,19 +3405,23 @@ public class CustomerSeaService {
         if (StringUtil.isNotEmpty(param.getBatchId())) {
             sb.append(" and custG.batch_id =" + param.getBatchId());
         }
-        if (StringUtil.isNotEmpty(param.getAddStartTime()) && StringUtil.isNotEmpty(param.getAddEndTime())) {
-            sb.append(" and custG.create_time BETWEEN '" + param.getAddStartTime() + "' AND '" + param.getAddEndTime() + "'");
-        } else if (StringUtil.isNotEmpty(param.getAddStartTime())) {
+//        if (StringUtil.isNotEmpty(param.getAddStartTime()) && StringUtil.isNotEmpty(param.getAddEndTime())) {
+//            sb.append(" and custG.create_time BETWEEN '" + param.getAddStartTime() + "' AND '" + param.getAddEndTime() + "'");
+//        } else
+        if (StringUtil.isNotEmpty(param.getAddStartTime())) {
             sb.append(" and custG.create_time >= '" + param.getAddStartTime().replace("/", "-") + "'");
-        } else if (StringUtil.isNotEmpty(param.getAddEndTime())) {
+        }
+        if (StringUtil.isNotEmpty(param.getAddEndTime())) {
             sb.append(" and custG.create_time <= '" + param.getAddEndTime().replace("/", "-") + "'");
         }
 
-        if (StringUtil.isNotEmpty(param.getCallStartTime()) && StringUtil.isNotEmpty(param.getCallEndTime())) {
-            sb.append(" and custG.last_call_time BETWEEN '" + param.getCallStartTime() + "' AND '" + param.getCallEndTime() + "'");
-        } else if (StringUtil.isNotEmpty(param.getCallStartTime())) {
+//        if (StringUtil.isNotEmpty(param.getCallStartTime()) && StringUtil.isNotEmpty(param.getCallEndTime())) {
+//            sb.append(" and custG.last_call_time BETWEEN '" + param.getCallStartTime() + "' AND '" + param.getCallEndTime() + "'");
+//        } else
+        if (StringUtil.isNotEmpty(param.getCallStartTime())) {
             sb.append(" and custG.last_call_time >= '" + param.getCallStartTime() + "'");
-        } else if (StringUtil.isNotEmpty(param.getCallEndTime())) {
+        }
+        if (StringUtil.isNotEmpty(param.getCallEndTime())) {
             sb.append(" and custG.last_call_time <= '" + param.getCallEndTime() + "'");
         }
 

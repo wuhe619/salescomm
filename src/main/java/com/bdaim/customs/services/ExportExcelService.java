@@ -233,7 +233,7 @@ public class ExportExcelService {
                     fdData.putAll(fdList.getJSONObject(i));
                     list_one.add(fdData);
                     if (fdList.getJSONObject(i) == null) {
-                        continue;
+                       continue;
                     }
                     ssList = fdList.getJSONObject(i).getJSONArray("products");
                     // 处理商品

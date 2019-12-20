@@ -2,7 +2,6 @@ package com.bdaim.customs.services;
 
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.be.service.BusiEntityService;
-import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.service.BusiService;
 import com.bdaim.util.ParseHzXml;
 import com.bdaim.util.StringUtil;
