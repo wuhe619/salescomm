@@ -173,7 +173,8 @@ public class BusiEntityService {
                 String key = (String) keys.next();
                 if (StringUtil.isEmpty(String.valueOf(params.get(key)))) continue;
                 if ("pageNum".equals(key) || "pageSize".equals(key) || "stationId".equals(key)
-                        || "cust_id".equals(key) || "_sort_".equals(key) || "_orderby_".equals(key))
+                        || "cust_id".equals(key) || "_sort_".equals(key) || "_orderby_".equals(key)
+                        || "_rule_".equals(key))
                     continue;
                 if ("cust_id".equals(key)) {
                     sqlstr.append(" and cust_id=?");
@@ -268,6 +269,10 @@ public class BusiEntityService {
                         jo = JSONObject.parseObject(JSONObject.toJSONString(m));
                 } catch (Exception e) {
                     logger.error(e.getMessage());
+                }
+                // 只获取ID
+                if ("get_id".equals(String.valueOf(params.get("_rule_")))) {
+                    jo = null;
                 }
                 if (jo == null) { //jo异常导致为空时，只填充id
                     jo = new JSONObject();
