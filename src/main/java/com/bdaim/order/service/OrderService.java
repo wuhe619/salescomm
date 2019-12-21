@@ -166,6 +166,7 @@ public class OrderService {
         map.put("total", orderDao.getSQLQuery(sql.toString()).list().size());
         List<Map<String, Object>> custGroupOrders = orderDao.getSQLQuery(sql.toString()).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP)
                 .setFirstResult(param.getPageNum()).setMaxResults(param.getPageSize()).list();
+        log.info("客群查询sql:{}", sql.toString());
         if (custGroupOrders != null && custGroupOrders.size() > 0) {
             LocalDateTime expirationTime = null, nowTime = LocalDateTime.now();
             MarketProject marketProject;
