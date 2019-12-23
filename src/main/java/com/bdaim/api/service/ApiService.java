@@ -97,7 +97,7 @@ public class ApiService {
             entity.setEndpointUrl(apiData.getProductionendpoints());
             apiId = (int) apiDao.saveReturnPk(entity);
         }
-        
+
         if (apiData.getUrlMappingId() == 0) {
             ApiUrlMappingEntity entity = new ApiUrlMappingEntity();
 
@@ -218,7 +218,9 @@ public class ApiService {
             sql.append(" and API_NAME like '%" + params.getString("apiName") + "%'");
         }
         if (params.containsKey("status")) {
-            sql.append(" and status =" + params.getInteger("status"));
+            if (StringUtil.isNotEmpty(params.getString("status"))) {
+                sql.append(" and status =" + params.getInteger("status"));
+            }
         }
         sql.append(" order by CREATED_TIME desc");
         PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
@@ -522,15 +524,15 @@ public class ApiService {
         }
         sql.append(" group by log.API_ID");
         PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
-        List list1=new ArrayList();
-        list.getList().stream().forEach(m->{
-            Map map=(Map)m;
+        List list1 = new ArrayList();
+        list.getList().stream().forEach(m -> {
+            Map map = (Map) m;
             Object apiId = map.get("apiId");
-            map.put("countNum",0);
-            if(apiId!=null){
-                String sql1="select count(*) from  rs_log_" + params.getString("callMonth") +" where API_ID="+Integer.valueOf(apiId.toString());
+            map.put("countNum", 0);
+            if (apiId != null) {
+                String sql1 = "select count(*) from  rs_log_" + params.getString("callMonth") + " where API_ID=" + Integer.valueOf(apiId.toString());
                 Integer unt = jdbcTemplate.queryForObject(sql1, Integer.class);
-                map.put("countNum",unt);
+                map.put("countNum", unt);
             }
             list1.add(map);
         });
