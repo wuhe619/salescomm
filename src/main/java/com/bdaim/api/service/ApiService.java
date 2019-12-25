@@ -345,7 +345,7 @@ public class ApiService {
             calendar.add(Calendar.DATE, 365 * 100);
             String subSql = " insert into am_subscription (CREATED_BY,CREATED_TIME,API_ID,LAST_ACCESSED,SUB_STATUS,SUBS_CREATE_STATE,APPLICATION_ID,UPDATED_TIME) " +
                     "values('" + lu.getUserName() + "','" + new Timestamp(System.currentTimeMillis()) + "'," + apiEntity.getApiId() + ",'" + new Timestamp(System.currentTimeMillis()) +
-                    "','BLOCKED','SUBSCRIBE'," + amApplicationEntity.getId() + ",'" + new Timestamp(System.currentTimeMillis()) + "')";
+                    "','UNBLOCKED','SUBSCRIBE'," + amApplicationEntity.getId() + ",'" + new Timestamp(System.currentTimeMillis()) + "')";
             KeyHolder keyHolder = new GeneratedKeyHolder();
             PreparedStatementCreator preparedStatementCreator = con -> {
                 PreparedStatement ps = con.prepareStatement(subSql, Statement.RETURN_GENERATED_KEYS);
@@ -375,6 +375,7 @@ public class ApiService {
         entity.setSubsCreateState("UNSUBSCRIBE");
         entity.setUpdatedBy(lu.getUserName());
         entity.setUpdatedTime(new Timestamp(System.currentTimeMillis()));
+        entity.setSubStatus("BLOCKED");
         subscriptionDao.update(entity);
         return 1;
     }
