@@ -51,7 +51,7 @@ public class CustomerExtensionController extends BasicAction {
     }
 
     @PostMapping("/all")
-    public ResponseInfo query(@RequestBody(required = false) String body) {
+    public ResponseInfo query(@RequestBody(required = false) String body, HttpServletResponse response) {
         ResponseInfo resp = new ResponseInfo();
         PageParam page = new PageParam();
         JSONObject info = null;
@@ -60,25 +60,6 @@ public class CustomerExtensionController extends BasicAction {
                 body = "{}";
 
             info = JSONObject.parseObject(body);
-            page.setPageSize(info.containsKey("pageSize") ? 0 : info.getIntValue("pageSize"));
-            page.setPageNum(info.containsKey("pageNum") ? 10 : info.getIntValue("pageNum"));
-            resp.setData(customerExtensionService.query(info, page));
-        } catch (Exception e) {
-
-        }
-        return resp;
-    }
-
-    @PostMapping("/export")
-    public ResponseInfo doInfo(@RequestBody(required = false) String body, HttpServletResponse response) {
-        ResponseInfo resp = new ResponseInfo();
-        PageParam page = new PageParam();
-        JSONObject info = null;
-        try {
-            if (body == null || "".equals(body))
-                body = "{}";
-            info = JSONObject.parseObject(body);
-
             if (StringUtil.isEmpty(info.getString("id"))) {
                 page.setPageSize(0);
                 page.setPageNum(10000000);
@@ -87,14 +68,45 @@ public class CustomerExtensionController extends BasicAction {
                 page.setPageNum(info.containsKey("pageNum") ? 10 : info.getIntValue("pageNum"));
             }
             PageList query = customerExtensionService.query(info, page);
-            int size = query.getList().size();
-            if (size > 200) return new ResponseInfoAssemble().failure(-1, "已经超出导出上限（" + (size - 200) + "条），请调整检索条件后重试");
-            exportExcelService.exportExcel(0, query.getList(), info, response);
+            if ("extension".equals(info.getString("type"))) {
+                int size = query.getList().size();
+                if (size > 200)
+                    return new ResponseInfoAssemble().failure(-1, "已经超出导出上限（" + (size - 200) + "条），请调整检索条件后重试");
+                exportExcelService.exportExcel(0, query.getList(), info, response);
+            }
+            resp.setData(query);
         } catch (Exception e) {
-            return new ResponseInfoAssemble().failure(-1, "导出失败");
+
         }
         return resp;
     }
+
+//    @PostMapping("/export")
+//    public ResponseInfo doInfo(@RequestBody(required = false) String body, HttpServletResponse response) {
+//        ResponseInfo resp = new ResponseInfo();
+//        PageParam page = new PageParam();
+//        JSONObject info = null;
+//        try {
+//            if (body == null || "".equals(body))
+//                body = "{}";
+//            info = JSONObject.parseObject(body);
+//
+//            if (StringUtil.isEmpty(info.getString("id"))) {
+//                page.setPageSize(0);
+//                page.setPageNum(10000000);
+//            } else {
+//                page.setPageSize(info.containsKey("pageSize") ? 0 : info.getIntValue("pageSize"));
+//                page.setPageNum(info.containsKey("pageNum") ? 10 : info.getIntValue("pageNum"));
+//            }
+//            PageList query = customerExtensionService.query(info, page);
+//            int size = query.getList().size();
+//            if (size > 200) return new ResponseInfoAssemble().failure(-1, "已经超出导出上限（" + (size - 200) + "条），请调整检索条件后重试");
+//            exportExcelService.exportExcel(0, query.getList(), info, response);
+//        } catch (Exception e) {
+//            return new ResponseInfoAssemble().failure(-1, "导出失败");
+//        }
+//        return resp;
+//    }
 
 
 }
