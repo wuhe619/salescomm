@@ -787,7 +787,12 @@ public class CustomerSeaService {
             CustomerUser user;
             List<CustomerSeaProperty> properties;
             List<Map<String, Object>> stat;
-            String statSql = "SELECT COUNT(status=0 OR null) sumCount,IFNULL(COUNT(super_data like ''%\"SYS007\":\"未跟进\"%'' AND status = 0 OR null),0) AS noFollowSum, IFNULL(COUNT(distinct(super_data->>''$.SYS014'') and `status` = 1 OR null),0) AS clueSurplusSum, IFNULL(COUNT(`call_fail_count` >= 1 OR null),0) AS failCallSum FROM " + ConstantsUtil.SEA_TABLE_PREFIX + "{0} WHERE 1=1 '";
+            String statSql;
+            if ("publicSea".equals(param.getType())) {
+                statSql = "SELECT COUNT(status=0 OR null) sumCount,IFNULL(COUNT(super_data like ''%\"SYS007\":\"未跟进\"%'' AND status = 0 OR null),0) AS noFollowSum, IFNULL(COUNT(distinct(super_data->>''$.SYS014'') and `status` = 1 OR null),0) AS clueSurplusSum, IFNULL(COUNT(`call_fail_count` >= 1 OR null),0) AS failCallSum FROM " + ConstantsUtil.SEA_TABLE_PREFIX + "{0} WHERE 1=1 '";
+            } else {
+                statSql = "SELECT COUNT(status=0 OR null) sumCount,IFNULL(COUNT(super_data like ''%\"SYS007\":\"未跟进\"%'' AND status = 0 OR null),0) AS noFollowSum, IFNULL(COUNT(`status` = 1 OR null),0) AS clueSurplusSum, IFNULL(COUNT(`call_fail_count` >= 1 OR null),0) AS failCallSum FROM " + ConstantsUtil.SEA_TABLE_PREFIX + "{0} WHERE 1=1 '";
+            }
             MarketProjectProperty executionGroup;
             StringBuilder userGroupName;
             CustomerUserGroup customerUserGroup;
@@ -3758,6 +3763,10 @@ public class CustomerSeaService {
                         }
                         if ("手机号".equals(headName.get(j))) {
                             rowData.put("phone", row.get(j));
+                        } else if ("所在公司".equals(headName.get(j))) {
+                            Object o = row.get(j);
+                            String s = MD5Util.encode32Bit(o.toString());
+                            rowData.put(defaultField.get(headName.get(j)), s);
                         } else if (defaultField.get(headName.get(j)) != null) {
                             rowData.put(defaultField.get(headName.get(j)), row.get(j));
                         } else {
