@@ -218,6 +218,7 @@ public class CustomerSeaDao extends SimpleHibernateDao<CustomerSea, Long> {
                 preparedStatement.setTimestamp(12, updateTime);
                 preparedStatement.setString(13, list.get(i).getCust_group_id());
                 preparedStatement.setTimestamp(14, updateTime);
+                preparedStatement.setString(15, list.get(i).getSuper_id());
             }
 
             @Override
