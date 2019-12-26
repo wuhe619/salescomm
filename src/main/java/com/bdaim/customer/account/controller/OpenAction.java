@@ -14,17 +14,16 @@ import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.customer.account.service.OpenService;
 import com.bdaim.customer.entity.CustomerUser;
+import com.bdaim.customer.service.CustomerExtensionService;
 import com.bdaim.customs.services.CustomsService;
 import com.bdaim.resource.service.MarketResourceService;
 import com.bdaim.template.dto.TemplateParam;
 import com.bdaim.util.AuthPassport;
 import com.bdaim.util.IDHelper;
 import com.bdaim.util.StringUtil;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpMethod;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -53,6 +52,10 @@ public class OpenAction extends BasicAction {
 
     @Autowired
     private CustomsService customsService;
+
+    @Autowired
+    private CustomerExtensionService customerExtensionService;
+
 
     /**
      * 账户余额查询
@@ -475,26 +478,28 @@ public class OpenAction extends BasicAction {
         map = openService.sendSmsMessage(batchId, templateId, channel, variables, customerId, seatAccount, custId);
         return returnJsonData(map);
     }
+
     @RequestMapping(value = "/testBatchDetail")
-    public ResponseInfo testBatchDetail(@RequestBody Map map){
+    public ResponseInfo testBatchDetail(@RequestBody Map map) {
         String id = String.valueOf(map.get("id"));
         String batchId = String.valueOf(map.get("batch_id"));
-        BatchDetail batchDetail = batchDetailDao.getBatchDetail(id,batchId);
+        BatchDetail batchDetail = batchDetailDao.getBatchDetail(id, batchId);
         return new ResponseInfoAssemble().success(batchDetail);
     }
+
     /**
      * 录音文件地址查询
      */
     @AuthPassport
     @RequestMapping(value = "/getRecordUrl", method = RequestMethod.POST)
     @ResponseBody
-    public String downloadSound(@RequestBody JSONObject param,HttpServletRequest request) {
-        log.info("/open/getRecordUrl/"+param.toJSONString());
+    public String downloadSound(@RequestBody JSONObject param, HttpServletRequest request) {
+        log.info("/open/getRecordUrl/" + param.toJSONString());
         Map<String, Object> map = new HashMap<>();
 //        String basePath = ConfigUtil.getInstance().get("audio_server_url") + "/";
         String basePath = request.getRequestURL().toString();
-        basePath = basePath.substring(0,basePath.lastIndexOf("/"))+"/getVoiceRecordFile/";
-        log.info("basePath is :"+basePath);
+        basePath = basePath.substring(0, basePath.lastIndexOf("/")) + "/getVoiceRecordFile/";
+        log.info("basePath is :" + basePath);
 
         RecordVoiceQueryParam recordVoiceQueryParam = new RecordVoiceQueryParam();
         String touchId = param.getString("touchId");
@@ -544,10 +549,10 @@ public class OpenAction extends BasicAction {
      */
     @RequestMapping(value = "/saveActionRecord", method = RequestMethod.POST)
     @ResponseBody
-    public ResponseInfo saveActionRecord(@RequestBody Map<String, Object> map,HttpServletRequest request) {
+    public ResponseInfo saveActionRecord(@RequestBody Map<String, Object> map, HttpServletRequest request) {
         log.info("进入保存用户的行为记录接口 saveActionRecord");
-        log.info("入参值为"+map.toString());
-        openService.saveActionRecord(map,request);
+        log.info("入参值为" + map.toString());
+        openService.saveActionRecord(map, request);
         return new ResponseInfoAssemble().success(null);
     }
 
@@ -563,7 +568,7 @@ public class OpenAction extends BasicAction {
     @ResponseBody
     public ResponseInfo saveAccessChannels(@RequestBody Map<String, Object> map, HttpServletRequest request) {
         log.info("进入保存用户来访渠道接口 saveAccessChannels");
-        log.info("入参值为"+map.toString());
+        log.info("入参值为" + map.toString());
         ResponseInfo result = openService.saveAccessChannels(map, request);
         return result;
     }
@@ -593,39 +598,38 @@ public class OpenAction extends BasicAction {
      */
     @RequestMapping(value = "/saveBillNo", method = RequestMethod.POST)
     @ResponseBody
-    public Map<String,Object> saveBillNo(@RequestParam Map<String, Object> map) {
+    public Map<String, Object> saveBillNo(@RequestParam Map<String, Object> map) {
         log.info("进入saveBillNo 接收运单号接口，入参为" + map.toString());
         Map<String, Object> result = openService.saveBillNo(map);
         return result;
     }
 
     @RequestMapping("/getVoiceRecordFile/{userId}/{fileName:.+}")
-    public void getVoiceRecordFile(@PathVariable String userId, @PathVariable String fileName, HttpServletResponse response){
-        openService.getVoiceRecordFile(userId,fileName,request,response);
+    public void getVoiceRecordFile(@PathVariable String userId, @PathVariable String fileName, HttpServletResponse response) {
+        openService.getVoiceRecordFile(userId, fileName, request, response);
     }
 
     /**
      * 场站信息同步接口
      * “场站”将检查结果同步给”快件通关辅助系统”，以便系统及时通知报关公司
      *
-     * @param queryParams
-     * {
-     *     "id":"",分单号(必填)
-     *     "code":"1",检查结果 1：通过 2：未通过
-     *     "msg":"",具体结果描述
-     *     "time":"" 检查结束时间
-     * }
+     * @param queryParams {
+     *                    "id":"",分单号(必填)
+     *                    "code":"1",检查结果 1：通过 2：未通过
+     *                    "msg":"",具体结果描述
+     *                    "time":"" 检查结束时间
+     *                    }
      */
 //    @AuthPassport(validate = false)
-    @RequestMapping(value = "/customs/terminal/check",method = RequestMethod.POST)
-    public JSONObject customsCheckResult(@RequestBody(required = false) String queryParams){
-        log.info("customsCheckResult:"+queryParams);
+    @RequestMapping(value = "/customs/terminal/check", method = RequestMethod.POST)
+    public JSONObject customsCheckResult(@RequestBody(required = false) String queryParams) {
+        log.info("customsCheckResult:" + queryParams);
         JSONObject result = new JSONObject();
-        if(StringUtil.isEmpty(queryParams)){
-            result.put("code",0);
-            result.put("msg","无效参数");
+        if (StringUtil.isEmpty(queryParams)) {
+            result.put("code", 0);
+            result.put("msg", "无效参数");
             return result;
-        }else {
+        } else {
             JSONObject json = JSON.parseObject(queryParams);
             if (!json.containsKey("main_bill_no") || StringUtil.isEmpty(json.getString("main_bill_no"))) {
                 result.put("code", 0);
@@ -658,20 +662,43 @@ public class OpenAction extends BasicAction {
 
     /**
      * 同步报关单状态
+     *
      * @return
      */
     @GetMapping("/synchzStatus")
-    public String synchzStatus(){
+    public String synchzStatus() {
         JSONObject result = new JSONObject();
         try {
             customsService.synchzStatus();
-            result.put("code",200);
-        }catch (Exception e){
+            result.put("code", 200);
+        } catch (Exception e) {
             e.printStackTrace();
             result.put("code", -1);
-            result.put("msg",e.getMessage());
+            result.put("msg", e.getMessage());
         }
         return result.toJSONString();
+    }
+
+    /**
+     * 添加推广线索
+     * @return
+     */
+    @PostMapping("/extension")
+    public ResponseInfo saveExtension(@RequestBody(required = false) String body) {
+
+        ResponseInfo resp = new ResponseInfo();
+        JSONObject info = null;
+        try {
+            if (body == null || "".equals(body))
+                body = "{}";
+
+            info = JSONObject.parseObject(body);
+            resp.setData(customerExtensionService.saveExtension(info));
+        } catch (Exception e) {
+            return new ResponseInfoAssemble().failure(-1, "记录解析异常");
+        }
+
+        return resp;
     }
 }
 

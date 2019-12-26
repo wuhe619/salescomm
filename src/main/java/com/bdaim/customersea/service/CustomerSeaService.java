@@ -3764,6 +3764,7 @@ public class CustomerSeaService {
                         }
                     }
                     list.add(rowData);
+                    jsonObject.put("cust_group_id",custGroupId);
                     jsonArray.add(jsonObject);
                 }
                 //保存数据

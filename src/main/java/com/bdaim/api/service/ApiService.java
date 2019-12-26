@@ -345,7 +345,7 @@ public class ApiService {
             calendar.add(Calendar.DATE, 365 * 100);
             String subSql = " insert into am_subscription (CREATED_BY,CREATED_TIME,API_ID,LAST_ACCESSED,SUB_STATUS,SUBS_CREATE_STATE,APPLICATION_ID,UPDATED_TIME) " +
                     "values('" + lu.getUserName() + "','" + new Timestamp(System.currentTimeMillis()) + "'," + apiEntity.getApiId() + ",'" + new Timestamp(System.currentTimeMillis()) +
-                    "','BLOCKED','SUBSCRIBE'," + amApplicationEntity.getId() + ",'" + new Timestamp(System.currentTimeMillis()) + "')";
+                    "','UNBLOCKED','SUBSCRIBE'," + amApplicationEntity.getId() + ",'" + new Timestamp(System.currentTimeMillis()) + "')";
             KeyHolder keyHolder = new GeneratedKeyHolder();
             PreparedStatementCreator preparedStatementCreator = con -> {
                 PreparedStatement ps = con.prepareStatement(subSql, Statement.RETURN_GENERATED_KEYS);
@@ -375,6 +375,7 @@ public class ApiService {
         entity.setSubsCreateState("UNSUBSCRIBE");
         entity.setUpdatedBy(lu.getUserName());
         entity.setUpdatedTime(new Timestamp(System.currentTimeMillis()));
+        entity.setSubStatus("BLOCKED");
         subscriptionDao.update(entity);
         return 1;
     }
@@ -515,9 +516,9 @@ public class ApiService {
     public PageList subApiLogs(JSONObject params, PageParam page) {
         StringBuffer sql = new StringBuffer();
         //, count(api.API_ID) as countNum
-        sql.append(" select api.API_ID as apiId, api.API_NAME as apiName, que.RESPONSE_BODY as body,round(log.CHARGE/10000) as charge,que.SERVICE_TIME as serviceTime");
+        sql.append(" select api.API_ID as apiId, api.API_NAME as apiName, que.RESPONSE_MSG as body,round(log.CHARGE/10000) as charge,que.SERVICE_TIME as serviceTime");
         sql.append(" from rs_log_" + params.getString("callMonth") + " log left join am_api api  on  log.API_ID =api.API_ID");
-        sql.append(" left join api_queue que on que.ID=log.API_LOG_ID");
+        sql.append(" left join am_charge_"+ params.getString("callMonth") +" que on que.ID=log.API_LOG_ID");
         sql.append(" where 1=1");
         if (params.containsKey("apiName")) {
             sql.append(" and api.API_NAME like '%" + params.getString("apiName") + "%'");
@@ -544,10 +545,10 @@ public class ApiService {
     public PageList resApiLogs(JSONObject params, PageParam page) {
         StringBuffer sql = new StringBuffer();
         sql.append(" select log.RS_ID as rsId,res.resname as resname, api.API_NAME as apiName,que.USER_NAME as userName," +
-                " que.SERVICE_TIME as serviceTime,que.RESPONSE_TIME as responseTime,round(log.CHARGE/10000) as charge,que.RESPONSE_BODY as body");
+                " que.SERVICE_TIME as serviceTime,que.RESPONSE_TIME as responseTime,round(log.CHARGE/10000) as charge,que.RESPONSE_MSG as body");
         sql.append(" from rs_log_" + params.getString("callMonth") + " log left join t_market_resource res on log.RS_ID=res.resource_id");
         sql.append(" left join am_api api on api.API_ID = log.API_ID ");
-        sql.append(" left join api_queue que on que.ID=log.API_LOG_ID");
+        sql.append(" left join am_charge_"+ params.getString("callMonth") +" que on que.ID=log.API_LOG_ID");
         sql.append(" where log.RS_ID = " + params.getLong("resourceId"));
 
         PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
