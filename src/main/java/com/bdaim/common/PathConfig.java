@@ -28,9 +28,10 @@ public class PathConfig implements WebMvcConfigurer {
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         String pathF = PROPERTIES.getProperty("file.separator");
-        registry.addResourceHandler("/pdf/**").addResourceLocations("file:"+pathF+"data"+pathF+"file"+pathF+"pdf"+pathF);
-        registry.addResourceHandler("/pic/**").addResourceLocations("file:"+pathF+"data"+pathF+"upload"+pathF);
+        registry.addResourceHandler("/pdf/**").addResourceLocations("file:" + pathF + "data" + pathF + "file" + pathF + "pdf" + pathF);
+        registry.addResourceHandler("/pic/**").addResourceLocations("file:" + pathF + "data" + pathF + "upload" + pathF);
     }
+
     @Bean
     public AuthInterceptor securityInterceptor() {
         return new AuthInterceptor();
@@ -41,11 +42,12 @@ public class PathConfig implements WebMvcConfigurer {
         // 添加拦截器
         registry.addInterceptor(securityInterceptor()).addPathPatterns("/open/**");
     }
+
     @Override
     public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
         // 标识不为精准营销项目则不进行返回值操作
-        if ("online".equalsIgnoreCase(APP_NAME)) {
-            configurer.defaultContentType(MediaType.APPLICATION_JSON);
-        }
+        //if ("online".equalsIgnoreCase(APP_NAME)) {
+        configurer.defaultContentType(MediaType.APPLICATION_JSON_UTF8);
+        //}
     }
 }
