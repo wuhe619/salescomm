@@ -198,8 +198,8 @@ public class CustomerSeaDao extends SimpleHibernateDao<CustomerSea, Long> {
     public int insertBatchDataData(long seaId, List<SeaImportDataParam> list) {
         StringBuffer sql = new StringBuffer();
         sql.append(" INSERT INTO " + ConstantsUtil.SEA_TABLE_PREFIX + seaId)
-                .append(" (id, user_id, status, `super_name`, `super_age`, `super_sex`, `super_telphone`, `super_phone`, `super_address_province_city`, `super_address_street`, `super_data`,update_time) ")
-                .append(" SELECT ?,?,?,?,?,?,?,?,?,?,?,? FROM DUAL WHERE NOT EXISTS(SELECT id FROM " + ConstantsUtil.SEA_TABLE_PREFIX + seaId + " WHERE id = ? ) ");
+                .append(" (id, user_id, status, `super_name`, `super_age`, `super_sex`, `super_telphone`, `super_phone`, `super_address_province_city`, `super_address_street`, `super_data`,update_time,batch_id,create_time) ")
+                .append(" SELECT ?,?,?,?,?,?,?,?,?,?,?,?,?,? FROM DUAL WHERE NOT EXISTS(SELECT id FROM " + ConstantsUtil.SEA_TABLE_PREFIX + seaId + " WHERE id = ? ) ");
         Timestamp updateTime = new Timestamp(System.currentTimeMillis());
         int[] status = jdbcTemplate.batchUpdate(sql.toString(), new BatchPreparedStatementSetter() {
             @Override
@@ -216,7 +216,8 @@ public class CustomerSeaDao extends SimpleHibernateDao<CustomerSea, Long> {
                 preparedStatement.setString(10, list.get(i).getSuper_address_street());
                 preparedStatement.setString(11, JSON.toJSONString(list.get(i).getSuperData()));
                 preparedStatement.setTimestamp(12, updateTime);
-                preparedStatement.setString(13, list.get(i).getSuper_id());
+                preparedStatement.setString(13, list.get(i).getCust_group_id());
+                preparedStatement.setTimestamp(14, updateTime);
             }
 
             @Override

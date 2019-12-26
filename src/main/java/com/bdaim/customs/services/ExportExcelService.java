@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author chengning@salescomm.net
@@ -105,7 +106,8 @@ public class ExportExcelService {
             exportIdCardExcel(id, param.getString("_rule_"), response);
             return;
         }
-        if (list != null && id == 0 && ("sub".equals(param.getString("type")) || "res".equals(param.getString("type")))) {
+        if (list != null && id == 0 && ("sub".equals(param.getString("type")) || "res".equals(param.getString("type"))
+                || "extension".equals(param.getString("type")))) {
             exportExcelResourceLog(list, param, response);
         }
         if (list != null) {
@@ -135,11 +137,13 @@ public class ExportExcelService {
         response.setContentType("application/vnd.ms-excel;charset=utf-8");
         switch (param.getString("type")) {
             case "sub":
-                export(templatePath, map, null, response);
-                break;
             case "res":
                 export(templatePath, map, null, response);
                 break;
+            case "extension":
+                export(templatePath, map, null, response);
+                break;
+
         }
     }
 
@@ -182,7 +186,7 @@ public class ExportExcelService {
                 sheetName = new String[]{"查验报关单表头", "查验报关单商品"};
                 generateMainDan(list, map);
                 List list1 = (List) map.get("list1");
-                if(list1.size()==0)throw new IOException();
+                if (list1.size() == 0) throw new IOException();
                 export(templatePath, map, sheetName, response);
                 break;
             case "_export_bgd_z_main_data":
@@ -233,7 +237,7 @@ public class ExportExcelService {
                     fdData.putAll(fdList.getJSONObject(i));
                     list_one.add(fdData);
                     if (fdList.getJSONObject(i) == null) {
-                       continue;
+                        continue;
                     }
                     ssList = fdList.getJSONObject(i).getJSONArray("products");
                     // 处理商品
@@ -298,6 +302,7 @@ public class ExportExcelService {
             throw new IOException();
         }
     }
+
 
     /**
      * 导出excel
