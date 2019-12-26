@@ -3766,7 +3766,8 @@ public class CustomerSeaService {
                         } else if ("所在公司".equals(headName.get(j))) {
                             Object o = row.get(j);
                             String s = MD5Util.encode32Bit(o.toString());
-                            rowData.put(defaultField.get(headName.get(j)), s);
+                            jsonObject.put("SYS014", s);
+                            rowData.put(defaultField.get(headName.get(j)), row.get(j));
                         } else if (defaultField.get(headName.get(j)) != null) {
                             rowData.put(defaultField.get(headName.get(j)), row.get(j));
                         } else {
