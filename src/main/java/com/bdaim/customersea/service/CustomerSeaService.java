@@ -3824,7 +3824,7 @@ public class CustomerSeaService {
                         LOG.info("导入客户群ID:" + custGroupId + "成功");
                         // 更改客户群状态
                         CustomGroup cg = customGroupDao.get(NumberConvertUtil.parseInt(custGroupId));
-                        if (cg != null) {
+                        if (cg != null && "1".equals(userType)) {
                             // 处理完成
                             long userCount = customGroupDao.getCustomerGroupListDataCount(NumberConvertUtil.parseInt(custGroupId));
                             int status = jdbcTemplate.update("UPDATE customer_group SET user_count =  ?, quantity = ?,  status = ?, industry_pool_name=?, amount=0  WHERE id = ?", userCount, userCount, 1, "", custGroupId);
