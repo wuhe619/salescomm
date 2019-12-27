@@ -79,7 +79,7 @@ public class B2BTcbLogService implements BusiService {
         if (StringUtil.isNotEmpty(create_date) && StringUtil.isNotEmpty(end_date)) {
             sqlstr.append(" and t.create_date between '").append(create_date).append("' and '").append(end_date).append("'");
         }
-
+        sqlstr.append(" order by  create_date desc");
         return sqlstr.toString();
     }
 
