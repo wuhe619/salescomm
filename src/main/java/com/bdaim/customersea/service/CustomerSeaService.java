@@ -3766,7 +3766,6 @@ public class CustomerSeaService {
                             rowData.put("phone", row.get(j));
                         } else if ("所在公司".equals(headName.get(j))) {
                             Object o = row.get(j);
-                            LOG.info("MD5:"+custType);
                             custType = MD5Util.encode32Bit(o.toString());
                             rowData.put(defaultField.get(headName.get(j)), row.get(j));
                         } else if (defaultField.get(headName.get(j)) != null) {
