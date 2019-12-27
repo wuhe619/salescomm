@@ -372,6 +372,7 @@ public class CustomerSeaAction extends BasicAction {
                 for (int i = 0; i < labelIdArray.size(); i++) {
                     if ("company".equals(labelIdArray.getJSONObject(i).getString("labelId"))) {
                         String optionValue = labelIdArray.getJSONObject(i).getString("optionValue");
+
                         String s = MD5Util.encode32Bit(optionValue);
                         superData.put(labelIdArray.getJSONObject(i).getString("labelId"), optionValue);
                         superData.put("SYS014", s);
