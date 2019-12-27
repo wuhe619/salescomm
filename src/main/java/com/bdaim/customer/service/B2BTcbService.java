@@ -326,9 +326,8 @@ public class B2BTcbService implements BusiService {
 
             }
             consumeNum++;
-            LOG.info("entId:" + entId);
             // 保存领取记录
-            saveTcbClueDataLog(custId, userId, batchId, entId, useB2BTcb.getString("id"), dto.getSuper_id(), JSON.toJSONString(dto), getNumber);
+            saveTcbClueDataLog(custId, userId, batchId, entId, useB2BTcb.getString("id"), dto.getSuper_id(), JSON.toJSONString(dto), pNumbers.size());
         }
         // 更新套餐余量和消耗量
         updateTbRemain(useB2BTcb.getLong("id"), consumeNum, BusiTypeEnum.B2B_TC.getType());
@@ -372,7 +371,7 @@ public class B2BTcbService implements BusiService {
         // 线索ID 扩展字段4
         log.put("superId", superId);
         log.put("content", content);
-        log.put("ext_5", getNumber);
+        log.put("getNumber", getNumber);
         try {
             busiEntityService.saveInfo(custId, "", userId, BusiTypeEnum.B2B_TC_LOG.getType(), 0L, log);
         } catch (Exception e) {
