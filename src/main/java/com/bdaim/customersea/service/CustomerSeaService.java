@@ -3766,7 +3766,7 @@ public class CustomerSeaService {
                         } else if ("所在公司".equals(headName.get(j))) {
                             Object o = row.get(j);
                             String s = MD5Util.encode32Bit(o.toString());
-                            jsonObject.put("SYS014", s);
+                            jsonObject.put("custType", s);
                             rowData.put(defaultField.get(headName.get(j)), row.get(j));
                         } else if (defaultField.get(headName.get(j)) != null) {
                             rowData.put(defaultField.get(headName.get(j)), row.get(j));
@@ -3826,6 +3826,7 @@ public class CustomerSeaService {
                             s.setSuperData(new HashMap<>());
                         }
                         s.getSuperData().put("SYS007", "未跟进");
+                        s.getSuperData().put("SYS014", s.getCustType());
                     }
                     LOG.info("导入公海ID:{},明细表插入数据大小:{}", seaId, seaData);
                     int seaCount = customerSeaDao.insertBatchDataData(seaId, seaData);
