@@ -65,12 +65,12 @@ public class ExportExcelService {
             params.setSheetName(sheetName);
         }
         try {
-            List list = (List) map.get("list");
-            LOG.info("导出sheet1行数:{}", list != null ? list.size() : 0);
-            List list1 = (List) map.get("list1");
-            LOG.info("导出sheet2行数:{}", list1 != null ? list1.size() : 0);
-            List list2 = (List) map.get("list2");
-            LOG.info("导出sheet3行数:{}", list2 != null ? list2.size() : 0);
+//            List list = (List) map.get("list");
+//            LOG.info("导出sheet1行数:{}", list != null ? list.size() : 0);
+//            List list1 = (List) map.get("list1");
+//            LOG.info("导出sheet2行数:{}", list1 != null ? list1.size() : 0);
+//            List list2 = (List) map.get("list2");
+//            LOG.info("导出sheet3行数:{}", list2 != null ? list2.size() : 0);
         } catch (Exception e) {
             e.printStackTrace();
         }
