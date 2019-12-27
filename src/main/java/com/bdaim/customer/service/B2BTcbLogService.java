@@ -31,6 +31,7 @@ public class B2BTcbLogService implements BusiService {
         info.put("ext_2", info.getString("tcbId"));
         info.put("ext_3", info.getString("batchId"));
         info.put("ext_4", info.getString("superId"));
+        info.put("ext_5", info.getString("ext_5"));
     }
 
     @Override
