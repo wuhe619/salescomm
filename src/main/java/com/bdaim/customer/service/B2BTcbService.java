@@ -323,12 +323,13 @@ public class B2BTcbService implements BusiService {
                 // 保存线索
                 int status = seaService.addClueData0(dto, seaType);
                 LOG.info("B2B套餐领取线索状态:{},seaType:{},data:{}", status, seaType, JSON.toJSONString(dto));
+                // 保存领取记录
+                saveTcbClueDataLog(custId, userId, batchId, entId, useB2BTcb.getString("id"), dto.getSuper_id(), JSON.toJSONString(dto));
+            }
 
             }
             consumeNum++;
-            // 保存领取记录
-            saveTcbClueDataLog(custId, userId, batchId, entId, useB2BTcb.getString("id"), dto.getSuper_id(), JSON.toJSONString(dto), pNumbers.size());
-        }
+
         // 更新套餐余量和消耗量
         updateTbRemain(useB2BTcb.getLong("id"), consumeNum, BusiTypeEnum.B2B_TC.getType());
         return 0;
@@ -360,7 +361,7 @@ public class B2BTcbService implements BusiService {
      * @param superId
      * @param content
      */
-    private void saveTcbClueDataLog(String custId, long userId, String batchId, String entId, String tcbId, String superId, String content, long getNumber) {
+    private void saveTcbClueDataLog(String custId, long userId, String batchId, String entId, String tcbId, String superId, String content) {
         JSONObject log = new JSONObject();
         // B2B数据企业ID
         log.put("ext_1", entId);
@@ -371,7 +372,6 @@ public class B2BTcbService implements BusiService {
         // 线索ID 扩展字段4
         log.put("superId", superId);
         log.put("content", content);
-        log.put("getNumber", getNumber);
         try {
             busiEntityService.saveInfo(custId, "", userId, BusiTypeEnum.B2B_TC_LOG.getType(), 0L, log);
         } catch (Exception e) {
