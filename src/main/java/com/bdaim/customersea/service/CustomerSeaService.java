@@ -3747,6 +3747,7 @@ public class CustomerSeaService {
 
                 JSONArray jsonArray = new JSONArray();
                 JSONObject jsonObject = null;
+                String custType = null;
                 // 从第2行开始读取,忽略表头
                 for (int i = 1; i < excelData.size(); i++) {
                     row = (List<Object>) excelData.get(i);
@@ -3765,8 +3766,8 @@ public class CustomerSeaService {
                             rowData.put("phone", row.get(j));
                         } else if ("所在公司".equals(headName.get(j))) {
                             Object o = row.get(j);
-                            String s = MD5Util.encode32Bit(o.toString());
-                            jsonObject.put("custType", s);
+                            LOG.info("MD5:"+custType);
+                            custType = MD5Util.encode32Bit(o.toString());
                             rowData.put(defaultField.get(headName.get(j)), row.get(j));
                         } else if (defaultField.get(headName.get(j)) != null) {
                             rowData.put(defaultField.get(headName.get(j)), row.get(j));
@@ -3775,6 +3776,7 @@ public class CustomerSeaService {
                         }
                     }
                     list.add(rowData);
+                    jsonObject.put("custType", custType);
                     jsonObject.put("cust_group_id", custGroupId);
                     jsonArray.add(jsonObject);
                 }
