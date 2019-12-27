@@ -3713,6 +3713,7 @@ public class CustomerSeaService {
                                       List<String> headers, Map<String, String> defaultField, CustomerSeaDao customerSeaDao) {
         LOG.info("导入客户群ID:" + custGroupId + "勾选的表头:" + headers.toString());
         // 读取excel表头,获取对应关系
+//        String filePath = "C:\\Users\\少侠\\AppData\\Local\\Temp\\tomcat.2890857385030396681.8081\\work\\Tomcat\\localhost\\ROOT\\测试手机号码.xlsx";
         String filePath = ConstantsUtil.CGROUP_IMPORT_FILE_PATH + uploadFileName;
         LOG.info("导入客户群ID:" + custGroupId + "文件路径:" + filePath);
         try (InputStream inputStream = new FileInputStream(filePath)) {
@@ -3747,9 +3748,10 @@ public class CustomerSeaService {
 
                 JSONArray jsonArray = new JSONArray();
                 JSONObject jsonObject = null;
-                String custType = null;
+
                 // 从第2行开始读取,忽略表头
                 for (int i = 1; i < excelData.size(); i++) {
+                    String custType = null;
                     row = (List<Object>) excelData.get(i);
                     // 获取每个单元格
                     rowData = new HashMap<>();
