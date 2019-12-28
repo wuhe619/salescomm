@@ -9,6 +9,10 @@ public class SeatCallCenterConfig {
 
     private String userId;
 
+    private String custId;
+
+    private String resourceId;
+
     private String callCenterType;
 
     private String callCenterId;
@@ -167,4 +171,19 @@ public class SeatCallCenterConfig {
         this.workNum = workNum;
     }
 
+    public String getCustId() {
+        return custId;
+    }
+
+    public void setCustId(String custId) {
+        this.custId = custId;
+    }
+
+    public String getResourceId() {
+        return resourceId;
+    }
+
+    public void setResourceId(String resourceId) {
+        this.resourceId = resourceId;
+    }
 }

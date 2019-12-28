@@ -2,7 +2,9 @@ package com.bdaim.util;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.callcenter.dto.CallStatusEnum;
 import com.bdaim.callcenter.dto.SignAuthorizationResult;
+import com.bdaim.online.schedule.dto.XzAbnormalCallRecord;
 import com.bdaim.util.http.HttpUtil;
 
 import org.apache.commons.codec.binary.Base64;
@@ -135,6 +137,21 @@ public class SaleApiUtil {
      * 讯众外呼pdf版地址
      */
     public static final String CALL_CENTER_API_PDF = "http://api.salescomm.net:8012";
+
+    /**
+     * 讯众呼叫中心话单详单地址
+     */
+    private final static String XZ_NEW_CALL_RECORD_URL = "/api/callcenter/GetCdrAnyCallRecord";
+
+    /**
+     * 讯众呼叫中心单条话单地址
+     */
+    private final static String XZ_NEW_SINGLE_CALL_RECORD_URL = "/api/callcenter/GetSingleCdrAnyCallRecord";
+
+    /**
+     * 讯众呼叫中心话单拉取limit
+     */
+    public final static int XZ_PULL_LIMIT = 5000;
 
 
     public enum FunctionType {
@@ -442,6 +459,98 @@ public class SaleApiUtil {
         }
         return result;
     }
+
+    /**
+     * 讯众新版详单接口
+     * @param actions
+     * @param anyType 话单类型,1:主话单，2:详单 (必传)
+     * @param compId
+     * @param lastResId
+     * @param limit
+     * @param pDate
+     * @param pTime
+     * @param log
+     * @return
+     */
+    public static String getCdrAnyCallRecord(int actions, int anyType, String compId, String lastResId, String limit, String pDate, String pTime) {
+        Map<String, Object> map = new HashMap<>(16);
+        // 增量方式话单
+        if (1 == actions) {
+            map.put("actions", "auto");
+            //某小时话单
+        } else if (2 == actions) {
+            map.put("actions", "time");
+        }
+        map.put("compid", compId);
+        map.put("lastid", lastResId);
+        map.put("limit", limit);
+        map.put("pdate", pDate);
+        map.put("ptime", pTime);
+        map.put("anytype", anyType);
+        String result = null;
+        try {
+            result = callAgentCallOut(XZ_NEW_CALL_RECORD_URL, map, SaleApiUtil.getCallCenterToken(compId));
+        } catch (Exception e) {
+            LOG.error("获取呼叫中心外呼详单失败", e);
+        }
+        LOG.info("获取呼叫中心外呼详单返回数据 : " + result);
+        return result;
+    }
+
+    /**
+     * 查询单条话单(新版详单接口)
+     * @param compId
+     * @param dates
+     * @param callId
+     * @param anyType 1-主话单 2-详单
+     * @param log
+     * @return
+     */
+    public static String getSingleCdrAnyCallRecord(String compId, String dates, String callId, int anyType, org.apache.log4j.Logger log) {
+        Map<String, Object> map = new HashMap<>(16);
+        map.put("compid", compId);
+        map.put("dates", dates);
+        map.put("callid", callId);
+        map.put("anytype", anyType);
+        String result = null;
+        try {
+            result = callAgentCallOut(XZ_NEW_SINGLE_CALL_RECORD_URL, map, SaleApiUtil.getCallCenterToken(compId));
+        } catch (Exception e) {
+            log.error("获取呼叫中心外呼单条话单失败", e);
+        }
+        log.info("获取呼叫中心单条话单返回数据 : " + result);
+        return result;
+    }
+
+    /**
+     * 判断讯众坐席和自动外呼通话状态
+     *
+     * @param dto
+     * @return 1001-成功 1002-失败 1003-用户不在服务区 1004-关机 1005-空号 1006-停机 1007-忙音 1008-其他
+     */
+    public static int judgeXZCallStatus(XzAbnormalCallRecord dto) {
+        int detail = dto.getRespcode();
+        // 坐席呼叫状态处理
+        if (0 == detail || 100 == detail
+                || 589 == detail || 590 == detail || 591 == detail
+                || 592 == detail || 593 == detail || 594 == detail
+                || 595 == detail || 596 == detail || 597 == detail
+                || 598 == detail || 599 == detail) {
+            return CallStatusEnum.OTHER.getStatus();
+        } else if (183 == detail) {
+            return CallStatusEnum.NOT_SERVICE_AREA.getStatus();
+        } else if (581 == detail || 586 == detail) {
+            return CallStatusEnum.SHUTDOWN.getStatus();
+        } else if (582 == detail || 587 == detail || 404 == detail) {
+            return CallStatusEnum.SPACE_PHONE.getStatus();
+        } else if (583 == detail) {
+            return CallStatusEnum.PHONE_DOWN.getStatus();
+        } else if (584 == detail || 585 == detail || 588 == detail) {
+            return CallStatusEnum.BUSY.getStatus();
+        }
+        return CallStatusEnum.DEFAULT.getStatus();
+    }
+
 
     public static void main(String[] args) {
         List<String> phones = new ArrayList<>();

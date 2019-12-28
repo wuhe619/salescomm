@@ -40,7 +40,9 @@ public enum CallStatusEnum {
     /**
      * 其他
      */
-    OTHER(1008, "其他");
+    OTHER(1008, "其他"),
+
+    DEFAULT(0, "未知");
 
     private int status;
     private String name;

@@ -10,6 +10,7 @@ import com.bdaim.customersea.entity.CustomerSeaProperty;
 import com.bdaim.markettask.dao.MarketTaskDao;
 import com.bdaim.markettask.entity.MarketTask;
 import com.bdaim.markettask.entity.MarketTaskProperty;
+import com.bdaim.online.schedule.dto.XzAbnormalCallRecord;
 import com.bdaim.resource.dao.MarketResourceDao;
 import com.bdaim.resource.entity.ResourcePropertyEntity;
 import com.bdaim.util.NumberConvertUtil;
@@ -25,6 +26,8 @@ import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -354,5 +357,26 @@ public class XzCallCenterService {
             data = new XzAutoTaskMonitor();
         }
         return data;
+    }
+
+    /**
+     * 通过讯众任务ID查询客群或营销任务
+     *
+     * @param xfCallRecord
+     * @return
+     * @throws Exception
+     */
+    public Map<String, Object> getMarketTaskInfoByXZTaskIdPrd(XzAbnormalCallRecord xfCallRecord) throws Exception {
+        // 根据第三方任务ID查询营销任务
+        List<Map<String, Object>> map = marketResourceDao.sqlQuery("SELECT id AS market_task_id, cust_id, customer_group_id, task_id FROM t_market_task WHERE task_id = ? ORDER BY create_time DESC", xfCallRecord.getTaskId());
+        if (map == null || map.size() == 0) {
+            // 穿透查询,根据第三方任务ID查询客户群
+            map = marketResourceDao.sqlQuery("SELECT id AS customer_group_id, cust_id, task_id FROM customer_group WHERE task_id = ? ORDER BY create_time DESC", xfCallRecord.getTaskId());
+        }
+        if (map.size() == 0) {
+            LOG.warn("任务ID:" + xfCallRecord.getTaskId() + "未查询到对应的客户群或营销任务");
+            return Collections.emptyMap();
+        }
+        return map.get(0);
     }
 }

@@ -3,6 +3,7 @@ package com.bdaim.resource.dao;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.callcenter.dto.SeatCallCenterConfig;
 import com.bdaim.common.BusiMetaConfig;
 import com.bdaim.common.dao.SimpleHibernateDao;
 import com.bdaim.common.dto.Page;
@@ -758,6 +759,60 @@ public class MarketResourceDao extends SimpleHibernateDao<MarketResourceEntity, 
         page.setData(result);
         return page;
     }
+
+    /**
+     * 获取所有呼叫线路的呼叫中心配置信息
+     *
+     * @param callCenterType 1 呼叫中心 2-双呼 3-机器人外呼
+     * @param mode           1-单机 2-SaaS
+     * @return
+     * @throws Exception
+     */
+    public List<SeatCallCenterConfig> listAllResourceCallConfigs(Integer callCenterType, Integer mode) throws Exception {
+        String sql = "SELECT t.resource_id, p.property_value FROM t_market_resource t JOIN t_market_resource_property p ON t.resource_id = p.resource_id " +
+                "WHERE t.`status` = 1 AND t.type_code = ?";
+        List<Map<String, Object>> configs = super.sqlQuery(sql, 1);
+        List<SeatCallCenterConfig> list = new ArrayList<>();
+        if (configs != null && configs.size() > 0) {
+            JSONObject jsonObject;
+            SeatCallCenterConfig sc;
+            String resourceId;
+            int type, cType;
+            for (Map<String, Object> m : configs) {
+                jsonObject = JSON.parseObject(String.valueOf(m.get("property_value")));
+                if (jsonObject == null || jsonObject.size() == 0) {
+                    continue;
+                }
+                if (StringUtil.isEmpty(jsonObject.getString("call_center_config"))) {
+                    continue;
+                }
+                resourceId = jsonObject.getString("resourceId");
+                type = jsonObject.getIntValue("type");
+                cType = jsonObject.getIntValue("call_center_type");
+                // 过滤呼叫类型
+                if (callCenterType != null && callCenterType > 0 && type != callCenterType.intValue()) {
+                    continue;
+                }
+                // 过滤centerType
+                if (mode != null && mode > 0 && cType != mode.intValue()) {
+                    continue;
+                }
+                sc = JSON.parseObject(jsonObject.getString("call_center_config"), SeatCallCenterConfig.class);
+                if (sc != null) {
+                    // 有渠道ID标识为新版渠道配置
+                    sc.setResourceId(resourceId);
+                    // 处理双呼的资源ID
+                    if (type == 2) {
+                        sc.setResourceId(String.valueOf(m.get("resource_id")));
+                    }
+                    list.add(sc);
+                }
+
+            }
+        }
+        return list;
+    }
+
 
 }
 
