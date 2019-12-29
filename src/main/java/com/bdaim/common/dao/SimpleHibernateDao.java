@@ -905,6 +905,18 @@ public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDao
         return rs;
     }
 
+    public Map<String, Object> queryUniqueSql(String sql, Object... params) throws Exception {
+        Session session = getSession();
+        Query query = session.createSQLQuery(sql);
+        query.setResultTransformer(CriteriaSpecification.ALIAS_TO_ENTITY_MAP);
+        if (params != null)
+            for (int i = 0; i < params.length; i++) {
+                query.setParameter(i, params[i]);
+            }
+        List rs = query.list();
+        return rs != null && rs.size()>0 ? (Map<String, Object>) rs.get(0) :null;
+    }
+
 
     /**
      * sql分页
