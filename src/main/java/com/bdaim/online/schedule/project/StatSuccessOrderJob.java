@@ -82,10 +82,11 @@ public class StatSuccessOrderJob {
     private final static String BILLDATE_PROPERTY_ID = "billDate";
 
 
-    private static final Logger log = LoggerFactory.getLogger(StatXzAbnormalCallRecordJob.class);
+    private static final Logger log = LoggerFactory.getLogger(StatSuccessOrderJob.class);
 
     @Autowired
     private MarketResourceDao marketResourceDao;
+
     /**
      * 执行job的方法
      */
