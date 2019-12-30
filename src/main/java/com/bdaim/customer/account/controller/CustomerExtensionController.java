@@ -64,8 +64,8 @@ public class CustomerExtensionController extends BasicAction {
                 page.setPageSize(10000000);
                 page.setPageNum(1);
             } else {
-                page.setPageSize(info.containsKey("pageSize") ? 10 : info.getIntValue("pageSize"));
-                page.setPageNum(info.containsKey("pageNum") ? 1 : info.getIntValue("pageNum"));
+                page.setPageSize(!info.containsKey("pageSize") ? 10 : info.getIntValue("pageSize"));
+                page.setPageNum(!info.containsKey("pageNum") ? 1 : info.getIntValue("pageNum"));
             }
             PageList query = customerExtensionService.query(info, page);
             if ("extension".equals(info.getString("type"))) {

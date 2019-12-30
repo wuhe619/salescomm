@@ -54,7 +54,7 @@ public class CustomerExtensionService {
             sql.append(" and  id in (" + info.getString("id") + ")");
         }
         sql.append(" order by create_time desc");
-//        List<Map<String, Object>> ds = jdbcTemplate.queryForList(sql + " limit " + (page.getPageNum() - 1) * page.getPageSize() + ", " + page.getPageNum());
+//        List<Map<String, Object>> ds = jdbcTemplate.queryForList(sql + " limit " + (page.getPageNum() - 1) * page.getPageSize() + ", " + page.getPageSize());
         PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
         List list1 = new ArrayList();
         list.getList().stream().forEach(m -> {
