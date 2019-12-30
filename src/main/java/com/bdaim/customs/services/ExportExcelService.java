@@ -78,8 +78,10 @@ public class ExportExcelService {
         //String fileName = "/tmp/" + System.currentTimeMillis() + templatePath.substring(templatePath.lastIndexOf(File.separator) + 1);
         Workbook workbook = ExcelExportUtil.exportExcel(params, map);
         workbook.write(response.getOutputStream());
+        response.reset();
         response.getOutputStream().flush();
         response.getOutputStream().close();
+
         /*FileOutputStream fos = new FileOutputStream(fileName);
         workbook.write(fos);
         fos.close();

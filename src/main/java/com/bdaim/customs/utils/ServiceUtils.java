@@ -415,6 +415,7 @@ public class ServiceUtils {
             sqlParams.add(param.get(key));
         }
         log.info("查询税单sql:{}", sql);
+//        sql.append(" limit 9000");
         List<Map<String, Object>> list = jdbcTemplate.queryForList(sql.toString(), sqlParams.toArray());
         //List<JSONObject> result = JSON.parseArray(JSON.toJSONString(list), JSONObject.class);
         return JSON.parseArray(JSON.toJSONString(list), JSONObject.class);
