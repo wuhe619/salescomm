@@ -21,7 +21,7 @@ import java.util.*;
  * @date 2019/12/29
  * @description
  */
-@Component
+//@Component
 public class StatLabelDataDay {
 
     String yyyy_mm = DateTimeFormatter.ofPattern("yyyyMM").format(LocalTime.now());
