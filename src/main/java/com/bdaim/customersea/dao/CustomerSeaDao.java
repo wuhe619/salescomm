@@ -1,6 +1,7 @@
 package com.bdaim.customersea.dao;
 
 import com.alibaba.fastjson.JSON;
+import com.bdaim.callcenter.dto.CallStatusEnum;
 import com.bdaim.common.dao.SimpleHibernateDao;
 import com.bdaim.customer.dao.CustomerUserDao;
 import com.bdaim.customer.dto.CustomerUserGroupRelDTO;
@@ -22,6 +23,8 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.text.MessageFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -198,8 +201,8 @@ public class CustomerSeaDao extends SimpleHibernateDao<CustomerSea, Long> {
     public int insertBatchDataData(long seaId, List<SeaImportDataParam> list) {
         StringBuffer sql = new StringBuffer();
         sql.append(" INSERT INTO " + ConstantsUtil.SEA_TABLE_PREFIX + seaId)
-                .append(" (id, user_id, status, `super_name`, `super_age`, `super_sex`, `super_telphone`, `super_phone`, `super_address_province_city`, `super_address_street`, `super_data`,update_time) ")
-                .append(" SELECT ?,?,?,?,?,?,?,?,?,?,?,? FROM DUAL WHERE NOT EXISTS(SELECT id FROM " + ConstantsUtil.SEA_TABLE_PREFIX + seaId + " WHERE id = ? ) ");
+                .append(" (id, user_id, status, `super_name`, `super_age`, `super_sex`, `super_telphone`, `super_phone`, `super_address_province_city`, `super_address_street`, `super_data`,update_time,batch_id,create_time) ")
+                .append(" SELECT ?,?,?,?,?,?,?,?,?,?,?,?,?,? FROM DUAL WHERE NOT EXISTS(SELECT id FROM " + ConstantsUtil.SEA_TABLE_PREFIX + seaId + " WHERE id = ? ) ");
         Timestamp updateTime = new Timestamp(System.currentTimeMillis());
         int[] status = jdbcTemplate.batchUpdate(sql.toString(), new BatchPreparedStatementSetter() {
             @Override
@@ -216,7 +219,9 @@ public class CustomerSeaDao extends SimpleHibernateDao<CustomerSea, Long> {
                 preparedStatement.setString(10, list.get(i).getSuper_address_street());
                 preparedStatement.setString(11, JSON.toJSONString(list.get(i).getSuperData()));
                 preparedStatement.setTimestamp(12, updateTime);
-                preparedStatement.setString(13, list.get(i).getSuper_id());
+                preparedStatement.setString(13, list.get(i).getCust_group_id());
+                preparedStatement.setTimestamp(14, updateTime);
+                preparedStatement.setString(15, list.get(i).getSuper_id());
             }
 
             @Override
@@ -225,6 +230,33 @@ public class CustomerSeaDao extends SimpleHibernateDao<CustomerSea, Long> {
             }
         });
         return status.length;
+    }
+
+    /**
+     * 更新公海通话次数
+     *
+     * @param nowTime
+     * @param seaId
+     * @param superId
+     * @param callResult
+     */
+    public void updateCustomSeaCallCount(LocalDateTime nowTime, String seaId, String superId, int callResult, int calledDuration) {
+        StringBuilder sql = new StringBuilder("UPDATE t_customer_sea_list_" + seaId + " SET call_count = IFNULL(call_count,0) +1 , last_call_time = ? ");
+        if (callResult == CallStatusEnum.SUCCESS.getStatus()) {
+            sql.append(", call_success_count=IFNULL(call_success_count, 0) +1 ");
+        } else {
+            sql.append(", call_fail_count=IFNULL(call_fail_count, 0) +1 ");
+        }
+        sql.append(", last_call_status=?, last_called_duration=? ");
+        sql.append(" WHERE id =?");
+        int updateCount = 0;
+        try {
+            updateCount = this.executeUpdateSQL(sql.toString(), nowTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")), callResult, calledDuration, superId);
+        } catch (Exception e) {
+            logger.error("更新公海通话次数异常," + e);
+        }
+        logger.info("公海明细表:t_customer_sea_list_" + seaId + ",superId:"
+                + superId + ",状态:" + updateCount);
     }
 
 }

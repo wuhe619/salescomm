@@ -135,6 +135,7 @@ public class BgdHzService implements BusiService {
         if (op_time > op_timeF) {
             json.put("send_status", opresult);
             json.put("ext_1", opresult);
+            json.put("op_time", op_time);
         }
         info.put("ext_2", opresult);
 //        json.put("op_time", op_time);

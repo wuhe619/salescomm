@@ -787,7 +787,12 @@ public class CustomerSeaService {
             CustomerUser user;
             List<CustomerSeaProperty> properties;
             List<Map<String, Object>> stat;
-            String statSql = "SELECT COUNT(status=0 OR null) sumCount,IFNULL(COUNT(super_data like ''%\"SYS007\":\"未跟进\"%'' AND status = 0 OR null),0) AS noFollowSum, IFNULL(COUNT(`status` = 1 OR null),0) AS clueSurplusSum, IFNULL(COUNT(`call_fail_count` >= 1 OR null),0) AS failCallSum FROM " + ConstantsUtil.SEA_TABLE_PREFIX + "{0} WHERE 1=1 '";
+            String statSql;
+            if ("publicSea".equals(param.getType())) {
+                statSql = "SELECT COUNT(status=0 OR null) sumCount,IFNULL(COUNT(super_data like ''%\"SYS007\":\"未跟进\"%'' AND status = 0 OR null),0) AS noFollowSum, COUNT(distinct(super_data->>''$.SYS014'')) AS clueSurplusSum, IFNULL(COUNT(`call_fail_count` >= 1 OR null),0) AS failCallSum FROM " + ConstantsUtil.SEA_TABLE_PREFIX + "{0} WHERE status <> 2 '";
+            } else {
+                statSql = "SELECT COUNT(status=0 OR null) sumCount,IFNULL(COUNT(super_data->''$.SYS007'' like ''%未跟进%'' AND status = 0 OR null),0) AS noFollowSum, IFNULL(COUNT(`status` = 1 OR null),0) AS clueSurplusSum, IFNULL(COUNT(`call_fail_count` >= 1 OR null),0) AS failCallSum FROM " + ConstantsUtil.SEA_TABLE_PREFIX + "{0} WHERE 1=1 '";
+            }
             MarketProjectProperty executionGroup;
             StringBuilder userGroupName;
             CustomerUserGroup customerUserGroup;
@@ -867,6 +872,8 @@ public class CustomerSeaService {
                             appSql.append(" AND user_id = '" + param.getUserId() + "' ");
                         }
                     }
+
+                    LOG.info("sql:" + statSql);
                     stat = customerSeaDao.sqlQuery(MessageFormat.format(statSql, String.valueOf(customerSea.getId())));
                     dto.setClueSurplusSum(NumberConvertUtil.parseLong(stat.get(0).get("clueSurplusSum")));
                     dto.setFailCallSum(NumberConvertUtil.parseLong(stat.get(0).get("failCallSum")));
@@ -3340,8 +3347,8 @@ public class CustomerSeaService {
         if (StringUtil.isNotEmpty(param.getCustName())) {
             sb.append(" AND custG.super_data -> " + "'$.SYS005' like " + "'%" + param.getCustName() + "%'");
         }
-//        sb.append(" AND custG.status<>2 ");
-        sb.append(" AND custG.status =1 ");
+        sb.append(" AND custG.status<>2 ");
+//        sb.append(" AND custG.status =1 ");
         // 1-未呼通 2-已呼通
         if ("1".equals(param.getCallStatus())) {
             sb.append(" AND (custG.last_call_status <> '1001' OR custG.last_call_status IS NOT NULL)");
@@ -3349,6 +3356,7 @@ public class CustomerSeaService {
             sb.append(" AND custG.last_call_status = '1001' ");
         }
         sb.append("GROUP By custType ORDER BY custG.create_time  DESC ");
+        LOG.info("公海sql:"+sb);
         try {
             page = customerSeaDao.sqlPageQuery0(sb.toString(), param.getPageNum(), param.getPageSize());
         } catch (Exception e) {
@@ -3595,6 +3603,7 @@ public class CustomerSeaService {
         }
         sb.append(" ORDER BY custG.create_time DESC ");
         try {
+            LOG.info("私海查询sql:"+sb);
             page = customerSeaDao.sqlPageQueryByPageSize(sb.toString(), param.getPageNum(), param.getPageSize());
         } catch (Exception e) {
             LOG.error("查询私海线索列表失败,", e);
@@ -3706,6 +3715,7 @@ public class CustomerSeaService {
                                       List<String> headers, Map<String, String> defaultField, CustomerSeaDao customerSeaDao) {
         LOG.info("导入客户群ID:" + custGroupId + "勾选的表头:" + headers.toString());
         // 读取excel表头,获取对应关系
+//        String filePath = "C:\\Users\\少侠\\AppData\\Local\\Temp\\tomcat.2890857385030396681.8081\\work\\Tomcat\\localhost\\ROOT\\测试手机号码.xlsx";
         String filePath = ConstantsUtil.CGROUP_IMPORT_FILE_PATH + uploadFileName;
         LOG.info("导入客户群ID:" + custGroupId + "文件路径:" + filePath);
         try (InputStream inputStream = new FileInputStream(filePath)) {
@@ -3740,8 +3750,10 @@ public class CustomerSeaService {
 
                 JSONArray jsonArray = new JSONArray();
                 JSONObject jsonObject = null;
+
                 // 从第2行开始读取,忽略表头
                 for (int i = 1; i < excelData.size(); i++) {
+                    String custType = null;
                     row = (List<Object>) excelData.get(i);
                     // 获取每个单元格
                     rowData = new HashMap<>();
@@ -3756,6 +3768,10 @@ public class CustomerSeaService {
                         }
                         if ("手机号".equals(headName.get(j))) {
                             rowData.put("phone", row.get(j));
+                        } else if ("所在公司".equals(headName.get(j))) {
+                            Object o = row.get(j);
+                            custType = MD5Util.encode32Bit(o.toString());
+                            rowData.put(defaultField.get(headName.get(j)), row.get(j));
                         } else if (defaultField.get(headName.get(j)) != null) {
                             rowData.put(defaultField.get(headName.get(j)), row.get(j));
                         } else {
@@ -3763,6 +3779,8 @@ public class CustomerSeaService {
                         }
                     }
                     list.add(rowData);
+                    jsonObject.put("custType", custType);
+                    jsonObject.put("cust_group_id", custGroupId);
                     jsonArray.add(jsonObject);
                 }
                 //保存数据
@@ -3813,6 +3831,7 @@ public class CustomerSeaService {
                             s.setSuperData(new HashMap<>());
                         }
                         s.getSuperData().put("SYS007", "未跟进");
+                        s.getSuperData().put("SYS014", s.getCustType());
                     }
                     LOG.info("导入公海ID:{},明细表插入数据大小:{}", seaId, seaData);
                     int seaCount = customerSeaDao.insertBatchDataData(seaId, seaData);
@@ -3821,7 +3840,7 @@ public class CustomerSeaService {
                         LOG.info("导入客户群ID:" + custGroupId + "成功");
                         // 更改客户群状态
                         CustomGroup cg = customGroupDao.get(NumberConvertUtil.parseInt(custGroupId));
-                        if (cg != null) {
+                        if (cg != null && "1".equals(userType)) {
                             // 处理完成
                             long userCount = customGroupDao.getCustomerGroupListDataCount(NumberConvertUtil.parseInt(custGroupId));
                             int status = jdbcTemplate.update("UPDATE customer_group SET user_count =  ?, quantity = ?,  status = ?, industry_pool_name=?, amount=0  WHERE id = ?", userCount, userCount, 1, "", custGroupId);

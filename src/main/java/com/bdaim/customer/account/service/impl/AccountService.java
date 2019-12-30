@@ -749,7 +749,7 @@ public class AccountService {
             logger.error("get balance error", e);
         }
         DecimalFormat df = new DecimalFormat("######0.00");
-        resultMap.put("balance", df.format(remainAmout / 1000));
+        resultMap.put("balance", df.format(remainAmout / 100));
 
         CustomerProperty ps = customerDao.getProperty(customerId, "pwd_status");
         resultMap.put("pwdStatus", ps == null ? "" : ps.getPropertyValue());

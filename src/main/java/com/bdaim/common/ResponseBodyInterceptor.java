@@ -65,11 +65,6 @@ public class ResponseBodyInterceptor {
      */
     @Around("pointCutMethod()")
     public Object doAround(ProceedingJoinPoint pjp) throws Throwable {
-        // 标识不为精准营销项目则不进行返回值操作
-        if (!"online".equalsIgnoreCase(APP_NAME)) {
-            return pjp.proceed();
-        }
-
         JSONObject result = new JSONObject();
         result.put("code", 200);
 //		result.put("data", new JSONArray());

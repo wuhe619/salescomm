@@ -330,7 +330,20 @@ public class MarketTaskService {
                         xzCallCenterId = callCenterConfig.getJSONObject("call_center_config").getString("callCenterId");
                     }
                     param.setId(marketTask.getId());
-                    String taskIdentity = addXzAutoTask(param, xzCallCenterId);
+                    String taskIdentity = "";
+                    //判断是否传递了taskId参数,前端传递优先级高
+                    if (StringUtil.isNotEmpty(param.getTaskId())) {
+                        taskIdentity = param.getTaskId();
+                        JSONObject jsonObject = new JSONObject();
+                        jsonObject.put("taskidentity", taskIdentity);
+                        // 保存营销任务讯众呼叫中心配置信息
+                        MarketTaskProperty taskConfig = new MarketTaskProperty(param.getId(), "xzTaskConfig", jsonObject.toJSONString(), new Timestamp(System.currentTimeMillis()));
+                        marketTaskDao.saveOrUpdate(taskConfig);
+                    } else {
+                        //前端不传递则执行接口创建自动外呼任务逻辑
+                        taskIdentity = addXzAutoTask(param, xzCallCenterId);
+                    }
+
                     if (StringUtil.isNotEmpty(taskIdentity)) {
                         marketTask.setTaskId(taskIdentity);
                         marketTaskDao.update(marketTask);
@@ -454,7 +467,7 @@ public class MarketTaskService {
             marketTask.setStatus(param.getStatus());
         }
         long time = System.currentTimeMillis();
-        String xzCallCenterId = null, taskIdentity = null;
+        String xzCallCenterId = null;
         if (marketTask.getTaskType() != null && marketTask.getTaskType() == 1) {
             MarketTaskProperty mtp = marketTaskDao.getProperty(marketTask.getId(), "callChannel");
             if (mtp != null && StringUtil.isNotEmpty(mtp.getPropertyValue())) {
@@ -540,6 +553,21 @@ public class MarketTaskService {
         }
         int code;
         try {
+            //判断是否传递了taskId参数,前端传递优先级高
+            if (StringUtil.isNotEmpty(param.getTaskId())) {
+                marketTask.setTaskId(param.getTaskId());
+                MarketTaskProperty xzTaskConfig = marketTaskDao.getProperty(marketTask.getId(), "xzTaskConfig");
+                JSONObject jsonObject = new JSONObject();
+                if (xzTaskConfig == null) {
+                    xzTaskConfig = new MarketTaskProperty(marketTask.getId(), "xzTaskConfig", jsonObject.toJSONString(), new Timestamp(System.currentTimeMillis()));
+                } else {
+                    jsonObject = JSON.parseObject(xzTaskConfig.getPropertyValue());
+                }
+                jsonObject.put("taskidentity", marketTask.getTaskId());
+                xzTaskConfig.setPropertyValue(jsonObject.toJSONString());
+                // 保存营销任务讯众呼叫中心配置信息
+                marketTaskDao.saveOrUpdate(xzTaskConfig);
+            }
             marketTask.setUpdateTime(new Timestamp(time));
             marketTaskDao.update(marketTask);
             // 修改讯众自动外呼任务基础信息
@@ -3150,6 +3178,7 @@ public class MarketTaskService {
 
     /**
      * 营销任务外呼统计导出
+     *
      * @param timeType
      * @param marketTaskId
      * @param userQueryParam
@@ -3699,7 +3728,8 @@ public class MarketTaskService {
 
     /**
      * 营销任务外呼统计导出
-     * @param _rule_ =callAmount导出表头带通话费用列
+     *
+     * @param _rule_         =callAmount导出表头带通话费用列
      * @param timeType
      * @param marketTaskId
      * @param userQueryParam

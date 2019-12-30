@@ -44,6 +44,15 @@ public class SeaImportDataParam {
     private String invalidReason;
 
     private Integer status;
+    private String custType;
+
+    public String getCustType() {
+        return custType;
+    }
+
+    public void setCustType(String custType) {
+        this.custType = custType;
+    }
 
     public String getVoice_info_id() {
         return voice_info_id;

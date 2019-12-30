@@ -23,6 +23,7 @@ import com.bdaim.log.dto.SuperDataOperLogQuery;
 import com.bdaim.rbac.dto.RoleEnum;
 import com.bdaim.resource.service.MarketResourceService;
 import com.bdaim.util.IDHelper;
+import com.bdaim.util.MD5Util;
 import com.bdaim.util.NumberConvertUtil;
 import com.bdaim.util.StringUtil;
 
@@ -369,10 +370,18 @@ public class CustomerSeaAction extends BasicAction {
             // 处理自建属性
             if (labelIdArray != null || labelIdArray.size() != 0) {
                 for (int i = 0; i < labelIdArray.size(); i++) {
-                    superData.put(labelIdArray.getJSONObject(i).getString("labelId"), labelIdArray.getJSONObject(i).getString("optionValue"));
+                    if ("company".equals(labelIdArray.getJSONObject(i).getString("labelId"))) {
+                        String optionValue = labelIdArray.getJSONObject(i).getString("optionValue");
+                        superData.put(labelIdArray.getJSONObject(i).getString("labelId"), optionValue);
+                    } else {
+                        superData.put(labelIdArray.getJSONObject(i).getString("labelId"), labelIdArray.getJSONObject(i).getString("optionValue"));
+                    }
                 }
                 superData.put("SYS007", "未跟进");
             }
+            String company = jsonO.getString("company");
+            String s = MD5Util.encode32Bit(company);
+            superData.put("SYS014", s);
             CustomSeaTouchInfoDTO dto = new CustomSeaTouchInfoDTO("", customerId, String.valueOf(userId), "", "",
                     jsonO.getString("super_name"), jsonO.getString("super_age"), jsonO.getString("super_sex"), jsonO.getString("super_telphone"),
                     jsonO.getString("super_phone"), jsonO.getString("super_address_province_city"), jsonO.getString("super_address_street"),

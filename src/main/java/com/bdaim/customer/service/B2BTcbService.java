@@ -290,6 +290,7 @@ public class B2BTcbService implements BusiService {
         Map<String, JSONObject> data = new HashMap(16);
         // 指定企业ID领取方式
         if (mode == 1) {
+            LOG.info("kais doClueDataToSeaByIds");
             data = doClueDataToSeaByIds(companyIds, custId);
             // 指定数量
         } else if (mode == 2) {
@@ -323,12 +324,12 @@ public class B2BTcbService implements BusiService {
                 // 保存线索
                 int status = seaService.addClueData0(dto, seaType);
                 LOG.info("B2B套餐领取线索状态:{},seaType:{},data:{}", status, seaType, JSON.toJSONString(dto));
-                // 保存领取记录
-                saveTcbClueDataLog(custId, userId, batchId, entId, useB2BTcb.getString("id"), dto.getSuper_id(), JSON.toJSONString(dto));
             }
-            consumeNum++;
-
+            // 保存领取记录
+            saveTcbClueDataLog(custId, userId, batchId, entId, useB2BTcb.getString("id"), dto.getSuper_id(), JSON.toJSONString(dto));
         }
+        consumeNum++;
+
         // 更新套餐余量和消耗量
         updateTbRemain(useB2BTcb.getLong("id"), consumeNum, BusiTypeEnum.B2B_TC.getType());
         return 0;
@@ -481,12 +482,14 @@ public class B2BTcbService implements BusiService {
         Map<String, JSONObject> data = new HashMap<>();
         BaseResult companyContact, companyDetail;
         JSONObject contactData, detailData;
+        LOG.info("in doClueDataToSeaByIds mode=1");
         for (String id : companyIds) {
             // 已经领取过不可重复领取
             if (b2BTcbLogService.checkClueGetStatus(custId, id)) {
                 LOG.info("客户:{},B2B企业ID:{}已经领取过", custId, id);
                 continue;
             }
+            LOG.info("Kaiser xunhuan ");
             // 查询企业联系方式
             try {
                 companyContact = searchListService.getCompanyDetail(id, "", "1039");
@@ -496,6 +499,7 @@ public class B2BTcbService implements BusiService {
                         contactData.getJSONArray("phoneNumber").size() == 0) {
                     continue;
                 }
+                LOG.info("iiii:"+companyContact);
                 // 查询企业名称
                 companyDetail = searchListService.getCompanyDetail(id, "", "1001");
                 detailData = (JSONObject) companyDetail.getData();
