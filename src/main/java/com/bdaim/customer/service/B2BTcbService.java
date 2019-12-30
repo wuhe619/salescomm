@@ -290,6 +290,7 @@ public class B2BTcbService implements BusiService {
         Map<String, JSONObject> data = new HashMap(16);
         // 指定企业ID领取方式
         if (mode == 1) {
+            LOG.info("kais doClueDataToSeaByIds");
             data = doClueDataToSeaByIds(companyIds, custId);
             // 指定数量
         } else if (mode == 2) {
@@ -481,12 +482,14 @@ public class B2BTcbService implements BusiService {
         Map<String, JSONObject> data = new HashMap<>();
         BaseResult companyContact, companyDetail;
         JSONObject contactData, detailData;
+        LOG.info("in doClueDataToSeaByIds mode=1");
         for (String id : companyIds) {
             // 已经领取过不可重复领取
             if (b2BTcbLogService.checkClueGetStatus(custId, id)) {
                 LOG.info("客户:{},B2B企业ID:{}已经领取过", custId, id);
                 continue;
             }
+            LOG.info("Kaiser xunhuan ");
             // 查询企业联系方式
             try {
                 companyContact = searchListService.getCompanyDetail(id, "", "1039");
@@ -496,6 +499,7 @@ public class B2BTcbService implements BusiService {
                         contactData.getJSONArray("phoneNumber").size() == 0) {
                     continue;
                 }
+                LOG.info("iiii:"+companyContact);
                 // 查询企业名称
                 companyDetail = searchListService.getCompanyDetail(id, "", "1001");
                 detailData = (JSONObject) companyDetail.getData();
