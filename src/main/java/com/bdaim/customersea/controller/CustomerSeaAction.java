@@ -372,20 +372,16 @@ public class CustomerSeaAction extends BasicAction {
                 for (int i = 0; i < labelIdArray.size(); i++) {
                     if ("company".equals(labelIdArray.getJSONObject(i).getString("labelId"))) {
                         String optionValue = labelIdArray.getJSONObject(i).getString("optionValue");
-
-                        String s = MD5Util.encode32Bit(optionValue);
                         superData.put(labelIdArray.getJSONObject(i).getString("labelId"), optionValue);
-
-                        LOG.info("SYS14:" + s);
-                        LOG.info("company:" + optionValue);
-                        superData.put("SYS014", s);
                     } else {
                         superData.put(labelIdArray.getJSONObject(i).getString("labelId"), labelIdArray.getJSONObject(i).getString("optionValue"));
                     }
                 }
                 superData.put("SYS007", "未跟进");
             }
-            LOG.info("supdata:"+superData);
+            String company = jsonO.getString("company");
+            String s = MD5Util.encode32Bit(company);
+            superData.put("SYS014", s);
             CustomSeaTouchInfoDTO dto = new CustomSeaTouchInfoDTO("", customerId, String.valueOf(userId), "", "",
                     jsonO.getString("super_name"), jsonO.getString("super_age"), jsonO.getString("super_sex"), jsonO.getString("super_telphone"),
                     jsonO.getString("super_phone"), jsonO.getString("super_address_province_city"), jsonO.getString("super_address_street"),

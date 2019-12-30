@@ -789,7 +789,7 @@ public class CustomerSeaService {
             List<Map<String, Object>> stat;
             String statSql;
             if ("publicSea".equals(param.getType())) {
-                statSql = "SELECT COUNT(status=0 OR null) sumCount,IFNULL(COUNT(super_data like ''%\"SYS007\":\"未跟进\"%'' AND status = 0 OR null),0) AS noFollowSum, COUNT(distinct(super_data->>''$.SYS014'')) AS clueSurplusSum, IFNULL(COUNT(`call_fail_count` >= 1 OR null),0) AS failCallSum FROM " + ConstantsUtil.SEA_TABLE_PREFIX + "{0} WHERE status = 1 '";
+                statSql = "SELECT COUNT(status=0 OR null) sumCount,IFNULL(COUNT(super_data like ''%\"SYS007\":\"未跟进\"%'' AND status = 0 OR null),0) AS noFollowSum, COUNT(distinct(super_data->>''$.SYS014'')) AS clueSurplusSum, IFNULL(COUNT(`call_fail_count` >= 1 OR null),0) AS failCallSum FROM " + ConstantsUtil.SEA_TABLE_PREFIX + "{0} WHERE status <> 2 '";
             } else {
                 statSql = "SELECT COUNT(status=0 OR null) sumCount,IFNULL(COUNT(super_data->''$.SYS007'' like ''%未跟进%'' AND status = 0 OR null),0) AS noFollowSum, IFNULL(COUNT(`status` = 1 OR null),0) AS clueSurplusSum, IFNULL(COUNT(`call_fail_count` >= 1 OR null),0) AS failCallSum FROM " + ConstantsUtil.SEA_TABLE_PREFIX + "{0} WHERE 1=1 '";
             }
@@ -3347,8 +3347,8 @@ public class CustomerSeaService {
         if (StringUtil.isNotEmpty(param.getCustName())) {
             sb.append(" AND custG.super_data -> " + "'$.SYS005' like " + "'%" + param.getCustName() + "%'");
         }
-//        sb.append(" AND custG.status<>2 ");
-        sb.append(" AND custG.status =1 ");
+        sb.append(" AND custG.status<>2 ");
+//        sb.append(" AND custG.status =1 ");
         // 1-未呼通 2-已呼通
         if ("1".equals(param.getCallStatus())) {
             sb.append(" AND (custG.last_call_status <> '1001' OR custG.last_call_status IS NOT NULL)");
