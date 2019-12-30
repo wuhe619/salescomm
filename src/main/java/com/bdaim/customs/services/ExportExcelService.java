@@ -77,8 +77,8 @@ public class ExportExcelService {
         //写入本地临时文件中
         //String fileName = "/tmp/" + System.currentTimeMillis() + templatePath.substring(templatePath.lastIndexOf(File.separator) + 1);
         Workbook workbook = ExcelExportUtil.exportExcel(params, map);
-        workbook.write(response.getOutputStream());
         response.reset();
+        workbook.write(response.getOutputStream());
         response.getOutputStream().flush();
         response.getOutputStream().close();
 
