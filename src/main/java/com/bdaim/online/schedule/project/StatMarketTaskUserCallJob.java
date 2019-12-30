@@ -25,7 +25,7 @@ import java.util.Map;
 @Component
 public class StatMarketTaskUserCallJob {
 
-    private final static DateTimeFormatter YYYYMM = DateTimeFormatter.ofPattern("yyyyMM");
+
 
     private final static DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
@@ -68,15 +68,20 @@ public class StatMarketTaskUserCallJob {
     /**
      * 执行job的方法
      */
-    @Scheduled(cron = "0 0/5 * * * ? ")
-    public void run() throws Exception {
+//    @Scheduled(cron = "0 0/5 * * * ? ")
+    public void run() {
         log.info("精准营销营销任务用户呼叫数据统计job开始执行");
-        this.execute();
+        try {
+            this.execute();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         log.info("精准营销营销任务用户呼叫数据统计job结束执行");
     }
     
 
     public void execute() throws Exception {
+        DateTimeFormatter YYYYMM = DateTimeFormatter.ofPattern("yyyyMM");
         LocalDateTime nowTime = LocalDateTime.now();
         LocalDateTime startTime = nowTime.withHour(0).withMinute(0).withSecond(0);
         LocalDateTime endTime = nowTime.withHour(23).withMinute(59).withSecond(59);

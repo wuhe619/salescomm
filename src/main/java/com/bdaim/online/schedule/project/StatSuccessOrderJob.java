@@ -90,10 +90,14 @@ public class StatSuccessOrderJob {
     /**
      * 执行job的方法
      */
-    @Scheduled(cron = "0 0/5 * * * ? ")
-    public void run() throws Exception {
+
+    public void run(){
         log.info("精准营销职场和项目成功单标记数量统计job开始执行");
-        this.execute();
+        try {
+            this.execute();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         log.info("精准营销职场和项目成功单标记数量统计job结束执行");
     }
     
