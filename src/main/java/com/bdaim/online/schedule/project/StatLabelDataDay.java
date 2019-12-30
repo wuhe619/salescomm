@@ -21,16 +21,15 @@ import java.util.*;
  * @date 2019/12/29
  * @description
  */
-//@Component
+@Component
 public class StatLabelDataDay {
 
-    String yyyy_mm = DateTimeFormatter.ofPattern("yyyyMM").format(LocalTime.now());
 
     String table_name = "stat_u_label_data";
     String insert_sql = "INSERT INTO " + table_name + " (`stat_time`, `user_id`, `cust_id`, `customer_group_id`, `market_task_id`, `label_id`, `option_value`, `tag_sum`, `create_time`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);";
     String update_sql = "UPDATE " + table_name + " SET `stat_time`=?, `user_id`=?, `cust_id`=?, `customer_group_id`=?, `market_task_id`=?, `label_id`=?, `option_value`=?, `tag_sum`=?, `create_time`=? WHERE create_time = ? AND user_id = ? AND market_task_id = ? AND `label_id`=? AND `option_value`=? ";
     String select_sql = "SELECT * FROM " + table_name + " WHERE create_time = ? AND user_id = ? AND market_task_id = ? AND `label_id`=? AND `option_value`=? AND customer_group_id = ?";
-    String now_day_call_sql = "SELECT user_id, cust_id, customer_group_id, market_task_id FROM t_touch_voice_log_" + yyyy_mm + " WHERE create_time BETWEEN ? AND ? GROUP BY user_id, customer_group_id, market_task_id ";
+    String now_day_call_sql = "SELECT user_id, cust_id, customer_group_id, market_task_id FROM t_touch_voice_log_{yyyy_mm} WHERE create_time BETWEEN ? AND ? GROUP BY user_id, customer_group_id, market_task_id ";
     String label_sql = "SELECT label_id FROM t_customer_label WHERE type = 2 ";
     String super_data_sql = "SELECT t.id, t.super_data FROM t_market_task_list_{0} t INNER JOIN t_touch_voice_log_? log ON t.id = log.superid WHERE t.super_data IS NOT NULL AND log.user_id = ? AND log.cust_id = ? AND log.customer_group_id = ? AND log.market_task_id = ? AND log.create_time BETWEEN ? AND ? ";
 
@@ -47,12 +46,13 @@ public class StatLabelDataDay {
         for (Map<String, Object> m : maps) {
             single_option.add(String.valueOf(m.get("label_id")));
         }
+        String yyyy_mm = DateTimeFormatter.ofPattern("yyyyMM").format(LocalDateTime.now());
+        now_day_call_sql = now_day_call_sql.replace("{yyyy_mm}",yyyy_mm);
     }
 
     /**
      * 执行job的方法
      */
-    @Scheduled(cron = "0 0/5 * * * ? ")
     public void execute() {
         init();
 

@@ -60,8 +60,7 @@ public class StatXzAbnormalCallRecordJob {
     /**
      * 执行job的方法
      */
-    @Scheduled(cron = "0 0/1 * * * ? ")
-    public void run() throws Exception {
+    public void run() {
         log.info("统计讯众异常话单数量开始执行");
         this.execute();
         log.info("统计讯众异常话单数量结束执行");
