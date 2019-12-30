@@ -3356,6 +3356,7 @@ public class CustomerSeaService {
             sb.append(" AND custG.last_call_status = '1001' ");
         }
         sb.append("GROUP By custType ORDER BY custG.create_time  DESC ");
+        LOG.info("公海sql:"+sb);
         try {
             page = customerSeaDao.sqlPageQuery0(sb.toString(), param.getPageNum(), param.getPageSize());
         } catch (Exception e) {
