@@ -60,12 +60,12 @@ public class CustomerExtensionController extends BasicAction {
                 body = "{}";
 
             info = JSONObject.parseObject(body);
-            if (StringUtil.isEmpty(info.getString("id"))) {
-                page.setPageSize(0);
-                page.setPageNum(10000000);
+            if (StringUtil.isNotEmpty(info.getString("id"))) {
+                page.setPageSize(10000000);
+                page.setPageNum(1);
             } else {
-                page.setPageSize(info.containsKey("pageSize") ? 0 : info.getIntValue("pageSize"));
-                page.setPageNum(info.containsKey("pageNum") ? 10 : info.getIntValue("pageNum"));
+                page.setPageSize(info.containsKey("pageSize") ? 10 : info.getIntValue("pageSize"));
+                page.setPageNum(info.containsKey("pageNum") ? 1 : info.getIntValue("pageNum"));
             }
             PageList query = customerExtensionService.query(info, page);
             if ("extension".equals(info.getString("type"))) {
