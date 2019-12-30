@@ -327,9 +327,8 @@ public class B2BTcbService implements BusiService {
             }
             // 保存领取记录
             saveTcbClueDataLog(custId, userId, batchId, entId, useB2BTcb.getString("id"), dto.getSuper_id(), JSON.toJSONString(dto));
+            consumeNum++;
         }
-        consumeNum++;
-
         // 更新套餐余量和消耗量
         updateTbRemain(useB2BTcb.getLong("id"), consumeNum, BusiTypeEnum.B2B_TC.getType());
         return 0;
