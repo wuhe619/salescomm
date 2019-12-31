@@ -114,7 +114,6 @@ public class CustomerController extends BasicAction {
     
     
     @PostMapping(value = "/info/{customerId}/app")
-    @ResponseBody
     public List app(@PathVariable(name = "customerId") String customerId) throws Exception{
     	LoginUser lu = opUser();
     	if(lu==null || lu.getAuths()==null || !lu.getAuths().contains("admin"))
@@ -124,8 +123,8 @@ public class CustomerController extends BasicAction {
     	
         return data;
     }
+
     @GetMapping(value = "/info/{customerId}/app/{appId}")
-    @ResponseBody
     public Map app(@PathVariable(name = "customerId") String customerId,@PathVariable(name = "appId") String appId) throws Exception{
     	LoginUser lu = opUser();
     	if(lu==null || lu.getAuths()==null || !lu.getAuths().contains("admin"))
@@ -144,7 +143,6 @@ public class CustomerController extends BasicAction {
     }
     
     @PostMapping(value = "/info/{customerId}/app/{appId}/token")
-    @ResponseBody
     public Map newAppToken(@PathVariable(name = "customerId") String customerId,@PathVariable(name = "appId") String appId) throws Exception{
     	LoginUser lu = opUser();
     	if(lu==null || lu.getAuths()==null || !lu.getAuths().contains("admin"))
