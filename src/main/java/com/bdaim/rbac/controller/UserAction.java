@@ -279,7 +279,7 @@ public class UserAction extends BasicAction {
     @ResponseBody
     @RequestMapping(value = "/token", method = RequestMethod.POST)
     @CacheAnnotation
-    public String token(String username, String password, String code, String authorize) throws Exception{
+    public String token(String username, String password, String code, String authorize) throws Exception {
         ResponseResult responseResult = new ResponseResult();
         responseResult.setStateCode("401");  //login fail
         if (username == null || password == null || "".equals(username) || "".equals(password)) {
@@ -325,7 +325,7 @@ public class UserAction extends BasicAction {
 
             responseResult.setStateCode("200");
             responseResult.setMsg("SUCCESS");
-            responseResult.setAuth(userdetail.getAuths().size()>0?userdetail.getAuths().get(0):"");
+            responseResult.setAuth(userdetail.getAuths().size() > 0 ? userdetail.getAuths().get(0) : "");
             responseResult.setUserName(userdetail.getUsername());
             responseResult.setCustId(userdetail.getCustId());
             responseResult.setUserType(userdetail.getUserType());
@@ -655,7 +655,8 @@ public class UserAction extends BasicAction {
                             @RequestParam(required = false) String labelIds, @RequestParam(required = false) String categoryIds,
                             @RequestParam String channelIds,
                             HttpServletRequest request) {
-        net.sf.json.JSONObject result = new net.sf.json.JSONObject();
+//        net.sf.json.JSONObject result = new net.sf.json.JSONObject();
+        JSONObject result = new JSONObject();
         //校验用户名是否唯一
         boolean checkUsernameUnique = checkUsernameUnique(username, null);
         if (!checkUsernameUnique) {
