@@ -60,7 +60,7 @@ public class CustomerExtensionController extends BasicAction {
                 body = "{}";
 
             info = JSONObject.parseObject(body);
-            if (StringUtil.isNotEmpty(info.getString("id"))) {
+            if (StringUtil.isEmpty(info.getString("id"))) {
                 page.setPageSize(10000000);
                 page.setPageNum(1);
             } else {
