@@ -677,6 +677,7 @@ public class UserAction extends BasicAction {
         LoginUser loginUser = opUser();
         UserDTO user = new UserDTO();
         user.setName(username);
+        user.setUserName(username);
         user.setRealName(realname);
         user.setDeptId(deptId);
         user.setRoleList(roles);
