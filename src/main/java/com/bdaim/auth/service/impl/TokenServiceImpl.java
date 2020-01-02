@@ -81,6 +81,7 @@ public class TokenServiceImpl implements TokenService {
         if (username.startsWith("backend.")) {
             long type = 0;
             UserDO u = userInfoService.getUserByName(username.substring(8));
+            if(u.getStatus()!=0) return new LoginUser("guest", "", "用户不存在", "401");
             if (u != null && CipherUtil.generatePassword(password).equals(u.getPassword())) {
                 List<Map<String, Object>> roleInfo = roleDao.getRoleInfoByUserId(String.valueOf(u.getId()));
                 if (roleInfo != null && roleInfo.size() > 0 && roleInfo.get(0).get("type") != null) {
