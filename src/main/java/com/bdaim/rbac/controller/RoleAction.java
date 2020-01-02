@@ -573,7 +573,7 @@ public class RoleAction extends BasicAction {
         if (StringUtil.isNotEmpty(type)) {
             platform = NumberConvertUtil.parseInt(type);
         }
-        net.sf.json.JSONArray resources = resourceService.listTreeResource(operateUserId, 0L, platform, operateUser.isAdmin());
+        JSONArray resources = resourceService.listTreeResource(operateUserId, 0L, platform, operateUser.isAdmin());
         //operation logs
         super.operlog(0, pageName);
         return JSON.toJSONString(resources);

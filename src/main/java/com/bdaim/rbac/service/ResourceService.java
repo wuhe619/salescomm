@@ -12,6 +12,7 @@ import com.bdaim.util.NumberConvertUtil;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -32,6 +33,8 @@ public class ResourceService {
     private UserDao userDao;
     @Resource
     private ResourceDao resourceDao;
+    @Resource
+    private JdbcTemplate jdbcTemplate;
 
     @SuppressWarnings("finally")
     public CommonTreeResource save(CommonTreeResource resource) {
@@ -600,7 +603,7 @@ public class ResourceService {
      * @param isAdminOperate
      * @return
      */
-    public JSONArray listTreeResource(Long operateUserId, Long pid, int platform, boolean isAdminOperate) {
+    public JSONArray listTreeResource0(Long operateUserId, Long pid, int platform, boolean isAdminOperate) {
         JSONArray array = new JSONArray();
         StringBuilder builder = new StringBuilder();
         if (isAdminOperate) {
@@ -630,6 +633,49 @@ public class ResourceService {
                 parentId = NumberConvertUtil.everythingToLong(map.get("PID"));
                 type = NumberConvertUtil.everythingToInt(map.get("TYPE"));
                 object = new JSONObject();
+                object.put("id", id);
+                object.put("name", name);
+                object.put("title", name);
+                object.put("uri", uri);
+                object.put("pid", parentId);
+                object.put("type", type);
+                object.put("children", listTreeResource(operateUserId, id, platform, isAdminOperate));
+                array.add(object);
+            }
+        }
+        return array;
+    }
+
+    public com.alibaba.fastjson.JSONArray listTreeResource(Long operateUserId, Long pid, int platform, boolean isAdminOperate) {
+        com.alibaba.fastjson.JSONArray array = new com.alibaba.fastjson.JSONArray();
+        StringBuilder builder = new StringBuilder();
+        if (isAdminOperate) {
+            builder.append(" select distinct r.ID,r.NAME,r.PID,r.URI,r.TYPE from t_resource r");
+            builder.append(" where r.pid=");
+            builder.append(pid);
+            builder.append(" and PLATFORM=").append(platform);
+        } else {
+            builder.append(" select distinct r.ID,r.NAME,r.PID,r.URI,r.TYPE from t_mrp_rel m ");
+            builder.append(" inner join t_user_role_rel ur on ur.ROLE = m.ROLE_ID");
+            builder.append(" inner join t_resource r on m.R_ID = r.ID and ur.ID =");
+            builder.append(operateUserId);
+            builder.append(" and r.pid = ");
+            builder.append(pid);
+            builder.append(" and PLATFORM=").append(platform).append(" and m.type=0");
+        }
+        List<Map<String, Object>> list = jdbcTemplate.queryForList(builder.toString());
+        if (list != null && !list.isEmpty()) {
+            com.alibaba.fastjson.JSONObject object;
+            long id, parentId;
+            String name, uri;
+            int type;
+            for (Map<String, Object> map : list) {
+                id = NumberConvertUtil.everythingToLong(map.get("ID"));
+                name = (String) map.get("NAME");
+                uri = (String) map.get("URI");
+                parentId = NumberConvertUtil.everythingToLong(map.get("PID"));
+                type = NumberConvertUtil.everythingToInt(map.get("TYPE"));
+                object = new com.alibaba.fastjson.JSONObject();
                 object.put("id", id);
                 object.put("name", name);
                 object.put("title", name);
