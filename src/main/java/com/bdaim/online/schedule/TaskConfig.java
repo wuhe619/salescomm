@@ -44,7 +44,7 @@ public class TaskConfig {
         statSuccessOrderJob.run();
     }
 
-    @Scheduled(cron = "0/5 * * * * *")
+    @Scheduled(cron = "0 0/5 * * * ? ")
     public void statMarketTaskUserCallJob(){
         logger.info("schedule testTask---statMarketTaskUserCallJob--");
         statMarketTaskUserCallJob.run();

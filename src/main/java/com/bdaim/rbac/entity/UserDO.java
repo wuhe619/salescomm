@@ -41,7 +41,7 @@ public class UserDO {
      */
     @Basic
     @Column(name = "authorize")
-    private Integer authorize;
+    private String authorize;
 
     @Id
     @Column(name = "id")
@@ -282,11 +282,11 @@ public class UserDO {
         this.newPassword = newPassword;
     }*/
 
-    public Integer getAuthorize() {
+    public String getAuthorize() {
         return authorize;
     }
 
-    public void setAuthorize(Integer authorize) {
+    public void setAuthorize(String authorize) {
         this.authorize = authorize;
     }
 

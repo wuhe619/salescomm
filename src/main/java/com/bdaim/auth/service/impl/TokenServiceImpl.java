@@ -81,6 +81,7 @@ public class TokenServiceImpl implements TokenService {
         if (username.startsWith("backend.")) {
             long type = 0;
             UserDO u = userInfoService.getUserByName(username.substring(8));
+            if(u.getStatus()!=0) return new LoginUser("guest", "", "用户不存在", "401");
             if (u != null && CipherUtil.generatePassword(password).equals(u.getPassword())) {
                 List<Map<String, Object>> roleInfo = roleDao.getRoleInfoByUserId(String.valueOf(u.getId()));
                 if (roleInfo != null && roleInfo.size() > 0 && roleInfo.get(0).get("type") != null) {
@@ -89,10 +90,10 @@ public class TokenServiceImpl implements TokenService {
                 //寻找登录账号已有的token, 需重构
                 String tokenid = (String) name2token.get(username);
                 if (tokenid != null && !"".equals(tokenid)) {
-                	try {
-                		userdetail = tokenCacheService.getToken(tokenid, LoginUser.class);
-                	}catch(Exception e) {
-                	}
+                    try {
+                        userdetail = tokenCacheService.getToken(tokenid, LoginUser.class);
+                    } catch (Exception e) {
+                    }
                     if (userdetail != null) {
                         userdetail.setType(type);
                         return userdetail;
@@ -106,7 +107,7 @@ public class TokenServiceImpl implements TokenService {
                 String role = "ROLE_USER";
 
                 if ("admin".equals(u.getName())) {
-                	userdetail.addAuth("admin");
+                    userdetail.addAuth("admin");
                     role = "admin";
                 }
                 userdetail.setCustId("0");
@@ -115,6 +116,7 @@ public class TokenServiceImpl implements TokenService {
                 userdetail.setRole(role);
                 userdetail.setType(type);
                 userdetail.setName(u.getName());
+                userdetail.setAuthorize(StringUtil.isNotEmpty(u.getAuthorize()) ? u.getAuthorize() : "");
 
                 String defaultUrl = "";
                 if ("admin".equals(u.getName())) {
@@ -209,12 +211,12 @@ public class TokenServiceImpl implements TokenService {
                 //userdetail = new LoginUser(u.getId(), u.getAccount(), CipherUtil.encodeByMD5(u.getId()+""+System.currentTimeMillis()), auths);
                 userdetail = new LoginUser(u.getId(), u.getAccount(), CipherUtil.encodeByMD5(u.getId() + "" + System.currentTimeMillis()));
                 if (1 == u.getStatus()) {
-                	userdetail.addAuth("USER_FREEZE");
+                    userdetail.addAuth("USER_FREEZE");
                 } else if (3 == u.getStatus()) {
-                	userdetail.addAuth("USER_NOT_EXIST");
+                    userdetail.addAuth("USER_NOT_EXIST");
                 } else if (0 == u.getStatus()) {
                     //user_type: 1=管理员 2=普通员工
-                	userdetail.addAuth("ROLE_CUSTOMER");
+                    userdetail.addAuth("ROLE_CUSTOMER");
                 }
                 userdetail.setCustId(u.getCust_id());
                 userdetail.setId(u.getId());
@@ -291,14 +293,14 @@ public class TokenServiceImpl implements TokenService {
     }
 
     public LoginUser opUser() {
-    	HttpServletRequest request = ((ServletRequestAttributes)RequestContextHolder.currentRequestAttributes()).getRequest();
-    	String authorization = request.getHeader("Authorization");
-    	
-    	if(authorization!=null && !"".equals(authorization)) {
-    		LoginUser u = tokenCacheService.getToken(authorization, LoginUser.class);
-    		if(u!=null)
-    			return u;
-    	}
+        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
+        String authorization = request.getHeader("Authorization");
+
+        if (authorization != null && !"".equals(authorization)) {
+            LoginUser u = tokenCacheService.getToken(authorization, LoginUser.class);
+            if (u != null)
+                return u;
+        }
         return new LoginUser(0L, "", "");
     }
 
@@ -322,17 +324,17 @@ public class TokenServiceImpl implements TokenService {
         if (StringUtil.isEmpty(tokenId)) {
             tokenId = CipherUtil.encodeByMD5(u.getId() + "" + System.currentTimeMillis());
         }
-        
+
         userdetail = new LoginUser(u.getId(), u.getAccount(), tokenId);
         if (1 == u.getStatus()) {
-        	userdetail.addAuth("USER_FREEZE");
+            userdetail.addAuth("USER_FREEZE");
         } else if (3 == u.getStatus()) {
-        	userdetail.addAuth("USER_NOT_EXIST");
+            userdetail.addAuth("USER_NOT_EXIST");
         } else if (0 == u.getStatus()) {
             //user_type: 1=管理员 2=普通员工
-        	userdetail.addAuth("ROLE_CUSTOMER");
+            userdetail.addAuth("ROLE_CUSTOMER");
         }
-        
+
         userdetail.setCustId(u.getCust_id());
         userdetail.setId(u.getId());
         userdetail.setUserType(String.valueOf(u.getUserType()));

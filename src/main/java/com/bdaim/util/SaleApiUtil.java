@@ -2,6 +2,7 @@ package com.bdaim.util;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.AppConfig;
 import com.bdaim.callcenter.dto.CallStatusEnum;
 import com.bdaim.callcenter.dto.SignAuthorizationResult;
 import com.bdaim.online.schedule.dto.XzAbnormalCallRecord;
@@ -130,7 +131,7 @@ public class SaleApiUtil {
     /**
      * 呼叫中心api地址
      */
-    public static final String CALL_CENTER_API = "http://api.salescomm.net:8017";
+    public static final String CALL_CENTER_API = AppConfig.getXz_call_api();
     //public static final String CALL_CENTER_API = "http://api.salescomm.net:8021/";
 
     /**

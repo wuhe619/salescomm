@@ -31,9 +31,11 @@ public class StatLabelDataDay {
     String select_sql = "SELECT * FROM " + table_name + " WHERE create_time = ? AND user_id = ? AND market_task_id = ? AND `label_id`=? AND `option_value`=? AND customer_group_id = ?";
     String now_day_call_sql = "SELECT user_id, cust_id, customer_group_id, market_task_id FROM t_touch_voice_log_{yyyy_mm} WHERE create_time BETWEEN ? AND ? GROUP BY user_id, customer_group_id, market_task_id ";
     String label_sql = "SELECT label_id FROM t_customer_label WHERE type = 2 ";
-    String super_data_sql = "SELECT t.id, t.super_data FROM t_market_task_list_{0} t INNER JOIN t_touch_voice_log_? log ON t.id = log.superid WHERE t.super_data IS NOT NULL AND log.user_id = ? AND log.cust_id = ? AND log.customer_group_id = ? AND log.market_task_id = ? AND log.create_time BETWEEN ? AND ? ";
+    String super_data_sql = "SELECT t.id, t.super_data FROM t_market_task_list_{0} t INNER JOIN t_touch_voice_log_{1} log ON t.id = log.superid WHERE t.super_data IS NOT NULL AND log.user_id = ? AND log.cust_id = ? AND log.customer_group_id = ? AND log.market_task_id = ? AND log.create_time BETWEEN ? AND ? ";
 
     private static final Logger log = LoggerFactory.getLogger(StatLabelDataDay.class);
+
+    private final static DateTimeFormatter YYYY_MM = DateTimeFormatter.ofPattern("yyyyMM");
 
     private static Set<String> single_option = new HashSet<>();
 
@@ -47,7 +49,7 @@ public class StatLabelDataDay {
             single_option.add(String.valueOf(m.get("label_id")));
         }
         String yyyy_mm = DateTimeFormatter.ofPattern("yyyyMM").format(LocalDateTime.now());
-        now_day_call_sql = now_day_call_sql.replace("{yyyy_mm}",yyyy_mm);
+        now_day_call_sql = now_day_call_sql.replace("{yyyy_mm}", yyyy_mm);
     }
 
     /**
@@ -58,7 +60,7 @@ public class StatLabelDataDay {
 
         LocalDateTime now = LocalDateTime.now();
         String start_time = now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd 00:00:00"));
-        String end_time = now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:SS"));
+        String end_time = now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         log.info("统计日期:" + start_time);
         // 查询今日呼叫过的营销任务列表
         List<Map<String, Object>> call_list = marketResourceDao.sqlQuery(now_day_call_sql, start_time, end_time);
@@ -88,7 +90,7 @@ public class StatLabelDataDay {
             // 用户营销任务自建属性标记数据
             try {
                 List<Map<String, Object>> super_data = marketResourceDao.sqlQuery(
-                        MessageFormat.format(super_data_sql, market_task_id)
+                        MessageFormat.format(super_data_sql, market_task_id, now.format(YYYY_MM))
                         , user_id, c_id, customer_group_id, market_task_id, start_time, end_time);
 
                 Map<String, Integer> tagData = new HashMap<>();
@@ -130,7 +132,7 @@ public class StatLabelDataDay {
     public void save_stat_data(LocalDateTime now_time, String user_id, String c_id,
                                String customer_group_id, String market_task_id, String label_id, String option_value, int tag_num) {
         String create_time = now_time.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-        String stat_time = now_time.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:SS"));
+        String stat_time = now_time.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         List<Map<String, Object>> data = marketResourceDao.sqlQuery(
                 select_sql, create_time, user_id, market_task_id, label_id,
                 option_value, customer_group_id);

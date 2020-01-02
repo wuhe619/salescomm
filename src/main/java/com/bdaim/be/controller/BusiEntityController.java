@@ -122,7 +122,6 @@ public class BusiEntityController extends BasicAction {
     /**
      * 根据id唯一标识获取记录
      */
-    @ResponseBody
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
     public ResponseInfo doInfo(@PathVariable(name = "id") Long id, @RequestBody(required = false) String body, @PathVariable(name = "busiType") String busiType, @RequestParam(name = "_rule_", required = false) String rule, String value, HttpServletResponse response) {
         ResponseInfo resp = new ResponseInfo();

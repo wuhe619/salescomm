@@ -94,7 +94,7 @@ public class StatMarketTaskUserCallJob {
         long callerCount, calledCount, calledDuration, otherSum, successOrderCount;
         log.info("精准营销营销任务用户呼叫数据统计日期:" + startTime);
         // 查询今日呼叫过的营销任务列表
-        cgList = marketResourceDao.sqlQuery(MessageFormat.format(NOW_DAY_CALL_CG_VOICE_SQL, startTime.format(YYYYMM)), startTime, endTime);
+        cgList = marketResourceDao.sqlQuery(MessageFormat.format(NOW_DAY_CALL_CG_VOICE_SQL, startTime.format(YYYYMM)), startTime.format(DATE_TIME_FORMATTER), endTime.format(DATE_TIME_FORMATTER));
         for (Map<String, Object> m : cgList) {
             successOrderCount = 0L;
             custId = String.valueOf(m.get("cust_id"));
