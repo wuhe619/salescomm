@@ -29,6 +29,8 @@ public class StatSuccessOrderJob {
 
     private final static DateTimeFormatter YYYYMM = DateTimeFormatter.ofPattern("yyyyMM");
 
+    private final static DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
     /**
      * 当日接通电话的客户群sql
      */
@@ -149,7 +151,7 @@ public class StatSuccessOrderJob {
         String custId, customerGroupId, projectId, labelLike;
         long dayOrderCount;
         log.info("精准营销职场和项目成功单统计日期:" + startTime);
-        list = marketResourceDao.sqlQuery(MessageFormat.format(NOW_DAY_CALL_CUST_GROUP_SQL, startTime.format(YYYYMM)), startTime, endTime);
+        list = marketResourceDao.sqlQuery(MessageFormat.format(NOW_DAY_CALL_CUST_GROUP_SQL, startTime.format(YYYYMM)), startTime.format(DATE_TIME_FORMATTER), endTime.format(DATE_TIME_FORMATTER));
         StringBuilder sql;
         //遍历今天拨打过电话的客户群的成功单
         for (int i = 0; i < list.size(); i++) {
