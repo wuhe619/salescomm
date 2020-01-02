@@ -692,6 +692,7 @@ public class UserAction extends BasicAction {
         user.setOptuser(loginUser.getName());
         user.setCreateTime(new Date());
 //        user.setAuthorize(opUser().getAuthorize());
+        //修改授权平台为默认值1
         user.setAuthorize("1");
         //封装用户与角色的关系
         UserRoles userRoles = new UserRoles();
