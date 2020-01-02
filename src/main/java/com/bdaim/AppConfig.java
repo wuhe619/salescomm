@@ -262,7 +262,7 @@ public class AppConfig {
 	public static String getXz_call_api() {
 		return xz_call_api;
 	}
-	@Value("${xz_call_api}")
+	@Value("${xz_call_api:http://api.salescomm.net:8017}")
 	public void setXz_call_api(String xz_call_api) {
 		AppConfig.xz_call_api = xz_call_api;
 	}
