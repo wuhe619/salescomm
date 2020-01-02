@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Component;
 import java.util.Properties;
 
 @Component
+@DependsOn("systemConfig")
 public class AppConfig {
     private final static Logger LOG = LoggerFactory.getLogger(AppConfig.class);
 
@@ -40,6 +42,7 @@ public class AppConfig {
     private static Integer oper_log_thread_num = 2;
     private static Boolean is_enable_oper_log = false;
     private static Integer oper_log_insert_timeout = 1000;
+	private static String xz_call_api = "http://api.salescomm.net:8017";
     
 	public static String getApp() {
 		return app;
@@ -256,5 +259,11 @@ public class AppConfig {
 		AppConfig.oper_log_insert_timeout = oper_log_insert_timeout;
 	}
 
-	
+	public static String getXz_call_api() {
+		return xz_call_api;
+	}
+	@Value("${xz_call_api}")
+	public void setXz_call_api(String xz_call_api) {
+		AppConfig.xz_call_api = xz_call_api;
+	}
 }

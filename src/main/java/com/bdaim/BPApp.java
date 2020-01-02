@@ -27,6 +27,7 @@ public class BPApp {
 	public static void main(String[] args) {
 		SpringApplication.run(BPApp.class , args);
 		System.out.println(AppConfig.getYtx_spuid());
+		System.out.println(AppConfig.getXz_call_api());
 	}
 	
 	
