@@ -691,8 +691,8 @@ public class UserAction extends BasicAction {
         user.setPassword(password);
         user.setOptuser(loginUser.getName());
         user.setCreateTime(new Date());
-//        user.setAuthorize(opUser().getAuthorize());
-        user.setAuthorize("1");
+        user.setAuthorize(opUser().getAuthorize());
+        //user.setAuthorize("1");
         //封装用户与角色的关系
         UserRoles userRoles = new UserRoles();
         userRoles.setCreateDate(new Date());

@@ -115,6 +115,7 @@ public class TokenServiceImpl implements TokenService {
                 userdetail.setRole(role);
                 userdetail.setType(type);
                 userdetail.setName(u.getName());
+                userdetail.setAuthorize(u.getAuthorize());
 
                 String defaultUrl = "";
                 if ("admin".equals(u.getName())) {
