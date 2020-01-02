@@ -567,9 +567,6 @@ public class RoleAction extends BasicAction {
         LoginUser operateUser = opUser();
         Long operateUserId = operateUser.getId();
         int platform = 1;
-        if ("2".equals(operateUser.getAuthorize())) {
-            platform = 2;
-        }
         if (StringUtil.isNotEmpty(type)) {
             platform = NumberConvertUtil.parseInt(type);
         }
