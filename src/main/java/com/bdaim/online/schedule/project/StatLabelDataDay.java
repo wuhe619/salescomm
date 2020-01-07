@@ -114,6 +114,7 @@ public class StatLabelDataDay {
                 // 保存统计数据
                 for (Map.Entry<String, Integer> m : tagData.entrySet()) {
                     int tag_num = m.getValue();
+                    log.info("m:{}", m);
                     String[] key = m.getKey().split(":");
                     String label_id = key[0];
                     String option_value = key[1];
