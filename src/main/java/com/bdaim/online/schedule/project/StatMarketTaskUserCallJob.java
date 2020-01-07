@@ -137,7 +137,7 @@ public class StatMarketTaskUserCallJob {
                         .append(" GROUP BY voice.market_task_id, voice.superid ");
                 // 今日用户拨打成单数
                 try {
-                    orderList = marketResourceDao.sqlQuery(sql.toString(), custId, customerGroupId, marketTaskId, startTime, endTime, userId);
+                    orderList = marketResourceDao.sqlQuery(sql.toString(), custId, customerGroupId, marketTaskId, startTime.format(DATE_TIME_FORMATTER), endTime.format(DATE_TIME_FORMATTER), userId);
                 } catch (Exception e) {
                     log.error("查询机器人今日营销任务意向A并且审核通过数失败,", e);
                 }
@@ -153,7 +153,7 @@ public class StatMarketTaskUserCallJob {
                         .append(" GROUP BY voice.market_task_id, voice.superid ");
                 // 今日用户拨打成单数
                 try {
-                    orderList = marketResourceDao.sqlQuery(sql.toString(), custId, customerGroupId, marketTaskId, startTime, endTime, userId, labelLike);
+                    orderList = marketResourceDao.sqlQuery(sql.toString(), custId, customerGroupId, marketTaskId, startTime.format(DATE_TIME_FORMATTER), endTime.format(DATE_TIME_FORMATTER), userId, labelLike);
                 } catch (Exception e) {
                     log.error("查询坐席今日用户成单数失败,", e);
                 }
