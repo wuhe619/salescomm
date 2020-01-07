@@ -1,6 +1,7 @@
 package com.bdaim.online.schedule.project;
 
 
+import com.alibaba.fastjson.JSON;
 import com.bdaim.resource.dao.MarketResourceDao;
 import com.bdaim.util.NumberConvertUtil;
 import com.bdaim.util.StringUtil;
@@ -24,7 +25,6 @@ import java.util.Map;
  */
 @Component
 public class StatMarketTaskUserCallJob {
-
 
 
     private final static DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
@@ -60,10 +60,10 @@ public class StatMarketTaskUserCallJob {
     public static final String MARKET_TASK_SQL = " SELECT t1.id, t1.customer_group_id, t1.cust_id, t1.task_type FROM t_market_task t1 WHERE t1.id = ?;";
 
     private static final Logger log = LoggerFactory.getLogger(StatMarketTaskUserCallJob.class);
-    
+
     @Autowired
     private MarketResourceDao marketResourceDao;
-    
+
 
     /**
      * 执行job的方法
@@ -78,7 +78,7 @@ public class StatMarketTaskUserCallJob {
         }
         log.info("精准营销营销任务用户呼叫数据统计job结束执行");
     }
-    
+
 
     public void execute() throws Exception {
         DateTimeFormatter YYYYMM = DateTimeFormatter.ofPattern("yyyyMM");
@@ -137,7 +137,7 @@ public class StatMarketTaskUserCallJob {
                         .append(" GROUP BY voice.market_task_id, voice.superid ");
                 // 今日用户拨打成单数
                 try {
-                    orderList = marketResourceDao.sqlQuery(sql.toString(), custId, customerGroupId, marketTaskId, startTime, endTime, userId);
+                    orderList = marketResourceDao.sqlQuery(sql.toString(), custId, customerGroupId, marketTaskId, startTime.format(DATE_TIME_FORMATTER), endTime.format(DATE_TIME_FORMATTER), userId);
                 } catch (Exception e) {
                     log.error("查询机器人今日营销任务意向A并且审核通过数失败,", e);
                 }
@@ -153,11 +153,12 @@ public class StatMarketTaskUserCallJob {
                         .append(" GROUP BY voice.market_task_id, voice.superid ");
                 // 今日用户拨打成单数
                 try {
-                    orderList = marketResourceDao.sqlQuery(sql.toString(), custId, customerGroupId, marketTaskId, startTime, endTime, userId, labelLike);
+                    orderList = marketResourceDao.sqlQuery(sql.toString(), custId, customerGroupId, marketTaskId, startTime.format(DATE_TIME_FORMATTER), endTime.format(DATE_TIME_FORMATTER), userId, labelLike);
                 } catch (Exception e) {
                     log.error("查询坐席今日用户成单数失败,", e);
                 }
             }
+            log.info("营销任务:{}查询到的成功单数据:{}", marketTaskId, JSON.toJSONString(orderList));
             if (orderList != null && orderList.size() > 0) {
                 for (int i = 0; i < orderList.size(); i++) {
                     // 一个身份ID只计算一个成功单
@@ -190,6 +191,6 @@ public class StatMarketTaskUserCallJob {
         log.info("营销任务统计保存状态:" + count);
         return count;
     }
-    
+
 
 }

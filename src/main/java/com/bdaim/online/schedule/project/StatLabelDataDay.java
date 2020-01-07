@@ -99,7 +99,8 @@ public class StatLabelDataDay {
                     if (StringUtil.isNotEmpty(superData)) {
                         JSONObject jsonObject = JSON.parseObject(superData);
                         for (Map.Entry m : jsonObject.entrySet()) {
-                            if (single_option.contains(String.valueOf(m.getKey()))) {
+                            if (single_option.contains(String.valueOf(m.getKey()))
+                                    && StringUtil.isNotEmpty(String.valueOf(m.getValue()))) {
                                 String key = (m.getKey() + ":" + m.getValue());
                                 if (tagData.containsKey(key)) {
                                     tagData.put(key, tagData.get(key) + 1);
@@ -114,6 +115,7 @@ public class StatLabelDataDay {
                 // 保存统计数据
                 for (Map.Entry<String, Integer> m : tagData.entrySet()) {
                     int tag_num = m.getValue();
+                    log.info("m:{}", m);
                     String[] key = m.getKey().split(":");
                     String label_id = key[0];
                     String option_value = key[1];

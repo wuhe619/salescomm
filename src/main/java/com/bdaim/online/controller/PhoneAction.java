@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.annotation.Resource;
 import javax.servlet.ServletOutputStream;
@@ -103,13 +104,18 @@ public class PhoneAction extends BasicAction {
 
 
     @RequestMapping(value = "/xzGetTaskPhone0", method = {RequestMethod.GET, RequestMethod.POST})
-    public void xzGetTaskPhone0(String taskid, String name, String count, String id, String type, String cId, HttpServletResponse response) {
-        Map<Object, Object> param = new HashMap<>();
-        param.put("taskid", taskid);
-        param.put("cId", cId);
-        param.put("name", name);
-        param.put("count", count);
-        param.put("id", id);
+    public void xzGetTaskPhone0(@RequestParam(required = false) Map<String, Object> params, HttpServletResponse response) {
+        String taskid = String.valueOf(params.get("taskid"));
+        String name = String.valueOf(params.get("name"));
+        String count = String.valueOf(params.get("count"));
+        String id = String.valueOf(params.get("id"));
+        String type = String.valueOf(params.get("type"));
+        String cId = String.valueOf(params.get("cId"));
+        // 商户编号
+        String mCode = String.valueOf(params.get("mCode"));
+        // 任务ID
+        String mId = String.valueOf(params.get("mId"));
+
         Map<String, Object> resp = new HashMap<>(), data;
         List<Map<String, Object>> list;
         int code = 200;
@@ -154,6 +160,9 @@ public class PhoneAction extends BasicAction {
                     data.put("id", String.valueOf(pageNum + i + 1));
                     data.put("phone", phones.get(i).getPhone().split(","));
                     data.put("param", phones.get(i).getParam());
+                    if (StringUtil.isNotEmpty(mCode) && StringUtil.isNotEmpty(mId)) {
+                        data.put("param", mCode + "," + mId);
+                    }
                     list.add(data);
                 }
                 resp.put("nums", list);
@@ -162,13 +171,13 @@ public class PhoneAction extends BasicAction {
         }
         resp.put("code", code);
         resp.put("reason", reason);
-        LOG.info("讯众taskId:" + taskid + ",取号接口请求参数:" + param);
+        LOG.info("讯众taskId:" + taskid + ",取号接口请求参数:" + params);
         LOG.info("讯众taskId:" + taskid + ",取号接口返回结果:" + JSON.toJSONString(resp));
         response.setContentType("application/json");
         try (ServletOutputStream outputStream = response.getOutputStream()) {
             outputStream.write(JSON.toJSONString(resp).getBytes("UTF-8"));
         } catch (IOException e) {
-            LOG.error("讯众取号接口异常,", e);
+            LOG.error("机器人取号接口异常,", e);
         }
     }
 }
