@@ -22,7 +22,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @SpringBootApplication()
 @Import({SecurityConfig.class, TokenAuthenticationFilter.class, TokenAuthenticationProvider.class, AuthExceptionHandler.class, AuthController.class, TokenCacheService.class, ErrorController.class, HibernateConfig.class})
 @ServletComponentScan(basePackages = "com.bdaim.common.controller")
-//@EnableScheduling
+@EnableScheduling
 public class BPApp {
 	public static void main(String[] args) {
 		SpringApplication.run(BPApp.class , args);
