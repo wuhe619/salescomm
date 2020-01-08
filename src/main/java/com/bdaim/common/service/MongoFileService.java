@@ -1,10 +1,13 @@
 package com.bdaim.common.service;
 
+import com.mongodb.MongoException;
 import com.mongodb.client.gridfs.GridFSBucket;
 import com.mongodb.client.gridfs.GridFSBuckets;
 import com.mongodb.client.gridfs.GridFSDownloadStream;
 import com.mongodb.client.gridfs.model.GridFSFile;
 import org.bson.types.ObjectId;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -29,6 +32,9 @@ import java.util.Map;
  */
 @Service
 public class MongoFileService {
+
+    private static Logger LOG = LoggerFactory.getLogger(MongoFileService.class);
+
     @Autowired
     private GridFsTemplate gridfsTemplate;
     @Autowired
@@ -58,7 +64,13 @@ public class MongoFileService {
         metadata.put("_contentType", file.getContentType());
         metadata.put("resFileName", filename);
         metadata.put("resFileType", type);
-        ObjectId id = gridfsTemplate.store(file.getInputStream(), fileName, metadata);
+        ObjectId id = null;
+        try {
+            id = gridfsTemplate.store(file.getInputStream(), fileName, metadata);
+        } catch (MongoException e) {
+            LOG.warn("mongo访问异常", e);
+            return "";
+        }
         return id.toString();
     }
 
@@ -99,7 +111,7 @@ public class MongoFileService {
         return f;
     }
 
-    public String saveData(String content){
+    public String saveData(String content) {
         String id = mongoTemplate.insert(content);
         return id;
     }
