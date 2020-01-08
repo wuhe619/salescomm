@@ -290,6 +290,11 @@ public class B2BTcbService implements BusiService {
         Map<String, JSONObject> data = new HashMap(16);
         // 指定企业ID领取方式
         if (mode == 1) {
+            // 已经领取过不可重复领取
+            if (companyIds != null && companyIds.size() > 0 &&
+                    b2BTcbLogService.checkClueGetStatus(custId, companyIds.get(0))) {
+                throw new TouchException("该线索已经领取过");
+            }
             LOG.info("kais doClueDataToSeaByIds");
             data = doClueDataToSeaByIds(companyIds, custId);
             // 指定数量
@@ -498,7 +503,7 @@ public class B2BTcbService implements BusiService {
                         contactData.getJSONArray("phoneNumber").size() == 0) {
                     continue;
                 }
-                LOG.info("iiii:"+companyContact);
+                LOG.info("iiii:" + companyContact);
                 // 查询企业名称
                 companyDetail = searchListService.getCompanyDetail(id, "", "1001");
                 detailData = (JSONObject) companyDetail.getData();
