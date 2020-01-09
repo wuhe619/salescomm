@@ -71,8 +71,8 @@ public class ApiController extends BasicAction {
         try {
             resp.setData(apiService.getApiById(apiId));
         } catch (Exception e) {
-            e.printStackTrace();
-            return new ResponseInfoAssemble().failure(-1, "查询异常:");
+            logger.error("api查询失败", e);
+            return new ResponseInfoAssemble().failure(-1, "api查询失败");
         }
         return resp;
     }
@@ -90,6 +90,7 @@ public class ApiController extends BasicAction {
         try {
             apiService.updateStatusApiById(apiId, lu, status);
         } catch (Exception e) {
+            logger.error("api删除失败", e);
             return new ResponseInfoAssemble().failure(-1, "Api删除失败:失败原因API不存在");
         }
 
@@ -114,10 +115,9 @@ public class ApiController extends BasicAction {
         try {
             info.setData(apiService.subApi(params, apiId, lu));
         } catch (Exception e) {
-            logger.info("错误信息：" + e.getMessage());
+            logger.error("订阅api失败" ,e);
             info.setCode(-1);
-            info.setMessage(e.getMessage());
-//            return new ResponseInfoAssemble().failure(-1, "订阅失败");
+            info.setMessage("订阅失败");
         }
         return info;
     }
@@ -138,7 +138,7 @@ public class ApiController extends BasicAction {
         try {
             info.setData(apiService.subApiUpdate(params, apiId, lu));
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("取消订阅失败", e);
             return new ResponseInfoAssemble().failure(-1, "取消订阅失败");
         }
         return info;
@@ -160,7 +160,7 @@ public class ApiController extends BasicAction {
         try {
             info.setData(apiService.priceApi(params, apiId, lu));
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("销售定价设置失败", e);
             return new ResponseInfoAssemble().failure(-1, "销售定价设置失败");
         }
         return info;
