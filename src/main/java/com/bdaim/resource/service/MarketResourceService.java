@@ -8059,7 +8059,7 @@ public class MarketResourceService {
                 try {
                     result = HttpUtil.httpGet(AppConfig.getHbase_audio_url() + fileName + "/f1:file", param, headers);
                 } catch (RuntimeException e) {
-                    LOG.warn("通话HBase获取录音文件失败,开始通过原始url读取文件");
+                    LOG.warn("通话HBase获取录音文件失败,开始通过原始url读取文件,recordUrl:{}", recordUrl);
                     InputStream inputStream = HttpUtil.getInputStream(recordUrl);
                     length = inputStream.available();
                     response.addHeader("Content-Length", length + "");
