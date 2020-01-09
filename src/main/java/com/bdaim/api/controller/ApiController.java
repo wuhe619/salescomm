@@ -50,7 +50,7 @@ public class ApiController extends BasicAction {
         try {
             resp.setData(apiService.saveApiProperty(apiData, apiId, lu));
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("api保存失败", e);
             return new ResponseInfoAssemble().failure(-1, "Api创建失败:");
         }
 
