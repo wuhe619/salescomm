@@ -12,6 +12,7 @@ import com.bdaim.api.entity.ApiProperty;
 import com.bdaim.api.entity.ApiUrlMappingEntity;
 import com.bdaim.api.entity.SubscriptionEntity;
 import com.bdaim.auth.LoginUser;
+import com.bdaim.common.dto.Page;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.page.PageList;
 import com.bdaim.common.page.Pagination;
@@ -408,8 +409,9 @@ public class ApiService {
         }
         page.setSort("api.CREATED_TIME");
         page.setDir("desc");
-        PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
-        Object collect = list.getList().stream().map(m -> {
+        Page list = apiDao.sqlPageQuery(sql.toString(),page.getPageNum(),page.getPageSize());
+        //PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
+        Object collect = list.getData().stream().map(m -> {
             Map map = (Map) m;
             map.put("realName", "");
             map.put("resourceId", "");
