@@ -7774,6 +7774,7 @@ public class MarketResourceService {
 
     /**
      * 更新营销任务通话次数
+     *
      * @param marketTaskId
      * @param superId
      * @return
@@ -8054,7 +8055,18 @@ public class MarketResourceService {
                 Map<String, Object> param = new HashMap<>();
                 Map<String, Object> headers = new HashMap<>();
                 headers.put("Accept", "application/json");
-                String result = HttpUtil.httpGet(AppConfig.getHbase_audio_url() + fileName + "/f1:file", param, headers);
+                String result = null;
+                try {
+                    result = HttpUtil.httpGet(AppConfig.getHbase_audio_url() + fileName + "/f1:file", param, headers);
+                } catch (RuntimeException e) {
+                    LOG.warn("通话HBase获取录音文件失败,开始通过原始url读取文件");
+                    InputStream inputStream = HttpUtil.getInputStream(recordUrl);
+                    length = inputStream.available();
+                    response.addHeader("Content-Length", length + "");
+                    response.addHeader("Content-Range", "bytes " + range + "-" + length + "/" + length);
+                    IOUtils.copy(inputStream, response.getOutputStream());
+                    return;
+                }
                 if (StringUtil.isNotEmpty(result)) {
                     LOG.info("开始解析HBase返回的录音文件,userId:" + userId + ",fileName:" + fileName);
                     String base64Str = null;
