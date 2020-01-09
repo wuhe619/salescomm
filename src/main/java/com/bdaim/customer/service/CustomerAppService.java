@@ -216,6 +216,8 @@ public class CustomerAppService {
         entity.setStatus("APPROVED");
         entity.setName("DefaultApplication");
         entity.setTier("Unlimited");
+        String token = MD5Util.encode32Bit(UUID.randomUUID().toString());
+        entity.setAccessToken(token);
         entity.setSubscriberId(Long.valueOf(customerId));
         amApplicationDao.saveOrUpdate(entity);
     }

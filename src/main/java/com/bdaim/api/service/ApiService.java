@@ -354,13 +354,13 @@ public class ApiService {
 
             String sql = "REPLACE INTO am_subscription_charge(SUBSCRIPTION_ID,CHARGE_ID,EFFECTIVE_DATE,EXPIRE_DATE,START_VOLUME,TIER_VOLUME,CREATE_TIME,CREATE_BY,UPDATE_TIME,UPDATE_BY) " +
                     "VALUES (?,?,?,?,?,?,?,?,?,?)";
-            jdbcTemplate.update(sql, new Object[]{subscriptionId, 1, new Timestamp(System.currentTimeMillis()), calendar.getTime(), 0, 100000, new Timestamp(System.currentTimeMillis()), lu.getUserName(), new Timestamp(System.currentTimeMillis()), lu.getUserName()});
+            jdbcTemplate.update(sql, new Object[]{subscriptionId, 1, new Timestamp(System.currentTimeMillis()), calendar.getTime(), 0, 10000, new Timestamp(System.currentTimeMillis()), lu.getUserName(), new Timestamp(System.currentTimeMillis()), lu.getUserName()});
             logger.info("初始化API定价信息成功,客户Id:{},subscriptionId:{}", params.getString("custId"), subscriptionId);
         } else {
             subscriptionId = Integer.valueOf(list.get(0).get("id").toString());
             logger.info("重新订阅API只更改订阅状态,客户Id:{},subscriptionId:{}", params.getString("custId"), subscriptionId);
-            String sql = "update am_subscription  set SUBS_CREATE_STATE=? ,UPDATED_BY=? ,UPDATED_TIME=? where SUBSCRIPTION_ID=? ";
-            jdbcTemplate.update(sql, new Object[]{"SUBSCRIBE", lu.getUserName(), new Timestamp(System.currentTimeMillis()), subscriptionId});
+            String sql = "update am_subscription  set SUBS_CREATE_STATE=? ,SUB_STATUS=?,UPDATED_BY=? ,UPDATED_TIME=? where SUBSCRIPTION_ID=? ";
+            jdbcTemplate.update(sql, new Object[]{"SUBSCRIBE","UNBLOCKED", lu.getUserName(), new Timestamp(System.currentTimeMillis()), subscriptionId});
             logger.info("更改API订阅状态成功,客户Id:{},subscriptionId:{}", params.getString("custId"), subscriptionId);
             String chargeSql = "SELECT SUBSCRIPTION_ID FROM am_subscription_charge WHERE SUBSCRIPTION_ID = ? ";
             List<Map<String, Object>> chargeList = jdbcTemplate.queryForList(chargeSql, subscriptionId);
@@ -462,7 +462,8 @@ public class ApiService {
 //            throw new Exception("企业不存在");
 //        }
         StringBuffer sql = new StringBuffer();
-        sql.append(" select sub.APPLICATION_ID ,api.API_ID as apiId,api.API_NAME as apiName,sub.SUBS_CREATE_STATE as subCreateState,sub.CREATED_TIME as createTime,cus.real_name as realName,cus.cust_id as custId,ch.unit_price as price");
+        sql.append(" select sub.APPLICATION_ID ,api.context,sub.sub_status,api.API_ID as apiId,api.API_NAME as apiName,sub.SUBS_CREATE_STATE as subCreateState," +
+                "sub.CREATED_TIME as createTime,cus.real_name as realName,cus.cust_id as custId,ch.unit_price as price");
         sql.append(" from am_api api left join am_subscription sub  on  api.API_ID=sub.API_ID");
         sql.append(" left join am_application app on  app.APPLICATION_ID = sub.APPLICATION_ID");
         sql.append(" left join t_customer cus on cus.cust_id=app.SUBSCRIBER_ID");
