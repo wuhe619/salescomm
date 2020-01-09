@@ -244,7 +244,7 @@ public class TokenServiceImpl implements TokenService {
                     userdetail.setInten_industry(industry.getPropertyValue());
                 }
 
-                List apps = customerAppService.apps(u.getCust_id());
+               /* List apps = customerAppService.apps(u.getCust_id());
                 if(apps==null || apps.size()==0){
                     userdetail.setApi_token(null);
                 }else{
@@ -255,7 +255,7 @@ public class TokenServiceImpl implements TokenService {
                             userdetail.setApi_token(access_token.toString());
                         }
                     }
-                }
+                }*/
 
                 //前台用户权限信息
                 CustomerUserPropertyDO userProperty = customerUserDao.getProperty(String.valueOf(u.getId()), CustomerUserPropertyEnum.RESOURCE_MENU.getKey());
