@@ -354,7 +354,7 @@ public class ApiService {
 
             String sql = "REPLACE INTO am_subscription_charge(SUBSCRIPTION_ID,CHARGE_ID,EFFECTIVE_DATE,EXPIRE_DATE,START_VOLUME,TIER_VOLUME,CREATE_TIME,CREATE_BY,UPDATE_TIME,UPDATE_BY) " +
                     "VALUES (?,?,?,?,?,?,?,?,?,?)";
-            jdbcTemplate.update(sql, new Object[]{subscriptionId, 1, new Timestamp(System.currentTimeMillis()), calendar.getTime(), 0, 100000, new Timestamp(System.currentTimeMillis()), lu.getUserName(), new Timestamp(System.currentTimeMillis()), lu.getUserName()});
+            jdbcTemplate.update(sql, new Object[]{subscriptionId, 1, new Timestamp(System.currentTimeMillis()), calendar.getTime(), 0, 10000, new Timestamp(System.currentTimeMillis()), lu.getUserName(), new Timestamp(System.currentTimeMillis()), lu.getUserName()});
             logger.info("初始化API定价信息成功,客户Id:{},subscriptionId:{}", params.getString("custId"), subscriptionId);
         } else {
             subscriptionId = Integer.valueOf(list.get(0).get("id").toString());
@@ -462,7 +462,8 @@ public class ApiService {
 //            throw new Exception("企业不存在");
 //        }
         StringBuffer sql = new StringBuffer();
-        sql.append(" select sub.APPLICATION_ID ,api.API_ID as apiId,api.API_NAME as apiName,sub.SUBS_CREATE_STATE as subCreateState,sub.CREATED_TIME as createTime,cus.real_name as realName,cus.cust_id as custId,ch.unit_price as price");
+        sql.append(" select sub.APPLICATION_ID ,api.context,sub.sub_status,api.API_ID as apiId,api.API_NAME as apiName,sub.SUBS_CREATE_STATE as subCreateState," +
+                "sub.CREATED_TIME as createTime,cus.real_name as realName,cus.cust_id as custId,ch.unit_price as price");
         sql.append(" from am_api api left join am_subscription sub  on  api.API_ID=sub.API_ID");
         sql.append(" left join am_application app on  app.APPLICATION_ID = sub.APPLICATION_ID");
         sql.append(" left join t_customer cus on cus.cust_id=app.SUBSCRIBER_ID");
