@@ -256,6 +256,10 @@ public class TokenServiceImpl implements TokenService {
                         }
                     }
                 }*/
+                CustomerPropertyDTO apiToken = customerService.getCustomerProperty(u.getCust_id(), CustomerPropertyEnum.API_TOKEN.getKey());
+                if (apiToken != null && StringUtil.isNotEmpty(apiToken.getPropertyValue())) {
+                    userdetail.setApi_token(apiToken.getPropertyValue());
+                }
 
                 //前台用户权限信息
                 CustomerUserPropertyDO userProperty = customerUserDao.getProperty(String.valueOf(u.getId()), CustomerUserPropertyEnum.RESOURCE_MENU.getKey());

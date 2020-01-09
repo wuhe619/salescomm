@@ -159,7 +159,7 @@ public class CustomerController extends BasicAction {
     		logger.warn(customerId+":"+app.get("customerId"));
     		throw new Exception("error customer and app");
     	}
-        String newToken = customerAppService.reAppToken(appId);
+        String newToken = customerAppService.reAppToken(appId,customerId);
         app.put("token", newToken);
     	
         return app;

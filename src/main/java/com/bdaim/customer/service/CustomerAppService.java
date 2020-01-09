@@ -61,7 +61,8 @@ public class CustomerAppService {
             customer.setStatus(Constant.USER_ACTIVE_STATUS);
             customer.setCreateTime(DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss));
             vo.setCustId(customerId);
-            saveAmApplication(vo, lu, customerId);
+            AmApplicationEntity entity = saveAmApplication(vo, lu, customerId);
+            customerDao.dealCustomerInfo(vo.getCustId(), "api_token", entity.getAccessToken());
         }
         customerDao.saveOrUpdate(customer);
 
@@ -209,7 +210,7 @@ public class CustomerAppService {
         return customerId;
     }
 
-    public void saveAmApplication(CustomerRegistDTO vo, LoginUser lu, String customerId) {
+    public AmApplicationEntity saveAmApplication(CustomerRegistDTO vo, LoginUser lu, String customerId) {
         AmApplicationEntity entity = new AmApplicationEntity();
         entity.setCreateBy(lu.getName());
         entity.setCreateTime(new Timestamp(System.currentTimeMillis()));
@@ -221,6 +222,7 @@ public class CustomerAppService {
         entity.setAccessToken(token);
         entity.setSubscriberId(Long.valueOf(customerId));
         amApplicationDao.saveOrUpdate(entity);
+        return entity;
     }
 
 
@@ -470,10 +472,10 @@ public class CustomerAppService {
     		app = data.get(0);
     	return app;
     }
-    public String reAppToken(String appId) {
+    public String reAppToken(String appId,String customerId) {
     	String token = MD5Util.encode32Bit(UUID.randomUUID().toString());
     	jdbcTemplate.update("update am_application set access_token=? where application_id=?", token, appId);
-    	
+        customerDao.dealCustomerInfo(customerId, "api_token", token);
     	return token;
     }
     public List subscriptions(String appId) {
