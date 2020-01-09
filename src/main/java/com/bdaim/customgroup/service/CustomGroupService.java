@@ -6280,6 +6280,9 @@ public class CustomGroupService {
                         param.setPhone(String.valueOf(list.get(i).get("phone")));
                         // 调用API服务根据手机号生成uid
                         uid = phoneService.savePhoneToAPI(param.getPhone());
+                        if(StringUtil.isEmpty(uid)){
+                            uid = MD5Util.encode32Bit("c" + param.getPhone());
+                        }
                         param.setMd5Phone(uid);
                         list.get(i).remove("phone");
                         param.setSuperData(JSON.toJSONString(list.get(i)));
