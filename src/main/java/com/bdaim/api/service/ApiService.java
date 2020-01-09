@@ -359,8 +359,8 @@ public class ApiService {
         } else {
             subscriptionId = Integer.valueOf(list.get(0).get("id").toString());
             logger.info("重新订阅API只更改订阅状态,客户Id:{},subscriptionId:{}", params.getString("custId"), subscriptionId);
-            String sql = "update am_subscription  set SUBS_CREATE_STATE=? ,UPDATED_BY=? ,UPDATED_TIME=? where SUBSCRIPTION_ID=? ";
-            jdbcTemplate.update(sql, new Object[]{"SUBSCRIBE", lu.getUserName(), new Timestamp(System.currentTimeMillis()), subscriptionId});
+            String sql = "update am_subscription  set SUBS_CREATE_STATE=? ,SUB_STATUS=?,UPDATED_BY=? ,UPDATED_TIME=? where SUBSCRIPTION_ID=? ";
+            jdbcTemplate.update(sql, new Object[]{"SUBSCRIBE","UNBLOCKED", lu.getUserName(), new Timestamp(System.currentTimeMillis()), subscriptionId});
             logger.info("更改API订阅状态成功,客户Id:{},subscriptionId:{}", params.getString("custId"), subscriptionId);
             String chargeSql = "SELECT SUBSCRIPTION_ID FROM am_subscription_charge WHERE SUBSCRIPTION_ID = ? ";
             List<Map<String, Object>> chargeList = jdbcTemplate.queryForList(chargeSql, subscriptionId);
