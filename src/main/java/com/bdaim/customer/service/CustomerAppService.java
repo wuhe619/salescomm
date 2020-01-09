@@ -215,6 +215,7 @@ public class CustomerAppService {
         entity.setCreateTime(new Timestamp(System.currentTimeMillis()));
         entity.setStatus("APPROVED");
         entity.setName("DefaultApplication");
+
         entity.setTier("Unlimited");
         String token = MD5Util.encode32Bit(UUID.randomUUID().toString());
         entity.setAccessToken(token);
