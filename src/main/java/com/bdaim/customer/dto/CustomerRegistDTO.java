@@ -117,6 +117,15 @@ public class CustomerRegistDTO implements Serializable {
     private String short_msg_link;
     private String api_token;
     private String industryPictureValue;
+    private String remain_amount;
+
+    public String getRemain_amount() {
+        return remain_amount;
+    }
+
+    public void setRemain_amount(String remain_amount) {
+        this.remain_amount = remain_amount;
+    }
 
     public String getIndustryPictureValue() {
         return industryPictureValue;

@@ -12,17 +12,14 @@ import com.bdaim.customer.dto.Deposit;
 import com.bdaim.customer.entity.AmApplicationEntity;
 import com.bdaim.customer.entity.Customer;
 import com.bdaim.customer.entity.CustomerProperty;
-import com.bdaim.util.Constant;
-import com.bdaim.util.DateUtil;
-import com.bdaim.util.IDHelper;
-import com.bdaim.util.MD5Util;
-import com.bdaim.util.StringUtil;
+import com.bdaim.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -359,6 +356,12 @@ public class CustomerAppService {
                 case "industry":
                     vo.setIndustry(property_value);
                     break;
+                case "remain_amount":
+                    if(property_value==null)
+                        property_value="0";
+                    else
+                        property_value = BigDecimalUtil.strDiv(property_value,"100000",2);
+                    vo.setRemain_amount(property_value);
             }
         }
         return vo;
