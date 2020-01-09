@@ -20,6 +20,8 @@ import com.bdaim.customer.dao.AmApplicationDao;
 import com.bdaim.customer.entity.AmApplicationEntity;
 import com.bdaim.customer.service.CustomerAppService;
 import com.bdaim.supplier.dao.SupplierDao;
+import com.bdaim.util.JavaBeanUtil;
+import com.bdaim.util.NumberConvertUtil;
 import com.bdaim.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,7 +63,10 @@ public class ApiService {
 
     public int saveApiProperty(ApiData apiData, String id, LoginUser lu) throws Exception {
         int apiId;
+        // 去除实体类String空格
+        apiData = (ApiData) JavaBeanUtil.replaceBlankSpace(apiData);
         ApiDefine apiDefine = apiData.getApi_define();
+        apiDefine = (ApiDefine) JavaBeanUtil.replaceBlankSpace(apiDefine);
         if (StringUtil.isEmpty(id) || "0".equals(id)) {
             String context = apiData.getContext();
             String apiVersion = context.substring(context.lastIndexOf("/") + 1);
@@ -84,7 +89,7 @@ public class ApiService {
             apiId = (int) apiDao.saveReturnPk(entity);
             apiDao.dealCustomerInfo(String.valueOf(apiId), "status", "0");
         } else {
-            ApiEntity entity = apiDao.getApi(Integer.valueOf(id));
+            ApiEntity entity = apiDao.getApi(NumberConvertUtil.parseInt(id));
             if (entity == null) {
                 throw new Exception("API不存在");
             }
@@ -409,7 +414,7 @@ public class ApiService {
         }
         page.setSort("api.CREATED_TIME");
         page.setDir("desc");
-        Page list = apiDao.sqlPageQuery(sql.toString(),page.getPageNum(),page.getPageSize());
+        Page list = apiDao.sqlPageQuery(sql.toString(), page.getPageNum(), page.getPageSize());
         //PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
         Object collect = list.getData().stream().map(m -> {
             Map map = (Map) m;
@@ -520,7 +525,7 @@ public class ApiService {
         //, count(api.API_ID) as countNum
         sql.append(" select api.API_ID as apiId, api.API_NAME as apiName, que.RESPONSE_MSG as body,round(log.CHARGE/10000) as charge,que.SERVICE_TIME as serviceTime");
         sql.append(" from rs_log_" + params.getString("callMonth") + " log left join am_api api  on  log.API_ID =api.API_ID");
-        sql.append(" left join am_charge_"+ params.getString("callMonth") +" que on que.ID=log.API_LOG_ID");
+        sql.append(" left join am_charge_" + params.getString("callMonth") + " que on que.ID=log.API_LOG_ID");
         sql.append(" where 1=1");
         if (params.containsKey("apiName")) {
             sql.append(" and api.API_NAME like '%" + params.getString("apiName") + "%'");
@@ -550,7 +555,7 @@ public class ApiService {
                 " que.SERVICE_TIME as serviceTime,que.RESPONSE_TIME as responseTime,round(log.CHARGE/10000) as charge,que.RESPONSE_MSG as body");
         sql.append(" from rs_log_" + params.getString("callMonth") + " log left join t_market_resource res on log.RS_ID=res.resource_id");
         sql.append(" left join am_api api on api.API_ID = log.API_ID ");
-        sql.append(" left join am_charge_"+ params.getString("callMonth") +" que on que.ID=log.API_LOG_ID");
+        sql.append(" left join am_charge_" + params.getString("callMonth") + " que on que.ID=log.API_LOG_ID");
         sql.append(" where log.RS_ID = " + params.getLong("resourceId"));
 
         PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
