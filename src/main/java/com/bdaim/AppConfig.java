@@ -43,6 +43,7 @@ public class AppConfig {
     private static Boolean is_enable_oper_log = false;
     private static Integer oper_log_insert_timeout = 1000;
 	private static String xz_call_api = "http://api.salescomm.net:8017";
+	private static String dbUrl;
     
 	public static String getApp() {
 		return app;
@@ -265,5 +266,13 @@ public class AppConfig {
 	@Value("${xz_call_api:http://api.salescomm.net:8017}")
 	public void setXz_call_api(String xz_call_api) {
 		AppConfig.xz_call_api = xz_call_api;
+	}
+
+	public static String getDbUrl() {
+		return dbUrl;
+	}
+	@Value("${spring.datasource.url}")
+	public void setDbUrl(String dbUrl) {
+		AppConfig.dbUrl = dbUrl;
 	}
 }
