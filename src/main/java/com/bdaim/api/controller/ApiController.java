@@ -172,8 +172,8 @@ public class ApiController extends BasicAction {
     @PostMapping("/subscribe")
     public ResponseInfo subApiList(@RequestBody JSONObject params) throws Exception {
         LoginUser lu = opUser();
-        if (lu == null || lu.getAuths() == null || !lu.getAuths().contains("admin"))
-            throw new Exception("no auth");
+       /* if (lu == null || lu.getAuths() == null || !lu.getAuths().contains("admin"))
+            throw new Exception("no auth");*/
 
         ResponseInfo info = new ResponseInfo();
         PageParam page = new PageParam();
