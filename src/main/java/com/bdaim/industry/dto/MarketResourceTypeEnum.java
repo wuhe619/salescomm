@@ -16,7 +16,9 @@ public enum MarketResourceTypeEnum {
     SEATS(5, "seat_config"),
     APPARENT_NUMBER(6, "apparent_config"),
     B2B_PRICE(7, "b2b_price_config"),
-    B2B_TCB(8, "b2b_resource_config");
+    B2B_TCB(8, "b2b_resource_config"),
+    XZ_CALL_API_CONFIG(9, "xz_call_api"),
+    API_CONFIG(10, "api_config");
     private int type;
     private String propertyName;
 
