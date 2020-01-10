@@ -42,6 +42,7 @@ import com.bdaim.supplier.dao.SupplierDao;
 import com.bdaim.supplier.dto.SupplierDTO;
 import com.bdaim.supplier.entity.SupplierEntity;
 import com.bdaim.supplier.entity.SupplierPropertyEntity;
+import com.bdaim.util.BigDecimalUtil;
 import com.bdaim.util.DateUtil;
 import com.bdaim.util.NumberConvertUtil;
 import com.bdaim.util.StringUtil;
@@ -2327,7 +2328,7 @@ public class SupplierService {
     public Map<String, Object> getSupplierList(PageParam page, String name) {
         try {
             StringBuffer sql = new StringBuffer();
-            sql.append("select supplier_id,name,settlement_type,contact_person,contact_phone,contact_position,status,create_time from t_supplier where status =1 ");
+            sql.append("select supplier_id,name,settlement_type,contact_person,contact_phone,contact_position,type,status,create_time from t_supplier where status =1 ");
             if (StringUtil.isNotEmpty(name)) {
                 sql.append(" and name like '%" + name + "%'");
             }
@@ -2367,8 +2368,13 @@ public class SupplierService {
                 supplierDTOMap.put("supplierId", map1.get("supplier_id"));
                 SupplierPropertyEntity remain_amount = supplierDao.getProperty(map1.get("supplier_id").toString(), "remain_amount");
                 SupplierPropertyEntity used_amount = supplierDao.getProperty(map1.get("supplier_id").toString(), "used_amount");
-                supplierDTOMap.put("balance", remain_amount == null ? 0 : Integer.valueOf(remain_amount.getPropertyValue()) / 10000);
-                supplierDTOMap.put("consumption", used_amount == null ? 0 : Integer.valueOf(used_amount.getPropertyValue()) / 10000);
+                if("5".equals(map1.get("type").toString())){
+                    supplierDTOMap.put("balance", remain_amount == null ? 0 : Float.valueOf(remain_amount.getPropertyValue()) / 10000);
+                    supplierDTOMap.put("consumption", used_amount == null ? 0 : Float.valueOf(used_amount.getPropertyValue()) / 10000);
+                }else {
+                    supplierDTOMap.put("balance", remain_amount == null ? 0 : Float.valueOf(remain_amount.getPropertyValue()) / 1000);
+                    supplierDTOMap.put("consumption", used_amount == null ? 0 : Float.valueOf(used_amount.getPropertyValue()) / 1000);
+                }
                 supplierDTOMap.put("apiNum", propertyMap.containsKey(Integer.valueOf(map1.get("supplier_id").toString())) ? propertyMap.get(Integer.valueOf(map1.get("supplier_id").toString())).size() : 0);
                 return supplierDTOMap;
             }).collect(Collectors.toList());
@@ -2376,7 +2382,8 @@ public class SupplierService {
             return map;
 
         } catch (Exception e) {
-            log.info(e.getMessage());
+            e.printStackTrace();
+            log.error(e.getMessage());
         }
         return null;
     }
