@@ -6957,5 +6957,20 @@ public class CustomGroupService {
             throw e;
         }
     }
+
+    /**
+     * 客群更新
+     * @param dto
+     * @return
+     */
+    public int update(CustomGroupDTO dto) {
+        CustomGroup customGroup = customGroupDao.get(dto.getId());
+        if (customGroup != null) {
+            customGroup.setRemark(dto.getRemark());
+            customGroupDao.update(customGroup);
+            return 1;
+        }
+        return 0;
+    }
 }
 

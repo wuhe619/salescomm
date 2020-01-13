@@ -15,13 +15,11 @@ import com.bdaim.common.dto.Page;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.exception.ParamException;
 import com.bdaim.common.filter.FiledFilter;
+import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.service.PhoneService;
 import com.bdaim.customer.account.dto.RemainSourceDTO;
 import com.bdaim.customersea.service.CustomerSeaService;
-import com.bdaim.customgroup.dto.CGroupSearchParam;
-import com.bdaim.customgroup.dto.CustomerGroupAddDTO;
-import com.bdaim.customgroup.dto.CustomerGroupParamDTO;
-import com.bdaim.customgroup.dto.CustomerGrpOrdParam;
+import com.bdaim.customgroup.dto.*;
 import com.bdaim.customgroup.entity.CustomGroup;
 import com.bdaim.customgroup.entity.CustomerGroupProperty;
 import com.bdaim.customgroup.service.CustomGroupService;
@@ -45,10 +43,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
@@ -1438,5 +1433,32 @@ public class CustomGroupAction extends BasicAction {
         } else {
             return returnError();
         }
+    }
+
+    /**
+     * 保存/更新客群属性
+     *
+     * @return
+     */
+    @PostMapping(value = "/info/{id}")
+    @ResponseBody
+    public ResponseInfo saveOr(@PathVariable(name = "id") Integer id, @RequestBody String body) {
+        if (StringUtil.isEmpty(body)) {
+            body = "{}";
+        }
+        ResponseInfo responseInfo = new ResponseInfo();
+        CustomGroupDTO dto = JSON.parseObject(body, CustomGroupDTO.class);
+        int code = 0;
+        try {
+            dto.setId(id);
+            code = customGroupService.update(dto);
+        } catch (Exception e) {
+            log.error("更新客群异常", e);
+            responseInfo.setCode(-1);
+        }
+        if (code == 1) {
+            responseInfo.setCode(200);
+        }
+        return responseInfo;
     }
 }
