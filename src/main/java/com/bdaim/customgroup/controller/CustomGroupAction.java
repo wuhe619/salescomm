@@ -1436,13 +1436,13 @@ public class CustomGroupAction extends BasicAction {
     }
 
     /**
-     * 保存/更新客群属性
+     * 保存/更新客群信息
      *
      * @return
      */
     @PostMapping(value = "/info/{id}")
     @ResponseBody
-    public ResponseInfo saveOr(@PathVariable(name = "id") Integer id, @RequestBody String body) {
+    public ResponseInfo saveOrUpdate(@PathVariable(name = "id") Integer id, @RequestBody String body) {
         if (StringUtil.isEmpty(body)) {
             body = "{}";
         }
@@ -1455,10 +1455,66 @@ public class CustomGroupAction extends BasicAction {
         } catch (Exception e) {
             log.error("更新客群异常", e);
             responseInfo.setCode(-1);
+            code = 0;
         }
         if (code == 1) {
             responseInfo.setCode(200);
         }
+        return responseInfo;
+    }
+
+    /**
+     * 客群列表
+     *
+     * @return
+     */
+    @PostMapping("/info")
+    @ResponseBody
+    public ResponseInfo list(@RequestBody(required = false) String body, HttpServletResponse response) {
+        ResponseInfo responseInfo = new ResponseInfo();
+        if (StringUtil.isEmpty(body)) {
+            body = "{}";
+        }
+        JSONObject param = JSON.parseObject(body);
+        String customer_group_id = param.getString("customer_group_id");
+        String customer_name = param.getString("customer_name");
+        Integer states = param.getInteger("states");
+        String enterprise_name = param.getString("enterprise_name");
+        Integer pageNum = param.getInteger("pageNum");
+        Integer pageSize = param.getInteger("pageSize");
+        String dateStart = param.getString("dateStart");
+        String dateEnd = param.getString("dateEnd");
+        String marketProjectId = param.getString("marketProjectId");
+        String sUpdateTime = param.getString("sUpdateTime");
+        String eUpdateTime = param.getString("eUpdateTime");
+        String callType = param.getString("callType");
+        String id = param.getString("id");
+        String propertyName = param.getString("propertyName");
+        String propertyValue = param.getString("propertyValue");
+        String unicomActivityName = param.getString("unicomActivityName");
+        String pullStatus = param.getString("pullStatus");
+        CGroupSearchParam cGroupParam = new CGroupSearchParam();
+        cGroupParam.setPropertyName(propertyName);
+        cGroupParam.setPropertyValue(propertyValue);
+        cGroupParam.setUnicomActivityName(unicomActivityName);
+        cGroupParam.setPullStatus(pullStatus);
+        cGroupParam.setsUpdateTime(sUpdateTime);
+        cGroupParam.seteUpdateTime(eUpdateTime);
+
+        LoginUser u = opUser();
+        String cust_id = u.getCustId();
+        String user_id = u.getId().toString();
+        String rule = param.getString("_rule_");
+        if (StringUtil.isNotEmpty(rule)) {
+            customGroupService.exportList(response, rule, customer_group_id, cust_id, user_id, pageNum, pageSize,
+                    id, customer_name, states, callType, dateStart, dateEnd, enterprise_name, marketProjectId, cGroupParam);
+            return null;
+        }
+
+        Page p = customGroupService.page(customer_group_id, cust_id, user_id, pageNum, pageSize,
+                id, customer_name, states, callType, dateStart, dateEnd, enterprise_name, marketProjectId, cGroupParam);
+        responseInfo.setData(p);
+        responseInfo.setCode(200);
         return responseInfo;
     }
 }
