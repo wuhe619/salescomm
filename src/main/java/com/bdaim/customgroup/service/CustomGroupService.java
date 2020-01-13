@@ -7105,7 +7105,14 @@ public class CustomGroupService {
                             customGroupDTO.setStatusName("已支付,正在提数");
                         }
                     }
-                    data.add(JSON.parseObject(JSON.toJSONString(customGroupDTO)));
+                    JSONObject jsonObject = JSON.parseObject(JSON.toJSONString(customGroupDTO));
+                    if (jsonObject.getTimestamp("createTime") != null) {
+                        jsonObject.put("createTime", DateUtil.convertTimeToString(jsonObject.getTimestamp("createTime").getTime()));
+                    }
+                    if (jsonObject.getTimestamp("updateTime") != null) {
+                        jsonObject.put("updateTime", DateUtil.convertTimeToString(jsonObject.getTimestamp("updateTime").getTime()));
+                    }
+                    data.add(jsonObject);
                 }
             }
             //导出excel
