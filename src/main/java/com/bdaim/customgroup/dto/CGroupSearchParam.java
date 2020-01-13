@@ -22,6 +22,8 @@ public class CGroupSearchParam {
     String propertyValue;
     String unicomActivityName;
     String pullStatus;
+    String sUpdateTime;
+    String eUpdateTime;
 
     public String getCustomer_group_id() {
         return customer_group_id;
@@ -157,5 +159,21 @@ public class CGroupSearchParam {
 
     public void setPullStatus(String pullStatus) {
         this.pullStatus = pullStatus;
+    }
+
+    public String getsUpdateTime() {
+        return sUpdateTime;
+    }
+
+    public void setsUpdateTime(String sUpdateTime) {
+        this.sUpdateTime = sUpdateTime;
+    }
+
+    public String geteUpdateTime() {
+        return eUpdateTime;
+    }
+
+    public void seteUpdateTime(String eUpdateTime) {
+        this.eUpdateTime = eUpdateTime;
     }
 }

@@ -32,6 +32,11 @@ public class CustomerGroupAddDTO {
 
     private Integer dataSource;
 
+    /**
+     * 备注
+     */
+    private String remark;
+
 
     public String getEnterpriseName() {
         return enterpriseName;
@@ -161,4 +166,12 @@ public class CustomerGroupAddDTO {
 	public void setDataSource(Integer dataSource) {
 		this.dataSource = dataSource;
 	}
+
+    public String getRemark() {
+        return remark;
+    }
+
+    public void setRemark(String remark) {
+        this.remark = remark;
+    }
 }

@@ -51,6 +51,7 @@ import com.bdaim.order.service.OrderService;
 import com.bdaim.rbac.dto.UserQueryParam;
 import com.bdaim.resource.dao.MarketResourceDao;
 import com.bdaim.resource.dao.SourceDao;
+import com.bdaim.resource.entity.MarketResourceEntity;
 import com.bdaim.resource.service.MarketResourceService;
 import com.bdaim.supplier.dao.SupplierSettlementDao;
 import com.bdaim.supplier.dto.SupplierDTO;
@@ -209,6 +210,18 @@ public class CustomGroupService {
             values.add(end);
         }
 
+        if (StringUtil.isNotEmpty(param.getsUpdateTime())) {
+            Date start = DateUtil.fmtStrToDate(param.getsUpdateTime(), "yyyy/MM/dd HH:mm:ss");
+            hql.append(" and m.updateTime >=?");
+            values.add(start);
+        }
+
+        if (StringUtil.isNotEmpty(param.geteUpdateTime())) {
+            Date end = DateUtil.fmtStrToDate(param.geteUpdateTime(), "yyyy/MM/dd HH:mm:ss");
+            hql.append(" and m.updateTime <=?");
+            values.add(end);
+        }
+
         if (StringUtil.isNotEmpty(enterpriseName)) {
             hql.append(" and m.custId IN (SELECT id FROM Customer WHERE enterpriseName LIKE ?)");
             values.add("%" + enterpriseName + "%");
@@ -237,10 +250,12 @@ public class CustomGroupService {
             List data = new ArrayList();
             MarketProject marketProject;
             List<CustomerGroupProperty> properties;
+            Map property;
             for (int i = 0; i < page.getData().size(); i++) {
                 customGroup = (CustomGroup) page.getData().get(i);
                 customGroupDTO = new CustomGroupDTO(customGroup);
                 if (customGroupDTO != null) {
+                    property = new HashMap();
                     if (StringUtil.isNotEmpty(customGroupDTO.getAmount())) {
                         customGroupDTO.setAmount(BigDecimalUtil.div(customGroupDTO.getAmount().toString(), String.valueOf(1000), 5).doubleValue() + "");
                     } else {
@@ -262,17 +277,23 @@ public class CustomGroupService {
                     } else {
                         customGroupDTO.setMarketProjectName("");
                     }
-                }
-                // 查询客群属性
-                properties = customGroupDao.listProperty(customGroupDTO.getId());
-                if (properties != null && properties.size() > 0) {
-                    Map m = new HashMap();
-                    for (CustomerGroupProperty p : properties) {
-                        m.put(p.getPropertyName(), p.getPropertyValue());
+                    //查询渠道名称
+                    property.put("dataChannel", "");
+                    IndustryPool industryPool = industryPoolDao.get(customGroupDTO.getIndustryPoolId());
+                    if (industryPool != null) {
+                        MarketResourceEntity marketResource = marketResourceDao.get(industryPool.getSourceId());
+                        property.put("dataChannel", marketResource != null ? marketResource.getResname() : "");
                     }
-                    customGroupDTO.setProperties(m);
+                    // 查询客群属性
+                    properties = customGroupDao.listProperty(customGroupDTO.getId());
+                    if (properties != null && properties.size() > 0) {
+                        for (CustomerGroupProperty p : properties) {
+                            property.put(p.getPropertyName(), p.getPropertyValue());
+                        }
+                        customGroupDTO.setProperties(property);
+                    }
+                    data.add(customGroupDTO);
                 }
-                data.add(customGroupDTO);
             }
             page.setData(data);
         }
@@ -914,6 +935,8 @@ public class CustomGroupService {
         customGroup.setCreateUserId(customGroupDTO.getCreateUserId());
         // 默认任务类型为0
         customGroup.setTaskType(0);
+        // 备注
+        customGroup.setRemark(customGroupDTO.getRemark());
 
         // 1查询标签成本价、销售价、订单金额、订单成本价
         String groupCondition = customGroupDTO.getGroupCondition();
@@ -6280,7 +6303,7 @@ public class CustomGroupService {
                         param.setPhone(String.valueOf(list.get(i).get("phone")));
                         // 调用API服务根据手机号生成uid
                         uid = phoneService.savePhoneToAPI(param.getPhone());
-                        if(StringUtil.isEmpty(uid)){
+                        if (StringUtil.isEmpty(uid)) {
                             uid = MD5Util.encode32Bit("c" + param.getPhone());
                         }
                         param.setMd5Phone(uid);
