@@ -295,6 +295,9 @@ public class CustomGroupService {
                         }
                         customGroupDTO.setProperties(property);
                     }
+                    if (StringUtil.isEmpty(customGroupDTO.getRemark())) {
+                        customGroupDTO.setRemark("");
+                    }
                     data.add(customGroupDTO);
                 }
             }

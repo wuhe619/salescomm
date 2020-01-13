@@ -83,6 +83,7 @@ public class CustomGroupDTO {
         this.taskCreateTime = cg.getTaskCreateTime();
         this.marketProjectId = cg.getMarketProjectId();
         this.custId = cg.getCustId();
+        this.remark = cg.getRemark();
     }
 
     public Integer getId() {
