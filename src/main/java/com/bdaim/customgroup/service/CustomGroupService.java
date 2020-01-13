@@ -279,11 +279,14 @@ public class CustomGroupService {
                     }
                     //查询渠道名称
                     property.put("dataChannel", "");
-                    IndustryPool industryPool = industryPoolDao.get(customGroupDTO.getIndustryPoolId());
-                    if (industryPool != null) {
-                        MarketResourceEntity marketResource = marketResourceDao.get(industryPool.getSourceId());
-                        property.put("dataChannel", marketResource != null ? marketResource.getResname() : "");
+                    if (customGroupDTO.getIndustryPoolId() != null) {
+                        IndustryPool industryPool = industryPoolDao.get(customGroupDTO.getIndustryPoolId());
+                        if (industryPool != null) {
+                            MarketResourceEntity marketResource = marketResourceDao.get(industryPool.getSourceId());
+                            property.put("dataChannel", marketResource != null ? marketResource.getResname() : "");
+                        }
                     }
+
                     // 查询客群属性
                     properties = customGroupDao.listProperty(customGroupDTO.getId());
                     if (properties != null && properties.size() > 0) {
