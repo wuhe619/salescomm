@@ -43,7 +43,7 @@ public class AppConfig {
     private static Boolean is_enable_oper_log = false;
     private static Integer oper_log_insert_timeout = 1000;
 	private static String xz_call_api = "http://api.salescomm.net:8017";
-    
+
 	public static String getApp() {
 		return app;
 	}

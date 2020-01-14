@@ -12,17 +12,14 @@ import com.bdaim.customer.dto.Deposit;
 import com.bdaim.customer.entity.AmApplicationEntity;
 import com.bdaim.customer.entity.Customer;
 import com.bdaim.customer.entity.CustomerProperty;
-import com.bdaim.util.Constant;
-import com.bdaim.util.DateUtil;
-import com.bdaim.util.IDHelper;
-import com.bdaim.util.MD5Util;
-import com.bdaim.util.StringUtil;
+import com.bdaim.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -64,7 +61,8 @@ public class CustomerAppService {
             customer.setStatus(Constant.USER_ACTIVE_STATUS);
             customer.setCreateTime(DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss));
             vo.setCustId(customerId);
-            saveAmApplication(vo, lu, customerId);
+            AmApplicationEntity entity = saveAmApplication(vo, lu, customerId);
+            customerDao.dealCustomerInfo(vo.getCustId(), "api_token", entity.getAccessToken());
         }
         customerDao.saveOrUpdate(customer);
 
@@ -212,15 +210,19 @@ public class CustomerAppService {
         return customerId;
     }
 
-    public void saveAmApplication(CustomerRegistDTO vo, LoginUser lu, String customerId) {
+    public AmApplicationEntity saveAmApplication(CustomerRegistDTO vo, LoginUser lu, String customerId) {
         AmApplicationEntity entity = new AmApplicationEntity();
         entity.setCreateBy(lu.getName());
         entity.setCreateTime(new Timestamp(System.currentTimeMillis()));
         entity.setStatus("APPROVED");
         entity.setName("DefaultApplication");
+
         entity.setTier("Unlimited");
+        String token = MD5Util.encode32Bit(UUID.randomUUID().toString());
+        entity.setAccessToken(token);
         entity.setSubscriberId(Long.valueOf(customerId));
         amApplicationDao.saveOrUpdate(entity);
+        return entity;
     }
 
 
@@ -359,6 +361,12 @@ public class CustomerAppService {
                 case "industry":
                     vo.setIndustry(property_value);
                     break;
+                case "remain_amount":
+                    if(property_value==null)
+                        property_value="0";
+                    else
+                        property_value = BigDecimalUtil.strDiv(property_value,"100000",2);
+                    vo.setRemain_amount(property_value);
             }
         }
         return vo;
@@ -464,10 +472,10 @@ public class CustomerAppService {
     		app = data.get(0);
     	return app;
     }
-    public String reAppToken(String appId) {
+    public String reAppToken(String appId,String customerId) {
     	String token = MD5Util.encode32Bit(UUID.randomUUID().toString());
     	jdbcTemplate.update("update am_application set access_token=? where application_id=?", token, appId);
-    	
+        customerDao.dealCustomerInfo(customerId, "api_token", token);
     	return token;
     }
     public List subscriptions(String appId) {

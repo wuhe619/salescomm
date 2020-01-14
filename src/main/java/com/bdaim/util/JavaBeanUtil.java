@@ -60,4 +60,38 @@ public class JavaBeanUtil {
 
         return list;
     }
+
+    /**
+     * 为object中的所有String属性去除空格字符
+     *
+     * @param object
+     * @return
+     */
+    public static Object replaceBlankSpace(Object object) {
+        if (object == null) {
+            return null;
+        }
+        //获取该类中所有的域(属性)
+        Field[] fields = object.getClass().getDeclaredFields();
+
+        for (Field field : fields) {
+            //对所有的属性判断是否为String类型
+            if (field.getType().equals(String.class)) {
+                //将私有属性设置为可访问状态
+                field.setAccessible(true);
+                try {
+                    String string = (String) field.get(object);
+                    if(StringUtil.isNotEmpty(string)){
+                        //将所有的空格字符用""替换
+                        string = string.replaceAll(" ", "");
+                    }
+                    //相当于调用了set方法设置属性
+                    field.set(object, string);
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return object;
+    }
 }

@@ -10,6 +10,7 @@ import com.bdaim.customer.dao.CustomerUserPropertyDao;
 import com.bdaim.customer.dto.*;
 import com.bdaim.customer.entity.CustomerUser;
 import com.bdaim.customer.entity.CustomerUserPropertyDO;
+import com.bdaim.customer.service.CustomerAppService;
 import com.bdaim.customer.service.CustomerService;
 import com.bdaim.customer.user.service.CustomerUserService;
 import com.bdaim.rbac.dao.RoleDao;
@@ -62,6 +63,9 @@ public class TokenServiceImpl implements TokenService {
     private WeChatUtil weChatUtil;
     @Resource
     private CustomerUserPropertyDao customerUserPropertyDao;
+
+    @Resource
+    private CustomerAppService customerAppService;
 
     private static Map name2token = new HashMap();
 
@@ -239,10 +243,24 @@ public class TokenServiceImpl implements TokenService {
                 if (industry != null && StringUtil.isNotEmpty(industry.getPropertyValue())) {
                     userdetail.setInten_industry(industry.getPropertyValue());
                 }
+
+               /* List apps = customerAppService.apps(u.getCust_id());
+                if(apps==null || apps.size()==0){
+                    userdetail.setApi_token(null);
+                }else{
+                    for(int i=0;i<apps.size();i++){
+                        Map<String,Object> map = (Map<String, Object>) apps.get(i);
+                        Object access_token =  map.get("access_token");
+                        if(access_token!=null){
+                            userdetail.setApi_token(access_token.toString());
+                        }
+                    }
+                }*/
                 CustomerPropertyDTO apiToken = customerService.getCustomerProperty(u.getCust_id(), CustomerPropertyEnum.API_TOKEN.getKey());
                 if (apiToken != null && StringUtil.isNotEmpty(apiToken.getPropertyValue())) {
                     userdetail.setApi_token(apiToken.getPropertyValue());
                 }
+
                 //前台用户权限信息
                 CustomerUserPropertyDO userProperty = customerUserDao.getProperty(String.valueOf(u.getId()), CustomerUserPropertyEnum.RESOURCE_MENU.getKey());
                 if (userProperty != null && StringUtil.isNotEmpty(userProperty.getPropertyValue())) {

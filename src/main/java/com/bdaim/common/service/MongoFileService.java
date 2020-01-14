@@ -1,10 +1,13 @@
 package com.bdaim.common.service;
 
+import com.mongodb.MongoException;
 import com.mongodb.client.gridfs.GridFSBucket;
 import com.mongodb.client.gridfs.GridFSBuckets;
 import com.mongodb.client.gridfs.GridFSDownloadStream;
 import com.mongodb.client.gridfs.model.GridFSFile;
 import org.bson.types.ObjectId;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -29,6 +32,9 @@ import java.util.Map;
  */
 @Service
 public class MongoFileService {
+
+    private static Logger LOG = LoggerFactory.getLogger(MongoFileService.class);
+
     @Autowired
     private GridFsTemplate gridfsTemplate;
     @Autowired
@@ -40,10 +46,16 @@ public class MongoFileService {
     /**
      * 根据文件名称查询文件
      */
-    public GridFSFile findFileById(String fileName) throws Exception {
+    public GridFSFile findFileById(String fileName) {
         Query query = new Query();
         query.addCriteria(Criteria.where("filename").is(fileName));
-        return gridfsTemplate.findOne(query);
+        GridFSFile gridFSFile = null;
+        try {
+            gridFSFile = gridfsTemplate.findOne(query);
+        } catch (Exception e) {
+            LOG.warn("mongo查询失败", e);
+        }
+        return gridFSFile;
     }
 
     /**
@@ -58,13 +70,25 @@ public class MongoFileService {
         metadata.put("_contentType", file.getContentType());
         metadata.put("resFileName", filename);
         metadata.put("resFileType", type);
-        ObjectId id = gridfsTemplate.store(file.getInputStream(), fileName, metadata);
+        ObjectId id = null;
+        try {
+            id = gridfsTemplate.store(file.getInputStream(), fileName, metadata);
+        } catch (MongoException e) {
+            LOG.warn("mongo访问异常", e);
+            return "";
+        }
         return id.toString();
     }
 
     public String saveFile(InputStream file, String fileName) throws IOException {
         Map<String, Object> metadata = new HashMap<>();
-        ObjectId id = gridfsTemplate.store(file, fileName, metadata);
+        ObjectId id = null;
+        try {
+            id = gridfsTemplate.store(file, fileName, metadata);
+        } catch (MongoException e) {
+            LOG.warn("mongo访问异常", e);
+            return "";
+        }
         return id.toString();
     }
 
@@ -74,7 +98,11 @@ public class MongoFileService {
     public void deleteFileById(String fileName) {
         Query query = new Query();
         query.addCriteria(Criteria.where("filename").is(fileName));
-        gridfsTemplate.delete(query);
+        try {
+            gridfsTemplate.delete(query);
+        } catch (Exception e) {
+            LOG.warn("mongo删除异常", e);
+        }
     }
 
     /**
@@ -87,20 +115,30 @@ public class MongoFileService {
     public byte[] downloadFile(String fileName) throws Exception {
         Query query = new Query();
         query.addCriteria(Criteria.where("filename").is(fileName));
-        GridFSFile gridFSFile = gridfsTemplate.findOne(query);
-        if (gridFSFile == null) {
-            return new byte[]{};
+        byte[] f = new byte[0];
+        try {
+            GridFSFile gridFSFile = gridfsTemplate.findOne(query);
+            if (gridFSFile == null) {
+                return new byte[]{};
+            }
+            GridFSBucket bucket = GridFSBuckets.create(mongoDbFactory.getDb());
+            GridFSDownloadStream in = bucket.openDownloadStream(gridFSFile.getFilename());
+            GridFsResource resource = new GridFsResource(gridFSFile, in);
+            InputStream inputStream = resource.getInputStream();
+            f = getBytes(inputStream);
+        } catch (Exception e) {
+            LOG.warn("mongo读取文件异常", e);
         }
-        GridFSBucket bucket = GridFSBuckets.create(mongoDbFactory.getDb());
-        GridFSDownloadStream in = bucket.openDownloadStream(gridFSFile.getFilename());
-        GridFsResource resource = new GridFsResource(gridFSFile, in);
-        InputStream inputStream = resource.getInputStream();
-        byte[] f = getBytes(inputStream);
         return f;
     }
 
-    public String saveData(String content){
-        String id = mongoTemplate.insert(content);
+    public String saveData(String content) {
+        String id = null;
+        try {
+            id = mongoTemplate.insert(content);
+        } catch (Exception e) {
+            LOG.warn("mongo保存文件异常", e);
+        }
         return id;
     }
 

@@ -51,6 +51,7 @@ import com.bdaim.order.service.OrderService;
 import com.bdaim.rbac.dto.UserQueryParam;
 import com.bdaim.resource.dao.MarketResourceDao;
 import com.bdaim.resource.dao.SourceDao;
+import com.bdaim.resource.entity.MarketResourceEntity;
 import com.bdaim.resource.service.MarketResourceService;
 import com.bdaim.supplier.dao.SupplierSettlementDao;
 import com.bdaim.supplier.dto.SupplierDTO;
@@ -209,6 +210,18 @@ public class CustomGroupService {
             values.add(end);
         }
 
+        if (StringUtil.isNotEmpty(param.getsUpdateTime())) {
+            Date start = DateUtil.fmtStrToDate(param.getsUpdateTime(), "yyyy/MM/dd HH:mm:ss");
+            hql.append(" and m.updateTime >=?");
+            values.add(start);
+        }
+
+        if (StringUtil.isNotEmpty(param.geteUpdateTime())) {
+            Date end = DateUtil.fmtStrToDate(param.geteUpdateTime(), "yyyy/MM/dd HH:mm:ss");
+            hql.append(" and m.updateTime <=?");
+            values.add(end);
+        }
+
         if (StringUtil.isNotEmpty(enterpriseName)) {
             hql.append(" and m.custId IN (SELECT id FROM Customer WHERE enterpriseName LIKE ?)");
             values.add("%" + enterpriseName + "%");
@@ -237,10 +250,12 @@ public class CustomGroupService {
             List data = new ArrayList();
             MarketProject marketProject;
             List<CustomerGroupProperty> properties;
+            Map property;
             for (int i = 0; i < page.getData().size(); i++) {
                 customGroup = (CustomGroup) page.getData().get(i);
                 customGroupDTO = new CustomGroupDTO(customGroup);
                 if (customGroupDTO != null) {
+                    property = new HashMap();
                     if (StringUtil.isNotEmpty(customGroupDTO.getAmount())) {
                         customGroupDTO.setAmount(BigDecimalUtil.div(customGroupDTO.getAmount().toString(), String.valueOf(1000), 5).doubleValue() + "");
                     } else {
@@ -262,17 +277,29 @@ public class CustomGroupService {
                     } else {
                         customGroupDTO.setMarketProjectName("");
                     }
-                }
-                // 查询客群属性
-                properties = customGroupDao.listProperty(customGroupDTO.getId());
-                if (properties != null && properties.size() > 0) {
-                    Map m = new HashMap();
-                    for (CustomerGroupProperty p : properties) {
-                        m.put(p.getPropertyName(), p.getPropertyValue());
+                    //查询渠道名称
+                    property.put("dataChannel", "");
+                    if (customGroupDTO.getIndustryPoolId() != null) {
+                        IndustryPool industryPool = industryPoolDao.get(customGroupDTO.getIndustryPoolId());
+                        if (industryPool != null) {
+                            MarketResourceEntity marketResource = marketResourceDao.get(industryPool.getSourceId());
+                            property.put("dataChannel", marketResource != null ? marketResource.getResname() : "");
+                        }
                     }
-                    customGroupDTO.setProperties(m);
+
+                    // 查询客群属性
+                    properties = customGroupDao.listProperty(customGroupDTO.getId());
+                    if (properties != null && properties.size() > 0) {
+                        for (CustomerGroupProperty p : properties) {
+                            property.put(p.getPropertyName(), p.getPropertyValue());
+                        }
+                        customGroupDTO.setProperties(property);
+                    }
+                    if (StringUtil.isEmpty(customGroupDTO.getRemark())) {
+                        customGroupDTO.setRemark("");
+                    }
+                    data.add(customGroupDTO);
                 }
-                data.add(customGroupDTO);
             }
             page.setData(data);
         }
@@ -914,6 +941,8 @@ public class CustomGroupService {
         customGroup.setCreateUserId(customGroupDTO.getCreateUserId());
         // 默认任务类型为0
         customGroup.setTaskType(0);
+        // 备注
+        customGroup.setRemark(customGroupDTO.getRemark());
 
         // 1查询标签成本价、销售价、订单金额、订单成本价
         String groupCondition = customGroupDTO.getGroupCondition();
@@ -1194,7 +1223,7 @@ public class CustomGroupService {
         sb.append(customGroup.getId());
         sb.append(" like t_customer_group_list");
         jdbcTemplate.update(sb.toString());
-        JSONArray remainJSONArr = new JSONArray();
+        /*JSONArray remainJSONArr = new JSONArray();
         try {
             // remain groupSource 数组转map,避免嵌套循环
             remainJSONArr = JSON.parseArray(customGroup.getRemark());
@@ -1220,12 +1249,12 @@ public class CustomGroupService {
 
         } catch (Exception e) {
             log.error("订单号:[" + orderId + "]创建客户群详情表失败,", e);
-        }
+        }*/
 
         // 2.更新客户群状态
         customGroup.setAvailably(Constant.AVAILABLY);
-        String remainsStr = JSON.toJSONString(remainJSONArr);
-        customGroup.setRemark(remainsStr);
+       /* String remainsStr = JSON.toJSONString(remainJSONArr);
+        customGroup.setRemark(remainsStr);*/
         customGroupDao.update(customGroup);
     }
 
@@ -6070,7 +6099,8 @@ public class CustomGroupService {
      * @param touchModes 触达方式 1-电话 2-短信
      * @return
      */
-    public int saveImportCustGroupData(String custId, String name, String fileName, JSONArray headers, Integer projectId, String touchModes) {
+    public int saveImportCustGroupData(String custId, String name, String fileName, JSONArray headers,
+                                       Integer projectId, String touchModes, String remark) {
         CustomerGroupProperty uploadFileStatus = customGroupDao.getProperty("uploadFilePath", fileName);
         if (uploadFileStatus != null) {
             log.warn("导入客户群文件:" + fileName + ",已经成功导入,忽略");
@@ -6097,6 +6127,7 @@ public class CustomGroupService {
         cg.setCustId(custId);
         cg.setCreateTime(new Timestamp(System.currentTimeMillis()));
         cg.setGroupCondition("[{\"symbol\":0,\"leafs\":[{\"name\":\"4\",\"id\":\"87\"}],\"type\":1,\"labelId\":\"84\",\"parentName\":\"家庭人口数\",\"path\":\"人口统计学/基本信息/家庭人口数\"}]");
+        cg.setRemark(remark);
         LogUtil.info("导入客户群插入customer_group表的数据:" + cg);
         int id = (int) customGroupDao.saveReturnPk(cg);
         if (id > 0) {
@@ -6280,6 +6311,9 @@ public class CustomGroupService {
                         param.setPhone(String.valueOf(list.get(i).get("phone")));
                         // 调用API服务根据手机号生成uid
                         uid = phoneService.savePhoneToAPI(param.getPhone());
+                        if (StringUtil.isEmpty(uid)) {
+                            uid = MD5Util.encode32Bit("c" + param.getPhone());
+                        }
                         param.setMd5Phone(uid);
                         list.get(i).remove("phone");
                         param.setSuperData(JSON.toJSONString(list.get(i)));
@@ -6926,6 +6960,173 @@ public class CustomGroupService {
             return 1;
         } catch (Exception e) {
             throw e;
+        }
+    }
+
+    /**
+     * 客群更新
+     *
+     * @param dto
+     * @return
+     */
+    public int update(CustomGroupDTO dto) {
+        CustomGroup customGroup = customGroupDao.get(dto.getId());
+        if (customGroup != null) {
+            customGroup.setRemark(dto.getRemark());
+            customGroupDao.update(customGroup);
+            return 1;
+        }
+        return 0;
+    }
+
+    public void exportList(HttpServletResponse response, String rule, String customer_group_id, String cust_id, String user_id, Integer pageNum, Integer pageSize,
+                           String id, String name, Integer status, String callType, String dateStart, String dateEnd,
+                           String enterpriseName, String marketProjectId, CGroupSearchParam param) {
+        StringBuffer hql = new StringBuffer("from CustomGroup m where 1=1");
+        List values = new ArrayList();
+        if (null != customer_group_id && !"".equals(customer_group_id)) {
+            hql.append(" and m.id = ?");
+            values.add(Integer.parseInt(customer_group_id));
+        }
+
+        if (null != name && !"".equals(name)) {
+            hql.append(" and m.name like ?");
+            values.add("%" + name + "%");
+        }
+        if (cust_id != null) {
+            hql.append(" and m.custId=?");
+            values.add(cust_id);
+        }
+        if (null != status && !"".equals(status.toString())) {
+            hql.append(" and m.status= ?");
+            values.add(status);
+        }
+
+        if (StringUtil.isNotEmpty(marketProjectId)) {
+            hql.append(" and m.marketProjectId= ?");
+            values.add(NumberConvertUtil.parseInt(marketProjectId));
+        }
+
+        if (StringUtil.isNotEmpty(dateStart)) {
+            Date start = DateUtil.fmtStrToDate(dateStart, "yyyy/MM/dd HH:mm:ss");
+            hql.append(" and m.createTime >=?");
+            values.add(start);
+        }
+
+        if (StringUtil.isNotEmpty(dateEnd)) {
+            Date end = DateUtil.fmtStrToDate(dateEnd, "yyyy/MM/dd HH:mm:ss");
+            hql.append(" and m.createTime <=?");
+            values.add(end);
+        }
+
+        if (StringUtil.isNotEmpty(param.getsUpdateTime())) {
+            Date start = DateUtil.fmtStrToDate(param.getsUpdateTime(), "yyyy/MM/dd HH:mm:ss");
+            hql.append(" and m.updateTime >=?");
+            values.add(start);
+        }
+
+        if (StringUtil.isNotEmpty(param.geteUpdateTime())) {
+            Date end = DateUtil.fmtStrToDate(param.geteUpdateTime(), "yyyy/MM/dd HH:mm:ss");
+            hql.append(" and m.updateTime <=?");
+            values.add(end);
+        }
+
+        if (StringUtil.isNotEmpty(enterpriseName)) {
+            hql.append(" and m.custId IN (SELECT id FROM Customer WHERE enterpriseName LIKE ?)");
+            values.add("%" + enterpriseName + "%");
+        }
+        if (StringUtil.isNotEmpty(param.getPropertyName()) && StringUtil.isNotEmpty(param.getPropertyValue())) {
+            hql.append(" and m.id IN (SELECT customerGroupId FROM CustomerGroupProperty WHERE propertyName = ? AND propertyValue = ? )");
+            values.add(param.getPropertyName());
+            values.add(param.getPropertyValue());
+        }
+        if (StringUtil.isNotEmpty(param.getUnicomActivityName())) {
+            hql.append(" and m.id IN (SELECT customerGroupId FROM CustomerGroupProperty WHERE propertyName = ? AND propertyValue = ? )");
+            values.add("unicomActivityName");
+            values.add(param.getUnicomActivityName());
+        }
+        if (StringUtil.isNotEmpty(param.getPullStatus())) {
+            hql.append(" and m.id IN (SELECT customerGroupId FROM CustomerGroupProperty WHERE propertyName = ? AND propertyValue = ? )");
+            values.add("pullStatus");
+            values.add(param.getPullStatus());
+        }
+        hql.append(" ORDER BY m.createTime desc ");
+        List<CustomGroup> list = customGroupDao.find(hql.toString(), values);
+        if (list != null && list.size() > 0) {
+            CustomGroup customGroup;
+            CustomGroupDTO customGroupDTO;
+            Customer customer;
+            List<JSONObject> data = new ArrayList();
+            MarketProject marketProject;
+            List<CustomerGroupProperty> properties;
+            Map property;
+            for (int i = 0; i < list.size(); i++) {
+                customGroup = (CustomGroup) list.get(i);
+                customGroupDTO = new CustomGroupDTO(customGroup);
+                if (customGroupDTO != null) {
+                    property = new HashMap();
+                    if (StringUtil.isNotEmpty(customGroupDTO.getAmount())) {
+                        customGroupDTO.setAmount(BigDecimalUtil.div(customGroupDTO.getAmount().toString(), String.valueOf(1000), 5).doubleValue() + "");
+                    } else {
+                        customGroupDTO.setAmount("0.0");
+                    }
+                    if (customGroup.getCustId() != null && !"".equals(customGroup.getCustId())) {
+                        customer = customerDao.get(customGroup.getCustId());
+                        customGroupDTO.setEnterpriseName(customer == null ? "" : customer.getEnterpriseName());
+                    } else {
+                        customGroupDTO.setEnterpriseName("");
+                    }
+                    if (customGroupDTO.getMarketProjectId() != null) {
+                        marketProject = marketProjectDao.selectMarketProject(customGroupDTO.getMarketProjectId());
+                        if (marketProject != null) {
+                            customGroupDTO.setMarketProjectName(marketProject.getName());
+                        } else {
+                            customGroupDTO.setMarketProjectName("");
+                        }
+                    } else {
+                        customGroupDTO.setMarketProjectName("");
+                    }
+                    //查询渠道名称
+                    property.put("dataChannel", "");
+                    if (customGroupDTO.getIndustryPoolId() != null) {
+                        IndustryPool industryPool = industryPoolDao.get(customGroupDTO.getIndustryPoolId());
+                        if (industryPool != null) {
+                            MarketResourceEntity marketResource = marketResourceDao.get(industryPool.getSourceId());
+                            property.put("dataChannel", marketResource != null ? marketResource.getResname() : "");
+                        }
+                    }
+                    customGroupDTO.setProperties(property);
+                    if (customGroupDTO.getStatus() != null) {
+                        if (customGroupDTO.getStatus() == 0) {
+                            customGroupDTO.setStatusName("已关闭");
+                        } else if (customGroupDTO.getStatus() == 1) {
+                            customGroupDTO.setStatusName("已支付,数据已导入");
+                        } else if (customGroupDTO.getStatus() == 2) {
+                            customGroupDTO.setStatusName("待支付");
+                        } else if (customGroupDTO.getStatus() == 2) {
+                            customGroupDTO.setStatusName("已支付,正在提数");
+                        }
+                    }
+                    JSONObject jsonObject = JSON.parseObject(JSON.toJSONString(customGroupDTO));
+                    if (jsonObject.getTimestamp("createTime") != null) {
+                        jsonObject.put("createTime", DateUtil.convertTimeToString(jsonObject.getTimestamp("createTime").getTime()));
+                    }
+                    if (jsonObject.getTimestamp("updateTime") != null) {
+                        jsonObject.put("updateTime", DateUtil.convertTimeToString(jsonObject.getTimestamp("updateTime").getTime()));
+                    }
+                    // 处理备注为null的情况
+                    if (StringUtil.isEmpty(jsonObject.getString("remark"))) {
+                        jsonObject.put("remark", "");
+                    }
+                    data.add(jsonObject);
+                }
+            }
+            //导出excel
+            try {
+                ExcelUtil.exportExcelByTemplate(data, rule, new String[]{"客群列表"}, response);
+            } catch (IOException e) {
+                log.error("导出运营后台客群列表异常", e);
+            }
         }
     }
 }

@@ -6,7 +6,7 @@ public class Deposit {
     private String custId;
     @NotNull(message = "money参数必填")
     private String money;
-    @NotNull(message = "pageSize参数必填")
+    @NotNull(message = "picId参数必填")
     private String picId;
     private int id;
     private String payTime;

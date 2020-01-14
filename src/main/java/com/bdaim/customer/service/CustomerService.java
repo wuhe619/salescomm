@@ -1576,6 +1576,7 @@ public class CustomerService {
 
     /**
      * 查询所有用户(不分页)
+     *
      * @param param
      * @param lu
      * @return
@@ -3541,8 +3542,13 @@ public class CustomerService {
                     d.setSignInfo("");
                 }
                 logger.info("外显号码是：" + d.getApparentNumber());
-                String result = SaleApiUtil.getPhoneNumberTagByXz(d.getAreaCode() + d.getApparentNumber());
-                JSONObject jsonObject = JSON.parseObject(result);
+                JSONObject jsonObject = null;
+                try {
+                    String result = SaleApiUtil.getPhoneNumberTagByXz(d.getAreaCode() + d.getApparentNumber());
+                    jsonObject = JSON.parseObject(result);
+                } catch (Exception e) {
+                    logger.warn("请求获取外显号标记信息失败", e);
+                }
                 if (jsonObject != null && jsonObject.getJSONObject("data") != null && StringUtil.isNotEmpty(jsonObject.getJSONObject("data").getString("tagType"))) {
                     String signInfo = jsonObject.getJSONObject("data").getString("tagType") + ", " + jsonObject.getJSONObject("data").getInteger("tagAmount");
                     d.setSignInfo(signInfo);

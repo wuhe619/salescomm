@@ -16,6 +16,7 @@ public class CustomGroupDTO {
     private Long userCount;
     private Long total;
     private Integer status;
+    private String statusName;
     private Date createTime;
     private Date updateTime;
 
@@ -82,6 +83,7 @@ public class CustomGroupDTO {
         this.taskCreateTime = cg.getTaskCreateTime();
         this.marketProjectId = cg.getMarketProjectId();
         this.custId = cg.getCustId();
+        this.remark = cg.getRemark();
     }
 
     public Integer getId() {
@@ -378,6 +380,14 @@ public class CustomGroupDTO {
 
     public void setProperties(Map properties) {
         this.properties = properties;
+    }
+
+    public String getStatusName() {
+        return statusName;
+    }
+
+    public void setStatusName(String statusName) {
+        this.statusName = statusName;
     }
 }
 

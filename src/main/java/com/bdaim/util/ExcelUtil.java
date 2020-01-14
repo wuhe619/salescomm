@@ -7,6 +7,7 @@ import com.alibaba.excel.context.AnalysisContext;
 import com.alibaba.excel.event.AnalysisEventListener;
 import com.alibaba.excel.metadata.Sheet;
 import com.alibaba.excel.support.ExcelTypeEnum;
+import com.alibaba.fastjson.JSONObject;
 import com.bdaim.AppConfig;
 
 import org.apache.poi.EmptyFileException;
@@ -332,5 +333,58 @@ public class ExcelUtil {
             hssfWorkbook = new XSSFWorkbook(is);
         }
         return hssfWorkbook;
+    }
+
+    /**
+     * easypoi模板导出excel
+     * @param list
+     * @param rule
+     * @param sheetName
+     * @param response
+     * @throws IOException
+     */
+    public static void exportExcelByTemplate(List<JSONObject> list, String rule, String[] sheetName, HttpServletResponse response) throws IOException {
+        // 生成workbook 并导出
+        String classPath = AppConfig.getFile_path();
+        String pathF = File.separator;
+        classPath = classPath.replace("/", pathF);
+        String templatePath = classPath + pathF + "tp" + pathF + rule + ".xlsx";
+        File file = new File(templatePath);
+        LOG.info("excel模板文件路径:{},文件状态:{}", file.getPath(), file.exists());
+        LOG.info("开始导出excel:{}", templatePath);
+        Map<String, Object> map = new HashMap<>();
+        //map.put("list", JavaBeanUtil.convertJsonObjectToMapList(list));
+        map.put("list", list);
+        if (list == null || list.size() == 0) {
+            LOG.info("导出excel为空:{}", rule);
+            throw new IOException();
+        }
+
+        response.setHeader("Content-Disposition", "attachment; filename=" + System.currentTimeMillis() + ExcelTypeEnum.XLSX.getValue());
+        response.setContentType("application/vnd.ms-excel;charset=utf-8");
+        export(templatePath, map, sheetName, response);
+    }
+
+    private static void export(String templatePath, Map<String, Object> map, String[] sheetName, HttpServletResponse response) throws IOException {
+        // 加载模板
+        TemplateExportParams params = new TemplateExportParams(templatePath, true);
+        if (sheetName != null && sheetName.length > 0) {
+            params.setSheetName(sheetName);
+        }
+        try {
+            List list = (List) map.get("list");
+            LOG.info("导出sheet1行数:{}", list != null ? list.size() : 0);
+            List list1 = (List) map.get("list1");
+            LOG.info("导出sheet2行数:{}", list1 != null ? list1.size() : 0);
+            List list2 = (List) map.get("list2");
+            LOG.info("导出sheet3行数:{}", list2 != null ? list2.size() : 0);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        //写入本地临时文件中
+        Workbook workbook = ExcelExportUtil.exportExcel(params, map);
+        workbook.write(response.getOutputStream());
+        response.getOutputStream().flush();
+        response.getOutputStream().close();
     }
 }

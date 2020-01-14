@@ -678,6 +678,14 @@ public class DateUtil {
         return LocalDateTime.ofInstant(instant, zone);
     }
 
+    /**
+     * 将Long类型的时间戳转换成String 类型的时间格式，时间格式为：yyyy-MM-dd HH:mm:ss
+     */
+    public static String convertTimeToString(Long time){
+        DateTimeFormatter ftf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        return ftf.format(LocalDateTime.ofInstant(Instant.ofEpochMilli(time),ZoneId.systemDefault()));
+    }
+
     public static String getDateOfYearAndMonth() {
         Date date = new Date();
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMdd");
