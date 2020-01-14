@@ -1,37 +1,61 @@
 package com.bdaim.crm;
 
-import java.util.List;
+import cn.afterturn.easypoi.excel.annotation.Excel;
 
 /**
  * 企业基本信息
  */
 public class EntInfo {
+    @Excel(name = "企业名称", orderNum = "0")
     private String entName;
+    @Excel(name = "法定代表人", orderNum = "1")
     private String legalName;
+    @Excel(name = "注册资本", orderNum = "2")
     private String regCap;
-    private String estiblishTime;
+    private String regCapCur;
+    @Excel(name = "成立日期", orderNum = "3")
+    private String establishTime;
+    @Excel(name = "注吊销日期", orderNum = "4")
     private String cancelDate;
+    @Excel(name = "经营状态", orderNum = "5")
     private String entStatus;
+    @Excel(name = "工商注册号", orderNum = "6")
     private String regNo;
+    @Excel(name = "机构组织代码", orderNum = "7")
     private String orgNo;
+    @Excel(name = "统一社会信用代码", orderNum = "8")
     private String creditCode;
-    private String taxNo;
+    @Excel(name = "纳税人识别号", orderNum = "9")
+    private String taxpayerNo;
     private String entTypeCode;
+    @Excel(name = "企业类型", orderNum = "10")
     private String entType;
     private String industryCode;
+    @Excel(name = "所属行业", orderNum = "11")
     private String industry;
+    @Excel(name = "营业期限开始时间", orderNum = "12")
     private  String fromTime;
+    @Excel(name = "营业期限结束时间", orderNum = "13")
     private String toTime;
+    @Excel(name = "核准日期", orderNum = "14")
     private String approvedTime;
+    @Excel(name = "登记机关", orderNum = "15")
     private String regInstitute;
+    @Excel(name = "省份代码", orderNum = "16")
     private String regProvinceCode;
+    @Excel(name = "所属地区", orderNum = "17")
     private String regProvinceName;
+    @Excel(name = "详细地址", orderNum = "18")
     private String regLocation;
     private String regCityCode;
+    @Excel(name = "注册地址城市", orderNum = "19")
     private String regCityName;
+    @Excel(name = "经营范围", orderNum = "20")
     private String opScope;
-    private List<String> phoneNumbers;
-    private List<String> email;
+    @Excel(name = "更多电话", orderNum = "21")
+    private String phoneNumbers;
+    @Excel(name = "邮箱", orderNum = "22")
+    private String email;
 
     public String getEntName() {
         return entName;
@@ -57,12 +81,20 @@ public class EntInfo {
         this.regCap = regCap;
     }
 
-    public String getEstiblishTime() {
-        return estiblishTime;
+    public String getRegCapCur() {
+        return regCapCur;
     }
 
-    public void setEstiblishTime(String estiblishTime) {
-        this.estiblishTime = estiblishTime;
+    public void setRegCapCur(String regCapCur) {
+        this.regCapCur = regCapCur;
+    }
+
+    public String getEstablishTime() {
+        return establishTime;
+    }
+
+    public void setEstablishTime(String establishTime) {
+        this.establishTime = establishTime;
     }
 
     public String getCancelDate() {
@@ -105,12 +137,12 @@ public class EntInfo {
         this.creditCode = creditCode;
     }
 
-    public String getTaxNo() {
-        return taxNo;
+    public String getTaxpayerNo() {
+        return taxpayerNo;
     }
 
-    public void setTaxNo(String taxNo) {
-        this.taxNo = taxNo;
+    public void setTaxpayerNo(String taxpayerNo) {
+        this.taxpayerNo = taxpayerNo;
     }
 
     public String getEntTypeCode() {
@@ -225,25 +257,19 @@ public class EntInfo {
         this.opScope = opScope;
     }
 
-    public List<String> getPhoneNumbers() {
+    public String getPhoneNumbers() {
         return phoneNumbers;
     }
 
-    public void setPhoneNumbers(List<String> phoneNumbers) {
+    public void setPhoneNumbers(String phoneNumbers) {
         this.phoneNumbers = phoneNumbers;
     }
 
-    public List<String> getEmail() {
+    public String getEmail() {
         return email;
     }
 
-    public void setEmail(List<String> email) {
+    public void setEmail(String email) {
         this.email = email;
-    }
-
-    public static void main(String[] args) {
-        EntInfo entInfo = new EntInfo();
-
-
     }
 }
