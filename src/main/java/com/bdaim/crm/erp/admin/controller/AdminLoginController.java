@@ -2,6 +2,8 @@ package com.bdaim.crm.erp.admin.controller;
 
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
+import com.alibaba.fastjson.JSON;
+import com.bdaim.common.controller.BasicAction;
 import com.jfinal.aop.Clear;
 import com.jfinal.aop.Inject;
 import com.jfinal.core.Controller;
@@ -17,6 +19,8 @@ import com.bdaim.crm.erp.admin.entity.AdminUser;
 import com.bdaim.crm.erp.admin.service.AdminRoleService;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -31,16 +35,17 @@ import java.util.Set;
  * @author z
  */
 @Clear
-public class AdminLoginController extends Controller {
+@org.springframework.stereotype.Controller
+public class AdminLoginController extends BasicAction {
 
 
     @Inject
     private AdminRoleService adminRoleService;
 
-    public final static Prop prop = PropKit.use("config/crm9-config.txt");
+    //public final static Prop prop = PropKit.use("config/crm9-config.txt");
 
     public void index(){
-        redirect("/index.html");
+        //redirect("/index.html");
     }
 
     /**
@@ -49,7 +54,9 @@ public class AdminLoginController extends Controller {
      * @author zhangzhiwei
      * 用户登录
      */
-    public void login(@Para("username") String username, @Para("password") String password){
+    @PostMapping("/login")
+    @ResponseBody
+    public String login(@Para("username") String username, @Para("password") String password){
         String key = BaseConstant.USER_LOGIN_ERROR_KEY + username;
         Redis redis= RedisManager.getRedis();
         long beforeTime = System.currentTimeMillis() - 60 * 5 * 1000;
@@ -58,23 +65,20 @@ public class AdminLoginController extends Controller {
                 Set zrevrange = redis.zrevrange(key, 4, 5);
                 Long time = (Long) zrevrange.iterator().next() + 60 * 5 * 1000;
                 long expire = (time - System.currentTimeMillis()) / 1000;
-                renderJson(R.error("密码错误次数过多，请等" + expire + "秒后在重试！"));
-                return;
+                //renderJson(R.error("密码错误次数过多，请等" + expire + "秒后在重试！"));
+                return returnError(R.error("密码错误次数过多，请等" + expire + "秒后在重试！").toString());
             }
         }
         redis.zadd(key, System.currentTimeMillis(), System.currentTimeMillis());
         if(StrUtil.isEmpty(username) || StrUtil.isEmpty(password)){
-            renderJson(R.error("请输入用户名和密码！"));
-            return;
+            return returnError(R.error("请输入用户名和密码！").toString());
         }
         AdminUser user = AdminUser.dao.findFirst(Db.getSql("admin.user.queryByUserName"), username.trim());
         if(user == null){
-            renderJson(R.error("用户名或密码错误！"));
-            return;
+            return returnError(R.error("用户名或密码错误！").toString());
         }
         if(user.getStatus() == 0){
-            renderJson(R.error("账户被禁用！"));
-            return;
+            return returnError(R.error("账户被禁用！").toString());
         }
         if(BaseUtil.verify(username + password, user.getSalt(), user.getPassword())){
             if(user.getStatus() == 2){
@@ -82,17 +86,17 @@ public class AdminLoginController extends Controller {
             }
             redis.del(key);
             String token = IdUtil.simpleUUID();
-            user.setLastLoginIp(BaseUtil.getLoginAddress(getRequest()));
+            //user.setLastLoginIp(BaseUtil.getLoginAddress(getRequest()));
             user.setLastLoginTime(new Date());
             user.update();
             user.setRoles(adminRoleService.queryRoleIdsByUserId(user.getUserId()));
             redis.setex(token, 3600, user);
             user.remove("password", "salt");
             //setCookie("Admin-Token", token, 3600*24,true);
-            renderJson(R.ok().put("Admin-Token", token).put("user", user).put("auth", adminRoleService.auth(user.getUserId())));
+            return returnError(R.ok().put("Admin-Token", token).put("user", user).put("auth", adminRoleService.auth(user.getUserId())).toString());
         }else{
             Log.getLog(getClass()).warn("用户登录失败");
-            renderJson(R.error("用户名或密码错误！"));
+            return returnError(R.error("用户名或密码错误！").toString());
         }
 
     }
@@ -102,16 +106,17 @@ public class AdminLoginController extends Controller {
      * 退出登录
      */
     public void logout(){
-        String token = BaseUtil.getToken(getRequest());
+        /*String token = BaseUtil.getToken(getRequest());
         if(! StrUtil.isEmpty(token)){
             RedisManager.getRedis().del(token);
             removeCookie("Admin-Token");
         }
-        renderJson(R.ok());
+        renderJson(R.ok());*/
     }
-
-    public void version(){
-        renderJson(R.ok().put("name", BaseConstant.NAME).put("version", BaseConstant.VERSION));
+    @PostMapping("/version")
+    @ResponseBody
+    public Object version(){
+        return JSON.parseObject(R.ok().put("name", BaseConstant.NAME).put("version", BaseConstant.VERSION).toString());
     }
 
 
@@ -145,6 +150,6 @@ public class AdminLoginController extends Controller {
         }catch(Exception e){
             arrays.add("Redis配置失败");
         }
-        renderJson(R.ok().put("data", arrays));
+        //renderJson(R.ok().put("data", arrays));
     }
 }

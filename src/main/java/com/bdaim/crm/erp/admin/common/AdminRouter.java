@@ -7,7 +7,7 @@ public class AdminRouter extends Routes {
     @Override
     public void config() {
         addInterceptor(new AdminInterceptor());
-        add("/", AdminLoginController.class);
+        //add("/", AdminLoginController.class);
         add("/system/user", AdminUserController.class);
         add("/system/dept", AdminDeptController.class);
         add("/system/menu", AdminMenuController.class);

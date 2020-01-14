@@ -1,5 +1,7 @@
 package com.bdaim.crm.utils;
 
+import com.alibaba.fastjson.JSON;
+
 import java.io.Serializable;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -65,4 +67,8 @@ public class R extends LinkedHashMap<String, Object> implements Serializable {
 		return isSuccess(b,null);
 	}
 
+	@Override
+	public String toString() {
+		return JSON.toJSONString(this);
+	}
 }

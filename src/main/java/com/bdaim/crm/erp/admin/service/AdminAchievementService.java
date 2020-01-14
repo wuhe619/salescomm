@@ -1,21 +1,34 @@
 package com.bdaim.crm.erp.admin.service;
 
 import cn.hutool.core.util.StrUtil;
+import com.bdaim.common.dao.SimpleHibernateDao;
+import com.bdaim.markettask.dao.MarketTaskDao;
 import com.jfinal.aop.Before;
 import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.tx.Tx;
 import com.bdaim.crm.erp.admin.entity.CrmAchievement;
 import com.bdaim.crm.utils.R;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 
+@Service
+@Transactional
 public class AdminAchievementService {
+
+    @Autowired
+    MarketTaskDao simpleHibernateDao;
+
     @Before(Tx.class)
     public R setAchievement(List<CrmAchievement> achievementList) {
         achievementList.forEach(achievement -> {
-            Db.delete(Db.getSql("admin.achievement.deleteAchievement"),achievement.getObjId(),achievement.getType(),achievement.getYear(),achievement.getStatus());
+            simpleHibernateDao.executeUpdateSQL("delete 72crm_crm_achievement from 72crm_crm_achievement where obj_id = ? and type = ? and year = ? and status = ?",achievement.getObjId(),achievement.getType(),achievement.getYear(),achievement.getStatus());
+            //Db.delete(Db.getSql("admin.achievement.deleteAchievement"),achievement.getObjId(),achievement.getType(),achievement.getYear(),achievement.getStatus());
             achievement.save();
         });
         return R.ok();
