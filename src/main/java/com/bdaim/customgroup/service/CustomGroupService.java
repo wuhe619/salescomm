@@ -1223,7 +1223,7 @@ public class CustomGroupService {
         sb.append(customGroup.getId());
         sb.append(" like t_customer_group_list");
         jdbcTemplate.update(sb.toString());
-        JSONArray remainJSONArr = new JSONArray();
+        /*JSONArray remainJSONArr = new JSONArray();
         try {
             // remain groupSource 数组转map,避免嵌套循环
             remainJSONArr = JSON.parseArray(customGroup.getRemark());
@@ -1249,12 +1249,12 @@ public class CustomGroupService {
 
         } catch (Exception e) {
             log.error("订单号:[" + orderId + "]创建客户群详情表失败,", e);
-        }
+        }*/
 
         // 2.更新客户群状态
         customGroup.setAvailably(Constant.AVAILABLY);
-        String remainsStr = JSON.toJSONString(remainJSONArr);
-        customGroup.setRemark(remainsStr);
+       /* String remainsStr = JSON.toJSONString(remainJSONArr);
+        customGroup.setRemark(remainsStr);*/
         customGroupDao.update(customGroup);
     }
 
@@ -6099,7 +6099,8 @@ public class CustomGroupService {
      * @param touchModes 触达方式 1-电话 2-短信
      * @return
      */
-    public int saveImportCustGroupData(String custId, String name, String fileName, JSONArray headers, Integer projectId, String touchModes) {
+    public int saveImportCustGroupData(String custId, String name, String fileName, JSONArray headers,
+                                       Integer projectId, String touchModes, String remark) {
         CustomerGroupProperty uploadFileStatus = customGroupDao.getProperty("uploadFilePath", fileName);
         if (uploadFileStatus != null) {
             log.warn("导入客户群文件:" + fileName + ",已经成功导入,忽略");
@@ -6126,6 +6127,7 @@ public class CustomGroupService {
         cg.setCustId(custId);
         cg.setCreateTime(new Timestamp(System.currentTimeMillis()));
         cg.setGroupCondition("[{\"symbol\":0,\"leafs\":[{\"name\":\"4\",\"id\":\"87\"}],\"type\":1,\"labelId\":\"84\",\"parentName\":\"家庭人口数\",\"path\":\"人口统计学/基本信息/家庭人口数\"}]");
+        cg.setRemark(remark);
         LogUtil.info("导入客户群插入customer_group表的数据:" + cg);
         int id = (int) customGroupDao.saveReturnPk(cg);
         if (id > 0) {

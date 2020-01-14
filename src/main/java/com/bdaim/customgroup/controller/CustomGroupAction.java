@@ -1232,7 +1232,7 @@ public class CustomGroupAction extends BasicAction {
         JSONArray headers = jsonObject.getJSONArray("headers");
         // 触达方式
         String touchModes = jsonObject.getString("touchMode");
-        int status = customGroupService.saveImportCustGroupData(opUser().getCustId(), name, fileName, headers, projectId, touchModes);
+        int status = customGroupService.saveImportCustGroupData(opUser().getCustId(), name, fileName, headers, projectId, touchModes, jsonObject.getString("remark"));
         ResponseJson responseJson = new ResponseJson();
         Map<String, Object> resultMap = new HashMap<String, Object>();
         if (status == 1) {
