@@ -6163,6 +6163,10 @@ public class CustomGroupService {
                     }
                 }
             }.start();
+            // 更新客群导入完成时间
+            CustomGroup customGroup = customGroupDao.get(id);
+            customGroup.setUpdateTime(new Date());
+            customGroupDao.update(customGroup);
             return 1;
         }
         return 0;
