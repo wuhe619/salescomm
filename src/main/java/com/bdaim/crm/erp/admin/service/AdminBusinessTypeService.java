@@ -13,11 +13,15 @@ import com.bdaim.crm.erp.admin.entity.CrmBusinessStatus;
 import com.bdaim.crm.erp.admin.entity.CrmBusinessType;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
+import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+@Service
+@Transactional
 public class AdminBusinessTypeService {
 
     @Before(Tx.class)

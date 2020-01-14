@@ -22,12 +22,16 @@ import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.FieldUtil;
 import com.bdaim.crm.utils.ParamsUtil;
 import com.bdaim.crm.utils.R;
+import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+@Service
+@Transactional
 public class AdminSceneService {
     @Inject
     private AdminFieldService adminFieldService;

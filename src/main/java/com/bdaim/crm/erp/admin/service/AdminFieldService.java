@@ -14,12 +14,15 @@ import com.jfinal.plugin.activerecord.tx.Tx;
 import com.bdaim.crm.common.config.cache.CaffeineCache;
 import com.bdaim.crm.erp.admin.entity.*;
 import com.bdaim.crm.utils.*;
+import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
-
+@Service
+@Transactional
 public class AdminFieldService {
 
     /**

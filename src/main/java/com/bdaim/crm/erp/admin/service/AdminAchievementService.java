@@ -2,6 +2,8 @@ package com.bdaim.crm.erp.admin.service;
 
 import cn.hutool.core.util.StrUtil;
 import com.bdaim.common.dao.SimpleHibernateDao;
+import com.bdaim.crm.erp.admin.dao.AdminAchievementDao;
+import com.bdaim.crm.erp.admin.entity.LkCrmAchievementEntity;
 import com.bdaim.markettask.dao.MarketTaskDao;
 import com.jfinal.aop.Before;
 import com.jfinal.plugin.activerecord.Db;
@@ -22,19 +24,18 @@ import java.util.List;
 public class AdminAchievementService {
 
     @Autowired
-    MarketTaskDao simpleHibernateDao;
+    AdminAchievementDao adminAchievementDao;
 
-    @Before(Tx.class)
-    public R setAchievement(List<CrmAchievement> achievementList) {
+    public R setAchievement(List<LkCrmAchievementEntity> achievementList) {
         achievementList.forEach(achievement -> {
-            simpleHibernateDao.executeUpdateSQL("delete 72crm_crm_achievement from 72crm_crm_achievement where obj_id = ? and type = ? and year = ? and status = ?",achievement.getObjId(),achievement.getType(),achievement.getYear(),achievement.getStatus());
+            adminAchievementDao.executeUpdateSQL("delete 72crm_crm_achievement from 72crm_crm_achievement where obj_id = ? and type = ? and year = ? and status = ?",achievement.getObjId(),achievement.getType(),achievement.getYear(),achievement.getStatus());
             //Db.delete(Db.getSql("admin.achievement.deleteAchievement"),achievement.getObjId(),achievement.getType(),achievement.getYear(),achievement.getStatus());
-            achievement.save();
+            adminAchievementDao.save(achievement);
         });
         return R.ok();
     }
 
-    public R queryAchievementList(CrmAchievement achievement, String userId, Integer deptId) {
+    public R queryAchievementList(LkCrmAchievementEntity achievement, String userId, Integer deptId) {
         if (achievement.getType() == null) {
             achievement.setType(2);
         }

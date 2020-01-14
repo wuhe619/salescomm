@@ -14,7 +14,9 @@ import com.jfinal.upload.UploadFile;
 import com.bdaim.crm.erp.admin.entity.AdminFile;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
+import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
@@ -22,6 +24,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Service
+@Transactional
 public class AdminFileService {
     public final static Prop prop = PropKit.use("config/crm9-config.txt");
     /**

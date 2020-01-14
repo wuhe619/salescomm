@@ -17,9 +17,13 @@ import com.bdaim.crm.erp.crm.entity.CrmContract;
 import com.bdaim.crm.erp.crm.entity.CrmReceivables;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
+import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.util.*;
 
+@Service
+@Transactional
 public class AdminExamineRecordService {
     /**
      * 第一次添加审核记录和审核日志 type 1 合同 2 回款 userId:授权审批人

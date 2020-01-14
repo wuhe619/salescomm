@@ -20,9 +20,13 @@ import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
 import com.bdaim.crm.utils.Sort;
 import com.bdaim.crm.utils.TagUtil;
+import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.util.*;
 
+@Service
+@Transactional
 public class AdminUserService {
     @Inject
     private AdminRoleService adminRoleService;

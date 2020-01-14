@@ -14,10 +14,14 @@ import com.bdaim.crm.erp.admin.entity.AdminExamine;
 import com.bdaim.crm.erp.admin.entity.AdminExamineStep;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
+import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 
+@Service
+@Transactional
 public class AdminExamineService {
     /**
      * 添加审批流程

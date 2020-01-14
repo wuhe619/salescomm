@@ -5,10 +5,14 @@ import com.jfinal.plugin.activerecord.Record;
 import com.bdaim.crm.erp.admin.entity.AdminMenu;
 import com.bdaim.crm.erp.admin.entity.AdminRole;
 import com.bdaim.crm.erp.admin.entity.AdminRoleMenu;
+import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 
+@Service
+@Transactional
 public class AdminMenuService {
 
     /**

@@ -17,12 +17,16 @@ import com.bdaim.crm.erp.admin.entity.AdminRole;
 import com.bdaim.crm.erp.admin.entity.AdminRoleMenu;
 import com.bdaim.crm.erp.admin.entity.AdminUserRole;
 import com.bdaim.crm.utils.R;
+import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.List;
 
+@Service
+@Transactional
 public class AdminRoleService {
 
     @Inject
