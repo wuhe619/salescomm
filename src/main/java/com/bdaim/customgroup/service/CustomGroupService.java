@@ -7114,6 +7114,10 @@ public class CustomGroupService {
                     if (jsonObject.getTimestamp("updateTime") != null) {
                         jsonObject.put("updateTime", DateUtil.convertTimeToString(jsonObject.getTimestamp("updateTime").getTime()));
                     }
+                    // 处理备注为null的情况
+                    if (StringUtil.isEmpty(jsonObject.getString("remark"))) {
+                        jsonObject.put("remark", "");
+                    }
                     data.add(jsonObject);
                 }
             }
