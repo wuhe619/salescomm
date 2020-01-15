@@ -56,6 +56,7 @@ public class EntInfo {
     private String phoneNumbers;
     @Excel(name = "邮箱", orderNum = "22")
     private String email;
+    private Long id;
 
     public String getEntName() {
         return entName;
@@ -271,5 +272,13 @@ public class EntInfo {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 }
