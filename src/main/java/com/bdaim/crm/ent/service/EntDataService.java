@@ -15,7 +15,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -27,7 +26,6 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -118,7 +116,7 @@ public class EntDataService {
         }
 
         try {
-            ints = jdbcTemplate.batchUpdate(insertSql, new BatchPreparedStatementSetter() {
+            jdbcTemplate.batchUpdate(insertSql, new BatchPreparedStatementSetter() {
                 @Override
                 public void setValues(PreparedStatement preparedStatement, int i) throws SQLException {
                     preparedStatement.setLong(1, phoneList.get(i).getId());
@@ -139,19 +137,26 @@ public class EntDataService {
     }
 
 
-    public void nowDayDataToES() {
-        LocalDateTime now = LocalDateTime.now();
-        List<Map<String, Object>> list = jdbcTemplate.queryForList("select * from enterprise_info_202001 where create_time between ? and ?", now.withHour(0).withMinute(0).withSecond(0), now);
+    public void importDayDataToES(LocalDateTime localTime) {
+        String yearMonth = localTime.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        List<Map<String, Object>> list = jdbcTemplate.queryForList("select * from enterprise_info_" + yearMonth + " where create_time between ? and ?",
+                localTime.withHour(0).withMinute(0).withSecond(0), localTime.withHour(23).withMinute(59).withSecond(59));
         if (list.size() > 0) {
             List<JSONObject> data = new ArrayList<>();
             for (Map<String, Object> m : list) {
                 JSONObject jsonObject = JSON.parseObject(String.valueOf(m.get("content")));
                 jsonObject.put("createTime", m.get("create_time"));
                 jsonObject.put("updateTime", m.get("update_time"));
+                if(jsonObject.getTimestamp("createTime")!=null){
+                    jsonObject.put("createTime", jsonObject.getTimestamp("createTime").getTime());
+                }
+                if(jsonObject.getTimestamp("updateTime")!=null){
+                    jsonObject.put("updateTime", jsonObject.getTimestamp("updateTime").getTime());
+                }
                 data.add(jsonObject);
             }
 
-            elasticSearchService.bulkInsertDocument("ent_data_index", Constants.INDEX_TYPE, data);
+            elasticSearchService.bulkInsertDocument("ent_data_index", "business", data);
         }
     }
 }
