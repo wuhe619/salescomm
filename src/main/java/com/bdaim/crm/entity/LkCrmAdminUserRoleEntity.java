@@ -4,7 +4,7 @@ import javax.persistence.*;
 import java.util.Objects;
 
 @Entity
-@Table(name = "lkcrm_admin_user_role", schema = "crm", catalog = "")
+@Table(name = "lkcrm_admin_user_role", schema = "", catalog = "")
 public class LkCrmAdminUserRoleEntity {
     private int id;
     private long userId;

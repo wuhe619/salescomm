@@ -5,7 +5,7 @@ import java.sql.Timestamp;
 import java.util.Objects;
 
 @Entity
-@Table(name = "lkcrm_crm_leads", schema = "crm", catalog = "")
+@Table(name = "lkcrm_crm_leads", schema = "", catalog = "")
 public class LkCrmLeadsEntity {
     private int leadsId;
     private Integer isTransform;

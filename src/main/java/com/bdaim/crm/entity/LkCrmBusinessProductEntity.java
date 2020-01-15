@@ -5,7 +5,7 @@ import java.math.BigDecimal;
 import java.util.Objects;
 
 @Entity
-@Table(name = "lkcrm_crm_business_product", schema = "crm", catalog = "")
+@Table(name = "lkcrm_crm_business_product", schema = "", catalog = "")
 public class LkCrmBusinessProductEntity {
     private int rId;
     private int businessId;

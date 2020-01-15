@@ -1,18 +1,16 @@
 package com.bdaim.crm.entity;
 
-import javax.persistence.Basic;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.util.Objects;
 
 @Entity
-@Table(name = "lkcrm_crm_area", schema = "crm", catalog = "")
+@Table(name = "lkcrm_crm_area", schema = "", catalog = "")
 public class LkCrmAreaEntity {
     private Integer codeId;
     private Integer parentId;
     private String cityName;
 
+    @Id
     @Basic
     @Column(name = "code_id")
     public Integer getCodeId() {

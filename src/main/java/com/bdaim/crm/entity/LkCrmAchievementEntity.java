@@ -5,7 +5,7 @@ import java.math.BigDecimal;
 import java.util.Objects;
 
 @Entity
-@Table(name = "lkcrm_crm_achievement", schema = "crm", catalog = "")
+@Table(name = "lkcrm_crm_achievement", schema = "", catalog = "")
 public class LkCrmAchievementEntity {
     private int achievementId;
     private Integer objId;

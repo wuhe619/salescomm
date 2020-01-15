@@ -4,7 +4,7 @@ import javax.persistence.*;
 import java.util.Objects;
 
 @Entity
-@Table(name = "lkcrm_admin_config", schema = "crm", catalog = "")
+@Table(name = "lkcrm_admin_config", schema = "", catalog = "")
 public class LkCrmAdminConfigEntity {
     private int settingId;
     private int status;

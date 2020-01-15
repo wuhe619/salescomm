@@ -4,7 +4,7 @@ import javax.persistence.*;
 import java.util.Objects;
 
 @Entity
-@Table(name = "lkcrm_admin_menu", schema = "crm", catalog = "")
+@Table(name = "lkcrm_admin_menu", schema = "", catalog = "")
 public class LkCrmAdminMenuEntity {
     private int menuId;
     private Integer parentId;

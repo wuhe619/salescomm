@@ -5,7 +5,7 @@ import java.sql.Timestamp;
 import java.util.Objects;
 
 @Entity
-@Table(name = "lkcrm_admin_field", schema = "crm", catalog = "")
+@Table(name = "lkcrm_admin_field", schema = "", catalog = "")
 public class LkCrmAdminFieldEntity {
     private int fieldId;
     private String fieldName;

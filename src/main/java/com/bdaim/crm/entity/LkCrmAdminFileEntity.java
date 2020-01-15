@@ -5,7 +5,7 @@ import java.sql.Timestamp;
 import java.util.Objects;
 
 @Entity
-@Table(name = "lkcrm_admin_file", schema = "crm", catalog = "")
+@Table(name = "lkcrm_admin_file", schema = "", catalog = "")
 public class LkCrmAdminFileEntity {
     private int fileId;
     private String name;

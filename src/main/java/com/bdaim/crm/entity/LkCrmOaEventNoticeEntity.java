@@ -4,7 +4,7 @@ import javax.persistence.*;
 import java.util.Objects;
 
 @Entity
-@Table(name = "lkcrm_oa_event_notice", schema = "crm", catalog = "")
+@Table(name = "lkcrm_oa_event_notice", schema = "", catalog = "")
 public class LkCrmOaEventNoticeEntity {
     private int id;
     private int eventId;

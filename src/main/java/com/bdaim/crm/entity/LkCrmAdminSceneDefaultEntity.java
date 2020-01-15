@@ -4,7 +4,7 @@ import javax.persistence.*;
 import java.util.Objects;
 
 @Entity
-@Table(name = "lkcrm_admin_scene_default", schema = "crm", catalog = "")
+@Table(name = "lkcrm_admin_scene_default", schema = "", catalog = "")
 public class LkCrmAdminSceneDefaultEntity {
     private int defaultId;
     private int type;

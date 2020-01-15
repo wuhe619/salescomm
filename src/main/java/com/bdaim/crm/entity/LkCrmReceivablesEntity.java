@@ -7,7 +7,7 @@ import java.sql.Timestamp;
 import java.util.Objects;
 
 @Entity
-@Table(name = "lkcrm_crm_receivables", schema = "crm", catalog = "")
+@Table(name = "lkcrm_crm_receivables", schema = "", catalog = "")
 public class LkCrmReceivablesEntity {
     private int receivablesId;
     private String number;

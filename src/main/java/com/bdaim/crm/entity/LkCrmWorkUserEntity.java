@@ -4,7 +4,7 @@ import javax.persistence.*;
 import java.util.Objects;
 
 @Entity
-@Table(name = "lkcrm_work_user", schema = "crm", catalog = "")
+@Table(name = "lkcrm_work_user", schema = "", catalog = "")
 public class LkCrmWorkUserEntity {
     private int id;
     private int workId;

@@ -5,7 +5,7 @@ import java.sql.Timestamp;
 import java.util.Objects;
 
 @Entity
-@Table(name = "lkcrm_admin_user", schema = "crm", catalog = "")
+@Table(name = "lkcrm_admin_user", schema = "", catalog = "")
 public class LkCrmAdminUserEntity {
     private long userId;
     private String username;

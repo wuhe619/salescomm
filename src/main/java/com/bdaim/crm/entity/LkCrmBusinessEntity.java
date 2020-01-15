@@ -6,7 +6,7 @@ import java.sql.Timestamp;
 import java.util.Objects;
 
 @Entity
-@Table(name = "lkcrm_crm_business", schema = "crm", catalog = "")
+@Table(name = "lkcrm_crm_business", schema = "", catalog = "")
 public class LkCrmBusinessEntity {
     private int businessId;
     private Integer typeId;

@@ -4,7 +4,7 @@ import javax.persistence.*;
 import java.util.Objects;
 
 @Entity
-@Table(name = "lkcrm_admin_dept", schema = "crm", catalog = "")
+@Table(name = "lkcrm_admin_dept", schema = "", catalog = "")
 public class LkCrmAdminDeptEntity {
     private int deptId;
     private Integer pid;

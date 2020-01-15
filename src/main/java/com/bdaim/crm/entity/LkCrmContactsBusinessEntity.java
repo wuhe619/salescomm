@@ -4,7 +4,7 @@ import javax.persistence.*;
 import java.util.Objects;
 
 @Entity
-@Table(name = "lkcrm_crm_contacts_business", schema = "crm", catalog = "")
+@Table(name = "lkcrm_crm_contacts_business", schema = "", catalog = "")
 public class LkCrmContactsBusinessEntity {
     private int id;
     private int businessId;

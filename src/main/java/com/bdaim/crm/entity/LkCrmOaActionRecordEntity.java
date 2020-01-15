@@ -5,7 +5,7 @@ import java.sql.Timestamp;
 import java.util.Objects;
 
 @Entity
-@Table(name = "lkcrm_oa_action_record", schema = "crm", catalog = "")
+@Table(name = "lkcrm_oa_action_record", schema = "", catalog = "")
 public class LkCrmOaActionRecordEntity {
     private int logId;
     private int userId;

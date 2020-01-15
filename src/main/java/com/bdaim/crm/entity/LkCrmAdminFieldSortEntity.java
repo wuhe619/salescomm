@@ -4,7 +4,7 @@ import javax.persistence.*;
 import java.util.Objects;
 
 @Entity
-@Table(name = "lkcrm_admin_field_sort", schema = "crm", catalog = "")
+@Table(name = "lkcrm_admin_field_sort", schema = "", catalog = "")
 public class LkCrmAdminFieldSortEntity {
     private int id;
     private int label;

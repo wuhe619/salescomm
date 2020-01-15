@@ -5,7 +5,7 @@ import java.sql.Timestamp;
 import java.util.Objects;
 
 @Entity
-@Table(name = "lkcrm_oa_examine_step", schema = "crm", catalog = "")
+@Table(name = "lkcrm_oa_examine_step", schema = "", catalog = "")
 public class LkCrmOaExamineStepEntity {
     private long stepId;
     private Integer stepType;

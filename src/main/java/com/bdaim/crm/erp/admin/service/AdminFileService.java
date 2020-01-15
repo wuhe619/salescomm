@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 public class AdminFileService {
-    public final static Prop prop = PropKit.use("config/crm9-config.txt");
+    //public final static Prop prop = PropKit.use("config/crm9-config.txt");
     /**
      * @param file    文件
      * @param batchId 批次ID
