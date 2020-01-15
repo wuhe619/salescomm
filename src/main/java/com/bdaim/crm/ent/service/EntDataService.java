@@ -10,6 +10,7 @@ import com.bdaim.crm.EntInfoProperty;
 import com.bdaim.crm.PhoneSource;
 import com.bdaim.customs.entity.Constants;
 import com.bdaim.util.ExcelUtil;
+import com.bdaim.util.NumberConvertUtil;
 import com.bdaim.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -139,24 +140,31 @@ public class EntDataService {
 
     public void importDayDataToES(LocalDateTime localTime) {
         String yearMonth = localTime.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        List<Map<String, Object>> list = jdbcTemplate.queryForList("select * from enterprise_info_" + yearMonth + " where create_time between ? and ?",
-                localTime.withHour(0).withMinute(0).withSecond(0), localTime.withHour(23).withMinute(59).withSecond(59));
-        if (list.size() > 0) {
-            List<JSONObject> data = new ArrayList<>();
-            for (Map<String, Object> m : list) {
-                JSONObject jsonObject = JSON.parseObject(String.valueOf(m.get("content")));
-                jsonObject.put("createTime", m.get("create_time"));
-                jsonObject.put("updateTime", m.get("update_time"));
-                if(jsonObject.getTimestamp("createTime")!=null){
-                    jsonObject.put("createTime", jsonObject.getTimestamp("createTime").getTime());
+        List<Map<String, Object>> count = jdbcTemplate.queryForList("select count(0) count from enterprise_info_" + yearMonth);
+        long total = 0L;
+        if (count.size() > 0) {
+            total = NumberConvertUtil.parseLong(count.get(0).get("count"));
+        }
+        int limit = 20000;
+        for (int i = 0; i <= total; i+=limit) {
+            List<Map<String, Object>> list = jdbcTemplate.queryForList("select * from enterprise_info_" + yearMonth + " where create_time between ? and ? LIMIT ?,?",
+                    localTime.withHour(0).withMinute(0).withSecond(0), localTime.withHour(23).withMinute(59).withSecond(59), i, limit);
+            if (list.size() > 0) {
+                List<JSONObject> data = new ArrayList<>();
+                for (Map<String, Object> m : list) {
+                    JSONObject jsonObject = JSON.parseObject(String.valueOf(m.get("content")));
+                    jsonObject.put("createTime", m.get("create_time"));
+                    jsonObject.put("updateTime", m.get("update_time"));
+                    if (jsonObject.getTimestamp("createTime") != null) {
+                        jsonObject.put("createTime", jsonObject.getTimestamp("createTime").getTime());
+                    }
+                    if (jsonObject.getTimestamp("updateTime") != null) {
+                        jsonObject.put("updateTime", jsonObject.getTimestamp("updateTime").getTime());
+                    }
+                    data.add(jsonObject);
                 }
-                if(jsonObject.getTimestamp("updateTime")!=null){
-                    jsonObject.put("updateTime", jsonObject.getTimestamp("updateTime").getTime());
-                }
-                data.add(jsonObject);
+                elasticSearchService.bulkInsertDocument("ent_data_index", "business", data);
             }
-
-            elasticSearchService.bulkInsertDocument("ent_data_index", "business", data);
         }
     }
 }
