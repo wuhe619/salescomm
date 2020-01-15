@@ -6,6 +6,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.service.ElasticSearchService;
 import com.bdaim.common.service.SequenceService;
 import com.bdaim.crm.EntInfo;
+import com.bdaim.crm.EntInfoProperty;
 import com.bdaim.crm.PhoneSource;
 import com.bdaim.customs.entity.Constants;
 import com.bdaim.util.ExcelUtil;
@@ -14,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -56,7 +58,7 @@ public class EntDataService {
         String selectSql = "SELECT property_value FROM enterprise_info_property WHERE id = ? AND property_name=?";
         String updateSql = "UPDATE enterprise_info_property SET property_value = ?,update_time=? WHERE id = ? AND property_name=?";
         String insertSql = "INSERT INTO `enterprise_info_property` (`id`, `property_name`, `property_value`, `create_time`) VALUES (?,?,?,?);";
-        Map<Long, JSONArray> phoneSource = new HashMap<>();
+        List<EntInfoProperty> phoneList = new ArrayList<>();
         int[] ints = new int[0];
         try {
             ints = jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
@@ -100,7 +102,8 @@ public class EntDataService {
                             // 更新
                             jdbcTemplate.update(updateSql, jsonArray.toJSONString(), now, ent_id, "phone_source");
                         } else {
-                            phoneSource.put(ent_id, jsonArray);
+                            EntInfoProperty property = new EntInfoProperty(ent_id, "phone_source", jsonArray.toJSONString());
+                            phoneList.add(property);
                         }
                     }
                 }
@@ -118,14 +121,15 @@ public class EntDataService {
             ints = jdbcTemplate.batchUpdate(insertSql, new BatchPreparedStatementSetter() {
                 @Override
                 public void setValues(PreparedStatement preparedStatement, int i) throws SQLException {
-
-                    phoneSource.
-                    preparedStatement.setString(1, JSON.toJSONString(personList.get(i)));
-                    preparedStatement.setTimestamp(2, now);
+                    preparedStatement.setLong(1, phoneList.get(i).getId());
+                    preparedStatement.setString(2, phoneList.get(i).getPropertyName());
+                    preparedStatement.setString(3, phoneList.get(i).getPropertyValue());
+                    preparedStatement.setTimestamp(4, now);
                 }
+
                 @Override
                 public int getBatchSize() {
-                    return phoneSource.size();
+                    return phoneList.size();
                 }
             });
         } catch (Exception e) {
