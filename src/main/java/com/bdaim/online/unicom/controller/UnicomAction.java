@@ -17,15 +17,20 @@ import com.bdaim.util.NumberConvertUtil;
 import com.bdaim.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.PrintWriter;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -162,6 +167,12 @@ public class UnicomAction extends BasicAction {
         return json.toJSONString();
     }
 
+    /**
+     * 联通通话记录回调地址
+     *
+     * @param body
+     * @param response
+     */
     @RequestMapping(value = "/open/unicom/callBack", method = RequestMethod.POST)
     public void updateCallRecord(@RequestBody(required = false) String body, HttpServletResponse response) {
         response.setContentType("application/json;charset=utf-8");
@@ -186,6 +197,12 @@ public class UnicomAction extends BasicAction {
         }
     }
 
+    /**
+     * 联通录音回调
+     *
+     * @param body
+     * @param response
+     */
     @RequestMapping(value = "/open/unicom/recordCallBack", method = RequestMethod.POST)
     public void saveCallRecordFile(@RequestBody(required = false) String body, HttpServletResponse response) {
         response.setContentType("application/json;charset=utf-8");
@@ -209,4 +226,38 @@ public class UnicomAction extends BasicAction {
             LOG.error("获取联通录音获取异常" + e);
         }
     }
+
+    /**
+     * 联通录音文件流推送接口
+     *
+     * @param request
+     * @param response
+     */
+    @RequestMapping(value = "/open/unicom/recordCallBack0", method = RequestMethod.POST)
+    public void getAudioStream2(HttpServletRequest request, HttpServletResponse response) {
+        response.setContentType("application/json;charset=utf-8");
+
+        MultipartHttpServletRequest multiRequest = (MultipartHttpServletRequest) request;
+        MultiValueMap<String, MultipartFile> multiFileMap = multiRequest.getMultiFileMap();
+        List<MultipartFile> files = multiFileMap.get("file");
+        MultipartFile multipartFile = files.get(0);
+        String uuid = request.getHeader("uuid");
+        String entId = request.getHeader("entId");
+        try {
+            PrintWriter printWriter = response.getWriter();
+            LOG.info("精准营销联通录音文件推送数据uuid:{},entId:{},multipartFile:{}", uuid, entId, multiFileMap);
+            int result = unicomService.saveCallRecordFile0(uuid, entId, multipartFile);
+            if (0 == result) {
+                printWriter.print("{\"code\":\"0\"}");
+            } else {
+                printWriter.print("{\"code\":\"-1\",\"msg\":\"失败\"}");
+            }
+            printWriter.flush();
+            response.flushBuffer();
+        } catch (Exception e) {
+            LOG.error("获取联通录音获取异常" + e);
+        }
+    }
+
+
 }
