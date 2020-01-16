@@ -7,7 +7,7 @@ import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 
 /**
- * 把pdf的访问路径忽略到权限验证
+ * 访问路径忽略到权限验证
  *
  * @description:
  * @auther: Chacker
@@ -15,7 +15,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
  */
 @Configuration
 @Order(SecurityProperties.BASIC_AUTH_ORDER - 10)
-public class GetPdfConfiguration extends WebSecurityConfigurerAdapter {
+public class IgnoreAuthConfiguration extends WebSecurityConfigurerAdapter {
     @Override
     public void configure(WebSecurity web) throws Exception {
         web.ignoring().antMatchers("/pdf/**");
