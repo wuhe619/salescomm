@@ -53,32 +53,33 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
     @Override
     public Map<String, Object> queryPathByBatchId(Map<String, Object> map) {
         String batchId = String.valueOf(map.get("batch_id"));
-        String sql = "SELECT property_value AS zipPath FROM nl_batch_property WHERE batch_id='" + batchId + "' AND property_name='batchZipPath' LIMIT 1";
-        Map<String, Object> result = jdbcTemplate.queryForMap(sql);
-        logger.info("执行查询的SQL语句为"+ sql);
+        String sql = "SELECT property_value AS zipPath FROM nl_batch_property WHERE batch_id=? AND property_name='batchZipPath' LIMIT 1";
+        Map<String, Object> result = jdbcTemplate.queryForMap(sql, batchId);
+        logger.info("执行查询的SQL语句为" + sql);
         return result;
     }
 
     /**
      * 查询快件记录接口
+     *
      * @param id
      */
     @Override
     public Map<String, Object> getExpressLog(String id) throws Exception {
-        String sqlQuery = "SELECT * from t_touch_express_log WHERE touch_id = '" + id+"'";
-        logger.info("查询快件记录"+sqlQuery);
-        List<Map<String, Object>> list = batchDao.sqlQuery(sqlQuery);
-        Map<String,Object> resultMap = new HashMap<>(16);
-        if (list!=null && list.size()>0){
+        String sqlQuery = "SELECT * from t_touch_express_log WHERE touch_id = ? ";
+        logger.info("查询快件记录" + sqlQuery);
+        List<Map<String, Object>> list = batchDao.sqlQuery(sqlQuery, id);
+        Map<String, Object> resultMap = new HashMap<>(16);
+        if (list != null && list.size() > 0) {
             resultMap = list.get(0);
             //根据touchId查询发件时间
-            String sql = "SELECT DATE_FORMAT(create_time,'%Y-%m-%d %H:%i:%s') AS createTime FROM t_touch_express_log WHERE touch_id='" + id + "' LIMIT 1";
-            logger.info("查询发件时间"+sql);
-            Map<String, Object> createTime = jdbcTemplate.queryForMap(sql);
+            String sql = "SELECT DATE_FORMAT(create_time,'%Y-%m-%d %H:%i:%s') AS createTime FROM t_touch_express_log WHERE touch_id=?  LIMIT 1";
+            logger.info("查询发件时间" + sql);
+            Map<String, Object> createTime = jdbcTemplate.queryForMap(sql, id);
             String myStatus = String.valueOf(createTime.get("createTime"));
             myStatus = StringUtil.isNotEmpty(myStatus) ? myStatus : "";
             resultMap.put("myStatus", "待取件：" + myStatus);
-            return  resultMap;
+            return resultMap;
         }
         return null;
     }
@@ -122,20 +123,20 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         }
         //2.5 加上销售定价判断和余额的判断
         String priceSql = "SELECT t1.cust_id,t1.property_value,t2.enterprise_name FROM t_customer_property t1 LEFT JOIN t_customer t2 ON " +
-                "t1.cust_id=t2.cust_id WHERE t1.cust_id='" + custId + "' AND t1.property_name='address_fix_price'";
-        logger.info("执行SQL "+priceSql);
-        List<Map<String, Object>> priceList = jdbcTemplate.queryForList(priceSql);
+                "t1.cust_id=t2.cust_id WHERE t1.cust_id=? AND t1.property_name='address_fix_price'";
+        logger.info("执行SQL " + priceSql);
+        List<Map<String, Object>> priceList = jdbcTemplate.queryForList(priceSql, custId);
         if (priceList == null || priceList.size() == 0) {
             return new ResponseInfoAssemble().failure(HttpStatus.BAD_REQUEST.value(), "请先设置销售定价");
         } else {
-            try{
+            try {
                 // 判断余额是否足够 t_customer_property中的price的value是销售定价，单位 元，remain_amount是余额，单位分
                 int num = contentList.size() - 1;
-                String remainAmountSql = "SELECT cust_id,property_value FROM t_customer_property WHERE cust_id='" + custId + "' AND property_name='remain_amount'";
-                Map<String,Object> amountMap = null;
-                try{
-                    amountMap = jdbcTemplate.queryForMap(remainAmountSql);
-                }catch (EmptyResultDataAccessException e){
+                String remainAmountSql = "SELECT cust_id,property_value FROM t_customer_property WHERE cust_id=? AND property_name='remain_amount'";
+                Map<String, Object> amountMap = null;
+                try {
+                    amountMap = jdbcTemplate.queryForMap(remainAmountSql, custId);
+                } catch (EmptyResultDataAccessException e) {
                     return new ResponseInfoAssemble().failure(HttpStatus.BAD_REQUEST.value(), "余额不足，请先充值");
                 }
                 logger.info("查询余额SQL为" + remainAmountSql);
@@ -148,12 +149,12 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
                     if (remainAmount.compareTo(price.multiply(new BigDecimal(num)).multiply(new BigDecimal("100"))) == -1) {
                         return new ResponseInfoAssemble().failure(HttpStatus.BAD_REQUEST.value(), "余额不足，请先充值");
                     }
-                }else{
+                } else {
                     //没有余额，直接返回余额不足
                     return new ResponseInfoAssemble().failure(HttpStatus.BAD_REQUEST.value(), "余额不足，请先充值");
                 }
-            }catch (Exception e){
-                logger.info("执行出错，出错地址为"+e.getMessage());
+            } catch (Exception e) {
+                logger.info("执行出错，出错地址为" + e.getMessage());
             }
         }
         //3. 把批次信息和批次详情列表存入数据库
@@ -163,7 +164,7 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
                 "upload_num) VALUES ('");
         String batchId = String.valueOf(System.currentTimeMillis());
         insertBatchSql.append(batchId + "','" + batchName + "',now(),'"
-                + custId + "','"+enterprise_name+"','3','-1','1','" + (contentList.size() - 1) + "')");
+                + custId + "','" + enterprise_name + "','3','-1','1','" + (contentList.size() - 1) + "')");
         jdbcTemplate.update(insertBatchSql.toString());
         //把快递内容(1. 电子版 2. 打印版)存入批次属性表
         String insertBatchProperty = "INSERT INTO nl_batch_property (batch_id,property_name,property_value,create_time)" +
@@ -183,7 +184,7 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
              * status 是修复状态，这里表示校验状态 0.无效、1.有效、2.校验中(此时为【2】【校验中】)
              * label_seven 是快件状态 1、待上传内容2、待申请发件3、待取件4、已发件(此时为【1】【待上传内容】) 此时不赋值
              */
-            String touchId = UUID.randomUUID().toString().replace("-","");
+            String touchId = UUID.randomUUID().toString().replace("-", "");
             StringBuffer batchDetailInsert = new StringBuffer("INSERT INTO nl_batch_detail (label_five,label_one,label_two," +
                     "site,label_three,batch_id," +
                     "status,touch_id,upload_time) VALUES ('");
@@ -191,7 +192,7 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
                     .append("','").append(contentList.get(i).get(3)).append("','").append(contentList.get(i).get(4)).append("','").append(batchId)
                     .append("','").append(checkingResult).append("','").append(touchId).append("',NOW())");
             int rowDetail = jdbcTemplate.update(batchDetailInsert.toString());
-            logger.info("执行SQL" +batchDetailInsert.toString());
+            logger.info("执行SQL" + batchDetailInsert.toString());
             logger.info("插入批次详情成功，条数为: " + rowDetail);
         }
         return new ResponseInfoAssemble().success(null);
@@ -266,11 +267,13 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         }
         //快递格式
         String expressType = String.valueOf(map.get("express_type"));
+        List<Object> p = new ArrayList<>();
         if (!nullString.equals(expressType) && StringUtil.isNotEmpty(expressType)) {
-            sql.append(" AND t1.id in (SELECT batch_id FROM nl_batch_property WHERE property_name ='expressContentType' AND property_value =" + expressType + ") ");
+            p.add(expressType);
+            sql.append(" AND t1.id in (SELECT batch_id FROM nl_batch_property WHERE property_name ='expressContentType' AND property_value =? ) ");
         }
         sql.append(" ORDER BY t1.upload_time DESC ");
-        PageList page = new Pagination().getPageData(sql.toString(), null, pageParam, jdbcTemplate);
+        PageList page = new Pagination().getPageData(sql.toString(), p.toArray(), pageParam, jdbcTemplate);
         List<Map<String, Object>> list = page.getList();
         //expressContentType 快件类型 1.电子版 2.打印版
         if (list != null && list.size() != 0) {
@@ -342,9 +345,9 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
             logger.info("查询结果为" + list.toString());
             resultMap.put("total", page.getTotal());
             resultMap.put("rows", list);
-            String countSql = "SELECT COUNT(*) AS count FROM nl_batch_detail WHERE status='1' AND batch_id='"+batchId+"'";
-            Map<String,Object> count = jdbcTemplate.queryForMap(countSql);
-            resultMap.put("valid",Integer.parseInt(String.valueOf(count.get("count"))));
+            String countSql = "SELECT COUNT(*) AS count FROM nl_batch_detail WHERE status='1' AND batch_id=? ";
+            Map<String, Object> count = jdbcTemplate.queryForMap(countSql, batchId);
+            resultMap.put("valid", Integer.parseInt(String.valueOf(count.get("count"))));
 
         } catch (Exception e) {
             logger.error(e.getMessage());
@@ -364,8 +367,8 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
      */
     @Override
     public ResponseInfo sendMessageUpload(MultipartFile expressContent, MultipartFile fileCodeMapping, String receiverId, String batchId) throws IOException {
-        try{
-            logger.info("进入上传快件内容方法"+batchId);
+        try {
+            logger.info("进入上传快件内容方法" + batchId);
             //1. 对文件类型进行校验
             List<String> pdfFileNameList = new ArrayList<>();
             String fileUrl = fileUrlEntity.getFileUrl();
@@ -404,8 +407,8 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
                     //3.1 把zip文件存储路径存入nl_batch_property表
                     String zipPath = contentPath.replaceAll("\\\\", "\\\\\\\\");
                     //查询一下，没有则插入，有则修改
-                    String sql = "SELECT COUNT(*) AS count FROM nl_batch_property WHERE batch_id='" + batchId + "' AND property_name='batchZipPath'";
-                    Map<String, Object> countMap = jdbcTemplate.queryForMap(sql);
+                    String sql = "SELECT COUNT(*) AS count FROM nl_batch_property WHERE batch_id=? AND property_name='batchZipPath'";
+                    Map<String, Object> countMap = jdbcTemplate.queryForMap(sql, batchId);
                     int count = Integer.parseInt(String.valueOf(countMap.get("count")));
                     if (count == 0) {
                         StringBuffer updateZipPath = new StringBuffer("INSERT INTO nl_batch_property VALUES ('");
@@ -418,13 +421,13 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
                         jdbcTemplate.update(updateZipPath.toString());
                     }
                     pdfFileNameList = zipUtil.unZip(contentFile, destPath);
-                }else if(Constant.PDF.equals(contentSuffix)){
+                } else if (Constant.PDF.equals(contentSuffix)) {
                     //pdf文件，把文件路径更新到label_eight
-                    String pdfPath = destPath+receiverId+Constant.PDF;
-                    String updatePdfPath = "UPDATE nl_batch_detail SET label_eight='"+pdfPath+"' WHERE label_five='"+
-                            receiverId+"' AND batch_id='"+batchId+"'";
+                    String pdfPath = destPath + receiverId + Constant.PDF;
+                    String updatePdfPath = "UPDATE nl_batch_detail SET label_eight='" + pdfPath + "' WHERE label_five='" +
+                            receiverId + "' AND batch_id='" + batchId + "'";
                     updatePdfPath = updatePdfPath.replaceAll("\\\\", "\\\\\\\\");
-                    logger.info("更新pdf文件路径 "+updatePdfPath);
+                    logger.info("更新pdf文件路径 " + updatePdfPath);
                     jdbcTemplate.update(updatePdfPath);
                 }
             }
@@ -464,7 +467,7 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
                     //根据批次ID batchId 和收件人ID receiverID 更新 存储路径、文件编码
                     String sql = "UPDATE nl_batch_detail SET label_eight='" + expressPath + "',label_six='" + fileCode + "' " +
                             "WHERE batch_id='" + batchId + "' AND label_five='" + receiverID + "'";
-                    logger.info("根据批次ID batchId 和收件人ID receiverID 更新 存储路径、文件编码 执行SQL为"+sql);
+                    logger.info("根据批次ID batchId 和收件人ID receiverID 更新 存储路径、文件编码 执行SQL为" + sql);
                     jdbcTemplate.update(sql);
                 }
             }
@@ -476,16 +479,15 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
             jdbcTemplate.update(sql);
             logger.info("修改状态 根据收件人ID和 批次ID把 状态修改为 【2】【待申请发件】" + sql);
             //6. 如果此批次下没有待上传的 信息，则把该批次 状态修改为 【4】【待申请发件】
-            String countSql = "SELECT COUNT(*) AS count FROM nl_batch_detail WHERE batch_id='" + batchId
-                    + "' AND status='1' AND label_seven='1'";
-            Map<String, Object> count = jdbcTemplate.queryForMap(countSql);
+            String countSql = "SELECT COUNT(*) AS count FROM nl_batch_detail WHERE batch_id= ? AND status='1' AND label_seven='1'";
+            Map<String, Object> count = jdbcTemplate.queryForMap(countSql, batchId);
             int num = Integer.parseInt(String.valueOf(count.get("count")));
             if (num == 0) {
                 String updateSql = "UPDATE nl_batch SET status='4' WHERE id='" + batchId + "'";
                 logger.info("执行更新批次状态SQL " + updateSql);
                 jdbcTemplate.update(updateSql);
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             logger.info("发生异常了。。。。");
             logger.info(e.getMessage());
         }
@@ -521,52 +523,59 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         List<String> values = new ArrayList();
         //批次编号
         String nullString = "null";
+        List<Object> p = new ArrayList<>();
         if (!nullString.equals(batchId) && StringUtil.isNotEmpty(batchId)) {
-            hql.append(" t2.batch_id = '" + batchId + "' ");
+            p.add(batchId);
+            hql.append(" t2.batch_id = ? ");
         }
         //收件人ID
         String id = String.valueOf(map.get("receiver_id"));
         if (!nullString.equals(id) && StringUtil.isNotEmpty(id)) {
-            hql.append(" AND t2.label_five LIKE '%" + id + "%'");
+            p.add(id);
+            hql.append(" AND t2.label_five LIKE '%?%'");
         }
         //姓名
         String name = String.valueOf(map.get("name"));
         if (!nullString.equals(name) && StringUtil.isNotEmpty(name)) {
-            hql.append(" AND t2.label_one LIKE '%" + name + "%'");
+            hql.append(" AND t2.label_one LIKE '%?%'");
             values.add(name);
+            p.add(name);
         }
         //文件编码
         String fileCode = String.valueOf(map.get("file_code"));
         if (!nullString.equals(fileCode) && StringUtil.isNotEmpty(fileCode)) {
-            hql.append(" AND t2.label_six LIKE '%" + fileCode + "%'");
+            hql.append(" AND t2.label_six LIKE '%?%'");
+            p.add(fileCode);
         }
         //校验结果
         String status = String.valueOf(map.get("status"));
         if (!nullString.equals(status) && StringUtil.isNotEmpty(status)) {
-            hql.append(" AND t2.status = '" + status + "'");
+            hql.append(" AND t2.status = ? ");
+            p.add(status);
         }
         //快件状态
         String checkingResult = String.valueOf(map.get("express_status"));
-        if (!nullString.equals(status) && StringUtil.isNotEmpty(status)) {
-            hql.append(" AND t2.label_seven = '" + checkingResult + "'");
-            values.add(status);
+        if (!nullString.equals(checkingResult) && StringUtil.isNotEmpty(checkingResult)) {
+            hql.append(" AND t2.label_seven = ? ");
+            p.add(checkingResult);
+            values.add(checkingResult);
         }
         hql.append(" ORDER BY t2.id DESC ");
-        List<Map<String, Object>> list = jdbcTemplate.queryForList(hql.toString());
+        List<Map<String, Object>> list = jdbcTemplate.queryForList(hql.toString(), p.toArray());
         return list;
     }
 
     @Override
     public String findPdfPathByReceiverId(String batchId, String receiverId) {
         String pdfPath = "";
-        try{
-            String sql = "SELECT label_eight AS pdfPath FROM nl_batch_detail WHERE batch_id='" + batchId + "' AND label_five='" + receiverId + "' LIMIT 1";
-            logger.info("执行SQL"+sql);
-            Map<String, Object> map = jdbcTemplate.queryForMap(sql);
+        try {
+            String sql = "SELECT label_eight AS pdfPath FROM nl_batch_detail WHERE batch_id=? AND label_five=? LIMIT 1";
+            logger.info("执行SQL" + sql);
+            Map<String, Object> map = jdbcTemplate.queryForMap(sql, batchId, receiverId);
             pdfPath = String.valueOf(map.get("pdfPath"));
             return pdfPath;
-        }catch (Exception e){
-            logger.info("出现异常"+e.getMessage());
+        } catch (Exception e) {
+            logger.info("出现异常" + e.getMessage());
         }
         return pdfPath;
     }
@@ -578,10 +587,10 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         String updateDetailSql = "UPDATE nl_batch_detail SET `label_seven` =4 WHERE batch_id = ? and status = 1";
         batchDao.executeUpdateSQL(updateDetailSql, batchId);
         String updateBatchSql = "UPDATE t_touch_express_log t1,nl_batch_detail t2 SET t1.create_time=NOW() WHERE t2.touch_id=t1.touch_id AND t2.batch_id='"
-                +batchId+"'";
-        logger.info("执行更新 发件完成 时间SQL"+updateBatchSql);
+                + batchId + "'";
+        logger.info("执行更新 发件完成 时间SQL" + updateBatchSql);
         int result = jdbcTemplate.update(updateBatchSql);
-        logger.info("更新完成，影响条数为 "+result +" 条");
+        logger.info("更新完成，影响条数为 " + result + " 条");
     }
 
     @Override
