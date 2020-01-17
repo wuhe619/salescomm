@@ -2356,27 +2356,32 @@ public class SupplierService {
             });
             map.put("total", list.getTotal());
             Object collect = list.getList().stream().map(m -> {
-                Map map1 = (Map) m;
-                Map<String, Object> supplierDTOMap = new HashMap<>();
-                supplierDTOMap.put("name", map1.get("name"));
-                supplierDTOMap.put("settlementType", map1.get("settlement_type"));
-                supplierDTOMap.put("contactPerson", map1.get("contact_person"));
-                supplierDTOMap.put("contactPhone", map1.get("contact_phone"));
-                supplierDTOMap.put("contactPosition", map1.get("contact_position"));
-                supplierDTOMap.put("status", map1.get("status"));
-                supplierDTOMap.put("createTime", map1.get("create_time"));
-                supplierDTOMap.put("supplierId", map1.get("supplier_id"));
-                SupplierPropertyEntity remain_amount = supplierDao.getProperty(map1.get("supplier_id").toString(), "remain_amount");
-                SupplierPropertyEntity used_amount = supplierDao.getProperty(map1.get("supplier_id").toString(), "used_amount");
-                if("5".equals(map1.get("type").toString())){
-                    supplierDTOMap.put("balance", remain_amount == null ? 0 : Float.valueOf(remain_amount.getPropertyValue()) / 10000);
-                    supplierDTOMap.put("consumption", used_amount == null ? 0 : Float.valueOf(used_amount.getPropertyValue()) / 10000);
-                }else {
-                    supplierDTOMap.put("balance", remain_amount == null ? 0 : Float.valueOf(remain_amount.getPropertyValue()) / 1000);
-                    supplierDTOMap.put("consumption", used_amount == null ? 0 : Float.valueOf(used_amount.getPropertyValue()) / 1000);
+                try {
+                    Map map1 = (Map) m;
+                    Map<String, Object> supplierDTOMap = new HashMap<>();
+                    supplierDTOMap.put("name", map1.get("name"));
+                    supplierDTOMap.put("settlementType", map1.get("settlement_type"));
+                    supplierDTOMap.put("contactPerson", map1.get("contact_person"));
+                    supplierDTOMap.put("contactPhone", map1.get("contact_phone"));
+                    supplierDTOMap.put("contactPosition", map1.get("contact_position"));
+                    supplierDTOMap.put("status", map1.get("status"));
+                    supplierDTOMap.put("createTime", map1.get("create_time"));
+                    supplierDTOMap.put("supplierId", map1.get("supplier_id"));
+                    SupplierPropertyEntity remain_amount = supplierDao.getProperty(map1.get("supplier_id").toString(), "remain_amount");
+                    SupplierPropertyEntity used_amount = supplierDao.getProperty(map1.get("supplier_id").toString(), "used_amount");
+                    if ("5".equals(map1.get("type").toString())) {
+                        supplierDTOMap.put("balance", remain_amount == null ? 0 : Float.valueOf(remain_amount.getPropertyValue()) / 10000);
+                        supplierDTOMap.put("consumption", used_amount == null ? 0 : Float.valueOf(used_amount.getPropertyValue()) / 10000);
+                    } else {
+                        supplierDTOMap.put("balance", remain_amount == null ? 0 : Float.valueOf(remain_amount.getPropertyValue()) / 1000);
+                        supplierDTOMap.put("consumption", used_amount == null ? 0 : Float.valueOf(used_amount.getPropertyValue()) / 1000);
+                    }
+                    supplierDTOMap.put("apiNum", propertyMap.containsKey(Integer.valueOf(map1.get("supplier_id").toString())) ? propertyMap.get(Integer.valueOf(map1.get("supplier_id").toString())).size() : 0);
+                    return supplierDTOMap;
+                }catch (Exception e){
+                    e.printStackTrace();
                 }
-                supplierDTOMap.put("apiNum", propertyMap.containsKey(Integer.valueOf(map1.get("supplier_id").toString())) ? propertyMap.get(Integer.valueOf(map1.get("supplier_id").toString())).size() : 0);
-                return supplierDTOMap;
+                return null;
             }).collect(Collectors.toList());
             map.put("list", collect);
             return map;
