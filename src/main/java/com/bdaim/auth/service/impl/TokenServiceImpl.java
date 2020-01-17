@@ -93,10 +93,10 @@ public class TokenServiceImpl implements TokenService {
             }
             long type = 0;
             String userNameWithVerify = username.substring(8);
-            String userNameWithoutVerify = userNameWithVerify.substring(userNameWithVerify.indexOf(".")+1);
+            String userNameWithoutVerify = userNameWithVerify.substring(userNameWithVerify.indexOf(".") + 1);
             UserDO u = userInfoService.getUserByName(userNameWithoutVerify);
             if (u == null || u.getStatus() != 0) {
-                return new LoginUser("guest", "", "用户不存在", "401");
+                return new LoginUser("guest", "", "用户名密码错误", "401");
             }
             if (u != null && CipherUtil.generatePassword(password).equals(u.getPassword())) {
                 List<Map<String, Object>> roleInfo = roleDao.getRoleInfoByUserId(String.valueOf(u.getId()));
@@ -210,7 +210,7 @@ public class TokenServiceImpl implements TokenService {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            String userNameWithoutVerify = username.substring(username.indexOf(".")+1);
+            String userNameWithoutVerify = username.substring(username.indexOf(".") + 1);
             CustomerUser u = customerService.getUserByName(userNameWithoutVerify);
             String md5Password = CipherUtil.generatePassword(password);
             if (u != null && md5Password.equals(u.getPassword())) {
