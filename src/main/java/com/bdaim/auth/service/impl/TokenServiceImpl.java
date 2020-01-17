@@ -92,7 +92,9 @@ public class TokenServiceImpl implements TokenService {
                 e.printStackTrace();
             }
             long type = 0;
-            UserDO u = userInfoService.getUserByName(username.substring(8));
+            String userNameWithVerify = username.substring(8);
+            String userNameWithoutVerify = userNameWithVerify.substring(userNameWithVerify.indexOf(".")+1);
+            UserDO u = userInfoService.getUserByName(userNameWithoutVerify);
             if (u == null || u.getStatus() != 0) {
                 return new LoginUser("guest", "", "用户不存在", "401");
             }
@@ -208,7 +210,8 @@ public class TokenServiceImpl implements TokenService {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            CustomerUser u = customerService.getUserByName(username);
+            String userNameWithoutVerify = username.substring(username.indexOf(".")+1);
+            CustomerUser u = customerService.getUserByName(userNameWithoutVerify);
             String md5Password = CipherUtil.generatePassword(password);
             if (u != null && md5Password.equals(u.getPassword())) {
                 logger.info("登陆用户:" + u.getAccount() + " 状态:" + u.getStatus());
