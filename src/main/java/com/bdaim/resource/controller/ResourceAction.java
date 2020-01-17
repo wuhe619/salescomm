@@ -282,8 +282,8 @@ public class ResourceAction extends BasicAction {
         if (StringUtil.isEmpty(params.getString("callMonth"))) {
             return new ResponseInfoAssemble().failure(-1, "查询时间不能为空");
         }
-        page.setPageSize(params.containsKey("pageSize") ? 0 : params.getIntValue("pageSize"));
-        page.setPageNum(params.containsKey("pageNum") ? 10 : params.getIntValue("pageNum"));
+        page.setPageSize(params.containsKey("pageSize") ?   params.getIntValue("pageSize"):10);
+        page.setPageNum(params.containsKey("pageNum") ?  params.getIntValue("pageNum"):0);
         if (params.containsKey("type") && "sub".equals(params.getString("type"))) {
             resp.setData(apiService.subApiLogs(params, page));
         } else {
@@ -317,7 +317,7 @@ public class ResourceAction extends BasicAction {
             if (StringUtil.isNotEmpty(type) && "sub".equals(type)) {
                 pageList = apiService.subApiLogs(params, page);
             } else {
-                pageList = apiService.resApiLogs(params, page);
+               // pageList = apiService.resApiLogs(params, page);
             }
             if (pageList.getList().size() == 0) {
                 exportExcelService.exportExcel(0, new ArrayList<>(), params, response);
