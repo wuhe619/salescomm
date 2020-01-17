@@ -31,10 +31,12 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+import sun.misc.BASE64Decoder;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -81,11 +83,19 @@ public class TokenServiceImpl implements TokenService {
         }
 
         LoginUser userdetail = null;
+        BASE64Decoder decoder = new BASE64Decoder();
 
         if (username.startsWith("backend.")) {
+            try {
+                password = new String(decoder.decodeBuffer(password));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             long type = 0;
             UserDO u = userInfoService.getUserByName(username.substring(8));
-            if (u == null || u.getStatus() != 0) return new LoginUser("guest", "", "用户不存在", "401");
+            if (u == null || u.getStatus() != 0) {
+                return new LoginUser("guest", "", "用户不存在", "401");
+            }
             if (u != null && CipherUtil.generatePassword(password).equals(u.getPassword())) {
                 List<Map<String, Object>> roleInfo = roleDao.getRoleInfoByUserId(String.valueOf(u.getId()));
                 if (roleInfo != null && roleInfo.size() > 0 && roleInfo.get(0).get("type") != null) {
@@ -101,8 +111,9 @@ public class TokenServiceImpl implements TokenService {
                     if (userdetail != null) {
                         userdetail.setType(type);
                         return userdetail;
-                    } else
+                    } else {
                         name2token.remove(username);
+                    }
                 }
 
 
@@ -192,6 +203,11 @@ public class TokenServiceImpl implements TokenService {
                 return new LoginUser("guest", "", "用户名密码错误", "401");
             }
         } else {
+            try {
+                password = new String(decoder.decodeBuffer(password));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             CustomerUser u = customerService.getUserByName(username);
             String md5Password = CipherUtil.generatePassword(password);
             if (u != null && md5Password.equals(u.getPassword())) {
@@ -208,8 +224,9 @@ public class TokenServiceImpl implements TokenService {
                             userdetail.setStatus(u.getStatus().toString());
                             return userdetail;
                         }
-                    } else
+                    } else {
                         name2token.remove(username);
+                    }
                 }
 
                 //userdetail = new LoginUser(u.getId(), u.getAccount(), CipherUtil.encodeByMD5(u.getId()+""+System.currentTimeMillis()), auths);
@@ -295,8 +312,9 @@ public class TokenServiceImpl implements TokenService {
             }
         }
 
-        if (userdetail != null)
+        if (userdetail != null) {
             name2token.put(username, userdetail.getTokenid());
+        }
         return userdetail;
     }
 
@@ -316,8 +334,9 @@ public class TokenServiceImpl implements TokenService {
 
         if (authorization != null && !"".equals(authorization)) {
             LoginUser u = tokenCacheService.getToken(authorization, LoginUser.class);
-            if (u != null)
+            if (u != null) {
                 return u;
+            }
         }
         return new LoginUser(0L, "", "");
     }

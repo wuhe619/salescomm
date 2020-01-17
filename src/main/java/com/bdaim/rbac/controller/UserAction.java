@@ -58,6 +58,8 @@ import java.util.*;
 @RequestMapping("/user")
 public class UserAction extends BasicAction {
     private static Logger logger = LoggerFactory.getLogger(UserAction.class);
+    private static Map verifyCodes = new HashMap();
+    private static Long verifyCodeTimeout = 300000L;
 
     @Resource
     private RoleService roleService;
