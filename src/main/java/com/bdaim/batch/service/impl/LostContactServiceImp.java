@@ -161,12 +161,12 @@ public class LostContactServiceImp implements LostContactService {
         sql.append("  SELECT t1.id,t1.cust_id,t1.user_id,t1.label_id,t1.status,t1.label_name,")
                 .append("  t1.create_time,t1.label_desc,t1.type, t1.`option`")
                 .append("  FROM  t_customer_label t1");
-        sql.append("  WHERE t1.cust_id ='" + custId + "'");
+        sql.append("  WHERE t1.cust_id =? ");
         sql.append("  AND  t1.status =1 ");
         if (pageNum == null || "".equals(pageNum) || pageSize == null || "".equals(pageSize)) {
             sql.append("  GROUP BY t1.id");
             sql.append("  ORDER BY t1.create_time DESC");
-            List<Map<String, Object>> list = jdbcTemplate.queryForList(sql.toString());
+            List<Map<String, Object>> list = jdbcTemplate.queryForList(sql.toString(),custId);
             staticList = staticCustomerLabels(list, true);
         } else {
             sql.append("  GROUP BY t1.id");

@@ -38,13 +38,16 @@ public class BatchDetailImpl implements BatchDetaiService {
     public PageList getDetailListById(PageParam page, String batchId, String custId) {
         StringBuffer sql = new StringBuffer("SELECT  n.id superId,n.batch_id batchId,n.enterprise_id enterpriseId,n.id_card idCard,n.channel,n.label_one labelOne,n.label_two labelTwo,n.label_three labelThree,n.`status` ,n.upload_time uploadTime,n.fix_time fixTime");
         sql.append(" FROM nl_batch_detail n LEFT JOIN nl_batch nl ON n.batch_id = nl.id\n");
+        List<Object> p = new ArrayList<>();
         if (StringUtil.isNotEmpty(batchId)) {
-            sql.append("WHERE batch_id ='" + batchId + "'");
+            sql.append("WHERE batch_id =? ");
+            p.add(batchId);
         }
         if (StringUtil.isNotEmpty(custId)) {
-            sql.append(" and nl.comp_id ='" + custId + "'");
+            sql.append(" and nl.comp_id =?");
+            p.add(custId);
         }
-        PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
+        PageList list = new Pagination().getPageData(sql.toString(), p.toArray(), page, jdbcTemplate);
         //查询批次下所有自建属性信息
         return list;
     }
@@ -67,26 +70,34 @@ public class BatchDetailImpl implements BatchDetaiService {
         sqlBuilder.append("  LEFT JOIN t_super_label t2 ON custG.id = t2.super_id AND t2.batch_id = '" + batchId + "'");
         sqlBuilder.append("  LEFT JOIN t_customer_label t3 ON t2.label_id = t3.label_id AND custG.batch_id = t4.batch_id");
         sqlBuilder.append(" where 1 = 1 ");
-        if (userType.equals("2") && "ROLE_CUSTOMER".equals(role) ) {
-            sqlBuilder.append("AND custG.user_id =" + userId);
+        List<Object> p = new ArrayList<>();
+        if (userType.equals("2") && "ROLE_CUSTOMER".equals(role)) {
+            sqlBuilder.append("AND custG.user_id = ?");
+            p.add(userId);
         }
         if (StringUtil.isNotEmpty(detailQueryParam.getId())) {
-            sqlBuilder.append(" and custG.id= '").append(StringEscapeUtils.escapeSql(detailQueryParam.getId())).append("'");
+            p.add(detailQueryParam.getId());
+            sqlBuilder.append(" and custG.id= ?");
         }
         if (StringUtil.isNotEmpty(detailQueryParam.getIdCard())) {
-            sqlBuilder.append(" and custG.id_card= '").append(StringEscapeUtils.escapeSql(detailQueryParam.getIdCard())).append("'");
+            p.add(detailQueryParam.getIdCard());
+            sqlBuilder.append(" and custG.id_card= ?");
         }
         if (StringUtil.isNotEmpty(detailQueryParam.getEnterpriseId())) {
-            sqlBuilder.append(" and custG.enterprise_id= '").append(StringEscapeUtils.escapeSql(detailQueryParam.getEnterpriseId())).append("'");
+            p.add(detailQueryParam.getEnterpriseId());
+            sqlBuilder.append(" and custG.enterprise_id= ? ");
         }
         if (StringUtil.isNotEmpty(detailQueryParam.getRealname())) {
-            sqlBuilder.append(" and t.realname LIKE '%" + detailQueryParam.getRealname() + "%'");
+            p.add(detailQueryParam.getRealname());
+            sqlBuilder.append(" and t.realname LIKE '%?%'");
         }
         if (detailQueryParam.getStatus() != null) {
-            sqlBuilder.append(" and custG.status= '").append(StringEscapeUtils.escapeSql(String.valueOf(detailQueryParam.getStatus()))).append("'");
+            p.add(detailQueryParam.getStatus());
+            sqlBuilder.append(" and custG.status= ? ");
         }
         if (detailQueryParam.getBatchId() != null) {
-            sqlBuilder.append(" and custG.batch_id= '").append(StringEscapeUtils.escapeSql(String.valueOf(detailQueryParam.getBatchId()))).append("'");
+            p.add(detailQueryParam.getBatchId());
+            sqlBuilder.append(" and custG.batch_id= ? ");
         }
         Set<String> labels = new HashSet<>();
         List<String> optionValues = new ArrayList<>();
@@ -117,7 +128,7 @@ public class BatchDetailImpl implements BatchDetaiService {
         PageParam page = new PageParam();
         page.setPageNum(detailQueryParam.getPageNum());
         page.setPageSize(detailQueryParam.getPageSize());
-        PageList pageData = new Pagination().getPageData(sqlBuilder.toString(), null, page, jdbcTemplate);
+        PageList pageData = new Pagination().getPageData(sqlBuilder.toString(), p.toArray(), page, jdbcTemplate);
         List<Map> list = pageData.getList();
         for (int i = 0; i < list.size(); i++) {
             String queryCreatTime = "SELECT create_time FROM t_touch_voice_log  where batch_id =? AND superid=? ORDER BY create_time DESC LIMIT 1";
@@ -150,9 +161,9 @@ public class BatchDetailImpl implements BatchDetaiService {
         StringBuffer sb = new StringBuffer();
         sb.append("SELECT t1.id,t1.cust_id,t1.label_id,t1.label_name,t1.type,t1.`option` FROM t_customer_label t1\n");
         sb.append(" LEFT JOIN t_super_label t2 ON t1.label_id = t2.label_id");
-        sb.append(" WHERE t2.batch_id = " + batchId);
+        sb.append(" WHERE t2.batch_id = ? ");
         sb.append(" AND t1.STATUS = 1 AND t1.type != 1 GROUP BY t1.id ORDER BY t1.create_time DESC");
-        List<Map<String, Object>> list = jdbcTemplate.queryForList(sb.toString());
+        List<Map<String, Object>> list = jdbcTemplate.queryForList(sb.toString(), batchId);
         map.put("propertyList", list);
         return map;
     }
