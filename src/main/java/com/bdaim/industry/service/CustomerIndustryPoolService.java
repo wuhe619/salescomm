@@ -48,9 +48,11 @@ public class CustomerIndustryPoolService {
     }
 
     public void deleteCustomerIndustryPool(String customerId, String industryPoolId, String operator) throws Exception {
-        String sql = "update t_cust_industry t1 set t1.status=2 ," + "t1.operator='" + StringEscapeUtils.escapeSql(operator) + "'" + " where t1.cust_id='" + StringEscapeUtils.escapeSql(customerId) + "' and t1.industry_pool_id='" + StringEscapeUtils.escapeSql(industryPoolId) + "'";
+//        String sql = "update t_cust_industry t1 set t1.status=2 ," + "t1.operator='" + StringEscapeUtils.escapeSql(operator) + "'" + " where t1.cust_id='" + StringEscapeUtils.escapeSql(customerId) + "' and t1.industry_pool_id='" + StringEscapeUtils.escapeSql(industryPoolId) + "'";
+
+        String sql = "update t_cust_industry t1 set t1.status=2,t1.operator=? where t1.cust_id=? and t1.industry_pool_id=?";
         try {
-            dao.executeUpdateSQL(sql);
+            dao.executeUpdateSQL(sql,StringEscapeUtils.escapeSql(operator),StringEscapeUtils.escapeSql(customerId),StringEscapeUtils.escapeSql(industryPoolId));
         } catch (Exception e) {
             throw new TouchException("300", e.getMessage());
         }
