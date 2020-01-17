@@ -141,25 +141,27 @@ public class InstitutionService {
             querySql.append("(SELECT COUNT(DISTINCT product_id) FROM t_fund_product_apply where product_id IN ( SELECT c.id FROM t_dic c LEFT JOIN t_dic_property p ON c.id = p.dic_id ");
             querySql.append("WHERE dic_prop_key = 'institution' AND dic_prop_value = c.cust_id ) AND match_status = 1 ");
             if (StringUtil.isNotEmpty(dicType)) {
-                querySql.append("AND product_type = '" + dicType + "'");
+                querySql.append("AND product_type = ?");
+                params.add(dicType);
             }
             querySql.append(")successNum,( SELECT COUNT(DISTINCT dic_id) FROM t_dic c LEFT JOIN t_dic_property p ON c.id = p.dic_id WHERE p.dic_prop_key = 'institution' AND dic_prop_value = c.cust_id");
             if (StringUtil.isNotEmpty(dicType)) {
-                querySql.append(" AND c.dic_type_id ='" + dicType + "'");
+                querySql.append(" AND c.dic_type_id =?");
+                params.add(dicType);
             }
             querySql.append(" ) productNum ");
             querySql.append(" FROM t_customer c LEFT JOIN t_customer_property p ON c.cust_id = p.cust_id WHERE 1 = 1");
             if (StringUtil.isNotEmpty(brandId)) {
                 params.add(brandId);
-                querySql.append(" and c.brand_id = '" + brandId + "'");
+                querySql.append(" and c.brand_id =? ");
             }
             if (StringUtil.isNotEmpty(institutionName)) {
                 params.add(institutionName);
-                querySql.append(" and c.enterprise_name LIKE '%" + institutionName + "%'");
+                querySql.append(" and c.enterprise_name LIKE '%?%'");
             }
             querySql.append(" AND c.source = 2 AND c. STATUS = 0 ");
             querySql.append(" GROUP BY c.cust_id ORDER BY successNum DESC,c.create_time DESC");
-            page = customerDao.sqlPageQuery0(querySql.toString(), pageNum, pageSize);
+            page = customerDao.sqlPageQuery0(querySql.toString(), pageNum, pageSize, params.toArray());
             List<Map<String, Object>> data = page.getData();
             log.info("查询出信息是：" + data);
             if (data.size() > 0) {
@@ -213,10 +215,12 @@ public class InstitutionService {
             StringBuffer querySql = new StringBuffer("SELECT c.cust_id institutionId, ( SELECT COUNT(DISTINCT product_id) FROM t_fund_product_apply WHERE product_id IN (");
             querySql.append(" SELECT c.id FROM t_dic c LEFT JOIN t_dic_property p ON c.id = p.dic_id ");
             querySql.append(" WHERE dic_prop_key = 'institution' AND dic_prop_value = c.cust_id ) ");
-            querySql.append(" AND product_type = '" + dicType + "' ) applyNum FROM t_customer c");
+            querySql.append(" AND product_type = ? ) applyNum FROM t_customer c");
             querySql.append(" LEFT JOIN t_customer_property p ON c.cust_id = p.cust_id");
             querySql.append(" WHERE c.source = 2 AND c. STATUS = 0 GROUP BY c.cust_id ORDER BY applyNum DESC");
-            page = customerDao.sqlPageQuery0(querySql.toString(), pageNum, pageSize);
+            List<Object> params = new ArrayList<>();
+            params.add(dicType);
+            page = customerDao.sqlPageQuery0(querySql.toString(), pageNum, pageSize, params.toArray());
             List<Map<String, Object>> data = page.getData();
             if (data.size() > 0) {
                 for (int i = 0; i < data.size(); i++) {

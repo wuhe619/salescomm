@@ -527,20 +527,26 @@ public class TransactionService {
             transactionDao.checkTransactionLogMonthTableNotExist(nowYearMonth);
 
             StringBuilder sql = new StringBuilder("SELECT COUNT(0) count FROM t_transaction_" + nowYearMonth + " t where 1=1 ");
+            List<Object> p = new ArrayList<>();
             if (StringUtil.isNotEmpty(customerId)) {
-                sql.append(" and t.cust_id = '").append(StringEscapeUtils.escapeSql(customerId)).append("'");
+                p.add(customerId);
+                sql.append(" and t.cust_id = ? ");
             }
             if (StringUtil.isNotEmpty(transactionId)) {
-                sql.append(" and t.transaction_id='").append(StringEscapeUtils.escapeSql(transactionId)).append("'");
+                p.add(customerId);
+                sql.append(" and t.transaction_id=? ");
             }
             if (param.getType() != null && param.getType() > 0) {
-                sql.append(" and t.type=").append(param.getType());
+                sql.append(" and t.type=? ");
+                p.add(param.getType());
             }
             if (StringUtil.isNotEmpty(startTime) && StringUtil.isNotEmpty(endTime)) {
-                sql.append(" and t.create_time between ").append("'").append(StringEscapeUtils.escapeSql(startTime)).append("' and ").append("'").append(StringEscapeUtils.escapeSql(endTime)).append("'");
+                p.add(startTime);
+                p.add(endTime);
+                sql.append(" and t.create_time between ? and ?");
             }
             sql.append(" order by t.create_time desc ");
-            List<Map<String, Object>> list = transactionDao.sqlQuery(sql.toString());
+            List<Map<String, Object>> list = transactionDao.sqlQuery(sql.toString(), p.toArray());
             if (list != null && list.size() > 0) {
                 total = NumberConvertUtil.parseLong(String.valueOf(list.get(0).get("count")));
             }
@@ -624,28 +630,33 @@ public class TransactionService {
         // 检查交易记录月表是否存在,不存在则创建
         transactionDao.checkTransactionLogMonthTableNotExist(nowYearMonth);
 
+        List<Object> p = new ArrayList<>();
         StringBuilder sql = new StringBuilder("SELECT count(*) count FROM" +
                 " t_transaction_" + nowYearMonth + " t1 WHERE 1=1 ");
 
         if (StringUtil.isNotEmpty(param.getUserName())) {
             CustomerUser customerUser = customerUserDao.getCustomerUserByName(param.getUserName());
             if (customerUser != null) {
-                sql.append(" and t1.user_id='").append(customerUser.getId()).append("'");
+                sql.append(" and t1.user_id=? ");
+                p.add(customerUser.getId());
             }
         }
         if (param.getType() != null && param.getType() > 0) {
-            sql.append(" and t1.type='").append(param.getType()).append("'");
+            sql.append(" and t1.type=? ");
+            p.add(param.getType());
         }
         if (StringUtil.isNotEmpty(param.getTransactionId())) {
-            sql.append(" and t1.transaction_id='").append(StringEscapeUtils.escapeSql(param.getTransactionId())).append("'");
+            p.add(param.getTransactionId());
+            sql.append(" and t1.transaction_id=? ");
         }
         if (StringUtil.isNotEmpty(param.getStartTime()) && StringUtil.isNotEmpty(param.getEndTime())) {
-            sql.append(" and t1.create_time between '").append(StringEscapeUtils.escapeSql(param.getStartTime())).append("'");
-            sql.append(" and '").append(StringEscapeUtils.escapeSql(param.getEndTime())).append("'");
+            p.add(param.getStartTime());
+            p.add(param.getEndTime());
+            sql.append(" and t1.create_time between ? and ? ");
         }
         long total = 0;
         try {
-            List<Map<String, Object>> list = transactionDao.sqlQuery(sql.toString());
+            List<Map<String, Object>> list = transactionDao.sqlQuery(sql.toString(), p.toArray());
             if (list.size() > 0) {
                 total = NumberConvertUtil.parseLong(String.valueOf(list.get(0).get("count")));
             }
@@ -835,6 +846,7 @@ public class TransactionService {
         }
         return 0;
     }
+
     /**
      * 供应商坐席剩余包月分钟数
      *

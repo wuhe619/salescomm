@@ -30,54 +30,57 @@ public class BatchServiceImpl implements BatchService {
     private JdbcTemplate jdbcTemplate;
 
 
-    private String createId="unicom_bigdatabjhk";
+    private String createId = "unicom_bigdatabjhk";
 
-    private String activityId="JZYX-000-201808281730";
+    private String activityId = "JZYX-000-201808281730";
 
-    private String departTypeId="03";
+    private String departTypeId = "03";
 
-    private String partnerName="获客（北京）科技有限公司";
+    private String partnerName = "获客（北京）科技有限公司";
 
-    private String endTime="2019-08-26 00:00:00";
+    private String endTime = "2019-08-26 00:00:00";
 
-    private String sendNum="01084285088";
+    private String sendNum = "01084285088";
 
-    private String ivr="1";
+    private String ivr = "1";
 
     private static final String urlsendtofile = "http://120.52.23.243:9001/InformationNav/rs/sending/sendServer/sendtofile";
 
     @Override
-    public Boolean repeatIdCardStatus( String batchId) {
+    public Boolean repeatIdCardStatus(String batchId) {
         Boolean status = false;
         StringBuilder sqlBuilder = new StringBuilder("select id_card,count(*) as coutNum from nl_batch_detail ");
-        if(StringUtil.isNotEmpty(batchId)){
-            sqlBuilder.append(" where batch_id = "+"'"+batchId+"'");
+        List<Object> p = new ArrayList<>();
+        if (StringUtil.isNotEmpty(batchId)) {
+            sqlBuilder.append(" where batch_id =? ");
+            p.add(batchId);
         }
         sqlBuilder.append(" group BY id_card HAVING coutNum>1 ");
 
-        List<Map<String, Object>> mapRepeat = jdbcTemplate.queryForList(sqlBuilder.toString());
-        if(mapRepeat != null && mapRepeat.size() > 0){
-            if(mapRepeat.get(0).get("coutNum") != null ) status = true;
+        List<Map<String, Object>> mapRepeat = jdbcTemplate.queryForList(sqlBuilder.toString(), p.toArray());
+        if (mapRepeat != null && mapRepeat.size() > 0) {
+            if (mapRepeat.get(0).get("coutNum") != null) status = true;
         }
         return status;
     }
 
     @Override
-    public Boolean repeateEntrpriseIdStatus( String batchId) {
+    public Boolean repeateEntrpriseIdStatus(String batchId) {
         Boolean status = false;
         StringBuilder sqlBuilder = new StringBuilder("select enterprise_id,count(*) as coutNum from nl_batch_detail ");
-        if(StringUtil.isNotEmpty(batchId)){
-            sqlBuilder.append(" where batch_id = "+"'"+batchId+"'");
+        List<Object> p = new ArrayList<>();
+        if (StringUtil.isNotEmpty(batchId)) {
+            sqlBuilder.append(" where batch_id = ? ");
+            p.add(batchId);
         }
         sqlBuilder.append(" group BY enterprise_id HAVING coutNum>1 ");
 
-        List<Map<String, Object>> mapRepeat = jdbcTemplate.queryForList(sqlBuilder.toString());
-        if(mapRepeat != null && mapRepeat.size() > 0){
-            if(mapRepeat.get(0).get("coutNum") != null ) status = true;
+        List<Map<String, Object>> mapRepeat = jdbcTemplate.queryForList(sqlBuilder.toString(), p.toArray());
+        if (mapRepeat != null && mapRepeat.size() > 0) {
+            if (mapRepeat.get(0).get("coutNum") != null) status = true;
         }
         return status;
     }
-
 
 
     @Override
@@ -87,15 +90,15 @@ public class BatchServiceImpl implements BatchService {
         BatchSendToFileResp bstfResp = new BatchSendToFileResp();
         StringBuilder sbcerti = new StringBuilder();
         StringBuilder sbcususer = new StringBuilder();
-        for(int i=0;i<certilist.size();i++){
-            if(i==(certilist.size()-1)){
+        for (int i = 0; i < certilist.size(); i++) {
+            if (i == (certilist.size() - 1)) {
                 sbcerti.append(certilist.get(i));
             } else {
                 sbcerti.append(certilist.get(i)).append(",");
             }
         }
-        for(int i=0;i<cususerIdlist.size();i++){
-            if(i==(cususerIdlist.size()-1)){
+        for (int i = 0; i < cususerIdlist.size(); i++) {
+            if (i == (cususerIdlist.size() - 1)) {
                 sbcususer.append(cususerIdlist.get(i));
             } else {
                 sbcususer.append(cususerIdlist.get(i)).append(",");
@@ -103,27 +106,27 @@ public class BatchServiceImpl implements BatchService {
         }
 
         List<NameValuePair> nvps = new ArrayList<NameValuePair>();
-        nvps.add(new BasicNameValuePair("createId",createId));
-        nvps.add(new BasicNameValuePair("activityId",activityId));
-        nvps.add(new BasicNameValuePair("departTypeId",departTypeId));
+        nvps.add(new BasicNameValuePair("createId", createId));
+        nvps.add(new BasicNameValuePair("activityId", activityId));
+        nvps.add(new BasicNameValuePair("departTypeId", departTypeId));
         nvps.add(new BasicNameValuePair("batchId", batchId));
-        nvps.add(new BasicNameValuePair("partnerName",partnerName));
-        nvps.add(new BasicNameValuePair("startTime",formatDate(new Date())));
-        nvps.add(new BasicNameValuePair("endTime",endTime));
-        nvps.add(new BasicNameValuePair("sendNum",sendNum));
-        nvps.add(new BasicNameValuePair("ivr",ivr));
-        nvps.add(new BasicNameValuePair("certList",sbcerti.toString()));
-        nvps.add(new BasicNameValuePair("kehuId",sbcususer.toString()));
-        nvps.add(new BasicNameValuePair("contactType",repairMode));
+        nvps.add(new BasicNameValuePair("partnerName", partnerName));
+        nvps.add(new BasicNameValuePair("startTime", formatDate(new Date())));
+        nvps.add(new BasicNameValuePair("endTime", endTime));
+        nvps.add(new BasicNameValuePair("sendNum", sendNum));
+        nvps.add(new BasicNameValuePair("ivr", ivr));
+        nvps.add(new BasicNameValuePair("certList", sbcerti.toString()));
+        nvps.add(new BasicNameValuePair("kehuId", sbcususer.toString()));
+        nvps.add(new BasicNameValuePair("contactType", repairMode));
 
         try {
             String result = httpPostType(urlsendtofile, nvps);
             logger.info("result= " + "，" + result);
-            long endTime4=System.currentTimeMillis();
-            logger.info("联通上传修复耗时："+(endTime4-startTime4)+"ms"+"\t修复方式："+repairMode);
+            long endTime4 = System.currentTimeMillis();
+            logger.info("联通上传修复耗时：" + (endTime4 - startTime4) + "ms" + "\t修复方式：" + repairMode);
             resultJson = JSONObject.parseObject(result);
         } catch (Exception e) {
-            logger.error("批次修复上传异常\t"+e.getMessage());
+            logger.error("批次修复上传异常\t" + e.getMessage());
         }
         String errorCode = resultJson.getString("errorCode");
         return errorCode;
@@ -154,16 +157,18 @@ public class BatchServiceImpl implements BatchService {
 
 
     @Override
-    public String batchNameGet( String batchId) {
+    public String batchNameGet(String batchId) {
         String batchName = "";
         StringBuilder sqlBuilder = new StringBuilder("SELECT batch_name from nl_batch  ");
-        if(StringUtil.isNotEmpty(batchId)){
-            sqlBuilder.append(" where id = "+"'"+batchId+"'");
+        List<Object> p = new ArrayList<>();
+        if (StringUtil.isNotEmpty(batchId)) {
+            sqlBuilder.append(" where id = ? ");
+            p.add(batchId);
         }
 
-        List<Map<String, Object>> mapRepeat = jdbcTemplate.queryForList(sqlBuilder.toString());
-        if(mapRepeat != null && mapRepeat.size() > 0){
-            if(mapRepeat.get(0).get("batch_name") != null ) batchName = mapRepeat.get(0).get("batch_name").toString();
+        List<Map<String, Object>> mapRepeat = jdbcTemplate.queryForList(sqlBuilder.toString(),p.toArray());
+        if (mapRepeat != null && mapRepeat.size() > 0) {
+            if (mapRepeat.get(0).get("batch_name") != null) batchName = mapRepeat.get(0).get("batch_name").toString();
         }
         return batchName;
     }
@@ -172,14 +177,16 @@ public class BatchServiceImpl implements BatchService {
     public int uploadNumGet(String compId) {
         int uploadNum = 0;
         StringBuilder sqlBuilder = new StringBuilder("SELECT upload_num from nl_batch WHERE status in(2,4,5) ");
-        if(StringUtil.isNotEmpty(compId)){
-            sqlBuilder.append(" and comp_id= "+compId);
+        List<Object> p = new ArrayList<>();
+        if (StringUtil.isNotEmpty(compId)) {
+            sqlBuilder.append(" and comp_id= ? ");
+            p.add(compId);
         }
-        List<Map<String, Object>> mapRepeat = jdbcTemplate.queryForList(sqlBuilder.toString());
-        if(mapRepeat != null && mapRepeat.size()>0){
-            for(Map map:mapRepeat){
-                if(map != null && map.get("upload_num") != null){
-                    uploadNum +=Integer.valueOf(map.get("upload_num").toString());
+        List<Map<String, Object>> mapRepeat = jdbcTemplate.queryForList(sqlBuilder.toString(), p.toArray());
+        if (mapRepeat != null && mapRepeat.size() > 0) {
+            for (Map map : mapRepeat) {
+                if (map != null && map.get("upload_num") != null) {
+                    uploadNum += Integer.valueOf(map.get("upload_num").toString());
                 }
             }
         }

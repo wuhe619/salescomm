@@ -31,10 +31,7 @@ import com.bdaim.rbac.vo.QueryDataParam;
 import com.bdaim.rbac.vo.RoleInfo;
 import com.bdaim.rbac.vo.UserInfo;
 import com.bdaim.smscenter.service.SendSmsService;
-import com.bdaim.util.CipherUtil;
-import com.bdaim.util.IDHelper;
-import com.bdaim.util.NumberConvertUtil;
-import com.bdaim.util.StringUtil;
+import com.bdaim.util.*;
 
 import net.sf.json.JSONArray;
 import org.apache.commons.lang.StringUtils;
@@ -45,10 +42,15 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import sun.net.util.IPAddressUtil;
 
 import javax.annotation.Resource;
+import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.math.BigInteger;
 import java.util.*;
 
@@ -56,6 +58,8 @@ import java.util.*;
 @RequestMapping("/user")
 public class UserAction extends BasicAction {
     private static Logger logger = LoggerFactory.getLogger(UserAction.class);
+    private static Map verifyCodes = new HashMap();
+    private static Long verifyCodeTimeout = 300000L;
 
     @Resource
     private RoleService roleService;
@@ -94,6 +98,17 @@ public class UserAction extends BasicAction {
         Map<String, Object> resultMap = new HashMap<String, Object>();
         resultMap.put("data", JSONObject.toJSON(userInfoService.getUserByCondition(type, condition)));
         return JSON.toJSONString(resultMap);
+    }
+
+    @RequestMapping(value = "/verify/code")
+    public void getLoginVerifyCode(HttpServletRequest request, HttpServletResponse response) {
+        BufferedImage image = VerifyUtil.getLoginVerifyCode(100, 38);
+        try {
+            ImageIO.write(image, "PNG", response.getOutputStream());
+        } catch (IOException e) {
+            logger.error("生成登录图片验证码错误：" + e);
+            e.printStackTrace();
+        }
     }
 
 
