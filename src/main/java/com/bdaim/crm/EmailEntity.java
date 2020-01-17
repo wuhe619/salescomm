@@ -6,7 +6,7 @@ package com.bdaim.crm;
 public class EmailEntity {
 
     /**
-     * 手机号
+     * 邮箱
      */
     private String email;
     /**
