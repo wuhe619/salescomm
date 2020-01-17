@@ -301,8 +301,10 @@ public class SupplierDao extends SimpleHibernateDao<SupplierEntity, Integer> {
      */
     public List<String> getSuppliers(String suppliers) {
         SupplierEntity cp = null;
-        String sql = "select name from t_supplier where supplier_id in (" + suppliers + ")";
-        List<String> list = jdbcTemplate.queryForList(sql, String.class);
+        String sql = "select name from t_supplier where supplier_id in (?)";
+        List<Object> params = new ArrayList<>();
+        params.add(suppliers);
+        List<String> list = jdbcTemplate.queryForList(sql, String.class, params.toArray());
         return list;
     }
 }
