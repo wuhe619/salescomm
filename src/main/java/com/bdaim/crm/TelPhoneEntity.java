@@ -1,14 +1,14 @@
 package com.bdaim.crm;
 
 /**
- * 手机号来源记录
+ * 固话实体类
  */
-public class PhoneSource {
+public class TelPhoneEntity {
 
     /**
      * 手机号
      */
-    private String phone;
+    private String tel;
     /**
      * 录入时间
      */
@@ -22,22 +22,15 @@ public class PhoneSource {
      */
     private String sourceWeb;
 
-    public PhoneSource() {
+    public TelPhoneEntity() {
     }
 
-    public PhoneSource(String phone, long time, String source, String sourceWeb) {
-        this.phone = phone;
-        this.time = time;
-        this.source = source;
-        this.sourceWeb = sourceWeb;
+    public String getTel() {
+        return tel;
     }
 
-    public String getPhone() {
-        return phone;
-    }
-
-    public void setPhone(String phone) {
-        this.phone = phone;
+    public void setTel(String tel) {
+        this.tel = tel;
     }
 
     public long getTime() {
@@ -62,5 +55,15 @@ public class PhoneSource {
 
     public void setSourceWeb(String sourceWeb) {
         this.sourceWeb = sourceWeb;
+    }
+
+    @Override
+    public String toString() {
+        return "TelPhoneSource{" +
+                "tel='" + tel + '\'' +
+                ", time=" + time +
+                ", source='" + source + '\'' +
+                ", sourceWeb='" + sourceWeb + '\'' +
+                '}';
     }
 }

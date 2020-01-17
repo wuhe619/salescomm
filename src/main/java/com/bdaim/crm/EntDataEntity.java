@@ -1,62 +1,177 @@
 package com.bdaim.crm;
 
-import cn.afterturn.easypoi.excel.annotation.Excel;
+import java.util.List;
 
 /**
  * 企业基本信息
  */
-public class EntInfo {
-    @Excel(name = "企业名称", orderNum = "0")
-    private String entName;
-    @Excel(name = "法定代表人", orderNum = "1")
-    private String legalName;
-    @Excel(name = "注册资本", orderNum = "2")
-    private String regCap;
-    private String regCapCur;
-    @Excel(name = "成立日期", orderNum = "3")
-    private String establishTime;
-    @Excel(name = "注吊销日期", orderNum = "4")
-    private String cancelDate;
-    @Excel(name = "经营状态", orderNum = "5")
-    private String entStatus;
-    @Excel(name = "工商注册号", orderNum = "6")
-    private String regNo;
-    @Excel(name = "机构组织代码", orderNum = "7")
-    private String orgNo;
-    @Excel(name = "统一社会信用代码", orderNum = "8")
-    private String creditCode;
-    @Excel(name = "纳税人识别号", orderNum = "9")
-    private String taxpayerNo;
-    private String entTypeCode;
-    @Excel(name = "企业类型", orderNum = "10")
-    private String entType;
-    private String industryCode;
-    @Excel(name = "所属行业", orderNum = "11")
-    private String industry;
-    @Excel(name = "营业期限开始时间", orderNum = "12")
-    private  String fromTime;
-    @Excel(name = "营业期限结束时间", orderNum = "13")
-    private String toTime;
-    @Excel(name = "核准日期", orderNum = "14")
-    private String approvedTime;
-    @Excel(name = "登记机关", orderNum = "15")
-    private String regInstitute;
-    @Excel(name = "省份代码", orderNum = "16")
-    private String regProvinceCode;
-    @Excel(name = "所属地区", orderNum = "17")
-    private String regProvinceName;
-    @Excel(name = "详细地址", orderNum = "18")
-    private String regLocation;
-    private String regCityCode;
-    @Excel(name = "注册地址城市", orderNum = "19")
-    private String regCityName;
-    @Excel(name = "经营范围", orderNum = "20")
-    private String opScope;
-    @Excel(name = "更多电话", orderNum = "21")
-    private String phoneNumbers;
-    @Excel(name = "邮箱", orderNum = "22")
-    private String email;
+public class EntDataEntity {
+
+    /**
+     * 企业ID
+     */
     private Long id;
+    /**
+     * 企业名称
+     */
+    private String entName;
+
+    /**
+     * 曾用名
+     */
+    private String otherName;
+
+    /**
+     * 英文名称
+     */
+    private String entEnName;
+    /**
+     * 法定代表人
+     */
+    private String legalName;
+    /**
+     * 注册资金
+     */
+    private String regCap;
+
+    /**
+     * 注册资金单位(元/万元)
+     */
+    private String regCapUnit;
+    /**
+     * 注册资金币种
+     */
+    private String regCapCur;
+    /**
+     * 成立日期
+     */
+    private String establishTime;
+    /**
+     * 注吊销日期
+     */
+    private String cancelDate;
+    /**
+     * 审核日期
+     */
+    private String auditDate;
+    /**
+     * 经营状态
+     */
+    private String entStatus;
+    /**
+     * 工商注册号
+     */
+    private String regNo;
+    /**
+     * 机构组织代码
+     */
+    private String orgNo;
+    /**
+     * 统一社会信用代码
+     */
+    private String creditCode;
+    /**
+     * 纳税人识别号
+     */
+    private String taxpayerNo;
+    /**
+     * 企业类型代码
+     */
+    private String entTypeCode;
+    /**
+     * 企业类型
+     */
+    private String entType;
+    /**
+     * 国际行业代码
+     */
+    private String industryCode;
+    /**
+     * 行业名称
+     */
+    private String industry;
+    /**
+     * 公司介绍
+     */
+    private String entIntroduction;
+    /**
+     * 营业期限开始时间
+     */
+    private String fromTime;
+    /**
+     * 营业期限结束时间
+     */
+    private String toTime;
+    /**
+     * 核准日期
+     */
+    private String approvedTime;
+    /**
+     * 登记机关
+     */
+    private String regInstitute;
+    /**
+     * 省份代码
+     */
+    private String regProvinceCode;
+    /**
+     * 所属地区
+     */
+    private String regProvinceName;
+    /**
+     * 详细地址
+     */
+    private String regLocation;
+    /**
+     * 注册城市代码
+     */
+    private String regCityCode;
+    /**
+     * 注册地址城市
+     */
+    private String regCityName;
+    /**
+     * 经营范围
+     */
+    private String opScope;
+    /**
+     * 手机号
+     */
+    private List<PhoneEntity> phoneNumbers;
+
+    /**
+     * 固话
+     */
+    private List<TelPhoneEntity> telPhoneNumbers;
+    /**
+     * 邮箱
+     */
+    private List<EmailEntity> email;
+
+    /**
+     * 网站
+     */
+    private List<EntWebEntity> web;
+    /**
+     * 专利
+     */
+    private List<PatentEntity> patents;
+    /**
+     * 商标
+     */
+    private List<TrademarkEntity> trademarks;
+    /**
+     * 联系人
+     */
+    private List<ContactsEntity> contactMan;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
 
     public String getEntName() {
         return entName;
@@ -64,6 +179,22 @@ public class EntInfo {
 
     public void setEntName(String entName) {
         this.entName = entName;
+    }
+
+    public String getOtherName() {
+        return otherName;
+    }
+
+    public void setOtherName(String otherName) {
+        this.otherName = otherName;
+    }
+
+    public String getEntEnName() {
+        return entEnName;
+    }
+
+    public void setEntEnName(String entEnName) {
+        this.entEnName = entEnName;
     }
 
     public String getLegalName() {
@@ -80,6 +211,14 @@ public class EntInfo {
 
     public void setRegCap(String regCap) {
         this.regCap = regCap;
+    }
+
+    public String getRegCapUnit() {
+        return regCapUnit;
+    }
+
+    public void setRegCapUnit(String regCapUnit) {
+        this.regCapUnit = regCapUnit;
     }
 
     public String getRegCapCur() {
@@ -104,6 +243,14 @@ public class EntInfo {
 
     public void setCancelDate(String cancelDate) {
         this.cancelDate = cancelDate;
+    }
+
+    public String getAuditDate() {
+        return auditDate;
+    }
+
+    public void setAuditDate(String auditDate) {
+        this.auditDate = auditDate;
     }
 
     public String getEntStatus() {
@@ -176,6 +323,14 @@ public class EntInfo {
 
     public void setIndustry(String industry) {
         this.industry = industry;
+    }
+
+    public String getEntIntroduction() {
+        return entIntroduction;
+    }
+
+    public void setEntIntroduction(String entIntroduction) {
+        this.entIntroduction = entIntroduction;
     }
 
     public String getFromTime() {
@@ -258,27 +413,59 @@ public class EntInfo {
         this.opScope = opScope;
     }
 
-    public String getPhoneNumbers() {
+    public List<PhoneEntity> getPhoneNumbers() {
         return phoneNumbers;
     }
 
-    public void setPhoneNumbers(String phoneNumbers) {
+    public void setPhoneNumbers(List<PhoneEntity> phoneNumbers) {
         this.phoneNumbers = phoneNumbers;
     }
 
-    public String getEmail() {
+    public List<TelPhoneEntity> getTelPhoneNumbers() {
+        return telPhoneNumbers;
+    }
+
+    public void setTelPhoneNumbers(List<TelPhoneEntity> telPhoneNumbers) {
+        this.telPhoneNumbers = telPhoneNumbers;
+    }
+
+    public List<EmailEntity> getEmail() {
         return email;
     }
 
-    public void setEmail(String email) {
+    public void setEmail(List<EmailEntity> email) {
         this.email = email;
     }
 
-    public Long getId() {
-        return id;
+    public List<EntWebEntity> getWeb() {
+        return web;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public void setWeb(List<EntWebEntity> web) {
+        this.web = web;
+    }
+
+    public List<PatentEntity> getPatents() {
+        return patents;
+    }
+
+    public void setPatents(List<PatentEntity> patents) {
+        this.patents = patents;
+    }
+
+    public List<TrademarkEntity> getTrademarks() {
+        return trademarks;
+    }
+
+    public void setTrademarks(List<TrademarkEntity> trademarks) {
+        this.trademarks = trademarks;
+    }
+
+    public List<ContactsEntity> getContactMan() {
+        return contactMan;
+    }
+
+    public void setContactMan(List<ContactsEntity> contactMan) {
+        this.contactMan = contactMan;
     }
 }

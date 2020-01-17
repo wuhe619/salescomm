@@ -3,9 +3,9 @@ package com.bdaim.crm;
 import java.util.List;
 
 /**
- * 网站备案信息
+ * 网站信息
  */
-public class EntWeb {
+public class EntWebEntity {
 
     /**
      * 网站首页(多个)

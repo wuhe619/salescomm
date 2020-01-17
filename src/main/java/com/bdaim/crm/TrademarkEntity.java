@@ -3,7 +3,7 @@ package com.bdaim.crm;
 /**
  * 商标信息
  */
-public class TrademarkInfo {
+public class TrademarkEntity {
 
     /**
      * 商标图片地址

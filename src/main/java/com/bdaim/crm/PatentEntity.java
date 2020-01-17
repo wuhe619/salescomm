@@ -3,7 +3,7 @@ package com.bdaim.crm;
 /**
  * 专利信息
  */
-public class PatentInfo {
+public class PatentEntity {
 
     /**
      * 专利名称
