@@ -594,4 +594,16 @@ public class ApiService {
     }
 
 
+    public PageList resApiLogDetail(JSONObject params, PageParam page) {
+        StringBuffer sql = new StringBuffer();
+         sql.append("select log.rs_id as rsId,res.resname,log.charge/10000,log.event_time eventTime,que.SERVICE_TIME as serviceTime," +
+                " que.RESPONSE_MSG responseMsg,que.RESPONSE_TIME as responseTime from rs_log_" + params.getString("callMonth")+" log " +
+                " left join  t_market_resource res on log.rs_id = res.resource_id " +
+                " left join am_charge_" + params.getString("callMonth")+ " que on que.id=log.api_log_id " +
+                "  where log.rs_id="+params.getString("rsId"));
+
+        PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
+        return list;
+    }
+
 }
