@@ -16,6 +16,7 @@ import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -207,10 +208,12 @@ public class TransactionDao extends SimpleHibernateDao<TransactionDO, String> {
 
             StringBuilder sql = new StringBuilder("SELECT FORMAT(sum(t.amount)/1000,2) as amount")
                     .append(" FROM t_transaction_" + nowMonth.format(DateTimeFormatter.ofPattern("yyyyMM")) + " t where cust_id = ?");
+            List<Object> p = new ArrayList<>();
             if (type > 0) {
-                sql.append(" and t.type=").append(type);
+                p.add(type);
+                sql.append(" and t.type= ?");
             }
-            List<Map<String, Object>> list = this.sqlQuery(sql.toString(), customerId);
+            List<Map<String, Object>> list = this.sqlQuery(sql.toString(), customerId, p.toArray());
             if (list != null && list.size() > 0 && list.get(0).get("amount") != null) {
                 result = NumberConvertUtil.parseDouble(String.valueOf(list.get(0).get("amount")));
             }
