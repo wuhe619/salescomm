@@ -150,9 +150,9 @@ public class EntDataService {
                             jsonArray.addAll(JSON.parseArray(list.get(0).get("property_value").toString()));
                         }
                         List<EmailEntity> emails = personList.get(i).getEmail();
-                        PhoneEntity p;
+                        EmailEntity p;
                         for (EmailEntity email : emails) {
-                            p = new PhoneEntity(email.getEmail(), now.getTime(), email.getSource(), email.getSourceWeb());
+                            p = new EmailEntity(email.getEmail(), now.getTime(), email.getSource(), email.getSourceWeb());
                             jsonArray.add(p);
                         }
                         if (update) {
