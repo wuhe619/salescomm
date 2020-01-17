@@ -22,7 +22,7 @@ public class GetPdfConfiguration extends WebSecurityConfigurerAdapter {
         web.ignoring().antMatchers("/pic/**");
 
         web.ignoring().antMatchers("/open/getVoiceRecordFile/**", "/customer/token",
-                "/user/token", "/customer/m/login", "/user/otp/verify/**", "/user/identify/**",
+                "/user/token", "/customer/m/login", "/user/verify/code","/user/otp/verify/**", "/user/identify/**",
                 "/user/reset/password", "/mail/sendVerifyCode", "/sms/sendSms",
                 "/returnUrl/**", "/retuNotifyUrl/**", "/marketResource/callBack/**",
                 "/registerUser/validationPhone", "/registerUser/saveNew", "/registerUser/validationUserName",

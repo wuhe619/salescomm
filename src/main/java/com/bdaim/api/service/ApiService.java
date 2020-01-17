@@ -20,6 +20,7 @@ import com.bdaim.customer.dao.AmApplicationDao;
 import com.bdaim.customer.entity.AmApplicationEntity;
 import com.bdaim.customer.service.CustomerAppService;
 import com.bdaim.supplier.dao.SupplierDao;
+import com.bdaim.util.BigDecimalUtil;
 import com.bdaim.util.JavaBeanUtil;
 import com.bdaim.util.NumberConvertUtil;
 import com.bdaim.util.StringUtil;
@@ -552,18 +553,57 @@ public class ApiService {
     }
 
     //资源调用记录
-    public PageList resApiLogs(JSONObject params, PageParam page) {
+    public Map resApiLogs(JSONObject params, PageParam page) {
+        Map result = new HashMap();
+        result.put("list", new ArrayList<>());
+        result.put("total", 0);
         StringBuffer sql = new StringBuffer();
-        sql.append(" select log.RS_ID as rsId,res.resname as resname, api.API_NAME as apiName,que.USER_NAME as userName," +
-                " que.SERVICE_TIME as serviceTime,que.RESPONSE_TIME as responseTime,round(log.CHARGE/10000) as charge,que.RESPONSE_MSG as body");
-        sql.append(" from rs_log_" + params.getString("callMonth") + " log left join t_market_resource res on log.RS_ID=res.resource_id");
-        sql.append(" left join am_api api on api.API_ID = log.API_ID ");
-        sql.append(" left join am_charge_" + params.getString("callMonth") + " que on que.ID=log.API_LOG_ID");
-        sql.append(" where log.RS_ID = " + params.getLong("resourceId"));
+//        sql.append(" select log.RS_ID as rsId,res.resname as resname, api.API_NAME as apiName,que.USER_NAME as userName," +
+//                " que.SERVICE_TIME as serviceTime,que.RESPONSE_TIME as responseTime,round(log.CHARGE/10000) as charge,que.RESPONSE_MSG as body");
+//        sql.append(" from rs_log_" + params.getString("callMonth") + " log left join t_market_resource res on log.RS_ID=res.resource_id");
+//        sql.append(" left join am_api api on api.API_ID = log.API_ID ");
+//        sql.append(" left join am_charge_" + params.getString("callMonth") + " que on que.ID=log.API_LOG_ID");
+//        sql.append(" where log.supplier_id="+params.getLong("supplierId")+" and log.RS_ID = " + params.getLong("resourceId"));
+        sql.append("select resource_id as rsId,resname from t_market_resource res where supplier_id="+params.getString("supplierId"));
+
+        PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
+        if(list!=null && list.getTotal()>0){
+//            List<Map<String,Object>> dataList = list.getList();
+              Object collect = list.getList().stream().map(m -> {
+                Map map = (Map) m;
+                map.put("amount","0");
+                map.put("num",0);
+                String countSql = "select count(0)num from rs_log_" + params.getString("callMonth")+" where rs_id="+map.get("rsId");
+                Map<String,Object> countNum = jdbcTemplate.queryForMap(countSql);
+                map.put("num",countNum.get("num"));
+                String sumsql= " select sum(charge) as amount from rs_log_" + params.getString("callMonth")+" where rs_id="+map.get("rsId");
+                Map<String,Object> amountMap = jdbcTemplate.queryForMap(sumsql);
+                if(amountMap!=null){
+                    Object amount = amountMap.get("amount");
+                    if(amount!=null){
+                        String amountStr = BigDecimalUtil.strDiv(amount.toString(),"10000",2);
+                        map.put("amount",amountStr);
+                    }
+                }
+                return map;
+            }).collect(Collectors.toList());
+            result.put("list",collect);
+            result.put("total",list.getTotal());
+        }
+        return result;
+    }
+
+
+    public PageList resApiLogDetail(JSONObject params, PageParam page) {
+        StringBuffer sql = new StringBuffer();
+         sql.append("select log.rs_id as rsId,res.resname,log.charge/10000 as charge,log.event_time eventTime,que.SERVICE_TIME as serviceTime," +
+                " que.RESPONSE_MSG responseMsg,que.RESPONSE_TIME as responseTime from rs_log_" + params.getString("callMonth")+" log " +
+                " left join  t_market_resource res on log.rs_id = res.resource_id " +
+                " left join am_charge_" + params.getString("callMonth")+ " que on que.id=log.api_log_id " +
+                "  where log.rs_id="+params.getString("rsId"));
 
         PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
         return list;
     }
-
 
 }

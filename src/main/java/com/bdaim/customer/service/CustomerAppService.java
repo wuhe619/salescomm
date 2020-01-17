@@ -265,11 +265,11 @@ public class CustomerAppService {
             CustomerProperty used_amount = customerDao.getProperty(cust_id, "used_amount");
             if (remain_amount != null) {
                 logger.info("remain_amount:{"+remain_amount+"}");
-                map.put("remainAmount", StringUtil.isEmpty(remain_amount.getPropertyValue()) ? "0" : String.valueOf(Integer.valueOf(remain_amount.getPropertyValue()) / 10000));
+                map.put("remainAmount", StringUtil.isEmpty(remain_amount.getPropertyValue()) ? "0" : String.valueOf(BigDecimalUtil.strDiv(remain_amount.getPropertyValue(),"10000",2)));
             }
             if (used_amount != null) {
                 logger.info("used_amount:{"+used_amount+"}");
-                map.put("userAmount", StringUtil.isEmpty(used_amount.getPropertyValue()) ? "0" : String.valueOf(Integer.valueOf(used_amount.getPropertyValue()) / 10000));
+                map.put("userAmount", StringUtil.isEmpty(used_amount.getPropertyValue()) ? "0" : String.valueOf(BigDecimalUtil.strDiv(used_amount.getPropertyValue(), "10000",2)));
             }
             return map;
         }).collect(Collectors.toList());
