@@ -301,11 +301,13 @@ public class MarketResourceDao extends SimpleHibernateDao<MarketResourceEntity, 
     public List<MarketResourceDTO> listMarketResource(String type) {
         StringBuilder hql = new StringBuilder();
         hql.append(" from MarketResourceEntity m where 1=1");
+        List<Object> params = new ArrayList<>();
         if (StringUtil.isNotEmpty(type)) {
-            hql.append(" AND m.typeCode = " + type);
+            hql.append(" AND m.typeCode = ?");
+            params.add(type);
         }
         hql.append(" ORDER BY create_time ASC");
-        List<MarketResourceEntity> list = this.find(hql.toString());
+        List<MarketResourceEntity> list = this.find(hql.toString(),params.toArray());
         List<MarketResourceDTO> result = new ArrayList<>();
         if (list.size() > 0) {
             MarketResourceDTO marketResourceDTO;
@@ -435,7 +437,8 @@ public class MarketResourceDao extends SimpleHibernateDao<MarketResourceEntity, 
         List<Object> param = new ArrayList<>();
         hql.append(" from MarketResourceEntity m where 1=1");
         if (StringUtil.isNotEmpty(type)) {
-            hql.append(" AND m.typeCode = " + type);
+            hql.append(" AND m.typeCode = ? " );
+            param.add(type);
         }
         hql.append(" ORDER BY create_time ASC");
         Page page = this.page(hql.toString(), param, pageNum, pageSize);
