@@ -31,12 +31,15 @@ public class DicDao extends SimpleHibernateDao<Dic, Long> {
 
     public List<DicProperty> listDicNotInProperty(Long dicId, String dicPropKey, String dicPropValue, String type, String dicType, String recommendConfig) {
         StringBuilder hql = new StringBuilder("from DicProperty m, Dic a where m.dicId = a.id AND m.dicPropKey=? AND m.dicPropValue = ? AND m.dicId <> ? AND a.status = 1");
+        List<Object> p = new ArrayList<>();
         if (StringUtil.isNotEmpty(type)) {
-            hql.append(" AND a.id in (SELECT dicId from DicProperty where dicPropKey='type' and dicPropValue = '").append(type).append("')");
+            p.add(type);
+            hql.append(" AND a.id in (SELECT dicId from DicProperty where dicPropKey='type' and dicPropValue = ? )");
         }
-        hql.append(" AND a.id in (SELECT dicId from DicProperty where dicPropKey='recommendConfig' and dicPropValue LIKE '%").append(recommendConfig).append("%')");
+        p.add(recommendConfig);
+        hql.append(" AND a.id in (SELECT dicId from DicProperty where dicPropKey='recommendConfig' and dicPropValue LIKE '%?%')");
         hql.append(" AND a.dicTypeId = ?");
-        List<DicProperty> list = this.find(hql.toString(), dicPropKey, dicPropValue, dicId, dicType);
+        List<DicProperty> list = this.find(hql.toString(), dicPropKey, dicPropValue, dicId, p.toArray(), dicType);
         return list;
     }
 

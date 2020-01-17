@@ -183,6 +183,7 @@ public class SourceImpl implements SourceService {
         sb.append(" WHERE t.`level` = 3 ");
         sb.append(" AND t.`status` = 3 ");
         sb.append(" AND t.availably = 1 ");
+        List<Object> p = new ArrayList<>();
         String queryState = json.getString("queryState");
         if ("0".equals(queryState)) {
             // 默认查询
@@ -230,31 +231,38 @@ public class SourceImpl implements SourceService {
                 sb.append(" AND t.uri= '" + uri + "/'");
             }*/
             if (null != secondCategory && !"".equals(secondCategory)) {
-                sb.append(" AND t.parent_id=" + secondCategory);
+                p.add(secondCategory);
+                sb.append(" AND t.parent_id= ? ");
             }
             if (null != labelName && !"".equals(labelName)) {
-                sb.append(" AND t.label_name like '%" + labelName + "%'");
+                p.add("%" + labelName + "%");
+                sb.append(" AND t.label_name like ?");
             }
             if (null != labelId && !"".equals(labelId)) {
-                sb.append(" AND t.label_id=" + labelId);
+                p.add(labelId);
+                sb.append(" AND t.label_id= ? ");
             }
             if (null != createTimeStart && !"".equals(createTimeStart) && null != createTimeEnd
                     && !"".equals(createTimeEnd)) {
-                sb.append(" AND t.create_time BETWEEN '" + createTimeStart + "' and '" + createTimeEnd + "' ");
+                p.add(createTimeStart);
+                p.add(createTimeEnd);
+                sb.append(" AND t.create_time BETWEEN ? and ? ");
             } else {
                 if (null != createTimeStart && !"".equals(createTimeStart)) {
-                    sb.append(" AND t.create_time > '" + createTimeStart + "'");
+                    p.add(createTimeStart);
+                    sb.append(" AND t.create_time > ?");
                 }
                 if (null != createTimeEnd && !"".equals(createTimeEnd)) {
-                    sb.append(" AND t.create_time < '" + createTimeEnd + "'");
+                    p.add(createTimeEnd);
+                    sb.append(" AND t.create_time < ?");
                 }
             }
         }
         sb.append(" ORDER BY t.create_time");
         sb.append(" LIMIT ?,? ");
         List<Map<String, Object>> listLevel3 = jdbcTemplate.queryForList(sb.toString(),
-                new Object[]{pageNum, pageSize});
-        List<Map<String, Object>> listLevel3Size = jdbcTemplate.queryForList(sb.toString(), new Object[]{0, 100000});
+                new Object[]{pageNum, pageSize}, p.toArray());
+        List<Map<String, Object>> listLevel3Size = jdbcTemplate.queryForList(sb.toString(), new Object[]{0, 100000}, p.toArray());
         map.put("level3", listLevel3);
         map.put("total", listLevel3Size.size());
         jsonReturn.put("data", map);
