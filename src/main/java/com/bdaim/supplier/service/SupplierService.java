@@ -2417,7 +2417,7 @@ public class SupplierService {
             supplierDao.dealCustomerInfo(String.valueOf(deposit.getId()), "remain_amount", String.valueOf(money));
         } else {
 //            BigDecimal bigDecimal1 = new BigDecimal(Double.valueOf(supplierPropertyEntity.getPropertyValue()));
-            pre_money = Integer.valueOf(supplierPropertyEntity.getPropertyValue());
+            pre_money = new BigDecimal(supplierPropertyEntity.getPropertyValue()).intValue();
             supplierDao.dealCustomerInfo(String.valueOf(deposit.getId()), "remain_amount", String.valueOf(pre_money + money));
         }
         log.info("id:" + deposit.getId());
