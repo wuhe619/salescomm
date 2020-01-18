@@ -46,7 +46,7 @@ public class FilterConfig {
         ObjectMapper objectMapper = builder.createXmlMapper(false).build();
         //注册xss解析器
         SimpleModule xssModule = new SimpleModule("XssStringJsonSerializer");
-        xssModule.addSerializer(String.class, new XssJacksonSerializer());
+        //xssModule.addSerializer(String.class, new XssJacksonSerializer());
         //xssModule.addDeserializer(String.class, new XssJacksonDeserializer());
         objectMapper.registerModule(xssModule);
         //返回
