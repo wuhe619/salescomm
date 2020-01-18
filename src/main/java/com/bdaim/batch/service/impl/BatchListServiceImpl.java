@@ -293,8 +293,8 @@ public class BatchListServiceImpl implements BatchListService {
         StringBuilder sqlBuilder = new StringBuilder("SELECT id, comp_id, comp_name, repair_mode repairMode,batch_name batchName, certify_type certifyType, status, upload_num uploadNum, success_num successNum, upload_time uploadTime, repair_time repairTime, channel, repair_strategy repairStrategy FROM nl_batch WHERE 1=1");
         List<Object> p = new ArrayList<>();
         if (StringUtil.isNotEmpty(batchListParam.getComp_name())) {
-            sqlBuilder.append(" AND comp_name LIKE '%?%'");
-            p.add(batchListParam.getComp_name());
+            sqlBuilder.append(" AND comp_name LIKE ?");
+            p.add("%" + batchListParam.getComp_name() + "%");
         }
         if (StringUtil.isNotEmpty(batchListParam.getCompId())) {
             sqlBuilder.append(" AND comp_id = ? ");
@@ -780,8 +780,8 @@ public class BatchListServiceImpl implements BatchListService {
                 "FROM nl_batch n LEFT JOIN t_touch_express_log t ON n.id=t.batch_id WHERE 1=1");
         List<Object> p = new ArrayList<>();
         if (StringUtil.isNotEmpty(batchListParam.getComp_name())) {
-            sqlBuilder.append(" AND comp_name LIKE '%?%'");
-            p.add(batchListParam.getComp_name());
+            sqlBuilder.append(" AND comp_name LIKE ?");
+            p.add("%" + batchListParam.getComp_name() + "%");
         }
         if (StringUtil.isNotEmpty(batchListParam.getCompId())) {
             sqlBuilder.append(" AND comp_id = ?");
@@ -792,8 +792,8 @@ public class BatchListServiceImpl implements BatchListService {
             p.add(batchListParam.getId());
         }
         if (StringUtil.isNotEmpty(batchListParam.getBatchName())) {
-            sqlBuilder.append(" AND batch_name LIKE '%?%'");
-            p.add(batchListParam.getBatchName());
+            sqlBuilder.append(" AND batch_name LIKE ?");
+            p.add("%" + batchListParam.getBatchName() + "%");
         }
         if (StringUtil.isNotEmpty(batchListParam.getUploadStartTime())) {
             sqlBuilder.append(" AND upload_time >= ?");

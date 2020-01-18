@@ -1879,11 +1879,12 @@ public class BillServiceImpl implements BillService {
             querySql.append("AND n.id =? ");
         }
         if (StringUtil.isNotEmpty(param.getBatchName())) {
-            p.add(param.getBatchName());
-            querySql.append("AND n.batch_name like '%?%'");
+            p.add("%"+param.getBatchName()+"%");
+            querySql.append("AND n.batch_name like ?");
         }
         if (StringUtil.isNotEmpty(resourceIds)) {
-            querySql.append("AND b.resource_id in  (" + resourceIds + ")");
+            querySql.append("AND b.resource_id in  (?)");
+            p.add(resourceIds);
         }
         String billDate = param.getBillDate();
         //0查詢全部 1查詢1年 2 查看近半年 201901查詢具体某月账单

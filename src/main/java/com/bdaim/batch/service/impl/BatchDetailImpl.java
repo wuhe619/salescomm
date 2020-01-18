@@ -88,8 +88,8 @@ public class BatchDetailImpl implements BatchDetaiService {
             sqlBuilder.append(" and custG.enterprise_id= ? ");
         }
         if (StringUtil.isNotEmpty(detailQueryParam.getRealname())) {
-            p.add(detailQueryParam.getRealname());
-            sqlBuilder.append(" and t.realname LIKE '%?%'");
+            p.add("%"+detailQueryParam.getRealname()+"%");
+            sqlBuilder.append(" and t.realname LIKE ?");
         }
         if (detailQueryParam.getStatus() != null) {
             p.add(detailQueryParam.getStatus());

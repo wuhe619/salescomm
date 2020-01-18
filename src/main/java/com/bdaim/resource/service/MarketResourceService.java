@@ -4447,7 +4447,7 @@ public class MarketResourceService {
                 params.add(userid);
                 if (!"".equals(realName) && null != realName) {
                     sb.append(" AND   tUser.realname LIKE ?");
-                    params.add("%"+realName+"%");
+                    params.add("%" + realName + "%");
                 }
 
                 if (null != createTimeStart && !"".equals(createTimeStart) && null != createTimeEnd
@@ -4567,8 +4567,8 @@ public class MarketResourceService {
                 params.add(customerGroupId);
             }
             if (StringUtil.isNotEmpty(remark)) {
-                sb.append(" AND  voicLog.remark LIKE '%?%'");
-                params.add(remark.trim());
+                sb.append(" AND  voicLog.remark LIKE ?");
+                params.add("%" + remark.trim() + "%");
             }
             if (StringUtil.isNotEmpty(superId)) {
                 sb.append(" AND voicLog.superid=?");
@@ -4608,8 +4608,8 @@ public class MarketResourceService {
                 // 处理机器人外呼的意向度
                 if (StringUtil.isNotEmpty(level)) {
                     String levelLike = "\"level\":\"" + level + "\"";
-                    sb.append(" AND voicLog.call_data LIKE '%?%'");
-                    params.add(levelLike);
+                    sb.append(" AND voicLog.call_data LIKE ?");
+                    params.add("%" + levelLike + "%");
                 }
                 // 处理按照操作人搜索营销记录时机器人外呼任务记录可以搜到
                 if (user != null) {
@@ -4888,8 +4888,8 @@ public class MarketResourceService {
                 params.add(customerGroupId.trim());
             }
             if (StringUtil.isNotEmpty(remark)) {
-                sb.append(" AND voicLog.remark LIKE '%?%'");
-                params.add(remark.trim());
+                sb.append(" AND voicLog.remark LIKE ?");
+                params.add("%" + remark.trim() + "%");
             }
             if (StringUtil.isNotEmpty(superId)) {
                 sb.append(" AND voicLog.superid=?");
@@ -4946,8 +4946,8 @@ public class MarketResourceService {
                 // 处理机器人外呼的意向度
                 if (StringUtil.isNotEmpty(level)) {
                     String levelLike = "\"level\":\"" + level + "\"";
-                    sb.append(" AND voicLog.call_data LIKE '%?%'");
-                    params.add(levelLike);
+                    sb.append(" AND voicLog.call_data LIKE ?");
+                    params.add("%" + levelLike + "%");
                 }
                 // 处理按照操作人搜索营销记录时机器人外呼任务记录可以搜到
                 if (user != null) {
@@ -5171,8 +5171,12 @@ public class MarketResourceService {
                 params.add(pageSize);
                 list = this.marketResourceDao.sqlQuery(sql, params.toArray());
             } else {
-                String sql = "select account AS userName, realname as name,CAST(id AS CHAR)id from t_customer_user m where m.id in (select user_id from t_customer_user_property where property_name='work_num_status' and property_value='" + workNumStatus + "') and realname like '%" + username + "%' ";
+                String sql = "select account AS userName, realname as name,CAST(id AS CHAR)id from t_customer_user m where " +
+                        "m.id in (select user_id from t_customer_user_property where property_name=" +
+                        "'work_num_status' and property_value=?) and realname like ? ";
                 sql += " ORDER BY m.account ASC LIMIT ?,?";
+                params.add(workNumStatus);
+                params.add("%" + username + "%");
                 params.add(pageNum);
                 params.add(pageSize);
                 list = this.marketResourceDao.sqlQuery(sql, params.toArray());
@@ -5231,10 +5235,12 @@ public class MarketResourceService {
                 sql += " ORDER BY t2.create_time DESC ";
                 params.add(workNumStatus);
             } else {
-                sql = "select t1.account AS userName, t1.realname as name, CAST(t1.id AS CHAR)id from t_customer_user t1 JOIN t_customer_user_property t2 ON t1.id = t2.user_id AND t2.property_name='work_num_status' WHERE t2.property_value=? and t1.realname like '%?%' ";
+                sql = "select t1.account AS userName, t1.realname as name, CAST(t1.id AS CHAR)id from t_customer_user t1 " +
+                        "JOIN t_customer_user_property t2 ON t1.id = t2.user_id AND t2.property_name='work_num_status' " +
+                        "WHERE t2.property_value=? and t1.realname like ? ";
                 sql += " ORDER BY t2.create_time DESC ";
                 params.add(workNumStatus);
-                params.add(username);
+                params.add("%" + username + "%");
             }
         } else {
             if (username == null || "".equals(username)) {
@@ -5284,16 +5290,18 @@ public class MarketResourceService {
                 String sql = "select count(*) count  from t_customer_user m where m.id in (select user_id from t_customer_user_property where property_name='work_num_status' and property_value=?) ";
                 list = this.marketResourceDao.sqlQuery(sql, workNumStatus);
             } else {
-                String sql = "select count(*) count  from t_customer_user m where m.id in (select user_id from t_customer_user_property where property_name='work_num_status' and property_value=?) and realname like '%?%' ";
-                list = this.marketResourceDao.sqlQuery(sql, workNumStatus, username);
+                String sql = "select count(*) count  from t_customer_user m where m.id in (select user_id from " +
+                        "t_customer_user_property where property_name='work_num_status' " +
+                        "and property_value=?) and realname like ? ";
+                list = this.marketResourceDao.sqlQuery(sql, workNumStatus, "%" + username + "%");
             }
         } else {
             if (username == null || "".equals(username)) {
                 String sql = "select count(*) count  from t_customer_user m where cust_id=? ";
                 list = this.marketResourceDao.sqlQuery(sql, cust_id);
             } else {
-                String sql = "select count(*) count from t_customer_user m where cust_id=? and realname like '%?%' ";
-                list = this.marketResourceDao.sqlQuery(sql, cust_id, username);
+                String sql = "select count(*) count from t_customer_user m where cust_id=? and realname like ? ";
+                list = this.marketResourceDao.sqlQuery(sql, cust_id, "%" + username + "%");
             }
         }
         if (list != null && list.size() > 0) {
@@ -5320,8 +5328,8 @@ public class MarketResourceService {
                 params.add(cust_id);
 
                 if (!"".equals(realName) && null != realName) {
-                    sb.append(" AND   tUser.realname LIKE '%?%'");
-                    params.add(realName);
+                    sb.append(" AND   tUser.realname LIKE ?");
+                    params.add("%" + realName + "%");
                 }
 
                 if (null != createTimeStart && !"".equals(createTimeStart) && null != createTimeEnd
@@ -5366,8 +5374,8 @@ public class MarketResourceService {
                         .append("  where voicLog.user_id=?");
                 params.add(userid);
                 if (!"".equals(realName) && null != realName) {
-                    sb.append(" AND   tUser.realname LIKE '%?%'");
-                    params.add(realName);
+                    sb.append(" AND   tUser.realname LIKE ?");
+                    params.add("%"+realName+"%");
                 }
 
                 if (null != createTimeStart && !"".equals(createTimeStart) && null != createTimeEnd
@@ -5459,8 +5467,8 @@ public class MarketResourceService {
             }
 
             if (StringUtil.isNotEmpty(remark)) {
-                sb.append(" AND  voicLog.remark LIKE '%?%'");
-                params.add(remark.trim());
+                sb.append(" AND  voicLog.remark LIKE ?");
+                params.add("%"+remark.trim()+"%");
             }
             if (StringUtil.isNotEmpty(customerGroupId)) {
                 // 处理任务类型
@@ -5508,8 +5516,8 @@ public class MarketResourceService {
                 // 处理机器人外呼的意向度
                 if (StringUtil.isNotEmpty(level)) {
                     String levelLike = "\"level\":\"" + level + "\"";
-                    sb.append(" AND voicLog.call_data LIKE '%?%'");
-                    params.add(levelLike);
+                    sb.append(" AND voicLog.call_data LIKE ?");
+                    params.add("%"+levelLike+"%");
                 }
                 // 处理按照操作人搜索营销记录时机器人外呼任务记录可以搜到
                 if (user != null) {
@@ -5565,8 +5573,8 @@ public class MarketResourceService {
             // 处理机器人外呼的意向度
             if (StringUtil.isNotEmpty(level)) {
                 String levelLike = "\"level\":\"" + level + "\"";
-                sb.append(" AND voicLog.call_data LIKE '%?%'");
-                params.add(levelLike);
+                sb.append(" AND voicLog.call_data LIKE ?");
+                params.add("%" + levelLike + "%");
             }
             list = this.marketResourceDao.sqlQuery(sb.toString(), params.toArray());
             if (list.size() > 0) {
@@ -7279,8 +7287,8 @@ public class MarketResourceService {
                         labelId = jsonObject.getString("labelId");
                         optionValue = jsonObject.getString("optionValue");
                         likeValue = "\"" + labelId + "\":\"" + optionValue + "\"";
-                        sql.append(" AND t.super_data LIKE '%?%' ");
-                        params.add(likeValue);
+                        sql.append(" AND t.super_data LIKE ? ");
+                        params.add("%" + likeValue + "%");
                     }
                 }
             }
