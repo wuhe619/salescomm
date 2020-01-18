@@ -180,8 +180,8 @@ public class MarketResourceService {
             params.add(smsqueryParm.getCompId());
         }
         if (StringUtil.isNotEmpty(smsqueryParm.getRealName())) {
-            sb.append(" and sms.remark like '%?%'");
-            params.add(smsqueryParm.getRealName());
+            sb.append(" and sms.remark like ?");
+            params.add("%" + smsqueryParm.getRealName() + "%");
         }
         if (StringUtil.isNotEmpty(smsqueryParm.getSuperId())) {
             sb.append(" and sms.superid=?");
@@ -192,8 +192,8 @@ public class MarketResourceService {
             params.add(smsqueryParm.getEnterpriseId());
         }
         if (StringUtil.isNotEmpty(smsqueryParm.getBatchName())) {
-            sb.append(" and sms.remark like '%?%'");
-            params.add(smsqueryParm.getBatchName());
+            sb.append(" and sms.remark like ?");
+            params.add("%" + smsqueryParm.getBatchName() + "%");
         }
         if (StringUtil.isNotEmpty(smsqueryParm.getSendStartTime())) {
             sb.append(" and sms.create_time >=?");
@@ -208,12 +208,12 @@ public class MarketResourceService {
             params.add(smsqueryParm.getStatus());
         }
         if (StringUtil.isNotEmpty(smsqueryParm.getTemplateName())) {
-            sb.append(" and sms.remark like '%?%'");
-            params.add(smsqueryParm.getTemplateName());
+            sb.append(" and sms.remark like ?");
+            params.add("%" + smsqueryParm.getTemplateName() + "%");
         }
         if (StringUtil.isNotEmpty(smsqueryParm.getEnterpriseName())) {
-            sb.append(" and sms.remark like '%?%'");
-            params.add(smsqueryParm.getEnterpriseName());
+            sb.append(" and sms.remark like ?");
+            params.add("%" + smsqueryParm.getEnterpriseName() + "%");
         }
         sb.append(" ORDER BY sms.create_time DESC ");
         return new Pagination().getPageData(sb.toString(), params.toArray(), page, jdbcTemplate);
@@ -281,13 +281,13 @@ public class MarketResourceService {
                 .append("  where 1=1").append(" and channel IS NOT NULL ");
         List<Object> params = new ArrayList<>();
         if (!"".equals(realName) && null != realName) {
-            sb.append(" AND   voicLog.remark LIKE '%?%'");
-            params.add(realName);
+            sb.append(" AND   voicLog.remark LIKE ?");
+            params.add("%" + realName + "%");
         }
 
         if (!"".equals(enterpriseName) && null != enterpriseName) {
-            sb.append(" AND   voicLog.remark LIKE '%?%'");
-            params.add(enterpriseName);
+            sb.append(" AND   voicLog.remark LIKE ?");
+            params.add("%" + enterpriseName + "%");
         }
 
         if (!"".equals(enterpriseId) && null != enterpriseId) {
@@ -1736,8 +1736,8 @@ public class MarketResourceService {
                 "from t_template t LEFT JOIN t_customer c on t.cust_id=c.cust_id\n" +
                 "where 1=1   ");
         if (null != title && !"".equals(title)) {
-            sb.append(" and t.title like '%?%'");
-            params.add(title);
+            sb.append(" and t.title like ?");
+            params.add("%" + title + "%");
         }
         if (null != templateId && !"".equals(templateId)) {
             sb.append(" and t.id=?");
@@ -1752,18 +1752,18 @@ public class MarketResourceService {
             params.add(customerId);
         }
         if (null != sms_signatures && !"".equals(sms_signatures)) {
-            sb.append(" and t.sms_signatures like '%?%'");
-            params.add(sms_signatures);
+            sb.append(" and t.sms_signatures like ?");
+            params.add("%" + sms_signatures + "%");
         }
 
         if (null != templateCode && !"".equals(templateCode)) {
-            sb.append(" and t.template_code like '%?%'");
-            params.add(templateCode);
+            sb.append(" and t.template_code like ?");
+            params.add("%" + templateCode + "%");
         }
 
         if (null != enterpriseName && !"".equals(enterpriseName)) {
-            sb.append(" and c.enterprise_name like '%?%'");
-            params.add(enterpriseName);
+            sb.append(" and c.enterprise_name like ?");
+            params.add("%" + enterpriseName + "%");
         }
 
         sb.append(" and t.type_code=?");
@@ -1831,8 +1831,8 @@ public class MarketResourceService {
                 .append("  where 1=1").append(" and channel IS NOT NULL ");
         List<Object> params = new ArrayList<>();
         if (StringUtil.isNotEmpty(recordVoiceQueryParam.getRealName())) {
-            sb.append(" AND   tUser.realname LIKE '%?%'");
-            params.add(recordVoiceQueryParam.getRealName());
+            sb.append(" AND   tUser.realname LIKE ?");
+            params.add("%" + recordVoiceQueryParam.getRealName() + "%");
         }
         if (StringUtil.isNotEmpty(recordVoiceQueryParam.getEnterpriseId())) {
             sb.append(" AND  voicLog.enterprise_id= ?");
@@ -2836,13 +2836,13 @@ public class MarketResourceService {
                     .append("  where 1=1").append(" and channel IS NOT NULL ");
 
             if (!"".equals(realName) && null != realName) {
-                sb.append(" AND   voicLog.remark LIKE '%?%'");
-                params.add(realName);
+                sb.append(" AND   voicLog.remark LIKE ?");
+                params.add("%" + realName + "%");
             }
 
             if (!"".equals(enterpriseName) && null != enterpriseName) {
-                sb.append(" AND   voicLog.remark LIKE '%?%'");
-                params.add(enterpriseName);
+                sb.append(" AND   voicLog.remark LIKE ?");
+                params.add("%" + enterpriseName + "%");
             }
 
             if (!"".equals(enterpriseId) && null != enterpriseId) {
@@ -4149,8 +4149,8 @@ public class MarketResourceService {
         sb.append(
                 "select title,id,create_time,case status when 1 then '审核中' when 2 then '审批通过' when 3 then '审批未通过' end  status,mould_content, template_code from t_template where 1=1 ");
         if (null != templateName && !"".equals(templateName)) {
-            sb.append(" and title like '%?%'");
-            params.add(templateName);
+            sb.append(" and title like ?");
+            params.add("%" + templateName + "%");
         }
         if (null != templateId && !"".equals(templateId)) {
             sb.append(" and id=?");
@@ -4388,8 +4388,8 @@ public class MarketResourceService {
                 params.add(cust_id);
 
                 if (!"".equals(realName) && null != realName) {
-                    sb.append(" AND   tUser.realname LIKE '%?%'");
-                    params.add(realName);
+                    sb.append(" AND   tUser.realname LIKE ?");
+                    params.add("%" + realName + "%");
                 }
 
                 if (null != createTimeStart && !"".equals(createTimeStart) && null != createTimeEnd
@@ -4446,8 +4446,8 @@ public class MarketResourceService {
                         .append("  where voicLog.user_id=?");
                 params.add(userid);
                 if (!"".equals(realName) && null != realName) {
-                    sb.append(" AND   tUser.realname LIKE '%?%'");
-                    params.add(realName);
+                    sb.append(" AND   tUser.realname LIKE ?");
+                    params.add("%"+realName+"%");
                 }
 
                 if (null != createTimeStart && !"".equals(createTimeStart) && null != createTimeEnd
@@ -8403,8 +8403,8 @@ public class MarketResourceService {
                     result = HttpUtil.httpGet(AppConfig.getHbase_audio_url() + fileName + "/f1:file", param, headers);
                 } catch (RuntimeException e) {
                     LOG.warn("通话HBase获取录音文件失败,开始通过原始url读取文件,recordUrl:{}", recordUrl);
-                    if(recordUrl.contains("117.159.206.212")){
-                        recordUrl = recordUrl.replace("117.159.206.212","192.168.216.102");
+                    if (recordUrl.contains("117.159.206.212")) {
+                        recordUrl = recordUrl.replace("117.159.206.212", "192.168.216.102");
                     }
                     LOG.warn("原始文件外网地址替换为内网地址,recordUrl:{}", recordUrl);
                     String path = FileUtil.savePhoneRecordFileReturnPath(recordUrl, userId);
@@ -9116,7 +9116,7 @@ public class MarketResourceService {
             if (!dataMap.containsKey("salePrice")) {
                 dataMap.put("salePrice", 0);
             } else {
-                if(dataMap.get("salePrice")==null || "".equals(dataMap.get("salePrice"))){
+                if (dataMap.get("salePrice") == null || "".equals(dataMap.get("salePrice"))) {
                     dataMap.put("salePrice", 0);
                 }
                 dataMap.put("salePrice", Double.valueOf(dataMap.get("salePrice").toString()) / 10000);

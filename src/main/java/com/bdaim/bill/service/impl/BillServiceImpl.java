@@ -1757,8 +1757,8 @@ public class BillServiceImpl implements BillService {
             p.add(param.getPeopleId());
         }
         if (StringUtil.isNotEmpty(param.getName())) {
-            querySql.append("AND d.label_one like '%?%' ");
-            p.add(param.getName());
+            querySql.append("AND d.label_one like ? ");
+            p.add("%"+param.getName()+"%");
         }
         //type 1 数据  2快递
         MarketResourceEntity marketResourceEntity = sourceDao.getResourceId(param.getSupplierId(), NumberConvertUtil.parseInt(param.getType()));
