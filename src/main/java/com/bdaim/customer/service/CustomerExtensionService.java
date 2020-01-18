@@ -38,24 +38,31 @@ public class CustomerExtensionService {
 
     public PageList query(JSONObject info, PageParam page) {
         StringBuffer sql = new StringBuffer("select id,content,create_time from op_crm_clue_log where 1=1");
+        List<Object> p = new ArrayList<>();
         if (StringUtil.isNotEmpty(info.getString("custName"))) {
-            sql.append(" and content-> '$.custName' like '%" + info.getString("custName") + "%'");
+            p.add("%" + info.getString("custName") + "%");
+            sql.append(" and content-> '$.custName' like ? ");
         }
         if (StringUtil.isNotEmpty(info.getString("tel"))) {
-            sql.append(" and content->'$.tel' = '" + info.getString("tel") + "'");
+            p.add(info.getString("tel"));
+            sql.append(" and content->'$.tel' = ?");
         }
         if (StringUtil.isNotEmpty(info.getString("create_time")) && StringUtil.isNotEmpty(info.getString("end_time"))) {
-            sql.append(" and create_time between '" + info.getString("create_time") + "' and '" + info.getString("end_time") + "'");
+            p.add(info.getString("create_time"));
+            p.add(info.getString("end_time"));
+            sql.append(" and create_time between ? and ? ");
         }
         if (StringUtil.isNotEmpty(info.getString("source"))) {
-            sql.append(" and content->'$.source' ='" + info.getString("source") + "'");
+            p.add(info.getString("source"));
+            sql.append(" and content->'$.source' =? ");
         }
         if (StringUtil.isNotEmpty(info.getString("id"))) {
-            sql.append(" and  id in (" + info.getString("id") + ")");
+            p.add(info.getString("id"));
+            sql.append(" and  id in (?)");
         }
         sql.append(" order by create_time desc");
 //        List<Map<String, Object>> ds = jdbcTemplate.queryForList(sql + " limit " + (page.getPageNum() - 1) * page.getPageSize() + ", " + page.getPageSize());
-        PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
+        PageList list = new Pagination().getPageData(sql.toString(), p.toArray(), page, jdbcTemplate);
         List list1 = new ArrayList();
         list.getList().stream().forEach(m -> {
             Map map=(Map)m;

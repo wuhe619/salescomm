@@ -177,8 +177,8 @@ public class CustomerService {
         }
         if (StringUtil.isNotEmpty(realName)) {
             StringBuffer sbpro = new StringBuffer();
-            String realNameSql = "SELECT * from t_customer_user_property p WHERE p.user_id=" + Id + " and p.property_name='realname'";
-            List<Map<String, Object>> list = jdbcTemplate.queryForList(realNameSql);
+            String realNameSql = "SELECT * from t_customer_user_property p WHERE p.user_id=? and p.property_name='realname'";
+            List<Map<String, Object>> list = jdbcTemplate.queryForList(realNameSql, Id);
             if (list != null && list.size() > 0) {
                 sbpro.append("UPDATE t_customer_user_property SET ");
                 sbpro.append(" property_value = ? ");
@@ -195,8 +195,8 @@ public class CustomerService {
         }
         if (StringUtil.isNotEmpty(mobileNumber)) {
             StringBuffer sbpro = new StringBuffer();
-            String mobileNumSql = "SELECT * from t_customer_user_property p WHERE p.user_id=" + Id + " and p.property_name='mobile_num'";
-            List<Map<String, Object>> list = jdbcTemplate.queryForList(mobileNumSql);
+            String mobileNumSql = "SELECT * from t_customer_user_property p WHERE p.user_id=? and p.property_name='mobile_num'";
+            List<Map<String, Object>> list = jdbcTemplate.queryForList(mobileNumSql, Id);
             if (list != null && list.size() > 0) {
                 sbpro.append("UPDATE t_customer_user_property SET ");
                 sbpro.append(" property_value = ? ");
@@ -215,8 +215,8 @@ public class CustomerService {
 
         if (StringUtil.isNotEmpty(mainNumber)) {
             StringBuffer sbmain = new StringBuffer();
-            String mainNumSql = "SELECT * from t_customer_user_property p WHERE p.user_id=" + Id + " and p.property_name='main_num'";
-            List<Map<String, Object>> list = jdbcTemplate.queryForList(mainNumSql);
+            String mainNumSql = "SELECT * from t_customer_user_property p WHERE p.user_id=? and p.property_name='main_num'";
+            List<Map<String, Object>> list = jdbcTemplate.queryForList(mainNumSql, Id);
             if (list != null && list.size() > 0) {
                 sbmain.append("UPDATE t_customer_user_property SET ");
                 sbmain.append(" property_value = ? ");
@@ -252,18 +252,23 @@ public class CustomerService {
                 " MAX(CASE property_name WHEN 'resource'    THEN property_value ELSE '' END ) resource \n" +
                 " FROM t_customer_user_property p GROUP BY user_id \n" +
                 ") cjc ON s.id = cjc.user_id WHERE 1=1 AND user_type = 2  AND STATUS <> 2 ");
-        sql.append(" AND cust_id = '" + customerId + "'");
+        List<Object> p = new ArrayList<>();
+        p.add(customerId);
+        sql.append(" AND cust_id = ? ");
         if (null != name && !"".equals(name)) {
-            sql.append(" AND s.account like '%" + name + "%'");
+            p.add("%" + name + "%");
+            sql.append(" AND s.account like ? ");
         }
         if (null != realName && !"".equals(realName)) {
-            sql.append(" AND s.realname like '%" + realName + "%'");
+            p.add("%" + realName + "%");
+            sql.append(" AND s.realname like ? ");
         }
         if (null != mobileNum && !"".equals(mobileNum)) {
-            sql.append(" AND cjc.mobile_num like '%" + mobileNum + "%'");
+            p.add("%" + mobileNum + "%");
+            sql.append(" AND cjc.mobile_num like ? ");
         }
 
-        PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
+        PageList list = new Pagination().getPageData(sql.toString(), p.toArray(), page, jdbcTemplate);
 
         if (list != null && list.getList() != null && list.getList().size() > 0) {
             Map<String, Object> map;
@@ -605,15 +610,19 @@ public class CustomerService {
         try {
             sql.append(" SELECT CAST(id AS CHAR) id, realname ")
                     .append("  FROM t_user  WHERE 1=1 AND user_type = 2  AND STATUS <> 3 ");
-            sql.append(" AND   cust_id = '" + customerId + "'");
+            List<Object> p = new ArrayList<>();
+            p.add(customerId);
+            sql.append(" AND cust_id = ? ");
             if (null != name && !"".equals(name)) {
-                sql.append(" AND   name like '%" + name + "%'");
+                p.add("%" + name + "%");
+                sql.append(" AND name like ? ");
             }
             if (null != realName && !"".equals(realName)) {
-                sql.append(" AND   realname like '%" + realName + "%'");
+                p.add("%" + realName + "%");
+                sql.append(" AND realname like ? ");
             }
 
-            map.put("users", jdbcTemplate.queryForList(sql.toString()));
+            map.put("users", jdbcTemplate.queryForList(sql.toString(), p.toArray()));
             json.put("data", map);
             logger.info("查询操作员记录，sql：" + sql);
         } catch (Exception e) {
@@ -687,41 +696,52 @@ public class CustomerService {
                 "   FROM t_customer_property p GROUP BY cust_id \n" +
                 ") cjc ON t1.cust_id = cjc.cust_id \n" +
                 "where 1=1 and t2.user_type=1 ");
+        List<Object> p = new ArrayList<>();
         if (StringUtil.isNotEmpty(customerRegistDTO.getCustId())) {
-            sqlBuilder.append(" AND t1.cust_id = " + customerRegistDTO.getCustId());
+            p.add(customerRegistDTO.getCustId());
+            sqlBuilder.append(" AND t1.cust_id = ? ");
         }
         if (StringUtil.isNotEmpty(customerRegistDTO.getEnterpriseName())) {
-            sqlBuilder.append(" AND t1.enterprise_name like '%" + customerRegistDTO.getEnterpriseName() + "%'");
+            p.add("%" + customerRegistDTO.getEnterpriseName() + "%");
+            sqlBuilder.append(" AND t1.enterprise_name like ? ");
         }
         if (StringUtil.isNotEmpty(customerRegistDTO.getCreateId())) {
-            sqlBuilder.append(" AND cjc.createId ='" + customerRegistDTO.getCreateId() + "'");
+            p.add(customerRegistDTO.getCreateId());
+            sqlBuilder.append(" AND cjc.createId =? ");
         } else {
             //过滤客户自己创建的企业
             sqlBuilder.append(" AND cjc.createId =''");
         }
         if (StringUtil.isNotEmpty(customerRegistDTO.getName())) {
-            sqlBuilder.append(" AND t2.account LIKE '%" + customerRegistDTO.getName() + "%'");
+            p.add("%" + customerRegistDTO.getName() + "%");
+            sqlBuilder.append(" AND t2.account LIKE ? ");
         }
         if (StringUtil.isNotEmpty(customerRegistDTO.getRealName())) {
-            sqlBuilder.append(" AND t2.realname LIKE '%" + customerRegistDTO.getRealName() + "%'");
+            p.add("%" + customerRegistDTO.getRealName() + "%");
+            sqlBuilder.append(" AND t2.realname LIKE ? ");
         }
         if (StringUtil.isNotEmpty(customerRegistDTO.getStationId())) {
-            sqlBuilder.append(" AND cjc.stationId =" + customerRegistDTO.getStationId());
+            p.add(customerRegistDTO.getStationId());
+            sqlBuilder.append(" AND cjc.stationId = ? ");
         }
         if (StringUtil.isNotEmpty(customerRegistDTO.getSalePerson())) {
-            sqlBuilder.append(" AND cjc.salePerson LIKE '%" + customerRegistDTO.getSalePerson() + "%'");
+            p.add("%" + customerRegistDTO.getSalePerson() + "%");
+            sqlBuilder.append(" AND cjc.salePerson LIKE ?");
         }
         if (StringUtil.isNotEmpty(customerRegistDTO.getStartTime())) {
-            sqlBuilder.append(" AND t1.create_time >= '" + customerRegistDTO.getStartTime() + "'");
+            p.add(customerRegistDTO.getStartTime());
+            sqlBuilder.append(" AND t1.create_time >= ? ");
         }
         if (StringUtil.isNotEmpty(customerRegistDTO.getEndTime())) {
-            sqlBuilder.append(" AND t1.create_time <= '" + customerRegistDTO.getEndTime() + "'");
+            p.add(customerRegistDTO.getEndTime());
+            sqlBuilder.append(" AND t1.create_time <= ? ");
         }
         if (StringUtil.isNotEmpty(customerRegistDTO.getIndustry())) {
-            sqlBuilder.append(" AND cjc.industry = " + customerRegistDTO.getIndustry());
+            p.add(customerRegistDTO.getIndustry());
+            sqlBuilder.append(" AND cjc.industry = ? ");
         }
         sqlBuilder.append(" order by t1.create_time desc");
-        PageList pageData = new Pagination().getPageData(sqlBuilder.toString(), null, page, jdbcTemplate);
+        PageList pageData = new Pagination().getPageData(sqlBuilder.toString(), p.toArray(), page, jdbcTemplate);
         List<Map<String, Object>> list = pageData.getList();
         //查询部门里面有几个职位
         if (list.size() > 0) {
@@ -797,32 +817,40 @@ public class CustomerService {
                 "   FROM t_customer_property p GROUP BY cust_id \n" +
                 ") cjc ON t1.cust_id = cjc.cust_id \n" +
                 "where 1=1 ");
+        List<Object> p = new ArrayList<>();
         if (StringUtil.isNotEmpty(customerRegistDTO.getCustId())) {
-            sqlBuilder.append(" AND t1.cust_id = " + customerRegistDTO.getCustId());
+            p.add(customerRegistDTO.getCustId());
+            sqlBuilder.append(" AND t1.cust_id = ? ");
         }
         if (StringUtil.isNotEmpty(customerRegistDTO.getEnterpriseName())) {
-            sqlBuilder.append(" AND t1.enterprise_name like '%" + customerRegistDTO.getEnterpriseName() + "%'");
+            p.add("%" + customerRegistDTO.getEnterpriseName() + "%");
+            sqlBuilder.append(" AND t1.enterprise_name like ? ");
         }
         if (StringUtil.isNotEmpty(customerRegistDTO.getCreateId())) {
-            sqlBuilder.append(" AND cjc.createId ='" + customerRegistDTO.getCreateId() + "'");
+            p.add(customerRegistDTO.getCreateId());
+            sqlBuilder.append(" AND cjc.createId = ? ");
         } else {
             //过滤客户自己创建的企业
             sqlBuilder.append(" AND cjc.createId =''");
         }
         if (StringUtil.isNotEmpty(customerRegistDTO.getSalePerson())) {
-            sqlBuilder.append(" AND cjc.salePerson LIKE '%" + customerRegistDTO.getSalePerson() + "%'");
+            p.add("%" + customerRegistDTO.getSalePerson() + "%");
+            sqlBuilder.append(" AND cjc.salePerson LIKE ? ");
         }
         if (StringUtil.isNotEmpty(customerRegistDTO.getStartTime())) {
-            sqlBuilder.append(" AND t1.create_time >= '" + customerRegistDTO.getStartTime() + "'");
+            p.add(customerRegistDTO.getStartTime());
+            sqlBuilder.append(" AND t1.create_time >= ? ");
         }
         if (StringUtil.isNotEmpty(customerRegistDTO.getEndTime())) {
-            sqlBuilder.append(" AND t1.create_time <= '" + customerRegistDTO.getEndTime() + "'");
+            p.add(customerRegistDTO.getEndTime());
+            sqlBuilder.append(" AND t1.create_time <= ? ");
         }
         if (StringUtil.isNotEmpty(customerRegistDTO.getIndustry())) {
-            sqlBuilder.append(" AND cjc.industry = " + customerRegistDTO.getIndustry());
+            p.add(customerRegistDTO.getIndustry());
+            sqlBuilder.append(" AND cjc.industry = ? ");
         }
         sqlBuilder.append(" order by t1.create_time desc");
-        PageList pageData = new Pagination().getPageData(sqlBuilder.toString(), null, page, jdbcTemplate);
+        PageList pageData = new Pagination().getPageData(sqlBuilder.toString(), p.toArray(), page, jdbcTemplate);
         List<Map<String, Object>> list = pageData.getList();
         return pageData;
     }
@@ -1227,23 +1255,29 @@ public class CustomerService {
         sql.append(")a GROUP BY zid,service_code)g ");
         sql.append("left join t_common_info commoninfo on g.zid=commoninfo.id ");
         sql.append("LEFT JOIN t_user b ON b.id = g.optUserId where 1=1 ");
+        List<Object> p = new ArrayList<>();
         if (StringUtil.isNotEmpty(custId)) {
-            sql.append(" AND g.custId = " + custId);
+            p.add(custId);
+            sql.append(" AND g.custId = ? ");
         }
         if (StringUtil.isNotEmpty(startTime)) {
-            sql.append(" and commoninfo.create_time >='" + startTime + "'");
+            p.add(startTime);
+            sql.append(" and commoninfo.create_time >=? ");
         }
         if (StringUtil.isNotEmpty(endTime)) {
-            sql.append(" and commoninfo.create_time <='" + endTime + "'");
+            p.add(endTime);
+            sql.append(" and commoninfo.create_time <=? ");
         }
         if (StringUtil.isNotEmpty(name)) {
-            sql.append(" and b.name='" + name + "'");
+            p.add(name);
+            sql.append(" and b.name=? ");
         }
         if (StringUtil.isNotEmpty(zid)) {
-            sql.append(" and g.zid='" + zid + "'");
+            p.add(zid);
+            sql.append(" and g.zid=? ");
         }
         sql.append(" order by commoninfo.create_time desc");
-        PageList pageData = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
+        PageList pageData = new Pagination().getPageData(sql.toString(), p.toArray(), page, jdbcTemplate);
         List<Map<String, Object>> list = null;
         if (pageData != null) {
             list = pageData.getList();
@@ -3709,8 +3743,10 @@ public class CustomerService {
         StringBuffer sql = new StringBuffer();
         sql.append(" SELECT CAST(id AS CHAR) id,cust_id,user_type,account,realname,create_time,STATUS")
                 .append(" FROM t_customer_user  WHERE 1=1  AND STATUS <> 3 AND user_type = 2 ")
-                .append(" AND  cust_id = '" + custId + "'")
+                .append(" AND  cust_id = ? ")
                 .append(" and (");
+        List<Object> p = new ArrayList<>();
+        p.add(custId);
         try {
             Integer fromInt = null;
             Integer toInt = null;
@@ -3729,12 +3765,13 @@ public class CustomerService {
                 if (index > fromInt) {
                     sql.append(" or ");
                 }
-                sql.append(" account like '%" + index + "%'  ");
+                sql.append(" account like ? ");
+                p.add("%" + index + "%");
             }
             sql.append(")");
             List<UserCallConfigDTO> userList = new ArrayList<>();
             sql.append(" limit 1000 ");
-            List<CustomerUser> users = jdbcTemplate.query(sql.toString(), new BeanPropertyRowMapper<>(CustomerUser.class));
+            List<CustomerUser> users = jdbcTemplate.query(sql.toString(), new BeanPropertyRowMapper<>(CustomerUser.class), p.toArray());
             if (users != null && users.size() > 0) {
                 for (int i = 0; i < users.size(); i++) {
                     CustomerUser u = users.get(i);
@@ -3860,8 +3897,8 @@ public class CustomerService {
         String allProject = "";//所有开通的项目
         String uidSelected = ""; //uid被分配的
         String allSelected = "";//所有已被分配的
-        String sql = "select * from t_customer_property where cust_id=" + custId + " and property_name like 'marketProject_%' and property_value is not null and property_value!=''";
-        List<Map<String, Object>> properties = customerDao.queryListBySql(sql);
+        String sql = "select * from t_customer_property where cust_id=? and property_name like 'marketProject_%' and property_value is not null and property_value!=''";
+        List<Map<String, Object>> properties = customerDao.sqlQuery(sql, custId);
         if (properties == null || properties.isEmpty()) {
             return result;
         }
@@ -3870,8 +3907,8 @@ public class CustomerService {
         }
         allProject = allProject.substring(1);
 
-        sql = "select * from t_customer_user where user_type=3 and cust_id=" + custId;
-        List<Map<String, Object>> users = customerDao.queryListBySql(sql);
+        sql = "select * from t_customer_user where user_type=3 and cust_id= ? ";
+        List<Map<String, Object>> users = customerDao.sqlQuery(sql,custId);
         if (users != null && users.size() > 0) {
             String ids = "";
             for (Map<String, Object> map : users) {

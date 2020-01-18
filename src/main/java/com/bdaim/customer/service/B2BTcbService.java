@@ -21,6 +21,7 @@ import com.bdaim.resource.entity.ResourcePropertyEntity;
 import com.bdaim.resource.service.MarketResourceService;
 import com.bdaim.util.NumberConvertUtil;
 import com.bdaim.util.StringUtil;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -196,12 +197,12 @@ public class B2BTcbService implements BusiService {
         String name = params.getString("name");
         Integer type = params.getInteger("type");
         if (type != null) {
-            sqlstr.append(" and ext_3 = ").append(type);
+            sqlstr.append(" and ext_3 = ").append(StringEscapeUtils.escapeSql(type.toString()));
         }
         if (!"all".equals(cust_id))
-            sqlstr.append(" and cust_id='").append(cust_id).append("'");
+            sqlstr.append(" and cust_id='").append(StringEscapeUtils.escapeSql(cust_id)).append("'");
         if (StringUtil.isNotEmpty(name)) {
-            sqlstr.append(" and content->'$.name'='").append(name).append("'");
+            sqlstr.append(" and content->'$.name'='").append(StringEscapeUtils.escapeSql(name)).append("'");
         }
         sqlstr.append(" ORDER BY create_date DESC ");
         return sqlstr.toString();
