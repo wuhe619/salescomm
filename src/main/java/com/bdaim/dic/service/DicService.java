@@ -282,7 +282,7 @@ public class DicService {
                     querySql.append(" and d.status = 1 and d.dic_type_id = ? ORDER BY RAND() LIMIT " + (pageSize - data.size()));
                     params.add(searchPropertyDto.getDicType());
                     //随机查询n条相关数据
-                    List<Map<String, Object>> list = dicDao.sqlQuery(querySql.toString(),params);
+                    List<Map<String, Object>> list = dicDao.sqlQuery(querySql.toString(),params.toArray());
                     if (list != null && list.size() > 0) {
                         data.addAll(list);
                     }
