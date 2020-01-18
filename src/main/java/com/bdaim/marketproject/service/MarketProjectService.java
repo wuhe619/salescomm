@@ -321,8 +321,8 @@ public class MarketProjectService {
                     enterpriseName = customerDao.getEnterpriseName(marketProject.getCustId());
                     //查询企业名字
                     String querySql = "SELECT GROUP_CONCAT(enterprise_name) enterpriseNames FROM t_customer c LEFT JOIN t_customer_property m on c.cust_id = m.cust_id ";
-                    querySql += " WHERE property_name = '" + CustomerPropertyEnum.MARKET_PROJECT_ID_PREFIX.getKey() + String.valueOf(marketProject.getId()) + "' AND property_value =" + String.valueOf(marketProject.getId());
-                    List<Map<String, Object>> list = customerDao.sqlQuery(querySql, null);
+                    querySql += " WHERE property_name = ? AND property_value =?";
+                    List<Map<String, Object>> list = customerDao.sqlQuery(querySql, CustomerPropertyEnum.MARKET_PROJECT_ID_PREFIX.getKey() + marketProject.getId(),marketProject.getId());
                     if (list.size() > 0 && list.get(0).get("enterpriseNames") != null) {
                         String enterpriseNames = String.valueOf(list.get(0).get("enterpriseNames"));
                         if (StringUtil.isNotEmpty(enterpriseName)) {
@@ -569,7 +569,9 @@ public class MarketProjectService {
                 result.put("total", 0);
                 return result;
             }
-            sql += " and t2.id IN (" + SqlAppendUtil.sqlAppendWhereIn(projectIds) + ")";
+           // sql += " and t2.id IN (" + SqlAppendUtil.sqlAppendWhereIn(projectIds) + ")";
+            sql += " and t2.id IN (:projectIds)";
+            params.put("projectIds",projectIds);
         }
         sql += " order by t2.create_time desc";
         String countSql = "select count(0) from (" + sql + ")a";
@@ -1105,10 +1107,10 @@ public class MarketProjectService {
                         }
                     } else {
                         // 处理组长下没有员工的情况,只查询自己的通话记录
-                        whereSql.append(" AND user_id = '" + userQueryParam.getUserId() + "'");
+                        whereSql.append(" AND user_id = '").append(userQueryParam.getUserId()).append("'");
                     }
                 } else {
-                    whereSql.append(" AND user_id = '" + userQueryParam.getUserId() + "'");
+                    whereSql.append(" AND user_id = '").append(userQueryParam.getUserId()).append("'");
                 }
             }
             // 处理根据职场检索条件
@@ -1254,11 +1256,11 @@ public class MarketProjectService {
                         }
                     } else {
                         // 处理组长下没有员工的情况,只查询自己的通话记录
-                        sqlSb.append(" AND user_id = '" + userQueryParam.getUserId() + "'");
+                        sqlSb.append(" AND user_id = ‘").append(userQueryParam.getUserId()).append("'");
                         voiceUserIds.add(userQueryParam.getUserId());
                     }
                 } else {
-                    sqlSb.append(" AND user_id = '" + userQueryParam.getUserId() + "'");
+                    sqlSb.append(" AND user_id = '").append(userQueryParam.getUserId()).append("'");
                     voiceUserIds.add(userQueryParam.getUserId());
                 }
             }
