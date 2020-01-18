@@ -80,20 +80,20 @@ public class BillServiceImpl implements BillService {
             sqlBuilder.append(" and t.cust_id= ?");
         }
         if (StringUtil.isNotEmpty(param.getEnterpriseName())) {
-            p.add(param.getEnterpriseName());
-            sqlBuilder.append(" and cus.enterprise_name like '%?%'");
+            p.add("%" + param.getEnterpriseName() + "%");
+            sqlBuilder.append(" and cus.enterprise_name like ?");
         }
         if (StringUtil.isNotEmpty(param.getAccount())) {
-            p.add(param.getAccount());
-            sqlBuilder.append(" and cu.account like '%?%'");
+            p.add("%" + param.getAccount() + "%");
+            sqlBuilder.append(" and cu.account like ? ");
         }
         if (StringUtil.isNotEmpty(param.getRealname())) {
-            p.add(param.getRealname());
-            sqlBuilder.append(" and cu.realname like '%?%'");
+            p.add("%" + param.getRealname() + "%");
+            sqlBuilder.append(" and cu.realname like ? ");
         }
         if (StringUtil.isNotEmpty(param.getPhone())) {
-            p.add(param.getPhone());
-            sqlBuilder.append(" and cjc.mobile_num like '%?%'");
+            p.add("%" + param.getPhone() + "%");
+            sqlBuilder.append(" and cjc.mobile_num like ? ");
         }
         sqlBuilder.append(" GROUP BY t.cust_id ");
         logger.info("查询后台账单sql" + sqlBuilder.toString());
@@ -123,20 +123,20 @@ public class BillServiceImpl implements BillService {
             sqlBuilder.append(" and t.cust_id= ? ");
         }
         if (StringUtil.isNotEmpty(param.getEnterpriseName())) {
-            p.add(param.getEnterpriseName());
-            sqlBuilder.append(" and cus.enterprise_name like '%?%'");
+            p.add("%" + param.getEnterpriseName() + "%");
+            sqlBuilder.append(" and cus.enterprise_name like ? ");
         }
         if (StringUtil.isNotEmpty(param.getAccount())) {
-            p.add(param.getAccount());
-            sqlBuilder.append(" and cu.account like '%?%'");
+            p.add("%" + param.getAccount() + "%");
+            sqlBuilder.append(" and cu.account like ? ");
         }
         if (StringUtil.isNotEmpty(param.getRealname())) {
-            p.add(param.getRealname());
-            sqlBuilder.append(" and cu.realname like '%?%'");
+            p.add("%" + param.getRealname() + "%");
+            sqlBuilder.append(" and cu.realname like ? ");
         }
         if (StringUtil.isNotEmpty(param.getPhone())) {
-            p.add(param.getPhone());
-            sqlBuilder.append(" and cjc.mobile_num like '%?%'");
+            p.add("%" + param.getPhone() + "%");
+            sqlBuilder.append(" and cjc.mobile_num like ? ");
         }
         sqlBuilder.append(" GROUP BY t.cust_id ");
         logger.info("查询后台账单sql" + sqlBuilder.toString());
@@ -616,8 +616,8 @@ public class BillServiceImpl implements BillService {
             p.add(batchId);
         }
         if (StringUtil.isNotEmpty(enterpriseName)) {
-            sqlBuilder.append(" and m.enterprise_name like '%?%'");
-            p.add(enterpriseName);
+            sqlBuilder.append(" and m.enterprise_name like ? ");
+            p.add("%" + enterpriseName + "%");
         }
         if (StringUtil.isNotEmpty(startTime) && StringUtil.isNotEmpty(endTime)) {
             p.add(startTime);
@@ -667,8 +667,8 @@ public class BillServiceImpl implements BillService {
             p.add(batchId);
         }
         if (StringUtil.isNotEmpty(enterpriseName)) {
-            sqlBuilder.append(" and m.enterprise_name like '%?%'");
-            p.add(enterpriseName);
+            sqlBuilder.append(" and m.enterprise_name like ? ");
+            p.add("%" + enterpriseName + "%");
         }
         if (StringUtil.isNotEmpty(startTime) && StringUtil.isNotEmpty(endTime)) {
             p.add(startTime);
@@ -707,8 +707,8 @@ public class BillServiceImpl implements BillService {
             p.add(batchId);
         }
         if (StringUtil.isNotEmpty(enterpriseName)) {
-            sqlBuilder.append(" and m.enterprise_name like '%?%'");
-            p.add(enterpriseName);
+            sqlBuilder.append(" and m.enterprise_name like ? ");
+            p.add("%" + enterpriseName + "%");
         }
         if (StringUtil.isNotEmpty(billDate)) {
             sqlBuilder.append(" and DATE_FORMAT(t1.create_time, '%Y%m') like ?");
@@ -765,8 +765,8 @@ public class BillServiceImpl implements BillService {
             p.add(resourceId);
         }
         if (StringUtil.isNotEmpty(enterpriseName)) {
-            sqlBuilder.append(" and m.enterprise_name like '%?%'");
-            p.add(enterpriseName);
+            sqlBuilder.append(" and m.enterprise_name like ? ");
+            p.add("%" + enterpriseName + "%");
         }
         if (StringUtil.isNotEmpty(touchId)) {
             sqlBuilder.append(" and t1.touch_id= ?");
@@ -801,8 +801,8 @@ public class BillServiceImpl implements BillService {
             sqlBuilder.append(" and t1.transaction_id= ?");
         }
         if (StringUtil.isNotEmpty(enterpriseName)) {
-            p.add(enterpriseName);
-            sqlBuilder.append(" and m.enterprise_name like '%?%'");
+            p.add("%" + enterpriseName + "%");
+            sqlBuilder.append(" and m.enterprise_name like ? ");
         }
        /* //查询资金扣减记录
         if (StringUtil.isNotEmpty(startTime) && StringUtil.isNotEmpty(endTime)) {
@@ -837,8 +837,8 @@ public class BillServiceImpl implements BillService {
             sqlBuilder.append(" and t1.id= ? ");
         }
         if (StringUtil.isNotEmpty(enterpriseName)) {
-            p.add(enterpriseName);
-            sqlBuilder.append(" and m.enterprise_name like '%?%'");
+            p.add("%" + enterpriseName + "%");
+            sqlBuilder.append(" and m.enterprise_name like ? ");
         }
         if (StringUtil.isNotEmpty(touchId)) {
             p.add(touchId);
@@ -985,8 +985,8 @@ public class BillServiceImpl implements BillService {
             p.add(resourceId);
         }
         if (StringUtil.isNotEmpty(enterpriseName)) {
-            sqlBuilder.append(" and m.enterprise_name like '%?%'");
-            p.add(enterpriseName);
+            sqlBuilder.append(" and m.enterprise_name like ? ");
+            p.add("%" + enterpriseName + "%");
         }
         if (StringUtil.isNotEmpty(touchId)) {
             sqlBuilder.append(" and t1.touch_id= ? ");
@@ -1040,8 +1040,8 @@ public class BillServiceImpl implements BillService {
             p.add(resourceId);
         }
         if (StringUtil.isNotEmpty(enterpriseName)) {
-            sqlBuilder.append(" and m.enterprise_name like '%?%'");
-            p.add(enterpriseName);
+            sqlBuilder.append(" and m.enterprise_name like ? ");
+            p.add("%" + enterpriseName + "%");
         }
         if (StringUtil.isNotEmpty(touchId)) {
             sqlBuilder.append(" and t1.touch_id= ? ");
@@ -1096,8 +1096,8 @@ public class BillServiceImpl implements BillService {
             p.add(resourceId);
         }
         if (StringUtil.isNotEmpty(enterpriseName)) {
-            sqlBuilder.append(" and m.enterprise_name like '%?%'");
-            p.add(enterpriseName);
+            sqlBuilder.append(" and m.enterprise_name like ? ");
+            p.add("%" + enterpriseName + "%");
         }
         if (StringUtil.isNotEmpty(touchId)) {
             sqlBuilder.append(" and t1.touch_id= ? ");
@@ -1151,8 +1151,8 @@ public class BillServiceImpl implements BillService {
             p.add(resourceId);
         }
         if (StringUtil.isNotEmpty(enterpriseName)) {
-            sqlBuilder.append(" and m.enterprise_name like '%?%'");
-            p.add(enterpriseName);
+            sqlBuilder.append(" and m.enterprise_name like ? ");
+            p.add("%" + enterpriseName + "%");
         }
         if (StringUtil.isNotEmpty(touchId)) {
             sqlBuilder.append(" and t1.touch_id= ? ");
@@ -1519,16 +1519,16 @@ public class BillServiceImpl implements BillService {
             querySql.append("AND n.comp_id = ? ");
         }
         if (StringUtil.isNotEmpty(param.getEnterpriseName())) {
-            p.add(param.getEnterpriseName());
-            querySql.append("AND c.enterprise_name like '%?%' ");
+            p.add("%" + param.getEnterpriseName() + "%");
+            querySql.append("AND c.enterprise_name like ? ");
         }
         if (StringUtil.isNotEmpty(param.getBatchId())) {
             p.add(param.getBatchId());
             querySql.append("AND n.id =? ");
         }
         if (StringUtil.isNotEmpty(param.getBatchName())) {
-            p.add(param.getBatchName());
-            querySql.append("AND n.batch_name like '%?%'");
+            p.add("%" + param.getBatchName() + "%");
+            querySql.append("AND n.batch_name like ? ");
         }
         String billDate = param.getBillDate();
         //0查詢全部 1查詢1年 2 查看近半年 201901查詢具体某月账单
@@ -1580,16 +1580,16 @@ public class BillServiceImpl implements BillService {
             querySql.append("AND n.comp_id =?");
         }
         if (StringUtil.isNotEmpty(param.getEnterpriseName())) {
-            p.add(param.getEnterpriseName());
-            querySql.append("AND c.enterprise_name like '%?%' ");
+            p.add("%" + param.getEnterpriseName() + "%");
+            querySql.append("AND c.enterprise_name like ? ");
         }
         if (StringUtil.isNotEmpty(param.getBatchId())) {
             p.add(param.getBatchId());
             querySql.append("AND n.id =?");
         }
         if (StringUtil.isNotEmpty(param.getBatchName())) {
-            p.add(param.getBatchName());
-            querySql.append("AND n.batch_name like '%?%'");
+            p.add("%" + param.getBatchName() + "%");
+            querySql.append("AND n.batch_name like ? ");
         }
         String billDate = param.getBillDate();
         //0查詢全部 1查詢1年 2 查看近半年 201901查詢具体某月账单
@@ -1650,8 +1650,8 @@ public class BillServiceImpl implements BillService {
             querySql.append("AND d.label_five =?");
         }
         if (StringUtil.isNotEmpty(param.getName())) {
-            p.add(param.getName());
-            querySql.append("AND d.label_one like '%?%'");
+            p.add("%" + param.getName() + "%");
+            querySql.append("AND d.label_one like ? ");
         }
         if (StringUtil.isNotEmpty(param.getPhone())) {
             p.add(param.getPhone());
@@ -1712,8 +1712,8 @@ public class BillServiceImpl implements BillService {
             querySql.append("AND d.label_five =?");
         }
         if (StringUtil.isNotEmpty(param.getName())) {
-            p.add(param.getName());
-            querySql.append("AND d.label_one like '%?%'");
+            p.add("%" + param.getName() + "%");
+            querySql.append("AND d.label_one like ? ");
         }
         if (StringUtil.isNotEmpty(param.getPhone())) {
             p.add(param.getPhone());
@@ -1758,7 +1758,7 @@ public class BillServiceImpl implements BillService {
         }
         if (StringUtil.isNotEmpty(param.getName())) {
             querySql.append("AND d.label_one like ? ");
-            p.add("%"+param.getName()+"%");
+            p.add("%" + param.getName() + "%");
         }
         //type 1 数据  2快递
         MarketResourceEntity marketResourceEntity = sourceDao.getResourceId(param.getSupplierId(), NumberConvertUtil.parseInt(param.getType()));
@@ -1809,8 +1809,8 @@ public class BillServiceImpl implements BillService {
             querySql.append(" AND d.label_five =?");
         }
         if (StringUtil.isNotEmpty(param.getName())) {
-            p.add(param.getName());
-            querySql.append(" AND d.label_one like '%?%'");
+            p.add("%" + param.getName() + "%");
+            querySql.append(" AND d.label_one like ? ");
         }
         //type 1 数据  2快递
         Integer resourceId = marketResourceEntity.getResourceId();
@@ -1871,15 +1871,15 @@ public class BillServiceImpl implements BillService {
         querySql.append("WHERE n.certify_type = 3 ");
         List<Object> p = new ArrayList<>();
         if (StringUtil.isNotEmpty(param.getEnterpriseName())) {
-            p.add(param.getEnterpriseName());
-            querySql.append("AND c.enterprise_name like '%?%' ");
+            p.add("%" + param.getEnterpriseName() + "%");
+            querySql.append("AND c.enterprise_name like ? ");
         }
         if (StringUtil.isNotEmpty(param.getBatchId())) {
             p.add(param.getBatchId());
             querySql.append("AND n.id =? ");
         }
         if (StringUtil.isNotEmpty(param.getBatchName())) {
-            p.add("%"+param.getBatchName()+"%");
+            p.add("%" + param.getBatchName() + "%");
             querySql.append("AND n.batch_name like ?");
         }
         if (StringUtil.isNotEmpty(resourceIds)) {
@@ -1932,16 +1932,16 @@ public class BillServiceImpl implements BillService {
         querySql.append("WHERE n.certify_type = 3 ");
         List<Object> p = new ArrayList<>();
         if (StringUtil.isNotEmpty(param.getEnterpriseName())) {
-            p.add(param.getEnterpriseName());
-            querySql.append("AND c.enterprise_name like '%?%' ");
+            p.add("%" + param.getEnterpriseName() + "%");
+            querySql.append("AND c.enterprise_name like ? ");
         }
         if (StringUtil.isNotEmpty(param.getBatchId())) {
             p.add(param.getBatchId());
             querySql.append("AND n.id = ? ");
         }
         if (StringUtil.isNotEmpty(param.getBatchName())) {
-            p.add(param.getBatchName());
-            querySql.append("AND n.batch_name like '%?%'");
+            p.add("%" + param.getBatchName() + "%");
+            querySql.append("AND n.batch_name like ? ");
         }
         if (StringUtil.isNotEmpty(resourceIds)) {
             querySql.append("AND b.resource_id in  (" + resourceIds + ")");

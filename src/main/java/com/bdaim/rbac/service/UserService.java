@@ -251,8 +251,8 @@ public class UserService {
             params.add(userDTO.getId());
         }
         if (StringUtil.isNotEmpty(userDTO.getRealName())) {
-            sql.append(" and u.REALNAME like '%?%'");
-            params.add(userDTO.getRealName());
+            sql.append(" and u.REALNAME like ? ");
+            params.add("%" + userDTO.getRealName() + "%");
         }
         if (StringUtil.isNotEmpty(userDTO.getUserName())) {
             sql.append(" and u.name = ?");
@@ -318,6 +318,7 @@ public class UserService {
     private UserRoleDao userRoleDao;
 
 
+    @Deprecated
     public List<UserInfo> queryUser(QueryDataParam param) {
         StringBuilder queryData = new StringBuilder();
         StringBuilder builder = new StringBuilder();
@@ -481,11 +482,11 @@ public class UserService {
         builder.append(" where 1=1 ");
         String condition = param.getCondition();
         if (StringUtil.isNotEmpty(condition)) {
-            builder.append(" and (t.username like '%?%' or t.realname like '%?%' or t.deptname like '%?%' or t.rolename like '%?%') ");
-            params.add(condition);
-            params.add(condition);
-            params.add(condition);
-            params.add(condition);
+            builder.append(" and (t.username like ? or t.realname like ? or t.deptname like ? or t.rolename like ?) ");
+            params.add("%" + condition + "%");
+            params.add("%" + condition + "%");
+            params.add("%" + condition + "%");
+            params.add("%" + condition + "%");
         }
         builder.append(" order by t.status asc,t.create_time desc ");
 
