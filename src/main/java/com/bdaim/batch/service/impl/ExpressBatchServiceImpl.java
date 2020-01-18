@@ -544,8 +544,8 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         //收件人ID
         String id = String.valueOf(map.get("receiver_id"));
         if (!nullString.equals(id) && StringUtil.isNotEmpty(id)) {
-            p.add(id);
-            hql.append(" AND t2.label_five LIKE '%?%'");
+            p.add("%"+id+"%");
+            hql.append(" AND t2.label_five LIKE ?");
         }
         //姓名
         String name = String.valueOf(map.get("name"));

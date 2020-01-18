@@ -1118,9 +1118,10 @@ public class MarketTaskService {
 
         sql.append(" ORDER BY t1.create_time DESC ");
         LOG.info("sql=" + sql.toString());
-        map.put("total", marketTaskDao.getSQLQuery(sql.toString()).list().size());
+        //map.put("total", marketTaskDao.getSQLQuery(sql.toString()).list().size());
         Page page = marketTaskDao.sqlPageQuery0(sql.toString(), param.getPageNum(), param.getPageSize(), args.toArray());
-        List<Map<String, Object>> list = page.getData();
+        map.put("total", page.getTotal());
+        List<Map<String, Object>>   list = page.getData();
         if (list != null && list.size() > 0) {
             for (int i = 0; i < list.size(); i++) {
                 Map<String, Object> model = list.get(i);

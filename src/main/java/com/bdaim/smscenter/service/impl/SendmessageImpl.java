@@ -633,13 +633,13 @@ public class SendmessageImpl implements SendmessageService {
         params.add(custId);
         String senderName = String.valueOf(map.get("sender_name"));
         if (StringUtil.isNotEmpty(senderName)) {
-            listSql.append(" AND sender_name LIKE '%?%'");
-            params.add(senderName);
+            listSql.append(" AND sender_name LIKE ?");
+            params.add("%"+senderName+"%");
         }
         String phone = String.valueOf(map.get("phone"));
         if (StringUtil.isNotEmpty(phone)) {
-            listSql.append(" AND phone LIKE '%?%'");
-            params.add(phone);
+            listSql.append(" AND phone LIKE ?");
+            params.add("%"+phone+"%");
         }
         listSql.append(" ORDER BY create_time DESC");
 

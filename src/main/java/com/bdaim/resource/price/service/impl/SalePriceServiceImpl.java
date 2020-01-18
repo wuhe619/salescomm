@@ -536,24 +536,30 @@ public class SalePriceServiceImpl implements SalePriceService {
                 "\tmax(CASE property_name WHEN 'mobile_num'   THEN property_value ELSE '' END ) mobile_num\n" +
                 "   FROM t_customer_property p GROUP BY cust_id \n" +
                 ") cjc ON t.cust_id = cjc.cust_id  where 1=1 and t2.user_type=1  ");
+        List<Object> params = new ArrayList<>();
         if (StringUtil.isNotEmpty(customerBillQueryParam.getCustomerId())) {
-            sqlBuilder.append(" AND t.cust_id LIKE '%" + customerBillQueryParam.getCustomerId() + "%'");
+            sqlBuilder.append(" AND t.cust_id LIKE ?");
+            params.add("%" + customerBillQueryParam.getCustomerId() + "%");
         }
         if (StringUtil.isNotEmpty(customerBillQueryParam.getEnterpriseName())) {
-            sqlBuilder.append(" AND t.enterprise_name LIKE'%" + customerBillQueryParam.getEnterpriseName() + "%'");
+            sqlBuilder.append(" AND t.enterprise_name LIKE ? ");
+            params.add("%" + customerBillQueryParam.getEnterpriseName() + "%");
         }
         if (StringUtil.isNotEmpty(customerBillQueryParam.getRealname())) {
-            sqlBuilder.append(" AND t2.REALNAME LIKE '%" + customerBillQueryParam.getRealname() + "%'");
+            sqlBuilder.append(" AND t2.REALNAME LIKE ? ");
+            params.add("%" + customerBillQueryParam.getRealname() + "%");
         }
         if (StringUtil.isNotEmpty(customerBillQueryParam.getPhone())) {
-            sqlBuilder.append(" AND cjc.mobile_num LIKE '%" + customerBillQueryParam.getPhone() + "%'");
+            sqlBuilder.append(" AND cjc.mobile_num LIKE ? ");
+            params.add("%" + customerBillQueryParam.getPhone() + "%");
         }
         if (StringUtil.isNotEmpty(customerBillQueryParam.getIndustry())) {
-            sqlBuilder.append(" AND cjc.industry= " + customerBillQueryParam.getIndustry());
+            sqlBuilder.append(" AND cjc.industry= ?");
+            params.add(customerBillQueryParam.getIndustry());
         }
         sqlBuilder.append(" GROUP BY t.cust_id ");
         sqlBuilder.append(" ORDER BY t.create_time DESC ");
-        return new Pagination().getPageData(sqlBuilder.toString(), null, page, jdbcTemplate);
+        return new Pagination().getPageData(sqlBuilder.toString(), params.toArray(), page, jdbcTemplate);
     }
 
     /**

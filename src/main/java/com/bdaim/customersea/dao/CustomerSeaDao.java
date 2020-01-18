@@ -76,8 +76,8 @@ public class CustomerSeaDao extends SimpleHibernateDao<CustomerSea, Long> {
             params.add(param.getCustId());
         }
         if (StringUtil.isNotEmpty(param.getName())) {
-            hql.append(" AND m.name LIKE %?% ");
-            params.add(param.getName());
+            hql.append(" AND m.name LIKE ? ");
+            params.add("%" + param.getName() + "%");
         }
         if (StringUtil.isNotEmpty(param.getMarketProjectName())) {
             hql.append(" AND m.marketProjectId = (SELECT id FROM MarketProject WHERE name LIKE %?%)");
