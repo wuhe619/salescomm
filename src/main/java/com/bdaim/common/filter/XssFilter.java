@@ -10,7 +10,7 @@ import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 
-@WebFilter(urlPatterns = "/*")
+@WebFilter(urlPatterns = "/*", asyncSupported = true)
 public class XssFilter implements Filter {
 
     private static final Logger logger = LoggerFactory.getLogger(XssFilter.class);

@@ -3,9 +3,14 @@ package com.bdaim.common;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.StreamUtils;
 
+import javax.servlet.ReadListener;
+import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -17,6 +22,8 @@ public class XssHttpServletRequestWrapper extends HttpServletRequestWrapper {
     private static String key = "and|exec|insert|select|delete|update|count|*|%|chr|mid|master|truncate|char|declare|;|or|-|+";
     private static Set<String> notAllowedKeyWords = new HashSet<String>(0);
     private static String replacedString = "INVALID";
+    //用于保存读取body中数据
+    private final byte[] body;
 
     static {
         String keyStr[] = key.split("\\|");
@@ -27,11 +34,41 @@ public class XssHttpServletRequestWrapper extends HttpServletRequestWrapper {
 
     private String currentUrl;
 
-    public XssHttpServletRequestWrapper(HttpServletRequest servletRequest) {
+    public XssHttpServletRequestWrapper(HttpServletRequest servletRequest) throws IOException {
         super(servletRequest);
         currentUrl = servletRequest.getRequestURI();
+        body = StreamUtils.copyToByteArray(servletRequest.getInputStream());
     }
 
+
+    @Override
+    public ServletInputStream getInputStream() throws IOException {
+        final ByteArrayInputStream bais = new ByteArrayInputStream(body);
+        return new ServletInputStream() {
+
+            @Override
+            public int read() throws IOException {
+                return bais.read();
+            }
+
+            @Override
+            public boolean isFinished() {
+                // TODO Auto-generated method stub
+                return false;
+            }
+
+            @Override
+            public boolean isReady() {
+                // TODO Auto-generated method stub
+                return false;
+            }
+
+            @Override
+            public void setReadListener(ReadListener readListener) {
+
+            }
+        };
+    }
 
     /**
      * 覆盖getParameter方法，将参数名和参数值都做xss过滤。
