@@ -78,8 +78,10 @@ public class ResourceDao extends SimpleHibernateDao<Resource, Serializable> {
             p.add(t.getType());
             sb.append("type=?,");
         }
+        sb.append(" where ID=? ");
+        p.add(t.getID());
         //确认SQL，绑定参数
-        this.executeUpdateSQL(sb.substring(0, sb.length() - 1) + " where ID=?", t.getID(), p.toArray());
+        this.executeUpdateSQL(sb.toString(), p.toArray());
     }
 
 
