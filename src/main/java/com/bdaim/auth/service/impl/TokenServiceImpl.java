@@ -18,9 +18,7 @@ import com.bdaim.rbac.dto.ResourceDTO;
 import com.bdaim.rbac.entity.UserDO;
 import com.bdaim.rbac.service.ResourceService;
 import com.bdaim.rbac.service.impl.UserInfoService;
-import com.bdaim.util.CipherUtil;
-import com.bdaim.util.NumberConvertUtil;
-import com.bdaim.util.StringUtil;
+import com.bdaim.util.*;
 import com.bdaim.util.wechat.WeChatUtil;
 
 import org.slf4j.Logger;
@@ -86,6 +84,26 @@ public class TokenServiceImpl implements TokenService {
         BASE64Decoder decoder = new BASE64Decoder();
 
         if (username.startsWith("backend.")) {
+            //校验 验证码
+            String[] usernameArray = username.split("\\.");
+            String uuid = usernameArray[1].substring(4);
+            Object object = VerifyUtil.verifyCodes.get(uuid);
+            if (object != null) {
+                VerifyCode code = (VerifyCode) object;
+                //查看验证码是否过期
+                long now = System.currentTimeMillis();
+                long codeTime = code.getVerifyTime();
+                if (now - codeTime > VerifyUtil.verifyCodeTimeout) {
+                    return new LoginUser("guest", "", "验证码已过期", "402");
+                }
+                //没过期，查看验证码是否正确
+                String verifyCode = usernameArray[1].substring(0, 4);
+                if (!verifyCode.equalsIgnoreCase(code.getVerifyCode())) {
+                    return new LoginUser("guest", "", "验证码不正确", "402");
+                }
+                //验证码没问题，则删除
+                VerifyUtil.verifyCodes.remove(uuid);
+            }
             try {
                 password = new String(decoder.decodeBuffer(password));
             } catch (IOException e) {
@@ -205,6 +223,26 @@ public class TokenServiceImpl implements TokenService {
                 return new LoginUser("guest", "", "用户名密码错误", "401");
             }
         } else {
+            //校验 验证码
+            String[] usernameArray = username.split("\\.");
+            String uuid = usernameArray[0].substring(4);
+            Object object = VerifyUtil.verifyCodes.get(uuid);
+            if (object != null) {
+                VerifyCode code = (VerifyCode) object;
+                //查看验证码是否过期
+                long now = System.currentTimeMillis();
+                long codeTime = code.getVerifyTime();
+                if (now - codeTime > VerifyUtil.verifyCodeTimeout) {
+                    return new LoginUser("guest", "", "验证码已过期", "402");
+                }
+                //没过期，查看验证码是否正确
+                String verifyCode = usernameArray[0].substring(0, 4);
+                if (!verifyCode.equalsIgnoreCase(code.getVerifyCode())) {
+                    return new LoginUser("guest", "", "验证码不正确", "402");
+                }
+                //验证码没问题，则删除
+                VerifyUtil.verifyCodes.remove(uuid);
+            }
             try {
                 password = new String(decoder.decodeBuffer(password));
             } catch (IOException e) {
@@ -213,7 +251,7 @@ public class TokenServiceImpl implements TokenService {
             String userNameWithoutVerify = username.substring(username.lastIndexOf(".") + 1);
             CustomerUser u = customerService.getUserByName(userNameWithoutVerify);
             String md5Password = CipherUtil.generatePassword(password);
-                if (u != null && md5Password.equals(u.getPassword())) {
+            if (u != null && md5Password.equals(u.getPassword())) {
                 logger.info("登陆用户:" + u.getAccount() + " 状态:" + u.getStatus());
                 //寻找登录账号已有的token
                 String tokenid = (String) name2token.get(username);

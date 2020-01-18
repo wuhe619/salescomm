@@ -5,29 +5,39 @@ import org.slf4j.LoggerFactory;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * 验证码生成工具方法
+ *
+ * @author Chacker
+ */
 public class VerifyUtil {
     private static final Logger logger = LoggerFactory.getLogger(VerifyUtil.class);
+    public static Map<String, Object> verifyCodes = new HashMap();
+    public static Long verifyCodeTimeout = 300000L;
 
     public static final String randomString(int length) {
-        char[] charArry = new char[length];
+        char[] charArray = new char[length];
         int i = 0;
         while (i < length) {
             int f = (int) (Math.random() * 3.0D);
-            if (f == 0)
-                charArry[i] = (char) (int) (65.0D + Math.random() * 26.0D);
-            else if (f == 1)
-                charArry[i] = (char) (int) (97.0D + Math.random() * 26.0D);
-            else
-                charArry[i] = (char) (int) (48.0D + Math.random() * 10.0D);
+            if (f == 0) {
+                charArray[i] = (char) (int) (65.0D + Math.random() * 26.0D);
+            } else if (f == 1) {
+                charArray[i] = (char) (int) (97.0D + Math.random() * 26.0D);
+            } else {
+                charArray[i] = (char) (int) (48.0D + Math.random() * 10.0D);
+            }
             ++i;
         }
-        return new String(charArry);
+        return new String(charArray);
     }
 
-    public static BufferedImage getLoginVerifyCode(int width, int height) {
+    public static BufferedImage getLoginVerifyCode(int width, int height, String uuid) {
         BufferedImage image = new BufferedImage(width, height, 1);
         Graphics g = image.getGraphics();
         g.setColor(new Color(14474460));
@@ -37,6 +47,12 @@ public class VerifyUtil {
         g.drawRect(0, 0, width - 1, height - 1);
 
         String verifyCode = randomString(4);
+        //验证码和uuid存到map中
+        VerifyCode codeObject = new VerifyCode();
+        codeObject.setVerifyTime(System.currentTimeMillis());
+        codeObject.setUuid(uuid);
+        codeObject.setVerifyCode(verifyCode);
+        verifyCodes.put(uuid, codeObject);
         try {
 //            stringRedisTemplate.opsForValue().set(verifyCode.toLowerCase() + cacheKeySuffix, verifyCode, 3L, TimeUnit.MINUTES);
 //            LOGGER.debug("cacheKey=" + verifyCode.toLowerCase() + cacheKeySuffix + ",verifyCode=" + verifyCode);
