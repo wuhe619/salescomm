@@ -166,7 +166,7 @@ public class LostContactServiceImp implements LostContactService {
         if (pageNum == null || "".equals(pageNum) || pageSize == null || "".equals(pageSize)) {
             sql.append("  GROUP BY t1.id");
             sql.append("  ORDER BY t1.create_time DESC");
-            List<Map<String, Object>> list = jdbcTemplate.queryForList(sql.toString(),custId);
+            List<Map<String, Object>> list = jdbcTemplate.queryForList(sql.toString(), custId);
             staticList = staticCustomerLabels(list, true);
         } else {
             sql.append("  GROUP BY t1.id");
