@@ -1,11 +1,19 @@
 package com.bdaim.common;
 
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.servlet.ReadListener;
+import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -18,6 +26,9 @@ public class XssHttpServletRequestWrapper extends HttpServletRequestWrapper {
     private static Set<String> notAllowedKeyWords = new HashSet<String>(0);
     private static String replacedString = "INVALID";
 
+    //判断是否是上传 上传忽略
+    boolean isUpData = false;
+
     static {
         String keyStr[] = key.split("\\|");
         for (String str : keyStr) {
@@ -27,11 +38,76 @@ public class XssHttpServletRequestWrapper extends HttpServletRequestWrapper {
 
     private String currentUrl;
 
-    public XssHttpServletRequestWrapper(HttpServletRequest servletRequest) {
+    public XssHttpServletRequestWrapper(HttpServletRequest servletRequest) throws IOException {
         super(servletRequest);
         currentUrl = servletRequest.getRequestURI();
+        String contentType = servletRequest.getContentType();
+        if (null != contentType) {
+            isUpData = contentType.startsWith("multipart");
+        }
     }
 
+    public String inputHandlers(ServletInputStream servletInputStream) {
+        StringBuilder sb = new StringBuilder();
+        BufferedReader reader = null;
+        try {
+            reader = new BufferedReader(new InputStreamReader(servletInputStream, Charset.forName("UTF-8")));
+            String line = "";
+            while ((line = reader.readLine()) != null) {
+                sb.append(line);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (servletInputStream != null) {
+                try {
+                    servletInputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        String value = cleanSqlKeyWords(sb.toString());
+        value = cleanXSS(sb.toString());
+        return value;
+    }
+
+    @Override
+    public ServletInputStream getInputStream() throws IOException {
+        if (isUpData) {
+            return super.getInputStream();
+        } else {
+            //处理原request的流中的数据
+            byte[] bytes = inputHandlers(super.getInputStream()).getBytes();
+            final ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
+            return new ServletInputStream() {
+                @Override
+                public int read() throws IOException {
+                    return bais.read();
+                }
+                @Override
+                public boolean isFinished() {
+                    return false;
+                }
+
+                @Override
+                public boolean isReady() {
+                    return false;
+                }
+
+                @Override
+                public void setReadListener(ReadListener readListener) {
+                }
+            };
+        }
+    }
 
     /**
      * 覆盖getParameter方法，将参数名和参数值都做xss过滤。
@@ -104,6 +180,8 @@ public class XssHttpServletRequestWrapper extends HttpServletRequestWrapper {
         value = value.replaceAll("[\\\"\\\'][\\s]*javascript:(.*)[\\\"\\\']", "\"\"");
         value = value.replaceAll("script", "");
         value = cleanSqlKeyWords(value);
+        value = StringEscapeUtils.escapeJavaScript(value);
+        value = StringEscapeUtils.escapeHtml(value);
         return value;
     }
 
@@ -117,6 +195,7 @@ public class XssHttpServletRequestWrapper extends HttpServletRequestWrapper {
                         + ")" + ";参数：" + value + ";过滤后的参数：" + paramValue);
             }
         }
+        paramValue = StringEscapeUtils.escapeSql(paramValue);
         return paramValue;
     }
 }
