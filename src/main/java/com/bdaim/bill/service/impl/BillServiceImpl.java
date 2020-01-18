@@ -848,7 +848,7 @@ public class BillServiceImpl implements BillService {
             sqlBuilder.append(" AND DATE_FORMAT(t1.create_time, '%Y%m') like  ?");
         }
         sqlBuilder.append(" ORDER BY t1.create_time desc ");
-        logger.info("某企业账单明细sql：\t" + sqlBuilder.toString(), p.toArray());
+        logger.info("某企业账单明细sql：\t" + sqlBuilder.toString());
         return sqlBuilder.toString();
     }
 

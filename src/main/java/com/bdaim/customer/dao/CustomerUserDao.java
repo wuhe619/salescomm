@@ -342,14 +342,16 @@ public class CustomerUserDao extends SimpleHibernateDao<CustomerUser, Serializab
             if (start >= 0 && end > 0) {
                 sql.append(" AND ( ");
                 for (int index = start; index <= end; index++) {
-                    sql.append(" user.account LIKE ?' OR");
+                    sql.append(" user.account LIKE ? OR ");
                     p.add("%" + index + "%");
                 }
                 sql.delete(sql.length() - 2, sql.length());
                 sql.append(")");
             }
         }
-        List<CustomerUserDTO> customerUserList = this.find(sql.toString(), customerId, groupId, p.toArray());
+        p.add(customerId);
+        p.add(groupId);
+        List<CustomerUserDTO> customerUserList = this.find(sql.toString(), p.toArray());
         return customerUserList;
     }
 
@@ -408,7 +410,8 @@ public class CustomerUserDao extends SimpleHibernateDao<CustomerUser, Serializab
                 sql.append(")");
             }
         }
-        List<CustomerUserDTO> customerUserList = this.find(sql.toString(), customerId, p.toArray());
+        p.add(customerId);
+        List<CustomerUserDTO> customerUserList = this.find(sql.toString(), p.toArray());
         return customerUserList;
     }
 
