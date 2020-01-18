@@ -2,6 +2,8 @@ package com.bdaim.common;
 
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
+import org.jsoup.Jsoup;
+import org.jsoup.safety.Whitelist;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,7 +24,7 @@ import java.util.Set;
 public class XssHttpServletRequestWrapper extends HttpServletRequestWrapper {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
-    private static String key = "and|exec|insert|select|delete|update|count|*|%|chr|mid|master|truncate|char|declare|;|or|-|+";
+    private static String key = "and|exec|insert|select|delete|update|count|*|%|chr|mid|master|truncate|char|declare|;|or|-|+|'|()|,|";
     private static Set<String> notAllowedKeyWords = new HashSet<String>(0);
     private static String replacedString = "INVALID";
 
@@ -74,9 +76,17 @@ public class XssHttpServletRequestWrapper extends HttpServletRequestWrapper {
                 }
             }
         }
-        String value = cleanSqlKeyWords(sb.toString());
-        value = cleanXSS(sb.toString());
+        String value = cleanXSSByJsoup(sb.toString());
         return value;
+    }
+
+    /**
+     * 使用Jsoup过滤json中的XSS特殊字符
+     * @param value
+     * @return
+     */
+    private String cleanXSSByJsoup(String value) {
+        return Jsoup.clean(value, Whitelist.relaxed());
     }
 
     @Override
