@@ -2328,12 +2328,15 @@ public class SupplierService {
     public Map<String, Object> getSupplierList(PageParam page, String name) {
         try {
             StringBuffer sql = new StringBuffer();
-            sql.append("select supplier_id,name,settlement_type,contact_person,contact_phone,contact_position,type,status,create_time from t_supplier where status =1 ");
+            List<Object> params = new ArrayList<>();
+            sql.append("select supplier_id,name,settlement_type,contact_person,contact_phone,contact_position,type," +
+                    "status,create_time from t_supplier where status =1 ");
             if (StringUtil.isNotEmpty(name)) {
-                sql.append(" and name like '%" + name + "%'");
+                sql.append(" and name like ?");
+                params.add("%"+name+"%");
             }
             sql.append(" order by create_time desc");
-            PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
+            PageList list = new Pagination().getPageData(sql.toString(), params.toArray(), page, jdbcTemplate);
             Map<String, Object> map = new HashMap<>();
             List<ApiProperty> rsIds = apiDao.getPropertyAll("rsIds");
 
