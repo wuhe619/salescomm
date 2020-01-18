@@ -340,13 +340,13 @@ public class ApiService {
             throw new Exception("非发布状态不可订阅");
         }
 
-        List paramList = new ArrayList();
+//        List paramList = new ArrayList();
 //            SubscriptionEntity subEntity = subscriptionDao.getById(apiEntity.getApiId(), amApplicationEntity.getId());
-        paramList.add(amApplicationEntity.getId());
-        paramList.add(apiEntity.getApiId());
+//        paramList.add(amApplicationEntity.getId());
+//        paramList.add(apiEntity.getApiId());
         String subSql1 = "select SUBSCRIPTION_ID as id  from am_subscription where APPLICATION_ID=? and API_ID = ?";
 //            SubscriptionEntity subEntity = jdbcTemplate.queryForObject(subSql1, SubscriptionEntity.class);
-        List<Map<String, Object>> list = jdbcTemplate.queryForList(subSql1,paramList);
+        List<Map<String, Object>> list = jdbcTemplate.queryForList(subSql1,amApplicationEntity.getId(),apiEntity.getApiId());
         int subscriptionId;
         Calendar calendar = Calendar.getInstance();
         calendar.add(Calendar.DATE, 365 * 100);
