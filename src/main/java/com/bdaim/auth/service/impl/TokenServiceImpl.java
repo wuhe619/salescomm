@@ -248,6 +248,8 @@ public class TokenServiceImpl implements TokenService {
                 }
                 //验证码没问题，则删除
                 VerifyUtil.verifyCodes.remove(uuid);
+            } else {
+                return new LoginUser("guest", "", "验证码不正确", "402");
             }
             try {
                 password = new String(decoder.decodeBuffer(password));

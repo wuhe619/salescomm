@@ -159,8 +159,8 @@ public class DeptService {
      * @date: 2019/3/13 19:24
      */
     public boolean checkDeptName(String deptName) {
-        String sql = "SELECT id FROM t_dept WHERE name = '" + deptName + "'";
-        List<Map<String, Object>> list = deptDao.sqlQuery(sql);
+        String sql = "SELECT id FROM t_dept WHERE name = ?";
+        List<Map<String, Object>> list = deptDao.sqlQuery(sql, deptName);
         if (list.size() > 0) {
             return true;
         } else {
@@ -177,10 +177,12 @@ public class DeptService {
     public List<Map<String, Object>> getDeptAndRoles(String deptId) throws Exception {
         logger.info("传递的部门id是：" + deptId);
         StringBuffer queryDeptSql = new StringBuffer("SELECT  cast(ID as char) deptID,`NAME` deptName FROM t_dept where 1=1");
+        List<Object> params = new ArrayList<>();
         if (StringUtil.isNotEmpty(deptId)) {
-            queryDeptSql.append(" and ID ='" + deptId + "'");
+            queryDeptSql.append(" and ID =?");
+            params.add(deptId);
         }
-        List<Map<String, Object>> deptList = deptDao.sqlQuery(queryDeptSql.toString());
+        List<Map<String, Object>> deptList = deptDao.sqlQuery(queryDeptSql.toString(), params);
         if (deptList.size() > 0) {
             List<Map<String, Object>> roleList = null;
             String roleSql = "SELECT ID roleId,`NAME` roleName  FROM t_role WHERE DEPTID =?";
@@ -201,7 +203,7 @@ public class DeptService {
             dept.setId(IDHelper.getID());
             deptDao.insert(dept);
         } catch (Exception e) {
-            logger.error("添加部门信息异常,",e);
+            logger.error("添加部门信息异常,", e);
             return false;
         } finally {
 
@@ -211,10 +213,12 @@ public class DeptService {
 
     public boolean delete(DeptDTO dept) {
         try {
-            if (!canDelete(dept.getId())) return false;
+            if (!canDelete(dept.getId())) {
+                return false;
+            }
             deptDao.delete(dept);
         } catch (Exception e) {
-            logger.error("删除部门信息异常,",e);
+            logger.error("删除部门信息异常,", e);
             return false;
         } finally {
         }
@@ -222,16 +226,19 @@ public class DeptService {
     }
 
     private boolean canDelete(Long id) throws Exception {
-        List list = deptDao.getSQLQuery("SELECT * FROM t_user where deptid=" + id).list();
-        if (list.size() > 0) return false;
-        else return true;
+        List list = deptDao.sqlQuery("SELECT * FROM t_user where deptid=?", id);
+        if (list.size() > 0) {
+            return false;
+        } else {
+            return true;
+        }
     }
 
     public boolean update(DeptDTO dept) {
         try {
             deptDao.update(dept);
         } catch (Exception e) {
-            logger.error("更新部门信息异常,",e);
+            logger.error("更新部门信息异常,", e);
             return false;
         } finally {
         }

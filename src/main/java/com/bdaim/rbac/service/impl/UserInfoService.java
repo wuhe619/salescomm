@@ -1,5 +1,6 @@
 package com.bdaim.rbac.service.impl;
 
+import com.bdaim.common.dto.Page;
 import com.bdaim.common.exception.TouchException;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerUserDao;
@@ -316,7 +317,7 @@ public class UserInfoService {
         if (StringUtil.isEmpty(customerId)) {
             throw new TouchException("300", "客户id为空");
         }
-
+        List<Object> params = new ArrayList<>();
         StringBuilder sql = new StringBuilder("SELECT\n" +
                 "\tt1.`NAME` as industryPoolName,\n" +
                 "\tt1.industry_pool_id as industryPoolId,\n" +
@@ -330,7 +331,8 @@ public class UserInfoService {
                 "\tFROM\n" +
                 "\t\tt_cust_industry t2\n" +
                 "\tWHERE 1=1 and ");
-        sql.append("t2.cust_id='").append(StringEscapeUtils.escapeSql(customerId)).append("' ");
+        sql.append("t2.cust_id=? ");
+        params.add(StringEscapeUtils.escapeSql(customerId));
         sql.append(") t3 ON t1.industry_pool_id = t3.industry_pool_id\n" +
                 "LEFT JOIN (\n" +
                 "\tSELECT\n" +
@@ -348,9 +350,9 @@ public class UserInfoService {
                 "\tGROUP BY\n" +
                 "\t\tt6.industry_pool_id\n" +
                 ") t7 ON t7.industryPoolId = t1.industry_pool_id where t1.`STATUS`= 3 order by t1.create_time DESC, status ");
-        List list = userInfoDao.getSQLQuery(sql.toString()).list();
-        map.put("total", list.size());
-        map.put("industryPoolStatusList", userInfoDao.getSQLQuery(sql.toString()).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP).setFirstResult(pageNum).setMaxResults(pageSize).list());
+        Page page = userInfoDao.sqlPageQuery(sql.toString(), pageNum, pageSize, params);
+        map.put("total", page.getTotal());
+        map.put("industryPoolStatusList", page.getData());
         return map;
     }
 
@@ -374,7 +376,7 @@ public class UserInfoService {
 
         Integer code = null;
         String loginPassWord = jdbcTemplate.queryForObject(
-                "SELECT PASSWORD FROM t_user t WHERE t.id =" + userId, String.class);
+                "SELECT PASSWORD FROM t_user t WHERE t.id =?", String.class, userId);
 
         if (CipherUtil.generatePassword(payPassWord).equals(loginPassWord)) {
             code = 1;
