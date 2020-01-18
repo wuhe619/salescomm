@@ -150,7 +150,8 @@ public class UserService {
             String[] roleIds = roleId.split(",");
             if (roleIds.length > 0) {
                 for (int i = 0; i < roleIds.length; i++) {
-                    int insertNum = userDao.executeUpdateSQL("insert into t_user_role_rel(ID,ROLE,OPTUSER,CREATE_TIME) VALUES(" + id + "," + roleIds[i] + ",'" + loginUserName + "',now())");
+                    int insertNum = userDao.executeUpdateSQL("insert into t_user_role_rel(ID,ROLE,OPTUSER,CREATE_TIME)" +
+                            " VALUES(?,?,?,now())", id, roleIds[i], loginUserName);
                     logger.info("添加职位信息数量是：" + insertNum + "用户id是：" + id);
                 }
             }
@@ -165,12 +166,16 @@ public class UserService {
 
     public boolean checkUsernameUnique(String userName, Long id) {
         String sql = "";
+        List<Object> params = new ArrayList<>();
         if (id == null) {
-            sql = "select count(*) as COUNT from t_user where name = '" + userName + "'";
+            sql = "select count(*) as COUNT from t_user where name = ?";
+            params.add(userName);
         } else {
-            sql = "select count(*) as COUNT from t_user where name = '" + userName + "' and id<>" + id;
+            sql = "select count(*) as COUNT from t_user where name = ? and id<>?";
+            params.add(userName);
+            params.add(id);
         }
-        List<Map<String, Object>> list = userDao.sqlQuery(sql);
+        List<Map<String, Object>> list = userDao.sqlQuery(sql, params.toArray());
         if (list != null && !list.isEmpty()) {
             Map<String, Object> map = list.get(0);
             int count = NumberConvertUtil.everythingToInt(map.get("COUNT"));
@@ -228,36 +233,46 @@ public class UserService {
     public Page queryUserList(PageParam page, UserDTO userDTO, LoginUser loginUser) {
         Long loginId = loginUser.getId();
         boolean ifAdmin = loginUser.isAdmin();
-        StringBuffer sql = new StringBuffer("SELECT cast(u.ID as char) id,u.PASSWORD password,u.REALNAME realName,u.name account,u.mobile_num phone,d.`NAME` deptName,GROUP_CONCAT(r.`NAME`) roles ,cast(r.ID as char) roleId,cast(d.ID as char)deptId,u.`STATUS` ");
+        List<Object> params = new ArrayList<>();
+        StringBuffer sql = new StringBuffer("SELECT cast(u.ID as char) id,u.PASSWORD password,u.REALNAME realName,u.name account," +
+                "u.mobile_num phone,d.`NAME` deptName,GROUP_CONCAT(r.`NAME`) roles ,cast(r.ID as char) roleId,cast(d.ID as char)deptId," +
+                "u.`STATUS` ");
         sql.append("FROM t_user u LEFT JOIN t_user_role_rel p ON u.ID = p.ID\n");
         sql.append("LEFT JOIN t_role r ON p.ROLE = r.ID ");
         sql.append("LEFT JOIN t_dept d ON u.DEPTID = d.ID ");
         sql.append("WHERE 1=1 ");
         //admin可以查询所有部门信息  普通用户只能查本部门的
         if (ifAdmin == false) {
-            sql.append(" and d.id in (SELECT u.DEPTID FROM t_user u WHERE u.ID = " + loginId + ")");
+            sql.append(" and d.id in (SELECT u.DEPTID FROM t_user u WHERE u.ID = ?)");
+            params.add(loginId);
         }
         if (userDTO.getId() != null) {
-            sql.append(" and u.id = " + userDTO.getId());
+            sql.append(" and u.id = ?");
+            params.add(userDTO.getId());
         }
         if (StringUtil.isNotEmpty(userDTO.getRealName())) {
-            sql.append(" and u.REALNAME like '%" + userDTO.getRealName() + "%'");
+            sql.append(" and u.REALNAME like '%?%'");
+            params.add(userDTO.getRealName());
         }
         if (StringUtil.isNotEmpty(userDTO.getUserName())) {
-            sql.append(" and u.name = '" + userDTO.getUserName() + "'");
+            sql.append(" and u.name = ?");
+            params.add(userDTO.getUserName());
         }
         if (StringUtil.isNotEmpty(userDTO.getMobileNumber())) {
-            sql.append(" and u.mobile_num = " + userDTO.getMobileNumber());
+            sql.append(" and u.mobile_num = ?");
+            params.add(userDTO.getMobileNumber());
         }
         if (userDTO.getDeptId() != null) {
-            sql.append(" and u.DEPTID = " + userDTO.getDeptId());
+            sql.append(" and u.DEPTID = ?");
+            params.add(userDTO.getDeptId());
         }
         if (userDTO.getStatus() != null) {
-            sql.append(" and u.status = " + userDTO.getStatus());
+            sql.append(" and u.status = ?");
+            params.add(userDTO.getStatus());
         }
         sql.append(" and u.status!=2 ");
         sql.append(" GROUP BY u.ID ORDER BY u.CREATE_TIME DESC ");
-        Page dataPage = userDao.sqlPageQuery(sql.toString(), page.getPageNum(), page.getPageSize());
+        Page dataPage = userDao.sqlPageQuery(sql.toString(), page.getPageNum(), page.getPageSize(), params.toArray());
         List<Map<String, Object>> data = dataPage.getData();
         //添加场站信息
         if (data.size() > 0) {
@@ -434,6 +449,7 @@ public class UserService {
 
     public List<UserInfo> queryUserV1(QueryDataParam param) {
         StringBuilder builder = new StringBuilder();
+        List<Object> params = new ArrayList<>();
         builder.append(" select t.id,t.status,t.username,t.realname,t.deptname,t.rolename,t.create_time,t.optuser,t.deptId ");
 
         builder.append(" from ( ");
@@ -448,10 +464,12 @@ public class UserService {
         builder.append(" left join t_role r on rel.ROLE = r.ID");
         builder.append(" where  u.status=0 ");
         if (param.getDeptId() != null) {
-            builder.append(" and d.ID = " + param.getDeptId());
+            builder.append(" and d.ID = ?");
+            params.add(param.getDeptId());
         }
         if (param.getRoleId() != null) {
-            builder.append(" and r.ID = " + param.getRoleId());
+            builder.append(" and r.ID = ?");
+            params.add(param.getRoleId());
         }
         builder.append(" group by u.ID,u.status,u.NAME,u.REALNAME,d.id,d.NAME,u.CREATE_TIME,u.OPTUSER ");
         Page page = param.getPage();
@@ -463,7 +481,11 @@ public class UserService {
         builder.append(" where 1=1 ");
         String condition = param.getCondition();
         if (StringUtil.isNotEmpty(condition)) {
-            builder.append(" and (t.username like '%" + condition + "%' or t.realname like '%" + condition + "%' or t.deptname like '%" + condition + "%' or t.rolename like '%" + condition + "%') ");
+            builder.append(" and (t.username like '%?%' or t.realname like '%?%' or t.deptname like '%?%' or t.rolename like '%?%') ");
+            params.add(condition);
+            params.add(condition);
+            params.add(condition);
+            params.add(condition);
         }
         builder.append(" order by t.status asc,t.create_time desc ");
 
@@ -472,14 +494,15 @@ public class UserService {
         Page pageData;
         try {
             //分页查询用户列表
-            pageData = this.userDao.sqlPageQuery(builder.toString(), start, countPerpage);
+            pageData = this.userDao.sqlPageQuery(builder.toString(), start, countPerpage, params.toArray());
             param.getPage().setCount(pageData.getTotal());
             drs = pageData.getData();
             if (drs.size() > 0) {
                 userList = new ArrayList<>();
             }
             //com_audit_trail
-            String isLockedSql = "select AUD_USER,count(*) as COUNT from COM_AUDIT_TRAIL where AUD_ACTION='AUTHENTICATION_FAILED' group by AUD_USER";
+            String isLockedSql = "select AUD_USER,count(*) as COUNT from COM_AUDIT_TRAIL where AUD_ACTION='AUTHENTICATION_FAILED' " +
+                    "group by AUD_USER";
             lockrs = this.userDao.sqlQuery(isLockedSql);
 
             UserInfo vo;
@@ -537,8 +560,8 @@ public class UserService {
 
     @SuppressWarnings("unchecked")
     public boolean checkPassword(Long id, String password) {
-        String sql = "select count(*) as COUNT from t_user where id=" + id + " and password='" + password + "'";
-        List<Map<String, Object>> list = userDao.sqlQuery(sql);
+        String sql = "select count(*) as COUNT from t_user where id=? and password=?";
+        List<Map<String, Object>> list = userDao.sqlQuery(sql, id, password);
         if (list != null && !list.isEmpty()) {
             Map<String, Object> map = list.get(0);
             int count = NumberConvertUtil.everythingToInt(map.get("COUNT"));
@@ -553,12 +576,16 @@ public class UserService {
     public boolean checkUsernameUnique(UserDTO user) {
         Long id = user.getId();
         String sql = "";
+        List<Object> params = new ArrayList<>();
         if (id == null) {
-            sql = "select count(*) as COUNT from t_user where name = '" + user.getName() + "' and status=0";
+            sql = "select count(*) as COUNT from t_user where name = ? and status=0";
+            params.add(user.getName());
         } else {
-            sql = "select count(*) as COUNT from t_user where name = '" + user.getName() + "' and status=0 and id<>" + id;
+            sql = "select count(*) as COUNT from t_user where name = ? and status=0 and id<>?";
+            params.add(user.getName());
+            params.add(id);
         }
-        List<Map<String, Object>> list = userDao.sqlQuery(sql);
+        List<Map<String, Object>> list = userDao.sqlQuery(sql, params.toArray());
         if (list != null && !list.isEmpty()) {
             Map<String, Object> map = list.get(0);
             int count = NumberConvertUtil.everythingToInt(map.get("COUNT"));
@@ -571,8 +598,8 @@ public class UserService {
 
     @SuppressWarnings("unchecked")
     public User queryUserByUsername(String username) {
-        String sql = "select ID,NAME from t_user where name='" + username + "'";
-        List<Map<String, Object>> list = userDao.sqlQuery(sql);
+        String sql = "select ID,NAME from t_user where name=?";
+        List<Map<String, Object>> list = userDao.sqlQuery(sql, username);
         User user = null;
         if (list != null && !list.isEmpty()) {
             Map<String, Object> map = list.get(0);
@@ -632,14 +659,18 @@ public class UserService {
     @SuppressWarnings("unchecked")
     public UserInfo queryUserInfo(String userName) {
         StringBuilder builder = new StringBuilder();
+        List<Object> params = new ArrayList<>();
         builder.append(" select distinct u.ID,u.REALNAME,GROUP_CONCAT(r.NAME) as ROLENAME,d.NAME as DEPTNAME,t.logintime,u.NAME from t_user u");
         builder.append(" left join t_user_role_rel rel on u.ID = rel.ID");
         builder.append(" left join t_role r on rel.ROLE = r.ID");
         builder.append(" left join t_dept d on u.DEPTID = d.ID");
-        builder.append(" left join (select username,logintime from t_login_log where username = '" + userName + "' order by logintime desc limit 0,1) t on u.name = t.username");
-        builder.append(" where u.NAME = '" + userName + "' group by u.ID");
+        builder.append(" left join (select username,logintime from t_login_log where username = ?" +
+                " order by logintime desc limit 0,1) t on u.name = t.username");
+        params.add(userName);
+        builder.append(" where u.NAME = ? group by u.ID");
+        params.add(userName);
         String sql = builder.toString();
-        List<Map<String, Object>> list = userDao.sqlQuery(sql);
+        List<Map<String, Object>> list = userDao.sqlQuery(sql, params.toArray());
         UserInfo info = null;
 
         if (list != null && !list.isEmpty()) {
@@ -682,7 +713,8 @@ public class UserService {
     @SuppressWarnings("unchecked")
     public UserInfo queryUserInfo(Long id) {
         StringBuilder builder = new StringBuilder();
-        builder.append(" select t.ID,t.USERNAME,t.REALNAME,t.DEPTNAME,t.ROLENAME,t.CREATE_TIME,t.OPTUSER,t.DEPTID,EMAIL,EMAIL_GROUP,CONNECTION_INFO from");
+        builder.append(" select t.ID,t.USERNAME,t.REALNAME,t.DEPTNAME,t.ROLENAME,t.CREATE_TIME,t.OPTUSER,t.DEPTID,EMAIL," +
+                "EMAIL_GROUP,CONNECTION_INFO from");
         builder.append(" (select u.ID,u.NAME as username,u.REALNAME,d.id as deptId,EMAIL,EMAIL_GROUP,CONNECTION_INFO,");
         builder.append(" d.NAME as deptname, ");
 
@@ -693,11 +725,10 @@ public class UserService {
         builder.append(" left join t_dept d on u.DEPTID = d.ID ");
         builder.append(" left join t_user_role_rel rel on u.ID = rel.ID");
         builder.append(" left join t_role r on rel.ROLE = r.ID");
-        builder.append(" where  u.ID=");
-        builder.append(id);
+        builder.append(" where  u.ID=?");
         builder.append(" group by u.ID,u.NAME,u.REALNAME,d.id,EMAIL,EMAIL_GROUP,CONNECTION_INFO,d.NAME,u.CREATE_TIME,u.OPTUSER) t");
         builder.append(" where 1 = 1 ");
-        List<Map<String, Object>> list = userDao.sqlQuery(builder.toString());
+        List<Map<String, Object>> list = userDao.sqlQuery(builder.toString(), id);
         UserInfo info = null;
         if (list != null && !list.isEmpty()) {
             info = new UserInfo();
@@ -728,8 +759,8 @@ public class UserService {
     }
 
     public UserDTO queryUserById(Long id) {
-        String sql = "select ID,NAME,STATUS from t_user where id=" + id;
-        List<Map<String, Object>> list = userDao.sqlQuery(sql);
+        String sql = "select ID,NAME,STATUS from t_user where id=?";
+        List<Map<String, Object>> list = userDao.sqlQuery(sql, id);
         UserDTO user = null;
         if (list != null && !list.isEmpty()) {
             Map<String, Object> map = list.get(0);
@@ -762,7 +793,9 @@ public class UserService {
 
     public boolean deleteUser(UserDTO user) {
         //如果待删除的用户是管理员，则不可删除
-        if ("admin".equals(user.getName())) return false;
+        if ("admin".equals(user.getName())) {
+            return false;
+        }
         try {
             userDao.delete(user);
             //following delete t_user_role_rel table ,relation datas...
@@ -780,22 +813,31 @@ public class UserService {
         try {
 
             StringBuffer sql = new StringBuffer("update t_user set ");
+            List<Object> params = new ArrayList<>();
             if (userInfo.getRealName() != null) {
-                sql.append(" realName='" + userInfo.getRealName() + "' ,");
+                sql.append(" realName=? ,");
+                params.add(userInfo.getRealName());
             }
             if (!StringUtils.isEmpty(userInfo.getConnectionInfo())) {
-                sql.append("CONNECTION_INFO ='" + userInfo.getConnectionInfo() + "' ,");
+                sql.append("CONNECTION_INFO =? ,");
+                params.add(userInfo.getConnectionInfo());
             }
             if (!StringUtils.isEmpty(userInfo.getEmainGroup())) {
-                sql.append(" EMAIL_GROUP='" + userInfo.getEmainGroup() + "', ");
+                sql.append(" EMAIL_GROUP=?, ");
+                params.add(userInfo.getEmainGroup());
             }
             if (!StringUtils.isEmpty(userInfo.getEmail())) {
-                sql.append(" EMAIL='" + userInfo.getEmail() + "' ,");
+                sql.append(" EMAIL=? ,");
+                params.add(userInfo.getEmail());
             }
             if (!StringUtils.isEmpty(userInfo.getPassword())) {
-                sql.append(" password='" + CipherUtil.generatePassword(userInfo.getPassword()) + "',");
+                sql.append(" password=?,");
+                params.add(CipherUtil.generatePassword(userInfo.getPassword()));
             }
-            int res = this.userDao.executeUpdateSQL(sql.substring(0, sql.length() - 1) + " where ID='" + userInfo.getId() + "' and password='" + CipherUtil.generatePassword(userInfo.getOldPassword()) + "'");
+            String lastSql = sql.substring(0, sql.length() - 1) + " where ID=? and password=?";
+            params.add(userInfo.getId());
+            params.add(CipherUtil.generatePassword(userInfo.getOldPassword()));
+            int res = this.userDao.executeUpdateSQL(lastSql, params.toArray());
 
             return true;
         } catch (Exception e) {

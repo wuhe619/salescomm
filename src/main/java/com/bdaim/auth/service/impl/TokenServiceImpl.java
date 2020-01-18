@@ -97,15 +97,19 @@ public class TokenServiceImpl implements TokenService {
                 long now = System.currentTimeMillis();
                 long codeTime = code.getVerifyTime();
                 if (now - codeTime > VerifyUtil.verifyCodeTimeout) {
+                    VerifyUtil.verifyCodes.remove(uuid);
                     return new LoginUser("guest", "", "验证码已过期", "402");
                 }
                 //没过期，查看验证码是否正确
                 String verifyCode = usernameArray[1].substring(0, 4);
                 if (!verifyCode.equalsIgnoreCase(code.getVerifyCode())) {
+                    VerifyUtil.verifyCodes.remove(uuid);
                     return new LoginUser("guest", "", "验证码不正确", "402");
                 }
                 //验证码没问题，则删除
                 VerifyUtil.verifyCodes.remove(uuid);
+            } else {
+                return new LoginUser("guest", "", "验证码不正确", "402");
             }
             try {
                 password = new String(decoder.decodeBuffer(password));
@@ -239,11 +243,13 @@ public class TokenServiceImpl implements TokenService {
                 long now = System.currentTimeMillis();
                 long codeTime = code.getVerifyTime();
                 if (now - codeTime > VerifyUtil.verifyCodeTimeout) {
+                    VerifyUtil.verifyCodes.remove(uuid);
                     return new LoginUser("guest", "", "验证码已过期", "402");
                 }
                 //没过期，查看验证码是否正确
                 String verifyCode = usernameArray[0].substring(0, 4);
                 if (!verifyCode.equalsIgnoreCase(code.getVerifyCode())) {
+                    VerifyUtil.verifyCodes.remove(uuid);
                     return new LoginUser("guest", "", "验证码不正确", "402");
                 }
                 //验证码没问题，则删除
