@@ -9074,8 +9074,8 @@ public class MarketResourceService {
             params.add(param.getString("supplierId"));
         }
         if (StringUtil.isNotEmpty(param.getString("resname"))) {
-            sql.append(" and re.resname like '%?%'");
-            params.add(param.getString("resname"));
+            sql.append(" and re.resname like ?");
+            params.add("%"+param.getString("resname")+"%");
         }
         if (StringUtil.isNotEmpty(param.getString("resourceId"))) {
             sql.append(" and re.resource_id =?");
