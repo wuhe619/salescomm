@@ -32,11 +32,11 @@ public class IndustryInfoService {
      */
     public List getIndustryInfoList(Integer pageNum, Integer pageSize, String industryInfoId) {
         StringBuffer sql = new StringBuffer();
-        List args=new ArrayList();
+        List args = new ArrayList();
         sql.append(
                 "SELECT industy_name,status,industry_info_id,create_time,FORMAT(price/100,2) as price ,description from t_industry_info where 1=1 ");
         if (null != industryInfoId && !"".equals(industryInfoId)) {
-            sql.append("and industry_info_id =?" );
+            sql.append("and industry_info_id =?");
             args.add(industryInfoId);
         }
         sql.append(" ORDER BY create_time desc");
@@ -44,7 +44,7 @@ public class IndustryInfoService {
         sql.append(" limit ?,?");
         args.add(pageNum);
         args.add(pageSize);
-        List list = jdbcTemplate.queryForList(sql.toString(),args);
+        List list = jdbcTemplate.queryForList(sql.toString(), args.toArray());
 //        List list = industryInfoDao.getSQLQuery(sql.toString()).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP).list();
         return list;
     }
@@ -55,11 +55,11 @@ public class IndustryInfoService {
         sql.append(
                 "SELECT count(*)as total from t_industry_info where 1=1 ");
         if (null != industryInfoId && !"".equals(industryInfoId)) {
-            sql.append("and industry_info_id =" + industryInfoId);
+            sql.append("and industry_info_id = ? ");
             args.add(industryInfoId);
         }
         //List list = industryInfoDao.getSQLQuery(sql.toString()).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP).list();
-        List list = jdbcTemplate.queryForList(sql.toString(),args);
+        List list = jdbcTemplate.queryForList(sql.toString(), args.toArray());
         return list;
     }
 
@@ -115,14 +115,14 @@ public class IndustryInfoService {
         sb.append(" modify_time=now()");
         sb.append(" where industry_info_id=?");
         list.add(industryInfoId);
-        int code = jdbcTemplate.update(sb.toString(),list.toArray());
+        int code = jdbcTemplate.update(sb.toString(), list.toArray());
         map.put("code", code);
         if (code == 1) {
             map.put("message", "成功");
         } else {
             map.put("message", "失败");
         }
-        log.info("修改行业信息，sql:" + sb.toString()+String.valueOf(list.toArray().toString()));
+        log.info("修改行业信息，sql:" + sb.toString() + String.valueOf(list.toArray().toString()));
         json.put("data", map);
         return json.toJSONString();
     }

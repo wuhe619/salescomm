@@ -728,7 +728,7 @@ public class MarketTaskService {
         if (StringUtil.isNotEmpty(pageIndex) && StringUtil.isNotEmpty(pageSize)) {
             sql.append(" LIMIT ").append(pageIndex).append(",").append(pageSize);
         }
-        marketTaskDao.executeUpdateSQL(sql.toString(), args);
+        marketTaskDao.executeUpdateSQL(sql.toString(), args.toArray());
 
     }
 
@@ -1119,7 +1119,7 @@ public class MarketTaskService {
         sql.append(" ORDER BY t1.create_time DESC ");
         LOG.info("sql=" + sql.toString());
         map.put("total", marketTaskDao.getSQLQuery(sql.toString()).list().size());
-        Page page = marketTaskDao.sqlPageQuery0(sql.toString(), param.getPageNum(), param.getPageSize(), args);
+        Page page = marketTaskDao.sqlPageQuery0(sql.toString(), param.getPageNum(), param.getPageSize(), args.toArray());
         List<Map<String, Object>> list = page.getData();
         if (list != null && list.size() > 0) {
             for (int i = 0; i < list.size(); i++) {
@@ -1262,7 +1262,7 @@ public class MarketTaskService {
 
         sb.append(" ORDER BY id ASC ");
         try {
-            page = marketTaskDao.sqlPageQuery0(sb.toString(), pageNum, pageSize, args);
+            page = marketTaskDao.sqlPageQuery0(sb.toString(), pageNum, pageSize, args.toArray());
         } catch (Exception e) {
             LOG.error("查询任务详情列表失败,", e);
             return new Page();
@@ -1411,7 +1411,7 @@ public class MarketTaskService {
             sb.append("  LIMIT " + pageNum + "," + pageSize);
         }
         try {
-            result = marketTaskDao.sqlQuery(sb.toString(), args);
+            result = marketTaskDao.sqlQuery(sb.toString(), args.toArray());
         } catch (DataAccessException e) {
             LOG.error("查询营销任务列表失败,", e);
             return result;
@@ -1573,7 +1573,7 @@ public class MarketTaskService {
                 }
             }
 
-            List<Map<String, Object>> callLogList = marketTaskDao.sqlQuery(sql.toString(), args);
+            List<Map<String, Object>> callLogList = marketTaskDao.sqlQuery(sql.toString(), args.toArray());
             // 处理营销记录
             if (callLogList.size() > 0) {
                 //final String audioUrl = ConfigUtil.getInstance().get("audio_server_url") + "/";

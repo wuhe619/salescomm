@@ -267,7 +267,7 @@ public class DicService {
                 args.add(searchPropertyDto.getProductId());
             }
             sql += " order by CAST(productShowLevel as SIGNED), applyNum DESC";
-            page = dicDao.sqlPageQueryByPageSize(sql, pageNum, pageSize,args);
+            page = dicDao.sqlPageQueryByPageSize(sql, pageNum, pageSize,args.toArray());
             List<Map<String, Object>> data = page.getData();
             //推荐商品不满足pageSize 是否需要填充数据 1 是 2 否
             if (!"2".equals(searchPropertyDto.getFillType())) {
@@ -282,7 +282,7 @@ public class DicService {
                     querySql.append(" and d.status = 1 and d.dic_type_id = ? ORDER BY RAND() LIMIT " + (pageSize - data.size()));
                     params.add(searchPropertyDto.getDicType());
                     //随机查询n条相关数据
-                    List<Map<String, Object>> list = dicDao.sqlQuery(querySql.toString(),params);
+                    List<Map<String, Object>> list = dicDao.sqlQuery(querySql.toString(),params.toArray());
                     if (list != null && list.size() > 0) {
                         data.addAll(list);
                     }
@@ -337,7 +337,7 @@ public class DicService {
                 args.add(searchPropertyDto.getStatus());
             }
             sql += " ORDER BY a.create_time DESC ";
-            page = dicDao.sqlPageQuery0(sql, pageNum, pageSize,args);
+            page = dicDao.sqlPageQuery0(sql, pageNum, pageSize,args.toArray());
         } catch (Exception e) {
             logger.error("查询渠道列表异常,", e);
         }
@@ -367,7 +367,7 @@ public class DicService {
                 args.add(searchPropertyDto.getStatus());
             }
             sql += " ORDER BY a.create_time DESC ";
-            page = dicDao.sqlPageQuery0(sql, pageNum, pageSize,args);
+            page = dicDao.sqlPageQuery0(sql, pageNum, pageSize,args.toArray());
             if (page != null && page.getData() != null) {
                 Map<String, Object> m;
                 DicProperty property;
@@ -452,7 +452,7 @@ public class DicService {
                 args.add(dto.getStatus());
             }
             sql += " ORDER BY a.create_time DESC ";
-            page = dicDao.sqlPageQuery0(sql, pageNum, pageSize,args);
+            page = dicDao.sqlPageQuery0(sql, pageNum, pageSize,args.toArray());
             if (page != null) {
                 List<Map<String, Object>> data = null;
                 String statSql = "SELECT IFNULL(SUM(regedit_num),0) regeditNum, IFNULL(SUM(firstget_num),0) firstgetNum, IFNULL(SUM(active_num),0) activeNum," +
@@ -596,7 +596,7 @@ public class DicService {
                 sql += " AND a.id in (SELECT dic_id FROM t_dic_property where dic_prop_value =  ? AND dic_prop_key='platform')";
                 args.add(dto.getAdPlatform());
             }
-            page = dicDao.sqlPageQuery0(sql, pageNum, pageSize,args);
+            page = dicDao.sqlPageQuery0(sql, pageNum, pageSize,args.toArray());
         } catch (Exception e) {
             logger.error("查询广告位列表异常,", e);
         }
@@ -939,7 +939,7 @@ public class DicService {
                 args.add(searchPropertyDto.getIsQualityBrand());
             }
             sql += " order by a.create_time desc ";
-            page = dicDao.sqlPageQueryByPageSize(sql, pageNum, pageSize,args);
+            page = dicDao.sqlPageQueryByPageSize(sql, pageNum, pageSize,args.toArray());
             List<Map<String, Object>> data = page.getData();
             for (Map<String, Object> map : data) {
                 Long brandId = NumberConvertUtil.parseLong(map.get("id"));
@@ -1461,7 +1461,7 @@ public class DicService {
                 sql.append(" AND dic_id =? ").append(")");
                 args.add(fundOrder.getProductId());
             }
-            List<Map<String, Object>> list = dicDao.sqlQuery(sql.toString(), args);
+            List<Map<String, Object>> list = dicDao.sqlQuery(sql.toString(), args.toArray());
             if (list != null && list.size() > 0) {
                 status = true;
             }
@@ -1542,7 +1542,7 @@ public class DicService {
         } else {
             querySql.append(" GROUP BY product_id ORDER BY count DESC");
         }
-        Page page = dicDao.sqlPageQuery0(querySql.toString(), pageNum, pageSize,args);
+        Page page = dicDao.sqlPageQuery0(querySql.toString(), pageNum, pageSize,args.toArray());
         //查询的是用户足迹信息
         if (page != null && page.getData() != null) {
             Map<String, Object> m;
@@ -1628,7 +1628,7 @@ public class DicService {
         }
         stringBuffer.append(" ORDER BY apply_time DESC ");
         logger.info("检索sql是：" + stringBuffer.toString());
-        Page page = dicDao.sqlPageQuery0(stringBuffer.toString(), pageNum, pageSize,args);
+        Page page = dicDao.sqlPageQuery0(stringBuffer.toString(), pageNum, pageSize,args.toArray());
         if (page != null && page.getData().size() > 0) {
             List<Map<String, Object>> data = page.getData();
             List<DicProperty> propertyList;
@@ -1689,7 +1689,7 @@ public class DicService {
             stringBuffer.append(" and d.id= ?");
             args.add(id);
         }
-        List<Map<String, Object>> userInfoList = dicDao.sqlQuery(stringBuffer.toString(),args);
+        List<Map<String, Object>> userInfoList = dicDao.sqlQuery(stringBuffer.toString(),args.toArray());
         logger.info("查询出用户信息是：" + JSONObject.toJSONString(userInfoList));
         Map<String, Object> userInfo = null;
         if (userInfoList.size() > 0) {
@@ -1762,7 +1762,7 @@ public class DicService {
             }
             stringBuffer.append(" ORDER BY apply_time");
             logger.info("检索sql是：" + stringBuffer.toString());
-            List<Map<String, Object>> exportData = dicDao.sqlQuery(stringBuffer.toString(),args);
+            List<Map<String, Object>> exportData = dicDao.sqlQuery(stringBuffer.toString(),args.toArray());
             if (exportData != null && exportData.size() > 0) {
                 // 设置标题
                 List<String> titles = new ArrayList<String>();
@@ -1919,7 +1919,7 @@ public class DicService {
             sql.append(" AND a.id in (SELECT dic_id FROM t_dic_property where dic_prop_value = ? AND dic_prop_key='code')");
             args.add(dto.getAdCode());
         }
-        list = dicDao.sqlQuery(sql.toString(), args);
+        list = dicDao.sqlQuery(sql.toString(), args.toArray());
         if (list.size() > 0) {
             JSONArray jsonArray, data;
             JSONObject jsonObject;

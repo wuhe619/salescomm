@@ -111,7 +111,7 @@ public class TokenServiceImpl implements TokenService {
             }
             long type = 0;
             String userNameWithVerify = username.substring(8);
-            String userNameWithoutVerify = userNameWithVerify.substring(userNameWithVerify.indexOf(".") + 1);
+            String userNameWithoutVerify = userNameWithVerify.substring(userNameWithVerify.lastIndexOf(".") + 1);
             UserDO u = userInfoService.getUserByName(userNameWithoutVerify);
             if (u == null || u.getStatus() != 0) {
                 return new LoginUser("guest", "", "用户名密码错误", "401");

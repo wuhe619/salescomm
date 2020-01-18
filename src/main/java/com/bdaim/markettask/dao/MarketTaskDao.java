@@ -160,7 +160,7 @@ public class MarketTaskDao extends SimpleHibernateDao<MarketTask, String> {
             hql.append(" AND p.propertyValue LIKE ?");
             params.add("%"+endAccount+"%");
         }
-        List<CustomerUserDTO> list = find(hql.toString(), params);
+        List<CustomerUserDTO> list = find(hql.toString(), params.toArray());
         return list;
     }
 
@@ -198,7 +198,7 @@ public class MarketTaskDao extends SimpleHibernateDao<MarketTask, String> {
             hql.append(" AND p.propertyValue LIKE ?");
             args.add("%"+endAccount+"%");
         }
-        List<CustomerUserDTO> list = find(hql.toString(), args);
+        List<CustomerUserDTO> list = find(hql.toString(), args.toArray());
         return list;
     }
 }

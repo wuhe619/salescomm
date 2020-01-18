@@ -311,7 +311,7 @@ public class OrderService {
 
         sql.append(" and t2.order_id =?");
         args.add(StringEscapeUtils.escapeSql(orderId));
-        List list = jdbcTemplate.queryForList(sql.toString(),args);
+        List list = jdbcTemplate.queryForList(sql.toString(), args.toArray());
 //        List list = orderDao.getSQLQuery(sql.toString()).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP).list();
         map.put("customerGroupOrdDetail", list.size() > 0 ? list.get(0) : new HashMap());
         map.put("resourceOrdDetail", "");
