@@ -103,7 +103,7 @@ public class RoleDao extends SimpleHibernateDao<RoleEntity, Serializable> {
      * 添加职位sql
      */
     public void insertRole(RoleDTO role) {
-        this.executeUpdateSQL("insert into t_role(ID,NAME,OPTUSER,CREATE_TIME,DEPTID) values('" + role.getKey() + "','" + role.getName() + "','" + role.getUser() + "',now(),'" + role.getDeptId() + "')");
+        this.executeUpdateSQL("insert into t_role(ID,NAME,OPTUSER,CREATE_TIME,DEPTID) values(?,?,?,now(),?)", role.getKey(), role.getName(), role.getUser(), role.getDeptId());
     }
 
 
@@ -172,11 +172,13 @@ public class RoleDao extends SimpleHibernateDao<RoleEntity, Serializable> {
     }
 
     public void insert(RoleDTO role) {
-        this.executeUpdateSQL("insert into t_role(ID,NAME,OPTUSER,CREATE_TIME,DEPTID) values('" + role.getKey() + "','" + role.getName() + "','" + role.getUser() + "',now(),'" + role.getDeptId() + "')");
+        this.executeUpdateSQL("insert into t_role(ID,NAME,OPTUSER,CREATE_TIME,DEPTID) values(?,?,?,now(),?)",
+                role.getKey(), role.getName(), role.getUser(), role.getDeptId());
     }
 
     public void insert0(RoleDTO role) {
-        this.executeUpdateSQL("insert into t_role(ID,NAME,OPTUSER,CREATE_TIME,DEPTID) values('" + IDHelper.getID() + "','" + role.getName() + "','" + role.getUser() + "',now(),'" + role.getDeptId() + "')");
+        this.executeUpdateSQL("insert into t_role(ID,NAME,OPTUSER,CREATE_TIME,DEPTID) values(?,?,?,now(),?)",
+                IDHelper.getID(), role.getName(), role.getUser(), role.getDeptId());
     }
 
     public void delete(RoleDTO role) {
@@ -242,7 +244,7 @@ public class RoleDao extends SimpleHibernateDao<RoleEntity, Serializable> {
     public List<RoleDTO> queryUserRoles(UserDTO user) {
         try {
             List list = this.sqlQuery("SELECT r.ID,r.NAME,r.OPTUSER,r.CREATE_TIME,r.MODIFY_TIME FROM t_role r,t_user_role_rel rel where r.ID=rel.ROLE " +
-                    "and rel.ID= ? " , user.getKey());
+                    "and rel.ID= ? ", user.getKey());
 
             List<RoleDTO> roles = new ArrayList<RoleDTO>();
             for (int i = 0; i < list.size(); i++) {
