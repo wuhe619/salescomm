@@ -508,6 +508,7 @@ public class UserGroupService {
         Page page = new Page();
         StringBuffer sql = new StringBuffer("");
 
+        List<Object> p = new ArrayList<>();
         if (StringUtil.isEmpty(projectId) && StringUtil.isEmpty(customerId) && StringUtil.isEmpty(jobId)) {
 
             sql.append("select m.`name` as projectName,m.id as projectId,a.enterprise_name as enterpriseName,")
@@ -517,7 +518,8 @@ public class UserGroupService {
             if ("ROLE_USER".equals(lu.getRole())) {
                 String uidStr = getCustomerIdByuId(lu.getId().toString());
                 if (StringUtil.isNotEmpty(uidStr)) {
-                    sql.append(" and t.cust_id in (").append(uidStr).append(")");
+                    p.add(uidStr);
+                    sql.append(" and t.cust_id in (?)");
                 }
             }
             sql.append(")c")
@@ -528,56 +530,67 @@ public class UserGroupService {
                     .append(" LEFT JOIN t_market_project m on b.property_value=m.id ")
                     .append(" where a.status=0")
                     .append(" and m.`status`=1 ")
-                    .append("ORDER BY m.id desc")
-            ;
+                    .append("ORDER BY m.id desc");
         } else if (StringUtil.isNotEmpty(projectId) && StringUtil.isEmpty(customerId) && StringUtil.isEmpty(jobId)) {
-
+            p.add(projectId);
             sql.append(" select a.projectId,f.`name` as projectName,a.cust_id as custId," +
                     " a.enterprise_name as enterpriseName,a.jobId,a.jobName from (" +
-                    " select b.*,g.id as jobId,g.name as jobName," + projectId + " as projectId from (" +
+                    " select b.*,g.id as jobId,g.name as jobName,? as projectId from (" +
                     " select t.cust_id,t.enterprise_name from t_customer t " +
                     " where t.`status`=0");
             if ("ROLE_USER".equals(lu.getRole())) {
                 String uidStr = getCustomerIdByuId(lu.getId().toString());
                 if (StringUtil.isNotEmpty(uidStr)) {
-                    sql.append(" and t.cust_id in (").append(uidStr).append(")");
+                    p.add(uidStr);
+                    sql.append(" and t.cust_id in (?)");
                 }
             }
+            p.add("marketProjectId_" + projectId);
+            p.add(projectId);
             sql.append(" and t.cust_id in(" +
                     " select distinct cust_id from t_customer_property p " +
-                    " where p.property_name = 'marketProjectId_" + projectId + "' and p.property_value = '" + projectId + "' " +
+                    " where p.property_name = ? and p.property_value = ? " +
                     ")) b" +
                     " left join t_customer_user_group g on b.cust_id=g.cust_id and g.status=1 and g.leavel=0" +
                     ")a " +
                     " LEFT JOIN t_market_project f on f.id = a.projectId ");
         } else if (StringUtil.isNotEmpty(projectId) && StringUtil.isNotEmpty(customerId) && StringUtil.isEmpty(jobId)) {
+            p.add(projectId);
+            p.add(customerId);
+            p.add("marketProjectId_" + projectId);
+            p.add(projectId);
             sql.append("select a.projectId,b.`name` as projectName,a.cust_id as custId,a.enterprise_name as enterpriseName," +
                     " a.id as jobId,a.`name` as jobName from (" +
-                    " select t.cust_id,t.enterprise_name,g.id,g.`name`, " + projectId + " as projectId from t_customer_user_group g " +
+                    " select t.cust_id,t.enterprise_name,g.id,g.`name`, ? as projectId from t_customer_user_group g " +
                     " LEFT JOIN t_customer t on t.cust_id=g.cust_id" +
                     " where g.`status`=1 and t.`status`=0 and g.leavel=0 " +
 //                    " and g.cust_id='"+customerId+"'" +
                     " and g.cust_id in(SELECT" +
-                    " distinct cust_id FROM t_customer_property where cust_id='" + customerId + "' and property_name ='marketProjectId_" + projectId + "' and property_value='" + projectId + "')" +
+                    " distinct cust_id FROM t_customer_property where cust_id=? and property_name =? and property_value=?)" +
                     "  ) a left join t_market_project b on a.projectId=b.id and b.`status`=1 order by jobId desc ");
         } else if (StringUtil.isNotEmpty(projectId) && StringUtil.isNotEmpty(customerId) && StringUtil.isNotEmpty(jobId)) {
+            p.add(projectId);
+            p.add(jobId);
+            p.add(customerId);
+            p.add("marketProjectId_" + projectId);
+            p.add(projectId);
             sql.append("select a.jobId,a.jobName,a.enterpriseName,a.custId,a.projectId,b.name as projectName from (" +
                     " select g.id as jobId,g.`name` as jobName,t.cust_id as custId,t.enterprise_name as enterpriseName, " +
-                    " " + projectId + " as 'projectId'" +
+                    " ? as 'projectId'" +
                     " from t_customer_user_group g" +
                     " left JOIN t_customer t" +
                     " on t.cust_id=g.cust_id " +
-                    " where g.`status`=1 and t.`status`=0 and g.leavel=0 and g.id='" + jobId + "' " +
+                    " where g.`status`=1 and t.`status`=0 and g.leavel=0 and g.id=? " +
 //                    " and g.cust_id='"+customerId+"'" +
                     " and g.cust_id in(SELECT" +
-                    " distinct cust_id FROM t_customer_property where cust_id='" + customerId + "' and property_name ='marketProjectId_" + projectId + "'  and property_value='" + projectId + "')" +
+                    " distinct cust_id FROM t_customer_property where cust_id=? and property_name =?  and property_value=? )" +
                     ")a" +
                     " LEFT JOIN t_market_project b on a.projectId=b.id and b.`status`=1 order by a.jobId desc ");
         }
 
         String countSql = "select count(0) from (" + sql.toString() + ")a";
         LOG.info("pageSettlementPrice: " + countSql);
-        int totalCount = jdbcTemplate.queryForObject(countSql,Integer.class);
+        int totalCount = jdbcTemplate.queryForObject(countSql, Integer.class, p.toArray());
         if (totalCount == 0) {
             page.setData(null);
             page.setTotal(0);
@@ -599,16 +612,21 @@ public class UserGroupService {
     public Page pageProjectSettlementPrice(int pageNum, int pageSize, String projectId, String customerId, LoginUser lu) {
         Page page = new Page();
         String itemsql = "";
+        List<Object> p = new ArrayList<>();
         if (StringUtil.isNotEmpty(projectId) && StringUtil.isEmpty(customerId)) {
-            itemsql = " and t.property_value='" + projectId + "'";
+            p.add(projectId);
+            itemsql = " and t.property_value=? ";
             if ("ROLE_USER".equals(lu.getRole())) {
                 String uidStr = getCustomerIdByuId(lu.getId().toString());
                 if (StringUtil.isNotEmpty(uidStr)) {
-                    itemsql += " and t.cust_id in (" + uidStr + ")";
+                    p.add(uidStr);
+                    itemsql += " and t.cust_id in (?)";
                 }
             }
         } else if (StringUtil.isNotEmpty(projectId) && StringUtil.isNotEmpty(customerId)) {
-            itemsql = " and t.cust_id='" + customerId + "' and t.property_value='" + projectId + "'";
+            p.add(customerId);
+            p.add(projectId);
+            itemsql = " and t.cust_id=? and t.property_value=? ";
         }
         StringBuffer sql = new StringBuffer("select * from ( " +
                 " select c.cust_id as custId,c.enterprise_name as enterpriseName," +
@@ -624,7 +642,7 @@ public class UserGroupService {
 
         String countSql = "select count(0) from (" + sql.toString() + ")a";
         LOG.info("pageSettlementPrice: " + countSql);
-        int totalCount = jdbcTemplate.queryForObject(countSql,Integer.class);
+        int totalCount = jdbcTemplate.queryForObject(countSql, Integer.class, p.toArray());
         if (totalCount == 0) {
             page.setData(null);
             page.setTotal(0);
@@ -634,7 +652,7 @@ public class UserGroupService {
         if (pageNum < 0) pageNum = 0;
         Integer startIndex = pageNum;//*pageSize;
         sql.append(" limit ").append(startIndex).append("," + pageSize);
-        List<SettlmentDTO> list = jdbcTemplate.query(sql.toString(), new BeanPropertyRowMapper<>(SettlmentDTO.class));
+        List<SettlmentDTO> list = jdbcTemplate.query(sql.toString(), new BeanPropertyRowMapper<>(SettlmentDTO.class), p.toArray());
         if (list != null && list.size() > 0) {
             page.setData(list);
 //            page.setTotal(totalCount);
@@ -793,33 +811,42 @@ public class UserGroupService {
                 " left join t_common_info commoninfo on g.zid=commoninfo.id" +
                 " left join t_market_project project on g.projectId=project.id" +
                 " where 1=1 ";
+        List<Object> p = new ArrayList<>();
         if (StringUtil.isNotEmpty(pid)) {
-            sql += " and g.pid='" + pid + "'";
+            p.add(pid);
+            sql += " and g.pid=? ";
         }//and billDate='"+billDate+"'";
         if (StringUtil.isNotEmpty(batchNo)) {
-            sql += " and g.batchNo='" + batchNo + "'";
+            p.add(batchNo);
+            sql += " and g.batchNo=? ";
         }
         if (StringUtil.isNotEmpty(projectId)) {
-            sql += " and g.projectId='" + projectId + "'";
+            p.add(projectId);
+            sql += " and g.projectId=? ";
         }
         if (StringUtil.isNotEmpty(type)) {
-            sql += " and g.type='" + type + "'";
+            p.add(type);
+            sql += " and g.type=? ";
         }
         if (StringUtil.isNotEmpty(operator)) {
-            sql += " and g.operator='" + operator + "'";
+            p.add(operator);
+            sql += " and g.operator=? ";
         }
         if (StringUtil.isNotEmpty(status)) {
-            sql += " and commoninfo.status='" + status + "'";
+            p.add(status);
+            sql += " and commoninfo.status=? ";
         }
         if (StringUtil.isNotEmpty(startTime) && StringUtil.isNotEmpty(endTime)) {
-            sql += " and commoninfo.create_time>='" + startTime + "' and commoninfo.create_time<='" + endTime + "'";
+            p.add(startTime);
+            p.add(endTime);
+            sql += " and commoninfo.create_time>=? and commoninfo.create_time<=? ";
         }
 
         sql += " order by createTime desc ";
 
         String countSql = "select count(0) from (" + sql + ")a";
         LOG.info("jobSettlementDetailList: " + countSql);
-        int totalCount = jdbcTemplate.queryForObject(countSql,Integer.class);
+        int totalCount = jdbcTemplate.queryForObject(countSql, Integer.class, p.toArray());
         if (totalCount == 0) {
             page.setData(null);
             page.setTotal(0);
@@ -864,8 +891,8 @@ public class UserGroupService {
      */
     private List<CommonInfoProperty> getJobSettlementListbyPid(String pid, String serviceCode) {
         String sql = "select * from t_common_info_property where property_name='pid' " +
-                "   and property_value='" + pid + "' and service_code='" + serviceCode + "'";
-        List<CommonInfoProperty> list = jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(CommonInfoProperty.class));
+                "   and property_value=? and service_code=? ";
+        List<CommonInfoProperty> list = jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(CommonInfoProperty.class), pid, serviceCode);
 
         return list;
     }
@@ -873,21 +900,21 @@ public class UserGroupService {
     public Page getPageCommonInfo(String serviceCode, int pageNum, int pageSize, String projectId, String customerId,
                                   String jobId, String billDate, String operator, String status, LoginUser lu) {
         Page page = new Page();
-
+        List<Object> p = new ArrayList<>();
         String sql = "";
         if (serviceCode.equals(CommonInfoServiceCodeEnum.JOB_SETTLEMENT_MANAGE.getKey())) {
-            sql = buildJobSettmentSql(serviceCode, projectId, customerId, jobId, billDate, lu);
+            sql = buildJobSettmentSql(p, serviceCode, projectId, customerId, jobId, billDate, lu);
         } else if (serviceCode.equals(CommonInfoServiceCodeEnum.PROJECT_SETTLEMENT_MANAGE.getKey())) {
-            sql = buildProjectCustomCheckSql(serviceCode, projectId, customerId, billDate, lu);
+            sql = buildProjectCustomCheckSql(p, serviceCode, projectId, customerId, billDate, lu);
         } else if (serviceCode.equals(CommonInfoServiceCodeEnum.JOB_SETTLEMENT_APPLY_MANAGE.getKey())) {
-            sql = buildJobPaySql(serviceCode, customerId, jobId, billDate, operator, status, lu);
+            sql = buildJobPaySql(p, serviceCode, customerId, jobId, billDate, operator, status, lu);
         } else if (serviceCode.equals(CommonInfoServiceCodeEnum.PROJECT_SETTLEMENT_APPLY_MANAGE.getKey())) {
-            sql = buildProjectReceivablesSql(serviceCode, projectId, customerId, billDate, operator, status, lu);
+            sql = buildProjectReceivablesSql(p, serviceCode, projectId, customerId, billDate, operator, status, lu);
         }
 
         String countSql = "select count(0) from (" + sql + ")a";
         LOG.info("pageCommonInfoSearch: " + countSql);
-        int totalCount = jdbcTemplate.queryForObject(countSql,Integer.class);
+        int totalCount = jdbcTemplate.queryForObject(countSql, Integer.class, p.toArray());
         if (totalCount == 0) {
             page.setData(null);
             page.setTotal(0);
@@ -900,7 +927,7 @@ public class UserGroupService {
 
         sql += " limit " + startIndex + "," + pageSize;
 
-        List<CommonInfoProperty> list = jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(CommonInfoProperty.class));
+        List<CommonInfoProperty> list = jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(CommonInfoProperty.class), p.toArray());
         if (list != null && list.size() > 0) {
             page.setData(list);
 //            page.setTotal(totalCount);
@@ -918,33 +945,41 @@ public class UserGroupService {
      * @param billDate
      * @return
      */
-    private String buildJobSettmentSql(String serviceCode, String projectId, String customerId, String jobId,
+    private String buildJobSettmentSql(List<Object> p, String serviceCode, String projectId, String customerId, String jobId,
                                        String billDate, LoginUser lu) {
         String itemSql = "";
         if (StringUtil.isEmpty(billDate)) {
             billDate = DateUtil.getPastNMonthDate(new Date(), "yyyyMM", -5);
-            itemSql = " and property_value>'" + billDate + "'";
+            itemSql = " and property_value>? ";
+            p.add(billDate);
         } else {
-            itemSql = " and property_value='" + billDate + "'";
+            itemSql = " and property_value=? ";
+            p.add(billDate);
         }
         String sql = " select distinct zid from t_common_info_property " +
-                " where service_code='" + serviceCode + "' and property_name='billDate' " + itemSql;
-
+                " where service_code=? and property_name='billDate' " + itemSql;
+        p.add(serviceCode);
         if (StringUtil.isNotEmpty(customerId)) {
-            sql = "select distinct zid from t_common_info_property where service_code='" + serviceCode + "'" +
-                    " and property_name='custId' and property_value='" + customerId + "' and zid in(" + sql + ")";
+            sql = "select distinct zid from t_common_info_property where service_code=? " +
+                    " and property_name='custId' and property_value=? and zid in(" + sql + ")";
+            p.add(serviceCode);
+            p.add(customerId);
         } else {
             if ("ROLE_USER".equals(lu.getRole())) {
                 String uidStr = getCustomerIdByuId(lu.getId().toString());
                 if (StringUtil.isNotEmpty(uidStr)) {
-                    sql = "select distinct zid from t_common_info_property where service_code='" + serviceCode + "'" +
-                            " and property_name='custId' and property_value in(" + uidStr + ") and zid in(" + sql + ")";
+                    p.add(serviceCode);
+                    p.add(uidStr);
+                    sql = "select distinct zid from t_common_info_property where service_code=?" +
+                            " and property_name='custId' and property_value in(?) and zid in(" + sql + ")";
                 }
             }
         }
         if (StringUtil.isNotEmpty(jobId)) {
-            sql = "select distinct zid from t_common_info_property where service_code='" + serviceCode + "'" +
-                    " and property_name='jobId' and property_value='" + jobId + "' and zid in(" + sql + ")";
+            p.add(serviceCode);
+            p.add(jobId);
+            sql = "select distinct zid from t_common_info_property where service_code=? " +
+                    " and property_name='jobId' and property_value=? and zid in(" + sql + ")";
         }
         return sql + " order by zid desc ";
     }
@@ -958,31 +993,41 @@ public class UserGroupService {
      * @param billDate
      * @return
      */
-    private String buildProjectCustomCheckSql(String serviceCode, String projectId, String customerId, String billDate, LoginUser lu) {
+    private String buildProjectCustomCheckSql(List<Object> p, String serviceCode, String projectId, String customerId, String billDate, LoginUser lu) {
         String itemSql = "";
         if (StringUtil.isEmpty(billDate)) {
             billDate = DateUtil.getPastNMonthDate(new Date(), "yyyyMM", 0);
-            itemSql = " and property_value='" + billDate + "'";
+            itemSql = " and property_value=? ";
+            p.add(billDate);
         } else {
-            itemSql = " and property_value='" + billDate + "'";
+            itemSql = " and property_value=? ";
+            p.add(billDate);
         }
+
+        p.add(serviceCode);
         String sql = " select distinct zid from t_common_info_property " +
-                " where service_code='" + serviceCode + "' and property_name='billDate' " + itemSql;
+                " where service_code=? and property_name='billDate' " + itemSql;
 
         if (StringUtil.isNotEmpty(projectId)) {
-            sql = "select distinct zid from t_common_info_property where service_code='" + serviceCode + "' " +
-                    " and property_name='projectId' and property_value= '" + projectId + "' and zid in(" + sql + ") ";
+            p.add(serviceCode);
+            p.add(projectId);
+            sql = "select distinct zid from t_common_info_property where service_code=? " +
+                    " and property_name='projectId' and property_value= ? and zid in(" + sql + ") ";
         }
 
         if (StringUtil.isNotEmpty(customerId)) {
-            sql = "select distinct zid from t_common_info_property where service_code='" + serviceCode + "'" +
-                    " and property_name='custId' and property_value='" + customerId + "' and zid in(" + sql + ")";
+            p.add(serviceCode);
+            p.add(customerId);
+            sql = "select distinct zid from t_common_info_property where service_code=?" +
+                    " and property_name='custId' and property_value=? and zid in(" + sql + ")";
         } else {
             if ("ROLE_USER".equals(lu.getRole())) {
                 String uidStr = getCustomerIdByuId(lu.getId().toString());
                 if (StringUtil.isNotEmpty(uidStr)) {
-                    sql = "select distinct zid from t_common_info_property where service_code='" + serviceCode + "'" +
-                            " and property_name='custId' and property_value in(" + uidStr + ") and zid in(" + sql + ")";
+                    p.add(serviceCode);
+                    p.add(uidStr);
+                    sql = "select distinct zid from t_common_info_property where service_code=? " +
+                            " and property_name='custId' and property_value in(?) and zid in(" + sql + ")";
                 }
             }
         }
@@ -991,40 +1036,52 @@ public class UserGroupService {
     }
 
 
-    private String buildJobPaySql(String serviceCode, String customerId, String jobId, String billDate, String operator,
+    private String buildJobPaySql(List<Object> p, String serviceCode, String customerId, String jobId, String billDate, String operator,
                                   String status, LoginUser lu) {
         String itemSql = "";
         if (StringUtil.isEmpty(billDate)) {
             billDate = DateUtil.getPastNMonthDate(new Date(), "yyyyMM", -5);
-            itemSql = " and property_value>'" + billDate + "'";
+            itemSql = " and property_value>? ";
+            p.add(billDate);
         } else {
-            itemSql = " and property_value='" + billDate + "'";
+            itemSql = " and property_value=? ";
+            p.add(billDate);
         }
+        p.add(serviceCode);
         String sql = " select distinct zid from t_common_info_property " +
-                " where service_code='" + serviceCode + "' and property_name='billDate' " + itemSql;
+                " where service_code=? and property_name='billDate' " + itemSql;
         if (StringUtil.isNotEmpty(customerId)) {
-            sql = "select distinct zid from t_common_info_property where service_code='" + serviceCode + "'" +
-                    " and property_name='custId' and property_value='" + customerId + "' and zid in(" + sql + ")";
+            p.add(serviceCode);
+            p.add(customerId);
+            sql = "select distinct zid from t_common_info_property where service_code=?" +
+                    " and property_name='custId' and property_value=? and zid in(" + sql + ")";
         } else {
             if ("ROLE_USER".equals(lu.getRole())) {
                 String uidStr = getCustomerIdByuId(lu.getId().toString());
                 if (StringUtil.isNotEmpty(uidStr)) {
-                    sql = "select distinct zid from t_common_info_property where service_code='" + serviceCode + "'" +
-                            " and property_name='custId' and property_value in(" + uidStr + ") and zid in(" + sql + ")";
+                    p.add(serviceCode);
+                    p.add(uidStr);
+                    sql = "select distinct zid from t_common_info_property where service_code=? " +
+                            " and property_name='custId' and property_value in(?) and zid in(" + sql + ")";
                 }
             }
         }
         if (StringUtil.isNotEmpty(jobId)) {
-            sql = "select distinct zid from t_common_info_property where service_code='" + serviceCode + "'" +
-                    " and property_name='jobId' and property_value='" + jobId + "' and zid in(" + sql + ")";
+            p.add(serviceCode);
+            p.add(jobId);
+            sql = "select distinct zid from t_common_info_property where service_code=? " +
+                    " and property_name='jobId' and property_value=? and zid in(" + sql + ")";
         }
         if (StringUtil.isNotEmpty(operator)) {
-            sql = "select distinct zid from t_common_info_property where service_code='" + serviceCode + "'" +
-                    " and property_name='operator' and property_value='" + operator + "' and zid in(" + sql + ")";
+            p.add(serviceCode);
+            p.add(operator);
+            sql = "select distinct zid from t_common_info_property where service_code=?" +
+                    " and property_name='operator' and property_value=? and zid in(" + sql + ")";
         }
         String _sql = " select zid from (" + sql + ")a left join t_common_info info  on a.zid=info.id ";
         if (StringUtil.isNotEmpty(status)) {
-            _sql += " where info.status='" + status + "'";
+            p.add(status);
+            _sql += " where info.status=?";
         }
         return _sql + " order by zid desc ";
     }
@@ -1040,44 +1097,55 @@ public class UserGroupService {
      * @param status
      * @return
      */
-    private String buildProjectReceivablesSql(String serviceCode, String projectId, String customerId, String billDate,
+    private String buildProjectReceivablesSql(List<Object> p, String serviceCode, String projectId, String customerId, String billDate,
                                               String operator, String status, LoginUser lu) {
         String itemSql = "";
         if (StringUtil.isEmpty(billDate)) {
             billDate = DateUtil.getPastNMonthDate(new Date(), "yyyyMM", 0);
-            itemSql = " and property_value='" + billDate + "'";
+            itemSql = " and property_value=? ";
+            p.add(billDate);
         } else {
-            itemSql = " and property_value='" + billDate + "'";
+            itemSql = " and property_value=? ";
+            p.add(billDate);
         }
-
+        p.add(serviceCode);
         String sql = " select distinct zid from t_common_info_property " +
-                " where service_code='" + serviceCode + "' and property_name='billDate' " + itemSql;
+                " where service_code=? and property_name='billDate' " + itemSql;
 
         if (StringUtil.isNotEmpty(projectId)) {
-            sql = "select distinct zid from t_common_info_property where service_code='" + serviceCode + "'" +
-                    " and property_name='projectId' and property_value='" + projectId + "' and zid in(" + sql + ")";
+            p.add(serviceCode);
+            p.add(projectId);
+            sql = "select distinct zid from t_common_info_property where service_code=? " +
+                    " and property_name='projectId' and property_value=? and zid in(" + sql + ")";
         }
 
         if (StringUtil.isNotEmpty(customerId)) {
-            sql = "select distinct zid from t_common_info_property where service_code='" + serviceCode + "'" +
-                    " and property_name='custId' and property_value='" + customerId + "' and zid in(" + sql + ")";
+            p.add(serviceCode);
+            p.add(customerId);
+            sql = "select distinct zid from t_common_info_property where service_code=? " +
+                    " and property_name='custId' and property_value=? and zid in(" + sql + ")";
         } else {
             if ("ROLE_USER".equals(lu.getRole())) {
                 String uidStr = getCustomerIdByuId(lu.getId().toString());
                 if (StringUtil.isNotEmpty(uidStr)) {
-                    sql = "select distinct zid from t_common_info_property where service_code='" + serviceCode + "'" +
-                            " and property_name='custId' and property_value in(" + uidStr + ") and zid in(" + sql + ")";
+                    p.add(serviceCode);
+                    p.add(uidStr);
+                    sql = "select distinct zid from t_common_info_property where service_code=? " +
+                            " and property_name='custId' and property_value in(?) and zid in(" + sql + ")";
                 }
             }
         }
 
         if (StringUtil.isNotEmpty(operator)) {
-            sql = "select distinct zid from t_common_info_property where service_code='" + serviceCode + "'" +
-                    " and property_name='operator' and property_value='" + operator + "' and zid in(" + sql + ")";
+            p.add(serviceCode);
+            p.add(operator);
+            sql = "select distinct zid from t_common_info_property where service_code=? " +
+                    " and property_name='operator' and property_value=? and zid in(" + sql + ")";
         }
         String _sql = " select zid from (" + sql + ")a left join t_common_info info  on a.zid=info.id ";
         if (StringUtil.isNotEmpty(status)) {
-            _sql += " where info.status='" + status + "'";
+            p.add(status);
+            _sql += " where info.status=? ";
         }
         return _sql + " order by zid desc ";
     }
@@ -1131,6 +1199,7 @@ public class UserGroupService {
      */
     public CommonInfoProperty findCommonInfoProperty(String serviceCode, String zid, String propertyName, String projectId, String custId, String jobId) {
         String sql = "";
+        List<Object> p = new ArrayList<>();
         if (StringUtil.isEmpty(zid)) {
             String propertyValue = serviceCode;
             if (StringUtil.isNotEmpty(projectId)) {
@@ -1142,17 +1211,22 @@ public class UserGroupService {
             if (StringUtil.isNotEmpty(jobId)) {
                 propertyValue += jobId;
             }
-
-            sql = "select * from t_common_info_property where service_code='" + serviceCode + "' " +
-                    " and property_name='" + propertyName + "' and property_value like '" + propertyValue + "%'";
+            p.add(serviceCode);
+            p.add(propertyName);
+            p.add(propertyValue + "%");
+            sql = "select * from t_common_info_property where service_code=? " +
+                    " and property_name=? and property_value like ? ";
         } else {
+            p.add(zid);
+            p.add(serviceCode);
+            p.add(propertyName);
             sql = "select * from t_common_info_property " +
-                    "where zid='" + zid + "' and service_code='" + serviceCode + "' and property_name='" + propertyName + "'";
+                    "where zid=? and service_code=? and property_name=? ";
         }
         LOG.info("findCommonInfoProperty: " + sql);
         RowMapper<CommonInfoProperty> rowMapper = new BeanPropertyRowMapper<>(CommonInfoProperty.class);
 //        List<Map<String, Object>>List<CommonInfoPropertyDO> infoPropertyDOList = jdbcTemplate.queryForList(sql, CommonInfoPropertyDO.class);
-        List<CommonInfoProperty> infoPropertyDOList = jdbcTemplate.query(sql, rowMapper);
+        List<CommonInfoProperty> infoPropertyDOList = jdbcTemplate.query(sql, rowMapper, p.toArray());
         if (infoPropertyDOList != null && infoPropertyDOList.size() > 0) {
             return infoPropertyDOList.get(0);
         }
@@ -1160,12 +1234,12 @@ public class UserGroupService {
     }
 
     public List<CommonInfoProperty> findCommonInfoPropertyByzid(String zid) {
-        String sql = "select * from t_common_info_property where zid='" + zid + "' ";
+        String sql = "select * from t_common_info_property where zid=? ";
 
         LOG.info("findCommonInfoPropertyByzid: " + sql);
 
         RowMapper<CommonInfoProperty> rowMapper = new BeanPropertyRowMapper<>(CommonInfoProperty.class);
-        List<CommonInfoProperty> infoPropertyDOList = jdbcTemplate.query(sql, rowMapper);
+        List<CommonInfoProperty> infoPropertyDOList = jdbcTemplate.query(sql, rowMapper, zid);
         if (infoPropertyDOList != null && infoPropertyDOList.size() > 0) {
             return infoPropertyDOList;
         }
@@ -1173,12 +1247,12 @@ public class UserGroupService {
     }
 
     public List<CommonInfoProperty> findCommonInfoPropertyByProperty(String serviceCode, String propertyName, String propertyValue) {
-        String sql = "select * from t_common_info_property where service_code='" + serviceCode + "' and  property_name='" + propertyName + "' and property_value='" + propertyValue + "' ";
+        String sql = "select * from t_common_info_property where service_code=? and  property_name=? and property_value=? ";
 
         LOG.info("findCommonInfoPropertyBypid: " + sql);
 
         RowMapper<CommonInfoProperty> rowMapper = new BeanPropertyRowMapper<>(CommonInfoProperty.class);
-        List<CommonInfoProperty> infoPropertyDOList = jdbcTemplate.query(sql, rowMapper);
+        List<CommonInfoProperty> infoPropertyDOList = jdbcTemplate.query(sql, rowMapper, serviceCode, propertyName, propertyValue);
         if (infoPropertyDOList != null && infoPropertyDOList.size() > 0) {
             return infoPropertyDOList;
         }
@@ -1434,9 +1508,9 @@ public class UserGroupService {
             LogUtil.error("no commitStr");
             return;
         }
-        String sql = " select * from t_common_info where id in(" + commitStr + ") and status=0";
+        String sql = " select * from t_common_info where id in(?) and status=0";
         RowMapper<CommonInfoDO> rowMapper = new BeanPropertyRowMapper<>(CommonInfoDO.class);
-        List<CommonInfoDO> commonInfoDOSb = jdbcTemplate.query(sql, rowMapper);
+        List<CommonInfoDO> commonInfoDOSb = jdbcTemplate.query(sql, rowMapper, commitStr);
         if (commonInfoDOSb != null && commonInfoDOSb.size() > 0) {
             BigDecimal totalPrice = new BigDecimal("0");
             Integer totalSettlement = 0;
@@ -1554,9 +1628,9 @@ public class UserGroupService {
             LogUtil.info("getCommitItems：no commitStr");
             return jsonObject;
         }
-        String sql = " select * from t_common_info where id in(" + commitStr + ") and status=0";
+        String sql = " select * from t_common_info where id in(?) and status=0";
         RowMapper<CommonInfoDO> rowMapper = new BeanPropertyRowMapper<>(CommonInfoDO.class);
-        List<CommonInfoDO> commonInfoDOSb = jdbcTemplate.query(sql, rowMapper);
+        List<CommonInfoDO> commonInfoDOSb = jdbcTemplate.query(sql, rowMapper, commitStr);
         if (commonInfoDOSb != null && commonInfoDOSb.size() > 0) {
             Integer totalSettlement = 0;
             for (CommonInfoDO infoDO : commonInfoDOSb) {
@@ -1584,8 +1658,9 @@ public class UserGroupService {
      */
     public CommonInfoDO findCommonInfoById(Long id) {
         try {
-            String sql = "select * from t_common_info where id=" + id;
-            List<CommonInfoDO> list = userGroupDao.queryListBySql(sql, CommonInfoDO.class);
+            String sql = "select * from t_common_info where id=? ";
+            RowMapper<CommonInfoDO> rowMapper = new BeanPropertyRowMapper<>(CommonInfoDO.class);
+            List<CommonInfoDO> list = jdbcTemplate.query(sql, rowMapper, id);
             if (list != null && list.size() > 0) {
                 return list.get(0);
             }

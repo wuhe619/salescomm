@@ -49,7 +49,7 @@ public class CustomerPropertyService {
 
     private final static DateTimeFormatter YYYYMMDDHHMMSS = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-    
+
     public int save(CustomerPropertyParam customerPropertyParam) {
         CustomerLabel customerPropertyEntity = new CustomerLabel();
         customerPropertyEntity.setCustId(customerPropertyParam.getCustomerId());
@@ -67,12 +67,12 @@ public class CustomerPropertyService {
         return 0;
     }
 
-    
+
     public int update(CustomerPropertyParam customerPropertyParam) {
-        logger.info("modify 自建属性 "+customerPropertyParam.toString());
+        logger.info("modify 自建属性 " + customerPropertyParam.toString());
         if (customerPropertyParam.getLabelId() != null) {
             CustomerLabel customerPropertyEntity = customerLabelDao.getCustomerLabel(customerPropertyParam.getLabelId());
-            logger.info("查询结果"+customerPropertyEntity.toString());
+            logger.info("查询结果" + customerPropertyEntity.toString());
             if (customerPropertyEntity != null) {
                 customerPropertyEntity.setCustId(customerPropertyParam.getCustomerId());
                 customerPropertyEntity.setUserId(customerPropertyParam.getUserId());
@@ -91,7 +91,7 @@ public class CustomerPropertyService {
                 if (StringUtil.isNotEmpty(customerPropertyParam.getOption())) {
                     customerPropertyEntity.setOption(customerPropertyParam.getOption());
                 }
-                logger.info("修改前 customerPropertyEntity "+customerPropertyEntity.toString());
+                logger.info("修改前 customerPropertyEntity " + customerPropertyEntity.toString());
                 customerLabelDao.update(customerPropertyEntity);
                 return 1;
             }
@@ -99,7 +99,7 @@ public class CustomerPropertyService {
         return 0;
     }
 
-    
+
     public PageList pageList(PageParam page, CustomerPropertyParam customerPropertyParam) {
         StringBuilder sqlBuilder = new StringBuilder();
         sqlBuilder.append("  SELECT t1.id, t1.cust_id, t1.user_id userId, t1.label_id labelId, t1.status, t1.label_name labelName,")
@@ -107,25 +107,30 @@ public class CustomerPropertyService {
                 .append("  FROM  t_customer_label t1")
                 .append("  LEFT JOIN t_super_label  t2  ON t1.label_id = t2.label_id ")
                 .append("  WHERE 1=1");
+        List<Object> p = new ArrayList<>();
         if (customerPropertyParam.getCustomerId() != null) {
-            sqlBuilder.append(" AND t1.cust_id = '" + customerPropertyParam.getCustomerId() + "'");
+            p.add(customerPropertyParam.getCustomerId());
+            sqlBuilder.append(" AND t1.cust_id = ? ");
         }
         if (customerPropertyParam.getUserId() != null) {
-            sqlBuilder.append(" AND t1.user_id = " + customerPropertyParam.getUserId());
+            p.add(customerPropertyParam.getUserId());
+            sqlBuilder.append(" AND t1.user_id = ? ");
         }
         if (StringUtil.isNotEmpty(customerPropertyParam.getLabelId())) {
-            sqlBuilder.append(" AND t1.label_id = " + customerPropertyParam.getLabelId());
+            p.add(customerPropertyParam.getLabelId());
+            sqlBuilder.append(" AND t1.label_id = ? ");
         }
         if (StringUtil.isNotEmpty(customerPropertyParam.getLabelName())) {
-            sqlBuilder.append(" AND t1.label_name LIKE '%" + customerPropertyParam.getLabelId() + "%'");
+            p.add("%" + customerPropertyParam.getLabelId() + "%");
+            sqlBuilder.append(" AND t1.label_name LIKE ? ");
         }
         sqlBuilder.append("  GROUP BY t1.id");
         sqlBuilder.append("  ORDER BY t1.create_time DESC");
 
-        return new Pagination().getPageData(sqlBuilder.toString(), null, page, jdbcTemplate);
+        return new Pagination().getPageData(sqlBuilder.toString(), p.toArray(), page, jdbcTemplate);
     }
 
-    
+
     public List<Map<String, Object>> getSelectedLabelsBySuperId(String superId, String customerGroupId) {
         StringBuffer sb = new StringBuffer();
         sb.append("  SELECT  CAST(t1.label_id AS CHAR) label_id, t2.type FROM t_super_label t1")
@@ -154,11 +159,11 @@ public class CustomerPropertyService {
         return list;
     }
 
-    
+
     public String getListenterprise(String custId, String channel) {
         Map<String, Object> map = new HashMap<>();
         String channelProperty = null;
-        String propertyValue=null;
+        String propertyValue = null;
         //cust_id 和 渠道
         if (StringUtil.isNotEmpty(channel)) {
             if (channel.equals("2")) {
@@ -172,14 +177,14 @@ public class CustomerPropertyService {
             }
         }
         CustomerProperty enterprisepassword = customerDao.getProperty(custId, channelProperty + "_enterprise_password");
-      if (enterprisepassword!=null){
-          propertyValue = enterprisepassword.getPropertyValue();
-      }
+        if (enterprisepassword != null) {
+            propertyValue = enterprisepassword.getPropertyValue();
+        }
 
         return propertyValue;
     }
 
-    
+
     public void addenterprise(CustomerProperty customerProperty) throws Exception {
 
         CustomerProperty enterprisepassword = customerDao.getProperty(customerProperty.getCustId(), customerProperty.getPropertyName());
@@ -195,7 +200,7 @@ public class CustomerPropertyService {
             customerDao.saveOrUpdate(enterprisepassword);
         }
     }
-    
+
     public List<Map<String, Object>> listCustSupplier(String custId) {
         List<Map<String, Object>> channellList = new ArrayList<>();
         if (StringUtil.isNotEmpty(custId)) {

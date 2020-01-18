@@ -63,13 +63,13 @@ public class B2BTcbLogService implements BusiService {
             sqlstr.append(" and t.ext_2 ='").append(tcb_id).append("'");
         }
         if (StringUtil.isNotEmpty(userName)) {
-            String sql1 = "select id from t_customer_user where realname = '" + userName + "'";
+            String sql1 = "select id from t_customer_user where realname = ?";
 
-            List<Object> userIdList = jdbcTemplate.queryForList(sql1, Object.class);
+            List<Map<String, Object>> userIdList = jdbcTemplate.queryForList(sql1, userName);
             if (userIdList.size() > 0) {
                 StringBuffer sbf = new StringBuffer();
                 userIdList.stream().forEach(userId -> {
-                    sbf.append(userId);
+                    sbf.append(userId.get("id").toString());
                     sbf.append(",");
                 });
                 sbf.deleteCharAt(sbf.length() - 1);

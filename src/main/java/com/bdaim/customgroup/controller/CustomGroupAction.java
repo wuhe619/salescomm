@@ -426,9 +426,9 @@ public class CustomGroupAction extends BasicAction {
             sb.append(" WHERE ");
             sb.append(" 	t.order_state = 1 ");
             sb.append(" AND c.`STATUS` =2 ");
-            sb.append(" AND c.cust_id='" + lu.getCustId() + "'");
-            sb.append(" AND c.group_condition='" + customGroup.getGroupCondition() + "'");
-            Integer count = jdbcTemplate.queryForObject(sb.toString(), Integer.class);
+            sb.append(" AND c.cust_id=?");
+            sb.append(" AND c.group_condition=?");
+            Integer count = jdbcTemplate.queryForObject(sb.toString(), Integer.class, lu.getCustId(), customGroup.getGroupCondition());
             if (count > 0) {
                 resultMap.put("remainSource", null);
                 resultMap.put("message", "您拥有相同条件待支付的客户群,请先支付!");

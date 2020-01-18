@@ -63,8 +63,8 @@ public class SbdZService implements BusiService {
             throw new TouchException("未配置场站信息");
         }
         String billno = info.getString("bill_no");
-        String sql = "select id from " + HMetaDataDef.getTable(busiType, "") + " where type='" + busiType + "' and ext_3 = '" + billno + "'";
-        List<Map<String, Object>> countList = jdbcTemplate.queryForList(sql);
+        String sql = "select id from " + HMetaDataDef.getTable(busiType, "") + " where type=? and ext_3 = ? ";
+        List<Map<String, Object>> countList = jdbcTemplate.queryForList(sql, busiType, billno);
         if (countList != null && countList.size() > 0) {
             log.warn("主单:{}已经申报", billno);
             throw new TouchException("此主单已经申报");
@@ -822,10 +822,10 @@ public class SbdZService implements BusiService {
 //        String sql = "select ext_3 from h_data_manager_sbd_z where id = " + id;
 //        List<Map<String, Object>> list = jdbcTemplate.queryForList(sql);
 //        Map<String, Object> stringObjectMap = list.get(0);
-        String sql1 = "select content,ext_3 from h_data_manager_sbd_f where ext_4='" + id + "' and cust_id='" + cust_id + "'";
-        List<Map<String, Object>> list1 = jdbcTemplate.queryForList(sql1);
-        String sql2 = "select content,ext_4 from h_data_manager_sbd_s where ext_2='" + id + "' and cust_id='" + cust_id + "'";
-        List<Map<String, Object>> list2 = jdbcTemplate.queryForList(sql2);
+        String sql1 = "select content,ext_3 from h_data_manager_sbd_f where ext_4=? and cust_id=?";
+        List<Map<String, Object>> list1 = jdbcTemplate.queryForList(sql1, id, cust_id);
+        String sql2 = "select content,ext_4 from h_data_manager_sbd_s where ext_2=?  and cust_id=?";
+        List<Map<String, Object>> list2 = jdbcTemplate.queryForList(sql2, id, cust_id);
 
         Map<String, Double> sbdsMap = new HashMap<>();
         list2.stream().forEach(m -> {

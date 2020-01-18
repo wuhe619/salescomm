@@ -20,6 +20,7 @@ import org.apache.commons.lang.StringEscapeUtils;
 import org.hibernate.transform.Transformers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -51,6 +52,8 @@ public class OrderService {
     CustomerUserDao customerUserDao;
     @Resource
     CustomGroupDao customGroupDao;
+    @Resource
+    private JdbcTemplate jdbcTemplate;
 
 
     public List<Map<String, Object>> listMarketRsOrders(String customerId, MarketRsOrderQueryParam param)
@@ -288,6 +291,7 @@ public class OrderService {
 
     public Map<String, Object> queryCustomerOrdDetail(String customerId, String orderId) throws Exception {
         Map<String, Object> map = new HashMap<>();
+        List args = new ArrayList();
         StringBuilder sql = new StringBuilder("SELECT IFNULL(t1.NAME,'') AS groupName,"
                 + "  IFNULL(t1.group_source,'') AS source , IFNULL(t1.description,'') AS description ,"
                 + "  IFNULL(t1.industry_pool_name,'') AS industryPoolName, IFNULL(t1.purpose,'') as purpose,"
@@ -301,12 +305,14 @@ public class OrderService {
             throw new TouchException("300", "订单号不能为空");
         }
         if (StringUtil.isNotEmpty(customerId) && !"null".equals(customerId)) {
-            sql.append(" and t2.cust_id='").append(StringEscapeUtils.escapeSql(customerId)).append("'");
+            sql.append(" and t2.cust_id=?");
+            args.add(StringEscapeUtils.escapeSql(customerId));
         }
 
-        sql.append(" and t2.order_id ='").append(StringEscapeUtils.escapeSql(orderId)).append("'");
-
-        List list = orderDao.getSQLQuery(sql.toString()).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP).list();
+        sql.append(" and t2.order_id =?");
+        args.add(StringEscapeUtils.escapeSql(orderId));
+        List list = jdbcTemplate.queryForList(sql.toString(),args);
+//        List list = orderDao.getSQLQuery(sql.toString()).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP).list();
         map.put("customerGroupOrdDetail", list.size() > 0 ? list.get(0) : new HashMap());
         map.put("resourceOrdDetail", "");
         return map;

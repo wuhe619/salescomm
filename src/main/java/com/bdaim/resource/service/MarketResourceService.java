@@ -8403,12 +8403,28 @@ public class MarketResourceService {
                     result = HttpUtil.httpGet(AppConfig.getHbase_audio_url() + fileName + "/f1:file", param, headers);
                 } catch (RuntimeException e) {
                     LOG.warn("通话HBase获取录音文件失败,开始通过原始url读取文件,recordUrl:{}", recordUrl);
-                    InputStream inputStream = HttpUtil.getInputStream(recordUrl);
-                    length = inputStream.available();
-                    response.addHeader("Content-Length", length + "");
-                    response.addHeader("Content-Range", "bytes " + range + "-" + length + "/" + length);
-                    IOUtils.copy(inputStream, response.getOutputStream());
-                    return;
+                    if(recordUrl.contains("117.159.206.212")){
+                        recordUrl = recordUrl.replace("117.159.206.212","192.168.216.102");
+                    }
+                    LOG.warn("原始文件外网地址替换为内网地址,recordUrl:{}", recordUrl);
+                    String path = FileUtil.savePhoneRecordFileReturnPath(recordUrl, userId);
+                    log.info("原始url下载文件保存路径:{}", path);
+                    file = new File(path);
+                    log.info("原始url下载文件存在状态:{}", file.exists());
+                    if (file.exists()) {
+                        fis = new FileInputStream(file);
+                        if (StringUtil.isNotEmpty(range)) {
+                            length = file.length();
+                            LOG.info("原始url下载文件大小:" + length);
+                            String[] rs = range.split("\\=");
+                            range = rs[1].split("\\-")[0];
+                            length -= Integer.parseInt(range);
+                            response.addHeader("Content-Length", length + "");
+                            response.addHeader("Content-Range", "bytes " + range + "-" + length + "/" + length);
+                        }
+                        IOUtils.copy(fis, response.getOutputStream());
+                        return;
+                    }
                 }
                 if (StringUtil.isNotEmpty(result)) {
                     LOG.info("开始解析HBase返回的录音文件,userId:" + userId + ",fileName:" + fileName);
@@ -9100,6 +9116,9 @@ public class MarketResourceService {
             if (!dataMap.containsKey("salePrice")) {
                 dataMap.put("salePrice", 0);
             } else {
+                if(dataMap.get("salePrice")==null || "".equals(dataMap.get("salePrice"))){
+                    dataMap.put("salePrice", 0);
+                }
                 dataMap.put("salePrice", Double.valueOf(dataMap.get("salePrice").toString()) / 10000);
             }
             if (!dataMap.containsKey("resname"))
