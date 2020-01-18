@@ -90,11 +90,13 @@ public class DeptDao extends SimpleHibernateDao<DeptEntity, Serializable> {
             p.add(t.getOptuser());
         }
         if (t.getName() != null && !t.getName().equals("")) {
-            sb.append(" NAME=? ");
+            sb.append(" NAME=?  ");
             p.add(t.getName());
         }
+        sb.append(" where ID=? ");
+        p.add(t.getId());
         //确认SQL，绑定参数
-        this.executeUpdateSQL(sb.substring(0, sb.length() - 1) + " where ID=? ", t.getId(), p.toArray());
+        this.executeUpdateSQL(sb.toString(), p.toArray());
     }
 
     public DeptDTO getObj(Connection con, DeptDTO t) {
