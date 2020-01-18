@@ -156,8 +156,8 @@ public class InstitutionService {
                 querySql.append(" and c.brand_id =? ");
             }
             if (StringUtil.isNotEmpty(institutionName)) {
-                params.add(institutionName);
-                querySql.append(" and c.enterprise_name LIKE '%?%'");
+                params.add("%"+institutionName+"%");
+                querySql.append(" and c.enterprise_name LIKE ? ");
             }
             querySql.append(" AND c.source = 2 AND c. STATUS = 0 ");
             querySql.append(" GROUP BY c.cust_id ORDER BY successNum DESC,c.create_time DESC");
