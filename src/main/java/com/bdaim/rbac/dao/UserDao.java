@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -19,7 +20,11 @@ public class UserDao extends SimpleHibernateDao<User, Serializable> {
      * 添加用戶信息
      */
     public void insertUser(UserDTO t) throws SQLException {
-        this.executeUpdateSQL("insert into t_user(ID,NAME,PASSWORD,REALNAME,DEPTID,OPTUSER,CREATE_TIME,SOURCE,STATUS,user_type,mobile_num) values(" + t.getId() + ",'" + t.getUserName() + "','" + t.getPassword() + "','" + t.getRealName() + "','" + t.getDeptId() + "','" + t.getOptuser() + "',now(),'" + t.getSource() + "','" + t.getStatus() + "','" + t.getUserType() + "','" + t.getMobileNumber() + "')");
+        this.executeUpdateSQL("insert into t_user(ID,NAME,PASSWORD,REALNAME," +
+                        "DEPTID,OPTUSER,CREATE_TIME,SOURCE,STATUS,user_type,mobile_num) " +
+                        "values(?,?,?,?,?,?,now(),?,?,?,?)", t.getId(),
+                t.getUserName(), t.getPassword(), t.getRealName(), t.getDeptId(), t.getOptuser(),
+                t.getSource(), t.getStatus(), t.getUserType(), t.getMobileNumber());
     }
 
     /**
@@ -30,42 +35,50 @@ public class UserDao extends SimpleHibernateDao<User, Serializable> {
         if (id == null) {
             throw new NullPointerException("更新记录的ID不可为空");
         }
+        List<Object> params = new ArrayList<>();
         StringBuilder builder = new StringBuilder();
         builder.append("update t_user set modify_time = now()");
 
         String optuser = t.getOptuser();
         if (!StringUtils.isEmpty(optuser)) {
-            builder.append(" ,optuser =  '" + optuser + "' ");
+            builder.append(" ,optuser =  ? ");
+            params.add(optuser);
         }
         Long deptId = t.getDeptId();
         if (deptId != null) {
-            builder.append(" ,DEPTID =  '" + deptId + "' ");
+            builder.append(" ,DEPTID =  ? ");
+            params.add(deptId);
         }
         String realname = t.getRealName();
         if (!StringUtils.isEmpty(realname)) {
-            builder.append(" ,realname =  '" + realname + "' ");
+            builder.append(" ,realname =  ? ");
+            params.add(realname);
         }
         String mobileNumber = t.getMobileNumber();
         if (!StringUtils.isEmpty(mobileNumber)) {
-            builder.append(" ,mobile_num =  '" + mobileNumber + "' ");
+            builder.append(" ,mobile_num = ? ");
+            params.add(mobileNumber);
         }
         if (StringUtils.isNotBlank(t.getPassword())) {
-            builder.append(",password = '" + t.getPassword() + "' ");
+            builder.append(",password = ?");
+            params.add(t.getPassword());
         }
         if (t.getStatus() == 0 || t.getStatus() == 1) {
-            builder.append(",status = " + t.getStatus());
+            builder.append(",status = ?");
+            params.add(t.getStatus());
         }
-        builder.append(" where id = " + id);
+        builder.append(" where id = ?");
+        params.add(id);
 
-        this.executeUpdateSQL(builder.toString());
+        this.executeUpdateSQL(builder.toString(), params.toArray());
     }
 
     /**
      * 根据userid删除用户角色信息(admin)
      */
     public void deleteByUserId(Long userId) throws SQLException {
-        String sql = "delete from t_user_role_rel where id = " + userId;
-        this.executeUpdateSQL(sql);
+        String sql = "delete from t_user_role_rel where id = ?";
+        this.executeUpdateSQL(sql, userId);
     }
 
     /**
@@ -73,15 +86,18 @@ public class UserDao extends SimpleHibernateDao<User, Serializable> {
      */
     public void deleteRoleByUserId(Long operateUserId, Long userId) throws SQLException {
         StringBuilder builder = new StringBuilder();
-        builder.append(" delete from t_user_role_rel where id = " + userId + " and role in (select temp.id from");
-        builder.append(" (select r.id from t_role r inner join t_user_role_rel ur on ur.ROLE = r.ID and ur.id = " + operateUserId + ")temp)");
+        List<Object> params = new ArrayList<>();
+        builder.append(" delete from t_user_role_rel where id = ? and role in (select temp.id from");
+        builder.append(" (select r.id from t_role r inner join t_user_role_rel ur on ur.ROLE = r.ID and ur.id = ?)temp)");
+        params.add(userId);
+        params.add(operateUserId);
         this.executeUpdateSQL(builder.toString());
     }
 
 
     public void updateUserStatus(Long userId, Integer status) {
-        String sql = "update t_user set status=" + status + " where id=" + userId;
-        this.executeUpdateSQL(sql);
+        String sql = "update t_user set status=? where id=?";
+        this.executeUpdateSQL(sql, status, userId);
 
     }
 
@@ -90,8 +106,9 @@ public class UserDao extends SimpleHibernateDao<User, Serializable> {
         UserDO cp = null;
         String hql = "from UserDO m where m.id=?";
         List<UserDO> list = this.find(hql, userId);
-        if (list.size() > 0)
+        if (list.size() > 0) {
             cp = (UserDO) list.get(0);
+        }
         return cp;
     }
 
@@ -99,10 +116,11 @@ public class UserDao extends SimpleHibernateDao<User, Serializable> {
     //根据userId查询用户全部信息（部门职业）
     public List<Map<String, Object>> getUserAllMessage(Long userId) {
         StringBuffer sql = new StringBuffer();
-        sql.append("SELECT u.ID id, u.REALNAME realName, u.`name` account,u.`PASSWORD` password,u.mobile_num phone,d.`NAME` deptName,GROUP_CONCAT(r.`NAME`) roleName ");
+        sql.append("SELECT u.ID id, u.REALNAME realName, u.`name` account,u.`PASSWORD` password,u.mobile_num phone," +
+                "d.`NAME` deptName,GROUP_CONCAT(r.`NAME`) roleName ");
         sql.append("FROM t_user u LEFT JOIN t_dept d ON u.DEPTID = d.ID LEFT JOIN t_user_role_rel re ON u.ID = re.ID ");
-        sql.append("LEFT JOIN t_role r ON re.ROLE = r.ID WHERE u.ID = '" + userId + "' GROUP BY u.ID");
-        List<Map<String, Object>> list = this.sqlQuery(sql.toString());
+        sql.append("LEFT JOIN t_role r ON re.ROLE = r.ID WHERE u.ID = ?  GROUP BY u.ID");
+        List<Map<String, Object>> list = this.sqlQuery(sql.toString(), userId);
         return list;
     }
 
@@ -120,7 +138,19 @@ public class UserDao extends SimpleHibernateDao<User, Serializable> {
     }
 
     public void insert(UserDTO t) throws SQLException {
-        this.executeUpdateSQL("insert into t_user(ID,NAME,PASSWORD,REALNAME,DEPTID,OPTUSER,CREATE_TIME,SOURCE,STATUS,authorize) values(" + t.getId() + ",'" + t.getUserName() + "','" + t.getPassword() + "','" + t.getRealName() + "','" + t.getDeptId() + "','" + t.getOptuser() + "',now(),'" + t.getSource() + "','" + t.getStatus() + "','" + t.getAuthorize() + "')");
+        List<Object> params = new ArrayList<>();
+        String sql = "insert into t_user(ID,NAME,PASSWORD,REALNAME,DEPTID,OPTUSER,CREATE_TIME,SOURCE," +
+                "STATUS,authorize) values(?,?,?,?,?,?,now(),?,?,?)";
+        params.add(t.getId());
+        params.add(t.getUserName());
+        params.add(t.getPassword());
+        params.add(t.getRealName());
+        params.add(t.getDeptId());
+        params.add(t.getOptuser());
+        params.add(t.getSource());
+        params.add(t.getStatus());
+        params.add(t.getAuthorize());
+        this.executeUpdateSQL(sql, params.toArray());
 
     }
 
@@ -136,8 +166,8 @@ public class UserDao extends SimpleHibernateDao<User, Serializable> {
     }
 
     public void delete(UserDTO t) {
-        String sql = "update t_user set status=9 where id=" + t.getId();
-        this.executeUpdateSQL(sql);
+        String sql = "update t_user set status=9 where id=?";
+        this.executeUpdateSQL(sql, t.getId());
 
     }
 
@@ -147,19 +177,24 @@ public class UserDao extends SimpleHibernateDao<User, Serializable> {
             throw new NullPointerException("更新记录的ID不可为空");
         }
         StringBuilder builder = new StringBuilder();
+        List<Object> params = new ArrayList<>();
         builder.append("update t_user set modify_time = now()");
 
         String optuser = t.getOptuser();
         if (!StringUtils.isEmpty(optuser)) {
-            builder.append(" ,optuser = ' " + optuser + "' ");
+            builder.append(" ,optuser = ? ");
+            params.add(optuser);
         }
         if (StringUtils.isNotBlank(t.getPassword())) {
-            builder.append(",password = '" + t.getPassword() + "' ");
+            builder.append(",password = ? ");
+            params.add(t.getPassword());
         }
         if (t.getStatus() != null && (t.getStatus() == 0 || t.getStatus() == 1)) {
-            builder.append(",status = " + t.getStatus());
+            builder.append(",status = ?");
+            params.add(t.getStatus());
         }
-        builder.append(" where id = " + id);
+        builder.append(" where id = ?");
+        params.add(id);
 
         this.executeUpdateSQL(builder.toString());
     }
@@ -168,6 +203,7 @@ public class UserDao extends SimpleHibernateDao<User, Serializable> {
 
         return null;
     }
+
     public UserProperty getProperty(long userId, String propertyName) {
         UserProperty cp = null;
         String hql = "from UserProperty m where m.userId=? and m.propertyName=?";

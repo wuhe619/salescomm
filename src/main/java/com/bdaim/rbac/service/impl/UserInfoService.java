@@ -39,17 +39,17 @@ public class UserInfoService {
     @Resource
     CustomerDao customerDao;
 
-    
+
     public UserDO getUserByUserName(String userName) {
         return userInfoDao.findUniqueBy("name", userName);
     }
 
-    
+
     public UserDO getUserById(Long uid) {
         return userInfoDao.get(uid);
     }
 
-    
+
     public Map<String, Object> getUsersByCondition(UserQueryParam param) {
         Map<String, Object> map = new HashMap<>();
         StringBuilder sql = new StringBuilder("\n" +
@@ -77,7 +77,7 @@ public class UserInfoService {
         return map;
     }
 
-    
+
     public Map<String, Object> getUserByCondition(String typestr, String condition) throws TouchException {
         Map<String, Object> retMap = new HashMap<>();
         UserDO userDO = new UserDO();
@@ -102,7 +102,7 @@ public class UserInfoService {
         return retMap;
     }
 
-    
+
     public void resetPwd(int type, String condition, String password, int pwdLevel) throws Exception {
         UserDO userDO = new UserDO();
         if (1 == type) {
@@ -119,7 +119,7 @@ public class UserInfoService {
         userInfoDao.save(userDO);
     }
 
-    
+
     public void updatePwd(long uid, String oldPwd, String newPwd, int pwdLevel) throws Exception {
 
         UserDO userDO = new UserDO();
@@ -138,7 +138,7 @@ public class UserInfoService {
         userDO.setUserPwdLevel(pwdLevel);
         userInfoDao.saveOrUpdate(userDO);
     }
-    
+
     public void updateFrontPwd(long uid, String oldPwd, String newPwd, int pwdLevel) throws Exception {
 
         CustomerUser customerUserDo = new CustomerUser();
@@ -157,7 +157,7 @@ public class UserInfoService {
         customerUserDao.saveOrUpdate(customerUserDo);
     }
 
-    
+
     public List<Map<String, Object>> getSecurityCenterInfo(long id) throws Exception {
         StringBuilder sql = new StringBuilder("SELECT\n" +
                 "  t1.user_pwd_level AS userPwdLevel,\n" +
@@ -168,11 +168,11 @@ public class UserInfoService {
                 "  t_user t1\n" +
                 "  LEFT JOIN t_account t2\n" +
                 "    ON t1.cust_id = t2.cust_id\n" +
-                "WHERE t1.id=" + id);
-        return userInfoDao.getSQLQuery(sql.toString()).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP).list();
+                "WHERE t1.id=?");
+        return userInfoDao.sqlQuery(sql.toString(), id);
     }
 
-    
+
     public void verifyIdentifyValueUniqueness(int type, String value) throws Exception {
         List<UserDO> list = new ArrayList<>();
         if (1 == type) {
@@ -189,29 +189,29 @@ public class UserInfoService {
         }
     }
 
-    
+
     public void updateRegistInfo(String oldValue, String newValue) throws Exception {
         UserDO userDO = userInfoDao.findUniqueBy("mobile_num", oldValue);
         if (null != userDO) {
             userDO.setMobileNum(newValue);
             userInfoDao.saveOrUpdate(userDO);
-        }else {
+        } else {
             throw new TouchException("20004", "系统异常，用户查询失败");
         }
     }
 
-    
+
     public void updateFrontRegistInfo(String userId, String oldValue, String newValue) throws Exception {
-        CustomerUserPropertyDO customerUserProperty = customerUserDao.getProperty(userId,"mobile_num");
+        CustomerUserPropertyDO customerUserProperty = customerUserDao.getProperty(userId, "mobile_num");
         if (null != customerUserProperty) {
             customerUserProperty.setPropertyValue(newValue);
             customerUserDao.saveOrUpdate(customerUserProperty);
-        }else {
+        } else {
             throw new TouchException("20004", "系统异常，前台用户查询失败");
         }
     }
 
-    
+
     public void changeUserStatus(String userId, String action) throws Exception {
         UserDO userDO = userInfoDao.findUniqueBy("id", Long.valueOf(userId));
         //解冻
@@ -229,7 +229,7 @@ public class UserInfoService {
         }
     }
 
-    
+
     public Map<String, Object> queryIndustryPoolByCondition(HttpServletRequest param) throws Exception {
         Map<String, Object> map = new HashMap<>();
         String userName = param.getParameter("userName");
@@ -238,6 +238,7 @@ public class UserInfoService {
         int pageNum = Integer.valueOf(param.getParameter("pageNum"));
         int pageSize = Integer.valueOf(param.getParameter("pageSize"));
 
+        List<Object> params = new ArrayList<>();
         StringBuilder sql = new StringBuilder("SELECT " +
                 " t3.account AS userName," +
                 " cast(t3.id as char) AS userId," +
@@ -253,18 +254,21 @@ public class UserInfoService {
                 " JOIN t_customer t5 ON t3.cust_id = t5.cust_id" +
                 " WHERE t3.user_type = 1 AND t3.`STATUS` = 0 ");
         if (StringUtil.isNotEmpty(userName)) {
-            sql.append(" and t3.account='").append(StringEscapeUtils.escapeSql(userName)).append("'");
+            sql.append(" and t3.account=?");
+            params.add(StringEscapeUtils.escapeSql(userName));
         }
         if (StringUtil.isNotEmpty(userId)) {
-            sql.append(" and t3.id='").append(StringEscapeUtils.escapeSql(userId)).append("'");
+            sql.append(" and t3.id=?");
+            params.add(StringEscapeUtils.escapeSql(userId));
         }
         if (StringUtil.isNotEmpty(enterpriseName)) {
-            sql.append(" and t5.enterprise_name='").append(StringEscapeUtils.escapeSql(enterpriseName)).append("'");
+            sql.append(" and t5.enterprise_name=?");
+            params.add(StringEscapeUtils.escapeSql(enterpriseName));
         }
         sql.append(" order by t5.create_time desc ");
 
-        map.put("total", userInfoDao.queryListBySql(sql.toString()).size());
-        List userIndustryPoolList = userInfoDao.getSQLQuery(sql.toString()).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP).setFirstResult(pageNum).setMaxResults(pageSize).list();
+        map.put("total", userInfoDao.sqlPageQuery(sql.toString(), pageNum, pageSize, params).getTotal());
+        List userIndustryPoolList = userInfoDao.sqlPageQuery(sql.toString(), pageNum, pageSize, params).getData();
         Map customerProperty;
         CustomerUserPropertyDO mobileNum;
         for (int i = 0; i < userIndustryPoolList.size(); i++) {
@@ -276,7 +280,7 @@ public class UserInfoService {
         return map;
     }
 
-    
+
     public Map<String, Object> listIndustryPoolByCustomerId(HttpServletRequest param) throws Exception {
         Map<String, Object> map = new HashMap<>();
         String customerId = param.getParameter("customerId");
@@ -285,6 +289,7 @@ public class UserInfoService {
         if (StringUtil.isEmpty(customerId)) {
             throw new TouchException("300", "客户id不能为空");
         }
+        List<Object> params = new ArrayList<>();
         StringBuilder sql = new StringBuilder("SELECT\n" +
                 "\tt1.NAME AS industryPoolName,\n" +
                 "\tt1.industry_pool_id AS industryPoolId,\n" +
@@ -293,9 +298,10 @@ public class UserInfoService {
                 "FROM\n" +
                 "\tt_industry_pool t1\n" +
                 "LEFT JOIN t_cust_industry t2 ON t1.industry_pool_id = t2.industry_pool_id where 1=1 ");
-        sql.append(" and t2.cust_id='").append(StringEscapeUtils.escapeSql(customerId)).append("'");
-        List list = userInfoDao.getSQLQuery(sql.toString()).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP).setFirstResult(pageNum).setMaxResults(pageSize).list();
-        map.put("total", list.size());
+        sql.append(" and t2.cust_id=? ");
+        params.add(StringEscapeUtils.escapeSql(customerId));
+        List list = userInfoDao.sqlPageQuery(sql.toString(), pageNum, pageSize, params.toArray()).getData();
+        map.put("total", userInfoDao.sqlPageQuery(sql.toString(), pageNum, pageSize, params.toArray()).getTotal());
         map.put("industryPoolList", list);
         return map;
     }
@@ -348,23 +354,22 @@ public class UserInfoService {
         return map;
     }
 
-    
+
     public UserDO getUserByName(String name) {
         return userInfoDao.findUniqueBy("name", name);
     }
 
-    
+
     public UserDO getUserBymobileNum(String mobileNum) {
         return userInfoDao.findUniqueBy("mobileNum", mobileNum);
     }
 
-    
+
     public UserDO getUserByEmail(String email) {
         return userInfoDao.findUniqueBy("email", email);
     }
 
 
-    
     public Integer getUserByLoginPassWord(String payPassWord, Long userId) {
 
         Integer code = null;
@@ -380,12 +385,12 @@ public class UserInfoService {
         return code;
     }
 
-    
+
     public UserDO getUserByEnterpriseName(String enterpriseName) {
         return userInfoDao.findUniqueBy("enterpriseName", enterpriseName);
     }
 
-    
+
     public List<String> getAuthsByUserName(String userName) throws Exception {
         StringBuilder sql = new StringBuilder("\n" +
                 "SELECT\n" +
@@ -528,22 +533,22 @@ public class UserInfoService {
         return userInfoDao.getSQLQuery(sql.toString()).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP).list();
     }*/
 
-   /* public void verifyIdentifyValueUniqueness(int type, String value) throws Exception {
-        List<UserDO> list = new ArrayList<>();
-        if (1 == type) {
-            list = userInfoDao.findBy("name", value);
-        }
-        if (2 == type) {
-            list = userInfoDao.findBy("mobileNum", value);
-        }
-        if (3 == type) {
-            list = userInfoDao.findBy("email", value);
-        }
-        if (list.size() >= 1) {
-            throw new TouchException("20008", "已经被注册，请重新输入");
-        }
-    }
-*/
+    /* public void verifyIdentifyValueUniqueness(int type, String value) throws Exception {
+         List<UserDO> list = new ArrayList<>();
+         if (1 == type) {
+             list = userInfoDao.findBy("name", value);
+         }
+         if (2 == type) {
+             list = userInfoDao.findBy("mobileNum", value);
+         }
+         if (3 == type) {
+             list = userInfoDao.findBy("email", value);
+         }
+         if (list.size() >= 1) {
+             throw new TouchException("20008", "已经被注册，请重新输入");
+         }
+     }
+ */
     public void updateRegistInfo(int type, String oldValue, String newValue, String userId) throws Exception {
         CustomerUserPropertyDO cp = null;
         //mobile
@@ -737,6 +742,7 @@ public class UserInfoService {
 
     /**
      * 根据登录用户名和授权来查询登录用户
+     *
      * @param loginName
      * @param source
      * @return
