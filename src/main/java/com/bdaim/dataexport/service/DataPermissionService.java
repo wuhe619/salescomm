@@ -31,7 +31,7 @@ public class DataPermissionService {
 		Object parentId = 0;
 		try{
 			if(user==null||(user!=null&&user.getId()==null)){
-				rs = labelDao.sqlQuery("select t1.id,t1.label_id,ifnull(t1.parent_id,0) parent_id,t1.label_name from label_info t1 where t1.level<="+deep);
+				rs = labelDao.sqlQuery("select t1.id,t1.label_id,ifnull(t1.parent_id,0) parent_id,t1.label_name from label_info t1 where t1.level<=?",deep);
 				for(int i=0;i<rs.size();i++){
 					Map r = (Map)rs.get(i);
 					DataNode dn = new DataNode();
@@ -75,7 +75,7 @@ public class DataPermissionService {
 		Object parentId = 0;
 		try{
 			if(user==null||(user!=null&&user.getId()==null)){
-				rs = labelDao.sqlQuery("select t1.id,ifnull(t1.parent_id,0) parent_id,t1.name from label_category t1 where t1.level<="+deep + " and t1.type = " + categoryType.ordinal());
+				rs = labelDao.sqlQuery("select t1.id,ifnull(t1.parent_id,0) parent_id,t1.name from label_category t1 where t1.level<=? and t1.type = ?",deep, categoryType.ordinal());
 				for(int i=0;i<rs.size();i++){
 					Map r = (Map)rs.get(i);
 					DataNode dn = new DataNode();
