@@ -145,12 +145,14 @@ public class DicService {
      */
     private Page getSimilarListInfo(Integer pageSize, Integer pageNum, SearchPropertyDTO searchPropertyDto) {
         Page page = null;
+        List args = new ArrayList();
         try {
             if (StringUtil.isEmpty(searchPropertyDto.getDicType())) {
                 throw new ParamException(" param dicType is required");
             }
             String sql = "select distinct a.* ,(SELECT  case when dic_prop_value ='' then '999'  when dic_prop_value is null then '999' ELSE dic_prop_value END  FROM t_dic_property WHERE dic_prop_key = 'productShowLevel' and dic_id=a.id) productShowLevel,";
-            sql += "(SELECT COUNT(DISTINCT user_id) FROM t_fund_product_apply WHERE product_id = a.id ) applyNum from t_dic a where a.dic_type_id='" + searchPropertyDto.getDicType() + "' AND a.status = 1 ";
+            sql += "(SELECT COUNT(DISTINCT user_id) FROM t_fund_product_apply WHERE product_id = a.id ) applyNum from t_dic a where a.dic_type_id=? AND a.status = 1 ";
+            args.add(searchPropertyDto.getDicType());
             //地域检索
             if (StringUtil.isNotEmpty(searchPropertyDto.getCity())) {
                 String[] citys = searchPropertyDto.getCity().split(",");
@@ -166,35 +168,43 @@ public class DicService {
             }
             //职业身份
             if (StringUtil.isNotEmpty(searchPropertyDto.getProfessionalIdentity())) {
-                sql += " AND a.id in (SELECT dic_id FROM t_dic_property where dic_prop_value like '%" + searchPropertyDto.getProfessionalIdentity() + "%' and dic_prop_key='professionalIdentity')";
+                sql += " AND a.id in (SELECT dic_id FROM t_dic_property where dic_prop_value like ? and dic_prop_key='professionalIdentity')";
+                args.add("%" + searchPropertyDto.getProfessionalIdentity() + "%");
             }
             //月收入
             if (StringUtil.isNotEmpty(searchPropertyDto.getRevenueConfigValue())) {
-                sql += " AND a.id in (SELECT dic_id FROM t_dic_property where  dic_prop_key='revenueConfigValue' and dic_prop_value<=" + searchPropertyDto.getRevenueConfigValue() + ")";
+                sql += " AND a.id in (SELECT dic_id FROM t_dic_property where  dic_prop_key='revenueConfigValue' and dic_prop_value<=?)";
+                args.add(searchPropertyDto.getRevenueConfigValue());
             }
             //公积金
             if (StringUtil.isNotEmpty(searchPropertyDto.getAccumulationFund())) {
-                sql += " AND a.id in (SELECT dic_id FROM t_dic_property where FIND_IN_SET('" + searchPropertyDto.getAccumulationFund() + "',dic_prop_value) AND dic_prop_key='accumulationFund')";
+                sql += " AND a.id in (SELECT dic_id FROM t_dic_property where FIND_IN_SET(?,dic_prop_value) AND dic_prop_key='accumulationFund')";
+                args.add(searchPropertyDto.getAccumulationFund());
             }
             //推荐设置（热门推荐和主题推荐）
             if (StringUtil.isNotEmpty(searchPropertyDto.getRecommendConfig())) {
-                sql += " AND a.id in (SELECT dic_id FROM t_dic_property where dic_prop_value like '%" + searchPropertyDto.getRecommendConfig() + "%' and dic_prop_key='recommendConfig')";
+                sql += " AND a.id in (SELECT dic_id FROM t_dic_property where dic_prop_value like ? and dic_prop_key='recommendConfig')";
+                args.add("%" + searchPropertyDto.getRecommendConfig() + "%");
             }
             //社保
             if (StringUtil.isNotEmpty(searchPropertyDto.getSocialSecurity())) {
-                sql += " AND a.id in (SELECT dic_id FROM t_dic_property where FIND_IN_SET('" + searchPropertyDto.getSocialSecurity() + "',dic_prop_value) AND dic_prop_key='socialSecurity')";
+                sql += " AND a.id in (SELECT dic_id FROM t_dic_property where FIND_IN_SET(?,dic_prop_value) AND dic_prop_key='socialSecurity')";
+                args.add(searchPropertyDto.getSocialSecurity());
             }
             //本地社保连续缴存时间
             if (StringUtil.isNotEmpty(searchPropertyDto.getAccumulationFundTime())) {
-                sql += " AND a.id in (SELECT dic_id FROM t_dic_property where  dic_prop_key='accumulationFundTime' and dic_prop_value<=" + searchPropertyDto.getAccumulationFundTime() + ")";
+                sql += " AND a.id in (SELECT dic_id FROM t_dic_property where  dic_prop_key='accumulationFundTime' and dic_prop_value<=?)";
+                args.add(searchPropertyDto.getAccumulationFundTime());
             }
             //本地社保连续缴存基数
             if (StringUtil.isNotEmpty(searchPropertyDto.getAccumulationFundValue())) {
-                sql += " AND a.id in (SELECT dic_id FROM t_dic_property where  dic_prop_key='accumulationFundValue' and dic_prop_value<=" + searchPropertyDto.getAccumulationFundValue() + ")";
+                sql += " AND a.id in (SELECT dic_id FROM t_dic_property where  dic_prop_key='accumulationFundValue' and dic_prop_value<=?)";
+                args.add(searchPropertyDto.getAccumulationFundValue());
             }
             //名下房产
             if (StringUtil.isNotEmpty(searchPropertyDto.getHouseConfig())) {
-                sql += " AND a.id in (SELECT dic_id FROM t_dic_property where dic_prop_value like '%" + searchPropertyDto.getHouseConfig() + "%' and dic_prop_key='houseConfig')";
+                sql += " AND a.id in (SELECT dic_id FROM t_dic_property where dic_prop_value like ? and dic_prop_key='houseConfig')";
+                args.add("%" + searchPropertyDto.getHouseConfig() + "%");
             }
             //收入配置
             if (StringUtil.isNotEmpty(searchPropertyDto.getRevenueConfig())) {
@@ -233,37 +243,46 @@ public class DicService {
             }
             //信用情况
             if (StringUtil.isNotEmpty(searchPropertyDto.getCreditSituation())) {
-                sql += " AND a.id in (SELECT dic_id FROM t_dic_property where dic_prop_value like '%" + searchPropertyDto.getCreditSituation() + "%' and dic_prop_key='creditSituation')";
+                sql += " AND a.id in (SELECT dic_id FROM t_dic_property where dic_prop_value like ? and dic_prop_key='creditSituation')";
+                args.add("%" + searchPropertyDto.getCreditSituation() + "%");
             }
             //行业类型检索
             if (StringUtil.isNotEmpty(searchPropertyDto.getIndustryType())) {
-                sql += " AND a.id in (SELECT dic_id FROM t_dic_property where FIND_IN_SET('" + searchPropertyDto.getIndustryType() + "',dic_prop_value) AND dic_prop_key='type')";
+                sql += " AND a.id in (SELECT dic_id FROM t_dic_property where FIND_IN_SET(?,dic_prop_value) AND dic_prop_key='type')";
+                args.add(searchPropertyDto.getIndustryType());
             }
             //名下是否有车
             if (StringUtil.isNotEmpty(searchPropertyDto.getCarType())) {
-                sql += " AND a.id in (SELECT dic_id FROM t_dic_property where dic_prop_value like '%" + searchPropertyDto.getCarType() + "%' and dic_prop_key='carType')";
+                sql += " AND a.id in (SELECT dic_id FROM t_dic_property where dic_prop_value like ? and dic_prop_key='carType')";
+                args.add("%" + searchPropertyDto.getCarType() + "%");
             }
             //特色标签（理财）
             if (StringUtil.isNotEmpty(searchPropertyDto.getFeaturedLabels())) {
-                sql += " AND a.id in (SELECT dic_id FROM t_dic_property where dic_prop_value like '%" + searchPropertyDto.getFeaturedLabels() + "%' and dic_prop_key='featuredLabels')";
+                sql += " AND a.id in (SELECT dic_id FROM t_dic_property where dic_prop_value like ? and dic_prop_key='featuredLabels')";
+                args.add("%" + searchPropertyDto.getFeaturedLabels() + "%");
             }
             if (StringUtil.isNotEmpty(searchPropertyDto.getProductId())) {
                 //过滤掉当前商品
-                sql += " AND a.id !=" + searchPropertyDto.getProductId();
+                sql += " AND a.id !=?" ;
+                args.add(searchPropertyDto.getProductId());
             }
             sql += " order by CAST(productShowLevel as SIGNED), applyNum DESC";
-            page = dicDao.sqlPageQueryByPageSize(sql, pageNum, pageSize);
+            page = dicDao.sqlPageQueryByPageSize(sql, pageNum, pageSize,args);
             List<Map<String, Object>> data = page.getData();
             //推荐商品不满足pageSize 是否需要填充数据 1 是 2 否
             if (!"2".equals(searchPropertyDto.getFillType())) {
                 if (StringUtil.isNotEmpty(searchPropertyDto.getRecommendConfig()) && data.size() <= pageSize) {
-                    StringBuffer querySql = new StringBuffer("SELECT d.* FROM t_dic d WHERE d.id NOT IN ( SELECT dic_id FROM t_dic_property WHERE dic_prop_value LIKE '%" + searchPropertyDto.getRecommendConfig() + "%' AND dic_prop_key = 'recommendConfig' )");
+                    StringBuffer querySql = new StringBuffer("SELECT d.* FROM t_dic d WHERE d.id NOT IN ( SELECT dic_id FROM t_dic_property WHERE dic_prop_value LIKE ? AND dic_prop_key = 'recommendConfig' )");
+                    List params=new ArrayList();
+                    params.add("%" + searchPropertyDto.getRecommendConfig() + "%");
                     if (StringUtil.isNotEmpty(searchPropertyDto.getIndustryType())) {
-                        querySql.append(" AND d.id in (SELECT dic_id FROM t_dic_property where FIND_IN_SET('" + searchPropertyDto.getIndustryType() + "',dic_prop_value) AND dic_prop_key='type')");
+                        querySql.append(" AND d.id in (SELECT dic_id FROM t_dic_property where FIND_IN_SET(?,dic_prop_value) AND dic_prop_key='type')");
+                        params.add(searchPropertyDto.getIndustryType());
                     }
-                    querySql.append(" and d.status = 1 and d.dic_type_id = '" + searchPropertyDto.getDicType() + "' ORDER BY RAND() LIMIT " + (pageSize - data.size()));
+                    querySql.append(" and d.status = 1 and d.dic_type_id = ? ORDER BY RAND() LIMIT " + (pageSize - data.size()));
+                    params.add(searchPropertyDto.getDicType());
                     //随机查询n条相关数据
-                    List<Map<String, Object>> list = dicDao.sqlQuery(querySql.toString());
+                    List<Map<String, Object>> list = dicDao.sqlQuery(querySql.toString(),params);
                     if (list != null && list.size() > 0) {
                         data.addAll(list);
                     }
@@ -299,21 +318,26 @@ public class DicService {
      */
     private Page pageExtensionChannel(Integer pageSize, Integer pageNum, SearchPropertyDTO searchPropertyDto) {
         Page page = null;
+        List args = new ArrayList();
         try {
-            String sql = "select id,name,dic_type_id,create_time,last_update_time,status from t_dic a where a.dic_type_id='" + DicTypeEnum.I.getId() + "'";
+            String sql = "select id,name,dic_type_id,create_time,last_update_time,status from t_dic a where a.dic_type_id=?";
+            args.add(DicTypeEnum.I.getId());
             //渠道检索
             if (searchPropertyDto.getChannelType() != null) {
-                sql += " AND a.id in (SELECT dic_id FROM t_dic_property where FIND_IN_SET('" + searchPropertyDto.getChannelType() + "',dic_prop_value) AND dic_prop_key='type')";
+                sql += " AND a.id in (SELECT dic_id FROM t_dic_property where FIND_IN_SET(?,dic_prop_value) AND dic_prop_key='type')";
+                args.add(searchPropertyDto.getChannelType());
             }
             //名称检索
             if (StringUtil.isNotEmpty(searchPropertyDto.getName())) {
-                sql += " AND a.name LIKE '%" + searchPropertyDto.getName() + "%'";
+                sql += " AND a.name LIKE ?";
+                args.add("%" + searchPropertyDto.getName() + "%");
             }
             if (StringUtil.isNotEmpty(searchPropertyDto.getStatus())) {
-                sql += " AND a.status=" + searchPropertyDto.getStatus();
+                sql += " AND a.status=?" ;
+                args.add(searchPropertyDto.getStatus());
             }
             sql += " ORDER BY a.create_time DESC ";
-            page = dicDao.sqlPageQuery0(sql, pageNum, pageSize);
+            page = dicDao.sqlPageQuery0(sql, pageNum, pageSize,args);
         } catch (Exception e) {
             logger.error("查询渠道列表异常,", e);
         }
@@ -330,17 +354,20 @@ public class DicService {
      */
     private Page pageActivity(Integer pageSize, Integer pageNum, SearchPropertyDTO searchPropertyDto) {
         Page page = null;
+        List args = new ArrayList();
         try {
             String sql = "select id,name,dic_type_id,create_time,last_update_time,status from t_dic a where a.dic_type_id='" + DicTypeEnum.J.getId() + "'";
             //名称检索
             if (StringUtil.isNotEmpty(searchPropertyDto.getName())) {
-                sql += " AND a.name LIKE '%" + searchPropertyDto.getName() + "%'";
+                sql += " AND a.name LIKE ?";
+                args.add("%"+searchPropertyDto.getName()+"%");
             }
             if (StringUtil.isNotEmpty(searchPropertyDto.getStatus())) {
-                sql += " AND a.status=" + searchPropertyDto.getStatus();
+                sql += " AND a.status=?";
+                args.add(searchPropertyDto.getStatus());
             }
             sql += " ORDER BY a.create_time DESC ";
-            page = dicDao.sqlPageQuery0(sql, pageNum, pageSize);
+            page = dicDao.sqlPageQuery0(sql, pageNum, pageSize,args);
             if (page != null && page.getData() != null) {
                 Map<String, Object> m;
                 DicProperty property;
@@ -387,37 +414,45 @@ public class DicService {
      */
     private Page pageExtensionActivity(Integer pageSize, Integer pageNum, SearchPropertyDTO dto) {
         Page page = null;
+        List args = new ArrayList();
         try {
             String sql = "select id,name,dic_type_id,create_time,last_update_time,status from t_dic a where a.dic_type_id='" + DicTypeEnum.K.getId() + "'";
             //名称检索
             if (StringUtil.isNotEmpty(dto.getName())) {
-                sql += " AND a.name LIKE '%" + dto.getName() + "%'";
+                sql += " AND a.name LIKE ?";
+                args.add("%" + dto.getName() + "%");
             }
             //活动开始时间
             if (StringUtil.isNotEmpty(dto.getActivityStartTime())) {
-                sql += " AND a.id in (SELECT dic_id FROM t_dic_property where dic_prop_value >= '" + dto.getActivityStartTime() + "' AND dic_prop_key='startTime')";
+                sql += " AND a.id in (SELECT dic_id FROM t_dic_property where dic_prop_value >= ? AND dic_prop_key='startTime')";
+                args.add(dto.getActivityStartTime());
             }
             //活动结束时间
             if (StringUtil.isNotEmpty(dto.getActivityEndTime())) {
-                sql += " AND a.id in (SELECT dic_id FROM t_dic_property where dic_prop_value <= '" + dto.getActivityEndTime() + "' AND dic_prop_key='endTime')";
+                sql += " AND a.id in (SELECT dic_id FROM t_dic_property where dic_prop_value <= ? AND dic_prop_key='endTime')";
+                args.add(dto.getActivityEndTime());
             }
             //渠道检索
             if (StringUtil.isNotEmpty(dto.getExtensionChannel())) {
-                sql += " AND a.id in (SELECT dic_id FROM t_dic_property where dic_prop_value = '" + dto.getExtensionChannel() + "' AND dic_prop_key='extensionChannel')";
+                sql += " AND a.id in (SELECT dic_id FROM t_dic_property where dic_prop_value = ? AND dic_prop_key='extensionChannel')";
+                args.add(dto.getExtensionChannel());
             }
             //推广链接
             if (StringUtil.isNotEmpty(dto.getExtensionUrl())) {
-                sql += " AND a.id in (SELECT dic_id FROM t_dic_property where dic_prop_value = '" + dto.getExtensionUrl() + "' AND dic_prop_key='extensionTypeValue')";
+                sql += " AND a.id in (SELECT dic_id FROM t_dic_property where dic_prop_value = ? AND dic_prop_key='extensionTypeValue')";
+                args.add(dto.getExtensionUrl());
             }
             //触达方式
             if (StringUtil.isNotEmpty(dto.getTouchType())) {
-                sql += " AND a.id in (SELECT dic_id FROM t_dic_property where dic_prop_value = '" + dto.getTouchType() + "' AND dic_prop_key='touchType')";
+                sql += " AND a.id in (SELECT dic_id FROM t_dic_property where dic_prop_value = ? AND dic_prop_key='touchType')";
+                args.add(dto.getTouchType());
             }
             if (StringUtil.isNotEmpty(dto.getStatus())) {
-                sql += " AND a.status=" + dto.getStatus();
+                sql += " AND a.status=?";
+                args.add(dto.getStatus());
             }
             sql += " ORDER BY a.create_time DESC ";
-            page = dicDao.sqlPageQuery0(sql, pageNum, pageSize);
+            page = dicDao.sqlPageQuery0(sql, pageNum, pageSize,args);
             if (page != null) {
                 List<Map<String, Object>> data = null;
                 String statSql = "SELECT IFNULL(SUM(regedit_num),0) regeditNum, IFNULL(SUM(firstget_num),0) firstgetNum, IFNULL(SUM(active_num),0) activeNum," +
@@ -554,12 +589,14 @@ public class DicService {
      */
     private Page pageAdSpace(Integer pageSize, Integer pageNum, SearchPropertyDTO dto) {
         Page page = null;
+        List args = new ArrayList();
         try {
             String sql = "select id,name,dic_type_id,create_time,last_update_time,status from t_dic a where a.dic_type_id='" + DicTypeEnum.E.getId() + "'";
             if (dto.getAdPlatform() != null) {
-                sql += " AND a.id in (SELECT dic_id FROM t_dic_property where dic_prop_value = '" + dto.getAdPlatform() + "' AND dic_prop_key='platform')";
+                sql += " AND a.id in (SELECT dic_id FROM t_dic_property where dic_prop_value =  ? AND dic_prop_key='platform')";
+                args.add(dto.getAdPlatform());
             }
-            page = dicDao.sqlPageQuery0(sql, pageNum, pageSize);
+            page = dicDao.sqlPageQuery0(sql, pageNum, pageSize,args);
         } catch (Exception e) {
             logger.error("查询广告位列表异常,", e);
         }
@@ -573,6 +610,7 @@ public class DicService {
      */
     private Page getProductListInfo(Integer pageSize, Integer pageNum, SearchPropertyDTO searchPropertyDto) {
         Page page = null;
+        List args = new ArrayList();
         try {
             String brandId = searchPropertyDto.getBrandId();
             // 查询申请人数
@@ -887,17 +925,21 @@ public class DicService {
      */
     public Page getBrandListInfo(Integer pageSize, Integer pageNum, SearchPropertyDTO searchPropertyDto) {
         Page page = null;
+        List args = new ArrayList();
         logger.info("查询品牌列表相关信息");
         try {
-            String sql = "select distinct a.* from t_dic a left join t_dic_property b on a.id=b.dic_id where a.dic_type_id='" + searchPropertyDto.getDicType() + "' and a.status='1'";
+            String sql = "select distinct a.* from t_dic a left join t_dic_property b on a.id=b.dic_id where a.dic_type_id=? and a.status='1'";
+            args.add(searchPropertyDto.getDicType());
             if (StringUtil.isNotEmpty(searchPropertyDto.getName())) {
-                sql += " and a.name like '%" + searchPropertyDto.getName() + "%'";
+                sql += " and a.name like ?";
+                args.add("%"+searchPropertyDto.getName()+"%");
             }
             if (StringUtil.isNotEmpty(searchPropertyDto.getIsQualityBrand())) {
-                sql += " and b.dic_prop_key='isQualityBrand' and b.dic_prop_value='" + searchPropertyDto.getIsQualityBrand() + "'";
+                sql += " and b.dic_prop_key='isQualityBrand' and b.dic_prop_value=?";
+                args.add(searchPropertyDto.getIsQualityBrand());
             }
             sql += " order by a.create_time desc ";
-            page = dicDao.sqlPageQueryByPageSize(sql, pageNum, pageSize);
+            page = dicDao.sqlPageQueryByPageSize(sql, pageNum, pageSize,args);
             List<Map<String, Object>> data = page.getData();
             for (Map<String, Object> map : data) {
                 Long brandId = NumberConvertUtil.parseLong(map.get("id"));
@@ -913,7 +955,7 @@ public class DicService {
                     }
                 }
                 int institutionNum = 0;
-                institutionNum = customerDao.getSQLQuery("select * from t_customer where status !=3 and source = 2 and brand_Id=" + brandId.toString()).list().size();
+                institutionNum = customerDao.sqlQuery("select * from t_customer where status !=3 and source = 2 and brand_Id=?", brandId.toString()).size();
                 map.put("institutionNum", institutionNum);
                 map.put("idStr", brandId.toString());
             }
@@ -1338,6 +1380,7 @@ public class DicService {
      */
     public boolean saveProductApply(FundProductApply fundOrder) {
         boolean status = false;
+        List args=new ArrayList();
         fundOrder.setId(IDHelper.getID());
         fundOrder.setApplyTime(new Timestamp(System.currentTimeMillis()));
         // 判断是否满足商品申请条件
@@ -1345,6 +1388,7 @@ public class DicService {
             JSONObject condition = JSON.parseObject(fundOrder.getApplyValue());
             StringBuilder sql = new StringBuilder();
             sql.append(" SELECT id from t_dic where id = ? ");
+            args.add(fundOrder.getProductId());
             String operator;
             for (Map.Entry k : condition.entrySet()) {
                 if ("houseAge".equals(k.getKey()) || "houseValuation".equals(k.getKey()) ||
@@ -1401,23 +1445,23 @@ public class DicService {
                         sql.append(" AND id in (SELECT dic_id from t_dic_property where dic_prop_key='manageArea'").append(" AND FIND_IN_SET('1',dic_prop_value)");
                     } else if ("2".equals(k.getValue())) {
                         sql.append(" AND FIND_IN_SET('1',dic_prop_value))").append(" AND dic_id = ")
-                                .append(fundOrder.getProductId())
-                                .append(")");
+                                .append(fundOrder.getProductId()).append(")");
                         sql.append(" AND id in (SELECT dic_id from t_dic_property where dic_prop_key='manageArea'").append(" AND FIND_IN_SET('2',dic_prop_value)");
                     } else if ("3".equals(k.getValue())) {
                         sql.append(" AND FIND_IN_SET('2',dic_prop_value)");
                     }
                 } else if ("carType".equals(k.getKey()) || "professionalIdentity".equals(k.getKey())) {
                     // 职业身份和有无车检索
-                    sql.append(" AND dic_prop_value like '%" + k.getValue() + "%' ");
+                    sql.append(" AND dic_prop_value like ? ");
+                    args.add("%"+k.getValue()+"%");
                 } else {
-                    sql.append(" AND dic_prop_value like '%" + k.getValue() + "%' ");
+                    sql.append(" AND dic_prop_value like ? ");
+                    args.add("%"+k.getValue()+"%");
                 }
-                sql.append(" AND dic_id = ")
-                        .append(fundOrder.getProductId())
-                        .append(")");
+                sql.append(" AND dic_id =? ").append(")");
+                args.add(fundOrder.getProductId());
             }
-            List<Map<String, Object>> list = dicDao.sqlQuery(sql.toString(), fundOrder.getProductId());
+            List<Map<String, Object>> list = dicDao.sqlQuery(sql.toString(), args);
             if (list != null && list.size() > 0) {
                 status = true;
             }
@@ -1450,8 +1494,8 @@ public class DicService {
     }
 
     public void updatePicStatus(String status, String dicId) {
-        String sql = " update t_dic set status=" + status + " where id=" + dicId;
-        dicDao.executeUpdateSQL(sql);
+        String sql = " update t_dic set status= ? where id=?";
+        dicDao.executeUpdateSQL(sql,status,dicId);
 
     }
 
@@ -1468,6 +1512,7 @@ public class DicService {
      */
     public JSONObject getProductApplyList(Integer pageNum, Integer pageSize, String productName, String productId, String productType, String userId, String type) throws Exception {
         JSONObject JSONobject = new JSONObject();
+        List args = new ArrayList();
         StringBuffer querySql = new StringBuffer("SELECT p.id,product_id,d.`name` ,p.apply_time,p.match_status applyStatus");
         if (!"1".equals(type)) {
             //查询的是商品申请统计列表
@@ -1475,17 +1520,21 @@ public class DicService {
         }
         querySql.append(" FROM t_fund_product_apply p LEFT JOIN t_dic d ON p.product_id = d.id where 1=1");
         if (StringUtil.isNotEmpty(productName)) {
-            querySql.append(" and d.name like '%" + productName + "%'");
+            querySql.append(" and d.name like ?");
+            args.add("%"+productName+"%");
         }
         if (StringUtil.isNotEmpty(productId)) {
-            querySql.append(" and p.product_id = '" + productId + "'");
+            querySql.append(" and p.product_id = ?");
+            args.add(productId);
         }
         if (StringUtil.isNotEmpty(productType)) {
-            querySql.append(" and p.product_type = '" + productType + "'");
+            querySql.append(" and p.product_type = ?");
+            args.add(productType);
         }
         if (StringUtil.isNotEmpty(userId)) {
             //如果有userID查询的是申请记录
-            querySql.append(" and p.user_id = '" + userId + "'");
+            querySql.append(" and p.user_id = ?");
+            args.add(userId);
         }
         if ("1".equals(type)) {
             //查询的是申请记录
@@ -1493,7 +1542,7 @@ public class DicService {
         } else {
             querySql.append(" GROUP BY product_id ORDER BY count DESC");
         }
-        Page page = dicDao.sqlPageQuery0(querySql.toString(), pageNum, pageSize);
+        Page page = dicDao.sqlPageQuery0(querySql.toString(), pageNum, pageSize,args);
         //查询的是用户足迹信息
         if (page != null && page.getData() != null) {
             Map<String, Object> m;
@@ -1537,39 +1586,49 @@ public class DicService {
             phone, String startTime, String stopTime, String channel, String status, String activityName, String
                                                     productType, String userId) throws Exception {
         logger.info("查询的商品id是：" + id);
+        List args = new ArrayList();
         JSONObject JSONobject = new JSONObject();
         StringBuffer stringBuffer = new StringBuffer("SELECT d.name activityName,f.channel,f.apply_value,f.id,f.product_id,CAST(f.user_id AS CHAR) userId, f.mobile_phone, u.realname name, f.apply_time, f.activity_id, f.match_status, f.loan_amount loanAmount, f.loan_late loanLate, f.loan_term loanTerm ");
         stringBuffer.append(" FROM t_fund_product_apply f LEFT JOIN t_customer_user u ON f.user_id = u.id LEFT JOIN t_dic d ON d.id = f.product_id WHERE 1=1");
         if (StringUtil.isNotEmpty(id)) {
-            stringBuffer.append(" and f.product_id = '" + id + "'");
+            stringBuffer.append(" and f.product_id = ?");
+            args.add(id);
         }
         if (StringUtil.isNotEmpty(phone)) {
-            stringBuffer.append(" and f.mobile_phone = '" + phone + "'");
+            stringBuffer.append(" and f.mobile_phone = ?");
+            args.add(phone);
         }
         if (StringUtil.isNotEmpty(startTime)) {
-            stringBuffer.append(" and f.apply_time >= '" + startTime + "'");
+            stringBuffer.append(" and f.apply_time >= ?");
+            args.add(startTime);
         }
         if (StringUtil.isNotEmpty(stopTime)) {
-            stringBuffer.append(" and f.apply_time <= '" + stopTime + "'");
+            stringBuffer.append(" and f.apply_time <= ?");
+            args.add(stopTime);
         }
         if (StringUtil.isNotEmpty(status)) {
-            stringBuffer.append(" and f.match_status = " + status);
+            stringBuffer.append(" and f.match_status = ?");
+            args.add(status);
         }
         if (StringUtil.isNotEmpty(channel)) {
-            stringBuffer.append(" and f.channel = " + channel);
+            stringBuffer.append(" and f.channel = ?");
+            args.add(channel);
         }
         if (StringUtil.isNotEmpty(activityName)) {
-            stringBuffer.append(" and d.NAME = '" + activityName + "'");
+            stringBuffer.append(" and d.NAME = ?");
+            args.add(activityName);
         }
         if (StringUtil.isNotEmpty(productType)) {
-            stringBuffer.append(" and f.product_type = '" + productType + "'");
+            stringBuffer.append(" and f.product_type =?");
+            args.add(productType);
         }
         if (StringUtil.isNotEmpty(userId)) {
-            stringBuffer.append(" and f.user_id = '" + userId + "'");
+            stringBuffer.append(" and f.user_id = ?");
+            args.add(userId);
         }
         stringBuffer.append(" ORDER BY apply_time DESC ");
         logger.info("检索sql是：" + stringBuffer.toString());
-        Page page = dicDao.sqlPageQuery0(stringBuffer.toString(), pageNum, pageSize);
+        Page page = dicDao.sqlPageQuery0(stringBuffer.toString(), pageNum, pageSize,args);
         if (page != null && page.getData().size() > 0) {
             List<Map<String, Object>> data = page.getData();
             List<DicProperty> propertyList;
@@ -1619,15 +1678,18 @@ public class DicService {
      */
     public Map<String, Object> getUserDetail(String userId, String id) throws Exception {
         logger.info("用户id是：" + userId + "唯一标识id是：" + id);
+        List args = new ArrayList();
         StringBuffer stringBuffer = new StringBuffer("SELECT CAST(d.user_id AS CHAR) userId,u.create_time registerTime,d.activity_id activityId, u.realname ,d.apply_value applyValue,c.name activityName");
         stringBuffer.append(" FROM t_fund_product_apply d LEFT JOIN t_customer_user u ON d.user_id = u.id LEFT JOIN t_dic c ON d.activity_id = c.id WHERE 1=1");
         if (StringUtil.isNotEmpty(userId)) {
-            stringBuffer.append(" and d.user_id = '" + userId + "'");
+            stringBuffer.append(" and d.user_id = ?");
+            args.add(userId);
         }
         if (StringUtil.isNotEmpty(id)) {
-            stringBuffer.append(" and d.id= '" + id + "'");
+            stringBuffer.append(" and d.id= ?");
+            args.add(id);
         }
-        List<Map<String, Object>> userInfoList = dicDao.sqlQuery(stringBuffer.toString());
+        List<Map<String, Object>> userInfoList = dicDao.sqlQuery(stringBuffer.toString(),args);
         logger.info("查询出用户信息是：" + JSONObject.toJSONString(userInfoList));
         Map<String, Object> userInfo = null;
         if (userInfoList.size() > 0) {
@@ -1668,31 +1730,39 @@ public class DicService {
     public String exportApplyInfo(HttpServletResponse response, String id, String phone, String
             startTime, String stopTime, String channel, String status) {
         Map<String, Object> resultMap = new HashMap<>();
+        List args = new ArrayList();
         try {
             logger.info("查询的商品id是：" + id);
             StringBuffer stringBuffer = new StringBuffer("SELECT d.name activityName,f.channel,f.apply_value,f.id,f.product_id,u.id userId, f.mobile_phone, u.realname, f.apply_time, f.activity_id, f.match_status");
             stringBuffer.append(" FROM t_fund_product_apply f LEFT JOIN t_customer_user u ON f.user_id = u.id LEFT JOIN t_dic d ON d.id = f.activity_id WHERE 1=1");
             if (StringUtil.isNotEmpty(id)) {
-                stringBuffer.append(" and f.product_id = '" + id + "'");
+                stringBuffer.append(" and f.product_id =?");
+                args.add(id);
             }
             if (StringUtil.isNotEmpty(phone)) {
-                stringBuffer.append(" and f.mobile_phone = '" + phone + "'");
+                stringBuffer.append(" and f.mobile_phone = ?");
+                args.add(phone);
             }
             if (StringUtil.isNotEmpty(startTime)) {
-                stringBuffer.append(" and f.apply_time >= '" + startTime + "'");
+                stringBuffer.append(" and f.apply_time >= ?");
+                args.add(startTime);
             }
             if (StringUtil.isNotEmpty(stopTime)) {
-                stringBuffer.append(" and f.apply_time <= '" + stopTime + "'");
+                stringBuffer.append(" and f.apply_time <= ?");
+                args.add(stopTime);
             }
             if (StringUtil.isNotEmpty(status)) {
-                stringBuffer.append(" and f.match_status = " + status);
+                stringBuffer.append(" and f.match_status = ?");
+                args.add(status);
             }
             if (StringUtil.isNotEmpty(channel)) {
-                stringBuffer.append(" and f.channel = " + channel + " OR f.activity_id = " + channel);
+                stringBuffer.append(" and f.channel = ? OR f.activity_id = ?");
+                args.add(channel);
+                args.add(channel);
             }
             stringBuffer.append(" ORDER BY apply_time");
             logger.info("检索sql是：" + stringBuffer.toString());
-            List<Map<String, Object>> exportData = dicDao.sqlQuery(stringBuffer.toString());
+            List<Map<String, Object>> exportData = dicDao.sqlQuery(stringBuffer.toString(),args);
             if (exportData != null && exportData.size() > 0) {
                 // 设置标题
                 List<String> titles = new ArrayList<String>();
@@ -1832,20 +1902,24 @@ public class DicService {
      */
     public List<Map<String, Object>> listShowAdSpace(SearchPropertyDTO dto) {
         List<Map<String, Object>> list = null;
+        List args = new ArrayList();
         if (StringUtil.isEmpty(dto.getDicType())) {
             throw new ParamException("参数dicType错误");
         }
         StringBuilder sql = new StringBuilder();
         sql.append("select id,name,dic_type_id,create_time,last_update_time,status from t_dic a where a.dic_type_id=?");
+        args.add(dto.getDicType());
         // 所属平台检索
         if (StringUtil.isNotEmpty(dto.getAdPlatform())) {
-            sql.append(" AND a.id in (SELECT dic_id FROM t_dic_property where dic_prop_value = '").append(dto.getAdPlatform()).append("' AND dic_prop_key='platform')");
+            sql.append(" AND a.id in (SELECT dic_id FROM t_dic_property where dic_prop_value = ? AND dic_prop_key='platform')");
+            args.add(dto.getAdPlatform());
         }
         // 广告位唯一编码
         if (StringUtil.isNotEmpty(dto.getAdCode())) {
-            sql.append(" AND a.id in (SELECT dic_id FROM t_dic_property where dic_prop_value = '").append(dto.getAdCode()).append("' AND dic_prop_key='code')");
+            sql.append(" AND a.id in (SELECT dic_id FROM t_dic_property where dic_prop_value = ? AND dic_prop_key='code')");
+            args.add(dto.getAdCode());
         }
-        list = dicDao.sqlQuery(sql.toString(), dto.getDicType());
+        list = dicDao.sqlQuery(sql.toString(), args);
         if (list.size() > 0) {
             JSONArray jsonArray, data;
             JSONObject jsonObject;
@@ -2030,10 +2104,12 @@ public class DicService {
 
     public List<Map<String, Object>> getBrandList(String dicType) throws Exception {
         logger.info("查询类型是：" + dicType);
+        List args = new ArrayList();
         StringBuffer querySql = new StringBuffer("SELECT DISTINCT brand_id brandId FROM t_customer c  WHERE c.cust_id IN ");
         querySql.append("(SELECT dic_prop_value FROM t_dic d LEFT JOIN t_dic_property p ON d.id = p.dic_id WHERE 1=1  ");
         if (StringUtil.isNotEmpty(dicType)) {
-            querySql.append(" and d.dic_type_id ='" + dicType + "'");
+            querySql.append(" and d.dic_type_id =?");
+            args.add(dicType);
         }
         querySql.append(" AND p.dic_prop_key = 'institution' AND d.`status` !=4) AND c.status = 0");
         List<Map<String, Object>> list = dicDao.sqlQuery(querySql.toString());
