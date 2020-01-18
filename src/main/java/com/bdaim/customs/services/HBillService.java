@@ -17,6 +17,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,19 +32,23 @@ public class HBillService {
 
     public Map<String, Object> getCustomerBill(CustomerBillQueryParam param) throws Exception {
         StringBuffer querySql = new StringBuffer("SELECT batch_id batchId, busi_type busiType,cust_id custId,create_time createTime,COUNT(id) number, IFNULL(amount/ 100,0) unitPrice,content, IFNULL(SUM(amount) / 100,0) amount ,IFNULL(SUM(prod_amount) / 100,0) prodAmount ,resource_id FROM t_resource_log WHERE 1=1 ");
+        List<Object> p = new ArrayList<>();
         if (StringUtil.isNotEmpty(param.getCustomerId())) {
-            querySql.append("AND cust_id = '" + param.getCustomerId() + "' ");
+            p.add(param.getCustomerId());
+            querySql.append("AND cust_id = ? ");
         }
         if (StringUtil.isNotEmpty(param.getBillDate())) {
-            querySql.append("AND create_time LIKE '" + param.getBillDate() + "%'");
+            p.add(param.getBillDate() + "%");
+            querySql.append("AND create_time LIKE ? ");
         }
         if (StringUtil.isNotEmpty(param.getStatus())) {
-            querySql.append(" AND JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$.status') =" + param.getStatus());
+            p.add(param.getStatus());
+            querySql.append(" AND JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$.status') =? ");
         } else {
             querySql.append(" AND JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$.status')>0");
         }
         querySql.append(" GROUP BY batch_id,resource_id order by create_time desc ");
-        Page data = customerDao.sqlPageQuery(querySql.toString(), param.getPageNum(), param.getPageSize());
+        Page data = customerDao.sqlPageQuery(querySql.toString(), param.getPageNum(), param.getPageSize(), p.toArray());
         Map<String, Object> map = new HashMap<>();
         if (data != null) {
             List<Map<String, Object>> list = data.getData();
@@ -82,25 +87,31 @@ public class HBillService {
         Page page = null;
         try {
             StringBuffer querySql = new StringBuffer("SELECT id, busi_type busiType, cust_id custId, create_time createTime, IFNULL(amount / 100, 0)  unitPrice, content, IFNULL(amount / 100, 0) amount, IFNULL(prod_amount / 100, 0) prodAmount FROM t_resource_log WHERE 1=1");
+            List<Object> p = new ArrayList<>();
             if (param.getMainId() != null) {
-                querySql.append(" AND batch_id='" + param.getMainId()+"'");
+                p.add(param.getMainId());
+                querySql.append(" AND batch_id=? ");
             }
             if (StringUtil.isNotEmpty(param.getTransactionId())) {
-                querySql.append(" AND id ='" + param.getTransactionId() + "'");
+                p.add(param.getTransactionId());
+                querySql.append(" AND id =? ");
             }
             if (StringUtil.isNotEmpty(param.getStatus())) {
-                querySql.append(" AND JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$.status') =" + param.getStatus());
+                p.add(param.getStatus());
+                querySql.append(" AND JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$.status') =? ");
             } else {
                 querySql.append(" AND JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$.status')>0");
             }
             if (StringUtil.isNotEmpty(param.getStartTime())) {
-                querySql.append(" AND create_time >= '" + param.getStartTime() + "'");
+                p.add(param.getMainId());
+                querySql.append(" AND create_time >= ?  ");
             }
             if (StringUtil.isNotEmpty(param.getEndTime())) {
-                querySql.append(" AND create_time <='" + param.getEndTime() + "'");
+                p.add(param.getEndTime());
+                querySql.append(" AND create_time <=? ");
             }
             querySql.append(" order by create_time desc");
-            page = customerDao.sqlPageQuery(querySql.toString(), param.getPageNum(), param.getPageSize());
+            page = customerDao.sqlPageQuery(querySql.toString(), param.getPageNum(), param.getPageSize(), p.toArray());
             if (page != null) {
                 List<Map<String, Object>> list = page.getData();
                 for (int i = 0; i < list.size(); i++) {
@@ -133,7 +144,7 @@ public class HBillService {
      */
     public void customerBillExport(CustomerBillQueryParam param, String exportType, HttpServletResponse response) throws IOException, IllegalAccessException {
         List<Map<String, Object>> list = exportBillDetail(param);
-        ExcelUtil.exportExcelByList(list,  exportType, response);
+        ExcelUtil.exportExcelByList(list, exportType, response);
     }
 
 
@@ -146,26 +157,32 @@ public class HBillService {
     public List<Map<String, Object>> exportBillDetail(CustomerBillQueryParam param) {
         List<Map<String, Object>> list = null;
         try {
+            List<Object> p = new ArrayList<>();
             StringBuffer querySql = new StringBuffer("SELECT id, busi_type busiType, cust_id custId, create_time createTime, IFNULL(amount / 100, 0)  unitPrice, content, IFNULL(amount / 100, 0) amount, IFNULL(prod_amount / 100, 0) prodAmount FROM t_resource_log WHERE 1=1");
             if (param.getMainId() != null) {
-                querySql.append(" AND CASE WHEN JSON_VALID(content) THEN batch_id ='" + param.getMainId() + "' ELSE null END");
+                p.add(param.getMainId());
+                querySql.append(" AND CASE WHEN JSON_VALID(content) THEN batch_id =? ELSE null END");
             }
             if (StringUtil.isNotEmpty(param.getTransactionId())) {
-                querySql.append(" AND id ='" + param.getTransactionId() + "'");
+                p.add(param.getTransactionId());
+                querySql.append(" AND id =? ");
             }
             if (StringUtil.isNotEmpty(param.getStatus())) {
-                querySql.append(" AND CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$.status') =" + param.getStatus() + " ELSE null END ");
+                p.add(param.getStatus());
+                querySql.append(" AND CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$.status') =? ELSE null END ");
             } else {
                 querySql.append(" AND CASE WHEN JSON_VALID(content) THEN JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$.status')>0" + " ELSE null END");
             }
             if (StringUtil.isNotEmpty(param.getStartTime())) {
-                querySql.append(" AND create_time >= '" + param.getStartTime() + "'");
+                p.add(param.getMainId());
+                querySql.append(" AND create_time >= ? ");
             }
             if (StringUtil.isNotEmpty(param.getEndTime())) {
-                querySql.append(" AND create_time <='" + param.getEndTime() + "'");
+                p.add(param.getEndTime());
+                querySql.append(" AND create_time <=? ");
             }
 
-            list = customerDao.sqlQuery(querySql.toString());
+            list = customerDao.sqlQuery(querySql.toString(), p.toArray());
             for (int i = 0; i < list.size(); i++) {
                 //查询身份证信息
                 String content = String.valueOf(list.get(i).get("content"));

@@ -151,12 +151,16 @@ public class ServiceUtils {
 
 
     public HBusiDataManager getObjectByIdAndType(String cust_id, Long id, String type) {
-        String sql = "select * from " + HMetaDataDef.getTable(type, "") + " where id=" + id + " and type='" + type + "'";
+        List<Object> p = new ArrayList<>();
+        p.add(id);
+        p.add(type);
+        String sql = "select * from " + HMetaDataDef.getTable(type, "") + " where id=? and type=? ";
         if (StringUtil.isNotEmpty(cust_id)) {
-            sql += " and cust_id='" + cust_id + "'";
+            sql += " and cust_id=? ";
+            p.add(cust_id);
         }
         RowMapper<HBusiDataManager> managerRowMapper = new BeanPropertyRowMapper<>(HBusiDataManager.class);
-        List<HBusiDataManager> list = jdbcTemplate.query(sql, managerRowMapper);
+        List<HBusiDataManager> list = jdbcTemplate.query(sql, managerRowMapper, p.toArray());
         if (list != null && list.size() > 0) {
             return list.get(0);
         }
@@ -199,12 +203,12 @@ public class ServiceUtils {
     }
 
     public List<HBusiDataManager> getDataList(String type, Long pid) {
-        String sql2 = "select id, type, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(type, "") + " where  type='" + type + "' and " + BusiMetaConfig.getFieldIndex(type, "pid") + " = (SELECT ext_3 FROM " + HMetaDataDef.getTable(BusiTypeEnum.getParentType(type), "") + " WHERE id = ?) ";
+        String sql2 = "select id, type, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(type, "") + " where  type=? and " + BusiMetaConfig.getFieldIndex(type, "pid") + " = (SELECT ext_3 FROM " + HMetaDataDef.getTable(BusiTypeEnum.getParentType(type), "") + " WHERE id = ?) ";
         log.info("sql2=" + sql2);
        /* RowMapper<HBusiDataManager> managerRowMapper=new BeanPropertyRowMapper<>(HBusiDataManager.class);
         List<HBusiDataManager> list = jdbcTemplate.query(sql2,managerRowMapper);*/
 
-        List<Map<String, Object>> list2 = jdbcTemplate.queryForList(sql2, pid);
+        List<Map<String, Object>> list2 = jdbcTemplate.queryForList(sql2, type, pid);
         log.info("list==" + list2);
         List<HBusiDataManager> list = JSON.parseArray(JSON.toJSONString(list2), HBusiDataManager.class);
         return list;
@@ -387,7 +391,7 @@ public class ServiceUtils {
         List sqlParams = new ArrayList();
         StringBuffer sql = new StringBuffer();
 //        sql.append("select id, type, content, cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(type, "") + " where type=? AND " + BusiMetaConfig.getFieldIndex(type, "main_bill_no") + " = ?  AND " + BusiMetaConfig.getFieldIndex(type, "pid") + " IN (" + SqlAppendUtil.sqlAppendWhereIn(partyNos) + ")");
-        sql.append("select id, type, content, cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(type, "") + " where type=? AND " + BusiMetaConfig.getFieldIndex(type, "main_bill_no") + " = ? " );
+        sql.append("select id, type, content, cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(type, "") + " where type=? AND " + BusiMetaConfig.getFieldIndex(type, "main_bill_no") + " = ? ");
         if (!"all".equals(custId))
             sql.append(" and cust_id='").append(custId).append("'");
         sqlParams.add(type);
@@ -1046,10 +1050,10 @@ public class ServiceUtils {
     }
 
     public Map getSbdHz(String billno, String ass_billno) {
-        String sql = "select content,ext_5 from h_data_manager_bgd_hz where  type='bgd_hz' and ext_3='" + ass_billno + "' and ext_4='" + billno + "' order by ext_5 desc";
+        String sql = "select content,ext_5 from h_data_manager_bgd_hz where  type='bgd_hz' and ext_3=? and ext_4=? order by ext_5 desc";
 
-        log.info("回执查询sql:"+sql);
-        List<Map<String, Object>> maps = jdbcTemplate.queryForList(sql);
+        log.info("回执查询sql:" + sql);
+        List<Map<String, Object>> maps = jdbcTemplate.queryForList(sql, ass_billno, billno);
         if (maps.size() > 0) {
             return maps.get(0);
         }
