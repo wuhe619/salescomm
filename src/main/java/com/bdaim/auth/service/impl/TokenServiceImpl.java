@@ -210,10 +210,10 @@ public class TokenServiceImpl implements TokenService {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            String userNameWithoutVerify = username.substring(username.indexOf(".") + 1);
+            String userNameWithoutVerify = username.substring(username.lastIndexOf(".") + 1);
             CustomerUser u = customerService.getUserByName(userNameWithoutVerify);
             String md5Password = CipherUtil.generatePassword(password);
-            if (u != null && md5Password.equals(u.getPassword())) {
+                if (u != null && md5Password.equals(u.getPassword())) {
                 logger.info("登陆用户:" + u.getAccount() + " 状态:" + u.getStatus());
                 //寻找登录账号已有的token
                 String tokenid = (String) name2token.get(username);
