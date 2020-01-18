@@ -172,40 +172,51 @@ public class MarketResourceService {
 
     public PageList querySmsHistory(PageParam page, SmsqueryParam smsqueryParm) {
         StringBuffer sb = new StringBuffer();
+        List<Object> params = new ArrayList<>();
         sb.append(" select cust_id,touch_id,remark,superid,enterprise_id,batch_id,create_time,`status`,sms_content \n" +
                 "from t_touch_sms_log sms where 1=1  ");
         if (StringUtil.isNotEmpty(smsqueryParm.getCompId())) {
-            sb.append(" and sms.cust_id='" + smsqueryParm.getCompId() + "'");
+            sb.append(" and sms.cust_id=?");
+            params.add(smsqueryParm.getCompId());
         }
         if (StringUtil.isNotEmpty(smsqueryParm.getRealName())) {
-            sb.append(" and sms.remark like '%" + smsqueryParm.getRealName() + "%'");
+            sb.append(" and sms.remark like '%?%'");
+            params.add(smsqueryParm.getRealName());
         }
         if (StringUtil.isNotEmpty(smsqueryParm.getSuperId())) {
-            sb.append(" and sms.superid='" + smsqueryParm.getSuperId() + "'");
+            sb.append(" and sms.superid=?");
+            params.add(smsqueryParm.getSuperId());
         }
         if (StringUtil.isNotEmpty(smsqueryParm.getEnterpriseId())) {
-            sb.append(" and sms.enterprise_id='" + smsqueryParm.getEnterpriseId() + "'");
+            sb.append(" and sms.enterprise_id=?");
+            params.add(smsqueryParm.getEnterpriseId());
         }
         if (StringUtil.isNotEmpty(smsqueryParm.getBatchName())) {
-            sb.append(" and sms.remark like '%" + smsqueryParm.getBatchName() + "%'");
+            sb.append(" and sms.remark like '%?%'");
+            params.add(smsqueryParm.getBatchName());
         }
         if (StringUtil.isNotEmpty(smsqueryParm.getSendStartTime())) {
-            sb.append(" and sms.create_time >='" + smsqueryParm.getSendStartTime() + "'");
+            sb.append(" and sms.create_time >=?");
+            params.add(smsqueryParm.getSendStartTime());
         }
         if (StringUtil.isNotEmpty(smsqueryParm.getSendEndTime())) {
-            sb.append(" and sms.create_time <='" + smsqueryParm.getSendEndTime() + "'");
+            sb.append(" and sms.create_time <=?");
+            params.add(smsqueryParm.getSendEndTime());
         }
         if (smsqueryParm.getStatus() != null) {
-            sb.append(" AND  sms.status=" + smsqueryParm.getStatus());
+            sb.append(" AND  sms.status=?");
+            params.add(smsqueryParm.getStatus());
         }
         if (StringUtil.isNotEmpty(smsqueryParm.getTemplateName())) {
-            sb.append(" and sms.remark like '%" + smsqueryParm.getTemplateName() + "%'");
+            sb.append(" and sms.remark like '%?%'");
+            params.add(smsqueryParm.getTemplateName());
         }
         if (StringUtil.isNotEmpty(smsqueryParm.getEnterpriseName())) {
-            sb.append(" and sms.remark like '%" + smsqueryParm.getEnterpriseName() + "%'");
+            sb.append(" and sms.remark like '%?%'");
+            params.add(smsqueryParm.getEnterpriseName());
         }
         sb.append(" ORDER BY sms.create_time DESC ");
-        return new Pagination().getPageData(sb.toString(), null, page, jdbcTemplate);
+        return new Pagination().getPageData(sb.toString(), params.toArray(), page, jdbcTemplate);
     }
 
     /**
@@ -215,12 +226,16 @@ public class MarketResourceService {
     public String queryCallHistory(String batchId, String superId, String custId) {
         JSONObject json = new JSONObject();
         Map<String, Object> map = new HashMap<>();
+        List<Object> params = new ArrayList<>();
         StringBuffer querySql = new StringBuffer("SELECT touch_id touchId,user_id userId,remark,create_time createTime FROM t_touch_voice_log WHERE superid=? AND batch_id=?");
+        params.add(superId);
+        params.add(batchId);
         if (StringUtil.isNotEmpty(custId)) {
-            querySql.append(" AND cust_id=" + custId);
+            querySql.append(" AND cust_id=?");
+            params.add(custId);
         }
         querySql.append(" ORDER BY create_time DESC");
-        List<Map<String, Object>> callHistory = marketResourceDao.sqlQuery(querySql.toString(), superId, batchId);
+        List<Map<String, Object>> callHistory = marketResourceDao.sqlQuery(querySql.toString(), params.toArray());
         if (callHistory.size() > 0) {
             for (int i = 0; i < callHistory.size(); i++) {
                 String userId = String.valueOf(callHistory.get(i).get("userId"));
@@ -264,52 +279,64 @@ public class MarketResourceService {
                 .append("  LEFT JOIN t_callback_info backInfo ")
                 .append("  ON voicLog.callSid = backInfo.callSid")
                 .append("  where 1=1").append(" and channel IS NOT NULL ");
-
+        List<Object> params = new ArrayList<>();
         if (!"".equals(realName) && null != realName) {
-            sb.append(" AND   voicLog.remark LIKE '%" + realName + "%'");
+            sb.append(" AND   voicLog.remark LIKE '%?%'");
+            params.add(realName);
         }
 
         if (!"".equals(enterpriseName) && null != enterpriseName) {
-            sb.append(" AND   voicLog.remark LIKE '%" + enterpriseName + "%'");
+            sb.append(" AND   voicLog.remark LIKE '%?%'");
+            params.add(enterpriseName);
         }
 
         if (!"".equals(enterpriseId) && null != enterpriseId) {
-            sb.append(" AND  voicLog.enterprise_id= " + enterpriseId);
+            sb.append(" AND  voicLog.enterprise_id= ?");
+            params.add(enterpriseId);
         }
 
         if (!"".equals(batchId) && null != batchId) {
-            sb.append(" AND   voicLog.batch_id=" + batchId);
+            sb.append(" AND   voicLog.batch_id=?");
+            params.add(batchId);
         }
 
         if (!"".equals(superId) && null != superId) {
-            sb.append(" AND   voicLog.superid=" + superId);
+            sb.append(" AND   voicLog.superid=?");
+            params.add(superId);
         }
 
         if ("1".equals(user_type) && StringUtil.isNotEmpty(cust_id)) {
-            sb.append(" AND   voicLog.cust_id=" + cust_id);
+            sb.append(" AND   voicLog.cust_id=?");
+            params.add(cust_id);
         }
         if ("2".equals(user_type) && userid != null) {
-            sb.append(" AND   voicLog.user_id=" + userid);
+            sb.append(" AND   voicLog.user_id=?");
+            params.add(userid);
         }
         if (touchStatus == 1001 || touchStatus == 1002) {
-            sb.append(" AND   voicLog.status=" + touchStatus);
+            sb.append(" AND   voicLog.status=?");
+            params.add(touchStatus);
         }
 
         if (null != createTimeStart && !"".equals(createTimeStart) && null != createTimeEnd
                 && !"".equals(createTimeEnd)) {
-            sb.append(" AND voicLog.create_time BETWEEN '" + createTimeStart + "' and '" + createTimeEnd + "' ");
+            sb.append(" AND voicLog.create_time BETWEEN ? and ? ");
+            params.add(createTimeStart);
+            params.add(createTimeEnd);
         } else {
             if (null != createTimeStart && !"".equals(createTimeStart)) {
-                sb.append(" AND voicLog.create_time > '" + createTimeStart + "'");
+                sb.append(" AND voicLog.create_time > ?");
+                params.add(createTimeStart);
             }
             if (null != createTimeEnd && !"".equals(createTimeEnd)) {
-                sb.append(" AND voicLog.create_time < '" + createTimeEnd + "'");
+                sb.append(" AND voicLog.create_time < ?");
+                params.add(createTimeEnd);
             }
         }
 
         sb.append(" order by voicLog.create_time DESC");
         LOG.info("通过记录sql:\t" + sb.toString());
-        return new Pagination().getPageData(sb.toString(), null, page, jdbcTemplate);
+        return new Pagination().getPageData(sb.toString(), params.toArray(), page, jdbcTemplate);
 
     }
 
@@ -317,64 +344,70 @@ public class MarketResourceService {
     public int insertLog(MarketResourceLogDTO dto) {
         String type_code = dto.getType_code();
         StringBuffer sql = new StringBuffer();
+        List<Object> params = new ArrayList<>();
         if ("1".equals(dto.getType_code())) {
             if (StringUtil.isEmpty(dto.getRemark())) {
                 dto.setRemark("");
             }
             sql.append(
                     "insert  into t_touch_voice_log (touch_id,cust_id,user_id,type_code,resname,remark,create_time,status,superId,callSid, call_owner, batch_id, activity_id, channel, enterprise_id,resource_id) values ( ");
-            sql.append("'" + dto.getTouch_id() + "',");
-            sql.append("'" + dto.getCust_id() + "',");
-            sql.append("'" + dto.getUser_id() + "',");
-            sql.append("'" + dto.getType_code() + "',");
-            sql.append("'" + dto.getResname() + "',");
-            sql.append("'" + dto.getRemark() + "',");
-            sql.append("now(),");
-            sql.append("'" + dto.getStatus() + "',");
-            sql.append("'" + dto.getSuperId() + "',");
-            sql.append("'" + dto.getCallSid() + "',");
-            sql.append("'" + dto.getCallOwner() + "',");
-            sql.append("'" + dto.getBatchId() + "',");
-            sql.append("'" + dto.getActivityId() + "',");
-            sql.append("'" + dto.getChannel() + "',");
-            sql.append("'" + dto.getEnterpriseId() + "',");
-            sql.append("'" + dto.getResourceId() + "')");
+            sql.append("?,?,?,?,?,?,");
+            params.add(dto.getTouch_id());
+            params.add(dto.getCust_id());
+            params.add(dto.getUser_id());
+            params.add(dto.getType_code());
+            params.add(dto.getResname());
+            params.add(dto.getRemark());
+            sql.append("now(),?,?,?,?,?,?,?,?,?)");
+            params.add(dto.getStatus());
+            params.add(dto.getSuperId());
+            params.add(dto.getCallSid());
+            params.add(dto.getCallOwner());
+            params.add(dto.getBatchId());
+            params.add(dto.getActivityId());
+            params.add(dto.getChannel());
+            params.add(dto.getEnterpriseId());
+            params.add(dto.getResourceId());
         } else if ("2".equals(type_code)) {
             sql.append(
                     "insert  into t_touch_sms_log (touch_id,cust_id,user_id,remark,create_time,status,sms_content,superId, batch_id, activity_id, channel, enterprise_id,amount,prod_amount,resource_id,request_id,send_status,send_data) values ( ");
-            sql.append("'" + dto.getTouch_id() + "',");
-            sql.append("'" + dto.getCust_id() + "',");
-            sql.append("'" + dto.getUser_id() + "',");
-            sql.append("'" + dto.getRemark() + "',");
+            sql.append("?,?,?,?,");
+            params.add(dto.getTouch_id());
+            params.add(dto.getCust_id());
+            params.add(dto.getUser_id());
+            params.add(dto.getRemark());
             sql.append("now(),");
-            sql.append("'" + dto.getStatus() + "',");
-            sql.append("'" + dto.getSms_content() + "',");
-            sql.append("'" + dto.getSuperId() + "',");
-            sql.append("'" + dto.getBatchId() + "',");
-            sql.append("'" + dto.getActivityId() + "',");
-            sql.append("'" + dto.getChannel() + "',");
-            sql.append("'" + dto.getEnterpriseId() + "',");
-            sql.append("'" + dto.getAmount() + "',");
-            sql.append("'" + dto.getProdAmount() + "',");
-            sql.append("'" + dto.getResourceId() + "',");
-            sql.append("'" + dto.getRequestId() + "',");
-            sql.append(dto.getSendStatus() + ",");
-            sql.append("'" + dto.getCallBackData() + "')");
-            return jdbcTemplate.update(sql.toString());
+            sql.append("?,?,?,?,?,?,?,?,?,?,?,?,?)");
+            params.add(dto.getStatus());
+            params.add(dto.getSms_content());
+            params.add(dto.getSuperId());
+            params.add(dto.getBatchId());
+            params.add(dto.getActivityId());
+            params.add(dto.getChannel());
+            params.add(dto.getEnterpriseId());
+            params.add(dto.getAmount());
+            params.add(dto.getProdAmount());
+            params.add(dto.getResourceId());
+            params.add(dto.getRequestId());
+            params.add(dto.getSendStatus());
+            params.add(dto.getCallBackData());
+            return jdbcTemplate.update(sql.toString(), params.toArray());
         } else if ("3".equals(type_code)) {
             sql.append(
                     "insert  into t_touch_email_log (cust_id,user_id,remark,create_time,status,email_content,superId,templateId,batch_number) values ( ");
-            sql.append("'" + dto.getCust_id() + "',");
-            sql.append("'" + dto.getUser_id() + "',");
-            sql.append("'" + dto.getRemark() + "',");
+            sql.append("?,?,?,");
+            params.add(dto.getCust_id());
+            params.add(dto.getUser_id());
+            params.add(dto.getRemark());
             sql.append("now(),");
-            sql.append("'" + dto.getStatus() + "',");
-            sql.append("'" + dto.getEmail_content() + "',");
-            sql.append("'" + dto.getSuperId() + "',");
-            sql.append("'" + dto.getTemplateId() + "',");
-            sql.append("'" + dto.getBatchNumber() + "')");
+            sql.append("?,?,?,?,?)");
+            params.add(dto.getStatus());
+            params.add(dto.getEmail_content());
+            params.add(dto.getSuperId());
+            params.add(dto.getTemplateId());
+            params.add(dto.getBatchNumber());
         }
-        return jdbcTemplate.update(sql.toString());
+        return jdbcTemplate.update(sql.toString(), params.toArray());
     }
 
 
@@ -1269,19 +1302,24 @@ public class MarketResourceService {
     public PageList getSupplierList(PageParam page, SupplierListParam supplierListParam) {
         StringBuilder sqlBuilder = new StringBuilder();
         sqlBuilder.append("SELECT supplier_id source_id ,name source_name,type,contact_person person,contact_phone phone ,create_time FROM t_supplier where 1=1");
+        List<Object> params = new ArrayList<>();
         if (StringUtil.isNotEmpty(supplierListParam.getSupplierId())) {
-            sqlBuilder.append(" AND supplier_id = " + supplierListParam.getSupplierId());
+            sqlBuilder.append(" AND supplier_id = ?");
+            params.add(supplierListParam.getSupplierId());
         }
         if (StringUtil.isNotEmpty(supplierListParam.getName())) {
-            sqlBuilder.append(" AND  name = " + supplierListParam.getName());
+            sqlBuilder.append(" AND  name = ?");
+            params.add(supplierListParam.getName());
         }
         if (StringUtil.isNotEmpty(supplierListParam.getPerson())) {
-            sqlBuilder.append(" AND contact_person = " + supplierListParam.getPerson());
+            sqlBuilder.append(" AND contact_person = ?");
+            params.add(supplierListParam.getPerson());
         }
         if (StringUtil.isNotEmpty(supplierListParam.getPhone())) {
-            sqlBuilder.append(" AND contact_phone = " + supplierListParam.getPhone());
+            sqlBuilder.append(" AND contact_phone = ?");
+            params.add(supplierListParam.getPhone());
         }
-        return new Pagination().getPageData(sqlBuilder.toString(), null, page, jdbcTemplate);
+        return new Pagination().getPageData(sqlBuilder.toString(), params.toArray(), page, jdbcTemplate);
     }
 
 
@@ -1642,29 +1680,33 @@ public class MarketResourceService {
 //            StringBuffer checkSql = new StringBuffer("SELECT batch_name AS batchName,IFNULL(upload_num,0) AS uploadNum,IFNULL(success_num,0) AS successNum,");
 //            checkSql.append("IFNULL(success_num/upload_num,0) AS effectiveRate FROM nl_batch WHERE comp_id='").append(customerId).append("' ORDER BY ")
 //                    .append("upload_time DESC LIMIT 10");
+            List<Object> paramsCheck = new ArrayList<>();
             StringBuffer checkSql = new StringBuffer("SELECT x.batch_id batchId,x.batchName,SUM(CASE x.upload_num WHEN '1' THEN 1 ELSE 1 END) AS uploadNum,");
             checkSql.append("SUM(CASE x.success_num WHEN '0' THEN 0 ELSE 1 END) successNum,")
                     .append("SUM(CASE x.success_num WHEN '0' THEN 0 ELSE 1 END)/SUM(CASE x.upload_num WHEN '1' THEN 1 ELSE 1 END) AS effectiveRate ")
                     .append("FROM (SELECT t1.id AS batch_id,t1.upload_time,t1.batch_name AS batchName,")
                     .append("SUM(CASE t2.STATUS WHEN '0' THEN 1 ELSE 1 END) AS upload_num,SUM(CASE t2.STATUS WHEN '1' THEN 1 ELSE 0 END) AS success_num ")
-                    .append("FROM nl_batch t1 LEFT JOIN nl_batch_detail t2 ON t1.id = t2.batch_id WHERE t1.comp_id='").append(customerId).append("' ")
+                    .append("FROM nl_batch t1 LEFT JOIN nl_batch_detail t2 ON t1.id = t2.batch_id WHERE t1.comp_id=? ")
                     .append("GROUP BY t1.batch_name,t1.id,t2.label_five ORDER BY t1.upload_time DESC ) x ")
                     .append(" GROUP BY x.batch_id,x.batchName ORDER BY x.upload_time DESC LIMIT 10");
-            List<Map<String, Object>> checkStatistics = jdbcTemplate.queryForList(checkSql.toString());
+            paramsCheck.add(customerId);
+            List<Map<String, Object>> checkStatistics = jdbcTemplate.queryForList(checkSql.toString(), paramsCheck.toArray());
             checkStatistics.stream().map(e -> e.put("effectiveRate", new BigDecimal(String.valueOf(e.get("effectiveRate")))
                     .setScale(2, BigDecimal.ROUND_HALF_UP))).collect(Collectors.toList());
             //前端首页 签收统计图
             StringBuffer signAndReceive = new StringBuffer("SELECT t1.id,t1.batch_name,SUM(CASE t2.`label_seven` WHEN '4' THEN 1 ELSE 0 END) AS sendVal,");
+            List<Object> paramsSign = new ArrayList<>();
             signAndReceive.append("SUM(CASE t3.`status` WHEN '4' THEN 1 ELSE 0 END) AS receiveVal,")
                     .append("SUM(CASE t3.`status` WHEN '2' THEN 1 WHEN '3' THEN 1 ELSE 0 END) AS sendingVal,")
                     .append("SUM(CASE t3.`status` WHEN '5' THEN 1 ELSE 0 END) AS rejectionVal ")
                     .append("FROM nl_batch t1 ")
                     .append("LEFT JOIN nl_batch_detail t2 ON t1.id=t2.batch_id ")
                     .append("LEFT JOIN t_touch_express_log t3 ON t2.touch_id=t3.touch_id ")
-                    .append("WHERE t1.comp_id='").append(customerId).append("' ")
+                    .append("WHERE t1.comp_id=? ")
                     .append(" GROUP BY t1.id,t1.batch_name ")
                     .append("ORDER BY t1.upload_time DESC LIMIT 10");
-            List<Map<String, Object>> signAndReceiveStatistic = jdbcTemplate.queryForList(signAndReceive.toString());
+            paramsSign.add(customerId);
+            List<Map<String, Object>> signAndReceiveStatistic = jdbcTemplate.queryForList(signAndReceive.toString(), paramsSign.toArray());
 
             data.put("checkStatistics", checkStatistics);
             data.put("signAndReceive", signAndReceiveStatistic);
@@ -1687,38 +1729,47 @@ public class MarketResourceService {
         String templateCode = templateParam.getTemplateCode();
         String enterpriseName = templateParam.getEnterPriseName();
         StringBuffer sb = new StringBuffer();
+        List<Object> params = new ArrayList<>();
         sb.append("select t.title,t.id,t.create_time,t.sms_signatures,t.template_code,c.enterprise_name,t.cust_id,\n" +
                 "case t.status when 1 then '审核中' when 2 then '审批通过' when 3 then '审批未通过' when 4 then '审批通过后无效' end  status,\n" +
                 "t.mould_content,t.remark \n" +
                 "from t_template t LEFT JOIN t_customer c on t.cust_id=c.cust_id\n" +
                 "where 1=1   ");
         if (null != title && !"".equals(title)) {
-            sb.append(" and t.title like '%" + title + "%'");
+            sb.append(" and t.title like '%?%'");
+            params.add(title);
         }
         if (null != templateId && !"".equals(templateId)) {
-            sb.append(" and t.id=" + templateId + "");
+            sb.append(" and t.id=?");
+            params.add(templateId);
         }
         if (null != status && !"".equals(status)) {
-            sb.append(" and t.status=" + status + "");
+            sb.append(" and t.status=?");
+            params.add(status);
         }
         if (null != customerId && !"".equals(customerId)) {
-            sb.append(" and t.cust_id='" + customerId + "'");
+            sb.append(" and t.cust_id=?");
+            params.add(customerId);
         }
         if (null != sms_signatures && !"".equals(sms_signatures)) {
-            sb.append(" and t.sms_signatures like '%" + sms_signatures + "%'");
+            sb.append(" and t.sms_signatures like '%?%'");
+            params.add(sms_signatures);
         }
 
         if (null != templateCode && !"".equals(templateCode)) {
-            sb.append(" and t.template_code like '%" + templateCode + "%'");
+            sb.append(" and t.template_code like '%?%'");
+            params.add(templateCode);
         }
 
         if (null != enterpriseName && !"".equals(enterpriseName)) {
-            sb.append(" and c.enterprise_name like '%" + enterpriseName + "%'");
+            sb.append(" and c.enterprise_name like '%?%'");
+            params.add(enterpriseName);
         }
 
-        sb.append(" and t.type_code=" + type_code);
+        sb.append(" and t.type_code=?");
+        params.add(type_code);
         sb.append(" ORDER BY t.create_time DESC");
-        return new Pagination().getPageData(sb.toString(), null, page, jdbcTemplate);
+        return new Pagination().getPageData(sb.toString(), params.toArray(), page, jdbcTemplate);
     }
 
 
@@ -1778,40 +1829,51 @@ public class MarketResourceService {
                 .append("  LEFT JOIN t_customer_user  tUser ")
                 .append("  ON tUser.id =  voicLog.user_id")
                 .append("  where 1=1").append(" and channel IS NOT NULL ");
+        List<Object> params = new ArrayList<>();
         if (StringUtil.isNotEmpty(recordVoiceQueryParam.getRealName())) {
-            sb.append(" AND   tUser.realname LIKE '%" + recordVoiceQueryParam.getRealName() + "%'");
+            sb.append(" AND   tUser.realname LIKE '%?%'");
+            params.add(recordVoiceQueryParam.getRealName());
         }
         if (StringUtil.isNotEmpty(recordVoiceQueryParam.getEnterpriseId())) {
-            sb.append(" AND  voicLog.enterprise_id= " + recordVoiceQueryParam.getEnterpriseId());
+            sb.append(" AND  voicLog.enterprise_id= ?");
+            params.add(recordVoiceQueryParam.getEnterpriseId());
         }
         if (StringUtil.isNotEmpty(recordVoiceQueryParam.getBatchId())) {
-            sb.append(" AND   voicLog.batch_id=" + recordVoiceQueryParam.getBatchId());
+            sb.append(" AND   voicLog.batch_id=?");
+            params.add(recordVoiceQueryParam.getBatchId());
         }
         if (StringUtil.isNotEmpty(recordVoiceQueryParam.getSuperId())) {
-            sb.append(" AND   voicLog.superid=" + recordVoiceQueryParam.getSuperId());
+            sb.append(" AND   voicLog.superid=?");
+            params.add(recordVoiceQueryParam.getSuperId());
         }
         if (StringUtil.isNotEmpty(recordVoiceQueryParam.getCustId())) {
-            sb.append(" AND   voicLog.cust_id=" + recordVoiceQueryParam.getCustId());
+            sb.append(" AND   voicLog.cust_id=?");
+            params.add(recordVoiceQueryParam.getCustId());
         }
         if (StringUtil.isNotEmpty(recordVoiceQueryParam.getUserType())) {
             if (recordVoiceQueryParam.getUserType().equals("2") && recordVoiceQueryParam.getUserId() != null) {
-                sb.append(" AND   voicLog.user_id=" + recordVoiceQueryParam.getUserId());
+                sb.append(" AND   voicLog.user_id=?");
+                params.add(recordVoiceQueryParam.getUserId());
             }
         }
         if (StringUtil.isNotEmpty(recordVoiceQueryParam.getCreateTimeStart()) && StringUtil.isNotEmpty(recordVoiceQueryParam.getCreateTimeEnd())) {
-            sb.append(" AND voicLog.create_time BETWEEN '" + recordVoiceQueryParam.getCreateTimeStart() + "' and '" + recordVoiceQueryParam.getCreateTimeEnd() + "' ");
+            sb.append(" AND voicLog.create_time BETWEEN ? and ? ");
+            params.add(recordVoiceQueryParam.getCreateTimeStart());
+            params.add(recordVoiceQueryParam.getCreateTimeEnd());
         } else {
             if (StringUtil.isNotEmpty(recordVoiceQueryParam.getCreateTimeStart())) {
-                sb.append(" AND voicLog.create_time > '" + recordVoiceQueryParam.getCreateTimeStart() + "'");
+                sb.append(" AND voicLog.create_time > ? ");
+                params.add(recordVoiceQueryParam.getCreateTimeStart());
             }
             if (StringUtil.isNotEmpty(recordVoiceQueryParam.getCreateTimeEnd())) {
-                sb.append(" AND voicLog.create_time < '" + recordVoiceQueryParam.getCreateTimeEnd() + "'");
+                sb.append(" AND voicLog.create_time < ?");
+                params.add(recordVoiceQueryParam.getCreateTimeEnd());
             }
         }
         sb.append("  AND   voicLog.status=1001");
         sb.append(" order by voicLog.create_time DESC");
         LOG.info("录音文件批量下载功能查询sql：" + sb.toString());
-        List<Map<String, Object>> list = jdbcTemplate.queryForList(sb.toString());
+        List<Map<String, Object>> list = jdbcTemplate.queryForList(sb.toString(), params.toArray());
         return list;
     }
 
@@ -1823,11 +1885,13 @@ public class MarketResourceService {
                 "FROM t_touch_voice_log voicLog\n" +
                 "LEFT JOIN t_callback_info backInfo ON voicLog.callSid = backInfo.callSid\n" +
                 "WHERE 1 = 1 ");
+        List<Object> params = new ArrayList<>();
         if (StringUtil.isNotEmpty(recordVoiceQueryParam.getTouchId())) {
-            sb.append(" AND  voicLog.touch_id= '" + recordVoiceQueryParam.getTouchId() + "'");
+            sb.append(" AND  voicLog.touch_id= ? ");
+            params.add(recordVoiceQueryParam.getTouchId());
         }
         LOG.info("录音文件单个下载功能查询sql：" + sb.toString());
-        List<Map<String, Object>> list = jdbcTemplate.queryForList(sb.toString());
+        List<Map<String, Object>> list = jdbcTemplate.queryForList(sb.toString(), params.toArray());
         return list;
     }
 
@@ -2213,12 +2277,14 @@ public class MarketResourceService {
 
     public PageList openSmsHistory(PageParam page, String custId) {
         StringBuffer stringBuffer = new StringBuffer();
+        List<Object> params = new ArrayList<>();
         stringBuffer.append("SELECT t.touch_id touchId,t.remark,t.create_time createTime,t.`status`,t.sms_content smsContent,t.superid superId,t.batch_id batchId,t.channel,u.account ");
         stringBuffer.append(" FROM t_touch_sms_log t LEFT JOIN t_customer_user u ON t.user_id = u.id ");
-        stringBuffer.append(" WHERE t.cust_id = " + custId);
+        stringBuffer.append(" WHERE t.cust_id = ? ");
+        params.add(custId);
         LOG.info("查询单条短信记录sql" + stringBuffer);
         //根据touchId和custId查询一条记录
-        return new Pagination().getPageData(stringBuffer.toString(), null, page, jdbcTemplate);
+        return new Pagination().getPageData(stringBuffer.toString(), params.toArray(), page, jdbcTemplate);
     }
 
     /**
@@ -2757,6 +2823,7 @@ public class MarketResourceService {
     public Object exportreach(String cust_id, Long userid, String user_type, String superId, String realName, String createTimeStart, String createTimeEnd, String enterpriseId, String batchId, int touchStatus, String enterpriseName, HttpServletResponse response) {
         Map<String, Object> resultMap = new HashMap<>();
         try {
+            List<Object> params = new ArrayList<>();
             StringBuffer sb = new StringBuffer();
             //user_type 1.管理员   2.普通用户   superId为用户id(联通返回的)
             sb.append(
@@ -2769,51 +2836,63 @@ public class MarketResourceService {
                     .append("  where 1=1").append(" and channel IS NOT NULL ");
 
             if (!"".equals(realName) && null != realName) {
-                sb.append(" AND   voicLog.remark LIKE '%" + realName + "%'");
+                sb.append(" AND   voicLog.remark LIKE '%?%'");
+                params.add(realName);
             }
 
             if (!"".equals(enterpriseName) && null != enterpriseName) {
-                sb.append(" AND   voicLog.remark LIKE '%" + enterpriseName + "%'");
+                sb.append(" AND   voicLog.remark LIKE '%?%'");
+                params.add(enterpriseName);
             }
 
             if (!"".equals(enterpriseId) && null != enterpriseId) {
-                sb.append(" AND  voicLog.enterprise_id= " + enterpriseId);
+                sb.append(" AND  voicLog.enterprise_id= ? ");
+                params.add(enterpriseId);
             }
 
             if (!"".equals(batchId) && null != batchId) {
-                sb.append(" AND   voicLog.batch_id=" + batchId);
+                sb.append(" AND   voicLog.batch_id=? ");
+                params.add(batchId);
             }
 
             if (!"".equals(superId) && null != superId) {
-                sb.append(" AND   voicLog.superid=" + superId);
+                sb.append(" AND   voicLog.superid=? ");
+                params.add(superId);
             }
 
             if ("1".equals(user_type) && StringUtil.isNotEmpty(cust_id)) {
-                sb.append(" AND   voicLog.cust_id=" + cust_id);
+                sb.append(" AND   voicLog.cust_id=? ");
+                params.add(cust_id);
             }
             if ("2".equals(user_type) && userid != null) {
-                sb.append(" AND   voicLog.user_id=" + userid);
+                sb.append(" AND   voicLog.user_id=? ");
+                params.add(userid);
             }
             if (touchStatus == 1001 || touchStatus == 1002) {
-                sb.append(" AND   voicLog.status=" + touchStatus);
+                sb.append(" AND   voicLog.status=? ");
+                params.add(touchStatus);
             }
 
             if (null != createTimeStart && !"".equals(createTimeStart) && null != createTimeEnd
                     && !"".equals(createTimeEnd)) {
-                sb.append(" AND voicLog.create_time BETWEEN '" + createTimeStart + "' and '" + createTimeEnd + "' ");
+                sb.append(" AND voicLog.create_time BETWEEN ? and ? ");
+                params.add(createTimeStart);
+                params.add(createTimeEnd);
             } else {
                 if (null != createTimeStart && !"".equals(createTimeStart)) {
-                    sb.append(" AND voicLog.create_time > '" + createTimeStart + "'");
+                    sb.append(" AND voicLog.create_time > ? ");
+                    params.add(createTimeStart);
                 }
                 if (null != createTimeEnd && !"".equals(createTimeEnd)) {
-                    sb.append(" AND voicLog.create_time < '" + createTimeEnd + "'");
+                    sb.append(" AND voicLog.create_time < ?");
+                    params.add(createTimeEnd);
                 }
             }
 
             sb.append(" order by voicLog.create_time DESC");
             LOG.info("通过记录sql:\t" + sb.toString());
 
-            List<Map<String, Object>> billlist = jdbcTemplate.queryForList(sb.toString());
+            List<Map<String, Object>> billlist = jdbcTemplate.queryForList(sb.toString(), params.toArray());
             String audioServerUrl = ConfigUtil.getInstance().get("audio_server_url");
             Map<String, Object> mapObj;
             for (int i = 0; i < billlist.size(); i++) {
@@ -3095,8 +3174,8 @@ public class MarketResourceService {
                 phoneId = batchDetail.getPhoneId();
                 enterpriseId = batchDetail.getEnterpriseId();
                 //根据phoneI的查询手机号码
-                String queryPhone = "SELECT * FROM u WHERE id = '" + phoneId + "'";
-                List<Map<String, Object>> list = batchDao.sqlQuery(queryPhone, new Object[]{});
+                String queryPhone = "SELECT * FROM u WHERE id = ?";
+                List<Map<String, Object>> list = batchDao.sqlQuery(queryPhone, phoneId);
                 if (list.size() > 0) {
                     phoneNum = String.valueOf(list.get(0).get("phone"));
                 }
@@ -3277,8 +3356,8 @@ public class MarketResourceService {
                 phoneId = batchDetail.getPhoneId();
                 enterpriseId = batchDetail.getEnterpriseId();
                 //根据phoneI的查询手机号码
-                String queryPhone = "SELECT * FROM u WHERE id = '" + phoneId + "'";
-                List<Map<String, Object>> list = batchDao.sqlQuery(queryPhone, new Object[]{});
+                String queryPhone = "SELECT * FROM u WHERE id = ?";
+                List<Map<String, Object>> list = batchDao.sqlQuery(queryPhone, phoneId);
                 if (list.size() > 0) {
                     phoneNum = String.valueOf(list.get(0).get("phone"));
                 }
@@ -3741,10 +3820,12 @@ public class MarketResourceService {
         StringBuffer querySql = new StringBuffer("SELECT r.resname,r.resource_id,s.`name` supplierName,s.supplier_id,r.type_code ");
         querySql.append("FROM t_market_resource r LEFT JOIN t_supplier s ON r.supplier_id = s.supplier_id ");
         querySql.append("WHERE s.`status` = 1 AND r.`status` = 1 ");
+        List<Object> params = new ArrayList<>();
         if (StringUtil.isNotEmpty(type)) {
-            querySql.append("AND r.type_code =" + type);
+            querySql.append("AND r.type_code =?");
+            params.add(type);
         }
-        List<Map<String, Object>> list = marketResourceDao.sqlQuery(querySql.toString());
+        List<Map<String, Object>> list = marketResourceDao.sqlQuery(querySql.toString(), params.toArray());
         if (StringUtil.isNotEmpty(supplierId)) {
             //查询供应商关联的资源信息
             SupplierPropertyEntity resourceInfo = supplierDao.getSupplierProperty(supplierId, "express_resource");
@@ -3816,6 +3897,7 @@ public class MarketResourceService {
     public void insertLogV3(MarketResourceLogDTO dto) {
         String type_code = dto.getType_code();
         StringBuffer sql = new StringBuffer();
+        List<Object> params = new ArrayList<>();
         if (type_code.equals("1")) {
             String nowYearMonth = DateUtil.getNowMonthToYYYYMM();
             // 检查通话记录月表是否存在
@@ -3824,47 +3906,51 @@ public class MarketResourceService {
             sql.setLength(0);
             sql.append(
                     "insert  into " + ConstantsUtil.TOUCH_VOICE_TABLE_PREFIX + nowYearMonth + " (touch_id,cust_id,user_id,remark,create_time,status,superId,callSid,customer_group_id, cug_id, market_task_id, customer_sea_id) values ( ");
-            sql.append("'" + dto.getTouch_id() + "',");
-            sql.append("'" + dto.getCust_id() + "',");
-            sql.append("'" + dto.getUser_id() + "',");
-            sql.append("'" + dto.getRemark() + "',");
+            sql.append("?,?,?,?,");
+            params.add(dto.getTouch_id());
+            params.add(dto.getCust_id());
+            params.add(dto.getUser_id());
+            params.add(dto.getRemark());
             sql.append("now(),");
-            sql.append("'" + dto.getStatus() + "',");
-            sql.append("'" + dto.getSuperId() + "',");
-            sql.append("'" + dto.getCallSid() + "',");
-            sql.append("'" + dto.getCustomerGroupId() + "',");
-            sql.append("'" + dto.getCugId() + "',");
-            sql.append("'" + dto.getMarketTaskId() + "',");
-            sql.append("'" + dto.getCustomerSeaId() + "')");
+            sql.append("?,?,?,?,?,?,?)");
+            params.add(dto.getStatus());
+            params.add(dto.getSuperId());
+            params.add(dto.getCallSid());
+            params.add(dto.getCustomerGroupId());
+            params.add(dto.getCugId());
+            params.add(dto.getMarketTaskId());
+            params.add(dto.getCustomerSeaId());
         }
         if (type_code.equals("2")) {
             sql.append(
                     "insert  into t_touch_sms_log (cust_id,user_id,remark,create_time,status,sms_content,superId) values ( ");
-            // sql.append("'"+dto.getTouch_id()+"',");
-            sql.append("'" + dto.getCust_id() + "',");
-            sql.append("'" + dto.getUser_id() + "',");
-            sql.append("'" + dto.getRemark() + "',");
+            sql.append("?,?,?,");
+            params.add(dto.getCust_id());
+            params.add(dto.getUser_id());
+            params.add(dto.getRemark());
             sql.append("now(),");
-            sql.append("'" + dto.getStatus() + "',");
-            sql.append("'" + dto.getSms_content() + "',");
-            sql.append("'" + dto.getSuperId() + "')");
+            sql.append("?,?,?)");
+            params.add(dto.getStatus());
+            params.add(dto.getSms_content());
+            params.add(dto.getSuperId());
         }
         if (type_code.equals("3")) {
             sql.append(
                     "insert  into t_touch_email_log (cust_id,user_id,remark,create_time,status,email_content,superId,templateId,batch_number) values ( ");
-            // sql.append("'"+dto.getTouch_id()+"',");
-            sql.append("'" + dto.getCust_id() + "',");
-            sql.append("'" + dto.getUser_id() + "',");
-            sql.append("'" + dto.getRemark() + "',");
+            sql.append("?,?,?,");
+            params.add(dto.getCust_id());
+            params.add(dto.getUser_id());
+            params.add(dto.getRemark());
             sql.append("now(),");
-            sql.append("'" + dto.getStatus() + "',");
-            sql.append("'" + dto.getEmail_content() + "',");
-            sql.append("'" + dto.getSuperId() + "',");
-            sql.append("'" + dto.getTemplateId() + "',");
-            sql.append("'" + dto.getBatchNumber() + "')");
+            sql.append("?,?,?,?,?)");
+            params.add(dto.getStatus());
+            params.add(dto.getEmail_content());
+            params.add(dto.getSuperId());
+            params.add(dto.getTemplateId());
+            params.add(dto.getBatchNumber());
         }
         LOG.info("inserLog：SQL------->" + sql.toString());
-        marketResourceDao.insertLog(sql.toString());
+        marketResourceDao.executeUpdateSQL(sql.toString(), params.toArray());
     }
 
 
@@ -3893,8 +3979,8 @@ public class MarketResourceService {
 
         // 购买营销资源
         // 根据资源信息计算所需要的money
-        String moneySql = "SELECT resname,sale_price,cost_price,supplier_id FROM t_market_resource where  resource_id='" + resourceId + "' and type_code='" + typeCode + "' ";
-        List<Map<String, Object>> groupConfigList = this.marketResourceDao.sqlQuery(moneySql);
+        String moneySql = "SELECT resname,sale_price,cost_price,supplier_id FROM t_market_resource where  resource_id=? and type_code=? ";
+        List<Map<String, Object>> groupConfigList = this.marketResourceDao.sqlQuery(moneySql, resourceId, typeCode);
         String resname = groupConfigList.get(0).get("resname").toString();
         Double sale_price = Double.parseDouble(groupConfigList.get(0).get("sale_price").toString());
         Double cost_price = Double.parseDouble(groupConfigList.get(0).get("cost_price").toString());
@@ -3933,8 +4019,8 @@ public class MarketResourceService {
         String sql = "SELECT remain from t_resource_account where cust_id=?  AND resource_id=? ";
         int count = marketResourceDao.queryResource(sql, custId, resourceId);
         // 查询供应商信息
-        String supplierSql = "SELECT name,type from t_supplier where supplier_id='" + supplier_id + "'  ";
-        List<Map<String, Object>> groupSupplierList = this.marketResourceDao.sqlQuery(supplierSql);
+        String supplierSql = "SELECT name,type from t_supplier where supplier_id=?  ";
+        List<Map<String, Object>> groupSupplierList = this.marketResourceDao.sqlQuery(supplierSql, supplier_id);
         String name = groupSupplierList.get(0).get("name").toString();
         String type = groupSupplierList.get(0).get("type").toString();
         // 根据返回值判断是插入或者是更新数据
@@ -4058,23 +4144,31 @@ public class MarketResourceService {
 
     public List<Map<String, Object>> getFlashSmsTemplateList(String typeCode, String templateName, String templateId, String status, String customerId, Integer pageNum, Integer pageSize) {
         List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+        List<Object> params = new ArrayList<>();
         StringBuffer sb = new StringBuffer();
         sb.append(
                 "select title,id,create_time,case status when 1 then '审核中' when 2 then '审批通过' when 3 then '审批未通过' end  status,mould_content, template_code from t_template where 1=1 ");
         if (null != templateName && !"".equals(templateName)) {
-            sb.append(" and title like '%" + templateName + "%'");
+            sb.append(" and title like '%?%'");
+            params.add(templateName);
         }
         if (null != templateId && !"".equals(templateId)) {
-            sb.append(" and id=" + templateId + "");
+            sb.append(" and id=?");
+            params.add(templateId);
         }
         if (null != status && !"".equals(status)) {
-            sb.append(" and status=" + status + "");
+            sb.append(" and status=?");
+            params.add(status);
         }
-        sb.append(" and cust_id='" + customerId + "'");
-        sb.append(" and type_code=" + typeCode);
+        sb.append(" and cust_id=?");
+        params.add(customerId);
+        sb.append(" and type_code=?");
+        params.add(typeCode);
         sb.append(" ORDER BY create_time DESC");
-        sb.append(" LIMIT " + pageNum + ", " + pageSize);
-        list = this.marketResourceDao.sqlQuery(sb.toString());
+        params.add(pageNum);
+        params.add(pageSize);
+        sb.append(" LIMIT ?,? ");
+        list = this.marketResourceDao.sqlQuery(sb.toString(), params.toArray());
         return list;
     }
 
@@ -4089,23 +4183,30 @@ public class MarketResourceService {
         // 1.短信 2.邮件
         String sql = "";
         String code = "0";
+        List<Object> params = new ArrayList<>();
         if (type_code.equals("1")) {
             if (loginUser.getUserType().equals("0")) {
-                sql = "select title,mould_content,sms_signatures from t_template where id='" + templateId + "' ORDER BY create_time DESC";
+                sql = "select title,mould_content,sms_signatures from t_template where id=? ORDER BY create_time DESC";
+                params.add(templateId);
             } else {
-                sql = "select title,mould_content,sms_signatures from t_template where cust_id='" + loginUser.getCustId() + "'  and id='" + templateId + "' ORDER BY create_time DESC";
+                sql = "select title,mould_content,sms_signatures from t_template where cust_id=?  and id=? ORDER BY create_time DESC";
+                params.add(loginUser.getCustId());
+                params.add(templateId);
             }
-            list = this.marketResourceDao.sqlQuery(sql);
+            list = this.marketResourceDao.sqlQuery(sql, params.toArray());
         }
         if (type_code.equals("2")) {
             if (loginUser.getUserType().equals("0")) {
                 sql = "select title,email_mould_content from t_template where id=? ORDER BY create_time DESC";
+                params.add(templateId);
             } else {
-                sql = "select title,email_mould_content from t_template where cust_id=" + loginUser.getCustId() + "' and id=? ORDER BY create_time DESC";
+                sql = "select title,email_mould_content from t_template where cust_id=? and id=? ORDER BY create_time DESC";
+                params.add(loginUser.getCustId());
+                params.add(templateId);
             }
 
             String title = null, email_mould_content = null;
-            list = this.marketResourceDao.sqlQuery(sql, templateId);
+            list = this.marketResourceDao.sqlQuery(sql, params.toArray());
             if (list.size() > 0) {
                 title = String.valueOf(list.get(0));
                 email_mould_content = String.valueOf(list.get(0));
@@ -4272,6 +4373,7 @@ public class MarketResourceService {
     public List<Map<String, Object>> queryRecordVoicelog(String cust_id, Long userid, String user_type, String superId,
                                                          Integer pageNum, Integer pageSize, String realName, String createTimeStart, String createTimeEnd) {
         List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+        List<Object> params = new ArrayList<>();
         StringBuffer sb = new StringBuffer();
         if ("1".equals(user_type)) {
             if ("".equals(superId)) {
@@ -4282,27 +4384,35 @@ public class MarketResourceService {
                         .append("  ON voicLog.callSid = backInfo.callSid")
                         .append("  LEFT JOIN t_customer_user  tUser ")
                         .append("  ON tUser.id =  voicLog.user_id")
-                        .append("  where voicLog.cust_id='" + cust_id + "'");
+                        .append("  where voicLog.cust_id=?");
+                params.add(cust_id);
 
                 if (!"".equals(realName) && null != realName) {
-                    sb.append(" AND   tUser.realname LIKE '%" + realName + "%'");
+                    sb.append(" AND   tUser.realname LIKE '%?%'");
+                    params.add(realName);
                 }
 
                 if (null != createTimeStart && !"".equals(createTimeStart) && null != createTimeEnd
                         && !"".equals(createTimeEnd)) {
-                    sb.append(" AND voicLog.create_time BETWEEN '" + createTimeStart + "' and '" + createTimeEnd + "' ");
+                    sb.append(" AND voicLog.create_time BETWEEN ? and ? ");
+                    params.add(createTimeStart);
+                    params.add(createTimeEnd);
                 } else {
                     if (null != createTimeStart && !"".equals(createTimeStart)) {
-                        sb.append(" AND voicLog.create_time > '" + createTimeStart + "'");
+                        sb.append(" AND voicLog.create_time > ?");
+                        params.add(createTimeStart);
                     }
                     if (null != createTimeEnd && !"".equals(createTimeEnd)) {
-                        sb.append(" AND voicLog.create_time < '" + createTimeEnd + "'");
+                        sb.append(" AND voicLog.create_time < ?");
+                        params.add(createTimeEnd);
                     }
                 }
 
                 sb.append(" order by voicLog.create_time DESC");
-                sb.append(" LIMIT " + pageNum + "," + pageSize);
-                list = this.marketResourceDao.sqlQuery(sb.toString());
+                sb.append(" LIMIT ?,?");
+                params.add(pageNum);
+                params.add(pageSize);
+                list = this.marketResourceDao.sqlQuery(sb.toString(), params.toArray());
             } else {
                 sb.append(
                         "  select voicLog.superid,voicLog.create_time create_time,voicLog.status, CAST(voicLog.user_id AS CHAR) user_id, voicLog.remark,backInfo.Callerduration, tUser.account name,tUser.realname,substring_index( backInfo.recordurl ,'/' , -1 ) as recordurl ")
@@ -4311,12 +4421,16 @@ public class MarketResourceService {
                         .append("  ON voicLog.callSid = backInfo.callSid")
                         .append("  LEFT JOIN t_customer_user  tUser ")
                         .append("  ON tUser.id =  voicLog.user_id")
-                        .append("  where voicLog.cust_id='" + cust_id + "'")
-                        .append("  and voicLog.superid='" + superId + "'");
+                        .append("  where voicLog.cust_id=?")
+                        .append("  and voicLog.superid=? ");
+                params.add(cust_id);
+                params.add(superId);
                 sb.append(" order by voicLog.create_time DESC");
-                sb.append(" LIMIT " + pageNum + "," + pageSize);
+                sb.append(" LIMIT ?,?");
+                params.add(pageNum);
+                params.add(pageSize);
 
-                list = this.marketResourceDao.sqlQuery(sb.toString());
+                list = this.marketResourceDao.sqlQuery(sb.toString(), params.toArray());
             }
 
         }
@@ -4329,27 +4443,35 @@ public class MarketResourceService {
                         .append("  ON voicLog.callSid = backInfo.callSid")
                         .append("  LEFT JOIN t_customer_user  tUser ")
                         .append("  ON tUser.id =  voicLog.user_id")
-                        .append("  where voicLog.user_id='" + userid + "'");
+                        .append("  where voicLog.user_id=?");
+                params.add(userid);
                 if (!"".equals(realName) && null != realName) {
-                    sb.append(" AND   tUser.realname LIKE '%" + realName + "%'");
+                    sb.append(" AND   tUser.realname LIKE '%?%'");
+                    params.add(realName);
                 }
 
                 if (null != createTimeStart && !"".equals(createTimeStart) && null != createTimeEnd
                         && !"".equals(createTimeEnd)) {
-                    sb.append(" AND voicLog.create_time BETWEEN '" + createTimeStart + "' and '" + createTimeEnd + "' ");
+                    sb.append(" AND voicLog.create_time BETWEEN ? and ? ");
+                    params.add(createTimeStart);
+                    params.add(createTimeEnd);
                 } else {
                     if (null != createTimeStart && !"".equals(createTimeStart)) {
-                        sb.append(" AND voicLog.create_time > '" + createTimeStart + "'");
+                        sb.append(" AND voicLog.create_time > ?");
+                        params.add(createTimeStart);
                     }
                     if (null != createTimeEnd && !"".equals(createTimeEnd)) {
-                        sb.append(" AND voicLog.create_time < '" + createTimeEnd + "'");
+                        sb.append(" AND voicLog.create_time < ? ");
+                        params.add(createTimeEnd);
                     }
                 }
 
                 sb.append(" order by voicLog.create_time DESC");
-                sb.append("  LIMIT " + pageNum + "," + pageSize);
+                sb.append("  LIMIT ?,?");
+                params.add(pageNum);
+                params.add(pageSize);
 
-                list = this.marketResourceDao.sqlQuery(sb.toString());
+                list = this.marketResourceDao.sqlQuery(sb.toString(), params.toArray());
             } else {
                 sb.append(
                         "  select voicLog.superid,voicLog.create_time create_time,voicLog.status,CAST(voicLog.user_id AS CHAR) user_id,voicLog.remark,backInfo.Callerduration,tUser.account name,tUser.realname,substring_index( backInfo.recordurl ,'/' , -1 ) as recordurl ")
@@ -4358,12 +4480,16 @@ public class MarketResourceService {
                         .append("  ON voicLog.callSid = backInfo.callSid")
                         .append("  LEFT JOIN t_customer_user  tUser ")
                         .append("  ON tUser.id =  voicLog.user_id")
-                        .append("  where voicLog.user_id='" + userid + "'")
-                        .append("  and voicLog.superid='" + superId + "'");
+                        .append("  where voicLog.user_id=?")
+                        .append("  and voicLog.superid=?");
+                params.add(userid);
+                params.add(superId);
                 sb.append(" order by voicLog.create_time DESC");
-                sb.append(" LIMIT " + pageNum + "," + pageSize);
+                sb.append(" LIMIT ?,?");
+                params.add(pageNum);
+                params.add(pageSize);
 
-                list = this.marketResourceDao.sqlQuery(sb.toString());
+                list = this.marketResourceDao.sqlQuery(sb.toString(), params.toArray());
             }
         }
 
@@ -4377,6 +4503,7 @@ public class MarketResourceService {
         int taskType = -1;
         try {
             StringBuffer sb = new StringBuffer();
+            List<Object> params = new ArrayList<>();
             // 开始时间和结束时间为空时默认查当天
             if (StringUtil.isEmpty(createTimeStart)) {
                 createTimeStart = LocalDateTime.of(LocalDate.now(), LocalTime.MIN).format(YYYYMMDDHHMMSS);
@@ -4405,39 +4532,47 @@ public class MarketResourceService {
             if (3 == taskType) {
                 sb.append("select voicLog.touch_id touchId, voicLog.callSid, voicLog.superid,voicLog.create_time create_time,voicLog.status, CAST(voicLog.user_id AS CHAR) user_id,voicLog.remark,")
                         .append(" voicLog.call_data, voicLog.recordurl, voicLog.clue_audit_status auditingStatus ")
-                        .append("  from " + monthTableName + " voicLog WHERE 1=1 ");
+                        .append("  from ? voicLog WHERE 1=1 ");
+                params.add(monthTableName);
             } else {
                 sb.append("select voicLog.touch_id touchId, voicLog.callSid, voicLog.superid,voicLog.create_time create_time,voicLog.status, CAST(voicLog.user_id AS CHAR) user_id,voicLog.remark,")
                         .append(" voicLog.call_data, voicLog.recordurl ")
-                        .append("  from " + monthTableName + " voicLog  WHERE 1=1");
+                        .append("  from ? voicLog  WHERE 1=1");
+                params.add(monthTableName);
             }
             if (StringUtil.isNotEmpty(loginUser.getCustId())) {
-                sb.append(" AND voicLog.cust_id='" + loginUser.getCustId() + "'");
+                sb.append(" AND voicLog.cust_id=?");
+                params.add(loginUser.getCustId());
             }
             // 处理根据登陆账号或者用户姓名搜索
             CustomerUser user = null;
             if (StringUtil.isNotEmpty(realName)) {
                 user = this.customerUserDao.getCustomerUserByName(realName.trim());
                 if (user != null) {
-                    sb.append(" AND  voicLog.user_id = '" + user.getId() + "'");
+                    sb.append(" AND  voicLog.user_id = ?");
+                    params.add(user.getId());
                 } else {
                     // 穿透查询一次登陆名称
                     user = this.customerUserDao.getCustomerUserByLoginName(realName.trim());
                     if (user != null) {
-                        sb.append(" AND  voicLog.user_id = '" + user.getId() + "'");
+                        sb.append(" AND  voicLog.user_id = ?");
+                        params.add(user.getId());
                     } else {
                         return list;
                     }
                 }
             }
             if (StringUtil.isNotEmpty(customerGroupId)) {
-                sb.append(" AND  voicLog.customer_group_id =" + customerGroupId);
+                sb.append(" AND  voicLog.customer_group_id =?");
+                params.add(customerGroupId);
             }
             if (StringUtil.isNotEmpty(remark)) {
-                sb.append(" AND  voicLog.remark LIKE '%" + remark.trim() + "%'");
+                sb.append(" AND  voicLog.remark LIKE '%?%'");
+                params.add(remark.trim());
             }
             if (StringUtil.isNotEmpty(superId)) {
-                sb.append(" AND voicLog.superid='" + superId.trim() + "'");
+                sb.append(" AND voicLog.superid=?");
+                params.add(superId.trim());
             }
             //　处理通话状态查询
             if (StringUtil.isNotEmpty(callStatus)) {
@@ -4448,18 +4583,23 @@ public class MarketResourceService {
                 } else if ("2".equals(callStatus)) {
                     sb.append(" AND voicLog.status = 1002");
                 } else {
-                    sb.append(" AND voicLog.status = " + CallStatusEnum.getByType(NumberConvertUtil.parseInt(callStatus)).getStatus());
+                    sb.append(" AND voicLog.status = ?");
+                    params.add(CallStatusEnum.getByType(NumberConvertUtil.parseInt(callStatus)).getStatus());
                 }
             }
             // 处理开始和结束数据搜索
             if (StringUtil.isNotEmpty(createTimeStart) && StringUtil.isNotEmpty(createTimeEnd)) {
-                sb.append(" AND voicLog.create_time BETWEEN '" + createTimeStart + "' and '" + createTimeEnd + "' ");
+                sb.append(" AND voicLog.create_time BETWEEN ? and ? ");
+                params.add(createTimeStart);
+                params.add(createTimeEnd);
             } else {
                 if (StringUtil.isNotEmpty(createTimeStart)) {
-                    sb.append(" AND voicLog.create_time > '" + createTimeStart + "'");
+                    sb.append(" AND voicLog.create_time > ?");
+                    params.add(createTimeStart);
                 }
                 if (StringUtil.isNotEmpty(createTimeEnd)) {
-                    sb.append(" AND voicLog.create_time < '" + createTimeEnd + "'");
+                    sb.append(" AND voicLog.create_time < ?");
+                    params.add(createTimeEnd);
                 }
             }
 
@@ -4468,15 +4608,18 @@ public class MarketResourceService {
                 // 处理机器人外呼的意向度
                 if (StringUtil.isNotEmpty(level)) {
                     String levelLike = "\"level\":\"" + level + "\"";
-                    sb.append(" AND voicLog.call_data LIKE '%" + levelLike + "%'");
+                    sb.append(" AND voicLog.call_data LIKE '%?%'");
+                    params.add(levelLike);
                 }
                 // 处理按照操作人搜索营销记录时机器人外呼任务记录可以搜到
                 if (user != null) {
-                    sb.append(" AND (voicLog.user_id = '" + user.getId() + "' OR voicLog.call_data LIKE '%level%')");
+                    sb.append(" AND (voicLog.user_id = ? OR voicLog.call_data LIKE '%level%')");
+                    params.add(user.getId());
                 }
                 // 处理人工审核搜索条件
                 if (StringUtil.isNotEmpty(auditingStatus)) {
-                    sb.append(" AND voicLog.clue_audit_status = " + auditingStatus);
+                    sb.append(" AND voicLog.clue_audit_status = ?");
+                    params.add(auditingStatus);
                 }
             }
             // 处理组长权限
@@ -4492,30 +4635,38 @@ public class MarketResourceService {
                         }
                         if (userIds.size() > 0) {
                             if (3 == taskType) {
-                                sb.append(" AND (voicLog.user_id IN(" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ") OR voicLog.call_data LIKE '%level%')");
+                                sb.append(" AND (voicLog.user_id IN(?) OR voicLog.call_data LIKE '%level%')");
+                                params.add(SqlAppendUtil.sqlAppendWhereIn(userIds));
                             } else {
-                                sb.append(" AND voicLog.user_id IN(" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ")");
+                                sb.append(" AND voicLog.user_id IN(?)");
+                                params.add(SqlAppendUtil.sqlAppendWhereIn(userIds));
                             }
                         }
                     } else {
                         // 处理组长下没有员工的情况,只查询自己的通话记录
                         if (3 == taskType) {
-                            sb.append(" AND (voicLog.user_id = '" + loginUser.getId() + "' OR voicLog.call_data LIKE '%level%')");
+                            sb.append(" AND (voicLog.user_id = ? OR voicLog.call_data LIKE '%level%')");
+                            params.add(loginUser.getId());
                         } else {
-                            sb.append(" AND voicLog.user_id = '" + loginUser.getId() + "'");
+                            sb.append(" AND voicLog.user_id = ?");
+                            params.add(loginUser.getId());
                         }
                     }
                 } else {
                     if (3 == taskType) {
-                        sb.append(" AND (voicLog.user_id = '" + loginUser.getId() + "' OR voicLog.call_data LIKE '%level%')");
+                        sb.append(" AND (voicLog.user_id = ? OR voicLog.call_data LIKE '%level%')");
+                        params.add(loginUser.getId());
                     } else {
-                        sb.append(" AND voicLog.user_id = '" + loginUser.getId() + "'");
+                        sb.append(" AND voicLog.user_id = ? ");
+                        params.add(loginUser.getId());
                     }
                 }
             }
             sb.append(" order by voicLog.create_time DESC");
             sb.append("  LIMIT ?,? ");
-            list = this.marketResourceDao.sqlQuery(sb.toString(), pageNum, pageSize);
+            params.add(pageNum);
+            params.add(pageSize);
+            list = this.marketResourceDao.sqlQuery(sb.toString(), params.toArray());
             CustomerUser customerUser;
             if (list.size() > 0) {
                 //处理用户信息和录音文件
@@ -4609,6 +4760,7 @@ public class MarketResourceService {
         int taskType = -1;
         try {
             StringBuffer sb = new StringBuffer();
+            List<Object> params = new ArrayList<>();
             LocalDate endTime = LocalDate.now();
             // 开始时间和结束时间为空时默认查当天
             if (StringUtil.isEmpty(createTimeStart)) {
@@ -4641,7 +4793,8 @@ public class MarketResourceService {
             if (StringUtil.isNotEmpty(seaId)) {
                 sb.append(" , t2.super_data  ");
             }
-            sb.append(" from " + monthTableName + " voicLog ");
+            sb.append(" from ? voicLog ");
+            params.add(monthTableName);
             if (StringUtil.isNotEmpty(seaId)) {
                 sb.append(" INNER JOIN " + ConstantsUtil.SEA_TABLE_PREFIX + seaId + " t2 ON t2.id = voicLog.superid ");
             }
@@ -4669,7 +4822,8 @@ public class MarketResourceService {
                         } else {
                             likeValue = "%\"" + labelId + "\":\"" + optionValue + "\"%";
                         }
-                        sb.append(" AND t2.super_data LIKE '" + likeValue + "' ");
+                        sb.append(" AND t2.super_data LIKE ? ");
+                        params.add(likeValue);
                     }
                 }
             }
@@ -4699,7 +4853,8 @@ public class MarketResourceService {
                         } else {
                             likeValue = "%\"" + labelId + "\":\"" + optionValue + "\"%";
                         }
-                        sb.append(" AND t2.super_data LIKE '" + likeValue + "' ");
+                        sb.append(" AND t2.super_data LIKE ? ");
+                        params.add(likeValue);
                     }
                 }
             }
@@ -4707,35 +4862,42 @@ public class MarketResourceService {
             if ("-1".equals(userQueryParam.getCustId())) {
                 sb.append(" AND voicLog.cust_id IS NOT NULL ");
             } else {
-                sb.append(" AND voicLog.cust_id='" + userQueryParam.getCustId() + "'");
+                sb.append(" AND voicLog.cust_id=?");
+                params.add(userQueryParam.getCustId());
             }
             // 处理根据登陆账号或者用户姓名搜索
             CustomerUser user = null;
             if (StringUtil.isNotEmpty(realName)) {
                 user = this.customerUserDao.getCustomerUserByName(realName.trim());
                 if (user != null) {
-                    sb.append(" AND voicLog.user_id = '" + user.getId() + "'");
+                    sb.append(" AND voicLog.user_id = ?");
+                    params.add(user.getId());
                 } else {
                     // 穿透查询一次登陆名称
                     user = this.customerUserDao.getCustomerUserByLoginName(realName.trim());
                     if (user != null) {
-                        sb.append(" AND  voicLog.user_id = '" + user.getId() + "'");
+                        sb.append(" AND  voicLog.user_id = ?");
+                        params.add(user.getId());
                     } else {
                         return new com.bdaim.common.dto.Page();
                     }
                 }
             }
             if (StringUtil.isNotEmpty(customerGroupId)) {
-                sb.append(" AND voicLog.customer_group_id =" + customerGroupId.trim());
+                sb.append(" AND voicLog.customer_group_id =? ");
+                params.add(customerGroupId.trim());
             }
             if (StringUtil.isNotEmpty(remark)) {
-                sb.append(" AND voicLog.remark LIKE '%" + remark.trim() + "%'");
+                sb.append(" AND voicLog.remark LIKE '%?%'");
+                params.add(remark.trim());
             }
             if (StringUtil.isNotEmpty(superId)) {
-                sb.append(" AND voicLog.superid='" + superId.trim() + "'");
+                sb.append(" AND voicLog.superid=?");
+                params.add(superId.trim());
             }
             if (StringUtil.isNotEmpty(marketTaskId)) {
-                sb.append(" AND voicLog.market_task_id='" + marketTaskId.trim() + "'");
+                sb.append(" AND voicLog.market_task_id=?");
+                params.add(marketTaskId.trim());
             }
             //　处理通话状态查询
             if (StringUtil.isNotEmpty(callStatus)) {
@@ -4746,18 +4908,23 @@ public class MarketResourceService {
                 } else if ("2".equals(callStatus)) {
                     sb.append(" AND voicLog.status = 1002");
                 } else {
-                    sb.append(" AND voicLog.status = " + CallStatusEnum.getByType(NumberConvertUtil.parseInt(callStatus)).getStatus());
+                    sb.append(" AND voicLog.status = ?");
+                    params.add(CallStatusEnum.getByType(NumberConvertUtil.parseInt(callStatus)).getStatus());
                 }
             }
             // 处理开始和结束数据搜索
             if (StringUtil.isNotEmpty(createTimeStart) && StringUtil.isNotEmpty(createTimeEnd)) {
-                sb.append(" AND voicLog.create_time BETWEEN '" + createTimeStart + "' and '" + createTimeEnd + "' ");
+                sb.append(" AND voicLog.create_time BETWEEN ? and ? ");
+                params.add(createTimeStart);
+                params.add(createTimeEnd);
             } else {
                 if (StringUtil.isNotEmpty(createTimeStart)) {
-                    sb.append(" AND voicLog.create_time > '" + createTimeStart + "'");
+                    sb.append(" AND voicLog.create_time > ?");
+                    params.add(createTimeStart);
                 }
                 if (StringUtil.isNotEmpty(createTimeEnd)) {
-                    sb.append(" AND voicLog.create_time < '" + createTimeEnd + "'");
+                    sb.append(" AND voicLog.create_time < ?");
+                    params.add(createTimeEnd);
                 }
             }
             //type 0 查詢全部   1查詢<=3  2、3s-6s 3.6s-12s  4.12s-30s 5.30s-60s 6.>60s
@@ -4779,15 +4946,18 @@ public class MarketResourceService {
                 // 处理机器人外呼的意向度
                 if (StringUtil.isNotEmpty(level)) {
                     String levelLike = "\"level\":\"" + level + "\"";
-                    sb.append(" AND voicLog.call_data LIKE '%" + levelLike + "%'");
+                    sb.append(" AND voicLog.call_data LIKE '%?%'");
+                    params.add(levelLike);
                 }
                 // 处理按照操作人搜索营销记录时机器人外呼任务记录可以搜到
                 if (user != null) {
-                    sb.append(" AND (voicLog.user_id = '" + user.getId() + "' OR voicLog.call_data LIKE '%level%')");
+                    sb.append(" AND (voicLog.user_id = ? OR voicLog.call_data LIKE '%level%')");
+                    params.add(user.getId());
                 }
                 // 处理人工审核搜索条件
                 if (StringUtil.isNotEmpty(auditingStatus)) {
-                    sb.append(" AND voicLog.clue_audit_status = " + auditingStatus);
+                    sb.append(" AND voicLog.clue_audit_status = ?");
+                    params.add(auditingStatus);
                 }
             }
             // 处理组长权限
@@ -4803,33 +4973,40 @@ public class MarketResourceService {
                         }
                         if (userIds.size() > 0) {
                             if (3 == taskType) {
-                                sb.append(" AND (voicLog.user_id IN(" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ") OR voicLog.call_data LIKE '%level%')");
+                                sb.append(" AND (voicLog.user_id IN(?) OR voicLog.call_data LIKE '%level%')");
+                                params.add(SqlAppendUtil.sqlAppendWhereIn(userIds));
                             } else {
-                                sb.append(" AND voicLog.user_id IN(" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ")");
+                                sb.append(" AND voicLog.user_id IN(?)");
+                                params.add(SqlAppendUtil.sqlAppendWhereIn(userIds));
                             }
                         }
                     } else {
                         // 处理组长下没有员工的情况,只查询自己的通话记录
                         if (3 == taskType) {
-                            sb.append(" AND (voicLog.user_id = '" + userQueryParam.getUserId() + "' OR voicLog.call_data LIKE '%level%')");
+                            sb.append(" AND (voicLog.user_id = ? OR voicLog.call_data LIKE '%level%')");
+                            params.add(userQueryParam.getUserId());
                         } else {
-                            sb.append(" AND voicLog.user_id = '" + userQueryParam.getUserId() + "'");
+                            sb.append(" AND voicLog.user_id = ? ");
+                            params.add(userQueryParam.getUserId());
                         }
                     }
                 } else {
                     if (3 == taskType) {
-                        sb.append(" AND (voicLog.user_id = '" + userQueryParam.getUserId() + "' OR voicLog.call_data LIKE '%level%')");
+                        sb.append(" AND (voicLog.user_id = ? OR voicLog.call_data LIKE '%level%')");
+                        params.add(userQueryParam.getUserId());
                     } else {
-                        sb.append(" AND voicLog.user_id = '" + userQueryParam.getUserId() + "'");
+                        sb.append(" AND voicLog.user_id = ? ");
+                        params.add(userQueryParam.getUserId());
                     }
                 }
             }
             // 根据公海ID查询通话记录
             if (StringUtil.isNotEmpty(seaId)) {
-                sb.append(" AND voicLog.customer_sea_id = '" + seaId + "'");
+                sb.append(" AND voicLog.customer_sea_id = ?");
+                params.add(seaId);
             }
             sb.append(" order by voicLog.create_time DESC");
-            page = this.marketResourceDao.sqlPageQuery0(sb.toString(), userQueryParam.getPageNum(), userQueryParam.getPageSize());
+            page = this.marketResourceDao.sqlPageQuery0(sb.toString(), userQueryParam.getPageNum(), userQueryParam.getPageSize(), params.toArray());
             CustomerUser customerUser;
             if (page.getData() != null && page.getData().size() > 0) {
                 //处理用户信息和录音文件
@@ -4985,25 +5162,37 @@ public class MarketResourceService {
 
     public List<Map<String, Object>> queryWorkNumList(String cust_id, String workNumStatus, String username, Integer pageNum, Integer pageSize) {
         List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+        List<Object> params = new ArrayList<>();
         if (cust_id == null || "".equals(cust_id)) {
             if (username == null || "".equals(username)) {
                 String sql = "select account AS userName, realname as name,CAST(id AS CHAR)id from t_customer_user m where m.id in (select user_id from t_customer_user_property where property_name='work_num_status' and property_value='" + workNumStatus + "') ";
-                sql += " ORDER BY m.account ASC LIMIT " + pageNum + "," + pageSize;
-                list = this.marketResourceDao.sqlQuery(sql);
+                sql += " ORDER BY m.account ASC LIMIT ?,?";
+                params.add(pageNum);
+                params.add(pageSize);
+                list = this.marketResourceDao.sqlQuery(sql, params.toArray());
             } else {
                 String sql = "select account AS userName, realname as name,CAST(id AS CHAR)id from t_customer_user m where m.id in (select user_id from t_customer_user_property where property_name='work_num_status' and property_value='" + workNumStatus + "') and realname like '%" + username + "%' ";
-                sql += " ORDER BY m.account ASC LIMIT " + pageNum + "," + pageSize;
-                list = this.marketResourceDao.sqlQuery(sql);
+                sql += " ORDER BY m.account ASC LIMIT ?,?";
+                params.add(pageNum);
+                params.add(pageSize);
+                list = this.marketResourceDao.sqlQuery(sql, params.toArray());
             }
         } else {
             if (username == null || "".equals(username)) {
-                String sql = "select account AS userName, realname as name,CAST(id AS CHAR)id from t_customer_user m where cust_id='" + cust_id + "' ";
+                String sql = "select account AS userName, realname as name,CAST(id AS CHAR)id from t_customer_user m where cust_id=? ";
                 sql += " ORDER BY m.account ASC LIMIT " + pageNum + "," + pageSize;
-                list = this.marketResourceDao.sqlQuery(sql);
+                params.add(cust_id);
+                params.add(pageNum);
+                params.add(pageSize);
+                list = this.marketResourceDao.sqlQuery(sql, params.toArray());
             } else {
-                String sql = "select account AS userName, realname as name,CAST(id AS CHAR)id from t_customer_user m where cust_id='" + cust_id + "' and realname like '%" + username + "%' ";
+                String sql = "select account AS userName, realname as name,CAST(id AS CHAR)id from t_customer_user m where cust_id=? and realname like '%?%' ";
                 sql += " ORDER BY m.account ASC LIMIT " + pageNum + "," + pageSize;
-                list = this.marketResourceDao.sqlQuery(sql);
+                params.add(cust_id);
+                params.add(username);
+                params.add(pageNum);
+                params.add(pageSize);
+                list = this.marketResourceDao.sqlQuery(sql, params.toArray());
             }
         }
 
@@ -5035,24 +5224,31 @@ public class MarketResourceService {
     public com.bdaim.common.dto.Page queryWorkNumListV1(String cust_id, String workNumStatus, String username, Integer pageNum, Integer pageSize) {
         com.bdaim.common.dto.Page page = null;
         String sql = "";
+        List<Object> params = new ArrayList<>();
         if (cust_id == null || "".equals(cust_id)) {
             if (username == null || "".equals(username)) {
-                sql = "select t1.account AS userName, t1.realname as name,CAST(t1.id AS CHAR)id from t_customer_user t1 JOIN t_customer_user_property t2 ON t1.id = t2.user_id AND t2.property_name='work_num_status' WHERE t2.property_value='" + workNumStatus + "'";
+                sql = "select t1.account AS userName, t1.realname as name,CAST(t1.id AS CHAR)id from t_customer_user t1 JOIN t_customer_user_property t2 ON t1.id = t2.user_id AND t2.property_name='work_num_status' WHERE t2.property_value=?";
                 sql += " ORDER BY t2.create_time DESC ";
+                params.add(workNumStatus);
             } else {
-                sql = "select t1.account AS userName, t1.realname as name, CAST(t1.id AS CHAR)id from t_customer_user t1 JOIN t_customer_user_property t2 ON t1.id = t2.user_id AND t2.property_name='work_num_status' WHERE t2.property_value='" + workNumStatus + "' and t1.realname like '%" + username + "%' ";
+                sql = "select t1.account AS userName, t1.realname as name, CAST(t1.id AS CHAR)id from t_customer_user t1 JOIN t_customer_user_property t2 ON t1.id = t2.user_id AND t2.property_name='work_num_status' WHERE t2.property_value=? and t1.realname like '%?%' ";
                 sql += " ORDER BY t2.create_time DESC ";
+                params.add(workNumStatus);
+                params.add(username);
             }
         } else {
             if (username == null || "".equals(username)) {
-                sql = "select account AS userName, realname as name,CAST(id AS CHAR)id from t_customer_user m where cust_id='" + cust_id + "' ";
+                sql = "select account AS userName, realname as name,CAST(id AS CHAR)id from t_customer_user m where cust_id=? ";
                 sql += " ORDER BY m.account ASC ";
+                params.add(cust_id);
             } else {
-                sql = "select account AS userName, realname as name,CAST(id AS CHAR)id from t_customer_user m where cust_id='" + cust_id + "' and realname like '%" + username + "%' ";
+                sql = "select account AS userName, realname as name,CAST(id AS CHAR)id from t_customer_user m where cust_id=? and realname like '%?%' ";
                 sql += " ORDER BY m.account ASC ";
+                params.add(cust_id);
+                params.add(username);
             }
         }
-        page = marketResourceDao.sqlPageQuery0(sql, pageNum, pageSize, null);
+        page = marketResourceDao.sqlPageQuery0(sql, pageNum, pageSize, params.toArray());
         if (page.getData() != null) {
             for (int i = 0; i < page.getData().size(); i++) {
                 Map u = (Map) page.getData().get(i);
@@ -5085,19 +5281,19 @@ public class MarketResourceService {
         List<Map<String, Object>> list;
         if (cust_id == null || "".equals(cust_id)) {
             if (username == null || "".equals(username)) {
-                String sql = "select count(*) count  from t_customer_user m where m.id in (select user_id from t_customer_user_property where property_name='work_num_status' and property_value='" + workNumStatus + "') ";
-                list = this.marketResourceDao.sqlQuery(sql);
+                String sql = "select count(*) count  from t_customer_user m where m.id in (select user_id from t_customer_user_property where property_name='work_num_status' and property_value=?) ";
+                list = this.marketResourceDao.sqlQuery(sql, workNumStatus);
             } else {
-                String sql = "select count(*) count  from t_customer_user m where m.id in (select user_id from t_customer_user_property where property_name='work_num_status' and property_value='" + workNumStatus + "') and realname like '%" + username + "%' ";
-                list = this.marketResourceDao.sqlQuery(sql);
+                String sql = "select count(*) count  from t_customer_user m where m.id in (select user_id from t_customer_user_property where property_name='work_num_status' and property_value=?) and realname like '%?%' ";
+                list = this.marketResourceDao.sqlQuery(sql, workNumStatus, username);
             }
         } else {
             if (username == null || "".equals(username)) {
-                String sql = "select count(*) count  from t_customer_user m where cust_id='" + cust_id + "' ";
-                list = this.marketResourceDao.sqlQuery(sql);
+                String sql = "select count(*) count  from t_customer_user m where cust_id=? ";
+                list = this.marketResourceDao.sqlQuery(sql, cust_id);
             } else {
-                String sql = "select count(*) count from t_customer_user m where cust_id='" + cust_id + "' and realname like '%" + username + "%' ";
-                list = this.marketResourceDao.sqlQuery(sql);
+                String sql = "select count(*) count from t_customer_user m where cust_id=? and realname like '%?%' ";
+                list = this.marketResourceDao.sqlQuery(sql, cust_id, username);
             }
         }
         if (list != null && list.size() > 0) {
@@ -5111,6 +5307,7 @@ public class MarketResourceService {
 
         StringBuffer sb = new StringBuffer();
         List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+        List<Object> params = new ArrayList<>();
         if ("1".equals(user_type)) {
             if ("".equals(superId)) {
                 sb.append("  select count(*) count")
@@ -5120,23 +5317,29 @@ public class MarketResourceService {
                         .append("  LEFT JOIN t_customer_user  tUser ")
                         .append("  ON tUser.id =  voicLog.user_id")
                         .append("  where voicLog.cust_id=?");
+                params.add(cust_id);
 
                 if (!"".equals(realName) && null != realName) {
-                    sb.append(" AND   tUser.realname LIKE '%" + realName + "%'");
+                    sb.append(" AND   tUser.realname LIKE '%?%'");
+                    params.add(realName);
                 }
 
                 if (null != createTimeStart && !"".equals(createTimeStart) && null != createTimeEnd
                         && !"".equals(createTimeEnd)) {
-                    sb.append(" AND voicLog.create_time BETWEEN '" + createTimeStart + "' and '" + createTimeEnd + "' ");
+                    sb.append(" AND voicLog.create_time BETWEEN ? and ? ");
+                    params.add(createTimeStart);
+                    params.add(createTimeEnd);
                 } else {
                     if (null != createTimeStart && !"".equals(createTimeStart)) {
-                        sb.append(" AND voicLog.create_time > '" + createTimeStart + "'");
+                        sb.append(" AND voicLog.create_time > ?");
+                        params.add(createTimeStart);
                     }
                     if (null != createTimeEnd && !"".equals(createTimeEnd)) {
-                        sb.append(" AND voicLog.create_time < '" + createTimeEnd + "'");
+                        sb.append(" AND voicLog.create_time < ?");
+                        params.add(createTimeEnd);
                     }
                 }
-                list = this.marketResourceDao.sqlQuery(sb.toString(), cust_id);
+                list = this.marketResourceDao.sqlQuery(sb.toString(), params.toArray());
             } else {
                 sb.append("  select count(*) count")
                         .append("  from t_touch_voice_log voicLog")
@@ -5146,9 +5349,9 @@ public class MarketResourceService {
                         .append("  ON tUser.id =  voicLog.user_id")
                         .append("  where voicLog.cust_id=?")
                         .append("  and voicLog.superid=?");
-
-
-                list = this.marketResourceDao.sqlQuery(sb.toString(), cust_id, superId);
+                params.add(cust_id);
+                params.add(superId);
+                list = this.marketResourceDao.sqlQuery(sb.toString(), params.toArray());
             }
 
         }
@@ -5161,24 +5364,30 @@ public class MarketResourceService {
                         .append("  LEFT JOIN t_customer_user  tUser ")
                         .append("  ON tUser.id =  voicLog.user_id")
                         .append("  where voicLog.user_id=?");
+                params.add(userid);
                 if (!"".equals(realName) && null != realName) {
-                    sb.append(" AND   tUser.realname LIKE '%" + realName + "%'");
+                    sb.append(" AND   tUser.realname LIKE '%?%'");
+                    params.add(realName);
                 }
 
                 if (null != createTimeStart && !"".equals(createTimeStart) && null != createTimeEnd
                         && !"".equals(createTimeEnd)) {
-                    sb.append(" AND voicLog.create_time BETWEEN '" + createTimeStart + "' and '" + createTimeEnd + "' ");
+                    sb.append(" AND voicLog.create_time BETWEEN ? and ? ");
+                    params.add(createTimeStart);
+                    params.add(createTimeEnd);
                 } else {
                     if (null != createTimeStart && !"".equals(createTimeStart)) {
-                        sb.append(" AND voicLog.create_time > '" + createTimeStart + "'");
+                        sb.append(" AND voicLog.create_time > ?");
+                        params.add(createTimeStart);
                     }
                     if (null != createTimeEnd && !"".equals(createTimeEnd)) {
-                        sb.append(" AND voicLog.create_time < '" + createTimeEnd + "'");
+                        sb.append(" AND voicLog.create_time < ?");
+                        params.add(createTimeEnd);
                     }
                 }
 
 
-                list = this.marketResourceDao.sqlQuery(sb.toString(), userid);
+                list = this.marketResourceDao.sqlQuery(sb.toString(), params.toArray());
             } else {
                 // String sql = "select count(*) count from t_touch_voice_log
                 // where user_id=? and superid=?";
@@ -5205,6 +5414,7 @@ public class MarketResourceService {
         int taskType = -1;
         try {
             StringBuffer sb = new StringBuffer();
+            List<Object> params = new ArrayList<>();
             // 开始时间和结束时间为空时默认查当天
             if (StringUtil.isEmpty(createTimeStart)) {
                 createTimeStart = LocalDateTime.of(LocalDate.now(), LocalTime.MIN).format(YYYYMMDDHHMMSS);
@@ -5222,10 +5432,12 @@ public class MarketResourceService {
             marketResourceDao.createVoiceLogTableNotExist(endTime.format(YYYYMM));
 
             sb.append("select count(*) count ")
-                    .append("  from " + ConstantsUtil.TOUCH_VOICE_TABLE_PREFIX + endTime.format(YYYYMM) + " voicLog")
+                    .append("  from voicLog")
                     .append("  where 1=1 ");
+            params.add(ConstantsUtil.TOUCH_VOICE_TABLE_PREFIX + endTime.format(YYYYMM));
             if (StringUtil.isNotEmpty(loginUser.getCustId())) {
-                sb.append(" AND voicLog.cust_id='" + loginUser.getCustId() + "'");
+                sb.append(" AND voicLog.cust_id=?");
+                params.add(loginUser.getCustId());
             }
             // 处理根据登陆账号或者用户姓名搜索
             CustomerUser user = null;
@@ -5233,11 +5445,13 @@ public class MarketResourceService {
                 user = this.customerUserDao.getCustomerUserByName(realName.trim());
                 if (user != null) {
                     sb.append(" AND  voicLog.user_id = '" + user.getId() + "'");
+                    params.add(user.getId());
                 } else {
                     // 穿透查询一次登陆名称
                     user = this.customerUserDao.getCustomerUserByLoginName(realName.trim());
                     if (user != null) {
                         sb.append(" AND  voicLog.user_id = '" + user.getId() + "'");
+                        params.add(user.getId());
                     } else {
                         return 0;
                     }
@@ -5245,7 +5459,8 @@ public class MarketResourceService {
             }
 
             if (StringUtil.isNotEmpty(remark)) {
-                sb.append(" AND  voicLog.remark LIKE '%" + remark.trim() + "%'");
+                sb.append(" AND  voicLog.remark LIKE '%?%'");
+                params.add(remark.trim());
             }
             if (StringUtil.isNotEmpty(customerGroupId)) {
                 // 处理任务类型
@@ -5253,10 +5468,12 @@ public class MarketResourceService {
                 if (customGroup != null && customGroup.getTaskType() != null) {
                     taskType = customGroup.getTaskType();
                 }
-                sb.append(" AND  voicLog.customer_group_id =" + customerGroupId);
+                sb.append(" AND  voicLog.customer_group_id =?");
+                params.add(customerGroupId);
             }
             if (StringUtil.isNotEmpty(superId)) {
-                sb.append(" AND voicLog.superid ='" + superId.trim() + "'");
+                sb.append(" AND voicLog.superid =? ");
+                params.add(superId.trim());
             }
             // 处理通话状态查询
             if (StringUtil.isNotEmpty(callStatus)) {
@@ -5267,18 +5484,23 @@ public class MarketResourceService {
                 } else if ("2".equals(callStatus)) {
                     sb.append(" AND voicLog.status = 1002");
                 } else {
-                    sb.append(" AND voicLog.status = " + CallStatusEnum.getByType(NumberConvertUtil.parseInt(callStatus)));
+                    sb.append(" AND voicLog.status = ?");
+                    params.add(CallStatusEnum.getByType(NumberConvertUtil.parseInt(callStatus)));
                 }
             }
             // 处理开始和结束时间查询
             if (StringUtil.isNotEmpty(createTimeStart) && StringUtil.isNotEmpty(createTimeEnd)) {
-                sb.append(" AND voicLog.create_time BETWEEN '" + createTimeStart + "' and '" + createTimeEnd + "' ");
+                sb.append(" AND voicLog.create_time BETWEEN ? and ? ");
+                params.add(createTimeStart);
+                params.add(createTimeEnd);
             } else {
                 if (StringUtil.isNotEmpty(createTimeStart)) {
-                    sb.append(" AND voicLog.create_time > '" + createTimeStart + "'");
+                    sb.append(" AND voicLog.create_time > ?");
+                    params.add(createTimeStart);
                 }
                 if (StringUtil.isNotEmpty(createTimeEnd)) {
-                    sb.append(" AND voicLog.create_time < '" + createTimeEnd + "'");
+                    sb.append(" AND voicLog.create_time < ?");
+                    params.add(createTimeEnd);
                 }
             }
             // 处理机器人外呼任务营销记录
@@ -5286,15 +5508,18 @@ public class MarketResourceService {
                 // 处理机器人外呼的意向度
                 if (StringUtil.isNotEmpty(level)) {
                     String levelLike = "\"level\":\"" + level + "\"";
-                    sb.append(" AND voicLog.call_data LIKE '%" + levelLike + "%'");
+                    sb.append(" AND voicLog.call_data LIKE '%?%'");
+                    params.add(levelLike);
                 }
                 // 处理按照操作人搜索营销记录时机器人外呼任务记录可以搜到
                 if (user != null) {
-                    sb.append(" AND (voicLog.user_id = '" + user.getId() + "' OR voicLog.call_data LIKE '%level%') ");
+                    sb.append(" AND (voicLog.user_id = ? OR voicLog.call_data LIKE '%level%') ");
+                    params.add(user.getId());
                 }
                 // 处理人工审核搜索条件
                 if (StringUtil.isNotEmpty(auditingStatus)) {
-                    sb.append(" AND voicLog.clue_audit_status = " + auditingStatus);
+                    sb.append(" AND voicLog.clue_audit_status = ?");
+                    params.add(auditingStatus);
                 }
             }
             // 处理组长权限
@@ -5310,33 +5535,40 @@ public class MarketResourceService {
                         }
                         if (userIds.size() > 0) {
                             if (3 == taskType) {
-                                sb.append(" AND (voicLog.user_id IN(" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ") OR voicLog.call_data LIKE '%level%')");
+                                sb.append(" AND (voicLog.user_id IN(?) OR voicLog.call_data LIKE '%level%')");
+                                params.add(SqlAppendUtil.sqlAppendWhereIn(userIds));
                             } else {
-                                sb.append(" AND voicLog.user_id IN(" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ")");
+                                sb.append(" AND voicLog.user_id IN(?)");
+                                params.add(SqlAppendUtil.sqlAppendWhereIn(userIds));
                             }
                         }
                     } else {
                         // 处理组长下没有员工的情况,只查询自己的通话记录
                         if (3 == taskType) {
-                            sb.append(" AND (voicLog.user_id = '" + loginUser.getId() + "' OR voicLog.call_data LIKE '%level%')");
+                            sb.append(" AND (voicLog.user_id = ? OR voicLog.call_data LIKE '%level%')");
+                            params.add(loginUser.getId());
                         } else {
-                            sb.append(" AND voicLog.user_id = '" + loginUser.getId() + "'");
+                            sb.append(" AND voicLog.user_id = ?");
+                            params.add(loginUser.getId());
                         }
                     }
                 } else {
                     if (3 == taskType) {
-                        sb.append(" AND (voicLog.user_id = '" + loginUser.getId() + "' OR voicLog.call_data LIKE '%level%')");
+                        sb.append(" AND (voicLog.user_id = ? OR voicLog.call_data LIKE '%level%')");
+                        params.add(loginUser.getId());
                     } else {
-                        sb.append(" AND voicLog.user_id = '" + loginUser.getId() + "'");
+                        sb.append(" AND voicLog.user_id = ?");
+                        params.add(loginUser.getId());
                     }
                 }
             }
             // 处理机器人外呼的意向度
             if (StringUtil.isNotEmpty(level)) {
                 String levelLike = "\"level\":\"" + level + "\"";
-                sb.append(" AND voicLog.call_data LIKE '%" + levelLike + "%'");
+                sb.append(" AND voicLog.call_data LIKE '%?%'");
+                params.add(levelLike);
             }
-            list = this.marketResourceDao.sqlQuery(sb.toString());
+            list = this.marketResourceDao.sqlQuery(sb.toString(), params.toArray());
             if (list.size() > 0) {
                 return Long.parseLong(String.valueOf(list.get(0).get("count")));
             } else {
@@ -5621,28 +5853,30 @@ public class MarketResourceService {
 
     public boolean insertTouchInfo(TouchInfoDTO dto) {
         StringBuffer sql = new StringBuffer();
+        List<Object> params = new ArrayList<>();
 
         boolean judge = false;
         try {
             sql.append("INSERT INTO `t_touch_voice_info` (`voice_info_id`, `cust_id`, `user_id`, `cust_group_id`, `super_id`, `create_time`, `super_name`, `super_age`, `super_sex`, `super_telphone`, `super_phone`," +
                     " `super_address_province_city`, `super_address_street`) VALUES ( ");
-            sql.append("'" + dto.getVoice_info_id() + "',");
-            sql.append("'" + dto.getCust_id() + "',");
-            sql.append("'" + dto.getUser_id() + "',");
-            sql.append("'" + dto.getCust_group_id() + "',");
-            sql.append("'" + dto.getSuper_id() + "',");
+            sql.append("?,?,?,?,?,");
+            params.add(dto.getVoice_info_id());
+            params.add(dto.getCust_id());
+            params.add(dto.getUser_id());
+            params.add(dto.getCust_group_id());
+            params.add(dto.getSuper_id());
 
             sql.append("now(),");
+            sql.append("?,?,?,?,?,?,?)");
+            params.add(dto.getSuper_name());
+            params.add(dto.getSuper_age());
+            params.add(dto.getSuper_sex());
+            params.add(dto.getSuper_telphone());
+            params.add(dto.getSuper_phone());
+            params.add(dto.getSuper_address_province_city());
+            params.add(dto.getSuper_address_street());
 
-            sql.append("'" + dto.getSuper_name() + "',");
-            sql.append("'" + dto.getSuper_age() + "',");
-            sql.append("'" + dto.getSuper_sex() + "',");
-            sql.append("'" + dto.getSuper_telphone() + "',");
-            sql.append("'" + dto.getSuper_phone() + "',");
-            sql.append("'" + dto.getSuper_address_province_city() + "',");
-            sql.append("'" + dto.getSuper_address_street() + "')");
-
-            marketResourceDao.insertLog(sql.toString());
+            marketResourceDao.executeUpdateSQL(sql.toString(), params.toArray());
             judge = true;
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -6128,8 +6362,8 @@ public class MarketResourceService {
             String email = "";
 
             //企业用户
-            email = "SELECT count(*) as emailCount from t_template where cust_id='" + cust_id + "' AND type_code = 2";
-            sms = "SELECT count(*) as smsCount from t_template where cust_id='" + cust_id + "' AND type_code = 1 ";
+            email = "SELECT count(*) as emailCount from t_template where cust_id=? AND type_code = 2";
+            sms = "SELECT count(*) as smsCount from t_template where cust_id=? AND type_code = 1 ";
 
             // 查询
             resourceList = this.marketResourceDao.sqlQuery(resourceSql, cust_id);
@@ -6165,8 +6399,8 @@ public class MarketResourceService {
                     voiceCount--;
                 }
             }
-            emailCount = marketResourceDao.queryForObject(email);
-            smsCount = marketResourceDao.queryForObject(sms);
+            emailCount = marketResourceDao.queryForObject(email, cust_id);
+            smsCount = marketResourceDao.queryForObject(sms, cust_id);
         } catch (Exception e) {
             LOG.error("获取营销统计数据出错,", e);
         } finally {
@@ -6273,14 +6507,19 @@ public class MarketResourceService {
 
         // 查询呼叫统计类数据
         StringBuffer sql = new StringBuffer();
+        List<Object> params = new ArrayList<>();
         sql.append(" SELECT SUM(call_sum) call_sum, SUM(called_sum) called_sum, SUM(called_duration) called_duration FROM stat_call_day WHERE cust_id = ? AND create_time BETWEEN ? AND ? ");
+        params.add(loginUser.getCustId());
+        params.add(startTime);
+        params.add(endTime);
         List<Map<String, Object>> list = null;
         List<CustomerUserDTO> selectUserList = null;
         Set<String> groupUserIds = null;
         // 处理管理员权限
         if ("1".equals(loginUser.getUserType())) {
             if (StringUtil.isNotEmpty(userId)) {
-                sql.append(" AND user_id = '" + StringEscapeUtils.escapeSql(userId) + "'");
+                sql.append(" AND user_id = ?");
+                params.add(StringEscapeUtils.escapeSql(userId));
             } else if (StringUtil.isNotEmpty(userGroupId)) {
                 selectUserList = customerUserDao.listSelectCustomerUserByUserGroupId(userGroupId, loginUser.getCustId());
                 if (selectUserList.size() > 0) {
@@ -6288,7 +6527,8 @@ public class MarketResourceService {
                     for (CustomerUserDTO customerUserDTO : selectUserList) {
                         groupUserIds.add(customerUserDTO.getId());
                     }
-                    sql.append(" AND user_id IN (" + SqlAppendUtil.sqlAppendWhereIn(groupUserIds) + ")");
+                    sql.append(" AND user_id IN (?)");
+                    params.add(SqlAppendUtil.sqlAppendWhereIn(groupUserIds));
                 } else {
                     return data;
                 }
@@ -6299,7 +6539,8 @@ public class MarketResourceService {
             if ("1".equals(loginUser.getUserGroupRole())) {
                 // 查询单个用户
                 if (StringUtil.isNotEmpty(userId)) {
-                    sql.append(" AND user_id = '" + StringEscapeUtils.escapeSql(userId) + "'");
+                    sql.append(" AND user_id = ?");
+                    params.add(StringEscapeUtils.escapeSql(userId));
                 } else { // 查询组下所有人员数据
                     selectUserList = customerUserDao.listSelectCustomerUserByUserGroupId(loginUser.getUserGroupId(), loginUser.getCustId());
                     if (selectUserList.size() > 0) {
@@ -6307,20 +6548,23 @@ public class MarketResourceService {
                         for (CustomerUserDTO customerUserDTO : selectUserList) {
                             groupUserIds.add(customerUserDTO.getId());
                         }
-                        sql.append(" AND user_id IN (" + SqlAppendUtil.sqlAppendWhereIn(groupUserIds) + ")");
+                        sql.append(" AND user_id IN (?)");
+                        params.add(SqlAppendUtil.sqlAppendWhereIn(groupUserIds));
                     } else {
                         return data;
                     }
 
                 }
             } else if ("2".equals(loginUser.getUserGroupRole())) {// 处理普通用户权限
-                sql.append(" AND user_id = '" + StringEscapeUtils.escapeSql(String.valueOf(loginUser.getId())) + "'");
+                sql.append(" AND user_id =? ");
+                params.add(StringEscapeUtils.escapeSql(String.valueOf(loginUser.getId())));
             } else {
                 // 处理未配置组员的情况
-                sql.append(" AND user_id = '" + StringEscapeUtils.escapeSql(String.valueOf(loginUser.getId())) + "'");
+                sql.append(" AND user_id =? ");
+                params.add(StringEscapeUtils.escapeSql(String.valueOf(loginUser.getId())));
             }
         }
-        list = marketResourceDao.sqlQuery(sql.toString(), loginUser.getCustId(), startTime, endTime);
+        list = marketResourceDao.sqlQuery(sql.toString(), params.toArray());
         if (list.size() > 0) {
             for (Map<String, Object> map : list) {
                 if (map != null) {
@@ -6373,17 +6617,20 @@ public class MarketResourceService {
         List<Map<String, Object>> historyMarketList;
         // 历史营销任务
         String historyMarketSql = "SELECT COUNT(t1.id) count FROM t_market_task t1 WHERE t1.cust_id = ?";
+        List<Object> params = new ArrayList<>();
+        params.add(loginUser.getCustId());
         // 项目管理人
         if ("3".equals(loginUser.getUserType())) {
             List<String> cGroupIds = customerUserDao.listCustGroupByUserId(loginUser.getId());
             if (cGroupIds == null || cGroupIds.size() == 0) {
                 return 0;
             } else {
-                historyMarketSql += " AND t1.customer_group_id IN (" + SqlAppendUtil.sqlAppendWhereIn(cGroupIds) + ")";
+                historyMarketSql += " AND t1.customer_group_id IN (?)";
+                params.add(SqlAppendUtil.sqlAppendWhereIn(cGroupIds));
             }
         }
         int historyMarketTask = 0;
-        historyMarketList = marketResourceDao.sqlQuery(historyMarketSql, loginUser.getCustId());
+        historyMarketList = marketResourceDao.sqlQuery(historyMarketSql, params.toArray());
         if (historyMarketList.size() > 0) {
             historyMarketTask = NumberConvertUtil.parseInt(String.valueOf(historyMarketList.get(0).get("count")));
         }
@@ -6398,18 +6645,23 @@ public class MarketResourceService {
      */
     private int countNewMarket(LoginUser loginUser) {
         // 待创建营销任务
-        String newMarketTaskSql = "SELECT COUNT(t1.id) count FROM customer_group t1 WHERE t1.id NOT IN(SELECT customer_group_id FROM t_market_task WHERE task_type IS NULL AND cust_id = ? ) AND t1.cust_id = ?";
+        String newMarketTaskSql = "SELECT COUNT(t1.id) count FROM customer_group t1 WHERE t1.id NOT IN(SELECT " +
+                "customer_group_id FROM t_market_task WHERE task_type IS NULL AND cust_id = ? ) AND t1.cust_id = ?";
+        List<Object> params = new ArrayList<>();
+        params.add(loginUser.getCustId());
+        params.add(loginUser.getCustId());
         // 项目管理人
         if ("3".equals(loginUser.getUserType())) {
             List<String> cGroupIds = customerUserDao.listCustGroupByUserId(loginUser.getId());
             if (cGroupIds == null || cGroupIds.size() == 0) {
                 return 0;
             } else {
-                newMarketTaskSql += " AND t1.id IN (" + SqlAppendUtil.sqlAppendWhereIn(cGroupIds) + ")";
+                newMarketTaskSql += " AND t1.id IN (?)";
+                params.add(SqlAppendUtil.sqlAppendWhereIn(cGroupIds));
             }
         }
         int newMarketTask = 0;
-        List<Map<String, Object>> newMarketTaskList = marketResourceDao.sqlQuery(newMarketTaskSql, loginUser.getCustId(), loginUser.getCustId());
+        List<Map<String, Object>> newMarketTaskList = marketResourceDao.sqlQuery(newMarketTaskSql, params.toArray());
         if (newMarketTaskList.size() > 0) {
             newMarketTask = NumberConvertUtil.parseInt(String.valueOf(newMarketTaskList.get(0).get("count")));
         }
@@ -6503,7 +6755,12 @@ public class MarketResourceService {
 
         // 查询呼叫统计类数据
         StringBuffer sql = new StringBuffer();
-        sql.append(" SELECT SUM(caller_sum) call_sum, SUM(called_sum) called_sum, SUM(called_duration) called_duration, SUM(order_sum) order_sum FROM stat_c_g_u_d  WHERE cust_id = ? AND create_time >= ? AND create_time <= ? ");
+        List<Object> params = new ArrayList<>();
+        sql.append(" SELECT SUM(caller_sum) call_sum, SUM(called_sum) called_sum, SUM(called_duration) called_duration, " +
+                "SUM(order_sum) order_sum FROM stat_c_g_u_d  WHERE cust_id = ? AND create_time >= ? AND create_time <= ? ");
+        params.add(loginUser.getCustId());
+        params.add(startTime);
+        params.add(endTime);
         List<Map<String, Object>> list = null;
         List<CustomerUserDTO> selectUserList = null;
         Set<String> groupUserIds = null;
@@ -6518,7 +6775,8 @@ public class MarketResourceService {
                     for (CustomerUserDTO customerUserDTO : selectUserList) {
                         groupUserIds.add(customerUserDTO.getId());
                     }
-                    sql.append(" AND user_id IN (" + SqlAppendUtil.sqlAppendWhereIn(groupUserIds) + ")");
+                    sql.append(" AND user_id IN (?)");
+                    params.add(SqlAppendUtil.sqlAppendWhereIn(groupUserIds));
                 } else {
                     return data;
                 }
@@ -6529,7 +6787,8 @@ public class MarketResourceService {
             if ("1".equals(loginUser.getUserGroupRole())) {
                 // 查询单个用户
                 if (StringUtil.isNotEmpty(userId)) {
-                    sql.append(" AND user_id = '" + StringEscapeUtils.escapeSql(userId) + "'");
+                    sql.append(" AND user_id = ?");
+                    params.add(StringEscapeUtils.escapeSql(userId));
                 } else { // 查询组下所有人员数据
                     selectUserList = customerUserDao.listSelectCustomerUserByUserGroupId(loginUser.getUserGroupId(), loginUser.getCustId());
                     if (selectUserList.size() > 0) {
@@ -6537,17 +6796,20 @@ public class MarketResourceService {
                         for (CustomerUserDTO customerUserDTO : selectUserList) {
                             groupUserIds.add(customerUserDTO.getId());
                         }
-                        sql.append(" AND user_id IN (" + SqlAppendUtil.sqlAppendWhereIn(groupUserIds) + ")");
+                        sql.append(" AND user_id IN (?)");
+                        params.add(SqlAppendUtil.sqlAppendWhereIn(groupUserIds));
                     } else {
                         return data;
                     }
 
                 }
             } else if ("2".equals(loginUser.getUserGroupRole())) {// 处理普通用户权限
-                sql.append(" AND user_id = '" + StringEscapeUtils.escapeSql(String.valueOf(loginUser.getId())) + "'");
+                sql.append(" AND user_id = ?");
+                params.add(StringEscapeUtils.escapeSql(String.valueOf(loginUser.getId())));
             } else {
                 // 处理未配置组员的情况
-                sql.append(" AND user_id = '" + StringEscapeUtils.escapeSql(String.valueOf(loginUser.getId())) + "'");
+                sql.append(" AND user_id = ?");
+                params.add(StringEscapeUtils.escapeSql(String.valueOf(loginUser.getId())));
             }
         }
         // 项目管理人
@@ -6556,9 +6818,10 @@ public class MarketResourceService {
             if (cGroupIds == null || cGroupIds.size() == 0) {
                 return data;
             }
-            sql.append(" AND customer_group_id IN (" + SqlAppendUtil.sqlAppendWhereIn(cGroupIds) + ")");
+            sql.append(" AND customer_group_id IN (?)");
+            params.add(SqlAppendUtil.sqlAppendWhereIn(cGroupIds));
         }
-        list = marketResourceDao.sqlQuery(sql.toString(), loginUser.getCustId(), startTime, endTime);
+        list = marketResourceDao.sqlQuery(sql.toString(), params.toArray());
         if (list.size() > 0) {
             for (Map<String, Object> map : list) {
                 if (map != null) {
@@ -6609,55 +6872,69 @@ public class MarketResourceService {
                                                        String startTime, String endTime, String userName, String groupId, String marketTaskId, String seaId,
                                                        String activeSTime, String activeETime, String status) {
         StringBuffer sb = new StringBuffer();
-        sb.append(" SELECT count(*) as total, sms.superid, sms.create_time, sms.STATUS, tem.title, us.account realname, sms.templateId, sms.touch_id batch_number, sms.active_time ");
+        List<Object> params = new ArrayList<>();
+        sb.append(" SELECT count(*) as total, sms.superid, sms.create_time, sms.STATUS, tem.title, us.account realname, " +
+                "sms.templateId, sms.touch_id batch_number, sms.active_time ");
         sb.append(" FROM t_touch_sms_log sms ");
         sb.append(" LEFT JOIN t_customer_user us on sms.user_id =us.id ");
         sb.append(" LEFT JOIN t_template tem on tem.id=sms.templateId ");
         sb.append(" where 1=1 ");
         //企业管理员
         if ("1".equals(userType)) {
-            sb.append(" and sms.cust_id='" + cust_id + "'");
+            sb.append(" and sms.cust_id=?");
+            params.add(cust_id);
         } else {
             if (StringUtil.isNotEmpty(user_id)) {
-                sb.append(" and sms.user_id='" + user_id + "'");
+                sb.append(" and sms.user_id=?");
+                params.add(user_id);
             }
 
         }
         if (null != superId && !"".equals(superId)) {
-            sb.append(" and sms.superid='" + superId + "'");
+            sb.append(" and sms.superid=?");
+            params.add(superId);
         }
         if (null != startTime && !"".equals(startTime)) {
-            sb.append(" and sms.create_time >='" + startTime + "'");
+            sb.append(" and sms.create_time >=?");
+            params.add(startTime);
         }
         if (null != endTime && !"".equals(endTime)) {
-            sb.append(" and sms.create_time <='" + endTime + "'");
+            sb.append(" and sms.create_time <=?");
+            params.add(endTime);
         }
         if (null != userName && !"".equals(userName)) {
-            sb.append(" and us.`account` = '" + userName + "'");
+            sb.append(" and us.`account` = ?");
+            params.add(userName);
         }
         if (StringUtil.isNotEmpty(groupId)) {
-            sb.append(" and sms.`customer_group_id` = '" + groupId + "'");
+            sb.append(" and sms.`customer_group_id` = ?");
+            params.add(groupId);
         }
         if (StringUtil.isNotEmpty(marketTaskId)) {
-            sb.append(" and sms.`market_task_id` = '" + marketTaskId + "'");
+            sb.append(" and sms.`market_task_id` = ?");
+            params.add(marketTaskId);
         }
         if (StringUtil.isNotEmpty(seaId)) {
-            sb.append(" and sms.`customer_sea_id` = '" + seaId + "'");
+            sb.append(" and sms.`customer_sea_id` = ?");
+            params.add(seaId);
         }
         if (StringUtil.isNotEmpty(activeSTime)) {
-            sb.append(" and sms.active_time >='" + activeSTime + "'");
+            sb.append(" and sms.active_time >=?");
+            params.add(activeSTime);
         }
         if (StringUtil.isNotEmpty(activeETime)) {
-            sb.append(" and sms.active_time <='" + activeETime + "'");
+            sb.append(" and sms.active_time <=?");
+            params.add(activeETime);
         }
         if (StringUtil.isNotEmpty(status)) {
-            sb.append(" and sms.status ='" + status + "'");
+            sb.append(" and sms.status =?");
+            params.add(status);
         }
         sb.append(" GROUP BY sms.touch_id ");
         sb.append(" ORDER BY sms.create_time DESC ");
         com.bdaim.common.dto.Page page = null;
         try {
-            page = this.marketResourceDao.sqlPageQuery0(sb.toString(), pageNum, pageSize);
+            page = this.marketResourceDao.sqlPageQuery0(sb.toString(), pageNum, pageSize, params);
         } catch (Exception e) {
             LOG.error("查询短信营销记录失败,", e);
             page = new com.bdaim.common.dto.Page();
@@ -6669,32 +6946,39 @@ public class MarketResourceService {
     public List<Map<String, Object>> queryEmailHistory(String user_id, String userType, String cust_id, Integer pageNum, Integer pageSize, String superId, String startTime, String endTime, String userName) {
         JSONObject json = new JSONObject();
         StringBuffer sb = new StringBuffer();
+        List<Object> params = new ArrayList<>();
         sb.append(" SELECT count(*) as total, email.create_time, email.STATUS, tem.title, us.`realname`, email.templateId,email.email_content,email.batch_number ");
         sb.append(" FROM t_touch_email_log email ");
         sb.append(" LEFT JOIN t_user us on email.user_id =us.id ");
         sb.append(" LEFT JOIN t_template tem on tem.id=email.templateId ");
         sb.append(" where 1=1 ");
         if ("1".equals(userType)) { //企业管理员
-            sb.append(" and email.cust_id='" + cust_id + "'");
+            sb.append(" and email.cust_id=?");
+            params.add(cust_id);
         } else {
-            sb.append(" and email.user_id='" + user_id + "'");
+            sb.append(" and email.user_id=?");
+            params.add(user_id);
         }
         if (null != superId && !"".equals(superId)) {
-            sb.append(" and email.superid='" + superId + "'");
+            sb.append(" and email.superid=?");
+            params.add(superId);
         }
         if (null != startTime && !"".equals(startTime)) {
-            sb.append(" and email.create_time >='" + startTime + "'");
+            sb.append(" and email.create_time >=?");
+            params.add(startTime);
         }
         if (null != endTime && !"".equals(endTime)) {
-            sb.append(" and email.create_time <='" + endTime + "'");
+            sb.append(" and email.create_time <=?");
+            params.add(endTime);
         }
         if (null != userName && !"".equals(userName)) {
-            sb.append(" and us.`realname` like'%" + userName + "%'");
+            sb.append(" and us.`realname` like'%?%'");
+            params.add(userName);
         }
         sb.append(" GROUP BY email.batch_number ");
         sb.append(" ORDER BY email.create_time DESC ");
-        sb.append(" LIMIT " + pageNum + "," + pageSize);
-        List<Map<String, Object>> list = this.marketResourceDao.sqlQuery(sb.toString());
+        sb.append(" LIMIT ?,?");
+        List<Map<String, Object>> list = this.marketResourceDao.sqlQuery(sb.toString(), params.toArray());
         return list;
     }
 
@@ -6703,6 +6987,7 @@ public class MarketResourceService {
                                                             Integer cusGroupId, String cusGroupName, String userType, Long userId) {
         Map<String, Object> map = new HashMap<>();
         StringBuffer sql = new StringBuffer();
+        List<Object> params = new ArrayList<>();
         List<Map<String, Object>> list = new ArrayList<>();
 
         try {
@@ -6719,7 +7004,8 @@ public class MarketResourceService {
                     .append("  WHERE t4.customer_group_id  = t2.id ")
                     .append("  and t3.cust_group_id IS NOT NULL ");
             if ("2".equals(userType)) {
-                sql.append("  AND t4.user_id = " + userId);
+                sql.append("  AND t4.user_id = ?");
+                params.add(userId);
             }
             sql.append(" ) as potalCount");
 
@@ -6727,7 +7013,8 @@ public class MarketResourceService {
                     + "   ON t1.order_id = t2.order_id  "
                     + "   where 1=1 and t1.order_type=1");
 
-            sql.append(" and t1.cust_id ='").append(StringEscapeUtils.escapeSql(custId)).append("'");
+            sql.append(" and t1.cust_id =?");
+            params.add(StringEscapeUtils.escapeSql(custId));
             sql.append(" and t1.order_state= 2");
             //添加userid
             if ("2".equals(userType)) {
@@ -6738,23 +7025,29 @@ public class MarketResourceService {
                     sql.append(" 	t_customer_group_list_" + custId + " custG");
                     sql.append(" LEFT JOIN t_customer_user t ON custG.user_id = t.id");
                     sql.append(" WHERE");
-                    sql.append(" custG.user_id='" + userId + "')");
+                    sql.append(" custG.user_id=?)");
+                    params.add(userId);
                 }
             }
 
             if (StringUtil.isNotEmpty(cusGroupName)) {
-                sql.append(" and t2.name like'%").append(StringEscapeUtils.escapeSql(cusGroupName)).append("%'");
+                sql.append(" and t2.name like'%?%'");
+                params.add(StringEscapeUtils.escapeSql(cusGroupName));
             }
             if (cusGroupId != null) {
-                sql.append(" and t2.id='" + cusGroupId + "'");
+                sql.append(" and t2.id=?");
+                params.add(cusGroupId);
             }
 
             sql.append("  GROUP BY t2.id  ");
             sql.append("  ORDER BY t1.create_time desc ");
-            map.put("total", marketResourceDao.getSQLQuery(sql.toString()).list().size());
-            map.put("cusGroupList",
-                    marketResourceDao.getSQLQuery(sql.toString()).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP)
-                            .setFirstResult(pageNum).setMaxResults(pageSize).list());
+            map.put("total", marketResourceDao.sqlQuery(sql.toString(), params.toArray()).size());
+//            map.put("cusGroupList",
+//                    marketResourceDao.getSQLQuery(sql.toString()).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP)
+//                            .setFirstResult(pageNum).setMaxResults(pageSize).list());
+//            map.put("cusGroupList", marketResourceDao.sqlQuery(sql.toString(), params.toArray()));
+            Page page = marketResourceDao.sqlPageQuery(sql.toString(), pageNum, pageSize, params.toArray());
+            map.put("cusGroupList", page.getData());
 
         } catch (Exception e) {
             map.put("total", 0);
@@ -6766,6 +7059,7 @@ public class MarketResourceService {
 
     public List<Map<String, Object>> queryPotentialCusGroupV3(Integer pageNum, Integer pageSize, Integer cusGroupId, String cusGroupName, LoginUser loginUser) {
         StringBuffer sql = new StringBuffer();
+        List<Object> params = new ArrayList<>();
 
         sql.append("SELECT t1.order_id as orderId ,"
                 + "  IFNULL (t2.NAME,'') AS groupName, t2.id AS groupId, "
@@ -6778,13 +7072,16 @@ public class MarketResourceService {
                         + "   ON t1.order_id = t2.order_id  "
                         + "   where 1=1 and t1.order_type=1")
                 .append(" AND t2.`status` = 1 ")
-                .append(" and t1.cust_id ='").append(StringEscapeUtils.escapeSql(loginUser.getCustId())).append("'")
+                .append(" and t1.cust_id =?")
                 .append(" and t1.order_state= 2");
+        params.add(StringEscapeUtils.escapeSql(loginUser.getCustId()));
         if (StringUtil.isNotEmpty(cusGroupName)) {
-            sql.append(" and t2.name like'%").append(StringEscapeUtils.escapeSql(cusGroupName)).append("%'");
+            sql.append(" and t2.name like'%?%'");
+            params.add(StringEscapeUtils.escapeSql(cusGroupName));
         }
         if (cusGroupId != null) {
-            sql.append(" and t2.id='" + cusGroupId + "'");
+            sql.append(" and t2.id=?");
+            params.add(cusGroupId);
         }
 
         // 坐席或者组长区分权限,只查询组负责的数据
@@ -6795,8 +7092,8 @@ public class MarketResourceService {
 
         sql.append("  GROUP BY t2.id  ");
         sql.append("  ORDER BY t1.create_time desc ");
-        List<Map<String, Object>> result = marketResourceDao.getSQLQuery(sql.toString()).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP)
-                .setFirstResult(pageNum).setMaxResults(pageSize).list();
+        Page page = marketProjectDao.sqlPageQuery0(sql.toString(), pageNum, pageSize, params.toArray());
+        List<Map<String, Object>> result = page.getData();
         if (result != null && result.size() > 0) {
             List<Map<String, Object>> superLabelList;
             for (Map<String, Object> resultMap : result) {
@@ -6821,6 +7118,7 @@ public class MarketResourceService {
 
     public long countQueryPotentialCusGroupV3(Integer cusGroupId, String cusGroupName, LoginUser loginUser) {
         StringBuffer sql = new StringBuffer();
+        List<Object> params = new ArrayList<>();
         List<Map<String, Object>> list = new ArrayList<>();
 
         sql.append(" SELECT COUNT(0) count ")
@@ -6828,13 +7126,16 @@ public class MarketResourceService {
                         + "   ON t1.order_id = t2.order_id  "
                         + "   where 1=1 and t1.order_type=1")
                 .append(" AND t2.`status` = 1 ")
-                .append(" AND t1.cust_id ='").append(StringEscapeUtils.escapeSql(loginUser.getCustId())).append("'")
+                .append(" AND t1.cust_id =?")
                 .append(" AND t1.order_state= 2");
+        params.add(StringEscapeUtils.escapeSql(loginUser.getCustId()));
         if (StringUtil.isNotEmpty(cusGroupName)) {
-            sql.append(" AND t2.name like'%").append(StringEscapeUtils.escapeSql(cusGroupName)).append("%'");
+            sql.append(" AND t2.name like'%?%'");
+            params.add(StringEscapeUtils.escapeSql(cusGroupName));
         }
         if (cusGroupId != null) {
-            sql.append(" AND t2.id='" + cusGroupId + "'");
+            sql.append(" AND t2.id=?");
+            params.add(cusGroupId);
         }
         // 坐席或者组长区分权限,只查询组负责的数据
         /*if ("2".equals(loginUser.getUserType())) {
@@ -6843,7 +7144,7 @@ public class MarketResourceService {
                 sql.append(" AND FIND_IN_SET('" + StringEscapeUtils.escapeSql(customerUserGroupRelDTO.getGroupId()) + "', t2.user_group_id) ");
             }
         }*/
-        List<Map<String, Object>> result = marketResourceDao.sqlQuery(sql.toString());
+        List<Map<String, Object>> result = marketResourceDao.sqlQuery(sql.toString(), params.toArray());
         if (result != null && result.size() > 0) {
             return NumberConvertUtil.parseLong(String.valueOf(result.get(0).get("count")));
         }
@@ -6857,6 +7158,7 @@ public class MarketResourceService {
 
         Map<String, Object> map = new HashMap<>();
         StringBuffer sql = new StringBuffer();
+        List<Object> params = new ArrayList<>();
         List<Map<String, Object>> list = new ArrayList<>();
         sql.append(
                 " SELECT custLabel.* FROM ( SELECT t1.id AS superId,GROUP_CONCAT(t2.label_id) as labelId,GROUP_CONCAT(t3.label_name) as labelName,t4.* ")
@@ -6872,14 +7174,17 @@ public class MarketResourceService {
                 // .append(" LEFT JOIN u u ON u.id = t1.id")
 
                 .append(" where  1=1  and t3.status = 1 ");
-        sql.append(" and t2.cust_group_id  ='").append(StringEscapeUtils.escapeSql(custGroupId)).append("'");
+        sql.append(" and t2.cust_group_id  =?");
+        params.add(StringEscapeUtils.escapeSql(custGroupId));
         if (userType != null && !"".equals(userType) && "2".equals(userType)) {
-            sql.append(" and t1.user_id =" + userId);
+            sql.append(" and t1.user_id =? ");
+            params.add(userId);
         }
         //sql.append(" and t2.label_id is NOT NULL");
 
         if (StringUtil.isNotEmpty(superId)) {
-            sql.append(" and t1.id like'%").append(StringEscapeUtils.escapeSql(superId)).append("%'");
+            sql.append(" and t1.id like'%?%'");
+            params.add(StringEscapeUtils.escapeSql(superId));
         }
 
         sql.append("  GROUP BY t1.id ");
@@ -6899,9 +7204,8 @@ public class MarketResourceService {
         }
 
         // sql.append(" ORDER BY t1.create_time desc ");
-        map.put("total", marketResourceDao.getSQLQuery(sql.toString()).list().size());
-        List<Map<String, Object>> superLabelList = marketResourceDao.getSQLQuery(sql.toString()).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP)
-                .setFirstResult(pageNum).setMaxResults(pageSize).list();
+        map.put("total", marketResourceDao.sqlQuery(sql.toString(), params.toArray()).size());
+        List<Map<String, Object>> superLabelList = marketResourceDao.sqlPageQuery(sql.toString(), pageNum, pageSize, params.toArray()).getData();
         // 处理自定义属性和标签的对应关系
         String[] labelIds;
         String superLabelSql = "SELECT option_value FROM t_super_label WHERE label_id = ? AND super_id = ? AND cust_group_id = ? ";
@@ -6937,6 +7241,7 @@ public class MarketResourceService {
         List<Map<String, Object>> superLabelList = null;
         try {
             StringBuffer sql = new StringBuffer();
+            List<Object> params = new ArrayList<>();
             sql.append(" SELECT t.id superId, t.user_id, t.update_time createTime, t.super_data, t.super_age, t.super_name, t.super_sex")
                     .append("  FROM t_customer_group_list_" + custGroupId + " t  WHERE 1=1 ");
 
@@ -6950,16 +7255,19 @@ public class MarketResourceService {
                             userIds.add(customerUserDTO.getId());
                         }
                         if (userIds.size() > 0) {
-                            sql.append(" AND t.user_id IN(" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ")");
+                            sql.append(" AND t.user_id IN(?)");
+                            params.add(SqlAppendUtil.sqlAppendWhereIn(userIds));
                         }
                     }
                 } else {
-                    sql.append(" and t.user_id =" + loginUser.getId());
+                    sql.append(" and t.user_id =?");
+                    params.add(loginUser.getId());
                 }
             }
 
             if (StringUtil.isNotEmpty(superId)) {
-                sql.append(" and t.id like'%").append(StringEscapeUtils.escapeSql(superId)).append("%'");
+                sql.append(" and t.id like'%?%'");
+                params.add(StringEscapeUtils.escapeSql(superId));
             }
 
             if (custProperty != null && custProperty.size() != 0) {
@@ -6971,7 +7279,8 @@ public class MarketResourceService {
                         labelId = jsonObject.getString("labelId");
                         optionValue = jsonObject.getString("optionValue");
                         likeValue = "\"" + labelId + "\":\"" + optionValue + "\"";
-                        sql.append(" AND t.super_data LIKE '%" + likeValue + "%' ");
+                        sql.append(" AND t.super_data LIKE '%?%' ");
+                        params.add(likeValue);
                     }
                 }
             }
@@ -6980,8 +7289,9 @@ public class MarketResourceService {
             sql.append(" GROUP BY t.id ");
             sql.append(" ORDER BY t.update_time DESC ");
 
-            superLabelList = marketResourceDao.getSQLQuery(sql.toString()).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP)
-                    .setFirstResult(pageNum).setMaxResults(pageSize).list();
+//            superLabelList = marketResourceDao.getSQLQuery(sql.toString()).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP)
+//                    .setFirstResult(pageNum).setMaxResults(pageSize).list();
+            superLabelList = marketResourceDao.sqlPageQuery(sql.toString(), pageNum, pageSize, params.toArray()).getData();
             // 处理自建属性的名称和选项值
             if (superLabelList.size() > 0) {
                 //GROUP_CONCAT(t.labelId) AS labelId, GROUP_CONCAT(t3.label_name) as labelName, GROUP_CONCAT(t.optionValue) AS optionValue, t.createTime " +
@@ -7026,6 +7336,7 @@ public class MarketResourceService {
 
     public long countQueryPotentialDetailV3(String custGroupId, JSONArray custProperty, String superId, LoginUser loginUser) {
         StringBuffer sql = new StringBuffer();
+        List<Object> params = new ArrayList<>();
 
         sql.append(" SELECT COUNT(t1.id) count ")
                 .append("  FROM t_customer_group_list_" + custGroupId + " t1  WHERE 1=1 ");
@@ -7040,16 +7351,19 @@ public class MarketResourceService {
                         userIds.add(customerUserDTO.getId());
                     }
                     if (userIds.size() > 0) {
-                        sql.append(" AND t1.user_id IN(" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ")");
+                        sql.append(" AND t1.user_id IN(?)");
+                        params.add(SqlAppendUtil.sqlAppendWhereIn(userIds));
                     }
                 }
             } else {
-                sql.append(" and t1.user_id =" + loginUser.getId());
+                sql.append(" and t1.user_id =?");
+                params.add(loginUser.getId());
             }
         }
 
         if (StringUtil.isNotEmpty(superId)) {
-            sql.append(" and t1.id like'%").append(StringEscapeUtils.escapeSql(superId)).append("%'");
+            sql.append(" and t1.id like'%?%'");
+            params.add(StringEscapeUtils.escapeSql(superId));
         }
 
         if (custProperty != null && custProperty.size() != 0) {
@@ -7061,12 +7375,13 @@ public class MarketResourceService {
                     labelId = jsonObject.getString("labelId");
                     optionValue = jsonObject.getString("optionValue");
                     likeValue = "\"" + labelId + "\":\"" + optionValue + "\"";
-                    sql.append(" AND t1.super_data LIKE '%" + likeValue + "%' ");
+                    sql.append(" AND t1.super_data LIKE '%?%' ");
+                    params.add(likeValue);
                 }
             }
         }
         sql.append(" AND t1.super_data IS NOT NULL AND t1.super_data <> '' AND t1.super_data <> '{}'");
-        List<Map<String, Object>> list = marketResourceDao.sqlQuery(sql.toString());
+        List<Map<String, Object>> list = marketResourceDao.sqlQuery(sql.toString(), params.toArray());
         if (list != null && list.size() > 0) {
             return NumberConvertUtil.parseLong(String.valueOf(list.get(0).get("count")));
         }
@@ -7079,6 +7394,7 @@ public class MarketResourceService {
         List<Map<String, Object>> list = new ArrayList<>();
 
         try {
+            List<Object> params = new ArrayList<>();
             StringBuilder sql = new StringBuilder("SELECT " + " t1.order_id as orderId , "
                     + "  IFNULL (t2.NAME,'') AS groupName, " + "  t2.id AS groupId, "
                     + "  IFNULL(t1.quantity,0) AS account , " + "  t2.industry_pool_name AS industryPoolName , "
@@ -7087,26 +7403,32 @@ public class MarketResourceService {
                     + "  IFNULL (t2.group_source,'') AS source , " + "  t2.status as groupStatus  " + "FROM "
                     + "  t_order t1 " + "  RIGHT JOIN customer_group t2 "
                     + "    ON t1.order_id = t2.order_id where 1=1 and t1.order_type=1");
-            sql.append(" and t1.cust_id ='").append(StringEscapeUtils.escapeSql(customerId)).append("'");
+            sql.append(" and t1.cust_id =?");
+            params.add(StringEscapeUtils.escapeSql(customerId));
             if (StringUtil.isNotEmpty(param.getGroupName())) {
-                sql.append(" and t2.name like'%").append(StringEscapeUtils.escapeSql(param.getGroupName())).append("%'");
+                sql.append(" and t2.name like'%?%'");
+                params.add(StringEscapeUtils.escapeSql(param.getGroupName()));
             }
 
             sql.append(" and t1.order_state= 2");
 
             if (StringUtil.isNotEmpty(param.getGroupId()) && Integer.valueOf(param.getGroupId()) > 0) {
-                sql.append(" and t2.id=").append(param.getGroupId());
+                sql.append(" and t2.id=?");
+                params.add(param.getGroupId());
             }
             if (StringUtil.isNotEmpty(param.getStartTime()) || StringUtil.isNotEmpty(param.getEndTime())) {
-                sql.append(" and t1.create_time between '").append(StringEscapeUtils.escapeSql(param.getStartTime()))
-                        .append("' and '").append(StringEscapeUtils.escapeSql(param.getEndTime())).append("'");
+                sql.append(" and t1.create_time between ? and ?");
+                params.add(StringEscapeUtils.escapeSql(param.getStartTime()));
+                params.add(StringEscapeUtils.escapeSql(param.getEndTime()));
             }
             sql.append("  GROUP BY t2.id  ");
             sql.append("  ORDER BY t1.create_time desc ");
-            map.put("total", marketResourceDao.getSQLQuery(sql.toString()).list().size());
+//            map.put("total", marketResourceDao.getSQLQuery(sql.toString()).list().size());
+            map.put("total", marketResourceDao.sqlPageQuery(sql.toString(), param.getPageNum(), param.getPageSize(),
+                    params.toArray()).getTotal());
             map.put("custGroupOrders",
-                    marketResourceDao.getSQLQuery(sql.toString()).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP)
-                            .setFirstResult(param.getPageNum()).setMaxResults(param.getPageSize()).list());
+                    marketResourceDao.sqlPageQuery(sql.toString(), param.getPageNum(), param.getPageSize(),
+                            params.toArray()).getData());
 
         } catch (Exception e) {
             map.put("total", 0);
@@ -7120,30 +7442,36 @@ public class MarketResourceService {
         Map<String, Object> map = new HashMap<>();
         List<Map<String, Object>> list = new ArrayList<>();
         try {
+            List<Object> params = new ArrayList<>();
             StringBuilder sql = new StringBuilder("SELECT t1.order_id as orderId ,"
                     + "  IFNULL (t2.NAME,'') AS groupName, t2.id AS groupId,"
                     + "  IFNULL(t1.quantity,0) AS account ,  t2.industry_pool_name AS industryPoolName ,"
                     + "  t1.create_time, t2.user_count quantity ,t2.status as groupStatus  FROM"
                     + "  t_order t1 RIGHT JOIN customer_group t2"
                     + "    ON t1.order_id = t2.order_id where 1=1 and t1.order_type=1");
-            sql.append(" and t1.cust_id ='").append(StringEscapeUtils.escapeSql(customerId)).append("'");
+            sql.append(" and t1.cust_id =?");
+            params.add(StringEscapeUtils.escapeSql(customerId));
             if (StringUtil.isNotEmpty(param.getGroupName())) {
-                sql.append(" and t2.name like'%").append(StringEscapeUtils.escapeSql(param.getGroupName())).append("%'");
+                sql.append(" and t2.name like'%?%'");
+                params.add(StringEscapeUtils.escapeSql(param.getGroupName()));
             }
             sql.append(" and t1.order_state= 2");
             if (StringUtil.isNotEmpty(param.getGroupId()) && Integer.valueOf(param.getGroupId()) > 0) {
-                sql.append(" and t2.id=").append(param.getGroupId());
+                sql.append(" and t2.id=?");
+                params.add(param.getGroupId());
             }
             if (StringUtil.isNotEmpty(param.getStartTime()) || StringUtil.isNotEmpty(param.getEndTime())) {
-                sql.append(" and t1.create_time between '").append(StringEscapeUtils.escapeSql(param.getStartTime()))
-                        .append("' and '").append(StringEscapeUtils.escapeSql(param.getEndTime())).append("'");
+                sql.append(" and t1.create_time between ? and ?");
+                params.add(StringEscapeUtils.escapeSql(param.getStartTime()));
+                params.add(StringEscapeUtils.escapeSql(param.getEndTime()));
             }
             sql.append("  GROUP BY t2.id  ");
             sql.append("  ORDER BY t1.create_time desc ");
-            map.put("total", marketResourceDao.getSQLQuery(sql.toString()).list().size());
+            map.put("total", marketResourceDao.sqlPageQuery(sql.toString(), param.getPageNum(), param.getPageSize(),
+                    params.toArray()).getTotal());
             List<Map<String, Object>> customerGroupOrders =
-                    marketResourceDao.getSQLQuery(sql.toString()).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP)
-                            .setFirstResult(param.getPageNum()).setMaxResults(param.getPageSize()).list();
+                    marketResourceDao.sqlPageQuery(sql.toString(), param.getPageNum(), param.getPageSize(), params.toArray())
+                            .getData();
             // 查询客户群未分配的数量
             if (customerGroupOrders.size() > 0) {
                 List<Map<String, Object>> unAssignedUsers;
@@ -7202,6 +7530,7 @@ public class MarketResourceService {
         JSONObject json = new JSONObject();
         Map<Object, Object> map = new HashMap<Object, Object>();
         StringBuffer sb = new StringBuffer();
+        List<Object> params = new ArrayList<>();
         try {
             if (StringUtil.isNotEmpty(marketTaskId)) {
                 sb.append("update " + ConstantsUtil.MARKET_TASK_TABLE_PREFIX + marketTaskId + " set");
@@ -7211,12 +7540,15 @@ public class MarketResourceService {
             sb.append(" update_time = NOW(), ");
             sb.append(" STATUS = '0', ");
             if (userId != null) {
-                sb.append(" user_id = " + userId);
+                sb.append(" user_id = ?");
+                params.add(userId);
             } else if (StringUtil.isNotEmpty(userGroupId)) {
-                sb.append(" user_group_id = " + userGroupId);
+                sb.append(" user_group_id = ?");
+                params.add(userGroupId);
             }
             sb.append(" where id = ?");
-            int code = this.marketResourceDao.executeUpdateSQL(sb.toString(), id);
+            params.add(id);
+            int code = this.marketResourceDao.executeUpdateSQL(sb.toString(), params.toArray());
             map.put("code", code);
             map.put("message", "分配负责人成功");
             json.put("data", map);
@@ -7411,6 +7743,7 @@ public class MarketResourceService {
     public int updateCustomerGroupAllDataAssignedV4(int custGroupId, String userId, String intentLevel,
                                                     String sourceUserName, String status, String marketTaskId) {
         StringBuffer sb = new StringBuffer();
+        List<Object> params = new ArrayList<>();
         if (StringUtil.isNotEmpty(marketTaskId)) {
             sb.append("update " + ConstantsUtil.MARKET_TASK_TABLE_PREFIX + marketTaskId + " set");
         } else {
@@ -7419,30 +7752,34 @@ public class MarketResourceService {
         sb.append(" update_time = NOW(), ");
         sb.append(" STATUS = '0', ");
         sb.append(" user_id = ? WHERE 1=1 ");
+        params.add(userId);
         if (StringUtil.isNotEmpty(intentLevel)) {
-            sb.append(" AND intent_level = '" + intentLevel + "'");
+            sb.append(" AND intent_level = ?");
+            params.add(intentLevel);
         }
         if (StringUtil.isNotEmpty(sourceUserName)) {
             CustomerUser customerUser = customerUserDao.getCustomerUserByName(sourceUserName);
             if (customerUser != null) {
-                sb.append(" AND user_id = '" + customerUser.getId() + "'");
+                sb.append(" AND user_id = ?");
+                params.add(customerUser.getId());
             } else {
                 LOG.warn("分配全部责任人失败,sourceUserName" + sourceUserName + "未查询到指定用户");
                 return 0;
             }
         }
         if (StringUtil.isNotEmpty(status)) {
-            sb.append(" AND status = " + status + "");
+            sb.append(" AND status = ?");
+            params.add(status);
         }
-        return marketResourceDao.executeUpdateSQL(sb.toString(), userId);
+        return marketResourceDao.executeUpdateSQL(sb.toString(), params.toArray());
     }
 
 
     public List<Map<String, Object>> queryNoAssigned(String custId, Integer custGroupId) {
 
-        StringBuilder sql = new StringBuilder("SELECT id FROM t_customer_group_list_" + custId + ""
-                + " WHERE STATUS = 1 and customer_group_id = " + custGroupId);
-        List list = this.marketResourceDao.sqlQuery(sql.toString());
+        StringBuilder sql = new StringBuilder("SELECT id FROM t_customer_group_list_?"
+                + " WHERE STATUS = 1 and customer_group_id = ?");
+        List list = this.marketResourceDao.sqlQuery(sql.toString(), custId, custGroupId);
 
         return list;
     }
@@ -7483,11 +7820,11 @@ public class MarketResourceService {
     public com.bdaim.common.dto.Page getSmsSuperIdListV1(String cust_id, String touch_id, Integer pageNum, Integer pageSize) {
         String sql = "SELECT `STATUS`,superid,sms_content FROM `t_touch_sms_log` WHERE touch_id=?  ";
         if (StringUtil.isNotEmpty(cust_id)) {
-            sql += " AND cust_id = '" + cust_id + "'";
+            sql += " AND cust_id = ?";
         }
         com.bdaim.common.dto.Page page = null;
         try {
-            page = this.marketResourceDao.sqlPageQuery0(sql.toString(), pageNum, pageSize, touch_id);
+            page = this.marketResourceDao.sqlPageQuery0(sql.toString(), pageNum, pageSize, touch_id, cust_id);
         } catch (Exception e) {
             page = new com.bdaim.common.dto.Page();
             LOG.error("查询短信详细发送内容失败,", e);
@@ -7582,7 +7919,8 @@ public class MarketResourceService {
         // 判断金额
         if (code.equals("3")) {
             // 根据资源信息计算所需要的money
-            String moneySql = "SELECT resname,sale_price,cost_price,supplier_id FROM t_market_resource where  resource_id=3 and type_code=3 ";
+            String moneySql = "SELECT resname,sale_price,cost_price,supplier_id FROM t_market_resource where " +
+                    " resource_id=3 and type_code=3 ";
             List<Map<String, Object>> groupConfigList = this.marketResourceDao.sqlQuery(moneySql);
             Double sale_price = Double.parseDouble(groupConfigList.get(0).get("sale_price").toString());
             BigDecimal money = new BigDecimal(sale_price);
@@ -7600,7 +7938,8 @@ public class MarketResourceService {
         }
         if (code.equals("1001")) {
             // 根据资源信息计算所需要的money
-            String moneySql = "SELECT resname,sale_price,cost_price,supplier_id FROM t_market_resource where  resource_id=3 and type_code=3 ";
+            String moneySql = "SELECT resname,sale_price,cost_price,supplier_id FROM t_market_resource where  " +
+                    "resource_id=3 and type_code=3 ";
             List<Map<String, Object>> groupConfigList = this.marketResourceDao.sqlQuery(moneySql);
             String resname =
                     groupConfigList.get(0).get("resname").toString();
@@ -7695,6 +8034,7 @@ public class MarketResourceService {
     public List<Map<String, Object>> getCustomerList(String customer_group_id, String cust_id, String user_id, String userType, String id) {
         //判断当前用户的user_type
         StringBuffer sb = new StringBuffer();
+        List<Object> params = new ArrayList<>();
         sb.append("select custG.id as superid  from t_customer_group_list_" + cust_id + " custG ");
         sb.append(" LEFT JOIN t_customer_user t  ON custG.user_id = t.id");
         sb.append(" LEFT JOIN t_touch_voice_info t4 ON custG.id = t4.super_id and custG.customer_group_id = t4.cust_group_id");
@@ -7702,16 +8042,19 @@ public class MarketResourceService {
         sb.append(" where 1=1 ");
 
         if (null != customer_group_id && !"".equals(customer_group_id)) {
-            sb.append(" and custG.customer_group_id=" + customer_group_id);
+            sb.append(" and custG.customer_group_id=?");
+            params.add(customer_group_id);
         }
         if (null != id && !"".equals(id)) {
-            sb.append(" and custG.id like '%" + id + "%'");
+            sb.append(" and custG.id like '%?%'");
+            params.add(id);
         }
 
         if (!"1".equals(userType)) {
-            sb.append(" AND custG.user_id= " + user_id);
+            sb.append(" AND custG.user_id=? ");
+            params.add(user_id);
         }
-        return this.marketResourceDao.sqlQuery(sb.toString());
+        return this.marketResourceDao.sqlQuery(sb.toString(), params.toArray());
     }
 
 
@@ -8164,6 +8507,7 @@ public class MarketResourceService {
      */
     public Map<String, Object> getRecordVoiceLogByTouchId(String touchId, String custId, LocalDateTime yearMonth, String startTime, String endTime) {
         List<Map<String, Object>> list = null;
+        List<Object> params = new ArrayList<>();
         try {
             StringBuffer sb = new StringBuffer();
             String monthTableName = ConstantsUtil.TOUCH_VOICE_TABLE_PREFIX + yearMonth.format(YYYYMM);
@@ -8172,18 +8516,24 @@ public class MarketResourceService {
                     .append(" from " + monthTableName + " voicLog ")
                     .append(" WHERE voicLog.cust_id= ? ")
                     .append(" AND voicLog.touch_id= ? ");
+            params.add(custId);
+            params.add(touchId);
             // 处理开始和结束数据搜索
             if (StringUtil.isNotEmpty(startTime) && StringUtil.isNotEmpty(endTime)) {
-                sb.append(" AND voicLog.create_time BETWEEN '" + startTime + "' and '" + endTime + "' ");
+                sb.append(" AND voicLog.create_time BETWEEN ? and ? ");
+                params.add(startTime);
+                params.add(endTime);
             } else {
                 if (StringUtil.isNotEmpty(startTime)) {
-                    sb.append(" AND voicLog.create_time >= '" + startTime + "'");
+                    sb.append(" AND voicLog.create_time >= ?");
+                    params.add(startTime);
                 }
                 if (StringUtil.isNotEmpty(endTime)) {
-                    sb.append(" AND voicLog.create_time <= '" + endTime + "'");
+                    sb.append(" AND voicLog.create_time <= ?");
+                    params.add(endTime);
                 }
             }
-            list = this.marketResourceDao.sqlQuery(sb.toString(), custId, touchId);
+            list = this.marketResourceDao.sqlQuery(sb.toString(), params.toArray());
         } catch (Exception e) {
             LOG.error("根据触达ID查询通话记录失败,touchId:" + touchId, e);
         }
@@ -8339,6 +8689,7 @@ public class MarketResourceService {
         int taskType = -1;
         try {
             StringBuffer sb = new StringBuffer();
+            List<Object> params = new ArrayList<>();
             LocalDate endTime = LocalDate.now();
             // 开始时间和结束时间为空时默认查当天
             if (StringUtil.isEmpty(createTimeStart)) {
@@ -8394,7 +8745,8 @@ public class MarketResourceService {
                         } else {
                             likeValue = "'$." + labelId + "'" + "like '%" + optionValue + "%'";
                         }
-                        sb.append(" AND t2.super_data -> " + likeValue + " ");
+                        sb.append(" AND t2.super_data -> ? ");
+                        params.add(likeValue);
                     }
                 }
             }
@@ -8403,38 +8755,46 @@ public class MarketResourceService {
             if ("-1".equals(userQueryParam.getCustId())) {
                 sb.append(" AND voicLog.cust_id IS NOT NULL ");
             } else {
-                sb.append(" AND voicLog.cust_id='" + userQueryParam.getCustId() + "'");
+                sb.append(" AND voicLog.cust_id=?");
+                params.add(userQueryParam.getCustId());
             }
             // 处理根据登陆账号或者用户姓名搜索
             CustomerUser user = null;
             if (StringUtil.isNotEmpty(realName)) {
                 user = this.customerUserDao.getCustomerUserByName(realName.trim());
                 if (user != null) {
-                    sb.append(" AND  voicLog.user_id = '" + user.getId() + "'");
+                    sb.append(" AND  voicLog.user_id = ?");
+                    params.add(user.getId());
                 } else {
                     // 穿透查询一次登陆名称
                     user = this.customerUserDao.getCustomerUserByLoginName(realName.trim());
                     if (user != null) {
-                        sb.append(" AND  voicLog.user_id = '" + user.getId() + "'");
+                        sb.append(" AND  voicLog.user_id = ?");
+                        params.add(user.getId());
                     } else {
                         return new com.bdaim.common.dto.Page();
                     }
                 }
             }
             if (StringUtil.isNotEmpty(customerGroupId)) {
-                sb.append(" AND voicLog.customer_group_id =" + customerGroupId.trim());
+                sb.append(" AND voicLog.customer_group_id =?");
+                params.add(customerGroupId.trim());
             }
             if (StringUtil.isNotEmpty(remark)) {
-                sb.append(" AND voicLog.remark LIKE '%" + remark.trim() + "%'");
+                sb.append(" AND voicLog.remark LIKE '%?%'");
+                params.add(remark.trim());
             }
             if (StringUtil.isNotEmpty(superId)) {
-                sb.append(" AND voicLog.superid='" + superId.trim() + "'");
+                sb.append(" AND voicLog.superid=?");
+                params.add(superId.trim());
             }
             if (StringUtil.isNotEmpty(marketTaskId)) {
-                sb.append(" AND voicLog.market_task_id='" + marketTaskId.trim() + "'");
+                sb.append(" AND voicLog.market_task_id=?");
+                params.add(marketTaskId.trim());
             }
             if (StringUtil.isNotEmpty(custName)) {
-                sb.append(" AND cust.enterprise_name like '%" + custName + "%'");
+                sb.append(" AND cust.enterprise_name like '%?%'");
+                params.add(custName);
             }
             //　处理通话状态查询
             if (StringUtil.isNotEmpty(callStatus)) {
@@ -8445,18 +8805,23 @@ public class MarketResourceService {
                 } else if ("2".equals(callStatus)) {
                     sb.append(" AND voicLog.status = 1002");
                 } else {
-                    sb.append(" AND voicLog.status = " + CallStatusEnum.getByType(NumberConvertUtil.parseInt(callStatus)).getStatus());
+                    sb.append(" AND voicLog.status = ?");
+                    params.add(CallStatusEnum.getByType(NumberConvertUtil.parseInt(callStatus)).getStatus());
                 }
             }
             // 处理开始和结束数据搜索
             if (StringUtil.isNotEmpty(createTimeStart) && StringUtil.isNotEmpty(createTimeEnd)) {
-                sb.append(" AND voicLog.create_time BETWEEN '" + createTimeStart + "' and '" + createTimeEnd + "' ");
+                sb.append(" AND voicLog.create_time BETWEEN ? and ? ");
+                params.add(createTimeStart);
+                params.add(createTimeEnd);
             } else {
                 if (StringUtil.isNotEmpty(createTimeStart)) {
-                    sb.append(" AND voicLog.create_time > '" + createTimeStart + "'");
+                    sb.append(" AND voicLog.create_time > ? ");
+                    params.add(createTimeStart);
                 }
                 if (StringUtil.isNotEmpty(createTimeEnd)) {
-                    sb.append(" AND voicLog.create_time < '" + createTimeEnd + "'");
+                    sb.append(" AND voicLog.create_time < ? ");
+                    params.add(createTimeEnd);
                 }
             }
             //type 0 查詢全部   1查詢<=3  2、3s-6s 3.6s-12s  4.12s-30s 5.30s-60s 6.>60s
@@ -8478,15 +8843,18 @@ public class MarketResourceService {
                 // 处理机器人外呼的意向度
                 if (StringUtil.isNotEmpty(level)) {
                     String levelLike = "\"level\":\"" + level + "\"";
-                    sb.append(" AND voicLog.call_data LIKE '%" + levelLike + "%'");
+                    sb.append(" AND voicLog.call_data LIKE '%?%'");
+                    params.add(levelLike);
                 }
                 // 处理按照操作人搜索营销记录时机器人外呼任务记录可以搜到
                 if (user != null) {
-                    sb.append(" AND (voicLog.user_id = '" + user.getId() + "' OR voicLog.call_data LIKE '%level%')");
+                    sb.append(" AND (voicLog.user_id = ? OR voicLog.call_data LIKE '%level%')");
+                    params.add(user.getId());
                 }
                 // 处理人工审核搜索条件
                 if (StringUtil.isNotEmpty(auditingStatus)) {
-                    sb.append(" AND voicLog.clue_audit_status = " + auditingStatus);
+                    sb.append(" AND voicLog.clue_audit_status = ?");
+                    params.add(auditingStatus);
                 }
             }
             // 处理组长权限
@@ -8502,33 +8870,41 @@ public class MarketResourceService {
                         }
                         if (userIds.size() > 0) {
                             if (3 == taskType) {
-                                sb.append(" AND (voicLog.user_id IN(" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ") OR voicLog.call_data LIKE '%level%')");
+                                sb.append(" AND (voicLog.user_id IN(?) OR voicLog.call_data LIKE '%level%')");
+                                params.add(SqlAppendUtil.sqlAppendWhereIn(userIds));
                             } else {
-                                sb.append(" AND voicLog.user_id IN(" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ")");
+                                sb.append(" AND voicLog.user_id IN(?)");
+                                params.add(SqlAppendUtil.sqlAppendWhereIn(userIds));
                             }
                         }
                     } else {
                         // 处理组长下没有员工的情况,只查询自己的通话记录
                         if (3 == taskType) {
-                            sb.append(" AND (voicLog.user_id = '" + userQueryParam.getUserId() + "' OR voicLog.call_data LIKE '%level%')");
+                            sb.append(" AND (voicLog.user_id = ? OR voicLog.call_data LIKE '%level%')");
+                            params.add(userQueryParam.getUserId());
                         } else {
-                            sb.append(" AND voicLog.user_id = '" + userQueryParam.getUserId() + "'");
+                            sb.append(" AND voicLog.user_id = ?");
+                            params.add(userQueryParam.getUserId());
                         }
                     }
                 } else {
                     if (3 == taskType) {
-                        sb.append(" AND (voicLog.user_id = '" + userQueryParam.getUserId() + "' OR voicLog.call_data LIKE '%level%')");
+                        sb.append(" AND (voicLog.user_id = ? OR voicLog.call_data LIKE '%level%')");
+                        params.add(userQueryParam.getUserId());
                     } else {
-                        sb.append(" AND voicLog.user_id = '" + userQueryParam.getUserId() + "'");
+                        sb.append(" AND voicLog.user_id = ?");
+                        params.add(userQueryParam.getUserId());
+
                     }
                 }
             }
             // 根据公海ID查询通话记录
             if (StringUtil.isNotEmpty(seaId)) {
-                sb.append(" AND voicLog.customer_sea_id = '" + seaId + "'");
+                sb.append(" AND voicLog.customer_sea_id = ?");
+                params.add(seaId);
             }
             sb.append(" order by voicLog.create_time DESC");
-            page = this.marketResourceDao.sqlPageQuery0(sb.toString(), userQueryParam.getPageNum(), userQueryParam.getPageSize());
+            page = this.marketResourceDao.sqlPageQuery0(sb.toString(), userQueryParam.getPageNum(), userQueryParam.getPageSize(), params.toArray());
             CustomerUser customerUser;
             if (page.getData() != null && page.getData().size() > 0) {
                 //处理用户信息和录音文件
@@ -8640,8 +9016,8 @@ public class MarketResourceService {
         StringUtil.isNotEmpty(price);
         price1 = Double.valueOf(price);
         price1 = price1 * 10000;
-        String sql = "select resource_id,create_time from t_market_resource where resource_id=" + resource_id;
-        List<Map<String, Object>> maps = jdbcTemplate.queryForList(sql);
+        String sql = "select resource_id,create_time from t_market_resource where resource_id=?";
+        List<Map<String, Object>> maps = jdbcTemplate.queryForList(sql, resource_id);
         Object createTime = DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss);
 
         if (maps.size() > 0) {
@@ -8651,7 +9027,9 @@ public class MarketResourceService {
         String sql1;
         int update;
         if (!"update".equals(_c_)) {
-            if (maps.size() > 0) throw new Exception("资源已存在");
+            if (maps.size() > 0) {
+                throw new Exception("资源已存在");
+            }
         }
         sql1 = "REPLACE  into t_market_resource(resource_id,supplier_id,type_code,resname,sale_price,create_time) VALUES(?,?,?,?,?,?)";
         update = jdbcTemplate.update(sql1, new Object[]{resource_id, supplierId, type, name, Double.valueOf(price1).intValue(), createTime});
@@ -8670,21 +9048,25 @@ public class MarketResourceService {
 
         List dataList = new ArrayList();
         StringBuffer sql = new StringBuffer();
+        List<Object> params = new ArrayList<>();
         Map<String, Object> map = new HashMap<>();
         sql.append("select re.resource_id as resourceId, re.supplier_id as supplierId , re.resname as resname , re.type_code as typeCode, re.sale_price as salePrice , re.create_time as createTime");
         sql.append(",su.name as supplierName ");
         sql.append(" from t_market_resource re left join t_supplier su on re.supplier_id=su.supplier_id where 1=1");
         if (StringUtil.isNotEmpty(param.getString("supplierId"))) {
-            sql.append(" and re.supplier_id =" + param.getString("supplierId"));
+            sql.append(" and re.supplier_id =?");
+            params.add(param.getString("supplierId"));
         }
         if (StringUtil.isNotEmpty(param.getString("resname"))) {
-            sql.append(" and re.resname like '%" + param.getString("resname") + "%'");
+            sql.append(" and re.resname like '%?%'");
+            params.add(param.getString("resname"));
         }
         if (StringUtil.isNotEmpty(param.getString("resourceId"))) {
-            sql.append(" and re.resource_id =" + param.getInteger("resourceId"));
+            sql.append(" and re.resource_id =?");
+            params.add(param.getInteger("resourceId"));
         }
         sql.append(" order by re.create_time desc");
-        PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
+        PageList list = new Pagination().getPageData(sql.toString(), params.toArray(), page, jdbcTemplate);
         List<ApiProperty> rsIds = apiDao.getPropertyAll("rsIds");
 
         Map<String, List<String>> propertyMap = new HashMap<>();
