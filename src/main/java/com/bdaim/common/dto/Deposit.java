@@ -7,7 +7,7 @@ public class Deposit {
     private long id;
     @NotNull(message = "pageNum参数必填")
     private String money;
-    @NotNull(message = "pageNum参数必填")
+//    @NotNull(message = "充值凭证必填")
     private String repaidVoucher;
 
     public long getId() {

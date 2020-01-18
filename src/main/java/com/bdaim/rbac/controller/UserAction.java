@@ -58,8 +58,6 @@ import java.util.*;
 @RequestMapping("/user")
 public class UserAction extends BasicAction {
     private static Logger logger = LoggerFactory.getLogger(UserAction.class);
-    private static Map verifyCodes = new HashMap();
-    private static Long verifyCodeTimeout = 300000L;
 
     @Resource
     private RoleService roleService;
@@ -102,7 +100,11 @@ public class UserAction extends BasicAction {
 
     @RequestMapping(value = "/verify/code")
     public void getLoginVerifyCode(HttpServletRequest request, HttpServletResponse response) {
-        BufferedImage image = VerifyUtil.getLoginVerifyCode(100, 38);
+        String uuid = request.getParameter("uuid");
+        if (StringUtil.isEmpty(uuid)) {
+            return;
+        }
+        BufferedImage image = VerifyUtil.getLoginVerifyCode(100, 38,uuid);
         try {
             ImageIO.write(image, "PNG", response.getOutputStream());
         } catch (IOException e) {
