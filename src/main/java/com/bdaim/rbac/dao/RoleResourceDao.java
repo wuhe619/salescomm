@@ -139,8 +139,8 @@ public class RoleResourceDao extends SimpleHibernateDao<UserDO, Serializable> {
      * @return
      */
     public String insertIntoRoleDataPermission(String roleId, Integer type, String rId, String opUser) throws Exception {
-        String sql = "insert into t_mrp_rel(`role_id`,`type`,`r_id`,`OPTUSER`,`create_time`) values(" + roleId + "," + type + "," + rId + ",'" + opUser + "',now())";
-        jdbcTemplate.execute(sql);
+        String sql = "insert into t_mrp_rel(`role_id`,`type`,`r_id`,`OPTUSER`,`create_time`) values(?,?,?,?,now())";
+        this.executeUpdateSQL(sql, roleId, type, rId, opUser);
         return "success";
     }
 }

@@ -219,14 +219,14 @@ public class ApiService {
     }
 
     public Map<String, Object> apis(PageParam page, JSONObject params) {
-        List<Object>arr = new ArrayList<>();
+        List<Object> arr = new ArrayList<>();
 
         StringBuffer sql = new StringBuffer();
         sql.append(" select API_ID as apiId,API_NAME as apiName,CONTEXT as context,CREATED_BY as createdBy,status   from am_api where 1=1 ");
         if (params.containsKey("apiName")) {
 //            sql.append(" and API_NAME like '%" + params.getString("apiName") + "%'");
             sql.append(" and API_NAME like ?");
-            arr.add("%"+params.getString("apiName")+"%");
+            arr.add("%" + params.getString("apiName") + "%");
         }
         if (params.containsKey("status")) {
             if (StringUtil.isNotEmpty(params.getString("status"))) {
@@ -244,7 +244,7 @@ public class ApiService {
             String countSql = "select count(*) from am_subscription where API_ID=? and SUBS_CREATE_STATE='SUBSCRIBE'";
             List param = new ArrayList();
             param.add(Integer.valueOf(apiId));
-            Integer count = jdbcTemplate.queryForObject(countSql,param.toArray(), Integer.class);
+            Integer count = jdbcTemplate.queryForObject(countSql, param.toArray(), Integer.class);
             dataMap.put("subscribeNum", count);
             return dataMap;
         }).collect(Collectors.toList());
@@ -346,27 +346,27 @@ public class ApiService {
 //        paramList.add(apiEntity.getApiId());
         String subSql1 = "select SUBSCRIPTION_ID as id  from am_subscription where APPLICATION_ID=? and API_ID = ?";
 //            SubscriptionEntity subEntity = jdbcTemplate.queryForObject(subSql1, SubscriptionEntity.class);
-        List<Map<String, Object>> list = jdbcTemplate.queryForList(subSql1,amApplicationEntity.getId(),apiEntity.getApiId());
+        List<Map<String, Object>> list = jdbcTemplate.queryForList(subSql1, amApplicationEntity.getId(), apiEntity.getApiId());
         int subscriptionId;
         Calendar calendar = Calendar.getInstance();
         calendar.add(Calendar.DATE, 365 * 100);
         if (list.size() == 0) {
 
             String subSql = " insert into am_subscription (CREATED_BY,CREATED_TIME,API_ID,LAST_ACCESSED,SUB_STATUS,SUBS_CREATE_STATE,APPLICATION_ID,UPDATED_TIME) " +
-                        "values (?,?,?,?,?,?,?,?)";
+                    "values (?,?,?,?,?,?,?,?)";
 //                    "values('" + lu.getUserName() + "','" + new Timestamp(System.currentTimeMillis()) + "'," + apiEntity.getApiId() + ",'" + new Timestamp(System.currentTimeMillis()) +
 //                    "','UNBLOCKED','SUBSCRIBE'," + amApplicationEntity.getId() + ",'" + new Timestamp(System.currentTimeMillis()) + "')";
             KeyHolder keyHolder = new GeneratedKeyHolder();
             PreparedStatementCreator preparedStatementCreator = con -> {
                 PreparedStatement ps = con.prepareStatement(subSql, Statement.RETURN_GENERATED_KEYS);
-                ps.setString(1,lu.getUserName());
-                ps.setTimestamp(2,new Timestamp(System.currentTimeMillis()));
-                ps.setInt(3,apiEntity.getApiId());
-                ps.setTimestamp(4,new Timestamp(System.currentTimeMillis()));
-                ps.setString(5,"UNBLOCKED");
-                ps.setString(6,"SUBSCRIBE");
-                ps.setInt(7,amApplicationEntity.getId());
-                ps.setTimestamp(8,new Timestamp(System.currentTimeMillis()));
+                ps.setString(1, lu.getUserName());
+                ps.setTimestamp(2, new Timestamp(System.currentTimeMillis()));
+                ps.setInt(3, apiEntity.getApiId());
+                ps.setTimestamp(4, new Timestamp(System.currentTimeMillis()));
+                ps.setString(5, "UNBLOCKED");
+                ps.setString(6, "SUBSCRIBE");
+                ps.setInt(7, amApplicationEntity.getId());
+                ps.setTimestamp(8, new Timestamp(System.currentTimeMillis()));
                 return ps;
             };
 
@@ -382,7 +382,7 @@ public class ApiService {
             subscriptionId = Integer.valueOf(list.get(0).get("id").toString());
             logger.info("重新订阅API只更改订阅状态,客户Id:{},subscriptionId:{}", params.getString("custId"), subscriptionId);
             String sql = "update am_subscription  set SUBS_CREATE_STATE=? ,SUB_STATUS=?,UPDATED_BY=? ,UPDATED_TIME=? where SUBSCRIPTION_ID=? ";
-            jdbcTemplate.update(sql, new Object[]{"SUBSCRIBE","UNBLOCKED", lu.getUserName(), new Timestamp(System.currentTimeMillis()), subscriptionId});
+            jdbcTemplate.update(sql, new Object[]{"SUBSCRIBE", "UNBLOCKED", lu.getUserName(), new Timestamp(System.currentTimeMillis()), subscriptionId});
             logger.info("更改API订阅状态成功,客户Id:{},subscriptionId:{}", params.getString("custId"), subscriptionId);
             String chargeSql = "SELECT SUBSCRIPTION_ID FROM am_subscription_charge WHERE SUBSCRIPTION_ID = ? ";
             List<Map<String, Object>> chargeList = jdbcTemplate.queryForList(chargeSql, subscriptionId);
@@ -431,14 +431,17 @@ public class ApiService {
         sql.append(" select sub.APPLICATION_ID ,api.API_ID as apiId,api.API_NAME as apiName,sub.SUBS_CREATE_STATE as subCreateState,sub.CREATED_TIME as createTime");
         sql.append(" from am_api api left join am_subscription sub  on  api.API_ID=sub.API_ID");
         sql.append(" where api.API_ID not in");
-        sql.append(" (select API_ID from am_subscription where APPLICATION_ID = " + amApplicationEntity.getId() + " and SUBS_CREATE_STATE = 'SUBSCRIBE')");
+        sql.append(" (select API_ID from am_subscription where APPLICATION_ID = ? and SUBS_CREATE_STATE = 'SUBSCRIBE')");
         sql.append(" and api.status=2");
+        List<Object> param = new ArrayList<>();
+        param.add(amApplicationEntity.getId());
         if (StringUtil.isNotEmpty(apiName)) {
-            sql.append(" and api.API_NAME  = '" + apiName + "'");
+            param.add(apiName);
+            sql.append(" and api.API_NAME  = ?  ");
         }
         page.setSort("api.CREATED_TIME");
         page.setDir("desc");
-        Page list = apiDao.sqlPageQuery(sql.toString(), page.getPageNum(), page.getPageSize());
+        Page list = apiDao.sqlPageQuery(sql.toString(), page.getPageNum(), page.getPageSize(), param.toArray());
         //PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
         Object collect = list.getData().stream().map(m -> {
             Map map = (Map) m;
@@ -558,7 +561,7 @@ public class ApiService {
         sql.append(" where 1=1");
         if (params.containsKey("apiName")) {
             sql.append(" and api.API_NAME like ?");
-            args.add("%"+params.getString("apiName")+"%");
+            args.add("%" + params.getString("apiName") + "%");
         }
         sql.append(" group by log.API_ID");
         PageList list = new Pagination().getPageData(sql.toString(), args.toArray(), page, jdbcTemplate);
@@ -569,7 +572,7 @@ public class ApiService {
             map.put("countNum", 0);
             if (apiId != null) {
                 String sql1 = "select count(*) from  rs_log_" + params.getString("callMonth") + " where API_ID=?";
-                Integer unt = jdbcTemplate.queryForObject(sql1,new Object[]{Integer.valueOf(apiId.toString())}, Integer.class);
+                Integer unt = jdbcTemplate.queryForObject(sql1, new Object[]{Integer.valueOf(apiId.toString())}, Integer.class);
                 map.put("countNum", unt);
             }
             list1.add(map);
@@ -593,28 +596,28 @@ public class ApiService {
         sql.append("select resource_id as rsId,resname from t_market_resource res where supplier_id=?");
 
         PageList list = new Pagination().getPageData(sql.toString(), new Object[]{params.getString("supplierId")}, page, jdbcTemplate);
-        if(list!=null && list.getTotal()>0){
+        if (list != null && list.getTotal() > 0) {
 //            List<Map<String,Object>> dataList = list.getList();
-              Object collect = list.getList().stream().map(m -> {
+            Object collect = list.getList().stream().map(m -> {
                 Map map = (Map) m;
-                map.put("amount","0");
-                map.put("num",0);
-                String countSql = "select count(0)num from rs_log_" + params.getString("callMonth")+" where rs_id="+map.get("rsId");
-                Map<String,Object> countNum = jdbcTemplate.queryForMap(countSql);
-                map.put("num",countNum.get("num"));
-                String sumsql= " select sum(charge) as amount from rs_log_" + params.getString("callMonth")+" where rs_id="+map.get("rsId");
-                Map<String,Object> amountMap = jdbcTemplate.queryForMap(sumsql);
-                if(amountMap!=null){
+                map.put("amount", "0");
+                map.put("num", 0);
+                String countSql = "select count(0)num from rs_log_" + params.getString("callMonth") + " where rs_id= ?";
+                Map<String, Object> countNum = jdbcTemplate.queryForMap(countSql, map.get("rsId"));
+                map.put("num", countNum.get("num"));
+                String sumsql = " select sum(charge) as amount from rs_log_" + params.getString("callMonth") + " where rs_id=? ";
+                Map<String, Object> amountMap = jdbcTemplate.queryForMap(sumsql, map.get("rsId"));
+                if (amountMap != null) {
                     Object amount = amountMap.get("amount");
-                    if(amount!=null){
-                        String amountStr = BigDecimalUtil.strDiv(amount.toString(),"10000",2);
-                        map.put("amount",amountStr);
+                    if (amount != null) {
+                        String amountStr = BigDecimalUtil.strDiv(amount.toString(), "10000", 2);
+                        map.put("amount", amountStr);
                     }
                 }
                 return map;
             }).collect(Collectors.toList());
-            result.put("list",collect);
-            result.put("total",list.getTotal());
+            result.put("list", collect);
+            result.put("total", list.getTotal());
         }
         return result;
     }
@@ -622,10 +625,10 @@ public class ApiService {
 
     public PageList resApiLogDetail(JSONObject params, PageParam page) {
         StringBuffer sql = new StringBuffer();
-         sql.append("select log.rs_id as rsId,res.resname,log.charge/10000 as charge,log.event_time eventTime,que.SERVICE_TIME as serviceTime," +
-                " que.RESPONSE_MSG responseMsg,que.RESPONSE_TIME as responseTime from rs_log_" + params.getString("callMonth")+" log " +
+        sql.append("select log.rs_id as rsId,res.resname,log.charge/10000 as charge,log.event_time eventTime,que.SERVICE_TIME as serviceTime," +
+                " que.RESPONSE_MSG responseMsg,que.RESPONSE_TIME as responseTime from rs_log_" + params.getString("callMonth") + " log " +
                 " left join  t_market_resource res on log.rs_id = res.resource_id " +
-                " left join am_charge_" + params.getString("callMonth")+ " que on que.id=log.api_log_id " +
+                " left join am_charge_" + params.getString("callMonth") + " que on que.id=log.api_log_id " +
                 "  where log.rs_id=?");
 
         PageList list = new Pagination().getPageData(sql.toString(), new Object[]{params.getString("rsId")}, page, jdbcTemplate);

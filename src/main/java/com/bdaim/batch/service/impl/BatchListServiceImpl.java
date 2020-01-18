@@ -297,7 +297,7 @@ public class BatchListServiceImpl implements BatchListService {
             p.add(batchListParam.getComp_name());
         }
         if (StringUtil.isNotEmpty(batchListParam.getCompId())) {
-            sqlBuilder.append(" AND comp_id = ? " );
+            sqlBuilder.append(" AND comp_id = ? ");
             p.add(batchListParam.getCompId());
         }
         if (StringUtil.isNotEmpty(batchListParam.getId())) {
@@ -324,7 +324,7 @@ public class BatchListServiceImpl implements BatchListService {
             if (batchListParam.getStatus() == 2) {
                 sqlBuilder.append(" AND status IN (2,4,5)");
             } else {
-                sqlBuilder.append(" AND status =?" );
+                sqlBuilder.append(" AND status =?");
                 p.add(batchListParam.getStatus());
             }
         }
@@ -358,11 +358,11 @@ public class BatchListServiceImpl implements BatchListService {
         StringBuilder sqlBuilder = new StringBuilder("SELECT id, batch_name batchName, certify_type certifyType, status, upload_num uploadNum, success_num successNum, upload_time uploadTime, repair_time repairTime FROM nl_batch WHERE 1=1");
         List<Object> p = new ArrayList<>();
         if (batchListParam.getCompId() != null) {
-            sqlBuilder.append(" AND comp_id = ?" );
+            sqlBuilder.append(" AND comp_id = ?");
             p.add(batchListParam.getCompId());
         }
         if (batchListParam.getId() != null) {
-            sqlBuilder.append(" AND id = ?" );
+            sqlBuilder.append(" AND id = ?");
             p.add(batchListParam.getId());
         }
         if (StringUtil.isNotEmpty(batchListParam.getBatchName())) {
@@ -370,7 +370,7 @@ public class BatchListServiceImpl implements BatchListService {
             p.add(batchListParam.getBatchName());
         }
         if (StringUtil.isNotEmpty(batchListParam.getUploadStartTime())) {
-            sqlBuilder.append(" AND upload_time >= ?" );
+            sqlBuilder.append(" AND upload_time >= ?");
             p.add(batchListParam.getUploadStartTime());
         }
         if (StringUtil.isNotEmpty(batchListParam.getUploadEndTime())) {
@@ -417,7 +417,7 @@ public class BatchListServiceImpl implements BatchListService {
         Map<String, String> names = new HashMap<>(16);
         Map<String, Long> callCountData = new HashMap<>(16);
         Map<String, Set<String>> userGroupData = new HashMap<>(16);
-        List<Map<String, Object>> list = jdbcTemplate.queryForList(sb.toString(),p.toArray());
+        List<Map<String, Object>> list = jdbcTemplate.queryForList(sb.toString(), p.toArray());
         Set<String> superIds;
         String userIdKey;
         for (Map<String, Object> map : list) {
@@ -446,7 +446,7 @@ public class BatchListServiceImpl implements BatchListService {
             p.add(batchId);
             sb.append("SELECT cust_id, user_id, create_time FROM t_touch_voice_log WHERE cust_id = ? AND batch_id = ? ");
             if (StringUtil.isNotEmpty(userId)) {
-                sb.append(" AND user_id = ? " );
+                sb.append(" AND user_id = ? ");
                 p.add(userId);
             }
             sb.append(" AND superid IN (");
@@ -533,7 +533,7 @@ public class BatchListServiceImpl implements BatchListService {
         String kehuId = null, certifyMd5 = null, lalel_one = null, label_two = null, label_three = null;
         if (batchDetailList.size() > 0) {
             for (int i = 0; i < batchDetailList.size(); i++) {
-                String touchId = String.valueOf(UUID.randomUUID()).replaceAll("-","");
+                String touchId = String.valueOf(UUID.randomUUID()).replaceAll("-", "");
                 BatchDetail batchDetail = batchDetailList.get(i);
                 if (batchDetail != null) {
                     kehuId = batchDetail.getEnterpriseId();
@@ -683,7 +683,7 @@ public class BatchListServiceImpl implements BatchListService {
         p.add(batchId);
         StringBuffer allocationSql = new StringBuffer("SELECT COUNT(DISTINCT id_card) allocationCount from nl_batch_detail WHERE batch_id=?  AND allocation='1'");
         if (StringUtil.isNotEmpty(userId)) {
-            allocationSql.append(" AND user_id = ? " );
+            allocationSql.append(" AND user_id = ? ");
             p.add(userId);
         }
         //查询总通话时长和拨打人数
@@ -720,7 +720,7 @@ public class BatchListServiceImpl implements BatchListService {
         List<Object> smsP = new ArrayList<>();
         smsP.add(batchId);
         if (StringUtil.isNotEmpty(userId)) {
-            smsSql.append(" AND s.user_id = ? " );
+            smsSql.append(" AND s.user_id = ? ");
             smsP.add(userId);
         }
 
@@ -784,7 +784,7 @@ public class BatchListServiceImpl implements BatchListService {
             p.add(batchListParam.getComp_name());
         }
         if (StringUtil.isNotEmpty(batchListParam.getCompId())) {
-            sqlBuilder.append(" AND comp_id = ?" );
+            sqlBuilder.append(" AND comp_id = ?");
             p.add(batchListParam.getCompId());
         }
         if (StringUtil.isNotEmpty(batchListParam.getId())) {
@@ -796,7 +796,7 @@ public class BatchListServiceImpl implements BatchListService {
             p.add(batchListParam.getBatchName());
         }
         if (StringUtil.isNotEmpty(batchListParam.getUploadStartTime())) {
-            sqlBuilder.append(" AND upload_time >= ?" );
+            sqlBuilder.append(" AND upload_time >= ?");
             p.add(batchListParam.getUploadStartTime());
         }
         if (StringUtil.isNotEmpty(batchListParam.getUploadEndTime())) {
@@ -811,7 +811,7 @@ public class BatchListServiceImpl implements BatchListService {
             if (batchListParam.getStatus() == 2) {
                 sqlBuilder.append(" AND status IN (2,4,5)");
             } else {
-                sqlBuilder.append(" AND status = ?" );
+                sqlBuilder.append(" AND status = ?");
                 p.add(batchListParam.getStatus());
             }
         }

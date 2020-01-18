@@ -78,8 +78,8 @@ public class RoleDao extends SimpleHibernateDao<RoleEntity, Serializable> {
     public void deleteSourceTree(Long operateUserId, Long roleId) throws SQLException {
         StringBuilder builder = new StringBuilder();
         List<Object> params = new ArrayList<>();
-        builder.append(" delete from t_mrp_rel where role_id = " + roleId + " and r_id in");
-        builder.append(" (select temp.r_id from (select m.r_id from t_mrp_rel m ,t_user_role_rel ur where m.ROLE_ID = ur.ROLE and ur.id = " + operateUserId + ")temp)");
+        builder.append(" delete from t_mrp_rel where role_id = ? and r_id in");
+        builder.append(" (select temp.r_id from (select m.r_id from t_mrp_rel m ,t_user_role_rel ur where m.ROLE_ID = ur.ROLE and ur.id = ?)temp)");
         params.add(roleId);
         params.add(operateUserId);
         String sql = builder.toString();
@@ -180,8 +180,8 @@ public class RoleDao extends SimpleHibernateDao<RoleEntity, Serializable> {
     }
 
     public void delete(RoleDTO role) {
-        this.executeUpdateSQL("delete from t_role where ID=" + role.getKey());
-        this.executeUpdateSQL("delete from t_mrp_rel where ROLE_ID=" + role.getKey());
+        this.executeUpdateSQL("delete from t_role where ID=?", role.getKey());
+        this.executeUpdateSQL("delete from t_mrp_rel where ROLE_ID=?", role.getKey());
     }
 
     public RoleDTO getObj(RoleDTO role) {
@@ -241,8 +241,8 @@ public class RoleDao extends SimpleHibernateDao<RoleEntity, Serializable> {
 
     public List<RoleDTO> queryUserRoles(UserDTO user) {
         try {
-            List list = this.getSQLQuery("SELECT r.ID,r.NAME,r.OPTUSER,r.CREATE_TIME,r.MODIFY_TIME FROM t_role r,t_user_role_rel rel where r.ID=rel.ROLE " +
-                    "and rel.ID= " + user.getKey()).list();
+            List list = this.sqlQuery("SELECT r.ID,r.NAME,r.OPTUSER,r.CREATE_TIME,r.MODIFY_TIME FROM t_role r,t_user_role_rel rel where r.ID=rel.ROLE " +
+                    "and rel.ID= ? " , user.getKey());
 
             List<RoleDTO> roles = new ArrayList<RoleDTO>();
             for (int i = 0; i < list.size(); i++) {

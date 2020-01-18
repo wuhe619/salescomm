@@ -235,6 +235,7 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
                 map.put("cust_id", custIds);
             }
         }
+        List<Object> p = new ArrayList<>();
         //企业ID
         String custId = String.valueOf(map.get("cust_id"));
         if (!nullString.equals(custId) && StringUtil.isNotEmpty(custId)) {
@@ -243,31 +244,35 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
         //批次编号
         String batchId = String.valueOf(map.get("batch_id"));
         if (!nullString.equals(batchId) && StringUtil.isNotEmpty(batchId)) {
-            sql.append(" AND t1.id like '%" + batchId + "%'");
+            sql.append(" AND t1.id like ? ");
+            p.add("%" + batchId + "%");
         }
         //批次名称
         String batchName = String.valueOf(map.get("batch_name"));
         if (!nullString.equals(batchName) && StringUtil.isNotEmpty(batchName)) {
-            sql.append(" AND t1.batch_name like '%" + batchName + "%'");
+            sql.append(" AND t1.batch_name like ? ");
+            p.add("%" + batchName + "%");
         }
         //状态
         String status = String.valueOf(map.get("status"));
         if (!nullString.equals(status) && StringUtil.isNotEmpty(status)) {
-            sql.append(" AND t1.status = '" + status + "'");
+            sql.append(" AND t1.status =? ");
+            p.add(status);
         }
         //上传时间开始
         String startTime = String.valueOf(map.get("start_time"));
         if (!nullString.equals(startTime) && StringUtil.isNotEmpty(startTime)) {
-            sql.append(" AND t1.upload_time >= '" + startTime + "'");
+            sql.append(" AND t1.upload_time >= ? ");
+            p.add(startTime);
         }
         //上传时间截止
         String endTime = String.valueOf(map.get("end_time"));
         if (!nullString.equals(endTime) && StringUtil.isNotEmpty(endTime)) {
-            sql.append(" AND t1.upload_time <='" + endTime + "'");
+            sql.append(" AND t1.upload_time <=? ");
+            p.add(endTime);
         }
         //快递格式
         String expressType = String.valueOf(map.get("express_type"));
-        List<Object> p = new ArrayList<>();
         if (!nullString.equals(expressType) && StringUtil.isNotEmpty(expressType)) {
             p.add(expressType);
             sql.append(" AND t1.id in (SELECT batch_id FROM nl_batch_property WHERE property_name ='expressContentType' AND property_value =? ) ");
@@ -299,48 +304,56 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
                 "  FROM  nl_batch_detail t2 LEFT JOIN nl_batch_property t1 ON t2.batch_id=t1.batch_id AND t1.property_name='expressContentType' LEFT JOIN t_touch_express_log l ON t2.touch_id = l.touch_id WHERE");
         List<String> values = new ArrayList();
         //批次编号
+        List<Object> p = new ArrayList<>();
         String batchId = String.valueOf(map.get("batch_id"));
         String nullString = "null";
         if (!nullString.equals(batchId) && StringUtil.isNotEmpty(batchId)) {
-            hql.append(" t2.batch_id = '" + batchId + "' ");
+            hql.append(" t2.batch_id = ? ");
+            p.add(batchId);
         }
         //收件人ID
         String id = String.valueOf(map.get("receiver_id"));
         if (!nullString.equals(id) && StringUtil.isNotEmpty(id)) {
-            hql.append(" AND t2.label_five LIKE '%" + id + "%'");
+            hql.append(" AND t2.label_five LIKE ? ");
+            p.add("%" + id + "%");
         }
         //地址ID
         String addressId = String.valueOf(map.get("address_id"));
         if (!nullString.equals(addressId) && StringUtil.isNotEmpty(addressId)) {
-            hql.append(" AND t2.id LIKE '%" + addressId + "%'");
+            hql.append(" AND t2.id LIKE ? ");
+            p.add("%" + addressId + "%");
         }
         //姓名
         String name = String.valueOf(map.get("name"));
         if (!nullString.equals(name) && StringUtil.isNotEmpty(name)) {
-            hql.append(" AND t2.label_one LIKE '%" + name + "%'");
+            hql.append(" AND t2.label_one LIKE ? ");
             values.add(name);
+            p.add("%" + name + "%");
         }
         //文件编码
         String fileCode = String.valueOf(map.get("file_code"));
         if (!nullString.equals(fileCode) && StringUtil.isNotEmpty(fileCode)) {
-            hql.append(" AND t2.label_six LIKE '%" + fileCode + "%'");
+            hql.append(" AND t2.label_six LIKE ? ");
+            p.add("%" + fileCode + "%");
         }
         //校验结果
         String status = String.valueOf(map.get("status"));
         if (!nullString.equals(status) && StringUtil.isNotEmpty(status)) {
-            hql.append(" AND t2.status = '" + status + "'");
+            hql.append(" AND t2.status = ? ");
+            p.add(status);
         }
         //快件状态
         String checkingResult = String.valueOf(map.get("express_status")).trim();
         if (!nullString.equals(checkingResult) && StringUtil.isNotEmpty(checkingResult)) {
-            hql.append(" AND t2.label_seven = '" + checkingResult + "'");
+            hql.append(" AND t2.label_seven = ? ");
             values.add(status);
+            p.add(checkingResult);
         }
         hql.append(" ORDER BY t2.id DESC  ");
         logger.info("查询批次详情SQL为" + hql.toString());
         Map<String, Object> resultMap = new HashMap<>(10);
         try {
-            PageList page = new Pagination().getPageData(hql.toString(), null, pageParam, jdbcTemplate);
+            PageList page = new Pagination().getPageData(hql.toString(), p.toArray(), pageParam, jdbcTemplate);
             List<Map<String, Object>> list = page.getList();
             logger.info("查询结果为" + list.toString());
             resultMap.put("total", page.getTotal());
@@ -483,9 +496,9 @@ public class ExpressBatchServiceImpl implements ExpressBatchService {
             Map<String, Object> count = jdbcTemplate.queryForMap(countSql, batchId);
             int num = Integer.parseInt(String.valueOf(count.get("count")));
             if (num == 0) {
-                String updateSql = "UPDATE nl_batch SET status='4' WHERE id='" + batchId + "'";
+                String updateSql = "UPDATE nl_batch SET status='4' WHERE id=?";
                 logger.info("执行更新批次状态SQL " + updateSql);
-                jdbcTemplate.update(updateSql);
+                jdbcTemplate.update(updateSql, batchId);
             }
         } catch (Exception e) {
             logger.info("发生异常了。。。。");

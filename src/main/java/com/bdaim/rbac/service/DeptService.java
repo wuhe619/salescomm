@@ -245,52 +245,6 @@ public class DeptService {
         return true;
     }
 
-    @SuppressWarnings("unchecked")
-    public List<DeptInfo> queryDept(Page page, String condition) {
-        StringBuilder queryData = new StringBuilder();
-        queryData.append(" SELECT d.ID , d.TYPE ,d.NAME , COUNT(distinct(u.id)) AS USERCOUNT, COUNT(distinct(r.id)) AS ROLECOUNT,d.MODIFY_TIME as MODIFY_TIME FROM t_dept d LEFT JOIN  t_user u ON d.ID = u.DEPTID and u.STATUS=0 LEFT JOIN  t_role r ON d.id = r.deptid");
-        if (condition != null && !"".equals(condition)) {
-            queryData.append(" where d.name like '%" + condition + "%' ");
-        }
-        queryData.append(" GROUP BY d.ID , d.TYPE , d.name , d.MODIFY_TIME");
-
-        StringBuilder queryCount = new StringBuilder();
-        queryCount.append("select count(*) as COUNT from (");
-
-        queryCount.append(queryData);
-        queryCount.append(") t1 ");
-        String queryDataSql = queryData.toString();
-        String queryCountSql = queryCount.toString();
-        List<Map<String, Object>> list = deptDao.sqlQuery(queryDataSql, new Page(page.getPageIndex(), page.getCountPerPage()));
-        List<DeptInfo> vos = null;
-        if (list != null && !list.isEmpty()) {
-            vos = new ArrayList<DeptInfo>();
-            for (Map<String, Object> map : list) {
-                Long id = NumberConvertUtil.everythingToLong(map.get("ID"));
-                //int type = (Integer)map.get("type");
-                String name = (String) map.get("NAME");
-                int usercount = NumberConvertUtil.everythingToInt(map.get("USERCOUNT"));
-                int rolecount = NumberConvertUtil.everythingToInt(map.get("ROLECOUNT"));
-                Date modifyTime = (Date) map.get("MODIFY_TIME");
-                DeptInfo info = new DeptInfo();
-                info.setId(id);
-                info.setName(name);
-                info.setRoleNum(rolecount);
-                info.setUserNum(usercount);
-                info.setModifyTime(DateUtil.formatDate("yyyy-MM-dd HH:mm:ss", modifyTime));
-                //info.setSource(DataFromEnum.getNameByValue(type));
-                vos.add(info);
-            }
-        }
-        List<Map<String, Object>> list1 = deptDao.sqlQuery(queryCountSql);
-        if (list1 != null && !list.isEmpty()) {
-            Map<String, Object> map = list1.get(0);
-            int count = NumberConvertUtil.everythingToInt(map.get("COUNT"));
-            page.setCount(count);
-        }
-        return vos;
-    }
-
     public List<DeptInfo> queryDeptV1(Page page, String condition) {
         StringBuilder queryData = new StringBuilder();
         queryData.append(" SELECT d.ID , d.TYPE ,d.NAME , COUNT(distinct(u.id)) AS USERCOUNT, COUNT(distinct(r.id)) AS ROLECOUNT,d.MODIFY_TIME as MODIFY_TIME,d.CREATE_TIME AS CREATE_TIME FROM t_dept d LEFT JOIN  t_user u ON d.ID = u.DEPTID and u.STATUS=0 LEFT JOIN  t_role r ON d.id = r.deptid");
@@ -406,11 +360,14 @@ public class DeptService {
 
     @SuppressWarnings("unchecked")
     public boolean checkDeptName(String deptName, Long id) {
-        String sql = "select * from t_dept where name = '" + deptName + "'";
+        List<Object> p = new ArrayList<>();
+        p.add(deptName);
+        String sql = "select * from t_dept where name =? ";
         if (id != null) {
-            sql += " and id <> '" + id + "'";
+            p.add(id);
+            sql += " and id <> ? ";
         }
-        List<Map<String, Object>> list = deptDao.sqlQuery(sql);
+        List<Map<String, Object>> list = deptDao.sqlQuery(sql, p.toArray());
         if (list != null && !list.isEmpty()) {
             return false;
         } else {

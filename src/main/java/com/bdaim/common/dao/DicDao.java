@@ -39,7 +39,8 @@ public class DicDao extends SimpleHibernateDao<Dic, Long> {
         p.add(recommendConfig);
         hql.append(" AND a.id in (SELECT dicId from DicProperty where dicPropKey='recommendConfig' and dicPropValue LIKE '%?%')");
         hql.append(" AND a.dicTypeId = ?");
-        List<DicProperty> list = this.find(hql.toString(), dicPropKey, dicPropValue, dicId, p.toArray(), dicType);
+        p.add(dicType);
+        List<DicProperty> list = this.find(hql.toString(), dicPropKey, dicPropValue, dicId, p.toArray());
         return list;
     }
 

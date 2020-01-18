@@ -111,7 +111,7 @@ public class ExportMessageImpl implements ExportMessageService {
             p.add(id);
         }
         if (StringUtil.isNotEmpty(idCard)) {
-            sqlBuilder.append(" and custG.id_card= '");
+            sqlBuilder.append(" and custG.id_card= ? ");
             p.add(idCard);
         }
         if (StringUtil.isNotEmpty(enterpriseId)) {
@@ -259,8 +259,9 @@ public class ExportMessageImpl implements ExportMessageService {
      */
     @Override
     public void exportDetailInfo(String batchId, String detailId, Integer status, HttpServletResponse response, String exportType, String custId) throws IOException, IllegalAccessException {
-        StringBuffer sb = new StringBuffer("SELECT content, cust_id, cust_group_id, cust_user_id, create_id, create_date ,ext_1, ext_2, ext_3 detailId, ext_4 batchId, ext_5 scoure from h_data_manager_hy_pic_x WHERE ext_4 = '" + batchId + "'");
+        StringBuffer sb = new StringBuffer("SELECT content, cust_id, cust_group_id, cust_user_id, create_id, create_date ,ext_1, ext_2, ext_3 detailId, ext_4 batchId, ext_5 scoure from h_data_manager_hy_pic_x WHERE ext_4 = ? ");
         List<Object> p = new ArrayList<>();
+        p.add(batchId);
         if (status != null) {
             sb.append(" and ext_2 = ? ");
             p.add(status);
