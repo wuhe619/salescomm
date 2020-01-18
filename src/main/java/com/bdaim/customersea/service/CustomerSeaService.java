@@ -940,20 +940,22 @@ public class CustomerSeaService {
             LOG.info("channelId is null");
             return null;
         }
-        MarketResourceDTO mr = marketResourceDao.getInfoProperty(NumberConvertUtil.parseInt(channelId), "price_config");
-        LOG.info("mr=" + JSONObject.toJSONString(mr));
-        if (mr != null && mr.getTypeCode() != null) {
-            JSONObject priceConfig = JSON.parseObject(mr.getResourceProperty());
-            LOG.info("priceConfig::" + mr.getResourceProperty());
-            if (priceConfig != null) {
-                LOG.info("TYPECODE:" + mr.getTypeCode());
-                if (mr.getTypeCode() == 1) {
-                    LOG.info("ssafa===" + priceConfig.getInteger("call_center_type"));
-                    if (priceConfig.getIntValue("call_center_type") == 2) {
-                        LOG.info(priceConfig.getInteger("call_center_type") + ";call_center_config: " + priceConfig.getString("call_center_config"));
-                        String callCenterConfigStr = priceConfig.getString("call_center_config");
-                        LOG.info("callCenterConfigStr:" + callCenterConfigStr);
-                        return JSON.parseObject(callCenterConfigStr);
+        if (StringUtil.isNotEmpty(channelId)) {
+            MarketResourceDTO mr = marketResourceDao.getInfoProperty(NumberConvertUtil.parseInt(channelId), "price_config");
+            LOG.info("mr=" + JSONObject.toJSONString(mr));
+            if (mr != null && mr.getTypeCode() != null) {
+                JSONObject priceConfig = JSON.parseObject(mr.getResourceProperty());
+                LOG.info("priceConfig::" + mr.getResourceProperty());
+                if (priceConfig != null) {
+                    LOG.info("TYPECODE:" + mr.getTypeCode());
+                    if (mr.getTypeCode() == 1) {
+                        LOG.info("ssafa===" + priceConfig.getInteger("call_center_type"));
+                        if (priceConfig.getIntValue("call_center_type") == 2) {
+                            LOG.info(priceConfig.getInteger("call_center_type") + ";call_center_config: " + priceConfig.getString("call_center_config"));
+                            String callCenterConfigStr = priceConfig.getString("call_center_config");
+                            LOG.info("callCenterConfigStr:" + callCenterConfigStr);
+                            return JSON.parseObject(callCenterConfigStr);
+                        }
                     }
                 }
             }
