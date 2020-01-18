@@ -5184,16 +5184,16 @@ public class MarketResourceService {
         } else {
             if (username == null || "".equals(username)) {
                 String sql = "select account AS userName, realname as name,CAST(id AS CHAR)id from t_customer_user m where cust_id=? ";
-                sql += " ORDER BY m.account ASC LIMIT " + pageNum + "," + pageSize;
+                sql += " ORDER BY m.account ASC LIMIT ?,?";
                 params.add(cust_id);
                 params.add(pageNum);
                 params.add(pageSize);
                 list = this.marketResourceDao.sqlQuery(sql, params.toArray());
             } else {
-                String sql = "select account AS userName, realname as name,CAST(id AS CHAR)id from t_customer_user m where cust_id=? and realname like '%?%' ";
-                sql += " ORDER BY m.account ASC LIMIT " + pageNum + "," + pageSize;
+                String sql = "select account AS userName, realname as name,CAST(id AS CHAR)id from t_customer_user m where cust_id=? and realname like ? ";
+                sql += " ORDER BY m.account ASC LIMIT ?,?";
                 params.add(cust_id);
-                params.add(username);
+                params.add("%"+username+"%");
                 params.add(pageNum);
                 params.add(pageSize);
                 list = this.marketResourceDao.sqlQuery(sql, params.toArray());
@@ -5375,7 +5375,7 @@ public class MarketResourceService {
                 params.add(userid);
                 if (!"".equals(realName) && null != realName) {
                     sb.append(" AND   tUser.realname LIKE ?");
-                    params.add("%"+realName+"%");
+                    params.add("%" + realName + "%");
                 }
 
                 if (null != createTimeStart && !"".equals(createTimeStart) && null != createTimeEnd
@@ -5468,7 +5468,7 @@ public class MarketResourceService {
 
             if (StringUtil.isNotEmpty(remark)) {
                 sb.append(" AND  voicLog.remark LIKE ?");
-                params.add("%"+remark.trim()+"%");
+                params.add("%" + remark.trim() + "%");
             }
             if (StringUtil.isNotEmpty(customerGroupId)) {
                 // 处理任务类型
@@ -5517,7 +5517,7 @@ public class MarketResourceService {
                 if (StringUtil.isNotEmpty(level)) {
                     String levelLike = "\"level\":\"" + level + "\"";
                     sb.append(" AND voicLog.call_data LIKE ?");
-                    params.add("%"+levelLike+"%");
+                    params.add("%" + levelLike + "%");
                 }
                 // 处理按照操作人搜索营销记录时机器人外呼任务记录可以搜到
                 if (user != null) {
