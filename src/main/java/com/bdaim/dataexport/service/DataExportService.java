@@ -88,29 +88,36 @@ public class DataExportService {
 
     @SuppressWarnings("unchecked")
     public List<Map<String, Object>> getDataExportList(DataExport dataExport, Page page, User user) {
-        StringBuilder sql = new StringBuilder("select t.id as id, t.task_num as taskNum, t.export_type as exportType, t.data_type as dataType, t.start_time as startTime, t.end_time as endTime, case t.export_reason when 0 then '用户分析' when 1 then '营销应用' when 2 then '其它' end as exportReason, t.applicant as applicant,u.name as applicantStr,t.path as path from data_export t left join t_user u on t.applicant=u.id where t.applicant=").append(user.getId());
+        List args=new ArrayList();
+        StringBuilder sql = new StringBuilder("select t.id as id, t.task_num as taskNum, t.export_type as exportType, t.data_type as dataType, t.start_time as startTime, t.end_time as endTime, case t.export_reason when 0 then '用户分析' when 1 then '营销应用' when 2 then '其它' end as exportReason, t.applicant as applicant,u.name as applicantStr,t.path as path from data_export t left join t_user u on t.applicant=u.id where t.applicant=?");
+        args.add(user.getId());
         if (!StringUtils.isEmpty(dataExport.getTaskNum())) {
-            sql.append(" and t.task_num='").append(dataExport.getTaskNum()).append("'");
+            sql.append(" and t.task_num=?");
+            args.add(dataExport.getTaskNum());
         }
         if (!StringUtils.isEmpty(dataExport.getExportType())) {
-            sql.append(" and t.export_type=").append(dataExport.getExportType());
+            sql.append(" and t.export_type=?");
+            args.add(dataExport.getExportType());
         }
         if (!StringUtils.isEmpty(dataExport.getDataType())) {
-            sql.append(" and t.data_type=").append(dataExport.getDataType());
+            sql.append(" and t.data_type=?");
+            args.add(dataExport.getDataType());
         }
         sql.append(" order by t.create_time desc ");
         if (page == null) {
-            return dataExportDao.getSQLQuery(sql.toString()).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP).list();
+            return dataExportDao.sqlQuery(sql.toString(),args);
         } else {
-            return dataExportDao.getSQLQuery(sql.toString()).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP).setFirstResult(page.getStart()).setMaxResults(page.getLimit()).list();
+            return dataExportDao.sqlPageQuery(sql.toString(),page.getStart(),page.getLimit(),args).getData();
         }
 
     }
 
     @SuppressWarnings("unchecked")
     public Map<String, Object> getDataExportById(Integer id) {
-        String sql = "select t.id as id,t.task_num as taskNum,t.export_type as exportType,t.cid as cid,t.customer_group_id as customerGroupId,t.output_label as outputLabel,t.data_type as dataType,t.start_time as startTime,t.end_time as endTime,t.export_reason as exportReason,t.export_reason_detail as exportReasonDeail,t.applicant as applicant,t.create_time as createTime,t.filename as filename,t.path as path,u.name as applicantStr from data_export t left join t_user u on t.applicant=u.id where t.id=" + id;
-        Map<String, Object> map = (Map<String, Object>) dataExportDao.getSQLQuery(sql).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP).uniqueResult();
+        String sql = "select t.id as id,t.task_num as taskNum,t.export_type as exportType,t.cid as cid,t.customer_group_id as customerGroupId,t.output_label as outputLabel,t.data_type as dataType,t.start_time as startTime,t.end_time as endTime,t.export_reason as exportReason,t.export_reason_detail as exportReasonDeail,t.applicant as applicant,t.create_time as createTime,t.filename as filename,t.path as path,u.name as applicantStr from data_export t left join t_user u on t.applicant=u.id where t.id=?";
+
+        List<Map<String, Object>> list =  dataExportDao.sqlQuery(sql,id);
+        Map<String,Object> map = list.get(0);
 //		Integer exportType = (Integer)map.get("exportType");
         String outputLabel = (String) map.get("outputLabel");
 //		String sql1 = "select t.type as type, t.code as code, t.value as value from data_export_optional t where type=" + exportType + " and code in ("+outputLabel+")";
@@ -128,18 +135,23 @@ public class DataExportService {
 		map.put("exportType", dataExport.getExportType());
 		map.put("dataType", dataExport.getDataType());
 		Object count = dataExportDao.getHqlQuery("select count(1) from DataExport t where 1=1", map, new HashMap<String, Object>(), null).uniqueResult();*/
-        StringBuilder sql = new StringBuilder("select count(1) from DataExport t where t.applicant = ");
-        sql.append(user.getId());
+        List args=new ArrayList();
+		StringBuilder sql = new StringBuilder("select count(1) from DataExport t where t.applicant = ?");
+		args.add(user.getId());
+		//sql.append(user.getId());
         if (!StringUtils.isEmpty(dataExport.getTaskNum())) {
-            sql.append(" and taskNum = '").append(dataExport.getTaskNum()).append("'");
+            sql.append(" and taskNum = ?");
+            args.add(dataExport.getTaskNum());
         }
         if (null != dataExport.getExportType() && 0 != dataExport.getExportType()) {
-            sql.append(" and exportType = ").append(dataExport.getExportType());
+            sql.append(" and exportType = ?");
+            args.add(dataExport.getExportType());
         }
         if (null != dataExport.getDataType() && 0 != dataExport.getDataType()) {
-            sql.append(" and dataType = ").append(dataExport.getDataType());
+            sql.append(" and dataType = ?");
+            args.add(dataExport.getDataType());
         }
-        Object count = dataExportDao.createQuery(sql.toString(), new Object[]{}).uniqueResult();
+        Object count = dataExportDao.createQuery(sql.toString(), args).uniqueResult();
         return (Long) count;
     }
 
@@ -1969,9 +1981,9 @@ public class DataExportService {
                         .append(" WHERE voice.cust_id = ? AND voice.customer_group_id = ? ")
                         .append(" AND voice.create_time >= ? AND voice.create_time <= ?  ")
                         .append(" AND voice.type_code = 1 AND voice.status = 1001 ")
-                        .append(" AND t.super_data LIKE '%" + labelDataLikeValue + "%' ");
+                        .append(" AND t.super_data LIKE ? ");
 
-                List<Map<String, Object>> callLogList = dataExportDao.sqlQuery(sql.toString(), invitationLabelId, customerId, startTimeStr, endTimeStr, invitationLabelValue);
+                List<Map<String, Object>> callLogList = dataExportDao.sqlQuery(sql.toString(), invitationLabelId, customerId, startTimeStr, endTimeStr, invitationLabelValue,"%" + labelDataLikeValue + "%");
                 // 有满足条件的营销记录
                 if (callLogList.size() > 0) {
                     // 组合拼装为map,方便通过label_id和super_id快速查找数据
@@ -2111,7 +2123,7 @@ public class DataExportService {
      *
      * @param response
      * @param customerId
-     * @param customerGroupId
+     * @param
      * @param invitationLabelId
      * @param invitationLabelName
      * @param invitationLabelValue
@@ -2234,9 +2246,9 @@ public class DataExportService {
                             .append(" WHERE voice.cust_id = ? AND voice.customer_group_id = ? ")
                             .append(" AND voice.create_time >= ? AND voice.create_time <= ?  ")
                             .append(" AND voice.status = 1001 ")
-                            .append(" AND t.super_data LIKE '%" + labelDataLikeValue + "%' ");
+                            .append(" AND t.super_data LIKE ? ");
                     try {
-                        list = dataExportDao.sqlQuery(sql.toString(), customerId, m.get("id"), startTimeStr, endTimeStr);
+                        list = dataExportDao.sqlQuery(sql.toString(), customerId, m.get("id"), startTimeStr, endTimeStr,"%" + labelDataLikeValue + "%");
                     } catch (SQLGrammarException e) {
                         log.warn("导出客户下全部营销数据失败:", e);
                     }
