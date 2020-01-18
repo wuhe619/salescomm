@@ -87,6 +87,9 @@ public class TokenServiceImpl implements TokenService {
             //校验 验证码
             String[] usernameArray = username.split("\\.");
             String uuid = usernameArray[1].substring(4);
+            if (usernameArray[1].length() < 4) {
+                return new LoginUser("guest", "", "验证码错误", "401");
+            }
             Object object = VerifyUtil.verifyCodes.get(uuid);
             if (object != null) {
                 VerifyCode code = (VerifyCode) object;
@@ -225,6 +228,9 @@ public class TokenServiceImpl implements TokenService {
         } else {
             //校验 验证码
             String[] usernameArray = username.split("\\.");
+            if (usernameArray[0].length() < 4) {
+                return new LoginUser("guest", "", "验证码错误", "401");
+            }
             String uuid = usernameArray[0].substring(4);
             Object object = VerifyUtil.verifyCodes.get(uuid);
             if (object != null) {
