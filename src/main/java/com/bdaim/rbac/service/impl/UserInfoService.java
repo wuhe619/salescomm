@@ -267,9 +267,9 @@ public class UserInfoService {
             params.add(StringEscapeUtils.escapeSql(enterpriseName));
         }
         sql.append(" order by t5.create_time desc ");
-
-        map.put("total", userInfoDao.sqlPageQuery(sql.toString(), pageNum, pageSize, params).getTotal());
-        List userIndustryPoolList = userInfoDao.sqlPageQuery(sql.toString(), pageNum, pageSize, params).getData();
+        Page page = userInfoDao.sqlPageQuery(sql.toString(), pageNum, pageSize, params.toArray());
+        map.put("total", page.getTotal());
+        List userIndustryPoolList = page.getData();
         Map customerProperty;
         CustomerUserPropertyDO mobileNum;
         for (int i = 0; i < userIndustryPoolList.size(); i++) {

@@ -29,10 +29,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 供应商
@@ -541,6 +538,7 @@ public class SupplierAction extends BasicAction {
                 userId = String.valueOf(opUser().getId());
             }
             page = customGroupService.pageSupplierCustGroup(userId, param);
+            LOG.info(Objects.toString(page));
         } catch (Exception e) {
             LOG.error("供应商客群分页失败,", e);
         }

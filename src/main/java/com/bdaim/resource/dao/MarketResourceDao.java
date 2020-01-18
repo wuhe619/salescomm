@@ -438,7 +438,7 @@ public class MarketResourceDao extends SimpleHibernateDao<MarketResourceEntity, 
         hql.append(" from MarketResourceEntity m where 1=1");
         if (StringUtil.isNotEmpty(type)) {
             hql.append(" AND m.typeCode = ? ");
-            param.add(type);
+            param.add(NumberConvertUtil.parseInt(type));
         }
         hql.append(" ORDER BY create_time ASC");
         Page page = this.page(hql.toString(), param, pageNum, pageSize);
