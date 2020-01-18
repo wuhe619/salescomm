@@ -47,7 +47,7 @@ public class FilterConfig {
         //注册xss解析器
         SimpleModule xssModule = new SimpleModule("XssStringJsonSerializer");
         xssModule.addSerializer(String.class, new XssJacksonSerializer());
-        xssModule.addDeserializer(String.class, new XssJacksonDeserializer());
+        //xssModule.addDeserializer(String.class, new XssJacksonDeserializer());
         objectMapper.registerModule(xssModule);
         //返回
         return objectMapper;

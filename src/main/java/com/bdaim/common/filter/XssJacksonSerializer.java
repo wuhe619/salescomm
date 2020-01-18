@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.springframework.web.util.HtmlUtils;
 
 import java.io.IOException;
 
@@ -16,7 +17,7 @@ public class XssJacksonSerializer extends JsonSerializer<String> {
 
     @Override
     public void serialize(String s, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException, IOException {
-        jsonGenerator.writeString(StringEscapeUtils.escapeHtml4(s));
+        jsonGenerator.writeString(HtmlUtils.htmlEscape(s));
     }
 
 }

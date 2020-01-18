@@ -6,6 +6,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.safety.Whitelist;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.util.HtmlUtils;
 
 import javax.servlet.ReadListener;
 import javax.servlet.ServletInputStream;
@@ -190,8 +191,7 @@ public class XssHttpServletRequestWrapper extends HttpServletRequestWrapper {
         value = value.replaceAll("[\\\"\\\'][\\s]*javascript:(.*)[\\\"\\\']", "\"\"");
         value = value.replaceAll("script", "");
         value = cleanSqlKeyWords(value);
-        value = StringEscapeUtils.escapeJavaScript(value);
-        value = StringEscapeUtils.escapeHtml(value);
+        value = HtmlUtils.htmlEscape(value);
         return value;
     }
 

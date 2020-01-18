@@ -2,6 +2,7 @@ package com.bdaim.customer.account.controller;
 
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.controller.BasicAction;
+import com.bdaim.common.dto.Page;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.page.PageList;
 import com.bdaim.common.response.ResponseInfo;
@@ -62,16 +63,16 @@ public class CustomerExtensionController extends BasicAction {
             info = JSONObject.parseObject(body);
             page.setPageSize(!info.containsKey("pageSize") ? 10000000 : info.getIntValue("pageSize"));
             page.setPageNum(!info.containsKey("pageNum") ? 1 : info.getIntValue("pageNum"));
-            PageList query = customerExtensionService.query(info, page);
+            Page query = customerExtensionService.query(info, page);
             if ("extension".equals(info.getString("type"))) {
-                int size = query.getList().size();
+                int size = query.getData().size();
                 if (size > 200)
                     return new ResponseInfoAssemble().failure(-1, "已经超出导出上限（" + (size - 200) + "条），请调整检索条件后重试");
-                exportExcelService.exportExcel(0, query.getList(), info, response);
+                exportExcelService.exportExcel(0, query.getData(), info, response);
             }
             resp.setData(query);
         } catch (Exception e) {
-
+            logger.error("查询推广线索异常", e);
         }
         return resp;
     }
