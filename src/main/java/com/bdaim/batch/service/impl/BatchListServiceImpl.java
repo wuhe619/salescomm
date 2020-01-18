@@ -305,8 +305,8 @@ public class BatchListServiceImpl implements BatchListService {
             p.add(batchListParam.getId());
         }
         if (StringUtil.isNotEmpty(batchListParam.getBatchName())) {
-            sqlBuilder.append(" AND batch_name LIKE '%?%'");
-            p.add(batchListParam.getCompId());
+            sqlBuilder.append(" AND batch_name LIKE ?");
+            p.add("%"+batchListParam.getCompId()+"%");
         }
         if (StringUtil.isNotEmpty(batchListParam.getUploadStartTime())) {
             sqlBuilder.append(" AND upload_time >= ? ");
