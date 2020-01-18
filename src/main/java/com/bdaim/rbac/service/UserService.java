@@ -1015,9 +1015,9 @@ public class UserService {
     private List<Long> getCategoryIds(String categoryIds) throws SQLException {
         List<Long> ret = new ArrayList<Long>();
         String[] cIds = categoryIds.split(",");
-        String sql = "select id from label_category where id in (" + categoryIds + ") and level=2";
+        String sql = "select id from label_category where id in (?) and level=2";
         StringBuilder sql1 = new StringBuilder("select id from label_category where uri like ");
-        List list = this.userDao.getSQLQuery(sql).list();
+        List list = this.userDao.sqlQuery(sql, categoryIds);
         for (int i = 0; i < list.size(); i++) {
 
             sql1.append("'%/").append(list.get(i)).append("/%'");
@@ -1097,10 +1097,13 @@ public class UserService {
 
     public List<Map<String, Object>> queryLabelChannel(Long userId) {
         String sql = "";
+        List<Object> params = new ArrayList<>();
         if (null == userId) {
             sql = "select * from label_channel";
         } else {
-            sql = "select t.*,t1.USER_ID from label_channel t left join t_user_channel_rel t1 on t.id = t1.CHANNEL_ID and t1.USER_ID=" + userId;
+            sql = "select t.*,t1.USER_ID from label_channel t left join t_user_channel_rel t1 on t.id = t1.CHANNEL_ID " +
+                    "and t1.USER_ID=?";
+            params.add(userId);
         }
         List<Map<String, Object>> lst = new ArrayList<Map<String, Object>>();
         try {
@@ -1134,7 +1137,7 @@ public class UserService {
     public boolean deleteByAudName(Long userId) {
         try {
             UserDTO user = queryUserById(userId);
-            this.userDao.executeUpdateSQL("delete from COM_AUDIT_TRAIL where AUD_USER='[username: " + user.getName() + "]'");
+            this.userDao.executeUpdateSQL("delete from COM_AUDIT_TRAIL where AUD_USER='[username: ?]'", user.getName());
             return true;
         } catch (Exception e) {
             e.printStackTrace();
@@ -1155,7 +1158,8 @@ public class UserService {
         Map<String, Object> map = new HashMap<>();
         StringBuilder sql = new StringBuilder("" +
                 "SELECT t1.`NAME` AS userName t1.id AS userId, t1.mobile_num AS mobileNum, t1.enterprise_name AS enterpriseName," +
-                " t1.create_time AS createTime, t1.source AS source, t1.`STATUS` AS status FROM t_user t1 where 1=1 and t1.user_type=1 ");
+                " t1.create_time AS createTime, t1.source AS source, t1.`STATUS` AS status FROM t_user t1 where 1=1 " +
+                "and t1.user_type=1 ");
         if (StringUtil.isNotEmpty(param.getUserName())) {
             sql.append(" and t1.name='").append(StringEscapeUtils.escapeSql(param.getUserName())).append("'");
         }
@@ -1438,7 +1442,7 @@ public class UserService {
     public Integer getUserByLoginPassWord(String payPassWord, Long userId) {
 
         Integer code = null;
-        List list = userDao.getSQLQuery("SELECT PASSWORD FROM t_user t WHERE t.id =" + userId).list();
+        List list = userDao.sqlQuery("SELECT PASSWORD FROM t_user t WHERE t.id =?", userId);
         String loginPassWord = null;
         if (list.size() > 0) {
             loginPassWord = String.valueOf(list.get(0));
