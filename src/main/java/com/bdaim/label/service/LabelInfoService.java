@@ -134,14 +134,14 @@ public class LabelInfoService {
             StringBuffer hql = new StringBuffer("from LabelInfo t where  ( t.availably=1  ");
             hql.append(" and t.level=3 )");
             if (labelInfo.getLevel() == 2)
-                hql.append(" and t.parentId=").append(id);  //通过uri快速检索所有子标签
+                hql.append(" and t.parentId=?");  //通过uri快速检索所有子标签
             else
-                hql.append(" and t.id=").append(id);
+                hql.append(" and t.id=?");
 
             hql.append(" and t.status=3"); //审批通过的标签
 
             hql.append(" order by level, label_name");
-            labelInfos = labelInfoDao.find(hql.toString());
+            labelInfos = labelInfoDao.find(hql.toString(),id);
 
         } else {
             if (type.equals(Constant.QUERY_TYPE_CATEGORY)) { //type=0:品类
@@ -178,11 +178,11 @@ public class LabelInfoService {
         StringBuffer hql = new StringBuffer("from LabelInfo t where t.availably=1 ");
         hql.append(" and t.level=4 ");
 
-        hql.append(" and t.parentId=").append(id);  //通过uri快速检索所有子标签
+        hql.append(" and t.parentId=?");  //通过uri快速检索所有子标签
         hql.append(" and t.status=3"); //审批通过的标签
 
         hql.append(" order by level, label_name");
-        List<LabelInfo> labelInfos = labelInfoDao.find(hql.toString());
+        List<LabelInfo> labelInfos = labelInfoDao.find(hql.toString(),id);
 
         List<Label> labels = new ArrayList();
         for (LabelInfo labelInfo : labelInfos) {

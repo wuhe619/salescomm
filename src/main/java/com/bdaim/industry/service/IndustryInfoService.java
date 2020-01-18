@@ -44,7 +44,7 @@ public class IndustryInfoService {
         sql.append(" limit ?,?");
         args.add(pageNum);
         args.add(pageSize);
-        List list = jdbcTemplate.queryForList(sql.toString(),args);
+        List list = jdbcTemplate.queryForList(sql.toString(),args.toArray());
 //        List list = industryInfoDao.getSQLQuery(sql.toString()).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP).list();
         return list;
     }
@@ -59,7 +59,7 @@ public class IndustryInfoService {
             args.add(industryInfoId);
         }
         //List list = industryInfoDao.getSQLQuery(sql.toString()).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP).list();
-        List list = jdbcTemplate.queryForList(sql.toString(),args);
+        List list = jdbcTemplate.queryForList(sql.toString(),args.toArray());
         return list;
     }
 

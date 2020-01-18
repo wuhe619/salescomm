@@ -333,7 +333,7 @@ public class IndustryPoolService {
                 labelInfo.setUri(list.get(i).get("uri").toString());
                 labelInfo.setStatus(Integer.parseInt(list.get(i).get("status").toString()));
                 // 通过父级标签ID查询子标签
-                parentLabelInfo = industryPoolDao.findUnique("FROM LabelInfo t WHERE t.availably=1 AND t.id=" + labelInfo.getId());
+                parentLabelInfo = industryPoolDao.findUnique("FROM LabelInfo t WHERE t.availably=1 AND t.id=?",  labelInfo.getId());
                 if (parentLabelInfo != null) {
                     labelInfo.setChildren(parentLabelInfo.getChildren());
                 }
@@ -342,7 +342,7 @@ public class IndustryPoolService {
             }
             if (labels.size() == 0) {
                 if (map.containsKey(Constant.FILTER_KEY_PREFIX + "id")) {
-                    labels = industryPoolDao.createQuery("FROM LabelInfo t WHERE t.availably=1 AND t.id=" + label.getId()).list();
+                    labels = industryPoolDao.createQuery("FROM LabelInfo t WHERE t.availably=1 AND t.id=?", label.getId()).list();
                 }
             }
         } else {
@@ -375,8 +375,7 @@ public class IndustryPoolService {
                 labels = industryPoolDao.getHqlQuery(hql, map, orLikeMap,
                         andLikeMap, null).list();
             } else if (type.equals(Constant.QUERY_TYPE_ATTR)) {
-                String hql = "from LabelInfo t where t.availably=1 and t.type>1 and attrId != 10001 and attrId is not null and parent.id="
-                        + label.getId();
+                String hql = "from LabelInfo t where t.availably=1 and t.type>1 and attrId != 10001 and attrId is not null and parent.id=" + label.getId();
                 labels = industryPoolDao.getHqlQuery(hql, map, orLikeMap,
                         andLikeMap, null).list();
             }

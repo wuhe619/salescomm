@@ -105,9 +105,9 @@ public class DataExportService {
         }
         sql.append(" order by t.create_time desc ");
         if (page == null) {
-            return dataExportDao.sqlQuery(sql.toString(),args);
+            return dataExportDao.sqlQuery(sql.toString(),args.toArray());
         } else {
-            return dataExportDao.sqlPageQuery(sql.toString(),page.getStart(),page.getLimit(),args).getData();
+            return dataExportDao.sqlPageQuery(sql.toString(),page.getStart(),page.getLimit(),args.toArray()).getData();
         }
 
     }
@@ -151,7 +151,7 @@ public class DataExportService {
             sql.append(" and dataType = ?");
             args.add(dataExport.getDataType());
         }
-        Object count = dataExportDao.createQuery(sql.toString(), args).uniqueResult();
+        Object count = dataExportDao.createQuery(sql.toString(), args.toArray()).uniqueResult();
         return (Long) count;
     }
 
