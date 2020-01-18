@@ -1,16 +1,19 @@
 package com.bdaim.common;
 
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.StreamUtils;
 
 import javax.servlet.ReadListener;
 import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -22,8 +25,9 @@ public class XssHttpServletRequestWrapper extends HttpServletRequestWrapper {
     private static String key = "and|exec|insert|select|delete|update|count|*|%|chr|mid|master|truncate|char|declare|;|or|-|+";
     private static Set<String> notAllowedKeyWords = new HashSet<String>(0);
     private static String replacedString = "INVALID";
-    //用于保存读取body中数据
-    private final byte[] body;
+
+    //判断是否是上传 上传忽略
+    boolean isUpData = false;
 
     static {
         String keyStr[] = key.split("\\|");
@@ -37,37 +41,72 @@ public class XssHttpServletRequestWrapper extends HttpServletRequestWrapper {
     public XssHttpServletRequestWrapper(HttpServletRequest servletRequest) throws IOException {
         super(servletRequest);
         currentUrl = servletRequest.getRequestURI();
-        body = StreamUtils.copyToByteArray(servletRequest.getInputStream());
+        String contentType = servletRequest.getContentType();
+        if (null != contentType) {
+            isUpData = contentType.startsWith("multipart");
+        }
     }
 
+    public String inputHandlers(ServletInputStream servletInputStream) {
+        StringBuilder sb = new StringBuilder();
+        BufferedReader reader = null;
+        try {
+            reader = new BufferedReader(new InputStreamReader(servletInputStream, Charset.forName("UTF-8")));
+            String line = "";
+            while ((line = reader.readLine()) != null) {
+                sb.append(line);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (servletInputStream != null) {
+                try {
+                    servletInputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        String value = cleanSqlKeyWords(sb.toString());
+        value = cleanXSS(sb.toString());
+        return value;
+    }
 
     @Override
     public ServletInputStream getInputStream() throws IOException {
-        final ByteArrayInputStream bais = new ByteArrayInputStream(body);
-        return new ServletInputStream() {
+        if (isUpData) {
+            return super.getInputStream();
+        } else {
+            //处理原request的流中的数据
+            byte[] bytes = inputHandlers(super.getInputStream()).getBytes();
+            final ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
+            return new ServletInputStream() {
+                @Override
+                public int read() throws IOException {
+                    return bais.read();
+                }
+                @Override
+                public boolean isFinished() {
+                    return false;
+                }
 
-            @Override
-            public int read() throws IOException {
-                return bais.read();
-            }
+                @Override
+                public boolean isReady() {
+                    return false;
+                }
 
-            @Override
-            public boolean isFinished() {
-                // TODO Auto-generated method stub
-                return false;
-            }
-
-            @Override
-            public boolean isReady() {
-                // TODO Auto-generated method stub
-                return false;
-            }
-
-            @Override
-            public void setReadListener(ReadListener readListener) {
-
-            }
-        };
+                @Override
+                public void setReadListener(ReadListener readListener) {
+                }
+            };
+        }
     }
 
     /**
@@ -141,6 +180,8 @@ public class XssHttpServletRequestWrapper extends HttpServletRequestWrapper {
         value = value.replaceAll("[\\\"\\\'][\\s]*javascript:(.*)[\\\"\\\']", "\"\"");
         value = value.replaceAll("script", "");
         value = cleanSqlKeyWords(value);
+        value = StringEscapeUtils.escapeJavaScript(value);
+        value = StringEscapeUtils.escapeHtml(value);
         return value;
     }
 
@@ -154,6 +195,7 @@ public class XssHttpServletRequestWrapper extends HttpServletRequestWrapper {
                         + ")" + ";参数：" + value + ";过滤后的参数：" + paramValue);
             }
         }
+        paramValue = StringEscapeUtils.escapeSql(paramValue);
         return paramValue;
     }
 }
