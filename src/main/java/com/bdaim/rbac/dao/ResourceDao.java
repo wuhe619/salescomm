@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ *
  */
 @Component
 public class ResourceDao extends SimpleHibernateDao<Resource, Serializable> {
@@ -34,15 +35,15 @@ public class ResourceDao extends SimpleHibernateDao<Resource, Serializable> {
     public void delete(CommonTreeResource t) throws SQLException {
         if (t.getID() == null) throw new NullPointerException("删除记录的ID不可为空");
         AbstractTreeResource delResources = queryAllTree(t, null);
-        this.executeUpdateSQL("delete from t_resource where ID= " + delResources.getID());
-        this.executeUpdateSQL("delete from t_mrp_rel where R_ID=" + delResources.getID());
+        this.executeUpdateSQL("delete from t_resource where ID = ?", delResources.getID());
+        this.executeUpdateSQL("delete from t_mrp_rel where R_ID= ? ", delResources.getID());
     }
 
     private void delNote(AbstractTreeResource tree, Statement st) throws SQLException {
         if (tree.getNotes() != null && tree.getNotes().size() > 0) {
             for (AbstractTreeResource item : tree.getNotes()) {
-                this.executeUpdateSQL("delete from t_resource where ID= " + item.getID());
-                this.executeUpdateSQL("delete from t_mrp_rel where R_ID=" + item.getID());
+                this.executeUpdateSQL("delete from t_resource where ID= ? ", item.getID());
+                this.executeUpdateSQL("delete from t_mrp_rel where R_ID= ?", item.getID());
                 delNote(item, st);
             }
         }
@@ -52,26 +53,33 @@ public class ResourceDao extends SimpleHibernateDao<Resource, Serializable> {
         if (t.getID() == null) throw new NullPointerException("更新记录的ID不可为空");
         StringBuffer sb = new StringBuffer();
         sb.append("update t_resource set MODIFY_TIME=now(),");
+        List<Object> p = new ArrayList<>();
         if (t.getRemark() != null && !t.getRemark().equals("")) {
-            sb.append("REMARK='" + t.getRemark() + "',");
+            p.add(t.getRemark());
+            sb.append("REMARK=?,");
         }
         if (t.getUser() != null && !t.getUser().equals("")) {
-            sb.append("OPTUSER='" + t.getUser() + "',");
+            p.add(t.getUser());
+            sb.append("OPTUSER=?,");
         }
         if (t.getPid() != null) {
-            sb.append("PID='" + t.getPid() + "',");
+            p.add(t.getPid());
+            sb.append("PID=?,");
         }
         if (t.getName() != null && !t.getName().equals("")) {
-            sb.append("NAME='" + t.getName() + "',");
+            p.add(t.getName());
+            sb.append("NAME=?,");
         }
         if (t.getSn() != null) {
-            sb.append("sn='" + t.getSn() + "',");
+            p.add(t.getSn());
+            sb.append("sn=?,");
         }
         if (t.getType() != null) {
-            sb.append("type='" + t.getType() + "',");
+            p.add(t.getType());
+            sb.append("type=?,");
         }
         //确认SQL，绑定参数
-        this.executeUpdateSQL(sb.substring(0, sb.length() - 1) + " where ID=" + t.getID());
+        this.executeUpdateSQL(sb.substring(0, sb.length() - 1) + " where ID=?", t.getID(), p.toArray());
     }
 
 
@@ -108,9 +116,9 @@ public class ResourceDao extends SimpleHibernateDao<Resource, Serializable> {
         if (u.getKey() == null || u.getKey().equals("")) throw new NullPointerException("用户信息为空");
         StringBuffer sql = new StringBuffer();
         sql.append("select count(*) as amount from t_resource r,t_mrp_rel rel,t_role o where r.id=rel.R_ID and rel.ROLE_ID=o.ID" +
-                "where o.ID=" + r.getID() + " and r.ID=" + u.getKey());
+                "where o.ID=? and r.ID=? ");
         try {
-            List list = this.getSQLQuery(sql.toString()).list();
+            List list = this.sqlQuery(sql.toString(), r.getID(), u.getKey());
             if (list.size() > 0 && Long.parseLong((String.valueOf(list.get(0)))) > 0)
                 return true;
         } catch (Exception e) {
@@ -124,9 +132,9 @@ public class ResourceDao extends SimpleHibernateDao<Resource, Serializable> {
         if (r.getID() == null || r.getID() == 0) throw new NullPointerException("资源的ID不可为空");
         if (role.getKey() == null || role.getKey() == 0) throw new NullPointerException("角色信息不可为空");
         StringBuffer sql = new StringBuffer();
-        sql.append("select count(*) as amount from t_mrp_rel rel o where rel.R_ID=" + r.getID() + " and type=0 and rel.ROLE_ID=" + role.getKey());
+        sql.append("select count(*) as amount from t_mrp_rel rel o where rel.R_ID=? and type=0 and rel.ROLE_ID=?");
         try {
-            List list = this.getSQLQuery(sql.toString()).list();
+            List list = this.sqlQuery(sql.toString(), r.getID(), role.getKey());
             if (list.size() > 0 && Long.parseLong(String.valueOf(list.get(0))) > 0) return true;
         } catch (Exception e) {
             e.printStackTrace();
