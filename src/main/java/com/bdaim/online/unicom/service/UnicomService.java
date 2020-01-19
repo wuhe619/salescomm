@@ -6,13 +6,11 @@ import com.alibaba.fastjson.JSONObject;
 import com.bdaim.bill.dto.CallBackInfoParam;
 import com.bdaim.bill.dto.SeatCallDeductionResult;
 import com.bdaim.bill.service.TransactionService;
-import com.bdaim.callcenter.dto.CallTypeParamEnum;
 import com.bdaim.callcenter.dto.VoiceLogCallDataDTO;
 import com.bdaim.customer.account.dao.TransactionDao;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerUserDao;
 import com.bdaim.customer.entity.CustomerProperty;
-import com.bdaim.customer.entity.CustomerUser;
 import com.bdaim.customer.entity.CustomerUserPropertyDO;
 import com.bdaim.resource.dao.MarketResourceDao;
 import com.bdaim.resource.entity.MarketResourceEntity;
@@ -23,7 +21,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
@@ -390,6 +391,65 @@ public class UnicomService {
             }*/
         } else {
             LOG.info("未查询到通话记录,uuid:{}", callSid);
+        }
+        return code;
+    }
+
+
+    /**
+     * 保存联通录音文件流到文件,并且更新通话记录表
+     *
+     * @param uuid
+     * @param entId
+     * @param file
+     * @return
+     */
+    public int saveCallRecordFile0(String uuid, String entId, MultipartFile file) {
+        int code = 1;
+        String yyyy_mm = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMM"));
+        String monthTableName = ConstantsUtil.TOUCH_VOICE_TABLE_PREFIX + yyyy_mm;
+        String queryTouchSql = "SELECT touch_id touchId ,cust_id custId, user_id userId, superid superId,call_data FROM " + monthTableName + " WHERE callSid=?";
+        //根据callSid 查询是否存在通过话记录
+        List<Map<String, Object>> logList = marketResourceDao.sqlQuery(queryTouchSql, uuid);
+        if (logList.size() > 0) {
+            String userId = String.valueOf(logList.get(0).get("userId"));
+            String fileName = uuid + ".wav";
+            String voiceFilePath = null;
+            try {
+                voiceFilePath = FileUtil.savePhoneRecordFileReturnPath(file.getInputStream(), userId, fileName);
+            } catch (IOException e) {
+                LOG.error("获取联通录音文件流异常", e);
+            }
+            LOG.info("联通录音文件保存成功,路径:{}", voiceFilePath);
+            if (StringUtil.isNotEmpty(voiceFilePath)) {
+                LOG.info("开始进行联通录音文件转换:{}", voiceFilePath);
+                try {
+                    // 文件转换
+                    FileUtil.wavToMp3(voiceFilePath, voiceFilePath.replaceAll(".wav", ".mp3"));
+                    File mp3File = new File(voiceFilePath.replaceAll(".wav", ".mp3"));
+                    LOG.info("联通录音文件转换成功后路径:{},文件状态:{}",
+                            voiceFilePath.replaceAll(".wav", ".mp3"), mp3File.exists());
+                } catch (Exception e) {
+                    LOG.error("录音文件转换失败:", e);
+                }
+            }
+            String call_data = String.valueOf(logList.get(0).get("call_data"));
+            if (StringUtil.isEmpty(call_data)) {
+                call_data = "{}";
+            }
+            JSONObject callData = JSON.parseObject(call_data);
+            String recordUrl = "/" + fileName;
+            callData.put("recordUrl", recordUrl);
+            //更新通话记录录音地址
+            String updateUrlSql = "UPDATE " + monthTableName + " SET recordurl = ? ,call_data = ? WHERE callSid = ?";
+            recordUrl = recordUrl.replaceAll("wav", "mp3");
+            int i = marketResourceDao.executeUpdateSQL(updateUrlSql, recordUrl, callData.toJSONString(), uuid);
+            LOG.info("更新通话记录表callId:{},状态:{}", uuid, i);
+            if (i > 0) {
+                code = 0;
+            }
+        } else {
+            LOG.info("未查询到通话记录,uuid:{}", uuid);
         }
         return code;
     }

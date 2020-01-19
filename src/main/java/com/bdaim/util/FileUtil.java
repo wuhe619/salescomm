@@ -1,5 +1,6 @@
 package com.bdaim.util;
 
+import com.bdaim.AppConfig;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,6 +87,35 @@ public class FileUtil {
                 LOG.info("保存通话记录录音文件:" + flag);
                 return filePath + File.separator + fileName;
             }
+        }
+        return "";
+    }
+
+    /**
+     * 通过录音文件流保存录音文件
+     *
+     * @param inputStream
+     * @param userId
+     * @param fileName
+     * @return
+     */
+    public static String savePhoneRecordFileReturnPath(InputStream inputStream, String userId, String fileName) {
+        LOG.info("保存通话记录录音文件参数userId:{},fileName:{}", userId, fileName);
+        String filePath = AppConfig.getAudiolocation() + userId;
+        LOG.info("保存通话记录录音文件路径:{}", filePath);
+        File file = new File(filePath);
+        if (!file.exists()) {
+            file.mkdirs();
+        }
+        //保存录音文件
+        String savePath = filePath + File.separator + fileName;
+        LOG.info("保存通话记录录音文件全路径:{}", savePath);
+        File desFile = new File(savePath);
+        try {
+            FileUtils.copyInputStreamToFile(inputStream, desFile);
+            return savePath;
+        } catch (IOException e) {
+            LOG.error("保存录音文件异常", e);
         }
         return "";
     }
@@ -237,6 +267,7 @@ public class FileUtil {
 
     /**
      * 输入流转为字节数组
+     *
      * @param ins
      * @return
      */
