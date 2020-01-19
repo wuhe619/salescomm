@@ -91,6 +91,9 @@ public class EntDataService {
 
     private int batchSaveEntData(List<EntDataEntity> personList, String source, String sourceWeb) {
         String yearMonth = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        // 创建天数据表
+        jdbcTemplate.execute("create table IF NOT EXISTS enterprise_info_" + yearMonth + " LIKE enterprise_info");
+
         String sql = "INSERT INTO enterprise_info_" + yearMonth + " (content, create_time) VALUES (?,?);";
         Timestamp now = new Timestamp(System.currentTimeMillis());
 
