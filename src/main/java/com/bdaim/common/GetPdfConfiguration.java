@@ -22,7 +22,7 @@ public class GetPdfConfiguration extends WebSecurityConfigurerAdapter {
         web.ignoring().antMatchers("/pic/**");
 
         web.ignoring().antMatchers("/open/getVoiceRecordFile/**", "/customer/token",
-                "/user/token", "/customer/m/login", "/user/verify/code","/user/otp/verify/**", "/user/identify/**",
+                "/user/token", "/customer/m/login", "/user/verify/code", "/user/otp/verify/**", "/user/identify/**",
                 "/user/reset/password", "/mail/sendVerifyCode", "/sms/sendSms",
                 "/returnUrl/**", "/retuNotifyUrl/**", "/marketResource/callBack/**",
                 "/registerUser/validationPhone", "/registerUser/saveNew", "/registerUser/validationUserName",
@@ -36,7 +36,6 @@ public class GetPdfConfiguration extends WebSecurityConfigurerAdapter {
                 "/dic/getLoanCost", "/dic/productApply", "/dic/listShowAdSpace", "/dic/getBrandList",
                 "/customerSea/xzCustomerSeaGetPhone", "/upload/pic/**", "/marketResource/getVoice0/**",
                 "/custuser/bindUserOpenId", "/open/customs/terminal/check/**", "/open/phone/xzGetTaskPhone", "/open/phone/xzGetTaskPhone0",
-                "/open/unicom/callBack", "/open/unicom/recordCallBack", "/open/unicom/recordCallBack0");
-                "/open/unicom/callBack", "/open/unicom/recordCallBack", "/customs/pageDic");
+                "/open/unicom/callBack", "/open/unicom/recordCallBack", "/open/unicom/recordCallBack0", "/customs/pageDic");
     }
 }
