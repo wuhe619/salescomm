@@ -277,9 +277,10 @@ public class SbdFService implements BusiService {
         if ("main".equals(params.getString("_rule_"))) {
             sqlParams.clear();
             StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(busiType, "") + " where type=?");
-            if (!"all".equals(cust_id))
-                sqlstr.append(" and cust_id='").append(cust_id).append("'");
-
+            if (!"all".equals(cust_id)){
+                sqlParams.add(cust_id);
+                sqlstr.append(" and cust_id=? ");
+            }
             sqlParams.add(busiType);
 
             Iterator keys = params.keySet().iterator();
@@ -317,7 +318,6 @@ public class SbdFService implements BusiService {
                 } else if ("2".equals(verify_photo)) {
                     sqlstr.append(" and (ext_6 IS NULL OR ext_6='') ");
                 }
-
             }
             return sqlstr.toString();
         }

@@ -206,7 +206,9 @@ public class BusiEntityService {
                 sqlParams.add(params.get(key));
             }
             if (StringUtil.isNotEmpty(_orderby_) && StringUtil.isNotEmpty(_sort_)) {
-                sqlstr.append(" order by ").append(_orderby_).append(" ").append(_sort_);
+                sqlstr.append(" order by ? ? ");
+                sqlParams.add(_orderby_);
+                sqlParams.add(_sort_);
             }
             sql = sqlstr.toString();
         }
@@ -230,13 +232,14 @@ public class BusiEntityService {
 
         stopwatch.split();
         logger.info("buildSql," + stopwatch.getSplitTime() + "," + stopwatch.toSplitString());
-
+        sql += " limit ? , ? ";
+        sqlParams.add((pageNum - 1) * pageSize);
+        sqlParams.add(pageSize);
         try {
-            logger.info("querySql:{}", sql + " limit " + (pageNum - 1) * pageSize + ", " + pageSize);
+            logger.info("querySql:{}", sql);
             logger.info("queryParam:{}", JSON.toJSONString(sqlParams));
-
             logger.info("开始查询...");
-            List<Map<String, Object>> ds = jdbcTemplate.queryForList(sql + " limit " + (pageNum - 1) * pageSize + ", " + pageSize, sqlParams.toArray());
+            List<Map<String, Object>> ds = jdbcTemplate.queryForList(sql, sqlParams.toArray());
             stopwatch.split();
             logger.info("查询耗时:" + stopwatch.getSplitTime() + "," + stopwatch.toSplitString());
             String totalSql = "select count(0) from ( " + sql + " ) t ";

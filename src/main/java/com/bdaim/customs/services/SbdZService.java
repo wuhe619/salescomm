@@ -422,8 +422,11 @@ public class SbdZService implements BusiService {
             StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(busiType, "") + " where type=?");
             String _orderby_ = params.getString("_orderby_");
             String _sort_ = params.getString("_sort_");
-            if (!"all".equals(cust_id))
-                sqlstr.append(" and cust_id='").append(cust_id).append("'");
+            if (!"all".equals(cust_id)){
+                sqlstr.append(" and cust_id=? ");
+                sqlParams.add(cust_id);
+            }
+
             sqlParams.add(busiType);
             String stationId = params.getString("stationId");
             // 处理场站检索
@@ -488,9 +491,10 @@ public class SbdZService implements BusiService {
             }
             //sqlstr.append(" ORDER BY create_date DESC, update_date DESC ");
             if (StringUtil.isNotEmpty(_orderby_) && StringUtil.isNotEmpty(_sort_)) {
-                sqlstr.append(" ORDER BY ").append(_orderby_).append(" ").append(_sort_);
+                sqlstr.append(" ORDER BY ? ? ");
+                sqlParams.add(_orderby_);
+                sqlParams.add(_sort_);
             }
-
             return sqlstr.toString();
         } else {
             CheckData checkData = sbdfCheck(params.getString("main_bill_no"), cust_id);

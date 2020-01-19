@@ -197,12 +197,16 @@ public class B2BTcbService implements BusiService {
         String name = params.getString("name");
         Integer type = params.getInteger("type");
         if (type != null) {
-            sqlstr.append(" and ext_3 = ").append(StringEscapeUtils.escapeSql(type.toString()));
+            sqlParams.add(type);
+            sqlstr.append(" and ext_3 = ? ");
         }
-        if (!"all".equals(cust_id))
-            sqlstr.append(" and cust_id='").append(StringEscapeUtils.escapeSql(cust_id)).append("'");
+        if (!"all".equals(cust_id)) {
+            sqlParams.add(cust_id);
+            sqlstr.append(" and cust_id=? ");
+        }
         if (StringUtil.isNotEmpty(name)) {
-            sqlstr.append(" and content->'$.name'='").append(StringEscapeUtils.escapeSql(name)).append("'");
+            sqlParams.add(name);
+            sqlstr.append(" and content->'$.name'=? ");
         }
         sqlstr.append(" ORDER BY create_date DESC ");
         return sqlstr.toString();

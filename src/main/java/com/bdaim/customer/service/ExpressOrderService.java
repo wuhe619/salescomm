@@ -62,7 +62,8 @@ public class ExpressOrderService implements BusiService {
         }
 
         if (StringUtil.isNotEmpty(_sort_)) {
-            sqlstr.append(StringEscapeUtils.escapeSql(_sort_));
+            p.add(_sort_);
+            sqlstr.append(" ? ");
         }
         return sqlstr.toString();
     }

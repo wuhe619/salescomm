@@ -78,29 +78,35 @@ public class TaxDetailService implements BusiService {
         sqlstr.append(" left join h_resource re on re.id =pro.property_value ");
         sqlstr.append(" where pro.property_name='station_id'");
         if (StringUtil.isNotEmpty(params.getString("station_id"))) {
-            sqlstr.append(" and re.id = " + params.getLong("station_id"));
+            sqlParams.add(params.getLong("station_id"));
+            sqlstr.append(" and re.id = ? ");
         }
         if (StringUtil.isNotEmpty(cust_id) && !"all".equals(cust_id)) {
-            sqlstr.append(" and cust.cust_id = " + cust_id);
+            sqlParams.add(cust_id);
+            sqlstr.append(" and cust.cust_id = ? ");
         }
         if (StringUtil.isNotEmpty(params.getString("billno"))) {
-            sqlstr.append(" and det.ext_2 = '" + params.getString("billno") + "'");
+            sqlParams.add(params.getString("billno"));
+            sqlstr.append(" and det.ext_2 = ? ");
         }
         if (StringUtil.isNotEmpty(params.getString("ass_billno"))) {
-            sqlstr.append(" and det.ext_3 = '" + params.getString("ass_billno") + "'");
+            sqlParams.add(params.getString("ass_billno"));
+            sqlstr.append(" and det.ext_3 = ? ");
         }
         if (StringUtil.isNotEmpty(params.getString("create_time")) && StringUtil.isNotEmpty(params.getString("end_time"))) {
             Long create_time = params.getLong("create_time");
             Long end_time = params.getLong("end_time");
-            sqlstr.append(" and det.create_date between '" + fm.format(new Date(create_time)) + "' and '" + fm.format(new Date(end_time)) + "'");
+            sqlParams.add(create_time);
+            sqlParams.add(end_time);
+            sqlstr.append(" and det.create_date between ? and ? ");
         }
         if (StringUtil.isNotEmpty(params.getString("op_create_time")) && StringUtil.isNotEmpty(params.getString("op_end_time"))) {
             Long create_time = params.getLong("op_create_time");
             Long end_time = params.getLong("op_end_time");
-            sqlstr.append(" and det.content->>'$.op_time' between " + formatter.format(new Date(create_time)) + " and " + formatter.format(new Date(end_time)));
+            sqlParams.add(create_time);
+            sqlParams.add(end_time);
+            sqlstr.append(" and det.content->>'$.op_time' between ? and ? ");
         }
-
-
         return sqlstr.toString();
     }
 
