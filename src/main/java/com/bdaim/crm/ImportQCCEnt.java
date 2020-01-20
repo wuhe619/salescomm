@@ -10,6 +10,8 @@ public class ImportQCCEnt {
     private String entName;
     @Excel(name = "法定代表人", orderNum = "1")
     private String legalName;
+    @Excel(name = "法定代表人Key")
+    private String legalNameKey;
     @Excel(name = "注册资本", orderNum = "2")
     private String regCap;
     private String regCapCur;
@@ -56,6 +58,22 @@ public class ImportQCCEnt {
     private String phoneNumbers;
     @Excel(name = "邮箱", orderNum = "22")
     private String email;
+
+    @Excel(name = "参保人数", orderNum = "22")
+    private String insuredPersonCount;
+    @Excel(name = "行业领域", orderNum = "22")
+    private String industryField;
+    @Excel(name = "是否上市", orderNum = "22")
+    private String  isLListedCompany;
+    @Excel(name = "融资轮次", orderNum = "22")
+    private String financingRound;
+    @Excel(name = "融资金额", orderNum = "22")
+    private String financingAmount;
+    @Excel(name = "融资日期", orderNum = "22")
+    private String financingTime;
+    @Excel(name = "潜在标签", orderNum = "22")
+    private String potentialLabel;
+
     private Long id;
     /**
      * 手机号数量
@@ -464,5 +482,67 @@ public class ImportQCCEnt {
         this.contactManCount = contactManCount;
     }
 
+    public String getLegalNameKey() {
+        return legalNameKey;
+    }
 
+    public void setLegalNameKey(String legalNameKey) {
+        this.legalNameKey = legalNameKey;
+    }
+
+    public String getInsuredPersonCount() {
+        return insuredPersonCount;
+    }
+
+    public void setInsuredPersonCount(String insuredPersonCount) {
+        this.insuredPersonCount = insuredPersonCount;
+    }
+
+    public String getIndustryField() {
+        return industryField;
+    }
+
+    public void setIndustryField(String industryField) {
+        this.industryField = industryField;
+    }
+
+    public String getIsLListedCompany() {
+        return isLListedCompany;
+    }
+
+    public void setIsLListedCompany(String isLListedCompany) {
+        this.isLListedCompany = isLListedCompany;
+    }
+
+    public String getFinancingRound() {
+        return financingRound;
+    }
+
+    public void setFinancingRound(String financingRound) {
+        this.financingRound = financingRound;
+    }
+
+    public String getFinancingAmount() {
+        return financingAmount;
+    }
+
+    public void setFinancingAmount(String financingAmount) {
+        this.financingAmount = financingAmount;
+    }
+
+    public String getFinancingTime() {
+        return financingTime;
+    }
+
+    public void setFinancingTime(String financingTime) {
+        this.financingTime = financingTime;
+    }
+
+    public String getPotentialLabel() {
+        return potentialLabel;
+    }
+
+    public void setPotentialLabel(String potentialLabel) {
+        this.potentialLabel = potentialLabel;
+    }
 }

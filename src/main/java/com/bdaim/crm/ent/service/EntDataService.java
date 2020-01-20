@@ -55,6 +55,7 @@ public class EntDataService {
         if (list == null || list.size() == 0) {
             LOG.info("文件:{},导入数据:0行,返回", path);
         }
+
         LOG.info("文件:{},导入数据:{}行,开始导入数据库", path, list.size());
         List<EntDataEntity> entList = new ArrayList<>();
         EntDataEntity data;
