@@ -12,6 +12,7 @@ import com.bdaim.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -201,6 +202,38 @@ public class ApiController extends BasicAction {
             return new ResponseInfoAssemble().failure(-1, "获取列表失败");
         }
         return info;
+    }
+
+    /**
+     * Query Api logs of customers
+     **/
+    @PostMapping("/info/{apiId}/logs")
+    public ResponseInfo apiLogs(@PathVariable("apiId")String apiId,@RequestBody JSONObject params) {
+        LoginUser lu = opUser();
+        params.put("apiId",apiId);
+        ResponseInfo resp = new ResponseInfo();
+        PageParam page = new PageParam();
+        page.setPageSize(params.containsKey("pageSize") ? 0 : params.getIntValue("pageSize"));
+        page.setPageNum(params.containsKey("pageNum") ? 10 : params.getIntValue("pageNum"));
+        resp.setData(apiService.apiLogs(page, params));
+        return resp;
+    }
+
+
+    /**
+     * Query Api log detail of customers
+     **/
+    @PostMapping("/info/{apiId}/logs/{customerId}")
+    public ResponseInfo customerApiLogs(@PathVariable("apiId")String apiId,@PathVariable("customerId")String customerId, @RequestBody JSONObject params) {
+        LoginUser lu = opUser();
+        params.put("apiId",apiId);
+        params.put("customerId",customerId);
+        ResponseInfo resp = new ResponseInfo();
+        PageParam page = new PageParam();
+        page.setPageSize(params.containsKey("pageSize") ? 0 : params.getIntValue("pageSize"));
+        page.setPageNum(params.containsKey("pageNum") ? 10 : params.getIntValue("pageNum"));
+        resp.setData(apiService.apiLogs(page, params));
+        return resp;
     }
 
 }
