@@ -6,7 +6,7 @@ import java.util.Objects;
 @Entity
 @Table(name = "lkcrm_admin_menu", schema = "", catalog = "")
 public class LkCrmAdminMenuEntity {
-    private int menuId;
+    private Integer menuId;
     private Integer parentId;
     private String menuName;
     private String realm;
@@ -17,11 +17,11 @@ public class LkCrmAdminMenuEntity {
 
     @Id
     @Column(name = "menu_id")
-    public int getMenuId() {
+    public Integer getMenuId() {
         return menuId;
     }
 
-    public void setMenuId(int menuId) {
+    public void setMenuId(Integer menuId) {
         this.menuId = menuId;
     }
 

@@ -6,6 +6,7 @@ import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.auth.LoginUser;
+import com.bdaim.crm.entity.LkCrmAdminMenuEntity;
 import com.jfinal.aop.Before;
 import com.jfinal.aop.Inject;
 import com.jfinal.kit.Kv;
@@ -402,11 +403,11 @@ public class WorkService{
         JSONObject root = new JSONObject();
         List<Record> menuRecords = Db.find(Db.getSql("admin.menu.queryWorkMenuByRoleId"), roleId);
         Integer workMenuId = Db.queryInt("select menu_id from `72crm_admin_menu` where parent_id = 0 and realm = 'work'");
-        List<AdminMenu> adminMenus = adminMenuService.queryMenuByParentId(workMenuId);
+        List<LkCrmAdminMenuEntity> adminMenus = adminMenuService.queryMenuByParentId(workMenuId);
         JSONObject object = new JSONObject();
         adminMenus.forEach(menu -> {
             JSONObject authObject = new JSONObject();
-            List<AdminMenu> chlidMenus = adminMenuService.queryMenuByParentId(menu.getMenuId());
+            List<LkCrmAdminMenuEntity> chlidMenus = adminMenuService.queryMenuByParentId(menu.getMenuId());
             if((roleId != null && roleId.equals(BaseConstant.SMALL_WORK_ADMIN_ROLE_ID)) || userId.equals(BaseConstant.SUPER_ADMIN_USER_ID) || user.getRoles().contains(BaseConstant.WORK_ADMIN_ROLE_ID) ||  user.getRoles().contains(BaseConstant.SUPER_ADMIN_ROLE_ID)){
                 chlidMenus.forEach(child -> {
                     authObject.put(child.getRealm(), true);

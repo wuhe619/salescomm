@@ -1086,6 +1086,17 @@ public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDao
         return rs;
     }
 
+    public List queryListBySql(String sql, Class className,final Object... values) {
+        Session session = getSession();
+        Query query = session.createSQLQuery(sql).addEntity(className);
+        if (values != null)
+            for (int i = 0; i < values.length; i++) {
+                query.setParameter(i, values[i]);
+            }
+        List rs = query.list();
+        return rs;
+    }
+
     public List<Map<String, Object>> queryListBySql(String sql) {
         Session session = getSession();
         Query query = session.createSQLQuery(sql);

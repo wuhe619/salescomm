@@ -4,6 +4,10 @@ import cn.hutool.core.util.ReUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.crm.dao.LkCrmAdminRoleDao;
+import com.bdaim.crm.entity.LkCrmAdminMenuEntity;
+import com.bdaim.crm.entity.LkCrmAdminUserRoleEntity;
+import com.bdaim.util.NumberConvertUtil;
 import com.jfinal.aop.Before;
 import com.jfinal.aop.Inject;
 import com.jfinal.log.Log;
@@ -19,18 +23,23 @@ import com.bdaim.crm.erp.admin.entity.AdminUserRole;
 import com.bdaim.crm.utils.R;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import javax.transaction.Transactional;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @Transactional
 public class AdminRoleService {
 
-    @Inject
+    @Resource
     private AdminMenuService adminMenuService;
+
+    @Resource
+    private LkCrmAdminRoleDao crmAdminRoleDao;
 
     /**
      * @author wyq
@@ -46,7 +55,7 @@ public class AdminRoleService {
             recordList.forEach(role -> {
                 List<Integer> crm = Db.query(Db.getSql("admin.role.getRoleMenu"), role.getInt("id"), 1, 1);
                 List<Integer> bi = Db.query(Db.getSql("admin.role.getRoleMenu"), role.getInt("id"), 2, 2);
-                role.set("rules",new JSONObject().fluentPut("crm",crm).fluentPut("bi",bi));
+                role.set("rules", new JSONObject().fluentPut("crm", crm).fluentPut("bi", bi));
             });
             record.set("list", recordList);
             records.add(record);
@@ -86,7 +95,7 @@ public class AdminRoleService {
             try {
                 menuList = JSON.parseArray(URLDecoder.decode(adminRole.getMenuIds(), "utf-8"), Integer.class);
             } catch (UnsupportedEncodingException e) {
-                Log.getLog(getClass()).error("",e);
+                Log.getLog(getClass()).error("", e);
                 throw new RuntimeException("数据错误");
             }
             adminMenuService.saveRoleMenu(adminRole.getRoleId(), adminRole.getDataType(), menuList);
@@ -104,27 +113,27 @@ public class AdminRoleService {
      * 查看权限
      */
     public JSONObject auth(Long userId) {
-        JSONObject jsonObject=CaffeineCache.ME.get("role:permissions",userId.toString());
-        if(jsonObject!=null){
+        JSONObject jsonObject = CaffeineCache.ME.get("role:permissions", userId.toString());
+        if (jsonObject != null) {
             return jsonObject;
         }
         jsonObject = new JSONObject();
-        List<Record> menuRecords;
+        List<Map<String, Object>> menuRecords;
         List<Integer> roleIds = queryRoleIdsByUserId(userId);
         if (roleIds.contains(BaseConstant.SUPER_ADMIN_ROLE_ID)) {
             menuRecords = adminMenuService.queryAllMenu();
         } else {
             menuRecords = adminMenuService.queryMenuByUserId(userId);
         }
-        List<AdminMenu> adminMenus = adminMenuService.queryMenuByParentId(0);
-        for (AdminMenu adminMenu : adminMenus) {
+        List<LkCrmAdminMenuEntity> adminMenus = adminMenuService.queryMenuByParentId(0);
+        for (LkCrmAdminMenuEntity adminMenu : adminMenus) {
             JSONObject object = new JSONObject();
-            List<AdminMenu> adminMenuList = adminMenuService.queryMenuByParentId(adminMenu.getMenuId());
-            for (AdminMenu menu : adminMenuList) {
+            List<LkCrmAdminMenuEntity> adminMenuList = adminMenuService.queryMenuByParentId(adminMenu.getMenuId());
+            for (LkCrmAdminMenuEntity menu : adminMenuList) {
                 JSONObject authObject = new JSONObject();
-                for (Record record : menuRecords) {
-                    if (menu.getMenuId().equals(record.getInt("parent_id"))) {
-                        authObject.put(record.getStr("realm"), true);
+                for (Map<String, Object> record : menuRecords) {
+                    if (menu.getMenuId().equals(NumberConvertUtil.everythingToInt(record.get("parent_id")))) {
+                        authObject.put(String.valueOf(record.get("realm")), true);
                     }
                 }
                 if (!authObject.isEmpty()) {
@@ -157,7 +166,7 @@ public class AdminRoleService {
                 jsonObject.put(adminMenu.getRealm(), object);
             }
         }
-        CaffeineCache.ME.put("role:permissions:"+userId.toString(),jsonObject);
+        CaffeineCache.ME.put("role:permissions:" + userId.toString(), jsonObject);
         return jsonObject;
     }
 
@@ -185,7 +194,7 @@ public class AdminRoleService {
     public boolean deleteWorkRole(Integer roleId) {
         Db.delete(Db.getSql("admin.role.deleteRole"), roleId);
         Db.delete(Db.getSql("admin.role.deleteRoleMenu"), roleId);
-        Db.update("update `72crm_work_user` set role_id = ? where role_id = ?",BaseConstant.SMALL_WORK_EDIT_ROLE_ID,roleId);
+        Db.update("update `72crm_work_user` set role_id = ? where role_id = ?", BaseConstant.SMALL_WORK_EDIT_ROLE_ID, roleId);
         return true;
     }
 
@@ -266,7 +275,12 @@ public class AdminRoleService {
     }
 
     public List<Integer> queryRoleIdsByUserId(Long userId) {
-        return Db.query(Db.getSql("admin.role.queryRoleIdsByUserId"), userId);
+        String sql = "FROM LkCrmAdminUserRoleEntity WHERE userId=?";
+        List<LkCrmAdminUserRoleEntity> list = crmAdminRoleDao.find(sql, userId);
+        List<Integer> roleIds = new ArrayList<>();
+        list.forEach(s -> roleIds.add(s.getRoleId()));
+        return roleIds;
+        //return Db.query(Db.getSql("admin.role.queryRoleIdsByUserId"), userId);
     }
 
     /**
@@ -301,18 +315,19 @@ public class AdminRoleService {
 
     /**
      * 项目管理角色列表
+     *
      * @author wyq
      */
-    public R queryProjectRoleList(){
+    public R queryProjectRoleList() {
         List<Record> roleList = Db.find("select * from 72crm_admin_role where role_type in (5,6) and is_hidden = 1");
         roleList.forEach(record -> {
-            List<Integer> rules = Db.query("select menu_id from 72crm_admin_role_menu where role_id = ?",record.getInt("role_id"));
-            record.set("rules",rules);
+            List<Integer> rules = Db.query("select menu_id from 72crm_admin_role_menu where role_id = ?", record.getInt("role_id"));
+            record.set("rules", rules);
         });
-        return R.ok().put("data",roleList);
+        return R.ok().put("data", roleList);
     }
 
-    public R setWorkRole(JSONObject jsonObject){
+    public R setWorkRole(JSONObject jsonObject) {
         boolean bol;
         Integer roleId = jsonObject.getInteger("roleId");
         String roleName = jsonObject.getString("roleName");
@@ -322,19 +337,19 @@ public class AdminRoleService {
         adminRole.setRoleName(roleName);
         adminRole.setRoleType(6);
         adminRole.setRemark(remark);
-        if(roleId == null){
+        if (roleId == null) {
             bol = adminRole.save();
-        }else {
+        } else {
             adminRole.setRoleId(roleId);
-            Db.delete("delete from `72crm_admin_role_menu` where role_id = ?",roleId);
+            Db.delete("delete from `72crm_admin_role_menu` where role_id = ?", roleId);
             bol = adminRole.update();
         }
-        rules.forEach(menuId->{
+        rules.forEach(menuId -> {
             AdminRoleMenu adminRoleMenu = new AdminRoleMenu();
             adminRoleMenu.setRoleId(adminRole.getRoleId());
             adminRoleMenu.setMenuId((Integer) menuId);
             adminRoleMenu.save();
         });
-        return bol?R.ok():R.error();
+        return bol ? R.ok() : R.error();
     }
 }
