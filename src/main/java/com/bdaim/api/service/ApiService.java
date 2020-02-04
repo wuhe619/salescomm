@@ -240,12 +240,26 @@ public class ApiService {
         Map<String, Object> map = new HashMap<>();
         Object collect = list.getList().stream().map(m -> {
             Map dataMap = (Map) m;
+            dataMap.put("monthCallNum",0);
+            dataMap.put("monthFee",0);
             String apiId = dataMap.get("apiId").toString();
             String countSql = "select count(*) from am_subscription where API_ID=? and SUBS_CREATE_STATE='SUBSCRIBE'";
             List param = new ArrayList();
             param.add(Integer.valueOf(apiId));
             Integer count = jdbcTemplate.queryForObject(countSql, param.toArray(), Integer.class);
             dataMap.put("subscribeNum", count);
+            if(params.containsKey("callMonth") && StringUtil.isNotEmpty(params.getString("callMonth"))) {
+                String monCallsSql = "select count(0) from am_charge_" + params.getString("callMonth") + " where app_id=?";
+                param = new ArrayList();
+                param.add(apiId);
+                Integer callNum = jdbcTemplate.queryForObject(monCallsSql, param.toArray(), Integer.class);
+                dataMap.put("monthCallNum",callNum);
+                String monCallFeeSql = "select sum(charge)monthCharge from am_charge_" + params.getString("callMonth") + " " +
+                        " where app_id=? ";
+                Integer monthCharge = jdbcTemplate.queryForObject(monCallFeeSql, param.toArray(), Integer.class);
+                String monChargeStr = BigDecimalUtil.strDiv(monthCharge.toString(),"10000",2);
+                dataMap.put("monthFee",monChargeStr);
+            }
             return dataMap;
         }).collect(Collectors.toList());
         map.put("list", collect);
