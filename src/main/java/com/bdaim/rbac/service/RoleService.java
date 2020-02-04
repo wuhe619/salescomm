@@ -54,11 +54,13 @@ public class RoleService {
         //查询所有部门和职位列表
         StringBuffer querySql = new StringBuffer("SELECT cast(t.ID as char) depeId,t.`NAME` deptName,r.CREATE_TIME createTime,r.`NAME` roleName,r.ID roleId");
         querySql.append(" FROM t_role r LEFT JOIN t_dept t ON t.ID = r.DEPTID ");
+        List<Object> p = new ArrayList<>();
         if (id != null) {
-            querySql.append(" WHERE t.ID=" + id);
+            p.add(id);
+            querySql.append(" WHERE t.ID= ? ");
         }
         querySql.append(" GROUP BY t.ID, r.ID");
-        Page dataPage = roleDao.sqlPageQuery(querySql.toString(), pageNum, pageSize);
+        Page dataPage = roleDao.sqlPageQuery(querySql.toString(), pageNum, pageSize, p.toArray());
         List<Map<String, Object>> data = dataPage.getData();
         //判断当前职位是否有用户
         if (data.size() > 0) {
@@ -138,13 +140,21 @@ public class RoleService {
      */
     public boolean isUniqueName(String roleName, Long roleId, Long deptId) {
         StringBuffer sql = new StringBuffer();
+        List<Object> p = new ArrayList<>();
         sql.append("SELECT count(*) as NUM FROM t_role where 1=1 ");
-        if (roleName != null && !"".equals(roleName)) sql.append(" and NAME ='" + roleName + "' ");
-        if (deptId != null && deptId != 0) {
-            sql.append(" and deptid =" + deptId + "");
+        if (roleName != null && !"".equals(roleName)) {
+            sql.append(" and NAME =? ");
+            p.add(roleName);
         }
-        if (roleId != null && roleId != 0) sql.append(" and id<>" + roleId + " ");
-        List<Map<String, Object>> rs = roleDao.sqlQuery(sql.toString());
+        if (deptId != null && deptId != 0) {
+            sql.append(" and deptid =?  ");
+            p.add(deptId);
+        }
+        if (roleId != null && roleId != 0) {
+            sql.append(" and id<> ? ");
+            p.add(roleId);
+        }
+        List<Map<String, Object>> rs = roleDao.sqlQuery(sql.toString(), p.toArray());
         if (NumberConvertUtil.everythingToInt(rs.get(0).get("NUM")) > 0)
             return false;
         else
@@ -208,12 +218,15 @@ public class RoleService {
      */
     public List<RoleDTO> queryRoleByDept(Long deptId, Long userId) {
         String sql = "";
+        List<Object> p = new ArrayList<>();
         if (null == userId) {
-            sql = "select ID,NAME from t_role where deptid=" + deptId;
+            sql = "select ID,NAME from t_role where deptid= ? ";
+            p.add(deptId);
         } else {
-            sql = "select t2.ID,t2.NAME from t_user_role_rel t left join t_role t2 on t.ROLE = t2.ID where t.id=" + userId;
+            p.add(userId);
+            sql = "select t2.ID,t2.NAME from t_user_role_rel t left join t_role t2 on t.ROLE = t2.ID where t.id=? ";
         }
-        List<Map<String, Object>> list = roleDao.sqlQuery(sql);
+        List<Map<String, Object>> list = roleDao.sqlQuery(sql, p.toArray());
         List<RoleDTO> infos = null;
         if (list != null && !list.isEmpty()) {
             infos = new ArrayList<RoleDTO>();
@@ -249,17 +262,21 @@ public class RoleService {
         StringBuilder builder = new StringBuilder();
         builder.append(" select distinct r.ID,r.NAME,r.PID,r.URI,r.TYPE FROM t_mrp_rel m ");
         builder.append(" inner join t_user_role_rel ur on ur.ROLE = m.ROLE_ID");
-        builder.append(" inner join t_resource r on m.R_ID = r.ID and ur.ID =");
-        builder.append(userId);
+        builder.append(" inner join t_resource r on m.R_ID = r.ID and ur.ID = ? ");
+        //builder.append(userId);
+        List<Object> p = new ArrayList<>();
+        p.add(userId);
         if (StringUtil.isNotEmpty(platform)) {
-            builder.append(" and r.platform = " + platform);
+            builder.append(" and r.platform = ? ");
+            p.add(platform);
         }
-        builder.append(" and r.pid = ");
-        builder.append(pid);
-        builder.append(" left join (select r_id from t_mrp_rel where role_id=");
-        builder.append(roleId);
+        builder.append(" and r.pid = ? ");
+        //builder.append(pid);
+        p.add(pid);
+        builder.append(" left join (select r_id from t_mrp_rel where role_id= ? ");
+        p.add(pid);
         builder.append(" ) temp on temp.r_id = r.id");
-        List<Map<String, Object>> list = roleDao.sqlQuery(builder.toString());
+        List<Map<String, Object>> list = roleDao.sqlQuery(builder.toString(), p.toArray());
         if (list != null && !list.isEmpty()) {
             for (Map<String, Object> map : list) {
                 Long id = NumberConvertUtil.everythingToLong(map.get("ID"));
@@ -330,7 +347,7 @@ public class RoleService {
     }
 
     private boolean canDelete(Long roleID) throws SQLException {
-        List list = this.roleDao.getSQLQuery("select * from t_user_role_rel where role=" + roleID).list();
+        List list = this.roleDao.sqlQuery("select * from t_user_role_rel where role=?", roleID);
         if (list.size() > 0) {
             return false;
         } else {
@@ -340,10 +357,14 @@ public class RoleService {
 
     public List<Map<String, Object>> query(String roleName, Page page) {
         StringBuffer sql = new StringBuffer();
+        List<Object> p = new ArrayList<>();
         sql.append("SELECT ID,NAME,OPTUSER,CREATE_TIME,MODIFY_TIME,TYPE FROM t_role where 1=1 ");
-        if (roleName != null && !"".equals(roleName)) sql.append(" and NAME like '%" + roleName + "%' ");
+        if (roleName != null && !"".equals(roleName)) {
+            sql.append(" and NAME like ? ");
+            p.add("%" + roleName + "%");
+        }
         sql.append(" order by ID ");
-        List<Map<String, Object>> rs = this.roleDao.sqlQuery(sql.toString(), new Page(page.getPageIndex(), page.getCountPerPage()));
+        List<Map<String, Object>> rs = this.roleDao.sqlQuery(sql.toString(), new Page(page.getPageIndex(), page.getCountPerPage()), p.toArray());
         for (Map<String, Object> item : rs) {
             item.put("CREATE_TIME", DateUtil.formatDate("yyyy-MM-dd", (Date) item.get("CREATE_TIME")));
             if (item.get("MODIFY_TIME") != null)
@@ -356,8 +377,12 @@ public class RoleService {
     public int queryCount(String roleName) {
         StringBuffer sql = new StringBuffer();
         sql.append("SELECT count(*) as num FROM t_role where 1=1 ");
-        if (roleName != null && !"".equals(roleName)) sql.append(" and NAME like '%" + roleName + "%' ");
-        List<Map<String, Object>> rs = roleDao.sqlQuery(sql.toString());
+        List<Object> p = new ArrayList<>();
+        if (roleName != null && !"".equals(roleName)) {
+            sql.append(" and NAME like ? ");
+            p.add("%" + roleName + "%");
+        }
+        List<Map<String, Object>> rs = roleDao.sqlQuery(sql.toString(), p.toArray());
         return ((BigInteger) rs.get(0).get("num")).intValue();
     }
 
@@ -459,24 +484,28 @@ public class RoleService {
         StringBuilder queryData = new StringBuilder();
         StringBuilder builder = new StringBuilder();
         builder.append(" from t_role r left join t_dept d on r.DEPTID = d.ID ");
+        List<Object> p = new ArrayList<>();
         if (!(18888 == (param.getUserId() == null ? 0 : param.getUserId().longValue()))) {
-            builder.append(" left join t_user u on r.deptid=u.deptid and u.id=").append(param.getUserId());
+            p.add(param.getUserId());
+            builder.append(" left join t_user u on r.deptid=u.deptid and u.id= ? ");
         }
         builder.append(" where 1=1 ");
         Long deptId = param.getDeptId();
         if (deptId != null) {
-            builder.append(" and d.ID = " + deptId);
+            p.add(deptId);
+            builder.append(" and d.ID = ? ");
         }
         String condition = param.getCondition();
         if (!StringUtils.isEmpty(condition)) {
-            builder.append(" and r.name like '%" + condition + "%'");
+            p.add("%" + condition + "%");
+            builder.append(" and r.name like ? ");
         }
         builder.append(" order by r.create_time desc");
         Page page = param.getPage();
         queryData.append(" select r.ID,r.NAME,r.OPTUSER,r.CREATE_TIME,r.MODIFY_TIME ,d.name as DEPTNAME,d.id as DEPTID");
         queryData.append(builder);
         String queryDataSql = queryData.toString();
-        List<Map<String, Object>> list = roleDao.sqlQuery(queryDataSql, new Page(page.getPageIndex(), page.getCountPerPage()));
+        List<Map<String, Object>> list = roleDao.sqlQuery(queryDataSql, new Page(page.getPageIndex(), page.getCountPerPage()), p.toArray());
         List<RoleInfo> vos = null;
         if (list != null && !list.isEmpty()) {
             vos = new ArrayList<RoleInfo>();
@@ -507,7 +536,7 @@ public class RoleService {
         queryCount.append(" select count(*) as COUNT ");
         queryCount.append(builder);
         String queryCountSql = queryCount.toString();
-        List<Map<String, Object>> list1 = roleDao.sqlQuery(queryCountSql);
+        List<Map<String, Object>> list1 = roleDao.sqlQuery(queryCountSql, p.toArray());
         if (list1 != null && !list.isEmpty()) {
             Map<String, Object> map = list1.get(0);
             int count = NumberConvertUtil.everythingToInt(map.get("COUNT"));
@@ -521,17 +550,21 @@ public class RoleService {
         StringBuilder queryData = new StringBuilder();
         StringBuilder builder = new StringBuilder();
         builder.append(" from t_role r left join t_dept d on r.DEPTID = d.ID ");
+        List<Object> p = new ArrayList<>();
         if (!(18888 == (param.getUserId() == null ? 0 : param.getUserId().longValue()))) {
-            builder.append(" left join t_user u on r.deptid=u.deptid and u.id=").append(param.getUserId());
+            builder.append(" left join t_user u on r.deptid=u.deptid and u.id= ? ");
+            p.add(param.getUserId());
         }
         builder.append(" where 1=1 ");
         Long deptId = param.getDeptId();
         if (deptId != null) {
-            builder.append(" and d.ID = " + deptId);
+            builder.append(" and d.ID = ? ");
+            p.add(deptId);
         }
         String condition = param.getCondition();
         if (!StringUtils.isEmpty(condition)) {
-            builder.append(" and r.name like '%" + condition + "%'");
+            p.add("%" + condition + "%");
+            builder.append(" and r.name like ? ");
         }
         builder.append(" order by r.create_time desc");
         Page page = param.getPage();
@@ -541,7 +574,7 @@ public class RoleService {
         int countPerpage = page.getCountPerPage();
         int index = page.getPageIndex();
         int start = index * countPerpage;
-        Page pageData = roleDao.sqlPageQuery(queryDataSql, start, countPerpage);
+        Page pageData = roleDao.sqlPageQuery(queryDataSql, start, countPerpage, p.toArray());
         List<RoleInfo> vos = null;
         if (pageData.getData() != null) {
             vos = new ArrayList<RoleInfo>();
@@ -627,9 +660,9 @@ public class RoleService {
     public List<RoleDTO> queryRoleByUserid(long userId) {
         StringBuilder builder = new StringBuilder();
         builder.append("select r.id,r.name,r.create_time,r.modify_time,r.optuser,r.optuser from t_role r ");
-        builder.append("inner join t_user_role_rel ur on ur.ROLE = r.ID and ur.id = ");
-        builder.append(userId);
-        List<Map<String, Object>> list = roleDao.sqlQuery(builder.toString());
+        builder.append("inner join t_user_role_rel ur on ur.ROLE = r.ID and ur.id = ? ");
+        //builder.append(userId);
+        List<Map<String, Object>> list = roleDao.sqlQuery(builder.toString(), userId);
         List<RoleDTO> roles = null;
         if (list != null && !list.isEmpty()) {
             roles = new ArrayList<RoleDTO>();
@@ -657,41 +690,43 @@ public class RoleService {
     public List<Map<String, Object>> queryRoleSelectStatus(Long operateUserId, Long userId, boolean isAdminOperate) {
         StringBuilder builder = new StringBuilder();
         //如果是admin操作，则查询所有觉得中userid的分配情况，否则在operateUserId对应的角色范围内
+        List<Object> p = new ArrayList<>();
         if (isAdminOperate) {
             builder.append(" select distinct d.id as deptid,d.name as deptname, r.id,r.name,r.create_time,r.modify_time,r.optuser,ISNULL(temp.role) as checked from t_role r");
             builder.append(" inner join t_dept d on r.DEPTID = d.ID");
-            builder.append(" left join (select role from t_user_role_rel where id = ");
-            builder.append(userId);
+            builder.append(" left join (select role from t_user_role_rel where id = ? ");
+            p.add(userId);
             builder.append(" )temp on r.id = temp.role");
         } else {
             builder.append(" select distinct d.id as deptid,d.name as deptname,r.id,r.name,r.create_time,r.modify_time,r.optuser,ISNULL(temp.role) as checked from t_role r");
             builder.append(" inner join t_user_role_rel ur on ur.ROLE = r.ID and ur.id =");
             builder.append(operateUserId);
             builder.append(" inner join t_dept d on r.DEPTID = d.ID");
-            builder.append(" left join (select role from t_user_role_rel where id = ");
-            builder.append(userId);
+            builder.append(" left join (select role from t_user_role_rel where id = ? ");
+            p.add(userId);
             builder.append(" )temp on r.id = temp.role");
         }
         String sql = builder.toString();
-        List<Map<String, Object>> list = roleDao.sqlQuery(sql);
+        List<Map<String, Object>> list = roleDao.sqlQuery(sql, p.toArray());
         return list;
     }
 
     public List<Map<String, Object>> queryRole(Long operateUserId,
                                                boolean isAdminOperate) {
         StringBuilder builder = new StringBuilder();
+        List<Object> p = new ArrayList<>();
         if (isAdminOperate) {
             builder.append(" select distinct d.id as deptid,d.name as deptname, r.id,r.name,r.create_time,r.modify_time,r.optuser from t_role r");
             builder.append(" inner join t_dept d on r.DEPTID = d.ID");
         } else {
             builder.append(" select distinct d.id as deptid,d.name as deptname,r.id,r.name,r.create_time,r.modify_time,r.optuser from t_role r");
-            builder.append(" inner join t_user_role_rel ur on ur.ROLE = r.ID and ur.id =");
-            builder.append(operateUserId);
+            builder.append(" inner join t_user_role_rel ur on ur.ROLE = r.ID and ur.id = ? ");
+            p.add(operateUserId);
             builder.append(" inner join t_dept d on r.DEPTID = d.ID");
         }
         String sql = builder.toString();
         @SuppressWarnings("unchecked")
-        List<Map<String, Object>> list = roleDao.sqlQuery(sql);
+        List<Map<String, Object>> list = roleDao.sqlQuery(sql, p.toArray());
         return list;
     }
 
@@ -700,9 +735,8 @@ public class RoleService {
         StringBuilder builder = new StringBuilder();
         builder.append(" select r.ID,r.NAME,r.OPTUSER,r.CREATE_TIME,r.MODIFY_TIME ,d.name as DEPTNAME,d.id as DEPTID");
         builder.append(" from t_role r left join t_dept d on r.DEPTID = d.ID ");
-        builder.append(" where r.id= ");
-        builder.append(id);
-        List<Map<String, Object>> list = roleDao.sqlQuery(builder.toString());
+        builder.append(" where r.id= ? ");
+        List<Map<String, Object>> list = roleDao.sqlQuery(builder.toString(), id);
         RoleInfo info = null;
         if (list != null && !list.isEmpty()) {
             info = new RoleInfo();

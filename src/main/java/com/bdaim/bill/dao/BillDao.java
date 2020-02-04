@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -295,20 +296,28 @@ public class BillDao extends SimpleHibernateDao {
                 " t.supplier_id supplierId, t.prod_amount/1000 prodAmount, t.resource_id resourceId,t.certificate ")
                 .append(" FROM t_transaction_" + yearMonth + " t WHERE t.type = ? ");
         sql.append(" AND t.create_time BETWEEN ? AND ?");
+        List<Object> p = new ArrayList<>();
+        p.add(type);
+        p.add(startTime);
+        p.add(endTime);
         if (StringUtil.isNotEmpty(custId)) {
-            sql.append(" AND t.cust_id = '").append(custId).append("'");
+            sql.append(" AND t.cust_id = ? ");
+            p.add(custId);
         }
         if (StringUtil.isNotEmpty(supplierId)) {
-            sql.append(" AND t.resource_id IN(SELECT resource_id FROM t_market_resource WHERE supplier_id = '" + supplierId + "') ");
+            p.add(supplierId);
+            sql.append(" AND t.resource_id IN(SELECT resource_id FROM t_market_resource WHERE supplier_id = ?) ");
         }
         if (StringUtil.isNotEmpty(resourceId)) {
-            sql.append(" AND t.supplier_id IN(SELECT supplier_id FROM t_market_resource WHERE resource_id = '" + resourceId + "') ");
+            p.add(resourceId);
+            sql.append(" AND t.supplier_id IN(SELECT supplier_id FROM t_market_resource WHERE resource_id = ? ) ");
         }
         if (StringUtil.isNotEmpty(orderNo)) {
-            sql.append(" AND t.transaction_id = '").append(orderNo).append("'");
+            p.add(orderNo);
+            sql.append(" AND t.transaction_id = ?");
         }
         sql.append(" ORDER BY t.create_time DESC ");
-        Page page = this.sqlPageQuery0(sql.toString(), pageNum, pageSize, type, startTime, endTime);
+        Page page = this.sqlPageQuery0(sql.toString(), pageNum, pageSize, p.toArray());
         return page;
     }
 
@@ -336,20 +345,28 @@ public class BillDao extends SimpleHibernateDao {
         sql.append(" SELECT SUM(`amount`)/1000 sumAmount, SUM(`prod_amount`)/1000 sumProdAmount")
                 .append(" FROM t_transaction_" + yearMonth + " t WHERE t.type = ? ");
         sql.append(" AND t.create_time BETWEEN ? AND ?");
+        List<Object> p = new ArrayList<>();
+        p.add(type);
+        p.add(startTime);
+        p.add(endTime);
         if (StringUtil.isNotEmpty(custId)) {
-            sql.append(" AND t.cust_id = '").append(custId).append("'");
+            p.add(custId);
+            sql.append(" AND t.cust_id = ? ");
         }
         if (StringUtil.isNotEmpty(supplierId)) {
-            sql.append(" AND t.resource_id IN(SELECT resource_id FROM t_market_resource WHERE supplier_id = '" + supplierId + "') ");
+            p.add(supplierId);
+            sql.append(" AND t.resource_id IN(SELECT resource_id FROM t_market_resource WHERE supplier_id = ?) ");
         }
         if (StringUtil.isNotEmpty(resourceId)) {
-            sql.append(" AND t.supplier_id IN(SELECT supplier_id FROM t_market_resource WHERE resource_id = '" + resourceId + "') ");
+            p.add(resourceId);
+            sql.append(" AND t.supplier_id IN(SELECT supplier_id FROM t_market_resource WHERE resource_id =? ) ");
         }
         if (StringUtil.isNotEmpty(orderNo)) {
-            sql.append(" AND t.transaction_id = '").append(orderNo).append("'");
+            p.add(orderNo);
+            sql.append(" AND t.transaction_id = ? ");
         }
         sql.append(" ORDER BY t.create_time DESC ");
-        List<Map<String, Object>> list = this.sqlQuery(sql.toString(), type, startTime, endTime);
+        List<Map<String, Object>> list = this.sqlQuery(sql.toString(), p.toArray());
         if (list != null && list.size() > 0) {
             data.put("sumAmount", list.get(0).get("sumAmount"));
             data.put("sumProdAmount", list.get(0).get("sumProdAmount"));
@@ -377,20 +394,27 @@ public class BillDao extends SimpleHibernateDao {
         sql.append(" SELECT t.touch_id transactionId, t.cust_id custId, t.user_id userId, t.pay_mode payMode, t.amount/1000 amount, t.remark, t.create_time createTime,t.prod_amount/1000 prodAmount, t.resource_id resourceId, t.called_duration calledDuration ")
                 .append(" FROM t_touch_voice_log_" + yearMonth + " t WHERE ");
         sql.append(" t.create_time BETWEEN ? AND ?");
+        List<Object> p = new ArrayList<>();
+        p.add(startTime);
+        p.add(endTime);
         if (StringUtil.isNotEmpty(custId)) {
-            sql.append(" AND t.cust_id = '").append(custId).append("'");
+            p.add(custId);
+            sql.append(" AND t.cust_id =?");
         }
         if (StringUtil.isNotEmpty(resourceId)) {
-            sql.append(" AND t.resource_id = '").append(resourceId).append("'");
+            p.add(resourceId);
+            sql.append(" AND t.resource_id = ? ");
         }
         if (StringUtil.isNotEmpty(supplierId)) {
-            sql.append(" AND t.resource_id IN(SELECT resource_id FROM t_market_resource WHERE supplier_id = '" + supplierId + "') ");
+            p.add(supplierId);
+            sql.append(" AND t.resource_id IN(SELECT resource_id FROM t_market_resource WHERE supplier_id = ? ) ");
         }
         if (StringUtil.isNotEmpty(orderNo)) {
-            sql.append(" AND t.touch_id = '").append(orderNo).append("'");
+            p.add(orderNo);
+            sql.append(" AND t.touch_id = ?");
         }
         sql.append(" ORDER BY t.create_time DESC ");
-        Page page = this.sqlPageQuery0(sql.toString(), pageNum, pageSize, startTime, endTime);
+        Page page = this.sqlPageQuery0(sql.toString(), pageNum, pageSize, p.toArray());
         return page;
     }
 
@@ -417,20 +441,27 @@ public class BillDao extends SimpleHibernateDao {
         sql.append(" SELECT SUM(`amount`)/1000 sumAmount, SUM(`prod_amount`)/1000 sumProdAmount ")
                 .append(" FROM t_touch_voice_log_" + yearMonth + " t WHERE ");
         sql.append(" t.create_time BETWEEN ? AND ?");
+        List<Object> p = new ArrayList<>();
+        p.add(startTime);
+        p.add(endTime);
         if (StringUtil.isNotEmpty(custId)) {
-            sql.append(" AND t.cust_id = '").append(custId).append("'");
+            p.add(custId);
+            sql.append(" AND t.cust_id = ? ");
         }
         if (StringUtil.isNotEmpty(resourceId)) {
-            sql.append(" AND t.resource_id = '").append(resourceId).append("'");
+            p.add(resourceId);
+            sql.append(" AND t.resource_id = ? ");
         }
         if (StringUtil.isNotEmpty(supplierId)) {
-            sql.append(" AND t.resource_id IN(SELECT resource_id FROM t_market_resource WHERE supplier_id = '" + supplierId + "') ");
+            p.add(supplierId);
+            sql.append(" AND t.resource_id IN(SELECT resource_id FROM t_market_resource WHERE supplier_id = ? ) ");
         }
         if (StringUtil.isNotEmpty(orderNo)) {
-            sql.append(" AND t.touch_id = '").append(orderNo).append("'");
+            p.add(orderNo);
+            sql.append(" AND t.touch_id = ? ");
         }
         sql.append(" ORDER BY t.create_time DESC ");
-        List<Map<String, Object>> list = this.sqlQuery(sql.toString(), startTime, endTime);
+        List<Map<String, Object>> list = this.sqlQuery(sql.toString(), p.toArray());
         if (list != null && list.size() > 0) {
             data.put("sumAmount", list.get(0).get("sumAmount"));
             data.put("sumProdAmount", list.get(0).get("sumProdAmount"));
@@ -456,20 +487,27 @@ public class BillDao extends SimpleHibernateDao {
         sql.append(" SELECT t.touch_id transactionId, t.cust_id custId, t.user_id userId, t.amount/1000 amount, t.create_time createTime, t.prod_amount/1000 prodAmount, t.resource_id resourceId ")
                 .append(" FROM t_touch_sms_log t WHERE ");
         sql.append(" t.create_time BETWEEN ? AND ?");
+        List<Object> p = new ArrayList<>();
+        p.add(startTime);
+        p.add(endTime);
         if (StringUtil.isNotEmpty(custId)) {
-            sql.append(" AND t.cust_id = '").append(custId).append("'");
+            sql.append(" AND t.cust_id = ? ");
+            p.add(custId);
         }
         if (StringUtil.isNotEmpty(resourceId)) {
-            sql.append(" AND t.resource_id = '").append(resourceId).append("'");
+            sql.append(" AND t.resource_id = ? ");
+            p.add(resourceId);
         }
         if (StringUtil.isNotEmpty(supplierId)) {
-            sql.append(" AND t.resource_id IN(SELECT resource_id FROM t_market_resource WHERE supplier_id = '" + supplierId + "') ");
+            p.add(supplierId);
+            sql.append(" AND t.resource_id IN(SELECT resource_id FROM t_market_resource WHERE supplier_id =? ) ");
         }
         if (StringUtil.isNotEmpty(orderNo)) {
-            sql.append(" AND t.touch_id = '").append(orderNo).append("'");
+            p.add(orderNo);
+            sql.append(" AND t.touch_id = ? ");
         }
         sql.append(" ORDER BY t.create_time DESC ");
-        Page page = this.sqlPageQuery0(sql.toString(), pageNum, pageSize, startTime, endTime);
+        Page page = this.sqlPageQuery0(sql.toString(), pageNum, pageSize, p.toArray());
         return page;
     }
 
@@ -494,20 +532,27 @@ public class BillDao extends SimpleHibernateDao {
         sql.append(" SELECT SUM(`amount`)/1000 sumAmount, SUM(`prod_amount`)/1000 sumProdAmount ")
                 .append(" FROM t_touch_sms_log t WHERE ");
         sql.append(" t.create_time BETWEEN ? AND ?");
+        List<Object> p = new ArrayList<>();
+        p.add(startTime);
+        p.add(endTime);
         if (StringUtil.isNotEmpty(custId)) {
-            sql.append(" AND t.cust_id = '").append(custId).append("'");
+            sql.append(" AND t.cust_id = ? ");
+            p.add(custId);
         }
         if (StringUtil.isNotEmpty(resourceId)) {
-            sql.append(" AND t.resource_id = '").append(resourceId).append("'");
+            sql.append(" AND t.resource_id = ? ");
+            p.add(resourceId);
         }
         if (StringUtil.isNotEmpty(supplierId)) {
-            sql.append(" AND t.resource_id IN(SELECT resource_id FROM t_market_resource WHERE supplier_id = '" + supplierId + "') ");
+            p.add(supplierId);
+            sql.append(" AND t.resource_id IN(SELECT resource_id FROM t_market_resource WHERE supplier_id = ?) ");
         }
         if (StringUtil.isNotEmpty(orderNo)) {
-            sql.append(" AND t.touch_id = '").append(orderNo).append("'");
+            p.add(orderNo);
+            sql.append(" AND t.touch_id = ? ");
         }
         sql.append(" ORDER BY t.create_time DESC ");
-        List<Map<String, Object>> list = this.sqlQuery(sql.toString(), startTime, endTime);
+        List<Map<String, Object>> list = this.sqlQuery(sql.toString(), p.toArray());
         if (list != null && list.size() > 0) {
             data.put("sumAmount", list.get(0).get("sumAmount"));
             data.put("sumProdAmount", list.get(0).get("sumProdAmount"));
@@ -534,20 +579,27 @@ public class BillDao extends SimpleHibernateDao {
                 .append(" FROM customer_group t  ")
                 .append(" JOIN t_order t2 ON t.order_id = t2.order_id")
                 .append(" WHERE t.create_time BETWEEN ? AND ?");
+        List<Object> p = new ArrayList<>();
+        p.add(startTime);
+        p.add(endTime);
         if (StringUtil.isNotEmpty(custId)) {
-            sql.append(" AND t.cust_id = '").append(custId).append("'");
+            p.add(custId);
+            sql.append(" AND t.cust_id = ?");
         }
         if (StringUtil.isNotEmpty(resourceId)) {
-            sql.append(" AND t.industry_pool_id = (SELECT industry_pool_id FROM t_industry_pool WHERE source_id = '" + resourceId + "') ");
+            p.add(resourceId);
+            sql.append(" AND t.industry_pool_id = (SELECT industry_pool_id FROM t_industry_pool WHERE source_id =?) ");
         }
         if (StringUtil.isNotEmpty(supplierId)) {
-            sql.append(" AND t.industry_pool_id IN(SELECT industry_pool_id FROM t_industry_pool t1 JOIN t_market_resource t2 ON t1.source_id = t2.resource_id WHERE t2.supplier_id ='" + supplierId + "') ");
+            p.add(supplierId);
+            sql.append(" AND t.industry_pool_id IN(SELECT industry_pool_id FROM t_industry_pool t1 JOIN t_market_resource t2 ON t1.source_id = t2.resource_id WHERE t2.supplier_id =?) ");
         }
         if (StringUtil.isNotEmpty(orderNo)) {
-            sql.append(" AND t.order_id = '").append(orderNo).append("'");
+            p.add(orderNo);
+            sql.append(" AND t.order_id = ? ");
         }
         sql.append(" ORDER BY t.create_time DESC");
-        Page page = this.sqlPageQuery0(sql.toString(), pageNum, pageSize, startTime, endTime);
+        Page page = this.sqlPageQuery0(sql.toString(), pageNum, pageSize, p.toArray());
         return page;
     }
 
@@ -573,20 +625,27 @@ public class BillDao extends SimpleHibernateDao {
                 .append(" FROM customer_group t  ")
                 .append(" JOIN t_order t2 ON t.order_id = t2.order_id")
                 .append(" WHERE t.create_time BETWEEN ? AND ?");
+        List<Object> p = new ArrayList<>();
+        p.add(startTime);
+        p.add(endTime);
         if (StringUtil.isNotEmpty(custId)) {
-            sql.append(" AND t.cust_id = '").append(custId).append("'");
+            p.add(custId);
+            sql.append(" AND t.cust_id =?");
         }
         if (StringUtil.isNotEmpty(resourceId)) {
-            sql.append(" AND t.industry_pool_id = (SELECT industry_pool_id FROM t_industry_pool WHERE source_id = '" + resourceId + "') ");
+            p.add(resourceId);
+            sql.append(" AND t.industry_pool_id = (SELECT industry_pool_id FROM t_industry_pool WHERE source_id = ?) ");
         }
         if (StringUtil.isNotEmpty(supplierId)) {
-            sql.append(" AND t.industry_pool_id IN(SELECT industry_pool_id FROM t_industry_pool t1 JOIN t_market_resource t2 ON t1.source_id = t2.resource_id WHERE t2.supplier_id ='" + supplierId + "') ");
+            p.add(supplierId);
+            sql.append(" AND t.industry_pool_id IN(SELECT industry_pool_id FROM t_industry_pool t1 JOIN t_market_resource t2 ON t1.source_id = t2.resource_id WHERE t2.supplier_id =?) ");
         }
         if (StringUtil.isNotEmpty(orderNo)) {
-            sql.append(" AND t.order_id = '").append(orderNo).append("'");
+            p.add(orderNo);
+            sql.append(" AND t.order_id = ? ");
         }
         sql.append(" ORDER BY t.create_time DESC");
-        List<Map<String, Object>> list = this.sqlQuery(sql.toString(), startTime, endTime);
+        List<Map<String, Object>> list = this.sqlQuery(sql.toString(), p.toArray());
         if (list != null && list.size() > 0) {
             data.put("sumAmount", list.get(0).get("sumAmount"));
             data.put("sumProdAmount", list.get(0).get("sumProdAmount"));
@@ -614,19 +673,26 @@ public class BillDao extends SimpleHibernateDao {
                 " t.supplier_id supplierId, t.prod_amount/1000 prodAmount, t.resource_id resourceId,t.certificate, t.user_id userId")
                 .append(" FROM t_transaction_" + yearMonth + " t WHERE t.type = ? ");
         sql.append(" AND t.create_time BETWEEN ? AND ?");
+        List<Object> p = new ArrayList<>();
+        p.add(startTime);
+        p.add(endTime);
         if (StringUtil.isNotEmpty(custId)) {
-            sql.append(" AND t.cust_id = '").append(custId).append("'");
+            p.add(custId);
+            sql.append(" AND t.cust_id = ?");
         }
         if (StringUtil.isNotEmpty(supplierId)) {
-            sql.append(" AND t.resource_id IN(SELECT resource_id FROM t_market_resource WHERE supplier_id = '" + supplierId + "') ");
+            p.add(supplierId);
+            sql.append(" AND t.resource_id IN(SELECT resource_id FROM t_market_resource WHERE supplier_id = ?) ");
         }
         if (StringUtil.isNotEmpty(resourceId)) {
-            sql.append(" AND t.supplier_id IN(SELECT supplier_id FROM t_market_resource WHERE resource_id = '" + resourceId + "') ");
+            p.add(resourceId);
+            sql.append(" AND t.supplier_id IN(SELECT supplier_id FROM t_market_resource WHERE resource_id = ?) ");
         }
         if (StringUtil.isNotEmpty(orderNo)) {
-            sql.append(" AND t.transaction_id = '").append(orderNo).append("'");
+            p.add(orderNo);
+            sql.append(" AND t.transaction_id = ?");
         }
-        List list = this.sqlQuery(sql.toString(), type, startTime, endTime);
+        List list = this.sqlQuery(sql.toString(), type, p.toArray());
         return list;
     }
 
@@ -648,19 +714,26 @@ public class BillDao extends SimpleHibernateDao {
         sql.append(" SELECT t.touch_id transactionId, t.cust_id custId, 4 type, t.pay_mode payMode, t.amount/1000 amount, t.remark, t.create_time createTime,t.prod_amount/1000 prodAmount, t.resource_id resourceId, t.called_duration calledDuration  ")
                 .append(" FROM t_touch_voice_log_" + yearMonth + " t WHERE ");
         sql.append(" t.create_time BETWEEN ? AND ?");
+        List<Object> p = new ArrayList<>();
+        p.add(startTime);
+        p.add(endTime);
         if (StringUtil.isNotEmpty(custId)) {
-            sql.append(" AND t.cust_id = '").append(custId).append("'");
+            p.add(custId);
+            sql.append(" AND t.cust_id = ?");
         }
         if (StringUtil.isNotEmpty(resourceId)) {
-            sql.append(" AND t.resource_id = '").append(resourceId).append("'");
+            p.add(resourceId);
+            sql.append(" AND t.resource_id = ?");
         }
         if (StringUtil.isNotEmpty(supplierId)) {
-            sql.append(" AND t.resource_id IN(SELECT resource_id FROM t_market_resource WHERE supplier_id = '" + supplierId + "') ");
+            p.add(supplierId);
+            sql.append(" AND t.resource_id IN(SELECT resource_id FROM t_market_resource WHERE supplier_id = ?) ");
         }
         if (StringUtil.isNotEmpty(orderNo)) {
-            sql.append(" AND t.touch_id = '").append(orderNo).append("'");
+            p.add(orderNo);
+            sql.append(" AND t.touch_id = ?");
         }
-        List list = this.sqlQuery(sql.toString(), startTime, endTime);
+        List list = this.sqlQuery(sql.toString(), p.toArray());
         return list;
     }
 
@@ -680,19 +753,26 @@ public class BillDao extends SimpleHibernateDao {
         sql.append(" SELECT t.touch_id transactionId, t.cust_id custId, 3 type, t.amount/1000 amount, t.create_time createTime, t.prod_amount/1000 prodAmount, t.resource_id resourceId ")
                 .append(" FROM t_touch_sms_log t WHERE ");
         sql.append(" t.create_time BETWEEN ? AND ?");
+        List<Object> p = new ArrayList<>();
+        p.add(startTime);
+        p.add(endTime);
         if (StringUtil.isNotEmpty(custId)) {
-            sql.append(" AND t.cust_id = '").append(custId).append("'");
+            p.add(custId);
+            sql.append(" AND t.cust_id = ? ");
         }
         if (StringUtil.isNotEmpty(resourceId)) {
-            sql.append(" AND t.resource_id = '").append(resourceId).append("'");
+            p.add(resourceId);
+            sql.append(" AND t.resource_id =? ");
         }
         if (StringUtil.isNotEmpty(supplierId)) {
-            sql.append(" AND t.resource_id IN(SELECT resource_id FROM t_market_resource WHERE supplier_id = '" + supplierId + "') ");
+            p.add(supplierId);
+            sql.append(" AND t.resource_id IN(SELECT resource_id FROM t_market_resource WHERE supplier_id = ? ) ");
         }
         if (StringUtil.isNotEmpty(orderNo)) {
-            sql.append(" AND t.touch_id = '").append(orderNo).append("'");
+            p.add(orderNo);
+            sql.append(" AND t.touch_id = ? ");
         }
-        List list = this.sqlQuery(sql.toString(), startTime, endTime);
+        List list = this.sqlQuery(sql.toString(), p.toArray());
         return list;
     }
 
@@ -712,19 +792,26 @@ public class BillDao extends SimpleHibernateDao {
         sql.append(" SELECT t.id, t.order_id transactionId, t.cust_id custId, 7 type, t.amount/1000 amount, t.remark, t.industry_pool_id, t.create_time createTime, t.user_count userCount ")
                 .append(" FROM customer_group t WHERE ");
         sql.append(" t.create_time BETWEEN ? AND ?");
+        List<Object> p = new ArrayList<>();
+        p.add(startTime);
+        p.add(endTime);
         if (StringUtil.isNotEmpty(custId)) {
-            sql.append(" AND t.cust_id = '").append(custId).append("'");
+            p.add(custId);
+            sql.append(" AND t.cust_id = ? ");
         }
         if (StringUtil.isNotEmpty(resourceId)) {
-            sql.append(" AND t.industry_pool_id = (SELECT industry_pool_id FROM t_industry_pool WHERE source_id = '" + resourceId + "') ");
+            p.add(resourceId);
+            sql.append(" AND t.industry_pool_id = (SELECT industry_pool_id FROM t_industry_pool WHERE source_id = ?) ");
         }
         if (StringUtil.isNotEmpty(supplierId)) {
-            sql.append(" AND t.industry_pool_id IN(SELECT industry_pool_id FROM t_industry_pool t1 JOIN t_market_resource t2 ON t1.source_id = t2.resource_id WHERE t2.supplier_id ='" + supplierId + "') ");
+            p.add(supplierId);
+            sql.append(" AND t.industry_pool_id IN(SELECT industry_pool_id FROM t_industry_pool t1 JOIN t_market_resource t2 ON t1.source_id = t2.resource_id WHERE t2.supplier_id =?) ");
         }
         if (StringUtil.isNotEmpty(orderNo)) {
-            sql.append(" AND t.touch_id = '").append(orderNo).append("'");
+            p.add(orderNo);
+            sql.append(" AND t.touch_id =? ");
         }
-        List list = this.sqlQuery(sql.toString(), startTime, endTime);
+        List list = this.sqlQuery(sql.toString(), p.toArray());
         return list;
     }
 }

@@ -139,7 +139,7 @@ public class OpenService {
                     if (StringUtil.isNotEmpty(custId)) {
                         //根据企业id查询当前企业是否有效
                         Customer custMessage = customerDao.getCustMessage(custId);
-                        if (custMessage==null){
+                        if (custMessage == null) {
                             resultMap.put("status", "005");
                             json.put("data", resultMap);
                             return json.toJSONString();
@@ -199,9 +199,9 @@ public class OpenService {
             //根据坐席账号和企业id查询坐席信息
             StringBuffer sql = new StringBuffer("SELECT u.id id, p.property_value propertyValue, p.property_name propertyName\n");
             sql.append("FROM t_customer_user u LEFT JOIN t_customer_user_property p ON u.id = p.user_id\n");
-            sql.append("WHERE p.property_name =  'cuc_seat' AND  u.cust_id =" + custId);
-            sql.append(" AND u.account='" + seatAccount + "'");
-            List<Map<String, Object>> list = customerDao.sqlQuery(sql.toString());
+            sql.append("WHERE p.property_name =  'cuc_seat' AND  u.cust_id =? ");
+            sql.append(" AND u.account=?");
+            List<Map<String, Object>> list = customerDao.sqlQuery(sql.toString(), custId, seatAccount);
             if (list.size() > 0) {
                 String propertyValue = String.valueOf(list.get(0).get("propertyValue"));
                 if (StringUtil.isNotEmpty(propertyValue)) {
@@ -240,7 +240,7 @@ public class OpenService {
         if (resourceId != null) {
             JSONObject customerMarketResource = marketResourceServiceImpl.getCustomerMarketResource(custId, String.valueOf(resourceId.getResourceId()));
             if (customerMarketResource != null) {
-                             callCenterId = customerMarketResource.getString(ResourceEnum.CALL.getCallCenterId());
+                callCenterId = customerMarketResource.getString(ResourceEnum.CALL.getCallCenterId());
             }
         }
 
@@ -252,11 +252,11 @@ public class OpenService {
             //根据坐席账号和企业id查询坐席信息
             StringBuffer sql = new StringBuffer("SELECT u.id id, p.property_value propertyValue, p.property_name propertyName\n");
             sql.append("FROM t_customer_user u LEFT JOIN t_customer_user_property p ON u.id = p.user_id\n");
-            sql.append("WHERE p.property_name =  'cuc_seat' AND  u.cust_id =" + custId);
-            sql.append(" AND u.account='" + seatAccount + "'");
-            List<Map<String, Object>> list = customerDao.sqlQuery(sql.toString());
-            log.info("query SQL is : "+sql.toString());
-            log.info("SQL result is : "+JSON.toJSONString(list.get(0)));
+            sql.append("WHERE p.property_name =  'cuc_seat' AND  u.cust_id =? ");
+            sql.append(" AND u.account=? ");
+            List<Map<String, Object>> list = customerDao.sqlQuery(sql.toString(), custId, seatAccount);
+            log.info("query SQL is : " + sql.toString());
+            log.info("SQL result is : " + JSON.toJSONString(list.get(0)));
             if (list.size() > 0) {
                 String propertyValue = String.valueOf(list.get(0).get("propertyValue"));
                 String userId = String.valueOf(list.get(0).get("id"));
@@ -326,13 +326,16 @@ public class OpenService {
         StringBuffer sql = new StringBuffer("SELECT t.title templateName, t.id templateId, t.create_time createTime, t.sms_signatures smsSignatures, CASE t.STATUS \n");
         sql.append("WHEN 1 THEN '审核中' WHEN 2 THEN '审批通过' WHEN 3 THEN '审批未通过' WHEN 4 THEN '审批通过后无效' END templateStatus,t.mould_content content\n");
         sql.append("FROM t_template t  WHERE 1=1");
+        List<Object> p = new ArrayList<>();
         if (StringUtil.isNotEmpty(custId)) {
-            sql.append(" and t.cust_id ='" + custId + "'");
+            p.add(custId);
+            sql.append(" and t.cust_id =?");
         }
         if (StringUtil.isNotEmpty(templateId)) {
-            sql.append(" and t.id  ='" + templateId + "'");
+            p.add(templateId);
+            sql.append(" and t.id  =?");
         }
-        List<Map<String, Object>> list = marketResourceDao.sqlQuery(sql.toString());
+        List<Map<String, Object>> list = marketResourceDao.sqlQuery(sql.toString(), p.toArray());
         return list;
     }
 
@@ -714,11 +717,13 @@ public class OpenService {
      */
     public Page queryList(int pageNum, int pageSize, String custId) throws Exception {
         StringBuilder sqlBuilder = new StringBuilder("SELECT id batchId, repair_mode repairMode,batch_name batchName, certify_type certifyType, status, upload_num uploadNum, success_num successNum, upload_time uploadTime, repair_time repairTime, channel, repair_strategy repairStrategy FROM nl_batch WHERE 1=1");
+        List<Object> p = new ArrayList<>();
         if (StringUtil.isNotEmpty(custId)) {
-            sqlBuilder.append(" AND comp_id = " + custId);
+            p.add(custId);
+            sqlBuilder.append(" AND comp_id = ?");
         }
         sqlBuilder.append(" ORDER BY upload_time DESC");
-        Page result = batchDao.sqlPageQuery(sqlBuilder.toString(), pageNum, pageSize);
+        Page result = batchDao.sqlPageQuery(sqlBuilder.toString(), pageNum, pageSize, p.toArray());
         if (result != null && result.getData() != null && result.getData().size() > 0) {
             Map map;
             // 处理修复状态为 4数据待发送给联通或者5发送联通成功都为2-修复中
@@ -742,13 +747,16 @@ public class OpenService {
     public Page getDetailListById(Integer pageNumber, Integer pageSize, String batchId, String custId) {
         StringBuffer sql = new StringBuffer("SELECT  n.id superId,n.batch_id batchId,n.enterprise_id enterpriseId,n.id_card idCard,n.channel,n.label_one labelOne,n.label_two labelTwo,n.label_three labelThree,n.`status` ,n.upload_time uploadTime,n.fix_time fixTime");
         sql.append(" FROM nl_batch_detail n LEFT JOIN nl_batch nl ON n.batch_id = nl.id\n");
+        List<Object> p = new ArrayList<>();
         if (StringUtil.isNotEmpty(batchId)) {
-            sql.append("WHERE batch_id ='" + batchId + "'");
+            p.add(batchId);
+            sql.append("WHERE batch_id =?");
         }
         if (StringUtil.isNotEmpty(custId)) {
-            sql.append(" and nl.comp_id ='" + custId + "'");
+            p.add(custId);
+            sql.append(" and nl.comp_id =?");
         }
-        Page page = batchDao.sqlPageQuery(sql.toString(), pageNumber, pageSize);
+        Page page = batchDao.sqlPageQuery(sql.toString(), pageNumber, pageSize, p.toArray());
         //查询批次下所有自建属性信息
         return page;
     }
@@ -765,9 +773,9 @@ public class OpenService {
         stringBuffer.append("SELECT t.touch_id touchId,t.remark,t.create_time createTime,t.`status`,t.superid superId,t.channel,t.batch_id batchId,t.enterprise_id enterpriseId,u.account account,backInfo.Callerduration Callerduration,backInfo.Callercaller mainNumber  ");
         stringBuffer.append(" FROM t_touch_voice_log t LEFT JOIN t_customer_user u ON t.user_id = u.id ");
         stringBuffer.append(" LEFT JOIN t_callback_info backInfo ON t.callSid = backInfo.callSid ");
-        stringBuffer.append(" WHERE t.cust_id = '" + custId + "' ORDER BY t.create_time DESC");
+        stringBuffer.append(" WHERE t.cust_id = ? ORDER BY t.create_time DESC");
         log.info("查询单条通话记录sql" + stringBuffer);
-        Page page = batchDao.sqlPageQuery(stringBuffer.toString(), pageNum, pageSize);
+        Page page = batchDao.sqlPageQuery(stringBuffer.toString(), pageNum, pageSize, custId);
         //根据touchId和custId查询一条记录
         return page;
 
@@ -783,9 +791,9 @@ public class OpenService {
         StringBuffer stringBuffer = new StringBuffer();
         stringBuffer.append("SELECT t.touch_id touchId,t.remark,t.create_time createTime,t.`status`,t.sms_content smsContent,t.superid superId,t.batch_id batchId,t.channel,u.account ");
         stringBuffer.append(" FROM t_touch_sms_log t LEFT JOIN t_customer_user u ON t.user_id = u.id ");
-        stringBuffer.append(" WHERE t.cust_id = " + custId);
+        stringBuffer.append(" WHERE t.cust_id = ?");
         log.info("查询单条短信记录sql" + stringBuffer);
-        Page page = batchDao.sqlPageQuery(stringBuffer.toString(), pageNum, pageSize);
+        Page page = batchDao.sqlPageQuery(stringBuffer.toString(), pageNum, pageSize, custId);
         return page;
     }
 
@@ -877,8 +885,8 @@ public class OpenService {
 
 
     public List<Map<String, Object>> getAddressResoult(String idCard) {
-        String querySql = "SELECT site address FROM  tmp_nl_batch_detail b  WHERE batch_id = 1542099439991 and id_card = '" + idCard + "'";
-        List<Map<String, Object>> list = batchDao.sqlQuery(querySql);
+        String querySql = "SELECT site address FROM  tmp_nl_batch_detail b  WHERE batch_id = 1542099439991 and id_card = ? ";
+        List<Map<String, Object>> list = batchDao.sqlQuery(querySql, idCard);
         return list;
     }
 
@@ -889,12 +897,12 @@ public class OpenService {
         String name = map.get("name") == null || map.get("name") == "" ? "" : String.valueOf(map.get("name"));
         String activityCode = map.get("activity_code") == null || map.get("activity_code") == "" ? "" : String.valueOf(map.get("activity_code"));
         String channelName = map.get("channel_name") == null || map.get("channel_name") == "" ? "" : String.valueOf(map.get("channel_name"));
-        String deviceType = map.get("device_type") ==null ||map.get("device_type") == "" ? "":String.valueOf(map.get("device_type"));
+        String deviceType = map.get("device_type") == null || map.get("device_type") == "" ? "" : String.valueOf(map.get("device_type"));
         log.info("入参的值为" + JSON.toJSONString(map));
         //2. 如果活动编码activity_code是ETC，且此次channel下有同样的mobile手机号，则返回新增失败
         if ("ETC".equalsIgnoreCase(activityCode)) {
-            String countSql = "SELECT COUNT(*) AS count FROM t_access_channel WHERE activity_code='ETC' AND mobile='" + mobile + "' AND channel='" + channel + "'";
-            Map<String, Object> countMap = jdbcTemplate.queryForMap(countSql);
+            String countSql = "SELECT COUNT(*) AS count FROM t_access_channel WHERE activity_code='ETC' AND mobile=? AND channel=? ";
+            Map<String, Object> countMap = jdbcTemplate.queryForMap(countSql, mobile, channel);
             int count = Integer.parseInt(String.valueOf(countMap.get("count")));
             if (count > 0) {
                 return new ResponseInfoAssemble().failure(HttpStatus.BAD_REQUEST.value(), "手机号已存在");
@@ -910,7 +918,7 @@ public class OpenService {
         return new ResponseInfoAssemble().success(null);
     }
 
-    public Map<String,Object> saveBillNo(Map<String, Object> map) {
+    public Map<String, Object> saveBillNo(Map<String, Object> map) {
         //运单号，对应t_touch_express_log中的request_id字段
         String billNo = String.valueOf(map.get("billNo"));
 //        String expressCompany = String.valueOf(map.get("expressCompany")); 快递公司名称，暂时注掉，用到再从data中获取
@@ -945,7 +953,7 @@ public class OpenService {
         ByteArrayInputStream hBaseInputStream = null;
         try {
             // 查询本地磁盘的录音文件
-            String filePath = "/home/soft/audio/"+ userId + File.separator + fileName;
+            String filePath = "/home/soft/audio/" + userId + File.separator + fileName;
             File file = new File(filePath);
             if (file.exists()) {
                 fis = new FileInputStream(file);
@@ -1018,7 +1026,7 @@ public class OpenService {
     @Resource
     private CustomerUserService customerUserService;
 
-    private final static String token_suffix="TOKEN_";
+    private final static String token_suffix = "TOKEN_";
 
     /**
      * 刷新token接口
@@ -1029,7 +1037,7 @@ public class OpenService {
     public Map<String, Object> refreshToken0(String oldtoken, String username) {
         log.info("旧的token是 ： " + oldtoken + "用户名字是 ： " + username);
         Map<String, Object> resultMap = new HashMap<>();
-        resultMap.put("data","");
+        resultMap.put("data", "");
         String token = null;
         try {
             if (StringUtil.isNotEmpty(oldtoken) && StringUtil.isNotEmpty(username)) {
@@ -1038,14 +1046,14 @@ public class OpenService {
                     String custId = u.getCust_id();
                     String password = u.getPassword();
                     if (StringUtil.isNotEmpty(custId)) {
-                        CustomerProperty customerProperty = customerDao.getProperty(custId, token_suffix+custId);
+                        CustomerProperty customerProperty = customerDao.getProperty(custId, token_suffix + custId);
                         if (customerProperty != null) {
                             token = customerProperty.getPropertyValue();
                             if (token.equals(oldtoken)) {
                                 username = "customer." + username;
                                 token = generToken(custId, username, password);
                                 log.info("刷新token,新token：" + token + "\ttoken长度：" + token.length());
-                                customerDao.dealCustomerInfo(custId, token_suffix+custId, token);
+                                customerDao.dealCustomerInfo(custId, token_suffix + custId, token);
                             } else {
                                 resultMap.put("_message", "token不正确");
                                 resultMap.put("code", "04");
@@ -1056,11 +1064,11 @@ public class OpenService {
                             resultMap.put("code", "02");
                             return resultMap;
                         }
-                    }else{
+                    } else {
                         log.error("custId is null");
                     }
-                }else{
-                    log.error("user "+username+" is not exists or status is wrong");
+                } else {
+                    log.error("user " + username + " is not exists or status is wrong");
                 }
             } else {
                 resultMap.put("_message", "参数错误");
@@ -1081,7 +1089,7 @@ public class OpenService {
 
 
 
-   /* *//**
+    /* *//**
      * 获取token
      *
      * @param username

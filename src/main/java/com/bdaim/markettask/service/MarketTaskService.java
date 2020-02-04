@@ -643,6 +643,8 @@ public class MarketTaskService {
                 .append(" SELECT id, '1', remark,super_name,super_age,super_sex,super_telphone,super_phone,super_address_province_city,super_address_street,super_data,intent_level ")
                 .append(" FROM t_customer_group_list_" + customGroupId)
                 .append(" WHERE 1=1 ");
+        List args = new ArrayList();
+
         if (StringUtil.isNotEmpty(groupCondition)) {
             JSONArray condition = JSON.parseArray(groupCondition);
             JSONArray leafs;
@@ -665,10 +667,13 @@ public class MarketTaskService {
                                 sql.append(" OR ");
                             }
                             if (StringUtil.isNotEmpty(leafs.getJSONObject(j).getString("value")) && leafs.getJSONObject(j).getString("value").indexOf("及以上") > 0) {
-                                sql.append(" call_count >= " + leafs.getJSONObject(j).getString("value").split("")[0]);
+                                sql.append(" call_count >= ?");
+                                args.add(leafs.getJSONObject(j).getString("value").split("")[0]);
                             } else {
-                                sql.append(" call_count = " + leafs.getJSONObject(j).getString("value"));
+                                sql.append(" call_count = ?");
+                                args.add(leafs.getJSONObject(j).getString("value"));
                             }
+
                         }
                         sql.append(" ) ");
                     } else if (ConstantsUtil.CALL_SUCCESS_COUNT_ID.equals(labelId)) {
@@ -679,9 +684,11 @@ public class MarketTaskService {
                                 sql.append(" OR ");
                             }
                             if (StringUtil.isNotEmpty(leafs.getJSONObject(j).getString("value")) && leafs.getJSONObject(j).getString("value").indexOf("及以上") > 0) {
-                                sql.append(" call_success_count >=" + leafs.getJSONObject(j).getString("value").split("")[0]);
+                                sql.append(" call_success_count >=?");
+                                args.add(leafs.getJSONObject(j).getString("value").split("")[0]);
                             } else {
-                                sql.append(" call_success_count = " + leafs.getJSONObject(j).getString("value"));
+                                sql.append(" call_success_count = ?");
+                                args.add(leafs.getJSONObject(j).getString("value"));
                             }
                         }
                         sql.append(" ) ");
@@ -693,9 +700,11 @@ public class MarketTaskService {
                                 sql.append(" OR ");
                             }
                             if (StringUtil.isNotEmpty(leafs.getJSONObject(j).getString("value")) && leafs.getJSONObject(j).getString("value").indexOf("及以上") > 0) {
-                                sql.append(" sms_success_count >=" + leafs.getJSONObject(j).getString("value").split("")[0]);
+                                sql.append(" sms_success_count >=?");
+                                args.add(leafs.getJSONObject(j).getString("value").split("")[0]);
                             } else {
-                                sql.append(" sms_success_count = " + leafs.getJSONObject(j).getString("value"));
+                                sql.append(" sms_success_count =? ");
+                                args.add(leafs.getJSONObject(j).getString("value"));
                             }
                         }
                         sql.append(" ) ");
@@ -708,7 +717,8 @@ public class MarketTaskService {
                         if (j > 0) {
                             sql.append(" OR ");
                         }
-                        sql.append(" super_data LIKE '" + MessageFormat.format(labelDataLikeValue, labelId, leafs.getJSONObject(j).getString("value")) + "'");
+                        sql.append(" super_data LIKE ?");
+                        args.add(MessageFormat.format(labelDataLikeValue, labelId, leafs.getJSONObject(j).getString("value")));
                     }
                     sql.append(" ) ");
                 }
@@ -718,7 +728,7 @@ public class MarketTaskService {
         if (StringUtil.isNotEmpty(pageIndex) && StringUtil.isNotEmpty(pageSize)) {
             sql.append(" LIMIT ").append(pageIndex).append(",").append(pageSize);
         }
-        marketTaskDao.executeUpdateSQL(sql.toString());
+        marketTaskDao.executeUpdateSQL(sql.toString(), args.toArray());
 
     }
 
@@ -771,7 +781,7 @@ public class MarketTaskService {
         Map<String, Object> map = new HashMap<>();
         map.put("total", 0);
         map.put("list", new ArrayList<>());
-
+        List args = new ArrayList();
         List<Map<String, Object>> result = new ArrayList<>();
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT IFNULL (t2.NAME,'') AS taskName, t2.id AS id,t2.cust_id custId,")
@@ -786,15 +796,18 @@ public class MarketTaskService {
         }
         //任务名称
         if (StringUtil.isNotEmpty(param.getTaskName())) {
-            sql.append(" AND t2.name like '%").append(StringEscapeUtils.escapeSql(param.getTaskName())).append("%'");
+            sql.append(" AND t2.name like ?");
+            args.add("%" + StringEscapeUtils.escapeSql(param.getTaskName()) + "%");
         }
         //任务id
         if (StringUtil.isNotEmpty(param.getId())) {
-            sql.append(" and t2.id=").append(param.getId());
+            sql.append(" and t2.id=?");
+            args.add(param.getId());
         }
         //人群id
         if (StringUtil.isNotEmpty(param.getGroupId()) && Integer.valueOf(param.getGroupId()) > 0) {
-            sql.append(" and t2.customer_group_id=").append(param.getGroupId());
+            sql.append(" and t2.customer_group_id=?");
+            args.add(param.getGroupId());
         }
 
         //如果登陆人是项目管理员，只能查看自己负责的项目
@@ -814,7 +827,8 @@ public class MarketTaskService {
                 result.add(map);
                 return result;
             }
-            sql.append(" AND t2.id IN (SELECT market_task_id FROM t_market_task_property where property_name = 'callChannel' AND property_value = '").append(cp.getPropertyValue()).append("')");
+            sql.append(" AND t2.id IN (SELECT market_task_id FROM t_market_task_property where property_name = 'callChannel' AND property_value = ?").append(")");
+            args.add(cp.getPropertyValue());
             List<String> taskIds = listNotIncludeXzTaskUser(loginUser.getCustId(), String.valueOf(loginUser.getId()), 1);
             if (taskIds != null && taskIds.size() > 0) {
                 sql.append(" AND t2.id NOT IN (" + SqlAppendUtil.sqlAppendWhereIn(taskIds) + ") ");
@@ -847,15 +861,18 @@ public class MarketTaskService {
         }
         //任务状态
         if (StringUtil.isNotEmpty(param.getStatus())) {
-            sql.append(" and t2.status=").append(StringEscapeUtils.escapeSql(param.getStatus()));
+            sql.append(" and t2.status=?");
+            args.add(StringEscapeUtils.escapeSql(param.getStatus()));
         }
         //根据渠道检索
         if (StringUtil.isNotEmpty(param.getCallChannel())) {
-            sql.append(" and t2.id IN (SELECT market_task_id FROM t_market_task_property where property_name = 'callChannel' AND property_value = ").append(StringEscapeUtils.escapeSql(param.getCallChannel())).append(")");
+            sql.append(" and t2.id IN (SELECT market_task_id FROM t_market_task_property where property_name = 'callChannel' AND property_value = ?").append(")");
+            args.add(StringEscapeUtils.escapeSql(param.getCallChannel()));
         }
         if (StringUtil.isNotEmpty(param.getStartTime()) || StringUtil.isNotEmpty(param.getEndTime())) {
-            sql.append(" and t1.create_time between '").append(StringEscapeUtils.escapeSql(param.getStartTime()))
-                    .append("' and '").append(StringEscapeUtils.escapeSql(param.getEndTime())).append("'");
+            sql.append(" and t1.create_time between ?  and  ? ");
+            args.add(StringEscapeUtils.escapeSql(param.getStartTime()));
+            args.add(StringEscapeUtils.escapeSql(param.getEndTime()));
         }
 
         //sql.append(" ORDER BY if (t2.task_type IS NOT NULL AND t2.task_id IS NOT NULL,0,1), t2.task_create_time DESC, t2.create_time DESC ");
@@ -863,7 +880,7 @@ public class MarketTaskService {
         LOG.info(sql.toString());
         Page page = null;
         try {
-            page = marketTaskDao.sqlPageQuery0(sql.toString(), param.getPageNum(), param.getPageSize());
+            page = marketTaskDao.sqlPageQuery0(sql.toString(), param.getPageNum(), param.getPageSize(), args.toArray());
         } catch (Exception e) {
             LOG.error("前台营销任务列表查询异常", e);
             page = new Page();
@@ -1038,6 +1055,7 @@ public class MarketTaskService {
         Map<String, Object> map = new HashMap<>();
         map.put("total", 0);
         map.put("list", new ArrayList<>());
+        List args = new ArrayList();
 
         List<Map<String, Object>> result = new ArrayList<>();
         StringBuilder sql = new StringBuilder();
@@ -1050,14 +1068,17 @@ public class MarketTaskService {
                 .append(" LEFT JOIN t_customer_user t4 on t1.cust_id=t4.cust_id and t4.user_type=1 ")
                 .append(" where 1=1 ");
         if (StringUtil.isNotEmpty(param.getGroupName())) {
-            sql.append(" AND t2.name like '%").append(StringEscapeUtils.escapeSql(param.getGroupName())).append("%'");
+            sql.append(" AND t2.name like ?");
+            args.add("%" + StringEscapeUtils.escapeSql(param.getGroupName()) + "%");
         }
         if (StringUtil.isNotEmpty(param.getGroupId()) && Integer.valueOf(param.getGroupId()) > 0) {
-            sql.append(" and t2.id=").append(param.getGroupId());
+            sql.append(" and t2.id=?");
+            args.add(param.getGroupId());
         }
         // 任务类型
         if (StringUtil.isNotEmpty(param.getTaskType())) {
-            sql.append(" and t1.task_type=").append(StringEscapeUtils.escapeSql(param.getTaskType()));
+            sql.append(" and t1.task_type=?");
+            args.add(StringEscapeUtils.escapeSql(param.getTaskType()));
         }
         // 默认不查询短信营销任务
         if (StringUtil.isEmpty(param.getTaskType())) {
@@ -1065,15 +1086,18 @@ public class MarketTaskService {
         }
         // 用户名搜索
         if (StringUtil.isNotEmpty(param.getCustUserName())) {
-            sql.append(" and t4.account='").append(param.getCustUserName() + "'");
+            sql.append(" and t4.account=?");
+            args.add(param.getCustUserName());
         }
         // 企业名称搜索
         if (StringUtil.isNotEmpty(param.getEnterpriseName())) {
-            sql.append(" and t3.enterprise_name  LIKE '%" + StringEscapeUtils.escapeSql(param.getEnterpriseName()) + "%')");
+            sql.append(" and t3.enterprise_name  LIKE ?");
+            args.add("%" + StringEscapeUtils.escapeSql(param.getEnterpriseName()) + "%");
         }
         if (StringUtil.isNotEmpty(param.getStartTime()) || StringUtil.isNotEmpty(param.getEndTime())) {
-            sql.append(" and t1.create_time between '").append(StringEscapeUtils.escapeSql(param.getStartTime()))
-                    .append("' and '").append(StringEscapeUtils.escapeSql(param.getEndTime())).append("'");
+            sql.append(" and t1.create_time between ? and ?");
+            args.add(StringEscapeUtils.escapeSql(param.getStartTime()));
+            args.add(StringEscapeUtils.escapeSql(param.getEndTime()));
         }
         if (StringUtil.isNotEmpty(param.getMarketProjectId())) {
             CustomGroup c = new CustomGroup();
@@ -1094,9 +1118,10 @@ public class MarketTaskService {
 
         sql.append(" ORDER BY t1.create_time DESC ");
         LOG.info("sql=" + sql.toString());
-        map.put("total", marketTaskDao.getSQLQuery(sql.toString()).list().size());
-        List<Map<String, Object>> list = marketTaskDao.getSQLQuery(sql.toString()).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP)
-                .setFirstResult(param.getPageNum()).setMaxResults(param.getPageSize()).list();
+        //map.put("total", marketTaskDao.getSQLQuery(sql.toString()).list().size());
+        Page page = marketTaskDao.sqlPageQuery0(sql.toString(), param.getPageNum(), param.getPageSize(), args.toArray());
+        map.put("total", page.getTotal());
+        List<Map<String, Object>>   list = page.getData();
         if (list != null && list.size() > 0) {
             for (int i = 0; i < list.size(); i++) {
                 Map<String, Object> model = list.get(i);
@@ -1147,6 +1172,7 @@ public class MarketTaskService {
         Page page = null;
         String userId = String.valueOf(loginUser.getId());
         StringBuffer sb = new StringBuffer();
+        List args = new ArrayList();
         MarketTask task = marketTaskDao.get(taskId);
         // 机器人任务查询意向度字段
         if (task.getTaskType() != null && 3 == task.getTaskType()) {
@@ -1184,13 +1210,16 @@ public class MarketTaskService {
             }
         }
         if (null != id && !"".equals(id)) {
-            sb.append(" and custG.id like '%" + id + "%'");
+            sb.append(" and custG.id like ?");
+            args.add("%" + id + "%");
         }
         if (null != status && !"".equals(status)) {
-            sb.append(" and custG.STATUS = " + status);
+            sb.append(" and custG.STATUS = ?");
+            args.add(status);
         }
         if (StringUtil.isNotEmpty(userName)) {
-            sb.append(" and user.account like '%" + userName.trim() + "%'");
+            sb.append(" and user.account like ?");
+            args.add("%" + userName.trim() + "%");
         }
         if (null != callType) {
             // 未呼叫
@@ -1202,7 +1231,8 @@ public class MarketTaskService {
             }
         }
         if (StringUtil.isNotEmpty(intentLevel)) {
-            sb.append(" and custG.intent_level = '" + intentLevel + "'");
+            sb.append(" and custG.intent_level = ?");
+            args.add(intentLevel);
         }
         // 查询所有自建属性
         List<CustomerLabel> customerLabels = customerLabelDao.listCustomerLabel(loginUser.getCustId());
@@ -1225,14 +1255,15 @@ public class MarketTaskService {
                     } else {
                         likeValue = "%\"" + labelId + "\":\"" + optionValue + "\"%";
                     }
-                    sb.append(" AND custG.super_data LIKE '" + likeValue + "' ");
+                    sb.append(" AND custG.super_data LIKE ? ");
+                    args.add(likeValue);
                 }
             }
         }
 
         sb.append(" ORDER BY id ASC ");
         try {
-            page = marketTaskDao.sqlPageQuery0(sb.toString(), pageNum, pageSize);
+            page = marketTaskDao.sqlPageQuery0(sb.toString(), pageNum, pageSize, args.toArray());
         } catch (Exception e) {
             LOG.error("查询任务详情列表失败,", e);
             return new Page();
@@ -1271,8 +1302,8 @@ public class MarketTaskService {
                 //客户基本信息从客群表读取
                 StringBuffer sqlSb = new StringBuffer("");
                 sqlSb.append(" select  custG.super_name, custG.super_age, custG.super_sex, custG.super_telphone, custG.super_phone, custG.super_address_province_city, custG.super_address_street, custG.super_data ");
-                sqlSb.append("  from " + ConstantsUtil.CUSTOMER_GROUP_TABLE_PREFIX + task.getCustomerGroupId() + " custG where id='" + map.get("id") + "'");
-                List<Map<String, Object>> groupDetailList = marketTaskDao.sqlQuery(sqlSb.toString());
+                sqlSb.append("  from " + ConstantsUtil.CUSTOMER_GROUP_TABLE_PREFIX + task.getCustomerGroupId() + " custG where id=?");
+                List<Map<String, Object>> groupDetailList = marketTaskDao.sqlQuery(sqlSb.toString(), map.get("id"));
                 if (groupDetailList != null && groupDetailList.size() > 0) {
                     Map<String, Object> groupDetail = groupDetailList.get(0);
                     map.put("super_name", groupDetail.getOrDefault("super_name", ""));
@@ -1312,6 +1343,7 @@ public class MarketTaskService {
         List<Map<String, Object>> result = null;
         String userId = String.valueOf(loginUser.getId());
         StringBuffer sb = new StringBuffer();
+        List args = new ArrayList();
         MarketTask marketTask = marketTaskDao.get(marketTaskId);
         // 机器人任务查询意向度字段
         if (marketTask.getTaskType() != null && 3 == marketTask.getTaskType()) {
@@ -1349,13 +1381,17 @@ public class MarketTaskService {
             }
         }
         if (null != id && !"".equals(id)) {
-            sb.append(" and custG.id like '%" + id + "%'");
+            sb.append(" and custG.id like ?");
+            args.add("%" + id + "%");
+
         }
         if (null != status && !"".equals(status)) {
-            sb.append(" and custG.STATUS = " + status);
+            sb.append(" and custG.STATUS = ?");
+            args.add(status);
         }
         if (StringUtil.isNotEmpty(userName)) {
-            sb.append(" and user.account like '%" + userName.trim() + "%'");
+            sb.append(" and user.account like ?");
+            args.add("%" + userName.trim() + "%");
         }
         if (null != callType) {
             // 未呼叫
@@ -1367,7 +1403,8 @@ public class MarketTaskService {
             }
         }
         if (StringUtil.isNotEmpty(intentLevel)) {
-            sb.append(" and custG.intent_level = '" + intentLevel + "'");
+            sb.append(" and custG.intent_level = ?");
+            args.add(intentLevel);
         }
 
         sb.append(" ORDER BY id ASC ");
@@ -1375,7 +1412,7 @@ public class MarketTaskService {
             sb.append("  LIMIT " + pageNum + "," + pageSize);
         }
         try {
-            result = marketTaskDao.sqlQuery(sb.toString());
+            result = marketTaskDao.sqlQuery(sb.toString(), args.toArray());
         } catch (DataAccessException e) {
             LOG.error("查询营销任务列表失败,", e);
             return result;
@@ -1473,6 +1510,7 @@ public class MarketTaskService {
     public List<List<String>> generateMarketTaskSuccessData(LoginUser loginUser, int customerGroupId, MarketTask marketTask, String custId, String invitationLabelId,
                                                             String invitationLabelValue, String startTime, String endTime) {
         List<List<String>> data = new ArrayList<>();
+        List args = new ArrayList();
         // 处理时间
         String startTimeStr = LocalDateTime.of(LocalDate.now(), LocalTime.MIN).format(DatetimeUtils.DATE_TIME_FORMATTER);
         String endTimeStr = LocalDateTime.of(LocalDate.now(), LocalTime.MAX).format(DatetimeUtils.DATE_TIME_FORMATTER);
@@ -1506,10 +1544,16 @@ public class MarketTaskService {
                     .append(" WHERE voice.cust_id = ? AND voice.customer_group_id = ? AND voice.market_task_id = ? ")
                     .append(" AND voice.create_time >= ? AND voice.create_time <= ?  ")
                     .append(" AND voice.status = 1001 ");
+            args.add(custId);
+            args.add(customerGroupId);
+            args.add(marketTask.getId());
+            args.add(startTimeStr);
+            args.add(endTimeStr);
             if (marketTask.getTaskType() != null && 3 == marketTask.getTaskType().intValue()) {
                 sql.append(" AND t.intent_level IS NOT NULL ");
             } else {
-                sql.append(" AND t.super_data LIKE '%" + labelDataLikeValue + "%' ");
+                sql.append(" AND t.super_data LIKE ? ");
+                args.add("%" + labelDataLikeValue + "%");
             }
             if ("2".equals(loginUser.getUserType())) {
                 // 组长查组员列表
@@ -1530,7 +1574,7 @@ public class MarketTaskService {
                 }
             }
 
-            List<Map<String, Object>> callLogList = marketTaskDao.sqlQuery(sql.toString(), custId, customerGroupId, marketTask.getId(), startTimeStr, endTimeStr);
+            List<Map<String, Object>> callLogList = marketTaskDao.sqlQuery(sql.toString(), args.toArray());
             // 处理营销记录
             if (callLogList.size() > 0) {
                 //final String audioUrl = ConfigUtil.getInstance().get("audio_server_url") + "/";
@@ -4329,6 +4373,7 @@ public class MarketTaskService {
                     .append(" like t_customer_group_list");
             marketTaskDao.executeUpdateSQL(sql.toString());
             //导入数据
+            List args = new ArrayList();
             sql = new StringBuffer();
             sql.append("INSERT INTO " + ConstantsUtil.MARKET_TASK_TABLE_PREFIX + marketTaskId)
                     .append(" (id,status,remark,super_name,super_age,super_sex,super_telphone,super_phone,super_address_province_city,super_address_street,super_data,intent_level) ")
@@ -4357,9 +4402,11 @@ public class MarketTaskService {
                                     sql.append(" OR ");
                                 }
                                 if (StringUtil.isNotEmpty(leafs.getJSONObject(j).getString("value")) && leafs.getJSONObject(j).getString("value").indexOf("及以上") > 0) {
-                                    sql.append(" call_count >= " + leafs.getJSONObject(j).getString("value").split("")[0]);
+                                    sql.append(" call_count >= ?");
+                                    args.add(leafs.getJSONObject(j).getString("value").split("")[0]);
                                 } else {
-                                    sql.append(" call_count = " + leafs.getJSONObject(j).getString("value"));
+                                    sql.append(" call_count = ?");
+                                    args.add(leafs.getJSONObject(j).getString("value"));
                                 }
                             }
                             sql.append(" ) ");
@@ -4371,9 +4418,11 @@ public class MarketTaskService {
                                     sql.append(" OR ");
                                 }
                                 if (StringUtil.isNotEmpty(leafs.getJSONObject(j).getString("value")) && leafs.getJSONObject(j).getString("value").indexOf("及以上") > 0) {
-                                    sql.append(" call_success_count >=" + leafs.getJSONObject(j).getString("value").split("")[0]);
+                                    sql.append(" call_success_count >=?");
+                                    args.add(leafs.getJSONObject(j).getString("value").split("")[0]);
                                 } else {
-                                    sql.append(" call_success_count = " + leafs.getJSONObject(j).getString("value"));
+                                    sql.append(" call_success_count = ?");
+                                    args.add(leafs.getJSONObject(j).getString("value"));
                                 }
                             }
                             sql.append(" ) ");
@@ -4385,9 +4434,11 @@ public class MarketTaskService {
                                     sql.append(" OR ");
                                 }
                                 if (StringUtil.isNotEmpty(leafs.getJSONObject(j).getString("value")) && leafs.getJSONObject(j).getString("value").indexOf("及以上") > 0) {
-                                    sql.append(" sms_success_count >=" + leafs.getJSONObject(j).getString("value").split("")[0]);
+                                    sql.append(" sms_success_count >=? ");
+                                    args.add(leafs.getJSONObject(j).getString("value").split("")[0]);
                                 } else {
-                                    sql.append(" sms_success_count = " + leafs.getJSONObject(j).getString("value"));
+                                    sql.append(" sms_success_count = ?");
+                                    args.add(leafs.getJSONObject(j).getString("value"));
                                 }
                             }
                             sql.append(" ) ");
@@ -4400,7 +4451,8 @@ public class MarketTaskService {
                             if (j > 0) {
                                 sql.append(" OR ");
                             }
-                            sql.append(" super_data LIKE '" + MessageFormat.format(labelDataLikeValue, labelId, leafs.getJSONObject(j).getString("value")) + "'");
+                            sql.append(" super_data LIKE ?");
+                            args.add(MessageFormat.format(labelDataLikeValue, labelId, leafs.getJSONObject(j).getString("value")));
                         }
                         sql.append(" ) ");
                     }
@@ -4410,7 +4462,7 @@ public class MarketTaskService {
             if (StringUtil.isNotEmpty(pageIndex) && StringUtil.isNotEmpty(pageSize)) {
                 sql.append(" LIMIT ").append(pageIndex).append(",").append(pageSize);
             }
-            marketTaskDao.executeUpdateSQL(sql.toString());
+            marketTaskDao.executeUpdateSQL(sql.toString(), args);
         }
 
     }

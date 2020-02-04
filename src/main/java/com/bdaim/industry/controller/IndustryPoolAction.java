@@ -308,6 +308,7 @@ public class IndustryPoolAction extends BasicAction {
 
         return mapList;
     }
+/*
 
     private String getTreeDataById(HttpServletRequest request, LabelInfo labelInfo, QueryParam params, Integer poolId) {
         String queryType = params.getQueryType();
@@ -362,6 +363,7 @@ public class IndustryPoolAction extends BasicAction {
 
         return json.toString();
     }
+*/
 
     /**
      * 新增行业标签池

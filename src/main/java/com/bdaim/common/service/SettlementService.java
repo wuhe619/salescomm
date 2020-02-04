@@ -125,17 +125,21 @@ public class SettlementService {
             settlementType, String institutionName) throws Exception {
         JSONObject json = new JSONObject();
         String querySql = "SELECT c.cust_id id ,enterprise_name institutionName ,p.property_value FROM t_customer c LEFT JOIN t_customer_property p ON c.cust_id = p.cust_id  WHERE source = 2 AND status !=3 AND p.property_name = 'settlementInfo'";
+        List<Object> p = new ArrayList<>();
         if (StringUtil.isNotEmpty(institutionName)) {
-            querySql += " and enterprise_name  = '" + institutionName + "'";
+            p.add(institutionName);
+            querySql += " and enterprise_name  = ? ";
         }
         if (StringUtil.isNotEmpty(dicType)) {
-            querySql += " AND property_value LIKE '%" + "\"type\":" + dicType + "%'";
+            p.add("%\"type\":\"" + dicType + "\"%");
+            querySql += " AND property_value LIKE ? ";
         }
         if (StringUtil.isNotEmpty(settlementType)) {
-            querySql += " AND property_value LIKE '%" + "\"settlementType\":" + settlementType + "%'";
+            p.add("%\"settlementType\":\"" + settlementType + "\"%");
+            querySql += " AND property_value LIKE ? ";
         }
 
-        Page page = customerDao.sqlPageQuery0(querySql, pageNum, pageSize);
+        Page page = customerDao.sqlPageQuery0(querySql, pageNum, pageSize, p.toArray());
         List<Map<String, Object>> productInfo = null;
         if (page != null && page.getData().size() > 0) {
             List<Map<String, Object>> data = page.getData();
@@ -231,11 +235,13 @@ public class SettlementService {
         querySql.append(" ( SELECT settlement_id FROM t_settlement_property WHERE property_name = 'settlementObj' AND property_value = ? )");
         querySql.append(" and d.id IN( SELECT settlement_id FROM t_settlement_property WHERE property_name = 'type' AND property_value = ? )");
         querySql.append(" and d.id IN( SELECT settlement_id FROM t_settlement_property WHERE property_name = 'objId' AND property_value = ? )");
+        List<Object> p = new ArrayList<>();
         if (StringUtil.isNotEmpty(settlementTime)) {
-            querySql.append(" AND d.settlement_time = '" + settlementTime + "'");
+            p.add(settlementTime);
+            querySql.append(" AND d.settlement_time = ? ");
         }
         querySql.append(" GROUP BY d.settlement_time");
-        Page page = dicDao.sqlPageQuery0(querySql.toString(), pageNum, pageSize, settlementObj, type, objId);
+        Page page = dicDao.sqlPageQuery0(querySql.toString(), pageNum, pageSize, settlementObj, type, objId, p.toArray());
         List<Map<String, Object>> data = page.getData();
         if (data != null && data.size() > 0) {
             for (int j = 0; j < data.size(); j++) {
@@ -396,20 +402,25 @@ public class SettlementService {
     public JSONObject getOperateDataList(Integer pageNum, Integer pageSize, String time, String queryType, String settlementObj, String type, String product_id) {
         JSONObject jsonObject = new JSONObject();
         Page page = null;
+        List<Object> p = new ArrayList<>();
         StringBuffer stringBuffer = new StringBuffer("SELECT COUNT(DISTINCT product_id) productNum,COUNT(DISTINCT id) activityNum,GROUP_CONCAT(DISTINCT id) ids,product_id,product_type,SUM(regedit_num) regeditNum ,SUM(firstget_num) firstgetNum,SUM(active_num) activeNum,CONVERT(SUM(income)/1000,DECIMAL(10,2)) income,id, ");
         stringBuffer.append("(SELECT dic_prop_value FROM t_dic_property p  WHERE dic_prop_key = 'extensionChannel' AND s.id = p.dic_id)  channel");
-        stringBuffer.append(" FROM stat_settlement s WHERE stat_time LIKE '" + time + "%'");
+        stringBuffer.append(" FROM stat_settlement s WHERE stat_time LIKE ? ");
+        p.add(time + "%");
         //录入类型  1 首次录入   2.扣减录入
         if (StringUtil.isNotEmpty(type)) {
-            stringBuffer.append(" AND type ='" + type + "'");
+            p.add(type);
+            stringBuffer.append(" AND type =?");
         }
         //settlementObj结算方  1 ：机构  2：活动
         if (StringUtil.isNotEmpty(settlementObj)) {
-            stringBuffer.append(" AND settlement_obj ='" + settlementObj + "'");
+            p.add(settlementObj);
+            stringBuffer.append(" AND settlement_obj =?");
         }
         //settlementObj结算方  1 ：机构  2：活动
-        if (StringUtil.isNotEmpty("productId")) {
-            stringBuffer.append(" AND product_id ='" + product_id + "'");
+        if (StringUtil.isNotEmpty(product_id)) {
+            p.add(product_id);
+            stringBuffer.append(" AND product_id =?");
         }
         //根据type区分是1：商品收入排行还:2：机构收入 3：活动效果列表
         if ("1".equals(queryType)) {
@@ -422,7 +433,7 @@ public class SettlementService {
             stringBuffer.append(" GROUP BY channel ORDER BY income DESC");
         }
 
-        page = dicDao.sqlPageQuery0(stringBuffer.toString(), pageNum, pageSize);
+        page = dicDao.sqlPageQuery0(stringBuffer.toString(), pageNum, pageSize, p.toArray());
         if (page != null && page.getData().size() > 0) {
             List<Map<String, Object>> data = page.getData();
             for (int i = 0; i < data.size(); i++) {
@@ -462,14 +473,18 @@ public class SettlementService {
                             data.get(i).put("channelName", channelName.getName());
                         }
                     }
+                    p = new ArrayList<>();
                     //查询扣量结算金额
-                    String querySql = "SELECT CONVERT ( SUM(income) / 1000, DECIMAL (10, 2) ) deductAmount, id FROM stat_settlement WHERE stat_time LIKE '" + time + "%' AND type = '2' AND settlement_obj = '2'";
+                    String querySql = " SELECT CONVERT ( SUM(income) / 1000, DECIMAL (10, 2) ) deductAmount, id FROM stat_settlement WHERE stat_time LIKE ? AND type = '2' AND settlement_obj = '2'";
+                    p.add(time + "%");
                     if ("3".equals(queryType)) {
-                        querySql += " and product_id = '" + productId + "' and id = '" + id + "'";
+                        p.add(productId);
+                        p.add(id);
+                        querySql += " and product_id =? and id = ?";
                     } else if ("4".equals(queryType)) {
                         querySql += " and id in (" + data.get(i).get("ids") + ")";
                     }
-                    List<Map<String, Object>> list = dicDao.sqlQuery(querySql);
+                    List<Map<String, Object>> list = dicDao.sqlQuery(querySql, p.toArray());
                     if (list.size() > 0) {
                         //扣量金额
                         data.get(i).put("deductAmount", String.valueOf(list.get(0).get("deductAmount")));

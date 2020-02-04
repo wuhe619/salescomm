@@ -179,8 +179,11 @@ public class HypicXService implements BusiService {
         String _orderby_ = params.getString("_orderby_");
         String _sort_ = params.getString("_sort_");
         StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date,update_date,ext_1, ext_2 , ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(busiType, "") + " where type=?");
-        if (!"all".equals(cust_id))
-            sqlstr.append(" and cust_id='").append(cust_id).append("'");
+        if (!"all".equals(cust_id)) {
+            sqlstr.append(" and cust_id=? ");
+            sqlParams.add(cust_id);
+        }
+
         sqlParams.add(busiType);
         Iterator keys = params.keySet().iterator();
         while (keys.hasNext()) {
@@ -200,7 +203,9 @@ public class HypicXService implements BusiService {
             sqlParams.add(params.get(key));
         }
         if (StringUtil.isNotEmpty(_orderby_) && StringUtil.isNotEmpty(_sort_)) {
-            sqlstr.append(" ORDER BY ").append(_orderby_).append(" ").append(_sort_);
+            sqlstr.append(" ORDER BY ? ? ");
+            sqlParams.add(_orderby_);
+            sqlParams.add(_sort_);
         }
         return sqlstr.toString();
     }

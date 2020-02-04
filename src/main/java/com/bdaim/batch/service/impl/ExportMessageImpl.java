@@ -101,27 +101,35 @@ public class ExportMessageImpl implements ExportMessageService {
         sqlBuilder.append("  LEFT JOIN t_super_label t2 ON custG.id = t2.super_id AND t2.batch_id = '" + batchId + "'");
         sqlBuilder.append("  LEFT JOIN t_customer_label t3 ON t2.label_id = t3.label_id AND custG.batch_id = t4.batch_id");
         sqlBuilder.append(" where 1 = 1 ");
+        List<Object> p = new ArrayList<>();
         if (userType.equals("2") && "ROLE_CUSTOMER".equals(role)) {
-            sqlBuilder.append("AND custG.user_id =" + userId);
+            sqlBuilder.append("AND custG.user_id = ? ");
+            p.add(userId);
         }
         if (StringUtil.isNotEmpty(id)) {
-            sqlBuilder.append(" and custG.id= '").append(StringEscapeUtils.escapeSql(id)).append("'");
+            sqlBuilder.append(" and custG.id= ? ");
+            p.add(id);
         }
         if (StringUtil.isNotEmpty(idCard)) {
-            sqlBuilder.append(" and custG.id_card= '").append(StringEscapeUtils.escapeSql(idCard)).append("'");
+            sqlBuilder.append(" and custG.id_card= ? ");
+            p.add(idCard);
         }
         if (StringUtil.isNotEmpty(enterpriseId)) {
-            sqlBuilder.append(" and custG.enterprise_id= '").append(StringEscapeUtils.escapeSql(enterpriseId)).append("'");
+            sqlBuilder.append(" and custG.enterprise_id= ?");
+            p.add(enterpriseId);
         }
 
         if (StringUtil.isNotEmpty(realname)) {
-            sqlBuilder.append(" and t.realname= '").append(StringEscapeUtils.escapeSql(realname)).append("'");
+            sqlBuilder.append(" and t.realname= ?");
+            p.add(realname);
         }
         if (StringUtil.isNotEmpty(status)) {
-            sqlBuilder.append(" and custG.status= '").append(StringEscapeUtils.escapeSql(status)).append("'");
+            sqlBuilder.append(" and custG.status= ?");
+            p.add(status);
         }
         if (StringUtil.isNotEmpty(batchId)) {
-            sqlBuilder.append(" and custG.batch_id= '").append(StringEscapeUtils.escapeSql(batchId)).append("'");
+            sqlBuilder.append(" and custG.batch_id= ?");
+            p.add(batchId);
         }
 
         sqlBuilder.append(" GROUP BY custG.id ,id_card");
@@ -129,10 +137,11 @@ public class ExportMessageImpl implements ExportMessageService {
         if (labels.size() > 0) {
             sqlBuilder.append(" WHERE 1=1 ");
             for (String optionValue : optionValues) {
-                sqlBuilder.append(" AND FIND_IN_SET('" + optionValue + "', t.optionValue) ");
+                sqlBuilder.append(" AND FIND_IN_SET(? , t.optionValue) ");
+                p.add(optionValue);
             }
         }
-        List<Map<String, Object>> list = batchDetailDao.sqlQuery(sqlBuilder.toString());
+        List<Map<String, Object>> list = batchDetailDao.sqlQuery(sqlBuilder.toString(), p.toArray());
 
         //处理渠道信息对应转换  2--联通  3--电信 4---移动
         if (list.size() > 0) {
@@ -249,18 +258,23 @@ public class ExportMessageImpl implements ExportMessageService {
      * @param response
      */
     @Override
-    public void exportDetailInfo(String batchId, String detailId, Integer status, HttpServletResponse response, String exportType,String custId) throws IOException, IllegalAccessException {
-        StringBuffer sb = new StringBuffer("SELECT content, cust_id, cust_group_id, cust_user_id, create_id, create_date ,ext_1, ext_2, ext_3 detailId, ext_4 batchId, ext_5 scoure from h_data_manager_hy_pic_x WHERE ext_4 = '" + batchId + "'");
-        if (status !=null) {
-            sb.append(" and ext_2 = " + status);
+    public void exportDetailInfo(String batchId, String detailId, Integer status, HttpServletResponse response, String exportType, String custId) throws IOException, IllegalAccessException {
+        StringBuffer sb = new StringBuffer("SELECT content, cust_id, cust_group_id, cust_user_id, create_id, create_date ,ext_1, ext_2, ext_3 detailId, ext_4 batchId, ext_5 scoure from h_data_manager_hy_pic_x WHERE ext_4 = ? ");
+        List<Object> p = new ArrayList<>();
+        p.add(batchId);
+        if (status != null) {
+            sb.append(" and ext_2 = ? ");
+            p.add(status);
         }
         if (StringUtil.isNotEmpty(detailId)) {
-            sb.append(" and ext_3 = '" + detailId + "'");
+            sb.append(" and ext_3 = ? ");
+            p.add(detailId);
         }
         if (StringUtil.isNotEmpty(custId)) {
-            sb.append(" and cust_id = '" + custId + "'");
+            sb.append(" and cust_id =? ");
+            p.add(custId);
         }
-        List<Map<String, Object>> list = batchDetailDao.sqlQuery(sb.toString());
+        List<Map<String, Object>> list = batchDetailDao.sqlQuery(sb.toString(), p.toArray());
         ExcelUtil.exportExcelByList(list, exportType, response);
     }
 

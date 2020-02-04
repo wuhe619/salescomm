@@ -87,7 +87,7 @@ public class CallRecordImpl {
         try {
             if (StringUtil.isNotEmpty(account)) {
                 //查询userid
-                List<Map<String, Object>> list = marketResourceDao.sqlQuery("SELECT id FROM t_customer_user WHERE account ='" + account + "'" + "AND cust_id =" + ZK_USER_ID);
+                List<Map<String, Object>> list = marketResourceDao.sqlQuery("SELECT id FROM t_customer_user WHERE account =? AND cust_id =?", account, ZK_USER_ID);
                 if (list.size() > 0) {
                     if (list.size() > 0) {
                         userId = String.valueOf(list.get(0).get("id"));
@@ -112,22 +112,31 @@ public class CallRecordImpl {
     public List<Map<String, Object>> queryCallMessage(String id, String userId, String callStatus, String startTime, String endTime, int pageNum, int pageSize, String time) throws Exception {
         StringBuffer stringBuffer = new StringBuffer();
         stringBuffer.append("SELECT touch_id touchId,superid,u.account,v.create_time createTime,v.`status`,customer_group_id id,called_duration callTime");
-        stringBuffer.append(" FROM t_touch_voice_log_" + time + " v  LEFT JOIN t_customer_user u ON v.user_id = u.id WHERE v.cust_id =" + ZK_USER_ID);
+        stringBuffer.append(" FROM t_touch_voice_log_" + time + " v  LEFT JOIN t_customer_user u ON v.user_id = u.id WHERE v.cust_id = ?");
+        List<Object> p = new ArrayList<>();
+        p.add(ZK_USER_ID);
         if (StringUtil.isNotEmpty(id)) {
-            stringBuffer.append(" AND v.customer_group_id = " + id);
+            p.add(id);
+            stringBuffer.append(" AND v.customer_group_id = ?");
         }
         if (StringUtil.isNotEmpty(userId)) {
-            stringBuffer.append(" AND u.user_id = " + userId);
+            p.add(userId);
+            stringBuffer.append(" AND u.user_id = ?");
         }
         if (StringUtil.isNotEmpty(callStatus)) {
-            stringBuffer.append(" AND v.status = " + callStatus);
+            p.add(callStatus);
+            stringBuffer.append(" AND v.status = ?");
         }
         if (StringUtil.isNotEmpty(startTime) && StringUtil.isNotEmpty(endTime)) {
-            stringBuffer.append(" AND v.create_time BETWEEN '" + startTime + "' and '" + endTime + "' ");
+            p.add(startTime);
+            p.add(endTime);
+            stringBuffer.append(" AND v.create_time BETWEEN ? and ? ");
         }
-        stringBuffer.append(" ORDER BY v.create_time DESC LIMIT " + pageNum + "," + pageSize);
+        p.add(pageNum);
+        p.add(pageSize);
+        stringBuffer.append(" ORDER BY v.create_time DESC LIMIT ?,?");
         LogUtil.info("查询触达记录信息sql:" + stringBuffer.toString());
-        List<Map<String, Object>> list = marketResourceDao.sqlQuery(stringBuffer.toString());
+        List<Map<String, Object>> list = marketResourceDao.sqlQuery(stringBuffer.toString(), p.toArray());
         List<Map<String, Object>> superMessage = null, labelList, queryName;
         Map<String, Object> labelMap, labelDataMap;
         String superData, customerGroupId, superId;
@@ -137,7 +146,7 @@ public class CallRecordImpl {
                 superId = String.valueOf(list.get(i).get("superid"));
                 if (StringUtil.isNotEmpty(customerGroupId) && StringUtil.isNotEmpty(superId)) {
                     //根据客户群id查询自建属性信息
-                    superMessage = marketResourceDao.sqlQuery("SELECT super_data FROM t_customer_group_list_" + customerGroupId + " WHERE id ='" + superId + "'");
+                    superMessage = marketResourceDao.sqlQuery("SELECT super_data FROM t_customer_group_list_" + customerGroupId + " WHERE id =?", superId);
                     LogUtil.info("查询自建属性信息值:" + superMessage);
                     superData = String.valueOf(superMessage.get(0).get("super_data"));
                     if (StringUtil.isNotEmpty(superData)) {
@@ -148,7 +157,7 @@ public class CallRecordImpl {
                             for (Map.Entry<String, Object> labelDataKey : labelDataMap.entrySet()) {
                                 labelMap = new HashMap<>();
                                 //根据labelId查询属性名
-                                queryName = marketResourceDao.sqlQuery("SELECT label_name FROM t_customer_label WHERE label_id =" + labelDataKey.getKey());
+                                queryName = marketResourceDao.sqlQuery("SELECT label_name FROM t_customer_label WHERE label_id =? ", labelDataKey.getKey());
                                 if (queryName.size() > 0) {
                                     labelMap.put(String.valueOf(queryName.get(0).get("label_name")), labelDataKey.getValue());
                                     labelList.add(labelMap);

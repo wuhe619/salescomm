@@ -13,6 +13,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,9 +28,12 @@ public class CustomerMsgService {
 
     public ContentPage getCustomerMsgList(Integer pageNum, Integer pageSize) {
         String sql = "select m.id as id ,m.cust_id as custId,m.cust_user_id as custUserId,m.create_time as createTime,m.msg_type as msgType," +
-                "t.enterprise_name as custName from h_customer_msg m left join t_customer t on m.cust_id=t.cust_id order by m.create_time asc limit " + (pageNum - 1) * pageSize + "," + pageSize;
+                "t.enterprise_name as custName from h_customer_msg m left join t_customer t on m.cust_id=t.cust_id order by m.create_time asc limit ?,?";
+        List<Object> p = new ArrayList<>();
+        p.add((pageNum - 1) * pageSize);
+        p.add(pageSize);
         List<ContentData> list = jdbcTemplate.query(sql,
-                new BeanPropertyRowMapper<>(ContentData.class));
+                new BeanPropertyRowMapper<>(ContentData.class), p.toArray());
         Map<String, Object> map = new HashMap<>();
         long count = customerMsgRepository.count();
         ContentPage contentPage = new ContentPage();

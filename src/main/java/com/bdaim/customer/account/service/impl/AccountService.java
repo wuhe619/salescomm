@@ -181,26 +181,33 @@ public class AccountService {
                 "   FROM t_customer_property p GROUP BY cust_id \n" +
                 ") cjc ON cus.cust_id = cjc.cust_id \n" +
                 "where 1=1 and t2.user_type=1 ");
+        List<Object> p = new ArrayList<>();
         if (StringUtil.isNotEmpty(queryParam.getCustomerId())) {
-            sqlBuilder.append(" and cus.cust_id= " + queryParam.getCustomerId());
+            p.add(queryParam.getCustomerId());
+            sqlBuilder.append(" and cus.cust_id= ? ");
         }
         if (StringUtil.isNotEmpty(queryParam.getEnterpriseName())) {
-            sqlBuilder.append(" and cus.enterprise_name like '%" + queryParam.getEnterpriseName() + "%'");
+            p.add("%" + queryParam.getEnterpriseName() + "%");
+            sqlBuilder.append(" and cus.enterprise_name like ? ");
         }
         if (StringUtil.isNotEmpty(queryParam.getAccount())) {
-            sqlBuilder.append(" and cjc.account LIKE '%" + queryParam.getAccount() + "%'");
+            p.add("%" + queryParam.getAccount() + "%");
+            sqlBuilder.append(" and cjc.account LIKE ?");
         }
         if (StringUtil.isNotEmpty(queryParam.getRealname())) {
-            sqlBuilder.append(" and cjc.person LIKE '%" + queryParam.getRealname() + "%'");
+            p.add("%" + queryParam.getRealname() + "%");
+            sqlBuilder.append(" and cjc.person LIKE ? ");
         }
         if (StringUtil.isNotEmpty(queryParam.getPhone())) {
-            sqlBuilder.append(" and cjc.phone LIKE '%" + queryParam.getPhone() + "%'");
+            p.add("%" + queryParam.getPhone() + "%");
+            sqlBuilder.append(" and cjc.phone LIKE ?");
         }
         if (StringUtil.isNotEmpty(queryParam.getStationId())) {
-            sqlBuilder.append(" AND cjc.stationId =" + queryParam.getStationId());
+            p.add(queryParam.getStationId());
+            sqlBuilder.append(" AND cjc.stationId = ?");
         }
         sqlBuilder.append(" ORDER BY cus.create_time desc ");
-        return new Pagination().getPageData(sqlBuilder.toString(), null, page, jdbcTemplate);
+        return new Pagination().getPageData(sqlBuilder.toString(), p.toArray(), page, jdbcTemplate);
     }
 
     /**
@@ -268,28 +275,35 @@ public class AccountService {
                 " LEFT JOIN t_customer customer on t.cust_id=customer.cust_id " +
                 " left JOIN t_user u on t.user_id = u.id  where 1=1 ");
 
+        List<Object> p = new ArrayList<>();
         if (StringUtil.isNotEmpty(queryParam.getCustomerId())) {
-            sb.append(" and t.cust_id= " + queryParam.getCustomerId());
+            p.add(queryParam.getCustomerId());
+            sb.append(" and t.cust_id= ? ");
         }
         if (StringUtil.isNotEmpty(queryParam.getTransactionId())) {
-            sb.append(" and t.transaction_id= " + queryParam.getTransactionId());
+            p.add(queryParam.getTransactionId());
+            sb.append(" and t.transaction_id= ?");
         }
         if (StringUtil.isNotEmpty(queryParam.getType())) {
-            sb.append(" and t.type=" + queryParam.getType());
+            p.add(queryParam.getType());
+            sb.append(" and t.type= ? ");
         }
         if (StringUtil.isNotEmpty(queryParam.getRealname())) {
-            sb.append(" and u.name like '%" + queryParam.getRealname() + "%'");
+            p.add("%" + queryParam.getRealname() + "%");
+            sb.append(" and u.name like ?");
         }
         if (StringUtil.isNotEmpty(queryParam.getStartTime())) {
-            sb.append(" AND t.create_time >= '" + queryParam.getStartTime() + "'");
+            p.add(queryParam.getStartTime());
+            sb.append(" AND t.create_time >= ?");
         }
         if (StringUtil.isNotEmpty(queryParam.getEndTime())) {
-            sb.append(" AND t.create_time <='" + queryParam.getEndTime() + "'");
+            p.add(queryParam.getEndTime());
+            sb.append(" AND t.create_time <=?");
         }
 
         sb.append(" ORDER BY t.create_time desc ");
         logger.info("企业充值扣减记录sql:" + sb.toString());
-        return new Pagination().getPageData(sb.toString(), null, page, jdbcTemplate);
+        return new Pagination().getPageData(sb.toString(), p.toArray(), page, jdbcTemplate);
     }
 
     /**
@@ -303,54 +317,69 @@ public class AccountService {
         sqlBuilder.append("FROM t_transaction_bill t");
         sqlBuilder.append(" LEFT JOIN t_supplier p ON t.supplier_id = p.supplier_id\n");
         sqlBuilder.append("LEFT JOIN t_user u ON t.user_id = u.ID WHERE 1=1\n");
+        List<Object> p = new ArrayList<>();
         if (StringUtil.isNotEmpty(queryParam.getTransactionId())) {
-            sqlBuilder.append(" and t.transaction_id= " + queryParam.getTransactionId());
+            p.add(queryParam.getTransactionId());
+            sqlBuilder.append(" and t.transaction_id= ?");
         }
         if (StringUtil.isNotEmpty(queryParam.getType())) {
-            sqlBuilder.append(" and t.type= " + queryParam.getType());
+            p.add(queryParam.getType());
+            sqlBuilder.append(" and t.type= ?");
         }
         if (StringUtil.isNotEmpty(queryParam.getSupplierId())) {
-            sqlBuilder.append(" and t.supplier_id= " + queryParam.getSupplierId());
+            p.add(queryParam.getSupplierId());
+            sqlBuilder.append(" and t.supplier_id= ?");
         }
         if (StringUtil.isNotEmpty(queryParam.getStartTime())) {
-            sqlBuilder.append(" AND t.create_time >= '" + queryParam.getStartTime() + "'");
+            p.add(queryParam.getStartTime());
+            sqlBuilder.append(" AND t.create_time >=?");
         }
         if (StringUtil.isNotEmpty(queryParam.getEndTime())) {
-            sqlBuilder.append(" AND t.create_time <='" + queryParam.getEndTime() + "'");
+            p.add(queryParam.getEndTime());
+            sqlBuilder.append(" AND t.create_time <=? ");
         }
         if (StringUtil.isNotEmpty(queryParam.getBillDate())) {
-            sqlBuilder.append(" and DATE_FORMAT(t.create_time, '%Y%m') like'" + queryParam.getBillDate() + "'");
+            p.add(queryParam.getBillDate());
+            sqlBuilder.append(" and DATE_FORMAT(t.create_time, '%Y%m') like ? ");
         }
         sqlBuilder.append(" ORDER BY t.create_time desc ");
-        return new Pagination().getPageData(sqlBuilder.toString(), null, page, jdbcTemplate);
+        return new Pagination().getPageData(sqlBuilder.toString(), p.toArray(), page, jdbcTemplate);
     }
-    public List<Map<String,Object>> querySupplierAcctsExport(CustomerBillQueryParam queryParam) {
+
+    public List<Map<String, Object>> querySupplierAcctsExport(CustomerBillQueryParam queryParam) {
         // 如果没有传开始时间
         StringBuilder sqlBuilder = new StringBuilder("SELECT p.`name` source_name, t.create_time,t.transaction_id,p.supplier_id," +
                 "t.amount/100 as amount,u.REALNAME realname , t.certificate,t.remark,CASE t.type WHEN '1' THEN '充值' WHEN '7' THEN '扣减' END AS billType ");
         sqlBuilder.append("FROM t_transaction_bill t");
         sqlBuilder.append(" LEFT JOIN t_supplier p ON t.supplier_id = p.supplier_id\n");
         sqlBuilder.append("LEFT JOIN t_user u ON t.user_id = u.ID WHERE 1=1\n");
+        List<Object> p = new ArrayList<>();
         if (StringUtil.isNotEmpty(queryParam.getTransactionId())) {
-            sqlBuilder.append(" and t.transaction_id= " + queryParam.getTransactionId());
+            p.add(queryParam.getTransactionId());
+            sqlBuilder.append(" and t.transaction_id= ?");
         }
         if (StringUtil.isNotEmpty(queryParam.getType())) {
-            sqlBuilder.append(" and t.type= " + queryParam.getType());
+            p.add(queryParam.getType());
+            sqlBuilder.append(" and t.type= ? ");
         }
         if (StringUtil.isNotEmpty(queryParam.getSupplierId())) {
-            sqlBuilder.append(" and t.supplier_id= " + queryParam.getSupplierId());
+            p.add(queryParam.getSupplierId());
+            sqlBuilder.append(" and t.supplier_id= ? ");
         }
         if (StringUtil.isNotEmpty(queryParam.getStartTime())) {
-            sqlBuilder.append(" AND t.create_time >= '" + queryParam.getStartTime() + "'");
+            p.add(queryParam.getStartTime());
+            sqlBuilder.append(" AND t.create_time >=?");
         }
         if (StringUtil.isNotEmpty(queryParam.getEndTime())) {
-            sqlBuilder.append(" AND t.create_time <='" + queryParam.getEndTime() + "'");
+            p.add(queryParam.getEndTime());
+            sqlBuilder.append(" AND t.create_time <=?");
         }
         if (StringUtil.isNotEmpty(queryParam.getBillDate())) {
-            sqlBuilder.append(" and DATE_FORMAT(t.create_time, '%Y%m') like'" + queryParam.getBillDate() + "'");
+            p.add(queryParam.getBillDate());
+            sqlBuilder.append(" and DATE_FORMAT(t.create_time, '%Y%m') like ? ");
         }
         sqlBuilder.append(" ORDER BY t.create_time desc ");
-        List<Map<String,Object>> resultList = jdbcTemplate.queryForList(sqlBuilder.toString());
+        List<Map<String, Object>> resultList = jdbcTemplate.queryForList(sqlBuilder.toString(), p.toArray());
         return resultList;
     }
 
@@ -371,21 +400,26 @@ public class AccountService {
                     "from t_transaction_" + nowYearMonth + "  t \n" +
                     "LEFT JOIN t_customer_user cu on t.cust_id=cu.cust_id\n" +
                     "WHERE 1=1 and cu.user_type=1 ");
+            List<Object> p = new ArrayList<>();
             if (StringUtil.isNotEmpty(param.getCustomerId())) {
-                sqlBuilder.append(" and t.cust_id= " + param.getCustomerId());
+                p.add(param.getCustomerId());
+                sqlBuilder.append(" and t.cust_id= ?");
             }
             if (StringUtil.isNotEmpty(param.getTransactionId())) {
-                sqlBuilder.append(" and t.transaction_id= " + param.getTransactionId());
+                p.add(param.getTransactionId());
+                sqlBuilder.append(" and t.transaction_id= ?");
             }
             if (StringUtil.isNotEmpty(param.getRealname())) {
-                sqlBuilder.append(" and cu.realname like '% " + param.getRealname() + "%'");
+                p.add("%" + param.getRealname() + "%");
+                sqlBuilder.append(" and cu.realname like ?");
             }
             if (StringUtil.isNotEmpty(param.getType())) {
-                sqlBuilder.append(" and t.type= " + param.getType());
+                p.add(param.getType());
+                sqlBuilder.append(" and t.type= ?");
             }
             sqlBuilder.append(" ORDER BY t.create_time desc ");
 
-            List<Map<String, Object>> customerAccountRechargeList = jdbcTemplate.queryForList(sqlBuilder.toString());
+            List<Map<String, Object>> customerAccountRechargeList = jdbcTemplate.queryForList(sqlBuilder.toString(), p.toArray());
             List<List<Object>> data = new ArrayList<>();
             // 设置标题
             List<String> titles = new ArrayList<String>();
@@ -467,16 +501,19 @@ public class AccountService {
             sqlBuilder.append("FROM t_transaction_bill t");
             sqlBuilder.append(" LEFT JOIN t_supplier p ON t.supplier_id = p.supplier_id ");
             sqlBuilder.append("LEFT JOIN t_user u ON t.user_id = u.ID WHERE 1=1 ");
+            List<Object> p = new ArrayList<>();
             if (StringUtil.isNotEmpty(queryParam.getTransactionId())) {
-                sqlBuilder.append(" and t.transaction_id= " + queryParam.getTransactionId());
+                p.add(queryParam.getTransactionId());
+                sqlBuilder.append(" and t.transaction_id= ?");
             }
             if (StringUtil.isNotEmpty(queryParam.getSupplierId())) {
-                sqlBuilder.append(" and t.supplier_id= " + queryParam.getSupplierId());
+                p.add(queryParam.getSupplierId());
+                sqlBuilder.append(" and t.supplier_id= ?");
             }
 
             sqlBuilder.append(" ORDER BY t.create_time desc ");
 
-            List<Map<String, Object>> supplierAccoutRecordlist = jdbcTemplate.queryForList(sqlBuilder.toString());
+            List<Map<String, Object>> supplierAccoutRecordlist = jdbcTemplate.queryForList(sqlBuilder.toString(), p.toArray());
             List<List<Object>> data = new ArrayList<>();
             // 设置标题
             List<String> titles = new ArrayList<String>();
@@ -547,34 +584,41 @@ public class AccountService {
     }
 
 
-    public List<Map<String,Object>> pageListRecords(CustomerBillQueryParam queryParam) {
+    public List<Map<String, Object>> pageListRecords(CustomerBillQueryParam queryParam) {
         // 如果没有传开始时间
         StringBuilder sqlBuilder = new StringBuilder("SELECT t.type,CASE t.type WHEN '1' THEN '充值' WHEN '7' THEN '扣减' END AS typeContent," +
                 "t.create_time,t.transaction_id,t.amount/100 as amount ,cu.realname," +
                 "t.cust_id,t.certificate,t.remark from t_transaction_bill t \n" +
                 "LEFT JOIN t_customer_user cu on t.cust_id=cu.cust_id\n" +
                 " where 1=1 and cu.user_type=1");
+        List<Object> p = new ArrayList<>();
         if (StringUtil.isNotEmpty(queryParam.getCustomerId())) {
-            sqlBuilder.append(" and t.cust_id= " + queryParam.getCustomerId());
+            p.add(queryParam.getCustomerId());
+            sqlBuilder.append(" and t.cust_id= ?" );
         }
         if (StringUtil.isNotEmpty(queryParam.getTransactionId())) {
-            sqlBuilder.append(" and t.transaction_id= " + queryParam.getTransactionId());
+            p.add(queryParam.getTransactionId());
+            sqlBuilder.append(" and t.transaction_id= ?");
         }
         if (StringUtil.isNotEmpty(queryParam.getType())) {
-            sqlBuilder.append(" and t.type=" + queryParam.getType());
+            p.add(queryParam.getType());
+            sqlBuilder.append(" and t.type= ? ");
         }
         if (StringUtil.isNotEmpty(queryParam.getRealname())) {
-            sqlBuilder.append(" and cu.realname like '%" + queryParam.getRealname() + "%'");
+            p.add("%" + queryParam.getRealname() + "%");
+            sqlBuilder.append(" and cu.realname like ?");
         }
         if (StringUtil.isNotEmpty(queryParam.getStartTime())) {
-            sqlBuilder.append(" AND t.create_time >= '" + queryParam.getStartTime() + "'");
+            p.add(queryParam.getStartTime());
+            sqlBuilder.append(" AND t.create_time >= ?" );
         }
         if (StringUtil.isNotEmpty(queryParam.getEndTime())) {
-            sqlBuilder.append(" AND t.create_time <='" + queryParam.getEndTime() + "'");
+            p.add(queryParam.getEndTime());
+            sqlBuilder.append(" AND t.create_time <=? ");
         }
         sqlBuilder.append(" ORDER BY t.create_time desc ");
         logger.info("企业充值扣减记录sql:" + sqlBuilder.toString());
-        return jdbcTemplate.queryForList(sqlBuilder.toString());
+        return jdbcTemplate.queryForList(sqlBuilder.toString(), p.toArray());
     }
 
     @Resource
@@ -610,7 +654,7 @@ public class AccountService {
         List<Map<String, Object>> list = new ArrayList<>();
         if (page.getData() != null && page.getData().size() > 0) {
             Customer customer;
-            CustomerProperty remainAmount, settlementType,creditAmount;
+            CustomerProperty remainAmount, settlementType, creditAmount;
             CustomerUserPropertyDO mobileNum;
             List<CustomerUser> us;
             Map<String, Object> d;

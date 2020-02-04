@@ -483,9 +483,9 @@ public class CustomerLabelService {
 
             String sql = "select custG.super_name, custG.super_age, custG.super_sex, custG.super_telphone, custG.super_phone," +
                     " custG.super_address_province_city, custG.super_address_street " +
-                    " from " + ConstantsUtil.CUSTOMER_GROUP_TABLE_PREFIX + custGroupId + " custG where id='" + superId + "'";
+                    " from " + ConstantsUtil.CUSTOMER_GROUP_TABLE_PREFIX + custGroupId + " custG where id=? ";
 
-            List<Map<String, Object>> detail = customerDao.sqlQuery(sql);
+            List<Map<String, Object>> detail = customerDao.sqlQuery(sql, superId);
             if (detail != null && detail.size() > 0) {
                 Map<String, Object> map = detail.get(0);
                 json.put("super_name", map.getOrDefault("super_name", ""));
@@ -552,13 +552,13 @@ public class CustomerLabelService {
         sql.append("  SELECT t1.id,t1.cust_id,t1.label_id,t1.status,t1.label_name,")
                 .append("  t1.create_time,t1.label_desc,t1.type, t1.`option` ")
                 .append("  FROM  t_customer_label t1");
-        sql.append("  WHERE t1.cust_id ='" + custId + "'");
-        sql.append("  AND t1.status = " + status);
+        sql.append("  WHERE t1.cust_id =? ");
+        sql.append("  AND t1.status = ? ");
         sql.append("  and t1.type in(2,3)");
         sql.append("  GROUP BY t1.id ");
         sql.append("  ORDER BY t1.create_time DESC");
 
-        List<Map<String, Object>> list = this.customerDao.sqlQuery(sql.toString());
+        List<Map<String, Object>> list = this.customerDao.sqlQuery(sql.toString(), custId, status);
         staticCustomerLabels(list, false);
         return list;
     }
@@ -594,22 +594,26 @@ public class CustomerLabelService {
         Map<String, Object> map = new HashMap<>(16);
         List<Map<String, Object>> list;
         JSONObject json = new JSONObject();
+        List<Object> p = new ArrayList<>();
         StringBuffer sql = new StringBuffer();
         sql.append("  SELECT t1.id,t1.cust_id,t1.user_id,t1.label_id,t1.status,t1.label_name, t1.market_project_id, ")
                 .append("  t1.create_time,t1.update_time, t1.label_desc,t1.type, t1.`option`")
                 .append("  FROM  t_customer_label t1")
-                .append("  WHERE (t1.cust_id ='" + custId + "' OR  t1.cust_id = '0')");
+                .append("  WHERE (t1.cust_id =? OR  t1.cust_id = '0')");
+        p.add(custId);
         // 如果按照客户或者营销任务查询
         if (projectStatus) {
             if (marketProjectId != null) {
-                sql.append(" AND (t1.market_project_id = 0 OR t1.market_project_id is null OR t1.market_project_id = " + marketProjectId + " )");
+                p.add(marketProjectId);
+                sql.append(" AND (t1.market_project_id = 0 OR t1.market_project_id is null OR t1.market_project_id = ? )");
             } else {
                 sql.append(" AND (t1.market_project_id = 0 OR t1.market_project_id is null)");
             }
         }
 
         if (StringUtil.isNotEmpty(projectId)) {
-            sql.append(" AND t1.market_project_id ='" + projectId + "'");
+            p.add(projectId);
+            sql.append(" AND t1.market_project_id =? ");
         }
         if (pageNum == null || "".equals(pageNum) || pageSize == null || "".equals(pageSize)) {
             sql.append("  AND t1.status =1 ");
@@ -642,7 +646,7 @@ public class CustomerLabelService {
             sql.append("  ORDER BY t1.update_time DESC, t1.create_time DESC ");
             Page page = null;
             try {
-                page = customerDao.sqlPageQuery0(sql.toString(), pageNum, pageSize);
+                page = customerDao.sqlPageQuery0(sql.toString(), pageNum, pageSize, p.toArray());
             } catch (Exception e) {
                 page = new Page();
             }
@@ -701,33 +705,40 @@ public class CustomerLabelService {
         List<Map<String, Object>> list;
         JSONObject json = new JSONObject();
         StringBuffer sql = new StringBuffer();
+        List<Object> p = new ArrayList<>();
         sql.append("  SELECT t1.id,t1.cust_id,t1.user_id,t1.label_id,t1.status,t1.label_name, GROUP_CONCAT(t1.market_project_id) market_project_id, ")
                 .append("  t1.create_time,t1.update_time, t1.label_desc,t1.type, t1.`option`, t1.sort, t1.required ")
                 .append("  FROM  t_customer_label t1")
-                .append("  WHERE (t1.cust_id ='" + custId + "' OR  t1.cust_id = '0')");
+                .append("  WHERE (t1.cust_id =?  OR  t1.cust_id = '0')");
+        p.add(custId);
         // 如果按照客户或者营销任务查询
         if (projectStatus) {
             if (marketProjectId != null) {
-                sql.append(" AND (t1.market_project_id = 0 OR t1.market_project_id is null OR t1.market_project_id = " + marketProjectId + " )");
+                p.add(marketProjectId);
+                sql.append(" AND (t1.market_project_id = 0 OR t1.market_project_id is null OR t1.market_project_id = ? )");
             } else {
                 sql.append(" AND (t1.market_project_id = 0 OR t1.market_project_id is null)");
             }
         }
 
         if (StringUtil.isNotEmpty(projectId)) {
-            sql.append(" AND t1.market_project_id ='" + projectId + "'");
+            p.add(projectId);
+            sql.append(" AND t1.market_project_id =? ");
         }
         // 属性名称检索
         if (StringUtil.isNotEmpty(labelName)) {
-            sql.append(" AND t1.label_name LIKE '%" + labelName + "%'");
+            p.add("%" + labelName + "%");
+            sql.append(" AND t1.label_name LIKE ? ");
         }
         // 类型检索
         if (StringUtil.isNotEmpty(type)) {
-            sql.append(" AND t1.type ='" + type + "'");
+            p.add(type);
+            sql.append(" AND t1.type =? ");
         }
         // 状态检索
         if (StringUtil.isNotEmpty(status)) {
-            sql.append(" AND t1.status ='" + status + "'");
+            p.add(status);
+            sql.append(" AND t1.status =? ");
         }
         if (pageNum == null || "".equals(pageNum) || pageSize == null || "".equals(pageSize)) {
             sql.append(" AND t1.status =1 ");
@@ -759,8 +770,10 @@ public class CustomerLabelService {
             map.put("custGroupOrders", staticCustomerLabels(list, false));
             json.put("staffJson", map);
         } else {
+            List<Object> maxParam = new ArrayList<>();
             StringBuffer maxSortSql = new StringBuffer();
-            maxSortSql.append("SELECT MAX(sort) maxSort FROM t_customer_label t1 WHERE (t1.cust_id ='" + custId + "' OR  t1.cust_id = '0') ");
+            maxParam.add(custId);
+            maxSortSql.append("SELECT MAX(sort) maxSort FROM t_customer_label t1 WHERE (t1.cust_id =? OR  t1.cust_id = '0') ");
             // 项目管理员ID
             if (StringUtil.isNotEmpty(projectUserId)) {
                 List<String> projectIds = customerUserDao.listProjectByUserId(NumberConvertUtil.parseLong(projectUserId));
@@ -775,20 +788,21 @@ public class CustomerLabelService {
             sql.append("  AND (t1.status =1 OR t1.status =2) ");
             maxSortSql.append("  AND (t1.status =1 OR t1.status =2) ");
             if (StringUtil.isNotEmpty(projectId)) {
-                maxSortSql.append(" AND t1.market_project_id ='" + projectId + "'");
+                maxParam.add(projectId);
+                maxSortSql.append(" AND t1.market_project_id =? ");
             }
             sql.append("  GROUP BY t1.label_id");
             sql.append("  ORDER BY t1.status, t1.create_time DESC, t1.sort ");
             Page page = null;
             try {
-                page = customerDao.sqlPageQuery0(sql.toString(), pageNum, pageSize);
+                page = customerDao.sqlPageQuery0(sql.toString(), pageNum, pageSize, p.toArray());
             } catch (Exception e) {
                 page = new Page();
             }
             map.put("total", page.getTotal());
             map.put("custGroupOrders", page.getData());
             if (page.getData() != null && page.getData().size() > 0) {
-                List<Map<String, Object>> maxSortList = customerDao.sqlQuery(maxSortSql.toString());
+                List<Map<String, Object>> maxSortList = customerDao.sqlQuery(maxSortSql.toString(), maxParam.toArray());
                 int maxSort = maxSortList.size() > 0 && maxSortList.get(0).get("maxSort") != null ? NumberConvertUtil.parseInt(maxSortList.get(0).get("maxSort")) : 0;
                 MarketProject marketProject;
                 String projectIds, projectName;
@@ -872,46 +886,53 @@ public class CustomerLabelService {
         List<Map<String, Object>> list;
         JSONObject json = new JSONObject();
         StringBuffer sql = new StringBuffer();
+        List<Object> p = new ArrayList<>();
         sql.append("  SELECT t1.id,t1.cust_id,t1.user_id,t1.label_id,t1.status,t1.label_name, t1.market_project_id, ")
                 .append("  t1.create_time,t1.update_time, t1.label_desc,t1.type, t1.`option`, t1.sort, t1.required ")
                 .append("  FROM  t_customer_label t1")
-                .append("  WHERE (t1.cust_id ='" + custId + "' OR  t1.cust_id = '0')");
+                .append("  WHERE (t1.cust_id =?  OR  t1.cust_id = '0')");
+        p.add(custId);
         // 如果按照客户或者营销任务查询
         if (projectStatus) {
             if (marketProjectId != null) {
-                sql.append(" AND (t1.market_project_id = 0 OR t1.market_project_id is null OR t1.market_project_id = " + marketProjectId + " )");
+                p.add(marketProjectId);
+                sql.append(" AND (t1.market_project_id = 0 OR t1.market_project_id is null OR t1.market_project_id = ? )");
             } else {
                 sql.append(" AND (t1.market_project_id = 0 OR t1.market_project_id is null)");
             }
         }
 
         if (StringUtil.isNotEmpty(projectId)) {
-            sql.append(" AND (t1.market_project_id ='" + projectId + "' OR t1.market_project_id = 0 OR t1.market_project_id is null) ");
+            p.add(projectId);
+            sql.append(" AND (t1.market_project_id =? OR t1.market_project_id = 0 OR t1.market_project_id is null) ");
         }
         // 属性名称检索
         if (StringUtil.isNotEmpty(labelName)) {
-            sql.append(" AND t1.label_name LIKE '%" + labelName + "%'");
+            p.add("%" + labelName + "%");
+            sql.append(" AND t1.label_name LIKE ? ");
         }
         // 类型检索
         if (StringUtil.isNotEmpty(type)) {
-            sql.append(" AND t1.type ='" + type + "'");
+            p.add(type);
+            sql.append(" AND t1.type =? ");
         }
         // 状态检索
         if (StringUtil.isNotEmpty(status)) {
-            sql.append(" AND t1.status ='" + status + "'");
+            p.add(status);
+            sql.append(" AND t1.status =? ");
         }
         if (pageNum == null || "".equals(pageNum) || pageSize == null || "".equals(pageSize)) {
             sql.append(" AND t1.status =1 ");
             //sql.append(" GROUP BY t1.label_id");
             sql.append(" ORDER BY t1.sort IS NULL, t1.sort, t1.label_name ");
-            list = this.customerDao.sqlQuery(sql.toString());
+            list = this.customerDao.sqlQuery(sql.toString(), p.toArray());
             List<Map<String, Object>> result = new ArrayList<>();
             if (list != null && list.size() > 0) {
                 for (Map<String, Object> key : list) {
                     // 如果编辑时间为空则取创建时间
                     if (key != null) {
                         if ("SYS007".equals(String.valueOf(key.get("label_id")))) {
-                           continue;
+                            continue;
                         }
                         // 处理默认自建属性
                         if (key.get("cust_id") != null && "0".equals(String.valueOf(key.get("cust_id")))) {
@@ -935,8 +956,10 @@ public class CustomerLabelService {
             map.put("custGroupOrders", staticCustomerLabels(result, false));
             json.put("staffJson", map);
         } else {
+            List<Object> maxParam = new ArrayList<>();
             StringBuffer maxSortSql = new StringBuffer();
-            maxSortSql.append("SELECT MAX(sort) maxSort FROM t_customer_label t1 WHERE (t1.cust_id ='" + custId + "' OR  t1.cust_id = '0') ");
+            maxParam.add(custId);
+            maxSortSql.append("SELECT MAX(sort) maxSort FROM t_customer_label t1 WHERE (t1.cust_id =? OR  t1.cust_id = '0') ");
             // 项目管理员ID
             if (StringUtil.isNotEmpty(projectUserId)) {
                 List<String> projectIds = customerUserDao.listProjectByUserId(NumberConvertUtil.parseLong(projectUserId));
@@ -951,20 +974,21 @@ public class CustomerLabelService {
             sql.append("  AND (t1.status =1 OR t1.status =2) ");
             maxSortSql.append("  AND (t1.status =1 OR t1.status =2) ");
             if (StringUtil.isNotEmpty(projectId)) {
-                maxSortSql.append(" AND t1.market_project_id ='" + projectId + "'");
+                maxParam.add(projectId);
+                maxSortSql.append(" AND t1.market_project_id =? ");
             }
             //sql.append("  GROUP BY t1.label_id");
             sql.append("  ORDER BY t1.status, t1.create_time DESC, t1.sort ");
             Page page = null;
             try {
-                page = customerDao.sqlPageQuery0(sql.toString(), pageNum, pageSize);
+                page = customerDao.sqlPageQuery0(sql.toString(), pageNum, pageSize, p.toArray());
             } catch (Exception e) {
                 page = new Page();
             }
             map.put("total", page.getTotal());
             map.put("custGroupOrders", page.getData());
             if (page.getData() != null && page.getData().size() > 0) {
-                List<Map<String, Object>> maxSortList = customerDao.sqlQuery(maxSortSql.toString());
+                List<Map<String, Object>> maxSortList = customerDao.sqlQuery(maxSortSql.toString(), maxParam.toArray());
                 int maxSort = maxSortList.size() > 0 && maxSortList.get(0).get("maxSort") != null ? NumberConvertUtil.parseInt(maxSortList.get(0).get("maxSort")) : 0;
                 MarketProject marketProject;
                 String projectIds, projectName;
@@ -1314,6 +1338,7 @@ public class CustomerLabelService {
 
     /**
      * 检查项目下自建属性名称是否存在
+     *
      * @param includeLabelId
      * @param name
      * @param status

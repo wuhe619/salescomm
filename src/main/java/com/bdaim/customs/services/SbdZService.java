@@ -63,8 +63,8 @@ public class SbdZService implements BusiService {
             throw new TouchException("未配置场站信息");
         }
         String billno = info.getString("bill_no");
-        String sql = "select id from " + HMetaDataDef.getTable(busiType, "") + " where type='" + busiType + "' and ext_3 = '" + billno + "'";
-        List<Map<String, Object>> countList = jdbcTemplate.queryForList(sql);
+        String sql = "select id from " + HMetaDataDef.getTable(busiType, "") + " where type=? and ext_3 = ? ";
+        List<Map<String, Object>> countList = jdbcTemplate.queryForList(sql, busiType, billno);
         if (countList != null && countList.size() > 0) {
             log.warn("主单:{}已经申报", billno);
             throw new TouchException("此主单已经申报");
@@ -422,8 +422,11 @@ public class SbdZService implements BusiService {
             StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(busiType, "") + " where type=?");
             String _orderby_ = params.getString("_orderby_");
             String _sort_ = params.getString("_sort_");
-            if (!"all".equals(cust_id))
-                sqlstr.append(" and cust_id='").append(cust_id).append("'");
+            if (!"all".equals(cust_id)){
+                sqlstr.append(" and cust_id=? ");
+                sqlParams.add(cust_id);
+            }
+
             sqlParams.add(busiType);
             String stationId = params.getString("stationId");
             // 处理场站检索
@@ -488,9 +491,10 @@ public class SbdZService implements BusiService {
             }
             //sqlstr.append(" ORDER BY create_date DESC, update_date DESC ");
             if (StringUtil.isNotEmpty(_orderby_) && StringUtil.isNotEmpty(_sort_)) {
-                sqlstr.append(" ORDER BY ").append(_orderby_).append(" ").append(_sort_);
+                sqlstr.append(" ORDER BY ? ? ");
+                sqlParams.add(_orderby_);
+                sqlParams.add(_sort_);
             }
-
             return sqlstr.toString();
         } else {
             CheckData checkData = sbdfCheck(params.getString("main_bill_no"), cust_id);
@@ -822,10 +826,10 @@ public class SbdZService implements BusiService {
 //        String sql = "select ext_3 from h_data_manager_sbd_z where id = " + id;
 //        List<Map<String, Object>> list = jdbcTemplate.queryForList(sql);
 //        Map<String, Object> stringObjectMap = list.get(0);
-        String sql1 = "select content,ext_3 from h_data_manager_sbd_f where ext_4='" + id + "' and cust_id='" + cust_id + "'";
-        List<Map<String, Object>> list1 = jdbcTemplate.queryForList(sql1);
-        String sql2 = "select content,ext_4 from h_data_manager_sbd_s where ext_2='" + id + "' and cust_id='" + cust_id + "'";
-        List<Map<String, Object>> list2 = jdbcTemplate.queryForList(sql2);
+        String sql1 = "select content,ext_3 from h_data_manager_sbd_f where ext_4=? and cust_id=?";
+        List<Map<String, Object>> list1 = jdbcTemplate.queryForList(sql1, id, cust_id);
+        String sql2 = "select content,ext_4 from h_data_manager_sbd_s where ext_2=?  and cust_id=?";
+        List<Map<String, Object>> list2 = jdbcTemplate.queryForList(sql2, id, cust_id);
 
         Map<String, Double> sbdsMap = new HashMap<>();
         list2.stream().forEach(m -> {
