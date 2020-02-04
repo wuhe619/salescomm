@@ -21,7 +21,7 @@ public class IgnoreAuthConfiguration extends WebSecurityConfigurerAdapter {
         web.ignoring().antMatchers("/pdf/**");
         web.ignoring().antMatchers("/pic/**");
 
-        web.ignoring().antMatchers("/open/getVoiceRecordFile/**", "/customer/token",
+        web.ignoring().antMatchers("/open/getVoiceRecordFile/**", "/user/verify/code","/customer/token",
                 "/user/token", "/customer/m/login", "/user/otp/verify/**", "/user/identify/**",
                 "/user/reset/password", "/mail/sendVerifyCode", "/sms/sendSms",
                 "/returnUrl/**", "/retuNotifyUrl/**", "/marketResource/callBack/**",
