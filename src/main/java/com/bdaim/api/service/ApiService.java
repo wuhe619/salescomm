@@ -270,7 +270,7 @@ public class ApiService {
     public Map<String, Object> apiLogs(PageParam page, JSONObject params) {
         List<Object> arr = new ArrayList<>();
         StringBuffer sql = new StringBuffer();
-        sql.append("select c.enterprise_name,SUBSCRIBER_ID subscriberId,u.account,count(0)monthCallNum from am_charge_").append(params.get("callMonth")).append(" charge ")
+        sql.append("select c.enterprise_name enterpriseName,SUBSCRIBER_ID subscriberId,u.account,count(0)monthCallNum from am_charge_").append(params.get("callMonth")).append(" charge ")
                 .append(" left join t_customer c on charge.SUBSCRIBER_ID = c.cust_id ")
                 .append(" left join t_customer_user u on c.cust_id = u.cust_id ")
                 .append(" where charge.api_id=?");

@@ -232,7 +232,7 @@ public class ApiController extends BasicAction {
         PageParam page = new PageParam();
         page.setPageSize(params.containsKey("pageSize") ? 0 : params.getIntValue("pageSize"));
         page.setPageNum(params.containsKey("pageNum") ? 10 : params.getIntValue("pageNum"));
-        resp.setData(apiService.apiLogs(page, params));
+        resp.setData(apiService.customerApiLogs(page, params));
         return resp;
     }
 
