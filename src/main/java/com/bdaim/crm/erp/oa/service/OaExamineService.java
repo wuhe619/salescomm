@@ -6,6 +6,7 @@ import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.util.TypeUtils;
+import com.bdaim.auth.LoginUser;
 import com.jfinal.aop.Before;
 import com.jfinal.aop.Inject;
 import com.jfinal.kit.Kv;
@@ -146,7 +147,7 @@ public class OaExamineService{
 
     @Before(Tx.class)
     public R setOaExamine(JSONObject jsonObject){
-        AdminUser user = BaseUtil.getUser();
+        LoginUser user = BaseUtil.getUser();
         OaExamine oaExamine = jsonObject.getObject("oaExamine", OaExamine.class);
         boolean oaAuth = AuthUtil.isOaAuth(OaEnum.EXAMINE_TYPE_KEY.getTypes(), oaExamine.getExamineId());
         if(oaAuth){

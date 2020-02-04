@@ -1,5 +1,6 @@
 package com.bdaim.crm.erp.oa.service;
 
+import com.bdaim.auth.LoginUser;
 import com.jfinal.aop.Before;
 import com.jfinal.aop.Inject;
 import com.jfinal.kit.Kv;
@@ -129,7 +130,7 @@ public class OaExamineCategoryService{
     }
 
     public R queryAllExamineCategoryList(){
-        AdminUser user = BaseUtil.getUser();
+        LoginUser user = BaseUtil.getUser();
         List<Record> recordList = Db.find(Db.getSqlPara("oa.examine.queryAllExamineCategoryList", Kv.by("userId",user.getUserId()).set("deptId",user.getDeptId())));
         return R.ok().put("data", recordList);
     }

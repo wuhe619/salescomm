@@ -1,6 +1,10 @@
 package com.bdaim.crm.utils;
 
 import cn.hutool.core.date.DateUtil;
+import com.bdaim.auth.LoginUser;
+import com.bdaim.common.auth.Token;
+import com.bdaim.common.auth.service.TokenCacheService;
+import com.bdaim.util.redis.RedisUtil;
 import com.jfinal.kit.Prop;
 import com.jfinal.kit.PropKit;
 import com.jfinal.log.Log;
@@ -8,14 +12,29 @@ import com.bdaim.crm.common.config.JfinalConfig;
 import com.bdaim.crm.common.config.redis.RedisManager;
 import com.bdaim.crm.erp.admin.entity.AdminUser;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.net.InetAddress;
 import java.util.Date;
 
+@Service
 public class BaseUtil {
 
     private static ThreadLocal<HttpServletRequest> threadLocal = new ThreadLocal<>();
+
+
+    private static TokenCacheService<LoginUser> tokenCacheService;
+
+    public TokenCacheService<LoginUser> getTokenCacheService() {
+        return tokenCacheService;
+    }
+
+    @Resource
+    public void setTokenCacheService(TokenCacheService<LoginUser> tokenCacheService) {
+        this.tokenCacheService = tokenCacheService;
+    }
 
     /**
      *
@@ -126,12 +145,12 @@ public class BaseUtil {
     }
 
 
-    public static AdminUser getUser() {
-        return RedisManager.getRedis().get(getToken());
+    public static LoginUser getUser() {
+        return tokenCacheService.getToken(getToken(), LoginUser.class);
     }
 
     public static Long getUserId(){
-        return getUser().getUserId();
+        return getUser().getId();
     }
 
     public static void removeThreadLocal(){
@@ -143,7 +162,7 @@ public class BaseUtil {
     }
 
     public static String getToken(HttpServletRequest request){
-        return request.getHeader("Admin-Token") != null ? request.getHeader("Admin-Token") : "";
+        return request.getHeader("Authorization") != null ? request.getHeader("Authorization") : "";
     }
 
 }

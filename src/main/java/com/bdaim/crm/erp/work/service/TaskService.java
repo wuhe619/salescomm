@@ -3,6 +3,7 @@ package com.bdaim.crm.erp.work.service;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
+import com.bdaim.auth.LoginUser;
 import com.jfinal.aop.Before;
 import com.jfinal.aop.Inject;
 import com.jfinal.kit.Kv;
@@ -66,7 +67,7 @@ public class TaskService{
 
     @Before(Tx.class)
     public R setTask(Task task, TaskRelation taskRelation){
-        AdminUser user = BaseUtil.getUser();
+        LoginUser user = BaseUtil.getUser();
         boolean bol;
         if(task.getLabelId() != null){
             task.setLabelId(TagUtil.fromString(task.getLabelId()));

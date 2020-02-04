@@ -4,6 +4,7 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.util.TypeUtils;
+import com.bdaim.auth.LoginUser;
 import com.jfinal.aop.Before;
 import com.jfinal.aop.Inject;
 import com.jfinal.kit.Kv;
@@ -46,7 +47,7 @@ public class OaLogService {
      */
     public Page<Record> queryList(BasePageRequest<OaLog> basePageRequest) {
         JSONObject object = basePageRequest.getJsonObject();
-        AdminUser user = BaseUtil.getUser();
+        LoginUser user = BaseUtil.getUser();
         Integer by = TypeUtils.castToInt(object.getOrDefault("by", 4));
         Kv kv = Kv.by("by", by);
         List<Long> userIds;
@@ -120,7 +121,7 @@ public class OaLogService {
      */
     @Before(Tx.class)
     public R saveAndUpdate(JSONObject object) {
-        AdminUser user = BaseUtil.getUser();
+        LoginUser user = BaseUtil.getUser();
         OaLog oaLog = object.toJavaObject(OaLog.class);
         OaLogRelation oaLogRelation = object.toJavaObject(OaLogRelation.class);
         oaLog.setCreateUserId(user.getUserId().intValue());
@@ -205,7 +206,7 @@ public class OaLogService {
             return R.noAuth();
         }
         Page<Record> recordPage = Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), Db.getSqlPara("oa.log.queryLogRelation", Kv.by("businessIds", relation.getBusinessIds()).set("contactsIds", relation.getContactsIds()).set("contractIds", relation.getContractIds()).set("customerIds", relation.getCustomerIds())));
-        AdminUser user = BaseUtil.getUser();
+        LoginUser user = BaseUtil.getUser();
         recordPage.getList().forEach((record -> {
             queryLogDetail(record, user.getUserId());
         }));

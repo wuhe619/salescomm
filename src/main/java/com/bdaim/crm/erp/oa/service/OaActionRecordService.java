@@ -3,6 +3,7 @@ package com.bdaim.crm.erp.oa.service;
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
+import com.bdaim.auth.LoginUser;
 import com.jfinal.aop.Inject;
 import com.jfinal.kit.Kv;
 import com.jfinal.plugin.activerecord.Db;
@@ -69,7 +70,7 @@ public class OaActionRecordService {
 
     public R getOaRecordPageList(BasePageRequest<OaActionRecord> pageRequest) {
         Integer type = pageRequest.getData().getType();
-        AdminUser user = BaseUtil.getUser();
+        LoginUser user = BaseUtil.getUser();
         SqlPara sqlPara;
         List<Long> userIdList;
         if(user.getRoles().contains(BaseConstant.SUPER_ADMIN_ROLE_ID)){

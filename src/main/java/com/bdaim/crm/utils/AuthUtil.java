@@ -1,6 +1,7 @@
 package com.bdaim.crm.utils;
 
 import cn.hutool.core.util.StrUtil;
+import com.bdaim.auth.LoginUser;
 import com.jfinal.aop.Aop;
 import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
@@ -157,7 +158,7 @@ public class AuthUtil {
     }
 
     public static  boolean isWorkAuth(String workId, String realm){
-        AdminUser user = BaseUtil.getUser();
+        LoginUser user = BaseUtil.getUser();
         Integer roleId = Db.queryInt("select role_id from `72crm_work_user` where work_id = ? and user_id = ?", workId, user.getUserId());
         //判断是否是超级管理员、项目管理员
         if(user.getUserId().equals(BaseConstant.SUPER_ADMIN_USER_ID) || user.getRoles().contains(BaseConstant.SUPER_ADMIN_ROLE_ID) ||user.getRoles().contains(BaseConstant.WORK_ADMIN_ROLE_ID) || (roleId != null&&roleId.equals(BaseConstant.SMALL_WORK_ADMIN_ROLE_ID))){

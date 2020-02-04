@@ -5,6 +5,7 @@ import com.bdaim.rbac.entity.User;
 import org.springframework.security.core.GrantedAuthority;
 
 import java.util.Collection;
+import java.util.List;
 
 /**
  *
@@ -100,6 +101,19 @@ public class LoginUser extends Token {
      * 营销类型:1-B2C营销  2-B2B营销
      */
     private Integer marketingType;
+
+    //查询开始时间
+    private String startTime;
+    //查询结束时间
+    private String endTime;
+    //用户角色列表
+    private List<Integer> roles;
+
+    private Long userId;
+
+    private Integer deptId;
+
+    private String salt;
 
     public String getApi_token() {
         return api_token;
@@ -361,5 +375,45 @@ public class LoginUser extends Token {
 
     public void setMarketingType(Integer marketingType) {
         this.marketingType = marketingType;
+    }
+
+    public String getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(String startTime) {
+        this.startTime = startTime;
+    }
+
+    public String getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(String endTime) {
+        this.endTime = endTime;
+    }
+
+    public List<Integer> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(List<Integer> roles) {
+        this.roles = roles;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
+    }
+
+    public Integer getDeptId() {
+        return deptId;
+    }
+
+    public void setDeptId(Integer deptId) {
+        this.deptId = deptId;
     }
 }

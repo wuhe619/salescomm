@@ -1,5 +1,6 @@
 package com.bdaim.crm.erp.admin.controller;
 
+import com.bdaim.auth.LoginUser;
 import com.jfinal.aop.Inject;
 import com.jfinal.core.Controller;
 import com.jfinal.core.paragetter.Para;
@@ -121,10 +122,10 @@ public class AdminUserController extends Controller {
         }
         renderJson(R.error("修改头像失败"));
     }
-    public void updatePassword(){
+    /*public void updatePassword(){
         String oldPass=getPara("oldPwd");
         String newPass=getPara("newPwd");
-        AdminUser adminUser=BaseUtil.getUser();
+        LoginUser adminUser=BaseUtil.getUser();
         if(!BaseUtil.verify(adminUser.getUsername()+oldPass,adminUser.getSalt(),adminUser.getPassword())){
             renderJson(R.error("密码输入错误"));
             return;
@@ -136,7 +137,7 @@ public class AdminUserController extends Controller {
             removeCookie("Admin-Token");
         }
         renderJson(R.isSuccess(b));
-    }
+    }*/
 
     @NotNullValidate(value = "realname",message = "姓名不能为空")
     @NotNullValidate(value = "username",message = "用户名不能为空")

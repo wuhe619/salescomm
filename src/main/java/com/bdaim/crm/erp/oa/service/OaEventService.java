@@ -2,6 +2,7 @@ package com.bdaim.crm.erp.oa.service;
 
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
+import com.bdaim.auth.LoginUser;
 import com.jfinal.aop.Inject;
 import com.jfinal.kit.Kv;
 import com.jfinal.plugin.activerecord.Db;
@@ -66,7 +67,7 @@ public class OaEventService {
         oaEvent.setCreateTime(DateUtil.date());
         oaEvent.setOwnerUserIds(TagUtil.fromString(oaEvent.getOwnerUserIds()));
         oaEventRelation.setCreateTime(DateUtil.date());
-        AdminUser user = BaseUtil.getUser();
+        LoginUser user = BaseUtil.getUser();
         return Db.tx(() -> {
             oaEvent.save();
             oaActionRecordService.addRecord(oaEvent.getEventId(), OaEnum.EVENT_TYPE_KEY.getTypes(),1,oaActionRecordService.getJoinIds(user.getUserId().intValue(),oaEvent.getOwnerUserIds()),"");
@@ -94,7 +95,7 @@ public class OaEventService {
         oaEventRelation.setContractIds(TagUtil.fromString(oaEvent.getContractIds()));
         oaEvent.setUpdateTime(DateUtil.date());
         oaEvent.setOwnerUserIds(TagUtil.fromString(oaEvent.getOwnerUserIds()));
-        AdminUser user = BaseUtil.getUser();
+        LoginUser user = BaseUtil.getUser();
         return Db.tx(() -> {
             oaEvent.update();
             oaActionRecordService.addRecord(oaEvent.getEventId(), OaEnum.EVENT_TYPE_KEY.getTypes(),2,oaActionRecordService.getJoinIds(user.getUserId().intValue(),oaEvent.getOwnerUserIds()),"");

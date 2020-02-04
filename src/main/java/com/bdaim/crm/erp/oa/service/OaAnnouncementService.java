@@ -2,6 +2,7 @@ package com.bdaim.crm.erp.oa.service;
 
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
+import com.bdaim.auth.LoginUser;
 import com.jfinal.aop.Before;
 import com.jfinal.aop.Inject;
 import com.jfinal.plugin.activerecord.Db;
@@ -59,7 +60,7 @@ public class OaAnnouncementService {
             oaAnnouncement.setUpdateTime(DateUtil.date());
             flag = oaAnnouncement.update();
         }
-        AdminUser user = BaseUtil.getUser();
+        LoginUser user = BaseUtil.getUser();
         oaActionRecordService.addRecord(oaAnnouncement.getAnnouncementId(), OaEnum.ANNOUNCEMENT_TYPE_KEY.getTypes(),oaAnnouncement.getUpdateTime()==null?1:2,oaActionRecordService.getJoinIds(user.getUserId().intValue(),oaAnnouncement.getOwnerUserIds()),oaActionRecordService.getJoinIds(user.getDeptId(),oaAnnouncement.getDeptIds()));
         return R.isSuccess(flag);
     }

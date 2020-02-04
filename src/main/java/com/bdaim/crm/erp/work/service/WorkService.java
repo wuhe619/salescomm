@@ -5,6 +5,7 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.auth.LoginUser;
 import com.jfinal.aop.Before;
 import com.jfinal.aop.Inject;
 import com.jfinal.kit.Kv;
@@ -395,7 +396,7 @@ public class WorkService{
         if(AuthUtil.isWorkAdmin() || BaseUtil.getUser().getRoles().contains(BaseConstant.SMALL_WORK_ADMIN_ROLE_ID)){
             isUpdate = 1;
         }
-        AdminUser user = BaseUtil.getUser();
+        LoginUser user = BaseUtil.getUser();
         Long userId = BaseUtil.getUserId();
         Integer roleId = Db.queryInt("select role_id from `72crm_work_user` where work_id = ? and user_id = ?", workId, userId);
         JSONObject root = new JSONObject();

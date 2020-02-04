@@ -7,6 +7,7 @@ import com.bdaim.crm.erp.admin.entity.AdminRole;
 import com.bdaim.crm.erp.admin.entity.AdminRoleMenu;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,6 +15,9 @@ import java.util.List;
 @Service
 @Transactional
 public class AdminMenuService {
+
+    //@Resource
+
 
     /**
      * 通过用户ID查询用户所拥有菜单

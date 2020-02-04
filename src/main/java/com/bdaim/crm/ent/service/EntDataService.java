@@ -71,6 +71,9 @@ public class EntDataService {
             if (StringUtil.isNotEmpty(q.getPhoneNumbers())) {
                 phones = new ArrayList<>();
                 for (String phone : q.getPhoneNumbers().split(",")) {
+                    if ("-".equals(phone)) {
+                        continue;
+                    }
                     p = new PhoneEntity(phone, now.getTime(), source, sourceWeb);
                     phones.add(p);
                 }
@@ -80,6 +83,9 @@ public class EntDataService {
             if (StringUtil.isNotEmpty(q.getEmail())) {
                 emails = new ArrayList<>();
                 for (String email : q.getEmail().split(",")) {
+                    if ("-".equals(email)) {
+                        continue;
+                    }
                     e = new EmailEntity(email, now.getTime(), source, sourceWeb);
                     emails.add(e);
                 }
