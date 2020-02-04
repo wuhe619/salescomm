@@ -304,7 +304,37 @@ public class ApiService {
         return map;
     }
 
+
+
     public Map<String, Object> customerApiLogs(PageParam page, JSONObject params) {
+        List<Object> arr = new ArrayList<>();
+        StringBuffer sql = new StringBuffer();
+        sql.append("select c.api_name apiName,SUBSCRIBER_ID subscriberId,charge.api_id apiId,count(0)monthCallNum from am_charge_").append(params.get("callMonth")).append(" charge ")
+                .append(" left join am_api c on charge.api_id = c.api_id ")
+                .append(" where charge.SUBSCRIBER_ID=?");
+        arr.add(params.getString("customerId"));
+        sql.append("group by charge.api_id ");
+        //sql.append(" order by CREATED_TIME desc");
+        PageList list = new Pagination().getPageData(sql.toString(), arr.toArray(), page, jdbcTemplate);
+        Map<String, Object> map = new HashMap<>();
+        Object collect = list.getList().stream().map(m -> {
+            Map dataMap = (Map) m;
+            List param =new ArrayList();
+            dataMap.put("monthFee",0);
+            String monCallFeeSql = "select sum(charge)monthCharge from am_charge_" + params.getString("callMonth") + " " +
+                    " where api_id=? ";
+            param.add(dataMap.get("apiId"));
+            Integer monthCharge = jdbcTemplate.queryForObject(monCallFeeSql, param.toArray(), Integer.class);
+            String monChargeStr = BigDecimalUtil.strDiv(monthCharge.toString(),"10000",2);
+            dataMap.put("monthFee",monChargeStr);
+            return dataMap;
+        }).collect(Collectors.toList());
+        map.put("list", collect);
+        map.put("total", list.getTotal());
+        return map;
+    }
+
+    public Map<String, Object> apiCustomerLogs(PageParam page, JSONObject params) {
         List<Object> arr = new ArrayList<>();
         StringBuffer sql = new StringBuffer();
         sql.append("select charge.api_id apiId,api.api_name apiName,request_param requestParam,charge,event_time eventTime,response_msg responseMsg from am_charge_")

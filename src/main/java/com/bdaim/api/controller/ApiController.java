@@ -220,11 +220,12 @@ public class ApiController extends BasicAction {
     }
 
 
+
     /**
      * Query Api log detail of customers
      **/
     @PostMapping("/info/{apiId}/logs/{customerId}")
-    public ResponseInfo customerApiLogs(@PathVariable("apiId")String apiId,@PathVariable("customerId")String customerId, @RequestBody JSONObject params) {
+    public ResponseInfo apiCustomerLogs(@PathVariable("apiId")String apiId,@PathVariable("customerId")String customerId, @RequestBody JSONObject params) {
         LoginUser lu = opUser();
         params.put("apiId",apiId);
         params.put("customerId",customerId);
@@ -232,7 +233,7 @@ public class ApiController extends BasicAction {
         PageParam page = new PageParam();
         page.setPageSize(params.containsKey("pageSize") ? 0 : params.getIntValue("pageSize"));
         page.setPageNum(params.containsKey("pageNum") ? 10 : params.getIntValue("pageNum"));
-        resp.setData(apiService.customerApiLogs(page, params));
+        resp.setData(apiService.apiCustomerLogs(page, params));
         return resp;
     }
 
