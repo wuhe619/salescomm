@@ -8,11 +8,14 @@ import cn.hutool.crypto.asymmetric.RSA;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
+import com.bdaim.util.redis.RedisUtil;
 import com.jfinal.kit.PathKit;
 import com.jfinal.plugin.redis.IKeyNamingPolicy;
 import com.jfinal.plugin.redis.serializer.FstSerializer;
+import org.springframework.stereotype.Service;
 import redis.clients.jedis.*;
 
+import javax.annotation.Resource;
 import java.io.File;
 import java.nio.charset.Charset;
 import java.util.HashSet;
@@ -21,7 +24,11 @@ import java.util.Set;
 /**
  * Redis管理
  */
+@Service
 public class RedisManager {
+
+    private static RedisUtil redisUtil;
+
     private static RedisManager redisManager=new RedisManager();
     private Redis redis;
     private Integer maxTotal = 1000;
@@ -34,7 +41,21 @@ public class RedisManager {
     public static RedisManager me(){
         return redisManager;
     }
-    public static Redis getRedis(){
+
+    public RedisUtil getRedisUtil() {
+        return redisUtil;
+    }
+
+    @Resource
+    public void setRedisUtil(RedisUtil redisUtil) {
+        this.redisUtil = redisUtil;
+    }
+
+    public static RedisUtil getRedis(){
+        return redisUtil;
+    }
+
+    public static Redis getRedis0(){
         return RedisManager.me().getRedisConfig();
     }
 

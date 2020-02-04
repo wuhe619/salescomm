@@ -58,7 +58,7 @@ public class AdminLoginController extends BasicAction {
     @ResponseBody
     public String login(@Para("username") String username, @Para("password") String password){
         String key = BaseConstant.USER_LOGIN_ERROR_KEY + username;
-        Redis redis= RedisManager.getRedis();
+        Redis redis= RedisManager.getRedis0();
         long beforeTime = System.currentTimeMillis() - 60 * 5 * 1000;
         if(redis.exists(key)){
             if(redis.zcount(key, beforeTime, System.currentTimeMillis()) >= 5){
@@ -141,7 +141,8 @@ public class AdminLoginController extends BasicAction {
 
         }
         try{
-            String ping = RedisManager.getRedis().ping();
+            //String ping = RedisManager.getRedis().ping();
+            String ping = "";
             if("PONG".equals(ping)){
                 arrays.add("Redis配置成功");
             }else{

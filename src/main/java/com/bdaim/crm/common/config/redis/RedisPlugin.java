@@ -26,7 +26,7 @@ public class RedisPlugin implements IPlugin {
 
     @Override
     public boolean stop() {
-        RedisManager.getRedis().destroy();
+        //RedisManager.getRedis().destroy();
         return true;
     }
 }
