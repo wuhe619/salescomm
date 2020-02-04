@@ -1,6 +1,8 @@
 package com.bdaim.common.controller;
 
 
+import com.bdaim.auth.LoginUser;
+import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.customs.entity.BusiTypeEnum;
 import com.bdaim.util.UnicomUtil;
 import com.bdaim.util.wechat.WeChatUtil;
@@ -37,6 +39,14 @@ public class WeChatAction extends BasicAction {
     @RequestMapping("/testMsg")
     public void getConfigById(Integer id) {
         weChatUtil.sendTempMsg("oFqgzwFGhEAqH-aRgI6YYJTti1oc", "BHAXK1_KvuS2tzbB5wZx_DUNuU8VJhbsP5nOrHjDtUI", "", "#FF0000", "{\"name\":{\"value\":\"开发人员\",\"color\":\"#173177\"},\"time\":{\"value\":\"2019-10-10 14:58:33\",\"color\":\"#173177\"},\"content\":{\"value\":\"test\",\"color\":\"#173177\"}}");
+    }
+
+
+    @ResponseBody
+    @RequestMapping("/testAuto")
+    public void testAuto(Integer id) {
+        LoginUser user = BaseUtil.getUser();
+        System.out.println(user);
     }
 
     /*@ResponseBody

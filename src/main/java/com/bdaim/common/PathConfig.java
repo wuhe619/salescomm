@@ -1,5 +1,6 @@
 package com.bdaim.common;
 
+import com.bdaim.common.interceptor.CrmInterceptor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
@@ -41,6 +42,7 @@ public class PathConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         // 添加拦截器
         registry.addInterceptor(securityInterceptor()).addPathPatterns("/open/**");
+        registry.addInterceptor(new CrmInterceptor()).addPathPatterns("/**");
     }
 
     @Override

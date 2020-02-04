@@ -19,6 +19,8 @@ import com.bdaim.rbac.service.UserService;
 import com.bdaim.util.CalendarUtil;
 import com.bdaim.util.StringUtil;
 
+import com.jfinal.render.JsonRender;
+import com.jfinal.render.Render;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -380,5 +382,11 @@ public class BasicAction {
             LOG.error("保存用户行为记录异常:", ex);
         }
     }
+    public Object renderJson(Object object) {
+        JSONObject json = new JSONObject();
+        json.put("data", object);
+        return json;
+    }
+
 
 }

@@ -1,6 +1,8 @@
 package com.bdaim.util;
 
 import cn.afterturn.easypoi.excel.ExcelExportUtil;
+import cn.afterturn.easypoi.excel.ExcelImportUtil;
+import cn.afterturn.easypoi.excel.entity.ImportParams;
 import cn.afterturn.easypoi.excel.entity.TemplateExportParams;
 import com.alibaba.excel.ExcelReader;
 import com.alibaba.excel.context.AnalysisContext;
@@ -10,6 +12,7 @@ import com.alibaba.excel.support.ExcelTypeEnum;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.AppConfig;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.poi.EmptyFileException;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
@@ -386,5 +389,16 @@ public class ExcelUtil {
         workbook.write(response.getOutputStream());
         response.getOutputStream().flush();
         response.getOutputStream().close();
+    }
+
+    public static <T> List<T> importExcel(String filePath, Integer titleRows, Integer headerRows, Class<T> pojoClass) {
+        if (StringUtils.isBlank(filePath)) {
+            return null;
+        }
+        ImportParams params = new ImportParams();
+        params.setTitleRows(titleRows);
+        params.setHeadRows(headerRows);
+        List<T> list = ExcelImportUtil.importExcel(new File(filePath), pojoClass, params);
+        return list;
     }
 }
