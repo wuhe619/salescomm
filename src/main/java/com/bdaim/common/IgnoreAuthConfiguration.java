@@ -21,7 +21,7 @@ public class IgnoreAuthConfiguration extends WebSecurityConfigurerAdapter {
         web.ignoring().antMatchers("/pdf/**");
         web.ignoring().antMatchers("/pic/**");
 
-        web.ignoring().antMatchers("/open/getVoiceRecordFile/**", "/customer/token",
+        web.ignoring().antMatchers("/open/getVoiceRecordFile/**", "/user/verify/code","/customer/token",
                 "/user/token", "/customer/m/login", "/user/otp/verify/**", "/user/identify/**",
                 "/user/reset/password", "/mail/sendVerifyCode", "/sms/sendSms",
                 "/returnUrl/**", "/retuNotifyUrl/**", "/marketResource/callBack/**",
@@ -36,8 +36,8 @@ public class IgnoreAuthConfiguration extends WebSecurityConfigurerAdapter {
                 "/dic/getLoanCost", "/dic/productApply", "/dic/listShowAdSpace", "/dic/getBrandList",
                 "/customerSea/xzCustomerSeaGetPhone", "/upload/pic/**", "/marketResource/getVoice0/**",
                 "/custuser/bindUserOpenId", "/open/customs/terminal/check/**", "/open/phone/xzGetTaskPhone", "/open/phone/xzGetTaskPhone0",
-                "/open/unicom/callBack", "/open/unicom/recordCallBack", "/open/unicom/recordCallBack0",
-                "/open/unicom/callBack", "/open/unicom/recordCallBack", "/achievement/setAchievement", "/achievement/queryAchievementList",
+                "/open/unicom/callBack", "/open/unicom/recordCallBack", "/open/unicom/recordCallBack0", "/customs/pageDic",
+                "/achievement/setAchievement", "/achievement/queryAchievementList",
                 "/wechat/testAuto");
     }
 }

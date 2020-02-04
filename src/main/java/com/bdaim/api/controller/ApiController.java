@@ -41,17 +41,21 @@ public class ApiController extends BasicAction {
      * Save Api
      **/
     @PostMapping("/info/{apiId}")
-    public ResponseInfo saveApi(@RequestBody ApiData apiData, @PathVariable(name = "apiId") String apiId) throws Exception {
+    public ResponseInfo saveApi(@RequestBody(required = false) ApiData apiData, @PathVariable(name = "apiId") String apiId,Integer status) throws Exception {
         LoginUser lu = opUser();
         if (lu == null || lu.getAuths() == null || !lu.getAuths().contains("admin"))
             throw new Exception("no auth");
 
         ResponseInfo resp = new ResponseInfo();
         try {
-            resp.setData(apiService.saveApiProperty(apiData, apiId, lu));
+            if(!"0".equals(apiId) && status!=null){
+                apiService.updateStatusApiById(apiId, lu, status);
+            }else{
+                resp.setData(apiService.saveApiProperty(apiData, apiId, lu));
+            }
         } catch (Exception e) {
             logger.error("api保存失败", e);
-            return new ResponseInfoAssemble().failure(-1, "Api创建失败:");
+            return new ResponseInfoAssemble().failure(-1, "Api操作失败:");
         }
 
         return resp;

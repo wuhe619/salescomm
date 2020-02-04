@@ -18,9 +18,7 @@ import com.bdaim.rbac.dto.ResourceDTO;
 import com.bdaim.rbac.entity.UserDO;
 import com.bdaim.rbac.service.ResourceService;
 import com.bdaim.rbac.service.impl.UserInfoService;
-import com.bdaim.util.CipherUtil;
-import com.bdaim.util.NumberConvertUtil;
-import com.bdaim.util.StringUtil;
+import com.bdaim.util.*;
 import com.bdaim.util.wechat.WeChatUtil;
 
 import org.slf4j.Logger;
@@ -31,10 +29,12 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+import sun.misc.BASE64Decoder;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -81,11 +81,48 @@ public class TokenServiceImpl implements TokenService {
         }
 
         LoginUser userdetail = null;
+        BASE64Decoder decoder = new BASE64Decoder();
 
         if (username.startsWith("backend.")) {
+            //校验 验证码
+            String[] usernameArray = username.split("\\.");
+            String uuid = usernameArray[1].substring(4);
+            if (usernameArray[1].length() < 4) {
+                return new LoginUser("guest", "", "验证码错误", "401");
+            }
+            Object object = VerifyUtil.verifyCodes.get(uuid);
+            if (object != null) {
+                VerifyCode code = (VerifyCode) object;
+                //查看验证码是否过期
+                long now = System.currentTimeMillis();
+                long codeTime = code.getVerifyTime();
+                if (now - codeTime > VerifyUtil.verifyCodeTimeout) {
+                    VerifyUtil.verifyCodes.remove(uuid);
+                    return new LoginUser("guest", "", "验证码已过期", "402");
+                }
+                //没过期，查看验证码是否正确
+                String verifyCode = usernameArray[1].substring(0, 4);
+                if (!verifyCode.equalsIgnoreCase(code.getVerifyCode())) {
+                    VerifyUtil.verifyCodes.remove(uuid);
+                    return new LoginUser("guest", "", "验证码不正确", "402");
+                }
+                //验证码没问题，则删除
+                VerifyUtil.verifyCodes.remove(uuid);
+            } else {
+                return new LoginUser("guest", "", "验证码不正确", "402");
+            }
+            try {
+                password = new String(decoder.decodeBuffer(password));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             long type = 0;
-            UserDO u = userInfoService.getUserByName(username.substring(8));
-            if (u == null || u.getStatus() != 0) return new LoginUser("guest", "", "用户不存在", "401");
+            String userNameWithVerify = username.substring(8);
+            String userNameWithoutVerify = userNameWithVerify.substring(userNameWithVerify.lastIndexOf(".") + 1);
+            UserDO u = userInfoService.getUserByName(userNameWithoutVerify);
+            if (u == null || u.getStatus() != 0) {
+                return new LoginUser("guest", "", "用户名密码错误", "401");
+            }
             if (u != null && CipherUtil.generatePassword(password).equals(u.getPassword())) {
                 List<Map<String, Object>> roleInfo = roleDao.getRoleInfoByUserId(String.valueOf(u.getId()));
                 if (roleInfo != null && roleInfo.size() > 0 && roleInfo.get(0).get("type") != null) {
@@ -101,8 +138,9 @@ public class TokenServiceImpl implements TokenService {
                     if (userdetail != null) {
                         userdetail.setType(type);
                         return userdetail;
-                    } else
+                    } else {
                         name2token.remove(username);
+                    }
                 }
 
 
@@ -193,7 +231,40 @@ public class TokenServiceImpl implements TokenService {
                 return new LoginUser("guest", "", "用户名密码错误", "401");
             }
         } else {
-            CustomerUser u = customerService.getUserByName(username);
+            //校验 验证码
+            String[] usernameArray = username.split("\\.");
+            if (usernameArray[0].length() < 4) {
+                return new LoginUser("guest", "", "验证码错误", "401");
+            }
+            String uuid = usernameArray[0].substring(4);
+            Object object = VerifyUtil.verifyCodes.get(uuid);
+            if (object != null) {
+                VerifyCode code = (VerifyCode) object;
+                //查看验证码是否过期
+                long now = System.currentTimeMillis();
+                long codeTime = code.getVerifyTime();
+                if (now - codeTime > VerifyUtil.verifyCodeTimeout) {
+                    VerifyUtil.verifyCodes.remove(uuid);
+                    return new LoginUser("guest", "", "验证码已过期", "402");
+                }
+                //没过期，查看验证码是否正确
+                String verifyCode = usernameArray[0].substring(0, 4);
+                if (!verifyCode.equalsIgnoreCase(code.getVerifyCode())) {
+                    VerifyUtil.verifyCodes.remove(uuid);
+                    return new LoginUser("guest", "", "验证码不正确", "402");
+                }
+                //验证码没问题，则删除
+                VerifyUtil.verifyCodes.remove(uuid);
+            } else {
+                return new LoginUser("guest", "", "验证码不正确", "402");
+            }
+            try {
+                password = new String(decoder.decodeBuffer(password));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            String userNameWithoutVerify = username.substring(username.lastIndexOf(".") + 1);
+            CustomerUser u = customerService.getUserByName(userNameWithoutVerify);
             String md5Password = CipherUtil.generatePassword(password);
             if (u != null && md5Password.equals(u.getPassword())) {
                 logger.info("登陆用户:" + u.getAccount() + " 状态:" + u.getStatus());
@@ -209,8 +280,9 @@ public class TokenServiceImpl implements TokenService {
                             userdetail.setStatus(u.getStatus().toString());
                             return userdetail;
                         }
-                    } else
+                    } else {
                         name2token.remove(username);
+                    }
                 }
 
                 //userdetail = new LoginUser(u.getId(), u.getAccount(), CipherUtil.encodeByMD5(u.getId()+""+System.currentTimeMillis()), auths);
@@ -297,8 +369,9 @@ public class TokenServiceImpl implements TokenService {
             }
         }
 
-        if (userdetail != null)
+        if (userdetail != null) {
             name2token.put(username, userdetail.getTokenid());
+        }
         return userdetail;
     }
 
@@ -318,8 +391,9 @@ public class TokenServiceImpl implements TokenService {
 
         if (authorization != null && !"".equals(authorization)) {
             LoginUser u = tokenCacheService.getToken(authorization, LoginUser.class);
-            if (u != null)
+            if (u != null) {
                 return u;
+            }
         }
         return new LoginUser(0L, "", "");
     }

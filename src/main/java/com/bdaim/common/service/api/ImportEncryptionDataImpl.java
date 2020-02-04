@@ -67,14 +67,14 @@ public class ImportEncryptionDataImpl {
         String encryType = request.getParameter("encryType"); //加密方式
         JSONArray phones;
 
-        if(StringUtil.isEmpty(encryptionkey)){
-            LogUtil.error("加密秘钥不能为空" );
+        if (StringUtil.isEmpty(encryptionkey)) {
+            LogUtil.error("加密秘钥不能为空");
             json.put("code", 3);
             json.put("message", "加密秘钥不能为空");
             return json.toJSONString();
         }
-        if(StringUtil.isEmpty(custId)){
-            LogUtil.error("参数custId不能为空" );
+        if (StringUtil.isEmpty(custId)) {
+            LogUtil.error("参数custId不能为空");
             json.put("code", 5);
             json.put("message", "custId不能为空");
             return json.toJSONString();
@@ -108,8 +108,8 @@ public class ImportEncryptionDataImpl {
         }
 
         // 检查客户群权限
-        String querySql = "SELECT * FROM " + DB_NAME + " customer_group WHERE cust_id = '" + custId + "' AND id = '" + groupId + "'";
-        List cGroup = marketResourceDao.sqlQuery(querySql);
+        String querySql = "SELECT * FROM " + DB_NAME + " customer_group WHERE cust_id = ? AND id = ? ";
+        List cGroup = marketResourceDao.sqlQuery(querySql, custId, groupId);
         if (cGroup == null || (cGroup != null && cGroup.size() == 0)) {
             json.put("code", -5);
             json.put("message", "操作异常");
@@ -125,11 +125,11 @@ public class ImportEncryptionDataImpl {
             StringBuffer sb = new StringBuffer();
             sb.append(" replace INTO " + DB_NAME + " t_customer_group_list_" + groupId + " (id,super_data) VALUES(?,?)");
 
-            Map<String,String> uMap = new HashMap<>();
+            Map<String, String> uMap = new HashMap<>();
             for (int i = 0; i < phones.size(); i++) {
                 phone = String.valueOf(phones.getJSONObject(i).get("phone"));
                 try {
-                    phone = fromEncryptionGetContent(phone,encryptionkey,encryType);
+                    phone = fromEncryptionGetContent(phone, encryptionkey, encryType);
                 } catch (Exception e) {
                     e.printStackTrace();
                     LogUtil.warn("数据解密出错");
@@ -164,7 +164,7 @@ public class ImportEncryptionDataImpl {
                 map.put("superData", superData.toJSONString());
                 groupValueList.add(map);
 
-                uMap.put(md5Phone,phone);
+                uMap.put(md5Phone, phone);
 
                /* Map<String, String> umap = new TreeMap<>();
                 umap.put("md5Phone", md5Phone);
@@ -186,7 +186,7 @@ public class ImportEncryptionDataImpl {
                     //uValueList = new ArrayList<>();
                 }
             }
-            if(!uMap.isEmpty()) {
+            if (!uMap.isEmpty()) {
                 redisUtil.batchSet(uMap);
             }
             if (groupValueList.size() > 0) {
@@ -214,27 +214,28 @@ public class ImportEncryptionDataImpl {
 
     /**
      * 从加密串中取出明文
+     *
      * @param srcStr
      * @param key
      * @param encryType
      * @return
      */
-    private String fromEncryptionGetContent(String srcStr,String key,String encryType) throws Exception {
-        if(encryType==null)encryType="1";
+    private String fromEncryptionGetContent(String srcStr, String key, String encryType) throws Exception {
+        if (encryType == null) encryType = "1";
         EncryptionTypeEnum encryptionTypeEnum = EncryptionTypeEnum.getType(Integer.valueOf(encryType));
         String result = null;
-        switch (encryptionTypeEnum){
+        switch (encryptionTypeEnum) {
             case AES:
-                result = AESUtil.Decrypt(srcStr,key);
+                result = AESUtil.Decrypt(srcStr, key);
                 break;
             case DES:
-                result = DESUtil.decrypt(srcStr,key);
+                result = DESUtil.decrypt(srcStr, key);
                 break;
             case RAS:
                 break;
             default:
-                result = AESUtil.Decrypt(srcStr,key);
-                 break;
+                result = AESUtil.Decrypt(srcStr, key);
+                break;
         }
         return result;
     }

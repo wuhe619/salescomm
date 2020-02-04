@@ -390,9 +390,9 @@ public class CustomGroupService {
 
     public List<CustomGroup> getCustomerGroupByProjectId(String custId, String projectIdStr) {
         if (StringUtil.isNotEmpty(projectIdStr)) {
-            String hql = "select id,name,market_project_id,status from customer_group t where t.cust_id= '" + custId + "' and market_project_id in (" + projectIdStr + ")";
+            String hql = "select id,name,market_project_id,status from customer_group t where t.cust_id= ? and market_project_id in (?)";
             RowMapper<CustomGroup> rowMapper = new BeanPropertyRowMapper<>(CustomGroup.class);
-            List<CustomGroup> list = jdbcTemplate.query(hql, rowMapper);
+            List<CustomGroup> list = jdbcTemplate.query(hql, rowMapper, custId, projectIdStr);
             return list;
         }
         return null;
@@ -493,6 +493,7 @@ public class CustomGroupService {
                 .append(" from t_customer_group_list_" + customGroupId)
                 .append(" where 1=1 ");
         long userCount = 0L;
+        List<Object> p = new ArrayList<>();
         List<Map<String, Object>> list = null;
         if (StringUtil.isNotEmpty(groupCondition)) {
             JSONArray condition = JSON.parseArray(groupCondition);
@@ -516,9 +517,11 @@ public class CustomGroupService {
                                 sb.append(" OR ");
                             }
                             if (StringUtil.isNotEmpty(leafs.getJSONObject(j).getString("value")) && leafs.getJSONObject(j).getString("value").indexOf("及以上") > 0) {
-                                sb.append(" call_count >= " + leafs.getJSONObject(j).getString("value").split("")[0]);
+                                sb.append(" call_count >= ? ");
+                                p.add(leafs.getJSONObject(j).getString("value").split("")[0]);
                             } else {
-                                sb.append(" call_count = " + leafs.getJSONObject(j).getString("value"));
+                                sb.append(" call_count = ? ");
+                                p.add(leafs.getJSONObject(j).getString("value"));
                             }
                         }
                         sb.append(" ) ");
@@ -531,9 +534,11 @@ public class CustomGroupService {
                                 sb.append(" OR ");
                             }
                             if (StringUtil.isNotEmpty(leafs.getJSONObject(j).getString("value")) && leafs.getJSONObject(j).getString("value").indexOf("及以上") > 0) {
-                                sb.append(" call_success_count >=" + leafs.getJSONObject(j).getString("value").split("")[0]);
+                                sb.append(" call_success_count >= ? ");
+                                p.add(leafs.getJSONObject(j).getString("value").split("")[0]);
                             } else {
-                                sb.append(" call_success_count = " + leafs.getJSONObject(j).getString("value"));
+                                sb.append(" call_success_count = ? ");
+                                p.add(leafs.getJSONObject(j).getString("value"));
                             }
                         }
                         sb.append(" ) ");
@@ -545,9 +550,11 @@ public class CustomGroupService {
                                 sb.append(" OR ");
                             }
                             if (StringUtil.isNotEmpty(leafs.getJSONObject(j).getString("value")) && leafs.getJSONObject(j).getString("value").indexOf("及以上") > 0) {
-                                sb.append(" sms_success_count >=" + leafs.getJSONObject(j).getString("value").split("")[0]);
+                                sb.append(" sms_success_count >= ? ");
+                                p.add(leafs.getJSONObject(j).getString("value").split("")[0]);
                             } else {
-                                sb.append(" sms_success_count = " + leafs.getJSONObject(j).getString("value"));
+                                sb.append(" sms_success_count = ? ");
+                                p.add(leafs.getJSONObject(j).getString("value"));
                             }
                         }
                         sb.append(" ) ");
@@ -560,14 +567,15 @@ public class CustomGroupService {
                         if (j > 0) {
                             sb.append(" OR ");
                         }
-                        sb.append(" super_data LIKE '" + MessageFormat.format(labelDataLikeValue, labelId, leafs.getJSONObject(j).getString("value")) + "'");
+                        p.add(MessageFormat.format(labelDataLikeValue, labelId, leafs.getJSONObject(j).getString("value")));
+                        sb.append(" super_data LIKE ? ");
                     }
                     sb.append(" ) ");
                 }
             }
         }
         try {
-            list = this.customGroupDao.sqlQuery(sb.toString());
+            list = this.customGroupDao.sqlQuery(sb.toString(), p.toArray());
         } catch (Exception e) {
             log.error("根据自建属性值查询满足条件人数异常,", e);
         }
@@ -1278,7 +1286,7 @@ public class CustomGroupService {
         sb.append("  from " + ConstantsUtil.CUSTOMER_GROUP_TABLE_PREFIX + customer_group_id + " custG ");
         sb.append(" LEFT JOIN t_customer_user user ON user.ID = custG.user_id");
         sb.append(" where 1=1 ");
-
+        List<Object> p = new ArrayList<>();
         if ("2".equals(loginUser.getUserType())) {
             // 组长查组员列表
             if ("1".equals(loginUser.getUserGroupRole())) {
@@ -1299,17 +1307,21 @@ public class CustomGroupService {
                     }
                 }
             } else {
-                sb.append(" AND user.id = '" + userId + "'");
+                sb.append(" AND user.id = ? ");
+                p.add(userId);
             }
         }
         if (null != id && !"".equals(id)) {
-            sb.append(" and custG.id like '%" + id + "%'");
+            p.add("%" + id + "%");
+            sb.append(" and custG.id like ? ");
         }
         if (null != status && !"".equals(status)) {
-            sb.append(" and custG.STATUS = " + status);
+            p.add(status);
+            sb.append(" and custG.STATUS = ? ");
         }
         if (StringUtil.isNotEmpty(userName)) {
-            sb.append(" and user.account like '%" + userName.trim() + "%'");
+            p.add("%" + userName.trim() + "%");
+            sb.append(" and user.account like '? ");
         }
         if (null != callType) {
             // 未呼叫
@@ -1321,15 +1333,19 @@ public class CustomGroupService {
             }
         }
         if (StringUtil.isNotEmpty(intentLevel)) {
-            sb.append(" and custG.intent_level = '" + intentLevel + "'");
+            p.add(intentLevel);
+            sb.append(" and custG.intent_level = ? ");
         }
 
         sb.append(" ORDER BY id ASC ");
         if (pageNum != null && !"".equals(pageNum) && pageSize != null && !"".equals(pageSize)) {
-            sb.append("  LIMIT " + pageNum + "," + pageSize);
+            sb.append("  LIMIT ?,? ");
+            p.add(pageNum);
+            p.add(pageSize);
         }
+
         try {
-            result = customGroupDao.sqlQuery(sb.toString());
+            result = customGroupDao.sqlQuery(sb.toString(), p.toArray());
         } catch (DataAccessException e) {
             log.error("查询客户群列表失败,", e);
             return result;
@@ -1386,7 +1402,7 @@ public class CustomGroupService {
         sb.append("  from " + ConstantsUtil.CUSTOMER_GROUP_TABLE_PREFIX + customer_group_id + " custG ");
         sb.append(" LEFT JOIN t_customer_user user ON user.ID = custG.user_id");
         sb.append(" where 1=1 ");
-
+        List<Object> p = new ArrayList<>();
         if ("2".equals(loginUser.getUserType())) {
             // 组长查组员列表
             if ("1".equals(loginUser.getUserGroupRole())) {
@@ -1407,17 +1423,21 @@ public class CustomGroupService {
                     }
                 }
             } else {
-                sb.append(" AND user.id = '" + userId + "'");
+                sb.append(" AND user.id = ? ");
+                p.add(userId);
             }
         }
         if (null != id && !"".equals(id)) {
-            sb.append(" and custG.id like '%" + id + "%'");
+            p.add("%" + id + "%");
+            sb.append(" and custG.id like ? ");
         }
         if (null != status && !"".equals(status)) {
-            sb.append(" and custG.STATUS = " + status);
+            p.add(status);
+            sb.append(" and custG.STATUS = ? ");
         }
         if (StringUtil.isNotEmpty(userName)) {
-            sb.append(" and user.account like '%" + userName.trim() + "%'");
+            p.add("%" + userName.trim() + "%");
+            sb.append(" and user.account like '? ");
         }
         if (null != callType) {
             // 未呼叫
@@ -1429,7 +1449,8 @@ public class CustomGroupService {
             }
         }
         if (StringUtil.isNotEmpty(intentLevel)) {
-            sb.append(" and custG.intent_level = '" + intentLevel + "'");
+            p.add(intentLevel);
+            sb.append(" and custG.intent_level = ? ");
         }
         // 查询所有自建属性
         List<CustomerLabel> customerLabels = customerLabelDao.listCustomerLabel(loginUser.getCustId());
@@ -1454,13 +1475,14 @@ public class CustomGroupService {
                 } else {
                     likeValue = "%\"" + labelId + "\":\"" + optionValue + "\"%";
                 }
-                sb.append(" AND custG.super_data LIKE '" + likeValue + "' ");
+                sb.append(" AND custG.super_data LIKE ? ");
+                p.add(likeValue);
             }
         }
 
         sb.append(" ORDER BY id ASC ");
         try {
-            page = customGroupDao.sqlPageQuery0(sb.toString(), pageNum, pageSize);
+            page = customGroupDao.sqlPageQuery0(sb.toString(), pageNum, pageSize, p.toArray());
         } catch (Exception e) {
             log.error("查询客户群列表失败,", e);
             return new Page();
@@ -1528,19 +1550,12 @@ public class CustomGroupService {
             //企业用户
             userId = "";
         }
+        List<Object> p = new ArrayList<>();
         StringBuffer sb = new StringBuffer();
         sb.append("select COUNT(0) count");
         sb.append("  from t_customer_group_list_" + customer_group_id + " custG ");
         sb.append(" LEFT JOIN t_customer_user user ON user.ID = custG.user_id");
         sb.append(" where 1=1 ");
-
-        if (null != id && !"".equals(id)) {
-            sb.append(" and custG.id like '%" + id + "%'");
-        }
-
-        if (null != status && !"".equals(status)) {
-            sb.append(" and custG.STATUS = " + status);
-        }
 
         if ("2".equals(loginUser.getUserType())) {
             // 组长查组员列表
@@ -1562,13 +1577,23 @@ public class CustomGroupService {
                     }
                 }
             } else {
-                sb.append(" AND user.id = '" + userId + "'");
+                sb.append(" AND user.id = ? ");
+                p.add(userId);
             }
         }
 
 
+        if (null != id && !"".equals(id)) {
+            p.add("%" + id + "%");
+            sb.append(" and custG.id like ? ");
+        }
+        if (null != status && !"".equals(status)) {
+            p.add(status);
+            sb.append(" and custG.STATUS = ? ");
+        }
         if (StringUtil.isNotEmpty(userName)) {
-            sb.append(" and user.realname like '%" + userName.trim() + "%'");
+            p.add("%" + userName.trim() + "%");
+            sb.append(" and user.account like '? ");
         }
         if (null != callType) {
             // 未呼叫
@@ -1579,7 +1604,7 @@ public class CustomGroupService {
                 sb.append(" AND custG.call_count > 0");
             }
         }
-        List<Map<String, Object>> list = jdbcTemplate.queryForList(sb.toString());
+        List<Map<String, Object>> list = jdbcTemplate.queryForList(sb.toString(), p.toArray());
         if (list.size() > 0 && list.get(0).get("count") != null) {
             return Long.parseLong(String.valueOf(list.get(0).get("count")));
         }
@@ -1628,14 +1653,16 @@ public class CustomGroupService {
         sb.append(" SELECT custG.id, custG.user_id, t_user.REALNAME `name` FROM  t_customer_group_list_" + customGroupId + " custG ");
         sb.append(" LEFT JOIN t_customer_user t_user ON t_user.ID = custG.user_id ");
         sb.append(" WHERE 1=1 ");
+        List<Object> p = new ArrayList<>();
         if (StringUtil.isNotEmpty(userId)) {
-            sb.append(" AND custG.user_id=" + userId);
+            p.add(userId);
+            sb.append(" AND custG.user_id= ? ");
         }
         Set<String> xAxisNames = new HashSet<>();
         Map<String, String> names = new HashMap<>(16);
         Map<String, Long> callCountData = new HashMap<>(16);
         Map<String, Set<String>> userGroupData = new HashMap<>(16);
-        List<Map<String, Object>> list = jdbcTemplate.queryForList(sb.toString());
+        List<Map<String, Object>> list = jdbcTemplate.queryForList(sb.toString(), p.toArray());
         Set<String> superIds;
         String userIdKey;
         for (Map<String, Object> map : list) {
@@ -1661,8 +1688,10 @@ public class CustomGroupService {
         int callOwner = 1;
         for (Map.Entry<String, Set<String>> map : userGroupData.entrySet()) {
             sb.append("SELECT cust_id, user_id, create_time FROM t_touch_voice_log WHERE cust_id = ? AND customer_group_id = ? ");
+            List<Object> uP = new ArrayList<>();
             if (StringUtil.isNotEmpty(userId)) {
-                sb.append(" AND user_id = " + userId);
+                uP.add(userId);
+                sb.append(" AND user_id = ? ");
             } else {
                 // 管理员查询全部
                 callOwner = 2;
@@ -1678,7 +1707,7 @@ public class CustomGroupService {
             // 去除逗号
             sb.deleteCharAt(sb.length() - 1);
             sb.append(" ) GROUP BY superid, status ");
-            list = jdbcTemplate.queryForList(sb.toString(), new Object[]{customId, customGroupId, callOwner});
+            list = jdbcTemplate.queryForList(sb.toString(), new Object[]{customId, customGroupId, callOwner, uP.toArray()});
             calledData.put(map.getKey(), (long) list.size());
             sb.setLength(0);
         }
@@ -1716,14 +1745,16 @@ public class CustomGroupService {
         sb.append(" SELECT custG.id, custG.user_id, t_user.REALNAME `name` FROM  t_customer_group_list_" + customGroupId + " custG ");
         sb.append(" LEFT JOIN t_customer_user t_user ON t_user.ID = custG.user_id ");
         sb.append(" WHERE 1=1 ");
+        List<Object> p = new ArrayList<>();
         if (StringUtil.isNotEmpty(userId)) {
-            sb.append(" AND custG.user_id=" + userId);
+            p.add(userId);
+            sb.append(" AND custG.user_id= ? ");
         }
         Set<String> xAxisNames = new HashSet<>();
         Map<String, String> names = new HashMap<>(16);
         Map<String, Long> callCountData = new HashMap<>(16);
         Map<String, Set<String>> userGroupData = new HashMap<>(16);
-        List<Map<String, Object>> list = jdbcTemplate.queryForList(sb.toString());
+        List<Map<String, Object>> list = jdbcTemplate.queryForList(sb.toString(), p.toArray());
         Set<String> superIds;
         String userIdKey;
         for (Map<String, Object> map : list) {
@@ -1750,8 +1781,10 @@ public class CustomGroupService {
             // 检查通话记录月表是否存在
             marketResourceDao.createVoiceLogTableNotExist(DateUtil.getNowMonthToYYYYMM());
             sb.append("SELECT cust_id, user_id, create_time FROM " + ConstantsUtil.TOUCH_VOICE_TABLE_PREFIX + DateUtil.getNowMonthToYYYYMM() + " WHERE cust_id = ? AND customer_group_id = ? ");
+            List<Object> uP = new ArrayList<>();
             if (StringUtil.isNotEmpty(userId)) {
-                sb.append(" AND user_id = " + userId);
+                uP.add(userId);
+                sb.append(" AND user_id = ? ");
             }
             sb.append(" AND status = 1001 AND superid IN (");
 
@@ -1761,7 +1794,7 @@ public class CustomGroupService {
             // 去除逗号
             sb.deleteCharAt(sb.length() - 1);
             sb.append(" ) GROUP BY superid, status ");
-            list = jdbcTemplate.queryForList(sb.toString(), new Object[]{loginUser.getCustId(), customGroupId});
+            list = jdbcTemplate.queryForList(sb.toString(), new Object[]{loginUser.getCustId(), customGroupId, uP.toArray()});
             calledData.put(map.getKey(), (long) list.size());
             sb.setLength(0);
         }
@@ -2030,13 +2063,16 @@ public class CustomGroupService {
         sb.append(" where 1=1 ");
 
         sb.append(" ORDER BY custG.id ASC ");
+        List<Object> p = new ArrayList<>();
         if (pageNum != null && !"".equals(pageNum) && pageSize != null && !"".equals(pageSize)) {
-            sb.append("  LIMIT " + pageNum + "," + pageSize);
+            sb.append("  LIMIT ?,?");
+            p.add(pageNum);
+            p.add(pageSize);
         }
         List<Map<String, Object>> ids = null;
         List<String> phoneList = new ArrayList<>();
         try {
-            ids = customGroupDao.sqlQuery(sb.toString());
+            ids = customGroupDao.sqlQuery(sb.toString(), p.toArray());
             String phone;
             for (Map<String, Object> id : ids) {
                 if (id != null) {
@@ -2082,12 +2118,15 @@ public class CustomGroupService {
             log.warn("营销任务marketTaskId:" + marketTask.getId() + ",记录的index:" + phoneIndex + ",拉取的index:" + pageNum);
             pageNum = phoneIndex;
         }
-        sb.append("  LIMIT " + pageNum + "," + pageSize);
+        List<Object> p = new ArrayList<>();
+        sb.append("  LIMIT ?,?");
+        p.add(pageNum);
+        p.add(pageSize);
 
         List<Map<String, Object>> ids;
         List<String> phoneList = new ArrayList<>();
         try {
-            ids = customGroupDao.sqlQuery(sb.toString());
+            ids = customGroupDao.sqlQuery(sb.toString(), p.toArray());
             if (ids == null || ids.size() == 0) {
                 log.info("营销任务marketTaskId:" + marketTask.getId() + ",手机号拉取完成,phoneIndex:" + phoneIndex);
                 return phoneList;
@@ -2139,12 +2178,15 @@ public class CustomGroupService {
             log.warn("营销任务marketTaskId:" + marketTask.getId() + ",记录的index:" + phoneIndex + ",拉取的index:" + pageNum);
             pageNum = phoneIndex;
         }
-        sb.append(" LIMIT " + pageNum + "," + pageSize);
+        List<Object> p = new ArrayList<>();
+        sb.append("  LIMIT ?,?");
+        p.add(pageNum);
+        p.add(pageSize);
 
         List<Map<String, Object>> ids;
         List<XzPullPhoneDTO> phoneList = new ArrayList<>();
         try {
-            ids = customGroupDao.sqlQuery(sb.toString());
+            ids = customGroupDao.sqlQuery(sb.toString(), p.toArray());
             if (ids == null || ids.size() == 0) {
                 log.info("营销任务marketTaskId:" + marketTask.getId() + ",手机号拉取完成,phoneIndex:" + phoneIndex);
                 return phoneList;
@@ -2217,16 +2259,18 @@ public class CustomGroupService {
         try {
             StringBuffer sql = new StringBuffer(" from t_customer_group_list_" + customer_group_id + " where 1=1 ");
 
+            List<Object> p = new ArrayList<>();
             if (null != id && !"".equals(id)) {
-                sql.append(" and id='" + id + "'");
+                sql.append(" and id=? ");
+                p.add(id);
             }
 
-            String total = this.jdbcTemplate.queryForObject("select count(1) " + sql.toString(), String.class);
+            String total = this.jdbcTemplate.queryForObject("select count(1) " + sql.toString(), String.class, p.toArray());
             page.setTotal("".equals(total) ? 0 : Integer.parseInt(total));
 
             String sql_list = "SELECT id,user_id,call_count,last_call_time,remark,call_success_count,call_fail_count,call_empty_count"
-                    + sql.toString() + " ORDER BY id DESC LIMIT " + pageNum + "," + pageSize;
-            List<Map<String, Object>> list = this.customerGroupListDao.sqlQuery(sql_list);
+                    + sql.toString() + " ORDER BY id DESC LIMIT ?,?";
+            List<Map<String, Object>> list = this.customerGroupListDao.sqlQuery(sql_list, pageNum, pageSize);
             for (Map<String, Object> map : list) {
                 if (map != null) {
                     for (Map.Entry<String, Object> keySet : map.entrySet()) {
@@ -3400,15 +3444,17 @@ public class CustomGroupService {
                         .append(" JOIN " + ConstantsUtil.TOUCH_VOICE_TABLE_PREFIX + nowTime.format(YYYYMM) + " log ON t.id = log.superid")
                         .append(" WHERE t.super_data IS NOT NULL ")
                         .append(" AND log.customer_group_id = ? AND log.create_time >= ?  AND log.create_time <= ? AND log.status = 1001 ");
+                List<Object> p = new ArrayList<>();
                 if ("-1".equals(userQueryParam.getCustId())) {
                     sqlSb.append(" AND log.cust_id IS NOT NULL ");
                 } else {
-                    sqlSb.append(" AND log.cust_id = '" + userQueryParam.getCustId() + "' ");
+                    p.add(userQueryParam.getCustId());
+                    sqlSb.append(" AND log.cust_id = ? ");
                 }
                 if (voiveUserIds.size() > 0) {
                     sqlSb.append(" AND log.user_id IN(" + SqlAppendUtil.sqlAppendWhereIn(voiveUserIds) + ") ");
                 }
-                labelDataListTmp = customerGroupListDao.sqlQuery(sqlSb.toString(), customerGroupId, startTime, endTime);
+                labelDataListTmp = customerGroupListDao.sqlQuery(sqlSb.toString(), customerGroupId, startTime, endTime, p.toArray());
                 // 分月数据汇总到总数据中
                 if (labelDataListTmp.size() > 0) {
                     labelDataList.addAll(labelDataListTmp);
@@ -3911,15 +3957,17 @@ public class CustomGroupService {
                         .append(" JOIN " + ConstantsUtil.TOUCH_VOICE_TABLE_PREFIX + nowTime.format(YYYYMM) + " log ON t.id = log.superid")
                         .append(" WHERE t.super_data IS NOT NULL ")
                         .append(" AND log.customer_group_id = ? AND log.create_time >= ?  AND log.create_time <= ? AND log.status = 1001 ");
+                List<Object> p = new ArrayList<>();
                 if ("-1".equals(userQueryParam.getCustId())) {
                     sqlSb.append(" AND log.cust_id IS NOT NULL ");
                 } else {
-                    sqlSb.append(" AND log.cust_id = '" + userQueryParam.getCustId() + "' ");
+                    p.add(userQueryParam.getCustId());
+                    sqlSb.append(" AND log.cust_id = ?  ");
                 }
                 if (voiveUserIds.size() > 0) {
                     sqlSb.append(" AND log.user_id IN(" + SqlAppendUtil.sqlAppendWhereIn(voiveUserIds) + ") ");
                 }
-                labelDataListTmp = customerGroupListDao.sqlQuery(sqlSb.toString(), customerGroupId, startTime, endTime);
+                labelDataListTmp = customerGroupListDao.sqlQuery(sqlSb.toString(), customerGroupId, startTime, endTime, p.toArray());
                 // 分月数据汇总到总数据中
                 if (labelDataListTmp.size() > 0) {
                     labelDataList.addAll(labelDataListTmp);
@@ -4205,14 +4253,18 @@ public class CustomGroupService {
         sb.append(" where 1=1 ");
 
         sb.append(" ORDER BY custG.n_id ASC ");
+        List<Object> p = new ArrayList<>();
+
         if (pageSize != null && !"".equals(pageSize)) {
-            sb.append("  LIMIT " + taskPhoneIndex + "," + pageSize);
+            sb.append("  LIMIT ?,?");
+            p.add(taskPhoneIndex);
+            p.add(pageSize);
         }
         List<Map<String, Object>> phones = null;
         List<String> phoneList = new ArrayList<>();
         StringBuffer content = new StringBuffer();
         try {
-            phones = this.customGroupDao.sqlQuery(sb.toString());
+            phones = this.customGroupDao.sqlQuery(sb.toString(), p.toArray());
             String u = "";
             if (phones != null && phones.size() > 0) {
                 for (Map<String, Object> phone : phones) {
@@ -4279,23 +4331,28 @@ public class CustomGroupService {
                 .append(" RIGHT JOIN customer_group t2 ON t1.order_id = t2.order_id where 1=1 AND t1.order_type=1")
                 .append(" AND t1.cust_id ='").append(StringEscapeUtils.escapeSql(loginUser.getCustId())).append("'")
                 .append(" AND t2.`status` = 1 ");
+        List<Object> p = new ArrayList<>();
         if (StringUtil.isNotEmpty(param.getGroupName())) {
-            sql.append(" AND t2.name like '%").append(StringEscapeUtils.escapeSql(param.getGroupName())).append("%'");
+            p.add("%" + StringEscapeUtils.escapeSql(param.getGroupName()) + "%");
+            sql.append(" AND t2.name like ? ");
         }
         if (StringUtil.isNotEmpty(param.getGroupId()) && Integer.valueOf(param.getGroupId()) > 0) {
-            sql.append(" and t2.id=").append(param.getGroupId());
+            p.add(param.getGroupId());
+            sql.append(" and t2.id= ? ");
         }
         // 任务类型
         if (StringUtil.isNotEmpty(param.getTaskType())) {
-            sql.append(" and t2.task_type=").append(StringEscapeUtils.escapeSql(param.getTaskType()));
+            p.add(param.getTaskType());
+            sql.append(" and t2.task_type= ? ");
         }
         // 用户群组ID
         /*if (StringUtil.isNotEmpty(param.getUserGroupId())) {
             sql.append(" and t2.user_group_id='").append(StringEscapeUtils.escapeSql(param.getUserGroupId()) + "'");
         }*/
         if (StringUtil.isNotEmpty(param.getStartTime()) || StringUtil.isNotEmpty(param.getEndTime())) {
-            sql.append(" and t1.create_time between '").append(StringEscapeUtils.escapeSql(param.getStartTime()))
-                    .append("' and '").append(StringEscapeUtils.escapeSql(param.getEndTime())).append("'");
+            p.add(param.getStartTime());
+            p.add(param.getEndTime());
+            sql.append(" and t1.create_time between ? and ? ");
         }
         //普通用户只查询创建好的任务
         if ("2".equals(loginUser.getUserType())) {
@@ -4318,9 +4375,10 @@ public class CustomGroupService {
         }*/
 
         sql.append(" ORDER BY if (t2.task_type IS NOT NULL AND t2.task_id IS NOT NULL,0,1), t2.task_create_time DESC, t2.create_time DESC ");
-        map.put("total", customGroupDao.getSQLQuery(sql.toString()).list().size());
-        List<Map<String, Object>> list = customGroupDao.getSQLQuery(sql.toString()).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP)
-                .setFirstResult(param.getPageNum()).setMaxResults(param.getPageSize()).list();
+        Page page = customGroupDao.sqlPageQuery0(sql.toString(), param.getPageNum(), param.getPageSize(), p.toArray());
+
+        map.put("total", page.getTotal());
+        List<Map<String, Object>> list = page.getData();
         if (list != null && list.size() > 0) {
             CustomerUserGroup customerUserGroup;
             List<Map<String, Object>> unAssignedUsers = null;
@@ -4405,15 +4463,19 @@ public class CustomGroupService {
                 .append(" FROM  t_order t1")
                 .append(" RIGHT JOIN customer_group t2 ON t1.order_id = t2.order_id where 1=1 AND t1.order_type=1")
                 .append(" AND t2.`status` = 1 ");
+        List<Object> p = new ArrayList<>();
         if (StringUtil.isNotEmpty(param.getGroupName())) {
-            sql.append(" AND t2.name like '%").append(StringEscapeUtils.escapeSql(param.getGroupName())).append("%'");
+            p.add("%" + StringEscapeUtils.escapeSql(param.getGroupName()) + "%");
+            sql.append(" AND t2.name like ? ");
         }
         if (StringUtil.isNotEmpty(param.getGroupId()) && Integer.valueOf(param.getGroupId()) > 0) {
-            sql.append(" and t2.id=").append(param.getGroupId());
+            p.add(param.getGroupId());
+            sql.append(" and t2.id= ? ");
         }
         // 任务类型
         if (StringUtil.isNotEmpty(param.getTaskType())) {
-            sql.append(" and t2.task_type=").append(StringEscapeUtils.escapeSql(param.getTaskType()));
+            p.add(param.getTaskType());
+            sql.append(" and t2.task_type= ? ");
         }
         // 用户名搜索
         if (StringUtil.isNotEmpty(param.getCustUserName())) {
@@ -4424,22 +4486,29 @@ public class CustomGroupService {
                 result.add(map);
                 return result;
             }
-            sql.append(" and t2.cust_id='").append(u.getCust_id() + "'");
+            p.add(u.getCust_id());
+            sql.append(" and t2.cust_id=? ");
         }
         // 企业名称搜索
         if (StringUtil.isNotEmpty(param.getEnterpriseName())) {
+            p.add("%" + StringEscapeUtils.escapeSql(param.getEnterpriseName()) + "%");
             sql.append(" and t2.cust_id IN(SELECT cust_id FROM t_customer " +
-                    " WHERE enterprise_name LIKE '%" + StringEscapeUtils.escapeSql(param.getEnterpriseName()) + "%')");
+                    " WHERE enterprise_name LIKE ? )");
         }
         if (StringUtil.isNotEmpty(param.getStartTime()) || StringUtil.isNotEmpty(param.getEndTime())) {
-            sql.append(" and t1.create_time between '").append(StringEscapeUtils.escapeSql(param.getStartTime()))
-                    .append("' and '").append(StringEscapeUtils.escapeSql(param.getEndTime())).append("'");
+            p.add(param.getStartTime());
+            p.add(param.getEndTime());
+            sql.append(" and t1.create_time between ? and ? ");
         }
 
         sql.append("  ORDER BY t2.create_time DESC ");
-        map.put("total", customGroupDao.getSQLQuery(sql.toString()).list().size());
+       /* map.put("total", customGroupDao.getSQLQuery(sql.toString()).list().size());
         List<Map<String, Object>> list = customGroupDao.getSQLQuery(sql.toString()).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP)
-                .setFirstResult(param.getPageNum()).setMaxResults(param.getPageSize()).list();
+                .setFirstResult(param.getPageNum()).setMaxResults(param.getPageSize()).list();*/
+        Page page = customGroupDao.sqlPageQuery0(sql.toString(), param.getPageNum(), param.getPageSize(), p.toArray());
+
+        map.put("total", page.getTotal());
+        List<Map<String, Object>> list = page.getData();
         if (list != null && list.size() > 0) {
             CustomerUserGroup customerUserGroup;
             CustomerUser cu;
@@ -4793,7 +4862,7 @@ public class CustomGroupService {
 
                 // 检查通话记录月表是否存在
                 marketResourceDao.createVoiceLogTableNotExist(nowMonth);
-
+                List<Object> p = new ArrayList<>();
                 String labelDataLikeValue = "\"" + invitationLabelId + "\":\"" + invitationLabelValue + "\"";
                 StringBuffer sql = new StringBuffer();
                 // 获取邀约成功,拨打电话成功用户的通话记录
@@ -4805,7 +4874,8 @@ public class CustomGroupService {
                         .append(" WHERE voice.cust_id = ? AND voice.customer_group_id = ? ")
                         .append(" AND voice.create_time >= ? AND voice.create_time <= ?  ")
                         .append(" AND voice.status = 1001 ")
-                        .append(" AND t.super_data LIKE '%" + labelDataLikeValue + "%' ");
+                        .append(" AND t.super_data LIKE ? ");
+                p.add(labelDataLikeValue);
 
                 if ("2".equals(loginUser.getUserType())) {
                     // 组长查组员列表
@@ -4826,7 +4896,7 @@ public class CustomGroupService {
                     }
                 }
 
-                List<Map<String, Object>> callLogList = customGroupDao.sqlQuery(sql.toString(), custId, customerGroupId, startTimeStr, endTimeStr);
+                List<Map<String, Object>> callLogList = customGroupDao.sqlQuery(sql.toString(), custId, customerGroupId, startTimeStr, endTimeStr, p.toArray());
                 // 有满足条件的营销记录
                 if (callLogList.size() > 0) {
                     // 组合拼装为map,方便通过label_id和super_id快速查找数据
@@ -5087,8 +5157,9 @@ public class CustomGroupService {
                         .append(" WHERE voice.cust_id = ? AND voice.customer_group_id = ? ")
                         .append(" AND voice.create_time >= ? AND voice.create_time <= ?  ")
                         .append(" AND voice.status = 1001 ")
-                        .append(" AND t.super_data LIKE '%" + labelDataLikeValue + "%' ");
-
+                        .append(" AND t.super_data LIKE ? ");
+                List<Object> p = new ArrayList<>();
+                p.add(labelDataLikeValue);
                 if ("2".equals(userQueryParam.getUserType())) {
                     // 组长查组员列表
                     if ("1".equals(userQueryParam.getUserGroupRole())) {
@@ -5108,7 +5179,7 @@ public class CustomGroupService {
                     }
                 }
 
-                List<Map<String, Object>> callLogList = customGroupDao.sqlQuery(sql.toString(), custId, customerGroupId, startTimeStr, endTimeStr);
+                List<Map<String, Object>> callLogList = customGroupDao.sqlQuery(sql.toString(), custId, customerGroupId, startTimeStr, endTimeStr, p.toArray());
                 // 有满足条件的营销记录
                 if (callLogList.size() > 0) {
                     // 组合拼装为map,方便通过label_id和super_id快速查找数据
@@ -5379,8 +5450,9 @@ public class CustomGroupService {
                             .append(" WHERE voice.cust_id = ? AND voice.customer_group_id = ? ")
                             .append(" AND voice.create_time >= ? AND voice.create_time <= ?  ")
                             .append(" AND voice.status = 1001 ")
-                            .append(" AND t.super_data LIKE '%" + labelDataLikeValue + "%' ");
-
+                            .append(" AND t.super_data LIKE ? ");
+                    List<Object> p = new ArrayList<>();
+                    p.add(labelDataLikeValue);
                     if ("2".equals(loginUser.getUserType())) {
                         // 组长查组员列表
                         if ("1".equals(loginUser.getUserGroupRole())) {
@@ -5400,7 +5472,7 @@ public class CustomGroupService {
                         }
                     }
 
-                    callLogListTmp = customGroupDao.sqlQuery(sql.toString(), loginUser.getCustId(), customerGroupId, startTimeStr, endTimeStr);
+                    callLogListTmp = customGroupDao.sqlQuery(sql.toString(), loginUser.getCustId(), customerGroupId, startTimeStr, endTimeStr, p.toArray());
                     if (callLogListTmp.size() > 0) {
                         callLogList.addAll(callLogListTmp);
                     }
@@ -5680,13 +5752,15 @@ public class CustomGroupService {
                         .append(" WHERE voice.cust_id = ? AND voice.customer_group_id = ? ")
                         .append(" AND voice.create_time >= ? AND voice.create_time <= ?  ");
 
+                List<Object> p = new ArrayList<>();
+
                 if (StringUtil.isNotEmpty(callStatus)) {
-                    sql.append(" AND voice.status = '" + callStatus + "'");
+                    sql.append(" AND voice.status = ? ");
+                    p.add(callStatus);
                 }
                 if (StringUtil.isNotEmpty(intentLevel)) {
-                    sql.append(" AND voice.call_data LIKE '%")
-                            .append("\"level\":\"")
-                            .append(intentLevel).append("\"%' ");
+                    sql.append(" AND voice.call_data LIKE ? ");
+                    p.add("%\"level\":\"" + intentLevel + "\"%");
                 }
                 if (labelDataLikeSql.length() > 0) {
                     sql.append(labelDataLikeSql.toString());
@@ -5711,7 +5785,7 @@ public class CustomGroupService {
                     }
                 }
 
-                callLogListTmp = customGroupDao.sqlQuery(sql.toString(), loginUser.getCustId(), customerGroupId, startTimeStr, endTimeStr);
+                callLogListTmp = customGroupDao.sqlQuery(sql.toString(), loginUser.getCustId(), customerGroupId, startTimeStr, endTimeStr, p.toArray());
                 if (callLogListTmp.size() > 0) {
                     callLogList.addAll(callLogListTmp);
                 }
@@ -6407,8 +6481,8 @@ public class CustomGroupService {
             }
 
             String sql_list = "SELECT id as superid "
-                    + sql.toString() + " ORDER BY id DESC LIMIT " + pageNum + "," + pageSize;
-            List<Map<String, Object>> list = this.customerGroupListDao.sqlQuery(sql_list);
+                    + sql.toString() + " ORDER BY id DESC LIMIT ? ,? ";
+            List<Map<String, Object>> list = this.customerGroupListDao.sqlQuery(sql_list, pageNum, pageSize);
             for (Map<String, Object> map : list) {
                 if (map != null) {
                     for (Map.Entry<String, Object> keySet : map.entrySet()) {
@@ -6873,39 +6947,50 @@ public class CustomGroupService {
                 return new Page();
             }
         }
+        List<Object> p = new ArrayList<>();
         if (StringUtil.isNotEmpty(param.getGroupName())) {
-            sql.append(" and t2.name like '%").append(StringEscapeUtils.escapeSql(param.getGroupName())).append("%'");
+            p.add("%" + StringEscapeUtils.escapeSql(param.getGroupName()) + "%");
+            sql.append(" and t2.name like ? ");
         }
         if (param.getOrderType() > 0) {
-            sql.append(" and t1.order_state=").append(param.getOrderType());
+            p.add(param.getOrderType());
+            sql.append(" and t1.order_state= ?");
         }
         if (StringUtil.isNotEmpty(param.getStatus())) {
-            sql.append(" and t2.status=").append(param.getStatus());
+            p.add(param.getStatus());
+            sql.append(" and t2.status= ? ");
         }
         if (StringUtil.isNotEmpty(param.getGroupId()) && Integer.valueOf(param.getGroupId()) > 0) {
-            sql.append(" and t2.id=").append(param.getGroupId());
+            p.add(param.getGroupId());
+            sql.append(" and t2.id=? ");
         }
         if (StringUtil.isNotEmpty(param.getStartTime()) && StringUtil.isNotEmpty(param.getEndTime())) {
-            sql.append(" and t2.extract_time between '").append(StringEscapeUtils.escapeSql(param.getStartTime()))
-                    .append("' and '").append(StringEscapeUtils.escapeSql(param.getEndTime())).append("'");
+            p.add(param.getStartTime());
+            p.add(param.getEndTime());
+            sql.append(" and t2.extract_time between ? and ? ");
         } else if (StringUtil.isNotEmpty(param.getStartTime())) {
-            sql.append(" and t2.extract_time >= '").append(StringEscapeUtils.escapeSql(param.getStartTime())).append("'");
+            p.add(param.getStartTime());
+            sql.append(" and t2.extract_time >= ? ");
         } else if (StringUtil.isNotEmpty(param.getEndTime())) {
-            sql.append(" and t2.extract_time <= '").append(StringEscapeUtils.escapeSql(param.getEndTime())).append("'");
+            p.add(param.getEndTime());
+            sql.append(" and t2.extract_time <= ? ");
         }
         // 企业名称模糊查询
         if (StringUtil.isNotEmpty(param.getEnterpriseName())) {
-            sql.append(" and customer.enterprise_name LIKE '%" + param.getEnterpriseName() + "%'");
+            p.add("%" + StringEscapeUtils.escapeSql(param.getEnterpriseName()) + "%");
+            sql.append(" and customer.enterprise_name LIKE ? ");
         }
         // 供应商名称模糊查询
         if (StringUtil.isNotEmpty(param.getSupplierName())) {
-            sql.append(" and supplier.name LIKE '%" + param.getSupplierName() + "%'");
+            p.add("%" + StringEscapeUtils.escapeSql(param.getSupplierName()) + "%");
+            sql.append(" and supplier.name LIKE ? ");
         }
         if (param.getChargingType() != null) {
-            sql.append(" and rp.property_value LIKE '%type\":\"" + param.getChargingType() + "%'");
+            p.add("%type\":\"" + param.getChargingType() + "%");
+            sql.append(" and rp.property_value LIKE ? ");
         }
         sql.append(" ORDER BY t2.extract_time desc, t2.create_time desc ");
-        Page page = orderDao.sqlPageQuery0(sql.toString(), param.getPageNum(), param.getPageSize(), null);
+        Page page = orderDao.sqlPageQuery0(sql.toString(), param.getPageNum(), param.getPageSize(), p.toArray());
         if (page != null && page.getData().size() > 0) {
             String orderSql = "SELECT IFNULL(SUM(order_sum), 0) order_sum from stat_c_g_u_d WHERE customer_group_id = ?";
             Map<String, Object> model;

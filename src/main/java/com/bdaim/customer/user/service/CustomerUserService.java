@@ -819,18 +819,24 @@ public class CustomerUserService {
         }
         try {
             sql.append(" SELECT CAST(id AS CHAR) id,cust_id,user_type,account as name,realname,create_time,STATUS")
-                    .append("  FROM t_customer_user  WHERE 1=1 AND user_type = " + userType + "  AND STATUS <> 3 ");
-            sql.append(" AND   cust_id = '" + customerId + "'");
+                    .append("  FROM t_customer_user  WHERE 1=1 AND user_type = ? AND STATUS <> 3 ");
+            sql.append(" AND   cust_id = ? ");
+            List<Object> p = new ArrayList<>();
+            p.add(userType);
+            p.add(customerId);
             if (null != name && !"".equals(name)) {
-                sql.append(" AND   account like '%" + name + "%'");
+                p.add("%" + name + "%");
+                sql.append(" AND  account like ? ");
             }
             if (null != realName && !"".equals(realName)) {
-                sql.append(" AND   realname like '%" + realName + "%'");
+                p.add("%" + realName + "%");
+                sql.append(" AND   realname like ? ");
             }
             sql.append(" ORDER by create_time ASC, id ASC");
 
-            map.put("total", userDao.getSQLQuery(sql.toString()).list().size());
-            List users = userDao.getSQLQuery(sql.toString()).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP).setFirstResult(pageNum).setMaxResults(pageSize).list();
+            Page page = userDao.sqlPageQuery(sql.toString(), pageNum, pageSize, p.toArray());
+            map.put("total", page.getTotal());
+            List users = page.getData();
             for (int i = 0; i < users.size(); i++) {
                 Map u = (Map) users.get(i);
                 CustomerUserPropertyDO email = customerUserDao.getProperty(String.valueOf(u.get("id")), "email");
@@ -873,33 +879,50 @@ public class CustomerUserService {
         }
 
         try {
+            List<Object> p = new ArrayList<>();
+            p.add(userType);
+            p.add(customerId);
             sql.append(" SELECT CAST(id AS CHAR) id,cust_id,user_type,account as name,realname,create_time,STATUS,locked_time lockedTime")
-                    .append(" FROM t_customer_user  WHERE 1=1  AND STATUS <> 3 AND user_type = ").append(userType)
-                    .append(" AND  cust_id = '" + customerId + "'");
+                    .append(" FROM t_customer_user  WHERE 1=1  AND STATUS <> 3 AND user_type = ? ")
+                    .append(" AND  cust_id = ? ");
 
             // 管理员
             if ("1".equals(loginUser.getUserType())) {
                 //所属分组和角色都不为空 则关联组进行搜索
                 if (StringUtil.isNotEmpty(jobId)) {
                     if (StringUtil.isNotEmpty(userGroupId)) {
-                        sql.append(" and id in (SELECT cast(user_id AS signed) FROM t_customer_user_group_rel rel WHERE rel.status = 1 AND rel.group_id IN(SELECT id FROM t_customer_user_group WHERE id = '" + userGroupId + "' and p_id = '" + jobId + "' AND STATUS =1 AND cust_id = '" + customerId + "'))");
+                        p.add(userGroupId);
+                        p.add(jobId);
+                        p.add(customerId);
+                        sql.append(" and id in (SELECT cast(user_id AS signed) FROM t_customer_user_group_rel rel WHERE rel.status = 1 AND rel.group_id IN(SELECT id FROM t_customer_user_group WHERE id = ? and p_id = ? AND STATUS =1 AND cust_id = ?))");
                     } else {
-                        sql.append(" and id in (SELECT cast(user_id AS signed) FROM t_customer_user_group_rel rel WHERE rel.status = 1 AND rel.group_id IN(SELECT id FROM t_customer_user_group WHERE p_id = '" + jobId + "' AND STATUS =1 AND cust_id = '" + customerId + "'))");
+                        p.add(jobId);
+                        p.add(customerId);
+                        sql.append(" and id in (SELECT cast(user_id AS signed) FROM t_customer_user_group_rel rel WHERE rel.status = 1 AND rel.group_id IN(SELECT id FROM t_customer_user_group WHERE p_id = ? AND STATUS =1 AND cust_id = ? ))");
                     }
                 } else {
                     if (StringUtil.isNotEmpty(userGroupId) && StringUtil.isNotEmpty(groupRoleType)) {
-                        sql.append(" AND id IN (SELECT cast(user_id AS signed) FROM t_customer_user_group_rel rel WHERE rel.status = 1 AND rel.type = " + groupRoleType + " AND rel.group_id IN(SELECT id FROM t_customer_user_group WHERE id = '" + userGroupId + "' AND STATUS =1 AND cust_id = '" + customerId + "'))");
+                        p.add(groupRoleType);
+                        p.add(userGroupId);
+                        p.add(customerId);
+                        sql.append(" AND id IN (SELECT cast(user_id AS signed) FROM t_customer_user_group_rel rel WHERE rel.status = 1 AND rel.type = ? AND rel.group_id IN(SELECT id FROM t_customer_user_group WHERE id = ? AND STATUS =1 AND cust_id = ? ))");
                     } else {
                         //所属分组不为空则关联组进行搜索
                         if (StringUtil.isNotEmpty(userGroupId)) {
-                            sql.append(" AND id IN (SELECT cast(user_id AS signed) FROM t_customer_user_group_rel rel WHERE rel.status = 1 AND rel.group_id IN(SELECT id FROM t_customer_user_group WHERE id = '" + userGroupId + "' AND STATUS =1 AND cust_id = '" + customerId + "'))");
+                            p.add(userGroupId);
+                            p.add(customerId);
+                            sql.append(" AND id IN (SELECT cast(user_id AS signed) FROM t_customer_user_group_rel rel WHERE rel.status = 1 AND rel.group_id IN(SELECT id FROM t_customer_user_group WHERE id = ? AND STATUS =1 AND cust_id = ? ))");
                         }
                         //角色不为空则关联组进行搜索
                         if (StringUtil.isNotEmpty(groupRoleType)) {
-                            sql.append(" AND id IN (SELECT cast(user_id AS signed) FROM t_customer_user_group_rel rel WHERE rel.status = 1 AND rel.type = " + groupRoleType + " AND rel.group_id IN(SELECT id FROM t_customer_user_group WHERE STATUS =1 AND cust_id = '" + customerId + "'))");
+                            p.add(groupRoleType);
+                            p.add(customerId);
+                            sql.append(" AND id IN (SELECT cast(user_id AS signed) FROM t_customer_user_group_rel rel WHERE rel.status = 1 AND rel.type = ?  AND rel.group_id IN(SELECT id FROM t_customer_user_group WHERE STATUS =1 AND cust_id = ? ))");
                         }
                         if (StringUtil.isNotEmpty(notGroupRoleType)) {
-                            sql.append(" AND id NOT IN (SELECT cast(user_id AS signed) FROM t_customer_user_group_rel rel WHERE rel.status = 1 AND rel.type = " + notGroupRoleType + " AND rel.group_id IN(SELECT id FROM t_customer_user_group WHERE STATUS =1 AND cust_id = '" + customerId + "'))");
+                            p.add(notGroupRoleType);
+                            p.add(customerId);
+                            sql.append(" AND id NOT IN (SELECT cast(user_id AS signed) FROM t_customer_user_group_rel rel WHERE rel.status = 1 AND rel.type =? AND rel.group_id IN(SELECT id FROM t_customer_user_group WHERE STATUS =1 AND cust_id = ?))");
                         }
                     }
                 }
@@ -909,57 +932,76 @@ public class CustomerUserService {
                     CustomerUserGroupRelDTO customerUserGroupRelDTO = customerUserDao.getCustomerUserGroupByUserId(loginUser.getId());
                     //角色不为空则关联组进行搜索
                     if (StringUtil.isNotEmpty(groupRoleType)) {
-                        sql.append(" AND id IN (SELECT cast(user_id AS signed) FROM t_customer_user_group_rel rel WHERE rel.status = 1 AND rel.type = " + groupRoleType + " AND rel.group_id = '" + customerUserGroupRelDTO.getGroupId() + "')");
+                        p.add(groupRoleType);
+                        p.add(customerUserGroupRelDTO.getGroupId());
+                        sql.append(" AND id IN (SELECT cast(user_id AS signed) FROM t_customer_user_group_rel rel WHERE rel.status = 1 AND rel.type = ? AND rel.group_id = ? )");
                     } else {
-                        sql.append(" AND id IN (SELECT cast(user_id AS signed) FROM t_customer_user_group_rel rel WHERE rel.status = 1 AND rel.group_id = '" + customerUserGroupRelDTO.getGroupId() + "')");
+                        p.add(customerUserGroupRelDTO.getGroupId());
+                        sql.append(" AND id IN (SELECT cast(user_id AS signed) FROM t_customer_user_group_rel rel WHERE rel.status = 1 AND rel.group_id = ?)");
                     }
                     if (StringUtil.isNotEmpty(notGroupRoleType)) {
-                        sql.append(" AND id NOT IN (SELECT cast(user_id AS signed) FROM t_customer_user_group_rel rel WHERE rel.status = 1 AND rel.type = " + notGroupRoleType + " AND rel.group_id IN(SELECT id FROM t_customer_user_group WHERE STATUS =1 AND cust_id = '" + customerId + "'))");
+                        p.add(notGroupRoleType);
+                        p.add(customerId);
+                        sql.append(" AND id NOT IN (SELECT cast(user_id AS signed) FROM t_customer_user_group_rel rel WHERE rel.status = 1 AND rel.type = ? AND rel.group_id IN(SELECT id FROM t_customer_user_group WHERE STATUS =1 AND cust_id = ?))");
                     }
                 }
             }
 
             if (StringUtil.isNotEmpty(callType)) {//判断呼叫类型
-                sql.append(" and id in(select user_id from t_customer_user_property p where p.property_name='call_type' and property_value='" + callType + "')");
+                p.add(callType);
+                sql.append(" and id in(select user_id from t_customer_user_property p where p.property_name='call_type' and property_value=? )");
                 if (StringUtil.isNotEmpty(callChannel)) {//判断呼叫渠道
-                    sql.append(" and id in(select user_id from t_customer_user_property p where p.property_name='call_channel' and property_value='" + callChannel + "')");
+                    p.add(callChannel);
+                    sql.append(" and id in(select user_id from t_customer_user_property p where p.property_name='call_channel' and property_value=? )");
                 }
                 if (callType.equals("call_center")) {//如果是呼叫中心
                     if (StringUtil.isNotEmpty(startSeatId) && StringUtil.isNotEmpty(endSeatId)) {
-                        sql.append(" and id in(select user_id from t_customer_user_property p where p.property_name='seats_account' and (CONVERT(property_value,SIGNED)>='" + startSeatId + "' and CONVERT(property_value,SIGNED)<='" + endSeatId + "'))");
+                        p.add(startSeatId);
+                        p.add(endSeatId);
+                        sql.append(" and id in(select user_id from t_customer_user_property p where p.property_name='seats_account' and (CONVERT(property_value,SIGNED)>=? and CONVERT(property_value,SIGNED)<=? ))");
                     } else if (null != startSeatId && !"".equals(startSeatId)) {
-                        sql.append(" and id in(select user_id from t_customer_user_property p where p.property_name='seats_account' and property_value='" + startSeatId + "')");
+                        p.add(startSeatId);
+                        sql.append(" and id in(select user_id from t_customer_user_property p where p.property_name='seats_account' and property_value=?)");
                     }
                 }
             }
 
             if (StringUtil.isNotEmpty(startAccount) && StringUtil.isNotEmpty(endAccount)) {
-                sql.append(" AND account >= '" + startAccount + "' and account <='" + endAccount + "'");
+                p.add(startAccount);
+                p.add(endAccount);
+                sql.append(" AND account >= ? and account <=? ");
             } else if (null != startAccount && !"".equals(startAccount)) {
-                sql.append(" AND account like '%" + startAccount + "%'");
+                p.add("%" + startAccount + "%");
+                sql.append(" AND account like ? ");
             }
 
             if (null != realName && !"".equals(realName)) {
-                sql.append(" AND realname like '%" + realName + "%'");
+                p.add("%" + realName + "%");
+                sql.append(" AND realname like ? ");
             }
             if (null != uid && !"".equals(uid)) {
-                sql.append(" AND id = " + uid);
+                p.add(uid);
+                sql.append(" AND id = ? ");
             }
             if (null != status && !"".equals(status)) {
-                sql.append(" AND status = " + status);
+                p.add(status);
+                sql.append(" AND status = ? ");
             }
             if (null != startSeatId && !"".equals(startSeatId)) {
-                sql.append(" AND id in(select user_id from t_customer_user_property p where p.property_name='seats_account' and property_value='" + startSeatId + "')");
+                p.add(startSeatId);
+                sql.append(" AND id in(select user_id from t_customer_user_property p where p.property_name='seats_account' and property_value=? )");
             }
             if (StringUtil.isNotEmpty(projectId)) {
-                sql.append(" and id in(select user_id from t_customer_user_property p where p.property_name='hasMarketProject' and property_value like '%," + projectId + ",%')");
+                p.add("%," + projectId + ",%");
+                sql.append(" and id in(select user_id from t_customer_user_property p where p.property_name='hasMarketProject' and property_value like ? )");
             }
 
             //sql.append(" ORDER by create_time ASC, id ASC");
             sql.append(" ORDER by account ASC ");
             logger.info(sql.toString());
-            map.put("total", userDao.getSQLQuery(sql.toString()).list().size());
-            List users = userDao.getSQLQuery(sql.toString()).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP).setFirstResult(pageNum).setMaxResults(pageSize).list();
+            Page page = userDao.sqlPageQuery0(sql.toString(), pageNum, pageSize, p.toArray());
+            map.put("total", page.getTotal());
+            List users = page.getData();
             CustomerUserGroupRelDTO customerUserGroupRelDTO;
             for (int i = 0; i < users.size(); i++) {
                 Map u = (Map) users.get(i);
@@ -1330,33 +1372,43 @@ public class CustomerUserService {
     public Page pageRegisterUser(int pageNum, int pageSize, String custId, String phone, String client, String startTime, String endTime, String channel, String registerSource, String touchType) {
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT CAST(id AS CHAR) id,account,create_time createTime,status,cust_id custId,user_type userType,realname FROM t_customer_user WHERE cust_id = ? AND user_type = ? ");
+        List<Object> p = new ArrayList<>();
         if (StringUtil.isNotEmpty(startTime) && StringUtil.isNotEmpty(endTime)) {
-            sql.append(" AND create_time BETWEEN '" + startTime + "' and '" + endTime + "' ");
+            p.add(startTime);
+            p.add(endTime);
+            sql.append(" AND create_time BETWEEN ? and ? ");
         } else {
             if (StringUtil.isNotEmpty(startTime)) {
-                sql.append(" AND create_time > '" + startTime + "'");
+                p.add(startTime);
+                sql.append(" AND create_time > ? ");
             }
             if (StringUtil.isNotEmpty(endTime)) {
-                sql.append(" AND create_time < '" + endTime + "'");
+                p.add(endTime);
+                sql.append(" AND create_time < ? ");
             }
         }
         if (StringUtil.isNotEmpty(phone)) {
-            sql.append(" AND id IN (SELECT user_id FROM t_customer_user_property WHERE property_name='mobile_num' AND property_value = '").append(phone).append("')");
+            sql.append(" AND id IN (SELECT user_id FROM t_customer_user_property WHERE property_name='mobile_num' AND property_value = ? )");
+            p.add(phone);
         }
         if (StringUtil.isNotEmpty(client)) {
-            sql.append(" AND id IN (SELECT user_id FROM t_customer_user_property WHERE property_name='client' AND property_value = '").append(client).append("')");
+            p.add(client);
+            sql.append(" AND id IN (SELECT user_id FROM t_customer_user_property WHERE property_name='client' AND property_value = ?)");
         }
         if (StringUtil.isNotEmpty(channel)) {
-            sql.append(" AND id IN (SELECT user_id FROM t_customer_user_property WHERE property_name='channel' AND property_value IN (SELECT id FROM t_dic WHERE name LIKE '%" + channel + "%'))");
+            p.add("%" + channel + "%");
+            sql.append(" AND id IN (SELECT user_id FROM t_customer_user_property WHERE property_name='channel' AND property_value IN (SELECT id FROM t_dic WHERE name LIKE ? ))");
         }
         if (StringUtil.isNotEmpty(registerSource)) {
-            sql.append(" AND id IN (SELECT user_id FROM t_customer_user_property WHERE property_name='registerSource' AND property_value IN (SELECT id FROM t_dic WHERE name LIKE '%" + registerSource + "%'))");
+            p.add("%" + registerSource + "%");
+            sql.append(" AND id IN (SELECT user_id FROM t_customer_user_property WHERE property_name='registerSource' AND property_value IN (SELECT id FROM t_dic WHERE name LIKE ?))");
         }
         if (StringUtil.isNotEmpty(touchType)) {
-            sql.append(" AND id IN (SELECT user_id FROM t_customer_user_property WHERE property_name='touchType' AND property_value = '").append(touchType).append("')");
+            p.add(touchType);
+            sql.append(" AND id IN (SELECT user_id FROM t_customer_user_property WHERE property_name='touchType' AND property_value = ? )");
         }
         sql.append(" ORDER BY create_time DESC ");
-        Page page = customerUserDao.sqlPageQuery0(sql.toString(), pageNum, pageSize, custId, 1);
+        Page page = customerUserDao.sqlPageQuery0(sql.toString(), pageNum, pageSize, custId, 1, p.toArray());
         if (page != null && page.getData() != null) {
             Map<String, Object> m;
             CustomerUserPropertyDO userProperty;

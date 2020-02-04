@@ -61,8 +61,11 @@ public class CustBusiParamService implements BusiService{
 	@Override
 	public String formatQuery(String busiType, String cust_id, String cust_group_id, Long cust_user_id, JSONObject params, List sqlParams) {
 		StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from "+ HMetaDataDef.getTable(busiType,"")+" where type=?");
-		if (!"all".equals(cust_id))
-			sqlstr.append(" and cust_id='").append(cust_id).append("'");
+		if (!"all".equals(cust_id)){
+			sqlParams.add(cust_id);
+			sqlstr.append(" and cust_id=? ");
+		}
+
 		sqlParams.add(busiType);
 		Iterator keys = params.keySet().iterator();
 		while (keys.hasNext()) {
@@ -75,7 +78,6 @@ public class CustBusiParamService implements BusiService{
 				sqlstr.append(" and cust_id=?");
 			}else if ("status".equals(key)){
 				sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$.status') =?");
-
 			}
 			sqlParams.add(params.get(key));
 		}

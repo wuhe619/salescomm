@@ -318,6 +318,27 @@ public class HttpUtil {
         return is;
     }
 
+    public static byte[] getByte(String url) {
+        byte[] data = new byte[0];
+        try {
+            HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
+            connection.setRequestMethod("GET");
+
+            int code = connection.getResponseCode();
+            if (code == 200 || code == 206) {
+                int contentLength = connection.getContentLength();
+                InputStream is = connection.getInputStream();
+                DataInputStream dataInputStream = new DataInputStream(is);
+                dataInputStream.readFully(data);
+                dataInputStream.close();
+                is.close();
+            }
+        } catch (IOException e) {
+            log.error("下载流异常", e);
+        }
+        return data;
+    }
+
     /**
      * Http Get请求 使用超时重试机制的请求
      *

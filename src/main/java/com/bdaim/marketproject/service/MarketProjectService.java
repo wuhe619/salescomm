@@ -42,6 +42,8 @@ import com.bdaim.util.excel.ExcelAfterWriteHandlerImpl;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -108,6 +110,9 @@ public class MarketProjectService {
 
     @Resource
     private CustomerLabelDao customerLabelDao;
+
+    @Autowired
+    private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
 
     /**
@@ -316,8 +321,8 @@ public class MarketProjectService {
                     enterpriseName = customerDao.getEnterpriseName(marketProject.getCustId());
                     //查询企业名字
                     String querySql = "SELECT GROUP_CONCAT(enterprise_name) enterpriseNames FROM t_customer c LEFT JOIN t_customer_property m on c.cust_id = m.cust_id ";
-                    querySql += " WHERE property_name = '" + CustomerPropertyEnum.MARKET_PROJECT_ID_PREFIX.getKey() + String.valueOf(marketProject.getId()) + "' AND property_value =" + String.valueOf(marketProject.getId());
-                    List<Map<String, Object>> list = customerDao.sqlQuery(querySql, null);
+                    querySql += " WHERE property_name = ? AND property_value =?";
+                    List<Map<String, Object>> list = customerDao.sqlQuery(querySql, CustomerPropertyEnum.MARKET_PROJECT_ID_PREFIX.getKey() + marketProject.getId(), marketProject.getId());
                     if (list.size() > 0 && list.get(0).get("enterpriseNames") != null) {
                         String enterpriseNames = String.valueOf(list.get(0).get("enterpriseNames"));
                         if (StringUtil.isNotEmpty(enterpriseName)) {
@@ -492,8 +497,10 @@ public class MarketProjectService {
         JSONObject result = new JSONObject();
 
         String sql = "select t2.name,t2.create_time,t2.id,t2.status,t2.industry_id,(select COUNT(0) from t_customer_sea where market_project_id = t2.id AND cust_id = t1.cust_id) seaNum from t_customer_property t1 left join" +
-                " t_market_project t2 on t1.property_value=t2.id  where t1.cust_id='" + custId + "' and t1.property_name like 'marketProject_%' " +
+                " t_market_project t2 on t1.property_value=t2.id  where t1.cust_id=:custId and t1.property_name like 'marketProject_%' " +
                 " and (t1.property_value is not null and t1.property_value!='')";
+        Map params = new HashMap();
+        params.put("custId", custId);
         List<Map<String, Object>> p_managers = getProjectManager(custId);
         LOG.info("p_managers: " + JSON.toJSONString(p_managers));
         LOG.info(lu.getRole() + ";" + lu.getUserType() + ";" + lu.getId());
@@ -519,27 +526,33 @@ public class MarketProjectService {
             } else {
                 return result;
             }
-            sql += " and t2.id in(" + idStr + ")";
+            sql += " and t2.id in(:idStr)";
+            params.put("idStr", Arrays.asList(idStr.split(",")));
         }
 
         if (StringUtil.isNotEmpty(projectName)) {
-            sql += " and t2.name='" + projectName + "'";
+            sql += " and t2.name=:projectName";
+            params.put("projectName", projectName);
         }
         if (StringUtil.isNotEmpty(id)) {
-            sql += " and t2.id=" + id;
+            sql += " and t2.id=:id";
+            params.put("id", id);
         }
         if (status != null) {
-            sql += " and t2.status=" + status;
+            sql += " and t2.status=:status";
+            params.put("status", status);
         }
         if (StringUtil.isNotEmpty(startTime)) {
             startTime = startTime.substring(0, 10);
             startTime = startTime.replaceAll("/", "-");
-            sql += " and t2.create_time>='" + startTime + "'";
+            sql += " and t2.create_time>=:startTime";
+            params.put("startTime", startTime);
         }
         if (StringUtil.isNotEmpty(endTime)) {
             endTime = endTime.substring(0, 10);
             endTime = endTime.replaceAll("/", "-");
-            sql += " and t2.create_time<='" + endTime + "'";
+            sql += " and t2.create_time<=:endTime";
+            params.put("endTime", endTime);
         }
         // 项目管理员检索
         if (StringUtil.isNotEmpty(projectUser)) {
@@ -556,29 +569,33 @@ public class MarketProjectService {
                 result.put("total", 0);
                 return result;
             }
-            sql += " and t2.id IN (" + SqlAppendUtil.sqlAppendWhereIn(projectIds) + ")";
+            // sql += " and t2.id IN (" + SqlAppendUtil.sqlAppendWhereIn(projectIds) + ")";
+            sql += " and t2.id IN (:projectIds)";
+            params.put("projectIds", projectIds);
         }
         sql += " order by t2.create_time desc";
-        String countSql = "select count(0) from (" + sql + ")a";
+        String countSql = "select count(0) count from (" + sql + ")a";
 
         LOG.info("countsql=" + countSql);
-        List totalList = customerDao.getSQLQuery(countSql).list();
+//        List totalList = customerDao.getSQLQuery(countSql).list();
+        List<Map<String, Object>> totalList = namedParameterJdbcTemplate.queryForList(countSql, params);
         if (totalList.size() > 0) {
-            BigInteger total = (BigInteger) totalList.get(0);
+            Long total = NumberConvertUtil.parseLong(totalList.get(0).get("count"));
             if (total.intValue() > 0) {
                 sql += " limit " + startIndex + "," + pagesize;
             }
-            result.put("total", total.intValue());
+            result.put("total", total);
         }
 
-        List<Map<String, Object>> projects = customerDao.queryListBySql(sql);
+//        List<Map<String, Object>> projects = customerDao.queryListBySql(sql);
+        List<Map<String, Object>> projects = namedParameterJdbcTemplate.queryForList(sql, params);
         if (projects == null || projects.isEmpty()) {
             return result;
         }
 
         for (Map<String, Object> obj : projects) {
-            String _sql = "select count(0) from t_market_task where customer_group_id in(select id from customer_group where cust_id='" + custId + "' and market_project_id =" + obj.get("id") + ")";
-            String taskNum = customerDao.queryForObject(_sql, null);
+            String _sql = "select count(0) from t_market_task where customer_group_id in(select id from customer_group where cust_id=? and market_project_id =?)";
+            String taskNum = customerDao.queryForObject(_sql, custId, obj.get("id"));
             obj.put("taskNum", taskNum);
             obj.put("projectManagerAccount", ""); //项目管理员账号
             obj.put("projectManagerId", "");//项目管理员id
@@ -594,7 +611,7 @@ public class MarketProjectService {
                     projectIdList.remove(",");
                     if (projectIdList.contains(String.valueOf(obj.get("id")))) {
                         LOG.info("map-=" + map);
-                        CustomerUser user = customerUserDao.get(((BigInteger) map.get("user_id")).longValue());
+                        CustomerUser user = customerUserDao.get(NumberConvertUtil.parseLong(map.get("user_id")));
                         if (user != null) {
                             obj.put("projectManagerAccount", user.getAccount()); //项目管理员账号
                         }
@@ -615,8 +632,8 @@ public class MarketProjectService {
      * @return
      */
     public List<Map<String, Object>> getProjectManager(String custId) {
-        String _sql = "select * from t_customer_user where user_type=3 and cust_id=" + custId;
-        List<Map<String, Object>> users = customerDao.queryListBySql(_sql);
+        String _sql = "select * from t_customer_user where user_type=3 and cust_id=?";
+        List<Map<String, Object>> users = customerDao.sqlQuery(_sql, custId);
         Map<String, String> userMap = new HashMap<>();
         if (users != null && users.size() > 0) {
             String ids = "";
@@ -625,8 +642,11 @@ public class MarketProjectService {
                 userMap.put(map.get("id").toString(), map.get("account").toString());
             }
             if (ids.length() > 0) ids = ids.substring(1);
-            _sql = "select * from t_customer_user_property where user_id in(" + ids + ") and property_name='hasMarketProject' and property_value is not null and property_value <>''";
-            List<Map<String, Object>> userproperties = customerDao.queryListBySql(_sql);
+            _sql = "select * from t_customer_user_property where user_id in(:ids) and property_name='hasMarketProject' and property_value is not null and property_value <>''";
+            Map<String, Object> paramMap = new HashMap<String, Object>();
+            paramMap.put("ids", Arrays.asList(ids.split(",")));
+//            List<Map<String, Object>> userproperties = customerDao.queryListBySql(_sql);
+            List<Map<String, Object>> userproperties = namedParameterJdbcTemplate.queryForList(_sql, paramMap);
             if (userproperties != null && userproperties.size() > 0) {
                 for (Map<String, Object> map : userproperties) {
                     map.put("account", userMap.get(map.get("user_id")));
@@ -905,7 +925,7 @@ public class MarketProjectService {
                     .append(" WHERE voice.cust_id = ? AND voice.customer_group_id = ? ")
                     .append(" AND voice.create_time >= ? AND voice.create_time <= ?  ")
                     .append(" AND voice.status = 1001 ")
-                    .append(" AND (t.super_data LIKE '%" + likeValue + "%' OR t.intent_level IS NOT NULL)");
+                    .append(" AND (t.super_data LIKE ? OR t.intent_level IS NOT NULL)");
             if ("2".equals(loginUser.getUserType())) {
                 // 组长查组员列表
                 if ("1".equals(loginUser.getUserGroupRole())) {
@@ -927,7 +947,7 @@ public class MarketProjectService {
 
             List<Map<String, Object>> callLogList = null;
             try {
-                callLogList = marketProjectDao.sqlQuery(sql.toString(), custId, customGroup.getId(), startTimeStr, endTimeStr);
+                callLogList = marketProjectDao.sqlQuery(sql.toString(), custId, customGroup.getId(), startTimeStr, endTimeStr, "%" + likeValue + "%");
             } catch (Exception e) {
                 LOG.error("生成客群成功单数据异常,客群ID:" + customGroup.getId(), e);
             }
@@ -1087,10 +1107,10 @@ public class MarketProjectService {
                         }
                     } else {
                         // 处理组长下没有员工的情况,只查询自己的通话记录
-                        whereSql.append(" AND user_id = '" + userQueryParam.getUserId() + "'");
+                        whereSql.append(" AND user_id = '").append(userQueryParam.getUserId()).append("'");
                     }
                 } else {
-                    whereSql.append(" AND user_id = '" + userQueryParam.getUserId() + "'");
+                    whereSql.append(" AND user_id = '").append(userQueryParam.getUserId()).append("'");
                 }
             }
             // 处理根据职场检索条件
@@ -1236,11 +1256,11 @@ public class MarketProjectService {
                         }
                     } else {
                         // 处理组长下没有员工的情况,只查询自己的通话记录
-                        sqlSb.append(" AND user_id = '" + userQueryParam.getUserId() + "'");
+                        sqlSb.append(" AND user_id = ‘").append(userQueryParam.getUserId()).append("'");
                         voiceUserIds.add(userQueryParam.getUserId());
                     }
                 } else {
-                    sqlSb.append(" AND user_id = '" + userQueryParam.getUserId() + "'");
+                    sqlSb.append(" AND user_id = '").append(userQueryParam.getUserId()).append("'");
                     voiceUserIds.add(userQueryParam.getUserId());
                 }
             }

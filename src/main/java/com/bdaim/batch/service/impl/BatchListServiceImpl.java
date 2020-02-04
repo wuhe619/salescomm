@@ -291,32 +291,41 @@ public class BatchListServiceImpl implements BatchListService {
     @Override
     public PageList pageList(PageParam page, BatchListParam batchListParam, String role) {
         StringBuilder sqlBuilder = new StringBuilder("SELECT id, comp_id, comp_name, repair_mode repairMode,batch_name batchName, certify_type certifyType, status, upload_num uploadNum, success_num successNum, upload_time uploadTime, repair_time repairTime, channel, repair_strategy repairStrategy FROM nl_batch WHERE 1=1");
+        List<Object> p = new ArrayList<>();
         if (StringUtil.isNotEmpty(batchListParam.getComp_name())) {
-            sqlBuilder.append(" AND comp_name LIKE '%" + batchListParam.getComp_name() + "%'");
+            sqlBuilder.append(" AND comp_name LIKE ?");
+            p.add("%" + batchListParam.getComp_name() + "%");
         }
         if (StringUtil.isNotEmpty(batchListParam.getCompId())) {
-            sqlBuilder.append(" AND comp_id = " + batchListParam.getCompId());
+            sqlBuilder.append(" AND comp_id = ? ");
+            p.add(batchListParam.getCompId());
         }
         if (StringUtil.isNotEmpty(batchListParam.getId())) {
-            sqlBuilder.append(" AND id = '" + batchListParam.getId() + "'");
+            sqlBuilder.append(" AND id = ? ");
+            p.add(batchListParam.getId());
         }
         if (StringUtil.isNotEmpty(batchListParam.getBatchName())) {
-            sqlBuilder.append(" AND batch_name LIKE '%" + batchListParam.getBatchName() + "%'");
+            sqlBuilder.append(" AND batch_name LIKE ?");
+            p.add("%"+batchListParam.getCompId()+"%");
         }
         if (StringUtil.isNotEmpty(batchListParam.getUploadStartTime())) {
-            sqlBuilder.append(" AND upload_time >= '" + batchListParam.getUploadStartTime() + "'");
+            sqlBuilder.append(" AND upload_time >= ? ");
+            p.add(batchListParam.getUploadStartTime());
         }
         if (StringUtil.isNotEmpty(batchListParam.getUploadEndTime())) {
-            sqlBuilder.append(" AND upload_time <= '" + batchListParam.getUploadEndTime() + "'");
+            sqlBuilder.append(" AND upload_time <= ? ");
+            p.add(batchListParam.getUploadEndTime());
         }
         if (batchListParam.getCertifyType() != null) {
-            sqlBuilder.append(" AND certify_type = " + batchListParam.getCertifyType());
+            sqlBuilder.append(" AND certify_type = ?");
+            p.add(batchListParam.getCertifyType());
         }
         if (batchListParam.getStatus() != null) {
             if (batchListParam.getStatus() == 2) {
                 sqlBuilder.append(" AND status IN (2,4,5)");
             } else {
-                sqlBuilder.append(" AND status = " + batchListParam.getStatus());
+                sqlBuilder.append(" AND status =?");
+                p.add(batchListParam.getStatus());
             }
         }
         //只查询用户自己负责的批次必须是前台用户才可以
@@ -324,11 +333,12 @@ public class BatchListServiceImpl implements BatchListService {
             sqlBuilder.append(" AND id in (SELECT DISTINCT custG.batch_id ")
                     .append(" FROM nl_batch_detail custG ")
                     .append(" WHERE custG.allocation = 1 ")
-                    .append(" AND custG.user_id='" + batchListParam.getUserId() + "')");
+                    .append(" AND custG.user_id=? )");
+            p.add(batchListParam.getUserId());
         }
         sqlBuilder.append(" AND certify_type !=3 ORDER BY upload_time DESC");
         LOG.info("批次列表查询sql:\t" + sqlBuilder.toString());
-        PageList result = new Pagination().getPageData(sqlBuilder.toString(), null, page, jdbcTemplate);
+        PageList result = new Pagination().getPageData(sqlBuilder.toString(), p.toArray(), page, jdbcTemplate);
         if (result != null && result.getList() != null && result.getList().size() > 0) {
             Map map;
             // 处理修复状态为 4数据待发送给联通或者5发送联通成功都为2-修复中
@@ -346,29 +356,37 @@ public class BatchListServiceImpl implements BatchListService {
     @Override
     public List<Map<String, Object>> list(PageParam page, BatchListParam batchListParam) {
         StringBuilder sqlBuilder = new StringBuilder("SELECT id, batch_name batchName, certify_type certifyType, status, upload_num uploadNum, success_num successNum, upload_time uploadTime, repair_time repairTime FROM nl_batch WHERE 1=1");
+        List<Object> p = new ArrayList<>();
         if (batchListParam.getCompId() != null) {
-            sqlBuilder.append(" AND comp_id = " + batchListParam.getCompId());
+            sqlBuilder.append(" AND comp_id = ?");
+            p.add(batchListParam.getCompId());
         }
         if (batchListParam.getId() != null) {
-            sqlBuilder.append(" AND id = " + batchListParam.getId());
+            sqlBuilder.append(" AND id = ?");
+            p.add(batchListParam.getId());
         }
         if (StringUtil.isNotEmpty(batchListParam.getBatchName())) {
-            sqlBuilder.append(" AND batch_name = " + batchListParam.getBatchName());
+            sqlBuilder.append(" AND batch_name = ?");
+            p.add(batchListParam.getBatchName());
         }
         if (StringUtil.isNotEmpty(batchListParam.getUploadStartTime())) {
-            sqlBuilder.append(" AND upload_time >= " + batchListParam.getUploadStartTime());
+            sqlBuilder.append(" AND upload_time >= ?");
+            p.add(batchListParam.getUploadStartTime());
         }
         if (StringUtil.isNotEmpty(batchListParam.getUploadEndTime())) {
-            sqlBuilder.append(" AND upload_time <= " + batchListParam.getUploadEndTime());
+            sqlBuilder.append(" AND upload_time <= ?");
+            p.add(batchListParam.getUploadEndTime());
         }
         if (batchListParam.getCertifyType() != null) {
-            sqlBuilder.append(" AND certify_type = " + batchListParam.getCertifyType());
+            sqlBuilder.append(" AND certify_type = ?");
+            p.add(batchListParam.getCertifyType());
         }
         if (batchListParam.getStatus() != null) {
-            sqlBuilder.append(" AND status = " + batchListParam.getStatus());
+            sqlBuilder.append(" AND status = ?");
+            p.add(batchListParam.getStatus());
         }
         sqlBuilder.append(" ORDER BY upload_time DESC");
-        return jdbcTemplate.queryForList(sqlBuilder.toString());
+        return jdbcTemplate.queryForList(sqlBuilder.toString(), p.toArray());
     }
 
     @Override
@@ -384,17 +402,22 @@ public class BatchListServiceImpl implements BatchListService {
                 "   FROM  nl_batch_detail custG ");
         sb.append(" LEFT JOIN t_customer_user t_user ON t_user.ID = custG.user_id ");
         sb.append(" WHERE custG.status = 1 ");
+        List<Object> p = new ArrayList<>();
+        p.add(customId);
+        p.add(batchId);
         if (StringUtil.isNotEmpty(batchId)) {
-            sb.append(" AND custG.batch_id='" + batchId + "'");
+            sb.append(" AND custG.batch_id=?");
+            p.add(batchId);
         }
         if (StringUtil.isNotEmpty(userId)) {
-            sb.append(" AND custG.user_id='" + userId + "'");
+            sb.append(" AND custG.user_id=?");
+            p.add(userId);
         }
         Set<String> xAxisNames = new HashSet<>();
         Map<String, String> names = new HashMap<>(16);
         Map<String, Long> callCountData = new HashMap<>(16);
         Map<String, Set<String>> userGroupData = new HashMap<>(16);
-        List<Map<String, Object>> list = jdbcTemplate.queryForList(sb.toString());
+        List<Map<String, Object>> list = jdbcTemplate.queryForList(sb.toString(), p.toArray());
         Set<String> superIds;
         String userIdKey;
         for (Map<String, Object> map : list) {
@@ -418,19 +441,24 @@ public class BatchListServiceImpl implements BatchListService {
         Map<String, Long> calledData = new HashMap<>(16);
         sb.setLength(0);
         for (Map.Entry<String, Set<String>> map : userGroupData.entrySet()) {
+            p = new ArrayList<>();
+            p.add(customId);
+            p.add(batchId);
             sb.append("SELECT cust_id, user_id, create_time FROM t_touch_voice_log WHERE cust_id = ? AND batch_id = ? ");
             if (StringUtil.isNotEmpty(userId)) {
-                sb.append(" AND user_id = " + userId);
+                sb.append(" AND user_id = ? ");
+                p.add(userId);
             }
             sb.append(" AND superid IN (");
 
             for (String superId : map.getValue()) {
-                sb.append("'" + superId + "',");
+                sb.append("?,");
+                p.add(superId);
             }
             // 去除逗号
             sb.deleteCharAt(sb.length() - 1);
             sb.append(" ) GROUP BY superid, batch_id ");
-            list = jdbcTemplate.queryForList(sb.toString(), new Object[]{customId, batchId});
+            list = jdbcTemplate.queryForList(sb.toString(), p.toArray());
             calledData.put(map.getKey(), (long) list.size());
             sb.setLength(0);
         }
@@ -505,7 +533,7 @@ public class BatchListServiceImpl implements BatchListService {
         String kehuId = null, certifyMd5 = null, lalel_one = null, label_two = null, label_three = null;
         if (batchDetailList.size() > 0) {
             for (int i = 0; i < batchDetailList.size(); i++) {
-                String touchId = String.valueOf(UUID.randomUUID()).replaceAll("-","");
+                String touchId = String.valueOf(UUID.randomUUID()).replaceAll("-", "");
                 BatchDetail batchDetail = batchDetailList.get(i);
                 if (batchDetail != null) {
                     kehuId = batchDetail.getEnterpriseId();
@@ -584,11 +612,13 @@ public class BatchListServiceImpl implements BatchListService {
         StringBuffer sb = new StringBuffer();
         sb.append(" SELECT batch_id,enterprise_id,id_card,oper_user_id,oper_name,upload_time,remark from nl_batch_log ");
         sb.append(" WHERE 1 = 1 ");
+        List<Object> p = new ArrayList<>();
         if (StringUtil.isNotEmpty(batchid)) {
-            sb.append(" AND batch_id='" + batchid + "'");
+            sb.append(" AND batch_id=?");
+            p.add(batchid);
         }
 
-        List<Map<String, Object>> list = jdbcTemplate.queryForList(sb.toString(), new Object[]{});
+        List<Map<String, Object>> list = jdbcTemplate.queryForList(sb.toString(), p.toArray());
         return list;
     }
 
@@ -649,9 +679,12 @@ public class BatchListServiceImpl implements BatchListService {
     public Map<String, Object> getTouchLog(String userId, String batchId) throws Exception {
         Map<String, Object> userMap = new HashMap<>();
         //分配数量sql
+        List<Object> p = new ArrayList<>();
+        p.add(batchId);
         StringBuffer allocationSql = new StringBuffer("SELECT COUNT(DISTINCT id_card) allocationCount from nl_batch_detail WHERE batch_id=?  AND allocation='1'");
         if (StringUtil.isNotEmpty(userId)) {
-            allocationSql.append(" AND user_id = " + userId);
+            allocationSql.append(" AND user_id = ? ");
+            p.add(userId);
         }
         //查询总通话时长和拨打人数
         StringBuffer seccussCallStr = new StringBuffer();
@@ -659,8 +692,11 @@ public class BatchListServiceImpl implements BatchListService {
         seccussCallStr.append(" LEFT JOIN nl_batch_detail n ON l.batch_id = n.batch_id AND n.id = l.superid\n");
         seccussCallStr.append("LEFT JOIN t_callback_info c ON l.callSid = c.callSid\n");
         seccussCallStr.append("WHERE n.batch_id =?");
+        List<Object> sp = new ArrayList<>();
+        sp.add(batchId);
         if (StringUtil.isNotEmpty(userId)) {
-            seccussCallStr.append(" AND l.user_id =" + userId);
+            seccussCallStr.append(" AND l.user_id = ? ");
+            sp.add(userId);
         }
         //查询接听人数
         StringBuffer seccussCallSql = new StringBuffer();
@@ -669,8 +705,11 @@ public class BatchListServiceImpl implements BatchListService {
         seccussCallSql.append("LEFT JOIN t_callback_info c ON t.callSid = c.callSid ");
         seccussCallSql.append("LEFT JOIN nl_batch_detail n ON t.batch_id = n.batch_id AND n.id = t.superid\n");
         seccussCallSql.append("WHERE t.batch_id =? AND t.`status` = '1001' AND c.Callerduration > 0");
+        List<Object> seccussCall = new ArrayList<>();
+        seccussCall.add(batchId);
         if (StringUtil.isNotEmpty(userId)) {
-            seccussCallSql.append(" AND t.user_id =" + userId);
+            seccussCallSql.append(" AND t.user_id = ? ");
+            sp.add(userId);
         }
         //查询短信信息
         StringBuffer smsSql = new StringBuffer();
@@ -678,18 +717,21 @@ public class BatchListServiceImpl implements BatchListService {
         smsSql.append("FROM t_touch_sms_log s\n");
         smsSql.append("LEFT JOIN nl_batch_detail n ON s.batch_id = n.batch_id AND s.superid = n.id\n");
         smsSql.append("WHERE s.batch_id = ?\n");
+        List<Object> smsP = new ArrayList<>();
+        smsP.add(batchId);
         if (StringUtil.isNotEmpty(userId)) {
-            smsSql.append(" AND s.user_id =" + userId);
+            smsSql.append(" AND s.user_id = ? ");
+            smsP.add(userId);
         }
 
-        List<Map<String, Object>> allocationList = batchLogDao.sqlQuery(allocationSql.toString(), batchId);
+        List<Map<String, Object>> allocationList = batchLogDao.sqlQuery(allocationSql.toString(), p.toArray());
         if (allocationList.size() > 0) {
             int allocationCount = NumberConvertUtil.everythingToInt(allocationList.get(0).get("allocationCount"));
             //分配数量
             userMap.put("allocationCount", allocationCount);
             LOG.info("分配人数是" + allocationCount);
             //拨打人数统计
-            List<Map<String, Object>> callSuccessMap = batchLogDao.sqlQuery(seccussCallStr.toString(), batchId);
+            List<Map<String, Object>> callSuccessMap = batchLogDao.sqlQuery(seccussCallStr.toString(), sp.toArray());
             int callNumber = 0, callSuccessNum = 0, sumCallTime = 0;
             if (callSuccessMap != null && callSuccessMap.size() > 0) {
                 callNumber = NumberConvertUtil.everythingToInt(callSuccessMap.get(0).get("callNum"));
@@ -705,7 +747,7 @@ public class BatchListServiceImpl implements BatchListService {
                 LOG.info("剩余数量是" + (allocationCount - callNumber));
             }
             //接听人数callSuccessNum
-            List<Map<String, Object>> callSuccessNumList = batchLogDao.sqlQuery(seccussCallSql.toString(), batchId);
+            List<Map<String, Object>> callSuccessNumList = batchLogDao.sqlQuery(seccussCallSql.toString(), seccussCall.toArray());
             if (callSuccessNumList != null && callSuccessNumList.size() > 0) {
                 callSuccessNum = NumberConvertUtil.everythingToInt(callSuccessNumList.get(0).get("callSuccessNum"));
                 userMap.put("callSuccessNum", callSuccessNum);
@@ -721,7 +763,7 @@ public class BatchListServiceImpl implements BatchListService {
             LOG.info("平均通话时长是：" + averageCallTime);
         }
         //发送短信数量
-        List<Map<String, Object>> smsMap = batchLogDao.sqlQuery(smsSql.toString(), batchId);
+        List<Map<String, Object>> smsMap = batchLogDao.sqlQuery(smsSql.toString(), smsP.toArray());
         int sendSmsSum = NumberConvertUtil.everythingToInt(smsMap.get(0).get("sendSmsSum"));
         int sendSuccessSum = NumberConvertUtil.transformtionInt(String.valueOf(smsMap.get(0).get("sendSuccessSum")));
         userMap.put("sendSmsSum", sendSmsSum);
@@ -736,32 +778,41 @@ public class BatchListServiceImpl implements BatchListService {
         StringBuilder sqlBuilder = new StringBuilder("SELECT n.id, n.comp_id, n.comp_name, n.repair_mode repairMode,n.batch_name \n" +
                 "batchName,n.status, n.upload_num uploadNum, n.success_num successNum, n.upload_time uploadTime, n.repair_time repairTime, n.channel, n.repair_strategy repairStrategy ,MAX(t.create_time) AS Latest_time,MIN(t.create_time) AS Earliest_time\n" +
                 "FROM nl_batch n LEFT JOIN t_touch_express_log t ON n.id=t.batch_id WHERE 1=1");
+        List<Object> p = new ArrayList<>();
         if (StringUtil.isNotEmpty(batchListParam.getComp_name())) {
-            sqlBuilder.append(" AND comp_name LIKE '%" + batchListParam.getComp_name() + "%'");
+            sqlBuilder.append(" AND comp_name LIKE ?");
+            p.add("%" + batchListParam.getComp_name() + "%");
         }
         if (StringUtil.isNotEmpty(batchListParam.getCompId())) {
-            sqlBuilder.append(" AND comp_id = " + batchListParam.getCompId());
+            sqlBuilder.append(" AND comp_id = ?");
+            p.add(batchListParam.getCompId());
         }
         if (StringUtil.isNotEmpty(batchListParam.getId())) {
-            sqlBuilder.append(" AND id = '" + batchListParam.getId() + "'");
+            sqlBuilder.append(" AND id = ?");
+            p.add(batchListParam.getId());
         }
         if (StringUtil.isNotEmpty(batchListParam.getBatchName())) {
-            sqlBuilder.append(" AND batch_name LIKE '%" + batchListParam.getBatchName() + "%'");
+            sqlBuilder.append(" AND batch_name LIKE ?");
+            p.add("%" + batchListParam.getBatchName() + "%");
         }
         if (StringUtil.isNotEmpty(batchListParam.getUploadStartTime())) {
-            sqlBuilder.append(" AND upload_time >= '" + batchListParam.getUploadStartTime() + "'");
+            sqlBuilder.append(" AND upload_time >= ?");
+            p.add(batchListParam.getUploadStartTime());
         }
         if (StringUtil.isNotEmpty(batchListParam.getUploadEndTime())) {
-            sqlBuilder.append(" AND upload_time <= '" + batchListParam.getUploadEndTime() + "'");
+            sqlBuilder.append(" AND upload_time <= ? ");
+            p.add(batchListParam.getUploadEndTime());
         }
         if (batchListParam.getCertifyType() != null) {
-            sqlBuilder.append(" AND certify_type = " + batchListParam.getCertifyType());
+            sqlBuilder.append(" AND certify_type = ?");
+            p.add(batchListParam.getCertifyType());
         }
         if (batchListParam.getStatus() != null) {
             if (batchListParam.getStatus() == 2) {
                 sqlBuilder.append(" AND status IN (2,4,5)");
             } else {
-                sqlBuilder.append(" AND status = " + batchListParam.getStatus());
+                sqlBuilder.append(" AND status = ?");
+                p.add(batchListParam.getStatus());
             }
         }
         //只查询用户自己负责的批次
@@ -769,11 +820,12 @@ public class BatchListServiceImpl implements BatchListService {
             sqlBuilder.append(" AND id in (SELECT DISTINCT custG.batch_id ")
                     .append(" FROM nl_batch_detail custG ")
                     .append(" WHERE custG.allocation = 1 ")
-                    .append(" AND custG.user_id='" + batchListParam.getUserId() + "')");
+                    .append(" AND custG.user_id=? )");
+            p.add(batchListParam.getUserId());
         }
         sqlBuilder.append(" AND n.certify_type=3 GROUP BY n.id ORDER BY n.upload_time DESC");
         LOG.info("批次列表查询sql:\t" + sqlBuilder.toString());
-        PageList result = new Pagination().getPageData(sqlBuilder.toString(), null, page, jdbcTemplate);
+        PageList result = new Pagination().getPageData(sqlBuilder.toString(), p.toArray(), page, jdbcTemplate);
         if (result != null && result.getList() != null && result.getList().size() > 0) {
             Map map;
             // 处理修复状态为 4数据待发送给联通或者5发送联通成功都为2-修复中
@@ -811,8 +863,8 @@ public class BatchListServiceImpl implements BatchListService {
         StringBuilder sqlBuilder = new StringBuilder("INSERT INTO nl_batch_detail(touch_id,batch_id,id_card,enterprise_id,channel,status,phoneId,upload_time,name,resource_id) values(?,?,?,?,?,?,?,?,?,?)");
         batchDetailDao.executeUpdateSQL(sqlBuilder.toString(), touchId, batchId, certifyMd5, compId, channels, 2, phoneId, new Timestamp(new Date().getTime()), name, resourceId);
         LOG.info("修复文件上传，插入批次明细表： 批次ID:" + batchId + "\t身份证加密：" + certifyMd5);
-        StringBuilder sql = new StringBuilder("SELECT * FROM  u WHERE id = '" + phoneId + "'");
-        List<Map<String, Object>> list = batchDetailDao.sqlQuery(sql.toString(), null);
+        StringBuilder sql = new StringBuilder("SELECT * FROM  u WHERE id = ? ");
+        List<Map<String, Object>> list = batchDetailDao.sqlQuery(sql.toString(), phoneId);
         if (list.size() == 0) {
             StringBuilder sqlBuilder2 = new StringBuilder("INSERT INTO u(id,phone) values(?,?)");
             batchDetailDao.executeUpdateSQL(sqlBuilder2.toString(), phoneId, phone);

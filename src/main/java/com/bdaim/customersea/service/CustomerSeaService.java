@@ -243,11 +243,10 @@ public class CustomerSeaService {
         sql.append("INSERT INTO ").append(ConstantsUtil.SEA_TABLE_PREFIX + seaId)
                 .append(" (id, status, batch_id, create_time, data_source, remark, super_data) SELECT id, '1', ")
                 // batch_id等于客群ID
-                .append(cGroupId).append(",'").append(createTime).append("',").append(dataSource)
-                .append(", remark").append(", '{\"SYS007\":\"未跟进\"}' FROM ")
+                .append("?,?,?, remark").append(", '{\"SYS007\":\"未跟进\"}' FROM ")
                 .append(ConstantsUtil.CUSTOMER_GROUP_TABLE_PREFIX + cGroupId)
                 .append(" ON DUPLICATE KEY UPDATE id = VALUES(id)");
-        int count = marketProjectDao.executeUpdateSQL(sql.toString());
+        int count = marketProjectDao.executeUpdateSQL(sql.toString(), cGroupId, createTime, dataSource);
         LOG.info("客群:" + cGroupId + ",导入公海完成:" + seaId + ",条数:" + (count - existCount));
         // 客群导入公海后更新客群状态
         customGroup.setStatus(6);
@@ -941,20 +940,22 @@ public class CustomerSeaService {
             LOG.info("channelId is null");
             return null;
         }
-        MarketResourceDTO mr = marketResourceDao.getInfoProperty(NumberConvertUtil.parseInt(channelId), "price_config");
-        LOG.info("mr=" + JSONObject.toJSONString(mr));
-        if (mr != null && mr.getTypeCode() != null) {
-            JSONObject priceConfig = JSON.parseObject(mr.getResourceProperty());
-            LOG.info("priceConfig::" + mr.getResourceProperty());
-            if (priceConfig != null) {
-                LOG.info("TYPECODE:" + mr.getTypeCode());
-                if (mr.getTypeCode() == 1) {
-                    LOG.info("ssafa===" + priceConfig.getInteger("call_center_type"));
-                    if (priceConfig.getIntValue("call_center_type") == 2) {
-                        LOG.info(priceConfig.getInteger("call_center_type") + ";call_center_config: " + priceConfig.getString("call_center_config"));
-                        String callCenterConfigStr = priceConfig.getString("call_center_config");
-                        LOG.info("callCenterConfigStr:" + callCenterConfigStr);
-                        return JSON.parseObject(callCenterConfigStr);
+        if (StringUtil.isNotEmpty(channelId)) {
+            MarketResourceDTO mr = marketResourceDao.getInfoProperty(NumberConvertUtil.parseInt(channelId), "price_config");
+            LOG.info("mr=" + JSONObject.toJSONString(mr));
+            if (mr != null && mr.getTypeCode() != null) {
+                JSONObject priceConfig = JSON.parseObject(mr.getResourceProperty());
+                LOG.info("priceConfig::" + mr.getResourceProperty());
+                if (priceConfig != null) {
+                    LOG.info("TYPECODE:" + mr.getTypeCode());
+                    if (mr.getTypeCode() == 1) {
+                        LOG.info("ssafa===" + priceConfig.getInteger("call_center_type"));
+                        if (priceConfig.getIntValue("call_center_type") == 2) {
+                            LOG.info(priceConfig.getInteger("call_center_type") + ";call_center_config: " + priceConfig.getString("call_center_config"));
+                            String callCenterConfigStr = priceConfig.getString("call_center_config");
+                            LOG.info("callCenterConfigStr:" + callCenterConfigStr);
+                            return JSON.parseObject(callCenterConfigStr);
+                        }
                     }
                 }
             }
@@ -979,48 +980,67 @@ public class CustomerSeaService {
         sb.append(" custG.call_success_count, custG.call_fail_count, custG.sms_success_count ");
         sb.append("  from " + ConstantsUtil.SEA_TABLE_PREFIX + param.getSeaId() + " custG ");
         sb.append(" where 1=1 ");
+        List<Object> p = new ArrayList<>();
         if (StringUtil.isNotEmpty(param.getSuperId())) {
-            sb.append(" and custG.id = '" + param.getSuperId() + "'");
+            p.add(param.getSuperId());
+            sb.append(" and custG.id = ? ");
         }
         if (StringUtil.isNotEmpty(param.getSuperName())) {
-            sb.append(" and custG.super_name LIKE '%" + param.getSuperName() + "%'");
+            p.add("%" + param.getSuperName() + "%");
+            sb.append(" and custG.super_name LIKE ? ");
         }
         if (StringUtil.isNotEmpty(param.getSuperPhone())) {
-            sb.append(" and custG.super_phone = '" + param.getSuperPhone() + "'");
+            p.add(param.getSuperPhone());
+            sb.append(" and custG.super_phone = ? ");
         }
         if (StringUtil.isNotEmpty(param.getSuperTelphone())) {
-            sb.append(" and custG.super_telphone = '" + param.getSuperTelphone() + "'");
+            p.add(param.getSuperTelphone());
+            sb.append(" and custG.super_telphone = ? ");
         }
         if (StringUtil.isNotEmpty(param.getLastUserName())) {
-            sb.append(" and custG.pre_user_id IN(SELECT id from t_customer_user WHERE AND cust_id = '" + param.getCustId() + "' realname LIKE '%" + param.getLastUserName() + "%') ");
+            p.add(param.getCustId());
+            p.add("%" + param.getLastUserName() + "%");
+            sb.append(" and custG.pre_user_id IN(SELECT id from t_customer_user WHERE AND cust_id = ? realname LIKE ?) ");
         }
         if (param.getDataSource() != null) {
-            sb.append(" and custG.data_source =" + param.getDataSource());
+            p.add(param.getDataSource());
+            sb.append(" and custG.data_source = ? ");
         }
         if (StringUtil.isNotEmpty(param.getBatchId())) {
-            sb.append(" and custG.batch_id =" + param.getBatchId());
+            p.add(param.getBatchId());
+            sb.append(" and custG.batch_id = ? ");
         }
         if (StringUtil.isNotEmpty(param.getAddStartTime()) && StringUtil.isNotEmpty(param.getAddEndTime())) {
-            sb.append(" and custG.create_time BETWEEN " + param.getAddStartTime() + " AND " + param.getAddEndTime());
+            p.add(param.getAddStartTime());
+            p.add(param.getAddEndTime());
+            sb.append(" and custG.create_time BETWEEN ? AND ?");
         } else if (StringUtil.isNotEmpty(param.getAddStartTime())) {
-            sb.append(" and custG.create_time >= " + param.getAddStartTime());
+            p.add(param.getAddEndTime());
+            sb.append(" and custG.create_time >= ? ");
         } else if (StringUtil.isNotEmpty(param.getAddEndTime())) {
-            sb.append(" and custG.create_time <= " + param.getAddEndTime());
+            p.add(param.getAddEndTime());
+            sb.append(" and custG.create_time <= ? ");
         }
 
         if (StringUtil.isNotEmpty(param.getCallStartTime()) && StringUtil.isNotEmpty(param.getCallEndTime())) {
-            sb.append(" and custG.last_call_time BETWEEN " + param.getCallStartTime() + " AND " + param.getCallEndTime());
+            p.add(param.getCallStartTime());
+            p.add(param.getCallEndTime());
+            sb.append(" and custG.last_call_time BETWEEN ? AND ? ");
         } else if (StringUtil.isNotEmpty(param.getCallStartTime())) {
-            sb.append(" and custG.last_call_time >= " + param.getCallStartTime());
+            p.add(param.getCallStartTime());
+            sb.append(" and custG.last_call_time >= ? ");
         } else if (StringUtil.isNotEmpty(param.getCallEndTime())) {
-            sb.append(" and custG.last_call_time <= " + param.getCallEndTime());
+            p.add(param.getCallEndTime());
+            sb.append(" and custG.last_call_time <= ? ");
         }
 
         if (StringUtil.isNotEmpty(param.getLastCallResult())) {
-            sb.append(" and custG.last_call_status = '" + param.getLastCallResult() + "'");
+            p.add(param.getLastCallResult());
+            sb.append(" and custG.last_call_status = ? ");
         }
         if (StringUtil.isNotEmpty(param.getIntentLevel())) {
-            sb.append(" and custG.intent_level = '" + param.getIntentLevel() + "'");
+            p.add(param.getIntentLevel());
+            sb.append(" and custG.intent_level = ?");
         }
         if (param.getCalledDuration() != null) {
             if (param.getCalledDuration() == 1) {
@@ -1074,7 +1094,7 @@ public class CustomerSeaService {
         }
         sb.append(" ORDER BY custG.create_time DESC ");
         try {
-            page = customerSeaDao.sqlPageQuery0(sb.toString(), param.getPageNum(), param.getPageSize());
+            page = customerSeaDao.sqlPageQuery0(sb.toString(), param.getPageNum(), param.getPageSize(), p.toArray());
         } catch (Exception e) {
             LOG.error("查询公海线索列表失败,", e);
             return new Page();
@@ -1104,64 +1124,91 @@ public class CustomerSeaService {
         sb.append(" custG.call_success_count, custG.call_fail_count, custG.sms_success_count ");
         sb.append("  from " + ConstantsUtil.SEA_TABLE_PREFIX + param.getSeaId() + " custG ");
         sb.append(" where 1=1 ");
+        List<Object> p = new ArrayList<>();
         if (StringUtil.isNotEmpty(param.getSuperId())) {
-            sb.append(" and custG.id = '" + param.getSuperId() + "'");
+            p.add(param.getSuperId());
+            sb.append(" and custG.id = ? ");
         }
         if (StringUtil.isNotEmpty(param.getSuperName())) {
-            sb.append(" and custG.super_name LIKE '%" + param.getSuperName() + "%'");
+            p.add("%" + param.getSuperName() + "%");
+            sb.append(" and custG.super_name LIKE ? ");
         }
         if (StringUtil.isNotEmpty(param.getSuperPhone())) {
-            sb.append(" and custG.super_phone = '" + param.getSuperPhone() + "'");
+            p.add(param.getSuperPhone());
+            sb.append(" and custG.super_phone = ? ");
         }
         if (StringUtil.isNotEmpty(param.getSuperTelphone())) {
-            sb.append(" and custG.super_telphone = '" + param.getSuperTelphone() + "'");
+            p.add(param.getSuperTelphone());
+            sb.append(" and custG.super_telphone = ? ");
         }
         if (StringUtil.isNotEmpty(param.getLastUserName())) {
-            sb.append(" and custG.pre_user_id IN(SELECT id from t_customer_user WHERE AND cust_id = '" + param.getCustId() + "' realname LIKE '%" + param.getLastUserName() + "%') ");
+            p.add(param.getCustId());
+            p.add("%" + param.getLastUserName() + "%");
+            sb.append(" and custG.pre_user_id IN(SELECT id from t_customer_user WHERE cust_id = ? AND realname LIKE ? ) ");
         }
         if (param.getDataSource() != null) {
-            sb.append(" and custG.data_source =" + param.getDataSource());
+            p.add(param.getDataSource());
+            sb.append(" and custG.data_source = ? ");
         }
         if (StringUtil.isNotEmpty(param.getBatchId())) {
-            sb.append(" and custG.batch_id =" + param.getBatchId());
+            p.add(param.getBatchId());
+            sb.append(" and custG.batch_id = ? ");
         }
         if (StringUtil.isNotEmpty(param.getAddStartTime()) && StringUtil.isNotEmpty(param.getAddEndTime())) {
-            sb.append(" and custG.create_time BETWEEN " + param.getAddStartTime() + " AND " + param.getAddEndTime());
+            p.add(param.getAddStartTime());
+            p.add(param.getAddEndTime());
+            sb.append(" and custG.create_time BETWEEN ? AND ? ");
         } else if (StringUtil.isNotEmpty(param.getAddStartTime())) {
-            sb.append(" and custG.create_time >= " + param.getAddStartTime());
+            p.add(param.getAddStartTime());
+            sb.append(" and custG.create_time >= ? ");
         } else if (StringUtil.isNotEmpty(param.getAddEndTime())) {
-            sb.append(" and custG.create_time <= " + param.getAddEndTime());
+            p.add(param.getAddEndTime());
+            sb.append(" and custG.create_time <= ? ");
         }
 
         if (StringUtil.isNotEmpty(param.getCallStartTime()) && StringUtil.isNotEmpty(param.getCallEndTime())) {
-            sb.append(" and custG.last_call_time BETWEEN " + param.getCallStartTime() + " AND " + param.getCallEndTime());
+            p.add(param.getCallStartTime());
+            p.add(param.getCallEndTime());
+            sb.append(" and custG.last_call_time BETWEEN ? AND ? ");
         } else if (StringUtil.isNotEmpty(param.getCallStartTime())) {
-            sb.append(" and custG.last_call_time >= " + param.getCallStartTime());
+            p.add(param.getCallStartTime());
+            sb.append(" and custG.last_call_time >= ? ");
         } else if (StringUtil.isNotEmpty(param.getCallEndTime())) {
-            sb.append(" and custG.last_call_time <= " + param.getCallEndTime());
+            p.add(param.getCallEndTime());
+            sb.append(" and custG.last_call_time <= ? ");
         }
 
         if (StringUtil.isNotEmpty(param.getUserGetStartTime()) && StringUtil.isNotEmpty(param.getUserGetEndTime())) {
-            sb.append(" and custG.user_get_time BETWEEN " + param.getUserGetStartTime() + " AND " + param.getUserGetEndTime());
+            p.add(param.getUserGetStartTime());
+            p.add(param.getUserGetEndTime());
+            sb.append(" and custG.user_get_time BETWEEN ? AND ? ");
         } else if (StringUtil.isNotEmpty(param.getUserGetStartTime())) {
-            sb.append(" and custG.user_get_time >= " + param.getUserGetStartTime());
+            p.add(param.getUserGetStartTime());
+            sb.append(" and custG.user_get_time >= ? ");
         } else if (StringUtil.isNotEmpty(param.getUserGetEndTime())) {
-            sb.append(" and custG.user_get_time <= " + param.getUserGetEndTime());
+            p.add(param.getUserGetEndTime());
+            sb.append(" and custG.user_get_time <= ? ");
         }
 
         if (StringUtil.isNotEmpty(param.getLastMarkStartTime()) && StringUtil.isNotEmpty(param.getLastMarkEndTime())) {
-            sb.append(" and custG.last_mark_time BETWEEN " + param.getLastMarkStartTime() + " AND " + param.getLastMarkEndTime());
+            p.add(param.getLastMarkStartTime());
+            p.add(param.getLastMarkEndTime());
+            sb.append(" and custG.last_mark_time BETWEEN ? AND ? ");
         } else if (StringUtil.isNotEmpty(param.getLastMarkStartTime())) {
-            sb.append(" and custG.last_mark_time >= " + param.getLastMarkStartTime());
+            p.add(param.getLastMarkStartTime());
+            sb.append(" and custG.last_mark_time >=? ");
         } else if (StringUtil.isNotEmpty(param.getLastMarkEndTime())) {
-            sb.append(" and custG.last_mark_time <= " + param.getLastMarkEndTime());
+            p.add(param.getLastMarkEndTime());
+            sb.append(" and custG.last_mark_time <= ? ");
         }
 
         if (StringUtil.isNotEmpty(param.getLastCallResult())) {
-            sb.append(" and custG.last_call_status = '" + param.getLastCallResult() + "'");
+            p.add(param.getLastCallResult());
+            sb.append(" and custG.last_call_status = ? ");
         }
         if (StringUtil.isNotEmpty(param.getIntentLevel())) {
-            sb.append(" and custG.intent_level = '" + param.getIntentLevel() + "'");
+            p.add(param.getIntentLevel());
+            sb.append(" and custG.intent_level =? ");
         }
         if (param.getCalledDuration() != null) {
             if (param.getCalledDuration() == 1) {
@@ -1208,11 +1255,13 @@ public class CustomerSeaService {
                             sb.append(" AND custG.user_id IN(" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ")");
                         }
                     } else {
-                        sb.append(" AND custG.user_id = '" + userId + "'");
+                        p.add(userId);
+                        sb.append(" AND custG.user_id = ? ");
                     }
                 }
             } else {
-                sb.append(" AND custG.user_id = '" + userId + "'");
+                p.add(userId);
+                sb.append(" AND custG.user_id = ? ");
             }
         } else {
             //管理员查看所有
@@ -1251,27 +1300,33 @@ public class CustomerSeaService {
         // 跟进状态处理
         if (StringUtil.isNotEmpty(param.getFollowStatus()) && StringUtil.isNotEmpty(param.getFollowValue())) {
             String likeValue = "%\"" + param.getFollowStatus() + "\":\"" + param.getFollowValue() + "\"%";
-            sb.append(" AND custG.super_data LIKE '" + likeValue + "' ");
+            sb.append(" AND custG.super_data LIKE ? ");
+            p.add(likeValue);
         }
         // 无效原因处理
         if (StringUtil.isNotEmpty(param.getInvalidReason()) && StringUtil.isNotEmpty(param.getInvalidReason())) {
             String likeValue = "%\"SYS006\":\"" + param.getFollowValue() + "\"%";
-            sb.append(" AND custG.super_data LIKE '" + likeValue + "' ");
+            sb.append(" AND custG.super_data LIKE ? ");
+            p.add(likeValue);
         }
         // 呼叫次数
         if (param.getCallCount() != null) {
             if (param.getCallCount() < 8) {
-                sb.append(" and custG.call_count = '" + param.getCallCount() + "'");
+                p.add(param.getCallCount());
+                sb.append(" and custG.call_count = ? ");
             } else {
-                sb.append(" and custG.call_count >= '" + param.getCallCount() + "'");
+                p.add(param.getCallCount());
+                sb.append(" and custG.call_count >= ? ");
             }
         }
         // 接通次数
         if (param.getCallSuccessCount() != null) {
             if (param.getCallCount() < 8) {
-                sb.append(" and custG.call_success_count = '" + param.getCallSuccessCount() + "'");
+                p.add(param.getCallSuccessCount());
+                sb.append(" and custG.call_success_count = ? ");
             } else {
-                sb.append(" and custG.call_success_count >= '" + param.getCallSuccessCount() + "'");
+                p.add(param.getCallSuccessCount());
+                sb.append(" and custG.call_success_count >= ? ");
             }
         }
         // 处理员工限制线索条件
@@ -1282,10 +1337,14 @@ public class CustomerSeaService {
                 // N天前的0点时间
                 LocalDateTime time = LocalDateTime.now().minusDays(NumberConvertUtil.parseLong(cp.getPropertyValue())).withHour(0).withMinute(0).withSecond(0).withNano(0);
                 DateTimeFormatter ymd = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-                sb.append(" AND ( update_time >= '" + ymd.format(time) + "' OR update_time is null)  ")
-                        .append(" AND ( user_get_time >= '" + ymd.format(time) + "' OR user_get_time is null)  ")
-                        .append(" AND ( last_call_time >= '" + ymd.format(time) + "' OR last_call_time is null)  ")
-                        .append(" AND ( last_mark_time >= '" + ymd.format(time) + "' OR last_mark_time is null)  ");
+                p.add(ymd.format(time));
+                p.add(ymd.format(time));
+                p.add(ymd.format(time));
+                p.add(ymd.format(time));
+                sb.append(" AND ( update_time >= ? OR update_time is null)  ")
+                        .append(" AND ( user_get_time >= ? OR user_get_time is null)  ")
+                        .append(" AND ( last_call_time >= ? OR last_call_time is null)  ")
+                        .append(" AND ( last_mark_time >= ? OR last_mark_time is null)  ");
             } else {
                 LOG.warn("公海ID:[" + customerSea.getTaskId() + "]员工限制超时时间配置为空");
                 return new Page();
@@ -1293,7 +1352,7 @@ public class CustomerSeaService {
         }
         sb.append(" ORDER BY custG.create_time DESC ");
         try {
-            page = customerSeaDao.sqlPageQueryByPageSize(sb.toString(), param.getPageNum(), param.getPageSize());
+            page = customerSeaDao.sqlPageQueryByPageSize(sb.toString(), param.getPageNum(), param.getPageSize(), p.toArray());
         } catch (Exception e) {
             LOG.error("查询私海线索列表失败,", e);
             return new Page();
@@ -1415,50 +1474,69 @@ public class CustomerSeaService {
                 .append("INSERT INTO ").append(ConstantsUtil.CUSTOMER_OPER_LOG_TABLE_PREFIX).append("( `user_id`, `list_id`, `customer_sea_id`, `customer_group_id`, `event_type`, `create_time`, reason, remark) ")
                 .append(" SELECT ").append(param.getUserId()).append(" ,id,").append(param.getSeaId()).append(",batch_id,").append(8).append(",? ,? ,? ")
                 .append(" FROM ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(param.getSeaId()).append(" custG WHERE custG.status <>2 ");
+        List<Object> p = new ArrayList<>();
         StringBuilder appSql = new StringBuilder();
         if (StringUtil.isNotEmpty(param.getSuperId())) {
-            appSql.append(" and custG.id = '" + param.getSuperId() + "'");
+            p.add(param.getSuperId());
+            appSql.append(" and custG.id = ? ");
         }
         if (StringUtil.isNotEmpty(param.getSuperName())) {
-            appSql.append(" and custG.super_name = '%" + param.getSuperName() + "%'");
+            p.add("%" + param.getSuperName() + "%");
+            appSql.append(" and custG.super_name like ? ");
         }
         if (StringUtil.isNotEmpty(param.getSuperPhone())) {
-            appSql.append(" and custG.super_phone = '" + param.getSuperPhone() + "'");
+            p.add(param.getSuperPhone());
+            appSql.append(" and custG.super_phone = ? ");
         }
         if (StringUtil.isNotEmpty(param.getSuperTelphone())) {
-            appSql.append(" and custG.super_telphone = '" + param.getSuperTelphone() + "'");
+            p.add(param.getSuperTelphone());
+            appSql.append(" and custG.super_telphone =? ");
         }
         if (StringUtil.isNotEmpty(param.getLastUserName())) {
-            appSql.append(" and custG.pre_user_id IN(SELECT id from t_customer_user WHERE AND cust_id = '" + param.getCustId() + "' realname LIKE '%" + param.getLastUserName() + "%') ");
+            p.add(param.getCustId());
+            p.add("%" + param.getLastUserName() + "%");
+            appSql.append(" and custG.pre_user_id IN(SELECT id from t_customer_user WHERE cust_id = ? AND realname LIKE ?) ");
         }
         if (param.getDataSource() != null) {
-            appSql.append(" and custG.data_source =" + param.getDataSource());
+            p.add(param.getDataSource());
+            appSql.append(" and custG.data_source =? ");
         }
         if (StringUtil.isNotEmpty(param.getBatchId())) {
-            appSql.append(" and custG.batch_id =" + param.getBatchId());
-            logSql.append(" and batch_id =" + param.getBatchId());
+            p.add(param.getBatchId());
+            appSql.append(" and custG.batch_id = ? ");
+            logSql.append(" and batch_id =? ");
         }
         if (StringUtil.isNotEmpty(param.getAddStartTime()) && StringUtil.isNotEmpty(param.getAddEndTime())) {
-            appSql.append(" and custG.create_time BETWEEN " + param.getAddStartTime() + " AND " + param.getAddEndTime());
+            p.add(param.getAddStartTime());
+            p.add(param.getAddEndTime());
+            appSql.append(" and custG.create_time BETWEEN ? AND ? ");
         } else if (StringUtil.isNotEmpty(param.getAddStartTime())) {
-            appSql.append(" and custG.create_time >= " + param.getAddStartTime());
+            p.add(param.getAddStartTime());
+            appSql.append(" and custG.create_time >= ?");
         } else if (StringUtil.isNotEmpty(param.getAddEndTime())) {
-            appSql.append(" and custG.create_time <= " + param.getAddEndTime());
+            p.add(param.getAddEndTime());
+            appSql.append(" and custG.create_time <= ? ");
         }
 
         if (StringUtil.isNotEmpty(param.getCallStartTime()) && StringUtil.isNotEmpty(param.getCallEndTime())) {
-            appSql.append(" and custG.last_call_time BETWEEN " + param.getCallStartTime() + " AND " + param.getCallEndTime());
+            p.add(param.getCallStartTime());
+            p.add(param.getCallEndTime());
+            appSql.append(" and custG.last_call_time BETWEEN ? AND ? ");
         } else if (StringUtil.isNotEmpty(param.getCallStartTime())) {
-            appSql.append(" and custG.last_call_time >= " + param.getCallStartTime());
+            p.add(param.getCallStartTime());
+            appSql.append(" and custG.last_call_time >= ? ");
         } else if (StringUtil.isNotEmpty(param.getCallEndTime())) {
-            appSql.append(" and custG.last_call_time <= " + param.getCallEndTime());
+            p.add(param.getCallEndTime());
+            appSql.append(" and custG.last_call_time <= ? ");
         }
 
         if (StringUtil.isNotEmpty(param.getLastCallResult())) {
-            appSql.append(" and custG.last_call_status = '" + param.getLastCallResult() + "'");
+            p.add(param.getLastCallResult());
+            appSql.append(" and custG.last_call_status = ? ");
         }
         if (StringUtil.isNotEmpty(param.getIntentLevel())) {
-            appSql.append(" and custG.intent_level = '" + param.getIntentLevel() + "'");
+            p.add(param.getIntentLevel());
+            appSql.append(" and custG.intent_level = ? ");
         }
         if (param.getCalledDuration() != null) {
             if (param.getCalledDuration() == 1) {
@@ -1493,18 +1571,20 @@ public class CustomerSeaService {
                     } else {
                         likeValue = "%\"" + labelId + "\":\"" + optionValue + "\"%";
                     }
-                    appSql.append(" AND custG.super_data LIKE '" + likeValue + "' ");
+                    p.add(likeValue);
+                    appSql.append(" AND custG.super_data LIKE ? ");
                 }
             }
         }
         // 跟进状态处理
         if (StringUtil.isNotEmpty(param.getFollowStatus()) && StringUtil.isNotEmpty(param.getFollowValue())) {
             String likeValue = "%\"" + param.getFollowStatus() + "\":\"" + param.getFollowValue() + "\"%";
-            appSql.append(" AND custG.super_data LIKE '" + likeValue + "' ");
+            appSql.append(" AND custG.super_data LIKE ? ");
+            p.add(likeValue);
         }
         // 保存转交记录
-        customerSeaDao.executeUpdateSQL(logSql.toString() + appSql.toString(), new Timestamp(System.currentTimeMillis()), param.getBackReason(), param.getBackRemark());
-        int status = customerSeaDao.executeUpdateSQL(sql.toString() + appSql.toString());
+        customerSeaDao.executeUpdateSQL(logSql.toString() + appSql.toString(), new Timestamp(System.currentTimeMillis()), param.getBackReason(), param.getBackRemark(), p.toArray());
+        int status = customerSeaDao.executeUpdateSQL(sql.toString() + appSql.toString(), p.toArray());
         return status;
     }
 
@@ -1528,12 +1608,14 @@ public class CustomerSeaService {
                 .append(" SELECT ").append(userId).append(" ,id,").append(seaId).append(",batch_id,").append(7).append(", user_id ,'").append(new Timestamp(System.currentTimeMillis())).append("'").append(" ,? ,? ")
                 .append(" FROM ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(seaId).append(" WHERE status = 0  AND id IN (").append(SqlAppendUtil.sqlAppendWhereIn(superIds)).append(")");
         //员工只能处理负责人为自己的数据
+        List<Object> p = new ArrayList<>();
         if ("2".equals(userType)) {
-            sql.append(" AND user_id = ").append(userId);
-            logSql.append(" AND user_id = ").append(userId);
+            p.add(userId);
+            sql.append(" AND user_id = ? ");
+            logSql.append(" AND user_id = ? ");
         }
-        customerSeaDao.executeUpdateSQL(logSql.toString(), reason, remark);
-        int status = customerSeaDao.executeUpdateSQL(sql.toString());
+        customerSeaDao.executeUpdateSQL(logSql.toString(), reason, remark, p.toArray());
+        int status = customerSeaDao.executeUpdateSQL(sql.toString(), p.toArray());
         return status;
     }
 
@@ -1554,52 +1636,72 @@ public class CustomerSeaService {
                 .append(" SELECT ").append(param.getUserId()).append(" ,id,").append(param.getSeaId()).append(",batch_id,").append(7).append(", user_id ,").append(new Timestamp(System.currentTimeMillis())).append(" ,?,? ")
                 .append(" FROM ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(param.getSeaId()).append(" WHERE status = 0 ");
         StringBuilder appSql = new StringBuilder();
+        List<Object> p = new ArrayList<>();
         //员工只能处理负责人为自己的数据
         if ("2".equals(param.getUserType())) {
-            appSql.append(" AND custG.user_id = ").append(param.getUserId());
+            p.add(param.getUserId());
+            appSql.append(" AND custG.user_id = ? ");
         }
         if (StringUtil.isNotEmpty(param.getSuperId())) {
-            appSql.append(" and custG.id = '" + param.getSuperId() + "'");
+            p.add(param.getSuperId());
+            appSql.append(" and custG.id = ? ");
         }
         if (StringUtil.isNotEmpty(param.getSuperName())) {
-            appSql.append(" and custG.super_name = '%" + param.getSuperName() + "%'");
+            p.add("%" + param.getSuperName() + "%");
+            appSql.append(" and custG.super_name LIKE ? ");
         }
         if (StringUtil.isNotEmpty(param.getSuperPhone())) {
-            appSql.append(" and custG.super_phone = '" + param.getSuperPhone() + "'");
+            p.add(param.getSuperPhone());
+            appSql.append(" and custG.super_phone = ? ");
         }
         if (StringUtil.isNotEmpty(param.getSuperTelphone())) {
-            appSql.append(" and custG.super_telphone = '" + param.getSuperTelphone() + "'");
+            p.add(param.getSuperTelphone());
+            appSql.append(" and custG.super_telphone = ? ");
         }
         if (StringUtil.isNotEmpty(param.getLastUserName())) {
-            appSql.append(" and custG.pre_user_id IN(SELECT id from t_customer_user WHERE AND cust_id = '" + param.getCustId() + "' realname LIKE '%" + param.getLastUserName() + "%') ");
+            p.add(param.getCustId());
+            p.add("%" + param.getLastUserName() + "%");
+            appSql.append(" and custG.pre_user_id IN(SELECT id from t_customer_user WHERE  cust_id = ? AND realname LIKE ? ) ");
         }
         if (param.getDataSource() != null) {
-            appSql.append(" and custG.data_source =" + param.getDataSource());
+            p.add(param.getDataSource());
+            appSql.append(" and custG.data_source = ? ");
         }
         if (StringUtil.isNotEmpty(param.getBatchId())) {
-            appSql.append(" and custG.batch_id =" + param.getBatchId());
+            p.add(param.getBatchId());
+            appSql.append(" and custG.batch_id = ? ");
         }
         if (StringUtil.isNotEmpty(param.getAddStartTime()) && StringUtil.isNotEmpty(param.getAddEndTime())) {
-            appSql.append(" and custG.create_time BETWEEN " + param.getAddStartTime() + " AND " + param.getAddEndTime());
+            p.add(param.getAddStartTime());
+            p.add(param.getAddEndTime());
+            appSql.append(" and custG.create_time BETWEEN ? AND ? ");
         } else if (StringUtil.isNotEmpty(param.getAddStartTime())) {
-            appSql.append(" and custG.create_time >= " + param.getAddStartTime());
+            p.add(param.getAddStartTime());
+            appSql.append(" and custG.create_time >= ? ");
         } else if (StringUtil.isNotEmpty(param.getAddEndTime())) {
-            appSql.append(" and custG.create_time <= " + param.getAddEndTime());
+            p.add(param.getAddEndTime());
+            appSql.append(" and custG.create_time <= ? ");
         }
 
         if (StringUtil.isNotEmpty(param.getCallStartTime()) && StringUtil.isNotEmpty(param.getCallEndTime())) {
-            appSql.append(" and custG.last_call_time BETWEEN " + param.getCallStartTime() + " AND " + param.getCallEndTime());
+            p.add(param.getCallStartTime());
+            p.add(param.getCallEndTime());
+            appSql.append(" and custG.last_call_time BETWEEN ? AND ? ");
         } else if (StringUtil.isNotEmpty(param.getCallStartTime())) {
-            appSql.append(" and custG.last_call_time >= " + param.getCallStartTime());
+            p.add(param.getCallStartTime());
+            appSql.append(" and custG.last_call_time >= ? ");
         } else if (StringUtil.isNotEmpty(param.getCallEndTime())) {
-            appSql.append(" and custG.last_call_time <= " + param.getCallEndTime());
+            p.add(param.getCallEndTime());
+            appSql.append(" and custG.last_call_time <= ? ");
         }
 
         if (StringUtil.isNotEmpty(param.getLastCallResult())) {
-            appSql.append(" and custG.last_call_status = '" + param.getLastCallResult() + "'");
+            p.add(param.getLastCallResult());
+            appSql.append(" and custG.last_call_status = ? ");
         }
         if (StringUtil.isNotEmpty(param.getIntentLevel())) {
-            appSql.append(" and custG.intent_level = '" + param.getIntentLevel() + "'");
+            p.add(param.getIntentLevel());
+            appSql.append(" and custG.intent_level = ? ");
         }
         if (param.getCalledDuration() != null) {
             if (param.getCalledDuration() == 1) {
@@ -1634,18 +1736,20 @@ public class CustomerSeaService {
                     } else {
                         likeValue = "%\"" + labelId + "\":\"" + optionValue + "\"%";
                     }
-                    appSql.append(" AND custG.super_data LIKE '" + likeValue + "' ");
+                    appSql.append(" AND custG.super_data LIKE ? ");
+                    p.add(likeValue);
                 }
             }
         }
         // 跟进状态处理
         if (StringUtil.isNotEmpty(param.getFollowStatus()) && StringUtil.isNotEmpty(param.getFollowValue())) {
             String likeValue = "%\"" + param.getFollowStatus() + "\":\"" + param.getFollowValue() + "\"%";
-            appSql.append(" AND custG.super_data LIKE '" + likeValue + "' ");
+            appSql.append(" AND custG.super_data LIKE ? ");
+            p.add(likeValue);
         }
         // 保存转交记录
-        customerSeaDao.executeUpdateSQL(logSql.toString() + appSql.toString(), param.getBackReason(), param.getBackRemark());
-        int status = customerSeaDao.executeUpdateSQL(sql.toString() + appSql.toString());
+        customerSeaDao.executeUpdateSQL(logSql.toString() + appSql.toString(), param.getBackReason(), param.getBackRemark(), p.toArray());
+        int status = customerSeaDao.executeUpdateSQL(sql.toString() + appSql.toString(), p.toArray());
         return status;
     }
 
@@ -1670,12 +1774,14 @@ public class CustomerSeaService {
                 .append(" SELECT ").append(fromUserId).append(" ,id,").append(seaId).append(",batch_id,").append(6).append(", ? ,'").append(new Timestamp(System.currentTimeMillis())).append("'")
                 .append(" FROM ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(seaId).append(" WHERE id IN (").append(SqlAppendUtil.sqlAppendWhereIn(superIds)).append(")");
         //员工只能处理负责人为自己的数据
+        List<Object> p = new ArrayList<>();
         if ("2".equals(userType)) {
-            sql.append(" AND user_id = ").append(fromUserId);
-            logSql.append(" AND user_id = ").append(fromUserId);
+            p.add(fromUserId);
+            sql.append(" AND user_id = ? ");
+            logSql.append(" AND user_id = ? ");
         }
-        customerSeaDao.executeUpdateSQL(logSql.toString(), toUserId);
-        int status = customerSeaDao.executeUpdateSQL(sql.toString(), toUserId);
+        customerSeaDao.executeUpdateSQL(logSql.toString(), toUserId, p.toArray());
+        int status = customerSeaDao.executeUpdateSQL(sql.toString(), toUserId, p.toArray());
         return status;
     }
 
@@ -1697,67 +1803,95 @@ public class CustomerSeaService {
                 .append("' FROM ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(param.getSeaId()).append(" WHERE status = 0 ");
         StringBuilder appSql = new StringBuilder();
         //员工只能处理负责人为自己的数据
+        List<Object> p = new ArrayList<>();
         if ("2".equals(param.getUserType())) {
-            appSql.append(" AND custG.user_id = ").append(param.getUserId());
+            p.add(param.getUserId());
+            appSql.append(" AND custG.user_id = ? ");
         }
         if (StringUtil.isNotEmpty(param.getSuperId())) {
-            appSql.append(" and custG.id = '" + param.getSuperId() + "'");
+            p.add(param.getSuperId());
+            appSql.append(" and custG.id = ? ");
         }
         if (StringUtil.isNotEmpty(param.getSuperName())) {
-            appSql.append(" and custG.super_name = '%" + param.getSuperName() + "%'");
+            p.add("%" + param.getSuperName() + "%");
+            appSql.append(" and custG.super_name LIKE ? ");
         }
         if (StringUtil.isNotEmpty(param.getSuperPhone())) {
-            appSql.append(" and custG.super_phone = '" + param.getSuperPhone() + "'");
+            p.add(param.getSuperPhone());
+            appSql.append(" and custG.super_phone = ? ");
         }
         if (StringUtil.isNotEmpty(param.getSuperTelphone())) {
-            appSql.append(" and custG.super_telphone = '" + param.getSuperTelphone() + "'");
+            p.add(param.getSuperTelphone());
+            appSql.append(" and custG.super_telphone = ? ");
         }
         if (StringUtil.isNotEmpty(param.getLastUserName())) {
-            appSql.append(" and custG.pre_user_id IN(SELECT id from t_customer_user WHERE AND cust_id = '" + param.getCustId() + "' realname LIKE '%" + param.getLastUserName() + "%') ");
+            p.add(param.getCustId());
+            p.add("%" + param.getLastUserName() + "%");
+            appSql.append(" and custG.pre_user_id IN(SELECT id from t_customer_user WHERE cust_id = ? AND realname LIKE ? ) ");
         }
         if (param.getDataSource() != null) {
-            appSql.append(" and custG.data_source =" + param.getDataSource());
+            p.add(param.getDataSource());
+            appSql.append(" and custG.data_source = ? ");
         }
         if (StringUtil.isNotEmpty(param.getBatchId())) {
-            appSql.append(" and custG.batch_id =" + param.getBatchId());
+            p.add(param.getBatchId());
+            appSql.append(" and custG.batch_id =? ");
         }
         if (StringUtil.isNotEmpty(param.getAddStartTime()) && StringUtil.isNotEmpty(param.getAddEndTime())) {
-            appSql.append(" and custG.create_time BETWEEN " + param.getAddStartTime() + " AND " + param.getAddEndTime());
+            p.add(param.getAddStartTime());
+            p.add(param.getAddEndTime());
+            appSql.append(" and custG.create_time BETWEEN ? AND ? ");
         } else if (StringUtil.isNotEmpty(param.getAddStartTime())) {
-            appSql.append(" and custG.create_time >= " + param.getAddStartTime());
+            p.add(param.getAddStartTime());
+            appSql.append(" and custG.create_time >= ? ");
         } else if (StringUtil.isNotEmpty(param.getAddEndTime())) {
-            appSql.append(" and custG.create_time <= " + param.getAddEndTime());
+            p.add(param.getAddEndTime());
+            appSql.append(" and custG.create_time <= ? ");
         }
 
         if (StringUtil.isNotEmpty(param.getCallStartTime()) && StringUtil.isNotEmpty(param.getCallEndTime())) {
-            appSql.append(" and custG.last_call_time BETWEEN " + param.getCallStartTime() + " AND " + param.getCallEndTime());
+            p.add(param.getCallStartTime());
+            p.add(param.getCallEndTime());
+            appSql.append(" and custG.last_call_time BETWEEN ? AND ? ");
         } else if (StringUtil.isNotEmpty(param.getCallStartTime())) {
-            appSql.append(" and custG.last_call_time >= " + param.getCallStartTime());
+            appSql.append(" and custG.last_call_time >= ?");
+            p.add(param.getCallStartTime());
         } else if (StringUtil.isNotEmpty(param.getCallEndTime())) {
-            appSql.append(" and custG.last_call_time <= " + param.getCallEndTime());
+            appSql.append(" and custG.last_call_time <= ?");
+            p.add(param.getCallEndTime());
         }
 
         if (StringUtil.isNotEmpty(param.getUserGetStartTime()) && StringUtil.isNotEmpty(param.getUserGetEndTime())) {
-            appSql.append(" and custG.user_get_time BETWEEN " + param.getUserGetStartTime() + " AND " + param.getUserGetEndTime());
+            p.add(param.getUserGetStartTime());
+            p.add(param.getUserGetEndTime());
+            appSql.append(" and custG.user_get_time BETWEEN ? AND ? ");
         } else if (StringUtil.isNotEmpty(param.getUserGetStartTime())) {
-            appSql.append(" and custG.user_get_time >= " + param.getUserGetStartTime());
+            p.add(param.getUserGetStartTime());
+            appSql.append(" and custG.user_get_time >= ? ");
         } else if (StringUtil.isNotEmpty(param.getUserGetEndTime())) {
-            appSql.append(" and custG.user_get_time <= " + param.getUserGetEndTime());
+            p.add(param.getUserGetEndTime());
+            appSql.append(" and custG.user_get_time <= ? ");
         }
 
         if (StringUtil.isNotEmpty(param.getLastMarkStartTime()) && StringUtil.isNotEmpty(param.getLastMarkEndTime())) {
-            appSql.append(" and custG.last_mark_time BETWEEN " + param.getLastMarkStartTime() + " AND " + param.getLastMarkEndTime());
+            p.add(param.getLastMarkStartTime());
+            p.add(param.getLastMarkEndTime());
+            appSql.append(" and custG.last_mark_time BETWEEN ? AND ? ");
         } else if (StringUtil.isNotEmpty(param.getLastMarkStartTime())) {
-            appSql.append(" and custG.last_mark_time >= " + param.getLastMarkStartTime());
+            p.add(param.getLastMarkStartTime());
+            appSql.append(" and custG.last_mark_time >= ?");
         } else if (StringUtil.isNotEmpty(param.getLastMarkEndTime())) {
-            appSql.append(" and custG.last_mark_time <= " + param.getLastMarkEndTime());
+            p.add(param.getLastMarkEndTime());
+            appSql.append(" and custG.last_mark_time <=? ");
         }
 
         if (StringUtil.isNotEmpty(param.getLastCallResult())) {
-            appSql.append(" and custG.last_call_status = '" + param.getLastCallResult() + "'");
+            p.add(param.getLastCallResult());
+            appSql.append(" and custG.last_call_status = ? ");
         }
         if (StringUtil.isNotEmpty(param.getIntentLevel())) {
-            appSql.append(" and custG.intent_level = '" + param.getIntentLevel() + "'");
+            p.add(param.getIntentLevel());
+            appSql.append(" and custG.intent_level = ?  ");
         }
         if (param.getCalledDuration() != null) {
             if (param.getCalledDuration() == 1) {
@@ -1775,10 +1909,12 @@ public class CustomerSeaService {
             }
         }
         if (param.getCallCount() != null) {
-            appSql.append(" and custG.call_count = '" + param.getCallCount() + "'");
+            p.add(param.getCallCount());
+            appSql.append(" and custG.call_count = ? ");
         }
         if (param.getCallSuccessCount() != null) {
-            appSql.append(" and custG.call_success_count = '" + param.getCallSuccessCount() + "'");
+            p.add(param.getCallSuccessCount());
+            appSql.append(" and custG.call_success_count = ? ");
         }
         // 查询所有自建属性
         Map<String, CustomerLabel> cacheLabel = labelService.getCacheCustomAndSystemLabel(param.getCustId());
@@ -1798,18 +1934,20 @@ public class CustomerSeaService {
                     } else {
                         likeValue = "%\"" + labelId + "\":\"" + optionValue + "\"%";
                     }
-                    appSql.append(" AND custG.super_data LIKE '" + likeValue + "' ");
+                    p.add(likeValue);
+                    appSql.append(" AND custG.super_data LIKE ? ");
                 }
             }
         }
         // 跟进状态处理
         if (StringUtil.isNotEmpty(param.getFollowStatus()) && StringUtil.isNotEmpty(param.getFollowValue())) {
             String likeValue = "%\"" + param.getFollowStatus() + "\":\"" + param.getFollowValue() + "\"%";
-            appSql.append(" AND custG.super_data LIKE '" + likeValue + "' ");
+            p.add(likeValue);
+            appSql.append(" AND custG.super_data LIKE ? ");
         }
         // 保存转交记录
-        customerSeaDao.executeUpdateSQL(logSql.toString() + appSql.toString(), param.getClueToUserId());
-        int status = customerSeaDao.executeUpdateSQL(sql.toString() + appSql.toString(), param.getClueToUserId());
+        customerSeaDao.executeUpdateSQL(logSql.toString() + appSql.toString(), param.getClueToUserId(), p.toArray());
+        int status = customerSeaDao.executeUpdateSQL(sql.toString() + appSql.toString(), param.getClueToUserId(), p.toArray());
         return status;
     }
 
@@ -1866,10 +2004,12 @@ public class CustomerSeaService {
                 .append(" SELECT id,batch_id,super_data FROM ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(seaId)
                 .append(" WHERE id IN (").append(SqlAppendUtil.sqlAppendWhereIn(superIds)).append(")");
         //员工只能处理负责人为自己的数据
+        List<Object> p = new ArrayList<>();
         if ("2".equals(userType)) {
-            sql.append(" AND user_id = ").append(userId);
+            sql.append(" AND user_id = ? ");
+            p.add(userId);
         }
-        List<Map<String, Object>> list = customerSeaDao.sqlQuery(sql.toString());
+        List<Map<String, Object>> list = customerSeaDao.sqlQuery(sql.toString(), p.toArray());
         int status = batchClueFollowStatus(userId, labelId, labelOption, seaId, list);
         return status;
     }
@@ -1886,52 +2026,95 @@ public class CustomerSeaService {
                 .append(" SELECT id,batch_id,super_data FROM ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(param.getSeaId())
                 .append(" WHERE 1=1 ");
         StringBuilder appSql = new StringBuilder();
-        //员工只能处理负责人为自己的数据
+        List<Object> p = new ArrayList<>();
         if ("2".equals(param.getUserType())) {
-            appSql.append(" AND custG.user_id = ").append(param.getUserId());
+            p.add(param.getUserId());
+            appSql.append(" AND custG.user_id = ? ");
         }
         if (StringUtil.isNotEmpty(param.getSuperId())) {
-            appSql.append(" and custG.id = '" + param.getSuperId() + "'");
+            p.add(param.getSuperId());
+            appSql.append(" and custG.id = ? ");
         }
         if (StringUtil.isNotEmpty(param.getSuperName())) {
-            appSql.append(" and custG.super_name = '%" + param.getSuperName() + "%'");
+            p.add("%" + param.getSuperName() + "%");
+            appSql.append(" and custG.super_name LIKE ? ");
         }
         if (StringUtil.isNotEmpty(param.getSuperPhone())) {
-            appSql.append(" and custG.super_phone = '" + param.getSuperPhone() + "'");
+            p.add(param.getSuperPhone());
+            appSql.append(" and custG.super_phone = ? ");
         }
         if (StringUtil.isNotEmpty(param.getSuperTelphone())) {
-            appSql.append(" and custG.super_telphone = '" + param.getSuperTelphone() + "'");
+            p.add(param.getSuperTelphone());
+            appSql.append(" and custG.super_telphone = ? ");
         }
         if (StringUtil.isNotEmpty(param.getLastUserName())) {
-            appSql.append(" and custG.pre_user_id IN(SELECT id from t_customer_user WHERE AND cust_id = '" + param.getCustId() + "' realname LIKE '%" + param.getLastUserName() + "%') ");
+            p.add(param.getCustId());
+            p.add("%" + param.getLastUserName() + "%");
+            appSql.append(" and custG.pre_user_id IN(SELECT id from t_customer_user WHERE cust_id = ? AND realname LIKE ? ) ");
         }
         if (param.getDataSource() != null) {
-            appSql.append(" and custG.data_source =" + param.getDataSource());
+            p.add(param.getDataSource());
+            appSql.append(" and custG.data_source = ? ");
         }
         if (StringUtil.isNotEmpty(param.getBatchId())) {
-            appSql.append(" and custG.batch_id =" + param.getBatchId());
+            p.add(param.getBatchId());
+            appSql.append(" and custG.batch_id =? ");
         }
         if (StringUtil.isNotEmpty(param.getAddStartTime()) && StringUtil.isNotEmpty(param.getAddEndTime())) {
-            appSql.append(" and custG.create_time BETWEEN " + param.getAddStartTime() + " AND " + param.getAddEndTime());
+            p.add(param.getAddStartTime());
+            p.add(param.getAddEndTime());
+            appSql.append(" and custG.create_time BETWEEN ? AND ? ");
         } else if (StringUtil.isNotEmpty(param.getAddStartTime())) {
-            appSql.append(" and custG.create_time >= " + param.getAddStartTime());
+            p.add(param.getAddStartTime());
+            appSql.append(" and custG.create_time >= ? ");
         } else if (StringUtil.isNotEmpty(param.getAddEndTime())) {
-            appSql.append(" and custG.create_time <= " + param.getAddEndTime());
+            p.add(param.getAddEndTime());
+            appSql.append(" and custG.create_time <= ? ");
         }
 
         if (StringUtil.isNotEmpty(param.getCallStartTime()) && StringUtil.isNotEmpty(param.getCallEndTime())) {
-            appSql.append(" and custG.last_call_time BETWEEN " + param.getCallStartTime() + " AND " + param.getCallEndTime());
+            p.add(param.getCallStartTime());
+            p.add(param.getCallEndTime());
+            appSql.append(" and custG.last_call_time BETWEEN ? AND ? ");
         } else if (StringUtil.isNotEmpty(param.getCallStartTime())) {
-            appSql.append(" and custG.last_call_time >= " + param.getCallStartTime());
+            appSql.append(" and custG.last_call_time >= ?");
+            p.add(param.getCallStartTime());
         } else if (StringUtil.isNotEmpty(param.getCallEndTime())) {
-            appSql.append(" and custG.last_call_time <= " + param.getCallEndTime());
+            appSql.append(" and custG.last_call_time <= ?");
+            p.add(param.getCallEndTime());
+        }
+
+        if (StringUtil.isNotEmpty(param.getUserGetStartTime()) && StringUtil.isNotEmpty(param.getUserGetEndTime())) {
+            p.add(param.getUserGetStartTime());
+            p.add(param.getUserGetEndTime());
+            appSql.append(" and custG.user_get_time BETWEEN ? AND ? ");
+        } else if (StringUtil.isNotEmpty(param.getUserGetStartTime())) {
+            p.add(param.getUserGetStartTime());
+            appSql.append(" and custG.user_get_time >= ? ");
+        } else if (StringUtil.isNotEmpty(param.getUserGetEndTime())) {
+            p.add(param.getUserGetEndTime());
+            appSql.append(" and custG.user_get_time <= ? ");
+        }
+
+        if (StringUtil.isNotEmpty(param.getLastMarkStartTime()) && StringUtil.isNotEmpty(param.getLastMarkEndTime())) {
+            p.add(param.getLastMarkStartTime());
+            p.add(param.getLastMarkEndTime());
+            appSql.append(" and custG.last_mark_time BETWEEN ? AND ? ");
+        } else if (StringUtil.isNotEmpty(param.getLastMarkStartTime())) {
+            p.add(param.getLastMarkStartTime());
+            appSql.append(" and custG.last_mark_time >= ?");
+        } else if (StringUtil.isNotEmpty(param.getLastMarkEndTime())) {
+            p.add(param.getLastMarkEndTime());
+            appSql.append(" and custG.last_mark_time <=? ");
         }
 
         if (StringUtil.isNotEmpty(param.getLastCallResult())) {
-            appSql.append(" and custG.last_call_status = '" + param.getLastCallResult() + "'");
+            p.add(param.getLastCallResult());
+            appSql.append(" and custG.last_call_status = ? ");
         }
         if (StringUtil.isNotEmpty(param.getIntentLevel())) {
-            appSql.append(" and custG.intent_level = '" + param.getIntentLevel() + "'");
+            p.add(param.getIntentLevel());
+            appSql.append(" and custG.intent_level = ?  ");
         }
         if (param.getCalledDuration() != null) {
             if (param.getCalledDuration() == 1) {
@@ -1949,10 +2132,12 @@ public class CustomerSeaService {
             }
         }
         if (param.getCallCount() != null) {
-            appSql.append(" and custG.call_count = '" + param.getCallCount() + "'");
+            p.add(param.getCallCount());
+            appSql.append(" and custG.call_count = ? ");
         }
         if (param.getCallSuccessCount() != null) {
-            appSql.append(" and custG.call_success_count = '" + param.getCallSuccessCount() + "'");
+            p.add(param.getCallSuccessCount());
+            appSql.append(" and custG.call_success_count = ? ");
         }
         // 查询所有自建属性
         Map<String, CustomerLabel> cacheLabel = labelService.getCacheCustomAndSystemLabel(param.getCustId());
@@ -1972,22 +2157,24 @@ public class CustomerSeaService {
                     } else {
                         likeValue = "%\"" + labelId + "\":\"" + optionValue + "\"%";
                     }
-                    appSql.append(" AND custG.super_data LIKE '" + likeValue + "' ");
+                    p.add(likeValue);
+                    appSql.append(" AND custG.super_data LIKE ? ");
                 }
             }
         }
         // 跟进状态处理
         if (StringUtil.isNotEmpty(param.getFollowStatus()) && StringUtil.isNotEmpty(param.getFollowValue())) {
             String likeValue = "%\"" + param.getFollowStatus() + "\":\"" + param.getFollowValue() + "\"%";
-            appSql.append(" AND custG.super_data LIKE '" + likeValue + "' ");
+            p.add(likeValue);
+            appSql.append(" AND custG.super_data LIKE ? ");
         }
         // 分批处理
-        Page page = customerSeaDao.sqlPageQuery0(sql.toString(), 0, 1);
+        Page page = customerSeaDao.sqlPageQuery0(sql.toString(), 0, 1, p.toArray());
         int status = page.getTotal();
         int size = 5000;
         LOG.info("开始批量更改跟进状态时间:" + LocalDateTime.now());
         for (int i = 0; i <= page.getTotal(); ) {
-            page = customerSeaDao.sqlPageQueryByPageSize(sql.toString(), i, size);
+            page = customerSeaDao.sqlPageQueryByPageSize(sql.toString(), i, size, p.toArray());
             if (page.getData() == null || page.getData().size() == 0) {
                 break;
             }
@@ -2134,14 +2321,15 @@ public class CustomerSeaService {
                 .append("UPDATE ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(seaId)
                 //.append(" SET status = 0, user_id = ?, user_get_time = ? WHERE status = 1 AND id IN (").append(SqlAppendUtil.sqlAppendWhereIn(tempList)).append(")");
                 .append(" SET status = 0, user_id = ?, user_get_time = ? WHERE id IN (").append(SqlAppendUtil.sqlAppendWhereIn(tempList)).append(")");
-
+        List<Object> p = new ArrayList<>();
         if (limit && quantity >= 0) {
-            sql.append(" LIMIT ").append(quantity);
-            logSql.append(" LIMIT ").append(quantity);
+            p.add(quantity);
+            sql.append(" LIMIT ? ");
+            logSql.append(" LIMIT ? ");
         }
         // 保存转交记录
-        customerSeaDao.executeUpdateSQL(logSql.toString());
-        return customerSeaDao.executeUpdateSQL(sql.toString(), userId, new Timestamp(System.currentTimeMillis()));
+        customerSeaDao.executeUpdateSQL(logSql.toString(), p.toArray());
+        return customerSeaDao.executeUpdateSQL(sql.toString(), userId, new Timestamp(System.currentTimeMillis()), p.toArray());
     }
 
     /**
@@ -2156,63 +2344,118 @@ public class CustomerSeaService {
                 .append("UPDATE ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(param.getSeaId())
                 .append(" custG SET custG.status = 0, user_id = ?, user_get_time = ?  WHERE custG.status = 1 ");
         StringBuilder appSql = new StringBuilder();
+        List<Object> p = new ArrayList<>();
+        if ("2".equals(param.getUserType())) {
+            p.add(param.getUserId());
+            appSql.append(" AND custG.user_id = ? ");
+        }
         if (StringUtil.isNotEmpty(param.getSuperId())) {
-            appSql.append(" and custG.id = '" + param.getSuperId() + "'");
+            p.add(param.getSuperId());
+            appSql.append(" and custG.id = ? ");
         }
         if (StringUtil.isNotEmpty(param.getSuperName())) {
-            appSql.append(" and custG.super_name = '%" + param.getSuperName() + "%'");
+            p.add("%" + param.getSuperName() + "%");
+            appSql.append(" and custG.super_name LIKE ? ");
         }
         if (StringUtil.isNotEmpty(param.getSuperPhone())) {
-            appSql.append(" and custG.super_phone = '" + param.getSuperPhone() + "'");
+            p.add(param.getSuperPhone());
+            appSql.append(" and custG.super_phone = ? ");
         }
         if (StringUtil.isNotEmpty(param.getSuperTelphone())) {
-            appSql.append(" and custG.super_telphone = '" + param.getSuperTelphone() + "'");
+            p.add(param.getSuperTelphone());
+            appSql.append(" and custG.super_telphone = ? ");
         }
         if (StringUtil.isNotEmpty(param.getLastUserName())) {
-            appSql.append(" and custG.pre_user_id IN(SELECT id from t_customer_user WHERE AND cust_id = '" + param.getCustId() + "' realname LIKE '%" + param.getLastUserName() + "%') ");
+            p.add(param.getCustId());
+            p.add("%" + param.getLastUserName() + "%");
+            appSql.append(" and custG.pre_user_id IN(SELECT id from t_customer_user WHERE cust_id = ? AND realname LIKE ? ) ");
         }
         if (param.getDataSource() != null) {
-            appSql.append(" and custG.data_source =" + param.getDataSource());
+            p.add(param.getDataSource());
+            appSql.append(" and custG.data_source = ? ");
         }
         if (StringUtil.isNotEmpty(param.getBatchId())) {
-            appSql.append(" and custG.batch_id =" + param.getBatchId());
+            p.add(param.getBatchId());
+            appSql.append(" and custG.batch_id =? ");
         }
         if (StringUtil.isNotEmpty(param.getAddStartTime()) && StringUtil.isNotEmpty(param.getAddEndTime())) {
-            appSql.append(" and custG.create_time BETWEEN " + param.getAddStartTime() + " AND " + param.getAddEndTime());
+            p.add(param.getAddStartTime());
+            p.add(param.getAddEndTime());
+            appSql.append(" and custG.create_time BETWEEN ? AND ? ");
         } else if (StringUtil.isNotEmpty(param.getAddStartTime())) {
-            appSql.append(" and custG.create_time >= " + param.getAddStartTime());
+            p.add(param.getAddStartTime());
+            appSql.append(" and custG.create_time >= ? ");
         } else if (StringUtil.isNotEmpty(param.getAddEndTime())) {
-            appSql.append(" and custG.create_time <= " + param.getAddEndTime());
+            p.add(param.getAddEndTime());
+            appSql.append(" and custG.create_time <= ? ");
         }
 
         if (StringUtil.isNotEmpty(param.getCallStartTime()) && StringUtil.isNotEmpty(param.getCallEndTime())) {
-            appSql.append(" and custG.last_call_time BETWEEN " + param.getCallStartTime() + " AND " + param.getCallEndTime());
+            p.add(param.getCallStartTime());
+            p.add(param.getCallEndTime());
+            appSql.append(" and custG.last_call_time BETWEEN ? AND ? ");
         } else if (StringUtil.isNotEmpty(param.getCallStartTime())) {
-            appSql.append(" and custG.last_call_time >= " + param.getCallStartTime());
+            appSql.append(" and custG.last_call_time >= ?");
+            p.add(param.getCallStartTime());
         } else if (StringUtil.isNotEmpty(param.getCallEndTime())) {
-            appSql.append(" and custG.last_call_time <= " + param.getCallEndTime());
+            appSql.append(" and custG.last_call_time <= ?");
+            p.add(param.getCallEndTime());
+        }
+
+        if (StringUtil.isNotEmpty(param.getUserGetStartTime()) && StringUtil.isNotEmpty(param.getUserGetEndTime())) {
+            p.add(param.getUserGetStartTime());
+            p.add(param.getUserGetEndTime());
+            appSql.append(" and custG.user_get_time BETWEEN ? AND ? ");
+        } else if (StringUtil.isNotEmpty(param.getUserGetStartTime())) {
+            p.add(param.getUserGetStartTime());
+            appSql.append(" and custG.user_get_time >= ? ");
+        } else if (StringUtil.isNotEmpty(param.getUserGetEndTime())) {
+            p.add(param.getUserGetEndTime());
+            appSql.append(" and custG.user_get_time <= ? ");
+        }
+
+        if (StringUtil.isNotEmpty(param.getLastMarkStartTime()) && StringUtil.isNotEmpty(param.getLastMarkEndTime())) {
+            p.add(param.getLastMarkStartTime());
+            p.add(param.getLastMarkEndTime());
+            appSql.append(" and custG.last_mark_time BETWEEN ? AND ? ");
+        } else if (StringUtil.isNotEmpty(param.getLastMarkStartTime())) {
+            p.add(param.getLastMarkStartTime());
+            appSql.append(" and custG.last_mark_time >= ?");
+        } else if (StringUtil.isNotEmpty(param.getLastMarkEndTime())) {
+            p.add(param.getLastMarkEndTime());
+            appSql.append(" and custG.last_mark_time <=? ");
         }
 
         if (StringUtil.isNotEmpty(param.getLastCallResult())) {
-            appSql.append(" and custG.last_call_status = '" + param.getLastCallResult() + "'");
+            p.add(param.getLastCallResult());
+            appSql.append(" and custG.last_call_status = ? ");
         }
         if (StringUtil.isNotEmpty(param.getIntentLevel())) {
-            appSql.append(" and custG.intent_level = '" + param.getIntentLevel() + "'");
+            p.add(param.getIntentLevel());
+            appSql.append(" and custG.intent_level = ?  ");
         }
         if (param.getCalledDuration() != null) {
             if (param.getCalledDuration() == 1) {
                 appSql.append(" AND custG.last_called_duration<=3");
             } else if (param.getCalledDuration() == 2) {
-                appSql.append(" AND custG.last_called_duration>3 AND voicLog.last_called_duration<=6");
+                appSql.append(" AND custG.last_called_duration>3 AND custG.last_called_duration<=6");
             } else if (param.getCalledDuration() == 3) {
-                appSql.append(" AND custG.last_called_duration>6 AND voicLog.last_called_duration<=12");
+                appSql.append(" AND custG.last_called_duration>6 AND custG.last_called_duration<=12");
             } else if (param.getCalledDuration() == 4) {
-                appSql.append(" AND custG.last_called_duration>12 AND voicLog.last_called_duration<=30");
+                appSql.append(" AND custG.last_called_duration>12 AND custG.last_called_duration<=30");
             } else if (param.getCalledDuration() == 5) {
-                appSql.append(" AND custG.last_called_duration>30 AND voicLog.last_called_duration<=60");
+                appSql.append(" AND custG.last_called_duration>30 AND custG.last_called_duration<=60");
             } else if (param.getCalledDuration() == 6) {
                 appSql.append(" AND custG.last_called_duration>60");
             }
+        }
+        if (param.getCallCount() != null) {
+            p.add(param.getCallCount());
+            appSql.append(" and custG.call_count = ? ");
+        }
+        if (param.getCallSuccessCount() != null) {
+            p.add(param.getCallSuccessCount());
+            appSql.append(" and custG.call_success_count = ? ");
         }
         appSql.append(" LIMIT ? ");
         int count = 0;
@@ -2242,8 +2485,8 @@ public class CustomerSeaService {
                     continue;
                 }
             }
-            customerSeaDao.executeUpdateSQL(logSql.toString() + appSql.toString(), userId, number);
-            count += customerSeaDao.executeUpdateSQL(sql.toString() + appSql.toString(), userId, time, number);
+            customerSeaDao.executeUpdateSQL(logSql.toString() + appSql.toString(), userId, number, p.toArray());
+            count += customerSeaDao.executeUpdateSQL(sql.toString() + appSql.toString(), userId, time, number, p.toArray());
         }
         return count;
     }
@@ -2264,48 +2507,95 @@ public class CustomerSeaService {
                 .append("UPDATE ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(param.getSeaId())
                 .append(" custG SET custG.status = 0, user_id = ?, user_get_time = ?  WHERE custG.status = 1 ");
         StringBuilder appSql = new StringBuilder();
+        List<Object> p = new ArrayList<>();
+        if ("2".equals(param.getUserType())) {
+            p.add(param.getUserId());
+            appSql.append(" AND custG.user_id = ? ");
+        }
         if (StringUtil.isNotEmpty(param.getSuperId())) {
-            appSql.append(" and custG.id = '" + param.getSuperId() + "'");
+            p.add(param.getSuperId());
+            appSql.append(" and custG.id = ? ");
         }
         if (StringUtil.isNotEmpty(param.getSuperName())) {
-            appSql.append(" and custG.super_name = '%" + param.getSuperName() + "%'");
+            p.add("%" + param.getSuperName() + "%");
+            appSql.append(" and custG.super_name LIKE ? ");
         }
         if (StringUtil.isNotEmpty(param.getSuperPhone())) {
-            appSql.append(" and custG.super_phone = '" + param.getSuperPhone() + "'");
+            p.add(param.getSuperPhone());
+            appSql.append(" and custG.super_phone = ? ");
         }
         if (StringUtil.isNotEmpty(param.getSuperTelphone())) {
-            appSql.append(" and custG.super_telphone = '" + param.getSuperTelphone() + "'");
+            p.add(param.getSuperTelphone());
+            appSql.append(" and custG.super_telphone = ? ");
         }
         if (StringUtil.isNotEmpty(param.getLastUserName())) {
-            appSql.append(" and custG.pre_user_id IN(SELECT id from t_customer_user WHERE AND cust_id = '" + param.getCustId() + "' realname LIKE '%" + param.getLastUserName() + "%') ");
+            p.add(param.getCustId());
+            p.add("%" + param.getLastUserName() + "%");
+            appSql.append(" and custG.pre_user_id IN(SELECT id from t_customer_user WHERE cust_id = ? AND realname LIKE ? ) ");
         }
         if (param.getDataSource() != null) {
-            appSql.append(" and custG.data_source =" + param.getDataSource());
+            p.add(param.getDataSource());
+            appSql.append(" and custG.data_source = ? ");
         }
         if (StringUtil.isNotEmpty(param.getBatchId())) {
-            appSql.append(" and custG.batch_id =" + param.getBatchId());
+            p.add(param.getBatchId());
+            appSql.append(" and custG.batch_id =? ");
         }
         if (StringUtil.isNotEmpty(param.getAddStartTime()) && StringUtil.isNotEmpty(param.getAddEndTime())) {
-            appSql.append(" and custG.create_time BETWEEN " + param.getAddStartTime() + " AND " + param.getAddEndTime());
+            p.add(param.getAddStartTime());
+            p.add(param.getAddEndTime());
+            appSql.append(" and custG.create_time BETWEEN ? AND ? ");
         } else if (StringUtil.isNotEmpty(param.getAddStartTime())) {
-            appSql.append(" and custG.create_time >= " + param.getAddStartTime());
+            p.add(param.getAddStartTime());
+            appSql.append(" and custG.create_time >= ? ");
         } else if (StringUtil.isNotEmpty(param.getAddEndTime())) {
-            appSql.append(" and custG.create_time <= " + param.getAddEndTime());
+            p.add(param.getAddEndTime());
+            appSql.append(" and custG.create_time <= ? ");
         }
 
         if (StringUtil.isNotEmpty(param.getCallStartTime()) && StringUtil.isNotEmpty(param.getCallEndTime())) {
-            appSql.append(" and custG.last_call_time BETWEEN " + param.getCallStartTime() + " AND " + param.getCallEndTime());
+            p.add(param.getCallStartTime());
+            p.add(param.getCallEndTime());
+            appSql.append(" and custG.last_call_time BETWEEN ? AND ? ");
         } else if (StringUtil.isNotEmpty(param.getCallStartTime())) {
-            appSql.append(" and custG.last_call_time >= " + param.getCallStartTime());
+            appSql.append(" and custG.last_call_time >= ?");
+            p.add(param.getCallStartTime());
         } else if (StringUtil.isNotEmpty(param.getCallEndTime())) {
-            appSql.append(" and custG.last_call_time <= " + param.getCallEndTime());
+            appSql.append(" and custG.last_call_time <= ?");
+            p.add(param.getCallEndTime());
+        }
+
+        if (StringUtil.isNotEmpty(param.getUserGetStartTime()) && StringUtil.isNotEmpty(param.getUserGetEndTime())) {
+            p.add(param.getUserGetStartTime());
+            p.add(param.getUserGetEndTime());
+            appSql.append(" and custG.user_get_time BETWEEN ? AND ? ");
+        } else if (StringUtil.isNotEmpty(param.getUserGetStartTime())) {
+            p.add(param.getUserGetStartTime());
+            appSql.append(" and custG.user_get_time >= ? ");
+        } else if (StringUtil.isNotEmpty(param.getUserGetEndTime())) {
+            p.add(param.getUserGetEndTime());
+            appSql.append(" and custG.user_get_time <= ? ");
+        }
+
+        if (StringUtil.isNotEmpty(param.getLastMarkStartTime()) && StringUtil.isNotEmpty(param.getLastMarkEndTime())) {
+            p.add(param.getLastMarkStartTime());
+            p.add(param.getLastMarkEndTime());
+            appSql.append(" and custG.last_mark_time BETWEEN ? AND ? ");
+        } else if (StringUtil.isNotEmpty(param.getLastMarkStartTime())) {
+            p.add(param.getLastMarkStartTime());
+            appSql.append(" and custG.last_mark_time >= ?");
+        } else if (StringUtil.isNotEmpty(param.getLastMarkEndTime())) {
+            p.add(param.getLastMarkEndTime());
+            appSql.append(" and custG.last_mark_time <=? ");
         }
 
         if (StringUtil.isNotEmpty(param.getLastCallResult())) {
-            appSql.append(" and custG.last_call_status = '" + param.getLastCallResult() + "'");
+            p.add(param.getLastCallResult());
+            appSql.append(" and custG.last_call_status = ? ");
         }
         if (StringUtil.isNotEmpty(param.getIntentLevel())) {
-            appSql.append(" and custG.intent_level = '" + param.getIntentLevel() + "'");
+            p.add(param.getIntentLevel());
+            appSql.append(" and custG.intent_level = ?  ");
         }
         if (param.getCalledDuration() != null) {
             if (param.getCalledDuration() == 1) {
@@ -2322,6 +2612,14 @@ public class CustomerSeaService {
                 appSql.append(" AND custG.last_called_duration>60");
             }
         }
+        if (param.getCallCount() != null) {
+            p.add(param.getCallCount());
+            appSql.append(" and custG.call_count = ? ");
+        }
+        if (param.getCallSuccessCount() != null) {
+            p.add(param.getCallSuccessCount());
+            appSql.append(" and custG.call_success_count = ? ");
+        }
         int count = 0;
         long quantity = getUserReceivableQuantity(param.getSeaId(), userId);
         if (quantity == 0) {
@@ -2332,8 +2630,8 @@ public class CustomerSeaService {
         sql.append(appSql);
         logSql.append(appSql);
         // 保存转交记录
-        customerSeaDao.executeUpdateSQL(logSql.toString());
-        count = customerSeaDao.executeUpdateSQL(sql.toString(), userId, new Timestamp(System.currentTimeMillis()));
+        customerSeaDao.executeUpdateSQL(logSql.toString(), p.toArray());
+        count = customerSeaDao.executeUpdateSQL(sql.toString(), userId, new Timestamp(System.currentTimeMillis()), p.toArray());
         return count;
     }
 
@@ -2754,20 +3052,25 @@ public class CustomerSeaService {
         StringBuilder sql = new StringBuilder();
         sql.append(" SELECT user_id,superid,super_data,create_time FROM ")
                 .append(ConstantsUtil.SUPPERDATA_LOG_TABLE_PREFIX).append(yearMonth).append(" WHERE 1=1 ");
+        List<Object> p = new ArrayList<>();
         if (StringUtil.isNotEmpty(superId)) {
-            sql.append(" AND superid = '").append(superId).append("' ");
+            p.add(superId);
+            sql.append(" AND superid = ?  ");
         }
         if (StringUtil.isNotEmpty(seaId)) {
-            sql.append(" AND customer_sea_id = '").append(seaId).append("' ");
+            p.add(superId);
+            sql.append(" AND customer_sea_id = ?  ");
         }
         if (StringUtil.isNotEmpty(customerGroupId)) {
-            sql.append(" AND customer_group_id = '").append(customerGroupId).append("' ");
+            p.add(superId);
+            sql.append(" AND customer_group_id = ? ");
         }
         if (userId > 0) {
-            sql.append(" AND user_id = '").append(userId).append("' ");
+            p.add(userId);
+            sql.append(" AND user_id = ? ");
         }
         sql.append(" ORDER BY create_time DESC ");
-        Page page = customerSeaDao.sqlPageQuery0(sql.toString(), pageNum, pageSize);
+        Page page = customerSeaDao.sqlPageQuery0(sql.toString(), pageNum, pageSize, p.toArray());
         if (page.getData() != null && page.getData().size() > 0) {
             Map<Object, Object> labelName = customerLabelService.getCustomAndSystemLabel(custId);
             LOG.info("labelName" + labelName);
@@ -3240,68 +3543,108 @@ public class CustomerSeaService {
         sb.append(" custG.call_success_count, custG.call_fail_count, custG.sms_success_count ,custG.super_data -> '$.SYS014 ' as custType");
         sb.append("  from " + ConstantsUtil.SEA_TABLE_PREFIX + param.getSeaId() + " custG ");
         sb.append(" where 1=1 ");
+        List<Object> p = new ArrayList<>();
+        if ("2".equals(param.getUserType())) {
+            p.add(param.getUserId());
+            sb.append(" AND custG.user_id = ? ");
+        }
         if (StringUtil.isNotEmpty(param.getSuperId())) {
-            sb.append(" and custG.id = '" + param.getSuperId() + "'");
+            p.add(param.getSuperId());
+            sb.append(" and custG.id = ? ");
         }
         if (StringUtil.isNotEmpty(param.getSuperName())) {
-            sb.append(" and custG.super_name LIKE '%" + param.getSuperName() + "%'");
+            p.add("%" + param.getSuperName() + "%");
+            sb.append(" and custG.super_name LIKE ? ");
         }
         if (StringUtil.isNotEmpty(param.getSuperPhone())) {
-            sb.append(" and custG.super_phone = '" + param.getSuperPhone() + "'");
+            p.add(param.getSuperPhone());
+            sb.append(" and custG.super_phone = ? ");
         }
         if (StringUtil.isNotEmpty(param.getSuperTelphone())) {
-            sb.append(" and custG.super_telphone = '" + param.getSuperTelphone() + "'");
+            p.add(param.getSuperTelphone());
+            sb.append(" and custG.super_telphone = ? ");
         }
         if (StringUtil.isNotEmpty(param.getLastUserName())) {
-            sb.append(" and custG.pre_user_id IN(SELECT id from t_customer_user WHERE AND cust_id = '" + param.getCustId() + "' realname LIKE '%" + param.getLastUserName() + "%') ");
+            p.add(param.getCustId());
+            p.add("%" + param.getLastUserName() + "%");
+            sb.append(" and custG.pre_user_id IN(SELECT id from t_customer_user WHERE cust_id = ? AND realname LIKE ? ) ");
         }
         if (param.getDataSource() != null) {
-            sb.append(" and custG.data_source =" + param.getDataSource());
+            p.add(param.getDataSource());
+            sb.append(" and custG.data_source = ? ");
         }
         if (StringUtil.isNotEmpty(param.getBatchId())) {
-            sb.append(" and custG.batch_id =" + param.getBatchId());
+            p.add(param.getBatchId());
+            sb.append(" and custG.batch_id =? ");
         }
-//        if (StringUtil.isNotEmpty(param.getAddStartTime()) && StringUtil.isNotEmpty(param.getAddEndTime())) {
-//            sb.append(" and custG.create_time BETWEEN '" + param.getAddStartTime() + "' AND '" + param.getAddEndTime() + "'");
-//        } else
         if (StringUtil.isNotEmpty(param.getAddStartTime())) {
-            sb.append(" and custG.create_time >= '" + param.getAddStartTime().replace("/", "-") + "'");
+            p.add(param.getAddStartTime().replace("/", "-"));
+            sb.append(" and custG.create_time >= ? ");
         }
         if (StringUtil.isNotEmpty(param.getAddEndTime())) {
-            sb.append(" and custG.create_time <= '" + param.getAddEndTime().replace("/", "-") + "'");
+            p.add(param.getAddEndTime().replace("/", "-"));
+            sb.append(" and custG.create_time <= ? ");
         }
 
-//        if (StringUtil.isNotEmpty(param.getCallStartTime()) && StringUtil.isNotEmpty(param.getCallEndTime())) {
-//            sb.append(" and custG.last_call_time BETWEEN '" + param.getCallStartTime() + "' AND '" + param.getCallEndTime() + "'");
-//        } else
         if (StringUtil.isNotEmpty(param.getCallStartTime())) {
-            sb.append(" and custG.last_call_time >= '" + param.getCallStartTime() + "'");
+            sb.append(" and custG.last_call_time >= ?");
+            p.add(param.getCallStartTime().replace("/", "-"));
         }
         if (StringUtil.isNotEmpty(param.getCallEndTime())) {
-            sb.append(" and custG.last_call_time <= '" + param.getCallEndTime() + "'");
+            sb.append(" and custG.last_call_time <= ?");
+            p.add(param.getCallEndTime().replace("/", "-"));
+        }
+
+        if (StringUtil.isNotEmpty(param.getUserGetStartTime())) {
+            p.add(param.getUserGetStartTime().replace("/", "-"));
+            sb.append(" and custG.user_get_time >= ? ");
+        }
+        if (StringUtil.isNotEmpty(param.getUserGetEndTime())) {
+            p.add(param.getUserGetEndTime().replace("/", "-"));
+            sb.append(" and custG.user_get_time <= ? ");
+        }
+
+        if (StringUtil.isNotEmpty(param.getLastMarkStartTime())) {
+            p.add(param.getLastMarkStartTime());
+            sb.append(" and custG.last_mark_time >= ?");
+        }
+        if (StringUtil.isNotEmpty(param.getLastMarkEndTime())) {
+            p.add(param.getLastMarkEndTime());
+            sb.append(" and custG.last_mark_time <=? ");
         }
 
         if (StringUtil.isNotEmpty(param.getLastCallResult())) {
-            sb.append(" and custG.last_call_status = '" + param.getLastCallResult() + "'");
+            p.add(param.getLastCallResult());
+            sb.append(" and custG.last_call_status = ? ");
         }
         if (StringUtil.isNotEmpty(param.getIntentLevel())) {
-            sb.append(" and custG.intent_level = '" + param.getIntentLevel() + "'");
+            p.add(param.getIntentLevel());
+            sb.append(" and custG.intent_level = ?  ");
         }
         if (param.getCalledDuration() != null) {
             if (param.getCalledDuration() == 1) {
                 sb.append(" AND custG.last_called_duration<=3");
             } else if (param.getCalledDuration() == 2) {
-                sb.append(" AND custG.last_called_duration>3 AND voicLog.last_called_duration<=6");
+                sb.append(" AND custG.last_called_duration>3 AND custG.last_called_duration<=6");
             } else if (param.getCalledDuration() == 3) {
-                sb.append(" AND custG.last_called_duration>6 AND voicLog.last_called_duration<=12");
+                sb.append(" AND custG.last_called_duration>6 AND custG.last_called_duration<=12");
             } else if (param.getCalledDuration() == 4) {
-                sb.append(" AND custG.last_called_duration>12 AND voicLog.last_called_duration<=30");
+                sb.append(" AND custG.last_called_duration>12 AND custG.last_called_duration<=30");
             } else if (param.getCalledDuration() == 5) {
-                sb.append(" AND custG.last_called_duration>30 AND voicLog.last_called_duration<=60");
+                sb.append(" AND custG.last_called_duration>30 AND custG.last_called_duration<=60");
             } else if (param.getCalledDuration() == 6) {
                 sb.append(" AND custG.last_called_duration>60");
             }
         }
+        if (param.getCallCount() != null) {
+            p.add(param.getCallCount());
+            sb.append(" and custG.call_count = ? ");
+        }
+        if (param.getCallSuccessCount() != null) {
+            p.add(param.getCallSuccessCount());
+            sb.append(" and custG.call_success_count = ? ");
+        }
+
         if ("2".equals(param.getUserType())) {
             // 普通员工只能查看无负责人的线索
             sb.append(" AND custG.user_id IS NULL ");
@@ -3325,27 +3668,31 @@ public class CustomerSeaService {
                     } else {
                         likeValue = "'$." + labelId + "' like " + "'%" + optionValue + "%'";
                     }
-                    sb.append(" AND custG.super_data -> " + likeValue + " ");
+                    sb.append(" AND custG.super_data -> ? ");
+                    p.add(likeValue);
                 }
             }
         }
         if (StringUtil.isNotEmpty(param.getRegCapitalMin()) || StringUtil.isNotEmpty(param.getRegCapitalMax())) {
-            sb.append(" AND custG.super_data -> '$.SYS010' BETWEEN ");
-            sb.append(param.getRegCapitalMin() == null ? 0 : param.getRegCapitalMin());
-            sb.append(" AND ");
-            sb.append(param.getRegCapitalMax() == null ? 0 : param.getRegCapitalMax());
+            sb.append(" AND custG.super_data -> '$.SYS010' BETWEEN ? AND ? ");
+            p.add(param.getRegCapitalMin() == null ? 0 : param.getRegCapitalMin());
+            p.add(param.getRegCapitalMax() == null ? 0 : param.getRegCapitalMax());
         }
         if (StringUtil.isNotEmpty(param.getCreateTime())) {
-            sb.append(" AND custG.super_data -> " + "'$.SYS011' >= " + "'" + param.getCreateTime().replace("/", "-") + "'");
+            p.add(param.getCreateTime().replace("/", "-"));
+            sb.append(" AND custG.super_data -> " + "'$.SYS011' >= ? ");
         }
         if (StringUtil.isNotEmpty(param.getEndTime())) {
-            sb.append(" AND custG.super_data -> " + "'$.SYS011' <= " + "'" + param.getEndTime().replace("/", "-") + "'");
+            p.add(param.getEndTime().replace("/", "-"));
+            sb.append(" AND custG.super_data -> " + "'$.SYS011' <= ? ");
         }
         if (StringUtil.isNotEmpty(param.getRegStatus())) {
-            sb.append(" AND custG.super_data -> " + "'$.SYS012' like " + "'%" + param.getRegStatus() + "%'");
+            p.add("%" + param.getRegStatus() + "%");
+            sb.append(" AND custG.super_data -> " + "'$.SYS012' like ? ");
         }
         if (StringUtil.isNotEmpty(param.getCustName())) {
-            sb.append(" AND custG.super_data -> " + "'$.SYS005' like " + "'%" + param.getCustName() + "%'");
+            p.add("%" + param.getCustName() + "%");
+            sb.append(" AND custG.super_data -> " + "'$.SYS005' like ? ");
         }
         sb.append(" AND custG.status<>2 ");
 //        sb.append(" AND custG.status =1 ");
@@ -3356,9 +3703,9 @@ public class CustomerSeaService {
             sb.append(" AND custG.last_call_status = '1001' ");
         }
         sb.append("GROUP By custType ORDER BY custG.create_time  DESC ");
-        LOG.info("公海sql:"+sb);
+        LOG.info("公海sql:" + sb);
         try {
-            page = customerSeaDao.sqlPageQuery0(sb.toString(), param.getPageNum(), param.getPageSize());
+            page = customerSeaDao.sqlPageQuery0(sb.toString(), param.getPageNum(), param.getPageSize(), p.toArray());
         } catch (Exception e) {
             LOG.error("查询公海线索列表失败,", e);
             return new Page();
@@ -3389,87 +3736,126 @@ public class CustomerSeaService {
         sb.append("  from " + ConstantsUtil.SEA_TABLE_PREFIX + param.getSeaId() + " custG ");
         sb.append(" left join t_customer_user user on custG.user_id = user.id ");
         sb.append(" where 1=1 ");
+
+        List<Object> p = new ArrayList<>();
+        if ("2".equals(param.getUserType())) {
+            p.add(param.getUserId());
+            sb.append(" AND custG.user_id = ? ");
+        }
         if (StringUtil.isNotEmpty(param.getSuperId())) {
-            sb.append(" and custG.id = '" + param.getSuperId() + "'");
+            p.add(param.getSuperId());
+            sb.append(" and custG.id = ? ");
         }
         if (StringUtil.isNotEmpty(param.getSuperName())) {
-            sb.append(" and custG.super_name LIKE '%" + param.getSuperName() + "%'");
+            p.add("%" + param.getSuperName() + "%");
+            sb.append(" and custG.super_name LIKE ? ");
         }
         if (StringUtil.isNotEmpty(param.getSuperPhone())) {
-            sb.append(" and custG.super_phone = '" + param.getSuperPhone() + "'");
+            p.add(param.getSuperPhone());
+            sb.append(" and custG.super_phone = ? ");
         }
         if (StringUtil.isNotEmpty(param.getSuperTelphone())) {
-            sb.append(" and custG.super_telphone = '" + param.getSuperTelphone() + "'");
+            p.add(param.getSuperTelphone());
+            sb.append(" and custG.super_telphone = ? ");
         }
         if (StringUtil.isNotEmpty(param.getLastUserName())) {
-            sb.append(" and custG.pre_user_id IN(SELECT id from t_customer_user WHERE AND cust_id = '" + param.getCustId() + "' realname LIKE '%" + param.getLastUserName() + "%') ");
+            p.add(param.getCustId());
+            p.add("%" + param.getLastUserName() + "%");
+            sb.append(" and custG.pre_user_id IN(SELECT id from t_customer_user WHERE cust_id = ? AND realname LIKE ? ) ");
         }
         if (StringUtil.isNotEmpty(param.getRealName())) {
-            sb.append(" and user.realname ='").append(param.getRealName()).append("' ");
+            p.add("%" + param.getRealName() + "%");
+            sb.append(" and user.realname LIKE ? ");
         }
         if (param.getDataSource() != null) {
-            sb.append(" and custG.data_source =" + param.getDataSource());
+            p.add(param.getDataSource());
+            sb.append(" and custG.data_source = ? ");
         }
         if (StringUtil.isNotEmpty(param.getBatchId())) {
-            sb.append(" and custG.batch_id =" + param.getBatchId());
+            p.add(param.getBatchId());
+            sb.append(" and custG.batch_id =? ");
         }
-//        if (StringUtil.isNotEmpty(param.getAddStartTime()) && StringUtil.isNotEmpty(param.getAddEndTime())) {
-//            sb.append(" and custG.create_time BETWEEN '" + param.getAddStartTime() + "' AND '" + param.getAddEndTime() + "'");
-//        } else
-        if (StringUtil.isNotEmpty(param.getAddStartTime())) {
-            sb.append(" and custG.create_time >= '" + param.getAddStartTime().replace("/", "-") + "'");
-        }
-        if (StringUtil.isNotEmpty(param.getAddEndTime())) {
-            sb.append(" and custG.create_time <= '" + param.getAddEndTime().replace("/", "-") + "'");
+        if (StringUtil.isNotEmpty(param.getAddStartTime()) && StringUtil.isNotEmpty(param.getAddEndTime())) {
+            p.add(param.getAddStartTime());
+            p.add(param.getAddEndTime());
+            sb.append(" and custG.create_time BETWEEN ? AND ? ");
+        } else if (StringUtil.isNotEmpty(param.getAddStartTime())) {
+            p.add(param.getAddStartTime());
+            sb.append(" and custG.create_time >= ? ");
+        } else if (StringUtil.isNotEmpty(param.getAddEndTime())) {
+            p.add(param.getAddEndTime());
+            sb.append(" and custG.create_time <= ? ");
         }
 
-//        if (StringUtil.isNotEmpty(param.getCallStartTime()) && StringUtil.isNotEmpty(param.getCallEndTime())) {
-//            sb.append(" and custG.last_call_time BETWEEN '" + param.getCallStartTime() + "' AND '" + param.getCallEndTime() + "'");
-//        } else
-        if (StringUtil.isNotEmpty(param.getCallStartTime())) {
-            sb.append(" and custG.last_call_time >= '" + param.getCallStartTime() + "'");
-        }
-        if (StringUtil.isNotEmpty(param.getCallEndTime())) {
-            sb.append(" and custG.last_call_time <= '" + param.getCallEndTime() + "'");
+        if (StringUtil.isNotEmpty(param.getCallStartTime()) && StringUtil.isNotEmpty(param.getCallEndTime())) {
+            p.add(param.getCallStartTime());
+            p.add(param.getCallEndTime());
+            sb.append(" and custG.last_call_time BETWEEN ? AND ? ");
+        } else if (StringUtil.isNotEmpty(param.getCallStartTime())) {
+            sb.append(" and custG.last_call_time >= ?");
+            p.add(param.getCallStartTime());
+        } else if (StringUtil.isNotEmpty(param.getCallEndTime())) {
+            sb.append(" and custG.last_call_time <= ?");
+            p.add(param.getCallEndTime());
         }
 
         if (StringUtil.isNotEmpty(param.getUserGetStartTime()) && StringUtil.isNotEmpty(param.getUserGetEndTime())) {
-            sb.append(" and custG.user_get_time BETWEEN '" + param.getUserGetStartTime() + "' AND '" + param.getUserGetEndTime() + "'");
+            p.add(param.getUserGetStartTime());
+            p.add(param.getUserGetEndTime());
+            sb.append(" and custG.user_get_time BETWEEN ? AND ? ");
         } else if (StringUtil.isNotEmpty(param.getUserGetStartTime())) {
-            sb.append(" and custG.user_get_time >= '" + param.getUserGetStartTime() + "'");
+            p.add(param.getUserGetStartTime());
+            sb.append(" and custG.user_get_time >= ? ");
         } else if (StringUtil.isNotEmpty(param.getUserGetEndTime())) {
-            sb.append(" and custG.user_get_time <= '" + param.getUserGetEndTime() + "'");
+            p.add(param.getUserGetEndTime());
+            sb.append(" and custG.user_get_time <= ? ");
         }
 
         if (StringUtil.isNotEmpty(param.getLastMarkStartTime()) && StringUtil.isNotEmpty(param.getLastMarkEndTime())) {
-            sb.append(" and custG.last_mark_time BETWEEN '" + param.getLastMarkStartTime() + "' AND '" + param.getLastMarkEndTime() + "'");
+            p.add(param.getLastMarkStartTime());
+            p.add(param.getLastMarkEndTime());
+            sb.append(" and custG.last_mark_time BETWEEN ? AND ? ");
         } else if (StringUtil.isNotEmpty(param.getLastMarkStartTime())) {
-            sb.append(" and custG.last_mark_time >= '" + param.getLastMarkStartTime() + "'");
+            p.add(param.getLastMarkStartTime());
+            sb.append(" and custG.last_mark_time >= ?");
         } else if (StringUtil.isNotEmpty(param.getLastMarkEndTime())) {
-            sb.append(" and custG.last_mark_time <= '" + param.getLastMarkEndTime() + "'");
+            p.add(param.getLastMarkEndTime());
+            sb.append(" and custG.last_mark_time <=? ");
         }
 
         if (StringUtil.isNotEmpty(param.getLastCallResult())) {
-            sb.append(" and custG.last_call_status = '" + param.getLastCallResult() + "'");
+            p.add(param.getLastCallResult());
+            sb.append(" and custG.last_call_status = ? ");
         }
         if (StringUtil.isNotEmpty(param.getIntentLevel())) {
-            sb.append(" and custG.intent_level = '" + param.getIntentLevel() + "'");
+            p.add(param.getIntentLevel());
+            sb.append(" and custG.intent_level = ?  ");
         }
         if (param.getCalledDuration() != null) {
             if (param.getCalledDuration() == 1) {
                 sb.append(" AND custG.last_called_duration<=3");
             } else if (param.getCalledDuration() == 2) {
-                sb.append(" AND custG.last_called_duration>3 AND voicLog.last_called_duration<=6");
+                sb.append(" AND custG.last_called_duration>3 AND custG.last_called_duration<=6");
             } else if (param.getCalledDuration() == 3) {
-                sb.append(" AND custG.last_called_duration>6 AND voicLog.last_called_duration<=12");
+                sb.append(" AND custG.last_called_duration>6 AND custG.last_called_duration<=12");
             } else if (param.getCalledDuration() == 4) {
-                sb.append(" AND custG.last_called_duration>12 AND voicLog.last_called_duration<=30");
+                sb.append(" AND custG.last_called_duration>12 AND custG.last_called_duration<=30");
             } else if (param.getCalledDuration() == 5) {
-                sb.append(" AND custG.last_called_duration>30 AND voicLog.last_called_duration<=60");
+                sb.append(" AND custG.last_called_duration>30 AND custG.last_called_duration<=60");
             } else if (param.getCalledDuration() == 6) {
                 sb.append(" AND custG.last_called_duration>60");
             }
         }
+        if (param.getCallCount() != null) {
+            p.add(param.getCallCount());
+            sb.append(" and custG.call_count = ? ");
+        }
+        if (param.getCallSuccessCount() != null) {
+            p.add(param.getCallSuccessCount());
+            sb.append(" and custG.call_success_count = ? ");
+        }
+
+
         JSONArray custProperty = JSON.parseArray(param.getLabelProperty());
         // 跟进状态为全部线索时查询组员的线索
         boolean allQuery = true;
@@ -3500,11 +3886,13 @@ public class CustomerSeaService {
                             sb.append(" AND custG.user_id IN(" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ")");
                         }
                     } else {
-                        sb.append(" AND custG.user_id = '" + userId + "'");
+                        sb.append(" AND custG.user_id = ? ");
+                        p.add(userId);
                     }
                 }
             } else {
-                sb.append(" AND custG.user_id = '" + userId + "'");
+                sb.append(" AND custG.user_id =? ");
+                p.add(userId);
             }
         } else {
             //管理员查看所有
@@ -3528,27 +3916,31 @@ public class CustomerSeaService {
                     } else {
                         likeValue = "'$." + labelId + "' like " + "'%" + optionValue + "%'";
                     }
-                    sb.append(" AND custG.super_data -> " + likeValue + " ");
+                    sb.append(" AND custG.super_data -> ? ");
+                    p.add(likeValue);
                 }
             }
         }
         if (StringUtil.isNotEmpty(param.getRegCapitalMin()) || StringUtil.isNotEmpty(param.getRegCapitalMax())) {
-            sb.append(" AND custG.super_data -> '$.SYS010' BETWEEN ");
-            sb.append(param.getRegCapitalMin() == null ? 0 : param.getRegCapitalMin());
-            sb.append(" AND ");
-            sb.append(param.getRegCapitalMax() == null ? 0 : param.getRegCapitalMax());
+            sb.append(" AND custG.super_data -> '$.SYS010' BETWEEN ? and ? ");
+            p.add(param.getRegCapitalMin() == null ? 0 : param.getRegCapitalMin());
+            p.add(param.getRegCapitalMax() == null ? 0 : param.getRegCapitalMax());
         }
         if (StringUtil.isNotEmpty(param.getCreateTime())) {
-            sb.append(" AND custG.super_data -> " + "'$.SYS011' >= " + "'" + param.getCreateTime().replace("/", "-") + "'");
+            p.add(param.getCreateTime().replace("/", "-"));
+            sb.append(" AND custG.super_data -> " + "'$.SYS011' >= ? ");
         }
         if (StringUtil.isNotEmpty(param.getEndTime())) {
-            sb.append(" AND custG.super_data -> " + "'$.SYS011' <= " + "'" + param.getEndTime().replace("/", "-") + "'");
+            p.add(param.getEndTime().replace("/", "-"));
+            sb.append(" AND custG.super_data -> " + "'$.SYS011' <= ? ");
         }
         if (StringUtil.isNotEmpty(param.getRegStatus())) {
-            sb.append(" AND custG.super_data -> " + "'$.SYS012' like " + "'%" + param.getRegStatus() + "%'");
+            p.add("%" + param.getRegStatus() + "%");
+            sb.append(" AND custG.super_data -> " + "'$.SYS012' like ? ");
         }
         if (StringUtil.isNotEmpty(param.getCustName())) {
-            sb.append(" AND custG.super_data -> " + "'$.SYS005' like " + "'%" + param.getCustName() + "%'");
+            p.add("%" + param.getCustName() + "%");
+            sb.append(" AND custG.super_data -> " + "'$.SYS005' like ? ");
         }
 
         sb.append(" AND custG.status<>2 ");
@@ -3561,27 +3953,33 @@ public class CustomerSeaService {
         // 跟进状态处理
         if (StringUtil.isNotEmpty(param.getFollowStatus()) && StringUtil.isNotEmpty(param.getFollowValue())) {
             String likeValue = "%\"" + param.getFollowStatus() + "\":\"" + param.getFollowValue() + "\"%";
-            sb.append(" AND custG.super_data LIKE '" + likeValue + "' ");
+            sb.append(" AND custG.super_data LIKE ? ");
+            p.add(likeValue);
         }
         // 无效原因处理
         if (StringUtil.isNotEmpty(param.getInvalidReason()) && StringUtil.isNotEmpty(param.getInvalidReason())) {
             String likeValue = "%\"SYS006\":\"" + param.getFollowValue() + "\"%";
-            sb.append(" AND custG.super_data LIKE '" + likeValue + "' ");
+            sb.append(" AND custG.super_data LIKE ? ");
+            p.add(likeValue);
         }
         // 呼叫次数
         if (param.getCallCount() != null) {
             if (param.getCallCount() < 8) {
-                sb.append(" and custG.call_count = '" + param.getCallCount() + "'");
+                p.add(param.getCallCount());
+                sb.append(" and custG.call_count =? ");
             } else {
-                sb.append(" and custG.call_count >= '" + param.getCallCount() + "'");
+                p.add(param.getCallCount());
+                sb.append(" and custG.call_count >=? ");
             }
         }
         // 接通次数
         if (param.getCallSuccessCount() != null) {
             if (param.getCallSuccessCount() < 8) {
-                sb.append(" and custG.call_success_count = '" + param.getCallSuccessCount() + "'");
+                p.add(param.getCallSuccessCount());
+                sb.append(" and custG.call_success_count = ? ");
             } else {
-                sb.append(" and custG.call_success_count >= '" + param.getCallSuccessCount() + "'");
+                p.add(param.getCallSuccessCount());
+                sb.append(" and custG.call_success_count >= ? ");
             }
         }
         // 处理员工限制线索条件
@@ -3592,10 +3990,14 @@ public class CustomerSeaService {
                 // N天前的0点时间
                 LocalDateTime time = LocalDateTime.now().minusDays(NumberConvertUtil.parseLong(cp.getPropertyValue())).withHour(0).withMinute(0).withSecond(0).withNano(0);
                 DateTimeFormatter ymd = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-                sb.append(" AND ( update_time >= '" + ymd.format(time) + "' OR update_time is null)  ")
-                        .append(" AND ( user_get_time >= '" + ymd.format(time) + "' OR user_get_time is null)  ")
-                        .append(" AND ( last_call_time >= '" + ymd.format(time) + "' OR last_call_time is null)  ")
-                        .append(" AND ( last_mark_time >= '" + ymd.format(time) + "' OR last_mark_time is null)  ");
+                p.add(ymd.format(time));
+                p.add(ymd.format(time));
+                p.add(ymd.format(time));
+                p.add(ymd.format(time));
+                sb.append(" AND ( update_time >= ? OR update_time is null)  ")
+                        .append(" AND ( user_get_time >= ? OR user_get_time is null)  ")
+                        .append(" AND ( last_call_time >= ? OR last_call_time is null)  ")
+                        .append(" AND ( last_mark_time >= ? OR last_mark_time is null)  ");
             } else {
                 LOG.warn("公海ID:[" + customerSea.getTaskId() + "]员工限制超时时间配置为空");
                 return new Page();
@@ -3603,8 +4005,8 @@ public class CustomerSeaService {
         }
         sb.append(" ORDER BY custG.create_time DESC ");
         try {
-            LOG.info("私海查询sql:"+sb);
-            page = customerSeaDao.sqlPageQueryByPageSize(sb.toString(), param.getPageNum(), param.getPageSize());
+            LOG.info("私海查询sql:" + sb);
+            page = customerSeaDao.sqlPageQueryByPageSize(sb.toString(), param.getPageNum(), param.getPageSize(), p.toArray());
         } catch (Exception e) {
             LOG.error("查询私海线索列表失败,", e);
             return new Page();
@@ -3672,10 +4074,12 @@ public class CustomerSeaService {
                 .append("( SELECT ?, id, ?, batch_id, ?, ?, ?, ? ")
                 .append(" FROM ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(param.getSeaId()).append(" WHERE status <> 2 ");
 
+        List<Object> p = new ArrayList<>();
         //员工只能处理负责人为自己的数据
         if ("2".equals(param.getUserType())) {
-            sql.append(" AND user_id = ").append(param.getUserId());
-            logSql.append(" AND user_id = ").append(param.getUserId());
+            p.add(param.getUserId());
+            sql.append(" AND user_id = ? ");
+            logSql.append(" AND user_id = ? ");
         }
         //        for (String custType : split) {
 //            logSql.append(" or  super_data ->'$.SYS014' =")
@@ -3684,8 +4088,8 @@ public class CustomerSeaService {
         logSql.append(" and  super_data ->'$.SYS014' in (" + stb.toString() + ") limit 1 )");
         // 保存转交记录
         customerSeaDao.executeUpdateSQL(logSql.toString(), param.getUserId(), param.getSeaId(), 8,
-                new Timestamp(System.currentTimeMillis()), StringUtil.isEmpty(param.getBackReason()) ? null : param.getBackReason(), StringUtil.isEmpty(param.getBackRemark()) ? null : param.getBackRemark());
-        int status = customerSeaDao.executeUpdateSQL(sql.toString());
+                new Timestamp(System.currentTimeMillis()), StringUtil.isEmpty(param.getBackReason()) ? null : param.getBackReason(), StringUtil.isEmpty(param.getBackRemark()) ? null : param.getBackRemark(), p.toArray());
+        int status = customerSeaDao.executeUpdateSQL(sql.toString(), p.toArray());
         return status;
     }
 
@@ -3954,49 +4358,99 @@ public class CustomerSeaService {
                 .append(" SELECT ").append(param.getUserId()).append(" ,id,").append(param.getSeaId()).append(",batch_id,").append(8).append(",").append(new Timestamp(System.currentTimeMillis())).append(" ,? ,? ")
                 .append(" FROM ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(param.getSeaId()).append(" custG WHERE custG.status <>2 ");
         StringBuilder appSql = new StringBuilder();
+        List<Object> p = new ArrayList<>();
+        if ("2".equals(param.getUserType())) {
+            p.add(param.getUserId());
+            appSql.append(" AND custG.user_id = ? ");
+        }
         if (StringUtil.isNotEmpty(param.getSuperId())) {
-            appSql.append(" and custG.id = '" + param.getSuperId() + "'");
+            p.add(param.getSuperId());
+            appSql.append(" and custG.id = ? ");
         }
         if (StringUtil.isNotEmpty(param.getSuperName())) {
-            appSql.append(" and custG.super_name = '%" + param.getSuperName() + "%'");
+            p.add("%" + param.getSuperName() + "%");
+            appSql.append(" and custG.super_name LIKE ? ");
         }
         if (StringUtil.isNotEmpty(param.getSuperPhone())) {
-            appSql.append(" and custG.super_phone = '" + param.getSuperPhone() + "'");
+            p.add(param.getSuperPhone());
+            appSql.append(" and custG.super_phone = ? ");
         }
         if (StringUtil.isNotEmpty(param.getSuperTelphone())) {
-            appSql.append(" and custG.super_telphone = '" + param.getSuperTelphone() + "'");
+            p.add(param.getSuperTelphone());
+            appSql.append(" and custG.super_telphone = ? ");
         }
         if (StringUtil.isNotEmpty(param.getLastUserName())) {
-            appSql.append(" and custG.pre_user_id IN(SELECT id from t_customer_user WHERE AND cust_id = '" + param.getCustId() + "' realname LIKE '%" + param.getLastUserName() + "%') ");
+            p.add(param.getCustId());
+            p.add("%" + param.getLastUserName() + "%");
+            appSql.append(" and custG.pre_user_id IN(SELECT id from t_customer_user WHERE cust_id = ? AND realname LIKE ? ) ");
+        }
+        if (StringUtil.isNotEmpty(param.getRealName())) {
+            p.add("%" + param.getRealName() + "%");
+            appSql.append(" and user.realname LIKE ? ");
         }
         if (param.getDataSource() != null) {
-            appSql.append(" and custG.data_source =" + param.getDataSource());
+            p.add(param.getDataSource());
+            appSql.append(" and custG.data_source = ? ");
         }
         if (StringUtil.isNotEmpty(param.getBatchId())) {
-            appSql.append(" and custG.batch_id =" + param.getBatchId());
-            logSql.append(" and batch_id =" + param.getBatchId());
+            p.add(param.getBatchId());
+            appSql.append(" and custG.batch_id =? ");
         }
         if (StringUtil.isNotEmpty(param.getAddStartTime()) && StringUtil.isNotEmpty(param.getAddEndTime())) {
-            appSql.append(" and custG.create_time BETWEEN " + param.getAddStartTime() + " AND " + param.getAddEndTime());
+            p.add(param.getAddStartTime());
+            p.add(param.getAddEndTime());
+            appSql.append(" and custG.create_time BETWEEN ? AND ? ");
         } else if (StringUtil.isNotEmpty(param.getAddStartTime())) {
-            appSql.append(" and custG.create_time >= " + param.getAddStartTime());
+            p.add(param.getAddStartTime());
+            appSql.append(" and custG.create_time >= ? ");
         } else if (StringUtil.isNotEmpty(param.getAddEndTime())) {
-            appSql.append(" and custG.create_time <= " + param.getAddEndTime());
+            p.add(param.getAddEndTime());
+            appSql.append(" and custG.create_time <= ? ");
         }
 
         if (StringUtil.isNotEmpty(param.getCallStartTime()) && StringUtil.isNotEmpty(param.getCallEndTime())) {
-            appSql.append(" and custG.last_call_time BETWEEN " + param.getCallStartTime() + " AND " + param.getCallEndTime());
+            p.add(param.getCallStartTime());
+            p.add(param.getCallEndTime());
+            appSql.append(" and custG.last_call_time BETWEEN ? AND ? ");
         } else if (StringUtil.isNotEmpty(param.getCallStartTime())) {
-            appSql.append(" and custG.last_call_time >= " + param.getCallStartTime());
+            appSql.append(" and custG.last_call_time >= ?");
+            p.add(param.getCallStartTime());
         } else if (StringUtil.isNotEmpty(param.getCallEndTime())) {
-            appSql.append(" and custG.last_call_time <= " + param.getCallEndTime());
+            appSql.append(" and custG.last_call_time <= ?");
+            p.add(param.getCallEndTime());
+        }
+
+        if (StringUtil.isNotEmpty(param.getUserGetStartTime()) && StringUtil.isNotEmpty(param.getUserGetEndTime())) {
+            p.add(param.getUserGetStartTime());
+            p.add(param.getUserGetEndTime());
+            appSql.append(" and custG.user_get_time BETWEEN ? AND ? ");
+        } else if (StringUtil.isNotEmpty(param.getUserGetStartTime())) {
+            p.add(param.getUserGetStartTime());
+            appSql.append(" and custG.user_get_time >= ? ");
+        } else if (StringUtil.isNotEmpty(param.getUserGetEndTime())) {
+            p.add(param.getUserGetEndTime());
+            appSql.append(" and custG.user_get_time <= ? ");
+        }
+
+        if (StringUtil.isNotEmpty(param.getLastMarkStartTime()) && StringUtil.isNotEmpty(param.getLastMarkEndTime())) {
+            p.add(param.getLastMarkStartTime());
+            p.add(param.getLastMarkEndTime());
+            appSql.append(" and custG.last_mark_time BETWEEN ? AND ? ");
+        } else if (StringUtil.isNotEmpty(param.getLastMarkStartTime())) {
+            p.add(param.getLastMarkStartTime());
+            appSql.append(" and custG.last_mark_time >= ?");
+        } else if (StringUtil.isNotEmpty(param.getLastMarkEndTime())) {
+            p.add(param.getLastMarkEndTime());
+            appSql.append(" and custG.last_mark_time <=? ");
         }
 
         if (StringUtil.isNotEmpty(param.getLastCallResult())) {
-            appSql.append(" and custG.last_call_status = '" + param.getLastCallResult() + "'");
+            p.add(param.getLastCallResult());
+            appSql.append(" and custG.last_call_status = ? ");
         }
         if (StringUtil.isNotEmpty(param.getIntentLevel())) {
-            appSql.append(" and custG.intent_level = '" + param.getIntentLevel() + "'");
+            p.add(param.getIntentLevel());
+            appSql.append(" and custG.intent_level = ?  ");
         }
         if (param.getCalledDuration() != null) {
             if (param.getCalledDuration() == 1) {
@@ -4013,6 +4467,14 @@ public class CustomerSeaService {
                 appSql.append(" AND custG.last_called_duration>60");
             }
         }
+        if (param.getCallCount() != null) {
+            p.add(param.getCallCount());
+            appSql.append(" and custG.call_count = ? ");
+        }
+        if (param.getCallSuccessCount() != null) {
+            p.add(param.getCallSuccessCount());
+            appSql.append(" and custG.call_success_count = ? ");
+        }
         // 查询所有自建属性
         Map<String, CustomerLabel> cacheLabel = labelService.getCacheCustomAndSystemLabel(param.getCustId());
         if (StringUtil.isNotEmpty(param.getLabelProperty())) {
@@ -4027,22 +4489,24 @@ public class CustomerSeaService {
                     // 文本和多选支持模糊搜索
                     if (cacheLabel.get(labelId) != null && cacheLabel.get(labelId).getType() != null
                             && (cacheLabel.get(labelId).getType() == 1 || cacheLabel.get(labelId).getType() == 3)) {
-                        likeValue = "'$." + labelId + "' = " + " '" + optionValue + "'";
+                        likeValue = "%\"" + labelId + "\":\"%" + optionValue + "%";
                     } else {
-                        likeValue = "'$." + labelId + "' = " + " '" + optionValue + "'";
+                        likeValue = "%\"" + labelId + "\":\"" + optionValue + "\"%";
                     }
-                    appSql.append(" AND custG.super_data = " + likeValue + " ");
+                    p.add(likeValue);
+                    appSql.append(" AND custG.super_data LIKE ? ");
                 }
             }
         }
         // 跟进状态处理
         if (StringUtil.isNotEmpty(param.getFollowStatus()) && StringUtil.isNotEmpty(param.getFollowValue())) {
             String likeValue = "%\"" + param.getFollowStatus() + "\":\"" + param.getFollowValue() + "\"%";
-            appSql.append(" AND custG.super_data LIKE '" + likeValue + "' ");
+            p.add(likeValue);
+            appSql.append(" AND custG.super_data LIKE ? ");
         }
         // 保存转交记录
-        customerSeaDao.executeUpdateSQL(logSql.toString() + appSql.toString(), param.getBackReason(), param.getBackRemark());
-        int status = customerSeaDao.executeUpdateSQL(sql.toString() + appSql.toString());
+        customerSeaDao.executeUpdateSQL(logSql.toString() + appSql.toString(), param.getBackReason(), param.getBackRemark(), p.toArray());
+        int status = customerSeaDao.executeUpdateSQL(sql.toString() + appSql.toString(), p.toArray());
         return status;
     }
 
@@ -4113,48 +4577,99 @@ public class CustomerSeaService {
                 .append("UPDATE ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(param.getSeaId())
                 .append(" custG SET custG.status = 0, user_id = ?, user_get_time = ?  WHERE custG.status = 1 ");
         StringBuilder appSql = new StringBuilder();
+        List<Object> p = new ArrayList<>();
+        if ("2".equals(param.getUserType())) {
+            p.add(param.getUserId());
+            appSql.append(" AND custG.user_id = ? ");
+        }
         if (StringUtil.isNotEmpty(param.getSuperId())) {
-            appSql.append(" and custG.id = '" + param.getSuperId() + "'");
+            p.add(param.getSuperId());
+            appSql.append(" and custG.id = ? ");
         }
         if (StringUtil.isNotEmpty(param.getSuperName())) {
-            appSql.append(" and custG.super_name = '%" + param.getSuperName() + "%'");
+            p.add("%" + param.getSuperName() + "%");
+            appSql.append(" and custG.super_name LIKE ? ");
         }
         if (StringUtil.isNotEmpty(param.getSuperPhone())) {
-            appSql.append(" and custG.super_phone = '" + param.getSuperPhone() + "'");
+            p.add(param.getSuperPhone());
+            appSql.append(" and custG.super_phone = ? ");
         }
         if (StringUtil.isNotEmpty(param.getSuperTelphone())) {
-            appSql.append(" and custG.super_telphone = '" + param.getSuperTelphone() + "'");
+            p.add(param.getSuperTelphone());
+            appSql.append(" and custG.super_telphone = ? ");
         }
         if (StringUtil.isNotEmpty(param.getLastUserName())) {
-            appSql.append(" and custG.pre_user_id IN(SELECT id from t_customer_user WHERE AND cust_id = '" + param.getCustId() + "' realname LIKE '%" + param.getLastUserName() + "%') ");
+            p.add(param.getCustId());
+            p.add("%" + param.getLastUserName() + "%");
+            appSql.append(" and custG.pre_user_id IN(SELECT id from t_customer_user WHERE cust_id = ? AND realname LIKE ? ) ");
+        }
+        if (StringUtil.isNotEmpty(param.getRealName())) {
+            p.add("%" + param.getRealName() + "%");
+            appSql.append(" and user.realname LIKE ? ");
         }
         if (param.getDataSource() != null) {
-            appSql.append(" and custG.data_source =" + param.getDataSource());
+            p.add(param.getDataSource());
+            appSql.append(" and custG.data_source = ? ");
         }
         if (StringUtil.isNotEmpty(param.getBatchId())) {
-            appSql.append(" and custG.batch_id =" + param.getBatchId());
+            p.add(param.getBatchId());
+            appSql.append(" and custG.batch_id =? ");
         }
         if (StringUtil.isNotEmpty(param.getAddStartTime()) && StringUtil.isNotEmpty(param.getAddEndTime())) {
-            appSql.append(" and custG.create_time BETWEEN " + param.getAddStartTime() + " AND " + param.getAddEndTime());
+            p.add(param.getAddStartTime());
+            p.add(param.getAddEndTime());
+            appSql.append(" and custG.create_time BETWEEN ? AND ? ");
         } else if (StringUtil.isNotEmpty(param.getAddStartTime())) {
-            appSql.append(" and custG.create_time >= " + param.getAddStartTime());
+            p.add(param.getAddStartTime());
+            appSql.append(" and custG.create_time >= ? ");
         } else if (StringUtil.isNotEmpty(param.getAddEndTime())) {
-            appSql.append(" and custG.create_time <= " + param.getAddEndTime());
+            p.add(param.getAddEndTime());
+            appSql.append(" and custG.create_time <= ? ");
         }
 
         if (StringUtil.isNotEmpty(param.getCallStartTime()) && StringUtil.isNotEmpty(param.getCallEndTime())) {
-            appSql.append(" and custG.last_call_time BETWEEN " + param.getCallStartTime() + " AND " + param.getCallEndTime());
+            p.add(param.getCallStartTime());
+            p.add(param.getCallEndTime());
+            appSql.append(" and custG.last_call_time BETWEEN ? AND ? ");
         } else if (StringUtil.isNotEmpty(param.getCallStartTime())) {
-            appSql.append(" and custG.last_call_time >= " + param.getCallStartTime());
+            appSql.append(" and custG.last_call_time >= ?");
+            p.add(param.getCallStartTime());
         } else if (StringUtil.isNotEmpty(param.getCallEndTime())) {
-            appSql.append(" and custG.last_call_time <= " + param.getCallEndTime());
+            appSql.append(" and custG.last_call_time <= ?");
+            p.add(param.getCallEndTime());
+        }
+
+        if (StringUtil.isNotEmpty(param.getUserGetStartTime()) && StringUtil.isNotEmpty(param.getUserGetEndTime())) {
+            p.add(param.getUserGetStartTime());
+            p.add(param.getUserGetEndTime());
+            appSql.append(" and custG.user_get_time BETWEEN ? AND ? ");
+        } else if (StringUtil.isNotEmpty(param.getUserGetStartTime())) {
+            p.add(param.getUserGetStartTime());
+            appSql.append(" and custG.user_get_time >= ? ");
+        } else if (StringUtil.isNotEmpty(param.getUserGetEndTime())) {
+            p.add(param.getUserGetEndTime());
+            appSql.append(" and custG.user_get_time <= ? ");
+        }
+
+        if (StringUtil.isNotEmpty(param.getLastMarkStartTime()) && StringUtil.isNotEmpty(param.getLastMarkEndTime())) {
+            p.add(param.getLastMarkStartTime());
+            p.add(param.getLastMarkEndTime());
+            appSql.append(" and custG.last_mark_time BETWEEN ? AND ? ");
+        } else if (StringUtil.isNotEmpty(param.getLastMarkStartTime())) {
+            p.add(param.getLastMarkStartTime());
+            appSql.append(" and custG.last_mark_time >= ?");
+        } else if (StringUtil.isNotEmpty(param.getLastMarkEndTime())) {
+            p.add(param.getLastMarkEndTime());
+            appSql.append(" and custG.last_mark_time <=? ");
         }
 
         if (StringUtil.isNotEmpty(param.getLastCallResult())) {
-            appSql.append(" and custG.last_call_status = '" + param.getLastCallResult() + "'");
+            p.add(param.getLastCallResult());
+            appSql.append(" and custG.last_call_status = ? ");
         }
         if (StringUtil.isNotEmpty(param.getIntentLevel())) {
-            appSql.append(" and custG.intent_level = '" + param.getIntentLevel() + "'");
+            p.add(param.getIntentLevel());
+            appSql.append(" and custG.intent_level = ?  ");
         }
         if (param.getCalledDuration() != null) {
             if (param.getCalledDuration() == 1) {
@@ -4171,23 +4686,26 @@ public class CustomerSeaService {
                 appSql.append(" AND custG.last_called_duration>60");
             }
         }
-        if (StringUtil.isNotEmpty(param.getCustName())) {
-            appSql.append(" AND custG.super_data -> " + "'$.SYS005' like " + "'%" + param.getCustName() + "%'" + " ");
-        }
         if (StringUtil.isNotEmpty(param.getRegCapitalMin()) || StringUtil.isNotEmpty(param.getRegCapitalMax())) {
-            appSql.append(" AND custG.super_data -> '$.SYS010' BETWEEN ");
-            appSql.append(param.getRegCapitalMin() == null ? 0 : param.getRegCapitalMin());
-            appSql.append(" AND ");
-            appSql.append(param.getRegCapitalMax() == null ? 0 : param.getRegCapitalMax());
+            appSql.append(" AND custG.super_data -> '$.SYS010' BETWEEN ? AND ? ");
+            p.add(param.getRegCapitalMin() == null ? 0 : param.getRegCapitalMin());
+            p.add(param.getRegCapitalMax() == null ? 0 : param.getRegCapitalMax());
         }
         if (StringUtil.isNotEmpty(param.getCreateTime())) {
-            appSql.append(" AND custG.super_data -> " + "'$.SYS011' >= " + "'" + param.getCreateTime() + "'");
+            p.add(param.getCreateTime().replace("/", "-"));
+            appSql.append(" AND custG.super_data -> " + "'$.SYS011' >= ? ");
         }
         if (StringUtil.isNotEmpty(param.getEndTime())) {
-            appSql.append(" AND custG.super_data -> " + "'$.SYS011' <= " + "'" + param.getEndTime() + "'");
+            p.add(param.getEndTime().replace("/", "-"));
+            appSql.append(" AND custG.super_data -> " + "'$.SYS011' <= ? ");
         }
         if (StringUtil.isNotEmpty(param.getRegStatus())) {
-            appSql.append(" AND custG.super_data -> " + "'$.SYS012' like " + "'%" + param.getRegStatus() + "%'");
+            p.add("%" + param.getRegStatus() + "%");
+            appSql.append(" AND custG.super_data -> " + "'$.SYS012' like ? ");
+        }
+        if (StringUtil.isNotEmpty(param.getCustName())) {
+            p.add("%" + param.getCustName() + "%");
+            appSql.append(" AND custG.super_data -> " + "'$.SYS005' like ? ");
         }
         appSql.append(" LIMIT ? ");
         int count = 0;
@@ -4217,8 +4735,8 @@ public class CustomerSeaService {
                     continue;
                 }
             }
-            customerSeaDao.executeUpdateSQL(logSql.toString() + appSql.toString(), userId, number);
-            count += customerSeaDao.executeUpdateSQL(sql.toString() + appSql.toString(), userId, time, number);
+            customerSeaDao.executeUpdateSQL(logSql.toString() + appSql.toString(), userId, number, p.toArray());
+            count += customerSeaDao.executeUpdateSQL(sql.toString() + appSql.toString(), userId, time, number, p.toArray());
         }
         return count;
     }
@@ -4256,14 +4774,16 @@ public class CustomerSeaService {
                 //.append(" SET status = 0, user_id = ?, user_get_time = ? WHERE status = 1 AND id IN (").append(SqlAppendUtil.sqlAppendWhereIn(tempList)).append(")");
                 .append(" SET status = 0, user_id = ?, user_get_time = ? WHERE id IN (").append(SqlAppendUtil.sqlAppendWhereIn(tempList)).append(")");
 
+        List<Object> p = new ArrayList<>();
         if (limit && quantity >= 0) {
-            sql.append(" LIMIT ").append(quantity);
-            logSql.append(" LIMIT ").append(quantity);
+            p.add(quantity);
+            sql.append(" LIMIT ? ");
+            logSql.append(" LIMIT ? ");
         }
         LOG.info(logSql.toString());
         // 保存转交记录
-        customerSeaDao.executeUpdateSQL(logSql.toString());
-        return customerSeaDao.executeUpdateSQL(sql.toString(), userId, new Timestamp(System.currentTimeMillis()));
+        customerSeaDao.executeUpdateSQL(logSql.toString(), p.toArray());
+        return customerSeaDao.executeUpdateSQL(sql.toString(), userId, new Timestamp(System.currentTimeMillis()), p.toArray());
     }
 
     /**

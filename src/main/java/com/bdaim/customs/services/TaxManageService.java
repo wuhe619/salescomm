@@ -70,10 +70,12 @@ public class TaxManageService implements BusiService {
         sqlstr.append(" left join h_resource re on re.id =pro.property_value ");
         sqlstr.append(" where pro.property_name='station_id'");
         if (StringUtil.isNotEmpty(params.getString("station_id"))) {
-            sqlstr.append(" and re.id = " + params.getLong("station_id"));
+            sqlParams.add(params.getLong("station_id"));
+            sqlstr.append(" and re.id = ? ");
         }
         if (StringUtil.isNotEmpty(cust_id) && !"all".equals(cust_id)) {
-            sqlstr.append(" and cust.cust_id = " + cust_id);
+            sqlParams.add(cust_id);
+            sqlstr.append(" and cust.cust_id = ? ");
         }
 //        if (StringUtil.isNotEmpty(params.getString("billno"))) {
 //            sqlstr.append(" and det.content->'&.billno'= '" + params.getString("billno") + "'");
@@ -84,18 +86,24 @@ public class TaxManageService implements BusiService {
         if (StringUtil.isNotEmpty(params.getString("create_time")) && StringUtil.isNotEmpty(params.getString("end_time"))) {
             Long create_time = params.getLong("create_time");
             Long end_time = params.getLong("end_time");
-            sqlstr.append(" and det.create_date between '" + fm.format(new Date(create_time)) + "' and '" + fm.format(new Date(end_time)) + "'");
+            sqlParams.add(create_time);
+            sqlParams.add(end_time);
+            sqlstr.append(" and det.create_date between ? and ? ");
         }
         if (StringUtil.isNotEmpty(params.getString("op_create_time")) && StringUtil.isNotEmpty(params.getString("op_end_time"))) {
             Long create_time = params.getLong("op_create_time");
             Long end_time = params.getLong("op_end_time");
-            sqlstr.append(" and det.content->>'$.op_time' between " + formatter.format(new Date(create_time)) + " and " + formatter.format(new Date(end_time)));
+            sqlParams.add(create_time);
+            sqlParams.add(end_time);
+            sqlstr.append(" and det.content->>'$.op_time' between ? and ? ");
         }
         if (StringUtil.isNotEmpty(params.getString("payer_name"))) {
-            sqlstr.append(" and det.content->'$.payer_name' like '%" + params.getString("payer_name") + "%'");
+            sqlParams.add("%" + params.getString("payer_name") + "%");
+            sqlstr.append(" and det.content->'$.payer_name' like ? ");
         }
         if (StringUtil.isNotEmpty(params.getString("owner_name"))) {
-            sqlstr.append(" and det.content->'$.owner_name' like '%" + params.getString("owner_name") + "%'");
+            sqlParams.add("%" + params.getString("owner_name") + "%");
+            sqlstr.append(" and det.content->'$.owner_name' like ? ");
         }
         return sqlstr.toString();
     }

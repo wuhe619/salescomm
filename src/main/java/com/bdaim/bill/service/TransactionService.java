@@ -308,6 +308,7 @@ public class TransactionService {
     }
 
 
+    @Deprecated
     public List<Map<String, Object>> listTransactionsByCondtion(String customerId, TransactionQryParam param) throws Exception {
         HashMap<String, Object> ret = new HashMap<>();
         List<Map<String, Object>> result = new ArrayList<>();
@@ -330,7 +331,7 @@ public class TransactionService {
 
             // 检查交易记录月表是否存在,不存在则创建
             transactionDao.checkTransactionLogMonthTableNotExist(nowYearMonth);
-
+            List<Object> p = new ArrayList<>();
             StringBuilder sql = new StringBuilder("SELECT\n" +
                     "  t.create_time AS transactionDate,\n" +
                     "  t.TYPE,\n" +
@@ -340,23 +341,29 @@ public class TransactionService {
                     "  t.certificate\n" +
                     " FROM\n" +
                     "  t_transaction_" + nowYearMonth + " t where 1=1 ");
-            sql.append(" and t.cust_id = '").append(StringEscapeUtils.escapeSql(customerId)).append("'");
+            p.add(StringEscapeUtils.escapeSql(customerId));
+            sql.append(" and t.cust_id = ? ");
             if (StringUtil.isNotEmpty(transactionId)) {
-                sql.append(" and t.transaction_id='").append(StringEscapeUtils.escapeSql(transactionId)).append("'");
+                p.add(StringEscapeUtils.escapeSql(transactionId));
+                sql.append(" and t.transaction_id=? ");
             }
             if (type > 0) {
-                sql.append(" and t.type=").append(type);
+                p.add(type);
+                sql.append(" and t.type= ? ");
             }
             if (StringUtil.isNotEmpty(startTime) && StringUtil.isNotEmpty(endTime)) {
-                sql.append(" and t.create_time between ").append("'").append(StringEscapeUtils.escapeSql(startTime)).append("' and ").append("'").append(StringEscapeUtils.escapeSql(endTime)).append("'");
+                p.add(startTime);
+                p.add(endTime);
+                sql.append(" and t.create_time between ? and ? ");
             }
             sql.append(" order by t.create_time desc ");
             logger.debug(sql.toString());
 
-            List<Map<String, Object>> values = null;
+            Page page = transactionDao.sqlPageQuery(sql.toString(), pageNum, pageSize, p.toArray());
+            List<Map<String, Object>> values = page.getData();
             try {
-                values = transactionDao.getSQLQuery(sql.toString()).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP).setFirstResult(pageNum).setMaxResults(pageSize).list();
-                ret.put("total", transactionDao.getSQLQuery(sql.toString()).list().size());
+                //values = transactionDao.getSQLQuery(sql.toString()).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP).setFirstResult(pageNum).setMaxResults(pageSize).list();
+                ret.put("total", page.getTotal());
             } catch (Exception e) {
                 logger.error("获取交易记录列表失败", e);
                 ret.put("total", 0);
@@ -370,6 +377,7 @@ public class TransactionService {
         return result;
     }
 
+    @Deprecated
     public List<Map<String, Object>> listTransactionsByCondition_V1(String customerId, TransactionQryParam param) throws Exception {
         List<Map<String, Object>> result = new ArrayList<>();
         try {
@@ -453,7 +461,7 @@ public class TransactionService {
 
             // 检查交易记录月表是否存在,不存在则创建
             transactionDao.checkTransactionLogMonthTableNotExist(nowYearMonth);
-
+            List<Object> p = new ArrayList<>();
             StringBuilder sql = new StringBuilder("SELECT" +
                     "  t.create_time AS transactionDate," +
                     "  t.TYPE, t.user_id, t.cust_id, " +
@@ -464,23 +472,28 @@ public class TransactionService {
                     " FROM" +
                     "  t_transaction_" + nowYearMonth + " t where 1=1 ");
             if (StringUtil.isNotEmpty(customerId)) {
-                sql.append(" and t.cust_id = '").append(StringEscapeUtils.escapeSql(customerId)).append("'");
+                p.add(customerId);
+                sql.append(" and t.cust_id = ? ");
             }
             if (StringUtil.isNotEmpty(transactionId)) {
-                sql.append(" and t.transaction_id='").append(StringEscapeUtils.escapeSql(transactionId)).append("'");
+                p.add(transactionId);
+                sql.append(" and t.transaction_id= ? ");
             }
             if (param.getType() == null) {
                 sql.append(" and (type = 1 or type =2)");
             }
             if (param.getType() != null && param.getType() > 0) {
-                sql.append(" and t.type=").append(param.getType());
+                p.add(param.getType());
+                sql.append(" and t.type=? ");
             }
             if (StringUtil.isNotEmpty(startTime) && StringUtil.isNotEmpty(endTime)) {
-                sql.append(" and t.create_time between ").append("'").append(StringEscapeUtils.escapeSql(startTime)).append("' and ").append("'").append(StringEscapeUtils.escapeSql(endTime)).append("'");
+                p.add(startTime);
+                p.add(endTime);
+                sql.append(" and t.create_time between ? and ? ");
             }
             sql.append(" order by t.create_time desc ");
             logger.debug(sql.toString());
-            page = transactionDao.sqlPageQuery0(sql.toString(), pageNum, pageSize);
+            page = transactionDao.sqlPageQuery0(sql.toString(), pageNum, pageSize, p.toArray());
             if (page != null && page.getData().size() > 0) {
                 //String picPath = ConfigUtil.getInstance().get("pic_server_url") + "/0/";
                 String picPath = "upload/pic/0/";
@@ -507,6 +520,7 @@ public class TransactionService {
         return page;
     }
 
+    @Deprecated
     public long countTransactionsByCondition_V1(String customerId, TransactionQryParam param) throws Exception {
         long total = 0;
         try {
@@ -527,20 +541,26 @@ public class TransactionService {
             transactionDao.checkTransactionLogMonthTableNotExist(nowYearMonth);
 
             StringBuilder sql = new StringBuilder("SELECT COUNT(0) count FROM t_transaction_" + nowYearMonth + " t where 1=1 ");
+            List<Object> p = new ArrayList<>();
             if (StringUtil.isNotEmpty(customerId)) {
-                sql.append(" and t.cust_id = '").append(StringEscapeUtils.escapeSql(customerId)).append("'");
+                p.add(customerId);
+                sql.append(" and t.cust_id = ? ");
             }
             if (StringUtil.isNotEmpty(transactionId)) {
-                sql.append(" and t.transaction_id='").append(StringEscapeUtils.escapeSql(transactionId)).append("'");
+                p.add(customerId);
+                sql.append(" and t.transaction_id=? ");
             }
             if (param.getType() != null && param.getType() > 0) {
-                sql.append(" and t.type=").append(param.getType());
+                sql.append(" and t.type=? ");
+                p.add(param.getType());
             }
             if (StringUtil.isNotEmpty(startTime) && StringUtil.isNotEmpty(endTime)) {
-                sql.append(" and t.create_time between ").append("'").append(StringEscapeUtils.escapeSql(startTime)).append("' and ").append("'").append(StringEscapeUtils.escapeSql(endTime)).append("'");
+                p.add(startTime);
+                p.add(endTime);
+                sql.append(" and t.create_time between ? and ?");
             }
             sql.append(" order by t.create_time desc ");
-            List<Map<String, Object>> list = transactionDao.sqlQuery(sql.toString());
+            List<Map<String, Object>> list = transactionDao.sqlQuery(sql.toString(), p.toArray());
             if (list != null && list.size() > 0) {
                 total = NumberConvertUtil.parseLong(String.valueOf(list.get(0).get("count")));
             }
@@ -576,24 +596,29 @@ public class TransactionService {
                 " t1.certificate as certificate FROM" +
                 " t_transaction_" + nowYearMonth + " t1 where 1=1 ");
 
+        List<Object> p = new ArrayList<>();
         if (StringUtil.isNotEmpty(param.getUserName())) {
             CustomerUser customerUser = customerUserDao.getCustomerUserByName(param.getUserName());
             if (customerUser != null) {
-                sql.append(" and t1.user_id='").append(customerUser.getId()).append("'");
+                p.add(customerUser.getId());
+                sql.append(" and t1.user_id= ? ");
             }
         }
         if (param.getType() != null && param.getType() > 0) {
-            sql.append(" and t1.type='").append(param.getType()).append("'");
+            p.add(param.getType());
+            sql.append(" and t1.type=? ");
         }
         if (StringUtil.isNotEmpty(param.getTransactionId())) {
-            sql.append(" and t1.transaction_id='").append(StringEscapeUtils.escapeSql(param.getTransactionId())).append("'");
+            p.add(param.getTransactionId());
+            sql.append(" and t1.transaction_id=? ");
         }
         if (StringUtil.isNotEmpty(param.getStartTime()) && StringUtil.isNotEmpty(param.getEndTime())) {
-            sql.append(" and t1.create_time between '").append(StringEscapeUtils.escapeSql(param.getStartTime())).append("'");
-            sql.append(" and '").append(StringEscapeUtils.escapeSql(param.getEndTime())).append("'");
+            p.add(param.getStartTime());
+            p.add(param.getEndTime());
+            sql.append(" and t1.create_time between ? and ? ");
         }
         sql.append(" order by t1.create_time desc ");
-        List<Map<String, Object>> transactionList = transactionDao.getSQLQuery(sql.toString()).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP).setFirstResult(param.getPageNum()).setMaxResults(param.getPageSize()).list();
+        List<Map<String, Object>> transactionList = transactionDao.sqlPageQuery(sql.toString(), param.getPageNum(), param.getPageSize(), p.toArray()).getData();
         if (transactionList.size() > 0) {
             Customer customer;
             for (Map<String, Object> m : transactionList) {
@@ -624,28 +649,33 @@ public class TransactionService {
         // 检查交易记录月表是否存在,不存在则创建
         transactionDao.checkTransactionLogMonthTableNotExist(nowYearMonth);
 
+        List<Object> p = new ArrayList<>();
         StringBuilder sql = new StringBuilder("SELECT count(*) count FROM" +
                 " t_transaction_" + nowYearMonth + " t1 WHERE 1=1 ");
 
         if (StringUtil.isNotEmpty(param.getUserName())) {
             CustomerUser customerUser = customerUserDao.getCustomerUserByName(param.getUserName());
             if (customerUser != null) {
-                sql.append(" and t1.user_id='").append(customerUser.getId()).append("'");
+                sql.append(" and t1.user_id=? ");
+                p.add(customerUser.getId());
             }
         }
         if (param.getType() != null && param.getType() > 0) {
-            sql.append(" and t1.type='").append(param.getType()).append("'");
+            sql.append(" and t1.type=? ");
+            p.add(param.getType());
         }
         if (StringUtil.isNotEmpty(param.getTransactionId())) {
-            sql.append(" and t1.transaction_id='").append(StringEscapeUtils.escapeSql(param.getTransactionId())).append("'");
+            p.add(param.getTransactionId());
+            sql.append(" and t1.transaction_id=? ");
         }
         if (StringUtil.isNotEmpty(param.getStartTime()) && StringUtil.isNotEmpty(param.getEndTime())) {
-            sql.append(" and t1.create_time between '").append(StringEscapeUtils.escapeSql(param.getStartTime())).append("'");
-            sql.append(" and '").append(StringEscapeUtils.escapeSql(param.getEndTime())).append("'");
+            p.add(param.getStartTime());
+            p.add(param.getEndTime());
+            sql.append(" and t1.create_time between ? and ? ");
         }
         long total = 0;
         try {
-            List<Map<String, Object>> list = transactionDao.sqlQuery(sql.toString());
+            List<Map<String, Object>> list = transactionDao.sqlQuery(sql.toString(), p.toArray());
             if (list.size() > 0) {
                 total = NumberConvertUtil.parseLong(String.valueOf(list.get(0).get("count")));
             }
@@ -835,6 +865,7 @@ public class TransactionService {
         }
         return 0;
     }
+
     /**
      * 供应商坐席剩余包月分钟数
      *

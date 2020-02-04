@@ -6,10 +6,14 @@ import com.bdaim.label.vo.LabelPriceSumVO;
 import com.bdaim.label.vo.LabelPriceVO;
 import org.hibernate.Query;
 import org.hibernate.transform.Transformers;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Component
 public class LabelInfoDao extends SimpleHibernateDao<LabelInfo, Serializable> {
@@ -57,14 +61,20 @@ public class LabelInfoDao extends SimpleHibernateDao<LabelInfo, Serializable> {
         sb.append(" FROM ");
         sb.append(" 	t_industry_label b ");
         sb.append(" LEFT JOIN t_label_source_price c ON b.industry_label_id = c.label_id ");
-        sb.append(" AND c.source_id=" + sourceId);
+        sb.append(" AND c.source_id=:sourceId");
         sb.append(" WHERE ");
-        sb.append(" 	b.industry_pool_id =" + industryPoolId);
+        sb.append(" 	b.industry_pool_id =:industryPoolId");
         //sb.append(" AND c.source_id =" + sourceId);
-        sb.append(" AND b.label_id IN (" + labelsId + ")");
-        Query query = super.getSQLQuery(sb.toString());
-        query.setResultTransformer(Transformers.aliasToBean(LabelPriceSumVO.class));
-        List<LabelPriceSumVO> list = query.list();
+        sb.append(" AND b.label_id IN (:labelsId)");
+//        Query query = super.getSQLQuery(sb.toString());
+        Map map=new HashMap();
+        map.put("sourceId",sourceId);
+        map.put("industryPoolId",industryPoolId);
+        map.put("labelsId", Arrays.asList(labelsId.split(",")));
+        List<LabelPriceSumVO> list = namedParameterJdbcTemplate.query(sb.toString(),map,new BeanPropertyRowMapper<LabelPriceSumVO>(LabelPriceSumVO.class));
+        //Query query = getSqlQuery(sb.toString(),map);
+        //query.setResultTransformer(Transformers.aliasToBean(LabelPriceSumVO.class));
+//        List<LabelPriceSumVO> list = query.list();
         LabelPriceSumVO sumPrice = null;
         if (list.size() > 0) {
             sumPrice = list.get(0);

@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ *
  */
 @Service
 @Transactional
@@ -95,26 +96,27 @@ public class ResourceService {
             Long operateUserId, Long roleId, Long pid, boolean isAdminOperate) {
         JSONArray array = new JSONArray();
         StringBuilder builder = new StringBuilder();
+        List<Object> params = new ArrayList<>();
         if (isAdminOperate) {
             builder.append(" select distinct r.ID,r.NAME,r.PID,r.URI,r.TYPE,case when temp.r_id is null then 1 ELSE 0 END as CHECKED from t_resource r");
-            builder.append(" left join (select r_id from t_mrp_rel where role_id=");
-            builder.append(roleId);
+            builder.append(" left join (select r_id from t_mrp_rel where role_id=?");
+            params.add(roleId);
             builder.append(" and type=0) temp on temp.r_id = r.id");
-            builder.append(" where r.pid=");
-            builder.append(pid);
+            builder.append(" where r.pid=?");
+            params.add(pid);
         } else {
             builder.append(" select distinct r.ID,r.NAME,r.PID,r.URI,r.TYPE,case when temp.r_id is null then 1 ELSE 0 END as CHECKED from t_mrp_rel m ");
             builder.append(" inner join t_user_role_rel ur on ur.ROLE = m.ROLE_ID");
-            builder.append(" inner join t_resource r on m.R_ID = r.ID and ur.ID =");
-            builder.append(operateUserId);
-            builder.append(" and r.pid = ");
-            builder.append(pid);
-            builder.append(" left join (select r_id from t_mrp_rel where role_id=");
-            builder.append(roleId);
+            builder.append(" inner join t_resource r on m.R_ID = r.ID and ur.ID =?");
+            params.add(operateUserId);
+            builder.append(" and r.pid = ?");
+            params.add(pid);
+            builder.append(" left join (select r_id from t_mrp_rel where role_id=?");
+            params.add(roleId);
             builder.append(" and type=0) temp on temp.r_id = r.id");
         }
         String sql = builder.toString();
-        List<Map<String, Object>> list = resourceDao.sqlQuery(sql);
+        List<Map<String, Object>> list = resourceDao.sqlQuery(sql, params.toArray());
         if (list != null && !list.isEmpty()) {
             for (Map<String, Object> map : list) {
                 Long id = NumberConvertUtil.everythingToLong(map.get("ID"));
@@ -202,19 +204,19 @@ public class ResourceService {
 
     public List<CommonTreeResource> queryUserSystem(String userName, boolean isAdminOperate) {
         StringBuilder builder = new StringBuilder();
+        List<Object> params = new ArrayList<>();
         if (isAdminOperate) {
             builder.append(" select distinct r.ID,r.NAME,r.URI from t_resource r where  r.PID = 0");
         } else {
             builder.append(" select distinct r.ID,r.NAME,r.URI from t_user u ");
-            builder.append(" inner join t_user_role_rel ur on u.ID = ur.ID and u.NAME = '");
-            builder.append(userName);
-            builder.append("'");
+            builder.append(" inner join t_user_role_rel ur on u.ID = ur.ID and u.NAME = ?");
+            params.add(userName);
             builder.append(" inner join t_mrp_rel mr on ur.ROLE = mr.ROLE_ID");
             builder.append(" inner join t_resource r on mr.R_ID = r.ID and r.PID = 0 and mr.type=0 ");
         }
 
         String sql = builder.toString();
-        List<Map<String, Object>> list = resourceDao.sqlQuery(sql);
+        List<Map<String, Object>> list = resourceDao.sqlQuery(sql, params.toArray());
         List<CommonTreeResource> resources = null;
         if (list != null && !list.isEmpty()) {
             resources = new ArrayList<CommonTreeResource>();
@@ -347,7 +349,10 @@ public class ResourceService {
 
 
     public void insert(CommonTreeResource t) throws SQLException {
-        this.resourceDao.executeUpdateSQL("insert into t_resource(ID,URI,NAME,TYPE,REMARK,PID,SN,OPTUSER,CREATE_TIME) values(" + IDHelper.getID() + ",'" + t.getUri() + "','" + t.getName() + "','" + t.getType() + "','" + t.getRemark() + "'," + (t.getPid() == null ? "0" : t.getPid()) + "," + t.getSn() + ",'" + t.getUser() + "', now())");
+        String sql = "insert into t_resource(ID,URI,NAME,TYPE,REMARK,PID,SN,OPTUSER," +
+                "CREATE_TIME) values(?,?,?,?,?,?,?,?, now())";
+        this.resourceDao.executeUpdateSQL(sql, IDHelper.getID(), t.getUri(), t.getName(), t.getType(), t.getRemark()
+                , (t.getPid() == null ? "0" : t.getPid()), t.getSn(), t.getUser());
 
     }
 
@@ -362,16 +367,16 @@ public class ResourceService {
         if (t.getID() == null) throw new NullPointerException("删除记录的ID不可为空");
         AbstractTreeResource delResources = queryAllTree(t, null);
 
-        this.resourceDao.executeUpdateSQL("delete from t_resource where ID= " + delResources.getID());
-        this.resourceDao.executeUpdateSQL("delete from t_mrp_rel where R_ID=" + delResources.getID());
+        this.resourceDao.executeUpdateSQL("delete from t_resource where ID= ?", delResources.getID());
+        this.resourceDao.executeUpdateSQL("delete from t_mrp_rel where R_ID=?", delResources.getID());
         delNote(delResources);
     }
 
     private void delNote(AbstractTreeResource tree) {
         if (tree.getNotes() != null && tree.getNotes().size() > 0) {
             for (AbstractTreeResource item : tree.getNotes()) {
-                this.resourceDao.executeUpdateSQL("delete from t_resource where ID= " + item.getID());
-                this.resourceDao.executeUpdateSQL("delete from t_mrp_rel where R_ID=" + item.getID());
+                this.resourceDao.executeUpdateSQL("delete from t_resource where ID= ?", item.getID());
+                this.resourceDao.executeUpdateSQL("delete from t_mrp_rel where R_ID=?", item.getID());
             }
         }
     }
@@ -379,39 +384,52 @@ public class ResourceService {
     public void update(CommonTreeResource t) throws Exception {
         if (t.getID() == null) throw new NullPointerException("更新记录的ID不可为空");
         StringBuffer sb = new StringBuffer();
+        List<Object> params = new ArrayList<>();
         sb.append("update t_resource set MODIFY_TIME=now(),");
         if (t.getRemark() != null && !t.getRemark().equals("")) {
-            sb.append("REMARK='" + t.getRemark() + "',");
+            sb.append("REMARK=?,");
+            params.add(t.getRemark());
         }
         if (t.getUser() != null && !t.getUser().equals("")) {
-            sb.append("OPTUSER='" + t.getUser() + "',");
+            sb.append("OPTUSER=?,");
+            params.add(t.getUser());
         }
         if (t.getPid() != null) {
-            sb.append("PID='" + t.getPid() + "',");
+            sb.append("PID=?,");
+            params.add(t.getPid());
         }
         if (t.getName() != null && !t.getName().equals("")) {
-            sb.append("NAME='" + t.getName() + "',");
+            sb.append("NAME=?,");
+            params.add(t.getName());
         }
         if (t.getSn() != null) {
-            sb.append("sn='" + t.getSn() + "',");
+            sb.append("sn=?,");
+            params.add(t.getSn());
         }
         if (t.getType() != null) {
-            sb.append("type='" + t.getType() + "',");
+            sb.append("type=?,");
+            params.add(t.getType());
         }
-        this.resourceDao.executeUpdateSQL(sb.substring(0, sb.length() - 1) + " where ID=" + t.getID());
+        String lastSql = sb.substring(0, sb.length() - 1) + " where ID=?";
+        params.add(t.getID());
+        this.resourceDao.executeUpdateSQL(lastSql, params.toArray());
 
     }
 
     public CommonTreeResource getObj(CommonTreeResource r) {
         try {
             List rs = null;
-            if (r.getUri() != null && !"".equals(r.getUri()))
-                rs = this.resourceDao.sqlQuery("select ID,URI,NAME,TYPE,REMARK,PID,SN,OPTUSER,CREATE_TIME,MODIFY_TIME from t_resource where URI=" + r.getUri());
-            else
-                rs = this.resourceDao.sqlQuery("select ID,URI,NAME,TYPE,REMARK,PID,SN,OPTUSER,CREATE_TIME,MODIFY_TIME from t_resource where ID=" + r.getID());
+            if (r.getUri() != null && !"".equals(r.getUri())) {
+                rs = this.resourceDao.sqlQuery("select ID,URI,NAME,TYPE,REMARK,PID,SN,OPTUSER,CREATE_TIME,MODIFY_TIME " +
+                        "from t_resource where URI=?", r.getUri());
+            } else {
+                rs = this.resourceDao.sqlQuery("select ID,URI,NAME,TYPE,REMARK,PID,SN,OPTUSER,CREATE_TIME,MODIFY_TIME " +
+                        "from t_resource where ID=?", r.getID());
+            }
             List<CommonTreeResource> list = CommonTreeResource.pop(rs);
             if (list != null && list.size() > 0) {
-                List notes = this.resourceDao.sqlQuery("select ID,URI,NAME,TYPE,REMARK,PID,SN,OPTUSER,CREATE_TIME,MODIFY_TIME from t_resource where PID=" + r.getID());
+                List notes = this.resourceDao.sqlQuery("select ID,URI,NAME,TYPE,REMARK,PID,SN,OPTUSER,CREATE_TIME," +
+                        "MODIFY_TIME from t_resource where PID=?", r.getID());
                 List<AbstractTreeResource> aa = new ArrayList<AbstractTreeResource>();
                 List<CommonTreeResource> rsList = CommonTreeResource.pop(rs);
                 if (rsList != null) aa.addAll(rsList);
@@ -557,23 +575,24 @@ public class ResourceService {
     @SuppressWarnings("unchecked")
     public JSONArray queryResource(Long operateUserId, Long pid, boolean isAdminOperate) {
         JSONArray array = new JSONArray();
+        List<Object> params = new ArrayList<>();
         StringBuilder builder = new StringBuilder();
         if (isAdminOperate) {
             builder.append(" select distinct r.ID,r.NAME,r.PID,r.URI,r.TYPE from t_resource r");
-            builder.append(" where r.pid=");
-            builder.append(pid);
+            builder.append(" where r.pid=?");
+            params.add(pid);
             builder.append(" and PLATFORM=1");
         } else {
             builder.append(" select distinct r.ID,r.NAME,r.PID,r.URI,r.TYPE from t_mrp_rel m ");
             builder.append(" inner join t_user_role_rel ur on ur.ROLE = m.ROLE_ID");
-            builder.append(" inner join t_resource r on m.R_ID = r.ID and ur.ID =");
-            builder.append(operateUserId);
-            builder.append(" and r.pid = ");
-            builder.append(pid);
+            builder.append(" inner join t_resource r on m.R_ID = r.ID and ur.ID =?");
+            params.add(operateUserId);
+            builder.append(" and r.pid = ?");
+            params.add(pid);
             builder.append(" and PLATFORM=1 and m.type=0");
         }
         String sql = builder.toString();
-        List<Map<String, Object>> list = resourceDao.sqlQuery(sql);
+        List<Map<String, Object>> list = resourceDao.sqlQuery(sql, params.toArray());
         if (list != null && !list.isEmpty()) {
             for (Map<String, Object> map : list) {
                 Long id = NumberConvertUtil.everythingToLong(map.get("ID"));
@@ -649,21 +668,24 @@ public class ResourceService {
     public com.alibaba.fastjson.JSONArray listTreeResource(Long operateUserId, Long pid, int platform, boolean isAdminOperate) {
         com.alibaba.fastjson.JSONArray array = new com.alibaba.fastjson.JSONArray();
         StringBuilder builder = new StringBuilder();
+        List<Object> params = new ArrayList<>();
         if (isAdminOperate) {
             builder.append(" select distinct r.ID,r.NAME,r.PID,r.URI,r.TYPE from t_resource r");
-            builder.append(" where r.pid=");
-            builder.append(pid);
-            builder.append(" and PLATFORM=").append(platform);
+            builder.append(" where r.pid=?");
+            params.add(pid);
+            builder.append(" and PLATFORM=?");
+            params.add(platform);
         } else {
             builder.append(" select distinct r.ID,r.NAME,r.PID,r.URI,r.TYPE from t_mrp_rel m ");
             builder.append(" inner join t_user_role_rel ur on ur.ROLE = m.ROLE_ID");
-            builder.append(" inner join t_resource r on m.R_ID = r.ID and ur.ID =");
-            builder.append(operateUserId);
-            builder.append(" and r.pid = ");
-            builder.append(pid);
-            builder.append(" and PLATFORM=").append(platform).append(" and m.type=0");
+            builder.append(" inner join t_resource r on m.R_ID = r.ID and ur.ID =?");
+            params.add(operateUserId);
+            builder.append(" and r.pid = ?");
+            params.add(pid);
+            builder.append(" and PLATFORM=?").append(" and m.type=0");
+            params.add(platform);
         }
-        List<Map<String, Object>> list = jdbcTemplate.queryForList(builder.toString());
+        List<Map<String, Object>> list = jdbcTemplate.queryForList(builder.toString(), params.toArray());
         if (list != null && !list.isEmpty()) {
             com.alibaba.fastjson.JSONObject object;
             long id, parentId;

@@ -16,6 +16,7 @@ import org.hibernate.criterion.Restrictions;
 import org.hibernate.metadata.ClassMetadata;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,6 +39,9 @@ public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDao
 
     @Autowired
     public JdbcTemplate jdbcTemplate;
+
+    @Autowired
+    public NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     protected Class<T> entityClass;
 

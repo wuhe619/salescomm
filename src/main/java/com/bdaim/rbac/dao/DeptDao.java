@@ -62,8 +62,8 @@ public class DeptDao extends SimpleHibernateDao<DeptEntity, Serializable> {
     public int deleteByDeptId(Long deptId) {
         int i = 0;
         try {
-            String sql = "DELETE FROM t_dept WHERE ID = '" + deptId + "'";
-            i = jdbcTemplate.update(sql);
+            String sql = "DELETE FROM t_dept WHERE ID = ? ";
+            i = jdbcTemplate.update(sql, deptId);
 
         } catch (Exception e) {
             logger.info("删除失败>>>>>>>" + e);
@@ -72,26 +72,31 @@ public class DeptDao extends SimpleHibernateDao<DeptEntity, Serializable> {
     }
 
     public void insert(DeptDTO t) throws SQLException {
-        this.executeUpdateSQL("insert into t_dept(ID,NAME,OPTUSER,CREATE_TIME,TYPE) values("+t.getId()+",'"+t.getName()+"','"+t.getOptuser()+"',now(),'"+t.getType()+"')");
+        this.executeUpdateSQL("insert into t_dept(ID,NAME,OPTUSER,CREATE_TIME,TYPE) values(?,?,?,now(),?)", t.getId(), t.getName(), t.getOptuser(), t.getType());
     }
 
-    public void delete( DeptDTO t) {
+    public void delete(DeptDTO t) {
         if (t.getId() == null) throw new NullPointerException("删除记录的ID不可为空");
-        this.executeUpdateSQL("delete from t_dept where ID="+t.getId());
+        this.executeUpdateSQL("delete from t_dept where ID=?", t.getId());
     }
 
-    public void update(DeptDTO t)  {
+    public void update(DeptDTO t) {
         if (t.getId() == null) throw new NullPointerException("更新记录的ID不可为空");
         StringBuffer sb = new StringBuffer();
         sb.append("update t_dept set MODIFY_TIME=now(),");
+        List<Object> p = new ArrayList<>();
         if (t.getOptuser() != null && !t.getOptuser().equals("")) {
-            sb.append("OPTUSER='"+t.getOptuser()+"',");
+            sb.append(" OPTUSER=?, ");
+            p.add(t.getOptuser());
         }
         if (t.getName() != null && !t.getName().equals("")) {
-            sb.append("NAME='"+t.getName()+"',");
+            sb.append(" NAME=?  ");
+            p.add(t.getName());
         }
+        sb.append(" where ID=? ");
+        p.add(t.getId());
         //确认SQL，绑定参数
-        this.executeUpdateSQL(sb.substring(0, sb.length() - 1) + " where ID="+t.getId());
+        this.executeUpdateSQL(sb.toString(), p.toArray());
     }
 
     public DeptDTO getObj(Connection con, DeptDTO t) {

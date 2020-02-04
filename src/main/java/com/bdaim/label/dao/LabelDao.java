@@ -196,11 +196,14 @@ public class LabelDao extends SimpleHibernateDao<LabelInfo, Serializable> {
                 if (root != null && root.getId() != null) {
                     Integer dp = getDeep(rs, deep, root, false);
                     String uri = getUri(root, false);
-                    String sql = "select t1.id,COALESCE(t1.parent_id,0) parent_id,t1.name,t1.id category_id from label_category t1  where t1.`LEVEL`<=" + dp + " and t1.uri like '" + uri + "' and t1.type = " + categoryType.ordinal() + " order by t1.parent_id";
-                    rs = this.sqlQuery(sql);
+                    String sql = "select t1.id,COALESCE(t1.parent_id,0) parent_id,t1.name,t1.id category_id from label_category t1  where t1.`LEVEL`<=? and t1.uri like ? and t1.type = ? order by t1.parent_id";
+                    rs = jdbcTemplate.queryForList(sql,new Object[]{dp,"%"+uri+"%",categoryType.ordinal()});
+//                    rs = this.sqlQuery(sql);
+
                 } else {
                     String sql = "select t1.id,COALESCE(t1.parent_id,0) parent_id,t1.name,t1.id category_id from label_category t1 where t1.`LEVEL`<=" + deep + " and t1.type = " + categoryType.ordinal() + " order by t1.parent_id";
-                    rs = this.sqlQuery(sql);
+//                    rs = this.sqlQuery(sql);
+                    rs = jdbcTemplate.queryForList(sql,new Object[]{deep,categoryType.ordinal()});
                 }
             }
             for (int i = 0; i < rs.size(); i++) {
@@ -306,10 +309,13 @@ public class LabelDao extends SimpleHibernateDao<LabelInfo, Serializable> {
 
     private Integer getDeep(List rs, Integer deep, DataNode root, boolean isLabel) throws SQLException {
         if (isLabel) {
-            rs = this.sqlQuery("select id, `LEVEL` from label_info where id=" + root.getId());
+//            rs = this.sqlQuery("select id, `LEVEL` from label_info where id=" + root.getId());
+            rs =  jdbcTemplate.queryForList("select id, `LEVEL` from label_info where id=?",new Object[]{root.getId()});
         } else {
-            rs = this.sqlQuery("select id, `LEVEL` from label_category where id=" + root.getId());
+//            rs = this.sqlQuery("select id, `LEVEL` from label_category where id=" + root.getId());
+            rs = jdbcTemplate.queryForList("select id, `LEVEL` from label_category where id=?",new Object[]{root.getId()});
         }
+
         Integer dp = 0;
         for (int i = 0; i < rs.size(); i++) {
             Map r = (Map) rs.get(0);
@@ -322,9 +328,11 @@ public class LabelDao extends SimpleHibernateDao<LabelInfo, Serializable> {
         String ret = "";
         List rs = null;
         if (isLabel) {
-            rs = this.getSQLQuery("select id,uri from label_info where id=" + root.getId()).list();
+//            rs = this.getSQLQuery("select id,uri from label_info where id=" + root.getId()).list();
+            rs =  jdbcTemplate.queryForList("select id,uri from label_info where id=?",new Object[]{root.getId()});
         } else {
-            rs = this.getSQLQuery("select id,uri from label_category where id=" + root.getId()).list();
+//            rs = this.getSQLQuery("select id,uri from label_category where id=" + root.getId()).list();
+            rs =  jdbcTemplate.queryForList("select id,uri from label_category where id=?",new Object[]{root.getId()});
         }
         if (rs.size() > 0) {
             Object[] r = (Object[]) rs.get(0);

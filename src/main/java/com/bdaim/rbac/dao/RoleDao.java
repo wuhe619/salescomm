@@ -32,21 +32,25 @@ public class RoleDao extends SimpleHibernateDao<RoleEntity, Serializable> {
     public void update(RoleDTO role) {
         StringBuffer sb = new StringBuffer();
         sb.append("update t_role set MODIFY_TIME=now()");
+        List<Object> params = new ArrayList<>();
         String roleName = role.getName();
         if (!StringUtils.isEmpty(roleName)) {
-            sb.append(",NAME='" + roleName + "'");
+            sb.append(",NAME=?");
+            params.add(roleName);
         }
         String optUser = role.getUser();
         if (!StringUtils.isEmpty(optUser)) {
-            sb.append(" ,OPTUSER='" + optUser + "'");
+            sb.append(" ,OPTUSER=?");
+            params.add(optUser);
         }
         Long deptId = role.getDeptId();
         if (deptId != null) {
-            sb.append(", DEPTID='" + deptId + "'");
+            sb.append(", DEPTID=?");
+            params.add(deptId);
         }
-        sb.append(" where ID= " + role.getKey());
-
-        this.executeUpdateSQL(sb.toString());
+        sb.append(" where ID= ?");
+        params.add(role.getKey());
+        this.executeUpdateSQL(sb.toString(), params.toArray());
     }
 
     /**
@@ -73,11 +77,14 @@ public class RoleDao extends SimpleHibernateDao<RoleEntity, Serializable> {
 
     public void deleteSourceTree(Long operateUserId, Long roleId) throws SQLException {
         StringBuilder builder = new StringBuilder();
-        builder.append(" delete from t_mrp_rel where role_id = " + roleId + " and r_id in");
-        builder.append(" (select temp.r_id from (select m.r_id from t_mrp_rel m ,t_user_role_rel ur where m.ROLE_ID = ur.ROLE and ur.id = " + operateUserId + ")temp)");
+        List<Object> params = new ArrayList<>();
+        builder.append(" delete from t_mrp_rel where role_id = ? and r_id in");
+        builder.append(" (select temp.r_id from (select m.r_id from t_mrp_rel m ,t_user_role_rel ur where m.ROLE_ID = ur.ROLE and ur.id = ?)temp)");
+        params.add(roleId);
+        params.add(operateUserId);
         String sql = builder.toString();
 
-        this.executeUpdateSQL(builder.toString());
+        this.executeUpdateSQL(builder.toString(), params.toArray());
     }
 
     /**
@@ -86,16 +93,17 @@ public class RoleDao extends SimpleHibernateDao<RoleEntity, Serializable> {
      * @throws SQLException
      */
     public void deleteSourceTree(Long roleId) throws SQLException {
-        String sql = "delete from t_mrp_rel where role_id = " + roleId;
-
-        this.executeUpdateSQL(sql);
+        String sql = "delete from t_mrp_rel where role_id = ?";
+        List<Object> params = new ArrayList<>();
+        params.add(roleId);
+        this.executeUpdateSQL(sql, params.toArray());
     }
 
     /**
      * 添加职位sql
      */
     public void insertRole(RoleDTO role) {
-        this.executeUpdateSQL("insert into t_role(ID,NAME,OPTUSER,CREATE_TIME,DEPTID) values('" + role.getKey() + "','" + role.getName() + "','" + role.getUser() + "',now(),'" + role.getDeptId() + "')");
+        this.executeUpdateSQL("insert into t_role(ID,NAME,OPTUSER,CREATE_TIME,DEPTID) values(?,?,?,now(),?)", role.getKey(), role.getName(), role.getUser(), role.getDeptId());
     }
 
 
@@ -103,8 +111,10 @@ public class RoleDao extends SimpleHibernateDao<RoleEntity, Serializable> {
      * 根据userid删除用户角色信息(admin)
      */
     public void deleteByUserId(Long userId) throws SQLException {
-        String sql = "delete from t_user_role_rel where id = " + userId;
-        this.executeUpdateSQL(sql);
+        String sql = "delete from t_user_role_rel where id = ?";
+        List<Object> params = new ArrayList<>();
+        params.add(userId);
+        this.executeUpdateSQL(sql, params.toArray());
     }
 
     /**
@@ -114,8 +124,10 @@ public class RoleDao extends SimpleHibernateDao<RoleEntity, Serializable> {
      * @date: 2019/3/19 18:56
      */
     public List<Map<String, Object>> getRoleByUserId(Long userId) throws SQLException {
-        String sql = "select ID userId,ROLE roleId  from t_user_role_rel where id = " + userId;
-        List<Map<String, Object>> list = this.sqlQuery(sql);
+        String sql = "select ID userId,ROLE roleId  from t_user_role_rel where id = ?";
+        List<Object> params = new ArrayList<>();
+        params.add(userId);
+        List<Map<String, Object>> list = this.sqlQuery(sql, params.toArray());
         return list;
     }
 
@@ -125,8 +137,10 @@ public class RoleDao extends SimpleHibernateDao<RoleEntity, Serializable> {
      * @date: 2019/3/19 18:56
      */
     public List<Map<String, Object>> getUserNumByRoleId(String roleId) throws SQLException {
-        String sql = "select ID userId,ROLE roleId  from t_user_role_rel where ROLE = " + roleId;
-        List<Map<String, Object>> list = this.sqlQuery(sql);
+        String sql = "select ID userId,ROLE roleId  from t_user_role_rel where ROLE = ?";
+        List<Object> params = new ArrayList<>();
+        params.add(roleId);
+        List<Map<String, Object>> list = this.sqlQuery(sql, params.toArray());
         return list;
     }
 
@@ -136,8 +150,10 @@ public class RoleDao extends SimpleHibernateDao<RoleEntity, Serializable> {
      * @date: 2019/3/19 18:56
      */
     public List<Map<String, Object>> getRoleInfoByUserId(String userId) {
-        String sql = "SELECT R.type,r.ID id,r.`NAME` name from t_user_role_rel  ur LEFT JOIN t_role r ON ur.ROLE = r.ID WHERE ur.ID = '" + userId + "'";
-        List<Map<String, Object>> list = this.sqlQuery(sql);
+        String sql = "SELECT R.type,r.ID id,r.`NAME` name from t_user_role_rel  ur LEFT JOIN t_role r ON ur.ROLE = r.ID WHERE ur.ID = ?";
+        List<Object> params = new ArrayList<>();
+        params.add(userId);
+        List<Map<String, Object>> list = this.sqlQuery(sql, params.toArray());
         return list;
     }
 
@@ -156,21 +172,25 @@ public class RoleDao extends SimpleHibernateDao<RoleEntity, Serializable> {
     }
 
     public void insert(RoleDTO role) {
-        this.executeUpdateSQL("insert into t_role(ID,NAME,OPTUSER,CREATE_TIME,DEPTID) values('" + role.getKey() + "','" + role.getName() + "','" + role.getUser() + "',now(),'" + role.getDeptId() + "')");
+        this.executeUpdateSQL("insert into t_role(ID,NAME,OPTUSER,CREATE_TIME,DEPTID) values(?,?,?,now(),?)",
+                role.getKey(), role.getName(), role.getUser(), role.getDeptId());
     }
 
-    public void insert0(RoleDTO role)  {
-        this.executeUpdateSQL("insert into t_role(ID,NAME,OPTUSER,CREATE_TIME,DEPTID) values('"+IDHelper.getID()+"','"+role.getName()+"','"+role.getUser()+"',now(),'"+role.getDeptId()+"')");
+    public void insert0(RoleDTO role) {
+        this.executeUpdateSQL("insert into t_role(ID,NAME,OPTUSER,CREATE_TIME,DEPTID) values(?,?,?,now(),?)",
+                IDHelper.getID(), role.getName(), role.getUser(), role.getDeptId());
     }
 
     public void delete(RoleDTO role) {
-        this.executeUpdateSQL("delete from t_role where ID=" + role.getKey());
-        this.executeUpdateSQL("delete from t_mrp_rel where ROLE_ID=" + role.getKey());
+        this.executeUpdateSQL("delete from t_role where ID=?", role.getKey());
+        this.executeUpdateSQL("delete from t_mrp_rel where ROLE_ID=?", role.getKey());
     }
 
     public RoleDTO getObj(RoleDTO role) {
         try {
-            List list = this.getSQLQuery("select ID,NAME,OPTUSER,CREATE_TIME,MODIFY_TIME,TYPE from t_role where id=" + role.getKey()).list();
+            List<Object> params = new ArrayList<>();
+            params.add(role.getKey());
+            List list = this.sqlQuery("select ID,NAME,OPTUSER,CREATE_TIME,MODIFY_TIME,TYPE from t_role where id=?", params.toArray());
 
             RoleDTO resultRole = new RoleDTO();
             for (int i = 0; i < list.size(); i++) {
@@ -198,7 +218,10 @@ public class RoleDao extends SimpleHibernateDao<RoleEntity, Serializable> {
      * @return
      */
     public List<RoleDTO> query(RoleDTO role) {
-        List list = this.getSQLQuery("select ID,NAME,OPTUSER,CREATE_TIME,MODIFY_TIME,TYPE from t_user_role_rel where role=" + role.getKey()).list();
+        List<Object> params = new ArrayList<>();
+        params.add(role.getKey());
+        List list = this.sqlQuery("select ID,NAME,OPTUSER,CREATE_TIME,MODIFY_TIME,TYPE from t_user_role_rel where role=?", params.toArray());
+
         List<RoleDTO> roles = new ArrayList<RoleDTO>();
         try {
             for (int i = 0; i < list.size(); i++) {
@@ -212,7 +235,7 @@ public class RoleDao extends SimpleHibernateDao<RoleEntity, Serializable> {
                 roles.add(roleDTO);
             }
             return roles;
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return null;  //To change body of implemented methods use File | Settings | File Templates.
@@ -220,8 +243,8 @@ public class RoleDao extends SimpleHibernateDao<RoleEntity, Serializable> {
 
     public List<RoleDTO> queryUserRoles(UserDTO user) {
         try {
-            List list = this.getSQLQuery("SELECT r.ID,r.NAME,r.OPTUSER,r.CREATE_TIME,r.MODIFY_TIME FROM t_role r,t_user_role_rel rel where r.ID=rel.ROLE " +
-                    "and rel.ID= " + user.getKey()).list();
+            List list = this.sqlQuery("SELECT r.ID,r.NAME,r.OPTUSER,r.CREATE_TIME,r.MODIFY_TIME FROM t_role r,t_user_role_rel rel where r.ID=rel.ROLE " +
+                    "and rel.ID= ? ", user.getKey());
 
             List<RoleDTO> roles = new ArrayList<RoleDTO>();
             for (int i = 0; i < list.size(); i++) {

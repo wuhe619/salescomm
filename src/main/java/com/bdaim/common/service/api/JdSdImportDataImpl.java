@@ -104,8 +104,8 @@ public class JdSdImportDataImpl {
         }
 
         // 检查客户群权限
-        String querySql = "SELECT * FROM " + DB_NAME + " customer_group WHERE cust_id = '" + CUST_ID + "' AND id = '" + groupId + "'";
-        List cGroup = marketResourceDao.sqlQuery(querySql);
+        String querySql = "SELECT * FROM " + DB_NAME + " customer_group WHERE cust_id = ? AND id = ?";
+        List cGroup = marketResourceDao.sqlQuery(querySql,CUST_ID,groupId);
         if (cGroup == null || (cGroup != null && cGroup.size() == 0)) {
             json.put("code", -5);
             json.put("message", "操作异常");

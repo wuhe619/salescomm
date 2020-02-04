@@ -56,20 +56,24 @@ public class B2BTcbLogService implements BusiService {
         String create_date = params.getString("create_date");
         String end_date = params.getString("end_date");
 
-        if (!"all".equals(cust_id))
-            sqlstr.append(" and t.cust_id='").append(cust_id).append("'");
+        if (!"all".equals(cust_id)){
+            sqlstr.append(" and t.cust_id=? ");
+            sqlParams.add(cust_id);
+        }
+
         String tcb_id = params.getString("tcb_id");
         if (StringUtil.isNotEmpty(tcb_id)) {
-            sqlstr.append(" and t.ext_2 ='").append(tcb_id).append("'");
+            sqlParams.add(tcb_id);
+            sqlstr.append(" and t.ext_2 =? ");
         }
         if (StringUtil.isNotEmpty(userName)) {
-            String sql1 = "select id from t_customer_user where realname = '" + userName + "'";
+            String sql1 = "select id from t_customer_user where realname = ?";
 
-            List<Object> userIdList = jdbcTemplate.queryForList(sql1, Object.class);
+            List<Map<String, Object>> userIdList = jdbcTemplate.queryForList(sql1, userName);
             if (userIdList.size() > 0) {
                 StringBuffer sbf = new StringBuffer();
                 userIdList.stream().forEach(userId -> {
-                    sbf.append(userId);
+                    sbf.append(userId.get("id").toString());
                     sbf.append(",");
                 });
                 sbf.deleteCharAt(sbf.length() - 1);
@@ -77,7 +81,9 @@ public class B2BTcbLogService implements BusiService {
             }
         }
         if (StringUtil.isNotEmpty(create_date) && StringUtil.isNotEmpty(end_date)) {
-            sqlstr.append(" and t.create_date between '").append(create_date).append("' and '").append(end_date).append("'");
+            sqlParams.add(create_date);
+            sqlParams.add(end_date);
+            sqlstr.append(" and t.create_date between ? and ? ");
         }
         sqlstr.append("group by  create_date  order by  create_date desc");
         return sqlstr.toString();

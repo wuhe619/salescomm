@@ -57,6 +57,7 @@ logging:
   file: bp.log
 file:
   file_path: E:\\test\\image\\
+  api_xml_path: E:\\test\\image\\
 express:
   zto:
     url: http://japi.zto.cn/exposeServicePushOrderService

@@ -229,7 +229,7 @@ public class SbdFService implements BusiService {
             id, JSONObject info, JSONObject param) throws TouchException {
         // TODO Auto-generated method stub
         if ("SBDCHECK".equals(param.getString("_rule_"))) {
-            sbdfCheck(id,cust_id,param);
+            sbdfCheck(id, cust_id, param);
         }
 
     }
@@ -277,9 +277,10 @@ public class SbdFService implements BusiService {
         if ("main".equals(params.getString("_rule_"))) {
             sqlParams.clear();
             StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(busiType, "") + " where type=?");
-            if (!"all".equals(cust_id))
-                sqlstr.append(" and cust_id='").append(cust_id).append("'");
-
+            if (!"all".equals(cust_id)){
+                sqlParams.add(cust_id);
+                sqlstr.append(" and cust_id=? ");
+            }
             sqlParams.add(busiType);
 
             Iterator keys = params.keySet().iterator();
@@ -317,7 +318,6 @@ public class SbdFService implements BusiService {
                 } else if ("2".equals(verify_photo)) {
                     sqlstr.append(" and (ext_6 IS NULL OR ext_6='') ");
                 }
-
             }
             return sqlstr.toString();
         }
@@ -399,11 +399,11 @@ public class SbdFService implements BusiService {
     /*
     校验
      */
-    public int sbdfCheck(long id,String cust_id,JSONObject param) throws TouchException {
+    public int sbdfCheck(long id, String cust_id, JSONObject param) throws TouchException {
         long startTime = System.currentTimeMillis();
 
-        String sql1 = "select ext_3,ext_4,content from h_data_manager_sbd_f where id = " + id;
-        List<Map<String, Object>> list = jdbcTemplate.queryForList(sql1);
+        String sql1 = "select ext_3,ext_4,content from h_data_manager_sbd_f where id = ?";
+        List<Map<String, Object>> list = jdbcTemplate.queryForList(sql1, id);
         if (list.size() == 0) {
             throw new TouchException("2000", "分单:[" + id + "],不存在");
         }
@@ -419,17 +419,17 @@ public class SbdFService implements BusiService {
         }
         log.info("主单号:{" + ext_4 + "}");
         long startTime1 = System.currentTimeMillis();
-        String sql = "select content from h_data_manager_sbd_s where ext_4 = '" + ext_3 + "' " +
-                "and ext_2 = '" + ext_4 + "' and type='sbd_s' and cust_id='"+cust_id+"'";
-        List<Map<String, Object>> maps = jdbcTemplate.queryForList(sql);
+        String sql = "select content from h_data_manager_sbd_s where ext_4 = ? " +
+                "and ext_2 = ? and type='sbd_s' and cust_id=? ";
+        List<Map<String, Object>> maps = jdbcTemplate.queryForList(sql,ext_3,ext_4,cust_id);
         long startTime2 = System.currentTimeMillis();
-        log.info("查询税单耗时："+(startTime2-startTime1));
+        log.info("查询税单耗时：" + (startTime2 - startTime1));
         DoubleStream ggrosswt = maps.parallelStream().map(m -> {
             JSONObject contentJson = JSONObject.parseObject(m.get("content").toString());
-            return  contentJson.getDouble("ggrosswt");
+            return contentJson.getDouble("ggrosswt");
         }).mapToDouble(value -> value);
         long startTime3 = System.currentTimeMillis();
-        log.info("获取税单总重量耗时："+(startTime3-startTime2));
+        log.info("获取税单总重量耗时：" + (startTime3 - startTime2));
         Double d = 0.0;
 
         if (ggrosswt != null) {

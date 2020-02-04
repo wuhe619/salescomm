@@ -118,9 +118,9 @@ public class IndustryPoolService {
             StringBuffer sb = new StringBuffer();
             sb.append(" SELECT pool.`NAME` as name, pool.industry_pool_id, GROUP_CONCAT(info.industy_name)  as industy_name, pool.label_num, ins.`STATUS` as custState");
             sb.append(" FROM  t_industry_pool pool ");
-            sb.append(" LEFT JOIN t_cust_industry ins ON pool.industry_pool_id = ins.industry_pool_id AND ins.cust_id = '");
-            sb.append(customerId);
-            sb.append("'");
+            sb.append(" LEFT JOIN t_cust_industry ins ON pool.industry_pool_id = ins.industry_pool_id AND ins.cust_id = ?");
+//            sb.append(customerId);
+//            sb.append("'");
             sb.append(" LEFT JOIN t_industry_info_rel rel ON pool.industry_pool_id = rel.industry_pool_id ");
             sb.append(" LEFT JOIN t_industry_info info ON info.industry_info_id = rel.industry_info_id ");
             sb.append(" where pool.`STATUS`=3");
@@ -128,7 +128,8 @@ public class IndustryPoolService {
             sb.append(" AND ins.`status` = 1 ");
             sb.append(" GROUP BY industry_pool_id");
             sb.append(" ORDER BY ins.create_time DESC, ins.modify_time DESC");
-            list = industryPoolDao.getSQLQuery(sb.toString()).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP).list();
+            //list = industryPoolDao.getSQLQuery(sb.toString()).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP).list();
+            list = jdbcTemplate.queryForList(sb.toString(),new Object[]{customerId});
             json.put("listIndustry", list);
         } catch (Exception e) {
             log.error("查看客户行业标签池出错！" + e.getMessage());
@@ -332,7 +333,7 @@ public class IndustryPoolService {
                 labelInfo.setUri(list.get(i).get("uri").toString());
                 labelInfo.setStatus(Integer.parseInt(list.get(i).get("status").toString()));
                 // 通过父级标签ID查询子标签
-                parentLabelInfo = industryPoolDao.findUnique("FROM LabelInfo t WHERE t.availably=1 AND t.id=" + labelInfo.getId());
+                parentLabelInfo = industryPoolDao.findUnique("FROM LabelInfo t WHERE t.availably=1 AND t.id=?",  labelInfo.getId());
                 if (parentLabelInfo != null) {
                     labelInfo.setChildren(parentLabelInfo.getChildren());
                 }
@@ -341,7 +342,7 @@ public class IndustryPoolService {
             }
             if (labels.size() == 0) {
                 if (map.containsKey(Constant.FILTER_KEY_PREFIX + "id")) {
-                    labels = industryPoolDao.createQuery("FROM LabelInfo t WHERE t.availably=1 AND t.id=" + label.getId()).list();
+                    labels = industryPoolDao.createQuery("FROM LabelInfo t WHERE t.availably=1 AND t.id=?", label.getId()).list();
                 }
             }
         } else {
@@ -374,8 +375,7 @@ public class IndustryPoolService {
                 labels = industryPoolDao.getHqlQuery(hql, map, orLikeMap,
                         andLikeMap, null).list();
             } else if (type.equals(Constant.QUERY_TYPE_ATTR)) {
-                String hql = "from LabelInfo t where t.availably=1 and t.type>1 and attrId != 10001 and attrId is not null and parent.id="
-                        + label.getId();
+                String hql = "from LabelInfo t where t.availably=1 and t.type>1 and attrId != 10001 and attrId is not null and parent.id=" + label.getId();
                 labels = industryPoolDao.getHqlQuery(hql, map, orLikeMap,
                         andLikeMap, null).list();
             }
@@ -489,10 +489,10 @@ public class IndustryPoolService {
      * @param cycle
      * @return
      */
-    public List<Map<String, Object>> getChildrenById(Map<String, Object> map,
+   /* public List<Map<String, Object>> getChildrenById(Map<String, Object> map,
                                                      Map<String, Object> orLikeMap, Map<String, Object> andLikeMap, Integer cycle) {
         return getTreeByCondition(map, orLikeMap, andLikeMap, cycle);
-    }
+    }*/
 
     @SuppressWarnings("unchecked")
     public List<Map<String, Object>> getTreeByLevel(Integer pid, Integer level) {
@@ -535,15 +535,15 @@ public class IndustryPoolService {
         labelInfoDao.update(label);
     }
 
-
+/*
     public List<Map<String, Object>> getLabelsByCondition(
             Map<String, Object> map) {
         // return getTreeByLevel(map);
         return getLabelMenuByCondition(map);
-    }
+    }*/
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private List<Map<String, Object>> getLabelMenuByCondition(Map<String, Object> condition) {
+    /*private List<Map<String, Object>> getLabelMenuByCondition(Map<String, Object> condition) {
         List<Map<String, Object>> result;
         List<Map<String, Object>> cateList = new ArrayList<Map<String, Object>>();
 
@@ -650,7 +650,7 @@ public class IndustryPoolService {
         }
         return result;
 
-    }
+    }*/
 
 
 //    @SuppressWarnings({ "rawtypes", "unchecked" })
@@ -764,8 +764,7 @@ public class IndustryPoolService {
 //
 //	}
 
-
-    @SuppressWarnings("unchecked")
+/*
     public List<Map<String, Object>> getTreeByLevel(
             Map<String, Object> condition) {
         List<Map<String, Object>> result;
@@ -790,9 +789,9 @@ public class IndustryPoolService {
             result = getLabelTree(list);
         }
         return result;
-    }
+    }*/
 
-
+/*
     public LabelInfo getLabelInfoByParentAndName(LabelInfo parent, String name) {
         Criteria c = industryPoolDao.createCriteria(Restrictions.eq("parent", parent));
         c.add(Restrictions.eq("labelName", name));
@@ -801,7 +800,7 @@ public class IndustryPoolService {
         if (list.size() > 0)
             label = list.get(0);
         return label;
-    }
+    }*/
 
 
     public LabelInfo getLabelInfoByLabelId(String labelId) {
@@ -1598,13 +1597,14 @@ public class IndustryPoolService {
     public JSONObject getlistIndustryPoolByCondition(Integer pageNum, Integer pageSize, String name, Integer status, Integer industryPoolId,
                                                      Integer industryPoolType) {
         JSONObject json = new JSONObject();
+        List obj = new ArrayList();
         List<Map<String, Object>> list = new ArrayList<>();
         try {
             //条件查询行业标签池
             StringBuffer sb = new StringBuffer();
             sb.append(" SELECT ");
             sb.append(" 	pool.`NAME` as name, ");
-            sb.append(" 	pool.industry_pool_id, ");
+            sb.append(" 	pool.industry_pool_id,");
             sb.append(" 	GROUP_CONCAT((SELECT industy_name from t_industry_info where industry_info_id = rel.industry_info_id))  as industyName, ");
             sb.append(" 	pool.label_num AS labelNum, ");
             sb.append(" 	pool. STATUS as status,");
@@ -1622,37 +1622,41 @@ public class IndustryPoolService {
             sb.append(" 1=1");
 
             if (!"".equals(name) && name != null) {
-                sb.append(" AND  pool.name LIKE '%");
-                sb.append(name);
-                sb.append("%' ");
+                sb.append(" AND  pool.name LIKE ?");
+                obj.add(name);
             }
 
             if (!"".equals(industryPoolId) && industryPoolId != null) {
-                sb.append("  AND  pool. industry_pool_id LIKE '%");
-                sb.append(industryPoolId);
-                sb.append("%'");
+                sb.append("  AND  pool. industry_pool_id LIKE ?");
+//                sb.append(industryPoolId);
+//                sb.append("%'");
+                obj.add(industryPoolId);
             }
 
             if (!"".equals(status) && status != null) {
-                sb.append("  AND pool.STATUS ='");
-                sb.append(status);
-                sb.append("' ");
+                sb.append("  AND pool.STATUS =?");
+//                sb.append(status);
+//                sb.append("' ");
+                obj.add(status);
             }
 
             if (!"".equals(industryPoolType) && industryPoolType != null) {
-                sb.append("  AND pool.industry_pool_type = '");
-                sb.append(industryPoolType);
-                sb.append("'");
+                sb.append("  AND pool.industry_pool_type = ?");
+//                sb.append(industryPoolType);
+//                sb.append("'");
+                obj.add(industryPoolType);
             }
 
             sb.append(" GROUP BY industry_pool_id");
             //sb.append(" ORDER BY pool.create_time DESC, pool.STATUS DESC");
             sb.append(" ORDER BY pool.create_time DESC ");
 
-            List total = industryPoolDao.getSQLQuery(sb.toString()).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP).list();
+//            List total = industryPoolDao.getSQLQuery(sb.toString()).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP).list();
+            List total = jdbcTemplate.queryForList(sb.toString(),obj.toArray());
             sb.append(" LIMIT " + pageNum + "," + pageSize);
 
-            list = industryPoolDao.getSQLQuery(sb.toString()).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP).list();
+            //list = industryPoolDao.getSQLQuery(sb.toString()).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP).list();
+            list = jdbcTemplate.queryForList(sb.toString(),obj.toArray());
             json.put("industryPoolCondition", list);
             json.put("total", total.size());
         } catch (Exception e) {
@@ -1763,47 +1767,55 @@ public class IndustryPoolService {
         try {
             Integer pageNum = industryLabelsDTO.getPageNum();
             Integer pageSize = industryLabelsDTO.getPageSize();
-
+            List args=new ArrayList();
             sql.append(" SELECT info.label_name as name,info.path as path,label.industry_label_id as labelId,label.industry_label_id as priceId, label.price/100 as price ")
                     .append(" FROM  t_industry_label label")
                     .append(" INNER JOIN label_info info ON label.label_id= info.id")
                     .append(" WHERE 1=1")
-                    .append(" AND label.industry_pool_id =" + industryLabelsDTO.getIndustryPoolId());
+                    .append(" AND label.industry_pool_id =?");//+ industryLabelsDTO.getIndustryPoolId());
             //.append(" AND price.industry_pool_id =" + industryLabelsDTO.getIndustryPoolId())
             //.append(" AND price.source_id  =" + industryLabelsDTO.getSourceId());
-
+            args.add(industryLabelsDTO.getIndustryPoolId());
             if (null != industryLabelsDTO.getSecondCategory() && !"".equals(industryLabelsDTO.getSecondCategory())) {
-                sql.append(" AND info.parent_id =" + industryLabelsDTO.getSecondCategory());
+                sql.append(" AND info.parent_id =?");
+                args.add(industryLabelsDTO.getSecondCategory());
             }
             if (!"".equals(industryLabelsDTO.getLabelName()) && null != industryLabelsDTO.getLabelName()) {
-                sql.append(" AND   info.label_name LIKE '%" + industryLabelsDTO.getLabelName() + "%'");
+                sql.append(" AND   info.label_name LIKE ?");
+                args.add( "%"+industryLabelsDTO.getLabelName()+"%");
             }
             if (!"".equals(industryLabelsDTO.getLabelId()) && null != industryLabelsDTO.getLabelId()) {
-                sql.append(" AND   label.industry_label_id LIKE '%" + industryLabelsDTO.getLabelId() + "%'");
+                sql.append(" AND   label.industry_label_id LIKE ?");
+                args.add("%"+industryLabelsDTO.getLabelId()+"%");
             }
 
             if (null != industryLabelsDTO.getCreateTimeStart() && !"".equals(industryLabelsDTO.getCreateTimeStart()) && null != industryLabelsDTO.getCreateTimeEnd()
                     && !"".equals(industryLabelsDTO.getCreateTimeEnd())) {
-                sql.append(" AND label.create_time BETWEEN '" + industryLabelsDTO.getCreateTimeStart() + "' and '" + industryLabelsDTO.getCreateTimeEnd() + "' ");
+                sql.append(" AND label.create_time BETWEEN ? and ? ");
+                args.add(industryLabelsDTO.getCreateTimeStart());
+                args.add(industryLabelsDTO.getCreateTimeEnd());
             } else {
                 if (null != industryLabelsDTO.getCreateTimeStart() && !"".equals(industryLabelsDTO.getCreateTimeStart())) {
-                    sql.append(" AND label.create_time > '" + industryLabelsDTO.getCreateTimeStart() + "'");
+                    sql.append(" AND label.create_time > ?");
+                    args.add(industryLabelsDTO.getCreateTimeStart());
                 }
                 if (null != industryLabelsDTO.getCreateTimeEnd() && !"".equals(industryLabelsDTO.getCreateTimeEnd())) {
-                    sql.append(" AND label.create_time < '" + industryLabelsDTO.getCreateTimeEnd() + "'");
+                    sql.append(" AND label.create_time < ?");
+                    args.add(industryLabelsDTO.getCreateTimeEnd());
                 }
             }
 
             sql.append(" ORDER BY label.industry_label_id ASC");
 
-            List list = industryLabelDao.getSQLQuery(sql.toString()).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP).list();
-
+//            List list = industryLabelDao.getSQLQuery(sql.toString()).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP).list();
+            List list = jdbcTemplate.queryForList(sql.toString(),args.toArray());
             Integer total = list.size();
 
             if (list.size() != 0) {
                 sql.append(" LIMIT " + pageNum + "," + pageSize);
             }
-            list = industryLabelDao.getSQLQuery(sql.toString()).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP).list();
+//            list = industryLabelDao.getSQLQuery(sql.toString()).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP).list();
+            list = jdbcTemplate.queryForList(sql.toString(),args.toArray());
             map.put("total", total);
             map.put("IndustryLabel", list);
             json.put("data", map);
@@ -1868,7 +1880,7 @@ public class IndustryPoolService {
     public Map<Object, Object> getListLabelSalePriceLog(Integer pageNum, Integer pageSize, Integer priceId) {
         Map<Object, Object> map = new HashMap<Object, Object>();
         StringBuffer sql = new StringBuffer();
-
+        List obj=new ArrayList();
         try {
 
             sql.append("SELECT  priceLog.price_log_id as priceLogId,"
@@ -1879,15 +1891,14 @@ public class IndustryPoolService {
                     .append(" WHERE 1=1");
 
             if (!"".equals(priceId) && null != priceId) {
-                sql.append(" AND   priceLog.price_id = " + priceId);
+                sql.append(" AND   priceLog.price_id = ?");
+                obj.add(priceId);
             }
-            ;
 
             sql.append(" LIMIT " + pageNum + "," + pageSize);
 
-            List list = industryLabelDao.getSQLQuery(sql.toString()).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP)
-                    .list();
-
+//            List list = industryLabelDao.getSQLQuery(sql.toString()).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP).list();
+            List list = jdbcTemplate.queryForList(sql.toString(),obj.toArray());
             map.put("list", list);
             map.put("total", list.size());
             log.info("查询销售价定价记录，sql：" + sql + "，list：" + list);
@@ -1907,8 +1918,8 @@ public class IndustryPoolService {
 
         try {
             sql.append("select industry_pool_id,NAME from t_industry_pool").append(" WHERE 1=1");
-            List list = industryLabelDao.getSQLQuery(sql.toString()).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP).list();
-
+//            List list = industryLabelDao.getSQLQuery(sql.toString()).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP).list();
+            List list = jdbcTemplate.queryForList(sql.toString());
             json.put("data", list);
             log.info("查询行业标签池名称，sql：" + sql + "，list：" + list);
 
@@ -1928,10 +1939,10 @@ public class IndustryPoolService {
                     .append("  FROM  t_industry_pool  pool")
                     .append("  LEFT JOIN t_industry_pool_source_rel rel ON pool.industry_pool_id = rel.industry_pool_id ")
                     .append("  INNER JOIN t_source  source ON source.source_id = rel.source_id ")
-                    .append("   WHERE 1=1 AND pool.industry_pool_id = " + industryPoolId);
+                    .append("   WHERE 1=1 AND pool.industry_pool_id = ?" );
 
-            List list = industryLabelDao.getSQLQuery(sql.toString()).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP).list();
-
+//            List list = industryLabelDao.getSQLQuery(sql.toString()).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP).list();
+            List list = jdbcTemplate.queryForList(sql.toString(),new Object[]{industryPoolId});
             json.put("data", list);
             log.info("根据行业标签池ID查询数据源，sql：" + sql + "，list：" + list);
 
@@ -1959,8 +1970,13 @@ public class IndustryPoolService {
         if (labelsString.length() > 0) {
             labelsString.deleteCharAt(labelsString.length() - 1);
         }
-        String hql = "select sum(coalesce(m.price,0)) from IndustryPoolLabel m where m.industryPoolId='" + industryPoolId + "' and m.labelId in (select id from LabelInfo where id in (" + labelsString + "))";
-        List list = this.industryPoolDao.createQuery(hql).list();
+        Map map=new HashMap();
+        map.put("industryPoolId",industryPoolId);
+        map.put("labelsString",labelsString);
+        String hql = "select sum(coalesce(m.price,0)) from IndustryPoolLabel m where m.industryPoolId=:industryPoolId and m.labelId in (select id from LabelInfo where id in (:labelsString))";
+//        List list = this.industryPoolDao.createQuery(hql).list();
+
+        List list = industryPoolDao.createQuery(hql,map).list();
         if (list.size() > 0 && list.get(0) != null) {
             sumPrice = Integer.parseInt(String.valueOf(list.get(0)));
         }
@@ -2195,9 +2211,11 @@ public class IndustryPoolService {
         JSONObject result = new JSONObject();
         String sql = " select count(0)num from t_industry_pool pool,t_cust_industry ct " +
                 " where pool.industry_pool_id=ct.industry_pool_id " +
-                " and ct.cust_id='" + custId + "'" +
-                " and ct.industry_pool_id='" + poolId + "' and ct.`status`=1 and pool.`status`=3";
-        List ls = industryLabelDao.getSQLQuery(sql).list();
+                " and ct.cust_id=?" +
+                " and ct.industry_pool_id=? and ct.`status`=1 and pool.`status`=3";
+        List ls = jdbcTemplate.queryForList(sql,new Object[]{custId,poolId});
+//        List ls = industryLabelDao.getSQLQuery(sql).list();
+
         if (ls == null || "0".equals(ls.get(0).toString())) {
             result.put("errorDesc", "01");
             return result;
@@ -2205,9 +2223,10 @@ public class IndustryPoolService {
         sql = " select  distinct info.id,info.label_id,info.label_name,label.industry_pool_id" +
                 " from label_info info LEFT JOIN t_industry_label label on info.id=label.label_id " +
                 " where info.level=3 and info.status=3 and info.availably=1 " +
-                " and label.status=1  and label.industry_pool_id = " + poolId;
-        List list = industryLabelDao.getSQLQuery(sql).list();
+                " and label.status=1  and label.industry_pool_id = ?" ;
 
+//        List list = industryLabelDao.getSQLQuery(sql).list();
+        List list =jdbcTemplate.queryForList(sql,new Object []{poolId});
         if (list == null || list.size() == 0) {
             result.put("errorDesc", "01");
             return result;

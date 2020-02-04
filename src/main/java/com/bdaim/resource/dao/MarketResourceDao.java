@@ -301,11 +301,13 @@ public class MarketResourceDao extends SimpleHibernateDao<MarketResourceEntity, 
     public List<MarketResourceDTO> listMarketResource(String type) {
         StringBuilder hql = new StringBuilder();
         hql.append(" from MarketResourceEntity m where 1=1");
+        List<Object> params = new ArrayList<>();
         if (StringUtil.isNotEmpty(type)) {
-            hql.append(" AND m.typeCode = " + type);
+            hql.append(" AND m.typeCode = ?");
+            params.add(NumberConvertUtil.parseInt(type));
         }
         hql.append(" ORDER BY create_time ASC");
-        List<MarketResourceEntity> list = this.find(hql.toString());
+        List<MarketResourceEntity> list = this.find(hql.toString(), params.toArray());
         List<MarketResourceDTO> result = new ArrayList<>();
         if (list.size() > 0) {
             MarketResourceDTO marketResourceDTO;
@@ -344,11 +346,14 @@ public class MarketResourceDao extends SimpleHibernateDao<MarketResourceEntity, 
         Iterator keys = param.keySet().iterator();
         while (keys.hasNext()) {
             String key = (String) keys.next();
-            if (StringUtil.isEmpty(String.valueOf(param.get(key)))) continue;
+            if (StringUtil.isEmpty(String.valueOf(param.get(key)))) {
+                continue;
+            }
             if ("pageNum".equals(key) || "pageSize".equals(key) || "supplierId".equals(key)
                     || "custId".equals(key) || "_sort_".equals(key)
-                    || "_orderby_".equals(key) || "status".equals(key) || "busiType".equals(key))
+                    || "_orderby_".equals(key) || "status".equals(key) || "busiType".equals(key)) {
                 continue;
+            }
 
             hql.append(" AND m.resourceId IN(SELECT resourceId FROM ResourcePropertyEntity WHERE JSON_EXTRACT(property_value, '$." + key + "') = ?) ");
             wheres.add(param.get(key));
@@ -435,7 +440,8 @@ public class MarketResourceDao extends SimpleHibernateDao<MarketResourceEntity, 
         List<Object> param = new ArrayList<>();
         hql.append(" from MarketResourceEntity m where 1=1");
         if (StringUtil.isNotEmpty(type)) {
-            hql.append(" AND m.typeCode = " + type);
+            hql.append(" AND m.typeCode = ? ");
+            param.add(NumberConvertUtil.parseInt(type));
         }
         hql.append(" ORDER BY create_time ASC");
         Page page = this.page(hql.toString(), param, pageNum, pageSize);
@@ -500,23 +506,35 @@ public class MarketResourceDao extends SimpleHibernateDao<MarketResourceEntity, 
 
     public int batchVoiceIntentStatus(VoiceLogQueryParam param, String yearMonth) {
         StringBuilder sql = new StringBuilder();
-        sql.append("update t_touch_voice_log_" + yearMonth + " SET clue_audit_status = ? WHERE customer_group_id = ? AND market_task_id = ? AND create_time BETWEEN ? AND ? ");
+        List<Object> params = new ArrayList<>();
+        sql.append("update t_touch_voice_log_" + yearMonth + " SET clue_audit_status = ? WHERE customer_group_id = ? " +
+                "AND market_task_id = ? AND create_time BETWEEN ? AND ? ");
+        params.add(param.getIntentStatus());
+        params.add(param.getCustomerGroupId());
+        params.add(param.getMarketTaskId());
+        params.add(param.getStartTime());
+        params.add(param.getEndTime());
         String levelLike = "\"level\":\"" + param.getIntentLevel() + "\"";
-        sql.append(" AND call_data LIKE '%" + levelLike + "%'");
+        sql.append(" AND call_data LIKE ?");
+        params.add("%" + levelLike + "%");
 
         if (StringUtil.isNotEmpty(param.getSuperId())) {
-            sql.append(" AND superid = '" + param.getSuperId() + "'");
+            sql.append(" AND superid = ?");
+            params.add(param.getSuperId());
         }
         if (StringUtil.isNotEmpty(param.getRemark())) {
-            sql.append(" AND remark = '" + param.getRemark() + "'");
+            sql.append(" AND remark = ?");
+            params.add(param.getRemark());
         }
         if (StringUtil.isNotEmpty(param.getUserId())) {
-            sql.append(" AND user_id = '" + param.getUserId() + "'");
+            sql.append(" AND user_id = ?");
+            params.add(param.getUserId());
         }
         if (StringUtil.isNotEmpty(param.getCallStatus())) {
-            sql.append(" AND status = " + param.getCallStatus());
+            sql.append(" AND status = ?");
+            params.add(param.getCallStatus());
         }
-        return this.executeUpdateSQL(sql.toString(), param.getIntentStatus(), param.getCustomerGroupId(), param.getMarketTaskId(), param.getStartTime(), param.getEndTime());
+        return this.executeUpdateSQL(sql.toString(), params.toArray());
     }
 
     /**
@@ -534,21 +552,33 @@ public class MarketResourceDao extends SimpleHibernateDao<MarketResourceEntity, 
         String customerGroupId = param.getCustomerGroupId();
 
         StringBuilder sql = new StringBuilder();
-        sql.append("update t_touch_voice_log_" + yearMonth + " SET clue_audit_status = ? WHERE customer_group_id = ? AND market_task_id = ? AND create_time BETWEEN ? AND ? ");
+        List<Object> params = new ArrayList<>();
+        sql.append("update t_touch_voice_log_" + yearMonth + " SET clue_audit_status = ? WHERE customer_group_id = ? " +
+                "AND market_task_id = ? AND create_time BETWEEN ? AND ? ");
+        params.add(param.getIntentStatus());
+        params.add(param.getCustomerGroupId());
+        params.add(param.getMarketTaskId());
+        params.add(param.getStartTime());
+        params.add(param.getEndTime());
         String levelLike = "\"level\":\"" + param.getIntentLevel() + "\"";
-        sql.append(" AND call_data LIKE '%" + levelLike + "%'");
+        sql.append(" AND call_data LIKE ?");
+        params.add("%" + levelLike + "%");
 
         if (StringUtil.isNotEmpty(param.getSuperId())) {
-            sql.append(" AND superid = '" + param.getSuperId() + "'");
+            sql.append(" AND superid = ?'");
+            params.add(param.getSuperId());
         }
         if (StringUtil.isNotEmpty(param.getRemark())) {
-            sql.append(" AND remark = '" + param.getRemark() + "'");
+            sql.append(" AND remark = ?");
+            params.add(param.getRemark());
         }
         if (StringUtil.isNotEmpty(param.getUserId())) {
-            sql.append(" AND user_id = '" + param.getUserId() + "'");
+            sql.append(" AND user_id = ?");
+            params.add(param.getUserId());
         }
         if (StringUtil.isNotEmpty(param.getCallStatus())) {
-            sql.append(" AND status = " + param.getCallStatus());
+            sql.append(" AND status = ?");
+            params.add(param.getCallStatus());
         }
 
         // 处理自建属性搜索
@@ -605,45 +635,55 @@ public class MarketResourceDao extends SimpleHibernateDao<MarketResourceEntity, 
         if ("-1".equals(param.getCustId())) {
             sql.append(" AND voicLog.cust_id IS NOT NULL ");
         } else {
-            sql.append(" AND voicLog.cust_id='" + param.getCustId() + "'");
+            sql.append(" AND voicLog.cust_id=?");
+            params.add(param.getCustId());
         }
         // 处理根据登陆账号或者用户姓名搜索
         CustomerUser user = null;
         if (StringUtil.isNotEmpty(realName)) {
             user = this.customerUserDao.getCustomerUserByName(realName.trim());
             if (user != null) {
-                sql.append(" AND voicLog.user_id = '" + user.getId() + "'");
+                sql.append(" AND voicLog.user_id = ?");
+                params.add(user.getId());
             } else {
                 // 穿透查询一次登陆名称
                 user = this.customerUserDao.getCustomerUserByLoginName(realName.trim());
                 if (user != null) {
-                    sql.append(" AND  voicLog.user_id = '" + user.getId() + "'");
+                    sql.append(" AND  voicLog.user_id = ?");
+                    params.add(user.getId());
                 } else {
                     return 0;
                 }
             }
         }
         if (StringUtil.isNotEmpty(customerGroupId)) {
-            sql.append(" AND voicLog.customer_group_id =" + customerGroupId.trim());
+            sql.append(" AND voicLog.customer_group_id =?");
+            params.add(customerGroupId.trim());
         }
         if (StringUtil.isNotEmpty(marketTaskId)) {
-            sql.append(" AND voicLog.market_task_id='" + marketTaskId.trim() + "'");
+            sql.append(" AND voicLog.market_task_id=?");
+            params.add(marketTaskId.trim());
         }
         // 根据公海ID查询通话记录
         if (StringUtil.isNotEmpty(param.getSeaId())) {
-            sql.append(" AND voicLog.customer_sea_id = '" + param.getSeaId() + "'");
+            sql.append(" AND voicLog.customer_sea_id = ?");
+            params.add(param.getSeaId());
         }
         String createTimeStart = param.getCreateTimeStart();
         String createTimeEnd = param.getCreateTimeEnd();
         // 处理开始和结束数据搜索
         if (StringUtil.isNotEmpty(createTimeStart) && StringUtil.isNotEmpty(createTimeEnd)) {
-            sql.append(" AND voicLog.create_time BETWEEN '" + createTimeStart + "' and '" + createTimeEnd + "' ");
+            sql.append(" AND voicLog.create_time BETWEEN ? and ? ");
+            params.add(createTimeStart);
+            params.add(createTimeEnd);
         } else {
             if (StringUtil.isNotEmpty(createTimeStart)) {
-                sql.append(" AND voicLog.create_time > '" + createTimeStart + "'");
+                sql.append(" AND voicLog.create_time > ?");
+                params.add(createTimeStart);
             }
             if (StringUtil.isNotEmpty(createTimeEnd)) {
-                sql.append(" AND voicLog.create_time < '" + createTimeEnd + "'");
+                sql.append(" AND voicLog.create_time < ?");
+                params.add(createTimeEnd);
             }
         }
         int calledDuration = 0;
@@ -709,7 +749,7 @@ public class MarketResourceDao extends SimpleHibernateDao<MarketResourceEntity, 
                 }
             }
         }
-        return this.executeUpdateSQL(sql.toString(), param.getIntentStatus(), param.getCustomerGroupId(), param.getMarketTaskId(), param.getStartTime(), param.getEndTime());
+        return this.executeUpdateSQL(sql.toString(), params.toArray());
     }
 
     /**
@@ -737,7 +777,8 @@ public class MarketResourceDao extends SimpleHibernateDao<MarketResourceEntity, 
             wheres.add(param.getInteger("status"));
         }
         if (StringUtil.isNotEmpty(param.getString("name"))) {
-            hql.append(" AND m.resname like '%" + param.getString("name") + "%'");
+            hql.append(" AND m.resname like ?");
+            wheres.add("%" + param.getString("name") + "%");
         }
         if (StringUtil.isNotEmpty(param.getString("resourceId"))) {
             hql.append(" AND m.resourceId = ?");

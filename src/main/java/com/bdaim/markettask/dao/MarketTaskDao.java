@@ -10,6 +10,7 @@ import com.bdaim.util.StringUtil;
 
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -144,14 +145,22 @@ public class MarketTaskDao extends SimpleHibernateDao<MarketTask, String> {
         hql.append(" SELECT new com.bdaim.customer.dto.CustomerUserDTO(t.userId AS id, user.realname, user.account, p.propertyValue) FROM MarketTaskUserRel t, CustomerUser user, CustomerUserPropertyDO p ");
         hql.append(" WHERE user.id = t.userId AND user.id = p.userId AND p.propertyName = 'seats_account' AND t.marketTaskId = ? AND t.status = ? AND user.cust_id = ? ");
         // 开始搜索不为空
+        List params = new ArrayList();
+        params.add(marketTaskId);
+        params.add(status);
+        params.add(custId);
         if (StringUtil.isNotEmpty(startAccount) && StringUtil.isNotEmpty(endAccount)) {
-            hql.append(" AND cast(p.propertyValue AS integer) >= " + startAccount + " AND cast(p.propertyValue AS integer) <= " + endAccount);
+            hql.append(" AND cast(p.propertyValue AS integer) >= ? AND cast(p.propertyValue AS integer) <= ?" );
+            params.add(startAccount);
+            params.add(endAccount);
         } else if (StringUtil.isNotEmpty(startAccount)) {
-            hql.append(" AND p.propertyValue LIKE '%" + startAccount + "%'");
+            hql.append(" AND p.propertyValue LIKE ?");
+            params.add("%"+startAccount+"%");
         } else if (StringUtil.isNotEmpty(endAccount)) {
-            hql.append(" AND p.propertyValue LIKE '%" + endAccount + "%'");
+            hql.append(" AND p.propertyValue LIKE ?");
+            params.add("%"+endAccount+"%");
         }
-        List<CustomerUserDTO> list = find(hql.toString(), marketTaskId, status, custId);
+        List<CustomerUserDTO> list = find(hql.toString(), params.toArray());
         return list;
     }
 
@@ -167,21 +176,29 @@ public class MarketTaskDao extends SimpleHibernateDao<MarketTask, String> {
      */
     public List<CustomerUserDTO> listNotInUserByResourceId(String resourceId, String marketTaskId, String custId, String startAccount, String endAccount) {
         StringBuilder hql = new StringBuilder();
+        List args = new ArrayList();
+        args.add(custId);
+        args.add(resourceId);
         hql.append(" SELECT new com.bdaim.customer.dto.CustomerUserDTO(user.id, user.realname, user.account, p.propertyValue) FROM CustomerUser user, CustomerUserPropertyDO p ")
                 .append(" WHERE user.id = p.userId AND user.userType=2 AND p.propertyName = 'seats_account' AND user.cust_id = ? ")
                 .append(" AND user.id IN (SELECT userId FROM CustomerUserPropertyDO WHERE propertyName = 'call_channel' AND propertyValue = ? ) ");
         if (StringUtil.isNotEmpty(marketTaskId)) {
-            hql.append(" AND user.id NOT IN (SELECT cast(userId AS integer) FROM MarketTaskUserRel WHERE status = 1 AND marketTaskId = '" + marketTaskId + "' ) ");
+            hql.append(" AND user.id NOT IN (SELECT cast(userId AS integer) FROM MarketTaskUserRel WHERE status = 1 AND marketTaskId = ? ) ");
+            args.add(marketTaskId);
         }
         // 都不为空
         if (StringUtil.isNotEmpty(startAccount) && StringUtil.isNotEmpty(endAccount)) {
-            hql.append(" AND cast(p.propertyValue AS integer) >= " + startAccount + " AND cast(p.propertyValue AS integer) <= " + endAccount);
+            hql.append(" AND cast(p.propertyValue AS integer) >= ? AND cast(p.propertyValue AS integer) <= ?");
+            args.add(startAccount);
+            args.add(endAccount);
         } else if (StringUtil.isNotEmpty(startAccount)) {
-            hql.append(" AND p.propertyValue LIKE '%" + startAccount + "%'");
+            hql.append(" AND p.propertyValue LIKE ?");
+            args.add("%"+startAccount+"%");
         } else if (StringUtil.isNotEmpty(endAccount)) {
-            hql.append(" AND p.propertyValue LIKE '%" + endAccount + "%'");
+            hql.append(" AND p.propertyValue LIKE ?");
+            args.add("%"+endAccount+"%");
         }
-        List<CustomerUserDTO> list = find(hql.toString(), custId, resourceId);
+        List<CustomerUserDTO> list = find(hql.toString(), args.toArray());
         return list;
     }
 }
