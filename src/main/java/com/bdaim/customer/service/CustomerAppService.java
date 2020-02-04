@@ -231,19 +231,23 @@ public class CustomerAppService {
         sql.append("SELECT  CAST(s.id AS CHAR) id,s.cust_id as custId,s.user_type, s.account AS account,s.password AS PASSWORD,tc.real_name AS contactPerson,tc.title as title,tc.enterprise_name as name" +
                 " FROM t_customer_user s LEFT JOIN t_customer tc ON s.cust_id=tc.cust_id  " +
                 " WHERE 1=1  AND s.STATUS <> 2");
+        List<Object> p = new ArrayList<>();
         if (StringUtil.isNotEmpty(account)) {
             logger.info(account);
-            sql.append(" AND s.account = '" + account + "'");
+            p.add(account);
+            sql.append(" AND s.account = ?");
         }
         if (StringUtil.isNotEmpty(contactPerson)) {
-            sql.append(" AND tc.real_name like '%" + contactPerson + "%'");
+            p.add("%" + contactPerson + "%");
+            sql.append(" AND tc.real_name like ? ");
         }
         if (StringUtil.isNotEmpty(name)) {
-            sql.append(" AND tc.enterprise_name like '%" + name + "%'");
+            p.add("%" + name + "%");
+            sql.append(" AND tc.enterprise_name like ? ");
         }
         sql.append(" order by s.create_time desc");
         logger.info("sql:{" + sql + "}");
-        PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
+        PageList list = new Pagination().getPageData(sql.toString(), p.toArray(), page, jdbcTemplate);
         Object collect = list.getList().stream().map(m -> {
             Map map = (Map) m;
             logger.info("Map:{" + map + "}");
@@ -253,23 +257,23 @@ public class CustomerAppService {
             String cust_id = map.get("custId").toString();
             CustomerProperty mobile = customerDao.getProperty(cust_id, "mobile");
             if (mobile != null) {
-                logger.info("mobile:{"+mobile+"}");
+                logger.info("mobile:{" + mobile + "}");
                 map.put("mobile", mobile.getPropertyValue());
             }
             CustomerProperty sale_person = customerDao.getProperty(cust_id, "sale_person");
             if (sale_person != null) {
-                logger.info("sale_person:{"+sale_person+"}");
+                logger.info("sale_person:{" + sale_person + "}");
                 map.put("salePerson", sale_person.getPropertyValue());
             }
             CustomerProperty remain_amount = customerDao.getProperty(cust_id, "remain_amount");
             CustomerProperty used_amount = customerDao.getProperty(cust_id, "used_amount");
             if (remain_amount != null) {
-                logger.info("remain_amount:{"+remain_amount+"}");
-                map.put("remainAmount", StringUtil.isEmpty(remain_amount.getPropertyValue()) ? "0" : String.valueOf(Integer.valueOf(remain_amount.getPropertyValue()) / 10000));
+                logger.info("remain_amount:{" + remain_amount + "}");
+                map.put("remainAmount", StringUtil.isEmpty(remain_amount.getPropertyValue()) ? "0" : String.valueOf(BigDecimalUtil.strDiv(remain_amount.getPropertyValue(), "10000", 2)));
             }
             if (used_amount != null) {
-                logger.info("used_amount:{"+used_amount+"}");
-                map.put("userAmount", StringUtil.isEmpty(used_amount.getPropertyValue()) ? "0" : String.valueOf(Integer.valueOf(used_amount.getPropertyValue()) / 10000));
+                logger.info("used_amount:{" + used_amount + "}");
+                map.put("userAmount", StringUtil.isEmpty(used_amount.getPropertyValue()) ? "0" : String.valueOf(BigDecimalUtil.strDiv(used_amount.getPropertyValue(), "10000", 2)));
             }
             return map;
         }).collect(Collectors.toList());
@@ -362,10 +366,10 @@ public class CustomerAppService {
                     vo.setIndustry(property_value);
                     break;
                 case "remain_amount":
-                    if(property_value==null)
-                        property_value="0";
+                    if (property_value == null)
+                        property_value = "0";
                     else
-                        property_value = BigDecimalUtil.strDiv(property_value,"100000",2);
+                        property_value = BigDecimalUtil.strDiv(property_value, "100000", 2);
                     vo.setRemain_amount(property_value);
             }
         }
@@ -417,10 +421,10 @@ public class CustomerAppService {
             }
         });
 
-        String sql1 = "select pay.pay_id,pay.SUBSCRIBER_ID,pay.MONEY,pay.PAY_TIME,pay.pay_certificate,pay.pre_money,pay.user_id ,u.name as account from am_pay pay left join  t_user u  on pay.user_id=u.id  where SUBSCRIBER_ID = " + custId;
+        String sql1 = "select pay.pay_id,pay.SUBSCRIBER_ID,pay.MONEY,pay.PAY_TIME,pay.pay_certificate,pay.pre_money,pay.user_id ,u.name as account from am_pay pay left join  t_user u  on pay.user_id=u.id  where SUBSCRIBER_ID = ? ";
         page.setSort("pay.pay_time");
         page.setDir(" desc");
-        PageList list = new Pagination().getPageData(sql1, null, page, jdbcTemplate);
+        PageList list = new Pagination().getPageData(sql1, new Object[]{custId}, page, jdbcTemplate);
         List<Deposit> depositList = new ArrayList<>();
         list.getList().stream().forEach(m -> {
             Map depositMap = (Map) m;
@@ -462,24 +466,27 @@ public class CustomerAppService {
     }
 
     public List apps(String customerId) {
-    	List data = jdbcTemplate.queryForList("select name,application_id as appId,access_token as token,VALIDITY_PERIOD as tokenPeriod,date_format(TOKEN_TIME_CREATED,'%Y-%m-%d %H:%i:%s') as tokenTime from am_application where SUBSCRIBER_ID=? ", customerId);
-    	return data;
+        List data = jdbcTemplate.queryForList("select name,application_id as appId,access_token as token,VALIDITY_PERIOD as tokenPeriod,date_format(TOKEN_TIME_CREATED,'%Y-%m-%d %H:%i:%s') as tokenTime from am_application where SUBSCRIBER_ID=? ", customerId);
+        return data;
     }
+
     public Map getApp(String appId) {
-    	Map app = null;
-    	List<Map<String,Object>> data = jdbcTemplate.queryForList("select name,subscriber_id as customerId,access_token as token,VALIDITY_PERIOD as tokenPeriod,date_format(TOKEN_TIME_CREATED,'%Y-%m-%d %H:%i:%s') as tokenTime from am_application where application_id=? ", appId);
-    	if(data.size()>0)
-    		app = data.get(0);
-    	return app;
+        Map app = null;
+        List<Map<String, Object>> data = jdbcTemplate.queryForList("select name,subscriber_id as customerId,access_token as token,VALIDITY_PERIOD as tokenPeriod,date_format(TOKEN_TIME_CREATED,'%Y-%m-%d %H:%i:%s') as tokenTime from am_application where application_id=? ", appId);
+        if (data.size() > 0)
+            app = data.get(0);
+        return app;
     }
-    public String reAppToken(String appId,String customerId) {
-    	String token = MD5Util.encode32Bit(UUID.randomUUID().toString());
-    	jdbcTemplate.update("update am_application set access_token=? where application_id=?", token, appId);
+
+    public String reAppToken(String appId, String customerId) {
+        String token = MD5Util.encode32Bit(UUID.randomUUID().toString());
+        jdbcTemplate.update("update am_application set access_token=? where application_id=?", token, appId);
         customerDao.dealCustomerInfo(customerId, "api_token", token);
-    	return token;
+        return token;
     }
+
     public List subscriptions(String appId) {
-    	String sql = "select b.api_id as apiId,b.api_name as apiName,b.context,b.http_method as httpMethod,endpoint_url as endpointUrl,endpoint_type as endpointType,b.status as apiStatus, a.sub_status as subStatus,a.subs_create_state as subsCreateState,a.allowed_domains as allowedDomains  from am_subscription a join am_api b on a.api_id=b.api_id where APPLICATION_ID=?";
-    	return jdbcTemplate.queryForList(sql, appId);
+        String sql = "select b.api_id as apiId,b.api_name as apiName,b.context,b.http_method as httpMethod,endpoint_url as endpointUrl,endpoint_type as endpointType,b.status as apiStatus, a.sub_status as subStatus,a.subs_create_state as subsCreateState,a.allowed_domains as allowedDomains  from am_subscription a join am_api b on a.api_id=b.api_id where APPLICATION_ID=?";
+        return jdbcTemplate.queryForList(sql, appId);
     }
 }

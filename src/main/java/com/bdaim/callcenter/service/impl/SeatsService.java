@@ -358,8 +358,8 @@ public class SeatsService {
                     logger.info("坐席注册结果" + ":" + registerSeatsMessage);
                     if (registerSeatsMessage.get("code").equals("000")) {*/
                             //根据supplierId和type查询resourceId
-                            String queryResourceIdSql = "SELECT resource_id from t_market_resource WHERE supplier_id = " + channel + " AND type_code = " + ResourceEnum.CALL.getType();
-                            List<Map<String, Object>> list = sourceDao.sqlQuery(queryResourceIdSql, new Object[]{});
+                            String queryResourceIdSql = "SELECT resource_id from t_market_resource WHERE supplier_id =? AND type_code = ? " ;
+                            List<Map<String, Object>> list = sourceDao.sqlQuery(queryResourceIdSql, new Object[]{channel,ResourceEnum.CALL.getType()});
                             if (list.size() > 0) {
                                 resourceId = String.valueOf(list.get(0).get("resource_id"));
                             }
@@ -640,23 +640,29 @@ public class SeatsService {
                 "LEFT JOIN t_customer_user t3 ON t1.cust_id = t3.cust_id\n" +
                 "WHERE\n" +
                 "\t1 = 1 AND t3.user_type=1 ");
+        List<Object> p = new ArrayList<>();
         if (StringUtil.isNotEmpty(customerRegistDTO.getCustId())) {
-            sqlBuilder.append(" AND t1.cust_id = " + customerRegistDTO.getCustId());
+            p.add(customerRegistDTO.getCustId());
+            sqlBuilder.append(" AND t1.cust_id = ?");
         }
         if (StringUtil.isNotEmpty(customerRegistDTO.getEnterpriseName())) {
-            sqlBuilder.append(" AND t1.enterprise_name = '" + customerRegistDTO.getEnterpriseName() + "'");
+            p.add(customerRegistDTO.getEnterpriseName());
+            sqlBuilder.append(" AND t1.enterprise_name = ?");
         }
         if (StringUtil.isNotEmpty(customerRegistDTO.getName())) {
-            sqlBuilder.append(" AND t3.account LIKE '%" + customerRegistDTO.getName() + "%'");
+            p.add(customerRegistDTO.getName());
+            sqlBuilder.append(" AND t3.account LIKE '%?%'");
         }
         if (StringUtil.isNotEmpty(customerRegistDTO.getStartTime())) {
-            sqlBuilder.append(" AND t1.create_time >= '" + customerRegistDTO.getStartTime() + "'");
+            p.add(customerRegistDTO.getStartTime());
+            sqlBuilder.append(" AND t1.create_time >= ?");
         }
         if (StringUtil.isNotEmpty(customerRegistDTO.getEndTime())) {
-            sqlBuilder.append(" AND t1.create_time <= '" + customerRegistDTO.getEndTime() + "'");
+            p.add(customerRegistDTO.getEndTime());
+            sqlBuilder.append(" AND t1.create_time <= ?");
         }
         sqlBuilder.append(" GROUP BY t1.create_time DESC");
-        return new Pagination().getPageData(sqlBuilder.toString(), null, page, jdbcTemplate);
+        return new Pagination().getPageData(sqlBuilder.toString(), p.toArray(), page, jdbcTemplate);
     }
 
     /**
@@ -1312,8 +1318,8 @@ public class SeatsService {
         String resourceId = null;
         String custSeatPrice = null;
         int custSeatMinute = 0, supSeatMinute = 0;
-        String queryResourceIdSql = "SELECT resource_id from t_market_resource WHERE supplier_id = " + channel + " AND type_code = " + ResourceEnum.CALL.getType();
-        List<Map<String, Object>> list = sourceDao.sqlQuery(queryResourceIdSql, new Object[]{});
+        String queryResourceIdSql = "SELECT resource_id from t_market_resource WHERE supplier_id = ? AND type_code =? ";
+        List<Map<String, Object>> list = sourceDao.sqlQuery(queryResourceIdSql, new Object[]{channel,ResourceEnum.CALL.getType()});
         if (list.size() > 0) {
             resourceId = String.valueOf(list.get(0).get("resource_id"));
         }

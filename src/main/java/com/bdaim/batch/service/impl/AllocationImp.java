@@ -135,9 +135,8 @@ public class AllocationImp implements AllocationService {
     public List<Map<String, Object>> queryNoAssigned(String batchId) {
         Map<String, Object> map = new HashMap<>();
 
-        StringBuilder sql = new StringBuilder("SELECT id FROM nl_batch_detail"
-                + " WHERE allocation = 0 and status = 1 and batch_id = " + batchId);
-        List list = jdbcTemplate.queryForList(sql.toString());
+        StringBuilder sql = new StringBuilder("SELECT id FROM nl_batch_detail WHERE allocation = 0 and status = 1 and batch_id = ?");
+        List list = jdbcTemplate.queryForList(sql.toString(), batchId);
 
         return list;
     }

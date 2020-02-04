@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ *
  */
 
 @Component
@@ -46,10 +47,14 @@ public class RoleResourceDao extends SimpleHibernateDao<UserDO, Serializable> {
     public void delete(RolesResource rolesResource) throws SQLException {
         if (rolesResource.getResources() != null && rolesResource.getResources().size() > 0) {
             for (Resource resource : rolesResource.getResources()) {
-                this.executeUpdateSQL("delete from t_mrp_rel where ROLE_ID=" + rolesResource.getRole().getKey() + " and R_ID=" + resource.getID());
+                List<Object> params = new ArrayList<>();
+                params.add(rolesResource.getRole().getKey());
+                params.add(resource.getID());
+                this.executeUpdateSQL("delete from t_mrp_rel where ROLE_ID=? and R_ID=?", params.toArray());
             }
         } else {
-            this.executeUpdateSQL("delete from t_mrp_rel where ROLE_ID =" + rolesResource.getRole().getKey());
+
+            this.executeUpdateSQL("delete from t_mrp_rel where ROLE_ID =?", rolesResource.getRole().getKey());
         }
     }
 
@@ -65,8 +70,8 @@ public class RoleResourceDao extends SimpleHibernateDao<UserDO, Serializable> {
 
     public RolesResource getObj(RolesResource rolesResource) {
         try {
-            List list = this.getSQLQuery("select rel.ROLE_ID,rel.R_ID,r.NAME  from t_resource r left join t_mrp_rel rel \n" +
-                    "on r.ID=rel.R_ID and rel.type=0 and rel.ROLE_ID=" + rolesResource.getRole().getKey()).list();
+            List list = this.sqlQuery("select rel.ROLE_ID,rel.R_ID,r.NAME  from t_resource r left join t_mrp_rel rel \n" +
+                    "on r.ID=rel.R_ID and rel.type=0 and rel.ROLE_ID=?", rolesResource.getRole().getKey());
             if (list.size() > 0) {
                 RolesResource RResource = new RolesResource();
                 RResource.setRole(rolesResource.getRole());
@@ -92,22 +97,22 @@ public class RoleResourceDao extends SimpleHibernateDao<UserDO, Serializable> {
 
     public void delete(Long operateUserId, Long roleId) throws SQLException {
         StringBuilder builder = new StringBuilder();
-        builder.append(" delete from t_mrp_rel where role_id = " + roleId + " and r_id in");
-        builder.append(" (select temp.r_id from (select m.r_id from t_mrp_rel m ,t_user_role_rel ur where m.ROLE_ID = ur.ROLE and ur.id = " + operateUserId + ")temp)");
+        builder.append(" delete from t_mrp_rel where role_id = ? and r_id in");
+        builder.append(" (select temp.r_id from (select m.r_id from t_mrp_rel m ,t_user_role_rel ur where m.ROLE_ID = ur.ROLE and ur.id = ?) temp)");
         String sql = builder.toString();
 
-        this.executeUpdateSQL(builder.toString());
+        this.executeUpdateSQL(builder.toString(), roleId, operateUserId);
     }
 
     public void delete(Connection con, Long roleId) throws SQLException {
-        String sql = "delete from t_mrp_rel where role_id = " + roleId;
+        String sql = "delete from t_mrp_rel where role_id = ?";
 
-        this.executeUpdateSQL(sql);
+        this.executeUpdateSQL(sql, roleId);
     }
 
     public int deleteByRoleId(Long roleId) throws SQLException {
-        String sql = "delete from t_mrp_rel where role_id = " + roleId;
-        return this.executeUpdateSQL(sql);
+        String sql = "delete from t_mrp_rel where role_id = ?";
+        return this.executeUpdateSQL(sql, roleId);
     }
 
     /**
@@ -119,8 +124,8 @@ public class RoleResourceDao extends SimpleHibernateDao<UserDO, Serializable> {
      */
     public List<RoleDataPermissonDTO> getUserDataPermissonListByRoleId(String userId, String type) {
         List<RoleDataPermissonDTO> permissonsList = null;
-        String sql = "select role_id roleId,type as type,r_id as rId from t_mrp_rel  where role_id in(SELECT r.ID FROM t_role r,t_user_role_rel rel where r.ID=rel.ROLE and rel.ID= " + userId + ") and type=" + type;
-        permissonsList = jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(RoleDataPermissonDTO.class));
+        String sql = "select role_id roleId,type as type,r_id as rId from t_mrp_rel  where role_id in(SELECT r.ID FROM t_role r,t_user_role_rel rel where r.ID=rel.ROLE and rel.ID=?) and type=?";
+        permissonsList = jdbcTemplate.queryForList(sql, RoleDataPermissonDTO.class, userId, type);
 
         return permissonsList;
     }
@@ -134,8 +139,8 @@ public class RoleResourceDao extends SimpleHibernateDao<UserDO, Serializable> {
      * @return
      */
     public String insertIntoRoleDataPermission(String roleId, Integer type, String rId, String opUser) throws Exception {
-        String sql = "insert into t_mrp_rel(`role_id`,`type`,`r_id`,`OPTUSER`,`create_time`) values(" + roleId + "," + type + "," + rId + ",'" + opUser + "',now())";
-        jdbcTemplate.execute(sql);
+        String sql = "insert into t_mrp_rel(`role_id`,`type`,`r_id`,`OPTUSER`,`create_time`) values(?,?,?,?,now())";
+        this.executeUpdateSQL(sql, roleId, type, rId, opUser);
         return "success";
     }
 }

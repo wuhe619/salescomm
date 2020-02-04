@@ -275,6 +275,11 @@ public class ResourceAction extends BasicAction {
         return resp;
     }
 
+    /**
+     * 资源调用统计
+     * @param params
+     * @return
+     */
     @PostMapping("/logs")
     public ResponseInfo subApiLogs(@RequestBody com.alibaba.fastjson.JSONObject params) {
         ResponseInfo resp = new ResponseInfo();
@@ -282,14 +287,42 @@ public class ResourceAction extends BasicAction {
         if (StringUtil.isEmpty(params.getString("callMonth"))) {
             return new ResponseInfoAssemble().failure(-1, "查询时间不能为空");
         }
-        page.setPageSize(params.containsKey("pageSize") ? 0 : params.getIntValue("pageSize"));
-        page.setPageNum(params.containsKey("pageNum") ? 10 : params.getIntValue("pageNum"));
+        page.setPageSize(params.containsKey("pageSize") ?   params.getIntValue("pageSize"):10);
+        page.setPageNum(params.containsKey("pageNum") ?  params.getIntValue("pageNum"):0);
         if (params.containsKey("type") && "sub".equals(params.getString("type"))) {
             resp.setData(apiService.subApiLogs(params, page));
         } else {
             resp.setData(apiService.resApiLogs(params, page));
         }
 
+        return resp;
+    }
+
+    /**
+     * 资源调用记录详情
+     * @param rsId
+     * @param params
+     * @return
+     */
+    @PostMapping("/logs/{rsId}")
+    public ResponseInfo subApiLogDetail(@PathVariable("rsId")String rsId,@RequestBody com.alibaba.fastjson.JSONObject params) {
+        ResponseInfo resp = new ResponseInfo();
+        PageParam page = new PageParam();
+        if (StringUtil.isEmpty(params.getString("callMonth"))) {
+            return new ResponseInfoAssemble().failure(-1, "查询时间不能为空");
+        }
+        if(StringUtil.isEmpty(rsId)){
+           return new ResponseInfoAssemble().failure(-1, "rsId 参数错误");
+        }
+        page.setPageSize(params.containsKey("pageSize") ?   params.getIntValue("pageSize"):10);
+        page.setPageNum(params.containsKey("pageNum") ?  params.getIntValue("pageNum"):0);
+        params.put("rsId",rsId);
+
+        if (params.containsKey("type") && "sub".equals(params.getString("type"))) {
+            resp.setData(apiService.subApiLogs(params, page));
+        } else {
+            resp.setData(apiService.resApiLogDetail(params, page));
+        }
         return resp;
     }
 
@@ -317,7 +350,7 @@ public class ResourceAction extends BasicAction {
             if (StringUtil.isNotEmpty(type) && "sub".equals(type)) {
                 pageList = apiService.subApiLogs(params, page);
             } else {
-                pageList = apiService.resApiLogs(params, page);
+               // pageList = apiService.resApiLogs(params, page);
             }
             if (pageList.getList().size() == 0) {
                 exportExcelService.exportExcel(0, new ArrayList<>(), params, response);

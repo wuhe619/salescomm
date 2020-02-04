@@ -113,21 +113,20 @@ public class PackingService {
                 jdbcTemplate.update(updateBatchStatus);
                 toSendExpress(isBatch, batchId, addressId, senderId);
                 //将(有效的)批次详情的状态label_seven 修改为 【3】【待取件】
-                String updateDetail = "UPDATE nl_batch_detail SET label_seven='3' WHERE batch_id='" + batchId + "' AND status='1'";
-                jdbcTemplate.update(updateDetail);
+                String updateDetail = "UPDATE nl_batch_detail SET label_seven='3' WHERE batch_id=? AND status='1'";
+                jdbcTemplate.update(updateDetail, batchId);
             } else if (isBatch == 0) {
                 //如果该批次下(有效数据)已没有待申请发件的 快递信息，则把该批次更新为 【5】【待取件】
-                String countSql = "SELECT COUNT(*) AS count FROM nl_batch_detail WHERE label_seven='2' AND status='1' AND batch_id='" + batchId + "'";
-                Map<String, Object> result = jdbcTemplate.queryForMap(countSql);
+                String countSql = "SELECT COUNT(*) AS count FROM nl_batch_detail WHERE label_seven='2' AND status='1' AND batch_id=? ";
+                Map<String, Object> result = jdbcTemplate.queryForMap(countSql, batchId);
                 int count = Integer.parseInt(String.valueOf(result.get("count")));
                 if (count == 0) {
                     jdbcTemplate.update(updateBatchStatus);
                 }
                 toSendExpress(isBatch, batchId, addressId, senderId);
                 //单个发送 将批次详情的状态 label_seven 状态修改为 【3】【待取件】
-                StringBuffer stringBuffer = new StringBuffer("UPDATE nl_batch_detail SET label_seven='3' WHERE batch_id='");
-                stringBuffer.append(batchId).append("' AND id='").append(addressId).append("'");
-                jdbcTemplate.update(stringBuffer.toString());
+                StringBuffer stringBuffer = new StringBuffer("UPDATE nl_batch_detail SET label_seven='3' WHERE batch_id=? AND id=? ");
+                jdbcTemplate.update(stringBuffer.toString(), batchId, addressId);
             }
         } catch (Exception e) {
             logger.info("发送快递出错，异常信息为" + e.getMessage());
@@ -147,24 +146,21 @@ public class PackingService {
      */
     private void toSendExpress(int isBatch, String batchId, String addressId, String senderId) {
         //查询出发件人信息，并转化为json串，存入 t_touch_express_log的 sender_message 中
-        String senderSql = "SELECT id AS senderId,sender_name AS senderName,phone,province,city,district,address FROM t_sender_info WHERE id='"
-                + senderId + "'";
-        Map<String, Object> senderInfo = jdbcTemplate.queryForMap(senderSql);
+        String senderSql = "SELECT id AS senderId,sender_name AS senderName,phone,province,city,district,address FROM t_sender_info WHERE id= ? ";
+        Map<String, Object> senderInfo = jdbcTemplate.queryForMap(senderSql, senderId);
         if (isBatch == 1) {
             //批量发送，根据批次ID batchId 找出地址ID、姓名、手机号  (batch_id、status为"1"有效、且label_seven为"2"待申请发件的)
-            StringBuffer stringBuffer = new StringBuffer("SELECT id AS addressId,touch_id,label_four AS address,label_one AS name,label_two AS phone,label_five AS receiverId,label_six AS fileCode,label_eight AS pdfPath FROM nl_batch_detail WHERE batch_id='");
-            stringBuffer.append(batchId).append("' AND status='1' AND label_seven='2'");
-            List<Map<String, Object>> resultList = jdbcTemplate.queryForList(stringBuffer.toString());
+            StringBuffer stringBuffer = new StringBuffer("SELECT id AS addressId,touch_id,label_four AS address,label_one AS name,label_two AS phone,label_five AS receiverId,label_six AS fileCode,label_eight AS pdfPath FROM nl_batch_detail WHERE batch_id= ? AND status='1' AND label_seven='2'");
+            List<Map<String, Object>> resultList = jdbcTemplate.queryForList(stringBuffer.toString(), batchId);
             for (Map<String, Object> tempMap : resultList) {
 //                updateExpressInfo(tempMap, senderInfo);
-                String addressIdNew =String.valueOf(tempMap.get("addressId"));
+                String addressIdNew = String.valueOf(tempMap.get("addressId"));
                 sendExpressByZTO(batchId, addressIdNew, senderInfo, tempMap);
             }
         } else if (isBatch == 0) {
             //单个发送，根据地址ID 找到 地址ID、姓名、手机号
-            StringBuffer stringBuffer = new StringBuffer("SELECT id AS addressId,touch_id,label_four AS address,label_one AS name,label_two AS phone,label_five AS receiverId,label_six AS fileCode,label_eight AS pdfPath FROM nl_batch_detail WHERE id='");
-            stringBuffer.append(addressId).append("'");
-            Map<String, Object> tempMap = jdbcTemplate.queryForMap(stringBuffer.toString());
+            StringBuffer stringBuffer = new StringBuffer("SELECT id AS addressId,touch_id,label_four AS address,label_one AS name,label_two AS phone,label_five AS receiverId,label_six AS fileCode,label_eight AS pdfPath FROM nl_batch_detail WHERE id=? ");
+            Map<String, Object> tempMap = jdbcTemplate.queryForMap(stringBuffer.toString(),addressId);
 //            updateExpressInfo(tempMap, senderInfo);
             //调用发送快递的接口
             sendExpressByZTO(batchId, addressId, senderInfo, tempMap);
@@ -184,9 +180,9 @@ public class PackingService {
         logger.info(" ===== 》》》开始调用中通快递接口");
         logger.info("批次编号" + batchId + "修复地址ID" + addressId + "发件人信息" + senderInfo + "收件人信息" + receiverInfo);
         String ztoConfigSQL = "SELECT resource_id,property_name,property_value,create_time FROM t_market_resource_property WHERE resource_id='29' AND property_name='zto_config'";
-        Map<String,Object> ztoConfig = jdbcTemplate.queryForMap(ztoConfigSQL);
+        Map<String, Object> ztoConfig = jdbcTemplate.queryForMap(ztoConfigSQL);
         String propertyValue = String.valueOf(ztoConfig.get("property_value"));
-        Map<String,Object> zto = (Map<String, Object>)JSON.parse(propertyValue);
+        Map<String, Object> zto = (Map<String, Object>) JSON.parse(propertyValue);
         ZopClient client = new ZopClient(String.valueOf(zto.get("company_id")), String.valueOf(zto.get("key")));
         ZopPublicRequest request = new ZopPublicRequest();
         request.setUrl(String.valueOf(zto.get("url")));
@@ -200,12 +196,12 @@ public class PackingService {
         data.put("receiveMan", receiverInfo.get("name"));
         data.put("receivePhone", receiverInfo.get("phone"));
         //收件人的省市区地址 ，从 label_four中获取
-        String address= String.valueOf(receiverInfo.get("address"));
-        Map<String,Object> addressMap = (Map<String, Object>)JSON.parse(address);
-        data.put("receiveProvince", StringUtil.isNotEmpty(String.valueOf(addressMap.get("prov")))?String.valueOf(addressMap.get("prov")):" ");
-        data.put("receiveCity", StringUtil.isNotEmpty(String.valueOf(addressMap.get("city")))?String.valueOf(addressMap.get("city")):" ");
-        data.put("receiveCounty", StringUtil.isNotEmpty(String.valueOf(addressMap.get("dist")))?String.valueOf(addressMap.get("dist")):" ");
-        data.put("receiveAddress", StringUtil.isNotEmpty(String.valueOf(addressMap.get("address")))?String.valueOf(addressMap.get("address")):" ");
+        String address = String.valueOf(receiverInfo.get("address"));
+        Map<String, Object> addressMap = (Map<String, Object>) JSON.parse(address);
+        data.put("receiveProvince", StringUtil.isNotEmpty(String.valueOf(addressMap.get("prov"))) ? String.valueOf(addressMap.get("prov")) : " ");
+        data.put("receiveCity", StringUtil.isNotEmpty(String.valueOf(addressMap.get("city"))) ? String.valueOf(addressMap.get("city")) : " ");
+        data.put("receiveCounty", StringUtil.isNotEmpty(String.valueOf(addressMap.get("dist"))) ? String.valueOf(addressMap.get("dist")) : " ");
+        data.put("receiveAddress", StringUtil.isNotEmpty(String.valueOf(addressMap.get("address"))) ? String.valueOf(addressMap.get("address")) : " ");
 //        data.put("receiveProvince","北京");
 //        data.put("receiveCity","北京市");
 //        data.put("receiveCounty","朝阳区");
@@ -222,7 +218,7 @@ public class PackingService {
         //备注 收件人id  放到收件人备注(对应买家备注)，  批次id放到发件人备注(对应卖家备注)
         data.put("sellerMessage", batchId);
         String fileCode = String.valueOf(receiverInfo.get("fileCode"));
-        data.put("buyerMessage", fileCode+","+addressId);
+        data.put("buyerMessage", fileCode + "," + addressId);
         request.addParam("data", JSON.toJSONString(data));
         try {
             logger.info("订单创建成功，入参值为" + JSON.toJSONString(data) + " 返回值为");
@@ -230,8 +226,8 @@ public class PackingService {
             //执行扣费逻辑
             String touch_id = String.valueOf(receiverInfo.get("touch_id"));
             String sql = "SELECT t1.amount,t2.supplier_id FROM t_touch_express_log t1 LEFT JOIN t_market_resource t2 ON t1.resource_id=t2.resource_id " +
-                    "WHERE t1.touch_id='" + touch_id + "' LIMIT 1";
-            Map<String, Object> amountMap = jdbcTemplate.queryForMap(sql);
+                    "WHERE t1.touch_id=?  LIMIT 1";
+            Map<String, Object> amountMap = jdbcTemplate.queryForMap(sql, touch_id);
             BigDecimal amount = new BigDecimal(String.valueOf(amountMap.get("amount")));
             String supplierId = String.valueOf(amountMap.get("supplier_id"));
             sourceDao.supplierAccountDuctions(supplierId, amount);

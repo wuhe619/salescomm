@@ -56,7 +56,7 @@ public class BatchDao extends SimpleHibernateDao<BatchListEntity, Serializable> 
     }
 
     public List<BatchListEntity> getBatchDetailListBySupplierId(String custId, int supplierId) {
-        List<BatchListEntity>  list = this.find("FROM BatchListEntity  WHERE compId =? and channel =?", custId,supplierId);
+        List<BatchListEntity> list = this.find("FROM BatchListEntity  WHERE compId =? and channel =?", custId, supplierId);
         return list;
     }
 }

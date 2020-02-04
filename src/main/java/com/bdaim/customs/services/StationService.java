@@ -14,6 +14,8 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import javax.transaction.Transactional;
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author duanliying
@@ -60,18 +62,23 @@ public class StationService {
      */
     public Page getStationList(StationDto stationDto) throws Exception {
         StringBuffer querySql = new StringBuffer("SELECT * FROM h_station_info where 1=1 ");
+        List<Object> p = new ArrayList<>();
         if (StringUtil.isNotEmpty(stationDto.getProvince())) {
-            querySql.append(" and province ='" + stationDto.getProvince() + "'");
+            p.add(stationDto.getProvince());
+            querySql.append(" and province =?");
         }
         if (StringUtil.isNotEmpty(stationDto.getName())) {
-            querySql.append(" and name like '%" + stationDto.getName() + "%'");
+            p.add("%" + stationDto.getName() + "%");
+            querySql.append(" and name like ? ");
         }
         if (StringUtil.isNotEmpty(stationDto.getStatus())) {
-            querySql.append(" and status =" + stationDto.getStatus());
+            p.add(stationDto.getStatus());
+            querySql.append(" and status =? ");
         }
         if (stationDto.getId() != null) {
-            querySql.append(" and id =" + stationDto.getId());
+            p.add(stationDto.getId());
+            querySql.append(" and id = ? ");
         }
-        return stationDao.sqlPageQuery(querySql.toString(), stationDto.getPageNum(), stationDto.getPageSize());
+        return stationDao.sqlPageQuery(querySql.toString(), stationDto.getPageNum(), stationDto.getPageSize(), p.toArray());
     }
 }

@@ -115,24 +115,30 @@ public class SupplierService {
         sql.append("( SELECT property_value FROM t_supplier_property WHERE property_name = 'priority' AND supplier_id = s.supplier_id ) AS priority, ");
         sql.append("( SELECT GROUP_CONCAT(DISTINCT r.resname) FROM t_market_resource r WHERE supplier_id = s.supplier_id AND s.`status` = 1 ) resname ");
         sql.append(" FROM t_supplier s WHERE 1 = 1 ");
+        List<Object> params = new ArrayList<>();
         if (StringUtil.isNotEmpty(serviceType)) {
-            sql.append(" and s.supplier_id IN (SELECT supplier_id FROM t_market_resource WHERE type_code = " + serviceType + " GROUP BY supplier_id)");
+            sql.append(" and s.supplier_id IN (SELECT supplier_id FROM t_market_resource WHERE type_code = ? GROUP BY supplier_id)");
+            params.add(serviceType);
         }
         if (StringUtil.isNotEmpty(supplierId)) {
-            sql.append(" and s.supplier_id=").append(supplierId);
+            sql.append(" and s.supplier_id=?");
+            params.add(supplierId);
         }
         if (StringUtil.isNotEmpty(supplierName)) {
-            sql.append(" and s.name like '%").append(supplierName).append("%'");
+            sql.append(" and s.name like ?");
+            params.add("%" + supplierName + "%");
         }
         if (StringUtil.isNotEmpty(person)) {
-            sql.append(" and s.contact_person = '").append(person).append("'");
+            sql.append(" and s.contact_person = ?");
+            params.add(person);
         }
         if (StringUtil.isNotEmpty(phone)) {
-            sql.append(" and s.contact_phone ='").append(phone).append("'");
+            sql.append(" and s.contact_phone =?");
+            params.add(phone);
         }
         sql.append(" GROUP BY s.supplier_id");
         sql.append(" ORDER BY priority is null, priority, FIND_IN_SET(1,resourceType) desc, s.create_time DESC");
-        Page supplierPage = supplierDao.sqlPageQuery(sql.toString(), page.getPageNum(), page.getPageSize());
+        Page supplierPage = supplierDao.sqlPageQuery(sql.toString(), page.getPageNum(), page.getPageSize(), params.toArray());
         if (supplierPage != null && supplierPage.getData().size() > 0) {
             List<Map<String, Object>> list = supplierPage.getData();
             for (int i = 0; i < list.size(); i++) {
@@ -2328,12 +2334,15 @@ public class SupplierService {
     public Map<String, Object> getSupplierList(PageParam page, String name) {
         try {
             StringBuffer sql = new StringBuffer();
-            sql.append("select supplier_id,name,settlement_type,contact_person,contact_phone,contact_position,type,status,create_time from t_supplier where status =1 ");
+            List<Object> params = new ArrayList<>();
+            sql.append("select supplier_id,name,settlement_type,contact_person,contact_phone,contact_position,type," +
+                    "status,create_time from t_supplier where status =1 ");
             if (StringUtil.isNotEmpty(name)) {
-                sql.append(" and name like '%" + name + "%'");
+                sql.append(" and name like ?");
+                params.add("%" + name + "%");
             }
             sql.append(" order by create_time desc");
-            PageList list = new Pagination().getPageData(sql.toString(), null, page, jdbcTemplate);
+            PageList list = new Pagination().getPageData(sql.toString(), params.toArray(), page, jdbcTemplate);
             Map<String, Object> map = new HashMap<>();
             List<ApiProperty> rsIds = apiDao.getPropertyAll("rsIds");
 
@@ -2356,27 +2365,32 @@ public class SupplierService {
             });
             map.put("total", list.getTotal());
             Object collect = list.getList().stream().map(m -> {
-                Map map1 = (Map) m;
-                Map<String, Object> supplierDTOMap = new HashMap<>();
-                supplierDTOMap.put("name", map1.get("name"));
-                supplierDTOMap.put("settlementType", map1.get("settlement_type"));
-                supplierDTOMap.put("contactPerson", map1.get("contact_person"));
-                supplierDTOMap.put("contactPhone", map1.get("contact_phone"));
-                supplierDTOMap.put("contactPosition", map1.get("contact_position"));
-                supplierDTOMap.put("status", map1.get("status"));
-                supplierDTOMap.put("createTime", map1.get("create_time"));
-                supplierDTOMap.put("supplierId", map1.get("supplier_id"));
-                SupplierPropertyEntity remain_amount = supplierDao.getProperty(map1.get("supplier_id").toString(), "remain_amount");
-                SupplierPropertyEntity used_amount = supplierDao.getProperty(map1.get("supplier_id").toString(), "used_amount");
-                if("5".equals(map1.get("type").toString())){
-                    supplierDTOMap.put("balance", remain_amount == null ? 0 : Float.valueOf(remain_amount.getPropertyValue()) / 10000);
-                    supplierDTOMap.put("consumption", used_amount == null ? 0 : Float.valueOf(used_amount.getPropertyValue()) / 10000);
-                }else {
-                    supplierDTOMap.put("balance", remain_amount == null ? 0 : Float.valueOf(remain_amount.getPropertyValue()) / 1000);
-                    supplierDTOMap.put("consumption", used_amount == null ? 0 : Float.valueOf(used_amount.getPropertyValue()) / 1000);
+                try {
+                    Map map1 = (Map) m;
+                    Map<String, Object> supplierDTOMap = new HashMap<>();
+                    supplierDTOMap.put("name", map1.get("name"));
+                    supplierDTOMap.put("settlementType", map1.get("settlement_type"));
+                    supplierDTOMap.put("contactPerson", map1.get("contact_person"));
+                    supplierDTOMap.put("contactPhone", map1.get("contact_phone"));
+                    supplierDTOMap.put("contactPosition", map1.get("contact_position"));
+                    supplierDTOMap.put("status", map1.get("status"));
+                    supplierDTOMap.put("createTime", map1.get("create_time"));
+                    supplierDTOMap.put("supplierId", map1.get("supplier_id"));
+                    SupplierPropertyEntity remain_amount = supplierDao.getProperty(map1.get("supplier_id").toString(), "remain_amount");
+                    SupplierPropertyEntity used_amount = supplierDao.getProperty(map1.get("supplier_id").toString(), "used_amount");
+                    if ("5".equals(map1.get("type").toString())) {
+                        supplierDTOMap.put("balance", remain_amount == null ? 0 : Float.valueOf(remain_amount.getPropertyValue()) / 10000);
+                        supplierDTOMap.put("consumption", used_amount == null ? 0 : Float.valueOf(used_amount.getPropertyValue()) / 10000);
+                    } else {
+                        supplierDTOMap.put("balance", remain_amount == null ? 0 : Float.valueOf(remain_amount.getPropertyValue()) / 1000);
+                        supplierDTOMap.put("consumption", used_amount == null ? 0 : Float.valueOf(used_amount.getPropertyValue()) / 1000);
+                    }
+                    supplierDTOMap.put("apiNum", propertyMap.containsKey(Integer.valueOf(map1.get("supplier_id").toString())) ? propertyMap.get(Integer.valueOf(map1.get("supplier_id").toString())).size() : 0);
+                    return supplierDTOMap;
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-                supplierDTOMap.put("apiNum", propertyMap.containsKey(Integer.valueOf(map1.get("supplier_id").toString())) ? propertyMap.get(Integer.valueOf(map1.get("supplier_id").toString())).size() : 0);
-                return supplierDTOMap;
+                return null;
             }).collect(Collectors.toList());
             map.put("list", collect);
             return map;
@@ -2403,7 +2417,7 @@ public class SupplierService {
             supplierDao.dealCustomerInfo(String.valueOf(deposit.getId()), "remain_amount", String.valueOf(money));
         } else {
 //            BigDecimal bigDecimal1 = new BigDecimal(Double.valueOf(supplierPropertyEntity.getPropertyValue()));
-            pre_money = Integer.valueOf(supplierPropertyEntity.getPropertyValue());
+            pre_money = new BigDecimal(supplierPropertyEntity.getPropertyValue()).intValue();
             supplierDao.dealCustomerInfo(String.valueOf(deposit.getId()), "remain_amount", String.valueOf(pre_money + money));
         }
         log.info("id:" + deposit.getId());

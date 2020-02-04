@@ -89,7 +89,6 @@ public class CustomerMarketExportService {
     }
 
 
-    
     public int customerMarketExportApply(CustomerMarketExport customerMarketExport) {
         Date currentDate = new Date();
         CustomerMarketExportDO customerMarketExportDO = new CustomerMarketExportDO();
@@ -108,7 +107,7 @@ public class CustomerMarketExportService {
         return 0;
     }
 
-    
+
     public int customerMarketExportApproval(CustomerMarketExport customerMarketExport) {
         if (customerMarketExport.getStatus() != null) {
             if (customerMarketExport.getStatus().intValue() == 1) {
@@ -120,7 +119,7 @@ public class CustomerMarketExportService {
         return 0;
     }
 
-    
+
     public int countCustomerMarketExport(String customerId, Date startTime, Date endTime) {
         String localDateTimeStart;
         String localDateTimeEnd;
@@ -139,46 +138,58 @@ public class CustomerMarketExportService {
         return fileNames.size();
     }
 
-    
+
     public List<Map<String, Object>> list(String customerId, String status, String customerName, String createTimeStart, String createTimeEnd) {
         List<Map<String, Object>> list;
         StringBuffer sql = new StringBuffer();
         sql.append("SELECT count(*) count FROM customer_market_export ");
         sql.append(" JOIN t_customer customer ON customer.cust_id = customer_market_export.cust_id ");
         sql.append("WHERE customer_market_export.cust_id = ?");
+        List<Object> p = new ArrayList<>();
         if (StringUtil.isNotEmpty(status)) {
-            sql.append(" AND status = " + status);
+            p.add(status);
+            sql.append(" AND status = ? ");
         }
         if (StringUtil.isNotEmpty(createTimeStart) && StringUtil.isNotEmpty(createTimeEnd)) {
-            sql.append(" AND apply_time BETWEEN '" + createTimeStart + "' and '" + createTimeEnd + "' ");
+            p.add(createTimeStart);
+            p.add(createTimeEnd);
+            sql.append(" AND apply_time BETWEEN ? and ? ");
         }
         if (StringUtil.isNotEmpty(customerName)) {
-            sql.append(" AND customer.enterprise_name LIKE '%" + customerName + "%' ");
+            p.add("%" + customerName + "%");
+            sql.append(" AND customer.enterprise_name LIKE ?  ");
         }
         sql.append(" order by customer_market_export.create_time DESC");
-        list = jdbcTemplate.queryForList(sql.toString(), new Object[]{customerId});
+        list = jdbcTemplate.queryForList(sql.toString(), new Object[]{customerId, p.toArray()});
         return list;
     }
 
-    
+
     public List<Map<String, Object>> listPage(String customerId, String status, Integer pageNum, Integer pageSize, String customerName, String createTimeStart, String createTimeEnd) {
         List<Map<String, Object>> list;
         StringBuffer sql = new StringBuffer();
         sql.append("SELECT customer_market_export.*, customer.enterprise_name FROM customer_market_export ");
         sql.append(" JOIN t_customer customer ON customer.cust_id = customer_market_export.cust_id ");
-        sql.append("WHERE customer_market_export.cust_id = ?");
+        sql.append("WHERE customer_market_export.cust_id = ? ");
+        List<Object> p = new ArrayList<>();
         if (StringUtil.isNotEmpty(status)) {
-            sql.append(" AND status = " + status);
+            p.add(status);
+            sql.append(" AND status = ? ");
         }
         if (StringUtil.isNotEmpty(createTimeStart) && StringUtil.isNotEmpty(createTimeEnd)) {
-            sql.append(" AND apply_time BETWEEN '" + createTimeStart + "' and '" + createTimeEnd + "' ");
+            p.add(createTimeStart);
+            p.add(createTimeEnd);
+            sql.append(" AND apply_time BETWEEN ? and ? ");
         }
         if (StringUtil.isNotEmpty(customerName)) {
-            sql.append(" AND customer.enterprise_name LIKE '%" + customerName + "%' ");
+            p.add("%" + customerName + "%");
+            sql.append(" AND customer.enterprise_name LIKE ?  ");
         }
         sql.append(" order by customer_market_export.create_time DESC");
-        sql.append(" LIMIT " + pageNum + "," + pageSize);
-        list = jdbcTemplate.queryForList(sql.toString(), new Object[]{customerId});
+        sql.append(" LIMIT ? ,? ");
+        p.add(pageNum);
+        p.add(pageSize);
+        list = jdbcTemplate.queryForList(sql.toString(), new Object[]{customerId, p.toArray()});
         // 处理未审核状态下的记录条数
         if (list.size() > 0) {
             long intentionCustomerCount = 0;
@@ -203,7 +214,7 @@ public class CustomerMarketExportService {
         return list;
     }
 
-    
+
     public long countIntentionCustomer(String customerId, String customerGroupId, String invitationLabelId, String invitationLabelName, String invitationLabelValue, Date startTime, Date endTime) {
         long returnCode = 0L;
         // 处理时间
@@ -251,11 +262,11 @@ public class CustomerMarketExportService {
         return returnCode;
     }
 
-    
+
     public List<Map<String, Object>> listPageIntentionCustomer(String customerMarketExportId, Integer pageNum, Integer pageSize, String superId, String invitationLabelId, String invitationLabelName, String invitationLabelValue) {
         List<Map<String, Object>> list = Collections.emptyList();
         List<Map<String, Object>> customerMarketList = jdbcTemplate.queryForList("SELECT * FROM customer_market_export WHERE id = ?", new Object[]{customerMarketExportId});
-        if(customerMarketList.size() > 0){
+        if (customerMarketList.size() > 0) {
             String customerId = String.valueOf(customerMarketList.get(0).get("cust_id"));
             String customerGroupId = String.valueOf(customerMarketList.get(0).get("customer_group_id"));
             Date startTime = (Date) customerMarketList.get(0).get("apply_time");
@@ -287,13 +298,14 @@ public class CustomerMarketExportService {
                     superIds.add(String.valueOf(map.get("superid")));
                 }
                 // 处理根据superId搜索
-                if(superIds.contains(superId)){
+                if (superIds.contains(superId)) {
                     superIds = new ArrayList<>();
                     superIds.add(superId);
                 }
                 if (superIds.size() > 0) {
                     StringBuffer sql = new StringBuffer();
-                    if(pageNum !=null && pageSize != null){
+                    List<Object> p = new ArrayList<>();
+                    if (pageNum != null && pageSize != null) {
                         sql.append("SELECT voice.superid, voice.create_time create_time,voice.status,CAST(voice.user_id AS CHAR) user_id,voice.remark,callback.Callerduration, tuser.account name,tuser.realname,substring_index( callback.recordurl ,'/' , -1 ) as recordurl  FROM t_touch_voice_log voice " +
                                 " LEFT JOIN t_callback_info callback ON voice.callSid = callback.callSid " +
                                 " LEFT JOIN t_customer_user tuser ON tuser.id = voice.user_id " +
@@ -303,8 +315,10 @@ public class CustomerMarketExportService {
                                 " AND voice.create_time > ? AND voice.create_time < ? " +
                                 " AND voice.superid IN  ( " + org.apache.commons.lang.StringUtils.join(superIds, ",") + " ) ");
                         sql.append(" order by voice.create_time DESC");
-                        sql.append(" LIMIT " + pageNum + "," + pageSize);
-                    }else{
+                        sql.append(" LIMIT ? ,? ");
+                        p.add(pageNum);
+                        p.add(pageSize);
+                    } else {
                         sql.append("SELECT count(*) count FROM t_touch_voice_log voice " +
                                 " LEFT JOIN t_callback_info callback ON voice.callSid = callback.callSid " +
                                 " LEFT JOIN t_customer_user tuser ON tuser.id = voice.user_id " +
@@ -316,7 +330,7 @@ public class CustomerMarketExportService {
                         sql.append(" order by voice.create_time DESC");
                     }
                     // 获取邀约成功,拨打电话成功用户的通话记录
-                    list = jdbcTemplate.queryForList(sql.toString(), new Object[]{customerId, startTimeStr, endTimeStr});
+                    list = jdbcTemplate.queryForList(sql.toString(), new Object[]{customerId, startTimeStr, endTimeStr, p.toArray()});
                 }
             }
         }

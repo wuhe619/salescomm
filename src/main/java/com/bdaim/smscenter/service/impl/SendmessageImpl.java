@@ -91,11 +91,13 @@ public class SendmessageImpl implements SendmessageService {
     public PageList sendlist(PageParam page, String compId) {
 
         StringBuilder sqlBuilder = new StringBuilder("SELECT t.id,t.sender_name,t.province,t.city,t.district,t.address,t.postcodes,t.phone,t.type FROM t_sender_info t WHERE 1=1");
+        List<Object> params = new ArrayList<>();
         if (StringUtil.isNotEmpty(compId)) {
-            sqlBuilder.append(" and t.cust_id =" + compId);
+            sqlBuilder.append(" and t.cust_id =?");
+            params.add(compId);
         }
         sqlBuilder.append(" order by t.create_time desc ");
-        return new Pagination().getPageData(sqlBuilder.toString(), null, page, jdbcTemplate);
+        return new Pagination().getPageData(sqlBuilder.toString(), params.toArray(), page, jdbcTemplate);
     }
 
     @Override
@@ -150,26 +152,33 @@ public class SendmessageImpl implements SendmessageService {
     public PageList pageList(PageParam page, ExpressLog expressLog) {
         String batchid = expressLog.getBatchid();
         StringBuilder sqlBuilder = new StringBuilder("SELECT touch_id, address_id, receive_name,create_time,STATUS \n" +
-                "FROM t_touch_express_log WHERE batch_id= " + batchid);
+                "FROM t_touch_express_log WHERE batch_id= ?");
+        List<Object> params = new ArrayList<>();
+        params.add(batchid);
         if (StringUtil.isNotEmpty(expressLog.getTouch_id())) {
-            sqlBuilder.append(" AND touch_id=" + expressLog.getTouch_id());
+            sqlBuilder.append(" AND touch_id=?");
+            params.add(expressLog.getTouch_id());
         }
         if (StringUtil.isNotEmpty(expressLog.getAddressid())) {
-            sqlBuilder.append(" AND address_id = " + expressLog.getAddressid());
+            sqlBuilder.append(" AND address_id = ?");
+            params.add(expressLog.getAddressid());
         }
 
         if (StringUtil.isNotEmpty(expressLog.getFirstdelivery())) {
-            sqlBuilder.append(" AND create_time >= '" + expressLog.getFirstdelivery() + "'");
+            sqlBuilder.append(" AND create_time >= ?");
+            params.add(expressLog.getFirstdelivery());
         }
         if (StringUtil.isNotEmpty(expressLog.getLastsendtime())) {
-            sqlBuilder.append(" AND create_time <= '" + expressLog.getLastsendtime() + "'");
+            sqlBuilder.append(" AND create_time <= ?");
+            params.add(expressLog.getLastsendtime());
         }
         if (expressLog.getStatus() != null) {
-            sqlBuilder.append(" AND STATUS = " + expressLog.getStatus());
+            sqlBuilder.append(" AND STATUS = ?");
+            params.add(expressLog.getStatus());
         }
         sqlBuilder.append(" ORDER BY create_time DESC");
 
-        PageList result = new Pagination().getPageData(sqlBuilder.toString(), null, page, jdbcTemplate);
+        PageList result = new Pagination().getPageData(sqlBuilder.toString(), params.toArray(), page, jdbcTemplate);
 
         return result;
 
@@ -182,31 +191,37 @@ public class SendmessageImpl implements SendmessageService {
         String batchid = expressLog.getBatchid();
         try {
             StringBuffer ob = new StringBuffer();
-
+            List<Object> params = new ArrayList<>();
             ob.append(
                     "  SELECT touch_id, address_id, receive_name,create_time,STATUS  ")
-                    .append(" FROM t_touch_express_log WHERE batch_id= " + batchid);
+                    .append(" FROM t_touch_express_log WHERE batch_id= ?");
+            params.add(batchid);
 
             if (StringUtil.isNotEmpty(expressLog.getTouch_id())) {
-                ob.append(" AND touch_id=" + expressLog.getTouch_id());
+                ob.append(" AND touch_id=?");
+                params.add(expressLog.getTouch_id());
             }
             if (StringUtil.isNotEmpty(expressLog.getAddressid())) {
-                ob.append(" AND address_id = " + expressLog.getAddressid());
+                ob.append(" AND address_id = ?");
+                params.add(expressLog.getAddressid());
             }
 
             if (StringUtil.isNotEmpty(expressLog.getFirstdelivery())) {
-                ob.append(" AND create_time >= '" + expressLog.getFirstdelivery() + "'");
+                ob.append(" AND create_time >= ?");
+                params.add(expressLog.getFirstdelivery());
             }
             if (StringUtil.isNotEmpty(expressLog.getLastsendtime())) {
-                ob.append(" AND create_time <= '" + expressLog.getLastsendtime() + "'");
+                ob.append(" AND create_time <= ?");
+                params.add(expressLog.getLastsendtime());
             }
             if (expressLog.getStatus() != null) {
-                ob.append(" AND STATUS = " + expressLog.getStatus());
+                ob.append(" AND STATUS = ?");
+                params.add(expressLog.getStatus());
             }
             ob.append(" ORDER BY create_time DESC");
             LOG.info("快递记录sql:\t" + ob.toString());
 
-            List<Map<String, Object>> billlist = jdbcTemplate.queryForList(ob.toString());
+            List<Map<String, Object>> billlist = jdbcTemplate.queryForList(ob.toString(), params.toArray());
             List<List<Object>> data = new ArrayList<>();
             // 设置标题
             List<String> titles = new ArrayList<String>();
@@ -294,24 +309,30 @@ public class SendmessageImpl implements SendmessageService {
                             "LEFT JOIN nl_batch n ON t.batch_id = n.id \n" +
                             "WHERE\n" +
                             "\tnl.batch_id =" + batchid);
+            List<Object> params = new ArrayList<>();
             if (StringUtil.isNotEmpty(name)) {
-                ob.append(" AND nl.name=" + name);
+                ob.append(" AND nl.name=?");
+                params.add(name);
             }
             if (StringUtil.isNotEmpty(phone)) {
-                ob.append(" AND nl.phoneId = " + phone);
+                ob.append(" AND nl.phoneId = ?");
+                params.add(phone);
             }
             if (StringUtil.isNotEmpty(touch_id)) {
-                ob.append(" AND t.touch_id = " + touch_id);
+                ob.append(" AND t.touch_id = ?");
+                params.add(touch_id);
             }
             if (status != null) {
-                ob.append(" AND nl.status = " + status);
+                ob.append(" AND nl.status = ?");
+                params.add(status);
             }
             if (status1 != null) {
-                ob.append(" AND t.status = " + status1);
+                ob.append(" AND t.status = ?");
+                params.add(status1);
             }
             LOG.info("修复详情sql:\t" + ob.toString());
 
-            List<Map<String, Object>> billlist = jdbcTemplate.queryForList(ob.toString());
+            List<Map<String, Object>> billlist = jdbcTemplate.queryForList(ob.toString(), params.toArray());
             List<List<Object>> data = new ArrayList<>();
             // 设置标题
             List<String> titles = new ArrayList<String>();
@@ -409,23 +430,30 @@ public class SendmessageImpl implements SendmessageService {
                 " LEFT JOIN u ON nl.phoneId=u.id\n" +
                 " LEFT JOIN t_touch_express_log tl ON nl.id=tl.touch_id\n" +
                 " WHERE nl.batch_id=?");
+        List<Object> params = new ArrayList<>();
+        params.add(batchid);
         if (StringUtil.isNotEmpty(name) && !"null".equals(name)) {
-            querySql.append(" AND nl.name= " + name);
+            querySql.append(" AND nl.name= ?");
+            params.add(name);
         }
         if (StringUtil.isNotEmpty(phone) && !"null".equals(phone)) {
-            querySql.append(" AND u.phone= " + phone);
+            querySql.append(" AND u.phone= ?");
+            params.add(phone);
         }
         if (StringUtil.isNotEmpty(addressId) && !"null".equals(addressId)) {
-            querySql.append(" AND nl.id= " + addressId);
+            querySql.append(" AND nl.id= ?");
+            params.add(addressId);
         }
         if (repairStatus != null) {
-            querySql.append(" AND nl.status = " + repairStatus);
+            querySql.append(" AND nl.status = ?");
+            params.add(repairStatus);
         }
         if (expressStatus != null) {
-            querySql.append(" AND tl.status =" + expressStatus);
+            querySql.append(" AND tl.status =?");
+            params.add(expressStatus);
         }
         querySql.append(" GROUP BY nl.id_card  LIMIT " + (pageNum - 1) + "," + pageSize);
-        List<Map<String, Object>> list = sendmessageImplDao.sqlQuery(querySql.toString(), batchid);
+        List<Map<String, Object>> list = sendmessageImplDao.sqlQuery(querySql.toString(), params.toArray());
         for (int j = 0; j < list.size(); j++) {
             String idCard = String.valueOf(list.get(j).get("id_card"));
             String querySqlq = "SELECT COUNT(id)successNum FROM nl_batch_detail WHERE batch_id =? AND STATUS =1 AND id IS NOT NULL AND id_card=?";
@@ -453,17 +481,23 @@ public class SendmessageImpl implements SendmessageService {
                         " LEFT JOIN t_market_resource t ON nl.resource_id=t.resource_id\n" +
                         " LEFT JOIN t_touch_express_log tl ON nl.id=tl.address_id\n" +
                         " WHERE nl.id_card=? AND t.type_code=12 AND nl.batch_id=?");
+                List<Object> params1 = new ArrayList<>();
+                params1.add(batchid);
                 if (StringUtil.isNotEmpty(addressId) && !"null".equals(addressId)) {
-                    sql.append(" AND nl.id =" + addressId);
+                    sql.append(" AND nl.id =?");
+                    params1.add(addressId);
+
                 }
                 if (repairStatus != null) {
-                    sql.append(" AND nl.status =" + repairStatus);
+                    sql.append(" AND nl.status =?");
+                    params1.add(repairStatus);
                 }
                 if (expressStatus != null) {
-                    sql.append(" AND tl.status = " + expressStatus);
+                    sql.append(" AND tl.status = ?");
+                    params1.add(expressStatus);
                 }
                 sql.append(" GROUP BY tl.address_id");
-                channelList = sendmessageImplDao.sqlQuery(sql.toString(), list.get(i).get("id_card"), batchid);
+                channelList = sendmessageImplDao.sqlQuery(sql.toString(), list.get(i).get("id_card"), params1);
                 for (int j = 0; j < channelList.size(); j++) {
                     String addressIdl = String.valueOf(channelList.get(j).get("address_id"));
                     //拿到地址id查询最后一次发送记录状态
@@ -490,8 +524,8 @@ public class SendmessageImpl implements SendmessageService {
     @Override
     public void add(String fileName, String batch_id, String id_card) {
 
-        StringBuilder sqlBuilder = new StringBuilder("SELECT express_path FROM nl_batch_detail WHERE batch_id= " + batch_id + " AND id_card= '" + id_card + "'");
-        List<Map<String, Object>> express_path = jdbcTemplate.queryForList(sqlBuilder.toString());
+        StringBuilder sqlBuilder = new StringBuilder("SELECT express_path FROM nl_batch_detail WHERE batch_id= ? AND id_card= ?");
+        List<Map<String, Object>> express_path = jdbcTemplate.queryForList(sqlBuilder.toString(), batch_id, id_card);
         String op = express_path.toString();
 
         if (op != null) {
@@ -511,18 +545,18 @@ public class SendmessageImpl implements SendmessageService {
     @Override
     public Map<String, Object> submitCourier(String siteid, String companyid, String bachid) {
         Map<String, Object> resultMap = new HashMap<>();
-        StringBuilder sqlBuilder = new StringBuilder("SELECT express_path FROM nl_batch_detail WHERE id= '" + siteid + "'");
-        List<Map<String, Object>> express_path = jdbcTemplate.queryForList(sqlBuilder.toString());
+        StringBuilder sqlBuilder = new StringBuilder("SELECT express_path FROM nl_batch_detail WHERE id= ?");
+        List<Map<String, Object>> express_path = jdbcTemplate.queryForList(sqlBuilder.toString(), siteid);
         String file = express_path.toString();
         if (file == null) {
             resultMap.put("markedWords", "请先上传文件在进行提交");
         } else {
 
-            StringBuilder sqlBuilderl = new StringBuilder("SELECT id,sender_name,phone,province,city,district,address,type FROM t_sender_info WHERE cust_id='" + companyid + "'");
-            List<Map<String, Object>> express = jdbcTemplate.queryForList(sqlBuilderl.toString());
+            StringBuilder sqlBuilderl = new StringBuilder("SELECT id,sender_name,phone,province,city,district,address,type FROM t_sender_info WHERE cust_id=?");
+            List<Map<String, Object>> express = jdbcTemplate.queryForList(sqlBuilderl.toString(), companyid);
             resultMap.put("markedWord", express);
-            StringBuilder sqlBuilde = new StringBuilder("SELECT express_path FROM nl_batch_detail WHERE id= '" + siteid + "' AND batch_id='" + bachid + "'");
-            List<Map<String, Object>> tupian = sendmessageImplDao.sqlQuery(sqlBuilde.toString());
+            StringBuilder sqlBuilde = new StringBuilder("SELECT express_path FROM nl_batch_detail WHERE id= ? AND batch_id=?");
+            List<Map<String, Object>> tupian = sendmessageImplDao.sqlQuery(sqlBuilde.toString(), siteid, bachid);
 
             for (int i = 0; i < tupian.size(); i++) {
                 String expressPath = String.valueOf(tupian.get(0).get("express_path"));
@@ -574,14 +608,15 @@ public class SendmessageImpl implements SendmessageService {
     @Override
     public Map<String, Object> senderList(Map<String, Object> map) {
         String custId = String.valueOf(map.get("cust_id"));
-        StringBuffer comboSql = new StringBuffer("SELECT id,sender_name AS senderName,type,create_time,phone,province,city,district,address FROM t_sender_info WHERE type='1' AND cust_id='");
-        comboSql.append(custId).append("' UNION SELECT id,sender_name AS senderName,type,create_time,phone,province,city,district,address FROM t_sender_info WHERE type='2' AND cust_id='")
-                .append(custId).append("' ORDER BY type ASC,create_time DESC LIMIT 6");
+        StringBuffer comboSql = new StringBuffer("SELECT id,sender_name AS senderName,type,create_time,phone,province,city,district," +
+                "address FROM t_sender_info WHERE type='1' AND cust_id=? UNION SELECT id,sender_name AS senderName," +
+                "type,create_time,phone,province,city,district,address FROM t_sender_info WHERE type='2' AND cust_id=?" +
+                " ORDER BY type ASC,create_time DESC LIMIT 6");
         String pageNum = String.valueOf(map.get("page_num"));
         List<Map<String, Object>> resultList;
         Map<String, Object> resultMap = new HashMap<>(10);
         if (StringUtil.isEmpty(pageNum)) {
-            resultList = jdbcTemplate.queryForList(comboSql.toString());
+            resultList = jdbcTemplate.queryForList(comboSql.toString(), custId, custId);
             convertAddressToArray(resultList);
             resultMap.put("rows", resultList);
             return resultMap;
@@ -593,19 +628,22 @@ public class SendmessageImpl implements SendmessageService {
         pageParam.setPageSize(NumberConvertUtil.parseInt(String.valueOf(map.get("page_size"))));
 
         StringBuffer listSql = new StringBuffer("SELECT id,sender_name AS senderName,phone,province,city,district,address,postcodes," +
-                "DATE_FORMAT(create_time,'%Y-%m-%d %H:%i:%s') AS createTime,type FROM t_sender_info WHERE cust_id='");
-        listSql.append(custId + "'");
+                "DATE_FORMAT(create_time,'%Y-%m-%d %H:%i:%s') AS createTime,type FROM t_sender_info WHERE cust_id=? ");
+        List<Object> params = new ArrayList<>();
+        params.add(custId);
         String senderName = String.valueOf(map.get("sender_name"));
         if (StringUtil.isNotEmpty(senderName)) {
-            listSql.append(" AND sender_name LIKE '%" + senderName + "%'");
+            listSql.append(" AND sender_name LIKE ?");
+            params.add("%"+senderName+"%");
         }
         String phone = String.valueOf(map.get("phone"));
         if (StringUtil.isNotEmpty(phone)) {
-            listSql.append(" AND phone LIKE '%" + phone + "%'");
+            listSql.append(" AND phone LIKE ?");
+            params.add("%"+phone+"%");
         }
         listSql.append(" ORDER BY create_time DESC");
 
-        PageList page = new Pagination().getPageData(listSql.toString(), null, pageParam, jdbcTemplate);
+        PageList page = new Pagination().getPageData(listSql.toString(), params.toArray(), pageParam, jdbcTemplate);
         resultMap.put("total", page.getTotal());
         resultList = page.getList();
         //转化省市县/区 返回方式为字符串数组

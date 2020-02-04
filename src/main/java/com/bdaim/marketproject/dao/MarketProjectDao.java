@@ -56,10 +56,12 @@ public class MarketProjectDao extends SimpleHibernateDao<MarketProject, Integer>
         StringBuffer hql = new StringBuffer();
         hql.append("from MarketProject m where 1=1 ");
         if (marketProjectDTO.getId() != null) {
-            hql.append(" AND m.id = " + marketProjectDTO.getId());
+            hql.append(" AND m.id = ?");
+            params.add(marketProjectDTO.getId());
         }
         if (StringUtil.isNotEmpty(marketProjectDTO.getName())) {
-            hql.append(" AND m.name LIKE '%" + marketProjectDTO.getName() + "%'");
+            hql.append(" AND m.name LIKE ?");
+            params.add("%"+marketProjectDTO.getName()+"%");
         }
         //type  0:全部 1：全局 2 企业项目
         if ("2".equals(marketProjectDTO.getType()) || StringUtil.isNotEmpty(marketProjectDTO.getEnterpriseName())) {
@@ -70,7 +72,8 @@ public class MarketProjectDao extends SimpleHibernateDao<MarketProject, Integer>
             hql.append(" AND p.propertyName LIKE '" + CustomerPropertyEnum.MARKET_PROJECT_ID_PREFIX.getKey() + "%')");*/
             hql.append(" AND ( m.custId IS NOT NULL ");
             if (StringUtil.isNotEmpty(marketProjectDTO.getEnterpriseName())) {
-                hql.append(" AND m.custId in (SELECT custId FROM Customer WHERE  enterpriseName LIKE '%" + marketProjectDTO.getEnterpriseName() + "%')");
+                hql.append(" AND m.custId in (SELECT custId FROM Customer WHERE  enterpriseName LIKE ?)");
+                params.add("%"+marketProjectDTO.getEnterpriseName()+"%");
             }
             //全部时企业项目需要添加上全局的项目进行展示
             if ("0".equals(marketProjectDTO.getType()) && StringUtil.isNotEmpty(marketProjectDTO.getEnterpriseName())) {
@@ -99,24 +102,30 @@ public class MarketProjectDao extends SimpleHibernateDao<MarketProject, Integer>
      */
     public List<MarketProjectDTO> listMarketProject(MarketProjectDTO marketProjectDTO) {
         StringBuffer hql = new StringBuffer();
+        List params = new ArrayList();
         hql.append("from MarketProject m where 1=1 ");
         if (marketProjectDTO.getId() != null) {
-            hql.append(" AND m.id = " + marketProjectDTO.getId());
+            hql.append(" AND m.id = ?" );
+            params.add(marketProjectDTO.getId());
         }
         if (StringUtil.isNotEmpty(marketProjectDTO.getName())) {
-            hql.append(" AND m.name LIKE '%" + marketProjectDTO.getName() + "%'");
+            hql.append(" AND m.name LIKE ?");
+            params.add("%" +marketProjectDTO.getName()+ "%");
         }
         if (marketProjectDTO.getStatus() != null) {
-            hql.append(" AND m.status = " + marketProjectDTO.getStatus());
+            hql.append(" AND m.status = ?" );
+            params.add(marketProjectDTO.getStatus());
         }
         if (marketProjectDTO.getCustId() != null) {
-            hql.append(" AND m.custId = '" + marketProjectDTO.getCustId() + "'");
+            hql.append(" AND m.custId = ?");
+            params.add(marketProjectDTO.getCustId());
         }
         //type  0:全部 1：全局 2 企业项目
         if ("2".equals(marketProjectDTO.getType()) || StringUtil.isNotEmpty(marketProjectDTO.getEnterpriseName())) {
             hql.append(" AND ( m.custId IS NOT NULL ");
             if (StringUtil.isNotEmpty(marketProjectDTO.getEnterpriseName())) {
-                hql.append(" AND m.custId in (SELECT custId FROM Customer WHERE  enterpriseName LIKE '%" + marketProjectDTO.getEnterpriseName() + "%')");
+                hql.append(" AND m.custId in (SELECT custId FROM Customer WHERE  enterpriseName LIKE ?)");
+                params.add("%"+marketProjectDTO.getEnterpriseName()+"%");
             }
             //全部时企业项目需要添加上全局的项目进行展示
             if ("0".equals(marketProjectDTO.getType()) && StringUtil.isNotEmpty(marketProjectDTO.getEnterpriseName())) {
@@ -135,7 +144,7 @@ public class MarketProjectDao extends SimpleHibernateDao<MarketProject, Integer>
         }
 
         hql.append(" ORDER BY m.createTime DESC ");
-        List<MarketProject> list = this.find(hql.toString());
+        List<MarketProject> list = this.find(hql.toString(),params);
         List<MarketProjectDTO> result = new ArrayList<>();
         if (list.size() > 0) {
             for (MarketProject s : list) {
@@ -152,6 +161,7 @@ public class MarketProjectDao extends SimpleHibernateDao<MarketProject, Integer>
      */
     public List<MarketProjectDTO> listCustomerMarketProject(String custId) {
         StringBuffer hql = new StringBuffer();
+
         hql.append(" from MarketProject m where 1=1 ");
         hql.append(" AND m.id IN (SELECT propertyValue FROM CustomerProperty WHERE propertyName LIKE '" + CustomerPropertyEnum.MARKET_PROJECT_ID_PREFIX.getKey() + "%' AND custId = ? AND propertyValue <> '')");
         hql.append(" AND m.status = 1 ");
