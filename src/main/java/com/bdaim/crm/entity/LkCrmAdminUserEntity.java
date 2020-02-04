@@ -2,6 +2,7 @@ package com.bdaim.crm.entity;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
+import java.util.List;
 import java.util.Objects;
 
 @Entity
@@ -24,6 +25,13 @@ public class LkCrmAdminUserEntity {
     private Long parentId;
     private Timestamp lastLoginTime;
     private String lastLoginIp;
+
+    //查询开始时间
+    private String startTime;
+    //查询结束时间
+    private String endTime;
+    //用户角色列表
+    private List<Integer> roles;
 
     @Id
     @Column(name = "user_id")
@@ -222,5 +230,29 @@ public class LkCrmAdminUserEntity {
     @Override
     public int hashCode() {
         return Objects.hash(userId, username, password, salt, img, createTime, realname, num, mobile, email, sex, deptId, post, status, parentId, lastLoginTime, lastLoginIp);
+    }
+    @Transient
+    public String getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(String startTime) {
+        this.startTime = startTime;
+    }
+    @Transient
+    public String getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(String endTime) {
+        this.endTime = endTime;
+    }
+    @Transient
+    public List<Integer> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(List<Integer> roles) {
+        this.roles = roles;
     }
 }

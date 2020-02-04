@@ -3,6 +3,9 @@ package com.bdaim.crm.erp.admin.service;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
+import com.bdaim.auth.LoginUser;
+import com.bdaim.crm.dao.LkCrmAdminUserDao;
+import com.bdaim.crm.entity.LkCrmAdminUserEntity;
 import com.jfinal.aop.Before;
 import com.jfinal.aop.Inject;
 import com.jfinal.kit.Kv;
@@ -22,16 +25,19 @@ import com.bdaim.crm.utils.Sort;
 import com.bdaim.crm.utils.TagUtil;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import javax.transaction.Transactional;
 import java.util.*;
 
 @Service
 @Transactional
 public class AdminUserService {
-    @Inject
+    @Resource
     private AdminRoleService adminRoleService;
-    @Inject
+    @Resource
     private AdminDeptService adminDeptService;
+    @Resource
+    private LkCrmAdminUserDao crmAdminUserDao;
 
     @Before(Tx.class)
     public R setUser(AdminUser adminUser, String roleIds) {
@@ -83,38 +89,38 @@ public class AdminUserService {
         return R.isSuccess(bol);
     }
 
-    private void updateScene(AdminUser adminUser){
+    private void updateScene(AdminUser adminUser) {
         List<Long> ids = new ArrayList<>();
-        if (adminUser.getUserId() == null && adminUser.getParentId() != null){
+        if (adminUser.getUserId() == null && adminUser.getParentId() != null) {
             ids.add(adminUser.getParentId());
-        }else if (adminUser.getUserId() != null){
+        } else if (adminUser.getUserId() != null) {
             AdminUser oldAdminUser = AdminUser.dao.findById(adminUser.getUserId());
-            if (oldAdminUser.getParentId() == null && adminUser.getParentId() != null){
+            if (oldAdminUser.getParentId() == null && adminUser.getParentId() != null) {
                 ids.add(adminUser.getParentId());
-            }else if (oldAdminUser.getParentId() != null && !oldAdminUser.getParentId().equals(adminUser.getParentId())){
+            } else if (oldAdminUser.getParentId() != null && !oldAdminUser.getParentId().equals(adminUser.getParentId())) {
                 ids.add(oldAdminUser.getParentId());
                 ids.add(adminUser.getParentId());
             }
         }
-        if (ids.size() > 0){
+        if (ids.size() > 0) {
             HashSet<Long> idsSet = new HashSet<>();
-            ids.forEach(id -> idsSet.addAll(queryTopUserId(id,BaseConstant.AUTH_DATA_RECURSION_NUM)));
-            SqlPara sqlPara= Db.getSqlPara("admin.user.updateScene", Kv.by("ids",idsSet));
-            Db.delete(sqlPara.getSql(),sqlPara.getPara());
+            ids.forEach(id -> idsSet.addAll(queryTopUserId(id, BaseConstant.AUTH_DATA_RECURSION_NUM)));
+            SqlPara sqlPara = Db.getSqlPara("admin.user.updateScene", Kv.by("ids", idsSet));
+            Db.delete(sqlPara.getSql(), sqlPara.getPara());
         }
     }
 
     /**
+     * @param userId
      * @author wyq
      * 查询上级id
-     * @param userId
      */
-    private List<Long> queryTopUserId(Long userId, Integer deepness){
-        List<Long> arrUsers=new ArrayList<>();
-        if (deepness-- > 0){
-            AdminUser adminUser=AdminUser.dao.findById(userId);
-            if(adminUser.getParentId() != null && !adminUser.getParentId().equals(0L)){
-                arrUsers.addAll(queryTopUserId(adminUser.getParentId(),deepness));
+    private List<Long> queryTopUserId(Long userId, Integer deepness) {
+        List<Long> arrUsers = new ArrayList<>();
+        if (deepness-- > 0) {
+            AdminUser adminUser = AdminUser.dao.findById(userId);
+            if (adminUser.getParentId() != null && !adminUser.getParentId().equals(0L)) {
+                arrUsers.addAll(queryTopUserId(adminUser.getParentId(), deepness));
             }
             arrUsers.add(adminUser.getUserId());
         }
@@ -126,11 +132,14 @@ public class AdminUserService {
      *
      * @return 用户信息
      */
-    public AdminUser resetUser() {
-        AdminUser adminUser = AdminUser.dao.findFirst(Db.getSql("admin.user.queryUserByUserId"), BaseUtil.getUserId());
+    public LkCrmAdminUserEntity resetUser() {
+        String sql = "select a.*,(SELECT name FROM lkcrm_admin_dept WHERE dept_id = a.dept_id) as deptName,(SELECT realname FROM lkcrm_admin_user WHERE user_id=a.parent_id) as parentName from lkcrm_admin_user as a where a.user_id = ?";
+        List<LkCrmAdminUserEntity> maps = crmAdminUserDao.queryListBySql(sql, LkCrmAdminUserEntity.class, BaseUtil.getUserId());
+        LkCrmAdminUserEntity adminUser = maps != null && maps.size() > 0 ? maps.get(0) : new LkCrmAdminUserEntity();
+        //AdminUser adminUser = AdminUser.dao.findFirst(Db.getSql("admin.user.queryUserByUserId"), BaseUtil.getUserId());
         adminUser.setRoles(adminRoleService.queryRoleIdsByUserId(adminUser.getUserId()));
-        RedisManager.getRedis().setex(BaseUtil.getToken(), 360000, adminUser);
-        adminUser.remove("password", "salt");
+        //RedisManager.getRedis().setex(BaseUtil.getToken(), 360000, adminUser);
+        //adminUser.remove("password", "salt");
         return adminUser;
     }
 
@@ -138,7 +147,7 @@ public class AdminUserService {
         List<Integer> deptIdList = new ArrayList<>();
         if (request.getData().getDeptId() != null) {
             deptIdList.add(request.getData().getDeptId());
-            deptIdList.addAll(queryChileDeptIds(request.getData().getDeptId(),BaseConstant.AUTH_DATA_RECURSION_NUM));
+            deptIdList.addAll(queryChileDeptIds(request.getData().getDeptId(), BaseConstant.AUTH_DATA_RECURSION_NUM));
         }
         if (request.getPageType() == 0) {
             List<Record> recordList = Db.find(Db.getSqlPara("admin.user.queryUserList", Kv.by("name", request.getData().getRealname()).set("deptId", deptIdList).set("status", request.getData().getStatus()).set("roleId", roleId)));
@@ -154,7 +163,7 @@ public class AdminUserService {
      */
     public List<Record> queryTopUserList(Long userId) {
         List<Record> recordList = Db.find("select user_id,realname,parent_id from 72crm_admin_user");
-        List<Long> subUserList = queryChileUserIds(userId,BaseConstant.AUTH_DATA_RECURSION_NUM);
+        List<Long> subUserList = queryChileUserIds(userId, BaseConstant.AUTH_DATA_RECURSION_NUM);
         recordList.removeIf(record -> subUserList.contains(record.getLong("user_id")));
         recordList.removeIf(record -> record.getLong("user_id").equals(userId));
         return recordList;
@@ -170,7 +179,7 @@ public class AdminUserService {
         if (list.size() != 0 && deepness > 0) {
             int size = list.size();
             for (int i = 0; i < size; i++) {
-                list.addAll(queryChileDeptIds(list.get(i),deepness-1));
+                list.addAll(queryChileDeptIds(list.get(i), deepness - 1));
             }
         }
         return list;
@@ -184,11 +193,11 @@ public class AdminUserService {
     public List<Long> queryChileUserIds(Long userId, Integer deepness) {
         List<Long> query = Db.query("select user_id from 72crm_admin_user where parent_id = ?", userId);
         if (deepness > 0) {
-            for (int i = 0,size=query.size(); i < size; i++) {
-                query.addAll(queryChileUserIds(query.get(i),deepness-1));
+            for (int i = 0, size = query.size(); i < size; i++) {
+                query.addAll(queryChileUserIds(query.get(i), deepness - 1));
             }
         }
-        HashSet<Long> set=new HashSet<>(query);
+        HashSet<Long> set = new HashSet<>(query);
         query.clear();
         query.addAll(set);
         return query;
@@ -251,9 +260,9 @@ public class AdminUserService {
         if (StrUtil.isEmpty(deptIds)) {
             return null;
         }
-        SqlPara sqlPara= Db.getSqlPara("admin.user.queryUserIdByDeptId", Kv.by("deptIds",deptIds));
-        List<Long> users= Db.query(sqlPara.getSql(),sqlPara.getPara());
-        return StrUtil.join(",",users);
+        SqlPara sqlPara = Db.getSqlPara("admin.user.queryUserIdByDeptId", Kv.by("deptIds", deptIds));
+        List<Long> users = Db.query(sqlPara.getSql(), sqlPara.getPara());
+        return StrUtil.join(",", users);
     }
 
     public R queryAllUserList() {
@@ -288,8 +297,9 @@ public class AdminUserService {
 
     /**
      * 查询当前用户权限 用于菜单展示 FFF
+     *
      * @param userId 用户id
-     * @param realm 当前操作的菜单 链接地址
+     * @param realm  当前操作的菜单 链接地址
      * @return
      */
     public List<Long> queryUserByAuth(Long userId, String realm) {
@@ -302,8 +312,8 @@ public class AdminUserService {
             return adminUsers;
         }
         //只要上面list的长度不为0 那么这个也不会为0
-        List<Record> userRoleList= Db.find(Db.getSqlPara("admin.role.queryUserRoleListByUserId", Kv.by("userId",userId).set("realm",realm)));
-        if(list.size()==1&&userRoleList.size()==1){//如果为1的话 验证是否有最高权限，否则及有多个权限
+        List<Record> userRoleList = Db.find(Db.getSqlPara("admin.role.queryUserRoleListByUserId", Kv.by("userId", userId).set("realm", realm)));
+        if (list.size() == 1 && userRoleList.size() == 1) {//如果为1的话 验证是否有最高权限，否则及有多个权限
             //拥有最高数据权限
             if (list.contains(5)) {
                 return null;
@@ -316,7 +326,7 @@ public class AdminUserService {
                     records.forEach(record -> deptIds.add(record.getInt("id")));
                     SqlPara sqlPara = Db.getSqlPara("admin.user.queryUserIdByDeptId", Kv.by("deptIds", deptIds));
                     adminUsers.addAll(Db.query(sqlPara.getSql(), sqlPara.getPara()));
-                } else if(list.contains(3)){
+                } else if (list.contains(3)) {
                     queryUserByDeptId(adminUser.getDeptId()).forEach(record -> adminUsers.add(record.getLong("id")));
                 }
 
@@ -325,31 +335,31 @@ public class AdminUserService {
                 }
                 adminUsers.add(adminUser.getUserId());
             }
-        }else{//多个权限
-            if(realm!=null&&!"".equals(realm)) {
+        } else {//多个权限
+            if (realm != null && !"".equals(realm)) {
                 AdminUser adminUser = AdminUser.dao.findById(userId);
-                for (Record r:userRoleList) {//如果有多个权限 验证当前用户是否对当前管理 是否为本人操作
-                    if(r.getStr("realm").equals(realm)&&r.getStr("data_type").equals("1")){//当前操作的管理链接地址
+                for (Record r : userRoleList) {//如果有多个权限 验证当前用户是否对当前管理 是否为本人操作
+                    if (r.getStr("realm").equals(realm) && r.getStr("data_type").equals("1")) {//当前操作的管理链接地址
                         adminUsers.add(userId);
                         HashSet<Long> hashSet = new HashSet<>(adminUsers);
                         adminUsers.clear();
                         adminUsers.addAll(hashSet);
                         return adminUsers;
-                    }else if(r.getStr("realm").equals(realm)&&r.getStr("data_type").equals("2")){//本人及其
+                    } else if (r.getStr("realm").equals(realm) && r.getStr("data_type").equals("2")) {//本人及其
                         adminUsers.addAll(queryUserByParentUser(adminUser.getUserId(), BaseConstant.AUTH_DATA_RECURSION_NUM));
                         adminUsers.add(userId);
                         HashSet<Long> hashSet = new HashSet<>(adminUsers);
                         adminUsers.clear();
                         adminUsers.addAll(hashSet);
                         return adminUsers;
-                    }else if(r.getStr("realm").equals(realm)&&r.getStr("data_type").equals("3")){//本部门
+                    } else if (r.getStr("realm").equals(realm) && r.getStr("data_type").equals("3")) {//本部门
                         queryUserByDeptId(adminUser.getDeptId()).forEach(record -> adminUsers.add(record.getLong("id")));
                         adminUsers.add(userId);
                         HashSet<Long> hashSet = new HashSet<>(adminUsers);
                         adminUsers.clear();
                         adminUsers.addAll(hashSet);
                         return adminUsers;
-                    }else if(r.getStr("realm").equals(realm)&&r.getStr("data_type").equals("4")){//本部门及下属部门
+                    } else if (r.getStr("realm").equals(realm) && r.getStr("data_type").equals("4")) {//本部门及下属部门
                         List<Record> records = adminDeptService.queryDeptByParentDept(adminUser.getDeptId(), BaseConstant.AUTH_DATA_RECURSION_NUM);
                         List<Integer> deptIds = new ArrayList<>();
                         deptIds.add(adminUser.getDeptId());
@@ -363,11 +373,11 @@ public class AdminUserService {
                         adminUsers.clear();
                         adminUsers.addAll(hashSet);
                         return adminUsers;
-                    }else if(r.getStr("realm").equals(realm)&&r.getStr("data_type").equals("5")){//全部
+                    } else if (r.getStr("realm").equals(realm) && r.getStr("data_type").equals("5")) {//全部
                         return null;
                     }
                 }
-            }else{
+            } else {
                 if (list.contains(5)) {
                     return null;
                 } else {
@@ -379,7 +389,7 @@ public class AdminUserService {
                         records.forEach(record -> deptIds.add(record.getInt("id")));
                         SqlPara sqlPara = Db.getSqlPara("admin.user.queryUserIdByDeptId", Kv.by("deptIds", deptIds));
                         adminUsers.addAll(Db.query(sqlPara.getSql(), sqlPara.getPara()));
-                    } else if(list.contains(3)){
+                    } else if (list.contains(3)) {
                         queryUserByDeptId(adminUser.getDeptId()).forEach(record -> adminUsers.add(record.getLong("id")));
                     }
 
@@ -410,38 +420,39 @@ public class AdminUserService {
         }
         return recordList;
     }
-    public List<Record> queryUserByDeptId(Integer deptId){
-        return Db.find(Db.getSql("admin.user.queryUserByDeptId"),deptId);
+
+    public List<Record> queryUserByDeptId(Integer deptId) {
+        return Db.find(Db.getSql("admin.user.queryUserByDeptId"), deptId);
     }
 
     /**
      * @author zxy
      * 根据部门id和用户ID 去重 （仪盘表中业绩指标用）
      */
-    public Record queryByDeptIds(String deptIds, String userIds){
+    public Record queryByDeptIds(String deptIds, String userIds) {
         Record record = new Record();
-        List<Record> allDepts = Db.find("select * from 72crm_admin_dept where dept_id in ( ? )",deptIds);
-        deptIds = getDeptIds(null,allDepts);
+        List<Record> allDepts = Db.find("select * from 72crm_admin_dept where dept_id in ( ? )", deptIds);
+        deptIds = getDeptIds(null, allDepts);
 
-        String arrUserIds  = queryUserIdsByDept(deptIds);
+        String arrUserIds = queryUserIdsByDept(deptIds);
         if (StrUtil.isNotEmpty(userIds)) {
             userIds = getUserIds(deptIds, userIds);
         }
-        record.set("deptIds",deptIds);
-        record.set("userIds",userIds);
-        record.set("arrUserIds",arrUserIds);
+        record.set("deptIds", deptIds);
+        record.set("userIds", userIds);
+        record.set("arrUserIds", arrUserIds);
         return record;
     }
 
-    private String getDeptIds(String deptIds, List<Record> allDepts){
-        for ( Record dept: allDepts) {
-            Integer pid =   dept.getInt("pid");
-            if (pid != 0){
-                deptIds = getDeptIds(deptIds,  Db.find("select * from 72crm_admin_dept where dept_id in ( ? )",pid));
-            }else {
-                if (deptIds == null){
+    private String getDeptIds(String deptIds, List<Record> allDepts) {
+        for (Record dept : allDepts) {
+            Integer pid = dept.getInt("pid");
+            if (pid != 0) {
+                deptIds = getDeptIds(deptIds, Db.find("select * from 72crm_admin_dept where dept_id in ( ? )", pid));
+            } else {
+                if (deptIds == null) {
                     deptIds = dept.getStr("dept_id");
-                }else {
+                } else {
                     deptIds = deptIds + "," + dept.getStr("dept_id");
                 }
             }
@@ -452,18 +463,19 @@ public class AdminUserService {
 
     /**
      * 修改用户账号功能
-     * @param id 用户ID
+     *
+     * @param id       用户ID
      * @param username 新的用户名
      * @param password 新的密码
      * @return 操作状态
      */
     @Before(Tx.class)
-    public R usernameEdit(Integer id, String username, String password){
-        AdminUser adminUser=AdminUser.dao.findById(id);
-        if(adminUser==null){
+    public R usernameEdit(Integer id, String username, String password) {
+        AdminUser adminUser = AdminUser.dao.findById(id);
+        if (adminUser == null) {
             return R.error("用户不存在！");
         }
-        if(adminUser.getUsername().equals(username)){
+        if (adminUser.getUsername().equals(username)) {
             return R.error("账号不能和原账号相同");
         }
         Integer count = Db.queryInt("select count(*) from 72crm_admin_user where username = ?", username);
@@ -471,17 +483,17 @@ public class AdminUserService {
             return R.error("手机号重复！");
         }
         adminUser.setUsername(username);
-        adminUser.setPassword(BaseUtil.sign(username+password,adminUser.getSalt()));
+        adminUser.setPassword(BaseUtil.sign(username + password, adminUser.getSalt()));
         return R.isSuccess(adminUser.update());
     }
 
-    private String getUserIds(String deptIds, String userIds){
+    private String getUserIds(String deptIds, String userIds) {
         List<Record> allUsers = Db.find("select * from 72crm_admin_user where dept_id   NOT in ( ? ) and user_id in (?)", deptIds, userIds);
         userIds = null;
-        for ( Record user: allUsers) {
-            if (userIds == null){
+        for (Record user : allUsers) {
+            if (userIds == null) {
                 userIds = user.getStr("user_id");
-            }else {
+            } else {
                 userIds = deptIds + "," + user.getStr("user_id");
             }
         }

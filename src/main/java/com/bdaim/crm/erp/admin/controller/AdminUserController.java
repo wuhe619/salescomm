@@ -1,6 +1,7 @@
 package com.bdaim.crm.erp.admin.controller;
 
 import com.bdaim.auth.LoginUser;
+import com.bdaim.common.response.ResponseInfo;
 import com.jfinal.aop.Inject;
 import com.jfinal.core.Controller;
 import com.jfinal.core.paragetter.Para;
@@ -14,16 +15,24 @@ import com.bdaim.crm.erp.admin.service.AdminFileService;
 import com.bdaim.crm.erp.admin.service.AdminUserService;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
+
+import javax.annotation.Resource;
 
 /**
  * @author hmb
  */
+@RestController
+@RequestMapping("/system/user")
 public class AdminUserController extends Controller {
 
-    @Inject
+    @Resource
     private AdminUserService adminUserService;
 
-    @Inject
+    @Resource
     private AdminFileService adminFileService;
 
     /**
@@ -105,8 +114,13 @@ public class AdminUserController extends Controller {
      * 查询当前登录的用户
      * @author zhangzhiwei
      */
-    public void queryLoginUser(){
-        renderJson(R.ok().put("data",adminUserService.resetUser()));
+    @ResponseBody
+    @RequestMapping(value = "/queryLoginUser", method = RequestMethod.POST)
+    public ResponseInfo queryLoginUser(){
+        ResponseInfo resp = new ResponseInfo();
+        resp.setData(adminUserService.resetUser());
+        return resp;
+        //renderJson(R.ok().put("data",adminUserService.resetUser()));
     }
 
     public void updateImg(){
