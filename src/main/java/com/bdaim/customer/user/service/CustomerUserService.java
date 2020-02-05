@@ -215,6 +215,12 @@ public class CustomerUserService {
 //        userDO.setStatus(Constant.USER_ACTIVE_STATUS);
 //        userDO.setUserPwdLevel(value.getUserPwdLevel());
 //        userInfoDao.save(userDO);
+
+        PasswordChecker checker = new PasswordChecker();
+
+        if(!checker.check(value.getPassword())){
+            throw new Exception("密码不符合要求");
+        }
         //创建客户信息
         customer.setCustId(customerId);
         customer.setRealName(value.getRealName());
