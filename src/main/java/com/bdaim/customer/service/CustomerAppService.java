@@ -50,6 +50,7 @@ public class CustomerAppService {
             //职位/职级
             customer.setTitle(vo.getTitle());
             customer.setEnterpriseName(vo.getEnterpriseName());
+
         } else {
             //创建客户信息
             customer = new Customer();
@@ -193,14 +194,20 @@ public class CustomerAppService {
             }
 
         }
-        if (StringUtil.isNotEmpty(vo.getCustId())) {
+        if (StringUtil.isNotEmpty(vo.getMobile())) {
             customerDao.dealCustomerInfo(vo.getCustId(), "mobile", vo.getMobile());
         } else {
             customerDao.dealCustomerInfo(customerId, "mobile", vo.getMobile());
         }
+        if (StringUtil.isNotEmpty(vo.getEmail())) {
+            customerDao.dealCustomerInfo(vo.getCustId(), "email", vo.getEmail());
+        } else {
+            customerDao.dealCustomerInfo(customerId, "email", vo.getEmail());
+        }
+
         //创建企业id
         if (StringUtil.isNotEmpty(vo.getCreateId())) {
-            if (StringUtil.isNotEmpty(vo.getCustId())) {
+            if (StringUtil.isNotEmpty(vo.getCreateId())) {
                 customerDao.dealCustomerInfo(vo.getCustId(), "create_id", vo.getCreateId());
             } else {
                 customerDao.dealCustomerInfo(customerId, "create_id", vo.getCreateId());
@@ -364,6 +371,9 @@ public class CustomerAppService {
                     break;
                 case "industry":
                     vo.setIndustry(property_value);
+                    break;
+                case "email":
+                    vo.setEmail(property_value);
                     break;
                 case "remain_amount":
                     if (property_value == null)
