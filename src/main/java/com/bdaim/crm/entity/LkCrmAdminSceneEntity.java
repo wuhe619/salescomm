@@ -7,8 +7,8 @@ import java.util.Objects;
 @Entity
 @Table(name = "lkcrm_admin_scene", schema = "", catalog = "")
 public class LkCrmAdminSceneEntity {
-    private int sceneId;
-    private int type;
+    private Integer sceneId;
+    private Integer type;
     private String name;
     private long userId;
     private int sort;
@@ -21,21 +21,23 @@ public class LkCrmAdminSceneEntity {
 
     @Id
     @Column(name = "scene_id")
-    public int getSceneId() {
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    public Integer getSceneId() {
         return sceneId;
     }
 
-    public void setSceneId(int sceneId) {
+    public LkCrmAdminSceneEntity setSceneId(Integer sceneId) {
         this.sceneId = sceneId;
+        return this;
     }
 
     @Basic
     @Column(name = "type")
-    public int getType() {
+    public Integer getType() {
         return type;
     }
 
-    public void setType(int type) {
+    public void setType(Integer type) {
         this.type = type;
     }
 
@@ -45,8 +47,9 @@ public class LkCrmAdminSceneEntity {
         return name;
     }
 
-    public void setName(String name) {
+    public LkCrmAdminSceneEntity setName(String name) {
         this.name = name;
+        return this;
     }
 
     @Basic
@@ -55,8 +58,9 @@ public class LkCrmAdminSceneEntity {
         return userId;
     }
 
-    public void setUserId(long userId) {
+    public LkCrmAdminSceneEntity setUserId(long userId) {
         this.userId = userId;
+        return this;
     }
 
     @Basic
@@ -65,8 +69,9 @@ public class LkCrmAdminSceneEntity {
         return sort;
     }
 
-    public void setSort(int sort) {
+    public LkCrmAdminSceneEntity setSort(int sort) {
         this.sort = sort;
+        return this;
     }
 
     @Basic
@@ -75,8 +80,9 @@ public class LkCrmAdminSceneEntity {
         return data;
     }
 
-    public void setData(String data) {
+    public LkCrmAdminSceneEntity setData(String data) {
         this.data = data;
+        return this;
     }
 
     @Basic
@@ -85,8 +91,9 @@ public class LkCrmAdminSceneEntity {
         return isHide;
     }
 
-    public void setIsHide(int isHide) {
+    public LkCrmAdminSceneEntity setIsHide(int isHide) {
         this.isHide = isHide;
+        return this;
     }
 
     @Basic
@@ -95,8 +102,9 @@ public class LkCrmAdminSceneEntity {
         return isSystem;
     }
 
-    public void setIsSystem(int isSystem) {
+    public LkCrmAdminSceneEntity setIsSystem(int isSystem) {
         this.isSystem = isSystem;
+        return this;
     }
 
     @Basic
@@ -115,8 +123,9 @@ public class LkCrmAdminSceneEntity {
         return createTime;
     }
 
-    public void setCreateTime(Timestamp createTime) {
+    public LkCrmAdminSceneEntity setCreateTime(Timestamp createTime) {
         this.createTime = createTime;
+        return this;
     }
 
     @Basic
