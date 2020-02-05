@@ -1,6 +1,7 @@
 package com.bdaim.crm.utils;
 
 import cn.hutool.core.collection.CollectionUtil;
+import com.bdaim.crm.entity.LkCrmAdminFieldSortEntity;
 import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
 import com.bdaim.crm.erp.admin.entity.AdminFieldSort;
@@ -16,11 +17,11 @@ import java.util.List;
 @Transactional
 public class FieldUtil {
     private List<Record> recordList;
-    private List<AdminFieldSort> adminFieldSortList;
+    private List<LkCrmAdminFieldSortEntity> adminFieldSortList;
     private Long userId;
     private Integer label;
 
-    public List<AdminFieldSort> getAdminFieldSortList() {
+    public List<LkCrmAdminFieldSortEntity> getAdminFieldSortList() {
         return adminFieldSortList;
     }
 
@@ -30,7 +31,7 @@ public class FieldUtil {
 
     public FieldUtil(){}
 
-    public FieldUtil(List<AdminFieldSort> adminFieldSortList, Long userId, Integer label){
+    public FieldUtil(List<LkCrmAdminFieldSortEntity> adminFieldSortList, Long userId, Integer label){
         this.adminFieldSortList = adminFieldSortList;
         this.userId = userId;
         this.label = label;
@@ -73,14 +74,14 @@ public class FieldUtil {
     }
 
     public FieldUtil add(String fieldName, String name){
-        AdminFieldSort adminFieldSort = new AdminFieldSort();
+        LkCrmAdminFieldSortEntity adminFieldSort = new LkCrmAdminFieldSortEntity();
         adminFieldSort.setLabel(label).setIsHide(0).setUserId(userId).setFieldName(fieldName).setName(name);
         adminFieldSortList.add(adminFieldSort);
         return this;
     }
 
     public FieldUtil add(String fieldName, String name, Integer fieldId){
-        AdminFieldSort adminFieldSort = new AdminFieldSort();
+        LkCrmAdminFieldSortEntity adminFieldSort = new LkCrmAdminFieldSortEntity();
         adminFieldSort.setLabel(label).setIsHide(0).setUserId(userId).setFieldName(fieldName).setName(name).setFieldId(fieldId);
         adminFieldSortList.add(adminFieldSort);
         return this;

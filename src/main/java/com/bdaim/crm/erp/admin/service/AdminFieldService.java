@@ -6,6 +6,8 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.util.TypeUtils;
 import com.bdaim.crm.dao.LkCrmAdminFieldDao;
+import com.bdaim.crm.entity.LkCrmAdminFieldSortEntity;
+import com.bdaim.crm.entity.LkCrmAdminFieldStyleEntity;
 import com.bdaim.util.JavaBeanUtil;
 import com.bdaim.util.StringUtil;
 import com.jfinal.aop.Before;
@@ -516,7 +518,7 @@ public class AdminFieldService {
         return R.ok().put("data", "编辑成功");
     }
 
-    public List<AdminFieldStyle> queryFieldStyle(String type) {
+    public List<LkCrmAdminFieldStyleEntity> queryFieldStyle(int type) {
         Long userId = BaseUtil.getUser().getUserId();
         return crmAdminFieldDao.find("FROM LkCrmAdminFieldStyleEntity WHERE type = ? and userId = ?", type, userId);
         //return AdminFieldStyle.dao.find("select * from lkcrm_admin_field_style where type = ? and user_id = ?", type, userId);
@@ -527,18 +529,18 @@ public class AdminFieldService {
      * 查询客户管理列表页字段
      */
     @Before(Tx.class)
-    public List<Record> queryListHead(AdminFieldSort adminFieldSort) {
+    public List<Record> queryListHead(LkCrmAdminFieldSortEntity adminFieldSort) {
         //查看userid是否存在于顺序表，没有则插入
         Long userId = BaseUtil.getUser().getUserId();
-        Integer number = Db.queryInt("select count(*) from lkcrm_admin_field_sort where user_id = ? and label = ?", userId, adminFieldSort.getLabel());
+        Integer number = crmAdminFieldDao.queryForInt("select count(*) from lkcrm_admin_field_sort where user_id = ? and label = ?", userId, adminFieldSort.getLabel());
         if (0 == number) {
             List<Record> fieldList;
             if (adminFieldSort.getLabel() == 8) {
                 fieldList = list("2");
             } else {
-                fieldList = list(adminFieldSort.getLabel().toString());
+                fieldList = list(String.valueOf(adminFieldSort.getLabel()));
             }
-            List<AdminFieldSort> sortList = new LinkedList<>();
+            List<LkCrmAdminFieldSortEntity> sortList = new LinkedList<>();
             FieldUtil fieldUtil = new FieldUtil(sortList, userId, adminFieldSort.getLabel());
             if (null != fieldList) {
                 for (Record record : fieldList) {
@@ -571,8 +573,9 @@ public class AdminFieldService {
             });
             sortList = fieldUtil.getAdminFieldSortList();
             for (int i = 0; i < sortList.size(); i++) {
-                AdminFieldSort newUserFieldSort = sortList.get(i);
-                newUserFieldSort.setSort(i).save();
+                LkCrmAdminFieldSortEntity newUserFieldSort = sortList.get(i);
+                newUserFieldSort.setSort(i);
+                crmAdminFieldDao.saveOrUpdate(newUserFieldSort);
             }
         }
         String sql = "select field_name as fieldName,name from lkcrm_admin_field_sort where is_hide = 0 and label = ? and user_id = ? order by sort asc";

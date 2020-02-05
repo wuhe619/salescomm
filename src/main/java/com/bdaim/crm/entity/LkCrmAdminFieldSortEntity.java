@@ -17,6 +17,7 @@ public class LkCrmAdminFieldSortEntity {
 
     @Id
     @Column(name = "id")
+    @GeneratedValue(strategy = GenerationType.AUTO)
     public int getId() {
         return id;
     }
@@ -31,8 +32,9 @@ public class LkCrmAdminFieldSortEntity {
         return label;
     }
 
-    public void setLabel(int label) {
+    public LkCrmAdminFieldSortEntity setLabel(int label) {
         this.label = label;
+        return this;
     }
 
     @Basic
@@ -41,8 +43,9 @@ public class LkCrmAdminFieldSortEntity {
         return fieldName;
     }
 
-    public void setFieldName(String fieldName) {
+    public LkCrmAdminFieldSortEntity setFieldName(String fieldName) {
         this.fieldName = fieldName;
+        return this;
     }
 
     @Basic
@@ -51,8 +54,9 @@ public class LkCrmAdminFieldSortEntity {
         return name;
     }
 
-    public void setName(String name) {
+    public LkCrmAdminFieldSortEntity setName(String name) {
         this.name = name;
+        return this;
     }
 
     @Basic
@@ -71,8 +75,9 @@ public class LkCrmAdminFieldSortEntity {
         return userId;
     }
 
-    public void setUserId(long userId) {
+    public LkCrmAdminFieldSortEntity setUserId(long userId) {
         this.userId = userId;
+        return this;
     }
 
     @Basic
@@ -81,8 +86,9 @@ public class LkCrmAdminFieldSortEntity {
         return isHide;
     }
 
-    public void setIsHide(int isHide) {
+    public LkCrmAdminFieldSortEntity setIsHide(int isHide) {
         this.isHide = isHide;
+        return this;
     }
 
     @Basic

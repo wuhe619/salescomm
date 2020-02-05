@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.Map;
 
 @Aspect
 @Component
@@ -77,7 +78,9 @@ public class ResponseBodyInterceptor {
             className = pjp.getTarget().getClass().getSimpleName();
 
             Object o = pjp.proceed();
-            if(o instanceof ResponseInfo){
+            if (o instanceof ResponseInfo) {
+                return o;
+            } else if (o instanceof Map) {
                 return o;
             }
             if (o != null) {

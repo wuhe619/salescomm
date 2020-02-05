@@ -106,4 +106,10 @@ public class JavaBeanUtil {
         l.forEach(s -> list.add(mapToRecord(s)));
         return list;
     }
+
+    public static List<Map<String, Object>> recordToMap(List<Record> records) {
+        List<Map<String, Object>> list = new ArrayList<>();
+        records.forEach(s -> list.add(s.getColumns()));
+        return list;
+    }
 }

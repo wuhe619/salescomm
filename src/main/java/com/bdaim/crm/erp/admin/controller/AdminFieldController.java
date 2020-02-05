@@ -3,6 +3,9 @@ package com.bdaim.crm.erp.admin.controller;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.response.ResponseInfo;
+import com.bdaim.crm.entity.LkCrmAdminFieldSortEntity;
+import com.bdaim.crm.entity.LkCrmAdminFieldStyleEntity;
+import com.bdaim.util.JavaBeanUtil;
 import com.jfinal.aop.Inject;
 import com.jfinal.core.Controller;
 import com.jfinal.core.paragetter.Para;
@@ -31,7 +34,7 @@ import java.util.List;
  * @author hmb
  */
 @RestController
-@RequestMapping("/sysConfig")
+@RequestMapping("/field")
 public class AdminFieldController extends Controller {
 
     @Resource
@@ -194,7 +197,7 @@ public class AdminFieldController extends Controller {
     @NotNullValidate(value = "label", message = "label不能为空")
     @ResponseBody
     @RequestMapping(value = "/queryListHead", method = RequestMethod.POST)
-    public ResponseInfo queryListHead(@Para("") AdminFieldSort adminFieldSort) {
+    public ResponseInfo queryListHead(@Para("") LkCrmAdminFieldSortEntity adminFieldSort) {
         ResponseInfo resp = new ResponseInfo();
         List<Record> records;
         if (adminFieldSort.getLabel() == 10) {
@@ -202,9 +205,9 @@ public class AdminFieldController extends Controller {
         } else {
             records = adminFieldService.queryListHead(adminFieldSort);
         }
-        List<AdminFieldStyle> fieldStyles = adminFieldService.queryFieldStyle(adminFieldSort.getLabel().toString());
+        List<LkCrmAdminFieldStyleEntity> fieldStyles = adminFieldService.queryFieldStyle(adminFieldSort.getLabel());
         records.forEach(record -> {
-            for (AdminFieldStyle fieldStyle : fieldStyles) {
+            for (LkCrmAdminFieldStyleEntity fieldStyle : fieldStyles) {
                 if (record.get("fieldName") != null && fieldStyle.getFieldName().equals(record.get("fieldName"))) {
                     record.set("width", fieldStyle.getStyle());
                     break;
@@ -214,7 +217,7 @@ public class AdminFieldController extends Controller {
                 record.set("width", 100);
             }
         });
-        resp.setData(records);
+        resp.setData(JavaBeanUtil.recordToMap(records));
         //renderJson(R.ok().put("data",records));
         return resp;
     }
