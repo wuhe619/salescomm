@@ -379,7 +379,7 @@ public class CustomerAppService {
                     if (property_value == null)
                         property_value = "0";
                     else
-                        property_value = BigDecimalUtil.strDiv(property_value, "100000", 2);
+                        property_value = BigDecimalUtil.strDiv(property_value, "10000", 2);
                     vo.setRemain_amount(property_value);
             }
         }
