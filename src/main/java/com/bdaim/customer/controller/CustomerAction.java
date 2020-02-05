@@ -623,10 +623,16 @@ public class CustomerAction extends BasicAction {
     @CacheAnnotation
     public Object regist0(CustomerRegistDTO customerRegistDTO) throws Exception {
         Map<String, Object> resultMap = new HashMap<String, Object>();
-        customerUserService.customerRegister(customerRegistDTO);
-        resultMap.put("code", "0");
-        resultMap.put("_message", "客户创建成功");
-        resultMap.put("data", new JSONArray());
+        try {
+            customerUserService.customerRegister(customerRegistDTO);
+            resultMap.put("code", "0");
+            resultMap.put("_message", "客户创建成功");
+            resultMap.put("data", new JSONArray());
+        }catch (Exception e){
+            resultMap.put("code", "-1");
+            resultMap.put("_message", e.getMessage());
+            resultMap.put("data", new JSONArray());
+        }
         return JSONObject.toJSON(resultMap);
     }
 
