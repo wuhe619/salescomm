@@ -226,7 +226,7 @@ public class ApiController extends BasicAction {
      * Query Api log detail of customers
      **/
     @PostMapping("/{apiId}/logs/{customerId}")
-    public ResponseInfo apiCustomerLogs( @RequestBody JSONObject params,@PathVariable("apiId")String apiId,@PathVariable("customerId")String customerId) {
+    public ResponseInfo apiCustomerLogs(@RequestBody JSONObject params,@PathVariable("apiId")String apiId,@PathVariable("customerId")String customerId) {
         LoginUser lu = opUser();
         params.put("apiId",apiId);
         params.put("customerId",customerId);
