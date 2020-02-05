@@ -22,6 +22,7 @@ import com.bdaim.crm.utils.R;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import javax.annotation.Resource;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -39,7 +40,7 @@ import java.util.Set;
 public class AdminLoginController extends BasicAction {
 
 
-    @Inject
+    @Resource
     private AdminRoleService adminRoleService;
 
     //public final static Prop prop = PropKit.use("config/crm9-config.txt");

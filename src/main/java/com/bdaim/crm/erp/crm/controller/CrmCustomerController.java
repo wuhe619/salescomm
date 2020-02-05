@@ -37,6 +37,7 @@ import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.ss.util.CellRangeAddressList;
 
+import javax.annotation.Resource;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -46,22 +47,22 @@ import java.util.Map;
 
 public class CrmCustomerController extends Controller {
 
-    @Inject
+    @Resource
     private CrmCustomerService crmCustomerService;
 
-    @Inject
+    @Resource
     private CrmContactsService crmContactsService;//联系人
 
-    @Inject
+    @Resource
     private CrmBusinessService crmBusinessService;//商机
 
-    @Inject
+    @Resource
     private CrmContractService crmContractService;//合同
 
-    @Inject
+    @Resource
     private AdminFieldService adminFieldService;
 
-    @Inject
+    @Resource
     private AdminSceneService adminSceneService;
 
     /**

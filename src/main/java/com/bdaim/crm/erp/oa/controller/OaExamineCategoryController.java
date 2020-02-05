@@ -12,6 +12,7 @@ import com.bdaim.crm.erp.oa.entity.OaExamineStep;
 import com.bdaim.crm.erp.oa.service.OaExamineCategoryService;
 import com.bdaim.crm.utils.TagUtil;
 
+import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
@@ -25,7 +26,7 @@ import java.util.List;
  */
 public class OaExamineCategoryController extends Controller {
 
-    @Inject
+    @Resource
     private OaExamineCategoryService oaExamineCategoryService;
 
     /**

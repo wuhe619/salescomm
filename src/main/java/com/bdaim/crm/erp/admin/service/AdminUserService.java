@@ -29,7 +29,7 @@ import javax.annotation.Resource;
 import javax.transaction.Transactional;
 import java.util.*;
 
-@Service
+@Service("adminUserService")
 @Transactional
 public class AdminUserService {
     @Resource

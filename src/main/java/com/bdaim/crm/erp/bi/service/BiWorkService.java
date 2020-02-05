@@ -12,14 +12,19 @@ import com.jfinal.plugin.activerecord.SqlPara;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.erp.bi.common.BiTimeUtil;
 import com.bdaim.crm.erp.oa.service.OaExamineService;
+import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
+import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+@Service
+@Transactional
 public class BiWorkService {
-    @Inject
+    @Resource
     private BiTimeUtil biTimeUtil;
 
     /**

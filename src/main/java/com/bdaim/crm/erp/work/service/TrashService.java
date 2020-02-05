@@ -10,11 +10,16 @@ import com.bdaim.crm.erp.work.entity.Task;
 import com.bdaim.crm.utils.AuthUtil;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
+import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
+import javax.transaction.Transactional;
 import java.util.List;
 
+@Service
+@Transactional
 public class TrashService{
-    @Inject
+    @Resource
     private WorkbenchService workbenchService;
 
     /**

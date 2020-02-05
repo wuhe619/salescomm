@@ -12,6 +12,7 @@ import com.bdaim.crm.erp.admin.service.AdminBusinessTypeService;
 import com.bdaim.crm.utils.R;
 import com.bdaim.crm.utils.TagUtil;
 
+import javax.annotation.Resource;
 import java.util.HashSet;
 import java.util.List;
 
@@ -22,7 +23,7 @@ import java.util.List;
  */
 public class AdminBusinessTypeController extends Controller {
 
-    @Inject
+    @Resource
     private AdminBusinessTypeService adminBusinessTypeService;
 
     /**

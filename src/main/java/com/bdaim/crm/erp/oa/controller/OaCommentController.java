@@ -9,9 +9,11 @@ import com.bdaim.crm.erp.work.entity.TaskComment;
 import com.bdaim.crm.utils.AuthUtil;
 import com.bdaim.crm.utils.R;
 
+import javax.annotation.Resource;
+
 public class OaCommentController extends Controller {
 
-    @Inject
+    @Resource
     private OaCommentService commentService;
     /**
      * @author hmb

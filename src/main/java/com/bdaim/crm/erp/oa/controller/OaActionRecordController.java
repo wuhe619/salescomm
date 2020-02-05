@@ -6,6 +6,8 @@ import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.erp.oa.entity.OaActionRecord;
 import com.bdaim.crm.erp.oa.service.OaActionRecordService;
 
+import javax.annotation.Resource;
+
 /**
  * oa操作记录
  *
@@ -13,7 +15,7 @@ import com.bdaim.crm.erp.oa.service.OaActionRecordService;
  */
 public class OaActionRecordController extends Controller {
 
-    @Inject
+    @Resource
     private OaActionRecordService oaActionRecordService;
 
     /**

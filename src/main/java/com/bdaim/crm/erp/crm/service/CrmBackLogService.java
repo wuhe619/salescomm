@@ -16,15 +16,20 @@ import com.bdaim.crm.erp.admin.entity.AdminConfig;
 import com.bdaim.crm.erp.admin.service.AdminSceneService;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
+import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
+import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * @author wyq
  */
+@Service
+@Transactional
 public class CrmBackLogService {
-    @Inject
+    @Resource
     AdminSceneService adminSceneService;
 
     /**

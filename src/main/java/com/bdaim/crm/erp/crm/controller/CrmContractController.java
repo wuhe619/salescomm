@@ -20,16 +20,18 @@ import com.bdaim.crm.erp.crm.service.CrmReceivablesService;
 import com.bdaim.crm.utils.AuthUtil;
 import com.bdaim.crm.utils.R;
 
+import javax.annotation.Resource;
+
 
 public class CrmContractController extends Controller {
-    @Inject
+    @Resource
     private CrmContractService crmContractService;
-    @Inject
+    @Resource
     private CrmReceivablesService receivablesService;
-    @Inject
+    @Resource
     private CrmReceivablesPlanService receivablesPlanService;
 
-    @Inject
+    @Resource
     private AdminSceneService adminSceneService;
 
     /**

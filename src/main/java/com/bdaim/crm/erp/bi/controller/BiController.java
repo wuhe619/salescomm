@@ -7,10 +7,11 @@ import com.bdaim.crm.common.annotation.NotNullValidate;
 import com.bdaim.crm.common.annotation.Permissions;
 import com.bdaim.crm.erp.bi.service.BiService;
 
+import javax.annotation.Resource;
 import java.util.Date;
 
 public class BiController extends Controller {
-    @Inject
+    @Resource
     private BiService biService;
 
     /**

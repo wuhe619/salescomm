@@ -8,17 +8,22 @@ import com.bdaim.crm.erp.work.entity.WorkTaskLabel;
 import com.bdaim.crm.utils.AuthUtil;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
+import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
+import javax.transaction.Transactional;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Service("crmLabelService")
+@Transactional
 public class LabelService{
-    @Inject
+    @Resource
     private WorkbenchService workbenchService;
 
-    @Inject
+    @Resource
     private WorkService workService;
 
     public R setLabel(WorkTaskLabel taskLable) {

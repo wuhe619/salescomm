@@ -7,13 +7,17 @@ import com.jfinal.plugin.activerecord.tx.Tx;
 import com.bdaim.crm.erp.work.entity.TaskComment;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
+import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Service
+@Transactional
 public class OaCommentService{
 
     public R setComment(TaskComment comment) {

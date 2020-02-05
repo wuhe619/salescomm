@@ -14,14 +14,19 @@ import com.bdaim.crm.erp.crm.entity.CrmReceivablesPlan;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.FieldUtil;
 import com.bdaim.crm.utils.R;
+import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
+import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 
+@Service
+@Transactional
 public class CrmReceivablesPlanService {
-    @Inject
+    @Resource
     private FieldUtil fieldUtil;
-    @Inject
+    @Resource
     private AdminFieldService adminFieldService;
 
     /**

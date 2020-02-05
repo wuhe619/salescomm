@@ -7,8 +7,10 @@ import com.bdaim.crm.erp.crm.entity.CrmProductCategory;
 import com.bdaim.crm.erp.crm.service.CrmProductCategoryService;
 import com.bdaim.crm.utils.R;
 
+import javax.annotation.Resource;
+
 public class CrmProductCategoryController extends Controller {
-    @Inject
+    @Resource
     private CrmProductCategoryService crmProductCategoryService;
     /**
      * 根据pid(父级id)查询类别

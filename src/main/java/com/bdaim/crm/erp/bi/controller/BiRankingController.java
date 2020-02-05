@@ -5,8 +5,10 @@ import com.jfinal.core.Controller;
 import com.jfinal.core.paragetter.Para;
 import com.bdaim.crm.erp.bi.service.BiRankingService;
 
+import javax.annotation.Resource;
+
 public class BiRankingController extends Controller {
-    @Inject
+    @Resource
     private BiRankingService service;
     /**
      * 合同金额排行榜

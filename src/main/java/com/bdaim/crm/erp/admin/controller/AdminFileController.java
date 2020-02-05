@@ -7,8 +7,10 @@ import com.bdaim.crm.erp.admin.service.AdminFileService;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
 
+import javax.annotation.Resource;
+
 public class AdminFileController extends Controller {
-    @Inject
+    @Resource
     private AdminFileService adminFileService;
 
     public void index(){

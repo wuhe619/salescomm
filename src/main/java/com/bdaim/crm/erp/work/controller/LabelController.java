@@ -10,9 +10,11 @@ import com.bdaim.crm.common.annotation.NotNullValidate;
 import com.bdaim.crm.erp.work.entity.WorkTaskLabel;
 import com.bdaim.crm.erp.work.service.LabelService;
 
+import javax.annotation.Resource;
+
 public class LabelController extends Controller {
 
-    @Inject
+    @Resource
     private LabelService labelService;
     /**
      * @author hmb

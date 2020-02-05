@@ -15,14 +15,16 @@ import com.bdaim.crm.erp.work.service.TaskService;
 import com.bdaim.crm.utils.AuthUtil;
 import com.bdaim.crm.utils.R;
 
+import javax.annotation.Resource;
+
 /**
  * OA日志模块
  */
 public class OaLogController extends Controller {
 
-    @Inject
+    @Resource
     private OaLogService oaLogService;
-    @Inject
+    @Resource
     private TaskService taskService;
 
     /**

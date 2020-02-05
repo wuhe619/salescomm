@@ -32,28 +32,29 @@ import com.bdaim.crm.utils.FieldUtil;
 import com.bdaim.crm.utils.R;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import javax.transaction.Transactional;
 import java.util.*;
 
 @Service
 @Transactional
 public class CrmBusinessService {
-    @Inject
+    @Resource
     private AdminFieldService adminFieldService;
 
-    @Inject
+    @Resource
     private FieldUtil fieldUtil;
 
-    @Inject
+    @Resource
     private CrmRecordService crmRecordService;
 
-    @Inject
+    @Resource
     private AdminFileService adminFileService;
 
-    @Inject
+    @Resource
     private OaActionRecordService oaActionRecordService;
 
-    @Inject
+    @Resource
     private AuthUtil authUtil;
 
     /**

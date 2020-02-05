@@ -9,8 +9,10 @@ import com.bdaim.crm.erp.admin.entity.AdminMenu;
 import com.bdaim.crm.erp.admin.service.AdminMenuService;
 import com.bdaim.crm.utils.R;
 
+import javax.annotation.Resource;
+
 public class AdminMenuController extends Controller {
-    @Inject
+    @Resource
     private AdminMenuService adminMenuService;
 
     /**

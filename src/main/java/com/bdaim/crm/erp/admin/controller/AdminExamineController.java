@@ -10,12 +10,14 @@ import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.erp.admin.entity.AdminExamine;
 import com.bdaim.crm.erp.admin.service.AdminExamineService;
 
+import javax.annotation.Resource;
+
 /**
  * 审批流程
  * @author zxy
  */
 public class AdminExamineController extends Controller {
-    @Inject
+    @Resource
     private AdminExamineService examineService;
     /**
      * 添加审批流程

@@ -18,7 +18,10 @@ import com.bdaim.crm.erp.oa.entity.OaAnnouncement;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
 import com.bdaim.crm.utils.TagUtil;
+import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
+import javax.transaction.Transactional;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -26,10 +29,12 @@ import java.util.Map;
 /**
  * 公告
  */
+@Service
+@Transactional
 public class OaAnnouncementService {
 
     //添加日志
-    @Inject
+    @Resource
     private OaActionRecordService oaActionRecordService;
     /**
      * 添加或修改

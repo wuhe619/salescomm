@@ -6,11 +6,13 @@ import com.jfinal.core.paragetter.Para;
 import com.bdaim.crm.common.annotation.NotNullValidate;
 import com.bdaim.crm.erp.bi.service.BiEmployeeService;
 
+import javax.annotation.Resource;
+
 /**
  * @author wyq
  */
 public class BiEmployeeController extends Controller {
-    @Inject
+    @Resource
     BiEmployeeService biEmployeeService;
 
     /**

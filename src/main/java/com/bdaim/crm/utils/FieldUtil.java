@@ -4,12 +4,16 @@ import cn.hutool.core.collection.CollectionUtil;
 import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
 import com.bdaim.crm.erp.admin.entity.AdminFieldSort;
+import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.util.List;
 
 /**
  * @author wyq
  */
+@Service
+@Transactional
 public class FieldUtil {
     private List<Record> recordList;
     private List<AdminFieldSort> adminFieldSortList;

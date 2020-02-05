@@ -10,7 +10,9 @@ import com.bdaim.crm.erp.admin.entity.AdminUser;
 import com.bdaim.crm.erp.admin.service.AdminRoleService;
 import com.bdaim.crm.erp.admin.service.AdminUserService;
 import com.bdaim.crm.erp.crm.common.CrmEnum;
+import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,6 +20,8 @@ import java.util.Map;
 /**
  * @author wyq
  */
+@Service
+@Transactional
 public class AuthUtil {
 
     public static Map<String, String> getCrmTablePara(String urlPrefix){

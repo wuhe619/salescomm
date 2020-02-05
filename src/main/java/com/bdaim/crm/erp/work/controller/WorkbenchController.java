@@ -7,12 +7,14 @@ import com.jfinal.core.Controller;
 import com.bdaim.crm.erp.work.service.WorkbenchService;
 import com.bdaim.crm.utils.BaseUtil;
 
+import javax.annotation.Resource;
+
 /**
  * 工作台
  */
 public class WorkbenchController extends Controller {
 
-    @Inject
+    @Resource
     private WorkbenchService workbenchService;
 
     /**

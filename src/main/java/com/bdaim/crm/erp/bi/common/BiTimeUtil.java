@@ -11,7 +11,9 @@ import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.SqlPara;
 import com.bdaim.crm.common.constant.BaseConstant;
 import com.bdaim.crm.erp.admin.service.AdminDeptService;
+import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -19,6 +21,8 @@ import java.util.List;
 /**
  * @author wyq
  */
+@Service
+@Transactional
 public class BiTimeUtil {
     public Record analyzeType(Record record){
         Date beginDate = DateUtil.date();
