@@ -5,5 +5,5 @@ import com.bdaim.crm.entity.LkCrmAdminUserEntity;
 import org.springframework.stereotype.Component;
 
 @Component
-public class LkCrmAdminUserDao extends SimpleHibernateDao<LkCrmAdminUserEntity,Integer> {
+public class LkCrmAdminUserDao extends SimpleHibernateDao<LkCrmAdminUserEntity, Long> {
 }
