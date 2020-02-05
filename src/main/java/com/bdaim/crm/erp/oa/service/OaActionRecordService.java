@@ -19,19 +19,24 @@ import com.bdaim.crm.erp.oa.entity.OaActionRecord;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
 import com.bdaim.crm.utils.TagUtil;
+import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
+import javax.transaction.Transactional;
 import java.util.Date;
 import java.util.List;
 
+@Service
+@Transactional
 public class OaActionRecordService {
 
-    @Inject
+    @Resource
     private OaLogService oaLogService;
 
-    @Inject
-    private AdminUserService userService;
+    @Resource
+    private AdminUserService adminUserService;
 
-    @Inject
+    @Resource
     private OaEventService oaEventService;
 
     /**

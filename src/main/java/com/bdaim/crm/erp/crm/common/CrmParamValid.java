@@ -2,10 +2,15 @@ package com.bdaim.crm.erp.crm.common;
 
 import cn.hutool.core.util.ArrayUtil;
 import com.jfinal.plugin.activerecord.Db;
+import org.springframework.stereotype.Service;
+
+import javax.transaction.Transactional;
 
 /**
  * @author wyq
  */
+@Service
+@Transactional
 public class CrmParamValid {
     String[] wordArr = new String[]{"中国","公司","有限公司","有限责任公司","股份有限公司","集团","国际","分公司","总公司"};
 

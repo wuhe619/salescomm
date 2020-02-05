@@ -5,8 +5,10 @@ import com.jfinal.core.Controller;
 import com.jfinal.core.paragetter.Para;
 import com.bdaim.crm.erp.bi.service.BiFunnelService;
 
+import javax.annotation.Resource;
+
 public class BiFunnelController extends Controller {
-    @Inject
+    @Resource
     private BiFunnelService service;
     /**
      * 销售漏斗

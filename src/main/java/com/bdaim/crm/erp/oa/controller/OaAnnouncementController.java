@@ -9,12 +9,14 @@ import com.bdaim.crm.erp.oa.service.OaAnnouncementService;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
 
+import javax.annotation.Resource;
+
 /**
  * 公告
  * @author zxy
  */
 public class OaAnnouncementController extends Controller {
-    @Inject
+    @Resource
     private OaAnnouncementService announcementService;
     /**
      * 添加或修改

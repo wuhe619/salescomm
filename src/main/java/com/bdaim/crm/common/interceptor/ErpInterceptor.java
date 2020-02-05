@@ -42,7 +42,7 @@ public class ErpInterceptor implements Interceptor {
             //数据转换json的处理
             this.modelToJson(invocation);
 
-            RedisManager.getRedis().expire(token, 3600);
+            //RedisManager.getRedis().expire(token, 3600);
             invocation.invoke();
         } catch (Exception e) {
             invocation.getController().renderJson(R.error("服务器响应异常"));

@@ -11,8 +11,10 @@ import com.bdaim.crm.erp.oa.service.OaEventService;
 import com.bdaim.crm.utils.AuthUtil;
 import com.bdaim.crm.utils.R;
 
+import javax.annotation.Resource;
+
 public class OaEventController extends Controller {
-    @Inject
+    @Resource
     private OaEventService oaEventService;
 
     /**

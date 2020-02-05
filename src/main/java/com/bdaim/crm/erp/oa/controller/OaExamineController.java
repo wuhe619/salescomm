@@ -16,9 +16,11 @@ import com.bdaim.crm.erp.oa.service.OaExamineService;
 import com.bdaim.crm.utils.AuthUtil;
 import com.bdaim.crm.utils.R;
 
+import javax.annotation.Resource;
+
 public class OaExamineController extends Controller {
 
-    @Inject
+    @Resource
     private OaExamineService oaExamineService;
 
     /**

@@ -1,7 +1,6 @@
 package com.bdaim.crm.erp.work.controller;
 
 import cn.hutool.core.util.StrUtil;
-import com.jfinal.aop.Inject;
 import com.jfinal.core.Controller;
 import com.jfinal.core.paragetter.Para;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
@@ -18,6 +17,7 @@ import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
 import com.bdaim.crm.utils.TagUtil;
 
+import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,10 +26,10 @@ import java.util.List;
  */
 public class TaskController extends Controller {
 
-    @Inject
+    @Resource
     private TaskService taskService;
-    @Inject
-    private AdminUserService userService;
+    @Resource
+    private AdminUserService adminUserService;
 
     /**
      * @param taskClass 任务类别对象
@@ -170,9 +170,9 @@ public class TaskController extends Controller {
         if(mold == null){
             userIds.add(BaseUtil.getUser().getUserId().intValue());
         }else if(mold == 1 && userId == null){
-            userIds = userService.queryUserIdsByParentId(BaseUtil.getUser().getUserId().intValue());
+            userIds = adminUserService.queryUserIdsByParentId(BaseUtil.getUser().getUserId().intValue());
         }else{
-            List<Long> list = userService.queryChileUserIds(BaseUtil.getUser().getUserId(), BaseConstant.AUTH_DATA_RECURSION_NUM);
+            List<Long> list = adminUserService.queryChileUserIds(BaseUtil.getUser().getUserId(), BaseConstant.AUTH_DATA_RECURSION_NUM);
             for(Long id : list){
                 if(id.intValue() == userId){
                     userIds.add(userId);

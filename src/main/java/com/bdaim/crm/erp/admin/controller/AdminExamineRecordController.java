@@ -8,12 +8,14 @@ import com.bdaim.crm.erp.crm.common.CrmEnum;
 import com.bdaim.crm.utils.AuthUtil;
 import com.bdaim.crm.utils.R;
 
+import javax.annotation.Resource;
+
 /**
  * 审核合同或回款
  * @author zxy
  */
 public class AdminExamineRecordController extends Controller {
-    @Inject
+    @Resource
     private AdminExamineRecordService examineRecordService;
 
     /**

@@ -11,11 +11,13 @@ import com.bdaim.crm.erp.crm.service.InstrumentService;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
 
+import javax.annotation.Resource;
+
 public class InstrumentController extends Controller {
 
-    @Inject
+    @Resource
     private InstrumentService instrumentService;
-    @Inject
+    @Resource
     private AdminUserService adminUserService;
 
     /**

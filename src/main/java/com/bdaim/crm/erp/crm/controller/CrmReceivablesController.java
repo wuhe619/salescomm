@@ -13,12 +13,14 @@ import com.bdaim.crm.erp.crm.entity.CrmReceivables;
 import com.bdaim.crm.erp.crm.service.CrmReceivablesService;
 import com.bdaim.crm.utils.R;
 
+import javax.annotation.Resource;
+
 public class CrmReceivablesController extends Controller {
 
-    @Inject
+    @Resource
     private CrmReceivablesService crmReceivablesService;
 
-    @Inject
+    @Resource
     private AdminSceneService adminSceneService;
 
     /**

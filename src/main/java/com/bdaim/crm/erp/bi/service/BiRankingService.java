@@ -8,12 +8,13 @@ import com.jfinal.plugin.activerecord.Record;
 import com.bdaim.crm.erp.bi.common.BiTimeUtil;
 import com.bdaim.crm.utils.R;
 
+import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
 
 public class BiRankingService {
 
-    @Inject
+    @Resource
     BiTimeUtil biTimeUtil;
 
     public R contractRanKing(Integer deptId, String type, String startTime, String endTime){

@@ -5,11 +5,13 @@ import com.jfinal.core.Controller;
 import com.jfinal.core.paragetter.Para;
 import com.bdaim.crm.erp.work.service.TrashService;
 
+import javax.annotation.Resource;
+
 /**
  * 回收站
  */
 public class TrashController extends Controller {
-    @Inject
+    @Resource
     private TrashService trashService;
 
     public void queryList(){

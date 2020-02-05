@@ -25,21 +25,26 @@ import com.bdaim.crm.utils.AuthUtil;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
 import com.bdaim.crm.utils.TagUtil;
+import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
+import javax.transaction.Transactional;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
+@Service
+@Transactional
 public class WorkService{
 
-    @Inject
+    @Resource
     private AdminFileService adminFileService;
 
-    @Inject
+    @Resource
     private WorkbenchService workbenchService;
 
-    @Inject
+    @Resource
     private AdminMenuService adminMenuService;
 
     @Before(Tx.class)

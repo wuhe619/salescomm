@@ -1,5 +1,6 @@
 package com.bdaim.crm.erp.admin.controller;
 
+import com.bdaim.common.response.ResponseInfo;
 import com.jfinal.aop.Inject;
 import com.jfinal.core.Controller;
 import com.jfinal.core.paragetter.Para;
@@ -7,12 +8,20 @@ import com.bdaim.crm.common.annotation.NotNullValidate;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.erp.admin.entity.AdminScene;
 import com.bdaim.crm.erp.admin.service.AdminSceneService;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
+
+import javax.annotation.Resource;
 
 /**
  * @author wyq
  */
+@RestController
+@RequestMapping("/scene")
 public class AdminSceneController extends Controller {
-    @Inject
+    @Resource
     private AdminSceneService adminSceneService;
 
     /**
@@ -69,8 +78,13 @@ public class AdminSceneController extends Controller {
      * 查询场景
      */
     @NotNullValidate(value = "type",message = "type不能为空")
-    public void queryScene(@Para("type") Integer type){
-        renderJson(adminSceneService.queryScene(type));
+    @ResponseBody
+    @RequestMapping(value = "/queryScene", method = RequestMethod.POST)
+    public ResponseInfo queryScene(@Para("type") Integer type){
+        ResponseInfo resp = new ResponseInfo();
+        //renderJson(adminSceneService.queryScene(type));
+        resp.setData(adminSceneService.queryScene(type).get("data"));
+        return resp;
     }
 
     /**

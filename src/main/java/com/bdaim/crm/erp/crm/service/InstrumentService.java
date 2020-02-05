@@ -13,14 +13,19 @@ import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.erp.bi.common.BiTimeUtil;
 import com.bdaim.crm.utils.ParamsUtil;
 import com.bdaim.crm.utils.R;
+import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
+import javax.transaction.Transactional;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+@Service
+@Transactional
 public class InstrumentService {
-    @Inject
+    @Resource
     private BiTimeUtil biTimeUtil;
     /**
      * 销售简报

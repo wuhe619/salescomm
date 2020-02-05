@@ -7,8 +7,10 @@ import com.jfinal.core.paragetter.Para;
 import com.bdaim.crm.erp.crm.entity.CrmReceivablesPlan;
 import com.bdaim.crm.erp.crm.service.CrmReceivablesPlanService;
 
+import javax.annotation.Resource;
+
 public class CrmReceivablesPlanController extends Controller {
-    @Inject
+    @Resource
     private CrmReceivablesPlanService receivablesPlanService;
     /**
      * 添加或修改回款计划

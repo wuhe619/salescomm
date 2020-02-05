@@ -11,6 +11,7 @@ import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.erp.bi.service.BiWorkService;
 import com.bdaim.crm.utils.R;
 
+import javax.annotation.Resource;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -20,7 +21,7 @@ import java.util.Map;
 
 public class BiWorkController extends Controller {
 
-    @Inject
+    @Resource
     private BiWorkService biWorkService;
 
 

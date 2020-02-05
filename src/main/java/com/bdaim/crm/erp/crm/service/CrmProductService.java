@@ -26,29 +26,34 @@ import com.bdaim.crm.utils.AuthUtil;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.FieldUtil;
 import com.bdaim.crm.utils.R;
+import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
+import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Service
+@Transactional
 public class CrmProductService {
 
-    @Inject
+    @Resource
     private AdminFieldService adminFieldService;
 
-    @Inject
+    @Resource
     private FieldUtil fieldUtil;
 
-    @Inject
+    @Resource
     private CrmProductCategoryService crmProductCategoryService;
 
-    @Inject
+    @Resource
     private CrmRecordService crmRecordService;
 
-    @Inject
+    @Resource
     private AdminSceneService adminSceneService;
 
-    @Inject
+    @Resource
     private AuthUtil authUtil;
 
     /**

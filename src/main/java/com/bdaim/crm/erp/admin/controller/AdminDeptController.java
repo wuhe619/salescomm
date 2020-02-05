@@ -9,12 +9,14 @@ import com.bdaim.crm.erp.admin.service.AdminDeptService;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
 
+import javax.annotation.Resource;
+
 /**
  * @author hmb
  */
 public class AdminDeptController extends Controller {
 
-    @Inject
+    @Resource
     private AdminDeptService adminDeptService;
 
     /**

@@ -14,15 +14,20 @@ import com.bdaim.crm.erp.work.entity.TaskRelation;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
 import com.bdaim.crm.utils.TagUtil;
+import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
+import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
+@Service
+@Transactional
 public class WorkbenchService{
 
-    @Inject
+    @Resource
     private TaskService taskService;
 
     public R myTask(Integer userId){

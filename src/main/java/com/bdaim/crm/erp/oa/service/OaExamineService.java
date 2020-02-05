@@ -28,19 +28,23 @@ import com.bdaim.crm.erp.crm.entity.CrmCustomer;
 import com.bdaim.crm.erp.oa.common.OaEnum;
 import com.bdaim.crm.erp.oa.entity.*;
 import com.bdaim.crm.utils.*;
+import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
+import javax.transaction.Transactional;
 import java.util.*;
 
-
+@Service
+@Transactional
 public class OaExamineService{
 
     //添加日志
-    @Inject
+    @Resource
     private OaActionRecordService oaActionRecordService;
-    @Inject
+    @Resource
     private AdminFileService adminFileService;
 
-    @Inject
+    @Resource
     private AdminFieldService adminFieldService;
 
 

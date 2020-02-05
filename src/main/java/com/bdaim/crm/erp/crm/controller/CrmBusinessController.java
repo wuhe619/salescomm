@@ -16,11 +16,13 @@ import com.bdaim.crm.erp.crm.service.CrmBusinessService;
 import com.bdaim.crm.utils.AuthUtil;
 import com.bdaim.crm.utils.R;
 
+import javax.annotation.Resource;
+
 public class CrmBusinessController extends Controller {
-    @Inject
+    @Resource
     private CrmBusinessService crmBusinessService;
 
-    @Inject
+    @Resource
     private AdminSceneService adminSceneService;
 
     /**

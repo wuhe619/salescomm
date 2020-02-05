@@ -10,12 +10,13 @@ import com.bdaim.crm.erp.crm.service.CrmRecordService;
 import com.bdaim.crm.utils.AuthUtil;
 import com.bdaim.crm.utils.R;
 
+import javax.annotation.Resource;
 import java.util.List;
 
 
 public class CrmRecordController extends Controller {
 
-    @Inject
+    @Resource
     private CrmRecordService crmRecordService;
 
     /**

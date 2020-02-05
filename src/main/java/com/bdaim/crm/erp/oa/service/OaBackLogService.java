@@ -4,10 +4,15 @@ import com.jfinal.kit.Kv;
 import com.jfinal.plugin.activerecord.Db;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
+import org.springframework.stereotype.Service;
+
+import javax.transaction.Transactional;
 
 /**
  * @author wyq
  */
+@Service
+@Transactional
 public class OaBackLogService {
     /**
      * oa代办事项提醒

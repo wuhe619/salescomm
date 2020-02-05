@@ -6,11 +6,13 @@ import com.jfinal.core.paragetter.Para;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.erp.crm.service.CrmBackLogService;
 
+import javax.annotation.Resource;
+
 /**
  * @author wyq
  */
 public class CrmBackLogController extends Controller {
-    @Inject
+    @Resource
     CrmBackLogService crmBackLogService;
 
     /**
