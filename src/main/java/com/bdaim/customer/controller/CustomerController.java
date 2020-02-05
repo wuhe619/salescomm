@@ -1,6 +1,7 @@
 package com.bdaim.customer.controller;
 
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.api.service.ApiService;
 import com.bdaim.auth.LoginUser;
 import com.bdaim.common.annotation.CacheAnnotation;
 import com.bdaim.common.controller.BasicAction;
@@ -27,7 +28,10 @@ public class CustomerController extends BasicAction {
 
     private static Logger logger = LoggerFactory.getLogger(CustomerController.class);
     @Resource
-    CustomerAppService customerAppService;
+    private CustomerAppService customerAppService;
+
+    @Resource
+    private ApiService apiService;
 
     /**
      * @Title: regist
@@ -196,6 +200,21 @@ public class CustomerController extends BasicAction {
         page.setPageSize(info.getInteger("pageSize") == null ? 0 : info.getIntValue("pageSize"));
         page.setPageNum(info.getInteger("pageNum") == null ? 10 : info.getIntValue("pageNum"));
         resp.setData(customerAppService.depositList(page, info.get("custId").toString()));
+        return resp;
+    }
+
+    /**
+     * Query Apis log of customer
+     **/
+    @PostMapping("/{customerId}/logs")
+    public ResponseInfo customerApiLogs(@RequestBody JSONObject params,@PathVariable("customerId")String customerId) {
+        LoginUser lu = opUser();
+        params.put("customerId",customerId);
+        ResponseInfo resp = new ResponseInfo();
+        PageParam page = new PageParam();
+        page.setPageSize(params.containsKey("pageSize") ? 0 : params.getIntValue("pageSize"));
+        page.setPageNum(params.containsKey("pageNum") ? 10 : params.getIntValue("pageNum"));
+        resp.setData(apiService.customerApiLogs(page, params));
         return resp;
     }
 

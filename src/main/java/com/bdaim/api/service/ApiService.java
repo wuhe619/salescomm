@@ -240,12 +240,115 @@ public class ApiService {
         Map<String, Object> map = new HashMap<>();
         Object collect = list.getList().stream().map(m -> {
             Map dataMap = (Map) m;
+            dataMap.put("monthCallNum",0);
+            dataMap.put("monthFee",0);
             String apiId = dataMap.get("apiId").toString();
             String countSql = "select count(*) from am_subscription where API_ID=? and SUBS_CREATE_STATE='SUBSCRIBE'";
             List param = new ArrayList();
             param.add(Integer.valueOf(apiId));
             Integer count = jdbcTemplate.queryForObject(countSql, param.toArray(), Integer.class);
             dataMap.put("subscribeNum", count);
+            if(params.containsKey("callMonth") && StringUtil.isNotEmpty(params.getString("callMonth"))) {
+                String monCallsSql = "select count(0) from am_charge_" + params.getString("callMonth") + " where app_id=?";
+                param = new ArrayList();
+                param.add(apiId);
+                Integer callNum = jdbcTemplate.queryForObject(monCallsSql, param.toArray(), Integer.class);
+                dataMap.put("monthCallNum",callNum);
+                String monCallFeeSql = "select sum(charge)monthCharge from am_charge_" + params.getString("callMonth") + " " +
+                        " where app_id=? ";
+                Integer monthCharge = jdbcTemplate.queryForObject(monCallFeeSql, param.toArray(), Integer.class);
+                String monChargeStr = BigDecimalUtil.strDiv(monthCharge.toString(),"10000",2);
+                dataMap.put("monthFee",monChargeStr);
+            }
+            return dataMap;
+        }).collect(Collectors.toList());
+        map.put("list", collect);
+        map.put("total", list.getTotal());
+        return map;
+    }
+
+    public Map<String, Object> apiLogs(PageParam page, JSONObject params) {
+        List<Object> arr = new ArrayList<>();
+        StringBuffer sql = new StringBuffer();
+        sql.append("select c.enterprise_name enterpriseName,SUBSCRIBER_ID subscriberId,u.account,count(0)monthCallNum from am_charge_").append(params.get("callMonth")).append(" charge ")
+                .append(" left join t_customer c on charge.SUBSCRIBER_ID = c.cust_id ")
+                .append(" left join t_customer_user u on c.cust_id = u.cust_id ")
+                .append(" where charge.api_id=?");
+        arr.add(params.getString("apiId"));
+        if(params.containsKey("enterpriseName")){
+            sql.append(" and c.enterprise_name like ?");
+            arr.add("%" + params.getString("enterpriseName").trim() + "%");
+        }
+        if(params.containsKey("account")){
+            sql.append(" u.account=?");
+            arr.add(params.getString("account").trim());
+        }
+        sql.append("group by charge.SUBSCRIBER_ID ");
+        //sql.append(" order by CREATED_TIME desc");
+        PageList list = new Pagination().getPageData(sql.toString(), arr.toArray(), page, jdbcTemplate);
+        Map<String, Object> map = new HashMap<>();
+        Object collect = list.getList().stream().map(m -> {
+            Map dataMap = (Map) m;
+            List param =new ArrayList();
+            dataMap.put("monthFee",0);
+            String monCallFeeSql = "select sum(charge)monthCharge from am_charge_" + params.getString("callMonth") + " " +
+                    " where SUBSCRIBER_ID=? ";
+            param.add(dataMap.get("SUBSCRIBERID"));
+            Integer monthCharge = jdbcTemplate.queryForObject(monCallFeeSql, param.toArray(), Integer.class);
+            String monChargeStr = BigDecimalUtil.strDiv(monthCharge.toString(),"10000",2);
+            dataMap.put("monthFee",monChargeStr);
+            return dataMap;
+        }).collect(Collectors.toList());
+        map.put("list", collect);
+        map.put("total", list.getTotal());
+        return map;
+    }
+
+
+
+    public Map<String, Object> customerApiLogs(PageParam page, JSONObject params) {
+        List<Object> arr = new ArrayList<>();
+        StringBuffer sql = new StringBuffer();
+        sql.append("select c.api_name apiName,SUBSCRIBER_ID subscriberId,charge.api_id apiId,count(0)monthCallNum from am_charge_").append(params.get("callMonth")).append(" charge ")
+                .append(" left join am_api c on charge.api_id = c.api_id ")
+                .append(" where charge.SUBSCRIBER_ID=?");
+        arr.add(params.getString("customerId"));
+        sql.append("group by charge.api_id ");
+        //sql.append(" order by CREATED_TIME desc");
+        PageList list = new Pagination().getPageData(sql.toString(), arr.toArray(), page, jdbcTemplate);
+        Map<String, Object> map = new HashMap<>();
+        Object collect = list.getList().stream().map(m -> {
+            Map dataMap = (Map) m;
+            List param =new ArrayList();
+            dataMap.put("monthFee",0);
+            String monCallFeeSql = "select sum(charge)monthCharge from am_charge_" + params.getString("callMonth") + " " +
+                    " where api_id=? ";
+            param.add(dataMap.get("apiId"));
+            Integer monthCharge = jdbcTemplate.queryForObject(monCallFeeSql, param.toArray(), Integer.class);
+            String monChargeStr = BigDecimalUtil.strDiv(monthCharge.toString(),"10000",2);
+            dataMap.put("monthFee",monChargeStr);
+            return dataMap;
+        }).collect(Collectors.toList());
+        map.put("list", collect);
+        map.put("total", list.getTotal());
+        return map;
+    }
+
+    public Map<String, Object> apiCustomerLogs(PageParam page, JSONObject params) {
+        List<Object> arr = new ArrayList<>();
+        StringBuffer sql = new StringBuffer();
+        sql.append("select charge.api_id apiId,api.api_name apiName,request_param requestParam,charge,event_time eventTime,response_msg responseMsg from am_charge_")
+                .append(params.get("callMonth")).append(" charge ").append(" left join am_api api")
+                .append(" on charge.api_id=api.api_id")
+                .append(" where charge.api_id=? and charge.SUBSCRIBER_ID=?");
+        arr.add(params.getString("apiId"));
+        arr.add(params.getString("customerId"));
+        sql.append(" order by EVENT_TIME desc");
+        PageList list = new Pagination().getPageData(sql.toString(), arr.toArray(), page, jdbcTemplate);
+        Map<String, Object> map = new HashMap<>();
+        Object collect = list.getList().stream().map(m -> {
+            Map dataMap = (Map) m;
+
             return dataMap;
         }).collect(Collectors.toList());
         map.put("list", collect);
