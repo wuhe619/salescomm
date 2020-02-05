@@ -4,6 +4,7 @@ import cn.hutool.poi.excel.ExcelUtil;
 import cn.hutool.poi.excel.ExcelWriter;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.common.response.ResponseInfo;
 import com.jfinal.aop.Before;
 import com.jfinal.aop.Inject;
 import com.jfinal.core.Controller;
@@ -29,6 +30,7 @@ import org.apache.poi.hssf.usermodel.*;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.ss.util.CellRangeAddressList;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.ServletOutputStream;
@@ -38,6 +40,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+@RestController
+@RequestMapping("/CrmLeads")
 public class CrmLeadsController extends Controller {
     @Resource
     private CrmLeadsService crmLeadsService;
@@ -53,27 +57,33 @@ public class CrmLeadsController extends Controller {
      * 查看列表页
      */
     @Permissions({"crm:leads:index"})
-    public void queryPageList(BasePageRequest basePageRequest){
-        JSONObject jsonObject = basePageRequest.getJsonObject().fluentPut("type",1);
+    @ResponseBody
+    @RequestMapping(value = "/queryPageList", method = RequestMethod.POST)
+    public ResponseInfo queryPageList(@RequestBody JSONObject jsonObject) {
+        ResponseInfo resp = new ResponseInfo();
+        BasePageRequest<Void> basePageRequest = new BasePageRequest<>();
+        jsonObject.fluentPut("type", 1);
         basePageRequest.setJsonObject(jsonObject);
-        renderJson(adminSceneService.filterConditionAndGetPageList(basePageRequest));
+        resp.setData(adminSceneService.filterConditionAndGetPageList(basePageRequest).get("data"));
+        // renderJson(adminSceneService.filterConditionAndGetPageList(basePageRequest));
+        return resp;
     }
 
     /**
      * @author wyq
      * 全局搜索查询线索
      */
-    public void queryList(BasePageRequest<CrmLeads> basePageRequest){
-        renderJson(R.ok().put("data",crmLeadsService.getLeadsPageList(basePageRequest)));
+    public void queryList(BasePageRequest<CrmLeads> basePageRequest) {
+        renderJson(R.ok().put("data", crmLeadsService.getLeadsPageList(basePageRequest)));
     }
 
     /**
      * @author wyq
      * 新增或更新线索
      */
-    @Permissions({"crm:leads:save","crm:leads:update"})
-    public void addOrUpdate(){
-        JSONObject object= JSON.parseObject(getRawData());
+    @Permissions({"crm:leads:save", "crm:leads:update"})
+    public void addOrUpdate() {
+        JSONObject object = JSON.parseObject(getRawData());
         renderJson(crmLeadsService.addOrUpdate(object));
     }
 
@@ -82,17 +92,17 @@ public class CrmLeadsController extends Controller {
      * 根据线索id查询
      */
     @Permissions("crm:leads:read")
-    @NotNullValidate(value = "leadsId",message = "线索id不能为空")
-    public void queryById(@Para("leadsId") Integer leadsId){
-        renderJson(R.ok().put("data",crmLeadsService.queryById(leadsId)));
+    @NotNullValidate(value = "leadsId", message = "线索id不能为空")
+    public void queryById(@Para("leadsId") Integer leadsId) {
+        renderJson(R.ok().put("data", crmLeadsService.queryById(leadsId)));
     }
 
     /**
      * @author wyq
      * 根据线索名称查询
      */
-    public void queryByName(@Para("name") String name){
-        renderJson(R.ok().put("data",crmLeadsService.queryByName(name)));
+    public void queryByName(@Para("name") String name) {
+        renderJson(R.ok().put("data", crmLeadsService.queryByName(name)));
     }
 
     /**
@@ -100,8 +110,8 @@ public class CrmLeadsController extends Controller {
      * 根据id 删除线索
      */
     @Permissions("crm:leads:delete")
-    @NotNullValidate(value = "leadsIds",message = "线索id不能为空")
-    public void deleteByIds(@Para("leadsIds") String leadsIds){
+    @NotNullValidate(value = "leadsIds", message = "线索id不能为空")
+    public void deleteByIds(@Para("leadsIds") String leadsIds) {
         renderJson(crmLeadsService.deleteByIds(leadsIds));
     }
 
@@ -110,10 +120,10 @@ public class CrmLeadsController extends Controller {
      * 线索转移
      */
     @Permissions("crm:leads:transfer")
-    @NotNullValidate(value = "leadsIds",message = "线索id不能为空")
-    @NotNullValidate(value = "newOwnerUserId",message = "新负责人id不能为空")
-    public void changeOwnerUser(@Para("leadsIds") String leadsIds, @Para("newOwnerUserId") Integer newOwnerUserId){
-        renderJson(crmLeadsService.updateOwnerUserId(leadsIds,newOwnerUserId));
+    @NotNullValidate(value = "leadsIds", message = "线索id不能为空")
+    @NotNullValidate(value = "newOwnerUserId", message = "新负责人id不能为空")
+    public void changeOwnerUser(@Para("leadsIds") String leadsIds, @Para("newOwnerUserId") Integer newOwnerUserId) {
+        renderJson(crmLeadsService.updateOwnerUserId(leadsIds, newOwnerUserId));
     }
 
     /**
@@ -121,8 +131,8 @@ public class CrmLeadsController extends Controller {
      * 线索转客户
      */
     @Permissions("crm:leads:transform")
-    @NotNullValidate(value = "leadsIds",message = "线索id不能为空")
-    public void transfer(@Para("leadsIds") String leadsIds){
+    @NotNullValidate(value = "leadsIds", message = "线索id不能为空")
+    public void transfer(@Para("leadsIds") String leadsIds) {
         renderJson(crmLeadsService.translate(leadsIds));
     }
 
@@ -130,12 +140,12 @@ public class CrmLeadsController extends Controller {
      * @author wyq
      * 添加跟进记录
      */
-    @NotNullValidate(value = "typesId",message = "线索id不能为空")
-    @NotNullValidate(value = "content",message = "内容不能为空")
-    @NotNullValidate(value = "category",message = "跟进类型不能为空")
-    public void addRecord(@Para("")AdminRecord adminRecord){
+    @NotNullValidate(value = "typesId", message = "线索id不能为空")
+    @NotNullValidate(value = "content", message = "内容不能为空")
+    @NotNullValidate(value = "category", message = "跟进类型不能为空")
+    public void addRecord(@Para("") AdminRecord adminRecord) {
         boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.LEADS_TYPE_KEY.getSign()), adminRecord.getTypesId());
-        if(auth){
+        if (auth) {
             renderJson(R.noAuth());
             return;
         }
@@ -146,10 +156,13 @@ public class CrmLeadsController extends Controller {
      * @author wyq
      * 查看跟进记录
      */
-    public void getRecord(BasePageRequest<CrmLeads> basePageRequest){
+    public void getRecord(BasePageRequest<CrmLeads> basePageRequest) {
         boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.LEADS_TYPE_KEY.getSign()), basePageRequest.getData().getLeadsId());
-        if(auth){renderJson(R.noAuth()); return; }
-        renderJson(R.ok().put("data",crmLeadsService.getRecord(basePageRequest)));
+        if (auth) {
+            renderJson(R.noAuth());
+            return;
+        }
+        renderJson(R.ok().put("data", crmLeadsService.getRecord(basePageRequest)));
     }
 
     /**
@@ -170,9 +183,9 @@ public class CrmLeadsController extends Controller {
     @Permissions("crm:leads:excelexport")
     public void allExportExcel(BasePageRequest basePageRequest) throws IOException {
         JSONObject jsonObject = basePageRequest.getJsonObject();
-        jsonObject.fluentPut("excel","yes").fluentPut("type","1");
+        jsonObject.fluentPut("excel", "yes").fluentPut("type", "1");
         AdminSceneService adminSceneService = new AdminSceneService();
-        List<Record> recordList = (List<Record>)adminSceneService.filterConditionAndGetPageList(basePageRequest).get("data");
+        List<Record> recordList = (List<Record>) adminSceneService.filterConditionAndGetPageList(basePageRequest).get("data");
         export(recordList);
         renderNull();
     }
@@ -183,30 +196,30 @@ public class CrmLeadsController extends Controller {
             writer = ExcelUtil.getWriter();
             AdminFieldService adminFieldService = new AdminFieldService();
             List<Record> fieldList = adminFieldService.customFieldList("1");
-            writer.addHeaderAlias("leads_name","线索名称");
-            writer.addHeaderAlias("next_time","下次联系时间");
-            writer.addHeaderAlias("telephone","电话");
-            writer.addHeaderAlias("mobile","手机号");
-            writer.addHeaderAlias("address","地址");
-            writer.addHeaderAlias("remark","备注");
-            writer.addHeaderAlias("create_user_name","创建人");
-            writer.addHeaderAlias("owner_user_name","负责人");
-            writer.addHeaderAlias("create_time","创建时间");
-            writer.addHeaderAlias("update_time","更新时间");
-            for (Record field:fieldList){
-                writer.addHeaderAlias(field.getStr("name"),field.getStr("name"));
+            writer.addHeaderAlias("leads_name", "线索名称");
+            writer.addHeaderAlias("next_time", "下次联系时间");
+            writer.addHeaderAlias("telephone", "电话");
+            writer.addHeaderAlias("mobile", "手机号");
+            writer.addHeaderAlias("address", "地址");
+            writer.addHeaderAlias("remark", "备注");
+            writer.addHeaderAlias("create_user_name", "创建人");
+            writer.addHeaderAlias("owner_user_name", "负责人");
+            writer.addHeaderAlias("create_time", "创建时间");
+            writer.addHeaderAlias("update_time", "更新时间");
+            for (Record field : fieldList) {
+                writer.addHeaderAlias(field.getStr("name"), field.getStr("name"));
             }
-            writer.merge(fieldList.size()+1,"线索信息");
+            writer.merge(fieldList.size() + 1, "线索信息");
             HttpServletResponse response = getResponse();
             List<Map<String, Object>> list = new ArrayList<>();
-            for (Record record : recordList){
-                list.add(record.remove("batch_id","is_transform","customer_id","leads_id","owner_user_id","create_user_id","followup","field_batch_id").getColumns());
+            for (Record record : recordList) {
+                list.add(record.remove("batch_id", "is_transform", "customer_id", "leads_id", "owner_user_id", "create_user_id", "followup", "field_batch_id").getColumns());
             }
-            writer.write(list,true);
+            writer.write(list, true);
             writer.setRowHeight(0, 30);
             writer.setRowHeight(1, 20);
-            for (int i=0; i < fieldList.size()+15;i++){
-                writer.setColumnWidth(i,20);
+            for (int i = 0; i < fieldList.size() + 15; i++) {
+                writer.setColumnWidth(i, 20);
             }
             Cell cell = writer.getCell(0, 0);
             CellStyle cellStyle = cell.getCellStyle();
@@ -225,9 +238,9 @@ public class CrmLeadsController extends Controller {
             response.setHeader("Content-Disposition", "attachment;filename=leads.xls");
             ServletOutputStream out = response.getOutputStream();
             writer.flush(out);
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
-        }finally {
+        } finally {
             // 关闭writer，释放内存
             writer.close();
         }
@@ -238,46 +251,46 @@ public class CrmLeadsController extends Controller {
      * 获取线索导入模板
      */
     @LoginFormCookie
-    public void downloadExcel(){
+    public void downloadExcel() {
         List<Record> recordList = adminFieldService.queryAddField(1);
-        recordList.removeIf(record -> "file".equals(record.getStr("formType")) || "checkbox".equals(record.getStr("formType"))|| "user".equals(record.getStr("formType"))|| "structure".equals(record.getStr("formType")));
+        recordList.removeIf(record -> "file".equals(record.getStr("formType")) || "checkbox".equals(record.getStr("formType")) || "user".equals(record.getStr("formType")) || "structure".equals(record.getStr("formType")));
         HSSFWorkbook wb = new HSSFWorkbook();
         HSSFSheet sheet = wb.createSheet("线索导入表");
         sheet.setDefaultColumnWidth(12);
-        sheet.setDefaultRowHeight((short)400);
+        sheet.setDefaultRowHeight((short) 400);
         HSSFRow titleRow = sheet.createRow(0);
         CellStyle cellStyle = wb.createCellStyle();
         cellStyle.setFillForegroundColor(IndexedColors.SKY_BLUE.getIndex());
         cellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
         Font font = wb.createFont();
         font.setBold(true);
-        font.setFontHeightInPoints((short)16);
+        font.setFontHeightInPoints((short) 16);
         cellStyle.setFont(font);
         titleRow.createCell(0).setCellValue("线索导入模板(*)为必填项");
         cellStyle.setAlignment(HorizontalAlignment.CENTER);
         titleRow.getCell(0).setCellStyle(cellStyle);
-        CellRangeAddress region = new CellRangeAddress(0,0 , 0, recordList.size()-1);
+        CellRangeAddress region = new CellRangeAddress(0, 0, 0, recordList.size() - 1);
         sheet.addMergedRegion(region);
         try {
             HSSFRow row = sheet.createRow(1);
-            for (int i=0;i < recordList.size();i++){
+            for (int i = 0; i < recordList.size(); i++) {
                 Record record = recordList.get(i);
                 String[] setting = record.get("setting");
                 // 在第一行第一个单元格，插入选项
                 HSSFCell cell = row.createCell(i);
                 // 普通写入操作
-                if (record.getInt("is_null") == 1){
-                    cell.setCellValue(record.getStr("name")+"(*)");
-                }else {
+                if (record.getInt("is_null") == 1) {
+                    cell.setCellValue(record.getStr("name") + "(*)");
+                } else {
                     cell.setCellValue(record.getStr("name"));
                 }
-                if (setting.length != 0){
+                if (setting.length != 0) {
                     // 生成下拉列表
                     CellRangeAddressList regions = new CellRangeAddressList(2, Integer.MAX_VALUE, i, i);
                     // 生成下拉框内容
                     DVConstraint constraint = DVConstraint.createExplicitListConstraint(setting);
                     // 绑定下拉框和作用区域
-                    HSSFDataValidation dataValidation = new HSSFDataValidation(regions,constraint);
+                    HSSFDataValidation dataValidation = new HSSFDataValidation(regions, constraint);
                     // 对sheet页生效
                     sheet.addValidationData(dataValidation);
                 }
@@ -291,8 +304,8 @@ public class CrmLeadsController extends Controller {
             wb.write(response.getOutputStream());
 
         } catch (Exception e) {
-            Log.getLog(getClass()).error("error",e);
-        }finally {
+            Log.getLog(getClass()).error("error", e);
+        } finally {
             try {
                 wb.close();
             } catch (IOException ex) {
@@ -307,11 +320,11 @@ public class CrmLeadsController extends Controller {
      * 线索导入
      */
     @Permissions("crm:leads:excelimport")
-    @NotNullValidate(value = "ownerUserId",message = "请选择负责人")
+    @NotNullValidate(value = "ownerUserId", message = "请选择负责人")
     @Before(Tx.class)
-    public void uploadExcel(@Para("file") UploadFile file, @Para("repeatHandling") Integer repeatHandling, @Para("ownerUserId") Integer ownerUserId){
-        Db.tx(() ->{
-            R result = crmLeadsService.uploadExcel(file,repeatHandling,ownerUserId);
+    public void uploadExcel(@Para("file") UploadFile file, @Para("repeatHandling") Integer repeatHandling, @Para("ownerUserId") Integer ownerUserId) {
+        Db.tx(() -> {
+            R result = crmLeadsService.uploadExcel(file, repeatHandling, ownerUserId);
             renderJson(result);
             return !result.get("code").equals(500);
         });

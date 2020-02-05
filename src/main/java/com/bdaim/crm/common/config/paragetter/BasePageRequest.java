@@ -32,6 +32,8 @@ public class BasePageRequest<T> {
 
     private JSONObject jsonObject;
 
+    public BasePageRequest() {
+    }
 
     @Deprecated
     public BasePageRequest(int page, int limit) {

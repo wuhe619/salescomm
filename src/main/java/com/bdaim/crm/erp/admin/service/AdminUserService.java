@@ -6,6 +6,7 @@ import cn.hutool.core.util.StrUtil;
 import com.bdaim.auth.LoginUser;
 import com.bdaim.crm.dao.LkCrmAdminUserDao;
 import com.bdaim.crm.entity.LkCrmAdminUserEntity;
+import com.bdaim.util.JavaBeanUtil;
 import com.jfinal.aop.Before;
 import com.jfinal.aop.Inject;
 import com.jfinal.kit.Kv;
@@ -305,20 +306,57 @@ public class AdminUserService {
     public List<Long> queryUserByAuth(Long userId, String realm) {
         List<Long> adminUsers = new ArrayList<>();
         //查询用户数据权限，从高到低排序
-        List<Integer> list = Db.query(Db.getSql("admin.role.queryDataTypeByUserId"), userId);
+        String sql = "SELECT DISTINCT a.data_type FROM lkcrm_admin_role as a LEFT JOIN lkcrm_admin_user_role as b on a.role_id=b.role_id WHERE b.user_id=?  ORDER BY a.data_type desc";
+        //List<Integer> list = Db.query(Db.getSql("admin.role.queryDataTypeByUserId"), userId);
+        List<Integer> list = crmAdminUserDao.queryListBySql(sql, userId);
         if (list.size() == 0) {
             //无权限查询自己的数据
             adminUsers.add(userId);
             return adminUsers;
         }
         //只要上面list的长度不为0 那么这个也不会为0
-        List<Record> userRoleList = Db.find(Db.getSqlPara("admin.role.queryUserRoleListByUserId", Kv.by("userId", userId).set("realm", realm)));
+        sql = "SELECT k.data_type, k.menu_id,m.menu_name,am.parent_realm AS realm FROM " +
+                "\t(\n" +
+                "\t\tSELECT\n" +
+                "\t\t\tt.*, arm.menu_id\n" +
+                "\t\tFROM\n" +
+                "\t\t\t(\n" +
+                "\t\t\t\tSELECT DISTINCT\n" +
+                "\t\t\t\t\ta.data_type,\n" +
+                "\t\t\t\t\ta.role_name,\n" +
+                "\t\t\t\t\ta.role_id,\n" +
+                "\t\t\t\t\tb.user_id\n" +
+                "\t\t\t\tFROM\n" +
+                "\t\t\t\t\tlkcrm_admin_role AS a\n" +
+                "\t\t\t\tLEFT JOIN lkcrm_admin_user_role AS b ON a.role_id = b.role_id\n" +
+                "\t\t\t) t\n" +
+                "\t\tLEFT JOIN lkcrm_admin_role_menu arm ON t.role_id = arm.role_id\n" +
+                "\t) k\n" +
+                "INNER JOIN (\n" +
+                "\tSELECT\n" +
+                "\t\tx.*, y.realm AS parent_realm\n" +
+                "\tFROM\n" +
+                "\t\tlkcrm_admin_menu AS x\n" +
+                "\tLEFT JOIN lkcrm_admin_menu AS y ON x.parent_id = y.menu_id\n" +
+                ") am ON k.menu_id = am.menu_id\n" +
+                "WHERE\n" +
+                "\tk.user_id = ? ";
+        if (realm != null) {
+            sql += " and am.parent_realm = ? and am.realm = 'index' ";
+        }
+        sql += "ORDER BY k.data_type DESC";
+        List<Object> param = new ArrayList<>();
+        param.add(userId);
+        param.add(realm);
+        //List<Record> userRoleList = Db.find(Db.getSqlPara("admin.role.queryUserRoleListByUserId", Kv.by("userId", userId).set("realm", realm)));
+        List<Record> userRoleList = JavaBeanUtil.mapToRecords(crmAdminUserDao.sqlQuery(sql, param));
         if (list.size() == 1 && userRoleList.size() == 1) {//如果为1的话 验证是否有最高权限，否则及有多个权限
             //拥有最高数据权限
             if (list.contains(5)) {
                 return null;
             } else {
-                AdminUser adminUser = AdminUser.dao.findById(userId);
+                //AdminUser adminUser = AdminUser.dao.findById(userId);
+                LkCrmAdminUserEntity adminUser = crmAdminUserDao.get(userId);
                 if (list.contains(4)) {
                     List<Record> records = adminDeptService.queryDeptByParentDept(adminUser.getDeptId(), BaseConstant.AUTH_DATA_RECURSION_NUM);
                     List<Integer> deptIds = new ArrayList<>();
