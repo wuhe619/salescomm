@@ -207,8 +207,9 @@ public class ApiController extends BasicAction {
     /**
      * Query Api logs of customers
      **/
-    @PostMapping("/info/{apiId}/logs")
-    public ResponseInfo apiLogs(@PathVariable("apiId")String apiId,@RequestBody JSONObject params) {
+    @PostMapping("/{apiId}/logs")
+    public ResponseInfo apiLogs(@RequestBody JSONObject params,@PathVariable("apiId")String apiId) {
+       // JSONObject params=JSONObject.parseObject(paramsStr);
         LoginUser lu = opUser();
         params.put("apiId",apiId);
         ResponseInfo resp = new ResponseInfo();
@@ -224,8 +225,8 @@ public class ApiController extends BasicAction {
     /**
      * Query Api log detail of customers
      **/
-    @PostMapping("/info/{apiId}/logs/{customerId}")
-    public ResponseInfo apiCustomerLogs(@PathVariable("apiId")String apiId,@PathVariable("customerId")String customerId, @RequestBody JSONObject params) {
+    @PostMapping("/{apiId}/logs/{customerId}")
+    public ResponseInfo apiCustomerLogs( @RequestBody JSONObject params,@PathVariable("apiId")String apiId,@PathVariable("customerId")String customerId) {
         LoginUser lu = opUser();
         params.put("apiId",apiId);
         params.put("customerId",customerId);

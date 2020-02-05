@@ -206,8 +206,8 @@ public class CustomerController extends BasicAction {
     /**
      * Query Apis log of customer
      **/
-    @PostMapping("/info/{customerId}/logs")
-    public ResponseInfo customerApiLogs(@PathVariable("customerId")String customerId,@RequestBody JSONObject params) {
+    @PostMapping("/{customerId}/logs")
+    public ResponseInfo customerApiLogs(@RequestBody JSONObject params,@PathVariable("customerId")String customerId) {
         LoginUser lu = opUser();
         params.put("customerId",customerId);
         ResponseInfo resp = new ResponseInfo();
