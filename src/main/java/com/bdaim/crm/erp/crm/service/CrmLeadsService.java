@@ -8,18 +8,10 @@ import cn.hutool.poi.excel.ExcelReader;
 import cn.hutool.poi.excel.ExcelUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.bdaim.crm.dao.LkCrmAdminUserDao;
-import com.bdaim.util.JavaBeanUtil;
-import com.jfinal.aop.Before;
-import com.jfinal.aop.Inject;
-import com.jfinal.kit.Kv;
-import com.jfinal.log.Log;
-import com.jfinal.plugin.activerecord.Db;
-import com.jfinal.plugin.activerecord.Page;
-import com.jfinal.plugin.activerecord.Record;
-import com.jfinal.plugin.activerecord.tx.Tx;
-import com.jfinal.upload.UploadFile;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
+import com.bdaim.crm.dao.LkCrmAdminUserDao;
+import com.bdaim.crm.dao.LkCrmLeadsDao;
+import com.bdaim.crm.entity.LkCrmLeadsEntity;
 import com.bdaim.crm.erp.admin.entity.AdminField;
 import com.bdaim.crm.erp.admin.entity.AdminFieldv;
 import com.bdaim.crm.erp.admin.entity.AdminFile;
@@ -35,10 +27,20 @@ import com.bdaim.crm.utils.AuthUtil;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.FieldUtil;
 import com.bdaim.crm.utils.R;
+import com.bdaim.util.JavaBeanUtil;
+import com.jfinal.aop.Before;
+import com.jfinal.kit.Kv;
+import com.jfinal.log.Log;
+import com.jfinal.plugin.activerecord.Db;
+import com.jfinal.plugin.activerecord.Page;
+import com.jfinal.plugin.activerecord.Record;
+import com.jfinal.plugin.activerecord.tx.Tx;
+import com.jfinal.upload.UploadFile;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import javax.transaction.Transactional;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -67,6 +69,9 @@ public class CrmLeadsService {
     @Resource
     private LkCrmAdminUserDao crmAdminUserDao;
 
+    @Resource
+    private LkCrmLeadsDao crmLeadsDao;
+
     /**
      * @author wyq
      * 分页条件查询线索
@@ -90,26 +95,29 @@ public class CrmLeadsService {
      */
     @Before(Tx.class)
     public R addOrUpdate(JSONObject object) {
-        CrmLeads crmLeads = object.getObject("entity", CrmLeads.class);
+        LkCrmLeadsEntity crmLeads = object.getObject("entity", LkCrmLeadsEntity.class);
         String batchId = StrUtil.isNotEmpty(crmLeads.getBatchId()) ? crmLeads.getBatchId() : IdUtil.simpleUUID();
         crmRecordService.updateRecord(object.getJSONArray("field"), batchId);
         adminFieldService.save(object.getJSONArray("field"), batchId);
         if (crmLeads.getLeadsId() != null) {
             crmLeads.setCustomerId(0);
-            crmLeads.setUpdateTime(DateUtil.date());
+            crmLeads.setUpdateTime(new Timestamp(System.currentTimeMillis()));
             crmRecordService.updateRecord(new CrmLeads().dao().findById(crmLeads.getLeadsId()), crmLeads, CrmEnum.LEADS_TYPE_KEY.getTypes());
-            return crmLeads.update() ? R.ok() : R.error();
+            //return crmLeads.update() ? R.ok() : R.error();
+            crmLeadsDao.saveOrUpdate(crmLeads);
+            return R.ok();
         } else {
-            crmLeads.setCreateTime(DateUtil.date());
-            crmLeads.setUpdateTime(DateUtil.date());
+            crmLeads.setCreateTime(new Timestamp(System.currentTimeMillis()));
+            crmLeads.setUpdateTime(new Timestamp(System.currentTimeMillis()));
             crmLeads.setCreateUserId(BaseUtil.getUser().getUserId().intValue());
             if (crmLeads.getOwnerUserId() == null) {
                 crmLeads.setOwnerUserId(BaseUtil.getUser().getUserId().intValue());
             }
             crmLeads.setBatchId(batchId);
-            boolean save = crmLeads.save();
+            //boolean save = crmLeads.save();
+            int id = (int) crmLeadsDao.saveReturnPk(crmLeads);
             crmRecordService.addRecord(crmLeads.getLeadsId(), CrmEnum.LEADS_TYPE_KEY.getTypes());
-            return save ? R.ok() : R.error();
+            return id > 0 ? R.ok() : R.error();
         }
     }
 

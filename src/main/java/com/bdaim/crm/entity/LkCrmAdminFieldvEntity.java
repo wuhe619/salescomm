@@ -7,7 +7,7 @@ import java.util.Objects;
 @Entity
 @Table(name = "lkcrm_admin_fieldv", schema = "", catalog = "")
 public class LkCrmAdminFieldvEntity {
-    private int id;
+    private Integer id;
     private Integer fieldId;
     private String name;
     private String value;
@@ -16,11 +16,12 @@ public class LkCrmAdminFieldvEntity {
 
     @Id
     @Column(name = "id")
-    public int getId() {
+    @GeneratedValue
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 

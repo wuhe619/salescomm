@@ -2,18 +2,8 @@ package com.bdaim.crm.erp.crm.controller;
 
 import cn.hutool.poi.excel.ExcelUtil;
 import cn.hutool.poi.excel.ExcelWriter;
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.response.ResponseInfo;
-import com.jfinal.aop.Before;
-import com.jfinal.aop.Inject;
-import com.jfinal.core.Controller;
-import com.jfinal.core.paragetter.Para;
-import com.jfinal.log.Log;
-import com.jfinal.plugin.activerecord.Db;
-import com.jfinal.plugin.activerecord.Record;
-import com.jfinal.plugin.activerecord.tx.Tx;
-import com.jfinal.upload.UploadFile;
 import com.bdaim.crm.common.annotation.LoginFormCookie;
 import com.bdaim.crm.common.annotation.NotNullValidate;
 import com.bdaim.crm.common.annotation.Permissions;
@@ -26,6 +16,14 @@ import com.bdaim.crm.erp.crm.entity.CrmLeads;
 import com.bdaim.crm.erp.crm.service.CrmLeadsService;
 import com.bdaim.crm.utils.AuthUtil;
 import com.bdaim.crm.utils.R;
+import com.jfinal.aop.Before;
+import com.jfinal.core.Controller;
+import com.jfinal.core.paragetter.Para;
+import com.jfinal.log.Log;
+import com.jfinal.plugin.activerecord.Db;
+import com.jfinal.plugin.activerecord.Record;
+import com.jfinal.plugin.activerecord.tx.Tx;
+import com.jfinal.upload.UploadFile;
 import org.apache.poi.hssf.usermodel.*;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
@@ -82,9 +80,11 @@ public class CrmLeadsController extends Controller {
      * 新增或更新线索
      */
     @Permissions({"crm:leads:save", "crm:leads:update"})
-    public void addOrUpdate() {
-        JSONObject object = JSON.parseObject(getRawData());
-        renderJson(crmLeadsService.addOrUpdate(object));
+    @ResponseBody
+    @RequestMapping(value = "/addOrUpdate", method = RequestMethod.POST)
+    public R addOrUpdate(@RequestBody JSONObject object) {
+        //JSONObject object = JSON.parseObject(getRawData());
+        return crmLeadsService.addOrUpdate(object);
     }
 
     /**

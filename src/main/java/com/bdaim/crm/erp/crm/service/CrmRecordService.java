@@ -5,11 +5,11 @@ import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.util.TypeUtils;
-import com.jfinal.aop.Before;
-import com.jfinal.plugin.activerecord.Db;
-import com.jfinal.plugin.activerecord.Record;
-import com.jfinal.plugin.activerecord.tx.Tx;
 import com.bdaim.crm.common.constant.BaseConstant;
+import com.bdaim.crm.dao.LkCrmActionRecordDao;
+import com.bdaim.crm.dao.LkCrmAdminFieldvDao;
+import com.bdaim.crm.entity.LkCrmActionRecordEntity;
+import com.bdaim.crm.entity.LkCrmAdminFieldvEntity;
 import com.bdaim.crm.erp.admin.entity.AdminConfig;
 import com.bdaim.crm.erp.admin.entity.AdminFieldv;
 import com.bdaim.crm.erp.admin.entity.AdminRecord;
@@ -17,9 +17,16 @@ import com.bdaim.crm.erp.crm.common.CrmEnum;
 import com.bdaim.crm.erp.crm.entity.*;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
+import com.bdaim.util.JavaBeanUtil;
+import com.jfinal.aop.Before;
+import com.jfinal.plugin.activerecord.Db;
+import com.jfinal.plugin.activerecord.Record;
+import com.jfinal.plugin.activerecord.tx.Tx;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import javax.transaction.Transactional;
+import java.sql.Timestamp;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -32,6 +39,11 @@ import java.util.stream.Collectors;
 @Transactional
 public class CrmRecordService<T> {
 
+    @Resource
+    private LkCrmAdminFieldvDao crmAdminFieldvDao;
+
+    @Resource
+    private LkCrmActionRecordDao crmActionRecordDao;
     /**
      * 属性kv
      */
@@ -39,7 +51,23 @@ public class CrmRecordService<T> {
     private static final String CRM_PROPERTIES_KEY = "crm:properties_map";
     @SuppressWarnings("unchecked")
     private void init() {
-        List<Record> recordList = Db.findByCache(CRM_PROPERTIES_KEY, CRM_PROPERTIES_KEY, Db.getSql("crm.record.getProperties"));
+        StringBuffer sql = new StringBuffer();
+        sql.append(" select  COLUMN_NAME , COLUMN_COMMENT,'4' as type FROM INFORMATION_SCHEMA.COLUMNS  where table_name = 'lkcrm_crm_product'\n" +
+                "    union all " +
+                "    select  COLUMN_NAME , COLUMN_COMMENT,'3' as type FROM INFORMATION_SCHEMA.COLUMNS  where table_name = 'lkcrm_crm_contacts'\n" +
+                "    union all " +
+                "    select  COLUMN_NAME , COLUMN_COMMENT,'2' as type FROM INFORMATION_SCHEMA.COLUMNS  where table_name = 'lkcrm_crm_customer'\n" +
+                "    union all " +
+                "    select  COLUMN_NAME , COLUMN_COMMENT,'1' as type FROM INFORMATION_SCHEMA.COLUMNS  where table_name = 'lkcrm_crm_leads'\n" +
+                "    union all " +
+                "    select  COLUMN_NAME , COLUMN_COMMENT,'6' as type FROM INFORMATION_SCHEMA.COLUMNS  where table_name = 'lkcrm_crm_contract'\n" +
+                "    union all " +
+                "    select  COLUMN_NAME , COLUMN_COMMENT,'7' as type FROM INFORMATION_SCHEMA.COLUMNS  where table_name = 'lkcrm_crm_receivables'\n" +
+                "    union all " +
+                "    select  COLUMN_NAME , COLUMN_COMMENT,'5' as type FROM INFORMATION_SCHEMA.COLUMNS  where table_name = 'lkcrm_crm_business'");
+
+        //List<Record> recordList = Db.findByCache(CRM_PROPERTIES_KEY, CRM_PROPERTIES_KEY, Db.getSql("crm.record.getProperties"));
+        List<Record> recordList = JavaBeanUtil.mapToRecords(crmAdminFieldvDao.sqlQuery(sql.toString()));
         Map<String, List<Record>> pMap = recordList.stream().collect(Collectors.groupingBy(record -> record.get("type")));
         setProperties(pMap);
     }
@@ -63,9 +91,9 @@ public class CrmRecordService<T> {
      */
     void updateRecord(T oldObj, T newObj, String crmTypes) {
         init();
-        CrmActionRecord crmActionRecord = new CrmActionRecord();
+        LkCrmActionRecordEntity crmActionRecord = new LkCrmActionRecordEntity();
         crmActionRecord.setCreateUserId(BaseUtil.getUser().getUserId().intValue());
-        crmActionRecord.setCreateTime(new Date());
+        crmActionRecord.setCreateTime(new Timestamp(System.currentTimeMillis()));
 
         if (crmTypes.equals(CrmEnum.PRODUCT_TYPE_KEY.getTypes())) {
             CrmProduct oldObj1 = (CrmProduct) oldObj;
@@ -112,28 +140,28 @@ public class CrmRecordService<T> {
         }
         crmActionRecord.setContent(JSON.toJSONString(textList));
         if (textList.size() > 0) {
-            crmActionRecord.save();
+            crmActionRecordDao.save(crmActionRecord);
         }
         textList.clear();
     }
 
     public void addRecord(Integer actionId, String crmTypes) {
-        CrmActionRecord crmActionRecord = new CrmActionRecord();
+        LkCrmActionRecordEntity crmActionRecord = new LkCrmActionRecordEntity();
         crmActionRecord.setCreateUserId(BaseUtil.getUser().getUserId().intValue());
-        crmActionRecord.setCreateTime(new Date());
+        crmActionRecord.setCreateTime(new Timestamp(System.currentTimeMillis()));
         crmActionRecord.setTypes(crmTypes);
         crmActionRecord.setActionId(actionId);
         ArrayList<String> strings = new ArrayList<>();
         strings.add("新建了" + CrmEnum.getName(crmTypes));
         crmActionRecord.setContent(JSON.toJSONString(strings));
-        crmActionRecord.save();
+        crmActionRecordDao.save(crmActionRecord);
     }
 
     public void updateRecord(JSONArray jsonArray, String batchId) {
         if (jsonArray == null) {
             return;
         }
-        List<AdminFieldv> oldFieldList = new AdminFieldv().dao().find("select * from 72crm_admin_fieldv where batch_id = ?", batchId);
+        List<LkCrmAdminFieldvEntity> oldFieldList = crmAdminFieldvDao.find("from LkCrmAdminFieldvEntity where batchId = ?", batchId);
         oldFieldList.forEach(oldField -> {
             jsonArray.forEach(json -> {
                 AdminFieldv newField = TypeUtils.castToJavaBean(json, AdminFieldv.class);

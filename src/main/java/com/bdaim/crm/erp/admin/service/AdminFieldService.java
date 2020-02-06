@@ -5,9 +5,17 @@ import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.util.TypeUtils;
+import com.bdaim.crm.common.config.cache.CaffeineCache;
 import com.bdaim.crm.dao.LkCrmAdminFieldDao;
+import com.bdaim.crm.dao.LkCrmAdminFieldvDao;
 import com.bdaim.crm.entity.LkCrmAdminFieldSortEntity;
 import com.bdaim.crm.entity.LkCrmAdminFieldStyleEntity;
+import com.bdaim.crm.entity.LkCrmAdminFieldvEntity;
+import com.bdaim.crm.erp.admin.entity.AdminField;
+import com.bdaim.crm.erp.admin.entity.AdminFieldSort;
+import com.bdaim.crm.erp.admin.entity.AdminFieldStyle;
+import com.bdaim.crm.erp.admin.entity.AdminFieldv;
+import com.bdaim.crm.utils.*;
 import com.bdaim.util.JavaBeanUtil;
 import com.bdaim.util.StringUtil;
 import com.jfinal.aop.Before;
@@ -16,14 +24,12 @@ import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.SqlPara;
 import com.jfinal.plugin.activerecord.tx.Tx;
-import com.bdaim.crm.common.config.cache.CaffeineCache;
-import com.bdaim.crm.erp.admin.entity.*;
-import com.bdaim.crm.utils.*;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import javax.transaction.Transactional;
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -33,6 +39,9 @@ public class AdminFieldService {
 
     @Resource
     private LkCrmAdminFieldDao crmAdminFieldDao;
+
+    @Resource
+    private LkCrmAdminFieldvDao crmAdminFieldvDao;
 
     /**
      * @author wyq
@@ -231,13 +240,14 @@ public class AdminFieldService {
         if (array == null || StrUtil.isEmpty(batchId)) {
             return false;
         }
-        Db.deleteById("72crm_admin_fieldv", "batch_id", batchId);
+        //Db.deleteById("lkcrm_admin_fieldv", "batch_id", batchId);
+        crmAdminFieldvDao.executeUpdateSQL(" DELETE FROM lkcrm_admin_fieldv WHERE batch_id = ? ", batchId);
         array.forEach(obj -> {
-            AdminFieldv fieldv = TypeUtils.castToJavaBean(obj, AdminFieldv.class);
-            fieldv.setId(null);
-            fieldv.setCreateTime(DateUtil.date());
+            LkCrmAdminFieldvEntity fieldv = TypeUtils.castToJavaBean(obj, LkCrmAdminFieldvEntity.class);
+            //fieldv.setId(null);
+            fieldv.setCreateTime(new Timestamp(System.currentTimeMillis()));
             fieldv.setBatchId(batchId);
-            fieldv.save();
+            crmAdminFieldvDao.save(fieldv);
         });
         return true;
     }
