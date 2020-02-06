@@ -20,8 +20,20 @@ public class LkCrmAdminRecordEntity {
     private int createUserId;
     private String batchId;
 
+    private Integer isEvent;
+
+    @Transient
+    public Integer getIsEvent() {
+        return isEvent;
+    }
+
+    public void setIsEvent(Integer isEvent) {
+        this.isEvent = isEvent;
+    }
+
     @Id
     @Column(name = "record_id")
+    @GeneratedValue
     public Integer getRecordId() {
         return recordId;
     }

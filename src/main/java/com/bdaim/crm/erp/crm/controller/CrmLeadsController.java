@@ -8,7 +8,7 @@ import com.bdaim.crm.common.annotation.LoginFormCookie;
 import com.bdaim.crm.common.annotation.NotNullValidate;
 import com.bdaim.crm.common.annotation.Permissions;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
-import com.bdaim.crm.erp.admin.entity.AdminRecord;
+import com.bdaim.crm.entity.LkCrmAdminRecordEntity;
 import com.bdaim.crm.erp.admin.service.AdminFieldService;
 import com.bdaim.crm.erp.admin.service.AdminSceneService;
 import com.bdaim.crm.erp.crm.common.CrmEnum;
@@ -151,13 +151,15 @@ public class CrmLeadsController extends Controller {
     @NotNullValidate(value = "typesId", message = "线索id不能为空")
     @NotNullValidate(value = "content", message = "内容不能为空")
     @NotNullValidate(value = "category", message = "跟进类型不能为空")
-    public void addRecord(@Para("") AdminRecord adminRecord) {
+    @ResponseBody
+    @RequestMapping(value = "/addRecord", method = RequestMethod.POST)
+    public R addRecord(@Para("") LkCrmAdminRecordEntity adminRecord) {
         boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.LEADS_TYPE_KEY.getSign()), adminRecord.getTypesId());
         if (auth) {
-            renderJson(R.noAuth());
-            return;
+            return(R.noAuth());
+            //return;
         }
-        renderJson(crmLeadsService.addRecord(adminRecord));
+        return (crmLeadsService.addRecord(adminRecord));
     }
 
     /**

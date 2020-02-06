@@ -9,17 +9,13 @@ import cn.hutool.poi.excel.ExcelUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
-import com.bdaim.crm.dao.LkCrmAdminUserDao;
-import com.bdaim.crm.dao.LkCrmCustomerDao;
-import com.bdaim.crm.dao.LkCrmLeadsDao;
+import com.bdaim.crm.dao.*;
 import com.bdaim.crm.entity.*;
-import com.bdaim.crm.erp.admin.entity.AdminRecord;
 import com.bdaim.crm.erp.admin.service.AdminFieldService;
 import com.bdaim.crm.erp.admin.service.AdminFileService;
 import com.bdaim.crm.erp.crm.common.CrmEnum;
 import com.bdaim.crm.erp.crm.common.CrmParamValid;
 import com.bdaim.crm.erp.crm.entity.CrmLeads;
-import com.bdaim.crm.erp.oa.entity.OaEvent;
 import com.bdaim.crm.utils.AuthUtil;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.FieldUtil;
@@ -75,6 +71,12 @@ public class CrmLeadsService {
 
     @Resource
     private LkCrmCustomerDao crmCustomerDao;
+
+    @Resource
+    private LkCrmAdminRecordDao crmAdminRecordDao;
+
+    @Resource
+    private LkCrmOaEventDao crmOaEventDao;
 
     /**
      * @author wyq
@@ -326,21 +328,21 @@ public class CrmLeadsService {
      * 添加跟进记录
      */
     @Before(Tx.class)
-    public R addRecord(AdminRecord adminRecord) {
+    public R addRecord(LkCrmAdminRecordEntity adminRecord) {
         adminRecord.setCreateUserId(BaseUtil.getUser().getUserId().intValue());
-        adminRecord.setCreateTime(DateUtil.date());
+        adminRecord.setCreateTime(new Timestamp(System.currentTimeMillis()));
         adminRecord.setTypes("crm_leads");
-        if (1 == adminRecord.getIsEvent()) {
-            OaEvent oaEvent = new OaEvent();
+        if (adminRecord.getIsEvent() != null && 1 == adminRecord.getIsEvent()) {
+            LkCrmOaEventEntity oaEvent = new LkCrmOaEventEntity();
             oaEvent.setTitle(adminRecord.getContent());
             oaEvent.setCreateUserId(adminRecord.getCreateUserId());
             oaEvent.setStartTime(adminRecord.getNextTime());
-            oaEvent.setEndTime(DateUtil.offsetDay(adminRecord.getNextTime(), 1));
-            oaEvent.setCreateTime(DateUtil.date());
-            oaEvent.save();
+            oaEvent.setEndTime(DateUtil.offsetDay(adminRecord.getNextTime(), 1).toTimestamp());
+            oaEvent.setCreateTime(DateUtil.date().toTimestamp());
+            crmOaEventDao.save(oaEvent);
         }
-        Db.update("update lkcrm_crm_leads set followup = 1 where leads_id = ?", adminRecord.getTypesId());
-        return adminRecord.save() ? R.ok() : R.error();
+        crmAdminRecordDao.executeUpdateSQL("update lkcrm_crm_leads set followup = 1 where leads_id = ?", adminRecord.getTypesId());
+        return (int)crmAdminRecordDao.saveReturnPk(adminRecord) > 0 ? R.ok() : R.error();
     }
 
     /**
