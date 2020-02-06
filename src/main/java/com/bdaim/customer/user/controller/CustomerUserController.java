@@ -36,8 +36,8 @@ public class CustomerUserController extends BasicAction {
             }
             return new ResponseInfoAssemble().success(null);
         } catch (Exception e) {
-            logger.error("创建企业信息异常", e);
-            return new ResponseInfoAssemble().failure(-1, "创建企业失败");
+            logger.error("创建企业用户异常", e);
+            return new ResponseInfoAssemble().failure(-1, "创建企业用户失败");
         }
     }
 

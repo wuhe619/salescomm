@@ -34,6 +34,7 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.nio.charset.Charset;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.sql.Timestamp;
@@ -348,7 +349,9 @@ public class ApiService {
         Map<String, Object> map = new HashMap<>();
         Object collect = list.getList().stream().map(m -> {
             Map dataMap = (Map) m;
-
+            if(dataMap.containsKey("requestParam") && null!=dataMap.get("requestParam") &&  StringUtil.isNotEmpty(dataMap.get("requestParam").toString())){
+                dataMap.put("requestParam",Base64.getEncoder().encodeToString(dataMap.get("requestParam").toString().getBytes(Charset.forName("utf-8"))));
+            }
             return dataMap;
         }).collect(Collectors.toList());
         map.put("list", collect);

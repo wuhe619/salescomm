@@ -80,9 +80,10 @@ public class ResponseBodyInterceptor {
             Object o = pjp.proceed();
             if (o instanceof ResponseInfo) {
                 return o;
-            } else if (o instanceof Map) {
-                return o;
             }
+            //else if (o instanceof Map) {
+              //  return o;
+            //}
             if (o != null) {
                 String str = null;
                 if (o instanceof String) {
