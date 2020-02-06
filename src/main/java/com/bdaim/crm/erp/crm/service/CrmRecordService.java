@@ -8,11 +8,11 @@ import com.alibaba.fastjson.util.TypeUtils;
 import com.bdaim.crm.common.constant.BaseConstant;
 import com.bdaim.crm.dao.LkCrmActionRecordDao;
 import com.bdaim.crm.dao.LkCrmAdminFieldvDao;
+import com.bdaim.crm.dao.LkCrmAdminRecordDao;
 import com.bdaim.crm.entity.LkCrmActionRecordEntity;
+import com.bdaim.crm.entity.LkCrmAdminConfigEntity;
 import com.bdaim.crm.entity.LkCrmAdminFieldvEntity;
-import com.bdaim.crm.erp.admin.entity.AdminConfig;
 import com.bdaim.crm.erp.admin.entity.AdminFieldv;
-import com.bdaim.crm.erp.admin.entity.AdminRecord;
 import com.bdaim.crm.erp.crm.common.CrmEnum;
 import com.bdaim.crm.erp.crm.entity.*;
 import com.bdaim.crm.utils.BaseUtil;
@@ -44,6 +44,9 @@ public class CrmRecordService<T> {
 
     @Resource
     private LkCrmActionRecordDao crmActionRecordDao;
+
+    @Resource
+    private LkCrmAdminRecordDao crmAdminRecordDao;
     /**
      * 属性kv
      */
@@ -212,7 +215,7 @@ public class CrmRecordService<T> {
     }
 
     public R queryRecordList(String actionId, String crmTypes) {
-        List<Record> recordList = Db.find("select a.*,b.realname,b.img from lkcrm_crm_action_record a left join lkcrm_admin_user b on a.create_user_id = b.user_id where action_id = ? and types = ? order by create_time desc", actionId, crmTypes);
+        List<Record> recordList = JavaBeanUtil.mapToRecords(crmActionRecordDao.sqlQuery("select a.*,b.realname,b.img from lkcrm_crm_action_record a left join lkcrm_admin_user b on a.create_user_id = b.user_id where action_id = ? and types = ? order by create_time desc", actionId, crmTypes));
         recordList.forEach(record -> {
             List<String> list = JSON.parseArray(record.getStr("content"), String.class);
             record.set("content", list);
@@ -340,7 +343,8 @@ public class CrmRecordService<T> {
      * 删除跟进记录
      */
     public R deleteFollowRecord(Integer recordId) {
-        return AdminRecord.dao.deleteById(recordId) ? R.ok() : R.error();
+        crmAdminRecordDao.delete(recordId);
+        return R.ok();
     }
 
     /**
@@ -358,16 +362,16 @@ public class CrmRecordService<T> {
      */
     @Before(Tx.class)
     public R setRecordOptions(List<String> list) {
-        Db.delete("delete from lkcrm_admin_config where name = 'followRecordOption'");
-        List<AdminConfig> adminConfigList = new ArrayList<>();
+        crmActionRecordDao.executeUpdateSQL("delete from lkcrm_admin_config where name = 'followRecordOption'");
+        List<LkCrmAdminConfigEntity> adminConfigList = new ArrayList<>();
         for (int i = 0; i < list.size(); i++) {
-            AdminConfig adminConfig = new AdminConfig();
+            LkCrmAdminConfigEntity adminConfig = new LkCrmAdminConfigEntity();
             adminConfig.setName("followRecordOption");
             adminConfig.setValue(list.get(i));
             adminConfig.setDescription("跟进记录选项");
             adminConfigList.add(adminConfig);
         }
-        Db.batchSave(adminConfigList, 100);
+        crmActionRecordDao.batchSaveOrUpdate(adminConfigList);
         return R.ok();
     }
 }
