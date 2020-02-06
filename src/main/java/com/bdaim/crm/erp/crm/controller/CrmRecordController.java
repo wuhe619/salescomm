@@ -27,19 +27,23 @@ public class CrmRecordController extends Controller {
      * @author hmb
      * 查询操作记录列表
      */
-    public void queryRecordList(){
-        String actionId = getPara("actionId");
-        String types = getPara("types");
+    @ResponseBody
+    @RequestMapping(value = "/queryRecordList", method = RequestMethod.POST)
+    public R queryRecordList(String actionId, String types) {
+        //String actionId = getPara("actionId");
+        //String types = getPara("types");
         boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.getSign(Integer.valueOf(types))), Integer.valueOf(actionId));
-        if(auth){renderJson(R.noAuth()); return; }
-        renderJson(crmRecordService.queryRecordList(actionId,types));
+        if (auth) {
+            return (R.noAuth());
+        }
+        return (crmRecordService.queryRecordList(actionId, types));
     }
 
     /**
      * @author wyq
      * 删除跟进记录
      */
-    public void deleteFollowRecord(@Para("recordId") Integer recordId){
+    public void deleteFollowRecord(@Para("recordId") Integer recordId) {
         renderJson(crmRecordService.deleteFollowRecord(recordId));
     }
 
@@ -49,7 +53,7 @@ public class CrmRecordController extends Controller {
      */
     @ResponseBody
     @RequestMapping(value = "/queryRecordOptions", method = RequestMethod.POST)
-    public R queryRecordOptions(){
+    public R queryRecordOptions() {
         return (crmRecordService.queryRecordOptions());
     }
 
@@ -57,7 +61,7 @@ public class CrmRecordController extends Controller {
      * @author wyq
      * 设置跟进记录类型
      */
-    public void setRecordOptions(){
+    public void setRecordOptions() {
         JSONObject jsonObject = JSONObject.parseObject(getRawData());
         JSONArray jsonArray = JSONArray.parseArray(jsonObject.getString("value"));
         List<String> list = jsonArray.toJavaList(String.class);
