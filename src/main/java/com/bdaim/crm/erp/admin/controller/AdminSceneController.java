@@ -1,13 +1,13 @@
 package com.bdaim.crm.erp.admin.controller;
 
 import com.bdaim.common.response.ResponseInfo;
-import com.jfinal.aop.Inject;
-import com.jfinal.core.Controller;
-import com.jfinal.core.paragetter.Para;
 import com.bdaim.crm.common.annotation.NotNullValidate;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.erp.admin.entity.AdminScene;
 import com.bdaim.crm.erp.admin.service.AdminSceneService;
+import com.bdaim.crm.utils.R;
+import com.jfinal.core.Controller;
+import com.jfinal.core.paragetter.Para;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -80,11 +80,11 @@ public class AdminSceneController extends Controller {
     @NotNullValidate(value = "type",message = "type不能为空")
     @ResponseBody
     @RequestMapping(value = "/queryScene", method = RequestMethod.POST)
-    public ResponseInfo queryScene(@Para("type") Integer type){
+    public R queryScene(@Para("type") Integer type){
         ResponseInfo resp = new ResponseInfo();
         //renderJson(adminSceneService.queryScene(type));
-        resp.setData(adminSceneService.queryScene(type).get("data"));
-        return resp;
+        return (adminSceneService.queryScene(type));
+        //return resp;
     }
 
     /**

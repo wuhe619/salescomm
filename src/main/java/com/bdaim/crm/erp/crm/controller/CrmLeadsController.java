@@ -57,14 +57,14 @@ public class CrmLeadsController extends Controller {
     @Permissions({"crm:leads:index"})
     @ResponseBody
     @RequestMapping(value = "/queryPageList", method = RequestMethod.POST)
-    public ResponseInfo queryPageList(@RequestBody JSONObject jsonObject) {
+    public R queryPageList(@RequestBody JSONObject jsonObject) {
         ResponseInfo resp = new ResponseInfo();
         BasePageRequest<Void> basePageRequest = new BasePageRequest<>();
         jsonObject.fluentPut("type", 1);
         basePageRequest.setJsonObject(jsonObject);
         resp.setData(adminSceneService.filterConditionAndGetPageList(basePageRequest).get("data"));
-        // renderJson(adminSceneService.filterConditionAndGetPageList(basePageRequest));
-        return resp;
+        return(adminSceneService.filterConditionAndGetPageList(basePageRequest));
+        //return resp;
     }
 
     /**

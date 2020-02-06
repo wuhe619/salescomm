@@ -197,7 +197,7 @@ public class AdminFieldController extends Controller {
     @NotNullValidate(value = "label", message = "label不能为空")
     @ResponseBody
     @RequestMapping(value = "/queryListHead", method = RequestMethod.POST)
-    public ResponseInfo queryListHead(@Para("") LkCrmAdminFieldSortEntity adminFieldSort) {
+    public R queryListHead(@Para("") LkCrmAdminFieldSortEntity adminFieldSort) {
         ResponseInfo resp = new ResponseInfo();
         List<Record> records;
         if (adminFieldSort.getLabel() == 10) {
@@ -218,8 +218,8 @@ public class AdminFieldController extends Controller {
             }
         });
         resp.setData(JavaBeanUtil.recordToMap(records));
-        //renderJson(R.ok().put("data",records));
-        return resp;
+        return(R.ok().put("data",records));
+        //return resp;
     }
 
     /**
