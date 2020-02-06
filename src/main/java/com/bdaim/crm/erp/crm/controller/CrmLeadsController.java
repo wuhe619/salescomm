@@ -156,13 +156,15 @@ public class CrmLeadsController extends Controller {
      * @author wyq
      * 查看跟进记录
      */
-    public void getRecord(BasePageRequest<CrmLeads> basePageRequest) {
-        boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.LEADS_TYPE_KEY.getSign()), basePageRequest.getData().getLeadsId());
+    @ResponseBody
+    @RequestMapping(value = "/getRecord", method = RequestMethod.POST)
+    public R getRecord(BasePageRequest basePageRequest, CrmLeads crmLeads) {
+        basePageRequest.setData(crmLeads);
+        boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.LEADS_TYPE_KEY.getSign()), crmLeads.getLeadsId());
         if (auth) {
-            renderJson(R.noAuth());
-            return;
+            return (R.noAuth());
         }
-        renderJson(R.ok().put("data", crmLeadsService.getRecord(basePageRequest)));
+        return (R.ok().put("data", crmLeadsService.getRecord(basePageRequest)));
     }
 
     /**

@@ -338,7 +338,8 @@ public class CrmLeadsService {
      */
     public List<Record> getRecord(BasePageRequest<CrmLeads> basePageRequest) {
         CrmLeads crmLeads = basePageRequest.getData();
-        List<Record> recordList = Db.find(Db.getSql("crm.leads.getRecord"), crmLeads.getLeadsId());
+        //List<Record> recordList = Db.find(Db.getSql("crm.leads.getRecord"), crmLeads.getLeadsId());
+        List<Record> recordList = crmLeadsDao.getRecord(crmLeads.getLeadsId());
         recordList.forEach(record -> {
             adminFileService.queryByBatchId(record.getStr("batch_id"), record);
         });

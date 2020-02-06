@@ -192,7 +192,7 @@ public class AdminUserService {
      * @param userId 当前用户id
      */
     public List<Long> queryChileUserIds(Long userId, Integer deepness) {
-        List<Long> query = Db.query("select user_id from 72crm_admin_user where parent_id = ?", userId);
+        List<Long> query = crmAdminUserDao.queryListBySql("select user_id from lkcrm_admin_user where parent_id = ?", userId);
         if (deepness > 0) {
             for (int i = 0, size = query.size(); i < size; i++) {
                 query.addAll(queryChileUserIds(query.get(i), deepness - 1));
@@ -314,6 +314,7 @@ public class AdminUserService {
             adminUsers.add(userId);
             return adminUsers;
         }
+        List<Object> param = new ArrayList<>();
         //只要上面list的长度不为0 那么这个也不会为0
         sql = "SELECT k.data_type, k.menu_id,am.menu_name,am.parent_realm AS realm FROM " +
                 "\t(\n" +
@@ -341,13 +342,12 @@ public class AdminUserService {
                 ") am ON k.menu_id = am.menu_id\n" +
                 "WHERE\n" +
                 "\tk.user_id = ? ";
+        param.add(userId);
         if (realm != null) {
             sql += " and am.parent_realm = ? and am.realm = 'index' ";
+            param.add(realm);
         }
         sql += "ORDER BY k.data_type DESC";
-        List<Object> param = new ArrayList<>();
-        param.add(userId);
-        param.add(realm);
         //List<Record> userRoleList = Db.find(Db.getSqlPara("admin.role.queryUserRoleListByUserId", Kv.by("userId", userId).set("realm", realm)));
         List<Record> userRoleList = JavaBeanUtil.mapToRecords(crmAdminUserDao.sqlQuery(sql, param.toArray()));
         if (list.size() == 1 && userRoleList.size() == 1) {//如果为1的话 验证是否有最高权限，否则及有多个权限
