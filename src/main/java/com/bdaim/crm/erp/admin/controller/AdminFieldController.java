@@ -93,7 +93,7 @@ public class AdminFieldController extends Controller {
      */
     @ResponseBody
     @RequestMapping(value = "/queryField", method = RequestMethod.POST)
-    public ResponseInfo queryField(@Para("label") String label, @Para("id") Integer id) {
+    public R queryField(@Para("label") String label, @Para("id") Integer id) {
         ResponseInfo resp = new ResponseInfo();
         List<Record> recordList = new LinkedList<>();
         if (id != null) {
@@ -132,8 +132,8 @@ public class AdminFieldController extends Controller {
             }
         }
         //renderJson(R.ok().put("data", recordList));
-        resp.setData(JavaBeanUtil.recordToMap(recordList));
-        return resp;
+        //resp.setData(JavaBeanUtil.recordToMap(recordList));
+        return (R.ok().put("data", recordList));
     }
 
     /**
@@ -141,12 +141,14 @@ public class AdminFieldController extends Controller {
      * @param id    查询基本信息
      * @author wyq
      */
-    public void information(@Para("types") Integer types, @Para("id") Integer id) {
+    @ResponseBody
+    @RequestMapping(value = "/information", method = RequestMethod.POST)
+    public R information(@Para("types") Integer types, @Para("id") Integer id) {
         List<Record> recordList;
         boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.getSign(types)), id);
         if (auth) {
-            renderJson(R.noAuth());
-            return;
+            return(R.noAuth());
+            //return;
         }
         if (1 == types) {
             recordList = crmLeadsService.information(id);
@@ -165,7 +167,7 @@ public class AdminFieldController extends Controller {
         } else {
             recordList = new ArrayList<>();
         }
-        renderJson(R.ok().put("data", recordList));
+        return (R.ok().put("data", recordList));
     }
 
     /**
