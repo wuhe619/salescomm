@@ -3,23 +3,21 @@ package com.bdaim.crm.erp.admin.controller;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.response.ResponseInfo;
-import com.bdaim.crm.entity.LkCrmAdminFieldSortEntity;
-import com.bdaim.crm.entity.LkCrmAdminFieldStyleEntity;
-import com.bdaim.util.JavaBeanUtil;
-import com.jfinal.aop.Inject;
-import com.jfinal.core.Controller;
-import com.jfinal.core.paragetter.Para;
-import com.jfinal.plugin.activerecord.Record;
 import com.bdaim.crm.common.annotation.NotNullValidate;
 import com.bdaim.crm.common.annotation.Permissions;
+import com.bdaim.crm.entity.LkCrmAdminFieldSortEntity;
+import com.bdaim.crm.entity.LkCrmAdminFieldStyleEntity;
 import com.bdaim.crm.erp.admin.entity.AdminFieldSort;
-import com.bdaim.crm.erp.admin.entity.AdminFieldStyle;
 import com.bdaim.crm.erp.admin.service.AdminFieldService;
 import com.bdaim.crm.erp.crm.common.CrmEnum;
 import com.bdaim.crm.erp.crm.service.*;
 import com.bdaim.crm.erp.oa.service.OaExamineCategoryService;
 import com.bdaim.crm.utils.AuthUtil;
 import com.bdaim.crm.utils.R;
+import com.bdaim.util.JavaBeanUtil;
+import com.jfinal.core.Controller;
+import com.jfinal.core.paragetter.Para;
+import com.jfinal.plugin.activerecord.Record;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -98,7 +96,10 @@ public class AdminFieldController extends Controller {
      * @author wyq
      * 查询新增或编辑字段
      */
-    public void queryField(@Para("label") String label, @Para("id") Integer id) {
+    @ResponseBody
+    @RequestMapping(value = "/queryField", method = RequestMethod.POST)
+    public ResponseInfo queryField(@Para("label") String label, @Para("id") Integer id) {
+        ResponseInfo resp = new ResponseInfo();
         List<Record> recordList = new LinkedList<>();
         if (id != null) {
             if ("1".equals(label)) {
@@ -135,7 +136,9 @@ public class AdminFieldController extends Controller {
                 recordList = adminFieldService.queryAddField(Integer.valueOf(label));
             }
         }
-        renderJson(R.ok().put("data", recordList));
+        //renderJson(R.ok().put("data", recordList));
+        resp.setData(JavaBeanUtil.recordToMap(recordList));
+        return resp;
     }
 
     /**

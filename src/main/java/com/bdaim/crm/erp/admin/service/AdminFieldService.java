@@ -39,7 +39,8 @@ public class AdminFieldService {
      * 查询新增字段列表
      */
     public List<Record> queryAddField(Integer label) {
-        List<Record> fieldList = Db.find(Db.getSql("admin.field.queryAddField"), label);
+        List<Map<String, Object>> maps = crmAdminFieldDao.sqlQuery("select field_id,field_name,name,type,input_tips,options,is_unique,is_null,'' as value,field_type from lkcrm_admin_field where label = ? order by sorting", label);
+        List<Record> fieldList = JavaBeanUtil.mapToRecords(maps);
         recordToFormType(fieldList);
         if (label == 2) {
             Record map = new Record();
@@ -66,23 +67,24 @@ public class AdminFieldService {
      * 查询编辑字段列表
      */
     public List<Record> queryUpdateField(Integer label, Record record) {
-        List<Record> recordList = Db.find(Db.getSql("admin.field.queryAddField"), label);
+        List<Map<String, Object>> maps = crmAdminFieldDao.sqlQuery("select field_id,field_name,name,type,input_tips,options,is_unique,is_null,'' as value,field_type from lkcrm_admin_field where label = ? order by sorting", label);
+        List<Record> recordList = JavaBeanUtil.mapToRecords(maps);
         recordList.forEach(r -> {
             if (r.getInt("type") == 10 || r.getInt("type") == 12) {
-                r.set("value", Db.queryStr("select value from 72crm_admin_fieldv where field_id = ? and batch_id = ?", r.getInt("field_id"), record.getStr("batch_id")));
+                r.set("value", crmAdminFieldDao.queryForObject("select value from lkcrm_admin_fieldv where field_id = ? and batch_id = ?", r.getInt("field_id"), record.getStr("batch_id")));
             } else {
                 r.set("value", record.get(r.getStr("field_name")) != null ? record.get(r.getStr("field_name")) : "");
             }
         });
         recordList.forEach(field -> {
             if (field.getInt("type") == 8) {
-                field.set("value", Db.find("select * from 72crm_admin_file where batch_id = ?", StrUtil.isNotEmpty(field.getStr("value")) ? field.getStr("value") : ""));
+                field.set("value", crmAdminFieldDao.sqlQuery("select * from lkcrm_admin_file where batch_id = ?", StrUtil.isNotEmpty(field.getStr("value")) ? field.getStr("value") : ""));
             }
             if (field.getInt("type") == 10) {
-                field.set("value", Db.find("select user_id,realname from 72crm_admin_user where find_in_set(user_id,ifnull(?,0))", field.getStr("value")));
+                field.set("value", crmAdminFieldDao.sqlQuery("select user_id,realname from lkcrm_admin_user where find_in_set(user_id,ifnull(?,0))", field.getStr("value")));
             }
             if (field.getInt("type") == 12) {
-                field.set("value", Db.find("select dept_id,name from 72crm_admin_dept where find_in_set(dept_id,ifnull(?,0))", field.getStr("value")));
+                field.set("value", crmAdminFieldDao.sqlQuery("select dept_id,name from lkcrm_admin_dept where find_in_set(dept_id,ifnull(?,0))", field.getStr("value")));
             }
         });
         recordToFormType(recordList);

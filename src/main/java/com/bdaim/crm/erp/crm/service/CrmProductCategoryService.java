@@ -1,11 +1,14 @@
 package com.bdaim.crm.erp.crm.service;
 
+import com.bdaim.crm.dao.LkCrmProductCategoryDao;
+import com.bdaim.crm.entity.LkCrmProductCategoryEntity;
 import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
 import com.bdaim.crm.erp.crm.entity.CrmProductCategory;
 import com.bdaim.crm.utils.R;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -15,6 +18,8 @@ import java.util.List;
 @Transactional
 public class CrmProductCategoryService {
 
+    @Resource
+    private LkCrmProductCategoryDao crmProductCategoryDao;
     /**
      * 根据id查询类别
      */
@@ -87,7 +92,7 @@ public class CrmProductCategoryService {
             list = new ArrayList<>();
         }
         list.add(categoryId);
-        CrmProductCategory productCategory = CrmProductCategory.dao.findById(categoryId);
+        LkCrmProductCategoryEntity productCategory = crmProductCategoryDao.get(categoryId);
         if (productCategory != null && productCategory.getPid() != 0){
             queryId(list,productCategory.getPid());
         }else {

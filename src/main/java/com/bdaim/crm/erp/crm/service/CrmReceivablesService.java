@@ -4,15 +4,8 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSONObject;
-import com.jfinal.aop.Before;
-import com.jfinal.aop.Inject;
-import com.jfinal.kit.Kv;
-import com.jfinal.plugin.activerecord.Db;
-import com.jfinal.plugin.activerecord.Page;
-import com.jfinal.plugin.activerecord.Record;
-import com.jfinal.plugin.activerecord.SqlPara;
-import com.jfinal.plugin.activerecord.tx.Tx;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
+import com.bdaim.crm.dao.LkCrmReceivablesDao;
 import com.bdaim.crm.erp.admin.service.AdminExamineRecordService;
 import com.bdaim.crm.erp.admin.service.AdminFieldService;
 import com.bdaim.crm.erp.crm.common.CrmEnum;
@@ -22,6 +15,14 @@ import com.bdaim.crm.utils.AuthUtil;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.FieldUtil;
 import com.bdaim.crm.utils.R;
+import com.bdaim.util.JavaBeanUtil;
+import com.jfinal.aop.Before;
+import com.jfinal.kit.Kv;
+import com.jfinal.plugin.activerecord.Db;
+import com.jfinal.plugin.activerecord.Page;
+import com.jfinal.plugin.activerecord.Record;
+import com.jfinal.plugin.activerecord.SqlPara;
+import com.jfinal.plugin.activerecord.tx.Tx;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -48,6 +49,9 @@ public class CrmReceivablesService {
 
     @Resource
     private AuthUtil authUtil;
+
+    @Resource
+    private LkCrmReceivablesDao crmReceivablesDao;
 
     /**
      * 获取用户审核通过和未通过的回款
@@ -196,7 +200,8 @@ public class CrmReceivablesService {
      * 查询编辑字段
      */
     public List<Record> queryField(Integer receivablesId) {
-        Record receivables = Db.findFirst("select * from receivablesview where receivables_id = ?",receivablesId);
+        Record receivables = JavaBeanUtil.mapToRecord(crmReceivablesDao.sqlQuery("select * from receivablesview where receivables_id = ?", receivablesId).get(0));
+        //Record receivables = Db.findFirst("select * from receivablesview where receivables_id = ?",receivablesId);
         List<Record> list = new ArrayList<>();
         list.add(new Record().set("customer_id",receivables.getInt("customer_id")).set("customer_name",receivables.getStr("customer_name")));
         receivables.set("customer_id",list);

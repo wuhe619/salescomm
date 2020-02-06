@@ -9,6 +9,8 @@ import cn.hutool.poi.excel.ExcelUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.auth.LoginUser;
+import com.bdaim.crm.dao.LkCrmAdminUserDao;
+import com.bdaim.util.JavaBeanUtil;
 import com.jfinal.aop.Before;
 import com.jfinal.aop.Inject;
 import com.jfinal.kit.Kv;
@@ -67,6 +69,9 @@ public class CrmCustomerService {
 
     @Resource
     private AuthUtil authUtil;
+
+    @Resource
+    private LkCrmAdminUserDao crmAdminUserDao;
 
     /**
      * @author wyq
@@ -455,7 +460,8 @@ public class CrmCustomerService {
      * 查询编辑字段
      */
     public List<Record> queryField(Integer customerId) {
-        Record customer = Db.findFirst("select * from customerview where customer_id = ?",customerId);
+        Record customer = JavaBeanUtil.mapToRecord(crmAdminUserDao.sqlQuery("select * from customerview where customer_id = ?", customerId).get(0));
+        //Record customer = Db.findFirst("select * from customerview where customer_id = ?",customerId);
         List<Record> fieldList = adminFieldService.queryUpdateField(2,customer);
         fieldList.add(new Record().set("fieldName", "map_address")
                 .set("name", "地区定位")

@@ -4,16 +4,17 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSONObject;
-import com.jfinal.aop.Inject;
-import com.jfinal.plugin.activerecord.Db;
-import com.jfinal.plugin.activerecord.Record;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
+import com.bdaim.crm.dao.LkCrmReceivablesDao;
 import com.bdaim.crm.erp.admin.service.AdminFieldService;
 import com.bdaim.crm.erp.crm.entity.CrmReceivables;
 import com.bdaim.crm.erp.crm.entity.CrmReceivablesPlan;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.FieldUtil;
 import com.bdaim.crm.utils.R;
+import com.bdaim.util.JavaBeanUtil;
+import com.jfinal.plugin.activerecord.Db;
+import com.jfinal.plugin.activerecord.Record;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -28,6 +29,8 @@ public class CrmReceivablesPlanService {
     private FieldUtil fieldUtil;
     @Resource
     private AdminFieldService adminFieldService;
+    @Resource
+    private LkCrmReceivablesDao crmReceivablesDao;
 
     /**
      * 添加或修改回款计划
@@ -101,7 +104,12 @@ public class CrmReceivablesPlanService {
      * 查询回款自定义字段（编辑）
      */
     public List<Record> queryField(Integer id) {
-        Record receivablesPlan = Db.findFirst(Db.getSql("crm.receivablesplan.queryUpdateField"),id);
+        String sql = "select a.customer_id,b.customer_name,a.contract_id,c.num,a.money,a.return_date,a.return_type,a.remind,a.remark\n" +
+                "  from lkcrm_crm_receivables_plan as a left join lkcrm_crm_customer as b on a.customer_id = b.customer_id\n" +
+                "  left join lkcrm_crm_contract as c on a.contract_id = c.contract_id\n" +
+                "  where a.plan_id = ?";
+        Record receivablesPlan = JavaBeanUtil.mapToRecord(crmReceivablesDao.sqlQuery(sql, id).get(0));
+        //Record receivablesPlan = Db.findFirst(Db.getSql("crm.receivablesplan.queryUpdateField"),id);
         List<Record> fieldList = new ArrayList<>();
         String[] settingArr = new String[]{};
         String[] returnTypeArr = new String[]{"支票","现金","邮政汇款","电汇","网上转账","支付宝","微信支付","其他"};
