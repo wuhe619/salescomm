@@ -93,8 +93,10 @@ public class CrmLeadsController extends Controller {
      */
     @Permissions("crm:leads:read")
     @NotNullValidate(value = "leadsId", message = "线索id不能为空")
-    public void queryById(@Para("leadsId") Integer leadsId) {
-        renderJson(R.ok().put("data", crmLeadsService.queryById(leadsId)));
+    @ResponseBody
+    @RequestMapping(value = "/queryById", method = RequestMethod.POST)
+    public R queryById(@Para("leadsId") Integer leadsId) {
+        return(R.ok().put("data", crmLeadsService.queryById(leadsId).getColumns()));
     }
 
     /**

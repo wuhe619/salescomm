@@ -143,7 +143,8 @@ public class CrmLeadsService {
      * 根据线索id查询
      */
     public Record queryById(Integer leadsId) {
-        return Db.findFirst(Db.getSql("crm.leads.queryById"), leadsId);
+        return JavaBeanUtil.mapToRecord(crmLeadsDao.queryById(leadsId));
+        //return Db.findFirst(Db.getSql("crm.leads.queryById"), leadsId);
     }
 
     /**
