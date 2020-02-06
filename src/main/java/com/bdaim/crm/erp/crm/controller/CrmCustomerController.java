@@ -5,16 +5,6 @@ import cn.hutool.poi.excel.ExcelUtil;
 import cn.hutool.poi.excel.ExcelWriter;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.jfinal.aop.Before;
-import com.jfinal.aop.Inject;
-import com.jfinal.core.Controller;
-import com.jfinal.core.paragetter.Para;
-import com.jfinal.kit.Kv;
-import com.jfinal.log.Log;
-import com.jfinal.plugin.activerecord.Db;
-import com.jfinal.plugin.activerecord.Record;
-import com.jfinal.plugin.activerecord.tx.Tx;
-import com.jfinal.upload.UploadFile;
 import com.bdaim.crm.common.annotation.LoginFormCookie;
 import com.bdaim.crm.common.annotation.NotNullValidate;
 import com.bdaim.crm.common.annotation.Permissions;
@@ -32,10 +22,23 @@ import com.bdaim.crm.erp.crm.service.CrmContractService;
 import com.bdaim.crm.erp.crm.service.CrmCustomerService;
 import com.bdaim.crm.utils.AuthUtil;
 import com.bdaim.crm.utils.R;
+import com.jfinal.aop.Before;
+import com.jfinal.core.Controller;
+import com.jfinal.core.paragetter.Para;
+import com.jfinal.kit.Kv;
+import com.jfinal.log.Log;
+import com.jfinal.plugin.activerecord.Db;
+import com.jfinal.plugin.activerecord.Record;
+import com.jfinal.plugin.activerecord.tx.Tx;
+import com.jfinal.upload.UploadFile;
 import org.apache.poi.hssf.usermodel.*;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.ss.util.CellRangeAddressList;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import javax.servlet.ServletOutputStream;
@@ -45,6 +48,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+@RestController
+@RequestMapping("/CrmCustomer")
 public class CrmCustomerController extends Controller {
 
     @Resource
@@ -344,8 +349,10 @@ public class CrmCustomerController extends Controller {
      * @author zxy
      * 获取客户保护规则设置
      */
-    public void getRulesSetting() {
-        renderJson(crmCustomerService.getRulesSetting());
+    @ResponseBody
+    @RequestMapping(value = "/getRulesSetting", method = RequestMethod.POST)
+    public R getRulesSetting() {
+        return (crmCustomerService.getRulesSetting());
     }
 
     /**

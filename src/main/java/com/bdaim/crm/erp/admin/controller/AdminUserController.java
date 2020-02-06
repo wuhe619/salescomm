@@ -1,20 +1,17 @@
 package com.bdaim.crm.erp.admin.controller;
 
-import com.bdaim.auth.LoginUser;
 import com.bdaim.common.response.ResponseInfo;
-import com.jfinal.aop.Inject;
-import com.jfinal.core.Controller;
-import com.jfinal.core.paragetter.Para;
-import com.jfinal.upload.UploadFile;
 import com.bdaim.crm.common.annotation.NotNullValidate;
 import com.bdaim.crm.common.annotation.Permissions;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
-import com.bdaim.crm.common.config.redis.RedisManager;
 import com.bdaim.crm.erp.admin.entity.AdminUser;
 import com.bdaim.crm.erp.admin.service.AdminFileService;
 import com.bdaim.crm.erp.admin.service.AdminUserService;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
+import com.jfinal.core.Controller;
+import com.jfinal.core.paragetter.Para;
+import com.jfinal.upload.UploadFile;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -116,10 +113,10 @@ public class AdminUserController extends Controller {
      */
     @ResponseBody
     @RequestMapping(value = "/queryLoginUser", method = RequestMethod.POST)
-    public ResponseInfo queryLoginUser(){
+    public R queryLoginUser(){
         ResponseInfo resp = new ResponseInfo();
         resp.setData(adminUserService.resetUser());
-        return resp;
+        return (R.ok().put("data",adminUserService.resetUser()));
         //renderJson(R.ok().put("data",adminUserService.resetUser()));
     }
 
