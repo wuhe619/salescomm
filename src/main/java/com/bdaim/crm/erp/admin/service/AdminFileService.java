@@ -81,11 +81,11 @@ public class AdminFileService {
 
     }
 
-    public List<AdminFile> queryByBatchId(String batchId) {
+    public List<LkCrmAdminFileEntity> queryByBatchId(String batchId) {
         if (batchId == null) {
             return new ArrayList<>();
         }
-        return AdminFile.dao.find(Db.getSql("admin.file.queryByBatchId"), batchId);
+        return crmAdminFileDao.queryByBatchId(batchId);
     }
     /**
      * 通过ID查询
