@@ -18,15 +18,10 @@ import com.bdaim.util.JavaBeanUtil;
 import com.jfinal.core.Controller;
 import com.jfinal.core.paragetter.Para;
 import com.jfinal.plugin.activerecord.Record;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author hmb
@@ -189,8 +184,10 @@ public class AdminFieldController extends Controller {
     @NotNullValidate(value = "types", message = "字段校验参数错误")
     @NotNullValidate(value = "fieldName", message = "字段校验参数错误")
     @NotNullValidate(value = "fieldType", message = "字段校验参数错误")
-    public void verify() {
-        renderJson(adminFieldService.verify(getKv()));
+    @ResponseBody
+    @RequestMapping(value = "/verify", method = RequestMethod.POST)
+    public R verify(@RequestParam HashMap map) {
+        return adminFieldService.verify(map);
     }
 
     /**
