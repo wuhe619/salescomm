@@ -49,6 +49,7 @@ public class CrmRecordService<T> {
      */
     private static Map<String, Map<String, String>> propertiesMap = new HashMap<>();
     private static final String CRM_PROPERTIES_KEY = "crm:properties_map";
+
     @SuppressWarnings("unchecked")
     private void init() {
         StringBuffer sql = new StringBuffer();
@@ -73,10 +74,10 @@ public class CrmRecordService<T> {
     }
 
     private void setProperties(Map<String, List<Record>> pMap) {
-        pMap.forEach((k,v)->{
+        pMap.forEach((k, v) -> {
             HashMap<String, String> resultMap = new HashMap<>();
-            v.forEach(record-> resultMap.put(record.getStr("COLUMN_NAME"), record.getStr("COLUMN_COMMENT")));
-            propertiesMap.put(k,resultMap);
+            v.forEach(record -> resultMap.put(record.getStr("COLUMN_NAME"), record.getStr("COLUMN_COMMENT")));
+            propertiesMap.put(k, resultMap);
         });
     }
 
@@ -240,7 +241,6 @@ public class CrmRecordService<T> {
 
     /**
      * 添加(锁定/解锁)记录
-     *
      */
     public void addIsLockRecord(String[] ids, String crmTypes, Integer isLock) {
         CrmActionRecord crmActionRecord = new CrmActionRecord();
@@ -248,17 +248,18 @@ public class CrmRecordService<T> {
         crmActionRecord.setCreateTime(new Date());
         crmActionRecord.setTypes(crmTypes);
         ArrayList<String> strings = new ArrayList<>();
-        if(isLock == 1){
+        if (isLock == 1) {
             strings.add("将客户锁定。");
-        }else {
+        } else {
             strings.add("将客户解锁。");
         }
         crmActionRecord.setContent(JSON.toJSONString(strings));
-        for(String actionId : ids){
+        for (String actionId : ids) {
             crmActionRecord.setActionId(Integer.valueOf(actionId));
             crmActionRecord.save();
         }
     }
+
     /**
      * 线索转化客户
      *
@@ -272,10 +273,11 @@ public class CrmRecordService<T> {
         crmActionRecord.setTypes(crmTypes);
         crmActionRecord.setActionId(actionId);
         ArrayList<String> strings = new ArrayList<>();
-        strings.add("将线索\""+name+"\"转化为客户");
+        strings.add("将线索\"" + name + "\"转化为客户");
         crmActionRecord.setContent(JSON.toJSONString(strings));
         crmActionRecord.save();
     }
+
     /**
      * 放入公海
      *
@@ -284,9 +286,9 @@ public class CrmRecordService<T> {
      */
     public void addPutIntoTheOpenSeaRecord(Collection actionIds, String crmTypes) {
         CrmActionRecord crmActionRecord = new CrmActionRecord();
-        if(BaseUtil.getRequest() == null){
+        if (BaseUtil.getRequest() == null) {
             crmActionRecord.setCreateUserId(BaseConstant.SUPER_ADMIN_USER_ID.intValue());
-        }else {
+        } else {
             crmActionRecord.setCreateUserId(BaseUtil.getUser().getUserId().intValue());
         }
         crmActionRecord.setCreateTime(new Date());
@@ -294,7 +296,7 @@ public class CrmRecordService<T> {
         ArrayList<String> strings = new ArrayList<>();
         strings.add("将客户放入公海");
         crmActionRecord.setContent(JSON.toJSONString(strings));
-        for(Object actionId : actionIds){
+        for (Object actionId : actionIds) {
             crmActionRecord.remove("id");
             crmActionRecord.setActionId((Integer) actionId);
             crmActionRecord.save();
@@ -309,8 +311,8 @@ public class CrmRecordService<T> {
      * @param crmTypes
      */
     public void addDistributionRecord(String actionId, String crmTypes, Long userId) {
-        for(String id : actionId.split(",")){
-            if(StrUtil.isEmpty(id)){
+        for (String id : actionId.split(",")) {
+            if (StrUtil.isEmpty(id)) {
                 continue;
             }
             ArrayList<String> strings = new ArrayList<>();
@@ -320,10 +322,10 @@ public class CrmRecordService<T> {
             crmActionRecord.setCreateTime(new Date());
             crmActionRecord.setTypes(crmTypes);
             crmActionRecord.setActionId(Integer.valueOf(id));
-            if(userId == null){
+            if (userId == null) {
                 //领取
                 strings.add("领取了客户");
-            }else {
+            } else {
                 //管理员分配
                 strings.add("将客户分配给：" + name);
             }
@@ -337,7 +339,7 @@ public class CrmRecordService<T> {
      * @author wyq
      * 删除跟进记录
      */
-    public R deleteFollowRecord(Integer recordId){
+    public R deleteFollowRecord(Integer recordId) {
         return AdminRecord.dao.deleteById(recordId) ? R.ok() : R.error();
     }
 
@@ -345,9 +347,9 @@ public class CrmRecordService<T> {
      * @author wyq
      * 查询跟进记录类型
      */
-    public R queryRecordOptions(){
-        List<String> list = Db.query("select value from 72crm_admin_config where name = 'followRecordOption'");
-        return R.ok().put("data",list);
+    public R queryRecordOptions() {
+        List<String> list = crmActionRecordDao.queryListBySql("select value from lkcrm_admin_config where name = ? ", "followRecordOption");
+        return R.ok().put("data", list);
     }
 
     /**
@@ -355,17 +357,17 @@ public class CrmRecordService<T> {
      * 设置跟进记录类型
      */
     @Before(Tx.class)
-    public R setRecordOptions(List<String> list){
+    public R setRecordOptions(List<String> list) {
         Db.delete("delete from 72crm_admin_config where name = 'followRecordOption'");
         List<AdminConfig> adminConfigList = new ArrayList<>();
-        for(int i=0;i<list.size();i++){
+        for (int i = 0; i < list.size(); i++) {
             AdminConfig adminConfig = new AdminConfig();
             adminConfig.setName("followRecordOption");
             adminConfig.setValue(list.get(i));
             adminConfig.setDescription("跟进记录选项");
             adminConfigList.add(adminConfig);
         }
-        Db.batchSave(adminConfigList,100);
+        Db.batchSave(adminConfigList, 100);
         return R.ok();
     }
 }
