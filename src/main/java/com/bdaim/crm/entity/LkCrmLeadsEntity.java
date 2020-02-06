@@ -8,7 +8,7 @@ import java.util.Objects;
 @Table(name = "lkcrm_crm_leads", schema = "", catalog = "")
 public class LkCrmLeadsEntity {
     private Integer leadsId;
-    private Integer isTransform;
+    private int isTransform;
     private Integer followup;
     private String leadsName;
     private Integer customerId;
@@ -36,11 +36,11 @@ public class LkCrmLeadsEntity {
 
     @Basic
     @Column(name = "is_transform")
-    public Integer getIsTransform() {
+    public int getIsTransform() {
         return isTransform;
     }
 
-    public void setIsTransform(Integer isTransform) {
+    public void setIsTransform(int isTransform) {
         this.isTransform = isTransform;
     }
 

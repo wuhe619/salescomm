@@ -3,27 +3,25 @@ package com.bdaim.crm.erp.admin.service;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
-import com.bdaim.auth.LoginUser;
+import com.bdaim.crm.common.config.paragetter.BasePageRequest;
+import com.bdaim.crm.common.constant.BaseConstant;
+import com.bdaim.crm.dao.LkCrmAdminDeptDao;
 import com.bdaim.crm.dao.LkCrmAdminUserDao;
 import com.bdaim.crm.entity.LkCrmAdminUserEntity;
-import com.bdaim.util.JavaBeanUtil;
-import com.jfinal.aop.Before;
-import com.jfinal.aop.Inject;
-import com.jfinal.kit.Kv;
-import com.jfinal.plugin.activerecord.Db;
-import com.jfinal.plugin.activerecord.Page;
-import com.jfinal.plugin.activerecord.Record;
-import com.jfinal.plugin.activerecord.SqlPara;
-import com.jfinal.plugin.activerecord.tx.Tx;
-import com.bdaim.crm.common.config.paragetter.BasePageRequest;
-import com.bdaim.crm.common.config.redis.RedisManager;
-import com.bdaim.crm.common.constant.BaseConstant;
 import com.bdaim.crm.erp.admin.entity.AdminUser;
 import com.bdaim.crm.erp.admin.entity.AdminUserRole;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
 import com.bdaim.crm.utils.Sort;
 import com.bdaim.crm.utils.TagUtil;
+import com.bdaim.util.JavaBeanUtil;
+import com.jfinal.aop.Before;
+import com.jfinal.kit.Kv;
+import com.jfinal.plugin.activerecord.Db;
+import com.jfinal.plugin.activerecord.Page;
+import com.jfinal.plugin.activerecord.Record;
+import com.jfinal.plugin.activerecord.SqlPara;
+import com.jfinal.plugin.activerecord.tx.Tx;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -39,6 +37,8 @@ public class AdminUserService {
     private AdminDeptService adminDeptService;
     @Resource
     private LkCrmAdminUserDao crmAdminUserDao;
+    @Resource
+    private LkCrmAdminDeptDao crmAdminDeptDao;
 
     @Before(Tx.class)
     public R setUser(AdminUser adminUser, String roleIds) {
@@ -315,7 +315,7 @@ public class AdminUserService {
             return adminUsers;
         }
         //只要上面list的长度不为0 那么这个也不会为0
-        sql = "SELECT k.data_type, k.menu_id,m.menu_name,am.parent_realm AS realm FROM " +
+        sql = "SELECT k.data_type, k.menu_id,am.menu_name,am.parent_realm AS realm FROM " +
                 "\t(\n" +
                 "\t\tSELECT\n" +
                 "\t\t\tt.*, arm.menu_id\n" +
@@ -349,7 +349,7 @@ public class AdminUserService {
         param.add(userId);
         param.add(realm);
         //List<Record> userRoleList = Db.find(Db.getSqlPara("admin.role.queryUserRoleListByUserId", Kv.by("userId", userId).set("realm", realm)));
-        List<Record> userRoleList = JavaBeanUtil.mapToRecords(crmAdminUserDao.sqlQuery(sql, param));
+        List<Record> userRoleList = JavaBeanUtil.mapToRecords(crmAdminUserDao.sqlQuery(sql, param.toArray()));
         if (list.size() == 1 && userRoleList.size() == 1) {//如果为1的话 验证是否有最高权限，否则及有多个权限
             //拥有最高数据权限
             if (list.contains(5)) {
@@ -359,11 +359,13 @@ public class AdminUserService {
                 LkCrmAdminUserEntity adminUser = crmAdminUserDao.get(userId);
                 if (list.contains(4)) {
                     List<Record> records = adminDeptService.queryDeptByParentDept(adminUser.getDeptId(), BaseConstant.AUTH_DATA_RECURSION_NUM);
-                    List<Integer> deptIds = new ArrayList<>();
-                    deptIds.add(adminUser.getDeptId());
-                    records.forEach(record -> deptIds.add(record.getInt("id")));
-                    SqlPara sqlPara = Db.getSqlPara("admin.user.queryUserIdByDeptId", Kv.by("deptIds", deptIds));
-                    adminUsers.addAll(Db.query(sqlPara.getSql(), sqlPara.getPara()));
+                    List<String> deptIds = new ArrayList<>();
+                    deptIds.add(adminUser.getDeptId().toString());
+                    records.forEach(record -> deptIds.add(record.getStr("id")));
+
+                    //SqlPara sqlPara = Db.getSqlPara("admin.user.queryUserIdByDeptId", Kv.by("deptIds", deptIds));
+                    //adminUsers.addAll(Db.query(sqlPara.getSql(), sqlPara.getPara()));
+                    adminUsers.addAll(crmAdminUserDao.queryUserIdByDeptId(deptIds));
                 } else if (list.contains(3)) {
                     queryUserByDeptId(adminUser.getDeptId()).forEach(record -> adminUsers.add(record.getLong("id")));
                 }
@@ -375,7 +377,7 @@ public class AdminUserService {
             }
         } else {//多个权限
             if (realm != null && !"".equals(realm)) {
-                AdminUser adminUser = AdminUser.dao.findById(userId);
+                LkCrmAdminUserEntity adminUser = crmAdminUserDao.get(userId);
                 for (Record r : userRoleList) {//如果有多个权限 验证当前用户是否对当前管理 是否为本人操作
                     if (r.getStr("realm").equals(realm) && r.getStr("data_type").equals("1")) {//当前操作的管理链接地址
                         adminUsers.add(userId);
@@ -399,13 +401,15 @@ public class AdminUserService {
                         return adminUsers;
                     } else if (r.getStr("realm").equals(realm) && r.getStr("data_type").equals("4")) {//本部门及下属部门
                         List<Record> records = adminDeptService.queryDeptByParentDept(adminUser.getDeptId(), BaseConstant.AUTH_DATA_RECURSION_NUM);
-                        List<Integer> deptIds = new ArrayList<>();
-                        deptIds.add(adminUser.getDeptId());
+                        List<String> deptIds = new ArrayList<>();
+                        deptIds.add(adminUser.getDeptId().toString());
                         records.forEach(record -> {
-                            deptIds.add(record.getInt("id"));
+                            deptIds.add(record.getStr("id"));
                         });
-                        SqlPara sqlPara = Db.getSqlPara("admin.user.queryUserIdByDeptId", Kv.by("deptIds", deptIds));
-                        adminUsers.addAll(Db.query(sqlPara.getSql(), sqlPara.getPara()));
+                       /* SqlPara sqlPara = Db.getSqlPara("admin.user.queryUserIdByDeptId", Kv.by("deptIds", deptIds));
+                        adminUsers.addAll(Db.query(sqlPara.getSql(), sqlPara.getPara()));*/
+
+                        adminUsers.addAll(crmAdminUserDao.queryUserIdByDeptId(deptIds));
                         adminUsers.add(userId);
                         HashSet<Long> hashSet = new HashSet<>(adminUsers);
                         adminUsers.clear();
@@ -422,11 +426,13 @@ public class AdminUserService {
                     AdminUser adminUser = AdminUser.dao.findById(userId);
                     if (list.contains(4)) {
                         List<Record> records = adminDeptService.queryDeptByParentDept(adminUser.getDeptId(), BaseConstant.AUTH_DATA_RECURSION_NUM);
-                        List<Integer> deptIds = new ArrayList<>();
-                        deptIds.add(adminUser.getDeptId());
-                        records.forEach(record -> deptIds.add(record.getInt("id")));
-                        SqlPara sqlPara = Db.getSqlPara("admin.user.queryUserIdByDeptId", Kv.by("deptIds", deptIds));
-                        adminUsers.addAll(Db.query(sqlPara.getSql(), sqlPara.getPara()));
+                        List<String> deptIds = new ArrayList<>();
+                        deptIds.add(adminUser.getDeptId().toString());
+                        records.forEach(record -> deptIds.add(record.getStr("id")));
+                       /* SqlPara sqlPara = Db.getSqlPara("admin.user.queryUserIdByDeptId", Kv.by("deptIds", deptIds));
+                        adminUsers.addAll(Db.query(sqlPara.getSql(), sqlPara.getPara()));*/
+
+                        adminUsers.addAll(crmAdminUserDao.queryUserIdByDeptId(deptIds));
                     } else if (list.contains(3)) {
                         queryUserByDeptId(adminUser.getDeptId()).forEach(record -> adminUsers.add(record.getLong("id")));
                     }
@@ -449,7 +455,7 @@ public class AdminUserService {
     public List<Long> queryUserByParentUser(Long userId, Integer deepness) {
         List<Long> recordList = new ArrayList<>();
         if (deepness > 0) {
-            List<Long> records = Db.query("SELECT b.user_id FROM 72crm_admin_user AS b WHERE b.parent_id = ?", userId);
+            List<Long> records = crmAdminDeptDao.queryListBySql("SELECT b.user_id FROM lkcrm_admin_user AS b WHERE b.parent_id = ?", userId);
             recordList.addAll(records);
             int size = recordList.size();
             for (int i = 0; i < size; i++) {
@@ -460,7 +466,9 @@ public class AdminUserService {
     }
 
     public List<Record> queryUserByDeptId(Integer deptId) {
-        return Db.find(Db.getSql("admin.user.queryUserByDeptId"), deptId);
+        List<Map<String, Object>> objects = crmAdminDeptDao.sqlQuery(" SELECT * FROM lkcrm_admin_dept WHERE dept_id = ? ", deptId);
+        //return Db.find(Db.getSql("admin.user.queryUserByDeptId"), deptId);
+        return JavaBeanUtil.mapToRecords(objects);
     }
 
     /**
