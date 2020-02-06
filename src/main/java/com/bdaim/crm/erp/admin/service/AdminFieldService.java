@@ -118,7 +118,7 @@ public class AdminFieldService {
         }
         Integer label = jsonObject.getInteger("label");
         Integer categoryId = jsonObject.getInteger("categoryId");
-        if (categoryId != null && Db.queryInt("select ifnull(is_sys,0) from 72crm_oa_examine_category where category_id = ?", categoryId) == 1) {
+        if (categoryId != null && Db.queryInt("select ifnull(is_sys,0) from lkcrm_oa_examine_category where category_id = ?", categoryId) == 1) {
             return R.error("系统审批类型暂不支持编辑");
         }
         List<Integer> arr = new ArrayList<>();
@@ -128,7 +128,7 @@ public class AdminFieldService {
                 arr.add(field.getFieldId());
             }
         });
-        List<AdminField> fieldSorts = AdminField.dao.find("select name from 72crm_admin_field where label = ?", label);
+        List<AdminField> fieldSorts = AdminField.dao.find("select name from lkcrm_admin_field where label = ?", label);
         List<String> nameList = fieldSorts.stream().map(AdminField::getName).collect(Collectors.toList());
         if (arr.size() > 0) {
             SqlPara sql = Db.getSqlPara("admin.field.deleteByChooseId", Kv.by("ids", arr).set("label", label).set("categoryId", categoryId));
@@ -158,7 +158,7 @@ public class AdminFieldService {
                 if (entity.getFieldType() == 0) {
                     Db.update(Db.getSqlPara("admin.field.updateFieldSortName", entity));
                 } else if (entity.getFieldType() == 1) {
-                    Db.update("update 72crm_admin_field_sort set name = ? where field_id = ?", entity.getName(), entity.getFieldId());
+                    Db.update("update lkcrm_admin_field_sort set name = ? where field_id = ?", entity.getName(), entity.getFieldId());
                 }
             } else {
                 entity.save();
@@ -259,22 +259,23 @@ public class AdminFieldService {
      * @param batchId 批次ID
      * @return 操作结果
      */
-    public boolean save(List<AdminFieldv> array, String batchId) {
+    public boolean save(List<LkCrmAdminFieldvEntity> array, String batchId) {
         if (array == null || StrUtil.isEmpty(batchId)) {
             return false;
         }
-        Db.deleteById("72crm_admin_fieldv", "batch_id", batchId);
+        crmAdminFieldvDao.deleteByBatchId(batchId);
+        //Db.deleteById("lkcrm_admin_fieldv", "batch_id", batchId);
         array.forEach(fieldv -> {
             fieldv.setId(null);
-            fieldv.setCreateTime(DateUtil.date());
+            fieldv.setCreateTime(new Timestamp(System.currentTimeMillis()));
             fieldv.setBatchId(batchId);
-            fieldv.save();
+            crmAdminFieldvDao.save(fieldv);
         });
         return true;
     }
 
     public synchronized void createView(Integer label) {
-        List<Record> fieldNameList = Db.find("select name,type from 72crm_admin_field WHERE label=? and field_type = 0 ORDER BY sorting asc", label);
+        List<Record> fieldNameList = Db.find("select name,type from lkcrm_admin_field WHERE label=? and field_type = 0 ORDER BY sorting asc", label);
         StringBuilder sql = new StringBuilder();
         StringBuilder userJoin = new StringBuilder();
         StringBuilder deptJoin = new StringBuilder();
@@ -284,12 +285,12 @@ public class AdminFieldService {
             if (type == 10) {
                 sql.append(String.format("GROUP_CONCAT(if(a.name = '%s',b.realname,null)) AS `%s`,", name, name));
                 if (userJoin.length() == 0) {
-                    userJoin.append(" left join 72crm_admin_user b on find_in_set(user_id,ifnull(value,0))");
+                    userJoin.append(" left join lkcrm_admin_user b on find_in_set(user_id,ifnull(value,0))");
                 }
             } else if (type == 12) {
                 sql.append(String.format("GROUP_CONCAT(if(a.name = '%s',c.name,null)) AS `%s`,", name, name));
                 if (deptJoin.length() == 0) {
-                    deptJoin.append(" left join 72crm_admin_dept c on find_in_set(c.dept_id,ifnull(value,0))");
+                    deptJoin.append(" left join lkcrm_admin_dept c on find_in_set(c.dept_id,ifnull(value,0))");
                 }
             } else {
                 sql.append(String.format("max(if(a.name = '%s',value, null)) AS `%s`,", name, name));
@@ -354,7 +355,7 @@ public class AdminFieldService {
         recordList.forEach(record -> {
             if (record.getInt("type") == 10) {
                 if (StrUtil.isNotEmpty(record.getStr("value"))) {
-                    List<Record> userList = Db.find("select user_id,realname from 72crm_admin_user where user_id in (" + record.getStr("value") + ")");
+                    List<Record> userList = Db.find("select user_id,realname from lkcrm_admin_user where user_id in (" + record.getStr("value") + ")");
                     record.set("value", userList);
                 } else {
                     record.set("value", new ArrayList<>());
@@ -362,7 +363,7 @@ public class AdminFieldService {
                 record.set("default_value", new ArrayList<>(0));
             } else if (record.getInt("type") == 12) {
                 if (StrUtil.isNotEmpty(record.getStr("value"))) {
-                    List<Record> deptList = Db.find("select dept_id,name from 72crm_admin_dept where dept_id in (" + record.getStr("value") + ")");
+                    List<Record> deptList = Db.find("select dept_id,name from lkcrm_admin_dept where dept_id in (" + record.getStr("value") + ")");
                     record.set("value", deptList);
                 } else {
                     record.set("value", new ArrayList<>());
@@ -609,7 +610,7 @@ public class AdminFieldService {
         List<Record> fieldList = customFieldList(adminFieldSort.getLabel().toString());
         for (Record record : fieldList) {
             String fieldName = record.getStr("name");
-            Integer number = Db.queryInt("select count(*) as number from 72crm_admin_field_sort where user_id = ? and label = ? and field_name = ?", userId, adminFieldSort.getLabel(), fieldName);
+            Integer number = Db.queryInt("select count(*) as number from lkcrm_admin_field_sort where user_id = ? and label = ? and field_name = ?", userId, adminFieldSort.getLabel(), fieldName);
             if (number.equals(0)) {
                 AdminFieldSort newField = new AdminFieldSort();
                 newField.setFieldName(fieldName).setName(fieldName).setLabel(adminFieldSort.getLabel()).setIsHide(1).setUserId(userId).setSort(1);
@@ -667,17 +668,17 @@ public class AdminFieldService {
             } else {
                 if (10 == dataType) {
                     if (StrUtil.isNotEmpty(record.getStr("value"))) {
-                        record.set("value", Db.queryStr("select group_concat(realname) from `72crm_admin_user` where user_id in (" + record.getStr("value") + ")"));
+                        record.set("value", Db.queryStr("select group_concat(realname) from `lkcrm_admin_user` where user_id in (" + record.getStr("value") + ")"));
                     }
                 } else if (12 == dataType) {
                     if (StrUtil.isNotEmpty(record.getStr("value"))) {
-                        record.set("value", Db.queryStr("select group_concat(name) from `72crm_admin_dept` where dept_id in (" + record.getStr("value") + ")"));
+                        record.set("value", Db.queryStr("select group_concat(name) from `lkcrm_admin_dept` where dept_id in (" + record.getStr("value") + ")"));
                     }
                 }
             }
             if (dataType == 8) {
                 if (StrUtil.isNotEmpty(record.getStr("value"))) {
-                    record.set("value", Db.find("select * from `72crm_admin_file` where batch_id = ?", record.getStr("value")));
+                    record.set("value", Db.find("select * from `lkcrm_admin_file` where batch_id = ?", record.getStr("value")));
                 }
             }
         });

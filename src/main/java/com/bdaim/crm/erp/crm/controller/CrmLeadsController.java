@@ -63,7 +63,7 @@ public class CrmLeadsController extends Controller {
         jsonObject.fluentPut("type", 1);
         basePageRequest.setJsonObject(jsonObject);
         resp.setData(adminSceneService.filterConditionAndGetPageList(basePageRequest).get("data"));
-        return(adminSceneService.filterConditionAndGetPageList(basePageRequest));
+        return (adminSceneService.filterConditionAndGetPageList(basePageRequest));
         //return resp;
     }
 
@@ -96,7 +96,7 @@ public class CrmLeadsController extends Controller {
     @ResponseBody
     @RequestMapping(value = "/queryById", method = RequestMethod.POST)
     public R queryById(@Para("leadsId") Integer leadsId) {
-        return(R.ok().put("data", crmLeadsService.queryById(leadsId).getColumns()));
+        return (R.ok().put("data", crmLeadsService.queryById(leadsId).getColumns()));
     }
 
     /**
@@ -113,8 +113,10 @@ public class CrmLeadsController extends Controller {
      */
     @Permissions("crm:leads:delete")
     @NotNullValidate(value = "leadsIds", message = "线索id不能为空")
-    public void deleteByIds(@Para("leadsIds") String leadsIds) {
-        renderJson(crmLeadsService.deleteByIds(leadsIds));
+    @ResponseBody
+    @RequestMapping(value = "/leadsIds", method = RequestMethod.POST)
+    public R deleteByIds(@Para("leadsIds") String leadsIds) {
+        return (crmLeadsService.deleteByIds(leadsIds));
     }
 
     /**
@@ -124,8 +126,10 @@ public class CrmLeadsController extends Controller {
     @Permissions("crm:leads:transfer")
     @NotNullValidate(value = "leadsIds", message = "线索id不能为空")
     @NotNullValidate(value = "newOwnerUserId", message = "新负责人id不能为空")
-    public void changeOwnerUser(@Para("leadsIds") String leadsIds, @Para("newOwnerUserId") Integer newOwnerUserId) {
-        renderJson(crmLeadsService.updateOwnerUserId(leadsIds, newOwnerUserId));
+    @ResponseBody
+    @RequestMapping(value = "/changeOwnerUser", method = RequestMethod.POST)
+    public R changeOwnerUser(@Para("leadsIds") String leadsIds, @Para("newOwnerUserId") Integer newOwnerUserId) {
+        return (crmLeadsService.updateOwnerUserId(leadsIds, newOwnerUserId));
     }
 
     /**
@@ -134,8 +138,10 @@ public class CrmLeadsController extends Controller {
      */
     @Permissions("crm:leads:transform")
     @NotNullValidate(value = "leadsIds", message = "线索id不能为空")
-    public void transfer(@Para("leadsIds") String leadsIds) {
-        renderJson(crmLeadsService.translate(leadsIds));
+    @ResponseBody
+    @RequestMapping(value = "/transfer", method = RequestMethod.POST)
+    public R transfer(@Para("leadsIds") String leadsIds) {
+        return (crmLeadsService.translate(leadsIds));
     }
 
     /**

@@ -212,7 +212,7 @@ public class CrmRecordService<T> {
     }
 
     public R queryRecordList(String actionId, String crmTypes) {
-        List<Record> recordList = Db.find("select a.*,b.realname,b.img from 72crm_crm_action_record a left join 72crm_admin_user b on a.create_user_id = b.user_id where action_id = ? and types = ? order by create_time desc", actionId, crmTypes);
+        List<Record> recordList = Db.find("select a.*,b.realname,b.img from lkcrm_crm_action_record a left join lkcrm_admin_user b on a.create_user_id = b.user_id where action_id = ? and types = ? order by create_time desc", actionId, crmTypes);
         recordList.forEach(record -> {
             List<String> list = JSON.parseArray(record.getStr("content"), String.class);
             record.set("content", list);
@@ -227,7 +227,7 @@ public class CrmRecordService<T> {
      * @param crmTypes
      */
     public void addConversionRecord(Integer actionId, String crmTypes, Integer userId) {
-        String name = Db.queryStr("select realname from 72crm_admin_user where user_id = ?", userId);
+        String name = Db.queryStr("select realname from lkcrm_admin_user where user_id = ?", userId);
         CrmActionRecord crmActionRecord = new CrmActionRecord();
         crmActionRecord.setCreateUserId(BaseUtil.getUser().getUserId().intValue());
         crmActionRecord.setCreateTime(new Date());
@@ -267,15 +267,15 @@ public class CrmRecordService<T> {
      * @param crmTypes
      */
     public void addConversionCustomerRecord(Integer actionId, String crmTypes, String name) {
-        CrmActionRecord crmActionRecord = new CrmActionRecord();
+        LkCrmActionRecordEntity crmActionRecord = new LkCrmActionRecordEntity();
         crmActionRecord.setCreateUserId(BaseUtil.getUser().getUserId().intValue());
-        crmActionRecord.setCreateTime(new Date());
+        crmActionRecord.setCreateTime(new Timestamp(System.currentTimeMillis()));
         crmActionRecord.setTypes(crmTypes);
         crmActionRecord.setActionId(actionId);
         ArrayList<String> strings = new ArrayList<>();
         strings.add("将线索\"" + name + "\"转化为客户");
         crmActionRecord.setContent(JSON.toJSONString(strings));
-        crmActionRecord.save();
+        crmActionRecordDao.save(crmActionRecord);
     }
 
     /**
@@ -316,10 +316,10 @@ public class CrmRecordService<T> {
                 continue;
             }
             ArrayList<String> strings = new ArrayList<>();
-            String name = Db.queryStr("select realname from 72crm_admin_user where user_id = ?", userId);
-            CrmActionRecord crmActionRecord = new CrmActionRecord();
+            String name = crmAdminFieldvDao.queryForObject("select realname from lkcrm_admin_user where user_id = ?", userId);
+            LkCrmActionRecordEntity crmActionRecord = new LkCrmActionRecordEntity();
             crmActionRecord.setCreateUserId(BaseUtil.getUser().getUserId().intValue());
-            crmActionRecord.setCreateTime(new Date());
+            crmActionRecord.setCreateTime(new Timestamp(System.currentTimeMillis()));
             crmActionRecord.setTypes(crmTypes);
             crmActionRecord.setActionId(Integer.valueOf(id));
             if (userId == null) {
@@ -330,7 +330,7 @@ public class CrmRecordService<T> {
                 strings.add("将客户分配给：" + name);
             }
             crmActionRecord.setContent(JSON.toJSONString(strings));
-            crmActionRecord.save();
+            crmActionRecordDao.save(crmActionRecord);
         }
     }
 
@@ -358,7 +358,7 @@ public class CrmRecordService<T> {
      */
     @Before(Tx.class)
     public R setRecordOptions(List<String> list) {
-        Db.delete("delete from 72crm_admin_config where name = 'followRecordOption'");
+        Db.delete("delete from lkcrm_admin_config where name = 'followRecordOption'");
         List<AdminConfig> adminConfigList = new ArrayList<>();
         for (int i = 0; i < list.size(); i++) {
             AdminConfig adminConfig = new AdminConfig();
