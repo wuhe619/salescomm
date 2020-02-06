@@ -1,8 +1,8 @@
 package com.bdaim.crm.erp.admin.controller;
 
-import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.crm.common.annotation.NotNullValidate;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
+import com.bdaim.crm.entity.LkCrmAdminSceneEntity;
 import com.bdaim.crm.erp.admin.entity.AdminScene;
 import com.bdaim.crm.erp.admin.service.AdminSceneService;
 import com.bdaim.crm.utils.R;
@@ -30,8 +30,9 @@ public class AdminSceneController extends Controller {
      * 查询场景字段
      */
     @NotNullValidate(value = "label",message = "label不能为空")
-    public void queryField(@Para("label") Integer label){
-        renderJson(adminSceneService.queryField(label));
+    @RequestMapping(value = "/queryField", method = RequestMethod.POST)
+    public R queryField(@Para("label") Integer label){
+        return (adminSceneService.queryField(label));
     }
 
     /**
@@ -41,8 +42,9 @@ public class AdminSceneController extends Controller {
     @NotNullValidate(value = "type",message = "type不能为空")
     @NotNullValidate(value = "name",message = "场景名称不能为空")
     @NotNullValidate(value = "data",message = "data不能为空")
-    public void addScene(@Para("") AdminScene adminScene){
-        renderJson(adminSceneService.addScene(adminScene));
+    @RequestMapping(value = "/addScene", method = RequestMethod.POST)
+    public R addScene(@Para("") LkCrmAdminSceneEntity adminScene){
+        return (adminSceneService.addScene(adminScene));
     }
 
     /**
@@ -50,8 +52,9 @@ public class AdminSceneController extends Controller {
      * 更新场景
      */
     @NotNullValidate(value = "sceneId",message = "场景id不能为空")
-    public void updateScene(@Para("")AdminScene adminScene){
-        renderJson(adminSceneService.updateScene(adminScene));
+    @RequestMapping(value = "/updateScene", method = RequestMethod.POST)
+    public R updateScene(@Para("")LkCrmAdminSceneEntity adminScene){
+        return (adminSceneService.updateScene(adminScene));
     }
 
     /**
@@ -60,8 +63,9 @@ public class AdminSceneController extends Controller {
      * 设置默认场景
      */
     @NotNullValidate(value = "sceneId",message = "场景id不能为空")
-    public void setDefaultScene(@Para("sceneId") Integer sceneId){
-        renderJson(adminSceneService.setDefaultScene(sceneId));
+    @RequestMapping(value = "/setDefaultScene", method = RequestMethod.POST)
+    public R setDefaultScene(@Para("sceneId") Integer sceneId){
+        return(adminSceneService.setDefaultScene(sceneId));
     }
 
     /**
@@ -69,8 +73,9 @@ public class AdminSceneController extends Controller {
      * 删除场景
      */
     @NotNullValidate(value = "sceneId",message = "场景id不能为空")
-    public void deleteScene(@Para("")AdminScene adminScene){
-        renderJson(adminSceneService.deleteScene(adminScene));
+    @RequestMapping(value = "/deleteScene", method = RequestMethod.POST)
+    public R deleteScene(@Para("")AdminScene adminScene){
+        return(adminSceneService.deleteScene(adminScene));
     }
 
     /**
@@ -81,10 +86,7 @@ public class AdminSceneController extends Controller {
     @ResponseBody
     @RequestMapping(value = "/queryScene", method = RequestMethod.POST)
     public R queryScene(@Para("type") Integer type){
-        ResponseInfo resp = new ResponseInfo();
-        //renderJson(adminSceneService.queryScene(type));
         return (adminSceneService.queryScene(type));
-        //return resp;
     }
 
     /**
@@ -92,8 +94,9 @@ public class AdminSceneController extends Controller {
      * 查询场景设置
      */
     @NotNullValidate(value = "type",message = "type不能为空")
-    public void querySceneConfig(@Para("") AdminScene adminScene){
-        renderJson(adminSceneService.querySceneConfig(adminScene));
+    @RequestMapping(value = "/querySceneConfig", method = RequestMethod.POST)
+    public R querySceneConfig(@Para("") AdminScene adminScene){
+        return (adminSceneService.querySceneConfig(adminScene));
     }
 
     /**
@@ -102,15 +105,17 @@ public class AdminSceneController extends Controller {
      */
     @NotNullValidate(value = "type",message = "type不能为空")
     @NotNullValidate(value = "noHideIds",message = "显示场景不能为空")
-    public void sceneConfig(@Para("") AdminScene adminScene){
-        renderJson(adminSceneService.sceneConfig(adminScene));
+    @RequestMapping(value = "/sceneConfig", method = RequestMethod.POST)
+    public R sceneConfig(@Para("") AdminScene adminScene){
+        return(adminSceneService.sceneConfig(adminScene));
     }
 
     /**
      * @author wyq
      * Crm列表页查询
      */
-    public void queryPageList(BasePageRequest basePageRequest){
-        renderJson(adminSceneService.filterConditionAndGetPageList(basePageRequest));
+    @RequestMapping(value = "/queryPageList", method = RequestMethod.POST)
+    public R queryPageList(BasePageRequest basePageRequest){
+        return(adminSceneService.filterConditionAndGetPageList(basePageRequest));
     }
 }

@@ -8,9 +8,9 @@ import com.bdaim.common.dto.Page;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.common.constant.BaseConstant;
 import com.bdaim.crm.dao.LkCrmAdminSceneDao;
+import com.bdaim.crm.entity.LkCrmAdminSceneDefaultEntity;
 import com.bdaim.crm.entity.LkCrmAdminSceneEntity;
 import com.bdaim.crm.erp.admin.entity.AdminScene;
-import com.bdaim.crm.erp.admin.entity.AdminSceneDefault;
 import com.bdaim.crm.erp.crm.service.CrmBusinessService;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.FieldUtil;
@@ -18,11 +18,9 @@ import com.bdaim.crm.utils.ParamsUtil;
 import com.bdaim.crm.utils.R;
 import com.bdaim.util.JavaBeanUtil;
 import com.bdaim.util.NumberConvertUtil;
-import com.jfinal.aop.Aop;
 import com.jfinal.aop.Before;
 import com.jfinal.json.Json;
 import com.jfinal.kit.Kv;
-import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.tx.Tx;
 import org.springframework.stereotype.Service;
@@ -30,10 +28,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import javax.transaction.Transactional;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @Transactional
@@ -180,13 +175,14 @@ public class AdminSceneService {
      * 增加场景
      */
     @Before(Tx.class)
-    public R addScene(AdminScene adminScene) {
+    public R addScene(LkCrmAdminSceneEntity adminScene) {
         Long userId = BaseUtil.getUser().getUserId();
-        adminScene.setIsHide(0).setSort(99999).setIsSystem(0).setCreateTime(DateUtil.date()).setUserId(userId);
-        adminScene.save();
+        adminScene.setIsHide(0).setSort(99999).setIsSystem(0).setCreateTime(DateUtil.date().toTimestamp()).setUserId(userId);
+        crmAdminSceneDao.save(adminScene);
         if (1 == adminScene.getIsDefault()) {
-            AdminSceneDefault adminSceneDefault = new AdminSceneDefault();
-            adminSceneDefault.setSceneId(adminScene.getSceneId()).setType(adminScene.getType()).setUserId(userId).save();
+            LkCrmAdminSceneDefaultEntity adminSceneDefault = new LkCrmAdminSceneDefaultEntity();
+            adminSceneDefault.setSceneId(adminScene.getSceneId()).setType(adminScene.getType()).setUserId(userId);
+            crmAdminSceneDao.saveOrUpdate(adminSceneDefault);
         }
         return R.ok();
     }
@@ -196,14 +192,15 @@ public class AdminSceneService {
      * 更新场景
      */
     @Before(Tx.class)
-    public R updateScene(AdminScene adminScene) {
+    public R updateScene(LkCrmAdminSceneEntity adminScene) {
         Long userId = BaseUtil.getUser().getUserId();
-        AdminScene oldAdminScene = AdminScene.dao.findById(adminScene.getSceneId());
+        LkCrmAdminSceneEntity oldAdminScene = crmAdminSceneDao.get(adminScene.getSceneId());
         if (1 == adminScene.getIsDefault()) {
-            Db.update("update 72crm_admin_scene_default set scene_id = ? where user_id = ? and type = ?", adminScene.getSceneId(), userId, oldAdminScene.getType());
+            crmAdminSceneDao.executeUpdateSQL("update lkcrm_admin_scene_default set scene_id = ? where user_id = ? and type = ?", adminScene.getSceneId(), userId, oldAdminScene.getType());
         }
-        adminScene.setUserId(userId).setType(oldAdminScene.getType()).setSort(oldAdminScene.getSort()).setIsSystem(oldAdminScene.getIsSystem()).setUpdateTime(DateUtil.date());
-        return R.isSuccess(adminScene.update());
+        adminScene.setUserId(userId).setType(oldAdminScene.getType()).setSort(oldAdminScene.getSort()).setIsSystem(oldAdminScene.getIsSystem()).setUpdateTime(DateUtil.date().toTimestamp());
+        crmAdminSceneDao.saveOrUpdate(adminScene);
+        return R.isSuccess(true);
     }
 
     /**
@@ -213,10 +210,12 @@ public class AdminSceneService {
     @Before(Tx.class)
     public R setDefaultScene(Integer sceneId) {
         Long userId = BaseUtil.getUser().getUserId();
-        AdminScene oldAdminScene = AdminScene.dao.findById(sceneId);
-        Db.delete("delete from 72crm_admin_scene_default where user_id = ? and type = ?", userId, oldAdminScene.getType());
-        AdminSceneDefault adminSceneDefault = new AdminSceneDefault();
-        return adminSceneDefault.setSceneId(sceneId).setType(oldAdminScene.getType()).setUserId(userId).save() ? R.ok() : R.error();
+        LkCrmAdminSceneEntity oldAdminScene = crmAdminSceneDao.get(sceneId);
+        crmAdminSceneDao.executeUpdateSQL("delete from lkcrm_admin_scene_default where user_id = ? and type = ?", userId, oldAdminScene.getType());
+        LkCrmAdminSceneDefaultEntity adminSceneDefault = new LkCrmAdminSceneDefaultEntity();
+        adminSceneDefault.setSceneId(sceneId).setType(oldAdminScene.getType()).setUserId(userId);
+        crmAdminSceneDao.saveOrUpdate(adminSceneDefault);
+        return R.ok();
     }
 
     /**
@@ -225,10 +224,11 @@ public class AdminSceneService {
      */
     @Before(Tx.class)
     public R deleteScene(AdminScene adminScene) {
-        if (1 == AdminScene.dao.findById(adminScene.getSceneId()).getIsSystem()) {
+        if (1 == crmAdminSceneDao.get(adminScene.getSceneId()).getIsSystem()) {
             return R.error("系统场景不能删除");
         }
-        return AdminScene.dao.deleteById(adminScene.getSceneId()) ? R.ok() : R.error();
+        crmAdminSceneDao.delete(adminScene.getSceneId());
+        return R.ok();
     }
 
     /**
@@ -328,14 +328,16 @@ public class AdminSceneService {
      */
     public R querySceneConfig(AdminScene adminScene) {
         Long userId = BaseUtil.getUser().getUserId();
-        List<Record> valueList = Db.find(Db.getSql("admin.scene.queryScene"), adminScene.getType(), userId);
+        List<Record> valueList = JavaBeanUtil.mapToRecords(crmAdminSceneDao.queryScene(adminScene.getType(), userId));
+        //List<Record> valueList = Db.find(Db.getSql("admin.scene.queryScene"), adminScene.getType(), userId);
         for (Record scene : valueList) {
             if (StrUtil.isNotEmpty(scene.getStr("data"))) {
                 JSONObject jsonObject = JSON.parseObject(scene.getStr("data"));
                 scene.set("data", jsonObject);
             }
         }
-        List<Record> hideValueList = Db.find(Db.getSql("admin.scene.queryHideScene"), adminScene.getType(), userId);
+        //List<Record> hideValueList = Db.find(Db.getSql("admin.scene.queryHideScene"), adminScene.getType(), userId);
+        List<Record> hideValueList = JavaBeanUtil.mapToRecords(crmAdminSceneDao.queryHideScene(adminScene.getType(), userId));
         for (Record hideScene : hideValueList) {
             if (StrUtil.isNotEmpty(hideScene.getStr("data"))) {
                 JSONObject jsonObject = JSON.parseObject(hideScene.getStr("data"));
@@ -354,15 +356,17 @@ public class AdminSceneService {
         Long userId = BaseUtil.getUser().getUserId();
         String[] sortArr = adminScene.getNoHideIds().split(",");
         for (int i = 0; i < sortArr.length; i++) {
-            Db.update(Db.getSql("admin.scene.sort"), i + 1, adminScene.getType(), userId, sortArr[i]);
+            crmAdminSceneDao.executeUpdateSQL("update 72crm_admin_scene set is_hide = 0,sort = ? where type = ? and user_id = ? and scene_id = ?", i + 1, adminScene.getType(), userId, sortArr[i]);
+            //Db.update(Db.getSql("admin.scene.sort"), i + 1, adminScene.getType(), userId, sortArr[i]);
         }
         if (null != adminScene.getHideIds()) {
             String[] hideIdsArr = adminScene.getHideIds().split(",");
-            Record number = Db.findFirst(Db.getSqlPara("admin.scene.queryIsHideSystem", Kv.by("ids", hideIdsArr)));
+            Record number = JavaBeanUtil.mapToRecord(crmAdminSceneDao.queryIsHideSystem(Arrays.asList(hideIdsArr)));
             if (number.getInt("number") > 0) {
                 return R.error("系统场景不能隐藏");
             }
-            Db.update(Db.getSqlPara("admin.scene.isHide", Kv.by("ids", hideIdsArr).set("type", adminScene.getType()).set("userId", userId)));
+            crmAdminSceneDao.executeUpdateSQL(" update 72crm_admin_scene set is_hide = 1,sort = 0 where scene_id in (?) and type = ? and user_id = ? ", hideIdsArr, adminScene.getType(), userId);
+            //Db.update(Db.getSqlPara("admin.scene.isHide", Kv.by("ids", hideIdsArr).set("type", adminScene.getType()).set("userId", userId)));
         }
         return R.ok();
     }

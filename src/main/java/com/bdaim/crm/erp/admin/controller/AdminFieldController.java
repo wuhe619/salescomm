@@ -1,10 +1,10 @@
 package com.bdaim.crm.erp.admin.controller;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.crm.common.annotation.NotNullValidate;
 import com.bdaim.crm.common.annotation.Permissions;
+import com.bdaim.crm.common.annotation.RequestBody;
 import com.bdaim.crm.entity.LkCrmAdminFieldSortEntity;
 import com.bdaim.crm.entity.LkCrmAdminFieldStyleEntity;
 import com.bdaim.crm.erp.admin.entity.AdminFieldSort;
@@ -18,10 +18,16 @@ import com.bdaim.util.JavaBeanUtil;
 import com.jfinal.core.Controller;
 import com.jfinal.core.paragetter.Para;
 import com.jfinal.plugin.activerecord.Record;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * @author hmb
@@ -65,36 +71,37 @@ public class AdminFieldController extends Controller {
      * 保存自定义字段E
      */
     @Permissions("manage:crm")
-    public void save() {
-        String str = getRawData();
-        JSONObject jsonObject = JSON.parseObject(str);
-        renderJson(adminFieldService.save(jsonObject));
+    @RequestMapping(value = "/save", method = RequestMethod.POST)
+    public R save(@RequestBody JSONObject jsonObject) {
+        //String str = getRawData();
+       // JSONObject jsonObject = JSON.parseObject(str);
+        return (adminFieldService.save(jsonObject));
     }
 
     /**
      *
      */
-    public void queryFields() {
-        renderJson(adminFieldService.queryFields());
+    @RequestMapping(value = "/queryListHead", method = RequestMethod.POST)
+    public R queryFields() {
+        return(adminFieldService.queryFields());
     }
 
     /**
      * @author zxy
      * 查询自定义字段列表
      */
-    public void list() {
-        JSONObject object = JSONObject.parseObject(getRawData());
-        renderJson(R.ok().put("data", adminFieldService.list(object.getString("label"), object.getString("categoryId"))));
+    @RequestMapping(value = "/queryListHead", method = RequestMethod.POST)
+    public R list(@RequestBody JSONObject object) {
+        //JSONObject object = JSONObject.parseObject(getRawData());
+        return(R.ok().put("data", adminFieldService.list(object.getString("label"), object.getString("categoryId"))));
     }
 
     /**
      * @author wyq
      * 查询新增或编辑字段
      */
-    @ResponseBody
     @RequestMapping(value = "/queryField", method = RequestMethod.POST)
     public R queryField(@Para("label") String label, @Para("id") Integer id) {
-        ResponseInfo resp = new ResponseInfo();
         List<Record> recordList = new LinkedList<>();
         if (id != null) {
             if ("1".equals(label)) {
@@ -131,8 +138,6 @@ public class AdminFieldController extends Controller {
                 recordList = adminFieldService.queryAddField(Integer.valueOf(label));
             }
         }
-        //renderJson(R.ok().put("data", recordList));
-        //resp.setData(JavaBeanUtil.recordToMap(recordList));
         return (R.ok().put("data", recordList));
     }
 
@@ -141,7 +146,6 @@ public class AdminFieldController extends Controller {
      * @param id    查询基本信息
      * @author wyq
      */
-    @ResponseBody
     @RequestMapping(value = "/information", method = RequestMethod.POST)
     public R information(@Para("types") Integer types, @Para("id") Integer id) {
         List<Record> recordList;
@@ -174,8 +178,9 @@ public class AdminFieldController extends Controller {
      * @author zhangzhiwei
      * 设置字段样式
      */
-    public void setFelidStyle() {
-        renderJson(adminFieldService.setFelidStyle(getKv()));
+    @RequestMapping(value = "/queryListHead", method = RequestMethod.POST)
+    public R setFelidStyle() {
+        return (adminFieldService.setFelidStyle(getKv()));
     }
 
     /**
@@ -186,7 +191,6 @@ public class AdminFieldController extends Controller {
     @NotNullValidate(value = "types", message = "字段校验参数错误")
     @NotNullValidate(value = "fieldName", message = "字段校验参数错误")
     @NotNullValidate(value = "fieldType", message = "字段校验参数错误")
-    @ResponseBody
     @RequestMapping(value = "/verify", method = RequestMethod.POST)
     public R verify(@RequestParam HashMap map) {
         return adminFieldService.verify(map);
@@ -197,7 +201,6 @@ public class AdminFieldController extends Controller {
      * 查询客户管理列表页字段
      */
     @NotNullValidate(value = "label", message = "label不能为空")
-    @ResponseBody
     @RequestMapping(value = "/queryListHead", method = RequestMethod.POST)
     public R queryListHead(@Para("") LkCrmAdminFieldSortEntity adminFieldSort) {
         ResponseInfo resp = new ResponseInfo();
@@ -221,7 +224,6 @@ public class AdminFieldController extends Controller {
         });
         resp.setData(JavaBeanUtil.recordToMap(records));
         return(R.ok().put("data",records));
-        //return resp;
     }
 
     /**
@@ -229,8 +231,9 @@ public class AdminFieldController extends Controller {
      * 查询字段排序隐藏设置
      */
     @NotNullValidate(value = "label", message = "label不能为空")
-    public void queryFieldConfig(@Para("") AdminFieldSort adminFieldSort) {
-        renderJson(adminFieldService.queryFieldConfig(adminFieldSort));
+    @RequestMapping(value = "/queryFieldConfig", method = RequestMethod.POST)
+    public R queryFieldConfig(@Para("") AdminFieldSort adminFieldSort) {
+        return (adminFieldService.queryFieldConfig(adminFieldSort));
     }
 
     /**
@@ -239,15 +242,17 @@ public class AdminFieldController extends Controller {
      */
     @NotNullValidate(value = "label", message = "label不能为空")
     @NotNullValidate(value = "noHideIds", message = "显示列不能为空")
-    public void fieldConfig(@Para("") AdminFieldSort adminFieldSort) {
-        renderJson(adminFieldService.fieldConfig(adminFieldSort));
+    @RequestMapping(value = "/fieldConfig", method = RequestMethod.POST)
+    public R fieldConfig(@Para("") AdminFieldSort adminFieldSort) {
+        return (adminFieldService.fieldConfig(adminFieldSort));
     }
 
     /**
      * @author wyq
      * 获取导入查重字段
      */
-    public void getCheckingField(@Para("type") Integer type) {
+    @RequestMapping(value = "/queryListHead", method = RequestMethod.POST)
+    public R getCheckingField(@Para("type") Integer type) {
         R data;
         switch (type) {
             case 1:
@@ -265,6 +270,6 @@ public class AdminFieldController extends Controller {
             default:
                 data = R.error("type不符合要求");
         }
-        renderJson(data);
+        return(data);
     }
 }

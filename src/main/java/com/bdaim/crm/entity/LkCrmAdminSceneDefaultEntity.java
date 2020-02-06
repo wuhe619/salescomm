@@ -27,8 +27,9 @@ public class LkCrmAdminSceneDefaultEntity {
         return type;
     }
 
-    public void setType(int type) {
+    public LkCrmAdminSceneDefaultEntity setType(int type) {
         this.type = type;
+        return this;
     }
 
     @Basic
@@ -37,8 +38,9 @@ public class LkCrmAdminSceneDefaultEntity {
         return userId;
     }
 
-    public void setUserId(long userId) {
+    public LkCrmAdminSceneDefaultEntity setUserId(long userId) {
         this.userId = userId;
+        return this;
     }
 
     @Basic
@@ -47,8 +49,9 @@ public class LkCrmAdminSceneDefaultEntity {
         return sceneId;
     }
 
-    public void setSceneId(int sceneId) {
+    public LkCrmAdminSceneDefaultEntity setSceneId(int sceneId) {
         this.sceneId = sceneId;
+        return this;
     }
 
     @Override
