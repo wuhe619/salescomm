@@ -212,12 +212,14 @@ public class CustomerAppService {
                 customerDao.dealCustomerInfo(customerId, "create_id", vo.getCreateId());
             }
         }
+        //结算方式
         if (StringUtil.isNotEmpty(vo.getSettlement_method())) {
             if (StringUtil.isNotEmpty(vo.getCustId())) {
                 customerDao.dealCustomerInfo(vo.getCustId(), "settlement_method", vo.getSettlement_method());
             } else {
                 customerDao.dealCustomerInfo(customerId, "settlement_method", vo.getSettlement_method());
             }
+            //结算方式为后付费的话默认充余额
             if("1".equals(vo.getSettlement_method())){
                 if (StringUtil.isNotEmpty(vo.getCustId())) {
                     customerDao.dealCustomerInfo(vo.getCustId(), "remain_amount", "10000000000");
