@@ -192,7 +192,6 @@ public class CustomerAppService {
             } else {
                 customerDao.dealCustomerInfo(customerId, "brand", vo.getBrand());
             }
-
         }
         if (StringUtil.isNotEmpty(vo.getMobile())) {
             customerDao.dealCustomerInfo(vo.getCustId(), "mobile", vo.getMobile());
@@ -213,7 +212,13 @@ public class CustomerAppService {
                 customerDao.dealCustomerInfo(customerId, "create_id", vo.getCreateId());
             }
         }
-
+        if (StringUtil.isNotEmpty(vo.getSettlement_method())) {
+            if (StringUtil.isNotEmpty(vo.getCustId())) {
+                customerDao.dealCustomerInfo(vo.getCustId(), "settlement_method", vo.getSettlement_method());
+            } else {
+                customerDao.dealCustomerInfo(customerId, "settlement_method", vo.getSettlement_method());
+            }
+        }
         return customerId;
     }
 
@@ -374,6 +379,9 @@ public class CustomerAppService {
                     break;
                 case "email":
                     vo.setEmail(property_value);
+                    break;
+                case "settlement_method":
+                    vo.setSettlement_method(property_value);
                     break;
                 case "remain_amount":
                     if (property_value == null)
