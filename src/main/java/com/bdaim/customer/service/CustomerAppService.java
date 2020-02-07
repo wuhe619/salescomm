@@ -218,6 +218,13 @@ public class CustomerAppService {
             } else {
                 customerDao.dealCustomerInfo(customerId, "settlement_method", vo.getSettlement_method());
             }
+            if("1".equals(vo.getSettlement_method())){
+                if (StringUtil.isNotEmpty(vo.getCustId())) {
+                    customerDao.dealCustomerInfo(vo.getCustId(), "remain_amount", "10000000000");
+                } else {
+                    customerDao.dealCustomerInfo(customerId, "remain_amount", "10000000000");
+                }
+            }
         }
         return customerId;
     }
