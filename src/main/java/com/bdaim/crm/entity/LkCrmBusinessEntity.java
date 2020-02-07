@@ -41,11 +41,12 @@ public class LkCrmBusinessEntity {
 
     @Id
     @Column(name = "business_id")
-    public int getBusinessId() {
+    @GeneratedValue
+    public Integer getBusinessId() {
         return businessId;
     }
 
-    public void setBusinessId(int businessId) {
+    public void setBusinessId(Integer businessId) {
         this.businessId = businessId;
     }
 

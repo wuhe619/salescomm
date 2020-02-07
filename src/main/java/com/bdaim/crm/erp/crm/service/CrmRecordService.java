@@ -19,7 +19,6 @@ import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
 import com.bdaim.util.JavaBeanUtil;
 import com.jfinal.aop.Before;
-import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.tx.Tx;
 import org.springframework.stereotype.Service;
@@ -230,7 +229,7 @@ public class CrmRecordService<T> {
      * @param crmTypes
      */
     public void addConversionRecord(Integer actionId, String crmTypes, Integer userId) {
-        String name = Db.queryStr("select realname from lkcrm_admin_user where user_id = ?", userId);
+        String name = crmAdminRecordDao.queryForObject("select realname from lkcrm_admin_user where user_id = ?", userId);
         LkCrmActionRecordEntity crmActionRecord = new LkCrmActionRecordEntity();
         crmActionRecord.setCreateUserId(BaseUtil.getUser().getUserId().intValue());
         crmActionRecord.setCreateTime(DateUtil.date().toTimestamp());
