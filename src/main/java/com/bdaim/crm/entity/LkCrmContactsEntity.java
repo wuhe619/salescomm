@@ -7,7 +7,7 @@ import java.util.Objects;
 @Entity
 @Table(name = "lkcrm_crm_contacts", schema = "", catalog = "")
 public class LkCrmContactsEntity {
-    private int contactsId;
+    private Integer contactsId;
     private String name;
     private Timestamp nextTime;
     private String mobile;
@@ -26,11 +26,11 @@ public class LkCrmContactsEntity {
     @Id
     @Column(name = "contacts_id")
     @GeneratedValue
-    public int getContactsId() {
+    public Integer getContactsId() {
         return contactsId;
     }
 
-    public void setContactsId(int contactsId) {
+    public void setContactsId(Integer contactsId) {
         this.contactsId = contactsId;
     }
 
