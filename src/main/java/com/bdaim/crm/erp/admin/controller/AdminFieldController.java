@@ -3,32 +3,25 @@ package com.bdaim.crm.erp.admin.controller;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.response.ResponseInfo;
-import com.bdaim.crm.entity.LkCrmAdminFieldSortEntity;
-import com.bdaim.crm.entity.LkCrmAdminFieldStyleEntity;
-import com.bdaim.util.JavaBeanUtil;
-import com.jfinal.aop.Inject;
-import com.jfinal.core.Controller;
-import com.jfinal.core.paragetter.Para;
-import com.jfinal.plugin.activerecord.Record;
 import com.bdaim.crm.common.annotation.NotNullValidate;
 import com.bdaim.crm.common.annotation.Permissions;
+import com.bdaim.crm.entity.LkCrmAdminFieldSortEntity;
+import com.bdaim.crm.entity.LkCrmAdminFieldStyleEntity;
 import com.bdaim.crm.erp.admin.entity.AdminFieldSort;
-import com.bdaim.crm.erp.admin.entity.AdminFieldStyle;
 import com.bdaim.crm.erp.admin.service.AdminFieldService;
 import com.bdaim.crm.erp.crm.common.CrmEnum;
 import com.bdaim.crm.erp.crm.service.*;
 import com.bdaim.crm.erp.oa.service.OaExamineCategoryService;
 import com.bdaim.crm.utils.AuthUtil;
 import com.bdaim.crm.utils.R;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import com.bdaim.util.JavaBeanUtil;
+import com.jfinal.core.Controller;
+import com.jfinal.core.paragetter.Para;
+import com.jfinal.plugin.activerecord.Record;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author hmb
@@ -98,7 +91,10 @@ public class AdminFieldController extends Controller {
      * @author wyq
      * 查询新增或编辑字段
      */
-    public void queryField(@Para("label") String label, @Para("id") Integer id) {
+    @ResponseBody
+    @RequestMapping(value = "/queryField", method = RequestMethod.POST)
+    public ResponseInfo queryField(@Para("label") String label, @Para("id") Integer id) {
+        ResponseInfo resp = new ResponseInfo();
         List<Record> recordList = new LinkedList<>();
         if (id != null) {
             if ("1".equals(label)) {
@@ -135,7 +131,9 @@ public class AdminFieldController extends Controller {
                 recordList = adminFieldService.queryAddField(Integer.valueOf(label));
             }
         }
-        renderJson(R.ok().put("data", recordList));
+        //renderJson(R.ok().put("data", recordList));
+        resp.setData(JavaBeanUtil.recordToMap(recordList));
+        return resp;
     }
 
     /**
@@ -186,8 +184,10 @@ public class AdminFieldController extends Controller {
     @NotNullValidate(value = "types", message = "字段校验参数错误")
     @NotNullValidate(value = "fieldName", message = "字段校验参数错误")
     @NotNullValidate(value = "fieldType", message = "字段校验参数错误")
-    public void verify() {
-        renderJson(adminFieldService.verify(getKv()));
+    @ResponseBody
+    @RequestMapping(value = "/verify", method = RequestMethod.POST)
+    public R verify(@RequestParam HashMap map) {
+        return adminFieldService.verify(map);
     }
 
     /**
@@ -197,7 +197,7 @@ public class AdminFieldController extends Controller {
     @NotNullValidate(value = "label", message = "label不能为空")
     @ResponseBody
     @RequestMapping(value = "/queryListHead", method = RequestMethod.POST)
-    public ResponseInfo queryListHead(@Para("") LkCrmAdminFieldSortEntity adminFieldSort) {
+    public R queryListHead(@Para("") LkCrmAdminFieldSortEntity adminFieldSort) {
         ResponseInfo resp = new ResponseInfo();
         List<Record> records;
         if (adminFieldSort.getLabel() == 10) {
@@ -218,8 +218,8 @@ public class AdminFieldController extends Controller {
             }
         });
         resp.setData(JavaBeanUtil.recordToMap(records));
-        //renderJson(R.ok().put("data",records));
-        return resp;
+        return(R.ok().put("data",records));
+        //return resp;
     }
 
     /**

@@ -2,18 +2,8 @@ package com.bdaim.crm.erp.crm.controller;
 
 import cn.hutool.poi.excel.ExcelUtil;
 import cn.hutool.poi.excel.ExcelWriter;
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.response.ResponseInfo;
-import com.jfinal.aop.Before;
-import com.jfinal.aop.Inject;
-import com.jfinal.core.Controller;
-import com.jfinal.core.paragetter.Para;
-import com.jfinal.log.Log;
-import com.jfinal.plugin.activerecord.Db;
-import com.jfinal.plugin.activerecord.Record;
-import com.jfinal.plugin.activerecord.tx.Tx;
-import com.jfinal.upload.UploadFile;
 import com.bdaim.crm.common.annotation.LoginFormCookie;
 import com.bdaim.crm.common.annotation.NotNullValidate;
 import com.bdaim.crm.common.annotation.Permissions;
@@ -26,6 +16,14 @@ import com.bdaim.crm.erp.crm.entity.CrmLeads;
 import com.bdaim.crm.erp.crm.service.CrmLeadsService;
 import com.bdaim.crm.utils.AuthUtil;
 import com.bdaim.crm.utils.R;
+import com.jfinal.aop.Before;
+import com.jfinal.core.Controller;
+import com.jfinal.core.paragetter.Para;
+import com.jfinal.log.Log;
+import com.jfinal.plugin.activerecord.Db;
+import com.jfinal.plugin.activerecord.Record;
+import com.jfinal.plugin.activerecord.tx.Tx;
+import com.jfinal.upload.UploadFile;
 import org.apache.poi.hssf.usermodel.*;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
@@ -59,14 +57,14 @@ public class CrmLeadsController extends Controller {
     @Permissions({"crm:leads:index"})
     @ResponseBody
     @RequestMapping(value = "/queryPageList", method = RequestMethod.POST)
-    public ResponseInfo queryPageList(@RequestBody JSONObject jsonObject) {
+    public R queryPageList(@RequestBody JSONObject jsonObject) {
         ResponseInfo resp = new ResponseInfo();
         BasePageRequest<Void> basePageRequest = new BasePageRequest<>();
         jsonObject.fluentPut("type", 1);
         basePageRequest.setJsonObject(jsonObject);
         resp.setData(adminSceneService.filterConditionAndGetPageList(basePageRequest).get("data"));
-        // renderJson(adminSceneService.filterConditionAndGetPageList(basePageRequest));
-        return resp;
+        return(adminSceneService.filterConditionAndGetPageList(basePageRequest));
+        //return resp;
     }
 
     /**
@@ -82,9 +80,11 @@ public class CrmLeadsController extends Controller {
      * 新增或更新线索
      */
     @Permissions({"crm:leads:save", "crm:leads:update"})
-    public void addOrUpdate() {
-        JSONObject object = JSON.parseObject(getRawData());
-        renderJson(crmLeadsService.addOrUpdate(object));
+    @ResponseBody
+    @RequestMapping(value = "/addOrUpdate", method = RequestMethod.POST)
+    public R addOrUpdate(@RequestBody JSONObject object) {
+        //JSONObject object = JSON.parseObject(getRawData());
+        return crmLeadsService.addOrUpdate(object);
     }
 
     /**
@@ -93,8 +93,10 @@ public class CrmLeadsController extends Controller {
      */
     @Permissions("crm:leads:read")
     @NotNullValidate(value = "leadsId", message = "线索id不能为空")
-    public void queryById(@Para("leadsId") Integer leadsId) {
-        renderJson(R.ok().put("data", crmLeadsService.queryById(leadsId)));
+    @ResponseBody
+    @RequestMapping(value = "/queryById", method = RequestMethod.POST)
+    public R queryById(@Para("leadsId") Integer leadsId) {
+        return(R.ok().put("data", crmLeadsService.queryById(leadsId).getColumns()));
     }
 
     /**
@@ -156,13 +158,15 @@ public class CrmLeadsController extends Controller {
      * @author wyq
      * 查看跟进记录
      */
-    public void getRecord(BasePageRequest<CrmLeads> basePageRequest) {
-        boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.LEADS_TYPE_KEY.getSign()), basePageRequest.getData().getLeadsId());
+    @ResponseBody
+    @RequestMapping(value = "/getRecord", method = RequestMethod.POST)
+    public R getRecord(BasePageRequest basePageRequest, CrmLeads crmLeads) {
+        basePageRequest.setData(crmLeads);
+        boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.LEADS_TYPE_KEY.getSign()), crmLeads.getLeadsId());
         if (auth) {
-            renderJson(R.noAuth());
-            return;
+            return (R.noAuth());
         }
-        renderJson(R.ok().put("data", crmLeadsService.getRecord(basePageRequest)));
+        return (R.ok().put("data", crmLeadsService.getRecord(basePageRequest)));
     }
 
     /**

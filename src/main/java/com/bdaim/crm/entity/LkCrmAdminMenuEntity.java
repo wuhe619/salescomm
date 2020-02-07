@@ -17,6 +17,7 @@ public class LkCrmAdminMenuEntity {
 
     @Id
     @Column(name = "menu_id")
+    @GeneratedValue
     public Integer getMenuId() {
         return menuId;
     }

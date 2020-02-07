@@ -6,6 +6,8 @@ import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.auth.LoginUser;
+import com.bdaim.crm.dao.LkCrmContractDao;
+import com.bdaim.util.JavaBeanUtil;
 import com.jfinal.aop.Before;
 import com.jfinal.aop.Inject;
 import com.jfinal.kit.Kv;
@@ -60,6 +62,9 @@ public class CrmContractService {
 
     @Resource
     private AuthUtil authUtil;
+
+    @Resource
+    private LkCrmContractDao crmContractDao;
 
     /**
      * 分页条件查询合同
@@ -392,7 +397,8 @@ public class CrmContractService {
      * 查询编辑字段
      */
     public List<Record> queryField(Integer contractId) {
-        Record contract = Db.findFirst("select * from contractview where contract_id = ?",contractId);
+        Record contract = JavaBeanUtil.mapToRecord(crmContractDao.sqlQuery("select * from contractview where contract_id = ?", contractId).get(0));
+        //Record contract = Db.findFirst("select * from contractview where contract_id = ?",contractId);
         List<Record> list = new ArrayList<>();
         list.add(new Record().set("customer_id",contract.getInt("customer_id")).set("customer_name",contract.getStr("customer_name")));
         contract.set("customer_id",list);

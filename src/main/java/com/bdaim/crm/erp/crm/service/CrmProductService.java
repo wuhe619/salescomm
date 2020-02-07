@@ -8,6 +8,8 @@ import cn.hutool.poi.excel.ExcelReader;
 import cn.hutool.poi.excel.ExcelUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.crm.dao.LkCrmAdminUserDao;
+import com.bdaim.util.JavaBeanUtil;
 import com.jfinal.aop.Before;
 import com.jfinal.aop.Inject;
 import com.jfinal.kit.Kv;
@@ -55,6 +57,9 @@ public class CrmProductService {
 
     @Resource
     private AuthUtil authUtil;
+
+    @Resource
+    private LkCrmAdminUserDao crmAdminUserDao;
 
     /**
      * 分页条件查询产品
@@ -167,7 +172,8 @@ public class CrmProductService {
      * 查询编辑字段
      */
     public List<Record> queryField(Integer productId) {
-        Record product = Db.findFirst("select * from productview where product_id = ?",productId);
+        //Record product = Db.findFirst("select * from productview where product_id = ?",productId);
+        Record product = JavaBeanUtil.mapToRecord(crmAdminUserDao.sqlQuery("select * from productview where product_id = ?", productId).get(0));
         List<Integer> list = crmProductCategoryService.queryId(null, product.getInt("category_id"));
         Integer[] categoryIds = new Integer[list.size()];
         categoryIds = list.toArray(categoryIds);

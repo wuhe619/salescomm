@@ -1,16 +1,22 @@
 package com.bdaim.crm.erp.crm.controller;
 
-import com.jfinal.aop.Inject;
-import com.jfinal.core.Controller;
-import com.jfinal.core.paragetter.Para;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.erp.crm.service.CrmBackLogService;
+import com.bdaim.crm.utils.R;
+import com.jfinal.core.Controller;
+import com.jfinal.core.paragetter.Para;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 
 /**
  * @author wyq
  */
+@RestController
+@RequestMapping("/CrmBackLog")
 public class CrmBackLogController extends Controller {
     @Resource
     CrmBackLogService crmBackLogService;
@@ -18,8 +24,10 @@ public class CrmBackLogController extends Controller {
     /**
      * 代办事项数量统计
      */
-    public void num(){
-        renderJson(crmBackLogService.num());
+    @ResponseBody
+    @RequestMapping(value = "/num", method = RequestMethod.POST)
+    public R num(){
+        return(crmBackLogService.num());
     }
 
     /**

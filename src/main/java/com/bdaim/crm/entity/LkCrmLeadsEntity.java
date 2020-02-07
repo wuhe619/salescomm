@@ -7,8 +7,8 @@ import java.util.Objects;
 @Entity
 @Table(name = "lkcrm_crm_leads", schema = "", catalog = "")
 public class LkCrmLeadsEntity {
-    private int leadsId;
-    private Integer isTransform;
+    private Integer leadsId;
+    private int isTransform;
     private Integer followup;
     private String leadsName;
     private Integer customerId;
@@ -25,21 +25,22 @@ public class LkCrmLeadsEntity {
 
     @Id
     @Column(name = "leads_id")
-    public int getLeadsId() {
+    @GeneratedValue
+    public Integer getLeadsId() {
         return leadsId;
     }
 
-    public void setLeadsId(int leadsId) {
+    public void setLeadsId(Integer leadsId) {
         this.leadsId = leadsId;
     }
 
     @Basic
     @Column(name = "is_transform")
-    public Integer getIsTransform() {
+    public int getIsTransform() {
         return isTransform;
     }
 
-    public void setIsTransform(Integer isTransform) {
+    public void setIsTransform(int isTransform) {
         this.isTransform = isTransform;
     }
 

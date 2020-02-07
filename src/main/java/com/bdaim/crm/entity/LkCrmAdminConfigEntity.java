@@ -14,6 +14,7 @@ public class LkCrmAdminConfigEntity {
 
     @Id
     @Column(name = "setting_id")
+    @GeneratedValue
     public int getSettingId() {
         return settingId;
     }

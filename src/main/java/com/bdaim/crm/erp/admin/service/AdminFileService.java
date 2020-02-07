@@ -3,19 +3,20 @@ package com.bdaim.crm.erp.admin.service;
 import cn.hutool.core.util.ClassLoaderUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
+import com.bdaim.crm.dao.LkCrmAdminFileDao;
+import com.bdaim.crm.entity.LkCrmAdminFileEntity;
+import com.bdaim.crm.erp.admin.entity.AdminFile;
+import com.bdaim.crm.utils.BaseUtil;
+import com.bdaim.crm.utils.R;
 import com.jfinal.aop.Before;
 import com.jfinal.config.Constants;
-import com.jfinal.kit.Prop;
-import com.jfinal.kit.PropKit;
 import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.tx.Tx;
 import com.jfinal.upload.UploadFile;
-import com.bdaim.crm.erp.admin.entity.AdminFile;
-import com.bdaim.crm.utils.BaseUtil;
-import com.bdaim.crm.utils.R;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import javax.transaction.Transactional;
 import java.io.File;
 import java.util.ArrayList;
@@ -27,6 +28,9 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 public class AdminFileService {
+
+    @Resource
+    private LkCrmAdminFileDao crmAdminFileDao;
     //public final static Prop prop = PropKit.use("config/crm9-config.txt");
     /**
      * @param file    文件
@@ -64,9 +68,9 @@ public class AdminFileService {
             record.set("img",new ArrayList<>()).set("file",new ArrayList<>());
             return;
         }
-        List<AdminFile> adminFiles=AdminFile.dao.find(Db.getSql("admin.file.queryByBatchId"), batchId);
-
-        Map<String, List<AdminFile>> collect = adminFiles.stream().collect(Collectors.groupingBy(AdminFile::getFileType));
+        //List<AdminFile> adminFiles=AdminFile.dao.find(Db.getSql("admin.file.queryByBatchId"), batchId);
+        List<LkCrmAdminFileEntity> adminFiles = crmAdminFileDao.queryByBatchId(batchId);
+        Map<String, List<LkCrmAdminFileEntity>> collect = adminFiles.stream().collect(Collectors.groupingBy(LkCrmAdminFileEntity::getFileType));
         collect.forEach(record::set);
         if(!record.getColumns().containsKey("img")||record.get("img")==null){
             record.set("img",new ArrayList<>());

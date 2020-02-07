@@ -19,6 +19,7 @@ public class LkCrmAdminFileEntity {
 
     @Id
     @Column(name = "file_id")
+    @GeneratedValue
     public int getFileId() {
         return fileId;
     }

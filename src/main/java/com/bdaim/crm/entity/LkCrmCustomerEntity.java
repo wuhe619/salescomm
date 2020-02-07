@@ -32,6 +32,7 @@ public class LkCrmCustomerEntity {
 
     @Id
     @Column(name = "customer_id")
+    @GeneratedValue
     public int getCustomerId() {
         return customerId;
     }

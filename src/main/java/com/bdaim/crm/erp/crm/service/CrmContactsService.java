@@ -9,6 +9,8 @@ import cn.hutool.poi.excel.ExcelUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.auth.LoginUser;
+import com.bdaim.crm.dao.LkCrmAdminUserDao;
+import com.bdaim.util.JavaBeanUtil;
 import com.jfinal.aop.Before;
 import com.jfinal.aop.Inject;
 import com.jfinal.kit.Kv;
@@ -68,6 +70,8 @@ public class CrmContactsService {
 
     @Resource
     private AuthUtil authUtil;
+    @Resource
+    private LkCrmAdminUserDao crmAdminUserDao;
 
     /**
      * @author wyq
@@ -245,7 +249,8 @@ public class CrmContactsService {
      * 查询编辑字段
      */
     public List<Record> queryField(Integer contactsId) {
-        Record contacts = Db.findFirst("select * from contactsview where contacts_id = ?",contactsId);
+        Record contacts = JavaBeanUtil.mapToRecord(crmAdminUserDao.sqlQuery("select * from contactsview where contacts_id = ?", contactsId).get(0));
+        //Record contacts = Db.findFirst("select * from contactsview where contacts_id = ?",contactsId);
         List<Record> customerList = new ArrayList<>();
         Record customer = new Record();
         customerList.add(customer.set("customer_id",contacts.getInt("customer_id")).set("customer_name",contacts.getStr("customer_name")));

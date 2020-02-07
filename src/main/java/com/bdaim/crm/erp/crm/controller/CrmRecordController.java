@@ -2,18 +2,22 @@ package com.bdaim.crm.erp.crm.controller;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.jfinal.aop.Inject;
-import com.jfinal.core.Controller;
-import com.jfinal.core.paragetter.Para;
 import com.bdaim.crm.erp.crm.common.CrmEnum;
 import com.bdaim.crm.erp.crm.service.CrmRecordService;
 import com.bdaim.crm.utils.AuthUtil;
 import com.bdaim.crm.utils.R;
+import com.jfinal.core.Controller;
+import com.jfinal.core.paragetter.Para;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import java.util.List;
 
-
+@RestController
+@RequestMapping("/CrmRecord")
 public class CrmRecordController extends Controller {
 
     @Resource
@@ -43,8 +47,10 @@ public class CrmRecordController extends Controller {
      * @author wyq
      * 跟进记录类型设置
      */
-    public void queryRecordOptions(){
-        renderJson(crmRecordService.queryRecordOptions());
+    @ResponseBody
+    @RequestMapping(value = "/queryRecordOptions", method = RequestMethod.POST)
+    public R queryRecordOptions(){
+        return (crmRecordService.queryRecordOptions());
     }
 
     /**

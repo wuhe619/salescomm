@@ -14,6 +14,7 @@ public class LkCrmAdminDeptEntity {
 
     @Id
     @Column(name = "dept_id")
+    @GeneratedValue
     public int getDeptId() {
         return deptId;
     }

@@ -2,17 +2,16 @@ package com.bdaim.crm.erp.admin.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.bdaim.common.response.ResponseInfo;
-import com.bdaim.util.StringUtil;
-import com.jfinal.aop.Clear;
-import com.jfinal.aop.Inject;
-import com.jfinal.core.Controller;
-import com.jfinal.kit.Kv;
-import com.jfinal.upload.UploadFile;
 import com.bdaim.crm.common.annotation.Permissions;
 import com.bdaim.crm.common.config.redis.RedisManager;
 import com.bdaim.crm.erp.admin.service.AdminFileService;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
+import com.bdaim.util.StringUtil;
+import com.jfinal.aop.Clear;
+import com.jfinal.core.Controller;
+import com.jfinal.kit.Kv;
+import com.jfinal.upload.UploadFile;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -61,17 +60,17 @@ public class AdminSysConfigController extends Controller {
     @Clear
     @ResponseBody
     @RequestMapping(value = "/querySysConfig", method = RequestMethod.POST)
-    public ResponseInfo querySysConfig() {
+    public R querySysConfig() {
         ResponseInfo resp = new ResponseInfo();
         if (StringUtil.isEmpty(RedisManager.getRedis().get(SYS_CONFIG_KEY))) {
             resp.setData(Kv.by("logo", "").set("name", ""));
             //renderJson(R.ok().put("data", Kv.by("logo","").set("name","")));
-            return resp;
+            return R.ok().put("data", Kv.by("logo","").set("name",""));
         }
         String data = RedisManager.getRedis().get(SYS_CONFIG_KEY);
         Map map = JSON.parseObject(data, Map.class);
         resp.setData(map);
         // renderJson(R.ok().put("data",map));
-        return resp;
+        return (R.ok().put("data",map));
     }
 }
