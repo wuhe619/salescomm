@@ -192,7 +192,6 @@ public class CustomerAppService {
             } else {
                 customerDao.dealCustomerInfo(customerId, "brand", vo.getBrand());
             }
-
         }
         if (StringUtil.isNotEmpty(vo.getMobile())) {
             customerDao.dealCustomerInfo(vo.getCustId(), "mobile", vo.getMobile());
@@ -213,7 +212,22 @@ public class CustomerAppService {
                 customerDao.dealCustomerInfo(customerId, "create_id", vo.getCreateId());
             }
         }
-
+        //结算方式
+        if (StringUtil.isNotEmpty(vo.getSettlement_method())) {
+            if (StringUtil.isNotEmpty(vo.getCustId())) {
+                customerDao.dealCustomerInfo(vo.getCustId(), "settlement_method", vo.getSettlement_method());
+            } else {
+                customerDao.dealCustomerInfo(customerId, "settlement_method", vo.getSettlement_method());
+            }
+            //结算方式为后付费的话默认充余额
+            if("1".equals(vo.getSettlement_method())){
+                if (StringUtil.isNotEmpty(vo.getCustId())) {
+                    customerDao.dealCustomerInfo(vo.getCustId(), "remain_amount", "10000000000");
+                } else {
+                    customerDao.dealCustomerInfo(customerId, "remain_amount", "10000000000");
+                }
+            }
+        }
         return customerId;
     }
 
@@ -281,6 +295,11 @@ public class CustomerAppService {
             if (used_amount != null) {
                 logger.info("used_amount:{" + used_amount + "}");
                 map.put("userAmount", StringUtil.isEmpty(used_amount.getPropertyValue()) ? "0" : String.valueOf(BigDecimalUtil.strDiv(used_amount.getPropertyValue(), "10000", 2)));
+            }
+            CustomerProperty settlement_method = customerDao.getProperty(cust_id, "settlement_method");
+            if (sale_person != null) {
+                logger.info("settlement_method:{" + settlement_method + "}");
+                map.put("settlement_method", sale_person.getPropertyValue());
             }
             return map;
         }).collect(Collectors.toList());
@@ -374,6 +393,9 @@ public class CustomerAppService {
                     break;
                 case "email":
                     vo.setEmail(property_value);
+                    break;
+                case "settlement_method":
+                    vo.setSettlement_method(property_value);
                     break;
                 case "remain_amount":
                     if (property_value == null)

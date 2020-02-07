@@ -344,6 +344,14 @@ public class ApiService {
                 .append(" where charge.api_id=? and charge.SUBSCRIBER_ID=?");
         arr.add(params.getString("apiId"));
         arr.add(params.getString("customerId"));
+        if(params.containsKey("startDate") && StringUtil.isNotEmpty(params.getString("startDate"))){
+            sql.append(" and charge.event_time>=?");
+            arr.add(params.getString("startDate"));
+        }
+        if(params.containsKey("endDate") && StringUtil.isNotEmpty(params.getString("endDate"))){
+            sql.append(" and charge.event_time<=?");
+            arr.add(params.getString("endDate"));
+        }
         sql.append(" order by EVENT_TIME desc");
         PageList list = new Pagination().getPageData(sql.toString(), arr.toArray(), page, jdbcTemplate);
         Map<String, Object> map = new HashMap<>();

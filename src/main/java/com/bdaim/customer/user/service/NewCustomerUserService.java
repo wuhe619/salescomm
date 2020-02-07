@@ -102,7 +102,7 @@ public class NewCustomerUserService {
     }
 
     public int updateUserPassword(String Id, String password) throws Exception {
-        CustomerUser customerUserDO = customerUserDao.findUniqueBy("id", Long.valueOf(Id));
+        CustomerUser customerUserDO = customerUserDao.findUniqueBy("account", Long.valueOf(Id));
         if (customerUserDO == null) {
             throw new Exception("用户" + Id + "不存在");
         }
