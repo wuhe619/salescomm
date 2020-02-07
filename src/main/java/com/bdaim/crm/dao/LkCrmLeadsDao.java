@@ -46,4 +46,10 @@ public class LkCrmLeadsDao extends SimpleHibernateDao<LkCrmLeadsEntity, Integer>
         return maps;
     }
 
+    public int setLeadsFollowup( List<String> ids) {
+        String sql = "update 72crm_crm_leads set followup = 1 where leads_id in (?)";
+        int maps = this.executeUpdateSQL(sql, SqlAppendUtil.sqlAppendWhereIn(ids));
+        return maps;
+    }
+
 }

@@ -287,6 +287,9 @@ public class LkCrmCustomerDao extends SimpleHibernateDao<LkCrmCustomerEntity, In
         return sqlPageQuery(sql, pageNum, pageSize, param.toArray());
     }
 
-
+    public int setCustomerFollowup(List ids) {
+        String sql = "update 72crm_crm_customer set followup = 1 where customer_id in(?)";
+        return executeUpdateSQL(sql, ids);
+    }
 
 }
