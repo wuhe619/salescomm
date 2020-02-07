@@ -209,7 +209,7 @@ public class ResourceAction extends BasicAction {
 
     @PostMapping("/info/{resourceId}")
     public ResponseInfo save1(@RequestBody(required = false) String RequestBody, @PathVariable(name = "resourceId") Integer resourceId) {
-        ModelAndView view = new ModelAndView("index.jsp");
+        //ModelAndView view = new ModelAndView("index.jsp");
         ResponseInfo resp = new ResponseInfo();
         com.alibaba.fastjson.JSONObject info = null;
         try {
