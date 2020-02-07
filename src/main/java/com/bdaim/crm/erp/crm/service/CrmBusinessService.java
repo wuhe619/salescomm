@@ -7,19 +7,11 @@ import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.auth.LoginUser;
-import com.bdaim.crm.dao.LkCrmBusinessDao;
-import com.bdaim.util.JavaBeanUtil;
-import com.jfinal.aop.Before;
-import com.jfinal.aop.Inject;
-import com.jfinal.kit.Kv;
-import com.jfinal.plugin.activerecord.Db;
-import com.jfinal.plugin.activerecord.Page;
-import com.jfinal.plugin.activerecord.Record;
-import com.jfinal.plugin.activerecord.SqlPara;
-import com.jfinal.plugin.activerecord.tx.Tx;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
+import com.bdaim.crm.dao.LkCrmBusinessDao;
+import com.bdaim.crm.entity.LkCrmBusinessEntity;
+import com.bdaim.crm.entity.LkCrmCustomerEntity;
 import com.bdaim.crm.erp.admin.entity.AdminRecord;
-import com.bdaim.crm.erp.admin.entity.AdminUser;
 import com.bdaim.crm.erp.admin.service.AdminFieldService;
 import com.bdaim.crm.erp.admin.service.AdminFileService;
 import com.bdaim.crm.erp.crm.common.CrmEnum;
@@ -32,6 +24,14 @@ import com.bdaim.crm.utils.AuthUtil;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.FieldUtil;
 import com.bdaim.crm.utils.R;
+import com.bdaim.util.JavaBeanUtil;
+import com.jfinal.aop.Before;
+import com.jfinal.kit.Kv;
+import com.jfinal.plugin.activerecord.Db;
+import com.jfinal.plugin.activerecord.Page;
+import com.jfinal.plugin.activerecord.Record;
+import com.jfinal.plugin.activerecord.SqlPara;
+import com.jfinal.plugin.activerecord.tx.Tx;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -257,12 +257,12 @@ public class CrmBusinessService {
      *
      * @author wyq
      */
-    public R updateOwnerUserId(CrmCustomer crmCustomer) {
-        CrmBusiness crmBusiness = new CrmBusiness();
+    public R updateOwnerUserId(LkCrmCustomerEntity crmCustomer) {
+        LkCrmBusinessEntity crmBusiness = new LkCrmBusinessEntity();
         crmBusiness.setNewOwnerUserId(crmCustomer.getNewOwnerUserId());
         crmBusiness.setTransferType(crmCustomer.getTransferType());
         crmBusiness.setPower(crmCustomer.getPower());
-        String businessIds = Db.queryStr("select GROUP_CONCAT(business_id) from 72crm_crm_business where customer_id in (" + crmCustomer.getCustomerIds() + ")");
+        String businessIds = crmBusinessDao.queryForObject("select GROUP_CONCAT(business_id) from 72crm_crm_business where customer_id in (" + crmCustomer.getCustomerIds() + ")");
         if (StrUtil.isEmpty(businessIds)) {
             return R.ok();
         }
@@ -274,12 +274,12 @@ public class CrmBusinessService {
      * @author wyq
      * 根据商机id变更负责人
      */
-    public R transfer(CrmBusiness crmBusiness) {
+    public R transfer(LkCrmBusinessEntity crmBusiness) {
         String[] businessIdsArr = crmBusiness.getBusinessIds().split(",");
         return Db.tx(() -> {
             for (String businessId : businessIdsArr) {
                 String memberId = "," + crmBusiness.getNewOwnerUserId() + ",";
-                Db.update(Db.getSql("crm.business.deleteMember"), memberId, memberId, Integer.valueOf(businessId));
+                crmBusinessDao.deleteMember(memberId, Integer.valueOf(businessId));
                 CrmBusiness oldBusiness = CrmBusiness.dao.findById(Integer.valueOf(businessId));
                 if (2 == crmBusiness.getTransferType()) {
                     if (1 == crmBusiness.getPower()) {
@@ -291,7 +291,7 @@ public class CrmBusinessService {
                 }
                 crmBusiness.setBusinessId(Integer.valueOf(businessId));
                 crmBusiness.setOwnerUserId(crmBusiness.getNewOwnerUserId());
-                crmBusiness.update();
+                crmBusinessDao.update(crmBusiness);
                 crmRecordService.addConversionRecord(Integer.valueOf(businessId), CrmEnum.BUSINESS_TYPE_KEY.getTypes(), crmBusiness.getNewOwnerUserId());
             }
             return true;
@@ -341,22 +341,22 @@ public class CrmBusinessService {
         StringBuffer stringBuffer = new StringBuffer();
         for (String id : businessIdsArr) {
             if (StrUtil.isNotEmpty(id)) {
-                Integer ownerUserId = CrmBusiness.dao.findById(Integer.valueOf(id)).getOwnerUserId();
+                Integer ownerUserId = crmBusinessDao.get(Integer.valueOf(id)).getOwnerUserId();
                 for (String memberId : memberArr) {
                     if (ownerUserId.equals(Integer.valueOf(memberId))) {
                         return R.error("负责人不能重复选为团队成员");
                     }
-                    Db.update(Db.getSql("crm.business.deleteMember"), "," + memberId + ",", "," + memberId + ",", Integer.valueOf(id));
+                    crmBusinessDao.deleteMember( "," + memberId + ",", Integer.valueOf(id));
                 }
                 if (1 == crmBusiness.getPower()) {
                     stringBuffer.setLength(0);
-                    String roUserId = stringBuffer.append(CrmBusiness.dao.findById(Integer.valueOf(id)).getRoUserId()).append(crmBusiness.getMemberIds()).append(",").toString();
-                    Db.update("update 72crm_crm_business set ro_user_id = ? where business_id = ?", roUserId, Integer.valueOf(id));
+                    String roUserId = stringBuffer.append(crmBusinessDao.get(Integer.valueOf(id)).getRoUserId()).append(crmBusiness.getMemberIds()).append(",").toString();
+                    crmBusinessDao.executeUpdateSQL("update 72crm_crm_business set ro_user_id = ? where business_id = ?", roUserId, Integer.valueOf(id));
                 }
                 if (2 == crmBusiness.getPower()) {
                     stringBuffer.setLength(0);
-                    String rwUserId = stringBuffer.append(CrmBusiness.dao.findById(Integer.valueOf(id)).getRwUserId()).append(crmBusiness.getMemberIds()).append(",").toString();
-                    Db.update("update 72crm_crm_business set rw_user_id = ? where business_id = ?", rwUserId, Integer.valueOf(id));
+                    String rwUserId = stringBuffer.append(crmBusinessDao.get(Integer.valueOf(id)).getRwUserId()).append(crmBusiness.getMemberIds()).append(",").toString();
+                    crmBusinessDao.executeUpdateSQL("update 72crm_crm_business set rw_user_id = ? where business_id = ?", rwUserId, Integer.valueOf(id));
                 }
             }
 

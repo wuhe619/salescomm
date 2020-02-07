@@ -6,19 +6,12 @@ import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.auth.LoginUser;
-import com.bdaim.crm.dao.LkCrmContractDao;
-import com.bdaim.util.JavaBeanUtil;
-import com.jfinal.aop.Before;
-import com.jfinal.aop.Inject;
-import com.jfinal.kit.Kv;
-import com.jfinal.plugin.activerecord.Db;
-import com.jfinal.plugin.activerecord.Page;
-import com.jfinal.plugin.activerecord.Record;
-import com.jfinal.plugin.activerecord.tx.Tx;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
+import com.bdaim.crm.dao.LkCrmContractDao;
+import com.bdaim.crm.entity.LkCrmContractEntity;
+import com.bdaim.crm.entity.LkCrmCustomerEntity;
 import com.bdaim.crm.erp.admin.entity.AdminConfig;
 import com.bdaim.crm.erp.admin.entity.AdminRecord;
-import com.bdaim.crm.erp.admin.entity.AdminUser;
 import com.bdaim.crm.erp.admin.service.AdminExamineRecordService;
 import com.bdaim.crm.erp.admin.service.AdminFieldService;
 import com.bdaim.crm.erp.admin.service.AdminFileService;
@@ -32,6 +25,13 @@ import com.bdaim.crm.utils.AuthUtil;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.FieldUtil;
 import com.bdaim.crm.utils.R;
+import com.bdaim.util.JavaBeanUtil;
+import com.jfinal.aop.Before;
+import com.jfinal.kit.Kv;
+import com.jfinal.plugin.activerecord.Db;
+import com.jfinal.plugin.activerecord.Page;
+import com.jfinal.plugin.activerecord.Record;
+import com.jfinal.plugin.activerecord.tx.Tx;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -271,12 +271,12 @@ public class CrmContractService {
      *
      * @author wyq
      */
-    public R updateOwnerUserId(CrmCustomer crmCustomer) {
-        CrmContract crmContract = new CrmContract();
+    public R updateOwnerUserId(LkCrmCustomerEntity crmCustomer) {
+        LkCrmContractEntity crmContract = new LkCrmContractEntity();
         crmContract.setNewOwnerUserId(crmCustomer.getNewOwnerUserId());
         crmContract.setTransferType(crmCustomer.getTransferType());
         crmContract.setPower(crmCustomer.getPower());
-        String contractIds = Db.queryStr("select GROUP_CONCAT(contract_id) from 72crm_crm_contract where customer_id in ("+crmCustomer.getCustomerIds()+")");
+        String contractIds = crmContractDao.queryForObject("select GROUP_CONCAT(contract_id) from 72crm_crm_contract where customer_id in ("+crmCustomer.getCustomerIds()+")");
         if (StrUtil.isEmpty(contractIds)){
             return R.ok();
         }
@@ -288,7 +288,7 @@ public class CrmContractService {
      * @author wyq
      * 根据合同id变更负责人
      */
-    public R transfer(CrmContract crmContract) {
+    public R transfer(LkCrmContractEntity crmContract) {
         String[] contractIdsArr = crmContract.getContractIds().split(",");
         return Db.tx(() -> {
             for (String contractId : contractIdsArr) {
@@ -305,7 +305,7 @@ public class CrmContractService {
                 }
                 crmContract.setContractId(Integer.valueOf(contractId));
                 crmContract.setOwnerUserId(crmContract.getNewOwnerUserId());
-                crmContract.update();
+                crmContractDao.update(crmContract);
                 crmRecordService.addConversionRecord(Integer.valueOf(contractId), CrmEnum.CONTRACT_TYPE_KEY.getTypes(), crmContract.getNewOwnerUserId());
             }
             return true;

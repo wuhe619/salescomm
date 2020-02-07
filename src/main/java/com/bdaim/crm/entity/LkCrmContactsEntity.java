@@ -25,6 +25,7 @@ public class LkCrmContactsEntity {
 
     @Id
     @Column(name = "contacts_id")
+    @GeneratedValue
     public int getContactsId() {
         return contactsId;
     }

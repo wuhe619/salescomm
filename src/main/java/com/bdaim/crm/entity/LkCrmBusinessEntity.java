@@ -29,6 +29,16 @@ public class LkCrmBusinessEntity {
     private int isEnd;
     private String statusRemark;
 
+    //移出方式（1.移除2.转为团队成员）
+    private Integer transferType;
+    //权限（1.只读2.读写）
+    private Integer power;
+    private String ids;
+    private Integer newOwnerUserId;
+    private String memberIds;
+    private Integer orderNum;
+    private String businessIds;
+
     @Id
     @Column(name = "business_id")
     public int getBusinessId() {
@@ -259,5 +269,62 @@ public class LkCrmBusinessEntity {
     @Override
     public int hashCode() {
         return Objects.hash(businessId, typeId, statusId, nextTime, customerId, dealDate, businessName, money, discountRate, totalPrice, remark, createUserId, ownerUserId, createTime, updateTime, batchId, roUserId, rwUserId, isEnd, statusRemark);
+    }
+
+    @Transient
+    public Integer getTransferType() {
+        return transferType;
+    }
+
+    public void setTransferType(Integer transferType) {
+        this.transferType = transferType;
+    }
+    @Transient
+    public Integer getPower() {
+        return power;
+    }
+
+    public void setPower(Integer power) {
+        this.power = power;
+    }
+    @Transient
+    public String getIds() {
+        return ids;
+    }
+
+    public void setIds(String ids) {
+        this.ids = ids;
+    }
+    @Transient
+    public Integer getNewOwnerUserId() {
+        return newOwnerUserId;
+    }
+
+    public void setNewOwnerUserId(Integer newOwnerUserId) {
+        this.newOwnerUserId = newOwnerUserId;
+    }
+    @Transient
+    public String getMemberIds() {
+        return memberIds;
+    }
+
+    public void setMemberIds(String memberIds) {
+        this.memberIds = memberIds;
+    }
+    @Transient
+    public Integer getOrderNum() {
+        return orderNum;
+    }
+
+    public void setOrderNum(Integer orderNum) {
+        this.orderNum = orderNum;
+    }
+    @Transient
+    public String getBusinessIds() {
+        return businessIds;
+    }
+
+    public void setBusinessIds(String businessIds) {
+        this.businessIds = businessIds;
     }
 }

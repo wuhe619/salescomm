@@ -81,7 +81,7 @@ public class AdminFieldController extends Controller {
     /**
      *
      */
-    @RequestMapping(value = "/queryListHead", method = RequestMethod.POST)
+    @RequestMapping(value = "/queryFields", method = RequestMethod.POST)
     public R queryFields() {
         return(adminFieldService.queryFields());
     }
@@ -90,7 +90,7 @@ public class AdminFieldController extends Controller {
      * @author zxy
      * 查询自定义字段列表
      */
-    @RequestMapping(value = "/queryListHead", method = RequestMethod.POST)
+    @RequestMapping(value = "/list", method = RequestMethod.POST)
     public R list(@RequestBody JSONObject object) {
         //JSONObject object = JSONObject.parseObject(getRawData());
         return(R.ok().put("data", adminFieldService.list(object.getString("label"), object.getString("categoryId"))));
@@ -178,7 +178,7 @@ public class AdminFieldController extends Controller {
      * @author zhangzhiwei
      * 设置字段样式
      */
-    @RequestMapping(value = "/queryListHead", method = RequestMethod.POST)
+    @RequestMapping(value = "/setFelidStyle", method = RequestMethod.POST)
     public R setFelidStyle() {
         return (adminFieldService.setFelidStyle(getKv()));
     }
@@ -251,7 +251,7 @@ public class AdminFieldController extends Controller {
      * @author wyq
      * 获取导入查重字段
      */
-    @RequestMapping(value = "/queryListHead", method = RequestMethod.POST)
+    @RequestMapping(value = "/getCheckingField", method = RequestMethod.POST)
     public R getCheckingField(@Para("type") Integer type) {
         R data;
         switch (type) {

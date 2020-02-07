@@ -42,7 +42,7 @@ public class CrmRecordController extends Controller {
      * @author wyq
      * 删除跟进记录
      */
-    @RequestMapping(value = "/queryRecordList", method = RequestMethod.POST)
+    @RequestMapping(value = "/deleteFollowRecord", method = RequestMethod.POST)
     public R deleteFollowRecord(@Para("recordId") Integer recordId) {
         return(crmRecordService.deleteFollowRecord(recordId));
     }
@@ -60,7 +60,7 @@ public class CrmRecordController extends Controller {
      * @author wyq
      * 设置跟进记录类型
      */
-    @RequestMapping(value = "/queryRecordList", method = RequestMethod.POST)
+    @RequestMapping(value = "/setRecordOptions", method = RequestMethod.POST)
     public R setRecordOptions(@RequestBody JSONObject jsonObject) {
         //JSONObject jsonObject = JSONObject.parseObject(getRawData());
         JSONArray jsonArray = JSONArray.parseArray(jsonObject.getString("value"));

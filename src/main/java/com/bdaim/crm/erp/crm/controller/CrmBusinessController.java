@@ -2,12 +2,10 @@ package com.bdaim.crm.erp.crm.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.jfinal.aop.Inject;
-import com.jfinal.core.Controller;
-import com.jfinal.core.paragetter.Para;
 import com.bdaim.crm.common.annotation.NotNullValidate;
 import com.bdaim.crm.common.annotation.Permissions;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
+import com.bdaim.crm.entity.LkCrmBusinessEntity;
 import com.bdaim.crm.erp.admin.entity.AdminRecord;
 import com.bdaim.crm.erp.admin.service.AdminSceneService;
 import com.bdaim.crm.erp.crm.common.CrmEnum;
@@ -15,6 +13,8 @@ import com.bdaim.crm.erp.crm.entity.CrmBusiness;
 import com.bdaim.crm.erp.crm.service.CrmBusinessService;
 import com.bdaim.crm.utils.AuthUtil;
 import com.bdaim.crm.utils.R;
+import com.jfinal.core.Controller;
+import com.jfinal.core.paragetter.Para;
 
 import javax.annotation.Resource;
 
@@ -135,7 +135,7 @@ public class CrmBusinessController extends Controller {
     @NotNullValidate(value = "businessIds",message = "商机id不能为空")
     @NotNullValidate(value = "newOwnerUserId",message = "负责人id不能为空")
     @NotNullValidate(value = "transferType",message = "移除方式不能为空")
-    public void transfer(@Para("")CrmBusiness crmBusiness){
+    public void transfer(@Para("") LkCrmBusinessEntity crmBusiness){
         renderJson(crmBusinessService.transfer(crmBusiness));
     }
 

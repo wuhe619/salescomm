@@ -18,6 +18,7 @@ public class LkCrmOaEventRelationEntity {
 
     @Id
     @Column(name = "eventrelation_id")
+    @GeneratedValue
     public int getEventrelationId() {
         return eventrelationId;
     }

@@ -231,24 +231,24 @@ public class CrmRecordService<T> {
      */
     public void addConversionRecord(Integer actionId, String crmTypes, Integer userId) {
         String name = Db.queryStr("select realname from lkcrm_admin_user where user_id = ?", userId);
-        CrmActionRecord crmActionRecord = new CrmActionRecord();
+        LkCrmActionRecordEntity crmActionRecord = new LkCrmActionRecordEntity();
         crmActionRecord.setCreateUserId(BaseUtil.getUser().getUserId().intValue());
-        crmActionRecord.setCreateTime(new Date());
+        crmActionRecord.setCreateTime(DateUtil.date().toTimestamp());
         crmActionRecord.setTypes(crmTypes);
         crmActionRecord.setActionId(actionId);
         ArrayList<String> strings = new ArrayList<>();
         strings.add("将" + CrmEnum.getName(crmTypes) + "转移给：" + name);
         crmActionRecord.setContent(JSON.toJSONString(strings));
-        crmActionRecord.save();
+        crmActionRecordDao.save(crmActionRecord);
     }
 
     /**
      * 添加(锁定/解锁)记录
      */
     public void addIsLockRecord(String[] ids, String crmTypes, Integer isLock) {
-        CrmActionRecord crmActionRecord = new CrmActionRecord();
+        LkCrmActionRecordEntity crmActionRecord = new LkCrmActionRecordEntity();
         crmActionRecord.setCreateUserId(BaseUtil.getUser().getUserId().intValue());
-        crmActionRecord.setCreateTime(new Date());
+        crmActionRecord.setCreateTime(DateUtil.date().toTimestamp());
         crmActionRecord.setTypes(crmTypes);
         ArrayList<String> strings = new ArrayList<>();
         if (isLock == 1) {
@@ -259,7 +259,7 @@ public class CrmRecordService<T> {
         crmActionRecord.setContent(JSON.toJSONString(strings));
         for (String actionId : ids) {
             crmActionRecord.setActionId(Integer.valueOf(actionId));
-            crmActionRecord.save();
+            crmActionRecordDao.save(crmActionRecord);
         }
     }
 
@@ -288,21 +288,21 @@ public class CrmRecordService<T> {
      * @param crmTypes
      */
     public void addPutIntoTheOpenSeaRecord(Collection actionIds, String crmTypes) {
-        CrmActionRecord crmActionRecord = new CrmActionRecord();
+        LkCrmActionRecordEntity crmActionRecord = new LkCrmActionRecordEntity();
         if (BaseUtil.getRequest() == null) {
             crmActionRecord.setCreateUserId(BaseConstant.SUPER_ADMIN_USER_ID.intValue());
         } else {
             crmActionRecord.setCreateUserId(BaseUtil.getUser().getUserId().intValue());
         }
-        crmActionRecord.setCreateTime(new Date());
+        crmActionRecord.setCreateTime(DateUtil.date().toTimestamp());
         crmActionRecord.setTypes(crmTypes);
         ArrayList<String> strings = new ArrayList<>();
         strings.add("将客户放入公海");
         crmActionRecord.setContent(JSON.toJSONString(strings));
         for (Object actionId : actionIds) {
-            crmActionRecord.remove("id");
+            //crmActionRecord.remove("id");
             crmActionRecord.setActionId((Integer) actionId);
-            crmActionRecord.save();
+            crmActionRecordDao.save(crmActionRecord);
         }
     }
 

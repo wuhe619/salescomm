@@ -239,7 +239,7 @@ public class CrmContactsService {
      * @param ownerUserId 负责人ID
      */
     public boolean updateOwnerUserId(Integer customerId, Integer ownerUserId){
-        Db.update("update 72crm_crm_contacts set owner_user_id = " + ownerUserId + " where customer_id = "+customerId);
+        crmAdminUserDao.executeUpdateSQL("update 72crm_crm_contacts set owner_user_id = " + ownerUserId + " where customer_id = "+customerId);
         crmRecordService.addConversionRecord(customerId,CrmEnum.CUSTOMER_TYPE_KEY.getTypes(),ownerUserId);
         return true;
     }
