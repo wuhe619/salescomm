@@ -17,7 +17,8 @@ public enum TransactionTypeEnum {
     //REPAIR_DEDUCTION(6, "修复扣费"),
     LABEL_DEDUCTION(7, "数据(客户群)扣费"),
     APPARENT_NUM_DEDUCTION(8, "外显扣费"),
-    B2B_TC_DEDUCTION(9, "B2B套餐");
+    B2B_TC_DEDUCTION(9, "B2B套餐"),
+    API_DEDUCTION(10,"API消费金额");
 
     private int type;
     private String name;

@@ -218,4 +218,44 @@ public class CustomerController extends BasicAction {
         return resp;
     }
 
+    /**
+     * 单客户月账单分页列表
+     * @param params
+     * @param customerId
+     * @return
+     */
+    @PostMapping("/{customerId}/monthBill")
+    public ResponseInfo customerMonthBill(@RequestBody JSONObject params,@PathVariable("customerId")String customerId) {
+        LoginUser lu = opUser();
+        params.put("customerId",customerId);
+        ResponseInfo resp = new ResponseInfo();
+        PageParam page = new PageParam();
+        page.setPageSize(params.containsKey("pageSize") ? 0 : params.getIntValue("pageSize"));
+        page.setPageNum(params.containsKey("pageNum") ? 10 : params.getIntValue("pageNum"));
+        resp.setData(customerAppService.customerMonthBill(page, customerId));
+        return resp;
+    }
+
+    /**
+     * 后付款客户结算月账单
+     * @param params
+     * @param customerId
+     * @return
+     */
+    @PostMapping("/{customerId}/monthBillSettlement")
+    public ResponseInfo settlementCustomerMonthBill(@RequestBody JSONObject params,@PathVariable("customerId")String customerId) {
+        LoginUser lu = opUser();
+        params.put("customerId",customerId);
+        params.put("opuser",lu.getId());
+        ResponseInfo resp = new ResponseInfo();
+        try {
+            customerAppService.settlementCustomerMonthBill(params);
+            resp.setCode(0);
+        }catch (Exception e){
+            logger.error(e.getMessage());
+            resp.setMessage(e.getMessage());
+            resp.setCode(-1);
+        }
+        return resp;
+    }
 }
