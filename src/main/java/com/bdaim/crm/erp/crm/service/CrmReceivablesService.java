@@ -21,7 +21,6 @@ import com.jfinal.kit.Kv;
 import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Page;
 import com.jfinal.plugin.activerecord.Record;
-import com.jfinal.plugin.activerecord.SqlPara;
 import com.jfinal.plugin.activerecord.tx.Tx;
 import org.springframework.stereotype.Service;
 
@@ -94,10 +93,10 @@ public class CrmReceivablesService {
         crmRecordService.updateRecord(jsonObject.getJSONArray("field"), batchId);
         adminFieldService.save(jsonObject.getJSONArray("field"), batchId);
         if (crmReceivables.getReceivablesId() == null) {
-           Integer count =  Db.queryInt(Db.getSql("crm.receivables.queryByNumber"),crmReceivables.getNumber());
-           if (count!=null&&count > 0){
-               return R.error("回款编号已存在，请校对后再添加！");
-           }
+            Integer count = Db.queryInt(Db.getSql("crm.receivables.queryByNumber"), crmReceivables.getNumber());
+            if (count != null && count > 0) {
+                return R.error("回款编号已存在，请校对后再添加！");
+            }
             crmReceivables.setCreateTime(DateUtil.date());
             crmReceivables.setUpdateTime(DateUtil.date());
             crmReceivables.setBatchId(batchId);
@@ -167,7 +166,7 @@ public class CrmReceivablesService {
                 .set("回款金额", record.getStr("money"))
                 .set("期数", record.getStr("plan_num"))
                 .set("备注", record.getStr("remark"));
-        List<Record> recordList = Db.find(Db.getSql("admin.field.queryCustomField"),record.getStr("batch_id"));
+        List<Record> recordList = Db.find(Db.getSql("admin.field.queryCustomField"), record.getStr("batch_id"));
         fieldUtil.handleType(recordList);
         fieldList.addAll(recordList);
         return fieldList;
@@ -184,15 +183,15 @@ public class CrmReceivablesService {
             return R.error("该数据已被其他模块引用，不能被删除！");
         }
         for (String id : idsArr) {
-                CrmReceivables receivables = CrmReceivables.dao.findById(id);
+            CrmReceivables receivables = CrmReceivables.dao.findById(id);
             if (receivables != null) {
-                Db.delete("delete FROM 72crm_admin_fieldv where batch_id = ?",receivables.getBatchId());
+                Db.delete("delete FROM 72crm_admin_fieldv where batch_id = ?", receivables.getBatchId());
             }
-            if (!CrmReceivables.dao.deleteById(id)){
+            if (!CrmReceivables.dao.deleteById(id)) {
                 return R.error();
             }
         }
-            return R.ok();
+        return R.ok();
     }
 
     /**
@@ -203,12 +202,12 @@ public class CrmReceivablesService {
         Record receivables = JavaBeanUtil.mapToRecord(crmReceivablesDao.sqlQuery("select * from receivablesview where receivables_id = ?", receivablesId).get(0));
         //Record receivables = Db.findFirst("select * from receivablesview where receivables_id = ?",receivablesId);
         List<Record> list = new ArrayList<>();
-        list.add(new Record().set("customer_id",receivables.getInt("customer_id")).set("customer_name",receivables.getStr("customer_name")));
-        receivables.set("customer_id",list);
+        list.add(new Record().set("customer_id", receivables.getInt("customer_id")).set("customer_name", receivables.getStr("customer_name")));
+        receivables.set("customer_id", list);
         list = new ArrayList<>();
         list.add(new Record().set("contract_id", receivables.getStr("contract_id")).set("contract_num", receivables.getStr("contract_num")));
-        receivables.set("contract_id",list);
-        return adminFieldService.queryUpdateField(7,receivables);
+        receivables.set("contract_id", list);
+        return adminFieldService.queryUpdateField(7, receivables);
     }
 
     /**
@@ -248,9 +247,11 @@ public class CrmReceivablesService {
     public R qureyListByContractId(BasePageRequest<CrmReceivables> basePageRequest) {
         Integer pageType = basePageRequest.getPageType();
         if (0 == pageType) {
-            return R.ok().put("data", Db.find(Db.getSql("crm.receivables.queryReceivablesPageList"),basePageRequest.getData().getContractId()));
+            return R.ok().put("data", crmReceivablesDao.queryReceivablesPageList(basePageRequest.getData().getContractId()));
+            //return R.ok().put("data", Db.find(Db.getSql("crm.receivables.queryReceivablesPageList"),basePageRequest.getData().getContractId()));
         } else {
-            return R.ok().put("data", Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(),new SqlPara().setSql(Db.getSql("crm.receivables.queryReceivablesPageList")).addPara(basePageRequest.getData().getContractId())));
+            return R.ok().put("data", crmReceivablesDao.pageQueryReceivablesPageList(basePageRequest.getPage(), basePageRequest.getLimit(), basePageRequest.getData().getContractId()));
+            //return R.ok().put("data", Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(),new SqlPara().setSql(Db.getSql("crm.receivables.queryReceivablesPageList")).addPara(basePageRequest.getData().getContractId())));
         }
     }
 }

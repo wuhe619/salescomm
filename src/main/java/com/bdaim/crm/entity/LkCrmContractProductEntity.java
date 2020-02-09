@@ -19,6 +19,7 @@ public class LkCrmContractProductEntity {
 
     @Id
     @Column(name = "r_id")
+    @GeneratedValue
     public int getrId() {
         return rId;
     }

@@ -8,7 +8,7 @@ import java.util.Objects;
 @Entity
 @Table(name = "lkcrm_crm_contract", schema = "", catalog = "")
 public class LkCrmContractEntity {
-    private int contractId;
+    private Integer contractId;
     private String name;
     private Integer customerId;
     private Integer businessId;
@@ -46,11 +46,12 @@ public class LkCrmContractEntity {
 
     @Id
     @Column(name = "contract_id")
-    public int getContractId() {
+    @GeneratedValue
+    public Integer getContractId() {
         return contractId;
     }
 
-    public void setContractId(int contractId) {
+    public void setContractId(Integer contractId) {
         this.contractId = contractId;
     }
 

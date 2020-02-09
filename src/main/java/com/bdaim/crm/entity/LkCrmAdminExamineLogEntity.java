@@ -7,7 +7,7 @@ import java.util.Objects;
 @Entity
 @Table(name = "lkcrm_admin_examine_log", schema = "", catalog = "")
 public class LkCrmAdminExamineLogEntity {
-    private long logId;
+    private Long logId;
     private Integer recordId;
     private Long examineStepId;
     private Integer examineStatus;
@@ -21,11 +21,12 @@ public class LkCrmAdminExamineLogEntity {
 
     @Id
     @Column(name = "log_id")
-    public long getLogId() {
+    @GeneratedValue
+    public Long getLogId() {
         return logId;
     }
 
-    public void setLogId(long logId) {
+    public void setLogId(Long logId) {
         this.logId = logId;
     }
 

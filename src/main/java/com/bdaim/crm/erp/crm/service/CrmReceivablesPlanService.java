@@ -6,6 +6,7 @@ import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.dao.LkCrmReceivablesDao;
+import com.bdaim.crm.dao.LkCrmReceivablesPlanDao;
 import com.bdaim.crm.erp.admin.service.AdminFieldService;
 import com.bdaim.crm.erp.crm.entity.CrmReceivables;
 import com.bdaim.crm.erp.crm.entity.CrmReceivablesPlan;
@@ -31,6 +32,8 @@ public class CrmReceivablesPlanService {
     private AdminFieldService adminFieldService;
     @Resource
     private LkCrmReceivablesDao crmReceivablesDao;
+    @Resource
+    private LkCrmReceivablesPlanDao crmReceivablesPlanDao;
 
     /**
      * 添加或修改回款计划
@@ -51,8 +54,8 @@ public class CrmReceivablesPlanService {
             }
             return crmReceivablesPlan.save() ? R.ok() : R.error();
         } else {
-            Integer number = Db.queryInt("select count(*) from 72crm_crm_receivables where plan_id = ?",crmReceivablesPlan.getPlanId());
-            if (number > 0 ){
+            Integer number = Db.queryInt("select count(*) from 72crm_crm_receivables where plan_id = ?", crmReceivablesPlan.getPlanId());
+            if (number > 0) {
                 return R.error("该回款计划已收到回款，请勿编辑");
             }
             crmReceivablesPlan.setUpdateTime(DateUtil.date());
@@ -64,12 +67,12 @@ public class CrmReceivablesPlanService {
      * @author wyq
      * 删除回款计划
      */
-    public R deleteByIds(String planIds){
+    public R deleteByIds(String planIds) {
         String[] idsArr = planIds.split(",");
         List<Record> idsList = new ArrayList<>();
         for (String id : idsArr) {
-            Integer number = Db.queryInt("select count(*) from 72crm_crm_receivables where plan_id = ?",id);
-            if (number > 0 ){
+            Integer number = Db.queryInt("select count(*) from 72crm_crm_receivables where plan_id = ?", id);
+            if (number > 0) {
                 return R.error("该回款计划已关联回款，禁止删除");
             }
             Record record = new Record();
@@ -88,7 +91,7 @@ public class CrmReceivablesPlanService {
     public List<Record> queryField() {
         List<Record> fieldList = new ArrayList<>();
         String[] settingArr = new String[]{};
-        String[] returnTypeArr = new String[]{"支票","现金","邮政汇款","电汇","网上转账","支付宝","微信支付","其他"};
+        String[] returnTypeArr = new String[]{"支票", "现金", "邮政汇款", "电汇", "网上转账", "支付宝", "微信支付", "其他"};
         fieldUtil.getFixedField(fieldList, "customer_id", "客户名称", "", "customer", settingArr, 1);
         fieldUtil.getFixedField(fieldList, "contract_id", "合同编号", "", "contract", settingArr, 1);
         fieldUtil.getFixedField(fieldList, "money", "计划回款金额", "", "number", settingArr, 1);
@@ -112,7 +115,7 @@ public class CrmReceivablesPlanService {
         //Record receivablesPlan = Db.findFirst(Db.getSql("crm.receivablesplan.queryUpdateField"),id);
         List<Record> fieldList = new ArrayList<>();
         String[] settingArr = new String[]{};
-        String[] returnTypeArr = new String[]{"支票","现金","邮政汇款","电汇","网上转账","支付宝","微信支付","其他"};
+        String[] returnTypeArr = new String[]{"支票", "现金", "邮政汇款", "电汇", "网上转账", "支付宝", "微信支付", "其他"};
         List<Record> customerList = new ArrayList<>();
         customerList.add(new Record().set("customer_id", receivablesPlan.getInt("customer_id")).set("customer_name", receivablesPlan.getStr("customer_name")));
         fieldUtil.getFixedField(fieldList, "customer_id", "客户名称", customerList, "customer", settingArr, 1);
@@ -134,10 +137,12 @@ public class CrmReceivablesPlanService {
 
         Integer pageType = basePageRequest.getPageType();
         if (pageType == null || 0 == pageType) {
-            return R.ok().put("data", Db.find(Db.getSql("crm.receivablesplan.queryListByContractId"), basePageRequest.getData().getContractId()));
+            return R.ok().put("data", crmReceivablesPlanDao.queryListByContractId(basePageRequest.getData().getContractId()));
+            //return R.ok().put("data", Db.find(Db.getSql("crm.receivablesplan.queryListByContractId"), basePageRequest.getData().getContractId()));
         }
         if (1 == pageType) {
-            return R.ok().put("data", Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), Db.getSqlPara("crm.receivablesplan.queryListByContractId", basePageRequest.getData().getContractId())));
+            return R.ok().put("data", crmReceivablesPlanDao.pageListByContractId(basePageRequest.getPage(), basePageRequest.getLimit(),basePageRequest.getData().getContractId()));
+            //return R.ok().put("data", Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), Db.getSqlPara("crm.receivablesplan.queryListByContractId", basePageRequest.getData().getContractId())));
         }
         return R.error();
     }

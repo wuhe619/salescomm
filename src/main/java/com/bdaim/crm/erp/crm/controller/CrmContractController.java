@@ -1,12 +1,12 @@
 package com.bdaim.crm.erp.crm.controller;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.crm.common.annotation.NotNullValidate;
 import com.bdaim.crm.common.annotation.Permissions;
+import com.bdaim.crm.common.annotation.RequestBody;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
+import com.bdaim.crm.entity.LkCrmAdminRecordEntity;
 import com.bdaim.crm.entity.LkCrmContractEntity;
-import com.bdaim.crm.erp.admin.entity.AdminRecord;
 import com.bdaim.crm.erp.admin.service.AdminSceneService;
 import com.bdaim.crm.erp.crm.common.CrmEnum;
 import com.bdaim.crm.erp.crm.entity.CrmContract;
@@ -19,10 +19,14 @@ import com.bdaim.crm.utils.AuthUtil;
 import com.bdaim.crm.utils.R;
 import com.jfinal.core.Controller;
 import com.jfinal.core.paragetter.Para;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 
-
+@RestController
+@RequestMapping("/CrmContract")
 public class CrmContractController extends Controller {
     @Resource
     private CrmContractService crmContractService;
@@ -39,113 +43,148 @@ public class CrmContractController extends Controller {
      * 查看列表页
      */
     @Permissions({"crm:contract:index"})
-    public void queryPageList(BasePageRequest basePageRequest){
-        JSONObject jsonObject = basePageRequest.getJsonObject().fluentPut("type",6);
+    @RequestMapping(value = "/queryPageList", method = RequestMethod.POST)
+    public R queryPageList(@RequestBody BasePageRequest basePageRequest, @RequestBody JSONObject jsonObject) {
+        jsonObject.fluentPut("type", 6);
         basePageRequest.setJsonObject(jsonObject);
-        renderJson(adminSceneService.filterConditionAndGetPageList(basePageRequest));
+        return (adminSceneService.filterConditionAndGetPageList(basePageRequest));
     }
 
     /**
      * 分页条件查询合同
+     *
      * @author zxy
      */
-    public void queryPage(BasePageRequest<CrmContract> basePageRequest){
-        renderJson(R.ok().put("data",crmContractService.queryPage(basePageRequest)));
+    @RequestMapping(value = "/queryPage", method = RequestMethod.POST)
+    public R queryPage(BasePageRequest<CrmContract> basePageRequest, CrmContract crmContract) {
+        basePageRequest.setData(crmContract);
+        return (R.ok().put("data", crmContractService.queryPage(basePageRequest)));
     }
+
     /**
      * 根据id查询合同
+     *
      * @author zxy
      */
     @Permissions("crm:contract:read")
-    @NotNullValidate(value = "contractId",message = "合同id不能为空")
-    public void queryById(@Para("contractId") Integer id){
-        renderJson(crmContractService.queryById(id));
+    @NotNullValidate(value = "contractId", message = "合同id不能为空")
+    @RequestMapping(value = "/queryById", method = RequestMethod.POST)
+    public R queryById(@Para("contractId") Integer id) {
+        return (crmContractService.queryById(id));
     }
+
     /**
      * 根据id删除合同
+     *
      * @author zxy
      */
     @Permissions("crm:contract:delete")
-    @NotNullValidate(value = "contractIds",message = "合同id不能为空")
-    public void deleteByIds(@Para("contractIds") String contractIds){
-        renderJson(crmContractService.deleteByIds(contractIds));
+    @NotNullValidate(value = "contractIds", message = "合同id不能为空")
+    @RequestMapping(value = "/deleteByIds", method = RequestMethod.POST)
+    public R deleteByIds(@Para("contractIds") String contractIds) {
+        return (crmContractService.deleteByIds(contractIds));
     }
+
     /**
      * @author wyq
      * 合同转移
      */
     @Permissions("crm:contract:transfer")
-    @NotNullValidate(value = "contractIds",message = "合同id不能为空")
-    @NotNullValidate(value = "newOwnerUserId",message = "负责人id不能为空")
-    @NotNullValidate(value = "transferType",message = "移除方式不能为空")
-    public void transfer(@Para("") LkCrmContractEntity crmContract){
-        renderJson(crmContractService.transfer(crmContract));
+    @NotNullValidate(value = "contractIds", message = "合同id不能为空")
+    @NotNullValidate(value = "newOwnerUserId", message = "负责人id不能为空")
+    @NotNullValidate(value = "transferType", message = "移除方式不能为空")
+    @RequestMapping(value = "/transfer", method = RequestMethod.POST)
+    public R transfer(@Para("") LkCrmContractEntity crmContract) {
+        return (crmContractService.transfer(crmContract));
     }
+
     /**
      * 添加或修改
+     *
      * @author zxy
      */
-    @Permissions({"crm:contract:save","crm:contract:update"})
-    public void saveAndUpdate(){
-        String data = getRawData();
-        JSONObject jsonObject = JSON.parseObject(data);
-        renderJson(crmContractService.saveAndUpdate(jsonObject));
+    @Permissions({"crm:contract:save", "crm:contract:update"})
+    @RequestMapping(value = "/saveAndUpdate", method = RequestMethod.POST)
+    public R saveAndUpdate(@RequestBody JSONObject jsonObject) {
+        //String data = getRawData();
+        //JSONObject jsonObject = JSON.parseObject(data);
+        return (crmContractService.saveAndUpdate(jsonObject));
     }
+
     /**
      * 根据条件查询合同
+     *
      * @author zxy
      */
-    public void queryList(@Para("")CrmContract crmContract){
-        renderJson(R.ok().put("data",crmContractService.queryList(crmContract)));
+    @RequestMapping(value = "/queryList", method = RequestMethod.POST)
+    public R queryList(@Para("") LkCrmContractEntity crmContract) {
+        return (R.ok().put("data", crmContractService.queryList(crmContract)));
     }
+
     /**
      * 根据条件查询合同
+     *
      * @author zxy
      */
-    @NotNullValidate(value = "id",message = "id不能为空")
-    @NotNullValidate(value = "type",message = "类型不能为空")
-    public void queryListByType(@Para("type") String type, @Para("id") Integer id ){
-        renderJson(R.ok().put("data",crmContractService.queryListByType(type,id)));
+    @NotNullValidate(value = "id", message = "id不能为空")
+    @NotNullValidate(value = "type", message = "类型不能为空")
+    @RequestMapping(value = "/queryListByType", method = RequestMethod.POST)
+    public R queryListByType(@Para("type") String type, @Para("id") Integer id) {
+        return (R.ok().put("data", crmContractService.queryListByType(type, id)));
     }
+
     /**
-     根据合同批次查询产品
+     * 根据合同批次查询产品
+     *
      * @param batchId
      * @author zxy
      */
-    public void queryProductById(@Para("batchId") String batchId){
-        renderJson(R.ok().put("data",crmContractService.queryProductById(batchId)));
+    @RequestMapping(value = "/queryProductById", method = RequestMethod.POST)
+    public R queryProductById(@Para("batchId") String batchId) {
+        return (R.ok().put("data", crmContractService.queryProductById(batchId)));
     }
+
     /**
      * 根据合同id查询回款
+     *
      * @author zxy
      */
-    public void queryReceivablesById(@Para("id") Integer id){
-        renderJson(R.ok().put("data",crmContractService.queryReceivablesById(id)));
+    @RequestMapping(value = "/queryReceivablesById", method = RequestMethod.POST)
+    public R queryReceivablesById(@Para("id") Integer id) {
+        return (R.ok().put("data", crmContractService.queryReceivablesById(id)));
     }
+
     /**
      * 根据合同id查询回款计划
+     *
      * @author zxy
      */
-    public void queryReceivablesPlanById(@Para("id") Integer id){
-        renderJson(R.ok().put("data",crmContractService.queryReceivablesPlanById(id)));
+    @RequestMapping(value = "/queryReceivablesPlanById", method = RequestMethod.POST)
+    public R queryReceivablesPlanById(@Para("id") Integer id) {
+        return (R.ok().put("data", crmContractService.queryReceivablesPlanById(id)));
     }
 
     /**
      * @author wyq
      * 查询团队成员
      */
-    public void getMembers(@Para("contractId") Integer contractId){
+    @RequestMapping(value = "/getMembers", method = RequestMethod.POST)
+    public R getMembers(@Para("contractId") Integer contractId) {
         boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.CONTRACT_TYPE_KEY.getSign()), contractId);
-        if(auth){renderJson(R.noAuth()); return; }
-        renderJson(R.ok().put("data",crmContractService.getMembers(contractId)));
+        if (auth) {
+            return(R.noAuth());
+            //return;
+        }
+        return(R.ok().put("data", crmContractService.getMembers(contractId)));
     }
 
     /**
      * @author wyq
      * 编辑团队成员
      */
-    public void updateMembers(@Para("")CrmContract crmContract){
-        renderJson(crmContractService.addMember(crmContract));
+    @RequestMapping(value = "/updateMembers", method = RequestMethod.POST)
+    public R updateMembers(@Para("") CrmContract crmContract) {
+        return(crmContractService.addMember(crmContract));
     }
 
     /**
@@ -153,80 +192,110 @@ public class CrmContractController extends Controller {
      * 添加团队成员
      */
     @Permissions("crm:contract:teamsave")
-    public void addMembers(@Para("")CrmContract crmContract){
-        renderJson(crmContractService.addMember(crmContract));
+    @RequestMapping(value = "/addMembers", method = RequestMethod.POST)
+    public R addMembers(@Para("") CrmContract crmContract) {
+        return(crmContractService.addMember(crmContract));
     }
 
     /**
      * @author wyq
      * 删除团队成员
      */
-    public void deleteMembers(@Para("")CrmContract crmContract){
-        renderJson(crmContractService.deleteMembers(crmContract));
+    @RequestMapping(value = "/deleteMembers", method = RequestMethod.POST)
+    public R deleteMembers(@Para("") CrmContract crmContract) {
+        return(crmContractService.deleteMembers(crmContract));
     }
 
     /**
      * @author wyq
      * 添加跟进记录
      */
-    @NotNullValidate(value = "typesId",message = "合同id不能为空")
-    @NotNullValidate(value = "content",message = "内容不能为空")
-    @NotNullValidate(value = "category",message = "跟进类型不能为空")
-    public void addRecord(@Para("")AdminRecord adminRecord){
+    @NotNullValidate(value = "typesId", message = "合同id不能为空")
+    @NotNullValidate(value = "content", message = "内容不能为空")
+    @NotNullValidate(value = "category", message = "跟进类型不能为空")
+    @RequestMapping(value = "/addRecord", method = RequestMethod.POST)
+    public R addRecord(@Para("") LkCrmAdminRecordEntity adminRecord) {
         boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.CONTRACT_TYPE_KEY.getSign()), adminRecord.getTypesId());
-        if(auth){renderJson(R.noAuth()); return; }
-        renderJson(crmContractService.addRecord(adminRecord));
+        if (auth) {
+            return (R.noAuth());
+            //return;
+        }
+        return(crmContractService.addRecord(adminRecord));
     }
 
     /**
      * @author wyq
      * 查看跟进记录
      */
-    public void getRecord(BasePageRequest<CrmContract> basePageRequest){
+    @RequestMapping(value = "/getRecord", method = RequestMethod.POST)
+    public R getRecord(BasePageRequest<CrmContract> basePageRequest) {
         boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.CONTRACT_TYPE_KEY.getSign()), basePageRequest.getData().getContractId());
-        if(auth){renderJson(R.noAuth()); return; }
-        renderJson(R.ok().put("data",crmContractService.getRecord(basePageRequest)));
+        if (auth) {
+            return(R.noAuth());
+            //return;
+        }
+        return(R.ok().put("data", crmContractService.getRecord(basePageRequest)));
     }
+
     /**
      * 根据合同ID查询回款
+     *
      * @author zxy
      */
-    public void qureyReceivablesListByContractId(BasePageRequest<CrmReceivables> basePageRequest){
+    @RequestMapping(value = "/qureyReceivablesListByContractId", method = RequestMethod.POST)
+    public R qureyReceivablesListByContractId(BasePageRequest<CrmReceivables> basePageRequest) {
         boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.CONTRACT_TYPE_KEY.getSign()), basePageRequest.getData().getContractId());
-        if(auth){renderJson(R.noAuth()); return; }
-        renderJson(receivablesService.qureyListByContractId(basePageRequest));
+        if (auth) {
+            return(R.noAuth());
+            //return;
+        }
+        return(receivablesService.qureyListByContractId(basePageRequest));
     }
+
     /**
      * 根据合同ID查询产品
+     *
      * @author zxy
      */
-    public void qureyProductListByContractId(BasePageRequest<CrmContractProduct> basePageRequest){
+    @RequestMapping(value = "/qureyProductListByContractId", method = RequestMethod.POST)
+    public R qureyProductListByContractId(BasePageRequest<CrmContractProduct> basePageRequest) {
         boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.CONTRACT_TYPE_KEY.getSign()), basePageRequest.getData().getContractId());
-        if(auth){renderJson(R.noAuth()); return; }
-        renderJson(crmContractService.qureyProductListByContractId(basePageRequest));
+        if (auth) {
+            return(R.noAuth());
+            //return;
+        }
+        return(crmContractService.qureyProductListByContractId(basePageRequest));
     }
+
     /**
      * 根据合同ID查询回款计划
+     *
      * @author zxy
      */
-    public void qureyReceivablesPlanListByContractId(BasePageRequest<CrmReceivables> basePageRequest){
+    @RequestMapping(value = "/qureyReceivablesPlanListByContractId", method = RequestMethod.POST)
+    public R qureyReceivablesPlanListByContractId(BasePageRequest<CrmReceivables> basePageRequest) {
         boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.CONTRACT_TYPE_KEY.getSign()), basePageRequest.getData().getContractId());
-        if(auth){renderJson(R.noAuth()); return; }
-        renderJson(receivablesPlanService.qureyListByContractId(basePageRequest));
+        if (auth) {
+            return(R.noAuth());
+            //return;
+        }
+        return(receivablesPlanService.qureyListByContractId(basePageRequest));
     }
 
     /**
      * 查询合同到期提醒设置
      */
-    public void queryContractConfig(){
-        renderJson(crmContractService.queryContractConfig());
+    @RequestMapping(value = "/queryContractConfig", method = RequestMethod.POST)
+    public R queryContractConfig() {
+        return(crmContractService.queryContractConfig());
     }
 
     /**
      * 修改合同到期提醒设置
      */
-    @NotNullValidate(value = "status",message = "status不能为空")
-    public void setContractConfig(@Para("status") Integer status, @Para("contractDay") Integer contractDay){
-        renderJson(crmContractService.setContractConfig(status,contractDay));
+    @NotNullValidate(value = "status", message = "status不能为空")
+    @RequestMapping(value = "/setContractConfig", method = RequestMethod.POST)
+    public R setContractConfig(@Para("status") Integer status, @Para("contractDay") Integer contractDay) {
+        return(crmContractService.setContractConfig(status, contractDay));
     }
 }

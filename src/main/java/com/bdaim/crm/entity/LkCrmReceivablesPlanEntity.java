@@ -28,6 +28,7 @@ public class LkCrmReceivablesPlanEntity {
 
     @Id
     @Column(name = "plan_id")
+    @GeneratedValue
     public int getPlanId() {
         return planId;
     }

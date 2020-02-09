@@ -27,6 +27,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import javax.transaction.Transactional;
 import java.math.BigDecimal;
+import java.sql.Date;
 import java.sql.Timestamp;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -248,7 +249,7 @@ public class AdminFieldService {
         array.forEach(obj -> {
             LkCrmAdminFieldvEntity fieldv = TypeUtils.castToJavaBean(obj, LkCrmAdminFieldvEntity.class);
             //fieldv.setId(null);
-            fieldv.setCreateTime(new Timestamp(System.currentTimeMillis()));
+            fieldv.setCreateTime(DateUtil.date().toTimestamp());
             fieldv.setBatchId(batchId);
             crmAdminFieldvDao.save(fieldv);
         });
