@@ -18,6 +18,7 @@ public class LkCrmOaActionRecordEntity {
 
     @Id
     @Column(name = "log_id")
+    @GeneratedValue
     public int getLogId() {
         return logId;
     }

@@ -19,6 +19,37 @@ public class LkCrmAdminSceneEntity {
     private Timestamp createTime;
     private Timestamp updateTime;
 
+    private Integer isDefault;
+    private String noHideIds;
+    private String hideIds;
+
+    @Transient
+    public Integer getIsDefault() {
+        return isDefault;
+    }
+
+    public void setIsDefault(Integer isDefault) {
+        this.isDefault = isDefault;
+    }
+
+    @Transient
+    public String getNoHideIds() {
+        return noHideIds;
+    }
+
+    public void setNoHideIds(String noHideIds) {
+        this.noHideIds = noHideIds;
+    }
+
+    @Transient
+    public String getHideIds() {
+        return hideIds;
+    }
+
+    public void setHideIds(String hideIds) {
+        this.hideIds = hideIds;
+    }
+
     @Id
     @Column(name = "scene_id")
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -37,8 +68,9 @@ public class LkCrmAdminSceneEntity {
         return type;
     }
 
-    public void setType(Integer type) {
+    public LkCrmAdminSceneEntity setType(Integer type) {
         this.type = type;
+        return this;
     }
 
     @Basic

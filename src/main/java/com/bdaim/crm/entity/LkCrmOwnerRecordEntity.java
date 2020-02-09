@@ -16,6 +16,7 @@ public class LkCrmOwnerRecordEntity {
 
     @Id
     @Column(name = "record_id")
+    @GeneratedValue
     public int getRecordId() {
         return recordId;
     }

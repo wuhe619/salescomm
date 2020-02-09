@@ -7,7 +7,7 @@ import java.util.Objects;
 @Entity
 @Table(name = "lkcrm_crm_business_product", schema = "", catalog = "")
 public class LkCrmBusinessProductEntity {
-    private int rId;
+    private Integer rId;
     private int businessId;
     private int productId;
     private BigDecimal price;
@@ -19,11 +19,12 @@ public class LkCrmBusinessProductEntity {
 
     @Id
     @Column(name = "r_id")
-    public int getrId() {
+    @GeneratedValue
+    public Integer getRId() {
         return rId;
     }
 
-    public void setrId(int rId) {
+    public void setRId(Integer rId) {
         this.rId = rId;
     }
 

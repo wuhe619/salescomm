@@ -9,8 +9,8 @@ import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.common.constant.BaseConstant;
 import com.bdaim.crm.dao.LkCrmAdminConfigDao;
 import com.bdaim.crm.dao.LkCrmCustomerDao;
+import com.bdaim.crm.dao.LkCrmLeadsDao;
 import com.bdaim.crm.entity.LkCrmAdminConfigEntity;
-import com.bdaim.crm.erp.admin.entity.AdminConfig;
 import com.bdaim.crm.erp.admin.service.AdminSceneService;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import javax.transaction.Transactional;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -37,6 +38,8 @@ public class CrmBackLogService {
     LkCrmCustomerDao crmCustomerDao;
     @Resource
     LkCrmAdminConfigDao crmAdminConfigDao;
+    @Resource
+    LkCrmLeadsDao crmLeadsDao;
 
     /**
      * 代办事项数量统计
@@ -98,7 +101,8 @@ public class CrmBackLogService {
         if (data != null) {
             stringBuffer.append(getConditionSql(data));
         }
-        Page<Record> page = Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), "select * ", stringBuffer.toString());
+        //Page<Record> page = Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), "select * ", stringBuffer.toString());
+        com.bdaim.common.dto.Page page = crmCustomerDao.sqlPageQuery("select * " + stringBuffer.toString(), basePageRequest.getPage(), basePageRequest.getLimit());
         return R.ok().put("data", page);
     }
 
@@ -106,7 +110,8 @@ public class CrmBackLogService {
      * 标记线索为已跟进
      */
     public R setLeadsFollowup(String ids) {
-        Db.update(Db.getSqlPara("crm.backLog.setLeadsFollowup", Kv.by("ids", ids)));
+        crmLeadsDao.setLeadsFollowup(Arrays.asList(ids.split(",")));
+        //Db.update(Db.getSqlPara("crm.backLog.setLeadsFollowup", Kv.by("ids", ids)));
         return R.ok();
     }
 
@@ -140,7 +145,8 @@ public class CrmBackLogService {
         if (data != null) {
             stringBuffer.append(getConditionSql(data));
         }
-        Page<Record> page = Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), "select *", stringBuffer.toString());
+        com.bdaim.common.dto.Page page = crmCustomerDao.sqlPageQuery("select * " + stringBuffer.toString(), basePageRequest.getPage(), basePageRequest.getLimit());
+        //Page<Record> page = Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), "select *", stringBuffer.toString());
         return R.ok().put("data", page);
     }
 
@@ -150,7 +156,8 @@ public class CrmBackLogService {
     public R setCustomerFollowup(String ids) {
         List<String> stringList = StrUtil.splitTrim(ids, ",");
         if (stringList.size() > 0) {
-            Db.update(Db.getSqlPara("crm.backLog.setCustomerFollowup", Kv.by("ids", stringList)));
+            crmCustomerDao.setCustomerFollowup(stringList);
+            //Db.update(Db.getSqlPara("crm.backLog.setCustomerFollowup", Kv.by("ids", stringList)));
         }
         return R.ok();
     }
@@ -185,7 +192,8 @@ public class CrmBackLogService {
         if (data != null) {
             stringBuffer.append(getConditionSql(data));
         }
-        Page<Record> page = Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), "select *", stringBuffer.toString());
+        com.bdaim.common.dto.Page page = crmCustomerDao.sqlPageQuery("select * " + stringBuffer.toString(), basePageRequest.getPage(), basePageRequest.getLimit());
+        //Page<Record> page = Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), "select *", stringBuffer.toString());
         return R.ok().put("data", page);
     }
 
@@ -219,7 +227,8 @@ public class CrmBackLogService {
         if (contractIdList.size() > 0) {
             String contractIds = CollUtil.join(contractIdList, ",");
             JSONObject data = jsonObject.getJSONObject("data");
-            Page<Record> page = Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), "select *", "from contractview as a where a.contract_id in (" + contractIds + ")" + getConditionSql(data));
+            com.bdaim.common.dto.Page page = crmCustomerDao.sqlPageQuery("select * from contractview as a where a.contract_id in (" + contractIds + ")" + getConditionSql(data), basePageRequest.getPage(), basePageRequest.getLimit());
+            //Page<Record> page = Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), "select *", "from contractview as a where a.contract_id in (" + contractIds + ")" + getConditionSql(data));
             return R.ok().put("data", page);
         } else {
             Page<Record> page = new Page<>();
@@ -258,7 +267,8 @@ public class CrmBackLogService {
         if (receivablesIdList.size() > 0) {
             String contractIds = CollUtil.join(receivablesIdList, ",");
             JSONObject data = jsonObject.getJSONObject("data");
-            Page<Record> page = Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), "select *", "from receivablesview as a where a.receivables_id in (" + contractIds + ")" + getConditionSql(data));
+            com.bdaim.common.dto.Page page = crmCustomerDao.sqlPageQuery("select * from receivablesview as a where a.receivables_id in (" + contractIds + ")" + getConditionSql(data), basePageRequest.getPage(), basePageRequest.getLimit());
+            //Page<Record> page = Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), "select *", "from receivablesview as a where a.receivables_id in (" + contractIds + ")" + getConditionSql(data));
             return R.ok().put("data", page);
         } else {
             Page<Record> page = new Page<>();
@@ -299,7 +309,8 @@ public class CrmBackLogService {
         if (data != null) {
             stringBuffer.append(getConditionSql(data));
         }
-        Page<Record> page = Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), "select a.num,a.customer_id,b.customer_name,a.contract_id,c.num as contractNum,a.money,a.return_date,a.return_type,a.remind,a.remark", stringBuffer.toString());
+        com.bdaim.common.dto.Page page = crmCustomerDao.sqlPageQuery("select a.num,a.customer_id,b.customer_name,a.contract_id,c.num as contractNum,a.money,a.return_date,a.return_type,a.remind,a.remark " + stringBuffer.toString(), basePageRequest.getPage(), basePageRequest.getLimit());
+        //Page<Record> page = Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), "select a.num,a.customer_id,b.customer_name,a.contract_id,c.num as contractNum,a.money,a.return_date,a.return_type,a.remind,a.remark", stringBuffer.toString());
         return R.ok().put("data", page);
     }
 
@@ -310,7 +321,7 @@ public class CrmBackLogService {
         JSONObject jsonObject = basePageRequest.getJsonObject();
         Integer type = jsonObject.getInteger("type");
         Integer isSub = jsonObject.getInteger("isSub");
-        AdminConfig adminConfig = AdminConfig.dao.findFirst("select * from lkcrm_admin_config where name = 'expiringContractDays'");
+        LkCrmAdminConfigEntity adminConfig = crmAdminConfigDao.findUniqueBy("name", "expiringContractDays");
         StringBuffer stringBuffer = new StringBuffer("from contractview as a where");
         if (type == 1) {
             if (adminConfig.getStatus() == 0 || ObjectUtil.isNull(adminConfig)) {
@@ -337,7 +348,8 @@ public class CrmBackLogService {
         if (data != null) {
             stringBuffer.append(getConditionSql(data));
         }
-        Page<Record> page = Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), "select *", stringBuffer.toString());
+        com.bdaim.common.dto.Page page = crmCustomerDao.sqlPageQuery("select * " + stringBuffer.toString(), basePageRequest.getPage(), basePageRequest.getLimit());
+        //Page<Record> page = Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), "select *", stringBuffer.toString());
         return R.ok().put("data", page);
     }
 

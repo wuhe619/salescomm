@@ -9,25 +9,20 @@ import cn.hutool.poi.excel.ExcelUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
-import com.bdaim.crm.dao.LkCrmAdminUserDao;
-import com.bdaim.crm.dao.LkCrmLeadsDao;
-import com.bdaim.crm.entity.LkCrmLeadsEntity;
-import com.bdaim.crm.erp.admin.entity.AdminField;
-import com.bdaim.crm.erp.admin.entity.AdminFieldv;
-import com.bdaim.crm.erp.admin.entity.AdminFile;
-import com.bdaim.crm.erp.admin.entity.AdminRecord;
+import com.bdaim.crm.dao.*;
+import com.bdaim.crm.entity.*;
 import com.bdaim.crm.erp.admin.service.AdminFieldService;
 import com.bdaim.crm.erp.admin.service.AdminFileService;
 import com.bdaim.crm.erp.crm.common.CrmEnum;
 import com.bdaim.crm.erp.crm.common.CrmParamValid;
-import com.bdaim.crm.erp.crm.entity.CrmCustomer;
 import com.bdaim.crm.erp.crm.entity.CrmLeads;
-import com.bdaim.crm.erp.oa.entity.OaEvent;
 import com.bdaim.crm.utils.AuthUtil;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.FieldUtil;
 import com.bdaim.crm.utils.R;
 import com.bdaim.util.JavaBeanUtil;
+import com.bdaim.util.ReflectionUtils;
+import com.bdaim.util.SqlAppendUtil;
 import com.jfinal.aop.Before;
 import com.jfinal.kit.Kv;
 import com.jfinal.log.Log;
@@ -42,7 +37,9 @@ import javax.annotation.Resource;
 import javax.transaction.Transactional;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -71,6 +68,15 @@ public class CrmLeadsService {
 
     @Resource
     private LkCrmLeadsDao crmLeadsDao;
+
+    @Resource
+    private LkCrmCustomerDao crmCustomerDao;
+
+    @Resource
+    private LkCrmAdminRecordDao crmAdminRecordDao;
+
+    @Resource
+    private LkCrmOaEventDao crmOaEventDao;
 
     /**
      * @author wyq
@@ -161,15 +167,16 @@ public class CrmLeadsService {
      */
     public R deleteByIds(String leadsIds) {
         String[] idsArr = leadsIds.split(",");
-        List<Record> idsList = new ArrayList<>();
+        List<String> idsList = new ArrayList<>();
         for (String id : idsArr) {
-            Record record = new Record();
-            idsList.add(record.set("leads_id", Integer.valueOf(id)));
+            //Record record = new Record();
+            idsList.add(id);
         }
-        List<Record> batchIdList = Db.find(Db.getSqlPara("crm.leads.queryBatchIdByIds", Kv.by("ids", idsArr)));
+        List<String> batchIdList = JavaBeanUtil.mapToRecords(crmLeadsDao.queryBatchIdByIds(Arrays.asList(idsArr)));
         return Db.tx(() -> {
-            Db.batch(Db.getSql("crm.leads.deleteByIds"), "leads_id", idsList, 100);
-            Db.batch("delete from 72crm_admin_fieldv where batch_id = ?", "batch_id", batchIdList, 100);
+            //Db.batch(Db.getSql("crm.leads.deleteByIds"), "leads_id", idsList, 100);
+            crmLeadsDao.deleteByIds(idsList);
+            crmLeadsDao.executeUpdateSQL("delete from lkcrm_admin_fieldv where batch_id IN( ? )", SqlAppendUtil.sqlAppendWhereIn(batchIdList));
             return true;
         }) ? R.ok() : R.error();
     }
@@ -180,7 +187,8 @@ public class CrmLeadsService {
      */
     public R updateOwnerUserId(String leadsIds, Integer ownerUserId) {
         String[] ids = leadsIds.split(",");
-        int update = Db.update(Db.getSqlPara("crm.leads.updateOwnerUserId", Kv.by("ownerUserId", ownerUserId).set("ids", ids)));
+        int update = crmLeadsDao.updateOwnerUserId(ownerUserId.toString(), Arrays.asList(ids));
+        //int update = Db.update(Db.getSqlPara("crm.leads.updateOwnerUserId", Kv.by("ownerUserId", ownerUserId).set("ids", ids)));
         for (String id : ids) {
             crmRecordService.addConversionRecord(Integer.valueOf(id), CrmEnum.LEADS_TYPE_KEY.getTypes(), ownerUserId);
         }
@@ -195,22 +203,23 @@ public class CrmLeadsService {
     public R translate(String leadsIds) {
         String[] leadsIdsArr = leadsIds.split(",");
         for (String leadsId : leadsIdsArr) {
-            Record crmLeads = Db.findFirst("select * from leadsview where leads_id = ?", Integer.valueOf(leadsId));
+            List<Map<String, Object>> maps = crmLeadsDao.sqlQuery("select * from leadsview where leads_id = ?", Integer.valueOf(leadsId));
+            Record crmLeads = JavaBeanUtil.mapToRecord(maps.get(0));
             if (1 == crmLeads.getInt("is_transform")) {
                 return R.error("已转化线索不能再次转化");
             }
             List<Record> leadsFields = adminFieldService.list("1");
-            CrmCustomer crmCustomer = new CrmCustomer();
+            LkCrmCustomerEntity crmCustomer = new LkCrmCustomerEntity();
             crmCustomer.setCustomerName(crmLeads.getStr("leads_name"));
             crmCustomer.setIsLock(0);
-            crmCustomer.setNextTime(crmLeads.getDate("next_time"));
+            crmCustomer.setNextTime(crmLeads.getTimestamp("next_time"));
             crmCustomer.setMobile(crmLeads.getStr("mobile"));
             crmCustomer.setTelephone(crmLeads.getStr("telephone"));
             crmCustomer.setDealStatus("未成交");
             crmCustomer.setCreateUserId(BaseUtil.getUser().getUserId().intValue());
             crmCustomer.setOwnerUserId(crmLeads.getInt("owner_user_id"));
-            crmCustomer.setCreateTime(DateUtil.date());
-            crmCustomer.setUpdateTime(DateUtil.date());
+            crmCustomer.setCreateTime(new Timestamp(System.currentTimeMillis()));
+            crmCustomer.setUpdateTime(new Timestamp(System.currentTimeMillis()));
             crmCustomer.setRoUserId(",");
             crmCustomer.setRwUserId(",");
             crmCustomer.setDetailAddress(crmLeads.getStr("address"));
@@ -221,15 +230,16 @@ public class CrmLeadsService {
             crmCustomer.setRemark("");
             String customerBatchId = IdUtil.simpleUUID();
             crmCustomer.setBatchId(customerBatchId);
-            List<AdminField> customerFields = AdminField.dao.find("select field_id,name,field_name,field_type from 72crm_admin_field where label = '2'");
-            List<AdminFieldv> adminFieldvList = new ArrayList<>();
+            List<LkCrmAdminFieldEntity> customerFields = crmLeadsDao.queryListBySql("select field_id,name,field_name,field_type from lkcrm_admin_field where label = '2'", LkCrmAdminFieldEntity.class);
+            List<LkCrmAdminFieldvEntity> adminFieldvList = new ArrayList<>();
             for (Record leadsFIeld : leadsFields) {
-                for (AdminField customerField : customerFields) {
+                for (LkCrmAdminFieldEntity customerField : customerFields) {
                     if (leadsFIeld.get("relevant") != null && customerField.getFieldId().equals(leadsFIeld.get("relevant"))) {
                         if (customerField.getFieldType().equals(1)) {
-                            crmCustomer.set(customerField.getFieldName(), crmLeads.get(leadsFIeld.get("field_name")));
+                            ReflectionUtils.setFieldValue(crmCustomer, customerField.getFieldName(), crmLeads.get(leadsFIeld.get("field_name")));
+                            //crmCustomer.set(customerField.getFieldName(), crmLeads.get(leadsFIeld.get("field_name")));
                         } else {
-                            AdminFieldv adminFieldv = new AdminFieldv();
+                            LkCrmAdminFieldvEntity adminFieldv = new LkCrmAdminFieldvEntity();
                             adminFieldv.setValue(crmLeads.get(leadsFIeld.get("name")));
                             adminFieldv.setFieldId(customerField.getFieldId());
                             adminFieldv.setName(customerField.getName());
@@ -241,21 +251,21 @@ public class CrmLeadsService {
                         continue;
                     }
                     if ("客户来源".equals(customerField.getName()) && "线索来源".equals(leadsFIeld.getStr("name"))) {
-                        AdminFieldv adminFieldv = new AdminFieldv();
+                        LkCrmAdminFieldvEntity adminFieldv = new LkCrmAdminFieldvEntity();
                         adminFieldv.setValue(crmLeads.get(leadsFIeld.get("name")));
                         adminFieldv.setFieldId(customerField.getFieldId());
                         adminFieldv.setName(customerField.getName());
                         adminFieldvList.add(adminFieldv);
                     }
                     if ("客户行业".equals(customerField.getName()) && "客户行业".equals(leadsFIeld.getStr("name"))) {
-                        AdminFieldv adminFieldv = new AdminFieldv();
+                        LkCrmAdminFieldvEntity adminFieldv = new LkCrmAdminFieldvEntity();
                         adminFieldv.setValue(crmLeads.get(leadsFIeld.get("name")));
                         adminFieldv.setFieldId(customerField.getFieldId());
                         adminFieldv.setName(customerField.getName());
                         adminFieldvList.add(adminFieldv);
                     }
                     if ("客户级别".equals(customerField.getName()) && "客户级别".equals(leadsFIeld.getStr("name"))) {
-                        AdminFieldv adminFieldv = new AdminFieldv();
+                        LkCrmAdminFieldvEntity adminFieldv = new LkCrmAdminFieldvEntity();
                         adminFieldv.setValue(crmLeads.get(leadsFIeld.get("name")));
                         adminFieldv.setFieldId(customerField.getFieldId());
                         adminFieldv.setName(customerField.getName());
@@ -265,16 +275,16 @@ public class CrmLeadsService {
                 ;
             }
             ;
-            crmCustomer.save();
+            crmCustomerDao.save(crmCustomer);
             crmRecordService.addConversionCustomerRecord(crmCustomer.getCustomerId(), CrmEnum.CUSTOMER_TYPE_KEY.getTypes(), crmCustomer.getCustomerName());
             adminFieldService.save(adminFieldvList, customerBatchId);
-            Db.update("update 72crm_crm_leads set is_transform = 1,update_time = ?,customer_id = ? where leads_id = ?",
+            crmLeadsDao.executeUpdateSQL("update lkcrm_crm_leads set is_transform = 1,update_time = ?,customer_id = ? where leads_id = ?",
                     DateUtil.date(), crmCustomer.getCustomerId(), Integer.valueOf(leadsId));
-            List<AdminRecord> adminRecordList = AdminRecord.dao.find("select * from 72crm_admin_record where types = 'crm_leads' and types_id = ?", Integer.valueOf(leadsId));
-            List<AdminFile> adminFileList = new ArrayList<>();
+            List<LkCrmAdminRecordEntity> adminRecordList = crmAdminUserDao.queryListBySql("select * from lkcrm_admin_record where types = 'crm_leads' and types_id = ?", Integer.valueOf(leadsId), LkCrmAdminRecordEntity.class);
+            List<LkCrmAdminFileEntity> adminFileList = new ArrayList<>();
             if (adminRecordList.size() != 0) {
                 adminRecordList.forEach(adminRecord -> {
-                    List<AdminFile> leadsRecordFiles = AdminFile.dao.find("select * from 72crm_admin_file where batch_id = ?", adminRecord.getBatchId());
+                    List<LkCrmAdminFileEntity> leadsRecordFiles = crmLeadsDao.queryListBySql("select * from lkcrm_admin_file where batch_id = ?", adminRecord.getBatchId(), LkCrmAdminFileEntity.class);
                     String customerRecordBatchId = IdUtil.simpleUUID();
                     leadsRecordFiles.forEach(adminFile -> {
                         adminFile.setBatchId(customerRecordBatchId);
@@ -285,11 +295,12 @@ public class CrmLeadsService {
                     adminRecord.setRecordId(null);
                     adminRecord.setTypes("crm_customer");
                     adminRecord.setTypesId(crmCustomer.getCustomerId());
-                    adminRecord.setUpdateTime(DateUtil.date());
+                    adminRecord.setUpdateTime(new Timestamp(System.currentTimeMillis()));
                 });
-                Db.batchSave(adminRecordList, 100);
+                //Db.batchSave(adminRecordList, 100);
+                crmLeadsDao.batchSaveOrUpdate(adminRecordList);
             }
-            List<AdminFile> fileList = AdminFile.dao.find("select * from 72crm_admin_file where batch_id = ?", crmLeads.getStr("batch_id"));
+            List<LkCrmAdminFileEntity> fileList = crmLeadsDao.queryListBySql("select * from lkcrm_admin_file where batch_id = ?", crmLeads.getStr("batch_id"), LkCrmAdminFileEntity.class);
             if (fileList.size() != 0) {
                 fileList.forEach(adminFile -> {
                     adminFile.setBatchId(customerBatchId);
@@ -297,7 +308,8 @@ public class CrmLeadsService {
                 });
             }
             adminFileList.addAll(fileList);
-            Db.batchSave(adminFileList, 100);
+            //Db.batchSave(adminFileList, 100);
+            crmLeadsDao.batchSaveOrUpdate(adminFileList);
         }
         return R.ok();
     }
@@ -316,21 +328,21 @@ public class CrmLeadsService {
      * 添加跟进记录
      */
     @Before(Tx.class)
-    public R addRecord(AdminRecord adminRecord) {
+    public R addRecord(LkCrmAdminRecordEntity adminRecord) {
         adminRecord.setCreateUserId(BaseUtil.getUser().getUserId().intValue());
-        adminRecord.setCreateTime(DateUtil.date());
+        adminRecord.setCreateTime(new Timestamp(System.currentTimeMillis()));
         adminRecord.setTypes("crm_leads");
-        if (1 == adminRecord.getIsEvent()) {
-            OaEvent oaEvent = new OaEvent();
+        if (adminRecord.getIsEvent() != null && 1 == adminRecord.getIsEvent()) {
+            LkCrmOaEventEntity oaEvent = new LkCrmOaEventEntity();
             oaEvent.setTitle(adminRecord.getContent());
             oaEvent.setCreateUserId(adminRecord.getCreateUserId());
             oaEvent.setStartTime(adminRecord.getNextTime());
-            oaEvent.setEndTime(DateUtil.offsetDay(adminRecord.getNextTime(), 1));
-            oaEvent.setCreateTime(DateUtil.date());
-            oaEvent.save();
+            oaEvent.setEndTime(DateUtil.offsetDay(adminRecord.getNextTime(), 1).toTimestamp());
+            oaEvent.setCreateTime(DateUtil.date().toTimestamp());
+            crmOaEventDao.save(oaEvent);
         }
-        Db.update("update 72crm_crm_leads set followup = 1 where leads_id = ?", adminRecord.getTypesId());
-        return adminRecord.save() ? R.ok() : R.error();
+        crmAdminRecordDao.executeUpdateSQL("update lkcrm_crm_leads set followup = 1 where leads_id = ?", adminRecord.getTypesId());
+        return (int)crmAdminRecordDao.saveReturnPk(adminRecord) > 0 ? R.ok() : R.error();
     }
 
     /**
@@ -405,7 +417,7 @@ public class CrmLeadsService {
                         }
                     }
                     String leadsName = leadsList.get(kv.getInt("leads_name")).toString();
-                    Integer number = Db.queryInt("select count(*) from 72crm_crm_leads where leads_name = ?", leadsName);
+                    Integer number = Db.queryInt("select count(*) from lkcrm_crm_leads where leads_name = ?", leadsName);
                     if (0 == number) {
                         object.fluentPut("entity", new JSONObject().fluentPut("leads_name", leadsName)
                                 .fluentPut("telephone", leadsList.get(kv.getInt("telephone")))
@@ -415,7 +427,7 @@ public class CrmLeadsService {
                                 .fluentPut("remark", leadsList.get(kv.getInt("remark")))
                                 .fluentPut("owner_user_id", ownerUserId));
                     } else if (number > 0 && repeatHandling == 1) {
-                        Record leads = Db.findFirst("select leads_id,batch_id from 72crm_crm_leads where leads_name = ?", leadsName);
+                        Record leads = Db.findFirst("select leads_id,batch_id from lkcrm_crm_leads where leads_name = ?", leadsName);
                         object.fluentPut("entity", new JSONObject().fluentPut("leads_id", leads.getInt("leads_id"))
                                 .fluentPut("leads_name", leadsName)
                                 .fluentPut("telephone", leadsList.get(kv.getInt("telephone")))

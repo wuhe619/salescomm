@@ -15,6 +15,7 @@ public class LkCrmBusinessChangeEntity {
 
     @Id
     @Column(name = "change_id")
+    @GeneratedValue
     public int getChangeId() {
         return changeId;
     }

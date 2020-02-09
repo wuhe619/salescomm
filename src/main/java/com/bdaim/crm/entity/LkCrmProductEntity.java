@@ -24,6 +24,7 @@ public class LkCrmProductEntity {
 
     @Id
     @Column(name = "product_id")
+    @GeneratedValue
     public int getProductId() {
         return productId;
     }

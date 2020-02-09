@@ -4,21 +4,21 @@ import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
 import com.bdaim.auth.LoginUser;
-import com.jfinal.aop.Inject;
-import com.jfinal.kit.Kv;
-import com.jfinal.plugin.activerecord.Db;
-import com.jfinal.plugin.activerecord.Page;
-import com.jfinal.plugin.activerecord.Record;
-import com.jfinal.plugin.activerecord.SqlPara;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.common.constant.BaseConstant;
-import com.bdaim.crm.erp.admin.entity.AdminUser;
+import com.bdaim.crm.dao.LkCrmOaActionRecordDao;
+import com.bdaim.crm.entity.LkCrmOaActionRecordEntity;
 import com.bdaim.crm.erp.admin.service.AdminUserService;
 import com.bdaim.crm.erp.oa.common.OaEnum;
 import com.bdaim.crm.erp.oa.entity.OaActionRecord;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
 import com.bdaim.crm.utils.TagUtil;
+import com.jfinal.kit.Kv;
+import com.jfinal.plugin.activerecord.Db;
+import com.jfinal.plugin.activerecord.Page;
+import com.jfinal.plugin.activerecord.Record;
+import com.jfinal.plugin.activerecord.SqlPara;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -39,6 +39,9 @@ public class OaActionRecordService {
     @Resource
     private OaEventService oaEventService;
 
+    @Resource
+    private LkCrmOaActionRecordDao crmOaActionRecordDao;
+
     /**
      * 添加日志记录
      *
@@ -47,11 +50,11 @@ public class OaActionRecordService {
      * @param status   1 添加 2 更新
      */
     public void addRecord(Integer actionId, Integer types, Integer status, String joinUserIds, String deptIds) {
-        OaActionRecord oaActionRecord = new OaActionRecord();
+        LkCrmOaActionRecordEntity oaActionRecord = new LkCrmOaActionRecordEntity();
         oaActionRecord.setUserId(BaseUtil.getUser().getUserId().intValue());
         oaActionRecord.setType(types);
         oaActionRecord.setActionId(actionId);
-        oaActionRecord.setCreateTime(new Date());
+        oaActionRecord.setCreateTime(DateUtil.date().toTimestamp());
         oaActionRecord.setJoinUserIds(joinUserIds);
         oaActionRecord.setDeptIds(deptIds);
         if (status == 1) {
@@ -59,7 +62,7 @@ public class OaActionRecordService {
         } else if (status == 2) {
             oaActionRecord.setContent("更新了" + OaEnum.getName(types));
         }
-        oaActionRecord.save();
+        crmOaActionRecordDao.save(oaActionRecord);
     }
 
     public String getJoinIds(Integer id, String ids) {

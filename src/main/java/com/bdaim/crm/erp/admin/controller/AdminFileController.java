@@ -1,14 +1,19 @@
 package com.bdaim.crm.erp.admin.controller;
 
-import com.jfinal.aop.Inject;
-import com.jfinal.core.Controller;
 import com.bdaim.crm.erp.admin.entity.AdminFile;
 import com.bdaim.crm.erp.admin.service.AdminFileService;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
+import com.jfinal.core.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 
+@RestController
+@RequestMapping("/file")
 public class AdminFileController extends Controller {
     @Resource
     private AdminFileService adminFileService;
@@ -31,8 +36,10 @@ public class AdminFileController extends Controller {
      * @author zhangzhiwei
      * 通过批次ID查询
      */
-    public void queryByBatchId(){
-        renderJson(R.ok().put("data", adminFileService.queryByBatchId(getPara("batchId"))));
+    @ResponseBody
+    @RequestMapping(value = "/queryByBatchId", method = RequestMethod.POST)
+    public R queryByBatchId(String batchId){
+        return (R.ok().put("data", adminFileService.queryByBatchId(batchId)));
     }
 
     /**

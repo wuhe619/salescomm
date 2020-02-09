@@ -2,6 +2,7 @@ package com.bdaim.crm.dao;
 
 import com.bdaim.common.dao.SimpleHibernateDao;
 import com.bdaim.crm.entity.LkCrmLeadsEntity;
+import com.bdaim.util.SqlAppendUtil;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -24,6 +25,31 @@ public class LkCrmLeadsDao extends SimpleHibernateDao<LkCrmLeadsEntity, Integer>
             return maps.get(0);
         }
         return null;
+    }
+
+    public int updateOwnerUserId(String ownerUserId, List<String> ids) {
+        String sql = "update lkcrm_crm_leads " +
+                "    set owner_user_id = ?,followup = 0 " +
+                "    where leads_id in (?) ";
+        int maps = this.executeUpdateSQL(sql, ownerUserId, SqlAppendUtil.sqlAppendWhereIn(ids));
+        return maps;
+    }
+
+    public List queryBatchIdByIds(List<String> ids) {
+        String sql = "select batch_id from lkcrm_crm_leads where leads_id in (?)";
+        return this.sqlQuery(sql, SqlAppendUtil.sqlAppendWhereIn(ids));
+    }
+
+    public int deleteByIds( List<String> ids) {
+        String sql = "delete from lkcrm_crm_leads where leads_id in (?)";
+        int maps = this.executeUpdateSQL(sql, SqlAppendUtil.sqlAppendWhereIn(ids));
+        return maps;
+    }
+
+    public int setLeadsFollowup( List<String> ids) {
+        String sql = "update 72crm_crm_leads set followup = 1 where leads_id in (?)";
+        int maps = this.executeUpdateSQL(sql, SqlAppendUtil.sqlAppendWhereIn(ids));
+        return maps;
     }
 
 }

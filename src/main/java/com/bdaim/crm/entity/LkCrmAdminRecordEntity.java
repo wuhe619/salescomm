@@ -7,9 +7,9 @@ import java.util.Objects;
 @Entity
 @Table(name = "lkcrm_admin_record", schema = "", catalog = "")
 public class LkCrmAdminRecordEntity {
-    private int recordId;
+    private Integer recordId;
     private String types;
-    private int typesId;
+    private Integer typesId;
     private String content;
     private String category;
     private Timestamp nextTime;
@@ -20,13 +20,25 @@ public class LkCrmAdminRecordEntity {
     private int createUserId;
     private String batchId;
 
+    private Integer isEvent;
+
+    @Transient
+    public Integer getIsEvent() {
+        return isEvent;
+    }
+
+    public void setIsEvent(Integer isEvent) {
+        this.isEvent = isEvent;
+    }
+
     @Id
     @Column(name = "record_id")
-    public int getRecordId() {
+    @GeneratedValue
+    public Integer getRecordId() {
         return recordId;
     }
 
-    public void setRecordId(int recordId) {
+    public void setRecordId(Integer recordId) {
         this.recordId = recordId;
     }
 
@@ -42,11 +54,11 @@ public class LkCrmAdminRecordEntity {
 
     @Basic
     @Column(name = "types_id")
-    public int getTypesId() {
+    public Integer getTypesId() {
         return typesId;
     }
 
-    public void setTypesId(int typesId) {
+    public void setTypesId(Integer typesId) {
         this.typesId = typesId;
     }
 

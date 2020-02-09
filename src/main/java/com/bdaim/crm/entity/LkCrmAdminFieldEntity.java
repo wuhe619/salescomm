@@ -7,7 +7,7 @@ import java.util.Objects;
 @Entity
 @Table(name = "lkcrm_admin_field", schema = "", catalog = "")
 public class LkCrmAdminFieldEntity {
-    private int fieldId;
+    private Integer fieldId;
     private String fieldName;
     private String name;
     private int type;
@@ -23,16 +23,16 @@ public class LkCrmAdminFieldEntity {
     private Integer operating;
     private Timestamp updateTime;
     private Integer examineCategoryId;
-    private int fieldType;
+    private Integer fieldType;
     private Integer relevant;
 
     @Id
     @Column(name = "field_id")
-    public int getFieldId() {
+    public Integer getFieldId() {
         return fieldId;
     }
 
-    public void setFieldId(int fieldId) {
+    public void setFieldId(Integer fieldId) {
         this.fieldId = fieldId;
     }
 
@@ -188,11 +188,11 @@ public class LkCrmAdminFieldEntity {
 
     @Basic
     @Column(name = "field_type")
-    public int getFieldType() {
+    public Integer getFieldType() {
         return fieldType;
     }
 
-    public void setFieldType(int fieldType) {
+    public void setFieldType(Integer fieldType) {
         this.fieldType = fieldType;
     }
 

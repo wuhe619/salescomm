@@ -8,7 +8,7 @@ import java.util.Objects;
 @Entity
 @Table(name = "lkcrm_crm_contract", schema = "", catalog = "")
 public class LkCrmContractEntity {
-    private int contractId;
+    private Integer contractId;
     private String name;
     private Integer customerId;
     private Integer businessId;
@@ -34,13 +34,24 @@ public class LkCrmContractEntity {
     private String remark;
     private Integer companyUserId;
 
+    //移出方式（1.移除2.转为团队成员）
+    private Integer transferType;
+    //权限（1.只读2.只写）
+    private Integer power;
+    //变更模块（1.联系人2.商机3.合同）
+    private String ids;
+    private Integer newOwnerUserId;
+    private String memberIds;
+    private String contractIds;
+
     @Id
     @Column(name = "contract_id")
-    public int getContractId() {
+    @GeneratedValue
+    public Integer getContractId() {
         return contractId;
     }
 
-    public void setContractId(int contractId) {
+    public void setContractId(Integer contractId) {
         this.contractId = contractId;
     }
 
@@ -319,5 +330,54 @@ public class LkCrmContractEntity {
     @Override
     public int hashCode() {
         return Objects.hash(contractId, name, customerId, businessId, checkStatus, examineRecordId, orderDate, createUserId, ownerUserId, createTime, updateTime, num, startTime, endTime, money, discountRate, totalPrice, types, paymentType, batchId, roUserId, rwUserId, contactsId, remark, companyUserId);
+    }
+
+    @Transient
+    public Integer getTransferType() {
+        return transferType;
+    }
+
+    public void setTransferType(Integer transferType) {
+        this.transferType = transferType;
+    }
+    @Transient
+    public Integer getPower() {
+        return power;
+    }
+
+    public void setPower(Integer power) {
+        this.power = power;
+    }
+    @Transient
+    public String getIds() {
+        return ids;
+    }
+
+    public void setIds(String ids) {
+        this.ids = ids;
+    }
+    @Transient
+    public Integer getNewOwnerUserId() {
+        return newOwnerUserId;
+    }
+
+    public void setNewOwnerUserId(Integer newOwnerUserId) {
+        this.newOwnerUserId = newOwnerUserId;
+    }
+    @Transient
+    public String getMemberIds() {
+        return memberIds;
+    }
+
+    public void setMemberIds(String memberIds) {
+        this.memberIds = memberIds;
+    }
+    @Transient
+    public String getContractIds() {
+        return contractIds;
+    }
+
+    public void setContractIds(String contractIds) {
+        this.contractIds = contractIds;
     }
 }

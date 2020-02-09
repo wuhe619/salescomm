@@ -7,7 +7,7 @@ import java.util.Objects;
 @Entity
 @Table(name = "lkcrm_admin_file", schema = "", catalog = "")
 public class LkCrmAdminFileEntity {
-    private int fileId;
+    private Integer fileId;
     private String name;
     private int size;
     private int createUserId;
@@ -20,11 +20,11 @@ public class LkCrmAdminFileEntity {
     @Id
     @Column(name = "file_id")
     @GeneratedValue
-    public int getFileId() {
+    public Integer getFileId() {
         return fileId;
     }
 
-    public void setFileId(int fileId) {
+    public void setFileId(Integer fileId) {
         this.fileId = fileId;
     }
 

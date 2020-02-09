@@ -8,7 +8,7 @@ import com.bdaim.crm.common.annotation.LoginFormCookie;
 import com.bdaim.crm.common.annotation.NotNullValidate;
 import com.bdaim.crm.common.annotation.Permissions;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
-import com.bdaim.crm.erp.admin.entity.AdminRecord;
+import com.bdaim.crm.entity.LkCrmAdminRecordEntity;
 import com.bdaim.crm.erp.admin.service.AdminFieldService;
 import com.bdaim.crm.erp.admin.service.AdminSceneService;
 import com.bdaim.crm.erp.crm.common.CrmEnum;
@@ -63,7 +63,7 @@ public class CrmLeadsController extends Controller {
         jsonObject.fluentPut("type", 1);
         basePageRequest.setJsonObject(jsonObject);
         resp.setData(adminSceneService.filterConditionAndGetPageList(basePageRequest).get("data"));
-        return(adminSceneService.filterConditionAndGetPageList(basePageRequest));
+        return (adminSceneService.filterConditionAndGetPageList(basePageRequest));
         //return resp;
     }
 
@@ -96,7 +96,7 @@ public class CrmLeadsController extends Controller {
     @ResponseBody
     @RequestMapping(value = "/queryById", method = RequestMethod.POST)
     public R queryById(@Para("leadsId") Integer leadsId) {
-        return(R.ok().put("data", crmLeadsService.queryById(leadsId).getColumns()));
+        return (R.ok().put("data", crmLeadsService.queryById(leadsId).getColumns()));
     }
 
     /**
@@ -113,8 +113,10 @@ public class CrmLeadsController extends Controller {
      */
     @Permissions("crm:leads:delete")
     @NotNullValidate(value = "leadsIds", message = "线索id不能为空")
-    public void deleteByIds(@Para("leadsIds") String leadsIds) {
-        renderJson(crmLeadsService.deleteByIds(leadsIds));
+    @ResponseBody
+    @RequestMapping(value = "/leadsIds", method = RequestMethod.POST)
+    public R deleteByIds(@Para("leadsIds") String leadsIds) {
+        return (crmLeadsService.deleteByIds(leadsIds));
     }
 
     /**
@@ -124,8 +126,10 @@ public class CrmLeadsController extends Controller {
     @Permissions("crm:leads:transfer")
     @NotNullValidate(value = "leadsIds", message = "线索id不能为空")
     @NotNullValidate(value = "newOwnerUserId", message = "新负责人id不能为空")
-    public void changeOwnerUser(@Para("leadsIds") String leadsIds, @Para("newOwnerUserId") Integer newOwnerUserId) {
-        renderJson(crmLeadsService.updateOwnerUserId(leadsIds, newOwnerUserId));
+    @ResponseBody
+    @RequestMapping(value = "/changeOwnerUser", method = RequestMethod.POST)
+    public R changeOwnerUser(@Para("leadsIds") String leadsIds, @Para("newOwnerUserId") Integer newOwnerUserId) {
+        return (crmLeadsService.updateOwnerUserId(leadsIds, newOwnerUserId));
     }
 
     /**
@@ -134,8 +138,10 @@ public class CrmLeadsController extends Controller {
      */
     @Permissions("crm:leads:transform")
     @NotNullValidate(value = "leadsIds", message = "线索id不能为空")
-    public void transfer(@Para("leadsIds") String leadsIds) {
-        renderJson(crmLeadsService.translate(leadsIds));
+    @ResponseBody
+    @RequestMapping(value = "/transfer", method = RequestMethod.POST)
+    public R transfer(@Para("leadsIds") String leadsIds) {
+        return (crmLeadsService.translate(leadsIds));
     }
 
     /**
@@ -145,13 +151,15 @@ public class CrmLeadsController extends Controller {
     @NotNullValidate(value = "typesId", message = "线索id不能为空")
     @NotNullValidate(value = "content", message = "内容不能为空")
     @NotNullValidate(value = "category", message = "跟进类型不能为空")
-    public void addRecord(@Para("") AdminRecord adminRecord) {
+    @ResponseBody
+    @RequestMapping(value = "/addRecord", method = RequestMethod.POST)
+    public R addRecord(@Para("") LkCrmAdminRecordEntity adminRecord) {
         boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.LEADS_TYPE_KEY.getSign()), adminRecord.getTypesId());
         if (auth) {
-            renderJson(R.noAuth());
-            return;
+            return(R.noAuth());
+            //return;
         }
-        renderJson(crmLeadsService.addRecord(adminRecord));
+        return (crmLeadsService.addRecord(adminRecord));
     }
 
     /**

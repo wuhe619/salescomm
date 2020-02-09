@@ -29,6 +29,7 @@ public class LkCrmReceivablesEntity {
 
     @Id
     @Column(name = "receivables_id")
+    @GeneratedValue
     public int getReceivablesId() {
         return receivablesId;
     }
