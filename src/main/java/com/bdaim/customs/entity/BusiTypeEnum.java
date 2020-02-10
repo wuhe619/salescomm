@@ -28,6 +28,12 @@ public enum BusiTypeEnum {
      */
     HY_PIC_Z("HY_PIC_Z", "行业画像-主批次", "hy_pic_z"),
     HY_PIC_X("HY_PIC_X", "行业画像-批次详情", "hy_pic_x"),
+    BATCH_TEST_TASK("BATCH_TEST_TASK", "批量测试任务", "b_test_task"),
+    BATCH_TEST_TASK_Z("BATCH_TEST_TASK_Z", "批量测试任务-主批次信息", "b_test_task_z"),
+    BATCH_TEST_TASK_X("BATCH_TEST_TASK_X", "批量测试任务-批次详情", "b_test_task_x"),
+
+    //HY_PIC_X("HY_PIC_X", "行业画像-批次详情", "hy_pic_x"),
+
     /**
      * 企业套餐
      */
