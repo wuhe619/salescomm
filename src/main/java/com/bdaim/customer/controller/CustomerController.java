@@ -245,9 +245,14 @@ public class CustomerController extends BasicAction {
     @PostMapping("/{customerId}/monthBillSettlement")
     public ResponseInfo settlementCustomerMonthBill(@RequestBody JSONObject params,@PathVariable("customerId")String customerId) {
         LoginUser lu = opUser();
+        ResponseInfo resp = new ResponseInfo();
+        if(lu==null || lu.getAuths()==null || !lu.getAuths().contains("admin")) {
+            resp.setMessage("no auth");
+            resp.setCode(401);
+            return resp;
+        }
         params.put("customerId",customerId);
         params.put("opuser",lu.getId());
-        ResponseInfo resp = new ResponseInfo();
         try {
             customerAppService.settlementCustomerMonthBill(params);
             resp.setCode(0);
