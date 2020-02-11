@@ -17,7 +17,7 @@ public class LkCrmAdminFieldSortEntity {
 
     @Id
     @Column(name = "id")
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue
     public int getId() {
         return id;
     }
