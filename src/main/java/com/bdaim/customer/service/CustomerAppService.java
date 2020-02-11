@@ -299,9 +299,9 @@ public class CustomerAppService {
                 map.put("userAmount", StringUtil.isEmpty(used_amount.getPropertyValue()) ? "0" : String.valueOf(BigDecimalUtil.strDiv(used_amount.getPropertyValue(), "10000", 2)));
             }
             CustomerProperty settlement_method = customerDao.getProperty(cust_id, "settlement_method");
-            if (sale_person != null) {
+            if (settlement_method != null) {
                 logger.info("settlement_method:{" + settlement_method + "}");
-                map.put("settlement_method", sale_person.getPropertyValue());
+                map.put("settlement_method", settlement_method.getPropertyValue());
             }
             return map;
         }).collect(Collectors.toList());
