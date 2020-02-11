@@ -53,15 +53,12 @@ public class BatchTestTaskZService implements BusiService {
     public void insertInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) throws Exception {
         //busiType = BusiTypeEnum.BATCH_TEST_TASK.getType();
         String sql1 = "insert into " + HMetaDataDef.getTable(busiType, "") + "(id, type, content, cust_id, cust_user_id, create_id, create_date, ext_2,ext_3, ext_4 ) value(?, ?, ?, ?, ?, ?, now(), ?, ?, ?)";
-        String batchId = info.getString("batch_id");
         String batchName = info.getString("batch_name");
         String apiId = info.getString("api_id");
         String taskId = info.getString("task_id");
         Integer number = info.getInteger("number");
 
-        //查询批次详情数据
-        String detailStr = info.getString("details");
-
+        //查询task表中的数据并对usedNum进行重新计算
         String sql = " select content from "+HMetaDataDef.getTable(BusiTypeEnum.BATCH_TEST_TASK.getType(), "")+" where id=?";
         Map<String,Object> taskObj = jdbcTemplate.queryForMap(sql,taskId);
         if(taskObj != null){
@@ -84,6 +81,8 @@ public class BatchTestTaskZService implements BusiService {
             throw new Exception("批量测试任务不存在");
         }
 
+        //批次详情数据
+        String detailStr = info.getString("details");
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("status", 0);
         if (StringUtil.isNotEmpty(detailStr)) {
@@ -91,15 +90,16 @@ public class BatchTestTaskZService implements BusiService {
             if (details.length > 0) {
                 for (int i = 0; i < details.length; i++) {
                     String detail = details[i];
-                    id = sequenceService.getSeq(BusiTypeEnum.BATCH_TEST_TASK.getType());
+                    Long xid = sequenceService.getSeq(BusiTypeEnum.BATCH_TEST_TASK_X.getType());
                     jsonObject.put("detail", detail);
                     jsonObject.put("custId", cust_id);
-                    jsonObject.put("batchId", batchId);
+                    jsonObject.put("batchId", id);
                     jsonObject.put("apiId",apiId);
-                    jdbcTemplate.update(sql1, id, BusiTypeEnum.BATCH_TEST_TASK.getType(), jsonObject.toJSONString(), cust_id, cust_user_id, cust_user_id, 0, detail, batchId);
+                    jdbcTemplate.update(sql1, xid, BusiTypeEnum.BATCH_TEST_TASK_X.getType(), jsonObject.toJSONString(), cust_id, cust_user_id, cust_user_id, 0, apiId,id);
                 }
             }
-            //构造住批次信息
+
+            //构造主批次信息
             //根据企业id查询企业账号和企业名称
             String enterpriseName = customerDao.getEnterpriseName(cust_id);
             CustomerUser custUser = customerUserDao.selectPropertyByType(1,cust_id );
@@ -109,14 +109,12 @@ public class BatchTestTaskZService implements BusiService {
             info.put("custName", enterpriseName);
             //批次名称
             info.put("ext_5", batchName);
-            info.put("totalNum",details.length);
+            info.put("totalNum",number);
             //批次状态
-            info.put("status", 0);
+            info.put("status", 0);// 0：处理中 1:处理完成
             info.put("ext_2",apiId);
             info.put("taskId",taskId);
             info.put("ext_1",taskId);
-            //批次id
-            info.put("ext_3", batchId);
             //核验成功数量
             info.put("successNum", 0);
             info.put("create_date",System.currentTimeMillis());
