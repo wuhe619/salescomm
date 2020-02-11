@@ -75,7 +75,7 @@ public class BatchTestTaskService implements BusiService {
         }
         ApiEntity apiEntity = apiDao.getApi(info.getIntValue("apiId"));
         if(apiEntity==null || apiEntity.getStatus()!=2){
-            throw new Exception("api不存在或未发布");
+            throw new Exception("API不存在或未发布");
         }else{
             info.put("apiName",apiEntity.getName());
             info.put("ext_4",apiEntity.getName());
@@ -116,7 +116,9 @@ public class BatchTestTaskService implements BusiService {
     @Override
     public String formatQuery(String busiType, String cust_id, String cust_group_id, Long cust_user_id, JSONObject params, List sqlParams) {
         sqlParams.clear();
-        StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(busiType, "") + " where type=?");
+        StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3," +
+                " ext_4, ext_5 from " + HMetaDataDef.getTable(busiType, "") + " where type=? and ext_1!='0' ");
+        sqlParams.add(busiType);
         if (!"all".equals(cust_id)){
             sqlParams.add(cust_id);
             sqlstr.append(" and cust_id=? ");

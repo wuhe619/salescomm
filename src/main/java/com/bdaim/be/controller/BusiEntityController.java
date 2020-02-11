@@ -81,7 +81,7 @@ public class BusiEntityController extends BasicAction {
      */
     @ResponseBody
     @RequestMapping(value = "/info/{id}", method = RequestMethod.POST)
-    public ResponseInfo saveInfo(@PathVariable(name = "id", required = false) Long id, @RequestBody(required = false) String body, @PathVariable(name = "busiType") String busiType) {
+    public ResponseInfo saveInfo(@RequestBody(required = false) String body,@PathVariable(name = "id", required = false) Long id,  @PathVariable(name = "busiType") String busiType) {
         ResponseInfo resp = new ResponseInfo();
         JSONObject info = null;
         try {
@@ -123,7 +123,7 @@ public class BusiEntityController extends BasicAction {
      * 根据id唯一标识获取记录
      */
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
-    public ResponseInfo doInfo(@PathVariable(name = "id") Long id, @RequestBody(required = false) String body, @PathVariable(name = "busiType") String busiType, @RequestParam(name = "_rule_", required = false) String rule, String value, HttpServletResponse response) {
+    public ResponseInfo doInfo( @RequestBody(required = false) String body,@PathVariable(name = "id") Long id, @PathVariable(name = "busiType") String busiType, @RequestParam(name = "_rule_", required = false) String rule, String value, HttpServletResponse response) {
         ResponseInfo resp = new ResponseInfo();
         JSONObject param = null;
         try {
