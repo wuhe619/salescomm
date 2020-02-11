@@ -1,7 +1,6 @@
 package com.bdaim.crm.erp.admin.controller;
 
 import com.alibaba.fastjson.JSONObject;
-import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.crm.common.annotation.NotNullValidate;
 import com.bdaim.crm.common.annotation.Permissions;
 import com.bdaim.crm.common.annotation.RequestBody;
@@ -203,7 +202,6 @@ public class AdminFieldController extends Controller {
     @NotNullValidate(value = "label", message = "label不能为空")
     @RequestMapping(value = "/queryListHead", method = RequestMethod.POST)
     public R queryListHead(@Para("") LkCrmAdminFieldSortEntity adminFieldSort) {
-        ResponseInfo resp = new ResponseInfo();
         List<Record> records;
         if (adminFieldSort.getLabel() == 10) {
             records = oaExamineCategoryService.queryFieldList();
@@ -222,8 +220,8 @@ public class AdminFieldController extends Controller {
                 record.set("width", 100);
             }
         });
-        resp.setData(JavaBeanUtil.recordToMap(records));
-        return(R.ok().put("data",records));
+        ///resp.setData(JavaBeanUtil.recordToMap(records));
+        return(R.ok().put("data",JavaBeanUtil.recordToMap(records)));
     }
 
     /**

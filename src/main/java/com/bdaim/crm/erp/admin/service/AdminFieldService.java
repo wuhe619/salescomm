@@ -27,7 +27,6 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import javax.transaction.Transactional;
 import java.math.BigDecimal;
-import java.sql.Date;
 import java.sql.Timestamp;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -622,15 +621,16 @@ public class AdminFieldService {
         List<Record> fieldList = customFieldList(adminFieldSort.getLabel().toString());
         for (Record record : fieldList) {
             String fieldName = record.getStr("name");
-            Integer number = Db.queryInt("select count(*) as number from lkcrm_admin_field_sort where user_id = ? and label = ? and field_name = ?", userId, adminFieldSort.getLabel(), fieldName);
+            Integer number = crmAdminFieldDao.queryForInt("select count(*) as number from lkcrm_admin_field_sort where user_id = ? and label = ? and field_name = ?", userId, adminFieldSort.getLabel(), fieldName);
             if (number.equals(0)) {
-                AdminFieldSort newField = new AdminFieldSort();
+                LkCrmAdminFieldSortEntity newField = new LkCrmAdminFieldSortEntity();
                 newField.setFieldName(fieldName).setName(fieldName).setLabel(adminFieldSort.getLabel()).setIsHide(1).setUserId(userId).setSort(1);
-                newField.save();
+                //newField.save();
+                crmAdminFieldDao.saveOrUpdate(newField);
             }
         }
-        List<Record> noHideList = Db.find(Db.getSql("admin.field.queryFieldConfig"), 0, adminFieldSort.getLabel(), userId);
-        List<Record> hideList = Db.find(Db.getSql("admin.field.queryFieldConfig"), 1, adminFieldSort.getLabel(), userId);
+        List noHideList = crmAdminFieldDao.queryFieldConfig(0, adminFieldSort.getLabel(), userId);
+        List hideList = crmAdminFieldDao.queryFieldConfig(1, adminFieldSort.getLabel(), userId);
         return R.ok().put("data", Kv.by("value", noHideList).set("hide_value", hideList));
     }
 
