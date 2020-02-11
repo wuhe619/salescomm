@@ -64,8 +64,9 @@ public class BatchTestTaskService implements BusiService {
         param.add(cust_id);
         param.add(apiId);
         Integer num = jdbcTemplate.queryForObject(sql, param.toArray(), Integer.class);
+        log.info("num="+num);
         if(num!=null && num>0){
-            throw new Exception("该客户已测试过，不能重复创建");
+            throw new Exception("该客户["+cust_id+"]已测试过api["+apiId+"]，不能重复创建");
         }
         //根据企业id查询企业账号和企业名称
         String enterpriseName = customerDao.getEnterpriseName(cust_id);
