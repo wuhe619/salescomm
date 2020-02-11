@@ -96,7 +96,7 @@ public class BatchTestTaskService implements BusiService {
     @Override
     public void updateInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) {
         //info.put("usedNum", 0);
-        if("del".equals(info.getString("action"))){
+        if("del".equals(info.getString("_rule_"))){
             info.put("ext_1",-1);//删除
             info.put("status",-1);
         }
