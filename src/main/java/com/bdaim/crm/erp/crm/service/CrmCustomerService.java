@@ -3,6 +3,7 @@ package com.bdaim.crm.erp.crm.service;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.poi.excel.ExcelReader;
 import cn.hutool.poi.excel.ExcelUtil;
@@ -533,7 +534,7 @@ public class CrmCustomerService {
         if (adminRecord.getNextTime() != null) {
             Date nextTime = adminRecord.getNextTime();
             LkCrmCustomerEntity crmCustomer = new LkCrmCustomerEntity();
-            crmCustomer.setCustomerId(adminRecord.getTypesId());
+            crmCustomer.setCustomerId(NumberUtil.parseInt(adminRecord.getTypesId()));
             crmCustomer.setNextTime(new Timestamp(nextTime.getTime()));
             crmCustomerDao.save(crmCustomer);
             if (adminRecord.getContactsIds() != null) {

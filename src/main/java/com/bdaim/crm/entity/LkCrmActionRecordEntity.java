@@ -11,7 +11,7 @@ public class LkCrmActionRecordEntity {
     private int createUserId;
     private Timestamp createTime;
     private String types;
-    private int actionId;
+    private String actionId;
     private String content;
 
     @Id
@@ -57,11 +57,11 @@ public class LkCrmActionRecordEntity {
 
     @Basic
     @Column(name = "action_id")
-    public int getActionId() {
+    public String getActionId() {
         return actionId;
     }
 
-    public void setActionId(int actionId) {
+    public void setActionId(String actionId) {
         this.actionId = actionId;
     }
 
