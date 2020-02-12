@@ -7,8 +7,10 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.poi.excel.ExcelReader;
 import cn.hutool.poi.excel.ExcelUtil;
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.common.service.PhoneService;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.dao.*;
 import com.bdaim.crm.entity.*;
@@ -18,11 +20,16 @@ import com.bdaim.crm.erp.crm.common.CrmEnum;
 import com.bdaim.crm.erp.crm.common.CrmParamValid;
 import com.bdaim.crm.erp.crm.entity.CrmLeads;
 import com.bdaim.crm.utils.*;
+import com.bdaim.customer.dao.CustomerDao;
+import com.bdaim.customer.dao.CustomerUserDao;
+import com.bdaim.customer.entity.CustomerUser;
 import com.bdaim.customersea.dao.CustomerSeaDao;
+import com.bdaim.customersea.dto.CustomSeaTouchInfoDTO;
+import com.bdaim.customersea.dto.CustomerSeaESDTO;
 import com.bdaim.customersea.entity.CustomerSea;
-import com.bdaim.util.JavaBeanUtil;
-import com.bdaim.util.ReflectionUtils;
-import com.bdaim.util.SqlAppendUtil;
+import com.bdaim.customersea.entity.CustomerSeaProperty;
+import com.bdaim.customgroup.dao.CustomGroupDao;
+import com.bdaim.util.*;
 import com.jfinal.aop.Before;
 import com.jfinal.kit.Kv;
 import com.jfinal.log.Log;
@@ -31,20 +38,22 @@ import com.jfinal.plugin.activerecord.Page;
 import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.tx.Tx;
 import com.jfinal.upload.UploadFile;
+import org.hibernate.HibernateException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import javax.transaction.Transactional;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 @Transactional
 public class CrmLeadsService {
+
+    public static final Logger LOG = LoggerFactory.getLogger(CrmLeadsService.class);
     @Resource
     private AdminFieldService adminFieldService;
 
@@ -80,6 +89,67 @@ public class CrmLeadsService {
 
     @Resource
     private CustomerSeaDao customerSeaDao;
+    @Resource
+    private CustomerUserDao customerUserDao;
+    @Resource
+    private CustomGroupDao customGroupDao;
+    @Resource
+    private CustomerDao customerDao;
+    @Resource
+    private PhoneService phoneService;
+
+    /**
+     * 默认需要转为super_data的字段名称
+     */
+    public static Map<String, String> defaultLabels = new HashMap() {{
+        put("qq", "SYS002");
+        put("email", "SYS003");
+        put("profession", "SYS004");
+        put("weChat", "SYS001");
+        put("company", "SYS005");
+        put("followStatus", "SYS007");
+        put("invalidReason", "SYS006");
+
+        // 注册地址
+        put("regLocation", "SYS009");
+        // 注册资金
+        put("regCapital", "SYS010");
+        // 注册时间
+        put("regTime", "SYS011");
+        // 经营状态
+        put("regStatus", "SYS012");
+        // 企业联系人数量
+        put("entPersonNum", "SYS013");
+        // 企业ID
+        put("entId", "SYS014");
+        put("next_time", "next_time");
+        put("remark", "remark");
+    }};
+
+    private Map<String, String> excelDefaultLabels = new HashMap() {{
+        put("qq", "SYS002");
+        put("QQ", "SYS002");
+        put("QQ号", "SYS002");
+        put("email", "SYS003");
+        put("EMAIL", "SYS003");
+        put("weChat", "SYS001");
+        put("微信", "SYS001");
+        put("职业", "SYS004");
+        put("公司", "SYS005");
+        put("所在公司", "SYS005");
+        put("跟进状态", "SYS007");
+        put("无效原因", "SYS006");
+        put("姓名", "super_name");
+        put("年龄", "super_age");
+        put("性别", "super_sex");
+        put("手机", "super_telphone");
+        put("手机号", "super_telphone");
+        put("电话", "super_phone");
+        put("电话号码", "super_phone");
+        put("邮箱", "SYS003");
+        put("省市", "super_address_province_city");
+        put("地址", "super_address_street");
+    }};
 
     /**
      * @return
@@ -101,6 +171,103 @@ public class CrmLeadsService {
         finalPage.setList(page.getData());
         finalPage.setTotalRow(page.getTotal());
         return R.ok().put("data", finalPage);
+    }
+
+    /**
+     * 处理qq 微信 根据状态等自建属性值存入super_data
+     *
+     * @param dto
+     */
+    private void handleDefaultLabelValue(CustomSeaTouchInfoDTO dto) {
+        Map<String, Object> superData = new HashMap<>(16);
+        if (dto.getSuperData() != null && dto.getSuperData().size() > 0) {
+            for (Map.Entry<String, Object> m : dto.getSuperData().entrySet()) {
+                superData.put(m.getKey(), m.getValue());
+            }
+        }
+        JSONObject jsonObject = JSON.parseObject(JSON.toJSONString(dto));
+        if (jsonObject != null && jsonObject.size() > 0) {
+            for (Map.Entry<String, Object> m : jsonObject.entrySet()) {
+                if (defaultLabels.get(m.getKey()) != null && StringUtil.isNotEmpty(String.valueOf(m.getValue()))) {
+                    // qq 微信等系统自建属性
+                    superData.put(defaultLabels.get(m.getKey()), m.getValue());
+                }
+            }
+        }
+        dto.setSuperData(superData);
+    }
+
+    /**
+     * 添加线索
+     *
+     * @param dto
+     * @return
+     */
+    public int addClueData0(CustomSeaTouchInfoDTO dto, JSONObject jsonObject) {
+        // 处理qq 微信等默认自建属性值
+        handleDefaultLabelValue(dto);
+        StringBuffer sql = new StringBuffer();
+        int status = 0;
+        try {
+            // 查询公海下默认客群
+            CustomerSeaProperty csp = customerSeaDao.getProperty(dto.getCustomerSeaId(), "defaultClueCgId");
+            if (csp == null) {
+                LOG.warn("公海:" + dto.getCustomerSeaId() + ",默认线索客群不存在");
+            } else {
+                dto.setCust_group_id(csp.getPropertyValue());
+            }
+            String superId = MD5Util.encode32Bit("c" + dto.getSuper_telphone());
+            dto.setSuper_id(superId);
+            CustomerUser user = customerUserDao.get(NumberConvertUtil.parseLong(dto.getUser_id()));
+            int dataStatus = 1;
+            // 组长和员工数据状态为已分配
+            if (2 == user.getUserType()) {
+                dataStatus = 0;
+            } else {
+                // 超管和项目管理员数据状态为未分配
+                dto.setUser_id(null);
+            }
+            LOG.info("开始保存添加线索个人信息:" + ConstantsUtil.CUSTOMER_GROUP_TABLE_PREFIX + dto.getCust_group_id() + ",数据:" + dto.toString());
+            try {
+                customGroupDao.createCgDataTable(NumberConvertUtil.parseInt(dto.getCust_group_id()));
+            } catch (HibernateException e) {
+                LOG.error("创建用户群表失败,id:" + dto.getCust_group_id(), e);
+            }
+            List<Map<String, Object>> list = customerDao.sqlQuery("SELECT id FROM " + ConstantsUtil.CUSTOMER_GROUP_TABLE_PREFIX + dto.getCust_group_id() + " WHERE id= ?", superId);
+            if (list.size() > 0) {
+                LOG.warn("客群ID:[" + dto.getCust_group_id() + "]添加线索ID:[" + superId + "]已经存在");
+                return -1;
+            }
+
+            sql.append(" INSERT INTO " + ConstantsUtil.CUSTOMER_GROUP_TABLE_PREFIX + dto.getCust_group_id())
+                    .append(" (id, user_id, status, `super_name`, `super_age`, `super_sex`, `super_telphone`, `super_phone`, `super_address_province_city`, `super_address_street`, `super_data`,update_time) ")
+                    .append(" VALUES(?,?,?,?,?,?,?,?,?,?,?,?) ");
+            this.customerSeaDao.executeUpdateSQL(sql.toString(), superId, dto.getUser_id(), dataStatus, dto.getSuper_name(), dto.getSuper_age(),
+                    dto.getSuper_sex(), dto.getSuper_telphone(), dto.getSuper_phone(),
+                    dto.getSuper_address_province_city(), dto.getSuper_address_street(), JSON.toJSONString(dto.getSuperData()), new Timestamp(System.currentTimeMillis()));
+
+            sql = new StringBuffer();
+            sql.append(" INSERT INTO " + ConstantsUtil.SEA_TABLE_PREFIX + dto.getCustomerSeaId())
+                    .append(" (id, user_id, status, `super_name`, `super_age`, `super_sex`, `super_telphone`, `super_phone`, `super_address_province_city`, `super_address_street`, `super_data`, batch_id, data_source,create_time) ")
+                    .append(" VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?) ");
+            this.customerSeaDao.executeUpdateSQL(sql.toString(), superId, dto.getUser_id(), dataStatus, dto.getSuper_name(), dto.getSuper_age(),
+                    dto.getSuper_sex(), dto.getSuper_telphone(), dto.getSuper_phone(),
+                    dto.getSuper_address_province_city(), dto.getSuper_address_street(), JSON.toJSONString(dto.getSuperData()), dto.getCust_group_id(), 3, new Timestamp(System.currentTimeMillis()));
+            // 保存标记信息到es中
+            CustomerSeaESDTO esData = new CustomerSeaESDTO(dto);
+            esData.setSuper_data(JSON.toJSONString(dto.getSuperData()));
+            //es暂时取消
+            //saveClueInfoToES(esData);
+            // 保存到redis中号码对应关系
+            phoneService.setValueByIdFromRedis(superId, dto.getSuper_telphone());
+            crmRecordService.updateRecord(jsonObject.getJSONArray("field"), superId);
+            adminFieldService.save(jsonObject.getJSONArray("field"), superId);
+            status = 1;
+        } catch (Exception e) {
+            status = 0;
+            LOG.error("保存添加线索个人信息" + ConstantsUtil.CUSTOMER_GROUP_TABLE_PREFIX + dto.getCust_group_id() + "失败", e);
+        }
+        return status;
     }
 
     /**
@@ -133,7 +300,7 @@ public class CrmLeadsService {
         if (crmLeads.getLeadsId() != null) {
             crmLeads.setCustomerId(0);
             crmLeads.setUpdateTime(new Timestamp(System.currentTimeMillis()));
-            crmRecordService.updateRecord(new CrmLeads().dao().findById(crmLeads.getLeadsId()), crmLeads, CrmEnum.LEADS_TYPE_KEY.getTypes());
+            crmRecordService.updateRecord(crmLeadsDao.get(crmLeads.getLeadsId()), crmLeads, CrmEnum.LEADS_TYPE_KEY.getTypes());
             //return crmLeads.update() ? R.ok() : R.error();
             crmLeadsDao.saveOrUpdate(crmLeads);
             return R.ok();

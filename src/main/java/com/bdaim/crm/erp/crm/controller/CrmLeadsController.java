@@ -2,8 +2,10 @@ package com.bdaim.crm.erp.crm.controller;
 
 import cn.hutool.poi.excel.ExcelUtil;
 import cn.hutool.poi.excel.ExcelWriter;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.annotation.CacheAnnotation;
+import com.bdaim.common.controller.util.ResponseCommon;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.crm.common.annotation.LoginFormCookie;
 import com.bdaim.crm.common.annotation.NotNullValidate;
@@ -18,6 +20,8 @@ import com.bdaim.crm.erp.crm.service.CrmLeadsService;
 import com.bdaim.crm.utils.AuthUtil;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
+import com.bdaim.customersea.dto.CustomSeaTouchInfoDTO;
+import com.bdaim.util.MD5Util;
 import com.jfinal.aop.Before;
 import com.jfinal.core.Controller;
 import com.jfinal.core.paragetter.Para;
@@ -39,6 +43,7 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -71,6 +76,61 @@ public class CrmLeadsController extends Controller {
         jsonObject.fluentPut("type", 1);
         basePageRequest.setJsonObject(jsonObject);
         return crmLeadsService.pageCluePublicSea(basePageRequest, seaId, BaseUtil.getUser().getCustId());
+    }
+
+    /**
+     * 添加线索
+     *
+     * @param jsonO
+     * @return
+     */
+    @RequestMapping(value = "/cluesea/addClueData", method = RequestMethod.POST)
+    public ResponseCommon addClueData(@RequestBody JSONObject jsonO) {
+        ResponseCommon responseJson = new ResponseCommon();
+        String customerId = BaseUtil.getUser().getCustId();
+        Long userId = BaseUtil.getUser().getId();
+        String seaId = jsonO.getString("seaId");
+        try {
+            JSONArray labelIdArray = jsonO.getJSONArray("labelIds");
+            Map<String, Object> superData = new HashMap<>(16);
+            // 处理自建属性
+            if (labelIdArray != null || labelIdArray.size() != 0) {
+                for (int i = 0; i < labelIdArray.size(); i++) {
+                    if ("company".equals(labelIdArray.getJSONObject(i).getString("labelId"))) {
+                        String optionValue = labelIdArray.getJSONObject(i).getString("optionValue");
+                        superData.put(labelIdArray.getJSONObject(i).getString("labelId"), optionValue);
+                    } else {
+                        superData.put(labelIdArray.getJSONObject(i).getString("labelId"), labelIdArray.getJSONObject(i).getString("optionValue"));
+                    }
+                }
+                superData.put("SYS007", "未跟进");
+            }
+            String company = jsonO.getString("company");
+            String s = MD5Util.encode32Bit(company);
+            superData.put("SYS014", s);
+            CustomSeaTouchInfoDTO dto = new CustomSeaTouchInfoDTO("", customerId, String.valueOf(userId), "", "",
+                    jsonO.getString("super_name"), jsonO.getString("super_age"), jsonO.getString("super_sex"), jsonO.getString("super_telphone"),
+                    jsonO.getString("super_phone"), jsonO.getString("super_address_province_city"), jsonO.getString("super_address_street"),
+                    seaId, superData, jsonO.getString("qq"), jsonO.getString("email"), jsonO.getString("profession"), jsonO.getString("weChat"),
+                    jsonO.getString("followStatus"), jsonO.getString("invalidReason"), jsonO.getString("company"));
+            // 保存标记信息
+            int status = crmLeadsService.addClueData0(dto, jsonO);
+            if (status == 1) {
+                responseJson.setCode(200);
+                responseJson.setMessage("添加成功");
+            } else if (status == -1) {
+                responseJson.setCode(-1);
+                responseJson.setMessage("线索已经存在");
+            } else {
+                responseJson.setCode(-1);
+                responseJson.setMessage("添加成功");
+            }
+        } catch (Exception e) {
+            LOG.error("添加线索失败,", e);
+            responseJson.setCode(-1);
+            responseJson.setMessage("添加线索失败");
+        }
+        return responseJson;
     }
 
     /**
