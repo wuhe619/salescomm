@@ -347,9 +347,9 @@ public class BusiEntityService {
 
                 if (jo.containsKey("_rule_"))
                     jo.remove("_rule_");
-                JSONObject jsonObject = JSON.parseObject(extData);
+                //JSONObject jsonObject = JSON.parseObject(extData);
                 jdbcTemplate.update(sql1, id, busiType, info.toJSONString(), cust_id, cust_group_id, cust_user_id, cust_user_id
-                        , jsonObject.containsKey("ext_1") ? jsonObject.getString("ext_1") : ""
+                        , jo.containsKey("ext_1") ? jo.getString("ext_1") : ""
                         , jo.containsKey("ext_2") ? jo.getString("ext_2") : ""
                         , jo.containsKey("ext_3") ? jo.getString("ext_3") : ""
                         , jo.containsKey("ext_4") ? jo.getString("ext_4") : ""

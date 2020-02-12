@@ -56,8 +56,6 @@ public class BatchTestTaskService implements BusiService {
 
     @Override
     public void insertInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) throws Exception {
-        //busiType = BusiTypeEnum.BATCH_TEST_TASK.getType();
-        //String sql1 = "insert into " + HMetaDataDef.getTable(busiType, "") + "(id, type, content, cust_id, cust_group_id, cust_user_id, create_id, create_date, ext_2,ext_3, ext_4 ) value(?, ?, ?, ?, ?, ?, ?, now(), ?, ?, ?)";
         String apiId = info.getString("apiId");
         String sql = "select count(0) from " + HMetaDataDef.getTable(busiType, "")+" where cust_id=? and ext_2=?";
         List param = new ArrayList();
