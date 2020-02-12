@@ -46,12 +46,6 @@ public class BatchTestTaskService implements BusiService {
     @Resource
     private JdbcTemplate jdbcTemplate;
 
-    @Autowired
-    private SequenceService sequenceService;
-
-
-    @Autowired
-    private ServiceUtils serviceUtils;
 
 
     @Override

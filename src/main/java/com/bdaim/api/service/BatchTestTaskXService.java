@@ -123,10 +123,10 @@ public class BatchTestTaskXService implements BusiService {
             }else if("status".equals(key)){
                 sqlstr.append(" and ext_2=?");
                 sqlParams.add(params.get(key));
-            }else {
+            }/*else {
                 sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key + "')=?");
                 sqlParams.add(params.get(key));
-            }
+            }*/
         }
         return sqlstr.toString();
     }
