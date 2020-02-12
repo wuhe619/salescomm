@@ -10,6 +10,7 @@ import cn.hutool.poi.excel.ExcelUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.service.PhoneService;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.dao.*;
@@ -88,6 +89,12 @@ public class CrmLeadsService {
     private LkCrmOaEventDao crmOaEventDao;
 
     @Resource
+    private LkCrmAdminFieldDao crmAdminFieldDao;
+
+    @Resource
+    private LkCrmAdminFieldvDao crmAdminFieldvDao;
+
+    @Resource
     private CustomerSeaDao customerSeaDao;
     @Resource
     private CustomerUserDao customerUserDao;
@@ -124,6 +131,7 @@ public class CrmLeadsService {
         put("entId", "SYS014");
         put("next_time", "next_time");
         put("remark", "remark");
+        put("leads_name", "leads_name");
     }};
 
     private Map<String, String> excelDefaultLabels = new HashMap() {{
@@ -271,7 +279,6 @@ public class CrmLeadsService {
     }
 
     /**
-     * @author wyq
      * 根据线索id查询
      */
     public Map queryClueById(long seaId, String id) {
@@ -280,6 +287,34 @@ public class CrmLeadsService {
             return publicSeaClue.get(0);
         }
         return null;
+    }
+
+    /**
+     * 公海线索基本信息
+     */
+    public List<Record> information(Long seaId, String custId, String id) throws TouchException {
+        CustomerSea customerSea = customerSeaDao.get(seaId);
+        if (ObjectUtil.notEqual(custId, customerSea.getCustId())) {
+            throw new TouchException("线索公海不属于该客户");
+        }
+        StringBuffer sql = new StringBuffer(" SELECT * FROM ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(seaId)
+                .append("WHERE id = ? ");
+
+        List<Map<String, Object>> crmLeads = crmLeadsDao.sqlQuery(sql.toString(), id);
+        if (crmLeads.size() == 0) {
+            throw new TouchException("线索不存在");
+        }
+        List<Record> fieldList = new ArrayList<>();
+        FieldUtil field = new FieldUtil(fieldList);
+        JSONObject superData = JSON.parseObject(String.valueOf(crmLeads.get(0).get("super_data")));
+
+        field.set("线索名称", superData.getString("leads_name")).set("电话", String.valueOf(crmLeads.get(0).get("super_phone")))
+                .set("手机", String.valueOf(crmLeads.get(0).get("super_telphone"))).set("下次联系时间", DateUtil.formatDateTime(superData.getDate("next_time")))
+                .set("地址",  String.valueOf(crmLeads.get(0).get("super_address_street"))).set("备注", superData.getString("remark"));
+        List<Record> recordList = JavaBeanUtil.mapToRecords(crmAdminFieldvDao.queryCustomField(id));
+        fieldUtil.handleType(recordList);
+        fieldList.addAll(recordList);
+        return fieldList;
     }
 
 
@@ -337,13 +372,14 @@ public class CrmLeadsService {
      * 基本信息
      */
     public List<Record> information(Integer leadsId) {
-        CrmLeads crmLeads = CrmLeads.dao.findById(leadsId);
+        LkCrmLeadsEntity crmLeads = crmLeadsDao.get(leadsId);
         List<Record> fieldList = new ArrayList<>();
         FieldUtil field = new FieldUtil(fieldList);
         field.set("线索名称", crmLeads.getLeadsName()).set("电话", crmLeads.getMobile())
                 .set("手机", crmLeads.getTelephone()).set("下次联系时间", DateUtil.formatDateTime(crmLeads.getNextTime()))
                 .set("地址", crmLeads.getAddress()).set("备注", crmLeads.getRemark());
-        List<Record> recordList = Db.find(Db.getSql("admin.field.queryCustomField"), crmLeads.getBatchId());
+        List<Record> recordList = JavaBeanUtil.mapToRecords(crmAdminFieldvDao.queryCustomField(crmLeads.getBatchId()));
+        //List<Record> recordList = Db.find(Db.getSql("admin.field.queryCustomField"), crmLeads.getBatchId());
         fieldUtil.handleType(recordList);
         fieldList.addAll(recordList);
         return fieldList;
