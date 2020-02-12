@@ -1,6 +1,7 @@
 package com.bdaim.api.controller;
 
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.AppConfig;
 import com.bdaim.api.Dto.ApiData;
 import com.bdaim.api.service.ApiService;
 import com.bdaim.auth.LoginUser;
@@ -9,12 +10,9 @@ import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.util.DateUtil;
-import com.bdaim.util.FileUrlEntity;
-import com.bdaim.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -32,8 +30,6 @@ public class ApiController extends BasicAction {
     @Autowired
     private ApiService apiService;
 
-    @Autowired
-    private FileUrlEntity fileUrlEntity;
 
     /**
      * Query Api Infos
@@ -263,7 +259,7 @@ public class ApiController extends BasicAction {
         OutputStream bos = null;
         try {
             logger.info("fileName== "+fileName);
-            String classPath = fileUrlEntity.getFileUrl();
+            String classPath = AppConfig.getFile_path();
             logger.info("hello classpath" + classPath);
             String pathF = PROPERTIES.getProperty("file.separator");
             classPath = classPath.replace("/", pathF);
