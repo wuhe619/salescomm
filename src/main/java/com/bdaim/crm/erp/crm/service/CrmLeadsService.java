@@ -3,6 +3,7 @@ package com.bdaim.crm.erp.crm.service;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.poi.excel.ExcelReader;
 import cn.hutool.poi.excel.ExcelUtil;
@@ -16,10 +17,9 @@ import com.bdaim.crm.erp.admin.service.AdminFileService;
 import com.bdaim.crm.erp.crm.common.CrmEnum;
 import com.bdaim.crm.erp.crm.common.CrmParamValid;
 import com.bdaim.crm.erp.crm.entity.CrmLeads;
-import com.bdaim.crm.utils.AuthUtil;
-import com.bdaim.crm.utils.BaseUtil;
-import com.bdaim.crm.utils.FieldUtil;
-import com.bdaim.crm.utils.R;
+import com.bdaim.crm.utils.*;
+import com.bdaim.customersea.dao.CustomerSeaDao;
+import com.bdaim.customersea.entity.CustomerSea;
 import com.bdaim.util.JavaBeanUtil;
 import com.bdaim.util.ReflectionUtils;
 import com.bdaim.util.SqlAppendUtil;
@@ -77,6 +77,31 @@ public class CrmLeadsService {
 
     @Resource
     private LkCrmOaEventDao crmOaEventDao;
+
+    @Resource
+    private CustomerSeaDao customerSeaDao;
+
+    /**
+     * @return
+     * @author wyq
+     * 分页条件查询线索
+     */
+    public R pageCluePublicSea(BasePageRequest<CrmLeads> basePageRequest, long seaId, String custId) {
+        //String leadsName = basePageRequest.getData().getLeadsName();
+        CustomerSea customerSea = customerSeaDao.get(seaId);
+        if (ObjectUtil.notEqual(custId, customerSea.getCustId())) {
+            return R.error("线索公海不属于该客户");
+        }
+        String search = basePageRequest.getJsonObject().getString("search");
+        if (!ParamsUtil.isValid(search)) {
+            return R.error("参数包含非法字段");
+        }
+        com.bdaim.common.dto.Page page = crmLeadsDao.pageCluePublicSea(basePageRequest.getPage(), basePageRequest.getLimit(), seaId, search);
+        Page finalPage = new Page();
+        finalPage.setList(page.getData());
+        finalPage.setTotalRow(page.getTotal());
+        return R.ok().put("data", finalPage);
+    }
 
     /**
      * @author wyq
@@ -342,7 +367,7 @@ public class CrmLeadsService {
             crmOaEventDao.save(oaEvent);
         }
         crmAdminRecordDao.executeUpdateSQL("update lkcrm_crm_leads set followup = 1 where leads_id = ?", adminRecord.getTypesId());
-        return (int)crmAdminRecordDao.saveReturnPk(adminRecord) > 0 ? R.ok() : R.error();
+        return (int) crmAdminRecordDao.saveReturnPk(adminRecord) > 0 ? R.ok() : R.error();
     }
 
     /**

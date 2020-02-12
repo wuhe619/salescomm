@@ -1,10 +1,13 @@
 package com.bdaim.crm.dao;
 
 import com.bdaim.common.dao.SimpleHibernateDao;
+import com.bdaim.common.dto.Page;
 import com.bdaim.crm.entity.LkCrmLeadsEntity;
 import com.bdaim.util.SqlAppendUtil;
+import com.bdaim.util.StringUtil;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -40,16 +43,29 @@ public class LkCrmLeadsDao extends SimpleHibernateDao<LkCrmLeadsEntity, Integer>
         return this.sqlQuery(sql, SqlAppendUtil.sqlAppendWhereIn(ids));
     }
 
-    public int deleteByIds( List<String> ids) {
+    public int deleteByIds(List<String> ids) {
         String sql = "delete from lkcrm_crm_leads where leads_id in (?)";
         int maps = this.executeUpdateSQL(sql, SqlAppendUtil.sqlAppendWhereIn(ids));
         return maps;
     }
 
-    public int setLeadsFollowup( List<String> ids) {
-        String sql = "update 72crm_crm_leads set followup = 1 where leads_id in (?)";
+    public int setLeadsFollowup(List<String> ids) {
+        String sql = "update lkcrm_crm_leads set followup = 1 where leads_id in (?)";
         int maps = this.executeUpdateSQL(sql, SqlAppendUtil.sqlAppendWhereIn(ids));
         return maps;
     }
 
+    public Page pageCluePublicSea(int pageNum, int pageSize, long seaId, String search) {
+        StringBuffer conditions = new StringBuffer("SELECT a.*,z.* FROM t_customer_sea_list_" + seaId + " AS a LEFT JOIN fieldleadsview AS z ON a.id = z.field_batch_id WHERE 1=1 ");
+        List param = new ArrayList();
+        if (StringUtil.isNotEmpty(search)) {
+            param.add(search);
+            param.add(search);
+            param.add(search);
+            param.add(search);
+            conditions.append(" and (super_name like '%?%' or super_telphone like '%?%' or super_phone like '%?%' or super_data like '%?%')");
+        }
+        return sqlPageQuery(conditions.toString(), pageNum, pageSize, param.toArray());
+
+    }
 }
