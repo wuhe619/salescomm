@@ -107,8 +107,11 @@ public class CustomerUserController extends BasicAction {
         ResponseInfo resp = new ResponseInfo();
         try {
             resp.setData(customerUserService.updateUserPassword(id, password));
+            resp.setCode(200);
         } catch (Exception e) {
             e.printStackTrace();
+            resp.setMessage(e.getMessage());
+            resp.setCode(-1);
         }
         return resp;
     }
