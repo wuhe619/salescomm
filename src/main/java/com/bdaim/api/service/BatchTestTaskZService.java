@@ -174,16 +174,13 @@ public class BatchTestTaskZService implements BusiService {
             if ("cust_id".equals(key)) {
                 sqlstr.append(" and cust_id=?");
                 sqlParams.add(value);
-            }
-            if("task_id".equals(key)){
+            }else if("task_id".equals(key)){
                 sqlstr.append("and ext_1=?");
                 sqlParams.add(value);
-            }
-            if("batch_id".equals(key)){
+            }else if("batch_id".equals(key)){
                 sqlstr.append("and ext_3=?");
                 sqlParams.add(value);
-            }
-            if("batch_name".equals(key)){
+            }else if("batch_name".equals(key)){
                 sqlstr.append("and ext_5 like ?");
                 sqlParams.add("%"+value+"%");
             }

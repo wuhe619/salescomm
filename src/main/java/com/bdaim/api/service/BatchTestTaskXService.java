@@ -111,20 +111,22 @@ public class BatchTestTaskXService implements BusiService {
         Iterator keys = params.keySet().iterator();
         while (keys.hasNext()) {
             String key = (String) keys.next();
-            if (StringUtil.isNotEmpty(String.valueOf(params.get(key)))) continue;
+            if (StringUtil.isEmpty(String.valueOf(params.get(key)))) continue;
             if ("pageNum".equals(key) || "pageSize".equals(key) || "pid1".equals(key) || "pid2".equals(key))
                 continue;
             if ("cust_id".equals(key)) {
                 sqlstr.append(" and cust_id=?");
-            }
-            if("batch_id".equals(key)){
+                sqlParams.add(params.get(key));
+            }else if("batch_id".equals(key)){
                 sqlstr.append(" and ext_4=?");
-            }
-            if("status".equals(key)){
+                sqlParams.add(params.get(key));
+            }else if("status".equals(key)){
                 sqlstr.append(" and ext_2=?");
+                sqlParams.add(params.get(key));
+            }else {
+                sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key + "')=?");
+                sqlParams.add(params.get(key));
             }
-            sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key + "')=?");
-            sqlParams.add(params.get(key));
         }
         return sqlstr.toString();
     }

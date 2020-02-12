@@ -132,10 +132,15 @@ public class BatchTestTaskService implements BusiService {
                 continue;
             if ("cust_id".equals(key)) {
                 sqlstr.append(" and cust_id=?");
+                sqlParams.add(params.get(key));
+            }else if("custName".equals(key)){
+                sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key + "')=?");
+                sqlParams.add(params.get(key));
+            }else if("account".equals(key)){
+                sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key + "')=?");
+                sqlParams.add(params.get(key));
             }
 
-            sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key + "')=?");
-            sqlParams.add(params.get(key));
         }
         return sqlstr.toString();
     }
