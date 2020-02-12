@@ -40,8 +40,8 @@ public class ApiController extends BasicAction {
 
         ResponseInfo resp = new ResponseInfo();
         PageParam page = new PageParam();
-        page.setPageSize(params.containsKey("pageSize") ? 0 : params.getIntValue("pageSize"));
-        page.setPageNum(params.containsKey("pageNum") ? 10 : params.getIntValue("pageNum"));
+        page.setPageSize(!params.containsKey("pageSize") ? 10 : params.getIntValue("pageSize"));
+        page.setPageNum(!params.containsKey("pageNum") ? 1 : params.getIntValue("pageNum"));
         resp.setData(apiService.apis(page, params));
         return resp;
     }
@@ -197,8 +197,8 @@ public class ApiController extends BasicAction {
                 custId = params.getString("custId");
             if (params.containsKey("apiName"))
                 apiName = params.getString("apiName");
-            page.setPageSize(!params.containsKey("pageSize") ? 0 : params.getIntValue("pageSize"));
-            page.setPageNum(!params.containsKey("pageNum") ? 10 : params.getIntValue("pageNum"));
+            page.setPageSize(!params.containsKey("pageSize") ? 10 : params.getIntValue("pageSize"));
+            page.setPageNum(!params.containsKey("pageNum") ? 1 : params.getIntValue("pageNum"));
             if (params.containsKey("code") && params.getString("code").equals("Subscribe")) {
                 info.setData(apiService.subApiSubscribeList(page, custId, apiName));
             } else {
@@ -222,8 +222,8 @@ public class ApiController extends BasicAction {
         params.put("apiId",apiId);
         ResponseInfo resp = new ResponseInfo();
         PageParam page = new PageParam();
-        page.setPageSize(params.containsKey("pageSize") ? 0 : params.getIntValue("pageSize"));
-        page.setPageNum(params.containsKey("pageNum") ? 10 : params.getIntValue("pageNum"));
+        page.setPageSize(!params.containsKey("pageSize") ? 10 : params.getIntValue("pageSize"));
+        page.setPageNum(!params.containsKey("pageNum") ? 1 : params.getIntValue("pageNum"));
         resp.setData(apiService.apiLogs(page, params));
         return resp;
     }
@@ -240,8 +240,8 @@ public class ApiController extends BasicAction {
         params.put("customerId",customerId);
         ResponseInfo resp = new ResponseInfo();
         PageParam page = new PageParam();
-        page.setPageSize(params.containsKey("pageSize") ? 0 : params.getIntValue("pageSize"));
-        page.setPageNum(params.containsKey("pageNum") ? 10 : params.getIntValue("pageNum"));
+        page.setPageSize(!params.containsKey("pageSize") ? 10 : params.getIntValue("pageSize"));
+        page.setPageNum(!params.containsKey("pageNum") ? 1 : params.getIntValue("pageNum"));
         resp.setData(apiService.apiCustomerLogs(page, params));
         return resp;
     }

@@ -225,9 +225,11 @@ public class ApiService {
         StringBuffer sql = new StringBuffer();
         sql.append(" select API_ID as apiId,API_NAME as apiName,CONTEXT as context,CREATED_BY as createdBy,status   from am_api where 1=1 ");
         if (params.containsKey("apiName")) {
+            if(StringUtil.isNotEmpty(params.getString("apiName"))) {
 //            sql.append(" and API_NAME like '%" + params.getString("apiName") + "%'");
-            sql.append(" and API_NAME like ?");
-            arr.add("%" + params.getString("apiName") + "%");
+                sql.append(" and API_NAME like ?");
+                arr.add("%" + params.getString("apiName") + "%");
+            }
         }
         if (params.containsKey("status")) {
             if (StringUtil.isNotEmpty(params.getString("status"))) {
