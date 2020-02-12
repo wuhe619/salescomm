@@ -499,7 +499,7 @@ public class CrmLeadsService {
                     adminRecord.setBatchId(customerRecordBatchId);
                     adminRecord.setRecordId(null);
                     adminRecord.setTypes("crm_customer");
-                    adminRecord.setTypesId(crmCustomer.getCustomerId());
+                    adminRecord.setTypesId(crmCustomer.getCustomerId().toString());
                     adminRecord.setUpdateTime(new Timestamp(System.currentTimeMillis()));
                 });
                 //Db.batchSave(adminRecordList, 100);

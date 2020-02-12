@@ -1,5 +1,6 @@
 package com.bdaim.crm.erp.crm.controller;
 
+import cn.hutool.core.util.NumberUtil;
 import cn.hutool.poi.excel.ExcelUtil;
 import cn.hutool.poi.excel.ExcelWriter;
 import com.alibaba.fastjson.JSONArray;
@@ -143,6 +144,17 @@ public class CrmLeadsController extends Controller {
 
     /**
      * @author wyq
+     * 查看跟进记录
+     */
+    @ResponseBody
+    @RequestMapping(value = "/cluesea/getRecord", method = RequestMethod.POST)
+    public R clueGetRecord(BasePageRequest basePageRequest, CrmLeads crmLeads, Long seaId) {
+        basePageRequest.setData(crmLeads);
+        return (R.ok().put("data", crmLeadsService.getRecord(basePageRequest)));
+    }
+
+    /**
+     * @author wyq
      * 查看列表页
      */
     @Permissions({"crm:leads:index"})
@@ -246,7 +258,7 @@ public class CrmLeadsController extends Controller {
     @ResponseBody
     @RequestMapping(value = "/addRecord", method = RequestMethod.POST)
     public R addRecord(@Para("") LkCrmAdminRecordEntity adminRecord) {
-        boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.LEADS_TYPE_KEY.getSign()), adminRecord.getTypesId());
+        boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.LEADS_TYPE_KEY.getSign()), NumberUtil.parseInt(adminRecord.getTypesId()));
         if (auth) {
             return (R.noAuth());
             //return;
@@ -262,7 +274,7 @@ public class CrmLeadsController extends Controller {
     @RequestMapping(value = "/getRecord", method = RequestMethod.POST)
     public R getRecord(BasePageRequest basePageRequest, CrmLeads crmLeads) {
         basePageRequest.setData(crmLeads);
-        boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.LEADS_TYPE_KEY.getSign()), crmLeads.getLeadsId());
+        boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.LEADS_TYPE_KEY.getSign()), NumberUtil.parseInt(crmLeads.getLeadsId()));
         if (auth) {
             return (R.noAuth());
         }

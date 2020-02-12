@@ -103,19 +103,19 @@ public class CrmRecordService<T> {
             CrmProduct newObj1 = (CrmProduct) newObj;
             searchChange(textList, oldObj1._getAttrsEntrySet(), newObj1._getAttrsEntrySet(), CrmEnum.PRODUCT_TYPE_KEY.getTypes());
             crmActionRecord.setTypes(CrmEnum.PRODUCT_TYPE_KEY.getTypes());
-            crmActionRecord.setActionId(oldObj1.getProductId());
+            crmActionRecord.setActionId(oldObj1.getProductId().toString());
         } else if (crmTypes.equals(CrmEnum.CONTACTS_TYPE_KEY.getTypes())) {
             CrmContacts oldObj1 = (CrmContacts) oldObj;
             CrmContacts newObj1 = (CrmContacts) newObj;
             searchChange(textList, oldObj1._getAttrsEntrySet(), newObj1._getAttrsEntrySet(), CrmEnum.CONTACTS_TYPE_KEY.getTypes());
             crmActionRecord.setTypes(CrmEnum.CONTACTS_TYPE_KEY.getTypes());
-            crmActionRecord.setActionId(oldObj1.getContactsId());
+            crmActionRecord.setActionId(oldObj1.getContactsId().toString());
         } else if (crmTypes.equals(CrmEnum.CUSTOMER_TYPE_KEY.getTypes())) {
             CrmCustomer oldObj1 = (CrmCustomer) oldObj;
             CrmCustomer newObj1 = (CrmCustomer) newObj;
             searchChange(textList, oldObj1._getAttrsEntrySet(), newObj1._getAttrsEntrySet(), CrmEnum.CUSTOMER_TYPE_KEY.getTypes());
             crmActionRecord.setTypes(CrmEnum.CUSTOMER_TYPE_KEY.getTypes());
-            crmActionRecord.setActionId(oldObj1.getCustomerId());
+            crmActionRecord.setActionId(oldObj1.getCustomerId().toString());
         } else if (crmTypes.equals(CrmEnum.LEADS_TYPE_KEY.getTypes())) {
             CrmLeads oldObj1 = (CrmLeads) oldObj;
             CrmLeads newObj1 = (CrmLeads) newObj;
@@ -127,19 +127,19 @@ public class CrmRecordService<T> {
             CrmContract newObj1 = (CrmContract) newObj;
             searchChange(textList, oldObj1._getAttrsEntrySet(), newObj1._getAttrsEntrySet(), CrmEnum.CONTRACT_TYPE_KEY.getTypes());
             crmActionRecord.setTypes(CrmEnum.CONTRACT_TYPE_KEY.getTypes());
-            crmActionRecord.setActionId(oldObj1.getContractId());
+            crmActionRecord.setActionId(oldObj1.getContractId().toString());
         } else if (crmTypes.equals(CrmEnum.RECEIVABLES_TYPE_KEY.getTypes())) {
             CrmReceivables oldObj1 = (CrmReceivables) oldObj;
             CrmReceivables newObj1 = (CrmReceivables) newObj;
             searchChange(textList, oldObj1._getAttrsEntrySet(), newObj1._getAttrsEntrySet(), CrmEnum.RECEIVABLES_TYPE_KEY.getTypes());
             crmActionRecord.setTypes(CrmEnum.RECEIVABLES_TYPE_KEY.getTypes());
-            crmActionRecord.setActionId(oldObj1.getReceivablesId());
+            crmActionRecord.setActionId(oldObj1.getReceivablesId().toString());
         } else if (crmTypes.equals(CrmEnum.BUSINESS_TYPE_KEY.getTypes())) {
             CrmBusiness oldObj1 = (CrmBusiness) oldObj;
             CrmBusiness newObj1 = (CrmBusiness) newObj;
             searchChange(textList, oldObj1._getAttrsEntrySet(), newObj1._getAttrsEntrySet(), CrmEnum.BUSINESS_TYPE_KEY.getTypes());
             crmActionRecord.setTypes(CrmEnum.BUSINESS_TYPE_KEY.getTypes());
-            crmActionRecord.setActionId(oldObj1.getBusinessId());
+            crmActionRecord.setActionId(oldObj1.getBusinessId().toString());
         }
         crmActionRecord.setContent(JSON.toJSONString(textList));
         if (textList.size() > 0) {
@@ -153,7 +153,7 @@ public class CrmRecordService<T> {
         crmActionRecord.setCreateUserId(BaseUtil.getUser().getUserId().intValue());
         crmActionRecord.setCreateTime(new Timestamp(System.currentTimeMillis()));
         crmActionRecord.setTypes(crmTypes);
-        crmActionRecord.setActionId(actionId);
+        crmActionRecord.setActionId(actionId.toString());
         ArrayList<String> strings = new ArrayList<>();
         strings.add("新建了" + CrmEnum.getName(crmTypes));
         crmActionRecord.setContent(JSON.toJSONString(strings));
@@ -234,7 +234,7 @@ public class CrmRecordService<T> {
         crmActionRecord.setCreateUserId(BaseUtil.getUser().getUserId().intValue());
         crmActionRecord.setCreateTime(DateUtil.date().toTimestamp());
         crmActionRecord.setTypes(crmTypes);
-        crmActionRecord.setActionId(actionId);
+        crmActionRecord.setActionId(actionId.toString());
         ArrayList<String> strings = new ArrayList<>();
         strings.add("将" + CrmEnum.getName(crmTypes) + "转移给：" + name);
         crmActionRecord.setContent(JSON.toJSONString(strings));
@@ -257,7 +257,7 @@ public class CrmRecordService<T> {
         }
         crmActionRecord.setContent(JSON.toJSONString(strings));
         for (String actionId : ids) {
-            crmActionRecord.setActionId(Integer.valueOf(actionId));
+            crmActionRecord.setActionId(actionId);
             crmActionRecordDao.save(crmActionRecord);
         }
     }
@@ -273,7 +273,7 @@ public class CrmRecordService<T> {
         crmActionRecord.setCreateUserId(BaseUtil.getUser().getUserId().intValue());
         crmActionRecord.setCreateTime(new Timestamp(System.currentTimeMillis()));
         crmActionRecord.setTypes(crmTypes);
-        crmActionRecord.setActionId(actionId);
+        crmActionRecord.setActionId(actionId.toString());
         ArrayList<String> strings = new ArrayList<>();
         strings.add("将线索\"" + name + "\"转化为客户");
         crmActionRecord.setContent(JSON.toJSONString(strings));
@@ -300,7 +300,7 @@ public class CrmRecordService<T> {
         crmActionRecord.setContent(JSON.toJSONString(strings));
         for (Object actionId : actionIds) {
             //crmActionRecord.remove("id");
-            crmActionRecord.setActionId((Integer) actionId);
+            crmActionRecord.setActionId(String.valueOf(actionId));
             crmActionRecordDao.save(crmActionRecord);
         }
     }
@@ -323,7 +323,7 @@ public class CrmRecordService<T> {
             crmActionRecord.setCreateUserId(BaseUtil.getUser().getUserId().intValue());
             crmActionRecord.setCreateTime(new Timestamp(System.currentTimeMillis()));
             crmActionRecord.setTypes(crmTypes);
-            crmActionRecord.setActionId(Integer.valueOf(id));
+            crmActionRecord.setActionId(id);
             if (userId == null) {
                 //领取
                 strings.add("领取了客户");

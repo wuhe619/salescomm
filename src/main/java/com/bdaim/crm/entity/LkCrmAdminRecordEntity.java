@@ -9,7 +9,7 @@ import java.util.Objects;
 public class LkCrmAdminRecordEntity {
     private Integer recordId;
     private String types;
-    private Integer typesId;
+    private String typesId;
     private String content;
     private String category;
     private Timestamp nextTime;
@@ -54,11 +54,11 @@ public class LkCrmAdminRecordEntity {
 
     @Basic
     @Column(name = "types_id")
-    public Integer getTypesId() {
+    public String getTypesId() {
         return typesId;
     }
 
-    public void setTypesId(Integer typesId) {
+    public void setTypesId(String typesId) {
         this.typesId = typesId;
     }
 

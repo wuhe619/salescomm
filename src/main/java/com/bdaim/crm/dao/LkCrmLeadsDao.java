@@ -14,7 +14,7 @@ import java.util.Map;
 @Component
 public class LkCrmLeadsDao extends SimpleHibernateDao<LkCrmLeadsEntity, Integer> {
 
-    public List getRecord(int leadsId) {
+    public List getRecord(String leadsId) {
         String sql = "select a.record_id,b.img as user_img,b.realname,a.create_time,a.content,a.category,a.next_time,a.batch_id " +
                 "    from lkcrm_admin_record as a inner join lkcrm_admin_user as b " +
                 "    where a.create_user_id = b.user_id and types = 'crm_leads' and types_id = ? order by a.create_time desc";
