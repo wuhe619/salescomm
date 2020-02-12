@@ -272,6 +272,19 @@ public class CrmLeadsService {
 
     /**
      * @author wyq
+     * 根据线索id查询
+     */
+    public Map queryClueById(long seaId, String id) {
+        List<Map<String, Object>> publicSeaClue = crmLeadsDao.getPublicSeaClue(seaId, id);
+        if (publicSeaClue.size() > 0) {
+            return publicSeaClue.get(0);
+        }
+        return null;
+    }
+
+
+    /**
+     * @author wyq
      * 分页条件查询线索
      */
     public Page<Record> getLeadsPageList(BasePageRequest<CrmLeads> basePageRequest) {

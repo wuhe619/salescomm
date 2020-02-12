@@ -68,4 +68,13 @@ public class LkCrmLeadsDao extends SimpleHibernateDao<LkCrmLeadsEntity, Integer>
         return sqlPageQuery(conditions.toString(), pageNum, pageSize, param.toArray());
 
     }
+
+    public List<Map<String, Object>> getPublicSeaClue(long seaId, String id) {
+        StringBuffer conditions = new StringBuffer("SELECT a.*,z.* FROM t_customer_sea_list_" + seaId + " AS a LEFT JOIN fieldleadsview AS z ON a.id = z.field_batch_id WHERE 1=1 ");
+        conditions.append(" AND id = ? ");
+        List param = new ArrayList();
+        param.add(id);
+        return sqlQuery(conditions.toString(), param.toArray());
+
+    }
 }
