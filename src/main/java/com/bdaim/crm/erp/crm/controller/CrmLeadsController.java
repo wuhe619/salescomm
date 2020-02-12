@@ -3,6 +3,7 @@ package com.bdaim.crm.erp.crm.controller;
 import cn.hutool.poi.excel.ExcelUtil;
 import cn.hutool.poi.excel.ExcelWriter;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.common.annotation.CacheAnnotation;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.crm.common.annotation.LoginFormCookie;
 import com.bdaim.crm.common.annotation.NotNullValidate;
@@ -15,6 +16,7 @@ import com.bdaim.crm.erp.crm.common.CrmEnum;
 import com.bdaim.crm.erp.crm.entity.CrmLeads;
 import com.bdaim.crm.erp.crm.service.CrmLeadsService;
 import com.bdaim.crm.utils.AuthUtil;
+import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
 import com.jfinal.aop.Before;
 import com.jfinal.core.Controller;
@@ -28,6 +30,8 @@ import org.apache.poi.hssf.usermodel.*;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.ss.util.CellRangeAddressList;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -41,6 +45,9 @@ import java.util.Map;
 @RestController
 @RequestMapping("/CrmLeads")
 public class CrmLeadsController extends Controller {
+
+    public static final Logger LOG = LoggerFactory.getLogger(CrmLeadsController.class);
+
     @Resource
     private CrmLeadsService crmLeadsService;
 
@@ -49,6 +56,22 @@ public class CrmLeadsController extends Controller {
 
     @Resource
     private AdminSceneService adminSceneService;
+
+    /**
+     * 公海内线索分页
+     *
+     * @param seaId
+     * @param jsonObject
+     * @return
+     */
+    @RequestMapping(value = "/page/cluesea/{seaId}", method = RequestMethod.POST)
+    @CacheAnnotation
+    public R pageClueById(@PathVariable(value = "seaId") Long seaId, @RequestBody JSONObject jsonObject) {
+        BasePageRequest<CrmLeads> basePageRequest = new BasePageRequest<>();
+        jsonObject.fluentPut("type", 1);
+        basePageRequest.setJsonObject(jsonObject);
+        return crmLeadsService.pageCluePublicSea(basePageRequest, seaId, BaseUtil.getUser().getCustId());
+    }
 
     /**
      * @author wyq
@@ -62,7 +85,7 @@ public class CrmLeadsController extends Controller {
         BasePageRequest<Void> basePageRequest = new BasePageRequest<>();
         jsonObject.fluentPut("type", 1);
         basePageRequest.setJsonObject(jsonObject);
-        resp.setData(adminSceneService.filterConditionAndGetPageList(basePageRequest).get("data"));
+        //resp.setData(adminSceneService.filterConditionAndGetPageList(basePageRequest).get("data"));
         return (adminSceneService.filterConditionAndGetPageList(basePageRequest));
         //return resp;
     }
@@ -71,8 +94,9 @@ public class CrmLeadsController extends Controller {
      * @author wyq
      * 全局搜索查询线索
      */
-    public void queryList(BasePageRequest<CrmLeads> basePageRequest) {
-        renderJson(R.ok().put("data", crmLeadsService.getLeadsPageList(basePageRequest)));
+    @RequestMapping(value = "/queryList", method = RequestMethod.POST)
+    public R queryList(BasePageRequest<CrmLeads> basePageRequest) {
+        return (R.ok().put("data", crmLeadsService.getLeadsPageList(basePageRequest)));
     }
 
     /**
@@ -156,7 +180,7 @@ public class CrmLeadsController extends Controller {
     public R addRecord(@Para("") LkCrmAdminRecordEntity adminRecord) {
         boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.LEADS_TYPE_KEY.getSign()), adminRecord.getTypesId());
         if (auth) {
-            return(R.noAuth());
+            return (R.noAuth());
             //return;
         }
         return (crmLeadsService.addRecord(adminRecord));
