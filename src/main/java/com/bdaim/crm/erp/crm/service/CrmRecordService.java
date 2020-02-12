@@ -148,12 +148,12 @@ public class CrmRecordService<T> {
         textList.clear();
     }
 
-    public void addRecord(Integer actionId, String crmTypes) {
+    public void addRecord(Object actionId, String crmTypes) {
         LkCrmActionRecordEntity crmActionRecord = new LkCrmActionRecordEntity();
         crmActionRecord.setCreateUserId(BaseUtil.getUser().getUserId().intValue());
         crmActionRecord.setCreateTime(new Timestamp(System.currentTimeMillis()));
         crmActionRecord.setTypes(crmTypes);
-        crmActionRecord.setActionId(actionId.toString());
+        crmActionRecord.setActionId(String.valueOf(actionId));
         ArrayList<String> strings = new ArrayList<>();
         strings.add("新建了" + CrmEnum.getName(crmTypes));
         crmActionRecord.setContent(JSON.toJSONString(strings));

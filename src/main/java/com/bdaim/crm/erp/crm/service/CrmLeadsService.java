@@ -270,6 +270,9 @@ public class CrmLeadsService {
             phoneService.setValueByIdFromRedis(superId, dto.getSuper_telphone());
             crmRecordService.updateRecord(jsonObject.getJSONArray("field"), superId);
             adminFieldService.save(jsonObject.getJSONArray("field"), superId);
+            // 保存操作记录
+            crmRecordService.addRecord(superId, CrmEnum.LEADS_TYPE_KEY.getTypes());
+
             status = 1;
         } catch (Exception e) {
             status = 0;
