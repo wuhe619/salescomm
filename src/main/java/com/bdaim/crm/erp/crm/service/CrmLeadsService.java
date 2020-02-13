@@ -1,5 +1,6 @@
 package com.bdaim.crm.erp.crm.service;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.IdUtil;
@@ -317,13 +318,12 @@ public class CrmLeadsService {
 
         field.set("线索名称", superData.getString("leads_name")).set("电话", String.valueOf(crmLeads.get(0).get("super_phone")))
                 .set("手机", String.valueOf(crmLeads.get(0).get("super_telphone"))).set("下次联系时间", DateUtil.formatDateTime(superData.getDate("next_time")))
-                .set("地址",  String.valueOf(crmLeads.get(0).get("super_address_street"))).set("备注", superData.getString("remark"));
+                .set("地址", String.valueOf(crmLeads.get(0).get("super_address_street"))).set("备注", superData.getString("remark"));
         List<Record> recordList = JavaBeanUtil.mapToRecords(crmAdminFieldvDao.queryCustomField(id));
         fieldUtil.handleType(recordList);
         fieldList.addAll(recordList);
         return fieldList;
     }
-
 
 
     /**
@@ -417,13 +417,15 @@ public class CrmLeadsService {
                 return -1;
             }
         } else {
-            throw new TouchException("-1", "当前公海非手动领取模式");
+            //throw new TouchException("-1", "当前公海非手动领取模式");
+            return -1;
         }
         return 0;
     }
 
     /**
      * 单一负责人分配线索
+     * 领取所选
      *
      * @param seaId
      * @param userId
@@ -457,14 +459,50 @@ public class CrmLeadsService {
                 //.append(" SET status = 0, user_id = ?, user_get_time = ? WHERE status = 1 AND id IN (").append(SqlAppendUtil.sqlAppendWhereIn(tempList)).append(")");
                 .append(" SET status = 0, user_id = ?, user_get_time = ? WHERE id IN (").append(SqlAppendUtil.sqlAppendWhereIn(tempList)).append(")");
         List<Object> p = new ArrayList<>();
+        p.add(userId);
+        p.add(new Timestamp(System.currentTimeMillis()));
         if (limit && quantity >= 0) {
             p.add(quantity);
             sql.append(" LIMIT ? ");
             logSql.append(" LIMIT ? ");
         }
+
+        transferToPrivateSea(seaId, userId, superIds);
         // 保存转交记录
-        customerSeaDao.executeUpdateSQL(logSql.toString(), p.toArray());
-        return customerSeaDao.executeUpdateSQL(sql.toString(), userId, new Timestamp(System.currentTimeMillis()), p.toArray());
+        customerSeaDao.executeUpdateSQL(logSql.toString());
+        return customerSeaDao.executeUpdateSQL(sql.toString(), p.toArray());
+    }
+
+    private int transferToPrivateSea(String seaId, String userId, List<String> superIds) {
+        //添加到线索私海数据
+        StringBuilder sql = new StringBuilder()
+                .append("SELECT * FROM  ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(seaId).append(" WHERE id IN (")
+                .append(SqlAppendUtil.sqlAppendWhereIn(superIds)).append(" ) ");
+        List<Map<String, Object>> maps = customerSeaDao.sqlQuery(sql.toString());
+        for (Map<String, Object> m : maps) {
+            LkCrmLeadsEntity crmLeads = BeanUtil.mapToBean(m, LkCrmLeadsEntity.class, true);
+            crmLeads.setBatchId(String.valueOf(m.get("id")));
+            List<Map<String, Object>> fieldList = crmAdminFieldvDao.queryCustomField(String.valueOf(m.get("id")));
+            JSONArray jsonArray = new JSONArray();
+            for (Map<String, Object> field: fieldList) {
+                jsonArray.add(BeanUtil.mapToBean(field, LkCrmAdminFieldvEntity.class, true));
+            }
+
+            crmLeads.setCustId(BaseUtil.getUser().getCustId());
+            String batchId = StrUtil.isNotEmpty(crmLeads.getBatchId()) ? crmLeads.getBatchId() : IdUtil.simpleUUID();
+            crmRecordService.updateRecord(jsonArray, batchId);
+            adminFieldService.save(jsonArray, batchId);
+            crmLeads.setCreateTime(DateUtil.date().toTimestamp());
+            crmLeads.setUpdateTime(DateUtil.date().toTimestamp());
+            crmLeads.setCreateUserId(BaseUtil.getUser().getUserId());
+            if (crmLeads.getOwnerUserId() == null) {
+                crmLeads.setOwnerUserId(BaseUtil.getUser().getUserId());
+            }
+            crmLeads.setBatchId(batchId);
+            int id = (int) crmLeadsDao.saveReturnPk(crmLeads);
+            crmRecordService.addRecord(crmLeads.getLeadsId(), CrmEnum.LEADS_TYPE_KEY.getTypes());
+        }
+        return 0;
     }
 
     /**

@@ -12,7 +12,6 @@ import com.bdaim.crm.dao.LkCrmAdminRecordDao;
 import com.bdaim.crm.entity.LkCrmActionRecordEntity;
 import com.bdaim.crm.entity.LkCrmAdminConfigEntity;
 import com.bdaim.crm.entity.LkCrmAdminFieldvEntity;
-import com.bdaim.crm.erp.admin.entity.AdminFieldv;
 import com.bdaim.crm.erp.crm.common.CrmEnum;
 import com.bdaim.crm.erp.crm.entity.*;
 import com.bdaim.crm.utils.BaseUtil;
@@ -167,7 +166,7 @@ public class CrmRecordService<T> {
         List<LkCrmAdminFieldvEntity> oldFieldList = crmAdminFieldvDao.find("from LkCrmAdminFieldvEntity where batchId = ?", batchId);
         oldFieldList.forEach(oldField -> {
             jsonArray.forEach(json -> {
-                AdminFieldv newField = TypeUtils.castToJavaBean(json, AdminFieldv.class);
+                LkCrmAdminFieldvEntity newField = TypeUtils.castToJavaBean(json, LkCrmAdminFieldvEntity.class);
                 String oldFieldValue;
                 String newFieldValue;
                 if (oldField.getValue() == null) {

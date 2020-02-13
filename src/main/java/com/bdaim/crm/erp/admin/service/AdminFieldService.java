@@ -477,7 +477,7 @@ public class AdminFieldService {
             sql.append(" and examine_category_id= ? ");
         }
         sql.append(" ORDER BY sorting asc");
-        List<Map<String, Object>> maps = crmAdminFieldDao.sqlQuery(sql.toString(), params);
+        List<Map<String, Object>> maps = crmAdminFieldDao.sqlQuery(sql.toString(), params.toArray());
         List<Record> recordList = JavaBeanUtil.mapToRecords(maps);
 
         //List<Record> recordList = Db.find(Db.getSqlPara("admin.field.list", Kv.by("label", label).set("categoryId", categoryId)));
@@ -580,6 +580,9 @@ public class AdminFieldService {
                     .add("ownerUserName", "负责人").add("createUserName", "创建人");
             fieldUtil.getAdminFieldSortList().forEach(fieldSort -> {
                 String fieldName = StrUtil.toCamelCase(fieldSort.getFieldName());
+                if (11 == adminFieldSort.getLabel()) {
+                    fieldName = fieldSort.getFieldName();
+                }
                 fieldSort.setFieldName(fieldName);
                 if ("customerId".equals(fieldSort.getFieldName())) {
                     fieldSort.setFieldName("customerName");

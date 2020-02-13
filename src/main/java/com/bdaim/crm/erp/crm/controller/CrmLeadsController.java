@@ -15,6 +15,7 @@ import com.bdaim.crm.common.annotation.LoginFormCookie;
 import com.bdaim.crm.common.annotation.NotNullValidate;
 import com.bdaim.crm.common.annotation.Permissions;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
+import com.bdaim.crm.dao.LkCrmAdminFieldDao;
 import com.bdaim.crm.entity.LkCrmAdminRecordEntity;
 import com.bdaim.crm.erp.admin.service.AdminFieldService;
 import com.bdaim.crm.erp.admin.service.AdminSceneService;
@@ -73,6 +74,9 @@ public class CrmLeadsController extends Controller {
     @Resource
     private CustomerSeaService seaService;
 
+    @Resource
+    private LkCrmAdminFieldDao crmAdminFieldDao;
+
     /**
      * 公海内线索分页
      *
@@ -81,9 +85,8 @@ public class CrmLeadsController extends Controller {
      * @return
      */
     @RequestMapping(value = "/page/cluesea/{seaId}", method = RequestMethod.POST)
-    @CacheAnnotation
     public R pageClueById(@PathVariable(value = "seaId") Long seaId, @RequestBody JSONObject jsonObject) {
-        BasePageRequest<CrmLeads> basePageRequest = new BasePageRequest<>();
+        BasePageRequest<CrmLeads> basePageRequest = new BasePageRequest<>(jsonObject.getIntValue("page"),jsonObject.getIntValue("limit"));
         jsonObject.fluentPut("type", 1);
         basePageRequest.setJsonObject(jsonObject);
         return crmLeadsService.pageCluePublicSea(basePageRequest, seaId, BaseUtil.getUser().getCustId());
@@ -143,6 +146,7 @@ public class CrmLeadsController extends Controller {
         }
         return responseJson;
     }
+
 
     @Permissions("crm:leads:read")
     @NotNullValidate(value = "leadsId", message = "线索id不能为空")
@@ -269,6 +273,15 @@ public class CrmLeadsController extends Controller {
             responseJson.setMessage(e.getMessage());
             LOG.error("查询公海下坐席可领取线索量异常,", e);
         }
+        responseJson.setData(data);
+        return responseJson;
+    }
+
+    @RequestMapping(value = "/deleteFiled", method = RequestMethod.POST)
+    @CacheAnnotation
+    public ResponseJson deleteFiled(@RequestBody CustomerSeaSearch param) {
+        ResponseJson responseJson = new ResponseJson();
+        int data = crmAdminFieldDao.executeUpdateSQL("DELETE from lkcrm_admin_field_sort where label = 11");
         responseJson.setData(data);
         return responseJson;
     }
