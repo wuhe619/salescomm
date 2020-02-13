@@ -1,6 +1,7 @@
 package com.bdaim.api.service;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.service.BusiService;
@@ -52,7 +53,7 @@ public class BatchTestTaskZService implements BusiService {
     @Override
     public void insertInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) throws Exception {
         //busiType = BusiTypeEnum.BATCH_TEST_TASK.getType();
-        String sql1 = "insert into " + HMetaDataDef.getTable(busiType, "") + "(id, type, content, cust_id, cust_user_id, create_id, create_date, ext_2,ext_3, ext_4 ) value(?, ?, ?, ?, ?, ?, now(), ?, ?, ?)";
+
         String batchName = info.getString("batch_name");
         String apiId = info.getString("api_id");
         String taskId = info.getString("task_id");
@@ -90,15 +91,16 @@ public class BatchTestTaskZService implements BusiService {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("status", 0);
         if (StringUtil.isNotEmpty(detailStr)) {
-            String details[] = detailStr.split(",");
-            if (details.length > 0) {
-                for (int i = 0; i < details.length; i++) {
-                    String detail = details[i];
+            JSONArray details = JSON.parseArray(detailStr);
+            if (details.size() > 0) {
+                for (int i = 0; i < details.size(); i++) {
+                    JSONObject detail = details.getJSONObject(i);
                     Long xid = sequenceService.getSeq(BusiTypeEnum.BATCH_TEST_TASK_X.getType());
-                    jsonObject.put("detail", detail);
+                    jsonObject.put("detail", detail.toJSONString());
                     jsonObject.put("custId", cust_id);
                     jsonObject.put("batchId", id);
                     jsonObject.put("apiId",apiId);
+                    String sql1 = "insert into " + HMetaDataDef.getTable(BusiTypeEnum.BATCH_TEST_TASK_X.getType(), "") + "(id, type, content, cust_id, cust_user_id, create_id, create_date, ext_2,ext_3, ext_4 ) value(?, ?, ?, ?, ?, ?, now(), ?, ?, ?)";
                     jdbcTemplate.update(sql1, xid, BusiTypeEnum.BATCH_TEST_TASK_X.getType(), jsonObject.toJSONString(), cust_id, cust_user_id, cust_user_id, 0, apiId,id);
                 }
             }
@@ -123,7 +125,7 @@ public class BatchTestTaskZService implements BusiService {
             info.put("successNum", 0);
             info.put("failedNum",0);
             info.put("create_date",System.currentTimeMillis());
-
+            info.remove("details");
         }
     }
 
