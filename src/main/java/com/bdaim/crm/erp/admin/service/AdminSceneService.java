@@ -156,6 +156,40 @@ public class AdminSceneService {
                     .add("create_user_id", "创建人", "user", settingArr)
                     .add("update_time", "更新时间", "datetime", settingArr)
                     .add("create_time", "创建时间", "datetime", settingArr);
+        } else if (7 == label) {
+            List<Map<String, Object>> checkList = new ArrayList<>();
+            checkList.add(new JSONObject().fluentPut("name", "待审核").fluentPut("value", 0));
+            checkList.add(new JSONObject().fluentPut("name", "审核中").fluentPut("value", 1));
+            checkList.add(new JSONObject().fluentPut("name", "审核通过").fluentPut("value", 2));
+            checkList.add(new JSONObject().fluentPut("name", "审核未通过").fluentPut("value", 3));
+            checkList.add(new JSONObject().fluentPut("name", "已撤回").fluentPut("value", 4));
+            fieldUtil.add("number", "回款编号", "number", settingArr)
+                    .add("check_status", "审核状态", "checkStatus", checkList)
+                    .add("customer_name", "客户名称", "customer", settingArr)
+                    .add("contract_num", "合同编号", "contract", settingArr)
+                    .add("return_time", "回款日期", "date", settingArr)
+                    .add("money", "回款金额", "floatnumber", settingArr)
+                    .add("remark", "备注", "textarea", settingArr)
+                    .add("owner_user_id", "负责人", "user", settingArr)
+                    .add("create_user_id", "创建人", "user", settingArr)
+                    .add("update_time", "更新时间", "datetime", settingArr)
+                    .add("create_time", "创建时间", "datetime", settingArr);
+        } else if (8 == label) {
+            fieldUtil.add("leads_name", "线索名称", "text", settingArr)
+                    .add("super_phone", "电话", "text", settingArr)
+                    .add("super_telphone", "手机", "mobile", settingArr)
+                    .add("super_address_street", "地址", "text", settingArr)
+                    .add("next_time", "下次联系时间", "datetime", settingArr)
+                    .add("remark", "备注", "text", settingArr)
+                    .add("owner_user_id", "负责人", "user", settingArr)
+                    .add("create_user_id", "创建人", "user", settingArr)
+                    .add("update_time", "更新时间", "datetime", settingArr)
+                    .add("create_time", "创建时间", "datetime", settingArr)
+
+                    .add("user_get_time", "线索领取时间", "datetime", settingArr)
+                    .add("sms_success_count", "短信营销数量", "text", settingArr)
+                    .add("call_success_count", "电话营销数量", "text", settingArr)
+                    .add("email_success_count", "邮件营销数量", "text", settingArr);
         } else {
             return R.error("场景label不符合要求！");
         }
@@ -167,7 +201,7 @@ public class AdminSceneService {
             }
             recordList.addAll(records);
         }
-        return R.ok().put("data", recordList);
+        return R.ok().put("data", JavaBeanUtil.recordToMap(recordList));
     }
 
     /**
