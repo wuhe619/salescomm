@@ -52,9 +52,9 @@ public class BatchTestTaskXService implements BusiService {
     public void updateInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) throws Exception {
         String responseStr = info.getString("response");
         if(StringUtil.isEmpty(responseStr)){
-            throw new Exception("参数不正确");
+            throw new Exception("参数responseStr["+responseStr+"]不正确");
         }
-        log.info("回写详情["+id+"]状态:"+responseStr);
+        log.info("回写详情调用结果["+id+"]:"+responseStr);
         String sql = " select content from "+ HMetaDataDef.getTable(busiType, "")+" where id=?";
         Map<String,Object> detailObj = jdbcTemplate.queryForMap(sql,id);
         if(detailObj != null) {
@@ -74,7 +74,7 @@ public class BatchTestTaskXService implements BusiService {
                         Integer successNum = json2.getInteger("successNum");
                         Integer totalNum = json2.getInteger("totalNum");
                         Integer failedNum = json2.getInteger("failedNum");
-                        JSONObject resonse = JSON.parseObject("responseStr");
+                        JSONObject resonse = JSON.parseObject(responseStr);
 
                         if(successNum == null){
                             successNum = 0;
