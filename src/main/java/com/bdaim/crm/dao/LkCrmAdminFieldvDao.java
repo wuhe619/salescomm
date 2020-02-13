@@ -16,7 +16,7 @@ public class LkCrmAdminFieldvDao extends SimpleHibernateDao<LkCrmAdminFieldvEnti
     }
 
     public List<Map<String, Object>> queryCustomField(String batchId){
-        String sql = "select a.name,a.value,b.type from lkcrm_admin_fieldv as a left join lkcrm_admin_field as b on a.field_id = b.field_id where batch_id = ?";
+        String sql = "select a.name,a.value,a.field_id,b.type from lkcrm_admin_fieldv as a left join lkcrm_admin_field as b on a.field_id = b.field_id where batch_id = ?";
         return sqlQuery(sql, batchId);
     }
 }

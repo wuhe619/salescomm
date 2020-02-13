@@ -338,7 +338,7 @@ public class CrmLeadsService {
     public int distributionClue(CustomerSeaSearch param, int operate, JSONArray assignedList) throws TouchException {
         // 单一负责人分配线索|手动领取所选
         if (1 == operate) {
-            return singleDistributionClue(param.getSeaId(), param.getUserIds().get(0), param.getSuperIds());
+            return singleDistributionClue1(param, operate, assignedList);
         } else if (2 == operate) {
             // 坐席根据检索条件批量领取线索
             return batchReceiveClue(param, param.getUserIds().get(0));
@@ -433,8 +433,7 @@ public class CrmLeadsService {
      * @return
      * @throws TouchException
      */
-    private int singleDistributionClue(String seaId, String userId, List<String> superIds) throws
-            TouchException {
+    private int singleDistributionClue(String seaId, String userId, List<String> superIds) throws TouchException {
         LOG.info("分配的userId是：" + userId);
         if (superIds == null || superIds.size() == 0) {
             throw new TouchException("-1", "superIds必填");
@@ -473,23 +472,54 @@ public class CrmLeadsService {
         return customerSeaDao.executeUpdateSQL(sql.toString(), p.toArray());
     }
 
+    private int singleDistributionClue1(CustomerSeaSearch param, int operate, JSONArray assignedList) throws TouchException {
+        String[] split = param.getCustType().split(",");
+        // 根据指定条件删除线索
+        StringBuffer stb = new StringBuffer();
+        for (String custType : split) {
+            stb.append("'");
+            stb.append(custType);
+            stb.append("',");
+        }
+        stb.deleteCharAt(stb.length() - 1);
+        StringBuffer sql = new StringBuffer();
+        sql.append("select id from " + ConstantsUtil.SEA_TABLE_PREFIX + param.getSeaId() + " custG where custG.super_data ->> '$.SYS014' in ( " + stb + ")");
+        List<String> list = new ArrayList<>();
+        crmLeadsDao.sqlQuery(sql.toString()).stream().forEach(map -> {
+            list.add(map.get("id").toString());
+        });
+        param.setSuperIds(list);
+        return singleDistributionClue(param.getSeaId(), param.getUserIds().get(0), param.getSuperIds());
+    }
+
+    /**
+     * 领取到线索私海
+     * @param seaId
+     * @param userId
+     * @param superIds
+     * @return
+     */
     private int transferToPrivateSea(String seaId, String userId, List<String> superIds) {
         //添加到线索私海数据
         StringBuilder sql = new StringBuilder()
                 .append("SELECT * FROM  ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(seaId).append(" WHERE id IN (")
                 .append(SqlAppendUtil.sqlAppendWhereIn(superIds)).append(" ) ");
         List<Map<String, Object>> maps = customerSeaDao.sqlQuery(sql.toString());
+        int i = 0;
         for (Map<String, Object> m : maps) {
+            JSONObject superData = JSON.parseObject(String.valueOf(m.get("super_data")));
             LkCrmLeadsEntity crmLeads = BeanUtil.mapToBean(m, LkCrmLeadsEntity.class, true);
-            crmLeads.setBatchId(String.valueOf(m.get("id")));
+            crmLeads.setLeadsName(superData.getString("SYS014") + (i++));
+            // 查询公海线索的标记信息
             List<Map<String, Object>> fieldList = crmAdminFieldvDao.queryCustomField(String.valueOf(m.get("id")));
             JSONArray jsonArray = new JSONArray();
-            for (Map<String, Object> field: fieldList) {
+            for (Map<String, Object> field : fieldList) {
                 jsonArray.add(BeanUtil.mapToBean(field, LkCrmAdminFieldvEntity.class, true));
             }
 
+            String batchId = IdUtil.simpleUUID();
+            crmLeads.setBatchId(batchId);
             crmLeads.setCustId(BaseUtil.getUser().getCustId());
-            String batchId = StrUtil.isNotEmpty(crmLeads.getBatchId()) ? crmLeads.getBatchId() : IdUtil.simpleUUID();
             crmRecordService.updateRecord(jsonArray, batchId);
             adminFieldService.save(jsonArray, batchId);
             crmLeads.setCreateTime(DateUtil.date().toTimestamp());
