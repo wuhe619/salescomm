@@ -75,6 +75,23 @@ public class LkCrmLeadsDao extends SimpleHibernateDao<LkCrmLeadsEntity, Integer>
         List param = new ArrayList();
         param.add(id);
         return sqlQuery(conditions.toString(), param.toArray());
+    }
 
+    public Page pageLeadsList(int pageNum, int pageSize, String leadsName, String telephone, String mobile) {
+        StringBuffer conditions = new StringBuffer("select leads_id,leads_name,owner_user_name from leadsview where 1=1 ");
+        List param = new ArrayList();
+        if (StringUtil.isNotEmpty(leadsName)) {
+            param.add(leadsName);
+            conditions.append("and leads_name like CONCAT('%',?,'%')");
+        }
+        if (StringUtil.isNotEmpty(telephone)) {
+            param.add(telephone);
+            conditions.append(" and telephone = ? ");
+        }
+        if (StringUtil.isNotEmpty(mobile)) {
+            param.add(mobile);
+            conditions.append("and mobile = ?");
+        }
+        return sqlPageQuery(conditions.toString(), pageNum, pageSize, param.toArray());
     }
 }

@@ -545,6 +545,9 @@ public class AdminSceneService {
                 conditions.append(" and (number like '%").append(search).append("%')");
             }
         }
+
+        conditions.append(" and cust_id= ? ");
+
         String camelField = basePageRequest.getJsonObject().getString("sortField");
         String sortField = StrUtil.toUnderlineCase(camelField);
         String orderNum = basePageRequest.getJsonObject().getString("order");
@@ -575,7 +578,7 @@ public class AdminSceneService {
         conditions.insert(0, " from " + viewName);
         conditions.append(" order by ").append(viewName).append(".").append(sortField).append(" ").append(orderNum);
         if (StrUtil.isNotEmpty(basePageRequest.getJsonObject().getString("excel"))) {
-            return R.ok().put("data", crmAdminSceneDao.sqlQuery("select * " + conditions.toString()));
+            return R.ok().put("data", crmAdminSceneDao.sqlQuery("select * " + conditions.toString(), BaseUtil.getUser().getCustId()));
         }
         if (2 == type || 8 == type) {
             Integer configType = crmAdminSceneDao.queryForInt("select status from lkcrm_admin_config where name = 'customerPoolSetting'");
@@ -585,20 +588,20 @@ public class AdminSceneService {
                         "    ) as pool_day," +
                         "    (select count(*) from lkcrm_crm_business as a where a.customer_id = customerview.customer_id) as business_count";
 
-                return R.ok().put("data", crmAdminSceneDao.sqlPageQuery(sql + conditions.toString(), basePageRequest.getPage(), basePageRequest.getLimit()));
+                return R.ok().put("data", crmAdminSceneDao.sqlPageQuery(sql + conditions.toString(), basePageRequest.getPage(), basePageRequest.getLimit(), BaseUtil.getUser().getCustId()));
             } else {
-                return R.ok().put("data", crmAdminSceneDao.sqlPageQuery("select *,(select count(*) from lkcrm_crm_business as a where a.customer_id = " + viewName + ".customer_id) as business_count " + conditions.toString(), basePageRequest.getPage(), basePageRequest.getLimit()));
+                return R.ok().put("data", crmAdminSceneDao.sqlPageQuery("select *,(select count(*) from lkcrm_crm_business as a where a.customer_id = " + viewName + ".customer_id) as business_count " + conditions.toString(), basePageRequest.getPage(), basePageRequest.getLimit(), BaseUtil.getUser().getCustId()));
             }
 
         } else if (6 == type) {
-            Record totalMoney = JavaBeanUtil.mapToRecord(crmAdminSceneDao.sqlQuery("select SUM(money) as contractMoney,GROUP_CONCAT(contract_id) as contractIds " + conditions.toString()).get(0));
-            Page page = crmAdminSceneDao.sqlPageQuery("select *,IFNULL((select SUM(a.money) from lkcrm_crm_receivables as a where a.contract_id = contractview.contract_id),0) as receivedMoney" + conditions.toString(), basePageRequest.getPage(), basePageRequest.getLimit());
+            Record totalMoney = JavaBeanUtil.mapToRecord(crmAdminSceneDao.sqlQuery("select SUM(money) as contractMoney,GROUP_CONCAT(contract_id) as contractIds " + conditions.toString(), BaseUtil.getUser().getCustId()).get(0));
+            Page page = crmAdminSceneDao.sqlPageQuery("select *,IFNULL((select SUM(a.money) from lkcrm_crm_receivables as a where a.contract_id = contractview.contract_id),0) as receivedMoney" + conditions.toString(), basePageRequest.getPage(), basePageRequest.getLimit(), BaseUtil.getUser().getCustId());
 
             String receivedMoney = crmAdminSceneDao.queryForObject("select SUM(money) from lkcrm_crm_receivables where receivables_id in (" + totalMoney.getStr("contractIds") + ")");
             JSONObject jsonObject = JSONObject.parseObject(Json.getJson().toJson(page), JSONObject.class);
             return R.ok().put("data", jsonObject.fluentPut("money", new JSONObject().fluentPut("contractMoney", totalMoney.getStr("contractMoney") != null ? totalMoney.getStr("contractMoney") : "0").fluentPut("receivedMoney", receivedMoney != null ? receivedMoney : "0")));
         }
-        com.bdaim.common.dto.Page recordPage = crmAdminSceneDao.sqlPageQuery("select *" + conditions.toString(), basePageRequest.getPage(), basePageRequest.getLimit());
+        com.bdaim.common.dto.Page recordPage = crmAdminSceneDao.sqlPageQuery("select *" + conditions.toString(), basePageRequest.getPage(), basePageRequest.getLimit(), BaseUtil.getUser().getCustId());
         if (type == 5) {
             recordPage.getData().forEach(record -> {
                 Map map = (Map) record;
@@ -612,7 +615,10 @@ public class AdminSceneService {
             });
             setBusinessStatus(recordPage.getData());
         }
-        return R.ok().put("data", recordPage);
+        com.jfinal.plugin.activerecord.Page finalPage = new com.jfinal.plugin.activerecord.Page();
+        finalPage.setList(recordPage.getData());
+        finalPage.setTotalRow(recordPage.getTotal());
+        return R.ok().put("data", finalPage);
     }
 
     public void setBusinessStatus(List<Record> list) {

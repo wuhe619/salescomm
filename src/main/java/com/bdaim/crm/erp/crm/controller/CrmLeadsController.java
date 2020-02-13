@@ -3,10 +3,13 @@ package com.bdaim.crm.erp.crm.controller;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.poi.excel.ExcelUtil;
 import cn.hutool.poi.excel.ExcelWriter;
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.annotation.CacheAnnotation;
 import com.bdaim.common.controller.util.ResponseCommon;
+import com.bdaim.common.controller.util.ResponseJson;
+import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.crm.common.annotation.LoginFormCookie;
 import com.bdaim.crm.common.annotation.NotNullValidate;
@@ -22,7 +25,11 @@ import com.bdaim.crm.utils.AuthUtil;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
 import com.bdaim.customersea.dto.CustomSeaTouchInfoDTO;
+import com.bdaim.customersea.dto.CustomerSeaSearch;
+import com.bdaim.customersea.service.CustomerSeaService;
+import com.bdaim.util.IDHelper;
 import com.bdaim.util.MD5Util;
+import com.bdaim.util.StringUtil;
 import com.jfinal.aop.Before;
 import com.jfinal.core.Controller;
 import com.jfinal.core.paragetter.Para;
@@ -62,6 +69,9 @@ public class CrmLeadsController extends Controller {
 
     @Resource
     private AdminSceneService adminSceneService;
+
+    @Resource
+    private CustomerSeaService seaService;
 
     /**
      * 公海内线索分页
@@ -152,6 +162,162 @@ public class CrmLeadsController extends Controller {
         basePageRequest.setData(crmLeads);
         return (R.ok().put("data", crmLeadsService.getRecord(basePageRequest)));
     }
+
+    /**
+     * 公海线索状态修改
+     *
+     * @param jsonObject
+     * @return
+     */
+    @RequestMapping(value = "/cluesea/updateClueStatus", method = RequestMethod.POST)
+    public ResponseJson updateClueStatus(@RequestBody JSONObject jsonObject) {
+        ResponseJson responseJson = new ResponseJson();
+        CustomerSeaSearch param = JSON.parseObject(jsonObject.toJSONString(), CustomerSeaSearch.class);
+        if (StringUtil.isEmpty(param.getSeaId())) {
+            responseJson.setData("参数异常");
+            responseJson.setCode(-1);
+            return responseJson;
+        }
+        int operate = jsonObject.getIntValue("operate");
+        int data = 0;
+        try {
+            param.setUserId(BaseUtil.getUser().getId());
+            param.setUserType(BaseUtil.getUser().getUserType());
+            param.setUserGroupRole(BaseUtil.getUser().getUserGroupRole());
+            param.setUserGroupId(BaseUtil.getUser().getUserGroupId());
+            param.setCustId(BaseUtil.getUser().getCustId());
+            data = seaService.updateClueStatus(param, operate);
+            responseJson.setCode(200);
+        } catch (Exception e) {
+            LOG.error("公海线索状态修改异常,", e);
+            responseJson.setCode(-1);
+        }
+        responseJson.setData(data);
+        return responseJson;
+    }
+
+    /**
+     * 线索分配
+     *
+     * @param jsonObject
+     * @return
+     */
+    @RequestMapping(value = "/cluesea/distributionClue", method = RequestMethod.POST)
+    public ResponseJson distributionClue(@RequestBody JSONObject jsonObject) {
+        ResponseJson responseJson = new ResponseJson();
+        Integer operate = jsonObject.getInteger("operate");
+        if (operate == null) {
+            responseJson.setData("operate参数必填");
+            responseJson.setCode(-1);
+            return responseJson;
+        }
+        CustomerSeaSearch param = JSON.parseObject(jsonObject.toJSONString(), CustomerSeaSearch.class);
+        if (StringUtil.isEmpty(param.getSeaId())) {
+            responseJson.setData("seaId参数必填");
+            responseJson.setCode(-1);
+        }
+        if (param.getUserIds() == null || param.getUserIds().size() == 0) {
+            responseJson.setData("userIds参数必填");
+            responseJson.setCode(-1);
+        }
+        // 员工和组长领取线索处理
+        if ("2".equals(BaseUtil.getUser().getUserType())) {
+            List<String> userIds = new ArrayList<>();
+            userIds.add(String.valueOf(BaseUtil.getUser().getId()));
+            param.setUserIds(userIds);
+        }
+        // 快速分配时用户和数量数组
+        JSONArray assignedList = jsonObject.getJSONArray("assignedlist");
+        int data = 0;
+        try {
+            param.setUserId(BaseUtil.getUser().getId());
+            param.setUserType(BaseUtil.getUser().getUserType());
+            param.setUserGroupRole(BaseUtil.getUser().getUserGroupRole());
+            param.setUserGroupId(BaseUtil.getUser().getUserGroupId());
+            param.setCustId(BaseUtil.getUser().getCustId());
+            // 同步操作
+            synchronized (this) {
+                data = crmLeadsService.distributionClue(param, operate, assignedList);
+            }
+            responseJson.setCode(200);
+        } catch (TouchException e) {
+            responseJson.setCode(-1);
+            responseJson.setMessage(e.getErrMsg());
+            LOG.error("线索分配异常,", e);
+        }
+        responseJson.setData(data);
+        return responseJson;
+    }
+
+    /**
+     * 查询公海下坐席可领取线索量
+     *
+     * @param param
+     * @return
+     */
+    @RequestMapping(value = "/selectUserGetQuantity", method = RequestMethod.POST)
+    @CacheAnnotation
+    public ResponseJson selectUserGetQuantity(@RequestBody CustomerSeaSearch param) {
+        ResponseJson responseJson = new ResponseJson();
+        long data = 0;
+        try {
+            param.setUserId(BaseUtil.getUser().getId());
+            data = seaService.getUserReceivableQuantity(param.getSeaId(), String.valueOf(BaseUtil.getUser().getId()));
+            responseJson.setCode(200);
+        } catch (Exception e) {
+            responseJson.setCode(0);
+            responseJson.setMessage(e.getMessage());
+            LOG.error("查询公海下坐席可领取线索量异常,", e);
+        }
+        responseJson.setData(data);
+        return responseJson;
+    }
+
+    @RequestMapping(value = "/updateClueSignData", method = RequestMethod.POST)
+    public ResponseCommon updateClueSignData(@RequestBody JSONObject jsonO) {
+        ResponseCommon responseJson = new ResponseCommon();
+        String customerId = BaseUtil.getUser().getCustId();
+        Long userId = BaseUtil.getUser().getId();
+        String remark = jsonO.getString("remark");
+        String superId = jsonO.getString("superId");
+        String touchId = jsonO.getString("touchId");
+        String seaId = jsonO.getString("seaId");
+        try {
+            // 更新通话记录表的备注
+            if (StringUtil.isNotEmpty(touchId)) {
+               //marketResourceService.updateVoiceLogV3(touchId, remark);
+            }
+            JSONArray labelIdArray = jsonO.getJSONArray("labelIds");
+            Map<String, Object> superData = new HashMap<>();
+            // 处理自建属性
+            if (labelIdArray != null || labelIdArray.size() != 0) {
+                for (int i = 0; i < labelIdArray.size(); i++) {
+                    superData.put(labelIdArray.getJSONObject(i).getString("labelId"), labelIdArray.getJSONObject(i).getString("optionValue"));
+                }
+            }
+            String voiceInfoId = jsonO.getString("voice_info_id");
+            if (voiceInfoId == null || "".equals(voiceInfoId)) {
+                voiceInfoId = IDHelper.getID().toString();
+            }
+            CustomSeaTouchInfoDTO dto = new CustomSeaTouchInfoDTO(voiceInfoId, customerId, String.valueOf(userId), jsonO.getString("cust_group_id"), superId,
+                    jsonO.getString("super_name"), jsonO.getString("super_age"), jsonO.getString("super_sex"), jsonO.getString("super_telphone"),
+                    jsonO.getString("super_phone"), jsonO.getString("super_address_province_city"), jsonO.getString("super_address_street"),
+                    seaId, superData, jsonO.getString("qq"), jsonO.getString("email"), jsonO.getString("profession"), jsonO.getString("weChat"),
+                    jsonO.getString("followStatus"), jsonO.getString("invalidReason"), jsonO.getString("company"));
+            // 保存标记信息
+            seaService.updateClueSignData(dto);
+            responseJson.setCode(200);
+            responseJson.setMessage("更新成功");
+        } catch (Exception e) {
+            LOG.error("更新个人信息失败,", e);
+            responseJson.setCode(-1);
+            responseJson.setMessage("更新失败");
+        }
+        return responseJson;
+    }
+
+
+
 
     /**
      * @author wyq

@@ -27,6 +27,7 @@ import com.bdaim.customer.entity.CustomerUser;
 import com.bdaim.customersea.dao.CustomerSeaDao;
 import com.bdaim.customersea.dto.CustomSeaTouchInfoDTO;
 import com.bdaim.customersea.dto.CustomerSeaESDTO;
+import com.bdaim.customersea.dto.CustomerSeaSearch;
 import com.bdaim.customersea.entity.CustomerSea;
 import com.bdaim.customersea.entity.CustomerSeaProperty;
 import com.bdaim.customgroup.dao.CustomGroupDao;
@@ -47,6 +48,9 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import javax.transaction.Transactional;
 import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -321,6 +325,484 @@ public class CrmLeadsService {
     }
 
 
+
+    /**
+     * 线索分配
+     *
+     * @param param
+     * @param operate
+     * @param assignedList
+     * @return
+     * @throws TouchException
+     */
+    public int distributionClue(CustomerSeaSearch param, int operate, JSONArray assignedList) throws TouchException {
+        // 单一负责人分配线索|手动领取所选
+        if (1 == operate) {
+            return singleDistributionClue(param.getSeaId(), param.getUserIds().get(0), param.getSuperIds());
+        } else if (2 == operate) {
+            // 坐席根据检索条件批量领取线索
+            return batchReceiveClue(param, param.getUserIds().get(0));
+        } else if (3 == operate) {
+            //根据检索条件批量给多人快速分配线索
+            return batchDistributionClue(param, assignedList);
+        } else if (4 == operate) {
+            //坐席指定数量领取线索
+            return getReceiveClueByNumber(param.getSeaId(), param.getUserIds().get(0), param.getGetClueNumber());
+        }
+        return 0;
+    }
+
+
+    /**
+     * 线索领取方式 1-手动 2-系统自动
+     *
+     * @param seaId
+     * @return
+     */
+    private int getCustomerSeaClueGetMode(String seaId) {
+        CustomerSeaProperty cp = customerSeaDao.getProperty(seaId, "clueGetMode");
+        if (cp == null || StringUtil.isEmpty(cp.getPropertyValue())) {
+            return 0;
+        }
+        return NumberConvertUtil.parseInt(cp.getPropertyValue());
+    }
+
+    /**
+     * 线索领取限制 1-无限制 2-限制数量
+     *
+     * @param seaId
+     * @return
+     */
+    private int getCustomerSeaGetRestrict(String seaId) {
+        CustomerSeaProperty cp = customerSeaDao.getProperty(seaId, "clueGetRestrict");
+        if (cp == null || StringUtil.isEmpty(cp.getPropertyValue())) {
+            return 0;
+        }
+        return NumberConvertUtil.parseInt(cp.getPropertyValue());
+    }
+
+    /**
+     * 获取用户指定公海当天可领取线索数量
+     *
+     * @param seaId
+     * @return -1 无限制领取 大于0标识可领取数量
+     */
+    public long getUserReceivableQuantity(String seaId, String userId) throws TouchException {
+        int getMode = getCustomerSeaClueGetMode(seaId);
+        int getRestrict = getCustomerSeaGetRestrict(seaId);
+        // 手动领取
+        if (getMode == 1) {
+            //限制数量
+            if (getRestrict == 2) {
+                CustomerSeaProperty cp = customerSeaDao.getProperty(seaId, "clueGetRestrictValue");
+                if (cp == null || StringUtil.isEmpty(cp.getPropertyValue())) {
+                    return 0L;
+                }
+                long clueGetRestrictValue = NumberConvertUtil.parseLong(cp.getPropertyValue());
+
+                LocalDateTime min = LocalDateTime.of(LocalDate.now(), LocalTime.MIN);
+                LocalDateTime max = LocalDateTime.of(LocalDate.now(), LocalTime.MAX);
+                StringBuilder sql = new StringBuilder();
+                // 查询转交记录表公海下当天用户已经领取的线索数量
+                sql.append(" SELECT COUNT(0) count FROM ").append(ConstantsUtil.CUSTOMER_OPER_LOG_TABLE_PREFIX).append(" WHERE event_type = 5 AND user_id = ? AND customer_sea_id = ? AND create_time BETWEEN ? AND ?");
+                List<Map<String, Object>> list = customerSeaDao.sqlQuery(sql.toString(), userId, seaId, DatetimeUtils.DATE_TIME_FORMATTER.format(min), DatetimeUtils.DATE_TIME_FORMATTER.format(max));
+                long value = clueGetRestrictValue - NumberConvertUtil.parseLong(list.get(0).get("count"));
+                if (value < 0) {
+                    LOG.warn("公海:[" + seaId + "],用户:[" + userId + "]可领取量:[" + value + "]小于0");
+                    value = 0;
+                }
+                return value;
+            } else if (getRestrict == 1) {
+                // 标识可无限制领取
+                return -1;
+            }
+        } else {
+            throw new TouchException("-1", "当前公海非手动领取模式");
+        }
+        return 0;
+    }
+
+    /**
+     * 单一负责人分配线索
+     *
+     * @param seaId
+     * @param userId
+     * @param superIds
+     * @return
+     * @throws TouchException
+     */
+    private int singleDistributionClue(String seaId, String userId, List<String> superIds) throws
+            TouchException {
+        LOG.info("分配的userId是：" + userId);
+        if (superIds == null || superIds.size() == 0) {
+            throw new TouchException("-1", "superIds必填");
+        }
+        long quantity = getUserReceivableQuantity(seaId, userId);
+        List<String> tempList = new ArrayList<>();
+        boolean limit = false;
+        if (quantity == 0) {
+            throw new TouchException("-1", "当天领取线索已达上限");
+        } else {
+            tempList.addAll(superIds);
+            if (quantity < superIds.size()) {
+                limit = true;
+            }
+        }
+        StringBuilder logSql = new StringBuilder()
+                .append("INSERT INTO ").append(ConstantsUtil.CUSTOMER_OPER_LOG_TABLE_PREFIX).append(" (`user_id`, `list_id`, `customer_sea_id`, `customer_group_id`, `event_type`,  `create_time`) ")
+                .append(" SELECT ").append(userId).append(" ,id,").append(seaId).append(",batch_id,").append(5).append(",'").append(new Timestamp(System.currentTimeMillis())).append("'")
+                .append(" FROM ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(seaId).append(" WHERE status = 1 AND id IN (").append(SqlAppendUtil.sqlAppendWhereIn(tempList)).append(")");
+        StringBuilder sql = new StringBuilder()
+                .append("UPDATE ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(seaId)
+                //.append(" SET status = 0, user_id = ?, user_get_time = ? WHERE status = 1 AND id IN (").append(SqlAppendUtil.sqlAppendWhereIn(tempList)).append(")");
+                .append(" SET status = 0, user_id = ?, user_get_time = ? WHERE id IN (").append(SqlAppendUtil.sqlAppendWhereIn(tempList)).append(")");
+        List<Object> p = new ArrayList<>();
+        if (limit && quantity >= 0) {
+            p.add(quantity);
+            sql.append(" LIMIT ? ");
+            logSql.append(" LIMIT ? ");
+        }
+        // 保存转交记录
+        customerSeaDao.executeUpdateSQL(logSql.toString(), p.toArray());
+        return customerSeaDao.executeUpdateSQL(sql.toString(), userId, new Timestamp(System.currentTimeMillis()), p.toArray());
+    }
+
+    /**
+     * 根据检索条件批量给多人快速分配线索
+     *
+     * @param param
+     * @param assignedList
+     * @return
+     */
+    private int batchDistributionClue(CustomerSeaSearch param, JSONArray assignedList) throws TouchException {
+        StringBuilder sql = new StringBuilder()
+                .append("UPDATE ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(param.getSeaId())
+                .append(" custG SET custG.status = 0, user_id = ?, user_get_time = ?  WHERE custG.status = 1 ");
+        StringBuilder appSql = new StringBuilder();
+        List<Object> p = new ArrayList<>();
+        if ("2".equals(param.getUserType())) {
+            p.add(param.getUserId());
+            appSql.append(" AND custG.user_id = ? ");
+        }
+        if (StringUtil.isNotEmpty(param.getSuperId())) {
+            p.add(param.getSuperId());
+            appSql.append(" and custG.id = ? ");
+        }
+        if (StringUtil.isNotEmpty(param.getSuperName())) {
+            p.add("%" + param.getSuperName() + "%");
+            appSql.append(" and custG.super_name LIKE ? ");
+        }
+        if (StringUtil.isNotEmpty(param.getSuperPhone())) {
+            p.add(param.getSuperPhone());
+            appSql.append(" and custG.super_phone = ? ");
+        }
+        if (StringUtil.isNotEmpty(param.getSuperTelphone())) {
+            p.add(param.getSuperTelphone());
+            appSql.append(" and custG.super_telphone = ? ");
+        }
+        if (StringUtil.isNotEmpty(param.getLastUserName())) {
+            p.add(param.getCustId());
+            p.add("%" + param.getLastUserName() + "%");
+            appSql.append(" and custG.pre_user_id IN(SELECT id from t_customer_user WHERE cust_id = ? AND realname LIKE ? ) ");
+        }
+        if (param.getDataSource() != null) {
+            p.add(param.getDataSource());
+            appSql.append(" and custG.data_source = ? ");
+        }
+        if (StringUtil.isNotEmpty(param.getBatchId())) {
+            p.add(param.getBatchId());
+            appSql.append(" and custG.batch_id =? ");
+        }
+        if (StringUtil.isNotEmpty(param.getAddStartTime()) && StringUtil.isNotEmpty(param.getAddEndTime())) {
+            p.add(param.getAddStartTime());
+            p.add(param.getAddEndTime());
+            appSql.append(" and custG.create_time BETWEEN ? AND ? ");
+        } else if (StringUtil.isNotEmpty(param.getAddStartTime())) {
+            p.add(param.getAddStartTime());
+            appSql.append(" and custG.create_time >= ? ");
+        } else if (StringUtil.isNotEmpty(param.getAddEndTime())) {
+            p.add(param.getAddEndTime());
+            appSql.append(" and custG.create_time <= ? ");
+        }
+
+        if (StringUtil.isNotEmpty(param.getCallStartTime()) && StringUtil.isNotEmpty(param.getCallEndTime())) {
+            p.add(param.getCallStartTime());
+            p.add(param.getCallEndTime());
+            appSql.append(" and custG.last_call_time BETWEEN ? AND ? ");
+        } else if (StringUtil.isNotEmpty(param.getCallStartTime())) {
+            appSql.append(" and custG.last_call_time >= ?");
+            p.add(param.getCallStartTime());
+        } else if (StringUtil.isNotEmpty(param.getCallEndTime())) {
+            appSql.append(" and custG.last_call_time <= ?");
+            p.add(param.getCallEndTime());
+        }
+
+        if (StringUtil.isNotEmpty(param.getUserGetStartTime()) && StringUtil.isNotEmpty(param.getUserGetEndTime())) {
+            p.add(param.getUserGetStartTime());
+            p.add(param.getUserGetEndTime());
+            appSql.append(" and custG.user_get_time BETWEEN ? AND ? ");
+        } else if (StringUtil.isNotEmpty(param.getUserGetStartTime())) {
+            p.add(param.getUserGetStartTime());
+            appSql.append(" and custG.user_get_time >= ? ");
+        } else if (StringUtil.isNotEmpty(param.getUserGetEndTime())) {
+            p.add(param.getUserGetEndTime());
+            appSql.append(" and custG.user_get_time <= ? ");
+        }
+
+        if (StringUtil.isNotEmpty(param.getLastMarkStartTime()) && StringUtil.isNotEmpty(param.getLastMarkEndTime())) {
+            p.add(param.getLastMarkStartTime());
+            p.add(param.getLastMarkEndTime());
+            appSql.append(" and custG.last_mark_time BETWEEN ? AND ? ");
+        } else if (StringUtil.isNotEmpty(param.getLastMarkStartTime())) {
+            p.add(param.getLastMarkStartTime());
+            appSql.append(" and custG.last_mark_time >= ?");
+        } else if (StringUtil.isNotEmpty(param.getLastMarkEndTime())) {
+            p.add(param.getLastMarkEndTime());
+            appSql.append(" and custG.last_mark_time <=? ");
+        }
+
+        if (StringUtil.isNotEmpty(param.getLastCallResult())) {
+            p.add(param.getLastCallResult());
+            appSql.append(" and custG.last_call_status = ? ");
+        }
+        if (StringUtil.isNotEmpty(param.getIntentLevel())) {
+            p.add(param.getIntentLevel());
+            appSql.append(" and custG.intent_level = ?  ");
+        }
+        if (param.getCalledDuration() != null) {
+            if (param.getCalledDuration() == 1) {
+                appSql.append(" AND custG.last_called_duration<=3");
+            } else if (param.getCalledDuration() == 2) {
+                appSql.append(" AND custG.last_called_duration>3 AND custG.last_called_duration<=6");
+            } else if (param.getCalledDuration() == 3) {
+                appSql.append(" AND custG.last_called_duration>6 AND custG.last_called_duration<=12");
+            } else if (param.getCalledDuration() == 4) {
+                appSql.append(" AND custG.last_called_duration>12 AND custG.last_called_duration<=30");
+            } else if (param.getCalledDuration() == 5) {
+                appSql.append(" AND custG.last_called_duration>30 AND custG.last_called_duration<=60");
+            } else if (param.getCalledDuration() == 6) {
+                appSql.append(" AND custG.last_called_duration>60");
+            }
+        }
+        if (param.getCallCount() != null) {
+            p.add(param.getCallCount());
+            appSql.append(" and custG.call_count = ? ");
+        }
+        if (param.getCallSuccessCount() != null) {
+            p.add(param.getCallSuccessCount());
+            appSql.append(" and custG.call_success_count = ? ");
+        }
+        appSql.append(" LIMIT ? ");
+        int count = 0;
+        // 处理多个负责人拆分多个线索分配
+        long quantity = 0, number = 0;
+        String userId;
+        Timestamp time = new Timestamp(System.currentTimeMillis());
+        StringBuilder logSql = new StringBuilder()
+                .append("INSERT INTO ").append(ConstantsUtil.CUSTOMER_OPER_LOG_TABLE_PREFIX).append(" (`user_id`, `list_id`, `customer_sea_id`, `customer_group_id`, `event_type`,  `create_time`) ")
+                .append(" SELECT ? ,id,").append(param.getSeaId()).append(",batch_id,").append(5).append(",'").append(new Timestamp(System.currentTimeMillis())).append("'")
+                .append(" FROM ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(param.getSeaId()).append(" custG WHERE status = 1 ");
+        for (int i = 0; i < assignedList.size(); i++) {
+            userId = assignedList.getJSONObject(i).getString("userId");
+            number = assignedList.getJSONObject(i).getInteger("number");
+            try {
+                quantity = getUserReceivableQuantity(param.getSeaId(), userId);
+            } catch (TouchException e) {
+                LOG.error("批量快速分配线索异常,fromUserId:" + userId + ",number:" + number, e);
+            }
+            if (quantity != -1) {
+                //-1表示可无限制领取
+                if (quantity == 0) {
+                    LOG.warn("fromUserId:[" + userId + "],number:[" + number + "]当天领取线索已达上限,quantity:" + quantity);
+                    continue;
+                } else if (quantity < number) {
+                    LOG.warn("fromUserId:[" + userId + "],number:[" + number + "]可分配数量不足");
+                    continue;
+                }
+            }
+            customerSeaDao.executeUpdateSQL(logSql.toString() + appSql.toString(), userId, number, p.toArray());
+            count += customerSeaDao.executeUpdateSQL(sql.toString() + appSql.toString(), userId, time, number, p.toArray());
+        }
+        return count;
+    }
+
+    /**
+     * 坐席根据检索条件批量领取线索
+     *
+     * @param param
+     * @param userId
+     * @return
+     */
+    private int batchReceiveClue(CustomerSeaSearch param, String userId) throws TouchException {
+        StringBuilder logSql = new StringBuilder()
+                .append("INSERT INTO ").append(ConstantsUtil.CUSTOMER_OPER_LOG_TABLE_PREFIX).append(" (`user_id`, `list_id`, `customer_sea_id`, `customer_group_id`, `event_type`,  `create_time`) ")
+                .append(" SELECT ").append(userId).append(" ,id,").append(param.getSeaId()).append(",batch_id,").append(5).append(",'").append(new Timestamp(System.currentTimeMillis())).append("'")
+                .append(" FROM ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(param.getSeaId()).append(" custG WHERE status = 1 ");
+        StringBuilder sql = new StringBuilder()
+                .append("UPDATE ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(param.getSeaId())
+                .append(" custG SET custG.status = 0, user_id = ?, user_get_time = ?  WHERE custG.status = 1 ");
+        StringBuilder appSql = new StringBuilder();
+        List<Object> p = new ArrayList<>();
+        if ("2".equals(param.getUserType())) {
+            p.add(param.getUserId());
+            appSql.append(" AND custG.user_id = ? ");
+        }
+        if (StringUtil.isNotEmpty(param.getSuperId())) {
+            p.add(param.getSuperId());
+            appSql.append(" and custG.id = ? ");
+        }
+        if (StringUtil.isNotEmpty(param.getSuperName())) {
+            p.add("%" + param.getSuperName() + "%");
+            appSql.append(" and custG.super_name LIKE ? ");
+        }
+        if (StringUtil.isNotEmpty(param.getSuperPhone())) {
+            p.add(param.getSuperPhone());
+            appSql.append(" and custG.super_phone = ? ");
+        }
+        if (StringUtil.isNotEmpty(param.getSuperTelphone())) {
+            p.add(param.getSuperTelphone());
+            appSql.append(" and custG.super_telphone = ? ");
+        }
+        if (StringUtil.isNotEmpty(param.getLastUserName())) {
+            p.add(param.getCustId());
+            p.add("%" + param.getLastUserName() + "%");
+            appSql.append(" and custG.pre_user_id IN(SELECT id from t_customer_user WHERE cust_id = ? AND realname LIKE ? ) ");
+        }
+        if (param.getDataSource() != null) {
+            p.add(param.getDataSource());
+            appSql.append(" and custG.data_source = ? ");
+        }
+        if (StringUtil.isNotEmpty(param.getBatchId())) {
+            p.add(param.getBatchId());
+            appSql.append(" and custG.batch_id =? ");
+        }
+        if (StringUtil.isNotEmpty(param.getAddStartTime()) && StringUtil.isNotEmpty(param.getAddEndTime())) {
+            p.add(param.getAddStartTime());
+            p.add(param.getAddEndTime());
+            appSql.append(" and custG.create_time BETWEEN ? AND ? ");
+        } else if (StringUtil.isNotEmpty(param.getAddStartTime())) {
+            p.add(param.getAddStartTime());
+            appSql.append(" and custG.create_time >= ? ");
+        } else if (StringUtil.isNotEmpty(param.getAddEndTime())) {
+            p.add(param.getAddEndTime());
+            appSql.append(" and custG.create_time <= ? ");
+        }
+
+        if (StringUtil.isNotEmpty(param.getCallStartTime()) && StringUtil.isNotEmpty(param.getCallEndTime())) {
+            p.add(param.getCallStartTime());
+            p.add(param.getCallEndTime());
+            appSql.append(" and custG.last_call_time BETWEEN ? AND ? ");
+        } else if (StringUtil.isNotEmpty(param.getCallStartTime())) {
+            appSql.append(" and custG.last_call_time >= ?");
+            p.add(param.getCallStartTime());
+        } else if (StringUtil.isNotEmpty(param.getCallEndTime())) {
+            appSql.append(" and custG.last_call_time <= ?");
+            p.add(param.getCallEndTime());
+        }
+
+        if (StringUtil.isNotEmpty(param.getUserGetStartTime()) && StringUtil.isNotEmpty(param.getUserGetEndTime())) {
+            p.add(param.getUserGetStartTime());
+            p.add(param.getUserGetEndTime());
+            appSql.append(" and custG.user_get_time BETWEEN ? AND ? ");
+        } else if (StringUtil.isNotEmpty(param.getUserGetStartTime())) {
+            p.add(param.getUserGetStartTime());
+            appSql.append(" and custG.user_get_time >= ? ");
+        } else if (StringUtil.isNotEmpty(param.getUserGetEndTime())) {
+            p.add(param.getUserGetEndTime());
+            appSql.append(" and custG.user_get_time <= ? ");
+        }
+
+        if (StringUtil.isNotEmpty(param.getLastMarkStartTime()) && StringUtil.isNotEmpty(param.getLastMarkEndTime())) {
+            p.add(param.getLastMarkStartTime());
+            p.add(param.getLastMarkEndTime());
+            appSql.append(" and custG.last_mark_time BETWEEN ? AND ? ");
+        } else if (StringUtil.isNotEmpty(param.getLastMarkStartTime())) {
+            p.add(param.getLastMarkStartTime());
+            appSql.append(" and custG.last_mark_time >= ?");
+        } else if (StringUtil.isNotEmpty(param.getLastMarkEndTime())) {
+            p.add(param.getLastMarkEndTime());
+            appSql.append(" and custG.last_mark_time <=? ");
+        }
+
+        if (StringUtil.isNotEmpty(param.getLastCallResult())) {
+            p.add(param.getLastCallResult());
+            appSql.append(" and custG.last_call_status = ? ");
+        }
+        if (StringUtil.isNotEmpty(param.getIntentLevel())) {
+            p.add(param.getIntentLevel());
+            appSql.append(" and custG.intent_level = ?  ");
+        }
+        if (param.getCalledDuration() != null) {
+            if (param.getCalledDuration() == 1) {
+                appSql.append(" AND custG.last_called_duration<=3");
+            } else if (param.getCalledDuration() == 2) {
+                appSql.append(" AND custG.last_called_duration>3 AND custG.last_called_duration<=6");
+            } else if (param.getCalledDuration() == 3) {
+                appSql.append(" AND custG.last_called_duration>6 AND custG.last_called_duration<=12");
+            } else if (param.getCalledDuration() == 4) {
+                appSql.append(" AND custG.last_called_duration>12 AND custG.last_called_duration<=30");
+            } else if (param.getCalledDuration() == 5) {
+                appSql.append(" AND custG.last_called_duration>30 AND custG.last_called_duration<=60");
+            } else if (param.getCalledDuration() == 6) {
+                appSql.append(" AND custG.last_called_duration>60");
+            }
+        }
+        if (param.getCallCount() != null) {
+            p.add(param.getCallCount());
+            appSql.append(" and custG.call_count = ? ");
+        }
+        if (param.getCallSuccessCount() != null) {
+            p.add(param.getCallSuccessCount());
+            appSql.append(" and custG.call_success_count = ? ");
+        }
+        int count = 0;
+        long quantity = getUserReceivableQuantity(param.getSeaId(), userId);
+        if (quantity == 0) {
+            throw new TouchException("-1", "当天领取线索已达上限");
+        } else if (quantity > 0) {
+            appSql.append(" LIMIT ").append(quantity);
+        }
+        sql.append(appSql);
+        logSql.append(appSql);
+        // 保存转交记录
+        customerSeaDao.executeUpdateSQL(logSql.toString(), p.toArray());
+        count = customerSeaDao.executeUpdateSQL(sql.toString(), userId, new Timestamp(System.currentTimeMillis()), p.toArray());
+        return count;
+    }
+
+    /**
+     * 坐席指定数量领取线索
+     *
+     * @param seaId
+     * @param userId
+     * @param number
+     * @return
+     * @throws TouchException
+     */
+    private int getReceiveClueByNumber(String seaId, String userId, int number) throws TouchException {
+        StringBuilder sql = new StringBuilder()
+                .append("UPDATE ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(seaId)
+                .append(" custG SET custG.status = 0, user_id = ?, user_get_time = ?  WHERE custG.status = 1 ");
+        sql.append(" LIMIT ? ");
+        int count = 0;
+        long quantity = getUserReceivableQuantity(seaId, userId);
+        LOG.info("可领取数量是：" + quantity);
+        if (quantity == 0) {
+            throw new TouchException("-1", "当天领取线索已达上限");
+        }
+        // 保存转交记录
+        StringBuilder logSql = new StringBuilder()
+                .append("INSERT INTO ").append(ConstantsUtil.CUSTOMER_OPER_LOG_TABLE_PREFIX).append("( `user_id`, `list_id`, `customer_sea_id`, `customer_group_id`, `event_type`,  `create_time`) ")
+                .append(" SELECT ? ,id,").append(seaId).append(",batch_id,").append(5).append(",'").append(new Timestamp(System.currentTimeMillis())).append("'")
+                .append(" FROM ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(seaId).append(" custG WHERE status = 1 ");
+        logSql.append(" LIMIT ? ");
+        customerSeaDao.executeUpdateSQL(logSql.toString(), userId, number);
+        count = customerSeaDao.executeUpdateSQL(sql.toString(), userId, new Timestamp(System.currentTimeMillis()), number);
+
+        return count;
+    }
+
+
     /**
      * @author wyq
      * 分页条件查询线索
@@ -345,6 +827,7 @@ public class CrmLeadsService {
     @Before(Tx.class)
     public R addOrUpdate(JSONObject object) {
         LkCrmLeadsEntity crmLeads = object.getObject("entity", LkCrmLeadsEntity.class);
+        crmLeads.setCustId(BaseUtil.getUser().getCustId());
         String batchId = StrUtil.isNotEmpty(crmLeads.getBatchId()) ? crmLeads.getBatchId() : IdUtil.simpleUUID();
         crmRecordService.updateRecord(object.getJSONArray("field"), batchId);
         adminFieldService.save(object.getJSONArray("field"), batchId);
@@ -358,9 +841,9 @@ public class CrmLeadsService {
         } else {
             crmLeads.setCreateTime(new Timestamp(System.currentTimeMillis()));
             crmLeads.setUpdateTime(new Timestamp(System.currentTimeMillis()));
-            crmLeads.setCreateUserId(BaseUtil.getUser().getUserId().intValue());
+            crmLeads.setCreateUserId(BaseUtil.getUser().getUserId());
             if (crmLeads.getOwnerUserId() == null) {
-                crmLeads.setOwnerUserId(BaseUtil.getUser().getUserId().intValue());
+                crmLeads.setOwnerUserId(BaseUtil.getUser().getUserId());
             }
             crmLeads.setBatchId(batchId);
             //boolean save = crmLeads.save();
