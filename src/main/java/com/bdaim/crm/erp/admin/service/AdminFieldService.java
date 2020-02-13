@@ -651,7 +651,9 @@ public class AdminFieldService {
         }
         if (null != adminFieldSort.getHideIds()) {
             String[] hideIdsArr = adminFieldSort.getHideIds().split(",");
-            crmAdminFieldDao.executeUpdateSQL("  update lkcrm_admin_field_sort set is_hide = 1,sort = 0 where id in (?) and label = ? and user_id = ?", Arrays.asList(hideIdsArr), adminFieldSort.getLabel(), userId);
+            for (int i = 0; i < hideIdsArr.length; i++) {
+                crmAdminFieldDao.executeUpdateSQL("  update lkcrm_admin_field_sort set is_hide = 1,sort = 0 where id =? and label = ? and user_id = ?", hideIdsArr[i], adminFieldSort.getLabel(), userId);
+            }
             //Db.update(Db.getSqlPara("admin.field.isHide", Kv.by("ids", hideIdsArr).set("label", adminFieldSort.getLabel()).set("userId", userId)));
         }
         CaffeineCache.ME.remove("field", "listHead:" + adminFieldSort.getLabel() + userId);
