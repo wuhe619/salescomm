@@ -52,14 +52,19 @@ public class BatchTestTaskXService implements BusiService {
     }
 
     @Override
-    public void updateInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) {
-        String sql = " select content from "+HMetaDataDef.getTable(busiType, "")+" where id=?";
+    public void updateInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) throws Exception {
+        String responseStr = info.getString("response");
+        if(StringUtil.isEmpty(responseStr)){
+            throw new Exception("参数不正确");
+        }
+        log.info("回写详情["+id+"]状态:"+responseStr);
+        String sql = " select content from "+ HMetaDataDef.getTable(busiType, "")+" where id=?";
         Map<String,Object> detailObj = jdbcTemplate.queryForMap(sql,id);
         if(detailObj != null) {
             String contentStr = (String) detailObj.get("content");
             if (StringUtil.isNotEmpty(contentStr)) {
                 JSONObject json = JSON.parseObject(contentStr);
-                json.put("response",info.getString("response"));
+                json.put("response",responseStr);
                 info = json;
                 info.put("ext_2",1);
                 String batchid = info.getString("batchId");
@@ -71,13 +76,27 @@ public class BatchTestTaskXService implements BusiService {
                         JSONObject json2 = JSON.parseObject(batchObjStr);
                         Integer successNum = json2.getInteger("successNum");
                         Integer totalNum = json2.getInteger("totalNum");
+                        Integer failedNum = json2.getInteger("failedNum");
+                        JSONObject resonse = JSON.parseObject("responseStr");
+
                         if(successNum == null){
                             successNum = 0;
                         }
-                        successNum += 1;
-                        json2.put("successNum",successNum);
+
+                        if(failedNum==null){
+                            failedNum=0;
+                        }
+
+                        if(resonse.containsKey("cost") && resonse.getInteger("cost")==1){
+                            successNum += 1;
+                            json2.put("successNum",successNum);
+                        }else{
+                            failedNum += 1;
+                            json2.put("failedNum",failedNum);
+                        }
+
                         String updateSql = "update "+HMetaDataDef.getTable(BusiTypeEnum.BATCH_TEST_TASK_Z.getType(), "") +" set content=? where id=?";
-                        if(successNum == totalNum){
+                        if((successNum + failedNum) == totalNum){
                             json2.put("status",1);
                             updateSql = "update "+HMetaDataDef.getTable(BusiTypeEnum.BATCH_TEST_TASK_Z.getType(), "") +" set content=?,ext_date1=now() where id=?";
                         }

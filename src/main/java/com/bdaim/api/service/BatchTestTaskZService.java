@@ -117,6 +117,7 @@ public class BatchTestTaskZService implements BusiService {
             info.put("ext_1",taskId);
             //核验成功数量
             info.put("successNum", 0);
+            info.put("failedNum",0);
             info.put("create_date",System.currentTimeMillis());
 
         }
