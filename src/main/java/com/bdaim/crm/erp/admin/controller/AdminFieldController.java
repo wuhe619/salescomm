@@ -140,7 +140,7 @@ public class AdminFieldController extends Controller {
                 recordList = adminFieldService.queryAddField(Integer.valueOf(label));
             }
         }
-        return (R.ok().put("data", recordList));
+        return (R.ok().put("data", JavaBeanUtil.recordToMap(recordList)));
     }
 
     /**
