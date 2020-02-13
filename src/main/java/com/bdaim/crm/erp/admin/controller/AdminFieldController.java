@@ -1,6 +1,8 @@
 package com.bdaim.crm.erp.admin.controller;
 
+import cn.hutool.core.util.NumberUtil;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.common.exception.TouchException;
 import com.bdaim.crm.common.annotation.NotNullValidate;
 import com.bdaim.crm.common.annotation.Permissions;
 import com.bdaim.crm.common.annotation.RequestBody;
@@ -12,6 +14,7 @@ import com.bdaim.crm.erp.crm.common.CrmEnum;
 import com.bdaim.crm.erp.crm.service.*;
 import com.bdaim.crm.erp.oa.service.OaExamineCategoryService;
 import com.bdaim.crm.utils.AuthUtil;
+import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
 import com.bdaim.util.JavaBeanUtil;
 import com.jfinal.core.Controller;
@@ -73,7 +76,7 @@ public class AdminFieldController extends Controller {
     @RequestMapping(value = "/save", method = RequestMethod.POST)
     public R save(@RequestBody JSONObject jsonObject) {
         //String str = getRawData();
-       // JSONObject jsonObject = JSON.parseObject(str);
+        // JSONObject jsonObject = JSON.parseObject(str);
         return (adminFieldService.save(jsonObject));
     }
 
@@ -82,7 +85,7 @@ public class AdminFieldController extends Controller {
      */
     @RequestMapping(value = "/queryFields", method = RequestMethod.POST)
     public R queryFields() {
-        return(adminFieldService.queryFields());
+        return (adminFieldService.queryFields());
     }
 
     /**
@@ -92,7 +95,7 @@ public class AdminFieldController extends Controller {
     @RequestMapping(value = "/list", method = RequestMethod.POST)
     public R list(@RequestBody JSONObject object) {
         //JSONObject object = JSONObject.parseObject(getRawData());
-        return(R.ok().put("data", adminFieldService.list(object.getString("label"), object.getString("categoryId"))));
+        return (R.ok().put("data", adminFieldService.list(object.getString("label"), object.getString("categoryId"))));
     }
 
     /**
@@ -146,27 +149,35 @@ public class AdminFieldController extends Controller {
      * @author wyq
      */
     @RequestMapping(value = "/information", method = RequestMethod.POST)
-    public R information(@Para("types") Integer types, @Para("id") Integer id) {
+    public R information(@Para("types") Integer types, @Para("id") String id, Long seaId) {
         List<Record> recordList;
         boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.getSign(types)), id);
         if (auth) {
-            return(R.noAuth());
+            return (R.noAuth());
             //return;
         }
         if (1 == types) {
-            recordList = crmLeadsService.information(id);
+            recordList = crmLeadsService.information(NumberUtil.parseInt(id));
         } else if (2 == types) {
-            recordList = crmCustomerService.information(id);
+            recordList = crmCustomerService.information(NumberUtil.parseInt(id));
         } else if (3 == types) {
-            recordList = crmContactsService.information(id);
+            recordList = crmContactsService.information(NumberUtil.parseInt(id));
         } else if (4 == types) {
-            recordList = crmProductService.information(id);
+            recordList = crmProductService.information(NumberUtil.parseInt(id));
         } else if (5 == types) {
-            recordList = crmBusinessService.information(id);
+            recordList = crmBusinessService.information(NumberUtil.parseInt(id));
         } else if (6 == types) {
-            recordList = crmContractService.information(id);
+            recordList = crmContractService.information(NumberUtil.parseInt(id));
         } else if (7 == types) {
-            recordList = crmReceivablesService.information(id);
+            recordList = crmReceivablesService.information(NumberUtil.parseInt(id));
+        } else if (8 == types) {
+            // 线索公海
+            try {
+                recordList = crmLeadsService.information(seaId, BaseUtil.getUser().getCustId(), id);
+            } catch (TouchException e) {
+                recordList = null;
+                return (R.error(e.getErrMsg()));
+            }
         } else {
             recordList = new ArrayList<>();
         }
@@ -221,7 +232,7 @@ public class AdminFieldController extends Controller {
             }
         });
         ///resp.setData(JavaBeanUtil.recordToMap(records));
-        return(R.ok().put("data",JavaBeanUtil.recordToMap(records)));
+        return (R.ok().put("data", JavaBeanUtil.recordToMap(records)));
     }
 
     /**
@@ -268,6 +279,6 @@ public class AdminFieldController extends Controller {
             default:
                 data = R.error("type不符合要求");
         }
-        return(data);
+        return (data);
     }
 }

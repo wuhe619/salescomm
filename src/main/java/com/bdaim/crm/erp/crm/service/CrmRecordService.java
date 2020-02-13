@@ -12,7 +12,6 @@ import com.bdaim.crm.dao.LkCrmAdminRecordDao;
 import com.bdaim.crm.entity.LkCrmActionRecordEntity;
 import com.bdaim.crm.entity.LkCrmAdminConfigEntity;
 import com.bdaim.crm.entity.LkCrmAdminFieldvEntity;
-import com.bdaim.crm.erp.admin.entity.AdminFieldv;
 import com.bdaim.crm.erp.crm.common.CrmEnum;
 import com.bdaim.crm.erp.crm.entity.*;
 import com.bdaim.crm.utils.BaseUtil;
@@ -148,12 +147,12 @@ public class CrmRecordService<T> {
         textList.clear();
     }
 
-    public void addRecord(Integer actionId, String crmTypes) {
+    public void addRecord(Object actionId, String crmTypes) {
         LkCrmActionRecordEntity crmActionRecord = new LkCrmActionRecordEntity();
         crmActionRecord.setCreateUserId(BaseUtil.getUser().getUserId().intValue());
         crmActionRecord.setCreateTime(new Timestamp(System.currentTimeMillis()));
         crmActionRecord.setTypes(crmTypes);
-        crmActionRecord.setActionId(actionId.toString());
+        crmActionRecord.setActionId(String.valueOf(actionId));
         ArrayList<String> strings = new ArrayList<>();
         strings.add("新建了" + CrmEnum.getName(crmTypes));
         crmActionRecord.setContent(JSON.toJSONString(strings));
@@ -167,7 +166,7 @@ public class CrmRecordService<T> {
         List<LkCrmAdminFieldvEntity> oldFieldList = crmAdminFieldvDao.find("from LkCrmAdminFieldvEntity where batchId = ?", batchId);
         oldFieldList.forEach(oldField -> {
             jsonArray.forEach(json -> {
-                AdminFieldv newField = TypeUtils.castToJavaBean(json, AdminFieldv.class);
+                LkCrmAdminFieldvEntity newField = TypeUtils.castToJavaBean(json, LkCrmAdminFieldvEntity.class);
                 String oldFieldValue;
                 String newFieldValue;
                 if (oldField.getValue() == null) {

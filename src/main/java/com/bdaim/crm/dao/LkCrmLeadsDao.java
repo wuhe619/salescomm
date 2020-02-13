@@ -5,6 +5,8 @@ import com.bdaim.common.dto.Page;
 import com.bdaim.crm.entity.LkCrmLeadsEntity;
 import com.bdaim.util.SqlAppendUtil;
 import com.bdaim.util.StringUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -13,6 +15,8 @@ import java.util.Map;
 
 @Component
 public class LkCrmLeadsDao extends SimpleHibernateDao<LkCrmLeadsEntity, Integer> {
+
+    public static final Logger LOG = LoggerFactory.getLogger(LkCrmLeadsDao.class);
 
     public List getRecord(String leadsId) {
         String sql = "select a.record_id,b.img as user_img,b.realname,a.create_time,a.content,a.category,a.next_time,a.batch_id " +
@@ -56,7 +60,11 @@ public class LkCrmLeadsDao extends SimpleHibernateDao<LkCrmLeadsEntity, Integer>
     }
 
     public Page pageCluePublicSea(int pageNum, int pageSize, long seaId, String search) {
-        StringBuffer conditions = new StringBuffer("SELECT a.*,z.* FROM t_customer_sea_list_" + seaId + " AS a LEFT JOIN fieldleadsview AS z ON a.id = z.field_batch_id WHERE 1=1 ");
+        StringBuffer conditions = new StringBuffer("SELECT custG.id, custG.user_id, custG.status, custG.call_count callCount, DATE_FORMAT(custG.last_call_time,'%Y-%m-%d %H:%i:%s') lastCallTime, custG.intent_level intentLevel,");
+        conditions.append(" custG.super_name, custG.super_age, custG.super_sex, custG.super_telphone, custG.super_phone, custG.super_address_province_city, custG.super_address_street, custG.super_data, ");
+        conditions.append(" custG.batch_id, custG.last_call_status, custG.data_source, DATE_FORMAT(custG.user_get_time,'%Y-%m-%d %H:%i:%s') user_get_time, DATE_FORMAT(custG.create_time,'%Y-%m-%d %H:%i:%s') create_time, custG.pre_user_id, custG.last_called_duration, DATE_FORMAT(custG.last_mark_time,'%Y-%m-%d %H:%i:%s') last_mark_time, ");
+        conditions.append(" custG.call_success_count, custG.call_fail_count, custG.sms_success_count ,custG.super_data ->> '$.SYS014 ' as custType, ");
+        conditions.append(" z.* FROM t_customer_sea_list_" + seaId + " AS custG LEFT JOIN fieldleadsview AS z ON custG.id = z.field_batch_id WHERE custG.status = 1 ");
         List param = new ArrayList();
         if (StringUtil.isNotEmpty(search)) {
             param.add(search);
@@ -65,6 +73,8 @@ public class LkCrmLeadsDao extends SimpleHibernateDao<LkCrmLeadsEntity, Integer>
             param.add(search);
             conditions.append(" and (super_name like '%?%' or super_telphone like '%?%' or super_phone like '%?%' or super_data like '%?%')");
         }
+        conditions.append(" GROUP By custType ORDER BY custG.create_time DESC ");
+        LOG.info("公海sql:" + conditions);
         return sqlPageQuery(conditions.toString(), pageNum, pageSize, param.toArray());
 
     }
@@ -75,6 +85,23 @@ public class LkCrmLeadsDao extends SimpleHibernateDao<LkCrmLeadsEntity, Integer>
         List param = new ArrayList();
         param.add(id);
         return sqlQuery(conditions.toString(), param.toArray());
+    }
 
+    public Page pageLeadsList(int pageNum, int pageSize, String leadsName, String telephone, String mobile) {
+        StringBuffer conditions = new StringBuffer("select leads_id,leads_name,owner_user_name from leadsview where 1=1 ");
+        List param = new ArrayList();
+        if (StringUtil.isNotEmpty(leadsName)) {
+            param.add(leadsName);
+            conditions.append("and leads_name like CONCAT('%',?,'%')");
+        }
+        if (StringUtil.isNotEmpty(telephone)) {
+            param.add(telephone);
+            conditions.append(" and telephone = ? ");
+        }
+        if (StringUtil.isNotEmpty(mobile)) {
+            param.add(mobile);
+            conditions.append("and mobile = ?");
+        }
+        return sqlPageQuery(conditions.toString(), pageNum, pageSize, param.toArray());
     }
 }
