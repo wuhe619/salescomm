@@ -57,6 +57,10 @@ public class BatchTestTaskZService implements BusiService {
         String apiId = info.getString("api_id");
         String taskId = info.getString("task_id");
         Integer number = info.getInteger("number");
+        if(StringUtil.isEmpty(batchName) || StringUtil.isEmpty(apiId) || StringUtil.isEmpty(taskId) || number == null){
+            log.error("参数不全");
+            throw new Exception("参数不全");
+        }
 
         //查询task表中的数据并对usedNum进行重新计算
         String sql = " select content from "+HMetaDataDef.getTable(BusiTypeEnum.BATCH_TEST_TASK.getType(), "")+" where id=?";
