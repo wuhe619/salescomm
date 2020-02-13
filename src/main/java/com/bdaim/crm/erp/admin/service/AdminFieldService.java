@@ -631,7 +631,7 @@ public class AdminFieldService {
         }
         List noHideList = crmAdminFieldDao.queryFieldConfig(0, adminFieldSort.getLabel(), userId);
         List hideList = crmAdminFieldDao.queryFieldConfig(1, adminFieldSort.getLabel(), userId);
-        return R.ok().put("data", Kv.by("value", noHideList).set("hide_value", hideList));
+        return R.ok().put("data", Kv.by("value", noHideList).set("hide_value", hideList).set("hideValue", hideList));
     }
 
     /**
