@@ -21,10 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /***
  * api批量测试详情
@@ -94,7 +91,7 @@ public class BatchTestTaskXService implements BusiService {
                             failedNum += 1;
                             json2.put("failedNum",failedNum);
                         }
-
+                        info.put("ext_date1",new Date());
                         String updateSql = "update "+HMetaDataDef.getTable(BusiTypeEnum.BATCH_TEST_TASK_Z.getType(), "") +" set content=? where id=?";
                         if((successNum + failedNum) == totalNum){
                             json2.put("status",1);
