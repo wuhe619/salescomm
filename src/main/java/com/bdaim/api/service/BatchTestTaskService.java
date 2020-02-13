@@ -68,7 +68,7 @@ public class BatchTestTaskService implements BusiService {
         }
         ApiEntity apiEntity = apiDao.getApi(info.getIntValue("apiId"));
         if(apiEntity==null || apiEntity.getStatus()!=2){
-            throw new Exception("API不存在或未发布");
+            throw new Exception("API["+apiId+"]不存在或未发布");
         }else{
             info.put("apiName",apiEntity.getName());
             info.put("ext_4",apiEntity.getName());
