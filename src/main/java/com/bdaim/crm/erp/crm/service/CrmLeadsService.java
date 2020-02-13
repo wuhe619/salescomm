@@ -494,6 +494,7 @@ public class CrmLeadsService {
 
     /**
      * 领取到线索私海
+     *
      * @param seaId
      * @param userId
      * @param superIds
@@ -848,25 +849,33 @@ public class CrmLeadsService {
      * @throws TouchException
      */
     private int getReceiveClueByNumber(String seaId, String userId, int number) throws TouchException {
-        StringBuilder sql = new StringBuilder()
-                .append("UPDATE ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(seaId)
-                .append(" custG SET custG.status = 0, user_id = ?, user_get_time = ?  WHERE custG.status = 1 ");
-        sql.append(" LIMIT ? ");
-        int count = 0;
         long quantity = getUserReceivableQuantity(seaId, userId);
-        LOG.info("可领取数量是：" + quantity);
+        LOG.info("可领取数量是:" + quantity);
         if (quantity == 0) {
             throw new TouchException("-1", "当天领取线索已达上限");
         }
-        // 保存转交记录
+        int count = 0;
+        StringBuilder update = new StringBuilder()
+                .append("UPDATE ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(seaId)
+                .append(" custG SET custG.status = 0, user_id = ?, user_get_time = ?  WHERE custG.id =? ");
+        Timestamp now = new Timestamp(System.currentTimeMillis());
         StringBuilder logSql = new StringBuilder()
-                .append("INSERT INTO ").append(ConstantsUtil.CUSTOMER_OPER_LOG_TABLE_PREFIX).append("( `user_id`, `list_id`, `customer_sea_id`, `customer_group_id`, `event_type`,  `create_time`) ")
-                .append(" SELECT ? ,id,").append(seaId).append(",batch_id,").append(5).append(",'").append(new Timestamp(System.currentTimeMillis())).append("'")
-                .append(" FROM ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(seaId).append(" custG WHERE status = 1 ");
-        logSql.append(" LIMIT ? ");
-        customerSeaDao.executeUpdateSQL(logSql.toString(), userId, number);
-        count = customerSeaDao.executeUpdateSQL(sql.toString(), userId, new Timestamp(System.currentTimeMillis()), number);
+                .append("INSERT INTO ").append(ConstantsUtil.CUSTOMER_OPER_LOG_TABLE_PREFIX)
+                .append("( `user_id`, `list_id`, `customer_sea_id`, `customer_group_id`, `event_type`, `create_time`) VALUES (?,?,?,?,?,?)");
 
+        StringBuilder select = new StringBuilder("SELECT * FROM ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(seaId)
+                .append(" custG WHERE custG.status = 1 GROUP BY custG.super_data ->> '$.SYS014' LIMIT ? for update; ");
+        List<Map<String, Object>> maps = customerSeaDao.sqlQuery(select.toString(), number);
+        List<String> superIds = new ArrayList<>();
+        for (Map<String, Object> m : maps) {
+            // 更改线索状态
+            count = customerSeaDao.executeUpdateSQL(update.toString(), userId, now, m.get("id"));
+            // 保存转交记录
+            customerSeaDao.executeUpdateSQL(logSql.toString(), userId, m.get("id"), seaId, m.get("batch_id"), 5, now);
+            superIds.add(String.valueOf(m.get("id")));
+        }
+
+        transferToPrivateSea(seaId, userId, superIds);
         return count;
     }
 
