@@ -5,11 +5,12 @@ import com.alibaba.fastjson.JSONObject;
 import com.bdaim.AppConfig;
 import com.bdaim.auth.LoginUser;
 import com.bdaim.common.OperLog.OperlogUtils;
-import com.bdaim.common.auth.Token;
 import com.bdaim.common.auth.service.TokenCacheService;
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.exception.AccessDeniedException;
 import com.bdaim.common.exception.ParamException;
+import com.bdaim.crm.common.config.json.ErpJsonFactory;
+import com.bdaim.crm.utils.R;
 import com.bdaim.label.service.CommonService;
 import com.bdaim.log.entity.OperLog;
 import com.bdaim.log.entity.UserOperLog;
@@ -18,14 +19,11 @@ import com.bdaim.rbac.entity.User;
 import com.bdaim.rbac.service.UserService;
 import com.bdaim.util.CalendarUtil;
 import com.bdaim.util.StringUtil;
-
-import com.jfinal.render.JsonRender;
-import com.jfinal.render.Render;
+import com.jfinal.json.Json;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.propertyeditors.CustomDateEditor;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.WebDataBinder;
@@ -62,12 +60,12 @@ public class BasicAction {
      * 获取当前登录用户的USER
      */
     protected LoginUser opUser() {
-    	String authorization = request.getHeader("Authorization");
-    	if(authorization!=null && !"".equals(authorization)) {
-    		LoginUser u = tokenCacheService.getToken(authorization, LoginUser.class);
-    		if(u!=null)
-    			return u;
-    	}
+        String authorization = request.getHeader("Authorization");
+        if (authorization != null && !"".equals(authorization)) {
+            LoginUser u = tokenCacheService.getToken(authorization, LoginUser.class);
+            if (u != null)
+                return u;
+        }
         return new LoginUser(0L, "", "");
     }
 
@@ -176,6 +174,7 @@ public class BasicAction {
 
     /**
      * 是否为后台用户
+     *
      * @return true-是 false-否
      */
     protected boolean isBackendUser() {
@@ -279,9 +278,9 @@ public class BasicAction {
                     entity.setOper_uid(user.getId());
                     entity.setOper_uname(user.getUserName());
                 }
-                entity.setOper_object_id((int)objectid);
+                entity.setOper_object_id((int) objectid);
                 entity.setOper_page_name(pageName);
-                entity.setOper_object_id((int)objectid);
+                entity.setOper_object_id((int) objectid);
                 entity.setOper_source_ip(request.getRemoteAddr());
                 entity.setOper_source_port(request.getRemotePort());
                 entity.setOper_target_ip(request.getLocalAddr());
@@ -325,13 +324,13 @@ public class BasicAction {
 
     public static String getIpAddress(HttpServletRequest request) {
         String ip = request.getHeader("x-forwarded-for");
-        if(ip ==null || ip.length() ==0 ||"unknown".equalsIgnoreCase(ip)) {
+        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
             ip = request.getHeader("Proxy-Client-IP");
         }
-        if(ip ==null || ip.length() ==0 ||"unknown".equalsIgnoreCase(ip)) {
+        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
             ip = request.getHeader("WL-Proxy-Client-IP");
         }
-        if(ip ==null || ip.length() ==0 ||"unknown".equalsIgnoreCase(ip)) {
+        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
             ip = request.getRemoteAddr();
         }
         return ip;
@@ -382,10 +381,16 @@ public class BasicAction {
             LOG.error("保存用户行为记录异常:", ex);
         }
     }
+
     public Object renderJson(Object object) {
         JSONObject json = new JSONObject();
         json.put("data", object);
         return json;
+    }
+
+    public R renderCrmJson(Object object) {
+        Json json = ErpJsonFactory.me().getJson();
+        return (R.ok().put("data", JSON.parse(json.toJson(object))));
     }
 
 

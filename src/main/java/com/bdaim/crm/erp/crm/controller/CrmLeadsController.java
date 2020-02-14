@@ -108,7 +108,7 @@ public class CrmLeadsController extends Controller {
             JSONArray labelIdArray = jsonO.getJSONArray("labelIds");
             Map<String, Object> superData = new HashMap<>(16);
             // 处理自建属性
-            if (labelIdArray != null || labelIdArray.size() != 0) {
+            if (labelIdArray != null && labelIdArray.size() > 0) {
                 for (int i = 0; i < labelIdArray.size(); i++) {
                     if ("company".equals(labelIdArray.getJSONObject(i).getString("labelId"))) {
                         String optionValue = labelIdArray.getJSONObject(i).getString("optionValue");
@@ -281,7 +281,8 @@ public class CrmLeadsController extends Controller {
     @CacheAnnotation
     public ResponseJson deleteFiled(@RequestBody CustomerSeaSearch param) {
         ResponseJson responseJson = new ResponseJson();
-        int data = crmAdminFieldDao.executeUpdateSQL("DELETE from lkcrm_admin_field_sort where label = 11");
+        //int data = crmAdminFieldDao.executeUpdateSQL("DELETE from lkcrm_admin_field_sort where label = 11");
+        int data = crmAdminFieldDao.executeUpdateSQL("DELETE FROM lkcrm_admin_field WHERE field_id=131 ");
         responseJson.setData(data);
         return responseJson;
     }
