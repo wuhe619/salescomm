@@ -1,13 +1,12 @@
 package com.bdaim.crm.erp.admin.controller;
 
 import cn.hutool.core.util.NumberUtil;
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.exception.TouchException;
 import com.bdaim.crm.common.annotation.NotNullValidate;
 import com.bdaim.crm.common.annotation.Permissions;
 import com.bdaim.crm.common.annotation.RequestBody;
-import com.bdaim.crm.common.config.json.ErpJsonFactory;
 import com.bdaim.crm.entity.LkCrmAdminFieldSortEntity;
 import com.bdaim.crm.entity.LkCrmAdminFieldStyleEntity;
 import com.bdaim.crm.erp.admin.entity.AdminFieldSort;
@@ -19,9 +18,8 @@ import com.bdaim.crm.utils.AuthUtil;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
 import com.bdaim.util.JavaBeanUtil;
-import com.jfinal.core.Controller;
 import com.jfinal.core.paragetter.Para;
-import com.jfinal.json.Json;
+import com.jfinal.kit.Kv;
 import com.jfinal.plugin.activerecord.Record;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -29,17 +27,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author hmb
  */
 @RestController
 @RequestMapping("/field")
-public class AdminFieldController extends Controller {
+public class AdminFieldController extends BasicAction {
 
     @Resource
     private AdminFieldService adminFieldService;
@@ -143,8 +138,8 @@ public class AdminFieldController extends Controller {
                 recordList = adminFieldService.queryAddField(Integer.valueOf(label));
             }
         }
-        Json json = ErpJsonFactory.me().getJson();
-        return (R.ok().put("data", JSON.parse(json.toJson(recordList))));
+        //Json json = ErpJsonFactory.me().getJson();
+        return renderCrmJson(recordList);
     }
 
     /**
@@ -193,8 +188,8 @@ public class AdminFieldController extends Controller {
      * 设置字段样式
      */
     @RequestMapping(value = "/setFelidStyle", method = RequestMethod.POST)
-    public R setFelidStyle() {
-        return (adminFieldService.setFelidStyle(getKv()));
+    public R setFelidStyle(@RequestParam Map param) {
+        return (adminFieldService.setFelidStyle((Kv) param));
     }
 
     /**
