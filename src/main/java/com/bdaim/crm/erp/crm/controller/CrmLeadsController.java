@@ -86,7 +86,7 @@ public class CrmLeadsController extends Controller {
      */
     @RequestMapping(value = "/page/cluesea/{seaId}", method = RequestMethod.POST)
     public R pageClueById(@PathVariable(value = "seaId") Long seaId, @RequestBody JSONObject jsonObject) {
-        BasePageRequest<CrmLeads> basePageRequest = new BasePageRequest<>(jsonObject.getIntValue("page"),jsonObject.getIntValue("limit"));
+        BasePageRequest<CrmLeads> basePageRequest = new BasePageRequest<>(jsonObject.getIntValue("page"), jsonObject.getIntValue("limit"));
         jsonObject.fluentPut("type", 1);
         basePageRequest.setJsonObject(jsonObject);
         return crmLeadsService.pageCluePublicSea(basePageRequest, seaId, BaseUtil.getUser().getCustId());
@@ -152,8 +152,8 @@ public class CrmLeadsController extends Controller {
     @NotNullValidate(value = "leadsId", message = "线索id不能为空")
     @ResponseBody
     @RequestMapping(value = "/cluesea/queryById", method = RequestMethod.POST)
-    public R clue(Long seaId, String id) {
-        return (R.ok().put("data", crmLeadsService.queryClueById(seaId, id)));
+    public R clueSeaQueryById(@RequestBody JSONObject jsonO) {
+        return (R.ok().put("data", crmLeadsService.queryClueById(jsonO.getLong("seaId"), jsonO.getString("id"))));
     }
 
     /**
@@ -299,7 +299,7 @@ public class CrmLeadsController extends Controller {
         try {
             // 更新通话记录表的备注
             if (StringUtil.isNotEmpty(touchId)) {
-               //marketResourceService.updateVoiceLogV3(touchId, remark);
+                //marketResourceService.updateVoiceLogV3(touchId, remark);
             }
             JSONArray labelIdArray = jsonO.getJSONArray("labelIds");
             Map<String, Object> superData = new HashMap<>();
@@ -329,8 +329,6 @@ public class CrmLeadsController extends Controller {
         }
         return responseJson;
     }
-
-
 
 
     /**

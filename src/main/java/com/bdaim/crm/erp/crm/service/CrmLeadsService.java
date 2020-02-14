@@ -338,7 +338,7 @@ public class CrmLeadsService {
     public int distributionClue(CustomerSeaSearch param, int operate, JSONArray assignedList) throws TouchException {
         // 单一负责人分配线索|手动领取所选
         if (1 == operate) {
-            return singleDistributionClue1(param, operate, assignedList);
+            return singleDistributionClue(param.getSeaId(), param.getUserIds().get(0), param.getSuperIds());
         } else if (2 == operate) {
             // 坐席根据检索条件批量领取线索
             return batchReceiveClue(param, param.getUserIds().get(0));
@@ -510,7 +510,7 @@ public class CrmLeadsService {
         for (Map<String, Object> m : maps) {
             JSONObject superData = JSON.parseObject(String.valueOf(m.get("super_data")));
             LkCrmLeadsEntity crmLeads = BeanUtil.mapToBean(m, LkCrmLeadsEntity.class, true);
-            crmLeads.setLeadsName(superData.getString("SYS014") + (i++));
+            crmLeads.setLeadsName(superData.getString("SYS014") + (++i));
             // 查询公海线索的标记信息
             List<Map<String, Object>> fieldList = crmAdminFieldvDao.queryCustomField(String.valueOf(m.get("id")));
             JSONArray jsonArray = new JSONArray();
@@ -544,133 +544,28 @@ public class CrmLeadsService {
      * @return
      */
     private int batchDistributionClue(CustomerSeaSearch param, JSONArray assignedList) throws TouchException {
-        StringBuilder sql = new StringBuilder()
-                .append("UPDATE ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(param.getSeaId())
-                .append(" custG SET custG.status = 0, user_id = ?, user_get_time = ?  WHERE custG.status = 1 ");
-        StringBuilder appSql = new StringBuilder();
-        List<Object> p = new ArrayList<>();
-        if ("2".equals(param.getUserType())) {
-            p.add(param.getUserId());
-            appSql.append(" AND custG.user_id = ? ");
-        }
-        if (StringUtil.isNotEmpty(param.getSuperId())) {
-            p.add(param.getSuperId());
-            appSql.append(" and custG.id = ? ");
-        }
-        if (StringUtil.isNotEmpty(param.getSuperName())) {
-            p.add("%" + param.getSuperName() + "%");
-            appSql.append(" and custG.super_name LIKE ? ");
-        }
-        if (StringUtil.isNotEmpty(param.getSuperPhone())) {
-            p.add(param.getSuperPhone());
-            appSql.append(" and custG.super_phone = ? ");
-        }
-        if (StringUtil.isNotEmpty(param.getSuperTelphone())) {
-            p.add(param.getSuperTelphone());
-            appSql.append(" and custG.super_telphone = ? ");
-        }
-        if (StringUtil.isNotEmpty(param.getLastUserName())) {
-            p.add(param.getCustId());
-            p.add("%" + param.getLastUserName() + "%");
-            appSql.append(" and custG.pre_user_id IN(SELECT id from t_customer_user WHERE cust_id = ? AND realname LIKE ? ) ");
-        }
-        if (param.getDataSource() != null) {
-            p.add(param.getDataSource());
-            appSql.append(" and custG.data_source = ? ");
-        }
-        if (StringUtil.isNotEmpty(param.getBatchId())) {
-            p.add(param.getBatchId());
-            appSql.append(" and custG.batch_id =? ");
-        }
-        if (StringUtil.isNotEmpty(param.getAddStartTime()) && StringUtil.isNotEmpty(param.getAddEndTime())) {
-            p.add(param.getAddStartTime());
-            p.add(param.getAddEndTime());
-            appSql.append(" and custG.create_time BETWEEN ? AND ? ");
-        } else if (StringUtil.isNotEmpty(param.getAddStartTime())) {
-            p.add(param.getAddStartTime());
-            appSql.append(" and custG.create_time >= ? ");
-        } else if (StringUtil.isNotEmpty(param.getAddEndTime())) {
-            p.add(param.getAddEndTime());
-            appSql.append(" and custG.create_time <= ? ");
-        }
-
-        if (StringUtil.isNotEmpty(param.getCallStartTime()) && StringUtil.isNotEmpty(param.getCallEndTime())) {
-            p.add(param.getCallStartTime());
-            p.add(param.getCallEndTime());
-            appSql.append(" and custG.last_call_time BETWEEN ? AND ? ");
-        } else if (StringUtil.isNotEmpty(param.getCallStartTime())) {
-            appSql.append(" and custG.last_call_time >= ?");
-            p.add(param.getCallStartTime());
-        } else if (StringUtil.isNotEmpty(param.getCallEndTime())) {
-            appSql.append(" and custG.last_call_time <= ?");
-            p.add(param.getCallEndTime());
-        }
-
-        if (StringUtil.isNotEmpty(param.getUserGetStartTime()) && StringUtil.isNotEmpty(param.getUserGetEndTime())) {
-            p.add(param.getUserGetStartTime());
-            p.add(param.getUserGetEndTime());
-            appSql.append(" and custG.user_get_time BETWEEN ? AND ? ");
-        } else if (StringUtil.isNotEmpty(param.getUserGetStartTime())) {
-            p.add(param.getUserGetStartTime());
-            appSql.append(" and custG.user_get_time >= ? ");
-        } else if (StringUtil.isNotEmpty(param.getUserGetEndTime())) {
-            p.add(param.getUserGetEndTime());
-            appSql.append(" and custG.user_get_time <= ? ");
-        }
-
-        if (StringUtil.isNotEmpty(param.getLastMarkStartTime()) && StringUtil.isNotEmpty(param.getLastMarkEndTime())) {
-            p.add(param.getLastMarkStartTime());
-            p.add(param.getLastMarkEndTime());
-            appSql.append(" and custG.last_mark_time BETWEEN ? AND ? ");
-        } else if (StringUtil.isNotEmpty(param.getLastMarkStartTime())) {
-            p.add(param.getLastMarkStartTime());
-            appSql.append(" and custG.last_mark_time >= ?");
-        } else if (StringUtil.isNotEmpty(param.getLastMarkEndTime())) {
-            p.add(param.getLastMarkEndTime());
-            appSql.append(" and custG.last_mark_time <=? ");
-        }
-
-        if (StringUtil.isNotEmpty(param.getLastCallResult())) {
-            p.add(param.getLastCallResult());
-            appSql.append(" and custG.last_call_status = ? ");
-        }
-        if (StringUtil.isNotEmpty(param.getIntentLevel())) {
-            p.add(param.getIntentLevel());
-            appSql.append(" and custG.intent_level = ?  ");
-        }
-        if (param.getCalledDuration() != null) {
-            if (param.getCalledDuration() == 1) {
-                appSql.append(" AND custG.last_called_duration<=3");
-            } else if (param.getCalledDuration() == 2) {
-                appSql.append(" AND custG.last_called_duration>3 AND custG.last_called_duration<=6");
-            } else if (param.getCalledDuration() == 3) {
-                appSql.append(" AND custG.last_called_duration>6 AND custG.last_called_duration<=12");
-            } else if (param.getCalledDuration() == 4) {
-                appSql.append(" AND custG.last_called_duration>12 AND custG.last_called_duration<=30");
-            } else if (param.getCalledDuration() == 5) {
-                appSql.append(" AND custG.last_called_duration>30 AND custG.last_called_duration<=60");
-            } else if (param.getCalledDuration() == 6) {
-                appSql.append(" AND custG.last_called_duration>60");
-            }
-        }
-        if (param.getCallCount() != null) {
-            p.add(param.getCallCount());
-            appSql.append(" and custG.call_count = ? ");
-        }
-        if (param.getCallSuccessCount() != null) {
-            p.add(param.getCallSuccessCount());
-            appSql.append(" and custG.call_success_count = ? ");
-        }
-        appSql.append(" LIMIT ? ");
         int count = 0;
         // 处理多个负责人拆分多个线索分配
         long quantity = 0, number = 0;
         String userId;
-        Timestamp time = new Timestamp(System.currentTimeMillis());
+        StringBuilder update = new StringBuilder()
+                .append("UPDATE ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(param.getSeaId())
+                .append(" custG SET custG.status = 0, user_id = ?, user_get_time = ?  WHERE custG.id =? ");
+        Timestamp now = new Timestamp(System.currentTimeMillis());
         StringBuilder logSql = new StringBuilder()
-                .append("INSERT INTO ").append(ConstantsUtil.CUSTOMER_OPER_LOG_TABLE_PREFIX).append(" (`user_id`, `list_id`, `customer_sea_id`, `customer_group_id`, `event_type`,  `create_time`) ")
-                .append(" SELECT ? ,id,").append(param.getSeaId()).append(",batch_id,").append(5).append(",'").append(new Timestamp(System.currentTimeMillis())).append("'")
-                .append(" FROM ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(param.getSeaId()).append(" custG WHERE status = 1 ");
+                .append("INSERT INTO ").append(ConstantsUtil.CUSTOMER_OPER_LOG_TABLE_PREFIX)
+                .append("( `user_id`, `list_id`, `customer_sea_id`, `customer_group_id`, `event_type`, `create_time`) VALUES (?,?,?,?,?,?)");
+        StringBuilder select = new StringBuilder("SELECT * FROM ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(param.getSeaId())
+                .append(" custG WHERE custG.status = 1 ");
+        List<Object> p = new ArrayList<>();
+        if (StringUtil.isNotEmpty(param.getSearch())) {
+            p.add(param.getSearch());
+            p.add(param.getSearch());
+            p.add(param.getSearch());
+            p.add(param.getSearch());
+            select.append(" and (super_name like '%?%' or super_telphone like '%?%' or super_phone like '%?%' or super_data like '%?%')");
+        }
+        select.append(" LIMIT ? for update; ");
         for (int i = 0; i < assignedList.size(); i++) {
             userId = assignedList.getJSONObject(i).getString("userId");
             number = assignedList.getJSONObject(i).getInteger("number");
@@ -689,8 +584,16 @@ public class CrmLeadsService {
                     continue;
                 }
             }
-            customerSeaDao.executeUpdateSQL(logSql.toString() + appSql.toString(), userId, number, p.toArray());
-            count += customerSeaDao.executeUpdateSQL(sql.toString() + appSql.toString(), userId, time, number, p.toArray());
+            List<Map<String, Object>> maps = customerSeaDao.sqlQuery(select.toString(), number, p.toArray());
+            List<String> superIds = new ArrayList<>();
+            for (Map<String, Object> m : maps) {
+                // 更改线索状态
+                count += customerSeaDao.executeUpdateSQL(update.toString(), userId, now, m.get("id"));
+                // 保存转交记录
+                customerSeaDao.executeUpdateSQL(logSql.toString(), userId, m.get("id"), param.getSeaId(), m.get("batch_id"), 5, now);
+                superIds.add(String.valueOf(m.get("id")));
+            }
+            transferToPrivateSea(param.getSeaId(), userId, superIds);
         }
         return count;
     }
@@ -703,139 +606,36 @@ public class CrmLeadsService {
      * @return
      */
     private int batchReceiveClue(CustomerSeaSearch param, String userId) throws TouchException {
-        StringBuilder logSql = new StringBuilder()
-                .append("INSERT INTO ").append(ConstantsUtil.CUSTOMER_OPER_LOG_TABLE_PREFIX).append(" (`user_id`, `list_id`, `customer_sea_id`, `customer_group_id`, `event_type`,  `create_time`) ")
-                .append(" SELECT ").append(userId).append(" ,id,").append(param.getSeaId()).append(",batch_id,").append(5).append(",'").append(new Timestamp(System.currentTimeMillis())).append("'")
-                .append(" FROM ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(param.getSeaId()).append(" custG WHERE status = 1 ");
-        StringBuilder sql = new StringBuilder()
+        StringBuilder update = new StringBuilder()
                 .append("UPDATE ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(param.getSeaId())
-                .append(" custG SET custG.status = 0, user_id = ?, user_get_time = ?  WHERE custG.status = 1 ");
-        StringBuilder appSql = new StringBuilder();
+                .append(" custG SET custG.status = 0, user_id = ?, user_get_time = ?  WHERE custG.id =? ");
+        Timestamp now = new Timestamp(System.currentTimeMillis());
+        StringBuilder logSql = new StringBuilder()
+                .append("INSERT INTO ").append(ConstantsUtil.CUSTOMER_OPER_LOG_TABLE_PREFIX)
+                .append("( `user_id`, `list_id`, `customer_sea_id`, `customer_group_id`, `event_type`, `create_time`) VALUES (?,?,?,?,?,?)");
+
+        StringBuilder select = new StringBuilder("SELECT * FROM ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(param.getSeaId())
+                .append(" custG WHERE custG.status = 1  ");
         List<Object> p = new ArrayList<>();
-        if ("2".equals(param.getUserType())) {
-            p.add(param.getUserId());
-            appSql.append(" AND custG.user_id = ? ");
+        if (StringUtil.isNotEmpty(param.getSearch())) {
+            p.add(param.getSearch());
+            p.add(param.getSearch());
+            p.add(param.getSearch());
+            p.add(param.getSearch());
+            select.append(" and (super_name like '%?%' or super_telphone like '%?%' or super_phone like '%?%' or super_data like '%?%')");
         }
-        if (StringUtil.isNotEmpty(param.getSuperId())) {
-            p.add(param.getSuperId());
-            appSql.append(" and custG.id = ? ");
-        }
-        if (StringUtil.isNotEmpty(param.getSuperName())) {
-            p.add("%" + param.getSuperName() + "%");
-            appSql.append(" and custG.super_name LIKE ? ");
-        }
-        if (StringUtil.isNotEmpty(param.getSuperPhone())) {
-            p.add(param.getSuperPhone());
-            appSql.append(" and custG.super_phone = ? ");
-        }
-        if (StringUtil.isNotEmpty(param.getSuperTelphone())) {
-            p.add(param.getSuperTelphone());
-            appSql.append(" and custG.super_telphone = ? ");
-        }
-        if (StringUtil.isNotEmpty(param.getLastUserName())) {
-            p.add(param.getCustId());
-            p.add("%" + param.getLastUserName() + "%");
-            appSql.append(" and custG.pre_user_id IN(SELECT id from t_customer_user WHERE cust_id = ? AND realname LIKE ? ) ");
-        }
-        if (param.getDataSource() != null) {
-            p.add(param.getDataSource());
-            appSql.append(" and custG.data_source = ? ");
-        }
-        if (StringUtil.isNotEmpty(param.getBatchId())) {
-            p.add(param.getBatchId());
-            appSql.append(" and custG.batch_id =? ");
-        }
-        if (StringUtil.isNotEmpty(param.getAddStartTime()) && StringUtil.isNotEmpty(param.getAddEndTime())) {
-            p.add(param.getAddStartTime());
-            p.add(param.getAddEndTime());
-            appSql.append(" and custG.create_time BETWEEN ? AND ? ");
-        } else if (StringUtil.isNotEmpty(param.getAddStartTime())) {
-            p.add(param.getAddStartTime());
-            appSql.append(" and custG.create_time >= ? ");
-        } else if (StringUtil.isNotEmpty(param.getAddEndTime())) {
-            p.add(param.getAddEndTime());
-            appSql.append(" and custG.create_time <= ? ");
-        }
-
-        if (StringUtil.isNotEmpty(param.getCallStartTime()) && StringUtil.isNotEmpty(param.getCallEndTime())) {
-            p.add(param.getCallStartTime());
-            p.add(param.getCallEndTime());
-            appSql.append(" and custG.last_call_time BETWEEN ? AND ? ");
-        } else if (StringUtil.isNotEmpty(param.getCallStartTime())) {
-            appSql.append(" and custG.last_call_time >= ?");
-            p.add(param.getCallStartTime());
-        } else if (StringUtil.isNotEmpty(param.getCallEndTime())) {
-            appSql.append(" and custG.last_call_time <= ?");
-            p.add(param.getCallEndTime());
-        }
-
-        if (StringUtil.isNotEmpty(param.getUserGetStartTime()) && StringUtil.isNotEmpty(param.getUserGetEndTime())) {
-            p.add(param.getUserGetStartTime());
-            p.add(param.getUserGetEndTime());
-            appSql.append(" and custG.user_get_time BETWEEN ? AND ? ");
-        } else if (StringUtil.isNotEmpty(param.getUserGetStartTime())) {
-            p.add(param.getUserGetStartTime());
-            appSql.append(" and custG.user_get_time >= ? ");
-        } else if (StringUtil.isNotEmpty(param.getUserGetEndTime())) {
-            p.add(param.getUserGetEndTime());
-            appSql.append(" and custG.user_get_time <= ? ");
-        }
-
-        if (StringUtil.isNotEmpty(param.getLastMarkStartTime()) && StringUtil.isNotEmpty(param.getLastMarkEndTime())) {
-            p.add(param.getLastMarkStartTime());
-            p.add(param.getLastMarkEndTime());
-            appSql.append(" and custG.last_mark_time BETWEEN ? AND ? ");
-        } else if (StringUtil.isNotEmpty(param.getLastMarkStartTime())) {
-            p.add(param.getLastMarkStartTime());
-            appSql.append(" and custG.last_mark_time >= ?");
-        } else if (StringUtil.isNotEmpty(param.getLastMarkEndTime())) {
-            p.add(param.getLastMarkEndTime());
-            appSql.append(" and custG.last_mark_time <=? ");
-        }
-
-        if (StringUtil.isNotEmpty(param.getLastCallResult())) {
-            p.add(param.getLastCallResult());
-            appSql.append(" and custG.last_call_status = ? ");
-        }
-        if (StringUtil.isNotEmpty(param.getIntentLevel())) {
-            p.add(param.getIntentLevel());
-            appSql.append(" and custG.intent_level = ?  ");
-        }
-        if (param.getCalledDuration() != null) {
-            if (param.getCalledDuration() == 1) {
-                appSql.append(" AND custG.last_called_duration<=3");
-            } else if (param.getCalledDuration() == 2) {
-                appSql.append(" AND custG.last_called_duration>3 AND custG.last_called_duration<=6");
-            } else if (param.getCalledDuration() == 3) {
-                appSql.append(" AND custG.last_called_duration>6 AND custG.last_called_duration<=12");
-            } else if (param.getCalledDuration() == 4) {
-                appSql.append(" AND custG.last_called_duration>12 AND custG.last_called_duration<=30");
-            } else if (param.getCalledDuration() == 5) {
-                appSql.append(" AND custG.last_called_duration>30 AND custG.last_called_duration<=60");
-            } else if (param.getCalledDuration() == 6) {
-                appSql.append(" AND custG.last_called_duration>60");
-            }
-        }
-        if (param.getCallCount() != null) {
-            p.add(param.getCallCount());
-            appSql.append(" and custG.call_count = ? ");
-        }
-        if (param.getCallSuccessCount() != null) {
-            p.add(param.getCallSuccessCount());
-            appSql.append(" and custG.call_success_count = ? ");
-        }
+        select.append(" for update; ");
+        List<Map<String, Object>> maps = customerSeaDao.sqlQuery(select.toString(), p.toArray());
         int count = 0;
-        long quantity = getUserReceivableQuantity(param.getSeaId(), userId);
-        if (quantity == 0) {
-            throw new TouchException("-1", "当天领取线索已达上限");
-        } else if (quantity > 0) {
-            appSql.append(" LIMIT ").append(quantity);
+        List<String> superIds = new ArrayList<>();
+        for (Map<String, Object> m : maps) {
+            // 更改线索状态
+            count = customerSeaDao.executeUpdateSQL(update.toString(), userId, now, m.get("id"));
+            // 保存转交记录
+            customerSeaDao.executeUpdateSQL(logSql.toString(), userId, m.get("id"), param.getSeaId(), m.get("batch_id"), 5, now);
+            superIds.add(String.valueOf(m.get("id")));
         }
-        sql.append(appSql);
-        logSql.append(appSql);
-        // 保存转交记录
-        customerSeaDao.executeUpdateSQL(logSql.toString(), p.toArray());
-        count = customerSeaDao.executeUpdateSQL(sql.toString(), userId, new Timestamp(System.currentTimeMillis()), p.toArray());
+        transferToPrivateSea(param.getSeaId(), userId, superIds);
         return count;
     }
 
@@ -864,7 +664,7 @@ public class CrmLeadsService {
                 .append("( `user_id`, `list_id`, `customer_sea_id`, `customer_group_id`, `event_type`, `create_time`) VALUES (?,?,?,?,?,?)");
 
         StringBuilder select = new StringBuilder("SELECT * FROM ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(seaId)
-                .append(" custG WHERE custG.status = 1 GROUP BY custG.super_data ->> '$.SYS014' LIMIT ? for update; ");
+                .append(" custG WHERE custG.status = 1 LIMIT ? for update; ");
         List<Map<String, Object>> maps = customerSeaDao.sqlQuery(select.toString(), number);
         List<String> superIds = new ArrayList<>();
         for (Map<String, Object> m : maps) {
@@ -874,7 +674,6 @@ public class CrmLeadsService {
             customerSeaDao.executeUpdateSQL(logSql.toString(), userId, m.get("id"), seaId, m.get("batch_id"), 5, now);
             superIds.add(String.valueOf(m.get("id")));
         }
-
         transferToPrivateSea(seaId, userId, superIds);
         return count;
     }
