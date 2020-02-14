@@ -525,7 +525,7 @@ public class CustomerAppService {
     }
 
     public Map<String, Object> customerMonthBill(PageParam page, String customerId){
-        StringBuffer sb = new StringBuffer("select cast_id as custId,stat_time statTime,type,amount/1000 amount,certificate_pic certificatePic,actual_consumption_amount actualConsumptionAmount,op_time opTime,op_user opUser from stat_bill_month where customer_id=? and type=").append(TransactionTypeEnum.API_DEDUCTION.getType());
+        StringBuffer sb = new StringBuffer("select cust_id as custId,stat_time statTime,type,amount/1000 amount,certificate_pic certificatePic,actual_consumption_amount actualConsumptionAmount,op_time opTime,op_user opUser from stat_bill_month where customer_id=? and type=").append(TransactionTypeEnum.API_DEDUCTION.getType());
         sb.append(" order by stat_time desc ");
         List p = new ArrayList();
         p.add(customerId);
