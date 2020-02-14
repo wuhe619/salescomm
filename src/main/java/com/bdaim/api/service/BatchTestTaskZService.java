@@ -164,7 +164,7 @@ public class BatchTestTaskZService implements BusiService {
     @Override
     public String formatQuery(String busiType, String cust_id, String cust_group_id, Long cust_user_id, JSONObject params, List sqlParams) {
         sqlParams.clear();
-        StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3," +
+        StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_date1,ext_1, ext_2, ext_3," +
                 " ext_4, ext_5 from " + HMetaDataDef.getTable(busiType, "") + " where type=? ");
         sqlParams.add(busiType);
         if (!"all".equals(cust_id)){
@@ -190,9 +190,10 @@ public class BatchTestTaskZService implements BusiService {
             }else if("batch_name".equals(key)){
                 sqlstr.append("and ext_5 like ?");
                 sqlParams.add("%"+value+"%");
+            }else if("status".equals(key)) {
+                sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key + "')=?");
+                sqlParams.add(value);
             }
-            //sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key + "')=?");
-
         }
         return sqlstr.toString();
     }
