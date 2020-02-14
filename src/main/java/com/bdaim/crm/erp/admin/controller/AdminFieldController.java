@@ -1,11 +1,13 @@
 package com.bdaim.crm.erp.admin.controller;
 
 import cn.hutool.core.util.NumberUtil;
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.exception.TouchException;
 import com.bdaim.crm.common.annotation.NotNullValidate;
 import com.bdaim.crm.common.annotation.Permissions;
 import com.bdaim.crm.common.annotation.RequestBody;
+import com.bdaim.crm.common.config.json.ErpJsonFactory;
 import com.bdaim.crm.entity.LkCrmAdminFieldSortEntity;
 import com.bdaim.crm.entity.LkCrmAdminFieldStyleEntity;
 import com.bdaim.crm.erp.admin.entity.AdminFieldSort;
@@ -19,6 +21,7 @@ import com.bdaim.crm.utils.R;
 import com.bdaim.util.JavaBeanUtil;
 import com.jfinal.core.Controller;
 import com.jfinal.core.paragetter.Para;
+import com.jfinal.json.Json;
 import com.jfinal.plugin.activerecord.Record;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -140,7 +143,8 @@ public class AdminFieldController extends Controller {
                 recordList = adminFieldService.queryAddField(Integer.valueOf(label));
             }
         }
-        return (R.ok().put("data", JavaBeanUtil.recordToMap(recordList)));
+        Json json = ErpJsonFactory.me().getJson();
+        return (R.ok().put("data", JSON.parse(json.toJson(recordList))));
     }
 
     /**
