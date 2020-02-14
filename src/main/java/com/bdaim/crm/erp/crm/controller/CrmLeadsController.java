@@ -152,7 +152,7 @@ public class CrmLeadsController extends Controller {
     @NotNullValidate(value = "leadsId", message = "线索id不能为空")
     @ResponseBody
     @RequestMapping(value = "/cluesea/queryById", method = RequestMethod.POST)
-    public R clue(Long seaId, String id) {
+    public R clueSeaQueryById(Long seaId, String id) {
         return (R.ok().put("data", crmLeadsService.queryClueById(seaId, id)));
     }
 
