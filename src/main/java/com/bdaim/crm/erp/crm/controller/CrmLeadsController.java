@@ -35,7 +35,6 @@ import com.jfinal.aop.Before;
 import com.jfinal.core.Controller;
 import com.jfinal.core.paragetter.Para;
 import com.jfinal.log.Log;
-import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.tx.Tx;
 import com.jfinal.upload.UploadFile;
@@ -385,8 +384,9 @@ public class CrmLeadsController extends Controller {
      * @author wyq
      * 根据线索名称查询
      */
-    public void queryByName(@Para("name") String name) {
-        renderJson(R.ok().put("data", crmLeadsService.queryByName(name)));
+    @RequestMapping(value = "/queryByName")
+    public R queryByName(@Para("name") String name) {
+        return (R.ok().put("data", crmLeadsService.queryByName(name)));
     }
 
     /**
@@ -464,6 +464,7 @@ public class CrmLeadsController extends Controller {
      * 批量导出线索
      */
     @Permissions("crm:leads:excelexport")
+    @RequestMapping(value = "/batchExportExcel", method = RequestMethod.POST)
     public void batchExportExcel(@Para("ids") String leadsIds) throws IOException {
         List<Record> recordList = crmLeadsService.exportLeads(leadsIds);
         export(recordList);
@@ -475,6 +476,7 @@ public class CrmLeadsController extends Controller {
      * 导出全部线索
      */
     @Permissions("crm:leads:excelexport")
+    @RequestMapping(value = "/allExportExcel", method = RequestMethod.POST)
     public void allExportExcel(BasePageRequest basePageRequest) throws IOException {
         JSONObject jsonObject = basePageRequest.getJsonObject();
         jsonObject.fluentPut("excel", "yes").fluentPut("type", "1");
@@ -545,6 +547,7 @@ public class CrmLeadsController extends Controller {
      * 获取线索导入模板
      */
     @LoginFormCookie
+    @RequestMapping(value = "/downloadExcel")
     public void downloadExcel() {
         List<Record> recordList = adminFieldService.queryAddField(1);
         recordList.removeIf(record -> "file".equals(record.getStr("formType")) || "checkbox".equals(record.getStr("formType")) || "user".equals(record.getStr("formType")) || "structure".equals(record.getStr("formType")));
@@ -616,11 +619,12 @@ public class CrmLeadsController extends Controller {
     @Permissions("crm:leads:excelimport")
     @NotNullValidate(value = "ownerUserId", message = "请选择负责人")
     @Before(Tx.class)
-    public void uploadExcel(@Para("file") UploadFile file, @Para("repeatHandling") Integer repeatHandling, @Para("ownerUserId") Integer ownerUserId) {
-        Db.tx(() -> {
-            R result = crmLeadsService.uploadExcel(file, repeatHandling, ownerUserId);
-            renderJson(result);
-            return !result.get("code").equals(500);
-        });
+    @RequestMapping(value = "/uploadExcel")
+    public R uploadExcel(@Para("file") UploadFile file, @Para("repeatHandling") Integer repeatHandling, @Para("ownerUserId") Integer ownerUserId) {
+        //Db.tx(() -> {
+        R result = crmLeadsService.uploadExcel(file, repeatHandling, ownerUserId);
+        return (result);
+        //return !result.get("code").equals(500);
+        //});
     }
 }

@@ -180,7 +180,7 @@ public class AdminFieldController extends BasicAction {
         } else {
             recordList = new ArrayList<>();
         }
-        return (R.ok().put("data", recordList));
+        return renderCrmJson(recordList);
     }
 
     /**
