@@ -306,7 +306,7 @@ public class CrmLeadsService {
             throw new TouchException("线索公海不属于该客户");
         }
         StringBuffer sql = new StringBuffer(" SELECT * FROM ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(seaId)
-                .append("WHERE id = ? ");
+                .append(" WHERE id = ? ");
 
         List<Map<String, Object>> crmLeads = crmLeadsDao.sqlQuery(sql.toString(), id);
         if (crmLeads.size() == 0) {
@@ -985,7 +985,7 @@ public class CrmLeadsService {
      */
     public R uploadExcel(UploadFile file, Integer repeatHandling, Integer ownerUserId) {
         ExcelReader reader = ExcelUtil.getReader(FileUtil.file(file.getUploadPath() + "\\" + file.getFileName()));
-        AdminFieldService adminFieldService = new AdminFieldService();
+        //AdminFieldService adminFieldService = new AdminFieldService();
         Kv kv = new Kv();
         Integer errNum = 0;
         try {
