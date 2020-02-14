@@ -190,9 +190,10 @@ public class BatchTestTaskZService implements BusiService {
             }else if("batch_name".equals(key)){
                 sqlstr.append("and ext_5 like ?");
                 sqlParams.add("%"+value+"%");
+            }else if("status".equals(key)) {
+                sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key + "')=?");
+                sqlParams.add(value);
             }
-            //sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key + "')=?");
-
         }
         return sqlstr.toString();
     }
