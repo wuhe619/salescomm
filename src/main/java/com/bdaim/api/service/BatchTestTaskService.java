@@ -65,6 +65,7 @@ public class BatchTestTaskService implements BusiService {
         CustomerUser custUser = customerUserDao.selectPropertyByType(1,cust_id );
         if (custUser!=null){
             info.put("account", custUser.getAccount());
+            info.put("ext_3",custUser.getAccount());
         }
         ApiEntity apiEntity = apiDao.getApi(info.getIntValue("apiId"));
         if(apiEntity==null || apiEntity.getStatus()!=2){
@@ -123,15 +124,24 @@ public class BatchTestTaskService implements BusiService {
             if ("pageNum".equals(key) || "pageSize".equals(key) || "pid1".equals(key) || "pid2".equals(key))
                 continue;
             if ("cust_id".equals(key)) {
-                sqlstr.append(" and cust_id=?");
+                sqlstr.append(" and cust_id=? ");
                 sqlParams.add(params.get(key));
             }else if("custName".equals(key)){
+                sqlstr.append(" and ext_5 like ? ");
+                sqlParams.add("%" + params.get(key) + "%");
+            }else if("account".equals(key)){
+                sqlstr.append(" and ext_3=? ");
+                sqlParams.add(params.get(key));
+            }else if("apiName".equals(key)){
+                sqlstr.append(" and ext_4=? ");
+                sqlParams.add(params.get(key));
+            }/**else if("custName".equals(key)){
                 sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key + "')=?");
                 sqlParams.add(params.get(key));
             }else if("account".equals(key)){
                 sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key + "')=?");
                 sqlParams.add(params.get(key));
-            }
+            }*/
 
         }
         return sqlstr.toString();
