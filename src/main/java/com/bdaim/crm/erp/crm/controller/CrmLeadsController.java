@@ -37,7 +37,6 @@ import com.jfinal.core.paragetter.Para;
 import com.jfinal.log.Log;
 import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.tx.Tx;
-import com.jfinal.upload.UploadFile;
 import org.apache.poi.hssf.usermodel.*;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
@@ -45,15 +44,15 @@ import org.apache.poi.ss.util.CellRangeAddressList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
+import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 
 import javax.annotation.Resource;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @RestController
 @RequestMapping("/CrmLeads")
@@ -620,8 +619,22 @@ public class CrmLeadsController extends Controller {
     @NotNullValidate(value = "ownerUserId", message = "请选择负责人")
     @Before(Tx.class)
     @RequestMapping(value = "/uploadExcel")
-    public R uploadExcel(@Para("file") UploadFile file, @Para("repeatHandling") Integer repeatHandling, @Para("ownerUserId") Integer ownerUserId) {
+    public R uploadExcel(@Para("repeatHandling") Integer repeatHandling, @Para("ownerUserId") Integer ownerUserId) {
         //Db.tx(() -> {
+        MultipartFile file = null;
+        CommonsMultipartResolver multipartResolver = new CommonsMultipartResolver(
+                BaseUtil.getRequest().getSession().getServletContext());
+        if (multipartResolver.isMultipart(BaseUtil.getRequest())) {
+            MultipartHttpServletRequest multiRequest = (MultipartHttpServletRequest) BaseUtil.getRequest();
+            Iterator<String> iter = multiRequest.getFileNames();
+            while (iter.hasNext()) {
+                MultipartFile multiRequestFile = multiRequest.getFile(iter.next());
+                if (multiRequestFile != null) {
+                    file = multiRequestFile;
+                    break;
+                }
+            }
+        }
         R result = crmLeadsService.uploadExcel(file, repeatHandling, ownerUserId);
         return (result);
         //return !result.get("code").equals(500);
