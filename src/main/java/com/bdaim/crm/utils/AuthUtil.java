@@ -109,14 +109,14 @@ public class AuthUtil {
         Long userId = BaseUtil.getUserId();
         List<Long> longs = adminUserService.queryUserByAuth(userId, null);
         StringBuilder authSql = new StringBuilder("select count(*) from ");
-        authSql.append(tablePara.get("tableName")).append(" where ").append(tablePara.get("tableId")).append(" = ").append(id);
+        authSql.append(tablePara.get("tableName")).append(" where ").append(tablePara.get("tableId")).append(" = ? ");
         if (longs != null && longs.size() > 0) {
             authSql.append(" and owner_user_id in (").append(StrUtil.join(",", longs)).append(")");
             if ("lkcrm_crm_customer".equals(tablePara.get("tableName")) || "lkcrm_crm_business".equals(tablePara.get("tableName")) || "lkcrm_crm_contract".equals(tablePara.get("tableName"))) {
                 authSql.append(" or ro_user_id like CONCAT('%,','").append(userId).append("',',%')").append(" or rw_user_id like CONCAT('%,','").append(userId).append("',',%')");
             }
         }
-        return crmAdminUserDao.queryForInt(authSql.toString()) == 0;
+        return crmAdminUserDao.queryForInt(authSql.toString(),id) == 0;
     }
 
     public static boolean oaAnth(Record record) {

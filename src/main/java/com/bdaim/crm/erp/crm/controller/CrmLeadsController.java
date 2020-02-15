@@ -280,8 +280,8 @@ public class CrmLeadsController extends Controller {
     @CacheAnnotation
     public ResponseJson deleteFiled(@RequestBody CustomerSeaSearch param) {
         ResponseJson responseJson = new ResponseJson();
-        int data = crmAdminFieldDao.executeUpdateSQL("CREATE TABLE `lkcrm_crm_customer` ( `customer_id` int(11) NOT NULL AUTO_INCREMENT, `cust_id` varchar(50) DEFAULT NULL, `customer_name` varchar(255) NOT NULL COMMENT '客户名称', `followup` int(11) DEFAULT NULL COMMENT '跟进状态 0未跟进1已跟进', `is_lock` int(1) NOT NULL DEFAULT '0' COMMENT '1锁定', `next_time` datetime DEFAULT NULL COMMENT '下次联系时间', `deal_status` varchar(100) DEFAULT '未成交' COMMENT '成交状态', `mobile` varchar(255) DEFAULT NULL COMMENT '手机', `telephone` varchar(255) DEFAULT '' COMMENT '电话', `website` varchar(500) DEFAULT '' COMMENT '网址', `remark` varchar(500) DEFAULT '' COMMENT '备注', `create_user_id` int(10) DEFAULT NULL COMMENT '创建人ID', `owner_user_id` int(10) DEFAULT NULL COMMENT '负责人ID', `ro_user_id` longtext COMMENT '只读权限', `rw_user_id` longtext COMMENT '读写权限', `address` varchar(255) DEFAULT '' COMMENT '省市区', `location` varchar(255) DEFAULT '' COMMENT '定位信息', `detail_address` varchar(255) DEFAULT '' COMMENT '详细地址', `lng` varchar(255) DEFAULT '' COMMENT '地理位置经度', `lat` varchar(255) DEFAULT '' COMMENT '地理位置维度', `create_time` datetime NOT NULL COMMENT '创建时间', `update_time` datetime DEFAULT NULL COMMENT '更新时间', `batch_id` varchar(32) NOT NULL COMMENT '批次 比如附件批次', PRIMARY KEY (`customer_id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='客户表'; ");
-        data = crmAdminFieldDao.executeUpdateSQL("CREATE TABLE `lkcrm_admin_user_role` ( `id` int(11) NOT NULL AUTO_INCREMENT, `user_id` bigint(11) NOT NULL COMMENT '用户ID', `role_id` int(11) NOT NULL COMMENT '角色ID', PRIMARY KEY (`id`) ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COMMENT='用户角色对应关系表';");
+
+        int data = crmAdminFieldDao.executeUpdateSQL("ALTER TABLE `lkcrm_crm_action_record` MODIFY COLUMN `action_id`  varchar(32) NOT NULL COMMENT '被操作对象ID' AFTER `types`;");
         responseJson.setData(data);
         return responseJson;
     }
