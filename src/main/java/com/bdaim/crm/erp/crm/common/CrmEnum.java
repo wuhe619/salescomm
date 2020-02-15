@@ -10,7 +10,8 @@ public enum CrmEnum {
     PRODUCT_TYPE_KEY("产品", "4","CrmProduct"),
     BUSINESS_TYPE_KEY("商机","5","CrmBusiness"),
     CONTRACT_TYPE_KEY("合同","6","CrmContract"),
-    RECEIVABLES_TYPE_KEY("回款","7","CrmReceivables");
+    RECEIVABLES_TYPE_KEY("回款","7","CrmReceivables"),
+    PUBLIC_SEA_TYPE_KEY("公海线索","8","t_customer_sea");
 
     private final String name;
     private final String types;

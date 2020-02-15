@@ -280,8 +280,8 @@ public class CrmLeadsController extends Controller {
     @CacheAnnotation
     public ResponseJson deleteFiled(@RequestBody CustomerSeaSearch param) {
         ResponseJson responseJson = new ResponseJson();
-        //int data = crmAdminFieldDao.executeUpdateSQL("DELETE from lkcrm_admin_field_sort where label = 11");
-        int data = crmAdminFieldDao.executeUpdateSQL("DELETE FROM lkcrm_admin_field WHERE field_id=131 ");
+
+        int data = crmAdminFieldDao.executeUpdateSQL("ALTER TABLE `lkcrm_crm_action_record` MODIFY COLUMN `action_id`  varchar(32) NOT NULL COMMENT '被操作对象ID' AFTER `types`;");
         responseJson.setData(data);
         return responseJson;
     }

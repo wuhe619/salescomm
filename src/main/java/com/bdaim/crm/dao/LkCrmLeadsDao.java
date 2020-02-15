@@ -80,8 +80,8 @@ public class LkCrmLeadsDao extends SimpleHibernateDao<LkCrmLeadsEntity, Integer>
     }
 
     public List<Map<String, Object>> getPublicSeaClue(long seaId, String id) {
-        StringBuffer conditions = new StringBuffer("SELECT a.*,z.* FROM t_customer_sea_list_" + seaId + " AS a LEFT JOIN fieldleadsview AS z ON a.id = z.field_batch_id WHERE 1=1 ");
-        conditions.append(" AND id = ? ");
+        String fieldSql = "SELECT max( IF ( (`a`.`name` = '线索来源'), `a`.`value`, NULL ) ) AS `线索来源`, max( IF ( (`a`.`name` = '客户行业'), `a`.`value`, NULL ) ) AS `客户行业`, max( IF ( (`a`.`name` = '客户级别'), `a`.`value`, NULL ) ) AS `客户级别`, `a`.`batch_id` AS `field_batch_id` FROM ( `lkcrm_admin_fieldv` `a` JOIN `lkcrm_admin_field` `d` ON ( ( `a`.`field_id` = `d`.`field_id` ) ) ) WHERE ( (`d`.`label` = 11) AND (`a`.`batch_id` IS NOT NULL) AND (`a`.`batch_id` <> '') AND (`d`.`field_type` = 0) ) GROUP BY `a`.`batch_id` ";
+        StringBuffer conditions = new StringBuffer("SELECT a.*,z.* FROM t_customer_sea_list_" + seaId + " AS a LEFT JOIN (" + fieldSql + ") AS z ON a.id = z.field_batch_id WHERE id = ? ");
         List param = new ArrayList();
         param.add(id);
         return sqlQuery(conditions.toString(), param.toArray());
