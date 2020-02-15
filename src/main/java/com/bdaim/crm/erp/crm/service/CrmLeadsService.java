@@ -276,7 +276,7 @@ public class CrmLeadsService {
             crmRecordService.updateRecord(jsonObject.getJSONArray("field"), superId);
             adminFieldService.save(jsonObject.getJSONArray("field"), superId);
             // 保存操作记录
-            crmRecordService.addRecord(superId, CrmEnum.LEADS_TYPE_KEY.getTypes());
+            crmRecordService.addRecord(superId, CrmEnum.PUBLIC_SEA_TYPE_KEY.getTypes());
 
             status = 1;
         } catch (Exception e) {
