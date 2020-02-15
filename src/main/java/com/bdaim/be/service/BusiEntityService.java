@@ -205,14 +205,14 @@ public class BusiEntityService {
                 }
                 sqlParams.add(params.get(key));
             }
-            if (StringUtil.isNotEmpty(_orderby_) && StringUtil.isNotEmpty(_sort_)) {
-                sqlstr.append(" order by ? ? ");
-                sqlParams.add(_orderby_);
-                sqlParams.add(_sort_);
-            }
+
             sql = sqlstr.toString();
         }
-
+        if (StringUtil.isNotEmpty(_orderby_) && StringUtil.isNotEmpty(_sort_)) {
+            sql += " order by  "+ _orderby_+" "+_sort_+" ";
+            //sqlParams.add(_orderby_);
+            //sqlParams.add(_sort_);
+        }
         int pageNum = 1;
         int pageSize = 10;
         try {
