@@ -188,10 +188,10 @@ public class BatchTestTaskZService implements BusiService {
             }else if("batch_id".equals(key)){
                 sqlstr.append(" and id=? ");
                 sqlParams.add(value);
-            }else if("batch_name".equals(key)){
+            }else if("batch_name".equals(key) && StringUtil.isNotEmpty(value)){
                 sqlstr.append(" and ext_5 like ? ");
                 sqlParams.add("%"+value+"%");
-            }else if("status".equals(key)) {
+            }else if("status".equals(key) && StringUtil.isNotEmpty(value)) {
                 //sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key + "')=?");
                 sqlstr.append(" and ext_3=? ");
                 sqlParams.add(value);

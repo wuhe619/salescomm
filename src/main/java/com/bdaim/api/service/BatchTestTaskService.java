@@ -126,13 +126,13 @@ public class BatchTestTaskService implements BusiService {
             if ("cust_id".equals(key)) {
                 sqlstr.append(" and cust_id=? ");
                 sqlParams.add(params.get(key));
-            }else if("custName".equals(key)){
+            }else if("custName".equals(key) && StringUtil.isNotEmpty(params.getString(key))){
                 sqlstr.append(" and ext_5 like ? ");
                 sqlParams.add("%" + params.get(key) + "%");
-            }else if("account".equals(key)){
+            }else if("account".equals(key) && StringUtil.isNotEmpty(params.getString(key))){
                 sqlstr.append(" and ext_3=? ");
                 sqlParams.add(params.get(key));
-            }else if("apiName".equals(key)){
+            }else if("apiName".equals(key) && StringUtil.isNotEmpty(params.getString(key))){
                 sqlstr.append(" and ext_4=? ");
                 sqlParams.add(params.get(key));
             }/**else if("custName".equals(key)){
