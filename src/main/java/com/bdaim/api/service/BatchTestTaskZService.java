@@ -118,6 +118,7 @@ public class BatchTestTaskZService implements BusiService {
             info.put("totalNum",number);
             //批次状态
             info.put("status", 0);// 0：处理中 1:处理完成
+            info.put("ext_3",0);
             info.put("ext_2",apiId);
             info.put("taskId",taskId);
             info.put("ext_1",taskId);
@@ -179,19 +180,20 @@ public class BatchTestTaskZService implements BusiService {
             if ("pageNum".equals(key) || "pageSize".equals(key))
                 continue;
             if ("cust_id".equals(key)) {
-                sqlstr.append(" and cust_id=?");
+                sqlstr.append(" and cust_id=? ");
                 sqlParams.add(value);
             }else if("task_id".equals(key)){
-                sqlstr.append("and ext_1=?");
+                sqlstr.append(" and ext_1=? ");
                 sqlParams.add(value);
             }else if("batch_id".equals(key)){
-                sqlstr.append("and ext_3=?");
+                sqlstr.append(" and id=? ");
                 sqlParams.add(value);
-            }else if("batch_name".equals(key)){
-                sqlstr.append("and ext_5 like ?");
+            }else if("batch_name".equals(key) && StringUtil.isNotEmpty(value)){
+                sqlstr.append(" and ext_5 like ? ");
                 sqlParams.add("%"+value+"%");
-            }else if("status".equals(key)) {
-                sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key + "')=?");
+            }else if("status".equals(key) && StringUtil.isNotEmpty(value)) {
+                //sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key + "')=?");
+                sqlstr.append(" and ext_3=? ");
                 sqlParams.add(value);
             }
         }

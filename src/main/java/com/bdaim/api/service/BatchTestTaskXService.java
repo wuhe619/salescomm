@@ -95,7 +95,7 @@ public class BatchTestTaskXService implements BusiService {
                         String updateSql = "update "+HMetaDataDef.getTable(BusiTypeEnum.BATCH_TEST_TASK_Z.getType(), "") +" set content=? where id=?";
                         if((successNum + failedNum) == totalNum){
                             json2.put("status",1);
-                            updateSql = "update "+HMetaDataDef.getTable(BusiTypeEnum.BATCH_TEST_TASK_Z.getType(), "") +" set content=?,ext_date1=now() where id=?";
+                            updateSql = "update "+HMetaDataDef.getTable(BusiTypeEnum.BATCH_TEST_TASK_Z.getType(), "") +" set content=?,ext_date1=now(),ext_3=1 where id=?";
                         }
                         jdbcTemplate.update(updateSql,json2.toJSONString(),batchid);
                     }
