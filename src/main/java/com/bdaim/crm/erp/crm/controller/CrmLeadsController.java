@@ -117,9 +117,7 @@ public class CrmLeadsController extends BasicAction {
                 }
                 superData.put("SYS007", "未跟进");
             }
-            String company = jsonO.getString("company");
-            String s = MD5Util.encode32Bit(company);
-            superData.put("SYS014", s);
+            superData.put("SYS014", MD5Util.encode32Bit(jsonO.getString("company")));
             CustomSeaTouchInfoDTO dto = new CustomSeaTouchInfoDTO("", customerId, String.valueOf(userId), "", "",
                     jsonO.getString("super_name"), jsonO.getString("super_age"), jsonO.getString("super_sex"), jsonO.getString("super_telphone"),
                     jsonO.getString("super_phone"), jsonO.getString("super_address_province_city"), jsonO.getString("super_address_street"),
@@ -141,6 +139,56 @@ public class CrmLeadsController extends BasicAction {
             LOG.error("添加线索失败,", e);
             responseJson.setCode(-1);
             responseJson.setMessage("添加线索失败");
+        }
+        return responseJson;
+    }
+
+    /**
+     * 编辑线索
+     *
+     * @param jsonO
+     * @return
+     */
+    @RequestMapping(value = "/cluesea/updateClueData", method = RequestMethod.POST)
+    public ResponseCommon updateClueData(@RequestBody JSONObject jsonO) {
+        ResponseCommon responseJson = new ResponseCommon();
+        String customerId = BaseUtil.getUser().getCustId();
+        Long userId = BaseUtil.getUser().getId();
+        String remark = jsonO.getString("remark");
+        String superId = jsonO.getString("superId");
+        String touchId = jsonO.getString("touchId");
+        String seaId = jsonO.getString("seaId");
+        try {
+            // 更新通话记录表的备注
+            if (StringUtil.isNotEmpty(touchId)) {
+                //marketResourceService.updateVoiceLogV3(touchId, remark);
+            }
+            JSONArray labelIdArray = jsonO.getJSONArray("labelIds");
+            Map<String, Object> superData = new HashMap<>();
+            // 处理自建属性
+            if (labelIdArray != null && labelIdArray.size() != 0) {
+                for (int i = 0; i < labelIdArray.size(); i++) {
+                    superData.put(labelIdArray.getJSONObject(i).getString("labelId"), labelIdArray.getJSONObject(i).getString("optionValue"));
+                }
+            }
+            String voiceInfoId = jsonO.getString("voice_info_id");
+            if (StringUtil.isEmpty(voiceInfoId)) {
+                voiceInfoId = IDHelper.getID().toString();
+            }
+            superData.put("SYS014", MD5Util.encode32Bit(jsonO.getString("company")));
+            CustomSeaTouchInfoDTO dto = new CustomSeaTouchInfoDTO(voiceInfoId, customerId, String.valueOf(userId), jsonO.getString("cust_group_id"), superId,
+                    jsonO.getString("super_name"), jsonO.getString("super_age"), jsonO.getString("super_sex"), jsonO.getString("super_telphone"),
+                    jsonO.getString("super_phone"), jsonO.getString("super_address_province_city"), jsonO.getString("super_address_street"),
+                    seaId, superData, jsonO.getString("qq"), jsonO.getString("email"), jsonO.getString("profession"), jsonO.getString("weChat"),
+                    jsonO.getString("followStatus"), jsonO.getString("invalidReason"), jsonO.getString("company"));
+            // 保存标记信息
+            crmLeadsService.updateClueSignData(dto, jsonO);
+            responseJson.setCode(200);
+            responseJson.setMessage("更新成功");
+        } catch (Exception e) {
+            LOG.error("更新个人信息失败,", e);
+            responseJson.setCode(-1);
+            responseJson.setMessage("更新失败");
         }
         return responseJson;
     }
@@ -282,49 +330,6 @@ public class CrmLeadsController extends BasicAction {
 
         int data = crmAdminFieldDao.executeUpdateSQL("ALTER TABLE `lkcrm_crm_action_record` MODIFY COLUMN `action_id`  varchar(32) NOT NULL COMMENT '被操作对象ID' AFTER `types`;");
         responseJson.setData(data);
-        return responseJson;
-    }
-
-    @RequestMapping(value = "/updateClueSignData", method = RequestMethod.POST)
-    public ResponseCommon updateClueSignData(@RequestBody JSONObject jsonO) {
-        ResponseCommon responseJson = new ResponseCommon();
-        String customerId = BaseUtil.getUser().getCustId();
-        Long userId = BaseUtil.getUser().getId();
-        String remark = jsonO.getString("remark");
-        String superId = jsonO.getString("superId");
-        String touchId = jsonO.getString("touchId");
-        String seaId = jsonO.getString("seaId");
-        try {
-            // 更新通话记录表的备注
-            if (StringUtil.isNotEmpty(touchId)) {
-                //marketResourceService.updateVoiceLogV3(touchId, remark);
-            }
-            JSONArray labelIdArray = jsonO.getJSONArray("labelIds");
-            Map<String, Object> superData = new HashMap<>();
-            // 处理自建属性
-            if (labelIdArray != null || labelIdArray.size() != 0) {
-                for (int i = 0; i < labelIdArray.size(); i++) {
-                    superData.put(labelIdArray.getJSONObject(i).getString("labelId"), labelIdArray.getJSONObject(i).getString("optionValue"));
-                }
-            }
-            String voiceInfoId = jsonO.getString("voice_info_id");
-            if (voiceInfoId == null || "".equals(voiceInfoId)) {
-                voiceInfoId = IDHelper.getID().toString();
-            }
-            CustomSeaTouchInfoDTO dto = new CustomSeaTouchInfoDTO(voiceInfoId, customerId, String.valueOf(userId), jsonO.getString("cust_group_id"), superId,
-                    jsonO.getString("super_name"), jsonO.getString("super_age"), jsonO.getString("super_sex"), jsonO.getString("super_telphone"),
-                    jsonO.getString("super_phone"), jsonO.getString("super_address_province_city"), jsonO.getString("super_address_street"),
-                    seaId, superData, jsonO.getString("qq"), jsonO.getString("email"), jsonO.getString("profession"), jsonO.getString("weChat"),
-                    jsonO.getString("followStatus"), jsonO.getString("invalidReason"), jsonO.getString("company"));
-            // 保存标记信息
-            seaService.updateClueSignData(dto);
-            responseJson.setCode(200);
-            responseJson.setMessage("更新成功");
-        } catch (Exception e) {
-            LOG.error("更新个人信息失败,", e);
-            responseJson.setCode(-1);
-            responseJson.setMessage("更新失败");
-        }
         return responseJson;
     }
 

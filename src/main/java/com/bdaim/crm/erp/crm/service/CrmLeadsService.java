@@ -4,6 +4,7 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.poi.excel.ExcelReader;
@@ -25,12 +26,14 @@ import com.bdaim.crm.utils.*;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerUserDao;
 import com.bdaim.customer.entity.CustomerUser;
+import com.bdaim.customer.service.CustomerLabelService;
 import com.bdaim.customersea.dao.CustomerSeaDao;
 import com.bdaim.customersea.dto.CustomSeaTouchInfoDTO;
 import com.bdaim.customersea.dto.CustomerSeaESDTO;
 import com.bdaim.customersea.dto.CustomerSeaSearch;
 import com.bdaim.customersea.entity.CustomerSea;
 import com.bdaim.customersea.entity.CustomerSeaProperty;
+import com.bdaim.customersea.service.CustomerSeaService;
 import com.bdaim.customgroup.dao.CustomGroupDao;
 import com.bdaim.util.*;
 import com.jfinal.aop.Before;
@@ -110,6 +113,10 @@ public class CrmLeadsService {
     private CustomerDao customerDao;
     @Resource
     private PhoneService phoneService;
+    @Resource
+    private CustomerLabelService customerLabelService;
+    @Resource
+    private CustomerSeaService customerSeaService;
 
     /**
      * 默认需要转为super_data的字段名称
@@ -223,13 +230,10 @@ public class CrmLeadsService {
         StringBuffer sql = new StringBuffer();
         int status = 0;
         try {
-            // 查询公海下默认客群
-            CustomerSeaProperty csp = customerSeaDao.getProperty(dto.getCustomerSeaId(), "defaultClueCgId");
-            if (csp == null) {
-                LOG.warn("公海:" + dto.getCustomerSeaId() + ",默认线索客群不存在");
-            } else {
-                dto.setCust_group_id(csp.getPropertyValue());
-            }
+            //查询默认客群
+            String cgId = customerSeaService.createDefaultClueCGroup0(NumberUtil.parseLong(dto.getCustomerSeaId()), "公海默认客群", dto.getCust_id());
+            dto.setCust_group_id(cgId);
+
             String superId = MD5Util.encode32Bit("c" + dto.getSuper_telphone());
             dto.setSuper_id(superId);
             CustomerUser user = customerUserDao.get(NumberConvertUtil.parseLong(dto.getUser_id()));
@@ -283,6 +287,83 @@ public class CrmLeadsService {
         } catch (Exception e) {
             status = 0;
             LOG.error("保存添加线索个人信息" + ConstantsUtil.CUSTOMER_GROUP_TABLE_PREFIX + dto.getCust_group_id() + "失败", e);
+        }
+        return status;
+    }
+
+    /**
+     * 保存线索标记的信息
+     *
+     * @param dto
+     * @return
+     */
+    public boolean updateClueSignData(CustomSeaTouchInfoDTO dto, JSONObject jsonObject) {
+        // 处理qq 微信等默认自建属性值
+        handleDefaultLabelValue(dto);
+        StringBuffer sql = new StringBuffer();
+        boolean status;
+        try {
+            //查询默认客群
+            String cgId = customerSeaService.createDefaultClueCGroup0(NumberUtil.parseLong(dto.getCustomerSeaId()), "公海默认客群", dto.getCust_id());
+            dto.setCust_group_id(cgId);
+
+            LOG.info("开始更新客户群数据表个人信息:" + ConstantsUtil.CUSTOMER_GROUP_TABLE_PREFIX + dto.getCust_group_id() + ",数据:" + dto.toString());
+            sql.append("UPDATE " + ConstantsUtil.CUSTOMER_GROUP_TABLE_PREFIX + dto.getCust_group_id() + " SET ")
+                    .append(" super_name= ?, ")
+                    .append(" super_age= ?, ")
+                    .append(" super_sex= ?, ")
+                    .append(" super_telphone= ?, ")
+                    .append(" super_phone= ?, ")
+                    .append(" super_address_province_city= ?, ")
+                    .append(" super_address_street = ?, ")
+                    .append(" super_data = ?, ")
+                    .append(" update_time = ?, ")
+                    .append(" STATUS = '0', ")
+                    .append(" user_id = ? ")
+                    .append(" WHERE id = ? ");
+            crmLeadsDao.executeUpdateSQL(sql.toString(), dto.getSuper_name(), dto.getSuper_age(),
+                    dto.getSuper_sex(), dto.getSuper_telphone(), dto.getSuper_phone(),
+                    dto.getSuper_address_province_city(), dto.getSuper_address_street(), JSON.toJSONString(dto.getSuperData()),
+                    new Timestamp(System.currentTimeMillis()), dto.getUser_id(), dto.getSuper_id());
+
+            LOG.info("开始更新公海[" + dto.getCustomerSeaId() + "]数据表个人信息:" + ConstantsUtil.SEA_TABLE_PREFIX + dto.getCustomerSeaId() + ",数据:" + dto.toString());
+            sql = new StringBuffer();
+            sql.append("UPDATE " + ConstantsUtil.SEA_TABLE_PREFIX + dto.getCustomerSeaId() + " SET ")
+                    .append(" super_name= ?, ")
+                    .append(" super_age= ?, ")
+                    .append(" super_sex= ?, ")
+                    .append(" super_telphone= ?, ")
+                    .append(" super_phone= ?, ")
+                    .append(" super_address_province_city= ?, ")
+                    .append(" super_address_street = ?, ")
+                    .append(" super_data = ?, ")
+                    .append(" last_mark_time = ?, ")
+                    .append(" update_time = ?, ")
+                    .append(" STATUS = '0', ")
+                    .append(" user_id = ? ")
+                    .append(" WHERE id = ? ");
+            crmLeadsDao.executeUpdateSQL(sql.toString(), dto.getSuper_name(), dto.getSuper_age(),
+                    dto.getSuper_sex(), dto.getSuper_telphone(), dto.getSuper_phone(),
+                    dto.getSuper_address_province_city(), dto.getSuper_address_street(), JSON.toJSONString(dto.getSuperData()), new Timestamp(System.currentTimeMillis()),
+                    new Timestamp(System.currentTimeMillis()), dto.getUser_id(), dto.getSuper_id());
+            // 保存标记信息到es中
+            CustomerSeaESDTO esData = new CustomerSeaESDTO(dto);
+            esData.setSuper_data(JSON.toJSONString(dto.getSuperData()));
+            //saveClueInfoToES(esData);
+            // 保存标记记录
+            customerLabelService.saveSuperDataLog(dto.getSuper_id(), dto.getCust_group_id(), "", dto.getUser_id(),
+                    dto.getSuperData(), dto.getCustomerSeaId());
+            //保存根据记录
+            crmRecordService.updateRecord(jsonObject.getJSONArray("field"), dto.getSuper_id());
+            //保存标记字段
+            adminFieldService.save(jsonObject.getJSONArray("field"), dto.getSuper_id());
+            // 保存操作记录
+            crmRecordService.addRecord(dto.getSuper_id(), CrmEnum.PUBLIC_SEA_TYPE_KEY.getTypes());
+
+            status = true;
+        } catch (Exception e) {
+            status = false;
+            LOG.error("更新数据表个人信息" + ConstantsUtil.CUSTOMER_GROUP_TABLE_PREFIX + dto.getCust_group_id() + "失败", e);
         }
         return status;
     }
