@@ -7,6 +7,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.annotation.CacheAnnotation;
+import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.controller.util.ResponseCommon;
 import com.bdaim.common.controller.util.ResponseJson;
 import com.bdaim.common.exception.TouchException;
@@ -32,7 +33,6 @@ import com.bdaim.util.IDHelper;
 import com.bdaim.util.MD5Util;
 import com.bdaim.util.StringUtil;
 import com.jfinal.aop.Before;
-import com.jfinal.core.Controller;
 import com.jfinal.core.paragetter.Para;
 import com.jfinal.log.Log;
 import com.jfinal.plugin.activerecord.Record;
@@ -56,7 +56,7 @@ import java.util.*;
 
 @RestController
 @RequestMapping("/CrmLeads")
-public class CrmLeadsController extends Controller {
+public class CrmLeadsController extends BasicAction {
 
     public static final Logger LOG = LoggerFactory.getLogger(CrmLeadsController.class);
 
@@ -464,10 +464,22 @@ public class CrmLeadsController extends Controller {
      */
     @Permissions("crm:leads:excelexport")
     @RequestMapping(value = "/batchExportExcel", method = RequestMethod.POST)
-    public void batchExportExcel(@Para("ids") String leadsIds) throws IOException {
+    public void batchExportExcel(@Para("ids") String leadsIds, HttpServletResponse response) throws IOException {
         List<Record> recordList = crmLeadsService.exportLeads(leadsIds);
-        export(recordList);
-        renderNull();
+        export(recordList, response);
+        //renderNull();
+    }
+
+    /**
+     * @author wyq
+     * 批量导出线索
+     */
+    @Permissions("crm:leads:excelexport")
+    @RequestMapping(value = "/cluesea/batchExportExcel", method = RequestMethod.POST)
+    public void clueseaBatchExportExcel(@Para("ids") String leadsIds, HttpServletResponse response) throws IOException {
+        List<Record> recordList = crmLeadsService.exportLeads(leadsIds);
+        export(recordList, response);
+        //renderNull();
     }
 
     /**
@@ -476,16 +488,31 @@ public class CrmLeadsController extends Controller {
      */
     @Permissions("crm:leads:excelexport")
     @RequestMapping(value = "/allExportExcel", method = RequestMethod.POST)
-    public void allExportExcel(BasePageRequest basePageRequest) throws IOException {
+    public void allExportExcel(BasePageRequest basePageRequest, HttpServletResponse response) throws IOException {
         JSONObject jsonObject = basePageRequest.getJsonObject();
         jsonObject.fluentPut("excel", "yes").fluentPut("type", "1");
         AdminSceneService adminSceneService = new AdminSceneService();
         List<Record> recordList = (List<Record>) adminSceneService.filterConditionAndGetPageList(basePageRequest).get("data");
-        export(recordList);
-        renderNull();
+        export(recordList, response);
+        //renderNull();
     }
 
-    private void export(List<Record> recordList) throws IOException {
+    /**
+     * @author wyq
+     * 导出全部线索
+     */
+    @Permissions("crm:leads:excelexport")
+    @RequestMapping(value = "/cluesea/allExportExcel", method = RequestMethod.POST)
+    public void clueseaAllExportExcel(BasePageRequest basePageRequest, HttpServletResponse response) throws IOException {
+        JSONObject jsonObject = basePageRequest.getJsonObject();
+        jsonObject.fluentPut("excel", "yes").fluentPut("type", "1");
+        AdminSceneService adminSceneService = new AdminSceneService();
+        List<Record> recordList = (List<Record>) adminSceneService.filterConditionAndGetPageList(basePageRequest).get("data");
+        export(recordList, response);
+        //renderNull();
+    }
+
+    private void export(List<Record> recordList, HttpServletResponse response) throws IOException {
         ExcelWriter writer = null;
         try {
             writer = ExcelUtil.getWriter();
@@ -505,7 +532,7 @@ public class CrmLeadsController extends Controller {
                 writer.addHeaderAlias(field.getStr("name"), field.getStr("name"));
             }
             writer.merge(fieldList.size() + 1, "线索信息");
-            HttpServletResponse response = getResponse();
+            //HttpServletResponse response = getResponse();
             List<Map<String, Object>> list = new ArrayList<>();
             for (Record record : recordList) {
                 list.add(record.remove("batch_id", "is_transform", "customer_id", "leads_id", "owner_user_id", "create_user_id", "followup", "field_batch_id").getColumns());
@@ -547,7 +574,7 @@ public class CrmLeadsController extends Controller {
      */
     @LoginFormCookie
     @RequestMapping(value = "/downloadExcel")
-    public void downloadExcel() {
+    public void downloadExcel(HttpServletResponse response) {
         List<Record> recordList = adminFieldService.queryAddField(1);
         recordList.removeIf(record -> "file".equals(record.getStr("formType")) || "checkbox".equals(record.getStr("formType")) || "user".equals(record.getStr("formType")) || "structure".equals(record.getStr("formType")));
         HSSFWorkbook wb = new HSSFWorkbook();
@@ -591,7 +618,74 @@ public class CrmLeadsController extends Controller {
                     sheet.addValidationData(dataValidation);
                 }
             }
-            HttpServletResponse response = getResponse();
+            response.setContentType("application/vnd.ms-excel;charset=utf-8");
+            response.setCharacterEncoding("UTF-8");
+            //test.xls是弹出下载对话框的文件名，不能为中文，中文请自行编码
+            response.setHeader("Content-Disposition", "attachment;filename=leads_import.xls");
+            wb.write(response.getOutputStream());
+        } catch (Exception e) {
+            LOG.error("error", e);
+        } finally {
+            try {
+                wb.close();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        }
+        //renderNull();
+    }
+
+    /**
+     * @author wyq
+     * 获取线索导入模板
+     */
+    @LoginFormCookie
+    @RequestMapping(value = "/cluesea/downloadExcel")
+    public void clueseaDownloadExcel(HttpServletResponse response) {
+        List<Record> recordList = adminFieldService.queryAddField(1);
+        recordList.removeIf(record -> "file".equals(record.getStr("formType")) || "checkbox".equals(record.getStr("formType")) || "user".equals(record.getStr("formType")) || "structure".equals(record.getStr("formType")));
+        HSSFWorkbook wb = new HSSFWorkbook();
+        HSSFSheet sheet = wb.createSheet("线索导入表");
+        sheet.setDefaultColumnWidth(12);
+        sheet.setDefaultRowHeight((short) 400);
+        HSSFRow titleRow = sheet.createRow(0);
+        CellStyle cellStyle = wb.createCellStyle();
+        cellStyle.setFillForegroundColor(IndexedColors.SKY_BLUE.getIndex());
+        cellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        Font font = wb.createFont();
+        font.setBold(true);
+        font.setFontHeightInPoints((short) 16);
+        cellStyle.setFont(font);
+        titleRow.createCell(0).setCellValue("线索导入模板(*)为必填项");
+        cellStyle.setAlignment(HorizontalAlignment.CENTER);
+        titleRow.getCell(0).setCellStyle(cellStyle);
+        CellRangeAddress region = new CellRangeAddress(0, 0, 0, recordList.size() - 1);
+        sheet.addMergedRegion(region);
+        try {
+            HSSFRow row = sheet.createRow(1);
+            for (int i = 0; i < recordList.size(); i++) {
+                Record record = recordList.get(i);
+                String[] setting = record.get("setting");
+                // 在第一行第一个单元格，插入选项
+                HSSFCell cell = row.createCell(i);
+                // 普通写入操作
+                if (record.getInt("is_null") == 1) {
+                    cell.setCellValue(record.getStr("name") + "(*)");
+                } else {
+                    cell.setCellValue(record.getStr("name"));
+                }
+                if (setting.length != 0) {
+                    // 生成下拉列表
+                    CellRangeAddressList regions = new CellRangeAddressList(2, Integer.MAX_VALUE, i, i);
+                    // 生成下拉框内容
+                    DVConstraint constraint = DVConstraint.createExplicitListConstraint(setting);
+                    // 绑定下拉框和作用区域
+                    HSSFDataValidation dataValidation = new HSSFDataValidation(regions, constraint);
+                    // 对sheet页生效
+                    sheet.addValidationData(dataValidation);
+                }
+            }
+            //HttpServletResponse response = getResponse();
 
             response.setContentType("application/vnd.ms-excel;charset=utf-8");
             response.setCharacterEncoding("UTF-8");
@@ -608,7 +702,7 @@ public class CrmLeadsController extends Controller {
                 ex.printStackTrace();
             }
         }
-        renderNull();
+        //renderNull();
     }
 
     /**
@@ -620,6 +714,36 @@ public class CrmLeadsController extends Controller {
     @Before(Tx.class)
     @RequestMapping(value = "/uploadExcel")
     public R uploadExcel(@Para("repeatHandling") Integer repeatHandling, @Para("ownerUserId") Integer ownerUserId) {
+        //Db.tx(() -> {
+        MultipartFile file = null;
+        CommonsMultipartResolver multipartResolver = new CommonsMultipartResolver(
+                BaseUtil.getRequest().getSession().getServletContext());
+        if (multipartResolver.isMultipart(BaseUtil.getRequest())) {
+            MultipartHttpServletRequest multiRequest = (MultipartHttpServletRequest) BaseUtil.getRequest();
+            Iterator<String> iter = multiRequest.getFileNames();
+            while (iter.hasNext()) {
+                MultipartFile multiRequestFile = multiRequest.getFile(iter.next());
+                if (multiRequestFile != null) {
+                    file = multiRequestFile;
+                    break;
+                }
+            }
+        }
+        R result = crmLeadsService.uploadExcel(file, repeatHandling, ownerUserId);
+        return (result);
+        //return !result.get("code").equals(500);
+        //});
+    }
+
+    /**
+     * @author wyq
+     * 线索导入
+     */
+    @Permissions("crm:leads:excelimport")
+    @NotNullValidate(value = "ownerUserId", message = "请选择负责人")
+    @Before(Tx.class)
+    @RequestMapping(value = "/cluesea/uploadExcel")
+    public R clueseaUploadExcel(@Para("repeatHandling") Integer repeatHandling, @Para("ownerUserId") Integer ownerUserId) {
         //Db.tx(() -> {
         MultipartFile file = null;
         CommonsMultipartResolver multipartResolver = new CommonsMultipartResolver(

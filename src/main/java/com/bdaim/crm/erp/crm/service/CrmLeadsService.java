@@ -1112,7 +1112,85 @@ public class CrmLeadsService {
                                 .fluentPut("remark", leadsList.get(kv.getInt("remark")))
                                 .fluentPut("owner_user_id", ownerUserId));
                     } else if (number > 0 && repeatHandling == 1) {
-                        Record leads = Db.findFirst("select leads_id,batch_id from lkcrm_crm_leads where leads_name = ?", leadsName);
+                        Record leads = JavaBeanUtil.mapToRecord(crmLeadsDao.sqlQuery("select leads_id,batch_id from lkcrm_crm_leads where leads_name = ?", leadsName).get(0));
+                        object.fluentPut("entity", new JSONObject().fluentPut("leads_id", leads.getInt("leads_id"))
+                                .fluentPut("leads_name", leadsName)
+                                .fluentPut("telephone", leadsList.get(kv.getInt("telephone")))
+                                .fluentPut("mobile", leadsList.get(kv.getInt("mobile")))
+                                .fluentPut("address", leadsList.get(kv.getInt("address")))
+                                .fluentPut("next_time", leadsList.get(kv.getInt("next_time")))
+                                .fluentPut("remark", leadsList.get(kv.getInt("remark")))
+                                .fluentPut("owner_user_id", ownerUserId)
+                                .fluentPut("batch_id", leads.getStr("batch_id")));
+                    } else if (number > 0 && repeatHandling == 2) {
+                        continue;
+                    }
+                    JSONArray jsonArray = new JSONArray();
+                    for (Record record : recordList) {
+                        Integer columnsNum = kv.getInt(record.getStr("name")) != null ? kv.getInt(record.getStr("name")) : kv.getInt(record.getStr("name") + "(*)");
+                        record.set("value", leadsList.get(columnsNum));
+                        jsonArray.add(JSONObject.parseObject(record.toJson()));
+                    }
+                    object.fluentPut("field", jsonArray);
+                    addOrUpdate(object);
+                }
+            }
+        } catch (Exception e) {
+            LOG.error("", e);
+            if (errNum != 0) {
+                return R.error("第" + (errNum + 1) + "行错误!");
+            }
+            return R.error();
+        }
+        return R.ok();
+    }
+
+    public R uploadExcelPublicSea(MultipartFile file, Integer repeatHandling, Integer ownerUserId) {
+        Kv kv = new Kv();
+        Integer errNum = 0;
+        try (ExcelReader reader = ExcelUtil.getReader(file.getInputStream())) {
+            List<List<Object>> read = reader.read();
+            List<Object> list = read.get(1);
+            List<Record> recordList = adminFieldService.customFieldList("11");
+            recordList.removeIf(record -> "file".equals(record.getStr("formType")) || "checkbox".equals(record.getStr("formType")) || "user".equals(record.getStr("formType")) || "structure".equals(record.getStr("formType")));
+            List<Record> fieldList = adminFieldService.queryAddField(11);
+            fieldList.removeIf(record -> "file".equals(record.getStr("formType")) || "checkbox".equals(record.getStr("formType")) || "user".equals(record.getStr("formType")) || "structure".equals(record.getStr("formType")));
+            fieldList.forEach(record -> {
+                if (record.getInt("is_null") == 1) {
+                    record.set("name", record.getStr("name") + "(*)");
+                }
+            });
+            List<String> nameList = fieldList.stream().map(record -> record.getStr("name")).collect(Collectors.toList());
+            if (nameList.size() != list.size() || !nameList.containsAll(list)) {
+                return R.error("请使用最新导入模板");
+            }
+            Kv nameMap = new Kv();
+            fieldList.forEach(record -> nameMap.set(record.getStr("name"), record.getStr("field_name")));
+            for (int i = 0; i < list.size(); i++) {
+                kv.set(nameMap.get(list.get(i)), i);
+            }
+            if (read.size() > 2) {
+                JSONObject object = new JSONObject();
+                for (int i = 2; i < read.size(); i++) {
+                    errNum = i;
+                    List<Object> leadsList = read.get(i);
+                    if (leadsList.size() < list.size()) {
+                        for (int j = leadsList.size() - 1; j < list.size(); j++) {
+                            leadsList.add(null);
+                        }
+                    }
+                    String leadsName = leadsList.get(kv.getInt("leads_name")).toString();
+                    Integer number = crmLeadsDao.queryForInt("select count(*) from lkcrm_crm_leads where leads_name = ?", leadsName);
+                    if (0 == number) {
+                        object.fluentPut("entity", new JSONObject().fluentPut("leads_name", leadsName)
+                                .fluentPut("telephone", leadsList.get(kv.getInt("telephone")))
+                                .fluentPut("mobile", leadsList.get(kv.getInt("mobile")))
+                                .fluentPut("address", leadsList.get(kv.getInt("address")))
+                                .fluentPut("next_time", leadsList.get(kv.getInt("next_time")))
+                                .fluentPut("remark", leadsList.get(kv.getInt("remark")))
+                                .fluentPut("owner_user_id", ownerUserId));
+                    } else if (number > 0 && repeatHandling == 1) {
+                        Record leads = JavaBeanUtil.mapToRecord(crmLeadsDao.sqlQuery("select leads_id,batch_id from lkcrm_crm_leads where leads_name = ?", leadsName).get(0));
                         object.fluentPut("entity", new JSONObject().fluentPut("leads_id", leads.getInt("leads_id"))
                                 .fluentPut("leads_name", leadsName)
                                 .fluentPut("telephone", leadsList.get(kv.getInt("telephone")))
