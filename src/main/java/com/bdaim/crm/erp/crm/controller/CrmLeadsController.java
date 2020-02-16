@@ -119,7 +119,7 @@ public class CrmLeadsController extends BasicAction {
             }
             superData.put("SYS014", MD5Util.encode32Bit(jsonO.getString("company")));
             CustomSeaTouchInfoDTO dto = new CustomSeaTouchInfoDTO("", customerId, String.valueOf(userId), "", "",
-                    jsonO.getString("super_name"), jsonO.getString("super_age"), jsonO.getString("super_sex"), jsonO.getString("super_telphone"),
+                    jsonO.getString("leads_name"), jsonO.getString("super_age"), jsonO.getString("super_sex"), jsonO.getString("super_telphone"),
                     jsonO.getString("super_phone"), jsonO.getString("super_address_province_city"), jsonO.getString("super_address_street"),
                     seaId, superData, jsonO.getString("qq"), jsonO.getString("email"), jsonO.getString("profession"), jsonO.getString("weChat"),
                     jsonO.getString("followStatus"), jsonO.getString("invalidReason"), jsonO.getString("company"));
@@ -177,7 +177,7 @@ public class CrmLeadsController extends BasicAction {
             }
             superData.put("SYS014", MD5Util.encode32Bit(jsonO.getString("company")));
             CustomSeaTouchInfoDTO dto = new CustomSeaTouchInfoDTO(voiceInfoId, customerId, String.valueOf(userId), jsonO.getString("cust_group_id"), superId,
-                    jsonO.getString("super_name"), jsonO.getString("super_age"), jsonO.getString("super_sex"), jsonO.getString("super_telphone"),
+                    jsonO.getString("leads_name"), jsonO.getString("super_age"), jsonO.getString("super_sex"), jsonO.getString("super_telphone"),
                     jsonO.getString("super_phone"), jsonO.getString("super_address_province_city"), jsonO.getString("super_address_street"),
                     seaId, superData, jsonO.getString("qq"), jsonO.getString("email"), jsonO.getString("profession"), jsonO.getString("weChat"),
                     jsonO.getString("followStatus"), jsonO.getString("invalidReason"), jsonO.getString("company"));

@@ -142,9 +142,22 @@ public class CrmLeadsService {
         put("entPersonNum", "SYS013");
         // 企业ID
         put("entId", "SYS014");
+
+        //CRM标签
         put("next_time", "next_time");
         put("remark", "remark");
         put("leads_name", "leads_name");
+        put("dept", "dept");
+        put("position", "position");
+        put("site", "site");
+        put("sea_use_count", "sea_use_count");
+        put("未跟进天数", "未跟进天数");
+        put("剩余回收时间", "剩余回收时间");
+        put("退回公海原因", "退回公海原因");
+        put("邮件次数", "邮件次数");
+        put("营销总次数", "营销总次数");
+        put("退回公海原因", "退回公海原因");
+
     }};
 
     private Map<String, String> excelDefaultLabels = new HashMap() {{
@@ -188,6 +201,14 @@ public class CrmLeadsService {
             return R.error("参数包含非法字段");
         }
         com.bdaim.common.dto.Page page = crmLeadsDao.pageCluePublicSea(basePageRequest.getPage(), basePageRequest.getLimit(), seaId, search);
+        if (page != null && page.getData() != null) {
+            for (int i = 0; i < page.getData().size(); i++) {
+                Map map = (Map) page.getData().get(i);
+                // 解析super_data中qq 微信等属性
+                getDefaultLabelValue(map);
+                map.remove("super_data");
+            }
+        }
         Page finalPage = new Page();
         finalPage.setList(page.getData());
         finalPage.setTotalRow(page.getTotal());
@@ -195,11 +216,33 @@ public class CrmLeadsService {
     }
 
     /**
+     * 解析super_data中qq 微信等属性
+     *
+     * @param data
+     */
+    private void getDefaultLabelValue(Map<String, Object> data) {
+        if (data != null && data.get("super_data") != null) {
+            JSONObject jsonObject = JSON.parseObject(String.valueOf(data.get("super_data")));
+            if (jsonObject == null || jsonObject.size() == 0) {
+                return;
+            }
+            for (Map.Entry<String, Object> m : jsonObject.entrySet()) {
+                for (Map.Entry<String, String> label : defaultLabels.entrySet()) {
+                    if (Objects.equals(m.getKey(), label.getValue())) {
+                        data.put(label.getKey(), m.getValue());
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * 处理qq 微信 根据状态等自建属性值存入super_data
      *
      * @param dto
      */
-    private void handleDefaultLabelValue(CustomSeaTouchInfoDTO dto) {
+    private void handleDefaultLabelValue(CustomSeaTouchInfoDTO dto, JSONObject param) {
         Map<String, Object> superData = new HashMap<>(16);
         if (dto.getSuperData() != null && dto.getSuperData().size() > 0) {
             for (Map.Entry<String, Object> m : dto.getSuperData().entrySet()) {
@@ -215,6 +258,15 @@ public class CrmLeadsService {
                 }
             }
         }
+        if (param != null && param.size() > 0) {
+            for (Map.Entry<String, Object> m : param.entrySet()) {
+                if (defaultLabels.get(m.getKey()) != null && StringUtil.isNotEmpty(String.valueOf(m.getValue()))) {
+                    // qq 微信等系统自建属性
+                    superData.put(defaultLabels.get(m.getKey()), m.getValue());
+                }
+            }
+        }
+
         dto.setSuperData(superData);
     }
 
@@ -226,7 +278,7 @@ public class CrmLeadsService {
      */
     public int addClueData0(CustomSeaTouchInfoDTO dto, JSONObject jsonObject) {
         // 处理qq 微信等默认自建属性值
-        handleDefaultLabelValue(dto);
+        handleDefaultLabelValue(dto, jsonObject);
         StringBuffer sql = new StringBuffer();
         int status = 0;
         try {
@@ -299,7 +351,7 @@ public class CrmLeadsService {
      */
     public boolean updateClueSignData(CustomSeaTouchInfoDTO dto, JSONObject jsonObject) {
         // 处理qq 微信等默认自建属性值
-        handleDefaultLabelValue(dto);
+        handleDefaultLabelValue(dto, jsonObject);
         StringBuffer sql = new StringBuffer();
         boolean status;
         try {
