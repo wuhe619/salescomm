@@ -177,7 +177,7 @@ public class BatchTestTaskZService implements BusiService {
             String key = (String) keys.next();
             String value = String.valueOf(params.get(key));
             if (StringUtil.isEmpty(value)) continue;
-            if ("pageNum".equals(key) || "pageSize".equals(key))
+            if ("pageNum".equals(key) || "pageSize".equals(key) || "_orderby_".equals(key) || "_sort_".equals(key))
                 continue;
             if ("cust_id".equals(key)) {
                 sqlstr.append(" and cust_id=? ");
