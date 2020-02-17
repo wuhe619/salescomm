@@ -456,9 +456,9 @@ public class CrmLeadsController extends BasicAction {
      */
     @Permissions("crm:leads:excelexport")
     @RequestMapping(value = "/batchExportExcel", method = RequestMethod.POST)
-    public void batchExportExcel(@Para("ids") String leadsIds, HttpServletResponse response) throws IOException {
+    public void batchExportExcel(@RequestParam(name = "ids") String leadsIds, HttpServletResponse response) throws IOException {
         List<Record> recordList = crmLeadsService.exportLeads(leadsIds);
-        export(recordList, response);
+        export(recordList, response, "1");
         //renderNull();
     }
 
@@ -468,9 +468,9 @@ public class CrmLeadsController extends BasicAction {
      */
     @Permissions("crm:leads:excelexport")
     @RequestMapping(value = "/cluesea/batchExportExcel", method = RequestMethod.POST)
-    public void clueseaBatchExportExcel(@Para("ids") String leadsIds, HttpServletResponse response) throws IOException {
+    public void clueseaBatchExportExcel(@RequestParam(name = "ids") String leadsIds, HttpServletResponse response) throws IOException {
         List<Record> recordList = crmLeadsService.exportLeads(leadsIds);
-        export(recordList, response);
+        export(recordList, response, "11");
         //renderNull();
     }
 
@@ -485,7 +485,7 @@ public class CrmLeadsController extends BasicAction {
         jsonObject.fluentPut("excel", "yes").fluentPut("type", "1");
         AdminSceneService adminSceneService = new AdminSceneService();
         List<Record> recordList = (List<Record>) adminSceneService.filterConditionAndGetPageList(basePageRequest).get("data");
-        export(recordList, response);
+        export(recordList, response, "1");
         //renderNull();
     }
 
@@ -500,16 +500,16 @@ public class CrmLeadsController extends BasicAction {
         jsonObject.fluentPut("excel", "yes").fluentPut("type", "1");
         AdminSceneService adminSceneService = new AdminSceneService();
         List<Record> recordList = (List<Record>) adminSceneService.filterConditionAndGetPageList(basePageRequest).get("data");
-        export(recordList, response);
+        export(recordList, response, "11");
         //renderNull();
     }
 
-    private void export(List<Record> recordList, HttpServletResponse response) throws IOException {
+    private void export(List<Record> recordList, HttpServletResponse response, String label) throws IOException {
         ExcelWriter writer = null;
         try {
             writer = ExcelUtil.getWriter();
-            AdminFieldService adminFieldService = new AdminFieldService();
-            List<Record> fieldList = adminFieldService.customFieldList("1");
+            //AdminFieldService adminFieldService = new AdminFieldService();
+            List<Record> fieldList = adminFieldService.customFieldList(label);
             writer.addHeaderAlias("leads_name", "线索名称");
             writer.addHeaderAlias("next_time", "下次联系时间");
             writer.addHeaderAlias("telephone", "电话");

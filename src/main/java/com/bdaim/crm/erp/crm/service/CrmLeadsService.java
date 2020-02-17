@@ -1285,6 +1285,13 @@ public class CrmLeadsService {
         return R.ok();
     }
 
+    /**
+     * 公海线索批量上传
+     * @param file
+     * @param repeatHandling
+     * @param ownerUserId
+     * @return
+     */
     public R uploadExcelPublicSea(MultipartFile file, Integer repeatHandling, Integer ownerUserId) {
         Kv kv = new Kv();
         Integer errNum = 0;
