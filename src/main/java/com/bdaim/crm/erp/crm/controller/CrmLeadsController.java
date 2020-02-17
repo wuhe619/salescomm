@@ -18,6 +18,7 @@ import com.bdaim.crm.common.annotation.Permissions;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.dao.LkCrmAdminFieldDao;
 import com.bdaim.crm.entity.LkCrmAdminRecordEntity;
+import com.bdaim.crm.entity.LkCrmLeadsEntity;
 import com.bdaim.crm.erp.admin.service.AdminFieldService;
 import com.bdaim.crm.erp.admin.service.AdminSceneService;
 import com.bdaim.crm.erp.crm.common.CrmEnum;
@@ -835,5 +836,17 @@ public class CrmLeadsController extends BasicAction {
         return (result);
         //return !result.get("code").equals(500);
         //});
+    }
+
+    /**
+     * @author wyq
+     * 客户锁定
+     */
+    @Permissions("crm:customer:lock")
+    @NotNullValidate(value = "ids", message = "客户id不能为空")
+    @NotNullValidate(value = "isLock", message = "锁定状态不能为空")
+    @RequestMapping(value = "/lock", method = RequestMethod.POST)
+    public R lock(LkCrmLeadsEntity crmCustomer, String ids) {
+        return (crmLeadsService.lock(crmCustomer, ids));
     }
 }
