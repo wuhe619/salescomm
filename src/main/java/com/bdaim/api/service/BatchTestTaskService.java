@@ -120,8 +120,8 @@ public class BatchTestTaskService implements BusiService {
         Iterator keys = params.keySet().iterator();
         while (keys.hasNext()) {
             String key = (String) keys.next();
-            if (StringUtil.isNotEmpty(String.valueOf(params.get(key)))) continue;
-            if ("pageNum".equals(key) || "pageSize".equals(key) || "pid1".equals(key) || "pid2".equals(key))
+            if (StringUtil.isEmpty(String.valueOf(params.get(key)))) continue;
+            if ("pageNum".equals(key) || "pageSize".equals(key) || "_sort_".equals(key) || "_orderby_".equals(key))
                 continue;
             if ("cust_id".equals(key)) {
                 sqlstr.append(" and cust_id=? ");

@@ -71,7 +71,7 @@ public class CustBusiParamService implements BusiService{
 		while (keys.hasNext()) {
 			String key = (String) keys.next();
 			if ("".equals(String.valueOf(params.get(key)))) continue;
-			if ("pageNum".equals(key) || "pageSize".equals(key) || "stationId".equals(key) || "cust_id".equals(key))
+			if ("pageNum".equals(key) || "pageSize".equals(key) || "stationId".equals(key) || "cust_id".equals(key) || "_orderby_".equals(key) || "_sort_".equals(key))
 				continue;
 
 			if ("cust_id".equals(key)) {
