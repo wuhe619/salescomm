@@ -287,7 +287,7 @@ public class ApiService {
             arr.add(params.getString("account").trim());
         }
         sql.append("group by charge.SUBSCRIBER_ID ");
-        //sql.append(" order by CREATED_TIME desc");
+        sql.append(" order by charge.event_time desc ");
         PageList list = new Pagination().getPageData(sql.toString(), arr.toArray(), page, jdbcTemplate);
         Map<String, Object> map = new HashMap<>();
         Object collect = list.getList().stream().map(m -> {
