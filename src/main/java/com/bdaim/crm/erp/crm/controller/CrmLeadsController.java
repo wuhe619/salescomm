@@ -1,17 +1,17 @@
 package com.bdaim.crm.erp.crm.controller;
 
+import cn.hutool.core.date.DatePattern;
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.poi.excel.ExcelUtil;
 import cn.hutool.poi.excel.ExcelWriter;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.bdaim.common.annotation.CacheAnnotation;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.controller.util.ResponseCommon;
 import com.bdaim.common.controller.util.ResponseJson;
 import com.bdaim.common.exception.TouchException;
-import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.crm.common.annotation.LoginFormCookie;
 import com.bdaim.crm.common.annotation.NotNullValidate;
 import com.bdaim.crm.common.annotation.Permissions;
@@ -30,11 +30,11 @@ import com.bdaim.customersea.dto.CustomSeaTouchInfoDTO;
 import com.bdaim.customersea.dto.CustomerSeaSearch;
 import com.bdaim.customersea.service.CustomerSeaService;
 import com.bdaim.util.IDHelper;
+import com.bdaim.util.JavaBeanUtil;
 import com.bdaim.util.MD5Util;
 import com.bdaim.util.StringUtil;
 import com.jfinal.aop.Before;
 import com.jfinal.core.paragetter.Para;
-import com.jfinal.log.Log;
 import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.tx.Tx;
 import org.apache.poi.hssf.usermodel.*;
@@ -196,7 +196,6 @@ public class CrmLeadsController extends BasicAction {
 
     @Permissions("crm:leads:read")
     @NotNullValidate(value = "leadsId", message = "线索id不能为空")
-    @ResponseBody
     @RequestMapping(value = "/cluesea/queryById", method = RequestMethod.POST)
     public R clueSeaQueryById(@RequestBody JSONObject jsonO) {
         return (R.ok().put("data", crmLeadsService.queryClueById(jsonO.getLong("seaId"), jsonO.getString("id"))));
@@ -206,7 +205,6 @@ public class CrmLeadsController extends BasicAction {
      * @author wyq
      * 查看跟进记录
      */
-    @ResponseBody
     @RequestMapping(value = "/cluesea/getRecord", method = RequestMethod.POST)
     public R clueGetRecord(BasePageRequest basePageRequest, CrmLeads crmLeads, Long seaId) {
         basePageRequest.setData(crmLeads);
@@ -305,8 +303,7 @@ public class CrmLeadsController extends BasicAction {
      * @param param
      * @return
      */
-    @RequestMapping(value = "/selectUserGetQuantity", method = RequestMethod.POST)
-    @CacheAnnotation
+    @RequestMapping(value = "/cluesea/selectUserGetQuantity", method = RequestMethod.POST)
     public ResponseJson selectUserGetQuantity(@RequestBody CustomerSeaSearch param) {
         ResponseJson responseJson = new ResponseJson();
         long data = 0;
@@ -324,12 +321,11 @@ public class CrmLeadsController extends BasicAction {
     }
 
     @RequestMapping(value = "/deleteFiled", method = RequestMethod.POST)
-    @CacheAnnotation
     public ResponseJson deleteFiled(@RequestBody CustomerSeaSearch param) {
         ResponseJson responseJson = new ResponseJson();
 
-        int data = crmAdminFieldDao.executeUpdateSQL("ALTER TABLE `lkcrm_crm_action_record` MODIFY COLUMN `action_id`  varchar(32) NOT NULL COMMENT '被操作对象ID' AFTER `types`;");
-        responseJson.setData(data);
+        /*int data = crmAdminFieldDao.executeUpdateSQL("");
+        responseJson.setData(data);*/
         return responseJson;
     }
 
@@ -339,10 +335,8 @@ public class CrmLeadsController extends BasicAction {
      * 查看列表页
      */
     @Permissions({"crm:leads:index"})
-    @ResponseBody
     @RequestMapping(value = "/queryPageList", method = RequestMethod.POST)
     public R queryPageList(@RequestBody JSONObject jsonObject) {
-        ResponseInfo resp = new ResponseInfo();
         BasePageRequest<Void> basePageRequest = new BasePageRequest<>();
         jsonObject.fluentPut("type", 1);
         basePageRequest.setJsonObject(jsonObject);
@@ -365,7 +359,6 @@ public class CrmLeadsController extends BasicAction {
      * 新增或更新线索
      */
     @Permissions({"crm:leads:save", "crm:leads:update"})
-    @ResponseBody
     @RequestMapping(value = "/addOrUpdate", method = RequestMethod.POST)
     public R addOrUpdate(@RequestBody JSONObject object) {
         //JSONObject object = JSON.parseObject(getRawData());
@@ -378,7 +371,6 @@ public class CrmLeadsController extends BasicAction {
      */
     @Permissions("crm:leads:read")
     @NotNullValidate(value = "leadsId", message = "线索id不能为空")
-    @ResponseBody
     @RequestMapping(value = "/queryById", method = RequestMethod.POST)
     public R queryById(@Para("leadsId") Integer leadsId) {
         return (R.ok().put("data", crmLeadsService.queryById(leadsId).getColumns()));
@@ -399,7 +391,6 @@ public class CrmLeadsController extends BasicAction {
      */
     @Permissions("crm:leads:delete")
     @NotNullValidate(value = "leadsIds", message = "线索id不能为空")
-    @ResponseBody
     @RequestMapping(value = "/leadsIds", method = RequestMethod.POST)
     public R deleteByIds(@Para("leadsIds") String leadsIds) {
         return (crmLeadsService.deleteByIds(leadsIds));
@@ -412,7 +403,6 @@ public class CrmLeadsController extends BasicAction {
     @Permissions("crm:leads:transfer")
     @NotNullValidate(value = "leadsIds", message = "线索id不能为空")
     @NotNullValidate(value = "newOwnerUserId", message = "新负责人id不能为空")
-    @ResponseBody
     @RequestMapping(value = "/changeOwnerUser", method = RequestMethod.POST)
     public R changeOwnerUser(@Para("leadsIds") String leadsIds, @Para("newOwnerUserId") Integer newOwnerUserId) {
         return (crmLeadsService.updateOwnerUserId(leadsIds, newOwnerUserId));
@@ -424,7 +414,6 @@ public class CrmLeadsController extends BasicAction {
      */
     @Permissions("crm:leads:transform")
     @NotNullValidate(value = "leadsIds", message = "线索id不能为空")
-    @ResponseBody
     @RequestMapping(value = "/transfer", method = RequestMethod.POST)
     public R transfer(@Para("leadsIds") String leadsIds) {
         return (crmLeadsService.translate(leadsIds));
@@ -437,7 +426,6 @@ public class CrmLeadsController extends BasicAction {
     @NotNullValidate(value = "typesId", message = "线索id不能为空")
     @NotNullValidate(value = "content", message = "内容不能为空")
     @NotNullValidate(value = "category", message = "跟进类型不能为空")
-    @ResponseBody
     @RequestMapping(value = "/addRecord", method = RequestMethod.POST)
     public R addRecord(@Para("") LkCrmAdminRecordEntity adminRecord) {
         boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.LEADS_TYPE_KEY.getSign()), NumberUtil.parseInt(adminRecord.getTypesId()));
@@ -452,7 +440,6 @@ public class CrmLeadsController extends BasicAction {
      * @author wyq
      * 查看跟进记录
      */
-    @ResponseBody
     @RequestMapping(value = "/getRecord", method = RequestMethod.POST)
     public R getRecord(BasePageRequest basePageRequest, CrmLeads crmLeads) {
         basePageRequest.setData(crmLeads);
@@ -469,9 +456,9 @@ public class CrmLeadsController extends BasicAction {
      */
     @Permissions("crm:leads:excelexport")
     @RequestMapping(value = "/batchExportExcel", method = RequestMethod.POST)
-    public void batchExportExcel(@Para("ids") String leadsIds, HttpServletResponse response) throws IOException {
+    public void batchExportExcel(@RequestParam(name = "ids") String leadsIds, HttpServletResponse response) throws IOException {
         List<Record> recordList = crmLeadsService.exportLeads(leadsIds);
-        export(recordList, response);
+        export(recordList, response, "1");
         //renderNull();
     }
 
@@ -481,9 +468,9 @@ public class CrmLeadsController extends BasicAction {
      */
     @Permissions("crm:leads:excelexport")
     @RequestMapping(value = "/cluesea/batchExportExcel", method = RequestMethod.POST)
-    public void clueseaBatchExportExcel(@Para("ids") String leadsIds, HttpServletResponse response) throws IOException {
-        List<Record> recordList = crmLeadsService.exportLeads(leadsIds);
-        export(recordList, response);
+    public void clueSeaBatchExportExcel(@RequestParam(name = "ids") String superIds, Long seaId, HttpServletResponse response) throws IOException {
+        List<Record> recordList = crmLeadsService.exportPublicSeaClues(seaId, superIds);
+        exportPublicSea(recordList, response, "11");
         //renderNull();
     }
 
@@ -496,33 +483,41 @@ public class CrmLeadsController extends BasicAction {
     public void allExportExcel(BasePageRequest basePageRequest, HttpServletResponse response) throws IOException {
         JSONObject jsonObject = basePageRequest.getJsonObject();
         jsonObject.fluentPut("excel", "yes").fluentPut("type", "1");
-        AdminSceneService adminSceneService = new AdminSceneService();
         List<Record> recordList = (List<Record>) adminSceneService.filterConditionAndGetPageList(basePageRequest).get("data");
-        export(recordList, response);
+        export(recordList, response, "1");
         //renderNull();
     }
 
     /**
-     * @author wyq
-     * 导出全部线索
+     * 导出公海全部线索
      */
     @Permissions("crm:leads:excelexport")
     @RequestMapping(value = "/cluesea/allExportExcel", method = RequestMethod.POST)
-    public void clueseaAllExportExcel(BasePageRequest basePageRequest, HttpServletResponse response) throws IOException {
-        JSONObject jsonObject = basePageRequest.getJsonObject();
+    public void clueSeaAllExportExcel(Long seaId, String search, HttpServletResponse response) throws IOException, TouchException {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("search", search);
         jsonObject.fluentPut("excel", "yes").fluentPut("type", "1");
-        AdminSceneService adminSceneService = new AdminSceneService();
-        List<Record> recordList = (List<Record>) adminSceneService.filterConditionAndGetPageList(basePageRequest).get("data");
-        export(recordList, response);
+        BasePageRequest basePageRequest = new BasePageRequest();
+        basePageRequest.setJsonObject(jsonObject);
+        List<Record> recordList = JavaBeanUtil.mapToRecords(crmLeadsService.listCluePublicSea(basePageRequest, seaId, BaseUtil.getUser().getCustId()));
+        exportPublicSea(recordList, response, "11");
         //renderNull();
     }
 
-    private void export(List<Record> recordList, HttpServletResponse response) throws IOException {
+    /**
+     * 线索私海导出
+     *
+     * @param recordList
+     * @param response
+     * @param label
+     * @throws IOException
+     */
+    private void export(List<Record> recordList, HttpServletResponse response, String label) throws IOException {
         ExcelWriter writer = null;
         try {
             writer = ExcelUtil.getWriter();
-            AdminFieldService adminFieldService = new AdminFieldService();
-            List<Record> fieldList = adminFieldService.customFieldList("1");
+            //AdminFieldService adminFieldService = new AdminFieldService();
+            List<Record> fieldList = adminFieldService.customFieldList(label);
             writer.addHeaderAlias("leads_name", "线索名称");
             writer.addHeaderAlias("next_time", "下次联系时间");
             writer.addHeaderAlias("telephone", "电话");
@@ -563,6 +558,79 @@ public class CrmLeadsController extends BasicAction {
             response.setCharacterEncoding("UTF-8");
             //test.xls是弹出下载对话框的文件名，不能为中文，中文请自行编码
             response.setHeader("Content-Disposition", "attachment;filename=leads.xls");
+            ServletOutputStream out = response.getOutputStream();
+            writer.flush(out);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            // 关闭writer，释放内存
+            writer.close();
+        }
+    }
+
+    /**
+     * 线索公海导出
+     *
+     * @param recordList
+     * @param response
+     * @param label
+     * @throws IOException
+     */
+    private void exportPublicSea(List<Record> recordList, HttpServletResponse response, String label) throws IOException {
+        ExcelWriter writer = null;
+        try {
+            writer = ExcelUtil.getWriter();
+            //AdminFieldService adminFieldService = new AdminFieldService();
+            List<Record> fieldList = adminFieldService.customFieldList(label);
+            writer.addHeaderAlias("id", "线索唯一标识");
+            writer.addHeaderAlias("leads_name", "线索名称");
+            writer.addHeaderAlias("super_phone", "电话");
+            writer.addHeaderAlias("super_telphone", "手机号");
+            writer.addHeaderAlias("super_address_street", "地址");
+            writer.addHeaderAlias("next_time", "下次联系时间");
+            writer.addHeaderAlias("remark", "备注");
+            for (Record field : fieldList) {
+                writer.addHeaderAlias(field.getStr("field_name"), field.getStr("name"));
+            }
+
+            writer.addHeaderAlias("create_user_name", "创建人");
+            writer.addHeaderAlias("owner_user_name", "负责人");
+            writer.addHeaderAlias("create_time", "创建时间");
+            writer.addHeaderAlias("update_time", "更新时间");
+            writer.addHeaderAlias("call_count", "呼叫次数");
+            writer.addHeaderAlias("last_call_time", "最后通话时间");
+            writer.addHeaderAlias("last_call_status", "最后呼叫状态");
+
+            writer.merge(fieldList.size() + 1, "线索信息");
+            //HttpServletResponse response = getResponse();
+            List<Map<String, Object>> list = new ArrayList<>();
+            for (Record record : recordList) {
+                record.remove("custType", "entId", "intentLevel", "lastCallTime");
+                record.remove("user_id", "status", "call_empty_count", "call_success_count", "call_fail_count", "data_source", "intent_level", "last_call_time");
+                record.remove("last_called_duration", "pull_status", "status", "super_age", "super_name", "super_sex", "user_get_time", "user_group_id");
+                list.add(record.remove("super_data", "batch_id", "is_transform", "customer_id", "leads_id", "owner_user_id", "create_user_id", "followup", "field_batch_id").getColumns());
+            }
+            writer.write(list, true);
+            writer.setRowHeight(0, 30);
+            writer.setRowHeight(1, 20);
+            for (int i = 0; i < fieldList.size() + 15; i++) {
+                writer.setColumnWidth(i, 20);
+            }
+            Cell cell = writer.getCell(0, 0);
+            CellStyle cellStyle = cell.getCellStyle();
+            cellStyle.setFillForegroundColor(IndexedColors.SKY_BLUE.getIndex());
+            cellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+            Font font = writer.createFont();
+            font.setBold(true);
+            font.setFontHeightInPoints((short) 16);
+            cellStyle.setFont(font);
+            cell.setCellStyle(cellStyle);
+            //自定义标题别名
+            //response为HttpServletResponse对象
+            response.setContentType("application/vnd.ms-excel;charset=utf-8");
+            response.setCharacterEncoding("UTF-8");
+            //test.xls是弹出下载对话框的文件名，不能为中文，中文请自行编码
+            response.setHeader("Content-Disposition", "attachment;filename=sea_list" + DateUtil.format(new Date(), DatePattern.PURE_DATETIME_PATTERN) + ".xls");
             ServletOutputStream out = response.getOutputStream();
             writer.flush(out);
         } catch (Exception e) {
@@ -646,8 +714,8 @@ public class CrmLeadsController extends BasicAction {
      */
     @LoginFormCookie
     @RequestMapping(value = "/cluesea/downloadExcel")
-    public void clueseaDownloadExcel(HttpServletResponse response) {
-        List<Record> recordList = adminFieldService.queryAddField(1);
+    public void clueSeaDownloadExcel(HttpServletResponse response) {
+        List<Record> recordList = adminFieldService.queryAddField(11);
         recordList.removeIf(record -> "file".equals(record.getStr("formType")) || "checkbox".equals(record.getStr("formType")) || "user".equals(record.getStr("formType")) || "structure".equals(record.getStr("formType")));
         HSSFWorkbook wb = new HSSFWorkbook();
         HSSFSheet sheet = wb.createSheet("线索导入表");
@@ -691,15 +759,14 @@ public class CrmLeadsController extends BasicAction {
                 }
             }
             //HttpServletResponse response = getResponse();
-
             response.setContentType("application/vnd.ms-excel;charset=utf-8");
             response.setCharacterEncoding("UTF-8");
             //test.xls是弹出下载对话框的文件名，不能为中文，中文请自行编码
-            response.setHeader("Content-Disposition", "attachment;filename=leads_import.xls");
+            response.setHeader("Content-Disposition", "attachment;filename=public_sea_import.xls");
             wb.write(response.getOutputStream());
 
         } catch (Exception e) {
-            Log.getLog(getClass()).error("error", e);
+            LOG.error("error", e);
         } finally {
             try {
                 wb.close();
@@ -718,7 +785,7 @@ public class CrmLeadsController extends BasicAction {
     @NotNullValidate(value = "ownerUserId", message = "请选择负责人")
     @Before(Tx.class)
     @RequestMapping(value = "/uploadExcel")
-    public R uploadExcel(@Para("repeatHandling") Integer repeatHandling, @Para("ownerUserId") Integer ownerUserId) {
+    public R uploadExcel(Integer repeatHandling, Long ownerUserId) {
         //Db.tx(() -> {
         MultipartFile file = null;
         CommonsMultipartResolver multipartResolver = new CommonsMultipartResolver(
@@ -748,7 +815,7 @@ public class CrmLeadsController extends BasicAction {
     @NotNullValidate(value = "ownerUserId", message = "请选择负责人")
     @Before(Tx.class)
     @RequestMapping(value = "/cluesea/uploadExcel")
-    public R clueseaUploadExcel(@Para("repeatHandling") Integer repeatHandling, @Para("ownerUserId") Integer ownerUserId) {
+    public R clueSeaUploadExcel(Integer repeatHandling, Long ownerUserId, Long seaId) {
         //Db.tx(() -> {
         MultipartFile file = null;
         CommonsMultipartResolver multipartResolver = new CommonsMultipartResolver(
@@ -764,7 +831,7 @@ public class CrmLeadsController extends BasicAction {
                 }
             }
         }
-        R result = crmLeadsService.uploadExcel(file, repeatHandling, ownerUserId);
+        R result = crmLeadsService.uploadExcelPublicSea(file, repeatHandling, ownerUserId, seaId);
         return (result);
         //return !result.get("code").equals(500);
         //});
