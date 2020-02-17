@@ -361,6 +361,8 @@ public class ApiService {
             Map dataMap = (Map) m;
             if(dataMap.containsKey("requestParam") && null!=dataMap.get("requestParam") &&  StringUtil.isNotEmpty(dataMap.get("requestParam").toString())){
                 dataMap.put("requestParam",Base64.getEncoder().encodeToString(dataMap.get("requestParam").toString().getBytes(Charset.forName("utf-8"))));
+            }else{
+                dataMap.put("requestParam","");
             }
             return dataMap;
         }).collect(Collectors.toList());
