@@ -287,7 +287,7 @@ public class ApiService {
             arr.add(params.getString("account").trim());
         }
         sql.append("group by charge.SUBSCRIBER_ID ");
-        //sql.append(" order by CREATED_TIME desc");
+        sql.append(" order by charge.event_time desc ");
         PageList list = new Pagination().getPageData(sql.toString(), arr.toArray(), page, jdbcTemplate);
         Map<String, Object> map = new HashMap<>();
         Object collect = list.getList().stream().map(m -> {
@@ -317,7 +317,7 @@ public class ApiService {
                 .append(" where charge.SUBSCRIBER_ID=?");
         arr.add(params.getString("customerId"));
         sql.append("group by charge.api_id ");
-        //sql.append(" order by CREATED_TIME desc");
+        sql.append(" order by charge.event_TIME desc");
         PageList list = new Pagination().getPageData(sql.toString(), arr.toArray(), page, jdbcTemplate);
         Map<String, Object> map = new HashMap<>();
         Object collect = list.getList().stream().map(m -> {
@@ -361,6 +361,8 @@ public class ApiService {
             Map dataMap = (Map) m;
             if(dataMap.containsKey("requestParam") && null!=dataMap.get("requestParam") &&  StringUtil.isNotEmpty(dataMap.get("requestParam").toString())){
                 dataMap.put("requestParam",Base64.getEncoder().encodeToString(dataMap.get("requestParam").toString().getBytes(Charset.forName("utf-8"))));
+            }else{
+                dataMap.put("requestParam","");
             }
             return dataMap;
         }).collect(Collectors.toList());
