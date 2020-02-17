@@ -9,7 +9,7 @@ import java.util.Objects;
 public class LkCrmAdminFileEntity {
     private Integer fileId;
     private String name;
-    private int size;
+    private Long size;
     private int createUserId;
     private Timestamp createTime;
     private String path;
@@ -40,11 +40,11 @@ public class LkCrmAdminFileEntity {
 
     @Basic
     @Column(name = "size")
-    public int getSize() {
+    public Long getSize() {
         return size;
     }
 
-    public void setSize(int size) {
+    public void setSize(Long size) {
         this.size = size;
     }
 

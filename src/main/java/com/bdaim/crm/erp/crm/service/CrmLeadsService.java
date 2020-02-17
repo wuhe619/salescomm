@@ -4,6 +4,7 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.poi.excel.ExcelReader;
@@ -25,12 +26,14 @@ import com.bdaim.crm.utils.*;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customer.dao.CustomerUserDao;
 import com.bdaim.customer.entity.CustomerUser;
+import com.bdaim.customer.service.CustomerLabelService;
 import com.bdaim.customersea.dao.CustomerSeaDao;
 import com.bdaim.customersea.dto.CustomSeaTouchInfoDTO;
 import com.bdaim.customersea.dto.CustomerSeaESDTO;
 import com.bdaim.customersea.dto.CustomerSeaSearch;
 import com.bdaim.customersea.entity.CustomerSea;
 import com.bdaim.customersea.entity.CustomerSeaProperty;
+import com.bdaim.customersea.service.CustomerSeaService;
 import com.bdaim.customgroup.dao.CustomGroupDao;
 import com.bdaim.util.*;
 import com.jfinal.aop.Before;
@@ -45,6 +48,7 @@ import org.hibernate.HibernateException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.transaction.Transactional;
@@ -109,6 +113,10 @@ public class CrmLeadsService {
     private CustomerDao customerDao;
     @Resource
     private PhoneService phoneService;
+    @Resource
+    private CustomerLabelService customerLabelService;
+    @Resource
+    private CustomerSeaService customerSeaService;
 
     /**
      * 默认需要转为super_data的字段名称
@@ -134,9 +142,22 @@ public class CrmLeadsService {
         put("entPersonNum", "SYS013");
         // 企业ID
         put("entId", "SYS014");
+
+        //CRM标签
         put("next_time", "next_time");
         put("remark", "remark");
         put("leads_name", "leads_name");
+        put("dept", "dept");
+        put("position", "position");
+        put("site", "site");
+        put("sea_use_count", "sea_use_count");
+        put("未跟进天数", "未跟进天数");
+        put("剩余回收时间", "剩余回收时间");
+        put("退回公海原因", "退回公海原因");
+        put("邮件次数", "邮件次数");
+        put("营销总次数", "营销总次数");
+        put("退回公海原因", "退回公海原因");
+
     }};
 
     private Map<String, String> excelDefaultLabels = new HashMap() {{
@@ -180,6 +201,14 @@ public class CrmLeadsService {
             return R.error("参数包含非法字段");
         }
         com.bdaim.common.dto.Page page = crmLeadsDao.pageCluePublicSea(basePageRequest.getPage(), basePageRequest.getLimit(), seaId, search);
+        if (page != null && page.getData() != null) {
+            for (int i = 0; i < page.getData().size(); i++) {
+                Map map = (Map) page.getData().get(i);
+                // 解析super_data中qq 微信等属性
+                getDefaultLabelValue(map);
+                map.remove("super_data");
+            }
+        }
         Page finalPage = new Page();
         finalPage.setList(page.getData());
         finalPage.setTotalRow(page.getTotal());
@@ -187,11 +216,33 @@ public class CrmLeadsService {
     }
 
     /**
+     * 解析super_data中qq 微信等属性
+     *
+     * @param data
+     */
+    private void getDefaultLabelValue(Map<String, Object> data) {
+        if (data != null && data.get("super_data") != null) {
+            JSONObject jsonObject = JSON.parseObject(String.valueOf(data.get("super_data")));
+            if (jsonObject == null || jsonObject.size() == 0) {
+                return;
+            }
+            for (Map.Entry<String, Object> m : jsonObject.entrySet()) {
+                for (Map.Entry<String, String> label : defaultLabels.entrySet()) {
+                    if (Objects.equals(m.getKey(), label.getValue())) {
+                        data.put(label.getKey(), m.getValue());
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * 处理qq 微信 根据状态等自建属性值存入super_data
      *
      * @param dto
      */
-    private void handleDefaultLabelValue(CustomSeaTouchInfoDTO dto) {
+    private void handleDefaultLabelValue(CustomSeaTouchInfoDTO dto, JSONObject param) {
         Map<String, Object> superData = new HashMap<>(16);
         if (dto.getSuperData() != null && dto.getSuperData().size() > 0) {
             for (Map.Entry<String, Object> m : dto.getSuperData().entrySet()) {
@@ -207,6 +258,15 @@ public class CrmLeadsService {
                 }
             }
         }
+        if (param != null && param.size() > 0) {
+            for (Map.Entry<String, Object> m : param.entrySet()) {
+                if (defaultLabels.get(m.getKey()) != null && StringUtil.isNotEmpty(String.valueOf(m.getValue()))) {
+                    // qq 微信等系统自建属性
+                    superData.put(defaultLabels.get(m.getKey()), m.getValue());
+                }
+            }
+        }
+
         dto.setSuperData(superData);
     }
 
@@ -218,17 +278,14 @@ public class CrmLeadsService {
      */
     public int addClueData0(CustomSeaTouchInfoDTO dto, JSONObject jsonObject) {
         // 处理qq 微信等默认自建属性值
-        handleDefaultLabelValue(dto);
+        handleDefaultLabelValue(dto, jsonObject);
         StringBuffer sql = new StringBuffer();
         int status = 0;
         try {
-            // 查询公海下默认客群
-            CustomerSeaProperty csp = customerSeaDao.getProperty(dto.getCustomerSeaId(), "defaultClueCgId");
-            if (csp == null) {
-                LOG.warn("公海:" + dto.getCustomerSeaId() + ",默认线索客群不存在");
-            } else {
-                dto.setCust_group_id(csp.getPropertyValue());
-            }
+            //查询默认客群
+            String cgId = customerSeaService.createDefaultClueCGroup0(NumberUtil.parseLong(dto.getCustomerSeaId()), "公海默认客群", dto.getCust_id());
+            dto.setCust_group_id(cgId);
+
             String superId = MD5Util.encode32Bit("c" + dto.getSuper_telphone());
             dto.setSuper_id(superId);
             CustomerUser user = customerUserDao.get(NumberConvertUtil.parseLong(dto.getUser_id()));
@@ -282,6 +339,83 @@ public class CrmLeadsService {
         } catch (Exception e) {
             status = 0;
             LOG.error("保存添加线索个人信息" + ConstantsUtil.CUSTOMER_GROUP_TABLE_PREFIX + dto.getCust_group_id() + "失败", e);
+        }
+        return status;
+    }
+
+    /**
+     * 保存线索标记的信息
+     *
+     * @param dto
+     * @return
+     */
+    public boolean updateClueSignData(CustomSeaTouchInfoDTO dto, JSONObject jsonObject) {
+        // 处理qq 微信等默认自建属性值
+        handleDefaultLabelValue(dto, jsonObject);
+        StringBuffer sql = new StringBuffer();
+        boolean status;
+        try {
+            //查询默认客群
+            String cgId = customerSeaService.createDefaultClueCGroup0(NumberUtil.parseLong(dto.getCustomerSeaId()), "公海默认客群", dto.getCust_id());
+            dto.setCust_group_id(cgId);
+
+            LOG.info("开始更新客户群数据表个人信息:" + ConstantsUtil.CUSTOMER_GROUP_TABLE_PREFIX + dto.getCust_group_id() + ",数据:" + dto.toString());
+            sql.append("UPDATE " + ConstantsUtil.CUSTOMER_GROUP_TABLE_PREFIX + dto.getCust_group_id() + " SET ")
+                    .append(" super_name= ?, ")
+                    .append(" super_age= ?, ")
+                    .append(" super_sex= ?, ")
+                    .append(" super_telphone= ?, ")
+                    .append(" super_phone= ?, ")
+                    .append(" super_address_province_city= ?, ")
+                    .append(" super_address_street = ?, ")
+                    .append(" super_data = ?, ")
+                    .append(" update_time = ?, ")
+                    .append(" STATUS = '0', ")
+                    .append(" user_id = ? ")
+                    .append(" WHERE id = ? ");
+            crmLeadsDao.executeUpdateSQL(sql.toString(), dto.getSuper_name(), dto.getSuper_age(),
+                    dto.getSuper_sex(), dto.getSuper_telphone(), dto.getSuper_phone(),
+                    dto.getSuper_address_province_city(), dto.getSuper_address_street(), JSON.toJSONString(dto.getSuperData()),
+                    new Timestamp(System.currentTimeMillis()), dto.getUser_id(), dto.getSuper_id());
+
+            LOG.info("开始更新公海[" + dto.getCustomerSeaId() + "]数据表个人信息:" + ConstantsUtil.SEA_TABLE_PREFIX + dto.getCustomerSeaId() + ",数据:" + dto.toString());
+            sql = new StringBuffer();
+            sql.append("UPDATE " + ConstantsUtil.SEA_TABLE_PREFIX + dto.getCustomerSeaId() + " SET ")
+                    .append(" super_name= ?, ")
+                    .append(" super_age= ?, ")
+                    .append(" super_sex= ?, ")
+                    .append(" super_telphone= ?, ")
+                    .append(" super_phone= ?, ")
+                    .append(" super_address_province_city= ?, ")
+                    .append(" super_address_street = ?, ")
+                    .append(" super_data = ?, ")
+                    .append(" last_mark_time = ?, ")
+                    .append(" update_time = ?, ")
+                    .append(" STATUS = '0', ")
+                    .append(" user_id = ? ")
+                    .append(" WHERE id = ? ");
+            crmLeadsDao.executeUpdateSQL(sql.toString(), dto.getSuper_name(), dto.getSuper_age(),
+                    dto.getSuper_sex(), dto.getSuper_telphone(), dto.getSuper_phone(),
+                    dto.getSuper_address_province_city(), dto.getSuper_address_street(), JSON.toJSONString(dto.getSuperData()), new Timestamp(System.currentTimeMillis()),
+                    new Timestamp(System.currentTimeMillis()), dto.getUser_id(), dto.getSuper_id());
+            // 保存标记信息到es中
+            CustomerSeaESDTO esData = new CustomerSeaESDTO(dto);
+            esData.setSuper_data(JSON.toJSONString(dto.getSuperData()));
+            //saveClueInfoToES(esData);
+            // 保存标记记录
+            customerLabelService.saveSuperDataLog(dto.getSuper_id(), dto.getCust_group_id(), "", dto.getUser_id(),
+                    dto.getSuperData(), dto.getCustomerSeaId());
+            //保存根据记录
+            crmRecordService.updateRecord(jsonObject.getJSONArray("field"), dto.getSuper_id());
+            //保存标记字段
+            adminFieldService.save(jsonObject.getJSONArray("field"), dto.getSuper_id());
+            // 保存操作记录
+            crmRecordService.addRecord(dto.getSuper_id(), CrmEnum.PUBLIC_SEA_TYPE_KEY.getTypes());
+
+            status = true;
+        } catch (Exception e) {
+            status = false;
+            LOG.error("更新数据表个人信息" + ConstantsUtil.CUSTOMER_GROUP_TABLE_PREFIX + dto.getCust_group_id() + "失败", e);
         }
         return status;
     }
@@ -983,7 +1117,7 @@ public class CrmLeadsService {
      * @author wyq
      * 导入线索
      */
-    public R uploadExcel(UploadFile file, Integer repeatHandling, Integer ownerUserId) {
+    public R uploadExcel0(UploadFile file, Integer repeatHandling, Integer ownerUserId) {
         ExcelReader reader = ExcelUtil.getReader(FileUtil.file(file.getUploadPath() + "\\" + file.getFileName()));
         //AdminFieldService adminFieldService = new AdminFieldService();
         Kv kv = new Kv();
@@ -1061,6 +1195,163 @@ public class CrmLeadsService {
             return R.error();
         } finally {
             reader.close();
+        }
+        return R.ok();
+    }
+
+    public R uploadExcel(MultipartFile file, Integer repeatHandling, Integer ownerUserId) {
+        //AdminFieldService adminFieldService = new AdminFieldService();
+        Kv kv = new Kv();
+        Integer errNum = 0;
+        try (ExcelReader reader = ExcelUtil.getReader(file.getInputStream())) {
+            List<List<Object>> read = reader.read();
+            List<Object> list = read.get(1);
+            List<Record> recordList = adminFieldService.customFieldList("1");
+            recordList.removeIf(record -> "file".equals(record.getStr("formType")) || "checkbox".equals(record.getStr("formType")) || "user".equals(record.getStr("formType")) || "structure".equals(record.getStr("formType")));
+            List<Record> fieldList = adminFieldService.queryAddField(1);
+            fieldList.removeIf(record -> "file".equals(record.getStr("formType")) || "checkbox".equals(record.getStr("formType")) || "user".equals(record.getStr("formType")) || "structure".equals(record.getStr("formType")));
+            fieldList.forEach(record -> {
+                if (record.getInt("is_null") == 1) {
+                    record.set("name", record.getStr("name") + "(*)");
+                }
+            });
+            List<String> nameList = fieldList.stream().map(record -> record.getStr("name")).collect(Collectors.toList());
+            if (nameList.size() != list.size() || !nameList.containsAll(list)) {
+                return R.error("请使用最新导入模板");
+            }
+            Kv nameMap = new Kv();
+            fieldList.forEach(record -> nameMap.set(record.getStr("name"), record.getStr("field_name")));
+            for (int i = 0; i < list.size(); i++) {
+                kv.set(nameMap.get(list.get(i)), i);
+            }
+            if (read.size() > 2) {
+                JSONObject object = new JSONObject();
+                for (int i = 2; i < read.size(); i++) {
+                    errNum = i;
+                    List<Object> leadsList = read.get(i);
+                    if (leadsList.size() < list.size()) {
+                        for (int j = leadsList.size() - 1; j < list.size(); j++) {
+                            leadsList.add(null);
+                        }
+                    }
+                    String leadsName = leadsList.get(kv.getInt("leads_name")).toString();
+                    Integer number = crmLeadsDao.queryForInt("select count(*) from lkcrm_crm_leads where leads_name = ?", leadsName);
+                    if (0 == number) {
+                        object.fluentPut("entity", new JSONObject().fluentPut("leads_name", leadsName)
+                                .fluentPut("telephone", leadsList.get(kv.getInt("telephone")))
+                                .fluentPut("mobile", leadsList.get(kv.getInt("mobile")))
+                                .fluentPut("address", leadsList.get(kv.getInt("address")))
+                                .fluentPut("next_time", leadsList.get(kv.getInt("next_time")))
+                                .fluentPut("remark", leadsList.get(kv.getInt("remark")))
+                                .fluentPut("owner_user_id", ownerUserId));
+                    } else if (number > 0 && repeatHandling == 1) {
+                        Record leads = JavaBeanUtil.mapToRecord(crmLeadsDao.sqlQuery("select leads_id,batch_id from lkcrm_crm_leads where leads_name = ?", leadsName).get(0));
+                        object.fluentPut("entity", new JSONObject().fluentPut("leads_id", leads.getInt("leads_id"))
+                                .fluentPut("leads_name", leadsName)
+                                .fluentPut("telephone", leadsList.get(kv.getInt("telephone")))
+                                .fluentPut("mobile", leadsList.get(kv.getInt("mobile")))
+                                .fluentPut("address", leadsList.get(kv.getInt("address")))
+                                .fluentPut("next_time", leadsList.get(kv.getInt("next_time")))
+                                .fluentPut("remark", leadsList.get(kv.getInt("remark")))
+                                .fluentPut("owner_user_id", ownerUserId)
+                                .fluentPut("batch_id", leads.getStr("batch_id")));
+                    } else if (number > 0 && repeatHandling == 2) {
+                        continue;
+                    }
+                    JSONArray jsonArray = new JSONArray();
+                    for (Record record : recordList) {
+                        Integer columnsNum = kv.getInt(record.getStr("name")) != null ? kv.getInt(record.getStr("name")) : kv.getInt(record.getStr("name") + "(*)");
+                        record.set("value", leadsList.get(columnsNum));
+                        jsonArray.add(JSONObject.parseObject(record.toJson()));
+                    }
+                    object.fluentPut("field", jsonArray);
+                    addOrUpdate(object);
+                }
+            }
+        } catch (Exception e) {
+            LOG.error("", e);
+            if (errNum != 0) {
+                return R.error("第" + (errNum + 1) + "行错误!");
+            }
+            return R.error();
+        }
+        return R.ok();
+    }
+
+    public R uploadExcelPublicSea(MultipartFile file, Integer repeatHandling, Integer ownerUserId) {
+        Kv kv = new Kv();
+        Integer errNum = 0;
+        try (ExcelReader reader = ExcelUtil.getReader(file.getInputStream())) {
+            List<List<Object>> read = reader.read();
+            List<Object> list = read.get(1);
+            List<Record> recordList = adminFieldService.customFieldList("11");
+            recordList.removeIf(record -> "file".equals(record.getStr("formType")) || "checkbox".equals(record.getStr("formType")) || "user".equals(record.getStr("formType")) || "structure".equals(record.getStr("formType")));
+            List<Record> fieldList = adminFieldService.queryAddField(11);
+            fieldList.removeIf(record -> "file".equals(record.getStr("formType")) || "checkbox".equals(record.getStr("formType")) || "user".equals(record.getStr("formType")) || "structure".equals(record.getStr("formType")));
+            fieldList.forEach(record -> {
+                if (record.getInt("is_null") == 1) {
+                    record.set("name", record.getStr("name") + "(*)");
+                }
+            });
+            List<String> nameList = fieldList.stream().map(record -> record.getStr("name")).collect(Collectors.toList());
+            if (nameList.size() != list.size() || !nameList.containsAll(list)) {
+                return R.error("请使用最新导入模板");
+            }
+            Kv nameMap = new Kv();
+            fieldList.forEach(record -> nameMap.set(record.getStr("name"), record.getStr("field_name")));
+            for (int i = 0; i < list.size(); i++) {
+                kv.set(nameMap.get(list.get(i)), i);
+            }
+            if (read.size() > 2) {
+                JSONObject object = new JSONObject();
+                for (int i = 2; i < read.size(); i++) {
+                    errNum = i;
+                    List<Object> leadsList = read.get(i);
+                    if (leadsList.size() < list.size()) {
+                        for (int j = leadsList.size() - 1; j < list.size(); j++) {
+                            leadsList.add(null);
+                        }
+                    }
+                    String leadsName = leadsList.get(kv.getInt("leads_name")).toString();
+                    Integer number = crmLeadsDao.queryForInt("select count(*) from lkcrm_crm_leads where leads_name = ?", leadsName);
+                    if (0 == number) {
+                        object.fluentPut("entity", new JSONObject().fluentPut("leads_name", leadsName)
+                                .fluentPut("telephone", leadsList.get(kv.getInt("telephone")))
+                                .fluentPut("mobile", leadsList.get(kv.getInt("mobile")))
+                                .fluentPut("address", leadsList.get(kv.getInt("address")))
+                                .fluentPut("next_time", leadsList.get(kv.getInt("next_time")))
+                                .fluentPut("remark", leadsList.get(kv.getInt("remark")))
+                                .fluentPut("owner_user_id", ownerUserId));
+                    } else if (number > 0 && repeatHandling == 1) {
+                        Record leads = JavaBeanUtil.mapToRecord(crmLeadsDao.sqlQuery("select leads_id,batch_id from lkcrm_crm_leads where leads_name = ?", leadsName).get(0));
+                        object.fluentPut("entity", new JSONObject().fluentPut("leads_id", leads.getInt("leads_id"))
+                                .fluentPut("leads_name", leadsName)
+                                .fluentPut("telephone", leadsList.get(kv.getInt("telephone")))
+                                .fluentPut("mobile", leadsList.get(kv.getInt("mobile")))
+                                .fluentPut("address", leadsList.get(kv.getInt("address")))
+                                .fluentPut("next_time", leadsList.get(kv.getInt("next_time")))
+                                .fluentPut("remark", leadsList.get(kv.getInt("remark")))
+                                .fluentPut("owner_user_id", ownerUserId)
+                                .fluentPut("batch_id", leads.getStr("batch_id")));
+                    } else if (number > 0 && repeatHandling == 2) {
+                        continue;
+                    }
+                    JSONArray jsonArray = new JSONArray();
+                    for (Record record : recordList) {
+                        Integer columnsNum = kv.getInt(record.getStr("name")) != null ? kv.getInt(record.getStr("name")) : kv.getInt(record.getStr("name") + "(*)");
+                        record.set("value", leadsList.get(columnsNum));
+                        jsonArray.add(JSONObject.parseObject(record.toJson()));
+                    }
+                    object.fluentPut("field", jsonArray);
+                    addOrUpdate(object);
+                }
+            }
+        } catch (Exception e) {
+            LOG.error("", e);
+            if (errNum != 0) {
+                return R.error("第" + (errNum + 1) + "行错误!");
+            }
+            return R.error();
         }
         return R.ok();
     }

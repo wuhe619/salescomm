@@ -372,11 +372,11 @@ public class CustomerSeaService {
         }
     }
 
-    private String createDefaultClueCGroup0(long customerSeaId, String customerSeaName, String custId) {
+    public String createDefaultClueCGroup0(long customerSeaId, String customerSeaName, String custId) {
         CustomerSeaProperty csp = customerSeaDao.getProperty(String.valueOf(customerSeaId), "defaultClueCgId");
         if (csp != null) {
             LOG.warn("公海:" + customerSeaId + ",默认线索客群已经存在,客群ID:" + csp.getPropertyValue());
-            return null;
+            return csp.getPropertyValue();
         }
         CustomerSea customerSea = customerSeaDao.get(customerSeaId);
         //插入订单表

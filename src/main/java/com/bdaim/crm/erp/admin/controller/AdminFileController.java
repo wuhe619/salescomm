@@ -7,7 +7,6 @@ import com.bdaim.crm.utils.R;
 import com.jfinal.core.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
@@ -18,27 +17,27 @@ public class AdminFileController extends Controller {
     @Resource
     private AdminFileService adminFileService;
 
-    public void index(){
-        renderJson(R.ok());
+    @RequestMapping(value = "index", method = RequestMethod.POST)
+    public R index() {
+        return (R.ok());
     }
 
     /**
      * @author zhangzhiwei
      * 上传附件
-     *
      */
-    public void upload(){
-        String prefix=BaseUtil.getDate();
-        renderJson(adminFileService.upload(getFile("file",prefix),getPara("batchId"),getPara("type"),prefix));
+    @RequestMapping(value = "upload", method = RequestMethod.POST)
+    public R upload(String batchId, String type) {
+        String prefix = BaseUtil.getDate();
+        return (adminFileService.upload0(BaseUtil.getRequest(), batchId, type, prefix));
     }
 
     /**
      * @author zhangzhiwei
      * 通过批次ID查询
      */
-    @ResponseBody
     @RequestMapping(value = "/queryByBatchId", method = RequestMethod.POST)
-    public R queryByBatchId(String batchId){
+    public R queryByBatchId(String batchId) {
         return (R.ok().put("data", adminFileService.queryByBatchId(batchId)));
     }
 
@@ -46,7 +45,7 @@ public class AdminFileController extends Controller {
      * @author zhangzhiwei
      * 通过ID查询
      */
-    public void queryById(){
+    public void queryById() {
         renderJson(adminFileService.queryById(getPara("id")));
     }
 
@@ -54,7 +53,7 @@ public class AdminFileController extends Controller {
      * @author zhangzhiwei
      * 通过ID删除
      */
-    public void removeById(){
+    public void removeById() {
         renderJson(adminFileService.removeById(getPara("id")));
     }
 
@@ -62,7 +61,7 @@ public class AdminFileController extends Controller {
      * @author zhangzhiwei
      * 通过批次ID删除
      */
-    public void removeByBatchId(){
+    public void removeByBatchId() {
         adminFileService.removeByBatchId(getPara("batchId"));
         renderJson(R.ok());
     }
@@ -71,10 +70,10 @@ public class AdminFileController extends Controller {
      * @author zhangzhiwei
      * 重命名文件
      */
-    public void renameFileById(){
-        AdminFile file=new AdminFile();
+    public void renameFileById() {
+        AdminFile file = new AdminFile();
         file.setFileId(getInt("fileId"));
         file.setName(getPara("name"));
-        renderJson(adminFileService.renameFileById(file)?R.ok():R.error());
+        renderJson(adminFileService.renameFileById(file) ? R.ok() : R.error());
     }
 }
