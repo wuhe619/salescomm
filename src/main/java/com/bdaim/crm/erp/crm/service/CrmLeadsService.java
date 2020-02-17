@@ -216,6 +216,33 @@ public class CrmLeadsService {
     }
 
     /**
+     * @return
+     * @author wyq
+     * 分页条件查询线索
+     */
+    public List listCluePublicSea(BasePageRequest<CrmLeads> basePageRequest, long seaId, String custId) throws TouchException {
+        //String leadsName = basePageRequest.getData().getLeadsName();
+        CustomerSea customerSea = customerSeaDao.get(seaId);
+        if (ObjectUtil.notEqual(custId, customerSea.getCustId())) {
+            throw new TouchException("线索公海不属于该客户");
+        }
+        String search = basePageRequest.getJsonObject().getString("search");
+        if (!ParamsUtil.isValid(search)) {
+            throw new TouchException("参数包含非法字段");
+        }
+        List<Map<String, Object>> list = crmLeadsDao.listCluePublicSea(seaId, search);
+        if (list != null && list != null) {
+            for (int i = 0; i < list.size(); i++) {
+                Map map = (Map) list.get(i);
+                // 解析super_data中qq 微信等属性
+                getDefaultLabelValue(map);
+                map.remove("super_data");
+            }
+        }
+        return list;
+    }
+
+    /**
      * 解析super_data中qq 微信等属性
      *
      * @param data
@@ -1109,6 +1136,11 @@ public class CrmLeadsService {
     public List<Record> exportLeads(String leadsIds) {
         String[] leadsIdsArr = leadsIds.split(",");
         return JavaBeanUtil.mapToRecords(crmLeadsDao.excelExport(Arrays.asList(leadsIdsArr)));
+    }
+
+    public List<Record> exportPublicSeaClues(long seaId, String superIds) {
+        String[] leadsIdsArr = superIds.split(",");
+        return JavaBeanUtil.mapToRecords(crmLeadsDao.excelPublicSeaExport(seaId,Arrays.asList(leadsIdsArr)));
     }
 
     /**

@@ -76,6 +76,25 @@ public class LkCrmLeadsDao extends SimpleHibernateDao<LkCrmLeadsEntity, Integer>
         //conditions.append(" GROUP By custType ORDER BY custG.create_time DESC ");
         LOG.info("公海sql:" + conditions);
         return sqlPageQuery(conditions.toString(), pageNum, pageSize, param.toArray());
+    }
+
+    public List<Map<String, Object>> listCluePublicSea(long seaId, String search) {
+        StringBuffer conditions = new StringBuffer("SELECT custG.id, custG.user_id, custG.status, custG.call_count callCount, DATE_FORMAT(custG.last_call_time,'%Y-%m-%d %H:%i:%s') lastCallTime, custG.intent_level intentLevel,");
+        conditions.append(" custG.super_name leads_name , custG.super_age, custG.super_sex, custG.super_telphone, custG.super_phone, custG.super_address_province_city, custG.super_address_street, custG.super_data, ");
+        conditions.append(" custG.batch_id, custG.last_call_status, custG.data_source, DATE_FORMAT(custG.user_get_time,'%Y-%m-%d %H:%i:%s') user_get_time, DATE_FORMAT(custG.create_time,'%Y-%m-%d %H:%i:%s') create_time, custG.pre_user_id, custG.last_called_duration, DATE_FORMAT(custG.last_mark_time,'%Y-%m-%d %H:%i:%s') last_mark_time, ");
+        conditions.append(" custG.call_success_count, custG.call_fail_count, custG.sms_success_count ,custG.super_data ->> '$.SYS014 ' as custType, ");
+        conditions.append(" z.* FROM t_customer_sea_list_" + seaId + " AS custG LEFT JOIN fieldleadsview AS z ON custG.id = z.field_batch_id WHERE custG.status = 1 ");
+        List param = new ArrayList();
+        if (StringUtil.isNotEmpty(search)) {
+            param.add(search);
+            param.add(search);
+            param.add(search);
+            param.add(search);
+            conditions.append(" and (super_name like '%?%' or super_telphone like '%?%' or super_phone like '%?%' or super_data like '%?%')");
+        }
+        //conditions.append(" GROUP By custType ORDER BY custG.create_time DESC ");
+        LOG.info("公海sql:" + conditions);
+        return sqlQuery(conditions.toString(), param.toArray());
 
     }
 
@@ -118,6 +137,13 @@ public class LkCrmLeadsDao extends SimpleHibernateDao<LkCrmLeadsEntity, Integer>
 
     public List<Map<String, Object>> excelExport(List leadsIds) {
         StringBuffer conditions = new StringBuffer("select leads_name,线索来源,客户行业,客户级别,next_time,telephone,mobile,address,remark,create_user_name,owner_user_name,create_time,update_time from leadsview where leads_id in (" + SqlAppendUtil.sqlAppendWhereIn(leadsIds) + ") order by update_time desc");
+        return sqlQuery(conditions.toString());
+    }
+
+
+    public List<Map<String, Object>> excelPublicSeaExport(long seaId, List ids) {
+        String fieldSql = "SELECT max( IF ( (`a`.`name` = '线索来源'), `a`.`value`, NULL ) ) AS `线索来源`, max( IF ( (`a`.`name` = '客户行业'), `a`.`value`, NULL ) ) AS `客户行业`, max( IF ( (`a`.`name` = '客户级别'), `a`.`value`, NULL ) ) AS `客户级别`, `a`.`batch_id` AS `field_batch_id` FROM ( `lkcrm_admin_fieldv` `a` JOIN `lkcrm_admin_field` `d` ON ( ( `a`.`field_id` = `d`.`field_id` ) ) ) WHERE ( (`d`.`label` = 11) AND (`a`.`batch_id` IS NOT NULL) AND (`a`.`batch_id` <> '') AND (`d`.`field_type` = 0) ) GROUP BY `a`.`batch_id` ";
+        StringBuffer conditions = new StringBuffer("SELECT a.*,z.* FROM t_customer_sea_list_" + seaId + " AS a LEFT JOIN (" + fieldSql + ") AS z ON a.id = z.field_batch_id WHERE id IN (" + SqlAppendUtil.sqlAppendWhereIn(ids) + ") ");
         return sqlQuery(conditions.toString());
     }
 
