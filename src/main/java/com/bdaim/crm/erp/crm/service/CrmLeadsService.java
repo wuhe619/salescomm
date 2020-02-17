@@ -827,7 +827,13 @@ public class CrmLeadsService {
         if (StrUtil.isEmpty(leadsName) && StrUtil.isEmpty(telephone) && StrUtil.isEmpty(mobile)) {
             return new Page<>();
         }
-        return Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), Db.getSqlPara("crm.leads.getLeadsPageList", Kv.by("leadsName", leadsName).set("telephone", telephone).set("mobile", mobile)));
+        com.bdaim.common.dto.Page page = crmLeadsDao.pageLeadsList(basePageRequest.getPage(), basePageRequest.getLimit(), leadsName, telephone, mobile);
+        Page finalPage = new Page();
+        finalPage.setList(page.getData());
+        finalPage.setTotalRow(page.getTotal());
+        return finalPage;
+
+        //return Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), Db.getSqlPara("crm.leads.getLeadsPageList", Kv.by("leadsName", leadsName).set("telephone", telephone).set("mobile", mobile)));
     }
 
     /**
@@ -895,7 +901,7 @@ public class CrmLeadsService {
      * 根据线索名称查询
      */
     public Record queryByName(String name) {
-        return Db.findFirst(Db.getSql("crm.leads.queryByName"), name);
+        return JavaBeanUtil.mapToRecord(crmLeadsDao.queryByName(name));
     }
 
     /**
@@ -913,7 +919,7 @@ public class CrmLeadsService {
         return Db.tx(() -> {
             //Db.batch(Db.getSql("crm.leads.deleteByIds"), "leads_id", idsList, 100);
             crmLeadsDao.deleteByIds(idsList);
-            crmLeadsDao.executeUpdateSQL("delete from lkcrm_admin_fieldv where batch_id IN( ? )", SqlAppendUtil.sqlAppendWhereIn(batchIdList));
+            crmLeadsDao.executeUpdateSQL("delete from lkcrm_admin_fieldv where batch_id IN( " + SqlAppendUtil.sqlAppendWhereIn(batchIdList) + " )");
             return true;
         }) ? R.ok() : R.error();
     }
@@ -1102,7 +1108,7 @@ public class CrmLeadsService {
      */
     public List<Record> exportLeads(String leadsIds) {
         String[] leadsIdsArr = leadsIds.split(",");
-        return Db.find(Db.getSqlPara("crm.leads.excelExport", Kv.by("ids", leadsIdsArr)));
+        return JavaBeanUtil.mapToRecords(crmLeadsDao.excelExport(Arrays.asList(leadsIdsArr)));
     }
 
     /**
@@ -1117,6 +1123,7 @@ public class CrmLeadsService {
      * @author wyq
      * 导入线索
      */
+    @Deprecated
     public R uploadExcel0(UploadFile file, Integer repeatHandling, Integer ownerUserId) {
         ExcelReader reader = ExcelUtil.getReader(FileUtil.file(file.getUploadPath() + "\\" + file.getFileName()));
         //AdminFieldService adminFieldService = new AdminFieldService();

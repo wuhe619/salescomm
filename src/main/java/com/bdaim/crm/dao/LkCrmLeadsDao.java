@@ -37,25 +37,25 @@ public class LkCrmLeadsDao extends SimpleHibernateDao<LkCrmLeadsEntity, Integer>
     public int updateOwnerUserId(String ownerUserId, List<String> ids) {
         String sql = "update lkcrm_crm_leads " +
                 "    set owner_user_id = ?,followup = 0 " +
-                "    where leads_id in (?) ";
-        int maps = this.executeUpdateSQL(sql, ownerUserId, SqlAppendUtil.sqlAppendWhereIn(ids));
+                "    where leads_id in (" + SqlAppendUtil.sqlAppendWhereIn(ids) + ") ";
+        int maps = this.executeUpdateSQL(sql, ownerUserId);
         return maps;
     }
 
     public List queryBatchIdByIds(List<String> ids) {
-        String sql = "select batch_id from lkcrm_crm_leads where leads_id in (?)";
-        return this.sqlQuery(sql, SqlAppendUtil.sqlAppendWhereIn(ids));
+        String sql = "select batch_id from lkcrm_crm_leads where leads_id in (" + SqlAppendUtil.sqlAppendWhereIn(ids) + ")";
+        return this.sqlQuery(sql);
     }
 
     public int deleteByIds(List<String> ids) {
-        String sql = "delete from lkcrm_crm_leads where leads_id in (?)";
-        int maps = this.executeUpdateSQL(sql, SqlAppendUtil.sqlAppendWhereIn(ids));
+        String sql = "delete from lkcrm_crm_leads where leads_id in (" + SqlAppendUtil.sqlAppendWhereIn(ids) + ")";
+        int maps = this.executeUpdateSQL(sql);
         return maps;
     }
 
     public int setLeadsFollowup(List<String> ids) {
-        String sql = "update lkcrm_crm_leads set followup = 1 where leads_id in (?)";
-        int maps = this.executeUpdateSQL(sql, SqlAppendUtil.sqlAppendWhereIn(ids));
+        String sql = "update lkcrm_crm_leads set followup = 1 where leads_id in (" + SqlAppendUtil.sqlAppendWhereIn(ids) + ")";
+        int maps = this.executeUpdateSQL(sql);
         return maps;
     }
 
@@ -104,4 +104,21 @@ public class LkCrmLeadsDao extends SimpleHibernateDao<LkCrmLeadsEntity, Integer>
         }
         return sqlPageQuery(conditions.toString(), pageNum, pageSize, param.toArray());
     }
+
+    public Map<String, Object> queryByName(String leads_name) {
+        StringBuffer conditions = new StringBuffer("select * from leadsview where leads_name = ?");
+        List param = new ArrayList();
+        param.add(leads_name);
+        List<Map<String, Object>> maps = this.sqlQuery(conditions.toString(), param.toArray());
+        if (maps.size() > 0) {
+            return maps.get(0);
+        }
+        return null;
+    }
+
+    public List<Map<String, Object>> excelExport(List leadsIds) {
+        StringBuffer conditions = new StringBuffer("select leads_name,线索来源,客户行业,客户级别,next_time,telephone,mobile,address,remark,create_user_name,owner_user_name,create_time,update_time from leadsview where leads_id in (" + SqlAppendUtil.sqlAppendWhereIn(leadsIds) + ") order by update_time desc");
+        return sqlQuery(conditions.toString());
+    }
+
 }
