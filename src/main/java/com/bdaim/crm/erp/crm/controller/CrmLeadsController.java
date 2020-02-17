@@ -12,7 +12,6 @@ import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.controller.util.ResponseCommon;
 import com.bdaim.common.controller.util.ResponseJson;
 import com.bdaim.common.exception.TouchException;
-import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.crm.common.annotation.LoginFormCookie;
 import com.bdaim.crm.common.annotation.NotNullValidate;
 import com.bdaim.crm.common.annotation.Permissions;
@@ -36,7 +35,6 @@ import com.bdaim.util.MD5Util;
 import com.bdaim.util.StringUtil;
 import com.jfinal.aop.Before;
 import com.jfinal.core.paragetter.Para;
-import com.jfinal.log.Log;
 import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.tx.Tx;
 import org.apache.poi.hssf.usermodel.*;
@@ -305,7 +303,7 @@ public class CrmLeadsController extends BasicAction {
      * @param param
      * @return
      */
-    @RequestMapping(value = "/selectUserGetQuantity", method = RequestMethod.POST)
+    @RequestMapping(value = "/cluesea/selectUserGetQuantity", method = RequestMethod.POST)
     public ResponseJson selectUserGetQuantity(@RequestBody CustomerSeaSearch param) {
         ResponseJson responseJson = new ResponseJson();
         long data = 0;
@@ -326,8 +324,8 @@ public class CrmLeadsController extends BasicAction {
     public ResponseJson deleteFiled(@RequestBody CustomerSeaSearch param) {
         ResponseJson responseJson = new ResponseJson();
 
-        int data = crmAdminFieldDao.executeUpdateSQL("ALTER TABLE `lkcrm_crm_action_record` MODIFY COLUMN `action_id`  varchar(32) NOT NULL COMMENT '被操作对象ID' AFTER `types`;");
-        responseJson.setData(data);
+        /*int data = crmAdminFieldDao.executeUpdateSQL("");
+        responseJson.setData(data);*/
         return responseJson;
     }
 
@@ -339,7 +337,6 @@ public class CrmLeadsController extends BasicAction {
     @Permissions({"crm:leads:index"})
     @RequestMapping(value = "/queryPageList", method = RequestMethod.POST)
     public R queryPageList(@RequestBody JSONObject jsonObject) {
-        ResponseInfo resp = new ResponseInfo();
         BasePageRequest<Void> basePageRequest = new BasePageRequest<>();
         jsonObject.fluentPut("type", 1);
         basePageRequest.setJsonObject(jsonObject);
@@ -471,7 +468,7 @@ public class CrmLeadsController extends BasicAction {
      */
     @Permissions("crm:leads:excelexport")
     @RequestMapping(value = "/cluesea/batchExportExcel", method = RequestMethod.POST)
-    public void clueseaBatchExportExcel(@RequestParam(name = "ids") String superIds, Long seaId, HttpServletResponse response) throws IOException {
+    public void clueSeaBatchExportExcel(@RequestParam(name = "ids") String superIds, Long seaId, HttpServletResponse response) throws IOException {
         List<Record> recordList = crmLeadsService.exportPublicSeaClues(seaId, superIds);
         exportPublicSea(recordList, response, "11");
         //renderNull();
@@ -608,7 +605,7 @@ public class CrmLeadsController extends BasicAction {
             //HttpServletResponse response = getResponse();
             List<Map<String, Object>> list = new ArrayList<>();
             for (Record record : recordList) {
-                record.remove("custType","entId","intentLevel","lastCallTime");
+                record.remove("custType", "entId", "intentLevel", "lastCallTime");
                 record.remove("user_id", "status", "call_empty_count", "call_success_count", "call_fail_count", "data_source", "intent_level", "last_call_time");
                 record.remove("last_called_duration", "pull_status", "status", "super_age", "super_name", "super_sex", "user_get_time", "user_group_id");
                 list.add(record.remove("super_data", "batch_id", "is_transform", "customer_id", "leads_id", "owner_user_id", "create_user_id", "followup", "field_batch_id").getColumns());
@@ -717,7 +714,7 @@ public class CrmLeadsController extends BasicAction {
      */
     @LoginFormCookie
     @RequestMapping(value = "/cluesea/downloadExcel")
-    public void clueseaDownloadExcel(HttpServletResponse response) {
+    public void clueSeaDownloadExcel(HttpServletResponse response) {
         List<Record> recordList = adminFieldService.queryAddField(11);
         recordList.removeIf(record -> "file".equals(record.getStr("formType")) || "checkbox".equals(record.getStr("formType")) || "user".equals(record.getStr("formType")) || "structure".equals(record.getStr("formType")));
         HSSFWorkbook wb = new HSSFWorkbook();
@@ -769,7 +766,7 @@ public class CrmLeadsController extends BasicAction {
             wb.write(response.getOutputStream());
 
         } catch (Exception e) {
-            Log.getLog(getClass()).error("error", e);
+            LOG.error("error", e);
         } finally {
             try {
                 wb.close();
@@ -788,7 +785,7 @@ public class CrmLeadsController extends BasicAction {
     @NotNullValidate(value = "ownerUserId", message = "请选择负责人")
     @Before(Tx.class)
     @RequestMapping(value = "/uploadExcel")
-    public R uploadExcel(@Para("repeatHandling") Integer repeatHandling, @Para("ownerUserId") Integer ownerUserId) {
+    public R uploadExcel(Integer repeatHandling, Long ownerUserId) {
         //Db.tx(() -> {
         MultipartFile file = null;
         CommonsMultipartResolver multipartResolver = new CommonsMultipartResolver(
@@ -818,7 +815,7 @@ public class CrmLeadsController extends BasicAction {
     @NotNullValidate(value = "ownerUserId", message = "请选择负责人")
     @Before(Tx.class)
     @RequestMapping(value = "/cluesea/uploadExcel")
-    public R clueseaUploadExcel(@Para("repeatHandling") Integer repeatHandling, @Para("ownerUserId") Integer ownerUserId) {
+    public R clueSeaUploadExcel(Integer repeatHandling, Long ownerUserId, Long seaId) {
         //Db.tx(() -> {
         MultipartFile file = null;
         CommonsMultipartResolver multipartResolver = new CommonsMultipartResolver(
@@ -834,7 +831,7 @@ public class CrmLeadsController extends BasicAction {
                 }
             }
         }
-        R result = crmLeadsService.uploadExcelPublicSea(file, repeatHandling, ownerUserId);
+        R result = crmLeadsService.uploadExcelPublicSea(file, repeatHandling, ownerUserId, seaId);
         return (result);
         //return !result.get("code").equals(500);
         //});

@@ -1140,7 +1140,7 @@ public class CrmLeadsService {
 
     public List<Record> exportPublicSeaClues(long seaId, String superIds) {
         String[] leadsIdsArr = superIds.split(",");
-        return JavaBeanUtil.mapToRecords(crmLeadsDao.excelPublicSeaExport(seaId,Arrays.asList(leadsIdsArr)));
+        return JavaBeanUtil.mapToRecords(crmLeadsDao.excelPublicSeaExport(seaId, Arrays.asList(leadsIdsArr)));
     }
 
     /**
@@ -1238,7 +1238,7 @@ public class CrmLeadsService {
         return R.ok();
     }
 
-    public R uploadExcel(MultipartFile file, Integer repeatHandling, Integer ownerUserId) {
+    public R uploadExcel(MultipartFile file, Integer repeatHandling, Long ownerUserId) {
         //AdminFieldService adminFieldService = new AdminFieldService();
         Kv kv = new Kv();
         Integer errNum = 0;
@@ -1319,12 +1319,13 @@ public class CrmLeadsService {
 
     /**
      * 公海线索批量上传
+     *
      * @param file
      * @param repeatHandling
      * @param ownerUserId
      * @return
      */
-    public R uploadExcelPublicSea(MultipartFile file, Integer repeatHandling, Integer ownerUserId) {
+    public R uploadExcelPublicSea(MultipartFile file, Integer repeatHandling, Long ownerUserId, long seaId) {
         Kv kv = new Kv();
         Integer errNum = 0;
         try (ExcelReader reader = ExcelUtil.getReader(file.getInputStream())) {
@@ -1358,38 +1359,66 @@ public class CrmLeadsService {
                             leadsList.add(null);
                         }
                     }
-                    String leadsName = leadsList.get(kv.getInt("leads_name")).toString();
-                    Integer number = crmLeadsDao.queryForInt("select count(*) from lkcrm_crm_leads where leads_name = ?", leadsName);
+                    String superName = leadsList.get(kv.getInt("leads_name")).toString();
+                    Integer number = crmLeadsDao.queryForInt("select count(*) from t_customer_sea_list_" + seaId + " where super_name = ?", superName);
+                    CustomSeaTouchInfoDTO dto = new CustomSeaTouchInfoDTO();
+                    dto.setCustomerSeaId(String.valueOf(seaId));
+                    dto.setUser_id(ownerUserId.toString());
                     if (0 == number) {
-                        object.fluentPut("entity", new JSONObject().fluentPut("leads_name", leadsName)
-                                .fluentPut("telephone", leadsList.get(kv.getInt("telephone")))
-                                .fluentPut("mobile", leadsList.get(kv.getInt("mobile")))
-                                .fluentPut("address", leadsList.get(kv.getInt("address")))
-                                .fluentPut("next_time", leadsList.get(kv.getInt("next_time")))
-                                .fluentPut("remark", leadsList.get(kv.getInt("remark")))
-                                .fluentPut("owner_user_id", ownerUserId));
-                    } else if (number > 0 && repeatHandling == 1) {
-                        Record leads = JavaBeanUtil.mapToRecord(crmLeadsDao.sqlQuery("select leads_id,batch_id from lkcrm_crm_leads where leads_name = ?", leadsName).get(0));
-                        object.fluentPut("entity", new JSONObject().fluentPut("leads_id", leads.getInt("leads_id"))
-                                .fluentPut("leads_name", leadsName)
-                                .fluentPut("telephone", leadsList.get(kv.getInt("telephone")))
-                                .fluentPut("mobile", leadsList.get(kv.getInt("mobile")))
-                                .fluentPut("address", leadsList.get(kv.getInt("address")))
+                        object.fluentPut("leads_name", superName)
+                                .fluentPut("super_telphone", leadsList.get(kv.getInt("super_telphone")))
+                                .fluentPut("super_phone", leadsList.get(kv.getInt("super_phone")))
+                                .fluentPut("super_address_street", leadsList.get(kv.getInt("super_address_street")))
                                 .fluentPut("next_time", leadsList.get(kv.getInt("next_time")))
                                 .fluentPut("remark", leadsList.get(kv.getInt("remark")))
                                 .fluentPut("owner_user_id", ownerUserId)
-                                .fluentPut("batch_id", leads.getStr("batch_id")));
+                                .fluentPut("user_id", ownerUserId)
+                                .fluentPut("super_address_province_city", leadsList.get(kv.getInt("super_address_province_city")))
+                                .fluentPut("SYS002", leadsList.get(kv.getInt("qq")))
+                                .fluentPut("SYS003", leadsList.get(kv.getInt("email")))
+                                .fluentPut("SYS001", leadsList.get(kv.getInt("weChat")))
+                                .fluentPut("SYS005", leadsList.get(kv.getInt("company")))
+                                .fluentPut("dept", leadsList.get(kv.getInt("dept")))
+                                .fluentPut("position", leadsList.get(kv.getInt("position")))
+                                .fluentPut("site", leadsList.get(kv.getInt("site")));
+                    } else if (number > 0 && repeatHandling == 1) {
+                        Record leads = JavaBeanUtil.mapToRecord(crmLeadsDao.sqlQuery("select id from t_customer_sea_list_" + seaId + " where super_name = ?", superName).get(0));
+                        object.fluentPut("leads_id", leads.getStr("id"))
+                                .fluentPut("leads_name", superName)
+                                .fluentPut("super_telphone", leadsList.get(kv.getInt("super_telphone")))
+                                .fluentPut("super_phone", leadsList.get(kv.getInt("super_phone")))
+                                .fluentPut("super_address_street", leadsList.get(kv.getInt("super_address_street")))
+                                .fluentPut("next_time", leadsList.get(kv.getInt("next_time")))
+                                .fluentPut("remark", leadsList.get(kv.getInt("remark")))
+                                .fluentPut("owner_user_id", ownerUserId)
+                                .fluentPut("user_id", ownerUserId)
+                                .fluentPut("batch_id", leads.getStr("id"))
+                                .fluentPut("super_address_province_city", leadsList.get(kv.getInt("super_address_province_city")))
+                                .fluentPut("SYS002", leadsList.get(kv.getInt("qq")))
+                                .fluentPut("SYS003", leadsList.get(kv.getInt("email")))
+                                .fluentPut("SYS001", leadsList.get(kv.getInt("weChat")))
+                                .fluentPut("SYS005", leadsList.get(kv.getInt("company")))
+                                .fluentPut("dept", leadsList.get(kv.getInt("dept")))
+                                .fluentPut("position", leadsList.get(kv.getInt("position")))
+                                .fluentPut("site", leadsList.get(kv.getInt("site")));
                     } else if (number > 0 && repeatHandling == 2) {
                         continue;
                     }
                     JSONArray jsonArray = new JSONArray();
                     for (Record record : recordList) {
-                        Integer columnsNum = kv.getInt(record.getStr("name")) != null ? kv.getInt(record.getStr("name")) : kv.getInt(record.getStr("name") + "(*)");
+                        //Integer columnsNum = kv.getInt(record.getStr("name")) != null ? kv.getInt(record.getStr("name")) : kv.getInt(record.getStr("name") + "(*)");
+                        Integer columnsNum = kv.getInt(record.getStr("name")) != null ? kv.getInt(record.getStr("name")) : kv.getInt(record.getStr("field_name"));
                         record.set("value", leadsList.get(columnsNum));
                         jsonArray.add(JSONObject.parseObject(record.toJson()));
                     }
                     object.fluentPut("field", jsonArray);
-                    addOrUpdate(object);
+                    // 导入线索
+                    if (0 == number) {
+                        addClueData0(dto, object);
+                    } else if (number > 0 && repeatHandling == 1) {
+                        updateClueSignData(dto, object);
+                    }
+                    //addOrUpdate(object);
                 }
             }
         } catch (Exception e) {
