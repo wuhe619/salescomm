@@ -74,7 +74,7 @@ public class BatchTestTaskXService implements BusiService {
                         Integer successNum = json2.getInteger("successNum");
                         Integer totalNum = json2.getInteger("totalNum");
                         Integer failedNum = json2.getInteger("failedNum");
-                        JSONObject resonse = JSON.parseObject(responseStr);
+                        JSONObject resonse = JSON.parseObject(responseStr.trim());
 
                         if(successNum == null){
                             successNum = 0;
