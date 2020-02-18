@@ -525,7 +525,7 @@ public class CustomerAppService {
     }
 
     public Map<String, Object> customerMonthBill(PageParam page, String customerId){
-        StringBuffer sb = new StringBuffer("select cust_id as custId,stat_time statTime,type,amount/1000 amount,certificate_pic certificatePic,actual_consumption_amount actualConsumptionAmount,op_time opTime,op_user opUser from stat_bill_month where customer_id=? and type=").append(TransactionTypeEnum.API_DEDUCTION.getType());
+        StringBuffer sb = new StringBuffer("select cust_id as custId,stat_time statTime,type,amount/1000 amount,certificate_pic certificatePic,ifnull(actual_consumption_amount,0)/1000 actualConsumptionAmount,op_time opTime,op_user opUser,remark from stat_bill_month where cust_id=? and type=").append(TransactionTypeEnum.API_DEDUCTION.getType());
         sb.append(" order by stat_time desc ");
         List p = new ArrayList();
         p.add(customerId);
@@ -536,8 +536,12 @@ public class CustomerAppService {
             if (StringUtil.isEmpty(map.get("custId").toString())) {
                 return map;
             }
-            String cust_id = map.get("custId").toString();
-
+//            String cust_id = map.get("custId").toString();
+            String sql = "select name from t_user where id="+map.get("opUser");
+            Map<String,Object> _m = jdbcTemplate.queryForMap(sql);
+            if(_m!=null){
+                map.put("opUser",_m.get("name"));
+            }
             return map;
         }).collect(Collectors.toList());
         Map<String, Object> map = new HashMap<>();
@@ -565,9 +569,9 @@ public class CustomerAppService {
             throw new Exception("type参数不正确");
         }
         List arr=new ArrayList();
-        arr.add(params.get("actualConsumptionAmount"));
+        arr.add(Float.valueOf(params.get("actualConsumptionAmount").toString())*1000);
         arr.add(params.get("opuser"));
-        arr.add(params.get("reamrk"));
+        arr.add(params.get("remark"));
         arr.add(params.getString("picId"));
         arr.add(params.getString("custId"));
         arr.add(params.get("type"));
