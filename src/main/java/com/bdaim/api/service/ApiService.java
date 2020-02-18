@@ -354,7 +354,8 @@ public class ApiService {
             sql.append(" and charge.event_time<=?");
             arr.add(params.getString("endDate"));
         }
-        sql.append(" order by EVENT_TIME desc");
+        sql.append(" order by charge.EVENT_TIME desc");
+        logger.info("apiCustomerLogs="+sql.toString());
         PageList list = new Pagination().getPageData(sql.toString(), arr.toArray(), page, jdbcTemplate);
         Map<String, Object> map = new HashMap<>();
         Object collect = list.getList().stream().map(m -> {
@@ -682,6 +683,7 @@ public class ApiService {
             args.add("%" + params.getString("apiName") + "%");
         }
         sql.append(" group by log.API_ID");
+        sql.append(" order by log.event_time desc ");
         PageList list = new Pagination().getPageData(sql.toString(), args.toArray(), page, jdbcTemplate);
         List list1 = new ArrayList();
         list.getList().stream().forEach(m -> {
