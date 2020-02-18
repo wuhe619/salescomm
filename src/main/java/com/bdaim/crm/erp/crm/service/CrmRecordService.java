@@ -218,7 +218,7 @@ public class CrmRecordService<T> {
             List<String> list = JSON.parseArray(record.getStr("content"), String.class);
             record.set("content", list);
         });
-        return R.ok().put("data", recordList);
+        return R.ok().put("data", JavaBeanUtil.recordToMap(recordList));
     }
 
     /**

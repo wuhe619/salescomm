@@ -22,6 +22,7 @@ public class LkCrmAdminRecordEntity {
 
     private Integer isEvent;
 
+
     @Transient
     public Integer getIsEvent() {
         return isEvent;

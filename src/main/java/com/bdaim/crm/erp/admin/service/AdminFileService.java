@@ -75,7 +75,7 @@ public class AdminFileService {
         LkCrmAdminFileEntity adminFile = new LkCrmAdminFileEntity();
         adminFile.setBatchId(batchId);
         adminFile.setCreateTime(DateUtil.date().toTimestamp());
-        adminFile.setCreateUserId(BaseUtil.getUser().getUserId().intValue());
+        adminFile.setCreateUserId(BaseUtil.getUser().getUserId());
         CommonsMultipartResolver multipartResolver = new CommonsMultipartResolver(
                 request.getSession().getServletContext());
         String fileName = "";

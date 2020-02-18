@@ -96,6 +96,10 @@ public class AuthUtil {
                 tableParaMap.put("tableName", "lkcrm_crm_receivables");
                 tableParaMap.put("tableId", "receivables_id");
                 break;
+            case "t_customer_sea":
+                tableParaMap.put("tableName", "t_customer_sea");
+                tableParaMap.put("tableId", "id");
+                break;
             default:
                 return null;
         }
