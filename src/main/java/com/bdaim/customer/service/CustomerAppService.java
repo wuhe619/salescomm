@@ -525,7 +525,7 @@ public class CustomerAppService {
     }
 
     public Map<String, Object> customerMonthBill(PageParam page, String customerId){
-        StringBuffer sb = new StringBuffer("select cust_id as custId,stat_time statTime,type,amount/1000 amount,certificate_pic certificatePic,actual_consumption_amount actualConsumptionAmount,op_time opTime,op_user opUser,remark from stat_bill_month where cust_id=? and type=").append(TransactionTypeEnum.API_DEDUCTION.getType());
+        StringBuffer sb = new StringBuffer("select cust_id as custId,stat_time statTime,type,amount/1000 amount,certificate_pic certificatePic,ifnull(actual_consumption_amount,0)/1000 actualConsumptionAmount,op_time opTime,op_user opUser,remark from stat_bill_month where cust_id=? and type=").append(TransactionTypeEnum.API_DEDUCTION.getType());
         sb.append(" order by stat_time desc ");
         List p = new ArrayList();
         p.add(customerId);
@@ -569,7 +569,7 @@ public class CustomerAppService {
             throw new Exception("type参数不正确");
         }
         List arr=new ArrayList();
-        arr.add(params.get("actualConsumptionAmount"));
+        arr.add(Float.valueOf(params.get("actualConsumptionAmount").toString())*1000);
         arr.add(params.get("opuser"));
         arr.add(params.get("remark"));
         arr.add(params.getString("picId"));
