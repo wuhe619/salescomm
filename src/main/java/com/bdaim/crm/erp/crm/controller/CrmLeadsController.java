@@ -385,7 +385,7 @@ public class CrmLeadsController extends BasicAction {
      */
     @RequestMapping(value = "/queryByName")
     public R queryByName(@Para("name") String name) {
-        return (R.ok().put("data", crmLeadsService.queryByName(name)));
+        return (R.ok().put("data", crmLeadsService.queryByName(name).getColumns()));
     }
 
     /**
@@ -458,7 +458,7 @@ public class CrmLeadsController extends BasicAction {
         if (auth) {
             return (R.noAuth());
         }
-        return (R.ok().put("data", crmLeadsService.getRecord(basePageRequest)));
+        return (R.ok().put("data", JavaBeanUtil.recordToMap(crmLeadsService.getRecord(basePageRequest))));
     }
 
     /**
