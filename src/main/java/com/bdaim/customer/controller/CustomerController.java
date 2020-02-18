@@ -251,7 +251,7 @@ public class CustomerController extends BasicAction {
             resp.setCode(401);
             return resp;
         }
-        params.put("customerId",customerId);
+        params.put("custId",customerId);
         params.put("opuser",lu.getId());
         try {
             customerAppService.settlementCustomerMonthBill(params);
