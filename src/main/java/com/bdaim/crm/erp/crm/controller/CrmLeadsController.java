@@ -1,5 +1,6 @@
 package com.bdaim.crm.erp.crm.controller;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.NumberUtil;
@@ -17,6 +18,7 @@ import com.bdaim.crm.common.annotation.NotNullValidate;
 import com.bdaim.crm.common.annotation.Permissions;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.dao.LkCrmAdminFieldDao;
+import com.bdaim.crm.dto.LkCrmAdminRecordDTO;
 import com.bdaim.crm.entity.LkCrmAdminRecordEntity;
 import com.bdaim.crm.entity.LkCrmLeadsEntity;
 import com.bdaim.crm.erp.admin.service.AdminFieldService;
@@ -428,13 +430,21 @@ public class CrmLeadsController extends BasicAction {
     @NotNullValidate(value = "content", message = "内容不能为空")
     @NotNullValidate(value = "category", message = "跟进类型不能为空")
     @RequestMapping(value = "/addRecord", method = RequestMethod.POST)
-    public R addRecord(@Para("") LkCrmAdminRecordEntity adminRecord) {
-        boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.LEADS_TYPE_KEY.getSign()), NumberUtil.parseInt(adminRecord.getTypesId()));
+    public R addRecord(@Para("") LkCrmAdminRecordDTO adminRecord) {
+        String sign = CrmEnum.LEADS_TYPE_KEY.getSign();
+        String typesId = adminRecord.getTypesId();
+        if (StringUtil.isNotEmpty(adminRecord.getSeaId())) {
+            sign = CrmEnum.PUBLIC_SEA_TYPE_KEY.getSign();
+            typesId = adminRecord.getSeaId();
+        }
+        boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(sign), typesId);
         if (auth) {
             return (R.noAuth());
             //return;
         }
-        return (crmLeadsService.addRecord(adminRecord));
+        LkCrmAdminRecordEntity lkCrmAdminRecordEntity = new LkCrmAdminRecordEntity();
+        BeanUtil.copyProperties(adminRecord, lkCrmAdminRecordEntity);
+        return (crmLeadsService.addRecord(lkCrmAdminRecordEntity));
     }
 
     /**
