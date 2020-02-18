@@ -252,13 +252,13 @@ public class ApiService {
             Integer count = jdbcTemplate.queryForObject(countSql, param.toArray(), Integer.class);
             dataMap.put("subscribeNum", count);
             if(params.containsKey("callMonth") && StringUtil.isNotEmpty(params.getString("callMonth"))) {
-                String monCallsSql = "select count(0) from am_charge_" + params.getString("callMonth") + " where app_id=?";
+                String monCallsSql = "select count(0) from am_charge_" + params.getString("callMonth") + " where api_id=?";
                 param = new ArrayList();
                 param.add(apiId);
                 Integer callNum = jdbcTemplate.queryForObject(monCallsSql, param.toArray(), Integer.class);
                 dataMap.put("monthCallNum",callNum);
                 String monCallFeeSql = "select sum(charge)monthCharge from am_charge_" + params.getString("callMonth") + " " +
-                        " where app_id=? ";
+                        " where api_id=? ";
                 Integer monthCharge = jdbcTemplate.queryForObject(monCallFeeSql, param.toArray(), Integer.class);
                 String monChargeStr = BigDecimalUtil.strDiv(monthCharge.toString(),"10000",2);
                 dataMap.put("monthFee",monChargeStr);
