@@ -255,13 +255,17 @@ public class ApiService {
                 String monCallsSql = "select count(0) from am_charge_" + params.getString("callMonth") + " where api_id=?";
                 param = new ArrayList();
                 param.add(apiId);
+                logger.info("monCallsSql: "+monCallsSql+";"+apiId);
                 Integer callNum = jdbcTemplate.queryForObject(monCallsSql, param.toArray(), Integer.class);
+                logger.info("monthcallnum: "+callNum);
                 dataMap.put("monthCallNum",callNum);
                 String monCallFeeSql = "select sum(charge)monthCharge from am_charge_" + params.getString("callMonth") + " " +
                         " where api_id=? ";
                 Integer monthCharge = jdbcTemplate.queryForObject(monCallFeeSql, param.toArray(), Integer.class);
-                String monChargeStr = BigDecimalUtil.strDiv(monthCharge.toString(),"10000",2);
-                dataMap.put("monthFee",monChargeStr);
+                if(monthCharge!=null) {
+                    String monChargeStr = BigDecimalUtil.strDiv(monthCharge.toString(), "10000", 2);
+                    dataMap.put("monthFee",monChargeStr);
+                }
             }
             return dataMap;
         }).collect(Collectors.toList());
@@ -328,8 +332,10 @@ public class ApiService {
                     " where api_id=? ";
             param.add(dataMap.get("apiId"));
             Integer monthCharge = jdbcTemplate.queryForObject(monCallFeeSql, param.toArray(), Integer.class);
-            String monChargeStr = BigDecimalUtil.strDiv(monthCharge.toString(),"10000",2);
-            dataMap.put("monthFee",monChargeStr);
+            if(monthCharge!=null) {
+                String monChargeStr = BigDecimalUtil.strDiv(monthCharge.toString(), "10000", 2);
+                dataMap.put("monthFee", monChargeStr);
+            }
             return dataMap;
         }).collect(Collectors.toList());
         map.put("list", collect);
