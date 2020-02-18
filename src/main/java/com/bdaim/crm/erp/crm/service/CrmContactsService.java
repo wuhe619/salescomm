@@ -9,6 +9,7 @@ import cn.hutool.poi.excel.ExcelUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.auth.LoginUser;
+import com.bdaim.common.dto.Page;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.dao.*;
 import com.bdaim.crm.entity.*;
@@ -19,10 +20,7 @@ import com.bdaim.crm.erp.crm.common.CrmParamValid;
 import com.bdaim.crm.erp.crm.entity.CrmContacts;
 import com.bdaim.crm.erp.oa.common.OaEnum;
 import com.bdaim.crm.erp.oa.service.OaActionRecordService;
-import com.bdaim.crm.utils.AuthUtil;
-import com.bdaim.crm.utils.BaseUtil;
-import com.bdaim.crm.utils.FieldUtil;
-import com.bdaim.crm.utils.R;
+import com.bdaim.crm.utils.*;
 import com.bdaim.util.JavaBeanUtil;
 import com.jfinal.aop.Before;
 import com.jfinal.kit.Kv;
@@ -38,6 +36,7 @@ import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -77,19 +76,21 @@ public class CrmContactsService {
     /**
      * @author wyq
      * 分页条件查询联系人
+     * @return
      */
-    public com.bdaim.common.dto.Page queryList(BasePageRequest<CrmContacts> basePageRequest) {
+    public CrmPage queryList(BasePageRequest<CrmContacts> basePageRequest) {
         String contactsName = basePageRequest.getData().getName();
         String telephone = basePageRequest.getData().getTelephone();
         String mobile = basePageRequest.getData().getMobile();
         String customerName = basePageRequest.getData().getCustomerName();
         if (!crmParamValid.isValid(customerName)) {
-            return new com.bdaim.common.dto.Page();
+            return new CrmPage();
         }
         if (StrUtil.isEmpty(contactsName) && StrUtil.isEmpty(telephone) && StrUtil.isEmpty(mobile) && StrUtil.isEmpty(customerName)) {
-            return new com.bdaim.common.dto.Page();
+            return new CrmPage();
         }
-        return crmContactsDao.pageContactsPageList(basePageRequest.getPage(), basePageRequest.getLimit(), contactsName, customerName, telephone, mobile);
+        Page page = crmContactsDao.pageContactsPageList(basePageRequest.getPage(), basePageRequest.getLimit(), contactsName, customerName, telephone, mobile);
+        return BaseUtil.crmPage(page);
         /*return Db.paginate(basePageRequest.getPage(),basePageRequest.getLimit(), Db.getSqlPara("crm.contact.getContactsPageList",
                 Kv.by("contactsName",contactsName).set("customerName",customerName).set("telephone",telephone).set("mobile",mobile)));*/
     }
@@ -98,8 +99,8 @@ public class CrmContactsService {
      * @author wyq
      * 根据id查询联系人
      */
-    public Record queryById(Integer contactsId) {
-        return JavaBeanUtil.mapToRecord(crmContactsDao.queryById(contactsId).get(0));
+    public Map<String, Object> queryById(Integer contactsId) {
+        return crmContactsDao.queryById(contactsId).get(0);
         //return Db.findFirst(Db.getSql("crm.contact.queryById"), contactsId);
     }
 
@@ -128,8 +129,8 @@ public class CrmContactsService {
      * @author wyq
      * 根据联系人名称查询
      */
-    public Record queryByName(String name) {
-        return JavaBeanUtil.mapToRecord(crmContactsDao.queryByName(name).get(0));
+    public Map<String, Object> queryByName(String name) {
+        return crmContactsDao.queryByName(name).get(0);
         //return Db.findFirst(Db.getSql("crm.contact.queryByName"), name);
     }
 
@@ -141,9 +142,9 @@ public class CrmContactsService {
         Integer contactsId = basePageRequest.getData().getContactsId();
         Integer pageType = basePageRequest.getPageType();
         if (0 == pageType) {
-            return R.ok().put("data", JavaBeanUtil.mapToRecords(crmContactsDao.queryBusiness(contactsId)));
+            return R.ok().put("data", crmContactsDao.queryBusiness(contactsId));
         } else {
-            return R.ok().put("data", crmContactsDao.pageQueryBusiness(basePageRequest.getPage(), basePageRequest.getLimit(), contactsId));
+            return R.ok().put("data", BaseUtil.crmPage(crmContactsDao.pageQueryBusiness(basePageRequest.getPage(), basePageRequest.getLimit(), contactsId)));
         }
     }
 
