@@ -255,7 +255,7 @@ public class CustomerController extends BasicAction {
         params.put("opuser",lu.getId());
         try {
             customerAppService.settlementCustomerMonthBill(params);
-            resp.setCode(0);
+            resp.setCode(200);
         }catch (Exception e){
             logger.error(e.getMessage());
             resp.setMessage(e.getMessage());
