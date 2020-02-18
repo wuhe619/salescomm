@@ -340,7 +340,7 @@ public class ApiService {
     public Map<String, Object> apiCustomerLogs(PageParam page, JSONObject params) {
         List<Object> arr = new ArrayList<>();
         StringBuffer sql = new StringBuffer();
-        sql.append("select charge.api_id apiId,api.api_name apiName,request_param requestParam,charge,event_time eventTime,response_msg responseMsg from am_charge_")
+        sql.append("select charge.api_id apiId,api.api_name apiName,request_param requestParam,charge/10000 as charge,event_time eventTime,response_msg responseMsg from am_charge_")
                 .append(params.get("callMonth")).append(" charge ").append(" left join am_api api")
                 .append(" on charge.api_id=api.api_id")
                 .append(" where charge.api_id=? and charge.SUBSCRIBER_ID=?");
