@@ -536,8 +536,12 @@ public class CustomerAppService {
             if (StringUtil.isEmpty(map.get("custId").toString())) {
                 return map;
             }
-            String cust_id = map.get("custId").toString();
-
+//            String cust_id = map.get("custId").toString();
+            String sql = "select name from t_user where id="+map.get("opUser");
+            Map<String,Object> _m = jdbcTemplate.queryForMap(sql);
+            if(_m!=null){
+                map.put("opUser",_m.get("name"));
+            }
             return map;
         }).collect(Collectors.toList());
         Map<String, Object> map = new HashMap<>();
