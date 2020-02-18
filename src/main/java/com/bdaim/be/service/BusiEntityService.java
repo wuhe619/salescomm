@@ -268,6 +268,8 @@ public class BusiEntityService {
                             jo.put("ext_4", m.get("ext_4"));
                         if (m.get("ext_5") != null && !"".equals(m.get("ext_5")))
                             jo.put("ext_5", m.get("ext_5"));
+                        if(m.get("ext_date1")!=null)
+                            jo.put("ext_date1",m.get("ext_date1"));
                     } else
                         jo = JSONObject.parseObject(JSONObject.toJSONString(m));
                 } catch (Exception e) {
