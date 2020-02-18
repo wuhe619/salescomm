@@ -12,7 +12,9 @@ import com.bdaim.crm.erp.crm.common.CrmEnum;
 import com.bdaim.crm.erp.crm.entity.CrmBusiness;
 import com.bdaim.crm.erp.crm.service.CrmBusinessService;
 import com.bdaim.crm.utils.AuthUtil;
+import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
+import com.bdaim.util.JavaBeanUtil;
 import com.jfinal.core.Controller;
 import com.jfinal.core.paragetter.Para;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -49,7 +51,7 @@ public class CrmBusinessController extends Controller {
      */
     @RequestMapping(value = "/queryList", method = RequestMethod.POST)
     public R queryList(BasePageRequest basePageRequest) {
-        return (R.ok().put("data", crmBusinessService.getBusinessPageList(basePageRequest)));
+        return (R.ok().put("data", BaseUtil.crmPage(crmBusinessService.getBusinessPageList(basePageRequest))));
     }
 
     /**
@@ -81,7 +83,7 @@ public class CrmBusinessController extends Controller {
     @NotNullValidate(value = "name", message = "名称不能为空")
     @RequestMapping(value = "/queryByName", method = RequestMethod.POST)
     public R queryByName(@Para("name") String name) {
-        return (R.ok().put("data", crmBusinessService.queryByName(name)));
+        return (R.ok().put("data", crmBusinessService.queryByName(name).getColumns()));
     }
 
     /**
@@ -178,7 +180,7 @@ public class CrmBusinessController extends Controller {
             return(R.noAuth());
             //return;
         }
-        return(R.ok().put("data", crmBusinessService.getMembers(businessId)));
+        return(R.ok().put("data", JavaBeanUtil.recordToMap(crmBusinessService.getMembers(businessId))));
     }
 
     /**
@@ -252,7 +254,7 @@ public class CrmBusinessController extends Controller {
      */
     @RequestMapping(value = "/queryBusinessStatusOptions", method = RequestMethod.POST)
     public R queryBusinessStatusOptions() {
-        return(R.ok().put("data", crmBusinessService.queryBusinessStatusOptions(null)));
+        return(R.ok().put("data", JavaBeanUtil.recordToMap(crmBusinessService.queryBusinessStatusOptions(null))));
     }
 
     /**
@@ -283,7 +285,7 @@ public class CrmBusinessController extends Controller {
             return(R.noAuth());
             //return;
         }
-        return(R.ok().put("data", crmBusinessService.getRecord(basePageRequest)));
+        return(R.ok().put("data", JavaBeanUtil.recordToMap(crmBusinessService.getRecord(basePageRequest))));
     }
 
 }
