@@ -18,6 +18,8 @@ public class LkCrmLeadsEntity {
     private String mobile;
     private String address;
     private String remark;
+    private String company;
+    private Integer isLock;
     private Long createUserId;
     private Long ownerUserId;
     private Timestamp createTime;
@@ -182,6 +184,25 @@ public class LkCrmLeadsEntity {
 
     public void setBatchId(String batchId) {
         this.batchId = batchId;
+    }
+
+    @Basic
+    @Column(name = "company")
+    public String getCompany() {
+        return company;
+    }
+
+    public void setCompany(String company) {
+        this.company = company;
+    }
+    @Basic
+    @Column(name = "is_lock")
+    public Integer getIsLock() {
+        return isLock;
+    }
+
+    public void setIsLock(Integer isLock) {
+        this.isLock = isLock;
     }
 
     @Override

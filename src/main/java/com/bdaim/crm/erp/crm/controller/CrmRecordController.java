@@ -31,7 +31,7 @@ public class CrmRecordController extends Controller {
     public R queryRecordList(String actionId, String types) {
         //String actionId = getPara("actionId");
         //String types = getPara("types");
-        if(!"11".equals(types)){
+        if(!"8".equals(types)){
             boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.getSign(Integer.valueOf(types))), actionId);
             if (auth) {
                 return (R.noAuth());

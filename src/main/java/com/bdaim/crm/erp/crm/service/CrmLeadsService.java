@@ -1430,4 +1430,14 @@ public class CrmLeadsService {
         }
         return R.ok();
     }
+
+    /**
+     * @author wyq
+     * 客户锁定
+     */
+    public R lock(LkCrmLeadsEntity crmLeads,String ids) {
+        String[] idArr = ids.split(",");
+        crmRecordService.addIsLockRecord(idArr, CrmEnum.CUSTOMER_TYPE_KEY.getTypes(), crmLeads.getIsLock());
+        return crmLeadsDao.lock(crmLeads.getIsLock(), Arrays.asList(ids)) > 0 ? R.ok() : R.error();
+    }
 }
