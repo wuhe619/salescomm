@@ -1,6 +1,7 @@
 package com.bdaim.api.controller;
 
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.AppConfig;
 import com.bdaim.api.Dto.ApiData;
 import com.bdaim.api.service.ApiService;
 import com.bdaim.auth.LoginUser;
@@ -8,11 +9,18 @@ import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
-import com.bdaim.util.StringUtil;
+import com.bdaim.util.DateUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Date;
 
 @RestController
 @RequestMapping("/api")
@@ -21,6 +29,7 @@ public class ApiController extends BasicAction {
 
     @Autowired
     private ApiService apiService;
+
 
     /**
      * Query Api Infos
@@ -31,8 +40,8 @@ public class ApiController extends BasicAction {
 
         ResponseInfo resp = new ResponseInfo();
         PageParam page = new PageParam();
-        page.setPageSize(params.containsKey("pageSize") ? 0 : params.getIntValue("pageSize"));
-        page.setPageNum(params.containsKey("pageNum") ? 10 : params.getIntValue("pageNum"));
+        page.setPageSize(!params.containsKey("pageSize") ? 10 : params.getIntValue("pageSize"));
+        page.setPageNum(!params.containsKey("pageNum") ? 1 : params.getIntValue("pageNum"));
         resp.setData(apiService.apis(page, params));
         return resp;
     }
@@ -188,8 +197,8 @@ public class ApiController extends BasicAction {
                 custId = params.getString("custId");
             if (params.containsKey("apiName"))
                 apiName = params.getString("apiName");
-            page.setPageSize(!params.containsKey("pageSize") ? 0 : params.getIntValue("pageSize"));
-            page.setPageNum(!params.containsKey("pageNum") ? 10 : params.getIntValue("pageNum"));
+            page.setPageSize(!params.containsKey("pageSize") ? 10 : params.getIntValue("pageSize"));
+            page.setPageNum(!params.containsKey("pageNum") ? 1 : params.getIntValue("pageNum"));
             if (params.containsKey("code") && params.getString("code").equals("Subscribe")) {
                 info.setData(apiService.subApiSubscribeList(page, custId, apiName));
             } else {
@@ -201,6 +210,87 @@ public class ApiController extends BasicAction {
             return new ResponseInfoAssemble().failure(-1, "获取列表失败");
         }
         return info;
+    }
+
+    /**
+     * Query Api logs of customers
+     **/
+    @PostMapping("/{apiId}/logs")
+    public ResponseInfo apiLogs(@RequestBody JSONObject params,@PathVariable("apiId")String apiId) {
+       // JSONObject params=JSONObject.parseObject(paramsStr);
+        LoginUser lu = opUser();
+        params.put("apiId",apiId);
+        ResponseInfo resp = new ResponseInfo();
+        PageParam page = new PageParam();
+        page.setPageSize(!params.containsKey("pageSize") ? 10 : params.getIntValue("pageSize"));
+        page.setPageNum(!params.containsKey("pageNum") ? 1 : params.getIntValue("pageNum"));
+        resp.setData(apiService.apiLogs(page, params));
+        return resp;
+    }
+
+
+
+    /**
+     * Query Api log detail of customers
+     **/
+    @PostMapping("/{apiId}/logs/{customerId}")
+    public ResponseInfo apiCustomerLogs(@RequestBody JSONObject params,@PathVariable("apiId")String apiId,@PathVariable("customerId")String customerId) {
+        LoginUser lu = opUser();
+        params.put("apiId",apiId);
+        params.put("customerId",customerId);
+        ResponseInfo resp = new ResponseInfo();
+        PageParam page = new PageParam();
+        page.setPageSize(!params.containsKey("pageSize") ? 10 : params.getIntValue("pageSize"));
+        page.setPageNum(!params.containsKey("pageNum") ? 1 : params.getIntValue("pageNum"));
+        resp.setData(apiService.apiCustomerLogs(page, params));
+        return resp;
+    }
+
+    /**
+     * 下载api参数模板
+     * @param request
+     * @param response
+     * @param fileName
+     * @return
+     */
+    @GetMapping("/downloadModel/{fileName:.+}")
+    public String downloadAPIMode(HttpServletRequest request, HttpServletResponse response,@PathVariable String fileName) {
+        InputStream in = null;
+        OutputStream bos = null;
+        try {
+            logger.info("fileName== "+fileName);
+            String classPath = AppConfig.getFile_path();
+            logger.info("hello classpath" + classPath);
+            String pathF = PROPERTIES.getProperty("file.separator");
+            classPath = classPath.replace("/", pathF);
+            String path = classPath + pathF + "tp" + pathF + fileName;
+            response.setCharacterEncoding("utf-8");
+            response.setContentType("application/vnd.ms-excel;charset=utf-8");
+            String returnName = response.encodeURL(new String(fileName.getBytes(), "iso8859-1"));   //保存的文件名,必须和页面编码一致,否则乱码
+            response.addHeader("Content-Disposition", "attachment;filename=" + returnName);
+            in = new FileInputStream(path);
+            bos = response.getOutputStream();
+            byte[] b = new byte[2048];
+            int length;
+            while ((length = in.read(b)) > 0) {
+                bos.write(b, 0, length);
+            }
+            bos.flush();
+            return "ok";
+        } catch (Exception e) {
+            logger.error("api模板下载异常" + "\r\n" + e.getMessage());
+            return "error";
+        } finally {
+            try {
+                in.close();
+                bos.close();
+                logger.info("模板文件下载成功" + "\t" + DateUtil.getTimestamp(new Date(System.currentTimeMillis()), DateUtil.YYYY_MM_DD_HH_mm_ss));
+                return "ok";
+            } catch (Exception e) {
+                logger.error("io资源释放异常" + "\r\n" + e.getMessage());
+                return "error";
+            }
+        }
     }
 
 }

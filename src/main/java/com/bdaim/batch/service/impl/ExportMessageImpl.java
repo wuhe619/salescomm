@@ -1,8 +1,11 @@
 package com.bdaim.batch.service.impl;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.bdaim.batch.dao.BatchDetailDao;
 import com.bdaim.batch.service.ExportMessageService;
 import com.bdaim.util.ExcelUtil;
+import com.bdaim.util.JSONToMap;
 import com.bdaim.util.StringUtil;
 import com.github.crab2died.ExcelUtils;
 import org.apache.commons.lang.StringEscapeUtils;
@@ -259,22 +262,50 @@ public class ExportMessageImpl implements ExportMessageService {
      */
     @Override
     public void exportDetailInfo(String batchId, String detailId, Integer status, HttpServletResponse response, String exportType, String custId) throws IOException, IllegalAccessException {
-        StringBuffer sb = new StringBuffer("SELECT content, cust_id, cust_group_id, cust_user_id, create_id, create_date ,ext_1, ext_2, ext_3 detailId, ext_4 batchId, ext_5 scoure from h_data_manager_hy_pic_x WHERE ext_4 = ? ");
-        List<Object> p = new ArrayList<>();
-        p.add(batchId);
-        if (status != null) {
-            sb.append(" and ext_2 = ? ");
-            p.add(status);
+        StringBuffer sb = new StringBuffer("");
+        List<Map<String, Object>> list = null;
+        if("_export_batch_detaill".equals(exportType)){
+            sb.append("SELECT content, cust_id, cust_group_id, cust_user_id, create_id, create_date ,ext_1, ext_2, ext_3 detailId, ext_4 batchId, ext_5 scoure from h_data_manager_hy_pic_x WHERE ext_4 = ? ");
+            List<Object> p = new ArrayList<>();
+            p.add(batchId);
+            if (status != null) {
+                sb.append(" and ext_2 = ? ");
+                p.add(status);
+            }
+            if (StringUtil.isNotEmpty(detailId)) {
+                sb.append(" and ext_3 = ? ");
+                p.add(detailId);
+            }
+            if (StringUtil.isNotEmpty(custId)) {
+                sb.append(" and cust_id =? ");
+                p.add(custId);
+            }
+            list = batchDetailDao.sqlQuery(sb.toString(), p.toArray());
+        }else{//exportType = apiId
+            sb.append("SELECT content, cust_id, cust_group_id, cust_user_id, create_id, create_date ,ext_1, ext_2, ext_3 detailId, ext_4 batchId, ext_5 scoure from h_data_manager_b_test_task_x WHERE ext_4 = ?");
+            List<Object> p = new ArrayList<>();
+            p.add(batchId);
+            if (status != null) {
+                sb.append(" and ext_2 = ? ");
+                p.add(status);
+            }
+            if (StringUtil.isNotEmpty(custId)) {
+                sb.append(" and cust_id =? ");
+                p.add(custId);
+            }
+            List<Map<String, Object>>  _list = batchDetailDao.sqlQuery(sb.toString(), p.toArray());
+            if(_list != null && _list.size()>0){
+                list = new ArrayList<>();
+                for(Map<String,Object> map:_list){
+                    String contentStr = (String) map.get("content");
+                    JSONObject json = JSON.parseObject(contentStr);
+                    JSONObject detail = json.getJSONObject("detail");
+                    detail.put("response",json.getString("response"));
+                    Map<String,Object> detailMap = JSONToMap.toMap(detail.toJSONString());
+                    list.add(detailMap);
+                }
+            }
         }
-        if (StringUtil.isNotEmpty(detailId)) {
-            sb.append(" and ext_3 = ? ");
-            p.add(detailId);
-        }
-        if (StringUtil.isNotEmpty(custId)) {
-            sb.append(" and cust_id =? ");
-            p.add(custId);
-        }
-        List<Map<String, Object>> list = batchDetailDao.sqlQuery(sb.toString(), p.toArray());
         ExcelUtil.exportExcelByList(list, exportType, response);
     }
 

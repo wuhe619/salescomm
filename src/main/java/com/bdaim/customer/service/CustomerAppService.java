@@ -1,6 +1,8 @@
 package com.bdaim.customer.service;
 
+import com.alibaba.fastjson.JSONObject;
 import com.bdaim.auth.LoginUser;
+import com.bdaim.bill.dto.TransactionTypeEnum;
 import com.bdaim.common.dto.PageParam;
 import com.bdaim.common.page.PageList;
 import com.bdaim.common.page.Pagination;
@@ -50,6 +52,7 @@ public class CustomerAppService {
             //职位/职级
             customer.setTitle(vo.getTitle());
             customer.setEnterpriseName(vo.getEnterpriseName());
+
         } else {
             //创建客户信息
             customer = new Customer();
@@ -191,22 +194,42 @@ public class CustomerAppService {
             } else {
                 customerDao.dealCustomerInfo(customerId, "brand", vo.getBrand());
             }
-
         }
-        if (StringUtil.isNotEmpty(vo.getCustId())) {
+        if (StringUtil.isNotEmpty(vo.getMobile())) {
             customerDao.dealCustomerInfo(vo.getCustId(), "mobile", vo.getMobile());
         } else {
             customerDao.dealCustomerInfo(customerId, "mobile", vo.getMobile());
         }
+        if (StringUtil.isNotEmpty(vo.getEmail())) {
+            customerDao.dealCustomerInfo(vo.getCustId(), "email", vo.getEmail());
+        } else {
+            customerDao.dealCustomerInfo(customerId, "email", vo.getEmail());
+        }
+
         //创建企业id
         if (StringUtil.isNotEmpty(vo.getCreateId())) {
-            if (StringUtil.isNotEmpty(vo.getCustId())) {
+            if (StringUtil.isNotEmpty(vo.getCreateId())) {
                 customerDao.dealCustomerInfo(vo.getCustId(), "create_id", vo.getCreateId());
             } else {
                 customerDao.dealCustomerInfo(customerId, "create_id", vo.getCreateId());
             }
         }
-
+        //结算方式
+        if (StringUtil.isNotEmpty(vo.getSettlement_method())) {
+            if (StringUtil.isNotEmpty(vo.getCustId())) {
+                customerDao.dealCustomerInfo(vo.getCustId(), "settlement_method", vo.getSettlement_method());
+            } else {
+                customerDao.dealCustomerInfo(customerId, "settlement_method", vo.getSettlement_method());
+            }
+            //结算方式为后付费的话默认充余额
+            if("1".equals(vo.getSettlement_method())){
+                if (StringUtil.isNotEmpty(vo.getCustId())) {
+                    customerDao.dealCustomerInfo(vo.getCustId(), "remain_amount", "10000000000");
+                } else {
+                    customerDao.dealCustomerInfo(customerId, "remain_amount", "10000000000");
+                }
+            }
+        }
         return customerId;
     }
 
@@ -273,7 +296,12 @@ public class CustomerAppService {
             }
             if (used_amount != null) {
                 logger.info("used_amount:{" + used_amount + "}");
-                map.put("userAmount", StringUtil.isEmpty(used_amount.getPropertyValue()) ? "0" : String.valueOf(BigDecimalUtil.strDiv(used_amount.getPropertyValue(), "10000", 2)));
+                map.put("used_amount", StringUtil.isEmpty(used_amount.getPropertyValue()) ? "0" : String.valueOf(BigDecimalUtil.strDiv(used_amount.getPropertyValue(), "10000", 2)));
+            }
+            CustomerProperty settlement_method = customerDao.getProperty(cust_id, "settlement_method");
+            if (settlement_method != null) {
+                logger.info("settlement_method:{" + settlement_method + "}");
+                map.put("settlement_method", settlement_method.getPropertyValue());
             }
             return map;
         }).collect(Collectors.toList());
@@ -365,11 +393,17 @@ public class CustomerAppService {
                 case "industry":
                     vo.setIndustry(property_value);
                     break;
+                case "email":
+                    vo.setEmail(property_value);
+                    break;
+                case "settlement_method":
+                    vo.setSettlement_method(property_value);
+                    break;
                 case "remain_amount":
                     if (property_value == null)
                         property_value = "0";
                     else
-                        property_value = BigDecimalUtil.strDiv(property_value, "100000", 2);
+                        property_value = BigDecimalUtil.strDiv(property_value, "10000", 2);
                     vo.setRemain_amount(property_value);
             }
         }
@@ -488,5 +522,56 @@ public class CustomerAppService {
     public List subscriptions(String appId) {
         String sql = "select b.api_id as apiId,b.api_name as apiName,b.context,b.http_method as httpMethod,endpoint_url as endpointUrl,endpoint_type as endpointType,b.status as apiStatus, a.sub_status as subStatus,a.subs_create_state as subsCreateState,a.allowed_domains as allowedDomains  from am_subscription a join am_api b on a.api_id=b.api_id where APPLICATION_ID=?";
         return jdbcTemplate.queryForList(sql, appId);
+    }
+
+    public Map<String, Object> customerMonthBill(PageParam page, String customerId){
+        StringBuffer sb = new StringBuffer("select cust_id as custId,stat_time statTime,type,amount/1000 amount,certificate_pic certificatePic,actual_consumption_amount actualConsumptionAmount,op_time opTime,op_user opUser from stat_bill_month where customer_id=? and type=").append(TransactionTypeEnum.API_DEDUCTION.getType());
+        sb.append(" order by stat_time desc ");
+        List p = new ArrayList();
+        p.add(customerId);
+        PageList list = new Pagination().getPageData(sb.toString(), p.toArray(), page, jdbcTemplate);
+        Object collect = list.getList().stream().map(m -> {
+            Map map = (Map) m;
+            logger.info("Map:{" + map + "}");
+            if (StringUtil.isEmpty(map.get("custId").toString())) {
+                return map;
+            }
+            String cust_id = map.get("custId").toString();
+
+            return map;
+        }).collect(Collectors.toList());
+        Map<String, Object> map = new HashMap<>();
+        map.put("data", collect);
+        map.put("total", list.getTotal());
+        return map;
+    }
+
+    public void settlementCustomerMonthBill(JSONObject params)throws Exception{
+        String updateSql = "update stat_bill_month set actual_consumption_amount=?,op_user=?,remark=?,certificate_pic=?," +
+                " op_time=now() where cust_id=? and type=? and stat_time=?";
+        if(!params.containsKey("custId") || params.get("custId")==null){
+            throw new Exception("custId参数不正确");
+        }
+        if(!params.containsKey("actualConsumptionAmount") || params.get("actualConsumptionAmount")==null){
+            throw new Exception("actualConsumptionAmount参数不正确");
+        }
+        if(!params.containsKey("picId") || params.get("picId")==null){
+            throw new Exception("picId参数不正确");
+        }
+        if(!params.containsKey("statTime") || params.get("statTime")==null){
+            throw new Exception("statTime参数不正确");
+        }
+        if(!params.containsKey("type") || params.get("type")==null){
+            throw new Exception("type参数不正确");
+        }
+        List arr=new ArrayList();
+        arr.add(params.get("actualConsumptionAmount"));
+        arr.add(params.get("opuser"));
+        arr.add(params.get("reamrk"));
+        arr.add(params.getString("picId"));
+        arr.add(params.getString("custId"));
+        arr.add(params.get("type"));
+        arr.add(params.get("statTime"));
+        customerDao.executeUpdateSQL(updateSql,arr.toArray());
     }
 }

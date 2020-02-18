@@ -215,6 +215,12 @@ public class CustomerUserService {
 //        userDO.setStatus(Constant.USER_ACTIVE_STATUS);
 //        userDO.setUserPwdLevel(value.getUserPwdLevel());
 //        userInfoDao.save(userDO);
+
+        PasswordChecker checker = new PasswordChecker();
+
+        if(!checker.check(value.getPassword())){
+            throw new Exception("密码不符合要求");
+        }
         //创建客户信息
         customer.setCustId(customerId);
         customer.setRealName(value.getRealName());
@@ -301,14 +307,19 @@ public class CustomerUserService {
             realName = userName;
         }
         String password = userDTO.getPassword();
-        //String appId = userDTO.getAppId();
-//        String callCenterId = userDTO.getCallCenterId();
-        String callType = userDTO.getCallType();
-        String callChannel = userDTO.getCallChannel();
-        Integer userType = userDTO.getUserType();
-        if (userType == null) userType = 2;
-
+        PasswordChecker checker = new PasswordChecker();
         try {
+            if(!checker.check(password)){
+                throw new Exception("密码不符合要求");
+            }
+            //String appId = userDTO.getAppId();
+    //        String callCenterId = userDTO.getCallCenterId();
+            String callType = userDTO.getCallType();
+            String callChannel = userDTO.getCallChannel();
+            Integer userType = userDTO.getUserType();
+            if (userType == null) userType = 2;
+
+
             CustomerUser user = customerUserDao.getCustomerUserByLoginName(userName);
             if (user != null) {
                 logger.error("账号" + userDTO.getUserName() + "已存在");
@@ -663,6 +674,10 @@ public class CustomerUserService {
             CustomerUser cu = this.customerUserDao.get(Long.valueOf(Id));
             if (cu != null) {
                 if (StringUtil.isNotEmpty(userDTO.getPassword())) {
+                    PasswordChecker checker = new PasswordChecker();
+                    if(!checker.check(userDTO.getPassword())){
+                        throw new Exception("密码不符合要求");
+                    }
                     String password = CipherUtil.generatePassword(userDTO.getPassword());
                     cu.setPassword(password);
                 }

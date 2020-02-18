@@ -33,6 +33,10 @@ public class NewCustomerUserService {
                 customerUserDO.setAccount(vo.getName());
             }
             if (StringUtil.isNotEmpty(vo.getPassword())) {
+                PasswordChecker checker = new PasswordChecker();
+                if(!checker.check(vo.getPassword())){
+                    throw new Exception("密码不符合要求");
+                }
                 customerUserDO.setPassword(CipherUtil.generatePassword(vo.getPassword()));
             }
             customerUserDao.saveOrUpdate(customerUserDO);
@@ -46,6 +50,10 @@ public class NewCustomerUserService {
                 customerUserDO.setId(IDHelper.getUserID());
                 customerUserDO.setCust_id(vo.getCustId());
                 customerUserDO.setAccount(vo.getName());
+                PasswordChecker checker = new PasswordChecker();
+                if(!checker.check(vo.getPassword())){
+                    throw new Exception("密码不符合要求");
+                }
                 customerUserDO.setPassword(CipherUtil.generatePassword(vo.getPassword()));
                 customerUserDO.setRealname(vo.getRealName());
                 customerUserDO.setStatus(Constant.USER_ACTIVE_STATUS);
@@ -94,10 +102,15 @@ public class NewCustomerUserService {
     }
 
     public int updateUserPassword(String Id, String password) throws Exception {
-        CustomerUser customerUserDO = customerUserDao.findUniqueBy("id", Long.valueOf(Id));
+        CustomerUser customerUserDO = customerUserDao.findUniqueBy("account", Id);
         if (customerUserDO == null) {
             throw new Exception("用户" + Id + "不存在");
         }
+        PasswordChecker checker = new PasswordChecker();
+        if(!checker.check(password)){
+            throw new Exception("密码不符合要求");
+        }
+
         customerUserDO.setPassword(CipherUtil.generatePassword(password));
         customerUserDao.update(customerUserDO);
         return 1;

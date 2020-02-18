@@ -1,6 +1,7 @@
 package com.bdaim.customer.controller;
 
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.api.service.ApiService;
 import com.bdaim.auth.LoginUser;
 import com.bdaim.common.annotation.CacheAnnotation;
 import com.bdaim.common.controller.BasicAction;
@@ -27,7 +28,10 @@ public class CustomerController extends BasicAction {
 
     private static Logger logger = LoggerFactory.getLogger(CustomerController.class);
     @Resource
-    CustomerAppService customerAppService;
+    private CustomerAppService customerAppService;
+
+    @Resource
+    private ApiService apiService;
 
     /**
      * @Title: regist
@@ -199,4 +203,64 @@ public class CustomerController extends BasicAction {
         return resp;
     }
 
+    /**
+     * Query Apis log of customer
+     **/
+    @PostMapping("/{customerId}/logs")
+    public ResponseInfo customerApiLogs(@RequestBody JSONObject params,@PathVariable("customerId")String customerId) {
+        LoginUser lu = opUser();
+        params.put("customerId",customerId);
+        ResponseInfo resp = new ResponseInfo();
+        PageParam page = new PageParam();
+        page.setPageSize(params.containsKey("pageSize") ? 0 : params.getIntValue("pageSize"));
+        page.setPageNum(params.containsKey("pageNum") ? 10 : params.getIntValue("pageNum"));
+        resp.setData(apiService.customerApiLogs(page, params));
+        return resp;
+    }
+
+    /**
+     * 单客户月账单分页列表
+     * @param params
+     * @param customerId
+     * @return
+     */
+    @PostMapping("/{customerId}/monthBill")
+    public ResponseInfo customerMonthBill(@RequestBody JSONObject params,@PathVariable("customerId")String customerId) {
+        LoginUser lu = opUser();
+        params.put("customerId",customerId);
+        ResponseInfo resp = new ResponseInfo();
+        PageParam page = new PageParam();
+        page.setPageSize(params.containsKey("pageSize") ? 0 : params.getIntValue("pageSize"));
+        page.setPageNum(params.containsKey("pageNum") ? 10 : params.getIntValue("pageNum"));
+        resp.setData(customerAppService.customerMonthBill(page, customerId));
+        return resp;
+    }
+
+    /**
+     * 后付款客户结算月账单
+     * @param params
+     * @param customerId
+     * @return
+     */
+    @PostMapping("/{customerId}/monthBillSettlement")
+    public ResponseInfo settlementCustomerMonthBill(@RequestBody JSONObject params,@PathVariable("customerId")String customerId) {
+        LoginUser lu = opUser();
+        ResponseInfo resp = new ResponseInfo();
+        if(lu==null || lu.getAuths()==null || !lu.getAuths().contains("admin")) {
+            resp.setMessage("no auth");
+            resp.setCode(401);
+            return resp;
+        }
+        params.put("customerId",customerId);
+        params.put("opuser",lu.getId());
+        try {
+            customerAppService.settlementCustomerMonthBill(params);
+            resp.setCode(0);
+        }catch (Exception e){
+            logger.error(e.getMessage());
+            resp.setMessage(e.getMessage());
+            resp.setCode(-1);
+        }
+        return resp;
+    }
 }

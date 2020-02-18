@@ -71,7 +71,7 @@ public class ExportMessageAction extends BasicAction {
             }
             exportMessageService.exportDetailInfo(batchId, detailId, status, response, exportType,custId);
         } catch (Exception e) {
-            logger.info("失联人员信息导出", e);
+            logger.info("信息导出", e);
             return new ResponseInfoAssemble().failure(-1, "批次详情信息导出失败");
         }
         return new ResponseInfoAssemble().success("批次详情信息导出成功");

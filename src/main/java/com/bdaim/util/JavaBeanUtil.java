@@ -1,5 +1,7 @@
 package com.bdaim.util;
 
+import com.jfinal.plugin.activerecord.Record;
+
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
@@ -81,7 +83,7 @@ public class JavaBeanUtil {
                 field.setAccessible(true);
                 try {
                     String string = (String) field.get(object);
-                    if(StringUtil.isNotEmpty(string)){
+                    if (StringUtil.isNotEmpty(string)) {
                         //将所有的空格字符用""替换
                         string = string.replaceAll(" ", "");
                     }
@@ -93,5 +95,21 @@ public class JavaBeanUtil {
             }
         }
         return object;
+    }
+
+    public static Record mapToRecord(Map<String, Object> map) {
+        return new Record().setColumns(map);
+    }
+
+    public static List<Record> mapToRecords(List<Map<String, Object>> l) {
+        List<Record> list = new ArrayList<>();
+        l.forEach(s -> list.add(mapToRecord(s)));
+        return list;
+    }
+
+    public static List<Map<String, Object>> recordToMap(List<Record> records) {
+        List<Map<String, Object>> list = new ArrayList<>();
+        records.forEach(s -> list.add(s.getColumns()));
+        return list;
     }
 }

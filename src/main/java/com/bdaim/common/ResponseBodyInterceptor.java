@@ -6,8 +6,8 @@ import com.alibaba.fastjson.JSONObject;
 import com.bdaim.AppConfig;
 import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.response.ResponseInfo;
+import com.bdaim.crm.utils.R;
 import com.bdaim.util.StringUtil;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.aspectj.lang.JoinPoint;
@@ -77,9 +77,12 @@ public class ResponseBodyInterceptor {
             className = pjp.getTarget().getClass().getSimpleName();
 
             Object o = pjp.proceed();
-            if(o instanceof ResponseInfo){
+            if (o instanceof ResponseInfo || o instanceof R) {
                 return o;
             }
+            //else if (o instanceof Map) {
+            //  return o;
+            //}
             if (o != null) {
                 String str = null;
                 if (o instanceof String) {

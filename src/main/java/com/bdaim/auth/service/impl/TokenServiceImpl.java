@@ -154,6 +154,7 @@ public class TokenServiceImpl implements TokenService {
                 }
                 userdetail.setCustId("0");
                 userdetail.setId(u.getId());
+                userdetail.setUserId(u.getId());
                 userdetail.setUserType(String.valueOf(u.getUserType()));
                 userdetail.setRole(role);
                 userdetail.setType(type);
@@ -296,6 +297,7 @@ public class TokenServiceImpl implements TokenService {
                 }
                 userdetail.setCustId(u.getCust_id());
                 userdetail.setId(u.getId());
+                userdetail.setUserId(u.getId());
                 userdetail.setUserType(String.valueOf(u.getUserType()));
                 userdetail.setRole(userdetail.getAuths().size() > 0 ? userdetail.getAuths().get(0) : "");
 
@@ -429,6 +431,7 @@ public class TokenServiceImpl implements TokenService {
 
         userdetail.setCustId(u.getCust_id());
         userdetail.setId(u.getId());
+        userdetail.setUserId(u.getId());
         userdetail.setUserType(String.valueOf(u.getUserType()));
         userdetail.setRole(userdetail.getAuths().size() > 0 ? userdetail.getAuths().get(0) : "");
 

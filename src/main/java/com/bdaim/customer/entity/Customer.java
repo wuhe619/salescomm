@@ -24,6 +24,7 @@ public class Customer {
     private Integer compId;
     private String brandId;
 
+
     @Id
     @Column(name = "cust_id")
     public String getCustId() {

@@ -55,6 +55,7 @@ public class CustomerRegistDTO implements Serializable {
     private String resource;
     private String createId;
 
+
     /**
      * 营销类型:1-B2C营销  2-B2B营销
      */
@@ -118,6 +119,18 @@ public class CustomerRegistDTO implements Serializable {
     private String api_token;
     private String industryPictureValue;
     private String remain_amount;
+    /**
+     * 结算方式（0：预付1：后付）
+     */
+    private String settlement_method;
+
+    public String getSettlement_method() {
+        return settlement_method;
+    }
+
+    public void setSettlement_method(String settlement_method) {
+        this.settlement_method = settlement_method;
+    }
 
     public String getRemain_amount() {
         return remain_amount;

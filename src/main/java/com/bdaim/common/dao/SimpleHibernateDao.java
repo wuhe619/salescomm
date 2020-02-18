@@ -246,6 +246,7 @@ public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDao
     public <X> List<X> find(final String hql, final Object... values) {
         return createQuery(hql, values).list();
     }
+
     public <X> List<X> find(final String hql, final List values) {
         return createQuery(hql, values).list();
     }
@@ -918,7 +919,7 @@ public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDao
                 query.setParameter(i, params[i]);
             }
         List rs = query.list();
-        return rs != null && rs.size()>0 ? (Map<String, Object>) rs.get(0) :null;
+        return rs != null && rs.size() > 0 ? (Map<String, Object>) rs.get(0) : null;
     }
 
 
@@ -1086,6 +1087,28 @@ public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDao
     public List queryListBySql(String sql, Class className) {
         Session session = getSession();
         Query query = session.createSQLQuery(sql).addEntity(className);
+        List rs = query.list();
+        return rs;
+    }
+
+    public List queryListBySql(String sql, final Object... values) {
+        Session session = getSession();
+        Query query = session.createSQLQuery(sql);
+        if (values != null)
+            for (int i = 0; i < values.length; i++) {
+                query.setParameter(i, values[i]);
+            }
+        List rs = query.list();
+        return rs;
+    }
+
+    public List queryListBySql(String sql, Class className, final Object... values) {
+        Session session = getSession();
+        Query query = session.createSQLQuery(sql).addEntity(className);;
+        if (values != null)
+            for (int i = 0; i < values.length; i++) {
+                query.setParameter(i, values[i]);
+            }
         List rs = query.list();
         return rs;
     }
