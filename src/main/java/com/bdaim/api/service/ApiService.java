@@ -749,7 +749,7 @@ public class ApiService {
                 " que.RESPONSE_MSG responseMsg,que.RESPONSE_TIME as responseTime from rs_log_" + params.getString("callMonth") + " log " +
                 " left join  t_market_resource res on log.rs_id = res.resource_id " +
                 " left join am_charge_" + params.getString("callMonth") + " que on que.id=log.api_log_id " +
-                "  where log.rs_id=?");
+                "  where log.rs_id=? order by log.event_time desc ");
 
         PageList list = new Pagination().getPageData(sql.toString(), new Object[]{params.getString("rsId")}, page, jdbcTemplate);
         return list;
