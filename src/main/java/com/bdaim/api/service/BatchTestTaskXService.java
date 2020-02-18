@@ -92,7 +92,7 @@ public class BatchTestTaskXService implements BusiService {
                             json2.put("failedNum",failedNum);
                         }
                         info.put("ext_date1",new Date());
-                        String updatesql = "update"+HMetaDataDef.getTable(busiType,"")+" set ext_date1=now() where id=?";
+                        String updatesql = "update "+HMetaDataDef.getTable(busiType,"")+" set ext_date1=now() where id=?";
                         log.info("testx_updatesql:"+updatesql+";id="+id);
                         jdbcTemplate.update(updatesql,id);
                         String updateSql = "update "+HMetaDataDef.getTable(BusiTypeEnum.BATCH_TEST_TASK_Z.getType(), "") +" set content=? where id=?";
