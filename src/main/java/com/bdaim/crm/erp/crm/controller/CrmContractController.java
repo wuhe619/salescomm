@@ -17,6 +17,7 @@ import com.bdaim.crm.erp.crm.service.CrmReceivablesPlanService;
 import com.bdaim.crm.erp.crm.service.CrmReceivablesService;
 import com.bdaim.crm.utils.AuthUtil;
 import com.bdaim.crm.utils.R;
+import com.bdaim.util.JavaBeanUtil;
 import com.jfinal.core.Controller;
 import com.jfinal.core.paragetter.Para;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -172,10 +173,10 @@ public class CrmContractController extends Controller {
     public R getMembers(@Para("contractId") Integer contractId) {
         boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.CONTRACT_TYPE_KEY.getSign()), contractId);
         if (auth) {
-            return(R.noAuth());
+            return (R.noAuth());
             //return;
         }
-        return(R.ok().put("data", crmContractService.getMembers(contractId)));
+        return (R.ok().put("data", JavaBeanUtil.recordToMap(crmContractService.getMembers(contractId))));
     }
 
     /**
@@ -184,7 +185,7 @@ public class CrmContractController extends Controller {
      */
     @RequestMapping(value = "/updateMembers", method = RequestMethod.POST)
     public R updateMembers(@Para("") CrmContract crmContract) {
-        return(crmContractService.addMember(crmContract));
+        return (crmContractService.addMember(crmContract));
     }
 
     /**
@@ -194,7 +195,7 @@ public class CrmContractController extends Controller {
     @Permissions("crm:contract:teamsave")
     @RequestMapping(value = "/addMembers", method = RequestMethod.POST)
     public R addMembers(@Para("") CrmContract crmContract) {
-        return(crmContractService.addMember(crmContract));
+        return (crmContractService.addMember(crmContract));
     }
 
     /**
@@ -203,7 +204,7 @@ public class CrmContractController extends Controller {
      */
     @RequestMapping(value = "/deleteMembers", method = RequestMethod.POST)
     public R deleteMembers(@Para("") CrmContract crmContract) {
-        return(crmContractService.deleteMembers(crmContract));
+        return (crmContractService.deleteMembers(crmContract));
     }
 
     /**
@@ -220,7 +221,7 @@ public class CrmContractController extends Controller {
             return (R.noAuth());
             //return;
         }
-        return(crmContractService.addRecord(adminRecord));
+        return (crmContractService.addRecord(adminRecord));
     }
 
     /**
@@ -231,10 +232,10 @@ public class CrmContractController extends Controller {
     public R getRecord(BasePageRequest<CrmContract> basePageRequest) {
         boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.CONTRACT_TYPE_KEY.getSign()), basePageRequest.getData().getContractId());
         if (auth) {
-            return(R.noAuth());
+            return (R.noAuth());
             //return;
         }
-        return(R.ok().put("data", crmContractService.getRecord(basePageRequest)));
+        return (R.ok().put("data", JavaBeanUtil.recordToMap(crmContractService.getRecord(basePageRequest))));
     }
 
     /**
@@ -246,10 +247,10 @@ public class CrmContractController extends Controller {
     public R qureyReceivablesListByContractId(BasePageRequest<CrmReceivables> basePageRequest) {
         boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.CONTRACT_TYPE_KEY.getSign()), basePageRequest.getData().getContractId());
         if (auth) {
-            return(R.noAuth());
+            return (R.noAuth());
             //return;
         }
-        return(receivablesService.qureyListByContractId(basePageRequest));
+        return (receivablesService.qureyListByContractId(basePageRequest));
     }
 
     /**
@@ -261,10 +262,10 @@ public class CrmContractController extends Controller {
     public R qureyProductListByContractId(BasePageRequest<CrmContractProduct> basePageRequest) {
         boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.CONTRACT_TYPE_KEY.getSign()), basePageRequest.getData().getContractId());
         if (auth) {
-            return(R.noAuth());
+            return (R.noAuth());
             //return;
         }
-        return(crmContractService.qureyProductListByContractId(basePageRequest));
+        return (crmContractService.qureyProductListByContractId(basePageRequest));
     }
 
     /**
@@ -276,10 +277,10 @@ public class CrmContractController extends Controller {
     public R qureyReceivablesPlanListByContractId(BasePageRequest<CrmReceivables> basePageRequest) {
         boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.CONTRACT_TYPE_KEY.getSign()), basePageRequest.getData().getContractId());
         if (auth) {
-            return(R.noAuth());
+            return (R.noAuth());
             //return;
         }
-        return(receivablesPlanService.qureyListByContractId(basePageRequest));
+        return (receivablesPlanService.qureyListByContractId(basePageRequest));
     }
 
     /**
@@ -287,7 +288,7 @@ public class CrmContractController extends Controller {
      */
     @RequestMapping(value = "/queryContractConfig", method = RequestMethod.POST)
     public R queryContractConfig() {
-        return(crmContractService.queryContractConfig());
+        return (crmContractService.queryContractConfig());
     }
 
     /**
@@ -296,6 +297,6 @@ public class CrmContractController extends Controller {
     @NotNullValidate(value = "status", message = "status不能为空")
     @RequestMapping(value = "/setContractConfig", method = RequestMethod.POST)
     public R setContractConfig(@Para("status") Integer status, @Para("contractDay") Integer contractDay) {
-        return(crmContractService.setContractConfig(status, contractDay));
+        return (crmContractService.setContractConfig(status, contractDay));
     }
 }

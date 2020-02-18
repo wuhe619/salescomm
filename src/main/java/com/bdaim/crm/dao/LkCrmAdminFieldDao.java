@@ -75,4 +75,9 @@ public class LkCrmAdminFieldDao extends SimpleHibernateDao<LkCrmAdminFieldEntity
         String sql = "select id,name from lkcrm_admin_field_sort where is_hide = ? and label = ? and user_id = ? order by sort asc ";
         return sqlQuery(sql, isHide, label, userId);
     }
+
+    public List<Map<String, Object>> queryCustomField(String batchId) {
+        String sql = "select a.name,a.value,b.type from 72crm_admin_fieldv as a left join 72crm_admin_field as b on a.field_id = b.field_id where batch_id = ?";
+        return sqlQuery(sql, batchId);
+    }
 }
