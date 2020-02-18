@@ -10,7 +10,7 @@ public class LkCrmAdminFileEntity {
     private Integer fileId;
     private String name;
     private Long size;
-    private int createUserId;
+    private Long createUserId;
     private Timestamp createTime;
     private String path;
     private String filePath;
@@ -50,11 +50,11 @@ public class LkCrmAdminFileEntity {
 
     @Basic
     @Column(name = "create_user_id")
-    public int getCreateUserId() {
+    public Long getCreateUserId() {
         return createUserId;
     }
 
-    public void setCreateUserId(int createUserId) {
+    public void setCreateUserId(Long createUserId) {
         this.createUserId = createUserId;
     }
 
