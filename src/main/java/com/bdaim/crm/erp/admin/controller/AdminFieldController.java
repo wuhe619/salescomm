@@ -150,10 +150,12 @@ public class AdminFieldController extends BasicAction {
     @RequestMapping(value = "/information", method = RequestMethod.POST)
     public R information(@Para("types") Integer types, @Para("id") String id, Long seaId) {
         List<Record> recordList;
-        boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.getSign(types)), id);
-        if (auth) {
-            return (R.noAuth());
-            //return;
+        if (8 != types) {
+            boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.getSign(types)), id);
+            if (auth) {
+                return (R.noAuth());
+                //return;
+            }
         }
         if (1 == types) {
             recordList = crmLeadsService.information(NumberUtil.parseInt(id));
