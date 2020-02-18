@@ -567,7 +567,7 @@ public class CustomerAppService {
         List arr=new ArrayList();
         arr.add(params.get("actualConsumptionAmount"));
         arr.add(params.get("opuser"));
-        arr.add(params.get("reamrk"));
+        arr.add(params.get("remark"));
         arr.add(params.getString("picId"));
         arr.add(params.getString("custId"));
         arr.add(params.get("type"));
