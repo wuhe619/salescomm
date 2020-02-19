@@ -3,10 +3,7 @@ package com.bdaim.customer.service;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.dto.PageParam;
-import com.bdaim.common.page.PageList;
-import com.bdaim.common.page.Pagination;
 import com.bdaim.customer.dao.CustomerDao;
-import com.bdaim.util.DateUtil;
 import com.bdaim.util.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -14,10 +11,8 @@ import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 public class CustomerExtensionService {
@@ -66,7 +61,7 @@ public class CustomerExtensionService {
         }
         sql.append(" order by create_time desc");
 //        List<Map<String, Object>> ds = jdbcTemplate.queryForList(sql + " limit " + (page.getPageNum() - 1) * page.getPageSize() + ", " + page.getPageSize());
-        Page list = customerDao.sqlPageQuery0(sql.toString(), page.getPageNum(), page.getPageSize(), p.toArray());
+        Page list = customerDao.sqlPageQuery(sql.toString(), page.getPageNum(), page.getPageSize(), p.toArray());
         List list1 = new ArrayList();
         list.getData().stream().forEach(m -> {
             Map map = (Map) m;
