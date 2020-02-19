@@ -477,7 +477,7 @@ public class AdminFieldService {
             sql.append(" and examine_category_id= ? ");
         }
         sql.append(" ORDER BY sorting asc");
-        List<Map<String, Object>> maps = crmAdminFieldDao.sqlQuery(sql.toString(), params);
+        List<Map<String, Object>> maps = crmAdminFieldDao.sqlQuery(sql.toString(), params.toArray());
         List<Record> recordList = JavaBeanUtil.mapToRecords(maps);
 
         //List<Record> recordList = Db.find(Db.getSqlPara("admin.field.list", Kv.by("label", label).set("categoryId", categoryId)));
@@ -580,6 +580,9 @@ public class AdminFieldService {
                     .add("ownerUserName", "负责人").add("createUserName", "创建人");
             fieldUtil.getAdminFieldSortList().forEach(fieldSort -> {
                 String fieldName = StrUtil.toCamelCase(fieldSort.getFieldName());
+                if (11 == adminFieldSort.getLabel()) {
+                    fieldName = fieldSort.getFieldName();
+                }
                 fieldSort.setFieldName(fieldName);
                 if ("customerId".equals(fieldSort.getFieldName())) {
                     fieldSort.setFieldName("customerName");
@@ -631,7 +634,7 @@ public class AdminFieldService {
         }
         List noHideList = crmAdminFieldDao.queryFieldConfig(0, adminFieldSort.getLabel(), userId);
         List hideList = crmAdminFieldDao.queryFieldConfig(1, adminFieldSort.getLabel(), userId);
-        return R.ok().put("data", Kv.by("value", noHideList).set("hide_value", hideList));
+        return R.ok().put("data", Kv.by("value", noHideList).set("hide_value", hideList).set("hideValue", hideList));
     }
 
     /**
@@ -651,7 +654,9 @@ public class AdminFieldService {
         }
         if (null != adminFieldSort.getHideIds()) {
             String[] hideIdsArr = adminFieldSort.getHideIds().split(",");
-            crmAdminFieldDao.executeUpdateSQL("  update lkcrm_admin_field_sort set is_hide = 1,sort = 0 where id in (?) and label = ? and user_id = ?", Arrays.asList(hideIdsArr), adminFieldSort.getLabel(), userId);
+            for (int i = 0; i < hideIdsArr.length; i++) {
+                crmAdminFieldDao.executeUpdateSQL("  update lkcrm_admin_field_sort set is_hide = 1,sort = 0 where id =? and label = ? and user_id = ?", hideIdsArr[i], adminFieldSort.getLabel(), userId);
+            }
             //Db.update(Db.getSqlPara("admin.field.isHide", Kv.by("ids", hideIdsArr).set("label", adminFieldSort.getLabel()).set("userId", userId)));
         }
         CaffeineCache.ME.remove("field", "listHead:" + adminFieldSort.getLabel() + userId);

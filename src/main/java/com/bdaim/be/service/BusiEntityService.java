@@ -205,14 +205,14 @@ public class BusiEntityService {
                 }
                 sqlParams.add(params.get(key));
             }
-            if (StringUtil.isNotEmpty(_orderby_) && StringUtil.isNotEmpty(_sort_)) {
-                sqlstr.append(" order by ? ? ");
-                sqlParams.add(_orderby_);
-                sqlParams.add(_sort_);
-            }
+
             sql = sqlstr.toString();
         }
-
+        if (StringUtil.isNotEmpty(_orderby_) && StringUtil.isNotEmpty(_sort_)) {
+            sql += " order by  "+ _orderby_+" "+_sort_+" ";
+            //sqlParams.add(_orderby_);
+            //sqlParams.add(_sort_);
+        }
         int pageNum = 1;
         int pageSize = 10;
         try {
@@ -268,6 +268,8 @@ public class BusiEntityService {
                             jo.put("ext_4", m.get("ext_4"));
                         if (m.get("ext_5") != null && !"".equals(m.get("ext_5")))
                             jo.put("ext_5", m.get("ext_5"));
+                        if(m.get("ext_date1")!=null)
+                            jo.put("ext_date1",m.get("ext_date1"));
                     } else
                         jo = JSONObject.parseObject(JSONObject.toJSONString(m));
                 } catch (Exception e) {
@@ -321,7 +323,7 @@ public class BusiEntityService {
      */
     @Transactional
     public Long saveInfo(String cust_id, String cust_group_id, Long cust_user_id, String busiType, Long id, JSONObject info) throws Exception {
-        String[] extKeys = new String[]{"ext_1", "ext_2", "ext_3", "ext_4", "ext_5", "cust_user_id"};
+        String[] extKeys = new String[]{"ext_1", "ext_2", "ext_3", "ext_4", "ext_5", "cust_user_id","ext_date1"};
         String[] sysKeys = new String[]{"id", "cust_id", "create_id", "create_date"}; //系统数据字段名
         for (String sysKey : sysKeys) {
             if (info.containsKey(sysKey))
@@ -347,9 +349,9 @@ public class BusiEntityService {
 
                 if (jo.containsKey("_rule_"))
                     jo.remove("_rule_");
-                JSONObject jsonObject = JSON.parseObject(extData);
+                //JSONObject jsonObject = JSON.parseObject(extData);
                 jdbcTemplate.update(sql1, id, busiType, info.toJSONString(), cust_id, cust_group_id, cust_user_id, cust_user_id
-                        , jsonObject.containsKey("ext_1") ? jsonObject.getString("ext_1") : ""
+                        , jo.containsKey("ext_1") ? jo.getString("ext_1") : ""
                         , jo.containsKey("ext_2") ? jo.getString("ext_2") : ""
                         , jo.containsKey("ext_3") ? jo.getString("ext_3") : ""
                         , jo.containsKey("ext_4") ? jo.getString("ext_4") : ""

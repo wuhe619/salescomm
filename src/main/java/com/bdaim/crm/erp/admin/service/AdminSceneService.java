@@ -156,6 +156,40 @@ public class AdminSceneService {
                     .add("create_user_id", "创建人", "user", settingArr)
                     .add("update_time", "更新时间", "datetime", settingArr)
                     .add("create_time", "创建时间", "datetime", settingArr);
+        } else if (7 == label) {
+            List<Map<String, Object>> checkList = new ArrayList<>();
+            checkList.add(new JSONObject().fluentPut("name", "待审核").fluentPut("value", 0));
+            checkList.add(new JSONObject().fluentPut("name", "审核中").fluentPut("value", 1));
+            checkList.add(new JSONObject().fluentPut("name", "审核通过").fluentPut("value", 2));
+            checkList.add(new JSONObject().fluentPut("name", "审核未通过").fluentPut("value", 3));
+            checkList.add(new JSONObject().fluentPut("name", "已撤回").fluentPut("value", 4));
+            fieldUtil.add("number", "回款编号", "number", settingArr)
+                    .add("check_status", "审核状态", "checkStatus", checkList)
+                    .add("customer_name", "客户名称", "customer", settingArr)
+                    .add("contract_num", "合同编号", "contract", settingArr)
+                    .add("return_time", "回款日期", "date", settingArr)
+                    .add("money", "回款金额", "floatnumber", settingArr)
+                    .add("remark", "备注", "textarea", settingArr)
+                    .add("owner_user_id", "负责人", "user", settingArr)
+                    .add("create_user_id", "创建人", "user", settingArr)
+                    .add("update_time", "更新时间", "datetime", settingArr)
+                    .add("create_time", "创建时间", "datetime", settingArr);
+        } else if (8 == label) {
+            fieldUtil.add("leads_name", "线索名称", "text", settingArr)
+                    .add("super_phone", "电话", "text", settingArr)
+                    .add("super_telphone", "手机", "mobile", settingArr)
+                    .add("super_address_street", "地址", "text", settingArr)
+                    .add("next_time", "下次联系时间", "datetime", settingArr)
+                    .add("remark", "备注", "text", settingArr)
+                    .add("owner_user_id", "负责人", "user", settingArr)
+                    .add("create_user_id", "创建人", "user", settingArr)
+                    .add("update_time", "更新时间", "datetime", settingArr)
+                    .add("create_time", "创建时间", "datetime", settingArr)
+
+                    .add("user_get_time", "线索领取时间", "datetime", settingArr)
+                    .add("sms_success_count", "短信营销数量", "text", settingArr)
+                    .add("call_success_count", "电话营销数量", "text", settingArr)
+                    .add("email_success_count", "邮件营销数量", "text", settingArr);
         } else {
             return R.error("场景label不符合要求！");
         }
@@ -167,7 +201,7 @@ public class AdminSceneService {
             }
             recordList.addAll(records);
         }
-        return R.ok().put("data", recordList);
+        return R.ok().put("data", JavaBeanUtil.recordToMap(recordList));
     }
 
     /**
@@ -545,6 +579,9 @@ public class AdminSceneService {
                 conditions.append(" and (number like '%").append(search).append("%')");
             }
         }
+
+        conditions.append(" and cust_id= ? ");
+
         String camelField = basePageRequest.getJsonObject().getString("sortField");
         String sortField = StrUtil.toUnderlineCase(camelField);
         String orderNum = basePageRequest.getJsonObject().getString("order");
@@ -575,7 +612,7 @@ public class AdminSceneService {
         conditions.insert(0, " from " + viewName);
         conditions.append(" order by ").append(viewName).append(".").append(sortField).append(" ").append(orderNum);
         if (StrUtil.isNotEmpty(basePageRequest.getJsonObject().getString("excel"))) {
-            return R.ok().put("data", crmAdminSceneDao.sqlQuery("select * " + conditions.toString()));
+            return R.ok().put("data", crmAdminSceneDao.sqlQuery("select * " + conditions.toString(), BaseUtil.getUser().getCustId()));
         }
         if (2 == type || 8 == type) {
             Integer configType = crmAdminSceneDao.queryForInt("select status from lkcrm_admin_config where name = 'customerPoolSetting'");
@@ -585,20 +622,20 @@ public class AdminSceneService {
                         "    ) as pool_day," +
                         "    (select count(*) from lkcrm_crm_business as a where a.customer_id = customerview.customer_id) as business_count";
 
-                return R.ok().put("data", crmAdminSceneDao.sqlPageQuery(sql + conditions.toString(), basePageRequest.getPage(), basePageRequest.getLimit()));
+                return R.ok().put("data", BaseUtil.crmPage(crmAdminSceneDao.sqlPageQuery(sql + conditions.toString(), basePageRequest.getPage(), basePageRequest.getLimit(), BaseUtil.getUser().getCustId())));
             } else {
-                return R.ok().put("data", crmAdminSceneDao.sqlPageQuery("select *,(select count(*) from lkcrm_crm_business as a where a.customer_id = " + viewName + ".customer_id) as business_count " + conditions.toString(), basePageRequest.getPage(), basePageRequest.getLimit()));
+                return R.ok().put("data", BaseUtil.crmPage(crmAdminSceneDao.sqlPageQuery("select *,(select count(*) from lkcrm_crm_business as a where a.customer_id = " + viewName + ".customer_id) as business_count " + conditions.toString(), basePageRequest.getPage(), basePageRequest.getLimit(), BaseUtil.getUser().getCustId())));
             }
 
         } else if (6 == type) {
-            Record totalMoney = JavaBeanUtil.mapToRecord(crmAdminSceneDao.sqlQuery("select SUM(money) as contractMoney,GROUP_CONCAT(contract_id) as contractIds " + conditions.toString()).get(0));
-            Page page = crmAdminSceneDao.sqlPageQuery("select *,IFNULL((select SUM(a.money) from lkcrm_crm_receivables as a where a.contract_id = contractview.contract_id),0) as receivedMoney" + conditions.toString(), basePageRequest.getPage(), basePageRequest.getLimit());
+            Record totalMoney = JavaBeanUtil.mapToRecord(crmAdminSceneDao.sqlQuery("select SUM(money) as contractMoney,GROUP_CONCAT(contract_id) as contractIds " + conditions.toString(), BaseUtil.getUser().getCustId()).get(0));
+            Page page = crmAdminSceneDao.sqlPageQuery("select *,IFNULL((select SUM(a.money) from lkcrm_crm_receivables as a where a.contract_id = contractview.contract_id),0) as receivedMoney" + conditions.toString(), basePageRequest.getPage(), basePageRequest.getLimit(), BaseUtil.getUser().getCustId());
 
             String receivedMoney = crmAdminSceneDao.queryForObject("select SUM(money) from lkcrm_crm_receivables where receivables_id in (" + totalMoney.getStr("contractIds") + ")");
             JSONObject jsonObject = JSONObject.parseObject(Json.getJson().toJson(page), JSONObject.class);
             return R.ok().put("data", jsonObject.fluentPut("money", new JSONObject().fluentPut("contractMoney", totalMoney.getStr("contractMoney") != null ? totalMoney.getStr("contractMoney") : "0").fluentPut("receivedMoney", receivedMoney != null ? receivedMoney : "0")));
         }
-        com.bdaim.common.dto.Page recordPage = crmAdminSceneDao.sqlPageQuery("select *" + conditions.toString(), basePageRequest.getPage(), basePageRequest.getLimit());
+        com.bdaim.common.dto.Page recordPage = crmAdminSceneDao.sqlPageQuery("select *" + conditions.toString(), basePageRequest.getPage(), basePageRequest.getLimit(), BaseUtil.getUser().getCustId());
         if (type == 5) {
             recordPage.getData().forEach(record -> {
                 Map map = (Map) record;
@@ -612,7 +649,10 @@ public class AdminSceneService {
             });
             setBusinessStatus(recordPage.getData());
         }
-        return R.ok().put("data", recordPage);
+      /*  com.jfinal.plugin.activerecord.Page finalPage = new com.jfinal.plugin.activerecord.Page();
+        finalPage.setList(recordPage.getData());
+        finalPage.setTotalRow(recordPage.getTotal());*/
+        return R.ok().put("data", BaseUtil.crmPage(recordPage));
     }
 
     public void setBusinessStatus(List<Record> list) {

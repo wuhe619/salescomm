@@ -46,18 +46,10 @@ public class BatchTestTaskService implements BusiService {
     @Resource
     private JdbcTemplate jdbcTemplate;
 
-    @Autowired
-    private SequenceService sequenceService;
-
-
-    @Autowired
-    private ServiceUtils serviceUtils;
 
 
     @Override
     public void insertInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) throws Exception {
-        //busiType = BusiTypeEnum.BATCH_TEST_TASK.getType();
-        //String sql1 = "insert into " + HMetaDataDef.getTable(busiType, "") + "(id, type, content, cust_id, cust_group_id, cust_user_id, create_id, create_date, ext_2,ext_3, ext_4 ) value(?, ?, ?, ?, ?, ?, ?, now(), ?, ?, ?)";
         String apiId = info.getString("apiId");
         String sql = "select count(0) from " + HMetaDataDef.getTable(busiType, "")+" where cust_id=? and ext_2=?";
         List param = new ArrayList();
@@ -73,10 +65,11 @@ public class BatchTestTaskService implements BusiService {
         CustomerUser custUser = customerUserDao.selectPropertyByType(1,cust_id );
         if (custUser!=null){
             info.put("account", custUser.getAccount());
+            info.put("ext_3",custUser.getAccount());
         }
         ApiEntity apiEntity = apiDao.getApi(info.getIntValue("apiId"));
         if(apiEntity==null || apiEntity.getStatus()!=2){
-            throw new Exception("API不存在或未发布");
+            throw new Exception("API["+apiId+"]不存在或未发布");
         }else{
             info.put("apiName",apiEntity.getName());
             info.put("ext_4",apiEntity.getName());
@@ -127,15 +120,29 @@ public class BatchTestTaskService implements BusiService {
         Iterator keys = params.keySet().iterator();
         while (keys.hasNext()) {
             String key = (String) keys.next();
-            if (StringUtil.isNotEmpty(String.valueOf(params.get(key)))) continue;
-            if ("pageNum".equals(key) || "pageSize".equals(key) || "pid1".equals(key) || "pid2".equals(key))
+            if (StringUtil.isEmpty(String.valueOf(params.get(key)))) continue;
+            if ("pageNum".equals(key) || "pageSize".equals(key) || "_sort_".equals(key) || "_orderby_".equals(key))
                 continue;
             if ("cust_id".equals(key)) {
-                sqlstr.append(" and cust_id=?");
-            }
+                sqlstr.append(" and cust_id=? ");
+                sqlParams.add(params.get(key));
+            }else if("custName".equals(key) && StringUtil.isNotEmpty(params.getString(key))){
+                sqlstr.append(" and ext_5 like ? ");
+                sqlParams.add("%" + params.get(key) + "%");
+            }else if("account".equals(key) && StringUtil.isNotEmpty(params.getString(key))){
+                sqlstr.append(" and ext_3=? ");
+                sqlParams.add(params.get(key));
+            }else if("apiName".equals(key) && StringUtil.isNotEmpty(params.getString(key))){
+                sqlstr.append(" and ext_4=? ");
+                sqlParams.add(params.get(key));
+            }/**else if("custName".equals(key)){
+                sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key + "')=?");
+                sqlParams.add(params.get(key));
+            }else if("account".equals(key)){
+                sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key + "')=?");
+                sqlParams.add(params.get(key));
+            }*/
 
-            sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key + "')=?");
-            sqlParams.add(params.get(key));
         }
         return sqlstr.toString();
     }

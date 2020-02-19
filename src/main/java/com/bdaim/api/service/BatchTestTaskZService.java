@@ -1,6 +1,7 @@
 package com.bdaim.api.service;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.service.BusiService;
@@ -52,11 +53,15 @@ public class BatchTestTaskZService implements BusiService {
     @Override
     public void insertInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) throws Exception {
         //busiType = BusiTypeEnum.BATCH_TEST_TASK.getType();
-        String sql1 = "insert into " + HMetaDataDef.getTable(busiType, "") + "(id, type, content, cust_id, cust_user_id, create_id, create_date, ext_2,ext_3, ext_4 ) value(?, ?, ?, ?, ?, ?, now(), ?, ?, ?)";
+
         String batchName = info.getString("batch_name");
         String apiId = info.getString("api_id");
         String taskId = info.getString("task_id");
         Integer number = info.getInteger("number");
+        if(StringUtil.isEmpty(batchName) || StringUtil.isEmpty(apiId) || StringUtil.isEmpty(taskId) || number == null){
+            log.error("参数不全");
+            throw new Exception("参数不全");
+        }
 
         //查询task表中的数据并对usedNum进行重新计算
         String sql = " select content from "+HMetaDataDef.getTable(BusiTypeEnum.BATCH_TEST_TASK.getType(), "")+" where id=?";
@@ -69,7 +74,7 @@ public class BatchTestTaskZService implements BusiService {
                 Integer usedNum = json.getInteger("usedNum");
                 usedNum += number;
                 if(usedNum>limitNum){
-                    throw new Exception("批量测试数量已超过受限数量");
+                    throw new Exception("批量测试任务["+taskId+"]数量已超过受限数量["+limitNum+"]");
                 }
                 json.put("usedNum",usedNum);
                 String updateSql = "update "+HMetaDataDef.getTable(BusiTypeEnum.BATCH_TEST_TASK.getType(), "") +" set content=? where id=?";
@@ -86,15 +91,16 @@ public class BatchTestTaskZService implements BusiService {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("status", 0);
         if (StringUtil.isNotEmpty(detailStr)) {
-            String details[] = detailStr.split(",");
-            if (details.length > 0) {
-                for (int i = 0; i < details.length; i++) {
-                    String detail = details[i];
+            JSONArray details = JSON.parseArray(detailStr);
+            if (details.size() > 0) {
+                for (int i = 0; i < details.size(); i++) {
+                    JSONObject detail = details.getJSONObject(i);
                     Long xid = sequenceService.getSeq(BusiTypeEnum.BATCH_TEST_TASK_X.getType());
-                    jsonObject.put("detail", detail);
+                    jsonObject.put("detail", detail.toJSONString());
                     jsonObject.put("custId", cust_id);
                     jsonObject.put("batchId", id);
                     jsonObject.put("apiId",apiId);
+                    String sql1 = "insert into " + HMetaDataDef.getTable(BusiTypeEnum.BATCH_TEST_TASK_X.getType(), "") + "(id, type, content, cust_id, cust_user_id, create_id, create_date, ext_2,ext_3, ext_4 ) value(?, ?, ?, ?, ?, ?, now(), ?, ?, ?)";
                     jdbcTemplate.update(sql1, xid, BusiTypeEnum.BATCH_TEST_TASK_X.getType(), jsonObject.toJSONString(), cust_id, cust_user_id, cust_user_id, 0, apiId,id);
                 }
             }
@@ -112,13 +118,15 @@ public class BatchTestTaskZService implements BusiService {
             info.put("totalNum",number);
             //批次状态
             info.put("status", 0);// 0：处理中 1:处理完成
+            info.put("ext_3",0);
             info.put("ext_2",apiId);
             info.put("taskId",taskId);
             info.put("ext_1",taskId);
             //核验成功数量
             info.put("successNum", 0);
+            info.put("failedNum",0);
             info.put("create_date",System.currentTimeMillis());
-
+            info.remove("details");
         }
     }
 
@@ -157,7 +165,7 @@ public class BatchTestTaskZService implements BusiService {
     @Override
     public String formatQuery(String busiType, String cust_id, String cust_group_id, Long cust_user_id, JSONObject params, List sqlParams) {
         sqlParams.clear();
-        StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3," +
+        StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_date1,ext_1, ext_2, ext_3," +
                 " ext_4, ext_5 from " + HMetaDataDef.getTable(busiType, "") + " where type=? ");
         sqlParams.add(busiType);
         if (!"all".equals(cust_id)){
@@ -167,28 +175,27 @@ public class BatchTestTaskZService implements BusiService {
         Iterator keys = params.keySet().iterator();
         while (keys.hasNext()) {
             String key = (String) keys.next();
-            String value = (String) params.get(key);
-            if (StringUtil.isNotEmpty(String.valueOf(params.get(key)))) continue;
-            if ("pageNum".equals(key) || "pageSize".equals(key) || "pid1".equals(key) || "pid2".equals(key))
+            String value = String.valueOf(params.get(key));
+            if (StringUtil.isEmpty(value)) continue;
+            if ("pageNum".equals(key) || "pageSize".equals(key) || "_orderby_".equals(key) || "_sort_".equals(key))
                 continue;
             if ("cust_id".equals(key)) {
-                sqlstr.append(" and cust_id=?");
+                sqlstr.append(" and cust_id=? ");
                 sqlParams.add(value);
-            }
-            if("task_id".equals(key)){
-                sqlstr.append("and ext_1=?");
+            }else if("task_id".equals(key)){
+                sqlstr.append(" and ext_1=? ");
                 sqlParams.add(value);
-            }
-            if("batch_id".equals(key)){
-                sqlstr.append("and ext_3=?");
+            }else if("batch_id".equals(key)){
+                sqlstr.append(" and id=? ");
                 sqlParams.add(value);
-            }
-            if("batch_name".equals(key)){
-                sqlstr.append("and ext_5 like ?");
+            }else if("batch_name".equals(key) && StringUtil.isNotEmpty(value)){
+                sqlstr.append(" and ext_5 like ? ");
                 sqlParams.add("%"+value+"%");
+            }else if("status".equals(key) && StringUtil.isNotEmpty(value)) {
+                //sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key + "')=?");
+                sqlstr.append(" and ext_3=? ");
+                sqlParams.add(value);
             }
-            //sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key + "')=?");
-
         }
         return sqlstr.toString();
     }

@@ -8,6 +8,7 @@ import java.util.Objects;
 @Table(name = "lkcrm_crm_leads", schema = "", catalog = "")
 public class LkCrmLeadsEntity {
     private Integer leadsId;
+    private String custId;
     private int isTransform;
     private Integer followup;
     private String leadsName;
@@ -17,8 +18,10 @@ public class LkCrmLeadsEntity {
     private String mobile;
     private String address;
     private String remark;
-    private int createUserId;
-    private Integer ownerUserId;
+    private String company;
+    private Integer isLock;
+    private Long createUserId;
+    private Long ownerUserId;
     private Timestamp createTime;
     private Timestamp updateTime;
     private String batchId;
@@ -32,6 +35,15 @@ public class LkCrmLeadsEntity {
 
     public void setLeadsId(Integer leadsId) {
         this.leadsId = leadsId;
+    }
+
+    @Column(name = "cust_id")
+    public String getCustId() {
+        return custId;
+    }
+
+    public void setCustId(String custId) {
+        this.custId = custId;
     }
 
     @Basic
@@ -126,21 +138,21 @@ public class LkCrmLeadsEntity {
 
     @Basic
     @Column(name = "create_user_id")
-    public int getCreateUserId() {
+    public Long getCreateUserId() {
         return createUserId;
     }
 
-    public void setCreateUserId(int createUserId) {
+    public void setCreateUserId(Long createUserId) {
         this.createUserId = createUserId;
     }
 
     @Basic
     @Column(name = "owner_user_id")
-    public Integer getOwnerUserId() {
+    public Long getOwnerUserId() {
         return ownerUserId;
     }
 
-    public void setOwnerUserId(Integer ownerUserId) {
+    public void setOwnerUserId(Long ownerUserId) {
         this.ownerUserId = ownerUserId;
     }
 
@@ -172,6 +184,25 @@ public class LkCrmLeadsEntity {
 
     public void setBatchId(String batchId) {
         this.batchId = batchId;
+    }
+
+    @Basic
+    @Column(name = "company")
+    public String getCompany() {
+        return company;
+    }
+
+    public void setCompany(String company) {
+        this.company = company;
+    }
+    @Basic
+    @Column(name = "is_lock")
+    public Integer getIsLock() {
+        return isLock;
+    }
+
+    public void setIsLock(Integer isLock) {
+        this.isLock = isLock;
     }
 
     @Override

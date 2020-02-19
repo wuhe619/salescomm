@@ -9,7 +9,7 @@ public class CrmRouter extends Routes {
         addInterceptor(new CrmInterceptor());
         add("/CrmProduct", CrmProductController.class);
         add("/CrmProductCategory", CrmProductCategoryController.class);
-        add("/CrmLeads", CrmLeadsController.class);
+        //add("/CrmLeads", CrmLeadsController.class);
         add("/CrmCustomer", CrmCustomerController.class);
         add("/CrmBusiness", CrmBusinessController.class);
         add("/CrmContacts", CrmContactsController.class);

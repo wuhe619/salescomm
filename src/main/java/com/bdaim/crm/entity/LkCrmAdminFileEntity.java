@@ -9,8 +9,8 @@ import java.util.Objects;
 public class LkCrmAdminFileEntity {
     private Integer fileId;
     private String name;
-    private int size;
-    private int createUserId;
+    private Long size;
+    private Long createUserId;
     private Timestamp createTime;
     private String path;
     private String filePath;
@@ -40,21 +40,21 @@ public class LkCrmAdminFileEntity {
 
     @Basic
     @Column(name = "size")
-    public int getSize() {
+    public Long getSize() {
         return size;
     }
 
-    public void setSize(int size) {
+    public void setSize(Long size) {
         this.size = size;
     }
 
     @Basic
     @Column(name = "create_user_id")
-    public int getCreateUserId() {
+    public Long getCreateUserId() {
         return createUserId;
     }
 
-    public void setCreateUserId(int createUserId) {
+    public void setCreateUserId(Long createUserId) {
         this.createUserId = createUserId;
     }
 

@@ -3,10 +3,7 @@ package com.bdaim.customer.service;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.dto.Page;
 import com.bdaim.common.dto.PageParam;
-import com.bdaim.common.page.PageList;
-import com.bdaim.common.page.Pagination;
 import com.bdaim.customer.dao.CustomerDao;
-import com.bdaim.util.DateUtil;
 import com.bdaim.util.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -14,10 +11,8 @@ import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 public class CustomerExtensionService {
@@ -28,15 +23,15 @@ public class CustomerExtensionService {
 
     public String saveExtension(JSONObject info) {
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-        String sql = "insert into op_crm_clue_log(content,create_time,update_time) values ('" + info + "',now(),now())";
-        jdbcTemplate.update(sql);
+        String sql = "insert into op_crm_clue_log(content,create_time,update_time) values (?, ?, ?)";
+        jdbcTemplate.update(sql, info.toJSONString(), timestamp, timestamp);
         return "Success";
     }
 
     public String updateExtension(long id, JSONObject info) {
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-        String sql = "update op_crm_clue_log set content = '" + info.toJSONString() + "' ,update_time = now()   where id = " + id;
-        jdbcTemplate.update(sql);
+        String sql = "update op_crm_clue_log set content = ? ,update_time = ? where id = ? ";
+        jdbcTemplate.update(sql, info.toJSONString(), timestamp, id);
         return "Success";
     }
 

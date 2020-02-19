@@ -21,10 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /***
  * api批量测试详情
@@ -52,14 +49,19 @@ public class BatchTestTaskXService implements BusiService {
     }
 
     @Override
-    public void updateInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) {
-        String sql = " select content from "+HMetaDataDef.getTable(busiType, "")+" where id=?";
+    public void updateInfo(String busiType, String cust_id, String cust_group_id, Long cust_user_id, Long id, JSONObject info) throws Exception {
+        String responseStr = info.getString("response");
+        if(StringUtil.isEmpty(responseStr)){
+            throw new Exception("参数responseStr["+responseStr+"]不正确");
+        }
+        log.info("回写详情调用结果["+id+"]:"+responseStr);
+        String sql = " select content from "+ HMetaDataDef.getTable(busiType, "")+" where id=?";
         Map<String,Object> detailObj = jdbcTemplate.queryForMap(sql,id);
         if(detailObj != null) {
             String contentStr = (String) detailObj.get("content");
             if (StringUtil.isNotEmpty(contentStr)) {
                 JSONObject json = JSON.parseObject(contentStr);
-                json.put("response",info.getString("response"));
+                json.put("response",responseStr);
                 info = json;
                 info.put("ext_2",1);
                 String batchid = info.getString("batchId");
@@ -71,16 +73,35 @@ public class BatchTestTaskXService implements BusiService {
                         JSONObject json2 = JSON.parseObject(batchObjStr);
                         Integer successNum = json2.getInteger("successNum");
                         Integer totalNum = json2.getInteger("totalNum");
+                        Integer failedNum = json2.getInteger("failedNum");
+                        JSONObject resonse = JSON.parseObject(responseStr.trim());
+
                         if(successNum == null){
                             successNum = 0;
                         }
-                        successNum += 1;
-                        json2.put("successNum",successNum);
-                        String updateSql = "update "+HMetaDataDef.getTable(BusiTypeEnum.BATCH_TEST_TASK_Z.getType(), "") +" set content=? where id=?";
-                        if(successNum == totalNum){
-                            json2.put("status",1);
-                            updateSql = "update "+HMetaDataDef.getTable(BusiTypeEnum.BATCH_TEST_TASK_Z.getType(), "") +" set content=?,ext_date1=now() where id=?";
+
+                        if(failedNum==null){
+                            failedNum=0;
                         }
+
+                        if(resonse.containsKey("cost") && resonse.getInteger("cost")==1){
+                            successNum += 1;
+                            json2.put("successNum",successNum);
+                        }else{
+                            failedNum += 1;
+                            json2.put("failedNum",failedNum);
+                        }
+                        info.put("ext_date1",new Date());
+                        String updatesql = "update "+HMetaDataDef.getTable(busiType,"")+" set ext_date1=now() where id=?";
+                        log.info("testx_updatesql:"+updatesql+";id="+id);
+                        jdbcTemplate.update(updatesql,id);
+                        String updateSql = "update "+HMetaDataDef.getTable(BusiTypeEnum.BATCH_TEST_TASK_Z.getType(), "") +" set content=? where id=?";
+                        if((successNum + failedNum) == totalNum){
+                            log.info("批次 "+batchid+" 处理完成");
+                            json2.put("status",1);
+                            updateSql = "update "+HMetaDataDef.getTable(BusiTypeEnum.BATCH_TEST_TASK_Z.getType(), "") +" set content=?,ext_date1=now(),ext_3=1 where id=?";
+                        }
+                        log.info("zzz="+updateSql+";batchid="+batchid);
                         jdbcTemplate.update(updateSql,json2.toJSONString(),batchid);
                     }
                 }
@@ -101,7 +122,7 @@ public class BatchTestTaskXService implements BusiService {
     @Override
     public String formatQuery(String busiType, String cust_id, String cust_group_id, Long cust_user_id, JSONObject params, List sqlParams) {
         sqlParams.clear();
-        StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3," +
+        StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_date1,ext_1, ext_2, ext_3," +
                 " ext_4, ext_5 from " + HMetaDataDef.getTable(busiType, "") + " where type=? ");
         sqlParams.add(busiType);
         if (!"all".equals(cust_id)){
@@ -111,20 +132,22 @@ public class BatchTestTaskXService implements BusiService {
         Iterator keys = params.keySet().iterator();
         while (keys.hasNext()) {
             String key = (String) keys.next();
-            if (StringUtil.isNotEmpty(String.valueOf(params.get(key)))) continue;
-            if ("pageNum".equals(key) || "pageSize".equals(key) || "pid1".equals(key) || "pid2".equals(key))
+            if (StringUtil.isEmpty(String.valueOf(params.get(key)))) continue;
+            if ("pageNum".equals(key) || "pageSize".equals(key) || "_orderby_".equals(key) || "_sort_".equals(key))
                 continue;
             if ("cust_id".equals(key)) {
                 sqlstr.append(" and cust_id=?");
-            }
-            if("batch_id".equals(key)){
+                sqlParams.add(params.get(key));
+            }else if("batch_id".equals(key)){
                 sqlstr.append(" and ext_4=?");
-            }
-            if("status".equals(key)){
+                sqlParams.add(params.get(key));
+            }else if("status".equals(key)){
                 sqlstr.append(" and ext_2=?");
-            }
-            sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key + "')=?");
-            sqlParams.add(params.get(key));
+                sqlParams.add(params.get(key));
+            }/*else {
+                sqlstr.append(" and JSON_EXTRACT(REPLACE(REPLACE(REPLACE(content,'\t', ''),CHAR(13),'') ,CHAR(10),''), '$." + key + "')=?");
+                sqlParams.add(params.get(key));
+            }*/
         }
         return sqlstr.toString();
     }

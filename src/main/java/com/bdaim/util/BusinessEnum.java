@@ -9,7 +9,8 @@ public enum BusinessEnum {
     EXPRESS_PLATFORM("EXPRESS_PLATFORM","沃快递聚合平台"),
     BEAR_CLASS("BEAR_CLASS","教育超市"),
     RONG_360("RONG_360","金融超市"),
-    CUSTOMS("CUSTOMS","海关");
+    CUSTOMS("CUSTOMS","海关"),
+    CRM("CRM","CRM");
 
     private String key;
     private String name;

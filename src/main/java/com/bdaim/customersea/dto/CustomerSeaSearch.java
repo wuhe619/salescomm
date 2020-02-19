@@ -132,6 +132,8 @@ public class CustomerSeaSearch {
 
     private String realName;
 
+    private String search;
+
     public String getRealName() {
         return realName;
     }
@@ -572,56 +574,11 @@ public class CustomerSeaSearch {
         this.invalidReason = invalidReason;
     }
 
-    @Override
-    public String toString() {
-        return "CustomerSeaSearch{" +
-                "pageNum=" + pageNum +
-                ", pageSize=" + pageSize +
-                ", seaId='" + seaId + '\'' +
-                ", superId='" + superId + '\'' +
-                ", custId='" + custId + '\'' +
-                ", intentLevel='" + intentLevel + '\'' +
-                ", labelProperty='" + labelProperty + '\'' +
-                ", userType='" + userType + '\'' +
-                ", userId=" + userId +
-                ", dataSource=" + dataSource +
-                ", batchId='" + batchId + '\'' +
-                ", superName='" + superName + '\'' +
-                ", superPhone='" + superPhone + '\'' +
-                ", superTelphone='" + superTelphone + '\'' +
-                ", lastUserId='" + lastUserId + '\'' +
-                ", lastUserName='" + lastUserName + '\'' +
-                ", lastCallTime='" + lastCallTime + '\'' +
-                ", lastCallResult='" + lastCallResult + '\'' +
-                ", calledDuration=" + calledDuration +
-                ", action='" + action + '\'' +
-                ", userName='" + userName + '\'' +
-                ", status=" + status +
-                ", callCount=" + callCount +
-                ", userGroupRole='" + userGroupRole + '\'' +
-                ", userGroupId='" + userGroupId + '\'' +
-                ", addStartTime='" + addStartTime + '\'' +
-                ", addEndTime='" + addEndTime + '\'' +
-                ", callStartTime='" + callStartTime + '\'' +
-                ", callEndTime='" + callEndTime + '\'' +
-                ", userGetStartTime='" + userGetStartTime + '\'' +
-                ", userGetEndTime='" + userGetEndTime + '\'' +
-                ", lastMarkStartTime='" + lastMarkStartTime + '\'' +
-                ", lastMarkEndTime='" + lastMarkEndTime + '\'' +
-                ", superIds=" + superIds +
-                ", userIds=" + userIds +
-                ", callStatus='" + callStatus + '\'' +
-                ", getClueNumber=" + getClueNumber +
-                ", clueToUserId='" + clueToUserId + '\'' +
-                ", callSuccessCount=" + callSuccessCount +
-                ", followStatus='" + followStatus + '\'' +
-                ", invalidReason='" + invalidReason + '\'' +
-                ", followValue='" + followValue + '\'' +
-                ", toFollowStatus='" + toFollowStatus + '\'' +
-                ", toFollowValue='" + toFollowValue + '\'' +
-                ", backReason='" + backReason + '\'' +
-                ", backRemark='" + backRemark + '\'' +
-                ", seaType=" + seaType +
-                '}';
+    public String getSearch() {
+        return search;
+    }
+
+    public void setSearch(String search) {
+        this.search = search;
     }
 }

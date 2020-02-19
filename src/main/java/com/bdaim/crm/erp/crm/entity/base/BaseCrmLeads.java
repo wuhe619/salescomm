@@ -9,12 +9,12 @@ import com.jfinal.plugin.activerecord.Model;
 @SuppressWarnings("serial")
 public abstract class BaseCrmLeads<M extends BaseCrmLeads<M>> extends Model<M> implements IBean {
 
-	public void setLeadsId(Integer leadsId) {
+	public void setLeadsId(String leadsId) {
 		set("leads_id", leadsId);
 	}
 
-	public Integer getLeadsId() {
-		return getInt("leads_id");
+	public String getLeadsId() {
+		return getStr("leads_id");
 	}
 
 	public void setFollowup(Integer followup) {

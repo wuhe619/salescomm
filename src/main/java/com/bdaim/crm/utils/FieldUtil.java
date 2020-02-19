@@ -4,7 +4,6 @@ import cn.hutool.core.collection.CollectionUtil;
 import com.bdaim.crm.entity.LkCrmAdminFieldSortEntity;
 import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
-import com.bdaim.crm.erp.admin.entity.AdminFieldSort;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -114,12 +113,12 @@ public class FieldUtil {
     public void handleType(List<Record> recordList){
         recordList.forEach(record -> {
             if (record.getInt("type") == 8){
-                record.set("value", Db.find("select * from 72crm_admin_file where batch_id = ?",record.getStr("value")));
+                record.set("value", Db.find("select * from lkcrm_admin_file where batch_id = ?",record.getStr("value")));
             }else if (record.getInt("type") == 10){
-                List<String> userList = Db.query("select realname from 72crm_admin_user where find_in_set(user_id,ifnull(?,0))",record.getStr("value"));
+                List<String> userList = Db.query("select realname from lkcrm_admin_user where find_in_set(user_id,ifnull(?,0))",record.getStr("value"));
                 record.set("value", CollectionUtil.join(userList,","));
             }else if (record.getInt("type") == 12){
-                List<String> deptList = Db.query("select name from 72crm_admin_dept where find_in_set(dept_id,ifnull(?,0))",record.getStr("value"));
+                List<String> deptList = Db.query("select name from lkcrm_admin_dept where find_in_set(dept_id,ifnull(?,0))",record.getStr("value"));
                 record.set("value", CollectionUtil.join(deptList,","));
             }
         });

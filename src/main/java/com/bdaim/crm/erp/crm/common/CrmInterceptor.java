@@ -31,32 +31,32 @@ public class CrmInterceptor implements Interceptor {
                 if("addOrUpdate".equals(split[2]) || "saveAndUpdate".equals(split[2])){
                     String rawData = controller.getRawData();
                     JSONObject jsonObject = JSON.parseObject(rawData);
-                    if("72crm_crm_customer".equals(tablePara.get("tableName"))){
+                    if("lkcrm_crm_customer".equals(tablePara.get("tableName"))){
                         CrmCustomer entity = jsonObject.getObject("entity", CrmCustomer.class);
                         if(entity.getCustomerId() != null){
                             flag =  AuthUtil.isCrmAuth(tablePara, entity.getCustomerId());
                         }
-                    }else if("72crm_crm_leads".equals(tablePara.get("tableName"))){
+                    }else if("lkcrm_crm_leads".equals(tablePara.get("tableName"))){
                         CrmLeads entity = jsonObject.getObject("entity", CrmLeads.class);
                         if(entity.getLeadsId() != null){
                             flag =   AuthUtil.isCrmAuth(tablePara, entity.getLeadsId());
                         }
-                    }else if("72crm_crm_contract".equals(tablePara.get("tableName"))){
+                    }else if("lkcrm_crm_contract".equals(tablePara.get("tableName"))){
                         CrmContract entity = jsonObject.getObject("entity", CrmContract.class);
                         if(entity.getContractId() != null){
                             flag =   AuthUtil.isCrmAuth(tablePara, entity.getContractId());
                         }
-                    }else if("72crm_crm_contacts".equals(tablePara.get("tableName"))){
+                    }else if("lkcrm_crm_contacts".equals(tablePara.get("tableName"))){
                         CrmContacts entity = jsonObject.getObject("entity", CrmContacts.class);
                         if(entity.getContactsId() != null){
                             flag =   AuthUtil.isCrmAuth(tablePara, entity.getContactsId());
                         }
-                    }else if("72crm_crm_business".equals(tablePara.get("tableName"))){
+                    }else if("lkcrm_crm_business".equals(tablePara.get("tableName"))){
                         CrmBusiness entity = jsonObject.getObject("entity", CrmBusiness.class);
                         if(entity.getBusinessId() != null){
                             flag =   AuthUtil.isCrmAuth(tablePara, entity.getBusinessId());
                         }
-                    }else if("72crm_crm_receivables".equals(tablePara.get("tableName"))){
+                    }else if("lkcrm_crm_receivables".equals(tablePara.get("tableName"))){
                         CrmReceivables entity = jsonObject.getObject("entity", CrmReceivables.class);
                         if(entity.getReceivablesId() != null){
                             flag =   AuthUtil.isCrmAuth(tablePara,entity.getReceivablesId());

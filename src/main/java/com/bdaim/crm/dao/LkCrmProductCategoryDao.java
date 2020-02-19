@@ -6,4 +6,14 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class LkCrmProductCategoryDao extends SimpleHibernateDao<LkCrmProductCategoryEntity, Integer> {
+
+    public int queryByCategoryId(int category_id) {
+        String sql = "select count(*) from 72crm_crm_product where category_id = ?";
+        return queryForInt(sql, category_id);
+    }
+
+    public int queryCategoryByParentId(int pid) {
+        String sql = " select count(*) from 72crm_crm_product_category where pid = ?";
+        return queryForInt(sql, pid);
+    }
 }

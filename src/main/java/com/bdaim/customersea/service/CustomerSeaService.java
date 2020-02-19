@@ -372,11 +372,11 @@ public class CustomerSeaService {
         }
     }
 
-    private String createDefaultClueCGroup0(long customerSeaId, String customerSeaName, String custId) {
+    public String createDefaultClueCGroup0(long customerSeaId, String customerSeaName, String custId) {
         CustomerSeaProperty csp = customerSeaDao.getProperty(String.valueOf(customerSeaId), "defaultClueCgId");
         if (csp != null) {
             LOG.warn("公海:" + customerSeaId + ",默认线索客群已经存在,客群ID:" + csp.getPropertyValue());
-            return null;
+            return csp.getPropertyValue();
         }
         CustomerSea customerSea = customerSeaDao.get(customerSeaId);
         //插入订单表
@@ -1437,18 +1437,18 @@ public class CustomerSeaService {
      *
      * @param userId
      * @param seaId
-     * @param superIds
+     * @param entIds
      * @return
      */
-    private int batchDeleteClue(Long userId, String userType, String seaId, List<String> superIds, String reason, String remark) {
+    private int batchDeleteClue(Long userId, String userType, String seaId, List<String> entIds, String reason, String remark) {
         StringBuilder sql = new StringBuilder()
                 .append("UPDATE ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(seaId)
-                .append(" SET status = 2 WHERE status <>2 AND id IN (").append(SqlAppendUtil.sqlAppendWhereIn(superIds)).append(")");
+                .append(" SET status = 2 WHERE status <>2 AND super_data ->> '$.SYS014' IN (").append(SqlAppendUtil.sqlAppendWhereIn(entIds)).append(")");
         // 保存转交记录
         StringBuilder logSql = new StringBuilder()
                 .append("INSERT INTO ").append(ConstantsUtil.CUSTOMER_OPER_LOG_TABLE_PREFIX).append(" (`user_id`, `list_id`, `customer_sea_id`, `customer_group_id`, `event_type`,  `create_time`,reason,remark) ")
                 .append(" SELECT ?, id, ?, batch_id, ?, ?, ?, ? ")
-                .append(" FROM ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(seaId).append(" WHERE status <>2 AND id IN (").append(SqlAppendUtil.sqlAppendWhereIn(superIds)).append(")");
+                .append(" FROM ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(seaId).append(" WHERE status <>2 AND super_data ->> '$.SYS014' IN (").append(SqlAppendUtil.sqlAppendWhereIn(entIds)).append(")");
         //员工只能处理负责人为自己的数据
         if ("2".equals(userType)) {
             sql.append(" AND user_id = ").append(userId);
@@ -1476,6 +1476,15 @@ public class CustomerSeaService {
                 .append(" FROM ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(param.getSeaId()).append(" custG WHERE custG.status <>2 ");
         List<Object> p = new ArrayList<>();
         StringBuilder appSql = new StringBuilder();
+        // 处理crm检索条件
+        if (StringUtil.isNotEmpty(param.getSearch())) {
+            p.add(param.getSearch());
+            p.add(param.getSearch());
+            p.add(param.getSearch());
+            p.add(param.getSearch());
+            appSql.append(" and (custG.super_name like '%?%' or custG.super_telphone like '%?%' or custG.super_phone like '%?%' or custG.super_data like '%?%')");
+        }
+
         if (StringUtil.isNotEmpty(param.getSuperId())) {
             p.add(param.getSuperId());
             appSql.append(" and custG.id = ? ");

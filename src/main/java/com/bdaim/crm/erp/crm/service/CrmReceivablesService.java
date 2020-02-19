@@ -250,7 +250,8 @@ public class CrmReceivablesService {
             return R.ok().put("data", crmReceivablesDao.queryReceivablesPageList(basePageRequest.getData().getContractId()));
             //return R.ok().put("data", Db.find(Db.getSql("crm.receivables.queryReceivablesPageList"),basePageRequest.getData().getContractId()));
         } else {
-            return R.ok().put("data", crmReceivablesDao.pageQueryReceivablesPageList(basePageRequest.getPage(), basePageRequest.getLimit(), basePageRequest.getData().getContractId()));
+            com.bdaim.common.dto.Page page = crmReceivablesDao.pageQueryReceivablesPageList(basePageRequest.getPage(), basePageRequest.getLimit(), basePageRequest.getData().getContractId());
+            return R.ok().put("data", BaseUtil.crmPage(page));
             //return R.ok().put("data", Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(),new SqlPara().setSql(Db.getSql("crm.receivables.queryReceivablesPageList")).addPara(basePageRequest.getData().getContractId())));
         }
     }
