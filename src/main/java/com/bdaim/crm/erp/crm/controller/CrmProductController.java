@@ -4,13 +4,6 @@ import cn.hutool.poi.excel.ExcelUtil;
 import cn.hutool.poi.excel.ExcelWriter;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.jfinal.aop.Inject;
-import com.jfinal.core.Controller;
-import com.jfinal.core.paragetter.Para;
-import com.jfinal.log.Log;
-import com.jfinal.plugin.activerecord.Db;
-import com.jfinal.plugin.activerecord.Record;
-import com.jfinal.upload.UploadFile;
 import com.bdaim.crm.common.annotation.LoginFormCookie;
 import com.bdaim.crm.common.annotation.NotNullValidate;
 import com.bdaim.crm.common.annotation.Permissions;
@@ -20,10 +13,19 @@ import com.bdaim.crm.erp.admin.service.AdminSceneService;
 import com.bdaim.crm.erp.crm.entity.CrmProduct;
 import com.bdaim.crm.erp.crm.service.CrmProductService;
 import com.bdaim.crm.utils.R;
+import com.jfinal.core.Controller;
+import com.jfinal.core.paragetter.Para;
+import com.jfinal.log.Log;
+import com.jfinal.plugin.activerecord.Db;
+import com.jfinal.plugin.activerecord.Record;
+import com.jfinal.upload.UploadFile;
 import org.apache.poi.hssf.usermodel.*;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.ss.util.CellRangeAddressList;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import javax.servlet.ServletOutputStream;
@@ -33,6 +35,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+@RestController
+@RequestMapping("/CrmProduct")
 public class CrmProductController extends Controller {
 
     @Resource
@@ -49,10 +53,11 @@ public class CrmProductController extends Controller {
      * 查看列表页
      */
     @Permissions({"crm:product:index"})
-    public void queryPageList(BasePageRequest basePageRequest) {
+    @RequestMapping(value = "queryPageList", method = RequestMethod.POST)
+    public R queryPageList(BasePageRequest basePageRequest) {
         JSONObject jsonObject = basePageRequest.getJsonObject().fluentPut("type", 4);
         basePageRequest.setJsonObject(jsonObject);
-        renderJson(adminSceneService.filterConditionAndGetPageList(basePageRequest));
+        return (adminSceneService.filterConditionAndGetPageList(basePageRequest));
     }
 
     /**
@@ -60,8 +65,9 @@ public class CrmProductController extends Controller {
      *
      * @author zxy
      */
-    public void queryList(BasePageRequest<CrmProduct> basePageRequest) {
-        renderJson(R.ok().put("data", crmProductService.queryPage(basePageRequest)));
+    @RequestMapping(value = "queryList", method = RequestMethod.POST)
+    public R queryList(BasePageRequest<CrmProduct> basePageRequest) {
+        return (R.ok().put("data", crmProductService.queryPage(basePageRequest)));
     }
 
     /**
@@ -70,10 +76,11 @@ public class CrmProductController extends Controller {
      * @author zxy
      */
     @Permissions({"crm:product:save", "crm:product:update"})
-    public void saveAndUpdate() {
+    @RequestMapping(value = "saveAndUpdate", method = RequestMethod.POST)
+    public R saveAndUpdate() {
         String data = getRawData();
         JSONObject jsonObject = JSON.parseObject(data);
-        renderJson(crmProductService.saveAndUpdate(jsonObject));
+        return (crmProductService.saveAndUpdate(jsonObject));
     }
 
     /**
@@ -83,8 +90,9 @@ public class CrmProductController extends Controller {
      */
     @Permissions("crm:product:read")
     @NotNullValidate(value = "productId", message = "产品id不能为空")
-    public void queryById(@Para("productId") Integer productId) {
-        renderJson(crmProductService.queryById(productId));
+    @RequestMapping(value = "queryById", method = RequestMethod.POST)
+    public R queryById(@Para("productId") Integer productId) {
+        return (crmProductService.queryById(productId));
     }
 
     /**
@@ -94,8 +102,9 @@ public class CrmProductController extends Controller {
      */
     @Permissions("crm:product:delete")
     @NotNullValidate(value = "productId", message = "产品id不能为空")
-    public void deleteById(@Para("productId") Integer productId) {
-        renderJson(crmProductService.deleteById(productId));
+    @RequestMapping(value = "deleteById", method = RequestMethod.POST)
+    public R deleteById(@Para("productId") Integer productId) {
+        return (crmProductService.deleteById(productId));
     }
 
     /**
@@ -104,11 +113,12 @@ public class CrmProductController extends Controller {
      * @author zxy
      */
     @Permissions("crm:product:status")
-    public void updateStatus(@Para("ids") String ids, @Para("status") Integer status) {
+    @RequestMapping(value = "updateStatus", method = RequestMethod.POST)
+    public R updateStatus(@Para("ids") String ids, @Para("status") Integer status) {
         if (status == null) {
             status = 1;
         }
-        renderJson(crmProductService.updateStatus(ids, status));
+        return (crmProductService.updateStatus(ids, status));
     }
 
     /**
@@ -116,10 +126,11 @@ public class CrmProductController extends Controller {
      * 批量导出产品
      */
     @Permissions("crm:product:excelexport")
+    @RequestMapping(value = "batchExportExcel", method = RequestMethod.POST)
     public void batchExportExcel(@Para("ids") String productIds) throws IOException {
         List<Record> recordList = crmProductService.exportProduct(productIds);
         export(recordList);
-        renderNull();
+        //renderNull();
     }
 
     /**
@@ -127,13 +138,14 @@ public class CrmProductController extends Controller {
      * 导出全部产品
      */
     @Permissions("crm:product:excelexport")
+    @RequestMapping(value = "allExportExcel", method = RequestMethod.POST)
     public void allExportExcel(BasePageRequest basePageRequest) throws IOException {
         JSONObject jsonObject = basePageRequest.getJsonObject();
         jsonObject.fluentPut("excel", "yes").fluentPut("type", "4");
         AdminSceneService adminSceneService = new AdminSceneService();
         List<Record> recordList = (List<Record>) adminSceneService.filterConditionAndGetPageList(basePageRequest).get("data");
         export(recordList);
-        renderNull();
+        //renderNull();
     }
 
     private void export(List<Record> recordList) throws IOException {
@@ -183,9 +195,9 @@ public class CrmProductController extends Controller {
             response.setHeader("Content-Disposition", "attachment;filename=product.xls");
             ServletOutputStream out = response.getOutputStream();
             writer.flush(out);
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
-        }finally {
+        } finally {
             // 关闭writer，释放内存
             writer.close();
         }
@@ -196,25 +208,26 @@ public class CrmProductController extends Controller {
      * 获取导入模板
      */
     @LoginFormCookie
-    public void downloadExcel() {
+    @RequestMapping(value = "downloadExcel", method = RequestMethod.POST)
+    public void downloadExcel(HttpServletResponse response) {
         List<Record> recordList = adminFieldService.queryAddField(4);
         recordList.removeIf(record -> "file".equals(record.getStr("formType")) || "checkbox".equals(record.getStr("formType")) || "user".equals(record.getStr("formType")) || "structure".equals(record.getStr("formType")));
         HSSFWorkbook wb = new HSSFWorkbook();
         HSSFSheet sheet = wb.createSheet("产品导入表");
         sheet.setDefaultColumnWidth(12);
-        sheet.setDefaultRowHeight((short)400);
+        sheet.setDefaultRowHeight((short) 400);
         HSSFRow titleRow = sheet.createRow(0);
         CellStyle cellStyle = wb.createCellStyle();
         cellStyle.setFillForegroundColor(IndexedColors.SKY_BLUE.getIndex());
         cellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
         Font font = wb.createFont();
         font.setBold(true);
-        font.setFontHeightInPoints((short)16);
+        font.setFontHeightInPoints((short) 16);
         cellStyle.setFont(font);
         titleRow.createCell(0).setCellValue("产品导入模板(*)为必填项");
         cellStyle.setAlignment(HorizontalAlignment.CENTER);
         titleRow.getCell(0).setCellStyle(cellStyle);
-        CellRangeAddress region = new CellRangeAddress(0,0 , 0, recordList.size()-1);
+        CellRangeAddress region = new CellRangeAddress(0, 0, 0, recordList.size() - 1);
         sheet.addMergedRegion(region);
         List<String> categoryList = Db.query("select name from 72crm_crm_product_category");
         try {
@@ -238,8 +251,7 @@ public class CrmProductController extends Controller {
                     sheet.addValidationData(dataValidation);
                 }
             }
-            HttpServletResponse response = getResponse();
-
+            //HttpServletResponse response = getResponse();
             response.setContentType("application/vnd.ms-excel;charset=utf-8");
             response.setCharacterEncoding("UTF-8");
             //test.xls是弹出下载对话框的文件名，不能为中文，中文请自行编码
@@ -262,23 +274,25 @@ public class CrmProductController extends Controller {
      * 导入产品
      */
     @Permissions("crm:product:excelimport")
-    public void uploadExcel(@Para("file") UploadFile file, @Para("repeatHandling") Integer repeatHandling, @Para("ownerUserId") Integer ownerUserId) {
-        Db.tx(() -> {
-            R result = crmProductService.uploadExcel(file, repeatHandling, ownerUserId);
-            renderJson(result);
-            if (result.get("code").equals(500)) {
+    @RequestMapping(value = "uploadExcel", method = RequestMethod.POST)
+    public R uploadExcel(@Para("file") UploadFile file, @Para("repeatHandling") Integer repeatHandling, @Para("ownerUserId") Integer ownerUserId) {
+        //Db.tx(() -> {
+        R result = crmProductService.uploadExcel(file, repeatHandling, ownerUserId);
+        return (result);
+            /*if (result.get("code").equals(500)) {
                 return false;
             }
             return true;
-        });
+        });*/
     }
 
     /**
      * @author zxy
      * 获取上架商品
      */
-    public void queryByStatus(BasePageRequest<CrmProduct> basePageRequest) {
-        renderJson(crmProductService.queryByStatus(basePageRequest));
+    @RequestMapping(value = "queryByStatus", method = RequestMethod.POST)
+    public R queryByStatus(BasePageRequest<CrmProduct> basePageRequest) {
+        return (crmProductService.queryByStatus(basePageRequest));
     }
 
 }

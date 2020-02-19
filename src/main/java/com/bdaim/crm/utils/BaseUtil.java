@@ -2,15 +2,12 @@ package com.bdaim.crm.utils;
 
 import cn.hutool.core.date.DateUtil;
 import com.bdaim.auth.LoginUser;
-import com.bdaim.common.auth.Token;
 import com.bdaim.common.auth.service.TokenCacheService;
-import com.bdaim.util.redis.RedisUtil;
+import com.bdaim.common.dto.Page;
+import com.bdaim.crm.common.config.JfinalConfig;
 import com.jfinal.kit.Prop;
 import com.jfinal.kit.PropKit;
 import com.jfinal.log.Log;
-import com.bdaim.crm.common.config.JfinalConfig;
-import com.bdaim.crm.common.config.redis.RedisManager;
-import com.bdaim.crm.erp.admin.entity.AdminUser;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.stereotype.Service;
 
@@ -37,8 +34,8 @@ public class BaseUtil {
     }
 
     /**
-     *
      * 获取当前系统是开发开始正式
+     *
      * @return true代表为真
      */
     public static boolean isDevelop() {
@@ -47,6 +44,7 @@ public class BaseUtil {
 
     /**
      * 获取当前是否是windows系统
+     *
      * @return true代表为真
      */
     public static boolean isWindows() {
@@ -93,9 +91,9 @@ public class BaseUtil {
             }
         } catch (Exception e) {
             // TODO Auto-generated catch block
-            Log.getLog(BaseUtil.class).error("",e);
+            Log.getLog(BaseUtil.class).error("", e);
         }
-        HttpServletRequest request=getRequest();
+        HttpServletRequest request = getRequest();
         /**
          * TODO nginx反向代理下手动增加一个请求头 proxy_set_header proxy_url "代理映射路径";
          * 如 location /api/ {
@@ -111,10 +109,11 @@ public class BaseUtil {
          *     proxy_pass http://127.0.0.1:8080/;
          *    }
          */
-        String proxy=request.getHeader("proxy_url")!=null?"/"+request.getHeader("proxy_url"):"";
-        return "http://" + request.getServerName()+":"+ request.getServerPort()+ request.getContextPath()+proxy+"/";
+        String proxy = request.getHeader("proxy_url") != null ? "/" + request.getHeader("proxy_url") : "";
+        return "http://" + request.getServerName() + ":" + request.getServerPort() + request.getContextPath() + proxy + "/";
     }
-    public static String getLoginAddress(HttpServletRequest request){
+
+    public static String getLoginAddress(HttpServletRequest request) {
         String ip = request.getHeader("x-forwarded-for");
         if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
             ip = request.getHeader("Proxy-Client-IP");
@@ -149,20 +148,24 @@ public class BaseUtil {
         return tokenCacheService.getToken(getToken(), LoginUser.class);
     }
 
-    public static Long getUserId(){
+    public static Long getUserId() {
         return getUser().getId();
     }
 
-    public static void removeThreadLocal(){
+    public static void removeThreadLocal() {
         threadLocal.remove();
     }
 
-    public static String getToken(){
+    public static String getToken() {
         return getToken(getRequest());
     }
 
-    public static String getToken(HttpServletRequest request){
+    public static String getToken(HttpServletRequest request) {
         return request.getHeader("Authorization") != null ? request.getHeader("Authorization") : "";
+    }
+
+    public static CrmPage crmPage(Page recordPage) {
+        return new CrmPage(recordPage);
     }
 
 }

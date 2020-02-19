@@ -23,6 +23,7 @@ import com.bdaim.crm.erp.crm.service.CrmContractService;
 import com.bdaim.crm.erp.crm.service.CrmCustomerService;
 import com.bdaim.crm.utils.AuthUtil;
 import com.bdaim.crm.utils.R;
+import com.bdaim.util.JavaBeanUtil;
 import com.jfinal.aop.Before;
 import com.jfinal.core.Controller;
 import com.jfinal.core.paragetter.Para;
@@ -290,7 +291,7 @@ public class CrmCustomerController extends Controller {
             return (R.noAuth());
             // return;
         }
-        return (R.ok().put("data", crmCustomerService.getMembers(customerId)));
+        return (R.ok().put("data", JavaBeanUtil.recordToMap(crmCustomerService.getMembers(customerId))));
     }
 
     /**
@@ -410,7 +411,7 @@ public class CrmCustomerController extends Controller {
             //return;
         }
         basePageRequest.setData(crmCustomer);
-        return (R.ok().put("data", crmCustomerService.getRecord(basePageRequest)));
+        return (R.ok().put("data", JavaBeanUtil.recordToMap(crmCustomerService.getRecord(basePageRequest))));
     }
 
     /**

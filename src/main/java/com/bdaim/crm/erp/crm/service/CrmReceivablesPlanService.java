@@ -4,6 +4,7 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.common.dto.Page;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.dao.LkCrmReceivablesDao;
 import com.bdaim.crm.dao.LkCrmReceivablesPlanDao;
@@ -141,7 +142,8 @@ public class CrmReceivablesPlanService {
             //return R.ok().put("data", Db.find(Db.getSql("crm.receivablesplan.queryListByContractId"), basePageRequest.getData().getContractId()));
         }
         if (1 == pageType) {
-            return R.ok().put("data", crmReceivablesPlanDao.pageListByContractId(basePageRequest.getPage(), basePageRequest.getLimit(),basePageRequest.getData().getContractId()));
+            Page page = crmReceivablesPlanDao.pageListByContractId(basePageRequest.getPage(), basePageRequest.getLimit(), basePageRequest.getData().getContractId());
+            return R.ok().put("data", BaseUtil.crmPage(page));
             //return R.ok().put("data", Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), Db.getSqlPara("crm.receivablesplan.queryListByContractId", basePageRequest.getData().getContractId())));
         }
         return R.error();

@@ -8,7 +8,7 @@ import java.util.Objects;
 @Entity
 @Table(name = "lkcrm_crm_product", schema = "", catalog = "")
 public class LkCrmProductEntity {
-    private int productId;
+    private Integer productId;
     private String name;
     private String num;
     private String unit;
@@ -16,7 +16,7 @@ public class LkCrmProductEntity {
     private Integer status;
     private Integer categoryId;
     private String description;
-    private int createUserId;
+    private Long createUserId;
     private Integer ownerUserId;
     private Timestamp createTime;
     private Timestamp updateTime;
@@ -25,11 +25,11 @@ public class LkCrmProductEntity {
     @Id
     @Column(name = "product_id")
     @GeneratedValue
-    public int getProductId() {
+    public Integer getProductId() {
         return productId;
     }
 
-    public void setProductId(int productId) {
+    public void setProductId(Integer productId) {
         this.productId = productId;
     }
 
@@ -105,11 +105,11 @@ public class LkCrmProductEntity {
 
     @Basic
     @Column(name = "create_user_id")
-    public int getCreateUserId() {
+    public Long getCreateUserId() {
         return createUserId;
     }
 
-    public void setCreateUserId(int createUserId) {
+    public void setCreateUserId(Long createUserId) {
         this.createUserId = createUserId;
     }
 

@@ -2,24 +2,25 @@ package com.bdaim.crm.erp.crm.service;
 
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
+import com.bdaim.crm.dao.LkCrmAdminFieldDao;
 import com.bdaim.crm.dao.LkCrmReceivablesDao;
+import com.bdaim.crm.dao.LkCrmReceivablesPlanDao;
+import com.bdaim.crm.entity.LkCrmReceivablesEntity;
+import com.bdaim.crm.entity.LkCrmReceivablesPlanEntity;
 import com.bdaim.crm.erp.admin.service.AdminExamineRecordService;
 import com.bdaim.crm.erp.admin.service.AdminFieldService;
 import com.bdaim.crm.erp.crm.common.CrmEnum;
 import com.bdaim.crm.erp.crm.entity.CrmReceivables;
-import com.bdaim.crm.erp.crm.entity.CrmReceivablesPlan;
-import com.bdaim.crm.utils.AuthUtil;
-import com.bdaim.crm.utils.BaseUtil;
-import com.bdaim.crm.utils.FieldUtil;
-import com.bdaim.crm.utils.R;
+import com.bdaim.crm.utils.*;
 import com.bdaim.util.JavaBeanUtil;
+import com.bdaim.util.NumberConvertUtil;
 import com.jfinal.aop.Before;
 import com.jfinal.kit.Kv;
 import com.jfinal.plugin.activerecord.Db;
-import com.jfinal.plugin.activerecord.Page;
 import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.tx.Tx;
 import org.springframework.stereotype.Service;
@@ -27,6 +28,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import javax.transaction.Transactional;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -52,6 +54,11 @@ public class CrmReceivablesService {
     @Resource
     private LkCrmReceivablesDao crmReceivablesDao;
 
+    @Resource
+    private LkCrmReceivablesPlanDao crmReceivablesPlanDao;
+    @Resource
+    private LkCrmAdminFieldDao crmAdminFieldDao;
+
     /**
      * 获取用户审核通过和未通过的回款
      *
@@ -60,24 +67,27 @@ public class CrmReceivablesService {
      */
     public List<CrmReceivables> queryListByUserId(Integer userId) {
         CrmReceivables crmReceivables = new CrmReceivables();
-        String sql = "select re.receivables_id,re.contract_id,c.`name`,r.check_time,r.check_user_id,u.username,re.check_status from 72crm_crm_receivables re"
-                + "left join 72crm_crm_contract c"
+        String sql = "select re.receivables_id,re.contract_id,c.`name`,r.check_time,r.check_user_id,u.username,re.check_status from lkcrm_crm_receivables re"
+                + "left join lkcrm_crm_contract c"
                 + "on c.contract_id=re.contract_id"
-                + "left join 72crm_admin_examine_step s"
+                + "left join lkcrm_admin_examine_step s"
                 + "on re.flow_id=s.flow_id and re.order_id=s.order_id"
-                + "left join 72crm_admin_examine_record r"
+                + "left join lkcrm_admin_examine_record r"
                 + "on s.flow_id=r.flow_id and s.step_id=r.step_id"
-                + "left join 72crm_admin_user u"
+                + "left join lkcrm_admin_user u"
                 + "on r.check_user_id=u.id"
-                + "where re.check_status=2 or re.check_status=3 and re.create_user_id=" + userId;
-        return crmReceivables.find(sql);
+                + "where re.check_status=2 or re.check_status=3 and re.create_user_id= ? ";
+        return crmReceivablesDao.queryListBySql(sql, CrmReceivables.class, userId);
     }
 
     /**
      * 分页查询回款
+     *
+     * @return
      */
-    public Page<Record> queryPage(BasePageRequest<CrmReceivables> basePageRequest) {
-        return Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), Db.getSqlPara("crm.receivables.getReceivablesPageList"));
+    public CrmPage queryPage(BasePageRequest<CrmReceivables> basePageRequest) {
+        return BaseUtil.crmPage(crmReceivablesDao.getReceivablesPageList(basePageRequest.getPage(), basePageRequest.getLimit()));
+        //return Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), Db.getSqlPara("crm.receivables.getReceivablesPageList"));
     }
 
     /**
@@ -87,8 +97,8 @@ public class CrmReceivablesService {
      */
     @Before(Tx.class)
     public R saveOrUpdate(JSONObject jsonObject) {
-        CrmReceivables crmReceivables = jsonObject.getObject("entity", CrmReceivables.class);
-        crmReceivables.setCreateUserId(BaseUtil.getUser().getUserId().intValue());
+        LkCrmReceivablesEntity crmReceivables = jsonObject.getObject("entity", LkCrmReceivablesEntity.class);
+        crmReceivables.setCreateUserId(BaseUtil.getUser().getUserId());
         String batchId = StrUtil.isNotEmpty(crmReceivables.getBatchId()) ? crmReceivables.getBatchId() : IdUtil.simpleUUID();
         crmRecordService.updateRecord(jsonObject.getJSONArray("field"), batchId);
         adminFieldService.save(jsonObject.getJSONArray("field"), batchId);
@@ -97,8 +107,8 @@ public class CrmReceivablesService {
             if (count != null && count > 0) {
                 return R.error("回款编号已存在，请校对后再添加！");
             }
-            crmReceivables.setCreateTime(DateUtil.date());
-            crmReceivables.setUpdateTime(DateUtil.date());
+            crmReceivables.setCreateTime(DateUtil.date().toTimestamp());
+            crmReceivables.setUpdateTime(DateUtil.date().toTimestamp());
             crmReceivables.setBatchId(batchId);
             crmReceivables.setCheckStatus(0);
             crmReceivables.setOwnerUserId(BaseUtil.getUser().getUserId().intValue());
@@ -108,17 +118,17 @@ public class CrmReceivablesService {
             } else {
                 crmReceivables.setExamineRecordId(map.get("id"));
             }
-            boolean save = crmReceivables.save();
-            CrmReceivablesPlan crmReceivablesPlan = CrmReceivablesPlan.dao.findById(crmReceivables.getPlanId());
+            boolean save = (int) crmReceivablesDao.saveReturnPk(crmReceivables) > 0;
+            LkCrmReceivablesEntity crmReceivablesPlan = crmReceivablesDao.get(crmReceivables.getPlanId());
             if (crmReceivablesPlan != null) {
                 crmReceivablesPlan.setReceivablesId(crmReceivables.getReceivablesId());
-                crmReceivablesPlan.setUpdateTime(DateUtil.date());
-                crmReceivablesPlan.update();
+                crmReceivablesPlan.setUpdateTime(DateUtil.date().toTimestamp());
+                crmReceivablesDao.saveOrUpdate(crmReceivablesPlan);
             }
             crmRecordService.addRecord(crmReceivables.getReceivablesId(), CrmEnum.RECEIVABLES_TYPE_KEY.getTypes());
             return R.isSuccess(save);
         } else {
-            CrmReceivables receivables = CrmReceivables.dao.findById(crmReceivables.getReceivablesId());
+            LkCrmReceivablesEntity receivables = crmReceivablesDao.get(crmReceivables.getReceivablesId());
             if (receivables.getCheckStatus() != 4 && receivables.getCheckStatus() != 3) {
                 return R.error("不能编辑，请先撤回再编辑！");
             }
@@ -128,16 +138,17 @@ public class CrmReceivablesService {
             } else {
                 crmReceivables.setExamineRecordId(map.get("id"));
             }
-            crmRecordService.updateRecord(new CrmReceivables().dao().findById(crmReceivables.getReceivablesId()), crmReceivables, CrmEnum.RECEIVABLES_TYPE_KEY.getTypes());
+            crmRecordService.updateRecord(crmReceivablesDao.get(crmReceivables.getReceivablesId()), crmReceivables, CrmEnum.RECEIVABLES_TYPE_KEY.getTypes());
             crmReceivables.setCheckStatus(0);
-            crmReceivables.setUpdateTime(DateUtil.date());
-            CrmReceivablesPlan crmReceivablesPlan = CrmReceivablesPlan.dao.findById(crmReceivables.getPlanId());
+            crmReceivables.setUpdateTime(DateUtil.date().toTimestamp());
+            LkCrmReceivablesPlanEntity crmReceivablesPlan = crmReceivablesPlanDao.get(crmReceivables.getPlanId());
             if (crmReceivablesPlan != null) {
                 crmReceivablesPlan.setReceivablesId(crmReceivables.getReceivablesId());
-                crmReceivablesPlan.setUpdateTime(DateUtil.date());
-                crmReceivablesPlan.update();
+                crmReceivablesPlan.setUpdateTime(DateUtil.date().toTimestamp());
+                crmReceivablesPlanDao.update(crmReceivablesPlan);
             }
-            return crmReceivables.update() ? R.ok() : R.error();
+            crmReceivablesDao.update(crmReceivables);
+            return R.ok();
         }
     }
 
@@ -145,15 +156,15 @@ public class CrmReceivablesService {
      * 根据id查询回款
      */
     public R queryById(Integer id) {
-        Record record = Db.findFirst(Db.getSqlPara("crm.receivables.queryReceivablesById", Kv.by("id", id)));
-        return R.ok().put("data", record);
+        //Record record = Db.findFirst(Db.getSqlPara("crm.receivables.queryReceivablesById", Kv.by("id", id)));
+        return R.ok().put("data", crmReceivablesDao.queryReceivablesById(id).get(0));
     }
 
     /**
      * 根据id查询回款基本信息
      */
     public List<Record> information(Integer id) {
-        Record record = Db.findFirst(Db.getSqlPara("crm.receivables.queryReceivablesById", Kv.by("id", id)));
+        Record record = JavaBeanUtil.mapToRecord(crmReceivablesDao.queryReceivablesById(id).get(0));
         if (record == null) {
             return null;
         }
@@ -166,7 +177,9 @@ public class CrmReceivablesService {
                 .set("回款金额", record.getStr("money"))
                 .set("期数", record.getStr("plan_num"))
                 .set("备注", record.getStr("remark"));
-        List<Record> recordList = Db.find(Db.getSql("admin.field.queryCustomField"), record.getStr("batch_id"));
+
+        //List<Record> recordList = Db.find(Db.getSql("admin.field.queryCustomField"), record.getStr("batch_id"));
+        List<Record> recordList = JavaBeanUtil.mapToRecords(crmAdminFieldDao.queryCustomField(record.getStr("batch_id")));
         fieldUtil.handleType(recordList);
         fieldList.addAll(recordList);
         return fieldList;
@@ -178,18 +191,20 @@ public class CrmReceivablesService {
     @Before(Tx.class)
     public R deleteByIds(String receivablesIds) {
         String[] idsArr = receivablesIds.split(",");
-        List<CrmReceivables> list = CrmReceivables.dao.find(Db.getSqlPara("crm.receivablesplan.queryReceivablesReceivablesId", Kv.by("receivablesIds", idsArr)));
+        List<LkCrmReceivablesEntity> list = crmReceivablesPlanDao.queryReceivablesReceivablesId(Arrays.asList(idsArr));
+        //List<CrmReceivables> list = CrmReceivables.dao.find(Db.getSqlPara("crm.receivablesplan.queryReceivablesReceivablesId", Kv.by("receivablesIds", idsArr)));
         if (list.size() > 0) {
             return R.error("该数据已被其他模块引用，不能被删除！");
         }
         for (String id : idsArr) {
-            CrmReceivables receivables = CrmReceivables.dao.findById(id);
+            LkCrmReceivablesEntity receivables = crmReceivablesDao.get(NumberConvertUtil.parseInt(id));
             if (receivables != null) {
-                Db.delete("delete FROM 72crm_admin_fieldv where batch_id = ?", receivables.getBatchId());
+                crmReceivablesDao.executeUpdateSQL("delete FROM lkcrm_admin_fieldv where batch_id = ?", receivables.getBatchId());
             }
-            if (!CrmReceivables.dao.deleteById(id)) {
-                return R.error();
-            }
+            crmReceivablesDao.delete(NumberConvertUtil.parseInt(id));
+            //if (!CrmReceivables.dao.deleteById(id)) {
+            //return R.error();
+            //}
         }
         return R.ok();
     }
@@ -213,8 +228,8 @@ public class CrmReceivablesService {
     /**
      * 根据条件查询回款
      */
-    public List<Record> queryList(CrmReceivables receivables) {
-        String sq = "select * from 72crm_crm_receivables where 1 = 1 ";
+    public List queryList(CrmReceivables receivables) {
+        String sq = "select * from lkcrm_crm_receivables where 1 = 1 ";
         StringBuffer sql = new StringBuffer(sq);
         if (receivables.getCustomerId() != null) {
             sql.append(" and customer_id = ").append(receivables.getCustomerId());
@@ -222,14 +237,14 @@ public class CrmReceivablesService {
         if (receivables.getContractId() != null) {
             sql.append(" and contract_id = ").append(receivables.getContractId());
         }
-        return Db.find(sql.toString());
+        return crmReceivablesDao.sqlQuery(sql.toString());
     }
 
     /**
      * 根据条件查询回款
      */
-    public List<Record> queryListByType(String type, Integer id) {
-        String sq = "select * from 72crm_crm_receivables where ";
+    public List queryListByType(String type, Integer id) {
+        String sq = "select * from lkcrm_crm_receivables where ";
         StringBuffer sql = new StringBuffer(sq);
         if (type.equals(CrmEnum.CUSTOMER_TYPE_KEY.getTypes())) {
             sql.append("  customer_id = ? ");
@@ -238,7 +253,7 @@ public class CrmReceivablesService {
             sql.append("  contract_id = ? ");
         }
 
-        return Db.find(sql.toString(), id);
+        return crmReceivablesDao.sqlQuery(sql.toString(), id);
     }
 
     /**
@@ -250,7 +265,8 @@ public class CrmReceivablesService {
             return R.ok().put("data", crmReceivablesDao.queryReceivablesPageList(basePageRequest.getData().getContractId()));
             //return R.ok().put("data", Db.find(Db.getSql("crm.receivables.queryReceivablesPageList"),basePageRequest.getData().getContractId()));
         } else {
-            return R.ok().put("data", crmReceivablesDao.pageQueryReceivablesPageList(basePageRequest.getPage(), basePageRequest.getLimit(), basePageRequest.getData().getContractId()));
+            com.bdaim.common.dto.Page page = crmReceivablesDao.pageQueryReceivablesPageList(basePageRequest.getPage(), basePageRequest.getLimit(), basePageRequest.getData().getContractId());
+            return R.ok().put("data", BaseUtil.crmPage(page));
             //return R.ok().put("data", Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(),new SqlPara().setSql(Db.getSql("crm.receivables.queryReceivablesPageList")).addPara(basePageRequest.getData().getContractId())));
         }
     }

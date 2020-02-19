@@ -6,16 +6,17 @@ import com.bdaim.crm.entity.LkCrmReceivablesEntity;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Map;
 
 @Component
 public class LkCrmReceivablesDao extends SimpleHibernateDao<LkCrmReceivablesEntity, Integer> {
 
     public List<LkCrmReceivablesEntity> queryReceivablesByContractIds(List contract_id) {
-        return super.queryListBySql(" select * from 72crm_crm_receivables where contract_id in (?)", LkCrmReceivablesEntity.class, contract_id);
+        return super.queryListBySql(" select * from lkcrm_crm_receivables where contract_id in (?)", LkCrmReceivablesEntity.class, contract_id);
     }
 
     public List<LkCrmReceivablesEntity> queryReceivablesByContractId(int contract_id) {
-        return super.queryListBySql("  select * from 72crm_crm_receivables where contract_id = ?", LkCrmReceivablesEntity.class, contract_id);
+        return super.queryListBySql("  select * from lkcrm_crm_receivables where contract_id = ?", LkCrmReceivablesEntity.class, contract_id);
     }
 
     public List queryReceivablesPageList(int contract_id) {
@@ -29,7 +30,7 @@ public class LkCrmReceivablesDao extends SimpleHibernateDao<LkCrmReceivablesEnti
                 "                ELSE '未审核' END\n" +
                 "                as check_status,rec.return_time,rec.money as receivables_money,rec.plan_num\n" +
                 "        FROM receivablesview as rec\n" +
-                "        LEFT JOIN 72crm_crm_contract as scco on scco.contract_id = rec.contract_id\n" +
+                "        LEFT JOIN lkcrm_crm_contract as scco on scco.contract_id = rec.contract_id\n" +
                 "        where rec.contract_id = ?";
         return super.sqlQuery(sql, contract_id);
     }
@@ -45,8 +46,21 @@ public class LkCrmReceivablesDao extends SimpleHibernateDao<LkCrmReceivablesEnti
                 "                ELSE '未审核' END\n" +
                 "                as check_status,rec.return_time,rec.money as receivables_money,rec.plan_num\n" +
                 "        FROM receivablesview as rec\n" +
-                "        LEFT JOIN 72crm_crm_contract as scco on scco.contract_id = rec.contract_id\n" +
+                "        LEFT JOIN lkcrm_crm_contract as scco on scco.contract_id = rec.contract_id\n" +
                 "        where rec.contract_id = ?";
         return super.sqlPageQuery(sql, pageNum, pageSize, contract_id);
+    }
+
+    public Page getReceivablesPageList(int pageNum, int pageSize) {
+        return super.sqlPageQuery("  select * from receivablesview ", pageNum, pageSize);
+    }
+
+    public List<Map<String, Object>> queryReceivablesById(int receivables_id) {
+        String sql = "select rb.* ,scc.money as contract_money ,saf.value as receivable_way\n" +
+                "        from receivablesview as rb\n" +
+                "        LEFT JOIN 72crm_crm_contract as scc on scc.contract_id = rb.contract_id\n" +
+                "        LEFT JOIN 72crm_admin_fieldv as saf on saf.batch_id = rb.batch_id AND saf.name = '回款方式'\n" +
+                "        where rb.receivables_id = ?";
+        return super.sqlQuery(sql, receivables_id);
     }
 }

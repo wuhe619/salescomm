@@ -12,6 +12,8 @@ import com.bdaim.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
+import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -208,7 +210,13 @@ public class EntDataService {
 
     public void importDayDataToES(LocalDateTime localTime) {
         String yearMonth = localTime.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        List<Map<String, Object>> count = jdbcTemplate.queryForList("select count(0) count from enterprise_info_" + yearMonth);
+        List<Map<String, Object>> count = null;
+        try {
+            count = jdbcTemplate.queryForList("select count(0) count from enterprise_info_" + yearMonth);
+        } catch (DataAccessException e) {
+            LOG.error("查询数据异常,", e);
+            return;
+        }
         long total = 0L;
         if (count.size() > 0) {
             total = NumberConvertUtil.parseLong(count.get(0).get("count"));
