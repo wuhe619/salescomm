@@ -622,9 +622,9 @@ public class AdminSceneService {
                         "    ) as pool_day," +
                         "    (select count(*) from lkcrm_crm_business as a where a.customer_id = customerview.customer_id) as business_count";
 
-                return R.ok().put("data", crmAdminSceneDao.sqlPageQuery(sql + conditions.toString(), basePageRequest.getPage(), basePageRequest.getLimit(), BaseUtil.getUser().getCustId()));
+                return R.ok().put("data", BaseUtil.crmPage(crmAdminSceneDao.sqlPageQuery(sql + conditions.toString(), basePageRequest.getPage(), basePageRequest.getLimit(), BaseUtil.getUser().getCustId())));
             } else {
-                return R.ok().put("data", crmAdminSceneDao.sqlPageQuery("select *,(select count(*) from lkcrm_crm_business as a where a.customer_id = " + viewName + ".customer_id) as business_count " + conditions.toString(), basePageRequest.getPage(), basePageRequest.getLimit(), BaseUtil.getUser().getCustId()));
+                return R.ok().put("data", BaseUtil.crmPage(crmAdminSceneDao.sqlPageQuery("select *,(select count(*) from lkcrm_crm_business as a where a.customer_id = " + viewName + ".customer_id) as business_count " + conditions.toString(), basePageRequest.getPage(), basePageRequest.getLimit(), BaseUtil.getUser().getCustId())));
             }
 
         } else if (6 == type) {
@@ -649,10 +649,10 @@ public class AdminSceneService {
             });
             setBusinessStatus(recordPage.getData());
         }
-        com.jfinal.plugin.activerecord.Page finalPage = new com.jfinal.plugin.activerecord.Page();
+      /*  com.jfinal.plugin.activerecord.Page finalPage = new com.jfinal.plugin.activerecord.Page();
         finalPage.setList(recordPage.getData());
-        finalPage.setTotalRow(recordPage.getTotal());
-        return R.ok().put("data", finalPage);
+        finalPage.setTotalRow(recordPage.getTotal());*/
+        return R.ok().put("data", BaseUtil.crmPage(recordPage));
     }
 
     public void setBusinessStatus(List<Record> list) {

@@ -10,6 +10,7 @@ import cn.hutool.poi.excel.ExcelUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.auth.LoginUser;
+import com.bdaim.common.dto.Page;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.dao.*;
 import com.bdaim.crm.entity.*;
@@ -98,18 +99,20 @@ public class CrmCustomerService {
     /**
      * @author wyq
      * 分页条件查询客户
+     * @return
      */
-    public com.bdaim.common.dto.Page getCustomerPageList(BasePageRequest<CrmCustomer> basePageRequest) {
+    public CrmPage getCustomerPageList(BasePageRequest<CrmCustomer> basePageRequest) {
         String customerName = basePageRequest.getData().getCustomerName();
         if (!crmParamValid.isValid(customerName)) {
-            return new com.bdaim.common.dto.Page();
+            return new CrmPage();
         }
         String mobile = basePageRequest.getData().getMobile();
         String telephone = basePageRequest.getData().getTelephone();
         if (StrUtil.isEmpty(customerName) && StrUtil.isEmpty(telephone) && StrUtil.isEmpty(mobile)) {
-            return new com.bdaim.common.dto.Page();
+            return new CrmPage();
         }
-        return crmCustomerDao.getCustomerPageList(basePageRequest.getPage(), basePageRequest.getLimit(), customerName, mobile, telephone);
+        Page customerPageList = crmCustomerDao.getCustomerPageList(basePageRequest.getPage(), basePageRequest.getLimit(), customerName, mobile, telephone);
+        return BaseUtil.crmPage(customerPageList);
         //return Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), Db.getSqlPara("crm.customer.getCustomerPageList", Kv.by("customerName", customerName).set("mobile", mobile).set("telephone", telephone)));
     }
 
@@ -147,9 +150,10 @@ public class CrmCustomerService {
     /**
      * @author wyq
      * 根据客户id查询
+     * @return
      */
-    public Record queryById(Integer customerId) {
-        return JavaBeanUtil.mapToRecord(crmCustomerDao.queryById(customerId).get(0));
+    public Map<String, Object> queryById(Integer customerId) {
+        return crmCustomerDao.queryById(customerId).get(0);
         //return Db.findFirst(Db.getSql("crm.customer.queryById"), customerId);
     }
 
@@ -180,9 +184,10 @@ public class CrmCustomerService {
     /**
      * @author wyq
      * 根据客户名称查询
+     * @return
      */
-    public Record queryByName(String name) {
-        return JavaBeanUtil.mapToRecord(crmCustomerDao.queryByName(name).get(0));
+    public Map<String, Object> queryByName(String name) {
+        return crmCustomerDao.queryByName(name).get(0);
         //return Db.findFirst(Db.getSql("crm.customer.queryByName"), name);
     }
 
@@ -202,7 +207,7 @@ public class CrmCustomerService {
         } else {
             com.bdaim.common.dto.Page paginate = crmCustomerDao.pageQueryBusiness(basePageRequest.getPage(), basePageRequest.getLimit(), customerId, search);
             //Page<Record> paginate = Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), Db.getSqlPara("crm.customer.queryBusiness", Kv.by("customerId", customerId).set("businessName", search)));
-            adminSceneService.setBusinessStatus(paginate.getData());
+            adminSceneService.setBusinessStatus(JavaBeanUtil.mapToRecords(paginate.getData()));
             return R.ok().put("data", paginate);
         }
     }
@@ -219,7 +224,8 @@ public class CrmCustomerService {
         if (0 == pageType) {
             return R.ok().put("data", crmCustomerDao.queryContacts(customerId, search));
         } else {
-            return R.ok().put("data", crmCustomerDao.pageQueryContacts(basePageRequest.getPage(), basePageRequest.getLimit(), customerId, search));
+            Page page = crmCustomerDao.pageQueryContacts(basePageRequest.getPage(), basePageRequest.getLimit(), customerId, search);
+            return R.ok().put("data", BaseUtil.crmPage(page));
         }
     }
 
@@ -235,13 +241,15 @@ public class CrmCustomerService {
             if (0 == pageType) {
                 return R.ok().put("data", crmCustomerDao.queryPassContract(customerId, basePageRequest.getData().getCheckstatus(), search));
             } else {
-                return R.ok().put("data", crmCustomerDao.pageQueryPassContract(basePageRequest.getPage(), basePageRequest.getLimit(), customerId, basePageRequest.getData().getCheckstatus(), search));
+                Page page = crmCustomerDao.pageQueryPassContract(basePageRequest.getPage(), basePageRequest.getLimit(), customerId, basePageRequest.getData().getCheckstatus(), search);
+                return R.ok().put("data", BaseUtil.crmPage(page));
             }
         }
         if (0 == pageType) {
             return R.ok().put("data", crmCustomerDao.queryContract(customerId, search));
         } else {
-            return R.ok().put("data", crmCustomerDao.pageQueryContract(basePageRequest.getPage(), basePageRequest.getLimit(), customerId, search));
+            Page page = crmCustomerDao.pageQueryContract(basePageRequest.getPage(), basePageRequest.getLimit(), customerId, search);
+            return R.ok().put("data", BaseUtil.crmPage(page));
         }
     }
 
@@ -255,7 +263,8 @@ public class CrmCustomerService {
         if (0 == pageType) {
             return R.ok().put("data", crmCustomerDao.queryReceivablesPlan(customerId));
         } else {
-            return R.ok().put("data", crmCustomerDao.pageQueryReceivablesPlan(basePageRequest.getPage(), basePageRequest.getLimit(), customerId));
+            Page page = crmCustomerDao.pageQueryReceivablesPlan(basePageRequest.getPage(), basePageRequest.getLimit(), customerId);
+            return R.ok().put("data", BaseUtil.crmPage(page));
         }
     }
 
@@ -268,7 +277,8 @@ public class CrmCustomerService {
         if (0 == basePageRequest.getPageType()) {
             return R.ok().put("data", crmCustomerDao.queryReceivables(customerId));
         } else {
-            return R.ok().put("data", crmCustomerDao.pageQueryReceivables(basePageRequest.getPage(), basePageRequest.getLimit(), customerId));
+            Page page = crmCustomerDao.pageQueryReceivables(basePageRequest.getPage(), basePageRequest.getLimit(), customerId);
+            return R.ok().put("data", BaseUtil.crmPage(page));
         }
     }
 
@@ -302,8 +312,9 @@ public class CrmCustomerService {
      * @author zxy
      * 条件查询客户公海
      */
-    public com.bdaim.common.dto.Page queryPageGH(BasePageRequest basePageRequest) {
-        return crmCustomerDao.sqlPageQuery("select *  from customerview where owner_user_id = 0", basePageRequest.getPage(), basePageRequest.getLimit());
+    public CrmPage queryPageGH(BasePageRequest basePageRequest) {
+        Page page = crmCustomerDao.sqlPageQuery("select *  from customerview where owner_user_id = 0", basePageRequest.getPage(), basePageRequest.getLimit());
+        return BaseUtil.crmPage(page);
         //return Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), new SqlPara().setSql("select *  from customerview where owner_user_id = 0"));
     }
 

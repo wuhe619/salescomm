@@ -2,14 +2,15 @@ package com.bdaim.crm.erp.crm.service;
 
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.auth.LoginUser;
+import com.bdaim.common.dto.Page;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.dao.*;
 import com.bdaim.crm.entity.*;
-import com.bdaim.crm.erp.admin.entity.AdminConfig;
 import com.bdaim.crm.erp.admin.service.AdminExamineRecordService;
 import com.bdaim.crm.erp.admin.service.AdminFieldService;
 import com.bdaim.crm.erp.admin.service.AdminFileService;
@@ -19,6 +20,7 @@ import com.bdaim.crm.erp.crm.entity.CrmContractProduct;
 import com.bdaim.crm.erp.oa.common.OaEnum;
 import com.bdaim.crm.erp.oa.service.OaActionRecordService;
 import com.bdaim.crm.utils.BaseUtil;
+import com.bdaim.crm.utils.CrmPage;
 import com.bdaim.crm.utils.FieldUtil;
 import com.bdaim.crm.utils.R;
 import com.bdaim.util.JavaBeanUtil;
@@ -77,12 +79,16 @@ public class CrmContractService {
     private LkCrmAdminRecordDao crmAdminRecordDao;
     @Resource
     private LkCrmAdminConfigDao crmAdminConfigDao;
+    @Resource
+    private LkCrmAdminFieldDao crmAdminFieldDao;
 
     /**
      * 分页条件查询合同
+     * @return
      */
-    public com.bdaim.common.dto.Page queryPage(BasePageRequest<CrmContract> basePageRequest) {
-        return crmContractDao.pageProductPageList(basePageRequest.getPage(), basePageRequest.getLimit());
+    public CrmPage queryPage(BasePageRequest<CrmContract> basePageRequest) {
+        Page page = crmContractDao.pageProductPageList(basePageRequest.getPage(), basePageRequest.getLimit());
+        return BaseUtil.crmPage(page);
         // return Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), Db.getSqlPara("crm.contract.getProductPageList"));
     }
 
@@ -91,15 +97,16 @@ public class CrmContractService {
      */
     public R queryById(Integer id) {
         //Record record = Db.findFirst(Db.getSql("crm.contract.queryByContractId"), id);
-        Record record = JavaBeanUtil.mapToRecord(crmContractDao.queryByContractId(id).get(0));
-        return R.ok().put("data", record);
+        //Record record = JavaBeanUtil.mapToRecord(crmContractDao.queryByContractId(id).get(0));
+        return R.ok().put("data", crmContractDao.queryByContractId(id).get(0));
     }
 
     /**
      * 根据id查询合同基本信息
      */
     public List<Record> information(Integer id) {
-        Record record = Db.findFirst(Db.getSql("crm.contract.queryByContractId"), id);
+        Record record = JavaBeanUtil.mapToRecord(crmContractDao.queryByContractId(id).get(0));
+        //Record record = Db.findFirst(Db.getSql("crm.contract.queryByContractId"), id);
         if (record == null) {
             return null;
         }
@@ -116,7 +123,8 @@ public class CrmContractService {
                 .set("客户签约人", record.getStr("contacts_name"))
                 .set("公司签约人", record.getStr("company_user_name"))
                 .set("备注", record.getStr("remark"));
-        List<Record> recordList = Db.find(Db.getSql("admin.field.queryCustomField"), record.getStr("batch_id"));
+        List<Record> recordList = JavaBeanUtil.mapToRecords(crmAdminFieldDao.queryCustomField(record.getStr("batch_id")));
+        //List<Record> recordList = Db.find(Db.getSql("admin.field.queryCustomField"), record.getStr("batch_id"));
         fieldUtil.handleType(recordList);
         fieldList.addAll(recordList);
         return fieldList;
@@ -136,7 +144,7 @@ public class CrmContractService {
         for (String id : idsArr) {
             LkCrmContractEntity contract = crmContractDao.get(NumberConvertUtil.parseInt(id));
             if (contract != null) {
-                crmContractDao.executeUpdateSQL("delete FROM 72crm_admin_fieldv where batch_id = ?", contract.getBatchId());
+                crmContractDao.executeUpdateSQL("delete FROM lkcrm_admin_fieldv where batch_id = ?", contract.getBatchId());
             }
             /*if (!crmContractDao.delete(id);) {
                 return R.error();
@@ -206,7 +214,7 @@ public class CrmContractService {
             crmContractDao.deleteByContractId(crmContract.getContractId());
             //Db.delete(Db.getSql("crm.contract.deleteByContractId"), crmContract.getContractId());
             if (crmContract.getBusinessId() != null) {
-                crmContractDao.executeUpdateSQL("delete from 72crm_crm_business_product where business_id = ?", crmContract.getBusinessId());
+                crmContractDao.executeUpdateSQL("delete from lkcrm_crm_business_product where business_id = ?", crmContract.getBusinessId());
             }
             if (contractProductList != null) {
                 for (LkCrmContractProductEntity crmContractProduct : contractProductList) {
@@ -252,7 +260,7 @@ public class CrmContractService {
     /**
      * 根据条件查询合同
      */
-    public List<Record> queryListByType(String type, Integer id) {
+    public List queryListByType(String type, Integer id) {
         StringBuilder sql = new StringBuilder("select * from contractview where ");
         if (type.equals(CrmEnum.CUSTOMER_TYPE_KEY.getTypes())) {
             sql.append("  customer_id = ? ");
@@ -260,7 +268,7 @@ public class CrmContractService {
         if (type.equals(CrmEnum.BUSINESS_TYPE_KEY.getTypes())) {
             sql.append("  business_id = ? ");
         }
-        return JavaBeanUtil.mapToRecords(crmContractDao.sqlQuery(sql.toString(), id));
+        return crmContractDao.sqlQuery(sql.toString(), id);
         //return Db.find(sql.toString(), id);
     }
 
@@ -270,8 +278,8 @@ public class CrmContractService {
      * @param batchId 合同批次
      * @return
      */
-    public List<Record> queryProductById(String batchId) {
-        return JavaBeanUtil.mapToRecords(crmContractDao.queryProductById(batchId));
+    public List queryProductById(String batchId) {
+        return crmContractDao.queryProductById(batchId);
         //return Db.find(Db.getSql("crm.contract.queryProductById"), batchId);
     }
 
@@ -307,7 +315,7 @@ public class CrmContractService {
         crmContract.setNewOwnerUserId(crmCustomer.getNewOwnerUserId());
         crmContract.setTransferType(crmCustomer.getTransferType());
         crmContract.setPower(crmCustomer.getPower());
-        String contractIds = crmContractDao.queryForObject("select GROUP_CONCAT(contract_id) from 72crm_crm_contract where customer_id in (" + crmCustomer.getCustomerIds() + ")");
+        String contractIds = crmContractDao.queryForObject("select GROUP_CONCAT(contract_id) from lkcrm_crm_contract where customer_id in (" + crmCustomer.getCustomerIds() + ")");
         if (StrUtil.isEmpty(contractIds)) {
             return R.ok();
         }
@@ -366,7 +374,8 @@ public class CrmContractService {
         Set<String> memberIdsSet = new HashSet<>(Arrays.asList(memberIdsArr));
         for (String memberId : memberIdsSet) {
             //Record record = JavaBeanUtil.mapToRecord(crmCustomerDao.getMembers(memberId).get(0));
-            Record record = Db.findFirst(Db.getSql("crm.customer.getMembers"), memberId);
+            Record record = JavaBeanUtil.mapToRecord(crmCustomerDao.getMembers(NumberUtil.parseInt(memberId)).get(0));
+            //Record record = Db.findFirst(Db.getSql("crm.customer.getMembers"), memberId);
             if (roUserId.contains(memberId)) {
                 record.set("power", "只读").set("groupRole", "普通成员");
             }
@@ -399,12 +408,12 @@ public class CrmContractService {
             if (1 == crmContract.getPower()) {
                 stringBuilder.setLength(0);
                 String roUserId = stringBuilder.append(crmContractDao.get(Integer.valueOf(id)).getRoUserId()).append(crmContract.getMemberIds()).append(",").toString();
-                crmContractDao.executeUpdateSQL("update 72crm_crm_contract set ro_user_id = ? where contract_id = ?", roUserId, Integer.valueOf(id));
+                crmContractDao.executeUpdateSQL("update lkcrm_crm_contract set ro_user_id = ? where contract_id = ?", roUserId, Integer.valueOf(id));
             }
             if (2 == crmContract.getPower()) {
                 stringBuilder.setLength(0);
                 String rwUserId = stringBuilder.append(crmContractDao.get(Integer.valueOf(id)).getRwUserId()).append(crmContract.getMemberIds()).append(",").toString();
-                crmContractDao.executeUpdateSQL("update 72crm_crm_contract set rw_user_id = ? where contract_id = ?", rwUserId, Integer.valueOf(id));
+                crmContractDao.executeUpdateSQL("update lkcrm_crm_contract set rw_user_id = ? where contract_id = ?", rwUserId, Integer.valueOf(id));
             }
         }
         return R.ok();

@@ -15,7 +15,6 @@ import com.bdaim.crm.erp.admin.service.AdminFieldService;
 import com.bdaim.crm.erp.admin.service.AdminFileService;
 import com.bdaim.crm.erp.crm.common.CrmEnum;
 import com.bdaim.crm.erp.crm.entity.CrmBusiness;
-import com.bdaim.crm.erp.crm.entity.CrmContacts;
 import com.bdaim.crm.erp.oa.common.OaEnum;
 import com.bdaim.crm.erp.oa.service.OaActionRecordService;
 import com.bdaim.crm.utils.AuthUtil;
@@ -73,6 +72,7 @@ public class CrmBusinessService {
 
     @Resource
     private LkCrmContactsDao crmContactsDao;
+
     /**
      * @author wyq
      * 分页条件查询商机
@@ -185,7 +185,7 @@ public class CrmBusinessService {
             record.set("list", crmBusinessDao.queryProduct(businessId));
         } else {
             //record.set("list", Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), new SqlPara().setSql(Db.getSql("crm.business.queryProduct")).addPara(businessId)));
-            record.set("list", crmBusinessDao.pageQueryProduct(basePageRequest.getPage(), basePageRequest.getLimit(), businessId));
+            record.set("list", BaseUtil.crmPage(crmBusinessDao.pageQueryProduct(basePageRequest.getPage(), basePageRequest.getLimit(), businessId)));
         }
         return R.ok().put("data", record);
     }
@@ -201,7 +201,7 @@ public class CrmBusinessService {
             //return R.ok().put("data", Db.find(Db.getSql("crm.business.queryContract"), businessId));
             return R.ok().put("data", crmBusinessDao.queryContract(businessId));
         } else {
-            return R.ok().put("data", crmBusinessDao.pageQueryContract(basePageRequest.getPage(), basePageRequest.getLimit(), businessId));
+            return R.ok().put("data", BaseUtil.crmPage(crmBusinessDao.pageQueryContract(basePageRequest.getPage(), basePageRequest.getLimit(), businessId)));
         }
     }
 
@@ -216,7 +216,7 @@ public class CrmBusinessService {
             //return R.ok().put("data", Db.find(Db.getSql("crm.business.queryContacts"), businessId));
             return R.ok().put("data", crmBusinessDao.queryContacts(businessId));
         } else {
-            return R.ok().put("data", crmBusinessDao.pageQueryContacts(basePageRequest.getPage(), basePageRequest.getLimit(), businessId));
+            return R.ok().put("data", BaseUtil.crmPage(crmBusinessDao.pageQueryContacts(basePageRequest.getPage(), basePageRequest.getLimit(), businessId)));
             //return R.ok().put("data", Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), new SqlPara().setSql(Db.getSql("crm.business.queryContacts")).addPara(businessId)));
         }
     }
@@ -301,26 +301,27 @@ public class CrmBusinessService {
      */
     public R transfer(LkCrmBusinessEntity crmBusiness) {
         String[] businessIdsArr = crmBusiness.getBusinessIds().split(",");
-        return Db.tx(() -> {
-            for (String businessId : businessIdsArr) {
-                String memberId = "," + crmBusiness.getNewOwnerUserId() + ",";
-                crmBusinessDao.deleteMember(memberId, Integer.valueOf(businessId));
-                LkCrmBusinessEntity oldBusiness = crmBusinessDao.get(Integer.valueOf(businessId));
-                if (2 == crmBusiness.getTransferType()) {
-                    if (1 == crmBusiness.getPower()) {
-                        crmBusiness.setRoUserId(oldBusiness.getRoUserId() + oldBusiness.getOwnerUserId() + ",");
-                    }
-                    if (2 == crmBusiness.getPower()) {
-                        crmBusiness.setRwUserId(oldBusiness.getRwUserId() + oldBusiness.getOwnerUserId() + ",");
-                    }
+        //return Db.tx(() -> {
+        for (String businessId : businessIdsArr) {
+            String memberId = "," + crmBusiness.getNewOwnerUserId() + ",";
+            crmBusinessDao.deleteMember(memberId, Integer.valueOf(businessId));
+            LkCrmBusinessEntity oldBusiness = crmBusinessDao.get(Integer.valueOf(businessId));
+            if (2 == crmBusiness.getTransferType()) {
+                if (1 == crmBusiness.getPower()) {
+                    crmBusiness.setRoUserId(oldBusiness.getRoUserId() + oldBusiness.getOwnerUserId() + ",");
                 }
-                crmBusiness.setBusinessId(Integer.valueOf(businessId));
-                crmBusiness.setOwnerUserId(crmBusiness.getNewOwnerUserId());
-                crmBusinessDao.update(crmBusiness);
-                crmRecordService.addConversionRecord(Integer.valueOf(businessId), CrmEnum.BUSINESS_TYPE_KEY.getTypes(), crmBusiness.getNewOwnerUserId());
+                if (2 == crmBusiness.getPower()) {
+                    crmBusiness.setRwUserId(oldBusiness.getRwUserId() + oldBusiness.getOwnerUserId() + ",");
+                }
             }
-            return true;
-        }) ? R.ok() : R.error();
+            crmBusiness.setBusinessId(Integer.valueOf(businessId));
+            crmBusiness.setOwnerUserId(crmBusiness.getNewOwnerUserId());
+            crmBusinessDao.update(crmBusiness);
+            crmRecordService.addConversionRecord(Integer.valueOf(businessId), CrmEnum.BUSINESS_TYPE_KEY.getTypes(), crmBusiness.getNewOwnerUserId());
+        }
+        //return true;
+        //}) ?
+        return R.ok();
     }
 
     /**
@@ -412,8 +413,8 @@ public class CrmBusinessService {
      * @author wyq
      * 商机状态组展示
      */
-    public List<Record> queryBusinessStatus(Integer businessId) {
-        return JavaBeanUtil.mapToRecords(crmBusinessDao.queryBusinessStatus(businessId));
+    public List queryBusinessStatus(Integer businessId) {
+        return crmBusinessDao.queryBusinessStatus(businessId);
         //return Db.find(Db.getSql("crm.business.queryBusinessStatus"), businessId);
     }
 
@@ -465,7 +466,7 @@ public class CrmBusinessService {
      * @author wyq
      * 查询商机状态组及商机状态
      */
-    public List<Record> queryBusinessStatusOptions(String type) {
+    public List queryBusinessStatusOptions(String type) {
         List<Record> businessTypeList = JavaBeanUtil.mapToRecords(crmBusinessDao.sqlQuery("select * from 72crm_crm_business_type where status = 1"));
         for (Record record : businessTypeList) {
             Integer typeId = record.getInt("type_id");

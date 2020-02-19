@@ -103,7 +103,7 @@ public class CrmBackLogService {
         }
         //Page<Record> page = Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), "select * ", stringBuffer.toString());
         com.bdaim.common.dto.Page page = crmCustomerDao.sqlPageQuery("select * " + stringBuffer.toString(), basePageRequest.getPage(), basePageRequest.getLimit());
-        return R.ok().put("data", page);
+        return R.ok().put("data", BaseUtil.crmPage(page));
     }
 
     /**
@@ -147,7 +147,7 @@ public class CrmBackLogService {
         }
         com.bdaim.common.dto.Page page = crmCustomerDao.sqlPageQuery("select * " + stringBuffer.toString(), basePageRequest.getPage(), basePageRequest.getLimit());
         //Page<Record> page = Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), "select *", stringBuffer.toString());
-        return R.ok().put("data", page);
+        return R.ok().put("data", BaseUtil.crmPage(page));
     }
 
     /**
@@ -194,7 +194,7 @@ public class CrmBackLogService {
         }
         com.bdaim.common.dto.Page page = crmCustomerDao.sqlPageQuery("select * " + stringBuffer.toString(), basePageRequest.getPage(), basePageRequest.getLimit());
         //Page<Record> page = Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), "select *", stringBuffer.toString());
-        return R.ok().put("data", page);
+        return R.ok().put("data", BaseUtil.crmPage(page));
     }
 
     /**
@@ -229,7 +229,7 @@ public class CrmBackLogService {
             JSONObject data = jsonObject.getJSONObject("data");
             com.bdaim.common.dto.Page page = crmCustomerDao.sqlPageQuery("select * from contractview as a where a.contract_id in (" + contractIds + ")" + getConditionSql(data), basePageRequest.getPage(), basePageRequest.getLimit());
             //Page<Record> page = Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), "select *", "from contractview as a where a.contract_id in (" + contractIds + ")" + getConditionSql(data));
-            return R.ok().put("data", page);
+            return R.ok().put("data", BaseUtil.crmPage(page));
         } else {
             Page<Record> page = new Page<>();
             page.setList(new ArrayList<>());
@@ -269,7 +269,7 @@ public class CrmBackLogService {
             JSONObject data = jsonObject.getJSONObject("data");
             com.bdaim.common.dto.Page page = crmCustomerDao.sqlPageQuery("select * from receivablesview as a where a.receivables_id in (" + contractIds + ")" + getConditionSql(data), basePageRequest.getPage(), basePageRequest.getLimit());
             //Page<Record> page = Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), "select *", "from receivablesview as a where a.receivables_id in (" + contractIds + ")" + getConditionSql(data));
-            return R.ok().put("data", page);
+            return R.ok().put("data", BaseUtil.crmPage(page));
         } else {
             Page<Record> page = new Page<>();
             page.setList(new ArrayList<>());
@@ -311,7 +311,7 @@ public class CrmBackLogService {
         }
         com.bdaim.common.dto.Page page = crmCustomerDao.sqlPageQuery("select a.num,a.customer_id,b.customer_name,a.contract_id,c.num as contractNum,a.money,a.return_date,a.return_type,a.remind,a.remark " + stringBuffer.toString(), basePageRequest.getPage(), basePageRequest.getLimit());
         //Page<Record> page = Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), "select a.num,a.customer_id,b.customer_name,a.contract_id,c.num as contractNum,a.money,a.return_date,a.return_type,a.remind,a.remark", stringBuffer.toString());
-        return R.ok().put("data", page);
+        return R.ok().put("data", BaseUtil.crmPage(page));
     }
 
     /**
@@ -350,7 +350,7 @@ public class CrmBackLogService {
         }
         com.bdaim.common.dto.Page page = crmCustomerDao.sqlPageQuery("select * " + stringBuffer.toString(), basePageRequest.getPage(), basePageRequest.getLimit());
         //Page<Record> page = Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), "select *", stringBuffer.toString());
-        return R.ok().put("data", page);
+        return R.ok().put("data", BaseUtil.crmPage(page));
     }
 
     public String getConditionSql(JSONObject data) {

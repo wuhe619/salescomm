@@ -9,7 +9,6 @@ import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.common.response.ResponseInfoAssemble;
 import com.bdaim.customer.service.CustomerExtensionService;
 import com.bdaim.customs.services.ExportExcelService;
-import com.bdaim.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,7 +69,10 @@ public class CustomerExtensionController extends BasicAction {
                     return new ResponseInfoAssemble().failure(-1, "已经超出导出上限（" + (size - 200) + "条），请调整检索条件后重试");
                 exportExcelService.exportExcel(0, query.getData(), info, response);
             }
-            resp.setData(query);
+            PageList pageList = new PageList();
+            pageList.setList(query.getData());
+            pageList.setTotal(query.getTotal());
+            resp.setData(pageList);
         } catch (Exception e) {
             logger.error("查询推广线索异常", e);
         }

@@ -844,22 +844,18 @@ public class CrmLeadsService {
      * @author wyq
      * 分页条件查询线索
      */
-    public Page<Record> getLeadsPageList(BasePageRequest<CrmLeads> basePageRequest) {
+    public CrmPage getLeadsPageList(BasePageRequest<CrmLeads> basePageRequest) {
         String leadsName = basePageRequest.getData().getLeadsName();
         if (!crmParamValid.isValid(leadsName)) {
-            return new Page<>();
+            return new CrmPage();
         }
         String telephone = basePageRequest.getData().getTelephone();
         String mobile = basePageRequest.getData().getMobile();
         if (StrUtil.isEmpty(leadsName) && StrUtil.isEmpty(telephone) && StrUtil.isEmpty(mobile)) {
-            return new Page<>();
+            return new CrmPage();
         }
         com.bdaim.common.dto.Page page = crmLeadsDao.pageLeadsList(basePageRequest.getPage(), basePageRequest.getLimit(), leadsName, telephone, mobile);
-        Page finalPage = new Page();
-        finalPage.setList(page.getData());
-        finalPage.setTotalRow(page.getTotal());
-        return finalPage;
-
+        return BaseUtil.crmPage(page);
         //return Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), Db.getSqlPara("crm.leads.getLeadsPageList", Kv.by("leadsName", leadsName).set("telephone", telephone).set("mobile", mobile)));
     }
 
@@ -917,18 +913,20 @@ public class CrmLeadsService {
     /**
      * @author wyq
      * 根据线索id查询
+     * @return
      */
-    public Record queryById(Integer leadsId) {
-        return JavaBeanUtil.mapToRecord(crmLeadsDao.queryById(leadsId));
+    public Map queryById(Integer leadsId) {
+        return crmLeadsDao.queryById(leadsId);
         //return Db.findFirst(Db.getSql("crm.leads.queryById"), leadsId);
     }
 
     /**
      * @author wyq
      * 根据线索名称查询
+     * @return
      */
-    public Record queryByName(String name) {
-        return JavaBeanUtil.mapToRecord(crmLeadsDao.queryByName(name));
+    public Map<String, Object> queryByName(String name) {
+        return crmLeadsDao.queryByName(name);
     }
 
     /**

@@ -376,7 +376,7 @@ public class CrmLeadsController extends BasicAction {
     @NotNullValidate(value = "leadsId", message = "线索id不能为空")
     @RequestMapping(value = "/queryById", method = RequestMethod.POST)
     public R queryById(@Para("leadsId") Integer leadsId) {
-        return (R.ok().put("data", crmLeadsService.queryById(leadsId).getColumns()));
+        return (R.ok().put("data", crmLeadsService.queryById(leadsId)));
     }
 
     /**
@@ -385,7 +385,7 @@ public class CrmLeadsController extends BasicAction {
      */
     @RequestMapping(value = "/queryByName")
     public R queryByName(@Para("name") String name) {
-        return (R.ok().put("data", crmLeadsService.queryByName(name).getColumns()));
+        return (R.ok().put("data", crmLeadsService.queryByName(name)));
     }
 
     /**

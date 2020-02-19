@@ -16,6 +16,7 @@ import com.bdaim.crm.erp.crm.entity.CrmContacts;
 import com.bdaim.crm.erp.crm.service.CrmContactsService;
 import com.bdaim.crm.utils.AuthUtil;
 import com.bdaim.crm.utils.R;
+import com.bdaim.util.JavaBeanUtil;
 import com.jfinal.core.Controller;
 import com.jfinal.core.paragetter.Para;
 import com.jfinal.log.Log;
@@ -187,7 +188,7 @@ public class CrmContactsController extends Controller {
             return(R.noAuth());
             //return;
         }
-        return(R.ok().put("data", crmContactsService.getRecord(basePageRequest)));
+        return(R.ok().put("data", JavaBeanUtil.recordToMap(crmContactsService.getRecord(basePageRequest))));
     }
 
     /**

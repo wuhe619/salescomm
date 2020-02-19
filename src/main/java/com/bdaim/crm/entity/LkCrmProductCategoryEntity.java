@@ -6,17 +6,18 @@ import java.util.Objects;
 @Entity
 @Table(name = "lkcrm_crm_product_category", schema = "", catalog = "")
 public class LkCrmProductCategoryEntity {
-    private int categoryId;
+    private Integer categoryId;
     private String name;
     private Integer pid;
 
     @Id
     @Column(name = "category_id")
-    public int getCategoryId() {
+    @GeneratedValue
+    public Integer getCategoryId() {
         return categoryId;
     }
 
-    public void setCategoryId(int categoryId) {
+    public void setCategoryId(Integer categoryId) {
         this.categoryId = categoryId;
     }
 
