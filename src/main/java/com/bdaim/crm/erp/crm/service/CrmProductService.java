@@ -8,6 +8,7 @@ import cn.hutool.poi.excel.ExcelReader;
 import cn.hutool.poi.excel.ExcelUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.common.dto.Page;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.dao.LkCrmAdminFieldDao;
 import com.bdaim.crm.dao.LkCrmAdminUserDao;
@@ -17,7 +18,10 @@ import com.bdaim.crm.erp.admin.service.AdminFieldService;
 import com.bdaim.crm.erp.admin.service.AdminSceneService;
 import com.bdaim.crm.erp.crm.common.CrmEnum;
 import com.bdaim.crm.erp.crm.entity.CrmProduct;
-import com.bdaim.crm.utils.*;
+import com.bdaim.crm.utils.BaseUtil;
+import com.bdaim.crm.utils.CrmPage;
+import com.bdaim.crm.utils.FieldUtil;
+import com.bdaim.crm.utils.R;
 import com.bdaim.util.JavaBeanUtil;
 import com.jfinal.aop.Before;
 import com.jfinal.kit.Kv;
@@ -69,7 +73,7 @@ public class CrmProductService {
      * @return
      */
     public CrmPage queryPage(BasePageRequest<CrmProduct> basePageRequest) {
-        com.bdaim.common.dto.Page productPageList = crmProductDao.getProductPageList(basePageRequest.getPage(), basePageRequest.getLimit(), BaseUtil.getUser().getCustId());
+        Page productPageList = crmProductDao.getProductPageList(basePageRequest.getPage(), basePageRequest.getLimit(), BaseUtil.getUser().getCustId());
         return BaseUtil.crmPage(productPageList);
     }
 
