@@ -162,6 +162,7 @@ public class ElasticSearchService {
                 bulk.addAction(index);
             }
             BulkResult br = jestClient.execute(bulk.build());
+            LOG.info("向ES中批量新增原始结果:" + br);
             result = br.isSucceeded();
         } catch (Exception e) {
             LOG.error("向ES中批量新增异常", e);
