@@ -16,6 +16,9 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.annotation.Resource;
 import java.util.List;
 
+/**
+ * crm模块操作记录
+ */
 @RestController
 @RequestMapping("/CrmRecord")
 public class CrmRecordController extends Controller {
