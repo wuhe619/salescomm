@@ -43,4 +43,20 @@ public class LkCrmReceivablesPlanDao extends SimpleHibernateDao<LkCrmReceivables
         String sql = " select * from lkcrm_crm_receivables_plan where receivables_id in(" + SqlAppendUtil.sqlAppendWhereIn(receivablesIds) + ")";
         return super.queryListBySql(sql, LkCrmReceivablesEntity.class);
     }
+
+    public LkCrmReceivablesPlanEntity queryByContractId(int contract_id) {
+        String sql = " SELECT * FROM lkcrm_crm_receivables_plan where contract_id = ? order by num desc limit 0,1 ";
+        List<LkCrmReceivablesPlanEntity> list = super.queryListBySql(sql, LkCrmReceivablesPlanEntity.class);
+        return list.size() > 0 ? list.get(0) : null;
+    }
+
+    public int deleteByIds(List receivablesIds) {
+        String sql = "delete from lkcrm_crm_receivables_plan where receivables_id IN (" + SqlAppendUtil.sqlAppendWhereIn(receivablesIds) + ")";
+        return super.executeUpdateSQL(sql);
+    }
+
+    public List<LkCrmReceivablesPlanEntity> queryByCustomerIdContractId(int contract_id, int customer_id) {
+        String sql = "SELECT * from lkcrm_crm_receivables_plan WHERE receivables_id is null and contract_id = ? and customer_id = ?";
+        return super.queryListBySql(sql, LkCrmReceivablesPlanEntity.class, contract_id, customer_id);
+    }
 }

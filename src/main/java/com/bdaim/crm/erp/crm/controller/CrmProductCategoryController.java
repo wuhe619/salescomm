@@ -11,6 +11,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 
+/**
+ * 产品类型
+ */
 @RestController
 @RequestMapping("/CrmProductCategory")
 public class CrmProductCategoryController extends Controller {

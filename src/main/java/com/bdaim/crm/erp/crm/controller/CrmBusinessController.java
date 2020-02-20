@@ -23,6 +23,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 
+/**
+ * 商机
+ */
 @RestController
 @RequestMapping("/CrmBusiness")
 public class CrmBusinessController extends Controller {
