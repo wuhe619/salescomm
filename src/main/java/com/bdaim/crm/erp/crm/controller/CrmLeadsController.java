@@ -326,7 +326,7 @@ public class CrmLeadsController extends BasicAction {
     @RequestMapping(value = "/deleteFiled", method = RequestMethod.POST)
     public ResponseJson deleteFiled(@RequestBody CustomerSeaSearch param) {
         ResponseJson responseJson = new ResponseJson();
-        String sql = "INSERT INTO `lkcrm_admin_field` ( `field_name`, `cust_id`, `name`, `type`, `label`, `remark`, `input_tips`, `max_length`, `default_value`, `is_unique`, `is_null`, `sorting`, `options`, `operating`, `update_time`, `examine_category_id`, `field_type`, `relevant`) VALUES ( 'company', NULL, '公司名称', '1', '1', NULL, NULL, '255', '', '0', '0', '8', NULL, '1', '2019-07-02 09:10:19', NULL, '1', NULL);";
+        String sql = "UPDATE lkcrm_admin_field SET field_type = 0 WHERE field_id =150";
         int data = crmAdminFieldDao.executeUpdateSQL(sql);
         responseJson.setData(data);
         return responseJson;
