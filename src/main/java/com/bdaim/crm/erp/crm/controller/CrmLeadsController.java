@@ -619,7 +619,7 @@ public class CrmLeadsController extends BasicAction {
             //HttpServletResponse response = getResponse();
             List<Map<String, Object>> list = new ArrayList<>();
             for (Record record : recordList) {
-                record.remove("custType", "entId", "intentLevel", "lastCallTime");
+                record.remove("custType", "entId", "intentLevel", "lastCallTime", "n_id");
                 record.remove("user_id", "status", "call_empty_count", "call_success_count", "call_fail_count", "data_source", "intent_level", "last_call_time");
                 record.remove("last_called_duration", "pull_status", "status", "super_age", "super_name", "super_sex", "user_get_time", "user_group_id");
                 list.add(record.remove("super_data", "batch_id", "is_transform", "customer_id", "leads_id", "owner_user_id", "create_user_id", "followup", "field_batch_id").getColumns());
