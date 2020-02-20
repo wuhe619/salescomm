@@ -35,6 +35,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 产品
+ */
 @RestController
 @RequestMapping("/CrmProduct")
 public class CrmProductController extends Controller {

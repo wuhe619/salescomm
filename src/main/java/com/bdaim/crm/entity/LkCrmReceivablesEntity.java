@@ -9,7 +9,7 @@ import java.util.Objects;
 @Entity
 @Table(name = "lkcrm_crm_receivables", schema = "", catalog = "")
 public class LkCrmReceivablesEntity {
-    private int receivablesId;
+    private Integer receivablesId;
     private String number;
     private Integer planId;
     private Integer customerId;
@@ -20,7 +20,7 @@ public class LkCrmReceivablesEntity {
     private String returnType;
     private BigDecimal money;
     private String remark;
-    private int createUserId;
+    private Long createUserId;
     private Integer ownerUserId;
     private Timestamp createTime;
     private Timestamp updateTime;
@@ -30,11 +30,11 @@ public class LkCrmReceivablesEntity {
     @Id
     @Column(name = "receivables_id")
     @GeneratedValue
-    public int getReceivablesId() {
+    public Integer getReceivablesId() {
         return receivablesId;
     }
 
-    public void setReceivablesId(int receivablesId) {
+    public void setReceivablesId(Integer receivablesId) {
         this.receivablesId = receivablesId;
     }
 
@@ -140,11 +140,11 @@ public class LkCrmReceivablesEntity {
 
     @Basic
     @Column(name = "create_user_id")
-    public int getCreateUserId() {
+    public Long getCreateUserId() {
         return createUserId;
     }
 
-    public void setCreateUserId(int createUserId) {
+    public void setCreateUserId(Long createUserId) {
         this.createUserId = createUserId;
     }
 

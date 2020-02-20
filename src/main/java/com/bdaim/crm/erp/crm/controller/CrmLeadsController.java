@@ -57,6 +57,9 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.*;
 
+/**
+ * 线索公海/私海
+ */
 @RestController
 @RequestMapping("/CrmLeads")
 public class CrmLeadsController extends BasicAction {
@@ -326,9 +329,9 @@ public class CrmLeadsController extends BasicAction {
     @RequestMapping(value = "/deleteFiled", method = RequestMethod.POST)
     public ResponseJson deleteFiled(@RequestBody CustomerSeaSearch param) {
         ResponseJson responseJson = new ResponseJson();
-
-        /*int data = crmAdminFieldDao.executeUpdateSQL("");
-        responseJson.setData(data);*/
+        String sql = "UPDATE lkcrm_admin_field SET field_type = 0 WHERE field_id =150";
+        int data = crmAdminFieldDao.executeUpdateSQL(sql);
+        responseJson.setData(data);
         return responseJson;
     }
 
@@ -344,7 +347,7 @@ public class CrmLeadsController extends BasicAction {
         jsonObject.fluentPut("type", 1);
         basePageRequest.setJsonObject(jsonObject);
         //resp.setData(adminSceneService.filterConditionAndGetPageList(basePageRequest).get("data"));
-        return (adminSceneService.filterConditionAndGetPageList(basePageRequest));
+        return renderCrmJson(adminSceneService.filterConditionAndGetPageList(basePageRequest));
         //return resp;
     }
 
@@ -407,7 +410,7 @@ public class CrmLeadsController extends BasicAction {
     @NotNullValidate(value = "leadsIds", message = "线索id不能为空")
     @NotNullValidate(value = "newOwnerUserId", message = "新负责人id不能为空")
     @RequestMapping(value = "/changeOwnerUser", method = RequestMethod.POST)
-    public R changeOwnerUser(@Para("leadsIds") String leadsIds, @Para("newOwnerUserId") Integer newOwnerUserId) {
+    public R changeOwnerUser(@Para("leadsIds") String leadsIds, @Para("newOwnerUserId") Long newOwnerUserId) {
         return (crmLeadsService.updateOwnerUserId(leadsIds, newOwnerUserId));
     }
 
@@ -616,7 +619,7 @@ public class CrmLeadsController extends BasicAction {
             //HttpServletResponse response = getResponse();
             List<Map<String, Object>> list = new ArrayList<>();
             for (Record record : recordList) {
-                record.remove("custType", "entId", "intentLevel", "lastCallTime");
+                record.remove("custType", "entId", "intentLevel", "lastCallTime", "n_id");
                 record.remove("user_id", "status", "call_empty_count", "call_success_count", "call_fail_count", "data_source", "intent_level", "last_call_time");
                 record.remove("last_called_duration", "pull_status", "status", "super_age", "super_name", "super_sex", "user_get_time", "user_group_id");
                 list.add(record.remove("super_data", "batch_id", "is_transform", "customer_id", "leads_id", "owner_user_id", "create_user_id", "followup", "field_batch_id").getColumns());

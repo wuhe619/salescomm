@@ -8,6 +8,7 @@ import com.bdaim.common.dto.Page;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.dao.LkCrmReceivablesDao;
 import com.bdaim.crm.dao.LkCrmReceivablesPlanDao;
+import com.bdaim.crm.entity.LkCrmReceivablesPlanEntity;
 import com.bdaim.crm.erp.admin.service.AdminFieldService;
 import com.bdaim.crm.erp.crm.entity.CrmReceivables;
 import com.bdaim.crm.erp.crm.entity.CrmReceivablesPlan;
@@ -40,27 +41,29 @@ public class CrmReceivablesPlanService {
      * 添加或修改回款计划
      */
     public R saveAndUpdate(JSONObject jsonObject) {
-        CrmReceivablesPlan crmReceivablesPlan = jsonObject.getObject("entity", CrmReceivablesPlan.class);
+        LkCrmReceivablesPlanEntity crmReceivablesPlan = jsonObject.getObject("entity", LkCrmReceivablesPlanEntity.class);
         String batchId = StrUtil.isNotEmpty(crmReceivablesPlan.getFileBatch()) ? crmReceivablesPlan.getFileBatch() : IdUtil.simpleUUID();
         adminFieldService.save(jsonObject.getJSONArray("field"), batchId);
         if (null == crmReceivablesPlan.getPlanId()) {
-            crmReceivablesPlan.setCreateTime(DateUtil.date());
-            crmReceivablesPlan.setCreateUserId(BaseUtil.getUser().getUserId().intValue());
+            crmReceivablesPlan.setCreateTime(DateUtil.date().toTimestamp());
+            crmReceivablesPlan.setCreateUserId(BaseUtil.getUser().getUserId());
             crmReceivablesPlan.setFileBatch(batchId);
-            CrmReceivablesPlan receivablesPlan = CrmReceivablesPlan.dao.findFirst(Db.getSql("crm.receivablesplan.queryByContractId"), crmReceivablesPlan.getContractId());
+            LkCrmReceivablesPlanEntity receivablesPlan = crmReceivablesPlanDao.queryByContractId(crmReceivablesPlan.getContractId());
+            //LkCrmReceivablesPlanEntity receivablesPlan = CrmReceivablesPlan.dao.findFirst(Db.getSql("crm.receivablesplan.queryByContractId"), crmReceivablesPlan.getContractId());
             if (receivablesPlan == null) {
                 crmReceivablesPlan.setNum("1");
             } else {
                 crmReceivablesPlan.setNum(Integer.valueOf(receivablesPlan.getNum()) + 1 + "");
             }
-            return crmReceivablesPlan.save() ? R.ok() : R.error();
+            return (int) crmReceivablesPlanDao.saveReturnPk(crmReceivablesPlan) > 0 ? R.ok() : R.error();
         } else {
-            Integer number = Db.queryInt("select count(*) from 72crm_crm_receivables where plan_id = ?", crmReceivablesPlan.getPlanId());
+            Integer number = Db.queryInt("select count(*) from lkcrm_crm_receivables where plan_id = ?", crmReceivablesPlan.getPlanId());
             if (number > 0) {
                 return R.error("该回款计划已收到回款，请勿编辑");
             }
-            crmReceivablesPlan.setUpdateTime(DateUtil.date());
-            return crmReceivablesPlan.update() ? R.ok() : R.error();
+            crmReceivablesPlan.setUpdateTime(DateUtil.date().toTimestamp());
+            crmReceivablesPlanDao.saveOrUpdate(crmReceivablesPlan);
+            return R.ok();
         }
     }
 
@@ -71,18 +74,22 @@ public class CrmReceivablesPlanService {
     public R deleteByIds(String planIds) {
         String[] idsArr = planIds.split(",");
         List<Record> idsList = new ArrayList<>();
+        List ids = new ArrayList<>();
         for (String id : idsArr) {
-            Integer number = Db.queryInt("select count(*) from 72crm_crm_receivables where plan_id = ?", id);
+            Integer number = crmReceivablesPlanDao.queryForInt("select count(*) from lkcrm_crm_receivables where plan_id = ?", id);
             if (number > 0) {
                 return R.error("该回款计划已关联回款，禁止删除");
             }
             Record record = new Record();
             idsList.add(record.set("plan_id", Integer.valueOf(id)));
+            ids.add(id);
         }
-        return Db.tx(() -> {
+        crmReceivablesPlanDao.deleteByIds(ids);
+        /*return Db.tx(() -> {
             Db.batch(Db.getSql("crm.receivablesplan.deleteByIds"), "plan_id", idsList, 100);
             return true;
-        }) ? R.ok() : R.error();
+        }) ? R.ok() : R.error();*/
+        return R.ok();
     }
 
     /**
@@ -153,7 +160,7 @@ public class CrmReceivablesPlanService {
      * 根据合同id和客户id查询未使用的回款计划
      */
     public R queryByContractAndCustomer(CrmReceivablesPlan receivablesPlan) {
-        List<CrmReceivablesPlan> plans = CrmReceivablesPlan.dao.find(Db.getSql("crm.receivablesplan.queryByCustomerIdContractId"), receivablesPlan.getContractId(), receivablesPlan.getCustomerId());
+        List<LkCrmReceivablesPlanEntity> plans = crmReceivablesPlanDao.queryByCustomerIdContractId(receivablesPlan.getContractId(), receivablesPlan.getCustomerId());
         return R.ok().put("data", plans);
     }
 }

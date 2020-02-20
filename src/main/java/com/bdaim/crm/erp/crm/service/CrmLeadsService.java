@@ -953,7 +953,7 @@ public class CrmLeadsService {
      * @author wyq
      * 变更负责人
      */
-    public R updateOwnerUserId(String leadsIds, Integer ownerUserId) {
+    public R updateOwnerUserId(String leadsIds, Long ownerUserId) {
         String[] ids = leadsIds.split(",");
         int update = crmLeadsDao.updateOwnerUserId(ownerUserId.toString(), Arrays.asList(ids));
         //int update = Db.update(Db.getSqlPara("crm.leads.updateOwnerUserId", Kv.by("ownerUserId", ownerUserId).set("ids", ids)));

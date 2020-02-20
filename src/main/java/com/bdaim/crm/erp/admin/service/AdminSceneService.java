@@ -190,6 +190,18 @@ public class AdminSceneService {
                     .add("sms_success_count", "短信营销数量", "text", settingArr)
                     .add("call_success_count", "电话营销数量", "text", settingArr)
                     .add("email_success_count", "邮件营销数量", "text", settingArr);
+        }
+        if (label == 11) {
+            fieldUtil.add("leads_name", "线索名称", "text", settingArr)
+                    .add("telephone", "电话", "text", settingArr)
+                    .add("mobile", "手机", "mobile", settingArr)
+                    .add("address", "地址", "text", settingArr)
+                    .add("next_time", "下次联系时间", "datetime", settingArr)
+                    .add("remark", "备注", "text", settingArr)
+                    .add("owner_user_id", "负责人", "user", settingArr)
+                    .add("create_user_id", "创建人", "user", settingArr)
+                    .add("update_time", "更新时间", "datetime", settingArr)
+                    .add("create_time", "创建时间", "datetime", settingArr);
         } else {
             return R.error("场景label不符合要求！");
         }

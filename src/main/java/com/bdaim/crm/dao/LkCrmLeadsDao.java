@@ -150,7 +150,7 @@ public class LkCrmLeadsDao extends SimpleHibernateDao<LkCrmLeadsEntity, Integer>
 
     public int lock(int isLock, List ids) {
         String sql = " update lkcrm_crm_leads set is_lock = ? where leads_id in (" + SqlAppendUtil.sqlAppendWhereIn(ids) + ")";
-        return queryForInt(sql, isLock);
+        return executeUpdateSQL(sql, isLock);
     }
 
 }

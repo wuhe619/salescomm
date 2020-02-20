@@ -393,5 +393,11 @@ public class BasicAction {
         return (R.ok().put("data", JSON.parse(json.toJson(object))));
     }
 
+    public R renderCrmJson(R r) {
+        Json json = ErpJsonFactory.me().getJson();
+        Object object = r.get("data");
+        return (R.ok().put("data", JSON.parse(json.toJson(object))));
+    }
+
 
 }

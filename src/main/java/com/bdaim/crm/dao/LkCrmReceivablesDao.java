@@ -6,6 +6,7 @@ import com.bdaim.crm.entity.LkCrmReceivablesEntity;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Map;
 
 @Component
 public class LkCrmReceivablesDao extends SimpleHibernateDao<LkCrmReceivablesEntity, Integer> {
@@ -48,5 +49,18 @@ public class LkCrmReceivablesDao extends SimpleHibernateDao<LkCrmReceivablesEnti
                 "        LEFT JOIN lkcrm_crm_contract as scco on scco.contract_id = rec.contract_id\n" +
                 "        where rec.contract_id = ?";
         return super.sqlPageQuery(sql, pageNum, pageSize, contract_id);
+    }
+
+    public Page getReceivablesPageList(int pageNum, int pageSize) {
+        return super.sqlPageQuery("  select * from receivablesview ", pageNum, pageSize);
+    }
+
+    public List<Map<String, Object>> queryReceivablesById(int receivables_id) {
+        String sql = "select rb.* ,scc.money as contract_money ,saf.value as receivable_way\n" +
+                "        from receivablesview as rb\n" +
+                "        LEFT JOIN 72crm_crm_contract as scc on scc.contract_id = rb.contract_id\n" +
+                "        LEFT JOIN 72crm_admin_fieldv as saf on saf.batch_id = rb.batch_id AND saf.name = '回款方式'\n" +
+                "        where rb.receivables_id = ?";
+        return super.sqlQuery(sql, receivables_id);
     }
 }

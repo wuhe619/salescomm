@@ -227,7 +227,7 @@ public class CrmRecordService<T> {
      * @param actionId
      * @param crmTypes
      */
-    public void addConversionRecord(Integer actionId, String crmTypes, Integer userId) {
+    public void addConversionRecord(Integer actionId, String crmTypes, Object userId) {
         String name = crmAdminRecordDao.queryForObject("select realname from lkcrm_admin_user where user_id = ?", userId);
         LkCrmActionRecordEntity crmActionRecord = new LkCrmActionRecordEntity();
         crmActionRecord.setCreateUserId(BaseUtil.getUser().getUserId().intValue());
