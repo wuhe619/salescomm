@@ -397,7 +397,7 @@ public class CrmLeadsController extends BasicAction {
      */
     @Permissions("crm:leads:delete")
     @NotNullValidate(value = "leadsIds", message = "线索id不能为空")
-    @RequestMapping(value = "/leadsIds", method = RequestMethod.POST)
+    @RequestMapping(value = "/deleteByIds", method = RequestMethod.POST)
     public R deleteByIds(@Para("leadsIds") String leadsIds) {
         return (crmLeadsService.deleteByIds(leadsIds));
     }
@@ -494,9 +494,11 @@ public class CrmLeadsController extends BasicAction {
      */
     @Permissions("crm:leads:excelexport")
     @RequestMapping(value = "/allExportExcel", method = RequestMethod.POST)
-    public void allExportExcel(BasePageRequest basePageRequest, HttpServletResponse response) throws IOException {
-        JSONObject jsonObject = basePageRequest.getJsonObject();
+    public void allExportExcel(@RequestBody JSONObject jsonObject, HttpServletResponse response) throws IOException {
+        //JSONObject jsonObject = basePageRequest.getJsonObject();
+        BasePageRequest<Void> basePageRequest = new BasePageRequest<>();
         jsonObject.fluentPut("excel", "yes").fluentPut("type", "1");
+        basePageRequest.setJsonObject(jsonObject);
         List<Record> recordList = (List<Record>) adminSceneService.filterConditionAndGetPageList(basePageRequest).get("data");
         export(recordList, response, "1");
         //renderNull();
