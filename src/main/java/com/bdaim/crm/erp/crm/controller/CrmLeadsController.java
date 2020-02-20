@@ -410,7 +410,7 @@ public class CrmLeadsController extends BasicAction {
     @NotNullValidate(value = "leadsIds", message = "线索id不能为空")
     @NotNullValidate(value = "newOwnerUserId", message = "新负责人id不能为空")
     @RequestMapping(value = "/changeOwnerUser", method = RequestMethod.POST)
-    public R changeOwnerUser(@Para("leadsIds") String leadsIds, @Para("newOwnerUserId") Integer newOwnerUserId) {
+    public R changeOwnerUser(@Para("leadsIds") String leadsIds, @Para("newOwnerUserId") Long newOwnerUserId) {
         return (crmLeadsService.updateOwnerUserId(leadsIds, newOwnerUserId));
     }
 
