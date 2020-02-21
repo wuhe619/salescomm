@@ -5,15 +5,15 @@ import com.bdaim.util.Constant;
 import com.bdaim.util.NumberConvertUtil;
 import com.bdaim.util.ReflectionUtils;
 import com.bdaim.util.StringHelper;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.hibernate.*;
 import org.hibernate.criterion.CriteriaSpecification;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.metadata.ClassMetadata;
+import org.hibernate.transform.Transformers;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -21,6 +21,7 @@ import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -1104,7 +1105,8 @@ public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDao
 
     public List queryListBySql(String sql, Class className, final Object... values) {
         Session session = getSession();
-        Query query = session.createSQLQuery(sql).addEntity(className);;
+        Query query = session.createSQLQuery(sql).addEntity(className);
+        ;
         if (values != null)
             for (int i = 0; i < values.length; i++) {
                 query.setParameter(i, values[i]);
@@ -1145,6 +1147,28 @@ public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDao
         if (rs.size() > 0)
             return NumberConvertUtil.parseInt(rs.get(0));
         return 0;
+    }
+
+    public List<Map<String, Object>> findMapBySql(String sql, Map<String, Object> params) {
+        SQLQuery sqlQuery = getSession().createSQLQuery(sql);
+        sqlQuery = getSqlQueryByMap(sqlQuery, params);
+        return sqlQuery.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP).list();
+    }
+
+    private SQLQuery getSqlQueryByMap(SQLQuery sqlQuery, Map<String, Object> params) {
+        if (params != null && !params.isEmpty()) {
+            for (String key : params.keySet()) {
+                Object obj = params.get(key);
+                if (obj instanceof Collection<?>)
+                    sqlQuery.setParameterList(key, (Collection<?>) obj);
+                else if (obj instanceof Object[])
+                    sqlQuery.setParameterList(key, (Object[]) obj);
+                else
+                    sqlQuery.setParameter(key, obj);
+
+            }
+        }
+        return sqlQuery;
     }
 
 }

@@ -43,4 +43,18 @@ public class SqlAppendUtil {
         appendSql.deleteCharAt(appendSql.length() - 1);
         return appendSql.toString();
     }
+
+    public static String sqlAppendWhereIn(Object[] whereIns) {
+        if (whereIns == null || (whereIns != null && whereIns.length == 0)) {
+            return "";
+        }
+        StringBuilder appendSql = new StringBuilder();
+        for (Object in : whereIns) {
+            appendSql.append("'")
+                    .append(in)
+                    .append("',");
+        }
+        appendSql.deleteCharAt(appendSql.length() - 1);
+        return appendSql.toString();
+    }
 }

@@ -397,7 +397,7 @@ public class CrmLeadsController extends BasicAction {
      */
     @Permissions("crm:leads:delete")
     @NotNullValidate(value = "leadsIds", message = "线索id不能为空")
-    @RequestMapping(value = "/leadsIds", method = RequestMethod.POST)
+    @RequestMapping(value = "/deleteByIds", method = RequestMethod.POST)
     public R deleteByIds(@Para("leadsIds") String leadsIds) {
         return (crmLeadsService.deleteByIds(leadsIds));
     }
@@ -494,10 +494,14 @@ public class CrmLeadsController extends BasicAction {
      */
     @Permissions("crm:leads:excelexport")
     @RequestMapping(value = "/allExportExcel", method = RequestMethod.POST)
-    public void allExportExcel(BasePageRequest basePageRequest, HttpServletResponse response) throws IOException {
-        JSONObject jsonObject = basePageRequest.getJsonObject();
+    public void allExportExcel(String search, HttpServletResponse response) throws IOException {
+        //JSONObject jsonObject = basePageRequest.getJsonObject();
+        BasePageRequest<Void> basePageRequest = new BasePageRequest<>();
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("search", search);
         jsonObject.fluentPut("excel", "yes").fluentPut("type", "1");
-        List<Record> recordList = (List<Record>) adminSceneService.filterConditionAndGetPageList(basePageRequest).get("data");
+        basePageRequest.setJsonObject(jsonObject);
+        List<Record> recordList = JavaBeanUtil.mapToRecords((List) adminSceneService.filterConditionAndGetPageList(basePageRequest).get("data"));
         export(recordList, response, "1");
         //renderNull();
     }
@@ -549,7 +553,7 @@ public class CrmLeadsController extends BasicAction {
             //HttpServletResponse response = getResponse();
             List<Map<String, Object>> list = new ArrayList<>();
             for (Record record : recordList) {
-                list.add(record.remove("batch_id", "is_transform", "customer_id", "leads_id", "owner_user_id", "create_user_id", "followup", "field_batch_id").getColumns());
+                list.add(record.remove("cust_id", "batch_id", "is_transform", "customer_id", "leads_id", "owner_user_id", "create_user_id", "followup", "field_batch_id").getColumns());
             }
             writer.write(list, true);
             writer.setRowHeight(0, 30);

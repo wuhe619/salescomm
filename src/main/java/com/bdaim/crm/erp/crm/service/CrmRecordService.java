@@ -163,7 +163,7 @@ public class CrmRecordService<T> {
         if (jsonArray == null) {
             return;
         }
-        List<LkCrmAdminFieldvEntity> oldFieldList = crmAdminFieldvDao.find("from LkCrmAdminFieldvEntity where batchId = ?", batchId);
+        List<LkCrmAdminFieldvEntity> oldFieldList = crmAdminFieldvDao.listByBatchId(batchId);
         oldFieldList.forEach(oldField -> {
             jsonArray.forEach(json -> {
                 LkCrmAdminFieldvEntity newField = TypeUtils.castToJavaBean(json, LkCrmAdminFieldvEntity.class);
