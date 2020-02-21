@@ -1,5 +1,7 @@
 package com.bdaim.common;
 
+import com.alibaba.fastjson.JSONException;
+import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jsoup.Jsoup;
@@ -83,6 +85,7 @@ public class XssHttpServletRequestWrapper extends HttpServletRequestWrapper {
 
     /**
      * 使用Jsoup过滤json中的XSS特殊字符
+     *
      * @param value
      * @return
      */
@@ -103,6 +106,7 @@ public class XssHttpServletRequestWrapper extends HttpServletRequestWrapper {
                 public int read() throws IOException {
                     return bais.read();
                 }
+
                 @Override
                 public boolean isFinished() {
                     return false;
@@ -191,7 +195,11 @@ public class XssHttpServletRequestWrapper extends HttpServletRequestWrapper {
         value = value.replaceAll("[\\\"\\\'][\\s]*javascript:(.*)[\\\"\\\']", "\"\"");
         value = value.replaceAll("script", "");
         value = cleanSqlKeyWords(value);
-        value = HtmlUtils.htmlEscape(value);
+        if (isJSONValid(value)) {
+            value = cleanXSSByJsoup(value);
+        } else {
+            value = HtmlUtils.htmlEscape(value);
+        }
         return value;
     }
 
@@ -208,4 +216,24 @@ public class XssHttpServletRequestWrapper extends HttpServletRequestWrapper {
         paramValue = StringEscapeUtils.escapeSql(paramValue);
         return paramValue;
     }
+
+    /**
+     * 暴力解析:Alibaba fastjson
+     *
+     * @param test
+     * @return
+     */
+    public final static boolean isJSONValid(String test) {
+        try {
+            JSONObject.parseObject(test);
+        } catch (JSONException ex) {
+            try {
+                JSONObject.parseArray(test);
+            } catch (JSONException ex1) {
+                return false;
+            }
+        }
+        return true;
+    }
+
 }
