@@ -208,11 +208,13 @@ public class BusiEntityService {
 
             sql = sqlstr.toString();
         }
+
         if (StringUtil.isNotEmpty(_orderby_) && StringUtil.isNotEmpty(_sort_)) {
             sql += " order by  "+ _orderby_+" "+_sort_+" ";
             //sqlParams.add(_orderby_);
             //sqlParams.add(_sort_);
         }
+        String totalSql = "select count(0) from ( " + sql + " ) t ";
         int pageNum = 1;
         int pageSize = 10;
         try {
@@ -241,8 +243,9 @@ public class BusiEntityService {
             logger.info("开始查询...");
             List<Map<String, Object>> ds = jdbcTemplate.queryForList(sql, sqlParams.toArray());
             stopwatch.split();
+            logger.info("查询结果："+ds.size());
             logger.info("查询耗时:" + stopwatch.getSplitTime() + "," + stopwatch.toSplitString());
-            String totalSql = "select count(0) from ( " + sql + " ) t ";
+
             List data = new ArrayList();
             for (int i = 0; i < ds.size(); i++) {
                 Map m = (Map) ds.get(i);
@@ -302,6 +305,7 @@ public class BusiEntityService {
             stopwatch.split();
             logger.info("处理数据:" + stopwatch.getSplitTime() + "," + stopwatch.toSplitString());
             p.setData(data);
+            logger.info("totalsql:{},{}",totalSql,sqlParams.toArray());
             int total = jdbcTemplate.queryForObject(totalSql, sqlParams.toArray(), Integer.class);
             p.setTotal(total);
             p.setPerPageCount(pageSize);
