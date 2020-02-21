@@ -13,6 +13,7 @@ import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.controller.util.ResponseCommon;
 import com.bdaim.common.controller.util.ResponseJson;
 import com.bdaim.common.exception.TouchException;
+import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.crm.common.annotation.LoginFormCookie;
 import com.bdaim.crm.common.annotation.NotNullValidate;
 import com.bdaim.crm.common.annotation.Permissions;
@@ -89,11 +90,18 @@ public class CrmLeadsController extends BasicAction {
      * @return
      */
     @RequestMapping(value = "/page/cluesea/{seaId}", method = RequestMethod.POST)
-    public R pageClueById(@PathVariable(value = "seaId") Long seaId, @RequestBody JSONObject jsonObject) {
+    public ResponseInfo pageClueById(@PathVariable(value = "seaId") Long seaId, @RequestBody JSONObject jsonObject) {
         BasePageRequest<CrmLeads> basePageRequest = new BasePageRequest<>(jsonObject.getIntValue("page"), jsonObject.getIntValue("limit"));
         jsonObject.fluentPut("type", 1);
         basePageRequest.setJsonObject(jsonObject);
-        return crmLeadsService.pageCluePublicSea(basePageRequest, seaId, BaseUtil.getUser().getCustId());
+        ResponseInfo responseInfo = new ResponseInfo();
+        R r = crmLeadsService.pageCluePublicSea(basePageRequest, seaId, BaseUtil.getUser().getCustId());
+        responseInfo.setCode(r.get("code"));
+        responseInfo.setMessage(r.get("msg"));
+        if (r.isSuccess()) {
+            responseInfo.setData(r.get("data"));
+        }
+        return responseInfo;
     }
 
     /**
@@ -203,8 +211,11 @@ public class CrmLeadsController extends BasicAction {
     @Permissions("crm:leads:read")
     @NotNullValidate(value = "leadsId", message = "线索id不能为空")
     @RequestMapping(value = "/cluesea/queryById", method = RequestMethod.POST)
-    public R clueSeaQueryById(@RequestBody JSONObject jsonO) {
-        return (R.ok().put("data", crmLeadsService.queryClueById(jsonO.getLong("seaId"), jsonO.getString("id"))));
+    public ResponseInfo clueSeaQueryById(@RequestBody JSONObject jsonO) {
+        ResponseInfo responseInfo = new ResponseInfo();
+        responseInfo.setCode(0);
+        responseInfo.setData(crmLeadsService.queryClueById(jsonO.getLong("seaId"), jsonO.getString("id")));
+        return responseInfo;
     }
 
     /**
@@ -347,7 +358,7 @@ public class CrmLeadsController extends BasicAction {
         jsonObject.fluentPut("type", 1);
         basePageRequest.setJsonObject(jsonObject);
         //resp.setData(adminSceneService.filterConditionAndGetPageList(basePageRequest).get("data"));
-        return renderCrmJson(adminSceneService.filterConditionAndGetPageList(basePageRequest));
+        return adminSceneService.filterConditionAndGetPageList(basePageRequest);
         //return resp;
     }
 
@@ -423,6 +434,11 @@ public class CrmLeadsController extends BasicAction {
     @RequestMapping(value = "/transfer", method = RequestMethod.POST)
     public R transfer(@Para("leadsIds") String leadsIds) {
         return (crmLeadsService.translate(leadsIds));
+    }
+
+    @RequestMapping(value = "/leads/company", method = RequestMethod.POST)
+    public R listLeadByCompany(String company) {
+        return R.ok().put("data", crmLeadsService.listLeadByCompany(BaseUtil.getUser().getCustId(), company));
     }
 
     /**
