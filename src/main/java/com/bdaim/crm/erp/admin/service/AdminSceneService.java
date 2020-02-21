@@ -49,7 +49,7 @@ public class AdminSceneService {
      * @author wyq
      * 查询场景字段
      */
-    public R queryField(Integer label) {
+    public R queryField(int label) {
         List<Record> recordList = new LinkedList<>();
         FieldUtil fieldUtil = new FieldUtil(recordList);
         String[] settingArr = new String[]{};
@@ -190,8 +190,7 @@ public class AdminSceneService {
                     .add("sms_success_count", "短信营销数量", "text", settingArr)
                     .add("call_success_count", "电话营销数量", "text", settingArr)
                     .add("email_success_count", "邮件营销数量", "text", settingArr);
-        }
-        if (label == 11) {
+        } else if (label == 11) {
             fieldUtil.add("leads_name", "线索名称", "text", settingArr)
                     .add("telephone", "电话", "text", settingArr)
                     .add("mobile", "手机", "mobile", settingArr)
@@ -206,7 +205,7 @@ public class AdminSceneService {
             return R.error("场景label不符合要求！");
         }
         recordList = fieldUtil.getRecordList();
-        List<Record> records = adminFieldService.customFieldList(label.toString());
+        List<Record> records = adminFieldService.customFieldList(String.valueOf(label));
         if (recordList != null && records != null) {
             for (Record r : records) {
                 r.set("field_name", r.getStr("name"));
