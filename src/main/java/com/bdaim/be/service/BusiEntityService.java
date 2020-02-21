@@ -215,6 +215,7 @@ public class BusiEntityService {
             //sqlParams.add(_sort_);
         }
         String totalSql = "select count(0) from ( " + sql + " ) t ";
+        Object[] totalsqlParam = sqlParams.toArray();
         int pageNum = 1;
         int pageSize = 10;
         try {
@@ -305,8 +306,8 @@ public class BusiEntityService {
             stopwatch.split();
             logger.info("处理数据:" + stopwatch.getSplitTime() + "," + stopwatch.toSplitString());
             p.setData(data);
-            logger.info("totalsql:{},{}",totalSql,sqlParams.toArray());
-            int total = jdbcTemplate.queryForObject(totalSql, sqlParams.toArray(), Integer.class);
+            logger.info("totalsql:{},{}",totalSql,totalsqlParam.length);
+            int total = jdbcTemplate.queryForObject(totalSql, totalsqlParam, Integer.class);
             p.setTotal(total);
             p.setPerPageCount(pageSize);
             p.setStart((pageNum - 1) * pageSize + 1);
