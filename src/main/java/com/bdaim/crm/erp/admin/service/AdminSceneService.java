@@ -389,7 +389,7 @@ public class AdminSceneService {
                 hideScene.set("data", jsonObject);
             }
         }
-        return R.ok().put("data", Kv.by("value", valueList).set("hide_value", hideValueList));
+        return R.ok().put("data", Kv.by("value", JavaBeanUtil.recordToMap(valueList)).set("hide_value", JavaBeanUtil.recordToMap(hideValueList)));
     }
 
     /**
