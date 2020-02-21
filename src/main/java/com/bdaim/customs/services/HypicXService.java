@@ -185,7 +185,6 @@ public class HypicXService implements BusiService {
             sqlParams.add(cust_id);
         }
 
-        sqlParams.add(busiType);
         Iterator keys = params.keySet().iterator();
         while (keys.hasNext()) {
             String key = (String) keys.next();

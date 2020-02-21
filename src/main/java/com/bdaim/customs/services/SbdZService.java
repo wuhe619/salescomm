@@ -428,7 +428,7 @@ public class SbdZService implements BusiService {
                 sqlParams.add(cust_id);
             }
 
-            sqlParams.add(busiType);
+//            sqlParams.add(busiType);
             String stationId = params.getString("stationId");
             // 处理场站检索
             if (StringUtil.isNotEmpty(stationId)) {
