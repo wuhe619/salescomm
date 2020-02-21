@@ -187,7 +187,7 @@ public class CrmCustomerService {
      * @return
      */
     public Map<String, Object> queryByName(String name) {
-        return crmCustomerDao.queryByName(name).get(0);
+        return crmCustomerDao.queryByName(name);
         //return Db.findFirst(Db.getSql("crm.customer.queryByName"), name);
     }
 

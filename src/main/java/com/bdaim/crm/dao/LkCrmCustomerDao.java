@@ -260,9 +260,10 @@ public class LkCrmCustomerDao extends SimpleHibernateDao<LkCrmCustomerEntity, In
         return sqlPageQuery(sql, pageNum, pageSize, param.toArray());
     }
 
-    public List<Map<String, Object>> queryByName(String customer_name) {
+    public Map<String, Object> queryByName(String customer_name) {
         String sql = "select * from customerview where customer_name = ? ";
-        return sqlQuery(sql, customer_name);
+        List<Map<String, Object>> maps = sqlQuery(sql, customer_name);
+        return maps.size() > 0 ? maps.get(0) : null;
     }
 
     public List<Map<String, Object>> queryById(Integer customer_id) {
@@ -270,7 +271,7 @@ public class LkCrmCustomerDao extends SimpleHibernateDao<LkCrmCustomerEntity, In
         return sqlQuery(sql, customer_id);
     }
 
-    public Page getCustomerPageList(int pageNum, int pageSize, String customerName,String mobile,String telephone) {
+    public Page getCustomerPageList(int pageNum, int pageSize, String customerName, String mobile, String telephone) {
         String sql = " select customer_id,customer_name,owner_user_name from customerview where 1=1";
         List param = new ArrayList();
         if (StringUtil.isNotEmpty(customerName)) {
