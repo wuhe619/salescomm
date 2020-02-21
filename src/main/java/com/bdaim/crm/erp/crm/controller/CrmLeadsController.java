@@ -501,7 +501,7 @@ public class CrmLeadsController extends BasicAction {
         jsonObject.put("search", search);
         jsonObject.fluentPut("excel", "yes").fluentPut("type", "1");
         basePageRequest.setJsonObject(jsonObject);
-        List<Record> recordList = JavaBeanUtil.mapToRecords((List)adminSceneService.filterConditionAndGetPageList(basePageRequest).get("data"));
+        List<Record> recordList = JavaBeanUtil.mapToRecords((List) adminSceneService.filterConditionAndGetPageList(basePageRequest).get("data"));
         export(recordList, response, "1");
         //renderNull();
     }
@@ -553,7 +553,7 @@ public class CrmLeadsController extends BasicAction {
             //HttpServletResponse response = getResponse();
             List<Map<String, Object>> list = new ArrayList<>();
             for (Record record : recordList) {
-                list.add(record.remove("batch_id", "is_transform", "customer_id", "leads_id", "owner_user_id", "create_user_id", "followup", "field_batch_id").getColumns());
+                list.add(record.remove("cust_id", "batch_id", "is_transform", "customer_id", "leads_id", "owner_user_id", "create_user_id", "followup", "field_batch_id").getColumns());
             }
             writer.write(list, true);
             writer.setRowHeight(0, 30);
