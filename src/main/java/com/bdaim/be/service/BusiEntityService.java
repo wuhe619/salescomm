@@ -303,6 +303,7 @@ public class BusiEntityService {
             stopwatch.split();
             logger.info("处理数据:" + stopwatch.getSplitTime() + "," + stopwatch.toSplitString());
             p.setData(data);
+            logger.info("totalsql:{},{}",totalSql,sqlParams.toArray());
             int total = jdbcTemplate.queryForObject(totalSql, sqlParams.toArray(), Integer.class);
             p.setTotal(total);
             p.setPerPageCount(pageSize);
