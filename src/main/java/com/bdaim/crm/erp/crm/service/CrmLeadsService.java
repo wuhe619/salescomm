@@ -981,9 +981,13 @@ public class CrmLeadsService {
             if (1 == crmLeads.getInt("is_transform")) {
                 return R.error("已转化线索不能再次转化");
             }
+            String customerName = crmLeads.getStr("company");
+            if (StringUtil.isEmpty(customerName)) {
+                return R.error("请补全线索的公司名称");
+            }
             List<Record> leadsFields = adminFieldService.list("1");
             LkCrmCustomerEntity crmCustomer = new LkCrmCustomerEntity();
-            crmCustomer.setCustomerName(crmLeads.getStr("leads_name"));
+            crmCustomer.setCustomerName(customerName);
             crmCustomer.setIsLock(0);
             crmCustomer.setNextTime(crmLeads.getTimestamp("next_time"));
             crmCustomer.setMobile(crmLeads.getStr("mobile"));
