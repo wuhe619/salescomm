@@ -911,9 +911,9 @@ public class CrmLeadsService {
     }
 
     /**
+     * @return
      * @author wyq
      * 根据线索id查询
-     * @return
      */
     public Map queryById(Integer leadsId) {
         return crmLeadsDao.queryById(leadsId);
@@ -921,9 +921,9 @@ public class CrmLeadsService {
     }
 
     /**
+     * @return
      * @author wyq
      * 根据线索名称查询
-     * @return
      */
     public Map<String, Object> queryByName(String name) {
         return crmLeadsDao.queryByName(name);
@@ -940,13 +940,18 @@ public class CrmLeadsService {
             //Record record = new Record();
             idsList.add(id);
         }
+        if (idsList.size() == 0) {
+            R.error("leadsIds不能为空");
+        }
         List<String> batchIdList = JavaBeanUtil.mapToRecords(crmLeadsDao.queryBatchIdByIds(Arrays.asList(idsArr)));
-        return Db.tx(() -> {
-            //Db.batch(Db.getSql("crm.leads.deleteByIds"), "leads_id", idsList, 100);
-            crmLeadsDao.deleteByIds(idsList);
+        //return Db.tx(() -> {
+        //Db.batch(Db.getSql("crm.leads.deleteByIds"), "leads_id", idsList, 100);
+        int i = crmLeadsDao.deleteByIds(idsList);
+        if (batchIdList.size() > 0) {
             crmLeadsDao.executeUpdateSQL("delete from lkcrm_admin_fieldv where batch_id IN( " + SqlAppendUtil.sqlAppendWhereIn(batchIdList) + " )");
-            return true;
-        }) ? R.ok() : R.error();
+        }
+        return i > 0 ? R.ok() : R.error("线索删除失败");
+        //}) ? R.ok() : R.error();
     }
 
     /**
@@ -1433,7 +1438,7 @@ public class CrmLeadsService {
      * @author wyq
      * 客户锁定
      */
-    public R lock(LkCrmLeadsEntity crmLeads,String ids) {
+    public R lock(LkCrmLeadsEntity crmLeads, String ids) {
         String[] idArr = ids.split(",");
         crmRecordService.addIsLockRecord(idArr, CrmEnum.CUSTOMER_TYPE_KEY.getTypes(), crmLeads.getIsLock());
         return crmLeadsDao.lock(crmLeads.getIsLock(), Arrays.asList(ids)) > 0 ? R.ok() : R.error();
