@@ -437,8 +437,8 @@ public class CrmLeadsController extends BasicAction {
     }
 
     @RequestMapping(value = "/leads/company", method = RequestMethod.POST)
-    public R listLeadByCompany(String company) {
-        return R.ok().put("data", crmLeadsService.listLeadByCompany(BaseUtil.getUser().getCustId(), company));
+    public R listLeadByCompany(String company, String notInLeadsIds) {
+        return R.ok().put("data", crmLeadsService.listLeadByCompany(BaseUtil.getUser().getCustId(), company,notInLeadsIds));
     }
 
     /**

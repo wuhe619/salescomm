@@ -1087,8 +1087,11 @@ public class CrmLeadsService {
         return R.ok();
     }
 
-    public List<Map<String, Object>> listLeadByCompany(String custId, String company) {
-        return crmLeadsDao.listLeadByCompany(custId, company, 0);
+    public List<Map<String, Object>> listLeadByCompany(String custId, String company, String notInLeadsIds) {
+        if (StringUtil.isEmpty(notInLeadsIds)) {
+            notInLeadsIds = "";
+        }
+        return crmLeadsDao.listLeadByCompany(custId, company, 0, notInLeadsIds.split(","));
     }
 
     /**

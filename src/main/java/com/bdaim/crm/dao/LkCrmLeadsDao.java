@@ -153,8 +153,11 @@ public class LkCrmLeadsDao extends SimpleHibernateDao<LkCrmLeadsEntity, Integer>
         return executeUpdateSQL(sql, isLock);
     }
 
-    public List<Map<String, Object>> listLeadByCompany(String custId, String company, int isTransform) {
+    public List<Map<String, Object>> listLeadByCompany(String custId, String company, int isTransform, String[] notInLeadsIds) {
         StringBuffer conditions = new StringBuffer("SELECT leads_id, leads_name, is_transform, followup, telephone, mobile  FROM lkcrm_crm_leads WHERE cust_id = ? AND company=? AND is_transform = ? ");
+        if (notInLeadsIds != null && notInLeadsIds.length > 0) {
+            conditions.append(" leads_id NOT IN (" + SqlAppendUtil.sqlAppendWhereIn(notInLeadsIds) + ")");
+        }
         return sqlQuery(conditions.toString(), custId, company, isTransform);
     }
 
