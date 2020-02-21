@@ -241,6 +241,7 @@ public class BusiEntityService {
             logger.info("开始查询...");
             List<Map<String, Object>> ds = jdbcTemplate.queryForList(sql, sqlParams.toArray());
             stopwatch.split();
+            logger.info("查询结果："+ds.size());
             logger.info("查询耗时:" + stopwatch.getSplitTime() + "," + stopwatch.toSplitString());
             String totalSql = "select count(0) from ( " + sql + " ) t ";
             List data = new ArrayList();
