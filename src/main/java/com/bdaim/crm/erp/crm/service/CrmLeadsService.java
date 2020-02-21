@@ -1087,6 +1087,10 @@ public class CrmLeadsService {
         return R.ok();
     }
 
+    public List<Map<String, Object>> listLeadByCompany(String custId, String company) {
+        return crmLeadsDao.listLeadByCompany(custId, company, 0);
+    }
+
     /**
      * @author wyq
      * 查询编辑字段

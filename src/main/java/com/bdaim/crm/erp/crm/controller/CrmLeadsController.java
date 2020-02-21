@@ -96,8 +96,8 @@ public class CrmLeadsController extends BasicAction {
         basePageRequest.setJsonObject(jsonObject);
         ResponseInfo responseInfo = new ResponseInfo();
         R r = crmLeadsService.pageCluePublicSea(basePageRequest, seaId, BaseUtil.getUser().getCustId());
-        responseInfo.setCode(r.get("code"));
-        responseInfo.setMessage(r.get("msg"));
+        responseInfo.setCode((int) r.get("code"));
+        responseInfo.setMessage(String.valueOf(r.get("msg")));
         if (r.isSuccess()) {
             responseInfo.setData(r.get("data"));
         }
