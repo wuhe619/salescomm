@@ -202,11 +202,11 @@ public class HypicXService implements BusiService {
             } else continue;
             sqlParams.add(params.get(key));
         }
-        if (StringUtil.isNotEmpty(_orderby_) && StringUtil.isNotEmpty(_sort_)) {
+        /*if (StringUtil.isNotEmpty(_orderby_) && StringUtil.isNotEmpty(_sort_)) {
             sqlstr.append(" ORDER BY ? ? ");
             sqlParams.add(_orderby_);
             sqlParams.add(_sort_);
-        }
+        }*/
         return sqlstr.toString();
     }
 
