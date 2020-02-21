@@ -422,12 +422,13 @@ public class SbdZService implements BusiService {
             StringBuffer sqlstr = new StringBuffer("select id, content , cust_id, create_id, create_date,ext_1, ext_2, ext_3, ext_4, ext_5 from " + HMetaDataDef.getTable(busiType, "") + " where type=?");
            // String _orderby_ = params.getString("_orderby_");
            // String _sort_ = params.getString("_sort_");
+            sqlParams.add(busiType);
             if (!"all".equals(cust_id)){
                 sqlstr.append(" and cust_id=? ");
                 sqlParams.add(cust_id);
             }
 
-            sqlParams.add(busiType);
+//            sqlParams.add(busiType);
             String stationId = params.getString("stationId");
             // 处理场站检索
             if (StringUtil.isNotEmpty(stationId)) {
