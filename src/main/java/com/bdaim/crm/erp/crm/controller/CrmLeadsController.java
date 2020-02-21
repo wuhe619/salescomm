@@ -494,9 +494,11 @@ public class CrmLeadsController extends BasicAction {
      */
     @Permissions("crm:leads:excelexport")
     @RequestMapping(value = "/allExportExcel", method = RequestMethod.POST)
-    public void allExportExcel(@RequestBody JSONObject jsonObject, HttpServletResponse response) throws IOException {
+    public void allExportExcel(String search, HttpServletResponse response) throws IOException {
         //JSONObject jsonObject = basePageRequest.getJsonObject();
         BasePageRequest<Void> basePageRequest = new BasePageRequest<>();
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("search", search);
         jsonObject.fluentPut("excel", "yes").fluentPut("type", "1");
         basePageRequest.setJsonObject(jsonObject);
         List<Record> recordList = (List<Record>) adminSceneService.filterConditionAndGetPageList(basePageRequest).get("data");
