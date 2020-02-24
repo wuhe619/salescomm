@@ -10,6 +10,7 @@ public class  LkCrmCustomerEntity {
     private Integer customerId;
     private String customerName;
     private Integer followup;
+    private String custId;
     private int isLock;
     private Timestamp nextTime;
     private String dealStatus;
@@ -56,6 +57,15 @@ public class  LkCrmCustomerEntity {
         this.customerId = customerId;
     }
 
+    @Basic
+    @Column(name = "cust_id")
+    public String getCustId() {
+        return custId;
+    }
+
+    public void setCustId(String custId) {
+        this.custId = custId;
+    }
     @Basic
     @Column(name = "customer_name")
     public String getCustomerName() {

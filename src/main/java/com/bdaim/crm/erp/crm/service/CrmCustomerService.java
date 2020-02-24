@@ -97,6 +97,9 @@ public class CrmCustomerService {
     @Resource
     private LkCrmOaEventRelationDao crmOaEventRelationDao;
 
+    @Resource
+    private CrmContactsService crmContactsService;
+
     /**
      * @return
      * @author wyq
@@ -126,6 +129,7 @@ public class CrmCustomerService {
         String batchId = StrUtil.isNotEmpty(crmCustomer.getBatchId()) ? crmCustomer.getBatchId() : IdUtil.simpleUUID();
         crmRecordService.updateRecord(jsonObject.getJSONArray("field"), batchId);
         adminFieldService.save(jsonObject.getJSONArray("field"), batchId);
+        crmCustomer.setCustId(BaseUtil.getUser().getCustId());
         if (crmCustomer.getCustomerId() != null) {
             LkCrmCustomerEntity oldCrmCustomer = crmCustomerDao.get(crmCustomer.getCustomerId());
             crmRecordService.updateRecord(oldCrmCustomer, crmCustomer, CrmEnum.CUSTOMER_TYPE_KEY.getTypes());
@@ -143,9 +147,15 @@ public class CrmCustomerService {
             crmCustomer.setBatchId(batchId);
             crmCustomer.setRwUserId(",");
             crmCustomer.setRoUserId(",");
-            int save = (int) crmCustomerDao.saveReturnPk(crmCustomer);
+            int id = (int) crmCustomerDao.saveReturnPk(crmCustomer);
             crmRecordService.addRecord(crmCustomer.getCustomerId(), CrmEnum.CUSTOMER_TYPE_KEY.getTypes());
-            return save > 0 ? R.ok().put("data", Kv.by("customer_id", crmCustomer.getCustomerId()).set("customer_name", crmCustomer.getCustomerName())) : R.error();
+            //批量添加联系人
+            JSONArray contacts = jsonObject.getJSONArray("contacts");
+            for (int i = 0; i < contacts.size(); i++) {
+                contacts.getJSONObject(i).put("customer_id", id);
+            }
+            crmContactsService.batchAddContacts(contacts);
+            return id > 0 ? R.ok().put("data", Kv.by("customer_id", crmCustomer.getCustomerId()).set("customer_name", crmCustomer.getCustomerName())) : R.error();
         }
     }
 
