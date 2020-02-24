@@ -692,6 +692,7 @@ public class AdminSceneService {
                 LkCrmLeadsEntity lkCrmLeadsEntity = crmLeadsDao.get(id);
                 if (lkCrmLeadsEntity != null) {
                     map.put("company", lkCrmLeadsEntity.getCompany());
+                    map.put("公司名称", lkCrmLeadsEntity.getCompany());
                 }
                 break;
             case 2:
@@ -699,6 +700,7 @@ public class AdminSceneService {
                 LkCrmCustomerEntity lkCrmCustomerEntity = crmCustomerDao.get(id);
                 if (lkCrmCustomerEntity != null) {
                     map.put("company", lkCrmCustomerEntity.getCompany());
+                    map.put("公司名称", lkCrmCustomerEntity.getCompany());
                 }
                 break;
             case 3:
