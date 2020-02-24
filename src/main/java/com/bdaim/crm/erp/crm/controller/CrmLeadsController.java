@@ -340,7 +340,7 @@ public class CrmLeadsController extends BasicAction {
     @RequestMapping(value = "/deleteFiled", method = RequestMethod.POST)
     public ResponseJson deleteFiled(@RequestBody CustomerSeaSearch param) {
         ResponseJson responseJson = new ResponseJson();
-        String sql = "INSERT INTO `lkcrm_admin_config` ( `status`, `name`, `value`, `description`) VALUES ( '1', 'customerPoolSetting', '', '客户公海规则设置'), ( '1', 'expiringContractDays', '24', '合同到期提醒'), ( '0', 'customerPoolSettingDealDays', '3', '客户公海规则设置未成交天数'), ( '0', 'customerPoolSettingFollowupDays', '31', '客户公海规则设置未跟进天数'), ( '0', 'followRecordOption', '打电话', '跟进记录选项'), ( '0', 'followRecordOption', '发短信', '跟进记录选项'), ( '0', 'followRecordOption', '上门拜访', '跟进记录选项'); ";
+        String sql = "ALTER TABLE `lkcrm_crm_customer` ADD COLUMN `company`  varchar(255) NULL AFTER `website`;";
         int data = crmAdminFieldDao.executeUpdateSQL(sql);
         responseJson.setData(data);
         return responseJson;

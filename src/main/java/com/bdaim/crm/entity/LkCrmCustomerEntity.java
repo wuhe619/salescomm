@@ -44,6 +44,7 @@ public class  LkCrmCustomerEntity {
     private Integer checkstatus;
     private String businessName;
 
+    private String company;
     @Id
     @Column(name = "customer_id")
     @GeneratedValue
@@ -263,6 +264,16 @@ public class  LkCrmCustomerEntity {
 
     public void setBatchId(String batchId) {
         this.batchId = batchId;
+    }
+
+    @Basic
+    @Column(name = "company")
+    public String getCompany() {
+        return company;
+    }
+
+    public void setCompany(String company) {
+        this.company = company;
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.bdaim.crm.erp.crm.service;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.IdUtil;
@@ -97,9 +98,9 @@ public class CrmCustomerService {
     private LkCrmOaEventRelationDao crmOaEventRelationDao;
 
     /**
+     * @return
      * @author wyq
      * 分页条件查询客户
-     * @return
      */
     public CrmPage getCustomerPageList(BasePageRequest<CrmCustomer> basePageRequest) {
         String customerName = basePageRequest.getData().getCustomerName();
@@ -126,10 +127,11 @@ public class CrmCustomerService {
         crmRecordService.updateRecord(jsonObject.getJSONArray("field"), batchId);
         adminFieldService.save(jsonObject.getJSONArray("field"), batchId);
         if (crmCustomer.getCustomerId() != null) {
-            CrmCustomer oldCrmCustomer = new CrmCustomer().dao().findById(crmCustomer.getCustomerId());
+            LkCrmCustomerEntity oldCrmCustomer = crmCustomerDao.get(crmCustomer.getCustomerId());
             crmRecordService.updateRecord(oldCrmCustomer, crmCustomer, CrmEnum.CUSTOMER_TYPE_KEY.getTypes());
             crmCustomer.setUpdateTime(DateUtil.date().toTimestamp());
-            crmCustomerDao.update(crmCustomer);
+            BeanUtil.copyProperties(crmCustomer, oldCrmCustomer, "customerId", "isLock", "createTime", "batchId");
+            crmCustomerDao.update(oldCrmCustomer);
             return R.ok();
         } else {
             crmCustomer.setCreateTime(DateUtil.date().toTimestamp());
@@ -148,9 +150,9 @@ public class CrmCustomerService {
     }
 
     /**
+     * @return
      * @author wyq
      * 根据客户id查询
-     * @return
      */
     public Map<String, Object> queryById(Integer customerId) {
         return crmCustomerDao.queryById(customerId).get(0);
@@ -182,9 +184,9 @@ public class CrmCustomerService {
     }
 
     /**
+     * @return
      * @author wyq
      * 根据客户名称查询
-     * @return
      */
     public Map<String, Object> queryByName(String name) {
         return crmCustomerDao.queryByName(name);
