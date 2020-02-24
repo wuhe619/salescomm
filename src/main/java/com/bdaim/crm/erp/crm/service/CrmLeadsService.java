@@ -876,7 +876,7 @@ public class CrmLeadsService {
             crmRecordService.updateRecord(crmLeadsDao.get(crmLeads.getLeadsId()), crmLeads, CrmEnum.LEADS_TYPE_KEY.getTypes());
             //return crmLeads.update() ? R.ok() : R.error();
             LkCrmLeadsEntity crmLeadsDb = crmLeadsDao.get(crmLeads.getLeadsId());
-            BeanUtil.copyProperties(crmLeads, crmLeadsDb, "batchId", "createUserId");
+            BeanUtil.copyProperties(crmLeads, crmLeadsDb, "batchId", "createUserId", "createTime", "ownerUserId");
             crmLeadsDao.saveOrUpdate(crmLeadsDb);
             return R.ok();
         } else {
