@@ -8,8 +8,10 @@ import com.bdaim.common.dto.Page;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.common.constant.BaseConstant;
 import com.bdaim.crm.dao.LkCrmAdminSceneDao;
+import com.bdaim.crm.dao.LkCrmLeadsDao;
 import com.bdaim.crm.entity.LkCrmAdminSceneDefaultEntity;
 import com.bdaim.crm.entity.LkCrmAdminSceneEntity;
+import com.bdaim.crm.entity.LkCrmLeadsEntity;
 import com.bdaim.crm.erp.admin.entity.AdminScene;
 import com.bdaim.crm.erp.crm.service.CrmBusinessService;
 import com.bdaim.crm.utils.BaseUtil;
@@ -44,6 +46,9 @@ public class AdminSceneService {
 
     @Resource
     private AdminUserService adminUserService;
+
+    @Resource
+    private LkCrmLeadsDao crmLeadsDao;
 
     /**
      * @author wyq
@@ -663,7 +668,54 @@ public class AdminSceneService {
       /*  com.jfinal.plugin.activerecord.Page finalPage = new com.jfinal.plugin.activerecord.Page();
         finalPage.setList(recordPage.getData());
         finalPage.setTotalRow(recordPage.getTotal());*/
+        Map map;
+        for (int i = 0; i < recordPage.getData().size(); i++) {
+            map = (Map) recordPage.getData().get(i);
+            handleCompany(type, map);
+        }
         return R.ok().put("data", BaseUtil.crmPage(recordPage));
+    }
+
+    private void handleCompany(int type, Map map) {
+        int id;
+        String viewName, realm;
+        switch (type) {
+            case 1:
+                id = NumberConvertUtil.parseInt(map.get("leads_id"));
+                LkCrmLeadsEntity lkCrmLeadsEntity = crmLeadsDao.get(id);
+                if (lkCrmLeadsEntity != null) {
+                    map.put("compnay", lkCrmLeadsEntity.getCompany());
+                }
+                break;
+            case 2:
+                viewName = "customerview";
+                realm = "customer";
+                break;
+            case 3:
+                viewName = "contactsview";
+                realm = "contacts";
+                break;
+            case 4:
+                viewName = "productview";
+                realm = "product";
+                break;
+            case 5:
+                viewName = "businessview";
+                realm = "business";
+                break;
+            case 6:
+                viewName = "contractview";
+                realm = "contract";
+                break;
+            case 7:
+                viewName = "receivablesview";
+                realm = "receivables";
+                break;
+            case 8:
+                viewName = "customerview";
+                realm = "customer";
+                break;
+        }
     }
 
     public void setBusinessStatus(List<Record> list) {
