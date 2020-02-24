@@ -85,6 +85,7 @@ public class CrmProductService {
     @Before(Tx.class)
     public R saveAndUpdate(JSONObject jsonObject) {
         LkCrmProductEntity crmProduct = jsonObject.getObject("entity", LkCrmProductEntity.class);
+        crmProduct.setCustId(BaseUtil.getUser().getCustId());
         String batchId = StrUtil.isNotEmpty(crmProduct.getBatchId()) ? crmProduct.getBatchId() : IdUtil.simpleUUID();
         crmRecordService.updateRecord(jsonObject.getJSONArray("field"), batchId);
         adminFieldService.save(jsonObject.getJSONArray("field"), batchId);

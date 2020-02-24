@@ -9,6 +9,7 @@ import java.util.Objects;
 @Table(name = "lkcrm_crm_business", schema = "", catalog = "")
 public class LkCrmBusinessEntity {
     private int businessId;
+    private String custId;
     private Integer typeId;
     private Integer statusId;
     private Timestamp nextTime;
@@ -48,6 +49,16 @@ public class LkCrmBusinessEntity {
 
     public void setBusinessId(Integer businessId) {
         this.businessId = businessId;
+    }
+
+    @Basic
+    @Column(name = "cust_id")
+    public String getCustId() {
+        return custId;
+    }
+
+    public void setCustId(String custId) {
+        this.custId = custId;
     }
 
     @Basic

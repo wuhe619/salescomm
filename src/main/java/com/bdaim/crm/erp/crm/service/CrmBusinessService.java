@@ -89,6 +89,7 @@ public class CrmBusinessService {
     @Before(Tx.class)
     public R addOrUpdate(JSONObject jsonObject) {
         LkCrmBusinessEntity crmBusiness = jsonObject.getObject("entity", LkCrmBusinessEntity.class);
+        crmBusiness.setCustId(BaseUtil.getUser().getCustId());
         JSONArray jsonArray = jsonObject.getJSONArray("product");
         List<LkCrmBusinessProductEntity> businessProductList = jsonArray.toJavaList(LkCrmBusinessProductEntity.class);
         //Db.delete(Db.getSql("crm.business.clearBusinessProduct"), crmBusiness.getBusinessId());

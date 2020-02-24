@@ -163,6 +163,7 @@ public class CrmContractService {
     public R saveAndUpdate(JSONObject jsonObject) {
         LkCrmContractEntity crmContract = jsonObject.getObject("entity", LkCrmContractEntity.class);
         String batchId = StrUtil.isNotEmpty(crmContract.getBatchId()) ? crmContract.getBatchId() : IdUtil.simpleUUID();
+        crmContract.setCustId(BaseUtil.getUser().getCustId());
         crmRecordService.updateRecord(jsonObject.getJSONArray("field"), batchId);
         adminFieldService.save(jsonObject.getJSONArray("field"), batchId);
         boolean flag;

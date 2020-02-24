@@ -2,7 +2,6 @@ package com.bdaim.crm.erp.crm.service;
 
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.IdUtil;
-import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
@@ -19,7 +18,6 @@ import com.bdaim.crm.utils.*;
 import com.bdaim.util.JavaBeanUtil;
 import com.bdaim.util.NumberConvertUtil;
 import com.jfinal.aop.Before;
-import com.jfinal.kit.Kv;
 import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.tx.Tx;
@@ -99,6 +97,7 @@ public class CrmReceivablesService {
     public R saveOrUpdate(JSONObject jsonObject) {
         LkCrmReceivablesEntity crmReceivables = jsonObject.getObject("entity", LkCrmReceivablesEntity.class);
         crmReceivables.setCreateUserId(BaseUtil.getUser().getUserId());
+        crmReceivables.setCustId(BaseUtil.getUser().getCustId());
         String batchId = StrUtil.isNotEmpty(crmReceivables.getBatchId()) ? crmReceivables.getBatchId() : IdUtil.simpleUUID();
         crmRecordService.updateRecord(jsonObject.getJSONArray("field"), batchId);
         adminFieldService.save(jsonObject.getJSONArray("field"), batchId);

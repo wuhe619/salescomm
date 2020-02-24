@@ -42,6 +42,7 @@ public class CrmReceivablesPlanService {
      */
     public R saveAndUpdate(JSONObject jsonObject) {
         LkCrmReceivablesPlanEntity crmReceivablesPlan = jsonObject.getObject("entity", LkCrmReceivablesPlanEntity.class);
+        crmReceivablesPlan.setCustId(BaseUtil.getUser().getCustId());
         String batchId = StrUtil.isNotEmpty(crmReceivablesPlan.getFileBatch()) ? crmReceivablesPlan.getFileBatch() : IdUtil.simpleUUID();
         adminFieldService.save(jsonObject.getJSONArray("field"), batchId);
         if (null == crmReceivablesPlan.getPlanId()) {

@@ -96,7 +96,7 @@ public class CrmRecordService<T> {
     void updateRecord(T oldObj, T newObj, String crmTypes) {
         init();
         LkCrmActionRecordEntity crmActionRecord = new LkCrmActionRecordEntity();
-        crmActionRecord.setCreateUserId(BaseUtil.getUser().getUserId().intValue());
+        crmActionRecord.setCreateUserId(BaseUtil.getUser().getUserId());
         crmActionRecord.setCreateTime(new Timestamp(System.currentTimeMillis()));
 
         if (crmTypes.equals(CrmEnum.PRODUCT_TYPE_KEY.getTypes())) {
@@ -154,7 +154,8 @@ public class CrmRecordService<T> {
 
     public void addRecord(Object actionId, String crmTypes) {
         LkCrmActionRecordEntity crmActionRecord = new LkCrmActionRecordEntity();
-        crmActionRecord.setCreateUserId(BaseUtil.getUser().getUserId().intValue());
+        crmActionRecord.setCreateUserId(BaseUtil.getUser().getUserId());
+        crmActionRecord.setCustId(BaseUtil.getUser().getCustId());
         crmActionRecord.setCreateTime(new Timestamp(System.currentTimeMillis()));
         crmActionRecord.setTypes(crmTypes);
         crmActionRecord.setActionId(String.valueOf(actionId));
@@ -235,7 +236,7 @@ public class CrmRecordService<T> {
     public void addConversionRecord(Integer actionId, String crmTypes, Object userId) {
         String name = crmAdminRecordDao.queryForObject("select realname from lkcrm_admin_user where user_id = ?", userId);
         LkCrmActionRecordEntity crmActionRecord = new LkCrmActionRecordEntity();
-        crmActionRecord.setCreateUserId(BaseUtil.getUser().getUserId().intValue());
+        crmActionRecord.setCreateUserId(BaseUtil.getUserId());
         crmActionRecord.setCreateTime(DateUtil.date().toTimestamp());
         crmActionRecord.setTypes(crmTypes);
         crmActionRecord.setActionId(actionId.toString());
@@ -250,7 +251,7 @@ public class CrmRecordService<T> {
      */
     public void addIsLockRecord(String[] ids, String crmTypes, Integer isLock) {
         LkCrmActionRecordEntity crmActionRecord = new LkCrmActionRecordEntity();
-        crmActionRecord.setCreateUserId(BaseUtil.getUser().getUserId().intValue());
+        crmActionRecord.setCreateUserId(BaseUtil.getUser().getUserId());
         crmActionRecord.setCreateTime(DateUtil.date().toTimestamp());
         crmActionRecord.setTypes(crmTypes);
         ArrayList<String> strings = new ArrayList<>();
@@ -274,7 +275,7 @@ public class CrmRecordService<T> {
      */
     public void addConversionCustomerRecord(Integer actionId, String crmTypes, String name) {
         LkCrmActionRecordEntity crmActionRecord = new LkCrmActionRecordEntity();
-        crmActionRecord.setCreateUserId(BaseUtil.getUser().getUserId().intValue());
+        crmActionRecord.setCreateUserId(BaseUtil.getUser().getUserId());
         crmActionRecord.setCreateTime(new Timestamp(System.currentTimeMillis()));
         crmActionRecord.setTypes(crmTypes);
         crmActionRecord.setActionId(actionId.toString());
@@ -293,9 +294,9 @@ public class CrmRecordService<T> {
     public void addPutIntoTheOpenSeaRecord(Collection actionIds, String crmTypes) {
         LkCrmActionRecordEntity crmActionRecord = new LkCrmActionRecordEntity();
         if (BaseUtil.getRequest() == null) {
-            crmActionRecord.setCreateUserId(BaseConstant.SUPER_ADMIN_USER_ID.intValue());
+            crmActionRecord.setCreateUserId(BaseConstant.SUPER_ADMIN_USER_ID);
         } else {
-            crmActionRecord.setCreateUserId(BaseUtil.getUser().getUserId().intValue());
+            crmActionRecord.setCreateUserId(BaseUtil.getUser().getUserId());
         }
         crmActionRecord.setCreateTime(DateUtil.date().toTimestamp());
         crmActionRecord.setTypes(crmTypes);
@@ -324,7 +325,7 @@ public class CrmRecordService<T> {
             ArrayList<String> strings = new ArrayList<>();
             String name = crmAdminFieldvDao.queryForObject("select realname from lkcrm_admin_user where user_id = ?", userId);
             LkCrmActionRecordEntity crmActionRecord = new LkCrmActionRecordEntity();
-            crmActionRecord.setCreateUserId(BaseUtil.getUser().getUserId().intValue());
+            crmActionRecord.setCreateUserId(BaseUtil.getUser().getUserId());
             crmActionRecord.setCreateTime(new Timestamp(System.currentTimeMillis()));
             crmActionRecord.setTypes(crmTypes);
             crmActionRecord.setActionId(id);
