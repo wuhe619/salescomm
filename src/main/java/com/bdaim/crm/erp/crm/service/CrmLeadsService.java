@@ -1094,10 +1094,11 @@ public class CrmLeadsService {
     }
 
     public List<Map<String, Object>> listLeadByCompany(String custId, String company, String notInLeadsIds) {
-        if (StringUtil.isEmpty(notInLeadsIds)) {
-            notInLeadsIds = "";
+        String[] notIds = new String[0];
+        if (StringUtil.isNotEmpty(notInLeadsIds)) {
+            notIds = notInLeadsIds.split(",");
         }
-        return crmLeadsDao.listLeadByCompany(custId, company, 0, notInLeadsIds.split(","));
+        return crmLeadsDao.listLeadByCompany(custId, company, 0, notIds);
     }
 
     /**
