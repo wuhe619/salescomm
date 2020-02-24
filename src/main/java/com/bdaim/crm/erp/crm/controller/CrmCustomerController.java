@@ -80,8 +80,9 @@ public class CrmCustomerController extends Controller {
      */
     @Permissions({"crm:customer:index"})
     @RequestMapping(value = "/queryPageList", method = RequestMethod.POST)
-    public R queryPageList(BasePageRequest basePageRequest) {
-        JSONObject jsonObject = basePageRequest.getJsonObject().fluentPut("type", 2);
+    public R queryPageList(@org.springframework.web.bind.annotation.RequestBody JSONObject jsonObject) {
+        BasePageRequest<Void> basePageRequest = new BasePageRequest<>();
+        jsonObject.fluentPut("type", 2);
         basePageRequest.setJsonObject(jsonObject);
         return(adminSceneService.filterConditionAndGetPageList(basePageRequest));
     }
