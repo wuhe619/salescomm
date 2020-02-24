@@ -152,10 +152,13 @@ public class CrmCustomerService {
             crmRecordService.addRecord(crmCustomer.getCustomerId(), CrmEnum.CUSTOMER_TYPE_KEY.getTypes());
             //批量添加联系人
             JSONArray contacts = jsonObject.getJSONArray("contacts");
-            for (int i = 0; i < contacts.size(); i++) {
-                contacts.getJSONObject(i).put("customer_id", id);
+            if (contacts != null && contacts.size() > 0) {
+                for (int i = 0; i < contacts.size(); i++) {
+                    contacts.getJSONObject(i).put("customer_id", id);
+                }
+                crmContactsService.batchAddContacts(contacts);
             }
-            crmContactsService.batchAddContacts(contacts);
+
             return id > 0 ? R.ok().put("data", Kv.by("customer_id", crmCustomer.getCustomerId()).set("customer_name", crmCustomer.getCustomerName())) : R.error();
         }
     }
