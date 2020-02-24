@@ -85,12 +85,12 @@ public class CrmReceivablesPlanService {
             idsList.add(record.set("plan_id", Integer.valueOf(id)));
             ids.add(id);
         }
-        crmReceivablesPlanDao.deleteByIds(ids);
+        int i = crmReceivablesPlanDao.deleteByIds(ids);
         /*return Db.tx(() -> {
             Db.batch(Db.getSql("crm.receivablesplan.deleteByIds"), "plan_id", idsList, 100);
             return true;
         }) ? R.ok() : R.error();*/
-        return R.ok();
+        return i > 0 ? R.ok() : R.error();
     }
 
     /**

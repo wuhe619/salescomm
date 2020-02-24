@@ -694,7 +694,7 @@ public class CrmCustomerService {
         if (count > 0) {
             return R.error("选中的客户有被锁定的，不能放入公海！");
         }
-        StringBuffer sql = new StringBuffer("UPDATE 72crm_crm_customer SET owner_user_id = null where customer_id in (");
+        StringBuffer sql = new StringBuffer("UPDATE lkcrm_crm_customer SET owner_user_id = null where customer_id in (");
         sql.append(ids).append(") and is_lock = 0");
         String[] idsArr = ids.split(",");
         for (String id : idsArr) {

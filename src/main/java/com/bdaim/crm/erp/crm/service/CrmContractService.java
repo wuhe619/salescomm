@@ -84,6 +84,7 @@ public class CrmContractService {
 
     /**
      * 分页条件查询合同
+     *
      * @return
      */
     public CrmPage queryPage(BasePageRequest<CrmContract> basePageRequest) {
@@ -427,15 +428,16 @@ public class CrmContractService {
     public R deleteMembers(CrmContract crmContract) {
         String[] contractIdsArr = crmContract.getIds().split(",");
         String[] memberArr = crmContract.getMemberIds().split(",");
-        return Db.tx(() -> {
-            for (String id : contractIdsArr) {
-                for (String memberId : memberArr) {
-                    crmContractDao.deleteMember("," + memberId + ",", Integer.valueOf(id));
-                    //Db.update(Db.getSql("crm.contract.deleteMember"), "," + memberId + ",", "," + memberId + ",", Integer.valueOf(id));
-                }
+        //return Db.tx(() -> {
+        int code = 0;
+        for (String id : contractIdsArr) {
+            for (String memberId : memberArr) {
+                code += crmContractDao.deleteMember("," + memberId + ",", Integer.valueOf(id));
+                //Db.update(Db.getSql("crm.contract.deleteMember"), "," + memberId + ",", "," + memberId + ",", Integer.valueOf(id));
             }
-            return true;
-        }) ? R.ok() : R.error();
+        }
+        return code > 0 ? R.ok() : R.error();
+        //}) ? R.ok() : R.error();
     }
 
     /**
@@ -546,7 +548,7 @@ public class CrmContractService {
      * 查询合同到期提醒设置
      */
     public R queryContractConfig() {
-        LkCrmAdminConfigEntity config = crmAdminConfigDao.findUniqueBy("name","expiringContractDays");
+        LkCrmAdminConfigEntity config = crmAdminConfigDao.findUniqueBy("name", "expiringContractDays");
         if (config == null) {
             config = new LkCrmAdminConfigEntity();
             config.setStatus(0);
@@ -567,7 +569,7 @@ public class CrmContractService {
         if (status == 1 && contractDay == null) {
             return R.error("contractDay不能为空");
         }
-        Integer number = crmContractDao.setContractConfig(status,contractDay);
+        Integer number = crmContractDao.setContractConfig(status, contractDay);
         //Integer number = Db.update(Db.getSqlPara("crm.contract.setContractConfig", Kv.by("status", status).set("contractDay", contractDay)));
         if (0 == number) {
             LkCrmAdminConfigEntity adminConfig = new LkCrmAdminConfigEntity();

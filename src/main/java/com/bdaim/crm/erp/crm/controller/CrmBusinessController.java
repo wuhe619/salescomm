@@ -12,7 +12,6 @@ import com.bdaim.crm.erp.crm.common.CrmEnum;
 import com.bdaim.crm.erp.crm.entity.CrmBusiness;
 import com.bdaim.crm.erp.crm.service.CrmBusinessService;
 import com.bdaim.crm.utils.AuthUtil;
-import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
 import com.bdaim.util.JavaBeanUtil;
 import com.jfinal.core.Controller;
@@ -54,7 +53,7 @@ public class CrmBusinessController extends Controller {
      */
     @RequestMapping(value = "/queryList", method = RequestMethod.POST)
     public R queryList(BasePageRequest basePageRequest) {
-        return (R.ok().put("data", BaseUtil.crmPage(crmBusinessService.getBusinessPageList(basePageRequest))));
+        return (R.ok().put("data", crmBusinessService.getBusinessPageList(basePageRequest)));
     }
 
     /**
