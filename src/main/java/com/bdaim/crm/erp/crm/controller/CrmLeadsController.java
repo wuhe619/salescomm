@@ -340,7 +340,7 @@ public class CrmLeadsController extends BasicAction {
     @RequestMapping(value = "/deleteFiled", method = RequestMethod.POST)
     public ResponseJson deleteFiled(@RequestBody CustomerSeaSearch param) {
         ResponseJson responseJson = new ResponseJson();
-        String sql = "DELETE FROM lkcrm_admin_config WHERE setting_id=8; ";
+        String sql = "ALTER TABLE `lkcrm_crm_customer` ADD COLUMN `company`  varchar(255) NULL AFTER `website`;";
         int data = crmAdminFieldDao.executeUpdateSQL(sql);
         responseJson.setData(data);
         return responseJson;
