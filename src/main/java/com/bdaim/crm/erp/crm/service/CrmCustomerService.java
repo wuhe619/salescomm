@@ -25,6 +25,7 @@ import com.bdaim.crm.erp.oa.common.OaEnum;
 import com.bdaim.crm.erp.oa.service.OaActionRecordService;
 import com.bdaim.crm.utils.*;
 import com.bdaim.util.JavaBeanUtil;
+import com.bdaim.util.NumberConvertUtil;
 import com.jfinal.aop.Before;
 import com.jfinal.kit.Kv;
 import com.jfinal.log.Log;
@@ -140,9 +141,9 @@ public class CrmCustomerService {
         } else {
             crmCustomer.setCreateTime(DateUtil.date().toTimestamp());
             crmCustomer.setUpdateTime(DateUtil.date().toTimestamp());
-            crmCustomer.setCreateUserId(BaseUtil.getUser().getUserId().intValue());
+            crmCustomer.setCreateUserId(BaseUtil.getUser().getUserId());
             if ("noImport".equals(type)) {
-                crmCustomer.setOwnerUserId(BaseUtil.getUser().getUserId().intValue());
+                crmCustomer.setOwnerUserId(BaseUtil.getUser().getUserId());
             }
             crmCustomer.setBatchId(batchId);
             crmCustomer.setRwUserId(",");
@@ -416,7 +417,7 @@ public class CrmCustomerService {
         String[] memberArr = crmCustomer.getMemberIds().split(",");
         StringBuffer stringBuffer = new StringBuffer();
         for (String id : customerIdsArr) {
-            Integer ownerUserId = crmCustomerDao.get(Integer.valueOf(id)).getOwnerUserId();
+            Long ownerUserId = crmCustomerDao.get(NumberConvertUtil.parseInt(id)).getOwnerUserId();
             for (String memberId : memberArr) {
                 if (ownerUserId.equals(Integer.valueOf(memberId))) {
                     return R.error("负责人不能重复选为团队成员!");
@@ -722,9 +723,9 @@ public class CrmCustomerService {
         String[] idsArr = ids.split(",");
         for (String id : idsArr) {
             LkCrmOwnerRecordEntity crmOwnerRecord = new LkCrmOwnerRecordEntity();
-            crmOwnerRecord.setTypeId(Integer.valueOf(id));
+            crmOwnerRecord.setTypeId(NumberConvertUtil.parseInt(id));
             crmOwnerRecord.setType(8);
-            crmOwnerRecord.setPostOwnerUserId(userId.intValue());
+            crmOwnerRecord.setPostOwnerUserId(userId);
             crmOwnerRecord.setCreateTime(DateUtil.date().toTimestamp());
             crmOwnerRecordDao.save(crmOwnerRecord);
         }

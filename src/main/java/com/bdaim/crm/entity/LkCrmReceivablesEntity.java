@@ -22,7 +22,7 @@ public class LkCrmReceivablesEntity {
     private BigDecimal money;
     private String remark;
     private Long createUserId;
-    private Integer ownerUserId;
+    private Long ownerUserId;
     private Timestamp createTime;
     private Timestamp updateTime;
     private String remarks;
@@ -161,11 +161,11 @@ public class LkCrmReceivablesEntity {
 
     @Basic
     @Column(name = "owner_user_id")
-    public Integer getOwnerUserId() {
+    public Long getOwnerUserId() {
         return ownerUserId;
     }
 
-    public void setOwnerUserId(Integer ownerUserId) {
+    public void setOwnerUserId(Long ownerUserId) {
         this.ownerUserId = ownerUserId;
     }
 

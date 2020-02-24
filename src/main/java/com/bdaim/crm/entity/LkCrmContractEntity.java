@@ -16,8 +16,8 @@ public class LkCrmContractEntity {
     private Integer checkStatus;
     private Integer examineRecordId;
     private Timestamp orderDate;
-    private int createUserId;
-    private Integer ownerUserId;
+    private Long createUserId;
+    private Long ownerUserId;
     private Timestamp createTime;
     private Timestamp updateTime;
     private String num;
@@ -41,7 +41,7 @@ public class LkCrmContractEntity {
     private Integer power;
     //变更模块（1.联系人2.商机3.合同）
     private String ids;
-    private Integer newOwnerUserId;
+    private Long newOwnerUserId;
     private String memberIds;
     private String contractIds;
 
@@ -128,21 +128,21 @@ public class LkCrmContractEntity {
 
     @Basic
     @Column(name = "create_user_id")
-    public int getCreateUserId() {
+    public Long getCreateUserId() {
         return createUserId;
     }
 
-    public void setCreateUserId(int createUserId) {
+    public void setCreateUserId(Long createUserId) {
         this.createUserId = createUserId;
     }
 
     @Basic
     @Column(name = "owner_user_id")
-    public Integer getOwnerUserId() {
+    public Long getOwnerUserId() {
         return ownerUserId;
     }
 
-    public void setOwnerUserId(Integer ownerUserId) {
+    public void setOwnerUserId(Long ownerUserId) {
         this.ownerUserId = ownerUserId;
     }
 
@@ -368,11 +368,11 @@ public class LkCrmContractEntity {
         this.ids = ids;
     }
     @Transient
-    public Integer getNewOwnerUserId() {
+    public Long getNewOwnerUserId() {
         return newOwnerUserId;
     }
 
-    public void setNewOwnerUserId(Integer newOwnerUserId) {
+    public void setNewOwnerUserId(Long newOwnerUserId) {
         this.newOwnerUserId = newOwnerUserId;
     }
     @Transient

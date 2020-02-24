@@ -43,13 +43,12 @@ public class AdminExamineRecordService {
      * 第一次添加审核记录和审核日志 type 1 合同 2 回款 userId:授权审批人
      */
     @Before(Tx.class)
-    public Map<String, Integer> saveExamineRecord(Integer type, Long userId, Integer ownerUserId, Integer recordId) {
+    public Map<String, Integer> saveExamineRecord(Integer type, Long userId, Long ownerUserId, Integer recordId) {
         Map<String, Integer> map = new HashMap<>();
         //创建审核记录
         LkCrmAdminExamineRecordEntity examineRecord = new LkCrmAdminExamineRecordEntity();
         if (recordId != null) {
             examineRecord = crmAdminExamineRecordDao.get(recordId);
-            ;
             crmAdminExamineLogDao.updateExamineLogIsRecheckByRecordId(recordId);
             //Db.update(Db.getSql("admin.examineLog.updateExamineLogIsRecheckByRecordId"), recordId);
         } else {

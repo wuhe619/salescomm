@@ -18,8 +18,8 @@ public class  LkCrmCustomerEntity {
     private String telephone;
     private String website;
     private String remark;
-    private Integer createUserId;
-    private Integer ownerUserId;
+    private Long createUserId;
+    private Long ownerUserId;
     private String roUserId;
     private String rwUserId;
     private String address;
@@ -38,7 +38,7 @@ public class  LkCrmCustomerEntity {
     //权限（1.只读2.只写）
     private Integer power;
     //变更负责人
-    private Integer newOwnerUserId;
+    private Long newOwnerUserId;
     private String ids;
     private String memberIds;
     private String customerIds;
@@ -158,21 +158,21 @@ public class  LkCrmCustomerEntity {
 
     @Basic
     @Column(name = "create_user_id")
-    public Integer getCreateUserId() {
+    public Long getCreateUserId() {
         return createUserId;
     }
 
-    public void setCreateUserId(Integer createUserId) {
+    public void setCreateUserId(Long createUserId) {
         this.createUserId = createUserId;
     }
 
     @Basic
     @Column(name = "owner_user_id")
-    public Integer getOwnerUserId() {
+    public Long getOwnerUserId() {
         return ownerUserId;
     }
 
-    public void setOwnerUserId(Integer ownerUserId) {
+    public void setOwnerUserId(Long ownerUserId) {
         this.ownerUserId = ownerUserId;
     }
 
@@ -345,11 +345,11 @@ public class  LkCrmCustomerEntity {
         this.power = power;
     }
     @Transient
-    public Integer getNewOwnerUserId() {
+    public Long getNewOwnerUserId() {
         return newOwnerUserId;
     }
 
-    public void setNewOwnerUserId(Integer newOwnerUserId) {
+    public void setNewOwnerUserId(Long newOwnerUserId) {
         this.newOwnerUserId = newOwnerUserId;
     }
     @Transient

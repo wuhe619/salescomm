@@ -172,14 +172,14 @@ public class CrmContractService {
             if (contract != 0) {
                 return R.error("合同编号已存在，请校对后再添加！");
             }
-            crmContract.setCreateUserId(BaseUtil.getUser().getUserId().intValue());
+            crmContract.setCreateUserId(BaseUtil.getUser().getUserId());
             crmContract.setBatchId(batchId);
             crmContract.setCreateTime(DateUtil.date().toTimestamp());
             crmContract.setUpdateTime(DateUtil.date().toTimestamp());
             crmContract.setRoUserId(",");
             crmContract.setRwUserId(",");
             crmContract.setCheckStatus(0);
-            crmContract.setOwnerUserId(BaseUtil.getUser().getUserId().intValue());
+            crmContract.setOwnerUserId(BaseUtil.getUser().getUserId());
 
 
             Map<String, Integer> map = examineRecordService.saveExamineRecord(1, jsonObject.getLong("checkUserId"), crmContract.getOwnerUserId(), null);
@@ -358,7 +358,7 @@ public class CrmContractService {
      * 查询团队成员
      */
     public List<Record> getMembers(Integer contractId) {
-        CrmContract crmContract = CrmContract.dao.findById(contractId);
+        LkCrmContractEntity crmContract = crmContractDao.get(contractId);
         List<Record> recordList = new ArrayList<>();
         if (null != crmContract.getOwnerUserId()) {
             Record ownerUser = JavaBeanUtil.mapToRecord(crmCustomerDao.getMembers(crmContract.getOwnerUserId()).get(0));
@@ -375,7 +375,7 @@ public class CrmContractService {
         Set<String> memberIdsSet = new HashSet<>(Arrays.asList(memberIdsArr));
         for (String memberId : memberIdsSet) {
             //Record record = JavaBeanUtil.mapToRecord(crmCustomerDao.getMembers(memberId).get(0));
-            Record record = JavaBeanUtil.mapToRecord(crmCustomerDao.getMembers(NumberUtil.parseInt(memberId)).get(0));
+            Record record = JavaBeanUtil.mapToRecord(crmCustomerDao.getMembers(NumberUtil.parseLong(memberId)).get(0));
             //Record record = Db.findFirst(Db.getSql("crm.customer.getMembers"), memberId);
             if (roUserId.contains(memberId)) {
                 record.set("power", "只读").set("groupRole", "普通成员");
@@ -398,7 +398,7 @@ public class CrmContractService {
         String[] memberArr = crmContract.getMemberIds().split(",");
         StringBuilder stringBuilder = new StringBuilder();
         for (String id : contractIdsArr) {
-            Integer ownerUserId = crmContractDao.get(Integer.valueOf(id)).getOwnerUserId();
+            Long ownerUserId = crmContractDao.get(Integer.valueOf(id)).getOwnerUserId();
             for (String memberId : memberArr) {
                 if (ownerUserId.equals(Integer.valueOf(memberId))) {
                     return R.error("负责人不能重复选为团队成员");

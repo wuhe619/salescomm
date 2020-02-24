@@ -995,8 +995,8 @@ public class CrmLeadsService {
             crmCustomer.setMobile(crmLeads.getStr("mobile"));
             crmCustomer.setTelephone(crmLeads.getStr("telephone"));
             crmCustomer.setDealStatus("未成交");
-            crmCustomer.setCreateUserId(BaseUtil.getUser().getUserId().intValue());
-            crmCustomer.setOwnerUserId(crmLeads.getInt("owner_user_id"));
+            crmCustomer.setCreateUserId(BaseUtil.getUser().getUserId());
+            crmCustomer.setOwnerUserId(crmLeads.getLong("owner_user_id"));
             crmCustomer.setCreateTime(new Timestamp(System.currentTimeMillis()));
             crmCustomer.setUpdateTime(new Timestamp(System.currentTimeMillis()));
             crmCustomer.setRoUserId(",");

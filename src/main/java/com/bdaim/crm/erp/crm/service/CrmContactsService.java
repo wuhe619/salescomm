@@ -155,7 +155,7 @@ public class CrmContactsService {
     @Before(Tx.class)
     public R relateBusiness(Integer contactsId, String businessIds) {
         String[] businessIdsArr = businessIds.split(",");
-        crmContactsDao.executeUpdateSQL("delete from 72crm_crm_contacts_business where contacts_id = ?", contactsId);
+        crmContactsDao.executeUpdateSQL("delete from lkcrm_crm_contacts_business where contacts_id = ?", contactsId);
         List<LkCrmContactsBusinessEntity> crmContactsBusinessList = new ArrayList<>();
         for (String id : businessIdsArr) {
             LkCrmContactsBusinessEntity crmContactsBusiness = new LkCrmContactsBusinessEntity();
@@ -250,14 +250,18 @@ public class CrmContactsService {
             Record record = new Record();
             idsList.add(record.set("contacts_id", Integer.valueOf(id)));
         }
+        List<String> batchIds = new ArrayList<>();
         //List<Record> batchIdList = Db.find(Db.getSqlPara("crm.contact.queryBatchIdByIds", Kv.by("ids", idsArr)));
         List<Record> batchIdList = JavaBeanUtil.mapToRecords(crmContactsDao.queryBatchIdByIds(Arrays.asList(idsArr)));
-        return Db.tx(() -> {
-            //Db.batch(Db.getSql("crm.contact.deleteByIds"), "contacts_id", idsList, 100);
-            crmContactsDao.deleteByIds(Arrays.asList(idsArr));
-            crmContactsDao.executeUpdateSQL("delete from 72crm_admin_fieldv where batch_id IN( ?)", Arrays.asList(idsArr));
-            return true;
-        }) ? R.ok() : R.error();
+        for (int i = 0; i < batchIdList.size(); i++) {
+            batchIds.add(batchIdList.get(i).getStr("batch_id"));
+        }
+        //return Db.tx(() -> {
+        //Db.batch(Db.getSql("crm.contact.deleteByIds"), "contacts_id", idsList, 100);
+        crmContactsDao.deleteByIds(Arrays.asList(idsArr));
+        crmContactsDao.executeUpdateSQL("delete from lkcrm_admin_fieldv where batch_id IN( ?)", batchIds);
+        return R.ok();
+        //}) ? R.ok() : R.error();
     }
 
     /**
@@ -280,8 +284,8 @@ public class CrmContactsService {
      * @param customerId  客户ID
      * @param ownerUserId 负责人ID
      */
-    public boolean updateOwnerUserId(Integer customerId, Integer ownerUserId) {
-        crmAdminUserDao.executeUpdateSQL("update 72crm_crm_contacts set owner_user_id = " + ownerUserId + " where customer_id = " + customerId);
+    public boolean updateOwnerUserId(Integer customerId, Long ownerUserId) {
+        crmAdminUserDao.executeUpdateSQL("update lkcrm_crm_contacts set owner_user_id = " + ownerUserId + " where customer_id = " + customerId);
         crmRecordService.addConversionRecord(customerId, CrmEnum.CUSTOMER_TYPE_KEY.getTypes(), ownerUserId);
         return true;
     }
@@ -435,7 +439,7 @@ public class CrmContactsService {
                     Record repeatField = JavaBeanUtil.mapToRecord(crmContactsDao.queryRepeatFieldNumber(contactsName, telephone, mobile).get(0));
                     //Record repeatField = Db.findFirst(Db.getSqlPara("crm.contact.queryRepeatFieldNumber", Kv.by("contactsName", contactsName).set("telephone", telephone).set("mobile", mobile)));
                     Integer number = repeatField.getInt("number");
-                    Integer customerId = crmContactsDao.queryForInt("select customer_id from 72crm_crm_customer where customer_name = ?", contactsList.get(kv.getInt("customer_id")));
+                    Integer customerId = crmContactsDao.queryForInt("select customer_id from lkcrm_crm_customer where customer_name = ?", contactsList.get(kv.getInt("customer_id")));
                     if (customerId == null) {
                         return R.error("第" + errNum + 1 + "行填写的客户不存在");
                     }

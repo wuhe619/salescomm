@@ -110,7 +110,7 @@ public class CrmReceivablesService {
             crmReceivables.setUpdateTime(DateUtil.date().toTimestamp());
             crmReceivables.setBatchId(batchId);
             crmReceivables.setCheckStatus(0);
-            crmReceivables.setOwnerUserId(BaseUtil.getUser().getUserId().intValue());
+            crmReceivables.setOwnerUserId(BaseUtil.getUser().getUserId());
             Map<String, Integer> map = examineRecordService.saveExamineRecord(2, jsonObject.getLong("checkUserId"), crmReceivables.getOwnerUserId(), null);
             if (map.get("status") == 0) {
                 return R.error("没有启动的审核步骤，不能添加！");

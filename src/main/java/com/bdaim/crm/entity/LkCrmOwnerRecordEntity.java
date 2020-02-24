@@ -10,8 +10,8 @@ public class LkCrmOwnerRecordEntity {
     private int recordId;
     private int typeId;
     private int type;
-    private Integer preOwnerUserId;
-    private Integer postOwnerUserId;
+    private Long preOwnerUserId;
+    private Long postOwnerUserId;
     private Timestamp createTime;
 
     @Id
@@ -47,21 +47,21 @@ public class LkCrmOwnerRecordEntity {
 
     @Basic
     @Column(name = "pre_owner_user_id")
-    public Integer getPreOwnerUserId() {
+    public Long getPreOwnerUserId() {
         return preOwnerUserId;
     }
 
-    public void setPreOwnerUserId(Integer preOwnerUserId) {
+    public void setPreOwnerUserId(Long preOwnerUserId) {
         this.preOwnerUserId = preOwnerUserId;
     }
 
     @Basic
     @Column(name = "post_owner_user_id")
-    public Integer getPostOwnerUserId() {
+    public Long getPostOwnerUserId() {
         return postOwnerUserId;
     }
 
-    public void setPostOwnerUserId(Integer postOwnerUserId) {
+    public void setPostOwnerUserId(Long postOwnerUserId) {
         this.postOwnerUserId = postOwnerUserId;
     }
 
