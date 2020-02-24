@@ -74,9 +74,9 @@ public class CrmContactsService {
     private LkCrmBusinessDao crmBusinessDao;
 
     /**
+     * @return
      * @author wyq
      * 分页条件查询联系人
-     * @return
      */
     public CrmPage queryList(BasePageRequest<CrmContacts> basePageRequest) {
         String contactsName = basePageRequest.getData().getName();
@@ -190,6 +190,7 @@ public class CrmContactsService {
         String batchId = StrUtil.isNotEmpty(crmContacts.getBatchId()) ? crmContacts.getBatchId() : IdUtil.simpleUUID();
         crmRecordService.updateRecord(jsonObject.getJSONArray("field"), batchId);
         adminFieldService.save(jsonObject.getJSONArray("field"), batchId);
+        crmContacts.setCustId(BaseUtil.getUser().getCustId());
         if (crmContacts.getContactsId() != null) {
             crmContacts.setUpdateTime(DateUtil.date().toTimestamp());
             crmRecordService.updateRecord(new CrmContacts().dao().findById(crmContacts.getContactsId()), crmContacts, CrmEnum.CONTACTS_TYPE_KEY.getTypes());
@@ -198,15 +199,44 @@ public class CrmContactsService {
         } else {
             crmContacts.setCreateTime(DateUtil.date().toTimestamp());
             crmContacts.setUpdateTime(DateUtil.date().toTimestamp());
-            crmContacts.setCreateUserId(BaseUtil.getUserId().intValue());
+            crmContacts.setCreateUserId(BaseUtil.getUserId());
             if (crmContacts.getOwnerUserId() == null) {
-                crmContacts.setOwnerUserId(BaseUtil.getUserId().intValue());
+                crmContacts.setOwnerUserId(BaseUtil.getUserId());
             }
             crmContacts.setBatchId(batchId);
             boolean save = (int) crmContactsDao.saveReturnPk(crmContacts) > 0;
             crmRecordService.addRecord(crmContacts.getContactsId(), CrmEnum.CONTACTS_TYPE_KEY.getTypes());
             return save ? R.ok() : R.error();
         }
+    }
+
+    /**
+     * 批量添加联系人
+     *
+     * @param objects
+     * @return
+     */
+    public R batchAddContacts(JSONArray objects) {
+        int count = 0;
+        for (int i = 0; i < objects.size(); i++) {
+            LkCrmContactsEntity crmContacts = objects.getObject(i, LkCrmContactsEntity.class);
+            String batchId = StrUtil.isNotEmpty(crmContacts.getBatchId()) ? crmContacts.getBatchId() : IdUtil.simpleUUID();
+            //crmRecordService.updateRecord(jsonObject.getJSONArray("field"), batchId);
+            //adminFieldService.save(jsonObject.getJSONArray("field"), batchId);
+            crmContacts.setCustId(BaseUtil.getUser().getCustId());
+            crmContacts.setCreateTime(DateUtil.date().toTimestamp());
+            crmContacts.setUpdateTime(DateUtil.date().toTimestamp());
+            crmContacts.setCreateUserId(BaseUtil.getUserId());
+            if (crmContacts.getOwnerUserId() == null) {
+                crmContacts.setOwnerUserId(BaseUtil.getUserId());
+            }
+            crmContacts.setBatchId(batchId);
+            if ((int) crmContactsDao.saveReturnPk(crmContacts) > 0) {
+                crmRecordService.addRecord(crmContacts.getContactsId(), CrmEnum.CONTACTS_TYPE_KEY.getTypes());
+                count++;
+            }
+        }
+        return count == objects.size() ? R.ok() : R.error();
     }
 
     /**
@@ -402,7 +432,7 @@ public class CrmContactsService {
                     if (mobileObject != null) {
                         mobile = mobileObject.toString();
                     }
-                    Record repeatField = JavaBeanUtil.mapToRecord(crmContactsDao.queryRepeatFieldNumber(contactsName,telephone,mobile).get(0));
+                    Record repeatField = JavaBeanUtil.mapToRecord(crmContactsDao.queryRepeatFieldNumber(contactsName, telephone, mobile).get(0));
                     //Record repeatField = Db.findFirst(Db.getSqlPara("crm.contact.queryRepeatFieldNumber", Kv.by("contactsName", contactsName).set("telephone", telephone).set("mobile", mobile)));
                     Integer number = repeatField.getInt("number");
                     Integer customerId = crmContactsDao.queryForInt("select customer_id from 72crm_crm_customer where customer_name = ?", contactsList.get(kv.getInt("customer_id")));
@@ -422,7 +452,7 @@ public class CrmContactsService {
                                 .fluentPut("owner_user_id", ownerUserId));
                     } else if (number == 1 && repeatHandling == 1) {
                         if (repeatHandling == 1) {
-                            Record contacts = JavaBeanUtil.mapToRecord(crmContactsDao.queryRepeatField(contactsName,telephone,mobile).get(0));
+                            Record contacts = JavaBeanUtil.mapToRecord(crmContactsDao.queryRepeatField(contactsName, telephone, mobile).get(0));
                             //Record contacts = Db.findFirst(Db.getSqlPara("crm.contact.queryRepeatField", Kv.by("contactsName", contactsName).set("telephone", telephone).set("mobile", mobile)));
                             object.fluentPut("entity", new JSONObject().fluentPut("contacts_id", contacts.getInt("contacts_id"))
                                     .fluentPut("name", contactsName)
