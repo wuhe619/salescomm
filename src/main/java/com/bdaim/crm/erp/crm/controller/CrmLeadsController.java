@@ -342,6 +342,8 @@ public class CrmLeadsController extends BasicAction {
         ResponseJson responseJson = new ResponseJson();
         String sql = "UPDATE lkcrm_admin_field  SET field_type = 1 where name ='公司名称'; ";
         int data = crmAdminFieldDao.executeUpdateSQL(sql);
+        sql = "INSERT INTO `lkcrm_admin_field` ( `field_name`, `cust_id`, `name`, `type`, `label`, `remark`, `input_tips`, `max_length`, `default_value`, `is_unique`, `is_null`, `sorting`, `options`, `operating`, `update_time`, `examine_category_id`, `field_type`, `relevant` ) VALUES ( 'company', NULL, '公司名称', '1', '2', NULL, NULL, '255', '', '0', '0', '8', NULL, '1', '2020-02-24 14:51:26', NULL, '1', NULL ); ";
+        data = crmAdminFieldDao.executeUpdateSQL(sql);
         responseJson.setData(data);
         return responseJson;
     }
@@ -438,7 +440,7 @@ public class CrmLeadsController extends BasicAction {
 
     @RequestMapping(value = "/leads/company", method = RequestMethod.POST)
     public R listLeadByCompany(String company, String notInLeadsIds) {
-        return R.ok().put("data", crmLeadsService.listLeadByCompany(BaseUtil.getUser().getCustId(), company,notInLeadsIds));
+        return R.ok().put("data", crmLeadsService.listLeadByCompany(BaseUtil.getUser().getCustId(), company, notInLeadsIds));
     }
 
     /**
