@@ -1,5 +1,6 @@
 package com.bdaim.crm.erp.crm.service;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSON;
@@ -12,6 +13,7 @@ import com.bdaim.crm.dao.LkCrmAdminRecordDao;
 import com.bdaim.crm.entity.LkCrmActionRecordEntity;
 import com.bdaim.crm.entity.LkCrmAdminConfigEntity;
 import com.bdaim.crm.entity.LkCrmAdminFieldvEntity;
+import com.bdaim.crm.entity.LkCrmLeadsEntity;
 import com.bdaim.crm.erp.crm.common.CrmEnum;
 import com.bdaim.crm.erp.crm.entity.*;
 import com.bdaim.crm.utils.BaseUtil;
@@ -116,11 +118,14 @@ public class CrmRecordService<T> {
             crmActionRecord.setTypes(CrmEnum.CUSTOMER_TYPE_KEY.getTypes());
             crmActionRecord.setActionId(oldObj1.getCustomerId().toString());
         } else if (crmTypes.equals(CrmEnum.LEADS_TYPE_KEY.getTypes())) {
-            CrmLeads oldObj1 = (CrmLeads) oldObj;
-            CrmLeads newObj1 = (CrmLeads) newObj;
-            searchChange(textList, oldObj1._getAttrsEntrySet(), newObj1._getAttrsEntrySet(), CrmEnum.LEADS_TYPE_KEY.getTypes());
+            LkCrmLeadsEntity oldObj1 = (LkCrmLeadsEntity) oldObj;
+            LkCrmLeadsEntity newObj1 = (LkCrmLeadsEntity) newObj;
+            Map<String, Object> stringObjectMap = BeanUtil.beanToMap(oldObj1);
+            Map<String, Object> stringObjectMap1 = BeanUtil.beanToMap(newObj1);
+
+            searchChange(textList, stringObjectMap.entrySet(), stringObjectMap1.entrySet(), CrmEnum.LEADS_TYPE_KEY.getTypes());
             crmActionRecord.setTypes(CrmEnum.LEADS_TYPE_KEY.getTypes());
-            crmActionRecord.setActionId(oldObj1.getLeadsId());
+            crmActionRecord.setActionId(oldObj1.getLeadsId().toString());
         } else if (crmTypes.equals(CrmEnum.CONTRACT_TYPE_KEY.getTypes())) {
             CrmContract oldObj1 = (CrmContract) oldObj;
             CrmContract newObj1 = (CrmContract) newObj;

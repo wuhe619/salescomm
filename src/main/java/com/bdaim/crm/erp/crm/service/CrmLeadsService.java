@@ -875,7 +875,9 @@ public class CrmLeadsService {
             crmLeads.setUpdateTime(new Timestamp(System.currentTimeMillis()));
             crmRecordService.updateRecord(crmLeadsDao.get(crmLeads.getLeadsId()), crmLeads, CrmEnum.LEADS_TYPE_KEY.getTypes());
             //return crmLeads.update() ? R.ok() : R.error();
-            crmLeadsDao.saveOrUpdate(crmLeads);
+            LkCrmLeadsEntity crmLeadsDb = crmLeadsDao.get(crmLeads.getLeadsId());
+            BeanUtil.copyProperties(crmLeads, crmLeadsDb, "batchId", "createUserId");
+            crmLeadsDao.saveOrUpdate(crmLeadsDb);
             return R.ok();
         } else {
             crmLeads.setCreateTime(new Timestamp(System.currentTimeMillis()));
