@@ -340,7 +340,7 @@ public class CrmLeadsController extends BasicAction {
     @RequestMapping(value = "/deleteFiled", method = RequestMethod.POST)
     public ResponseJson deleteFiled(@RequestBody CustomerSeaSearch param) {
         ResponseJson responseJson = new ResponseJson();
-        String sql = "DELETE FROM lkcrm_admin_scene  WHERE scene_id IN(27,31,32)";
+        String sql = "CREATE TABLE `lkcrm_admin_config` ( `setting_id` int(9) NOT NULL AUTO_INCREMENT, `status` int(1) NOT NULL DEFAULT '0' COMMENT '状态，0:不启用 1 ： 启用', `name` varchar(255) NOT NULL COMMENT '设置名称', `value` varchar(255) DEFAULT NULL COMMENT '值', `description` varchar(255) DEFAULT NULL COMMENT '描述', PRIMARY KEY (`setting_id`) ) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COMMENT='客户规则'";
         int data = crmAdminFieldDao.executeUpdateSQL(sql);
         responseJson.setData(data);
         return responseJson;
