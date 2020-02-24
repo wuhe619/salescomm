@@ -7,11 +7,8 @@ import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.dto.Page;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.common.constant.BaseConstant;
-import com.bdaim.crm.dao.LkCrmAdminSceneDao;
-import com.bdaim.crm.dao.LkCrmLeadsDao;
-import com.bdaim.crm.entity.LkCrmAdminSceneDefaultEntity;
-import com.bdaim.crm.entity.LkCrmAdminSceneEntity;
-import com.bdaim.crm.entity.LkCrmLeadsEntity;
+import com.bdaim.crm.dao.*;
+import com.bdaim.crm.entity.*;
 import com.bdaim.crm.erp.admin.entity.AdminScene;
 import com.bdaim.crm.erp.crm.service.CrmBusinessService;
 import com.bdaim.crm.utils.BaseUtil;
@@ -49,6 +46,16 @@ public class AdminSceneService {
 
     @Resource
     private LkCrmLeadsDao crmLeadsDao;
+
+    @Resource
+    private LkCrmCustomerDao crmCustomerDao;
+
+    @Resource
+    private LkCrmContactsDao crmContactsDao;
+
+    @Resource
+    private LkCrmContractDao crmContractDao;
+
 
     /**
      * @author wyq
@@ -684,36 +691,31 @@ public class AdminSceneService {
                 id = NumberConvertUtil.parseInt(map.get("leads_id"));
                 LkCrmLeadsEntity lkCrmLeadsEntity = crmLeadsDao.get(id);
                 if (lkCrmLeadsEntity != null) {
-                    map.put("compnay", lkCrmLeadsEntity.getCompany());
+                    map.put("company", lkCrmLeadsEntity.getCompany());
                 }
                 break;
             case 2:
-                viewName = "customerview";
-                realm = "customer";
+                id = NumberConvertUtil.parseInt(map.get("customer_id"));
+                LkCrmCustomerEntity lkCrmCustomerEntity = crmCustomerDao.get(id);
+                if (lkCrmCustomerEntity != null) {
+                    map.put("company", lkCrmCustomerEntity.getCompany());
+                }
                 break;
             case 3:
-                viewName = "contactsview";
-                realm = "contacts";
-                break;
-            case 4:
-                viewName = "productview";
-                realm = "product";
-                break;
-            case 5:
-                viewName = "businessview";
-                realm = "business";
-                break;
-            case 6:
+                /*id = NumberConvertUtil.parseInt(map.get("customer_id"));
+                LkCrmContactsEntity lkCrmContactsEntity = crmContactsDao.get(id);
+                if (lkCrmContactsEntity != null) {
+                    map.put("company", lkCrmContactsEntity.getCompany());
+                }
                 viewName = "contractview";
-                realm = "contract";
-                break;
-            case 7:
-                viewName = "receivablesview";
-                realm = "receivables";
+                realm = "contract";*/
                 break;
             case 8:
-                viewName = "customerview";
-                realm = "customer";
+                id = NumberConvertUtil.parseInt(map.get("customer_id"));
+                lkCrmCustomerEntity = crmCustomerDao.get(id);
+                if (lkCrmCustomerEntity != null) {
+                    map.put("company", lkCrmCustomerEntity.getCompany());
+                }
                 break;
         }
     }
