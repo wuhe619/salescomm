@@ -948,12 +948,14 @@ public class CrmLeadsService {
         if (idsList.size() == 0) {
             R.error("leadsIds不能为空");
         }
-        List<String> batchIdList = JavaBeanUtil.mapToRecords(crmLeadsDao.queryBatchIdByIds(Arrays.asList(idsArr)));
+        List<Map<String, Object>> batchIdList = crmLeadsDao.queryBatchIdByIds(Arrays.asList(idsArr));
+        List batchIds = new ArrayList();
+        batchIdList.forEach(s -> batchIds.add(s.get("batch_id")));
         //return Db.tx(() -> {
         //Db.batch(Db.getSql("crm.leads.deleteByIds"), "leads_id", idsList, 100);
         int i = crmLeadsDao.deleteByIds(idsList);
         if (batchIdList.size() > 0) {
-            crmLeadsDao.executeUpdateSQL("delete from lkcrm_admin_fieldv where batch_id IN( " + SqlAppendUtil.sqlAppendWhereIn(batchIdList) + " )");
+            crmLeadsDao.executeUpdateSQL("delete from lkcrm_admin_fieldv where batch_id IN( " + SqlAppendUtil.sqlAppendWhereIn(batchIds) + " )");
         }
         return i > 0 ? R.ok() : R.error("线索删除失败");
         //}) ? R.ok() : R.error();
@@ -1169,6 +1171,7 @@ public class CrmLeadsService {
 
     /**
      * 查看代办事项记录
+     *
      * @param basePageRequest
      * @param taskStatus
      * @param leadsId
