@@ -12,11 +12,13 @@ import com.bdaim.crm.entity.LkCrmTaskEntity;
 import com.bdaim.crm.entity.LkCrmTaskRelationEntity;
 import com.bdaim.crm.entity.LkCrmWorkTaskLabelEntity;
 import com.bdaim.crm.entity.LkCrmWorkTaskLogEntity;
-import com.bdaim.crm.erp.admin.entity.AdminUser;
 import com.bdaim.crm.erp.admin.service.AdminFileService;
 import com.bdaim.crm.erp.oa.common.OaEnum;
 import com.bdaim.crm.erp.oa.service.OaActionRecordService;
-import com.bdaim.crm.erp.work.entity.*;
+import com.bdaim.crm.erp.work.entity.Task;
+import com.bdaim.crm.erp.work.entity.TaskRelation;
+import com.bdaim.crm.erp.work.entity.Work;
+import com.bdaim.crm.erp.work.entity.WorkTaskClass;
 import com.bdaim.crm.utils.AuthUtil;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
@@ -24,6 +26,7 @@ import com.bdaim.crm.utils.TagUtil;
 import com.bdaim.customer.dao.CustomerUserDao;
 import com.bdaim.customer.entity.CustomerUser;
 import com.bdaim.util.NumberConvertUtil;
+import com.bdaim.util.StringUtil;
 import com.jfinal.aop.Before;
 import com.jfinal.kit.Kv;
 import com.jfinal.plugin.activerecord.Db;
@@ -361,7 +364,13 @@ public class TaskService{
         workTaskLog.setTaskId(task.getTaskId());
 
         LkCrmTaskEntity auldTask = crmTaskDao.get(task.getTaskId());
-        crmTaskDao.update(task);
+        if(StringUtil.isNotEmpty(task.getName())){
+            auldTask.setName(task.getName());
+        }
+        if(task.getStatus()==null){
+            auldTask.setStatus(task.getStatus());
+        }
+        crmTaskDao.update(auldTask);
 
         //判断描述是否修改
        /* if (task.getDescription() != null){

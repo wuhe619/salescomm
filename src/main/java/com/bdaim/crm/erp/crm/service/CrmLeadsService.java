@@ -693,6 +693,7 @@ public class CrmLeadsService {
                 crmLeads.setOwnerUserId(BaseUtil.getUser().getUserId());
             }
             crmLeads.setBatchId(batchId);
+            crmLeads.setSeaId(seaId);
             int id = (int) crmLeadsDao.saveReturnPk(crmLeads);
             crmRecordService.addRecord(crmLeads.getLeadsId(), CrmEnum.LEADS_TYPE_KEY.getTypes());
         }

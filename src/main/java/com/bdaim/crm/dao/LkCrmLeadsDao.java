@@ -38,6 +38,7 @@ public class LkCrmLeadsDao extends SimpleHibernateDao<LkCrmLeadsEntity, Integer>
         List<Map<String, Object>> maps = this.sqlQuery(sql, leadsId);
         if (maps.size() > 0) {
             LkCrmLeadsEntity entity = get(leadsId);
+            maps.get(0).put("seaId", entity.getSeaId());
             maps.get(0).put("company", entity.getCompany());
             maps.get(0).put("公司名称", entity.getCompany());
             return maps.get(0);
