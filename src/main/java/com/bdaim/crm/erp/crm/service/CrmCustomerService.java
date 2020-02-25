@@ -1,5 +1,6 @@
 package com.bdaim.crm.erp.crm.service;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.IdUtil;
@@ -24,6 +25,7 @@ import com.bdaim.crm.erp.oa.common.OaEnum;
 import com.bdaim.crm.erp.oa.service.OaActionRecordService;
 import com.bdaim.crm.utils.*;
 import com.bdaim.util.JavaBeanUtil;
+import com.bdaim.util.NumberConvertUtil;
 import com.jfinal.aop.Before;
 import com.jfinal.kit.Kv;
 import com.jfinal.log.Log;
@@ -96,10 +98,13 @@ public class CrmCustomerService {
     @Resource
     private LkCrmOaEventRelationDao crmOaEventRelationDao;
 
+    @Resource
+    private CrmContactsService crmContactsService;
+
     /**
+     * @return
      * @author wyq
      * 分页条件查询客户
-     * @return
      */
     public CrmPage getCustomerPageList(BasePageRequest<CrmCustomer> basePageRequest) {
         String customerName = basePageRequest.getData().getCustomerName();
@@ -125,32 +130,43 @@ public class CrmCustomerService {
         String batchId = StrUtil.isNotEmpty(crmCustomer.getBatchId()) ? crmCustomer.getBatchId() : IdUtil.simpleUUID();
         crmRecordService.updateRecord(jsonObject.getJSONArray("field"), batchId);
         adminFieldService.save(jsonObject.getJSONArray("field"), batchId);
+        crmCustomer.setCustId(BaseUtil.getUser().getCustId());
         if (crmCustomer.getCustomerId() != null) {
-            CrmCustomer oldCrmCustomer = new CrmCustomer().dao().findById(crmCustomer.getCustomerId());
+            LkCrmCustomerEntity oldCrmCustomer = crmCustomerDao.get(crmCustomer.getCustomerId());
             crmRecordService.updateRecord(oldCrmCustomer, crmCustomer, CrmEnum.CUSTOMER_TYPE_KEY.getTypes());
             crmCustomer.setUpdateTime(DateUtil.date().toTimestamp());
-            crmCustomerDao.update(crmCustomer);
+            BeanUtil.copyProperties(crmCustomer, oldCrmCustomer, "customerId", "isLock", "createTime", "batchId");
+            crmCustomerDao.update(oldCrmCustomer);
             return R.ok();
         } else {
             crmCustomer.setCreateTime(DateUtil.date().toTimestamp());
             crmCustomer.setUpdateTime(DateUtil.date().toTimestamp());
-            crmCustomer.setCreateUserId(BaseUtil.getUser().getUserId().intValue());
+            crmCustomer.setCreateUserId(BaseUtil.getUser().getUserId());
             if ("noImport".equals(type)) {
-                crmCustomer.setOwnerUserId(BaseUtil.getUser().getUserId().intValue());
+                crmCustomer.setOwnerUserId(BaseUtil.getUser().getUserId());
             }
             crmCustomer.setBatchId(batchId);
             crmCustomer.setRwUserId(",");
             crmCustomer.setRoUserId(",");
-            int save = (int) crmCustomerDao.saveReturnPk(crmCustomer);
+            int id = (int) crmCustomerDao.saveReturnPk(crmCustomer);
             crmRecordService.addRecord(crmCustomer.getCustomerId(), CrmEnum.CUSTOMER_TYPE_KEY.getTypes());
-            return save > 0 ? R.ok().put("data", Kv.by("customer_id", crmCustomer.getCustomerId()).set("customer_name", crmCustomer.getCustomerName())) : R.error();
+            //批量添加联系人
+            JSONArray contacts = jsonObject.getJSONArray("contacts");
+            if (contacts != null && contacts.size() > 0) {
+                for (int i = 0; i < contacts.size(); i++) {
+                    contacts.getJSONObject(i).put("customer_id", id);
+                }
+                crmContactsService.batchAddContacts(contacts);
+            }
+
+            return id > 0 ? R.ok().put("data", Kv.by("customer_id", crmCustomer.getCustomerId()).set("customer_name", crmCustomer.getCustomerName())) : R.error();
         }
     }
 
     /**
+     * @return
      * @author wyq
      * 根据客户id查询
-     * @return
      */
     public Map<String, Object> queryById(Integer customerId) {
         return crmCustomerDao.queryById(customerId).get(0);
@@ -182,12 +198,12 @@ public class CrmCustomerService {
     }
 
     /**
+     * @return
      * @author wyq
      * 根据客户名称查询
-     * @return
      */
     public Map<String, Object> queryByName(String name) {
-        return crmCustomerDao.queryByName(name).get(0);
+        return crmCustomerDao.queryByName(name);
         //return Db.findFirst(Db.getSql("crm.customer.queryByName"), name);
     }
 
@@ -404,7 +420,7 @@ public class CrmCustomerService {
         String[] memberArr = crmCustomer.getMemberIds().split(",");
         StringBuffer stringBuffer = new StringBuffer();
         for (String id : customerIdsArr) {
-            Integer ownerUserId = crmCustomerDao.get(Integer.valueOf(id)).getOwnerUserId();
+            Long ownerUserId = crmCustomerDao.get(NumberConvertUtil.parseInt(id)).getOwnerUserId();
             for (String memberId : memberArr) {
                 if (ownerUserId.equals(Integer.valueOf(memberId))) {
                     return R.error("负责人不能重复选为团队成员!");
@@ -525,14 +541,14 @@ public class CrmCustomerService {
     public R addRecord(LkCrmAdminRecordEntity adminRecord) {
         adminRecord.setTypes("crm_customer");
         adminRecord.setCreateTime(DateUtil.date().toTimestamp());
-        adminRecord.setCreateUserId(BaseUtil.getUser().getUserId().intValue());
+        adminRecord.setCreateUserId(BaseUtil.getUser().getUserId());
         if (1 == adminRecord.getIsEvent()) {
             LkCrmOaEventEntity oaEvent = new LkCrmOaEventEntity();
             oaEvent.setTitle(adminRecord.getContent());
             oaEvent.setStartTime(adminRecord.getNextTime());
             oaEvent.setEndTime(DateUtil.offsetDay(adminRecord.getNextTime(), 1).toTimestamp());
             oaEvent.setCreateTime(DateUtil.date().toTimestamp());
-            oaEvent.setCreateUserId(BaseUtil.getUser().getUserId().intValue());
+            oaEvent.setCreateUserId(BaseUtil.getUser().getUserId());
             crmOaEventDao.save(oaEvent);
             LoginUser user = BaseUtil.getUser();
             oaActionRecordService.addRecord(oaEvent.getEventId(), OaEnum.EVENT_TYPE_KEY.getTypes(), 1, oaActionRecordService.getJoinIds(user.getUserId().intValue(), oaEvent.getOwnerUserIds()), oaActionRecordService.getJoinIds(user.getDeptId(), ""));
@@ -681,7 +697,7 @@ public class CrmCustomerService {
         if (count > 0) {
             return R.error("选中的客户有被锁定的，不能放入公海！");
         }
-        StringBuffer sql = new StringBuffer("UPDATE 72crm_crm_customer SET owner_user_id = null where customer_id in (");
+        StringBuffer sql = new StringBuffer("UPDATE lkcrm_crm_customer SET owner_user_id = null where customer_id in (");
         sql.append(ids).append(") and is_lock = 0");
         String[] idsArr = ids.split(",");
         for (String id : idsArr) {
@@ -710,9 +726,9 @@ public class CrmCustomerService {
         String[] idsArr = ids.split(",");
         for (String id : idsArr) {
             LkCrmOwnerRecordEntity crmOwnerRecord = new LkCrmOwnerRecordEntity();
-            crmOwnerRecord.setTypeId(Integer.valueOf(id));
+            crmOwnerRecord.setTypeId(NumberConvertUtil.parseInt(id));
             crmOwnerRecord.setType(8);
-            crmOwnerRecord.setPostOwnerUserId(userId.intValue());
+            crmOwnerRecord.setPostOwnerUserId(userId);
             crmOwnerRecord.setCreateTime(DateUtil.date().toTimestamp());
             crmOwnerRecordDao.save(crmOwnerRecord);
         }

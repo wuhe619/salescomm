@@ -1437,18 +1437,18 @@ public class CustomerSeaService {
      *
      * @param userId
      * @param seaId
-     * @param entIds
+     * @param superIds
      * @return
      */
-    private int batchDeleteClue(Long userId, String userType, String seaId, List<String> entIds, String reason, String remark) {
+    private int batchDeleteClue(Long userId, String userType, String seaId, List<String> superIds, String reason, String remark) {
         StringBuilder sql = new StringBuilder()
                 .append("UPDATE ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(seaId)
-                .append(" SET status = 2 WHERE status <>2 AND super_data ->> '$.SYS014' IN (").append(SqlAppendUtil.sqlAppendWhereIn(entIds)).append(")");
+                .append(" SET status = 2 WHERE status <>2 AND id IN (").append(SqlAppendUtil.sqlAppendWhereIn(superIds)).append(")");
         // 保存转交记录
         StringBuilder logSql = new StringBuilder()
                 .append("INSERT INTO ").append(ConstantsUtil.CUSTOMER_OPER_LOG_TABLE_PREFIX).append(" (`user_id`, `list_id`, `customer_sea_id`, `customer_group_id`, `event_type`,  `create_time`,reason,remark) ")
                 .append(" SELECT ?, id, ?, batch_id, ?, ?, ?, ? ")
-                .append(" FROM ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(seaId).append(" WHERE status <>2 AND super_data ->> '$.SYS014' IN (").append(SqlAppendUtil.sqlAppendWhereIn(entIds)).append(")");
+                .append(" FROM ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(seaId).append(" WHERE status <>2 AND id IN (").append(SqlAppendUtil.sqlAppendWhereIn(superIds)).append(")");
         //员工只能处理负责人为自己的数据
         if ("2".equals(userType)) {
             sql.append(" AND user_id = ").append(userId);
@@ -1618,13 +1618,17 @@ public class CustomerSeaService {
                 .append(" FROM ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(seaId).append(" WHERE status = 0  AND id IN (").append(SqlAppendUtil.sqlAppendWhereIn(superIds)).append(")");
         //员工只能处理负责人为自己的数据
         List<Object> p = new ArrayList<>();
+        p.add(reason);
+        p.add(remark);
+        List<Object> param = new ArrayList<>();
         if ("2".equals(userType)) {
             p.add(userId);
+            param.add(userId);
             sql.append(" AND user_id = ? ");
             logSql.append(" AND user_id = ? ");
         }
-        customerSeaDao.executeUpdateSQL(logSql.toString(), reason, remark, p.toArray());
-        int status = customerSeaDao.executeUpdateSQL(sql.toString(), p.toArray());
+        customerSeaDao.executeUpdateSQL(logSql.toString(), p.toArray());
+        int status = customerSeaDao.executeUpdateSQL(sql.toString(), param.toArray());
         return status;
     }
 

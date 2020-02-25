@@ -3,19 +3,17 @@ package com.bdaim.crm.erp.admin.controller;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.response.ResponseInfo;
-import com.jfinal.aop.Before;
-import com.jfinal.aop.Inject;
-import com.jfinal.core.Controller;
-import com.jfinal.core.paragetter.Para;
-import com.jfinal.plugin.activerecord.Db;
-import com.jfinal.plugin.activerecord.tx.Tx;
 import com.bdaim.crm.common.annotation.NotNullValidate;
 import com.bdaim.crm.common.annotation.Permissions;
 import com.bdaim.crm.erp.admin.entity.AdminRole;
 import com.bdaim.crm.erp.admin.entity.AdminUserRole;
 import com.bdaim.crm.erp.admin.service.AdminRoleService;
-import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
+import com.jfinal.aop.Before;
+import com.jfinal.core.Controller;
+import com.jfinal.core.paragetter.Para;
+import com.jfinal.plugin.activerecord.Db;
+import com.jfinal.plugin.activerecord.tx.Tx;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -93,7 +91,7 @@ public class AdminRoleController extends Controller {
     public ResponseInfo auth(){
         ResponseInfo resp = new ResponseInfo();
         //resp.setData(adminRoleService.auth(BaseUtil.getUser().getUserId()));
-        resp.setData(JSON.parseObject("{\"work\":{\"task\":{\"save\":true},\"work\":{\"update\":true},\"taskClass\":{\"save\":true,\"update\":true,\"delete\":true}},\"bi\":{\"product\":{\"read\":true},\"oa\":{\"read\":true},\"performance\":{\"read\":true},\"business\":{\"read\":true},\"funnel\":{\"read\":true},\"achievement\":{\"read\":true},\"employe\":{\"read\":true},\"receivables\":{\"read\":true},\"ranking\":{\"read\":true},\"portrait\":{\"read\":true},\"customer\":{\"read\":true}},\"crm\":{\"product\":{\"read\":true,\"excelexport\":true,\"save\":true,\"update\":true,\"index\":true,\"excelimport\":true,\"status\":true},\"business\":{\"read\":true,\"transfer\":true,\"teamsave\":true,\"save\":true,\"update\":true,\"index\":true,\"delete\":true},\"leads\":{\"transform\":true,\"read\":true,\"transfer\":true,\"excelexport\":true,\"save\":true,\"update\":true,\"index\":true,\"excelimport\":true,\"delete\":true},\"contract\":{\"read\":true,\"transfer\":true,\"teamsave\":true,\"save\":true,\"update\":true,\"index\":true,\"delete\":true},\"pool\":{\"receive\":true,\"excelexport\":true,\"index\":true,\"distribute\":true},\"receivables\":{\"read\":true,\"save\":true,\"update\":true,\"index\":true,\"delete\":true},\"contacts\":{\"read\":true,\"transfer\":true,\"excelexport\":true,\"save\":true,\"update\":true,\"index\":true,\"excelimport\":true,\"delete\":true},\"customer\":{\"receive\":true,\"read\":true,\"teamsave\":true,\"save\":true,\"pool\":true,\"update\":true,\"index\":true,\"excelimport\":true,\"putinpool\":true,\"delete\":true,\"transfer\":true,\"excelexport\":true,\"lock\":true,\"distribute\":true}},\"manage\":{\"oa\":true,\"system\":true,\"examineFlow\":true,\"permission\":true,\"user\":true,\"crm\":true}}"));
+        resp.setData(JSON.parseObject("{\"work\":{\"task\":{\"save\":true},\"work\":{\"update\":true},\"taskClass\":{\"save\":true,\"update\":true,\"delete\":true}},\"bi\":{\"product\":{\"read\":true},\"oa\":{\"read\":true},\"performance\":{\"read\":true},\"business\":{\"read\":true},\"funnel\":{\"read\":true},\"achievement\":{\"read\":true},\"employe\":{\"read\":true},\"receivables\":{\"read\":true},\"ranking\":{\"read\":true},\"portrait\":{\"read\":true},\"customer\":{\"read\":true}},\"crm\":{\"product\":{\"read\":true,\"excelexport\":true,\"save\":true,\"update\":true,\"index\":true,\"excelimport\":true,\"status\":true},\"business\":{\"read\":true,\"transfer\":true,\"teamsave\":true,\"save\":true,\"update\":true,\"index\":true,\"delete\":true},\"leads\":{\"transform\":true,\"read\":true,\"transfer\":true,\"excelexport\":true,\"save\":true,\"update\":true,\"index\":true,\"excelimport\":true,\"delete\":true,\"lock\":true},\"contract\":{\"read\":true,\"transfer\":true,\"teamsave\":true,\"save\":true,\"update\":true,\"index\":true,\"delete\":true},\"pool\":{\"receive\":true,\"excelexport\":true,\"index\":true,\"distribute\":true},\"receivables\":{\"read\":true,\"save\":true,\"update\":true,\"index\":true,\"delete\":true},\"contacts\":{\"read\":true,\"transfer\":true,\"excelexport\":true,\"save\":true,\"update\":true,\"index\":true,\"excelimport\":true,\"delete\":true},\"customer\":{\"receive\":true,\"read\":true,\"teamsave\":true,\"save\":true,\"pool\":true,\"update\":true,\"index\":true,\"excelimport\":true,\"putinpool\":true,\"delete\":true,\"transfer\":true,\"excelexport\":true,\"lock\":true,\"distribute\":true}},\"manage\":{\"oa\":true,\"system\":true,\"examineFlow\":true,\"permission\":true,\"user\":true,\"crm\":true}}"));
         return resp;
         //renderJson(R.ok().put("data",adminRoleService.auth(BaseUtil.getUser().getUserId())));
     }

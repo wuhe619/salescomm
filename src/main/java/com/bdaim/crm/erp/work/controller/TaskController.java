@@ -1,10 +1,11 @@
 package com.bdaim.crm.erp.work.controller;
 
 import cn.hutool.core.util.StrUtil;
-import com.jfinal.core.Controller;
-import com.jfinal.core.paragetter.Para;
+import com.bdaim.common.controller.BasicAction;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.common.constant.BaseConstant;
+import com.bdaim.crm.entity.LkCrmTaskEntity;
+import com.bdaim.crm.entity.LkCrmTaskRelationEntity;
 import com.bdaim.crm.erp.admin.service.AdminUserService;
 import com.bdaim.crm.erp.oa.common.OaEnum;
 import com.bdaim.crm.erp.work.entity.Task;
@@ -16,6 +17,10 @@ import com.bdaim.crm.utils.AuthUtil;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
 import com.bdaim.crm.utils.TagUtil;
+import com.jfinal.core.paragetter.Para;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
@@ -24,7 +29,9 @@ import java.util.List;
 /**
  * @author hmb
  */
-public class TaskController extends Controller {
+@RestController
+@RequestMapping("/task")
+public class TaskController extends BasicAction {
 
     @Resource
     private TaskService taskService;
@@ -56,12 +63,13 @@ public class TaskController extends Controller {
      * @author hmb
      * 设置oa任务
      */
-    public void setTask(@Para("") Task task){
+    @RequestMapping(value = "/setTask", method = RequestMethod.POST)
+    public R setTask(LkCrmTaskEntity task){
         if(task.getPid() != null && task.getPid() != 0){
             boolean oaAuth = AuthUtil.isOaAuth(OaEnum.TASK_TYPE_KEY.getTypes(), task.getPid());
             if(oaAuth){
-                renderJson(R.noAuth());
-                return;
+                return(R.noAuth());
+                //return;
             }
         }
         if(StrUtil.isNotEmpty(task.getOwnerUserId())){
@@ -69,15 +77,15 @@ public class TaskController extends Controller {
         }
         if(task.getStartTime() != null && task.getStopTime() != null){
             if(task.getStartTime().getTime() > task.getStopTime().getTime()){
-                renderJson(R.error("开始时间不能大于结束时间"));
-                return;
+                return(R.error("开始时间不能大于结束时间"));
+                //return;
             }
         }
         String customerIds = getPara("customerIds");
         String contactsIds = getPara("contactsIds");
         String businessIds = getPara("businessIds");
         String contractIds = getPara("contractIds");
-        TaskRelation taskRelation = new TaskRelation();
+        LkCrmTaskRelationEntity taskRelation = new LkCrmTaskRelationEntity();
         if(customerIds != null || contactsIds != null || businessIds != null || contractIds != null){
 
             taskRelation.setBusinessIds(TagUtil.fromString(businessIds));
@@ -85,10 +93,10 @@ public class TaskController extends Controller {
             taskRelation.setContractIds(TagUtil.fromString(contractIds));
             taskRelation.setCustomerIds(TagUtil.fromString(customerIds));
         }
-        renderJson(taskService.setTask(task, taskRelation));
+        return (taskService.setTask(task, taskRelation));
     }
 
-    public void setWorkTask(@Para("") Task task){
+    public void setWorkTask(@Para("") LkCrmTaskEntity task){
         if(task.getWorkId() != null){
             Integer isOpen = new Work().findById(task.getWorkId()).getIsOpen();
             if(isOpen == 0 && ! AuthUtil.isWorkAuth(task.getWorkId().toString(), "task:save")){
@@ -109,7 +117,7 @@ public class TaskController extends Controller {
         String contactsIds = getPara("contactsIds");
         String businessIds = getPara("businessIds");
         String contractIds = getPara("contractIds");
-        TaskRelation taskRelation = new TaskRelation();
+        LkCrmTaskRelationEntity taskRelation = new LkCrmTaskRelationEntity();
         if(customerIds != null || contactsIds != null || businessIds != null || contractIds != null){
 
             taskRelation.setBusinessIds(TagUtil.fromString(businessIds));
@@ -165,7 +173,7 @@ public class TaskController extends Controller {
         Integer date = getParaToInt("date");
         Integer mold = getParaToInt("mold");
         Integer userId = getParaToInt("userId");
-        String name = get("search");
+        String name = getPara("search");
         List<Integer> userIds = new ArrayList<>();
         if(mold == null){
             userIds.add(BaseUtil.getUser().getUserId().intValue());

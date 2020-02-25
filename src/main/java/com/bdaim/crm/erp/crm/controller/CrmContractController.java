@@ -26,6 +26,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 
+/**
+ * 合同
+ */
 @RestController
 @RequestMapping("/CrmContract")
 public class CrmContractController extends Controller {

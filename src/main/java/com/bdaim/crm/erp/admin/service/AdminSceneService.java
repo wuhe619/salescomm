@@ -7,9 +7,8 @@ import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.dto.Page;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.common.constant.BaseConstant;
-import com.bdaim.crm.dao.LkCrmAdminSceneDao;
-import com.bdaim.crm.entity.LkCrmAdminSceneDefaultEntity;
-import com.bdaim.crm.entity.LkCrmAdminSceneEntity;
+import com.bdaim.crm.dao.*;
+import com.bdaim.crm.entity.*;
 import com.bdaim.crm.erp.admin.entity.AdminScene;
 import com.bdaim.crm.erp.crm.service.CrmBusinessService;
 import com.bdaim.crm.utils.BaseUtil;
@@ -45,11 +44,24 @@ public class AdminSceneService {
     @Resource
     private AdminUserService adminUserService;
 
+    @Resource
+    private LkCrmLeadsDao crmLeadsDao;
+
+    @Resource
+    private LkCrmCustomerDao crmCustomerDao;
+
+    @Resource
+    private LkCrmContactsDao crmContactsDao;
+
+    @Resource
+    private LkCrmContractDao crmContractDao;
+
+
     /**
      * @author wyq
      * 查询场景字段
      */
-    public R queryField(Integer label) {
+    public R queryField(int label) {
         List<Record> recordList = new LinkedList<>();
         FieldUtil fieldUtil = new FieldUtil(recordList);
         String[] settingArr = new String[]{};
@@ -190,11 +202,22 @@ public class AdminSceneService {
                     .add("sms_success_count", "短信营销数量", "text", settingArr)
                     .add("call_success_count", "电话营销数量", "text", settingArr)
                     .add("email_success_count", "邮件营销数量", "text", settingArr);
+        } else if (label == 11) {
+            fieldUtil.add("leads_name", "线索名称", "text", settingArr)
+                    .add("telephone", "电话", "text", settingArr)
+                    .add("mobile", "手机", "mobile", settingArr)
+                    .add("address", "地址", "text", settingArr)
+                    .add("next_time", "下次联系时间", "datetime", settingArr)
+                    .add("remark", "备注", "text", settingArr)
+                    .add("owner_user_id", "负责人", "user", settingArr)
+                    .add("create_user_id", "创建人", "user", settingArr)
+                    .add("update_time", "更新时间", "datetime", settingArr)
+                    .add("create_time", "创建时间", "datetime", settingArr);
         } else {
             return R.error("场景label不符合要求！");
         }
         recordList = fieldUtil.getRecordList();
-        List<Record> records = adminFieldService.customFieldList(label.toString());
+        List<Record> records = adminFieldService.customFieldList(String.valueOf(label));
         if (recordList != null && records != null) {
             for (Record r : records) {
                 r.set("field_name", r.getStr("name"));
@@ -378,7 +401,7 @@ public class AdminSceneService {
                 hideScene.set("data", jsonObject);
             }
         }
-        return R.ok().put("data", Kv.by("value", valueList).set("hide_value", hideValueList));
+        return R.ok().put("data", Kv.by("value", JavaBeanUtil.recordToMap(valueList)).set("hide_value", JavaBeanUtil.recordToMap(hideValueList)));
     }
 
     /**
@@ -652,7 +675,51 @@ public class AdminSceneService {
       /*  com.jfinal.plugin.activerecord.Page finalPage = new com.jfinal.plugin.activerecord.Page();
         finalPage.setList(recordPage.getData());
         finalPage.setTotalRow(recordPage.getTotal());*/
+        Map map;
+        for (int i = 0; i < recordPage.getData().size(); i++) {
+            map = (Map) recordPage.getData().get(i);
+            handleCompany(type, map);
+        }
         return R.ok().put("data", BaseUtil.crmPage(recordPage));
+    }
+
+    private void handleCompany(int type, Map map) {
+        int id;
+        String viewName, realm;
+        switch (type) {
+            case 1:
+                id = NumberConvertUtil.parseInt(map.get("leads_id"));
+                LkCrmLeadsEntity lkCrmLeadsEntity = crmLeadsDao.get(id);
+                if (lkCrmLeadsEntity != null) {
+                    map.put("company", lkCrmLeadsEntity.getCompany());
+                    map.put("公司名称", lkCrmLeadsEntity.getCompany());
+                }
+                break;
+            case 2:
+                id = NumberConvertUtil.parseInt(map.get("customer_id"));
+                LkCrmCustomerEntity lkCrmCustomerEntity = crmCustomerDao.get(id);
+                if (lkCrmCustomerEntity != null) {
+                    map.put("company", lkCrmCustomerEntity.getCompany());
+                    map.put("公司名称", lkCrmCustomerEntity.getCompany());
+                }
+                break;
+            case 3:
+                /*id = NumberConvertUtil.parseInt(map.get("customer_id"));
+                LkCrmContactsEntity lkCrmContactsEntity = crmContactsDao.get(id);
+                if (lkCrmContactsEntity != null) {
+                    map.put("company", lkCrmContactsEntity.getCompany());
+                }
+                viewName = "contractview";
+                realm = "contract";*/
+                break;
+            case 8:
+                id = NumberConvertUtil.parseInt(map.get("customer_id"));
+                lkCrmCustomerEntity = crmCustomerDao.get(id);
+                if (lkCrmCustomerEntity != null) {
+                    map.put("company", lkCrmCustomerEntity.getCompany());
+                }
+                break;
+        }
     }
 
     public void setBusinessStatus(List<Record> list) {

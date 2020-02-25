@@ -9,7 +9,8 @@ import java.util.Objects;
 @Entity
 @Table(name = "lkcrm_crm_receivables", schema = "", catalog = "")
 public class LkCrmReceivablesEntity {
-    private int receivablesId;
+    private Integer receivablesId;
+    private String custId;
     private String number;
     private Integer planId;
     private Integer customerId;
@@ -20,8 +21,8 @@ public class LkCrmReceivablesEntity {
     private String returnType;
     private BigDecimal money;
     private String remark;
-    private int createUserId;
-    private Integer ownerUserId;
+    private Long createUserId;
+    private Long ownerUserId;
     private Timestamp createTime;
     private Timestamp updateTime;
     private String remarks;
@@ -30,14 +31,24 @@ public class LkCrmReceivablesEntity {
     @Id
     @Column(name = "receivables_id")
     @GeneratedValue
-    public int getReceivablesId() {
+    public Integer getReceivablesId() {
         return receivablesId;
     }
 
-    public void setReceivablesId(int receivablesId) {
+    public void setReceivablesId(Integer receivablesId) {
         this.receivablesId = receivablesId;
     }
 
+
+    @Basic
+    @Column(name = "cust_id")
+    public String getCustId() {
+        return custId;
+    }
+
+    public void setCustId(String custId) {
+        this.custId = custId;
+    }
     @Basic
     @Column(name = "number")
     public String getNumber() {
@@ -140,21 +151,21 @@ public class LkCrmReceivablesEntity {
 
     @Basic
     @Column(name = "create_user_id")
-    public int getCreateUserId() {
+    public Long getCreateUserId() {
         return createUserId;
     }
 
-    public void setCreateUserId(int createUserId) {
+    public void setCreateUserId(Long createUserId) {
         this.createUserId = createUserId;
     }
 
     @Basic
     @Column(name = "owner_user_id")
-    public Integer getOwnerUserId() {
+    public Long getOwnerUserId() {
         return ownerUserId;
     }
 
-    public void setOwnerUserId(Integer ownerUserId) {
+    public void setOwnerUserId(Long ownerUserId) {
         this.ownerUserId = ownerUserId;
     }
 

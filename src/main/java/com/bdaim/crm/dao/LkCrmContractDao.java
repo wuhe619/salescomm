@@ -22,36 +22,36 @@ public class LkCrmContractDao extends SimpleHibernateDao<LkCrmContractEntity, In
 
     public List<Map<String, Object>> queryByContractId(Integer id) {
         return super.sqlQuery(" select *,\n" +
-                "    ( select IFNULL(sum(money),0) from 72crm_crm_receivables where contract_id =  crt.contract_id and check_status = 2) as receivablesMoney\n" +
+                "    ( select IFNULL(sum(money),0) from lkcrm_crm_receivables where contract_id =  crt.contract_id and check_status = 2) as receivablesMoney\n" +
                 "    from contractview as crt where crt.contract_id = ?", id);
     }
 
     public int deleteMember(String memberId, Integer contractId) {
-        return super.executeUpdateSQL("update 72crm_crm_contract set rw_user_id = replace(rw_user_id,?,','),ro_user_id = replace(ro_user_id,?,',') where contract_id = ?", memberId, memberId, contractId);
+        return super.executeUpdateSQL("update lkcrm_crm_contract set rw_user_id = replace(rw_user_id,?,','),ro_user_id = replace(ro_user_id,?,',') where contract_id = ?", memberId, memberId, contractId);
     }
 
     public int queryByNum(String num) {
-        return super.queryForInt("  select count(*) from 72crm_crm_contract where num = ?", num);
+        return super.queryForInt("  select count(*) from lkcrm_crm_contract where num = ?", num);
     }
 
 
     public int deleteByContractId(int contractId) {
-        return super.queryForInt("delete from 72crm_crm_contract_product where contract_id = ?", contractId);
+        return super.queryForInt("delete from lkcrm_crm_contract_product where contract_id = ?", contractId);
     }
 
     public List<Map<String, Object>> queryProductById(String batchId) {
-        return super.sqlQuery(" select * from 72crm_crm_product where batch_id = ?", batchId);
+        return super.sqlQuery(" select * from lkcrm_crm_product where batch_id = ?", batchId);
     }
 
 
     public List<Map<String, Object>> getRecord(int contract_id) {
         return super.sqlQuery("select a.record_id,b.img as user_img,b.realname,a.create_time,a.content,a.category,a.next_time,a.batch_id\n" +
-                "    from 72crm_admin_record as a inner join 72crm_admin_user as b\n" +
+                "    from lkcrm_admin_record as a inner join lkcrm_admin_user as b\n" +
                 "    where a.create_user_id = b.user_id and types = 'crm_contract' and types_id = ? order by a.create_time desc", contract_id);
     }
 
     public int setContractConfig(Integer status, Integer contractDay) {
-        String sql = "  update 72crm_admin_config set status = ? ";
+        String sql = "  update lkcrm_admin_config set status = ? ";
         List param = new ArrayList();
         param.add(status);
         if (contractDay != null) {

@@ -8,7 +8,8 @@ import java.util.Objects;
 @Entity
 @Table(name = "lkcrm_crm_receivables_plan", schema = "", catalog = "")
 public class LkCrmReceivablesPlanEntity {
-    private int planId;
+    private Integer planId;
+    private String custId;
     private String num;
     private Integer receivablesId;
     private Integer status;
@@ -18,7 +19,7 @@ public class LkCrmReceivablesPlanEntity {
     private Integer remind;
     private Timestamp remindDate;
     private String remark;
-    private int createUserId;
+    private Long createUserId;
     private Integer ownerUserId;
     private Timestamp createTime;
     private Timestamp updateTime;
@@ -29,12 +30,23 @@ public class LkCrmReceivablesPlanEntity {
     @Id
     @Column(name = "plan_id")
     @GeneratedValue
-    public int getPlanId() {
+    public Integer getPlanId() {
         return planId;
     }
 
-    public void setPlanId(int planId) {
+    public void setPlanId(Integer planId) {
         this.planId = planId;
+    }
+
+
+    @Basic
+    @Column(name = "cust_id")
+    public String getCustId() {
+        return custId;
+    }
+
+    public void setCustId(String custId) {
+        this.custId = custId;
     }
 
     @Basic
@@ -129,11 +141,11 @@ public class LkCrmReceivablesPlanEntity {
 
     @Basic
     @Column(name = "create_user_id")
-    public int getCreateUserId() {
+    public Long getCreateUserId() {
         return createUserId;
     }
 
-    public void setCreateUserId(int createUserId) {
+    public void setCreateUserId(Long createUserId) {
         this.createUserId = createUserId;
     }
 

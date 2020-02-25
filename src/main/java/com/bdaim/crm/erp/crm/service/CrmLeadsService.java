@@ -117,6 +117,8 @@ public class CrmLeadsService {
     private CustomerLabelService customerLabelService;
     @Resource
     private CustomerSeaService customerSeaService;
+    @Resource
+    private LkCrmTaskDao crmTaskDao;
 
     /**
      * 默认需要转为super_data的字段名称
@@ -691,6 +693,7 @@ public class CrmLeadsService {
                 crmLeads.setOwnerUserId(BaseUtil.getUser().getUserId());
             }
             crmLeads.setBatchId(batchId);
+            crmLeads.setSeaId(seaId);
             int id = (int) crmLeadsDao.saveReturnPk(crmLeads);
             crmRecordService.addRecord(crmLeads.getLeadsId(), CrmEnum.LEADS_TYPE_KEY.getTypes());
         }
@@ -875,7 +878,9 @@ public class CrmLeadsService {
             crmLeads.setUpdateTime(new Timestamp(System.currentTimeMillis()));
             crmRecordService.updateRecord(crmLeadsDao.get(crmLeads.getLeadsId()), crmLeads, CrmEnum.LEADS_TYPE_KEY.getTypes());
             //return crmLeads.update() ? R.ok() : R.error();
-            crmLeadsDao.saveOrUpdate(crmLeads);
+            LkCrmLeadsEntity crmLeadsDb = crmLeadsDao.get(crmLeads.getLeadsId());
+            BeanUtil.copyProperties(crmLeads, crmLeadsDb, "batchId", "createUserId", "createTime", "ownerUserId");
+            crmLeadsDao.saveOrUpdate(crmLeadsDb);
             return R.ok();
         } else {
             crmLeads.setCreateTime(new Timestamp(System.currentTimeMillis()));
@@ -911,9 +916,9 @@ public class CrmLeadsService {
     }
 
     /**
+     * @return
      * @author wyq
      * 根据线索id查询
-     * @return
      */
     public Map queryById(Integer leadsId) {
         return crmLeadsDao.queryById(leadsId);
@@ -921,9 +926,9 @@ public class CrmLeadsService {
     }
 
     /**
+     * @return
      * @author wyq
      * 根据线索名称查询
-     * @return
      */
     public Map<String, Object> queryByName(String name) {
         return crmLeadsDao.queryByName(name);
@@ -940,20 +945,27 @@ public class CrmLeadsService {
             //Record record = new Record();
             idsList.add(id);
         }
-        List<String> batchIdList = JavaBeanUtil.mapToRecords(crmLeadsDao.queryBatchIdByIds(Arrays.asList(idsArr)));
-        return Db.tx(() -> {
-            //Db.batch(Db.getSql("crm.leads.deleteByIds"), "leads_id", idsList, 100);
-            crmLeadsDao.deleteByIds(idsList);
-            crmLeadsDao.executeUpdateSQL("delete from lkcrm_admin_fieldv where batch_id IN( " + SqlAppendUtil.sqlAppendWhereIn(batchIdList) + " )");
-            return true;
-        }) ? R.ok() : R.error();
+        if (idsList.size() == 0) {
+            R.error("leadsIds不能为空");
+        }
+        List<Map<String, Object>> batchIdList = crmLeadsDao.queryBatchIdByIds(Arrays.asList(idsArr));
+        List batchIds = new ArrayList();
+        batchIdList.forEach(s -> batchIds.add(s.get("batch_id")));
+        //return Db.tx(() -> {
+        //Db.batch(Db.getSql("crm.leads.deleteByIds"), "leads_id", idsList, 100);
+        int i = crmLeadsDao.deleteByIds(idsList);
+        if (batchIdList.size() > 0) {
+            crmLeadsDao.executeUpdateSQL("delete from lkcrm_admin_fieldv where batch_id IN( " + SqlAppendUtil.sqlAppendWhereIn(batchIds) + " )");
+        }
+        return i > 0 ? R.ok() : R.error("线索删除失败");
+        //}) ? R.ok() : R.error();
     }
 
     /**
      * @author wyq
      * 变更负责人
      */
-    public R updateOwnerUserId(String leadsIds, Integer ownerUserId) {
+    public R updateOwnerUserId(String leadsIds, Long ownerUserId) {
         String[] ids = leadsIds.split(",");
         int update = crmLeadsDao.updateOwnerUserId(ownerUserId.toString(), Arrays.asList(ids));
         //int update = Db.update(Db.getSqlPara("crm.leads.updateOwnerUserId", Kv.by("ownerUserId", ownerUserId).set("ids", ids)));
@@ -976,16 +988,20 @@ public class CrmLeadsService {
             if (1 == crmLeads.getInt("is_transform")) {
                 return R.error("已转化线索不能再次转化");
             }
+            String customerName = crmLeads.getStr("company");
+            if (StringUtil.isEmpty(customerName)) {
+                return R.error("请补全线索的公司名称");
+            }
             List<Record> leadsFields = adminFieldService.list("1");
             LkCrmCustomerEntity crmCustomer = new LkCrmCustomerEntity();
-            crmCustomer.setCustomerName(crmLeads.getStr("leads_name"));
+            crmCustomer.setCustomerName(customerName);
             crmCustomer.setIsLock(0);
             crmCustomer.setNextTime(crmLeads.getTimestamp("next_time"));
             crmCustomer.setMobile(crmLeads.getStr("mobile"));
             crmCustomer.setTelephone(crmLeads.getStr("telephone"));
             crmCustomer.setDealStatus("未成交");
-            crmCustomer.setCreateUserId(BaseUtil.getUser().getUserId().intValue());
-            crmCustomer.setOwnerUserId(crmLeads.getInt("owner_user_id"));
+            crmCustomer.setCreateUserId(BaseUtil.getUser().getUserId());
+            crmCustomer.setOwnerUserId(crmLeads.getLong("owner_user_id"));
             crmCustomer.setCreateTime(new Timestamp(System.currentTimeMillis()));
             crmCustomer.setUpdateTime(new Timestamp(System.currentTimeMillis()));
             crmCustomer.setRoUserId(",");
@@ -1082,6 +1098,14 @@ public class CrmLeadsService {
         return R.ok();
     }
 
+    public List<Map<String, Object>> listLeadByCompany(String custId, String company, String notInLeadsIds) {
+        String[] notIds = new String[0];
+        if (StringUtil.isNotEmpty(notInLeadsIds)) {
+            notIds = notInLeadsIds.split(",");
+        }
+        return crmLeadsDao.listLeadByCompany(custId, company, 0, notIds);
+    }
+
     /**
      * @author wyq
      * 查询编辑字段
@@ -1097,9 +1121,11 @@ public class CrmLeadsService {
      */
     @Before(Tx.class)
     public R addRecord(LkCrmAdminRecordEntity adminRecord) {
-        adminRecord.setCreateUserId(BaseUtil.getUser().getUserId().intValue());
+        adminRecord.setCustId(BaseUtil.getUser().getCustId());
+        adminRecord.setCreateUserId(BaseUtil.getUser().getUserId());
         adminRecord.setCreateTime(new Timestamp(System.currentTimeMillis()));
         adminRecord.setTypes("crm_leads");
+        // 添加日程
         if (adminRecord.getIsEvent() != null && 1 == adminRecord.getIsEvent()) {
             LkCrmOaEventEntity oaEvent = new LkCrmOaEventEntity();
             oaEvent.setTitle(adminRecord.getContent());
@@ -1109,18 +1135,50 @@ public class CrmLeadsService {
             oaEvent.setCreateTime(DateUtil.date().toTimestamp());
             crmOaEventDao.save(oaEvent);
         }
+        // 添加任务
+        if (adminRecord.getIsTask() != null && 1 == adminRecord.getIsTask()) {
+            LkCrmTaskEntity crmTaskEntity = new LkCrmTaskEntity();
+            crmTaskEntity.setCustId(BaseUtil.getUser().getCustId());
+            crmTaskEntity.setBatchId(IdUtil.simpleUUID());
+            crmTaskEntity.setName(adminRecord.getTaskName());
+            crmTaskEntity.setDescription(adminRecord.getContent());
+            crmTaskEntity.setCreateUserId(adminRecord.getCreateUserId());
+            crmTaskEntity.setMainUserId(adminRecord.getCreateUserId());
+            crmTaskEntity.setStartTime(adminRecord.getNextTime());
+            crmTaskEntity.setStopTime(DateUtil.offsetDay(adminRecord.getNextTime(), 1).toTimestamp());
+            //完成状态 1正在进行2延期3归档 5结束
+            crmTaskEntity.setStatus(1);
+            crmTaskEntity.setCreateTime(DateUtil.date().toTimestamp());
+            int taskId = (int) crmTaskDao.saveReturnPk(crmTaskEntity);
+            adminRecord.setTaskId(taskId);
+        }
         crmAdminRecordDao.executeUpdateSQL("update lkcrm_crm_leads set followup = 1 where leads_id = ?", adminRecord.getTypesId());
         return (int) crmAdminRecordDao.saveReturnPk(adminRecord) > 0 ? R.ok() : R.error();
     }
 
     /**
-     * @author wyq
      * 查看跟进记录
      */
     public List<Record> getRecord(BasePageRequest<CrmLeads> basePageRequest) {
         CrmLeads crmLeads = basePageRequest.getData();
         //List<Record> recordList = Db.find(Db.getSql("crm.leads.getRecord"), crmLeads.getLeadsId());
-        List<Record> recordList = crmLeadsDao.getRecord(crmLeads.getLeadsId());
+        List<Record> recordList = JavaBeanUtil.mapToRecords(crmLeadsDao.getRecord(crmLeads.getLeadsId(), basePageRequest.getPage(), basePageRequest.getLimit()));
+        recordList.forEach(record -> {
+            adminFileService.queryByBatchId(record.getStr("batch_id"), record);
+        });
+        return recordList;
+    }
+
+    /**
+     * 查看代办事项记录
+     *
+     * @param basePageRequest
+     * @param taskStatus
+     * @param leadsId
+     * @return
+     */
+    public List<Record> listAgency(BasePageRequest<CrmLeads> basePageRequest, Integer taskStatus, Integer leadsId) {
+        List<Record> recordList = JavaBeanUtil.mapToRecords(crmLeadsDao.getRecord(String.valueOf(leadsId), taskStatus, basePageRequest.getPage(), basePageRequest.getLimit()));
         recordList.forEach(record -> {
             adminFileService.queryByBatchId(record.getStr("batch_id"), record);
         });
@@ -1433,7 +1491,7 @@ public class CrmLeadsService {
      * @author wyq
      * 客户锁定
      */
-    public R lock(LkCrmLeadsEntity crmLeads,String ids) {
+    public R lock(LkCrmLeadsEntity crmLeads, String ids) {
         String[] idArr = ids.split(",");
         crmRecordService.addIsLockRecord(idArr, CrmEnum.CUSTOMER_TYPE_KEY.getTypes(), crmLeads.getIsLock());
         return crmLeadsDao.lock(crmLeads.getIsLock(), Arrays.asList(ids)) > 0 ? R.ok() : R.error();

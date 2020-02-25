@@ -2,6 +2,7 @@ package com.bdaim.crm.erp.crm.controller;
 
 import cn.hutool.poi.excel.ExcelUtil;
 import cn.hutool.poi.excel.ExcelWriter;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.crm.common.annotation.LoginFormCookie;
 import com.bdaim.crm.common.annotation.NotNullValidate;
@@ -39,6 +40,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 联系人
+ */
 @RestController
 @RequestMapping("/CrmContacts")
 public class CrmContactsController extends Controller {
@@ -134,6 +138,18 @@ public class CrmContactsController extends Controller {
     public R addOrUpdate(@RequestBody JSONObject jsonObject) {
         // JSONObject jsonObject = JSON.parseObject(getRawData());
         return (crmContactsService.addOrUpdate(jsonObject));
+    }
+
+    /**
+     * 批量添加联系人
+     * @param jsonArray
+     * @return
+     */
+    @Permissions({"crm:contacts:batchAddContacts"})
+    @RequestMapping(value = "/batchAddContacts", method = RequestMethod.POST)
+    public R batchAddContacts(@org.springframework.web.bind.annotation.RequestBody JSONArray jsonArray) {
+        // JSONObject jsonObject = JSON.parseObject(getRawData());
+        return (crmContactsService.batchAddContacts(jsonArray));
     }
 
     /**

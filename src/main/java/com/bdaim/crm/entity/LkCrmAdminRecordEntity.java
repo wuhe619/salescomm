@@ -8,6 +8,7 @@ import java.util.Objects;
 @Table(name = "lkcrm_admin_record", schema = "", catalog = "")
 public class LkCrmAdminRecordEntity {
     private Integer recordId;
+    private String custId;
     private String types;
     private String typesId;
     private String content;
@@ -17,10 +18,12 @@ public class LkCrmAdminRecordEntity {
     private String contactsIds;
     private Timestamp createTime;
     private Timestamp updateTime;
-    private int createUserId;
+    private Long createUserId;
     private String batchId;
-
+    private Integer taskId;
+    private String taskName;
     private Integer isEvent;
+    private Integer isTask;
 
 
     @Transient
@@ -32,6 +35,24 @@ public class LkCrmAdminRecordEntity {
         this.isEvent = isEvent;
     }
 
+    @Transient
+    public Integer getIsTask() {
+        return isTask;
+    }
+
+    public void setIsTask(Integer isTask) {
+        this.isTask = isTask;
+    }
+
+    @Transient
+    public String getTaskName() {
+        return taskName;
+    }
+
+    public void setTaskName(String taskName) {
+        this.taskName = taskName;
+    }
+
     @Id
     @Column(name = "record_id")
     @GeneratedValue
@@ -41,6 +62,16 @@ public class LkCrmAdminRecordEntity {
 
     public void setRecordId(Integer recordId) {
         this.recordId = recordId;
+    }
+
+    @Basic
+    @Column(name = "cust_id")
+    public String getCustId() {
+        return custId;
+    }
+
+    public void setCustId(String custId) {
+        this.custId = custId;
     }
 
     @Basic
@@ -135,11 +166,11 @@ public class LkCrmAdminRecordEntity {
 
     @Basic
     @Column(name = "create_user_id")
-    public int getCreateUserId() {
+    public Long getCreateUserId() {
         return createUserId;
     }
 
-    public void setCreateUserId(int createUserId) {
+    public void setCreateUserId(Long createUserId) {
         this.createUserId = createUserId;
     }
 
@@ -151,6 +182,16 @@ public class LkCrmAdminRecordEntity {
 
     public void setBatchId(String batchId) {
         this.batchId = batchId;
+    }
+
+    @Basic
+    @Column(name = "task_id")
+    public Integer getTaskId() {
+        return taskId;
+    }
+
+    public void setTaskId(Integer taskId) {
+        this.taskId = taskId;
     }
 
     @Override

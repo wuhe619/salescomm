@@ -61,7 +61,7 @@ public class CustomerExtensionService {
         }
         sql.append(" order by create_time desc");
 //        List<Map<String, Object>> ds = jdbcTemplate.queryForList(sql + " limit " + (page.getPageNum() - 1) * page.getPageSize() + ", " + page.getPageSize());
-        Page list = customerDao.sqlPageQuery0(sql.toString(), page.getPageNum(), page.getPageSize(), p.toArray());
+        Page list = customerDao.sqlPageQuery(sql.toString(), page.getPageNum(), page.getPageSize(), p.toArray());
         List list1 = new ArrayList();
         list.getData().stream().forEach(m -> {
             Map map = (Map) m;

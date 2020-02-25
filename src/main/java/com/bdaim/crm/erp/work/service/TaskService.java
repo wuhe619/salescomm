@@ -1,26 +1,38 @@
 package com.bdaim.crm.erp.work.service;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import com.bdaim.auth.LoginUser;
+import com.bdaim.crm.common.config.paragetter.BasePageRequest;
+import com.bdaim.crm.dao.LkCrmTaskDao;
+import com.bdaim.crm.dao.LkCrmWorkTaskLabelDao;
+import com.bdaim.crm.entity.LkCrmTaskEntity;
+import com.bdaim.crm.entity.LkCrmTaskRelationEntity;
+import com.bdaim.crm.entity.LkCrmWorkTaskLabelEntity;
+import com.bdaim.crm.entity.LkCrmWorkTaskLogEntity;
+import com.bdaim.crm.erp.admin.service.AdminFileService;
+import com.bdaim.crm.erp.oa.common.OaEnum;
+import com.bdaim.crm.erp.oa.service.OaActionRecordService;
+import com.bdaim.crm.erp.work.entity.Task;
+import com.bdaim.crm.erp.work.entity.TaskRelation;
+import com.bdaim.crm.erp.work.entity.Work;
+import com.bdaim.crm.erp.work.entity.WorkTaskClass;
+import com.bdaim.crm.utils.AuthUtil;
+import com.bdaim.crm.utils.BaseUtil;
+import com.bdaim.crm.utils.R;
+import com.bdaim.crm.utils.TagUtil;
+import com.bdaim.customer.dao.CustomerUserDao;
+import com.bdaim.customer.entity.CustomerUser;
+import com.bdaim.util.NumberConvertUtil;
+import com.bdaim.util.StringUtil;
 import com.jfinal.aop.Before;
-import com.jfinal.aop.Inject;
 import com.jfinal.kit.Kv;
 import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Page;
 import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.tx.Tx;
-import com.bdaim.crm.common.config.paragetter.BasePageRequest;
-import com.bdaim.crm.erp.admin.entity.AdminUser;
-import com.bdaim.crm.erp.admin.service.AdminFileService;
-import com.bdaim.crm.erp.oa.common.OaEnum;
-import com.bdaim.crm.erp.oa.service.OaActionRecordService;
-import com.bdaim.crm.erp.work.entity.*;
-import com.bdaim.crm.utils.AuthUtil;
-import com.bdaim.crm.utils.BaseUtil;
-import com.bdaim.crm.utils.R;
-import com.bdaim.crm.utils.TagUtil;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -37,6 +49,15 @@ public class TaskService{
     @Resource
     private AdminFileService adminFileService;
 
+    @Resource
+    private LkCrmTaskDao crmTaskDao;
+
+    @Resource
+    private LkCrmWorkTaskLabelDao crmWorkTaskLabelDao;
+
+    @Resource
+    private CustomerUserDao customerUserDao;
+
     public R setTaskClass(WorkTaskClass taskClass){
         boolean bol;
         if(taskClass.getClassId() == null){
@@ -45,13 +66,13 @@ public class TaskService{
             if(isOpen == 0 && ! AuthUtil.isWorkAuth(taskClass.getWorkId().toString(), "taskClass:save")){
                 return R.noAuth();
             }
-            Integer orderNum = Db.queryInt("select max(order_num) from `72crm_work_task_class` where work_id = ?", taskClass.getWorkId());
+            Integer orderNum = Db.queryInt("select max(order_num) from `lkcrm_work_task_class` where work_id = ?", taskClass.getWorkId());
             taskClass.setOrderNum(orderNum+1);
             taskClass.setCreateUserId(BaseUtil.getUser().getUserId().intValue());
             taskClass.setCreateTime(new Date());
             bol = taskClass.save();
         }else{
-            Integer workId = Db.queryInt("select work_id from `72crm_work_task_class` where class_id = ?", taskClass.getClassId());
+            Integer workId = Db.queryInt("select work_id from `lkcrm_work_task_class` where class_id = ?", taskClass.getClassId());
             if(! AuthUtil.isWorkAuth(workId.toString(), "taskClass:update")){
                 return R.noAuth();
             }
@@ -66,12 +87,12 @@ public class TaskService{
         WorkTaskClass targetClass = WorkTaskClass.dao.findById(targetClassId);
         Integer originalClassOrderId = originalClass.getOrderNum();
         Integer targetClassOrderId = targetClass.getOrderNum();
-        Db.update("update 72crm_work_task_class setUser order_id = ? where class_id = ?", originalClassOrderId, targetClassId);
-        Db.update("update 72crm_work_task_class setUser order_id = ? where class_id = ?", targetClassOrderId, originalClassId);
+        Db.update("update lkcrm_work_task_class setUser order_id = ? where class_id = ?", originalClassOrderId, targetClassId);
+        Db.update("update lkcrm_work_task_class setUser order_id = ? where class_id = ?", targetClassOrderId, originalClassId);
     }
 
     @Before(Tx.class)
-    public R setTask(Task task, TaskRelation taskRelation){
+    public R setTask(LkCrmTaskEntity task, LkCrmTaskRelationEntity taskRelation){
         LoginUser user = BaseUtil.getUser();
         boolean bol;
         if(task.getLabelId() != null){
@@ -79,7 +100,7 @@ public class TaskService{
         }
         if(task.getTaskId() == null){
             if(task.getMainUserId() == null){
-                task.setMainUserId(user.getUserId().intValue());
+                task.setMainUserId(user.getUserId());
             }
             if(task.getOwnerUserId() != null){
                 Set<Integer> ownerUserId = TagUtil.toSet(task.getOwnerUserId());
@@ -88,33 +109,34 @@ public class TaskService{
             }else{
                 task.setOwnerUserId("," + user.getUserId() + ",");
             }
-            task.setCreateTime(new Date());
-            task.setUpdateTime(new Date());
-            task.setCreateUserId(user.getUserId().intValue());
+            task.setCreateTime(DateUtil.date().toTimestamp());
+            task.setUpdateTime(DateUtil.date().toTimestamp());
+            task.setCreateUserId(user.getUserId());
             task.setBatchId(IdUtil.simpleUUID());
-            bol = task.save();
-            WorkTaskLog workTaskLog = new WorkTaskLog();
-            workTaskLog.setUserId(user.getUserId().intValue());
+            bol = (int)crmTaskDao.saveReturnPk(task)>0;
+            LkCrmWorkTaskLogEntity workTaskLog = new LkCrmWorkTaskLogEntity();
+            workTaskLog.setUserId(user.getUserId());
             workTaskLog.setTaskId(task.getTaskId());
             workTaskLog.setContent("添加了新任务 " + task.getName());
             saveWorkTaskLog(workTaskLog);
 
         }else{
-            task.setUpdateTime(new Date());
-            bol = getWorkTaskLog(task, user.getUserId().intValue());
+            task.setUpdateTime(DateUtil.date().toTimestamp());
+            bol = getWorkTaskLog(task, user.getUserId());
         }
         if(taskRelation.getBusinessIds() != null || taskRelation.getContactsIds() != null || taskRelation.getContractIds() != null || taskRelation.getCustomerIds() != null){
-            Db.deleteById("72crm_task_relation", "task_id", task.getTaskId());
-            taskRelation.setCreateTime(DateUtil.date());
+            Db.deleteById("lkcrm_task_relation", "task_id", task.getTaskId());
+            taskRelation.setCreateTime(DateUtil.date().toTimestamp());
             taskRelation.setTaskId(task.getTaskId());
-            taskRelation.save();
+            //taskRelation.save();
+            crmTaskDao.saveOrUpdate(taskRelation);
         }
         task.getMainUserId();
         oaActionRecordService.addRecord(task.getTaskId(), OaEnum.TASK_TYPE_KEY.getTypes(), task.getUpdateTime() == null ? 1 : 2, oaActionRecordService.getJoinIds(user.getUserId().intValue(), getJoinUserIds(task)), oaActionRecordService.getJoinIds(user.getDeptId(), ""));
         return bol ? R.ok().put("data", Kv.by("task_id", task.getTaskId())) : R.error();
     }
 
-    private String getJoinUserIds(Task task){
+    private String getJoinUserIds(LkCrmTaskEntity task){
         StringBuilder joinUserIds = new StringBuilder(",");
         if(task.getMainUserId() != null){
             joinUserIds.append(task.getMainUserId()).append(",");
@@ -129,7 +151,7 @@ public class TaskService{
     public R queryTaskInfo(String taskId){
         Record mainTask = transfer(taskId);
         adminFileService.queryByBatchId(mainTask.get("batch_id"), mainTask);
-        List<Record> recordList = Db.find("select task_id from 72crm_task where pid = ?", taskId);
+        List<Record> recordList = Db.find("select task_id from lkcrm_task where pid = ?", taskId);
         List<Record> childTaskList = new ArrayList<>();
         if(recordList != null && recordList.size() > 0){
             recordList.forEach(childTaskRecord -> {
@@ -144,17 +166,17 @@ public class TaskService{
     }
 
     private Record transfer(String taskId){
-        Record task = Db.findFirst("select a.*,b.name as workName from 72crm_task a left join `72crm_work` b on a.work_id = b.work_id where task_id = ?", taskId);
+        Record task = Db.findFirst("select a.*,b.name as workName from lkcrm_task a left join `lkcrm_work` b on a.work_id = b.work_id where task_id = ?", taskId);
         task.set("stop_time", DateUtil.formatDate(task.getDate("stop_time")));
-        task.set("mainUser", Db.findFirst("select user_id,realname,img from 72crm_admin_user where user_id = ?", task.getInt("main_user_id")));
-        task.set("createUser", Db.findFirst("select user_id,realname,img from 72crm_admin_user where user_id = ?", task.getInt("create_user_id")));
+        task.set("mainUser", Db.findFirst("select user_id,realname,img from lkcrm_admin_user where user_id = ?", task.getInt("main_user_id")));
+        task.set("createUser", Db.findFirst("select user_id,realname,img from lkcrm_admin_user where user_id = ?", task.getInt("create_user_id")));
         ArrayList<Record> labelList = new ArrayList<>();
         ArrayList<Record> ownerUserList = new ArrayList<>();
         if(StrUtil.isNotBlank(task.getStr("label_id"))){
             String[] labelIds = task.getStr("label_id").split(",");
             for(String labelId : labelIds){
                 if(StrUtil.isNotBlank(labelId)){
-                    Record label = Db.findFirst("select label_id,name as labelName,color from 72crm_work_task_label where label_id = ?", labelId);
+                    Record label = Db.findFirst("select label_id,name as labelName,color from lkcrm_work_task_label where label_id = ?", labelId);
                     labelList.add(label);
                 }
             }
@@ -163,12 +185,12 @@ public class TaskService{
             String[] ownerUserIds = task.getStr("owner_user_id").split(",");
             for(String ownerUserId : ownerUserIds){
                 if(StrUtil.isNotBlank(ownerUserId)){
-                    Record ownerUser = Db.findFirst("select user_id,realname,img from 72crm_admin_user where user_id = ?", ownerUserId);
+                    Record ownerUser = Db.findFirst("select user_id,realname,img from lkcrm_admin_user where user_id = ?", ownerUserId);
                     ownerUserList.add(ownerUser);
                 }
             }
         }
-        Record relation = Db.findFirst("select * FROM 72crm_task_relation where task_id = ?", taskId);
+        Record relation = Db.findFirst("select * FROM lkcrm_task_relation where task_id = ?", taskId);
         List<Record> customerList = new ArrayList<>();
         List<Record> contactsList = new ArrayList<>();
         List<Record> businessList = new ArrayList<>();
@@ -178,7 +200,7 @@ public class TaskService{
                 String[] customerIds = relation.getStr("customer_ids").split(",");
                 for(String customerId : customerIds){
                     if(StrUtil.isNotBlank(customerId)){
-                        Record customer = Db.findFirst("select customer_id,customer_name  from 72crm_crm_customer where customer_id = ?", customerId);
+                        Record customer = Db.findFirst("select customer_id,customer_name  from lkcrm_crm_customer where customer_id = ?", customerId);
                         if(customer != null){
                             customerList.add(customer);
                         }
@@ -191,7 +213,7 @@ public class TaskService{
 
                 for(String contactsId : contactsIds){
                     if(StrUtil.isNotBlank(contactsId)){
-                        Record contacts = Db.findFirst("select contacts_id,name from 72crm_crm_contacts  where contacts_id = ?", contactsId);
+                        Record contacts = Db.findFirst("select contacts_id,name from lkcrm_crm_contacts  where contacts_id = ?", contactsId);
                         if(contacts != null){
                             contactsList.add(contacts);
                         }
@@ -203,7 +225,7 @@ public class TaskService{
 
                 for(String businessId : businessIds){
                     if(StrUtil.isNotBlank(businessId)){
-                        Record business = Db.findFirst("select business_id,business_name  from 72crm_crm_business  where business_id = ?", businessId);
+                        Record business = Db.findFirst("select business_id,business_name  from lkcrm_crm_business  where business_id = ?", businessId);
                         if(business != null){
                             businessList.add(business);
                         }
@@ -214,7 +236,7 @@ public class TaskService{
                 String[] contractIds = relation.getStr("contract_ids").split(",");
                 for(String contractId : contractIds){
                     if(StrUtil.isNotBlank(contractId)){
-                        Record contract = Db.findFirst("select contract_id,name from 72crm_crm_contract  where contract_id = ?", contractId);
+                        Record contract = Db.findFirst("select contract_id,name from lkcrm_crm_contract  where contract_id = ?", contractId);
                         if(contract != null){
                             contractList.add(contract);
                         }
@@ -267,7 +289,7 @@ public class TaskService{
                 String[] labelIds = task.getStr("label_id").split(",");
                 for(String labelId : labelIds){
                     if(StrUtil.isNotBlank(labelId)){
-                        Record label = Db.findFirst("select label_id,name as labelName , color from 72crm_work_task_label where label_id = ?", labelId);
+                        Record label = Db.findFirst("select label_id,name as labelName , color from lkcrm_work_task_label where label_id = ?", labelId);
                         labelList.add(label);
                     }
                 }
@@ -276,12 +298,12 @@ public class TaskService{
                 String[] ownerUserIds = task.getStr("owner_user_id").split(",");
                 for(String ownerUserId : ownerUserIds){
                     if(StrUtil.isNotBlank(ownerUserId)){
-                        Record ownerUser = Db.findFirst("select user_id,realname,img from 72crm_admin_user where user_id = ?", ownerUserId);
+                        Record ownerUser = Db.findFirst("select user_id,realname,img from lkcrm_admin_user where user_id = ?", ownerUserId);
                         ownerUserList.add(ownerUser);
                     }
                 }
             }
-            TaskRelation taskRelation = TaskRelation.dao.findFirst(" select * from 72crm_task_relation where task_id = ?", task.getInt("task_id"));
+            TaskRelation taskRelation = TaskRelation.dao.findFirst(" select * from lkcrm_task_relation where task_id = ?", task.getInt("task_id"));
             Integer start = 0;
             if(taskRelation != null){
                 start = queryCount(start, taskRelation.getBusinessIds());
@@ -328,20 +350,27 @@ public class TaskService{
         return R.ok().put("data", recordList);
     }
 
-    private void saveWorkTaskLog(WorkTaskLog workTaskLog){
-        workTaskLog.setCreateTime(DateUtil.date());
+    private void saveWorkTaskLog(LkCrmWorkTaskLogEntity workTaskLog){
+        workTaskLog.setCreateTime(DateUtil.date().toTimestamp());
         workTaskLog.setLogId(null);
-        workTaskLog.save();
+        crmTaskDao.saveOrUpdate(workTaskLog);
+        //workTaskLog.save();
     }
 
     @Before(Tx.class)
-    private boolean getWorkTaskLog(Task task, Integer userId){
-        WorkTaskLog workTaskLog = new WorkTaskLog();
+    private boolean getWorkTaskLog(LkCrmTaskEntity task, Long userId){
+        LkCrmWorkTaskLogEntity workTaskLog = new LkCrmWorkTaskLogEntity();
         workTaskLog.setUserId(userId);
         workTaskLog.setTaskId(task.getTaskId());
 
-        Task auldTask = Task.dao.findById(task.getTaskId());
-        task.update();
+        LkCrmTaskEntity auldTask = crmTaskDao.get(task.getTaskId());
+        if(StringUtil.isNotEmpty(task.getName())){
+            auldTask.setName(task.getName());
+        }
+        if(task.getStatus()==null){
+            auldTask.setStatus(task.getStatus());
+        }
+        crmTaskDao.update(auldTask);
 
         //判断描述是否修改
        /* if (task.getDescription() != null){
@@ -352,8 +381,8 @@ public class TaskService{
             }
            saveWorkTaskLog(workTaskLog);
         }*/
-        Set<Map.Entry<String, Object>> newEntries = task._getAttrsEntrySet();
-        Set<Map.Entry<String, Object>> oldEntries = auldTask._getAttrsEntrySet();
+        Set<Map.Entry<String, Object>> newEntries = BeanUtil.beanToMap(task).entrySet();
+        Set<Map.Entry<String, Object>> oldEntries = BeanUtil.beanToMap(auldTask).entrySet();
         newEntries.forEach(x -> {
             oldEntries.forEach(y -> {
                 Object oldValue = y.getValue();
@@ -394,14 +423,14 @@ public class TaskService{
         });
         //判断是否修改了标签
         if(task.getLabelId() != null){
-            WorkTaskLabel workTaskLabel;
+            LkCrmWorkTaskLabelEntity workTaskLabel;
 
             if(StrUtil.isEmpty(auldTask.getLabelId())){
                 //旧数据没有标签 直接添加
                 List<String> labelName = Arrays.asList(task.getLabelId().split(","));
                 for(String id : labelName){
                     if(StrUtil.isNotBlank(id)){
-                        workTaskLabel = WorkTaskLabel.dao.findById(id);
+                        workTaskLabel =crmWorkTaskLabelDao.get(NumberConvertUtil.parseInt(id));
                         workTaskLog.setContent("增加了标签 " + workTaskLabel.getName());
                         saveWorkTaskLog(workTaskLog);
                     }
@@ -412,7 +441,7 @@ public class TaskService{
                 for(String id : labelName){
                     if(StrUtil.isNotBlank(id)){
                         if(! auldTask.getLabelId().contains("," + id + ",")){
-                            workTaskLabel = WorkTaskLabel.dao.findById(id);
+                            workTaskLabel =crmWorkTaskLabelDao.get(NumberConvertUtil.parseInt(id));
                             workTaskLog.setContent("增加了标签 " + workTaskLabel.getName());
                             saveWorkTaskLog(workTaskLog);
                         }
@@ -423,7 +452,7 @@ public class TaskService{
                 for(String id : auldLabelName){
                     if(StrUtil.isNotBlank(id)){
                         if(! task.getLabelId().contains("," + id + ",")){
-                            workTaskLabel = WorkTaskLabel.dao.findById(id);
+                            workTaskLabel =crmWorkTaskLabelDao.get(NumberConvertUtil.parseInt(id));
                             workTaskLog.setContent("删除了标签 " + workTaskLabel.getName());
                             saveWorkTaskLog(workTaskLog);
                         }
@@ -434,14 +463,14 @@ public class TaskService{
         }
         //判断是参与人
         if(task.getOwnerUserId() != null){
-            AdminUser adminUser;
+            CustomerUser adminUser;
             if(StrUtil.isEmpty(auldTask.getOwnerUserId())){
                 //判断旧数据没有参与人
                 List<String> userIds = Arrays.asList(task.getOwnerUserId().split(","));
                 for(String id : userIds){
                     if(StrUtil.isNotBlank(id)){
-                        adminUser = AdminUser.dao.findById(id);
-                        workTaskLog.setContent("添加 " + adminUser.getUsername() + "参与任务");
+                        adminUser = customerUserDao.get(NumberConvertUtil.parseLong(id));
+                        workTaskLog.setContent("添加 " + adminUser.getAccount() + "参与任务");
                         saveWorkTaskLog(workTaskLog);
                     }
                 }
@@ -451,8 +480,8 @@ public class TaskService{
                 for(String id : userIds){
                     if(StrUtil.isNotBlank(id)){
                         if(! auldTask.getOwnerUserId().contains("," + id + ",")){
-                            adminUser = AdminUser.dao.findById(id);
-                            workTaskLog.setContent("添加 " + adminUser.getUsername() + "参与任务");
+                            adminUser = customerUserDao.get(NumberConvertUtil.parseLong(id));
+                            workTaskLog.setContent("添加 " + adminUser.getAccount() + "参与任务");
                             saveWorkTaskLog(workTaskLog);
                         }
                     }
@@ -461,8 +490,8 @@ public class TaskService{
                 for(String id : ids){
                     if(StrUtil.isNotBlank(id)){
                         if(! task.getOwnerUserId().contains("," + id + ",")){
-                            adminUser = AdminUser.dao.findById(id);
-                            workTaskLog.setContent("将 " + adminUser.getUsername() + "从任务中移除");
+                            adminUser = customerUserDao.get(NumberConvertUtil.parseLong(id));
+                            workTaskLog.setContent("将 " + adminUser.getAccount() + "从任务中移除");
                             saveWorkTaskLog(workTaskLog);
                         }
                     }
@@ -490,7 +519,7 @@ public class TaskService{
      * 添加任务与业务关联
      */
     public R svaeTaskRelation(TaskRelation taskRelation, Integer userId){
-        Db.delete("delete from `72crm_task_relation` where task_id = ?", taskRelation.getTaskId());
+        Db.delete("delete from `lkcrm_task_relation` where task_id = ?", taskRelation.getTaskId());
         taskRelation.setCreateTime(DateUtil.date());
         return taskRelation.save() ? R.ok() : R.error();
     }
@@ -506,7 +535,7 @@ public class TaskService{
         if(task.getPid() != 0){
             bol = task.delete();
         }else {
-            bol = Db.update("update 72crm_task set ishidden = 1,hidden_time = now() where task_id = ?", taskId) > 0;
+            bol = Db.update("update lkcrm_task set ishidden = 1,hidden_time = now() where task_id = ?", taskId) > 0;
         }
         return bol ? R.ok() : R.error();
     }
@@ -528,12 +557,12 @@ public class TaskService{
 
     private void composeUser(Record record){
         Integer createUserId = record.getInt("create_user_id");
-        record.set("createUser", Db.findFirst("select user_id,realname,img from 72crm_admin_user where user_id = ?", createUserId));
+        record.set("createUser", Db.findFirst("select user_id,realname,img from lkcrm_admin_user where user_id = ?", createUserId));
         Integer mainUserId = record.getInt("main_user_id");
-        record.set("mainUser", Db.findFirst("select user_id,realname,img from 72crm_admin_user where user_id = ?", mainUserId));
+        record.set("mainUser", Db.findFirst("select user_id,realname,img from lkcrm_admin_user where user_id = ?", mainUserId));
         String ownerUserId = record.getStr("owner_user_id");
         List<Record> ownerUserList = new ArrayList<>();
-        TagUtil.toSet(ownerUserId).forEach(userId-> ownerUserList.add(Db.findFirst("select user_id,realname,img from 72crm_admin_user where user_id = ?", userId)));
+        TagUtil.toSet(ownerUserId).forEach(userId-> ownerUserList.add(Db.findFirst("select user_id,realname,img from lkcrm_admin_user where user_id = ?", userId)));
         record.set("ownerUserList",ownerUserList);
     }
 
@@ -544,7 +573,7 @@ public class TaskService{
     }
 
     public R archiveByTaskId(Integer taskId){
-        int update = Db.update("update  `72crm_task` set is_archive = 1,archive_time = now() where task_id = ?", taskId);
+        int update = Db.update("update  `lkcrm_task` set is_archive = 1,archive_time = now() where task_id = ?", taskId);
         return update > 0 ? R.ok() : R.error();
     }
 }
