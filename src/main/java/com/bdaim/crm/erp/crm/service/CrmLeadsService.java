@@ -117,6 +117,8 @@ public class CrmLeadsService {
     private CustomerLabelService customerLabelService;
     @Resource
     private CustomerSeaService customerSeaService;
+    @Resource
+    private LkCrmTaskDao crmTaskDao;
 
     /**
      * 默认需要转为super_data的字段名称
@@ -1116,9 +1118,11 @@ public class CrmLeadsService {
      */
     @Before(Tx.class)
     public R addRecord(LkCrmAdminRecordEntity adminRecord) {
-        adminRecord.setCreateUserId(BaseUtil.getUser().getUserId().intValue());
+        adminRecord.setCustId(BaseUtil.getUser().getCustId());
+        adminRecord.setCreateUserId(BaseUtil.getUser().getUserId());
         adminRecord.setCreateTime(new Timestamp(System.currentTimeMillis()));
         adminRecord.setTypes("crm_leads");
+        // 添加日程
         if (adminRecord.getIsEvent() != null && 1 == adminRecord.getIsEvent()) {
             LkCrmOaEventEntity oaEvent = new LkCrmOaEventEntity();
             oaEvent.setTitle(adminRecord.getContent());
@@ -1128,18 +1132,49 @@ public class CrmLeadsService {
             oaEvent.setCreateTime(DateUtil.date().toTimestamp());
             crmOaEventDao.save(oaEvent);
         }
+        // 添加任务
+        if (adminRecord.getIsTask() != null && 1 == adminRecord.getIsTask()) {
+            LkCrmTaskEntity crmTaskEntity = new LkCrmTaskEntity();
+            crmTaskEntity.setCustId(BaseUtil.getUser().getCustId());
+            crmTaskEntity.setBatchId(IdUtil.simpleUUID());
+            crmTaskEntity.setName(adminRecord.getTaskName());
+            crmTaskEntity.setDescription(adminRecord.getContent());
+            crmTaskEntity.setCreateUserId(adminRecord.getCreateUserId());
+            crmTaskEntity.setMainUserId(adminRecord.getCreateUserId());
+            crmTaskEntity.setStartTime(adminRecord.getNextTime());
+            crmTaskEntity.setStopTime(DateUtil.offsetDay(adminRecord.getNextTime(), 1).toTimestamp());
+            //完成状态 1正在进行2延期3归档 5结束
+            crmTaskEntity.setStatus(1);
+            crmTaskEntity.setCreateTime(DateUtil.date().toTimestamp());
+            int taskId = (int) crmTaskDao.saveReturnPk(crmTaskEntity);
+            adminRecord.setTaskId(taskId);
+        }
         crmAdminRecordDao.executeUpdateSQL("update lkcrm_crm_leads set followup = 1 where leads_id = ?", adminRecord.getTypesId());
         return (int) crmAdminRecordDao.saveReturnPk(adminRecord) > 0 ? R.ok() : R.error();
     }
 
     /**
-     * @author wyq
      * 查看跟进记录
      */
     public List<Record> getRecord(BasePageRequest<CrmLeads> basePageRequest) {
         CrmLeads crmLeads = basePageRequest.getData();
         //List<Record> recordList = Db.find(Db.getSql("crm.leads.getRecord"), crmLeads.getLeadsId());
-        List<Record> recordList = crmLeadsDao.getRecord(crmLeads.getLeadsId());
+        List<Record> recordList = JavaBeanUtil.mapToRecords(crmLeadsDao.getRecord(crmLeads.getLeadsId(), basePageRequest.getPage(), basePageRequest.getLimit()));
+        recordList.forEach(record -> {
+            adminFileService.queryByBatchId(record.getStr("batch_id"), record);
+        });
+        return recordList;
+    }
+
+    /**
+     * 查看代办事项记录
+     * @param basePageRequest
+     * @param taskStatus
+     * @param leadsId
+     * @return
+     */
+    public List<Record> listAgency(BasePageRequest<CrmLeads> basePageRequest, Integer taskStatus, Integer leadsId) {
+        List<Record> recordList = JavaBeanUtil.mapToRecords(crmLeadsDao.getRecord(String.valueOf(leadsId), taskStatus, basePageRequest.getPage(), basePageRequest.getLimit()));
         recordList.forEach(record -> {
             adminFileService.queryByBatchId(record.getStr("batch_id"), record);
         });

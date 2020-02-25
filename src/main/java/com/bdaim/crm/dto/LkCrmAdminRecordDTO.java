@@ -13,6 +13,8 @@ public class LkCrmAdminRecordDTO {
     private String batchId;
     private Integer isEvent;
     private String seaId;
+    private String taskName;
+    private Integer isTask;
 
     public Integer getRecordId() {
         return recordId;
@@ -108,5 +110,21 @@ public class LkCrmAdminRecordDTO {
 
     public void setSeaId(String seaId) {
         this.seaId = seaId;
+    }
+
+    public String getTaskName() {
+        return taskName;
+    }
+
+    public void setTaskName(String taskName) {
+        this.taskName = taskName;
+    }
+
+    public Integer getIsTask() {
+        return isTask;
+    }
+
+    public void setIsTask(Integer isTask) {
+        this.isTask = isTask;
     }
 }

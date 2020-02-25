@@ -541,14 +541,14 @@ public class CrmCustomerService {
     public R addRecord(LkCrmAdminRecordEntity adminRecord) {
         adminRecord.setTypes("crm_customer");
         adminRecord.setCreateTime(DateUtil.date().toTimestamp());
-        adminRecord.setCreateUserId(BaseUtil.getUser().getUserId().intValue());
+        adminRecord.setCreateUserId(BaseUtil.getUser().getUserId());
         if (1 == adminRecord.getIsEvent()) {
             LkCrmOaEventEntity oaEvent = new LkCrmOaEventEntity();
             oaEvent.setTitle(adminRecord.getContent());
             oaEvent.setStartTime(adminRecord.getNextTime());
             oaEvent.setEndTime(DateUtil.offsetDay(adminRecord.getNextTime(), 1).toTimestamp());
             oaEvent.setCreateTime(DateUtil.date().toTimestamp());
-            oaEvent.setCreateUserId(BaseUtil.getUser().getUserId().intValue());
+            oaEvent.setCreateUserId(BaseUtil.getUser().getUserId());
             crmOaEventDao.save(oaEvent);
             LoginUser user = BaseUtil.getUser();
             oaActionRecordService.addRecord(oaEvent.getEventId(), OaEnum.EVENT_TYPE_KEY.getTypes(), 1, oaActionRecordService.getJoinIds(user.getUserId().intValue(), oaEvent.getOwnerUserIds()), oaActionRecordService.getJoinIds(user.getDeptId(), ""));

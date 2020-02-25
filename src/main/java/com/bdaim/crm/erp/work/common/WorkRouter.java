@@ -8,7 +8,7 @@ public class WorkRouter extends Routes {
     public void config() {
         addInterceptor(new WorkInterceptor());
         add("/work", WorkController.class);
-        add("/task", TaskController.class);
+        //add("/task", TaskController.class);
         add("/taskLabel", LabelController.class);
         add("/workbench", WorkbenchController.class);
         add("/workTrash", TrashController.class);

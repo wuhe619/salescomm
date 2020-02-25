@@ -7,8 +7,8 @@ import java.util.Objects;
 @Entity
 @Table(name = "lkcrm_work_task_log", schema = "", catalog = "")
 public class LkCrmWorkTaskLogEntity {
-    private int logId;
-    private int userId;
+    private Integer logId;
+    private Long userId;
     private String content;
     private Timestamp createTime;
     private Integer status;
@@ -17,21 +17,22 @@ public class LkCrmWorkTaskLogEntity {
 
     @Id
     @Column(name = "log_id")
-    public int getLogId() {
+    @GeneratedValue
+    public Integer getLogId() {
         return logId;
     }
 
-    public void setLogId(int logId) {
+    public void setLogId(Integer logId) {
         this.logId = logId;
     }
 
     @Basic
     @Column(name = "user_id")
-    public int getUserId() {
+    public Long getUserId() {
         return userId;
     }
 
-    public void setUserId(int userId) {
+    public void setUserId(Long userId) {
         this.userId = userId;
     }
 

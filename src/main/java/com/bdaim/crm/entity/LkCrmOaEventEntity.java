@@ -12,7 +12,7 @@ public class LkCrmOaEventEntity {
     private String content;
     private Timestamp startTime;
     private Timestamp endTime;
-    private int createUserId;
+    private Long createUserId;
     private Timestamp createTime;
     private Timestamp updateTime;
     private Integer type;
@@ -75,11 +75,11 @@ public class LkCrmOaEventEntity {
 
     @Basic
     @Column(name = "create_user_id")
-    public int getCreateUserId() {
+    public Long getCreateUserId() {
         return createUserId;
     }
 
-    public void setCreateUserId(int createUserId) {
+    public void setCreateUserId(Long createUserId) {
         this.createUserId = createUserId;
     }
 

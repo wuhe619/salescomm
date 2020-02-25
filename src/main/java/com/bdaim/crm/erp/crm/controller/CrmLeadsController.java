@@ -340,7 +340,7 @@ public class CrmLeadsController extends BasicAction {
     @RequestMapping(value = "/deleteFiled", method = RequestMethod.POST)
     public ResponseJson deleteFiled(@RequestBody CustomerSeaSearch param) {
         ResponseJson responseJson = new ResponseJson();
-        String sql = "ALTER TABLE `lkcrm_crm_customer` ADD COLUMN `company`  varchar(255) NULL AFTER `website`;";
+        String sql = "ALTER TABLE `lkcrm_admin_record` ADD COLUMN `task_id`  int NULL COMMENT '任务ID' AFTER `contacts_ids`;";
         int data = crmAdminFieldDao.executeUpdateSQL(sql);
         responseJson.setData(data);
         return responseJson;
@@ -478,6 +478,24 @@ public class CrmLeadsController extends BasicAction {
             return (R.noAuth());
         }
         return (R.ok().put("data", JavaBeanUtil.recordToMap(crmLeadsService.getRecord(basePageRequest))));
+    }
+
+    /**
+     * 代办事项列表
+     *
+     * @param basePageRequest
+     * @param taskStatus
+     * @param leadsId
+     * @return
+     */
+    @RequestMapping(value = "/agency/list", method = RequestMethod.POST)
+    public R listAgency(BasePageRequest basePageRequest, Integer taskStatus, Integer leadsId) {
+        basePageRequest.setData(taskStatus);
+        boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.LEADS_TYPE_KEY.getSign()), leadsId);
+        if (auth) {
+            return (R.noAuth());
+        }
+        return (R.ok().put("data", JavaBeanUtil.recordToMap(crmLeadsService.listAgency(basePageRequest, taskStatus, leadsId))));
     }
 
     /**

@@ -312,14 +312,14 @@ public class CrmContactsService {
     public R addRecord(LkCrmAdminRecordEntity adminRecord) {
         adminRecord.setTypes("crm_contacts");
         adminRecord.setCreateTime(DateUtil.date().toTimestamp());
-        adminRecord.setCreateUserId(BaseUtil.getUser().getUserId().intValue());
+        adminRecord.setCreateUserId(BaseUtil.getUser().getUserId());
         if (1 == adminRecord.getIsEvent()) {
             LkCrmOaEventEntity oaEvent = new LkCrmOaEventEntity();
             oaEvent.setTitle(adminRecord.getContent());
             oaEvent.setStartTime(adminRecord.getNextTime());
             oaEvent.setEndTime(DateUtil.offsetDay(adminRecord.getNextTime(), 1).toTimestamp());
             oaEvent.setCreateTime(DateUtil.date().toTimestamp());
-            oaEvent.setCreateUserId(BaseUtil.getUser().getUserId().intValue());
+            oaEvent.setCreateUserId(BaseUtil.getUser().getUserId());
             crmOaEventDao.save(oaEvent);
 
             LoginUser user = BaseUtil.getUser();
