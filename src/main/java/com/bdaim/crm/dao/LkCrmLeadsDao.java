@@ -41,6 +41,7 @@ public class LkCrmLeadsDao extends SimpleHibernateDao<LkCrmLeadsEntity, Integer>
             maps.get(0).put("seaId", entity.getSeaId());
             maps.get(0).put("company", entity.getCompany());
             maps.get(0).put("公司名称", entity.getCompany());
+            maps.get(0).put("isLock", entity.getIsLock());
             return maps.get(0);
         }
         return null;
