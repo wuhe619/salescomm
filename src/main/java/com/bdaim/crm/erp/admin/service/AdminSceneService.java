@@ -670,7 +670,7 @@ public class AdminSceneService {
                     map.put("status_name", "无效");
                 }
             });
-            setBusinessStatus(recordPage.getData());
+            setBusinessStatus(JavaBeanUtil.mapToRecords(recordPage.getData()));
         }
       /*  com.jfinal.plugin.activerecord.Page finalPage = new com.jfinal.plugin.activerecord.Page();
         finalPage.setList(recordPage.getData());
