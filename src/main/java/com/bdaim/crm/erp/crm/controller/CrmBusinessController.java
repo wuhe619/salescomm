@@ -183,7 +183,7 @@ public class CrmBusinessController extends Controller {
             return(R.noAuth());
             //return;
         }
-        return(R.ok().put("data", JavaBeanUtil.recordToMap(crmBusinessService.getMembers(businessId))));
+        return(R.ok().put("data", crmBusinessService.getMembers(businessId)));
     }
 
     /**

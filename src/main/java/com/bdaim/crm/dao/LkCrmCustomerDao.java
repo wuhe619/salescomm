@@ -91,9 +91,10 @@ public class LkCrmCustomerDao extends SimpleHibernateDao<LkCrmCustomerEntity, In
 
 
     public List<Map<String, Object>> getMembers(Long owner_user_id) {
-        String sql = " select a.user_id as id,a.realname,b.name\n" +
+       /* String sql = " select a.user_id as id,a.realname,b.name\n" +
                 "    from lkcrm_admin_user as a inner join lkcrm_admin_dept as b on a.dept_id = b.dept_id\n" +
-                "    where a.user_id = ?";
+                "    where a.user_id = ?";*/
+        String sql = " select a.id as id,a.realname,'默认部门' AS name  from t_customer_user as a where a.id = ? ";
         return sqlQuery(sql, owner_user_id);
     }
 
