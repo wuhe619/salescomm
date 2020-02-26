@@ -344,8 +344,12 @@ public class CrmBusinessService {
         LkCrmBusinessEntity crmBusiness = crmBusinessDao.get(businessId);
         List<Record> recordList = new ArrayList<>();
         if (crmBusiness.getOwnerUserId() != null) {
-            Record ownerUser = JavaBeanUtil.mapToRecord(crmCustomerDao.getMembers(crmBusiness.getOwnerUserId()).get(0));
-            recordList.add(ownerUser.set("power", "负责人权限").set("groupRole", "负责人"));
+            List<Map<String, Object>> members = crmCustomerDao.getMembers(crmBusiness.getOwnerUserId());
+            if (members.size() > 0) {
+                Record ownerUser = JavaBeanUtil.mapToRecord(members.get(0));
+                recordList.add(ownerUser.set("power", "负责人权限").set("groupRole", "负责人"));
+            }
+
         }
         String roUserId = crmBusiness.getRoUserId();
         String rwUserId = crmBusiness.getRwUserId();
