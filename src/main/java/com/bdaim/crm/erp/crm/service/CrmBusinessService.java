@@ -23,6 +23,7 @@ import com.bdaim.crm.utils.FieldUtil;
 import com.bdaim.crm.utils.R;
 import com.bdaim.util.JavaBeanUtil;
 import com.bdaim.util.NumberConvertUtil;
+import com.bdaim.util.SqlAppendUtil;
 import com.jfinal.aop.Before;
 import com.jfinal.kit.Kv;
 import com.jfinal.plugin.activerecord.Db;
@@ -269,19 +270,23 @@ public class CrmBusinessService {
         if (number > 0) {
             return R.error("该条数据与其他数据有必要关联，请勿删除");
         }
-        List<Record> idsList = new ArrayList<>();
+        List<String> idsList = new ArrayList<>();
         for (String id : idsArr) {
-            Record record = new Record();
-            idsList.add(record.set("business_id", Integer.valueOf(id)));
+            idsList.add(id);
         }
         //List<Record> batchIdList = Db.find(Db.getSqlPara("crm.business.queryBatchIdByIds", Kv.by("ids", idsArr)));
-        List<Record> batchIdList = JavaBeanUtil.mapToRecords(crmBusinessDao.queryBatchIdByIds(Arrays.asList(idsArr)));
-        return Db.tx(() -> {
-            crmBusinessDao.deleteByIds(Arrays.asList(idsArr));
-            //Db.batch(Db.getSql("crm.business.deleteByIds"), "business_id", idsList, 100);
-            crmBusinessDao.executeUpdateSQL("delete from lkcrm_admin_fieldv where batch_id IN( ?)", Arrays.asList(idsArr));
-            return true;
-        }) ? R.ok() : R.error();
+        List<Map<String, Object>> batchIdList = crmBusinessDao.queryBatchIdByIds(idsList);
+        crmBusinessDao.deleteByIds(Arrays.asList(idsArr));
+        if (batchIdList.size() > 0) {
+            List<String> batchIds = new ArrayList<>();
+            batchIdList.forEach(s -> batchIds.add(String.valueOf(s.get("batch_id"))));
+            crmBusinessDao.executeUpdateSQL("delete from lkcrm_admin_fieldv where batch_id IN(" + SqlAppendUtil.sqlAppendWhereIn(batchIds) + ")");
+        }
+        //Db.batch(Db.getSql("crm.business.deleteByIds"), "business_id", idsList, 100);
+
+        //return true;
+        //}) ? R.ok() : R.error();
+        return R.ok();
     }
 
     /**
