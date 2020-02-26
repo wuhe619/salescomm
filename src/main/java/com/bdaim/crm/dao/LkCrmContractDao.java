@@ -36,7 +36,7 @@ public class LkCrmContractDao extends SimpleHibernateDao<LkCrmContractEntity, In
 
 
     public int deleteByContractId(int contractId) {
-        return super.queryForInt("delete from lkcrm_crm_contract_product where contract_id = ?", contractId);
+        return super.executeUpdateSQL("delete from lkcrm_crm_contract_product where contract_id = ?", contractId);
     }
 
     public List<Map<String, Object>> queryProductById(String batchId) {
