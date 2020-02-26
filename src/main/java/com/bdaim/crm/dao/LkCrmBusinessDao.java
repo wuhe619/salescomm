@@ -3,6 +3,7 @@ package com.bdaim.crm.dao;
 import com.bdaim.common.dao.SimpleHibernateDao;
 import com.bdaim.common.dto.Page;
 import com.bdaim.crm.entity.LkCrmBusinessEntity;
+import com.bdaim.util.SqlAppendUtil;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -86,24 +87,24 @@ public class LkCrmBusinessDao extends SimpleHibernateDao<LkCrmBusinessEntity, In
     }
 
     public int unrelateContacts(Integer businessId, List ids) {
-        String sql = "delete from lkcrm_crm_contacts_business where business_id = ? and contacts_id in (?)";
-        return executeUpdateSQL(sql, businessId, ids);
+        String sql = "delete from lkcrm_crm_contacts_business where business_id = ? and contacts_id in (" + SqlAppendUtil.sqlAppendWhereIn(ids) + ")";
+        return executeUpdateSQL(sql, businessId);
     }
 
     public int queryContractNumber(List ids) {
         String sql = " select count(*)  from lkcrm_crm_contract as a left join lkcrm_crm_customer as b on a.customer_id = b.customer_id\n" +
-                "    where a.business_id in (?)";
-        return queryForInt(sql, ids);
+                "    where a.business_id in (" + SqlAppendUtil.sqlAppendWhereIn(ids) + ")";
+        return queryForInt(sql);
     }
 
     public List queryBatchIdByIds(List ids) {
-        String sql = "select batch_id from lkcrm_crm_business where business_id in (?) ";
-        return sqlQuery(sql, ids);
+        String sql = "select batch_id from lkcrm_crm_business where business_id in (" + SqlAppendUtil.sqlAppendWhereIn(ids) + ") ";
+        return sqlQuery(sql);
     }
 
     public int deleteByIds(List ids) {
-        String sql = "  delete from lkcrm_crm_business where business_id IN(?)";
-        return executeUpdateSQL(sql, ids);
+        String sql = "  delete from lkcrm_crm_business where business_id IN(" + SqlAppendUtil.sqlAppendWhereIn(ids) + ")";
+        return executeUpdateSQL(sql);
     }
 
     public List queryBusinessStatus(Integer businessId) {
