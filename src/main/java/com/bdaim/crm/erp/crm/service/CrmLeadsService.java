@@ -1145,7 +1145,9 @@ public class CrmLeadsService {
             crmTaskEntity.setCreateUserId(adminRecord.getCreateUserId());
             crmTaskEntity.setMainUserId(adminRecord.getCreateUserId());
             crmTaskEntity.setStartTime(adminRecord.getNextTime());
-            crmTaskEntity.setStopTime(DateUtil.offsetDay(adminRecord.getNextTime(), 1).toTimestamp());
+            if (adminRecord.getNextTime() != null) {
+                crmTaskEntity.setStopTime(DateUtil.offsetDay(adminRecord.getNextTime(), 1).toTimestamp());
+            }
             //完成状态 1正在进行2延期3归档 5结束
             crmTaskEntity.setStatus(1);
             crmTaskEntity.setCreateTime(DateUtil.date().toTimestamp());
