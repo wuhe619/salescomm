@@ -352,7 +352,6 @@ public class TaskService{
 
     private void saveWorkTaskLog(LkCrmWorkTaskLogEntity workTaskLog){
         workTaskLog.setCreateTime(DateUtil.date().toTimestamp());
-        workTaskLog.setLogId(null);
         crmTaskDao.saveOrUpdate(workTaskLog);
         //workTaskLog.save();
     }
