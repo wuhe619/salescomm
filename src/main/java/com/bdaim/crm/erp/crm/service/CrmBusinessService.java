@@ -415,15 +415,15 @@ public class CrmBusinessService {
     public R deleteMembers(CrmBusiness crmBusiness) {
         String[] businessIdsArr = crmBusiness.getIds().split(",");
         String[] memberArr = crmBusiness.getMemberIds().split(",");
-        return Db.tx(() -> {
-            for (String id : businessIdsArr) {
-                for (String memberId : memberArr) {
-                    crmBusinessDao.deleteMember("," + memberId + ",", Integer.valueOf(id));
-                    // Db.update(Db.getSql("crm.business.deleteMember"), "," + memberId + ",", "," + memberId + ",", Integer.valueOf(id));
-                }
+        //return Db.tx(() -> {
+        for (String id : businessIdsArr) {
+            for (String memberId : memberArr) {
+                crmBusinessDao.deleteMember("," + memberId + ",", Integer.valueOf(id));
+                // Db.update(Db.getSql("crm.business.deleteMember"), "," + memberId + ",", "," + memberId + ",", Integer.valueOf(id));
             }
-            return true;
-        }) ? R.ok() : R.error();
+        }
+        return R.ok();
+        //}) ? R.ok() : R.error();
     }
 
     /**
