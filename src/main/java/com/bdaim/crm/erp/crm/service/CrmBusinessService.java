@@ -315,15 +315,15 @@ public class CrmBusinessService {
             LkCrmBusinessEntity oldBusiness = crmBusinessDao.get(Integer.valueOf(businessId));
             if (2 == crmBusiness.getTransferType()) {
                 if (1 == crmBusiness.getPower()) {
-                    crmBusiness.setRoUserId(oldBusiness.getRoUserId() + oldBusiness.getOwnerUserId() + ",");
+                    oldBusiness.setRoUserId(oldBusiness.getRoUserId() + oldBusiness.getOwnerUserId() + ",");
                 }
                 if (2 == crmBusiness.getPower()) {
-                    crmBusiness.setRwUserId(oldBusiness.getRwUserId() + oldBusiness.getOwnerUserId() + ",");
+                    oldBusiness.setRwUserId(oldBusiness.getRwUserId() + oldBusiness.getOwnerUserId() + ",");
                 }
             }
-            crmBusiness.setBusinessId(Integer.valueOf(businessId));
-            crmBusiness.setOwnerUserId(crmBusiness.getNewOwnerUserId());
-            crmBusinessDao.update(crmBusiness);
+            oldBusiness.setBusinessId(Integer.valueOf(businessId));
+            oldBusiness.setOwnerUserId(crmBusiness.getNewOwnerUserId());
+            crmBusinessDao.saveOrUpdate(oldBusiness);
             crmRecordService.addConversionRecord(Integer.valueOf(businessId), CrmEnum.BUSINESS_TYPE_KEY.getTypes(), crmBusiness.getNewOwnerUserId());
         }
         //return true;
