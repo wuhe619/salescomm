@@ -3,7 +3,6 @@ package com.bdaim.crm.erp.crm.controller;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.crm.common.annotation.NotNullValidate;
 import com.bdaim.crm.common.annotation.Permissions;
-import com.bdaim.crm.common.annotation.RequestBody;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.entity.LkCrmAdminRecordEntity;
 import com.bdaim.crm.entity.LkCrmBusinessEntity;
@@ -16,6 +15,7 @@ import com.bdaim.crm.utils.R;
 import com.bdaim.util.JavaBeanUtil;
 import com.jfinal.core.Controller;
 import com.jfinal.core.paragetter.Para;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -40,7 +40,8 @@ public class CrmBusinessController extends Controller {
      */
     @Permissions({"crm:business:index"})
     @RequestMapping(value = "/queryPageList", method = RequestMethod.POST)
-    public R queryPageList(@RequestBody BasePageRequest basePageRequest, @RequestBody JSONObject jsonObject) {
+    public R queryPageList(@RequestBody JSONObject jsonObject) {
+        BasePageRequest<Void> basePageRequest = new BasePageRequest<>(jsonObject.getIntValue("page"),jsonObject.getIntValue("limit"));
         //JSONObject jsonObject = basePageRequest.getJsonObject().fluentPut("type",5);
         jsonObject.fluentPut("type", 5);
         basePageRequest.setJsonObject(jsonObject);

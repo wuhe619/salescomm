@@ -23,6 +23,7 @@ import org.apache.poi.hssf.usermodel.*;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.ss.util.CellRangeAddressList;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -57,8 +58,9 @@ public class CrmProductController extends Controller {
      */
     @Permissions({"crm:product:index"})
     @RequestMapping(value = "queryPageList", method = RequestMethod.POST)
-    public R queryPageList(BasePageRequest basePageRequest) {
-        JSONObject jsonObject = basePageRequest.getJsonObject().fluentPut("type", 4);
+    public R queryPageList(@RequestBody  JSONObject jsonObject) {
+        BasePageRequest<Void> basePageRequest = new BasePageRequest<>(jsonObject.getIntValue("page"),jsonObject.getIntValue("limit"));
+        jsonObject.fluentPut("type", 4);
         basePageRequest.setJsonObject(jsonObject);
         return (adminSceneService.filterConditionAndGetPageList(basePageRequest));
     }

@@ -7,7 +7,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.bdaim.crm.common.annotation.LoginFormCookie;
 import com.bdaim.crm.common.annotation.NotNullValidate;
 import com.bdaim.crm.common.annotation.Permissions;
-import com.bdaim.crm.common.annotation.RequestBody;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.entity.LkCrmAdminRecordEntity;
 import com.bdaim.crm.entity.LkCrmCustomerEntity;
@@ -37,6 +36,7 @@ import org.apache.poi.hssf.usermodel.*;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.ss.util.CellRangeAddressList;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -80,7 +80,7 @@ public class CrmCustomerController extends Controller {
      */
     @Permissions({"crm:customer:index"})
     @RequestMapping(value = "/queryPageList", method = RequestMethod.POST)
-    public R queryPageList(@org.springframework.web.bind.annotation.RequestBody JSONObject jsonObject) {
+    public R queryPageList(@RequestBody JSONObject jsonObject) {
         BasePageRequest<Void> basePageRequest = new BasePageRequest<>();
         jsonObject.fluentPut("type", 2);
         basePageRequest.setJsonObject(jsonObject);
@@ -93,7 +93,7 @@ public class CrmCustomerController extends Controller {
      */
     @Permissions({"crm:pool:index"})
     @RequestMapping(value = "/queryPoolPageList", method = RequestMethod.POST)
-    public R queryPoolPageList(BasePageRequest basePageRequest,@RequestBody JSONObject jsonObject) {
+    public R queryPoolPageList(@RequestBody BasePageRequest basePageRequest, @RequestBody JSONObject jsonObject) {
         //JSONObject jsonObject = basePageRequest.getJsonObject().fluentPut("type", 8);
         basePageRequest.setJsonObject(jsonObject);
         return (adminSceneService.filterConditionAndGetPageList(basePageRequest));
@@ -115,7 +115,7 @@ public class CrmCustomerController extends Controller {
      */
     @Permissions({"crm:customer:save", "crm:customer:update"})
     @RequestMapping(value = "/addOrUpdate", method = RequestMethod.POST)
-    public R addOrUpdate(@org.springframework.web.bind.annotation.RequestBody JSONObject jsonObject) {
+    public R addOrUpdate(@RequestBody JSONObject jsonObject) {
         //JSONObject jsonObject = JSON.parseObject(getRawData());
         return(crmCustomerService.addOrUpdate(jsonObject, "noImport"));
     }

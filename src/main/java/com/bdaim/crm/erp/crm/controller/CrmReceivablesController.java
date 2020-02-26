@@ -11,6 +11,7 @@ import com.bdaim.crm.erp.crm.service.CrmReceivablesService;
 import com.bdaim.crm.utils.R;
 import com.jfinal.core.Controller;
 import com.jfinal.core.paragetter.Para;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -36,8 +37,9 @@ public class CrmReceivablesController extends Controller {
      */
     @Permissions({"crm:receivables:index"})
     @RequestMapping(value = "queryPageList", method = RequestMethod.POST)
-    public R queryPageList(BasePageRequest basePageRequest) {
-        JSONObject jsonObject = basePageRequest.getJsonObject().fluentPut("type", 7);
+    public R queryPageList(@RequestBody JSONObject jsonObject) {
+        BasePageRequest<Void> basePageRequest = new BasePageRequest<>(jsonObject.getIntValue("page"),jsonObject.getIntValue("limit"));
+        jsonObject.fluentPut("type", 7);
         basePageRequest.setJsonObject(jsonObject);
         return (adminSceneService.filterConditionAndGetPageList(basePageRequest));
     }
