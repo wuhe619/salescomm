@@ -8,7 +8,7 @@ import java.util.Objects;
 @Entity
 @Table(name = "lkcrm_crm_business", schema = "", catalog = "")
 public class LkCrmBusinessEntity {
-    private int businessId;
+    private Integer businessId;
     private String custId;
     private Integer typeId;
     private Integer statusId;

@@ -71,9 +71,9 @@ public class CrmBusinessService {
     private LkCrmContactsDao crmContactsDao;
 
     /**
+     * @return
      * @author wyq
      * 分页条件查询商机
-     * @return
      */
     public CrmPage getBusinessPageList(BasePageRequest basePageRequest) {
         Page page = crmBusinessDao.sqlPageQuery("select * from businessview", basePageRequest.getPage(), basePageRequest.getLimit());
@@ -92,7 +92,10 @@ public class CrmBusinessService {
         JSONArray jsonArray = jsonObject.getJSONArray("product");
         List<LkCrmBusinessProductEntity> businessProductList = jsonArray.toJavaList(LkCrmBusinessProductEntity.class);
         //Db.delete(Db.getSql("crm.business.clearBusinessProduct"), crmBusiness.getBusinessId());
-        crmBusinessDao.clearBusinessProduct(crmBusiness.getBusinessId());
+        if (crmBusiness.getBusinessId() != null) {
+            crmBusinessDao.clearBusinessProduct(crmBusiness.getBusinessId());
+        }
+
         String batchId = StrUtil.isNotEmpty(crmBusiness.getBatchId()) ? crmBusiness.getBatchId() : IdUtil.simpleUUID();
         crmRecordService.updateRecord(jsonObject.getJSONArray("field"), batchId);
         adminFieldService.save(jsonObject.getJSONArray("field"), batchId);

@@ -58,8 +58,8 @@ public class LkCrmReceivablesDao extends SimpleHibernateDao<LkCrmReceivablesEnti
     public List<Map<String, Object>> queryReceivablesById(int receivables_id) {
         String sql = "select rb.* ,scc.money as contract_money ,saf.value as receivable_way\n" +
                 "        from receivablesview as rb\n" +
-                "        LEFT JOIN 72crm_crm_contract as scc on scc.contract_id = rb.contract_id\n" +
-                "        LEFT JOIN 72crm_admin_fieldv as saf on saf.batch_id = rb.batch_id AND saf.name = '回款方式'\n" +
+                "        LEFT JOIN lkcrm_crm_contract as scc on scc.contract_id = rb.contract_id\n" +
+                "        LEFT JOIN lkcrm_admin_fieldv as saf on saf.batch_id = rb.batch_id AND saf.name = '回款方式'\n" +
                 "        where rb.receivables_id = ?";
         return super.sqlQuery(sql, receivables_id);
     }
