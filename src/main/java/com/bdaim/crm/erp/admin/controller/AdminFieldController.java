@@ -1,10 +1,8 @@
 package com.bdaim.crm.erp.admin.controller;
 
 import cn.hutool.core.util.NumberUtil;
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.controller.BasicAction;
-import com.bdaim.common.controller.util.ResponseJson;
 import com.bdaim.common.exception.TouchException;
 import com.bdaim.crm.common.annotation.NotNullValidate;
 import com.bdaim.crm.common.annotation.Permissions;
@@ -19,12 +17,14 @@ import com.bdaim.crm.erp.oa.service.OaExamineCategoryService;
 import com.bdaim.crm.utils.AuthUtil;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
-import com.bdaim.customer.dto.CustomerLabelDTO;
 import com.bdaim.util.JavaBeanUtil;
 import com.jfinal.core.paragetter.Para;
 import com.jfinal.kit.Kv;
 import com.jfinal.plugin.activerecord.Record;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import java.util.*;
@@ -289,18 +289,14 @@ public class AdminFieldController extends BasicAction {
      * @date: 2019/7/1 10:29
      */
     @RequestMapping(value = "/list/label", method = RequestMethod.POST)
-    public String getLabelInfo(@org.springframework.web.bind.annotation.RequestBody CustomerLabelDTO customerLabelDTO) {
-        ResponseJson responseJson = new ResponseJson();
-        try {
-            Map<String, Object> map = adminFieldService.getLabelInfoById(customerLabelDTO, opUser());
-            responseJson.setData(map);
-            responseJson.setCode(200);
-            responseJson.setMessage("success");
-        } catch (Exception e) {
-            e.printStackTrace();
-            responseJson.setCode(-1);
-            responseJson.setMessage(e.getMessage());
-        }
-        return JSON.toJSONString(responseJson);
+    public R getLabelInfo(String name, Integer id) {
+        List<Record> recordList = crmLeadsService.queryField(id);
+        List<Record> data = new ArrayList<>();
+        recordList.forEach(r -> {
+            if (Objects.equals(name, r.getStr("fieldName"))) {
+                data.add(r);
+            }
+        });
+        return renderCrmJson(data);
     }
 }
