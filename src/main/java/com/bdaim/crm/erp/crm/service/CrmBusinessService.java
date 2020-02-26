@@ -24,6 +24,7 @@ import com.bdaim.crm.utils.R;
 import com.bdaim.util.JavaBeanUtil;
 import com.bdaim.util.NumberConvertUtil;
 import com.bdaim.util.SqlAppendUtil;
+import com.bdaim.util.StringUtil;
 import com.jfinal.aop.Before;
 import com.jfinal.kit.Kv;
 import com.jfinal.plugin.activerecord.Db;
@@ -390,16 +391,25 @@ public class CrmBusinessService {
                         return R.error("负责人不能重复选为团队成员");
                     }
                     crmBusinessDao.deleteMember("," + memberId + ",", NumberConvertUtil.parseInt(id));
+                    crmBusinessDao.getSession().clear();
                 }
                 if (crmBusiness.getPower() != null) {
                     if (1 == crmBusiness.getPower()) {
                         stringBuffer.setLength(0);
-                        String roUserId = stringBuffer.append(crmBusinessDao.get(Integer.valueOf(id)).getRoUserId()).append(crmBusiness.getMemberIds()).append(",").toString();
+                        String roUserIdDb = crmBusinessDao.get(Integer.valueOf(id)).getRoUserId();
+                        if ((StringUtil.isNotEmpty(roUserIdDb) && !roUserIdDb.startsWith(",")) || StringUtil.isEmpty(roUserIdDb)) {
+                            stringBuffer.append(",");
+                        }
+                        String roUserId = stringBuffer.append(roUserIdDb).append(crmBusiness.getMemberIds()).append(",").toString();
                         crmBusinessDao.executeUpdateSQL("update lkcrm_crm_business set ro_user_id = ? where business_id = ?", roUserId, Integer.valueOf(id));
                     }
                     if (2 == crmBusiness.getPower()) {
                         stringBuffer.setLength(0);
-                        String rwUserId = stringBuffer.append(crmBusinessDao.get(Integer.valueOf(id)).getRwUserId()).append(crmBusiness.getMemberIds()).append(",").toString();
+                        String roUserIdDb = crmBusinessDao.get(Integer.valueOf(id)).getRoUserId();
+                        if ((StringUtil.isNotEmpty(roUserIdDb) && !roUserIdDb.startsWith(",")) || StringUtil.isEmpty(roUserIdDb)) {
+                            stringBuffer.append(",");
+                        }
+                        String rwUserId = stringBuffer.append(roUserIdDb).append(crmBusiness.getMemberIds()).append(",").toString();
                         crmBusinessDao.executeUpdateSQL("update lkcrm_crm_business set rw_user_id = ? where business_id = ?", rwUserId, Integer.valueOf(id));
                     }
                 }
