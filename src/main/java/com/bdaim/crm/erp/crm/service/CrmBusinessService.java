@@ -382,23 +382,24 @@ public class CrmBusinessService {
             if (StrUtil.isNotEmpty(id)) {
                 Long ownerUserId = crmBusinessDao.get(Integer.valueOf(id)).getOwnerUserId();
                 for (String memberId : memberArr) {
-                    if (ownerUserId.equals(Integer.valueOf(memberId))) {
+                    if (ownerUserId.equals(NumberConvertUtil.parseLong(memberId))) {
                         return R.error("负责人不能重复选为团队成员");
                     }
-                    crmBusinessDao.deleteMember("," + memberId + ",", Integer.valueOf(id));
+                    crmBusinessDao.deleteMember("," + memberId + ",", NumberConvertUtil.parseInt(id));
                 }
-                if (1 == crmBusiness.getPower()) {
-                    stringBuffer.setLength(0);
-                    String roUserId = stringBuffer.append(crmBusinessDao.get(Integer.valueOf(id)).getRoUserId()).append(crmBusiness.getMemberIds()).append(",").toString();
-                    crmBusinessDao.executeUpdateSQL("update lkcrm_crm_business set ro_user_id = ? where business_id = ?", roUserId, Integer.valueOf(id));
-                }
-                if (2 == crmBusiness.getPower()) {
-                    stringBuffer.setLength(0);
-                    String rwUserId = stringBuffer.append(crmBusinessDao.get(Integer.valueOf(id)).getRwUserId()).append(crmBusiness.getMemberIds()).append(",").toString();
-                    crmBusinessDao.executeUpdateSQL("update lkcrm_crm_business set rw_user_id = ? where business_id = ?", rwUserId, Integer.valueOf(id));
+                if (crmBusiness.getPower() != null) {
+                    if (1 == crmBusiness.getPower()) {
+                        stringBuffer.setLength(0);
+                        String roUserId = stringBuffer.append(crmBusinessDao.get(Integer.valueOf(id)).getRoUserId()).append(crmBusiness.getMemberIds()).append(",").toString();
+                        crmBusinessDao.executeUpdateSQL("update lkcrm_crm_business set ro_user_id = ? where business_id = ?", roUserId, Integer.valueOf(id));
+                    }
+                    if (2 == crmBusiness.getPower()) {
+                        stringBuffer.setLength(0);
+                        String rwUserId = stringBuffer.append(crmBusinessDao.get(Integer.valueOf(id)).getRwUserId()).append(crmBusiness.getMemberIds()).append(",").toString();
+                        crmBusinessDao.executeUpdateSQL("update lkcrm_crm_business set rw_user_id = ? where business_id = ?", rwUserId, Integer.valueOf(id));
+                    }
                 }
             }
-
         }
         return R.ok();
     }
