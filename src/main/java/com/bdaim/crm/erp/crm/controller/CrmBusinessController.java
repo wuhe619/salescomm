@@ -282,8 +282,9 @@ public class CrmBusinessController extends Controller {
      * 查看跟进记录
      */
     @RequestMapping(value = "/getRecord", method = RequestMethod.POST)
-    public R getRecord(BasePageRequest<CrmBusiness> basePageRequest) {
-        boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.BUSINESS_TYPE_KEY.getSign()), basePageRequest.getData().getBusinessId());
+    public R getRecord(BasePageRequest basePageRequest,CrmBusiness crmBusiness) {
+        basePageRequest.setData(crmBusiness);
+        boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.BUSINESS_TYPE_KEY.getSign()), crmBusiness.getBusinessId());
         if (auth) {
             return(R.noAuth());
             //return;
