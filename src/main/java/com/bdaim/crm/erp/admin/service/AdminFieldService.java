@@ -5,6 +5,7 @@ import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.util.TypeUtils;
+import com.bdaim.auth.LoginUser;
 import com.bdaim.crm.common.config.cache.CaffeineCache;
 import com.bdaim.crm.dao.LkCrmAdminFieldDao;
 import com.bdaim.crm.dao.LkCrmAdminFieldvDao;
@@ -15,6 +16,9 @@ import com.bdaim.crm.entity.LkCrmAdminFieldvEntity;
 import com.bdaim.crm.erp.admin.entity.AdminField;
 import com.bdaim.crm.erp.admin.entity.AdminFieldSort;
 import com.bdaim.crm.utils.*;
+import com.bdaim.customer.dao.CustomerLabelDao;
+import com.bdaim.customer.dto.CustomerLabelDTO;
+import com.bdaim.customer.entity.CustomerLabel;
 import com.bdaim.util.JavaBeanUtil;
 import com.bdaim.util.StringUtil;
 import com.jfinal.aop.Before;
@@ -40,6 +44,9 @@ public class AdminFieldService {
 
     @Resource
     private LkCrmAdminFieldvDao crmAdminFieldvDao;
+
+    @Resource
+    private CustomerLabelDao customerLabelDao;
 
     /**
      * @author wyq
@@ -701,5 +708,32 @@ public class AdminFieldService {
                 }
             }
         });
+    }
+
+    /**
+     * @description 获取标签信息
+     * @method
+     * @date: 2019/7/1 11:43
+     */
+    public Map<String, Object> getLabelInfoById(CustomerLabelDTO customerLabelDTO, LoginUser loginUser) throws Exception {
+        Map<String, Object> map = new HashMap();
+        String labelName = customerLabelDTO.getLabelName();
+        String projectId = customerLabelDTO.getMarketProjectId();
+        //根据项目id查询标签信息
+        if (StringUtil.isEmpty(labelName)) {
+            labelName = "跟进状态";
+        }
+        //查询自定义状态
+        CustomerLabel customerLabel = customerLabelDao.getLabelByProjectId(projectId, loginUser.getCustId(), labelName);
+        if (customerLabel != null) {
+            map.put("customLabel", customerLabel);
+        }
+        //查询全局状态
+        CustomerLabel allLabel = customerLabelDao.getLabelByProjectId(null, "0", labelName);
+        map.put("allLabel", allLabel);
+        //查询无效原因标签
+        CustomerLabel invalidLabel = customerLabelDao.getLabelByProjectId(null, "0", "无效原因");
+        map.put("invalidLabel", invalidLabel);
+        return map;
     }
 }
