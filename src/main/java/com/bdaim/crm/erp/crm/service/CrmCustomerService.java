@@ -25,6 +25,7 @@ import com.bdaim.crm.erp.oa.service.OaActionRecordService;
 import com.bdaim.crm.utils.*;
 import com.bdaim.util.JavaBeanUtil;
 import com.bdaim.util.NumberConvertUtil;
+import com.bdaim.util.StringUtil;
 import com.jfinal.aop.Before;
 import com.jfinal.kit.Kv;
 import com.jfinal.log.Log;
@@ -319,12 +320,12 @@ public class CrmCustomerService {
             idsList.add(Integer.valueOf(id));
         }
         List<Record> batchIdList = JavaBeanUtil.mapToRecords(crmCustomerDao.queryBatchIdByIds(Arrays.asList(idsArr)));
-        return Db.tx(() -> {
+        //return Db.tx(() -> {
             crmCustomerDao.deleteByIds(idsList);
             //Db.batch(Db.getSql("crm.customer.deleteByIds"), "customer_id", idsList, 100);
             crmCustomerDao.executeUpdateSQL("delete from lkcrm_admin_fieldv where batch_id IN (?)", batchIdList);
-            return true;
-        }) ? R.ok() : R.error();
+            return R.ok();
+        //}) ? R.ok() : R.error();
     }
 
     /**
@@ -608,7 +609,9 @@ public class CrmCustomerService {
             if (businessIds != null) {
                 String[] businessIdsArr = businessIds.split(",");
                 for (String businessId : businessIdsArr) {
-                    businessList.add(crmBusinessDao.get(Integer.valueOf(businessId)));
+                    if(StringUtil.isNotEmpty(businessId)){
+                        businessList.add(crmBusinessDao.get(NumberConvertUtil.parseInt(businessId)));
+                    }
                 }
             }
             String contactsIds = record.getStr("contacts_ids");
@@ -616,7 +619,9 @@ public class CrmCustomerService {
             if (contactsIds != null) {
                 String[] contactsIdsArr = contactsIds.split(",");
                 for (String contactsId : contactsIdsArr) {
-                    contactsList.add(crmContactsDao.get(Integer.valueOf(contactsId)));
+                    if(StringUtil.isNotEmpty(contactsId)){
+                        contactsList.add(crmContactsDao.get(NumberConvertUtil.parseInt(contactsId)));
+                    }
                 }
             }
             record.set("business_list", businessList).set("contacts_list", contactsList);

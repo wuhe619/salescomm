@@ -78,9 +78,9 @@ public class LkCrmCustomerDao extends SimpleHibernateDao<LkCrmCustomerEntity, In
     }
 
     public List getRecord(Integer customerId) {
-        String sql = " select a.record_id,b.img as user_img,b.realname,a.create_time,a.content,a.category,a.next_time,a.batch_id,a.business_ids,a.contacts_ids\n" +
-                "    from lkcrm_admin_record as a inner join lkcrm_admin_user as b\n" +
-                "    where a.create_user_id = b.user_id and types = 'crm_customer' and types_id = ? order by a.create_time desc";
+        String sql = " select a.record_id, '' as user_img,b.realname,a.create_time,a.content,a.category,a.next_time,a.batch_id,a.business_ids,a.contacts_ids\n" +
+                "    from lkcrm_admin_record as a inner join t_customer_user as b " +
+                "    where a.create_user_id = b.id and types = 'crm_customer' and types_id = ? order by a.create_time desc";
         return sqlQuery(sql, customerId);
     }
 
