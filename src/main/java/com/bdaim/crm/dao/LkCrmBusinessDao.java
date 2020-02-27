@@ -38,7 +38,7 @@ public class LkCrmBusinessDao extends SimpleHibernateDao<LkCrmBusinessEntity, In
                 "    where a.product_id = b.product_id and b.category_id = c.category_id and a.business_id = ?  ";
         List param = new ArrayList();
         param.add(businessId);
-        return sqlQuery(sql, param);
+        return sqlQuery(sql, param.toArray());
     }
 
     public Page pageQueryProduct(int pageNum, int pageSize, Integer businessId) {
@@ -56,7 +56,7 @@ public class LkCrmBusinessDao extends SimpleHibernateDao<LkCrmBusinessEntity, In
                 "    where a.business_id = ?  ";
         List param = new ArrayList();
         param.add(businessId);
-        return sqlQuery(sql, param);
+        return sqlQuery(sql, param.toArray());
     }
 
     public Page pageQueryContract(int pageNum, int pageSize, Integer businessId) {
@@ -74,7 +74,7 @@ public class LkCrmBusinessDao extends SimpleHibernateDao<LkCrmBusinessEntity, In
                 "    where a.contacts_id = b.contacts_id and b.business_id = ? ";
         List param = new ArrayList();
         param.add(businessId);
-        return sqlQuery(sql, param);
+        return sqlQuery(sql, param.toArray());
     }
 
     public Page pageQueryContacts(int pageNum, int pageSize, Integer businessId) {
@@ -113,7 +113,7 @@ public class LkCrmBusinessDao extends SimpleHibernateDao<LkCrmBusinessEntity, In
                 "    where a.business_id = ?";
         List param = new ArrayList();
         param.add(businessId);
-        return sqlQuery(sql, param);
+        return sqlQuery(sql, param.toArray());
     }
 
     public List getRecord(Integer businessId) {
@@ -123,6 +123,7 @@ public class LkCrmBusinessDao extends SimpleHibernateDao<LkCrmBusinessEntity, In
                 "    (types = 'crm_customer' and FIND_IN_SET(?,IFNULL(a.business_ids, 0)))) order by a.create_time desc";
         List param = new ArrayList();
         param.add(businessId);
-        return sqlQuery(sql, param);
+        param.add(businessId);
+        return sqlQuery(sql, param.toArray());
     }
 }

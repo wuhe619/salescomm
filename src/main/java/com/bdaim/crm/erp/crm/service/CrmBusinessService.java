@@ -27,7 +27,6 @@ import com.bdaim.util.SqlAppendUtil;
 import com.bdaim.util.StringUtil;
 import com.jfinal.aop.Before;
 import com.jfinal.kit.Kv;
-import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.tx.Tx;
 import org.springframework.stereotype.Service;
@@ -71,6 +70,9 @@ public class CrmBusinessService {
 
     @Resource
     private LkCrmContactsDao crmContactsDao;
+
+    @Resource
+    private LkCrmAdminFieldDao crmAdminFieldDao;
 
     /**
      * @return
@@ -163,7 +165,8 @@ public class CrmBusinessService {
         field.set("商机名称", record.getStr("business_name")).set("商机状态组", record.getStr("type_name")).set("商机阶段", record.getStr("status_name"))
                 .set("预计成交日期", DateUtil.formatDateTime(record.get("deal_date"))).set("客户名称", record.getStr("customer_name"))
                 .set("商机金额", record.getStr("money")).set("备注", record.getStr("remark"));
-        List<Record> recordList = Db.find(Db.getSql("admin.field.queryCustomField"), record.getStr("batch_id"));
+
+        List<Record> recordList = JavaBeanUtil.mapToRecords(crmAdminFieldDao.queryCustomField(record.getStr("batch_id")));
         fieldUtil.handleType(recordList);
         fieldList.addAll(recordList);
         return fieldList;
