@@ -12,12 +12,14 @@ import com.bdaim.crm.erp.admin.entity.AdminFile;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
 import com.bdaim.util.BusinessEnum;
+import com.bdaim.util.JavaBeanUtil;
+import com.bdaim.util.NumberConvertUtil;
 import com.jfinal.aop.Before;
 import com.jfinal.config.Constants;
-import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.tx.Tx;
 import com.jfinal.upload.UploadFile;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
@@ -141,7 +143,7 @@ public class AdminFileService {
         if (id == null) {
             return R.error("id参数为空");
         }
-        return R.ok().put("data", AdminFile.dao.findById(id));
+        return R.ok().put("data", crmAdminFileDao.get(NumberConvertUtil.parseInt(id)));
     }
 
     /**
@@ -155,12 +157,13 @@ public class AdminFileService {
         if (id == null) {
             return R.error("id参数为空");
         }
-        AdminFile adminFile = AdminFile.dao.findById(id);
+        LkCrmAdminFileEntity adminFile = crmAdminFileDao.get(NumberConvertUtil.parseInt(id));
         if (adminFile != null) {
             File file = new File(adminFile.getPath());
             if (file.exists() && !file.isDirectory()) {
                 file.delete();
-                adminFile.delete();
+                crmAdminFileDao.delete(adminFile);
+                //adminFile.delete();
             }
         }
         return R.ok();
@@ -175,13 +178,16 @@ public class AdminFileService {
         if (StrUtil.isEmpty(batchId)) {
             return;
         }
-        List<String> paths = Db.query(Db.getSql("admin.file.queryPathByBatchId"), batchId);
-
+        List<String> paths = crmAdminFileDao.queryPathByBatchId(batchId);
         paths.stream().map(File::new).filter(file -> file.exists() && !file.isDirectory()).forEach(File::delete);
-        Db.deleteById("72crm_admin_file", "batch_id", batchId);
+        crmAdminFileDao.executeUpdateSQL("delete from lkcrm_admin_file  WHERE batch_id = ?", batchId);
+        //Db.deleteById("lkcrm_admin_file", "batch_id", batchId);
     }
 
-    public boolean renameFileById(AdminFile file) {
-        return Db.update("72crm_admin_file", "file_id", file.toRecord());
+    public boolean renameFileById(LkCrmAdminFileEntity file) {
+        LkCrmAdminFileEntity adminFile = crmAdminFileDao.get(file.getFileId());
+        BeanUtils.copyProperties(file, adminFile, JavaBeanUtil.getNullPropertyNames(file));
+        crmAdminFileDao.update(adminFile);
+        return true;
     }
 }
