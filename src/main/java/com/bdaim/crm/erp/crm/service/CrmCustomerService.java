@@ -249,10 +249,9 @@ public class CrmCustomerService {
      * @auyhor wyq
      * 根据客户id查询合同
      */
-    public R queryContract(BasePageRequest<CrmCustomer> basePageRequest) {
+    public R queryContract(BasePageRequest<CrmCustomer> basePageRequest,String search) {
         Integer customerId = basePageRequest.getData().getCustomerId();
         Integer pageType = basePageRequest.getPageType();
-        String search = basePageRequest.getJsonObject().getString("search");
         if (basePageRequest.getData().getCheckstatus() != null) {
             if (pageType != null && 0 == pageType) {
                 return R.ok().put("data", crmCustomerDao.queryPassContract(customerId, basePageRequest.getData().getCheckstatus(), search));

@@ -194,15 +194,14 @@ public class CrmCustomerController extends Controller {
      * 根据客户id查询合同
      */
     @RequestMapping(value = "/queryContract", method = RequestMethod.POST)
-    public R queryContract(BasePageRequest<CrmCustomer> basePageRequest, CrmCustomer crmCustomer, @RequestBody JSONObject JSONObject) {
+    public R queryContract(BasePageRequest<CrmCustomer> basePageRequest, CrmCustomer crmCustomer, String search) {
         basePageRequest.setData(crmCustomer);
-        basePageRequest.setJsonObject(JSONObject);
         boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.CUSTOMER_TYPE_KEY.getSign()), basePageRequest.getData().getCustomerId());
         if (auth) {
             return (R.noAuth());
             //return;
         }
-        return (crmCustomerService.queryContract(basePageRequest));
+        return (crmCustomerService.queryContract(basePageRequest, search));
     }
 
     /**
