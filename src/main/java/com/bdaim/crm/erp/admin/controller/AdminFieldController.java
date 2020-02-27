@@ -290,7 +290,7 @@ public class AdminFieldController extends BasicAction {
         List<Record> recordList = crmLeadsService.queryField(id);
         List<Record> data = new ArrayList<>();
         recordList.forEach(r -> {
-            if (Objects.equals(name, r.getStr("fieldName"))) {
+            if (Objects.equals(name, r.getStr("name"))) {
                 data.add(r);
             }
         });
