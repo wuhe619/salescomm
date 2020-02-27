@@ -84,7 +84,7 @@ public class CrmCustomerController extends Controller {
         BasePageRequest<Void> basePageRequest = new BasePageRequest<>();
         jsonObject.fluentPut("type", 2);
         basePageRequest.setJsonObject(jsonObject);
-        return(adminSceneService.filterConditionAndGetPageList(basePageRequest));
+        return (adminSceneService.filterConditionAndGetPageList(basePageRequest));
     }
 
     /**
@@ -104,9 +104,9 @@ public class CrmCustomerController extends Controller {
      * 全局搜索查询客户
      */
     @RequestMapping(value = "/queryList", method = RequestMethod.POST)
-    public R queryList(BasePageRequest<CrmCustomer> basePageRequest,CrmCustomer crmCustomer) {
+    public R queryList(BasePageRequest<CrmCustomer> basePageRequest, CrmCustomer crmCustomer) {
         basePageRequest.setData(crmCustomer);
-        return(R.ok().put("data", crmCustomerService.getCustomerPageList(basePageRequest)));
+        return (R.ok().put("data", crmCustomerService.getCustomerPageList(basePageRequest)));
     }
 
     /**
@@ -117,7 +117,7 @@ public class CrmCustomerController extends Controller {
     @RequestMapping(value = "/addOrUpdate", method = RequestMethod.POST)
     public R addOrUpdate(@RequestBody JSONObject jsonObject) {
         //JSONObject jsonObject = JSON.parseObject(getRawData());
-        return(crmCustomerService.addOrUpdate(jsonObject, "noImport"));
+        return (crmCustomerService.addOrUpdate(jsonObject, "noImport"));
     }
 
     /**
@@ -146,8 +146,11 @@ public class CrmCustomerController extends Controller {
      * 根据客户id查询联系人
      */
     @RequestMapping(value = "/queryContacts", method = RequestMethod.POST)
-    public R queryContacts(BasePageRequest<CrmCustomer> basePageRequest, CrmCustomer crmCustomer) {
+    public R queryContacts(BasePageRequest<CrmCustomer> basePageRequest, CrmCustomer crmCustomer, String search) {
         basePageRequest.setData(crmCustomer);
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("search", search);
+        basePageRequest.setJsonObject(jsonObject);
         boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.CUSTOMER_TYPE_KEY.getSign()), basePageRequest.getData().getCustomerId());
         if (auth) {
             return (R.noAuth());
@@ -172,7 +175,11 @@ public class CrmCustomerController extends Controller {
      * 根据客户id查找商机
      */
     @RequestMapping(value = "/queryBusiness", method = RequestMethod.POST)
-    public R queryBusiness(BasePageRequest<CrmCustomer> basePageRequest) {
+    public R queryBusiness(BasePageRequest<CrmCustomer> basePageRequest, CrmCustomer crmCustomer, String search) {
+        basePageRequest.setData(crmCustomer);
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("search", search);
+        basePageRequest.setJsonObject(jsonObject);
         boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.CUSTOMER_TYPE_KEY.getSign()), basePageRequest.getData().getCustomerId());
         if (auth) {
             return (R.noAuth());
@@ -263,7 +270,7 @@ public class CrmCustomerController extends Controller {
         String[] customerIdsArr = crmCustomer.getCustomerIds().split(",");
         for (String customerId : customerIdsArr) {
             crmCustomer.setCustomerId(Integer.valueOf(customerId));
-            renderJson(crmCustomerService.updateOwnerUserId(crmCustomer));
+            crmCustomerService.updateOwnerUserId(crmCustomer);
             String changeType = crmCustomer.getChangeType();
             if (StrUtil.isNotEmpty(changeType)) {
                 String[] changeTypeArr = changeType.split(",");

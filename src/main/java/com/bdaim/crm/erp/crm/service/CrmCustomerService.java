@@ -33,6 +33,7 @@ import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.tx.Tx;
 import com.jfinal.upload.UploadFile;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -219,7 +220,7 @@ public class CrmCustomerService {
         Integer customerId = jsonObject.getInteger("customerId");
         String search = jsonObject.getString("search");
         Integer pageType = basePageRequest.getPageType();
-        if (0 == pageType) {
+        if (pageType != null && 0 == pageType) {
             List<Record> recordList = JavaBeanUtil.mapToRecords(crmCustomerDao.queryBusiness(customerId, search));
             adminSceneService.setBusinessStatus(recordList);
             return R.ok().put("data", recordList);
@@ -240,7 +241,7 @@ public class CrmCustomerService {
         Integer customerId = basePageRequest.getData().getCustomerId();
         Integer pageType = basePageRequest.getPageType();
         String search = basePageRequest.getJsonObject().getString("search");
-        if (0 == pageType) {
+        if (pageType != null && 0 == pageType) {
             return R.ok().put("data", crmCustomerDao.queryContacts(customerId, search));
         } else {
             Page page = crmCustomerDao.pageQueryContacts(basePageRequest.getPage(), basePageRequest.getLimit(), customerId, search);
@@ -257,14 +258,14 @@ public class CrmCustomerService {
         Integer pageType = basePageRequest.getPageType();
         String search = basePageRequest.getJsonObject().getString("search");
         if (basePageRequest.getData().getCheckstatus() != null) {
-            if (0 == pageType) {
+            if (pageType != null && 0 == pageType) {
                 return R.ok().put("data", crmCustomerDao.queryPassContract(customerId, basePageRequest.getData().getCheckstatus(), search));
             } else {
                 Page page = crmCustomerDao.pageQueryPassContract(basePageRequest.getPage(), basePageRequest.getLimit(), customerId, basePageRequest.getData().getCheckstatus(), search);
                 return R.ok().put("data", BaseUtil.crmPage(page));
             }
         }
-        if (0 == pageType) {
+        if (pageType != null && 0 == pageType) {
             return R.ok().put("data", crmCustomerDao.queryContract(customerId, search));
         } else {
             Page page = crmCustomerDao.pageQueryContract(basePageRequest.getPage(), basePageRequest.getLimit(), customerId, search);
@@ -279,7 +280,7 @@ public class CrmCustomerService {
     public R queryReceivablesPlan(BasePageRequest<CrmCustomer> basePageRequest) {
         Integer customerId = basePageRequest.getData().getCustomerId();
         Integer pageType = basePageRequest.getPageType();
-        if (0 == pageType) {
+        if (pageType != null && 0 == pageType) {
             return R.ok().put("data", crmCustomerDao.queryReceivablesPlan(customerId));
         } else {
             Page page = crmCustomerDao.pageQueryReceivablesPlan(basePageRequest.getPage(), basePageRequest.getLimit(), customerId);
@@ -293,7 +294,7 @@ public class CrmCustomerService {
      */
     public R queryReceivables(BasePageRequest<CrmCustomer> basePageRequest) {
         Integer customerId = basePageRequest.getData().getCustomerId();
-        if (0 == basePageRequest.getPageType()) {
+        if (basePageRequest.getPageType() != null && 0 == basePageRequest.getPageType()) {
             return R.ok().put("data", crmCustomerDao.queryReceivables(customerId));
         } else {
             Page page = crmCustomerDao.pageQueryReceivables(basePageRequest.getPage(), basePageRequest.getLimit(), customerId);
@@ -353,27 +354,29 @@ public class CrmCustomerService {
      */
     public R updateOwnerUserId(LkCrmCustomerEntity crmCustomer) {
         String[] customerIdsArr = crmCustomer.getCustomerIds().split(",");
-        return Db.tx(() -> {
-            for (String customerId : customerIdsArr) {
-                String memberId = "," + crmCustomer.getNewOwnerUserId() + ",";
-                Db.update(Db.getSql("crm.customer.deleteMember"), memberId, memberId, Integer.valueOf(customerId));
-                LkCrmCustomerEntity oldCustomer = crmCustomerDao.get(Integer.valueOf(customerId));
-                if (2 == crmCustomer.getTransferType()) {
-                    if (1 == crmCustomer.getPower()) {
-                        crmCustomer.setRoUserId(oldCustomer.getRoUserId() + oldCustomer.getOwnerUserId() + ",");
-                    }
-                    if (2 == crmCustomer.getPower()) {
-                        crmCustomer.setRwUserId(oldCustomer.getRwUserId() + oldCustomer.getOwnerUserId() + ",");
-                    }
+        //return Db.tx(() -> {
+        for (String customerId : customerIdsArr) {
+            String memberId = "," + crmCustomer.getNewOwnerUserId() + ",";
+            crmCustomerDao.deleteMember(memberId, Integer.valueOf(customerId));
+            //Db.update(Db.getSql("crm.customer.deleteMember"), memberId, memberId, Integer.valueOf(customerId));
+            LkCrmCustomerEntity oldCustomer = crmCustomerDao.get(Integer.valueOf(customerId));
+            if (2 == crmCustomer.getTransferType()) {
+                if (1 == crmCustomer.getPower()) {
+                    crmCustomer.setRoUserId(oldCustomer.getRoUserId() + oldCustomer.getOwnerUserId() + ",");
                 }
-                crmCustomer.setCustomerId(Integer.valueOf(customerId));
-                crmCustomer.setOwnerUserId(crmCustomer.getNewOwnerUserId());
-                crmCustomer.setFollowup(0);
-                crmCustomerDao.update(crmCustomer);
-                crmRecordService.addConversionRecord(Integer.valueOf(customerId), CrmEnum.CUSTOMER_TYPE_KEY.getTypes(), crmCustomer.getNewOwnerUserId());
+                if (2 == crmCustomer.getPower()) {
+                    crmCustomer.setRwUserId(oldCustomer.getRwUserId() + oldCustomer.getOwnerUserId() + ",");
+                }
             }
-            return true;
-        }) ? R.ok() : R.error();
+            oldCustomer.setCustomerId(Integer.valueOf(customerId));
+            oldCustomer.setOwnerUserId(crmCustomer.getNewOwnerUserId());
+            oldCustomer.setFollowup(0);
+            BeanUtils.copyProperties(crmCustomer, oldCustomer, JavaBeanUtil.getNullPropertyNames(crmCustomer));
+            crmCustomerDao.update(oldCustomer);
+            crmRecordService.addConversionRecord(Integer.valueOf(customerId), CrmEnum.CUSTOMER_TYPE_KEY.getTypes(), crmCustomer.getNewOwnerUserId());
+        }
+        return R.ok();
+        //}) ? R.ok() : R.error();
     }
 
 
