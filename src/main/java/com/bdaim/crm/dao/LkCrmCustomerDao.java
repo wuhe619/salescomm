@@ -100,7 +100,7 @@ public class LkCrmCustomerDao extends SimpleHibernateDao<LkCrmCustomerEntity, In
 
     public int lock(int isLock, List ids) {
         String sql = " update lkcrm_crm_customer set is_lock = ? where customer_id in (" + SqlAppendUtil.sqlAppendWhereIn(ids) + ")";
-        return queryForInt(sql, isLock);
+        return executeUpdateSQL(sql, isLock);
     }
 
     public List<Map<String, Object>> queryReceivables(Integer customerId) {

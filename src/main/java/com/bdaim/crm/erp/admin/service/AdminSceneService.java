@@ -635,7 +635,7 @@ public class AdminSceneService {
         conditions.insert(0, " from " + viewName);
         conditions.append(" order by ").append(viewName).append(".").append(sortField).append(" ").append(orderNum);
         if (StrUtil.isNotEmpty(basePageRequest.getJsonObject().getString("excel"))) {
-            return R.ok().put("data", crmAdminSceneDao.sqlQuery("select * " + conditions.toString(), BaseUtil.getUser().getCustId()));
+            return R.ok().put("data", JavaBeanUtil.mapToRecords(crmAdminSceneDao.sqlQuery("select * " + conditions.toString(), BaseUtil.getUser().getCustId())));
         }
         if (2 == type || 8 == type) {
             Integer configType = crmAdminSceneDao.queryForInt("select status from lkcrm_admin_config where name = 'customerPoolSetting'");

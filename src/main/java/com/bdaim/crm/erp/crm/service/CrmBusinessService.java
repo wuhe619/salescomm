@@ -30,6 +30,7 @@ import com.jfinal.aop.Before;
 import com.jfinal.kit.Kv;
 import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.tx.Tx;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -107,7 +108,7 @@ public class CrmBusinessService {
         boolean saveOrUpdate;
         if (crmBusiness.getBusinessId() != null) {
             LkCrmBusinessEntity lkCrmBusinessEntity = crmBusinessDao.get(crmBusiness.getBusinessId());
-            BeanUtil.copyProperties(crmBusiness, lkCrmBusinessEntity,"createTime","createUserId","roUserId","rwUserId","isEnd");
+            BeanUtils.copyProperties(crmBusiness, lkCrmBusinessEntity, JavaBeanUtil.getNullPropertyNames(crmBusiness));
             lkCrmBusinessEntity.setUpdateTime(DateUtil.date().toTimestamp());
             crmRecordService.updateRecord(crmBusinessDao.get(crmBusiness.getBusinessId()), crmBusiness, CrmEnum.BUSINESS_TYPE_KEY.getTypes());
             LkCrmBusinessEntity oldBusiness = crmBusinessDao.get(crmBusiness.getBusinessId());

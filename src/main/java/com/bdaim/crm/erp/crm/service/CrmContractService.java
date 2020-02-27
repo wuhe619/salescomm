@@ -226,7 +226,7 @@ public class CrmContractService {
                     if (crmContract.getBusinessId() != null) {
                         //CrmBusinessProducte crmBusinessProduct = new CrmBusinessProduct()._setOrPut(crmContractProduct.toRecord().getColumns());
                         LkCrmBusinessProductEntity crmBusinessProduct = new LkCrmBusinessProductEntity();
-                        BeanUtils.copyProperties(crmContractProduct, crmBusinessProduct);
+                        BeanUtils.copyProperties(crmContractProduct, crmBusinessProduct, JavaBeanUtil.getNullPropertyNames(crmContractProduct));
                         crmBusinessProduct.setRId(null);
                         crmBusinessProduct.setBusinessId(crmContract.getBusinessId());
                         //crmBusinessProduct.save();
