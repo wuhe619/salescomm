@@ -649,7 +649,8 @@ public class CrmCustomerController extends BasicAction {
             response.setContentType("application/vnd.ms-excel;charset=utf-8");
             response.setCharacterEncoding("UTF-8");
             //test.xls是弹出下载对话框的文件名，不能为中文，中文请自行编码
-            response.setHeader("Content-Disposition", "attachment;filename=customer_import.xls");
+            response.setHeader("Access-Control-Expose-Headers", "Content-Disposition");
+            response.setHeader("Content-Disposition", "attachment; filename=customer_import.xls");
             wb.write(response.getOutputStream());
 
         } catch (Exception e) {
