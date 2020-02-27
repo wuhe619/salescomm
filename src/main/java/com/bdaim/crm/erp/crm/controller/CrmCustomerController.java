@@ -88,7 +88,6 @@ public class CrmCustomerController extends Controller {
     }
 
     /**
-     * @author wyq
      * 查看公海列表页
      */
     @Permissions({"crm:pool:index"})
@@ -96,6 +95,7 @@ public class CrmCustomerController extends Controller {
     public R queryPoolPageList(@RequestBody JSONObject jsonObject) {
         //JSONObject jsonObject = basePageRequest.getJsonObject().fluentPut("type", 8);
         BasePageRequest basePageRequest = new BasePageRequest(jsonObject.getIntValue("page"), jsonObject.getIntValue("limit"));
+        jsonObject.fluentPut("type", 8);
         basePageRequest.setJsonObject(jsonObject);
         return (adminSceneService.filterConditionAndGetPageList(basePageRequest));
     }
