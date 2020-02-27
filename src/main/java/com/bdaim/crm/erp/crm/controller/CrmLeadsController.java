@@ -340,10 +340,8 @@ public class CrmLeadsController extends BasicAction {
     @RequestMapping(value = "/deleteFiled", method = RequestMethod.POST)
     public ResponseJson deleteFiled(@RequestBody CustomerSeaSearch param) {
         ResponseJson responseJson = new ResponseJson();
-        String sql = "ALTER TABLE `lkcrm_crm_leads` ADD COLUMN `sea_id`  varchar(32) NULL AFTER `batch_id`;";
+        String sql = "UPDATE lkcrm_admin_field SET `name`='followStatus',field_name='followStatus' WHERE field_id = 179";
         int data = crmAdminFieldDao.executeUpdateSQL(sql);
-        sql = "UPDATE lkcrm_crm_leads SET sea_id = 140 ";
-        data = crmAdminFieldDao.executeUpdateSQL(sql);
         responseJson.setData(data);
         return responseJson;
     }
