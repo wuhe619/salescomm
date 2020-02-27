@@ -22,6 +22,7 @@ import com.jfinal.json.Json;
 import com.jfinal.kit.Kv;
 import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.tx.Tx;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -256,7 +257,8 @@ public class AdminSceneService {
             crmAdminSceneDao.executeUpdateSQL("update lkcrm_admin_scene_default set scene_id = ? where user_id = ? and type = ?", adminScene.getSceneId(), userId, oldAdminScene.getType());
         }
         adminScene.setUserId(userId).setType(oldAdminScene.getType()).setSort(oldAdminScene.getSort()).setIsSystem(oldAdminScene.getIsSystem()).setUpdateTime(DateUtil.date().toTimestamp());
-        crmAdminSceneDao.saveOrUpdate(adminScene);
+        BeanUtils.copyProperties(adminScene, oldAdminScene, JavaBeanUtil.getNullPropertyNames(adminScene));
+        crmAdminSceneDao.update(oldAdminScene);
         return R.isSuccess(true);
     }
 
@@ -413,7 +415,7 @@ public class AdminSceneService {
         Long userId = BaseUtil.getUser().getUserId();
         String[] sortArr = adminScene.getNoHideIds().split(",");
         for (int i = 0; i < sortArr.length; i++) {
-            crmAdminSceneDao.executeUpdateSQL("update 72crm_admin_scene set is_hide = 0,sort = ? where type = ? and user_id = ? and scene_id = ?", i + 1, adminScene.getType(), userId, sortArr[i]);
+            crmAdminSceneDao.executeUpdateSQL("update lkcrm_admin_scene set is_hide = 0,sort = ? where type = ? and user_id = ? and scene_id = ?", i + 1, adminScene.getType(), userId, sortArr[i]);
             //Db.update(Db.getSql("admin.scene.sort"), i + 1, adminScene.getType(), userId, sortArr[i]);
         }
         if (null != adminScene.getHideIds()) {
@@ -422,7 +424,7 @@ public class AdminSceneService {
             if (number.getInt("number") > 0) {
                 return R.error("系统场景不能隐藏");
             }
-            crmAdminSceneDao.executeUpdateSQL(" update 72crm_admin_scene set is_hide = 1,sort = 0 where scene_id in (?) and type = ? and user_id = ? ", hideIdsArr, adminScene.getType(), userId);
+            crmAdminSceneDao.executeUpdateSQL(" update lkcrm_admin_scene set is_hide = 1,sort = 0 where scene_id in (?) and type = ? and user_id = ? ", hideIdsArr, adminScene.getType(), userId);
             //Db.update(Db.getSqlPara("admin.scene.isHide", Kv.by("ids", hideIdsArr).set("type", adminScene.getType()).set("userId", userId)));
         }
         return R.ok();
