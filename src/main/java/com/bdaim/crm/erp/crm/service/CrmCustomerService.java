@@ -32,8 +32,11 @@ import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.tx.Tx;
 import com.jfinal.upload.UploadFile;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.transaction.Transactional;
@@ -44,6 +47,8 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 public class CrmCustomerService {
+
+    public static final Logger LOG = LoggerFactory.getLogger(CrmCustomerService.class);
     @Resource
     private AdminFieldService adminFieldService;
 
@@ -839,5 +844,179 @@ public class CrmCustomerService {
             reader.close();
         }
         return R.ok();
+    }
+
+    public R uploadExcel(MultipartFile file, Integer repeatHandling, Long ownerUserId) {
+        Kv kv = new Kv();
+        Integer errNum = 0;
+        try (ExcelReader reader = ExcelUtil.getReader(file.getInputStream())) {
+            List<List<Object>> read = reader.read();
+            List<Object> list = read.get(1);
+            List<Record> recordList = adminFieldService.customFieldList("2");
+            recordList.removeIf(record -> "file".equals(record.getStr("formType")) || "checkbox".equals(record.getStr("formType")) || "user".equals(record.getStr("formType")) || "structure".equals(record.getStr("formType")));
+            List<Record> fieldList = adminFieldService.queryAddField(2);
+            fieldList.removeIf(record -> "file".equals(record.getStr("formType")) || "checkbox".equals(record.getStr("formType")) || "user".equals(record.getStr("formType")) || "structure".equals(record.getStr("formType")));
+            fieldList.forEach(record -> {
+                if (record.getInt("is_null") == 1) {
+                    record.set("name", record.getStr("name") + "(*)");
+                }
+                if ("map_address".equals(record.getStr("field_name"))) {
+                    record.set("name", "详细地址");
+                }
+            });
+            List<String> nameList = fieldList.stream().map(record -> record.getStr("name")).collect(Collectors.toList());
+            if (nameList.size() != list.size() || !nameList.containsAll(list)) {
+                return R.error("请使用最新导入模板");
+            }
+            Kv nameMap = new Kv();
+            fieldList.forEach(record -> nameMap.set(record.getStr("name"), record.getStr("field_name")));
+            for (int i = 0; i < list.size(); i++) {
+                kv.set(nameMap.get(list.get(i)), i);
+            }
+            if (read.size() > 2) {
+                JSONObject object = new JSONObject();
+                for (int i = 2; i < read.size(); i++) {
+                    errNum = i;
+                    List<Object> customerList = read.get(i);
+                    if (customerList.size() < list.size()) {
+                        for (int j = customerList.size() - 1; j < list.size(); j++) {
+                            customerList.add(null);
+                        }
+                    }
+                    String customerName = customerList.get(kv.getInt("customer_name")).toString();
+                    Integer number = crmAdminConfigDao.queryForInt("select count(*) from lkcrm_crm_customer where customer_name = ?", customerName);
+                    if (0 == number) {
+                        object.fluentPut("entity", new JSONObject().fluentPut("customer_name", customerName)
+                                .fluentPut("mobile", customerList.get(kv.getInt("mobile")))
+                                .fluentPut("telephone", customerList.get(kv.getInt("telephone")))
+                                .fluentPut("website", customerList.get(kv.getInt("website")))
+                                .fluentPut("next_time", customerList.get(kv.getInt("next_time")))
+                                .fluentPut("remark", customerList.get(kv.getInt("remark")))
+                                .fluentPut("detail_address", customerList.get(kv.getInt("map_address")))
+                                .fluentPut("deal_status", customerList.get(kv.getInt("deal_status")))
+                                .fluentPut("owner_user_id", ownerUserId));
+                    } else if (number > 0 && repeatHandling == 1) {
+                        Record leads = JavaBeanUtil.mapToRecord(crmAdminConfigDao.sqlQuery("select customer_id,batch_id from lkcrm_crm_customer where customer_name = ?", customerName).get(0));
+                        object.fluentPut("entity", new JSONObject().fluentPut("customer_id", leads.getInt("customer_id"))
+                                .fluentPut("customer_name", customerName)
+                                .fluentPut("mobile", customerList.get(kv.getInt("mobile")))
+                                .fluentPut("telephone", customerList.get(kv.getInt("telephone")))
+                                .fluentPut("website", customerList.get(kv.getInt("website")))
+                                .fluentPut("next_time", customerList.get(kv.getInt("next_time")))
+                                .fluentPut("remark", customerList.get(kv.getInt("remark")))
+                                .fluentPut("detail_address", customerList.get(kv.getInt("map_address")))
+                                .fluentPut("deal_status", customerList.get(kv.getInt("deal_status")))
+                                .fluentPut("owner_user_id", ownerUserId)
+                                .fluentPut("batch_id", leads.getStr("batch_id")));
+                    } else if (number > 0 && repeatHandling == 2) {
+                        continue;
+                    }
+                    JSONArray jsonArray = new JSONArray();
+                    for (Record record : recordList) {
+                        Integer columnsNum = kv.getInt(record.getStr("name")) != null ? kv.getInt(record.getStr("name")) : kv.getInt(record.getStr("name") + "(*)");
+                        record.set("value", customerList.get(columnsNum));
+                        jsonArray.add(JSONObject.parseObject(record.toJson()));
+                    }
+                    object.fluentPut("field", jsonArray);
+                    addOrUpdate(object, null);
+                }
+            }
+        } catch (Exception e) {
+            LOG.error("", e);
+            if (errNum != 0) {
+                return R.error("第" + (errNum + 1) + "行错误!");
+            }
+            return R.error();
+        }
+        return R.ok();
+
+
+       /* ExcelReader reader = ExcelUtil.getReader(FileUtil.file(file.getUploadPath() + "\\" + file.getFileName()));
+        //AdminFieldService adminFieldService = new AdminFieldService();
+        Kv kv = new Kv();
+        int errNum = 0;
+        try {
+            List<List<Object>> read = reader.read();
+            List<Object> list = read.get(1);
+            List<Record> recordList = adminFieldService.customFieldList("2");
+            recordList.removeIf(record -> "file".equals(record.getStr("formType")) || "checkbox".equals(record.getStr("formType")) || "user".equals(record.getStr("formType")) || "structure".equals(record.getStr("formType")));
+            List<Record> fieldList = adminFieldService.queryAddField(2);
+            fieldList.removeIf(record -> "file".equals(record.getStr("formType")) || "checkbox".equals(record.getStr("formType")) || "user".equals(record.getStr("formType")) || "structure".equals(record.getStr("formType")));
+            fieldList.forEach(record -> {
+                if (record.getInt("is_null") == 1) {
+                    record.set("name", record.getStr("name") + "(*)");
+                }
+                if ("map_address".equals(record.getStr("field_name"))) {
+                    record.set("name", "详细地址");
+                }
+            });
+            List<String> nameList = fieldList.stream().map(record -> record.getStr("name")).collect(Collectors.toList());
+            if (nameList.size() != list.size() || !nameList.containsAll(list)) {
+                return R.error("请使用最新导入模板");
+            }
+            Kv nameMap = new Kv();
+            fieldList.forEach(record -> nameMap.set(record.getStr("name"), record.getStr("field_name")));
+            for (int i = 0; i < list.size(); i++) {
+                kv.set(nameMap.get(list.get(i)), i);
+            }
+            if (read.size() > 2) {
+                JSONObject object = new JSONObject();
+                for (int i = 2; i < read.size(); i++) {
+                    errNum = i;
+                    List<Object> customerList = read.get(i);
+                    if (customerList.size() < list.size()) {
+                        for (int j = customerList.size() - 1; j < list.size(); j++) {
+                            customerList.add(null);
+                        }
+                    }
+                    String customerName = customerList.get(kv.getInt("customer_name")).toString();
+                    Integer number = crmAdminConfigDao.queryForInt("select count(*) from lkcrm_crm_customer where customer_name = ?", customerName);
+                    if (0 == number) {
+                        object.fluentPut("entity", new JSONObject().fluentPut("customer_name", customerName)
+                                .fluentPut("mobile", customerList.get(kv.getInt("mobile")))
+                                .fluentPut("telephone", customerList.get(kv.getInt("telephone")))
+                                .fluentPut("website", customerList.get(kv.getInt("website")))
+                                .fluentPut("next_time", customerList.get(kv.getInt("next_time")))
+                                .fluentPut("remark", customerList.get(kv.getInt("remark")))
+                                .fluentPut("detail_address", customerList.get(kv.getInt("map_address")))
+                                .fluentPut("deal_status", customerList.get(kv.getInt("deal_status")))
+                                .fluentPut("owner_user_id", ownerUserId));
+                    } else if (number > 0 && repeatHandling == 1) {
+                        Record leads = JavaBeanUtil.mapToRecord(crmAdminConfigDao.sqlQuery("select customer_id,batch_id from lkcrm_crm_customer where customer_name = ?", customerName).get(0));
+                        object.fluentPut("entity", new JSONObject().fluentPut("customer_id", leads.getInt("customer_id"))
+                                .fluentPut("customer_name", customerName)
+                                .fluentPut("mobile", customerList.get(kv.getInt("mobile")))
+                                .fluentPut("telephone", customerList.get(kv.getInt("telephone")))
+                                .fluentPut("website", customerList.get(kv.getInt("website")))
+                                .fluentPut("next_time", customerList.get(kv.getInt("next_time")))
+                                .fluentPut("remark", customerList.get(kv.getInt("remark")))
+                                .fluentPut("detail_address", customerList.get(kv.getInt("map_address")))
+                                .fluentPut("deal_status", customerList.get(kv.getInt("deal_status")))
+                                .fluentPut("owner_user_id", ownerUserId)
+                                .fluentPut("batch_id", leads.getStr("batch_id")));
+                    } else if (number > 0 && repeatHandling == 2) {
+                        continue;
+                    }
+                    JSONArray jsonArray = new JSONArray();
+                    for (Record record : recordList) {
+                        Integer columnsNum = kv.getInt(record.getStr("name")) != null ? kv.getInt(record.getStr("name")) : kv.getInt(record.getStr("name") + "(*)");
+                        record.set("value", customerList.get(columnsNum));
+                        jsonArray.add(JSONObject.parseObject(record.toJson()));
+                    }
+                    object.fluentPut("field", jsonArray);
+                    addOrUpdate(object, null);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.getLog(getClass()).error("", e);
+            if (errNum != 0) {
+                return R.error("第" + (errNum + 1) + "行错误!");
+            }
+            return R.error();
+        } finally {
+            reader.close();
+        }
+        return R.ok();*/
     }
 }
