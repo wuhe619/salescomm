@@ -224,7 +224,7 @@ public class CrmBusinessService {
     public R queryContacts(BasePageRequest<CrmBusiness> basePageRequest) {
         Integer businessId = basePageRequest.getData().getBusinessId();
         Integer pageType = basePageRequest.getPageType();
-        if (0 == pageType) {
+        if (pageType != null && 0 == pageType) {
             //return R.ok().put("data", Db.find(Db.getSql("crm.business.queryContacts"), businessId));
             return R.ok().put("data", crmBusinessDao.queryContacts(businessId));
         } else {
