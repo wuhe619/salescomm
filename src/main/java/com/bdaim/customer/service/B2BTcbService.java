@@ -355,8 +355,8 @@ public class B2BTcbService implements BusiService {
         String updateNumSql = "UPDATE " + HMetaDataDef.getTable(busiType, "")
                 + " set content = JSON_SET(content, '$.consume_num', JSON_EXTRACT(content, '$.consume_num') + ?), " +
                 " content = JSON_SET ( content, '$.remain_num', JSON_EXTRACT(content, '$.remain_num') - ? )" +
-                " where id = ? ";
-        jdbcTemplate.update(updateNumSql, consumerNum, consumerNum, id);
+                " where id = ? and type=?";
+        jdbcTemplate.update(updateNumSql, consumerNum, consumerNum, id,busiType);
     }
 
     /**
