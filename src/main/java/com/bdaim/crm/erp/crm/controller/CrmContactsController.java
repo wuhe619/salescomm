@@ -104,7 +104,8 @@ public class CrmContactsController extends BasicAction {
      * 根据联系人id查询商机
      */
     @RequestMapping(value = "/queryBusiness", method = RequestMethod.POST)
-    public R queryBusiness(BasePageRequest<CrmContacts> basePageRequest) {
+    public R queryBusiness(BasePageRequest<CrmContacts> basePageRequest,CrmContacts crmContacts) {
+        basePageRequest.setData(crmContacts);
         boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.CONTACTS_TYPE_KEY.getSign()), basePageRequest.getData().getContactsId());
         if (auth) {
             return (R.noAuth());
