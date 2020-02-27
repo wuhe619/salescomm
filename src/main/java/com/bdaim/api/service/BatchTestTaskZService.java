@@ -77,7 +77,7 @@ public class BatchTestTaskZService implements BusiService {
                     throw new Exception("批量测试任务["+taskId+"]数量已超过受限数量["+limitNum+"]");
                 }
                 json.put("usedNum",usedNum);
-                String updateSql = "update "+HMetaDataDef.getTable(BusiTypeEnum.BATCH_TEST_TASK.getType(), "") +" set content=? where id=?";
+                String updateSql = "update "+HMetaDataDef.getTable(BusiTypeEnum.BATCH_TEST_TASK.getType(), "") +" set content=? where id=? and type='"+BusiTypeEnum.BATCH_TEST_TASK.getType()+"'";
                 jdbcTemplate.update(updateSql,json.toJSONString(),taskId);
             }else{
                 throw new Exception("批量测试任务参数错误");
