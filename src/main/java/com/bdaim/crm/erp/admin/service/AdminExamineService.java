@@ -16,9 +16,8 @@ import com.bdaim.customer.dao.CustomerUserDao;
 import com.bdaim.customer.entity.CustomerUser;
 import com.bdaim.util.JavaBeanUtil;
 import com.bdaim.util.NumberConvertUtil;
+import com.bdaim.util.SqlAppendUtil;
 import com.jfinal.aop.Before;
-import com.jfinal.kit.Kv;
-import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.tx.Tx;
 import org.springframework.stereotype.Service;
@@ -118,7 +117,8 @@ public class AdminExamineService {
             if (stepList != null) {
                 stepList.forEach(step -> {
                     if (step.getStr("check_user_id") != null && step.getStr("check_user_id").split(",").length > 0) {
-                        List<Record> userList = Db.find(Db.getSqlPara("admin.user.queryByIds", Kv.by("ids", step.getStr("check_user_id").split(","))));
+                        List<Record> userList = JavaBeanUtil.mapToRecords(customerUserDao.sqlQuery("SELECT * FROM t_customer_use WHERE id (" + SqlAppendUtil.sqlAppendWhereIn(step.getStr("check_user_id").split(",")) + ");"));
+                        //List<Record> userList = Db.find(Db.getSqlPara("admin.user.queryByIds", Kv.by("ids", step.getStr("check_user_id").split(","))));
                         step.set("userList", userList);
                     } else {
                         step.set("userList", new ArrayList<>());
@@ -127,13 +127,16 @@ public class AdminExamineService {
                 record.set("stepList", stepList);
             }
             if (record.getStr("user_ids") != null && record.getStr("user_ids").split(",").length > 0) {
-                List<Record> userList = Db.find(Db.getSqlPara("admin.user.queryByIds", Kv.by("ids", record.getStr("user_ids").split(","))));
+                List<Record> userList = JavaBeanUtil.mapToRecords(customerUserDao.sqlQuery("SELECT * FROM t_customer_use WHERE id (" + SqlAppendUtil.sqlAppendWhereIn(record.getStr("user_ids").split(",")) + ");"));
+                //List<Record> userList = Db.find(Db.getSqlPara("admin.user.queryByIds", Kv.by("ids", record.getStr("user_ids").split(","))));
                 record.set("userIds", userList);
             } else {
                 record.set("userIds", new ArrayList<>());
             }
             if (record.getStr("dept_ids") != null && record.getStr("dept_ids").split(",").length > 0) {
-                List<Record> deptList = Db.find(Db.getSqlPara("admin.dept.queryByIds", Kv.by("ids", record.getStr("dept_ids").split(","))));
+                // TODO
+                List<Record> deptList = JavaBeanUtil.mapToRecords(customerUserDao.sqlQuery("SELECT * FROM t_customer_use WHERE id (" + SqlAppendUtil.sqlAppendWhereIn(record.getStr("dept_ids").split(",")) + ");"));
+                //List<Record> deptList = Db.find(Db.getSqlPara("admin.dept.queryByIds", Kv.by("ids", record.getStr("dept_ids").split(","))));
                 record.set("deptIds", deptList);
             } else {
                 record.set("deptIds", new ArrayList<>());
