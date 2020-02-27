@@ -2,7 +2,6 @@ package com.bdaim.crm.erp.crm.controller;
 
 import cn.hutool.poi.excel.ExcelUtil;
 import cn.hutool.poi.excel.ExcelWriter;
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.crm.common.annotation.LoginFormCookie;
 import com.bdaim.crm.common.annotation.NotNullValidate;
@@ -82,9 +81,9 @@ public class CrmProductController extends Controller {
      */
     @Permissions({"crm:product:save", "crm:product:update"})
     @RequestMapping(value = "saveAndUpdate", method = RequestMethod.POST)
-    public R saveAndUpdate() {
-        String data = getRawData();
-        JSONObject jsonObject = JSON.parseObject(data);
+    public R saveAndUpdate(@RequestBody  JSONObject jsonObject) {
+        /*String data = getRawData();
+        JSONObject jsonObject = JSON.parseObject(data);*/
         return (crmProductService.saveAndUpdate(jsonObject));
     }
 

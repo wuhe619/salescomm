@@ -63,4 +63,9 @@ public class LkCrmReceivablesDao extends SimpleHibernateDao<LkCrmReceivablesEnti
                 "        where rb.receivables_id = ?";
         return super.sqlQuery(sql, receivables_id);
     }
+
+    public int queryByNumber(String number) {
+        String sql = " select * from lkcrm_crm_receivables where number = ?";
+        return super.sqlQuery(sql, number).size();
+    }
 }
