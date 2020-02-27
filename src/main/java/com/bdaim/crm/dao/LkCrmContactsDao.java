@@ -144,10 +144,9 @@ public class LkCrmContactsDao extends SimpleHibernateDao<LkCrmContactsEntity, In
     }
 
     public List<Map<String, Object>> excelExport(List ids) {
-        String sql = " select * from contactsview where contacts_id in (?) order by update_time desc";
+        String sql = " select * from contactsview where contacts_id in (" + SqlAppendUtil.sqlAppendWhereIn(ids) + ") order by update_time desc";
         List param = new ArrayList();
-        param.add(ids);
-        List<Map<String, Object>> maps = sqlQuery(sql, param.toArray());
+        List<Map<String, Object>> maps = sqlQuery(sql);
         return maps;
     }
 

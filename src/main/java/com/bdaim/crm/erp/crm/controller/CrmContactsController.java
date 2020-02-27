@@ -26,10 +26,7 @@ import org.apache.poi.hssf.usermodel.*;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.ss.util.CellRangeAddressList;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
@@ -220,7 +217,7 @@ public class CrmContactsController extends BasicAction {
      */
     @Permissions("crm:contacts:excelexport")
     @RequestMapping(value = "/batchExportExcel")
-    public void batchExportExcel(@Para("ids") String contactsIds, HttpServletResponse response) throws IOException {
+    public void batchExportExcel(@RequestParam("ids") String contactsIds, HttpServletResponse response) throws IOException {
         List<Record> recordList = crmContactsService.exportContacts(contactsIds);
         export(recordList, response);
         //renderNull();
