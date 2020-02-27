@@ -1,6 +1,7 @@
 package com.bdaim.crm.erp.crm.service;
 
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
@@ -105,10 +106,12 @@ public class CrmBusinessService {
         adminFieldService.save(jsonObject.getJSONArray("field"), batchId);
         boolean saveOrUpdate;
         if (crmBusiness.getBusinessId() != null) {
-            crmBusiness.setUpdateTime(DateUtil.date().toTimestamp());
+            LkCrmBusinessEntity lkCrmBusinessEntity = crmBusinessDao.get(crmBusiness.getBusinessId());
+            BeanUtil.copyProperties(crmBusiness, lkCrmBusinessEntity,"createTime","createUserId","roUserId","rwUserId","isEnd");
+            lkCrmBusinessEntity.setUpdateTime(DateUtil.date().toTimestamp());
             crmRecordService.updateRecord(crmBusinessDao.get(crmBusiness.getBusinessId()), crmBusiness, CrmEnum.BUSINESS_TYPE_KEY.getTypes());
             LkCrmBusinessEntity oldBusiness = crmBusinessDao.get(crmBusiness.getBusinessId());
-            if (!oldBusiness.getStatusId().equals(crmBusiness.getStatusId())) {
+            if (!Objects.equals(oldBusiness.getStatusId(), crmBusiness.getStatusId())) {
                 LkCrmBusinessChangeEntity change = new LkCrmBusinessChangeEntity();
                 change.setBusinessId(crmBusiness.getBusinessId());
                 change.setStatusId(crmBusiness.getStatusId());
@@ -116,7 +119,7 @@ public class CrmBusinessService {
                 change.setCreateUserId(BaseUtil.getUserId());
                 crmBusinessDao.saveOrUpdate(change);
             }
-            crmBusinessDao.update(crmBusiness);
+            crmBusinessDao.saveOrUpdate(lkCrmBusinessEntity);
             saveOrUpdate = true;
         } else {
             crmBusiness.setCreateTime(DateUtil.date().toTimestamp());

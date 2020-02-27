@@ -156,6 +156,7 @@ public class CrmRecordService<T> {
         }
         crmActionRecord.setContent(JSON.toJSONString(textList));
         if (textList.size() > 0) {
+            crmActionRecord.setCreateTime(DateUtil.date().toTimestamp());
             crmActionRecordDao.save(crmActionRecord);
         }
         textList.clear();
