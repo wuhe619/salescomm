@@ -265,7 +265,8 @@ public class CrmContractController extends Controller {
      * @author zxy
      */
     @RequestMapping(value = "/qureyProductListByContractId", method = RequestMethod.POST)
-    public R qureyProductListByContractId(BasePageRequest<CrmContractProduct> basePageRequest) {
+    public R qureyProductListByContractId(BasePageRequest<CrmContractProduct> basePageRequest,CrmContractProduct crmContractProduct) {
+        basePageRequest.setData(crmContractProduct);
         boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.CONTRACT_TYPE_KEY.getSign()), basePageRequest.getData().getContractId());
         if (auth) {
             return (R.noAuth());
