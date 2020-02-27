@@ -139,7 +139,7 @@ public class CrmCustomerService {
             LkCrmCustomerEntity oldCrmCustomer = crmCustomerDao.get(crmCustomer.getCustomerId());
             crmRecordService.updateRecord(oldCrmCustomer, crmCustomer, CrmEnum.CUSTOMER_TYPE_KEY.getTypes());
             crmCustomer.setUpdateTime(DateUtil.date().toTimestamp());
-            BeanUtil.copyProperties(crmCustomer, oldCrmCustomer, "customerId", "isLock", "createTime", "batchId");
+            BeanUtils.copyProperties(crmCustomer, oldCrmCustomer, JavaBeanUtil.getNullPropertyNames(crmCustomer));
             crmCustomerDao.update(oldCrmCustomer);
             return R.ok();
         } else {

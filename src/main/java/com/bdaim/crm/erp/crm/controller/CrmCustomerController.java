@@ -432,9 +432,9 @@ public class CrmCustomerController extends Controller {
      */
     @Permissions("crm:customer:excelexport")
     @RequestMapping(value = "/batchExportExcel")
-    public void batchExportExcel(@Para("ids") String customerIds) throws IOException {
+    public void batchExportExcel(@Para("ids") String customerIds, HttpServletResponse response) throws IOException {
         List<Record> recordList = crmCustomerService.exportCustomer(customerIds);
-        export(recordList);
+        export(recordList, response);
         renderNull();
     }
 
@@ -444,14 +444,15 @@ public class CrmCustomerController extends Controller {
      */
     @Permissions("crm:customer:excelexport")
     @RequestMapping(value = "/allExportExcel")
-    public void allExportExcel(BasePageRequest basePageRequest, @RequestBody JSONObject jsonObject) throws IOException {
+    public void allExportExcel(BasePageRequest basePageRequest, @RequestBody JSONObject jsonObject, HttpServletResponse response) throws IOException {
         //JSONObject jsonObject = basePageRequest.getJsonObject();
         jsonObject.fluentPut("excel", "yes").fluentPut("type", 2);
         basePageRequest.setJsonObject(jsonObject);
         //AdminSceneService adminSceneService = new AdminSceneService();
-        List<Record> recordList = (List<Record>) adminSceneService.filterConditionAndGetPageList(basePageRequest).get("data");
-        export(recordList);
-        renderNull();
+        List<Record> recordList = JavaBeanUtil.mapToRecords((List) adminSceneService.filterConditionAndGetPageList(basePageRequest).get("data"));
+        //List<Record> recordList = (List<Record>) adminSceneService.filterConditionAndGetPageList(basePageRequest).get("data");
+        export(recordList, response);
+        //renderNull();
     }
 
     /**
@@ -460,9 +461,9 @@ public class CrmCustomerController extends Controller {
      */
     @Permissions("crm:pool:excelexport")
     @RequestMapping(value = "/poolBatchExportExcel")
-    public void poolBatchExportExcel(@Para("ids") String customerIds) throws IOException {
+    public void poolBatchExportExcel(@Para("ids") String customerIds, HttpServletResponse response) throws IOException {
         List<Record> recordList = crmCustomerService.exportCustomer(customerIds);
-        export(recordList);
+        export(recordList, response);
         renderNull();
     }
 
@@ -472,18 +473,18 @@ public class CrmCustomerController extends Controller {
      */
     @Permissions("crm:pool:excelexport")
     @RequestMapping(value = "/poolAllExportExcel")
-    public void poolAllExportExcel(BasePageRequest basePageRequest, @RequestBody JSONObject jsonObject) throws IOException {
+    public void poolAllExportExcel(BasePageRequest basePageRequest, @RequestBody JSONObject jsonObject, HttpServletResponse response) throws IOException {
         //JSONObject jsonObject = basePageRequest.getJsonObject();
         jsonObject.fluentPut("excel", "yes").fluentPut("type", 8);
         //AdminSceneService adminSceneService = new AdminSceneService();
         basePageRequest.setJsonObject(jsonObject);
         List<Record> recordList = (List<Record>) adminSceneService.filterConditionAndGetPageList(basePageRequest).get("data");
-        export(recordList);
+        export(recordList, response);
         //renderNull();
     }
 
     @RequestMapping(value = "/export")
-    private void export(List<Record> recordList) throws IOException {
+    private void export(List<Record> recordList, HttpServletResponse response) throws IOException {
         ExcelWriter writer = null;
         try {
             writer = ExcelUtil.getWriter();
@@ -512,7 +513,7 @@ public class CrmCustomerController extends Controller {
                 writer.addHeaderAlias(field.getStr("name"), field.getStr("name"));
             }
             writer.merge(fieldList.size() + 15, "客户信息");
-            HttpServletResponse response = getResponse();
+            //HttpServletResponse response = getResponse();
             List<Map<String, Object>> list = new ArrayList<>();
             for (Record record : recordList) {
                 list.add(record.remove("batch_id", "create_user_id", "customer_id", "is_lock", "owner_user_id", "ro_user_id", "rw_user_id", "followup", "field_batch_id").getColumns());
