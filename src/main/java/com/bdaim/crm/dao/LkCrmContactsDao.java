@@ -3,6 +3,7 @@ package com.bdaim.crm.dao;
 import com.bdaim.common.dao.SimpleHibernateDao;
 import com.bdaim.common.dto.Page;
 import com.bdaim.crm.entity.LkCrmContactsEntity;
+import com.bdaim.util.SqlAppendUtil;
 import com.bdaim.util.StringUtil;
 import org.springframework.stereotype.Component;
 
@@ -123,10 +124,9 @@ public class LkCrmContactsDao extends SimpleHibernateDao<LkCrmContactsEntity, In
 
 
     public int transfer(String ownerUserId, List ids) {
-        String sql = " update lkcrm_crm_contacts set owner_user_id =? where contacts_id in ( ?)";
+        String sql = " update lkcrm_crm_contacts set owner_user_id =? where contacts_id in (" + SqlAppendUtil.sqlAppendWhereIn(ids) + ")";
         List param = new ArrayList();
         param.add(ownerUserId);
-        param.add(ids);
         return executeUpdateSQL(sql, param.toArray());
     }
 

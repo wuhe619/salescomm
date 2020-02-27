@@ -193,7 +193,7 @@ public class CrmContactsService {
         crmContacts.setCustId(BaseUtil.getUser().getCustId());
         if (crmContacts.getContactsId() != null) {
             crmContacts.setUpdateTime(DateUtil.date().toTimestamp());
-            crmRecordService.updateRecord(new CrmContacts().dao().findById(crmContacts.getContactsId()), crmContacts, CrmEnum.CONTACTS_TYPE_KEY.getTypes());
+            crmRecordService.updateRecord(crmContactsDao.get(crmContacts.getContactsId()), crmContacts, CrmEnum.CONTACTS_TYPE_KEY.getTypes());
             crmContactsDao.saveOrUpdate(crmContacts);
             return R.ok();
         } else {
