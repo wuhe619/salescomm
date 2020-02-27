@@ -409,6 +409,7 @@ public class CrmCustomerController extends Controller {
      */
     @RequestMapping(value = "/getRecord", method = RequestMethod.POST)
     public R getRecord(BasePageRequest<CrmCustomer> basePageRequest, CrmCustomer crmCustomer) {
+        basePageRequest.setData(crmCustomer);
         boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.CUSTOMER_TYPE_KEY.getSign()), basePageRequest.getData().getCustomerId());
         if (auth) {
             return (R.noAuth());

@@ -101,6 +101,9 @@ public class CrmCustomerService {
     @Resource
     private CrmContactsService crmContactsService;
 
+    @Resource
+    private LkCrmAdminFieldDao crmAdminFieldDao;
+
     /**
      * @return
      * @author wyq
@@ -178,7 +181,7 @@ public class CrmCustomerService {
      * 基本信息
      */
     public List<Record> information(Integer customerId) {
-        CrmCustomer crmCustomer = CrmCustomer.dao.findById(customerId);
+        LkCrmCustomerEntity crmCustomer = crmCustomerDao.get(customerId);
         List<Record> fieldList = new ArrayList<>();
         FieldUtil field = new FieldUtil(fieldList);
         field.set("客户名称", crmCustomer.getCustomerName())
@@ -191,7 +194,7 @@ public class CrmCustomerService {
                 .set("定位", crmCustomer.getLocation())
                 .set("区域", crmCustomer.getAddress())
                 .set("详细地址", crmCustomer.getDetailAddress());
-        List<Record> recordList = Db.find(Db.getSql("admin.field.queryCustomField"), crmCustomer.getBatchId());
+        List<Record> recordList = JavaBeanUtil.mapToRecords(crmAdminFieldDao.queryCustomField(crmCustomer.getBatchId()));
         fieldUtil.handleType(recordList);
         fieldList.addAll(recordList);
         return fieldList;
