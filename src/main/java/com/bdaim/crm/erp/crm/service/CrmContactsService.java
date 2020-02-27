@@ -29,7 +29,10 @@ import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.tx.Tx;
 import com.jfinal.upload.UploadFile;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.transaction.Transactional;
@@ -42,6 +45,8 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 public class CrmContactsService {
+
+    public static final Logger LOG = LoggerFactory.getLogger(CrmContactsService.class);
     @Resource
     private AdminFieldService adminFieldService;
 
@@ -494,6 +499,112 @@ public class CrmContactsService {
             return R.error();
         } finally {
             reader.close();
+        }
+        return R.ok();
+    }
+
+    public R uploadExcel(MultipartFile file, Integer repeatHandling, Long ownerUserId) {
+        //AdminFieldService adminFieldService = new AdminFieldService();
+        Kv kv = new Kv();
+        Integer errNum = 0;
+        try (ExcelReader reader = ExcelUtil.getReader(file.getInputStream())) {
+            List<List<Object>> read = reader.read();
+            List<Object> list = read.get(2);
+            List<Record> recordList = adminFieldService.customFieldList("3");
+            recordList.removeIf(record -> "file".equals(record.getStr("formType")) || "checkbox".equals(record.getStr("formType")) || "user".equals(record.getStr("formType")) || "structure".equals(record.getStr("formType")));
+            List<Record> fieldList = adminFieldService.queryAddField(3);
+            fieldList.removeIf(record -> "file".equals(record.getStr("formType")) || "checkbox".equals(record.getStr("formType")) || "user".equals(record.getStr("formType")) || "structure".equals(record.getStr("formType")));
+            fieldList.forEach(record -> {
+                if (record.getInt("is_null") == 1) {
+                    record.set("name", record.getStr("name") + "(*)");
+                }
+            });
+            List<String> nameList = fieldList.stream().map(record -> record.getStr("name")).collect(Collectors.toList());
+            if (nameList.size() != list.size() || !nameList.containsAll(list)) {
+                return R.error("请使用最新导入模板");
+            }
+            Kv nameMap = new Kv();
+            fieldList.forEach(record -> nameMap.set(record.getStr("name"), record.getStr("field_name")));
+            for (int i = 0; i < list.size(); i++) {
+                kv.set(nameMap.get(list.get(i)), i);
+            }
+            if (read.size() > 2) {
+                JSONObject object = new JSONObject();
+                for (int i = 2; i < read.size(); i++) {
+                    errNum = i;
+                    List<Object> contactsList = read.get(i);
+                    if (contactsList.size() < list.size()) {
+                        for (int j = contactsList.size() - 1; j < list.size(); j++) {
+                            contactsList.add(null);
+                        }
+                    }
+                    String contactsName = contactsList.get(kv.getInt("name")).toString();
+                    Object telephoneObeject = contactsList.get(kv.getInt("telephone"));
+                    String telephone = null;
+                    if (telephoneObeject != null) {
+                        telephone = telephoneObeject.toString();
+                    }
+                    Object mobileObject = contactsList.get(kv.getInt("mobile"));
+                    String mobile = null;
+                    if (mobileObject != null) {
+                        mobile = mobileObject.toString();
+                    }
+                    Record repeatField = JavaBeanUtil.mapToRecord(crmContactsDao.queryRepeatFieldNumber(contactsName, telephone, mobile).get(0));
+                    //Record repeatField = Db.findFirst(Db.getSqlPara("crm.contact.queryRepeatFieldNumber", Kv.by("contactsName", contactsName).set("telephone", telephone).set("mobile", mobile)));
+                    Integer number = repeatField.getInt("number");
+                    Integer customerId = crmContactsDao.queryForInt("select customer_id from lkcrm_crm_customer where customer_name = ?", contactsList.get(kv.getInt("customer_id")));
+                    if (customerId == null) {
+                        return R.error("第" + errNum + 1 + "行填写的客户不存在");
+                    }
+                    if (0 == number) {
+                        object.fluentPut("entity", new JSONObject().fluentPut("name", contactsName)
+                                .fluentPut("customer_id", customerId)
+                                .fluentPut("telephone", telephone)
+                                .fluentPut("mobile", mobile)
+                                .fluentPut("email", contactsList.get(kv.getInt("email")))
+                                .fluentPut("post", contactsList.get(kv.getInt("post")))
+                                .fluentPut("address", contactsList.get(kv.getInt("address")))
+                                .fluentPut("next_time", contactsList.get(kv.getInt("next_time")))
+                                .fluentPut("remark", contactsList.get(kv.getInt("remark")))
+                                .fluentPut("owner_user_id", ownerUserId));
+                    } else if (number == 1 && repeatHandling == 1) {
+                        if (repeatHandling == 1) {
+                            Record contacts = JavaBeanUtil.mapToRecord(crmContactsDao.queryRepeatField(contactsName, telephone, mobile).get(0));
+                            //Record contacts = Db.findFirst(Db.getSqlPara("crm.contact.queryRepeatField", Kv.by("contactsName", contactsName).set("telephone", telephone).set("mobile", mobile)));
+                            object.fluentPut("entity", new JSONObject().fluentPut("contacts_id", contacts.getInt("contacts_id"))
+                                    .fluentPut("name", contactsName)
+                                    .fluentPut("customer_id", customerId)
+                                    .fluentPut("telephone", telephone)
+                                    .fluentPut("mobile", mobile)
+                                    .fluentPut("email", contactsList.get(kv.getInt("email")))
+                                    .fluentPut("post", contactsList.get(kv.getInt("post")))
+                                    .fluentPut("address", contactsList.get(kv.getInt("address")))
+                                    .fluentPut("next_time", contactsList.get(kv.getInt("next_time")))
+                                    .fluentPut("remark", contactsList.get(kv.getInt("remark")))
+                                    .fluentPut("owner_user_id", ownerUserId)
+                                    .fluentPut("batch_id", contacts.getStr("batch_id")));
+                        }
+                    } else if (repeatHandling == 2) {
+                        continue;
+                    } else if (number > 1) {
+                        return R.error("数据多条重复");
+                    }
+                    JSONArray jsonArray = new JSONArray();
+                    for (Record record : recordList) {
+                        Integer columnsNum = kv.getInt(record.getStr("name")) != null ? kv.getInt(record.getStr("name")) : kv.getInt(record.getStr("name") + "(*)");
+                        record.set("value", contactsList.get(columnsNum));
+                        jsonArray.add(JSONObject.parseObject(record.toJson()));
+                    }
+                    object.fluentPut("field", jsonArray);
+                    addOrUpdate(object);
+                }
+            }
+        } catch (Exception e) {
+            LOG.error("", e);
+            if (errNum != 0) {
+                return R.error("第" + (errNum + 1) + "行错误!");
+            }
+            return R.error();
         }
         return R.ok();
     }

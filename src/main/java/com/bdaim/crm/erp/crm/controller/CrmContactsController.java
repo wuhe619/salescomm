@@ -16,13 +16,12 @@ import com.bdaim.crm.erp.crm.common.CrmEnum;
 import com.bdaim.crm.erp.crm.entity.CrmContacts;
 import com.bdaim.crm.erp.crm.service.CrmContactsService;
 import com.bdaim.crm.utils.AuthUtil;
+import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
 import com.bdaim.util.JavaBeanUtil;
 import com.jfinal.core.paragetter.Para;
 import com.jfinal.log.Log;
-import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
-import com.jfinal.upload.UploadFile;
 import org.apache.poi.hssf.usermodel.*;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
@@ -31,12 +30,16 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
+import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 
 import javax.annotation.Resource;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -365,14 +368,8 @@ public class CrmContactsController extends BasicAction {
         //renderNull();
     }
 
-    /**
-     * @author wyq
-     * 联系人导入
-     */
-    @Permissions("crm:contacts:excelimport")
-    @NotNullValidate(value = "ownerUserId", message = "请选择负责人")
-    @RequestMapping(value = "/uploadExcel", method = RequestMethod.POST)
-    public void uploadExcel(@Para("file") UploadFile file, @Para("repeatHandling") Integer repeatHandling, @Para("ownerUserId") Integer ownerUserId) {
+
+   /* public void uploadExcel(@Para("file") UploadFile file, @Para("repeatHandling") Integer repeatHandling, @Para("ownerUserId") Integer ownerUserId) {
         Db.tx(() -> {
             R result = crmContactsService.uploadExcel(file, repeatHandling, ownerUserId);
             renderJson(result);
@@ -381,5 +378,33 @@ public class CrmContactsController extends BasicAction {
             }
             return true;
         });
+    }*/
+
+    /**
+     * 联系人导入
+     */
+    @Permissions("crm:contacts:excelimport")
+    @NotNullValidate(value = "ownerUserId", message = "请选择负责人")
+    @RequestMapping(value = "/uploadExcel", method = RequestMethod.POST)
+    public R uploadExcel(Integer repeatHandling, Long ownerUserId) {
+        //Db.tx(() -> {
+        MultipartFile file = null;
+        CommonsMultipartResolver multipartResolver = new CommonsMultipartResolver(
+                BaseUtil.getRequest().getSession().getServletContext());
+        if (multipartResolver.isMultipart(BaseUtil.getRequest())) {
+            MultipartHttpServletRequest multiRequest = (MultipartHttpServletRequest) BaseUtil.getRequest();
+            Iterator<String> iter = multiRequest.getFileNames();
+            while (iter.hasNext()) {
+                MultipartFile multiRequestFile = multiRequest.getFile(iter.next());
+                if (multiRequestFile != null) {
+                    file = multiRequestFile;
+                    break;
+                }
+            }
+        }
+        R result = crmContactsService.uploadExcel(file, repeatHandling, ownerUserId);
+        return (result);
+        //return !result.get("code").equals(500);
+        //});
     }
 }
