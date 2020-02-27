@@ -176,7 +176,7 @@ public class CrmCustomerController extends Controller {
      * 根据客户id查找商机
      */
     @RequestMapping(value = "/queryBusiness", method = RequestMethod.POST)
-    public R queryBusiness(BasePageRequest<CrmCustomer> basePageRequest, CrmCustomer crmCustomer, String search) {
+    public R queryBusiness(BasePageRequest<CrmCustomer> basePageRequest, CrmCustomer crmCustomer, Integer customerId, String search) {
         basePageRequest.setData(crmCustomer);
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("search", search);
@@ -186,7 +186,7 @@ public class CrmCustomerController extends Controller {
             return (R.noAuth());
             //return;
         }
-        return (crmCustomerService.queryBusiness(basePageRequest));
+        return (crmCustomerService.queryBusiness(basePageRequest, customerId, search));
     }
 
     /**

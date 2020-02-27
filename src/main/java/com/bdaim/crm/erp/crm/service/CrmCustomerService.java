@@ -1,6 +1,5 @@
 package com.bdaim.crm.erp.crm.service;
 
-import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.IdUtil;
@@ -215,10 +214,7 @@ public class CrmCustomerService {
      * @author wyq
      * 根据客户id查找商机
      */
-    public R queryBusiness(BasePageRequest<CrmCustomer> basePageRequest) {
-        JSONObject jsonObject = basePageRequest.getJsonObject();
-        Integer customerId = jsonObject.getInteger("customerId");
-        String search = jsonObject.getString("search");
+    public R queryBusiness(BasePageRequest<CrmCustomer> basePageRequest, Integer customerId, String search) {
         Integer pageType = basePageRequest.getPageType();
         if (pageType != null && 0 == pageType) {
             List<Record> recordList = JavaBeanUtil.mapToRecords(crmCustomerDao.queryBusiness(customerId, search));
@@ -228,7 +224,7 @@ public class CrmCustomerService {
             com.bdaim.common.dto.Page paginate = crmCustomerDao.pageQueryBusiness(basePageRequest.getPage(), basePageRequest.getLimit(), customerId, search);
             //Page<Record> paginate = Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), Db.getSqlPara("crm.customer.queryBusiness", Kv.by("customerId", customerId).set("businessName", search)));
             adminSceneService.setBusinessStatus(JavaBeanUtil.mapToRecords(paginate.getData()));
-            return R.ok().put("data", paginate);
+            return R.ok().put("data", BaseUtil.crmPage(paginate));
         }
     }
 
