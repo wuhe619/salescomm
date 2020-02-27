@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.crm.common.annotation.Permissions;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
+import com.bdaim.crm.entity.LkCrmAdminExamineEntity;
 import com.bdaim.crm.erp.admin.entity.AdminExamine;
 import com.bdaim.crm.erp.admin.service.AdminExamineService;
 import com.bdaim.crm.utils.R;
@@ -58,7 +59,7 @@ public class AdminExamineController extends Controller {
      */
     @Permissions("manage:examineFlow")
     @RequestMapping(value = "/updateStatus", method = RequestMethod.POST)
-    public R updateStatus(@Para("") AdminExamine adminExamine){
+    public R updateStatus(@Para("") LkCrmAdminExamineEntity adminExamine){
         return(examineService.updateStatus(adminExamine));
     }
     /**
@@ -67,8 +68,8 @@ public class AdminExamineController extends Controller {
      */
     @Permissions("manage:examineFlow")
     @RequestMapping(value = "/queryExaminStep", method = RequestMethod.POST)
-    public R queryExaminStep(){
-        Integer categoryType = getInt("categoryType");
+    public R queryExaminStep( Integer categoryType){
+        //Integer categoryType = getInt("categoryType");
         return(examineService.queryExaminStep(categoryType));
     }
 }
