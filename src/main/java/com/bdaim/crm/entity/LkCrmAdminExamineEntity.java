@@ -7,8 +7,8 @@ import java.util.Objects;
 @Entity
 @Table(name = "lkcrm_admin_examine", schema = "", catalog = "")
 public class LkCrmAdminExamineEntity {
-    private int examineId;
-    private int categoryType;
+    private Integer examineId;
+    private Integer categoryType;
     private Integer examineType;
     private String name;
     private String deptIds;
@@ -22,21 +22,22 @@ public class LkCrmAdminExamineEntity {
 
     @Id
     @Column(name = "examine_id")
-    public int getExamineId() {
+    @GeneratedValue
+    public Integer getExamineId() {
         return examineId;
     }
 
-    public void setExamineId(int examineId) {
+    public void setExamineId(Integer examineId) {
         this.examineId = examineId;
     }
 
     @Basic
     @Column(name = "category_type")
-    public int getCategoryType() {
+    public Integer getCategoryType() {
         return categoryType;
     }
 
-    public void setCategoryType(int categoryType) {
+    public void setCategoryType(Integer categoryType) {
         this.categoryType = categoryType;
     }
 

@@ -18,6 +18,7 @@ import com.bdaim.rbac.dto.UserQueryParam;
 import com.bdaim.rbac.entity.User;
 import com.bdaim.rbac.service.UserService;
 import com.bdaim.util.CalendarUtil;
+import com.bdaim.util.NumberConvertUtil;
 import com.bdaim.util.StringUtil;
 import com.jfinal.json.Json;
 import org.slf4j.Logger;
@@ -398,6 +399,15 @@ public class BasicAction {
         Object object = r.get("data");
         return (R.ok().put("data", JSON.parse(json.toJson(object))));
     }
+
+    public String getPara(String name) {
+        return this.request.getParameter(name);
+    }
+
+    public Integer getParaToInt(String name) {
+        return NumberConvertUtil.parseInt(getPara(name));
+    }
+
 
 
 }

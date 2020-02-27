@@ -8,7 +8,8 @@ import java.util.Objects;
 @Table(name = "lkcrm_crm_action_record", schema = "", catalog = "")
 public class LkCrmActionRecordEntity {
     private int id;
-    private int createUserId;
+    private Long createUserId;
+    private String custId;
     private Timestamp createTime;
     private String types;
     private String actionId;
@@ -27,12 +28,22 @@ public class LkCrmActionRecordEntity {
 
     @Basic
     @Column(name = "create_user_id")
-    public int getCreateUserId() {
+    public Long getCreateUserId() {
         return createUserId;
     }
 
-    public void setCreateUserId(int createUserId) {
+    public void setCreateUserId(Long createUserId) {
         this.createUserId = createUserId;
+    }
+
+    @Basic
+    @Column(name = "cust_id")
+    public String getCustId() {
+        return custId;
+    }
+
+    public void setCustId(String custId) {
+        this.custId = custId;
     }
 
     @Basic

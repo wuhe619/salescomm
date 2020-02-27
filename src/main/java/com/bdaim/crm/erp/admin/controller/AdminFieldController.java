@@ -1,12 +1,12 @@
 package com.bdaim.crm.erp.admin.controller;
 
 import cn.hutool.core.util.NumberUtil;
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.common.exception.TouchException;
 import com.bdaim.crm.common.annotation.NotNullValidate;
 import com.bdaim.crm.common.annotation.Permissions;
-import com.bdaim.crm.common.annotation.RequestBody;
 import com.bdaim.crm.entity.LkCrmAdminFieldSortEntity;
 import com.bdaim.crm.entity.LkCrmAdminFieldStyleEntity;
 import com.bdaim.crm.erp.admin.entity.AdminFieldSort;
@@ -21,10 +21,7 @@ import com.bdaim.util.JavaBeanUtil;
 import com.jfinal.core.paragetter.Para;
 import com.jfinal.kit.Kv;
 import com.jfinal.plugin.activerecord.Record;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import java.util.*;
@@ -72,10 +69,10 @@ public class AdminFieldController extends BasicAction {
      */
     @Permissions("manage:crm")
     @RequestMapping(value = "/save", method = RequestMethod.POST)
-    public R save(@RequestBody JSONObject jsonObject) {
+    public R save(@RequestBody String body) {
         //String str = getRawData();
         // JSONObject jsonObject = JSON.parseObject(str);
-        return (adminFieldService.save(jsonObject));
+        return (adminFieldService.save(JSON.parseObject(body)));
     }
 
     /**
@@ -281,5 +278,22 @@ public class AdminFieldController extends BasicAction {
                 data = R.error("type不符合要求");
         }
         return (data);
+    }
+
+    /**
+     * @description 获取自定义属性
+     * @method
+     * @date: 2019/7/1 10:29
+     */
+    @RequestMapping(value = "/list/label", method = RequestMethod.POST)
+    public R getLabelInfo(String name, Integer id) {
+        List<Record> recordList = crmLeadsService.queryField(id);
+        List<Record> data = new ArrayList<>();
+        recordList.forEach(r -> {
+            if (Objects.equals(name, r.getStr("name"))) {
+                data.add(r);
+            }
+        });
+        return renderCrmJson(data);
     }
 }

@@ -1618,13 +1618,17 @@ public class CustomerSeaService {
                 .append(" FROM ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(seaId).append(" WHERE status = 0  AND id IN (").append(SqlAppendUtil.sqlAppendWhereIn(superIds)).append(")");
         //员工只能处理负责人为自己的数据
         List<Object> p = new ArrayList<>();
+        p.add(reason);
+        p.add(remark);
+        List<Object> param = new ArrayList<>();
         if ("2".equals(userType)) {
             p.add(userId);
+            param.add(userId);
             sql.append(" AND user_id = ? ");
             logSql.append(" AND user_id = ? ");
         }
-        customerSeaDao.executeUpdateSQL(logSql.toString(), reason, remark, p.toArray());
-        int status = customerSeaDao.executeUpdateSQL(sql.toString(), p.toArray());
+        customerSeaDao.executeUpdateSQL(logSql.toString(), p.toArray());
+        int status = customerSeaDao.executeUpdateSQL(sql.toString(), param.toArray());
         return status;
     }
 

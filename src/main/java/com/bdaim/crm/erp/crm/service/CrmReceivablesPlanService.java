@@ -42,6 +42,7 @@ public class CrmReceivablesPlanService {
      */
     public R saveAndUpdate(JSONObject jsonObject) {
         LkCrmReceivablesPlanEntity crmReceivablesPlan = jsonObject.getObject("entity", LkCrmReceivablesPlanEntity.class);
+        crmReceivablesPlan.setCustId(BaseUtil.getUser().getCustId());
         String batchId = StrUtil.isNotEmpty(crmReceivablesPlan.getFileBatch()) ? crmReceivablesPlan.getFileBatch() : IdUtil.simpleUUID();
         adminFieldService.save(jsonObject.getJSONArray("field"), batchId);
         if (null == crmReceivablesPlan.getPlanId()) {
@@ -84,12 +85,12 @@ public class CrmReceivablesPlanService {
             idsList.add(record.set("plan_id", Integer.valueOf(id)));
             ids.add(id);
         }
-        crmReceivablesPlanDao.deleteByIds(ids);
+        int i = crmReceivablesPlanDao.deleteByIds(ids);
         /*return Db.tx(() -> {
             Db.batch(Db.getSql("crm.receivablesplan.deleteByIds"), "plan_id", idsList, 100);
             return true;
         }) ? R.ok() : R.error();*/
-        return R.ok();
+        return i > 0 ? R.ok() : R.error();
     }
 
     /**

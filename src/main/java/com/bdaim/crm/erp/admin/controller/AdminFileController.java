@@ -1,10 +1,11 @@
 package com.bdaim.crm.erp.admin.controller;
 
-import com.bdaim.crm.erp.admin.entity.AdminFile;
+import com.bdaim.common.controller.BasicAction;
+import com.bdaim.crm.entity.LkCrmAdminFileEntity;
 import com.bdaim.crm.erp.admin.service.AdminFileService;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
-import com.jfinal.core.Controller;
+import com.bdaim.util.NumberConvertUtil;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -13,7 +14,7 @@ import javax.annotation.Resource;
 
 @RestController
 @RequestMapping("/file")
-public class AdminFileController extends Controller {
+public class AdminFileController extends BasicAction {
     @Resource
     private AdminFileService adminFileService;
 
@@ -42,38 +43,38 @@ public class AdminFileController extends Controller {
     }
 
     /**
-     * @author zhangzhiwei
      * 通过ID查询
      */
-    public void queryById() {
-        renderJson(adminFileService.queryById(getPara("id")));
+    @RequestMapping(value = "/queryById", method = RequestMethod.POST)
+    public R queryById() {
+        return(adminFileService.queryById(getPara("id")));
     }
 
     /**
-     * @author zhangzhiwei
      * 通过ID删除
      */
-    public void removeById() {
-        renderJson(adminFileService.removeById(getPara("id")));
+    @RequestMapping(value = "/removeById", method = RequestMethod.POST)
+    public R removeById() {
+        return(adminFileService.removeById(getPara("id")));
     }
 
     /**
-     * @author zhangzhiwei
      * 通过批次ID删除
      */
-    public void removeByBatchId() {
+    @RequestMapping(value = "/removeByBatchId", method = RequestMethod.POST)
+    public R removeByBatchId() {
         adminFileService.removeByBatchId(getPara("batchId"));
-        renderJson(R.ok());
+        return (R.ok());
     }
 
     /**
-     * @author zhangzhiwei
      * 重命名文件
      */
-    public void renameFileById() {
-        AdminFile file = new AdminFile();
-        file.setFileId(getInt("fileId"));
+    @RequestMapping(value = "/renameFileById", method = RequestMethod.POST)
+    public R renameFileById() {
+        LkCrmAdminFileEntity file = new LkCrmAdminFileEntity();
+        file.setFileId(NumberConvertUtil.parseInt(getPara("fileId")));
         file.setName(getPara("name"));
-        renderJson(adminFileService.renameFileById(file) ? R.ok() : R.error());
+        return (adminFileService.renameFileById(file) ? R.ok() : R.error());
     }
 }

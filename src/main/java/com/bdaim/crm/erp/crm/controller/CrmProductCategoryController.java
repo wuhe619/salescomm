@@ -1,9 +1,9 @@
 package com.bdaim.crm.erp.crm.controller;
 
+import com.bdaim.common.controller.BasicAction;
 import com.bdaim.crm.entity.LkCrmProductCategoryEntity;
 import com.bdaim.crm.erp.crm.service.CrmProductCategoryService;
 import com.bdaim.crm.utils.R;
-import com.jfinal.core.Controller;
 import com.jfinal.core.paragetter.Para;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -16,7 +16,7 @@ import javax.annotation.Resource;
  */
 @RestController
 @RequestMapping("/CrmProductCategory")
-public class CrmProductCategoryController extends Controller {
+public class CrmProductCategoryController extends BasicAction {
 
     @Resource
     private CrmProductCategoryService crmProductCategoryService;

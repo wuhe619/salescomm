@@ -73,8 +73,8 @@ public class LkCrmCustomerDao extends SimpleHibernateDao<LkCrmCustomerEntity, In
     }
 
     public List excelExport(List customer_id) {
-        String sql = " select * from customerview where customer_id in (? ) order by update_time desc";
-        return sqlQuery(sql, customer_id);
+        String sql = " select * from customerview where customer_id in ("+SqlAppendUtil.sqlAppendWhereIn(customer_id)+") order by update_time desc";
+        return sqlQuery(sql);
     }
 
     public List getRecord(Integer customerId) {
@@ -90,16 +90,17 @@ public class LkCrmCustomerDao extends SimpleHibernateDao<LkCrmCustomerEntity, In
     }
 
 
-    public List<Map<String, Object>> getMembers(Integer owner_user_id) {
-        String sql = " select a.user_id as id,a.realname,b.name\n" +
+    public List<Map<String, Object>> getMembers(Long owner_user_id) {
+       /* String sql = " select a.user_id as id,a.realname,b.name\n" +
                 "    from lkcrm_admin_user as a inner join lkcrm_admin_dept as b on a.dept_id = b.dept_id\n" +
-                "    where a.user_id = ?";
+                "    where a.user_id = ?";*/
+        String sql = " select a.id as id,a.realname,'默认部门' AS name  from t_customer_user as a where a.id = ? ";
         return sqlQuery(sql, owner_user_id);
     }
 
     public int lock(int isLock, List ids) {
         String sql = " update lkcrm_crm_customer set is_lock = ? where customer_id in (" + SqlAppendUtil.sqlAppendWhereIn(ids) + ")";
-        return queryForInt(sql, isLock);
+        return executeUpdateSQL(sql, isLock);
     }
 
     public List<Map<String, Object>> queryReceivables(Integer customerId) {
@@ -250,7 +251,7 @@ public class LkCrmCustomerDao extends SimpleHibernateDao<LkCrmCustomerEntity, In
     }
 
     public Page pageQueryContacts(int pageNum, int pageSize, Integer customerId, String search) {
-        String sql = "select contacts_id,name,mobile,post,telephone,是否关键决策人 from contactsview where customer_id = #para(customerId)  ";
+        String sql = "select contacts_id,name,mobile,post,telephone,是否关键决策人 from contactsview where customer_id = ? ";
         List param = new ArrayList();
         param.add(customerId);
         if (StringUtil.isNotEmpty(search)) {
@@ -260,9 +261,10 @@ public class LkCrmCustomerDao extends SimpleHibernateDao<LkCrmCustomerEntity, In
         return sqlPageQuery(sql, pageNum, pageSize, param.toArray());
     }
 
-    public List<Map<String, Object>> queryByName(String customer_name) {
+    public Map<String, Object> queryByName(String customer_name) {
         String sql = "select * from customerview where customer_name = ? ";
-        return sqlQuery(sql, customer_name);
+        List<Map<String, Object>> maps = sqlQuery(sql, customer_name);
+        return maps.size() > 0 ? maps.get(0) : null;
     }
 
     public List<Map<String, Object>> queryById(Integer customer_id) {
@@ -270,7 +272,7 @@ public class LkCrmCustomerDao extends SimpleHibernateDao<LkCrmCustomerEntity, In
         return sqlQuery(sql, customer_id);
     }
 
-    public Page getCustomerPageList(int pageNum, int pageSize, String customerName,String mobile,String telephone) {
+    public Page getCustomerPageList(int pageNum, int pageSize, String customerName, String mobile, String telephone) {
         String sql = " select customer_id,customer_name,owner_user_name from customerview where 1=1";
         List param = new ArrayList();
         if (StringUtil.isNotEmpty(customerName)) {

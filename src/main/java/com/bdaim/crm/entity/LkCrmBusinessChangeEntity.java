@@ -11,7 +11,7 @@ public class LkCrmBusinessChangeEntity {
     private int businessId;
     private int statusId;
     private Timestamp createTime;
-    private int createUserId;
+    private Long createUserId;
 
     @Id
     @Column(name = "change_id")
@@ -56,11 +56,11 @@ public class LkCrmBusinessChangeEntity {
 
     @Basic
     @Column(name = "create_user_id")
-    public int getCreateUserId() {
+    public Long getCreateUserId() {
         return createUserId;
     }
 
-    public void setCreateUserId(int createUserId) {
+    public void setCreateUserId(Long createUserId) {
         this.createUserId = createUserId;
     }
 

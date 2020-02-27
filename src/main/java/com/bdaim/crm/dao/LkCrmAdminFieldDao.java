@@ -3,6 +3,7 @@ package com.bdaim.crm.dao;
 import com.bdaim.common.dao.SimpleHibernateDao;
 import com.bdaim.crm.entity.LkCrmAdminFieldEntity;
 import com.bdaim.crm.entity.LkCrmAdminFieldStyleEntity;
+import com.bdaim.util.SqlAppendUtil;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -17,11 +18,10 @@ public class LkCrmAdminFieldDao extends SimpleHibernateDao<LkCrmAdminFieldEntity
         return sqlQuery(sql, label);
     }
 
-    public int deleteByChooseId(List<Integer> field_ids, int label, int categoryId) {
+    public int deleteByChooseId(List<Integer> field_ids, int label, Integer categoryId) {
         List param = new ArrayList();
-        param.add(field_ids);
         param.add(label);
-        String sql = "DELETE FROM lkcrm_admin_field WHERE field_id not in(? ) and (operating = '0' or operating = '2') and label= ?  ";
+        String sql = "DELETE FROM lkcrm_admin_field WHERE field_id not in(" + SqlAppendUtil.sqlAppendWhereIn(field_ids.toArray()) + ") and (operating = '0' or operating = '2') and label= ?  ";
         if (10 == label) {
             sql += " and examine_category_id=？";
             param.add(categoryId);
@@ -29,23 +29,22 @@ public class LkCrmAdminFieldDao extends SimpleHibernateDao<LkCrmAdminFieldEntity
         return executeUpdateSQL(sql, param.toArray());
     }
 
-    public int deleteByFieldValue(List<Integer> field_ids, int label, int categoryId) {
+    public int deleteByFieldValue(List<Integer> field_ids, int label, Integer categoryId) {
         List param = new ArrayList();
-        param.add(field_ids);
         param.add(label);
-        String sql = "DELETE FROM lkcrm_admin_fieldv WHERE field_id in( SELECT field_id FROM lkcrm_admin_field WHERE field_id not in(?) and (operating = '0' or operating = '2') and label=? ";
+        String sql = "DELETE FROM lkcrm_admin_fieldv WHERE field_id in( SELECT field_id FROM lkcrm_admin_field WHERE field_id not in(" + SqlAppendUtil.sqlAppendWhereIn(field_ids.toArray()) + ") and (operating = '0' or operating = '2') and label=? ";
         if (10 == label) {
-            sql += " and examine_category_id=？";
+            sql += " and examine_category_id=？ ";
             param.add(categoryId);
         }
+        sql+=" ) ";
         return executeUpdateSQL(sql, param.toArray());
     }
 
     public int deleteFieldSort(List<String> names, int label) {
         List param = new ArrayList();
-        param.add(names);
         param.add(label);
-        String sql = " delete from lkcrm_admin_field_sort where label = ? and name in(?)";
+        String sql = " delete from lkcrm_admin_field_sort where label = ? and name in(" + SqlAppendUtil.sqlAppendWhereIn(names) + ")";
         return executeUpdateSQL(sql, param.toArray());
     }
 
@@ -77,7 +76,17 @@ public class LkCrmAdminFieldDao extends SimpleHibernateDao<LkCrmAdminFieldEntity
     }
 
     public List<Map<String, Object>> queryCustomField(String batchId) {
-        String sql = "select a.name,a.value,b.type from 72crm_admin_fieldv as a left join 72crm_admin_field as b on a.field_id = b.field_id where batch_id = ?";
+        String sql = "select a.name,a.value,b.type from lkcrm_admin_fieldv as a left join lkcrm_admin_field as b on a.field_id = b.field_id where batch_id = ?";
         return sqlQuery(sql, batchId);
     }
+
+    public int updateFieldSortName(String name,int field_id) {
+        List param = new ArrayList();
+        param.add(name);
+        param.add(name);
+        param.add(field_id);
+        String sql = "update lkcrm_admin_field_sort set field_name = ?,name = ? where field_id = ? ";
+        return executeUpdateSQL(sql, param.toArray());
+    }
+
 }

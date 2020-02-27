@@ -8,6 +8,7 @@ import java.util.Objects;
 @Table(name = "lkcrm_admin_field", schema = "", catalog = "")
 public class LkCrmAdminFieldEntity {
     private Integer fieldId;
+    private String custId;
     private String fieldName;
     private String name;
     private int type;
@@ -28,12 +29,23 @@ public class LkCrmAdminFieldEntity {
 
     @Id
     @Column(name = "field_id")
+    @GeneratedValue
     public Integer getFieldId() {
         return fieldId;
     }
 
     public void setFieldId(Integer fieldId) {
         this.fieldId = fieldId;
+    }
+
+    @Basic
+    @Column(name = "cust_id")
+    public String getCustId() {
+        return custId;
+    }
+
+    public void setCustId(String custId) {
+        this.custId = custId;
     }
 
     @Basic

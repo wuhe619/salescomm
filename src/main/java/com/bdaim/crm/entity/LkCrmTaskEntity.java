@@ -7,10 +7,11 @@ import java.util.Objects;
 @Entity
 @Table(name = "lkcrm_task", schema = "", catalog = "")
 public class LkCrmTaskEntity {
-    private int taskId;
+    private Integer taskId;
+    private String custId;
     private String name;
-    private Integer createUserId;
-    private Integer mainUserId;
+    private Long createUserId;
+    private Long mainUserId;
     private String ownerUserId;
     private Timestamp createTime;
     private Timestamp updateTime;
@@ -35,12 +36,23 @@ public class LkCrmTaskEntity {
 
     @Id
     @Column(name = "task_id")
-    public int getTaskId() {
+    @GeneratedValue
+    public Integer getTaskId() {
         return taskId;
     }
 
-    public void setTaskId(int taskId) {
+    public void setTaskId(Integer taskId) {
         this.taskId = taskId;
+    }
+
+    @Basic
+    @Column(name = "cust_id")
+    public String getCustId() {
+        return custId;
+    }
+
+    public void setCustId(String custId) {
+        this.custId = custId;
     }
 
     @Basic
@@ -55,21 +67,21 @@ public class LkCrmTaskEntity {
 
     @Basic
     @Column(name = "create_user_id")
-    public Integer getCreateUserId() {
+    public Long getCreateUserId() {
         return createUserId;
     }
 
-    public void setCreateUserId(Integer createUserId) {
+    public void setCreateUserId(Long createUserId) {
         this.createUserId = createUserId;
     }
 
     @Basic
     @Column(name = "main_user_id")
-    public Integer getMainUserId() {
+    public Long getMainUserId() {
         return mainUserId;
     }
 
-    public void setMainUserId(Integer mainUserId) {
+    public void setMainUserId(Long mainUserId) {
         this.mainUserId = mainUserId;
     }
 

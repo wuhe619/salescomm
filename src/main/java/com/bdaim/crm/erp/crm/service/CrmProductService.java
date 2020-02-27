@@ -29,6 +29,7 @@ import com.jfinal.log.Log;
 import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.tx.Tx;
 import com.jfinal.upload.UploadFile;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -85,10 +86,13 @@ public class CrmProductService {
     @Before(Tx.class)
     public R saveAndUpdate(JSONObject jsonObject) {
         LkCrmProductEntity crmProduct = jsonObject.getObject("entity", LkCrmProductEntity.class);
+
+        crmProduct.setCustId(BaseUtil.getUser().getCustId());
         String batchId = StrUtil.isNotEmpty(crmProduct.getBatchId()) ? crmProduct.getBatchId() : IdUtil.simpleUUID();
         crmRecordService.updateRecord(jsonObject.getJSONArray("field"), batchId);
         adminFieldService.save(jsonObject.getJSONArray("field"), batchId);
         if (crmProduct.getProductId() == null) {
+            // 新增
             Integer product = crmProductDao.getByNum(crmProduct.getNum());
             if (product != 0) {
                 return R.error("产品编号已存在，请校对后再添加！");
@@ -105,8 +109,10 @@ public class CrmProductService {
             LkCrmProductEntity oldCrmProduct = crmProductDao.get(crmProduct.getProductId());
             crmRecordService.updateRecord(oldCrmProduct, crmProduct, CrmEnum.PRODUCT_TYPE_KEY.getTypes());
             crmProduct.setUpdateTime(DateUtil.date().toTimestamp());
+            BeanUtils.copyProperties(crmProduct,oldCrmProduct,JavaBeanUtil.getNullPropertyNames(crmProduct));
+            crmProductDao.update(oldCrmProduct);
         }
-        crmProductDao.update(crmProduct);
+
         return R.ok();
     }
 

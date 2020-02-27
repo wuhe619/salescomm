@@ -8,11 +8,11 @@ import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.crm.utils.R;
 import com.bdaim.util.StringUtil;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.lang.annotation.Annotation;
@@ -24,7 +24,7 @@ public class ResponseBodyInterceptor {
 	/*@Resource
 	private LogService logService;*/
 
-    private static final Log log = LogFactory.getLog("Response");
+    private static final Logger log = LoggerFactory.getLogger("Response");
 
     private static final String APP_NAME = AppConfig.getApp();
 
@@ -77,7 +77,7 @@ public class ResponseBodyInterceptor {
             className = pjp.getTarget().getClass().getSimpleName();
 
             Object o = pjp.proceed();
-            if (o instanceof ResponseInfo || o instanceof R) {
+            if (o instanceof ResponseInfo || o instanceof R || "ErrorController".equals(className)) {
                 return o;
             }
             //else if (o instanceof Map) {

@@ -1,9 +1,9 @@
 package com.bdaim.crm.erp.crm.controller;
 
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.common.controller.BasicAction;
 import com.bdaim.crm.common.annotation.NotNullValidate;
 import com.bdaim.crm.common.annotation.Permissions;
-import com.bdaim.crm.common.annotation.RequestBody;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.entity.LkCrmAdminRecordEntity;
 import com.bdaim.crm.entity.LkCrmBusinessEntity;
@@ -12,11 +12,10 @@ import com.bdaim.crm.erp.crm.common.CrmEnum;
 import com.bdaim.crm.erp.crm.entity.CrmBusiness;
 import com.bdaim.crm.erp.crm.service.CrmBusinessService;
 import com.bdaim.crm.utils.AuthUtil;
-import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
 import com.bdaim.util.JavaBeanUtil;
-import com.jfinal.core.Controller;
 import com.jfinal.core.paragetter.Para;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -28,7 +27,7 @@ import javax.annotation.Resource;
  */
 @RestController
 @RequestMapping("/CrmBusiness")
-public class CrmBusinessController extends Controller {
+public class CrmBusinessController extends BasicAction {
     @Resource
     private CrmBusinessService crmBusinessService;
 
@@ -41,7 +40,8 @@ public class CrmBusinessController extends Controller {
      */
     @Permissions({"crm:business:index"})
     @RequestMapping(value = "/queryPageList", method = RequestMethod.POST)
-    public R queryPageList(@RequestBody BasePageRequest basePageRequest, @RequestBody JSONObject jsonObject) {
+    public R queryPageList(@RequestBody JSONObject jsonObject) {
+        BasePageRequest<Void> basePageRequest = new BasePageRequest<>(jsonObject.getIntValue("page"),jsonObject.getIntValue("limit"));
         //JSONObject jsonObject = basePageRequest.getJsonObject().fluentPut("type",5);
         jsonObject.fluentPut("type", 5);
         basePageRequest.setJsonObject(jsonObject);
@@ -54,7 +54,7 @@ public class CrmBusinessController extends Controller {
      */
     @RequestMapping(value = "/queryList", method = RequestMethod.POST)
     public R queryList(BasePageRequest basePageRequest) {
-        return (R.ok().put("data", BaseUtil.crmPage(crmBusinessService.getBusinessPageList(basePageRequest))));
+        return (R.ok().put("data", crmBusinessService.getBusinessPageList(basePageRequest)));
     }
 
     /**
@@ -183,7 +183,7 @@ public class CrmBusinessController extends Controller {
             return(R.noAuth());
             //return;
         }
-        return(R.ok().put("data", JavaBeanUtil.recordToMap(crmBusinessService.getMembers(businessId))));
+        return(R.ok().put("data", crmBusinessService.getMembers(businessId)));
     }
 
     /**
@@ -282,8 +282,9 @@ public class CrmBusinessController extends Controller {
      * 查看跟进记录
      */
     @RequestMapping(value = "/getRecord", method = RequestMethod.POST)
-    public R getRecord(BasePageRequest<CrmBusiness> basePageRequest) {
-        boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.BUSINESS_TYPE_KEY.getSign()), basePageRequest.getData().getBusinessId());
+    public R getRecord(BasePageRequest basePageRequest,CrmBusiness crmBusiness) {
+        basePageRequest.setData(crmBusiness);
+        boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.BUSINESS_TYPE_KEY.getSign()), crmBusiness.getBusinessId());
         if (auth) {
             return(R.noAuth());
             //return;

@@ -1,12 +1,13 @@
 package com.bdaim.crm.erp.crm.controller;
 
 import cn.hutool.core.util.StrUtil;
+import com.bdaim.common.controller.BasicAction;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.erp.admin.service.AdminUserService;
 import com.bdaim.crm.erp.crm.service.InstrumentService;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
-import com.jfinal.core.Controller;
+import com.bdaim.util.NumberConvertUtil;
 import com.jfinal.core.paragetter.Para;
 import com.jfinal.plugin.activerecord.Record;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,7 +21,7 @@ import javax.annotation.Resource;
  */
 @RestController
 @RequestMapping("/Crm/Instrument")
-public class InstrumentController extends Controller {
+public class InstrumentController extends BasicAction {
 
     @Resource
     private InstrumentService instrumentService;
@@ -101,7 +102,7 @@ public class InstrumentController extends Controller {
      */
     @RequestMapping(value = "/queryPerformance", method = RequestMethod.POST)
     public R queryPerformance() {
-        Integer status = getInt("status");
+        Integer status = NumberConvertUtil.parseInt(getPara("status"));
         String userIds = getPara("userIds");
         String startTime = getPara("startTime");
         String endTime = getPara("endTime");
@@ -131,7 +132,7 @@ public class InstrumentController extends Controller {
         String deptIds = getPara("deptIds");
         String startTime = getPara("startTime");
         String endTime = getPara("endTime");
-        Integer typeId = getInt("typeId");
+        Integer typeId = NumberConvertUtil.parseInt(getPara("typeId"));
         if (StrUtil.isEmpty(userIds) && StrUtil.isEmpty(deptIds)) {
             userIds = BaseUtil.getUserId().toString();
         }

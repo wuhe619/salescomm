@@ -2,12 +2,12 @@ package com.bdaim.crm.erp.crm.controller;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.common.controller.BasicAction;
 import com.bdaim.crm.common.annotation.RequestBody;
 import com.bdaim.crm.erp.crm.common.CrmEnum;
 import com.bdaim.crm.erp.crm.service.CrmRecordService;
 import com.bdaim.crm.utils.AuthUtil;
 import com.bdaim.crm.utils.R;
-import com.jfinal.core.Controller;
 import com.jfinal.core.paragetter.Para;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -21,7 +21,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/CrmRecord")
-public class CrmRecordController extends Controller {
+public class CrmRecordController extends BasicAction {
 
     @Resource
     private CrmRecordService crmRecordService;

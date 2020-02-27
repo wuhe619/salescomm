@@ -10,6 +10,7 @@ import java.util.Objects;
 @Table(name = "lkcrm_crm_receivables", schema = "", catalog = "")
 public class LkCrmReceivablesEntity {
     private Integer receivablesId;
+    private String custId;
     private String number;
     private Integer planId;
     private Integer customerId;
@@ -21,7 +22,7 @@ public class LkCrmReceivablesEntity {
     private BigDecimal money;
     private String remark;
     private Long createUserId;
-    private Integer ownerUserId;
+    private Long ownerUserId;
     private Timestamp createTime;
     private Timestamp updateTime;
     private String remarks;
@@ -38,6 +39,16 @@ public class LkCrmReceivablesEntity {
         this.receivablesId = receivablesId;
     }
 
+
+    @Basic
+    @Column(name = "cust_id")
+    public String getCustId() {
+        return custId;
+    }
+
+    public void setCustId(String custId) {
+        this.custId = custId;
+    }
     @Basic
     @Column(name = "number")
     public String getNumber() {
@@ -150,11 +161,11 @@ public class LkCrmReceivablesEntity {
 
     @Basic
     @Column(name = "owner_user_id")
-    public Integer getOwnerUserId() {
+    public Long getOwnerUserId() {
         return ownerUserId;
     }
 
-    public void setOwnerUserId(Integer ownerUserId) {
+    public void setOwnerUserId(Long ownerUserId) {
         this.ownerUserId = ownerUserId;
     }
 

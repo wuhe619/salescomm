@@ -15,6 +15,7 @@ public class CrmInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         BaseUtil.setRequest(request);
+        response.setHeader("Access-Control-Expose-Headers", "Content-Disposition");
         return true;
     }
 

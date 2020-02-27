@@ -7,9 +7,8 @@ import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.dto.Page;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.common.constant.BaseConstant;
-import com.bdaim.crm.dao.LkCrmAdminSceneDao;
-import com.bdaim.crm.entity.LkCrmAdminSceneDefaultEntity;
-import com.bdaim.crm.entity.LkCrmAdminSceneEntity;
+import com.bdaim.crm.dao.*;
+import com.bdaim.crm.entity.*;
 import com.bdaim.crm.erp.admin.entity.AdminScene;
 import com.bdaim.crm.erp.crm.service.CrmBusinessService;
 import com.bdaim.crm.utils.BaseUtil;
@@ -23,6 +22,7 @@ import com.jfinal.json.Json;
 import com.jfinal.kit.Kv;
 import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.tx.Tx;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -44,6 +44,19 @@ public class AdminSceneService {
 
     @Resource
     private AdminUserService adminUserService;
+
+    @Resource
+    private LkCrmLeadsDao crmLeadsDao;
+
+    @Resource
+    private LkCrmCustomerDao crmCustomerDao;
+
+    @Resource
+    private LkCrmContactsDao crmContactsDao;
+
+    @Resource
+    private LkCrmContractDao crmContractDao;
+
 
     /**
      * @author wyq
@@ -244,7 +257,8 @@ public class AdminSceneService {
             crmAdminSceneDao.executeUpdateSQL("update lkcrm_admin_scene_default set scene_id = ? where user_id = ? and type = ?", adminScene.getSceneId(), userId, oldAdminScene.getType());
         }
         adminScene.setUserId(userId).setType(oldAdminScene.getType()).setSort(oldAdminScene.getSort()).setIsSystem(oldAdminScene.getIsSystem()).setUpdateTime(DateUtil.date().toTimestamp());
-        crmAdminSceneDao.saveOrUpdate(adminScene);
+        BeanUtils.copyProperties(adminScene, oldAdminScene, JavaBeanUtil.getNullPropertyNames(adminScene));
+        crmAdminSceneDao.update(oldAdminScene);
         return R.isSuccess(true);
     }
 
@@ -401,7 +415,7 @@ public class AdminSceneService {
         Long userId = BaseUtil.getUser().getUserId();
         String[] sortArr = adminScene.getNoHideIds().split(",");
         for (int i = 0; i < sortArr.length; i++) {
-            crmAdminSceneDao.executeUpdateSQL("update 72crm_admin_scene set is_hide = 0,sort = ? where type = ? and user_id = ? and scene_id = ?", i + 1, adminScene.getType(), userId, sortArr[i]);
+            crmAdminSceneDao.executeUpdateSQL("update lkcrm_admin_scene set is_hide = 0,sort = ? where type = ? and user_id = ? and scene_id = ?", i + 1, adminScene.getType(), userId, sortArr[i]);
             //Db.update(Db.getSql("admin.scene.sort"), i + 1, adminScene.getType(), userId, sortArr[i]);
         }
         if (null != adminScene.getHideIds()) {
@@ -410,7 +424,7 @@ public class AdminSceneService {
             if (number.getInt("number") > 0) {
                 return R.error("系统场景不能隐藏");
             }
-            crmAdminSceneDao.executeUpdateSQL(" update 72crm_admin_scene set is_hide = 1,sort = 0 where scene_id in (?) and type = ? and user_id = ? ", hideIdsArr, adminScene.getType(), userId);
+            crmAdminSceneDao.executeUpdateSQL(" update lkcrm_admin_scene set is_hide = 1,sort = 0 where scene_id in (?) and type = ? and user_id = ? ", hideIdsArr, adminScene.getType(), userId);
             //Db.update(Db.getSqlPara("admin.scene.isHide", Kv.by("ids", hideIdsArr).set("type", adminScene.getType()).set("userId", userId)));
         }
         return R.ok();
@@ -623,7 +637,7 @@ public class AdminSceneService {
         conditions.insert(0, " from " + viewName);
         conditions.append(" order by ").append(viewName).append(".").append(sortField).append(" ").append(orderNum);
         if (StrUtil.isNotEmpty(basePageRequest.getJsonObject().getString("excel"))) {
-            return R.ok().put("data", crmAdminSceneDao.sqlQuery("select * " + conditions.toString(), BaseUtil.getUser().getCustId()));
+            return R.ok().put("data", JavaBeanUtil.mapToRecords(crmAdminSceneDao.sqlQuery("select * " + conditions.toString(), BaseUtil.getUser().getCustId())));
         }
         if (2 == type || 8 == type) {
             Integer configType = crmAdminSceneDao.queryForInt("select status from lkcrm_admin_config where name = 'customerPoolSetting'");
@@ -643,7 +657,7 @@ public class AdminSceneService {
             Page page = crmAdminSceneDao.sqlPageQuery("select *,IFNULL((select SUM(a.money) from lkcrm_crm_receivables as a where a.contract_id = contractview.contract_id),0) as receivedMoney" + conditions.toString(), basePageRequest.getPage(), basePageRequest.getLimit(), BaseUtil.getUser().getCustId());
 
             String receivedMoney = crmAdminSceneDao.queryForObject("select SUM(money) from lkcrm_crm_receivables where receivables_id in (" + totalMoney.getStr("contractIds") + ")");
-            JSONObject jsonObject = JSONObject.parseObject(Json.getJson().toJson(page), JSONObject.class);
+            JSONObject jsonObject = JSONObject.parseObject(Json.getJson().toJson(BaseUtil.crmPage(page)), JSONObject.class);
             return R.ok().put("data", jsonObject.fluentPut("money", new JSONObject().fluentPut("contractMoney", totalMoney.getStr("contractMoney") != null ? totalMoney.getStr("contractMoney") : "0").fluentPut("receivedMoney", receivedMoney != null ? receivedMoney : "0")));
         }
         com.bdaim.common.dto.Page recordPage = crmAdminSceneDao.sqlPageQuery("select *" + conditions.toString(), basePageRequest.getPage(), basePageRequest.getLimit(), BaseUtil.getUser().getCustId());
@@ -658,12 +672,56 @@ public class AdminSceneService {
                     map.put("status_name", "无效");
                 }
             });
-            setBusinessStatus(recordPage.getData());
+            setBusinessStatus(JavaBeanUtil.mapToRecords(recordPage.getData()));
         }
       /*  com.jfinal.plugin.activerecord.Page finalPage = new com.jfinal.plugin.activerecord.Page();
         finalPage.setList(recordPage.getData());
         finalPage.setTotalRow(recordPage.getTotal());*/
+        Map map;
+        for (int i = 0; i < recordPage.getData().size(); i++) {
+            map = (Map) recordPage.getData().get(i);
+            handleCompany(type, map);
+        }
         return R.ok().put("data", BaseUtil.crmPage(recordPage));
+    }
+
+    private void handleCompany(int type, Map map) {
+        int id;
+        String viewName, realm;
+        switch (type) {
+            case 1:
+                id = NumberConvertUtil.parseInt(map.get("leads_id"));
+                LkCrmLeadsEntity lkCrmLeadsEntity = crmLeadsDao.get(id);
+                if (lkCrmLeadsEntity != null) {
+                    map.put("company", lkCrmLeadsEntity.getCompany());
+                    map.put("公司名称", lkCrmLeadsEntity.getCompany());
+                }
+                break;
+            case 2:
+                id = NumberConvertUtil.parseInt(map.get("customer_id"));
+                LkCrmCustomerEntity lkCrmCustomerEntity = crmCustomerDao.get(id);
+                if (lkCrmCustomerEntity != null) {
+                    map.put("company", lkCrmCustomerEntity.getCompany());
+                    map.put("公司名称", lkCrmCustomerEntity.getCompany());
+                }
+                break;
+            case 3:
+                /*id = NumberConvertUtil.parseInt(map.get("customer_id"));
+                LkCrmContactsEntity lkCrmContactsEntity = crmContactsDao.get(id);
+                if (lkCrmContactsEntity != null) {
+                    map.put("company", lkCrmContactsEntity.getCompany());
+                }
+                viewName = "contractview";
+                realm = "contract";*/
+                break;
+            case 8:
+                id = NumberConvertUtil.parseInt(map.get("customer_id"));
+                lkCrmCustomerEntity = crmCustomerDao.get(id);
+                if (lkCrmCustomerEntity != null) {
+                    map.put("company", lkCrmCustomerEntity.getCompany());
+                }
+                break;
+        }
     }
 
     public void setBusinessStatus(List<Record> list) {

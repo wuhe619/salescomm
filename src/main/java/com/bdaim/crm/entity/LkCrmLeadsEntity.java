@@ -25,6 +25,7 @@ public class LkCrmLeadsEntity {
     private Timestamp createTime;
     private Timestamp updateTime;
     private String batchId;
+    private String seaId;
 
     @Id
     @Column(name = "leads_id")
@@ -203,6 +204,14 @@ public class LkCrmLeadsEntity {
 
     public void setIsLock(Integer isLock) {
         this.isLock = isLock;
+    }
+
+    public String getSeaId() {
+        return seaId;
+    }
+
+    public void setSeaId(String seaId) {
+        this.seaId = seaId;
     }
 
     @Override

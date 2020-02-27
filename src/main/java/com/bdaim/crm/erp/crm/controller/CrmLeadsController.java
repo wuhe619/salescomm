@@ -1,6 +1,5 @@
 package com.bdaim.crm.erp.crm.controller;
 
-import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.NumberUtil;
@@ -47,6 +46,7 @@ import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.ss.util.CellRangeAddressList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
@@ -340,7 +340,7 @@ public class CrmLeadsController extends BasicAction {
     @RequestMapping(value = "/deleteFiled", method = RequestMethod.POST)
     public ResponseJson deleteFiled(@RequestBody CustomerSeaSearch param) {
         ResponseJson responseJson = new ResponseJson();
-        String sql = "DELETE FROM lkcrm_admin_scene  WHERE scene_id IN(27,31,32)";
+        String sql = "INSERT INTO `lkcrm_crm_product_category` (`name`, `pid`) VALUES ( '默认', '0'); ";
         int data = crmAdminFieldDao.executeUpdateSQL(sql);
         responseJson.setData(data);
         return responseJson;
@@ -437,8 +437,8 @@ public class CrmLeadsController extends BasicAction {
     }
 
     @RequestMapping(value = "/leads/company", method = RequestMethod.POST)
-    public R listLeadByCompany(String company) {
-        return R.ok().put("data", crmLeadsService.listLeadByCompany(BaseUtil.getUser().getCustId(), company));
+    public R listLeadByCompany(String company, String notInLeadsIds) {
+        return R.ok().put("data", crmLeadsService.listLeadByCompany(BaseUtil.getUser().getCustId(), company, notInLeadsIds));
     }
 
     /**
@@ -462,7 +462,7 @@ public class CrmLeadsController extends BasicAction {
             //return;
         }
         LkCrmAdminRecordEntity lkCrmAdminRecordEntity = new LkCrmAdminRecordEntity();
-        BeanUtil.copyProperties(adminRecord, lkCrmAdminRecordEntity);
+        BeanUtils.copyProperties(adminRecord, lkCrmAdminRecordEntity, JavaBeanUtil.getNullPropertyNames(adminRecord));
         return (crmLeadsService.addRecord(lkCrmAdminRecordEntity));
     }
 
@@ -478,6 +478,24 @@ public class CrmLeadsController extends BasicAction {
             return (R.noAuth());
         }
         return (R.ok().put("data", JavaBeanUtil.recordToMap(crmLeadsService.getRecord(basePageRequest))));
+    }
+
+    /**
+     * 代办事项列表
+     *
+     * @param basePageRequest
+     * @param taskStatus
+     * @param leadsId
+     * @return
+     */
+    @RequestMapping(value = "/agency/list", method = RequestMethod.POST)
+    public R listAgency(BasePageRequest basePageRequest, Integer taskStatus, Integer leadsId) {
+        basePageRequest.setData(taskStatus);
+        boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.LEADS_TYPE_KEY.getSign()), leadsId);
+        if (auth) {
+            return (R.noAuth());
+        }
+        return (R.ok().put("data", JavaBeanUtil.recordToMap(crmLeadsService.listAgency(basePageRequest, taskStatus, leadsId))));
     }
 
     /**
