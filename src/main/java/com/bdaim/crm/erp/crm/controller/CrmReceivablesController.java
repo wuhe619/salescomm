@@ -1,6 +1,5 @@
 package com.bdaim.crm.erp.crm.controller;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.crm.common.annotation.NotNullValidate;
 import com.bdaim.crm.common.annotation.Permissions;
@@ -59,8 +58,8 @@ public class CrmReceivablesController extends Controller {
      */
     @Permissions({"crm:receivables:save", "crm:receivables:update"})
     @RequestMapping(value = "saveOrUpdate", method = RequestMethod.POST)
-    public R saveOrUpdate() {
-        JSONObject jsonObject = JSON.parseObject(getRawData());
+    public R saveOrUpdate(@RequestBody JSONObject jsonObject) {
+        //JSONObject jsonObject = JSON.parseObject(getRawData());
         return (crmReceivablesService.saveOrUpdate(jsonObject));
     }
 
