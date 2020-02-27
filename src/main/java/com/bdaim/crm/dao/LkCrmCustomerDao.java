@@ -73,8 +73,8 @@ public class LkCrmCustomerDao extends SimpleHibernateDao<LkCrmCustomerEntity, In
     }
 
     public List excelExport(List customer_id) {
-        String sql = " select * from customerview where customer_id in (? ) order by update_time desc";
-        return sqlQuery(sql, customer_id);
+        String sql = " select * from customerview where customer_id in ("+SqlAppendUtil.sqlAppendWhereIn(customer_id)+") order by update_time desc";
+        return sqlQuery(sql);
     }
 
     public List getRecord(Integer customerId) {

@@ -435,8 +435,8 @@ public class CrmCustomerController extends BasicAction {
      */
     @Permissions("crm:customer:excelexport")
     @RequestMapping(value = "/batchExportExcel")
-    public void batchExportExcel(@Para("ids") String customerIds, HttpServletResponse response) throws IOException {
-        List<Record> recordList = crmCustomerService.exportCustomer(customerIds);
+    public void batchExportExcel(String ids, HttpServletResponse response) throws IOException {
+        List<Record> recordList = crmCustomerService.exportCustomer(ids);
         export(recordList, response);
         //renderNull();
     }
