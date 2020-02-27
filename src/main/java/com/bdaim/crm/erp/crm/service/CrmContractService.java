@@ -362,7 +362,7 @@ public class CrmContractService {
         LkCrmContractEntity crmContract = crmContractDao.get(contractId);
         List<Record> recordList = new ArrayList<>();
         if (null != crmContract.getOwnerUserId()) {
-            Record ownerUser = JavaBeanUtil.mapToRecord(crmCustomerDao.getMembers(crmContract.getOwnerUserId()).get(0));
+            Record ownerUser = JavaBeanUtil.mapToRecord(crmCustomerDao.getMembers(crmContract.getOwnerUserId()));
             //Record ownerUser = Db.findFirst(Db.getSql("crm.customer.getMembers"), crmContract.getOwnerUserId());
             recordList.add(ownerUser.set("power", "负责人权限").set("groupRole", "负责人"));
         }
@@ -376,7 +376,7 @@ public class CrmContractService {
         Set<String> memberIdsSet = new HashSet<>(Arrays.asList(memberIdsArr));
         for (String memberId : memberIdsSet) {
             //Record record = JavaBeanUtil.mapToRecord(crmCustomerDao.getMembers(memberId).get(0));
-            Record record = JavaBeanUtil.mapToRecord(crmCustomerDao.getMembers(NumberUtil.parseLong(memberId)).get(0));
+            Record record = JavaBeanUtil.mapToRecord(crmCustomerDao.getMembers(NumberUtil.parseLong(memberId)));
             //Record record = Db.findFirst(Db.getSql("crm.customer.getMembers"), memberId);
             if (roUserId.contains(memberId)) {
                 record.set("power", "只读").set("groupRole", "普通成员");

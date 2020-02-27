@@ -255,7 +255,7 @@ public class CrmCustomerService {
      * @auyhor wyq
      * 根据客户id查询合同
      */
-    public R queryContract(BasePageRequest<CrmCustomer> basePageRequest,String search) {
+    public R queryContract(BasePageRequest<CrmCustomer> basePageRequest, String search) {
         Integer customerId = basePageRequest.getData().getCustomerId();
         Integer pageType = basePageRequest.getPageType();
         if (basePageRequest.getData().getCheckstatus() != null) {
@@ -321,10 +321,10 @@ public class CrmCustomerService {
         }
         List<Record> batchIdList = JavaBeanUtil.mapToRecords(crmCustomerDao.queryBatchIdByIds(Arrays.asList(idsArr)));
         //return Db.tx(() -> {
-            crmCustomerDao.deleteByIds(idsList);
-            //Db.batch(Db.getSql("crm.customer.deleteByIds"), "customer_id", idsList, 100);
-            crmCustomerDao.executeUpdateSQL("delete from lkcrm_admin_fieldv where batch_id IN (?)", batchIdList);
-            return R.ok();
+        crmCustomerDao.deleteByIds(idsList);
+        //Db.batch(Db.getSql("crm.customer.deleteByIds"), "customer_id", idsList, 100);
+        crmCustomerDao.executeUpdateSQL("delete from lkcrm_admin_fieldv where batch_id IN (?)", batchIdList);
+        return R.ok();
         //}) ? R.ok() : R.error();
     }
 
@@ -392,7 +392,7 @@ public class CrmCustomerService {
         }
         List<Record> recordList = new ArrayList<>();
         if (crmCustomer.getOwnerUserId() != null) {
-            Record ownerUser = JavaBeanUtil.mapToRecord(crmCustomerDao.getMembers(crmCustomer.getOwnerUserId()).get(0));
+            Record ownerUser = JavaBeanUtil.mapToRecord(crmCustomerDao.getMembers(crmCustomer.getOwnerUserId()));
             if (ownerUser != null) {
                 recordList.add(ownerUser.set("power", "负责人权限").set("groupRole", "负责人"));
             }
@@ -406,7 +406,7 @@ public class CrmCustomerService {
         String[] memberIdsArr = memberIds.substring(1, memberIds.length() - 1).split(",");
         Set<String> memberIdsSet = new HashSet<>(Arrays.asList(memberIdsArr));
         for (String memberId : memberIdsSet) {
-            Record record = Db.findFirst(Db.getSql("crm.customer.getMembers"), memberId);
+            Record record = JavaBeanUtil.mapToRecord(crmCustomerDao.getMembers(NumberConvertUtil.parseLong(memberId)));
             if (roUserId.contains(memberId)) {
                 record.set("power", "只读").set("groupRole", "普通成员");
             }
@@ -429,18 +429,26 @@ public class CrmCustomerService {
         for (String id : customerIdsArr) {
             Long ownerUserId = crmCustomerDao.get(NumberConvertUtil.parseInt(id)).getOwnerUserId();
             for (String memberId : memberArr) {
-                if (ownerUserId.equals(Integer.valueOf(memberId))) {
+                if (ownerUserId.equals(NumberConvertUtil.parseLong(memberId))) {
                     return R.error("负责人不能重复选为团队成员!");
                 }
                 crmCustomerDao.deleteMember("," + memberId + ",", Integer.valueOf(id));
             }
             if (1 == crmCustomer.getPower()) {
                 stringBuffer.setLength(0);
+                String roUserIdDb = crmCustomerDao.get(Integer.valueOf(id)).getRoUserId();
+                if ((StringUtil.isNotEmpty(roUserIdDb) && !roUserIdDb.startsWith(",")) || StringUtil.isEmpty(roUserIdDb)) {
+                    stringBuffer.append(",");
+                }
                 String roUserId = stringBuffer.append(crmCustomerDao.get(Integer.valueOf(id)).getRoUserId()).append(crmCustomer.getMemberIds()).append(",").toString();
                 crmCustomerDao.executeUpdateSQL("update lkcrm_crm_customer set ro_user_id = ? where customer_id = ?", roUserId, Integer.valueOf(id));
             }
             if (2 == crmCustomer.getPower()) {
                 stringBuffer.setLength(0);
+                String roUserIdDb = crmCustomerDao.get(Integer.valueOf(id)).getRwUserId();
+                if ((StringUtil.isNotEmpty(roUserIdDb) && !roUserIdDb.startsWith(",")) || StringUtil.isEmpty(roUserIdDb)) {
+                    stringBuffer.append(",");
+                }
                 String rwUserId = stringBuffer.append(crmCustomerDao.get(Integer.valueOf(id)).getRwUserId()).append(crmCustomer.getMemberIds()).append(",").toString();
                 crmCustomerDao.executeUpdateSQL("update lkcrm_crm_customer set rw_user_id = ? where customer_id = ?", rwUserId, Integer.valueOf(id));
             }
@@ -455,14 +463,14 @@ public class CrmCustomerService {
     public R deleteMembers(CrmCustomer crmCustomer) {
         String[] customerIdsArr = crmCustomer.getIds().split(",");
         String[] memberArr = crmCustomer.getMemberIds().split(",");
-        return Db.tx(() -> {
-            for (String id : customerIdsArr) {
-                for (String memberId : memberArr) {
-                    crmCustomerDao.deleteMember("," + memberId + ",", Integer.valueOf(id));
-                }
+        //return Db.tx(() -> {
+        for (String id : customerIdsArr) {
+            for (String memberId : memberArr) {
+                crmCustomerDao.deleteMember("," + memberId + ",", Integer.valueOf(id));
             }
-            return true;
-        }) ? R.ok() : R.error();
+        }
+        return R.ok();
+        // }) ? R.ok() : R.error();
     }
 
     /**
@@ -609,7 +617,7 @@ public class CrmCustomerService {
             if (businessIds != null) {
                 String[] businessIdsArr = businessIds.split(",");
                 for (String businessId : businessIdsArr) {
-                    if(StringUtil.isNotEmpty(businessId)){
+                    if (StringUtil.isNotEmpty(businessId)) {
                         businessList.add(crmBusinessDao.get(NumberConvertUtil.parseInt(businessId)));
                     }
                 }
@@ -619,7 +627,7 @@ public class CrmCustomerService {
             if (contactsIds != null) {
                 String[] contactsIdsArr = contactsIds.split(",");
                 for (String contactsId : contactsIdsArr) {
-                    if(StringUtil.isNotEmpty(contactsId)){
+                    if (StringUtil.isNotEmpty(contactsId)) {
                         contactsList.add(crmContactsDao.get(NumberConvertUtil.parseInt(contactsId)));
                     }
                 }

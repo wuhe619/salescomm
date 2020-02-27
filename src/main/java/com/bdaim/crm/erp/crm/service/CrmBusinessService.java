@@ -1,7 +1,6 @@
 package com.bdaim.crm.erp.crm.service;
 
 
-import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
@@ -352,9 +351,9 @@ public class CrmBusinessService {
         LkCrmBusinessEntity crmBusiness = crmBusinessDao.get(businessId);
         List<Record> recordList = new ArrayList<>();
         if (crmBusiness.getOwnerUserId() != null) {
-            List<Map<String, Object>> members = crmCustomerDao.getMembers(crmBusiness.getOwnerUserId());
+            Map<String, Object> members = crmCustomerDao.getMembers(crmBusiness.getOwnerUserId());
             if (members.size() > 0) {
-                Record ownerUser = JavaBeanUtil.mapToRecord(members.get(0));
+                Record ownerUser = JavaBeanUtil.mapToRecord(members);
                 recordList.add(ownerUser.set("power", "负责人权限").set("groupRole", "负责人"));
             }
 
@@ -369,7 +368,7 @@ public class CrmBusinessService {
         Set<String> memberIdsSet = new HashSet<>(Arrays.asList(memberIdsArr));
         for (String memberId : memberIdsSet) {
             //Record record = Db.findFirst(Db.getSql("crm.customer.getMembers"), memberId);
-            Record record = JavaBeanUtil.mapToRecord(crmCustomerDao.getMembers(NumberConvertUtil.parseLong(memberId)).get(0));
+            Record record = JavaBeanUtil.mapToRecord(crmCustomerDao.getMembers(NumberConvertUtil.parseLong(memberId)));
             if (roUserId.contains(memberId)) {
                 record.set("power", "只读").set("groupRole", "普通成员");
             }
@@ -412,7 +411,7 @@ public class CrmBusinessService {
                     }
                     if (2 == crmBusiness.getPower()) {
                         stringBuffer.setLength(0);
-                        String roUserIdDb = crmBusinessDao.get(Integer.valueOf(id)).getRoUserId();
+                        String roUserIdDb = crmBusinessDao.get(Integer.valueOf(id)).getRwUserId();
                         if ((StringUtil.isNotEmpty(roUserIdDb) && !roUserIdDb.startsWith(",")) || StringUtil.isEmpty(roUserIdDb)) {
                             stringBuffer.append(",");
                         }

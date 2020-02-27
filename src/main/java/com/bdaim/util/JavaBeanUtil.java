@@ -97,6 +97,9 @@ public class JavaBeanUtil {
     }
 
     public static Record mapToRecord(Map<String, Object> map) {
+        if (map == null) {
+            return new Record();
+        }
         return new Record().setColumns(map);
     }
 
