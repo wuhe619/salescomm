@@ -4,6 +4,7 @@ import cn.hutool.poi.excel.ExcelUtil;
 import cn.hutool.poi.excel.ExcelWriter;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.common.controller.BasicAction;
 import com.bdaim.crm.common.annotation.LoginFormCookie;
 import com.bdaim.crm.common.annotation.NotNullValidate;
 import com.bdaim.crm.common.annotation.Permissions;
@@ -17,7 +18,6 @@ import com.bdaim.crm.erp.crm.service.CrmContactsService;
 import com.bdaim.crm.utils.AuthUtil;
 import com.bdaim.crm.utils.R;
 import com.bdaim.util.JavaBeanUtil;
-import com.jfinal.core.Controller;
 import com.jfinal.core.paragetter.Para;
 import com.jfinal.log.Log;
 import com.jfinal.plugin.activerecord.Db;
@@ -45,7 +45,7 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/CrmContacts")
-public class CrmContactsController extends Controller {
+public class CrmContactsController extends BasicAction {
 
     @Resource
     private CrmContactsService crmContactsService;
@@ -144,6 +144,7 @@ public class CrmContactsController extends Controller {
 
     /**
      * 批量添加联系人
+     *
      * @param jsonArray
      * @return
      */
@@ -161,7 +162,7 @@ public class CrmContactsController extends Controller {
     @Permissions("crm:contacts:delete")
     @RequestMapping(value = "/deleteByIds", method = RequestMethod.POST)
     public R deleteByIds(@Para("contactsIds") String contactsIds) {
-        return(crmContactsService.deleteByIds(contactsIds));
+        return (crmContactsService.deleteByIds(contactsIds));
     }
 
     /**
@@ -173,7 +174,7 @@ public class CrmContactsController extends Controller {
     @NotNullValidate(value = "newOwnerUserId", message = "新负责人不能为空")
     @RequestMapping(value = "/transfer", method = RequestMethod.POST)
     public R transfer(@Para("") CrmContacts crmContacts) {
-        return(crmContactsService.transfer(crmContacts));
+        return (crmContactsService.transfer(crmContacts));
     }
 
 
@@ -188,10 +189,10 @@ public class CrmContactsController extends Controller {
     public R addRecord(@Para("") LkCrmAdminRecordEntity adminRecord) {
         boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.CONTACTS_TYPE_KEY.getSign()), adminRecord.getTypesId());
         if (auth) {
-            return(R.noAuth());
+            return (R.noAuth());
             //return;
         }
-        return(crmContactsService.addRecord(adminRecord));
+        return (crmContactsService.addRecord(adminRecord));
     }
 
     /**
@@ -199,14 +200,14 @@ public class CrmContactsController extends Controller {
      * 查看跟进记录
      */
     @RequestMapping(value = "/getRecord", method = RequestMethod.POST)
-    public R getRecord(BasePageRequest<CrmContacts> basePageRequest,CrmContacts crmContacts) {
+    public R getRecord(BasePageRequest<CrmContacts> basePageRequest, CrmContacts crmContacts) {
         basePageRequest.setData(crmContacts);
         boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.CONTACTS_TYPE_KEY.getSign()), basePageRequest.getData().getContactsId());
         if (auth) {
-            return(R.noAuth());
+            return (R.noAuth());
             //return;
         }
-        return(R.ok().put("data", JavaBeanUtil.recordToMap(crmContactsService.getRecord(basePageRequest))));
+        return (R.ok().put("data", JavaBeanUtil.recordToMap(crmContactsService.getRecord(basePageRequest))));
     }
 
     /**
@@ -215,10 +216,10 @@ public class CrmContactsController extends Controller {
      */
     @Permissions("crm:contacts:excelexport")
     @RequestMapping(value = "/batchExportExcel")
-    public void batchExportExcel(@Para("ids") String contactsIds) throws IOException {
+    public void batchExportExcel(@Para("ids") String contactsIds, HttpServletResponse response) throws IOException {
         List<Record> recordList = crmContactsService.exportContacts(contactsIds);
-        export(recordList);
-        renderNull();
+        export(recordList, response);
+        //renderNull();
     }
 
     /**
@@ -227,18 +228,18 @@ public class CrmContactsController extends Controller {
      */
     @Permissions("crm:contacts:excelexport")
     @RequestMapping(value = "/allExportExcel")
-    public void allExportExcel(@RequestBody  BasePageRequest basePageRequest,@RequestBody JSONObject jsonObject) throws IOException {
+    public void allExportExcel(@RequestBody BasePageRequest basePageRequest, @RequestBody JSONObject jsonObject, HttpServletResponse response) throws IOException {
         //JSONObject jsonObject = basePageRequest.getJsonObject();
         jsonObject.fluentPut("excel", "yes").fluentPut("type", "3");
         basePageRequest.setJsonObject(jsonObject);
         AdminSceneService adminSceneService = new AdminSceneService();
         List<Record> recordList = (List<Record>) adminSceneService.filterConditionAndGetPageList(basePageRequest).get("data");
-        export(recordList);
-        renderNull();
+        export(recordList, response);
+        //renderNull();
     }
 
     @RequestMapping(value = "/export")
-    private void export(List<Record> recordList) throws IOException {
+    private void export(List<Record> recordList, HttpServletResponse response) throws IOException {
         ExcelWriter writer = null;
         try {
             writer = ExcelUtil.getWriter();
@@ -261,7 +262,6 @@ public class CrmContactsController extends Controller {
                 writer.addHeaderAlias(field.getStr("name"), field.getStr("name"));
             }
             writer.merge(12 + fieldList.size(), "联系人信息");
-            HttpServletResponse response = getResponse();
             List<Map<String, Object>> list = new ArrayList<>();
             for (Record record : recordList) {
                 list.add(record.remove("batch_id", "contacts_name", "customer_id", "contacts_id", "owner_user_id", "create_user_id", "field_batch_id").getColumns());
@@ -303,7 +303,7 @@ public class CrmContactsController extends Controller {
      */
     @LoginFormCookie
     @RequestMapping(value = "/downloadExcel")
-    public void downloadExcel() {
+    public void downloadExcel(HttpServletResponse response) {
         List<Record> recordList = adminFieldService.queryAddField(3);
         recordList.removeIf(record -> "file".equals(record.getStr("formType")) || "checkbox".equals(record.getStr("formType")) || "user".equals(record.getStr("formType")) || "structure".equals(record.getStr("formType")));
         HSSFWorkbook wb = new HSSFWorkbook();
@@ -347,7 +347,6 @@ public class CrmContactsController extends Controller {
                     sheet.addValidationData(dataValidation);
                 }
             }
-            HttpServletResponse response = getResponse();
             response.setContentType("application/vnd.ms-excel;charset=utf-8");
             response.setCharacterEncoding("UTF-8");
             //test.xls是弹出下载对话框的文件名，不能为中文，中文请自行编码
@@ -362,7 +361,7 @@ public class CrmContactsController extends Controller {
                 ex.printStackTrace();
             }
         }
-        renderNull();
+        //renderNull();
     }
 
     /**

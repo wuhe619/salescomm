@@ -3,6 +3,7 @@ package com.bdaim.crm.erp.crm.controller;
 import cn.hutool.poi.excel.ExcelUtil;
 import cn.hutool.poi.excel.ExcelWriter;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.common.controller.BasicAction;
 import com.bdaim.crm.common.annotation.LoginFormCookie;
 import com.bdaim.crm.common.annotation.NotNullValidate;
 import com.bdaim.crm.common.annotation.Permissions;
@@ -12,7 +13,6 @@ import com.bdaim.crm.erp.admin.service.AdminSceneService;
 import com.bdaim.crm.erp.crm.entity.CrmProduct;
 import com.bdaim.crm.erp.crm.service.CrmProductService;
 import com.bdaim.crm.utils.R;
-import com.jfinal.core.Controller;
 import com.jfinal.core.paragetter.Para;
 import com.jfinal.log.Log;
 import com.jfinal.plugin.activerecord.Db;
@@ -40,7 +40,7 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/CrmProduct")
-public class CrmProductController extends Controller {
+public class CrmProductController extends BasicAction {
 
     @Resource
     private CrmProductService crmProductService;
@@ -57,8 +57,8 @@ public class CrmProductController extends Controller {
      */
     @Permissions({"crm:product:index"})
     @RequestMapping(value = "queryPageList", method = RequestMethod.POST)
-    public R queryPageList(@RequestBody  JSONObject jsonObject) {
-        BasePageRequest<Void> basePageRequest = new BasePageRequest<>(jsonObject.getIntValue("page"),jsonObject.getIntValue("limit"));
+    public R queryPageList(@RequestBody JSONObject jsonObject) {
+        BasePageRequest<Void> basePageRequest = new BasePageRequest<>(jsonObject.getIntValue("page"), jsonObject.getIntValue("limit"));
         jsonObject.fluentPut("type", 4);
         basePageRequest.setJsonObject(jsonObject);
         return (adminSceneService.filterConditionAndGetPageList(basePageRequest));
@@ -81,7 +81,7 @@ public class CrmProductController extends Controller {
      */
     @Permissions({"crm:product:save", "crm:product:update"})
     @RequestMapping(value = "saveAndUpdate", method = RequestMethod.POST)
-    public R saveAndUpdate(@RequestBody  JSONObject jsonObject) {
+    public R saveAndUpdate(@RequestBody JSONObject jsonObject) {
         /*String data = getRawData();
         JSONObject jsonObject = JSON.parseObject(data);*/
         return (crmProductService.saveAndUpdate(jsonObject));
@@ -131,9 +131,9 @@ public class CrmProductController extends Controller {
      */
     @Permissions("crm:product:excelexport")
     @RequestMapping(value = "batchExportExcel", method = RequestMethod.POST)
-    public void batchExportExcel(@Para("ids") String productIds) throws IOException {
+    public void batchExportExcel(@Para("ids") String productIds, HttpServletResponse response) throws IOException {
         List<Record> recordList = crmProductService.exportProduct(productIds);
-        export(recordList);
+        export(recordList,response);
         //renderNull();
     }
 
@@ -143,16 +143,16 @@ public class CrmProductController extends Controller {
      */
     @Permissions("crm:product:excelexport")
     @RequestMapping(value = "allExportExcel", method = RequestMethod.POST)
-    public void allExportExcel(BasePageRequest basePageRequest) throws IOException {
+    public void allExportExcel(BasePageRequest basePageRequest, HttpServletResponse response) throws IOException {
         JSONObject jsonObject = basePageRequest.getJsonObject();
         jsonObject.fluentPut("excel", "yes").fluentPut("type", "4");
         AdminSceneService adminSceneService = new AdminSceneService();
         List<Record> recordList = (List<Record>) adminSceneService.filterConditionAndGetPageList(basePageRequest).get("data");
-        export(recordList);
+        export(recordList, response);
         //renderNull();
     }
 
-    private void export(List<Record> recordList) throws IOException {
+    private void export(List<Record> recordList, HttpServletResponse response) throws IOException {
         ExcelWriter writer = null;
         try {
             writer = ExcelUtil.getWriter();
@@ -171,7 +171,6 @@ public class CrmProductController extends Controller {
                 writer.addHeaderAlias(field.getStr("name"), field.getStr("name"));
             }
             writer.merge(8 + fieldList.size(), "产品信息");
-            HttpServletResponse response = getResponse();
             List<Map<String, Object>> list = new ArrayList<>();
             for (Record record : recordList) {
                 list.add(record.remove("batch_id", "status", "unit", "category_id", "product_id", "owner_user_id", "create_user_id", "field_batch_id", "multi_spec", "using_sn").getColumns());
@@ -270,7 +269,6 @@ public class CrmProductController extends Controller {
                 ex.printStackTrace();
             }
         }
-        renderNull();
     }
 
     /**

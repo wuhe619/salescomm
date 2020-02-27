@@ -4,6 +4,7 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.poi.excel.ExcelUtil;
 import cn.hutool.poi.excel.ExcelWriter;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.common.controller.BasicAction;
 import com.bdaim.crm.common.annotation.LoginFormCookie;
 import com.bdaim.crm.common.annotation.NotNullValidate;
 import com.bdaim.crm.common.annotation.Permissions;
@@ -24,7 +25,6 @@ import com.bdaim.crm.utils.AuthUtil;
 import com.bdaim.crm.utils.R;
 import com.bdaim.util.JavaBeanUtil;
 import com.jfinal.aop.Before;
-import com.jfinal.core.Controller;
 import com.jfinal.core.paragetter.Para;
 import com.jfinal.kit.Kv;
 import com.jfinal.log.Log;
@@ -54,7 +54,7 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/CrmCustomer")
-public class CrmCustomerController extends Controller {
+public class CrmCustomerController extends BasicAction {
 
     @Resource
     private CrmCustomerService crmCustomerService;
@@ -435,7 +435,7 @@ public class CrmCustomerController extends Controller {
     public void batchExportExcel(@Para("ids") String customerIds, HttpServletResponse response) throws IOException {
         List<Record> recordList = crmCustomerService.exportCustomer(customerIds);
         export(recordList, response);
-        renderNull();
+        //renderNull();
     }
 
     /**
@@ -464,7 +464,7 @@ public class CrmCustomerController extends Controller {
     public void poolBatchExportExcel(@Para("ids") String customerIds, HttpServletResponse response) throws IOException {
         List<Record> recordList = crmCustomerService.exportCustomer(customerIds);
         export(recordList, response);
-        renderNull();
+        //renderNull();
     }
 
     /**
@@ -604,7 +604,7 @@ public class CrmCustomerController extends Controller {
      */
     @LoginFormCookie
     @RequestMapping(value = "/downloadExcel")
-    public void downloadExcel() {
+    public void downloadExcel(HttpServletResponse response) {
         List<Record> recordList = adminFieldService.queryAddField(2);
         recordList.removeIf(record -> "file".equals(record.getStr("formType")) || "checkbox".equals(record.getStr("formType")) || "user".equals(record.getStr("formType")) || "structure".equals(record.getStr("formType")));
         HSSFWorkbook wb = new HSSFWorkbook();
@@ -645,7 +645,6 @@ public class CrmCustomerController extends Controller {
                     sheet.addValidationData(dataValidation);
                 }
             }
-            HttpServletResponse response = getResponse();
 
             response.setContentType("application/vnd.ms-excel;charset=utf-8");
             response.setCharacterEncoding("UTF-8");
@@ -663,7 +662,7 @@ public class CrmCustomerController extends Controller {
             }
 
         }
-        renderNull();
+        //renderNull();
     }
 
     /**
