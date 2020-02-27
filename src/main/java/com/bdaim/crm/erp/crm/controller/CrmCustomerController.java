@@ -93,8 +93,9 @@ public class CrmCustomerController extends Controller {
      */
     @Permissions({"crm:pool:index"})
     @RequestMapping(value = "/queryPoolPageList", method = RequestMethod.POST)
-    public R queryPoolPageList(@RequestBody BasePageRequest basePageRequest, @RequestBody JSONObject jsonObject) {
+    public R queryPoolPageList(@RequestBody JSONObject jsonObject) {
         //JSONObject jsonObject = basePageRequest.getJsonObject().fluentPut("type", 8);
+        BasePageRequest basePageRequest = new BasePageRequest(jsonObject.getIntValue("page"), jsonObject.getIntValue("limit"));
         basePageRequest.setJsonObject(jsonObject);
         return (adminSceneService.filterConditionAndGetPageList(basePageRequest));
     }

@@ -7,7 +7,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.bdaim.crm.common.annotation.LoginFormCookie;
 import com.bdaim.crm.common.annotation.NotNullValidate;
 import com.bdaim.crm.common.annotation.Permissions;
-import com.bdaim.crm.common.annotation.RequestBody;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.entity.LkCrmAdminRecordEntity;
 import com.bdaim.crm.erp.admin.service.AdminFieldService;
@@ -28,6 +27,7 @@ import org.apache.poi.hssf.usermodel.*;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.ss.util.CellRangeAddressList;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -62,8 +62,10 @@ public class CrmContactsController extends Controller {
      */
     @Permissions({"crm:contacts:index"})
     @RequestMapping(value = "/queryPageList", method = RequestMethod.POST)
-    public R queryPageList(@org.springframework.web.bind.annotation.RequestBody BasePageRequest basePageRequest, @org.springframework.web.bind.annotation.RequestBody JSONObject jsonObject) {
+    public R queryPageList(@RequestBody JSONObject jsonObject) {
         jsonObject.fluentPut("type", 3);
+        BasePageRequest basePageRequest = new BasePageRequest(jsonObject.getIntValue("page"), jsonObject.getIntValue("limit"));
+        basePageRequest.setJsonObject(jsonObject);
         basePageRequest.setJsonObject(jsonObject);
         return (adminSceneService.filterConditionAndGetPageList(basePageRequest));
     }
