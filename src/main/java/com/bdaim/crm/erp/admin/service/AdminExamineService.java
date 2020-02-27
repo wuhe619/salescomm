@@ -1,21 +1,30 @@
 package com.bdaim.crm.erp.admin.service;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.crm.common.config.paragetter.BasePageRequest;
+import com.bdaim.crm.dao.LkCrmAdminExamineDao;
+import com.bdaim.crm.dao.LkCrmAdminExamineStepDao;
+import com.bdaim.crm.entity.LkCrmAdminExamineEntity;
+import com.bdaim.crm.erp.admin.entity.AdminExamine;
+import com.bdaim.crm.erp.admin.entity.AdminExamineStep;
+import com.bdaim.crm.utils.BaseUtil;
+import com.bdaim.crm.utils.R;
+import com.bdaim.customer.dao.CustomerUserDao;
+import com.bdaim.customer.entity.CustomerUser;
+import com.bdaim.util.JavaBeanUtil;
+import com.bdaim.util.NumberConvertUtil;
 import com.jfinal.aop.Before;
 import com.jfinal.kit.Kv;
 import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Page;
 import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.tx.Tx;
-import com.bdaim.crm.common.config.paragetter.BasePageRequest;
-import com.bdaim.crm.erp.admin.entity.AdminExamine;
-import com.bdaim.crm.erp.admin.entity.AdminExamineStep;
-import com.bdaim.crm.utils.BaseUtil;
-import com.bdaim.crm.utils.R;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,12 +32,22 @@ import java.util.List;
 @Service
 @Transactional
 public class AdminExamineService {
+
+    @Resource
+    private LkCrmAdminExamineDao crmAdminExamineDao;
+
+    @Resource
+    private LkCrmAdminExamineStepDao crmAdminExamineStepDao;
+
+    @Resource
+    private CustomerUserDao customerUserDao;
+
     /**
      * 添加审批流程
      */
     @Before(Tx.class)
     public R saveExamine(JSONObject jsonObject) {
-        AdminExamine adminExamine = jsonObject.toJavaObject(AdminExamine.class);
+        LkCrmAdminExamineEntity adminExamine = jsonObject.toJavaObject(LkCrmAdminExamineEntity.class);
         List<Integer> deptIds = jsonObject.getJSONArray("deptIds").toJavaList(Integer.class);
         adminExamine.setDeptIds(getIds(deptIds));
         List<Integer> userIds = jsonObject.getJSONArray("userIds").toJavaList(Integer.class);
@@ -37,33 +56,33 @@ public class AdminExamineService {
 
         if (adminExamine.getExamineId() == null) {
             //添加
-            AdminExamine examine = AdminExamine.dao.findFirst(Db.getSql("admin.examine.getExamineByCategoryType"), adminExamine.getCategoryType());
+            LkCrmAdminExamineEntity examine = crmAdminExamineDao.getExamineByCategoryType(adminExamine.getCategoryType());
             if (examine != null) {
                 //判断有未删除的审批流程，不能添加
                 examine.setStatus(0);
                 examine.setUpdateUserId(BaseUtil.getUser().getUserId());
-                examine.setUpdateTime(DateUtil.date());
-                examine.update();
+                examine.setUpdateTime(DateUtil.date().toTimestamp());
+                crmAdminExamineDao.update(examine);
             }
             adminExamine.setCreateUserId(BaseUtil.getUser().getUserId());
-            adminExamine.setCreateTime(DateUtil.date());
+            adminExamine.setCreateTime(DateUtil.date().toTimestamp());
             adminExamine.setUpdateUserId(BaseUtil.getUser().getUserId());
-            adminExamine.setUpdateTime(DateUtil.date());
+            adminExamine.setUpdateTime(DateUtil.date().toTimestamp());
             adminExamine.setStatus(1);
-            flag = adminExamine.save();
+            flag = (int) crmAdminExamineDao.saveReturnPk(adminExamine) > 0;
 
         } else {
             //更新 把旧的更新成删除状态 并添加一条新的
-            AdminExamine examine = AdminExamine.dao.findById(adminExamine.getExamineId());
+            LkCrmAdminExamineEntity examine = crmAdminExamineDao.get(adminExamine.getExamineId());
             examine.setStatus(2);
-            examine.update();
+            crmAdminExamineDao.update(examine);
             adminExamine.setCreateUserId(examine.getCreateUserId());
             adminExamine.setCreateTime(examine.getCreateTime());
             adminExamine.setUpdateUserId(BaseUtil.getUser().getUserId());
-            adminExamine.setUpdateTime(DateUtil.date());
+            adminExamine.setUpdateTime(DateUtil.date().toTimestamp());
             adminExamine.setExamineId(null);
             adminExamine.setStatus(1);
-            flag = adminExamine.save();
+            flag = (int) crmAdminExamineDao.saveReturnPk(adminExamine) > 0;
 
 
         }
@@ -136,7 +155,7 @@ public class AdminExamineService {
     public R updateStatus(AdminExamine adminExamine) {
         adminExamine.setUpdateUserId(BaseUtil.getUser().getUserId());
         adminExamine.setUpdateTime(DateUtil.date());
-        if(adminExamine.getStatus() == null){
+        if (adminExamine.getStatus() == null) {
             adminExamine.setStatus(2);
         }
         return adminExamine.update() ? R.ok() : R.error();
@@ -162,10 +181,10 @@ public class AdminExamineService {
      * 查询当前启用审核流程步骤
      */
     public R queryExaminStep(Integer categoryType) {
-        Record record = Db.findFirst(Db.getSql("admin.examine.getExamineByCategoryType"), categoryType);
+        Record record = JavaBeanUtil.mapToRecord(BeanUtil.beanToMap(crmAdminExamineDao.getExamineByCategoryType(categoryType)));
         if (record != null) {
             if (record.getInt("examine_type") == 1) {
-                List<Record> list = Db.find(Db.getSql("admin.examineStep.queryExamineStepByExamineId"), record.getInt("examine_id"));
+                List<Record> list = JavaBeanUtil.mapToRecords(crmAdminExamineStepDao.queryExamineStepByExamineId(record.getInt("examine_id")));
                 list.forEach(r -> {
                     //根据审核人id查询审核问信息
                     List<Record> userList = new ArrayList<>();
@@ -173,7 +192,8 @@ public class AdminExamineService {
                         String[] userIds = r.getStr("check_user_id").split(",");
                         for (String userId : userIds) {
                             if (StrUtil.isNotEmpty(userId)) {
-                                Record r1 = Db.findFirst(Db.getSql("admin.user.queryUserByUserId"), userId);
+                                CustomerUser customerUser = customerUserDao.get(NumberConvertUtil.parseLong(userId));
+                                Record r1 = JavaBeanUtil.mapToRecord(BeanUtil.beanToMap(customerUser));
                                 if (r1 != null) {
                                     userList.add(r1);
                                 }
