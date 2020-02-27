@@ -20,10 +20,13 @@ public class LkCrmContractDao extends SimpleHibernateDao<LkCrmContractEntity, In
         return super.sqlPageQuery(" select * from contractview", pageNum, pageSize);
     }
 
-    public List<Map<String, Object>> queryByContractId(Integer id) {
-        return super.sqlQuery(" select *,\n" +
-                "    ( select IFNULL(sum(money),0) from lkcrm_crm_receivables where contract_id =  crt.contract_id and check_status = 2) as receivablesMoney\n" +
-                "    from contractview as crt where crt.contract_id = ?", id);
+    public Map<String, Object> queryByContractId(Integer id) {
+        String sql = "select *,  ( select IFNULL(sum(money),0) from lkcrm_crm_receivables where contract_id =  crt.contract_id and check_status = 2) as receivablesMoney from contractview as crt where crt.contract_id = ?";
+        List<Map<String, Object>> maps = super.sqlQuery(sql, id);
+        if (maps.size() > 0) {
+            return maps.get(0);
+        }
+        return null;
     }
 
     public int deleteMember(String memberId, Integer contractId) {
@@ -60,6 +63,14 @@ public class LkCrmContractDao extends SimpleHibernateDao<LkCrmContractEntity, In
         }
         sql += " where name = 'expiringContractDays'";
         return super.executeUpdateSQL(sql, param.toArray());
+    }
+
+    public List<Map<String, Object>> queryBusinessProduct(Integer contractId) {
+        return super.sqlQuery(" select c.product_id , c.name as name,d.name as category_name,b.unit,b.price,b.sales_price,b.num,b.discount,b.subtotal\n" +
+                "      from lkcrm_crm_contract as a inner join lkcrm_crm_contract_product as b on a.contract_id = b.contract_id\n" +
+                "      inner join lkcrm_crm_product as c on b.product_id = c.product_id inner join lkcrm_crm_product_category as d\n" +
+                "      on c.category_id = d.category_id\n" +
+                "      where a.contract_id = ?", contractId);
     }
 
 

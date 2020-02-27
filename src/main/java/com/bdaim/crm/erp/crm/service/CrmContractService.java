@@ -106,7 +106,7 @@ public class CrmContractService {
      * 根据id查询合同基本信息
      */
     public List<Record> information(Integer id) {
-        Record record = JavaBeanUtil.mapToRecord(crmContractDao.queryByContractId(id).get(0));
+        Record record = JavaBeanUtil.mapToRecord(crmContractDao.queryByContractId(id));
         //Record record = Db.findFirst(Db.getSql("crm.contract.queryByContractId"), id);
         if (record == null) {
             return null;
@@ -467,7 +467,7 @@ public class CrmContractService {
         contract.set("company_user_id", list);
         List<Record> fieldList = adminFieldService.queryUpdateField(6, contract);
         Kv kv = Kv.by("discount_rate", contract.getBigDecimal("discount_rate"))
-                .set("product", Db.find(Db.getSql("crm.contract.queryBusinessProduct"), contractId))
+                .set("product", crmContractDao.queryBusinessProduct(contractId).get(0))
                 .set("total_price", contract.getStr("total_price"));
         fieldList.add(new Record().set("field_name", "product").set("name", "产品").set("value", kv).set("form_type", "product").set("setting", new String[]{}).set("is_null", 0).set("field_type", 1));
         return fieldList;
