@@ -21,6 +21,8 @@ import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.tx.Tx;
 import com.jfinal.upload.UploadFile;
 import org.apache.commons.io.FilenameUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -37,6 +39,8 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 public class AdminFileService {
+
+    private final static Logger LOG = LoggerFactory.getLogger(AdminFileService.class);
 
     @Resource
     private LkCrmAdminFileDao crmAdminFileDao;
@@ -92,6 +96,9 @@ public class AdminFileService {
                     fileName = uploadFileService.uploadFile(multiRequestFile, BusinessEnum.CRM, true);
                     adminFile.setName(multiRequestFile.getName());
                     adminFile.setSize(multiRequestFile.getSize());
+                    LOG.info("原始文件名1:{}", multiRequestFile.getName());
+                    LOG.info("原始文件名2:{}", multiRequestFile.getOriginalFilename());
+                    LOG.info("getContentType:{}", multiRequestFile.getContentType());
                     // 获取文件的扩展名
                     String extension = FilenameUtils.getExtension(multiRequestFile.getOriginalFilename());
                     if (StringUtil.isEmpty(fileType)) {
