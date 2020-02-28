@@ -13,7 +13,7 @@ import java.util.List;
 public class LkCrmOaEventDao extends SimpleHibernateDao<LkCrmOaEventEntity,Integer> {
 
     public Page queryEventRelation(int pageNum, int pageSize, String businessIds, String contactsIds, String contractIds, String customerIds) {
-        String sql = " select a.*,b.eventrelation_id, b.customer_ids, b.contacts_ids, b.business_ids, b.contract_ids, b.status, b.create_time, c.realname,'' AS img,GROUP_CONCAT(d.realname) as 'owner_user_name'\n" +
+        String sql = " select a.*,b.eventrelation_id, b.customer_ids, b.contacts_ids, b.business_ids, b.contract_ids, c.realname,'' AS img,GROUP_CONCAT(d.realname) as 'owner_user_name'\n" +
                 "    from lkcrm_oa_event as a inner join lkcrm_oa_event_relation as b on a.event_id = b.event_id\n" +
                 "    left join t_customer_user as c on a.create_user_id = c.id\n" +
                 "    left join t_customer_user as d on FIND_IN_SET(d.id,IFNULL(a.owner_user_ids, 0))\n" +
