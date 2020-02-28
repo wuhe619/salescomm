@@ -85,7 +85,7 @@ public class AdminFileService {
         adminFile.setCreateUserId(BaseUtil.getUser().getUserId());
         CommonsMultipartResolver multipartResolver = new CommonsMultipartResolver(
                 request.getSession().getServletContext());
-        String fileName = "";
+        String fileName = "", type = "";
         if (multipartResolver.isMultipart(request)) {
             MultipartHttpServletRequest multiRequest = (MultipartHttpServletRequest) request;
             Iterator<String> iter = multiRequest.getFileNames();
@@ -99,10 +99,7 @@ public class AdminFileService {
                     LOG.info("原始文件名2:{}", multiRequestFile.getOriginalFilename());
                     LOG.info("getContentType:{}", multiRequestFile.getContentType());
                     // 获取文件的扩展名
-                    fileType = FilenameUtils.getExtension(multiRequestFile.getOriginalFilename());
-                    /*if (StringUtil.isEmpty(fileType)) {
-                        fileType = extension;
-                    }*/
+                    type = FilenameUtils.getExtension(multiRequestFile.getOriginalFilename());
                     break;
                 }
             }
@@ -114,7 +111,7 @@ public class AdminFileService {
         if (StrUtil.isNotBlank(fileType)) {
             adminFile.setFileType(fileType);
         }
-        return (int) crmAdminFileDao.saveReturnPk(adminFile) > 0 ? R.ok().put("batchId", batchId).put("name", fileName + "." + fileType).put("url", adminFile.getFilePath()).put("size", adminFile.getSize() / 1000 + "KB").put("file_id", adminFile.getFileId()) : R.error();
+        return (int) crmAdminFileDao.saveReturnPk(adminFile) > 0 ? R.ok().put("batchId", batchId).put("name", fileName + "." + type).put("url", adminFile.getFilePath()).put("size", adminFile.getSize() / 1000 + "KB").put("file_id", adminFile.getFileId()) : R.error();
     }
 
     /**
