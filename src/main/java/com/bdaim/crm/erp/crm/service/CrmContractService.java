@@ -146,13 +146,8 @@ public class CrmContractService {
             LkCrmContractEntity contract = crmContractDao.get(NumberConvertUtil.parseInt(id));
             if (contract != null) {
                 crmContractDao.executeUpdateSQL("delete FROM lkcrm_admin_fieldv where batch_id = ?", contract.getBatchId());
+                crmContractDao.delete(NumberConvertUtil.parseInt(id));
             }
-            /*if (!crmContractDao.delete(id);) {
-                return R.error();
-            }*/
-            crmContractDao.delete(NumberConvertUtil.parseInt(id));
-            return R.error();
-
         }
         return R.ok();
     }
@@ -400,7 +395,11 @@ public class CrmContractService {
         String[] memberArr = crmContract.getMemberIds().split(",");
         StringBuilder stringBuilder = new StringBuilder();
         for (String id : contractIdsArr) {
-            Long ownerUserId = crmContractDao.get(Integer.valueOf(id)).getOwnerUserId();
+            LkCrmContractEntity entity = crmContractDao.get(Integer.valueOf(id));
+            if(entity==null){
+                return R.error("合同不存在");
+            }
+            Long ownerUserId = entity.getOwnerUserId();
             for (String memberId : memberArr) {
                 if (ownerUserId.equals(NumberConvertUtil.parseLong(memberId))) {
                     return R.error("负责人不能重复选为团队成员");
