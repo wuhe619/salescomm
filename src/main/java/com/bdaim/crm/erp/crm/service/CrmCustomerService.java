@@ -316,8 +316,7 @@ public class CrmCustomerService {
         String[] idsArr = customerIds.split(",");
         List<Object> idsList = new ArrayList<>();
         for (String id : idsArr) {
-            Record record = new Record();
-            idsList.add(Integer.valueOf(id));
+            idsList.add(id);
         }
         List<Record> batchIdList = JavaBeanUtil.mapToRecords(crmCustomerDao.queryBatchIdByIds(Arrays.asList(idsArr)));
         //return Db.tx(() -> {

@@ -315,8 +315,8 @@ public class AdminFieldService {
                 create = "create or replace view leadsview as select a.*,b.realname as create_user_name,c.realname as owner_user_name,z.* from lkcrm_crm_leads as a left join lkcrm_admin_user as b on a.create_user_id = b.user_id left join lkcrm_admin_user as c on a.owner_user_id = c.user_id left join fieldleadsview as z on a.batch_id = z.field_batch_id";
                 break;
             case 2:
-                filedCreate = String.format(Db.getSql("admin.field.fieldcustomerview"), sql, userJoin.append(deptJoin), label);
-                create = Db.getSql("admin.field.customerview");
+                filedCreate = String.format("create or replace view fieldcustomerview  as select %s batch_id as field_batch_id from lkcrm_admin_fieldv as a inner join lkcrm_admin_field as d on `a`.`field_id` = `d`.`field_id` %s where d.label = %s and a.batch_id is not null and a.batch_id != '' and d.field_type = 0 group by a.batch_id", sql, userJoin.append(deptJoin), label);
+                create = "create or replace view customerview  as select a.*,b.realname as create_user_name,c.realname as owner_user_name,z.* from lkcrm_crm_customer as a left join lkcrm_admin_user as b on a.create_user_id = b.user_id left join lkcrm_admin_user as c on a.owner_user_id = c.user_id left join fieldcustomerview as z on a.batch_id = z.field_batch_id";
                 break;
             case 3:
                 filedCreate = String.format(Db.getSql("admin.field.fieldcontactsview"), sql, userJoin.append(deptJoin), label);

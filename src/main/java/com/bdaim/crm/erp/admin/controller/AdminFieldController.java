@@ -286,8 +286,43 @@ public class AdminFieldController extends BasicAction {
      * @date: 2019/7/1 10:29
      */
     @RequestMapping(value = "/list/label", method = RequestMethod.POST)
-    public R getLabelInfo(String name, Integer id) {
-        List<Record> recordList = crmLeadsService.queryField(id);
+    public R getLabelInfo(String name, Integer id, String label) {
+        List<Record> recordList = new LinkedList<>();
+        if (id != null) {
+            if ("1".equals(label)) {
+                recordList = crmLeadsService.queryField(id);
+            }
+            if ("2".equals(label)) {
+                recordList = crmCustomerService.queryField(id);
+            }
+            if ("3".equals(label)) {
+                recordList = crmContactsService.queryField(id);
+            }
+            if ("4".equals(label)) {
+                recordList = crmProductService.queryField(id);
+            }
+            if ("5".equals(label)) {
+                recordList = crmBusinessService.queryField(id);
+            }
+            if ("6".equals(label)) {
+                recordList = crmContractService.queryField(id);
+            }
+            if ("7".equals(label)) {
+                recordList = crmReceivablesService.queryField(id);
+            }
+            if ("8".equals(label)) {
+                recordList = crmReceivablesPlanService.queryField(id);
+            }
+            if ("10".equals(label)) {
+                recordList = oaExamineCategoryService.queryField(id);
+            }
+        } else {
+            if ("8".equals(label)) {
+                recordList = crmReceivablesPlanService.queryField();
+            } else {
+                recordList = adminFieldService.queryAddField(Integer.valueOf(label));
+            }
+        }
         List<Record> data = new ArrayList<>();
         recordList.forEach(r -> {
             if (Objects.equals(name, r.getStr("name"))) {
