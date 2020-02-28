@@ -19,12 +19,8 @@ import com.bdaim.crm.erp.crm.service.CrmReceivablesService;
 import com.bdaim.crm.utils.AuthUtil;
 import com.bdaim.crm.utils.R;
 import com.bdaim.util.JavaBeanUtil;
-import com.jfinal.core.paragetter.Para;
 import org.springframework.beans.BeanUtils;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 
@@ -76,7 +72,7 @@ public class CrmContractController extends BasicAction {
     @Permissions("crm:contract:read")
     @NotNullValidate(value = "contractId", message = "合同id不能为空")
     @RequestMapping(value = "/queryById", method = RequestMethod.POST)
-    public R queryById(@Para("contractId") Integer id) {
+    public R queryById(@RequestParam("contractId") Integer id) {
         return (crmContractService.queryById(id));
     }
 
@@ -88,7 +84,7 @@ public class CrmContractController extends BasicAction {
     @Permissions("crm:contract:delete")
     @NotNullValidate(value = "contractIds", message = "合同id不能为空")
     @RequestMapping(value = "/deleteByIds", method = RequestMethod.POST)
-    public R deleteByIds(@Para("contractIds") String contractIds) {
+    public R deleteByIds(@RequestParam("contractIds") String contractIds) {
         return (crmContractService.deleteByIds(contractIds));
     }
 
@@ -101,7 +97,7 @@ public class CrmContractController extends BasicAction {
     @NotNullValidate(value = "newOwnerUserId", message = "负责人id不能为空")
     @NotNullValidate(value = "transferType", message = "移除方式不能为空")
     @RequestMapping(value = "/transfer", method = RequestMethod.POST)
-    public R transfer(@Para("") LkCrmContractEntity crmContract) {
+    public R transfer(@RequestParam("") LkCrmContractEntity crmContract) {
         return (crmContractService.transfer(crmContract));
     }
 
@@ -124,7 +120,7 @@ public class CrmContractController extends BasicAction {
      * @author zxy
      */
     @RequestMapping(value = "/queryList", method = RequestMethod.POST)
-    public R queryList(@Para("") LkCrmContractEntity crmContract) {
+    public R queryList(@RequestParam("") LkCrmContractEntity crmContract) {
         return (R.ok().put("data", crmContractService.queryList(crmContract)));
     }
 
@@ -136,18 +132,18 @@ public class CrmContractController extends BasicAction {
     @NotNullValidate(value = "id", message = "id不能为空")
     @NotNullValidate(value = "type", message = "类型不能为空")
     @RequestMapping(value = "/queryListByType", method = RequestMethod.POST)
-    public R queryListByType(@Para("type") String type, @Para("id") Integer id) {
+    public R queryListByType(@RequestParam("type") String type, @RequestParam("id") Integer id) {
         return (R.ok().put("data", crmContractService.queryListByType(type, id)));
     }
 
     /**
      * 根据合同批次查询产品
      *
-     * @param batchId
+     * @RequestParamm batchId
      * @author zxy
      */
     @RequestMapping(value = "/queryProductById", method = RequestMethod.POST)
-    public R queryProductById(@Para("batchId") String batchId) {
+    public R queryProductById(@RequestParam("batchId") String batchId) {
         return (R.ok().put("data", crmContractService.queryProductById(batchId)));
     }
 
@@ -157,7 +153,7 @@ public class CrmContractController extends BasicAction {
      * @author zxy
      */
     @RequestMapping(value = "/queryReceivablesById", method = RequestMethod.POST)
-    public R queryReceivablesById(@Para("id") Integer id) {
+    public R queryReceivablesById(@RequestParam("id") Integer id) {
         return (R.ok().put("data", crmContractService.queryReceivablesById(id)));
     }
 
@@ -167,7 +163,7 @@ public class CrmContractController extends BasicAction {
      * @author zxy
      */
     @RequestMapping(value = "/queryReceivablesPlanById", method = RequestMethod.POST)
-    public R queryReceivablesPlanById(@Para("id") Integer id) {
+    public R queryReceivablesPlanById(@RequestParam("id") Integer id) {
         return (R.ok().put("data", crmContractService.queryReceivablesPlanById(id)));
     }
 
@@ -176,7 +172,7 @@ public class CrmContractController extends BasicAction {
      * 查询团队成员
      */
     @RequestMapping(value = "/getMembers", method = RequestMethod.POST)
-    public R getMembers(@Para("contractId") Integer contractId) {
+    public R getMembers(@RequestParam("contractId") Integer contractId) {
         boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.CONTRACT_TYPE_KEY.getSign()), contractId);
         if (auth) {
             return (R.noAuth());
@@ -190,7 +186,7 @@ public class CrmContractController extends BasicAction {
      * 编辑团队成员
      */
     @RequestMapping(value = "/updateMembers", method = RequestMethod.POST)
-    public R updateMembers(@Para("") CrmContract crmContract) {
+    public R updateMembers(@RequestParam("") CrmContract crmContract) {
         return (crmContractService.addMember(crmContract));
     }
 
@@ -200,7 +196,7 @@ public class CrmContractController extends BasicAction {
      */
     @Permissions("crm:contract:teamsave")
     @RequestMapping(value = "/addMembers", method = RequestMethod.POST)
-    public R addMembers(@Para("") CrmContract crmContract) {
+    public R addMembers(@RequestParam("") CrmContract crmContract) {
         return (crmContractService.addMember(crmContract));
     }
 
@@ -209,7 +205,7 @@ public class CrmContractController extends BasicAction {
      * 删除团队成员
      */
     @RequestMapping(value = "/deleteMembers", method = RequestMethod.POST)
-    public R deleteMembers(@Para("") CrmContract crmContract) {
+    public R deleteMembers(@RequestParam("") CrmContract crmContract) {
         return (crmContractService.deleteMembers(crmContract));
     }
 
@@ -221,7 +217,7 @@ public class CrmContractController extends BasicAction {
     @NotNullValidate(value = "content", message = "内容不能为空")
     @NotNullValidate(value = "category", message = "跟进类型不能为空")
     @RequestMapping(value = "/addRecord", method = RequestMethod.POST)
-    public R addRecord(@Para("") LkCrmAdminRecordDTO adminRecord) {
+    public R addRecord(@RequestParam("") LkCrmAdminRecordDTO adminRecord) {
         boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.CONTRACT_TYPE_KEY.getSign()), adminRecord.getTypesId());
         if (auth) {
             return (R.noAuth());
@@ -308,7 +304,7 @@ public class CrmContractController extends BasicAction {
      */
     @NotNullValidate(value = "status", message = "status不能为空")
     @RequestMapping(value = "/setContractConfig", method = RequestMethod.POST)
-    public R setContractConfig(@Para("status") Integer status, @Para("contractDay") Integer contractDay) {
+    public R setContractConfig(@RequestParam("status") Integer status, @RequestParam("contractDay") Integer contractDay) {
         return (crmContractService.setContractConfig(status, contractDay));
     }
 }
