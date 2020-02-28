@@ -101,7 +101,7 @@ public class AdminFileService {
         if (StrUtil.isNotBlank(fileType)) {
             adminFile.setFileType(fileType);
         }
-        return (int) crmAdminFileDao.saveReturnPk(adminFile) > 0 ? R.ok().put("batchId", batchId).put("name", fileName).put("url", adminFile.getFilePath()).put("size", adminFile.getSize() / 1000 + "KB").put("file_id", adminFile.getFileId()) : R.error();
+        return (int) crmAdminFileDao.saveReturnPk(adminFile) > 0 ? R.ok().put("batchId", batchId).put("name", fileName + "." + fileType).put("url", adminFile.getFilePath()).put("size", adminFile.getSize() / 1000 + "KB").put("file_id", adminFile.getFileId()) : R.error();
     }
 
     /**
