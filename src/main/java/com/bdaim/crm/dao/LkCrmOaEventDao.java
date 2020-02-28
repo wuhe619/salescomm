@@ -35,6 +35,7 @@ public class LkCrmOaEventDao extends SimpleHibernateDao<LkCrmOaEventEntity,Integ
             param.add(customerIds);
             sql += " or b.customer_ids like concat('%,',?,',%')";
         }
+        sql+=" group by a.event_id,b.eventrelation_id";
         return super.sqlPageQuery(sql, pageNum, pageSize, param.toArray());
     }
 }

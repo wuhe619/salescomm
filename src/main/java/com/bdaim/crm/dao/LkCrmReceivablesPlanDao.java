@@ -30,7 +30,7 @@ public class LkCrmReceivablesPlanDao extends SimpleHibernateDao<LkCrmReceivables
     public Page pageListByContractId(int pageNum, int pageSize, int contract_id) {
         String sql = " select scrp.plan_id,  scrp.num,scc.customer_name ,scco.num as contract_num ,scrp.remind,\n" +
                 "     scrp.money,scrp.return_date,return_type,\n" +
-                "     scrp.remind,scrp.remark\n" +
+                "     scrp.remark\n" +
                 "                     from lkcrm_crm_receivables_plan as scrp\n" +
                 "                    LEFT JOIN lkcrm_crm_customer as scc on scc.customer_id = scrp.customer_id\n" +
                 "                     LEFT JOIN lkcrm_crm_contract as scco on scco.contract_id = scrp.contract_id\n" +

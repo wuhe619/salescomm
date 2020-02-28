@@ -531,7 +531,7 @@ public class CrmContractService {
     public R qureyProductListByContractId(BasePageRequest<CrmContractProduct> basePageRequest) {
 
         Integer pageType = basePageRequest.getPageType();
-        Record record = JavaBeanUtil.mapToRecord(crmBusinessProductDao.querySubtotalByBusinessId(basePageRequest.getData().getContractId()).get(0));
+        Record record = JavaBeanUtil.mapToRecord(crmBusinessProductDao.querySubtotalByBusinessId(basePageRequest.getData().getContractId()));
         //Record record = Db.findFirst(Db.getSql("crm.product.querySubtotalByContractId"), basePageRequest.getData().getContractId());
         if (record.getStr("money") == null) {
             record.set("money", 0);
