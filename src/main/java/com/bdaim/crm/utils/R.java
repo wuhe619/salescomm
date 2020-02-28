@@ -69,10 +69,12 @@ public class R extends LinkedHashMap<String, Object> implements Serializable {
         } else if (value instanceof JSONArray) {
             JSONArray list = ((JSONArray) value);
             for (int i = 0; i < list.size(); i++) {
-                JSONObject v = list.getJSONObject(i);
-                for (Map.Entry<String, Object> k : v.entrySet()) {
-                    if (v.get(k.getKey()) instanceof Long) {
-                        v.put(k.getKey(), String.valueOf(v.get(k.getKey())));
+                if (list.get(i) instanceof JSONObject) {
+                    JSONObject v = list.getJSONObject(i);
+                    for (Map.Entry<String, Object> k : v.entrySet()) {
+                        if (v.get(k.getKey()) instanceof Long) {
+                            v.put(k.getKey(), String.valueOf(v.get(k.getKey())));
+                        }
                     }
                 }
             }
