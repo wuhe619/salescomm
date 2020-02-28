@@ -90,7 +90,8 @@ public class OaLogController extends BasicAction {
      * 查询crm关联日志
      */
     @RequestMapping(value = "/queryLogRelation", method = RequestMethod.POST)
-    public R queryLogRelation(BasePageRequest<OaLogRelation> basePageRequest){
+    public R queryLogRelation(BasePageRequest<OaLogRelation> basePageRequest,OaLogRelation oaLogRelation){
+        basePageRequest.setData(oaLogRelation);
         return(oaLogService.queryLogRelation(basePageRequest));
     }
 }

@@ -170,7 +170,8 @@ public class OaExamineController extends BasicAction {
      * 查询审批关联业务
      */
     @RequestMapping(value = "/queryExamineRelation", method = RequestMethod.POST)
-    public R queryExamineRelation(@Para("") BasePageRequest<OaExamineRelation> pageRequest) {
+    public R queryExamineRelation(@Para("") BasePageRequest<OaExamineRelation> pageRequest,OaExamineRelation oaExamineRelation) {
+        pageRequest.setData(oaExamineRelation);
         return (oaExamineService.queryExamineRelation(pageRequest));
     }
 
