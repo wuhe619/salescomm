@@ -248,7 +248,8 @@ public class TaskController extends BasicAction {
      * crm查询关联任务
      */
     @RequestMapping(value = "/queryTaskRelation", method = RequestMethod.POST)
-    public R queryTaskRelation(@Para("") BasePageRequest<TaskRelation> basePageRequest) {
+    public R queryTaskRelation(@Para("") BasePageRequest<TaskRelation> basePageRequest,TaskRelation taskRelation) {
+        basePageRequest.setData(taskRelation);
         return (taskService.queryTaskRelation(basePageRequest));
     }
 

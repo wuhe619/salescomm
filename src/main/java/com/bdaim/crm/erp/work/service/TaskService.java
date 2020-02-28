@@ -25,6 +25,7 @@ import com.bdaim.crm.utils.R;
 import com.bdaim.crm.utils.TagUtil;
 import com.bdaim.customer.dao.CustomerUserDao;
 import com.bdaim.customer.entity.CustomerUser;
+import com.bdaim.util.JavaBeanUtil;
 import com.bdaim.util.NumberConvertUtil;
 import com.bdaim.util.StringUtil;
 import com.jfinal.aop.Before;
@@ -549,9 +550,12 @@ public class TaskService{
         if(AuthUtil.oaAnth(relation.toRecord())){
             return R.noAuth();
         }
-        Page<Record> paginate = Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), Db.getSqlPara("work.task.queryTaskRelation", Kv.by("businessIds", relation.getBusinessIds()).set("contactsIds", relation.getContactsIds()).set("contractIds", relation.getContractIds()).set("customerIds", relation.getCustomerIds())));
-        paginate.getList().forEach(this::composeUser);
-        return R.ok().put("data", paginate);
+        com.bdaim.common.dto.Page paginate = crmTaskDao.queryTaskRelation(basePageRequest.getPage(), basePageRequest.getLimit(), relation.getBusinessIds(), relation.getContactsIds(), relation.getContractIds(), relation.getCustomerIds());
+        //Page<Record> paginate = Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), Db.getSqlPara("work.task.queryTaskRelation", Kv.by("businessIds", relation.getBusinessIds()).set("contactsIds", relation.getContactsIds()).set("contractIds", relation.getContractIds()).set("customerIds", relation.getCustomerIds())));
+        paginate.getData().forEach(s->{
+            composeUser(JavaBeanUtil.mapToRecord((Map<String, Object>) s));
+        });
+        return R.ok().put("data", BaseUtil.crmPage(paginate));
     }
 
     private void composeUser(Record record){
