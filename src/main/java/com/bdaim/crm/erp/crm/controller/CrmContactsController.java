@@ -88,7 +88,7 @@ public class CrmContactsController extends BasicAction {
      */
     @Permissions("crm:contacts:read")
     @RequestMapping(value = "/queryById", method = RequestMethod.POST)
-    public R queryById(@Para("contactsId") Integer contactsId) {
+    public R queryById(@RequestParam("contactsId") Integer contactsId) {
         return (R.ok().put("data", crmContactsService.queryById(contactsId)));
     }
 
@@ -97,7 +97,7 @@ public class CrmContactsController extends BasicAction {
      * 根据联系人名称查询
      */
     @RequestMapping(value = "/queryByName", method = RequestMethod.POST)
-    public R queryByName(@Para("name") String name) {
+    public R queryByName(@RequestParam("name") String name) {
         return (R.ok().put("data", crmContactsService.queryByName(name)));
     }
 
@@ -121,7 +121,7 @@ public class CrmContactsController extends BasicAction {
      * 联系人关联商机
      */
     @RequestMapping(value = "/relateBusiness", method = RequestMethod.POST)
-    public R relateBusiness(@Para("contactsId") Integer contactsId, @Para("businessIds") String businessIds) {
+    public R relateBusiness(@RequestParam("contactsId") Integer contactsId, @RequestParam("businessIds") String businessIds) {
         return (crmContactsService.relateBusiness(contactsId, businessIds));
     }
 
@@ -130,7 +130,7 @@ public class CrmContactsController extends BasicAction {
      * 联系人解除关联商机
      */
     @RequestMapping(value = "/unrelateBusiness", method = RequestMethod.POST)
-    public R unrelateBusiness(@Para("contactsId") Integer contactsId, @Para("businessIds") String businessIds) {
+    public R unrelateBusiness(@RequestParam("contactsId") Integer contactsId, @RequestParam("businessIds") String businessIds) {
         return (crmContactsService.unrelateBusiness(contactsId, businessIds));
     }
 
@@ -148,7 +148,7 @@ public class CrmContactsController extends BasicAction {
     /**
      * 批量添加联系人
      *
-     * @param jsonArray
+     * @RequestParamm jsonArray
      * @return
      */
     @Permissions({"crm:contacts:batchAddContacts"})
@@ -164,7 +164,7 @@ public class CrmContactsController extends BasicAction {
      */
     @Permissions("crm:contacts:delete")
     @RequestMapping(value = "/deleteByIds", method = RequestMethod.POST)
-    public R deleteByIds(@Para("contactsIds") String contactsIds) {
+    public R deleteByIds(@RequestParam("contactsIds") String contactsIds) {
         return (crmContactsService.deleteByIds(contactsIds));
     }
 
@@ -176,7 +176,7 @@ public class CrmContactsController extends BasicAction {
     @NotNullValidate(value = "contactsIds", message = "联系人id不能为空")
     @NotNullValidate(value = "newOwnerUserId", message = "新负责人不能为空")
     @RequestMapping(value = "/transfer", method = RequestMethod.POST)
-    public R transfer(@Para("") CrmContacts crmContacts) {
+    public R transfer(@RequestParam("") CrmContacts crmContacts) {
         return (crmContactsService.transfer(crmContacts));
     }
 
@@ -189,7 +189,7 @@ public class CrmContactsController extends BasicAction {
     @NotNullValidate(value = "content", message = "内容不能为空")
     @NotNullValidate(value = "category", message = "跟进类型不能为空")
     @RequestMapping(value = "/addRecord", method = RequestMethod.POST)
-    public R addRecord(@Para("") LkCrmAdminRecordDTO adminRecord) {
+    public R addRecord(@RequestParam("") LkCrmAdminRecordDTO adminRecord) {
         boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.CONTACTS_TYPE_KEY.getSign()), adminRecord.getTypesId());
         if (auth) {
             return (R.noAuth());
@@ -370,7 +370,7 @@ public class CrmContactsController extends BasicAction {
     }
 
 
-   /* public void uploadExcel(@Para("file") UploadFile file, @Para("repeatHandling") Integer repeatHandling, @Para("ownerUserId") Integer ownerUserId) {
+   /* public void uploadExcel(@RequestParam("file") UploadFile file, @RequestParam("repeatHandling") Integer repeatHandling, @RequestParam("ownerUserId") Integer ownerUserId) {
         Db.tx(() -> {
             R result = crmContactsService.uploadExcel(file, repeatHandling, ownerUserId);
             renderJson(result);

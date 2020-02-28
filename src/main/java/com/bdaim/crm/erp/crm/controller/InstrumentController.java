@@ -8,10 +8,10 @@ import com.bdaim.crm.erp.crm.service.InstrumentService;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
 import com.bdaim.util.NumberConvertUtil;
-import com.jfinal.core.paragetter.Para;
 import com.jfinal.plugin.activerecord.Record;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
@@ -60,7 +60,7 @@ public class InstrumentController extends BasicAction {
      * 销售简报的数据查看详情
      */
     @RequestMapping(value = "/queryBulletinInfo", method = RequestMethod.POST)
-    public R queryBulletinInfo(BasePageRequest basePageRequest, @Para("deptId") String deptIds, @Para("userIds") String userIds, @Para("type") String type, @Para("label") Integer label) {
+    public R queryBulletinInfo(BasePageRequest basePageRequest, @RequestParam("deptId") String deptIds, @RequestParam("userIds") String userIds, @RequestParam("type") String type, @RequestParam("label") Integer label) {
         if (userIds == null) {
             userIds = BaseUtil.getUser().getUserId().intValue() + "";
         } else if (deptIds != null && StrUtil.isNotEmpty(deptIds)) {

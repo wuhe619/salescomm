@@ -130,7 +130,7 @@ public class CrmCustomerController extends BasicAction {
     @Permissions("crm:customer:read")
     @NotNullValidate(value = "customerId", message = "客户id不能为空")
     @RequestMapping(value = "/queryById", method = RequestMethod.POST)
-    public R queryById(@Para("customerId") Integer customerId) {
+    public R queryById(@RequestParam("customerId") Integer customerId) {
         return (R.ok().put("data", crmCustomerService.queryById(customerId)));
     }
 
@@ -140,7 +140,7 @@ public class CrmCustomerController extends BasicAction {
      */
     @NotNullValidate(value = "name", message = "客户名称不能为空")
     @RequestMapping(value = "/queryByName", method = RequestMethod.POST)
-    public R queryByName(@Para("name") String name) {
+    public R queryByName(@RequestParam("name") String name) {
         return (R.ok().put("data", crmCustomerService.queryByName(name)));
     }
 
@@ -169,7 +169,7 @@ public class CrmCustomerController extends BasicAction {
     @Permissions("crm:customer:delete")
     @NotNullValidate(value = "customerIds", message = "客户id不能为空")
     @RequestMapping(value = "/deleteByIds", method = RequestMethod.POST)
-    public R deleteByIds(@Para("customerIds") String customerIds) {
+    public R deleteByIds(@RequestParam("customerIds") String customerIds) {
         return (crmCustomerService.deleteByIds(customerIds));
     }
 
@@ -253,7 +253,7 @@ public class CrmCustomerController extends BasicAction {
     @NotNullValidate(value = "ids", message = "客户id不能为空")
     @NotNullValidate(value = "isLock", message = "锁定状态不能为空")
     @RequestMapping(value = "/lock", method = RequestMethod.POST)
-    public R lock(@Para("") CrmCustomer crmCustomer) {
+    public R lock(@RequestParam("") CrmCustomer crmCustomer) {
         return (crmCustomerService.lock(crmCustomer));
     }
 
@@ -268,7 +268,7 @@ public class CrmCustomerController extends BasicAction {
     @NotNullValidate(value = "transferType", message = "移除方式不能为空")
     @Before(Tx.class)
     @RequestMapping(value = "/transfer", method = RequestMethod.POST)
-    public R transfer(@Para("") LkCrmCustomerEntity crmCustomer) {
+    public R transfer(@RequestParam("") LkCrmCustomerEntity crmCustomer) {
         String[] customerIdsArr = crmCustomer.getCustomerIds().split(",");
         for (String customerId : customerIdsArr) {
             crmCustomer.setCustomerId(Integer.valueOf(customerId));
@@ -298,7 +298,7 @@ public class CrmCustomerController extends BasicAction {
      */
     @NotNullValidate(value = "customerId", message = "客户id不能为空")
     @RequestMapping(value = "/getMembers", method = RequestMethod.POST)
-    public R getMembers(@Para("customerId") Integer customerId) {
+    public R getMembers(@RequestParam("customerId") Integer customerId) {
         boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.CUSTOMER_TYPE_KEY.getSign()), customerId);
         if (auth) {
             return (R.noAuth());
@@ -317,7 +317,7 @@ public class CrmCustomerController extends BasicAction {
     @NotNullValidate(value = "power", message = "读写权限不能为空")
     @Before(Tx.class)
     @RequestMapping(value = "/addMembers", method = RequestMethod.POST)
-    public R addMembers(@Para("") CrmCustomer crmCustomer) {
+    public R addMembers(@RequestParam("") CrmCustomer crmCustomer) {
         String changeType = crmCustomer.getChangeType();
         if (StrUtil.isNotEmpty(changeType)) {
             String[] changeTypeArr = changeType.split(",");
@@ -352,7 +352,7 @@ public class CrmCustomerController extends BasicAction {
     @NotNullValidate(value = "memberIds", message = "成员id不能为空")
     @NotNullValidate(value = "power", message = "读写权限不能为空")
     @RequestMapping(value = "/updateMembers", method = RequestMethod.POST)
-    public R updateMembers(@Para("") CrmCustomer crmCustomer) {
+    public R updateMembers(@RequestParam("") CrmCustomer crmCustomer) {
         return (crmCustomerService.addMember(crmCustomer));
     }
 
@@ -363,7 +363,7 @@ public class CrmCustomerController extends BasicAction {
     @NotNullValidate(value = "ids", message = "客户id不能为空")
     @NotNullValidate(value = "memberIds", message = "成员id不能为空")
     @RequestMapping(value = "/deleteMembers", method = RequestMethod.POST)
-    public R deleteMembers(@Para("") CrmCustomer crmCustomer) {
+    public R deleteMembers(@RequestParam("") CrmCustomer crmCustomer) {
         return (crmCustomerService.deleteMembers(crmCustomer));
     }
 
@@ -403,7 +403,7 @@ public class CrmCustomerController extends BasicAction {
     @NotNullValidate(value = "content", message = "内容不能为空")
     @NotNullValidate(value = "category", message = "跟进类型不能为空")
     @RequestMapping(value = "/addRecord", method = RequestMethod.POST)
-    public R addRecord(@Para("") LkCrmAdminRecordDTO adminRecord) {
+    public R addRecord(@RequestParam("") LkCrmAdminRecordDTO adminRecord) {
         boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.CUSTOMER_TYPE_KEY.getSign()), adminRecord.getTypesId());
         if (auth) {
             return (R.noAuth());
@@ -465,7 +465,7 @@ public class CrmCustomerController extends BasicAction {
      */
     @Permissions("crm:pool:excelexport")
     @RequestMapping(value = "/poolBatchExportExcel")
-    public void poolBatchExportExcel(@Para("ids") String customerIds, HttpServletResponse response) throws IOException {
+    public void poolBatchExportExcel(@RequestParam("ids") String customerIds, HttpServletResponse response) throws IOException {
         List<Record> recordList = crmCustomerService.exportCustomer(customerIds);
         export(recordList, response);
         //renderNull();
@@ -675,7 +675,7 @@ public class CrmCustomerController extends BasicAction {
     /*@Permissions("crm:customer:excelimport")
     @NotNullValidate(value = "ownerUserId", message = "请选择负责人")
     @RequestMapping(value = "/uploadExcel", method = RequestMethod.POST)
-    public void uploadExcel(@Para("file") UploadFile file, @Para("repeatHandling") Integer repeatHandling, @Para("ownerUserId") Integer ownerUserId) {
+    public void uploadExcel(@RequestParam("file") UploadFile file, @RequestParam("repeatHandling") Integer repeatHandling, @RequestParam("ownerUserId") Integer ownerUserId) {
         Db.tx(() -> {
             R result = crmCustomerService.uploadExcel(file, repeatHandling, ownerUserId);
             renderJson(result);

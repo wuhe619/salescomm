@@ -85,8 +85,8 @@ public class CrmLeadsController extends BasicAction {
     /**
      * 公海内线索分页
      *
-     * @param seaId
-     * @param jsonObject
+     * @RequestParamm seaId
+     * @RequestParamm jsonObject
      * @return
      */
     @RequestMapping(value = "/page/cluesea/{seaId}", method = RequestMethod.POST)
@@ -107,7 +107,7 @@ public class CrmLeadsController extends BasicAction {
     /**
      * 添加线索
      *
-     * @param jsonO
+     * @RequestParamm jsonO
      * @return
      */
     @RequestMapping(value = "/cluesea/addClueData", method = RequestMethod.POST)
@@ -160,7 +160,7 @@ public class CrmLeadsController extends BasicAction {
     /**
      * 编辑线索
      *
-     * @param jsonO
+     * @RequestParamm jsonO
      * @return
      */
     @RequestMapping(value = "/cluesea/updateClueData", method = RequestMethod.POST)
@@ -231,7 +231,7 @@ public class CrmLeadsController extends BasicAction {
     /**
      * 公海线索状态修改
      *
-     * @param jsonObject
+     * @RequestParamm jsonObject
      * @return
      */
     @RequestMapping(value = "/cluesea/updateClueStatus", method = RequestMethod.POST)
@@ -264,7 +264,7 @@ public class CrmLeadsController extends BasicAction {
     /**
      * 线索分配
      *
-     * @param jsonObject
+     * @RequestParamm jsonObject
      * @return
      */
     @RequestMapping(value = "/cluesea/distributionClue", method = RequestMethod.POST)
@@ -317,7 +317,7 @@ public class CrmLeadsController extends BasicAction {
     /**
      * 查询公海下坐席可领取线索量
      *
-     * @param param
+     * @RequestParamm param
      * @return
      */
     @RequestMapping(value = "/cluesea/selectUserGetQuantity", method = RequestMethod.POST)
@@ -389,7 +389,7 @@ public class CrmLeadsController extends BasicAction {
     @Permissions("crm:leads:read")
     @NotNullValidate(value = "leadsId", message = "线索id不能为空")
     @RequestMapping(value = "/queryById", method = RequestMethod.POST)
-    public R queryById(@Para("leadsId") Integer leadsId) {
+    public R queryById(@RequestParam("leadsId") Integer leadsId) {
         return (R.ok().put("data", crmLeadsService.queryById(leadsId)));
     }
 
@@ -398,7 +398,7 @@ public class CrmLeadsController extends BasicAction {
      * 根据线索名称查询
      */
     @RequestMapping(value = "/queryByName")
-    public R queryByName(@Para("name") String name) {
+    public R queryByName(@RequestParam("name") String name) {
         return (R.ok().put("data", crmLeadsService.queryByName(name)));
     }
 
@@ -409,7 +409,7 @@ public class CrmLeadsController extends BasicAction {
     @Permissions("crm:leads:delete")
     @NotNullValidate(value = "leadsIds", message = "线索id不能为空")
     @RequestMapping(value = "/deleteByIds", method = RequestMethod.POST)
-    public R deleteByIds(@Para("leadsIds") String leadsIds) {
+    public R deleteByIds(@RequestParam("leadsIds") String leadsIds) {
         return (crmLeadsService.deleteByIds(leadsIds));
     }
 
@@ -421,7 +421,7 @@ public class CrmLeadsController extends BasicAction {
     @NotNullValidate(value = "leadsIds", message = "线索id不能为空")
     @NotNullValidate(value = "newOwnerUserId", message = "新负责人id不能为空")
     @RequestMapping(value = "/changeOwnerUser", method = RequestMethod.POST)
-    public R changeOwnerUser(@Para("leadsIds") String leadsIds, @Para("newOwnerUserId") Long newOwnerUserId) {
+    public R changeOwnerUser(@RequestParam("leadsIds") String leadsIds, @RequestParam("newOwnerUserId") Long newOwnerUserId) {
         return (crmLeadsService.updateOwnerUserId(leadsIds, newOwnerUserId));
     }
 
@@ -432,7 +432,7 @@ public class CrmLeadsController extends BasicAction {
     @Permissions("crm:leads:transform")
     @NotNullValidate(value = "leadsIds", message = "线索id不能为空")
     @RequestMapping(value = "/transfer", method = RequestMethod.POST)
-    public R transfer(@Para("leadsIds") String leadsIds) {
+    public R transfer(@RequestParam("leadsIds") String leadsIds) {
         return (crmLeadsService.translate(leadsIds));
     }
 
@@ -449,7 +449,7 @@ public class CrmLeadsController extends BasicAction {
     @NotNullValidate(value = "content", message = "内容不能为空")
     @NotNullValidate(value = "category", message = "跟进类型不能为空")
     @RequestMapping(value = "/addRecord", method = RequestMethod.POST)
-    public R addRecord(@Para("") LkCrmAdminRecordDTO adminRecord) {
+    public R addRecord(@RequestParam("") LkCrmAdminRecordDTO adminRecord) {
         String sign = CrmEnum.LEADS_TYPE_KEY.getSign();
         String typesId = adminRecord.getTypesId();
         if (StringUtil.isNotEmpty(adminRecord.getSeaId())) {
@@ -483,9 +483,9 @@ public class CrmLeadsController extends BasicAction {
     /**
      * 代办事项列表
      *
-     * @param basePageRequest
-     * @param taskStatus
-     * @param leadsId
+     * @RequestParamm basePageRequest
+     * @RequestParamm taskStatus
+     * @RequestParamm leadsId
      * @return
      */
     @RequestMapping(value = "/agency/list", method = RequestMethod.POST)
@@ -559,9 +559,9 @@ public class CrmLeadsController extends BasicAction {
     /**
      * 线索私海导出
      *
-     * @param recordList
-     * @param response
-     * @param label
+     * @RequestParamm recordList
+     * @RequestParamm response
+     * @RequestParamm label
      * @throws IOException
      */
     private void export(List<Record> recordList, HttpServletResponse response, String label) throws IOException {
@@ -623,9 +623,9 @@ public class CrmLeadsController extends BasicAction {
     /**
      * 线索公海导出
      *
-     * @param recordList
-     * @param response
-     * @param label
+     * @RequestParamm recordList
+     * @RequestParamm response
+     * @RequestParamm label
      * @throws IOException
      */
     private void exportPublicSea(List<Record> recordList, HttpServletResponse response, String label) throws IOException {

@@ -13,7 +13,6 @@ import com.bdaim.crm.erp.admin.service.AdminSceneService;
 import com.bdaim.crm.erp.crm.entity.CrmProduct;
 import com.bdaim.crm.erp.crm.service.CrmProductService;
 import com.bdaim.crm.utils.R;
-import com.jfinal.core.paragetter.Para;
 import com.jfinal.log.Log;
 import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
@@ -22,10 +21,7 @@ import org.apache.poi.hssf.usermodel.*;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.ss.util.CellRangeAddressList;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.ServletOutputStream;
@@ -95,7 +91,7 @@ public class CrmProductController extends BasicAction {
     @Permissions("crm:product:read")
     @NotNullValidate(value = "productId", message = "产品id不能为空")
     @RequestMapping(value = "queryById", method = RequestMethod.POST)
-    public R queryById(@Para("productId") Integer productId) {
+    public R queryById(@RequestParam("productId") Integer productId) {
         return (crmProductService.queryById(productId));
     }
 
@@ -107,7 +103,7 @@ public class CrmProductController extends BasicAction {
     @Permissions("crm:product:delete")
     @NotNullValidate(value = "productId", message = "产品id不能为空")
     @RequestMapping(value = "deleteById", method = RequestMethod.POST)
-    public R deleteById(@Para("productId") Integer productId) {
+    public R deleteById(@RequestParam("productId") Integer productId) {
         return (crmProductService.deleteById(productId));
     }
 
@@ -118,7 +114,7 @@ public class CrmProductController extends BasicAction {
      */
     @Permissions("crm:product:status")
     @RequestMapping(value = "updateStatus", method = RequestMethod.POST)
-    public R updateStatus(@Para("ids") String ids, @Para("status") Integer status) {
+    public R updateStatus(@RequestParam("ids") String ids, @RequestParam("status") Integer status) {
         if (status == null) {
             status = 1;
         }
@@ -131,7 +127,7 @@ public class CrmProductController extends BasicAction {
      */
     @Permissions("crm:product:excelexport")
     @RequestMapping(value = "batchExportExcel", method = RequestMethod.POST)
-    public void batchExportExcel(@Para("ids") String productIds, HttpServletResponse response) throws IOException {
+    public void batchExportExcel(@RequestParam("ids") String productIds, HttpServletResponse response) throws IOException {
         List<Record> recordList = crmProductService.exportProduct(productIds);
         export(recordList,response);
         //renderNull();
@@ -277,7 +273,7 @@ public class CrmProductController extends BasicAction {
      */
     @Permissions("crm:product:excelimport")
     @RequestMapping(value = "uploadExcel", method = RequestMethod.POST)
-    public R uploadExcel(@Para("file") UploadFile file, @Para("repeatHandling") Integer repeatHandling, @Para("ownerUserId") Integer ownerUserId) {
+    public R uploadExcel(@RequestParam("file") UploadFile file, @RequestParam("repeatHandling") Integer repeatHandling, @RequestParam("ownerUserId") Integer ownerUserId) {
         //Db.tx(() -> {
         R result = crmProductService.uploadExcel(file, repeatHandling, ownerUserId);
         return (result);

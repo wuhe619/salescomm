@@ -73,8 +73,8 @@ public class LkCrmCustomerDao extends SimpleHibernateDao<LkCrmCustomerEntity, In
     }
 
     public int getCustomersByIds(Long userId, List ids, Timestamp createTime) {
-        String sql = " update lkcrm_crm_customer set owner_user_id = ?,followup = 0,create_time = ? where customer_id in (?)";
-        return executeUpdateSQL(sql, userId, createTime, ids);
+        String sql = " update lkcrm_crm_customer set owner_user_id = ?,followup = 0,create_time = ? where customer_id in ("+SqlAppendUtil.sqlAppendWhereIn(ids)+")";
+        return executeUpdateSQL(sql, userId, createTime);
     }
 
     public List excelExport(List customer_id) {
@@ -239,13 +239,13 @@ public class LkCrmCustomerDao extends SimpleHibernateDao<LkCrmCustomerEntity, In
     }
 
     public List queryBatchIdByIds(List idsArr) {
-        String sql = " select batch_id from lkcrm_crm_customer where customer_id in (?) ";
-        return sqlQuery(sql, idsArr);
+        String sql = " select batch_id from lkcrm_crm_customer where customer_id in ("+SqlAppendUtil.sqlAppendWhereIn(idsArr)+") ";
+        return sqlQuery(sql);
     }
 
     public int deleteByIds(List customerId) {
-        String sql = " delete from lkcrm_crm_customer where customer_id in (?)  ";
-        return executeUpdateSQL(sql, customerId);
+        String sql = " delete from lkcrm_crm_customer where customer_id in ("+SqlAppendUtil.sqlAppendWhereIn(customerId)+")  ";
+        return executeUpdateSQL(sql);
     }
 
     public List queryContacts(Integer customerId, String search) {
@@ -300,8 +300,8 @@ public class LkCrmCustomerDao extends SimpleHibernateDao<LkCrmCustomerEntity, In
     }
 
     public int setCustomerFollowup(List ids) {
-        String sql = "update lkcrm_crm_customer set followup = 1 where customer_id in(?)";
-        return executeUpdateSQL(sql, ids);
+        String sql = "update lkcrm_crm_customer set followup = 1 where customer_id in("+SqlAppendUtil.sqlAppendWhereIn(ids)+")";
+        return executeUpdateSQL(sql);
     }
 
 }

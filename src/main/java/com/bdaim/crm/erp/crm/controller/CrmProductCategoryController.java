@@ -4,9 +4,9 @@ import com.bdaim.common.controller.BasicAction;
 import com.bdaim.crm.entity.LkCrmProductCategoryEntity;
 import com.bdaim.crm.erp.crm.service.CrmProductCategoryService;
 import com.bdaim.crm.utils.R;
-import com.jfinal.core.paragetter.Para;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
@@ -27,7 +27,7 @@ public class CrmProductCategoryController extends BasicAction {
      * @author zxy
      */
     @RequestMapping(value = "querylist", method = RequestMethod.POST)
-    public R querylist(@Para("pid") Integer pid) {
+    public R querylist(@RequestParam("pid") Integer pid) {
         if (pid == null) {
             pid = 0;
         }
@@ -40,7 +40,7 @@ public class CrmProductCategoryController extends BasicAction {
      * @author zxy
      */
     @RequestMapping(value = "queryById", method = RequestMethod.POST)
-    public R queryById(@Para("id") Integer id) {
+    public R queryById(@RequestParam("id") Integer id) {
         return (R.ok().put("data", crmProductCategoryService.queryById(id)));
 
     }
@@ -51,7 +51,7 @@ public class CrmProductCategoryController extends BasicAction {
      * @author zxy
      */
     @RequestMapping(value = "saveAndUpdate", method = RequestMethod.POST)
-    public R saveAndUpdate(@Para("") LkCrmProductCategoryEntity category) {
+    public R saveAndUpdate(@RequestParam("") LkCrmProductCategoryEntity category) {
         return (crmProductCategoryService.saveAndUpdate(category));
     }
 
@@ -71,7 +71,7 @@ public class CrmProductCategoryController extends BasicAction {
      * @author zxy
      */
     @RequestMapping(value = "deleteById", method = RequestMethod.POST)
-    public R deleteById(@Para("id") Integer id) {
+    public R deleteById(@RequestParam("id") Integer id) {
         return (crmProductCategoryService.deleteById(id));
     }
 }

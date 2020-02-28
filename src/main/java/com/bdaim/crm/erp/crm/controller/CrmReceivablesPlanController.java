@@ -5,11 +5,7 @@ import com.bdaim.common.controller.BasicAction;
 import com.bdaim.crm.erp.crm.entity.CrmReceivablesPlan;
 import com.bdaim.crm.erp.crm.service.CrmReceivablesPlanService;
 import com.bdaim.crm.utils.R;
-import com.jfinal.core.paragetter.Para;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 
@@ -40,7 +36,7 @@ public class CrmReceivablesPlanController extends BasicAction {
      */
 
     @RequestMapping(value = "/queryByContractAndCustomer", method = RequestMethod.POST)
-    public R queryByContractAndCustomer(@Para("") CrmReceivablesPlan receivablesPlan) {
+    public R queryByContractAndCustomer(@RequestParam("") CrmReceivablesPlan receivablesPlan) {
         return (receivablesPlanService.queryByContractAndCustomer(receivablesPlan));
     }
 
@@ -49,7 +45,7 @@ public class CrmReceivablesPlanController extends BasicAction {
      * 删除回款计划
      */
     @RequestMapping(value = "/deleteByIds", method = RequestMethod.POST)
-    public R deleteByIds(@Para("planIds") String planIds) {
+    public R deleteByIds(@RequestParam("planIds") String planIds) {
         return (receivablesPlanService.deleteByIds(planIds));
     }
 }
