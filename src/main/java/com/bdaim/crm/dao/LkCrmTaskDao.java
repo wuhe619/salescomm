@@ -13,12 +13,12 @@ import java.util.List;
 public class LkCrmTaskDao extends SimpleHibernateDao<LkCrmTaskEntity,Integer> {
     public Page queryTaskRelation(int pageNum, int pageSize, String businessIds, String contactsIds, String contractIds, String customerIds) {
         String sql = "SELECT st.*,\n" +
-                "      (select count(*) from 72crm_task_comment where type_id = st.task_id and type = 1) as commentCount,\n" +
-                "      (select count(*) from 72crm_task where pid = st.task_id and status = 5) as childWCCount,\n" +
-                "      (select count(*) from 72crm_task where pid = st.task_id) as childAllCount,\n" +
-                "      (select count(*) from 72crm_admin_file where batch_id = st.batch_id) as fileCount\n" +
-                "      FROM 72crm_task as st\n" +
-                "      LEFT JOIN 72crm_task_relation as str on str.task_id = st.task_id\n" +
+                "      (select count(*) from lkcrm_task_comment where type_id = st.task_id and type = 1) as commentCount,\n" +
+                "      (select count(*) from lkcrm_task where pid = st.task_id and status = 5) as childWCCount,\n" +
+                "      (select count(*) from lkcrm_task where pid = st.task_id) as childAllCount,\n" +
+                "      (select count(*) from lkcrm_admin_file where batch_id = st.batch_id) as fileCount\n" +
+                "      FROM lkcrm_task as st\n" +
+                "      LEFT JOIN lkcrm_task_relation as str on str.task_id = st.task_id\n" +
                 "      where 1 = 2 ";
         List param = new ArrayList();
         if (StringUtil.isNotEmpty(businessIds)) {

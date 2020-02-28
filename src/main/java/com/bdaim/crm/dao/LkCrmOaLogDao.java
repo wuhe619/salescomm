@@ -45,7 +45,7 @@ public class LkCrmOaLogDao extends SimpleHibernateDao<LkCrmOaLogEntity, Integer>
     }
 
     public Page pageQueryLogRelation(int pageNum, int pageSize, String businessIds, String contactsIds, String contractIds, String customerIds) {
-        String sql = "SELECT a.*, b.dept_id,\n" +
+        String sql = "SELECT a.*, \n" +
                 "      b.realname,\n" +
                 "      '' as userImg,\n" +
                 "      soal.customer_ids,\n" +

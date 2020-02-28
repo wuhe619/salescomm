@@ -7,7 +7,7 @@ import java.util.Objects;
 @Entity
 @Table(name = "lkcrm_oa_event", schema = "", catalog = "")
 public class LkCrmOaEventEntity {
-    private int eventId;
+    private Integer eventId;
     private String title;
     private String content;
     private Timestamp startTime;
@@ -25,11 +25,11 @@ public class LkCrmOaEventEntity {
     @Id
     @Column(name = "event_id")
     @GeneratedValue
-    public int getEventId() {
+    public Integer getEventId() {
         return eventId;
     }
 
-    public void setEventId(int eventId) {
+    public void setEventId(Integer eventId) {
         this.eventId = eventId;
     }
 

@@ -60,7 +60,7 @@ public class LkCrmOaExamineDao extends SimpleHibernateDao<LkCrmOaExamineEntity, 
     }
 
     public Page queryExamineRelation(int pageNum, int pageSize,String businessIds, String contactsIds, String contractIds, String customerIds) {
-        String sql = "select a.*,b.examine_status,b.record_id as examine_record_id,b.examine_step_id ,c.category_id,c.title as categoryTitle from lkcrm_oa_examine_relation h " +
+        String sql = "select a.*,b.examine_status,b.record_id as examine_record_id,b.examine_step_id ,c.title as categoryTitle from lkcrm_oa_examine_relation h " +
                 "left join lkcrm_oa_examine a on h.examine_id = a.examine_id " +
                 "left join lkcrm_oa_examine_record b on a.examine_id = b.examine_id " +
                 " left join lkcrm_oa_examine_category c on a.category_id = c.category_id where 1 = 2";

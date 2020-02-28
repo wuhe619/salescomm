@@ -1,8 +1,6 @@
 package com.bdaim.crm.erp.oa.controller;
 
-import com.jfinal.aop.Inject;
-import com.jfinal.core.Controller;
-import com.jfinal.core.paragetter.Para;
+import com.bdaim.common.controller.BasicAction;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.erp.oa.common.OaEnum;
 import com.bdaim.crm.erp.oa.entity.OaEvent;
@@ -10,10 +8,16 @@ import com.bdaim.crm.erp.oa.entity.OaEventRelation;
 import com.bdaim.crm.erp.oa.service.OaEventService;
 import com.bdaim.crm.utils.AuthUtil;
 import com.bdaim.crm.utils.R;
+import com.jfinal.core.paragetter.Para;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 
-public class OaEventController extends Controller {
+@RestController
+@RequestMapping("/OaEvent")
+public class OaEventController extends BasicAction {
     @Resource
     private OaEventService oaEventService;
 
@@ -21,57 +25,64 @@ public class OaEventController extends Controller {
      * @author wyq
      * 查询日程列表
      */
-    public void queryList(@Para("")OaEvent oaEvent){
-        renderJson(R.ok().put("data",oaEventService.queryList(oaEvent)));
+    @RequestMapping(value = "/queryList", method = RequestMethod.POST)
+    public R queryList(@Para("")OaEvent oaEvent){
+        return(R.ok().put("data",oaEventService.queryList(oaEvent)));
     }
 
     /**
      * @author wyq
      * 查询日程列表
      */
-    public void queryById(@Para("eventId") Integer eventId){
-        renderJson(R.ok().put("data",oaEventService.queryById(eventId)));
+    @RequestMapping(value = "/queryById", method = RequestMethod.POST)
+    public R queryById(@Para("eventId") Integer eventId){
+        return(R.ok().put("data",oaEventService.queryById(eventId)));
     }
 
     /**
      * @author wyq
      * 新增日程
      */
-    public void add(@Para("")OaEvent oaEvent){
-        renderJson(oaEventService.add(oaEvent));
+    @RequestMapping(value = "/add", method = RequestMethod.POST)
+    public R add(@Para("")OaEvent oaEvent){
+        return(oaEventService.add(oaEvent));
     }
 
     /**
      * @author wyq
      * 更新日程
      */
-    public void update(@Para("")OaEvent oaEvent){
+    @RequestMapping(value = "/update", method = RequestMethod.POST)
+    public R update(@Para("")OaEvent oaEvent){
         boolean oaAuth = AuthUtil.isOaAuth(OaEnum.EVENT_TYPE_KEY.getTypes(), oaEvent.getEventId());
         if(oaAuth){
-            renderJson(R.noAuth());
-            return;
+            return(R.noAuth());
+            //return;
         }
-        renderJson(oaEventService.update(oaEvent));
+        return(oaEventService.update(oaEvent));
     }
 
     /**
      * @author wyq
      * 删除日程
      */
-    public void delete(@Para("eventId") Integer eventId){
+    @RequestMapping(value = "/delete", method = RequestMethod.POST)
+    public R delete(@Para("eventId") Integer eventId){
         boolean oaAuth = AuthUtil.isOaAuth(OaEnum.EVENT_TYPE_KEY.getTypes(), eventId);
         if(oaAuth){
-            renderJson(R.noAuth());
-            return;
+            return(R.noAuth());
+            //return;
         }
-        renderJson(oaEventService.delete(eventId));
+        return(oaEventService.delete(eventId));
     }
 
     /**
      * @author wyq
      * crm查询日程
      */
-    public void queryEventRelation(BasePageRequest<OaEventRelation> basePageRequest){
-        renderJson(oaEventService.queryEventRelation(basePageRequest));
+    @RequestMapping(value = "/queryEventRelation", method = RequestMethod.POST)
+    public R queryEventRelation(BasePageRequest<OaEventRelation> basePageRequest,OaEventRelation oaEventRelation){
+        basePageRequest.setData(oaEventRelation);
+        return(oaEventService.queryEventRelation(basePageRequest));
     }
 }
