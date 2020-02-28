@@ -348,7 +348,7 @@ public class CrmContractService {
             crmContract.setContractId(Integer.valueOf(contractId));
             crmContract.setOwnerUserId(crmContract.getNewOwnerUserId());
             BeanUtils.copyProperties(crmContract, oldContract, JavaBeanUtil.getNullPropertyNames(crmContract));
-            crmContractDao.update(crmContract);
+            crmContractDao.update(oldContract);
             crmRecordService.addConversionRecord(Integer.valueOf(contractId), CrmEnum.CONTRACT_TYPE_KEY.getTypes(), crmContract.getNewOwnerUserId());
         }
         return R.ok();
