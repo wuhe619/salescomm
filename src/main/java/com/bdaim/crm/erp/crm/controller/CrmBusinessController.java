@@ -165,7 +165,7 @@ public class CrmBusinessController extends BasicAction {
     @NotNullValidate(value = "newOwnerUserId", message = "负责人id不能为空")
     @NotNullValidate(value = "transferType", message = "移除方式不能为空")
     @RequestMapping(value = "/transfer", method = RequestMethod.POST)
-    public R transfer(@RequestParam("") LkCrmBusinessEntity crmBusiness) {
+    public R transfer(LkCrmBusinessEntity crmBusiness) {
         return(crmBusinessService.transfer(crmBusiness));
     }
 
@@ -193,7 +193,7 @@ public class CrmBusinessController extends BasicAction {
     @NotNullValidate(value = "memberIds", message = "成员id不能为空")
     @NotNullValidate(value = "power", message = "读写权限不能为空")
     @RequestMapping(value = "/addMembers", method = RequestMethod.POST)
-    public R addMembers(@RequestParam("") CrmBusiness crmBusiness) {
+    public R addMembers(CrmBusiness crmBusiness) {
         return(crmBusinessService.addMember(crmBusiness));
     }
 
@@ -205,7 +205,7 @@ public class CrmBusinessController extends BasicAction {
     @NotNullValidate(value = "memberIds", message = "成员id不能为空")
     @NotNullValidate(value = "power", message = "读写权限不能为空")
     @RequestMapping(value = "/updateMembers", method = RequestMethod.POST)
-    public R updateMembers(@RequestParam("") CrmBusiness crmBusiness) {
+    public R updateMembers(CrmBusiness crmBusiness) {
         return(crmBusinessService.addMember(crmBusiness));
     }
 
@@ -216,7 +216,7 @@ public class CrmBusinessController extends BasicAction {
     @NotNullValidate(value = "ids", message = "商机id不能为空")
     @NotNullValidate(value = "memberIds", message = "成员id不能为空")
     @RequestMapping(value = "/deleteMembers", method = RequestMethod.POST)
-    public R deleteMembers(@RequestParam("") CrmBusiness crmBusiness) {
+    public R deleteMembers(CrmBusiness crmBusiness) {
         return(crmBusinessService.deleteMembers(crmBusiness));
     }
 
@@ -240,7 +240,7 @@ public class CrmBusinessController extends BasicAction {
      */
     @NotNullValidate(value = "businessId", message = "商机id不能为空")
     @RequestMapping(value = "/boostBusinessStatus", method = RequestMethod.POST)
-    public R boostBusinessStatus(@RequestParam("") LkCrmBusinessEntity crmBusiness) {
+    public R boostBusinessStatus(LkCrmBusinessEntity crmBusiness) {
         boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.BUSINESS_TYPE_KEY.getSign()), crmBusiness.getBusinessId());
         if (auth) {
             return(R.noAuth());
@@ -266,7 +266,7 @@ public class CrmBusinessController extends BasicAction {
     @NotNullValidate(value = "content", message = "内容不能为空")
     @NotNullValidate(value = "category", message = "跟进类型不能为空")
     @RequestMapping(value = "/addRecord", method = RequestMethod.POST)
-    public R addRecord(@RequestParam("") LkCrmAdminRecordDTO adminRecord) {
+    public R addRecord(LkCrmAdminRecordDTO adminRecord) {
         boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.BUSINESS_TYPE_KEY.getSign()), adminRecord.getTypesId());
         if (auth) {
             return(R.noAuth());

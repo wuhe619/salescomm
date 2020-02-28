@@ -51,7 +51,7 @@ public class CrmProductCategoryController extends BasicAction {
      * @author zxy
      */
     @RequestMapping(value = "saveAndUpdate", method = RequestMethod.POST)
-    public R saveAndUpdate(@RequestParam("") LkCrmProductCategoryEntity category) {
+    public R saveAndUpdate(LkCrmProductCategoryEntity category) {
         return (crmProductCategoryService.saveAndUpdate(category));
     }
 

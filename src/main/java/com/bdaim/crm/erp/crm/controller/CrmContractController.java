@@ -97,7 +97,7 @@ public class CrmContractController extends BasicAction {
     @NotNullValidate(value = "newOwnerUserId", message = "负责人id不能为空")
     @NotNullValidate(value = "transferType", message = "移除方式不能为空")
     @RequestMapping(value = "/transfer", method = RequestMethod.POST)
-    public R transfer(@RequestParam("") LkCrmContractEntity crmContract) {
+    public R transfer(LkCrmContractEntity crmContract) {
         return (crmContractService.transfer(crmContract));
     }
 
@@ -120,7 +120,7 @@ public class CrmContractController extends BasicAction {
      * @author zxy
      */
     @RequestMapping(value = "/queryList", method = RequestMethod.POST)
-    public R queryList(@RequestParam("") LkCrmContractEntity crmContract) {
+    public R queryList(LkCrmContractEntity crmContract) {
         return (R.ok().put("data", crmContractService.queryList(crmContract)));
     }
 
@@ -186,7 +186,7 @@ public class CrmContractController extends BasicAction {
      * 编辑团队成员
      */
     @RequestMapping(value = "/updateMembers", method = RequestMethod.POST)
-    public R updateMembers(@RequestParam("") CrmContract crmContract) {
+    public R updateMembers(CrmContract crmContract) {
         return (crmContractService.addMember(crmContract));
     }
 
@@ -196,7 +196,7 @@ public class CrmContractController extends BasicAction {
      */
     @Permissions("crm:contract:teamsave")
     @RequestMapping(value = "/addMembers", method = RequestMethod.POST)
-    public R addMembers(@RequestParam("") CrmContract crmContract) {
+    public R addMembers(CrmContract crmContract) {
         return (crmContractService.addMember(crmContract));
     }
 
@@ -205,7 +205,7 @@ public class CrmContractController extends BasicAction {
      * 删除团队成员
      */
     @RequestMapping(value = "/deleteMembers", method = RequestMethod.POST)
-    public R deleteMembers(@RequestParam("") CrmContract crmContract) {
+    public R deleteMembers(CrmContract crmContract) {
         return (crmContractService.deleteMembers(crmContract));
     }
 
@@ -217,7 +217,7 @@ public class CrmContractController extends BasicAction {
     @NotNullValidate(value = "content", message = "内容不能为空")
     @NotNullValidate(value = "category", message = "跟进类型不能为空")
     @RequestMapping(value = "/addRecord", method = RequestMethod.POST)
-    public R addRecord(@RequestParam("") LkCrmAdminRecordDTO adminRecord) {
+    public R addRecord(LkCrmAdminRecordDTO adminRecord) {
         boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.CONTRACT_TYPE_KEY.getSign()), adminRecord.getTypesId());
         if (auth) {
             return (R.noAuth());

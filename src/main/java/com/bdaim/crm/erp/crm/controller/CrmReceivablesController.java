@@ -97,7 +97,7 @@ public class CrmReceivablesController extends BasicAction {
      * @author zxy
      */
     @RequestMapping(value = "queryList", method = RequestMethod.POST)
-    public R queryList(@RequestParam("") CrmReceivables receivables) {
+    public R queryList(CrmReceivables receivables) {
         return (R.ok().put("data", crmReceivablesService.queryList(receivables)));
     }
 }

@@ -36,7 +36,7 @@ public class CrmReceivablesPlanController extends BasicAction {
      */
 
     @RequestMapping(value = "/queryByContractAndCustomer", method = RequestMethod.POST)
-    public R queryByContractAndCustomer(@RequestParam("") CrmReceivablesPlan receivablesPlan) {
+    public R queryByContractAndCustomer(CrmReceivablesPlan receivablesPlan) {
         return (receivablesPlanService.queryByContractAndCustomer(receivablesPlan));
     }
 

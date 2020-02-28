@@ -176,7 +176,7 @@ public class CrmContactsController extends BasicAction {
     @NotNullValidate(value = "contactsIds", message = "联系人id不能为空")
     @NotNullValidate(value = "newOwnerUserId", message = "新负责人不能为空")
     @RequestMapping(value = "/transfer", method = RequestMethod.POST)
-    public R transfer(@RequestParam("") CrmContacts crmContacts) {
+    public R transfer(CrmContacts crmContacts) {
         return (crmContactsService.transfer(crmContacts));
     }
 
@@ -189,7 +189,7 @@ public class CrmContactsController extends BasicAction {
     @NotNullValidate(value = "content", message = "内容不能为空")
     @NotNullValidate(value = "category", message = "跟进类型不能为空")
     @RequestMapping(value = "/addRecord", method = RequestMethod.POST)
-    public R addRecord(@RequestParam("") LkCrmAdminRecordDTO adminRecord) {
+    public R addRecord(LkCrmAdminRecordDTO adminRecord) {
         boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.CONTACTS_TYPE_KEY.getSign()), adminRecord.getTypesId());
         if (auth) {
             return (R.noAuth());

@@ -253,7 +253,7 @@ public class CrmCustomerController extends BasicAction {
     @NotNullValidate(value = "ids", message = "客户id不能为空")
     @NotNullValidate(value = "isLock", message = "锁定状态不能为空")
     @RequestMapping(value = "/lock", method = RequestMethod.POST)
-    public R lock(@RequestParam("") CrmCustomer crmCustomer) {
+    public R lock(CrmCustomer crmCustomer) {
         return (crmCustomerService.lock(crmCustomer));
     }
 
@@ -268,7 +268,7 @@ public class CrmCustomerController extends BasicAction {
     @NotNullValidate(value = "transferType", message = "移除方式不能为空")
     @Before(Tx.class)
     @RequestMapping(value = "/transfer", method = RequestMethod.POST)
-    public R transfer(@RequestParam("") LkCrmCustomerEntity crmCustomer) {
+    public R transfer(LkCrmCustomerEntity crmCustomer) {
         String[] customerIdsArr = crmCustomer.getCustomerIds().split(",");
         for (String customerId : customerIdsArr) {
             crmCustomer.setCustomerId(Integer.valueOf(customerId));
@@ -317,7 +317,7 @@ public class CrmCustomerController extends BasicAction {
     @NotNullValidate(value = "power", message = "读写权限不能为空")
     @Before(Tx.class)
     @RequestMapping(value = "/addMembers", method = RequestMethod.POST)
-    public R addMembers(@RequestParam("") CrmCustomer crmCustomer) {
+    public R addMembers(CrmCustomer crmCustomer) {
         String changeType = crmCustomer.getChangeType();
         if (StrUtil.isNotEmpty(changeType)) {
             String[] changeTypeArr = changeType.split(",");
@@ -352,7 +352,7 @@ public class CrmCustomerController extends BasicAction {
     @NotNullValidate(value = "memberIds", message = "成员id不能为空")
     @NotNullValidate(value = "power", message = "读写权限不能为空")
     @RequestMapping(value = "/updateMembers", method = RequestMethod.POST)
-    public R updateMembers(@RequestParam("") CrmCustomer crmCustomer) {
+    public R updateMembers(CrmCustomer crmCustomer) {
         return (crmCustomerService.addMember(crmCustomer));
     }
 
@@ -363,7 +363,7 @@ public class CrmCustomerController extends BasicAction {
     @NotNullValidate(value = "ids", message = "客户id不能为空")
     @NotNullValidate(value = "memberIds", message = "成员id不能为空")
     @RequestMapping(value = "/deleteMembers", method = RequestMethod.POST)
-    public R deleteMembers(@RequestParam("") CrmCustomer crmCustomer) {
+    public R deleteMembers(CrmCustomer crmCustomer) {
         return (crmCustomerService.deleteMembers(crmCustomer));
     }
 
@@ -403,7 +403,7 @@ public class CrmCustomerController extends BasicAction {
     @NotNullValidate(value = "content", message = "内容不能为空")
     @NotNullValidate(value = "category", message = "跟进类型不能为空")
     @RequestMapping(value = "/addRecord", method = RequestMethod.POST)
-    public R addRecord(@RequestParam("") LkCrmAdminRecordDTO adminRecord) {
+    public R addRecord(LkCrmAdminRecordDTO adminRecord) {
         boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.CUSTOMER_TYPE_KEY.getSign()), adminRecord.getTypesId());
         if (auth) {
             return (R.noAuth());
