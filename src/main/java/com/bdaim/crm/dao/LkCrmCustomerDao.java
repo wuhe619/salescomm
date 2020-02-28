@@ -249,14 +249,14 @@ public class LkCrmCustomerDao extends SimpleHibernateDao<LkCrmCustomerEntity, In
     }
 
     public List queryContacts(Integer customerId, String search) {
-        String sql = " select contacts_id,name,mobile,post,telephone,是否关键决策人 from contactsview where customer_id = #para(customerId)  ";
+        String sql = " select contacts_id,name,mobile,post,telephone,是否关键决策人 from contactsview where customer_id = ?  ";
         List param = new ArrayList();
         param.add(customerId);
         if (StringUtil.isNotEmpty(search)) {
             sql += "  and a.name like CONCAT('%',?,'%')";
             param.add(search);
         }
-        return sqlQuery(sql, param);
+        return sqlQuery(sql, param.toArray());
     }
 
     public Page pageQueryContacts(int pageNum, int pageSize, Integer customerId, String search) {
