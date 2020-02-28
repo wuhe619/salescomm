@@ -9,9 +9,9 @@ public class OaRouter extends Routes {
         addInterceptor(new OaInterceptor());
         add("/OaEvent", OaEventController.class);
         add("/OaAnnouncement", OaAnnouncementController.class);
-        add("/OaExamine", OaExamineController.class);
+        //add("/OaExamine", OaExamineController.class);
         add("/OaExamineCategory", OaExamineCategoryController.class);
-        add("/OaLog", OaLogController.class);
+        //add("/OaLog", OaLogController.class);
         add("/OaRecord", OaActionRecordController.class);
         add("/comment", OaCommentController.class);
         add("/OaBackLog", OaBackLogController.class);

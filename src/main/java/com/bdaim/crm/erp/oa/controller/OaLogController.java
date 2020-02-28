@@ -1,11 +1,7 @@
 package com.bdaim.crm.erp.oa.controller;
 
-import com.alibaba.fastjson.JSON;
-import com.jfinal.aop.Inject;
-import com.jfinal.core.Controller;
-import com.jfinal.core.paragetter.Para;
-import com.jfinal.plugin.activerecord.Page;
-import com.jfinal.plugin.activerecord.Record;
+import com.alibaba.fastjson.JSONObject;
+import com.bdaim.common.controller.BasicAction;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.erp.oa.common.OaEnum;
 import com.bdaim.crm.erp.oa.entity.OaLog;
@@ -14,13 +10,22 @@ import com.bdaim.crm.erp.oa.service.OaLogService;
 import com.bdaim.crm.erp.work.service.TaskService;
 import com.bdaim.crm.utils.AuthUtil;
 import com.bdaim.crm.utils.R;
+import com.jfinal.core.paragetter.Para;
+import com.jfinal.plugin.activerecord.Page;
+import com.jfinal.plugin.activerecord.Record;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 
 /**
  * OA日志模块
  */
-public class OaLogController extends Controller {
+@RestController
+@RequestMapping("/OaLog")
+public class OaLogController extends BasicAction {
 
     @Resource
     private OaLogService oaLogService;
@@ -31,9 +36,10 @@ public class OaLogController extends Controller {
      * 分页条件查询日志
      * @author zhangzhiwei
      */
-    public void queryList(BasePageRequest<OaLog> basePageRequest){
+    @RequestMapping(value = "/queryList", method = RequestMethod.POST)
+    public R queryList(BasePageRequest<OaLog> basePageRequest){
         Page<Record> recordList=oaLogService.queryList(basePageRequest);
-        renderJson(R.ok().put("data",recordList));
+        return(R.ok().put("data",recordList));
     }
 
     /**
@@ -41,16 +47,18 @@ public class OaLogController extends Controller {
      * @param logId 日志ID
      * @author zhangzhiwei
      */
-    public void queryById(@Para("logId") Integer logId){
+    @RequestMapping(value = "/queryById", method = RequestMethod.POST)
+    public R queryById(@Para("logId") Integer logId){
         Record record=oaLogService.queryById(logId);
-        renderJson(R.ok().put("data",record));
+        return(R.ok().put("data",record));
     }
     /**
      * 添加日志
      * @author zhangzhiwei
      */
-    public void addOrUpdate(){
-        renderJson(oaLogService.saveAndUpdate(JSON.parseObject(getRawData())));
+    @RequestMapping(value = "/addOrUpdate", method = RequestMethod.POST)
+    public R addOrUpdate(@RequestBody JSONObject jsonObject){
+        return(oaLogService.saveAndUpdate(jsonObject));
     }
 
     /**
@@ -58,10 +66,13 @@ public class OaLogController extends Controller {
      * @param logId 日志ID
      * @author zhangzhiwei
      */
-    public void deleteById(@Para("logId") Integer logId){
+    @RequestMapping(value = "/deleteById", method = RequestMethod.POST)
+    public R deleteById(@Para("logId") Integer logId){
         boolean oaAuth = AuthUtil.isOaAuth(OaEnum.LOG_TYPE_KEY.getTypes(), logId);
-        if(oaAuth){renderJson(R.noAuth());return;}
-        renderJson(oaLogService.deleteById(logId) ? R.ok() : R.error("删除失败"));
+        if(oaAuth){return(R.noAuth());
+        //return;
+        }
+        return(oaLogService.deleteById(logId) ? R.ok() : R.error("删除失败"));
     }
 
     /**
@@ -69,15 +80,17 @@ public class OaLogController extends Controller {
      * @param logId 日志ID
      * @author zhangzhiwei
      */
-    public void readLog(@Para("logId") Integer logId){
+    @RequestMapping(value = "/readLog", method = RequestMethod.POST)
+    public R readLog(@Para("logId") Integer logId){
         oaLogService.readLog(logId);
-        renderJson(R.ok());
+        return(R.ok());
     }
 
     /**
      * 查询crm关联日志
      */
-    public void queryLogRelation(BasePageRequest<OaLogRelation> basePageRequest){
-        renderJson(oaLogService.queryLogRelation(basePageRequest));
+    @RequestMapping(value = "/queryLogRelation", method = RequestMethod.POST)
+    public R queryLogRelation(BasePageRequest<OaLogRelation> basePageRequest){
+        return(oaLogService.queryLogRelation(basePageRequest));
     }
 }

@@ -7,13 +7,13 @@ import java.util.Objects;
 @Entity
 @Table(name = "lkcrm_oa_log", schema = "", catalog = "")
 public class LkCrmOaLogEntity {
-    private int logId;
-    private int categoryId;
+    private Integer logId;
+    private Integer categoryId;
     private String title;
     private String content;
     private String tomorrow;
     private String question;
-    private int createUserId;
+    private Long createUserId;
     private Timestamp createTime;
     private Timestamp updateTime;
     private String sendUserIds;
@@ -23,21 +23,22 @@ public class LkCrmOaLogEntity {
 
     @Id
     @Column(name = "log_id")
-    public int getLogId() {
+    @GeneratedValue
+    public Integer getLogId() {
         return logId;
     }
 
-    public void setLogId(int logId) {
+    public void setLogId(Integer logId) {
         this.logId = logId;
     }
 
     @Basic
     @Column(name = "category_id")
-    public int getCategoryId() {
+    public Integer getCategoryId() {
         return categoryId;
     }
 
-    public void setCategoryId(int categoryId) {
+    public void setCategoryId(Integer categoryId) {
         this.categoryId = categoryId;
     }
 
@@ -83,11 +84,11 @@ public class LkCrmOaLogEntity {
 
     @Basic
     @Column(name = "create_user_id")
-    public int getCreateUserId() {
+    public Long getCreateUserId() {
         return createUserId;
     }
 
-    public void setCreateUserId(int createUserId) {
+    public void setCreateUserId(Long createUserId) {
         this.createUserId = createUserId;
     }
 

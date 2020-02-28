@@ -14,6 +14,11 @@ import java.util.Map;
 @Component
 public class LkCrmContactsDao extends SimpleHibernateDao<LkCrmContactsEntity, Integer> {
 
+    public List queryByIds(List deptIds) {
+        return super.queryListBySql("  select * from  72crm_crm_contacts\n" +
+                "       where contacts_id in  (" + SqlAppendUtil.sqlAppendWhereIn(deptIds) + ")");
+    }
+
     public List getContactsPageList(String contactsName, String telephone, String mobile, String customerName) {
         String sql = "select contacts_id,name,customer_name,owner_user_name from contactsview where 1=1";
         List param = new ArrayList();

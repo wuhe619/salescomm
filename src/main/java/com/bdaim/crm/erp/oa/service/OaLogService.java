@@ -5,16 +5,9 @@ import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.util.TypeUtils;
 import com.bdaim.auth.LoginUser;
-import com.jfinal.aop.Before;
-import com.jfinal.aop.Inject;
-import com.jfinal.kit.Kv;
-import com.jfinal.plugin.activerecord.Db;
-import com.jfinal.plugin.activerecord.Page;
-import com.jfinal.plugin.activerecord.Record;
-import com.jfinal.plugin.activerecord.tx.Tx;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.common.constant.BaseConstant;
-import com.bdaim.crm.erp.admin.entity.AdminUser;
+import com.bdaim.crm.dao.*;
 import com.bdaim.crm.erp.admin.service.AdminFileService;
 import com.bdaim.crm.erp.admin.service.AdminUserService;
 import com.bdaim.crm.erp.oa.common.OaEnum;
@@ -24,14 +17,19 @@ import com.bdaim.crm.utils.AuthUtil;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
 import com.bdaim.crm.utils.TagUtil;
+import com.bdaim.customer.dao.CustomerUserDao;
+import com.bdaim.util.JavaBeanUtil;
+import com.jfinal.aop.Before;
+import com.jfinal.kit.Kv;
+import com.jfinal.plugin.activerecord.Db;
+import com.jfinal.plugin.activerecord.Page;
+import com.jfinal.plugin.activerecord.Record;
+import com.jfinal.plugin.activerecord.tx.Tx;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import javax.transaction.Transactional;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 @Service
 @Transactional
@@ -43,6 +41,23 @@ public class OaLogService {
     private AdminFileService adminFileService;
     @Resource
     private OaCommentService commentService;
+    @Resource
+    private LkCrmOaLogDao crmOaLogDao;
+    @Resource
+    private AdminUserService adminUserService;
+    @Resource
+    private CustomerUserDao customerUserDao;
+    @Resource
+    private LkCrmAdminDeptDao crmAdminDeptDao;
+    @Resource
+    private LkCrmContractDao crmContractDao;
+    @Resource
+    private LkCrmCustomerDao crmCustomerDao;
+    @Resource
+    private LkCrmBusinessDao crmBusinessDao;
+    @Resource
+    private LkCrmContactsDao crmContactsDao;
+
 
     /**
      * 查询日志
@@ -56,12 +71,12 @@ public class OaLogService {
         Integer by = TypeUtils.castToInt(object.getOrDefault("by", 4));
         Kv kv = Kv.by("by", by);
         List<Long> userIds;
-        if(user.getRoles().contains(BaseConstant.SUPER_ADMIN_ROLE_ID)){
-            userIds = Db.query("SELECT user_id FROM `72crm_admin_user` where user_id != ? ",user.getUserId());
-        }else {
+        if (user.getRoles().contains(BaseConstant.SUPER_ADMIN_ROLE_ID)) {
+            userIds = Db.query("SELECT user_id FROM `lkcrm_admin_user` where user_id != ? ", user.getUserId());
+        } else {
             userIds = new AdminUserService().queryUserByParentUser(user.getUserId(), BaseConstant.AUTH_DATA_RECURSION_NUM);
             if (object.containsKey("createUserId")) {
-                if(!userIds.contains(Long.valueOf(object.getInteger("createUserId")))){
+                if (!userIds.contains(Long.valueOf(object.getInteger("createUserId")))) {
                     return new Page<>();
                 }
             }
@@ -95,22 +110,22 @@ public class OaLogService {
     public void queryLogDetail(Record record, Long userId) {
         adminFileService.queryByBatchId(record.get("batch_id"), record);
         record.set("sendUserList", (StrUtil.isNotEmpty(record.getStr("send_user_ids")) && record.getStr("send_user_ids").split(",").length > 0) ? Db.find(Db.getSqlPara("admin.user.queryByIds", Kv.by("ids", record.getStr("send_user_ids").split(",")))) : new ArrayList<>());
-        record.set("sendDeptList", (StrUtil.isNotEmpty(record.getStr("send_dept_ids")) && record.getStr("send_dept_ids").split(",").length > 0) ? Db.find(Db.getSqlPara("admin.dept.queryByIds", Kv.by("ids", record.getStr("send_dept_ids").split(",")))) : new ArrayList<>());
-        record.set("customerList", (StrUtil.isNotEmpty(record.getStr("customer_ids")) && record.getStr("customer_ids").split(",").length > 0) ? Db.find(Db.getSqlPara("crm.customer.queryByIds", Kv.by("ids", record.getStr("customer_ids").split(",")))) : new ArrayList<>());
-        record.set("businessList", (StrUtil.isNotEmpty(record.getStr("business_ids")) && record.getStr("business_ids").split(",").length > 0) ? Db.find(Db.getSqlPara("crm.business.queryByIds", Kv.by("ids", record.getStr("business_ids").split(",")))) : new ArrayList<>());
-        record.set("contactsList", (StrUtil.isNotEmpty(record.getStr("contacts_ids")) && record.getStr("contacts_ids").split(",").length > 0) ? Db.find(Db.getSqlPara("crm.contact.queryByIds", Kv.by("ids", record.getStr("contacts_ids").split(",")))) : new ArrayList<>());
-        record.set("contractList", (StrUtil.isNotEmpty(record.getStr("contract_ids")) && record.getStr("contract_ids").split(",").length > 0) ? Db.find(Db.getSqlPara("crm.contract.queryByIds", Kv.by("ids", record.getStr("contract_ids").split(",")))) : new ArrayList<>());
-        record.set("createUser", Db.findFirst(Db.getSql("admin.user.queryUserByUserId"), record.getStr("create_user_id")));
+        record.set("sendDeptList", (StrUtil.isNotEmpty(record.getStr("send_dept_ids")) && record.getStr("send_dept_ids").split(",").length > 0) ? crmAdminDeptDao.queryByIds(Arrays.asList(record.getStr("send_dept_ids").split(","))) : new ArrayList<>());
+        record.set("customerList", (StrUtil.isNotEmpty(record.getStr("customer_ids")) && record.getStr("customer_ids").split(",").length > 0) ? crmCustomerDao.queryByIds(Arrays.asList(record.getStr("customer_ids").split(","))) : new ArrayList<>());
+        record.set("businessList", (StrUtil.isNotEmpty(record.getStr("business_ids")) && record.getStr("business_ids").split(",").length > 0) ? crmBusinessDao.queryByIds(Arrays.asList(record.getStr("business_ids").split(","))) : new ArrayList<>());
+        record.set("contactsList", (StrUtil.isNotEmpty(record.getStr("contacts_ids")) && record.getStr("contacts_ids").split(",").length > 0) ? crmContactsDao.queryByIds(Arrays.asList(record.getStr("contacts_ids").split(","))) : new ArrayList<>());
+        record.set("contractList", (StrUtil.isNotEmpty(record.getStr("contract_ids")) && record.getStr("contract_ids").split(",").length > 0) ? crmContractDao.queryByIds(Arrays.asList(record.getStr("contract_ids").split(","))) : new ArrayList<>());
+        record.set("createUser", customerUserDao.get(record.getLong("create_user_id")));
         Integer isRead = record.getStr("read_user_ids").contains("," + userId + ",") ? 1 : 0;
         int isEdit = userId.intValue() == record.getInt("create_user_id") ? 1 : 0;
         int isDel = 0;
-        if((System.currentTimeMillis()-1000*3600*72)>record.getDate("create_time").getTime()){
-            if(BaseUtil.getUser().getRoles().contains(BaseConstant.SUPER_ADMIN_ROLE_ID)){
-                isDel=1;
+        if ((System.currentTimeMillis() - 1000 * 3600 * 72) > record.getDate("create_time").getTime()) {
+            if (BaseUtil.getUser().getRoles().contains(BaseConstant.SUPER_ADMIN_ROLE_ID)) {
+                isDel = 1;
             }
-        }else {
-            if(isEdit==1||new AdminUserService().queryUserByParentUser(userId,BaseConstant.AUTH_DATA_RECURSION_NUM).contains(record.getLong("create_user_id"))){
-                isDel=1;
+        } else {
+            if (isEdit == 1 || adminUserService.queryUserByParentUser(userId, BaseConstant.AUTH_DATA_RECURSION_NUM).contains(record.getLong("create_user_id"))) {
+                isDel = 1;
             }
         }
         record.set("permission", new JSONObject().fluentPut("is_update", isEdit).fluentPut("is_delete", isDel));
@@ -136,15 +151,17 @@ public class OaLogService {
         oaLog.setSendDeptIds(TagUtil.fromString(oaLog.getSendDeptIds()));
         if (oaLog.getLogId() != null) {
             boolean oaAuth = AuthUtil.isOaAuth(OaEnum.LOG_TYPE_KEY.getTypes(), oaLog.getLogId());
-            if(oaAuth){return R.noAuth();}
+            if (oaAuth) {
+                return R.noAuth();
+            }
             oaLog.update();
-            oaActionRecordService.addRecord(oaLog.getLogId(), OaEnum.LOG_TYPE_KEY.getTypes(), 2, oaActionRecordService.getJoinIds(user.getUserId().intValue(), oaLog.getSendUserIds()),  oaLog.getSendDeptIds());
+            oaActionRecordService.addRecord(oaLog.getLogId(), OaEnum.LOG_TYPE_KEY.getTypes(), 2, oaActionRecordService.getJoinIds(user.getUserId().intValue(), oaLog.getSendUserIds()), oaLog.getSendDeptIds());
         } else {
             oaLog.save();
-            oaActionRecordService.addRecord(oaLog.getLogId(), OaEnum.LOG_TYPE_KEY.getTypes(), 1, oaActionRecordService.getJoinIds(user.getUserId().intValue(), oaLog.getSendUserIds()),  oaLog.getSendDeptIds());
+            oaActionRecordService.addRecord(oaLog.getLogId(), OaEnum.LOG_TYPE_KEY.getTypes(), 1, oaActionRecordService.getJoinIds(user.getUserId().intValue(), oaLog.getSendUserIds()), oaLog.getSendDeptIds());
         }
         if (oaLogRelation != null) {
-            Db.deleteById("72crm_oa_log_relation", "log_id", oaLog.getLogId());
+            Db.deleteById("lkcrm_oa_log_relation", "log_id", oaLog.getLogId());
             oaLogRelation.setLogId(oaLog.getLogId());
             oaLogRelation.setBusinessIds(TagUtil.fromString(oaLogRelation.getBusinessIds()));
             oaLogRelation.setContactsIds(TagUtil.fromString(oaLogRelation.getContactsIds()));
@@ -164,7 +181,7 @@ public class OaLogService {
      * @author zhangzhiwei
      */
     public Record queryById(Integer id) {
-        Record record = Db.findFirst(Db.getSqlPara("oa.log.queryList", Kv.by("logId",id)));
+        Record record = Db.findFirst(Db.getSqlPara("oa.log.queryList", Kv.by("logId", id)));
         queryLogDetail(record, BaseUtil.getUser().getUserId());
         return record;
     }
@@ -180,9 +197,9 @@ public class OaLogService {
         OaLog oaLog = OaLog.dao.findById(logId);
         if (oaLog != null) {
             oaActionRecordService.deleteRecord(OaEnum.LOG_TYPE_KEY.getTypes(), logId);
-            Db.deleteById("72crm_oa_log_relation", "log_id", logId);
+            Db.deleteById("lkcrm_oa_log_relation", "log_id", logId);
             adminFileService.removeByBatchId(oaLog.getBatchId());
-            Db.deleteById("72crm_oa_log","log_id",logId);
+            Db.deleteById("lkcrm_oa_log", "log_id", logId);
             return true;
         }
         return false;
@@ -207,14 +224,15 @@ public class OaLogService {
      */
     public R queryLogRelation(BasePageRequest<OaLogRelation> basePageRequest) {
         OaLogRelation relation = basePageRequest.getData();
-        if(AuthUtil.oaAnth(relation.toRecord())){
+        if (AuthUtil.oaAnth(relation.toRecord())) {
             return R.noAuth();
         }
-        Page<Record> recordPage = Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), Db.getSqlPara("oa.log.queryLogRelation", Kv.by("businessIds", relation.getBusinessIds()).set("contactsIds", relation.getContactsIds()).set("contractIds", relation.getContractIds()).set("customerIds", relation.getCustomerIds())));
+        com.bdaim.common.dto.Page page = crmOaLogDao.pageQueryLogRelation(basePageRequest.getPage(), basePageRequest.getLimit(), relation.getBusinessIds(), relation.getContactsIds(), relation.getContractIds(), relation.getCustomerIds());
+        //Page<Record> recordPage = Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), Db.getSqlPara("oa.log.queryLogRelation", Kv.by("businessIds", relation.getBusinessIds()).set("contactsIds", relation.getContactsIds()).set("contractIds", relation.getContractIds()).set("customerIds", relation.getCustomerIds())));
         LoginUser user = BaseUtil.getUser();
-        recordPage.getList().forEach((record -> {
-            queryLogDetail(record, user.getUserId());
+        page.getData().forEach((record -> {
+            queryLogDetail(JavaBeanUtil.mapToRecord((Map<String, Object>) record), user.getUserId());
         }));
-        return R.ok().put("data", recordPage);
+        return R.ok().put("data", BaseUtil.crmPage(page));
     }
 }

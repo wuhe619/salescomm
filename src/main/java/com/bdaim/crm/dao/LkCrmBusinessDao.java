@@ -12,6 +12,11 @@ import java.util.Map;
 
 @Component
 public class LkCrmBusinessDao extends SimpleHibernateDao<LkCrmBusinessEntity, Integer> {
+    public List queryByIds(List deptIds) {
+        return super.queryListBySql("  select * from  72crm_crm_business\n" +
+                "       where business_id in  (" + SqlAppendUtil.sqlAppendWhereIn(deptIds) + ")");
+    }
+
     public int deleteMember(String memberId, int id) {
         String sql = " update lkcrm_crm_business set rw_user_id = replace(rw_user_id,?,','),ro_user_id = replace(ro_user_id,?,',') where business_id = ?";
         return executeUpdateSQL(sql, memberId, memberId, id);

@@ -3,6 +3,7 @@ package com.bdaim.crm.dao;
 import com.bdaim.common.dao.SimpleHibernateDao;
 import com.bdaim.common.dto.Page;
 import com.bdaim.crm.entity.LkCrmContractEntity;
+import com.bdaim.util.SqlAppendUtil;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -12,6 +13,11 @@ import java.util.Map;
 @Component
 public class LkCrmContractDao extends SimpleHibernateDao<LkCrmContractEntity, Integer> {
 
+    public List queryByIds(List deptIds) {
+        return super.queryListBySql("  select * from  lkcrm_crm_contract\n" +
+                "       where contract_id in  (" + SqlAppendUtil.sqlAppendWhereIn(deptIds) + ")");
+    }
+    
     public List getProductPageList() {
         return super.sqlQuery(" select * from contractview");
     }

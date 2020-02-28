@@ -8,8 +8,8 @@ import java.util.Objects;
 @Entity
 @Table(name = "lkcrm_oa_examine", schema = "", catalog = "")
 public class LkCrmOaExamineEntity {
-    private int examineId;
-    private int categoryId;
+    private Integer examineId;
+    private Integer categoryId;
     private String content;
     private String remark;
     private String typeId;
@@ -17,28 +17,29 @@ public class LkCrmOaExamineEntity {
     private Timestamp startTime;
     private Timestamp endTime;
     private BigDecimal duration;
-    private int createUserId;
+    private Long createUserId;
     private Timestamp createTime;
     private Timestamp updateTime;
     private String batchId;
 
     @Id
     @Column(name = "examine_id")
-    public int getExamineId() {
+    @GeneratedValue
+    public Integer getExamineId() {
         return examineId;
     }
 
-    public void setExamineId(int examineId) {
+    public void setExamineId(Integer examineId) {
         this.examineId = examineId;
     }
 
     @Basic
     @Column(name = "category_id")
-    public int getCategoryId() {
+    public Integer getCategoryId() {
         return categoryId;
     }
 
-    public void setCategoryId(int categoryId) {
+    public void setCategoryId(Integer categoryId) {
         this.categoryId = categoryId;
     }
 
@@ -114,11 +115,11 @@ public class LkCrmOaExamineEntity {
 
     @Basic
     @Column(name = "create_user_id")
-    public int getCreateUserId() {
+    public Long getCreateUserId() {
         return createUserId;
     }
 
-    public void setCreateUserId(int createUserId) {
+    public void setCreateUserId(Long createUserId) {
         this.createUserId = createUserId;
     }
 

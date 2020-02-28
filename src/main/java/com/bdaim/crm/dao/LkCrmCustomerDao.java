@@ -15,6 +15,11 @@ import java.util.Map;
 @Component
 public class LkCrmCustomerDao extends SimpleHibernateDao<LkCrmCustomerEntity, Integer> {
 
+    public List queryByIds(List deptIds) {
+        return super.queryListBySql("  select * from  72crm_crm_customer\n" +
+                "       where customer_id in  (" + SqlAppendUtil.sqlAppendWhereIn(deptIds) + ")");
+    }
+
     public int todayCustomerNum(String userId) {
         String sql = "select count(*) from lkcrm_crm_customer\n" +
                 "  where customer_id not in (IFNULL((select GROUP_CONCAT(types_id) from lkcrm_admin_record where types = 'crm_customer' and to_days(create_time) = to_days(now())),0))\n" +
