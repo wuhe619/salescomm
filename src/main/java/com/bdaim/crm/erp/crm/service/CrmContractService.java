@@ -25,9 +25,9 @@ import com.bdaim.crm.utils.FieldUtil;
 import com.bdaim.crm.utils.R;
 import com.bdaim.util.JavaBeanUtil;
 import com.bdaim.util.NumberConvertUtil;
+import com.bdaim.util.StringUtil;
 import com.jfinal.aop.Before;
 import com.jfinal.kit.Kv;
-import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.tx.Tx;
 import org.springframework.beans.BeanUtils;
@@ -99,7 +99,7 @@ public class CrmContractService {
     public R queryById(Integer id) {
         //Record record = Db.findFirst(Db.getSql("crm.contract.queryByContractId"), id);
         //Record record = JavaBeanUtil.mapToRecord(crmContractDao.queryByContractId(id).get(0));
-        return R.ok().put("data", crmContractDao.queryByContractId(id).get(0));
+        return R.ok().put("data", crmContractDao.queryByContractId(id));
     }
 
     /**
@@ -331,27 +331,28 @@ public class CrmContractService {
      */
     public R transfer(LkCrmContractEntity crmContract) {
         String[] contractIdsArr = crmContract.getContractIds().split(",");
-        return Db.tx(() -> {
-            for (String contractId : contractIdsArr) {
-                String memberId = "," + crmContract.getNewOwnerUserId() + ",";
-                //Db.update(Db.getSql("crm.contract.deleteMember"), memberId, memberId, Integer.valueOf(contractId));
-                crmContractDao.deleteMember(memberId, Integer.valueOf(contractId));
-                LkCrmContractEntity oldContract = crmContractDao.get(Integer.valueOf(contractId));
-                if (2 == crmContract.getTransferType()) {
-                    if (1 == crmContract.getPower()) {
-                        crmContract.setRoUserId(oldContract.getRoUserId() + oldContract.getOwnerUserId() + ",");
-                    }
-                    if (2 == crmContract.getPower()) {
-                        crmContract.setRwUserId(oldContract.getRwUserId() + oldContract.getOwnerUserId() + ",");
-                    }
+        //return Db.tx(() -> {
+        for (String contractId : contractIdsArr) {
+            String memberId = "," + crmContract.getNewOwnerUserId() + ",";
+            //Db.update(Db.getSql("crm.contract.deleteMember"), memberId, memberId, Integer.valueOf(contractId));
+            crmContractDao.deleteMember(memberId, Integer.valueOf(contractId));
+            LkCrmContractEntity oldContract = crmContractDao.get(Integer.valueOf(contractId));
+            if (2 == crmContract.getTransferType()) {
+                if (1 == crmContract.getPower()) {
+                    crmContract.setRoUserId(oldContract.getRoUserId() + oldContract.getOwnerUserId() + ",");
                 }
-                crmContract.setContractId(Integer.valueOf(contractId));
-                crmContract.setOwnerUserId(crmContract.getNewOwnerUserId());
-                crmContractDao.update(crmContract);
-                crmRecordService.addConversionRecord(Integer.valueOf(contractId), CrmEnum.CONTRACT_TYPE_KEY.getTypes(), crmContract.getNewOwnerUserId());
+                if (2 == crmContract.getPower()) {
+                    crmContract.setRwUserId(oldContract.getRwUserId() + oldContract.getOwnerUserId() + ",");
+                }
             }
-            return true;
-        }) ? R.ok() : R.error();
+            crmContract.setContractId(Integer.valueOf(contractId));
+            crmContract.setOwnerUserId(crmContract.getNewOwnerUserId());
+            BeanUtils.copyProperties(crmContract, oldContract, JavaBeanUtil.getNullPropertyNames(crmContract));
+            crmContractDao.update(crmContract);
+            crmRecordService.addConversionRecord(Integer.valueOf(contractId), CrmEnum.CONTRACT_TYPE_KEY.getTypes(), crmContract.getNewOwnerUserId());
+        }
+        return R.ok();
+        // }) ? R.ok() : R.error();
     }
 
     /**
@@ -401,7 +402,7 @@ public class CrmContractService {
         for (String id : contractIdsArr) {
             Long ownerUserId = crmContractDao.get(Integer.valueOf(id)).getOwnerUserId();
             for (String memberId : memberArr) {
-                if (ownerUserId.equals(Integer.valueOf(memberId))) {
+                if (ownerUserId.equals(NumberConvertUtil.parseLong(memberId))) {
                     return R.error("负责人不能重复选为团队成员");
                 }
                 crmContractDao.deleteMember("," + memberId + ",", Integer.valueOf(id));
@@ -409,12 +410,20 @@ public class CrmContractService {
             }
             if (1 == crmContract.getPower()) {
                 stringBuilder.setLength(0);
-                String roUserId = stringBuilder.append(crmContractDao.get(Integer.valueOf(id)).getRoUserId()).append(crmContract.getMemberIds()).append(",").toString();
+                String roUserIdDb = crmContractDao.get(Integer.valueOf(id)).getRoUserId();
+                if ((StringUtil.isNotEmpty(roUserIdDb) && !roUserIdDb.startsWith(",")) || StringUtil.isEmpty(roUserIdDb)) {
+                    stringBuilder.append(",");
+                }
+                String roUserId = stringBuilder.append(roUserIdDb).append(crmContract.getMemberIds()).append(",").toString();
                 crmContractDao.executeUpdateSQL("update lkcrm_crm_contract set ro_user_id = ? where contract_id = ?", roUserId, Integer.valueOf(id));
             }
             if (2 == crmContract.getPower()) {
                 stringBuilder.setLength(0);
-                String rwUserId = stringBuilder.append(crmContractDao.get(Integer.valueOf(id)).getRwUserId()).append(crmContract.getMemberIds()).append(",").toString();
+                String roUserIdDb = crmContractDao.get(Integer.valueOf(id)).getRwUserId();
+                if ((StringUtil.isNotEmpty(roUserIdDb) && !roUserIdDb.startsWith(",")) || StringUtil.isEmpty(roUserIdDb)) {
+                    stringBuilder.append(",");
+                }
+                String rwUserId = stringBuilder.append(roUserIdDb).append(crmContract.getMemberIds()).append(",").toString();
                 crmContractDao.executeUpdateSQL("update lkcrm_crm_contract set rw_user_id = ? where contract_id = ?", rwUserId, Integer.valueOf(id));
             }
         }

@@ -20,6 +20,7 @@ import com.bdaim.util.NumberConvertUtil;
 import com.jfinal.aop.Before;
 import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.tx.Tx;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -149,7 +150,8 @@ public class CrmReceivablesService {
                 crmReceivablesPlan.setUpdateTime(DateUtil.date().toTimestamp());
                 crmReceivablesPlanDao.update(crmReceivablesPlan);
             }
-            crmReceivablesDao.update(crmReceivables);
+            BeanUtils.copyProperties(crmReceivables, receivables, JavaBeanUtil.getNullPropertyNames(crmReceivables));
+            crmReceivablesDao.update(receivables);
             return R.ok();
         }
     }

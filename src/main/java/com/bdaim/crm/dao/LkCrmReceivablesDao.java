@@ -3,6 +3,7 @@ package com.bdaim.crm.dao;
 import com.bdaim.common.dao.SimpleHibernateDao;
 import com.bdaim.common.dto.Page;
 import com.bdaim.crm.entity.LkCrmReceivablesEntity;
+import com.bdaim.util.SqlAppendUtil;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -12,7 +13,7 @@ import java.util.Map;
 public class LkCrmReceivablesDao extends SimpleHibernateDao<LkCrmReceivablesEntity, Integer> {
 
     public List<LkCrmReceivablesEntity> queryReceivablesByContractIds(List contract_id) {
-        return super.queryListBySql(" select * from lkcrm_crm_receivables where contract_id in (?)", LkCrmReceivablesEntity.class, contract_id);
+        return super.queryListBySql(" select * from lkcrm_crm_receivables where contract_id in (" + SqlAppendUtil.sqlAppendWhereIn(contract_id) + ")", LkCrmReceivablesEntity.class);
     }
 
     public List<LkCrmReceivablesEntity> queryReceivablesByContractId(int contract_id) {
