@@ -14,11 +14,13 @@ import com.bdaim.crm.utils.R;
 import com.bdaim.util.BusinessEnum;
 import com.bdaim.util.JavaBeanUtil;
 import com.bdaim.util.NumberConvertUtil;
+import com.bdaim.util.StringUtil;
 import com.jfinal.aop.Before;
 import com.jfinal.config.Constants;
 import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.tx.Tx;
 import com.jfinal.upload.UploadFile;
+import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -90,6 +92,11 @@ public class AdminFileService {
                     fileName = uploadFileService.uploadFile(multiRequestFile, BusinessEnum.CRM, true);
                     adminFile.setName(multiRequestFile.getName());
                     adminFile.setSize(multiRequestFile.getSize());
+                    // 获取文件的扩展名
+                    String extension = FilenameUtils.getExtension(multiRequestFile.getOriginalFilename());
+                    if (StringUtil.isEmpty(fileType)) {
+                        fileType = extension;
+                    }
                     break;
                 }
             }
