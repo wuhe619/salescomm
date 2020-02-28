@@ -46,7 +46,7 @@ public class LkCrmReceivablesPlanDao extends SimpleHibernateDao<LkCrmReceivables
 
     public LkCrmReceivablesPlanEntity queryByContractId(int contract_id) {
         String sql = " SELECT * FROM lkcrm_crm_receivables_plan where contract_id = ? order by num desc limit 0,1 ";
-        List<LkCrmReceivablesPlanEntity> list = super.queryListBySql(sql, LkCrmReceivablesPlanEntity.class);
+        List<LkCrmReceivablesPlanEntity> list = super.queryListBySql(sql, LkCrmReceivablesPlanEntity.class, contract_id);
         return list.size() > 0 ? list.get(0) : null;
     }
 
