@@ -30,7 +30,8 @@ public class LabelController extends Controller {
     @RequestMapping(value = "/setLabel")
     public R setLabel(@Para("") WorkTaskLabel taskLabel) {
 //        renderJson(labelService.setLabel(taskLabel));
-        return (R.ok().put("data", labelService.setLabel(taskLabel)));
+//        return (R.ok().put("data", labelService.setLabel(taskLabel)));
+        return labelService.setLabel(taskLabel);
     }
 
     /**
@@ -41,7 +42,8 @@ public class LabelController extends Controller {
     public R deleteLabel() {
         String labelId = getPara("labelId");
 //        renderJson(labelService.deleteLabel(labelId));
-        return (R.ok().put("data", labelService.deleteLabel(labelId)));
+//        return (R.ok().put("data", labelService.deleteLabel(labelId)));
+        return labelService.deleteLabel(labelId);
     }
 
     /**
@@ -51,13 +53,15 @@ public class LabelController extends Controller {
     @RequestMapping(value = "/getLabelList")
     public R getLabelList() {
 //        renderJson(labelService.getLabelList());
-        return (R.ok().put("data", labelService.getLabelList()));
+//        return (R.ok().put("data", labelService.getLabelList()));
+        return labelService.getLabelList();
     }
 
     @RequestMapping(value = "/queryById")
     public R queryById(@Para("labelId") Integer labelId) {
 //        renderJson(labelService.queryById(labelId));
-        return (R.ok().put("data", labelService.queryById(labelId)));
+//        return (R.ok().put("data", labelService.queryById(labelId)));
+        return labelService.queryById(labelId);
     }
 
     /**
@@ -67,7 +71,8 @@ public class LabelController extends Controller {
     @RequestMapping(value = "/getLabelListByOwn")
     public R getLabelListByOwn() {
 //        renderJson(labelService.getLabelListByOwn());
-        return (R.ok().put("data", labelService.getLabelListByOwn()));
+//        return (R.ok().put("data", labelService.getLabelListByOwn()));
+        return labelService.getLabelListByOwn();
     }
 
     /**
@@ -78,6 +83,7 @@ public class LabelController extends Controller {
     @NotNullValidate(value = "labelId", message = "标签不能为空")
     public R getTaskList(@Para("labelId") Integer labelId) {
 //        renderJson(labelService.getTaskList(labelId));
-        return (R.ok().put("data", labelService.getTaskList(labelId)));
+//        return (R.ok().put("data", labelService.getTaskList(labelId)));
+        return labelService.getTaskList(labelId);
     }
 }
