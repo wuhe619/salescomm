@@ -5,6 +5,7 @@ import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.util.TypeUtils;
+import com.bdaim.auth.LoginUser;
 import com.bdaim.crm.common.config.cache.CaffeineCache;
 import com.bdaim.crm.dao.LkCrmAdminFieldDao;
 import com.bdaim.crm.dao.LkCrmAdminFieldvDao;
@@ -15,6 +16,9 @@ import com.bdaim.crm.entity.LkCrmAdminFieldvEntity;
 import com.bdaim.crm.erp.admin.entity.AdminField;
 import com.bdaim.crm.erp.admin.entity.AdminFieldSort;
 import com.bdaim.crm.utils.*;
+import com.bdaim.customer.dao.CustomerLabelDao;
+import com.bdaim.customer.dto.CustomerLabelDTO;
+import com.bdaim.customer.entity.CustomerLabel;
 import com.bdaim.util.JavaBeanUtil;
 import com.bdaim.util.StringUtil;
 import com.jfinal.aop.Before;
@@ -40,6 +44,9 @@ public class AdminFieldService {
 
     @Resource
     private LkCrmAdminFieldvDao crmAdminFieldvDao;
+
+    @Resource
+    private CustomerLabelDao customerLabelDao;
 
     /**
      * @author wyq
@@ -126,7 +133,7 @@ public class AdminFieldService {
                 arr.add(field.getFieldId());
             }
         });
-        List<LkCrmAdminFieldEntity> fieldSorts = crmAdminFieldDao.queryListBySql("select name from lkcrm_admin_field where label = ?", LkCrmAdminFieldEntity.class, label);
+        List<LkCrmAdminFieldEntity> fieldSorts = crmAdminFieldDao.find("from LkCrmAdminFieldEntity where label = ?", label);
         List<String> nameList = fieldSorts.stream().map(LkCrmAdminFieldEntity::getName).collect(Collectors.toList());
         if (arr.size() > 0) {
            /* SqlPara sql = Db.getSqlPara("admin.field.deleteByChooseId", Kv.by("ids", arr).set("label", label).set("categoryId", categoryId));
@@ -157,9 +164,10 @@ public class AdminFieldService {
                 ///entity.update();
                 crmAdminFieldDao.update(entity);
                 if (entity.getFieldType() == 0) {
-                    Db.update(Db.getSqlPara("admin.field.updateFieldSortName", entity));
+                    crmAdminFieldDao.updateFieldSortName(entity.getName(), entity.getFieldId());
+                    //Db.update(Db.getSqlPara("admin.field.updateFieldSortName", entity));
                 } else if (entity.getFieldType() == 1) {
-                    Db.update("update lkcrm_admin_field_sort set name = ? where field_id = ?", entity.getName(), entity.getFieldId());
+                    crmAdminFieldDao.executeUpdateSQL("update lkcrm_admin_field_sort set name = ? where field_id = ?", entity.getName(), entity.getFieldId());
                 }
             } else {
                 //entity.save();
@@ -278,7 +286,7 @@ public class AdminFieldService {
     }
 
     public synchronized void createView(Integer label) {
-        List<Record> fieldNameList = Db.find("select name,type from lkcrm_admin_field WHERE label=? and field_type = 0 ORDER BY sorting asc", label);
+        List<Record> fieldNameList = JavaBeanUtil.mapToRecords(crmAdminFieldDao.sqlQuery("select name,type from lkcrm_admin_field WHERE label=? and field_type = 0 ORDER BY sorting asc", label));
         StringBuilder sql = new StringBuilder();
         StringBuilder userJoin = new StringBuilder();
         StringBuilder deptJoin = new StringBuilder();
@@ -303,12 +311,12 @@ public class AdminFieldService {
         String filedCreate;
         switch (label) {
             case 1:
-                filedCreate = String.format(Db.getSql("admin.field.fieldleadsview"), sql, userJoin.append(deptJoin), label);
-                create = Db.getSql("admin.field.leadsview");
+                filedCreate = String.format("create or replace view fieldleadsview as select %s batch_id as field_batch_id from lkcrm_admin_fieldv as a inner join lkcrm_admin_field as d on `a`.`field_id` = `d`.`field_id` %s where d.label = %s and a.batch_id is not null and a.batch_id != '' and d.field_type = 0 group by a.batch_id", sql, userJoin.append(deptJoin), label);
+                create = "create or replace view leadsview as select a.*,b.realname as create_user_name,c.realname as owner_user_name,z.* from lkcrm_crm_leads as a left join lkcrm_admin_user as b on a.create_user_id = b.user_id left join lkcrm_admin_user as c on a.owner_user_id = c.user_id left join fieldleadsview as z on a.batch_id = z.field_batch_id";
                 break;
             case 2:
-                filedCreate = String.format(Db.getSql("admin.field.fieldcustomerview"), sql, userJoin.append(deptJoin), label);
-                create = Db.getSql("admin.field.customerview");
+                filedCreate = String.format("create or replace view fieldcustomerview  as select %s batch_id as field_batch_id from lkcrm_admin_fieldv as a inner join lkcrm_admin_field as d on `a`.`field_id` = `d`.`field_id` %s where d.label = %s and a.batch_id is not null and a.batch_id != '' and d.field_type = 0 group by a.batch_id", sql, userJoin.append(deptJoin), label);
+                create = "create or replace view customerview  as select a.*,b.realname as create_user_name,c.realname as owner_user_name,z.* from lkcrm_crm_customer as a left join lkcrm_admin_user as b on a.create_user_id = b.user_id left join lkcrm_admin_user as c on a.owner_user_id = c.user_id left join fieldcustomerview as z on a.batch_id = z.field_batch_id";
                 break;
             case 3:
                 filedCreate = String.format(Db.getSql("admin.field.fieldcontactsview"), sql, userJoin.append(deptJoin), label);
@@ -336,10 +344,10 @@ public class AdminFieldService {
                 break;
         }
         if (StrUtil.isNotBlank(filedCreate)) {
-            Db.update(filedCreate);
+            crmAdminFieldDao.executeUpdateSQL(filedCreate);
         }
         if (StrUtil.isNotBlank(create)) {
-            Db.update(create);
+            crmAdminFieldDao.executeUpdateSQL(create);
         }
     }
 
@@ -701,5 +709,32 @@ public class AdminFieldService {
                 }
             }
         });
+    }
+
+    /**
+     * @description 获取标签信息
+     * @method
+     * @date: 2019/7/1 11:43
+     */
+    public Map<String, Object> getLabelInfoById(CustomerLabelDTO customerLabelDTO, LoginUser loginUser) throws Exception {
+        Map<String, Object> map = new HashMap();
+        String labelName = customerLabelDTO.getLabelName();
+        String projectId = customerLabelDTO.getMarketProjectId();
+        //根据项目id查询标签信息
+        if (StringUtil.isEmpty(labelName)) {
+            labelName = "跟进状态";
+        }
+        //查询自定义状态
+        CustomerLabel customerLabel = customerLabelDao.getLabelByProjectId(projectId, loginUser.getCustId(), labelName);
+        if (customerLabel != null) {
+            map.put("customLabel", customerLabel);
+        }
+        //查询全局状态
+        CustomerLabel allLabel = customerLabelDao.getLabelByProjectId(null, "0", labelName);
+        map.put("allLabel", allLabel);
+        //查询无效原因标签
+        CustomerLabel invalidLabel = customerLabelDao.getLabelByProjectId(null, "0", "无效原因");
+        map.put("invalidLabel", invalidLabel);
+        return map;
     }
 }

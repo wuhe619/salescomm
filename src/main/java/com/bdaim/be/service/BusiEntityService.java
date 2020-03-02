@@ -11,7 +11,6 @@ import com.bdaim.common.spring.SpringContextHelper;
 import com.bdaim.customer.dao.CustomerDao;
 import com.bdaim.customs.entity.BusiTypeEnum;
 import com.bdaim.customs.entity.HMetaDataDef;
-import com.bdaim.customs.services.SbdZService;
 import com.bdaim.customs.utils.ServiceUtils;
 import com.bdaim.util.StringUtil;
 import net.sf.json.JSONArray;
@@ -26,7 +25,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 通用业务实体服务
@@ -210,7 +212,7 @@ public class BusiEntityService {
         }
 
         if (StringUtil.isNotEmpty(_orderby_) && StringUtil.isNotEmpty(_sort_)) {
-            sql += " order by  "+ _orderby_+" "+_sort_+" ";
+            sql += " order by  " + _orderby_ + " " + _sort_ + " ";
             //sqlParams.add(_orderby_);
             //sqlParams.add(_sort_);
         }
@@ -244,7 +246,7 @@ public class BusiEntityService {
             logger.info("开始查询...");
             List<Map<String, Object>> ds = jdbcTemplate.queryForList(sql, sqlParams.toArray());
             stopwatch.split();
-            logger.info("查询结果："+ds.size());
+            logger.info("查询结果：" + ds.size());
             logger.info("查询耗时:" + stopwatch.getSplitTime() + "," + stopwatch.toSplitString());
 
             List data = new ArrayList();
@@ -272,8 +274,8 @@ public class BusiEntityService {
                             jo.put("ext_4", m.get("ext_4"));
                         if (m.get("ext_5") != null && !"".equals(m.get("ext_5")))
                             jo.put("ext_5", m.get("ext_5"));
-                        if(m.get("ext_date1")!=null)
-                            jo.put("ext_date1",m.get("ext_date1"));
+                        if (m.get("ext_date1") != null)
+                            jo.put("ext_date1", m.get("ext_date1"));
                     } else
                         jo = JSONObject.parseObject(JSONObject.toJSONString(m));
                 } catch (Exception e) {
@@ -306,7 +308,7 @@ public class BusiEntityService {
             stopwatch.split();
             logger.info("处理数据:" + stopwatch.getSplitTime() + "," + stopwatch.toSplitString());
             p.setData(data);
-            logger.info("totalsql:{},{}",totalSql,totalsqlParam.length);
+            logger.info("totalsql:{},{}", totalSql, totalsqlParam.length);
             int total = jdbcTemplate.queryForObject(totalSql, totalsqlParam, Integer.class);
             p.setTotal(total);
             p.setPerPageCount(pageSize);
@@ -328,7 +330,7 @@ public class BusiEntityService {
      */
     @Transactional
     public Long saveInfo(String cust_id, String cust_group_id, Long cust_user_id, String busiType, Long id, JSONObject info) throws Exception {
-        String[] extKeys = new String[]{"ext_1", "ext_2", "ext_3", "ext_4", "ext_5", "cust_user_id","ext_date1"};
+        String[] extKeys = new String[]{"ext_1", "ext_2", "ext_3", "ext_4", "ext_5", "cust_user_id", "ext_date1"};
         String[] sysKeys = new String[]{"id", "cust_id", "create_id", "create_date"}; //系统数据字段名
         for (String sysKey : sysKeys) {
             if (info.containsKey(sysKey))

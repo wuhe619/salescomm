@@ -195,9 +195,9 @@ public class InstrumentDao extends SimpleHibernateDao {
 
     public Map queryMoneys(String[] userIds, String startTime, String endTime) {
         String sql = "SELECT distinct " +
-                "    (select IFNULL(SUM(money),0) FROM 72crm_crm_contract where DATE_FORMAT(create_time,'%Y%m') between :startTime  and :endTime AND create_user_id in (" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ") as contractMoneys, " +
-                "    (select IFNULL(SUM(money),0) FROM 72crm_crm_receivables where DATE_FORMAT(create_time,'%Y%m') between  :startTime  and :endTime AND create_user_id in ("+ SqlAppendUtil.sqlAppendWhereIn(userIds) +") as receivablesMoneys " +
-                "     FROM 72crm_crm_contract ";
+                "    (select IFNULL(SUM(money),0) FROM lkcrm_crm_contract where DATE_FORMAT(create_time,'%Y%m') between :startTime  and :endTime AND create_user_id in (" + SqlAppendUtil.sqlAppendWhereIn(userIds) + ") as contractMoneys, " +
+                "    (select IFNULL(SUM(money),0) FROM lkcrm_crm_receivables where DATE_FORMAT(create_time,'%Y%m') between  :startTime  and :endTime AND create_user_id in ("+ SqlAppendUtil.sqlAppendWhereIn(userIds) +") as receivablesMoneys " +
+                "     FROM lkcrm_crm_contract ";
         Map<String, Object> params = new HashMap<>();
         params.put("startTime", startTime);
         params.put("endTime", endTime);
@@ -213,7 +213,7 @@ public class InstrumentDao extends SimpleHibernateDao {
         if (tn) {
             param.add(beginDate);
             param.add(endDate);
-            sql += "and (SELECT COUNT(*) FROM 72crm_crm_business_change as b WHERE b.business_id = a.business_id and (b.create_time between ? and ?))>0 ";
+            sql += "and (SELECT COUNT(*) FROM lkcrm_crm_business_change as b WHERE b.business_id = a.business_id and (b.create_time between ? and ?))>0 ";
         }
         param.add(sortField);
         param.add(orderType);
@@ -222,7 +222,7 @@ public class InstrumentDao extends SimpleHibernateDao {
     }
 
    /* public List queryTargets(String[] userIds,String[] deptIds, int status, String year) {
-        String sql = "SELECT january , february , march , april , may  , june , july , august  , september , october , november , december FROM 72crm_crm_achievement\n" +
+        String sql = "SELECT january , february , march , april , may  , june , july , august  , september , october , november , december FROM lkcrm_crm_achievement\n" +
                      " WHERE year = ：year ";
         if(){}
         Map<String, Object> params = new HashMap<>();

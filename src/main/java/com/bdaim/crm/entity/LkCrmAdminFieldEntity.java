@@ -29,6 +29,7 @@ public class LkCrmAdminFieldEntity {
 
     @Id
     @Column(name = "field_id")
+    @GeneratedValue
     public Integer getFieldId() {
         return fieldId;
     }

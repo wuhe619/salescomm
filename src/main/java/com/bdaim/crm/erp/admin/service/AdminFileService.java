@@ -12,12 +12,15 @@ import com.bdaim.crm.erp.admin.entity.AdminFile;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
 import com.bdaim.util.BusinessEnum;
-import com.jfinal.aop.Before;
+import com.bdaim.util.JavaBeanUtil;
+import com.bdaim.util.NumberConvertUtil;
 import com.jfinal.config.Constants;
-import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
-import com.jfinal.plugin.activerecord.tx.Tx;
 import com.jfinal.upload.UploadFile;
+import org.apache.commons.io.FilenameUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
@@ -33,6 +36,8 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 public class AdminFileService {
+
+    private final static Logger LOG = LoggerFactory.getLogger(AdminFileService.class);
 
     @Resource
     private LkCrmAdminFileDao crmAdminFileDao;
@@ -78,7 +83,7 @@ public class AdminFileService {
         adminFile.setCreateUserId(BaseUtil.getUser().getUserId());
         CommonsMultipartResolver multipartResolver = new CommonsMultipartResolver(
                 request.getSession().getServletContext());
-        String fileName = "";
+        String fileName = "", type = "";
         if (multipartResolver.isMultipart(request)) {
             MultipartHttpServletRequest multiRequest = (MultipartHttpServletRequest) request;
             Iterator<String> iter = multiRequest.getFileNames();
@@ -86,8 +91,13 @@ public class AdminFileService {
                 MultipartFile multiRequestFile = multiRequest.getFile(iter.next());
                 if (multiRequestFile != null) {
                     fileName = uploadFileService.uploadFile(multiRequestFile, BusinessEnum.CRM, true);
-                    adminFile.setName(multiRequestFile.getName());
                     adminFile.setSize(multiRequestFile.getSize());
+                    LOG.info("原始文件名1:{}", multiRequestFile.getName());
+                    LOG.info("原始文件名2:{}", multiRequestFile.getOriginalFilename());
+                    LOG.info("getContentType:{}", multiRequestFile.getContentType());
+                    // 获取文件的扩展名
+                    type = FilenameUtils.getExtension(multiRequestFile.getOriginalFilename());
+                    adminFile.setName(multiRequestFile.getOriginalFilename());
                     break;
                 }
             }
@@ -99,7 +109,8 @@ public class AdminFileService {
         if (StrUtil.isNotBlank(fileType)) {
             adminFile.setFileType(fileType);
         }
-        return (int) crmAdminFileDao.saveReturnPk(adminFile) > 0 ? R.ok().put("batchId", batchId).put("name", fileName).put("url", adminFile.getFilePath()).put("size", adminFile.getSize() / 1000 + "KB").put("file_id", adminFile.getFileId()) : R.error();
+        adminFile.setCreateUserId(BaseUtil.getUser().getUserId());
+        return (int) crmAdminFileDao.saveReturnPk(adminFile) > 0 ? R.ok().put("batchId", batchId).put("name", adminFile.getName()).put("url", adminFile.getFilePath()).put("size", adminFile.getSize() / 1000 + "KB").put("file_id", adminFile.getFileId()) : R.error();
     }
 
     /**
@@ -141,7 +152,7 @@ public class AdminFileService {
         if (id == null) {
             return R.error("id参数为空");
         }
-        return R.ok().put("data", AdminFile.dao.findById(id));
+        return R.ok().put("data", crmAdminFileDao.get(NumberConvertUtil.parseInt(id)));
     }
 
     /**
@@ -150,18 +161,17 @@ public class AdminFileService {
      * @param id 文件ID
      */
     @SuppressWarnings("all")
-    @Before(Tx.class)
     public R removeById(String id) {
         if (id == null) {
             return R.error("id参数为空");
         }
-        AdminFile adminFile = AdminFile.dao.findById(id);
+        LkCrmAdminFileEntity adminFile = crmAdminFileDao.get(NumberConvertUtil.parseInt(id));
         if (adminFile != null) {
-            File file = new File(adminFile.getPath());
+            crmAdminFileDao.delete(adminFile);
+            /*File file = new File(adminFile.getPath());
             if (file.exists() && !file.isDirectory()) {
                 file.delete();
-                adminFile.delete();
-            }
+            }*/
         }
         return R.ok();
     }
@@ -175,13 +185,16 @@ public class AdminFileService {
         if (StrUtil.isEmpty(batchId)) {
             return;
         }
-        List<String> paths = Db.query(Db.getSql("admin.file.queryPathByBatchId"), batchId);
-
+        List<String> paths = crmAdminFileDao.queryPathByBatchId(batchId);
         paths.stream().map(File::new).filter(file -> file.exists() && !file.isDirectory()).forEach(File::delete);
-        Db.deleteById("72crm_admin_file", "batch_id", batchId);
+        crmAdminFileDao.executeUpdateSQL("delete from lkcrm_admin_file  WHERE batch_id = ?", batchId);
+        //Db.deleteById("lkcrm_admin_file", "batch_id", batchId);
     }
 
-    public boolean renameFileById(AdminFile file) {
-        return Db.update("72crm_admin_file", "file_id", file.toRecord());
+    public boolean renameFileById(LkCrmAdminFileEntity file) {
+        LkCrmAdminFileEntity adminFile = crmAdminFileDao.get(file.getFileId());
+        BeanUtils.copyProperties(file, adminFile, JavaBeanUtil.getNullPropertyNames(file));
+        crmAdminFileDao.update(adminFile);
+        return true;
     }
 }

@@ -1,10 +1,11 @@
 package com.bdaim.crm.erp.crm.controller;
 
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.common.controller.BasicAction;
 import com.bdaim.crm.common.annotation.NotNullValidate;
 import com.bdaim.crm.common.annotation.Permissions;
-import com.bdaim.crm.common.annotation.RequestBody;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
+import com.bdaim.crm.dto.LkCrmAdminRecordDTO;
 import com.bdaim.crm.entity.LkCrmAdminRecordEntity;
 import com.bdaim.crm.entity.LkCrmBusinessEntity;
 import com.bdaim.crm.erp.admin.service.AdminSceneService;
@@ -14,11 +15,8 @@ import com.bdaim.crm.erp.crm.service.CrmBusinessService;
 import com.bdaim.crm.utils.AuthUtil;
 import com.bdaim.crm.utils.R;
 import com.bdaim.util.JavaBeanUtil;
-import com.jfinal.core.Controller;
-import com.jfinal.core.paragetter.Para;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.beans.BeanUtils;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 
@@ -27,7 +25,7 @@ import javax.annotation.Resource;
  */
 @RestController
 @RequestMapping("/CrmBusiness")
-public class CrmBusinessController extends Controller {
+public class CrmBusinessController extends BasicAction {
     @Resource
     private CrmBusinessService crmBusinessService;
 
@@ -40,7 +38,8 @@ public class CrmBusinessController extends Controller {
      */
     @Permissions({"crm:business:index"})
     @RequestMapping(value = "/queryPageList", method = RequestMethod.POST)
-    public R queryPageList(@RequestBody BasePageRequest basePageRequest, @RequestBody JSONObject jsonObject) {
+    public R queryPageList(@RequestBody JSONObject jsonObject) {
+        BasePageRequest<Void> basePageRequest = new BasePageRequest<>(jsonObject.getIntValue("page"),jsonObject.getIntValue("limit"));
         //JSONObject jsonObject = basePageRequest.getJsonObject().fluentPut("type",5);
         jsonObject.fluentPut("type", 5);
         basePageRequest.setJsonObject(jsonObject);
@@ -74,7 +73,7 @@ public class CrmBusinessController extends Controller {
     @Permissions("crm:business:read")
     @NotNullValidate(value = "businessId", message = "商机id不能为空")
     @RequestMapping(value = "/queryById", method = RequestMethod.POST)
-    public R queryById(@Para("businessId") Integer businessId) {
+    public R queryById(@RequestParam("businessId") Integer businessId) {
         return (crmBusinessService.queryById(businessId));
     }
 
@@ -84,7 +83,7 @@ public class CrmBusinessController extends Controller {
      */
     @NotNullValidate(value = "name", message = "名称不能为空")
     @RequestMapping(value = "/queryByName", method = RequestMethod.POST)
-    public R queryByName(@Para("name") String name) {
+    public R queryByName(@RequestParam("name") String name) {
         return (R.ok().put("data", crmBusinessService.queryByName(name).getColumns()));
     }
 
@@ -133,7 +132,7 @@ public class CrmBusinessController extends Controller {
      * 商机关联联系人
      */
     @RequestMapping(value = "/relateContacts", method = RequestMethod.POST)
-    public R relateContacts(@Para("businessId") Integer businessId, @Para("contactsIds") String contactsIds) {
+    public R relateContacts(@RequestParam("businessId") Integer businessId, @RequestParam("contactsIds") String contactsIds) {
         return(crmBusinessService.relateContacts(businessId, contactsIds));
     }
 
@@ -142,7 +141,7 @@ public class CrmBusinessController extends Controller {
      * 商机解除关联联系人
      */
     @RequestMapping(value = "/unrelateContacts", method = RequestMethod.POST)
-    public R unrelateContacts(@Para("businessId") Integer businessId, @Para("contactsIds") String contactsIds) {
+    public R unrelateContacts(@RequestParam("businessId") Integer businessId, @RequestParam("contactsIds") String contactsIds) {
         return(crmBusinessService.unrelateContacts(businessId, contactsIds));
     }
 
@@ -153,7 +152,7 @@ public class CrmBusinessController extends Controller {
     @Permissions("crm:business:delete")
     @NotNullValidate(value = "businessIds", message = "商机id不能为空")
     @RequestMapping(value = "/deleteByIds", method = RequestMethod.POST)
-    public R deleteByIds(@Para("businessIds") String businessIds) {
+    public R deleteByIds(@RequestParam("businessIds") String businessIds) {
         return(crmBusinessService.deleteByIds(businessIds));
     }
 
@@ -166,7 +165,7 @@ public class CrmBusinessController extends Controller {
     @NotNullValidate(value = "newOwnerUserId", message = "负责人id不能为空")
     @NotNullValidate(value = "transferType", message = "移除方式不能为空")
     @RequestMapping(value = "/transfer", method = RequestMethod.POST)
-    public R transfer(@Para("") LkCrmBusinessEntity crmBusiness) {
+    public R transfer(LkCrmBusinessEntity crmBusiness) {
         return(crmBusinessService.transfer(crmBusiness));
     }
 
@@ -176,13 +175,13 @@ public class CrmBusinessController extends Controller {
      */
     @NotNullValidate(value = "businessId", message = "商机id不能为空")
     @RequestMapping(value = "/getMembers", method = RequestMethod.POST)
-    public R getMembers(@Para("businessId") Integer businessId) {
+    public R getMembers(@RequestParam("businessId") Integer businessId) {
         boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.BUSINESS_TYPE_KEY.getSign()), businessId);
         if (auth) {
             return(R.noAuth());
             //return;
         }
-        return(R.ok().put("data", JavaBeanUtil.recordToMap(crmBusinessService.getMembers(businessId))));
+        return(R.ok().put("data", crmBusinessService.getMembers(businessId)));
     }
 
     /**
@@ -194,7 +193,7 @@ public class CrmBusinessController extends Controller {
     @NotNullValidate(value = "memberIds", message = "成员id不能为空")
     @NotNullValidate(value = "power", message = "读写权限不能为空")
     @RequestMapping(value = "/addMembers", method = RequestMethod.POST)
-    public R addMembers(@Para("") CrmBusiness crmBusiness) {
+    public R addMembers(CrmBusiness crmBusiness) {
         return(crmBusinessService.addMember(crmBusiness));
     }
 
@@ -206,7 +205,7 @@ public class CrmBusinessController extends Controller {
     @NotNullValidate(value = "memberIds", message = "成员id不能为空")
     @NotNullValidate(value = "power", message = "读写权限不能为空")
     @RequestMapping(value = "/updateMembers", method = RequestMethod.POST)
-    public R updateMembers(@Para("") CrmBusiness crmBusiness) {
+    public R updateMembers(CrmBusiness crmBusiness) {
         return(crmBusinessService.addMember(crmBusiness));
     }
 
@@ -217,7 +216,7 @@ public class CrmBusinessController extends Controller {
     @NotNullValidate(value = "ids", message = "商机id不能为空")
     @NotNullValidate(value = "memberIds", message = "成员id不能为空")
     @RequestMapping(value = "/deleteMembers", method = RequestMethod.POST)
-    public R deleteMembers(@Para("") CrmBusiness crmBusiness) {
+    public R deleteMembers(CrmBusiness crmBusiness) {
         return(crmBusinessService.deleteMembers(crmBusiness));
     }
 
@@ -226,7 +225,7 @@ public class CrmBusinessController extends Controller {
      */
     @NotNullValidate(value = "businessId", message = "商机id不能为空")
     @RequestMapping(value = "/queryBusinessStatus", method = RequestMethod.POST)
-    public R queryBusinessStatus(@Para("businessId") Integer businessId) {
+    public R queryBusinessStatus(@RequestParam("businessId") Integer businessId) {
         boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.BUSINESS_TYPE_KEY.getSign()), businessId);
         if (auth) {
             return(R.noAuth());
@@ -241,7 +240,7 @@ public class CrmBusinessController extends Controller {
      */
     @NotNullValidate(value = "businessId", message = "商机id不能为空")
     @RequestMapping(value = "/boostBusinessStatus", method = RequestMethod.POST)
-    public R boostBusinessStatus(@Para("") LkCrmBusinessEntity crmBusiness) {
+    public R boostBusinessStatus(LkCrmBusinessEntity crmBusiness) {
         boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.BUSINESS_TYPE_KEY.getSign()), crmBusiness.getBusinessId());
         if (auth) {
             return(R.noAuth());
@@ -267,13 +266,15 @@ public class CrmBusinessController extends Controller {
     @NotNullValidate(value = "content", message = "内容不能为空")
     @NotNullValidate(value = "category", message = "跟进类型不能为空")
     @RequestMapping(value = "/addRecord", method = RequestMethod.POST)
-    public R addRecord(@Para("") LkCrmAdminRecordEntity adminRecord) {
+    public R addRecord(LkCrmAdminRecordDTO adminRecord) {
         boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.BUSINESS_TYPE_KEY.getSign()), adminRecord.getTypesId());
         if (auth) {
             return(R.noAuth());
             //return;
         }
-        return(crmBusinessService.addRecord(adminRecord));
+        LkCrmAdminRecordEntity lkCrmAdminRecordEntity = new LkCrmAdminRecordEntity();
+        BeanUtils.copyProperties(adminRecord, lkCrmAdminRecordEntity, JavaBeanUtil.getNullPropertyNames(adminRecord));
+        return(crmBusinessService.addRecord(lkCrmAdminRecordEntity));
     }
 
     /**
@@ -281,8 +282,9 @@ public class CrmBusinessController extends Controller {
      * 查看跟进记录
      */
     @RequestMapping(value = "/getRecord", method = RequestMethod.POST)
-    public R getRecord(BasePageRequest<CrmBusiness> basePageRequest) {
-        boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.BUSINESS_TYPE_KEY.getSign()), basePageRequest.getData().getBusinessId());
+    public R getRecord(BasePageRequest basePageRequest, CrmBusiness crmBusiness) {
+        basePageRequest.setData(crmBusiness);
+        boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.BUSINESS_TYPE_KEY.getSign()), crmBusiness.getBusinessId());
         if (auth) {
             return(R.noAuth());
             //return;

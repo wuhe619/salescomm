@@ -3,6 +3,7 @@ package com.bdaim.crm.erp.oa.controller;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.crm.utils.R;
 import com.jfinal.aop.Inject;
 import com.jfinal.core.Controller;
 import com.bdaim.crm.common.annotation.Permissions;
@@ -11,6 +12,8 @@ import com.bdaim.crm.erp.oa.entity.OaExamineCategory;
 import com.bdaim.crm.erp.oa.entity.OaExamineStep;
 import com.bdaim.crm.erp.oa.service.OaExamineCategoryService;
 import com.bdaim.crm.utils.TagUtil;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
@@ -24,6 +27,8 @@ import java.util.List;
  *
  * @author hmb
  */
+@RestController
+@RequestMapping(value = "/OaExamineCategory")
 public class OaExamineCategoryController extends Controller {
 
     @Resource
@@ -34,8 +39,9 @@ public class OaExamineCategoryController extends Controller {
      *
      * @author hmb
      */
+    @RequestMapping(value = "/setExamineCategory")
     @Permissions("manage:oa")
-    public void setExamineCategory() {
+    public R setExamineCategory() {
         JSONObject jsonObject = JSON.parseObject(getRawData());
         OaExamineCategory oaExamineCategory = new OaExamineCategory();
         List<OaExamineStep> oaExamineSteps = new ArrayList<>();
@@ -64,7 +70,8 @@ public class OaExamineCategoryController extends Controller {
             oaExamineStep.setStepType(jsonObject1.getInteger("stepType"));
             oaExamineSteps.add(oaExamineStep);
         }
-        renderJson(oaExamineCategoryService.setExamineCategory(oaExamineCategory, oaExamineSteps));
+//        renderJson(oaExamineCategoryService.setExamineCategory(oaExamineCategory, oaExamineSteps));
+        return oaExamineCategoryService.setExamineCategory(oaExamineCategory, oaExamineSteps);
     }
 
     /**
@@ -73,8 +80,10 @@ public class OaExamineCategoryController extends Controller {
      * @param basePageRequest 分页对象
      * @author hmb
      */
-    public void queryExamineCategoryList(BasePageRequest<Void> basePageRequest) {
-        renderJson(oaExamineCategoryService.queryExamineCategoryList(basePageRequest));
+    @RequestMapping(value = "/queryExamineCategoryList")
+    public R queryExamineCategoryList(BasePageRequest<Void> basePageRequest) {
+//        renderJson(oaExamineCategoryService.queryExamineCategoryList(basePageRequest));
+        return oaExamineCategoryService.queryExamineCategoryList(basePageRequest);
     }
 
     /**
@@ -82,8 +91,10 @@ public class OaExamineCategoryController extends Controller {
      *
      * @author hmb
      */
-    public void queryAllExamineCategoryList() {
-        renderJson(oaExamineCategoryService.queryAllExamineCategoryList());
+    @RequestMapping(value = "/queryAllExamineCategoryList")
+    public R queryAllExamineCategoryList() {
+//        renderJson(oaExamineCategoryService.queryAllExamineCategoryList());
+        return oaExamineCategoryService.queryAllExamineCategoryList();
     }
 
 
@@ -92,10 +103,12 @@ public class OaExamineCategoryController extends Controller {
      *
      * @author hmb
      */
+    @RequestMapping(value = "/deleteExamineCategory")
     @Permissions("manage:oa")
-    public void deleteExamineCategory() {
+    public R deleteExamineCategory() {
         String id = getPara("id");
-        renderJson(oaExamineCategoryService.deleteExamineCategory(id));
+//        renderJson(oaExamineCategoryService.deleteExamineCategory(id));
+        return oaExamineCategoryService.deleteExamineCategory(id);
     }
 
 
@@ -104,8 +117,10 @@ public class OaExamineCategoryController extends Controller {
      *
      * @author hmb
      */
-    public void queryUserList() {
-        renderJson(oaExamineCategoryService.queryUserList());
+    @RequestMapping(value = "/queryUserList")
+    public R queryUserList() {
+//        renderJson(oaExamineCategoryService.queryUserList());
+        return oaExamineCategoryService.queryUserList();
     }
 
     /**
@@ -113,8 +128,10 @@ public class OaExamineCategoryController extends Controller {
      *
      * @author hmb
      */
-    public void queryDeptList() {
-        renderJson(oaExamineCategoryService.queryDeptList());
+    @RequestMapping(value = "/queryDeptList")
+    public R queryDeptList() {
+//        renderJson(oaExamineCategoryService.queryDeptList());
+        return oaExamineCategoryService.queryDeptList();
     }
 
     /**
@@ -122,18 +139,22 @@ public class OaExamineCategoryController extends Controller {
      *
      * @author hmb
      */
-    public void queryExamineCategoryById() {
+    @RequestMapping(value = "/queryExamineCategoryById")
+    public R queryExamineCategoryById() {
         String id = getPara("id");
-        renderJson(oaExamineCategoryService.queryExamineCategoryById(id));
+//        renderJson(oaExamineCategoryService.queryExamineCategoryById(id));
+        return oaExamineCategoryService.queryExamineCategoryById(id);
     }
 
     /**
      * 启用/禁用
      */
+    @RequestMapping(value = "/updateStatus")
     @Permissions("manage:oa")
-    public void updateStatus() {
+    public R updateStatus() {
         String id = getPara("id");
-        renderJson(oaExamineCategoryService.updateStatus(id));
+//        renderJson(oaExamineCategoryService.updateStatus(id));
+        return oaExamineCategoryService.updateStatus(id);
     }
 
 

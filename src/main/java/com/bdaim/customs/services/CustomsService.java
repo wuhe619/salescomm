@@ -1345,8 +1345,8 @@ public class CustomsService {
             json.put("changzhan_status", data.getString("code"));
         }
         if (hBusiDataManager != null) {
-            String updateSql = " update " + HMetaDataDef.getTable(BusiTypeEnum.BF.getType(), "") + " set content=? ,ext_2='" + data.getString("code") + "' where id=" + hBusiDataManager.getId();
-            jdbcTemplate.update(updateSql, json.toJSONString());
+            String updateSql = " update " + HMetaDataDef.getTable(BusiTypeEnum.BF.getType(), "") + " set content=? ,ext_2='" + data.getString("code") + "' where id=" + hBusiDataManager.getId() +"and type=?";
+            jdbcTemplate.update(updateSql, json.toJSONString(),BusiTypeEnum.BF.getType());
 
             if ("-1".equals(data.getString("code"))) {
                 String sql = "insert into h_customer_msg(`cust_id`,`cust_user_id`,`content`,`create_time`,`status`,`level`,`msg_type`)" +

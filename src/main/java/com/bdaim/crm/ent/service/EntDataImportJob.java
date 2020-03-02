@@ -4,14 +4,11 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 
 @Component
@@ -40,7 +37,7 @@ public class EntDataImportJob {
         public void run() {
             while (true) {
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
-                String path = "D:\\已处理\\" + formatter.format(LocalDateTime.now())+"\\";
+                String path = "G:\\已处理\\" + formatter.format(LocalDateTime.now())+"\\";
                 File d = new File(path);
                 if (!d.exists()) {
                     d.mkdirs();
@@ -61,7 +58,7 @@ public class EntDataImportJob {
                     }
                 }
                 try {
-                    Thread.sleep(1000 * 300);
+                    Thread.sleep(1000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }

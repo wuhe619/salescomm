@@ -47,6 +47,7 @@ import com.jfinal.upload.UploadFile;
 import org.hibernate.HibernateException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -868,7 +869,9 @@ public class CrmLeadsService {
      */
     @Before(Tx.class)
     public R addOrUpdate(JSONObject object) {
-        LkCrmLeadsEntity crmLeads = object.getObject("entity", LkCrmLeadsEntity.class);
+        CrmLeads entity = object.getObject("entity", CrmLeads.class);
+        LkCrmLeadsEntity crmLeads =new LkCrmLeadsEntity();
+        BeanUtils.copyProperties(entity, crmLeads);
         crmLeads.setCustId(BaseUtil.getUser().getCustId());
         String batchId = StrUtil.isNotEmpty(crmLeads.getBatchId()) ? crmLeads.getBatchId() : IdUtil.simpleUUID();
         crmRecordService.updateRecord(object.getJSONArray("field"), batchId);
@@ -879,7 +882,7 @@ public class CrmLeadsService {
             crmRecordService.updateRecord(crmLeadsDao.get(crmLeads.getLeadsId()), crmLeads, CrmEnum.LEADS_TYPE_KEY.getTypes());
             //return crmLeads.update() ? R.ok() : R.error();
             LkCrmLeadsEntity crmLeadsDb = crmLeadsDao.get(crmLeads.getLeadsId());
-            BeanUtil.copyProperties(crmLeads, crmLeadsDb, "batchId", "createUserId", "createTime", "ownerUserId");
+            BeanUtils.copyProperties(crmLeads, crmLeadsDb, JavaBeanUtil.getNullPropertyNames(crmLeads));
             crmLeadsDao.saveOrUpdate(crmLeadsDb);
             return R.ok();
         } else {
@@ -1145,7 +1148,9 @@ public class CrmLeadsService {
             crmTaskEntity.setCreateUserId(adminRecord.getCreateUserId());
             crmTaskEntity.setMainUserId(adminRecord.getCreateUserId());
             crmTaskEntity.setStartTime(adminRecord.getNextTime());
-            crmTaskEntity.setStopTime(DateUtil.offsetDay(adminRecord.getNextTime(), 1).toTimestamp());
+            if (adminRecord.getNextTime() != null) {
+                crmTaskEntity.setStopTime(DateUtil.offsetDay(adminRecord.getNextTime(), 1).toTimestamp());
+            }
             //完成状态 1正在进行2延期3归档 5结束
             crmTaskEntity.setStatus(1);
             crmTaskEntity.setCreateTime(DateUtil.date().toTimestamp());

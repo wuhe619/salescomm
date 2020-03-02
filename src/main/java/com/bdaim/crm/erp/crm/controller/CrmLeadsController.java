@@ -1,6 +1,5 @@
 package com.bdaim.crm.erp.crm.controller;
 
-import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.NumberUtil;
@@ -38,7 +37,6 @@ import com.bdaim.util.JavaBeanUtil;
 import com.bdaim.util.MD5Util;
 import com.bdaim.util.StringUtil;
 import com.jfinal.aop.Before;
-import com.jfinal.core.paragetter.Para;
 import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.tx.Tx;
 import org.apache.poi.hssf.usermodel.*;
@@ -47,6 +45,7 @@ import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.ss.util.CellRangeAddressList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
@@ -85,8 +84,8 @@ public class CrmLeadsController extends BasicAction {
     /**
      * 公海内线索分页
      *
-     * @param seaId
-     * @param jsonObject
+     * @RequestParamm seaId
+     * @RequestParamm jsonObject
      * @return
      */
     @RequestMapping(value = "/page/cluesea/{seaId}", method = RequestMethod.POST)
@@ -107,7 +106,7 @@ public class CrmLeadsController extends BasicAction {
     /**
      * 添加线索
      *
-     * @param jsonO
+     * @RequestParamm jsonO
      * @return
      */
     @RequestMapping(value = "/cluesea/addClueData", method = RequestMethod.POST)
@@ -160,7 +159,7 @@ public class CrmLeadsController extends BasicAction {
     /**
      * 编辑线索
      *
-     * @param jsonO
+     * @RequestParamm jsonO
      * @return
      */
     @RequestMapping(value = "/cluesea/updateClueData", method = RequestMethod.POST)
@@ -231,7 +230,7 @@ public class CrmLeadsController extends BasicAction {
     /**
      * 公海线索状态修改
      *
-     * @param jsonObject
+     * @RequestParamm jsonObject
      * @return
      */
     @RequestMapping(value = "/cluesea/updateClueStatus", method = RequestMethod.POST)
@@ -264,7 +263,7 @@ public class CrmLeadsController extends BasicAction {
     /**
      * 线索分配
      *
-     * @param jsonObject
+     * @RequestParamm jsonObject
      * @return
      */
     @RequestMapping(value = "/cluesea/distributionClue", method = RequestMethod.POST)
@@ -317,7 +316,7 @@ public class CrmLeadsController extends BasicAction {
     /**
      * 查询公海下坐席可领取线索量
      *
-     * @param param
+     * @RequestParamm param
      * @return
      */
     @RequestMapping(value = "/cluesea/selectUserGetQuantity", method = RequestMethod.POST)
@@ -340,9 +339,9 @@ public class CrmLeadsController extends BasicAction {
     @RequestMapping(value = "/deleteFiled", method = RequestMethod.POST)
     public ResponseJson deleteFiled(@RequestBody CustomerSeaSearch param) {
         ResponseJson responseJson = new ResponseJson();
-        String sql = "ALTER TABLE `lkcrm_crm_leads` ADD COLUMN `sea_id`  varchar(32) NULL AFTER `batch_id`;";
+        String sql = "INSERT INTO `lkcrm_crm_business_status` (`status_id`, `type_id`, `name`, `rate`, `order_num`) VALUES ('1', '1', '验证客户', '20', '1'),('2', '1', '需求分析', '30', '2'),('3', '1', '方案/报价', '80', '3');";
         int data = crmAdminFieldDao.executeUpdateSQL(sql);
-        sql = "UPDATE lkcrm_crm_leads SET sea_id = 140 ";
+        sql = "INSERT INTO `lkcrm_crm_business_type` (`type_id`, `name`, `dept_ids`, `create_user_id`, `create_time`, `update_time`, `status`) VALUES ('1', '默认商机组', '', '3', '2019-05-11 16:25:09', NULL, '1');";
         data = crmAdminFieldDao.executeUpdateSQL(sql);
         responseJson.setData(data);
         return responseJson;
@@ -391,7 +390,7 @@ public class CrmLeadsController extends BasicAction {
     @Permissions("crm:leads:read")
     @NotNullValidate(value = "leadsId", message = "线索id不能为空")
     @RequestMapping(value = "/queryById", method = RequestMethod.POST)
-    public R queryById(@Para("leadsId") Integer leadsId) {
+    public R queryById(@RequestParam("leadsId") Integer leadsId) {
         return (R.ok().put("data", crmLeadsService.queryById(leadsId)));
     }
 
@@ -400,7 +399,7 @@ public class CrmLeadsController extends BasicAction {
      * 根据线索名称查询
      */
     @RequestMapping(value = "/queryByName")
-    public R queryByName(@Para("name") String name) {
+    public R queryByName(@RequestParam("name") String name) {
         return (R.ok().put("data", crmLeadsService.queryByName(name)));
     }
 
@@ -411,7 +410,7 @@ public class CrmLeadsController extends BasicAction {
     @Permissions("crm:leads:delete")
     @NotNullValidate(value = "leadsIds", message = "线索id不能为空")
     @RequestMapping(value = "/deleteByIds", method = RequestMethod.POST)
-    public R deleteByIds(@Para("leadsIds") String leadsIds) {
+    public R deleteByIds(@RequestParam("leadsIds") String leadsIds) {
         return (crmLeadsService.deleteByIds(leadsIds));
     }
 
@@ -423,7 +422,7 @@ public class CrmLeadsController extends BasicAction {
     @NotNullValidate(value = "leadsIds", message = "线索id不能为空")
     @NotNullValidate(value = "newOwnerUserId", message = "新负责人id不能为空")
     @RequestMapping(value = "/changeOwnerUser", method = RequestMethod.POST)
-    public R changeOwnerUser(@Para("leadsIds") String leadsIds, @Para("newOwnerUserId") Long newOwnerUserId) {
+    public R changeOwnerUser(@RequestParam("leadsIds") String leadsIds, @RequestParam("newOwnerUserId") Long newOwnerUserId) {
         return (crmLeadsService.updateOwnerUserId(leadsIds, newOwnerUserId));
     }
 
@@ -434,7 +433,7 @@ public class CrmLeadsController extends BasicAction {
     @Permissions("crm:leads:transform")
     @NotNullValidate(value = "leadsIds", message = "线索id不能为空")
     @RequestMapping(value = "/transfer", method = RequestMethod.POST)
-    public R transfer(@Para("leadsIds") String leadsIds) {
+    public R transfer(@RequestParam("leadsIds") String leadsIds) {
         return (crmLeadsService.translate(leadsIds));
     }
 
@@ -451,7 +450,7 @@ public class CrmLeadsController extends BasicAction {
     @NotNullValidate(value = "content", message = "内容不能为空")
     @NotNullValidate(value = "category", message = "跟进类型不能为空")
     @RequestMapping(value = "/addRecord", method = RequestMethod.POST)
-    public R addRecord(@Para("") LkCrmAdminRecordDTO adminRecord) {
+    public R addRecord(@RequestParam("") LkCrmAdminRecordDTO adminRecord) {
         String sign = CrmEnum.LEADS_TYPE_KEY.getSign();
         String typesId = adminRecord.getTypesId();
         if (StringUtil.isNotEmpty(adminRecord.getSeaId())) {
@@ -464,7 +463,7 @@ public class CrmLeadsController extends BasicAction {
             //return;
         }
         LkCrmAdminRecordEntity lkCrmAdminRecordEntity = new LkCrmAdminRecordEntity();
-        BeanUtil.copyProperties(adminRecord, lkCrmAdminRecordEntity);
+        BeanUtils.copyProperties(adminRecord, lkCrmAdminRecordEntity, JavaBeanUtil.getNullPropertyNames(adminRecord));
         return (crmLeadsService.addRecord(lkCrmAdminRecordEntity));
     }
 
@@ -485,9 +484,9 @@ public class CrmLeadsController extends BasicAction {
     /**
      * 代办事项列表
      *
-     * @param basePageRequest
-     * @param taskStatus
-     * @param leadsId
+     * @RequestParamm basePageRequest
+     * @RequestParamm taskStatus
+     * @RequestParamm leadsId
      * @return
      */
     @RequestMapping(value = "/agency/list", method = RequestMethod.POST)
@@ -561,9 +560,9 @@ public class CrmLeadsController extends BasicAction {
     /**
      * 线索私海导出
      *
-     * @param recordList
-     * @param response
-     * @param label
+     * @RequestParamm recordList
+     * @RequestParamm response
+     * @RequestParamm label
      * @throws IOException
      */
     private void export(List<Record> recordList, HttpServletResponse response, String label) throws IOException {
@@ -625,9 +624,9 @@ public class CrmLeadsController extends BasicAction {
     /**
      * 线索公海导出
      *
-     * @param recordList
-     * @param response
-     * @param label
+     * @RequestParamm recordList
+     * @RequestParamm response
+     * @RequestParamm label
      * @throws IOException
      */
     private void exportPublicSea(List<Record> recordList, HttpServletResponse response, String label) throws IOException {

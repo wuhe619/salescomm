@@ -1,7 +1,7 @@
 package com.bdaim.crm.erp.crm.controller;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.common.controller.BasicAction;
 import com.bdaim.crm.common.annotation.NotNullValidate;
 import com.bdaim.crm.common.annotation.Permissions;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
@@ -9,11 +9,7 @@ import com.bdaim.crm.erp.admin.service.AdminSceneService;
 import com.bdaim.crm.erp.crm.entity.CrmReceivables;
 import com.bdaim.crm.erp.crm.service.CrmReceivablesService;
 import com.bdaim.crm.utils.R;
-import com.jfinal.core.Controller;
-import com.jfinal.core.paragetter.Para;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 
@@ -22,7 +18,7 @@ import javax.annotation.Resource;
  */
 @RestController
 @RequestMapping("/CrmReceivables")
-public class CrmReceivablesController extends Controller {
+public class CrmReceivablesController extends BasicAction {
 
     @Resource
     private CrmReceivablesService crmReceivablesService;
@@ -36,8 +32,9 @@ public class CrmReceivablesController extends Controller {
      */
     @Permissions({"crm:receivables:index"})
     @RequestMapping(value = "queryPageList", method = RequestMethod.POST)
-    public R queryPageList(BasePageRequest basePageRequest) {
-        JSONObject jsonObject = basePageRequest.getJsonObject().fluentPut("type", 7);
+    public R queryPageList(@RequestBody JSONObject jsonObject) {
+        BasePageRequest<Void> basePageRequest = new BasePageRequest<>(jsonObject.getIntValue("page"),jsonObject.getIntValue("limit"));
+        jsonObject.fluentPut("type", 7);
         basePageRequest.setJsonObject(jsonObject);
         return (adminSceneService.filterConditionAndGetPageList(basePageRequest));
     }
@@ -57,8 +54,8 @@ public class CrmReceivablesController extends Controller {
      */
     @Permissions({"crm:receivables:save", "crm:receivables:update"})
     @RequestMapping(value = "saveOrUpdate", method = RequestMethod.POST)
-    public R saveOrUpdate() {
-        JSONObject jsonObject = JSON.parseObject(getRawData());
+    public R saveOrUpdate(@RequestBody JSONObject jsonObject) {
+        //JSONObject jsonObject = JSON.parseObject(getRawData());
         return (crmReceivablesService.saveOrUpdate(jsonObject));
     }
 
@@ -69,7 +66,7 @@ public class CrmReceivablesController extends Controller {
     @Permissions("crm:receivables:read")
     @NotNullValidate(value = "receivablesId", message = "回款id不能为空")
     @RequestMapping(value = "queryById", method = RequestMethod.POST)
-    public R queryById(@Para("receivablesId") Integer receivablesId) {
+    public R queryById(@RequestParam("receivablesId") Integer receivablesId) {
         return (crmReceivablesService.queryById(receivablesId));
     }
 
@@ -80,7 +77,7 @@ public class CrmReceivablesController extends Controller {
     @Permissions("crm:receivables:delete")
     @NotNullValidate(value = "receivablesIds", message = "回款id不能为空")
     @RequestMapping(value = "deleteByIds", method = RequestMethod.POST)
-    public R deleteByIds(@Para("receivablesIds") String receivablesIds) {
+    public R deleteByIds(@RequestParam("receivablesIds") String receivablesIds) {
         return (crmReceivablesService.deleteByIds(receivablesIds));
     }
 
@@ -90,7 +87,7 @@ public class CrmReceivablesController extends Controller {
      * @author zxy
      */
     @RequestMapping(value = "queryListByType", method = RequestMethod.POST)
-    public R queryListByType(@Para("type") String type, @Para("id") Integer id) {
+    public R queryListByType(@RequestParam("type") String type, @RequestParam("id") Integer id) {
         return (R.ok().put("data", crmReceivablesService.queryListByType(type, id)));
     }
 
@@ -100,7 +97,7 @@ public class CrmReceivablesController extends Controller {
      * @author zxy
      */
     @RequestMapping(value = "queryList", method = RequestMethod.POST)
-    public R queryList(@Para("") CrmReceivables receivables) {
+    public R queryList(CrmReceivables receivables) {
         return (R.ok().put("data", crmReceivablesService.queryList(receivables)));
     }
 }

@@ -400,6 +400,10 @@ public class BasicAction {
         return (R.ok().put("data", JSON.parse(json.toJson(object))));
     }
 
+    public String get(String name) {
+        return this.request.getParameter(name);
+    }
+
     public String getPara(String name) {
         return this.request.getParameter(name);
     }
@@ -408,6 +412,15 @@ public class BasicAction {
         return NumberConvertUtil.parseInt(getPara(name));
     }
 
+
+    public Integer getInt(String name) {
+        return NumberConvertUtil.parseInt(getPara(name));
+    }
+
+
+    public Long getLong(String name) {
+        return NumberConvertUtil.parseLong(getPara(name));
+    }
 
 
 }

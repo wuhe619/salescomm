@@ -1,14 +1,14 @@
 package com.bdaim.crm.erp.crm.controller;
 
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.common.controller.BasicAction;
 import com.bdaim.crm.common.annotation.RequestBody;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.erp.crm.service.CrmBackLogService;
 import com.bdaim.crm.utils.R;
-import com.jfinal.core.Controller;
-import com.jfinal.core.paragetter.Para;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
@@ -18,7 +18,7 @@ import javax.annotation.Resource;
  */
 @RestController
 @RequestMapping("/CrmBackLog")
-public class CrmBackLogController extends Controller {
+public class CrmBackLogController extends BasicAction {
     @Resource
     CrmBackLogService crmBackLogService;
 
@@ -43,7 +43,7 @@ public class CrmBackLogController extends Controller {
      * 标记线索为已跟进
      */
     @RequestMapping(value = "/setLeadsFollowup", method = RequestMethod.POST)
-    public R setLeadsFollowup(@Para("ids") String ids){
+    public R setLeadsFollowup(@RequestParam("ids") String ids){
         return(crmBackLogService.setLeadsFollowup(ids));
     }
 
@@ -60,7 +60,7 @@ public class CrmBackLogController extends Controller {
      * 标记客户为已跟进
      */
     @RequestMapping(value = "/setCustomerFollowup", method = RequestMethod.POST)
-    public R setCustomerFollowup(@Para("ids") String ids){
+    public R setCustomerFollowup(@RequestParam("ids") String ids){
         return(crmBackLogService.setCustomerFollowup(ids));
     }
 

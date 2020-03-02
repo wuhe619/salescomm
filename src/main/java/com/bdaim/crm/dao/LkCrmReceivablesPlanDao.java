@@ -19,8 +19,7 @@ public class LkCrmReceivablesPlanDao extends SimpleHibernateDao<LkCrmReceivables
 
     public List<Map<String, Object>> queryListByContractId(int contract_id) {
         String sql = " select scrp.plan_id,  scrp.num,scc.customer_name ,scco.num as contract_num ,scrp.remind,\n" +
-                "     scrp.money,scrp.return_date,return_type,\n" +
-                "     scrp.remind,scrp.remark\n" +
+                "     scrp.money,scrp.return_date,return_type, scrp.remark\n" +
                 "                     from lkcrm_crm_receivables_plan as scrp\n" +
                 "                    LEFT JOIN lkcrm_crm_customer as scc on scc.customer_id = scrp.customer_id\n" +
                 "                     LEFT JOIN lkcrm_crm_contract as scco on scco.contract_id = scrp.contract_id\n" +
@@ -31,7 +30,7 @@ public class LkCrmReceivablesPlanDao extends SimpleHibernateDao<LkCrmReceivables
     public Page pageListByContractId(int pageNum, int pageSize, int contract_id) {
         String sql = " select scrp.plan_id,  scrp.num,scc.customer_name ,scco.num as contract_num ,scrp.remind,\n" +
                 "     scrp.money,scrp.return_date,return_type,\n" +
-                "     scrp.remind,scrp.remark\n" +
+                "     scrp.remark\n" +
                 "                     from lkcrm_crm_receivables_plan as scrp\n" +
                 "                    LEFT JOIN lkcrm_crm_customer as scc on scc.customer_id = scrp.customer_id\n" +
                 "                     LEFT JOIN lkcrm_crm_contract as scco on scco.contract_id = scrp.contract_id\n" +
@@ -46,12 +45,12 @@ public class LkCrmReceivablesPlanDao extends SimpleHibernateDao<LkCrmReceivables
 
     public LkCrmReceivablesPlanEntity queryByContractId(int contract_id) {
         String sql = " SELECT * FROM lkcrm_crm_receivables_plan where contract_id = ? order by num desc limit 0,1 ";
-        List<LkCrmReceivablesPlanEntity> list = super.queryListBySql(sql, LkCrmReceivablesPlanEntity.class);
+        List<LkCrmReceivablesPlanEntity> list = super.queryListBySql(sql, LkCrmReceivablesPlanEntity.class, contract_id);
         return list.size() > 0 ? list.get(0) : null;
     }
 
-    public int deleteByIds(List receivablesIds) {
-        String sql = "delete from lkcrm_crm_receivables_plan where receivables_id IN (" + SqlAppendUtil.sqlAppendWhereIn(receivablesIds) + ")";
+    public int deleteByIds(List planIds) {
+        String sql = "delete from lkcrm_crm_receivables_plan where plan_id IN (" + SqlAppendUtil.sqlAppendWhereIn(planIds) + ")";
         return super.executeUpdateSQL(sql);
     }
 

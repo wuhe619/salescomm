@@ -1,6 +1,8 @@
 package com.bdaim.crm.utils;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.bdaim.crm.common.config.json.ErpJsonFactory;
 import com.jfinal.json.Json;
 
@@ -55,9 +57,36 @@ public class R extends LinkedHashMap<String, Object> implements Serializable {
         return new R();
     }
 
+    private Object handleLongValue(Object value) {
+        if (value instanceof JSONObject) {
+            JSONObject v = ((JSONObject) value);
+            for (Map.Entry<String, Object> k : v.entrySet()) {
+                if (v.get(k.getKey()) instanceof Long) {
+                    v.put(k.getKey(), String.valueOf(v.get(k.getKey())));
+                }
+            }
+            return v;
+        } else if (value instanceof JSONArray) {
+            JSONArray list = ((JSONArray) value);
+            for (int i = 0; i < list.size(); i++) {
+                if (list.get(i) instanceof JSONObject) {
+                    JSONObject v = list.getJSONObject(i);
+                    for (Map.Entry<String, Object> k : v.entrySet()) {
+                        if (v.get(k.getKey()) instanceof Long) {
+                            v.put(k.getKey(), String.valueOf(v.get(k.getKey())));
+                        }
+                    }
+                }
+            }
+            return list;
+        }
+        return null;
+    }
+
     @Override
     public R put(String key, Object value) {
-		value = JSON.parse(json.toJson(value));
+        value = JSON.parse(json.toJson(value));
+        handleLongValue(value);
         super.put(key, value);
         return this;
     }

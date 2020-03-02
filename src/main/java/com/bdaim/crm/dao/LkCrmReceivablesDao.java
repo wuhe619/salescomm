@@ -3,6 +3,7 @@ package com.bdaim.crm.dao;
 import com.bdaim.common.dao.SimpleHibernateDao;
 import com.bdaim.common.dto.Page;
 import com.bdaim.crm.entity.LkCrmReceivablesEntity;
+import com.bdaim.util.SqlAppendUtil;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -12,7 +13,7 @@ import java.util.Map;
 public class LkCrmReceivablesDao extends SimpleHibernateDao<LkCrmReceivablesEntity, Integer> {
 
     public List<LkCrmReceivablesEntity> queryReceivablesByContractIds(List contract_id) {
-        return super.queryListBySql(" select * from lkcrm_crm_receivables where contract_id in (?)", LkCrmReceivablesEntity.class, contract_id);
+        return super.queryListBySql(" select * from lkcrm_crm_receivables where contract_id in (" + SqlAppendUtil.sqlAppendWhereIn(contract_id) + ")", LkCrmReceivablesEntity.class);
     }
 
     public List<LkCrmReceivablesEntity> queryReceivablesByContractId(int contract_id) {
@@ -58,9 +59,14 @@ public class LkCrmReceivablesDao extends SimpleHibernateDao<LkCrmReceivablesEnti
     public List<Map<String, Object>> queryReceivablesById(int receivables_id) {
         String sql = "select rb.* ,scc.money as contract_money ,saf.value as receivable_way\n" +
                 "        from receivablesview as rb\n" +
-                "        LEFT JOIN 72crm_crm_contract as scc on scc.contract_id = rb.contract_id\n" +
-                "        LEFT JOIN 72crm_admin_fieldv as saf on saf.batch_id = rb.batch_id AND saf.name = '回款方式'\n" +
+                "        LEFT JOIN lkcrm_crm_contract as scc on scc.contract_id = rb.contract_id\n" +
+                "        LEFT JOIN lkcrm_admin_fieldv as saf on saf.batch_id = rb.batch_id AND saf.name = '回款方式'\n" +
                 "        where rb.receivables_id = ?";
         return super.sqlQuery(sql, receivables_id);
+    }
+
+    public int queryByNumber(String number) {
+        String sql = " select * from lkcrm_crm_receivables where number = ?";
+        return super.sqlQuery(sql, number).size();
     }
 }

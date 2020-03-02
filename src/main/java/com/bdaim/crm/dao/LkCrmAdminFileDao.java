@@ -20,4 +20,12 @@ public class LkCrmAdminFileDao extends SimpleHibernateDao<LkCrmAdminFileEntity, 
         list.forEach(s -> result.add(BeanUtil.mapToBean(s, LkCrmAdminFileEntity.class, true)));
         return result;
     }
+
+    public List<String> queryPathByBatchId(String batchId) {
+        String sql = " SELECT path FROM `lkcrm_admin_file` as a where a.batch_id=?";
+        List<Map<String, Object>> list = this.sqlQuery(sql, batchId);
+        List<String> result = new ArrayList<>();
+        list.forEach(s -> result.add(String.valueOf(s.get("path"))));
+        return result;
+    }
 }
