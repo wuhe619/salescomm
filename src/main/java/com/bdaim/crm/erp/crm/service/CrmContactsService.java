@@ -27,7 +27,6 @@ import com.bdaim.util.StringUtil;
 import com.jfinal.aop.Before;
 import com.jfinal.kit.Kv;
 import com.jfinal.log.Log;
-import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.tx.Tx;
 import com.jfinal.upload.UploadFile;
@@ -81,6 +80,9 @@ public class CrmContactsService {
     @Resource
     private LkCrmBusinessDao crmBusinessDao;
 
+    @Resource
+    private LkCrmAdminFieldDao crmAdminFieldDao;
+
     /**
      * @return
      * @author wyq
@@ -117,7 +119,7 @@ public class CrmContactsService {
      * 基本信息
      */
     public List<Record> information(Integer contactsId) {
-        Record record = Db.findFirst("select * from contactsview where contacts_id = ?", contactsId);
+        Record record = JavaBeanUtil.mapToRecord(crmContactsDao.sqlQuery("select * from contactsview where contacts_id = ?", contactsId).get(0));
         if (null == record) {
             return null;
         }
@@ -127,7 +129,7 @@ public class CrmContactsService {
                 .set("下次联系时间", DateUtil.formatDateTime(record.get("next_time"))).set("职务", record.getStr("post"))
                 .set("手机", record.getStr("mobile")).set("电话", record.getStr("telephone")).set("邮箱", record.getStr("email"))
                 .set("地址", record.getStr("address")).set("备注", record.getStr("remark"));
-        List<Record> recordList = Db.find(Db.getSql("admin.field.queryCustomField"), record.getStr("batch_id"));
+        List<Record> recordList = JavaBeanUtil.mapToRecords(crmAdminFieldDao.queryCustomField(record.getStr("batch_id")));
         fieldUtil.handleType(recordList);
         fieldList.addAll(recordList);
         return fieldList;
@@ -149,7 +151,7 @@ public class CrmContactsService {
     public R queryBusiness(BasePageRequest<CrmContacts> basePageRequest) {
         Integer contactsId = basePageRequest.getData().getContactsId();
         Integer pageType = basePageRequest.getPageType();
-        if (0 == pageType) {
+        if (pageType != null && 0 == pageType) {
             return R.ok().put("data", crmContactsDao.queryBusiness(contactsId));
         } else {
             return R.ok().put("data", BaseUtil.crmPage(crmContactsDao.pageQueryBusiness(basePageRequest.getPage(), basePageRequest.getLimit(), contactsId)));
@@ -360,7 +362,7 @@ public class CrmContactsService {
             if (businessIds != null) {
                 String[] businessIdsArr = businessIds.split(",");
                 for (String businessId : businessIdsArr) {
-                    if(StringUtil.isNotEmpty(businessId)){
+                    if (StringUtil.isNotEmpty(businessId)) {
                         businessList.add(crmBusinessDao.get(NumberConvertUtil.parseInt(businessId)));
                     }
                 }
@@ -370,7 +372,7 @@ public class CrmContactsService {
             if (contactsIds != null) {
                 String[] contactsIdsArr = contactsIds.split(",");
                 for (String contactsId : contactsIdsArr) {
-                    if(StringUtil.isNotEmpty(contactsId)){
+                    if (StringUtil.isNotEmpty(contactsId)) {
                         contactsList.add(crmContactsDao.get(NumberConvertUtil.parseInt(contactsId)));
                     }
                 }
