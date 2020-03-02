@@ -13,13 +13,13 @@ public class LkCrmWorkbenchDao extends SimpleHibernateDao<LkCrmTaskEntity, Integ
     public List<Record> myTask(Integer userId, Integer isTop) {
         String sql = "SELECT " +
                 " a.*,b.NAME AS workName, " +
-                " ( SELECT count( * ) FROM 72 crm_task_comment WHERE type_id = a.task_id AND type = 1 ) AS commentCount, " +
-                " ( SELECT count( * ) FROM 72 crm_task WHERE pid = a.task_id AND STATUS = 5 ) AS childWCCount, " +
-                " ( SELECT count( * ) FROM 72 crm_task WHERE pid = a.task_id ) AS childAllCount, " +
-                " ( SELECT count( * ) FROM 72 crm_admin_file WHERE batch_id = a.batch_id ) AS fileCount  " +
+                " ( SELECT count( * ) FROM lkcrm_task_comment WHERE type_id = a.task_id AND type = 1 ) AS commentCount, " +
+                " ( SELECT count( * ) FROM lkcrm_task WHERE pid = a.task_id AND STATUS = 5 ) AS childWCCount, " +
+                " ( SELECT count( * ) FROM lkcrm_task WHERE pid = a.task_id ) AS childAllCount, " +
+                " ( SELECT count( * ) FROM lkcrm_admin_file WHERE batch_id = a.batch_id ) AS fileCount  " +
                 "FROM " +
-                " 72 crm_task a " +
-                " LEFT JOIN 72 crm_work b ON a.work_id = b.work_id  " +
+                " lkcrm_task a " +
+                " LEFT JOIN lkcrm_work b ON a.work_id = b.work_id  " +
                 "WHERE " +
                 " ( a.owner_user_id LIKE concat( '%,', '" + userId + "', ',%' ) OR a.main_user_id = '" + userId + "' )  " +
                 " AND a.pid = 0  " +
