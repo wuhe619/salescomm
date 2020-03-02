@@ -206,7 +206,9 @@ public class CrmContactsService {
         if (crmContacts.getContactsId() != null) {
             crmContacts.setUpdateTime(DateUtil.date().toTimestamp());
             crmRecordService.updateRecord(crmContactsDao.get(crmContacts.getContactsId()), crmContacts, CrmEnum.CONTACTS_TYPE_KEY.getTypes());
-            crmContactsDao.saveOrUpdate(crmContacts);
+            LkCrmContactsEntity dnEntity = crmContactsDao.get(crmContacts.getContactsId());
+            BeanUtils.copyProperties(crmContacts, dnEntity, JavaBeanUtil.getNullPropertyNames(crmContacts));
+            crmContactsDao.saveOrUpdate(dnEntity);
             return R.ok();
         } else {
             crmContacts.setCreateTime(DateUtil.date().toTimestamp());
