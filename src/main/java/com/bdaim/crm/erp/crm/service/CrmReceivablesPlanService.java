@@ -16,7 +16,6 @@ import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.FieldUtil;
 import com.bdaim.crm.utils.R;
 import com.bdaim.util.JavaBeanUtil;
-import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
@@ -61,12 +60,14 @@ public class CrmReceivablesPlanService {
             }
             return (int) crmReceivablesPlanDao.saveReturnPk(crmReceivablesPlan) > 0 ? R.ok() : R.error();
         } else {
-            Integer number = Db.queryInt("select count(*) from lkcrm_crm_receivables where plan_id = ?", crmReceivablesPlan.getPlanId());
+            Integer number = crmReceivablesPlanDao.queryForInt("select count(*) from lkcrm_crm_receivables where plan_id = ?", crmReceivablesPlan.getPlanId());
             if (number > 0) {
                 return R.error("该回款计划已收到回款，请勿编辑");
             }
             crmReceivablesPlan.setUpdateTime(DateUtil.date().toTimestamp());
-            crmReceivablesPlanDao.saveOrUpdate(crmReceivablesPlan);
+            LkCrmReceivablesPlanEntity dbEntity = crmReceivablesPlanDao.get(crmReceivablesPlan.getPlanId());
+            BeanUtils.copyProperties(entity, dbEntity, JavaBeanUtil.getNullPropertyNames(entity));
+            crmReceivablesPlanDao.saveOrUpdate(dbEntity);
             return R.ok();
         }
     }
