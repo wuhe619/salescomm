@@ -49,8 +49,8 @@ public class LkCrmReceivablesPlanDao extends SimpleHibernateDao<LkCrmReceivables
         return list.size() > 0 ? list.get(0) : null;
     }
 
-    public int deleteByIds(List receivablesIds) {
-        String sql = "delete from lkcrm_crm_receivables_plan where receivables_id IN (" + SqlAppendUtil.sqlAppendWhereIn(receivablesIds) + ")";
+    public int deleteByIds(List planIds) {
+        String sql = "delete from lkcrm_crm_receivables_plan where plan_id IN (" + SqlAppendUtil.sqlAppendWhereIn(planIds) + ")";
         return super.executeUpdateSQL(sql);
     }
 
