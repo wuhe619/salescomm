@@ -23,6 +23,7 @@ import com.bdaim.crm.erp.oa.common.OaEnum;
 import com.bdaim.crm.erp.oa.service.OaActionRecordService;
 import com.bdaim.crm.utils.*;
 import com.bdaim.util.JavaBeanUtil;
+import com.bdaim.util.NumberConvertUtil;
 import com.jfinal.aop.Before;
 import com.jfinal.kit.Kv;
 import com.jfinal.log.Log;
@@ -359,7 +360,7 @@ public class CrmContactsService {
             if (businessIds != null) {
                 String[] businessIdsArr = businessIds.split(",");
                 for (String businessId : businessIdsArr) {
-                    businessList.add(crmBusinessDao.get(Integer.valueOf(businessId)));
+                    businessList.add(crmBusinessDao.get(NumberConvertUtil.parseInt(businessId)));
                 }
             }
             String contactsIds = record.getStr("contacts_ids");
@@ -367,7 +368,7 @@ public class CrmContactsService {
             if (contactsIds != null) {
                 String[] contactsIdsArr = contactsIds.split(",");
                 for (String contactsId : contactsIdsArr) {
-                    contactsList.add(crmContactsDao.get(Integer.valueOf(contactsId)));
+                    contactsList.add(crmContactsDao.get(NumberConvertUtil.parseInt(contactsId)));
                 }
             }
             record.set("business_list", businessList).set("contacts_list", contactsList);
