@@ -18,6 +18,7 @@ import com.bdaim.crm.utils.R;
 import com.bdaim.util.JavaBeanUtil;
 import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -41,7 +42,9 @@ public class CrmReceivablesPlanService {
      * 添加或修改回款计划
      */
     public R saveAndUpdate(JSONObject jsonObject) {
-        LkCrmReceivablesPlanEntity crmReceivablesPlan = jsonObject.getObject("entity", LkCrmReceivablesPlanEntity.class);
+        CrmReceivablesPlan entity = jsonObject.getObject("entity", CrmReceivablesPlan.class);
+        LkCrmReceivablesPlanEntity crmReceivablesPlan = new LkCrmReceivablesPlanEntity();
+        BeanUtils.copyProperties(entity, crmReceivablesPlan);
         crmReceivablesPlan.setCustId(BaseUtil.getUser().getCustId());
         String batchId = StrUtil.isNotEmpty(crmReceivablesPlan.getFileBatch()) ? crmReceivablesPlan.getFileBatch() : IdUtil.simpleUUID();
         adminFieldService.save(jsonObject.getJSONArray("field"), batchId);

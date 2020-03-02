@@ -115,8 +115,8 @@ public class LkCrmCustomerDao extends SimpleHibernateDao<LkCrmCustomerEntity, In
     public List<Map<String, Object>> queryReceivables(Integer customerId) {
         String sql = "select a.receivables_id,a.number as receivables_num,b.name as contract_name,b.money as contract_money,a.money as receivables_money,c.realname,\n" +
                 "    a.check_status,a.return_time\n" +
-                "    from lkcrm_crm_receivables as a inner join lkcrm_crm_contract as b inner join lkcrm_admin_user as c\n" +
-                "    where a.contract_id = b.contract_id and a.owner_user_id = c.user_id and a.customer_id = ?";
+                "    from lkcrm_crm_receivables as a inner join lkcrm_crm_contract as b inner join t_customer_user as c\n" +
+                "    where a.contract_id = b.contract_id and a.owner_user_id = c.id and a.customer_id = ?";
         return sqlQuery(sql, customerId);
     }
 
