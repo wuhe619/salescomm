@@ -93,13 +93,13 @@ public class AdminFileService {
                 MultipartFile multiRequestFile = multiRequest.getFile(iter.next());
                 if (multiRequestFile != null) {
                     fileName = uploadFileService.uploadFile(multiRequestFile, BusinessEnum.CRM, true);
-                    adminFile.setName(multiRequestFile.getName());
                     adminFile.setSize(multiRequestFile.getSize());
                     LOG.info("原始文件名1:{}", multiRequestFile.getName());
                     LOG.info("原始文件名2:{}", multiRequestFile.getOriginalFilename());
                     LOG.info("getContentType:{}", multiRequestFile.getContentType());
                     // 获取文件的扩展名
                     type = FilenameUtils.getExtension(multiRequestFile.getOriginalFilename());
+                    adminFile.setName(multiRequestFile.getOriginalFilename());
                     break;
                 }
             }
@@ -111,7 +111,8 @@ public class AdminFileService {
         if (StrUtil.isNotBlank(fileType)) {
             adminFile.setFileType(fileType);
         }
-        return (int) crmAdminFileDao.saveReturnPk(adminFile) > 0 ? R.ok().put("batchId", batchId).put("name", fileName + "." + type).put("url", adminFile.getFilePath()).put("size", adminFile.getSize() / 1000 + "KB").put("file_id", adminFile.getFileId()) : R.error();
+        adminFile.setCreateUserId(BaseUtil.getUser().getUserId());
+        return (int) crmAdminFileDao.saveReturnPk(adminFile) > 0 ? R.ok().put("batchId", batchId).put("name", adminFile.getName()).put("url", adminFile.getFilePath()).put("size", adminFile.getSize() / 1000 + "KB").put("file_id", adminFile.getFileId()) : R.error();
     }
 
     /**
