@@ -8,7 +8,7 @@ public class OaRouter extends Routes {
     public void config() {
         addInterceptor(new OaInterceptor());
         //add("/OaEvent", OaEventController.class);
-        add("/OaAnnouncement", OaAnnouncementController.class);
+//        add("/OaAnnouncement", OaAnnouncementController.class);
         //add("/OaExamine", OaExamineController.class);
         add("/OaExamineCategory", OaExamineCategoryController.class);
         //add("/OaLog", OaLogController.class);
