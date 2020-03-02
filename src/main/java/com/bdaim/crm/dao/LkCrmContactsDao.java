@@ -105,26 +105,22 @@ public class LkCrmContactsDao extends SimpleHibernateDao<LkCrmContactsEntity, In
     }
 
     public int unrelateBusiness(Integer contactsId, List ids) {
-        String sql = "  delete from lkcrm_crm_contacts_business where contacts_id =?and business_id in ( ?) ";
+        String sql = "  delete from lkcrm_crm_contacts_business where contacts_id =?and business_id in ( " + SqlAppendUtil.sqlAppendWhereIn(ids) + ") ";
         List param = new ArrayList();
         param.add(contactsId);
-        param.add(ids);
         return executeUpdateSQL(sql, param.toArray());
     }
 
     public List<Map<String, Object>> queryBatchIdByIds(List ids) {
-        String sql = " select batch_id from lkcrm_crm_contacts where contacts_id in (?) ";
+        String sql = " select batch_id from lkcrm_crm_contacts where contacts_id in (" + SqlAppendUtil.sqlAppendWhereIn(ids) + ") ";
         List param = new ArrayList();
-        param.add(ids);
-        List<Map<String, Object>> maps = sqlQuery(sql, param.toArray());
+        List<Map<String, Object>> maps = sqlQuery(sql);
         return maps;
     }
 
     public int deleteByIds(List contactsId) {
-        String sql = " delete from lkcrm_crm_contacts where contacts_id in( ?)";
-        List param = new ArrayList();
-        param.add(contactsId);
-        return executeUpdateSQL(sql, param.toArray());
+        String sql = " delete from lkcrm_crm_contacts where contacts_id in( " + SqlAppendUtil.sqlAppendWhereIn(contactsId) + ")";
+        return executeUpdateSQL(sql);
     }
 
 
