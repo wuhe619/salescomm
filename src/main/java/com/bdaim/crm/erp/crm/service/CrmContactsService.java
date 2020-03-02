@@ -18,12 +18,12 @@ import com.bdaim.crm.erp.admin.service.AdminFileService;
 import com.bdaim.crm.erp.crm.common.CrmEnum;
 import com.bdaim.crm.erp.crm.common.CrmParamValid;
 import com.bdaim.crm.erp.crm.entity.CrmContacts;
-import com.bdaim.crm.erp.crm.entity.CrmReceivables;
 import com.bdaim.crm.erp.oa.common.OaEnum;
 import com.bdaim.crm.erp.oa.service.OaActionRecordService;
 import com.bdaim.crm.utils.*;
 import com.bdaim.util.JavaBeanUtil;
 import com.bdaim.util.NumberConvertUtil;
+import com.bdaim.util.StringUtil;
 import com.jfinal.aop.Before;
 import com.jfinal.kit.Kv;
 import com.jfinal.log.Log;
@@ -360,7 +360,9 @@ public class CrmContactsService {
             if (businessIds != null) {
                 String[] businessIdsArr = businessIds.split(",");
                 for (String businessId : businessIdsArr) {
-                    businessList.add(crmBusinessDao.get(NumberConvertUtil.parseInt(businessId)));
+                    if(StringUtil.isNotEmpty(businessId)){
+                        businessList.add(crmBusinessDao.get(NumberConvertUtil.parseInt(businessId)));
+                    }
                 }
             }
             String contactsIds = record.getStr("contacts_ids");
@@ -368,7 +370,9 @@ public class CrmContactsService {
             if (contactsIds != null) {
                 String[] contactsIdsArr = contactsIds.split(",");
                 for (String contactsId : contactsIdsArr) {
-                    contactsList.add(crmContactsDao.get(NumberConvertUtil.parseInt(contactsId)));
+                    if(StringUtil.isNotEmpty(contactsId)){
+                        contactsList.add(crmContactsDao.get(NumberConvertUtil.parseInt(contactsId)));
+                    }
                 }
             }
             record.set("business_list", businessList).set("contacts_list", contactsList);
