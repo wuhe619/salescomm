@@ -1,17 +1,14 @@
 package com.bdaim.crm.erp.work.controller;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.controller.BasicAction;
-import com.jfinal.aop.Inject;
-import com.jfinal.core.Controller;
-import com.jfinal.core.paragetter.Para;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.erp.work.entity.Work;
 import com.bdaim.crm.erp.work.service.WorkService;
 import com.bdaim.crm.utils.AuthUtil;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
+import com.jfinal.core.paragetter.Para;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -35,15 +32,15 @@ public class WorkController extends BasicAction {
      */
     @RequestMapping(value = "/setWork")
     public R setWork(@Para("") Work work) {
-//        return(workService.setWork(work));
-        return (R.ok().put("data", workService.setWork(work)));
+        return (workService.setWork(work));
+        //return (R.ok().put("data", workService.setWork(work));
     }
 
     @RequestMapping(value = "/getWorkById")
     public R getWorkById() {
         String workId = getPara("workId");
-//        return (workService.getWorkById(workId));
-        return (R.ok().put("data", workService.getWorkById(workId)));
+        return (workService.getWorkById(workId));
+        //return (R.ok().put("data", workService.getWorkById(workId)));
     }
 
     /**
@@ -53,8 +50,8 @@ public class WorkController extends BasicAction {
     @RequestMapping(value = "/deleteWork")
     public R deleteWork() {
         String workId = getPara("workId");
-//        return (workService.deleteWork(workId));
-        return (R.ok().put("data", workService.deleteWork(workId)));
+        return (workService.deleteWork(workId));
+        //return (R.ok().put("data", workService.deleteWork(workId)));
     }
 
     /**
@@ -63,8 +60,8 @@ public class WorkController extends BasicAction {
      */
     @RequestMapping(value = "/queryWorkNameList")
     public R queryWorkNameList() {
-//        return(workService.queryWorkNameList());
-        return (R.ok().put("data", workService.queryWorkNameList()));
+        return (workService.queryWorkNameList());
+        //return (R.ok().put("data", workService.queryWorkNameList()));
     }
 
     /**
@@ -74,8 +71,8 @@ public class WorkController extends BasicAction {
     @RequestMapping(value = "/queryTaskByWorkId")
     public R queryTaskByWorkId(@RequestBody JSONObject jsonObject) {
 //        JSONObject jsonObject = JSON.parseObject(getRawData());
-//        return (workService.queryTaskByWorkId(jsonObject));
-        return (R.ok().put("data", workService.queryTaskByWorkId(jsonObject)));
+        return (workService.queryTaskByWorkId(jsonObject));
+        //return (R.ok().put("data", workService.queryTaskByWorkId(jsonObject)));
     }
 
     /**
@@ -84,8 +81,8 @@ public class WorkController extends BasicAction {
      */
     @RequestMapping(value = "/queryTaskFileByWorkId")
     public R queryTaskFileByWorkId(BasePageRequest<JSONObject> pageRequest) {
-//        return (workService.queryTaskFileByWorkId(pageRequest));
-        return (R.ok().put("data", workService.queryTaskFileByWorkId(pageRequest)));
+        return (workService.queryTaskFileByWorkId(pageRequest));
+        //return (R.ok().put("data", workService.queryTaskFileByWorkId(pageRequest)));
     }
 
     /**
@@ -94,8 +91,8 @@ public class WorkController extends BasicAction {
      */
     @RequestMapping(value = "/queryArchiveWorkList")
     public R queryArchiveWorkList(BasePageRequest pageRequest) {
-//        return (workService.queryArchiveWorkList(pageRequest));
-        return (R.ok().put("data", workService.queryArchiveWorkList(pageRequest)));
+        return (workService.queryArchiveWorkList(pageRequest));
+        //return (R.ok().put("data", workService.queryArchiveWorkList(pageRequest)));
     }
 
     /**
@@ -105,8 +102,8 @@ public class WorkController extends BasicAction {
     @RequestMapping(value = "/workStatistics")
     public R workStatistics() {
         String workId = getPara("workId");
-//        return (workService.workStatistics(workId));
-        return (R.ok().put("data", workService.workStatistics(workId)));
+        return (workService.workStatistics(workId));
+        //return (R.ok().put("data", workService.workStatistics(workId)));
     }
 
     /**
@@ -116,8 +113,8 @@ public class WorkController extends BasicAction {
     @RequestMapping(value = "/queryWorkOwnerList")
     public R queryWorkOwnerList() {
         String workId = getPara("workId");
-//        return (workService.queryWorkOwnerList(workId));
-        return (R.ok().put("data", workService.queryWorkOwnerList(workId)));
+        return (workService.queryWorkOwnerList(workId));
+        //return (R.ok().put("data", workService.queryWorkOwnerList(workId)));
     }
 
     /**
@@ -127,8 +124,8 @@ public class WorkController extends BasicAction {
     @RequestMapping(value = "/updateOrder")
     public R updateOrder(@RequestBody JSONObject jsonObject) {
 //        JSONObject jsonObject = JSON.parseObject(getRawData());
-//        return(workService.updateOrder(jsonObject));
-        return (R.ok().put("data", workService.updateOrder(jsonObject)));
+        return (workService.updateOrder(jsonObject));
+        //return (R.ok().put("data", workService.updateOrder(jsonObject)));
     }
 
     /**
@@ -139,8 +136,8 @@ public class WorkController extends BasicAction {
     public R leave() {
         String workId = getPara("workId");
         Integer userId = BaseUtil.getUserId().intValue();
-//        return (workService.leave(workId, userId));
-        return (R.ok().put("data", workService.leave(workId, userId)));
+        return (workService.leave(workId, userId));
+        //return (R.ok().put("data", workService.leave(workId, userId)));
     }
 
     /**
@@ -151,8 +148,8 @@ public class WorkController extends BasicAction {
     public R removeWorkOwnerUser() {
         String workId = getPara("workId");
         Integer userId = getInt("ownerUserId");
-//        return (workService.leave(workId, userId));
-        return (R.ok().put("data", workService.leave(workId, userId)));
+        return (workService.leave(workId, userId));
+        //return (R.ok().put("data", workService.leave(workId, userId)));
     }
 
     /**
@@ -162,8 +159,8 @@ public class WorkController extends BasicAction {
      */
     @RequestMapping(value = "/queryRoleList")
     public R queryRoleList() {
-//        return (workService.queryRoleList());
-        return (R.ok().put("data", workService.queryRoleList()));
+        return (workService.queryRoleList());
+        //return (R.ok().put("data", workService.queryRoleList()));
     }
 
     /**
@@ -172,8 +169,8 @@ public class WorkController extends BasicAction {
      */
     @RequestMapping(value = "/queryOwnerRoleList")
     public R queryOwnerRoleList(@Para("workId") Integer workId) {
-//        return (workService.queryOwnerRoleList(workId));
-        return (R.ok().put("data", workService.queryOwnerRoleList(workId)));
+        return (workService.queryOwnerRoleList(workId));
+        //return (R.ok().put("data", workService.queryOwnerRoleList(workId)));
     }
 
     /**
@@ -183,8 +180,8 @@ public class WorkController extends BasicAction {
     @RequestMapping(value = "/setOwnerRole")
     public R setOwnerRole(@RequestBody JSONObject jsonObject) {
 //        JSONObject jsonObject = JSONObject.parseObject(getRawData());
-//        return(workService.setOwnerRole(jsonObject));
-        return (R.ok().put("data", workService.setOwnerRole(jsonObject)));
+        return (workService.setOwnerRole(jsonObject));
+        //return (R.ok().put("data", workService.setOwnerRole(jsonObject)));
     }
 
     /**
@@ -199,8 +196,8 @@ public class WorkController extends BasicAction {
             return (R.noAuth());
 //            return;
         }
-//        return (workService.deleteTaskList(workId, classId));
-        return (R.ok().put("data", workService.deleteTaskList(workId, classId)));
+        return (workService.deleteTaskList(workId, classId));
+        //return (R.ok().put("data", workService.deleteTaskList(workId, classId)));
     }
 
     /**
@@ -210,8 +207,8 @@ public class WorkController extends BasicAction {
     @RequestMapping(value = "/archiveTask")
     public R archiveTask() {
         String classId = getPara("classId");
-//        return (workService.archiveTask(classId));
-        return (R.ok().put("data", workService.archiveTask(classId)));
+        return (workService.archiveTask(classId));
+        //return (R.ok().put("data", workService.archiveTask(classId)));
     }
 
     /**
@@ -221,8 +218,8 @@ public class WorkController extends BasicAction {
     @RequestMapping(value = "/archList")
     public R archList() {
         String workId = getPara("workId");
-//        return (workService.archList(workId));
-        return (R.ok().put("data", workService.archList(workId)));
+        return (workService.archList(workId));
+        //return (R.ok().put("data", workService.archList(workId)));
     }
 
     /**
@@ -231,8 +228,8 @@ public class WorkController extends BasicAction {
      */
     @RequestMapping(value = "/remove")
     public R remove(@Para("ownerUserId") Integer ownerUserId, @Para("workId") Integer workId) {
-//        return (workService.remove(ownerUserId, workId));
-        return (R.ok().put("data", workService.remove(ownerUserId, workId)));
+        return (workService.remove(ownerUserId, workId));
+        //return (R.ok().put("data", workService.remove(ownerUserId, workId)));
     }
 
     /**
@@ -242,8 +239,8 @@ public class WorkController extends BasicAction {
     @RequestMapping(value = "/updateClassOrder")
     public R updateClassOrder(JSONObject jsonObject) {
 //        JSONObject jsonObject = JSONObject.parseObject(getRawData());
-//        return(workService.updateClassOrder(jsonObject));
-        return (R.ok().put("data", workService.updateClassOrder(jsonObject)));
+        return (workService.updateClassOrder(jsonObject));
+        // return (R.ok().put("data", workService.updateClassOrder(jsonObject)));
     }
 
 
@@ -252,7 +249,7 @@ public class WorkController extends BasicAction {
      */
     @RequestMapping(value = "/activation")
     public R activation(@Para("taskId") Integer taskId) {
-//        return (workService.activation(taskId));
-        return (R.ok().put("data", workService.activation(taskId)));
+        return (workService.activation(taskId));
+        //return (R.ok().put("data", workService.activation(taskId)));
     }
 }
