@@ -618,9 +618,11 @@ public class CrmCustomerService {
             if (businessIds != null) {
                 String[] businessIdsArr = businessIds.split(",");
                 for (String businessId : businessIdsArr) {
-                    if (StringUtil.isNotEmpty(businessId)) {
-                        businessList.add(crmBusinessDao.get(NumberConvertUtil.parseInt(businessId)));
+                    LkCrmBusinessEntity lkCrmBusinessEntity = crmBusinessDao.get(NumberConvertUtil.parseInt(businessId));
+                    if (lkCrmBusinessEntity == null) {
+                        continue;
                     }
+                    businessList.add(lkCrmBusinessEntity);
                 }
             }
             String contactsIds = record.getStr("contacts_ids");
@@ -628,9 +630,11 @@ public class CrmCustomerService {
             if (contactsIds != null) {
                 String[] contactsIdsArr = contactsIds.split(",");
                 for (String contactsId : contactsIdsArr) {
-                    if (StringUtil.isNotEmpty(contactsId)) {
-                        contactsList.add(crmContactsDao.get(NumberConvertUtil.parseInt(contactsId)));
+                    LkCrmContactsEntity lkCrmContactsEntity = crmContactsDao.get(NumberConvertUtil.parseInt(contactsId));
+                    if (lkCrmContactsEntity == null) {
+                        continue;
                     }
+                    contactsList.add(lkCrmContactsEntity);
                 }
             }
             record.set("business_list", businessList).set("contacts_list", contactsList);
