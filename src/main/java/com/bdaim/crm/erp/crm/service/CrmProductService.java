@@ -85,8 +85,9 @@ public class CrmProductService {
      */
     @Before(Tx.class)
     public R saveAndUpdate(JSONObject jsonObject) {
-        LkCrmProductEntity crmProduct = jsonObject.getObject("entity", LkCrmProductEntity.class);
-
+        CrmProduct entity = jsonObject.getObject("entity", CrmProduct.class);
+        LkCrmProductEntity crmProduct = new LkCrmProductEntity();
+        BeanUtils.copyProperties(entity, crmProduct);
         crmProduct.setCustId(BaseUtil.getUser().getCustId());
         String batchId = StrUtil.isNotEmpty(crmProduct.getBatchId()) ? crmProduct.getBatchId() : IdUtil.simpleUUID();
         crmRecordService.updateRecord(jsonObject.getJSONArray("field"), batchId);
@@ -109,7 +110,7 @@ public class CrmProductService {
             LkCrmProductEntity oldCrmProduct = crmProductDao.get(crmProduct.getProductId());
             crmRecordService.updateRecord(oldCrmProduct, crmProduct, CrmEnum.PRODUCT_TYPE_KEY.getTypes());
             crmProduct.setUpdateTime(DateUtil.date().toTimestamp());
-            BeanUtils.copyProperties(crmProduct,oldCrmProduct,JavaBeanUtil.getNullPropertyNames(crmProduct));
+            BeanUtils.copyProperties(crmProduct, oldCrmProduct, JavaBeanUtil.getNullPropertyNames(crmProduct));
             crmProductDao.update(oldCrmProduct);
         }
 

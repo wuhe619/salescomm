@@ -869,7 +869,9 @@ public class CrmLeadsService {
      */
     @Before(Tx.class)
     public R addOrUpdate(JSONObject object) {
-        LkCrmLeadsEntity crmLeads = object.getObject("entity", LkCrmLeadsEntity.class);
+        CrmLeads entity = object.getObject("entity", CrmLeads.class);
+        LkCrmLeadsEntity crmLeads =new LkCrmLeadsEntity();
+        BeanUtils.copyProperties(entity, crmLeads);
         crmLeads.setCustId(BaseUtil.getUser().getCustId());
         String batchId = StrUtil.isNotEmpty(crmLeads.getBatchId()) ? crmLeads.getBatchId() : IdUtil.simpleUUID();
         crmRecordService.updateRecord(object.getJSONArray("field"), batchId);
