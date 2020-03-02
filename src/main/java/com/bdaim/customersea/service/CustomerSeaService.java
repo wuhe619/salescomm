@@ -880,7 +880,7 @@ public class CustomerSeaService {
                     stat = customerSeaDao.sqlQuery(MessageFormat.format(statSql, String.valueOf(customerSea.getId())) + appSql.toString());
                     dto.setTotalSum(NumberConvertUtil.parseLong(stat.get(0).get("sumCount")));
                     dto.setNoFollowSum(NumberConvertUtil.parseLong(stat.get(0).get("noFollowSum")));
-                } catch (SQLGrammarException e) {
+                } catch (Exception e) {
                     LOG.error("查询线索余量和累计未通量异常,公海ID:" + customerSea.getId(), e);
                     dto.setClueSurplusSum(0L);
                     dto.setFailCallSum(0L);
