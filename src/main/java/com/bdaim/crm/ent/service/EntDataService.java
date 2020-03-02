@@ -13,7 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.dao.DataAccessException;
-import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -240,6 +239,42 @@ public class EntDataService {
                     data.add(jsonObject);
                 }
                 elasticSearchService.bulkInsertDocument("ent_data_index", "business", data);
+            }
+        }
+    }
+
+    public void importHY88DataToES(String tableName, String sTag, String industryEn, String index, String type) {
+        List<Map<String, Object>> count = null;
+        try {
+            count = jdbcTemplate.queryForList("select count(0) count from " + tableName);
+        } catch (DataAccessException e) {
+            LOG.error("查询数据异常,", e);
+            return;
+        }
+        long total = 0L;
+        if (count.size() > 0) {
+            total = NumberConvertUtil.parseLong(count.get(0).get("count"));
+        }
+        int limit = 20000;
+        for (int i = 0; i <= total; i += limit) {
+            List<Map<String, Object>> list = jdbcTemplate.queryForList("select * from " + tableName + " LIMIT ?,?", i, limit);
+            if (list.size() > 0) {
+                List<JSONObject> data = new ArrayList<>();
+                for (Map<String, Object> m : list) {
+                    JSONObject jsonObject = JSON.parseObject(String.valueOf(m.get("content")));
+                    jsonObject.put("createTime", m.get("create_time"));
+                    jsonObject.put("updateTime", m.get("update_time"));
+                    if (jsonObject.getTimestamp("createTime") != null) {
+                        jsonObject.put("createTime", jsonObject.getTimestamp("createTime").getTime());
+                    }
+                    if (jsonObject.getTimestamp("updateTime") != null) {
+                        jsonObject.put("updateTime", jsonObject.getTimestamp("updateTime").getTime());
+                    }
+                    jsonObject.put("industryEn", industryEn);
+                    jsonObject.put("s_tag", sTag);
+                    data.add(jsonObject);
+                }
+                elasticSearchService.bulkInsertDocument(index, type, data);
             }
         }
     }
