@@ -20,6 +20,7 @@ import com.bdaim.crm.erp.admin.service.AdminSceneService;
 import com.bdaim.crm.erp.crm.common.CrmEnum;
 import com.bdaim.crm.erp.crm.common.CrmParamValid;
 import com.bdaim.crm.erp.crm.entity.CrmCustomer;
+import com.bdaim.crm.erp.crm.entity.CrmLeads;
 import com.bdaim.crm.erp.oa.common.OaEnum;
 import com.bdaim.crm.erp.oa.service.OaActionRecordService;
 import com.bdaim.crm.utils.*;
@@ -638,6 +639,22 @@ public class CrmCustomerService {
                 }
             }
             record.set("business_list", businessList).set("contacts_list", contactsList);
+        });
+        return recordList;
+    }
+
+    /**
+     * 查看代办事项记录
+     *
+     * @param basePageRequest
+     * @param taskStatus
+     * @param leadsId
+     * @return
+     */
+    public List<Record> listAgency(BasePageRequest<CrmCustomer> basePageRequest, Integer taskStatus, Integer leadsId) {
+        List<Record> recordList = JavaBeanUtil.mapToRecords(crmCustomerDao.getRecord(String.valueOf(leadsId), taskStatus, basePageRequest.getPage(), basePageRequest.getLimit()));
+        recordList.forEach(record -> {
+            adminFileService.queryByBatchId(record.getStr("batch_id"), record);
         });
         return recordList;
     }
