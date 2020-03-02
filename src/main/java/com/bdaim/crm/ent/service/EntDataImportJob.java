@@ -20,7 +20,7 @@ public class EntDataImportJob {
     private EntDataService entDataService;
 
     //@Scheduled(cron = "0 0/5 * * * ? ")
-    //@PostConstruct
+    @PostConstruct
     public void run() throws IOException, InterruptedException {
         new Thread(new HandleTask(entDataService)).start();
     }
