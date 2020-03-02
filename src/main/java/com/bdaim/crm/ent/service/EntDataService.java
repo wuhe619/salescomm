@@ -1,5 +1,7 @@
 package com.bdaim.crm.ent.service;
 
+import cn.hutool.core.date.DateTime;
+import cn.hutool.core.date.DateUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -7,6 +9,7 @@ import com.bdaim.common.service.ElasticSearchService;
 import com.bdaim.common.service.SequenceService;
 import com.bdaim.crm.*;
 import com.bdaim.util.ExcelUtil;
+import com.bdaim.util.MD5Util;
 import com.bdaim.util.NumberConvertUtil;
 import com.bdaim.util.StringUtil;
 import org.slf4j.Logger;
@@ -23,11 +26,10 @@ import javax.transaction.Transactional;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.text.DateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @Transactional
@@ -115,7 +117,7 @@ public class EntDataService {
             ints = jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
                 @Override
                 public void setValues(PreparedStatement preparedStatement, int i) throws SQLException {
-                    Long ent_id = 0L;
+                    /*Long ent_id = 0L;
                     try {
                         ent_id = sequenceService.getSeq("ent_id");
                     } catch (Exception e) {
@@ -124,8 +126,10 @@ public class EntDataService {
                         } catch (Exception ex) {
                             ex.printStackTrace();
                         }
-                    }
-                    personList.get(i).setId(ent_id);
+                    }*/
+                    String ent_id = MD5Util.encode32Bit(personList.get(i).getEntEnName() + "lianke" + personList.get(i).getCreditCode());
+                    personList.get(i).setId(ent_id.toString());
+                    personList.get(i).setS_tag("1");
                     preparedStatement.setString(1, JSON.toJSONString(personList.get(i)));
                     preparedStatement.setTimestamp(2, now);
                     // 处理手机号来源
@@ -190,7 +194,7 @@ public class EntDataService {
             jdbcTemplate.batchUpdate(insertSql, new BatchPreparedStatementSetter() {
                 @Override
                 public void setValues(PreparedStatement preparedStatement, int i) throws SQLException {
-                    preparedStatement.setLong(1, phoneList.get(i).getId());
+                    preparedStatement.setString(1, phoneList.get(i).getId());
                     preparedStatement.setString(2, phoneList.get(i).getPropertyName());
                     preparedStatement.setString(3, phoneList.get(i).getPropertyValue());
                     preparedStatement.setTimestamp(4, now);
@@ -221,7 +225,7 @@ public class EntDataService {
         if (count.size() > 0) {
             total = NumberConvertUtil.parseLong(count.get(0).get("count"));
         }
-        int limit = 20000;
+        int limit = 50000;
         for (int i = 0; i <= total; i += limit) {
             List<Map<String, Object>> list = jdbcTemplate.queryForList("select * from enterprise_info_" + yearMonth + " where create_time between ? and ? LIMIT ?,?",
                     localTime.withHour(0).withMinute(0).withSecond(0), localTime.withHour(23).withMinute(59).withSecond(59), i, limit);
@@ -237,9 +241,25 @@ public class EntDataService {
                     if (jsonObject.getTimestamp("updateTime") != null) {
                         jsonObject.put("updateTime", jsonObject.getTimestamp("updateTime").getTime());
                     }
+                    for (Map.Entry<String, Object> k : jsonObject.entrySet()) {
+                        if ("-".equals(String.valueOf(k.getValue()))) {
+                            k.setValue("");
+                        }
+                        boolean s = k.getKey().indexOf("Date") > 0 || k.getKey().indexOf("date") > 0 ||
+                                k.getKey().indexOf("Time") > 0 || k.getKey().indexOf("time") > 0;
+                        if (s && StringUtil.isNotEmpty(String.valueOf(k.getValue()))
+                                && String.valueOf(k.getValue()).indexOf("-") > 1) {
+                            DateTime parse = DateUtil.parse(String.valueOf(k.getValue()), "yyyy-MM-dd");
+                            k.setValue(parse.getTime());
+                        }
+                    }
+
+                    jsonObject.put("s_tag", "1");
+                    jsonObject.put("id", MD5Util.encode32Bit(jsonObject.getString("entName") + "lianke" + jsonObject.getString("creditCode")));
+                    //elasticSearchService.addDocumentToType("test", "business",jsonObject.getString("id"),jsonObject);
                     data.add(jsonObject);
                 }
-                elasticSearchService.bulkInsertDocument("ent_data_index", "business", data);
+                elasticSearchService.bulkInsertDocument0("20200301new", "s_tag_1", data);
             }
         }
     }

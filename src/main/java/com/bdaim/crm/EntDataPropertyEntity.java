@@ -5,24 +5,24 @@ package com.bdaim.crm;
  */
 public class EntDataPropertyEntity {
 
-    private Long id;
+    private String id;
     private String propertyName;
     private String propertyValue;
 
     public EntDataPropertyEntity() {
     }
 
-    public EntDataPropertyEntity(Long id, String propertyName, String propertyValue) {
+    public EntDataPropertyEntity(String id, String propertyName, String propertyValue) {
         this.id = id;
         this.propertyName = propertyName;
         this.propertyValue = propertyValue;
     }
 
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
 
