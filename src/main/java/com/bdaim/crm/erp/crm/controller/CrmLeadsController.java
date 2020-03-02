@@ -340,8 +340,10 @@ public class CrmLeadsController extends BasicAction {
     @RequestMapping(value = "/deleteFiled", method = RequestMethod.POST)
     public ResponseJson deleteFiled(@RequestBody CustomerSeaSearch param) {
         ResponseJson responseJson = new ResponseJson();
-        String sql = "INSERT INTO `lkcrm_crm_product_category` (`name`, `pid`) VALUES ( '默认', '0'); ";
+        String sql = "INSERT INTO `lkcrm_crm_business_status` (`status_id`, `type_id`, `name`, `rate`, `order_num`) VALUES ('1', '1', '验证客户', '20', '1'),('2', '1', '需求分析', '30', '2'),('3', '1', '方案/报价', '80', '3');";
         int data = crmAdminFieldDao.executeUpdateSQL(sql);
+        sql = "INSERT INTO `lkcrm_crm_business_type` (`type_id`, `name`, `dept_ids`, `create_user_id`, `create_time`, `update_time`, `status`) VALUES ('1', '默认商机组', '', '3', '2019-05-11 16:25:09', NULL, '1');";
+        data = crmAdminFieldDao.executeUpdateSQL(sql);
         responseJson.setData(data);
         return responseJson;
     }
