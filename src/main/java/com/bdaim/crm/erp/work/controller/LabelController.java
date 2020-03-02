@@ -4,15 +4,12 @@ package com.bdaim.crm.erp.work.controller;
  *
  */
 
-import com.alibaba.fastjson.JSONObject;
-import com.bdaim.crm.utils.R;
-import com.jfinal.aop.Inject;
-import com.jfinal.core.Controller;
-import com.jfinal.core.paragetter.Para;
 import com.bdaim.crm.common.annotation.NotNullValidate;
 import com.bdaim.crm.erp.work.entity.WorkTaskLabel;
 import com.bdaim.crm.erp.work.service.LabelService;
-import org.springframework.web.bind.annotation.RequestBody;
+import com.bdaim.crm.utils.R;
+import com.jfinal.core.Controller;
+import com.jfinal.core.paragetter.Para;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -40,7 +37,7 @@ public class LabelController extends Controller {
      * @author hmb
      * 删除任务标签
      */
-    @RequestMapping(value = "/getLabelList")
+    @RequestMapping(value = "/deleteLabel")
     public R deleteLabel() {
         String labelId = getPara("labelId");
 //        renderJson(labelService.deleteLabel(labelId));
