@@ -3,6 +3,7 @@ package com.bdaim.crm.erp.work.service;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.crm.dao.LkCrmWorkbenchDao;
 import com.jfinal.aop.Before;
 import com.jfinal.aop.Inject;
 import com.jfinal.kit.Kv;
@@ -29,6 +30,8 @@ public class WorkbenchService{
 
     @Resource
     private TaskService taskService;
+    @Resource
+    private LkCrmWorkbenchDao workbenchDao;
 
     public R myTask(Integer userId){
         List<Record> result = new ArrayList<>();
@@ -38,7 +41,8 @@ public class WorkbenchService{
         result.add(new Record().set("title", "以后要做").set("is_top", 3).set("count", 0).set("list", new ArrayList<>()));
         result.forEach(record -> {
             Integer isTop = record.getInt("is_top");
-            List<Record> resultist = Db.find(Db.getSqlPara("work.workbench.myTask", Kv.by("userId", userId).set("isTop", isTop)));
+//            List<Record> resultist = Db.find(Db.getSqlPara("work.workbench.myTask", Kv.by("userId", userId).set("isTop", isTop)));
+            List<Record> resultist = workbenchDao.myTask(userId,isTop);
             record.set("count", resultist.size());
             if(resultist.size() != 0){
                 resultist.sort(Comparator.comparingInt(o -> o.getInt("top_order_num")));
