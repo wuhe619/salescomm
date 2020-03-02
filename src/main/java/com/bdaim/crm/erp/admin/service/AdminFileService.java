@@ -14,10 +14,8 @@ import com.bdaim.crm.utils.R;
 import com.bdaim.util.BusinessEnum;
 import com.bdaim.util.JavaBeanUtil;
 import com.bdaim.util.NumberConvertUtil;
-import com.jfinal.aop.Before;
 import com.jfinal.config.Constants;
 import com.jfinal.plugin.activerecord.Record;
-import com.jfinal.plugin.activerecord.tx.Tx;
 import com.jfinal.upload.UploadFile;
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
@@ -163,19 +161,17 @@ public class AdminFileService {
      * @param id 文件ID
      */
     @SuppressWarnings("all")
-    @Before(Tx.class)
     public R removeById(String id) {
         if (id == null) {
             return R.error("id参数为空");
         }
         LkCrmAdminFileEntity adminFile = crmAdminFileDao.get(NumberConvertUtil.parseInt(id));
         if (adminFile != null) {
-            File file = new File(adminFile.getPath());
+            crmAdminFileDao.delete(adminFile);
+            /*File file = new File(adminFile.getPath());
             if (file.exists() && !file.isDirectory()) {
                 file.delete();
-                crmAdminFileDao.delete(adminFile);
-                //adminFile.delete();
-            }
+            }*/
         }
         return R.ok();
     }
