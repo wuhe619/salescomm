@@ -18,6 +18,7 @@ import com.bdaim.crm.erp.admin.service.AdminFileService;
 import com.bdaim.crm.erp.crm.common.CrmEnum;
 import com.bdaim.crm.erp.crm.common.CrmParamValid;
 import com.bdaim.crm.erp.crm.entity.CrmContacts;
+import com.bdaim.crm.erp.crm.entity.CrmReceivables;
 import com.bdaim.crm.erp.oa.common.OaEnum;
 import com.bdaim.crm.erp.oa.service.OaActionRecordService;
 import com.bdaim.crm.utils.*;
@@ -31,6 +32,7 @@ import com.jfinal.plugin.activerecord.tx.Tx;
 import com.jfinal.upload.UploadFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -191,7 +193,9 @@ public class CrmContactsService {
      */
     @Before(Tx.class)
     public R addOrUpdate(JSONObject jsonObject) {
-        LkCrmContactsEntity crmContacts = jsonObject.getObject("entity", LkCrmContactsEntity.class);
+        CrmContacts entity = jsonObject.getObject("entity", CrmContacts.class);
+        LkCrmContactsEntity crmContacts = new LkCrmContactsEntity();
+        BeanUtils.copyProperties(entity, crmContacts);
         String batchId = StrUtil.isNotEmpty(crmContacts.getBatchId()) ? crmContacts.getBatchId() : IdUtil.simpleUUID();
         crmRecordService.updateRecord(jsonObject.getJSONArray("field"), batchId);
         adminFieldService.save(jsonObject.getJSONArray("field"), batchId);

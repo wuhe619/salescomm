@@ -157,7 +157,9 @@ public class CrmContractService {
      */
     @Before(Tx.class)
     public R saveAndUpdate(JSONObject jsonObject) {
-        LkCrmContractEntity crmContract = jsonObject.getObject("entity", LkCrmContractEntity.class);
+        CrmContract entity = jsonObject.getObject("entity", CrmContract.class);
+        LkCrmContractEntity crmContract = new LkCrmContractEntity();
+        BeanUtils.copyProperties(entity, crmContract);
         String batchId = StrUtil.isNotEmpty(crmContract.getBatchId()) ? crmContract.getBatchId() : IdUtil.simpleUUID();
         crmContract.setCustId(BaseUtil.getUser().getCustId());
         crmRecordService.updateRecord(jsonObject.getJSONArray("field"), batchId);

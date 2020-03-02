@@ -15,6 +15,7 @@ import com.bdaim.crm.erp.admin.service.AdminFieldService;
 import com.bdaim.crm.erp.admin.service.AdminFileService;
 import com.bdaim.crm.erp.crm.common.CrmEnum;
 import com.bdaim.crm.erp.crm.entity.CrmBusiness;
+import com.bdaim.crm.erp.crm.entity.CrmContacts;
 import com.bdaim.crm.erp.oa.common.OaEnum;
 import com.bdaim.crm.erp.oa.service.OaActionRecordService;
 import com.bdaim.crm.utils.BaseUtil;
@@ -92,7 +93,9 @@ public class CrmBusinessService {
      */
     @Before(Tx.class)
     public R addOrUpdate(JSONObject jsonObject) {
-        LkCrmBusinessEntity crmBusiness = jsonObject.getObject("entity", LkCrmBusinessEntity.class);
+        CrmBusiness entity = jsonObject.getObject("entity", CrmBusiness.class);
+        LkCrmBusinessEntity crmBusiness = new LkCrmBusinessEntity();
+        BeanUtils.copyProperties(entity, crmBusiness);
         crmBusiness.setCustId(BaseUtil.getUser().getCustId());
         JSONArray jsonArray = jsonObject.getJSONArray("product");
         List<LkCrmBusinessProductEntity> businessProductList = jsonArray.toJavaList(LkCrmBusinessProductEntity.class);

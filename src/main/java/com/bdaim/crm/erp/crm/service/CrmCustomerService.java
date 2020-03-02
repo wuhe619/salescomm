@@ -135,7 +135,9 @@ public class CrmCustomerService {
      * 新增或更新客户
      */
     public R addOrUpdate(JSONObject jsonObject, String type) {
-        LkCrmCustomerEntity crmCustomer = jsonObject.getObject("entity", LkCrmCustomerEntity.class);
+        CrmCustomer entity = jsonObject.getObject("entity", CrmCustomer.class);
+        LkCrmCustomerEntity crmCustomer = new LkCrmCustomerEntity();
+        BeanUtils.copyProperties(entity, crmCustomer);
         String batchId = StrUtil.isNotEmpty(crmCustomer.getBatchId()) ? crmCustomer.getBatchId() : IdUtil.simpleUUID();
         crmRecordService.updateRecord(jsonObject.getJSONArray("field"), batchId);
         adminFieldService.save(jsonObject.getJSONArray("field"), batchId);
