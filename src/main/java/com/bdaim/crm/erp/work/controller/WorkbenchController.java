@@ -31,7 +31,8 @@ public class WorkbenchController extends BasicAction {
     @RequestMapping(value = "/myTask")
     public R myTask(){
 //        renderJson(workbenchService.myTask(BaseUtil.getUser().getUserId().intValue()));
-        return (R.ok().put("data", workbenchService.myTask(BaseUtil.getUser().getUserId().intValue())));
+//        return (R.ok().put("data", workbenchService.myTask(BaseUtil.getUser().getUserId().intValue())));
+        return workbenchService.myTask(BaseUtil.getUser().getUserId().intValue());
     }
 
     /**
@@ -43,7 +44,8 @@ public class WorkbenchController extends BasicAction {
         String startTime = getPara("startTime");
         String endTime = getPara("endTime");
 //        renderJson(workbenchService.dateList(startTime,endTime));
-        return (R.ok().put("data", workbenchService.dateList(startTime,endTime)));
+//        return (R.ok().put("data", workbenchService.dateList(startTime,endTime)));
+        return workbenchService.dateList(startTime,endTime);
     }
 
     /**
@@ -54,6 +56,7 @@ public class WorkbenchController extends BasicAction {
     public R updateTop(@RequestBody JSONObject jsonObject){
 //        JSONObject jsonObject = JSON.parseObject(getRawData());
 //        renderJson(workbenchService.updateTop(jsonObject));
-        return (R.ok().put("data", workbenchService.updateTop(jsonObject)));
+//        return (R.ok().put("data", workbenchService.updateTop(jsonObject)));
+        return workbenchService.updateTop(jsonObject);
     }
 }
