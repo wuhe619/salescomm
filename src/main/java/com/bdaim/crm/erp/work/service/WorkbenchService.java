@@ -4,17 +4,17 @@ import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.crm.dao.LkCrmWorkbenchDao;
-import com.jfinal.aop.Before;
-import com.jfinal.aop.Inject;
-import com.jfinal.kit.Kv;
-import com.jfinal.plugin.activerecord.Db;
-import com.jfinal.plugin.activerecord.Record;
-import com.jfinal.plugin.activerecord.tx.Tx;
 import com.bdaim.crm.erp.work.entity.Task;
 import com.bdaim.crm.erp.work.entity.TaskRelation;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
 import com.bdaim.crm.utils.TagUtil;
+import com.bdaim.util.JavaBeanUtil;
+import com.jfinal.aop.Before;
+import com.jfinal.kit.Kv;
+import com.jfinal.plugin.activerecord.Db;
+import com.jfinal.plugin.activerecord.Record;
+import com.jfinal.plugin.activerecord.tx.Tx;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -26,14 +26,14 @@ import java.util.List;
 
 @Service
 @Transactional
-public class WorkbenchService{
+public class WorkbenchService {
 
     @Resource
     private TaskService taskService;
     @Resource
     private LkCrmWorkbenchDao workbenchDao;
 
-    public R myTask(Integer userId){
+    public R myTask(Integer userId) {
         List<Record> result = new ArrayList<>();
         result.add(new Record().set("title", "收件箱").set("is_top", 0).set("count", 0).set("list", new ArrayList<>()));
         result.add(new Record().set("title", "今天要做").set("is_top", 1).set("count", 0).set("list", new ArrayList<>()));
@@ -42,9 +42,9 @@ public class WorkbenchService{
         result.forEach(record -> {
             Integer isTop = record.getInt("is_top");
 //            List<Record> resultist = Db.find(Db.getSqlPara("work.workbench.myTask", Kv.by("userId", userId).set("isTop", isTop)));
-            List<Record> resultist = workbenchDao.myTask(userId,isTop);
+            List<Record> resultist = JavaBeanUtil.mapToRecords(workbenchDao.myTask(userId, isTop));
             record.set("count", resultist.size());
-            if(resultist.size() != 0){
+            if (resultist.size() != 0) {
                 resultist.sort(Comparator.comparingInt(o -> o.getInt("top_order_num")));
                 taskListTransfer(resultist);
                 record.set("list", resultist);
@@ -54,26 +54,26 @@ public class WorkbenchService{
         return R.ok().put("data", result);
     }
 
-    public void taskListTransfer(List<Record> taskList){
+    public void taskListTransfer(List<Record> taskList) {
         taskList.forEach(task -> {
             Date stopTime = task.getDate("stop_time");
-            if(stopTime != null){
-                if(stopTime.getTime() < System.currentTimeMillis()){
+            if (stopTime != null) {
+                if (stopTime.getTime() < System.currentTimeMillis()) {
                     task.set("isEnd", 1);
-                }else{
+                } else {
                     task.set("isEnd", 0);
                 }
-            }else{
+            } else {
                 task.set("isEnd", 0);
             }
             Integer taskId = task.getInt("task_id");
             task.set("mainUser", Db.findFirst("select user_id,realname,img from 72crm_admin_user where user_id = ?", task.getInt("main_user_id")));
             task.set("createUser", Db.findFirst("select user_id,realname,img from 72crm_admin_user where user_id = ?", task.getInt("create_user_id")));
             ArrayList<Record> labelList = new ArrayList<>();
-            if(StrUtil.isNotBlank(task.getStr("label_id"))){
+            if (StrUtil.isNotBlank(task.getStr("label_id"))) {
                 String[] lableIds = task.getStr("label_id").split(",");
-                for(String lableId : lableIds){
-                    if(StrUtil.isNotBlank(lableId)){
+                for (String lableId : lableIds) {
+                    if (StrUtil.isNotBlank(lableId)) {
                         Record lable = Db.findFirst("select label_id,name as labelName,color from 72crm_work_task_label where label_id = ?", lableId);
                         labelList.add(lable);
                     }
@@ -82,7 +82,7 @@ public class WorkbenchService{
             task.set("labelList", labelList);
             TaskRelation taskRelation = new TaskRelation().findFirst("select * from `72crm_task_relation` where task_id = ?", taskId);
             int relationCount = 0;
-            if(taskRelation != null){
+            if (taskRelation != null) {
                 relationCount += TagUtil.toSet(taskRelation.getBusinessIds()).size();
                 relationCount += TagUtil.toSet(taskRelation.getContactsIds()).size();
                 relationCount += TagUtil.toSet(taskRelation.getCustomerIds()).size();
@@ -92,25 +92,25 @@ public class WorkbenchService{
         });
     }
 
-    public R dateList(String startTime, String endTime){
+    public R dateList(String startTime, String endTime) {
         List<Task> taskList = Task.dao.find(Db.getSqlPara("work.workbench.dateList", Kv.by("userId", BaseUtil.getUser().getUserId()).set("startTime", startTime).set("endTime", endTime)));
         return R.ok().put("data", taskList);
     }
 
     @Before(Tx.class)
-    public R updateTop(JSONObject jsonObject){
+    public R updateTop(JSONObject jsonObject) {
         String updateSql = "update `72crm_task` set is_top = ?,top_order_num = ? where task_id = ?";
-        if(jsonObject.containsKey("fromList")){
+        if (jsonObject.containsKey("fromList")) {
             JSONArray fromlist = jsonObject.getJSONArray("fromList");
             Integer fromTopId = jsonObject.getInteger("fromTopId");
-            for(int i = 1; i <= fromlist.size(); i++){
+            for (int i = 1; i <= fromlist.size(); i++) {
                 Db.update(updateSql, fromTopId, i, fromlist.get(i - 1));
             }
         }
-        if(jsonObject.containsKey("toList")){
+        if (jsonObject.containsKey("toList")) {
             JSONArray tolist = jsonObject.getJSONArray("toList");
             Integer toTopId = jsonObject.getInteger("toTopId");
-            for(int i = 1; i <= tolist.size(); i++){
+            for (int i = 1; i <= tolist.size(); i++) {
                 Db.update(updateSql, toTopId, i, tolist.get(i - 1));
             }
         }
