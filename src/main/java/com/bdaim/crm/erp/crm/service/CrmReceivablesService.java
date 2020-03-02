@@ -95,7 +95,9 @@ public class CrmReceivablesService {
      */
     @Before(Tx.class)
     public R saveOrUpdate(JSONObject jsonObject) {
-        LkCrmReceivablesEntity crmReceivables = jsonObject.getObject("entity", LkCrmReceivablesEntity.class);
+        CrmReceivables entity = jsonObject.getObject("entity", CrmReceivables.class);
+        LkCrmReceivablesEntity crmReceivables = new LkCrmReceivablesEntity();
+        BeanUtils.copyProperties(entity,crmReceivables);
         crmReceivables.setCreateUserId(BaseUtil.getUser().getUserId());
         crmReceivables.setCustId(BaseUtil.getUser().getCustId());
         String batchId = StrUtil.isNotEmpty(crmReceivables.getBatchId()) ? crmReceivables.getBatchId() : IdUtil.simpleUUID();
