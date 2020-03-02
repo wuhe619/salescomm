@@ -71,8 +71,8 @@ public class EntDataService {
             data = new EntDataEntity();
             BeanUtils.copyProperties(q, data);
             // 处理手机号
+            phones = new ArrayList<>();
             if (StringUtil.isNotEmpty(q.getPhoneNumbers())) {
-                phones = new ArrayList<>();
                 for (String phone : q.getPhoneNumbers().split(",")) {
                     if ("-".equals(phone)) {
                         continue;
@@ -80,8 +80,18 @@ public class EntDataService {
                     p = new PhoneEntity(phone, now.getTime(), source, sourceWeb);
                     phones.add(p);
                 }
-                data.setPhoneNumbers(phones);
             }
+            // 更多电话
+            if (StringUtil.isNotEmpty(q.getPhoneNumbers_1())) {
+                for (String phone : q.getPhoneNumbers_1().split(",")) {
+                    if ("-".equals(phone)) {
+                        continue;
+                    }
+                    p = new PhoneEntity(phone, now.getTime(), source, sourceWeb);
+                    phones.add(p);
+                }
+            }
+            data.setPhoneNumbers(phones);
             // 处理邮箱
             if (StringUtil.isNotEmpty(q.getEmail())) {
                 emails = new ArrayList<>();
@@ -211,7 +221,7 @@ public class EntDataService {
     }
 
 
-    public void importDayDataToES(LocalDateTime localTime) {
+    public void importDayDataToES(LocalDateTime localTime, String sTag) {
         String yearMonth = localTime.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         List<Map<String, Object>> count = null;
         try {
@@ -253,12 +263,12 @@ public class EntDataService {
                         }
                     }
 
-                    jsonObject.put("s_tag", "1");
+                    jsonObject.put("s_tag", sTag);
                     jsonObject.put("id", MD5Util.encode32Bit(jsonObject.getString("entName") + "lianke" + jsonObject.getString("creditCode")));
                     //elasticSearchService.addDocumentToType("test", "business",jsonObject.getString("id"),jsonObject);
                     data.add(jsonObject);
                 }
-                elasticSearchService.bulkInsertDocument0("20200301new", "s_tag_1", data);
+                elasticSearchService.bulkInsertDocument0("20200301new", "business", data);
             }
         }
     }
@@ -275,6 +285,7 @@ public class EntDataService {
         if (count.size() > 0) {
             total = NumberConvertUtil.parseLong(count.get(0).get("count"));
         }
+        System.out.println(tableName + "-" + total);
         int limit = 20000;
         for (int i = 0; i <= total; i += limit) {
             List<Map<String, Object>> list = jdbcTemplate.queryForList("select * from " + tableName + " LIMIT ?,?", i, limit);
@@ -292,6 +303,7 @@ public class EntDataService {
                     }
                     jsonObject.put("industryEn", industryEn);
                     jsonObject.put("s_tag", sTag);
+                    jsonObject.put("id", MD5Util.encode32Bit(jsonObject.getString("entName") + "lianke" + jsonObject.getString("creditCode")));
                     data.add(jsonObject);
                 }
                 elasticSearchService.bulkInsertDocument(index, type, data);
