@@ -101,9 +101,10 @@ token:
 
     catch: 1
 #数据组接口
-data.transfer_url: http://161.189.102.150:8765/uid/api/uidconv
-data.account: huoke
-data.access_key: Hk@202003
-data.key_type: imei14
-data.value_type: msisdn_md5
-data.save_path: E:\\test\\image\\
+data:
+  transfer_url: http://161.189.102.150:8765/uid/api/uidconv
+  account: huoke
+  access_key: Hk@202003
+  key_type: imei14
+  value_type: msisdn_md5
+  save_path: E:\\test\\image\\

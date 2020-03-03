@@ -28,13 +28,13 @@ public class TransferController {
 
     private static final Logger logger = LoggerFactory.getLogger(TransferController.class);
 
-    private final static String url = PropertiesUtil.getStringValue("transfer_url");
+    private final static String url = PropertiesUtil.getStringValue("data.transfer_url");
 
-    private final static String account = PropertiesUtil.getStringValue("account");
-    private final static String access_key  = PropertiesUtil.getStringValue("access_key");
+    private final static String account = PropertiesUtil.getStringValue("data.account");
+    private final static String access_key  = PropertiesUtil.getStringValue("data.access_key");
 
-    private final static String key_type  = PropertiesUtil.getStringValue("key_type");
-    private final static String value_type  = PropertiesUtil.getStringValue("value_type");
+    private final static String key_type  = PropertiesUtil.getStringValue("data.key_type");
+    private final static String value_type  = PropertiesUtil.getStringValue("data.value_type");
 
 
     @Autowired
