@@ -562,6 +562,7 @@ public class CrmCustomerService {
         adminRecord.setTypes("crm_customer");
         adminRecord.setCreateTime(DateUtil.date().toTimestamp());
         adminRecord.setCreateUserId(BaseUtil.getUser().getUserId());
+        adminRecord.setCustId(BaseUtil.getUser().getCustId());
         if (1 == adminRecord.getIsEvent()) {
             LkCrmOaEventEntity oaEvent = new LkCrmOaEventEntity();
             oaEvent.setTitle(adminRecord.getContent());

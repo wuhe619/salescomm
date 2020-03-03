@@ -18,7 +18,6 @@ import com.bdaim.crm.erp.admin.service.AdminFileService;
 import com.bdaim.crm.erp.crm.common.CrmEnum;
 import com.bdaim.crm.erp.crm.common.CrmParamValid;
 import com.bdaim.crm.erp.crm.entity.CrmContacts;
-import com.bdaim.crm.erp.crm.entity.CrmCustomer;
 import com.bdaim.crm.erp.oa.common.OaEnum;
 import com.bdaim.crm.erp.oa.service.OaActionRecordService;
 import com.bdaim.crm.utils.*;
@@ -330,6 +329,7 @@ public class CrmContactsService {
         adminRecord.setTypes("crm_contacts");
         adminRecord.setCreateTime(DateUtil.date().toTimestamp());
         adminRecord.setCreateUserId(BaseUtil.getUser().getUserId());
+        adminRecord.setCustId(BaseUtil.getUser().getCustId());
         if (1 == adminRecord.getIsEvent()) {
             LkCrmOaEventEntity oaEvent = new LkCrmOaEventEntity();
             oaEvent.setTitle(adminRecord.getContent());
