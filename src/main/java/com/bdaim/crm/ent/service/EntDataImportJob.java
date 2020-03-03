@@ -6,7 +6,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -21,7 +20,7 @@ public class EntDataImportJob {
     private EntDataService entDataService;
 
     //@Scheduled(cron = "0 0/5 * * * ? ")
-    @PostConstruct
+    //@PostConstruct
     public void run() throws IOException, InterruptedException {
         new Thread(new HandleTask(entDataService)).start();
     }
