@@ -17,7 +17,7 @@ import java.util.Map;
 public class LkCrmCustomerDao extends SimpleHibernateDao<LkCrmCustomerEntity, Integer> {
 
     public List queryByIds(List deptIds) {
-        return super.queryListBySql("  select * from  72crm_crm_customer\n" +
+        return super.queryListBySql("  select * from  lkcrm_crm_customer\n" +
                 "       where customer_id in  (" + SqlAppendUtil.sqlAppendWhereIn(deptIds) + ")");
     }
 
@@ -310,6 +310,11 @@ public class LkCrmCustomerDao extends SimpleHibernateDao<LkCrmCustomerEntity, In
     public int setCustomerFollowup(List ids) {
         String sql = "update lkcrm_crm_customer set followup = 1 where customer_id in(" + SqlAppendUtil.sqlAppendWhereIn(ids) + ")";
         return executeUpdateSQL(sql);
+    }
+
+    public int updateDealStatusById(String deal_status, int customer_id) {
+        String sql = "  update lkcrm_crm_customer set deal_status = ? where customer_id = ?";
+        return executeUpdateSQL(sql, deal_status, customer_id);
     }
 
 }
