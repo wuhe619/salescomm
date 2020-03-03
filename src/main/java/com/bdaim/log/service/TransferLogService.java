@@ -10,11 +10,13 @@ public class TransferLogService{
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
+
     public int insertLog(TransferLog transferLog) {
         String task_id = transferLog.getTaskId();
         int state = transferLog.getState();
-        String sql = "insert into transfer_log(task_id, state) values ("+task_id + "," + state + ") ON DUPLICATE KEY UPDATE state=" + state;
-        return jdbcTemplate.update(sql);
+        //String sql = "insert into transfer_log(task_id, state) values ('"+task_id + "'," + state + ") ON DUPLICATE KEY UPDATE state=" + state;
+        String sql = "insert into transfer_log(task_id, state) values (?,?) ON DUPLICATE KEY UPDATE state=?";
+        return jdbcTemplate.update(sql, new Object[] {task_id, state, state});
     }
 
     public int selectLog(String taskId) {
