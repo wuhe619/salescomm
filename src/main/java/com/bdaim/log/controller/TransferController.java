@@ -60,6 +60,7 @@ public class TransferController {
             texts.put("req_time", String.valueOf(timestamp));
             texts.put("key_type", key_type);
             texts.put("value_type", value_type);
+            logger.info("transfer:"+texts);
             //发送请求
             String res = HttpUtil.postForm(url,"file", files, streams, texts);
             logger.info("调用接口返回结果：" + res);
