@@ -32,22 +32,22 @@ public class TransferController {
     @Autowired
     private TransferLogService transferLogService;
 
-    @Value("${data.account}")
+    @Value("${data.account:0}")
     private String account;
 
-    @Value("${data.access_key}")
+    @Value("${data.access_key:0}")
     private String access_key;
 
-    @Value("${data.transfer_url}")
+    @Value("${data.transfer_url:0}")
     private String transfer_url;
 
-    @Value("${data.save_path}")
+    @Value("${data.save_path:/}")
     private String savePath;
 
-    @Value("${data.key_type}")
+    @Value("${data.key_type:0}")
     private String key_type;
 
-    @Value("${data.value_type}")
+    @Value("${data.value_type:0}")
     private String value_type;
 
 
