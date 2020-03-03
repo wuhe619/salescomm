@@ -54,8 +54,10 @@ public class ImportQCCEnt {
     private String regCityName;
     @Excel(name = "经营范围", orderNum = "20")
     private String opScope;
-    @Excel(name = "更多电话", orderNum = "21")
+    @Excel(name = "电话", orderNum = "21")
     private String phoneNumbers;
+    @Excel(name = "更多电话")
+    private String phoneNumbers_1;
     @Excel(name = "邮箱", orderNum = "22")
     private String email;
 
@@ -544,5 +546,13 @@ public class ImportQCCEnt {
 
     public void setPotentialLabel(String potentialLabel) {
         this.potentialLabel = potentialLabel;
+    }
+
+    public String getPhoneNumbers_1() {
+        return phoneNumbers_1;
+    }
+
+    public void setPhoneNumbers_1(String phoneNumbers_1) {
+        this.phoneNumbers_1 = phoneNumbers_1;
     }
 }

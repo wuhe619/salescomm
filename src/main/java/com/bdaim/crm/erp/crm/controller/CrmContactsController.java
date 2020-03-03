@@ -20,7 +20,6 @@ import com.bdaim.crm.utils.AuthUtil;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
 import com.bdaim.util.JavaBeanUtil;
-import com.jfinal.core.paragetter.Para;
 import com.jfinal.log.Log;
 import com.jfinal.plugin.activerecord.Record;
 import org.apache.poi.hssf.usermodel.*;
@@ -213,6 +212,24 @@ public class CrmContactsController extends BasicAction {
             //return;
         }
         return (R.ok().put("data", JavaBeanUtil.recordToMap(crmContactsService.getRecord(basePageRequest))));
+    }
+
+    /**
+     * 代办事项列表
+     *
+     * @RequestParamm basePageRequest
+     * @RequestParamm taskStatus
+     * @RequestParamm leadsId
+     * @return
+     */
+    @RequestMapping(value = "/agency/list", method = RequestMethod.POST)
+    public R listAgency(BasePageRequest basePageRequest, Integer taskStatus, Integer customerId) {
+        basePageRequest.setData(taskStatus);
+        boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.CUSTOMER_TYPE_KEY.getSign()), customerId);
+        if (auth) {
+            return (R.noAuth());
+        }
+        return (R.ok().put("data", JavaBeanUtil.recordToMap(crmContactsService.listAgency(basePageRequest, taskStatus, customerId))));
     }
 
     /**

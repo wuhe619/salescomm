@@ -430,6 +430,24 @@ public class CrmCustomerController extends BasicAction {
     }
 
     /**
+     * 代办事项列表
+     *
+     * @RequestParamm basePageRequest
+     * @RequestParamm taskStatus
+     * @RequestParamm leadsId
+     * @return
+     */
+    @RequestMapping(value = "/agency/list", method = RequestMethod.POST)
+    public R listAgency(BasePageRequest basePageRequest, Integer taskStatus, Integer customerId) {
+        basePageRequest.setData(taskStatus);
+        boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.CUSTOMER_TYPE_KEY.getSign()), customerId);
+        if (auth) {
+            return (R.noAuth());
+        }
+        return (R.ok().put("data", JavaBeanUtil.recordToMap(crmCustomerService.listAgency(basePageRequest, taskStatus, customerId))));
+    }
+
+    /**
      * @author wyq
      * 客户批量导出
      */

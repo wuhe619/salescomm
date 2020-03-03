@@ -105,6 +105,9 @@ public class JavaBeanUtil {
 
     public static List<Record> mapToRecords(List<Map<String, Object>> l) {
         List<Record> list = new ArrayList<>();
+        if (l == null && l.size() == 0) {
+            return list;
+        }
         l.forEach(s -> list.add(mapToRecord(s)));
         return list;
     }

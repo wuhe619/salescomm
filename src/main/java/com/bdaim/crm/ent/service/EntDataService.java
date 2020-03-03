@@ -1,5 +1,7 @@
 package com.bdaim.crm.ent.service;
 
+import cn.hutool.core.date.DateTime;
+import cn.hutool.core.date.DateUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -7,13 +9,13 @@ import com.bdaim.common.service.ElasticSearchService;
 import com.bdaim.common.service.SequenceService;
 import com.bdaim.crm.*;
 import com.bdaim.util.ExcelUtil;
+import com.bdaim.util.MD5Util;
 import com.bdaim.util.NumberConvertUtil;
 import com.bdaim.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.dao.DataAccessException;
-import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -70,8 +72,8 @@ public class EntDataService {
             data = new EntDataEntity();
             BeanUtils.copyProperties(q, data);
             // 处理手机号
+            phones = new ArrayList<>();
             if (StringUtil.isNotEmpty(q.getPhoneNumbers())) {
-                phones = new ArrayList<>();
                 for (String phone : q.getPhoneNumbers().split(",")) {
                     if ("-".equals(phone)) {
                         continue;
@@ -79,8 +81,18 @@ public class EntDataService {
                     p = new PhoneEntity(phone, now.getTime(), source, sourceWeb);
                     phones.add(p);
                 }
-                data.setPhoneNumbers(phones);
             }
+            // 更多电话
+            if (StringUtil.isNotEmpty(q.getPhoneNumbers_1())) {
+                for (String phone : q.getPhoneNumbers_1().split(",")) {
+                    if ("-".equals(phone)) {
+                        continue;
+                    }
+                    p = new PhoneEntity(phone, now.getTime(), source, sourceWeb);
+                    phones.add(p);
+                }
+            }
+            data.setPhoneNumbers(phones);
             // 处理邮箱
             if (StringUtil.isNotEmpty(q.getEmail())) {
                 emails = new ArrayList<>();
@@ -115,7 +127,7 @@ public class EntDataService {
             ints = jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
                 @Override
                 public void setValues(PreparedStatement preparedStatement, int i) throws SQLException {
-                    Long ent_id = 0L;
+                    /*Long ent_id = 0L;
                     try {
                         ent_id = sequenceService.getSeq("ent_id");
                     } catch (Exception e) {
@@ -124,8 +136,10 @@ public class EntDataService {
                         } catch (Exception ex) {
                             ex.printStackTrace();
                         }
-                    }
-                    personList.get(i).setId(ent_id);
+                    }*/
+                    String ent_id = MD5Util.encode32Bit(personList.get(i).getEntEnName() + "lianke" + personList.get(i).getCreditCode());
+                    personList.get(i).setId(ent_id.toString());
+                    personList.get(i).setS_tag("1");
                     preparedStatement.setString(1, JSON.toJSONString(personList.get(i)));
                     preparedStatement.setTimestamp(2, now);
                     // 处理手机号来源
@@ -190,7 +204,7 @@ public class EntDataService {
             jdbcTemplate.batchUpdate(insertSql, new BatchPreparedStatementSetter() {
                 @Override
                 public void setValues(PreparedStatement preparedStatement, int i) throws SQLException {
-                    preparedStatement.setLong(1, phoneList.get(i).getId());
+                    preparedStatement.setString(1, phoneList.get(i).getId());
                     preparedStatement.setString(2, phoneList.get(i).getPropertyName());
                     preparedStatement.setString(3, phoneList.get(i).getPropertyValue());
                     preparedStatement.setTimestamp(4, now);
@@ -208,7 +222,7 @@ public class EntDataService {
     }
 
 
-    public void importDayDataToES(LocalDateTime localTime) {
+    public void importDayDataToES(LocalDateTime localTime, String sTag) {
         String yearMonth = localTime.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         List<Map<String, Object>> count = null;
         try {
@@ -221,7 +235,7 @@ public class EntDataService {
         if (count.size() > 0) {
             total = NumberConvertUtil.parseLong(count.get(0).get("count"));
         }
-        int limit = 20000;
+        int limit = 50000;
         for (int i = 0; i <= total; i += limit) {
             List<Map<String, Object>> list = jdbcTemplate.queryForList("select * from enterprise_info_" + yearMonth + " where create_time between ? and ? LIMIT ?,?",
                     localTime.withHour(0).withMinute(0).withSecond(0), localTime.withHour(23).withMinute(59).withSecond(59), i, limit);
@@ -237,9 +251,63 @@ public class EntDataService {
                     if (jsonObject.getTimestamp("updateTime") != null) {
                         jsonObject.put("updateTime", jsonObject.getTimestamp("updateTime").getTime());
                     }
+                    for (Map.Entry<String, Object> k : jsonObject.entrySet()) {
+                        if ("-".equals(String.valueOf(k.getValue()))) {
+                            k.setValue("");
+                        }
+                        boolean s = k.getKey().indexOf("Date") > 0 || k.getKey().indexOf("date") > 0 ||
+                                k.getKey().indexOf("Time") > 0 || k.getKey().indexOf("time") > 0;
+                        if (s && StringUtil.isNotEmpty(String.valueOf(k.getValue()))
+                                && String.valueOf(k.getValue()).indexOf("-") > 1) {
+                            DateTime parse = DateUtil.parse(String.valueOf(k.getValue()), "yyyy-MM-dd");
+                            k.setValue(parse.getTime());
+                        }
+                    }
+
+                    jsonObject.put("s_tag", sTag);
+                    jsonObject.put("id", MD5Util.encode32Bit(jsonObject.getString("entName") + "lianke" + jsonObject.getString("creditCode")));
+                    //elasticSearchService.addDocumentToType("test", "business",jsonObject.getString("id"),jsonObject);
                     data.add(jsonObject);
                 }
-                elasticSearchService.bulkInsertDocument("ent_data_index", "business", data);
+                elasticSearchService.bulkInsertDocument0("20200301new", "business", data);
+            }
+        }
+    }
+
+    public void importHY88DataToES(String tableName, String sTag, String industryEn, String index, String type) {
+        List<Map<String, Object>> count = null;
+        try {
+            count = jdbcTemplate.queryForList("select count(0) count from " + tableName);
+        } catch (DataAccessException e) {
+            LOG.error("查询数据异常,", e);
+            return;
+        }
+        long total = 0L;
+        if (count.size() > 0) {
+            total = NumberConvertUtil.parseLong(count.get(0).get("count"));
+        }
+        System.out.println(tableName + "-" + total);
+        int limit = 20000;
+        for (int i = 0; i <= total; i += limit) {
+            List<Map<String, Object>> list = jdbcTemplate.queryForList("select * from " + tableName + " LIMIT ?,?", i, limit);
+            if (list.size() > 0) {
+                List<JSONObject> data = new ArrayList<>();
+                for (Map<String, Object> m : list) {
+                    JSONObject jsonObject = JSON.parseObject(String.valueOf(m.get("content")));
+                    jsonObject.put("createTime", m.get("create_time"));
+                    jsonObject.put("updateTime", m.get("update_time"));
+                    if (jsonObject.getTimestamp("createTime") != null) {
+                        jsonObject.put("createTime", jsonObject.getTimestamp("createTime").getTime());
+                    }
+                    if (jsonObject.getTimestamp("updateTime") != null) {
+                        jsonObject.put("updateTime", jsonObject.getTimestamp("updateTime").getTime());
+                    }
+                    jsonObject.put("industryEn", industryEn);
+                    jsonObject.put("s_tag", sTag);
+                    jsonObject.put("id", MD5Util.encode32Bit(jsonObject.getString("entName") + "lianke" + jsonObject.getString("creditCode")));
+                    data.add(jsonObject);
+                }
+                elasticSearchService.bulkInsertDocument(index, type, data);
             }
         }
     }
