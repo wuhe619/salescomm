@@ -198,7 +198,7 @@ public class CrmReceivablesService {
     @Before(Tx.class)
     public R deleteByIds(String receivablesIds) {
         String[] idsArr = receivablesIds.split(",");
-        List<LkCrmReceivablesEntity> list = crmReceivablesPlanDao.queryReceivablesReceivablesId(Arrays.asList(idsArr));
+        List<LkCrmReceivablesPlanEntity> list = crmReceivablesPlanDao.queryReceivablesReceivablesId(Arrays.asList(idsArr));
         //List<CrmReceivables> list = CrmReceivables.dao.find(Db.getSqlPara("crm.receivablesplan.queryReceivablesReceivablesId", Kv.by("receivablesIds", idsArr)));
         if (list.size() > 0) {
             return R.error("该数据已被其他模块引用，不能被删除！");
