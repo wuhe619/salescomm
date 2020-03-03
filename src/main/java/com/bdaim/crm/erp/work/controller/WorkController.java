@@ -3,6 +3,7 @@ package com.bdaim.crm.erp.work.controller;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
+import com.bdaim.crm.entity.LkCrmWorkEntity;
 import com.bdaim.crm.erp.work.entity.Work;
 import com.bdaim.crm.erp.work.service.WorkService;
 import com.bdaim.crm.utils.AuthUtil;
@@ -31,7 +32,7 @@ public class WorkController extends BasicAction {
      * 设置项目
      */
     @RequestMapping(value = "/setWork")
-    public R setWork(@Para("") Work work) {
+    public R setWork(@Para("") LkCrmWorkEntity work) throws IllegalAccessException {
         return (workService.setWork(work));
         //return (R.ok().put("data", workService.setWork(work));
     }
