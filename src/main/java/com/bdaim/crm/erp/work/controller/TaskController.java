@@ -6,6 +6,7 @@ import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.common.constant.BaseConstant;
 import com.bdaim.crm.entity.LkCrmTaskEntity;
 import com.bdaim.crm.entity.LkCrmTaskRelationEntity;
+import com.bdaim.crm.entity.LkCrmWorkTaskClassEntity;
 import com.bdaim.crm.erp.admin.service.AdminUserService;
 import com.bdaim.crm.erp.oa.common.OaEnum;
 import com.bdaim.crm.erp.work.entity.Task;
@@ -44,7 +45,7 @@ public class TaskController extends BasicAction {
      * 设置任务类别
      */
     @RequestMapping(value = "/setTaskClass", method = RequestMethod.POST)
-    public R setTaskClass(@Para("") WorkTaskClass taskClass) {
+    public R setTaskClass(@Para("") LkCrmWorkTaskClassEntity taskClass) {
         return (taskService.setTaskClass(taskClass));
     }
 
@@ -228,7 +229,7 @@ public class TaskController extends BasicAction {
      * 添加任务与业务关联
      */
     @RequestMapping(value = "/svaeTaskRelation", method = RequestMethod.POST)
-    public R svaeTaskRelation(@Para("") TaskRelation taskRelation) {
+    public R svaeTaskRelation(@Para("") LkCrmTaskRelationEntity taskRelation) {
         return (taskService.svaeTaskRelation(taskRelation, BaseUtil.getUser().getUserId().intValue()));
     }
 

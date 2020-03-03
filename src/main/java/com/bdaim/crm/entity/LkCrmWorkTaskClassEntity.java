@@ -7,7 +7,7 @@ import java.util.Objects;
 @Entity
 @Table(name = "lkcrm_work_task_class", schema = "", catalog = "")
 public class LkCrmWorkTaskClassEntity {
-    private int classId;
+    private Integer classId;
     private String name;
     private Timestamp createTime;
     private Integer createUserId;
@@ -17,11 +17,12 @@ public class LkCrmWorkTaskClassEntity {
 
     @Id
     @Column(name = "class_id")
-    public int getClassId() {
+    @GeneratedValue
+    public Integer getClassId() {
         return classId;
     }
 
-    public void setClassId(int classId) {
+    public void setClassId(Integer classId) {
         this.classId = classId;
     }
 
