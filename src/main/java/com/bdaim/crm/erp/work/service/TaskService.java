@@ -27,13 +27,13 @@ import com.bdaim.customer.dao.CustomerUserDao;
 import com.bdaim.customer.entity.CustomerUser;
 import com.bdaim.util.JavaBeanUtil;
 import com.bdaim.util.NumberConvertUtil;
-import com.bdaim.util.StringUtil;
 import com.jfinal.aop.Before;
 import com.jfinal.kit.Kv;
 import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Page;
 import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.tx.Tx;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -364,12 +364,7 @@ public class TaskService{
         workTaskLog.setTaskId(task.getTaskId());
 
         LkCrmTaskEntity auldTask = crmTaskDao.get(task.getTaskId());
-        if(StringUtil.isNotEmpty(task.getName())){
-            auldTask.setName(task.getName());
-        }
-        if(task.getStatus()==null){
-            auldTask.setStatus(task.getStatus());
-        }
+        BeanUtils.copyProperties(task, auldTask, JavaBeanUtil.getNullPropertyNames(task));
         crmTaskDao.update(auldTask);
 
         //判断描述是否修改
