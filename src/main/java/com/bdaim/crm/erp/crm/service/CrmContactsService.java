@@ -18,6 +18,7 @@ import com.bdaim.crm.erp.admin.service.AdminFileService;
 import com.bdaim.crm.erp.crm.common.CrmEnum;
 import com.bdaim.crm.erp.crm.common.CrmParamValid;
 import com.bdaim.crm.erp.crm.entity.CrmContacts;
+import com.bdaim.crm.erp.crm.entity.CrmCustomer;
 import com.bdaim.crm.erp.oa.common.OaEnum;
 import com.bdaim.crm.erp.oa.service.OaActionRecordService;
 import com.bdaim.crm.utils.*;
@@ -82,6 +83,8 @@ public class CrmContactsService {
 
     @Resource
     private LkCrmAdminFieldDao crmAdminFieldDao;
+    @Resource
+    private LkCrmTaskDao crmTaskDao;
 
     /**
      * @return
@@ -344,6 +347,25 @@ public class CrmContactsService {
             oaEventRelation.setCreateTime(DateUtil.date().toTimestamp());
             crmOaEventDao.saveOrUpdate(oaEventRelation);
         }
+        // 添加任务
+        if (adminRecord.getIsTask() != null && 1 == adminRecord.getIsTask()) {
+            LkCrmTaskEntity crmTaskEntity = new LkCrmTaskEntity();
+            crmTaskEntity.setCustId(BaseUtil.getUser().getCustId());
+            crmTaskEntity.setBatchId(IdUtil.simpleUUID());
+            crmTaskEntity.setName(adminRecord.getTaskName());
+            crmTaskEntity.setDescription(adminRecord.getContent());
+            crmTaskEntity.setCreateUserId(adminRecord.getCreateUserId());
+            crmTaskEntity.setMainUserId(adminRecord.getCreateUserId());
+            crmTaskEntity.setStartTime(adminRecord.getNextTime());
+            if (adminRecord.getNextTime() != null) {
+                crmTaskEntity.setStopTime(DateUtil.offsetDay(adminRecord.getNextTime(), 1).toTimestamp());
+            }
+            //完成状态 1正在进行2延期3归档 5结束
+            crmTaskEntity.setStatus(1);
+            crmTaskEntity.setCreateTime(DateUtil.date().toTimestamp());
+            int taskId = (int) crmTaskDao.saveReturnPk(crmTaskEntity);
+            adminRecord.setTaskId(taskId);
+        }
         int code = (int) crmAdminRecordDao.saveReturnPk(adminRecord);
         return R.isSuccess(code > 0);
     }
@@ -356,7 +378,7 @@ public class CrmContactsService {
     public List<Record> getRecord(BasePageRequest<CrmContacts> basePageRequest) {
         CrmContacts crmContacts = basePageRequest.getData();
         //List<Record> recordList = Db.find(Db.getSql("crm.contact.getRecord"), crmContacts.getContactsId(), crmContacts.getContactsId());
-        List<Record> recordList = JavaBeanUtil.mapToRecords(crmContactsDao.getRecord(crmContacts.getContactsId()));
+        List<Record> recordList = JavaBeanUtil.mapToRecords(crmContactsDao.getRecord(crmContacts.getContactsId(), crmContacts.getContactsId(), crmContacts.getContactsId()));
         recordList.forEach(record -> {
             adminFileService.queryByBatchId(record.getStr("batch_id"), record);
             String businessIds = record.getStr("business_ids");
@@ -380,6 +402,22 @@ public class CrmContactsService {
                 }
             }
             record.set("business_list", businessList).set("contacts_list", contactsList);
+        });
+        return recordList;
+    }
+
+    /**
+     * 查看代办事项记录
+     *
+     * @param basePageRequest
+     * @param taskStatus
+     * @param contacts_id
+     * @return
+     */
+    public List<Record> listAgency(BasePageRequest<CrmContacts> basePageRequest, Integer taskStatus, Integer contacts_id) {
+        List<Record> recordList = JavaBeanUtil.mapToRecords(crmContactsDao.getRecord(contacts_id, taskStatus, basePageRequest.getPage(), basePageRequest.getLimit()));
+        recordList.forEach(record -> {
+            adminFileService.queryByBatchId(record.getStr("batch_id"), record);
         });
         return recordList;
     }

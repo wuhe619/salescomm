@@ -132,17 +132,32 @@ public class LkCrmContactsDao extends SimpleHibernateDao<LkCrmContactsEntity, In
     }
 
 
-    public List<Map<String, Object>> getRecord(Integer contacts_id) {
+    public List<Map<String, Object>> getRecord(Integer contacts_id, int pageNum, int pageSize) {
         String sql = " select a.record_id, '' AS user_img,b.realname,a.create_time,a.content,a.category,a.next_time,a.batch_id,a.contacts_ids,a.business_ids " +
-                "    from lkcrm_admin_record as a inner join t_customer_user as b " +
+                "    from lkcrm_admin_record as a inner join t_customer_user as b LEFT JOIN lkcrm_task AS c ON a.task_id = c.task_id " +
                 "    where a.create_user_id = b.id and ((types = 'crm_contacts' and types_id = ?) or " +
-                "    (types = 'crm_customer' and FIND_IN_SET(?,IFNULL(a.contacts_ids,0)))) order by a.create_time desc";
+                "    (types = 'crm_customer' and FIND_IN_SET(?,IFNULL(a.contacts_ids,0)))) AND (a.task_id IS NULL OR c.`status`=5) order by a.create_time desc";
         List param = new ArrayList();
         param.add(contacts_id);
         param.add(contacts_id);
-        List<Map<String, Object>> maps = sqlQuery(sql, param.toArray());
+        List<Map<String, Object>> maps = sqlPageQuery(sql, pageNum, pageSize, param.toArray()).getData();
         return maps;
     }
+
+    public List<Map<String, Object>> getRecord(Integer contacts_id, int taskStatus, int pageNum, int pageSize) {
+        String sql = " select a.record_id, '' AS user_img,b.realname,a.create_time,a.content,a.category,a.next_time,a.batch_id,a.contacts_ids,a.business_ids " +
+                "    from lkcrm_admin_record as a inner join t_customer_user as b LEFT JOIN lkcrm_task AS c ON a.task_id = c.task_id " +
+                "    where a.create_user_id = b.id and ((types = 'crm_contacts' and types_id = ?) or " +
+                "    (types = 'crm_customer' and FIND_IN_SET(?,IFNULL(a.contacts_ids,0)))) AND c.`status` = ?  order by a.create_time desc";
+        List param = new ArrayList();
+        param.add(contacts_id);
+        param.add(contacts_id);
+        param.add(taskStatus);
+        List<Map<String, Object>> maps = sqlPageQuery(sql, pageNum, pageSize, param.toArray()).getData();
+        return maps;
+    }
+
+
 
     public List<Map<String, Object>> excelExport(List ids) {
         String sql = " select * from contactsview where contacts_id in (" + SqlAppendUtil.sqlAppendWhereIn(ids) + ") order by update_time desc";

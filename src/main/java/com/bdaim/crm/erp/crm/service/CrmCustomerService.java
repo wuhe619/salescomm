@@ -111,6 +111,9 @@ public class CrmCustomerService {
     @Resource
     private LkCrmAdminFieldDao crmAdminFieldDao;
 
+    @Resource
+    private LkCrmTaskDao crmTaskDao;
+
     /**
      * @return
      * @author wyq
@@ -600,6 +603,25 @@ public class CrmCustomerService {
                 }
             }
         }
+        // 添加任务
+        if (adminRecord.getIsTask() != null && 1 == adminRecord.getIsTask()) {
+            LkCrmTaskEntity crmTaskEntity = new LkCrmTaskEntity();
+            crmTaskEntity.setCustId(BaseUtil.getUser().getCustId());
+            crmTaskEntity.setBatchId(IdUtil.simpleUUID());
+            crmTaskEntity.setName(adminRecord.getTaskName());
+            crmTaskEntity.setDescription(adminRecord.getContent());
+            crmTaskEntity.setCreateUserId(adminRecord.getCreateUserId());
+            crmTaskEntity.setMainUserId(adminRecord.getCreateUserId());
+            crmTaskEntity.setStartTime(adminRecord.getNextTime());
+            if (adminRecord.getNextTime() != null) {
+                crmTaskEntity.setStopTime(DateUtil.offsetDay(adminRecord.getNextTime(), 1).toTimestamp());
+            }
+            //完成状态 1正在进行2延期3归档 5结束
+            crmTaskEntity.setStatus(1);
+            crmTaskEntity.setCreateTime(DateUtil.date().toTimestamp());
+            int taskId = (int) crmTaskDao.saveReturnPk(crmTaskEntity);
+            adminRecord.setTaskId(taskId);
+        }
         crmCustomerDao.executeUpdateSQL("update lkcrm_crm_customer set followup = 1 where customer_id = ?", adminRecord.getTypesId());
         crmAdminRecordDao.save(adminRecord);
         return R.ok();
@@ -611,7 +633,7 @@ public class CrmCustomerService {
      */
     public List<Record> getRecord(BasePageRequest<CrmCustomer> basePageRequest) {
         CrmCustomer crmCustomer = basePageRequest.getData();
-        List<Record> recordList = JavaBeanUtil.mapToRecords(crmCustomerDao.getRecord(crmCustomer.getCustomerId()));
+        List<Record> recordList = JavaBeanUtil.mapToRecords(crmCustomerDao.getRecord(crmCustomer.getCustomerId(), basePageRequest.getPage(), basePageRequest.getLimit()));
         recordList.forEach(record -> {
             adminFileService.queryByBatchId(record.getStr("batch_id"), record);
             String businessIds = record.getStr("business_ids");
