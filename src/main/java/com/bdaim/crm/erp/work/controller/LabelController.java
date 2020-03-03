@@ -5,6 +5,7 @@ package com.bdaim.crm.erp.work.controller;
  */
 
 import com.bdaim.crm.common.annotation.NotNullValidate;
+import com.bdaim.crm.entity.LkCrmWorkTaskLabelEntity;
 import com.bdaim.crm.erp.work.entity.WorkTaskLabel;
 import com.bdaim.crm.erp.work.service.LabelService;
 import com.bdaim.crm.utils.R;
@@ -28,7 +29,7 @@ public class LabelController extends Controller {
      * @param taskLabel 任务标签对象
      */
     @RequestMapping(value = "/setLabel")
-    public R setLabel(@Para("") WorkTaskLabel taskLabel) {
+    public R setLabel(@Para("") LkCrmWorkTaskLabelEntity taskLabel) {
 //        renderJson(labelService.setLabel(taskLabel));
 //        return (R.ok().put("data", labelService.setLabel(taskLabel)));
         return labelService.setLabel(taskLabel);
