@@ -122,11 +122,11 @@ public class CrmReceivablesService {
             }
             boolean save = (int) crmReceivablesDao.saveReturnPk(crmReceivables) > 0;
             if (crmReceivables.getPlanId() != null) {
-                LkCrmReceivablesEntity crmReceivablesPlan = crmReceivablesDao.get(crmReceivables.getPlanId());
+                LkCrmReceivablesPlanEntity crmReceivablesPlan = crmReceivablesPlanDao.get(crmReceivables.getPlanId());
                 if (crmReceivablesPlan != null) {
                     crmReceivablesPlan.setReceivablesId(crmReceivables.getReceivablesId());
                     crmReceivablesPlan.setUpdateTime(DateUtil.date().toTimestamp());
-                    crmReceivablesDao.saveOrUpdate(crmReceivablesPlan);
+                    crmReceivablesPlanDao.update(crmReceivablesPlan);
                 }
             }
 
@@ -135,7 +135,8 @@ public class CrmReceivablesService {
         } else {
             LkCrmReceivablesEntity receivables = crmReceivablesDao.get(crmReceivables.getReceivablesId());
             if (receivables.getCheckStatus() != 4 && receivables.getCheckStatus() != 3) {
-                return R.error("不能编辑，请先撤回再编辑！");
+                //return R.error("不能编辑，请先撤回再编辑！");
+                return R.error("当前审批状态不能编辑(审核未通过|已撤回可编辑)，请先撤回再编辑！");
             }
             Map<String, Integer> map = examineRecordService.saveExamineRecord(2, jsonObject.getLong("checkUserId"), receivables.getOwnerUserId(), receivables.getExamineRecordId());
             if (map.get("status") == 0) {
