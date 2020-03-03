@@ -98,8 +98,6 @@ ds.es.type.0: label
 is_enable_oper_log: true
 token:
   cache: 1
-
-    catch: 1
 #数据组接口
 data:
   transfer_url: http://161.189.102.150:8765/uid/api/uidconv
