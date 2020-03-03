@@ -445,10 +445,12 @@ public class AdminExamineRecordService {
      */
     public R queryExamineRecordList(Integer recordId, Integer ownerUserId) {
         JSONObject jsonObject = new JSONObject();
-        Record examineRecord = Db.findFirst(Db.getSql("admin.examineStep.queryExamineRecordById"), recordId);
+
+        Record examineRecord =JavaBeanUtil.mapToRecord( crmAdminExamineRecordDao.queryExamineRecordById(recordId));
         //如果当前审批已撤回
         if (examineRecord.getInt("examine_status") == 4) {
             jsonObject.put("examineType", 1);
+            crmAdminExamineLogDao.queryUserByUserId()
             List<Record> user = Db.find(Db.getSql("admin.examineLog.queryUserByRecordId"), recordId);
             examineRecord.set("userList", user);
             List<Record> records = new ArrayList<>();
