@@ -3,12 +3,13 @@ package com.bdaim.log.controller;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.log.entity.TransferLog;
 import com.bdaim.log.service.TransferLogService;
+import com.bdaim.util.ConfigUtil;
 import com.bdaim.util.HttpUtil;
 import com.bdaim.util.MD5Util2;
-import com.bdaim.util.PropertiesUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -28,17 +29,28 @@ public class TransferController {
 
     private static final Logger logger = LoggerFactory.getLogger(TransferController.class);
 
-    private final static String url = PropertiesUtil.getStringValue("data.transfer_url");
-
-    private final static String account = PropertiesUtil.getStringValue("data.account");
-    private final static String access_key  = PropertiesUtil.getStringValue("data.access_key");
-
-    private final static String key_type  = PropertiesUtil.getStringValue("data.key_type");
-    private final static String value_type  = PropertiesUtil.getStringValue("data.value_type");
-
-
     @Autowired
     private TransferLogService transferLogService;
+
+    @Value("${data.account:0}")
+    private String account;
+
+    @Value("${data.access_key:0}")
+    private String access_key;
+
+    @Value("${data.transfer_url:0}")
+    private String transfer_url;
+
+    @Value("${data.save_path:/}")
+    private String savePath;
+
+    @Value("${data.key_type:0}")
+    private String key_type;
+
+    @Value("${data.value_type:0}")
+    private String value_type;
+
+
 
     @PostMapping(value = "trans")
     public Map transfer(MultipartFile file) {
@@ -51,9 +63,9 @@ public class TransferController {
             Map<String, String> texts = new HashMap();
 
             long timestamp = System.currentTimeMillis() / 1000;
+
             String token = MD5Util2.MD5Encode(account + access_key + timestamp);
 
-            streams.put("file", file.getInputStream());
             //参数
             texts.put("account", account);
             texts.put("token", token);
@@ -61,10 +73,10 @@ public class TransferController {
             texts.put("key_type", key_type);
             texts.put("value_type", value_type);
             logger.info("transfer:"+texts);
+            streams.put("file", file.getInputStream());
             //发送请求
-            String res = HttpUtil.postForm(url,"file", files, streams, texts);
+            String res = HttpUtil.postForm(transfer_url,"file", files, streams, texts);
             logger.info("调用接口返回结果：" + res);
-
             JSONObject resJson = JSONObject.parseObject(res);
             String respcode = resJson.getString("respcode");
             String task_id = resJson.getString("task_id");
@@ -99,7 +111,7 @@ public class TransferController {
                 logger.info("task_id=" + task_id + "不存在");
                 return result;
             }
-            String path = PropertiesUtil.getStringValue("save_path");
+            String path = ConfigUtil.getInstance().get("data.save_path");
             String pathName  = path + task_id + "_" + key_counts + "_" + matched_counts;
             fos = new FileOutputStream(pathName);
             fos.write(file.getBytes());

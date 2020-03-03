@@ -5,22 +5,12 @@ import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.crm.common.constant.BaseConstant;
 import com.bdaim.crm.dao.*;
-import com.bdaim.crm.entity.LkCrmAdminExamineEntity;
-import com.bdaim.crm.entity.LkCrmAdminExamineLogEntity;
-import com.bdaim.crm.entity.LkCrmAdminExamineRecordEntity;
-import com.bdaim.crm.entity.LkCrmAdminExamineStepEntity;
-import com.bdaim.crm.erp.admin.entity.AdminExamine;
-import com.bdaim.crm.erp.admin.entity.AdminExamineLog;
-import com.bdaim.crm.erp.admin.entity.AdminExamineRecord;
-import com.bdaim.crm.erp.admin.entity.AdminExamineStep;
-import com.bdaim.crm.erp.crm.entity.CrmContract;
-import com.bdaim.crm.erp.crm.entity.CrmReceivables;
+import com.bdaim.crm.entity.*;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
 import com.bdaim.util.JavaBeanUtil;
 import com.bdaim.util.NumberConvertUtil;
 import com.jfinal.aop.Before;
-import com.jfinal.kit.Kv;
 import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.tx.Tx;
@@ -28,7 +18,10 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import javax.transaction.Transactional;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Service
 @Transactional
@@ -44,6 +37,14 @@ public class AdminExamineRecordService {
     private LkCrmAdminExamineStepDao crmAdminExamineStepDao;
     @Resource
     private LkCrmAdminExamineDao crmAdminExamineDao;
+    @Resource
+    private LkCrmContactsDao crmContactsDao;
+    @Resource
+    private LkCrmReceivablesDao crmReceivablesDao;
+    @Resource
+    private LkCrmContractDao crmContractDao;
+    @Resource
+    private LkCrmCustomerDao crmCustomerDao;
 
     /**
      * 第一次添加审核记录和审核日志 type 1 合同 2 回款 userId:授权审批人
@@ -160,40 +161,41 @@ public class AdminExamineRecordService {
         Long auditUserId = BaseUtil.getUser().getUserId();
 
         //根据审核记录id查询审核记录
-        AdminExamineRecord examineRecord = AdminExamineRecord.dao.findById(recordId);
+        LkCrmAdminExamineRecordEntity examineRecord = crmAdminExamineRecordDao.get(recordId);
         if (status == 4) {
             if (!examineRecord.getCreateUser().equals(auditUserId) && !auditUserId.equals(BaseConstant.SUPER_ADMIN_USER_ID)) {
                 return R.error("当前用户没有审批权限！");
             }
         } else {
             //【判断当前审批人是否有审批权限
-            Record reco = Db.findFirst(Db.getSqlPara("admin.examineLog.queryExamineLog",
-                    Kv.by("recordId", recordId).set("auditUserId", auditUserId).set("stepId", examineRecord.getExamineStepId())));
+            Record reco = JavaBeanUtil.mapToRecord(crmAdminExamineLogDao.queryExamineLog(recordId, auditUserId, String.valueOf(examineRecord.getExamineStepId())));
             if (reco == null) {
                 return R.error("当前用户没有审批权限！");
             }
         }
         examineRecord.setExamineStatus(status);
         //查询审批流程
-        AdminExamine examine = AdminExamine.dao.findById(examineRecord.getExamineId());
+        LkCrmAdminExamineEntity examine = crmAdminExamineDao.get(examineRecord.getExamineId());
         if (examine.getCategoryType() == 1) {
-            ownerUserId = Long.valueOf(CrmContract.dao.findById(id).getOwnerUserId());
+            ownerUserId = Long.valueOf(crmContactsDao.get(id).getOwnerUserId());
         } else {
-            ownerUserId = Long.valueOf(CrmReceivables.dao.findById(id).getOwnerUserId());
+            ownerUserId = Long.valueOf(crmReceivablesDao.get(id).getOwnerUserId());
         }
         //查询当前审批步骤
-        AdminExamineStep examineStep = AdminExamineStep.dao.findById(examineRecord.getExamineStepId());
+        LkCrmAdminExamineStepEntity examineStep = crmAdminExamineStepDao.get(examineRecord.getExamineStepId());
         //查询当前审核日志
-        AdminExamineLog nowadayExamineLog = null;
+        LkCrmAdminExamineLogEntity nowadayExamineLog = null;
         if (examine.getExamineType() == 1) {
-            nowadayExamineLog = AdminExamineLog.dao.findFirst(Db.getSql("admin.examineLog.queryNowadayExamineLogByRecordIdAndStepId"), examineRecord.getRecordId(), examineRecord.getExamineStepId(), auditUserId);
+            nowadayExamineLog = crmAdminExamineLogDao.queryNowadayExamineLogByRecordIdAndStepId(examineRecord.getRecordId(), examineRecord.getExamineStepId(), auditUserId);
+            //nowadayExamineLog = AdminExamineLog.dao.findFirst(Db.getSql("admin.examineLog.queryNowadayExamineLogByRecordIdAndStepId"), examineRecord.getRecordId(), examineRecord.getExamineStepId(), auditUserId);
         } else {
-            nowadayExamineLog = AdminExamineLog.dao.findFirst(Db.getSql("admin.examineLog.queryNowadayExamineLogByRecordIdAndStatus"), examineRecord.getRecordId(), auditUserId);
+            nowadayExamineLog = crmAdminExamineLogDao.queryNowadayExamineLogByRecordIdAndStatus(examineRecord.getRecordId(), auditUserId);
+            //nowadayExamineLog = AdminExamineLog.dao.findFirst(Db.getSql("admin.examineLog.queryNowadayExamineLogByRecordIdAndStatus"), examineRecord.getRecordId(), auditUserId);
         }
 
         //审核日志 添加审核人
         if (nowadayExamineLog != null) {
-            nowadayExamineLog.setExamineTime(DateUtil.date());
+            nowadayExamineLog.setExamineTime(DateUtil.date().toTimestamp());
             nowadayExamineLog.setRemarks(remarks);
         }
 
@@ -202,7 +204,7 @@ public class AdminExamineRecordService {
             nowadayExamineLog.setExamineStatus(status);
             if (examineStep != null && examineStep.getStepType() == 2) {
                 examineRecord.setExamineStatus(3);
-                Record record = Db.findFirst(Db.getSqlPara("admin.examineLog.queryCountByStepId", Kv.by("recordId", recordId).set("stepId", examineStep.getStepId())));
+                Record record = JavaBeanUtil.mapToRecord(crmAdminExamineLogDao.queryCountByStepId(recordId, examineStep.getStepId()));
                 if (record.getInt("toCount") == 0) {
                     examineRecord.setExamineStatus(status);
                 }
@@ -210,22 +212,24 @@ public class AdminExamineRecordService {
 
             if (examine.getCategoryType() == 1) {
                 //合同
-                Db.update(Db.getSql("crm.contract.updateCheckStatusById"), 3, id);
+                crmContractDao.updateCheckStatusById(3, id);
+                //Db.update(Db.getSql("crm.contract.updateCheckStatusById"), 3, id);
             } else {
                 //回款
-                Db.update(Db.getSql("crm.receivables.updateCheckStatusById"), 3, id);
+                crmReceivablesDao.updateCheckStatusById(3, id);
+                //Db.update(Db.getSql("crm.receivables.updateCheckStatusById"), 3, id);
             }
         } else if (status == 4) {
             //先查询该审批流程的审批步骤的第一步
-            AdminExamineStep oneExamineStep = AdminExamineStep.dao.findFirst(Db.getSql("admin.examineStep.queryExamineStepByExamineIdOrderByStepNum"), examine.getExamineId());
+            LkCrmAdminExamineStepEntity oneExamineStep = crmAdminExamineStepDao.queryExamineStepByExamineIdOrderByStepNum(examine.getExamineId());
             //判断审核撤回
-            AdminExamineLog examineLog = new AdminExamineLog();
-            examineLog.setLogId(null);
+            LkCrmAdminExamineLogEntity examineLog = new LkCrmAdminExamineLogEntity();
+            //examineLog.setLogId(null);
             examineLog.setExamineUser(auditUserId);
-            examineLog.setCreateTime(DateUtil.date());
+            examineLog.setCreateTime(DateUtil.date().toTimestamp());
             examineLog.setCreateUser(auditUserId);
             examineLog.setExamineStatus(status);
-            examineLog.setExamineTime(new Date());
+            examineLog.setExamineTime(DateUtil.date().toTimestamp());
             examineLog.setIsRecheck(0);
             if (examine.getExamineType() == 1) {
                 examineRecord.setExamineStepId(oneExamineStep.getStepId());
@@ -240,21 +244,23 @@ public class AdminExamineRecordService {
             }
             examineLog.setRecordId(examineRecord.getRecordId());
             examineLog.setRemarks(remarks);
-            examineLog.save();
+            crmAdminExamineLogDao.saveReturnPk(examineLog);
             if (examine.getCategoryType() == 1) {
                 //合同
-                CrmContract contract = CrmContract.dao.findById(id);
+                LkCrmContractEntity contract = crmContractDao.get(id);
                 if (contract.getCheckStatus() == 2) {
                     return R.error("该合同已审核通过，不能撤回！");
                 }
-                Db.update(Db.getSql("crm.contract.updateCheckStatusById"), 4, id);
+                crmContractDao.updateCheckStatusById(4, id);
+                //Db.update(Db.getSql("crm.contract.updateCheckStatusById"), 4, id);
             } else {
                 //回款
-                CrmReceivables receivables = CrmReceivables.dao.findById(id);
+                LkCrmReceivablesEntity receivables = crmReceivablesDao.get(id);
                 if (receivables.getCheckStatus() == 2) {
                     return R.error("该回款已审核通过，不能撤回！");
                 }
-                Db.update(Db.getSql("crm.receivables.updateCheckStatusById"), 4, id);
+                crmReceivablesDao.updateCheckStatusById(4, id);
+                //Db.update(Db.getSql("crm.receivables.updateCheckStatusById"), 4, id);
             }
         } else {
             //审核通过
@@ -264,8 +270,8 @@ public class AdminExamineRecordService {
                 //固定审批
 
                 //查询下一个审批步骤
-                AdminExamineStep nextExamineStep =
-                        AdminExamineStep.dao.findFirst(Db.getSql("admin.examineStep.queryExamineStepByNextExamineIdOrderByStepId"), examine.getExamineId(), examineRecord.getExamineStepId());
+                LkCrmAdminExamineStepEntity nextExamineStep = crmAdminExamineStepDao.queryExamineStepByNextExamineIdOrderByStepId(examine.getExamineId(), examineRecord.getExamineStepId());
+                //AdminExamineStep.dao.findFirst(Db.getSql("admin.examineStep.queryExamineStepByNextExamineIdOrderByStepId"), examine.getExamineId(), examineRecord.getExamineStepId());
 
                 Boolean flag = true;
                 //判断是否是并签
@@ -274,11 +280,12 @@ public class AdminExamineRecordService {
                     //根据审核记录ID，审核步骤ID，查询审核日志
                     // List<AdminExamineLog> examineLogs = AdminExamineLog.dao.find(Db.getSql("admin.examineLog.queryNowadayExamineLogByRecordIdAndStepId"),examineRecord.getRecordId(),examineRecord.getExamineStepId());
                     //当前并签人员
-                    nowadayExamineLog.update();
+                    //nowadayExamineLog.update();
+                    crmAdminExamineLogDao.update(nowadayExamineLog);
                     String[] userIds = examineStep.getCheckUserId().split(",");
                     for (String userId : userIds) {
                         if (StrUtil.isNotEmpty(userId)) {
-                            AdminExamineLog examineLog = AdminExamineLog.dao.findFirst(Db.getSql("admin.examineLog.queryNowadayExamineLogByRecordIdAndStepId"), examineRecord.getRecordId(), examineRecord.getExamineStepId(), userId);
+                            LkCrmAdminExamineLogEntity examineLog = crmAdminExamineLogDao.queryNowadayExamineLogByRecordIdAndStepId(examineRecord.getRecordId(), examineRecord.getExamineStepId(), NumberConvertUtil.parseLong(userId));
                             if (examineLog.getExamineStatus() == 0) {
                                 //并签未走完
                                 flag = false;
@@ -291,12 +298,12 @@ public class AdminExamineRecordService {
                         examineRecord.setExamineStatus(3);
                         if (examine.getCategoryType() == 1) {
                             //合同
-                            Db.update(Db.getSql("crm.contract.updateCheckStatusById"), 1, id);
-
+                            crmContractDao.updateCheckStatusById(1, id);
+                            //Db.update(Db.getSql("crm.contract.updateCheckStatusById"), 1, id);
                         } else {
                             //回款
-                            Db.update(Db.getSql("crm.receivables.updateCheckStatusById"), 1, id);
-
+                            crmReceivablesDao.updateCheckStatusById(1, id);
+                            //Db.update(Db.getSql("crm.receivables.updateCheckStatusById"), 1, id);
                         }
                     }
                 }
@@ -307,27 +314,28 @@ public class AdminExamineRecordService {
                         examineRecord.setExamineStatus(3);
                         examineRecord.setExamineStepId(nextExamineStep.getStepId());
 
-                        AdminExamineLog examineLog = new AdminExamineLog();
+                        LkCrmAdminExamineLogEntity examineLog = new LkCrmAdminExamineLogEntity();
                         examineLog.setOrderId(nextExamineStep.getStepNum());
                         if (nextExamineStep.getStepType() == 2 || nextExamineStep.getStepType() == 3) {
                             //并签或者或签
                             String[] userIds = nextExamineStep.getCheckUserId().split(",");
                             for (String uid : userIds) {
                                 if (StrUtil.isNotEmpty(uid)) {
-                                    examineLog.setLogId(null);
+                                    ///examineLog.setLogId(null);
                                     examineLog.setExamineUser(Long.valueOf(uid));
-                                    examineLog.setCreateTime(DateUtil.date());
+                                    examineLog.setCreateTime(DateUtil.date().toTimestamp());
                                     examineLog.setCreateUser(BaseUtil.getUser().getUserId());
                                     examineLog.setExamineStatus(0);
                                     examineLog.setIsRecheck(0);
                                     examineLog.setExamineStepId(nextExamineStep.getStepId());
                                     examineLog.setRecordId(examineRecord.getRecordId());
 
-                                    examineLog.save();
+                                    crmAdminExamineLogDao.save(examineLog);
                                 }
                             }
                         } else if (nextExamineStep.getStepType() == 1) {
-                            Record r = Db.findFirst(Db.getSql("admin.examineLog.queryUserByUserId"), ownerUserId);
+                            List<Map<String, Object>> maps = crmAdminExamineLogDao.queryUserByUserId(ownerUserId);
+                            Record r = JavaBeanUtil.mapToRecord(maps.size() > 0 ? maps.get(0) : null);
                             examineLog.setLogId(null);
                             if (r == null || r.getLong("user_id") == null) {
                                 examineLog.setExamineUser(BaseConstant.SUPER_ADMIN_USER_ID);
@@ -336,14 +344,16 @@ public class AdminExamineRecordService {
 
                             }
                             examineLog.setExamineStatus(0);
-                            examineLog.setCreateTime(DateUtil.date());
+                            examineLog.setCreateTime(DateUtil.date().toTimestamp());
                             examineLog.setCreateUser(BaseUtil.getUser().getUserId());
                             examineLog.setIsRecheck(0);
                             examineLog.setExamineStepId(nextExamineStep.getStepId());
                             examineLog.setRecordId(examineRecord.getRecordId());
-                            examineLog.save();
+                            crmAdminExamineLogDao.save(examineLog);
                         } else {
-                            Record r = Db.findFirst(Db.getSql("admin.examineLog.queryUserByUserId"), Db.findFirst(Db.getSql("admin.examineLog.queryUserByUserId"), ownerUserId).getLong("user_id"));
+                            List<Map<String, Object>> maps = crmAdminExamineLogDao.queryUserByUserId(ownerUserId);
+                            Record r = JavaBeanUtil.mapToRecord(maps.size() > 0 ? maps.get(0) : null);
+                            //Record r = Db.findFirst(Db.getSql("admin.examineLog.queryUserByUserId"), Db.findFirst(Db.getSql("admin.examineLog.queryUserByUserId"), ownerUserId).getLong("user_id"));
                             examineLog.setLogId(null);
                             if (r == null || r.getLong("user_id") == null) {
                                 examineLog.setExamineUser(BaseConstant.SUPER_ADMIN_USER_ID);
@@ -352,32 +362,37 @@ public class AdminExamineRecordService {
 
                             }
                             examineLog.setExamineStatus(0);
-                            examineLog.setCreateTime(DateUtil.date());
+                            examineLog.setCreateTime(DateUtil.date().toTimestamp());
                             examineLog.setCreateUser(BaseUtil.getUser().getUserId());
                             examineLog.setExamineStepId(nextExamineStep.getStepId());
                             examineLog.setRecordId(examineRecord.getRecordId());
                             examineLog.setIsRecheck(0);
-                            examineLog.save();
+                            crmAdminExamineLogDao.save(examineLog);
                         }
 
                         // AdminExamineLog examineLog = new AdminExamineLog();
                         if (examine.getCategoryType() == 1) {
                             //合同
-                            Db.update(Db.getSql("crm.contract.updateCheckStatusById"), 1, id);
+                            crmContractDao.updateCheckStatusById(1, id);
+                            //Db.update(Db.getSql("crm.contract.updateCheckStatusById"), 1, id);
                         } else {
                             //回款
-                            Db.update(Db.getSql("crm.receivables.updateCheckStatusById"), 1, id);
+                            crmReceivablesDao.updateCheckStatusById(1, id);
+                            //Db.update(Db.getSql("crm.receivables.updateCheckStatusById"), 1, id);
                         }
                     } else {
                         //没有下一审批流程步骤
                         if (examine.getCategoryType() == 1) {
                             //合同
-                            Db.update(Db.getSql("crm.contract.updateCheckStatusById"), 2, id);
-                            CrmContract contract = CrmContract.dao.findById(id);
-                            Db.update(Db.getSql("crm.customer.updateDealStatusById"), "已成交", contract.getCustomerId());
+                            crmContractDao.updateCheckStatusById(2, id);
+                            //Db.update(Db.getSql("crm.contract.updateCheckStatusById"), 2, id);
+                            LkCrmContractEntity contract = crmContractDao.get(id);
+                            crmCustomerDao.updateDealStatusById("已成交", contract.getCustomerId());
+                            //Db.update(Db.getSql("crm.customer.updateDealStatusById"), "已成交", contract.getCustomerId());
                         } else {
                             //回款
-                            Db.update(Db.getSql("crm.receivables.updateCheckStatusById"), 2, id);
+                            crmReceivablesDao.updateCheckStatusById(2, id);
+                            //Db.update(Db.getSql("crm.receivables.updateCheckStatusById"), 2, id);
                         }
 
                     }
@@ -387,41 +402,49 @@ public class AdminExamineRecordService {
                 if (nextUserId != null) {
                     //有下一审批人
                     examineRecord.setExamineStatus(3);
-                    AdminExamineLog examineLog = new AdminExamineLog();
-                    examineLog.setCreateTime(DateUtil.date());
+                    LkCrmAdminExamineLogEntity examineLog = new LkCrmAdminExamineLogEntity();
+                    examineLog.setCreateTime(DateUtil.date().toTimestamp());
                     examineLog.setCreateUser(BaseUtil.getUser().getUserId());
                     examineLog.setExamineUser(nextUserId);
                     examineLog.setExamineStatus(0);
                     examineLog.setIsRecheck(0);
                     examineLog.setRecordId(examineRecord.getRecordId());
                     examineLog.setOrderId(nowadayExamineLog.getOrderId() + 1);
-                    examineLog.save();
+                    crmAdminExamineLogDao.save(examineLog);
                     if (examine.getCategoryType() == 1) {
                         //合同
-                        Db.update(Db.getSql("crm.contract.updateCheckStatusById"), 1, id);
+                        crmContractDao.updateCheckStatusById(1, id);
+                        //Db.update(Db.getSql("crm.contract.updateCheckStatusById"), 1, id);
                     } else {
                         //回款
-                        Db.update(Db.getSql("crm.receivables.updateCheckStatusById"), 1, id);
+                        crmReceivablesDao.updateCheckStatusById(1, id);
+                        //Db.update(Db.getSql("crm.receivables.updateCheckStatusById"), 1, id);
                     }
                 } else {
                     //没有下一审批人
                     if (examine.getCategoryType() == 1) {
                         //合同
-                        Db.update(Db.getSql("crm.contract.updateCheckStatusById"), 2, id);
-                        CrmContract contract = CrmContract.dao.findById(id);
-                        Db.update(Db.getSql("crm.customer.updateDealStatusById"), "已成交", contract.getCustomerId());
+                        crmContractDao.updateCheckStatusById(2, id);
+                        //Db.update(Db.getSql("crm.contract.updateCheckStatusById"), 2, id);
+                       /* CrmContract contract = CrmContract.dao.findById(id);
+                        Db.update(Db.getSql("crm.customer.updateDealStatusById"), "已成交", contract.getCustomerId());*/
+                        LkCrmContractEntity contract = crmContractDao.get(id);
+                        crmCustomerDao.updateDealStatusById("已成交", contract.getCustomerId());
                     } else {
                         //回款
-                        Db.update(Db.getSql("crm.receivables.updateCheckStatusById"), 2, id);
+                        crmReceivablesDao.updateCheckStatusById(2, id);
+                        //Db.update(Db.getSql("crm.receivables.updateCheckStatusById"), 2, id);
                     }
                 }
 
             }
         }
         if (status != 4) {
-            nowadayExamineLog.update();
+            //nowadayExamineLog.update();
+            crmAdminExamineLogDao.update(nowadayExamineLog);
         }
-        return examineRecord.update() ? R.ok() : R.error();
+        crmAdminExamineRecordDao.update(examineRecord);
+        return R.ok();
     }
 
     public R queryExamineLogList(Integer recordId) {

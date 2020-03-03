@@ -1,85 +1,109 @@
 package com.bdaim.crm.erp.admin.service;
 
+import cn.hutool.core.date.DateUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.util.TypeUtils;
+import com.bdaim.crm.common.config.paragetter.BasePageRequest;
+import com.bdaim.crm.dao.LkCrmAdminDeptDao;
+import com.bdaim.crm.dao.LkCrmBusinessStatusDao;
+import com.bdaim.crm.dao.LkCrmBusinessTypeDao;
+import com.bdaim.crm.entity.LkCrmBusinessStatusEntity;
+import com.bdaim.crm.entity.LkCrmBusinessTypeEntity;
+import com.bdaim.crm.utils.BaseUtil;
+import com.bdaim.crm.utils.CrmPage;
+import com.bdaim.crm.utils.R;
+import com.bdaim.util.JavaBeanUtil;
+import com.bdaim.util.NumberConvertUtil;
 import com.jfinal.aop.Before;
 import com.jfinal.kit.Kv;
 import com.jfinal.plugin.activerecord.Db;
-import com.jfinal.plugin.activerecord.Page;
 import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.tx.Tx;
-import com.bdaim.crm.common.config.paragetter.BasePageRequest;
-import com.bdaim.crm.erp.admin.entity.CrmBusinessStatus;
-import com.bdaim.crm.erp.admin.entity.CrmBusinessType;
-import com.bdaim.crm.utils.BaseUtil;
-import com.bdaim.crm.utils.R;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.util.ArrayList;
-import java.util.Date;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @Transactional
 public class AdminBusinessTypeService {
 
+    @Autowired
+    LkCrmBusinessTypeDao crmBusinessTypeDao;
+    @Autowired
+    LkCrmBusinessStatusDao crmBusinessStatusDao;
+    @Autowired
+    LkCrmAdminDeptDao crmAdminDeptDao;
+
     @Before(Tx.class)
-    public void addBusinessType(CrmBusinessType crmBusinessType, JSONArray crmBusinessStatusList){
+    public void addBusinessType(LkCrmBusinessTypeEntity crmBusinessType, JSONArray crmBusinessStatusList) {
         if (crmBusinessType.getTypeId() == null) {
-            crmBusinessType.setCreateTime(new Date());
-            crmBusinessType.setCreateUserId(BaseUtil.getUser().getUserId().intValue());
-            crmBusinessType.save();
+            crmBusinessType.setCreateTime(DateUtil.date().toTimestamp());
+            crmBusinessType.setCreateUserId(BaseUtil.getUser().getUserId());
+            crmBusinessTypeDao.save(crmBusinessType);
         } else {
-            crmBusinessType.setUpdateTime(new Date());
-            crmBusinessType.update();
-            Db.delete(Db.getSql("admin.businessType.deleteBusinessStatus"),crmBusinessType.getTypeId());
+            crmBusinessType.setUpdateTime(DateUtil.date().toTimestamp());
+            LkCrmBusinessTypeEntity dbEntity = crmBusinessTypeDao.get(crmBusinessType.getTypeId());
+            BeanUtils.copyProperties(crmBusinessType, dbEntity, JavaBeanUtil.getNullPropertyNames(dbEntity));
+            crmBusinessTypeDao.update(dbEntity);
+            crmBusinessTypeDao.deleteBusinessStatus(crmBusinessType.getTypeId());
+            //Db.delete(Db.getSql("admin.businessType.deleteBusinessStatus"), crmBusinessType.getTypeId());
         }
         Integer typeId = crmBusinessType.getTypeId();
-        for(int i = 0; i < crmBusinessStatusList.size(); i++){
-            CrmBusinessStatus crmBusinessStatus = TypeUtils.castToJavaBean(crmBusinessStatusList.getJSONObject(i), CrmBusinessStatus.class);
-            crmBusinessStatus.setStatusId(null);
+        for (int i = 0; i < crmBusinessStatusList.size(); i++) {
+            LkCrmBusinessStatusEntity crmBusinessStatus = TypeUtils.castToJavaBean(crmBusinessStatusList.getJSONObject(i), LkCrmBusinessStatusEntity.class);
+            //crmBusinessStatus.setStatusId(null);
             crmBusinessStatus.setTypeId(typeId);
-            crmBusinessStatus.setOrderNum(i+1);
-            crmBusinessStatus.save();
+            crmBusinessStatus.setOrderNum(i + 1);
+            crmBusinessStatusDao.save(crmBusinessStatus);
         }
     }
 
-    public Page<Record> queryBusinessTypeList(BasePageRequest request) {
-        Page<Record> paginate = Db.paginate(request.getPage(), request.getLimit(), Db.getSqlPara("admin.businessType.queryBusinessTypeList"));
-        paginate.getList().forEach(record -> {
+    public CrmPage queryBusinessTypeList(BasePageRequest request) {
+        com.bdaim.common.dto.Page paginate = crmBusinessTypeDao.queryBusinessTypeList(request.getPage(), request.getLimit());
+        //Page<Record> paginate = Db.paginate(request.getPage(), request.getLimit(), Db.getSqlPara("admin.businessType.queryBusinessTypeList"));
+        paginate.getData().forEach(s -> {
+            Record record = JavaBeanUtil.mapToRecord((Map<String, Object>) s);
             System.out.println(record.getStr("dept_ids"));
-            if(record.getStr("dept_ids") != null && record.getStr("dept_ids").split(",").length > 0){
+            if (record.getStr("dept_ids") != null && record.getStr("dept_ids").split(",").length > 0) {
                 List<Record> deptList = Db.find(Db.getSqlPara("admin.dept.queryByIds", Kv.by("ids", record.getStr("dept_ids").split(","))));
                 record.set("deptIds", deptList);
-            }else{
+            } else {
                 record.set("deptIds", new ArrayList<>());
             }
         });
-        return paginate;
+        return BaseUtil.crmPage(paginate);
     }
 
     public R getBusinessType(String typeId) {
-        Record record = Db.findFirst(Db.getSql("admin.businessType.getBusinessType"), typeId);
-        if(record.getStr("dept_ids") != null && record.getStr("dept_ids").split(",").length > 0){
-            List<Record> deptList = Db.find(Db.getSqlPara("admin.dept.queryByIds", Kv.by("ids", record.getStr("dept_ids").split(","))));
+        Record record = JavaBeanUtil.mapToRecord(crmBusinessTypeDao.getBusinessType(typeId));
+        if(record.getStr("dept_ids") != null && record.getStr("dept_ids").split(",").length > 0) {
+            List<Record> deptList = JavaBeanUtil.mapToRecords(crmAdminDeptDao.queryByIds(Arrays.asList(record.getStr("dept_ids").split(","))));
+            //List<Record> deptList = Db.find(Db.getSqlPara("admin.dept.queryByIds", Kv.by("ids", record.getStr("dept_ids").split(","))));
             record.set("deptIds", deptList);
         }else{
             record.set("deptIds", new ArrayList<>());
         }
-        List<Record> statusList = Db.find(Db.getSql("admin.businessType.queryBusinessStatus"), typeId);
+        List<Record> statusList = JavaBeanUtil.mapToRecords(crmBusinessTypeDao.queryBusinessStatus(typeId));
         record.set("statusList", statusList);
         return R.ok().put("data", record);
     }
 
     @Before(Tx.class)
     public R deleteById(String typeId) {
-        Integer count = Db.queryInt("select count(*) from 72crm_crm_business where type_id = ?", typeId);
+        Integer count = crmBusinessTypeDao.queryForInt("select count(*) from 72crm_crm_business where type_id = ?", typeId);
         if (count > 0) {
             return R.error("使用中的商机组不可以删除");
         }
-        Db.deleteById("72crm_crm_business_type", "type_id", typeId);
-        Db.deleteById("72crm_crm_business_status", "type_id", typeId);
+        crmBusinessTypeDao.delete(NumberConvertUtil.parseInt(typeId));
+        crmBusinessStatusDao.executeUpdateSQL("delete from 72crm_crm_business_status where type_id=?", typeId);
+        //Db.deleteById("72crm_crm_business_type", "type_id", typeId);
+        //Db.deleteById("72crm_crm_business_status", "type_id", typeId);
         return R.ok();
     }
 
