@@ -24,9 +24,9 @@ import java.util.Map;
 
 @RestController
 @RequestMapping(value = "/transfer")
-public class Controller {
+public class TransferController {
 
-    private static final Logger logger = LoggerFactory.getLogger(Controller.class);
+    private static final Logger logger = LoggerFactory.getLogger(TransferController.class);
 
     private final static String url = PropertiesUtil.getStringValue("transfer_url");
 
