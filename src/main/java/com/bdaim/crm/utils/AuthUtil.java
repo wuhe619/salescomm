@@ -9,6 +9,8 @@ import com.bdaim.crm.erp.admin.service.AdminRoleService;
 import com.bdaim.crm.erp.admin.service.AdminUserService;
 import com.bdaim.crm.erp.crm.common.CrmEnum;
 import com.jfinal.plugin.activerecord.Record;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -24,6 +26,7 @@ import java.util.Map;
 @Transactional
 public class AuthUtil {
 
+    public static final Logger LOG = LoggerFactory.getLogger(AuthUtil.class);
 
     private static AdminUserService adminUserService;
 
@@ -120,6 +123,7 @@ public class AuthUtil {
                 authSql.append(" or ro_user_id like CONCAT('%,','").append(userId).append("',',%')").append(" or rw_user_id like CONCAT('%,','").append(userId).append("',',%')");
             }
         }
+        LOG.info("authSql:{},id:{}", authSql.toString(), id);
         return crmAdminUserDao.queryForInt(authSql.toString(),id) == 0;
     }
 
