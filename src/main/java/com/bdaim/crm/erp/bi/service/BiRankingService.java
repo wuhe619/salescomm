@@ -1,17 +1,20 @@
 package com.bdaim.crm.erp.bi.service;
 
 import cn.hutool.core.util.StrUtil;
-import com.jfinal.aop.Inject;
+import com.bdaim.crm.erp.bi.common.BiTimeUtil;
+import com.bdaim.crm.utils.R;
 import com.jfinal.kit.Kv;
 import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
-import com.bdaim.crm.erp.bi.common.BiTimeUtil;
-import com.bdaim.crm.utils.R;
+import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 
+@Service
+@Transactional
 public class BiRankingService {
 
     @Resource

@@ -42,6 +42,7 @@ public class CrmReceivablesPlanService {
      */
     public R saveAndUpdate(JSONObject jsonObject) {
         CrmReceivablesPlan entity = jsonObject.getObject("entity", CrmReceivablesPlan.class);
+
         LkCrmReceivablesPlanEntity crmReceivablesPlan = new LkCrmReceivablesPlanEntity();
         BeanUtils.copyProperties(entity, crmReceivablesPlan);
         crmReceivablesPlan.setCustId(BaseUtil.getUser().getCustId());

@@ -1,5 +1,6 @@
 package com.bdaim.crm;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -10,7 +11,7 @@ public class EntDataEntity {
     /**
      * 企业ID
      */
-    private Long id;
+    private String id;
     /**
      * 企业名称
      */
@@ -45,15 +46,15 @@ public class EntDataEntity {
     /**
      * 成立日期
      */
-    private String establishTime;
+    private Date establishTime;
     /**
      * 注吊销日期
      */
-    private String cancelDate;
+    private Date cancelDate;
     /**
      * 审核日期
      */
-    private String auditDate;
+    private Date auditDate;
     /**
      * 经营状态
      */
@@ -97,15 +98,15 @@ public class EntDataEntity {
     /**
      * 营业期限开始时间
      */
-    private String fromTime;
+    private Date fromTime;
     /**
      * 营业期限结束时间
      */
-    private String toTime;
+    private Date toTime;
     /**
      * 核准日期
      */
-    private String approvedTime;
+    private Date approvedTime;
     /**
      * 登记机关
      */
@@ -165,11 +166,16 @@ public class EntDataEntity {
      */
     private List<ContactsEntity> contactMan;
 
-    public Long getId() {
+    private Long createTime;
+    private Long updateTime;
+
+    private String s_tag;
+
+    public String getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -229,27 +235,27 @@ public class EntDataEntity {
         this.regCapCur = regCapCur;
     }
 
-    public String getEstablishTime() {
+    public Date getEstablishTime() {
         return establishTime;
     }
 
-    public void setEstablishTime(String establishTime) {
+    public void setEstablishTime(Date establishTime) {
         this.establishTime = establishTime;
     }
 
-    public String getCancelDate() {
+    public Date getCancelDate() {
         return cancelDate;
     }
 
-    public void setCancelDate(String cancelDate) {
+    public void setCancelDate(Date cancelDate) {
         this.cancelDate = cancelDate;
     }
 
-    public String getAuditDate() {
+    public Date getAuditDate() {
         return auditDate;
     }
 
-    public void setAuditDate(String auditDate) {
+    public void setAuditDate(Date auditDate) {
         this.auditDate = auditDate;
     }
 
@@ -333,27 +339,27 @@ public class EntDataEntity {
         this.entIntroduction = entIntroduction;
     }
 
-    public String getFromTime() {
+    public Date getFromTime() {
         return fromTime;
     }
 
-    public void setFromTime(String fromTime) {
+    public void setFromTime(Date fromTime) {
         this.fromTime = fromTime;
     }
 
-    public String getToTime() {
+    public Date getToTime() {
         return toTime;
     }
 
-    public void setToTime(String toTime) {
+    public void setToTime(Date toTime) {
         this.toTime = toTime;
     }
 
-    public String getApprovedTime() {
+    public Date getApprovedTime() {
         return approvedTime;
     }
 
-    public void setApprovedTime(String approvedTime) {
+    public void setApprovedTime(Date approvedTime) {
         this.approvedTime = approvedTime;
     }
 
@@ -467,5 +473,29 @@ public class EntDataEntity {
 
     public void setContactMan(List<ContactsEntity> contactMan) {
         this.contactMan = contactMan;
+    }
+
+    public Long getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(Long createTime) {
+        this.createTime = createTime;
+    }
+
+    public Long getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(Long updateTime) {
+        this.updateTime = updateTime;
+    }
+
+    public String getS_tag() {
+        return s_tag;
+    }
+
+    public void setS_tag(String s_tag) {
+        this.s_tag = s_tag;
     }
 }

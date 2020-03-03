@@ -83,20 +83,21 @@ public class AdminExamineRecordService {
                 examineRecord.setExamineStepId(examineStep.getStepId());
                 examineLog.setExamineStepId(examineStep.getStepId());
                 if (recordId == null) {
-                    crmAdminExamineRecordDao.saveOrUpdate(examineLog);
+                    int rId = (int) crmAdminExamineRecordDao.saveReturnPk(examineRecord);
+                    examineRecord.setRecordId(rId);
                 } else {
-                    crmAdminExamineRecordDao.saveOrUpdate(examineRecord);
+                    crmAdminExamineRecordDao.update(examineRecord);
                 }
 
                 if (examineStep.getStepType() == 2 || examineStep.getStepType() == 3) {
                     String[] userIds = examineStep.getCheckUserId().split(",");
                     for (String id : userIds) {
                         if (StrUtil.isNotEmpty(id)) {
-                            examineLog.setLogId(null);
+                            //examineLog.setLogId(null);
                             examineLog.setExamineUser(Long.valueOf(id));
                             examineLog.setRecordId(examineRecord.getRecordId());
                             examineLog.setIsRecheck(0);
-                            crmAdminExamineRecordDao.saveOrUpdate(examineLog);
+                            Long logId = (Long) crmAdminExamineLogDao.saveReturnPk(examineLog);
                         }
                     }
                 } else if (examineStep.getStepType() == 1) {
@@ -131,9 +132,10 @@ public class AdminExamineRecordService {
                 examineLog.setExamineUser(userId);
                 if (recordId == null) {
                     //examineRecord.save();
-                    crmAdminExamineLogDao.save(examineLog);
+                    Integer rId = (Integer) crmAdminExamineRecordDao.saveReturnPk(examineRecord);
+                    examineRecord.setRecordId(rId);
                 } else {
-                    crmAdminExamineLogDao.update(examineLog);
+                    crmAdminExamineRecordDao.update(examineRecord);
                     //examineRecord.update();
                 }
                 examineLog.setRecordId(examineRecord.getRecordId());

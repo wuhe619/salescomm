@@ -3,6 +3,7 @@ package com.bdaim.crm.dao;
 import com.bdaim.common.dao.SimpleHibernateDao;
 import com.bdaim.common.dto.Page;
 import com.bdaim.crm.entity.LkCrmCustomerEntity;
+import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.util.SqlAppendUtil;
 import com.bdaim.util.StringUtil;
 import org.springframework.stereotype.Component;
@@ -84,9 +85,16 @@ public class LkCrmCustomerDao extends SimpleHibernateDao<LkCrmCustomerEntity, In
 
     public List getRecord(Integer customerId) {
         String sql = " select a.record_id, '' as user_img,b.realname,a.create_time,a.content,a.category,a.next_time,a.batch_id,a.business_ids,a.contacts_ids\n" +
-                "    from lkcrm_admin_record as a inner join t_customer_user as b " +
-                "    where a.create_user_id = b.id and types = 'crm_customer' and types_id = ? order by a.create_time desc";
+                "    from lkcrm_admin_record as a inner join t_customer_user as b LEFT JOIN lkcrm_task AS c ON a.task_id = c.task_id " +
+                "    where a.create_user_id = b.id and types = 'crm_customer' and types_id = ? AND (a.task_id IS NULL OR c.`status`=5) order by a.create_time desc";
         return sqlQuery(sql, customerId);
+    }
+
+    public List getRecord(String leadsId, int taskStatus, int pageNum, int pageSize) {
+        String sql = " select a.record_id, '' as user_img,b.realname,a.create_time,a.content,a.category,a.next_time,a.batch_id,a.business_ids,a.contacts_ids\n" +
+                "    from lkcrm_admin_record as a inner join t_customer_user as b LEFT JOIN lkcrm_task AS c ON a.task_id = c.task_id " +
+                "    where a.create_user_id = b.id and types = 'crm_customer' AND c.`status` = ? and types_id = ? and a.cust_id = ? order by a.create_time desc";
+        return this.sqlPageQuery(sql, pageNum, pageSize, taskStatus, leadsId, BaseUtil.getUser().getCustId()).getData();
     }
 
     public int deleteMember(String memberId, int id) {

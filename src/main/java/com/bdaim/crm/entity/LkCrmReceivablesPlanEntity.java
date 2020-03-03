@@ -3,6 +3,7 @@ package com.bdaim.crm.entity;
 import javax.persistence.*;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.util.Date;
 import java.util.Objects;
 
 @Entity
@@ -14,10 +15,10 @@ public class LkCrmReceivablesPlanEntity {
     private Integer receivablesId;
     private Integer status;
     private BigDecimal money;
-    private Timestamp returnDate;
+    private Date returnDate;
     private String returnType;
     private Integer remind;
-    private Timestamp remindDate;
+    private Date remindDate;
     private String remark;
     private Long createUserId;
     private Integer ownerUserId;
@@ -91,11 +92,11 @@ public class LkCrmReceivablesPlanEntity {
 
     @Basic
     @Column(name = "return_date")
-    public Timestamp getReturnDate() {
+    public Date getReturnDate() {
         return returnDate;
     }
 
-    public void setReturnDate(Timestamp returnDate) {
+    public void setReturnDate(Date returnDate) {
         this.returnDate = returnDate;
     }
 
@@ -121,11 +122,11 @@ public class LkCrmReceivablesPlanEntity {
 
     @Basic
     @Column(name = "remind_date")
-    public Timestamp getRemindDate() {
+    public Date getRemindDate() {
         return remindDate;
     }
 
-    public void setRemindDate(Timestamp remindDate) {
+    public void setRemindDate(Date remindDate) {
         this.remindDate = remindDate;
     }
 
