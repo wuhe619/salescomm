@@ -19,8 +19,10 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -1134,6 +1136,25 @@ public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDao
         if (rs.size() > 0)
             return String.valueOf(rs.get(0));
         return "";
+    }
+
+    public List<String> queryForList(String sql, final Object... values) {
+        Session session = getSession();
+        Query query = session.createSQLQuery(sql);
+        if (values != null)
+            for (int i = 0; i < values.length; i++) {
+                query.setParameter(i, values[i]);
+            }
+        List rs = query.list();
+        if (!CollectionUtils.isEmpty(rs)) {
+            List<String> result = new ArrayList<>();
+            for (Object obj : rs) {
+                result.add(String.valueOf(obj));
+            }
+            return result;
+        } else {
+            return null;
+        }
     }
 
     public int queryForInt(String sql, final Object... values) {
