@@ -4,10 +4,7 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.crm.common.constant.BaseConstant;
-import com.bdaim.crm.dao.LkCrmAdminExamineLogDao;
-import com.bdaim.crm.dao.LkCrmAdminExamineRecordDao;
-import com.bdaim.crm.dao.LkCrmAdminExamineStepDao;
-import com.bdaim.crm.dao.LkCrmAdminRecordDao;
+import com.bdaim.crm.dao.*;
 import com.bdaim.crm.entity.LkCrmAdminExamineEntity;
 import com.bdaim.crm.entity.LkCrmAdminExamineLogEntity;
 import com.bdaim.crm.entity.LkCrmAdminExamineRecordEntity;
@@ -21,6 +18,7 @@ import com.bdaim.crm.erp.crm.entity.CrmReceivables;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
 import com.bdaim.util.JavaBeanUtil;
+import com.bdaim.util.NumberConvertUtil;
 import com.jfinal.aop.Before;
 import com.jfinal.kit.Kv;
 import com.jfinal.plugin.activerecord.Db;
@@ -44,6 +42,8 @@ public class AdminExamineRecordService {
     private LkCrmAdminExamineRecordDao crmAdminExamineRecordDao;
     @Resource
     private LkCrmAdminExamineStepDao crmAdminExamineStepDao;
+    @Resource
+    private LkCrmAdminExamineDao crmAdminExamineDao;
 
     /**
      * 第一次添加审核记录和审核日志 type 1 合同 2 回款 userId:授权审批人
@@ -232,7 +232,7 @@ public class AdminExamineRecordService {
                 examineLog.setExamineStepId(examineStep.getStepId());
                 examineLog.setOrderId(examineStep.getStepNum());
             } else {
-                Integer orderId = Db.queryInt("select order_id from 72crm_admin_examine_log where record_id = ? and is_recheck = 0 and examine_status !=0 order by order_id desc limit 1 ", recordId);
+                Integer orderId = Db.queryInt("select order_id from lkcrm_admin_examine_log where record_id = ? and is_recheck = 0 and examine_status !=0 order by order_id desc limit 1 ", recordId);
                 if (orderId == null) {
                     orderId = 1;
                 }
@@ -426,14 +426,14 @@ public class AdminExamineRecordService {
 
     public R queryExamineLogList(Integer recordId) {
         //根据审核记录id查询审核记录
-        AdminExamineRecord examineRecord = AdminExamineRecord.dao.findById(recordId);
-
-        AdminExamine adminExamine = AdminExamine.dao.findById(examineRecord.getExamineId());
+        LkCrmAdminExamineRecordEntity examineRecord = crmAdminExamineRecordDao.get(recordId);
+        LkCrmAdminExamineEntity adminExamine = crmAdminExamineDao.get(examineRecord.getExamineId());
         List<Record> logs = null;
         if (adminExamine.getExamineType() == 1) {
-            logs = Db.find(Db.getSql("admin.examineLog.queryExamineLogByRecordIdByStep"), recordId);
+            logs = JavaBeanUtil.mapToRecords(crmAdminExamineLogDao.queryExamineLogByRecordIdByStep(recordId));
         } else {
-            logs = Db.find(Db.getSql("admin.examineLog.queryExamineLogByRecordIdByStep1"), recordId);
+            logs = JavaBeanUtil.mapToRecords(crmAdminExamineLogDao.queryExamineLogByRecordIdByStep1(recordId));
+            //logs = Db.find(Db.getSql("admin.examineLog.queryExamineLogByRecordIdByStep1"), recordId);
         }
 
         return R.ok().put("data", logs);
@@ -443,15 +443,15 @@ public class AdminExamineRecordService {
      * 根据审核记录id，查询审核日志
      * ownerUserId 负责人ID
      */
-    public R queryExamineRecordList(Integer recordId, Integer ownerUserId) {
+    public R queryExamineRecordList(Integer recordId, Long ownerUserId) {
         JSONObject jsonObject = new JSONObject();
 
-        Record examineRecord =JavaBeanUtil.mapToRecord( crmAdminExamineRecordDao.queryExamineRecordById(recordId));
+        Record examineRecord = JavaBeanUtil.mapToRecord(crmAdminExamineRecordDao.queryExamineRecordById(recordId));
         //如果当前审批已撤回
         if (examineRecord.getInt("examine_status") == 4) {
             jsonObject.put("examineType", 1);
-            crmAdminExamineLogDao.queryUserByUserId()
-            List<Record> user = Db.find(Db.getSql("admin.examineLog.queryUserByRecordId"), recordId);
+
+            List<Record> user = JavaBeanUtil.mapToRecords(crmAdminExamineLogDao.queryUserByRecordId(recordId));
             examineRecord.set("userList", user);
             List<Record> records = new ArrayList<>();
             records.add(examineRecord);
@@ -459,10 +459,9 @@ public class AdminExamineRecordService {
 
             return R.ok().put("data", jsonObject);
         }
-        AdminExamine adminExamine = AdminExamine.dao.findById(examineRecord.getInt("examine_id"));
+        LkCrmAdminExamineEntity adminExamine = crmAdminExamineDao.get(examineRecord.getInt("examine_id"));
         List<Record> list = new ArrayList<>();
-        Record rec = Db.findFirst(Db.getSql("admin.examineLog.queryRecordAndId"), recordId);
-
+        Record rec = JavaBeanUtil.mapToRecord(crmAdminExamineLogDao.queryRecordAndId(recordId));
 
         //当前审批人
         Long auditUserId = BaseUtil.getUser().getUserId();
@@ -475,19 +474,20 @@ public class AdminExamineRecordService {
             jsonObject.put("isRecheck", 0);
         }
         if (adminExamine.getExamineType() == 2) {
-            Record log = Db.findFirst(Db.getSqlPara("admin.examineLog.queryRecordByUserIdAndStatus", Kv.by("create_user", rec.getInt("create_user")).set("examineTime", rec.getDate("examineTime"))));
+            Record log = JavaBeanUtil.mapToRecord(crmAdminExamineLogDao.queryRecordByUserIdAndStatus(rec.getDate("examineTime"), rec.getLong("create_user")));
             rec.set("examinUser", log);
             list.add(rec);
             //授权审批
-            List<Record> logs = Db.find(Db.getSql("admin.examineLog.queryExamineLogAndUserByRecordId"), recordId);
+            List<Record> logs = JavaBeanUtil.mapToRecords(crmAdminExamineLogDao.queryExamineLogAndUserByRecordId(recordId));
             logs.forEach(r -> {
-                Record l = Db.findFirst(Db.getSql("admin.examineLog.queryExamineLogAndUserByLogId"), r.getInt("log_id"));
+                Record l = JavaBeanUtil.mapToRecord(crmAdminExamineLogDao.queryExamineLogAndUserByLogId(r.getInt("log_id")));
                 r.set("examinUser", l);
             });
             list.addAll(logs);
             //判断当前用户有没有权限审核
-            Record reco = Db.findFirst(Db.getSqlPara("admin.examineLog.queryExamineLog",
-                    Kv.by("recordId", recordId).set("auditUserId", auditUserId)));
+            Record reco = JavaBeanUtil.mapToRecord(crmAdminExamineLogDao.queryExamineLog(recordId, auditUserId, ""));
+           /* Record reco = Db.findFirst(Db.getSqlPara("admin.examineLog.queryExamineLog",
+                    Kv.by("recordId", recordId).set("auditUserId", auditUserId)));*/
             if (reco != null) {
                 jsonObject.put("isCheck", 1);
             } else {
@@ -499,12 +499,12 @@ public class AdminExamineRecordService {
         } else {
             jsonObject.put("examineType", 1);
             //固定审批
-            List<Record> steps = Db.find("select * from 72crm_admin_examine_step where  examine_id = ? ORDER BY step_num", adminExamine.getExamineId());
+            List<Record> steps = Db.find("select * from lkcrm_admin_examine_step where  examine_id = ? ORDER BY step_num", adminExamine.getExamineId());
 
             steps.forEach(step -> {
                 if (step.getInt("step_type") == 1) {
                     //负责人主管
-                    List<Record> logs = Db.find(Db.getSql("admin.examineLog.queryUserByRecordIdAndStepIdAndStatus"), recordId, step.getInt("step_id"));
+                    List<Record> logs = JavaBeanUtil.mapToRecords(crmAdminExamineLogDao.queryUserByRecordIdAndStepIdAndStatus(recordId, step.getInt("step_id")));
                     if (logs.size() == 1) {
                         if (logs.get(0).getInt("user_id") == null) {
                             logs = null;
@@ -521,7 +521,7 @@ public class AdminExamineRecordService {
                         step.set("examine_status", 0);
                         //还未创建审核日志
                         //查询负责人主管
-                        List<Record> r = Db.find(Db.getSql("admin.examineLog.queryUserByUserId"), ownerUserId);
+                        List<Record> r = JavaBeanUtil.mapToRecords(crmAdminExamineLogDao.queryUserByUserId(ownerUserId));
                         if (r.size() == 1) {
                             if (r.get(0).getInt("user_id") == null) {
                                 r = null;
@@ -529,13 +529,14 @@ public class AdminExamineRecordService {
 
                         }
                         if (r == null || r.size() == 0) {
-                            r = Db.find(Db.getSql("admin.examineLog.queryUserByUserIdAnd"), BaseConstant.SUPER_ADMIN_USER_ID);
+                            r = JavaBeanUtil.mapToRecords(crmAdminExamineLogDao.queryUserByUserIdAnd(BaseConstant.SUPER_ADMIN_USER_ID));
+                            //r = Db.find(Db.getSql("admin.examineLog.queryUserByUserIdAnd"), BaseConstant.SUPER_ADMIN_USER_ID);
                         }
                         step.set("userList", r);
                     }
                 } else if (step.getInt("step_type") == 2 || step.getInt("step_type") == 3) {
                     //先判断是否已经审核过
-                    List<Record> logs = Db.find(Db.getSql("admin.examineLog.queryUserByRecordIdAndStepIdAndStatus"), recordId, step.getInt("step_id"));
+                    List<Record> logs = JavaBeanUtil.mapToRecords(crmAdminExamineLogDao.queryUserByRecordIdAndStepIdAndStatus(recordId, step.getInt("step_id")));
                     if (logs != null && logs.size() != 0) {
                         //已经创建审核日志
                         int status = 0;
@@ -576,7 +577,8 @@ public class AdminExamineRecordService {
                         String[] userIds = step.getStr("check_user_id").split(",");
                         for (String userId : userIds) {
                             if (StrUtil.isNotEmpty(userId)) {
-                                Record user = Db.findFirst(Db.getSql("admin.examineLog.queryUserByUserIdAndStatus"), userId);
+                                Record user = JavaBeanUtil.mapToRecord(crmAdminExamineLogDao.queryUserByUserIdAndStatus(NumberConvertUtil.parseLong(userId)));
+                                //Record user = Db.findFirst(Db.getSql("admin.examineLog.queryUserByUserIdAndStatus"), userId);
                                 if (user != null) {
                                     logs.add(user);
                                 }
@@ -587,7 +589,7 @@ public class AdminExamineRecordService {
                     }
                 } else {
                     //主管的主管
-                    List<Record> logs = Db.find(Db.getSql("admin.examineLog.queryUserByRecordIdAndStepIdAndStatus"), recordId, step.getInt("step_id"));
+                    List<Record> logs = JavaBeanUtil.mapToRecords(crmAdminExamineLogDao.queryUserByRecordIdAndStepIdAndStatus(recordId, step.getInt("step_id")));
                     if (logs.size() == 1) {
                         if (logs.get(0).getInt("user_id") == null) {
                             logs = null;
@@ -604,28 +606,30 @@ public class AdminExamineRecordService {
                         step.set("examine_status", 0);
                         //还未创建审核日志
                         //查询负责人主管的主管
-                        List<Record> r = Db.find(Db.getSql("admin.examineLog.queryUserByUserId"), Db.findFirst(Db.getSql("admin.examineLog.queryUserByUserId"), ownerUserId).getLong("user_id"));
+                        List<Map<String, Object>> maps = crmAdminExamineLogDao.queryUserByUserId(ownerUserId);
+                        List<Record> r = JavaBeanUtil.mapToRecords(crmAdminExamineLogDao.queryUserByUserId(NumberConvertUtil.parseLong(maps.get(0).get("user_id"))));
                         if (r.size() == 1) {
                             if (r.get(0).getInt("user_id") == null) {
                                 r = null;
                             }
                         }
                         if (r == null) {
-                            r = Db.find(Db.getSql("admin.examineLog.queryUserByUserIdAnd"), BaseConstant.SUPER_ADMIN_USER_ID);
+                            r = JavaBeanUtil.mapToRecords(crmAdminExamineLogDao.queryUserByUserIdAnd(BaseConstant.SUPER_ADMIN_USER_ID));
                         }
                         step.set("userList", r);
                     }
                 }
             });
             //判断当前用户有没有权限审核
-            Record reco = Db.findFirst(Db.getSqlPara("admin.examineLog.queryExamineLog",
-                    Kv.by("recordId", recordId).set("auditUserId", auditUserId).set("stepId", examineRecord.getInt("examine_step_id"))));
+            Record reco = JavaBeanUtil.mapToRecord(crmAdminExamineLogDao.queryExamineLog(recordId, auditUserId, examineRecord.getStr("examine_step_id")));
             if (reco != null) {
                 jsonObject.put("isCheck", 1);
             } else {
                 jsonObject.put("isCheck", 0);
             }
-            List<Record> logs = Db.find(Db.getSqlPara("admin.examineLog.queryRecordByUserIdAndStatus", Kv.by("create_user", rec.getInt("create_user")).set("examineTime", rec.getDate("examineTime"))));
+            Map<String, Object> stringObjectMap = crmAdminExamineLogDao.queryRecordByUserIdAndStatus(rec.getDate("examineTime"), rec.getLong("create_user"));
+            List<Record> logs = new ArrayList<>();
+            logs.add(JavaBeanUtil.mapToRecord(stringObjectMap));
             rec.set("userList", logs);
             list.add(rec);
             list.addAll(steps);

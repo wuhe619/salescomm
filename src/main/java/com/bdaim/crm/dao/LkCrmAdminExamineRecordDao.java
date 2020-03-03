@@ -21,8 +21,8 @@ public class LkCrmAdminExamineRecordDao extends SimpleHibernateDao<LkCrmAdminExa
     }
 
     public Map queryExamineRecordById(Integer record_id) {
-        String sql = "  SELECT saer.* ,'' AS img,sau.realname from 72crm_admin_examine_record as  saer\n" +
-                "     LEFT JOIN t_customer_user as sau on sau.d = saer.create_user\n" +
+        String sql = "  SELECT saer.* ,'' AS img,sau.realname from lkcrm_admin_examine_record as  saer\n" +
+                "     LEFT JOIN t_customer_user as sau on sau.id = saer.create_user\n" +
                 "     WHERE saer.record_id = ? ";
         List<Map<String, Object>> objects = sqlQuery(sql, record_id);
         if(objects.size()>0){
