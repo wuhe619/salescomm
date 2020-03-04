@@ -19,8 +19,8 @@ public class LkCrmAdminExamineStepDao extends SimpleHibernateDao<LkCrmAdminExami
     }
 
     public LkCrmAdminExamineStepEntity queryExamineStepByExamineId(Integer examineId) {
-        String sql = "  select * from LkCrmAdminExamineStepEntity where  examineId = ?";
-        List<LkCrmAdminExamineStepEntity> objects = find(sql, examineId);
+        String hql = "from LkCrmAdminExamineStepEntity where examineId = ?";
+        List<LkCrmAdminExamineStepEntity> objects = find(hql, examineId);
         if (objects.size() > 0) {
             return objects.get(0);
         }
