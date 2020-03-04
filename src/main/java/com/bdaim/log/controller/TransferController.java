@@ -113,8 +113,11 @@ public class TransferController {
             }
             String path = ConfigUtil.getInstance().get("data.save_path");
             String pathName  = path + task_id + "_" + key_counts + "_" + matched_counts;
+            logger.info("文件路径：" + pathName);
             fos = new FileOutputStream(pathName);
             fos.write(file.getBytes());
+//            File file2 = new File(pathName);
+//            file.transferTo(file2);
             TransferLog transferLog = new TransferLog(task_id, 1);
             int r = transferLogService.insertLog(transferLog);
             if (r > 0) {
