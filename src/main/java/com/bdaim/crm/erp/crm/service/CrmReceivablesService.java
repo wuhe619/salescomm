@@ -103,7 +103,7 @@ public class CrmReceivablesService {
         String batchId = StrUtil.isNotEmpty(crmReceivables.getBatchId()) ? crmReceivables.getBatchId() : IdUtil.simpleUUID();
         crmRecordService.updateRecord(jsonObject.getJSONArray("field"), batchId);
         adminFieldService.save(jsonObject.getJSONArray("field"), batchId);
-        if (crmReceivables.getReceivablesId() == null) {
+        if (entity.getReceivablesId() == null) {
             Integer count = crmReceivablesDao.queryByNumber(crmReceivables.getNumber());
             //Integer count = Db.queryInt(Db.getSql("crm.receivables.queryByNumber"), crmReceivables.getNumber());
             if (count != null && count > 0) {
@@ -133,6 +133,7 @@ public class CrmReceivablesService {
             crmRecordService.addRecord(crmReceivables.getReceivablesId(), CrmEnum.RECEIVABLES_TYPE_KEY.getTypes());
             return R.isSuccess(save);
         } else {
+            crmReceivables.setReceivablesId(entity.getReceivablesId());
             LkCrmReceivablesEntity receivables = crmReceivablesDao.get(crmReceivables.getReceivablesId());
             if (receivables.getCheckStatus() != 4 && receivables.getCheckStatus() != 3) {
                 //return R.error("不能编辑，请先撤回再编辑！");

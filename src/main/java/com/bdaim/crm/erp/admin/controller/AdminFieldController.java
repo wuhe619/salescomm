@@ -187,8 +187,10 @@ public class AdminFieldController extends BasicAction {
      * 设置字段样式
      */
     @RequestMapping(value = "/setFelidStyle", method = RequestMethod.POST)
-    public R setFelidStyle(@RequestParam Map param) {
-        return (adminFieldService.setFelidStyle((Kv) param));
+    public R setFelidStyle() {
+        Kv kv = new Kv();
+        kv.putAll(getKv());
+        return (adminFieldService.setFelidStyle(kv));
     }
 
     /**

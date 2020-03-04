@@ -205,7 +205,7 @@ public class CrmContactsService {
         crmRecordService.updateRecord(jsonObject.getJSONArray("field"), batchId);
         adminFieldService.save(jsonObject.getJSONArray("field"), batchId);
         crmContacts.setCustId(BaseUtil.getUser().getCustId());
-        if (crmContacts.getContactsId() != null) {
+        if (entity.getContactsId() != null) {
             crmContacts.setUpdateTime(DateUtil.date().toTimestamp());
             crmRecordService.updateRecord(crmContactsDao.get(crmContacts.getContactsId()), crmContacts, CrmEnum.CONTACTS_TYPE_KEY.getTypes());
             LkCrmContactsEntity dnEntity = crmContactsDao.get(crmContacts.getContactsId());
