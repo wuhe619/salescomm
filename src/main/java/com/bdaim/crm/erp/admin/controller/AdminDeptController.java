@@ -2,11 +2,10 @@ package com.bdaim.crm.erp.admin.controller;
 
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.crm.common.annotation.Permissions;
-import com.bdaim.crm.erp.admin.entity.AdminDept;
+import com.bdaim.crm.entity.LkCrmAdminDeptEntity;
 import com.bdaim.crm.erp.admin.service.AdminDeptService;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
-import com.jfinal.core.paragetter.Para;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -30,7 +29,7 @@ public class AdminDeptController extends BasicAction {
      */
     @Permissions("manage:user")
     @RequestMapping(value = "/setDept", method = RequestMethod.POST)
-    public R setDept(@Para("") AdminDept adminDept){
+    public R setDept(LkCrmAdminDeptEntity adminDept){
         return(adminDeptService.setDept(adminDept));
     }
 
