@@ -38,7 +38,7 @@ public class WorkController extends BasicAction {
     }
 
     @RequestMapping(value = "/getWorkById")
-    public R getWorkById() {
+    public R getWorkById() throws IllegalAccessException {
         String workId = getPara("workId");
         return (workService.getWorkById(workId));
         //return (R.ok().put("data", workService.getWorkById(workId)));
