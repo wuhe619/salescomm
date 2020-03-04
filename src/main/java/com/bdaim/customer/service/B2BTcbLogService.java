@@ -84,7 +84,7 @@ public class B2BTcbLogService implements BusiService {
             sqlstr.append(" and t.create_date between ? and ? ");
         }
         //sqlstr.append("group by create_date  order by  create_date desc");
-        sqlstr.append("group by create_date ");
+        sqlstr.append("group by ext_3 ");
         return sqlstr.toString();
     }
 

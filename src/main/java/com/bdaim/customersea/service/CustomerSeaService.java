@@ -4313,6 +4313,7 @@ public class CustomerSeaService {
             // 添加至公海责任人为空
             if (1 == seaType) {
                 dto.setUser_id(null);
+                dataStatus = 1;
             }
             LOG.info("开始保存添加线索个人信息:" + ConstantsUtil.CUSTOMER_GROUP_TABLE_PREFIX + dto.getCust_group_id() + ",数据:" + dto.toString());
             try {

@@ -48,7 +48,7 @@ public class CrmReceivablesPlanService {
         crmReceivablesPlan.setCustId(BaseUtil.getUser().getCustId());
         String batchId = StrUtil.isNotEmpty(crmReceivablesPlan.getFileBatch()) ? crmReceivablesPlan.getFileBatch() : IdUtil.simpleUUID();
         adminFieldService.save(jsonObject.getJSONArray("field"), batchId);
-        if (null == crmReceivablesPlan.getPlanId()) {
+        if (null == entity.getPlanId()) {
             crmReceivablesPlan.setCreateTime(DateUtil.date().toTimestamp());
             crmReceivablesPlan.setCreateUserId(BaseUtil.getUser().getUserId());
             crmReceivablesPlan.setFileBatch(batchId);
@@ -61,6 +61,7 @@ public class CrmReceivablesPlanService {
             }
             return (int) crmReceivablesPlanDao.saveReturnPk(crmReceivablesPlan) > 0 ? R.ok() : R.error();
         } else {
+            crmReceivablesPlan.setPlanId(entity.getPlanId());
             Integer number = crmReceivablesPlanDao.queryForInt("select count(*) from lkcrm_crm_receivables where plan_id = ?", crmReceivablesPlan.getPlanId());
             if (number > 0) {
                 return R.error("该回款计划已收到回款，请勿编辑");

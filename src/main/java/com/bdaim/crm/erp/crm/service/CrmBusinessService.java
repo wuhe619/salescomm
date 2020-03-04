@@ -99,7 +99,7 @@ public class CrmBusinessService {
         JSONArray jsonArray = jsonObject.getJSONArray("product");
         List<LkCrmBusinessProductEntity> businessProductList = jsonArray.toJavaList(LkCrmBusinessProductEntity.class);
         //Db.delete(Db.getSql("crm.business.clearBusinessProduct"), crmBusiness.getBusinessId());
-        if (crmBusiness.getBusinessId() != null) {
+        if (entity.getBusinessId() != null) {
             crmBusinessDao.clearBusinessProduct(crmBusiness.getBusinessId());
         }
 
@@ -107,7 +107,8 @@ public class CrmBusinessService {
         crmRecordService.updateRecord(jsonObject.getJSONArray("field"), batchId);
         adminFieldService.save(jsonObject.getJSONArray("field"), batchId);
         boolean saveOrUpdate;
-        if (crmBusiness.getBusinessId() != null) {
+        if (entity.getBusinessId() != null) {
+            crmBusiness.setBusinessId(entity.getBusinessId());
             LkCrmBusinessEntity lkCrmBusinessEntity = crmBusinessDao.get(crmBusiness.getBusinessId());
             BeanUtils.copyProperties(crmBusiness, lkCrmBusinessEntity, JavaBeanUtil.getNullPropertyNames(crmBusiness));
             lkCrmBusinessEntity.setUpdateTime(DateUtil.date().toTimestamp());

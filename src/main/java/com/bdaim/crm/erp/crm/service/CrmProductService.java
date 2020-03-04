@@ -92,7 +92,7 @@ public class CrmProductService {
         String batchId = StrUtil.isNotEmpty(crmProduct.getBatchId()) ? crmProduct.getBatchId() : IdUtil.simpleUUID();
         crmRecordService.updateRecord(jsonObject.getJSONArray("field"), batchId);
         adminFieldService.save(jsonObject.getJSONArray("field"), batchId);
-        if (crmProduct.getProductId() == null) {
+        if (entity.getProductId() == null) {
             // 新增
             Integer product = crmProductDao.getByNum(crmProduct.getNum());
             if (product != 0) {
@@ -107,6 +107,7 @@ public class CrmProductService {
             crmRecordService.addRecord(crmProduct.getProductId(), CrmEnum.PRODUCT_TYPE_KEY.getTypes());
             return save ? R.ok() : R.error();
         } else {
+            crmProduct.setProductId(entity.getProductId());
             LkCrmProductEntity oldCrmProduct = crmProductDao.get(crmProduct.getProductId());
             crmRecordService.updateRecord(oldCrmProduct, crmProduct, CrmEnum.PRODUCT_TYPE_KEY.getTypes());
             crmProduct.setUpdateTime(DateUtil.date().toTimestamp());
