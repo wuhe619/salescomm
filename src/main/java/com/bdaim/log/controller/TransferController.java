@@ -105,10 +105,10 @@ public class TransferController {
         result.put("message", "失败");
         FileOutputStream fos = null;
         try {
-            logger.info("task_id=" + task_id + ", key_counts=" + key_counts + ", matched_counts=" + matched_counts + ", file=" + file.getOriginalFilename());
+            logger.info("task_id={}, key_counts={}, matched_counts={}, file={}",task_id,key_counts,matched_counts,file.isEmpty());
             int count = transferLogService.selectLog(task_id);
             if (count <= 0) {
-                logger.info("task_id=" + task_id + "不存在");
+                logger.error("task_id=" + task_id + "不存在");
                 return result;
             }
             String path = ConfigUtil.getInstance().get("data.save_path");
