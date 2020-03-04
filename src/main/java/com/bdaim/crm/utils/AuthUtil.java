@@ -18,6 +18,7 @@ import javax.transaction.Transactional;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author wyq
@@ -111,6 +112,11 @@ public class AuthUtil {
 
     public static boolean isCrmAuth(Map<String, String> tablePara, Object id) {
         if (tablePara == null) {
+            return false;
+        }
+        // 客户管理员
+        if (Objects.equals(BaseUtil.getUser().getUserType(), "1")) {
+            LOG.info("当前登录用户为客户管理员,id:{}", BaseUtil.getUserId());
             return false;
         }
         Long userId = BaseUtil.getUserId();

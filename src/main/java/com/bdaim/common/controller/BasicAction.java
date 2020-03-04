@@ -422,5 +422,19 @@ public class BasicAction {
         return NumberConvertUtil.parseLong(getPara(name));
     }
 
+    public Map getKv() {
+        Map kv = new HashMap();
+        Map<String, String[]> paraMap = this.request.getParameterMap();
+        Iterator var3 = paraMap.entrySet().iterator();
+
+        while(var3.hasNext()) {
+            Map.Entry<String, String[]> entry = (Map.Entry)var3.next();
+            String[] values = (String[])entry.getValue();
+            String value = values != null && values.length > 0 ? values[0] : null;
+            kv.put(entry.getKey(), "".equals(value) ? null : value);
+        }
+
+        return kv;
+    }
 
 }

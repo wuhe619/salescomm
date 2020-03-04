@@ -536,7 +536,7 @@ public class CrmLeadsController extends BasicAction {
         jsonObject.put("search", search);
         jsonObject.fluentPut("excel", "yes").fluentPut("type", "1");
         basePageRequest.setJsonObject(jsonObject);
-        List<Record> recordList = JavaBeanUtil.mapToRecords((List) adminSceneService.filterConditionAndGetPageList(basePageRequest).get("data"));
+        List<Record> recordList = (List<Record>) adminSceneService.filterConditionAndGetPageList(basePageRequest).get("excel");
         export(recordList, response, "1");
         //renderNull();
     }

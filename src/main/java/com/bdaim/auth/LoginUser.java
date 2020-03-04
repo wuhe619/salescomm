@@ -2,9 +2,7 @@ package com.bdaim.auth;
 
 import com.bdaim.common.auth.Token;
 import com.bdaim.rbac.entity.User;
-import org.springframework.security.core.GrantedAuthority;
 
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -402,7 +400,7 @@ public class LoginUser extends Token {
     }
 
     public Long getUserId() {
-        return userId;
+        return id;
     }
 
     public void setUserId(Long userId) {

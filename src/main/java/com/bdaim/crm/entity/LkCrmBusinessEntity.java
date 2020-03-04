@@ -13,7 +13,7 @@ public class LkCrmBusinessEntity {
     private Integer typeId;
     private Integer statusId;
     private Timestamp nextTime;
-    private int customerId;
+    private Integer customerId;
     private Timestamp dealDate;
     private String businessName;
     private BigDecimal money;
@@ -93,11 +93,11 @@ public class LkCrmBusinessEntity {
 
     @Basic
     @Column(name = "customer_id")
-    public int getCustomerId() {
+    public Integer getCustomerId() {
         return customerId;
     }
 
-    public void setCustomerId(int customerId) {
+    public void setCustomerId(Integer customerId) {
         this.customerId = customerId;
     }
 

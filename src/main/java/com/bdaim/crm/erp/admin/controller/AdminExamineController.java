@@ -1,15 +1,14 @@
 package com.bdaim.crm.erp.admin.controller;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.common.controller.BasicAction;
 import com.bdaim.crm.common.annotation.Permissions;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.entity.LkCrmAdminExamineEntity;
 import com.bdaim.crm.erp.admin.entity.AdminExamine;
 import com.bdaim.crm.erp.admin.service.AdminExamineService;
 import com.bdaim.crm.utils.R;
-import com.jfinal.core.Controller;
-import com.jfinal.core.paragetter.Para;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -21,7 +20,7 @@ import javax.annotation.Resource;
  */
 @RestController
 @RequestMapping("/examine")
-public class AdminExamineController extends Controller {
+public class AdminExamineController extends BasicAction {
     @Resource
     private AdminExamineService examineService;
     /**
@@ -29,8 +28,8 @@ public class AdminExamineController extends Controller {
      */
     @Permissions("manage:examineFlow")
     @RequestMapping(value = "/saveExamine", method = RequestMethod.POST)
-    public R saveExamine(){
-        JSONObject jsonObject = JSON.parseObject(getRawData());
+    public R saveExamine(@RequestBody JSONObject jsonObject){
+        //JSONObject jsonObject = JSON.parseObject(getRawData());
         return (examineService.saveExamine(jsonObject));
     }
     /**
@@ -38,7 +37,8 @@ public class AdminExamineController extends Controller {
      */
     @Permissions("manage:examineFlow")
     @RequestMapping(value = "/queryAllExamine", method = RequestMethod.POST)
-    public R queryAllExamine(BasePageRequest<AdminExamine> basePageRequest){
+    public R queryAllExamine(BasePageRequest<AdminExamine> basePageRequest,AdminExamine adminExamine){
+        basePageRequest.setData(adminExamine);
         return(examineService.queryAllExamine(basePageRequest));
     }
     /**
@@ -58,7 +58,7 @@ public class AdminExamineController extends Controller {
      */
     @Permissions("manage:examineFlow")
     @RequestMapping(value = "/updateStatus", method = RequestMethod.POST)
-    public R updateStatus(@Para("") LkCrmAdminExamineEntity adminExamine){
+    public R updateStatus(LkCrmAdminExamineEntity adminExamine){
         return(examineService.updateStatus(adminExamine));
     }
     /**
@@ -67,7 +67,7 @@ public class AdminExamineController extends Controller {
      */
     @Permissions("manage:examineFlow")
     @RequestMapping(value = "/queryExaminStep", method = RequestMethod.POST)
-    public R queryExaminStep( Integer categoryType){
+    public R queryExaminStep(Integer categoryType){
         //Integer categoryType = getInt("categoryType");
         return(examineService.queryExaminStep(categoryType));
     }

@@ -1,17 +1,17 @@
 package com.bdaim.crm.erp.admin.service;
 
 import cn.hutool.core.util.StrUtil;
+import com.bdaim.crm.common.constant.BaseConstant;
 import com.bdaim.crm.dao.LkCrmAdminDeptDao;
+import com.bdaim.crm.entity.LkCrmAdminDeptEntity;
+import com.bdaim.crm.utils.BaseUtil;
+import com.bdaim.crm.utils.R;
 import com.bdaim.util.JavaBeanUtil;
 import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
-import com.bdaim.crm.common.constant.BaseConstant;
-import com.bdaim.crm.erp.admin.entity.AdminDept;
-import com.bdaim.crm.utils.BaseUtil;
-import com.bdaim.crm.utils.R;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,13 +20,15 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 public class AdminDeptService {
-    @Resource
+    @Autowired
     private LkCrmAdminDeptDao crmAdminDeptDao;
+    @Autowired
+    private AdminUserService adminUserService;
 
-    public R setDept(AdminDept adminDept) {
+    public R setDept(LkCrmAdminDeptEntity adminDept) {
         boolean bol;
         if (adminDept.getDeptId() == null) {
-            bol = adminDept.save();
+            bol = (int) crmAdminDeptDao.saveReturnPk(adminDept) > 0;
         } else {
             if (adminDept.getPid() != null && adminDept.getPid() != 0) {
                 List<Record> topDeptList = queryDeptTree("update", adminDept.getDeptId());
@@ -41,14 +43,15 @@ public class AdminDeptService {
                     return R.error("该部门的下级部门不能设置为上级部门");
                 }
             }
-            bol = adminDept.update();
+            crmAdminDeptDao.update(adminDept);
+            bol = true;
         }
         return R.isSuccess(bol, "设置失败");
     }
 
     public List<Record> queryDeptTree(String type, Integer id) {
         List<Record> allDeptList = new ArrayList<>();
-        List<Record> adminDeptList = Db.find("select dept_id as id,name,pid from 72crm_admin_dept");
+        List<Record> adminDeptList = JavaBeanUtil.mapToRecords(crmAdminDeptDao.sqlQuery("select dept_id as id,name,pid from lkcrm_admin_dept WHERE cust_id = ?", BaseUtil.getCustId()));
         List<Record> recordList = buildTreeBy2Loop(adminDeptList, 0, allDeptList);
         if (StrUtil.isNotBlank(type) && "tree".equals(type)) {
             return recordList;
@@ -65,8 +68,7 @@ public class AdminDeptService {
      * 查询可设置为上级的部门
      */
     private List<Record> queryTopDeptList(Integer deptId) {
-        List<Record> recordList = Db.find("select dept_id as id,name,pid from 72crm_admin_dept");
-        AdminUserService adminUserService = new AdminUserService();
+        List<Record> recordList = JavaBeanUtil.mapToRecords(crmAdminDeptDao.sqlQuery("select dept_id as id,name,pid from lkcrm_admin_dept WHERE cust_id = ?", BaseUtil.getCustId()));
         List<Integer> subDeptList = adminUserService.queryChileDeptIds(deptId, BaseConstant.AUTH_DATA_RECURSION_NUM);
         recordList.removeIf(record -> subDeptList.contains(record.getInt("id")));
         recordList.removeIf(record -> record.getInt("id").equals(deptId));
@@ -89,9 +91,9 @@ public class AdminDeptService {
         }
         //拥有最高数据权限
         if (list.contains(5)) {
-            return Db.find("select dept_id as id,name,pid from 72crm_admin_dept");
+            return JavaBeanUtil.mapToRecords(crmAdminDeptDao.sqlQuery("select dept_id as id,name,pid from lkcrm_admin_dept WHERE cust_id = ?", BaseUtil.getCustId()));
         } else {
-            adminDepts.add(Db.findFirst("select dept_id as id,name,pid from 72crm_admin_dept where dept_id=?", BaseUtil.getUser().getDeptId()));
+            adminDepts.add(Db.findFirst("select dept_id as id,name,pid from lkcrm_admin_dept where dept_id=?", BaseUtil.getUser().getDeptId()));
             if (list.contains(4)) {
                 adminDepts.addAll(queryDeptByParentDept(BaseUtil.getUser().getDeptId(), BaseConstant.AUTH_DATA_RECURSION_NUM));
             }
@@ -119,7 +121,7 @@ public class AdminDeptService {
     private List<Record> queryDeptByParentUser(Long userId, Integer deepness) {
         List<Record> recordList = new ArrayList<>();
         if (deepness > 0) {
-            List<Record> records = Db.find("SELECT a.dept_id AS id,a.name,a.pid,b.user_id FROM 72crm_admin_dept as a LEFT JOIN 72crm_admin_user as b on a.dept_id=b.dept_id WHERE b.parent_id = ?", userId);
+            List<Record> records = Db.find("SELECT a.dept_id AS id,a.name,a.pid,b.user_id FROM lkcrm_admin_dept as a LEFT JOIN lkcrm_admin_user as b on a.dept_id=b.dept_id WHERE b.parent_id = ?", userId);
             recordList.addAll(records);
             records.forEach(record -> {
                 recordList.addAll(queryDeptByParentUser(record.getLong("user_id"), deepness - 1));
@@ -154,15 +156,15 @@ public class AdminDeptService {
     }
 
     public R deleteDept(String id) {
-        Integer userCount = Db.queryInt("select count(*) from 72crm_admin_user where dept_id = ?", id);
+        Integer userCount = Db.queryInt("select count(*) from lkcrm_admin_user where dept_id = ?", id);
         if (userCount > 0) {
             return R.error("该部门下有员工，不能删除！");
         }
-        Integer childDeptCount = Db.queryInt("select count(*) from 72crm_admin_dept where pid = ?", id);
+        Integer childDeptCount = Db.queryInt("select count(*) from lkcrm_admin_dept where pid = ?", id);
         if (childDeptCount > 0) {
             return R.error("该部门下有下级部门，不能删除！");
         }
-        int delete = Db.delete("delete from 72crm_admin_dept where dept_id = ?", id);
+        int delete = Db.delete("delete from lkcrm_admin_dept where dept_id = ?", id);
         return delete > 0 ? R.ok() : R.error();
     }
 }

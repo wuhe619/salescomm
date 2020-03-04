@@ -15,7 +15,7 @@ public class LkCrmContactsEntity {
     private String telephone;
     private String email;
     private String post;
-    private int customerId;
+    private Integer customerId;
     private String address;
     private String remark;
     private Long createUserId;
@@ -107,11 +107,11 @@ public class LkCrmContactsEntity {
 
     @Basic
     @Column(name = "customer_id")
-    public int getCustomerId() {
+    public Integer getCustomerId() {
         return customerId;
     }
 
-    public void setCustomerId(int customerId) {
+    public void setCustomerId(Integer customerId) {
         this.customerId = customerId;
     }
 

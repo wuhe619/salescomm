@@ -85,7 +85,9 @@ public class R extends LinkedHashMap<String, Object> implements Serializable {
 
     @Override
     public R put(String key, Object value) {
-        value = JSON.parse(json.toJson(value));
+        if (!"excel".equals(key)) {
+            value = JSON.parse(json.toJson(value));
+        }
         handleLongValue(value);
         super.put(key, value);
         return this;

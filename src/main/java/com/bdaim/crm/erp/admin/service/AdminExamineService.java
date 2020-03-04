@@ -18,9 +18,9 @@ import com.bdaim.util.JavaBeanUtil;
 import com.bdaim.util.NumberConvertUtil;
 import com.bdaim.util.SqlAppendUtil;
 import com.jfinal.plugin.activerecord.Record;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,13 +30,13 @@ import java.util.Map;
 @Transactional
 public class AdminExamineService {
 
-    @Resource
+    @Autowired
     private LkCrmAdminExamineDao crmAdminExamineDao;
 
-    @Resource
+    @Autowired
     private LkCrmAdminExamineStepDao crmAdminExamineStepDao;
 
-    @Resource
+    @Autowired
     private CustomerUserDao customerUserDao;
 
     /**
@@ -52,7 +52,7 @@ public class AdminExamineService {
 
         if (adminExamine.getExamineId() == null) {
             //添加
-            LkCrmAdminExamineEntity examine = BeanUtil.mapToBean(crmAdminExamineDao.getExamineByCategoryType(adminExamine.getCategoryType()), LkCrmAdminExamineEntity.class, true);
+            LkCrmAdminExamineEntity examine = crmAdminExamineDao.getExamineByCategoryType(adminExamine.getCategoryType());
             if (examine != null) {
                 //判断有未删除的审批流程，不能添加
                 examine.setStatus(0);
@@ -109,12 +109,12 @@ public class AdminExamineService {
         page.getData().forEach(s -> {
             Record record = JavaBeanUtil.mapToRecord((Map<String, Object>) s);
             List data = new ArrayList();
-            data.add(BeanUtil.beanToMap(crmAdminExamineStepDao.queryExamineStepByExamineId(record.getInt("examine_id"))));
+            data.add(crmAdminExamineStepDao.queryExamineStepByExamineId(record.getInt("examine_id")));
             List<Record> stepList = JavaBeanUtil.mapToRecords(data);
             if (stepList != null) {
                 stepList.forEach(step -> {
                     if (step.getStr("check_user_id") != null && step.getStr("check_user_id").split(",").length > 0) {
-                        List<Record> userList = JavaBeanUtil.mapToRecords(customerUserDao.sqlQuery("SELECT * FROM t_customer_use WHERE id (" + SqlAppendUtil.sqlAppendWhereIn(step.getStr("check_user_id").split(",")) + ");"));
+                        List<Record> userList = JavaBeanUtil.mapToRecords(customerUserDao.sqlQuery("SELECT * FROM t_customer_user WHERE id (" + SqlAppendUtil.sqlAppendWhereIn(step.getStr("check_user_id").split(",")) + ");"));
                         //List<Record> userList = Db.find(Db.getSqlPara("admin.user.queryByIds", Kv.by("ids", step.getStr("check_user_id").split(","))));
                         step.set("userList", userList);
                     } else {
@@ -187,11 +187,11 @@ public class AdminExamineService {
      * 查询当前启用审核流程步骤
      */
     public R queryExaminStep(Integer categoryType) {
-        Record record = JavaBeanUtil.mapToRecord(crmAdminExamineDao.getExamineByCategoryType(categoryType));
+        Record record = JavaBeanUtil.mapToRecord(BeanUtil.beanToMap(crmAdminExamineDao.getExamineByCategoryType(categoryType)));
         if (record != null) {
             if (record.getInt("examine_type") == 1) {
                 List data = new ArrayList();
-                data.add(BeanUtil.beanToMap(crmAdminExamineStepDao.queryExamineStepByExamineId(record.getInt("examine_id"))));
+                data.add(crmAdminExamineStepDao.queryExamineStepByExamineId(record.getInt("examine_id")));
                 List<Record> list = JavaBeanUtil.mapToRecords(data);
                 list.forEach(r -> {
                     //根据审核人id查询审核问信息
