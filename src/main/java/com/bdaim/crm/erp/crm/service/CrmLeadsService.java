@@ -978,6 +978,20 @@ public class CrmLeadsService {
     }
 
     /**
+     * 根据id 删除线索
+     */
+    public R deleteByBatchIds(List idsList) {
+        if (idsList == null || idsList.size() == 0) {
+            R.error("leadsIds不能为空");
+        }
+        int i = crmLeadsDao.deleteByBatchIds(idsList);
+        if (idsList.size() > 0) {
+            crmLeadsDao.executeUpdateSQL("delete from lkcrm_admin_fieldv where batch_id IN( " + SqlAppendUtil.sqlAppendWhereIn(idsList) + " )");
+        }
+        return i > 0 ? R.ok() : R.error("线索删除失败");
+    }
+
+    /**
      * @author wyq
      * 变更负责人
      */

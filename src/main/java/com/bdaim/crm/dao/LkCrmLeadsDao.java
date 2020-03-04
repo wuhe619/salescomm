@@ -66,6 +66,12 @@ public class LkCrmLeadsDao extends SimpleHibernateDao<LkCrmLeadsEntity, Integer>
         return maps;
     }
 
+    public int deleteByBatchIds(List<String> ids) {
+        String sql = "delete from lkcrm_crm_leads where batch_id in (" + SqlAppendUtil.sqlAppendWhereIn(ids) + ")";
+        int maps = this.executeUpdateSQL(sql);
+        return maps;
+    }
+
     public int setLeadsFollowup(List<String> ids) {
         String sql = "update lkcrm_crm_leads set followup = 1 where leads_id in (" + SqlAppendUtil.sqlAppendWhereIn(ids) + ")";
         int maps = this.executeUpdateSQL(sql);
