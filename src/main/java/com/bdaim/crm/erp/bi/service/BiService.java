@@ -15,7 +15,7 @@ import java.util.List;
 public class BiService {
 
     /**
-     * @author hjp
+     * @author Chacker
      * 根据商机id查询合同
      */
     public R queryCrmBusinessStatistics(Long userId, Integer deptId, Integer productId, Date startTime, Date endTime) {
@@ -45,7 +45,7 @@ public class BiService {
 
     /**
      * 获取商业智能业绩目标完成情况
-     * @author wyq
+     * @author Chacker
      */
     public R taskCompleteStatistics(String year, Integer type, Integer deptId, Integer userId){
         if (type == 1){

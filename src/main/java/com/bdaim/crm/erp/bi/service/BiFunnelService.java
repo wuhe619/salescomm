@@ -22,7 +22,7 @@ public class BiFunnelService {
 
     /**
      * 销售漏斗
-     * @author zxy
+     * @author Chacker
      */
     public R sellFunnel(Integer deptId, Long userId, String type, String startTime, String endTime, Integer typeId){
         Record record = new Record();
@@ -88,7 +88,7 @@ public class BiFunnelService {
     }
     /**
      * 商机转化率分析
-     * @author zxy
+     * @author Chacker
      */
     public R win(Integer deptId, Long userId, String type, String startTime, String endTime){
         Record record = new Record();

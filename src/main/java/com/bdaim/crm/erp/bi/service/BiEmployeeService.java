@@ -24,7 +24,7 @@ public class BiEmployeeService {
 
     /**
      * 业绩分析
-     * @author wyq
+     * @author Chacker
      */
     public R contractNumStats(Integer deptId, Long userId, String type, String year){
         Record record = new Record();
@@ -93,7 +93,7 @@ public class BiEmployeeService {
 
     /**
      * 合同汇总表
-     * @author wyq
+     * @author Chacker
      */
     public R totalContract(Integer deptId, Long userId, String type, String startTime, String endTime){
         Record record = new Record();

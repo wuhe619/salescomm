@@ -20,7 +20,7 @@ public class BiController extends Controller {
     private BiService biService;
 
     /**
-     * @author zxy
+     * @author Chacker
      * 商业智能，销售漏斗
      */
     @Permissions("bi:business:read")
@@ -38,7 +38,7 @@ public class BiController extends Controller {
     /**
      * 产品销售情况统计
      *
-     * @author zxy
+     * @author Chacker
      * startTime 开始时间 endTime 结束时间 userId用户ID deptId部门ID
      */
     @Permissions("bi:product:read")
@@ -70,7 +70,7 @@ public class BiController extends Controller {
     /**
      * 获取商业智能业绩目标完成情况
      *
-     * @author wyq
+     * @author Chacker
      */
     @RequestMapping(value = "/taskCompleteStatistics")
     @Permissions("bi:achievement:read")

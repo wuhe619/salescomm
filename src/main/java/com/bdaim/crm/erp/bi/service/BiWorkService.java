@@ -29,7 +29,7 @@ public class BiWorkService {
 
     /**
      * 查询日志统计信息
-     * @author zhang
+     * @author Chacker
      */
     public List<Record> logStatistics(Integer deptId, Long userId, String type) {
         Record record = new Record().set("deptId", deptId).set("userId", userId).set("type", type);
@@ -65,7 +65,7 @@ public class BiWorkService {
 
     /**
      * 查询审批统计信息
-     * @author zhang
+     * @author Chacker
      */
     public JSONObject examineStatistics(Integer deptId, Long userId, String type){
         JSONObject object=new JSONObject();
@@ -86,7 +86,7 @@ public class BiWorkService {
 
     /**
      * 审批详情
-     * @author zhangz
+     * @author Chacker
      */
     public Record examineInfo(BasePageRequest request){
         JSONObject jsonObject = request.getJsonObject();
@@ -104,7 +104,7 @@ public class BiWorkService {
 
     /**
      * 判断两个数组是否有交集
-     * @author zhang
+     * @author Chacker
      * @return true为存在交集
      */
     private static boolean isIntersection(List<String> m, List<String> n) {
