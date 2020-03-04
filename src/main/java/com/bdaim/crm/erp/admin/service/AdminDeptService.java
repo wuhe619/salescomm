@@ -9,9 +9,9 @@ import com.bdaim.crm.utils.R;
 import com.bdaim.util.JavaBeanUtil;
 import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,8 +20,10 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 public class AdminDeptService {
-    @Resource
+    @Autowired
     private LkCrmAdminDeptDao crmAdminDeptDao;
+    @Autowired
+    private AdminUserService adminUserService;
 
     public R setDept(LkCrmAdminDeptEntity adminDept) {
         boolean bol;
@@ -49,7 +51,7 @@ public class AdminDeptService {
 
     public List<Record> queryDeptTree(String type, Integer id) {
         List<Record> allDeptList = new ArrayList<>();
-        List<Record> adminDeptList = JavaBeanUtil.mapToRecords(crmAdminDeptDao.sqlQuery("select dept_id as id,name,pid from lkcrm_admin_dept"));
+        List<Record> adminDeptList = JavaBeanUtil.mapToRecords(crmAdminDeptDao.sqlQuery("select dept_id as id,name,pid from lkcrm_admin_dept WHERE cust_id = ?", BaseUtil.getCustId()));
         List<Record> recordList = buildTreeBy2Loop(adminDeptList, 0, allDeptList);
         if (StrUtil.isNotBlank(type) && "tree".equals(type)) {
             return recordList;
@@ -66,8 +68,7 @@ public class AdminDeptService {
      * 查询可设置为上级的部门
      */
     private List<Record> queryTopDeptList(Integer deptId) {
-        List<Record> recordList = Db.find("select dept_id as id,name,pid from lkcrm_admin_dept");
-        AdminUserService adminUserService = new AdminUserService();
+        List<Record> recordList = JavaBeanUtil.mapToRecords(crmAdminDeptDao.sqlQuery("select dept_id as id,name,pid from lkcrm_admin_dept WHERE cust_id = ?", BaseUtil.getCustId()));
         List<Integer> subDeptList = adminUserService.queryChileDeptIds(deptId, BaseConstant.AUTH_DATA_RECURSION_NUM);
         recordList.removeIf(record -> subDeptList.contains(record.getInt("id")));
         recordList.removeIf(record -> record.getInt("id").equals(deptId));
@@ -90,7 +91,7 @@ public class AdminDeptService {
         }
         //拥有最高数据权限
         if (list.contains(5)) {
-            return Db.find("select dept_id as id,name,pid from lkcrm_admin_dept");
+            return JavaBeanUtil.mapToRecords(crmAdminDeptDao.sqlQuery("select dept_id as id,name,pid from lkcrm_admin_dept WHERE cust_id = ?", BaseUtil.getCustId()));
         } else {
             adminDepts.add(Db.findFirst("select dept_id as id,name,pid from lkcrm_admin_dept where dept_id=?", BaseUtil.getUser().getDeptId()));
             if (list.contains(4)) {
