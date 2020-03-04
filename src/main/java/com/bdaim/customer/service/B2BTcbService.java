@@ -9,19 +9,18 @@ import com.bdaim.bill.service.TransactionService;
 import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.service.BusiService;
 import com.bdaim.common.service.ElasticSearchService;
-import com.bdaim.online.zhianxin.dto.BaseResult;
-import com.bdaim.online.zhianxin.service.ZAXSearchListService;
 import com.bdaim.customersea.dto.CustomSeaTouchInfoDTO;
 import com.bdaim.customersea.service.CustomerSeaService;
 import com.bdaim.customs.entity.BusiTypeEnum;
 import com.bdaim.customs.entity.HMetaDataDef;
+import com.bdaim.online.zhianxin.dto.BaseResult;
+import com.bdaim.online.zhianxin.service.ZAXSearchListService;
 import com.bdaim.resource.dao.MarketResourceDao;
 import com.bdaim.resource.entity.MarketResourceEntity;
 import com.bdaim.resource.entity.ResourcePropertyEntity;
 import com.bdaim.resource.service.MarketResourceService;
 import com.bdaim.util.NumberConvertUtil;
 import com.bdaim.util.StringUtil;
-import org.apache.commons.lang.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -334,9 +333,9 @@ public class B2BTcbService implements BusiService {
                 // 保存线索
                 int status = seaService.addClueData0(dto, seaType);
                 LOG.info("B2B套餐领取线索状态:{},seaType:{},data:{}", status, seaType, JSON.toJSONString(dto));
+                // 保存领取记录
+                saveTcbClueDataLog(custId, userId, batchId, entId, useB2BTcb.getString("id"), dto.getSuper_id(), JSON.toJSONString(dto));
             }
-            // 保存领取记录
-            saveTcbClueDataLog(custId, userId, batchId, entId, useB2BTcb.getString("id"), dto.getSuper_id(), JSON.toJSONString(dto));
             consumeNum++;
         }
         // 更新套餐余量和消耗量
