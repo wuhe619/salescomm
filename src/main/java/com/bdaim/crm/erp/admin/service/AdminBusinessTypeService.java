@@ -96,14 +96,14 @@ public class AdminBusinessTypeService {
 
     @Before(Tx.class)
     public R deleteById(String typeId) {
-        Integer count = crmBusinessTypeDao.queryForInt("select count(*) from 72crm_crm_business where type_id = ?", typeId);
+        Integer count = crmBusinessTypeDao.queryForInt("select count(*) from lkcrm_crm_business where type_id = ?", typeId);
         if (count > 0) {
             return R.error("使用中的商机组不可以删除");
         }
         crmBusinessTypeDao.delete(NumberConvertUtil.parseInt(typeId));
-        crmBusinessStatusDao.executeUpdateSQL("delete from 72crm_crm_business_status where type_id=?", typeId);
-        //Db.deleteById("72crm_crm_business_type", "type_id", typeId);
-        //Db.deleteById("72crm_crm_business_status", "type_id", typeId);
+        crmBusinessStatusDao.executeUpdateSQL("delete from lkcrm_crm_business_status where type_id=?", typeId);
+        //Db.deleteById("lkcrm_crm_business_type", "type_id", typeId);
+        //Db.deleteById("lkcrm_crm_business_status", "type_id", typeId);
         return R.ok();
     }
 

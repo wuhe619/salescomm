@@ -18,7 +18,7 @@ public class AdminRouter extends Routes {
         //add("/businessType", AdminBusinessTypeController.class);
         //add("/achievement",AdminAchievementController.class);
         //add("/sysConfig",AdminSysConfigController.class);
-        add("/examine", AdminExamineController.class);
+        //add("/examine", AdminExamineController.class);
         //add("/examineRecord", AdminExamineRecordController.class);
     }
 }
