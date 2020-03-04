@@ -597,7 +597,7 @@ public class SbdZService implements BusiService {
             List<Product> pList = dan.getProducts();
             Long id = sequenceService.getSeq(BusiTypeEnum.SF.getType());
             JSONObject arrt = new JSONObject();
-            log.info("申报单分单:" + dan.getBill_no());
+            //log.info("申报单分单:" + dan.getBill_no());
             // 构造商品数据
             buildGoods0(list, pList, userId, custId, String.valueOf(id), arrt, resource, mainBillNo);
             HBusiDataManager dataManager = new HBusiDataManager();
