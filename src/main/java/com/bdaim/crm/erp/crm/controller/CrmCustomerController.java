@@ -494,12 +494,13 @@ public class CrmCustomerController extends BasicAction {
      */
     @Permissions("crm:pool:excelexport")
     @RequestMapping(value = "/poolAllExportExcel")
-    public void poolAllExportExcel(BasePageRequest basePageRequest, @RequestBody JSONObject jsonObject, HttpServletResponse response) throws IOException {
+    public void poolAllExportExcel(@RequestBody JSONObject jsonObject, HttpServletResponse response) throws IOException {
         //JSONObject jsonObject = basePageRequest.getJsonObject();
         jsonObject.fluentPut("excel", "yes").fluentPut("type", 8);
         //AdminSceneService adminSceneService = new AdminSceneService();
+        BasePageRequest basePageRequest = new BasePageRequest(jsonObject.getIntValue("page"), jsonObject.getIntValue("limit"));
         basePageRequest.setJsonObject(jsonObject);
-        List<Record> recordList = (List<Record>) adminSceneService.filterConditionAndGetPageList(basePageRequest).get("data");
+        List<Record> recordList = JavaBeanUtil.mapToRecords((List) adminSceneService.filterConditionAndGetPageList(basePageRequest).get("data"));
         export(recordList, response);
         //renderNull();
     }
