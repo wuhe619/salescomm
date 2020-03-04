@@ -674,7 +674,7 @@ public class CrmLeadsService {
         for (Map<String, Object> m : maps) {
             JSONObject superData = JSON.parseObject(String.valueOf(m.get("super_data")));
             LkCrmLeadsEntity crmLeads = BeanUtil.mapToBean(m, LkCrmLeadsEntity.class, true);
-            crmLeads.setLeadsName(superData.getString("SYS014") + (++i));
+            crmLeads.setLeadsName(superData.getString("SYS005") + (++i));
             // 查询公海线索的标记信息
             List<Map<String, Object>> fieldList = crmAdminFieldvDao.queryCustomField(String.valueOf(m.get("id")));
             JSONArray jsonArray = new JSONArray();
