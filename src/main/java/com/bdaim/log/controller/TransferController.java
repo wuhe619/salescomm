@@ -111,7 +111,7 @@ public class TransferController {
                 logger.error("task_id=" + task_id + "不存在");
                 return result;
             }
-            String path = ConfigUtil.getInstance().get("data.save_path");
+            String path = savePath;
             String pathName  = path + task_id + "_" + key_counts + "_" + matched_counts;
             logger.info("文件路径：" + pathName);
             fos = new FileOutputStream(pathName);
