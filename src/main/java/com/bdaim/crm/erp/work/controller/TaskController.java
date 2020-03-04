@@ -41,7 +41,7 @@ public class TaskController extends BasicAction {
 
     /**
      * @param taskClass 任务类别对象
-     * @author hmb
+     * @author Chacker
      * 设置任务类别
      */
     @RequestMapping(value = "/setTaskClass", method = RequestMethod.POST)
@@ -50,7 +50,7 @@ public class TaskController extends BasicAction {
     }
 
     /**
-     * @author hmb
+     * @author Chacker
      * 交换任务列表排序
      */
     @RequestMapping(value = "/changeOrderTaskClass", method = RequestMethod.POST)
@@ -63,7 +63,7 @@ public class TaskController extends BasicAction {
 
     /**
      * @param task 任务对象
-     * @author hmb
+     * @author Chacker
      * 设置oa任务
      */
     @RequestMapping(value = "/setTask", method = RequestMethod.POST)
@@ -134,7 +134,7 @@ public class TaskController extends BasicAction {
 
 
     /**
-     * @author hmb
+     * @author Chacker
      * 查询任务列表
      */
     @RequestMapping(value = "/getTaskList", method = RequestMethod.POST)
@@ -146,7 +146,7 @@ public class TaskController extends BasicAction {
 
 
     /**
-     * @author hmb
+     * @author Chacker
      * 查询oa任务信息
      */
     @RequestMapping(value = "/queryTaskInfo", method = RequestMethod.POST)
@@ -161,7 +161,7 @@ public class TaskController extends BasicAction {
     }
 
     /**
-     * @author hmb
+     * @author Chacker
      * 查询项目任务详情
      */
     @RequestMapping(value = "/queryTaskById", method = RequestMethod.POST)
@@ -234,7 +234,7 @@ public class TaskController extends BasicAction {
     }
 
     /**
-     * @author hmb
+     * @author Chacker
      * 删除任务
      * taskId 任务id
      */
@@ -245,7 +245,7 @@ public class TaskController extends BasicAction {
     }
 
     /**
-     * @author wyq
+     * @author Chacker
      * crm查询关联任务
      */
     @RequestMapping(value = "/queryTaskRelation", method = RequestMethod.POST)
@@ -256,7 +256,7 @@ public class TaskController extends BasicAction {
 
     /**
      * @param taskId
-     * @author hmb
+     * @author Chacker
      * 根据任务id归档任务
      */
     @RequestMapping(value = "/archiveByTaskId", method = RequestMethod.POST)
