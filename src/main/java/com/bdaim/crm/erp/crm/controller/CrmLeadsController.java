@@ -306,7 +306,7 @@ public class CrmLeadsController extends BasicAction {
             responseJson.setCode(200);
         } catch (TouchException e) {
             responseJson.setCode(-1);
-            responseJson.setMessage(e.getErrMsg());
+            responseJson.setMessage(e.getMessage());
             LOG.error("线索分配异常,", e);
         }
         responseJson.setData(data);

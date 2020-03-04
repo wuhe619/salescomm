@@ -165,7 +165,7 @@ public class CrmContractService {
         crmRecordService.updateRecord(jsonObject.getJSONArray("field"), batchId);
         adminFieldService.save(jsonObject.getJSONArray("field"), batchId);
         boolean flag;
-        if (crmContract.getContractId() == null) {
+        if (entity.getContractId() == null) {
             Integer contract = crmContractDao.queryByNum(crmContract.getNum());
             if (contract != 0) {
                 return R.error("合同编号已存在，请校对后再添加！");
@@ -189,6 +189,7 @@ public class CrmContractService {
             flag = (int) crmContractDao.saveReturnPk(crmContract) > 0;
             crmRecordService.addRecord(crmContract.getContractId(), CrmEnum.CONTRACT_TYPE_KEY.getTypes());
         } else {
+            crmContract.setContractId(entity.getContractId());
             LkCrmContractEntity contract = crmContractDao.get(crmContract.getContractId());
             if (contract.getCheckStatus() != 4 && contract.getCheckStatus() != 3) {
                 return R.error("不能编辑，请先撤回再编辑！");

@@ -146,7 +146,8 @@ public class CrmCustomerService {
         crmRecordService.updateRecord(jsonObject.getJSONArray("field"), batchId);
         adminFieldService.save(jsonObject.getJSONArray("field"), batchId);
         crmCustomer.setCustId(BaseUtil.getUser().getCustId());
-        if (crmCustomer.getCustomerId() != null) {
+        if (entity.getCustomerId() != null) {
+            crmCustomer.setCustomerId(entity.getCustomerId());
             LkCrmCustomerEntity oldCrmCustomer = crmCustomerDao.get(crmCustomer.getCustomerId());
             crmRecordService.updateRecord(oldCrmCustomer, crmCustomer, CrmEnum.CUSTOMER_TYPE_KEY.getTypes());
             crmCustomer.setUpdateTime(DateUtil.date().toTimestamp());
