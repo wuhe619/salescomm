@@ -10,10 +10,7 @@ import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
 import com.bdaim.util.JavaBeanUtil;
 import com.bdaim.util.NumberConvertUtil;
-import com.jfinal.aop.Before;
-import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
-import com.jfinal.plugin.activerecord.tx.Tx;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -49,7 +46,6 @@ public class AdminExamineRecordService {
     /**
      * 第一次添加审核记录和审核日志 type 1 合同 2 回款 userId:授权审批人
      */
-    @Before(Tx.class)
     public Map<String, Integer> saveExamineRecord(Integer type, Long userId, Long ownerUserId, Integer recordId) {
         Map<String, Integer> map = new HashMap<>();
         //创建审核记录
@@ -154,7 +150,6 @@ public class AdminExamineRecordService {
      * 审核合同或者回款 recordId:审核记录id status:审批状态：审核状态  1 审核通过 2 审核拒绝 4 已撤回
      * remarks:审核备注 id:审核对象的id（合同或者回款的id）nextUserId:下一个审批人 ownerUserId:负责人
      */
-    @Before(Tx.class)
     public R auditExamine(Integer recordId, Integer status, String remarks, Integer id, Long nextUserId, Long ownerUserId) {
 
         //当前审批人
@@ -236,7 +231,7 @@ public class AdminExamineRecordService {
                 examineLog.setExamineStepId(examineStep.getStepId());
                 examineLog.setOrderId(examineStep.getStepNum());
             } else {
-                Integer orderId = Db.queryInt("select order_id from lkcrm_admin_examine_log where record_id = ? and is_recheck = 0 and examine_status !=0 order by order_id desc limit 1 ", recordId);
+                Integer orderId = crmAdminExamineRecordDao.queryForInt("select order_id from lkcrm_admin_examine_log where record_id = ? and is_recheck = 0 and examine_status !=0 order by order_id desc limit 1 ", recordId);
                 if (orderId == null) {
                     orderId = 1;
                 }
@@ -522,7 +517,7 @@ public class AdminExamineRecordService {
         } else {
             jsonObject.put("examineType", 1);
             //固定审批
-            List<Record> steps = Db.find("select * from lkcrm_admin_examine_step where  examine_id = ? ORDER BY step_num", adminExamine.getExamineId());
+            List<Record> steps = JavaBeanUtil.mapToRecords(crmAdminExamineRecordDao.sqlQuery("select * from lkcrm_admin_examine_step where  examine_id = ? ORDER BY step_num", adminExamine.getExamineId()));
 
             steps.forEach(step -> {
                 if (step.getInt("step_type") == 1) {

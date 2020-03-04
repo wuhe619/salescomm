@@ -17,6 +17,7 @@ import com.bdaim.crm.utils.ParamsUtil;
 import com.bdaim.crm.utils.R;
 import com.bdaim.util.JavaBeanUtil;
 import com.bdaim.util.NumberConvertUtil;
+import com.bdaim.util.StringUtil;
 import com.jfinal.aop.Before;
 import com.jfinal.json.Json;
 import com.jfinal.kit.Kv;
@@ -658,7 +659,7 @@ public class AdminSceneService {
 
             String receivedMoney = crmAdminSceneDao.queryForObject("select SUM(money) from lkcrm_crm_receivables where receivables_id in (" + totalMoney.getStr("contractIds") + ")");
             JSONObject jsonObject = JSONObject.parseObject(Json.getJson().toJson(BaseUtil.crmPage(page)), JSONObject.class);
-            return R.ok().put("data", jsonObject.fluentPut("money", new JSONObject().fluentPut("contractMoney", totalMoney.getStr("contractMoney") != null ? totalMoney.getStr("contractMoney") : "0").fluentPut("receivedMoney", receivedMoney != null ? receivedMoney : "0")));
+            return R.ok().put("data", jsonObject.fluentPut("money", new JSONObject().fluentPut("contractMoney", totalMoney.getStr("contractMoney") != null ? totalMoney.getStr("contractMoney") : "0").fluentPut("receivedMoney", StringUtil.isNotEmpty(receivedMoney) ? receivedMoney : "0")));
         }
         com.bdaim.common.dto.Page recordPage = crmAdminSceneDao.sqlPageQuery("select *" + conditions.toString(), basePageRequest.getPage(), basePageRequest.getLimit(), BaseUtil.getUser().getCustId());
         if (type == 5) {

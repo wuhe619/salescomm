@@ -404,6 +404,7 @@ public class B2BTcbService implements BusiService {
        /* Random random = new Random();
         long pageNo = random.nextInt((int) getNumber), pageSize = getNumber * 5;*/
         // 预查询数据
+        param.put("endTime","1900-01-01");
         baseResult = searchListService.pageSearch(custId, "", userId, busiType, param);
         resultData = (JSONObject) baseResult.getData();
         if (resultData != null || "100".equals(baseResult.getCode())) {

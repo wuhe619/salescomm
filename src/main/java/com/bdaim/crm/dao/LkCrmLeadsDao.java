@@ -80,11 +80,11 @@ public class LkCrmLeadsDao extends SimpleHibernateDao<LkCrmLeadsEntity, Integer>
         conditions.append(" z.* FROM t_customer_sea_list_" + seaId + " AS custG LEFT JOIN fieldleadsview AS z ON custG.id = z.field_batch_id WHERE custG.status = 1 ");
         List param = new ArrayList();
         if (StringUtil.isNotEmpty(search)) {
-            param.add(search);
-            param.add(search);
-            param.add(search);
-            param.add(search);
-            conditions.append(" and (super_name like '%?%' or super_telphone like '%?%' or super_phone like '%?%' or super_data like '%?%')");
+            param.add("%"+search+"%");
+            param.add("%"+search+"%");
+            param.add("%"+search+"%");
+            param.add("%"+search+"%");
+            conditions.append(" and (super_name like ? or super_telphone like ? or super_phone like ? or super_data like ?)");
         }
         //conditions.append(" GROUP By custType ORDER BY custG.create_time DESC ");
         LOG.info("公海sql:" + conditions);
