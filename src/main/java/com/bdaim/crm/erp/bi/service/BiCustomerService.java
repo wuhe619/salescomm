@@ -25,7 +25,7 @@ public class BiCustomerService {
 
     /**
      * 客户总量分析图
-     * @author wyq
+     * @author Chacker
      */
     public R totalCustomerStats(Integer deptId, Long userId, String type, String startTime, String endTime){
         Record record = new Record();
@@ -55,7 +55,7 @@ public class BiCustomerService {
 
     /**
      * 客户总量分析表
-     * @author wyq
+     * @author Chacker
      */
     public R totalCustomerTable(Integer deptId, Long userId, String type, String startTime, String endTime){
         Record record = new Record();
@@ -98,7 +98,7 @@ public class BiCustomerService {
 
     /**
      * 客户跟进次数分析图
-     * @author wyq
+     * @author Chacker
      */
     public R customerRecordStats(Integer deptId, Long userId, String type, String startTime, String endTime){
         Record record = new Record();
@@ -128,7 +128,7 @@ public class BiCustomerService {
 
     /**
      * 客户跟进次数分析表
-     * @author wyq
+     * @author Chacker
      */
     public R customerRecordInfo(Integer deptId, Long userId, String type, String startTime, String endTime){
         Record record = new Record();
@@ -157,7 +157,7 @@ public class BiCustomerService {
 
     /**
      * 客户跟进方式分析
-     * @author wyq
+     * @author Chacker
      */
     public R customerRecodCategoryStats(Integer deptId, Long userId, String type, String startTime, String endTime){
         Record record = new Record();
@@ -182,7 +182,7 @@ public class BiCustomerService {
 
     /**
      * 客户转化率分析图
-     * @author wyq
+     * @author Chacker
      */
     public R customerConversionStats(Integer deptId, Long userId, String type, String startTime, String endTime){
         Record record = new Record();
@@ -215,7 +215,7 @@ public class BiCustomerService {
 
     /**
      * 客户转化率分析表
-     * @author wyq
+     * @author Chacker
      */
     public R customerConversionInfo(Integer deptId, Long userId, String type, String startTime, String endTime){
         Record record = new Record();
@@ -241,7 +241,7 @@ public class BiCustomerService {
 
     /**
      *公海客户分析图
-     * @author wyq
+     * @author Chacker
      */
     public R poolStats(Integer deptId, Long userId, String type, String startTime, String endTime){
         Record record = new Record();
@@ -272,7 +272,7 @@ public class BiCustomerService {
 
     /**
      *公海客户分析表
-     * @author wyq
+     * @author Chacker
      */
     public R poolTable(Integer deptId, Long userId, String type, String startTime, String endTime){
         Record record = new Record();
@@ -284,7 +284,7 @@ public class BiCustomerService {
 
     /**
      * 员工客户成交周期图
-     * @author wyq
+     * @author Chacker
      */
     public R employeeCycle(Integer deptId, Long userId, String type, String startTime, String endTime){
         Record record = new Record();
@@ -314,7 +314,7 @@ public class BiCustomerService {
 
     /**
      * 员工客户成交周期表
-     * @author wyq
+     * @author Chacker
      */
     public R employeeCycleInfo(Integer deptId, Long userId, String type, String startTime, String endTime){
         Record record = new Record();
@@ -345,7 +345,7 @@ public class BiCustomerService {
 
     /**
      * 地区成交周期
-     * @author wyq
+     * @author Chacker
      */
     public R districtCycle(Integer deptId, Long userId, String type, String startTime, String endTime){
         Record record = new Record();
@@ -376,7 +376,7 @@ public class BiCustomerService {
 
     /**
      * 产品成交周期
-     * @author wyq
+     * @author Chacker
      */
     public R productCycle(Integer deptId, Long userId, String type, String startTime, String endTime){
         Record record = new Record();

@@ -32,7 +32,7 @@ public class BiWorkController extends Controller {
     /**
      * 查询日志统计信息
      *
-     * @author zhang
+     * @author Chacker
      */
     @RequestMapping(value = "/logStatistics")
     public R logStatistics(@Para("deptId") Integer deptId, @Para("userId") Long userId, @Para("type") String type) {
@@ -42,7 +42,7 @@ public class BiWorkController extends Controller {
     /**
      * 导出日志信息
      *
-     * @author zhangzhiwei
+     * @author Chacker
      */
     @RequestMapping(value = "/logStatisticsExport")
     public void logStatisticsExport(@Para("deptId") Integer deptId, @Para("userId") Long userId, @Para("type") String type) throws IOException {
@@ -79,7 +79,7 @@ public class BiWorkController extends Controller {
     /**
      * 查询审批统计信息
      *
-     * @author zhang
+     * @author Chacker
      */
     @RequestMapping(value = "/examineStatistics")
     public R examineStatistics(@Para("deptId") Integer deptId, @Para("userId") Long userId, @Para("type") String type) {
@@ -90,7 +90,7 @@ public class BiWorkController extends Controller {
     /**
      * 导出日志信息
      *
-     * @author zhangzhiwei
+     * @author Chacker
      */
     @SuppressWarnings("unchecked")
     @RequestMapping(value = "/examineStatisticsExport")
@@ -128,7 +128,7 @@ public class BiWorkController extends Controller {
     /**
      * 查询审批详情
      *
-     * @author zhangzhiwei
+     * @author Chacker
      */
     @RequestMapping(value = "/examineInfo")
     public R examineInfo(BasePageRequest basePageRequest) {

@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.annotation.Resource;
 
 /**
- * @author wyq
+ * @author Chacker
  */
 @RestController
 @RequestMapping(value = "/biCustomer")
@@ -37,7 +37,7 @@ public class BiCustomerController extends Controller {
     /**
      * 客户总量分析表
      *
-     * @author wyq
+     * @author Chacker
      */
     @RequestMapping(value = "/totalCustomerTable")
     @NotNullValidate(value = "deptId", message = "部门id不能为空")
@@ -49,7 +49,7 @@ public class BiCustomerController extends Controller {
     /**
      * 客户跟进次数分析
      *
-     * @author wyq
+     * @author Chacker
      */
     @RequestMapping(value = "/customerRecordStats")
     public R customerRecordStats(@Para("deptId") Integer deptId, @Para("userId") Long userId, @Para("type") String type, @Para("startTime") String startTime, @Para("endTime") String endTime) {
@@ -60,7 +60,7 @@ public class BiCustomerController extends Controller {
     /**
      * 客户跟进次数分析表
      *
-     * @author wyq
+     * @author Chacker
      */
     @RequestMapping(value = "/customerRecordInfo")
     public R customerRecordInfo(@Para("deptId") Integer deptId, @Para("userId") Long userId, @Para("type") String type, @Para("startTime") String startTime, @Para("endTime") String endTime) {
@@ -71,7 +71,7 @@ public class BiCustomerController extends Controller {
     /**
      * 客户跟进方式分析
      *
-     * @author wyq
+     * @author Chacker
      */
     @RequestMapping(value = "/customerRecodCategoryStats")
     public R customerRecodCategoryStats(@Para("deptId") Integer deptId, @Para("userId") Long userId, @Para("type") String type, @Para("startTime") String startTime, @Para("endTime") String endTime) {
@@ -82,7 +82,7 @@ public class BiCustomerController extends Controller {
     /**
      * 客户转化率分析图
      *
-     * @author wyq
+     * @author Chacker
      */
     @RequestMapping(value = "/customerConversionStats")
     public R customerConversionStats(@Para("deptId") Integer deptId, @Para("userId") Long userId, @Para("type") String type, @Para("startTime") String startTime, @Para("endTime") String endTime) {
@@ -93,7 +93,7 @@ public class BiCustomerController extends Controller {
     /**
      * 客户转化率分析表
      *
-     * @author wyq
+     * @author Chacker
      */
     @RequestMapping(value = "/customerConversionInfo")
     public R customerConversionInfo(@Para("deptId") Integer deptId, @Para("userId") Long userId, @Para("type") String type, @Para("startTime") String startTime, @Para("endTime") String endTime) {
@@ -104,7 +104,7 @@ public class BiCustomerController extends Controller {
     /**
      * 公海客户分析图
      *
-     * @author wyq
+     * @author Chacker
      */
     @RequestMapping(value = "/poolStats")
     public R poolStats(@Para("deptId") Integer deptId, @Para("userId") Long userId, @Para("type") String type, @Para("startTime") String startTime, @Para("endTime") String endTime) {
@@ -115,7 +115,7 @@ public class BiCustomerController extends Controller {
     /**
      * 公海客户分析表
      *
-     * @author wyq
+     * @author Chacker
      */
     @RequestMapping(value = "/poolTable")
     public R poolTable(@Para("deptId") Integer deptId, @Para("userId") Long userId, @Para("type") String type, @Para("startTime") String startTime, @Para("endTime") String endTime) {
@@ -126,7 +126,7 @@ public class BiCustomerController extends Controller {
     /**
      * 员工客户成交周期图
      *
-     * @author wyq
+     * @author Chacker
      */
     @RequestMapping(value = "/employeeCycle")
     public R employeeCycle(@Para("deptId") Integer deptId, @Para("userId") Long userId, @Para("type") String type, @Para("startTime") String startTime, @Para("endTime") String endTime) {
@@ -137,7 +137,7 @@ public class BiCustomerController extends Controller {
     /**
      * 员工客户成交周期表
      *
-     * @author wyq
+     * @author Chacker
      */
     @RequestMapping(value = "/employeeCycleInfo")
     public R employeeCycleInfo(@Para("deptId") Integer deptId, @Para("userId") Long userId, @Para("type") String type, @Para("startTime") String startTime, @Para("endTime") String endTime) {
@@ -148,7 +148,7 @@ public class BiCustomerController extends Controller {
     /**
      * 地区成交周期图
      *
-     * @author wyq
+     * @author Chacker
      */
     @RequestMapping(value = "/districtCycle")
     public R districtCycle(@Para("deptId") Integer deptId, @Para("userId") Long userId, @Para("type") String type, @Para("startTime") String startTime, @Para("endTime") String endTime) {
@@ -159,7 +159,7 @@ public class BiCustomerController extends Controller {
     /**
      * 产品成交周期
      *
-     * @author wyq
+     * @author Chacker
      */
     @RequestMapping(value = "/productCycle")
     public R productCycle(@Para("deptId") Integer deptId, @Para("userId") Long userId, @Para("type") String type, @Para("startTime") String startTime, @Para("endTime") String endTime) {

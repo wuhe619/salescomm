@@ -19,7 +19,7 @@ public class BiRankingController extends Controller {
     /**
      * 合同金额排行榜
      *
-     * @author zxy
+     * @author Chacker
      */
     @RequestMapping(value = "/contractRanKing")
     public R contractRanKing(@Para("deptId") Integer deptId, @Para("type") String type, @Para("startTime") String startTime, @Para("endTime") String endTime) {
@@ -30,7 +30,7 @@ public class BiRankingController extends Controller {
     /**
      * 回款金额排行榜
      *
-     * @author zxy
+     * @author Chacker
      */
     @RequestMapping(value = "/receivablesRanKing")
     public R receivablesRanKing(@Para("deptId") Integer deptId, @Para("type") String type, @Para("startTime") String startTime, @Para("endTime") String endTime) {
@@ -41,7 +41,7 @@ public class BiRankingController extends Controller {
     /**
      * 签约合同排行榜
      *
-     * @author zxy
+     * @author Chacker
      */
     @RequestMapping(value = "/contractCountRanKing")
     public R contractCountRanKing(@Para("deptId") Integer deptId, @Para("type") String type, @Para("startTime") String startTime, @Para("endTime") String endTime) {
@@ -52,7 +52,7 @@ public class BiRankingController extends Controller {
     /**
      * 产品销量排行榜
      *
-     * @author zxy
+     * @author Chacker
      */
     @RequestMapping(value = "/productCountRanKing")
     public R productCountRanKing(@Para("deptId") Integer deptId, @Para("type") String type, @Para("startTime") String startTime, @Para("endTime") String endTime) {
@@ -63,7 +63,7 @@ public class BiRankingController extends Controller {
     /**
      * 新增客户数排行榜
      *
-     * @author zxy
+     * @author Chacker
      */
     @RequestMapping(value = "/customerCountRanKing")
     public R customerCountRanKing(@Para("deptId") Integer deptId, @Para("type") String type, @Para("startTime") String startTime, @Para("endTime") String endTime) {
@@ -74,7 +74,7 @@ public class BiRankingController extends Controller {
     /**
      * 新增联系人排行榜
      *
-     * @author zxy
+     * @author Chacker
      */
     @RequestMapping(value = "/contactsCountRanKing")
     public R contactsCountRanKing(@Para("deptId") Integer deptId, @Para("type") String type, @Para("startTime") String startTime, @Para("endTime") String endTime) {
@@ -85,7 +85,7 @@ public class BiRankingController extends Controller {
     /**
      * 跟进客户数排行榜
      *
-     * @author zxy
+     * @author Chacker
      */
     @RequestMapping(value = "/customerGenjinCountRanKing")
     public R customerGenjinCountRanKing(@Para("deptId") Integer deptId, @Para("type") String type, @Para("startTime") String startTime, @Para("endTime") String endTime) {
@@ -96,7 +96,7 @@ public class BiRankingController extends Controller {
     /**
      * 跟进次数排行榜
      *
-     * @author zxy
+     * @author Chacker
      */
     @RequestMapping(value = "/recordCountRanKing")
     public R recordCountRanKing(@Para("deptId") Integer deptId, @Para("type") String type, @Para("startTime") String startTime, @Para("endTime") String endTime) {
@@ -107,7 +107,7 @@ public class BiRankingController extends Controller {
     /**
      * 产品分类销量分析
      *
-     * @author zxy
+     * @author Chacker
      */
     @RequestMapping(value = "/contractProductRanKing")
     public R contractProductRanKing(@Para("deptId") Integer deptId, @Para("userId") Long userId, @Para("type") String type, @Para("startTime") String startTime, @Para("endTime") String endTime) {
@@ -118,7 +118,7 @@ public class BiRankingController extends Controller {
     /**
      * 出差次数排行
      *
-     * @author zxy
+     * @author Chacker
      */
     @RequestMapping(value = "/travelCountRanKing")
     public R travelCountRanKing(@Para("deptId") Integer deptId, @Para("type") String type, @Para("startTime") String startTime, @Para("endTime") String endTime) {
@@ -129,7 +129,7 @@ public class BiRankingController extends Controller {
     /**
      * 产品销售情况统计
      *
-     * @author zxy
+     * @author Chacker
      */
     @RequestMapping(value = "/productSellRanKing")
     public R productSellRanKing(@Para("deptId") Integer deptId, @Para("userId") Long userId, @Para("type") String type, @Para("startTime") String startTime, @Para("endTime") String endTime) {
@@ -140,7 +140,7 @@ public class BiRankingController extends Controller {
     /**
      * 城市分布分析
      *
-     * @author zxy
+     * @author Chacker
      */
     @RequestMapping(value = "/addressAnalyse")
     public R addressAnalyse() {
@@ -151,7 +151,7 @@ public class BiRankingController extends Controller {
     /**
      * 客户行业分析
      *
-     * @author zxy
+     * @author Chacker
      */
     @RequestMapping(value = "/portrait")
     public R portrait(@Para("deptId") Integer deptId, @Para("userId") Long userId, @Para("type") String type, @Para("startTime") String startTime, @Para("endTime") String endTime) {
@@ -162,7 +162,7 @@ public class BiRankingController extends Controller {
     /**
      * 客户级别分析
      *
-     * @author zxy
+     * @author Chacker
      */
     @RequestMapping(value = "/portraitLevel")
     public R portraitLevel(@Para("deptId") Integer deptId, @Para("userId") Long userId, @Para("type") String type, @Para("startTime") String startTime, @Para("endTime") String endTime) {
@@ -173,7 +173,7 @@ public class BiRankingController extends Controller {
     /**
      * 客户级别分析
      *
-     * @author zxy
+     * @author Chacker
      */
     @RequestMapping(value = "/portraitSource")
     public R portraitSource(@Para("deptId") Integer deptId, @Para("userId") Long userId, @Para("type") String type, @Para("startTime") String startTime, @Para("endTime") String endTime) {
