@@ -32,7 +32,6 @@ import com.bdaim.rbac.vo.RoleInfo;
 import com.bdaim.rbac.vo.UserInfo;
 import com.bdaim.smscenter.service.SendSmsService;
 import com.bdaim.util.*;
-
 import net.sf.json.JSONArray;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -42,7 +41,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import sun.net.util.IPAddressUtil;
 
 import javax.annotation.Resource;
 import javax.imageio.ImageIO;
@@ -316,7 +314,7 @@ public class UserAction extends BasicAction {
             String defaultUrl = "";
             if ("admin".equals(u.getName())) {
                 auths.add(new SimpleGrantedAuthority("admin"));
-                role = "admin";
+                role = "ADMIN";
                 defaultUrl = "/backend/customerGroupManagement/customerGroup.html";
             } else {
                 auths.add(new SimpleGrantedAuthority("ROLE_USER"));
@@ -334,6 +332,7 @@ public class UserAction extends BasicAction {
             userdetail = new LoginUser(u.getId(), u.getName(), CipherUtil.encodeByMD5(u.getId() + "" + System.currentTimeMillis()));
             userdetail.setCustId("0");
             userdetail.setId(u.getId());
+            userdetail.addAuth(role);
             userdetail.setUserType(String.valueOf(1));
             userdetail.setRole(role);
             userdetail.setName(u.getName());
@@ -342,7 +341,7 @@ public class UserAction extends BasicAction {
 
             responseResult.setStateCode("200");
             responseResult.setMsg("SUCCESS");
-            responseResult.setAuth(userdetail.getAuths().size() > 0 ? userdetail.getAuths().get(0) : "");
+            //responseResult.setAuth(userdetail.getAuths().size() > 0 ? userdetail.getAuths().get(0) : "");
             responseResult.setUserName(userdetail.getUsername());
             responseResult.setCustId(userdetail.getCustId());
             responseResult.setUserType(userdetail.getUserType());

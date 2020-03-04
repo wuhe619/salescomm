@@ -7,7 +7,7 @@ import java.util.Objects;
 @Entity
 @Table(name = "lkcrm_work", schema = "", catalog = "")
 public class LkCrmWorkEntity {
-    private int workId;
+    private Integer workId;
     private String name;
     private Integer status;
     private Timestamp createTime;
@@ -22,11 +22,12 @@ public class LkCrmWorkEntity {
 
     @Id
     @Column(name = "work_id")
-    public int getWorkId() {
+    @GeneratedValue
+    public Integer getWorkId() {
         return workId;
     }
 
-    public void setWorkId(int workId) {
+    public void setWorkId(Integer workId) {
         this.workId = workId;
     }
 

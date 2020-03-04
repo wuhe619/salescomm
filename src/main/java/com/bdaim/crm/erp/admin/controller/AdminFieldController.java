@@ -27,7 +27,7 @@ import javax.annotation.Resource;
 import java.util.*;
 
 /**
- * @author hmb
+ * crm自定义字段
  */
 @RestController
 @RequestMapping("/field")
@@ -210,7 +210,7 @@ public class AdminFieldController extends BasicAction {
      */
     @NotNullValidate(value = "label", message = "label不能为空")
     @RequestMapping(value = "/queryListHead", method = RequestMethod.POST)
-    public R queryListHead(@Para("") LkCrmAdminFieldSortEntity adminFieldSort) {
+    public R queryListHead(LkCrmAdminFieldSortEntity adminFieldSort) {
         List<Record> records;
         if (adminFieldSort.getLabel() == 10) {
             records = oaExamineCategoryService.queryFieldList();
@@ -239,7 +239,7 @@ public class AdminFieldController extends BasicAction {
      */
     @NotNullValidate(value = "label", message = "label不能为空")
     @RequestMapping(value = "/queryFieldConfig", method = RequestMethod.POST)
-    public R queryFieldConfig(@Para("") AdminFieldSort adminFieldSort) {
+    public R queryFieldConfig(AdminFieldSort adminFieldSort) {
         return (adminFieldService.queryFieldConfig(adminFieldSort));
     }
 
@@ -250,7 +250,7 @@ public class AdminFieldController extends BasicAction {
     @NotNullValidate(value = "label", message = "label不能为空")
     @NotNullValidate(value = "noHideIds", message = "显示列不能为空")
     @RequestMapping(value = "/fieldConfig", method = RequestMethod.POST)
-    public R fieldConfig(@Para("") AdminFieldSort adminFieldSort) {
+    public R fieldConfig(AdminFieldSort adminFieldSort) {
         return (adminFieldService.fieldConfig(adminFieldSort));
     }
 

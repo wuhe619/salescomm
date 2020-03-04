@@ -15,7 +15,6 @@ import javax.annotation.Resource;
 /**
  * 审核合同或回款
  *
- * @author zxy
  */
 @RestController
 @RequestMapping("/examineRecord")

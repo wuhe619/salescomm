@@ -913,7 +913,7 @@ public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDao
         return rs;
     }
 
-    public Map<String, Object> queryUniqueSql(String sql, Object... params) throws Exception {
+    public Map<String, Object> queryUniqueSql(String sql, Object... params) {
         Session session = getSession();
         Query query = session.createSQLQuery(sql);
         query.setResultTransformer(CriteriaSpecification.ALIAS_TO_ENTITY_MAP);
