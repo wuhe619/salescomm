@@ -150,7 +150,7 @@ public class RoleDao extends SimpleHibernateDao<RoleEntity, Serializable> {
      * @date: 2019/3/19 18:56
      */
     public List<Map<String, Object>> getRoleInfoByUserId(String userId) {
-        String sql = "SELECT R.type,r.ID id,r.`NAME` name from t_user_role_rel  ur LEFT JOIN t_role r ON ur.ROLE = r.ID WHERE ur.ID = ?";
+        String sql = "SELECT r.type,r.ID id,r.`NAME` name from t_user_role_rel  ur LEFT JOIN t_role r ON ur.ROLE = r.ID WHERE ur.ID = ?";
         List<Object> params = new ArrayList<>();
         params.add(userId);
         List<Map<String, Object>> list = this.sqlQuery(sql, params.toArray());
