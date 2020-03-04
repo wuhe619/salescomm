@@ -104,7 +104,7 @@ public class LkCrmAdminExamineLogDao extends SimpleHibernateDao<LkCrmAdminExamin
     }
 
     public LkCrmAdminExamineLogEntity queryNowadayExamineLogByRecordIdAndStepId(Integer record_id, Long examineStepId, Long auditUserId) {
-        String sql = " select * from 72crm_admin_examine_log where record_id = ? and examine_step_id = ? and examine_user = ? and is_recheck = 0";
+        String sql = " select * from lkcrm_admin_examine_log where record_id = ? and examine_step_id = ? and examine_user = ? and is_recheck = 0";
         List<LkCrmAdminExamineLogEntity> objects = queryListBySql(sql, LkCrmAdminExamineLogEntity.class, record_id, examineStepId, auditUserId);
         if (objects.size() > 0) {
             return objects.get(0);
@@ -113,7 +113,7 @@ public class LkCrmAdminExamineLogDao extends SimpleHibernateDao<LkCrmAdminExamin
     }
 
     public LkCrmAdminExamineLogEntity queryNowadayExamineLogByRecordIdAndStatus(Integer record_id, Long auditUserId) {
-        String sql = "  select * from 72crm_admin_examine_log where record_id = ? and examine_status = 0 and examine_user = ? and is_recheck = 0";
+        String sql = "  select * from lkcrm_admin_examine_log where record_id = ? and examine_status = 0 and examine_user = ? and is_recheck = 0";
         List<LkCrmAdminExamineLogEntity> objects = queryListBySql(sql, LkCrmAdminExamineLogEntity.class, record_id, auditUserId);
         if (objects.size() > 0) {
             return objects.get(0);
@@ -122,8 +122,8 @@ public class LkCrmAdminExamineLogDao extends SimpleHibernateDao<LkCrmAdminExamin
     }
 
     public Map<String, Object> queryCountByStepId(Integer record_id, long stepId) {
-        String sql = " SELECT  DISTINCT ((SELECT COUNT(log_id) FROM 72crm_admin_examine_log WHERE record_id =? and examine_step_id = ?)- (SELECT COUNT(log_id) FROM 72crm_admin_examine_log WHERE record_id = ? \n" +
-                "    and examine_step_id = ? and examine_status = 2 )) as toCount FROM 72crm_admin_examine_log";
+        String sql = " SELECT  DISTINCT ((SELECT COUNT(log_id) FROM lkcrm_admin_examine_log WHERE record_id =? and examine_step_id = ?)- (SELECT COUNT(log_id) FROM lkcrm_admin_examine_log WHERE record_id = ? \n" +
+                "    and examine_step_id = ? and examine_status = 2 )) as toCount FROM lkcrm_admin_examine_log";
         List<Map<String, Object>> maps = sqlQuery(sql, record_id, stepId, record_id, stepId);
         return maps.size() > 0 ? maps.get(0) : null;
     }
