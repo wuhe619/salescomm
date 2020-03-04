@@ -20,7 +20,6 @@ import com.bdaim.crm.erp.admin.service.AdminSceneService;
 import com.bdaim.crm.erp.crm.common.CrmEnum;
 import com.bdaim.crm.erp.crm.common.CrmParamValid;
 import com.bdaim.crm.erp.crm.entity.CrmCustomer;
-import com.bdaim.crm.erp.crm.entity.CrmLeads;
 import com.bdaim.crm.erp.oa.common.OaEnum;
 import com.bdaim.crm.erp.oa.service.OaActionRecordService;
 import com.bdaim.crm.utils.*;
@@ -164,6 +163,9 @@ public class CrmCustomerService {
             crmCustomer.setBatchId(batchId);
             crmCustomer.setRwUserId(",");
             crmCustomer.setRoUserId(",");
+            if (crmCustomer.getIsLock() == null) {
+                crmCustomer.setIsLock(0);
+            }
             int id = (int) crmCustomerDao.saveReturnPk(crmCustomer);
             crmRecordService.addRecord(crmCustomer.getCustomerId(), CrmEnum.CUSTOMER_TYPE_KEY.getTypes());
             //批量添加联系人
