@@ -2,6 +2,7 @@ package com.bdaim.crm.erp.oa.controller;
 
 import com.bdaim.common.controller.BasicAction;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
+import com.bdaim.crm.entity.LkCrmOaEventEntity;
 import com.bdaim.crm.erp.oa.common.OaEnum;
 import com.bdaim.crm.erp.oa.entity.OaEvent;
 import com.bdaim.crm.erp.oa.entity.OaEventRelation;
@@ -26,7 +27,7 @@ public class OaEventController extends BasicAction {
      * 查询日程列表
      */
     @RequestMapping(value = "/queryList", method = RequestMethod.POST)
-    public R queryList(@Para("")OaEvent oaEvent){
+    public R queryList(@Para("") LkCrmOaEventEntity oaEvent){
         return(R.ok().put("data",oaEventService.queryList(oaEvent)));
     }
 
@@ -44,7 +45,7 @@ public class OaEventController extends BasicAction {
      * 新增日程
      */
     @RequestMapping(value = "/add", method = RequestMethod.POST)
-    public R add(@Para("")OaEvent oaEvent){
+    public R add(@Para("")LkCrmOaEventEntity oaEvent){
         return(oaEventService.add(oaEvent));
     }
 
@@ -53,7 +54,7 @@ public class OaEventController extends BasicAction {
      * 更新日程
      */
     @RequestMapping(value = "/update", method = RequestMethod.POST)
-    public R update(@Para("")OaEvent oaEvent){
+    public R update(@Para("")LkCrmOaEventEntity oaEvent){
         boolean oaAuth = AuthUtil.isOaAuth(OaEnum.EVENT_TYPE_KEY.getTypes(), oaEvent.getEventId());
         if(oaAuth){
             return(R.noAuth());

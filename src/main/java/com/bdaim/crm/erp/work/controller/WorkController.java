@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.annotation.Resource;
 
 /**
- * @author hmb
+ * @author Chacker
  */
 @RestController
 @RequestMapping(value = "/work")
@@ -28,7 +28,7 @@ public class WorkController extends BasicAction {
 
     /**
      * @param work 项目对象
-     * @author hmb
+     * @author Chacker
      * 设置项目
      */
     @RequestMapping(value = "/setWork")
@@ -45,7 +45,7 @@ public class WorkController extends BasicAction {
     }
 
     /**
-     * @author hmb
+     * @author Chacker
      * 删除项目
      */
     @RequestMapping(value = "/deleteWork")
@@ -56,7 +56,7 @@ public class WorkController extends BasicAction {
     }
 
     /**
-     * @author hmb
+     * @author Chacker
      * 查询项目名列表
      */
     @RequestMapping(value = "/queryWorkNameList")
@@ -66,7 +66,7 @@ public class WorkController extends BasicAction {
     }
 
     /**
-     * @author hmb
+     * @author Chacker
      * 根据项目id查询任务板
      */
     @RequestMapping(value = "/queryTaskByWorkId")
@@ -77,7 +77,7 @@ public class WorkController extends BasicAction {
     }
 
     /**
-     * @author hmb
+     * @author Chacker
      * 根据项目id查询项目附件
      */
     @RequestMapping(value = "/queryTaskFileByWorkId")
@@ -87,7 +87,7 @@ public class WorkController extends BasicAction {
     }
 
     /**
-     * @author hmb
+     * @author Chacker
      * 查询归档项目列表
      */
     @RequestMapping(value = "/queryArchiveWorkList")
@@ -97,7 +97,7 @@ public class WorkController extends BasicAction {
     }
 
     /**
-     * @author hmb
+     * @author Chacker
      * 项目统计
      */
     @RequestMapping(value = "/workStatistics")
@@ -108,7 +108,7 @@ public class WorkController extends BasicAction {
     }
 
     /**
-     * @author hmb
+     * @author Chacker
      * 查询项目成员
      */
     @RequestMapping(value = "/queryWorkOwnerList")
@@ -119,7 +119,7 @@ public class WorkController extends BasicAction {
     }
 
     /**
-     * @author hmb
+     * @author Chacker
      * 修改项目任务排序
      */
     @RequestMapping(value = "/updateOrder")
@@ -130,7 +130,7 @@ public class WorkController extends BasicAction {
     }
 
     /**
-     * @author hmb
+     * @author Chacker
      * 退出项目
      */
     @RequestMapping(value = "/leave")
@@ -142,7 +142,7 @@ public class WorkController extends BasicAction {
     }
 
     /**
-     * @author hmb
+     * @author Chacker
      * 删除项目成员
      */
     @RequestMapping(value = "/removeWorkOwnerUser")
@@ -186,7 +186,7 @@ public class WorkController extends BasicAction {
     }
 
     /**
-     * @author hmb
+     * @author Chacker
      * 删除任务列表
      */
     @RequestMapping(value = "/deleteTaskList")
@@ -202,7 +202,7 @@ public class WorkController extends BasicAction {
     }
 
     /**
-     * @author hmb
+     * @author Chacker
      * 归档已完成的任务
      */
     @RequestMapping(value = "/archiveTask")
@@ -213,7 +213,7 @@ public class WorkController extends BasicAction {
     }
 
     /**
-     * @author hmb
+     * @author Chacker
      * 归档任务
      */
     @RequestMapping(value = "/archList")
@@ -224,7 +224,7 @@ public class WorkController extends BasicAction {
     }
 
     /**
-     * @author hmb
+     * @author Chacker
      * 移除项目成员
      */
     @RequestMapping(value = "/remove")
@@ -234,7 +234,7 @@ public class WorkController extends BasicAction {
     }
 
     /**
-     * @author hmb
+     * @author Chacker
      * 项目class排序
      */
     @RequestMapping(value = "/updateClassOrder")

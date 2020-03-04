@@ -63,7 +63,7 @@ public class OaLogService {
      * 查询日志
      *
      * @param basePageRequest 分页参数
-     * @author zhangzhiwei
+     * @author Chacker
      */
     public Page<Record> queryList(BasePageRequest<OaLog> basePageRequest) {
         JSONObject object = basePageRequest.getJsonObject();
@@ -72,7 +72,9 @@ public class OaLogService {
         Kv kv = Kv.by("by", by);
         List<Long> userIds;
         if (user.getRoles().contains(BaseConstant.SUPER_ADMIN_ROLE_ID)) {
-            userIds = Db.query("SELECT user_id FROM `lkcrm_admin_user` where user_id != ? ", user.getUserId());
+//            userIds = Db.query("SELECT user_id FROM `lkcrm_admin_user` where user_id != ? ", user.getUserId());
+            String userIdsSql = "SELECT user_id FROM `lkcrm_admin_user` where user_id != ?";
+            userIds = crmOaLogDao.queryListForLong(userIdsSql, user.getUserId());
         } else {
             userIds = new AdminUserService().queryUserByParentUser(user.getUserId(), BaseConstant.AUTH_DATA_RECURSION_NUM);
             if (object.containsKey("createUserId")) {
@@ -100,7 +102,8 @@ public class OaLogService {
         if (object.containsKey("categoryId") && !"0".equals(object.get("categoryId"))) {
             kv.set("category_id", object.get("categoryId"));
         }
-        Page<Record> recordList = Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), Db.getSqlPara("oa.log.queryList", kv));
+        Page<Record> recordList = Db.paginate(basePageRequest.getPage(),
+                basePageRequest.getLimit(), Db.getSqlPara("oa.log.queryList", kv));
         recordList.getList().forEach((record -> {
             queryLogDetail(record, user.getUserId());
         }));
@@ -137,7 +140,7 @@ public class OaLogService {
     /**
      * @param object object
      * @return 响应结果
-     * @author zhangzhiwei
+     * @author Chacker
      */
     @Before(Tx.class)
     public R saveAndUpdate(JSONObject object) {
@@ -178,10 +181,20 @@ public class OaLogService {
      * 根据id获取日志
      *
      * @param id 日志ID
-     * @author zhangzhiwei
+     * @author Chacker
      */
     public Record queryById(Integer id) {
-        Record record = Db.findFirst(Db.getSqlPara("oa.log.queryList", Kv.by("logId", id)));
+//        Record record = Db.findFirst(Db.getSqlPara("oa.log.queryList", Kv.by("logId", id)));
+        String sql = "SELECT " +
+                " a.*,b.dept_id,b.realname,b.img AS userImg, " +
+                " soal.customer_ids,soal.contacts_ids,soal.business_ids, " +
+                " soal.contract_ids  " +
+                "FROM " +
+                " lkcrm_oa_log AS a " +
+                " LEFT JOIN lkcrm_admin_user AS b ON a.create_user_id = b.user_id " +
+                " LEFT JOIN lkcrm_oa_log_relation AS soal ON soal.log_id = a.log_id  " +
+                "WHERE 1 = 1 AND a.log_id = ?";
+        Record record = JavaBeanUtil.mapToRecord(crmOaLogDao.queryUniqueSql(sql));
         queryLogDetail(record, BaseUtil.getUser().getUserId());
         return record;
     }
@@ -190,7 +203,7 @@ public class OaLogService {
      * 根据id删除日志
      *
      * @param logId 日志ID
-     * @author zhangzhiwei
+     * @author Chacker
      */
     @Before(Tx.class)
     public boolean deleteById(Integer logId) {
@@ -209,7 +222,7 @@ public class OaLogService {
      * TODO 目前可能会产生脏读，
      *
      * @param logId 日志ID
-     * @author zhangzhiwei
+     * @author Chacker
      */
     public void readLog(Integer logId) {
         OaLog oaLog = OaLog.dao.findById(logId);

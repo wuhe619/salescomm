@@ -59,6 +59,12 @@ public class CustomerExtensionService {
             p.add(info.getString("id"));
             sql.append(" and  id in (?)");
         }
+        if(info.containsKey("clazz") && "toC".equals(info.getString("clazz").trim())) {
+            p.add(info.getString("clazz").trim());
+            sql.append(" and content->'$.clazz' = ?");
+        }else{
+            sql.append(" and content not like %clazz% ");
+        }
         sql.append(" order by create_time desc");
 //        List<Map<String, Object>> ds = jdbcTemplate.queryForList(sql + " limit " + (page.getPageNum() - 1) * page.getPageSize() + ", " + page.getPageSize());
         Page list = customerDao.sqlPageQuery(sql.toString(), page.getPageNum(), page.getPageSize(), p.toArray());

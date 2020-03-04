@@ -1138,6 +1138,25 @@ public class SimpleHibernateDao<T, PK extends Serializable> extends HibernateDao
         return "";
     }
 
+    public List<Long> queryListForLong(String sql, final Object... values) {
+        Session session = getSession();
+        Query query = session.createSQLQuery(sql);
+        if (values != null)
+            for (int i = 0; i < values.length; i++) {
+                query.setParameter(i, values[i]);
+            }
+        List rs = query.list();
+        if (!CollectionUtils.isEmpty(rs)) {
+            List<Long> result = new ArrayList<>();
+            for (Object obj : rs) {
+                result.add(Long.valueOf(String.valueOf(obj)));
+            }
+            return result;
+        } else {
+            return null;
+        }
+    }
+
     public List<String> queryForList(String sql, final Object... values) {
         Session session = getSession();
         Query query = session.createSQLQuery(sql);

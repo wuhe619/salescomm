@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 @Component
 public class LkCrmOaExamineDao extends SimpleHibernateDao<LkCrmOaExamineEntity, Integer> {
@@ -56,10 +57,10 @@ public class LkCrmOaExamineDao extends SimpleHibernateDao<LkCrmOaExamineEntity, 
             param.add(endTime);
         }
         sql += "group by a.examine_id,b.record_id order by  a.create_time desc ";
-        return super.sqlPageQuery(sql,pageNum,pageSize, param.toArray());
+        return super.sqlPageQuery(sql, pageNum, pageSize, param.toArray());
     }
 
-    public Page queryExamineRelation(int pageNum, int pageSize,String businessIds, String contactsIds, String contractIds, String customerIds) {
+    public Page queryExamineRelation(int pageNum, int pageSize, String businessIds, String contactsIds, String contractIds, String customerIds) {
         String sql = "select a.*,b.examine_status,b.record_id as examine_record_id,b.examine_step_id ,c.title as categoryTitle from lkcrm_oa_examine_relation h " +
                 "left join lkcrm_oa_examine a on h.examine_id = a.examine_id " +
                 "left join lkcrm_oa_examine_record b on a.examine_id = b.examine_id " +
@@ -81,6 +82,26 @@ public class LkCrmOaExamineDao extends SimpleHibernateDao<LkCrmOaExamineEntity, 
             param.add(customerIds);
             sql += " or h.customer_ids like concat('%,',?,',%')";
         }
-        return super.sqlPageQuery(sql,pageNum,pageSize, param.toArray());
+        return super.sqlPageQuery(sql, pageNum, pageSize, param.toArray());
+    }
+
+    public List<Map<String, Object>> queryExamineLogByRecordIdByStep(Integer recordId) {
+        String sql = "select sael.order_id,ases.step_num as order_id , sau.user_id , sau.realname , sau.img ,sael.examine_status,sael.examine_time,sael.remarks " +
+                "    from 72crm_oa_examine_log as sael LEFT JOIN 72crm_admin_user as sau on sau.user_id = sael.examine_user LEFT JOIN 72crm_oa_examine_step as ases on ases.step_id = sael.examine_step_id\n" +
+                "    where sael.record_id = ? AND sael.examine_status != 0 order by sael.create_time";
+        return super.queryListBySql(sql, recordId);
+    }
+
+    public List<Map<String, Object>> queryExamineLogByRecordIdByStep1(Integer recordId) {
+        String sql = "   select  sael.order_id,sau.user_id , sau.realname , sau.img,sael.examine_status,sael.examine_time,sael.remarks,sael.is_recheck " +
+                "    from 72crm_oa_examine_log as sael  LEFT JOIN 72crm_admin_user as sau on sau.user_id = sael.examine_user" +
+                "    where sael.record_id = ? AND sael.examine_status != 0 order by sael.create_time";
+        return super.queryListBySql(sql);
+    }
+
+    public List<Map<String, Object>> queryRecordByUserIdAndStatus(Integer create_user, Date examineTime) {
+        String sql = "    SELECT DISTINCT user_id, realname  ,img, 5 as examine_status, ? as examineTime from 72crm_admin_user " +
+                "    WHERE user_id = ?";
+        return super.queryListBySql(sql,examineTime,create_user);
     }
 }

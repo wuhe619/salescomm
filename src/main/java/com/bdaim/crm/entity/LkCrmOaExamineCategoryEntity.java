@@ -7,7 +7,7 @@ import java.util.Objects;
 @Entity
 @Table(name = "lkcrm_oa_examine_category", schema = "", catalog = "")
 public class LkCrmOaExamineCategoryEntity {
-    private int categoryId;
+    private Integer categoryId;
     private String title;
     private String remarks;
     private Integer type;
@@ -25,11 +25,12 @@ public class LkCrmOaExamineCategoryEntity {
 
     @Id
     @Column(name = "category_id")
-    public int getCategoryId() {
+    @GeneratedValue
+    public Integer getCategoryId() {
         return categoryId;
     }
 
-    public void setCategoryId(int categoryId) {
+    public void setCategoryId(Integer categoryId) {
         this.categoryId = categoryId;
     }
 

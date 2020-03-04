@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Component
 public class LkCrmOaLogDao extends SimpleHibernateDao<LkCrmOaLogEntity, Integer> {
@@ -75,4 +76,5 @@ public class LkCrmOaLogDao extends SimpleHibernateDao<LkCrmOaLogEntity, Integer>
         }
         return super.sqlPageQuery(sql, pageNum, pageSize, param.toArray());
     }
+
 }

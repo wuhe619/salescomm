@@ -25,7 +25,7 @@ public class WorkbenchController extends BasicAction {
     private WorkbenchService workbenchService;
 
     /**
-     * @author hmb
+     * @author Chacker
      * 我的任务
      */
     @RequestMapping(value = "/myTask")
@@ -36,7 +36,7 @@ public class WorkbenchController extends BasicAction {
     }
 
     /**
-     * @author hmb
+     * @author Chacker
      * 任务日历
      */
     @RequestMapping(value = "/dateList")
@@ -49,7 +49,7 @@ public class WorkbenchController extends BasicAction {
     }
 
     /**
-     * @author hmb
+     * @author Chacker
      * 修改工作台任务排序
      */
     @RequestMapping(value = "/updateTop")

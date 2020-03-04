@@ -3,6 +3,8 @@ package com.bdaim.crm.erp.oa.controller;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.crm.entity.LkCrmOaExamineCategoryEntity;
+import com.bdaim.crm.entity.LkCrmOaExamineStepEntity;
 import com.bdaim.crm.utils.R;
 import com.jfinal.aop.Inject;
 import com.jfinal.core.Controller;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
@@ -43,8 +46,8 @@ public class OaExamineCategoryController extends Controller {
     @Permissions("manage:oa")
     public R setExamineCategory() {
         JSONObject jsonObject = JSON.parseObject(getRawData());
-        OaExamineCategory oaExamineCategory = new OaExamineCategory();
-        List<OaExamineStep> oaExamineSteps = new ArrayList<>();
+        LkCrmOaExamineCategoryEntity oaExamineCategory = new LkCrmOaExamineCategoryEntity();
+        List<LkCrmOaExamineStepEntity> oaExamineSteps = new ArrayList<>();
         oaExamineCategory.setCategoryId(jsonObject.getInteger("id"));
         oaExamineCategory.setTitle(jsonObject.getString("title"));
         oaExamineCategory.setRemarks(jsonObject.getString("remarks"));
@@ -57,10 +60,10 @@ public class OaExamineCategoryController extends Controller {
             List<Integer> list = jsonObject.getJSONArray("dept_ids").toJavaList(Integer.class);
             oaExamineCategory.setDeptIds(TagUtil.fromSet(new HashSet<>(list)));
         }
-        oaExamineCategory.setCreateTime(new Date());
+        oaExamineCategory.setCreateTime(new Timestamp(System.currentTimeMillis()));
         JSONArray step = jsonObject.getJSONArray("step");
         for (int i = 0; i < step.size(); i++) {
-            OaExamineStep oaExamineStep = new OaExamineStep();
+            LkCrmOaExamineStepEntity oaExamineStep = new LkCrmOaExamineStepEntity();
             JSONObject jsonObject1 = step.getJSONObject(i);
             if (jsonObject1.getJSONArray("checkUserId") != null) {
                 List<Integer> list = jsonObject1.getJSONArray("checkUserId").toJavaList(Integer.class);

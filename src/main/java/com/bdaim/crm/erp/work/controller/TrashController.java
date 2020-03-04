@@ -29,7 +29,7 @@ public class TrashController extends Controller {
      * 彻底删除任务
      *
      * @param taskId
-     * @author wyq
+     * @author Chacker
      */
     @RequestMapping(value = "/deleteTask")
     public R deleteTask(@Para("taskId") Integer taskId) {
@@ -41,7 +41,7 @@ public class TrashController extends Controller {
      * 还原任务
      *
      * @param taskId
-     * @author wyq
+     * @author Chacker
      */
     @RequestMapping(value = "/restore")
     public R restore(@Para("taskId") Integer taskId) {

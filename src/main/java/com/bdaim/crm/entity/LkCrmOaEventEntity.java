@@ -22,6 +22,47 @@ public class LkCrmOaEventEntity {
     private String color;
     private Integer remindType;
 
+    private String customerIds;
+    private String contactsIds;
+    private String businessIds;
+    private String contractIds;
+
+    @Transient
+    public String getCustomerIds() {
+        return customerIds;
+    }
+
+    public void setCustomerIds(String customerIds) {
+        this.customerIds = customerIds;
+    }
+
+    @Transient
+    public String getContactsIds() {
+        return contactsIds;
+    }
+
+    public void setContactsIds(String contactsIds) {
+        this.contactsIds = contactsIds;
+    }
+
+    @Transient
+    public String getBusinessIds() {
+        return businessIds;
+    }
+
+    public void setBusinessIds(String businessIds) {
+        this.businessIds = businessIds;
+    }
+
+    @Transient
+    public String getContractIds() {
+        return contractIds;
+    }
+
+    public void setContractIds(String contractIds) {
+        this.contractIds = contractIds;
+    }
+
     @Id
     @Column(name = "event_id")
     @GeneratedValue
