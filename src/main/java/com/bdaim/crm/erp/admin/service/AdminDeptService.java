@@ -3,6 +3,7 @@ package com.bdaim.crm.erp.admin.service;
 import cn.hutool.core.util.StrUtil;
 import com.bdaim.crm.common.constant.BaseConstant;
 import com.bdaim.crm.dao.LkCrmAdminDeptDao;
+import com.bdaim.crm.dao.LkCrmAdminRoleDao;
 import com.bdaim.crm.entity.LkCrmAdminDeptEntity;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
@@ -24,6 +25,8 @@ public class AdminDeptService {
     private LkCrmAdminDeptDao crmAdminDeptDao;
     @Autowired
     private AdminUserService adminUserService;
+    @Autowired
+    private LkCrmAdminRoleDao crmAdminRoleDao;
 
     public R setDept(LkCrmAdminDeptEntity adminDept) {
         boolean bol;
@@ -84,7 +87,8 @@ public class AdminDeptService {
      */
     public List<Record> queryDeptByAuth(Long userId) {
         //查询用户数据权限，从高到低排序
-        List<Integer> list = Db.query(Db.getSql("admin.role.queryDataTypeByUserId"), userId);
+        List<Integer> list = crmAdminRoleDao.queryDataTypeByUserId(userId);
+        //List<Integer> list = Db.query(Db.getSql("admin.role.queryDataTypeByUserId"), userId);
         List<Record> adminDepts = new ArrayList<>();
         if (list.size() == 0) {
             return adminDepts;
