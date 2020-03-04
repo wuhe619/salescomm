@@ -670,7 +670,7 @@ public class CrmLeadsService {
      * @param superIds
      * @return
      */
-    private int transferToPrivateSea(String seaId, String userId, List<String> superIds) {
+    public int transferToPrivateSea(String seaId, String userId, List<String> superIds) {
         //添加到线索私海数据
         StringBuilder sql = new StringBuilder()
                 .append("SELECT * FROM  ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(seaId).append(" WHERE id IN (")
@@ -690,7 +690,7 @@ public class CrmLeadsService {
                 jsonArray.add(BeanUtil.mapToBean(field, LkCrmAdminFieldvEntity.class, true));
             }
 
-            String batchId = IdUtil.simpleUUID();
+            String batchId = String.valueOf(m.get("id"));
             crmLeads.setBatchId(batchId);
             crmLeads.setCustId(BaseUtil.getUser().getCustId());
             crmRecordService.updateRecord(jsonArray, batchId);
