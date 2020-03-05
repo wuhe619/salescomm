@@ -411,11 +411,11 @@ public class CrmContactsService {
      *
      * @param basePageRequest
      * @param taskStatus
-     * @param contacts_id
+     * @param contactsId
      * @return
      */
-    public List<Record> listAgency(BasePageRequest<CrmContacts> basePageRequest, Integer taskStatus, Integer contacts_id) {
-        List<Record> recordList = JavaBeanUtil.mapToRecords(crmContactsDao.getRecord(contacts_id, taskStatus, basePageRequest.getPage(), basePageRequest.getLimit()));
+    public List<Record> listAgency(BasePageRequest<CrmContacts> basePageRequest, Integer taskStatus, Integer contactsId) {
+        List<Record> recordList = JavaBeanUtil.mapToRecords(crmContactsDao.getRecord(contactsId, taskStatus, basePageRequest.getPage(), basePageRequest.getLimit()));
         recordList.forEach(record -> {
             adminFileService.queryByBatchId(record.getStr("batch_id"), record);
         });
