@@ -291,7 +291,9 @@ public class AdminUserService {
 
     public R setUserStatus(String ids, String status) {
         for (Integer id : TagUtil.toSet(ids)) {
-            Db.update("update lkcrm_admin_user set status = ? where user_id = ?", status, id);
+//            Db.update("update lkcrm_admin_user set status = ? where user_id = ?", status, id);
+            String sql = "update lkcrm_admin_user set status = ? where user_id = ?";
+            crmAdminUserDao.executeUpdateSQL(sql, status, id);
         }
         return R.ok();
     }
