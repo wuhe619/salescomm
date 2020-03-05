@@ -17,7 +17,7 @@ public class LkCrmWorkUserDao extends SimpleHibernateDao<LkCrmWorkUserEntity, In
         return result;
     }
 
-    public List<Map<String, Object>> queryWorkNameListByUserId(int userId) {
+    public List<Map<String, Object>> queryWorkNameListByUserId(Long userId) {
         String sql = "    select  a.work_id,a.name,owner_user_id " +
                 "    from lkcrm_work a " +
                 "    where 1 = 1" +

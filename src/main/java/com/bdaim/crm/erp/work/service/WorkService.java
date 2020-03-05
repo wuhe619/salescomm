@@ -223,7 +223,7 @@ public class WorkService {
             recordList = JavaBeanUtil.mapToRecords(userDao.queryWorkNameList());
         } else {
 //            recordList = Db.find(Db.getSqlPara("work.queryWorkNameList", Kv.by("userId", BaseUtil.getUser().getUserId().intValue())));
-            recordList = JavaBeanUtil.mapToRecords(userDao.queryWorkNameListByUserId(BaseUtil.getUser().getUserId().intValue()));
+            recordList = JavaBeanUtil.mapToRecords(userDao.queryWorkNameListByUserId(BaseUtil.getUser().getUserId()));
         }
         return R.ok().put("data", recordList);
     }

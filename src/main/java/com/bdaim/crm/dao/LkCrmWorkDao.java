@@ -33,7 +33,7 @@ public class LkCrmWorkDao extends SimpleHibernateDao<LkCrmWorkEntity, Integer> {
         return super.queryListBySql(sql);
     }
 
-    public List<Map<String, Object>> queryTrashListByUserId(int userId) {
+    public List<Map<String, Object>> queryTrashListByUserId(Long userId) {
         String sql = "SELECT " +
                 " a.task_id,a.name,a.stop_time,a.priority,a.status, " +
                 " ( SELECT count( * ) FROM lkcrm_admin_file WHERE batch_id = a.batch_id ) AS file_num, " +

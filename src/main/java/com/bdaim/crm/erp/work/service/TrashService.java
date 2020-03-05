@@ -41,7 +41,7 @@ public class TrashService {
             recordList = JavaBeanUtil.mapToRecords(workDao.queryTrashList());
         } else {
 //            recordList = Db.find(Db.getSqlPara("work.trash.queryList", Kv.by("userId", BaseUtil.getUserId().intValue())));
-            recordList = JavaBeanUtil.mapToRecords(workDao.queryTrashListByUserId(BaseUtil.getUserId().intValue()));
+            recordList = JavaBeanUtil.mapToRecords(workDao.queryTrashListByUserId(BaseUtil.getUserId()));
         }
         workbenchService.taskListTransfer(recordList);
         return R.ok().put("data", recordList);

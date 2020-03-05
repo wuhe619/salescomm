@@ -29,7 +29,7 @@ public class LkCrmAdminRoleDao extends SimpleHibernateDao<LkCrmAdminRoleEntity, 
     }
 
     public int deleteRoleMenu(Integer roleId) {
-        String sql = "  delete from 72crm_admin_role_menu where role_id = ?";
+        String sql = "  delete from lkcrm_admin_role_menu where role_id = ?";
         return executeUpdateSQL(sql, roleId);
     }
 }
