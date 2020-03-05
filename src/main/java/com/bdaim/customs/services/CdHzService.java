@@ -136,8 +136,8 @@ public class CdHzService implements BusiService {
         info.put("ext_3", headData.getString("billno"));
         info.put("ext_2", headData.getString("rtnflag"));
 //        cangdan.setContent(jsonObject.toJSONString());
-        String sql = " update " + HMetaDataDef.getTable(BusiTypeEnum.CZ.getType(), "") + " set content=?,ext_2=? where id=" + cangdan.getId();
-        jdbcTemplate.update(sql, jsonObject.toJSONString(), headData.getString("rtnflag"));
+        String sql = " update " + HMetaDataDef.getTable(BusiTypeEnum.CZ.getType(), "") + " set content=?,ext_2=? where id=" + cangdan.getId() +" and type=?";
+        jdbcTemplate.update(sql, jsonObject.toJSONString(), headData.getString("rtnflag"),BusiTypeEnum.CZ.getType());
 
         List<HBusiDataManager> list = new ArrayList<>();
         String main_bill_no = "";
@@ -213,7 +213,7 @@ public class CdHzService implements BusiService {
                 }
                 if (tmpList.size() > 0) {
                     for (HBusiDataManager h : tmpList) {
-                        String sql2 = "update " + HMetaDataDef.getTable(BusiTypeEnum.CF.getType(), "") + " set content=? where id=" + h.getId();
+                        String sql2 = "update " + HMetaDataDef.getTable(BusiTypeEnum.CF.getType(), "") + " set content=? where type='"+BusiTypeEnum.CF.getType()+"' and id=" + h.getId();
                         jdbcTemplate.update(sql2, h.getContent());
                     }
                 }

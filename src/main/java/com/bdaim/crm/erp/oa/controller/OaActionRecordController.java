@@ -1,10 +1,12 @@
 package com.bdaim.crm.erp.oa.controller;
 
-import com.jfinal.aop.Inject;
-import com.jfinal.core.Controller;
+import com.bdaim.common.controller.BasicAction;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.erp.oa.entity.OaActionRecord;
 import com.bdaim.crm.erp.oa.service.OaActionRecordService;
+import com.bdaim.crm.utils.R;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 
@@ -13,7 +15,9 @@ import javax.annotation.Resource;
  *
  * @author hmb
  */
-public class OaActionRecordController extends Controller {
+@RequestMapping(value = "/OaRecord")
+@RestController
+public class OaActionRecordController extends BasicAction {
 
     @Resource
     private OaActionRecordService oaActionRecordService;
@@ -24,8 +28,11 @@ public class OaActionRecordController extends Controller {
      * @param pageRequest 分页对象
      * @author hmb
      */
-    public void getOaRecordPageList(BasePageRequest<OaActionRecord> pageRequest) {
-        renderJson(oaActionRecordService.getOaRecordPageList(pageRequest));
+    @RequestMapping(value = "/getOaRecordPageList")
+    public R getOaRecordPageList(BasePageRequest<OaActionRecord> pageRequest,OaActionRecord oaActionRecord) {
+        pageRequest.setData(oaActionRecord);
+//        renderJson(oaActionRecordService.getOaRecordPageList(pageRequest));
+        return oaActionRecordService.getOaRecordPageList(pageRequest);
     }
 
     /**
@@ -33,15 +40,19 @@ public class OaActionRecordController extends Controller {
      *
      * @author hmb
      */
-    public void queryEvent() {
+    @RequestMapping(value = "/queryEvent")
+    public R queryEvent() {
         //yyyy-mm
         String month = getPara("month");
-        renderJson(oaActionRecordService.queryEvent(month));
+//        renderJson(oaActionRecordService.queryEvent(month));
+        return oaActionRecordService.queryEvent(month);
     }
 
-    public void queryEventByDay() {
+    @RequestMapping(value = "/queryEventByDay")
+    public R queryEventByDay() {
         String day = getPara("day");
-        renderJson(oaActionRecordService.queryEventByDay(day));
+//        renderJson(oaActionRecordService.queryEventByDay(day));
+        return oaActionRecordService.queryEventByDay(day);
     }
 
     /**
@@ -49,8 +60,10 @@ public class OaActionRecordController extends Controller {
      *
      * @author hmb
      */
-    public void queryTask() {
-        renderJson(oaActionRecordService.queryTask());
+    @RequestMapping(value = "/queryTask")
+    public R queryTask() {
+//        renderJson(oaActionRecordService.queryTask());
+        return oaActionRecordService.queryTask();
     }
 
 }

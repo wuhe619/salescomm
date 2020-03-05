@@ -1,24 +1,24 @@
 package com.bdaim.crm.erp.crm.controller;
 
 import com.alibaba.fastjson.JSONObject;
-import com.bdaim.crm.common.annotation.RequestBody;
+import com.bdaim.common.controller.BasicAction;
+import com.bdaim.crm.common.annotation.CrmRequestBody;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.erp.crm.service.CrmBackLogService;
 import com.bdaim.crm.utils.R;
-import com.jfinal.core.Controller;
-import com.jfinal.core.paragetter.Para;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 
 /**
- * @author wyq
+ * 代办事项
  */
 @RestController
 @RequestMapping("/CrmBackLog")
-public class CrmBackLogController extends Controller {
+public class CrmBackLogController extends BasicAction {
     @Resource
     CrmBackLogService crmBackLogService;
 
@@ -34,7 +34,7 @@ public class CrmBackLogController extends Controller {
      *今日需联系客户
      */
     @RequestMapping(value = "/todayCustomer", method = RequestMethod.POST)
-    public R todayCustomer(BasePageRequest basePageRequest, @RequestBody JSONObject jsonObject){
+    public R todayCustomer(BasePageRequest basePageRequest, @CrmRequestBody JSONObject jsonObject){
         basePageRequest.setJsonObject(jsonObject);
         return(crmBackLogService.todayCustomer(basePageRequest));
     }
@@ -43,7 +43,7 @@ public class CrmBackLogController extends Controller {
      * 标记线索为已跟进
      */
     @RequestMapping(value = "/setLeadsFollowup", method = RequestMethod.POST)
-    public R setLeadsFollowup(@Para("ids") String ids){
+    public R setLeadsFollowup(@RequestParam("ids") String ids){
         return(crmBackLogService.setLeadsFollowup(ids));
     }
 
@@ -51,7 +51,7 @@ public class CrmBackLogController extends Controller {
      *分配给我的线索
      */
     @RequestMapping(value = "/followLeads", method = RequestMethod.POST)
-    public R followLeads(@RequestBody BasePageRequest basePageRequest,@RequestBody JSONObject jsonObject){
+    public R followLeads(@CrmRequestBody BasePageRequest basePageRequest, @CrmRequestBody JSONObject jsonObject){
         basePageRequest.setJsonObject(jsonObject);
         return(crmBackLogService.followLeads(basePageRequest));
     }
@@ -60,7 +60,7 @@ public class CrmBackLogController extends Controller {
      * 标记客户为已跟进
      */
     @RequestMapping(value = "/setCustomerFollowup", method = RequestMethod.POST)
-    public R setCustomerFollowup(@Para("ids") String ids){
+    public R setCustomerFollowup(@RequestParam("ids") String ids){
         return(crmBackLogService.setCustomerFollowup(ids));
     }
 
@@ -76,7 +76,7 @@ public class CrmBackLogController extends Controller {
      *待审核合同
      */
     @RequestMapping(value = "/checkContract", method = RequestMethod.POST)
-    public R checkContract(@RequestBody BasePageRequest basePageRequest,@RequestBody JSONObject jsonObject){
+    public R checkContract(@CrmRequestBody BasePageRequest basePageRequest, @CrmRequestBody JSONObject jsonObject){
         basePageRequest.setJsonObject(jsonObject);
         return(crmBackLogService.checkContract(basePageRequest));
     }
@@ -85,7 +85,7 @@ public class CrmBackLogController extends Controller {
      *待审核回款
      */
     @RequestMapping(value = "/checkReceivables", method = RequestMethod.POST)
-    public R checkReceivables(@RequestBody BasePageRequest basePageRequest,@RequestBody JSONObject jsonObject){
+    public R checkReceivables(@CrmRequestBody BasePageRequest basePageRequest, @CrmRequestBody JSONObject jsonObject){
         basePageRequest.setJsonObject(jsonObject);
         return(crmBackLogService.checkReceivables(basePageRequest));
     }
@@ -94,7 +94,7 @@ public class CrmBackLogController extends Controller {
      *待回款提醒
      */
     @RequestMapping(value = "/remindReceivables", method = RequestMethod.POST)
-    public R remindReceivables(@RequestBody BasePageRequest basePageRequest,@RequestBody JSONObject jsonObject){
+    public R remindReceivables(@CrmRequestBody BasePageRequest basePageRequest, @CrmRequestBody JSONObject jsonObject){
         basePageRequest.setJsonObject(jsonObject);
         return(crmBackLogService.remindReceivables(basePageRequest));
     }
@@ -103,7 +103,7 @@ public class CrmBackLogController extends Controller {
      *即将到期的合同
      */
     @RequestMapping(value = "/endContract", method = RequestMethod.POST)
-    public R endContract(@RequestBody BasePageRequest basePageRequest,@RequestBody JSONObject jsonObject){
+    public R endContract(@CrmRequestBody BasePageRequest basePageRequest, @CrmRequestBody JSONObject jsonObject){
         basePageRequest.setJsonObject(jsonObject);
         return(crmBackLogService.endContract(basePageRequest));
     }

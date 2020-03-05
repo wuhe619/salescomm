@@ -1,10 +1,12 @@
 package com.bdaim.crm.erp.work.controller;
 
 import cn.hutool.core.util.StrUtil;
-import com.jfinal.core.Controller;
-import com.jfinal.core.paragetter.Para;
+import com.bdaim.common.controller.BasicAction;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.common.constant.BaseConstant;
+import com.bdaim.crm.entity.LkCrmTaskEntity;
+import com.bdaim.crm.entity.LkCrmTaskRelationEntity;
+import com.bdaim.crm.entity.LkCrmWorkTaskClassEntity;
 import com.bdaim.crm.erp.admin.service.AdminUserService;
 import com.bdaim.crm.erp.oa.common.OaEnum;
 import com.bdaim.crm.erp.work.entity.Task;
@@ -16,15 +18,21 @@ import com.bdaim.crm.utils.AuthUtil;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
 import com.bdaim.crm.utils.TagUtil;
+import com.jfinal.core.paragetter.Para;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * @author hmb
+ * 任务
  */
-public class TaskController extends Controller {
+@RestController
+@RequestMapping("/task")
+public class TaskController extends BasicAction {
 
     @Resource
     private TaskService taskService;
@@ -33,153 +41,161 @@ public class TaskController extends Controller {
 
     /**
      * @param taskClass 任务类别对象
-     * @author hmb
+     * @author Chacker
      * 设置任务类别
      */
-    public void setTaskClass(@Para("") WorkTaskClass taskClass){
-        renderJson(taskService.setTaskClass(taskClass));
+    @RequestMapping(value = "/setTaskClass", method = RequestMethod.POST)
+    public R setTaskClass(@Para("") LkCrmWorkTaskClassEntity taskClass) {
+        return (taskService.setTaskClass(taskClass));
     }
 
     /**
-     * @author hmb
+     * @author Chacker
      * 交换任务列表排序
      */
-    public void changeOrderTaskClass(){
+    @RequestMapping(value = "/changeOrderTaskClass", method = RequestMethod.POST)
+    public R changeOrderTaskClass() {
         String originalClassId = getPara("originalClassId");
         String targetClassId = getPara("targetClassId");
         taskService.changeOrderTaskClass(originalClassId, targetClassId);
-        renderJson(R.ok());
+        return (R.ok());
     }
 
     /**
      * @param task 任务对象
-     * @author hmb
+     * @author Chacker
      * 设置oa任务
      */
-    public void setTask(@Para("") Task task){
-        if(task.getPid() != null && task.getPid() != 0){
+    @RequestMapping(value = "/setTask", method = RequestMethod.POST)
+    public R setTask(LkCrmTaskEntity task) {
+        if (task.getPid() != null && task.getPid() != 0) {
             boolean oaAuth = AuthUtil.isOaAuth(OaEnum.TASK_TYPE_KEY.getTypes(), task.getPid());
-            if(oaAuth){
-                renderJson(R.noAuth());
-                return;
+            if (oaAuth) {
+                return (R.noAuth());
+                //return;
             }
         }
-        if(StrUtil.isNotEmpty(task.getOwnerUserId())){
+        if (StrUtil.isNotEmpty(task.getOwnerUserId())) {
             task.setOwnerUserId(TagUtil.fromString(task.getOwnerUserId()));
         }
-        if(task.getStartTime() != null && task.getStopTime() != null){
-            if(task.getStartTime().getTime() > task.getStopTime().getTime()){
-                renderJson(R.error("开始时间不能大于结束时间"));
-                return;
+        if (task.getStartTime() != null && task.getStopTime() != null) {
+            if (task.getStartTime().getTime() > task.getStopTime().getTime()) {
+                return (R.error("开始时间不能大于结束时间"));
+                //return;
             }
         }
         String customerIds = getPara("customerIds");
         String contactsIds = getPara("contactsIds");
         String businessIds = getPara("businessIds");
         String contractIds = getPara("contractIds");
-        TaskRelation taskRelation = new TaskRelation();
-        if(customerIds != null || contactsIds != null || businessIds != null || contractIds != null){
+        LkCrmTaskRelationEntity taskRelation = new LkCrmTaskRelationEntity();
+        if (customerIds != null || contactsIds != null || businessIds != null || contractIds != null) {
 
             taskRelation.setBusinessIds(TagUtil.fromString(businessIds));
             taskRelation.setContactsIds(TagUtil.fromString(contactsIds));
             taskRelation.setContractIds(TagUtil.fromString(contractIds));
             taskRelation.setCustomerIds(TagUtil.fromString(customerIds));
         }
-        renderJson(taskService.setTask(task, taskRelation));
+        return (taskService.setTask(task, taskRelation));
     }
 
-    public void setWorkTask(@Para("") Task task){
-        if(task.getWorkId() != null){
+    @RequestMapping(value = "/setWorkTask", method = RequestMethod.POST)
+    public R setWorkTask(@Para("") LkCrmTaskEntity task) {
+        if (task.getWorkId() != null) {
             Integer isOpen = new Work().findById(task.getWorkId()).getIsOpen();
-            if(isOpen == 0 && ! AuthUtil.isWorkAuth(task.getWorkId().toString(), "task:save")){
-                renderJson(R.noAuth());
-                return;
+            if (isOpen == 0 && !AuthUtil.isWorkAuth(task.getWorkId().toString(), "task:save")) {
+                return(R.noAuth());
+                //return;
             }
         }
-        if(StrUtil.isNotEmpty(task.getOwnerUserId())){
+        if (StrUtil.isNotEmpty(task.getOwnerUserId())) {
             task.setOwnerUserId(TagUtil.fromString(task.getOwnerUserId()));
         }
-        if(task.getStartTime() != null && task.getStopTime() != null){
-            if(task.getStartTime().getTime() > task.getStopTime().getTime()){
-                renderJson(R.error("开始时间不能大于结束时间"));
-                return;
+        if (task.getStartTime() != null && task.getStopTime() != null) {
+            if (task.getStartTime().getTime() > task.getStopTime().getTime()) {
+                return(R.error("开始时间不能大于结束时间"));
+                //return;
             }
         }
         String customerIds = getPara("customerIds");
         String contactsIds = getPara("contactsIds");
         String businessIds = getPara("businessIds");
         String contractIds = getPara("contractIds");
-        TaskRelation taskRelation = new TaskRelation();
-        if(customerIds != null || contactsIds != null || businessIds != null || contractIds != null){
+        LkCrmTaskRelationEntity taskRelation = new LkCrmTaskRelationEntity();
+        if (customerIds != null || contactsIds != null || businessIds != null || contractIds != null) {
 
             taskRelation.setBusinessIds(TagUtil.fromString(businessIds));
             taskRelation.setContactsIds(TagUtil.fromString(contactsIds));
             taskRelation.setContractIds(TagUtil.fromString(contractIds));
             taskRelation.setCustomerIds(TagUtil.fromString(customerIds));
         }
-        renderJson(taskService.setTask(task, taskRelation));
+        return (taskService.setTask(task, taskRelation));
     }
 
 
     /**
-     * @author hmb
+     * @author Chacker
      * 查询任务列表
      */
-    public void getTaskList(BasePageRequest basePageRequest){
+    @RequestMapping(value = "/getTaskList", method = RequestMethod.POST)
+    public R getTaskList(BasePageRequest basePageRequest) {
         String labelId = getPara("labelId");
         String ishidden = getPara("ishidden");
-        renderJson(taskService.getTaskList(basePageRequest, labelId, ishidden));
+        return (taskService.getTaskList(basePageRequest, labelId, ishidden));
     }
 
 
     /**
-     * @author hmb
+     * @author Chacker
      * 查询oa任务信息
      */
-    public void queryTaskInfo(){
+    @RequestMapping(value = "/queryTaskInfo", method = RequestMethod.POST)
+    public R queryTaskInfo() {
         String taskId = getPara("taskId");
         boolean oaAuth = AuthUtil.isOaAuth(OaEnum.TASK_TYPE_KEY.getTypes(), Integer.valueOf(taskId));
-        if(oaAuth){
-            renderJson(R.noAuth());
-            return;
+        if (oaAuth) {
+            return (R.noAuth());
+            //return;
         }
-        renderJson(taskService.queryTaskInfo(taskId));
+        return (taskService.queryTaskInfo(taskId));
     }
 
     /**
-     * @author hmb
+     * @author Chacker
      * 查询项目任务详情
      */
-    public void queryTaskById(){
+    @RequestMapping(value = "/queryTaskById", method = RequestMethod.POST)
+    public R queryTaskById() {
         String taskId = getPara("taskId");
-        renderJson(taskService.queryTaskInfo(taskId));
+        return (taskService.queryTaskInfo(taskId));
     }
 
     /**
      * 查询任务列表 oa
      */
-    public void queryTaskList(BasePageRequest<Task> basePageRequest){
+    @RequestMapping(value = "/queryTaskList", method = RequestMethod.POST)
+    public R queryTaskList(BasePageRequest<Task> basePageRequest) {
         Integer type = getParaToInt("type");
         Integer status = getParaToInt("status");
         Integer priority = getParaToInt("priority");
         Integer date = getParaToInt("date");
         Integer mold = getParaToInt("mold");
         Integer userId = getParaToInt("userId");
-        String name = get("search");
+        String name = getPara("search");
         List<Integer> userIds = new ArrayList<>();
-        if(mold == null){
+        if (mold == null) {
             userIds.add(BaseUtil.getUser().getUserId().intValue());
-        }else if(mold == 1 && userId == null){
+        } else if (mold == 1 && userId == null) {
             userIds = adminUserService.queryUserIdsByParentId(BaseUtil.getUser().getUserId().intValue());
-        }else{
+        } else {
             List<Long> list = adminUserService.queryChileUserIds(BaseUtil.getUser().getUserId(), BaseConstant.AUTH_DATA_RECURSION_NUM);
-            for(Long id : list){
-                if(id.intValue() == userId){
+            for (Long id : list) {
+                if (id.intValue() == userId) {
                     userIds.add(userId);
                 }
             }
         }
-        renderJson(taskService.getTaskList(type, status, priority, date, userIds, basePageRequest, name));
+        return (taskService.getTaskList(type, status, priority, date, userIds, basePageRequest, name));
     }
 
     /**
@@ -187,58 +203,64 @@ public class TaskController extends Controller {
      * 根据任务id查询活动日志 oa
      * taskId 任务id
      */
-    public void queryWorkTaskLog(){
+    @RequestMapping(value = "/queryWorkTaskLog", method = RequestMethod.POST)
+    public R queryWorkTaskLog() {
         Integer taskId = getParaToInt("taskId");
         boolean oaAuth = AuthUtil.isOaAuth(OaEnum.TASK_TYPE_KEY.getTypes(), taskId);
-        if(oaAuth){
-            renderJson(R.noAuth());
-            return;
+        if (oaAuth) {
+            return (R.noAuth());
+            //return;
         }
-        renderJson(taskService.queryWorkTaskLog(taskId));
+        return (taskService.queryWorkTaskLog(taskId));
     }
 
     /**
      * 根据任务id查询活动日志 work
      * taskId 任务id
      */
-    public void queryTaskLog(){
+    @RequestMapping(value = "/queryTaskLog", method = RequestMethod.POST)
+    public R queryTaskLog() {
         Integer taskId = getParaToInt("taskId");
-        renderJson(taskService.queryWorkTaskLog(taskId));
+        return (taskService.queryWorkTaskLog(taskId));
     }
 
     /**
      * @author zxy
      * 添加任务与业务关联
      */
-    public void svaeTaskRelation(@Para("") TaskRelation taskRelation){
-        renderJson(taskService.svaeTaskRelation(taskRelation, BaseUtil.getUser().getUserId().intValue()));
+    @RequestMapping(value = "/svaeTaskRelation", method = RequestMethod.POST)
+    public R svaeTaskRelation(@Para("") LkCrmTaskRelationEntity taskRelation) {
+        return (taskService.svaeTaskRelation(taskRelation, BaseUtil.getUser().getUserId().intValue()));
     }
 
     /**
-     * @author hmb
+     * @author Chacker
      * 删除任务
      * taskId 任务id
      */
-    public void deleteTask(){
+    @RequestMapping(value = "/deleteTask", method = RequestMethod.POST)
+    public R deleteTask() {
         Integer taskId = getParaToInt("taskId");
-        renderJson(taskService.deleteTask(taskId));
+        return (taskService.deleteTask(taskId));
     }
 
     /**
-     * @author wyq
+     * @author Chacker
      * crm查询关联任务
      */
-    public void queryTaskRelation(@Para("") BasePageRequest<TaskRelation> basePageRequest){
-        renderJson(taskService.queryTaskRelation(basePageRequest));
+    @RequestMapping(value = "/queryTaskRelation", method = RequestMethod.POST)
+    public R queryTaskRelation(@Para("") BasePageRequest<TaskRelation> basePageRequest,TaskRelation taskRelation) {
+        basePageRequest.setData(taskRelation);
+        return (taskService.queryTaskRelation(basePageRequest));
     }
 
     /**
-     * @author hmb
-     * 根据任务id归档任务
-     *
      * @param taskId
+     * @author Chacker
+     * 根据任务id归档任务
      */
-    public void archiveByTaskId(@Para("taskId") Integer taskId){
-        renderJson(taskService.archiveByTaskId(taskId));
+    @RequestMapping(value = "/archiveByTaskId", method = RequestMethod.POST)
+    public R archiveByTaskId(@Para("taskId") Integer taskId) {
+        return (taskService.archiveByTaskId(taskId));
     }
 }

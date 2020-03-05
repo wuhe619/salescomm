@@ -1490,7 +1490,7 @@ public class BillServiceImpl implements BillService {
             profitAmountSql.append(" AND s.stat_time>=?");
             p.add(billDate);
         } else if (!"0".equals(billDate)) {
-            profitAmountSql.append(" AND s.stat_time='?");
+            profitAmountSql.append(" AND s.stat_time=?");
             p.add(billDate);
         }
         List<Map<String, Object>> consumeTotalsCount = sourceDao.sqlQuery(profitAmountSql.toString(), p.toArray());

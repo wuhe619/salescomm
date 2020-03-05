@@ -1,5 +1,7 @@
 package com.bdaim.util;
 
+import org.springframework.util.CollectionUtils;
+
 import java.util.List;
 import java.util.Set;
 
@@ -30,12 +32,40 @@ public class SqlAppendUtil {
         return appendSql.toString();
     }
 
-    public static String sqlAppendWhereIn(List<String> whereIns) {
-        if (whereIns == null || (whereIns != null && whereIns.size() == 0)) {
+//    public static String sqlAppendWhereIn(List<String> whereIns) {
+//        if (whereIns == null || (whereIns != null && whereIns.size() == 0)) {
+//            return "";
+//        }
+//        StringBuilder appendSql = new StringBuilder();
+//        for (String in : whereIns) {
+//            appendSql.append("'")
+//                    .append(in)
+//                    .append("',");
+//        }
+//        appendSql.deleteCharAt(appendSql.length() - 1);
+//        return appendSql.toString();
+//    }
+
+    public static String sqlAppendWhereIn(Object[] whereIns) {
+        if (whereIns == null || (whereIns != null && whereIns.length == 0)) {
             return "";
         }
         StringBuilder appendSql = new StringBuilder();
-        for (String in : whereIns) {
+        for (Object in : whereIns) {
+            appendSql.append("'")
+                    .append(in)
+                    .append("',");
+        }
+        appendSql.deleteCharAt(appendSql.length() - 1);
+        return appendSql.toString();
+    }
+
+    public static String sqlAppendWhereIn(List params) {
+        if (!CollectionUtils.isEmpty(params)) {
+            return "";
+        }
+        StringBuilder appendSql = new StringBuilder();
+        for (Object in : params) {
             appendSql.append("'")
                     .append(in)
                     .append("',");

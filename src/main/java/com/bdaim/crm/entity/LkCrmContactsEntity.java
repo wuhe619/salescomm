@@ -8,17 +8,18 @@ import java.util.Objects;
 @Table(name = "lkcrm_crm_contacts", schema = "", catalog = "")
 public class LkCrmContactsEntity {
     private Integer contactsId;
+    private String custId;
     private String name;
     private Timestamp nextTime;
     private String mobile;
     private String telephone;
     private String email;
     private String post;
-    private int customerId;
+    private Integer customerId;
     private String address;
     private String remark;
-    private Integer createUserId;
-    private Integer ownerUserId;
+    private Long createUserId;
+    private Long ownerUserId;
     private Timestamp createTime;
     private Timestamp updateTime;
     private String batchId;
@@ -32,6 +33,16 @@ public class LkCrmContactsEntity {
 
     public void setContactsId(Integer contactsId) {
         this.contactsId = contactsId;
+    }
+
+    @Basic
+    @Column(name = "cust_id")
+    public String getCustId() {
+        return custId;
+    }
+
+    public void setCustId(String custId) {
+        this.custId = custId;
     }
 
     @Basic
@@ -96,11 +107,11 @@ public class LkCrmContactsEntity {
 
     @Basic
     @Column(name = "customer_id")
-    public int getCustomerId() {
+    public Integer getCustomerId() {
         return customerId;
     }
 
-    public void setCustomerId(int customerId) {
+    public void setCustomerId(Integer customerId) {
         this.customerId = customerId;
     }
 
@@ -126,21 +137,21 @@ public class LkCrmContactsEntity {
 
     @Basic
     @Column(name = "create_user_id")
-    public Integer getCreateUserId() {
+    public Long getCreateUserId() {
         return createUserId;
     }
 
-    public void setCreateUserId(Integer createUserId) {
+    public void setCreateUserId(Long createUserId) {
         this.createUserId = createUserId;
     }
 
     @Basic
     @Column(name = "owner_user_id")
-    public Integer getOwnerUserId() {
+    public Long getOwnerUserId() {
         return ownerUserId;
     }
 
-    public void setOwnerUserId(Integer ownerUserId) {
+    public void setOwnerUserId(Long ownerUserId) {
         this.ownerUserId = ownerUserId;
     }
 

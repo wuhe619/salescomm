@@ -45,7 +45,6 @@ import com.bdaim.resource.dao.MarketResourceDao;
 import com.bdaim.resource.dto.MarketResourceDTO;
 import com.bdaim.resource.entity.ResourcePropertyEntity;
 import com.bdaim.util.*;
-
 import com.bdaim.util.redis.RedisUtil;
 import org.hibernate.HibernateException;
 import org.hibernate.exception.SQLGrammarException;
@@ -880,7 +879,7 @@ public class CustomerSeaService {
                     stat = customerSeaDao.sqlQuery(MessageFormat.format(statSql, String.valueOf(customerSea.getId())) + appSql.toString());
                     dto.setTotalSum(NumberConvertUtil.parseLong(stat.get(0).get("sumCount")));
                     dto.setNoFollowSum(NumberConvertUtil.parseLong(stat.get(0).get("noFollowSum")));
-                } catch (SQLGrammarException e) {
+                } catch (Exception e) {
                     LOG.error("查询线索余量和累计未通量异常,公海ID:" + customerSea.getId(), e);
                     dto.setClueSurplusSum(0L);
                     dto.setFailCallSum(0L);
@@ -1437,18 +1436,18 @@ public class CustomerSeaService {
      *
      * @param userId
      * @param seaId
-     * @param entIds
+     * @param superIds
      * @return
      */
-    private int batchDeleteClue(Long userId, String userType, String seaId, List<String> entIds, String reason, String remark) {
+    private int batchDeleteClue(Long userId, String userType, String seaId, List<String> superIds, String reason, String remark) {
         StringBuilder sql = new StringBuilder()
                 .append("UPDATE ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(seaId)
-                .append(" SET status = 2 WHERE status <>2 AND super_data ->> '$.SYS014' IN (").append(SqlAppendUtil.sqlAppendWhereIn(entIds)).append(")");
+                .append(" SET status = 2 WHERE status <>2 AND id IN (").append(SqlAppendUtil.sqlAppendWhereIn(superIds)).append(")");
         // 保存转交记录
         StringBuilder logSql = new StringBuilder()
                 .append("INSERT INTO ").append(ConstantsUtil.CUSTOMER_OPER_LOG_TABLE_PREFIX).append(" (`user_id`, `list_id`, `customer_sea_id`, `customer_group_id`, `event_type`,  `create_time`,reason,remark) ")
                 .append(" SELECT ?, id, ?, batch_id, ?, ?, ?, ? ")
-                .append(" FROM ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(seaId).append(" WHERE status <>2 AND super_data ->> '$.SYS014' IN (").append(SqlAppendUtil.sqlAppendWhereIn(entIds)).append(")");
+                .append(" FROM ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(seaId).append(" WHERE status <>2 AND id IN (").append(SqlAppendUtil.sqlAppendWhereIn(superIds)).append(")");
         //员工只能处理负责人为自己的数据
         if ("2".equals(userType)) {
             sql.append(" AND user_id = ").append(userId);
@@ -1618,13 +1617,17 @@ public class CustomerSeaService {
                 .append(" FROM ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(seaId).append(" WHERE status = 0  AND id IN (").append(SqlAppendUtil.sqlAppendWhereIn(superIds)).append(")");
         //员工只能处理负责人为自己的数据
         List<Object> p = new ArrayList<>();
+        p.add(reason);
+        p.add(remark);
+        List<Object> param = new ArrayList<>();
         if ("2".equals(userType)) {
             p.add(userId);
+            param.add(userId);
             sql.append(" AND user_id = ? ");
             logSql.append(" AND user_id = ? ");
         }
-        customerSeaDao.executeUpdateSQL(logSql.toString(), reason, remark, p.toArray());
-        int status = customerSeaDao.executeUpdateSQL(sql.toString(), p.toArray());
+        customerSeaDao.executeUpdateSQL(logSql.toString(), p.toArray());
+        int status = customerSeaDao.executeUpdateSQL(sql.toString(), param.toArray());
         return status;
     }
 
@@ -4301,14 +4304,16 @@ public class CustomerSeaService {
             int dataStatus = 1;
             // 组长和员工数据状态为已分配
             if (2 == user.getUserType()) {
+                dto.setUser_id(dto.getUser_id());
                 dataStatus = 0;
             } else {
                 // 超管和项目管理员数据状态为未分配
                 dto.setUser_id(null);
             }
             // 添加至公海责任人为空
-            if (1 == seaType) {
+            if (1 == seaType && 1 == user.getUserType()) {
                 dto.setUser_id(null);
+                dataStatus = 1;
             }
             LOG.info("开始保存添加线索个人信息:" + ConstantsUtil.CUSTOMER_GROUP_TABLE_PREFIX + dto.getCust_group_id() + ",数据:" + dto.toString());
             try {

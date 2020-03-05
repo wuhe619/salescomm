@@ -3,6 +3,7 @@ package com.bdaim.crm.dao;
 import com.bdaim.common.dao.SimpleHibernateDao;
 import com.bdaim.common.dto.Page;
 import com.bdaim.crm.entity.LkCrmLeadsEntity;
+import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.util.SqlAppendUtil;
 import com.bdaim.util.StringUtil;
 import org.slf4j.Logger;
@@ -18,17 +19,29 @@ public class LkCrmLeadsDao extends SimpleHibernateDao<LkCrmLeadsEntity, Integer>
 
     public static final Logger LOG = LoggerFactory.getLogger(LkCrmLeadsDao.class);
 
-    public List getRecord(String leadsId) {
-        String sql = "select a.record_id,b.img as user_img,b.realname,a.create_time,a.content,a.category,a.next_time,a.batch_id " +
-                "    from lkcrm_admin_record as a inner join lkcrm_admin_user as b " +
-                "    where a.create_user_id = b.user_id and types = 'crm_leads' and types_id = ? order by a.create_time desc";
-        return this.sqlQuery(sql, leadsId);
+    public List getRecord(String leadsId, int pageNum, int pageSize) {
+        String sql = "select a.record_id, '' as user_img, b.realname, a.create_time,a.content,a.category,a.next_time,a.batch_id " +
+                "     from lkcrm_admin_record as a inner join t_customer_user as b LEFT JOIN lkcrm_task AS c ON a.task_id = c.task_id " +
+                "     where a.create_user_id = b.id and types = 'crm_leads' and types_id = ? and a.cust_id = ? AND (a.task_id IS NULL OR c.`status`=5) order by a.create_time desc";
+        return this.sqlPageQuery(sql, pageNum, pageSize, leadsId, BaseUtil.getUser().getCustId()).getData();
+    }
+
+    public List getRecord(String leadsId, int taskStatus, int pageNum, int pageSize) {
+        String sql = "select a.record_id, '' as user_img, b.realname, a.create_time,a.content,a.category,a.next_time,a.batch_id, c.task_id, c.name taskName " +
+                "    from lkcrm_admin_record as a inner join t_customer_user as b INNER JOIN lkcrm_task AS c " +
+                "    where a.create_user_id = b.id and types = 'crm_leads' AND c.task_id = a.task_id AND c.`status` = ? and types_id = ? and a.cust_id = ? order by a.create_time desc";
+        return this.sqlPageQuery(sql, pageNum, pageSize, taskStatus, leadsId, BaseUtil.getUser().getCustId()).getData();
     }
 
     public Map queryById(int leadsId) {
         String sql = "select *,leads_name as name from leadsview where leads_id = ? ";
         List<Map<String, Object>> maps = this.sqlQuery(sql, leadsId);
         if (maps.size() > 0) {
+            LkCrmLeadsEntity entity = get(leadsId);
+            maps.get(0).put("seaId", entity.getSeaId());
+            maps.get(0).put("company", entity.getCompany());
+            maps.get(0).put("公司名称", entity.getCompany());
+            maps.get(0).put("isLock", entity.getIsLock() != null ? entity.getIsLock() : 0);
             return maps.get(0);
         }
         return null;
@@ -53,6 +66,12 @@ public class LkCrmLeadsDao extends SimpleHibernateDao<LkCrmLeadsEntity, Integer>
         return maps;
     }
 
+    public int deleteByBatchIds(List<String> ids) {
+        String sql = "delete from lkcrm_crm_leads where batch_id in (" + SqlAppendUtil.sqlAppendWhereIn(ids) + ")";
+        int maps = this.executeUpdateSQL(sql);
+        return maps;
+    }
+
     public int setLeadsFollowup(List<String> ids) {
         String sql = "update lkcrm_crm_leads set followup = 1 where leads_id in (" + SqlAppendUtil.sqlAppendWhereIn(ids) + ")";
         int maps = this.executeUpdateSQL(sql);
@@ -67,11 +86,11 @@ public class LkCrmLeadsDao extends SimpleHibernateDao<LkCrmLeadsEntity, Integer>
         conditions.append(" z.* FROM t_customer_sea_list_" + seaId + " AS custG LEFT JOIN fieldleadsview AS z ON custG.id = z.field_batch_id WHERE custG.status = 1 ");
         List param = new ArrayList();
         if (StringUtil.isNotEmpty(search)) {
-            param.add(search);
-            param.add(search);
-            param.add(search);
-            param.add(search);
-            conditions.append(" and (super_name like '%?%' or super_telphone like '%?%' or super_phone like '%?%' or super_data like '%?%')");
+            param.add("%"+search+"%");
+            param.add("%"+search+"%");
+            param.add("%"+search+"%");
+            param.add("%"+search+"%");
+            conditions.append(" and (super_name like ? or super_telphone like ? or super_phone like ? or super_data like ?)");
         }
         //conditions.append(" GROUP By custType ORDER BY custG.create_time DESC ");
         LOG.info("公海sql:" + conditions);
@@ -150,7 +169,15 @@ public class LkCrmLeadsDao extends SimpleHibernateDao<LkCrmLeadsEntity, Integer>
 
     public int lock(int isLock, List ids) {
         String sql = " update lkcrm_crm_leads set is_lock = ? where leads_id in (" + SqlAppendUtil.sqlAppendWhereIn(ids) + ")";
-        return queryForInt(sql, isLock);
+        return executeUpdateSQL(sql, isLock);
+    }
+
+    public List<Map<String, Object>> listLeadByCompany(String custId, String company, int isTransform, String[] notInLeadsIds) {
+        StringBuffer conditions = new StringBuffer("SELECT leads_id, leads_name, is_transform, followup, telephone, mobile  FROM lkcrm_crm_leads WHERE cust_id = ? AND company=? AND is_transform = ? ");
+        if (notInLeadsIds != null && notInLeadsIds.length > 0) {
+            conditions.append(" AND leads_id NOT IN (" + SqlAppendUtil.sqlAppendWhereIn(notInLeadsIds) + ")");
+        }
+        return sqlQuery(conditions.toString(), custId, company, isTransform);
     }
 
 }

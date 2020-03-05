@@ -24,6 +24,8 @@ import com.bdaim.crm.erp.oa.common.OaEnum;
 import com.bdaim.crm.erp.oa.service.OaActionRecordService;
 import com.bdaim.crm.utils.*;
 import com.bdaim.util.JavaBeanUtil;
+import com.bdaim.util.NumberConvertUtil;
+import com.bdaim.util.StringUtil;
 import com.jfinal.aop.Before;
 import com.jfinal.kit.Kv;
 import com.jfinal.log.Log;
@@ -31,7 +33,11 @@ import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.tx.Tx;
 import com.jfinal.upload.UploadFile;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.transaction.Transactional;
@@ -42,6 +48,8 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 public class CrmCustomerService {
+
+    public static final Logger LOG = LoggerFactory.getLogger(CrmCustomerService.class);
     @Resource
     private AdminFieldService adminFieldService;
 
@@ -96,10 +104,19 @@ public class CrmCustomerService {
     @Resource
     private LkCrmOaEventRelationDao crmOaEventRelationDao;
 
+    @Resource
+    private CrmContactsService crmContactsService;
+
+    @Resource
+    private LkCrmAdminFieldDao crmAdminFieldDao;
+
+    @Resource
+    private LkCrmTaskDao crmTaskDao;
+
     /**
+     * @return
      * @author wyq
      * 分页条件查询客户
-     * @return
      */
     public CrmPage getCustomerPageList(BasePageRequest<CrmCustomer> basePageRequest) {
         String customerName = basePageRequest.getData().getCustomerName();
@@ -121,36 +138,53 @@ public class CrmCustomerService {
      * 新增或更新客户
      */
     public R addOrUpdate(JSONObject jsonObject, String type) {
-        LkCrmCustomerEntity crmCustomer = jsonObject.getObject("entity", LkCrmCustomerEntity.class);
+        CrmCustomer entity = jsonObject.getObject("entity", CrmCustomer.class);
+        LkCrmCustomerEntity crmCustomer = new LkCrmCustomerEntity();
+        BeanUtils.copyProperties(entity, crmCustomer);
         String batchId = StrUtil.isNotEmpty(crmCustomer.getBatchId()) ? crmCustomer.getBatchId() : IdUtil.simpleUUID();
         crmRecordService.updateRecord(jsonObject.getJSONArray("field"), batchId);
         adminFieldService.save(jsonObject.getJSONArray("field"), batchId);
-        if (crmCustomer.getCustomerId() != null) {
-            CrmCustomer oldCrmCustomer = new CrmCustomer().dao().findById(crmCustomer.getCustomerId());
+        crmCustomer.setCustId(BaseUtil.getUser().getCustId());
+        if (entity.getCustomerId() != null) {
+            crmCustomer.setCustomerId(entity.getCustomerId());
+            LkCrmCustomerEntity oldCrmCustomer = crmCustomerDao.get(crmCustomer.getCustomerId());
             crmRecordService.updateRecord(oldCrmCustomer, crmCustomer, CrmEnum.CUSTOMER_TYPE_KEY.getTypes());
             crmCustomer.setUpdateTime(DateUtil.date().toTimestamp());
-            crmCustomerDao.update(crmCustomer);
+            BeanUtils.copyProperties(crmCustomer, oldCrmCustomer, JavaBeanUtil.getNullPropertyNames(crmCustomer));
+            crmCustomerDao.update(oldCrmCustomer);
             return R.ok();
         } else {
             crmCustomer.setCreateTime(DateUtil.date().toTimestamp());
             crmCustomer.setUpdateTime(DateUtil.date().toTimestamp());
-            crmCustomer.setCreateUserId(BaseUtil.getUser().getUserId().intValue());
+            crmCustomer.setCreateUserId(BaseUtil.getUser().getUserId());
             if ("noImport".equals(type)) {
-                crmCustomer.setOwnerUserId(BaseUtil.getUser().getUserId().intValue());
+                crmCustomer.setOwnerUserId(BaseUtil.getUser().getUserId());
             }
             crmCustomer.setBatchId(batchId);
             crmCustomer.setRwUserId(",");
             crmCustomer.setRoUserId(",");
-            int save = (int) crmCustomerDao.saveReturnPk(crmCustomer);
+            if (crmCustomer.getIsLock() == null) {
+                crmCustomer.setIsLock(0);
+            }
+            int id = (int) crmCustomerDao.saveReturnPk(crmCustomer);
             crmRecordService.addRecord(crmCustomer.getCustomerId(), CrmEnum.CUSTOMER_TYPE_KEY.getTypes());
-            return save > 0 ? R.ok().put("data", Kv.by("customer_id", crmCustomer.getCustomerId()).set("customer_name", crmCustomer.getCustomerName())) : R.error();
+            //批量添加联系人
+            JSONArray contacts = jsonObject.getJSONArray("contacts");
+            if (contacts != null && contacts.size() > 0) {
+                for (int i = 0; i < contacts.size(); i++) {
+                    contacts.getJSONObject(i).put("customer_id", id);
+                }
+                crmContactsService.batchAddContacts(contacts);
+            }
+
+            return id > 0 ? R.ok().put("data", Kv.by("customer_id", crmCustomer.getCustomerId()).set("customer_name", crmCustomer.getCustomerName())) : R.error();
         }
     }
 
     /**
+     * @return
      * @author wyq
      * 根据客户id查询
-     * @return
      */
     public Map<String, Object> queryById(Integer customerId) {
         return crmCustomerDao.queryById(customerId).get(0);
@@ -162,7 +196,7 @@ public class CrmCustomerService {
      * 基本信息
      */
     public List<Record> information(Integer customerId) {
-        CrmCustomer crmCustomer = CrmCustomer.dao.findById(customerId);
+        LkCrmCustomerEntity crmCustomer = crmCustomerDao.get(customerId);
         List<Record> fieldList = new ArrayList<>();
         FieldUtil field = new FieldUtil(fieldList);
         field.set("客户名称", crmCustomer.getCustomerName())
@@ -175,19 +209,19 @@ public class CrmCustomerService {
                 .set("定位", crmCustomer.getLocation())
                 .set("区域", crmCustomer.getAddress())
                 .set("详细地址", crmCustomer.getDetailAddress());
-        List<Record> recordList = Db.find(Db.getSql("admin.field.queryCustomField"), crmCustomer.getBatchId());
+        List<Record> recordList = JavaBeanUtil.mapToRecords(crmAdminFieldDao.queryCustomField(crmCustomer.getBatchId()));
         fieldUtil.handleType(recordList);
         fieldList.addAll(recordList);
         return fieldList;
     }
 
     /**
+     * @return
      * @author wyq
      * 根据客户名称查询
-     * @return
      */
     public Map<String, Object> queryByName(String name) {
-        return crmCustomerDao.queryByName(name).get(0);
+        return crmCustomerDao.queryByName(name);
         //return Db.findFirst(Db.getSql("crm.customer.queryByName"), name);
     }
 
@@ -195,12 +229,9 @@ public class CrmCustomerService {
      * @author wyq
      * 根据客户id查找商机
      */
-    public R queryBusiness(BasePageRequest<CrmCustomer> basePageRequest) {
-        JSONObject jsonObject = basePageRequest.getJsonObject();
-        Integer customerId = jsonObject.getInteger("customerId");
-        String search = jsonObject.getString("search");
+    public R queryBusiness(BasePageRequest<CrmCustomer> basePageRequest, Integer customerId, String search) {
         Integer pageType = basePageRequest.getPageType();
-        if (0 == pageType) {
+        if (pageType != null && 0 == pageType) {
             List<Record> recordList = JavaBeanUtil.mapToRecords(crmCustomerDao.queryBusiness(customerId, search));
             adminSceneService.setBusinessStatus(recordList);
             return R.ok().put("data", recordList);
@@ -208,7 +239,7 @@ public class CrmCustomerService {
             com.bdaim.common.dto.Page paginate = crmCustomerDao.pageQueryBusiness(basePageRequest.getPage(), basePageRequest.getLimit(), customerId, search);
             //Page<Record> paginate = Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), Db.getSqlPara("crm.customer.queryBusiness", Kv.by("customerId", customerId).set("businessName", search)));
             adminSceneService.setBusinessStatus(JavaBeanUtil.mapToRecords(paginate.getData()));
-            return R.ok().put("data", paginate);
+            return R.ok().put("data", BaseUtil.crmPage(paginate));
         }
     }
 
@@ -221,7 +252,7 @@ public class CrmCustomerService {
         Integer customerId = basePageRequest.getData().getCustomerId();
         Integer pageType = basePageRequest.getPageType();
         String search = basePageRequest.getJsonObject().getString("search");
-        if (0 == pageType) {
+        if (pageType != null && 0 == pageType) {
             return R.ok().put("data", crmCustomerDao.queryContacts(customerId, search));
         } else {
             Page page = crmCustomerDao.pageQueryContacts(basePageRequest.getPage(), basePageRequest.getLimit(), customerId, search);
@@ -233,19 +264,18 @@ public class CrmCustomerService {
      * @auyhor wyq
      * 根据客户id查询合同
      */
-    public R queryContract(BasePageRequest<CrmCustomer> basePageRequest) {
+    public R queryContract(BasePageRequest<CrmCustomer> basePageRequest, String search) {
         Integer customerId = basePageRequest.getData().getCustomerId();
         Integer pageType = basePageRequest.getPageType();
-        String search = basePageRequest.getJsonObject().getString("search");
         if (basePageRequest.getData().getCheckstatus() != null) {
-            if (0 == pageType) {
+            if (pageType != null && 0 == pageType) {
                 return R.ok().put("data", crmCustomerDao.queryPassContract(customerId, basePageRequest.getData().getCheckstatus(), search));
             } else {
                 Page page = crmCustomerDao.pageQueryPassContract(basePageRequest.getPage(), basePageRequest.getLimit(), customerId, basePageRequest.getData().getCheckstatus(), search);
                 return R.ok().put("data", BaseUtil.crmPage(page));
             }
         }
-        if (0 == pageType) {
+        if (pageType != null && 0 == pageType) {
             return R.ok().put("data", crmCustomerDao.queryContract(customerId, search));
         } else {
             Page page = crmCustomerDao.pageQueryContract(basePageRequest.getPage(), basePageRequest.getLimit(), customerId, search);
@@ -260,7 +290,7 @@ public class CrmCustomerService {
     public R queryReceivablesPlan(BasePageRequest<CrmCustomer> basePageRequest) {
         Integer customerId = basePageRequest.getData().getCustomerId();
         Integer pageType = basePageRequest.getPageType();
-        if (0 == pageType) {
+        if (pageType != null && 0 == pageType) {
             return R.ok().put("data", crmCustomerDao.queryReceivablesPlan(customerId));
         } else {
             Page page = crmCustomerDao.pageQueryReceivablesPlan(basePageRequest.getPage(), basePageRequest.getLimit(), customerId);
@@ -274,7 +304,7 @@ public class CrmCustomerService {
      */
     public R queryReceivables(BasePageRequest<CrmCustomer> basePageRequest) {
         Integer customerId = basePageRequest.getData().getCustomerId();
-        if (0 == basePageRequest.getPageType()) {
+        if (basePageRequest.getPageType() != null && 0 == basePageRequest.getPageType()) {
             return R.ok().put("data", crmCustomerDao.queryReceivables(customerId));
         } else {
             Page page = crmCustomerDao.pageQueryReceivables(basePageRequest.getPage(), basePageRequest.getLimit(), customerId);
@@ -295,16 +325,15 @@ public class CrmCustomerService {
         String[] idsArr = customerIds.split(",");
         List<Object> idsList = new ArrayList<>();
         for (String id : idsArr) {
-            Record record = new Record();
-            idsList.add(Integer.valueOf(id));
+            idsList.add(id);
         }
         List<Record> batchIdList = JavaBeanUtil.mapToRecords(crmCustomerDao.queryBatchIdByIds(Arrays.asList(idsArr)));
-        return Db.tx(() -> {
-            crmCustomerDao.deleteByIds(idsList);
-            //Db.batch(Db.getSql("crm.customer.deleteByIds"), "customer_id", idsList, 100);
-            crmCustomerDao.executeUpdateSQL("delete from lkcrm_admin_fieldv where batch_id IN (?)", batchIdList);
-            return true;
-        }) ? R.ok() : R.error();
+        //return Db.tx(() -> {
+        crmCustomerDao.deleteByIds(idsList);
+        //Db.batch(Db.getSql("crm.customer.deleteByIds"), "customer_id", idsList, 100);
+        crmCustomerDao.executeUpdateSQL("delete from lkcrm_admin_fieldv where batch_id IN (?)", batchIdList);
+        return R.ok();
+        //}) ? R.ok() : R.error();
     }
 
     /**
@@ -334,27 +363,29 @@ public class CrmCustomerService {
      */
     public R updateOwnerUserId(LkCrmCustomerEntity crmCustomer) {
         String[] customerIdsArr = crmCustomer.getCustomerIds().split(",");
-        return Db.tx(() -> {
-            for (String customerId : customerIdsArr) {
-                String memberId = "," + crmCustomer.getNewOwnerUserId() + ",";
-                Db.update(Db.getSql("crm.customer.deleteMember"), memberId, memberId, Integer.valueOf(customerId));
-                LkCrmCustomerEntity oldCustomer = crmCustomerDao.get(Integer.valueOf(customerId));
-                if (2 == crmCustomer.getTransferType()) {
-                    if (1 == crmCustomer.getPower()) {
-                        crmCustomer.setRoUserId(oldCustomer.getRoUserId() + oldCustomer.getOwnerUserId() + ",");
-                    }
-                    if (2 == crmCustomer.getPower()) {
-                        crmCustomer.setRwUserId(oldCustomer.getRwUserId() + oldCustomer.getOwnerUserId() + ",");
-                    }
+        //return Db.tx(() -> {
+        for (String customerId : customerIdsArr) {
+            String memberId = "," + crmCustomer.getNewOwnerUserId() + ",";
+            crmCustomerDao.deleteMember(memberId, Integer.valueOf(customerId));
+            //Db.update(Db.getSql("crm.customer.deleteMember"), memberId, memberId, Integer.valueOf(customerId));
+            LkCrmCustomerEntity oldCustomer = crmCustomerDao.get(Integer.valueOf(customerId));
+            if (2 == crmCustomer.getTransferType()) {
+                if (1 == crmCustomer.getPower()) {
+                    crmCustomer.setRoUserId(oldCustomer.getRoUserId() + oldCustomer.getOwnerUserId() + ",");
                 }
-                crmCustomer.setCustomerId(Integer.valueOf(customerId));
-                crmCustomer.setOwnerUserId(crmCustomer.getNewOwnerUserId());
-                crmCustomer.setFollowup(0);
-                crmCustomerDao.update(crmCustomer);
-                crmRecordService.addConversionRecord(Integer.valueOf(customerId), CrmEnum.CUSTOMER_TYPE_KEY.getTypes(), crmCustomer.getNewOwnerUserId());
+                if (2 == crmCustomer.getPower()) {
+                    crmCustomer.setRwUserId(oldCustomer.getRwUserId() + oldCustomer.getOwnerUserId() + ",");
+                }
             }
-            return true;
-        }) ? R.ok() : R.error();
+            oldCustomer.setCustomerId(Integer.valueOf(customerId));
+            oldCustomer.setOwnerUserId(crmCustomer.getNewOwnerUserId());
+            oldCustomer.setFollowup(0);
+            BeanUtils.copyProperties(crmCustomer, oldCustomer, JavaBeanUtil.getNullPropertyNames(crmCustomer));
+            crmCustomerDao.update(oldCustomer);
+            crmRecordService.addConversionRecord(Integer.valueOf(customerId), CrmEnum.CUSTOMER_TYPE_KEY.getTypes(), crmCustomer.getNewOwnerUserId());
+        }
+        return R.ok();
+        //}) ? R.ok() : R.error();
     }
 
 
@@ -369,7 +400,7 @@ public class CrmCustomerService {
         }
         List<Record> recordList = new ArrayList<>();
         if (crmCustomer.getOwnerUserId() != null) {
-            Record ownerUser = JavaBeanUtil.mapToRecord(crmCustomerDao.getMembers(crmCustomer.getOwnerUserId()).get(0));
+            Record ownerUser = JavaBeanUtil.mapToRecord(crmCustomerDao.getMembers(crmCustomer.getOwnerUserId()));
             if (ownerUser != null) {
                 recordList.add(ownerUser.set("power", "负责人权限").set("groupRole", "负责人"));
             }
@@ -383,7 +414,7 @@ public class CrmCustomerService {
         String[] memberIdsArr = memberIds.substring(1, memberIds.length() - 1).split(",");
         Set<String> memberIdsSet = new HashSet<>(Arrays.asList(memberIdsArr));
         for (String memberId : memberIdsSet) {
-            Record record = Db.findFirst(Db.getSql("crm.customer.getMembers"), memberId);
+            Record record = JavaBeanUtil.mapToRecord(crmCustomerDao.getMembers(NumberConvertUtil.parseLong(memberId)));
             if (roUserId.contains(memberId)) {
                 record.set("power", "只读").set("groupRole", "普通成员");
             }
@@ -404,20 +435,28 @@ public class CrmCustomerService {
         String[] memberArr = crmCustomer.getMemberIds().split(",");
         StringBuffer stringBuffer = new StringBuffer();
         for (String id : customerIdsArr) {
-            Integer ownerUserId = crmCustomerDao.get(Integer.valueOf(id)).getOwnerUserId();
+            Long ownerUserId = crmCustomerDao.get(NumberConvertUtil.parseInt(id)).getOwnerUserId();
             for (String memberId : memberArr) {
-                if (ownerUserId.equals(Integer.valueOf(memberId))) {
+                if (ownerUserId.equals(NumberConvertUtil.parseLong(memberId))) {
                     return R.error("负责人不能重复选为团队成员!");
                 }
                 crmCustomerDao.deleteMember("," + memberId + ",", Integer.valueOf(id));
             }
             if (1 == crmCustomer.getPower()) {
                 stringBuffer.setLength(0);
+                String roUserIdDb = crmCustomerDao.get(Integer.valueOf(id)).getRoUserId();
+                if ((StringUtil.isNotEmpty(roUserIdDb) && !roUserIdDb.startsWith(",")) || StringUtil.isEmpty(roUserIdDb)) {
+                    stringBuffer.append(",");
+                }
                 String roUserId = stringBuffer.append(crmCustomerDao.get(Integer.valueOf(id)).getRoUserId()).append(crmCustomer.getMemberIds()).append(",").toString();
                 crmCustomerDao.executeUpdateSQL("update lkcrm_crm_customer set ro_user_id = ? where customer_id = ?", roUserId, Integer.valueOf(id));
             }
             if (2 == crmCustomer.getPower()) {
                 stringBuffer.setLength(0);
+                String roUserIdDb = crmCustomerDao.get(Integer.valueOf(id)).getRwUserId();
+                if ((StringUtil.isNotEmpty(roUserIdDb) && !roUserIdDb.startsWith(",")) || StringUtil.isEmpty(roUserIdDb)) {
+                    stringBuffer.append(",");
+                }
                 String rwUserId = stringBuffer.append(crmCustomerDao.get(Integer.valueOf(id)).getRwUserId()).append(crmCustomer.getMemberIds()).append(",").toString();
                 crmCustomerDao.executeUpdateSQL("update lkcrm_crm_customer set rw_user_id = ? where customer_id = ?", rwUserId, Integer.valueOf(id));
             }
@@ -432,14 +471,14 @@ public class CrmCustomerService {
     public R deleteMembers(CrmCustomer crmCustomer) {
         String[] customerIdsArr = crmCustomer.getIds().split(",");
         String[] memberArr = crmCustomer.getMemberIds().split(",");
-        return Db.tx(() -> {
-            for (String id : customerIdsArr) {
-                for (String memberId : memberArr) {
-                    crmCustomerDao.deleteMember("," + memberId + ",", Integer.valueOf(id));
-                }
+        //return Db.tx(() -> {
+        for (String id : customerIdsArr) {
+            for (String memberId : memberArr) {
+                crmCustomerDao.deleteMember("," + memberId + ",", Integer.valueOf(id));
             }
-            return true;
-        }) ? R.ok() : R.error();
+        }
+        return R.ok();
+        // }) ? R.ok() : R.error();
     }
 
     /**
@@ -525,14 +564,15 @@ public class CrmCustomerService {
     public R addRecord(LkCrmAdminRecordEntity adminRecord) {
         adminRecord.setTypes("crm_customer");
         adminRecord.setCreateTime(DateUtil.date().toTimestamp());
-        adminRecord.setCreateUserId(BaseUtil.getUser().getUserId().intValue());
+        adminRecord.setCreateUserId(BaseUtil.getUser().getUserId());
+        adminRecord.setCustId(BaseUtil.getUser().getCustId());
         if (1 == adminRecord.getIsEvent()) {
             LkCrmOaEventEntity oaEvent = new LkCrmOaEventEntity();
             oaEvent.setTitle(adminRecord.getContent());
             oaEvent.setStartTime(adminRecord.getNextTime());
             oaEvent.setEndTime(DateUtil.offsetDay(adminRecord.getNextTime(), 1).toTimestamp());
             oaEvent.setCreateTime(DateUtil.date().toTimestamp());
-            oaEvent.setCreateUserId(BaseUtil.getUser().getUserId().intValue());
+            oaEvent.setCreateUserId(BaseUtil.getUser().getUserId());
             crmOaEventDao.save(oaEvent);
             LoginUser user = BaseUtil.getUser();
             oaActionRecordService.addRecord(oaEvent.getEventId(), OaEnum.EVENT_TYPE_KEY.getTypes(), 1, oaActionRecordService.getJoinIds(user.getUserId().intValue(), oaEvent.getOwnerUserIds()), oaActionRecordService.getJoinIds(user.getDeptId(), ""));
@@ -567,6 +607,25 @@ public class CrmCustomerService {
                 }
             }
         }
+        // 添加任务
+        if (adminRecord.getIsTask() != null && 1 == adminRecord.getIsTask()) {
+            LkCrmTaskEntity crmTaskEntity = new LkCrmTaskEntity();
+            crmTaskEntity.setCustId(BaseUtil.getUser().getCustId());
+            crmTaskEntity.setBatchId(IdUtil.simpleUUID());
+            crmTaskEntity.setName(adminRecord.getTaskName());
+            crmTaskEntity.setDescription(adminRecord.getContent());
+            crmTaskEntity.setCreateUserId(adminRecord.getCreateUserId());
+            crmTaskEntity.setMainUserId(adminRecord.getCreateUserId());
+            crmTaskEntity.setStartTime(adminRecord.getNextTime());
+            if (adminRecord.getNextTime() != null) {
+                crmTaskEntity.setStopTime(DateUtil.offsetDay(adminRecord.getNextTime(), 1).toTimestamp());
+            }
+            //完成状态 1正在进行2延期3归档 5结束
+            crmTaskEntity.setStatus(1);
+            crmTaskEntity.setCreateTime(DateUtil.date().toTimestamp());
+            int taskId = (int) crmTaskDao.saveReturnPk(crmTaskEntity);
+            adminRecord.setTaskId(taskId);
+        }
         crmCustomerDao.executeUpdateSQL("update lkcrm_crm_customer set followup = 1 where customer_id = ?", adminRecord.getTypesId());
         crmAdminRecordDao.save(adminRecord);
         return R.ok();
@@ -578,7 +637,7 @@ public class CrmCustomerService {
      */
     public List<Record> getRecord(BasePageRequest<CrmCustomer> basePageRequest) {
         CrmCustomer crmCustomer = basePageRequest.getData();
-        List<Record> recordList = JavaBeanUtil.mapToRecords(crmCustomerDao.getRecord(crmCustomer.getCustomerId()));
+        List<Record> recordList = JavaBeanUtil.mapToRecords(crmCustomerDao.getRecord(crmCustomer.getCustomerId(), basePageRequest.getPage(), basePageRequest.getLimit()));
         recordList.forEach(record -> {
             adminFileService.queryByBatchId(record.getStr("batch_id"), record);
             String businessIds = record.getStr("business_ids");
@@ -586,7 +645,11 @@ public class CrmCustomerService {
             if (businessIds != null) {
                 String[] businessIdsArr = businessIds.split(",");
                 for (String businessId : businessIdsArr) {
-                    businessList.add(crmBusinessDao.get(Integer.valueOf(businessId)));
+                    LkCrmBusinessEntity lkCrmBusinessEntity = crmBusinessDao.get(NumberConvertUtil.parseInt(businessId));
+                    if (lkCrmBusinessEntity == null) {
+                        continue;
+                    }
+                    businessList.add(lkCrmBusinessEntity);
                 }
             }
             String contactsIds = record.getStr("contacts_ids");
@@ -594,10 +657,30 @@ public class CrmCustomerService {
             if (contactsIds != null) {
                 String[] contactsIdsArr = contactsIds.split(",");
                 for (String contactsId : contactsIdsArr) {
-                    contactsList.add(crmContactsDao.get(Integer.valueOf(contactsId)));
+                    LkCrmContactsEntity lkCrmContactsEntity = crmContactsDao.get(NumberConvertUtil.parseInt(contactsId));
+                    if (lkCrmContactsEntity == null) {
+                        continue;
+                    }
+                    contactsList.add(lkCrmContactsEntity);
                 }
             }
             record.set("business_list", businessList).set("contacts_list", contactsList);
+        });
+        return recordList;
+    }
+
+    /**
+     * 查看代办事项记录
+     *
+     * @param basePageRequest
+     * @param taskStatus
+     * @param leadsId
+     * @return
+     */
+    public List<Record> listAgency(BasePageRequest<CrmCustomer> basePageRequest, Integer taskStatus, Integer leadsId) {
+        List<Record> recordList = JavaBeanUtil.mapToRecords(crmCustomerDao.getRecord(String.valueOf(leadsId), taskStatus, basePageRequest.getPage(), basePageRequest.getLimit()));
+        recordList.forEach(record -> {
+            adminFileService.queryByBatchId(record.getStr("batch_id"), record);
         });
         return recordList;
     }
@@ -681,7 +764,7 @@ public class CrmCustomerService {
         if (count > 0) {
             return R.error("选中的客户有被锁定的，不能放入公海！");
         }
-        StringBuffer sql = new StringBuffer("UPDATE 72crm_crm_customer SET owner_user_id = null where customer_id in (");
+        StringBuffer sql = new StringBuffer("UPDATE lkcrm_crm_customer SET owner_user_id = null where customer_id in (");
         sql.append(ids).append(") and is_lock = 0");
         String[] idsArr = ids.split(",");
         for (String id : idsArr) {
@@ -710,9 +793,9 @@ public class CrmCustomerService {
         String[] idsArr = ids.split(",");
         for (String id : idsArr) {
             LkCrmOwnerRecordEntity crmOwnerRecord = new LkCrmOwnerRecordEntity();
-            crmOwnerRecord.setTypeId(Integer.valueOf(id));
+            crmOwnerRecord.setTypeId(NumberConvertUtil.parseInt(id));
             crmOwnerRecord.setType(8);
-            crmOwnerRecord.setPostOwnerUserId(userId.intValue());
+            crmOwnerRecord.setPostOwnerUserId(userId);
             crmOwnerRecord.setCreateTime(DateUtil.date().toTimestamp());
             crmOwnerRecordDao.save(crmOwnerRecord);
         }
@@ -822,5 +905,179 @@ public class CrmCustomerService {
             reader.close();
         }
         return R.ok();
+    }
+
+    public R uploadExcel(MultipartFile file, Integer repeatHandling, Long ownerUserId) {
+        Kv kv = new Kv();
+        Integer errNum = 0;
+        try (ExcelReader reader = ExcelUtil.getReader(file.getInputStream())) {
+            List<List<Object>> read = reader.read();
+            List<Object> list = read.get(1);
+            List<Record> recordList = adminFieldService.customFieldList("2");
+            recordList.removeIf(record -> "file".equals(record.getStr("formType")) || "checkbox".equals(record.getStr("formType")) || "user".equals(record.getStr("formType")) || "structure".equals(record.getStr("formType")));
+            List<Record> fieldList = adminFieldService.queryAddField(2);
+            fieldList.removeIf(record -> "file".equals(record.getStr("formType")) || "checkbox".equals(record.getStr("formType")) || "user".equals(record.getStr("formType")) || "structure".equals(record.getStr("formType")));
+            fieldList.forEach(record -> {
+                if (record.getInt("is_null") == 1) {
+                    record.set("name", record.getStr("name") + "(*)");
+                }
+                if ("map_address".equals(record.getStr("field_name"))) {
+                    record.set("name", "详细地址");
+                }
+            });
+            List<String> nameList = fieldList.stream().map(record -> record.getStr("name")).collect(Collectors.toList());
+            if (nameList.size() != list.size() || !nameList.containsAll(list)) {
+                return R.error("请使用最新导入模板");
+            }
+            Kv nameMap = new Kv();
+            fieldList.forEach(record -> nameMap.set(record.getStr("name"), record.getStr("field_name")));
+            for (int i = 0; i < list.size(); i++) {
+                kv.set(nameMap.get(list.get(i)), i);
+            }
+            if (read.size() > 2) {
+                JSONObject object = new JSONObject();
+                for (int i = 2; i < read.size(); i++) {
+                    errNum = i;
+                    List<Object> customerList = read.get(i);
+                    if (customerList.size() < list.size()) {
+                        for (int j = customerList.size() - 1; j < list.size(); j++) {
+                            customerList.add(null);
+                        }
+                    }
+                    String customerName = customerList.get(kv.getInt("customer_name")).toString();
+                    Integer number = crmAdminConfigDao.queryForInt("select count(*) from lkcrm_crm_customer where customer_name = ?", customerName);
+                    if (0 == number) {
+                        object.fluentPut("entity", new JSONObject().fluentPut("customer_name", customerName)
+                                .fluentPut("mobile", customerList.get(kv.getInt("mobile")))
+                                .fluentPut("telephone", customerList.get(kv.getInt("telephone")))
+                                .fluentPut("website", customerList.get(kv.getInt("website")))
+                                .fluentPut("next_time", customerList.get(kv.getInt("next_time")))
+                                .fluentPut("remark", customerList.get(kv.getInt("remark")))
+                                .fluentPut("detail_address", customerList.get(kv.getInt("map_address")))
+                                .fluentPut("deal_status", customerList.get(kv.getInt("deal_status")))
+                                .fluentPut("owner_user_id", ownerUserId));
+                    } else if (number > 0 && repeatHandling == 1) {
+                        Record leads = JavaBeanUtil.mapToRecord(crmAdminConfigDao.sqlQuery("select customer_id,batch_id from lkcrm_crm_customer where customer_name = ?", customerName).get(0));
+                        object.fluentPut("entity", new JSONObject().fluentPut("customer_id", leads.getInt("customer_id"))
+                                .fluentPut("customer_name", customerName)
+                                .fluentPut("mobile", customerList.get(kv.getInt("mobile")))
+                                .fluentPut("telephone", customerList.get(kv.getInt("telephone")))
+                                .fluentPut("website", customerList.get(kv.getInt("website")))
+                                .fluentPut("next_time", customerList.get(kv.getInt("next_time")))
+                                .fluentPut("remark", customerList.get(kv.getInt("remark")))
+                                .fluentPut("detail_address", customerList.get(kv.getInt("map_address")))
+                                .fluentPut("deal_status", customerList.get(kv.getInt("deal_status")))
+                                .fluentPut("owner_user_id", ownerUserId)
+                                .fluentPut("batch_id", leads.getStr("batch_id")));
+                    } else if (number > 0 && repeatHandling == 2) {
+                        continue;
+                    }
+                    JSONArray jsonArray = new JSONArray();
+                    for (Record record : recordList) {
+                        Integer columnsNum = kv.getInt(record.getStr("name")) != null ? kv.getInt(record.getStr("name")) : kv.getInt(record.getStr("name") + "(*)");
+                        record.set("value", customerList.get(columnsNum));
+                        jsonArray.add(JSONObject.parseObject(record.toJson()));
+                    }
+                    object.fluentPut("field", jsonArray);
+                    addOrUpdate(object, null);
+                }
+            }
+        } catch (Exception e) {
+            LOG.error("", e);
+            if (errNum != 0) {
+                return R.error("第" + (errNum + 1) + "行错误!");
+            }
+            return R.error();
+        }
+        return R.ok();
+
+
+       /* ExcelReader reader = ExcelUtil.getReader(FileUtil.file(file.getUploadPath() + "\\" + file.getFileName()));
+        //AdminFieldService adminFieldService = new AdminFieldService();
+        Kv kv = new Kv();
+        int errNum = 0;
+        try {
+            List<List<Object>> read = reader.read();
+            List<Object> list = read.get(1);
+            List<Record> recordList = adminFieldService.customFieldList("2");
+            recordList.removeIf(record -> "file".equals(record.getStr("formType")) || "checkbox".equals(record.getStr("formType")) || "user".equals(record.getStr("formType")) || "structure".equals(record.getStr("formType")));
+            List<Record> fieldList = adminFieldService.queryAddField(2);
+            fieldList.removeIf(record -> "file".equals(record.getStr("formType")) || "checkbox".equals(record.getStr("formType")) || "user".equals(record.getStr("formType")) || "structure".equals(record.getStr("formType")));
+            fieldList.forEach(record -> {
+                if (record.getInt("is_null") == 1) {
+                    record.set("name", record.getStr("name") + "(*)");
+                }
+                if ("map_address".equals(record.getStr("field_name"))) {
+                    record.set("name", "详细地址");
+                }
+            });
+            List<String> nameList = fieldList.stream().map(record -> record.getStr("name")).collect(Collectors.toList());
+            if (nameList.size() != list.size() || !nameList.containsAll(list)) {
+                return R.error("请使用最新导入模板");
+            }
+            Kv nameMap = new Kv();
+            fieldList.forEach(record -> nameMap.set(record.getStr("name"), record.getStr("field_name")));
+            for (int i = 0; i < list.size(); i++) {
+                kv.set(nameMap.get(list.get(i)), i);
+            }
+            if (read.size() > 2) {
+                JSONObject object = new JSONObject();
+                for (int i = 2; i < read.size(); i++) {
+                    errNum = i;
+                    List<Object> customerList = read.get(i);
+                    if (customerList.size() < list.size()) {
+                        for (int j = customerList.size() - 1; j < list.size(); j++) {
+                            customerList.add(null);
+                        }
+                    }
+                    String customerName = customerList.get(kv.getInt("customer_name")).toString();
+                    Integer number = crmAdminConfigDao.queryForInt("select count(*) from lkcrm_crm_customer where customer_name = ?", customerName);
+                    if (0 == number) {
+                        object.fluentPut("entity", new JSONObject().fluentPut("customer_name", customerName)
+                                .fluentPut("mobile", customerList.get(kv.getInt("mobile")))
+                                .fluentPut("telephone", customerList.get(kv.getInt("telephone")))
+                                .fluentPut("website", customerList.get(kv.getInt("website")))
+                                .fluentPut("next_time", customerList.get(kv.getInt("next_time")))
+                                .fluentPut("remark", customerList.get(kv.getInt("remark")))
+                                .fluentPut("detail_address", customerList.get(kv.getInt("map_address")))
+                                .fluentPut("deal_status", customerList.get(kv.getInt("deal_status")))
+                                .fluentPut("owner_user_id", ownerUserId));
+                    } else if (number > 0 && repeatHandling == 1) {
+                        Record leads = JavaBeanUtil.mapToRecord(crmAdminConfigDao.sqlQuery("select customer_id,batch_id from lkcrm_crm_customer where customer_name = ?", customerName).get(0));
+                        object.fluentPut("entity", new JSONObject().fluentPut("customer_id", leads.getInt("customer_id"))
+                                .fluentPut("customer_name", customerName)
+                                .fluentPut("mobile", customerList.get(kv.getInt("mobile")))
+                                .fluentPut("telephone", customerList.get(kv.getInt("telephone")))
+                                .fluentPut("website", customerList.get(kv.getInt("website")))
+                                .fluentPut("next_time", customerList.get(kv.getInt("next_time")))
+                                .fluentPut("remark", customerList.get(kv.getInt("remark")))
+                                .fluentPut("detail_address", customerList.get(kv.getInt("map_address")))
+                                .fluentPut("deal_status", customerList.get(kv.getInt("deal_status")))
+                                .fluentPut("owner_user_id", ownerUserId)
+                                .fluentPut("batch_id", leads.getStr("batch_id")));
+                    } else if (number > 0 && repeatHandling == 2) {
+                        continue;
+                    }
+                    JSONArray jsonArray = new JSONArray();
+                    for (Record record : recordList) {
+                        Integer columnsNum = kv.getInt(record.getStr("name")) != null ? kv.getInt(record.getStr("name")) : kv.getInt(record.getStr("name") + "(*)");
+                        record.set("value", customerList.get(columnsNum));
+                        jsonArray.add(JSONObject.parseObject(record.toJson()));
+                    }
+                    object.fluentPut("field", jsonArray);
+                    addOrUpdate(object, null);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.getLog(getClass()).error("", e);
+            if (errNum != 0) {
+                return R.error("第" + (errNum + 1) + "行错误!");
+            }
+            return R.error();
+        } finally {
+            reader.close();
+        }
+        return R.ok();*/
     }
 }

@@ -2,7 +2,6 @@ package com.bdaim.crm.erp.crm.service;
 
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.IdUtil;
-import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
@@ -19,10 +18,9 @@ import com.bdaim.crm.utils.*;
 import com.bdaim.util.JavaBeanUtil;
 import com.bdaim.util.NumberConvertUtil;
 import com.jfinal.aop.Before;
-import com.jfinal.kit.Kv;
-import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.tx.Tx;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -97,13 +95,17 @@ public class CrmReceivablesService {
      */
     @Before(Tx.class)
     public R saveOrUpdate(JSONObject jsonObject) {
-        LkCrmReceivablesEntity crmReceivables = jsonObject.getObject("entity", LkCrmReceivablesEntity.class);
+        CrmReceivables entity = jsonObject.getObject("entity", CrmReceivables.class);
+        LkCrmReceivablesEntity crmReceivables = new LkCrmReceivablesEntity();
+        BeanUtils.copyProperties(entity,crmReceivables);
         crmReceivables.setCreateUserId(BaseUtil.getUser().getUserId());
+        crmReceivables.setCustId(BaseUtil.getUser().getCustId());
         String batchId = StrUtil.isNotEmpty(crmReceivables.getBatchId()) ? crmReceivables.getBatchId() : IdUtil.simpleUUID();
         crmRecordService.updateRecord(jsonObject.getJSONArray("field"), batchId);
         adminFieldService.save(jsonObject.getJSONArray("field"), batchId);
-        if (crmReceivables.getReceivablesId() == null) {
-            Integer count = Db.queryInt(Db.getSql("crm.receivables.queryByNumber"), crmReceivables.getNumber());
+        if (entity.getReceivablesId() == null) {
+            Integer count = crmReceivablesDao.queryByNumber(crmReceivables.getNumber());
+            //Integer count = Db.queryInt(Db.getSql("crm.receivables.queryByNumber"), crmReceivables.getNumber());
             if (count != null && count > 0) {
                 return R.error("回款编号已存在，请校对后再添加！");
             }
@@ -111,7 +113,7 @@ public class CrmReceivablesService {
             crmReceivables.setUpdateTime(DateUtil.date().toTimestamp());
             crmReceivables.setBatchId(batchId);
             crmReceivables.setCheckStatus(0);
-            crmReceivables.setOwnerUserId(BaseUtil.getUser().getUserId().intValue());
+            crmReceivables.setOwnerUserId(BaseUtil.getUser().getUserId());
             Map<String, Integer> map = examineRecordService.saveExamineRecord(2, jsonObject.getLong("checkUserId"), crmReceivables.getOwnerUserId(), null);
             if (map.get("status") == 0) {
                 return R.error("没有启动的审核步骤，不能添加！");
@@ -119,18 +121,23 @@ public class CrmReceivablesService {
                 crmReceivables.setExamineRecordId(map.get("id"));
             }
             boolean save = (int) crmReceivablesDao.saveReturnPk(crmReceivables) > 0;
-            LkCrmReceivablesEntity crmReceivablesPlan = crmReceivablesDao.get(crmReceivables.getPlanId());
-            if (crmReceivablesPlan != null) {
-                crmReceivablesPlan.setReceivablesId(crmReceivables.getReceivablesId());
-                crmReceivablesPlan.setUpdateTime(DateUtil.date().toTimestamp());
-                crmReceivablesDao.saveOrUpdate(crmReceivablesPlan);
+            if (crmReceivables.getPlanId() != null) {
+                LkCrmReceivablesPlanEntity crmReceivablesPlan = crmReceivablesPlanDao.get(crmReceivables.getPlanId());
+                if (crmReceivablesPlan != null) {
+                    crmReceivablesPlan.setReceivablesId(crmReceivables.getReceivablesId());
+                    crmReceivablesPlan.setUpdateTime(DateUtil.date().toTimestamp());
+                    crmReceivablesPlanDao.update(crmReceivablesPlan);
+                }
             }
+
             crmRecordService.addRecord(crmReceivables.getReceivablesId(), CrmEnum.RECEIVABLES_TYPE_KEY.getTypes());
             return R.isSuccess(save);
         } else {
+            crmReceivables.setReceivablesId(entity.getReceivablesId());
             LkCrmReceivablesEntity receivables = crmReceivablesDao.get(crmReceivables.getReceivablesId());
             if (receivables.getCheckStatus() != 4 && receivables.getCheckStatus() != 3) {
-                return R.error("不能编辑，请先撤回再编辑！");
+                //return R.error("不能编辑，请先撤回再编辑！");
+                return R.error("当前审批状态不能编辑(审核未通过|已撤回可编辑)，请先撤回再编辑！");
             }
             Map<String, Integer> map = examineRecordService.saveExamineRecord(2, jsonObject.getLong("checkUserId"), receivables.getOwnerUserId(), receivables.getExamineRecordId());
             if (map.get("status") == 0) {
@@ -147,7 +154,8 @@ public class CrmReceivablesService {
                 crmReceivablesPlan.setUpdateTime(DateUtil.date().toTimestamp());
                 crmReceivablesPlanDao.update(crmReceivablesPlan);
             }
-            crmReceivablesDao.update(crmReceivables);
+            BeanUtils.copyProperties(crmReceivables, receivables, JavaBeanUtil.getNullPropertyNames(crmReceivables));
+            crmReceivablesDao.update(receivables);
             return R.ok();
         }
     }
@@ -191,7 +199,7 @@ public class CrmReceivablesService {
     @Before(Tx.class)
     public R deleteByIds(String receivablesIds) {
         String[] idsArr = receivablesIds.split(",");
-        List<LkCrmReceivablesEntity> list = crmReceivablesPlanDao.queryReceivablesReceivablesId(Arrays.asList(idsArr));
+        List<LkCrmReceivablesPlanEntity> list = crmReceivablesPlanDao.queryReceivablesReceivablesId(Arrays.asList(idsArr));
         //List<CrmReceivables> list = CrmReceivables.dao.find(Db.getSqlPara("crm.receivablesplan.queryReceivablesReceivablesId", Kv.by("receivablesIds", idsArr)));
         if (list.size() > 0) {
             return R.error("该数据已被其他模块引用，不能被删除！");

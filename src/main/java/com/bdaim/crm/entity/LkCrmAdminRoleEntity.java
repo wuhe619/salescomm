@@ -6,7 +6,7 @@ import java.util.Objects;
 @Entity
 @Table(name = "lkcrm_admin_role", schema = "", catalog = "")
 public class LkCrmAdminRoleEntity {
-    private int roleId;
+    private Integer roleId;
     private String roleName;
     private Integer roleType;
     private String remark;
@@ -17,11 +17,12 @@ public class LkCrmAdminRoleEntity {
 
     @Id
     @Column(name = "role_id")
-    public int getRoleId() {
+    @GeneratedValue
+    public Integer getRoleId() {
         return roleId;
     }
 
-    public void setRoleId(int roleId) {
+    public void setRoleId(Integer roleId) {
         this.roleId = roleId;
     }
 

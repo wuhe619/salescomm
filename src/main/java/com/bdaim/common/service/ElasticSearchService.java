@@ -15,6 +15,12 @@ import io.searchbox.client.JestClient;
 import io.searchbox.client.JestResult;
 import io.searchbox.core.*;
 import io.searchbox.indices.mapping.GetMapping;
+import org.elasticsearch.action.bulk.BulkRequestBuilder;
+import org.elasticsearch.action.bulk.BulkResponse;
+import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.transport.InetSocketTransportAddress;
+import org.elasticsearch.common.xcontent.XContentFactory;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -29,6 +35,7 @@ import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.Resource;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -46,6 +53,8 @@ public class ElasticSearchService {
     public static final String CUSTOMER_SEA_INDEX_PREFIX = "customer_sea_";
 
     public static final String CUSTOMER_SEA_TYPE = "data";
+
+    TransportClient client;
 
     @Resource
     private RestTemplate restTemplate;
@@ -136,6 +145,8 @@ public class ElasticSearchService {
         return result;
     }
 
+    static List<JSONObject> list1;
+
     /**
      * 向ElasticSearch中批量新增
      *
@@ -162,8 +173,14 @@ public class ElasticSearchService {
                 bulk.addAction(index);
             }
             BulkResult br = jestClient.execute(bulk.build());
-            LOG.info("向ES中批量新增原始结果:" + br);
+            //LOG.info("向ES中批量新增原始结果:" + br.getJsonString());
             result = br.isSucceeded();
+            if (result) {
+                list1 = list;
+            }
+            if (!result) {
+                LOG.error("", list);
+            }
         } catch (Exception e) {
             LOG.error("向ES中批量新增异常", e);
         }
@@ -172,6 +189,7 @@ public class ElasticSearchService {
 
     /**
      * 批量删除es
+     *
      * @param indexName
      * @param typeName
      * @param list
@@ -589,4 +607,54 @@ public class ElasticSearchService {
         searchSourceBuilder.query(qb);
         return searchSourceBuilder;
     }
+
+    private TransportClient getClient() {
+        if (client != null) {
+            return client;
+        }
+        try {
+            //设置集群名称
+            Settings settings = Settings.builder().put("cluster.name", "elasticsearch").build();
+            //创建client
+            client = new TransportClient.Builder().settings(settings).build()
+                    .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName("localhost"), 9300));
+            return client;
+        } catch (Exception e) {
+            LOG.error("连接ES异常", e);
+            return null;
+        }
+    }
+
+    public boolean bulkInsertDocument0(String index, String type, List<JSONObject> list) {
+        if (!isExistIndex(index, type)) {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            JSONObject settings = JSON.parseObject("{\"settings\":{\"index.analysis.analyzer.default.type\":\"whitespace\"}}");
+            HttpEntity<JSONObject> entity = new HttpEntity<>(settings, headers);
+            ResponseEntity<JSONObject> resultEntity = restTemplate.exchange(ESUtil.getUrl(index, ""), HttpMethod.PUT, entity, JSONObject.class);
+            JSONObject resultEntityBody = resultEntity.getBody();
+            LOG.info("向es添加索引返回数据:[" + resultEntityBody + "]");
+        }
+
+        TransportClient client = getClient();
+        BulkRequestBuilder bulkRequest = client.prepareBulk();
+        System.out.println("count =" + list.size());
+        for (JSONObject jsonObject : list) {
+            bulkRequest.add(client.prepareIndex(index, type)
+                    .setId(jsonObject.getString("id")).setSource(jsonObject)
+            );
+        }
+        long beginTime = System.currentTimeMillis();
+        BulkResponse bulkResponse = bulkRequest.execute().actionGet();
+        long endTime = System.currentTimeMillis();
+        System.out.println("took =" + bulkResponse.getTookInMillis());
+        System.out.println("cost = " + (endTime - beginTime) / 1000f);
+        if (bulkResponse.hasFailures()) {
+            System.out.println("erros->"+bulkResponse.buildFailureMessage());
+        } else {
+            return true;
+        }
+        return false;
+    }
+
 }

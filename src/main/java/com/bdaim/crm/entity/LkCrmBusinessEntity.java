@@ -8,19 +8,20 @@ import java.util.Objects;
 @Entity
 @Table(name = "lkcrm_crm_business", schema = "", catalog = "")
 public class LkCrmBusinessEntity {
-    private int businessId;
+    private Integer businessId;
+    private String custId;
     private Integer typeId;
     private Integer statusId;
     private Timestamp nextTime;
-    private int customerId;
+    private Integer customerId;
     private Timestamp dealDate;
     private String businessName;
     private BigDecimal money;
     private BigDecimal discountRate;
     private BigDecimal totalPrice;
     private String remark;
-    private int createUserId;
-    private Integer ownerUserId;
+    private Long createUserId;
+    private Long ownerUserId;
     private Timestamp createTime;
     private Timestamp updateTime;
     private String batchId;
@@ -34,7 +35,7 @@ public class LkCrmBusinessEntity {
     //权限（1.只读2.读写）
     private Integer power;
     private String ids;
-    private Integer newOwnerUserId;
+    private Long newOwnerUserId;
     private String memberIds;
     private Integer orderNum;
     private String businessIds;
@@ -48,6 +49,16 @@ public class LkCrmBusinessEntity {
 
     public void setBusinessId(Integer businessId) {
         this.businessId = businessId;
+    }
+
+    @Basic
+    @Column(name = "cust_id")
+    public String getCustId() {
+        return custId;
+    }
+
+    public void setCustId(String custId) {
+        this.custId = custId;
     }
 
     @Basic
@@ -82,11 +93,11 @@ public class LkCrmBusinessEntity {
 
     @Basic
     @Column(name = "customer_id")
-    public int getCustomerId() {
+    public Integer getCustomerId() {
         return customerId;
     }
 
-    public void setCustomerId(int customerId) {
+    public void setCustomerId(Integer customerId) {
         this.customerId = customerId;
     }
 
@@ -152,21 +163,21 @@ public class LkCrmBusinessEntity {
 
     @Basic
     @Column(name = "create_user_id")
-    public int getCreateUserId() {
+    public Long getCreateUserId() {
         return createUserId;
     }
 
-    public void setCreateUserId(int createUserId) {
+    public void setCreateUserId(Long createUserId) {
         this.createUserId = createUserId;
     }
 
     @Basic
     @Column(name = "owner_user_id")
-    public Integer getOwnerUserId() {
+    public Long getOwnerUserId() {
         return ownerUserId;
     }
 
-    public void setOwnerUserId(Integer ownerUserId) {
+    public void setOwnerUserId(Long ownerUserId) {
         this.ownerUserId = ownerUserId;
     }
 
@@ -297,11 +308,11 @@ public class LkCrmBusinessEntity {
         this.ids = ids;
     }
     @Transient
-    public Integer getNewOwnerUserId() {
+    public Long getNewOwnerUserId() {
         return newOwnerUserId;
     }
 
-    public void setNewOwnerUserId(Integer newOwnerUserId) {
+    public void setNewOwnerUserId(Long newOwnerUserId) {
         this.newOwnerUserId = newOwnerUserId;
     }
     @Transient

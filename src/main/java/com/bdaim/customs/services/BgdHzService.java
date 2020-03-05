@@ -153,8 +153,8 @@ public class BgdHzService implements BusiService {
 //        Timestamp tm = DateUtil.getTimestamp(CalendarUtil.parseDate(decltime,"yyyyMMddHHmmsszzz"),"yyyyMMddHHmmsszzz");
         //json.put("decl_time",new Date().getTime());
 
-        String sql = " update " + HMetaDataDef.getTable(BusiTypeEnum.BF.getType(), "") + " set content=?,ext_1=? where id=" + fendan.getId();
-        jdbcTemplate.update(sql, json.toJSONString(), opresult);
+        String sql = " update " + HMetaDataDef.getTable(BusiTypeEnum.BF.getType(), "") + " set content=?,ext_1=? where id=" + fendan.getId() +" and type=?";
+        jdbcTemplate.update(sql, json.toJSONString(), opresult,BusiTypeEnum.BF.getType());
 
         if ("03".equals(opresult)
                 || "04".equals(opresult)

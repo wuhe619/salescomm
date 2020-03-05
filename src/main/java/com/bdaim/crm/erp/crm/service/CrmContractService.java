@@ -25,9 +25,9 @@ import com.bdaim.crm.utils.FieldUtil;
 import com.bdaim.crm.utils.R;
 import com.bdaim.util.JavaBeanUtil;
 import com.bdaim.util.NumberConvertUtil;
+import com.bdaim.util.StringUtil;
 import com.jfinal.aop.Before;
 import com.jfinal.kit.Kv;
-import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.tx.Tx;
 import org.springframework.beans.BeanUtils;
@@ -84,6 +84,7 @@ public class CrmContractService {
 
     /**
      * 分页条件查询合同
+     *
      * @return
      */
     public CrmPage queryPage(BasePageRequest<CrmContract> basePageRequest) {
@@ -98,14 +99,14 @@ public class CrmContractService {
     public R queryById(Integer id) {
         //Record record = Db.findFirst(Db.getSql("crm.contract.queryByContractId"), id);
         //Record record = JavaBeanUtil.mapToRecord(crmContractDao.queryByContractId(id).get(0));
-        return R.ok().put("data", crmContractDao.queryByContractId(id).get(0));
+        return R.ok().put("data", crmContractDao.queryByContractId(id));
     }
 
     /**
      * 根据id查询合同基本信息
      */
     public List<Record> information(Integer id) {
-        Record record = JavaBeanUtil.mapToRecord(crmContractDao.queryByContractId(id).get(0));
+        Record record = JavaBeanUtil.mapToRecord(crmContractDao.queryByContractId(id));
         //Record record = Db.findFirst(Db.getSql("crm.contract.queryByContractId"), id);
         if (record == null) {
             return null;
@@ -145,13 +146,8 @@ public class CrmContractService {
             LkCrmContractEntity contract = crmContractDao.get(NumberConvertUtil.parseInt(id));
             if (contract != null) {
                 crmContractDao.executeUpdateSQL("delete FROM lkcrm_admin_fieldv where batch_id = ?", contract.getBatchId());
+                crmContractDao.delete(NumberConvertUtil.parseInt(id));
             }
-            /*if (!crmContractDao.delete(id);) {
-                return R.error();
-            }*/
-            crmContractDao.delete(NumberConvertUtil.parseInt(id));
-            return R.error();
-
         }
         return R.ok();
     }
@@ -161,24 +157,27 @@ public class CrmContractService {
      */
     @Before(Tx.class)
     public R saveAndUpdate(JSONObject jsonObject) {
-        LkCrmContractEntity crmContract = jsonObject.getObject("entity", LkCrmContractEntity.class);
+        CrmContract entity = jsonObject.getObject("entity", CrmContract.class);
+        LkCrmContractEntity crmContract = new LkCrmContractEntity();
+        BeanUtils.copyProperties(entity, crmContract);
         String batchId = StrUtil.isNotEmpty(crmContract.getBatchId()) ? crmContract.getBatchId() : IdUtil.simpleUUID();
+        crmContract.setCustId(BaseUtil.getUser().getCustId());
         crmRecordService.updateRecord(jsonObject.getJSONArray("field"), batchId);
         adminFieldService.save(jsonObject.getJSONArray("field"), batchId);
         boolean flag;
-        if (crmContract.getContractId() == null) {
+        if (entity.getContractId() == null) {
             Integer contract = crmContractDao.queryByNum(crmContract.getNum());
             if (contract != 0) {
                 return R.error("合同编号已存在，请校对后再添加！");
             }
-            crmContract.setCreateUserId(BaseUtil.getUser().getUserId().intValue());
+            crmContract.setCreateUserId(BaseUtil.getUser().getUserId());
             crmContract.setBatchId(batchId);
             crmContract.setCreateTime(DateUtil.date().toTimestamp());
             crmContract.setUpdateTime(DateUtil.date().toTimestamp());
             crmContract.setRoUserId(",");
             crmContract.setRwUserId(",");
             crmContract.setCheckStatus(0);
-            crmContract.setOwnerUserId(BaseUtil.getUser().getUserId().intValue());
+            crmContract.setOwnerUserId(BaseUtil.getUser().getUserId());
 
 
             Map<String, Integer> map = examineRecordService.saveExamineRecord(1, jsonObject.getLong("checkUserId"), crmContract.getOwnerUserId(), null);
@@ -190,6 +189,7 @@ public class CrmContractService {
             flag = (int) crmContractDao.saveReturnPk(crmContract) > 0;
             crmRecordService.addRecord(crmContract.getContractId(), CrmEnum.CONTRACT_TYPE_KEY.getTypes());
         } else {
+            crmContract.setContractId(entity.getContractId());
             LkCrmContractEntity contract = crmContractDao.get(crmContract.getContractId());
             if (contract.getCheckStatus() != 4 && contract.getCheckStatus() != 3) {
                 return R.error("不能编辑，请先撤回再编辑！");
@@ -224,7 +224,7 @@ public class CrmContractService {
                     if (crmContract.getBusinessId() != null) {
                         //CrmBusinessProducte crmBusinessProduct = new CrmBusinessProduct()._setOrPut(crmContractProduct.toRecord().getColumns());
                         LkCrmBusinessProductEntity crmBusinessProduct = new LkCrmBusinessProductEntity();
-                        BeanUtils.copyProperties(crmContractProduct, crmBusinessProduct);
+                        BeanUtils.copyProperties(crmContractProduct, crmBusinessProduct, JavaBeanUtil.getNullPropertyNames(crmContractProduct));
                         crmBusinessProduct.setRId(null);
                         crmBusinessProduct.setBusinessId(crmContract.getBusinessId());
                         //crmBusinessProduct.save();
@@ -329,27 +329,28 @@ public class CrmContractService {
      */
     public R transfer(LkCrmContractEntity crmContract) {
         String[] contractIdsArr = crmContract.getContractIds().split(",");
-        return Db.tx(() -> {
-            for (String contractId : contractIdsArr) {
-                String memberId = "," + crmContract.getNewOwnerUserId() + ",";
-                //Db.update(Db.getSql("crm.contract.deleteMember"), memberId, memberId, Integer.valueOf(contractId));
-                crmContractDao.deleteMember(memberId, Integer.valueOf(contractId));
-                LkCrmContractEntity oldContract = crmContractDao.get(Integer.valueOf(contractId));
-                if (2 == crmContract.getTransferType()) {
-                    if (1 == crmContract.getPower()) {
-                        crmContract.setRoUserId(oldContract.getRoUserId() + oldContract.getOwnerUserId() + ",");
-                    }
-                    if (2 == crmContract.getPower()) {
-                        crmContract.setRwUserId(oldContract.getRwUserId() + oldContract.getOwnerUserId() + ",");
-                    }
+        //return Db.tx(() -> {
+        for (String contractId : contractIdsArr) {
+            String memberId = "," + crmContract.getNewOwnerUserId() + ",";
+            //Db.update(Db.getSql("crm.contract.deleteMember"), memberId, memberId, Integer.valueOf(contractId));
+            crmContractDao.deleteMember(memberId, Integer.valueOf(contractId));
+            LkCrmContractEntity oldContract = crmContractDao.get(Integer.valueOf(contractId));
+            if (2 == crmContract.getTransferType()) {
+                if (1 == crmContract.getPower()) {
+                    crmContract.setRoUserId(oldContract.getRoUserId() + oldContract.getOwnerUserId() + ",");
                 }
-                crmContract.setContractId(Integer.valueOf(contractId));
-                crmContract.setOwnerUserId(crmContract.getNewOwnerUserId());
-                crmContractDao.update(crmContract);
-                crmRecordService.addConversionRecord(Integer.valueOf(contractId), CrmEnum.CONTRACT_TYPE_KEY.getTypes(), crmContract.getNewOwnerUserId());
+                if (2 == crmContract.getPower()) {
+                    crmContract.setRwUserId(oldContract.getRwUserId() + oldContract.getOwnerUserId() + ",");
+                }
             }
-            return true;
-        }) ? R.ok() : R.error();
+            crmContract.setContractId(Integer.valueOf(contractId));
+            crmContract.setOwnerUserId(crmContract.getNewOwnerUserId());
+            BeanUtils.copyProperties(crmContract, oldContract, JavaBeanUtil.getNullPropertyNames(crmContract));
+            crmContractDao.update(oldContract);
+            crmRecordService.addConversionRecord(Integer.valueOf(contractId), CrmEnum.CONTRACT_TYPE_KEY.getTypes(), crmContract.getNewOwnerUserId());
+        }
+        return R.ok();
+        // }) ? R.ok() : R.error();
     }
 
     /**
@@ -357,10 +358,10 @@ public class CrmContractService {
      * 查询团队成员
      */
     public List<Record> getMembers(Integer contractId) {
-        CrmContract crmContract = CrmContract.dao.findById(contractId);
+        LkCrmContractEntity crmContract = crmContractDao.get(contractId);
         List<Record> recordList = new ArrayList<>();
         if (null != crmContract.getOwnerUserId()) {
-            Record ownerUser = JavaBeanUtil.mapToRecord(crmCustomerDao.getMembers(crmContract.getOwnerUserId()).get(0));
+            Record ownerUser = JavaBeanUtil.mapToRecord(crmCustomerDao.getMembers(crmContract.getOwnerUserId()));
             //Record ownerUser = Db.findFirst(Db.getSql("crm.customer.getMembers"), crmContract.getOwnerUserId());
             recordList.add(ownerUser.set("power", "负责人权限").set("groupRole", "负责人"));
         }
@@ -374,7 +375,7 @@ public class CrmContractService {
         Set<String> memberIdsSet = new HashSet<>(Arrays.asList(memberIdsArr));
         for (String memberId : memberIdsSet) {
             //Record record = JavaBeanUtil.mapToRecord(crmCustomerDao.getMembers(memberId).get(0));
-            Record record = JavaBeanUtil.mapToRecord(crmCustomerDao.getMembers(NumberUtil.parseInt(memberId)).get(0));
+            Record record = JavaBeanUtil.mapToRecord(crmCustomerDao.getMembers(NumberUtil.parseLong(memberId)));
             //Record record = Db.findFirst(Db.getSql("crm.customer.getMembers"), memberId);
             if (roUserId.contains(memberId)) {
                 record.set("power", "只读").set("groupRole", "普通成员");
@@ -397,9 +398,13 @@ public class CrmContractService {
         String[] memberArr = crmContract.getMemberIds().split(",");
         StringBuilder stringBuilder = new StringBuilder();
         for (String id : contractIdsArr) {
-            Integer ownerUserId = crmContractDao.get(Integer.valueOf(id)).getOwnerUserId();
+            LkCrmContractEntity entity = crmContractDao.get(Integer.valueOf(id));
+            if(entity==null){
+                return R.error("合同不存在");
+            }
+            Long ownerUserId = entity.getOwnerUserId();
             for (String memberId : memberArr) {
-                if (ownerUserId.equals(Integer.valueOf(memberId))) {
+                if (ownerUserId.equals(NumberConvertUtil.parseLong(memberId))) {
                     return R.error("负责人不能重复选为团队成员");
                 }
                 crmContractDao.deleteMember("," + memberId + ",", Integer.valueOf(id));
@@ -407,12 +412,20 @@ public class CrmContractService {
             }
             if (1 == crmContract.getPower()) {
                 stringBuilder.setLength(0);
-                String roUserId = stringBuilder.append(crmContractDao.get(Integer.valueOf(id)).getRoUserId()).append(crmContract.getMemberIds()).append(",").toString();
+                String roUserIdDb = crmContractDao.get(Integer.valueOf(id)).getRoUserId();
+                if ((StringUtil.isNotEmpty(roUserIdDb) && !roUserIdDb.startsWith(",")) || StringUtil.isEmpty(roUserIdDb)) {
+                    stringBuilder.append(",");
+                }
+                String roUserId = stringBuilder.append(roUserIdDb).append(crmContract.getMemberIds()).append(",").toString();
                 crmContractDao.executeUpdateSQL("update lkcrm_crm_contract set ro_user_id = ? where contract_id = ?", roUserId, Integer.valueOf(id));
             }
             if (2 == crmContract.getPower()) {
                 stringBuilder.setLength(0);
-                String rwUserId = stringBuilder.append(crmContractDao.get(Integer.valueOf(id)).getRwUserId()).append(crmContract.getMemberIds()).append(",").toString();
+                String roUserIdDb = crmContractDao.get(Integer.valueOf(id)).getRwUserId();
+                if ((StringUtil.isNotEmpty(roUserIdDb) && !roUserIdDb.startsWith(",")) || StringUtil.isEmpty(roUserIdDb)) {
+                    stringBuilder.append(",");
+                }
+                String rwUserId = stringBuilder.append(roUserIdDb).append(crmContract.getMemberIds()).append(",").toString();
                 crmContractDao.executeUpdateSQL("update lkcrm_crm_contract set rw_user_id = ? where contract_id = ?", rwUserId, Integer.valueOf(id));
             }
         }
@@ -426,15 +439,16 @@ public class CrmContractService {
     public R deleteMembers(CrmContract crmContract) {
         String[] contractIdsArr = crmContract.getIds().split(",");
         String[] memberArr = crmContract.getMemberIds().split(",");
-        return Db.tx(() -> {
-            for (String id : contractIdsArr) {
-                for (String memberId : memberArr) {
-                    crmContractDao.deleteMember("," + memberId + ",", Integer.valueOf(id));
-                    //Db.update(Db.getSql("crm.contract.deleteMember"), "," + memberId + ",", "," + memberId + ",", Integer.valueOf(id));
-                }
+        //return Db.tx(() -> {
+        int code = 0;
+        for (String id : contractIdsArr) {
+            for (String memberId : memberArr) {
+                code += crmContractDao.deleteMember("," + memberId + ",", Integer.valueOf(id));
+                //Db.update(Db.getSql("crm.contract.deleteMember"), "," + memberId + ",", "," + memberId + ",", Integer.valueOf(id));
             }
-            return true;
-        }) ? R.ok() : R.error();
+        }
+        return code > 0 ? R.ok() : R.error();
+        //}) ? R.ok() : R.error();
     }
 
     /**
@@ -464,7 +478,7 @@ public class CrmContractService {
         contract.set("company_user_id", list);
         List<Record> fieldList = adminFieldService.queryUpdateField(6, contract);
         Kv kv = Kv.by("discount_rate", contract.getBigDecimal("discount_rate"))
-                .set("product", Db.find(Db.getSql("crm.contract.queryBusinessProduct"), contractId))
+                .set("product", crmContractDao.queryBusinessProduct(contractId).get(0))
                 .set("total_price", contract.getStr("total_price"));
         fieldList.add(new Record().set("field_name", "product").set("name", "产品").set("value", kv).set("form_type", "product").set("setting", new String[]{}).set("is_null", 0).set("field_type", 1));
         return fieldList;
@@ -478,14 +492,14 @@ public class CrmContractService {
     public R addRecord(LkCrmAdminRecordEntity adminRecord) {
         adminRecord.setTypes("crm_contract");
         adminRecord.setCreateTime(DateUtil.date().toTimestamp());
-        adminRecord.setCreateUserId(BaseUtil.getUser().getUserId().intValue());
+        adminRecord.setCreateUserId(BaseUtil.getUser().getUserId());
         if (1 == adminRecord.getIsEvent()) {
             LkCrmOaEventEntity oaEvent = new LkCrmOaEventEntity();
             oaEvent.setTitle(adminRecord.getContent());
             oaEvent.setStartTime(adminRecord.getNextTime());
             oaEvent.setEndTime(DateUtil.offsetDay(adminRecord.getNextTime(), 1).toTimestamp());
             oaEvent.setCreateTime(DateUtil.date().toTimestamp());
-            oaEvent.setCreateUserId(BaseUtil.getUser().getUserId().intValue());
+            oaEvent.setCreateUserId(BaseUtil.getUser().getUserId());
             crmOaEventDao.save(oaEvent);
 
             LoginUser user = BaseUtil.getUser();
@@ -520,7 +534,7 @@ public class CrmContractService {
     public R qureyProductListByContractId(BasePageRequest<CrmContractProduct> basePageRequest) {
 
         Integer pageType = basePageRequest.getPageType();
-        Record record = JavaBeanUtil.mapToRecord(crmBusinessProductDao.querySubtotalByBusinessId(basePageRequest.getData().getContractId()).get(0));
+        Record record = JavaBeanUtil.mapToRecord(crmBusinessProductDao.querySubtotalByBusinessId(basePageRequest.getData().getContractId()));
         //Record record = Db.findFirst(Db.getSql("crm.product.querySubtotalByContractId"), basePageRequest.getData().getContractId());
         if (record.getStr("money") == null) {
             record.set("money", 0);
@@ -545,7 +559,7 @@ public class CrmContractService {
      * 查询合同到期提醒设置
      */
     public R queryContractConfig() {
-        LkCrmAdminConfigEntity config = crmAdminConfigDao.findUniqueBy("name","expiringContractDays");
+        LkCrmAdminConfigEntity config = crmAdminConfigDao.findUniqueBy("name", "expiringContractDays");
         if (config == null) {
             config = new LkCrmAdminConfigEntity();
             config.setStatus(0);
@@ -566,7 +580,7 @@ public class CrmContractService {
         if (status == 1 && contractDay == null) {
             return R.error("contractDay不能为空");
         }
-        Integer number = crmContractDao.setContractConfig(status,contractDay);
+        Integer number = crmContractDao.setContractConfig(status, contractDay);
         //Integer number = Db.update(Db.getSqlPara("crm.contract.setContractConfig", Kv.by("status", status).set("contractDay", contractDay)));
         if (0 == number) {
             LkCrmAdminConfigEntity adminConfig = new LkCrmAdminConfigEntity();

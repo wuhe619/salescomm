@@ -1,7 +1,6 @@
 package com.bdaim.crm.erp.crm.common;
 
 import com.jfinal.config.Routes;
-import com.bdaim.crm.erp.crm.controller.*;
 
 public class CrmRouter extends Routes {
     @Override
@@ -15,9 +14,9 @@ public class CrmRouter extends Routes {
         //add("/CrmContacts", CrmContactsController.class);
         //add("/CrmContract", CrmContractController.class);
         //add("/CrmReceivables", CrmReceivablesController.class);
-        add("/CrmRecord",CrmRecordController.class);
-        add("/Crm/ReceivablesPlan",CrmReceivablesPlanController.class);
-        add("/Crm/Instrument",InstrumentController.class);
-        add("/CrmBackLog",CrmBackLogController.class);
+        //add("/CrmRecord",CrmRecordController.class);
+        //add("/Crm/ReceivablesPlan",CrmReceivablesPlanController.class);
+        //add("/Crm/Instrument",InstrumentController.class);
+        //add("/CrmBackLog",CrmBackLogController.class);
     }
 }

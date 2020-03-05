@@ -5,6 +5,7 @@ import com.bdaim.auth.LoginUser;
 import com.bdaim.common.auth.service.TokenCacheService;
 import com.bdaim.common.dto.Page;
 import com.bdaim.crm.common.config.JfinalConfig;
+import com.bdaim.util.NumberConvertUtil;
 import com.jfinal.kit.Prop;
 import com.jfinal.kit.PropKit;
 import com.jfinal.log.Log;
@@ -150,6 +151,14 @@ public class BaseUtil {
 
     public static Long getUserId() {
         return getUser().getId();
+    }
+
+    public static String getCustId() {
+        return getUser().getCustId();
+    }
+
+    public static int getUserType() {
+        return NumberConvertUtil.parseInt(getUser().getUserType());
     }
 
     public static void removeThreadLocal() {

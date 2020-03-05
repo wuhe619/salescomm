@@ -7,20 +7,21 @@ import java.util.Objects;
 @Entity
 @Table(name = "lkcrm_work_task_label", schema = "", catalog = "")
 public class LkCrmWorkTaskLabelEntity {
-    private int labelId;
+    private Integer labelId;
     private String name;
     private Timestamp createTime;
-    private Integer createUserId;
+    private Long createUserId;
     private Integer status;
     private String color;
 
     @Id
     @Column(name = "label_id")
-    public int getLabelId() {
+    @GeneratedValue
+    public Integer getLabelId() {
         return labelId;
     }
 
-    public void setLabelId(int labelId) {
+    public void setLabelId(Integer labelId) {
         this.labelId = labelId;
     }
 
@@ -46,11 +47,11 @@ public class LkCrmWorkTaskLabelEntity {
 
     @Basic
     @Column(name = "create_user_id")
-    public Integer getCreateUserId() {
+    public Long getCreateUserId() {
         return createUserId;
     }
 
-    public void setCreateUserId(Integer createUserId) {
+    public void setCreateUserId(Long createUserId) {
         this.createUserId = createUserId;
     }
 

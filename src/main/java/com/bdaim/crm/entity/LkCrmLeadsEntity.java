@@ -9,7 +9,7 @@ import java.util.Objects;
 public class LkCrmLeadsEntity {
     private Integer leadsId;
     private String custId;
-    private int isTransform;
+    private Integer isTransform;
     private Integer followup;
     private String leadsName;
     private Integer customerId;
@@ -25,6 +25,7 @@ public class LkCrmLeadsEntity {
     private Timestamp createTime;
     private Timestamp updateTime;
     private String batchId;
+    private String seaId;
 
     @Id
     @Column(name = "leads_id")
@@ -48,11 +49,11 @@ public class LkCrmLeadsEntity {
 
     @Basic
     @Column(name = "is_transform")
-    public int getIsTransform() {
+    public Integer getIsTransform() {
         return isTransform;
     }
 
-    public void setIsTransform(int isTransform) {
+    public void setIsTransform(Integer isTransform) {
         this.isTransform = isTransform;
     }
 
@@ -203,6 +204,14 @@ public class LkCrmLeadsEntity {
 
     public void setIsLock(Integer isLock) {
         this.isLock = isLock;
+    }
+
+    public String getSeaId() {
+        return seaId;
+    }
+
+    public void setSeaId(String seaId) {
+        this.seaId = seaId;
     }
 
     @Override

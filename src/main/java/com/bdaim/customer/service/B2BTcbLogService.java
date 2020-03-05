@@ -10,10 +10,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * @author chengning@salescomm.net
@@ -85,7 +83,8 @@ public class B2BTcbLogService implements BusiService {
             sqlParams.add(end_date);
             sqlstr.append(" and t.create_date between ? and ? ");
         }
-        sqlstr.append("group by  create_date  order by  create_date desc");
+        //sqlstr.append("group by create_date  order by  create_date desc");
+        sqlstr.append("group by ext_3 ");
         return sqlstr.toString();
     }
 

@@ -67,8 +67,8 @@ public class CipherUtil{
     }
 
     public static void main(String[] args) {
-        System.out.println(generatePassword("t#0nline!"));
-        System.out.println(validatePassword("a73460d7d13c264e8d7668e4db209771","t#0nline!"));
+        System.out.println(generatePassword("xuHui_123"));
+        System.out.println(validatePassword("c39191420f117092163aee8ef3169fb6","t#0nline!"));
     }
 }
 

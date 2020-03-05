@@ -10,15 +10,16 @@ public class  LkCrmCustomerEntity {
     private Integer customerId;
     private String customerName;
     private Integer followup;
-    private int isLock;
+    private String custId;
+    private Integer isLock;
     private Timestamp nextTime;
     private String dealStatus;
     private String mobile;
     private String telephone;
     private String website;
     private String remark;
-    private Integer createUserId;
-    private Integer ownerUserId;
+    private Long createUserId;
+    private Long ownerUserId;
     private String roUserId;
     private String rwUserId;
     private String address;
@@ -37,13 +38,14 @@ public class  LkCrmCustomerEntity {
     //权限（1.只读2.只写）
     private Integer power;
     //变更负责人
-    private Integer newOwnerUserId;
+    private Long newOwnerUserId;
     private String ids;
     private String memberIds;
     private String customerIds;
     private Integer checkstatus;
     private String businessName;
 
+    private String company;
     @Id
     @Column(name = "customer_id")
     @GeneratedValue
@@ -55,6 +57,15 @@ public class  LkCrmCustomerEntity {
         this.customerId = customerId;
     }
 
+    @Basic
+    @Column(name = "cust_id")
+    public String getCustId() {
+        return custId;
+    }
+
+    public void setCustId(String custId) {
+        this.custId = custId;
+    }
     @Basic
     @Column(name = "customer_name")
     public String getCustomerName() {
@@ -77,11 +88,11 @@ public class  LkCrmCustomerEntity {
 
     @Basic
     @Column(name = "is_lock")
-    public int getIsLock() {
+    public Integer getIsLock() {
         return isLock;
     }
 
-    public void setIsLock(int isLock) {
+    public void setIsLock(Integer isLock) {
         this.isLock = isLock;
     }
 
@@ -147,21 +158,21 @@ public class  LkCrmCustomerEntity {
 
     @Basic
     @Column(name = "create_user_id")
-    public Integer getCreateUserId() {
+    public Long getCreateUserId() {
         return createUserId;
     }
 
-    public void setCreateUserId(Integer createUserId) {
+    public void setCreateUserId(Long createUserId) {
         this.createUserId = createUserId;
     }
 
     @Basic
     @Column(name = "owner_user_id")
-    public Integer getOwnerUserId() {
+    public Long getOwnerUserId() {
         return ownerUserId;
     }
 
-    public void setOwnerUserId(Integer ownerUserId) {
+    public void setOwnerUserId(Long ownerUserId) {
         this.ownerUserId = ownerUserId;
     }
 
@@ -265,6 +276,16 @@ public class  LkCrmCustomerEntity {
         this.batchId = batchId;
     }
 
+    @Basic
+    @Column(name = "company")
+    public String getCompany() {
+        return company;
+    }
+
+    public void setCompany(String company) {
+        this.company = company;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -324,11 +345,11 @@ public class  LkCrmCustomerEntity {
         this.power = power;
     }
     @Transient
-    public Integer getNewOwnerUserId() {
+    public Long getNewOwnerUserId() {
         return newOwnerUserId;
     }
 
-    public void setNewOwnerUserId(Integer newOwnerUserId) {
+    public void setNewOwnerUserId(Long newOwnerUserId) {
         this.newOwnerUserId = newOwnerUserId;
     }
     @Transient

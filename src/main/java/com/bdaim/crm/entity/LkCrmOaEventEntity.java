@@ -7,12 +7,12 @@ import java.util.Objects;
 @Entity
 @Table(name = "lkcrm_oa_event", schema = "", catalog = "")
 public class LkCrmOaEventEntity {
-    private int eventId;
+    private Integer eventId;
     private String title;
     private String content;
     private Timestamp startTime;
     private Timestamp endTime;
-    private int createUserId;
+    private Long createUserId;
     private Timestamp createTime;
     private Timestamp updateTime;
     private Integer type;
@@ -22,14 +22,55 @@ public class LkCrmOaEventEntity {
     private String color;
     private Integer remindType;
 
+    private String customerIds;
+    private String contactsIds;
+    private String businessIds;
+    private String contractIds;
+
+    @Transient
+    public String getCustomerIds() {
+        return customerIds;
+    }
+
+    public void setCustomerIds(String customerIds) {
+        this.customerIds = customerIds;
+    }
+
+    @Transient
+    public String getContactsIds() {
+        return contactsIds;
+    }
+
+    public void setContactsIds(String contactsIds) {
+        this.contactsIds = contactsIds;
+    }
+
+    @Transient
+    public String getBusinessIds() {
+        return businessIds;
+    }
+
+    public void setBusinessIds(String businessIds) {
+        this.businessIds = businessIds;
+    }
+
+    @Transient
+    public String getContractIds() {
+        return contractIds;
+    }
+
+    public void setContractIds(String contractIds) {
+        this.contractIds = contractIds;
+    }
+
     @Id
     @Column(name = "event_id")
     @GeneratedValue
-    public int getEventId() {
+    public Integer getEventId() {
         return eventId;
     }
 
-    public void setEventId(int eventId) {
+    public void setEventId(Integer eventId) {
         this.eventId = eventId;
     }
 
@@ -75,11 +116,11 @@ public class LkCrmOaEventEntity {
 
     @Basic
     @Column(name = "create_user_id")
-    public int getCreateUserId() {
+    public Long getCreateUserId() {
         return createUserId;
     }
 
-    public void setCreateUserId(int createUserId) {
+    public void setCreateUserId(Long createUserId) {
         this.createUserId = createUserId;
     }
 

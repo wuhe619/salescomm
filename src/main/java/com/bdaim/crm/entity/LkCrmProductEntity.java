@@ -9,6 +9,7 @@ import java.util.Objects;
 @Table(name = "lkcrm_crm_product", schema = "", catalog = "")
 public class LkCrmProductEntity {
     private Integer productId;
+    private String custId;
     private String name;
     private String num;
     private String unit;
@@ -17,7 +18,7 @@ public class LkCrmProductEntity {
     private Integer categoryId;
     private String description;
     private Long createUserId;
-    private Integer ownerUserId;
+    private Long ownerUserId;
     private Timestamp createTime;
     private Timestamp updateTime;
     private String batchId;
@@ -31,6 +32,16 @@ public class LkCrmProductEntity {
 
     public void setProductId(Integer productId) {
         this.productId = productId;
+    }
+
+    @Basic
+    @Column(name = "cust_id")
+    public String getCustId() {
+        return custId;
+    }
+
+    public void setCustId(String custId) {
+        this.custId = custId;
     }
 
     @Basic
@@ -115,11 +126,11 @@ public class LkCrmProductEntity {
 
     @Basic
     @Column(name = "owner_user_id")
-    public Integer getOwnerUserId() {
+    public Long getOwnerUserId() {
         return ownerUserId;
     }
 
-    public void setOwnerUserId(Integer ownerUserId) {
+    public void setOwnerUserId(Long ownerUserId) {
         this.ownerUserId = ownerUserId;
     }
 

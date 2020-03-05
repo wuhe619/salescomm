@@ -29,6 +29,7 @@ import com.jfinal.log.Log;
 import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.tx.Tx;
 import com.jfinal.upload.UploadFile;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -84,11 +85,15 @@ public class CrmProductService {
      */
     @Before(Tx.class)
     public R saveAndUpdate(JSONObject jsonObject) {
-        LkCrmProductEntity crmProduct = jsonObject.getObject("entity", LkCrmProductEntity.class);
+        CrmProduct entity = jsonObject.getObject("entity", CrmProduct.class);
+        LkCrmProductEntity crmProduct = new LkCrmProductEntity();
+        BeanUtils.copyProperties(entity, crmProduct);
+        crmProduct.setCustId(BaseUtil.getUser().getCustId());
         String batchId = StrUtil.isNotEmpty(crmProduct.getBatchId()) ? crmProduct.getBatchId() : IdUtil.simpleUUID();
         crmRecordService.updateRecord(jsonObject.getJSONArray("field"), batchId);
         adminFieldService.save(jsonObject.getJSONArray("field"), batchId);
-        if (crmProduct.getProductId() == null) {
+        if (entity.getProductId() == null) {
+            // 新增
             Integer product = crmProductDao.getByNum(crmProduct.getNum());
             if (product != 0) {
                 return R.error("产品编号已存在，请校对后再添加！");
@@ -96,17 +101,20 @@ public class CrmProductService {
             crmProduct.setCreateUserId(BaseUtil.getUser().getUserId());
             crmProduct.setCreateTime(DateUtil.date().toTimestamp());
             crmProduct.setUpdateTime(DateUtil.date().toTimestamp());
-            crmProduct.setOwnerUserId(BaseUtil.getUser().getUserId().intValue());
+            crmProduct.setOwnerUserId(BaseUtil.getUser().getUserId());
             crmProduct.setBatchId(batchId);
             boolean save = (int) crmProductDao.saveReturnPk(crmProduct) > 0;
             crmRecordService.addRecord(crmProduct.getProductId(), CrmEnum.PRODUCT_TYPE_KEY.getTypes());
             return save ? R.ok() : R.error();
         } else {
+            crmProduct.setProductId(entity.getProductId());
             LkCrmProductEntity oldCrmProduct = crmProductDao.get(crmProduct.getProductId());
             crmRecordService.updateRecord(oldCrmProduct, crmProduct, CrmEnum.PRODUCT_TYPE_KEY.getTypes());
             crmProduct.setUpdateTime(DateUtil.date().toTimestamp());
+            BeanUtils.copyProperties(crmProduct, oldCrmProduct, JavaBeanUtil.getNullPropertyNames(crmProduct));
+            crmProductDao.update(oldCrmProduct);
         }
-        crmProductDao.update(crmProduct);
+
         return R.ok();
     }
 

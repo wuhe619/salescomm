@@ -9,19 +9,20 @@ import com.bdaim.bill.service.TransactionService;
 import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.service.BusiService;
 import com.bdaim.common.service.ElasticSearchService;
-import com.bdaim.online.zhianxin.dto.BaseResult;
-import com.bdaim.online.zhianxin.service.ZAXSearchListService;
+import com.bdaim.crm.erp.crm.service.CrmLeadsService;
+import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.customersea.dto.CustomSeaTouchInfoDTO;
 import com.bdaim.customersea.service.CustomerSeaService;
 import com.bdaim.customs.entity.BusiTypeEnum;
 import com.bdaim.customs.entity.HMetaDataDef;
+import com.bdaim.online.zhianxin.dto.BaseResult;
+import com.bdaim.online.zhianxin.service.ZAXSearchListService;
 import com.bdaim.resource.dao.MarketResourceDao;
 import com.bdaim.resource.entity.MarketResourceEntity;
 import com.bdaim.resource.entity.ResourcePropertyEntity;
 import com.bdaim.resource.service.MarketResourceService;
 import com.bdaim.util.NumberConvertUtil;
 import com.bdaim.util.StringUtil;
-import org.apache.commons.lang.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,6 +65,8 @@ public class B2BTcbService implements BusiService {
     private TransactionService transactionService;
     @Autowired
     private MarketResourceDao marketResourceDao;
+    @Autowired
+    private CrmLeadsService crmLeadsService;
 
     /**
      * 企业开通B2B套餐
@@ -334,9 +337,15 @@ public class B2BTcbService implements BusiService {
                 // 保存线索
                 int status = seaService.addClueData0(dto, seaType);
                 LOG.info("B2B套餐领取线索状态:{},seaType:{},data:{}", status, seaType, JSON.toJSONString(dto));
+                // 保存领取记录
+                saveTcbClueDataLog(custId, userId, batchId, entId, useB2BTcb.getString("id"), dto.getSuper_id(), JSON.toJSONString(dto));
+                // 判断是否为crm的线索领取
+                if ("crm".equals(param.getString("source")) && BaseUtil.getUserType() == 2 && status != -1) {
+                    List<String> superIds = new ArrayList<>();
+                    superIds.add(dto.getSuper_id());
+                    crmLeadsService.transferToPrivateSea(seaId,data.get(entId).getString("entName"), String.valueOf(userId), superIds);
+                }
             }
-            // 保存领取记录
-            saveTcbClueDataLog(custId, userId, batchId, entId, useB2BTcb.getString("id"), dto.getSuper_id(), JSON.toJSONString(dto));
             consumeNum++;
         }
         // 更新套餐余量和消耗量
@@ -355,8 +364,8 @@ public class B2BTcbService implements BusiService {
         String updateNumSql = "UPDATE " + HMetaDataDef.getTable(busiType, "")
                 + " set content = JSON_SET(content, '$.consume_num', JSON_EXTRACT(content, '$.consume_num') + ?), " +
                 " content = JSON_SET ( content, '$.remain_num', JSON_EXTRACT(content, '$.remain_num') - ? )" +
-                " where id = ? ";
-        jdbcTemplate.update(updateNumSql, consumerNum, consumerNum, id);
+                " where id = ? and type=?";
+        jdbcTemplate.update(updateNumSql, consumerNum, consumerNum, id,busiType);
     }
 
     /**
@@ -405,6 +414,7 @@ public class B2BTcbService implements BusiService {
        /* Random random = new Random();
         long pageNo = random.nextInt((int) getNumber), pageSize = getNumber * 5;*/
         // 预查询数据
+        param.put("endTime","1900-01-01");
         baseResult = searchListService.pageSearch(custId, "", userId, busiType, param);
         resultData = (JSONObject) baseResult.getData();
         if (resultData != null || "100".equals(baseResult.getCode())) {

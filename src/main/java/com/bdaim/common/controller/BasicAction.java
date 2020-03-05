@@ -18,6 +18,7 @@ import com.bdaim.rbac.dto.UserQueryParam;
 import com.bdaim.rbac.entity.User;
 import com.bdaim.rbac.service.UserService;
 import com.bdaim.util.CalendarUtil;
+import com.bdaim.util.NumberConvertUtil;
 import com.bdaim.util.StringUtil;
 import com.jfinal.json.Json;
 import org.slf4j.Logger;
@@ -393,5 +394,47 @@ public class BasicAction {
         return (R.ok().put("data", JSON.parse(json.toJson(object))));
     }
 
+    public R renderCrmJson(R r) {
+        Json json = ErpJsonFactory.me().getJson();
+        Object object = r.get("data");
+        return (R.ok().put("data", JSON.parse(json.toJson(object))));
+    }
+
+    public String get(String name) {
+        return this.request.getParameter(name);
+    }
+
+    public String getPara(String name) {
+        return this.request.getParameter(name);
+    }
+
+    public Integer getParaToInt(String name) {
+        return NumberConvertUtil.parseInt(getPara(name));
+    }
+
+
+    public Integer getInt(String name) {
+        return NumberConvertUtil.parseInt(getPara(name));
+    }
+
+
+    public Long getLong(String name) {
+        return NumberConvertUtil.parseLong(getPara(name));
+    }
+
+    public Map getKv() {
+        Map kv = new HashMap();
+        Map<String, String[]> paraMap = this.request.getParameterMap();
+        Iterator var3 = paraMap.entrySet().iterator();
+
+        while(var3.hasNext()) {
+            Map.Entry<String, String[]> entry = (Map.Entry)var3.next();
+            String[] values = (String[])entry.getValue();
+            String value = values != null && values.length > 0 ? values[0] : null;
+            kv.put(entry.getKey(), "".equals(value) ? null : value);
+        }
+
+        return kv;
+    }
 
 }
