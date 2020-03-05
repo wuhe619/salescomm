@@ -223,13 +223,13 @@ public class CrmContactsController extends BasicAction {
      * @return
      */
     @RequestMapping(value = "/agency/list", method = RequestMethod.POST)
-    public R listAgency(BasePageRequest basePageRequest, Integer taskStatus, Integer customerId) {
+    public R listAgency(BasePageRequest basePageRequest, Integer taskStatus, Integer contactsId) {
         basePageRequest.setData(taskStatus);
-        boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.CUSTOMER_TYPE_KEY.getSign()), customerId);
+        boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.CUSTOMER_TYPE_KEY.getSign()), contactsId);
         if (auth) {
             return (R.noAuth());
         }
-        return (R.ok().put("data", JavaBeanUtil.recordToMap(crmContactsService.listAgency(basePageRequest, taskStatus, customerId))));
+        return (R.ok().put("data", JavaBeanUtil.recordToMap(crmContactsService.listAgency(basePageRequest, taskStatus, contactsId))));
     }
 
     /**
@@ -250,11 +250,10 @@ public class CrmContactsController extends BasicAction {
      */
     @Permissions("crm:contacts:excelexport")
     @RequestMapping(value = "/allExportExcel")
-    public void allExportExcel(@RequestBody BasePageRequest basePageRequest, @RequestBody JSONObject jsonObject, HttpServletResponse response) throws IOException {
+    public void allExportExcel(BasePageRequest basePageRequest, @RequestBody JSONObject jsonObject, HttpServletResponse response) throws IOException {
         //JSONObject jsonObject = basePageRequest.getJsonObject();
         jsonObject.fluentPut("excel", "yes").fluentPut("type", "3");
         basePageRequest.setJsonObject(jsonObject);
-        AdminSceneService adminSceneService = new AdminSceneService();
         List<Record> recordList = (List<Record>) adminSceneService.filterConditionAndGetPageList(basePageRequest).get("excel");
         export(recordList, response);
         //renderNull();

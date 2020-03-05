@@ -15,7 +15,7 @@ public class LkCrmAdminMenuDao extends SimpleHibernateDao<LkCrmAdminMenuEntity, 
     }
 
     public List<LkCrmAdminMenuEntity> queryMenuByParentId(Integer parentId) {
-        String sql = " from LkCrmAdminMenuEntity where parentId = ?";
+        String sql = " from LkCrmAdminMenuEntity where parentId = ? ORDER BY SORT ";
         return this.find(sql, parentId);
     }
 }
