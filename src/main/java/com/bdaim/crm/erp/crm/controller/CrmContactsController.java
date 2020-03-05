@@ -254,7 +254,6 @@ public class CrmContactsController extends BasicAction {
         //JSONObject jsonObject = basePageRequest.getJsonObject();
         jsonObject.fluentPut("excel", "yes").fluentPut("type", "3");
         basePageRequest.setJsonObject(jsonObject);
-        AdminSceneService adminSceneService = new AdminSceneService();
         List<Record> recordList = (List<Record>) adminSceneService.filterConditionAndGetPageList(basePageRequest).get("excel");
         export(recordList, response);
         //renderNull();
