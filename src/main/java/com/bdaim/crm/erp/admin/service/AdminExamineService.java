@@ -76,7 +76,7 @@ public class AdminExamineService {
             adminExamine.setCreateTime(examine.getCreateTime());
             adminExamine.setUpdateUserId(BaseUtil.getUser().getUserId());
             adminExamine.setUpdateTime(DateUtil.date().toTimestamp());
-            adminExamine.setExamineId(null);
+            //adminExamine.setExamineId(null);
             adminExamine.setStatus(1);
             flag = (int) crmAdminExamineDao.saveReturnPk(adminExamine) > 0;
 

@@ -390,7 +390,7 @@ public class AdminFieldService {
     }
 
     public R queryFields() {
-        List<Record> records = JavaBeanUtil.mapToRecords(crmAdminFieldDao.queryFields());
+        List records = crmAdminFieldDao.queryFields();
         return R.ok().put("data", records);
     }
 
@@ -561,7 +561,6 @@ public class AdminFieldService {
      * @author wyq
      * 查询客户管理列表页字段
      */
-    @Before(Tx.class)
     public List<Record> queryListHead(LkCrmAdminFieldSortEntity adminFieldSort) {
         //查看userid是否存在于顺序表，没有则插入
         Long userId = BaseUtil.getUser().getUserId();
@@ -624,7 +623,6 @@ public class AdminFieldService {
      * @author wyq
      * 查询字段排序隐藏设置
      */
-    @Before(Tx.class)
     public R queryFieldConfig(AdminFieldSort adminFieldSort) {
         Long userId = BaseUtil.getUser().getUserId();
         //查出自定义字段，查看顺序表是否存在该字段，没有则插入，设为隐藏

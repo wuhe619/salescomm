@@ -991,6 +991,21 @@ public class CrmLeadsService {
         return i > 0 ? R.ok() : R.error("线索删除失败");
     }
 
+    public R deletePublicClue(List idsList, String seaId) {
+        if (idsList == null || idsList.size() == 0) {
+            R.error("leadsIds不能为空");
+        }
+        int i = 0;
+        if (idsList.size() > 0) {
+            i = crmLeadsDao.executeUpdateSQL("delete from " + ConstantsUtil.SEA_TABLE_PREFIX + seaId + " where id IN( " + SqlAppendUtil.sqlAppendWhereIn(idsList) + " )");
+            CustomerSeaProperty csp = customerSeaDao.getProperty(seaId, "defaultClueCgId");
+            if (csp != null) {
+                i = crmLeadsDao.executeUpdateSQL("delete from " + ConstantsUtil.CUSTOMER_GROUP_TABLE_PREFIX + csp.getPropertyValue() + " where id IN( " + SqlAppendUtil.sqlAppendWhereIn(idsList) + " )");
+            }
+        }
+        return i > 0 ? R.ok() : R.error("公海线索删除失败");
+    }
+
     /**
      * @author wyq
      * 变更负责人

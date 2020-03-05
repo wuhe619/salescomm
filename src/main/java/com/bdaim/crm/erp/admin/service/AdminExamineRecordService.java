@@ -172,9 +172,9 @@ public class AdminExamineRecordService {
         //查询审批流程
         LkCrmAdminExamineEntity examine = crmAdminExamineDao.get(examineRecord.getExamineId());
         if (examine.getCategoryType() == 1) {
-            ownerUserId = Long.valueOf(crmContactsDao.get(id).getOwnerUserId());
+            ownerUserId = crmContactsDao.get(id).getOwnerUserId();
         } else {
-            ownerUserId = Long.valueOf(crmReceivablesDao.get(id).getOwnerUserId());
+            ownerUserId = crmReceivablesDao.get(id).getOwnerUserId();
         }
         //查询当前审批步骤
         LkCrmAdminExamineStepEntity examineStep = crmAdminExamineStepDao.get(examineRecord.getExamineStepId());
