@@ -61,7 +61,7 @@ public class SqlAppendUtil {
     }
 
     public static String sqlAppendWhereIn(List params) {
-        if (!CollectionUtils.isEmpty(params)) {
+        if (CollectionUtils.isEmpty(params)) {
             return "";
         }
         StringBuilder appendSql = new StringBuilder();

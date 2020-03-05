@@ -560,7 +560,7 @@ public class CrmContactsService {
         Integer errNum = 0;
         try (ExcelReader reader = ExcelUtil.getReader(file.getInputStream())) {
             List<List<Object>> read = reader.read();
-            List<Object> list = read.get(2);
+            List<Object> list = read.get(1);
             List<Record> recordList = adminFieldService.customFieldList("3");
             recordList.removeIf(record -> "file".equals(record.getStr("formType")) || "checkbox".equals(record.getStr("formType")) || "user".equals(record.getStr("formType")) || "structure".equals(record.getStr("formType")));
             List<Record> fieldList = adminFieldService.queryAddField(3);
@@ -616,7 +616,7 @@ public class CrmContactsService {
                                 .fluentPut("post", contactsList.get(kv.getInt("post")))
                                 .fluentPut("address", contactsList.get(kv.getInt("address")))
                                 .fluentPut("next_time", contactsList.get(kv.getInt("next_time")))
-                                .fluentPut("remark", contactsList.get(kv.getInt("remark")))
+                                .fluentPut("remark", contactsList.get(kv.getInt("备注")))
                                 .fluentPut("owner_user_id", ownerUserId));
                     } else if (number == 1 && repeatHandling == 1) {
                         if (repeatHandling == 1) {
@@ -631,7 +631,7 @@ public class CrmContactsService {
                                     .fluentPut("post", contactsList.get(kv.getInt("post")))
                                     .fluentPut("address", contactsList.get(kv.getInt("address")))
                                     .fluentPut("next_time", contactsList.get(kv.getInt("next_time")))
-                                    .fluentPut("remark", contactsList.get(kv.getInt("remark")))
+                                    .fluentPut("remark", contactsList.get(kv.getInt("备注")))
                                     .fluentPut("owner_user_id", ownerUserId)
                                     .fluentPut("batch_id", contacts.getStr("batch_id")));
                         }

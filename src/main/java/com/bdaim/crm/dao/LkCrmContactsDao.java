@@ -168,7 +168,7 @@ public class LkCrmContactsDao extends SimpleHibernateDao<LkCrmContactsEntity, In
 
 
     public List<Map<String, Object>> queryRepeatFieldNumber(String contactsName, String telephone, String mobile) {
-        String sql = " select count(*) as number from lkcrm_crm_contacts where 1=2";
+        String sql = " select count(*) as number from lkcrm_crm_contacts where 1=2 ";
         List param = new ArrayList();
         if (StringUtil.isNotEmpty(contactsName)) {
             param.add(contactsName);

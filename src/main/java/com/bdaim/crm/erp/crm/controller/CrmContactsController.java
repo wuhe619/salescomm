@@ -250,7 +250,7 @@ public class CrmContactsController extends BasicAction {
      */
     @Permissions("crm:contacts:excelexport")
     @RequestMapping(value = "/allExportExcel")
-    public void allExportExcel(@RequestBody BasePageRequest basePageRequest, @RequestBody JSONObject jsonObject, HttpServletResponse response) throws IOException {
+    public void allExportExcel(BasePageRequest basePageRequest, @RequestBody JSONObject jsonObject, HttpServletResponse response) throws IOException {
         //JSONObject jsonObject = basePageRequest.getJsonObject();
         jsonObject.fluentPut("excel", "yes").fluentPut("type", "3");
         basePageRequest.setJsonObject(jsonObject);
