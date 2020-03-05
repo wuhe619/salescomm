@@ -8,7 +8,6 @@ import com.bdaim.crm.entity.LkCrmAdminDeptEntity;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
 import com.bdaim.util.JavaBeanUtil;
-import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -97,7 +96,7 @@ public class AdminDeptService {
         if (list.contains(5)) {
             return JavaBeanUtil.mapToRecords(crmAdminDeptDao.sqlQuery("select dept_id as id,name,pid from lkcrm_admin_dept WHERE cust_id = ?", BaseUtil.getCustId()));
         } else {
-            adminDepts.add(Db.findFirst("select dept_id as id,name,pid from lkcrm_admin_dept where dept_id=?", BaseUtil.getUser().getDeptId()));
+            adminDepts.add(JavaBeanUtil.mapToRecord(crmAdminDeptDao.queryUniqueSql("select dept_id as id,name,pid from lkcrm_admin_dept where dept_id=?", BaseUtil.getUser().getDeptId())));
             if (list.contains(4)) {
                 adminDepts.addAll(queryDeptByParentDept(BaseUtil.getUser().getDeptId(), BaseConstant.AUTH_DATA_RECURSION_NUM));
             }
@@ -125,7 +124,7 @@ public class AdminDeptService {
     private List<Record> queryDeptByParentUser(Long userId, Integer deepness) {
         List<Record> recordList = new ArrayList<>();
         if (deepness > 0) {
-            List<Record> records = Db.find("SELECT a.dept_id AS id,a.name,a.pid,b.user_id FROM lkcrm_admin_dept as a LEFT JOIN lkcrm_admin_user as b on a.dept_id=b.dept_id WHERE b.parent_id = ?", userId);
+            List<Record> records = JavaBeanUtil.mapToRecords(crmAdminDeptDao.sqlQuery("SELECT a.dept_id AS id,a.name,a.pid,b.user_id FROM lkcrm_admin_dept as a LEFT JOIN lkcrm_admin_user as b on a.dept_id=b.dept_id WHERE b.parent_id = ?", userId));
             recordList.addAll(records);
             records.forEach(record -> {
                 recordList.addAll(queryDeptByParentUser(record.getLong("user_id"), deepness - 1));
@@ -160,15 +159,15 @@ public class AdminDeptService {
     }
 
     public R deleteDept(String id) {
-        Integer userCount = Db.queryInt("select count(*) from lkcrm_admin_user where dept_id = ?", id);
+        Integer userCount = crmAdminDeptDao.queryForInt("select count(*) from lkcrm_admin_user where dept_id = ?", id);
         if (userCount > 0) {
             return R.error("该部门下有员工，不能删除！");
         }
-        Integer childDeptCount = Db.queryInt("select count(*) from lkcrm_admin_dept where pid = ?", id);
+        Integer childDeptCount = crmAdminDeptDao.queryForInt("select count(*) from lkcrm_admin_dept where pid = ?", id);
         if (childDeptCount > 0) {
             return R.error("该部门下有下级部门，不能删除！");
         }
-        int delete = Db.delete("delete from lkcrm_admin_dept where dept_id = ?", id);
+        int delete = crmAdminDeptDao.executeUpdateSQL("delete from lkcrm_admin_dept where dept_id = ?", id);
         return delete > 0 ? R.ok() : R.error();
     }
 }
