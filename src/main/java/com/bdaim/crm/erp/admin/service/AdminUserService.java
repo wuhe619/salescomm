@@ -3,6 +3,8 @@ package com.bdaim.crm.erp.admin.service;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
+import com.bdaim.common.dto.Page;
+import com.bdaim.common.helper.SQLHelper;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.common.constant.BaseConstant;
 import com.bdaim.crm.dao.LkCrmAdminDeptDao;
@@ -15,10 +17,10 @@ import com.bdaim.crm.utils.R;
 import com.bdaim.crm.utils.Sort;
 import com.bdaim.crm.utils.TagUtil;
 import com.bdaim.util.JavaBeanUtil;
+import com.bdaim.util.SqlAppendUtil;
 import com.jfinal.aop.Before;
 import com.jfinal.kit.Kv;
 import com.jfinal.plugin.activerecord.Db;
-import com.jfinal.plugin.activerecord.Page;
 import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.SqlPara;
 import com.jfinal.plugin.activerecord.tx.Tx;
@@ -46,7 +48,8 @@ public class AdminUserService {
         boolean bol;
         updateScene(adminUser);
         if (adminUser.getUserId() == 0) {
-            Integer count = Db.queryInt("select count(*) from lkcrm_admin_user where username = ?", adminUser.getUsername());
+            String sql = "select count(*) from lkcrm_admin_user where username = ?";
+            Integer count = crmAdminUserDao.queryForInt(sql, adminUser.getUsername());
             if (count > 0) {
                 return R.error("手机号重复！");
             }
@@ -72,7 +75,6 @@ public class AdminUserService {
                     return R.error("该员工的下级员工不能设置为直属上级");
                 }
             }
-//            String username = Db.queryStr("select username from lkcrm_admin_user where user_id = ?", adminUser.getUserId());
             String sql = "select username from lkcrm_admin_user where user_id = ?";
             String username = crmAdminUserDao.queryForObject(sql, adminUser.getUserId());
             if (!username.equals(adminUser.getUsername())) {
@@ -112,10 +114,10 @@ public class AdminUserService {
             }
         }
         if (ids.size() > 0) {
-            HashSet<Long> idsSet = new HashSet<>();
+            Set<Long> idsSet = new HashSet<>();
             ids.forEach(id -> idsSet.addAll(queryTopUserId(id, BaseConstant.AUTH_DATA_RECURSION_NUM)));
-            SqlPara sqlPara = Db.getSqlPara("admin.user.updateScene", Kv.by("ids", idsSet));
-            Db.delete(sqlPara.getSql(), sqlPara.getPara());
+            String sql = "delete from lkcrm_admin_scene where user_id in (" + SQLHelper.getInSQL(idsSet) + ")";
+            crmAdminUserDao.executeUpdateSQL(sql);
         }
     }
 
@@ -147,7 +149,6 @@ public class AdminUserService {
                 "lkcrm_admin_user as a where a.user_id = ?";
         List<LkCrmAdminUserEntity> maps = crmAdminUserDao.queryListBySql(sql, LkCrmAdminUserEntity.class, BaseUtil.getUserId());
         LkCrmAdminUserEntity adminUser = maps != null && maps.size() > 0 ? maps.get(0) : new LkCrmAdminUserEntity();
-        //AdminUser adminUser = AdminUser.dao.findFirst(Db.getSql("admin.user.queryUserByUserId"), BaseUtil.getUserId());
         adminUser.setRoles(adminRoleService.queryRoleIdsByUserId(adminUser.getUserId()));
         //RedisManager.getRedis().setex(BaseUtil.getToken(), 360000, adminUser);
         //adminUser.remove("password", "salt");
@@ -161,11 +162,14 @@ public class AdminUserService {
             deptIdList.addAll(queryChileDeptIds(request.getData().getDeptId(), BaseConstant.AUTH_DATA_RECURSION_NUM));
         }
         if (request.getPageType() == 0) {
-            List<Record> recordList = Db.find(Db.getSqlPara("admin.user.queryUserList", Kv.by("name", request.getData().getRealname()).set("deptId", deptIdList).set("status", request.getData().getStatus()).set("roleId", roleId)));
+            List<Map<String, Object>> recordMaps = crmAdminUserDao.queryUserList(request.getData().getRealname(),
+                    deptIdList, request.getData().getStatus(), roleId);
+            List<Record> recordList = JavaBeanUtil.mapToRecords(recordMaps);
             return R.ok().put("data", recordList);
         } else {
-            Page<Record> paginate = Db.paginate(request.getPage(), request.getLimit(), Db.getSqlPara("admin.user.queryUserList", Kv.by("name", request.getData().getRealname()).set("deptId", deptIdList).set("status", request.getData().getStatus()).set("roleId", roleId)));
-            return R.ok().put("data", paginate);
+            Page page = crmAdminUserDao.queryUserListByPage(request.getPage(), request.getLimit(),
+                    request.getData().getRealname(), deptIdList, request.getData().getStatus(), roleId);
+            return R.ok().put("data", BaseUtil.crmPage(page));
         }
     }
 
@@ -229,11 +233,14 @@ public class AdminUserService {
     }
 
     public R querySuperior(String realName) {
-        return R.ok().put("data", Db.find(Db.getSqlPara("admin.user.querySuperior", Kv.by("name", realName))));
+        List<Map<String, Object>> superiorMaps = crmAdminUserDao.querySuperior(realName);
+        List<Record> recordList = JavaBeanUtil.mapToRecords(superiorMaps);
+        return R.ok().put("data", recordList);
     }
 
     public R queryListName(String name) {
-        List<Record> users = Db.find(Db.getSqlPara("admin.user.queryUserByRealName", Kv.by("name", name)));
+        List<Map<String, Object>> userMaps = crmAdminUserDao.queryUserByRealName(name);
+        List<Record> users = JavaBeanUtil.mapToRecords(userMaps);
         Sort sort = new Sort();
         Map<String, List<Record>> map = sort.sort(users);
         return R.ok().put("data", map);
@@ -245,7 +252,6 @@ public class AdminUserService {
      */
     public List<Integer> queryUserIdsByParentId(Integer userId) {
         String sql = "select user_id from lkcrm_admin_user where parent_id = ? ";
-//        List<Record> records = Db.find(sql, userId);
         List<Record> records = JavaBeanUtil.mapToRecords(crmAdminUserDao.queryListBySql(sql, userId));
         List<Integer> userIds = new ArrayList<>();
         for (Record record : records) {
@@ -259,12 +265,13 @@ public class AdminUserService {
      * 查询部门属用户列表
      */
     public R queryListNameByDept(String name) {
-//        List<Record> records = Db.find(Db.getSql("admin.dept.deptSql"));
         String sql = "select name,dept_id from lkcrm_admin_dept ORDER BY num";
         List<Map<String, Object>> recordMaps = crmAdminUserDao.queryListBySql(sql);
         List<Record> records = JavaBeanUtil.mapToRecords(recordMaps);
         for (Record record : records) {
-            List<Record> users = Db.find(Db.getSqlPara("admin.user.queryUserByRealName", Kv.by("deptId", record.getInt("dept_id")).set("name", name)));
+            List<Map<String, Object>> usersMap = crmAdminUserDao.queryUsersByDeptId(
+                    record.getInt("dept_id"), name);
+            List<Record> users = JavaBeanUtil.mapToRecords(usersMap);
             record.set("userList", users);
             record.set("userNumber", users.size());
         }
@@ -279,19 +286,18 @@ public class AdminUserService {
         if (StrUtil.isEmpty(deptIds)) {
             return null;
         }
-        SqlPara sqlPara = Db.getSqlPara("admin.user.queryUserIdByDeptId", Kv.by("deptIds", deptIds));
-        List<Long> users = Db.query(sqlPara.getSql(), sqlPara.getPara());
+        List<Long> users = crmAdminUserDao.queryUserIdByDeptId(deptIds);
         return StrUtil.join(",", users);
     }
 
     public R queryAllUserList() {
-        List<Record> recordList = Db.find(Db.getSqlPara("admin.user.queryUserList"));
+        List<Map<String, Object>> recordMap = crmAdminUserDao.queryUserList(null, null, null, null);
+        List<Record> recordList = JavaBeanUtil.mapToRecords(recordMap);
         return R.ok().put("data", recordList);
     }
 
     public R setUserStatus(String ids, String status) {
         for (Integer id : TagUtil.toSet(ids)) {
-//            Db.update("update lkcrm_admin_user set status = ? where user_id = ?", status, id);
             String sql = "update lkcrm_admin_user set status = ? where user_id = ?";
             crmAdminUserDao.executeUpdateSQL(sql, status, id);
         }
@@ -331,7 +337,6 @@ public class AdminUserService {
         List<Long> adminUsers = new ArrayList<>();
         //查询用户数据权限，从高到低排序
         String sql = "SELECT DISTINCT a.data_type FROM lkcrm_admin_role as a LEFT JOIN lkcrm_admin_user_role as b on a.role_id=b.role_id WHERE b.user_id=?  ORDER BY a.data_type desc";
-        //List<Integer> list = Db.query(Db.getSql("admin.role.queryDataTypeByUserId"), userId);
         List<Integer> list = crmAdminUserDao.queryListBySql(sql, userId);
         if (list.size() == 0) {
             //无权限查询自己的数据
@@ -372,7 +377,6 @@ public class AdminUserService {
             param.add(realm);
         }
         sql += "ORDER BY k.data_type DESC";
-        //List<Record> userRoleList = Db.find(Db.getSqlPara("admin.role.queryUserRoleListByUserId", Kv.by("userId", userId).set("realm", realm)));
         List<Record> userRoleList = JavaBeanUtil.mapToRecords(crmAdminUserDao.sqlQuery(sql, param.toArray()));
         if (list.size() == 1 && userRoleList.size() == 1) {//如果为1的话 验证是否有最高权限，否则及有多个权限
             //拥有最高数据权限
@@ -387,8 +391,6 @@ public class AdminUserService {
                     deptIds.add(adminUser.getDeptId().toString());
                     records.forEach(record -> deptIds.add(record.getStr("id")));
 
-                    //SqlPara sqlPara = Db.getSqlPara("admin.user.queryUserIdByDeptId", Kv.by("deptIds", deptIds));
-                    //adminUsers.addAll(Db.query(sqlPara.getSql(), sqlPara.getPara()));
                     adminUsers.addAll(crmAdminUserDao.queryUserIdByDeptId(deptIds));
                 } else if (list.contains(3)) {
                     queryUserByDeptId(adminUser.getDeptId()).forEach(record -> adminUsers.add(record.getLong("id")));
@@ -430,9 +432,6 @@ public class AdminUserService {
                         records.forEach(record -> {
                             deptIds.add(record.getStr("id"));
                         });
-                       /* SqlPara sqlPara = Db.getSqlPara("admin.user.queryUserIdByDeptId", Kv.by("deptIds", deptIds));
-                        adminUsers.addAll(Db.query(sqlPara.getSql(), sqlPara.getPara()));*/
-
                         adminUsers.addAll(crmAdminUserDao.queryUserIdByDeptId(deptIds));
                         adminUsers.add(userId);
                         HashSet<Long> hashSet = new HashSet<>(adminUsers);
@@ -453,9 +452,6 @@ public class AdminUserService {
                         List<String> deptIds = new ArrayList<>();
                         deptIds.add(adminUser.getDeptId().toString());
                         records.forEach(record -> deptIds.add(record.getStr("id")));
-                       /* SqlPara sqlPara = Db.getSqlPara("admin.user.queryUserIdByDeptId", Kv.by("deptIds", deptIds));
-                        adminUsers.addAll(Db.query(sqlPara.getSql(), sqlPara.getPara()));*/
-
                         adminUsers.addAll(crmAdminUserDao.queryUserIdByDeptId(deptIds));
                     } else if (list.contains(3)) {
                         queryUserByDeptId(adminUser.getDeptId()).forEach(record -> adminUsers.add(record.getLong("id")));
@@ -490,8 +486,8 @@ public class AdminUserService {
     }
 
     public List<Record> queryUserByDeptId(Integer deptId) {
-        List<Map<String, Object>> objects = crmAdminDeptDao.sqlQuery(" SELECT * FROM lkcrm_admin_dept WHERE dept_id = ? ", deptId);
-        //return Db.find(Db.getSql("admin.user.queryUserByDeptId"), deptId);
+        List<Map<String, Object>> objects = crmAdminDeptDao
+                .sqlQuery(" SELECT * FROM lkcrm_admin_dept WHERE dept_id = ? ", deptId);
         return JavaBeanUtil.mapToRecords(objects);
     }
 
@@ -501,7 +497,6 @@ public class AdminUserService {
      */
     public Record queryByDeptIds(String deptIds, String userIds) {
         Record record = new Record();
-//        List<Record> allDepts = Db.find("select * from lkcrm_admin_dept where dept_id in ( ? )", deptIds);
         String sql = "select * from lkcrm_admin_dept where dept_id in ( ? )";
         List<Map<String, Object>> recordListMaps = crmAdminUserDao.queryListBySql(sql, deptIds);
         List<Record> allDepts = JavaBeanUtil.mapToRecords(recordListMaps);
@@ -521,7 +516,6 @@ public class AdminUserService {
         for (Record dept : allDepts) {
             Integer pid = dept.getInt("pid");
             if (pid != 0) {
-//                deptIds = getDeptIds(deptIds, Db.find("select * from lkcrm_admin_dept where dept_id in ( ? )", pid));
                 String sql = "select * from lkcrm_admin_dept where dept_id in ( ? )";
                 List<Map<String, Object>> recordListMaps = crmAdminUserDao.queryListBySql(sql, pid);
                 List<Record> recordList = JavaBeanUtil.mapToRecords(recordListMaps);
@@ -555,7 +549,8 @@ public class AdminUserService {
         if (adminUser.getUsername().equals(username)) {
             return R.error("账号不能和原账号相同");
         }
-        Integer count = Db.queryInt("select count(*) from lkcrm_admin_user where username = ?", username);
+        String intSql = "select count(*) from lkcrm_admin_user where username = ?";
+        Integer count = crmAdminUserDao.queryForInt(intSql, username);
         if (count > 0) {
             return R.error("手机号重复！");
         }
@@ -567,7 +562,6 @@ public class AdminUserService {
     }
 
     private String getUserIds(String deptIds, String userIds) {
-//        List<Record> allUsers = Db.find("select * from lkcrm_admin_user where dept_id   NOT in ( ? ) and user_id in (?)", deptIds, userIds);
         String sql = "select * from lkcrm_admin_user where dept_id   NOT in ( ? ) and user_id in (?)";
         List<Map<String, Object>> mapList = crmAdminUserDao.queryListBySql(sql, deptIds, userIds);
         List<Record> allUsers = JavaBeanUtil.mapToRecords(mapList);
