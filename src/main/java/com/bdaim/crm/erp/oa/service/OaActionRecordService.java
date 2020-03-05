@@ -56,7 +56,7 @@ public class OaActionRecordService {
      */
     public void addRecord(Integer actionId, Integer types, Integer status, String joinUserIds, String deptIds) {
         LkCrmOaActionRecordEntity oaActionRecord = new LkCrmOaActionRecordEntity();
-        oaActionRecord.setUserId(BaseUtil.getUser().getUserId().intValue());
+        oaActionRecord.setUserId(BaseUtil.getUser().getUserId());
         oaActionRecord.setType(types);
         oaActionRecord.setActionId(actionId);
         oaActionRecord.setCreateTime(DateUtil.date().toTimestamp());

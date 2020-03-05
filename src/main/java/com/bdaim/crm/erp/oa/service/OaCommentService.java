@@ -31,7 +31,7 @@ public class OaCommentService {
         boolean bol = true;
         if (comment.getCommentId() == null) {
             comment.setCreateTime(new Timestamp(System.currentTimeMillis()));
-            comment.setUserId(BaseUtil.getUser().getUserId().intValue());
+            comment.setUserId(BaseUtil.getUser().getUserId());
 //            bol = comment.save();
             commentDao.save(comment);
         } else {

@@ -8,7 +8,7 @@ import java.util.Objects;
 public class LkCrmWorkUserEntity {
     private int id;
     private int workId;
-    private int userId;
+    private Long userId;
     private int roleId;
 
     @Id
@@ -33,11 +33,11 @@ public class LkCrmWorkUserEntity {
 
     @Basic
     @Column(name = "user_id")
-    public int getUserId() {
+    public Long getUserId() {
         return userId;
     }
 
-    public void setUserId(int userId) {
+    public void setUserId(Long userId) {
         this.userId = userId;
     }
 

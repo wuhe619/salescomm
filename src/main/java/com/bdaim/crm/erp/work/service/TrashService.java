@@ -75,17 +75,17 @@ public class TrashService {
         if (task.getIshidden() != 1) {
             return R.error("任务不在回收站！");
         }
-//        Integer count = Db.queryInt("select count(*) from `72crm_work_task_class` where class_id = ?", task.getClassId());
-        String countSql = "select count(*) from `72crm_work_task_class` where class_id = ?";
+//        Integer count = Db.queryInt("select count(*) from `lkcrm_work_task_class` where class_id = ?", task.getClassId());
+        String countSql = "select count(*) from `lkcrm_work_task_class` where class_id = ?";
         Integer count = taskDao.queryForInt(countSql, task.getClassId());
         int update;
         if (count > 0) {
-            String updateSql = "update 72crm_task set ishidden = 0,hidden_time = null where task_id = ?";
+            String updateSql = "update lkcrm_task set ishidden = 0,hidden_time = null where task_id = ?";
             update = taskDao.executeUpdateSQL(updateSql, taskId);
-//            update = Db.update("update 72crm_task set ishidden = 0,hidden_time = null where task_id = ?", taskId);
+//            update = Db.update("update lkcrm_task set ishidden = 0,hidden_time = null where task_id = ?", taskId);
         } else {
-//            update = Db.update("update 72crm_task set ishidden = 0,class_id = null,hidden_time = null where task_id = ?", taskId);
-            String updateSql = "update 72crm_task set ishidden = 0,class_id = null,hidden_time = null where task_id = ?";
+//            update = Db.update("update lkcrm_task set ishidden = 0,class_id = null,hidden_time = null where task_id = ?", taskId);
+            String updateSql = "update lkcrm_task set ishidden = 0,class_id = null,hidden_time = null where task_id = ?";
             update = taskDao.executeUpdateSQL(updateSql, taskId);
         }
         return update > 0 ? R.ok() : R.error();

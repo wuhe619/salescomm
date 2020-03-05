@@ -73,7 +73,7 @@ public class TaskService {
             Integer orderNum = workDao.queryForInt(sql, taskClass.getWorkId());
 //            Integer orderNum = Db.queryInt("select max(order_num) from `lkcrm_work_task_class` where work_id = ?", taskClass.getWorkId());
             taskClass.setOrderNum(orderNum + 1);
-            taskClass.setCreateUserId(BaseUtil.getUser().getUserId().intValue());
+            taskClass.setCreateUserId(BaseUtil.getUser().getUserId());
             taskClass.setCreateTime(new Timestamp(System.currentTimeMillis()));
 //            bol = taskClass.save();
             taskClassDao.save(taskClass);

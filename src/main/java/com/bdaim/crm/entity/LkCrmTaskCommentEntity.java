@@ -8,7 +8,7 @@ import java.util.Objects;
 @Table(name = "lkcrm_task_comment", schema = "", catalog = "")
 public class LkCrmTaskCommentEntity {
     private Integer commentId;
-    private int userId;
+    private Long userId;
     private String content;
     private Timestamp createTime;
     private Integer mainId;
@@ -31,11 +31,11 @@ public class LkCrmTaskCommentEntity {
 
     @Basic
     @Column(name = "user_id")
-    public int getUserId() {
+    public Long getUserId() {
         return userId;
     }
 
-    public void setUserId(int userId) {
+    public void setUserId(Long userId) {
         this.userId = userId;
     }
 

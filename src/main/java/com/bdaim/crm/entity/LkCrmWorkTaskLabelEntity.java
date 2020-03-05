@@ -10,7 +10,7 @@ public class LkCrmWorkTaskLabelEntity {
     private Integer labelId;
     private String name;
     private Timestamp createTime;
-    private Integer createUserId;
+    private Long createUserId;
     private Integer status;
     private String color;
 
@@ -47,11 +47,11 @@ public class LkCrmWorkTaskLabelEntity {
 
     @Basic
     @Column(name = "create_user_id")
-    public Integer getCreateUserId() {
+    public Long getCreateUserId() {
         return createUserId;
     }
 
-    public void setCreateUserId(Integer createUserId) {
+    public void setCreateUserId(Long createUserId) {
         this.createUserId = createUserId;
     }
 

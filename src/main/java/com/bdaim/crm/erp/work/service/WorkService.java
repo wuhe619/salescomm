@@ -67,22 +67,22 @@ public class WorkService {
 
     @Before(Tx.class)
     public R setWork(LkCrmWorkEntity work) throws IllegalAccessException {
-        Integer userId = BaseUtil.getUser().getUserId().intValue();
+        Long userId = BaseUtil.getUser().getUserId();
         boolean bol;
         if (work.getWorkId() == null) {
             if (!AuthUtil.isWorkAdmin()) {
                 return R.noAuth();
             }
-            Set<Integer> ownerUserIds = new HashSet<>();
+            Set<Long> ownerUserIds = new HashSet<>();
             ownerUserIds.add(userId);
             if (work.getOwnerUserId() != null) {
-                ownerUserIds.addAll(TagUtil.toSet(work.getOwnerUserId()));
+                ownerUserIds.addAll(TagUtil.toLongSet(work.getOwnerUserId()));
             }
             if (work.getIsOpen() == 1) {
                 //公开项目删除负责人
                 ownerUserIds.clear();
             }
-            work.setOwnerUserId(TagUtil.fromSet(ownerUserIds));
+            work.setOwnerUserId(TagUtil.fromLongSet(ownerUserIds));
             work.setCreateUserId(userId.longValue());
             work.setCreateTime(new Timestamp(System.currentTimeMillis()));
 //            bol = work.save();
@@ -107,7 +107,7 @@ public class WorkService {
             ownerUserIds.forEach(ownerUserId -> {
                 LkCrmWorkUserEntity workUser = new LkCrmWorkUserEntity();
                 workUser.setWorkId(work.getWorkId());
-                workUser.setUserId(ownerUserId);
+                workUser.setUserId(ownerUserId.longValue());
                 if (ownerUserId.equals(userId)) {
                     workUser.setRoleId(BaseConstant.SMALL_WORK_ADMIN_ROLE_ID);
 //                    workUser.save();
@@ -130,16 +130,16 @@ public class WorkService {
 //                    Work oldWork = new Work().findById(workId);
                     LkCrmWorkEntity oldWork = workDao.get(workId);
                     work.setOwnerUserId(TagUtil.fromString(work.getOwnerUserId()));
-                    Set<Integer> oldOwnerUserIds = TagUtil.toSet(oldWork.getOwnerUserId());
-                    Set<Integer> ownerUserIds = TagUtil.toSet(work.getOwnerUserId());
-                    Collection<Integer> intersection = CollectionUtil.intersection(oldOwnerUserIds, ownerUserIds);
+                    Set<Long> oldOwnerUserIds = TagUtil.toLongSet(oldWork.getOwnerUserId());
+                    Set<Long> ownerUserIds = TagUtil.toLongSet(work.getOwnerUserId());
+                    Collection<Long> intersection = CollectionUtil.intersection(oldOwnerUserIds, ownerUserIds);
                     oldOwnerUserIds.removeAll(intersection);
                     ownerUserIds.removeAll(intersection);
-                    for (Integer next : oldOwnerUserIds) {
+                    for (Long next : oldOwnerUserIds) {
                         leave(work.getWorkId().toString(), next);
                         Db.delete("delete from `lkcrm_work_user` where work_id = ? and user_id = ?", workId, next);
                     }
-                    for (Integer ownerUserId : ownerUserIds) {
+                    for (Long ownerUserId : ownerUserIds) {
                         LkCrmWorkUserEntity workUser = new LkCrmWorkUserEntity();
                         workUser.setWorkId(work.getWorkId());
                         workUser.setUserId(ownerUserId);
@@ -179,7 +179,7 @@ public class WorkService {
                     userList.forEach(id -> {
                         LkCrmWorkUserEntity workUser = new LkCrmWorkUserEntity();
                         workUser.setWorkId(work.getWorkId());
-                        workUser.setUserId(id.intValue());
+                        workUser.setUserId(id);
                         workUser.setRoleId(BaseConstant.SMALL_WORK_EDIT_ROLE_ID);
                         workUserList.add(workUser);
                     });
@@ -517,7 +517,7 @@ public class WorkService {
 
     }
 
-    public R leave(String workId, Integer userId) {
+    public R leave(String workId, Long userId) {
 //        Work work = new Work().findById(workId);
         LkCrmWorkEntity work = workDao.get(Integer.parseInt(workId));
         if (work.getCreateUserId().equals(userId)) {

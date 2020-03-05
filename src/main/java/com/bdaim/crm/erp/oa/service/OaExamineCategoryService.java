@@ -55,7 +55,7 @@ public class OaExamineCategoryService {
         boolean bol;
         Integer categoryId;
         if (oaExamineCategory.getCategoryId() == null) {
-            oaExamineCategory.setCreateUserId(BaseUtil.getUser().getUserId().intValue());
+            oaExamineCategory.setCreateUserId(BaseUtil.getUser().getUserId());
             oaExamineCategory.setCreateTime(new Timestamp(System.currentTimeMillis()));
             oaExamineCategory.setUpdateTime(new Timestamp(System.currentTimeMillis()));
 //            bol = oaExamineCategory.save();
