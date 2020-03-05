@@ -155,7 +155,6 @@ public class OaEventService {
             return R.noAuth();
         }
         com.bdaim.common.dto.Page recordPage = crmOaEventDao.queryEventRelation(basePageRequest.getPage(), basePageRequest.getLimit(), relation.getBusinessIds(), relation.getContactsIds(), relation.getContractIds(), relation.getCustomerIds());
-        //Page<Record> recordPage = Db.paginate(basePageRequest.getPage(), basePageRequest.getLimit(), Db.getSqlPara("oa.event.queryEventRelation", Kv.by("businessIds", relation.getBusinessIds()).set("contactsIds", relation.getContactsIds()).set("contractIds", relation.getContractIds()).set("customerIds", relation.getCustomerIds())));
         List<Record> list = JavaBeanUtil.mapToRecords(recordPage.getData());
         for (Record record : list) {
             record.set("createUser", Kv.by("user_id", record.get("create_user_id")).set("realname", record.get("realname")).set("img", record.get("img")));
@@ -203,10 +202,7 @@ public class OaEventService {
     }
 
     public Record queryById(Integer eventId) {
-//        Record record = Db.findFirst(Db.getSql("oa.event.queryById"), eventId);
         Record record = JavaBeanUtil.mapToRecord(crmOaEventDao.queryById(eventId));
-//        record.set("createUser", Db.findFirst("select user_id,realname,img from lkcrm_admin_user where user_id = ?",
-//                record.getInt("create_user_id")));
         String sql = "select user_id,realname,img from lkcrm_admin_user where user_id = ?";
         Record createUser = JavaBeanUtil.mapToRecord(crmOaEventDao.queryUniqueSql(sql,
                 record.getInt("create_user_id")));

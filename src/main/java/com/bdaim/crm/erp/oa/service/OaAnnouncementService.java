@@ -94,7 +94,6 @@ public class OaAnnouncementService {
      * 根据ID查询详情
      */
     public R queryById(Integer id) {
-//        return R.ok().put("data", Db.findFirst(Db.getSql("oa.announcement.queryById"), id));
         String sql = "    select an.* , us.user_id,us.username,us.img,us.realname,us.parent_id ,LEFT(an.start_time,10) as" +
                 "    startTime,LEFT(an.end_time,10) as endTime " +
                 "    from lkcrm_oa_announcement as an " +

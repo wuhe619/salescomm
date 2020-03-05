@@ -46,14 +46,12 @@ public class OaCommentService {
 
     @Before(Tx.class)
     public R deleteComment(Integer commentId) {
-//        Db.delete("delete from `lkcrm_task_comment` where main_id = ?", commentId);
         String delSql = "delete from `lkcrm_task_comment` where main_id = ?";
         commentDao.executeUpdateSQL(delSql, commentId);
         return new TaskComment().dao().deleteById(commentId) ? R.ok() : R.error();
     }
 
     public List<Record> queryCommentList(String typeId, String type) {
-//        List<Record> recordList = Db.find("select a.comment_id,a.content,a.user_id,a.create_time,a.type_id,a.type,a.favour,a.pid,a.main_id from lkcrm_task_comment a  where a.type_id = ? and a.type = ?", typeId, type);
         String sql = "select a.comment_id,a.content,a.user_id,a.create_time,a.type_id,a.type,a.favour,a.pid,a.main_id" +
                 " from lkcrm_task_comment a  where a.type_id = ? and a.type = ?";
         List<Record> recordList = JavaBeanUtil.mapToRecords(commentDao.queryListBySql(sql, typeId, type));
@@ -62,14 +60,10 @@ public class OaCommentService {
         }
         recordList.forEach(record -> {
             if (record.getStr("user_id") != null && !"".equals(record.getStr("user_id"))) {
-//                record.set("user", Db.findFirst("select  user_id,realname,img from lkcrm_admin_user where user_id = ?",
-//                        record.getStr("user_id")));
                 String sql1 = "select  user_id,realname,img from lkcrm_admin_user where user_id = ?";
                 record.set("user", JavaBeanUtil.mapToRecord(commentDao.queryUniqueSql(sql1, record.getStr("user_id"))));
             }
             if (record.getStr("pid") != null && !"0".equals(record.getStr("pid")) && !"".equals(record.getStr("pid"))) {
-//                record.set("replyUser", Db.findFirst("select user_id,realname  from lkcrm_admin_user where user_id = ?",
-//                        record.getStr("pid")));
                 String sql2 = "select user_id,realname  from lkcrm_admin_user where user_id = ?";
                 record.set("replyUser", JavaBeanUtil.mapToRecord(commentDao.queryUniqueSql(sql2, record.getStr("pid"))));
             }

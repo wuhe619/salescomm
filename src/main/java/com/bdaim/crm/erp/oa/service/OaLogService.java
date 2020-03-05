@@ -184,7 +184,6 @@ public class OaLogService {
      * @author Chacker
      */
     public Record queryById(Integer id) {
-//        Record record = Db.findFirst(Db.getSqlPara("oa.log.queryList", Kv.by("logId", id)));
         String sql = "SELECT " +
                 " a.*,b.dept_id,b.realname,b.img AS userImg, " +
                 " soal.customer_ids,soal.contacts_ids,soal.business_ids, " +
@@ -194,7 +193,7 @@ public class OaLogService {
                 " LEFT JOIN lkcrm_admin_user AS b ON a.create_user_id = b.user_id " +
                 " LEFT JOIN lkcrm_oa_log_relation AS soal ON soal.log_id = a.log_id  " +
                 "WHERE 1 = 1 AND a.log_id = ?";
-        Record record = JavaBeanUtil.mapToRecord(crmOaLogDao.queryUniqueSql(sql));
+        Record record = JavaBeanUtil.mapToRecord(crmOaLogDao.queryUniqueSql(sql, id));
         queryLogDetail(record, BaseUtil.getUser().getUserId());
         return record;
     }
