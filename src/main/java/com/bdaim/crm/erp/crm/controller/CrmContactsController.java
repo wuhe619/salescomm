@@ -223,13 +223,13 @@ public class CrmContactsController extends BasicAction {
      * @return
      */
     @RequestMapping(value = "/agency/list", method = RequestMethod.POST)
-    public R listAgency(BasePageRequest basePageRequest, Integer taskStatus, Integer customerId) {
+    public R listAgency(BasePageRequest basePageRequest, Integer taskStatus, Integer contactsId) {
         basePageRequest.setData(taskStatus);
-        boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.CUSTOMER_TYPE_KEY.getSign()), customerId);
+        boolean auth = AuthUtil.isCrmAuth(AuthUtil.getCrmTablePara(CrmEnum.CUSTOMER_TYPE_KEY.getSign()), contactsId);
         if (auth) {
             return (R.noAuth());
         }
-        return (R.ok().put("data", JavaBeanUtil.recordToMap(crmContactsService.listAgency(basePageRequest, taskStatus, customerId))));
+        return (R.ok().put("data", JavaBeanUtil.recordToMap(crmContactsService.listAgency(basePageRequest, taskStatus, contactsId))));
     }
 
     /**
