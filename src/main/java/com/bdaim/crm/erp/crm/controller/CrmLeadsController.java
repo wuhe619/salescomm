@@ -251,6 +251,10 @@ public class CrmLeadsController extends BasicAction {
             param.setUserGroupId(BaseUtil.getUser().getUserGroupId());
             param.setCustId(BaseUtil.getUser().getCustId());
             data = seaService.updateClueStatus(param, operate);
+            if (1 == operate) {
+                // 删除公海线索
+                crmLeadsService.deletePublicClue(param.getSuperIds(), param.getSeaId());
+            }
             if (3 == operate) {
                 // 指定ID退回公海时删除私海线索
                 crmLeadsService.deleteByBatchIds(param.getSuperIds());
