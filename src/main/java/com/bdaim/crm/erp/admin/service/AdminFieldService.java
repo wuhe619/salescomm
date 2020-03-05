@@ -586,9 +586,9 @@ public class AdminFieldService {
                     .add("ownerUserName", "负责人").add("createUserName", "创建人");
             fieldUtil.getAdminFieldSortList().forEach(fieldSort -> {
                 String fieldName = StrUtil.toCamelCase(fieldSort.getFieldName());
-                if (11 == adminFieldSort.getLabel()) {
+                /*if (11 == adminFieldSort.getLabel()) {
                     fieldName = fieldSort.getFieldName();
-                }
+                }*/
                 fieldSort.setFieldName(fieldName);
                 if ("customerId".equals(fieldSort.getFieldName())) {
                     fieldSort.setFieldName("customerName");
