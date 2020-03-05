@@ -72,7 +72,9 @@ public class AdminUserService {
                     return R.error("该员工的下级员工不能设置为直属上级");
                 }
             }
-            String username = Db.queryStr("select username from lkcrm_admin_user where user_id = ?", adminUser.getUserId());
+//            String username = Db.queryStr("select username from lkcrm_admin_user where user_id = ?", adminUser.getUserId());
+            String sql = "select username from lkcrm_admin_user where user_id = ?";
+            String username = crmAdminUserDao.queryForObject(sql, adminUser.getUserId());
             if (!username.equals(adminUser.getUsername())) {
                 return R.error("用户名不能修改！");
             }
