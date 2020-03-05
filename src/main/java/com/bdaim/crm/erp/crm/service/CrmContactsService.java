@@ -378,7 +378,7 @@ public class CrmContactsService {
     public List<Record> getRecord(BasePageRequest<CrmContacts> basePageRequest) {
         CrmContacts crmContacts = basePageRequest.getData();
         //List<Record> recordList = Db.find(Db.getSql("crm.contact.getRecord"), crmContacts.getContactsId(), crmContacts.getContactsId());
-        List<Record> recordList = JavaBeanUtil.mapToRecords(crmContactsDao.getRecord(crmContacts.getContactsId(), crmContacts.getContactsId(), crmContacts.getContactsId()));
+        List<Record> recordList = JavaBeanUtil.mapToRecords(crmContactsDao.getRecord(crmContacts.getContactsId(), basePageRequest.getPage(), basePageRequest.getLimit()));
         recordList.forEach(record -> {
             adminFileService.queryByBatchId(record.getStr("batch_id"), record);
             String businessIds = record.getStr("business_ids");
