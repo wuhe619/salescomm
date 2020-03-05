@@ -56,7 +56,6 @@ public class BiCustomerService {
             }
             beginTime = biTimeUtil.estimateTime(beginTime);
         }
-//        List<Record> recordList = Db.find(sqlStringBuffer.toString());
         List<Map<String, Object>> recordListMap = categoryDao.queryListBySql(sqlStringBuffer.toString());
         List<Record> recordList = JavaBeanUtil.mapToRecords(recordListMap);
         return R.ok().put("data", recordList);
@@ -97,7 +96,6 @@ public class BiCustomerService {
                 sqlStringBuffer.append(" union all ");
             }
         }
-//        List<Record> recordList = Db.find(sqlStringBuffer.toString());
         List<Map<String, Object>> recordListMap = categoryDao.queryListBySql(sqlStringBuffer.toString());
         List<Record> recordList = JavaBeanUtil.mapToRecords(recordListMap);
         recordList.forEach(r -> {
@@ -135,7 +133,6 @@ public class BiCustomerService {
             }
             beginTime = biTimeUtil.estimateTime(beginTime);
         }
-//        List<Record> recordList = Db.find(sqlStringBuffer.toString());
         List<Map<String, Object>> recordListMap = categoryDao.queryListBySql(sqlStringBuffer.toString());
         List<Record> recordList = JavaBeanUtil.mapToRecords(recordListMap);
         return R.ok().put("data", recordList);
@@ -167,7 +164,6 @@ public class BiCustomerService {
                 sqlStringBuffer.append(" union all ");
             }
         }
-//        List<Record> recordList = Db.find(sqlStringBuffer.toString());
         List<Map<String, Object>> recordListMap = categoryDao.queryListBySql(sqlStringBuffer.toString());
         List<Record> recordList = JavaBeanUtil.mapToRecords(recordListMap);
         return R.ok().put("data", recordList);
@@ -195,7 +191,6 @@ public class BiCustomerService {
                 .append(userIds).append(")),0) as proportion from 72crm_admin_record where (DATE_FORMAT(create_time,'").append(sqlDateFormat)
                 .append("') between '").append(beginTime).append("' and '").append(finalTime).append("') and create_user_id in (").append(userIds)
                 .append(") group by category");
-//        List<Record> recordList = Db.find(sqlStringBuffer.toString());
         List<Map<String, Object>> recordListMap = categoryDao.queryListBySql(sqlStringBuffer.toString());
         List<Record> recordList = JavaBeanUtil.mapToRecords(recordListMap);
         return R.ok().put("data", recordList);
@@ -231,7 +226,6 @@ public class BiCustomerService {
             }
             beginTime = biTimeUtil.estimateTime(beginTime);
         }
-//        List<Record> recordList = Db.find(sqlStringBuffer.toString());
         List<Map<String, Object>> recordListMap = categoryDao.queryListBySql(sqlStringBuffer.toString());
         List<Record> recordList = JavaBeanUtil.mapToRecords(recordListMap);
         return R.ok().put("data", recordList);
@@ -260,7 +254,6 @@ public class BiCustomerService {
                 "b.contract_id = c.contract_id where DATE_FORMAT(a.create_time,'").append(sqlDateFormat).append("') between '").append(beginTime)
                 .append("' and '").append(finalTime).append("' and b.check_status = 2 and a.owner_user_id in (")
                 .append(userIds).append(")");
-//        List<Record> recordList = Db.find(sqlStringBuffer.toString());
         List<Map<String, Object>> recordListMap = categoryDao.queryListBySql(sqlStringBuffer.toString());
         List<Record> recordList = JavaBeanUtil.mapToRecords(recordListMap);
         return R.ok().put("data", recordList);
@@ -294,7 +287,6 @@ public class BiCustomerService {
             }
             beginTime = biTimeUtil.estimateTime(beginTime);
         }
-//        List<Record> recordList = Db.find(sqlStringBuffer.toString());
         List<Map<String, Object>> recordListMap = categoryDao.queryListBySql(sqlStringBuffer.toString());
         List<Record> recordList = JavaBeanUtil.mapToRecords(recordListMap);
         return R.ok().put("data", recordList);
@@ -309,7 +301,8 @@ public class BiCustomerService {
         Record record = new Record();
         record.set("deptId", deptId).set("userId", userId).set("type", type).set("startTime", startTime).set("endTime", endTime);
         biTimeUtil.analyzeType(record);
-        List<Record> recordList = Db.find(Db.getSqlPara("bi.customer.poolTable", record));
+        List<Map<String, Object>> recordMaps = categoryDao.poolTable(record);
+        List<Record> recordList = JavaBeanUtil.mapToRecords(recordMaps);
         return R.ok().put("data", recordList);
     }
 
@@ -340,7 +333,6 @@ public class BiCustomerService {
             }
             beginTime = biTimeUtil.estimateTime(beginTime);
         }
-//        List<Record> recordList = Db.find(sqlStringBuffer.toString());
         List<Map<String, Object>> recordListMap = categoryDao.queryListBySql(sqlStringBuffer.toString());
         List<Record> recordList = JavaBeanUtil.mapToRecords(recordListMap);
         return R.ok().put("data", recordList);
@@ -374,7 +366,6 @@ public class BiCustomerService {
                 sqlStringBuffer.append(" union all ");
             }
         }
-//        List<Record> recordList = Db.find(sqlStringBuffer.toString());
         List<Map<String, Object>> recordListMap = categoryDao.queryListBySql(sqlStringBuffer.toString());
         List<Record> recordList = JavaBeanUtil.mapToRecords(recordListMap);
         return R.ok().put("data", recordList);
@@ -408,7 +399,6 @@ public class BiCustomerService {
                 sqlStringBuffer.append(" union all ");
             }
         }
-//        List<Record> recordList = Db.find(sqlStringBuffer.toString());
         List<Map<String, Object>> recordListMap = categoryDao.queryListBySql(sqlStringBuffer.toString());
         List<Record> recordList = JavaBeanUtil.mapToRecords(recordListMap);
         return R.ok().put("data", recordList);
@@ -430,7 +420,9 @@ public class BiCustomerService {
         }
         Integer beginTime = record.getInt("beginTime");
         Integer finalTime = record.getInt("finalTime");
-        List<Record> productList = Db.find("select product_id,name from 72crm_crm_product");
+        String sql = "select product_id,name from lkcrm_crm_product";
+        List<Map<String, Object>> maps = categoryDao.queryListBySql(sql);
+        List<Record> productList = JavaBeanUtil.mapToRecords(maps);
         if (CollectionUtil.isEmpty(productList)) {
             return R.ok().put("data", new ArrayList<>());
         }
@@ -446,7 +438,6 @@ public class BiCustomerService {
                 sqlStringBuffer.append(" union all ");
             }
         }
-//        List<Record> recordList = Db.find(sqlStringBuffer.toString());
         List<Map<String, Object>> recordListMap = categoryDao.queryListBySql(sqlStringBuffer.toString());
         List<Record> recordList = JavaBeanUtil.mapToRecords(recordListMap);
         return R.ok().put("data", recordList);

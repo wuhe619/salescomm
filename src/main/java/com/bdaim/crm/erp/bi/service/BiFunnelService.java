@@ -1,6 +1,7 @@
 package com.bdaim.crm.erp.bi.service;
 
 import cn.hutool.core.util.StrUtil;
+import com.bdaim.crm.dao.LkCrmBiDao;
 import com.bdaim.crm.dao.LkCrmOaExamineCategoryDao;
 import com.bdaim.util.JavaBeanUtil;
 import com.jfinal.aop.Inject;
@@ -25,6 +26,8 @@ public class BiFunnelService {
     BiTimeUtil biTimeUtil;
     @Autowired
     private LkCrmOaExamineCategoryDao categoryDao;
+    @Autowired
+    private LkCrmBiDao biDao;
 
     /**
      * 销售漏斗
@@ -42,9 +45,7 @@ public class BiFunnelService {
         }
         String[] userIdss = userIds.split(",");
         Integer ststus = biTimeUtil.analyzeType(type);
-        list = Db.find(Db.getSqlPara("bi.funnel.sellFunnel",
-                Kv.by("userIds", userIdss).set("type", ststus).set("startTime", startTime).
-                        set("endTime", endTime).set("typeId", typeId)));
+        list = biDao.sellFunnel(userIdss, ststus, startTime, endTime, typeId);
         return R.ok().put("data", list);
     }
 
@@ -76,7 +77,6 @@ public class BiFunnelService {
             }
             beginTime = biTimeUtil.estimateTime(beginTime);
         }
-//        List<Record> recordList = Db.find(sqlStringBuffer.toString());
         List<Map<String, Object>> recordListMap = categoryDao.queryListBySql(sqlStringBuffer.toString());
         List<Record> recordList = JavaBeanUtil.mapToRecords(recordListMap);
         return R.ok().put("data", recordList);
@@ -92,10 +92,8 @@ public class BiFunnelService {
             return R.ok().put("data", list);
         }
         String[] userIdss = userIds.split(",");
-        Integer ststus = biTimeUtil.analyzeType(type);
-        list = Db.find(Db.getSqlPara("bi.funnel.sellFunnelList",
-                Kv.by("userIds", userIdss).set("type", ststus).set("startTime", startTime).
-                        set("endTime", endTime)));
+        Integer status = biTimeUtil.analyzeType(type);
+        list = biDao.sellFunnelList(userIdss, status, startTime, endTime);
         return R.ok().put("data", list);
     }
 
@@ -130,7 +128,6 @@ public class BiFunnelService {
             }
             beginTime = biTimeUtil.estimateTime(beginTime);
         }
-//        List<Record> recordList = Db.find(sqlStringBuffer.toString());
         List<Map<String, Object>> recordListMap = categoryDao.queryListBySql(sqlStringBuffer.toString());
         List<Record> recordList = JavaBeanUtil.mapToRecords(recordListMap);
         return R.ok().put("data", recordList);

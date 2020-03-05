@@ -87,7 +87,6 @@ public class BiEmployeeService {
                 beginTime = biTimeUtil.estimateTime(beginTime);
             }
         }
-//        List<Record> recordList = Db.find(sqlStringBuffer.toString());
         List<Map<String, Object>> recordListMap = categoryDao.queryListBySql(sqlStringBuffer.toString());
         List<Record> recordList = JavaBeanUtil.mapToRecords(recordListMap);
         recordList.forEach(r -> {
@@ -117,7 +116,9 @@ public class BiEmployeeService {
         Integer beginTime = record.getInt("beginTime");
         Integer finalTime = record.getInt("finalTime");
         Integer cycleNum = record.getInt("cycleNum");
-        Record total = Db.findFirst(Db.getSqlPara("bi.employee.totalContract", Kv.by("sqlDateFormat", sqlDateFormat).set("beginTime", beginTime).set("finalTime", finalTime).set("userIds", userIds)));
+        Map<String, Object> totalMap = categoryDao.totalContract(sqlDateFormat, beginTime,
+                finalTime, userIds);
+        Record total = JavaBeanUtil.mapToRecord(totalMap);
         StringBuffer sqlStringBuffer = new StringBuffer();
         for (int i = 1; i <= cycleNum; i++) {
             sqlStringBuffer.append("select '").append(beginTime).append("'as type,count(contract_id) as contractNum,IFNULL(SUM(money),0) " +
@@ -129,7 +130,6 @@ public class BiEmployeeService {
             }
             beginTime = biTimeUtil.estimateTime(beginTime);
         }
-//        List<Record> recordList = Db.find(sqlStringBuffer.toString());
         List<Map<String, Object>> recordListMap = categoryDao.queryListBySql(sqlStringBuffer.toString());
         List<Record> recordList = JavaBeanUtil.mapToRecords(recordListMap);
         return R.ok().put("data", total.set("list", recordList));
