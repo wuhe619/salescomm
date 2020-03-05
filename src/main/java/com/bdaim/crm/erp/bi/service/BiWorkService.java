@@ -2,6 +2,8 @@ package com.bdaim.crm.erp.bi.service;
 
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSONObject;
+import com.bdaim.crm.dao.LkCrmOaExamineCategoryDao;
+import com.bdaim.util.JavaBeanUtil;
 import com.jfinal.aop.Aop;
 import com.jfinal.aop.Inject;
 import com.jfinal.kit.Kv;
@@ -12,20 +14,21 @@ import com.jfinal.plugin.activerecord.SqlPara;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
 import com.bdaim.crm.erp.bi.common.BiTimeUtil;
 import com.bdaim.crm.erp.oa.service.OaExamineService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import javax.transaction.Transactional;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Service
 @Transactional
 public class BiWorkService {
     @Resource
     private BiTimeUtil biTimeUtil;
+    @Autowired
+    private LkCrmOaExamineCategoryDao categoryDao;
+
 
     /**
      * 查询日志统计信息
@@ -71,7 +74,10 @@ public class BiWorkService {
         JSONObject object=new JSONObject();
         Record record = new Record().set("deptId", deptId).set("userId", userId).set("type", type);
         biTimeUtil.analyzeType(record);
-        List<Record> categoryList= Db.find(Db.getSql("bi.work.queryExamineCategory"));
+//        List<Record> categoryList= Db.find(Db.getSql("bi.work.queryExamineCategory"));
+        String categoryListSql = "SELECT category_id,title FROM lkcrm_oa_examine_category WHERE 1=1";
+        List<Map<String,Object>> categoryListMap = categoryDao.queryListBySql(categoryListSql);
+        List<Record> categoryList = JavaBeanUtil.mapToRecords(categoryListMap);
         object.put("categoryList",categoryList);
         List<String> users= StrUtil.splitTrim(record.getStr("userIds"),",");
         if(users.size()==0){
