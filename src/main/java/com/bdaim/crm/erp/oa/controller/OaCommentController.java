@@ -1,12 +1,12 @@
 package com.bdaim.crm.erp.oa.controller;
 
+import com.bdaim.common.controller.BasicAction;
 import com.bdaim.crm.entity.LkCrmTaskCommentEntity;
-import com.jfinal.core.Controller;
-import com.jfinal.core.paragetter.Para;
 import com.bdaim.crm.erp.oa.common.OaEnum;
 import com.bdaim.crm.erp.oa.service.OaCommentService;
 import com.bdaim.crm.utils.AuthUtil;
 import com.bdaim.crm.utils.R;
+import com.jfinal.core.paragetter.Para;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -14,7 +14,7 @@ import javax.annotation.Resource;
 
 @RestController
 @RequestMapping(value = "/comment")
-public class OaCommentController extends Controller {
+public class OaCommentController extends BasicAction {
 
     @Resource
     private OaCommentService commentService;

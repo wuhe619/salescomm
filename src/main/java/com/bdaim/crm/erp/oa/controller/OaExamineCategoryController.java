@@ -1,26 +1,22 @@
 package com.bdaim.crm.erp.oa.controller;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.bdaim.crm.entity.LkCrmOaExamineCategoryEntity;
-import com.bdaim.crm.entity.LkCrmOaExamineStepEntity;
-import com.bdaim.crm.utils.R;
-import com.jfinal.aop.Inject;
-import com.jfinal.core.Controller;
+import com.bdaim.common.controller.BasicAction;
 import com.bdaim.crm.common.annotation.Permissions;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
-import com.bdaim.crm.erp.oa.entity.OaExamineCategory;
-import com.bdaim.crm.erp.oa.entity.OaExamineStep;
+import com.bdaim.crm.entity.LkCrmOaExamineCategoryEntity;
+import com.bdaim.crm.entity.LkCrmOaExamineStepEntity;
 import com.bdaim.crm.erp.oa.service.OaExamineCategoryService;
+import com.bdaim.crm.utils.R;
 import com.bdaim.crm.utils.TagUtil;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 
@@ -32,7 +28,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping(value = "/OaExamineCategory")
-public class OaExamineCategoryController extends Controller {
+public class OaExamineCategoryController extends BasicAction {
 
     @Resource
     private OaExamineCategoryService oaExamineCategoryService;
@@ -44,8 +40,8 @@ public class OaExamineCategoryController extends Controller {
      */
     @RequestMapping(value = "/setExamineCategory")
     @Permissions("manage:oa")
-    public R setExamineCategory() {
-        JSONObject jsonObject = JSON.parseObject(getRawData());
+    public R setExamineCategory(@RequestBody JSONObject jsonObject) {
+        //JSONObject jsonObject = JSON.parseObject(getRawData());
         LkCrmOaExamineCategoryEntity oaExamineCategory = new LkCrmOaExamineCategoryEntity();
         List<LkCrmOaExamineStepEntity> oaExamineSteps = new ArrayList<>();
         oaExamineCategory.setCategoryId(jsonObject.getInteger("id"));

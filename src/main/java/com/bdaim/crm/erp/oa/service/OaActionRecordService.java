@@ -86,10 +86,10 @@ public class OaActionRecordService {
         LoginUser user = BaseUtil.getUser();
         SqlPara sqlPara;
         List<Long> userIdList;
-        if (user.getRoles().contains(BaseConstant.SUPER_ADMIN_ROLE_ID)) {
+        if (user.getRoles() != null && user.getRoles().contains(BaseConstant.SUPER_ADMIN_ROLE_ID)) {
 //            userIdList = Db.query("SELECT user_id FROM `lkcrm_admin_user` where user_id != ? ", user.getUserId());
             String sql = "SELECT user_id FROM `lkcrm_admin_user` where user_id != ?";
-            userIdList = recordDao.queryListForLong(sql,user.getUserId());
+            userIdList = recordDao.queryListForLong(sql, user.getUserId());
         } else {
             userIdList = new AdminUserService().queryUserByParentUser(user.getUserId(), BaseConstant.AUTH_DATA_RECURSION_NUM);
         }
