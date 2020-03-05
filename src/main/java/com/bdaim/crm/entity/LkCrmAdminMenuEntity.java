@@ -1,6 +1,7 @@
 package com.bdaim.crm.entity;
 
 import javax.persistence.*;
+import java.util.List;
 import java.util.Objects;
 
 @Entity
@@ -14,6 +15,7 @@ public class LkCrmAdminMenuEntity {
     private Integer sort;
     private Integer status;
     private String remarks;
+    private List childMenu;
 
     @Id
     @Column(name = "menu_id")
@@ -94,6 +96,15 @@ public class LkCrmAdminMenuEntity {
 
     public void setRemarks(String remarks) {
         this.remarks = remarks;
+    }
+
+    @Transient
+    public List getChildMenu() {
+        return childMenu;
+    }
+
+    public void setChildMenu(List childMenu) {
+        this.childMenu = childMenu;
     }
 
     @Override

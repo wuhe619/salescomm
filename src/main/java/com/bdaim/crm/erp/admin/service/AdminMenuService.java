@@ -1,15 +1,15 @@
 package com.bdaim.crm.erp.admin.service;
 
 import com.bdaim.crm.dao.LkCrmAdminMenuDao;
+import com.bdaim.crm.dao.LkCrmAdminRoleDao;
 import com.bdaim.crm.entity.LkCrmAdminMenuEntity;
-import com.jfinal.plugin.activerecord.Db;
+import com.bdaim.crm.entity.LkCrmAdminRoleEntity;
+import com.bdaim.crm.entity.LkCrmAdminRoleMenuEntity;
+import com.bdaim.util.JavaBeanUtil;
 import com.jfinal.plugin.activerecord.Record;
-import com.bdaim.crm.erp.admin.entity.AdminMenu;
-import com.bdaim.crm.erp.admin.entity.AdminRole;
-import com.bdaim.crm.erp.admin.entity.AdminRoleMenu;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,8 +19,10 @@ import java.util.Map;
 @Transactional
 public class AdminMenuService {
 
-    @Resource
+    @Autowired
     LkCrmAdminMenuDao crmAdminMenuDao;
+    @Autowired
+    LkCrmAdminRoleDao crmAdminRoleDao;
 
     /**
      * 通过用户ID查询用户所拥有菜单
@@ -49,7 +51,7 @@ public class AdminMenuService {
      * 根据角色id查询菜单id
      */
     public List<Integer> getMenuIdByRoleId(Integer roleId) {
-        List<Record> menuList = Db.find(Db.getSql("admin.role.getMenuIdByRoleId"), roleId);
+        List<Record> menuList = JavaBeanUtil.mapToRecords(crmAdminRoleDao.queryDataTypeByUserId(roleId));
         List<Integer> menuIdList = new ArrayList<>(menuList.size());
         for (Record menu : menuList) {
             menuIdList.add(menu.getInt("menu_id"));
@@ -61,25 +63,25 @@ public class AdminMenuService {
      * @author wyq
      * 展示全部菜单
      */
-    public List<AdminMenu> getAllMenuList(Integer parentId, Integer deepness) {
-        List<AdminMenu> adminMenus = AdminMenu.dao.find(Db.getSql("admin.menu.queryMenuByParentId"), parentId);
+    public List<LkCrmAdminMenuEntity> getAllMenuList(Integer parentId, Integer deepness) {
+        List<LkCrmAdminMenuEntity> adminMenus = crmAdminMenuDao.queryMenuByParentId(parentId);
         adminMenus.removeIf(adminMenu -> "work".equals(adminMenu.getRealm()));
         if (deepness != 0) {
             adminMenus.forEach(adminMenu -> {
                 if (!adminMenu.getMenuType().equals(3)) {
-                    adminMenu.put("childMenu", getAllMenuList(adminMenu.getMenuId(), deepness - 1));
+                    adminMenu.setChildMenu(getAllMenuList(adminMenu.getMenuId(), deepness - 1));
                 }
             });
         }
         return adminMenus;
     }
 
-    public List<AdminMenu> getWorkMenuList(Integer parentId, Integer deepness) {
-        List<AdminMenu> adminMenus = AdminMenu.dao.find(Db.getSql("admin.menu.queryMenuByParentId"), parentId);
+    public List<LkCrmAdminMenuEntity> getWorkMenuList(Integer parentId, Integer deepness) {
+        List<LkCrmAdminMenuEntity> adminMenus = crmAdminMenuDao.queryMenuByParentId(parentId);
         if (deepness != 0) {
             adminMenus.forEach(adminMenu -> {
                 if (!adminMenu.getMenuType().equals(3)) {
-                    adminMenu.put("childMenu", getAllMenuList(adminMenu.getMenuId(), deepness - 1));
+                    adminMenu.setChildMenu(getAllMenuList(adminMenu.getMenuId(), deepness - 1));
                 }
             });
         }
@@ -102,24 +104,25 @@ public class AdminMenuService {
      * 保存角色权限
      */
     public boolean saveRoleMenu(Integer roleId, Integer dateType, List<Integer> menuIdList) {
-        return Db.tx(() -> {
-            AdminRole adminRole = new AdminRole();
-            adminRole.setRoleId(roleId);
-            adminRole.setDataType(dateType);
-            adminRole.update();
+        //return Db.tx(() -> {
+        LkCrmAdminRoleEntity adminRole = new LkCrmAdminRoleEntity();
+        adminRole.setRoleId(roleId);
+        adminRole.setDataType(dateType);
+        crmAdminRoleDao.update(adminRole);
 
-            Db.delete(Db.getSql("admin.role.deleteRoleMenu"), roleId);
-            if (null == menuIdList || menuIdList.size() == 0) {
-                return true;
-            }
-
-            for (Integer menuId : menuIdList) {
-                AdminRoleMenu adminRoleMenu = new AdminRoleMenu();
-                adminRoleMenu.setRoleId(roleId);
-                adminRoleMenu.setMenuId(menuId);
-                adminRoleMenu.save();
-            }
+        crmAdminRoleDao.deleteRoleMenu(roleId);
+        //Db.delete(Db.getSql("admin.role.deleteRoleMenu"), roleId);
+        if (null == menuIdList || menuIdList.size() == 0) {
             return true;
-        });
+        }
+
+        for (Integer menuId : menuIdList) {
+            LkCrmAdminRoleMenuEntity adminRoleMenu = new LkCrmAdminRoleMenuEntity();
+            adminRoleMenu.setRoleId(roleId);
+            adminRoleMenu.setMenuId(menuId);
+            crmAdminMenuDao.saveOrUpdate(adminRoleMenu);
+        }
+        return true;
+        //});
     }
 }

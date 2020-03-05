@@ -21,4 +21,15 @@ public class LkCrmAdminRoleDao extends SimpleHibernateDao<LkCrmAdminRoleEntity, 
         }
         return data;
     }
+
+    public List<Map<String, Object>> queryDataTypeByUserId(Integer roleId) {
+        String sql = " select menu_id from lkcrm_admin_role_menu where role_id = ?";
+        List<Map<String, Object>> maps = sqlQuery(sql, roleId);
+        return maps;
+    }
+
+    public int deleteRoleMenu(Integer roleId) {
+        String sql = "  delete from 72crm_admin_role_menu where role_id = ?";
+        return executeUpdateSQL(sql, roleId);
+    }
 }

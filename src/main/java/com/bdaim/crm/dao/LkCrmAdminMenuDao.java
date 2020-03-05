@@ -13,4 +13,9 @@ public class LkCrmAdminMenuDao extends SimpleHibernateDao<LkCrmAdminMenuEntity, 
         String sql = "select concat((select realm from `lkcrm_admin_menu` where menu_id = b.parent_id),':',b.realm) from `lkcrm_admin_role_menu` a left join `lkcrm_admin_menu` b on a.menu_id = b.menu_id where a.role_id = ? and b.menu_type = 3";
         return this.queryListBySql(sql, roleId);
     }
+
+    public List<LkCrmAdminMenuEntity> queryMenuByParentId(Integer parentId) {
+        String sql = " from LkCrmAdminMenuEntity where parentId = ?";
+        return this.find(sql, parentId);
+    }
 }
