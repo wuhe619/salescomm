@@ -4,6 +4,7 @@ import com.bdaim.common.response.ResponseInfo;
 import com.bdaim.crm.common.annotation.NotNullValidate;
 import com.bdaim.crm.common.annotation.Permissions;
 import com.bdaim.crm.common.config.paragetter.BasePageRequest;
+import com.bdaim.crm.entity.LkCrmAdminUserEntity;
 import com.bdaim.crm.erp.admin.entity.AdminUser;
 import com.bdaim.crm.erp.admin.service.AdminFileService;
 import com.bdaim.crm.erp.admin.service.AdminUserService;
@@ -38,7 +39,7 @@ public class AdminUserController extends Controller {
      * 设置系统用户
      */
     @Permissions("manage:user")
-    public void setUser(@Para("") AdminUser adminUser) {
+    public void setUser(@Para("") LkCrmAdminUserEntity adminUser) {
         renderJson(adminUserService.setUser(adminUser, getPara("roleIds")));
     }
 
@@ -159,7 +160,7 @@ public class AdminUserController extends Controller {
 
     @NotNullValidate(value = "realname", message = "姓名不能为空")
     @NotNullValidate(value = "username", message = "用户名不能为空")
-    public void updateUser(@Para("") AdminUser adminUser) {
+    public void updateUser(@Para("") LkCrmAdminUserEntity adminUser) {
         boolean b = adminUserService.updateUser(adminUser);
         renderJson(R.isSuccess(b, "修改信息失败"));
     }
@@ -174,7 +175,7 @@ public class AdminUserController extends Controller {
     @NotNullValidate(value = "username", message = "账号不能为空")
     @NotNullValidate(value = "password", message = "密码不能为空")
     @NotNullValidate("id")
-    public void usernameEdit(@Para("id") Integer id, @Para("username") String username, @Para("password") String password) {
+    public void usernameEdit(@Para("id") Long id, @Para("username") String username, @Para("password") String password) {
         renderJson(adminUserService.usernameEdit(id, username, password));
 
     }
