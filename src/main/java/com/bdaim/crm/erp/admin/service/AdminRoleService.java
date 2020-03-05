@@ -4,23 +4,24 @@ import cn.hutool.core.util.ReUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.bdaim.crm.dao.LkCrmAdminRoleDao;
-import com.bdaim.crm.entity.LkCrmAdminMenuEntity;
-import com.bdaim.crm.entity.LkCrmAdminUserRoleEntity;
-import com.bdaim.util.NumberConvertUtil;
-import com.jfinal.aop.Before;
-import com.jfinal.aop.Inject;
-import com.jfinal.log.Log;
-import com.jfinal.plugin.activerecord.Db;
-import com.jfinal.plugin.activerecord.Record;
-import com.jfinal.plugin.activerecord.tx.Tx;
 import com.bdaim.crm.common.config.cache.CaffeineCache;
 import com.bdaim.crm.common.constant.BaseConstant;
-import com.bdaim.crm.erp.admin.entity.AdminMenu;
+import com.bdaim.crm.dao.LkCrmAdminMenuDao;
+import com.bdaim.crm.dao.LkCrmAdminRoleDao;
+import com.bdaim.crm.entity.LkCrmAdminMenuEntity;
+import com.bdaim.crm.entity.LkCrmAdminRoleEntity;
+import com.bdaim.crm.entity.LkCrmAdminRoleMenuEntity;
+import com.bdaim.crm.entity.LkCrmAdminUserRoleEntity;
 import com.bdaim.crm.erp.admin.entity.AdminRole;
-import com.bdaim.crm.erp.admin.entity.AdminRoleMenu;
 import com.bdaim.crm.erp.admin.entity.AdminUserRole;
 import com.bdaim.crm.utils.R;
+import com.bdaim.util.JavaBeanUtil;
+import com.bdaim.util.NumberConvertUtil;
+import com.jfinal.aop.Before;
+import com.jfinal.log.Log;
+import com.jfinal.plugin.activerecord.Record;
+import com.jfinal.plugin.activerecord.tx.Tx;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -35,10 +36,10 @@ import java.util.Map;
 @Transactional
 public class AdminRoleService {
 
-    @Resource
+    @Autowired
     private AdminMenuService adminMenuService;
 
-    @Resource
+    @Autowired
     private LkCrmAdminRoleDao crmAdminRoleDao;
 
     /**
@@ -51,10 +52,10 @@ public class AdminRoleService {
             Record record = new Record();
             record.set("name", roleTypeCaseName(roleType));
             record.set("pid", roleType);
-            List<Record> recordList = Db.find(Db.getSql("admin.role.getRoleListByRoleType"), roleType);
+            List<Record> recordList = JavaBeanUtil.mapToRecords(crmAdminRoleDao.getRoleListByRoleType(roleType));
             recordList.forEach(role -> {
-                List<Integer> crm = Db.query(Db.getSql("admin.role.getRoleMenu"), role.getInt("id"), 1, 1);
-                List<Integer> bi = Db.query(Db.getSql("admin.role.getRoleMenu"), role.getInt("id"), 2, 2);
+                List<Integer> crm = crmAdminRoleDao.getRoleMenu(role.getInt("id"), 1, 1);
+                List<Integer> bi = crmAdminRoleDao.getRoleMenu(role.getInt("id"), 2, 2);
                 role.set("rules", new JSONObject().fluentPut("crm", crm).fluentPut("bi", bi));
             });
             record.set("list", recordList);
@@ -67,8 +68,8 @@ public class AdminRoleService {
      * @author wyq
      * 根据角色类型查询关联员工
      */
-    public List<Record> getRoleUser(Integer roleType) {
-        return Db.find(Db.getSql("admin.role.getRoleUser"), roleType);
+    public List getRoleUser(Integer roleType) {
+        return crmAdminRoleDao.getRoleUser(roleType);
     }
 
     /**
@@ -76,7 +77,7 @@ public class AdminRoleService {
      * 新建
      */
     public R save(AdminRole adminRole) {
-        Integer number = Db.queryInt("select count(*) from 72crm_admin_role where role_name = ? and role_type = ?", adminRole.getRoleName(), adminRole.getRoleType());
+        Integer number = crmAdminRoleDao.queryForInt("select count(*) from lkcrm_admin_role where role_name = ? and role_type = ?", adminRole.getRoleName(), adminRole.getRoleType());
         if (number > 0) {
             return R.error("角色名已存在");
         }
@@ -87,7 +88,6 @@ public class AdminRoleService {
      * @author wyq
      * 编辑角色
      */
-    @Before(Tx.class)
     public Integer update(AdminRole adminRole) {
         adminRole.update();
         List<Integer> menuList;
@@ -104,7 +104,6 @@ public class AdminRoleService {
         return 0;
     }
 
-    @Before(Tx.class)
     public void updateRoleMenu(JSONObject jsonObject) {
         adminMenuService.saveRoleMenu(jsonObject.getInteger("id"), jsonObject.getInteger("type"), jsonObject.getJSONArray("rules").toJavaList(Integer.class));
     }
@@ -175,15 +174,19 @@ public class AdminRoleService {
      * 删除
      */
     public boolean delete(Integer roleId) {
-        Record record = Db.findFirst("select count(*) as menuNum from 72crm_admin_role_menu where role_id = ?", roleId);
+        Record record = JavaBeanUtil.mapToRecord(crmAdminRoleDao.queryUniqueSql("select count(*) as menuNum from lkcrm_admin_role_menu where role_id = ?", roleId));
         if (record.getInt("menuNum") == 0) {
-            return Db.delete(Db.getSql("admin.role.deleteRole"), roleId) > 0;
+            return crmAdminRoleDao.deleteRole(roleId) > 0;
+            //return Db.delete(Db.getSql("admin.role.deleteRole"), roleId) > 0;
         }
-        return Db.tx(() -> {
+        crmAdminRoleDao.deleteRole(roleId);
+        crmAdminRoleDao.deleteRoleMenu(roleId);
+        return true;
+       /* return Db.tx(() -> {
             Db.delete(Db.getSql("admin.role.deleteRole"), roleId);
             Db.delete(Db.getSql("admin.role.deleteRoleMenu"), roleId);
             return true;
-        });
+        });*/
     }
 
     /**
@@ -192,9 +195,11 @@ public class AdminRoleService {
      */
     @Before(Tx.class)
     public boolean deleteWorkRole(Integer roleId) {
-        Db.delete(Db.getSql("admin.role.deleteRole"), roleId);
-        Db.delete(Db.getSql("admin.role.deleteRoleMenu"), roleId);
-        Db.update("update `72crm_work_user` set role_id = ? where role_id = ?", BaseConstant.SMALL_WORK_EDIT_ROLE_ID, roleId);
+        crmAdminRoleDao.deleteRole(roleId);
+        crmAdminRoleDao.deleteRoleMenu(roleId);
+       /* Db.delete(Db.getSql("admin.role.deleteRole"), roleId);
+        Db.delete(Db.getSql("admin.role.deleteRoleMenu"), roleId);*/
+        crmAdminRoleDao.executeUpdateSQL("update `lkcrm_work_user` set role_id = ? where role_id = ?", BaseConstant.SMALL_WORK_EDIT_ROLE_ID, roleId);
         return true;
     }
 
@@ -205,22 +210,23 @@ public class AdminRoleService {
      */
     @Before(Tx.class)
     public void copy(Integer roleId) {
-        AdminRole adminRole = AdminRole.dao.findById(roleId);
-        List<Record> recordList = Db.find(Db.getSql("admin.role.getMenuIdsList"), roleId);
+        LkCrmAdminRoleEntity adminRole = crmAdminRoleDao.get(roleId);
+        List<Record> recordList = JavaBeanUtil.mapToRecords(crmAdminRoleDao.getMenuIdsList(roleId));
+        //List<Record> recordList = Db.find(Db.getSql("admin.role.getMenuIdsList"), roleId);
         List<Integer> menuIdsList = new ArrayList<>(recordList.size());
         for (Record record : recordList) {
             menuIdsList.add(record.getInt("menu_id"));
         }
         String roleName = adminRole.getRoleName().trim();
         String pre = ReUtil.delFirst("[(]\\d+[)]$", roleName);
-        List<AdminRole> adminRoleList;
+        List<LkCrmAdminRoleEntity> adminRoleList;
         if (!ReUtil.contains("^[(]\\d+[)]$", roleName)) {
-            adminRoleList = AdminRole.dao.find("select * from 72crm_admin_role where role_name like '" + pre + "%'");
+            adminRoleList = crmAdminRoleDao.find("from LkCrmAdminRoleEntity where roleName like '" + pre + "%'");
         } else {
-            adminRoleList = AdminRole.dao.find("select * from 72crm_admin_role where role_name regexp '^[(]\\d+[)]$'");
+            adminRoleList = crmAdminRoleDao.find("from LkCrmAdminRoleEntity where roleName regexp '^[(]\\d+[)]$'");
         }
         StringBuffer numberSb = new StringBuffer();
-        for (AdminRole dbAdminRole : adminRoleList) {
+        for (LkCrmAdminRoleEntity dbAdminRole : adminRoleList) {
             String endCode = ReUtil.get("[(]\\d+[)]$", dbAdminRole.getRoleName(), 0);
             if (endCode != null) {
                 numberSb.append(endCode);
@@ -233,9 +239,9 @@ public class AdminRoleService {
             }
         }
         adminRole.setRoleName(pre + "(" + i + ")");
-        adminRole.setRoleId(null);
-        adminRole.save();
-        Integer copyRoleId = adminRole.getInt("role_id");
+        //adminRole.setRoleId(null);
+        crmAdminRoleDao.save(adminRole);
+        Integer copyRoleId = adminRole.getRoleId();
         adminMenuService.saveRoleMenu(copyRoleId, adminRole.getDataType(), menuIdsList);
     }
 
@@ -243,14 +249,13 @@ public class AdminRoleService {
      * @author wyq
      * 角色关联员工
      */
-    @Before(Tx.class)
     public R relatedUser(AdminUserRole adminUserRole) {
         if (adminUserRole != null && adminUserRole.getUserIds() != null) {
             String[] userIdsArr = adminUserRole.getUserIds().split(",");
             String[] roleIdsArr = adminUserRole.getRoleIds().split(",");
             for (String userId : userIdsArr) {
                 for (String roleId : roleIdsArr) {
-                    Db.delete("delete from 72crm_admin_user_role where user_id = ? and role_id = ?", Integer.valueOf(userId), Integer.valueOf(roleId));
+                    crmAdminRoleDao.executeUpdateSQL("delete from lkcrm_admin_user_role where user_id = ? and role_id = ?", Integer.valueOf(userId), Integer.valueOf(roleId));
                     AdminUserRole userRole = new AdminUserRole();
                     userRole.setUserId(Long.valueOf(userId));
                     userRole.setRoleId(Integer.valueOf(roleId));
@@ -271,7 +276,7 @@ public class AdminRoleService {
         if (adminUserRole.getUserId().equals(BaseConstant.SUPER_ADMIN_USER_ID)) {
             return R.error("超级管理员不可被更改");
         }
-        return Db.delete("delete from 72crm_admin_user_role where user_id = ? and role_id = ?", adminUserRole.getUserId(), adminUserRole.getRoleId()) > 0 ? R.ok() : R.error();
+        return crmAdminRoleDao.executeUpdateSQL("delete from lkcrm_admin_user_role where user_id = ? and role_id = ?", adminUserRole.getUserId(), adminUserRole.getRoleId()) > 0 ? R.ok() : R.error();
     }
 
     public List<Integer> queryRoleIdsByUserId(Long userId) {
@@ -319,9 +324,13 @@ public class AdminRoleService {
      * @author wyq
      */
     public R queryProjectRoleList() {
-        List<Record> roleList = Db.find("select * from 72crm_admin_role where role_type in (5,6) and is_hidden = 1");
+        List<Record> roleList = JavaBeanUtil.mapToRecords(crmAdminRoleDao.sqlQuery("select * from lkcrm_admin_role where role_type in (5,6) and is_hidden = 1"));
         roleList.forEach(record -> {
-            List<Integer> rules = Db.query("select menu_id from 72crm_admin_role_menu where role_id = ?", record.getInt("role_id"));
+            List<Map<String, Object>> role_id = crmAdminRoleDao.sqlQuery("select menu_id from lkcrm_admin_role_menu where role_id = ?", record.getInt("role_id"));
+            List<Integer> rules = new ArrayList<>();
+            for (Map<String, Object> m : role_id) {
+                rules.add(NumberConvertUtil.parseInt(m.get("data_type")));
+            }
             record.set("rules", rules);
         });
         return R.ok().put("data", roleList);
@@ -341,14 +350,14 @@ public class AdminRoleService {
             bol = adminRole.save();
         } else {
             adminRole.setRoleId(roleId);
-            Db.delete("delete from `72crm_admin_role_menu` where role_id = ?", roleId);
+            crmAdminRoleDao.executeUpdateSQL("delete from `lkcrm_admin_role_menu` where role_id = ?", roleId);
             bol = adminRole.update();
         }
         rules.forEach(menuId -> {
-            AdminRoleMenu adminRoleMenu = new AdminRoleMenu();
+            LkCrmAdminRoleMenuEntity adminRoleMenu = new LkCrmAdminRoleMenuEntity();
             adminRoleMenu.setRoleId(adminRole.getRoleId());
             adminRoleMenu.setMenuId((Integer) menuId);
-            adminRoleMenu.save();
+            crmAdminRoleDao.saveOrUpdate(adminRoleMenu);
         });
         return bol ? R.ok() : R.error();
     }
