@@ -9,6 +9,8 @@ import com.bdaim.bill.service.TransactionService;
 import com.bdaim.common.exception.TouchException;
 import com.bdaim.common.service.BusiService;
 import com.bdaim.common.service.ElasticSearchService;
+import com.bdaim.crm.erp.crm.service.CrmLeadsService;
+import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.customersea.dto.CustomSeaTouchInfoDTO;
 import com.bdaim.customersea.service.CustomerSeaService;
 import com.bdaim.customs.entity.BusiTypeEnum;
@@ -63,6 +65,8 @@ public class B2BTcbService implements BusiService {
     private TransactionService transactionService;
     @Autowired
     private MarketResourceDao marketResourceDao;
+    @Autowired
+    private CrmLeadsService crmLeadsService;
 
     /**
      * 企业开通B2B套餐
@@ -335,6 +339,12 @@ public class B2BTcbService implements BusiService {
                 LOG.info("B2B套餐领取线索状态:{},seaType:{},data:{}", status, seaType, JSON.toJSONString(dto));
                 // 保存领取记录
                 saveTcbClueDataLog(custId, userId, batchId, entId, useB2BTcb.getString("id"), dto.getSuper_id(), JSON.toJSONString(dto));
+                // 判断是否为crm的线索领取
+                if ("crm".equals(param.getString("source")) && BaseUtil.getUserType() == 2 && status != -1) {
+                    List<String> superIds = new ArrayList<>();
+                    superIds.add(dto.getSuper_id());
+                    crmLeadsService.transferToPrivateSea(seaId, String.valueOf(userId), superIds);
+                }
             }
             consumeNum++;
         }

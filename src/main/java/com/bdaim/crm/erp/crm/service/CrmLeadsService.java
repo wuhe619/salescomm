@@ -670,7 +670,7 @@ public class CrmLeadsService {
      * @param superIds
      * @return
      */
-    private int transferToPrivateSea(String seaId, String userId, List<String> superIds) {
+    public int transferToPrivateSea(String seaId, String userId, List<String> superIds) {
         //添加到线索私海数据
         StringBuilder sql = new StringBuilder()
                 .append("SELECT * FROM  ").append(ConstantsUtil.SEA_TABLE_PREFIX).append(seaId).append(" WHERE id IN (")
@@ -690,7 +690,7 @@ public class CrmLeadsService {
                 jsonArray.add(BeanUtil.mapToBean(field, LkCrmAdminFieldvEntity.class, true));
             }
 
-            String batchId = IdUtil.simpleUUID();
+            String batchId = String.valueOf(m.get("id"));
             crmLeads.setBatchId(batchId);
             crmLeads.setCustId(BaseUtil.getUser().getCustId());
             crmRecordService.updateRecord(jsonArray, batchId);
@@ -975,6 +975,20 @@ public class CrmLeadsService {
         }
         return i > 0 ? R.ok() : R.error("线索删除失败");
         //}) ? R.ok() : R.error();
+    }
+
+    /**
+     * 根据id 删除线索
+     */
+    public R deleteByBatchIds(List idsList) {
+        if (idsList == null || idsList.size() == 0) {
+            R.error("leadsIds不能为空");
+        }
+        int i = crmLeadsDao.deleteByBatchIds(idsList);
+        if (idsList.size() > 0) {
+            crmLeadsDao.executeUpdateSQL("delete from lkcrm_admin_fieldv where batch_id IN( " + SqlAppendUtil.sqlAppendWhereIn(idsList) + " )");
+        }
+        return i > 0 ? R.ok() : R.error("线索删除失败");
     }
 
     /**
