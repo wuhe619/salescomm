@@ -17,7 +17,6 @@ import com.bdaim.crm.erp.oa.service.OaExamineCategoryService;
 import com.bdaim.crm.utils.AuthUtil;
 import com.bdaim.crm.utils.BaseUtil;
 import com.bdaim.crm.utils.R;
-import com.bdaim.util.JavaBeanUtil;
 import com.jfinal.core.paragetter.Para;
 import com.jfinal.kit.Kv;
 import com.jfinal.plugin.activerecord.Record;
@@ -232,7 +231,7 @@ public class AdminFieldController extends BasicAction {
             }
         });
         ///resp.setData(JavaBeanUtil.recordToMap(records));
-        return (R.ok().put("data", JavaBeanUtil.recordToMap(records)));
+        return (R.ok().put("data", records));
     }
 
     /**
