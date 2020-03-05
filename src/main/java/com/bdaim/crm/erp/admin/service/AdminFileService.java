@@ -51,6 +51,7 @@ public class AdminFileService {
      * @param file    文件
      * @param batchId 批次ID
      */
+    @Deprecated
     public R upload(UploadFile file, String batchId, String fileType, String prefix) {
         if (batchId == null || "".equals(batchId)) {
             batchId = IdUtil.simpleUUID();
